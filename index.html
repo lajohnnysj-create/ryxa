@@ -1802,10 +1802,14 @@ async function updateUnfollowerLog() {
     .filter(r => !r.mutual && !r.followerOnly)
     .map(r => r.handle.toLowerCase());
 
+  console.log('updateUnfollowerLog - sending', currentUnfollowers.length, 'unfollowers:', currentUnfollowers.slice(0, 5));
+
   // Use Edge Function to bypass RLS
-  await sb.functions.invoke('manage-unfollower-log', {
+  const { data, error } = await sb.functions.invoke('manage-unfollower-log', {
     body: { userId: currentUser.id, currentUnfollowers }
   });
+
+  console.log('updateUnfollowerLog result:', data, error);
 
   await loadUnfollowerLog();
 }
