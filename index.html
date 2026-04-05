@@ -1238,11 +1238,13 @@ function clearUser() {
 
 async function fetchTier(userId) {
   // Checks the `subscriptions` table written by the Stripe webhook Edge Function
-  const { data } = await sb
+  const { data: rows } = await sb
     .from('subscriptions')
     .select('tier, status')
     .eq('user_id', userId)
-    .single();
+    .limit(1);
+
+  const data = rows && rows.length > 0 ? rows[0] : null;
 
   if (data && data.status === 'active') {
     userTier = data.tier;
@@ -1663,12 +1665,14 @@ async function updateUnfollowerLog() {
 
   // Upsert current unfollowers as active
   for (const handle of currentUnfollowers) {
-    const { data: existing } = await sb
+    const { data: rows } = await sb
       .from('unfollower_log')
       .select('id, first_seen')
       .eq('user_id', currentUser.id)
       .eq('handle', handle)
-      .single();
+      .limit(1);
+
+    const existing = rows && rows.length > 0 ? rows[0] : null;
 
     if (existing) {
       await sb.from('unfollower_log').update({ last_seen: now, status: 'active' }).eq('id', existing.id);
