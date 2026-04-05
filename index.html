@@ -713,7 +713,7 @@
   .account-tier-badge.free { background: rgba(255,255,255,0.07); color: var(--muted); }
 
   /* ── TOOL BUTTONS ── */
-  .tool-btns { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+  .tool-btns { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; margin-bottom: 20px; }
   .tool-btn {
     display: inline-flex; align-items: center; gap: 7px;
     background: transparent; border: 1px solid var(--border-hover);
@@ -1458,11 +1458,24 @@ function showToast(msg) {
 // WHITELIST
 // ════════════════════════════════════════════
 async function loadWhitelist() {
-  if (!currentUser || userTier !== 'monthly') return;
+  if (!currentUser) return;
   const { data } = await sb.from('whitelist').select('handle').eq('user_id', currentUser.id);
   if (data) {
     userWhitelist = new Set(data.map(r => r.handle.toLowerCase()));
-    if (allResults.length) filterResults();
+    updateWhitelistTabCount();
+    filterResults();
+  }
+}
+
+function updateWhitelistTabCount() {
+  const wlTabCount = document.getElementById('wl-tab-count');
+  if (wlTabCount) {
+    if (userWhitelist.size > 0) {
+      wlTabCount.textContent = userWhitelist.size;
+      wlTabCount.style.display = 'inline';
+    } else {
+      wlTabCount.style.display = 'none';
+    }
   }
 }
 
