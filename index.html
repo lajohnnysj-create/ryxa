@@ -882,7 +882,7 @@
 </section>
 
 <!-- FEATURES -->
-<section style="padding: 80px 48px; max-width: 1200px; margin: 0 auto;">
+<section id="features" style="padding: 80px 48px; max-width: 1200px; margin: 0 auto;">
   <p class="section-label">Why FindTheSnakes</p>
   <h2 class="section-title">Built differently, for good reason</h2>
   <div class="features-grid">
@@ -904,7 +904,7 @@
 </section>
 
 <!-- TRY IT FREE CTA -->
-<div style="text-align:center;padding:20px 24px 56px;">
+<div id="try-cta" style="text-align:center;padding:20px 24px 56px;">
   <button class="btn-primary" onclick="document.getElementById('tool').scrollIntoView({behavior:'smooth'})" style="font-size:17px;padding:18px 44px;">Try it free →</button>
 </div>
 
@@ -1178,10 +1178,24 @@ async function setUser(user) {
   updateMobileMenu();
 }
 
+function toggleMarketingSections(hide) {
+  const sections = ['features', 'try-cta', 'how', 'pricing'];
+  sections.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = hide ? 'none' : '';
+  });
+  // Also hide/show hero
+  const hero = document.querySelector('.hero');
+  if (hero) hero.style.display = hide ? 'none' : '';
+}
+
 function showDashboard() {
   // Show results section
   const results = document.getElementById('results');
   if (results) results.style.display = 'block';
+
+  // Hide marketing sections for logged-in users
+  toggleMarketingSections(true);
 
   // Show welcome banner
   const welcome = document.getElementById('dashboard-welcome');
@@ -1230,6 +1244,8 @@ function clearUser() {
   // Hide results section on sign out
   const results = document.getElementById('results');
   if (results) results.style.display = 'none';
+  // Show marketing sections again
+  toggleMarketingSections(false);
   const sob = document.getElementById('start-over-btn');
   if (sob) sob.classList.remove('visible');
   const welcome = document.getElementById('dashboard-welcome');
@@ -1255,8 +1271,27 @@ async function fetchTier(userId) {
 }
 
 async function signOut() {
-  await sb.auth.signOut();
-  clearUser();
+  try {
+    // Close any open menus first
+    const dropdown = document.getElementById('account-dropdown');
+    if (dropdown) dropdown.classList.remove('open');
+    const hamburger = document.getElementById('hamburger-btn');
+    if (hamburger) hamburger.classList.remove('open');
+    const mobileMenu = document.getElementById('mobile-menu');
+    if (mobileMenu) mobileMenu.classList.remove('open');
+
+    await sb.auth.signOut();
+    clearUser();
+    updateMobileMenu();
+
+    // Reload the page for a clean state
+    window.location.href = window.location.pathname;
+  } catch(err) {
+    console.error('Sign out error:', err);
+    // Force clear anyway
+    clearUser();
+    window.location.href = window.location.pathname;
+  }
 }
 
 // ════════════════════════════════════════════
@@ -2414,6 +2449,9 @@ function renderResults() {
   // Hide welcome banner once analysis is run
   const welcome = document.getElementById('dashboard-welcome');
   if (welcome) welcome.classList.remove('visible');
+
+  // Hide marketing sections if user is logged in
+  if (currentUser) toggleMarketingSections(true);
 
   // Show start over button
   const sob = document.getElementById('start-over-btn');
