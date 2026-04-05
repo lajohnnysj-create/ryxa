@@ -816,9 +816,9 @@
 <!-- MOBILE MENU -->
 <div class="mobile-menu" id="mobile-menu">
   <div class="mobile-menu-links">
-    <a href="#how" onclick="closeMobileMenu()">How it works</a>
-    <a href="#tool" onclick="closeMobileMenu()">Try it</a>
-    <a href="#pricing" onclick="closeMobileMenu()">Pricing</a>
+    <a href="#how" onclick="closeMobileMenu()" class="mobile-marketing">How it works</a>
+    <a href="#tool" onclick="closeMobileMenu()" class="mobile-marketing">Try it</a>
+    <a href="#pricing" onclick="closeMobileMenu()" class="mobile-marketing">Pricing</a>
     <a href="instructions.html">Instructions</a>
     <a href="faq.html">FAQ</a>
   </div>
@@ -837,10 +837,10 @@
 <!-- NAV -->
 <nav>
   <div class="logo"><span class="logo-dot"></span>FindTheSnakes</div>
-  <div class="nav-links">
-    <a href="#how">How it works</a>
-    <a href="#tool">Try it</a>
-    <a href="#pricing">Pricing</a>
+  <div class="nav-links" id="nav-links">
+    <a href="#how" class="nav-marketing">How it works</a>
+    <a href="#tool" class="nav-marketing">Try it</a>
+    <a href="#pricing" class="nav-marketing">Pricing</a>
     <a href="instructions.html">Instructions</a>
     <a href="faq.html">FAQ</a>
   </div>
@@ -1187,6 +1187,10 @@ function toggleMarketingSections(hide) {
   // Also hide/show hero
   const hero = document.querySelector('.hero');
   if (hero) hero.style.display = hide ? 'none' : '';
+  // Hide/show marketing nav links
+  document.querySelectorAll('.nav-marketing, .mobile-marketing').forEach(el => {
+    el.style.display = hide ? 'none' : '';
+  });
 }
 
 function showDashboard() {
