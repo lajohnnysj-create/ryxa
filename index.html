@@ -2531,9 +2531,33 @@ function filterResults() {
     return;
   }
 
-  // For whitelist tab — show all whitelisted accounts directly
+  // For whitelist tab — build directly from userWhitelist (not just current analysis)
   if (currentFilter === 'whitelist') {
-    el.innerHTML = filtered.map(r => buildRow(r, false)).join('');
+    if (userWhitelist.size === 0) {
+      el.innerHTML = '<div class="empty-state"><span class="emoji">🛡</span>Your whitelist is empty.<br>Add accounts by clicking the "+ Hide" button on any result row.</div>';
+      paywallEl.innerHTML = '';
+      return;
+    }
+    const wlRows = [...userWhitelist].map(handle => {
+      // Check if handle exists in allResults for status info
+      const result = allResults.find(r => r.handle.toLowerCase() === handle.toLowerCase());
+      if (result) {
+        return buildRow(result, false);
+      }
+      // Handle not in current analysis — show basic row
+      const note = accountNotes[handle.toLowerCase()] || '';
+      return `<div class="result-item">
+        <div>
+          <div class="result-handle"><a href="https://instagram.com/${handle}" target="_blank" rel="noopener">@${handle}</a></div>
+          ${note ? `<div class="note-display">📝 ${note}</div>` : ''}
+        </div>
+        <div><span class="tag unfollow" style="background:rgba(255,255,255,0.05);color:var(--muted);border-color:var(--border)">Whitelisted</span></div>
+        <div><button class="whitelist-btn whitelisted" onclick="toggleWhitelist('${handle}')">✓ Unhide</button></div>
+        <div><button class="note-icon-btn" onclick="toggleNoteRow('${handle}')">📝</button></div>
+        <div></div>
+      </div>`;
+    });
+    el.innerHTML = wlRows.join('');
     paywallEl.innerHTML = '';
     return;
   }
