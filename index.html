@@ -1934,10 +1934,14 @@ async function toggleSnakeList(handle) {
   if (userSnakeList.has(handle)) {
     // Update UI instantly
     userSnakeList.delete(handle);
+    delete snakeListDates[handle];
     showMiniToast(`@${handle} removed from Snake List`);
     updateSnakeTabCount();
-    filterResults();
-    if (currentFilter === 'snakes') renderSnakeList();
+    if (currentFilter === 'snakes') {
+      renderSnakeList(); // just re-render snake list, skip filterResults
+    } else {
+      filterResults();
+    }
     // Sync to Supabase in background
     sb.from('snake_list').delete().eq('user_id', currentUser.id).eq('handle', handle);
   } else {
@@ -1946,8 +1950,11 @@ async function toggleSnakeList(handle) {
     snakeListDates[handle] = new Date().toISOString();
     showMiniToast(`🐍 @${handle} added to your Snake List!`);
     updateSnakeTabCount();
-    filterResults();
-    if (currentFilter === 'snakes') renderSnakeList();
+    if (currentFilter === 'snakes') {
+      renderSnakeList();
+    } else {
+      filterResults();
+    }
     // Sync to Supabase in background
     sb.from('snake_list').insert({ user_id: currentUser.id, handle });
   }
