@@ -2470,6 +2470,13 @@ function filterResults() {
     return;
   }
 
+  // For whitelist tab — show all whitelisted accounts directly
+  if (currentFilter === 'whitelist') {
+    el.innerHTML = filtered.map(r => buildRow(r, false)).join('');
+    paywallEl.innerHTML = '';
+    return;
+  }
+
   const unfollowerResults = filtered.filter(r => !r.mutual && !r.followerOnly && !userWhitelist.has(r.handle.toLowerCase()));
   const otherResults = filtered.filter(r => r.mutual || r.followerOnly);
 
