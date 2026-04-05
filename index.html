@@ -98,7 +98,7 @@
   .nav-links { display: flex; gap: 36px; }
   .nav-links a { color: var(--muted); font-size: 14px; text-decoration: none; transition: color 0.2s; }
   .nav-links a:hover { color: var(--text); }
-  .nav-right { display: flex; align-items: center; gap: 12px; }
+  .nav-right { display: flex; align-items: center; gap: 12px; position: relative; z-index: 201; }
   .nav-user { font-size: 13px; color: var(--muted); }
   .nav-user span { color: var(--text); font-weight: 500; }
   .nav-cta {
@@ -857,11 +857,11 @@
     <!-- Logged out -->
     <button class="nav-cta" id="nav-signin-btn" onclick="openAuthModal()">Sign in</button>
     <!-- Logged in -->
-    <div id="nav-user-area" style="display:none;align-items:center;gap:10px;">
+    <div id="nav-user-area" style="display:none;align-items:center;gap:10px;position:relative;z-index:202;">
       <span id="nav-tier-badge" class="account-tier-badge free">Free</span>
       <span id="nav-email-display" style="font-size:13px;color:var(--muted);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
-      <button class="nav-cta ghost" id="cancel-sub-btn" style="display:none;font-size:13px;" onclick="handleSubBtn()">Cancel plan</button>
-      <button class="nav-cta ghost" onclick="signOut()" style="font-size:13px;">Sign out</button>
+      <button class="nav-cta ghost" id="cancel-sub-btn" style="display:none;font-size:13px;position:relative;z-index:203;" onclick="handleSubBtn()">Cancel plan</button>
+      <button class="nav-cta ghost" style="font-size:13px;position:relative;z-index:203;" onclick="signOut()">Sign out</button>
     </div>
   </div>
   <!-- Hamburger (mobile only) -->
@@ -2144,14 +2144,7 @@ function startOver() {
 // ════════════════════════════════════════════
 function toggleAccountMenu() { /* deprecated */ }
 
-// Close dropdown when clicking outside
-document.addEventListener('click', e => {
-  const menu = document.getElementById('account-menu');
-  if (menu && !menu.contains(e.target)) {
-    const dropdown = document.getElementById('account-dropdown');
-    if (dropdown) dropdown.classList.remove('open');
-  }
-});
+// Dropdown removed - using inline buttons instead
 
 function openCancelModal() {
   document.getElementById('cancel-modal').classList.add('open');
