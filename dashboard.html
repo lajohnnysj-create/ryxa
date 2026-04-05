@@ -1155,27 +1155,10 @@ function handleSignOut() {
 }
 
 async function signOut() {
-  try {
-    // Close any open menus first
-    const dropdown = document.getElementById('account-dropdown');
-    if (dropdown) dropdown.classList.remove('open');
-    const hamburger = document.getElementById('hamburger-btn');
-    if (hamburger) hamburger.classList.remove('open');
-    const mobileMenu = document.getElementById('mobile-menu');
-    if (mobileMenu) mobileMenu.classList.remove('open');
-
-    await sb.auth.signOut();
-    clearUser();
-    updateMobileMenu();
-
-    // Redirect to home after logout
-    window.location.href = 'index.html';
-  } catch(err) {
-    console.error('Sign out error:', err);
-    // Force clear anyway
-    clearUser();
-    window.location.href = window.location.pathname;
-  }
+  // Redirect immediately — don't wait for Supabase
+  // Sign out in background so it's instant for the user
+  sb.auth.signOut(); // fire and forget
+  window.location.href = 'index.html';
 }
 
 // ════════════════════════════════════════════
