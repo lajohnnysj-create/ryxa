@@ -2087,6 +2087,7 @@ async function reactivateSubscription() {
   }
 
   userStatus = 'active';
+  if (btn) { btn.disabled = false; }
   updateNavTierBadge();
   showToast('🎉 Your Pro plan has been renewed! You are all set.');
 }
