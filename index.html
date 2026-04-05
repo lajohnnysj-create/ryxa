@@ -299,6 +299,7 @@
     cursor: pointer; transition: all 0.22s; text-align: left; background: var(--bg);
   }
   .paywall-plan:hover { border-color: var(--accent); background: rgba(232,68,90,0.04); transform: translateY(-2px); }
+  .paywall-plan button { position: relative; z-index: 2; }
   .paywall-plan.featured-plan { border-color: rgba(232,68,90,0.5); background: rgba(232,68,90,0.06); }
   .paywall-plan-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); font-weight: 600; margin-bottom: 6px; }
   .paywall-plan-price { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; line-height: 1; margin-bottom: 4px; }
@@ -1135,6 +1136,17 @@
 
 <script>
 // ════════════════════════════════════════════
+// GLOBAL ERROR HANDLER
+// ════════════════════════════════════════════
+window.onerror = function(msg, src, line, col, err) {
+  console.error('Global error:', msg, 'at line', line);
+  return false;
+};
+window.onunhandledrejection = function(e) {
+  console.error('Unhandled promise rejection:', e.reason);
+};
+
+// ════════════════════════════════════════════
 // CONFIG — swap these placeholders when ready
 // ════════════════════════════════════════════
 const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
@@ -1419,6 +1431,7 @@ async function handleAuth() {
 // STRIPE CHECKOUT — Edge Function
 // ════════════════════════════════════════════
 async function startCheckout(planType) {
+  try {
   if (!currentUser) {
     pendingCheckout = planType;
     openAuthModal();
@@ -1444,6 +1457,10 @@ async function startCheckout(planType) {
   }
 
   window.location.href = data.url;
+  } catch(err) {
+    console.error('startCheckout error:', err);
+    alert('Something went wrong. Please refresh the page and try again.');
+  }
 }
 
 // Handle post-payment redirect
@@ -2853,19 +2870,19 @@ function buildPaywall(hiddenCount, totalUnfollowers) {
     <h3>Unlock your full list</h3>
     <p>You've seen ${FREE_LIMIT} of ${totalUnfollowers} people who aren't following you back.<br>Upgrade to reveal every one of them instantly.</p>
     <div class="paywall-plans">
-      <div class="paywall-plan" onclick="startCheckout('one_time')">
+      <div class="paywall-plan">
         <div class="paywall-plan-label">One-time</div>
         <div class="paywall-plan-price">$3</div>
         <div class="paywall-plan-period">pay once</div>
         <div class="paywall-plan-feature">Full results for this analysis. One and done.</div>
-        <button class="paywall-plan-btn secondary">Unlock for $3</button>
+        <button class="paywall-plan-btn secondary" onclick="startCheckout('one_time')">Unlock for $3</button>
       </div>
-      <div class="paywall-plan featured-plan" onclick="startCheckout('monthly')">
+      <div class="paywall-plan featured-plan">
         <div class="paywall-plan-label">⭐ Unlimited</div>
         <div class="paywall-plan-price">$10</div>
         <div class="paywall-plan-period">per month</div>
         <div class="paywall-plan-feature">Unlimited analyses, whitelist, and full audit history to track who unfollowed over time.</div>
-        <button class="paywall-plan-btn primary">Go unlimited</button>
+        <button class="paywall-plan-btn primary" onclick="startCheckout('monthly')">Go unlimited</button>
       </div>
     </div>
     ${!currentUser ? `<p style="margin-top:20px;font-size:13px;color:var(--muted)">Already paid? <a href="#" onclick="openAuthModal();return false;" style="color:var(--accent)">Sign in to restore access</a></p>` : ''}
