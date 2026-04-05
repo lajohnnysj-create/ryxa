@@ -2570,7 +2570,7 @@ function analyze() {
   btn.classList.add('processing');
   btn.innerHTML = '<span class="btn-spinner"></span><span class="processing-dots">Processing</span>';
 
-  setTimeout(() => {
+  setTimeout(async () => {
     const followers = extractHandles(followersData);
     const following = extractHandles(followingData);
 
@@ -2608,11 +2608,17 @@ function analyze() {
     // One-time tier: increment usage in Supabase and mark locally as used
     if (userTier === 'one_time' && currentUser) {
       userTier = 'free'; // immediately prevent further use
+      userStatus = 'free';
       updateNavTierBadge(); // update badge to show Free
-      sb.from('subscriptions')
+      const { error: updateError } = await sb
+        .from('subscriptions')
         .update({ analyses_used: 1 })
-        .eq('user_id', currentUser.id)
-        .then(() => console.log('Analysis usage recorded'));
+        .eq('user_id', currentUser.id);
+      if (updateError) {
+        console.error('Failed to record analysis usage:', updateError);
+      } else {
+        console.log('Analysis usage recorded successfully');
+      }
     }
 
     btn.disabled = false;
