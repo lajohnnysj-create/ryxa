@@ -326,8 +326,7 @@
     align-items: center; justify-content: center;
     pointer-events: none;
   }
-  .modal-backdrop.open { pointer-events: all; }
-  .modal-backdrop.open { display: flex; }
+  .modal-backdrop.open { pointer-events: all; display: flex; }
   .modal {
     background: var(--surface); border: 1px solid var(--border-hover);
     border-radius: 20px; padding: 40px; width: 420px; max-width: 95vw;
@@ -1147,6 +1146,23 @@
 // ════════════════════════════════════════════
 // GLOBAL ERROR HANDLER
 // ════════════════════════════════════════════
+
+// Close modals on Escape key
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeAuthModal();
+    closeCancelModal();
+  }
+});
+
+// Close modals when clicking backdrop
+document.getElementById('auth-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeAuthModal();
+});
+document.getElementById('cancel-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeCancelModal();
+});
+
 window.onerror = function(msg, src, line, col, err) {
   console.error('Global error:', msg, 'at line', line);
   return false;
@@ -1181,8 +1197,13 @@ async function initAuth() {
   if (session?.user) await setUser(session.user);
 
   sb.auth.onAuthStateChange(async (_event, session) => {
-    if (session?.user) await setUser(session.user);
-    else clearUser();
+    if (session?.user) {
+      // Always close auth modal when user signs in
+      closeAuthModal();
+      await setUser(session.user);
+    } else {
+      clearUser();
+    }
   });
 }
 
@@ -1353,8 +1374,14 @@ function openAuthModalForCheckout(planType) {
   showAuthMsg('error', 'Sign in or create a free account to continue to checkout.');
 }
 function closeAuthModal() {
-  document.getElementById('auth-modal').classList.remove('open');
+  const modal = document.getElementById('auth-modal');
+  modal.classList.remove('open');
+  modal.style.display = 'none';
+  setTimeout(() => { modal.style.display = ''; }, 50);
   document.getElementById('auth-msg').style.display = 'none';
+  // Reset button state
+  const btn = document.getElementById('auth-submit-btn');
+  if (btn) { btn.disabled = false; btn.textContent = 'Sign in'; }
 }
 function toggleAuthMode() {
   authMode = authMode === 'signin' ? 'signup' : 'signin';
@@ -2131,7 +2158,10 @@ function openCancelModal() {
 }
 
 function closeCancelModal() {
-  document.getElementById('cancel-modal').classList.remove('open');
+  const modal = document.getElementById('cancel-modal');
+  modal.classList.remove('open');
+  modal.style.display = 'none';
+  setTimeout(() => { modal.style.display = ''; }, 50);
   const btn = document.getElementById('cancel-confirm-btn');
   if (btn) { btn.disabled = false; btn.textContent = 'Yes, cancel my subscription'; }
 }
