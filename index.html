@@ -999,7 +999,6 @@
         <button class="tool-btn locked" id="print-btn" onclick="handleToolBtn('print')">🖨&nbsp; Print report</button>
         <button class="tool-btn locked" id="csv-btn" onclick="handleToolBtn('csv')">📥&nbsp; Export to CSV</button>
       </div>
-      <input class="search-input" id="search-input" placeholder="Search by username…" oninput="filterResults()">
       <div class="filter-tabs">
         <button class="filter-tab active" onclick="setFilter('unfollowers',this)">Not following back</button>
         <button class="filter-tab" onclick="setFilter('mutual',this)">Mutual</button>
@@ -2499,7 +2498,7 @@ function renderResults() {
 }
 
 function filterResults() {
-  const query = document.getElementById('search-input').value.toLowerCase().trim();
+  const query = '';
   const isPaid = userTier === 'one_time' || userTier === 'monthly';
 
   // Update whitelist tab count
@@ -2734,7 +2733,6 @@ function setFilter(f, btn) {
   const resultsList = document.getElementById('results-list-scroll');
   const paywallContainer = document.getElementById('paywall-container');
   const wlBanner = document.getElementById('wl-banner');
-  const searchInput = document.getElementById('search-input');
 
   const logSection = document.getElementById('log-section');
   const snakeSection = document.getElementById('snake-section');
@@ -2749,14 +2747,12 @@ function setFilter(f, btn) {
     if (resultsList) resultsList.style.display = 'none';
     if (paywallContainer) paywallContainer.style.display = 'none';
     if (wlBanner) wlBanner.style.display = 'none';
-    if (searchInput) searchInput.style.display = 'none';
     document.querySelector('.result-header-row') && (document.querySelector('.result-header-row').style.display = 'none');
   } else if (f === 'log') {
     if (logSection) logSection.style.display = 'block';
     if (resultsList) resultsList.style.display = 'none';
     if (paywallContainer) paywallContainer.style.display = 'none';
     if (wlBanner) wlBanner.style.display = 'none';
-    if (searchInput) searchInput.style.display = 'none';
     document.querySelector('.result-header-row') && (document.querySelector('.result-header-row').style.display = 'none');
     renderUnfollowerLog();
   } else if (f === 'snakes') {
@@ -2764,13 +2760,11 @@ function setFilter(f, btn) {
     if (resultsList) resultsList.style.display = 'none';
     if (paywallContainer) paywallContainer.style.display = 'none';
     if (wlBanner) wlBanner.style.display = 'none';
-    if (searchInput) searchInput.style.display = 'none';
     document.querySelector('.result-header-row') && (document.querySelector('.result-header-row').style.display = 'none');
     renderSnakeList();
   } else {
     if (resultsList) resultsList.style.display = 'block';
     if (paywallContainer) paywallContainer.style.display = 'block';
-    if (searchInput) searchInput.style.display = 'block';
     document.querySelector('.result-header-row') && (document.querySelector('.result-header-row').style.display = 'grid');
     filterResults();
   }
