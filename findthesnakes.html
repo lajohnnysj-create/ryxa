@@ -1,0 +1,2723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FindTheSnakes — Find Instagram Unfollowers Safely</title>
+<meta name="description" content="Find out who unfollowed you on Instagram almost instantly. Upload your own data export files — no Instagram password required. Your files never leave your device.">
+<meta name="keywords" content="instagram unfollowers, find instagram unfollowers, who unfollowed me instagram, instagram follower tracker, instagram unfollow checker">
+<meta name="author" content="FindTheSnakes">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://www.findthesnakes.com/">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.findthesnakes.com/">
+<meta property="og:title" content="FindTheSnakes — Find Instagram Unfollowers Safely">
+<meta property="og:description" content="Find out who unfollowed you on Instagram. No Instagram password required. Upload your own export files and see your full results almost instantly.">
+<meta property="og:image" content="https://www.findthesnakes.com/og-image.png">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="FindTheSnakes — Find Instagram Unfollowers Safely">
+<meta name="twitter:description" content="Find out who unfollowed you on Instagram. No Instagram password required. Upload your own export files and see your full results almost instantly.">
+<meta name="twitter:image" content="https://www.findthesnakes.com/og-image.png">
+
+<!-- Structured Data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "FindTheSnakes",
+  "url": "https://www.findthesnakes.com",
+  "description": "Find out who unfollowed you on Instagram safely and instantly. No password required.",
+  "applicationCategory": "SocialNetworkingApplication",
+  "operatingSystem": "Web",
+  "offers": [
+    {
+      "@type": "Offer",
+      "name": "Free",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    {
+      "@type": "Offer",
+      "name": "One-time",
+      "price": "3",
+      "priceCurrency": "USD"
+    },
+    {
+      "@type": "Offer",
+      "name": "Pro Monthly",
+      "price": "10",
+      "priceCurrency": "USD"
+    }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://js.stripe.com/v3/"></script>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface2: #1a1a26;
+    --border: rgba(255,255,255,0.07);
+    --border-hover: rgba(255,255,255,0.15);
+    --accent: #e8445a;
+    --gold: #f5c842;
+    --text: #f0eef8;
+    --muted: #7a788f;
+    --muted2: #4a4860;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg); color: var(--text);
+    min-height: 100vh; overflow-x: hidden;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 48px;
+    background: rgba(10,10,15,0.8); backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+  .logo {
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 22px;
+    letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px;
+  }
+  .logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); display: inline-block; }
+  .nav-links { display: flex; gap: 36px; }
+  .nav-links a { color: var(--muted); font-size: 14px; text-decoration: none; transition: color 0.2s; }
+  .nav-links a:hover { color: var(--text); }
+  .nav-right { display: flex; align-items: center; gap: 12px; }
+  .nav-user { font-size: 13px; color: var(--muted); }
+  .nav-user span { color: var(--text); font-weight: 500; }
+  .nav-cta {
+    background: var(--accent); color: #fff; border: none; border-radius: 8px;
+    padding: 10px 22px; font-size: 14px; font-weight: 500;
+    font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.2s;
+  }
+  .nav-cta:hover { background: #f05570; transform: translateY(-1px); }
+  .nav-cta.ghost {
+    background: transparent; border: 1px solid var(--border-hover); color: var(--muted);
+  }
+  .nav-cta.ghost:hover { color: var(--text); background: rgba(255,255,255,0.04); transform: none; }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 120px 24px 80px; position: relative; text-align: center; overflow: hidden;
+  }
+  .hero-bg { position: absolute; inset: 0; pointer-events: none; }
+  .hero-bg::before {
+    content: ''; position: absolute; top: -20%; left: 50%; transform: translateX(-50%);
+    width: 900px; height: 900px;
+    background: radial-gradient(ellipse, rgba(232,68,90,0.12) 0%, transparent 70%); border-radius: 50%;
+  }
+  .grid-lines {
+    position: absolute; inset: 0; pointer-events: none;
+    background-image: linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 64px 64px;
+    mask-image: radial-gradient(ellipse at 50% 40%, black 0%, transparent 70%);
+  }
+  .badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    border: 1px solid rgba(232,68,90,0.4); background: rgba(232,68,90,0.08);
+    border-radius: 100px; padding: 6px 16px; font-size: 12px;
+    color: #ff8fa0; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase;
+    margin-bottom: 32px; animation: fadeUp 0.6s ease both;
+  }
+  .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.3)} }
+  .hero h1 {
+    font-family: 'Syne', sans-serif; font-size: clamp(44px, 7vw, 86px);
+    font-weight: 800; line-height: 1.0; letter-spacing: -2px; max-width: 820px;
+    animation: fadeUp 0.6s 0.1s ease both;
+  }
+  .hero h1 em { font-style: normal; color: var(--accent); }
+  .hero h1 .line2 { display: block; color: var(--muted); font-weight: 700; }
+  .hero-sub {
+    max-width: 480px; font-size: 17px; line-height: 1.65; color: var(--muted);
+    margin-top: 24px; font-weight: 300; animation: fadeUp 0.6s 0.2s ease both;
+  }
+  .hero-actions {
+    display: flex; gap: 14px; margin-top: 40px; flex-wrap: wrap; justify-content: center;
+    animation: fadeUp 0.6s 0.3s ease both;
+  }
+  .btn-primary {
+    background: var(--accent); color: #fff; border: none; border-radius: 10px;
+    padding: 16px 34px; font-size: 16px; font-weight: 500;
+    font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.25s;
+    box-shadow: 0 0 40px rgba(232,68,90,0.3);
+  }
+  .btn-primary:hover { background: #f05570; transform: translateY(-2px); box-shadow: 0 0 60px rgba(232,68,90,0.4); }
+  .btn-secondary {
+    background: transparent; color: var(--text); border: 1px solid var(--border-hover);
+    border-radius: 10px; padding: 16px 34px; font-size: 16px; font-weight: 400;
+    font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.25s;
+  }
+  .btn-secondary:hover { border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.04); }
+  .hero-stat-row { display: flex; gap: 48px; margin-top: 56px; animation: fadeUp 0.6s 0.4s ease both; }
+  .stat { text-align: center; }
+  .stat-num { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; }
+  .stat-label { font-size: 12px; color: var(--muted); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:none} }
+
+  /* ── FEATURES ── */
+  .section { padding: 100px 48px; max-width: 1200px; margin: 0 auto; }
+  .section-label { font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 16px; }
+  .section-title { font-family: 'Syne', sans-serif; font-size: clamp(32px, 4vw, 52px); font-weight: 800; letter-spacing: -1.5px; line-height: 1.1; max-width: 560px; margin-bottom: 64px; }
+  .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; background: var(--border); border-radius: 16px; overflow: hidden; }
+  .feat { background: var(--surface); padding: 40px 36px; transition: background 0.2s; position: relative; overflow: hidden; }
+  .feat:hover { background: var(--surface2); }
+  .feat::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(232,68,90,0.4), transparent); opacity: 0; transition: opacity 0.3s; }
+  .feat:hover::before { opacity: 1; }
+  .feat-icon { width: 48px; height: 48px; border-radius: 12px; background: rgba(232,68,90,0.12); border: 1px solid rgba(232,68,90,0.2); display: flex; align-items: center; justify-content: center; margin-bottom: 24px; font-size: 22px; }
+  .feat h3 { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 12px; }
+  .feat p { font-size: 14px; line-height: 1.7; color: var(--muted); font-weight: 300; }
+
+  /* ── HOW IT WORKS ── */
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; position: relative; }
+  .steps::before { content: ''; position: absolute; top: 32px; left: 15%; right: 15%; height: 1px; background: linear-gradient(90deg, transparent, var(--border-hover), transparent); }
+  .step { padding: 32px 32px 0; text-align: center; }
+  .step-num { width: 64px; height: 64px; border-radius: 50%; background: var(--surface2); border: 1px solid var(--border-hover); display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; margin: 0 auto 24px; position: relative; z-index: 1; }
+  .step:first-child .step-num { border-color: rgba(232,68,90,0.4); color: var(--accent); background: rgba(232,68,90,0.08); }
+  .step h4 { font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 700; margin-bottom: 10px; }
+  .step p { font-size: 14px; color: var(--muted); line-height: 1.65; font-weight: 300; }
+
+  /* ── TOOL SECTION ── */
+  .tool-section { padding: 100px 24px; background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .tool-inner { max-width: 900px; margin: 0 auto; }
+  .tool-header { text-align: center; margin-bottom: 56px; }
+  .tool-header .section-title { max-width: 100%; text-align: center; margin: 0 auto 12px; }
+  .tool-header p { color: var(--muted); font-size: 15px; }
+  .upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 28px; }
+  .upload-zone {
+    border: 1.5px dashed var(--muted2); border-radius: 14px; padding: 40px 28px;
+    text-align: center; transition: all 0.25s; cursor: pointer;
+    background: var(--bg); position: relative; overflow: hidden;
+  }
+  .upload-zone:hover, .upload-zone.drag-over { border-color: var(--accent); background: rgba(232,68,90,0.04); }
+  .upload-zone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .upload-icon { width: 52px; height: 52px; border-radius: 14px; background: rgba(255,255,255,0.04); border: 1px solid var(--border-hover); margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; font-size: 24px; transition: all 0.25s; }
+  .upload-zone:hover .upload-icon { background: rgba(232,68,90,0.1); border-color: rgba(232,68,90,0.3); }
+  .upload-label { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+  .upload-sublabel { font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .upload-sublabel span { color: var(--accent); }
+  .file-list { display: flex; flex-direction: column; gap: 6px; margin-top: 16px; max-height: 140px; overflow-y: auto; text-align: left; }
+  .file-item { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 7px; padding: 7px 12px; font-size: 12px; animation: slideIn 0.2s ease; }
+  @keyframes slideIn { from{opacity:0;transform:translateX(-8px)} to{opacity:1;transform:none} }
+  .file-item-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+  .file-item-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .file-item-size { color: var(--muted); flex-shrink: 0; }
+  .file-item-remove { color: var(--muted); cursor: pointer; flex-shrink: 0; padding: 2px; border-radius: 4px; line-height: 1; transition: color 0.15s; }
+  .file-item-remove:hover { color: var(--accent); }
+  .analyze-btn {
+    width: 100%; padding: 18px; background: var(--accent); color: #fff; border: none;
+    border-radius: 12px; font-size: 17px; font-weight: 500; font-family: 'DM Sans', sans-serif;
+    cursor: pointer; transition: all 0.25s; box-shadow: 0 0 50px rgba(232,68,90,0.25); position: relative; overflow: hidden;
+  }
+  .analyze-btn::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.08) 50%, transparent 100%); transform: translateX(-100%); transition: transform 0.5s; }
+  .analyze-btn:hover::after { transform: translateX(100%); }
+  .analyze-btn:hover { background: #f05570; transform: translateY(-2px); box-shadow: 0 0 70px rgba(232,68,90,0.4); }
+  .analyze-btn:disabled { background: var(--muted2); color: var(--muted); cursor: not-allowed; transform: none; box-shadow: none; }
+  .analyze-btn.processing { background: #b8334a; cursor: not-allowed; transform: none; box-shadow: 0 0 30px rgba(232,68,90,0.15); }
+  .analyze-btn.processing::after { display: none; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .btn-spinner {
+    display: inline-block; width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff;
+    border-radius: 50%; animation: spin 0.7s linear infinite;
+    vertical-align: middle; margin-right: 8px;
+  }
+  @keyframes dots { 0%,20%{content:'.'} 40%{content:'..'} 60%,100%{content:'...'} }
+  .processing-dots::after { content: '.'; animation: dots 1.2s steps(1) infinite; }
+  .error-box { background: rgba(232,68,90,0.08); border: 1px solid rgba(232,68,90,0.25); border-radius: 10px; padding: 14px 18px; font-size: 14px; color: #ff8fa0; margin-top: 16px; display: none; }
+
+  /* ── RESULTS ── */
+  #results { display: none; margin-top: 36px; }
+  .results-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+  .results-title { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; }
+  .results-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(232,68,90,0.1); border: 1px solid rgba(232,68,90,0.3); color: #ff8fa0; border-radius: 100px; padding: 4px 14px; font-size: 13px; }
+  .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+  .stat-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center; }
+  .stat-card .num { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; line-height: 1; }
+  .stat-card.danger .num { color: var(--accent); }
+  .stat-card.safe .num { color: #4ade80; }
+  .stat-card .lbl { font-size: 12px; color: var(--muted); margin-top: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .search-input { width: 100%; padding: 12px 18px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-size: 14px; font-family: 'DM Sans', sans-serif; margin-bottom: 12px; transition: border-color 0.2s; outline: none; }
+  .search-input:focus { border-color: var(--accent); }
+  .search-input::placeholder { color: var(--muted2); }
+  .filter-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+  .filter-tab { padding: 6px 16px; border-radius: 100px; font-size: 13px; cursor: pointer; border: 1px solid var(--border); background: transparent; color: var(--muted); font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
+  .filter-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .filter-tab:hover:not(.active) { border-color: var(--border-hover); color: var(--text); }
+  .filter-tab.wl-locked { opacity: 0.45; cursor: not-allowed; }
+  .filter-tab.wl-locked:hover { border-color: var(--border); color: var(--muted); opacity: 0.45; }
+  .results-list { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+
+
+  .result-item:last-child { border-bottom: none; }
+  .result-item:hover { background: rgba(255,255,255,0.03); }
+  .result-handle a { color: var(--text); text-decoration: none; }
+  .result-handle a:hover { color: var(--accent); }
+  .tag { display: inline-flex; align-items: center; gap: 5px; border-radius: 100px; padding: 3px 12px; font-size: 11px; font-weight: 500; letter-spacing: 0.03em; }
+  .tag.unfollow { background: rgba(232,68,90,0.12); color: #ff7a8f; border: 1px solid rgba(232,68,90,0.25); }
+  .tag.mutual { background: rgba(74,222,128,0.08); color: #4ade80; border: 1px solid rgba(74,222,128,0.2); }
+  .empty-state { text-align: center; padding: 48px 24px; color: var(--muted); font-size: 14px; }
+  .empty-state .emoji { font-size: 36px; display: block; margin-bottom: 12px; }
+  #results-list-scroll { max-height: 400px; overflow-y: auto; }
+  #results-list-scroll::-webkit-scrollbar { width: 4px; }
+  #results-list-scroll::-webkit-scrollbar-thumb { background: var(--muted2); border-radius: 2px; }
+
+  /* ── BLURRED ROWS ── */
+  .result-item.blurred { filter: blur(5px); user-select: none; pointer-events: none; opacity: 0.6; }
+
+  /* ── PAYWALL GATE ── */
+  .paywall-gate {
+    border: 1px solid rgba(232,68,90,0.3);
+    border-radius: 16px; overflow: hidden;
+    background: linear-gradient(160deg, rgba(232,68,90,0.06) 0%, var(--surface) 60%);
+    padding: 40px 36px; text-align: center; margin-top: 4px;
+  }
+  .paywall-lock { font-size: 36px; margin-bottom: 12px; }
+  .paywall-gate h3 { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+  .paywall-gate p { color: var(--muted); font-size: 14px; margin-bottom: 28px; line-height: 1.6; }
+  .paywall-count { font-family: 'Syne', sans-serif; font-size: 48px; font-weight: 800; color: var(--accent); line-height: 1; margin-bottom: 4px; }
+  .paywall-count-label { font-size: 13px; color: var(--muted); margin-bottom: 28px; text-transform: uppercase; letter-spacing: 0.06em; }
+  .paywall-plans { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; max-width: 520px; margin: 0 auto; }
+  .paywall-plan {
+    border: 1px solid var(--border-hover); border-radius: 12px; padding: 22px 20px;
+    cursor: pointer; transition: all 0.22s; text-align: left; background: var(--bg);
+  }
+  .paywall-plan:hover { border-color: var(--accent); background: rgba(232,68,90,0.04); transform: translateY(-2px); }
+  .paywall-plan.featured-plan { border-color: rgba(232,68,90,0.5); background: rgba(232,68,90,0.06); }
+  .paywall-plan-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); font-weight: 600; margin-bottom: 6px; }
+  .paywall-plan-price { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; line-height: 1; margin-bottom: 4px; }
+  .paywall-plan-period { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+  .paywall-plan-feature { font-size: 13px; color: var(--muted); line-height: 1.5; }
+  .paywall-plan-btn {
+    width: 100%; margin-top: 14px; padding: 10px; border-radius: 8px;
+    font-size: 13px; font-weight: 500; font-family: 'DM Sans', sans-serif;
+    cursor: pointer; transition: all 0.2s; border: none;
+  }
+  .paywall-plan-btn.primary { background: var(--accent); color: #fff; }
+  .paywall-plan-btn.primary:hover { background: #f05570; }
+  .paywall-plan-btn.secondary { background: rgba(255,255,255,0.07); color: var(--text); }
+  .paywall-plan-btn.secondary:hover { background: rgba(255,255,255,0.12); }
+
+  /* ── AUTH MODAL ── */
+  .modal-backdrop {
+    display: none; position: fixed; inset: 0; z-index: 300;
+    background: rgba(0,0,0,0.75); backdrop-filter: blur(8px);
+    align-items: center; justify-content: center;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal {
+    background: var(--surface); border: 1px solid var(--border-hover);
+    border-radius: 20px; padding: 40px; width: 420px; max-width: 95vw;
+    position: relative; animation: modalIn 0.25s ease;
+  }
+  @keyframes modalIn { from{opacity:0;transform:scale(0.95)} to{opacity:1;transform:none} }
+  .modal-close { position: absolute; top: 16px; right: 16px; background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+  .modal-close:hover { background: rgba(255,255,255,0.07); color: var(--text); }
+  .modal h2 { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; margin-bottom: 6px; }
+  .modal-sub { font-size: 14px; color: var(--muted); margin-bottom: 28px; }
+  .modal-input {
+    width: 100%; padding: 13px 16px; background: var(--bg);
+    border: 1px solid var(--border-hover); border-radius: 10px;
+    color: var(--text); font-size: 15px; font-family: 'DM Sans', sans-serif;
+    outline: none; transition: border-color 0.2s; margin-bottom: 12px; display: block;
+  }
+  .modal-input:focus { border-color: var(--accent); }
+  .modal-input::placeholder { color: var(--muted2); }
+  .modal-btn {
+    width: 100%; padding: 14px; background: var(--accent); color: #fff; border: none;
+    border-radius: 10px; font-size: 15px; font-weight: 500; font-family: 'DM Sans', sans-serif;
+    cursor: pointer; transition: all 0.2s; margin-top: 4px;
+  }
+  .modal-btn:hover { background: #f05570; }
+  .modal-btn:disabled { background: var(--muted2); cursor: not-allowed; }
+  .modal-switch { font-size: 13px; color: var(--muted); text-align: center; margin-top: 18px; }
+  .modal-switch a { color: var(--accent); cursor: pointer; text-decoration: none; }
+  .modal-switch a:hover { text-decoration: underline; }
+  .modal-msg { font-size: 13px; border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; display: none; }
+  .modal-msg.error { background: rgba(232,68,90,0.1); color: #ff8fa0; border: 1px solid rgba(232,68,90,0.25); }
+  .modal-msg.success { background: rgba(74,222,128,0.1); color: #4ade80; border: 1px solid rgba(74,222,128,0.25); }
+
+  /* ── PRICING ── */
+  .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; max-width: 900px; margin: 0 auto; }
+  .plan { border: 1px solid var(--border); border-radius: 16px; padding: 36px; background: var(--surface); transition: border-color 0.2s; }
+  .plan:hover { border-color: var(--border-hover); }
+  .plan.featured { border-color: rgba(232,68,90,0.4); background: linear-gradient(160deg, rgba(232,68,90,0.06) 0%, var(--surface) 60%); position: relative; }
+  .plan-badge { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--accent); color: #fff; border-radius: 100px; padding: 4px 16px; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; }
+  .plan-badge.blue { background: #1d6fb5; box-shadow: 0 0 20px rgba(29,111,181,0.4); }
+  .plan-name { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 600; color: var(--muted); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.06em; }
+  .plan-price { font-family: 'Syne', sans-serif; font-size: 48px; font-weight: 800; line-height: 1; margin-bottom: 4px; }
+  .plan-price sup { font-size: 22px; vertical-align: top; margin-top: 10px; display: inline-block; }
+  .plan-period { font-size: 13px; color: var(--muted); margin-bottom: 28px; }
+  .plan-features { list-style: none; display: flex; flex-direction: column; gap: 12px; margin-bottom: 28px; }
+  .plan-features li { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; line-height: 1.5; }
+  .plan-features li::before { content: '✓'; color: var(--accent); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+
+  footer { border-top: 1px solid var(--border); padding: 40px 48px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+  footer .logo { font-size: 18px; }
+  footer p { font-size: 13px; color: var(--muted); }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-thumb { background: var(--muted2); border-radius: 3px; }
+
+
+  /* ── HAMBURGER MENU ── */
+  .hamburger {
+    display: none; flex-direction: column; justify-content: center;
+    gap: 5px; background: none; border: none; cursor: pointer;
+    padding: 6px; border-radius: 8px; transition: background 0.2s;
+  }
+  .hamburger:hover { background: rgba(255,255,255,0.07); }
+  .hamburger span {
+    display: block; width: 22px; height: 2px;
+    background: var(--text); border-radius: 2px;
+    transition: all 0.25s;
+  }
+  .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .hamburger.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+  .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+  .mobile-menu {
+    display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: var(--bg); z-index: 150; flex-direction: column;
+    padding: 80px 32px 40px;
+    animation: slideDown 0.25s ease;
+  }
+  @keyframes slideDown { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:none} }
+  .mobile-menu.open { display: flex; }
+  .mobile-menu-links { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+  .mobile-menu-links a {
+    color: var(--text); font-size: 22px; font-family: 'Syne', sans-serif;
+    font-weight: 700; text-decoration: none; padding: 14px 0;
+    border-bottom: 1px solid var(--border); transition: color 0.2s;
+    letter-spacing: -0.5px;
+  }
+  .mobile-menu-links a:hover { color: var(--accent); }
+  .mobile-menu-bottom { display: flex; flex-direction: column; gap: 10px; margin-top: 32px; }
+  .mobile-signin-btn {
+    width: 100%; padding: 16px; background: var(--accent); color: #fff;
+    border: none; border-radius: 12px; font-size: 16px; font-weight: 500;
+    font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.2s;
+  }
+  .mobile-signin-btn:hover { background: #f05570; }
+  .mobile-account-info {
+    display: none; flex-direction: column; gap: 10px;
+  }
+  .mobile-account-info.visible { display: flex; }
+  .mobile-account-email { font-size: 13px; color: var(--muted); text-align: center; padding: 8px; }
+  .mobile-signout-btn {
+    width: 100%; padding: 14px; background: transparent;
+    border: 1px solid var(--border-hover); color: var(--muted);
+    border-radius: 12px; font-size: 15px; font-weight: 400;
+    font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.2s;
+  }
+  .mobile-signout-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .mobile-cancel-btn {
+    width: 100%; padding: 14px; background: transparent;
+    border: 1px solid rgba(232,68,90,0.3); color: #ff7a8f;
+    border-radius: 12px; font-size: 15px; font-weight: 400;
+    font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.2s;
+  }
+  .mobile-cancel-btn:hover { background: rgba(232,68,90,0.1); }
+
+  @media (max-width: 768px) {
+    .hamburger { display: flex; }
+    .nav-right { display: none; }
+    nav { padding: 16px 20px; }
+    .nav-links { display: none; }
+  }
+
+  @media (max-width: 768px) {
+    .section { padding: 64px 20px; }
+    .features-grid, .upload-grid, .stats-row, .steps, .pricing-grid, .paywall-plans { grid-template-columns: 1fr; }
+    .steps::before { display: none; }
+    footer { flex-direction: column; text-align: center; padding: 32px 20px; }
+    .hero-stat-row { gap: 24px; }
+  }
+
+  /* ── PRINT STYLES ── */
+
+
+  /* ── WHITELIST ── */
+  .result-item { display: grid; grid-template-columns: 1fr 200px 90px 36px 36px; align-items: center; padding: 13px 20px; border-bottom: 1px solid var(--border); font-size: 14px; transition: background 0.15s; }
+  .result-header-row { display: grid; grid-template-columns: 1fr 200px 90px 36px 36px; padding: 10px 20px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); border-bottom: 1px solid var(--border); background: var(--surface2); }
+  .whitelist-btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: rgba(255,255,255,0.05); border: 1px solid var(--border-hover); cursor: pointer;
+    color: var(--muted); font-size: 12px; font-weight: 500; font-family: 'DM Sans', sans-serif;
+    padding: 5px 10px; border-radius: 20px; transition: all 0.2s; margin-left: 8px;
+  }
+  .whitelist-btn:hover { background: rgba(232,68,90,0.1); border-color: var(--accent); color: var(--accent); }
+  .whitelist-btn.whitelisted { background: rgba(74,222,128,0.1); border-color: rgba(74,222,128,0.4); color: #4ade80; }
+  .whitelist-btn.whitelisted:hover { background: rgba(232,68,90,0.08); border-color: var(--accent); color: var(--accent); }
+  .whitelist-btn.locked-wl { opacity: 0.3; cursor: not-allowed; }
+  .whitelist-btn.locked-wl:hover { background: rgba(255,255,255,0.05); border-color: var(--border-hover); color: var(--muted); opacity: 0.3; }
+  .whitelist-toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); background: var(--surface2); border: 1px solid var(--border-hover); color: var(--text); padding: 12px 20px; border-radius: 10px; font-size: 13px; z-index: 999; animation: fadeUp 0.25s ease; white-space: nowrap; pointer-events: none; }
+  .wl-banner {
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(74,222,128,0.06); border: 1px solid rgba(74,222,128,0.2);
+    border-radius: 10px; padding: 12px 18px; margin-bottom: 14px;
+    font-size: 13px; color: #4ade80; gap: 12px;
+  }
+  .wl-banner span { color: var(--muted); }
+  .wl-banner button {
+    background: none; border: 1px solid rgba(74,222,128,0.3); color: #4ade80;
+    border-radius: 6px; padding: 4px 12px; font-size: 12px;
+    font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.2s; white-space: nowrap;
+  }
+  .wl-banner button:hover { background: rgba(74,222,128,0.1); }
+
+
+  /* ── AUDIT HISTORY ── */
+  .history-section { margin-top: 48px; }
+  .history-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
+  .history-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800; }
+  .history-empty { text-align: center; padding: 40px; color: var(--muted); font-size: 14px; border: 1px solid var(--border); border-radius: 12px; }
+  .audit-card {
+    border: 1px solid var(--border); border-radius: 12px;
+    overflow: hidden; margin-bottom: 12px; transition: border-color 0.2s;
+  }
+  .audit-card:hover { border-color: var(--border-hover); }
+  .audit-card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px; background: var(--surface2);
+    cursor: pointer; gap: 12px; flex-wrap: wrap;
+  }
+  .audit-card-left { display: flex; align-items: center; gap: 14px; }
+  .audit-date { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; }
+  .audit-meta { font-size: 12px; color: var(--muted); }
+  .audit-new-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: rgba(232,68,90,0.12); border: 1px solid rgba(232,68,90,0.3);
+    color: #ff7a8f; border-radius: 100px; padding: 3px 10px; font-size: 11px; font-weight: 600;
+  }
+  .audit-stats { display: flex; gap: 16px; flex-wrap: wrap; }
+  .audit-stat { font-size: 12px; color: var(--muted); }
+  .audit-stat strong { color: var(--text); font-weight: 600; }
+  .audit-stat.danger strong { color: var(--accent); }
+  .audit-chevron { color: var(--muted); font-size: 12px; transition: transform 0.2s; flex-shrink: 0; }
+  .audit-card.open .audit-chevron { transform: rotate(180deg); }
+  .audit-body { display: none; padding: 16px 20px; border-top: 1px solid var(--border); }
+  .audit-card.open .audit-body { display: block; }
+  .audit-list { max-height: 240px; overflow-y: auto; }
+  .audit-list-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .audit-list-item:last-child { border-bottom: none; }
+  .audit-list-item a { color: var(--text); text-decoration: none; }
+  .audit-list-item a:hover { color: var(--accent); }
+  .audit-new-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+  .audit-delete-btn { background: none; border: none; color: var(--muted2); cursor: pointer; font-size: 12px; padding: 3px 8px; border-radius: 5px; transition: all 0.15s; font-family: 'DM Sans', sans-serif; }
+  .audit-delete-btn:hover { color: var(--accent); background: rgba(232,68,90,0.08); }
+
+
+  /* ── NOTES ── */
+  .note-row {
+    grid-column: 1 / -1;
+    padding: 0 0 10px 0;
+    display: none;
+  }
+  .note-row.visible { display: block; }
+  .note-input-wrap { display: flex; gap: 8px; align-items: center; }
+  .note-input {
+    flex: 1; padding: 8px 12px;
+    background: var(--surface2); border: 1px solid var(--border-hover);
+    border-radius: 8px; color: var(--text); font-size: 13px;
+    font-family: 'DM Sans', sans-serif; outline: none; transition: border-color 0.2s;
+  }
+  .note-input:focus { border-color: var(--accent); }
+  .note-input::placeholder { color: var(--muted2); }
+  .note-save-btn {
+    background: var(--accent); color: #fff; border: none;
+    border-radius: 8px; padding: 8px 14px; font-size: 12px; font-weight: 500;
+    font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.2s; white-space: nowrap;
+  }
+  .note-save-btn:hover { background: #f05570; }
+  .note-display {
+    font-size: 12px; color: var(--muted); font-style: italic;
+    padding: 4px 0 0 2px;
+  }
+  .note-icon-btn {
+    background: none; border: none; cursor: pointer;
+    font-size: 14px; padding: 4px 6px; border-radius: 6px;
+    transition: all 0.2s; color: var(--muted2); line-height: 1;
+  }
+  .note-icon-btn:hover { background: rgba(255,255,255,0.07); color: var(--text); }
+  .note-icon-btn.has-note { color: #f5c842; }
+  .result-item-wrap { display: contents; }
+
+
+  /* ── UNFOLLOWER LOG ── */
+  .log-section { margin-top: 48px; }
+  .log-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
+  .log-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800; }
+  .log-stats { display: flex; gap: 16px; flex-wrap: wrap; }
+  .log-stat { font-size: 13px; color: var(--muted); }
+  .log-stat strong { color: var(--text); font-weight: 600; }
+  .log-stat.danger strong { color: var(--accent); }
+  .log-search { width: 100%; padding: 11px 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 9px; color: var(--text); font-size: 13px; font-family: 'DM Sans', sans-serif; margin-bottom: 12px; outline: none; transition: border-color 0.2s; }
+  .log-search:focus { border-color: var(--accent); }
+  .log-search::placeholder { color: var(--muted2); }
+  .log-filters { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+  .log-filter { padding: 5px 14px; border-radius: 100px; font-size: 12px; cursor: pointer; border: 1px solid var(--border); background: transparent; color: var(--muted); font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
+  .log-filter.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .log-list { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .log-header-row { display: grid; grid-template-columns: 1fr 140px 140px 100px; padding: 10px 18px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); border-bottom: 1px solid var(--border); background: var(--surface2); }
+  .log-item { display: grid; grid-template-columns: 1fr 140px 140px 100px; align-items: center; padding: 12px 18px; border-bottom: 1px solid var(--border); font-size: 13px; transition: background 0.15s; }
+  .log-item:last-child { border-bottom: none; }
+  .log-item:hover { background: rgba(255,255,255,0.03); }
+  .log-item a { color: var(--text); text-decoration: none; }
+  .log-item a:hover { color: var(--accent); }
+  .log-status-active { display: inline-flex; align-items: center; gap: 5px; background: rgba(232,68,90,0.1); border: 1px solid rgba(232,68,90,0.25); color: #ff7a8f; border-radius: 100px; padding: 2px 10px; font-size: 11px; font-weight: 500; }
+  .log-status-gone { display: inline-flex; align-items: center; gap: 5px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--muted); border-radius: 100px; padding: 2px 10px; font-size: 11px; font-weight: 500; }
+  .log-date { font-size: 12px; color: var(--muted); }
+  .log-empty { text-align: center; padding: 48px 24px; color: var(--muted); font-size: 14px; }
+  #log-list-scroll { max-height: 500px; overflow-y: auto; }
+
+
+  /* ── SNAKE LIST ── */
+  .snake-btn {
+    background: none; border: none; cursor: pointer;
+    font-size: 16px; padding: 4px 6px; border-radius: 6px;
+    transition: all 0.2s; line-height: 1; position: relative;
+    opacity: 0.3;
+  }
+  .snake-btn:hover { opacity: 1; transform: scale(1.2); }
+  .snake-btn.in-snake-list { opacity: 1; }
+  .snake-btn.locked-snake { opacity: 0.2; cursor: not-allowed; }
+  .snake-btn.locked-snake:hover { transform: none; opacity: 0.2; }
+
+  .snake-section { margin-top: 48px; }
+  .snake-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
+  .snake-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800; }
+  .snake-empty { text-align: center; padding: 48px 24px; color: var(--muted); font-size: 14px; border: 1px solid var(--border); border-radius: 12px; }
+  .snake-empty .emoji { font-size: 36px; display: block; margin-bottom: 12px; }
+  .snake-list-wrap { border: 1px solid rgba(232,68,90,0.25); border-radius: 12px; overflow: hidden; background: linear-gradient(160deg, rgba(232,68,90,0.03) 0%, var(--surface) 60%); }
+  .snake-list-header { display: grid; grid-template-columns: 1fr 160px 36px; padding: 10px 20px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); border-bottom: 1px solid var(--border); background: var(--surface2); }
+  .snake-list-item { display: grid; grid-template-columns: 1fr 160px 36px; align-items: center; padding: 13px 20px; border-bottom: 1px solid var(--border); font-size: 14px; transition: background 0.15s; }
+  .snake-list-item:last-child { border-bottom: none; }
+  .snake-list-item:hover { background: rgba(232,68,90,0.03); }
+  .snake-list-item a { color: var(--text); text-decoration: none; }
+  .snake-list-item a:hover { color: var(--accent); }
+  .snake-added-date { font-size: 12px; color: var(--muted); }
+  .snake-remove-btn { background: none; border: none; cursor: pointer; color: var(--muted2); font-size: 16px; padding: 4px; border-radius: 6px; transition: all 0.2s; }
+  .snake-remove-btn:hover { color: var(--accent); background: rgba(232,68,90,0.1); }
+
+
+  /* ── DASHBOARD EMPTY STATE ── */
+  .no-analysis-msg {
+    text-align: center; padding: 48px 24px;
+    border: 1px dashed var(--muted2); border-radius: 12px;
+    color: var(--muted); font-size: 14px; line-height: 1.7;
+  }
+  .no-analysis-msg .emoji { font-size: 36px; display: block; margin-bottom: 12px; }
+  .no-analysis-msg a { color: var(--accent); text-decoration: none; }
+  .no-analysis-msg a:hover { text-decoration: underline; }
+  .dashboard-welcome {
+    background: linear-gradient(135deg, rgba(232,68,90,0.06) 0%, var(--surface) 60%);
+    border: 1px solid rgba(232,68,90,0.2); border-radius: 12px;
+    padding: 20px 24px; margin-bottom: 20px;
+    display: none;
+  }
+  .dashboard-welcome.visible { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .dashboard-welcome-text { font-size: 14px; color: var(--muted); line-height: 1.6; }
+  .dashboard-welcome-text strong { color: var(--text); font-weight: 500; }
+  .dashboard-welcome-btn {
+    background: var(--accent); color: #fff; border: none;
+    border-radius: 8px; padding: 9px 18px; font-size: 13px; font-weight: 500;
+    font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.2s; white-space: nowrap;
+  }
+  .dashboard-welcome-btn:hover { background: #f05570; }
+
+
+  .start-over-btn {
+    display: none; align-items: center; gap: 6px;
+    background: transparent; border: 1px solid var(--border-hover);
+    color: var(--muted); border-radius: 8px;
+    padding: 7px 14px; font-size: 13px; font-weight: 400;
+    font-family: 'DM Sans', sans-serif; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .start-over-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .start-over-btn.visible { display: inline-flex; }
+
+
+  /* ── CANCEL MODAL ── */
+  .cancel-modal-inner { text-align: center; }
+  .cancel-modal-icon { font-size: 48px; margin-bottom: 16px; }
+  .cancel-modal-inner h2 { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+  .cancel-modal-inner p { color: var(--muted); font-size: 14px; line-height: 1.7; margin-bottom: 24px; }
+  .cancel-modal-btns { display: flex; flex-direction: column; gap: 10px; }
+  .cancel-confirm-btn {
+    width: 100%; padding: 13px; background: rgba(232,68,90,0.1);
+    border: 1px solid rgba(232,68,90,0.3); color: #ff7a8f;
+    border-radius: 10px; font-size: 14px; font-weight: 500;
+    font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.2s;
+  }
+  .cancel-confirm-btn:hover { background: rgba(232,68,90,0.2); }
+  .cancel-keep-btn {
+    width: 100%; padding: 13px; background: var(--accent);
+    border: none; color: #fff;
+    border-radius: 10px; font-size: 14px; font-weight: 500;
+    font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.2s;
+  }
+  .cancel-keep-btn:hover { background: #f05570; }
+  .account-menu {
+    position: relative; display: inline-block;
+  }
+  .account-menu-dropdown {
+    display: none; position: absolute; top: calc(100% + 8px); right: 0;
+    background: var(--surface); border: 1px solid var(--border-hover);
+    border-radius: 12px; padding: 8px; min-width: 200px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4); z-index: 300;
+  }
+  .account-menu-dropdown.open { display: block; }
+  .account-menu-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px; border-radius: 8px; cursor: pointer;
+    font-size: 13px; color: var(--muted); transition: all 0.15s;
+    background: none; border: none; width: 100%; text-align: left;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .account-menu-item:hover { background: rgba(255,255,255,0.06); color: var(--text); }
+  .account-menu-item.danger { color: #ff7a8f; }
+  .account-menu-item.danger:hover { background: rgba(232,68,90,0.1); color: #ff7a8f; }
+  .account-menu-divider { height: 1px; background: var(--border); margin: 6px 0; }
+  .account-btn {
+    display: none; align-items: center; gap: 8px;
+    background: rgba(255,255,255,0.05); border: 1px solid var(--border-hover);
+    border-radius: 8px; padding: 8px 14px;
+    font-size: 13px; font-weight: 400; color: var(--text);
+    font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.2s;
+  }
+  .account-btn:hover { border-color: rgba(255,255,255,0.25); background: rgba(255,255,255,0.08); }
+  .account-btn.visible { display: inline-flex; }
+  .account-tier-badge {
+    font-size: 10px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.06em; padding: 2px 8px; border-radius: 100px;
+  }
+  .account-tier-badge.pro { background: rgba(29,111,181,0.2); color: #60a5fa; }
+  .account-tier-badge.free { background: rgba(255,255,255,0.07); color: var(--muted); }
+
+  /* ── TOOL BUTTONS ── */
+  .tool-btns { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+  .tool-btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: transparent; border: 1px solid var(--border-hover);
+    color: var(--muted); border-radius: 8px;
+    padding: 8px 16px; font-size: 13px; font-weight: 400;
+    font-family: 'DM Sans', sans-serif; cursor: pointer;
+    transition: all 0.2s; position: relative;
+  }
+  .tool-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .tool-btn.locked {
+    opacity: 0.45; cursor: not-allowed;
+    border-color: var(--border);
+  }
+  .tool-btn.locked:hover { border-color: var(--border); color: var(--muted); opacity: 0.45; }
+  .tool-btn.locked::after {
+    content: 'Unlock with a plan';
+    position: absolute; bottom: calc(100% + 8px); left: 50%;
+    transform: translateX(-50%);
+    background: var(--surface2); border: 1px solid var(--border-hover);
+    color: var(--text); font-size: 11px; font-weight: 500;
+    padding: 5px 10px; border-radius: 6px;
+    white-space: nowrap; pointer-events: none;
+    opacity: 0; transition: opacity 0.15s;
+  }
+  .tool-btn.locked:hover::after { opacity: 1; }
+  @media print { .tool-btns { display: none !important; } }
+  @media print {
+    nav, .hero, .features-grid, #how, .tool-header, .upload-grid, #error-box, .account-menu,
+    .analyze-btn, .search-input, .filter-tabs, #paywall-container,
+    section#pricing, footer, .result-item.blurred, .paywall-gate, .account-menu,
+    .hero-bg, .grid-lines, .modal-backdrop { display: none !important; }
+    body { background: #fff !important; color: #000 !important; }
+    #results { display: block !important; }
+    .tool-section { background: #fff !important; border: none !important; padding: 0 !important; }
+    .tool-inner { max-width: 100% !important; }
+    .print-header { display: block !important; }
+    #print-extra-sections { display: block !important; }
+    .stats-row { display: grid !important; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 20px; }
+    .stat-card { border: 1px solid #ddd !important; background: #f9f9f9 !important; }
+    .stat-card .num { color: #e8445a !important; }
+    .stat-card.safe .num { color: #16a34a !important; }
+    .stat-card .lbl { color: #666 !important; }
+    .results-list { border: 1px solid #ddd !important; }
+    .result-header-row { background: #f3f3f3 !important; color: #333 !important; border-bottom: 1px solid #ddd !important; }
+    .result-item { border-bottom: 1px solid #eee !important; color: #000 !important; }
+    .result-handle a { color: #000 !important; }
+    .tag.unfollow { background: #fee2e2 !important; color: #b91c1c !important; border: 1px solid #fca5a5 !important; }
+    .tag.mutual { background: #dcfce7 !important; color: #15803d !important; border: 1px solid #86efac !important; }
+    .results-header { display: flex !important; }
+    .results-badge { background: #fee2e2 !important; color: #b91c1c !important; border: 1px solid #fca5a5 !important; }
+    #results-list-scroll { max-height: none !important; overflow: visible !important; }
+    .print-btn { display: none !important; }
+  }
+  .print-header { display: none; padding: 0 0 20px; border-bottom: 2px solid #e8445a; margin-bottom: 24px; }
+  .print-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: transparent; border: 1px solid var(--border-hover);
+    color: var(--muted); border-radius: 8px;
+    padding: 7px 16px; font-size: 13px; font-weight: 400;
+    font-family: 'DM Sans', sans-serif; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .print-btn:hover { border-color: var(--accent); color: var(--accent); }
+</style>
+</head>
+<body>
+
+<!-- CANCEL SUBSCRIPTION MODAL -->
+<div class="modal-backdrop" id="cancel-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeCancelModal()">✕</button>
+    <div class="cancel-modal-inner">
+      <div class="cancel-modal-icon">😢</div>
+      <h2>Cancel your Pro plan?</h2>
+      <p>You'll lose access to your whitelist, notes, audit history, snake list, and unfollower log at the end of your billing period. Your data will be kept for 30 days in case you change your mind.</p>
+      <div class="cancel-modal-btns">
+        <button class="cancel-keep-btn" onclick="closeCancelModal()">Keep my Pro plan</button>
+        <button class="cancel-confirm-btn" id="cancel-confirm-btn" onclick="confirmCancel()">Yes, cancel my subscription</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- AUTH MODAL -->
+<div class="modal-backdrop" id="auth-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeAuthModal()">✕</button>
+    <h2 id="auth-title">Sign in</h2>
+    <p class="modal-sub" id="auth-sub">Sign in to unlock your full results.</p>
+    <div class="modal-msg" id="auth-msg"></div>
+    <input class="modal-input" type="email" id="auth-email" placeholder="you@email.com">
+    <input class="modal-input" type="password" id="auth-password" placeholder="Password" style="margin-bottom:4px">
+    <button class="modal-btn" id="auth-submit-btn" onclick="handleAuth()">Continue</button>
+    <div class="modal-switch" id="auth-switch">
+      No account? <a onclick="toggleAuthMode()">Create one free</a>
+    </div>
+  </div>
+</div>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobile-menu">
+  <div class="mobile-menu-links">
+    <a href="#how" onclick="closeMobileMenu()">How it works</a>
+    <a href="#tool" onclick="closeMobileMenu()">Try it</a>
+    <a href="#pricing" onclick="closeMobileMenu()">Pricing</a>
+    <a href="instructions.html">Instructions</a>
+    <a href="faq.html">FAQ</a>
+  </div>
+  <div class="mobile-menu-bottom">
+    <!-- Shown when logged out -->
+    <button class="mobile-signin-btn" id="mobile-signin-btn" onclick="closeMobileMenu();openAuthModal()">Sign in</button>
+    <!-- Shown when logged in -->
+    <div class="mobile-account-info" id="mobile-account-info">
+      <div class="mobile-account-email" id="mobile-email-display"></div>
+      <button class="mobile-cancel-btn" id="mobile-cancel-btn" style="display:none" onclick="closeMobileMenu();openCancelModal()">✕ Cancel subscription</button>
+      <button class="mobile-signout-btn" onclick="closeMobileMenu();signOut()">Sign out</button>
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="logo"><span class="logo-dot"></span>FindTheSnakes</div>
+  <div class="nav-links">
+    <a href="#how">How it works</a>
+    <a href="#tool">Try it</a>
+    <a href="#pricing">Pricing</a>
+    <a href="instructions.html">Instructions</a>
+    <a href="faq.html">FAQ</a>
+  </div>
+  <div class="nav-right">
+    <div class="account-menu" id="account-menu">
+      <button class="account-btn" id="account-btn" onclick="toggleAccountMenu()">
+        <span id="nav-email-display" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+        <span class="account-tier-badge free" id="nav-tier-badge">Free</span>
+        <span style="font-size:10px;color:var(--muted)">▼</span>
+      </button>
+      <div class="account-menu-dropdown" id="account-dropdown">
+        <button class="account-menu-item" onclick="signOut();toggleAccountMenu()">👋 Sign out</button>
+        <div class="account-menu-divider"></div>
+        <button class="account-menu-item danger" id="cancel-sub-btn" style="display:none" onclick="openCancelModal();toggleAccountMenu()">✕ Cancel subscription</button>
+      </div>
+    </div>
+    <button class="nav-cta" id="nav-signin-btn" onclick="openAuthModal()">Sign in</button>
+  </div>
+  <!-- Hamburger (mobile only) -->
+  <button class="hamburger" id="hamburger-btn" onclick="toggleMobileMenu()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="grid-lines"></div>
+  <h1>The Best &amp; <em>Safe</em> Way to Find and <em>Manage</em><span class="line2">Instagram Unfollowers</span></h1>
+  <p class="hero-sub">Upload your Instagram data export and instantly discover who stopped following you — no login, no scraping, no risk to your account.</p>
+  <div class="hero-actions">
+    <button class="btn-primary" onclick="document.getElementById('tool').scrollIntoView({behavior:'smooth'})">Analyze My Followers for Free →</button>
+    <button class="btn-secondary" onclick="document.getElementById('how').scrollIntoView({behavior:'smooth'})">See how it works</button>
+  </div>
+  <div class="hero-stat-row">
+    <div class="stat"><div class="stat-num">Free</div><div class="stat-label">To start</div></div>
+    <div class="stat"><div class="stat-num">No</div><div class="stat-label">Instagram Password</div></div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section style="padding: 80px 48px; max-width: 1200px; margin: 0 auto;">
+  <p class="section-label">Why FindTheSnakes</p>
+  <h2 class="section-title">Built differently, for good reason</h2>
+  <div class="features-grid">
+    <div class="feat">
+      <div class="feat-icon">🔒</div>
+      <h3>Zero password risk</h3>
+      <p>Your Instagram credentials stay yours. We work exclusively with data files you export directly from Instagram — your login is never required or requested.</p>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">🐍</div>
+      <h3>Expose the snakes</h3>
+      <p>Upload your followers and following files and we instantly compare them — revealing and allowing you to manage everyone who isn't following you back.</p>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">⚡</div>
+      <h3>Instant results</h3>
+      <p>Upload your JSON files and get a full breakdown almost instantly. Works with any account size, including large followings split across multiple export files.</p>
+    </div>
+</section>
+
+<!-- TRY IT FREE CTA -->
+<div style="text-align:center;padding:20px 24px 56px;">
+  <button class="btn-primary" onclick="document.getElementById('tool').scrollIntoView({behavior:'smooth'})" style="font-size:17px;padding:18px 44px;">Try it free →</button>
+</div>
+
+<!-- HOW IT WORKS -->
+<section id="how" style="background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 100px 48px;">
+  <div style="max-width: 1200px; margin: 0 auto;">
+    <div style="text-align: center; margin-bottom: 64px;">
+      <p class="section-label">How it works</p>
+      <h2 class="section-title" style="max-width: 100%; text-align: center; margin: 0 auto;">Three steps, no stress</h2>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h4>Export from Instagram</h4>
+        <p>Request your data in JSON format. Instagram emails you a link within minutes. <a href="instructions.html" style="color:var(--accent);text-decoration:none;font-weight:500;">Follow our instructions on how to download →</a></p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h4>Upload your files</h4>
+        <p>Drop your <code style="background:rgba(255,255,255,0.07);padding:1px 6px;border-radius:4px;font-size:13px">followers</code> and <code style="background:rgba(255,255,255,0.07);padding:1px 6px;border-radius:4px;font-size:13px">following</code> JSON files into FindTheSnakes. Multiple files supported for large accounts.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h4>See who unfollowed</h4>
+        <p>Get an instant, clear breakdown of who follows you back, who doesn't, and who disappeared since your last check.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- UPLOAD TOOL -->
+<section id="tool" class="tool-section">
+  <div class="tool-inner">
+    <div class="tool-header">
+      <span class="section-label">Free tool</span>
+      <h2 class="section-title">Analyze your followers now</h2>
+      <p>Upload your Instagram JSON export files. They are processed entirely in your browser — your files are never uploaded to our servers. Only results are saved for paid features like audit history.</p>
+      <a href="instructions.html" style="display:inline-flex;align-items:center;gap:8px;margin-top:20px;background:rgba(232,68,90,0.08);border:1px solid rgba(232,68,90,0.3);border-radius:10px;padding:12px 22px;color:#ff8fa0;font-size:14px;text-decoration:none;transition:all 0.2s;" onmouseover="this.style.background='rgba(232,68,90,0.15)'" onmouseout="this.style.background='rgba(232,68,90,0.08)'">
+        <span style="font-size:18px">📋</span>
+        <span><strong style="color:#f0eef8">Need help getting your files?</strong> &nbsp;Follow our step-by-step instructions on how to download your Instagram data →</span>
+      </a>
+    </div>
+
+    <div class="upload-grid">
+      <div>
+        <div class="upload-zone" id="followers-zone">
+          <input type="file" id="followers-input" accept=".json" multiple>
+          <div class="upload-icon">👥</div>
+          <div class="upload-label">Followers</div>
+          <div class="upload-sublabel">Drop <span>followers_1.json</span> (and more)<br>or click to browse</div>
+          <div class="file-list" id="followers-files"></div>
+        </div>
+      </div>
+      <div>
+        <div class="upload-zone" id="following-zone">
+          <input type="file" id="following-input" accept=".json" multiple>
+          <div class="upload-icon">➕</div>
+          <div class="upload-label">Following</div>
+          <div class="upload-sublabel">Drop <span>following.json</span> (and more)<br>or click to browse</div>
+          <div class="file-list" id="following-files"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="error-box" id="error-box"></div>
+    <button class="analyze-btn" id="analyze-btn" onclick="analyze()" disabled>✦ &nbsp;Analyze Now</button>
+
+    <!-- RESULTS -->
+    <div id="results">
+      <div class="stats-row" id="stats-row"></div>
+      <!-- print header (only visible when printing) -->
+      <div class="print-header" id="print-header">
+        <div style="font-size:22px;font-weight:800;font-family:Syne,sans-serif;color:#e8445a;margin-bottom:4px">FindTheSnakes</div>
+        <div style="font-size:13px;color:#666" id="print-date"></div>
+      </div>
+      <div class="dashboard-welcome" id="dashboard-welcome">
+        <div class="dashboard-welcome-text">
+          <strong>Welcome back! 👋</strong> Your tools are ready. Upload your Instagram files below to run a new analysis.
+        </div>
+        <button class="dashboard-welcome-btn" onclick="document.getElementById('followers-zone').scrollIntoView({behavior:'smooth'});window.scrollBy(0,-100)">Upload files ↑</button>
+      </div>
+      <div class="results-header">
+        <div class="results-title">Results</div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <div class="results-badge" id="results-badge"></div>
+          <span id="new-unfollower-badge" style="display:none;background:rgba(232,68,90,0.12);border:1px solid rgba(232,68,90,0.3);color:#ff7a8f;border-radius:100px;padding:4px 12px;font-size:12px;font-weight:600;"></span>
+          <button class="start-over-btn" id="start-over-btn" onclick="startOver()">↺ &nbsp;New analysis</button>
+        </div>
+      </div>
+      <div class="tool-btns">
+        <button class="tool-btn locked" id="print-btn" onclick="handleToolBtn('print')">🖨&nbsp; Print report</button>
+        <button class="tool-btn locked" id="csv-btn" onclick="handleToolBtn('csv')">📥&nbsp; Export to CSV</button>
+      </div>
+      <input class="search-input" id="search-input" placeholder="Search by username…" oninput="filterResults()">
+      <div class="filter-tabs">
+        <button class="filter-tab active" onclick="setFilter('unfollowers',this)">Not following back</button>
+        <button class="filter-tab" onclick="setFilter('mutual',this)">Mutual</button>
+        <button class="filter-tab" id="whitelist-tab" onclick="setFilter('whitelist',this)">🛡 Whitelist <span id="wl-tab-count" style="display:none;background:rgba(74,222,128,0.2);color:#4ade80;border-radius:100px;padding:1px 7px;font-size:11px;margin-left:2px"></span></button>
+        <button class="filter-tab" id="history-tab" onclick="setFilter('history',this)">📅 History</button>
+        <button class="filter-tab" id="snake-tab" onclick="setFilter('snakes',this)">🐍 Snake List <span id="snake-tab-count" style="display:none;background:rgba(232,68,90,0.2);color:#ff7a8f;border-radius:100px;padding:1px 7px;font-size:11px;margin-left:2px"></span></button>
+        <button class="filter-tab" id="log-tab" onclick="setFilter('log',this)">📋 All Unfollowers <span id="log-tab-count" style="display:none;background:rgba(232,68,90,0.2);color:#ff7a8f;border-radius:100px;padding:1px 7px;font-size:11px;margin-left:2px"></span></button>
+      </div>
+      <div class="wl-banner" id="wl-banner" style="display:none"><div>🛡 <span></span></div><button onclick="clearWhitelist()">Clear whitelist</button></div>
+      <div class="results-list">
+        <div class="result-header-row"><span>Username</span><span>Status</span><span>Whitelist</span><span>Note</span><span style="padding-left:8px">🐍</span></div>
+        <div id="results-list-scroll"></div>
+      </div>
+      <!-- paywall inserted here by JS -->
+      <div id="paywall-container"></div>
+
+      <!-- AUDIT HISTORY -->
+      <div class="history-section" id="history-section" style="display:none">
+        <div class="history-header">
+          <div class="history-title">📅 Audit History</div>
+          <button class="audit-delete-btn" onclick="clearAllAudits()" style="font-size:13px">Clear all</button>
+        </div>
+        <div id="history-list"></div>
+      </div>
+
+      <!-- UNFOLLOWER LOG -->
+      <div class="log-section" id="log-section" style="display:none">
+        <div class="log-header">
+          <div class="log-title">🐍 All Unfollowers</div>
+          <div class="log-stats">
+            <div class="log-stat danger"><strong id="log-active-count">0</strong> still not following</div>
+            <div class="log-stat"><strong id="log-gone-count">0</strong> no longer detected</div>
+          </div>
+        </div>
+        <input class="log-search" id="log-search" placeholder="Search unfollowers…" oninput="renderUnfollowerLog()">
+        <div class="log-filters">
+          <button class="log-filter active" id="log-filter-all" onclick="setLogFilter('all',this)">All</button>
+          <button class="log-filter" id="log-filter-active" onclick="setLogFilter('active',this)">Still not following</button>
+          <button class="log-filter" id="log-filter-gone" onclick="setLogFilter('gone',this)">No longer detected</button>
+        </div>
+        <div class="log-list">
+          <div class="log-header-row"><span>Username</span><span>First detected</span><span>Last seen</span><span>Status</span></div>
+          <div id="log-list-scroll"></div>
+        </div>
+      </div>
+
+      <!-- SNAKE LIST -->
+      <div class="snake-section" id="snake-section" style="display:none">
+        <div class="snake-header">
+          <div class="snake-title">🐍 My Snake List</div>
+          <button class="audit-delete-btn" onclick="clearSnakeList()" style="font-size:13px">Clear all</button>
+        </div>
+        <div id="snake-list-container"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing" style="padding: 100px 48px;">
+  <div style="max-width: 1200px; margin: 0 auto; text-align: center;">
+    <p class="section-label">Pricing</p>
+    <h2 class="section-title" style="max-width:100%;text-align:center;margin:0 auto 48px;">Simple, honest pricing</h2>
+    <div class="pricing-grid">
+      <!-- FREE -->
+      <div class="plan">
+        <div class="plan-name">Free</div>
+        <div class="plan-price"><sup>$</sup>0</div>
+        <div class="plan-period">forever</div>
+        <ul class="plan-features">
+          <li>First 3 unfollowers revealed</li>
+          <li>Total unfollower count shown</li>
+          <li>Files processed locally — never uploaded</li>
+          <li>No Instagram password needed — ever</li>
+        </ul>
+        <button class="btn-secondary" style="width:100%;border-radius:10px;padding:14px;" onclick="document.getElementById('tool').scrollIntoView({behavior:'smooth'})">Get started free</button>
+      </div>
+      <!-- ONE-TIME -->
+      <div class="plan featured">
+        <div class="plan-badge">Best value</div>
+        <div class="plan-name">One-time</div>
+        <div class="plan-price"><sup>$</sup>3</div>
+        <div class="plan-period">pay once, get results</div>
+        <ul class="plan-features">
+          <li>Full unfollower list unlocked</li>
+          <li>One analysis, full results</li>
+          <li>Instant access, no account needed</li>
+          <li>Export to CSV & print report</li>
+          <li>Everything in Free</li>
+        </ul>
+        <button class="btn-primary" style="width:100%;border-radius:10px;padding:14px;" onclick="startCheckout('one_time')">Unlock full results — $3</button>
+      </div>
+      <!-- MONTHLY -->
+      <div class="plan featured" style="border-color:rgba(29,111,181,0.4);background:linear-gradient(160deg,rgba(29,111,181,0.06) 0%,var(--surface) 60%);">
+        <div class="plan-badge blue">Pro</div>
+        <div class="plan-name">Monthly</div>
+        <div class="plan-price"><sup>$</sup>10</div>
+        <div class="plan-period">per month, cancel anytime</div>
+        <ul class="plan-features">
+          <li>Unlimited analyses</li>
+          <li>Files always processed locally — never uploaded</li>
+          <li>Full results every time</li>
+          <li>Export to CSV & print report</li>
+          <li>Perfect for everyone — creators, businesses &amp; personal accounts</li>
+          <li>Whitelist — hide accounts across devices</li>
+          <li>Audit history — track changes over time</li>
+          <li>Full unfollower log — everyone who ever unfollowed</li>
+          <li>Snake List — your personal hall of shame 🐍</li>
+          <li>Private notes on any account</li>
+          
+        </ul>
+        <button class="btn-primary" style="width:100%;border-radius:10px;padding:14px;background:#1d6fb5;box-shadow:0 0 30px rgba(29,111,181,0.25);" onmouseover="this.style.background='#2280cc'" onmouseout="this.style.background='#1d6fb5'" onclick="startCheckout('monthly')">Go Pro — $10/mo</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="logo"><span class="logo-dot"></span>FindTheSnakes</div>
+  <p>© <span id="copy-year"></span> FindTheSnakes. Your Instagram files are never uploaded to our servers. Only your results are saved to power your audit history.</p>
+  <div style="display:flex;gap:24px;flex-wrap:wrap;">
+    <a href="privacy.html" style="color:var(--muted);font-size:13px;text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">Privacy Policy</a>
+    <a href="terms.html" style="color:var(--muted);font-size:13px;text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">Terms of Service</a>
+    <a href="instructions.html" style="color:var(--muted);font-size:13px;text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">Instructions</a>
+    <a href="faq.html" style="color:var(--muted);font-size:13px;text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">FAQ</a>
+    <p style="color:var(--muted2);font-size:13px;">Not affiliated with Instagram or Meta.</p>
+  </div>
+</footer>
+
+<script>
+// ════════════════════════════════════════════
+// CONFIG — swap these placeholders when ready
+// ════════════════════════════════════════════
+const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtqeXRhcGNneHVrYWx3c3lwdXRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMTcxMzEsImV4cCI6MjA5MDg5MzEzMX0.VC8mcU5lUeA56kG2gHssvl88EVWr018XttA86jpfEn0';
+const STRIPE_PRICE_ONE_TIME = 'price_1TIZ7FFQ1L0aeJrZOtoSEVRJ';
+const STRIPE_PRICE_MONTHLY  = 'price_1TIZ8pFQ1L0aeJrZEX1bQnUI';
+
+// Free tier limit
+const FREE_LIMIT = 3;
+
+// ════════════════════════════════════════════
+// SUPABASE
+// ════════════════════════════════════════════
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let currentUser = null;
+let userTier = 'free'; // 'free' | 'one_time' | 'monthly'
+
+async function initAuth() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session?.user) await setUser(session.user);
+
+  sb.auth.onAuthStateChange(async (_event, session) => {
+    if (session?.user) await setUser(session.user);
+    else clearUser();
+  });
+}
+
+async function setUser(user) {
+  currentUser = user;
+  document.getElementById('account-btn').classList.add('visible');
+  document.getElementById('nav-email-display').textContent = user.email;
+  document.getElementById('nav-signin-btn').style.display = 'none';
+  await fetchTier(user.id);
+  await loadWhitelist();
+  await loadAuditHistory();
+  await loadNotes();
+  await loadUnfollowerLog();
+  await loadSnakeList();
+
+  // Show dashboard for monthly users even without an analysis
+  if (userTier === 'monthly') {
+    showDashboard();
+  }
+  updateMobileMenu();
+}
+
+function showDashboard() {
+  // Show results section
+  const results = document.getElementById('results');
+  if (results) results.style.display = 'block';
+
+  // Show welcome banner
+  const welcome = document.getElementById('dashboard-welcome');
+  if (welcome) welcome.classList.add('visible');
+
+  // Update tool buttons
+  updateToolBtns();
+
+  // If no analysis has been run yet, show empty state in results list
+  if (!allResults.length) {
+    const scroll = document.getElementById('results-list-scroll');
+    if (scroll) scroll.innerHTML = `<div class="no-analysis-msg">
+      <span class="emoji">📂</span>
+      No analysis yet. Upload your Instagram JSON files above and click <strong>Analyze Now</strong> to see your results.<br><br>
+      <a href="instructions.html">Need help getting your files? →</a>
+    </div>`;
+
+    // Default to whitelist tab if they have whitelist items, otherwise history
+    if (userWhitelist.size > 0) {
+      const wlTab = document.getElementById('whitelist-tab');
+      if (wlTab) setFilter('whitelist', wlTab);
+    } else if (auditHistory.length > 0) {
+      const histTab = document.getElementById('history-tab');
+      if (histTab) setFilter('history', histTab);
+    } else if (userSnakeList.size > 0) {
+      const snakeTab = document.getElementById('snake-tab');
+      if (snakeTab) setFilter('snakes', snakeTab);
+    }
+  }
+}
+
+function clearUser() {
+  currentUser = null;
+  userTier = 'free';
+  allResults = [];
+  userWhitelist = new Set();
+  accountNotes = {};
+  auditHistory = [];
+  unfollowerLog = [];
+  userSnakeList = new Set();
+  const accountBtn = document.getElementById('account-btn');
+  if (accountBtn) accountBtn.classList.remove('visible');
+  document.getElementById('nav-signin-btn').style.display = 'inline-flex';
+  const badge = document.getElementById('nav-tier-badge');
+  if (badge) { badge.textContent = 'Free'; badge.className = 'account-tier-badge free'; }
+  // Hide results section on sign out
+  const results = document.getElementById('results');
+  if (results) results.style.display = 'none';
+  const sob = document.getElementById('start-over-btn');
+  if (sob) sob.classList.remove('visible');
+  const welcome = document.getElementById('dashboard-welcome');
+  if (welcome) welcome.classList.remove('visible');
+}
+
+async function fetchTier(userId) {
+  // Checks the `subscriptions` table written by the Stripe webhook Edge Function
+  const { data } = await sb
+    .from('subscriptions')
+    .select('tier, status')
+    .eq('user_id', userId)
+    .single();
+
+  if (data && data.status === 'active') {
+    userTier = data.tier;
+  } else {
+    userTier = 'free';
+  }
+  updateNavTierBadge();
+}
+
+async function signOut() {
+  await sb.auth.signOut();
+  clearUser();
+}
+
+// ════════════════════════════════════════════
+// AUTH MODAL
+// ════════════════════════════════════════════
+let authMode = 'signin'; // 'signin' | 'signup'
+
+function openAuthModal() {
+  authMode = 'signin';
+  syncAuthModal();
+  document.getElementById('auth-modal').classList.add('open');
+}
+function closeAuthModal() {
+  document.getElementById('auth-modal').classList.remove('open');
+  document.getElementById('auth-msg').style.display = 'none';
+}
+function toggleAuthMode() {
+  authMode = authMode === 'signin' ? 'signup' : 'signin';
+  syncAuthModal();
+}
+function syncAuthModal() {
+  const isSignIn = authMode === 'signin';
+  document.getElementById('auth-title').textContent = isSignIn ? 'Sign in' : 'Create account';
+  document.getElementById('auth-sub').textContent = isSignIn
+    ? 'Sign in to unlock your full results.'
+    : 'Create a free account to save your access.';
+  document.getElementById('auth-submit-btn').textContent = isSignIn ? 'Sign in' : 'Create account';
+  document.getElementById('auth-switch').innerHTML = isSignIn
+    ? 'No account? <a onclick="toggleAuthMode()">Create one free</a>'
+    : 'Already have one? <a onclick="toggleAuthMode()">Sign in</a>';
+  document.getElementById('auth-msg').style.display = 'none';
+}
+
+function showAuthMsg(type, text) {
+  const el = document.getElementById('auth-msg');
+  el.className = 'modal-msg ' + type;
+  el.textContent = text;
+  el.style.display = 'block';
+}
+
+async function handleAuth() {
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  const btn = document.getElementById('auth-submit-btn');
+
+  if (!email || !password) { showAuthMsg('error', 'Please enter your email and password.'); return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Please wait…';
+
+  let result;
+  if (authMode === 'signin') {
+    result = await sb.auth.signInWithPassword({ email, password });
+  } else {
+    result = await sb.auth.signUp({ email, password });
+  }
+
+  btn.disabled = false;
+  btn.textContent = authMode === 'signin' ? 'Sign in' : 'Create account';
+
+  if (result.error) {
+    showAuthMsg('error', result.error.message);
+  } else {
+    if (authMode === 'signup') {
+      showAuthMsg('success', 'Check your email to confirm your account!');
+    } else {
+      closeAuthModal();
+      if (allResults.length) renderResults(); // re-render with new tier
+    }
+  }
+}
+
+// ════════════════════════════════════════════
+// STRIPE CHECKOUT — Edge Function
+// ════════════════════════════════════════════
+async function startCheckout(planType) {
+  if (!currentUser) {
+    openAuthModal();
+    showAuthMsg('error', 'Please sign in or create a free account first, then upgrade.');
+    return;
+  }
+
+  const priceId = planType === 'one_time' ? STRIPE_PRICE_ONE_TIME : STRIPE_PRICE_MONTHLY;
+
+  const { data, error } = await sb.functions.invoke('create-checkout-session', {
+    body: {
+      priceId,
+      userId: currentUser.id,
+      successUrl: window.location.origin + window.location.pathname + '?payment=success',
+      cancelUrl: window.location.origin + window.location.pathname + '?payment=cancelled',
+    }
+  });
+
+  if (error || !data?.url) {
+    alert('Could not start checkout. Please try again.');
+    return;
+  }
+
+  window.location.href = data.url;
+}
+
+// Handle post-payment redirect
+function checkPaymentReturn() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('payment') === 'success') {
+    window.history.replaceState({}, '', window.location.pathname);
+
+    // Try to restore results from localStorage
+    try {
+      const saved = localStorage.getItem('fts_results');
+      if (saved) {
+        allResults = JSON.parse(saved);
+      }
+    } catch(e) {}
+
+    // Wait briefly for Stripe webhook to update Supabase, then re-render
+    if (currentUser) {
+      setTimeout(async () => {
+        await fetchTier(currentUser.id);
+        if (allResults.length) {
+          renderResults();
+          // Show success toast
+          showToast('🎉 Payment successful! Your full results are now unlocked.');
+          document.getElementById('tool').scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 2500);
+    }
+  }
+}
+
+function showToast(msg) {
+  const toast = document.createElement('div');
+  toast.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#1a1a26;border:1px solid rgba(74,222,128,0.35);color:#4ade80;padding:14px 24px;border-radius:12px;font-size:14px;font-weight:500;z-index:999;box-shadow:0 8px 32px rgba(0,0,0,0.4);animation:fadeUp 0.3s ease;white-space:nowrap;';
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 5000);
+}
+
+
+// ════════════════════════════════════════════
+// WHITELIST
+// ════════════════════════════════════════════
+async function loadWhitelist() {
+  if (!currentUser || userTier !== 'monthly') return;
+  const { data } = await sb.from('whitelist').select('handle').eq('user_id', currentUser.id);
+  if (data) {
+    userWhitelist = new Set(data.map(r => r.handle.toLowerCase()));
+    if (allResults.length) filterResults();
+  }
+}
+
+async function toggleWhitelist(handle) {
+  if (!currentUser || userTier !== 'monthly') return;
+  handle = handle.toLowerCase();
+
+  if (userWhitelist.has(handle)) {
+    // Remove from whitelist
+    await sb.from('whitelist').delete().eq('user_id', currentUser.id).eq('handle', handle);
+    userWhitelist.delete(handle);
+    showMiniToast(`@${handle} removed from whitelist`);
+  } else {
+    // Add to whitelist
+    await sb.from('whitelist').insert({ user_id: currentUser.id, handle });
+    userWhitelist.add(handle);
+    showMiniToast(`@${handle} added to whitelist — hidden from results`);
+  }
+  filterResults();
+}
+
+
+async function clearWhitelist() {
+  if (!currentUser || userTier !== 'monthly') return;
+  await sb.from('whitelist').delete().eq('user_id', currentUser.id);
+  userWhitelist.clear();
+  showMiniToast('Whitelist cleared');
+  filterResults();
+}
+function showMiniToast(msg) {
+  document.querySelectorAll('.whitelist-toast').forEach(t => t.remove());
+  const t = document.createElement('div');
+  t.className = 'whitelist-toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+
+// ════════════════════════════════════════════
+// AUDIT HISTORY
+// ════════════════════════════════════════════
+let auditHistory = [];
+let lastAuditUnfollowers = new Set();
+
+async function saveAudit() {
+  if (!currentUser || userTier !== 'monthly') return;
+
+  const unfollowers = allResults.filter(r => !r.mutual && !r.followerOnly).map(r => r.handle);
+  const mutuals = allResults.filter(r => r.mutual).map(r => r.handle);
+  const followerOnly = allResults.filter(r => r.followerOnly).map(r => r.handle);
+
+  await sb.from('audits').insert({
+    user_id: currentUser.id,
+    unfollowers,
+    mutuals,
+    follower_only: followerOnly,
+    total_following: allResults.filter(r => !r.followerOnly).length,
+    total_followers: allResults.filter(r => r.mutual || r.followerOnly).length,
+  });
+
+  await loadAuditHistory();
+}
+
+async function loadAuditHistory() {
+  if (!currentUser || userTier !== 'monthly') return;
+
+  const { data } = await sb
+    .from('audits')
+    .select('*')
+    .eq('user_id', currentUser.id)
+    .order('created_at', { ascending: false })
+    .limit(20);
+
+  if (data) {
+    auditHistory = data;
+
+    // Set last audit unfollowers for diff comparison (second most recent)
+    if (data.length >= 2) {
+      lastAuditUnfollowers = new Set(data[1].unfollowers);
+    } else {
+      lastAuditUnfollowers = new Set();
+    }
+
+    renderAuditHistory();
+    showNewUnfollowerBadge();
+  }
+}
+
+function showNewUnfollowerBadge() {
+  if (!auditHistory.length || auditHistory.length < 2) return;
+  const currentUnfollowers = new Set(allResults.filter(r => !r.mutual && !r.followerOnly).map(r => r.handle));
+  const newOnes = [...currentUnfollowers].filter(h => !lastAuditUnfollowers.has(h));
+
+  const badge = document.getElementById('new-unfollower-badge');
+  if (badge) {
+    if (newOnes.length > 0) {
+      badge.textContent = `🔴 ${newOnes.length} new unfollower${newOnes.length > 1 ? 's' : ''} since last audit`;
+      badge.style.display = 'inline-flex';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+}
+
+function renderAuditHistory() {
+  const el = document.getElementById('history-list');
+  if (!el) return;
+
+  if (!auditHistory.length) {
+    el.innerHTML = '<div class="history-empty">No audits yet. Run your first analysis to start tracking!</div>';
+    return;
+  }
+
+  el.innerHTML = auditHistory.map((audit, i) => {
+    const date = new Date(audit.created_at);
+    const dateStr = date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    const timeStr = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+    // Find new unfollowers compared to previous audit
+    let newUnfollowers = [];
+    if (i < auditHistory.length - 1) {
+      const prevSet = new Set(auditHistory[i + 1].unfollowers);
+      newUnfollowers = audit.unfollowers.filter(h => !prevSet.has(h));
+    }
+
+    const newBadge = newUnfollowers.length > 0
+      ? `<span class="audit-new-badge">🔴 ${newUnfollowers.length} new</span>`
+      : i === auditHistory.length - 1 ? '<span style="font-size:11px;color:var(--muted)">First audit</span>' : '';
+
+    const unfollowerList = audit.unfollowers.slice(0, 50).map(h => {
+      const isNew = newUnfollowers.includes(h);
+      return `<div class="audit-list-item">
+        ${isNew ? '<span class="audit-new-dot"></span>' : '<span style="width:6px;flex-shrink:0"></span>'}
+        <a href="https://instagram.com/${h}" target="_blank" rel="noopener">@${h}</a>
+        ${isNew ? '<span style="font-size:11px;color:var(--accent);font-weight:500">new</span>' : ''}
+      </div>`;
+    }).join('');
+
+    const moreCount = audit.unfollowers.length > 50 ? `<div style="text-align:center;padding:8px;font-size:12px;color:var(--muted)">+ ${audit.unfollowers.length - 50} more</div>` : '';
+
+    return `<div class="audit-card" id="audit-${audit.id}">
+      <div class="audit-card-header" onclick="toggleAudit('${audit.id}')">
+        <div class="audit-card-left">
+          <div>
+            <div class="audit-date">${dateStr} <span style="font-weight:400;color:var(--muted);font-size:13px">${timeStr}</span></div>
+            <div class="audit-meta">${audit.total_following} following · ${audit.total_followers} followers</div>
+          </div>
+          ${newBadge}
+        </div>
+        <div style="display:flex;align-items:center;gap:16px;">
+          <div class="audit-stats">
+            <div class="audit-stat danger"><strong>${audit.unfollowers.length}</strong> not following back</div>
+            <div class="audit-stat"><strong>${audit.mutuals.length}</strong> mutual</div>
+          </div>
+          <button class="audit-delete-btn" onclick="deleteAudit('${audit.id}',event)">Delete</button>
+          <span class="audit-chevron">▼</span>
+        </div>
+      </div>
+      <div class="audit-body">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:10px;font-weight:500;text-transform:uppercase;letter-spacing:0.05em;">Not following back${newUnfollowers.length > 0 ? ` · ${newUnfollowers.length} new since last audit` : ''}</div>
+        ${audit.unfollowers.length === 0
+          ? '<div style="color:var(--muted);font-size:13px;padding:12px 0">No unfollowers in this audit 🎉</div>'
+          : `<div class="audit-list">${unfollowerList}${moreCount}</div>`
+        }
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleAudit(id) {
+  const card = document.getElementById('audit-' + id);
+  if (card) card.classList.toggle('open');
+}
+
+async function deleteAudit(id, e) {
+  e.stopPropagation();
+  if (!confirm('Delete this audit?')) return;
+  await sb.from('audits').delete().eq('id', id).eq('user_id', currentUser.id);
+  auditHistory = auditHistory.filter(a => a.id !== id);
+  renderAuditHistory();
+}
+
+async function clearAllAudits() {
+  if (!confirm('Clear all audit history?')) return;
+  await sb.from('audits').delete().eq('user_id', currentUser.id);
+  auditHistory = [];
+  lastAuditUnfollowers = new Set();
+  renderAuditHistory();
+}
+
+
+// ════════════════════════════════════════════
+// ACCOUNT NOTES
+// ════════════════════════════════════════════
+let accountNotes = {}; // handle -> note text
+
+async function loadNotes() {
+  if (!currentUser || userTier !== 'monthly') return;
+  const { data } = await sb.from('account_notes').select('handle, note').eq('user_id', currentUser.id);
+  if (data) {
+    accountNotes = {};
+    data.forEach(r => { accountNotes[r.handle.toLowerCase()] = r.note; });
+    if (allResults.length) filterResults();
+  }
+}
+
+async function saveNote(handle, note) {
+  if (!currentUser || userTier !== 'monthly') return;
+  handle = handle.toLowerCase();
+  if (note.trim() === '') {
+    await sb.from('account_notes').delete().eq('user_id', currentUser.id).eq('handle', handle);
+    delete accountNotes[handle];
+    showMiniToast(`Note removed for @${handle}`);
+  } else {
+    await sb.from('account_notes').upsert({ user_id: currentUser.id, handle, note: note.trim(), updated_at: new Date().toISOString() }, { onConflict: 'user_id,handle' });
+    accountNotes[handle] = note.trim();
+    showMiniToast(`Note saved for @${handle}`);
+  }
+  filterResults();
+}
+
+function toggleNoteRow(handle) {
+  if (userTier !== 'monthly') {
+    showMiniToast('Notes are available on the Monthly plan 🐍');
+    return;
+  }
+  const row = document.getElementById('note-row-' + handle);
+  if (!row) return;
+  const isVisible = row.classList.contains('visible');
+  // Close all open note rows first
+  document.querySelectorAll('.note-row.visible').forEach(r => r.classList.remove('visible'));
+  if (!isVisible) row.classList.add('visible');
+}
+
+function submitNote(handle) {
+  const input = document.getElementById('note-input-' + handle);
+  if (!input) return;
+  saveNote(handle, input.value);
+}
+
+
+// ════════════════════════════════════════════
+// UNFOLLOWER LOG
+// ════════════════════════════════════════════
+let unfollowerLog = [];
+let currentLogFilter = 'all';
+
+async function updateUnfollowerLog() {
+  if (!currentUser || userTier !== 'monthly') return;
+
+  const currentUnfollowers = allResults
+    .filter(r => !r.mutual && !r.followerOnly)
+    .map(r => r.handle.toLowerCase());
+
+  const now = new Date().toISOString();
+
+  // Upsert current unfollowers as active
+  for (const handle of currentUnfollowers) {
+    const { data: existing } = await sb
+      .from('unfollower_log')
+      .select('id, first_seen')
+      .eq('user_id', currentUser.id)
+      .eq('handle', handle)
+      .single();
+
+    if (existing) {
+      await sb.from('unfollower_log').update({ last_seen: now, status: 'active' }).eq('id', existing.id);
+    } else {
+      await sb.from('unfollower_log').insert({ user_id: currentUser.id, handle, first_seen: now, last_seen: now, status: 'active' });
+    }
+  }
+
+  // Mark anyone who was active but not in current list as 'gone'
+  const currentSet = new Set(currentUnfollowers);
+  const { data: activeRows } = await sb
+    .from('unfollower_log')
+    .select('id, handle')
+    .eq('user_id', currentUser.id)
+    .eq('status', 'active');
+
+  if (activeRows) {
+    for (const row of activeRows) {
+      if (!currentSet.has(row.handle)) {
+        await sb.from('unfollower_log').update({ status: 'gone', last_seen: now }).eq('id', row.id);
+      }
+    }
+  }
+
+  await loadUnfollowerLog();
+}
+
+async function loadUnfollowerLog() {
+  if (!currentUser || userTier !== 'monthly') return;
+
+  const { data } = await sb
+    .from('unfollower_log')
+    .select('*')
+    .eq('user_id', currentUser.id)
+    .order('first_seen', { ascending: false });
+
+  if (data) {
+    unfollowerLog = data;
+    updateLogTabCount();
+    renderUnfollowerLog();
+  }
+}
+
+function updateLogTabCount() {
+  const count = unfollowerLog.length;
+  const badge = document.getElementById('log-tab-count');
+  if (badge) {
+    if (count > 0) { badge.textContent = count; badge.style.display = 'inline'; }
+    else badge.style.display = 'none';
+  }
+  const activeCount = unfollowerLog.filter(r => r.status === 'active').length;
+  const goneCount = unfollowerLog.filter(r => r.status === 'gone').length;
+  const activeEl = document.getElementById('log-active-count');
+  const goneEl = document.getElementById('log-gone-count');
+  if (activeEl) activeEl.textContent = activeCount;
+  if (goneEl) goneEl.textContent = goneCount;
+}
+
+function setLogFilter(f, btn) {
+  currentLogFilter = f;
+  document.querySelectorAll('.log-filter').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderUnfollowerLog();
+}
+
+function renderUnfollowerLog() {
+  const el = document.getElementById('log-list-scroll');
+  if (!el) return;
+
+  const query = (document.getElementById('log-search')?.value || '').toLowerCase().trim();
+
+  let filtered = [...unfollowerLog];
+  if (currentLogFilter === 'active') filtered = filtered.filter(r => r.status === 'active');
+  if (currentLogFilter === 'gone') filtered = filtered.filter(r => r.status === 'gone');
+  if (query) filtered = filtered.filter(r => r.handle.includes(query));
+
+  if (!filtered.length) {
+    el.innerHTML = '<div class="log-empty">No unfollowers found.</div>';
+    return;
+  }
+
+  el.innerHTML = filtered.map(r => {
+    const firstSeen = new Date(r.first_seen).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const lastSeen = new Date(r.last_seen).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const statusBadge = r.status === 'active'
+      ? '<span class="log-status-active">● Still not following</span>'
+      : '<span class="log-status-gone">○ No longer detected</span>';
+    const note = accountNotes[r.handle] ? `<div style="font-size:11px;color:var(--muted);font-style:italic;margin-top:2px">📝 ${accountNotes[r.handle]}</div>` : '';
+
+    return `<div class="log-item">
+      <div>
+        <a href="https://instagram.com/${r.handle}" target="_blank" rel="noopener">@${r.handle}</a>
+        ${note}
+      </div>
+      <div class="log-date">${firstSeen}</div>
+      <div class="log-date">${lastSeen}</div>
+      <div>${statusBadge}</div>
+    </div>`;
+  }).join('');
+}
+
+
+// ════════════════════════════════════════════
+// SNAKE LIST
+// ════════════════════════════════════════════
+let userSnakeList = new Set();
+
+async function loadSnakeList() {
+  if (!currentUser || userTier !== 'monthly') return;
+  const { data } = await sb.from('snake_list').select('handle, created_at').eq('user_id', currentUser.id).order('created_at', { ascending: false });
+  if (data) {
+    userSnakeList = new Set(data.map(r => r.handle.toLowerCase()));
+    updateSnakeTabCount();
+    if (allResults.length) filterResults();
+  }
+}
+
+function updateSnakeTabCount() {
+  const badge = document.getElementById('snake-tab-count');
+  if (badge) {
+    if (userSnakeList.size > 0) { badge.textContent = userSnakeList.size; badge.style.display = 'inline'; }
+    else badge.style.display = 'none';
+  }
+}
+
+async function toggleSnakeList(handle) {
+  if (!currentUser || userTier !== 'monthly') return;
+  handle = handle.toLowerCase();
+  if (userSnakeList.has(handle)) {
+    await sb.from('snake_list').delete().eq('user_id', currentUser.id).eq('handle', handle);
+    userSnakeList.delete(handle);
+    showMiniToast(`@${handle} removed from Snake List`);
+  } else {
+    await sb.from('snake_list').insert({ user_id: currentUser.id, handle });
+    userSnakeList.add(handle);
+    showMiniToast(`🐍 @${handle} added to your Snake List!`);
+  }
+  updateSnakeTabCount();
+  filterResults();
+  if (currentFilter === 'snakes') renderSnakeList();
+}
+
+async function renderSnakeList() {
+  const el = document.getElementById('snake-list-container');
+  if (!el) return;
+
+  if (userSnakeList.size === 0) {
+    el.innerHTML = '<div class="snake-empty"><span class="emoji">🐍</span>Your Snake List is empty.<br>Add accounts from your results by clicking the 🐍 button.</div>';
+    return;
+  }
+
+  const { data } = await sb.from('snake_list').select('handle, created_at').eq('user_id', currentUser.id).order('created_at', { ascending: false });
+  if (!data) return;
+
+  el.innerHTML = `<div class="snake-list-wrap">
+    <div class="snake-list-header"><span>Username</span><span>Added</span><span></span></div>
+    ${data.map(r => {
+      const date = new Date(r.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const note = accountNotes[r.handle] ? `<div style="font-size:11px;color:var(--muted);font-style:italic;margin-top:2px">📝 ${accountNotes[r.handle]}</div>` : '';
+      return `<div class="snake-list-item">
+        <div>
+          <a href="https://instagram.com/${r.handle}" target="_blank" rel="noopener">@${r.handle}</a>
+          ${note}
+        </div>
+        <div class="snake-added-date">${date}</div>
+        <button class="snake-remove-btn" title="Remove from Snake List" onclick="toggleSnakeList('${r.handle}')">✕</button>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+async function clearSnakeList() {
+  if (!confirm('Clear your entire Snake List?')) return;
+  await sb.from('snake_list').delete().eq('user_id', currentUser.id);
+  userSnakeList.clear();
+  updateSnakeTabCount();
+  renderSnakeList();
+  showMiniToast('Snake List cleared');
+}
+
+
+function startOver() {
+  // Reset results
+  allResults = [];
+
+  // Clear file lists and inputs
+  ['followers', 'following'].forEach(type => {
+    const listEl = document.getElementById(type + '-files');
+    if (listEl) listEl.innerHTML = '';
+    const input = document.getElementById(type + '-input');
+    if (input) input.value = '';
+  });
+  followersData = [];
+  followingData = [];
+
+  // Reset analyze button
+  const btn = document.getElementById('analyze-btn');
+  if (btn) { btn.disabled = true; btn.innerHTML = '✦ &nbsp;Analyze Now'; }
+
+  // Hide start over button
+  const sob = document.getElementById('start-over-btn');
+  if (sob) sob.classList.remove('visible');
+
+  // Hide results list and paywall, show empty state if monthly
+  const scroll = document.getElementById('results-list-scroll');
+  const paywall = document.getElementById('paywall-container');
+  const statsRow = document.getElementById('stats-row');
+  const badge = document.getElementById('results-badge');
+  const newBadge = document.getElementById('new-unfollower-badge');
+
+  if (statsRow) statsRow.innerHTML = '';
+  if (badge) badge.textContent = '';
+  if (newBadge) newBadge.style.display = 'none';
+  if (paywall) paywall.innerHTML = '';
+
+  if (userTier === 'monthly') {
+    // Stay on dashboard, show empty state
+    if (scroll) scroll.innerHTML = `<div class="no-analysis-msg">
+      <span class="emoji">📂</span>
+      Upload your Instagram JSON files above and click <strong>Analyze Now</strong> to run a new analysis.<br><br>
+      <a href="instructions.html">Need help getting your files? →</a>
+    </div>`;
+    // Show welcome banner again
+    const welcome = document.getElementById('dashboard-welcome');
+    if (welcome) welcome.classList.add('visible');
+    // Reset to unfollowers tab
+    document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+    const unfollowTab = document.querySelector('.filter-tab[onclick*="unfollowers"]');
+    if (unfollowTab) unfollowTab.classList.add('active');
+    currentFilter = 'unfollowers';
+  } else {
+    // For free/one-time users, hide results entirely
+    const results = document.getElementById('results');
+    if (results) results.style.display = 'none';
+  }
+
+  // Scroll back up to upload section
+  document.getElementById('tool').scrollIntoView({ behavior: 'smooth' });
+}
+
+
+// ════════════════════════════════════════════
+// CANCEL SUBSCRIPTION
+// ════════════════════════════════════════════
+function toggleAccountMenu() {
+  const dropdown = document.getElementById('account-dropdown');
+  if (dropdown) dropdown.classList.toggle('open');
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', e => {
+  const menu = document.getElementById('account-menu');
+  if (menu && !menu.contains(e.target)) {
+    const dropdown = document.getElementById('account-dropdown');
+    if (dropdown) dropdown.classList.remove('open');
+  }
+});
+
+function openCancelModal() {
+  document.getElementById('cancel-modal').classList.add('open');
+}
+
+function closeCancelModal() {
+  document.getElementById('cancel-modal').classList.remove('open');
+  const btn = document.getElementById('cancel-confirm-btn');
+  if (btn) { btn.disabled = false; btn.textContent = 'Yes, cancel my subscription'; }
+}
+
+async function confirmCancel() {
+  if (!currentUser) return;
+  const btn = document.getElementById('cancel-confirm-btn');
+  btn.disabled = true;
+  btn.textContent = 'Cancelling…';
+
+  const { data, error } = await sb.functions.invoke('cancel-subscription', {
+    body: { userId: currentUser.id }
+  });
+
+  if (error || !data?.success) {
+    btn.disabled = false;
+    btn.textContent = 'Yes, cancel my subscription';
+    showMiniToast('Something went wrong. Please email hello@findthesnakes.com');
+    return;
+  }
+
+  // Update local tier
+  userTier = 'free';
+  closeCancelModal();
+  updateNavTierBadge();
+  updateToolBtns();
+  showToast('Your subscription has been cancelled. You still have access until the end of your billing period.');
+}
+
+function updateNavTierBadge() {
+  updateMobileMenu();
+  const badge = document.getElementById('nav-tier-badge');
+  const cancelBtn = document.getElementById('cancel-sub-btn');
+  if (!badge) return;
+  if (userTier === 'monthly') {
+    badge.textContent = 'Pro';
+    badge.className = 'account-tier-badge pro';
+    if (cancelBtn) cancelBtn.style.display = 'flex';
+  } else {
+    badge.textContent = userTier === 'one_time' ? 'One-time' : 'Free';
+    badge.className = 'account-tier-badge free';
+    if (cancelBtn) cancelBtn.style.display = 'none';
+  }
+}
+
+
+// ════════════════════════════════════════════
+// MOBILE MENU
+// ════════════════════════════════════════════
+function toggleMobileMenu() {
+  const menu = document.getElementById('mobile-menu');
+  const btn = document.getElementById('hamburger-btn');
+  const isOpen = menu.classList.contains('open');
+  if (isOpen) {
+    menu.classList.remove('open');
+    btn.classList.remove('open');
+  } else {
+    menu.classList.add('open');
+    btn.classList.add('open');
+  }
+}
+
+function closeMobileMenu() {
+  document.getElementById('mobile-menu').classList.remove('open');
+  document.getElementById('hamburger-btn').classList.remove('open');
+}
+
+function updateMobileMenu() {
+  const signinBtn = document.getElementById('mobile-signin-btn');
+  const accountInfo = document.getElementById('mobile-account-info');
+  const emailDisplay = document.getElementById('mobile-email-display');
+  const cancelBtn = document.getElementById('mobile-cancel-btn');
+
+  if (currentUser) {
+    if (signinBtn) signinBtn.style.display = 'none';
+    if (accountInfo) accountInfo.classList.add('visible');
+    if (emailDisplay) emailDisplay.textContent = currentUser.email;
+    if (cancelBtn) cancelBtn.style.display = userTier === 'monthly' ? 'block' : 'none';
+  } else {
+    if (signinBtn) signinBtn.style.display = 'block';
+    if (accountInfo) accountInfo.classList.remove('visible');
+  }
+}
+
+function updateToolBtns() {
+  updateWhitelistTab();
+  const isPaid = userTier === 'one_time' || userTier === 'monthly';
+  ['print-btn', 'csv-btn'].forEach(id => {
+    const btn = document.getElementById(id);
+    if (!btn) return;
+    if (isPaid) btn.classList.remove('locked');
+    else btn.classList.add('locked');
+  });
+}
+
+function handleToolBtn(type) {
+  const isPaid = userTier === 'one_time' || userTier === 'monthly';
+  if (!isPaid) return; // locked — tooltip handles the message
+  if (type === 'print') printReport();
+  if (type === 'csv') exportCSV();
+}
+
+function exportCSV() {
+  const isPaid = userTier === 'one_time' || userTier === 'monthly';
+  if (!isPaid) return;
+
+  const isMonthly = userTier === 'monthly';
+  const date = new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+  const rows = [];
+
+  // ── HEADER ──
+  rows.push(['FindTheSnakes — Full Export', '', '', '', '']);
+  rows.push(['Generated:', date, '', '', '']);
+  rows.push([]);
+
+  // ── SECTION 1: CURRENT ANALYSIS ──
+  const unfollowers = allResults.filter(r => !r.mutual && !r.followerOnly);
+  const mutuals = allResults.filter(r => r.mutual);
+  const followerOnly = allResults.filter(r => r.followerOnly);
+
+  rows.push(['=== CURRENT ANALYSIS ===', '', '', '', '']);
+  rows.push(['Total analyzed:', allResults.length, '', '', '']);
+  rows.push(['Not following back:', unfollowers.length, '', '', '']);
+  rows.push(['Mutual:', mutuals.length, '', '', '']);
+  rows.push(['Follows you only:', followerOnly.length, '', '', '']);
+  rows.push([]);
+
+  // Not following back
+  rows.push(['--- NOT FOLLOWING BACK ---', '', '', '', '']);
+  const nfbHeaders = ['Username', 'Instagram URL', 'Whitelisted'];
+  if (isMonthly) { nfbHeaders.push('Note'); nfbHeaders.push('In Snake List'); }
+  rows.push(nfbHeaders);
+  unfollowers.forEach(r => {
+    const row = [r.handle, 'https://instagram.com/' + r.handle, userWhitelist.has(r.handle.toLowerCase()) ? 'Yes' : 'No'];
+    if (isMonthly) { row.push(accountNotes[r.handle.toLowerCase()] || ''); row.push(userSnakeList.has(r.handle.toLowerCase()) ? 'Yes' : 'No'); }
+    rows.push(row);
+  });
+  rows.push([]);
+
+  // Mutuals
+  rows.push(['--- MUTUALS ---', '', '', '', '']);
+  rows.push(['Username', 'Instagram URL', isMonthly ? 'Note' : '']);
+  mutuals.forEach(r => {
+    const row = [r.handle, 'https://instagram.com/' + r.handle];
+    if (isMonthly) row.push(accountNotes[r.handle.toLowerCase()] || '');
+    rows.push(row);
+  });
+  rows.push([]);
+
+  // Follows you only
+  rows.push(['--- FOLLOWS YOU ONLY ---', '', '', '', '']);
+  rows.push(['Username', 'Instagram URL']);
+  followerOnly.forEach(r => rows.push([r.handle, 'https://instagram.com/' + r.handle]));
+  rows.push([]);
+
+  if (isMonthly) {
+    // ── SECTION 2: WHITELIST ──
+    rows.push(['=== WHITELIST ===', '', '', '', '']);
+    rows.push(['Total whitelisted:', userWhitelist.size]);
+    rows.push([]);
+    if (userWhitelist.size > 0) {
+      rows.push(['Username', 'Instagram URL', 'Note']);
+      userWhitelist.forEach(handle => {
+        rows.push([handle, 'https://instagram.com/' + handle, accountNotes[handle] || '']);
+      });
+    } else {
+      rows.push(['No accounts whitelisted yet']);
+    }
+    rows.push([]);
+
+    // ── SECTION 3: SNAKE LIST ──
+    rows.push(['=== SNAKE LIST ===', '', '', '', '']);
+    rows.push(['Total snakes:', userSnakeList.size]);
+    rows.push([]);
+    if (userSnakeList.size > 0) {
+      rows.push(['Username', 'Instagram URL', 'Note']);
+      userSnakeList.forEach(handle => {
+        rows.push([handle, 'https://instagram.com/' + handle, accountNotes[handle] || '']);
+      });
+    } else {
+      rows.push(['No accounts in Snake List yet']);
+    }
+    rows.push([]);
+
+    // ── SECTION 4: NOTES ──
+    const noteEntries = Object.entries(accountNotes);
+    rows.push(['=== ACCOUNT NOTES ===', '', '', '', '']);
+    rows.push(['Total notes:', noteEntries.length]);
+    rows.push([]);
+    if (noteEntries.length > 0) {
+      rows.push(['Username', 'Instagram URL', 'Note']);
+      noteEntries.forEach(([handle, note]) => {
+        rows.push([handle, 'https://instagram.com/' + handle, note]);
+      });
+    } else {
+      rows.push(['No notes added yet']);
+    }
+    rows.push([]);
+
+    // ── SECTION 5: AUDIT HISTORY ──
+    rows.push(['=== AUDIT HISTORY ===', '', '', '', '']);
+    rows.push(['Total audits:', auditHistory.length]);
+    rows.push([]);
+    if (auditHistory.length > 0) {
+      rows.push(['Date', 'Not Following Back', 'Mutuals', 'Follows You Only', 'Total Analyzed']);
+      auditHistory.forEach(audit => {
+        const d = new Date(audit.created_at).toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit' });
+        rows.push([d, audit.unfollowers.length, audit.mutuals.length, audit.follower_only.length, audit.total_following]);
+      });
+    } else {
+      rows.push(['No audit history yet']);
+    }
+    rows.push([]);
+
+    // ── SECTION 6: UNFOLLOWER LOG ──
+    rows.push(['=== ALL UNFOLLOWERS LOG ===', '', '', '', '']);
+    rows.push(['Total logged:', unfollowerLog.length]);
+    rows.push([]);
+    if (unfollowerLog.length > 0) {
+      rows.push(['Username', 'Instagram URL', 'First Detected', 'Last Seen', 'Status', 'Note']);
+      unfollowerLog.forEach(r => {
+        const first = new Date(r.first_seen).toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+        const last = new Date(r.last_seen).toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+        rows.push([r.handle, 'https://instagram.com/' + r.handle, first, last, r.status === 'active' ? 'Still not following' : 'No longer detected', accountNotes[r.handle] || '']);
+      });
+    } else {
+      rows.push(['No unfollowers logged yet']);
+    }
+  }
+
+  const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'findthesnakes-full-export-' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function printReport() {
+  const isMonthly = userTier === 'monthly';
+  const date = new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+  const unfollowers = allResults.filter(r => !r.mutual && !r.followerOnly);
+  const mutuals = allResults.filter(r => r.mutual);
+  const followerOnly = allResults.filter(r => r.followerOnly);
+
+  // Build full summary for print header
+  let summaryParts = [
+    `Not following back: <strong>${unfollowers.length}</strong>`,
+    `Mutual: <strong>${mutuals.length}</strong>`,
+    `Follows you only: <strong>${followerOnly.length}</strong>`,
+  ];
+  if (isMonthly) {
+    summaryParts.push(`Whitelisted: <strong>${userWhitelist.size}</strong>`);
+    summaryParts.push(`Snake List: <strong>${userSnakeList.size}</strong>`);
+    summaryParts.push(`Notes: <strong>${Object.keys(accountNotes).length}</strong>`);
+    summaryParts.push(`Audits: <strong>${auditHistory.length}</strong>`);
+    summaryParts.push(`Unfollower log: <strong>${unfollowerLog.length}</strong>`);
+  }
+
+  document.getElementById('print-date').innerHTML = `
+    Generated on ${date}
+    <br><span style="font-size:11px;color:#999">${summaryParts.join(' &nbsp;·&nbsp; ')}</span>
+  `;
+
+  // Inject notes inline
+  if (isMonthly && Object.keys(accountNotes).length > 0) {
+    document.querySelectorAll('.result-item').forEach(item => {
+      const link = item.querySelector('.result-handle a');
+      if (!link) return;
+      const handle = link.href.split('instagram.com/')[1];
+      const note = accountNotes[handle?.toLowerCase()];
+      const existingPrintNote = item.querySelector('.print-note');
+      if (existingPrintNote) existingPrintNote.remove();
+      if (note) {
+        const noteEl = document.createElement('div');
+        noteEl.className = 'print-note';
+        noteEl.style.cssText = 'font-size:11px;color:#666;font-style:italic;margin-top:2px;';
+        noteEl.textContent = '📝 ' + note;
+        item.querySelector('.result-handle').appendChild(noteEl);
+      }
+    });
+  }
+
+  // Inject extra print sections for monthly users
+  const existingExtra = document.getElementById('print-extra-sections');
+  if (existingExtra) existingExtra.remove();
+
+  if (isMonthly) {
+    const extra = document.createElement('div');
+    extra.id = 'print-extra-sections';
+    extra.style.cssText = 'display:none;';
+
+    let html = '';
+
+    // Whitelist
+    if (userWhitelist.size > 0) {
+      html += `<div style="margin-top:24px;border-top:1px solid #eee;padding-top:16px;">
+        <div style="font-size:13px;font-weight:700;margin-bottom:8px;color:#e8445a">WHITELIST (${userWhitelist.size} accounts)</div>`;
+      userWhitelist.forEach(h => { html += `<div style="font-size:12px;padding:3px 0;color:#333">@${h}${accountNotes[h] ? ' — ' + accountNotes[h] : ''}</div>`; });
+      html += '</div>';
+    }
+
+    // Snake List
+    if (userSnakeList.size > 0) {
+      html += `<div style="margin-top:24px;border-top:1px solid #eee;padding-top:16px;">
+        <div style="font-size:13px;font-weight:700;margin-bottom:8px;color:#e8445a">🐍 SNAKE LIST (${userSnakeList.size} accounts)</div>`;
+      userSnakeList.forEach(h => { html += `<div style="font-size:12px;padding:3px 0;color:#333">@${h}${accountNotes[h] ? ' — ' + accountNotes[h] : ''}</div>`; });
+      html += '</div>';
+    }
+
+    // Audit History summary
+    if (auditHistory.length > 0) {
+      html += `<div style="margin-top:24px;border-top:1px solid #eee;padding-top:16px;">
+        <div style="font-size:13px;font-weight:700;margin-bottom:8px;color:#e8445a">AUDIT HISTORY (${auditHistory.length} audits)</div>
+        <table style="width:100%;font-size:11px;border-collapse:collapse;">
+          <tr style="background:#f5f5f5;"><th style="padding:4px 8px;text-align:left;">Date</th><th style="padding:4px 8px;">Not Following Back</th><th style="padding:4px 8px;">Mutuals</th><th style="padding:4px 8px;">Follows You Only</th></tr>`;
+      auditHistory.forEach(a => {
+        const d = new Date(a.created_at).toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' });
+        html += `<tr><td style="padding:4px 8px;">${d}</td><td style="padding:4px 8px;text-align:center;">${a.unfollowers.length}</td><td style="padding:4px 8px;text-align:center;">${a.mutuals.length}</td><td style="padding:4px 8px;text-align:center;">${a.follower_only.length}</td></tr>`;
+      });
+      html += '</table></div>';
+    }
+
+    extra.innerHTML = html;
+    document.getElementById('print-header').after(extra);
+  }
+
+  window.print();
+
+  // Clean up injected elements after print
+  setTimeout(() => {
+    const e = document.getElementById('print-extra-sections');
+    if (e) e.remove();
+    document.querySelectorAll('.print-note').forEach(n => n.remove());
+  }, 1000);
+}
+
+// ════════════════════════════════════════════
+// FILE HANDLING
+// ════════════════════════════════════════════
+let followersData = [];
+let followingData = [];
+let allResults = [];
+let currentFilter = 'unfollowers';
+let userWhitelist = new Set(); // handles whitelisted by user
+
+['followers', 'following'].forEach(type => {
+  const zone = document.getElementById(type + '-zone');
+  const input = document.getElementById(type + '-input');
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+  zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('drag-over'); handleFiles(type, Array.from(e.dataTransfer.files)); });
+  input.addEventListener('change', () => handleFiles(type, Array.from(input.files)));
+});
+
+function handleFiles(type, files) {
+  const jsonFiles = files.filter(f => f.name.endsWith('.json'));
+  if (!jsonFiles.length) { showError('Please upload JSON files only.'); return; }
+  hideError();
+  const listEl = document.getElementById(type + '-files');
+  jsonFiles.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const json = JSON.parse(e.target.result);
+        if (type === 'followers') followersData.push({ name: file.name, data: json });
+        else followingData.push({ name: file.name, data: json });
+        renderFileItem(listEl, file, type);
+        updateBtn();
+      } catch {
+        showError(`Could not parse ${file.name}. Make sure it's a valid Instagram JSON export.`);
+      }
+    };
+    reader.readAsText(file);
+  });
+}
+
+function renderFileItem(listEl, file, type) {
+  const item = document.createElement('div');
+  item.className = 'file-item';
+  const kb = (file.size / 1024).toFixed(1);
+  item.innerHTML = `<span class="file-item-dot"></span><span class="file-item-name">${file.name}</span><span class="file-item-size">${kb} KB</span><span class="file-item-remove" title="Remove" onclick="removeFile('${type}','${file.name}',this)">✕</span>`;
+  listEl.appendChild(item);
+}
+
+function removeFile(type, name, el) {
+  if (type === 'followers') followersData = followersData.filter(f => f.name !== name);
+  else followingData = followingData.filter(f => f.name !== name);
+  el.closest('.file-item').remove();
+  updateBtn();
+}
+
+function updateBtn() {
+  document.getElementById('analyze-btn').disabled = !(followersData.length && followingData.length);
+}
+
+// ════════════════════════════════════════════
+// PARSE & ANALYZE
+// ════════════════════════════════════════════
+function extractHandles(datasets) {
+  const handles = new Set();
+  datasets.forEach(({ data }) => {
+    const tryParse = (node) => {
+      if (!node) return;
+      if (Array.isArray(node)) {
+        node.forEach(item => {
+          if (item.string_list_data) item.string_list_data.forEach(d => { if (d.value) handles.add(d.value.toLowerCase()); });
+          if (item.title) handles.add(item.title.toLowerCase());
+          if (typeof item === 'string') handles.add(item.toLowerCase());
+        });
+      } else if (typeof node === 'object') {
+        Object.values(node).forEach(v => tryParse(v));
+      }
+    };
+    tryParse(data);
+  });
+  return handles;
+}
+
+function analyze() {
+  hideError();
+
+  const btn = document.getElementById('analyze-btn');
+  btn.disabled = true;
+  btn.classList.add('processing');
+  btn.innerHTML = '<span class="btn-spinner"></span><span class="processing-dots">Processing</span>';
+
+  setTimeout(() => {
+    const followers = extractHandles(followersData);
+    const following = extractHandles(followingData);
+
+    if (followers.size === 0 || following.size === 0) {
+      showError('Could not read usernames from the files. Make sure these are Instagram follower/following JSON exports.');
+      btn.disabled = false;
+      btn.classList.remove('processing');
+      btn.innerHTML = '✦ &nbsp;Analyze Now';
+      return;
+    }
+
+    allResults = [];
+    following.forEach(handle => {
+      allResults.push({ handle, mutual: followers.has(handle) });
+    });
+    followers.forEach(handle => {
+      if (!following.has(handle)) allResults.push({ handle, followerOnly: true });
+    });
+    allResults.sort((a, b) => a.handle.localeCompare(b.handle));
+
+    // Save to localStorage so results survive a Stripe redirect
+    try {
+      localStorage.setItem('fts_results', JSON.stringify(allResults));
+      localStorage.setItem('fts_results_date', new Date().toISOString());
+    } catch(e) {}
+
+    renderResults();
+
+    // Save audit and update unfollower log for monthly users
+    if (userTier === 'monthly') {
+      saveAudit();
+      updateUnfollowerLog();
+    }
+
+    btn.disabled = false;
+    btn.classList.remove('processing');
+    btn.innerHTML = '✦ &nbsp;Analyze Now';
+  }, 80);
+}
+
+// ════════════════════════════════════════════
+// RENDER RESULTS WITH PAYWALL
+// ════════════════════════════════════════════
+function renderResults() {
+  // Hide welcome banner once analysis is run
+  const welcome = document.getElementById('dashboard-welcome');
+  if (welcome) welcome.classList.remove('visible');
+
+  // Show start over button
+  const sob = document.getElementById('start-over-btn');
+  if (sob) sob.classList.add('visible');
+
+  const unfollowers = allResults.filter(r => !r.mutual && !r.followerOnly);
+  const mutuals = allResults.filter(r => r.mutual);
+  const followerOnly = allResults.filter(r => r.followerOnly);
+
+  document.getElementById('stats-row').innerHTML = `
+    <div class="stat-card danger"><div class="num">${unfollowers.length}</div><div class="lbl">Not following back</div></div>
+    <div class="stat-card safe"><div class="num">${mutuals.length}</div><div class="lbl">Mutual followers</div></div>
+    <div class="stat-card"><div class="num">${followerOnly.length}</div><div class="lbl">Follow you only</div></div>`;
+
+  document.getElementById('results-badge').textContent = `${allResults.length} accounts analyzed`;
+  document.getElementById('results').style.display = 'block';
+  document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // Update tool buttons based on tier
+  updateToolBtns();
+
+  filterResults();
+}
+
+function filterResults() {
+  const query = document.getElementById('search-input').value.toLowerCase().trim();
+  const isPaid = userTier === 'one_time' || userTier === 'monthly';
+
+  // Update whitelist tab count
+  const wlTabCount = document.getElementById('wl-tab-count');
+  if (wlTabCount) {
+    if (userWhitelist.size > 0) {
+      wlTabCount.textContent = userWhitelist.size;
+      wlTabCount.style.display = 'inline';
+    } else {
+      wlTabCount.style.display = 'none';
+    }
+  }
+
+  let filtered = [...allResults];
+  if (currentFilter === 'whitelist') {
+    filtered = filtered.filter(r => userWhitelist.has(r.handle.toLowerCase()));
+  } else {
+    if (currentFilter === 'unfollowers') filtered = filtered.filter(r => !r.mutual && !r.followerOnly && !userWhitelist.has(r.handle.toLowerCase()));
+    if (currentFilter === 'mutual') filtered = filtered.filter(r => r.mutual);
+    if (query) filtered = filtered.filter(r => r.handle.includes(query));
+  }
+
+  const el = document.getElementById('results-list-scroll');
+  const paywallEl = document.getElementById('paywall-container');
+
+  if (!filtered.length) {
+    el.innerHTML = `<div class="empty-state"><span class="emoji">🔍</span>No results match your search.</div>`;
+    paywallEl.innerHTML = '';
+    return;
+  }
+
+  const unfollowerResults = filtered.filter(r => !r.mutual && !r.followerOnly && !userWhitelist.has(r.handle.toLowerCase()));
+  const otherResults = filtered.filter(r => r.mutual || r.followerOnly);
+
+  // Determine how many to show
+  const limit = isPaid ? Infinity : FREE_LIMIT;
+
+  // Build rows
+  let html = '';
+  let shownUnfollowers = 0;
+
+  // Show non-unfollower results freely (mutuals / follower-only)
+  otherResults.forEach(r => {
+    html += buildRow(r, false);
+  });
+
+  // Show unfollower results with limit
+  unfollowerResults.forEach((r, i) => {
+    const shouldBlur = !isPaid && i >= FREE_LIMIT;
+    html += buildRow(r, shouldBlur);
+    if (!shouldBlur) shownUnfollowers++;
+  });
+
+  el.innerHTML = html;
+
+  // Show or hide paywall
+  const hiddenCount = isPaid ? 0 : Math.max(0, unfollowerResults.length - FREE_LIMIT);
+  if (hiddenCount > 0) {
+    paywallEl.innerHTML = buildPaywall(hiddenCount, unfollowerResults.length);
+  } else {
+    paywallEl.innerHTML = '';
+  }
+
+  // Show whitelist banner if any are hidden
+  const wlCount = userWhitelist.size;
+  const wlBanner = document.getElementById('wl-banner');
+  if (wlBanner) {
+    if (wlCount > 0 && userTier === 'monthly') {
+      wlBanner.style.display = 'flex';
+      wlBanner.querySelector('span').textContent = `${wlCount} account${wlCount > 1 ? 's' : ''} hidden by your whitelist`;
+    } else {
+      wlBanner.style.display = 'none';
+    }
+  }
+}
+
+function buildRow(r, blurred) {
+  const tag = r.mutual
+    ? `<span class="tag mutual">✓ Mutual</span>`
+    : r.followerOnly
+      ? `<span class="tag mutual">Follows you</span>`
+      : `<span class="tag unfollow">Not following back or profile disabled</span>`;
+
+  const link = blurred
+    ? `<span style="color:var(--muted)">@••••••••••</span>`
+    : `<a href="https://instagram.com/${r.handle}" target="_blank" rel="noopener">@${r.handle}</a>`;
+
+  const isMonthly = userTier === 'monthly';
+  const isWhitelisted = userWhitelist.has(r.handle.toLowerCase());
+  const existingNote = accountNotes[r.handle.toLowerCase()] || '';
+
+  let wlBtn = '';
+  let noteBtn = '';
+  let noteRow = '';
+
+  if (!blurred) {
+    if (isMonthly) {
+      const isWlTab = currentFilter === 'whitelist';
+      wlBtn = `<button class="whitelist-btn${isWhitelisted ? ' whitelisted' : ''}" 
+        title="${isWhitelisted ? 'Remove from whitelist' : 'Add to whitelist'}"
+        onclick="toggleWhitelist('${r.handle}')">
+        ${isWhitelisted ? (isWlTab ? '✓ Unhide' : '✓ Hidden') : '+ Hide'}
+      </button>`;
+      noteBtn = `<button class="note-icon-btn${existingNote ? ' has-note' : ''}" 
+        title="${existingNote ? 'Edit note: ' + existingNote : 'Add note'}"
+        onclick="toggleNoteRow('${r.handle}')">📝</button>`;
+      noteRow = `<div class="note-row${existingNote ? ' visible' : ''}" id="note-row-${r.handle}">
+        <div class="note-input-wrap">
+          <input class="note-input" id="note-input-${r.handle}" 
+            value="${existingNote.replace(/"/g, '&quot;')}" 
+            placeholder="Add a private note about @${r.handle}…"
+            onkeydown="if(event.key==='Enter') submitNote('${r.handle}')">
+          <button class="note-save-btn" onclick="submitNote('${r.handle}')">Save</button>
+        </div>
+        ${existingNote ? `<div class="note-display">📝 ${existingNote}</div>` : ''}
+      </div>`;
+    } else {
+      wlBtn = `<button class="whitelist-btn locked-wl" title="Whitelist available on Monthly plan" onclick="showMiniToast('Whitelist is available on the Monthly plan 🐍')">+ Hide</button>`;
+      noteBtn = `<button class="note-icon-btn" style="opacity:0.25;cursor:not-allowed" title="Notes available on Monthly plan" onclick="showMiniToast('Notes are available on the Monthly plan 🐍')">📝</button>`;
+    }
+  } else {
+    wlBtn = '<span></span>';
+    noteBtn = '<span></span>';
+  }
+
+  let snakeBtn = '';
+  if (!blurred) {
+    const inSnakeList = userSnakeList.has(r.handle.toLowerCase());
+    if (isMonthly) {
+      snakeBtn = `<button class="snake-btn${inSnakeList ? ' in-snake-list' : ''}"
+        title="${inSnakeList ? 'Remove from Snake List' : 'Add to your Snake List'}"
+        onclick="toggleSnakeList('${r.handle}')">🐍</button>`;
+    } else {
+      snakeBtn = `<button class="snake-btn locked-snake" title="Snake List available on Monthly plan" onclick="showMiniToast('Snake List is available on the Monthly plan 🐍')">🐍</button>`;
+    }
+  } else {
+    snakeBtn = '<span></span>';
+  }
+
+  return `<div class="result-item${blurred ? ' blurred' : ''}">
+    <div>
+      <div class="result-handle">${link}</div>
+      ${noteRow}
+    </div>
+    <div>${tag}</div>
+    <div>${wlBtn}</div>
+    <div>${noteBtn}</div>
+    <div>${snakeBtn}</div>
+  </div>`;
+}
+
+function buildPaywall(hiddenCount, totalUnfollowers) {
+  return `<div class="paywall-gate">
+    <div class="paywall-lock">🔒</div>
+    <div class="paywall-count">${hiddenCount}</div>
+    <div class="paywall-count-label">more people not following you back</div>
+    <h3>Unlock your full list</h3>
+    <p>You've seen ${FREE_LIMIT} of ${totalUnfollowers} people who aren't following you back.<br>Upgrade to reveal every one of them instantly.</p>
+    <div class="paywall-plans">
+      <div class="paywall-plan" onclick="startCheckout('one_time')">
+        <div class="paywall-plan-label">One-time</div>
+        <div class="paywall-plan-price">$3</div>
+        <div class="paywall-plan-period">pay once</div>
+        <div class="paywall-plan-feature">Full results for this analysis. One and done.</div>
+        <button class="paywall-plan-btn secondary">Unlock for $3</button>
+      </div>
+      <div class="paywall-plan featured-plan" onclick="startCheckout('monthly')">
+        <div class="paywall-plan-label">⭐ Unlimited</div>
+        <div class="paywall-plan-price">$10</div>
+        <div class="paywall-plan-period">per month</div>
+        <div class="paywall-plan-feature">Unlimited analyses, whitelist, and full audit history to track who unfollowed over time.</div>
+        <button class="paywall-plan-btn primary">Go unlimited</button>
+      </div>
+    </div>
+    ${!currentUser ? `<p style="margin-top:20px;font-size:13px;color:var(--muted)">Already paid? <a href="#" onclick="openAuthModal();return false;" style="color:var(--accent)">Sign in to restore access</a></p>` : ''}
+  </div>`;
+}
+
+function setFilter(f, btn) {
+  if (f === 'whitelist' && userTier !== 'monthly') {
+    showMiniToast('Whitelist is available on the Monthly plan 🐍');
+    return;
+  }
+  if (f === 'history' && userTier !== 'monthly') {
+    showMiniToast('Audit History is available on the Monthly plan 🐍');
+    return;
+  }
+  if (f === 'log' && userTier !== 'monthly') {
+    showMiniToast('Unfollower Log is available on the Monthly plan 🐍');
+    return;
+  }
+  if (f === 'snakes' && userTier !== 'monthly') {
+    showMiniToast('Snake List is available on the Monthly plan 🐍');
+    return;
+  }
+  currentFilter = f;
+  document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  const historySection = document.getElementById('history-section');
+  const resultsList = document.getElementById('results-list-scroll');
+  const paywallContainer = document.getElementById('paywall-container');
+  const wlBanner = document.getElementById('wl-banner');
+  const searchInput = document.getElementById('search-input');
+
+  const logSection = document.getElementById('log-section');
+  const snakeSection = document.getElementById('snake-section');
+
+  // Hide everything first
+  if (historySection) historySection.style.display = 'none';
+  if (logSection) logSection.style.display = 'none';
+  if (snakeSection) snakeSection.style.display = 'none';
+
+  if (f === 'history') {
+    if (historySection) historySection.style.display = 'block';
+    if (resultsList) resultsList.style.display = 'none';
+    if (paywallContainer) paywallContainer.style.display = 'none';
+    if (wlBanner) wlBanner.style.display = 'none';
+    if (searchInput) searchInput.style.display = 'none';
+    document.querySelector('.result-header-row') && (document.querySelector('.result-header-row').style.display = 'none');
+  } else if (f === 'log') {
+    if (logSection) logSection.style.display = 'block';
+    if (resultsList) resultsList.style.display = 'none';
+    if (paywallContainer) paywallContainer.style.display = 'none';
+    if (wlBanner) wlBanner.style.display = 'none';
+    if (searchInput) searchInput.style.display = 'none';
+    document.querySelector('.result-header-row') && (document.querySelector('.result-header-row').style.display = 'none');
+    renderUnfollowerLog();
+  } else if (f === 'snakes') {
+    if (snakeSection) snakeSection.style.display = 'block';
+    if (resultsList) resultsList.style.display = 'none';
+    if (paywallContainer) paywallContainer.style.display = 'none';
+    if (wlBanner) wlBanner.style.display = 'none';
+    if (searchInput) searchInput.style.display = 'none';
+    document.querySelector('.result-header-row') && (document.querySelector('.result-header-row').style.display = 'none');
+    renderSnakeList();
+  } else {
+    if (resultsList) resultsList.style.display = 'block';
+    if (paywallContainer) paywallContainer.style.display = 'block';
+    if (searchInput) searchInput.style.display = 'block';
+    document.querySelector('.result-header-row') && (document.querySelector('.result-header-row').style.display = 'grid');
+    filterResults();
+  }
+}
+
+function updateWhitelistTab() {
+  const tab = document.getElementById('whitelist-tab');
+  if (!tab) return;
+  if (userTier !== 'monthly') {
+    tab.classList.add('wl-locked');
+    tab.title = 'Whitelist available on Monthly plan';
+  } else {
+    tab.classList.remove('wl-locked');
+    tab.title = '';
+  }
+
+  const histTab = document.getElementById('history-tab');
+  if (histTab) {
+    if (userTier !== 'monthly') { histTab.classList.add('wl-locked'); histTab.title = 'Audit History available on Monthly plan'; }
+    else { histTab.classList.remove('wl-locked'); histTab.title = ''; }
+  }
+
+  const logTab = document.getElementById('log-tab');
+  if (logTab) {
+    if (userTier !== 'monthly') { logTab.classList.add('wl-locked'); logTab.title = 'Unfollower Log available on Monthly plan'; }
+    else { logTab.classList.remove('wl-locked'); logTab.title = ''; }
+  }
+
+  const snakeTab = document.getElementById('snake-tab');
+  if (snakeTab) {
+    if (userTier !== 'monthly') { snakeTab.classList.add('wl-locked'); snakeTab.title = 'Snake List available on Monthly plan'; }
+    else { snakeTab.classList.remove('wl-locked'); snakeTab.title = ''; }
+  }
+}
+
+function showError(msg) { const el = document.getElementById('error-box'); el.textContent = '⚠ ' + msg; el.style.display = 'block'; }
+function hideError() { document.getElementById('error-box').style.display = 'none'; }
+
+// ════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════
+initAuth();
+document.getElementById("copy-year").textContent = new Date().getFullYear();
+checkPaymentReturn();
+</script>
+</body>
+</html>

@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How to Download Your Instagram Data Export — FindTheSnakes</title>
+<meta name="description" content="Step-by-step guide on how to download your Instagram data export files in JSON format so you can find your unfollowers with FindTheSnakes.">
+<meta name="keywords" content="how to download instagram data, instagram data export, instagram json files, instagram followers download, instagram data request">
+<meta name="author" content="FindTheSnakes">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://www.findthesnakes.com/instructions.html">
+
+<!-- Open Graph -->
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://www.findthesnakes.com/instructions.html">
+<meta property="og:title" content="How to Download Your Instagram Data Export — FindTheSnakes">
+<meta property="og:description" content="Step-by-step guide on how to download your Instagram data export files in JSON format to find your unfollowers.">
+<meta property="og:image" content="https://www.findthesnakes.com/og-image.png">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="How to Download Your Instagram Data Export">
+<meta name="twitter:description" content="Step-by-step guide on how to download your Instagram data export files in JSON format to find your unfollowers.">
+
+<!-- Structured Data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "How to Download Your Instagram Data Export",
+  "description": "Step-by-step guide to download your Instagram followers and following data in JSON format.",
+  "step": [
+    {"@type": "HowToStep", "name": "Go to Settings", "text": "Open Instagram, go to your profile, tap More and then Settings."},
+    {"@type": "HowToStep", "name": "Export Your Information", "text": "Tap Your information and permissions, then Export your information, then Create export."},
+    {"@type": "HowToStep", "name": "Select Followers and Following", "text": "Clear all categories and select only Followers and following."},
+    {"@type": "HowToStep", "name": "Set Export Settings", "text": "Set date range to All time and format to JSON."},
+    {"@type": "HowToStep", "name": "Submit Your Request", "text": "Tap Start export. Instagram will email you when your download is ready."},
+    {"@type": "HowToStep", "name": "Download and Open Your Files", "text": "Download the ZIP file, extract it, and locate your JSON files inside."}
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface2: #1a1a26;
+    --border: rgba(255,255,255,0.07);
+    --border-hover: rgba(255,255,255,0.15);
+    --accent: #e8445a;
+    --text: #f0eef8;
+    --muted: #7a788f;
+    --muted2: #4a4860;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg); color: var(--text);
+    min-height: 100vh; overflow-x: hidden;
+  }
+
+  /* NAV */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 48px;
+    background: rgba(10,10,15,0.85); backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+  .logo {
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 22px;
+    letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px;
+    text-decoration: none; color: var(--text);
+  }
+  .logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); display: inline-block; }
+  .nav-links { display: flex; gap: 36px; }
+  .nav-links a { color: var(--muted); font-size: 14px; text-decoration: none; transition: color 0.2s; }
+  .nav-links a:hover { color: var(--text); }
+  .nav-links a.active { color: var(--text); }
+  .nav-cta {
+    background: var(--accent); color: #fff; border: none; border-radius: 8px;
+    padding: 10px 22px; font-size: 14px; font-weight: 500;
+    font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.2s;
+    text-decoration: none; display: inline-block;
+  }
+  .nav-cta:hover { background: #f05570; transform: translateY(-1px); }
+
+  /* PAGE HEADER */
+  .page-header {
+    padding: 80px 48px 60px;
+    text-align: center;
+    position: relative; overflow: hidden;
+  }
+  .page-header::before {
+    content: '';
+    position: absolute; top: -20%; left: 50%; transform: translateX(-50%);
+    width: 600px; height: 600px;
+    background: radial-gradient(ellipse, rgba(232,68,90,0.1) 0%, transparent 70%);
+    border-radius: 50%; pointer-events: none;
+  }
+  .page-header .badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    border: 1px solid rgba(232,68,90,0.4); background: rgba(232,68,90,0.08);
+    border-radius: 100px; padding: 6px 16px; font-size: 12px;
+    color: #ff8fa0; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+  .page-header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(32px, 5vw, 58px);
+    font-weight: 800; letter-spacing: -2px; line-height: 1.05;
+    margin-bottom: 16px;
+  }
+  .page-header h1 em { font-style: normal; color: var(--accent); }
+  .page-header p {
+    font-size: 17px; color: var(--muted); max-width: 480px;
+    margin: 0 auto; line-height: 1.65; font-weight: 300;
+  }
+
+  /* NOTICE BANNER */
+  .notice {
+    max-width: 780px; margin: 0 auto 48px;
+    background: rgba(245,200,66,0.07);
+    border: 1px solid rgba(245,200,66,0.25);
+    border-radius: 12px; padding: 16px 22px;
+    display: flex; align-items: flex-start; gap: 14px;
+    font-size: 14px; line-height: 1.6; color: #f5d87a;
+  }
+  .notice-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+
+  /* CONTENT */
+  .content { max-width: 780px; margin: 0 auto; padding: 0 24px 100px; }
+
+  /* STEP CARDS */
+  .step-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 16px;
+    transition: border-color 0.2s;
+  }
+  .step-card:hover { border-color: var(--border-hover); }
+  .step-card-header {
+    display: flex; align-items: center; gap: 18px;
+    padding: 24px 28px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+  .step-number {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: rgba(232,68,90,0.1);
+    border: 1px solid rgba(232,68,90,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 800;
+    color: var(--accent); flex-shrink: 0;
+  }
+  .step-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px; font-weight: 700;
+  }
+  .step-body { padding: 24px 28px; }
+  .step-list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+  .step-list li {
+    display: flex; align-items: flex-start; gap: 12px;
+    font-size: 15px; line-height: 1.6;
+  }
+  .step-list li::before {
+    content: '→';
+    color: var(--accent); font-weight: 700;
+    flex-shrink: 0; margin-top: 1px;
+  }
+  .step-list li strong { color: var(--text); font-weight: 500; }
+  .step-list li span { color: var(--muted); }
+
+  code {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid var(--border-hover);
+    border-radius: 5px; padding: 2px 8px;
+    font-size: 13px; font-family: monospace;
+    color: #ff8fa0;
+  }
+
+  /* IMPORTANT CARD */
+  .important-card {
+    background: linear-gradient(135deg, rgba(232,68,90,0.08) 0%, var(--surface) 60%);
+    border: 1px solid rgba(232,68,90,0.3);
+    border-radius: 16px; padding: 28px 28px;
+    margin-bottom: 16px;
+  }
+  .important-card-header {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 18px;
+  }
+  .important-icon { font-size: 24px; }
+  .important-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px; font-weight: 700;
+    color: var(--text);
+  }
+  .important-card p { font-size: 15px; color: var(--muted); line-height: 1.65; margin-bottom: 16px; }
+  .file-examples {
+    display: flex; flex-direction: column; gap: 8px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px 18px;
+  }
+  .file-example {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 14px;
+  }
+  .file-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+
+  /* SETTINGS HIGHLIGHT */
+  .settings-highlight {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 12px; margin-top: 16px;
+  }
+  .setting-item {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 16px;
+    display: flex; align-items: center; gap: 10px;
+    font-size: 14px;
+  }
+  .setting-check { color: #4ade80; font-weight: 700; flex-shrink: 0; font-size: 16px; }
+  .setting-label strong { display: block; color: var(--text); font-weight: 500; margin-bottom: 2px; }
+  .setting-label span { color: var(--muted); font-size: 12px; }
+
+  /* CTA */
+  .cta-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px; padding: 40px;
+    text-align: center; margin-top: 32px;
+  }
+  .cta-box h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 24px; font-weight: 800; margin-bottom: 10px;
+  }
+  .cta-box p { color: var(--muted); font-size: 15px; margin-bottom: 24px; }
+  .btn-primary {
+    display: inline-block;
+    background: var(--accent); color: #fff; border: none;
+    border-radius: 10px; padding: 14px 32px;
+    font-size: 15px; font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer; transition: all 0.25s;
+    box-shadow: 0 0 40px rgba(232,68,90,0.3);
+    text-decoration: none;
+  }
+  .btn-primary:hover { background: #f05570; transform: translateY(-2px); box-shadow: 0 0 60px rgba(232,68,90,0.4); }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border); padding: 32px 48px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 16px;
+  }
+  footer .logo { font-size: 18px; }
+  footer p { font-size: 13px; color: var(--muted); }
+
+  @media (max-width: 768px) {
+    nav { padding: 16px 20px; }
+    .nav-links { display: none; }
+    .page-header { padding: 60px 20px 40px; }
+    .content { padding: 0 16px 60px; }
+    .step-card-header { padding: 18px 20px; }
+    .step-body { padding: 18px 20px; }
+    .settings-highlight { grid-template-columns: 1fr; }
+    footer { flex-direction: column; text-align: center; padding: 24px 20px; }
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky; top: 0; z-index: 200;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 48px;
+    background: rgba(10,10,15,0.85); backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+  .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 22px; letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text); }
+  .logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); display: inline-block; }
+  .nav-links { display: flex; gap: 36px; }
+  .nav-links a { color: var(--muted); font-size: 14px; text-decoration: none; transition: color 0.2s; }
+  .nav-links a:hover, .nav-links a.active { color: var(--text); }
+  .nav-right { display: flex; align-items: center; gap: 12px; }
+  .nav-cta { background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 10px 22px; font-size: 14px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-block; }
+  .nav-cta:hover { background: #f05570; transform: translateY(-1px); }
+
+  /* ── HAMBURGER ── */
+  .hamburger { display: none; flex-direction: column; justify-content: center; gap: 5px; background: none; border: none; cursor: pointer; padding: 6px; border-radius: 8px; transition: background 0.2s; }
+  .hamburger:hover { background: rgba(255,255,255,0.07); }
+  .hamburger span { display: block; width: 22px; height: 2px; background: var(--text); border-radius: 2px; transition: all 0.25s; }
+  .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .hamburger.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+  .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+  .mobile-menu { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg); z-index: 150; flex-direction: column; padding: 80px 32px 40px; animation: slideDown 0.25s ease; }
+  @keyframes slideDown { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:none} }
+  .mobile-menu.open { display: flex; }
+  .mobile-menu-links { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+  .mobile-menu-links a { color: var(--text); font-size: 22px; font-family: 'Syne', sans-serif; font-weight: 700; text-decoration: none; padding: 14px 0; border-bottom: 1px solid var(--border); transition: color 0.2s; letter-spacing: -0.5px; }
+  .mobile-menu-links a:hover { color: var(--accent); }
+  .mobile-menu-bottom { margin-top: 32px; }
+  .mobile-cta { width: 100%; padding: 16px; background: var(--accent); color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; text-decoration: none; display: block; text-align: center; }
+  .mobile-cta:hover { background: #f05570; }
+
+  @media (max-width: 768px) {
+    nav { padding: 16px 20px; }
+    .nav-links, .nav-right { display: none; }
+    .hamburger { display: flex; }
+  }
+
+</style>
+</head>
+<body>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobile-menu">
+  <div class="mobile-menu-links">
+    <a href="index.html#how">How it works</a>
+    <a href="index.html#tool">Try it</a>
+    <a href="index.html#pricing">Pricing</a>
+    <a href="instructions.html">Instructions</a>
+    <a href="faq.html">FAQ</a>
+  </div>
+  <div class="mobile-menu-bottom">
+    <a class="mobile-cta" href="index.html#tool">Try it free →</a>
+  </div>
+</div>
+<!-- NAV -->
+<nav>
+  <a class="logo" href="index.html"><span class="logo-dot"></span>FindTheSnakes</a>
+  <div class="nav-links">
+    <a href="index.html#how" >How it works</a>
+    <a href="index.html#tool" >Try it</a>
+    <a href="index.html#pricing" >Pricing</a>
+    <a href="instructions.html" class="active">Instructions</a>
+    <a href="faq.html" >FAQ</a>
+  </div>
+  <div class="nav-right">
+    <a class="nav-cta" href="index.html#tool">Try Free</a>
+  </div>
+  <button class="hamburger" id="hamburger-btn" onclick="toggleMobileMenu()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <div class="badge">📋 Step-by-step guide</div>
+  <h1>How to Download Your<br><em>Instagram Data</em></h1>
+  <p>Follow these steps to export your followers and following files so FindTheSnakes can analyze them.</p>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+  <!-- NOTICE -->
+  <div class="notice">
+    <span class="notice-icon">💡</span>
+    <span>For the best experience, complete these steps using a <strong>web browser</strong> on your phone or computer — not the Instagram app.</span>
+  </div>
+
+  <!-- STEP 1 -->
+  <div class="step-card">
+    <div class="step-card-header">
+      <div class="step-number">1</div>
+      <div class="step-title">Go to Settings</div>
+    </div>
+    <div class="step-body">
+      <ul class="step-list">
+        <li><span>Open <strong>Instagram</strong></span></li>
+        <li><span>Go to your <strong>profile</strong></span></li>
+        <li><span>Tap <strong>More (☰)</strong> → <strong>Settings</strong></span></li>
+        <li><span>Tap <strong>See more in Accounts Center</strong></span></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="step-card">
+    <div class="step-card-header">
+      <div class="step-number">2</div>
+      <div class="step-title">Export Your Information</div>
+    </div>
+    <div class="step-body">
+      <ul class="step-list">
+        <li><span>Tap <strong>Your information and permissions</strong></span></li>
+        <li><span>Tap <strong>Export your information</strong></span></li>
+        <li><span>Tap <strong>Create export</strong></span></li>
+        <li><span>Select your <strong>account</strong></span></li>
+        <li><span>Choose <strong>Export to device</strong></span></li>
+        <li><span>Tap <strong>Customize information</strong></span></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="step-card">
+    <div class="step-card-header">
+      <div class="step-number">3</div>
+      <div class="step-title">Select Only Followers and Following</div>
+    </div>
+    <div class="step-body">
+      <ul class="step-list">
+        <li><span>Tap <strong>Clear all</strong> for each category to deselect everything</span></li>
+        <li><span>Select <strong>only Followers and following</strong></span></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- STEP 4 -->
+  <div class="step-card">
+    <div class="step-card-header">
+      <div class="step-number">4</div>
+      <div class="step-title">Set Your Export Settings</div>
+    </div>
+    <div class="step-body">
+      <p style="font-size:15px;color:var(--muted);margin-bottom:16px;">Make sure you select the following settings before continuing:</p>
+      <div class="settings-highlight">
+        <div class="setting-item">
+          <span class="setting-check">✓</span>
+          <div class="setting-label">
+            <strong>Date range</strong>
+            <span>Set to All time</span>
+          </div>
+        </div>
+        <div class="setting-item">
+          <span class="setting-check">✓</span>
+          <div class="setting-label">
+            <strong>Format</strong>
+            <span>Set to JSON</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 5 -->
+  <div class="step-card">
+    <div class="step-card-header">
+      <div class="step-number">5</div>
+      <div class="step-title">Submit Your Request</div>
+    </div>
+    <div class="step-body">
+      <ul class="step-list">
+        <li><span>Tap <strong>Start export</strong></span></li>
+        <li><span>Instagram will <strong>email you</strong> when your download is ready — this can take a few minutes to a few hours</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- STEP 6 -->
+  <div class="step-card">
+    <div class="step-card-header">
+      <div class="step-number">6</div>
+      <div class="step-title">Download and Open Your Files</div>
+    </div>
+    <div class="step-body">
+      <ul class="step-list">
+        <li><span>Open the email from Instagram and click the <strong>download link</strong></span></li>
+        <li><span>Download the <strong>ZIP file</strong></span></li>
+        <li><span><strong>Extract</strong> the ZIP file (right-click → Extract All on Windows)</span></li>
+        <li><span>Locate your <strong>JSON files</strong> inside the extracted folder</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- IMPORTANT NOTE -->
+  <div class="important-card">
+    <div class="important-card-header">
+      <span class="important-icon">⚠️</span>
+      <div class="important-title">You May Have Multiple Followers Files</div>
+    </div>
+    <p>If you have a large follower list, Instagram automatically splits your followers across multiple files. This is completely normal — just upload all of them.</p>
+    <div class="file-examples">
+      <div class="file-example"><span class="file-dot"></span><code>followers_1.json</code></div>
+      <div class="file-example"><span class="file-dot"></span><code>followers_2.json</code></div>
+      <div class="file-example"><span class="file-dot"></span><code>followers_3.json</code></div>
+    </div>
+    <p style="margin-top:14px;margin-bottom:0">FindTheSnakes supports uploading multiple files at once — just select them all when uploading.</p>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-box">
+    <h3>Ready to find your snakes? 🐍</h3>
+    <p>Now that you have your files, head back and upload them to see who unfollowed you.</p>
+    <a class="btn-primary" href="index.html#tool">Analyze My Followers →</a>
+  </div>
+
+</div>
+
+<footer>
+  <a class="logo" href="index.html"><span class="logo-dot"></span>FindTheSnakes</a>
+  <p>© <span class="copy-year"></span> FindTheSnakes. Not affiliated with Instagram or Meta.</p>
+  <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:center;">
+    <a href="privacy.html" style="color:var(--muted);font-size:13px;text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">Privacy Policy</a>
+    <a href="terms.html" style="color:var(--muted);font-size:13px;text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">Terms of Service</a>
+    <a href="instructions.html" style="color:var(--muted);font-size:13px;text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">Instructions</a>
+    <a href="faq.html" style="color:var(--muted);font-size:13px;text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">FAQ</a>
+  </div>
+</footer>
+
+</body>
+</html>

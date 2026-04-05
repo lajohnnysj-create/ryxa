@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FAQ — Frequently Asked Questions — FindTheSnakes</title>
+<meta name="description" content="Got questions about FindTheSnakes? Find answers about how it works, privacy, billing, features, and troubleshooting.">
+<meta name="keywords" content="findthesnakes faq, instagram unfollower tool questions, instagram unfollower checker help, instagram data export help">
+<meta name="author" content="FindTheSnakes">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://www.findthesnakes.com/faq.html">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.findthesnakes.com/faq.html">
+<meta property="og:title" content="FAQ — FindTheSnakes">
+<meta property="og:description" content="Got questions about FindTheSnakes? Find answers about how it works, privacy, billing, features, and troubleshooting.">
+<meta property="og:image" content="https://www.findthesnakes.com/og-image.png">
+
+<!-- Structured Data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type": "Question", "name": "What is FindTheSnakes?", "acceptedAnswer": {"@type": "Answer", "text": "FindTheSnakes is a tool that lets you upload your Instagram data export files and instantly see who you follow that isn't following you back, without needing your Instagram password."}},
+    {"@type": "Question", "name": "Do I need to give you my Instagram password?", "acceptedAnswer": {"@type": "Answer", "text": "Absolutely not. FindTheSnakes never asks for your Instagram password and never connects to your Instagram account."}},
+    {"@type": "Question", "name": "Will using FindTheSnakes get my Instagram account banned?", "acceptedAnswer": {"@type": "Answer", "text": "No. Because we never connect to your Instagram account or access Instagram's API, there is zero risk to your account."}},
+    {"@type": "Question", "name": "Are my Instagram files uploaded to your servers?", "acceptedAnswer": {"@type": "Answer", "text": "No. Your Instagram JSON files are processed entirely in your browser on your own device and are never sent to our servers."}},
+    {"@type": "Question", "name": "Can I cancel my monthly subscription?", "acceptedAnswer": {"@type": "Answer", "text": "Yes, you can cancel anytime. Your Pro access continues until the end of your current billing period."}}
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f; --surface: #12121a; --surface2: #1a1a26;
+    --border: rgba(255,255,255,0.07); --border-hover: rgba(255,255,255,0.15);
+    --accent: #e8445a; --text: #f0eef8; --muted: #7a788f; --muted2: #4a4860;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+
+  /* NAV */
+  nav { position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 20px 48px; background: rgba(10,10,15,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); }
+  .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 22px; letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text); }
+  .logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); display: inline-block; }
+  .nav-links { display: flex; gap: 36px; }
+  .nav-links a { color: var(--muted); font-size: 14px; text-decoration: none; transition: color 0.2s; }
+  .nav-links a:hover { color: var(--text); }
+  .nav-links a.active { color: var(--text); }
+  .nav-cta { background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 10px 22px; font-size: 14px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-block; }
+  .nav-cta:hover { background: #f05570; transform: translateY(-1px); }
+
+  /* PAGE HEADER */
+  .page-header { padding: 80px 48px 60px; text-align: center; position: relative; overflow: hidden; }
+  .page-header::before { content: ''; position: absolute; top: -20%; left: 50%; transform: translateX(-50%); width: 600px; height: 600px; background: radial-gradient(ellipse, rgba(232,68,90,0.1) 0%, transparent 70%); border-radius: 50%; pointer-events: none; }
+  .badge { display: inline-flex; align-items: center; gap: 8px; border: 1px solid rgba(232,68,90,0.4); background: rgba(232,68,90,0.08); border-radius: 100px; padding: 6px 16px; font-size: 12px; color: #ff8fa0; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 24px; }
+  .page-header h1 { font-family: 'Syne', sans-serif; font-size: clamp(32px, 5vw, 58px); font-weight: 800; letter-spacing: -2px; line-height: 1.05; margin-bottom: 16px; }
+  .page-header h1 em { font-style: normal; color: var(--accent); }
+  .page-header p { font-size: 16px; color: var(--muted); max-width: 440px; margin: 0 auto; line-height: 1.65; font-weight: 300; }
+
+  /* CATEGORY TABS */
+  .category-tabs { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin: 0 auto 48px; padding: 0 24px; max-width: 860px; }
+  .cat-tab { padding: 8px 20px; border-radius: 100px; font-size: 13px; cursor: pointer; border: 1px solid var(--border); background: transparent; color: var(--muted); font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
+  .cat-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .cat-tab:hover:not(.active) { border-color: var(--border-hover); color: var(--text); }
+
+  /* FAQ CONTENT */
+  .faq-content { max-width: 760px; margin: 0 auto; padding: 0 24px 100px; }
+
+  .faq-category { margin-bottom: 48px; }
+  .faq-category-title { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); margin-bottom: 16px; }
+
+  /* ACCORDION */
+  .faq-item { border: 1px solid var(--border); border-radius: 12px; margin-bottom: 10px; overflow: hidden; transition: border-color 0.2s; }
+  .faq-item:hover { border-color: var(--border-hover); }
+  .faq-item.open { border-color: rgba(232,68,90,0.3); }
+  .faq-question { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; cursor: pointer; gap: 16px; background: var(--surface); transition: background 0.2s; user-select: none; }
+  .faq-item.open .faq-question { background: var(--surface2); }
+  .faq-question-text { font-size: 15px; font-weight: 500; line-height: 1.5; }
+  .faq-chevron { width: 20px; height: 20px; border-radius: 50%; background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; transition: all 0.25s; color: var(--muted); }
+  .faq-item.open .faq-chevron { background: rgba(232,68,90,0.15); color: var(--accent); transform: rotate(180deg); }
+  .faq-answer { display: none; padding: 0 24px 20px; background: var(--surface2); }
+  .faq-item.open .faq-answer { display: block; }
+  .faq-answer p { font-size: 14px; line-height: 1.75; color: var(--muted); margin-bottom: 10px; font-weight: 300; }
+  .faq-answer p:last-child { margin-bottom: 0; }
+  .faq-answer a { color: var(--accent); text-decoration: none; }
+  .faq-answer a:hover { text-decoration: underline; }
+  .faq-answer code { background: rgba(255,255,255,0.07); border: 1px solid var(--border-hover); border-radius: 5px; padding: 2px 7px; font-size: 13px; font-family: monospace; color: #ff8fa0; }
+  .faq-answer ul { list-style: none; display: flex; flex-direction: column; gap: 8px; margin: 10px 0; }
+  .faq-answer ul li { display: flex; align-items: flex-start; gap: 8px; font-size: 14px; line-height: 1.6; color: var(--muted); font-weight: 300; }
+  .faq-answer ul li::before { content: '→'; color: var(--accent); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+
+  /* CTA BOX */
+  .cta-box { background: linear-gradient(135deg, rgba(232,68,90,0.08) 0%, var(--surface) 60%); border: 1px solid rgba(232,68,90,0.3); border-radius: 16px; padding: 40px; text-align: center; margin-top: 48px; }
+  .cta-box h3 { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; margin-bottom: 10px; }
+  .cta-box p { color: var(--muted); font-size: 15px; margin-bottom: 24px; }
+  .btn-primary { display: inline-block; background: var(--accent); color: #fff; border: none; border-radius: 10px; padding: 14px 32px; font-size: 15px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.25s; box-shadow: 0 0 40px rgba(232,68,90,0.3); text-decoration: none; }
+  .btn-primary:hover { background: #f05570; transform: translateY(-2px); }
+
+  /* FOOTER */
+  footer { border-top: 1px solid var(--border); padding: 32px 48px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+  footer p { font-size: 13px; color: var(--muted); }
+  footer a { color: var(--muted); text-decoration: none; font-size: 13px; transition: color 0.2s; }
+  footer a:hover { color: var(--text); }
+  .footer-links { display: flex; gap: 24px; flex-wrap: wrap; }
+
+  @media (max-width: 768px) {
+    nav { padding: 16px 20px; }
+    .nav-links { display: none; }
+    .page-header { padding: 56px 20px 40px; }
+    .faq-content { padding: 0 16px 60px; }
+    footer { flex-direction: column; text-align: center; padding: 24px 20px; }
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky; top: 0; z-index: 200;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 48px;
+    background: rgba(10,10,15,0.85); backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+  .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 22px; letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text); }
+  .logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); display: inline-block; }
+  .nav-links { display: flex; gap: 36px; }
+  .nav-links a { color: var(--muted); font-size: 14px; text-decoration: none; transition: color 0.2s; }
+  .nav-links a:hover, .nav-links a.active { color: var(--text); }
+  .nav-right { display: flex; align-items: center; gap: 12px; }
+  .nav-cta { background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 10px 22px; font-size: 14px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-block; }
+  .nav-cta:hover { background: #f05570; transform: translateY(-1px); }
+
+  /* ── HAMBURGER ── */
+  .hamburger { display: none; flex-direction: column; justify-content: center; gap: 5px; background: none; border: none; cursor: pointer; padding: 6px; border-radius: 8px; transition: background 0.2s; }
+  .hamburger:hover { background: rgba(255,255,255,0.07); }
+  .hamburger span { display: block; width: 22px; height: 2px; background: var(--text); border-radius: 2px; transition: all 0.25s; }
+  .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .hamburger.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+  .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+  .mobile-menu { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg); z-index: 150; flex-direction: column; padding: 80px 32px 40px; animation: slideDown 0.25s ease; }
+  @keyframes slideDown { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:none} }
+  .mobile-menu.open { display: flex; }
+  .mobile-menu-links { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+  .mobile-menu-links a { color: var(--text); font-size: 22px; font-family: 'Syne', sans-serif; font-weight: 700; text-decoration: none; padding: 14px 0; border-bottom: 1px solid var(--border); transition: color 0.2s; letter-spacing: -0.5px; }
+  .mobile-menu-links a:hover { color: var(--accent); }
+  .mobile-menu-bottom { margin-top: 32px; }
+  .mobile-cta { width: 100%; padding: 16px; background: var(--accent); color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; text-decoration: none; display: block; text-align: center; }
+  .mobile-cta:hover { background: #f05570; }
+
+  @media (max-width: 768px) {
+    nav { padding: 16px 20px; }
+    .nav-links, .nav-right { display: none; }
+    .hamburger { display: flex; }
+  }
+
+</style>
+</head>
+<body>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobile-menu">
+  <div class="mobile-menu-links">
+    <a href="index.html#how">How it works</a>
+    <a href="index.html#tool">Try it</a>
+    <a href="index.html#pricing">Pricing</a>
+    <a href="instructions.html">Instructions</a>
+    <a href="faq.html">FAQ</a>
+  </div>
+  <div class="mobile-menu-bottom">
+    <a class="mobile-cta" href="index.html#tool">Try it free →</a>
+  </div>
+</div>
+<!-- NAV -->
+<nav>
+  <a class="logo" href="index.html"><span class="logo-dot"></span>FindTheSnakes</a>
+  <div class="nav-links">
+    <a href="index.html#how" >How it works</a>
+    <a href="index.html#tool" >Try it</a>
+    <a href="index.html#pricing" >Pricing</a>
+    <a href="instructions.html" >Instructions</a>
+    <a href="faq.html" class="active">FAQ</a>
+  </div>
+  <div class="nav-right">
+    <a class="nav-cta" href="index.html#tool">Try Free</a>
+  </div>
+  <button class="hamburger" id="hamburger-btn" onclick="toggleMobileMenu()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <div class="badge">❓ Got questions?</div>
+  <h1>Frequently Asked <em>Questions</em></h1>
+  <p>Everything you need to know about FindTheSnakes. Can't find your answer? Email us at <a href="/cdn-cgi/l/email-protection#127a777e7e7d52747b7c76667a77617c737977613c717d7f" style="color:var(--accent)"><span class="__cf_email__" data-cfemail="b1d9d4dddddef1d7d8dfd5c5d9d4c2dfd0dad4c29fd2dedc">[email&#160;protected]</span></a></p>
+</div>
+
+<!-- CATEGORY TABS -->
+<div class="category-tabs">
+  <button class="cat-tab active" onclick="showCategory('all', this)">All</button>
+  <button class="cat-tab" onclick="showCategory('general', this)">General</button>
+  <button class="cat-tab" onclick="showCategory('privacy', this)">Privacy & Safety</button>
+  <button class="cat-tab" onclick="showCategory('billing', this)">Billing</button>
+  <button class="cat-tab" onclick="showCategory('features', this)">Features</button>
+  <button class="cat-tab" onclick="showCategory('troubleshooting', this)">Troubleshooting</button>
+</div>
+
+<!-- FAQ CONTENT -->
+<div class="faq-content">
+
+  <!-- GENERAL -->
+  <div class="faq-category" data-category="general">
+    <div class="faq-category-title">General</div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-question-text">What is FindTheSnakes?</span>
+        <span class="faq-chevron">▼</span>
+      </div>
+      <div class="faq-answer">
+        <p>FindTheSnakes is a tool that lets you upload your Instagram data export files and instantly see who you follow that isn't following you back. We call them snakes 🐍</p>
+        <p>Unlike other tools, we never ask for your Instagram password or connect to your account. Everything is based on files you export directly from Instagram yourself.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-question-text">How does FindTheSnakes work?</span>
+        <span class="faq-chevron">▼</span>
+      </div>
+      <div class="faq-answer">
+        <p>It's simple — Instagram lets you download your own data as JSON files. You download those files, upload them here, and we instantly compare your followers list against your following list to show you who isn't following back.</p>
+        <p>Your files are processed entirely in your browser and are never sent to our servers.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-question-text">Is FindTheSnakes affiliated with Instagram or Meta?</span>
+        <span class="faq-chevron">▼</span>
+      </div>
+      <div class="faq-answer">
+        <p>No. FindTheSnakes is an independent tool and is not affiliated with, endorsed by, or connected to Instagram or Meta Platforms, Inc. in any way. We simply help you make sense of data you already own.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-question-text">How do I get my Instagram JSON files?</span>
+        <span class="faq-chevron">▼</span>
+      </div>
+      <div class="faq-answer">
+        <p>We have a full step-by-step guide for this! Head over to our <a href="instructions.html">Instructions page</a> and we'll walk you through the whole process in about 5 minutes.</p>
+        <p>The short version: go to Instagram Settings → Accounts Center → Your information and permissions → Export your information → Create export → select JSON format.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-question-text">How long does it take to get my Instagram data?</span>
+        <span class="faq-chevron">▼</span>
+      </div>
+      <div class="faq-answer">
+        <p>The time varies depending on the size of your account. Smaller accounts may receive their download link within minutes, while larger accounts with thousands of followers can take anywhere from a few hours to 24 hours. Once you receive the email with your download link, uploading and analyzing your files is quick.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- PRIVACY & SAFETY -->
+  <div class="faq-category" data-category="privacy">
+    <div class="faq-category-title">Privacy & Safety</div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-question-text">Do I need to give you my Instagram password?</span>
+        <span class="faq-chevron">▼</span>
+      </div>
+      <div class="faq-answer">
+        <p>Absolutely not. FindTheSnakes never asks for your Instagram password and never connects to your Instagram account. We only work with data files that you download yourself directly from Instagram.</p>
+        <p>Any tool that asks for your Instagram password is putting your account at serious risk. We built FindTheSnakes specifically to avoid that.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-question-text">Are my Instagram files uploaded to your servers?</span>
+        <span class="faq-chevron">▼</span>
+      </div>
+      <div class="faq-answer">
+        <p>No. Your Instagram JSON files are processed entirely in your browser on your own device. They are never sent to our servers at any point.</p>
+        <p>For paid monthly subscribers, your analysis results (usernames and follow status) are saved to power features like audit history and the unfollower log. But the raw files themselves never leave your device.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-question-text">Will using FindTheSnakes get my Instagram account banned?</span>
+        <span class="faq-chevron">▼</span>
+      </div>
+      <div class="faq-answer">
+        <p>No. Because we never connect to your Instagram account, access Instagram's API, or do anything on Instagram on your behalf, there is zero risk to your account. We simply read files you already own.</p>
+        <p>Tools that scrape Instagram or use your login credentials carry real risks of account suspension. FindTheSnakes was designed from the ground up to avoid all of that.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-question-text">What data do you store about me?</span>
+        <span class="faq-chevron">▼</span>
+      </div>
+      <div class="faq-answer">
+        <p>For free users — nothing beyond what's needed to serve the page. Your files are processed locally and nothing is stored.</p>
+        <p>For paid accounts, we store:</p>
+        <ul>
+          <li>Your email address and hashed password (for login)</li>
+          <li>Your analysis results (usernames and follow status)</li>
+          <li>Your whitelist (accounts you've hidden)</li>
+          <li>Your notes (private notes on accounts)</li>
+          <li>Your audit history and unfollower log</li>
+        </ul>
+        <p>We never sell your data. See our full <a href="privacy.html">Privacy Policy</a> for details.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-question-text">Can I delete my account and data?</span>
+        <span class="faq-chevron">▼</span>
+      </div>
+      <div class="faq-answer">
+        <p>Yes, absolutely. Email us at <a href="/cdn-cgi/l/email-protection#264e434a4a4966404f4842524e435548474d43550845494b"><span class="__cf_email__" data-cfemail="452d2029292a05232c2b21312d20362b242e20366b262a28">[email&#160;protected]</span></a> and we'll permanently delete your account and all associated data within 48 hours.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- BILLING -->
+  <div class="faq-category" data-category="billing">
+    <div class="faq-category-title">Billing</div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-question-text">What's the difference between the $3 and $10 plans?</span>
+        <span class="faq-chevron">▼</span>
+      </div>
+      <div class="faq-answer">
+        <p>The <strong style="color:var(--text)">$3 one-time</strong> plan gives you full results for a single analysis — you pay once and see the complete list of everyone not following you back, plus export to CSV and print report.</p>
+        <p>The <strong style="color:var(--text)">$10/month Pro</strong> plan gives you everything in one-time plus unlimited analyses, whitelist (hide accounts you don't care about), private notes on any account, full audit history, and a permanent unfollower log tracking everyone who has ever unfollowed you over time.</p>
+        <p>If you just want a one-time check, go with $3. If you want to track your Instagram over time, Pro is the better value.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-question-text">Can I cancel my monthly subscription?</span>
+        <span class="faq-chevron">▼</span>
+      </div>
+      <div class="faq-answer">
+        <p>Yes, you can cancel anytime. Your Pro access continues until the end of your current billing period. We don't offer partial refunds for unused time, but you'll never be charged again after cancelling.</p>
+        <p>To cancel, email us at <a href="/cdn-cgi/l/email-protection#6b030e0707042b0d02050f1f030e18050a000e1845080406"><span class="__cf_email__" data-cfemail="4b232e2727240b2d22252f3f232e38252a202e3865282426">[email&#160;protected]</span></a>.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-question-text">Do you offer refunds?</span>
+        <span class="faq-chevron">▼</span>
+      </div>
+      <div class="faq-answer">
+        <p>For the $3 one-time plan, we don't offer refunds once the full results have been revealed. For the $10/month plan, we don't offer partial refunds for unused subscription time.</p>
+        <p>However, if you experience a technical issue that prevents you from accessing what you paid for, contact us at <a href="/cdn-cgi/l/email-protection#f39b969f9f9cb3959a9d97879b96809d92989680dd909c9e"><span class="__cf_email__" data-cfemail="5a323f3636351a3c33343e2e323f29343b313f2974393537">[email&#160;protected]</span></a> and we'll make it right.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-question-text">Is my payment information secure?</span>
+        <span class="faq-chevron">▼</span>
+      </div>
+      <div class="faq-answer">
+        <p>Yes. All payments are processed by Stripe, one of the world's most trusted payment processors. We never see or store your credit card details — they go directly to Stripe's secure servers.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-question-text">What happens to my data if I cancel my Pro subscription?</span>
+        <span class="faq-chevron">▼</span>
+      </div>
+      <div class="faq-answer">
+        <p>Your data (whitelist, notes, audit history, unfollower log) is kept in our database for 30 days after cancellation in case you resubscribe. After 30 days, it is permanently deleted.</p>
+        <p>We recommend exporting your data as a CSV before cancelling if you want to keep a copy.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FEATURES -->
+  <div class="faq-category" data-category="features">
+    <div class="faq-category-title">Features</div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-question-text">What is the Whitelist feature?</span>
+        <span class="faq-chevron">▼</span>
+      </div>
+      <div class="faq-answer">
+        <p>The whitelist lets you hide specific accounts from your "not following back" results. For example, you might follow a celebrity, a brand, or a news account that will never follow you back — and you don't want to see them cluttering your results every time.</p>
+        <p>Whitelisted accounts are hidden from your results but never deleted. You can view and manage them anytime from the Whitelist tab. This feature is available on the Pro monthly plan and syncs across all your devices.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-question-text">What is the Audit History feature?</span>
+        <span class="faq-chevron">▼</span>
+      </div>
+      <div class="faq-answer">
+        <p>Every time a Pro subscriber runs an analysis, we save a snapshot of the results. Your audit history lets you look back at past analyses and compare them — so you can see exactly who was not following you back on a specific date and how that has changed over time.</p>
+        <p>Each audit card shows new unfollowers (people who appeared since your last audit) highlighted in red so you can spot changes instantly.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-question-text">What is the Unfollower Log?</span>
+        <span class="faq-chevron">▼</span>
+      </div>
+      <div class="faq-answer">
+        <p>The unfollower log is a permanent record of every single person who has ever appeared as "not following back" since you started using FindTheSnakes. Unlike the current results view which only shows your latest analysis, the log tracks everyone historically.</p>
+        <p>Each entry shows when they were first detected, when they were last seen, and whether they are still not following you or have since disappeared (either they refollowed you, you unfollowed them, or their account changed).</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-question-text">What is the Snake List?</span>
+        <span class="faq-chevron">▼</span>
+      </div>
+      <div class="faq-answer">
+        <p>The Snake List is your personal hall of shame — a curated list of accounts you want to keep tabs on for your own satisfaction. Maybe they unfollowed you after you supported them for years. Maybe they ghosted you after a collab. Maybe they just rub you the wrong way.</p>
+        <p>Whatever the reason, the Snake List lets you pin those accounts in one dedicated place so you never forget. It's not about doing anything with the list — it's just yours. A little private record of the people who didn't deserve your follow.</p>
+        <p>Add anyone by clicking the 🐍 button on their row in your results. View your full list anytime from the Snake List tab. This feature is available on the Pro monthly plan and syncs across all your devices.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-question-text">What are account notes?</span>
+        <span class="faq-chevron">▼</span>
+      </div>
+      <div class="faq-answer">
+        <p>Notes let you add a private reminder to any account in your results. For example you might note "met at conference 2024" or "brand collab - don't unfollow" or "followed me then unfollowed same day".</p>
+        <p>Notes are completely private, stored securely in your account, and sync across all your devices. They also appear in your CSV exports and printed reports. This feature is available on the Pro monthly plan.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-question-text">Can I export my results?</span>
+        <span class="faq-chevron">▼</span>
+      </div>
+      <div class="faq-answer">
+        <p>Yes! Paid users can export their full results as a CSV file. The export includes usernames, Instagram URLs, follow status, and whitelist status. Pro monthly subscribers also get their notes and audit history summary included in the export.</p>
+        <p>You can open the CSV in Excel, Google Sheets, or any spreadsheet app.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-question-text">Does FindTheSnakes work with large Instagram accounts?</span>
+        <span class="faq-chevron">▼</span>
+      </div>
+      <div class="faq-answer">
+        <p>Yes! Instagram splits large follower lists across multiple files (like <code>followers_1.json</code>, <code>followers_2.json</code>, etc.). FindTheSnakes supports uploading multiple files at once for both followers and following — just select them all when uploading and we'll combine them automatically.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- TROUBLESHOOTING -->
+  <div class="faq-category" data-category="troubleshooting">
+    <div class="faq-category-title">Troubleshooting</div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-question-text">My results seem wrong or incomplete. What should I check?</span>
+        <span class="faq-chevron">▼</span>
+      </div>
+      <div class="faq-answer">
+        <p>A few things to check:</p>
+        <ul>
+          <li>Make sure you uploaded the correct files — <strong style="color:var(--text)">followers</strong> files go in the Followers zone and <strong style="color:var(--text)">following</strong> goes in the Following zone</li>
+          <li>If you have a large account, make sure you uploaded ALL of your followers files (followers_1.json, followers_2.json, etc.) not just the first one</li>
+          <li>Make sure you selected <strong style="color:var(--text)">JSON format</strong> when requesting your Instagram export, not HTML</li>
+          <li>Make sure your export includes <strong style="color:var(--text)">All time</strong> data, not just a recent date range</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-question-text">I paid but my results are still blurred. What do I do?</span>
+        <span class="faq-chevron">▼</span>
+      </div>
+      <div class="faq-answer">
+        <p>This can happen if the payment confirmation takes a moment to sync. Try these steps:</p>
+        <ul>
+          <li>Wait 30 seconds and refresh the page</li>
+          <li>Make sure you are signed into your account</li>
+          <li>Sign out and sign back in</li>
+          <li>Re-upload your files and run the analysis again</li>
+        </ul>
+        <p>If it's still not working after a few minutes, contact us at <a href="/cdn-cgi/l/email-protection#c6aea3aaaaa986a0afa8a2b2aea3b5a8a7ada3b5e8a5a9ab"><span class="__cf_email__" data-cfemail="fa929f969695ba9c93949e8e929f89949b919f89d4999597">[email&#160;protected]</span></a> with your payment confirmation and we'll sort it out immediately.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-question-text">I see "Could not parse" error when uploading my files. What's wrong?</span>
+        <span class="faq-chevron">▼</span>
+      </div>
+      <div class="faq-answer">
+        <p>This usually means one of the following:</p>
+        <ul>
+          <li>You uploaded an HTML file instead of a JSON file — make sure you selected JSON format when requesting your Instagram export</li>
+          <li>The file is corrupted or incomplete — try re-downloading your Instagram data</li>
+          <li>You uploaded the wrong file — make sure you're uploading from the followers_and_following folder inside your Instagram export</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-question-text">Someone shows as "not following back" but I know they follow me. Why?</span>
+        <span class="faq-chevron">▼</span>
+      </div>
+      <div class="faq-answer">
+        <p>A few possible reasons:</p>
+        <ul>
+          <li>Your Instagram data export may be slightly out of date — Instagram takes a snapshot of your data at the time of export, which may not reflect the last few hours of activity</li>
+          <li>The account may have a disabled or restricted profile which shows differently in exports</li>
+          <li>They may follow you from a different account than the one you follow</li>
+        </ul>
+        <p>That's why we label results as "Not following back or profile disabled" rather than stating it as absolute fact. You can always whitelist accounts you know are fine.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-question-text">FindTheSnakes stopped working after an Instagram update. What happened?</span>
+        <span class="faq-chevron">▼</span>
+      </div>
+      <div class="faq-answer">
+        <p>Instagram occasionally changes the format of their data exports. When this happens, our JSON parser may need to be updated to handle the new format. We monitor for these changes and update the tool as quickly as possible.</p>
+        <p>If you're experiencing this issue, email us at <a href="/cdn-cgi/l/email-protection#2d45484141426d4b4443495945485e434c46485e034e4240"><span class="__cf_email__" data-cfemail="85ede0e9e9eac5e3ecebe1f1ede0f6ebe4eee0f6abe6eae8">[email&#160;protected]</span></a> and attach one of your JSON files (you can remove any sensitive usernames first) so we can investigate.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-box">
+    <h3>Still have questions? 🐍</h3>
+    <p>We're happy to help. Send us a message and we'll get back to you quickly.</p>
+    <a class="btn-primary" href="/cdn-cgi/l/email-protection#f8909d949497b89e91969c8c909d8b9699939d8bd69b9795">Email us →</a>
+  </div>
+
+</div>
+
+<footer>
+  <a class="logo" href="index.html"><span class="logo-dot"></span>FindTheSnakes</a>
+  <p>© <span class="copy-year"></span> FindTheSnakes. Not affiliated with Instagram or Meta.</p>
+  <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:center;">
+    <a href="privacy.html" style="color:var(--muted);font-size:13px;text-decoration:none;">Privacy Policy</a>
+    <a href="terms.html" style="color:var(--muted);font-size:13px;text-decoration:none;">Terms of Service</a>
+    <a href="instructions.html" style="color:var(--muted);font-size:13px;text-decoration:none;">Instructions</a>
+    <a href="faq.html" style="color:var(--muted);font-size:13px;text-decoration:none;">FAQ</a>
+  </div>
+</footer>
+
+<script>
+document.querySelectorAll('.copy-year').forEach(el => el.textContent = new Date().getFullYear());
+
+function toggleMobileMenu() {
+  const menu = document.getElementById('mobile-menu');
+  const btn = document.getElementById('hamburger-btn');
+  menu.classList.toggle('open');
+  btn.classList.toggle('open');
+}
+
+function toggleFaq(questionEl) {
+  const item = questionEl.closest('.faq-item');
+  const isOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+  if (!isOpen) item.classList.add('open');
+}
+
+function showCategory(cat, btn) {
+  document.querySelectorAll('.cat-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.faq-category').forEach(c => {
+    c.style.display = (cat === 'all' || c.dataset.category === cat) ? 'block' : 'none';
+  });
+}
+</script>
+</body>
+</html>
