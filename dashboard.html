@@ -2,66 +2,16 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="shortcut icon" href="favicon.svg">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FindTheSnakes — Find Instagram Unfollowers Safely</title>
-<meta name="description" content="Find out who unfollowed you on Instagram almost instantly. Upload your own data export files — no Instagram password required. Your files never leave your device.">
-<meta name="keywords" content="instagram unfollowers, find instagram unfollowers, who unfollowed me instagram, instagram follower tracker, instagram unfollow checker">
-<meta name="author" content="FindTheSnakes">
-<meta name="robots" content="index, follow">
-<link rel="canonical" href="https://www.findthesnakes.com/">
-
-<!-- Open Graph -->
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://www.findthesnakes.com/">
-<meta property="og:title" content="FindTheSnakes — Find Instagram Unfollowers Safely">
-<meta property="og:description" content="Find out who unfollowed you on Instagram. No Instagram password required. Upload your own export files and see your full results almost instantly.">
-<meta property="og:image" content="https://www.findthesnakes.com/og-image.png">
-
-<!-- Twitter Card -->
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="FindTheSnakes — Find Instagram Unfollowers Safely">
-<meta name="twitter:description" content="Find out who unfollowed you on Instagram. No Instagram password required. Upload your own export files and see your full results almost instantly.">
-<meta name="twitter:image" content="https://www.findthesnakes.com/og-image.png">
-
-<!-- Structured Data -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "WebApplication",
-  "name": "FindTheSnakes",
-  "url": "https://www.findthesnakes.com",
-  "description": "Find out who unfollowed you on Instagram safely and instantly. No password required.",
-  "applicationCategory": "SocialNetworkingApplication",
-  "operatingSystem": "Web",
-  "offers": [
-    {
-      "@type": "Offer",
-      "name": "Free",
-      "price": "0",
-      "priceCurrency": "USD"
-    },
-    {
-      "@type": "Offer",
-      "name": "One-time",
-      "price": "3",
-      "priceCurrency": "USD"
-    },
-    {
-      "@type": "Offer",
-      "name": "Pro Monthly",
-      "price": "10",
-      "priceCurrency": "USD"
-    }
-  ]
-}
-</script>
+<title>Dashboard — FindTheSnakes</title>
+<meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://js.stripe.com/v3/"></script>
 <style>
+
   :root {
     --bg: #0a0a0f;
     --surface: #12121a;
@@ -98,7 +48,7 @@
   .nav-links { display: flex; gap: 36px; }
   .nav-links a { color: var(--muted); font-size: 14px; text-decoration: none; transition: color 0.2s; }
   .nav-links a:hover { color: var(--text); }
-  .nav-right { display: flex; align-items: center; gap: 12px; }
+  .nav-right { display: flex; align-items: center; gap: 12px; position: relative; z-index: 201; }
   .nav-user { font-size: 13px; color: var(--muted); }
   .nav-user span { color: var(--text); font-weight: 500; }
   .nav-cta {
@@ -783,6 +733,26 @@
     transition: all 0.2s;
   }
   .print-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+
+/* ── DASHBOARD SPECIFIC ── */
+body { overflow-x: hidden; }
+.dash-nav {
+  position: sticky; top: 0; z-index: 200;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 32px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.dash-logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 20px; letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text); }
+.dash-logo-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); display: inline-block; }
+.dash-nav-right { display: flex; align-items: center; gap: 10px; }
+.dash-nav-link { color: var(--muted); font-size: 13px; text-decoration: none; transition: color 0.2s; }
+.dash-nav-link:hover { color: var(--text); }
+.dash-main { max-width: 1100px; margin: 0 auto; padding: 40px 24px 100px; }
+.dash-welcome { margin-bottom: 32px; }
+.dash-welcome h1 { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800; margin-bottom: 4px; }
+.dash-welcome p { color: var(--muted); font-size: 14px; }
 </style>
 </head>
 <body>
@@ -803,342 +773,165 @@
   </div>
 </div>
 
-<!-- AUTH MODAL -->
-<div class="modal-backdrop" id="auth-modal">
-  <div class="modal">
-    <button class="modal-close" onclick="closeAuthModal()">✕</button>
-    <h2 id="auth-title">Sign in</h2>
-    <p class="modal-sub" id="auth-sub">Sign in to unlock your full results.</p>
-    <div class="modal-msg" id="auth-msg"></div>
-    <input class="modal-input" type="email" id="auth-email" placeholder="you@email.com">
-    <input class="modal-input" type="password" id="auth-password" placeholder="Password" style="margin-bottom:4px">
-    <div id="forgot-password-link" style="text-align:right;margin-bottom:12px;"><a onclick="handleForgotPassword()" style="font-size:13px;color:var(--accent);cursor:pointer;text-decoration:none;">Forgot password?</a></div>
-    <button class="modal-btn" id="auth-submit-btn" onclick="handleAuth()">Continue</button>
-    <div class="modal-switch" id="auth-switch">
-      No account? <a onclick="toggleAuthMode()">Create one free</a>
-    </div>
-  </div>
-</div>
-
-<!-- MOBILE MENU -->
-<div class="mobile-menu" id="mobile-menu">
-  <div class="mobile-menu-links">
-    <a href="#how" onclick="closeMobileMenu()" class="mobile-marketing">How it works</a>
-    <a href="#tool" onclick="closeMobileMenu()" class="mobile-marketing">Try it</a>
-    <a href="#pricing" onclick="closeMobileMenu()" class="mobile-marketing">Pricing</a>
-    <a href="instructions.html">Instructions</a>
-    <a href="faq.html">FAQ</a>
-    <a href="about.html">About</a>
-  </div>
-  <div class="mobile-menu-bottom">
-    <!-- Shown when logged out -->
-    <button class="mobile-signin-btn" id="mobile-signin-btn" onclick="closeMobileMenu();openAuthModal()">Sign in</button>
-    <!-- Shown when logged in -->
-    <div class="mobile-account-info" id="mobile-account-info">
-      <div class="mobile-account-email" id="mobile-email-display"></div>
-      <button class="mobile-cancel-btn" id="mobile-cancel-btn" style="display:none" onclick="closeMobileMenu();handleSubBtn()">✕ Cancel subscription</button>
-      <button class="mobile-signout-btn" onclick="event.stopPropagation();closeMobileMenu();signOut()">Sign out</button>
-    </div>
-  </div>
-</div>
-
-<!-- NAV -->
-<nav>
-  <div class="logo"><span class="logo-dot"></span>FindTheSnakes</div>
-  <div class="nav-links" id="nav-links">
-    <a href="#how" class="nav-marketing">How it works</a>
-    <a href="#tool" class="nav-marketing">Try it</a>
-    <a href="#pricing" class="nav-marketing">Pricing</a>
-    <a href="instructions.html">Instructions</a>
-    <a href="faq.html">FAQ</a>
-    <a href="about.html">About</a>
-  </div>
-  <div class="nav-right" id="nav-right">
-    <!-- Logged out -->
-    <button class="nav-cta" id="nav-signin-btn" onclick="openAuthModal()">Sign in</button>
-    <!-- Logged in -->
-    <div id="nav-user-area" style="display:none;align-items:center;gap:10px;">
+<!-- DASHBOARD NAV -->
+<nav class="dash-nav">
+  <a class="dash-logo" href="index.html"><span class="dash-logo-dot"></span>FindTheSnakes</a>
+  <div class="dash-nav-right">
+    <a class="dash-nav-link" href="dashboard.html" style="color:var(--accent);font-weight:500;">Dashboard</a>
+    <a class="dash-nav-link" href="instructions.html">Instructions</a>
+    <a class="dash-nav-link" href="faq.html">FAQ</a>
+    <a class="dash-nav-link" href="about.html">About</a>
+    <div id="nav-user-area" style="display:none;align-items:center;gap:10px;position:relative;z-index:202;">
       <span id="nav-tier-badge" class="account-tier-badge free">Free</span>
       <span id="nav-email-display" style="font-size:13px;color:var(--muted);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
-      <button class="nav-cta ghost" id="cancel-sub-btn" style="display:none;font-size:13px;" onclick="handleSubBtn()">Cancel plan</button>
-      <button class="nav-cta ghost" onclick="signOut()" style="font-size:13px;">Sign out</button>
+      <button class="nav-cta ghost" id="cancel-sub-btn" style="display:none;font-size:13px;position:relative;z-index:203;" onclick="handleSubBtn()">Cancel plan</button>
+      <button class="nav-cta ghost" style="font-size:13px;position:relative;z-index:203;" onclick="signOut()">Sign out</button>
     </div>
+    <a class="nav-cta" id="nav-signin-btn" href="index.html" style="font-size:13px;">Sign in</a>
   </div>
-  <!-- Hamburger (mobile only) -->
-  <button class="hamburger" id="hamburger-btn" onclick="toggleMobileMenu()" aria-label="Menu">
-    <span></span><span></span><span></span>
-  </button>
 </nav>
 
-<!-- HERO -->
-<section class="hero">
-  <div class="hero-bg"></div>
-  <div class="grid-lines"></div>
-  <h1>The Best &amp; <em>Safe</em> Way to Find and <em>Manage</em><span class="line2">Instagram Unfollowers</span></h1>
-  <p class="hero-sub">Upload your Instagram data export and instantly discover who stopped following you — no login, no scraping, no risk to your account.</p>
-  <div class="hero-actions">
-    <button class="btn-primary" onclick="document.getElementById('tool').scrollIntoView({behavior:'smooth'})">Analyze My Followers for Free →</button>
-    <button class="btn-secondary" onclick="document.getElementById('how').scrollIntoView({behavior:'smooth'})">See how it works</button>
-  </div>
-  <div class="hero-stat-row">
-    <div class="stat"><div class="stat-num">Free</div><div class="stat-label">To start</div></div>
-    <div class="stat"><div class="stat-num">No</div><div class="stat-label">Instagram Password</div></div>
-  </div>
-</section>
+<!-- MAIN CONTENT -->
+<div class="dash-main">
 
-<!-- FEATURES -->
-<section id="features" style="padding: 80px 48px; max-width: 1200px; margin: 0 auto;">
-  <p class="section-label">Why FindTheSnakes</p>
-  <h2 class="section-title">Built differently, for good reason</h2>
-  <div class="features-grid">
-    <div class="feat">
-      <div class="feat-icon">🔒</div>
-      <h3>Zero password risk</h3>
-      <p>Your Instagram credentials stay yours. We work exclusively with data files you export directly from Instagram — your login is never required or requested.</p>
-    </div>
-    <div class="feat">
-      <div class="feat-icon">🐍</div>
-      <h3>Expose the snakes</h3>
-      <p>Upload your followers and following files and we instantly compare them — revealing and allowing you to manage everyone who isn't following you back.</p>
-    </div>
-    <div class="feat">
-      <div class="feat-icon">⚡</div>
-      <h3>Instant results</h3>
-      <p>Upload your JSON files and get a full breakdown almost instantly. Works with any account size, including large followings split across multiple export files.</p>
-    </div>
-</section>
-
-<!-- TRY IT FREE CTA -->
-<div id="try-cta" style="text-align:center;padding:20px 24px 56px;">
-  <button class="btn-primary" onclick="document.getElementById('tool').scrollIntoView({behavior:'smooth'})" style="font-size:17px;padding:18px 44px;">Try it free →</button>
-</div>
-
-<!-- HOW IT WORKS -->
-<section id="how" style="background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 100px 48px;">
-  <div style="max-width: 1200px; margin: 0 auto;">
-    <div style="text-align: center; margin-bottom: 64px;">
-      <p class="section-label">How it works</p>
-      <h2 class="section-title" style="max-width: 100%; text-align: center; margin: 0 auto;">Three steps, no stress</h2>
-    </div>
-    <div class="steps">
-      <div class="step">
-        <div class="step-num">1</div>
-        <h4>Export from Instagram</h4>
-        <p>Request your data in JSON format. Instagram emails you a link within minutes. <a href="instructions.html" style="color:var(--accent);text-decoration:none;font-weight:500;">Follow our instructions on how to download →</a></p>
+  <!-- TOOL SECTION -->
+  <section id="tool" style="background:transparent;padding:0;border:none;">
+    <div style="max-width:100%;">
+      <div class="tool-header" style="margin-bottom:40px;">
+        <h2 class="section-title" style="text-align:left;margin:0 0 8px;">Analyze your followers</h2>
+        <p style="color:var(--muted);font-size:14px;">Upload your Instagram JSON export files. Your files are processed entirely in your browser and never uploaded to our servers.</p>
+        <p style="margin-top:8px;font-size:13px;color:var(--muted2);">🖥️ This tool works best on a desktop browser. Downloading, unzipping, and uploading files is much easier on a computer than on mobile.</p>
+        <a href="instructions.html" style="display:inline-flex;align-items:center;gap:8px;margin-top:16px;background:rgba(232,68,90,0.08);border:1px solid rgba(232,68,90,0.3);border-radius:10px;padding:10px 18px;color:#ff8fa0;font-size:13px;text-decoration:none;" onmouseover="this.style.background='rgba(232,68,90,0.15)'" onmouseout="this.style.background='rgba(232,68,90,0.08)'">
+          📋 <span>Need help getting your files? Follow our step-by-step instructions →</span>
+        </a>
       </div>
-      <div class="step">
-        <div class="step-num">2</div>
-        <h4>Upload your files</h4>
-        <p>Drop your <code style="background:rgba(255,255,255,0.07);padding:1px 6px;border-radius:4px;font-size:13px">followers</code> and <code style="background:rgba(255,255,255,0.07);padding:1px 6px;border-radius:4px;font-size:13px">following</code> JSON files into FindTheSnakes. Multiple files supported for large accounts.</p>
-      </div>
-      <div class="step">
-        <div class="step-num">3</div>
-        <h4>See who unfollowed</h4>
-        <p>Get an instant, clear breakdown of who follows you back, who doesn't, and who disappeared since your last check.</p>
-      </div>
-    </div>
-  </div>
-</section>
 
-<!-- UPLOAD TOOL -->
-<section id="tool" class="tool-section">
-  <div class="tool-inner">
-    <div class="tool-header">
-      <span class="section-label">Free tool</span>
-      <h2 class="section-title">Analyze your followers now</h2>
-      <p>Upload your Instagram JSON export files. They are processed entirely in your browser — your files are never uploaded to our servers. Only results are saved for paid features like audit history.</p>
-      <p style="margin-top:12px;font-size:13px;color:var(--muted2);">🖥️ This tool works best on a desktop browser. Downloading, unzipping, and uploading files is much easier on a computer than on mobile.</p>
-      <a href="instructions.html" style="display:inline-flex;align-items:center;gap:8px;margin-top:20px;background:rgba(232,68,90,0.08);border:1px solid rgba(232,68,90,0.3);border-radius:10px;padding:12px 22px;color:#ff8fa0;font-size:14px;text-decoration:none;transition:all 0.2s;" onmouseover="this.style.background='rgba(232,68,90,0.15)'" onmouseout="this.style.background='rgba(232,68,90,0.08)'">
-        <span style="font-size:18px">📋</span>
-        <span><strong style="color:#f0eef8">Need help getting your files?</strong> &nbsp;Follow our step-by-step instructions on how to download your Instagram data →</span>
-      </a>
-    </div>
-
-    <div class="upload-grid">
-      <div>
-        <div class="upload-zone" id="followers-zone">
-          <input type="file" id="followers-input" accept=".json" multiple>
-          <div class="upload-icon">👥</div>
-          <div class="upload-label">Followers</div>
-          <div class="upload-sublabel">Drop <span>followers_1.json</span> (and more)<br>or click to browse</div>
+      <div class="upload-grid">
+        <div>
+          <div class="upload-zone" id="followers-zone">
+            <input type="file" id="followers-input" accept=".json" multiple>
+            <div class="upload-icon">👥</div>
+            <div class="upload-label">Followers</div>
+            <div class="upload-sublabel">Drop <span>followers_1.json</span> (and more)<br>or click to browse</div>
+          </div>
+          <div class="file-list" id="followers-files"></div>
         </div>
-        <div class="file-list" id="followers-files"></div>
-      </div>
-      <div>
-        <div class="upload-zone" id="following-zone">
-          <input type="file" id="following-input" accept=".json" multiple>
-          <div class="upload-icon">➕</div>
-          <div class="upload-label">Following</div>
-          <div class="upload-sublabel">Drop <span>following.json</span> (and more)<br>or click to browse</div>
-        </div>
-        <div class="file-list" id="following-files"></div>
-      </div>
-    </div>
-
-    <div class="error-box" id="error-box"></div>
-    <button class="analyze-btn" id="analyze-btn" onclick="analyze()" disabled>✦ &nbsp;Analyze Now</button>
-
-    <!-- RESULTS -->
-    <div id="results">
-      <div class="stats-row" id="stats-row"></div>
-      <!-- print header (only visible when printing) -->
-      <div class="print-header" id="print-header">
-        <div style="font-size:22px;font-weight:800;font-family:Syne,sans-serif;color:#e8445a;margin-bottom:4px">FindTheSnakes</div>
-        <div style="font-size:13px;color:#666" id="print-date"></div>
-      </div>
-      <div class="dashboard-welcome" id="dashboard-welcome">
-        <div class="dashboard-welcome-text">
-          <strong>Welcome back! 👋</strong> Your tools are ready. Upload your Instagram files below to run a new analysis.
-        </div>
-        <button class="dashboard-welcome-btn" onclick="document.getElementById('followers-zone').scrollIntoView({behavior:'smooth'});window.scrollBy(0,-100)">Upload files ↑</button>
-      </div>
-      <div class="results-header">
-        <div class="results-title">Results</div>
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-          <div class="results-badge" id="results-badge"></div>
-          <span id="new-unfollower-badge" style="display:none;background:rgba(232,68,90,0.12);border:1px solid rgba(232,68,90,0.3);color:#ff7a8f;border-radius:100px;padding:4px 12px;font-size:12px;font-weight:600;"></span>
-          <button class="start-over-btn" id="start-over-btn" onclick="startOver()">↺ &nbsp;New analysis</button>
+        <div>
+          <div class="upload-zone" id="following-zone">
+            <input type="file" id="following-input" accept=".json" multiple>
+            <div class="upload-icon">➕</div>
+            <div class="upload-label">Following</div>
+            <div class="upload-sublabel">Drop <span>following.json</span> (and more)<br>or click to browse</div>
+          </div>
+          <div class="file-list" id="following-files"></div>
         </div>
       </div>
-      <div class="tool-btns">
-        <button class="tool-btn locked" id="print-btn" onclick="handleToolBtn('print')">🖨&nbsp; Print report</button>
-        <button class="tool-btn locked" id="csv-btn" onclick="handleToolBtn('csv')">📥&nbsp; Export to CSV</button>
-      </div>
-      <div class="filter-tabs">
-        <button class="filter-tab active" onclick="setFilter('unfollowers',this)">Not following back</button>
-        <button class="filter-tab" onclick="setFilter('mutual',this)">Mutual</button>
-        <button class="filter-tab" id="whitelist-tab" onclick="setFilter('whitelist',this)">🛡 Whitelist <span id="wl-tab-count" style="display:none;background:rgba(74,222,128,0.2);color:#4ade80;border-radius:100px;padding:1px 7px;font-size:11px;margin-left:2px"></span></button>
-        <button class="filter-tab" id="history-tab" onclick="setFilter('history',this)">📅 History</button>
-        <button class="filter-tab" id="snake-tab" onclick="setFilter('snakes',this)">🐍 Snake List <span id="snake-tab-count" style="display:none;background:rgba(232,68,90,0.2);color:#ff7a8f;border-radius:100px;padding:1px 7px;font-size:11px;margin-left:2px"></span></button>
-        <button class="filter-tab" id="log-tab" onclick="setFilter('log',this)">📋 All Unfollowers <span id="log-tab-count" style="display:none;background:rgba(232,68,90,0.2);color:#ff7a8f;border-radius:100px;padding:1px 7px;font-size:11px;margin-left:2px"></span></button>
-      </div>
-      <div class="wl-banner" id="wl-banner" style="display:none"><div>🛡 <span></span></div><button onclick="clearWhitelist()">Clear whitelist</button></div>
-      <div class="results-list">
-        <div class="result-header-row"><span>Username</span><span>Status</span><span>Whitelist</span><span>Note</span><span style="padding-left:8px">🐍</span></div>
-        <div id="results-list-scroll"></div>
-      </div>
-      <!-- paywall inserted here by JS -->
-      <div id="paywall-container"></div>
 
-      <!-- AUDIT HISTORY -->
-      <div class="history-section" id="history-section" style="display:none">
-        <div class="history-header">
-          <div class="history-title">📅 Audit History</div>
-          <button class="audit-delete-btn" onclick="clearAllAudits()" style="font-size:13px">Clear all</button>
+      <div class="error-box" id="error-box"></div>
+      <button class="analyze-btn" id="analyze-btn" onclick="analyze()" disabled>✦ &nbsp;Analyze Now</button>
+
+      <!-- RESULTS -->
+      <div id="results" style="display:none;margin-top:36px;">
+        <div class="stats-row" id="stats-row"></div>
+        <div class="print-header" id="print-header">
+          <div style="font-size:22px;font-weight:800;font-family:Syne,sans-serif;color:#e8445a;margin-bottom:4px">FindTheSnakes</div>
+          <div style="font-size:13px;color:#666" id="print-date"></div>
         </div>
-        <div id="history-list"></div>
-      </div>
-
-      <!-- UNFOLLOWER LOG -->
-      <div class="log-section" id="log-section" style="display:none">
-        <div class="log-header">
-          <div class="log-title">🐍 All Unfollowers</div>
-          <div class="log-stats">
-            <div class="log-stat danger"><strong id="log-active-count">0</strong> still not following</div>
-            <div class="log-stat"><strong id="log-gone-count">0</strong> no longer detected</div>
+        <div class="dashboard-welcome" id="dashboard-welcome">
+          <div class="dashboard-welcome-text">
+            <strong>Welcome back! 👋</strong> Your tools are ready. Upload your Instagram files above to run a new analysis.
+          </div>
+          <button class="dashboard-welcome-btn" onclick="document.getElementById('followers-zone').scrollIntoView({behavior:'smooth'});window.scrollBy(0,-100)">Upload files ↑</button>
+        </div>
+        <div class="results-header">
+          <div class="results-title">Results</div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <div class="results-badge" id="results-badge"></div>
+            <span id="new-unfollower-badge" style="display:none;background:rgba(232,68,90,0.12);border:1px solid rgba(232,68,90,0.3);color:#ff7a8f;border-radius:100px;padding:4px 12px;font-size:12px;font-weight:600;"></span>
+            <button class="start-over-btn" id="start-over-btn" onclick="startOver()">↺ &nbsp;New analysis</button>
           </div>
         </div>
-        <input class="log-search" id="log-search" placeholder="Search unfollowers…" oninput="renderUnfollowerLog()">
-        <div class="log-filters">
-          <button class="log-filter active" id="log-filter-all" onclick="setLogFilter('all',this)">All</button>
-          <button class="log-filter" id="log-filter-active" onclick="setLogFilter('active',this)">Still not following</button>
-          <button class="log-filter" id="log-filter-gone" onclick="setLogFilter('gone',this)">No longer detected</button>
+        <div class="tool-btns">
+          <button class="tool-btn locked" id="print-btn" onclick="handleToolBtn('print')">🖨&nbsp; Print report</button>
+          <button class="tool-btn locked" id="csv-btn" onclick="handleToolBtn('csv')">📥&nbsp; Export to CSV</button>
         </div>
-        <div class="log-list">
-          <div class="log-header-row"><span>Username</span><span>First detected</span><span>Last seen</span><span>Status</span></div>
-          <div id="log-list-scroll"></div>
+        <div class="filter-tabs">
+          <button class="filter-tab active" onclick="setFilter('unfollowers',this)">Not following back</button>
+          <button class="filter-tab" onclick="setFilter('mutual',this)">Mutual</button>
+          <button class="filter-tab" id="whitelist-tab" onclick="setFilter('whitelist',this)">🛡 Whitelist <span id="wl-tab-count" style="display:none;background:rgba(74,222,128,0.2);color:#4ade80;border-radius:100px;padding:1px 7px;font-size:11px;margin-left:2px"></span></button>
+          <button class="filter-tab" id="history-tab" onclick="setFilter('history',this)">📅 History</button>
+          <button class="filter-tab" id="snake-tab" onclick="setFilter('snakes',this)">🐍 Snake List <span id="snake-tab-count" style="display:none;background:rgba(232,68,90,0.2);color:#ff7a8f;border-radius:100px;padding:1px 7px;font-size:11px;margin-left:2px"></span></button>
+          <button class="filter-tab" id="log-tab" onclick="setFilter('log',this)">📋 All Unfollowers <span id="log-tab-count" style="display:none;background:rgba(232,68,90,0.2);color:#ff7a8f;border-radius:100px;padding:1px 7px;font-size:11px;margin-left:2px"></span></button>
         </div>
-      </div>
+        <div class="wl-banner" id="wl-banner" style="display:none"><div>🛡 <span></span></div><button onclick="clearWhitelist()">Clear whitelist</button></div>
+        <div class="results-list">
+          <div class="result-header-row"><span>Username</span><span>Status</span><span>Whitelist</span><span>Note</span><span style="padding-left:8px">🐍</span></div>
+          <div id="results-list-scroll"></div>
+        </div>
+        <div id="paywall-container"></div>
 
-      <!-- SNAKE LIST -->
-      <div class="snake-section" id="snake-section" style="display:none">
-        <div class="snake-header">
-          <div class="snake-title">🐍 My Snake List</div>
-          <button class="audit-delete-btn" onclick="clearSnakeList()" style="font-size:13px">Clear all</button>
+        <!-- AUDIT HISTORY -->
+        <div class="history-section" id="history-section" style="display:none">
+          <div class="history-header">
+            <div class="history-title">📅 Audit History</div>
+            <button class="audit-delete-btn" onclick="clearAllAudits()" style="font-size:13px">Clear all</button>
+          </div>
+          <div id="history-list"></div>
         </div>
-        <div id="snake-list-container"></div>
-      </div>
 
-      <!-- WHITELIST SECTION -->
-      <div class="snake-section" id="whitelist-section" style="display:none">
-        <div class="snake-header">
-          <div class="snake-title">🛡 My Whitelist</div>
-          <button class="audit-delete-btn" onclick="clearWhitelist()" style="font-size:13px">Clear all</button>
+        <!-- UNFOLLOWER LOG -->
+        <div class="log-section" id="log-section" style="display:none">
+          <div class="log-header">
+            <div class="log-title">🐍 All Unfollowers</div>
+            <div class="log-stats">
+              <div class="log-stat danger"><strong id="log-active-count">0</strong> still not following</div>
+              <div class="log-stat"><strong id="log-gone-count">0</strong> now following</div>
+            </div>
+          </div>
+          <input class="log-search" id="log-search" placeholder="Search unfollowers…" oninput="renderUnfollowerLog()">
+          <div class="log-filters">
+            <button class="log-filter active" id="log-filter-all" onclick="setLogFilter('all',this)">All</button>
+            <button class="log-filter" id="log-filter-active" onclick="setLogFilter('active',this)">Still not following</button>
+            <button class="log-filter" id="log-filter-gone" onclick="setLogFilter('gone',this)">Now following</button>
+          </div>
+          <div class="log-list">
+            <div class="log-header-row"><span>Username</span><span>First detected</span><span>Last seen</span><span>Status</span></div>
+            <div id="log-list-scroll"></div>
+          </div>
         </div>
-        <div id="whitelist-section-list"></div>
+
+        <!-- SNAKE LIST -->
+        <div class="snake-section" id="snake-section" style="display:none">
+          <div class="snake-header">
+            <div class="snake-title">🐍 My Snake List</div>
+            <button class="audit-delete-btn" onclick="clearSnakeList()" style="font-size:13px">Clear all</button>
+          </div>
+          <div id="snake-list-container"></div>
+        </div>
+
+        <!-- WHITELIST SECTION -->
+        <div class="snake-section" id="whitelist-section" style="display:none">
+          <div class="snake-header">
+            <div class="snake-title">🛡 My Whitelist</div>
+            <button class="audit-delete-btn" onclick="clearWhitelist()" style="font-size:13px">Clear all</button>
+          </div>
+          <div id="whitelist-section-list"></div>
+        </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- PRICING -->
-<section id="pricing" style="padding: 100px 48px;">
-  <div style="max-width: 1200px; margin: 0 auto; text-align: center;">
-    <p class="section-label">Pricing</p>
-    <h2 class="section-title" style="max-width:100%;text-align:center;margin:0 auto 48px;">Simple, honest pricing</h2>
-    <div class="pricing-grid">
-      <!-- FREE -->
-      <div class="plan">
-        <div class="plan-name">Free</div>
-        <div class="plan-price"><sup>$</sup>0</div>
-        <div class="plan-period">forever</div>
-        <ul class="plan-features">
-          <li>First 3 unfollowers revealed</li>
-          <li>Total unfollower count shown</li>
-          <li>Files processed locally — never uploaded</li>
-          <li>No Instagram password needed — ever</li>
-        </ul>
-        <button class="btn-secondary" style="width:100%;border-radius:10px;padding:14px;" onclick="document.getElementById('tool').scrollIntoView({behavior:'smooth'})">Get started free</button>
-      </div>
-      <!-- ONE-TIME -->
-      <div class="plan featured">
-        <div class="plan-badge">Best value</div>
-        <div class="plan-name">One-time</div>
-        <div class="plan-price"><sup>$</sup>3</div>
-        <div class="plan-period">pay once, get results</div>
-        <ul class="plan-features">
-          <li>Full unfollower list unlocked</li>
-          <li>One analysis, full results</li>
-          <li>Instant access, no account needed</li>
-          <li>Export to CSV & print report</li>
-          <li>Everything in Free</li>
-        </ul>
-        <button class="btn-primary" style="width:100%;border-radius:10px;padding:14px;" onclick="startCheckout('one_time')">Unlock full results — $3</button>
-      </div>
-      <!-- MONTHLY -->
-      <div class="plan featured" style="border-color:rgba(29,111,181,0.4);background:linear-gradient(160deg,rgba(29,111,181,0.06) 0%,var(--surface) 60%);">
-        <div class="plan-badge blue">Pro</div>
-        <div class="plan-name">Monthly</div>
-        <div class="plan-price"><sup>$</sup>10</div>
-        <div class="plan-period">per month, cancel anytime</div>
-        <ul class="plan-features">
-          <li>Unlimited analyses</li>
-          <li>Files always processed locally — never uploaded</li>
-          <li>Full results every time</li>
-          <li>Export to CSV & print report</li>
-          <li>Perfect for everyone — creators, businesses &amp; personal accounts</li>
-          <li>Whitelist — hide accounts across devices</li>
-          <li>Audit history — track changes over time</li>
-          <li>Full unfollower log — everyone who ever unfollowed</li>
-          <li>Snake List — your personal hall of shame 🐍</li>
-          <li>Private notes on any account</li>
-          
-        </ul>
-        <button class="btn-primary" style="width:100%;border-radius:10px;padding:14px;background:#1d6fb5;box-shadow:0 0 30px rgba(29,111,181,0.25);" onmouseover="this.style.background='#2280cc'" onmouseout="this.style.background='#1d6fb5'" onclick="startCheckout('monthly')">Go Pro — $10/mo</button>
-      </div>
-    </div>
-  </div>
-</section>
+</div>
 
-<footer>
-  <div class="logo"><span class="logo-dot"></span>FindTheSnakes</div>
-  <p>© <span id="copy-year"></span> FindTheSnakes. Your Instagram files are never uploaded to our servers. Only your results are saved to power your audit history.</p>
-  <div style="display:flex;gap:24px;flex-wrap:wrap;">
-    <a href="privacy.html" style="color:var(--muted);font-size:13px;text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">Privacy Policy</a>
-    <a href="terms.html" style="color:var(--muted);font-size:13px;text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">Terms of Service</a>
-    <a href="instructions.html" style="color:var(--muted);font-size:13px;text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">Instructions</a>
-    <a href="faq.html" style="color:var(--muted);font-size:13px;text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">FAQ</a>
-    <p style="color:var(--muted2);font-size:13px;">Not affiliated with Instagram or Meta.</p>
+<!-- FOOTER -->
+<footer style="border-top:1px solid var(--border);padding:24px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+  <a class="dash-logo" href="index.html"><span class="dash-logo-dot"></span>FindTheSnakes</a>
+  <p style="font-size:13px;color:var(--muted);">Not affiliated with Instagram or Meta.</p>
+  <div style="display:flex;gap:20px;flex-wrap:wrap;">
+    <a href="privacy.html" style="color:var(--muted);font-size:13px;text-decoration:none;">Privacy</a>
+    <a href="terms.html" style="color:var(--muted);font-size:13px;text-decoration:none;">Terms</a>
+    <a href="faq.html" style="color:var(--muted);font-size:13px;text-decoration:none;">FAQ</a>
+    <a href="about.html" style="color:var(--muted);font-size:13px;text-decoration:none;">About</a>
   </div>
 </footer>
 
@@ -1156,10 +949,12 @@ document.addEventListener('keydown', e => {
 });
 
 // Close modals when clicking backdrop
-document.getElementById('auth-modal').addEventListener('click', function(e) {
+const _authModal = document.getElementById('auth-modal');
+if (_authModal) _authModal.addEventListener('click', function(e) {
   if (e.target === this) closeAuthModal();
 });
-document.getElementById('cancel-modal').addEventListener('click', function(e) {
+const _cancelModal = document.getElementById('cancel-modal');
+if (_cancelModal) _cancelModal.addEventListener('click', function(e) {
   if (e.target === this) closeCancelModal();
 });
 
@@ -1211,8 +1006,10 @@ async function setUser(user) {
   currentUser = user;
   const navUserArea = document.getElementById('nav-user-area');
   if (navUserArea) navUserArea.style.display = 'flex';
-  document.getElementById('nav-email-display').textContent = user.email;
-  document.getElementById('nav-signin-btn').style.display = 'none';
+  const _emailDisplay = document.getElementById('nav-email-display');
+  if (_emailDisplay) _emailDisplay.textContent = user.email;
+  const _signinBtn = document.getElementById('nav-signin-btn');
+  if (_signinBtn) _signinBtn.style.display = 'none';
   await fetchTier(user.id);
   await loadWhitelist();
   await loadAuditHistory();
@@ -1220,10 +1017,8 @@ async function setUser(user) {
   await loadUnfollowerLog();
   await loadSnakeList();
 
-  // Show dashboard for monthly users even without an analysis
-  if (userTier === 'monthly') {
-    showDashboard();
-  }
+  // Always show dashboard tools
+  showDashboard();
   updateMobileMenu();
 }
 
@@ -1248,7 +1043,6 @@ function showDashboard() {
   if (results) results.style.display = 'block';
 
   // Hide marketing sections for logged-in users
-  toggleMarketingSections(true);
 
   // Show welcome banner
   const welcome = document.getElementById('dashboard-welcome');
@@ -1292,14 +1086,14 @@ function clearUser() {
   userSnakeList = new Set();
   const navUserArea = document.getElementById('nav-user-area');
   if (navUserArea) navUserArea.style.display = 'none';
-  document.getElementById('nav-signin-btn').style.display = 'inline-flex';
+  const _signinBtn2 = document.getElementById('nav-signin-btn');
+  if (_signinBtn2) _signinBtn2.style.display = 'inline-flex';
   const badge = document.getElementById('nav-tier-badge');
   if (badge) { badge.textContent = 'Free'; badge.className = 'account-tier-badge free'; }
   // Hide results section on sign out
   const results = document.getElementById('results');
   if (results) results.style.display = 'none';
   // Show marketing sections again
-  toggleMarketingSections(false);
   const sob = document.getElementById('start-over-btn');
   if (sob) sob.classList.remove('visible');
   const welcome = document.getElementById('dashboard-welcome');
@@ -1346,8 +1140,8 @@ async function signOut() {
     clearUser();
     updateMobileMenu();
 
-    // Reload the page for a clean state
-    window.location.href = window.location.pathname;
+    // Redirect to home after logout
+    window.location.href = 'index.html';
   } catch(err) {
     console.error('Sign out error:', err);
     // Force clear anyway
@@ -1363,9 +1157,8 @@ let authMode = 'signin'; // 'signin' | 'signup'
 let pendingCheckout = null; // stores planType if checkout triggered auth
 
 function openAuthModal() {
-  authMode = 'signin';
-  syncAuthModal();
-  document.getElementById('auth-modal').classList.add('open');
+  // On dashboard, redirect to index for sign in
+  window.location.href = 'index.html';
 }
 
 function openAuthModalForCheckout(planType) {
@@ -1375,11 +1168,12 @@ function openAuthModalForCheckout(planType) {
 }
 function closeAuthModal() {
   const modal = document.getElementById('auth-modal');
+  if (!modal) return;
   modal.classList.remove('open');
   modal.style.display = 'none';
   setTimeout(() => { modal.style.display = ''; }, 50);
-  document.getElementById('auth-msg').style.display = 'none';
-  // Reset button state
+  const msgEl = document.getElementById('auth-msg');
+  if (msgEl) msgEl.style.display = 'none';
   const btn = document.getElementById('auth-submit-btn');
   if (btn) { btn.disabled = false; btn.textContent = 'Sign in'; }
 }
@@ -1481,8 +1275,8 @@ async function startCheckout(planType) {
     body: {
       priceId,
       userId: currentUser.id,
-      successUrl: window.location.origin + window.location.pathname + '?payment=success',
-      cancelUrl: window.location.origin + window.location.pathname + '?payment=cancelled',
+      successUrl: window.location.origin + '/dashboard.html?payment=success',
+      cancelUrl: window.location.origin + '/dashboard.html?payment=cancelled',
     }
   });
 
@@ -2144,17 +1938,11 @@ function startOver() {
 // ════════════════════════════════════════════
 function toggleAccountMenu() { /* deprecated */ }
 
-// Close dropdown when clicking outside
-document.addEventListener('click', e => {
-  const menu = document.getElementById('account-menu');
-  if (menu && !menu.contains(e.target)) {
-    const dropdown = document.getElementById('account-dropdown');
-    if (dropdown) dropdown.classList.remove('open');
-  }
-});
+// Dropdown removed - using inline buttons instead
 
 function openCancelModal() {
-  document.getElementById('cancel-modal').classList.add('open');
+  const modal = document.getElementById('cancel-modal');
+  if (modal) modal.classList.add('open');
 }
 
 function closeCancelModal() {
@@ -2251,23 +2039,8 @@ function updateNavTierBadge() {
 // ════════════════════════════════════════════
 // MOBILE MENU
 // ════════════════════════════════════════════
-function toggleMobileMenu() {
-  const menu = document.getElementById('mobile-menu');
-  const btn = document.getElementById('hamburger-btn');
-  const isOpen = menu.classList.contains('open');
-  if (isOpen) {
-    menu.classList.remove('open');
-    btn.classList.remove('open');
-  } else {
-    menu.classList.add('open');
-    btn.classList.add('open');
-  }
-}
-
-function closeMobileMenu() {
-  document.getElementById('mobile-menu').classList.remove('open');
-  document.getElementById('hamburger-btn').classList.remove('open');
-}
+function toggleMobileMenu() { /* no mobile menu on dashboard */ }
+function closeMobileMenu() { /* no mobile menu on dashboard */ }
 
 function updateMobileMenu() {
   const signinBtn = document.getElementById('mobile-signin-btn');
@@ -2706,7 +2479,6 @@ function renderResults() {
   if (welcome) welcome.classList.remove('visible');
 
   // Hide marketing sections if user is logged in
-  if (currentUser) toggleMarketingSections(true);
 
   // Show start over button
   const sob = document.getElementById('start-over-btn');
@@ -2722,7 +2494,8 @@ function renderResults() {
     <div class="stat-card"><div class="num">${followerOnly.length}</div><div class="lbl">Follow you only</div></div>`;
 
   document.getElementById('results-badge').textContent = `${allResults.length} accounts analyzed`;
-  document.getElementById('results').style.display = 'block';
+  const _results = document.getElementById('results');
+  if (_results) _results.style.display = 'block';
   document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
   // Update tool buttons based on tier
   updateToolBtns();
@@ -3088,13 +2861,13 @@ function updateWhitelistTab() {
 }
 
 function showError(msg) { const el = document.getElementById('error-box'); el.textContent = '⚠ ' + msg; el.style.display = 'block'; }
-function hideError() { document.getElementById('error-box').style.display = 'none'; }
+function hideError() { const el = document.getElementById('error-box'); if (el) el.style.display = 'none'; }
 
 // ════════════════════════════════════════════
 // INIT
 // ════════════════════════════════════════════
 initAuth();
-document.getElementById("copy-year").textContent = new Date().getFullYear();
+document.querySelectorAll(".copy-year, #copy-year").forEach(el => el.textContent = new Date().getFullYear());
 checkPaymentReturn();
 </script>
 </body>
