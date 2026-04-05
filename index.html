@@ -1437,21 +1437,35 @@ function checkPaymentReturn() {
       const saved = localStorage.getItem('fts_results');
       if (saved) {
         allResults = JSON.parse(saved);
+        localStorage.removeItem('fts_results');
+        localStorage.removeItem('fts_results_date');
       }
     } catch(e) {}
 
-    // Wait briefly for Stripe webhook to update Supabase, then re-render
-    if (currentUser) {
-      setTimeout(async () => {
-        await fetchTier(currentUser.id);
-        if (allResults.length) {
-          renderResults();
-          // Show success toast
-          showToast('🎉 Payment successful! Your full results are now unlocked.');
-          document.getElementById('tool').scrollIntoView({ behavior: 'smooth' });
-        }
-      }, 2500);
-    }
+    // Wait for auth to load AND webhook to update Supabase, then re-render
+    const waitForAuthAndRender = async () => {
+      // Wait up to 8 seconds for currentUser to be set
+      let attempts = 0;
+      while (!currentUser && attempts < 16) {
+        await new Promise(r => setTimeout(r, 500));
+        attempts++;
+      }
+      if (!currentUser) return;
+
+      // Now wait for webhook to update Supabase
+      await new Promise(r => setTimeout(r, 2500));
+      await fetchTier(currentUser.id);
+
+      if (allResults.length) {
+        renderResults();
+        showToast('🎉 Payment successful! Your full results are now unlocked.');
+        document.getElementById('tool').scrollIntoView({ behavior: 'smooth' });
+      } else {
+        showToast('🎉 Payment successful! Upload your files to see your full results.');
+      }
+    };
+
+    waitForAuthAndRender();
   }
 }
 
