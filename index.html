@@ -829,7 +829,7 @@
     <!-- Shown when logged in -->
     <div class="mobile-account-info" id="mobile-account-info">
       <div class="mobile-account-email" id="mobile-email-display"></div>
-      <button class="mobile-cancel-btn" id="mobile-cancel-btn" style="display:none" onclick="closeMobileMenu();openCancelModal()">✕ Cancel subscription</button>
+      <button class="mobile-cancel-btn" id="mobile-cancel-btn" style="display:none" onclick="closeMobileMenu();handleSubBtn()">✕ Cancel subscription</button>
       <button class="mobile-signout-btn" onclick="event.stopPropagation();closeMobileMenu();signOut()">Sign out</button>
     </div>
   </div>
@@ -852,7 +852,7 @@
     <div id="nav-user-area" style="display:none;align-items:center;gap:10px;">
       <span id="nav-tier-badge" class="account-tier-badge free">Free</span>
       <span id="nav-email-display" style="font-size:13px;color:var(--muted);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
-      <button class="nav-cta ghost" id="cancel-sub-btn" style="display:none;font-size:13px;" onclick="openCancelModal()">Cancel plan</button>
+      <button class="nav-cta ghost" id="cancel-sub-btn" style="display:none;font-size:13px;" onclick="handleSubBtn()">Cancel plan</button>
       <button class="nav-cta ghost" onclick="signOut()" style="font-size:13px;">Sign out</button>
     </div>
   </div>
@@ -1153,6 +1153,7 @@ const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUser = null;
 let userTier = 'free'; // 'free' | 'one_time' | 'monthly'
+let userStatus = 'free'; // 'free' | 'active' | 'cancelling' | 'cancelled'
 
 async function initAuth() {
   const { data: { session } } = await sb.auth.getSession();
@@ -1240,6 +1241,7 @@ function showDashboard() {
 function clearUser() {
   currentUser = null;
   userTier = 'free';
+  userStatus = 'free';
   allResults = [];
   userWhitelist = new Set();
   accountNotes = {};
@@ -1274,8 +1276,10 @@ async function fetchTier(userId) {
 
   if (data && (data.status === 'active' || data.status === 'cancelling')) {
     userTier = data.tier;
+    userStatus = data.status;
   } else {
     userTier = 'free';
+    userStatus = 'free';
   }
   updateNavTierBadge();
 }
@@ -2058,6 +2062,35 @@ function closeCancelModal() {
   if (btn) { btn.disabled = false; btn.textContent = 'Yes, cancel my subscription'; }
 }
 
+
+function handleSubBtn() {
+  if (userStatus === 'cancelling') {
+    reactivateSubscription();
+  } else {
+    openCancelModal();
+  }
+}
+
+async function reactivateSubscription() {
+  if (!currentUser) return;
+  const btn = document.getElementById('cancel-sub-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Renewing…'; }
+
+  const { data, error } = await sb.functions.invoke('reactivate-subscription', {
+    body: { userId: currentUser.id }
+  });
+
+  if (error || !data?.success) {
+    if (btn) { btn.disabled = false; btn.textContent = '↩ Renew plan'; }
+    showMiniToast('Something went wrong. Please email hello@findthesnakes.com');
+    return;
+  }
+
+  userStatus = 'active';
+  updateNavTierBadge();
+  showToast('🎉 Your Pro plan has been renewed! You're all set.');
+}
+
 async function confirmCancel() {
   if (!currentUser) return;
   const btn = document.getElementById('cancel-confirm-btn');
@@ -2076,7 +2109,7 @@ async function confirmCancel() {
   }
 
   // Update local tier to cancelling — keeps Pro access until period ends
-  userTier = 'cancelling';
+  userStatus = 'cancelling';
   closeCancelModal();
   updateNavTierBadge();
   updateToolBtns();
@@ -2132,7 +2165,10 @@ function updateMobileMenu() {
     if (signinBtn) signinBtn.style.display = 'none';
     if (accountInfo) accountInfo.classList.add('visible');
     if (emailDisplay) emailDisplay.textContent = currentUser.email;
-    if (cancelBtn) cancelBtn.style.display = userTier === 'monthly' ? 'block' : 'none';
+    if (cancelBtn) {
+      cancelBtn.style.display = userTier === 'monthly' ? 'block' : 'none';
+      cancelBtn.textContent = userStatus === 'cancelling' ? '↩ Renew subscription' : '✕ Cancel subscription';
+    }
   } else {
     if (signinBtn) signinBtn.style.display = 'block';
     if (accountInfo) accountInfo.classList.remove('visible');
