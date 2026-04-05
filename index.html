@@ -578,7 +578,7 @@
   .log-item a { color: var(--text); text-decoration: none; }
   .log-item a:hover { color: var(--accent); }
   .log-status-active { display: inline-flex; align-items: center; gap: 5px; background: rgba(232,68,90,0.1); border: 1px solid rgba(232,68,90,0.25); color: #ff7a8f; border-radius: 100px; padding: 2px 10px; font-size: 11px; font-weight: 500; }
-  .log-status-gone { display: inline-flex; align-items: center; gap: 5px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--muted); border-radius: 100px; padding: 2px 10px; font-size: 11px; font-weight: 500; }
+  .log-status-gone { display: inline-flex; align-items: center; gap: 5px; background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.3); color: #4ade80; border-radius: 100px; padding: 2px 10px; font-size: 11px; font-weight: 500; }
   .log-date { font-size: 12px; color: var(--muted); }
   .log-empty { text-align: center; padding: 48px 24px; color: var(--muted); font-size: 14px; }
   #log-list-scroll { max-height: 500px; overflow-y: auto; }
@@ -1869,7 +1869,7 @@ function renderUnfollowerLog() {
     const lastSeen = new Date(r.last_seen).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     const statusBadge = r.status === 'active'
       ? '<span class="log-status-active">● Still not following</span>'
-      : '<span class="log-status-gone">○ No longer detected</span>';
+      : '<span class="log-status-gone">✓ Now following</span>';
     const note = accountNotes[r.handle] ? `<div style="font-size:11px;color:var(--muted);font-style:italic;margin-top:2px">📝 ${accountNotes[r.handle]}</div>` : '';
 
     return `<div class="log-item">
