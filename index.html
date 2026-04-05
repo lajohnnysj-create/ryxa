@@ -1994,12 +1994,18 @@ async function renderSnakeList() {
     return;
   }
 
+  // Show loading state instantly
+  el.innerHTML = '<div class="snake-empty" style="padding:24px">Loading...</div>';
+
   const { data } = await sb.from('snake_list').select('handle, created_at').eq('user_id', currentUser.id).order('created_at', { ascending: false });
-  if (!data) return;
+  
+  // If no data from Supabase, build from userSnakeList directly
+  const items = data && data.length > 0 ? data : [...userSnakeList].map(handle => ({ handle, created_at: new Date().toISOString() }));
+  if (!items.length) return;
 
   el.innerHTML = `<div class="snake-list-wrap">
     <div class="snake-list-header"><span>Username</span><span>Added</span><span></span></div>
-    ${data.map(r => {
+    ${items.map(r => {
       const date = new Date(r.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
       const hasNote = accountNotes[r.handle.toLowerCase()];
       return `<div class="snake-list-item" style="display:block;padding:12px 20px;">
@@ -2670,6 +2676,24 @@ function renderResults() {
   document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
   // Update tool buttons based on tier
   updateToolBtns();
+
+  // Always reset to "Not following back" tab on new analysis
+  currentFilter = 'unfollowers';
+  document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+  const unfollowTab = document.querySelector('.filter-tab[onclick*="unfollowers"]');
+  if (unfollowTab) unfollowTab.classList.add('active');
+
+  // Hide special sections
+  ['history-section', 'log-section', 'snake-section', 'whitelist-section'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+
+  // Show results list and header
+  const resultsList = document.getElementById('results-list-scroll');
+  const headerRow = document.querySelector('.result-header-row');
+  if (resultsList) resultsList.style.display = 'block';
+  if (headerRow) headerRow.style.display = 'grid';
 
   filterResults();
 }
