@@ -1724,6 +1724,9 @@ function submitNote(handle) {
   const input = document.getElementById('note-input-' + handle);
   if (!input) return;
   saveNote(handle, input.value);
+  // Close the note row after saving
+  const row = document.getElementById('note-row-' + handle);
+  if (row) row.classList.remove('visible');
 }
 
 
