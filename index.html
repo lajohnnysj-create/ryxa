@@ -2661,16 +2661,17 @@ function buildRow(r, blurred) {
       noteBtn = `<button class="note-icon-btn${existingNote ? ' has-note' : ''}" 
         title="${existingNote ? 'Edit note: ' + existingNote : 'Add note'}"
         onclick="toggleNoteRow('${r.handle}')">📝</button>`;
-      noteRow = `<div class="note-row" id="note-row-${r.handle}">
-        <div class="note-input-wrap">
-          <input class="note-input" id="note-input-${r.handle}" 
-            value="${existingNote.replace(/"/g, '&quot;')}" 
-            placeholder="Add a private note about @${r.handle}…"
-            onkeydown="if(event.key==='Enter') submitNote('${r.handle}')">
-          <button class="note-save-btn" onclick="submitNote('${r.handle}')">Save</button>
-        </div>
-        ${existingNote ? `<div class="note-display">📝 ${existingNote}</div>` : ''}
-      </div>`;
+      noteRow = `
+        ${existingNote ? `<div class="note-display" style="margin-top:5px;">📝 ${existingNote}</div>` : ''}
+        <div class="note-row" id="note-row-${r.handle}" style="margin-top:8px;">
+          <div class="note-input-wrap">
+            <input class="note-input" id="note-input-${r.handle}" 
+              value="${existingNote.replace(/"/g, '&quot;')}" 
+              placeholder="Add a private note about @${r.handle}…"
+              onkeydown="if(event.key==='Enter') submitNote('${r.handle}')">
+            <button class="note-save-btn" onclick="submitNote('${r.handle}')">Save</button>
+          </div>
+        </div>`;
     } else {
       wlBtn = `<button class="whitelist-btn locked-wl" title="Whitelist available on Monthly plan" onclick="showMiniToast('Whitelist is available on the Monthly plan 🐍')">+ Hide</button>`;
       noteBtn = `<button class="note-icon-btn" style="opacity:0.25;cursor:not-allowed" title="Notes available on Monthly plan" onclick="showMiniToast('Notes are available on the Monthly plan 🐍')">📝</button>`;
