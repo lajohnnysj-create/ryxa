@@ -1406,7 +1406,7 @@ async function handleAuth() {
   if (!email || !password) { showAuthMsg('error', 'Please enter your email and password.'); return; }
 
   btn.disabled = true;
-  btn.innerHTML = '<span class="auth-spinner"></span>Signing in…';
+  btn.innerHTML = `<span class="auth-spinner"></span>${authMode === 'signin' ? 'Signing in…' : 'Creating account…'}`;
 
   let result;
   if (authMode === 'signin') {
@@ -1424,8 +1424,8 @@ async function handleAuth() {
     if (authMode === 'signup') {
       showAuthMsg('success', 'Check your email to confirm your account!');
     } else {
+      // Close modal immediately on success
       closeAuthModal();
-      if (allResults.length) renderResults();
       // If checkout was pending, continue to it automatically
       if (pendingCheckout) {
         const plan = pendingCheckout;
