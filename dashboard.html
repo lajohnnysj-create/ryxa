@@ -1155,10 +1155,11 @@ function handleSignOut() {
 }
 
 async function signOut() {
-  // Redirect immediately — don't wait for Supabase
-  // Sign out in background so it's instant for the user
-  sb.auth.signOut(); // fire and forget
-  window.location.href = 'index.html';
+  const btn = document.getElementById('signout-btn');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="auth-spinner"></span> Signing out…'; }
+  // Wait for Supabase to clear session, then redirect
+  await sb.auth.signOut();
+  window.location.href = 'index.html?signedout=1';
 }
 
 // ════════════════════════════════════════════
