@@ -2608,6 +2608,7 @@ function analyze() {
     // One-time tier: increment usage in Supabase and mark locally as used
     if (userTier === 'one_time' && currentUser) {
       userTier = 'free'; // immediately prevent further use
+      updateNavTierBadge(); // update badge to show Free
       sb.from('subscriptions')
         .update({ analyses_used: 1 })
         .eq('user_id', currentUser.id)
