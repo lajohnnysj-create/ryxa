@@ -1148,6 +1148,10 @@
 // ════════════════════════════════════════════
 (async function() {
   try {
+    // Skip redirect if coming from sign out
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('signedout') === '1') return;
+
     const { createClient } = supabase;
     const _sb = createClient(
       'https://kjytapcgxukalwsyputk.supabase.co',
