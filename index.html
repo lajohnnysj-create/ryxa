@@ -2661,7 +2661,7 @@ function buildRow(r, blurred) {
       noteBtn = `<button class="note-icon-btn${existingNote ? ' has-note' : ''}" 
         title="${existingNote ? 'Edit note: ' + existingNote : 'Add note'}"
         onclick="toggleNoteRow('${r.handle}')">📝</button>`;
-      noteRow = `<div class="note-row${existingNote ? ' visible' : ''}" id="note-row-${r.handle}">
+      noteRow = `<div class="note-row" id="note-row-${r.handle}">
         <div class="note-input-wrap">
           <input class="note-input" id="note-input-${r.handle}" 
             value="${existingNote.replace(/"/g, '&quot;')}" 
