@@ -2614,8 +2614,10 @@ function analyze() {
         updateNavTierBadge();
         const { error: updateError } = await sb
           .from('subscriptions')
-          .update({ analyses_used: 1 })
-          .eq('user_id', currentUser.id);
+          .upsert({
+            user_id: currentUser.id,
+            analyses_used: 1,
+          }, { onConflict: 'user_id' });
         if (updateError) {
           console.error('Failed to record analysis usage:', updateError);
         } else {
