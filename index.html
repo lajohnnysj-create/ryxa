@@ -2122,10 +2122,19 @@ function updateNavTierBadge() {
   const badge = document.getElementById('nav-tier-badge');
   const cancelBtn = document.getElementById('cancel-sub-btn');
   if (!badge) return;
+
   if (userTier === 'monthly') {
-    badge.textContent = 'Pro';
+    const isCancelling = userStatus === 'cancelling';
+    // Update badge
+    badge.textContent = isCancelling ? 'Pro (cancelling)' : 'Pro';
     badge.className = 'account-tier-badge pro';
-    if (cancelBtn) cancelBtn.style.display = 'flex';
+    // Update cancel/renew button
+    if (cancelBtn) {
+      cancelBtn.style.display = 'inline-flex';
+      cancelBtn.textContent = isCancelling ? '↩ Renew plan' : 'Cancel plan';
+      cancelBtn.style.color = isCancelling ? '#4ade80' : '';
+      cancelBtn.style.borderColor = isCancelling ? 'rgba(74,222,128,0.4)' : '';
+    }
   } else {
     badge.textContent = userTier === 'one_time' ? 'One-time' : 'Free';
     badge.className = 'account-tier-badge free';
