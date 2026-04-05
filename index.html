@@ -788,7 +788,7 @@
     <div class="cancel-modal-inner">
       <div class="cancel-modal-icon">😢</div>
       <h2>Cancel your Pro plan?</h2>
-      <p>You'll lose access to your whitelist, notes, audit history, snake list, and unfollower log at the end of your billing period. Your data will be kept for 30 days in case you change your mind.</p>
+      <p>You'll keep full Pro access until the end of your current billing period. After that, you'll lose access to your whitelist, notes, audit history, snake list, and unfollower log. Your data will be kept for 30 days in case you change your mind.</p>
       <div class="cancel-modal-btns">
         <button class="cancel-keep-btn" onclick="closeCancelModal()">Keep my Pro plan</button>
         <button class="cancel-confirm-btn" id="cancel-confirm-btn" onclick="confirmCancel()">Yes, cancel my subscription</button>
@@ -1267,7 +1267,7 @@ async function fetchTier(userId) {
 
   const data = rows && rows.length > 0 ? rows[0] : null;
 
-  if (data && data.status === 'active') {
+  if (data && (data.status === 'active' || data.status === 'cancelling')) {
     userTier = data.tier;
   } else {
     userTier = 'free';
@@ -2021,7 +2021,7 @@ async function confirmCancel() {
   closeCancelModal();
   updateNavTierBadge();
   updateToolBtns();
-  showToast('Your subscription has been cancelled. You still have access until the end of your billing period.');
+  showToast('Your subscription has been cancelled. You keep full Pro access until the end of your billing period.');
 }
 
 function updateNavTierBadge() {
