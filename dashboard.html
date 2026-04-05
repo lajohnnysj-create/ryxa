@@ -781,11 +781,9 @@ body { overflow-x: hidden; }
     <a class="dash-nav-link" href="instructions.html">Instructions</a>
     <a class="dash-nav-link" href="faq.html">FAQ</a>
     <a class="dash-nav-link" href="about.html">About</a>
-    <div id="nav-user-area" style="display:none;align-items:center;gap:10px;position:relative;z-index:202;">
+    <div id="nav-user-area" style="display:none;align-items:center;gap:10px;">
       <span id="nav-tier-badge" class="account-tier-badge free">Free</span>
       <span id="nav-email-display" style="font-size:13px;color:var(--muted);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
-      <button class="nav-cta ghost" id="cancel-sub-btn" style="display:none;font-size:13px;position:relative;z-index:203;" onclick="handleSubBtn()">Cancel plan</button>
-      <button class="nav-cta ghost" style="font-size:13px;position:relative;z-index:203;" onclick="signOut()">Sign out</button>
     </div>
     <a class="nav-cta" id="nav-signin-btn" href="index.html" style="font-size:13px;">Sign in</a>
   </div>
@@ -923,6 +921,20 @@ body { overflow-x: hidden; }
 
 </div>
 
+<!-- ACCOUNT SECTION -->
+<div id="account-section" style="display:none;max-width:1100px;margin:0 auto 40px;padding:0 24px;">
+  <div style="border:1px solid var(--border);border-radius:16px;padding:28px 32px;background:var(--surface);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+    <div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:4px;">Signed in as</div>
+      <div id="account-email-display" style="font-size:15px;font-weight:500;color:var(--text);"></div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <button id="cancel-sub-btn" style="display:none;padding:10px 20px;background:transparent;border:1px solid rgba(232,68,90,0.3);color:#ff7a8f;border-radius:8px;font-size:14px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(232,68,90,0.1)'" onmouseout="this.style.background='transparent'" onclick="handleSubBtn()">Cancel plan</button>
+      <button onclick="signOut()" style="padding:10px 20px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:14px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.color='var(--text)';this.style.borderColor='rgba(255,255,255,0.25)'" onmouseout="this.style.color='var(--muted)';this.style.borderColor='var(--border-hover)'">Sign out</button>
+    </div>
+  </div>
+</div>
+
 <!-- FOOTER -->
 <footer style="border-top:1px solid var(--border);padding:24px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
   <a class="dash-logo" href="index.html"><span class="dash-logo-dot"></span>FindTheSnakes</a>
@@ -1006,6 +1018,10 @@ async function setUser(user) {
   currentUser = user;
   const navUserArea = document.getElementById('nav-user-area');
   if (navUserArea) navUserArea.style.display = 'flex';
+  const accountSection = document.getElementById('account-section');
+  if (accountSection) accountSection.style.display = 'block';
+  const accountEmail = document.getElementById('account-email-display');
+  if (accountEmail) accountEmail.textContent = user.email;
   const _emailDisplay = document.getElementById('nav-email-display');
   if (_emailDisplay) _emailDisplay.textContent = user.email;
   const _signinBtn = document.getElementById('nav-signin-btn');
@@ -1086,6 +1102,8 @@ function clearUser() {
   userSnakeList = new Set();
   const navUserArea = document.getElementById('nav-user-area');
   if (navUserArea) navUserArea.style.display = 'none';
+  const accountSection = document.getElementById('account-section');
+  if (accountSection) accountSection.style.display = 'none';
   const _signinBtn2 = document.getElementById('nav-signin-btn');
   if (_signinBtn2) _signinBtn2.style.display = 'inline-flex';
   const badge = document.getElementById('nav-tier-badge');
