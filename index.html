@@ -1742,16 +1742,28 @@ async function loadNotes() {
 async function saveNote(handle, note) {
   if (!currentUser || userTier !== 'monthly') return;
   handle = handle.toLowerCase();
+
+  // Update locally first for instant feedback
   if (note.trim() === '') {
-    await sb.from('account_notes').delete().eq('user_id', currentUser.id).eq('handle', handle);
     delete accountNotes[handle];
     showMiniToast(`Note removed for @${handle}`);
+    // Sync to Supabase in background
+    sb.from('account_notes').delete().eq('user_id', currentUser.id).eq('handle', handle);
   } else {
-    await sb.from('account_notes').upsert({ user_id: currentUser.id, handle, note: note.trim(), updated_at: new Date().toISOString() }, { onConflict: 'user_id,handle' });
     accountNotes[handle] = note.trim();
     showMiniToast(`Note saved for @${handle}`);
+    // Sync to Supabase in background
+    sb.from('account_notes').upsert({ user_id: currentUser.id, handle, note: note.trim(), updated_at: new Date().toISOString() }, { onConflict: 'user_id,handle' });
   }
-  filterResults();
+
+  // Re-render only what's needed
+  if (currentFilter === 'snakes') {
+    renderSnakeList();
+  } else if (currentFilter === 'whitelist') {
+    renderWhitelistSection();
+  } else {
+    filterResults();
+  }
 }
 
 function toggleNoteRow(handle) {
@@ -1978,12 +1990,9 @@ function buildNoteEditor(handle, onSave) {
 async function submitSectionNote(handle, onSave) {
   const input = document.getElementById('section-note-input-' + handle);
   if (!input) return;
-  await saveNote(handle, input.value);
   const row = document.getElementById('section-note-row-' + handle);
   if (row) row.classList.remove('visible');
-  // Re-render the appropriate section
-  if (onSave === 'snake') renderSnakeList();
-  if (onSave === 'whitelist') renderWhitelistSection();
+  saveNote(handle, input.value); // saveNote handles re-render
 }
 
 function toggleSectionNoteRow(handle) {
