@@ -1312,11 +1312,18 @@ async function signOut() {
 // AUTH MODAL
 // ════════════════════════════════════════════
 let authMode = 'signin'; // 'signin' | 'signup'
+let pendingCheckout = null; // stores planType if checkout triggered auth
 
 function openAuthModal() {
   authMode = 'signin';
   syncAuthModal();
   document.getElementById('auth-modal').classList.add('open');
+}
+
+function openAuthModalForCheckout(planType) {
+  pendingCheckout = planType;
+  openAuthModal();
+  showAuthMsg('error', 'Sign in or create a free account to continue to checkout.');
 }
 function closeAuthModal() {
   document.getElementById('auth-modal').classList.remove('open');
@@ -1391,7 +1398,13 @@ async function handleAuth() {
       showAuthMsg('success', 'Check your email to confirm your account!');
     } else {
       closeAuthModal();
-      if (allResults.length) renderResults(); // re-render with new tier
+      if (allResults.length) renderResults();
+      // If checkout was pending, continue to it automatically
+      if (pendingCheckout) {
+        const plan = pendingCheckout;
+        pendingCheckout = null;
+        setTimeout(() => startCheckout(plan), 500);
+      }
     }
   }
 }
@@ -1401,8 +1414,9 @@ async function handleAuth() {
 // ════════════════════════════════════════════
 async function startCheckout(planType) {
   if (!currentUser) {
+    pendingCheckout = planType;
     openAuthModal();
-    showAuthMsg('error', 'Please sign in or create a free account first, then upgrade.');
+    showAuthMsg('error', 'Sign in or create a free account to continue to checkout.');
     return;
   }
 
