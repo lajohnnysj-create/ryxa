@@ -1479,10 +1479,14 @@ function checkPaymentReturn() {
       if (allResults.length) {
         renderResults();
         showToast('🎉 Payment successful! Your full results are now unlocked.');
-        document.getElementById('tool').scrollIntoView({ behavior: 'smooth' });
       } else {
-        showToast('🎉 Payment successful! Upload your files to see your full results.');
+        showToast('🎉 Payment successful! Upload your files below to see your full results.');
       }
+      // Always scroll to upload tool section
+      setTimeout(() => {
+        const tool = document.getElementById('tool');
+        if (tool) tool.scrollIntoView({ behavior: 'smooth' });
+      }, 500);
     };
 
     waitForAuthAndRender();
