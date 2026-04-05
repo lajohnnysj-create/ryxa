@@ -89,7 +89,8 @@
   .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
   .hamburger.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
   .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
-  .mobile-menu { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg); z-index: 150; flex-direction: column; padding: 80px 32px 40px; animation: slideDown 0.25s ease; }
+  .mobile-menu { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg); z-index: 150; flex-direction: column; padding: 80px 32px 40px; animation: slideDown 0.25s ease; pointer-events: none; }
+  .mobile-menu.open { pointer-events: all; }
   @keyframes slideDown { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:none} }
   .mobile-menu.open { display: flex; }
   .mobile-menu-links { display: flex; flex-direction: column; gap: 4px; flex: 1; }
