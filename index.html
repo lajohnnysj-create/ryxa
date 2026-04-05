@@ -1349,7 +1349,8 @@ async function startCheckout(planType) {
   });
 
   if (error || !data?.url) {
-    alert('Could not start checkout. Please try again.');
+    console.error('Checkout error:', error, data);
+    alert('Could not start checkout. Please try again. Error: ' + (error?.message || JSON.stringify(data)));
     return;
   }
 
