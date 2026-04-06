@@ -897,7 +897,7 @@ body { overflow-x: hidden; }
         </div>
         <div class="filter-tabs">
           <button class="filter-tab active" onclick="setFilter('unfollowers',this)">Not following back</button>
-          <button class="filter-tab" onclick="setFilter('mutual',this)">Mutual</button>
+          <button class="filter-tab" id="mutual-tab" onclick="setFilter('mutual',this)">Mutual</button>
           <button class="filter-tab" id="whitelist-tab" onclick="setFilter('whitelist',this)">🛡 Whitelist <span id="wl-tab-count" style="display:none;background:rgba(74,222,128,0.2);color:#4ade80;border-radius:100px;padding:1px 7px;font-size:11px;margin-left:2px"></span></button>
           <button class="filter-tab" id="history-tab" onclick="setFilter('history',this)">📅 History</button>
           <button class="filter-tab" id="snake-tab" onclick="setFilter('snakes',this)">🐍 Snake List <span id="snake-tab-count" style="display:none;background:rgba(232,68,90,0.2);color:#ff7a8f;border-radius:100px;padding:1px 7px;font-size:11px;margin-left:2px"></span></button>
@@ -1039,6 +1039,7 @@ const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUser = null;
 let userTier = 'free'; // 'free' | 'one_time' | 'monthly'
+let currentAnalysisPaid = false; // true if this analysis was paid for
 let userStatus = 'free'; // 'free' | 'active' | 'cancelling' | 'cancelled'
 
 async function initAuth() {
@@ -1934,6 +1935,7 @@ async function clearSnakeList() {
 
 
 function startOver() {
+  currentAnalysisPaid = false;
   // Reset results
   allResults = [];
 
@@ -2152,7 +2154,7 @@ function updateMobileMenu() {
 
 function updateToolBtns() {
   updateWhitelistTab();
-  const isPaid = userTier === 'one_time' || userTier === 'monthly';
+  const isPaid = userTier === 'one_time' || userTier === 'monthly' || currentAnalysisPaid;
   ['print-btn', 'csv-btn'].forEach(id => {
     const btn = document.getElementById(id);
     if (!btn) return;
@@ -2162,14 +2164,14 @@ function updateToolBtns() {
 }
 
 function handleToolBtn(type) {
-  const isPaid = userTier === 'one_time' || userTier === 'monthly';
+  const isPaid = userTier === 'one_time' || userTier === 'monthly' || currentAnalysisPaid;
   if (!isPaid) return; // locked — tooltip handles the message
   if (type === 'print') printReport();
   if (type === 'csv') exportCSV();
 }
 
 function exportCSV() {
-  const isPaid = userTier === 'one_time' || userTier === 'monthly';
+  const isPaid = userTier === 'one_time' || userTier === 'monthly' || currentAnalysisPaid;
   if (!isPaid) return;
 
   const isMonthly = userTier === 'monthly';
@@ -2521,12 +2523,14 @@ function analyze() {
 
       // Save audit and update unfollower log for monthly users
       if (userTier === 'monthly') {
+        currentAnalysisPaid = true;
         saveAudit();
         updateUnfollowerLog();
       }
 
       // One-time tier: increment usage via Edge Function (bypasses RLS)
       if (userTier === 'one_time' && currentUser) {
+        currentAnalysisPaid = true; // mark this analysis as paid
         userTier = 'free';
         userStatus = 'free';
         updateNavTierBadge();
@@ -2611,7 +2615,7 @@ function renderResults() {
 
 function filterResults() {
   const query = '';
-  const isPaid = userTier === 'one_time' || userTier === 'monthly';
+  const isPaid = userTier === 'one_time' || userTier === 'monthly' || currentAnalysisPaid;
 
   // Update whitelist tab count
   const wlTabCount = document.getElementById('wl-tab-count');
@@ -2816,6 +2820,11 @@ function buildPaywall(hiddenCount, totalUnfollowers) {
 }
 
 function setFilter(f, btn) {
+  const isPaid = userTier === 'one_time' || userTier === 'monthly' || currentAnalysisPaid;
+  if (f === 'mutual' && !isPaid) {
+    showMiniToast('Unlock to see your Mutual followers 🐍');
+    return;
+  }
   if (f === 'whitelist' && userTier !== 'monthly') {
     showMiniToast('Whitelist is available on the Monthly plan 🐍');
     return;
@@ -2921,6 +2930,7 @@ function renderWhitelistSection() {
 }
 
 function updateWhitelistTab() {
+  const isPaid = userTier === 'one_time' || userTier === 'monthly' || currentAnalysisPaid;
   const tab = document.getElementById('whitelist-tab');
   if (!tab) return;
   if (userTier !== 'monthly') {
@@ -2929,6 +2939,13 @@ function updateWhitelistTab() {
   } else {
     tab.classList.remove('wl-locked');
     tab.title = '';
+  }
+
+  // Lock Mutual tab for free/unpaid users
+  const mutualTab = document.getElementById('mutual-tab');
+  if (mutualTab) {
+    if (!isPaid) { mutualTab.classList.add('wl-locked'); mutualTab.title = 'Unlock to see Mutual followers'; }
+    else { mutualTab.classList.remove('wl-locked'); mutualTab.title = ''; }
   }
 
   const histTab = document.getElementById('history-tab');
