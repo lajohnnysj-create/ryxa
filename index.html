@@ -1203,10 +1203,12 @@ async function initAuth() {
 
   sb.auth.onAuthStateChange((_event, session) => {
     if (_event === 'SIGNED_IN' && session?.user) {
-      // Only redirect to dashboard if no pending checkout
-      if (!pendingCheckout) {
-        window.location.href = 'dashboard.html';
-      }
+      // Give handleAuth time to set pendingCheckout first
+      setTimeout(() => {
+        if (!pendingCheckout) {
+          window.location.href = 'dashboard.html';
+        }
+      }, 800);
     }
   });
 }
@@ -1463,11 +1465,10 @@ async function handleAuth() {
       // If checkout was pending, go to checkout — otherwise go to dashboard
       if (pendingCheckout) {
         const plan = pendingCheckout;
-        pendingCheckout = null;
         currentUser = result.data.user; // set user before checkout
-        setTimeout(() => startCheckout(plan), 500);
+        await startCheckout(plan); // go straight to Stripe
+        pendingCheckout = null; // clear after checkout initiated
       } else {
-        // Redirect to dashboard immediately
         window.location.href = 'dashboard.html';
       }
     }
