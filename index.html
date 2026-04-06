@@ -846,6 +846,7 @@
 <nav>
   <div class="logo"><span class="logo-dot"></span>FindTheSnakes</div>
   <div class="nav-links" id="nav-links">
+    <a href="dashboard.html" id="dashboard-link" style="display:none;color:var(--accent);font-weight:500;">Dashboard</a>
     <a href="#how" class="nav-marketing">How it works</a>
     <a href="#tool" class="nav-marketing">Try it</a>
     <a href="#pricing" class="nav-marketing">Pricing</a>
@@ -1214,6 +1215,8 @@ async function setUser(user) {
   currentUser = user;
   const navUserArea = document.getElementById('nav-user-area');
   if (navUserArea) navUserArea.style.display = 'flex';
+  const dashLink = document.getElementById('dashboard-link');
+  if (dashLink) dashLink.style.display = 'inline';
   document.getElementById('nav-email-display').textContent = user.email;
   document.getElementById('nav-signin-btn').style.display = 'none';
   await fetchTier(user.id);
@@ -1295,6 +1298,8 @@ function clearUser() {
   userSnakeList = new Set();
   const navUserArea = document.getElementById('nav-user-area');
   if (navUserArea) navUserArea.style.display = 'none';
+  const dashLink = document.getElementById('dashboard-link');
+  if (dashLink) dashLink.style.display = 'none';
   document.getElementById('nav-signin-btn').style.display = 'inline-flex';
   const badge = document.getElementById('nav-tier-badge');
   if (badge) { badge.textContent = 'Free'; badge.className = 'account-tier-badge free'; }
