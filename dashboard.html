@@ -350,12 +350,13 @@
 
   .mobile-menu {
     display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background: var(--bg); z-index: 150; flex-direction: column;
+    background: var(--bg); z-index: 300; flex-direction: column;
     padding: 80px 32px 40px;
     animation: slideDown 0.25s ease;
+    pointer-events: none;
   }
   @keyframes slideDown { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:none} }
-  .mobile-menu.open { display: flex; }
+  .mobile-menu.open { display: flex; pointer-events: all; }
   .mobile-menu-links { display: flex; flex-direction: column; gap: 4px; flex: 1; }
   .mobile-menu-links a {
     color: var(--text); font-size: 22px; font-family: 'Syne', sans-serif;
@@ -766,6 +767,32 @@
   }
   .upgrade-btn-pro:hover { background: #f05570; transform: translateY(-1px); }
 
+
+  /* ── DASHBOARD MOBILE ── */
+  @media (max-width: 768px) {
+    .dash-nav { padding: 14px 20px; }
+    .dash-nav-right { display: none !important; }
+    .hamburger { display: flex !important; }
+    .dash-main { padding: 24px 16px 80px; }
+    .upgrade-banner { flex-direction: column; align-items: flex-start; padding: 16px; }
+    .upgrade-btns { width: 100%; flex-direction: column; }
+    .upgrade-btn-one, .upgrade-btn-pro { width: 100%; padding: 12px; text-align: center; }
+    .tool-header { text-align: center; }
+    .upload-grid { grid-template-columns: 1fr; gap: 12px; }
+    .stats-row { grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+    .stat-card { padding: 12px 8px; }
+    .stat-card .num { font-size: 22px; }
+    .filter-tabs { flex-wrap: wrap; gap: 6px; }
+    .filter-tab { font-size: 12px; padding: 5px 10px; }
+    .result-item { grid-template-columns: 1fr auto auto; padding: 10px 12px; gap: 8px; }
+    .result-header-row { display: none; }
+    .result-item .whitelist-btn { display: none; }
+    .results-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .tool-btns { flex-wrap: wrap; }
+    #account-section { padding: 0 16px; margin-bottom: 24px; }
+    #account-section > div { flex-direction: column; align-items: flex-start; }
+  }
+
   /* ── DASHBOARD SPECIFIC ── */
 body { overflow-x: hidden; }
 .dash-nav {
@@ -818,6 +845,23 @@ body { overflow-x: hidden; }
   </div>
 </div>
 
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobile-menu">
+  <div class="mobile-menu-links">
+    <a href="dashboard.html" onclick="closeMobileMenu()" style="color:var(--accent);">Dashboard</a>
+    <a href="instructions.html" onclick="closeMobileMenu()">Instructions</a>
+    <a href="faq.html" onclick="closeMobileMenu()">FAQ</a>
+    <a href="about.html" onclick="closeMobileMenu()">About</a>
+  </div>
+  <div class="mobile-menu-bottom">
+    <div id="mobile-account-info" style="display:none;flex-direction:column;gap:6px;padding:16px;background:var(--surface2);border-radius:12px;margin-bottom:12px;">
+      <span id="mobile-tier-badge" style="font-size:12px;color:#ff8fa0;font-weight:600;"></span>
+      <span id="mobile-email-display" style="font-size:13px;color:var(--muted);"></span>
+    </div>
+    <button onclick="openSignoutModal();closeMobileMenu();" style="width:100%;padding:14px;background:var(--accent);border:none;color:#fff;border-radius:12px;font-size:15px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">Sign out</button>
+  </div>
+</div>
+
 <!-- DASHBOARD NAV -->
 <nav class="dash-nav">
   <a class="dash-logo" href="index.html"><span class="dash-logo-dot"></span>FindTheSnakes</a>
@@ -832,6 +876,9 @@ body { overflow-x: hidden; }
     </div>
     <a class="nav-cta" id="nav-signin-btn" href="index.html" style="font-size:13px;">Sign in</a>
   </div>
+  <button class="hamburger" id="hamburger-btn" onclick="toggleMobileMenu()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
 </nav>
 
 <!-- MAIN CONTENT -->
@@ -982,8 +1029,9 @@ body { overflow-x: hidden; }
 <div id="account-section" style="display:none;max-width:1100px;margin:0 auto 40px;padding:0 24px;">
   <div style="border:1px solid var(--border);border-radius:16px;padding:28px 32px;background:var(--surface);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
     <div>
-      <div style="font-size:13px;color:var(--muted);margin-bottom:4px;">Signed in as</div>
-      <div id="account-email-display" style="font-size:15px;font-weight:500;color:var(--text);"></div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:6px;">Signed in as</div>
+      <div id="account-email-display" style="font-size:15px;font-weight:500;color:var(--text);margin-bottom:8px;"></div>
+      <span id="account-tier-display" class="account-tier-badge free"></span>
     </div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;">
       <button id="cancel-sub-btn" style="display:none;padding:10px 20px;background:transparent;border:1px solid rgba(255,255,255,0.5);color:rgba(255,255,255,0.8);border-radius:8px;font-size:14px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor='#fff';this.style.color='#fff';this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.5)';this.style.color='rgba(255,255,255,0.8)';this.style.background='transparent'" onclick="handleSubBtn()">Cancel plan</button>
@@ -2158,10 +2206,10 @@ function updateNavTierBadge() {
 
   if (userTier === 'monthly') {
     const isCancelling = userStatus === 'cancelling';
-    // Update badge
     badge.textContent = isCancelling ? 'Pro (cancelling)' : 'Pro';
     badge.className = 'account-tier-badge pro';
-    // Update cancel/renew button
+    const bottomBadge = document.getElementById('account-tier-display');
+    if (bottomBadge) { bottomBadge.textContent = isCancelling ? 'Pro (cancelling)' : 'Pro'; bottomBadge.className = 'account-tier-badge pro'; }
     if (cancelBtn) {
       cancelBtn.style.display = 'inline-flex';
       cancelBtn.textContent = isCancelling ? '↩ Renew plan' : 'Cancel plan';
@@ -2171,6 +2219,8 @@ function updateNavTierBadge() {
   } else {
     badge.textContent = userTier === 'one_time' ? 'One-time' : 'Free';
     badge.className = 'account-tier-badge free';
+    const bottomBadge = document.getElementById('account-tier-display');
+    if (bottomBadge) { bottomBadge.textContent = userTier === 'one_time' ? 'One-time' : 'Free'; bottomBadge.className = 'account-tier-badge free'; }
     if (cancelBtn) cancelBtn.style.display = 'none';
   }
 }
@@ -2179,8 +2229,19 @@ function updateNavTierBadge() {
 // ════════════════════════════════════════════
 // MOBILE MENU
 // ════════════════════════════════════════════
-function toggleMobileMenu() { /* no mobile menu on dashboard */ }
-function closeMobileMenu() { /* no mobile menu on dashboard */ }
+function toggleMobileMenu() {
+  const menu = document.getElementById('mobile-menu');
+  const btn = document.getElementById('hamburger-btn');
+  if (!menu || !btn) return;
+  menu.classList.toggle('open');
+  btn.classList.toggle('open');
+}
+function closeMobileMenu() {
+  const menu = document.getElementById('mobile-menu');
+  const btn = document.getElementById('hamburger-btn');
+  if (menu) menu.classList.remove('open');
+  if (btn) btn.classList.remove('open');
+}
 
 function updateMobileMenu() {
   const signinBtn = document.getElementById('mobile-signin-btn');
