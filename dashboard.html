@@ -793,6 +793,28 @@
     #account-section > div { flex-direction: column; align-items: flex-start; }
   }
 
+
+  /* ── ANALYTICS ── */
+  .analytics-section { margin-top: 12px; }
+  .analytics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .analytics-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 8px;
+    transition: border-color 0.2s;
+  }
+  .analytics-card:hover { border-color: var(--border-hover); }
+  .analytics-card-icon { font-size: 24px; }
+  .analytics-card-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+  .analytics-card-value { font-family: 'Syne', sans-serif; font-size: 36px; font-weight: 800; line-height: 1; }
+  .analytics-card-value.positive { color: #4ade80; }
+  .analytics-card-value.negative { color: var(--accent); }
+  .analytics-card-value.neutral { color: var(--text); }
+  .analytics-card-sub { font-size: 13px; color: var(--muted); line-height: 1.5; }
+  .analytics-card-sub strong { color: var(--text); font-weight: 500; }
+  @media (max-width: 768px) {
+    .analytics-grid { grid-template-columns: 1fr 1fr; }
+  }
+
   /* ── DASHBOARD SPECIFIC ── */
 body { overflow-x: hidden; }
 .dash-nav {
@@ -974,6 +996,7 @@ body { overflow-x: hidden; }
           <button class="filter-tab active" onclick="setFilter('unfollowers',this)">Not following back</button>
           <button class="filter-tab" id="mutual-tab" onclick="setFilter('mutual',this)">Mutual</button>
           <button class="filter-tab" id="whitelist-tab" onclick="setFilter('whitelist',this)">🛡 Whitelist <span id="wl-tab-count" style="display:none;background:rgba(74,222,128,0.2);color:#4ade80;border-radius:100px;padding:1px 7px;font-size:11px;margin-left:2px"></span></button>
+          <button class="filter-tab" id="analytics-tab" onclick="setFilter('analytics',this)">📊 Analytics</button>
           <button class="filter-tab" id="history-tab" onclick="setFilter('history',this)">📅 History</button>
           <button class="filter-tab" id="snake-tab" onclick="setFilter('snakes',this)">🐍 Snake List <span id="snake-tab-count" style="display:none;background:rgba(232,68,90,0.2);color:#ff7a8f;border-radius:100px;padding:1px 7px;font-size:11px;margin-left:2px"></span></button>
           <button class="filter-tab" id="log-tab" onclick="setFilter('log',this)">📋 All Unfollowers <span id="log-tab-count" style="display:none;background:rgba(232,68,90,0.2);color:#ff7a8f;border-radius:100px;padding:1px 7px;font-size:11px;margin-left:2px"></span></button>
@@ -984,6 +1007,11 @@ body { overflow-x: hidden; }
           <div id="results-list-scroll"></div>
         </div>
         <div id="paywall-container"></div>
+
+        <!-- ANALYTICS -->
+        <div class="analytics-section" id="analytics-section" style="display:none;">
+          <div class="analytics-grid" id="analytics-grid"></div>
+        </div>
 
         <!-- AUDIT HISTORY -->
         <div class="history-section" id="history-section" style="display:none">
@@ -2689,6 +2717,150 @@ function analyze() {
   }, 80);
 }
 
+
+// ════════════════════════════════════════════
+// ANALYTICS
+// ════════════════════════════════════════════
+function renderAnalytics() {
+  const grid = document.getElementById('analytics-grid');
+  if (!grid) return;
+
+  const cards = [];
+
+  // ── NEW SNAKES SINCE LAST AUDIT ──
+  if (auditHistory.length >= 2) {
+    const currentUnfollowers = new Set(allResults.filter(r => !r.mutual && !r.followerOnly).map(r => r.handle.toLowerCase()));
+    const lastUnfollowers = new Set(auditHistory[1].unfollowers.map(h => h.toLowerCase()));
+    const newSnakes = [...currentUnfollowers].filter(h => !lastUnfollowers.has(h));
+    const goneSinceLastAudit = [...lastUnfollowers].filter(h => !currentUnfollowers.has(h));
+    cards.push({
+      icon: '🐍',
+      label: 'New snakes since last audit',
+      value: newSnakes.length,
+      valueClass: newSnakes.length > 0 ? 'negative' : 'positive',
+      sub: newSnakes.length > 0
+        ? `<strong>${newSnakes.slice(0,3).map(h => '@'+h).join(', ')}${newSnakes.length > 3 ? ` +${newSnakes.length - 3} more` : ''}</strong>`
+        : 'No new snakes. Your circle is solid. ✅'
+    });
+  } else if (auditHistory.length === 1) {
+    const currentUnfollowers = allResults.filter(r => !r.mutual && !r.followerOnly).length;
+    cards.push({
+      icon: '🐍',
+      label: 'New snakes since last audit',
+      value: '.',
+      valueClass: 'neutral',
+      sub: 'Run another audit to see changes over time'
+    });
+  }
+
+  // ── FOLLOWER CHANGE ──
+  if (auditHistory.length >= 2) {
+    const current = auditHistory[0].total_followers;
+    const previous = auditHistory[1].total_followers;
+    const diff = current - previous;
+    cards.push({
+      icon: diff >= 0 ? '📈' : '📉',
+      label: 'Follower change since last audit',
+      value: (diff >= 0 ? '+' : '') + diff,
+      valueClass: diff > 0 ? 'positive' : diff < 0 ? 'negative' : 'neutral',
+      sub: `${previous.toLocaleString()} → <strong>${current.toLocaleString()}</strong> followers`
+    });
+  } else {
+    const current = allResults.filter(r => r.mutual || r.followerOnly).length;
+    cards.push({
+      icon: '📈',
+      label: 'Follower change since last audit',
+      value: current.toLocaleString(),
+      valueClass: 'neutral',
+      sub: 'Current follower count. Run more audits to track changes.'
+    });
+  }
+
+  // ── FOLLOW BACK RATE ──
+  const totalFollowing = allResults.filter(r => !r.followerOnly).length;
+  const mutuals = allResults.filter(r => r.mutual).length;
+  const followBackRate = totalFollowing > 0 ? Math.round((mutuals / totalFollowing) * 100) : 0;
+  cards.push({
+    icon: '🤝',
+    label: 'Follow back rate',
+    value: followBackRate + '%',
+    valueClass: followBackRate >= 50 ? 'positive' : followBackRate >= 30 ? 'neutral' : 'negative',
+    sub: `<strong>${mutuals.toLocaleString()}</strong> of ${totalFollowing.toLocaleString()} accounts you follow, follow you back`
+  });
+
+  // ── LONGEST STANDING SNAKE ──
+  if (unfollowerLog.length > 0) {
+    const active = unfollowerLog.filter(r => r.status === 'active');
+    if (active.length > 0) {
+      const oldest = active.reduce((a, b) => new Date(a.first_seen) < new Date(b.first_seen) ? a : b);
+      const days = Math.floor((new Date() - new Date(oldest.first_seen)) / (1000 * 60 * 60 * 24));
+      cards.push({
+        icon: '⏳',
+        label: 'Longest standing snake',
+        value: days + 'd',
+        valueClass: 'negative',
+        sub: `<strong>@${oldest.handle}</strong> has not followed you back for ${days} days`
+      });
+    }
+  }
+
+  // ── RETURNING SNAKES ──
+  if (auditHistory.length >= 2) {
+    const allPastUnfollowers = new Set();
+    auditHistory.slice(1).forEach(audit => {
+      audit.unfollowers.forEach(h => allPastUnfollowers.add(h.toLowerCase()));
+    });
+    const currentUnfollowers = new Set(allResults.filter(r => !r.mutual && !r.followerOnly).map(r => r.handle.toLowerCase()));
+    const returning = [...currentUnfollowers].filter(h => allPastUnfollowers.has(h));
+    cards.push({
+      icon: '🔄',
+      label: 'Returning snakes',
+      value: returning.length,
+      valueClass: returning.length > 0 ? 'negative' : 'positive',
+      sub: returning.length > 0
+        ? `${returning.length} account${returning.length > 1 ? 's' : ''} that unfollowed before and still not following back`
+        : 'No returning snakes detected ✅'
+    });
+  }
+
+  // ── SNAKE SCORE ──
+  const totalAccounts = allResults.filter(r => !r.followerOnly).length;
+  const snakes = allResults.filter(r => !r.mutual && !r.followerOnly).length;
+  const snakeFreePercent = totalAccounts > 0 ? Math.round(((totalAccounts - snakes) / totalAccounts) * 100) : 100;
+  cards.push({
+    icon: '🎯',
+    label: 'Snake-free score',
+    value: snakeFreePercent + '%',
+    valueClass: snakeFreePercent >= 80 ? 'positive' : snakeFreePercent >= 60 ? 'neutral' : 'negative',
+    sub: `Your feed is <strong>${snakeFreePercent}% snake-free</strong>. ${snakeFreePercent >= 80 ? 'Looking clean! 🐍' : 'Time to do some cleaning. 🐍'}`
+  });
+
+  // ── TOTAL SNAKES CAUGHT ──
+  if (unfollowerLog.length > 0) {
+    cards.push({
+      icon: '🏆',
+      label: 'Total snakes caught',
+      value: unfollowerLog.length,
+      valueClass: 'neutral',
+      sub: `Lifetime total across all your audits`
+    });
+  }
+
+  // Render
+  grid.innerHTML = cards.map(c => `
+    <div class="analytics-card">
+      <div class="analytics-card-icon">${c.icon}</div>
+      <div class="analytics-card-label">${c.label}</div>
+      <div class="analytics-card-value ${c.valueClass}">${c.value}</div>
+      <div class="analytics-card-sub">${c.sub}</div>
+    </div>
+  `).join('');
+
+  if (cards.length === 0) {
+    grid.innerHTML = '<div style="color:var(--muted);font-size:14px;padding:32px;text-align:center;">Run an analysis first to see your analytics.</div>';
+  }
+}
+
 // ════════════════════════════════════════════
 // RENDER RESULTS WITH PAYWALL
 // ════════════════════════════════════════════
@@ -2952,6 +3124,10 @@ function buildPaywall(hiddenCount, totalUnfollowers) {
 
 function setFilter(f, btn) {
   const isPaid = userTier === 'one_time' || userTier === 'monthly' || currentAnalysisPaid;
+  if (f === 'analytics' && userTier !== 'monthly') {
+    showMiniToast('Analytics is available on the Monthly plan 🐍');
+    return;
+  }
   if (f === 'mutual' && !isPaid) {
     showMiniToast('Unlock to see your Mutual followers 🐍');
     return;
@@ -2981,6 +3157,7 @@ function setFilter(f, btn) {
   const paywallContainer = document.getElementById('paywall-container');
   const wlBanner = document.getElementById('wl-banner');
 
+  const analyticsSection = document.getElementById('analytics-section');
   const logSection = document.getElementById('log-section');
   const snakeSection = document.getElementById('snake-section');
 
@@ -2997,6 +3174,14 @@ function setFilter(f, btn) {
     if (paywallContainer) paywallContainer.style.display = 'none';
     if (wlBanner) wlBanner.style.display = 'none';
     document.querySelector('.result-header-row') && (document.querySelector('.result-header-row').style.display = 'none');
+  } else if (f === 'analytics') {
+    if (resultsList) resultsList.style.display = 'none';
+    if (paywallContainer) paywallContainer.style.display = 'none';
+    if (wlBanner) wlBanner.style.display = 'none';
+    document.querySelector('.result-header-row') && (document.querySelector('.result-header-row').style.display = 'none');
+    const analyticsSection = document.getElementById('analytics-section');
+    if (analyticsSection) analyticsSection.style.display = 'block';
+    renderAnalytics();
   } else if (f === 'log') {
     if (logSection) logSection.style.display = 'block';
     if (resultsList) resultsList.style.display = 'none';
@@ -3073,6 +3258,11 @@ function updateWhitelistTab() {
   }
 
   // Lock Mutual tab for free/unpaid users
+  const analyticsTab = document.getElementById('analytics-tab');
+  if (analyticsTab) {
+    if (userTier !== 'monthly') { analyticsTab.classList.add('wl-locked'); analyticsTab.title = 'Analytics available on Monthly plan'; }
+    else { analyticsTab.classList.remove('wl-locked'); analyticsTab.title = ''; }
+  }
   const mutualTab = document.getElementById('mutual-tab');
   if (mutualTab) {
     if (!isPaid) { mutualTab.classList.add('wl-locked'); mutualTab.title = 'Unlock to see Mutual followers'; }
