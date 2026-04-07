@@ -285,7 +285,7 @@
 
         <!-- Drop Zone -->
         <div id="img-dropzone" style="border:2px dashed rgba(124,58,237,0.4);border-radius:16px;padding:48px 24px;text-align:center;cursor:pointer;transition:all 0.2s;background:rgba(124,58,237,0.03);margin-bottom:20px;position:relative;">
-          <input type="file" id="img-input" accept="image/*" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;">
+          <input type="file" id="img-input" accept="image/jpeg,image/png,image/webp,image/gif,image/bmp,image/tiff,image/avif,image/svg+xml,image/x-icon,image/*" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;">
           <div style="font-size:36px;margin-bottom:12px;">&#x1F5BC;</div>
           <div style="font-size:16px;font-weight:500;margin-bottom:6px;">Drop your image here</div>
           <div style="font-size:13px;color:var(--muted);" id="img-size-note">or click to browse</div>
@@ -309,9 +309,14 @@
             <div>
               <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Convert to</label>
               <select id="img-format" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;">
-                <option value="image/png">PNG</option>
                 <option value="image/jpeg" selected>JPEG</option>
+                <option value="image/png">PNG</option>
                 <option value="image/webp">WebP</option>
+                <option value="image/gif">GIF</option>
+                <option value="image/bmp">BMP</option>
+                <option value="image/tiff">TIFF</option>
+                <option value="image/avif">AVIF (Chrome/Firefox)</option>
+                <option value="image/x-icon">ICO</option>
               </select>
             </div>
             <div id="quality-group">
@@ -659,11 +664,11 @@ function initImageConverter() {
   document.getElementById('img-limit-note').textContent = isPro
     ? `Pro: ${remaining} of ${limit} conversions remaining today`
     : `Free: ${remaining} of ${limit} conversions remaining today. Upgrade to Pro for 10/day and 50MB files.`;
-  document.getElementById('img-size-note').textContent = `or click to browse (max ${isPro ? '50MB' : '5MB'})`;
+  const sizeNote = document.getElementById('img-size-note'); if(sizeNote) sizeNote.textContent = `Supports JPEG, PNG, WebP, GIF, BMP, TIFF, AVIF, ICO, SVG (max ${isPro ? '50MB' : '5MB'})`;
   document.getElementById('img-usage').textContent = '';
   if (isPro) { document.getElementById('pro-resize').style.display = 'grid'; }
   document.getElementById('img-format').addEventListener('change', function() {
-    document.getElementById('quality-group').style.display = this.value === 'image/png' ? 'none' : 'block';
+    const noQuality = ['image/png','image/gif','image/bmp','image/x-icon','image/tiff']; document.getElementById('quality-group').style.display = noQuality.includes(this.value) ? 'none' : 'block';
   });
   document.getElementById('img-input').addEventListener('change', function(e) {
     if (e.target.files[0]) handleImageFile(e.target.files[0]);
@@ -730,10 +735,31 @@ async function convertImage() {
     }
     canvas.width = w; canvas.height = h;
     const ctx = canvas.getContext('2d');
-    if (format === 'image/jpeg') { ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, w, h); }
+    // Fill white background for formats that don't support transparency
+    if (['image/jpeg', 'image/bmp', 'image/tiff', 'image/x-icon'].includes(format)) {
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, w, h);
+    }
     ctx.drawImage(img, 0, 0, w, h);
-    const ext = format === 'image/png' ? 'png' : format === 'image/webp' ? 'webp' : 'jpg';
-    const dataUrl = canvas.toDataURL(format, quality);
+    const extMap = {
+      'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp',
+      'image/gif': 'gif', 'image/bmp': 'bmp', 'image/tiff': 'tiff',
+      'image/avif': 'avif', 'image/x-icon': 'ico'
+    };
+    const ext = extMap[format] || 'jpg';
+    // Try canvas toDataURL — fallback to jpeg if format not supported
+    let dataUrl;
+    try {
+      dataUrl = canvas.toDataURL(format, quality);
+      // Check if browser actually supports this format
+      if (dataUrl === 'data:,' || dataUrl.startsWith('data:image/png') && format !== 'image/png') {
+        throw new Error('Format not supported');
+      }
+    } catch(e) {
+      alert(`Your browser does not support converting to ${ext.toUpperCase()}. Try JPEG, PNG or WebP instead.`);
+      btn.textContent = 'Convert Image'; btn.disabled = false;
+      return;
+    }
     const a = document.createElement('a');
     a.href = dataUrl;
     a.download = imgFile.name.replace(/\.[^/.]+$/, '') + '_converted.' + ext;
