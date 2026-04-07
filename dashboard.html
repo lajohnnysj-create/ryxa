@@ -397,10 +397,18 @@
           <!-- FROM -->
           <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:20px;">
             <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:12px;">From</div>
-            <div id="logo-upload-area" style="border:2px dashed rgba(124,58,237,0.3);border-radius:8px;padding:12px;text-align:center;cursor:pointer;margin-bottom:12px;font-size:12px;color:var(--muted);position:relative;">
-              <input type="file" id="inv-logo" accept="image/*" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;" onchange="previewLogo(this)">
-              <span id="logo-placeholder">+ Upload logo (optional)</span>
+            <div id="logo-upload-area" style="border:2px dashed rgba(124,58,237,0.3);border-radius:8px;padding:12px;text-align:center;cursor:pointer;margin-bottom:8px;font-size:12px;color:var(--muted);position:relative;">
+              <input type="file" id="inv-logo" accept="image/*" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;" onchange="uploadLogo(this)">
+              <span id="logo-placeholder">+ Upload logo (optional, max 200KB)</span>
               <img id="logo-preview" style="display:none;max-height:48px;max-width:120px;object-fit:contain;">
+            </div>
+            <div id="logo-actions" style="display:none;display:flex;gap:8px;margin-bottom:12px;">
+              <span id="logo-status" style="font-size:11px;color:#4ade80;flex:1;align-self:center;"></span>
+              <label style="padding:5px 10px;background:var(--surface);border:1px solid var(--border-hover);color:var(--muted);border-radius:6px;font-size:11px;cursor:pointer;position:relative;">
+                Change
+                <input type="file" accept="image/*" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;" onchange="uploadLogo(this)">
+              </label>
+              <button onclick="deleteLogo()" style="padding:5px 10px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:#fca5a5;border-radius:6px;font-size:11px;cursor:pointer;">Delete</button>
             </div>
             <input type="text" id="inv-from-name" placeholder="Your Name / Business" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;margin-bottom:8px;">
             <input type="email" id="inv-from-email" placeholder="your@email.com" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;margin-bottom:8px;">
@@ -563,7 +571,7 @@ function showTool(tool) {
   // Init tools on first open
   if (tool === 'image') initImageConverter();
   if (tool === 'qr') { initQRGenerator(); loadQRLibrary(null); }
-  if (tool === 'invoice') initInvoiceGenerator();
+  if (tool === 'invoice') { initInvoiceGenerator(); loadSavedLogo(); }
   // Close sidebar on mobile
   closeSidebar();
 }
@@ -860,6 +868,86 @@ function previewLogo(input) {
     img.src = invLogoDataUrl; img.style.display = 'block';
   };
   reader.readAsDataURL(input.files[0]);
+}
+
+async function uploadLogo(input) {
+  if (!input.files[0] || !currentUser) return;
+  const file = input.files[0];
+
+  // Check size — 200KB max
+  if (file.size > 200 * 1024) {
+    alert('Logo must be under 200KB. Please resize your image and try again.');
+    return;
+  }
+
+  const logoStatus = document.getElementById('logo-status');
+  const logoActions = document.getElementById('logo-actions');
+  if (logoStatus) logoStatus.textContent = 'Uploading...';
+  if (logoActions) logoActions.style.display = 'flex';
+
+  try {
+    const path = `${currentUser.id}/logo`;
+    // Upload to Supabase storage
+    const { error } = await sb.storage.from('logos').upload(path, file, { upsert: true, contentType: file.type });
+    if (error) throw error;
+
+    // Get public URL and show preview
+    const { data } = sb.storage.from('logos').getPublicUrl(path);
+    // Use signed URL for private bucket
+    const { data: signedData } = await sb.storage.from('logos').createSignedUrl(path, 3600);
+    if (signedData?.signedUrl) {
+      invLogoDataUrl = signedData.signedUrl;
+      showLogoPreview(invLogoDataUrl);
+      if (logoStatus) logoStatus.textContent = 'Logo saved';
+    }
+  } catch (err) {
+    console.error('Logo upload error:', err);
+    // Fallback to local preview
+    const reader = new FileReader();
+    reader.onload = e => { invLogoDataUrl = e.target.result; showLogoPreview(invLogoDataUrl); };
+    reader.readAsDataURL(file);
+    if (logoStatus) logoStatus.textContent = 'Saved locally';
+  }
+}
+
+async function loadSavedLogo() {
+  if (!currentUser || userTier !== 'monthly') return;
+  try {
+    const path = `${currentUser.id}/logo`;
+    const { data, error } = await sb.storage.from('logos').createSignedUrl(path, 3600);
+    if (data?.signedUrl) {
+      invLogoDataUrl = data.signedUrl;
+      showLogoPreview(invLogoDataUrl);
+      const logoStatus = document.getElementById('logo-status');
+      if (logoStatus) logoStatus.textContent = 'Logo loaded';
+    }
+  } catch (err) {
+    // No logo saved yet — that's fine
+  }
+}
+
+function showLogoPreview(url) {
+  document.getElementById('logo-placeholder').style.display = 'none';
+  const img = document.getElementById('logo-preview');
+  img.src = url; img.style.display = 'block';
+  const logoActions = document.getElementById('logo-actions');
+  if (logoActions) logoActions.style.display = 'flex';
+}
+
+async function deleteLogo() {
+  if (!currentUser) return;
+  if (!confirm('Delete your saved logo?')) return;
+  try {
+    await sb.storage.from('logos').remove([`${currentUser.id}/logo`]);
+  } catch (err) {
+    console.error('Delete error:', err);
+  }
+  invLogoDataUrl = null;
+  document.getElementById('logo-placeholder').style.display = 'block';
+  const img = document.getElementById('logo-preview');
+  img.src = ''; img.style.display = 'none';
+  const logoActions = document.getElementById('logo-actions');
+  if (logoActions) logoActions.style.display = 'none';
 }
 
 function addInvoiceItem() {
