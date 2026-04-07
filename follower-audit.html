@@ -3096,18 +3096,14 @@ function buildPaywall(hiddenCount, totalUnfollowers) {
     <div class="paywall-count">${hiddenCount}</div>
     <div class="paywall-count-label">more people not following you back</div>
     <h3>Unlock your full list</h3>
-    <p>You've seen ${FREE_LIMIT} of ${totalUnfollowers} people not following you back. Unlock to see everyone.</p>
+    <p>You've seen ${FREE_LIMIT} of ${totalUnfollowers} people not following you back. Upgrade to Pro to see everyone.</p>
     <div class="paywall-btns">
       <button class="paywall-btn primary" onclick="startCheckout('monthly')">
-        <span>Go Pro — Unlimited analyses</span>
-        <span class="paywall-btn-price">$10/mo</span>
-      </button>
-      <button class="paywall-btn secondary" onclick="startCheckout('one_time')">
-        <span>Unlock this analysis only</span>
-        <span class="paywall-btn-price">$3 once</span>
+        <span>Upgrade to Pro</span>
+        <span class="paywall-btn-price">$10/mo — Unlimited access</span>
       </button>
     </div>
-    ${!currentUser ? `<p style="margin-top:20px;font-size:13px;color:var(--muted)">Already paid? <a href="#" onclick="openAuthModal();return false;" style="color:var(--accent)">Sign in to restore access</a></p>` : ''}
+    ${!currentUser ? `<p style="margin-top:20px;font-size:13px;color:var(--muted)">Already a Pro member? <a href="#" onclick="openAuthModal();return false;" style="color:var(--accent)">Sign in to restore access</a></p>` : ''}
   </div>`;
 }
 
