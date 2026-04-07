@@ -397,26 +397,25 @@
           <!-- FROM -->
           <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:20px;">
             <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:12px;">From</div>
-            <div style="margin-bottom:12px;">
-              <!-- Logo display area -->
-              <div id="logo-upload-area" style="width:80px;height:80px;border:2px dashed rgba(124,58,237,0.3);border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;background:var(--surface);transition:all 0.2s;overflow:hidden;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='rgba(124,58,237,0.3)'">
-                <input type="file" id="inv-logo" accept="image/*" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;z-index:2;" onchange="uploadLogo(this)">
-                <!-- Plus icon (shown when no logo) -->
-                <div id="logo-placeholder" style="display:flex;flex-direction:column;align-items:center;gap:4px;pointer-events:none;">
-                  <div style="width:28px;height:28px;border-radius:50%;background:rgba(124,58,237,0.15);display:flex;align-items:center;justify-content:center;font-size:18px;color:#a78bfa;">+</div>
-                  <span style="font-size:9px;color:var(--muted);text-align:center;line-height:1.3;">Logo</span>
+            <div id="logo-section" style="display:none;">
+              <div style="margin-bottom:12px;">
+                <!-- Logo display area -->
+                <div id="logo-upload-area" style="width:80px;height:80px;border:2px dashed rgba(124,58,237,0.3);border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;background:var(--surface);transition:all 0.2s;overflow:hidden;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='rgba(124,58,237,0.3)'">
+                  <input type="file" id="inv-logo" accept="image/*" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;z-index:2;" onchange="uploadLogo(this)">
+                  <div id="logo-placeholder" style="display:flex;flex-direction:column;align-items:center;gap:4px;pointer-events:none;">
+                    <div style="width:28px;height:28px;border-radius:50%;background:rgba(124,58,237,0.15);display:flex;align-items:center;justify-content:center;font-size:18px;color:#a78bfa;">+</div>
+                    <span style="font-size:9px;color:var(--muted);text-align:center;line-height:1.3;">Logo</span>
+                  </div>
+                  <img id="logo-preview" style="display:none;width:100%;height:100%;object-fit:contain;padding:6px;pointer-events:none;">
                 </div>
-                <!-- Logo preview (shown when logo exists) -->
-                <img id="logo-preview" style="display:none;width:100%;height:100%;object-fit:contain;padding:6px;pointer-events:none;">
-              </div>
-              <!-- Action buttons below logo -->
-              <div id="logo-actions" style="display:none;gap:6px;margin-top:8px;flex-wrap:wrap;">
-                <span id="logo-status" style="font-size:11px;color:#4ade80;width:100%;"></span>
-                <label style="padding:4px 10px;background:var(--surface);border:1px solid var(--border-hover);color:var(--muted);border-radius:6px;font-size:11px;cursor:pointer;position:relative;">
-                  Change
-                  <input type="file" accept="image/*" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;" onchange="uploadLogo(this)">
-                </label>
-                <button onclick="deleteLogo()" style="padding:4px 10px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:#fca5a5;border-radius:6px;font-size:11px;cursor:pointer;font-family:DM Sans,sans-serif;">Delete</button>
+                <div id="logo-actions" style="display:none;gap:6px;margin-top:8px;flex-wrap:wrap;">
+                  <span id="logo-status" style="font-size:11px;color:#4ade80;width:100%;"></span>
+                  <label style="padding:4px 10px;background:var(--surface);border:1px solid var(--border-hover);color:var(--muted);border-radius:6px;font-size:11px;cursor:pointer;position:relative;">
+                    Change
+                    <input type="file" accept="image/*" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;" onchange="uploadLogo(this)">
+                  </label>
+                  <button onclick="deleteLogo()" style="padding:4px 10px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:#fca5a5;border-radius:6px;font-size:11px;cursor:pointer;font-family:DM Sans,sans-serif;">Delete</button>
+                </div>
               </div>
             </div>
             <input type="text" id="inv-from-name" placeholder="Your Name / Business" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;margin-bottom:8px;">
@@ -850,12 +849,16 @@ function initInvoiceGenerator() {
   const isPro = userTier === 'monthly';
   const key = 'fts_inv_' + new Date().toDateString();
   invDailyCount = parseInt(localStorage.getItem(key) || '0');
+
+  // Show/hide logo section based on tier
+  const logoSection = document.getElementById('logo-section');
+  if (logoSection) logoSection.style.display = isPro ? 'block' : 'none';
+
   if (!isPro) {
     const remaining = Math.max(0, INV_LIMIT_FREE - invDailyCount);
-    document.getElementById('inv-usage').textContent = `Free: ${remaining} of ${INV_LIMIT_FREE} invoices remaining today. Upgrade to Pro for unlimited.`;
-    // Hide logo upload for free
-    document.getElementById('logo-upload-area').style.display = 'none';
+    document.getElementById('inv-usage').textContent = `Free: ${remaining} of ${INV_LIMIT_FREE} invoices remaining today. Upgrade to Pro for unlimited invoices and logo upload.`;
   }
+
   // Set default dates
   const today = new Date().toISOString().slice(0,10);
   const due = new Date(Date.now() + 30*24*60*60*1000).toISOString().slice(0,10);
