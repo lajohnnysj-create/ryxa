@@ -781,7 +781,6 @@ function renderQRCanvas(text) {
   const isPro = userTier === 'monthly';
   const fg = isPro ? (document.getElementById('qr-fg-color')?.value || '#000000') : '#000000';
   const bg = isPro ? (document.getElementById('qr-bg-color')?.value || '#ffffff') : '#ffffff';
-  renderQRCanvas(document.getElementById('qr-text').value.trim());
   const canvas = document.getElementById('qr-canvas');
   try {
     new QRious({
