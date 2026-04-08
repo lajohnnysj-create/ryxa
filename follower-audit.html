@@ -1002,7 +1002,7 @@ body { overflow-x: hidden; }
           <button class="filter-tab" id="mutual-tab" onclick="setFilter('mutual',this)">Mutual</button>
           <button class="filter-tab" id="whitelist-tab" onclick="setFilter('whitelist',this)">🛡 Whitelist <span id="wl-tab-count" style="display:none;background:rgba(74,222,128,0.2);color:#4ade80;border-radius:100px;padding:1px 7px;font-size:11px;margin-left:2px"></span></button>
           <button class="filter-tab" id="analytics-tab" onclick="setFilter('analytics',this)">📊 Analytics</button>
-          <button class="filter-tab" id="history-tab" onclick="setFilter('history',this)">📅 History</button>
+          <button class="filter-tab" id="history-tab" onclick="setFilter('history',this)">📅 Last Audit</button>
           <button class="filter-tab" id="snake-tab" onclick="setFilter('snakes',this)">🐍 Snake List <span id="snake-tab-count" style="display:none;background:rgba(124,58,237,0.2);color:#ff7a8f;border-radius:100px;padding:1px 7px;font-size:11px;margin-left:2px"></span></button>
           <button class="filter-tab" id="log-tab" onclick="setFilter('log',this)">📋 All Unfollowers <span id="log-tab-count" style="display:none;background:rgba(124,58,237,0.2);color:#ff7a8f;border-radius:100px;padding:1px 7px;font-size:11px;margin-left:2px"></span></button>
         </div>
@@ -1021,8 +1021,7 @@ body { overflow-x: hidden; }
         <!-- AUDIT HISTORY -->
         <div class="history-section" id="history-section" style="display:none">
           <div class="history-header">
-            <div class="history-title">📅 Audit History</div>
-            <button class="audit-delete-btn" onclick="clearAllAudits()" style="font-size:13px">Clear all</button>
+            <div class="history-title">📅 Last Audit History</div>
           </div>
           <div id="history-list"></div>
         </div>
@@ -1612,12 +1611,15 @@ async function saveAudit() {
 async function loadAuditHistory() {
   if (!currentUser || userTier !== 'monthly') return;
 
+  // EGRESS OPTIMIZATION: only fetch the 2 most recent audits
+  // (latest for display, previous for "new since last audit" diff)
+  // and only the columns we actually use.
   const { data } = await sb
     .from('audits')
-    .select('*')
+    .select('id, created_at, unfollowers, mutuals, total_following, total_followers, follower_only')
     .eq('user_id', currentUser.id)
     .order('created_at', { ascending: false })
-    .limit(10);
+    .limit(2);
 
   if (data) {
     auditHistory = data;
@@ -1667,7 +1669,8 @@ function renderAuditHistory() {
     return;
   }
 
-  el.innerHTML = auditHistory.map((audit, i) => {
+  // Only render the most recent audit (egress optimization)
+  el.innerHTML = auditHistory.slice(0, 1).map((audit, i) => {
     const date = new Date(audit.created_at);
     const dateStr = date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
     const timeStr = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
