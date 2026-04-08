@@ -1002,7 +1002,6 @@ body { overflow-x: hidden; }
           <button class="filter-tab" id="mutual-tab" onclick="setFilter('mutual',this)">Mutual</button>
           <button class="filter-tab" id="whitelist-tab" onclick="setFilter('whitelist',this)">🛡 Whitelist <span id="wl-tab-count" style="display:none;background:rgba(74,222,128,0.2);color:#4ade80;border-radius:100px;padding:1px 7px;font-size:11px;margin-left:2px"></span></button>
           <button class="filter-tab" id="analytics-tab" onclick="setFilter('analytics',this)">📊 Analytics</button>
-          <button class="filter-tab" id="history-tab" onclick="setFilter('history',this)">📅 Last Audit</button>
           <button class="filter-tab" id="snake-tab" onclick="setFilter('snakes',this)">🐍 Snake List <span id="snake-tab-count" style="display:none;background:rgba(124,58,237,0.2);color:#ff7a8f;border-radius:100px;padding:1px 7px;font-size:11px;margin-left:2px"></span></button>
         </div>
         <div class="wl-banner" id="wl-banner" style="display:none"><div>🛡 <span></span></div><button onclick="clearWhitelist()">Clear whitelist</button></div>
@@ -1224,13 +1223,10 @@ function showDashboard() {
       <a href="instructions.html">Need help getting your files? →</a>
     </div>`;
 
-    // Default to whitelist tab if they have whitelist items, otherwise history
+    // Default to whitelist tab if they have whitelist items, otherwise snake list
     if (userWhitelist.size > 0) {
       const wlTab = document.getElementById('whitelist-tab');
       if (wlTab) setFilter('whitelist', wlTab);
-    } else if (auditHistory.length > 0) {
-      const histTab = document.getElementById('history-tab');
-      if (histTab) setFilter('history', histTab);
     } else if (userSnakeList.size > 0) {
       const snakeTab = document.getElementById('snake-tab');
       if (snakeTab) setFilter('snakes', snakeTab);
@@ -1779,18 +1775,10 @@ let unfollowerLog = [];
 let currentLogFilter = 'all';
 
 async function updateUnfollowerLog() {
-  if (!currentUser || userTier !== 'monthly') return;
-
-  const currentUnfollowers = allResults
-    .filter(r => !r.mutual && !r.followerOnly)
-    .map(r => r.handle.toLowerCase());
-
-  // Use Edge Function to bypass RLS
-  await sb.functions.invoke('manage-unfollower-log', {
-    body: { userId: currentUser.id, currentUnfollowers }
-  });
-
-  await loadUnfollowerLog();
+  // PRIVACY/EGRESS: This previously sent the entire unfollower username list
+  // to the unfollower_log table on every audit. We no longer persist usernames
+  // anywhere. This function is now a no-op.
+  return;
 }
 
 async function loadUnfollowerLog() {
@@ -2653,11 +2641,10 @@ function analyze() {
 
       renderResults();
 
-      // Save audit and update unfollower log for monthly users
+      // Save audit (counts only) for monthly users
       if (userTier === 'monthly') {
         currentAnalysisPaid = true;
         saveAudit();
-        updateUnfollowerLog();
       }
 
       // One-time tier: increment usage via Edge Function (bypasses RLS)
