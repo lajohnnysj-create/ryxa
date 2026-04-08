@@ -126,6 +126,12 @@
     .welcome-tools-grid { grid-template-columns: 1fr; }
     #tool-follower { left: 0 !important; }
   }
+  @media (max-width: 640px) {
+    .inv-grid-2 { grid-template-columns: 1fr !important; }
+    .inv-grid-3 { grid-template-columns: 1fr !important; }
+    .inv-meta-grid { grid-template-columns: 1fr 1fr !important; }
+    .inv-download-row { flex-direction: column; }
+  }
 </style>
 </head>
 <body>
@@ -181,7 +187,7 @@
     <!-- Help -->
     <div style="display:flex;gap:10px;">
       <a href="faq.html" style="flex:1;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--muted);text-decoration:none;text-align:center;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--border-hover)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">FAQ</a>
-      <a href="mailto:hello@findthesnakes.com" style="flex:1;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--muted);text-decoration:none;text-align:center;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--border-hover)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">Contact support</a>
+      <a href="/cdn-cgi/l/email-protection#acc4c9c0c0c3eccac5c2c8d8c4c9dfc2cdc7c9df82cfc3c1" style="flex:1;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--muted);text-decoration:none;text-align:center;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--border-hover)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">Contact support</a>
       <a href="privacy.html" style="flex:1;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--muted);text-decoration:none;text-align:center;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--border-hover)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">Privacy</a>
     </div>
   </div>
@@ -457,7 +463,7 @@
     <!-- INVOICE GENERATOR -->
     <div id="tool-invoice" style="display:none;">
       <div style="max-width:800px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+        <div class="inv-download-row" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
           <div>
             <h2 style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;margin-bottom:4px;letter-spacing:-0.5px;">Invoice Generator</h2>
             <p style="color:var(--muted);font-size:14px;">Create professional invoices for your brand deals. Download as PDF.</p>
@@ -465,7 +471,7 @@
           <button onclick="downloadInvoicePDF()" style="padding:12px 24px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow);">&#x2B07; Download PDF</button>
         </div>
 
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+        <div class="inv-grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
           <!-- FROM -->
           <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:20px;">
             <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:12px;">From</div>
@@ -504,7 +510,7 @@
         </div>
 
         <!-- INVOICE META -->
-        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:20px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+        <div class="inv-meta-grid" style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:20px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
           <div>
             <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Invoice #</label>
             <input type="text" id="inv-number" placeholder="INV-001" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;">
@@ -522,7 +528,7 @@
         <!-- LINE ITEMS -->
         <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:20px;">
           <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:16px;">Services</div>
-          <div style="display:grid;grid-template-columns:1fr 80px 100px 36px;gap:8px;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:8px;padding:0 4px;">
+          <div style="display:grid;grid-template-columns:1fr 60px 90px 28px;gap:6px;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:8px;padding:0 4px;">
             <span>Description</span><span style="text-align:center;">Qty</span><span style="text-align:right;">Amount</span><span></span>
           </div>
           <div id="inv-items"></div>
@@ -563,7 +569,7 @@
   </div>
 </div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtqeXRhcGNneHVrYWx3c3lwdXRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMTcxMzEsImV4cCI6MjA5MDg5MzEzMX0.VC8mcU5lUeA56kG2gHssvl88EVWr018XttA86jpfEn0';
 const STRIPE_PRICE_MONTHLY = 'price_1TIZ8pFQ1L0aeJrZEX1bQnUI';
@@ -1193,7 +1199,7 @@ function removeInvoiceItem(id) {
 function renderInvoiceItems() {
   const container = document.getElementById('inv-items');
   container.innerHTML = invItems.map(item => `
-    <div style="display:grid;grid-template-columns:1fr 80px 100px 36px;gap:8px;margin-bottom:8px;align-items:center;">
+    <div style="display:grid;grid-template-columns:1fr 60px 90px 28px;gap:6px;margin-bottom:8px;align-items:center;">
       <input type="text" value="${item.desc}" placeholder="Service description" oninput="updateItem(${item.id},'desc',this.value)"
         style="background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;width:100%;">
       <input type="number" value="${item.qty}" min="1" oninput="updateItem(${item.id},'qty',this.value)"
@@ -1340,11 +1346,4 @@ function loadQRLibrary(callback) {
   if (typeof QRious !== 'undefined') { if (callback) callback(); return; }
   const script = document.createElement('script');
   script.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js';
-  script.onload = () => { if (callback) callback(); };
-  script.onerror = () => console.error('Failed to load QR library');
-  document.head.appendChild(script);
-}
-
-</script>
-</body>
-</html>
+  script.onload = () => { if (callb
