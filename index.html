@@ -189,7 +189,7 @@
   </div>
   <div class="mobile-menu-bottom">
     <a class="mobile-cta" href="dashboard.html" id="mobile-dashboard-link" style="display:none;">Go to Dashboard</a>
-    <button class="mobile-cta" onclick="openAuthModal()" id="mobile-signup-btn">Get started free</button>
+    <button class="mobile-cta" onclick="openSignupModal()" id="mobile-signup-btn">Get started free</button>
     <button class="mobile-signin" onclick="openAuthModal()">Sign in</button>
   </div>
 </div>
@@ -221,7 +221,7 @@
   </div>
   <div class="nav-right">
     <button class="btn-ghost" onclick="openAuthModal()" id="nav-signin-btn">Sign in</button>
-    <button class="btn-nav-cta" onclick="openAuthModal()">Get started free</button>
+    <button class="btn-nav-cta" onclick="openSignupModal()">Get started free</button>
   </div>
   <button class="hamburger" id="hamburger-btn" onclick="toggleMobileMenu()" aria-label="Menu">
     <span></span><span></span><span></span>
@@ -239,7 +239,7 @@
     <h1>A host of creator tools<br>to <span class="gradient-text">empower your growth</span></h1>
     <p class="hero-sub">Everything you need to grow smarter, protect your energy, and run your creator business. All in one place. Free to start.</p>
     <div class="hero-actions">
-      <button class="btn-primary" onclick="openAuthModal()">Get started free &#x2192;</button>
+      <button class="btn-primary" onclick="openSignupModal()">Get started free &#x2192;</button>
       <a class="btn-secondary" href="pricing.html">See pricing</a>
     </div>
     <div class="hero-mockup">
@@ -345,7 +345,8 @@
   <div class="cta-inner">
     <h2>Ready to grow smarter?</h2>
     <p>Join creators using FindTheSnakes to protect their energy and grow their brand.</p>
-    <button class="btn-primary" onclick="openAuthModal()" style="font-size:17px;padding:17px 44px;">Get started free &#x2192;</button>
+    <button class="btn-primary" onclick="openSignupModal()" style="font-size:17px;padding:17px 44px;">Get started free &#x2192;</button>
+    <div style="margin-top:20px;font-size:14px;color:var(--muted);">Already have an account? <a onclick="openAuthModal()" style="color:var(--accent2);cursor:pointer;">Sign in</a> &nbsp;·&nbsp; <a href="pricing.html" style="color:var(--accent2);">View plans</a></div>
   </div>
 </section>
 
@@ -383,6 +384,12 @@ function requireAuth(e) { if (!currentUser) { e.preventDefault(); openAuthModal(
 
 function openAuthModal() {
   authMode = 'signin'; syncAuthModal();
+  document.getElementById('auth-modal').classList.add('open');
+  setTimeout(() => document.getElementById('auth-email')?.focus(), 100);
+}
+
+function openSignupModal() {
+  authMode = 'signup'; syncAuthModal();
   document.getElementById('auth-modal').classList.add('open');
   setTimeout(() => document.getElementById('auth-email')?.focus(), 100);
 }
