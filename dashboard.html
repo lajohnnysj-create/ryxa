@@ -1061,24 +1061,26 @@ function initInvoiceGenerator() {
   const key = 'fts_inv_' + new Date().toDateString();
   invDailyCount = parseInt(localStorage.getItem(key) || '0');
 
-  // Show/hide logo section based on tier
+  // Show logo section for everyone, lock it for free users
   const logoSection = document.getElementById('logo-section');
   if (logoSection) logoSection.style.display = 'block';
-  // Show locked state for free users
+
   const logoUploadArea = document.getElementById('logo-upload-area');
   const logoPlaceholderText = document.getElementById('logo-placeholder-text');
-  if (!isPro && logoUploadArea) {
-    logoUploadArea.style.cursor = 'not-allowed';
-    logoUploadArea.style.opacity = '0.6';
-    // Remove file input click for free users
-    const fileInput = document.getElementById('inv-logo');
+  const fileInput = document.getElementById('inv-logo');
+
+  if (isPro) {
+    // Pro: fully enabled
+    if (logoUploadArea) { logoUploadArea.style.cursor = 'pointer'; logoUploadArea.style.opacity = '1'; }
+    if (fileInput) fileInput.style.pointerEvents = 'auto';
+    if (logoPlaceholderText) logoPlaceholderText.textContent = 'Logo';
+  } else {
+    // Free: locked
+    if (logoUploadArea) { logoUploadArea.style.cursor = 'not-allowed'; logoUploadArea.style.opacity = '0.6'; }
     if (fileInput) fileInput.style.pointerEvents = 'none';
     if (logoPlaceholderText) logoPlaceholderText.textContent = 'Upgrade to Pro to add logo';
-  }
-
-  if (!isPro) {
     const remaining = Math.max(0, INV_LIMIT_FREE - invDailyCount);
-    document.getElementById('inv-usage').textContent = `Free: ${remaining} of ${INV_LIMIT_FREE} invoice remaining today. Upgrade to Pro for unlimited.`;
+    document.getElementById('inv-usage').textContent = `Free: ${remaining} of ${INV_LIMIT_FREE} invoices remaining today. Upgrade to Pro for unlimited.`;
   }
 
   // Set default dates
