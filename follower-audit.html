@@ -2691,55 +2691,6 @@ function renderAnalytics() {
 
   const cards = [];
 
-  // ── NEW SNAKES SINCE LAST AUDIT ──
-  if (auditHistory.length >= 2) {
-    const currentUnfollowers = new Set(allResults.filter(r => !r.mutual && !r.followerOnly).map(r => r.handle.toLowerCase()));
-    const lastUnfollowers = new Set(auditHistory[1].unfollowers.map(h => h.toLowerCase()));
-    const newSnakes = [...currentUnfollowers].filter(h => !lastUnfollowers.has(h));
-    const goneSinceLastAudit = [...lastUnfollowers].filter(h => !currentUnfollowers.has(h));
-    cards.push({
-      icon: '🐍',
-      label: 'New snakes since last audit',
-      value: newSnakes.length,
-      valueClass: newSnakes.length > 0 ? 'negative' : 'positive',
-      sub: newSnakes.length > 0
-        ? `<strong>${newSnakes.slice(0,3).map(h => '@'+h).join(', ')}${newSnakes.length > 3 ? ` +${newSnakes.length - 3} more` : ''}</strong>`
-        : 'No new snakes. Your circle is solid. ✅'
-    });
-  } else if (auditHistory.length === 1) {
-    const currentUnfollowers = allResults.filter(r => !r.mutual && !r.followerOnly).length;
-    cards.push({
-      icon: '🐍',
-      label: 'New snakes since last audit',
-      value: '.',
-      valueClass: 'neutral',
-      sub: 'Run another audit to see changes over time'
-    });
-  }
-
-  // ── FOLLOWER CHANGE ──
-  if (auditHistory.length >= 2) {
-    const current = auditHistory[0].total_followers;
-    const previous = auditHistory[1].total_followers;
-    const diff = current - previous;
-    cards.push({
-      icon: diff >= 0 ? '📈' : '📉',
-      label: 'Follower change since last audit',
-      value: (diff >= 0 ? '+' : '') + diff,
-      valueClass: diff > 0 ? 'positive' : diff < 0 ? 'negative' : 'neutral',
-      sub: `${previous.toLocaleString()} → <strong>${current.toLocaleString()}</strong> followers`
-    });
-  } else {
-    const current = allResults.filter(r => r.mutual || r.followerOnly).length;
-    cards.push({
-      icon: '📈',
-      label: 'Follower change since last audit',
-      value: current.toLocaleString(),
-      valueClass: 'neutral',
-      sub: 'Current follower count. Run more audits to track changes.'
-    });
-  }
-
   // ── FOLLOW BACK RATE ──
   const totalFollowing = allResults.filter(r => !r.followerOnly).length;
   const mutuals = allResults.filter(r => r.mutual).length;
@@ -2752,26 +2703,6 @@ function renderAnalytics() {
     sub: `<strong>${mutuals.toLocaleString()}</strong> of ${totalFollowing.toLocaleString()} accounts you follow, follow you back`
   });
 
-  // ── LONGEST STANDING SNAKE ──
-  if (unfollowerLog.length > 0) {
-    const active = unfollowerLog.filter(r => r.status === 'active');
-    if (active.length > 0) {
-      const oldest = active.reduce((a, b) => new Date(a.first_seen) < new Date(b.first_seen) ? a : b);
-      const days = Math.floor((new Date() - new Date(oldest.first_seen)) / (1000 * 60 * 60 * 24));
-      cards.push({
-        icon: '⏳',
-        label: 'Longest standing snake',
-        value: days + 'd',
-        valueClass: 'negative',
-        sub: `<strong>@${oldest.handle}</strong> has not followed you back for ${days} days`
-      });
-    }
-  }
-
-  // ── RETURNING SNAKES ──
-  // Removed: relied on stored username arrays which we no longer persist
-  // (only counts are stored to keep your data private and reduce egress).
-
   // ── SNAKE SCORE ──
   const totalAccounts = allResults.filter(r => !r.followerOnly).length;
   const snakes = allResults.filter(r => !r.mutual && !r.followerOnly).length;
@@ -2783,17 +2714,6 @@ function renderAnalytics() {
     valueClass: snakeFreePercent >= 80 ? 'positive' : snakeFreePercent >= 60 ? 'neutral' : 'negative',
     sub: `Your feed is <strong>${snakeFreePercent}% snake-free</strong>. ${snakeFreePercent >= 80 ? 'Looking clean! 🐍' : 'Time to do some cleaning. 🐍'}`
   });
-
-  // ── TOTAL SNAKES CAUGHT ──
-  if (unfollowerLog.length > 0) {
-    cards.push({
-      icon: '🏆',
-      label: 'Total snakes caught',
-      value: unfollowerLog.length,
-      valueClass: 'neutral',
-      sub: `Lifetime total across all your audits`
-    });
-  }
 
   // Render
   grid.innerHTML = cards.map(c => `
