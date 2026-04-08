@@ -311,7 +311,7 @@
     <div id="tool-welcome" style="display:block;">
       <div class="welcome-screen">
         <div class="welcome-badge">&#x1F40D; Creator Tools</div>
-        <h1>Welcome back, <span id="welcome-name">creator</span></h1>
+        <h1>Welcome back, creator. Let's get to work.</h1>
         <p>Your creator toolkit is ready. Choose a tool from the sidebar or pick one below to get started.</p>
         <div class="welcome-tools-grid">
           <div class="welcome-tool-card" onclick="showFollowerTool()">
@@ -613,7 +613,6 @@ async function setUser(user) {
   const welcomeName = document.getElementById('welcome-name');
   if (email) email.textContent = user.email;
   if (avatar) avatar.textContent = user.email[0].toUpperCase();
-  if (welcomeName) welcomeName.textContent = user.email.split('@')[0];
   await fetchTier(user.id);
 
 }
