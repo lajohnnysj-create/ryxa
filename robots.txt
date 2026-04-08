@@ -1,0 +1,32 @@
+# FindTheSnakes — Creator Tools
+# Marketing pages are open to crawlers. Authenticated app pages are not.
+
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /dashboard.html
+Disallow: /follower-audit
+Disallow: /follower-audit.html
+Disallow: /reset-password
+Disallow: /reset-password.html
+
+# Block AI training scrapers entirely
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: PerplexityBot
+Disallow: /
+
+Sitemap: https://www.findthesnakes.com/sitemap.xml
