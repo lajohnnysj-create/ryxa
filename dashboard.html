@@ -3091,12 +3091,13 @@ function pickTheme(t) {
   const max = isMax();
   if (theme.pro && !pro) {
     showBioStatus('error', `${theme.name} is a Pro theme. Upgrade to unlock 12 themes.`);
-    setTimeout(() => { try { startCheckout('monthly'); } catch(e){} }, 200);
+    // Open Settings modal so user can explicitly upgrade — don't auto-trigger Stripe
+    setTimeout(() => { try { openSettingsModal(); } catch(e){} }, 200);
     return;
   }
   if (theme.max && !max) {
-    showBioStatus('error', `Custom theme is a Creator Max feature. Upgrade to unlock full branding control.`);
-    setTimeout(() => { try { startCheckout('max'); } catch(e){} }, 200);
+    showBioStatus('error', 'Custom theme is a Creator Max feature. Upgrade to unlock full branding control.');
+    setTimeout(() => { try { openSettingsModal(); } catch(e){} }, 200);
     return;
   }
   bioState.theme = t;
@@ -3291,7 +3292,7 @@ function addLink(isFeatured, isHero) {
   if (isHero) {
     if (!isMax()) {
       showBioStatus('error', 'Hero links are a Creator Max feature.');
-      setTimeout(() => { try { startCheckout('max'); } catch(e){} }, 200);
+      setTimeout(() => { try { openSettingsModal(); } catch(e){} }, 200);
       return;
     }
     if (heroCount >= maxHero) {
@@ -4790,7 +4791,8 @@ function pickMKTheme(t) {
   if (!theme) return;
   if (theme.max && !isMax()) {
     showMKStatus('error', 'Custom theme is a Creator Max feature.');
-    setTimeout(() => { try { startCheckout('max'); } catch(e){} }, 200);
+    // Open Settings modal — don't auto-trigger Stripe
+    setTimeout(() => { try { openSettingsModal(); } catch(e){} }, 200);
     return;
   }
   mkState.theme = t;
