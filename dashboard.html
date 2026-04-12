@@ -476,7 +476,7 @@
   }
 
   /* ================ PDF SIGN ================ */
-  .pdfsign-wrap { max-width: 1200px; margin: 0 auto; }
+  .pdfsign-wrap { max-width: 100%; margin: 0 auto; }
   .pdfsign-dropzone {
     background: var(--surface2);
     border: 2px dashed var(--border-hover);
@@ -487,55 +487,94 @@
     border-color: var(--accent);
     background: rgba(124,58,237,0.08);
   }
-  .pdfsign-grid {
-    display: grid;
-    grid-template-columns: 260px 1fr;
-    gap: 20px;
-    align-items: start;
-  }
-  @media (max-width: 900px) {
-    .pdfsign-grid { grid-template-columns: 1fr; }
-    .pdfsign-palette { order: -1; position: static !important; }
-  }
+
+  /* Horizontal palette on top */
   .pdfsign-palette {
     background: var(--surface2);
     border: 1px solid var(--border);
     border-radius: 14px;
-    padding: 16px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
     position: sticky;
-    top: 100px;
+    top: 80px;
+    z-index: 10;
+    backdrop-filter: blur(8px);
   }
+  .pdfsign-palette-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .pdfsign-palette-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent2);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .pdfsign-palette-items {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    flex: 1;
+    justify-content: center;
+  }
+  .pdfsign-privacy-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: #a3d9a5;
+    background: rgba(74,222,128,0.06);
+    border: 1px solid rgba(74,222,128,0.15);
+    padding: 6px 10px;
+    border-radius: 8px;
+    white-space: nowrap;
+  }
+  .pdfsign-privacy-badge svg { width: 12px; height: 12px; flex-shrink: 0; }
+
   .pdfsign-palette-item {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 10px 12px;
+    gap: 8px;
+    padding: 8px 12px;
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 10px;
-    margin-bottom: 8px;
+    border-radius: 9px;
     cursor: grab;
-    transition: border-color 0.15s, transform 0.15s;
+    transition: border-color 0.15s, transform 0.15s, background 0.15s;
     user-select: none;
   }
-  .pdfsign-palette-item:hover { border-color: rgba(124,58,237,0.4); transform: translateX(2px); }
+  .pdfsign-palette-item:hover { border-color: rgba(124,58,237,0.4); background: rgba(124,58,237,0.05); transform: translateY(-1px); }
   .pdfsign-palette-item:active { cursor: grabbing; }
   .pdfsign-palette-icon {
-    width: 32px;
-    height: 32px;
+    width: 26px;
+    height: 26px;
     flex-shrink: 0;
     background: rgba(124,58,237,0.12);
     border: 1px solid rgba(124,58,237,0.25);
-    border-radius: 8px;
+    border-radius: 7px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: #c4b5fd;
   }
-  .pdfsign-palette-icon svg { width: 16px; height: 16px; }
-  .pdfsign-palette-name { font-size: 13px; font-weight: 500; color: var(--text); }
-  .pdfsign-palette-desc { font-size: 11px; color: var(--muted); margin-top: 1px; }
+  .pdfsign-palette-icon svg { width: 14px; height: 14px; }
+  .pdfsign-palette-name { font-size: 12px; font-weight: 500; color: var(--text); white-space: nowrap; }
 
+  @media (max-width: 640px) {
+    .pdfsign-palette { padding: 10px 12px; }
+    .pdfsign-palette-header { gap: 8px; }
+    .pdfsign-palette-label, .pdfsign-privacy-badge { display: none; }
+    .pdfsign-palette-items { gap: 6px; justify-content: flex-start; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 2px; }
+    .pdfsign-palette-item { padding: 7px 10px; flex-shrink: 0; }
+    .pdfsign-palette-name { font-size: 11px; }
+  }
+
+  /* Canvas area now takes full width */
   .pdfsign-canvas-area {
     background: var(--surface2);
     border: 1px solid var(--border);
@@ -543,6 +582,25 @@
     padding: 20px;
     min-height: 400px;
   }
+  .pdfsign-tip-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .pdfsign-tip {
+    flex: 1;
+    min-width: 240px;
+    padding: 10px 12px;
+    background: rgba(124,58,237,0.06);
+    border: 1px solid rgba(124,58,237,0.15);
+    border-radius: 10px;
+    font-size: 11px;
+    color: var(--muted2);
+    line-height: 1.5;
+  }
+  .pdfsign-tip strong { color: #c4b5fd; }
+
   .pdfsign-pages { display: flex; flex-direction: column; gap: 16px; align-items: center; }
   .pdfsign-page-wrap {
     position: relative;
@@ -556,7 +614,114 @@
   .pdfsign-field-overlay {
     position: absolute;
     inset: 0;
-    pointer-events: none;
+    pointer-events: auto;
+  }
+  .pdfsign-field {
+    position: absolute;
+    border: 2px dashed rgba(124,58,237,0.6);
+    background: rgba(124,58,237,0.08);
+    border-radius: 4px;
+    pointer-events: all;
+    cursor: move;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: #4b2d8a;
+    user-select: none;
+    min-width: 40px;
+    min-height: 24px;
+    overflow: hidden;
+  }
+  .pdfsign-field:hover { border-color: #7c3aed; background: rgba(124,58,237,0.14); }
+  .pdfsign-field.filled {
+    border: 2px solid transparent;
+    background: transparent;
+    color: #000;
+  }
+  .pdfsign-field.filled:hover { border: 2px dashed rgba(124,58,237,0.4); background: rgba(124,58,237,0.04); }
+  .pdfsign-field-type-label { position: absolute; top: -18px; left: 0; font-size: 10px; color: #7c3aed; background: var(--surface2); padding: 1px 5px; border-radius: 3px; letter-spacing: 0.04em; text-transform: uppercase; font-weight: 600; }
+  .pdfsign-field.filled .pdfsign-field-type-label { display: none; }
+  .pdfsign-field:hover .pdfsign-field-type-label { display: block; }
+  .pdfsign-field-delete {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    width: 20px; height: 20px;
+    background: #ef4444;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    font-size: 11px;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    z-index: 2;
+  }
+  .pdfsign-field:hover .pdfsign-field-delete { display: flex; }
+  .pdfsign-field-resize {
+    position: absolute;
+    bottom: -6px; right: -6px;
+    width: 14px; height: 14px;
+    background: #7c3aed;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    cursor: nwse-resize;
+    display: none;
+    z-index: 2;
+  }
+  .pdfsign-field:hover .pdfsign-field-resize { display: block; }
+  .pdfsign-field-content { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; padding: 2px; overflow: hidden; }
+  .pdfsign-field-content img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  .pdfsign-field-text { font-size: inherit; color: inherit; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 4px; }
+  .pdfsign-field-checkbox-on { font-size: 20px; line-height: 1; color: #000; font-weight: 700; }
+
+  /* Signature modal */
+  .pdfsign-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(0,0,0,0.75);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .pdfsign-modal-inner {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    width: 100%;
+    position: relative;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .pdfsign-modal-close {
+    position: absolute; top: 12px; right: 14px;
+    background: none; border: none; color: var(--muted);
+    font-size: 18px; cursor: pointer;
+  }
+  .pdfsign-sig-tabs { display: flex; gap: 4px; background: var(--surface2); padding: 4px; border-radius: 10px; margin-bottom: 14px; }
+  .pdfsign-sig-tab { flex: 1; padding: 8px 12px; background: transparent; border: none; color: var(--muted); font-size: 12px; font-family: 'DM Sans', sans-serif; cursor: pointer; border-radius: 7px; }
+  .pdfsign-sig-tab.active { background: var(--accent); color: #fff; }
+  .pdfsign-sig-panel { min-height: 200px; }
+  .pdfsign-page-wrap {
+    position: relative;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    max-width: 100%;
+  }
+  .pdfsign-page-wrap canvas { display: block; max-width: 100%; height: auto; border-radius: 6px; }
+  .pdfsign-field-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: auto;
   }
   .pdfsign-field {
     position: absolute;
@@ -1699,66 +1864,59 @@
             </div>
           </div>
 
-          <!-- Editor grid: field palette + PDF canvas area -->
-          <div class="pdfsign-grid">
-            <!-- Field palette -->
-            <div class="pdfsign-palette">
-              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:12px;">Drag onto PDF</div>
-              <div class="pdfsign-palette-item" data-ftype="signature" draggable="true" ondragstart="onPaletteDragStart(event,'signature')" ontouchstart="onPaletteTouchStart(event,'signature')">
-                <div class="pdfsign-palette-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 19H4"/><path d="M4 15.5s2.5-6 6-6 2.5 4.5 6 4.5 4-3 4-3"/></svg>
-                </div>
-                <div>
+          <!-- Horizontal palette on top -->
+          <div class="pdfsign-palette">
+            <div class="pdfsign-palette-header">
+              <div class="pdfsign-palette-label">Drag onto PDF</div>
+              <div class="pdfsign-palette-items">
+                <div class="pdfsign-palette-item" data-ftype="signature" draggable="true" ondragstart="onPaletteDragStart(event,'signature')" ontouchstart="onPaletteTouchStart(event,'signature')">
+                  <div class="pdfsign-palette-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 19H4"/><path d="M4 15.5s2.5-6 6-6 2.5 4.5 6 4.5 4-3 4-3"/></svg>
+                  </div>
                   <div class="pdfsign-palette-name">Signature</div>
-                  <div class="pdfsign-palette-desc">Draw, type, or upload</div>
                 </div>
-              </div>
-              <div class="pdfsign-palette-item" data-ftype="text" draggable="true" ondragstart="onPaletteDragStart(event,'text')" ontouchstart="onPaletteTouchStart(event,'text')">
-                <div class="pdfsign-palette-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7V4h16v3M9 20h6M12 4v16"/></svg>
-                </div>
-                <div>
+                <div class="pdfsign-palette-item" data-ftype="text" draggable="true" ondragstart="onPaletteDragStart(event,'text')" ontouchstart="onPaletteTouchStart(event,'text')">
+                  <div class="pdfsign-palette-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7V4h16v3M9 20h6M12 4v16"/></svg>
+                  </div>
                   <div class="pdfsign-palette-name">Text</div>
-                  <div class="pdfsign-palette-desc">Any text, name, info</div>
                 </div>
-              </div>
-              <div class="pdfsign-palette-item" data-ftype="date" draggable="true" ondragstart="onPaletteDragStart(event,'date')" ontouchstart="onPaletteTouchStart(event,'date')">
-                <div class="pdfsign-palette-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-                </div>
-                <div>
+                <div class="pdfsign-palette-item" data-ftype="date" draggable="true" ondragstart="onPaletteDragStart(event,'date')" ontouchstart="onPaletteTouchStart(event,'date')">
+                  <div class="pdfsign-palette-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                  </div>
                   <div class="pdfsign-palette-name">Date</div>
-                  <div class="pdfsign-palette-desc">Defaults to today</div>
                 </div>
-              </div>
-              <div class="pdfsign-palette-item" data-ftype="checkbox" draggable="true" ondragstart="onPaletteDragStart(event,'checkbox')" ontouchstart="onPaletteTouchStart(event,'checkbox')">
-                <div class="pdfsign-palette-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><polyline points="8 12 11 15 16 10"/></svg>
-                </div>
-                <div>
+                <div class="pdfsign-palette-item" data-ftype="checkbox" draggable="true" ondragstart="onPaletteDragStart(event,'checkbox')" ontouchstart="onPaletteTouchStart(event,'checkbox')">
+                  <div class="pdfsign-palette-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><polyline points="8 12 11 15 16 10"/></svg>
+                  </div>
                   <div class="pdfsign-palette-name">Checkbox</div>
-                  <div class="pdfsign-palette-desc">Yes/no checkbox</div>
+                </div>
+                <div class="pdfsign-palette-item" data-ftype="other" draggable="true" ondragstart="onPaletteDragStart(event,'other')" ontouchstart="onPaletteTouchStart(event,'other')">
+                  <div class="pdfsign-palette-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                  </div>
+                  <div class="pdfsign-palette-name">Other</div>
                 </div>
               </div>
-
-              <div style="margin-top:16px;padding:12px;background:rgba(124,58,237,0.06);border:1px solid rgba(124,58,237,0.15);border-radius:10px;">
-                <div style="font-size:11px;color:var(--muted2);line-height:1.6;">
-                  <strong style="color:#c4b5fd;">Tip:</strong> Drag a field onto the PDF. Click a placed field to edit. Drag its corner to resize, or the body to reposition.
-                </div>
-              </div>
-
-              <div style="margin-top:12px;padding:12px;background:rgba(74,222,128,0.06);border:1px solid rgba(74,222,128,0.15);border-radius:10px;">
-                <div style="font-size:11px;color:#a3d9a5;line-height:1.6;display:flex;gap:6px;align-items:flex-start;">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0;margin-top:2px;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                  <span>100% private — your PDF is processed in your browser, never uploaded.</span>
-                </div>
+              <div class="pdfsign-privacy-badge">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <span>Private · in-browser</span>
               </div>
             </div>
+          </div>
 
-            <!-- Canvas area -->
-            <div class="pdfsign-canvas-area">
-              <div id="pdfsign-pages" class="pdfsign-pages"></div>
+          <!-- Tip row -->
+          <div class="pdfsign-tip-row">
+            <div class="pdfsign-tip">
+              <strong>Tip:</strong> Drag a field onto the PDF. Click a placed field to edit. Drag its corner to resize, or the body to move.
             </div>
+          </div>
+
+          <!-- Canvas area -->
+          <div class="pdfsign-canvas-area">
+            <div id="pdfsign-pages" class="pdfsign-pages"></div>
           </div>
         </div>
 
@@ -4617,6 +4775,7 @@ function addFieldAt(pageIndex, fieldType, normX, normY) {
     text:      { w: 0.25, h: 0.04 },
     date:      { w: 0.15, h: 0.04 },
     checkbox:  { w: 0.04, h: 0.04 },
+    other:     { w: 0.25, h: 0.04 },
   };
   const d = defaults[fieldType] || defaults.text;
   const field = {
@@ -4633,9 +4792,9 @@ function addFieldAt(pageIndex, fieldType, normX, normY) {
   };
   pdfsignFields.push(field);
   renderAllFields();
-  // For convenience, immediately open editor for text/signature fields
+  // For convenience, immediately open editor for text/signature/other/date fields
   if (fieldType === 'signature') openSigModal(field.id);
-  else if (fieldType === 'text') openTextModal(field.id, 'text');
+  else if (fieldType === 'text' || fieldType === 'other') openTextModal(field.id, fieldType);
   else if (fieldType === 'date') openTextModal(field.id, 'date');
 }
 
@@ -4700,6 +4859,7 @@ function renderField(field) {
     } else if (field.type === 'signature') {
       openSigModal(field.id);
     } else {
+      // text, date, other
       openTextModal(field.id, field.type);
     }
   });
@@ -4841,11 +5001,17 @@ function openTextModal(fieldId, type) {
   pdfsignActiveFieldId = fieldId;
   const field = pdfsignFields.find(f => f.id === fieldId);
   if (!field) return;
-  document.getElementById('pdfsign-text-title').textContent = type === 'date' ? 'Enter date' : 'Enter text';
+  const title = type === 'date' ? 'Enter date'
+    : type === 'other' ? 'Enter custom text'
+    : 'Enter text';
+  const placeholder = type === 'date' ? 'e.g. October 15, 2026'
+    : type === 'other' ? 'Anything you want to appear on the PDF…'
+    : 'Enter text…';
+  document.getElementById('pdfsign-text-title').textContent = title;
   const input = document.getElementById('pdfsign-text-input');
   input.type = 'text';
   input.value = field.value || '';
-  input.placeholder = type === 'date' ? 'e.g. October 15, 2026' : 'Enter text…';
+  input.placeholder = placeholder;
   document.getElementById('pdfsign-text-modal').style.display = 'flex';
   setTimeout(() => input.focus(), 50);
 }
