@@ -2,6 +2,6 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
-    { "source": "/@:username", "destination": "/bio.html?u=:username" }
+    { "source": "/:username([a-z0-9_]{3,30})", "destination": "/bio.html?u=:username" }
   ]
 }

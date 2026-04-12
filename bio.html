@@ -400,8 +400,8 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
 function getUsername() {
   const params = new URLSearchParams(window.location.search);
   if (params.has('u')) return params.get('u').replace(/^@/, '').toLowerCase().trim();
-  // Fallback: derive from /@username path
-  const m = window.location.pathname.match(/^\/@([a-z0-9_]+)/i);
+  // Fallback: derive from /username path (Vercel rewrites /username → ?u=username, but handle direct too)
+  const m = window.location.pathname.match(/^\/@?([a-z0-9_]+)/i);
   if (m) return m[1].toLowerCase();
   return null;
 }
@@ -535,7 +535,6 @@ function render(profile, bio, userTier) {
   document.getElementById('wrap').innerHTML = `
     ${buildAvatar(profile, bio)}
     <div class="name">${esc(name)}</div>
-    <div class="handle">@${esc(profile.username)}</div>
     ${bio.bio ? `<div class="bio">${esc(bio.bio)}</div>` : ''}
     ${linksHtml ? `<div class="links">${linksHtml}</div>` : ''}
     ${videosHtml}
