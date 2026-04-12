@@ -35,53 +35,37 @@ module.exports = async (req, res) => {
   let title = `@${username}. Media Kit | FindTheSnakes`;
   let description = `A creator's media kit on FindTheSnakes.`;
   let image = 'https://www.findthesnakes.com/og-image.png';
-  let debug = { step: 'start' };
   const url = `https://www.findthesnakes.com/mediakit/${encodeURIComponent(username)}`;
 
   try {
-    debug.step = 'fetching_profile';
     const profileRes = await fetch(
       `${SUPABASE_URL}/rest/v1/profiles?username=eq.${encodeURIComponent(username)}&select=user_id,username`,
       { headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` } }
     );
-    debug.profileStatus = profileRes.status;
     const profiles = await profileRes.json();
-    debug.profileCount = profiles?.length || 0;
 
     if (profiles && profiles.length > 0) {
       const profile = profiles[0];
-      debug.userId = profile.user_id;
-      debug.step = 'fetching_kit';
 
       const mkRes = await fetch(
         `${SUPABASE_URL}/rest/v1/media_kit?user_id=eq.${profile.user_id}&select=display_name,headshot_url,bio,published`,
         { headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` } }
       );
-      debug.kitStatus = mkRes.status;
       const kits = await mkRes.json();
-      debug.kitCount = kits?.length || 0;
 
       if (kits && kits.length > 0) {
         const kit = kits[0];
-        debug.hasHeadshot = !!kit.headshot_url;
-        debug.published = kit.published;
-
         if (kit.published) {
           const name = kit.display_name || profile.username;
           title = `${name}. Media Kit | FindTheSnakes`;
           description = kit.bio
             ? kit.bio
             : `${name}'s creator media kit — collaborations, audience stats, and rates.`;
-          if (kit.headshot_url) {
-            image = kit.headshot_url;
-            debug.imageSet = true;
-          }
+          if (kit.headshot_url) image = kit.headshot_url;
         }
       }
     }
-    debug.step = 'done';
   } catch (e) {
-    debug.error = String(e.message || e);
     console.error('mediakit OG error', e);
   }
 
@@ -99,7 +83,6 @@ module.exports = async (req, res) => {
 <meta name="twitter:title" content="${esc(title)}">
 <meta name="twitter:description" content="${esc(description)}">
 <meta name="twitter:image" content="${esc(image)}">
-<!-- debug: ${esc(JSON.stringify(debug))} -->
 `;
 
   html = html
@@ -111,6 +94,6 @@ module.exports = async (req, res) => {
   html = html.replace(/<head>/i, `<head>${ogBlock}`);
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
-  res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600');
   res.status(200).send(html);
 };
