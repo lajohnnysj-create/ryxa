@@ -119,6 +119,7 @@
   .mockup-nav-icon { width: 15px; height: 15px; stroke: #fff; stroke-width: 1.8; fill: none; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
   .mockup-nav-item.active .mockup-nav-icon { stroke: #c4b5fd; }
   .mockup-pro-badge { margin-left: auto; font-size: 10px; background: rgba(124,58,237,0.2); color: #c4b5fd; border-radius: 100px; padding: 1px 6px; font-weight: 700; letter-spacing: 0.05em; }
+  .mockup-max-badge { margin-left: auto; font-size: 10px; background: linear-gradient(135deg,#a78bfa,#e879f9); color: #fff; border-radius: 100px; padding: 1px 6px; font-weight: 700; letter-spacing: 0.05em; }
   .mockup-content { flex: 1; padding: 28px 24px; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
   .mockup-welcome { width: 100%; }
   .mockup-welcome-badge { display: inline-flex; align-items: center; gap: 6px; border: 1px solid rgba(124,58,237,0.4); background: rgba(124,58,237,0.08); border-radius: 100px; padding: 5px 14px; font-size: 11px; color: #c4b5fd; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 14px; }
@@ -197,6 +198,8 @@
   .tool-card-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: #4ade80; font-weight: 500; }
   .tool-card-badge.pro { color: #c4b5fd; }
   .tool-card-badge.pro .tool-card-badge-dot { background: #c4b5fd; }
+  .tool-card-badge.max { background: linear-gradient(135deg,#a78bfa,#e879f9); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 600; }
+  .tool-card-badge.max .tool-card-badge-dot { background: #e879f9; }
   .tool-card-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; }
   .tool-card-arrow { position: absolute; top: 24px; right: 24px; color: var(--muted2); font-size: 16px; transition: all 0.2s; }
   .tool-card:hover .tool-card-arrow { color: var(--accent2); transform: translate(2px, -2px); }
@@ -367,6 +370,11 @@
               Sign PDF
             </div>
             <div class="mockup-nav-item">
+              <svg viewBox="0 0 24 24" class="mockup-nav-icon" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/><path d="M6 21l-2-2 2-2M18 21l2-2-2-2"/></svg>
+              Script Builder
+              <span class="mockup-max-badge">MAX</span>
+            </div>
+            <div class="mockup-nav-item">
               <svg viewBox="0 0 24 24" class="mockup-nav-icon" aria-hidden="true"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
               Tax Tracker
               <span class="mockup-pro-badge">PRO</span>
@@ -480,6 +488,13 @@
       <div class="tool-card-title">Sign PDF</div>
       <div class="tool-card-desc">Fill out and sign any PDF right in your browser. Drop fields, type, draw your signature, and download. Nothing uploaded to servers.</div>
       <div class="tool-card-badge"><span class="tool-card-badge-dot"></span> Free to use</div>
+      <div class="tool-card-arrow">&#x2197;</div>
+    </a>
+    <a class="tool-card" href="dashboard.html" onclick="requireAuth(event)">
+      <div class="tool-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/><path d="M6 21l-2-2 2-2M18 21l2-2-2-2"/></svg></div>
+      <div class="tool-card-title">Script Builder</div>
+      <div class="tool-card-desc">Write video scripts as draggable blocks with a pinned hook. Review in storyboard grid, scroll in teleprompter, or play back cinematic. Export to PDF.</div>
+      <div class="tool-card-badge max"><span class="tool-card-badge-dot"></span> Creator Max</div>
       <div class="tool-card-arrow">&#x2197;</div>
     </a>
     <a class="tool-card" href="dashboard.html" onclick="requireAuth(event)">
