@@ -395,7 +395,6 @@
   .grid-phone-tabs {
     display: flex;
     border-top: 0.5px solid #262626;
-    border-bottom: 0.5px solid #262626;
     flex-shrink: 0;
     background: #000;
   }
@@ -407,7 +406,6 @@
     padding: 10px;
     color: #555;
     border-bottom: 1px solid transparent;
-    margin-bottom: -1px;
   }
   .grid-phone-tab.active {
     color: #fff;
@@ -418,11 +416,15 @@
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 0;
+    row-gap: 0;
+    column-gap: 0;
     overflow-y: auto;
     flex: 1;
     background: #000;
     scrollbar-width: thin;
     scrollbar-color: #333 transparent;
+    line-height: 0;
+    font-size: 0;
   }
   .grid-phone-grid::-webkit-scrollbar { width: 3px; }
   .grid-phone-grid::-webkit-scrollbar-track { background: transparent; }
@@ -431,12 +433,20 @@
     aspect-ratio: 1;
     background: #111;
     overflow: hidden;
+    display: block;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    line-height: 0;
   }
   .grid-phone-cell img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
+    margin: 0;
+    padding: 0;
+    border: 0;
   }
   .grid-phone-cell.empty {
     background: #0a0a0a;
@@ -3915,10 +3925,22 @@ function validGridPhotoUrl(u) {
   } catch { return false; }
 }
 
+let gridLastSaveAt = 0;
+const GRID_SAVE_COOLDOWN_MS = 3000; // min 3s between saves
+
 async function saveGrid() {
   if (userTier !== 'monthly') { showGridStatus('error', 'Upgrade to Pro to save your grid.'); return; }
   if (!currentUser) return;
   if (gridPhotos.length === 0) { showGridStatus('error', 'Add at least one photo first.'); return; }
+
+  const now = Date.now();
+  const timeSinceLast = now - gridLastSaveAt;
+  if (timeSinceLast < GRID_SAVE_COOLDOWN_MS) {
+    const wait = Math.ceil((GRID_SAVE_COOLDOWN_MS - timeSinceLast) / 1000);
+    showGridStatus('error', `Please wait ${wait}s before saving again.`);
+    return;
+  }
+  gridLastSaveAt = now;
 
   const btn = document.getElementById('grid-save-btn');
   btn.disabled = true;
@@ -3977,17 +3999,36 @@ async function saveGrid() {
 async function deleteStaleGridPhotos() {
   if (!currentUser) return;
   try {
-    const { data: files, error: listErr } = await sb.storage.from('grid-photos').list(currentUser.id, { limit: 100 });
-    if (listErr || !Array.isArray(files)) return;
     const inUse = new Set();
     gridPhotos.forEach(p => {
       const m = p.url.match(/grid-photos\/(.+)$/);
       if (m) inUse.add(m[1]);
     });
-    const toDelete = files
-      .map(f => `${currentUser.id}/${f.name}`)
-      .filter(path => !inUse.has(path));
-    if (toDelete.length > 0) await sb.storage.from('grid-photos').remove(toDelete);
+
+    // Paginate through the user's folder in case of accumulated orphans
+    let offset = 0;
+    const pageSize = 100;
+    const toDelete = [];
+    while (true) {
+      const { data: files, error: listErr } = await sb.storage
+        .from('grid-photos')
+        .list(currentUser.id, { limit: pageSize, offset });
+      if (listErr || !Array.isArray(files) || files.length === 0) break;
+      for (const f of files) {
+        const path = `${currentUser.id}/${f.name}`;
+        if (!inUse.has(path)) toDelete.push(path);
+      }
+      if (files.length < pageSize) break;
+      offset += pageSize;
+      // Safety cap — don't loop forever if something goes wrong
+      if (offset > 500) break;
+    }
+    if (toDelete.length > 0) {
+      // Delete in batches of 100 (Supabase remove() has a practical limit)
+      for (let i = 0; i < toDelete.length; i += 100) {
+        await sb.storage.from('grid-photos').remove(toDelete.slice(i, i + 100));
+      }
+    }
   } catch (e) { console.warn('deleteStaleGridPhotos', e); }
 }
 
