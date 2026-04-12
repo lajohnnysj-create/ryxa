@@ -10,6 +10,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/stripe-js@3"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css">
+<script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js" defer></script>
 <style>
   :root {
     --bg: #07070f;
@@ -150,6 +153,27 @@
     .tax-entry-row > div:nth-child(3) { grid-column: 1; grid-row: 3; font-size: 12px !important; }
     .tax-entry-row > div:nth-child(4) { grid-column: 2; grid-row: 1 / span 3; align-self: center; }
   }
+  @media (max-width: 1100px) {
+    .bio-grid { grid-template-columns: 1fr !important; }
+    .bio-grid > div:last-child { position: static !important; }
+    #bio-preview-frame { height: 600px; max-width: 400px; margin: 0 auto; }
+  }
+  .bio-theme.selected { border-color: var(--accent) !important; box-shadow: 0 0 0 2px var(--accent) !important; }
+  .bio-social-row { display: flex; gap: 10px; align-items: center; }
+  .bio-social-row .bio-social-icon { width: 32px; height: 32px; border-radius: 8px; background: var(--surface); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--muted); }
+  .bio-social-row .bio-social-icon svg { width: 16px; height: 16px; fill: currentColor; }
+  .bio-social-row input { flex: 1; min-width: 0; background: var(--surface); border: 1px solid var(--border-hover); border-radius: 8px; padding: 8px 10px; font-size: 13px; color: var(--text); font-family: 'DM Sans', sans-serif; outline: none; }
+  .bio-link-row { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
+  .bio-link-row .bio-link-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .bio-link-row .bio-link-drag { cursor: grab; color: var(--muted); flex-shrink: 0; padding: 4px; }
+  .bio-link-row .bio-link-drag:active { cursor: grabbing; }
+  .bio-link-row .bio-featured-badge { font-size: 10px; background: rgba(124,58,237,0.2); color: #c4b5fd; border-radius: 100px; padding: 2px 8px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+  .bio-link-row input, .bio-link-row textarea { width: 100%; background: var(--surface2); border: 1px solid var(--border-hover); border-radius: 6px; padding: 8px 10px; font-size: 13px; color: var(--text); font-family: 'DM Sans', sans-serif; outline: none; box-sizing: border-box; margin-bottom: 6px; }
+  .bio-link-row textarea { resize: none; }
+  .bio-link-row .bio-link-remove { padding: 4px 10px; background: transparent; border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; border-radius: 6px; font-size: 11px; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+  .bio-featured-photo-slot { width: 100%; aspect-ratio: 16/9; border: 1px dashed rgba(124,58,237,0.4); border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; margin-bottom: 8px; overflow: hidden; background: var(--surface2); color: var(--muted); font-size: 12px; }
+  .bio-featured-photo-slot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .bio-featured-photo-slot input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
 
   /* === A11Y: visible focus ring for keyboard users === */
   *:focus-visible {
@@ -256,6 +280,10 @@
     <button class="sidebar-item active" id="nav-welcome" onclick="showTool('welcome')">
       <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 0 0 1 1h3v-6h6v6h3a1 1 0 0 0 1-1V10"/></svg></div>
       <span class="sidebar-item-label">Home</span>
+    </button>
+    <button class="sidebar-item" id="nav-bio" onclick="showTool('bio')">
+      <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
+      <span class="sidebar-item-label">Link in Bio</span>
     </button>
     <button class="sidebar-item" id="nav-follower" onclick="showFollowerTool()">
       <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></div>
@@ -386,6 +414,146 @@
         style="width:100%;height:100%;border:none;display:block;"
         allow="clipboard-write">
       </iframe>
+    </div>
+
+    <!-- LINK IN BIO TOOL -->
+    <div id="tool-bio" style="display:none;">
+      <div class="bio-tool-wrap">
+
+        <!-- Header -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+          <div>
+            <h2 style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;margin-bottom:4px;letter-spacing:-0.5px;">Link in Bio</h2>
+            <p style="color:var(--muted);font-size:14px;">Build your one-page creator profile and share a single link that leads to everything.</p>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <a id="bio-view-live" href="#" target="_blank" rel="noopener" style="display:none;padding:9px 14px;background:transparent;color:var(--accent2);border:1px solid rgba(124,58,237,0.4);border-radius:10px;font-size:13px;font-weight:500;text-decoration:none;">View live page ↗</a>
+            <button id="bio-save-btn" onclick="saveBio()" style="padding:10px 18px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow);">Save</button>
+          </div>
+        </div>
+
+        <!-- Status row: published/draft + publish toggle -->
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span id="bio-status-dot" style="width:8px;height:8px;border-radius:50%;background:var(--muted2);"></span>
+            <div>
+              <div id="bio-status-label" style="font-size:14px;font-weight:500;color:var(--text);">Not published</div>
+              <div id="bio-status-sub" style="font-size:12px;color:var(--muted);">Your page isn't live yet. Publish to share it.</div>
+            </div>
+          </div>
+          <button id="bio-publish-btn" onclick="togglePublish()" style="padding:9px 16px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Publish</button>
+        </div>
+
+        <!-- Main grid: form left, preview right -->
+        <div class="bio-grid" style="display:grid;grid-template-columns:1fr 380px;gap:24px;align-items:start;">
+
+          <!-- FORM COLUMN -->
+          <div style="display:flex;flex-direction:column;gap:16px;">
+
+            <!-- Username -->
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:20px;">
+              <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:10px;">Your public URL</div>
+              <div style="display:flex;gap:8px;align-items:stretch;flex-wrap:wrap;">
+                <div style="display:flex;align-items:center;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding-left:12px;font-size:13px;color:var(--muted);flex:1;min-width:200px;">
+                  <span>findthesnakes.com/</span>
+                  <input type="text" id="bio-username" aria-label="Username" placeholder="yourname" maxlength="30" oninput="onUsernameInput()" style="background:transparent;border:none;padding:10px 10px 10px 2px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;flex:1;min-width:0;">
+                </div>
+              </div>
+              <div id="bio-username-hint" style="font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5;">3-30 characters · lowercase letters, numbers, underscore only</div>
+            </div>
+
+            <!-- Avatar + identity -->
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:20px;">
+              <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:14px;">Profile</div>
+              <div style="display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap;">
+                <div style="flex-shrink:0;">
+                  <div id="bio-avatar-preview" style="width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,#a78bfa,#e879f9);padding:3px;cursor:pointer;position:relative;">
+                    <div id="bio-avatar-inner" style="width:100%;height:100%;border-radius:50%;background:var(--surface);display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;font-size:32px;font-weight:800;color:var(--text);overflow:hidden;">?</div>
+                  </div>
+                  <div style="display:flex;gap:6px;margin-top:8px;">
+                    <label style="padding:6px 10px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:6px;font-size:11px;cursor:pointer;position:relative;flex:1;text-align:center;">
+                      Upload
+                      <input type="file" id="bio-avatar-input" accept="image/*" aria-label="Upload profile photo" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;" onchange="openCropper(this,'avatar')">
+                    </label>
+                    <button id="bio-avatar-remove" onclick="removeAvatar()" style="padding:6px 10px;background:transparent;border:1px solid rgba(239,68,68,0.3);color:#fca5a5;border-radius:6px;font-size:11px;cursor:pointer;font-family:DM Sans,sans-serif;display:none;">Remove</button>
+                  </div>
+                </div>
+                <div style="flex:1;min-width:200px;display:flex;flex-direction:column;gap:10px;">
+                  <div>
+                    <label for="bio-display-name" style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);display:block;margin-bottom:5px;">Display name</label>
+                    <input type="text" id="bio-display-name" maxlength="40" oninput="onBioFieldChange()" placeholder="Your name" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+                    <div style="text-align:right;font-size:11px;color:var(--muted);margin-top:3px;"><span id="bio-name-count">0</span>/40</div>
+                  </div>
+                  <div>
+                    <label for="bio-bio" style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);display:block;margin-bottom:5px;">Bio</label>
+                    <textarea id="bio-bio" maxlength="60" rows="2" oninput="onBioFieldChange()" placeholder="A short line about you" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;resize:none;line-height:1.5;"></textarea>
+                    <div style="text-align:right;font-size:11px;color:var(--muted);margin-top:3px;"><span id="bio-bio-count">0</span>/60</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Theme -->
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:20px;">
+              <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:14px;">Theme</div>
+              <div id="bio-themes" style="display:flex;gap:10px;flex-wrap:wrap;">
+                <button type="button" class="bio-theme" data-theme="purple" onclick="pickTheme('purple')" style="flex:1;min-width:100px;padding:14px;border:1px solid var(--border-hover);border-radius:10px;background:linear-gradient(135deg,#07070f,#161625);cursor:pointer;color:var(--text);font-family:DM Sans,sans-serif;font-size:13px;font-weight:500;transition:border-color 0.2s;">
+                  <div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#a78bfa,#e879f9);margin:0 auto 6px;"></div>
+                  Purple
+                </button>
+                <button type="button" class="bio-theme" data-theme="midnight" onclick="pickTheme('midnight')" style="flex:1;min-width:100px;padding:14px;border:1px solid var(--border-hover);border-radius:10px;background:linear-gradient(135deg,#050508,#13131b);cursor:pointer;color:var(--text);font-family:DM Sans,sans-serif;font-size:13px;font-weight:500;transition:border-color 0.2s;">
+                  <div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#9ca3af,#e5e7eb);margin:0 auto 6px;"></div>
+                  Midnight
+                </button>
+                <button type="button" class="bio-theme" data-theme="sunset" onclick="pickTheme('sunset')" style="flex:1;min-width:100px;padding:14px;border:1px solid var(--border-hover);border-radius:10px;background:linear-gradient(135deg,#120808,#251414);cursor:pointer;color:var(--text);font-family:DM Sans,sans-serif;font-size:13px;font-weight:500;transition:border-color 0.2s;">
+                  <div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#fb923c,#f472b6);margin:0 auto 6px;"></div>
+                  Sunset
+                </button>
+              </div>
+            </div>
+
+            <!-- Socials -->
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:20px;">
+              <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:14px;">Social icons</div>
+              <div id="bio-socials-form" style="display:flex;flex-direction:column;gap:10px;"></div>
+            </div>
+
+            <!-- Links -->
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:20px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+                <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;">Links</div>
+                <div id="bio-links-counts" style="font-size:11px;color:var(--muted);"></div>
+              </div>
+              <div id="bio-links-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button type="button" id="bio-add-link-btn" onclick="addLink(false)" style="flex:1;min-width:140px;padding:10px;background:transparent;border:1px dashed rgba(124,58,237,0.4);color:var(--accent2);border-radius:8px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;">+ Add link</button>
+                <button type="button" id="bio-add-featured-btn" onclick="addLink(true)" style="flex:1;min-width:140px;padding:10px;background:transparent;border:1px dashed rgba(124,58,237,0.4);color:var(--accent2);border-radius:8px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;">+ Add featured link</button>
+              </div>
+            </div>
+
+            <!-- Videos -->
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:20px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+                <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;">YouTube videos</div>
+                <div id="bio-videos-count" style="font-size:11px;color:var(--muted);"></div>
+              </div>
+              <div id="bio-videos-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
+              <button type="button" id="bio-add-video-btn" onclick="addVideo()" style="width:100%;padding:10px;background:transparent;border:1px dashed rgba(124,58,237,0.4);color:var(--accent2);border-radius:8px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;">+ Add YouTube video</button>
+            </div>
+          </div>
+
+          <!-- PREVIEW COLUMN -->
+          <div style="position:sticky;top:100px;">
+            <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);font-weight:600;margin-bottom:10px;text-align:center;">Live preview</div>
+            <div id="bio-preview-frame" style="background:var(--surface2);border:1px solid var(--border);border-radius:24px;padding:14px;height:640px;overflow:hidden;">
+              <iframe id="bio-preview-iframe" srcdoc="" style="width:100%;height:100%;border:none;border-radius:16px;background:var(--bg);"></iframe>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom save bar on mobile -->
+        <div id="bio-save-status" style="margin-top:16px;font-size:13px;color:var(--muted);text-align:center;min-height:20px;"></div>
+      </div>
     </div>
 
     <!-- IMAGE CONVERTER -->
@@ -706,6 +874,7 @@ let currentTool = 'welcome';
 
 const toolTitles = {
   welcome: 'Dashboard',
+  bio: 'Link in Bio',
   follower: 'Follow-Back Audit',
   image: 'Image Converter',
   qr: 'QR Generator',
@@ -798,7 +967,7 @@ function showFollowerTool() {
 
 function showTool(tool) {
   // Hide all tools
-  ['welcome','follower','image','qr','invoice','tax'].forEach(t => {
+  ['welcome','bio','follower','image','qr','invoice','tax'].forEach(t => {
     const el = document.getElementById('tool-' + t);
     if (el) el.style.display = 'none';
     const nav = document.getElementById('nav-' + t);
@@ -821,6 +990,7 @@ function showTool(tool) {
   if (tool === 'qr') { initQRGenerator(); loadQRLibrary(null); }
   if (tool === 'invoice') { initInvoiceGenerator(); loadSavedLogo(); }
   if (tool === 'tax') initTaxTracker();
+  if (tool === 'bio') initBioTool();
   // Close sidebar on mobile
   closeSidebar();
 }
@@ -857,6 +1027,695 @@ async function confirmSignOut() {
   if (btn) { btn.disabled = true; btn.innerHTML = '<span class="auth-spinner"></span> Signing out...'; }
   try { await sb.auth.signOut(); } catch(e) { console.error(e); }
   finally { window.location.href = 'index.html'; }
+}
+
+// =====================================================
+// LINK IN BIO
+// =====================================================
+const BIO_RESERVED = new Set([
+  'admin','about','api','blog','contact','dashboard','faq','findthesnakes',
+  'follower-audit','help','home','index','instructions','login','mail',
+  'pricing','privacy','reset-password','root','settings','signin','signup',
+  'support','terms','user','username','www',
+  'youtube','instagram','tiktok','twitter','facebook','google','snake','snakes'
+]);
+const BIO_SOCIAL_FIELDS = [
+  { key:'instagram', label:'Instagram', placeholder:'yourhandle', type:'username',
+    svg:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.2c3.2 0 3.6 0 4.85.07 1.17.05 1.8.25 2.22.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.05.41 2.22.06 1.26.07 1.64.07 4.82s-.01 3.57-.07 4.82c-.05 1.17-.25 1.8-.41 2.22a3.72 3.72 0 0 1-.9 1.38c-.42.42-.82.68-1.38.9-.42.16-1.05.36-2.22.41-1.26.06-1.64.07-4.82.07s-3.57-.01-4.82-.07c-1.17-.05-1.8-.25-2.22-.41a3.72 3.72 0 0 1-1.38-.9 3.72 3.72 0 0 1-.9-1.38c-.16-.42-.36-1.05-.41-2.22C2.21 15.57 2.2 15.19 2.2 12s.01-3.57.07-4.82c.05-1.17.25-1.8.41-2.22.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.05-.36 2.22-.41C8.43 2.21 8.81 2.2 12 2.2M12 0C8.74 0 8.33.01 7.05.07 5.78.13 4.9.33 4.14.63a5.92 5.92 0 0 0-2.13 1.39A5.92 5.92 0 0 0 .62 4.14C.33 4.9.13 5.78.07 7.05.01 8.33 0 8.74 0 12c0 3.26.01 3.67.07 4.95.06 1.27.26 2.15.56 2.91a5.92 5.92 0 0 0 1.39 2.13c.66.66 1.32 1.06 2.13 1.39.76.3 1.64.5 2.91.56C8.33 23.99 8.74 24 12 24c3.26 0 3.67-.01 4.95-.07 1.27-.06 2.15-.26 2.91-.56a5.92 5.92 0 0 0 2.13-1.39c.66-.66 1.06-1.32 1.39-2.13.3-.76.5-1.64.56-2.91.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.06-1.27-.26-2.15-.56-2.91a5.92 5.92 0 0 0-1.39-2.13A5.92 5.92 0 0 0 19.86.62c-.76-.3-1.64-.5-2.91-.56C15.67.01 15.26 0 12 0Zm0 5.84a6.16 6.16 0 1 0 0 12.32 6.16 6.16 0 0 0 0-12.32Zm0 10.16a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm6.41-11.88a1.44 1.44 0 1 0 0 2.88 1.44 1.44 0 0 0 0-2.88Z"/></svg>' },
+  { key:'tiktok', label:'TikTok', placeholder:'yourhandle', type:'username',
+    svg:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5.8 20.1a6.34 6.34 0 0 0 10.86-4.43V8.83a8.16 8.16 0 0 0 4.77 1.52V6.9a4.85 4.85 0 0 1-1.84-.21Z"/></svg>' },
+  { key:'youtube', label:'YouTube', placeholder:'https://youtube.com/@yourchannel', type:'url',
+    svg:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.12C19.54 3.58 12 3.58 12 3.58s-7.54 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.07 0 12 0 12s0 3.93.5 5.8a3 3 0 0 0 2.1 2.12c1.86.5 9.4.5 9.4.5s7.54 0 9.4-.5a3 3 0 0 0 2.1-2.12C24 15.93 24 12 24 12s0-3.93-.5-5.8ZM9.55 15.57V8.43L15.82 12l-6.27 3.57Z"/></svg>' },
+  { key:'facebook', label:'Facebook', placeholder:'https://facebook.com/yourpage', type:'url',
+    svg:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.68.23 2.68.23v2.97h-1.51c-1.49 0-1.95.93-1.95 1.89v2.26h3.32l-.53 3.49h-2.79V24C19.61 23.1 24 18.1 24 12.07Z"/></svg>' },
+  { key:'snapchat', label:'Snapchat', placeholder:'yourhandle', type:'username',
+    svg:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.02 0C5.44 0 4.73 5.08 4.86 7.15c.03.5.05 1.01.06 1.52-.3.16-.79.38-1.29.38-.38 0-.75-.14-1.08-.41-.06-.05-.17-.14-.35-.14-.3 0-.65.17-.92.47-.3.34-.3.78.02 1.08.27.26.7.48 1.2.62.68.19 1.56.49 1.79 1.04.13.3-.01.69-.41 1.17a.35.35 0 0 1-.03.03c-.01.02-1.28 2.08-4.21 2.56-.22.04-.38.24-.36.46 0 .05.02.1.04.15.13.3.56.52 1.32.68.08.02.14.11.17.3.03.18.07.4.17.63.1.23.29.35.55.35.14 0 .3-.03.48-.06.25-.05.57-.11.96-.11.22 0 .44.02.68.06.45.07.83.34 1.27.65.63.45 1.35.96 2.43.96.08 0 .17 0 .26-.02.08.01.2.02.33.02 1.08 0 1.8-.51 2.43-.96.44-.31.82-.58 1.27-.65.24-.04.46-.06.68-.06.38 0 .68.05.96.11.2.04.36.06.48.06h.02c.19 0 .41-.08.53-.35.1-.22.14-.43.17-.62.02-.17.09-.28.17-.3.76-.16 1.19-.38 1.32-.68a.43.43 0 0 0 .04-.15c.02-.22-.14-.42-.36-.46-2.93-.48-4.2-2.54-4.21-2.56a.57.57 0 0 1-.03-.03c-.4-.48-.54-.87-.41-1.17.23-.55 1.11-.85 1.79-1.04.5-.14.93-.36 1.2-.62.33-.32.33-.76.03-1.08-.28-.3-.63-.47-.92-.47-.19 0-.3.08-.35.14-.32.26-.69.41-1.08.41-.5 0-.99-.22-1.29-.38.01-.51.03-1.02.06-1.52.13-2.07-.58-7.15-7.16-7.15Z"/></svg>' },
+  { key:'linkedin', label:'LinkedIn', placeholder:'https://linkedin.com/in/yourname', type:'url',
+    svg:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.95v5.66H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.26 2.37 4.26 5.45v6.29ZM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12ZM7.12 20.45H3.56V9h3.56v11.45ZM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0Z"/></svg>' },
+  { key:'website', label:'Website', placeholder:'https://yoursite.com', type:'url',
+    svg:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm7.93 9h-3.47a15.6 15.6 0 0 0-1.4-5.33A8 8 0 0 1 19.93 11ZM12 4a13.7 13.7 0 0 1 2.46 7h-4.92A13.7 13.7 0 0 1 12 4ZM4.26 13h3.47a15.6 15.6 0 0 0 1.4 5.33A8 8 0 0 1 4.26 13Zm0-2a8 8 0 0 1 4.87-6.33A15.6 15.6 0 0 0 7.73 11H4.26ZM12 20a13.7 13.7 0 0 1-2.46-7h4.92A13.7 13.7 0 0 1 12 20Zm2.87-1.67A15.6 15.6 0 0 0 16.27 13h3.47a8 8 0 0 1-4.87 5.33Z"/></svg>' },
+  { key:'email', label:'Email', placeholder:'you@example.com', type:'email',
+    svg:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 4h20a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm10 9.44L3.3 6H20.7L12 13.44Z"/></svg>' },
+  { key:'phone', label:'Phone', placeholder:'+1 555 000 0000', type:'phone',
+    svg:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.98.98 0 0 0-1.01.24l-1.57 1.97a15.1 15.1 0 0 1-6.92-6.92l1.97-1.57c.27-.27.35-.66.24-1.02A11.2 11.2 0 0 1 8.62 4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1 0 9.39 7.61 17 17 17 .55 0 1-.45 1-1v-3.62c0-.55-.45-1-1-1Z"/></svg>' },
+];
+
+let bioState = {
+  username: '',
+  display_name: '',
+  bio: '',
+  avatar_url: '',
+  theme: 'purple',
+  socials: {},
+  links: [],
+  videos: [],
+  published: false,
+};
+let bioInited = false;
+let bioCropper = null;
+let bioCropTarget = null;  // 'avatar' or {type:'featured', linkId}
+let bioCropSource = null;  // original File object
+let bioOriginalUsername = ''; // for rename detection
+let bioDraggingLink = false;
+let bioPreviewTimer = null;
+let linkIdSeq = 1;
+
+function initBioTool() {
+  if (bioInited) { updateBioPreview(); return; }
+  bioInited = true;
+  renderBioSocials();
+  renderBioLinks();
+  renderBioVideos();
+  loadBioData();
+  document.getElementById('bio-avatar-inner').addEventListener('click', () => {
+    document.getElementById('bio-avatar-input').click();
+  });
+}
+
+async function loadBioData() {
+  if (!currentUser) return;
+  try {
+    const { data: profile } = await sb.from('profiles').select('username').eq('user_id', currentUser.id).maybeSingle();
+    if (profile?.username) {
+      bioState.username = profile.username;
+      bioOriginalUsername = profile.username;
+      document.getElementById('bio-username').value = profile.username;
+    }
+    const { data: bio } = await sb.from('link_in_bio').select('*').eq('user_id', currentUser.id).maybeSingle();
+    if (bio) {
+      bioState.display_name = bio.display_name || '';
+      bioState.bio = bio.bio || '';
+      bioState.avatar_url = bio.avatar_url || '';
+      bioState.theme = bio.theme || 'purple';
+      bioState.socials = bio.socials || {};
+      bioState.links = Array.isArray(bio.links) ? bio.links.map(l => ({ ...l, _id: linkIdSeq++ })) : [];
+      bioState.videos = Array.isArray(bio.videos) ? bio.videos.map(v => ({ ...v, _id: linkIdSeq++ })) : [];
+      bioState.published = !!bio.published;
+    }
+  } catch (e) { console.error('loadBioData', e); }
+  syncBioForm();
+  renderBioSocials();
+  renderBioLinks();
+  renderBioVideos();
+  updatePublishUI();
+  updateBioPreview();
+}
+
+function syncBioForm() {
+  document.getElementById('bio-display-name').value = bioState.display_name;
+  document.getElementById('bio-bio').value = bioState.bio;
+  document.getElementById('bio-name-count').textContent = bioState.display_name.length;
+  document.getElementById('bio-bio-count').textContent = bioState.bio.length;
+  renderAvatarPreview();
+  // theme
+  document.querySelectorAll('.bio-theme').forEach(b => {
+    b.classList.toggle('selected', b.dataset.theme === bioState.theme);
+  });
+}
+
+function renderAvatarPreview() {
+  const inner = document.getElementById('bio-avatar-inner');
+  const removeBtn = document.getElementById('bio-avatar-remove');
+  if (bioState.avatar_url) {
+    inner.innerHTML = `<img alt="" src="${escapeHtml(bioState.avatar_url)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+    removeBtn.style.display = 'inline-block';
+  } else {
+    const name = bioState.display_name || bioState.username || '?';
+    inner.textContent = (name[0] || '?').toUpperCase();
+    removeBtn.style.display = 'none';
+  }
+}
+
+function onBioFieldChange() {
+  bioState.display_name = document.getElementById('bio-display-name').value;
+  bioState.bio = document.getElementById('bio-bio').value;
+  document.getElementById('bio-name-count').textContent = bioState.display_name.length;
+  document.getElementById('bio-bio-count').textContent = bioState.bio.length;
+  if (!bioState.avatar_url) renderAvatarPreview(); // update fallback initial
+  schedulePreviewUpdate();
+}
+
+function onUsernameInput() {
+  const raw = document.getElementById('bio-username').value;
+  const cleaned = raw.toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 30);
+  if (cleaned !== raw) document.getElementById('bio-username').value = cleaned;
+  bioState.username = cleaned;
+  const hint = document.getElementById('bio-username-hint');
+  if (!cleaned) {
+    hint.textContent = '3-30 characters · lowercase letters, numbers, underscore only';
+    hint.style.color = 'var(--muted)';
+  } else if (cleaned.length < 3) {
+    hint.textContent = 'Too short — minimum 3 characters';
+    hint.style.color = '#fca5a5';
+  } else if (BIO_RESERVED.has(cleaned)) {
+    hint.textContent = 'That username is reserved. Pick another.';
+    hint.style.color = '#fca5a5';
+  } else {
+    hint.innerHTML = `Your page will be at <strong style="color:var(--accent2)">findthesnakes.com/${cleaned}</strong>`;
+    hint.style.color = 'var(--muted)';
+  }
+  schedulePreviewUpdate();
+}
+
+function pickTheme(t) {
+  bioState.theme = t;
+  document.querySelectorAll('.bio-theme').forEach(b => {
+    b.classList.toggle('selected', b.dataset.theme === t);
+  });
+  schedulePreviewUpdate();
+}
+
+function renderBioSocials() {
+  const container = document.getElementById('bio-socials-form');
+  if (!container) return;
+  container.innerHTML = BIO_SOCIAL_FIELDS.map(f => `
+    <div class="bio-social-row">
+      <div class="bio-social-icon">${f.svg}</div>
+      <input type="text" aria-label="${f.label}" placeholder="${f.label} — ${f.placeholder}"
+        value="${escapeHtml(bioState.socials[f.key] || '')}"
+        oninput="onSocialChange('${f.key}', this.value)">
+    </div>
+  `).join('');
+}
+
+function onSocialChange(key, val) {
+  if (val && val.trim()) bioState.socials[key] = val.trim();
+  else delete bioState.socials[key];
+  schedulePreviewUpdate();
+}
+
+// ====== LINKS ======
+function bioLimits() {
+  const isPro = userTier === 'monthly';
+  return {
+    maxLinks: isPro ? 50 : 10,
+    maxFeatured: isPro ? 3 : 1,
+    maxVideos: isPro ? 20 : 5,
+    isPro,
+  };
+}
+
+function addLink(isFeatured) {
+  const { maxLinks, maxFeatured } = bioLimits();
+  const regularCount = bioState.links.filter(l => !l.featured).length;
+  const featuredCount = bioState.links.filter(l => l.featured).length;
+  if (isFeatured) {
+    if (featuredCount >= maxFeatured) {
+      showBioStatus('error', `Featured link limit reached (${maxFeatured}). ${userTier !== 'monthly' ? 'Upgrade to Pro for 3.' : ''}`);
+      return;
+    }
+  } else {
+    if (regularCount >= maxLinks) {
+      showBioStatus('error', `Link limit reached (${maxLinks}). ${userTier !== 'monthly' ? 'Upgrade to Pro for 50.' : ''}`);
+      return;
+    }
+  }
+  bioState.links.push({ _id: linkIdSeq++, title:'', description:'', url:'', featured: !!isFeatured, photoUrl:'' });
+  renderBioLinks();
+  schedulePreviewUpdate();
+}
+
+function removeLink(id) {
+  const link = bioState.links.find(l => l._id === id);
+  // If it had a photo, queue it for deletion on save (we'll track old URLs)
+  if (link?.photoUrl) {
+    bioStalePhotos.push(link.photoUrl);
+  }
+  bioState.links = bioState.links.filter(l => l._id !== id);
+  renderBioLinks();
+  schedulePreviewUpdate();
+}
+
+function updateLinkField(id, field, val) {
+  const link = bioState.links.find(l => l._id === id);
+  if (!link) return;
+  link[field] = val;
+  schedulePreviewUpdate();
+}
+
+let bioStalePhotos = []; // photos to delete on next save
+
+function renderBioLinks() {
+  const el = document.getElementById('bio-links-list');
+  if (!el) return;
+  const counts = document.getElementById('bio-links-counts');
+  const { maxLinks, maxFeatured, isPro } = bioLimits();
+  const regularCount = bioState.links.filter(l => !l.featured).length;
+  const featuredCount = bioState.links.filter(l => l.featured).length;
+  if (counts) counts.textContent = `${regularCount}/${maxLinks} links · ${featuredCount}/${maxFeatured} featured`;
+
+  if (bioState.links.length === 0) {
+    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px;">No links yet. Click below to add one.</div>';
+  } else {
+    el.innerHTML = bioState.links.map(l => renderLinkRow(l)).join('');
+  }
+  // Toggle add buttons
+  document.getElementById('bio-add-link-btn').disabled = regularCount >= maxLinks;
+  document.getElementById('bio-add-link-btn').style.opacity = regularCount >= maxLinks ? 0.5 : 1;
+  document.getElementById('bio-add-featured-btn').disabled = featuredCount >= maxFeatured;
+  document.getElementById('bio-add-featured-btn').style.opacity = featuredCount >= maxFeatured ? 0.5 : 1;
+  // Enable Sortable (reinit)
+  if (window.Sortable) {
+    const prev = el._sortable;
+    if (prev) prev.destroy();
+    el._sortable = Sortable.create(el, {
+      handle: '.bio-link-drag',
+      animation: 180,
+      onEnd: () => {
+        const order = [...el.children].map(c => parseInt(c.dataset.id));
+        bioState.links.sort((a, b) => order.indexOf(a._id) - order.indexOf(b._id));
+        schedulePreviewUpdate();
+      }
+    });
+  }
+}
+
+function renderLinkRow(link) {
+  const dragSvg = '<svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="19" r="1.5"/></svg>';
+  const photoSlot = link.featured ? `
+    <div class="bio-featured-photo-slot">
+      ${link.photoUrl
+        ? `<img alt="" src="${escapeHtml(link.photoUrl)}">`
+        : '<span>+ Upload 16:9 photo</span>'}
+      <input type="file" accept="image/*" aria-label="Upload featured photo" onchange="openCropper(this,'featured',${link._id})">
+    </div>` : '';
+  return `<div class="bio-link-row" data-id="${link._id}">
+    <div class="bio-link-header">
+      <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
+      ${link.featured ? '<span class="bio-featured-badge">Featured</span>' : ''}
+      <div style="flex:1;"></div>
+      <button class="bio-link-remove" onclick="removeLink(${link._id})">Remove</button>
+    </div>
+    ${photoSlot}
+    <input type="text" placeholder="Title" maxlength="80" value="${escapeHtml(link.title || '')}"
+      oninput="updateLinkField(${link._id},'title',this.value)" aria-label="Link title">
+    <input type="text" placeholder="Description (optional)" maxlength="120" value="${escapeHtml(link.description || '')}"
+      oninput="updateLinkField(${link._id},'description',this.value)" aria-label="Link description">
+    <input type="url" placeholder="https://..." value="${escapeHtml(link.url || '')}"
+      oninput="updateLinkField(${link._id},'url',this.value)" aria-label="Link URL" style="margin-bottom:0;">
+  </div>`;
+}
+
+// ====== VIDEOS ======
+function extractYouTubeIdDash(url) {
+  if (!url) return null;
+  const m = String(url).match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
+function addVideo() {
+  const { maxVideos } = bioLimits();
+  if (bioState.videos.length >= maxVideos) {
+    showBioStatus('error', `Video limit reached (${maxVideos}). ${userTier !== 'monthly' ? 'Upgrade to Pro for 20.' : ''}`);
+    return;
+  }
+  bioState.videos.push({ _id: linkIdSeq++, url:'' });
+  renderBioVideos();
+  schedulePreviewUpdate();
+}
+function removeVideo(id) {
+  bioState.videos = bioState.videos.filter(v => v._id !== id);
+  renderBioVideos();
+  schedulePreviewUpdate();
+}
+function updateVideoUrl(id, val) {
+  const v = bioState.videos.find(x => x._id === id);
+  if (!v) return;
+  v.url = val;
+  schedulePreviewUpdate();
+}
+function renderBioVideos() {
+  const el = document.getElementById('bio-videos-list');
+  const counts = document.getElementById('bio-videos-count');
+  if (!el) return;
+  const { maxVideos } = bioLimits();
+  if (counts) counts.textContent = `${bioState.videos.length}/${maxVideos}`;
+  if (bioState.videos.length === 0) {
+    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px;">No videos yet.</div>';
+  } else {
+    el.innerHTML = bioState.videos.map(v => {
+      const id = extractYouTubeIdDash(v.url);
+      const thumb = id ? `<img alt="" src="https://i.ytimg.com/vi/${id}/default.jpg" style="width:60px;height:45px;object-fit:cover;border-radius:5px;flex-shrink:0;">` : '<div style="width:60px;height:45px;border-radius:5px;background:var(--surface);flex-shrink:0;"></div>';
+      return `<div class="bio-link-row" data-id="${v._id}" style="display:flex;gap:10px;align-items:center;">
+        ${thumb}
+        <input type="url" placeholder="https://youtube.com/watch?v=..." value="${escapeHtml(v.url || '')}"
+          oninput="updateVideoUrl(${v._id},this.value)" aria-label="YouTube URL" style="margin-bottom:0;flex:1;">
+        <button class="bio-link-remove" onclick="removeVideo(${v._id})">Remove</button>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('bio-add-video-btn').disabled = bioState.videos.length >= maxVideos;
+  document.getElementById('bio-add-video-btn').style.opacity = bioState.videos.length >= maxVideos ? 0.5 : 1;
+}
+
+function removeAvatar() {
+  if (bioState.avatar_url) bioStalePhotos.push(bioState.avatar_url);
+  bioState.avatar_url = '';
+  renderAvatarPreview();
+  schedulePreviewUpdate();
+}
+
+// ====== CROPPER ======
+function openCropper(input, target, linkId) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  if (file.size > 10 * 1024 * 1024) {
+    alert('Image too large (max 10MB). Please pick a smaller file.');
+    input.value = '';
+    return;
+  }
+  if (!file.type.startsWith('image/')) {
+    alert('Please select an image file.');
+    input.value = '';
+    return;
+  }
+  bioCropSource = file;
+  bioCropTarget = target === 'avatar' ? 'avatar' : { type: 'featured', linkId };
+  const reader = new FileReader();
+  reader.onload = e => {
+    const modal = document.getElementById('bio-cropper-modal');
+    modal.style.display = 'flex';
+    const img = document.getElementById('bio-cropper-img');
+    img.src = e.target.result;
+    if (bioCropper) { bioCropper.destroy(); bioCropper = null; }
+    // Wait for image to load before initializing cropper
+    img.onload = () => {
+      bioCropper = new Cropper(img, {
+        aspectRatio: target === 'avatar' ? 1 : 16/9,
+        viewMode: 1,
+        background: false,
+        autoCropArea: 1,
+        movable: true,
+        zoomable: true,
+        scalable: false,
+        rotatable: false,
+      });
+    };
+  };
+  reader.readAsDataURL(file);
+  input.value = '';
+}
+
+function closeCropper() {
+  if (bioCropper) { bioCropper.destroy(); bioCropper = null; }
+  document.getElementById('bio-cropper-modal').style.display = 'none';
+  document.getElementById('bio-cropper-error').style.display = 'none';
+  bioCropSource = null;
+  bioCropTarget = null;
+}
+
+async function confirmCrop() {
+  if (!bioCropper || !currentUser) return;
+  const isAvatar = bioCropTarget === 'avatar';
+  const targetW = isAvatar ? 400 : 800;
+  const targetH = isAvatar ? 400 : 450;
+  const canvas = bioCropper.getCroppedCanvas({ width: targetW, height: targetH, imageSmoothingQuality: 'high' });
+  const btn = document.getElementById('bio-cropper-confirm');
+  btn.disabled = true;
+  btn.textContent = 'Uploading…';
+  try {
+    const blob = await new Promise(res => canvas.toBlob(res, 'image/webp', 0.85));
+    if (!blob) throw new Error('Could not process image');
+    const kind = isAvatar ? 'avatar' : 'featured';
+    const fileName = `${currentUser.id}/${kind}-${Date.now()}-${Math.random().toString(36).slice(2,8)}.webp`;
+    const { error: upErr } = await sb.storage.from('bio-photos').upload(fileName, blob, { contentType: 'image/webp', upsert: false });
+    if (upErr) throw upErr;
+    const { data: urlData } = sb.storage.from('bio-photos').getPublicUrl(fileName);
+    const publicUrl = urlData.publicUrl;
+    if (isAvatar) {
+      // queue old avatar for deletion on save (or delete immediately)
+      if (bioState.avatar_url) bioStalePhotos.push(bioState.avatar_url);
+      bioState.avatar_url = publicUrl;
+      renderAvatarPreview();
+    } else {
+      const link = bioState.links.find(l => l._id === bioCropTarget.linkId);
+      if (link) {
+        if (link.photoUrl) bioStalePhotos.push(link.photoUrl);
+        link.photoUrl = publicUrl;
+      }
+      renderBioLinks();
+    }
+    schedulePreviewUpdate();
+    closeCropper();
+  } catch (e) {
+    console.error(e);
+    const err = document.getElementById('bio-cropper-error');
+    err.textContent = 'Upload failed: ' + (e.message || 'Please try again.');
+    err.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Use photo';
+  }
+}
+
+// Delete stale photos from Supabase Storage (old avatars, removed featured photos)
+async function deleteStalePhotos() {
+  if (!bioStalePhotos.length) return;
+  const paths = bioStalePhotos.map(url => {
+    // Extract "userId/filename.webp" from the public URL
+    const m = url.match(/bio-photos\/(.+)$/);
+    return m ? m[1] : null;
+  }).filter(Boolean);
+  if (!paths.length) { bioStalePhotos = []; return; }
+  try {
+    await sb.storage.from('bio-photos').remove(paths);
+  } catch (e) { console.warn('Failed to delete stale photos', e); }
+  bioStalePhotos = [];
+}
+
+// ====== SAVE / PUBLISH ======
+function showBioStatus(kind, msg) {
+  const el = document.getElementById('bio-save-status');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.color = kind === 'error' ? '#fca5a5' : kind === 'success' ? '#4ade80' : 'var(--muted)';
+  if (kind !== 'error') setTimeout(() => { if (el.textContent === msg) el.textContent = ''; }, 3000);
+}
+
+async function saveBio() {
+  if (!currentUser) return;
+  const btn = document.getElementById('bio-save-btn');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+  try {
+    // Validate username if one is entered (required if they want to publish, optional as draft)
+    const uname = bioState.username.trim();
+    if (uname) {
+      if (uname.length < 3) throw new Error('Username must be at least 3 characters.');
+      if (!/^[a-z0-9_]+$/.test(uname)) throw new Error('Username: lowercase letters, numbers, underscore only.');
+      if (BIO_RESERVED.has(uname)) throw new Error('That username is reserved.');
+    }
+
+    // Username upsert (if changed or not set)
+    if (uname && uname !== bioOriginalUsername) {
+      // Check availability
+      const { data: existing } = await sb.from('profiles').select('user_id').eq('username', uname).maybeSingle();
+      if (existing && existing.user_id !== currentUser.id) {
+        throw new Error('That username is already taken.');
+      }
+      const { error: upErr } = await sb.from('profiles').upsert({
+        user_id: currentUser.id, username: uname
+      }, { onConflict: 'user_id' });
+      if (upErr) throw upErr;
+      bioOriginalUsername = uname;
+    }
+
+    // Clean links/videos before save: strip internal _id, require URL for links
+    const cleanLinks = bioState.links
+      .filter(l => (l.title || '').trim() || (l.url || '').trim())
+      .map(l => ({
+        title: (l.title || '').slice(0, 80),
+        description: (l.description || '').slice(0, 120),
+        url: (l.url || '').trim(),
+        featured: !!l.featured,
+        photoUrl: l.photoUrl || '',
+      }));
+    const cleanVideos = bioState.videos
+      .filter(v => (v.url || '').trim())
+      .map(v => ({ url: (v.url || '').trim() }));
+
+    const payload = {
+      user_id: currentUser.id,
+      display_name: bioState.display_name || null,
+      bio: bioState.bio || null,
+      avatar_url: bioState.avatar_url || null,
+      theme: bioState.theme,
+      socials: bioState.socials,
+      links: cleanLinks,
+      videos: cleanVideos,
+      published: bioState.published,
+    };
+    const { error } = await sb.from('link_in_bio').upsert(payload, { onConflict: 'user_id' });
+    if (error) throw error;
+
+    await deleteStalePhotos();
+
+    updatePublishUI();
+    showBioStatus('success', 'Saved ✓');
+  } catch (e) {
+    console.error(e);
+    showBioStatus('error', e.message || 'Save failed.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Save';
+  }
+}
+
+async function togglePublish() {
+  if (!currentUser) return;
+  const wantPublish = !bioState.published;
+  if (wantPublish) {
+    if (!bioState.username) { showBioStatus('error', 'Pick a username first.'); return; }
+    if (bioState.username.length < 3) { showBioStatus('error', 'Username must be at least 3 characters.'); return; }
+    if (BIO_RESERVED.has(bioState.username)) { showBioStatus('error', 'That username is reserved.'); return; }
+  }
+  const btn = document.getElementById('bio-publish-btn');
+  btn.disabled = true;
+  btn.textContent = wantPublish ? 'Publishing…' : 'Unpublishing…';
+  try {
+    bioState.published = wantPublish;
+    await saveBio();
+    updatePublishUI();
+    showBioStatus('success', wantPublish ? 'Your page is live 🎉' : 'Page unpublished.');
+  } catch (e) {
+    bioState.published = !wantPublish;
+    showBioStatus('error', 'Failed to ' + (wantPublish ? 'publish' : 'unpublish'));
+  } finally {
+    btn.disabled = false;
+    updatePublishUI();
+  }
+}
+
+function updatePublishUI() {
+  const dot = document.getElementById('bio-status-dot');
+  const label = document.getElementById('bio-status-label');
+  const sub = document.getElementById('bio-status-sub');
+  const btn = document.getElementById('bio-publish-btn');
+  const viewLink = document.getElementById('bio-view-live');
+  if (bioState.published) {
+    dot.style.background = '#4ade80';
+    label.textContent = 'Published';
+    sub.innerHTML = bioState.username
+      ? `Live at <strong style="color:var(--accent2)">findthesnakes.com/${bioState.username}</strong>`
+      : 'Your page is live.';
+    btn.textContent = 'Unpublish';
+    btn.style.background = 'transparent';
+    btn.style.border = '1px solid var(--border-hover)';
+    btn.style.color = 'var(--muted)';
+    if (viewLink && bioState.username) {
+      viewLink.href = '/' + bioState.username;
+      viewLink.style.display = 'inline-flex';
+    }
+  } else {
+    dot.style.background = 'var(--muted2)';
+    label.textContent = 'Not published';
+    sub.textContent = "Your page isn't live yet. Publish to share it.";
+    btn.textContent = 'Publish';
+    btn.style.background = 'var(--accent)';
+    btn.style.border = 'none';
+    btn.style.color = '#fff';
+    if (viewLink) viewLink.style.display = 'none';
+  }
+}
+
+// ====== LIVE PREVIEW ======
+function schedulePreviewUpdate() {
+  clearTimeout(bioPreviewTimer);
+  bioPreviewTimer = setTimeout(updateBioPreview, 200);
+}
+
+function updateBioPreview() {
+  const iframe = document.getElementById('bio-preview-iframe');
+  if (!iframe) return;
+  iframe.srcdoc = buildPreviewHTML();
+}
+
+function buildPreviewHTML() {
+  const themes = {
+    purple:   { bg:'#07070f', surface:'#0f0f1a', surface2:'#161625', text:'#f0eef8', muted:'#b4b2c8', muted2:'#c9c7dc', accent:'#7c3aed', accent2:'#a855f7', glow:'rgba(124,58,237,0.3)', border:'rgba(255,255,255,0.1)', avatarBorder:'linear-gradient(135deg,#a78bfa,#e879f9)' },
+    midnight: { bg:'#050508', surface:'#0c0c12', surface2:'#13131b', text:'#f3f4f6', muted:'#c9ccd4', muted2:'#dde0e6', accent:'#4b5563', accent2:'#9ca3af', glow:'rgba(156,163,175,0.25)', border:'rgba(255,255,255,0.09)', avatarBorder:'linear-gradient(135deg,#9ca3af,#e5e7eb)' },
+    sunset:   { bg:'#120808', surface:'#1c0e0e', surface2:'#251414', text:'#fff6f0', muted:'#f3c8b2', muted2:'#f7dcca', accent:'#f97316', accent2:'#ec4899', glow:'rgba(249,115,22,0.3)', border:'rgba(255,180,150,0.12)', avatarBorder:'linear-gradient(135deg,#fb923c,#f472b6)' },
+  };
+  const t = themes[bioState.theme] || themes.purple;
+  const name = bioState.display_name || bioState.username || 'Your name';
+  const initial = (name[0] || '?').toUpperCase();
+  const avatarHtml = bioState.avatar_url
+    ? `<img src="${escapeHtml(bioState.avatar_url)}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;">`
+    : `<div style="width:100%;height:100%;border-radius:50%;background:${t.surface2};display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;font-size:36px;font-weight:800;color:${t.text};">${escapeHtml(initial)}</div>`;
+  const socialsHtml = buildPreviewSocials(t);
+  const linksHtml = bioState.links.filter(l => (l.url || '').trim()).map(l => buildPreviewLink(l, t)).join('');
+  const videosHtml = buildPreviewVideos(t);
+
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+  body{margin:0;padding:40px 18px 24px;font-family:'DM Sans',sans-serif;background:${t.bg};color:${t.text};min-height:100vh;}
+  body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,${t.glow} 0%,transparent 60%);pointer-events:none;z-index:0;}
+  .w{position:relative;z-index:1;max-width:480px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:14px;}
+  .avfr{width:100px;height:100px;border-radius:50%;padding:3px;background:${t.avatarBorder};margin-bottom:6px;}
+  .nm{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;letter-spacing:-0.4px;text-align:center;word-break:break-word;}
+  .bio-line{font-size:13px;color:${t.muted2};text-align:center;line-height:1.4;max-width:340px;word-break:break-word;}
+  .socials{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:2px 0 4px;}
+  .sb{width:34px;height:34px;border-radius:50%;background:${t.surface};border:1px solid ${t.border};display:flex;align-items:center;justify-content:center;color:${t.text};}
+  .sb svg{width:16px;height:16px;fill:currentColor;}
+  .links{width:100%;display:flex;flex-direction:column;gap:9px;margin-top:4px;}
+  .lk{background:${t.surface};border:1px solid ${t.border};border-radius:13px;padding:14px 18px;color:${t.text};}
+  .lk-t{font-size:14px;font-weight:600;}
+  .lk-d{font-size:12px;color:${t.muted};line-height:1.4;margin-top:2px;word-break:break-word;}
+  .fl{background:${t.surface};border:1px solid ${t.border};border-radius:16px;overflow:hidden;}
+  .fl img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:${t.surface2};}
+  .fl-b{padding:14px 18px 16px;}
+  .fl-t{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;letter-spacing:-0.2px;word-break:break-word;}
+  .fl-d{font-size:12px;color:${t.muted};line-height:1.4;margin-top:3px;word-break:break-word;}
+  .vids{width:100%;margin-top:8px;overflow-x:auto;scrollbar-width:none;}
+  .vids::-webkit-scrollbar{display:none;}
+  .vids-r{display:flex;gap:10px;padding:2px 0;}
+  .vc{flex:0 0 220px;background:${t.surface};border:1px solid ${t.border};border-radius:12px;overflow:hidden;}
+  .vc img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:${t.surface2};}
+  .banner{margin-top:18px;padding:11px 18px;background:${t.surface};border:1px solid ${t.border};border-radius:100px;font-size:11px;color:${t.muted};text-decoration:none;display:inline-flex;align-items:center;gap:6px;}
+  .banner strong{color:${t.text};font-weight:600;}
+  </style></head><body>
+  <div class="w">
+    <div class="avfr">${avatarHtml}</div>
+    <div class="nm">${escapeHtml(name)}</div>
+    ${socialsHtml}
+    ${bioState.bio ? `<div class="bio-line">${escapeHtml(bioState.bio)}</div>` : ''}
+    ${linksHtml ? `<div class="links">${linksHtml}</div>` : ''}
+    ${videosHtml}
+    <div class="banner">Get your free link-in-bio at <strong>FindTheSnakes</strong></div>
+  </div></body></html>`;
+}
+
+function buildPreviewSocials(t) {
+  const items = BIO_SOCIAL_FIELDS
+    .filter(f => (bioState.socials[f.key] || '').trim())
+    .map(f => `<div class="sb">${f.svg}</div>`);
+  return items.length ? `<div class="socials">${items.join('')}</div>` : '';
+}
+
+function buildPreviewLink(l, t) {
+  if (l.featured && l.photoUrl) {
+    return `<div class="fl">
+      <img src="${escapeHtml(l.photoUrl)}" alt="">
+      <div class="fl-b">
+        <div class="fl-t">${escapeHtml(l.title || 'Untitled')}</div>
+        ${l.description ? `<div class="fl-d">${escapeHtml(l.description)}</div>` : ''}
+      </div>
+    </div>`;
+  }
+  return `<div class="lk">
+    <div class="lk-t">${escapeHtml(l.title || 'Untitled')}</div>
+    ${l.description ? `<div class="lk-d">${escapeHtml(l.description)}</div>` : ''}
+  </div>`;
+}
+
+function buildPreviewVideos(t) {
+  const cards = bioState.videos.map(v => {
+    const id = extractYouTubeIdDash(v.url);
+    if (!id) return '';
+    return `<div class="vc"><img src="https://i.ytimg.com/vi/${id}/hqdefault.jpg" alt="" onerror="this.src='https://i.ytimg.com/vi/${id}/default.jpg'"></div>`;
+  }).filter(Boolean).join('');
+  if (!cards) return '';
+  return `<div class="vids"><div class="vids-r">${cards}</div></div>`;
 }
 
 // =====================================================
@@ -1714,6 +2573,24 @@ document.getElementById('signout-modal').addEventListener('click', function(e) {
 </script>
 
 <!-- TAX ENTRY EDIT MODAL -->
+<!-- BIO CROPPER MODAL -->
+<div id="bio-cropper-modal" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;pointer-events:all;">
+  <div style="background:#0f0f1a;border:1px solid rgba(255,255,255,0.1);border-radius:18px;padding:20px;width:100%;max-width:540px;margin:20px;pointer-events:all;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <h3 style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;">Crop your photo</h3>
+      <button onclick="closeCropper()" aria-label="Cancel" style="background:none;border:none;color:#c9c7dc;font-size:20px;cursor:pointer;line-height:1;">&#x2715;</button>
+    </div>
+    <div style="background:#000;border-radius:10px;overflow:hidden;max-height:60vh;">
+      <img id="bio-cropper-img" style="display:block;max-width:100%;">
+    </div>
+    <div id="bio-cropper-error" style="display:none;margin-top:10px;font-size:12px;color:#fca5a5;"></div>
+    <div style="display:flex;gap:10px;margin-top:14px;">
+      <button onclick="closeCropper()" style="flex:1;padding:11px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:10px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;">Cancel</button>
+      <button id="bio-cropper-confirm" onclick="confirmCrop()" style="flex:2;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow);">Use photo</button>
+    </div>
+  </div>
+</div>
+
 <div id="tax-edit-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;pointer-events:all;">
   <div style="background:#0f0f1a;border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:32px;position:relative;width:100%;max-width:460px;pointer-events:all;margin:20px;">
     <button onclick="closeTaxEditModal()" style="position:absolute;top:16px;right:16px;background:none;border:none;color:#7a788f;font-size:18px;cursor:pointer;" aria-label="Close">&#x2715;</button>
