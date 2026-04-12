@@ -22,7 +22,7 @@
     --bg: #07070f; --surface: #0f0f1a; --surface2: #161625;
     --border: rgba(255,255,255,0.07); --border-hover: rgba(255,255,255,0.14);
     --accent: #7c3aed; --accent2: #a855f7; --accent-glow: rgba(124,58,237,0.3);
-    --text: #f0eef8; --muted: #7a788f; --muted2: #3d3b52;
+    --text: #f0eef8; --muted: #7a788f; --muted2: #9a98b0;
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   html { scroll-behavior: smooth; }
@@ -83,13 +83,29 @@
     .blog-grid { padding: 0 24px 60px; }
     footer { flex-direction: column; text-align: center; padding: 24px 20px; }
   }
+
+  /* === A11Y: visible focus ring for keyboard users === */
+  *:focus-visible {
+    outline: 2px solid #c4b5fd;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  /* === A11Y: respect reduced-motion preferences === */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 </style>
 </head>
 <body>
 
 <!-- MOBILE MENU -->
 <div class="mobile-menu" id="mobile-menu">
-  <button onclick="closeMobileMenu()" style="position:absolute;top:20px;right:20px;background:none;border:none;color:var(--muted);font-size:24px;cursor:pointer;line-height:1;">&#x2715;</button>
+  <button onclick="closeMobileMenu()" style="position:absolute;top:20px;right:20px;background:none;border:none;color:var(--muted);font-size:24px;cursor:pointer;line-height:1;" aria-label="Close">&#x2715;</button>
   <div class="mobile-menu-links">
     <a href="index.html">Home</a>
     <a href="pricing.html">Pricing</a>

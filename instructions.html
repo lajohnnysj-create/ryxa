@@ -15,47 +15,57 @@
     --bg: #07070f; --surface: #0f0f1a; --surface2: #161625;
     --border: rgba(255,255,255,0.07); --border-hover: rgba(255,255,255,0.14);
     --accent: #7c3aed; --accent2: #a855f7; --accent-glow: rgba(124,58,237,0.3);
-    --text: #f0eef8; --muted: #7a788f; --muted2: #3d3b52;
+    --text: #f0eef8; --muted: #7a788f; --muted2: #9a98b0;
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: "DM Sans", sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
   .back-link { padding: 24px 48px 0; max-width: 800px; margin: 0 auto; }
   .back-link a { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); text-decoration: none; transition: color 0.2s; }
   .back-link a:hover { color: var(--accent2); }
-  .page-header { max-width: 800px; margin: 0 auto; padding: 48px 48px 40px; }
-  .badge { display: inline-flex; align-items: center; gap: 8px; border: 1px solid rgba(124,58,237,0.4); background: rgba(124,58,237,0.08); border-radius: 100px; padding: 6px 16px; font-size: 12px; color: #c4b5fd; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 24px; }
-  .page-header h1 { font-family: "Syne", sans-serif; font-size: clamp(28px, 5vw, 48px); font-weight: 800; letter-spacing: -2px; line-height: 1.1; margin-bottom: 16px; }
+  .page-header { max-width: 800px; margin: 0 auto; padding: 40px 48px 36px; }
+  .badge { display: inline-flex; align-items: center; gap: 8px; border: 1px solid rgba(124,58,237,0.4); background: rgba(124,58,237,0.08); border-radius: 100px; padding: 6px 16px; font-size: 12px; color: #c4b5fd; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 20px; }
+  .page-header h1 { font-family: "Syne", sans-serif; font-size: clamp(26px, 5vw, 44px); font-weight: 800; letter-spacing: -1.5px; line-height: 1.1; margin-bottom: 12px; }
   .page-header h1 em { font-style: normal; color: var(--accent2); }
-  .page-header p { font-size: 16px; color: var(--muted); line-height: 1.7; }
-  .content { max-width: 800px; margin: 0 auto; padding: 0 48px 80px; display: flex; flex-direction: column; gap: 20px; }
-  .notice { background: rgba(124,58,237,0.06); border: 1px solid rgba(124,58,237,0.2); border-radius: 12px; padding: 16px 20px; display: flex; gap: 12px; align-items: flex-start; font-size: 14px; color: var(--muted); line-height: 1.6; }
+  .page-header p { font-size: 15px; color: var(--muted); line-height: 1.7; }
+  .content { max-width: 800px; margin: 0 auto; padding: 0 48px 80px; display: flex; flex-direction: column; gap: 16px; }
   .step-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; transition: border-color 0.2s; }
   .step-card:hover { border-color: var(--border-hover); }
-  .step-card-header { padding: 20px 28px; display: flex; align-items: center; gap: 16px; border-bottom: 1px solid var(--border); background: var(--surface2); }
-  .step-number { width: 36px; height: 36px; border-radius: 10px; background: rgba(124,58,237,0.15); border: 1px solid rgba(124,58,237,0.3); display: flex; align-items: center; justify-content: center; font-family: "Syne", sans-serif; font-size: 16px; font-weight: 800; color: #c4b5fd; flex-shrink: 0; }
-  .step-title { font-family: "Syne", sans-serif; font-size: 17px; font-weight: 700; }
-  .step-body { padding: 24px 28px; }
-  .step-list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
-  .step-list li { font-size: 15px; color: var(--muted); padding-left: 20px; position: relative; line-height: 1.6; }
-  .step-list li::before { content: "→"; position: absolute; left: 0; color: var(--accent2); font-size: 13px; top: 2px; }
+  .step-card-header { padding: 18px 24px; display: flex; align-items: center; gap: 14px; border-bottom: 1px solid var(--border); background: var(--surface2); }
+  .step-number { width: 34px; height: 34px; border-radius: 9px; background: rgba(124,58,237,0.15); border: 1px solid rgba(124,58,237,0.3); display: flex; align-items: center; justify-content: center; font-family: "Syne", sans-serif; font-size: 15px; font-weight: 800; color: #c4b5fd; flex-shrink: 0; }
+  .step-title { font-family: "Syne", sans-serif; font-size: 16px; font-weight: 700; }
+  .step-body { padding: 20px 24px; }
+  .step-list { list-style: none; display: flex; flex-direction: column; gap: 11px; }
+  .step-list li { font-size: 14px; color: var(--muted); padding-left: 20px; position: relative; line-height: 1.6; }
+  .step-list li::before { content: "→"; position: absolute; left: 0; color: var(--accent2); font-size: 12px; top: 3px; }
   .step-list li strong { color: var(--text); font-weight: 500; }
-  .settings-highlight { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
-  .setting-item { display: flex; align-items: flex-start; gap: 12px; }
-  .setting-check { color: #4ade80; font-size: 16px; flex-shrink: 0; margin-top: 2px; }
-  .setting-label { display: flex; flex-direction: column; gap: 2px; }
-  .setting-label strong { font-size: 14px; color: var(--text); }
+  .settings-highlight { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+  .setting-item { display: flex; align-items: flex-start; gap: 10px; }
+  .setting-check { color: #4ade80; font-size: 15px; flex-shrink: 0; margin-top: 2px; }
+  .setting-label strong { font-size: 14px; color: var(--text); display: block; }
   .setting-label span { font-size: 13px; color: var(--muted); }
-  .info-box { background: rgba(124,58,237,0.06); border: 1px solid rgba(124,58,237,0.2); border-radius: 10px; padding: 16px 20px; display: flex; gap: 12px; margin-top: 16px; }
-  code { background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.25); color: #c4b5fd; border-radius: 5px; padding: 2px 8px; font-size: 13px; }
-  .tip-card { background: var(--surface); border: 1px solid rgba(74,222,128,0.2); border-radius: 16px; padding: 24px 28px; }
-  .tip-card-title { font-family: "Syne", sans-serif; font-size: 16px; font-weight: 700; color: #4ade80; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+  .info-box { background: rgba(124,58,237,0.06); border: 1px solid rgba(124,58,237,0.2); border-radius: 10px; padding: 14px 18px; display: flex; gap: 10px; margin-top: 14px; font-size: 13px; color: var(--muted); line-height: 1.6; }
+  code { background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.25); color: #c4b5fd; border-radius: 5px; padding: 2px 7px; font-size: 12px; }
+  .tip-card { background: var(--surface); border: 1px solid rgba(74,222,128,0.2); border-radius: 16px; padding: 20px 24px; }
+  .tip-title { font-family: "Syne", sans-serif; font-size: 15px; font-weight: 700; color: #4ade80; margin-bottom: 8px; }
   .tip-card p { font-size: 14px; color: var(--muted); line-height: 1.7; }
   @media (max-width: 768px) {
-    .back-link { padding: 20px 20px 0; }
-    .page-header { padding: 36px 20px 28px; }
-    .content { padding: 0 20px 60px; }
-    .step-card-header { padding: 16px 20px; }
-    .step-body { padding: 18px 20px; }
+    .back-link, .page-header, .content { padding-left: 20px; padding-right: 20px; }
+  }
+
+  /* === A11Y: visible focus ring for keyboard users === */
+  *:focus-visible {
+    outline: 2px solid #c4b5fd;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  /* === A11Y: respect reduced-motion preferences === */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 </style>
 </head>
@@ -68,12 +78,11 @@
 <div class="page-header">
   <div class="badge">&#x1F4CB; Step-by-step guide</div>
   <h1>How to Download Your <em>Instagram Data</em></h1>
-  <p>Follow these steps to get your Instagram data export. You will upload the ZIP file directly to FindTheSnakes — no unzipping needed.</p>
+  <p>Follow these steps to get your Instagram data export. Upload the ZIP file directly to FindTheSnakes — no unzipping needed.</p>
 </div>
 
 <div class="content">
 
-<!-- STEP 1 -->
   <div class="step-card">
     <div class="step-card-header">
       <div class="step-number">1</div>
@@ -81,15 +90,14 @@
     </div>
     <div class="step-body">
       <ul class="step-list">
-        <li><span>Open <strong>Instagram</strong> on your phone</span></li>
-        <li><span>Go to your <strong>profile</strong> tab</span></li>
-        <li><span>Tap the <strong>hamburger menu (&#x2630;)</strong> in the top right</span></li>
-        <li><span>Tap <strong>Accounts Center</strong></span></li>
+        <li>Open <strong>Instagram</strong> on your phone</li>
+        <li>Go to your <strong>profile</strong> tab</li>
+        <li>Tap the <strong>hamburger menu (&#x2630;)</strong> in the top right</li>
+        <li>Tap <strong>Accounts Center</strong></li>
       </ul>
     </div>
   </div>
 
-  <!-- STEP 2 -->
   <div class="step-card">
     <div class="step-card-header">
       <div class="step-number">2</div>
@@ -97,16 +105,15 @@
     </div>
     <div class="step-body">
       <ul class="step-list">
-<li>Tap <strong>Your information and permissions</strong></li>
-<li>Tap <strong>Export your information</strong></li>
-<li>Tap <strong>Create export</strong></li>
-<li>Select your <strong>Instagram account</strong></li>
-<li>Tap <strong>Export to device</strong></li>
+        <li>Tap <strong>Your information and permissions</strong></li>
+        <li>Tap <strong>Export your information</strong></li>
+        <li>Tap <strong>Create export</strong></li>
+        <li>Select your <strong>Instagram account</strong></li>
+        <li>Tap <strong>Export to device</strong></li>
       </ul>
     </div>
   </div>
 
-  <!-- STEP 3 -->
   <div class="step-card">
     <div class="step-card-header">
       <div class="step-number">3</div>
@@ -114,21 +121,20 @@
     </div>
     <div class="step-body">
       <ul class="step-list">
-<li>Tap <strong>Customize information</strong></li>
-<li>Clear all sections except <strong>Followers and following</strong></li>
-<li>Tap <strong>Save</strong></li>
+        <li>Tap <strong>Customize information</strong></li>
+        <li>Clear all sections except <strong>Followers and following</strong></li>
+        <li>Tap <strong>Save</strong></li>
       </ul>
     </div>
   </div>
 
-  <!-- STEP 4 -->
   <div class="step-card">
     <div class="step-card-header">
       <div class="step-number">4</div>
       <div class="step-title">Set Export Settings</div>
     </div>
     <div class="step-body">
-      <p style="font-size:14px;color:var(--muted);margin-bottom:16px;">Make sure both of these are set correctly before continuing:</p>
+      <p style="font-size:14px;color:var(--muted);margin-bottom:14px;">Make sure both of these are set correctly before continuing:</p>
       <div class="settings-highlight">
         <div class="setting-item">
           <span class="setting-check">&#x2713;</span>
@@ -148,7 +154,6 @@
     </div>
   </div>
 
-  <!-- STEP 5 -->
   <div class="step-card">
     <div class="step-card-header">
       <div class="step-number">5</div>
@@ -156,14 +161,13 @@
     </div>
     <div class="step-body">
       <ul class="step-list">
-        <li><span>Tap <strong>Create files</strong> or <strong>Start export</strong></span></li>
-        <li><span>Instagram will <strong>email you a download link</strong> when it is ready</span></li>
-        <li><span>This usually takes a <strong>few minutes</strong> but can take up to 48 hours</span></li>
+        <li>Tap <strong>Create files</strong> or <strong>Start export</strong></li>
+        <li>Instagram will <strong>email you a download link</strong> when ready</li>
+        <li>This usually takes a <strong>few minutes</strong> but can take up to 48 hours</li>
       </ul>
     </div>
   </div>
 
-  <!-- STEP 6 -->
   <div class="step-card">
     <div class="step-card-header">
       <div class="step-number">6</div>
@@ -171,23 +175,22 @@
     </div>
     <div class="step-body">
       <ul class="step-list">
-        <li><span>Open the email from Instagram and click the <strong>Download</strong> button</span></li>
-        <li><span>Save the <strong>ZIP file</strong> to your computer — do not extract it</span></li>
-        <li><span>Come back to your <strong>FindTheSnakes dashboard</strong></span></li>
-        <li><span>Open the <strong>Follow-Back Audit</strong> and upload the ZIP file directly</span></li>
-        <li><span>We will automatically find the right files and run your analysis</span></li>
+        <li>Open the email from Instagram and click the <strong>Download</strong> button</li>
+        <li>Save the <strong>ZIP file</strong> to your computer — do not extract it</li>
+        <li>Come back to your <strong>FindTheSnakes dashboard</strong></li>
+        <li>Open <strong>Follow-Back Audit</strong> and upload the ZIP directly</li>
+        <li>We will find the right files automatically and run your analysis</li>
       </ul>
       <div class="info-box">
         <span style="font-size:18px;flex-shrink:0;">&#x1F4A1;</span>
-        <span style="font-size:13px;color:var(--muted);line-height:1.6;">The ZIP Instagram sends you is named something like <code>instagram-username-2026-04-01.zip</code>. Upload it exactly as downloaded — no unzipping needed.</span>
+        <span>The ZIP is named something like <code>instagram-username-2026-04-01.zip</code>. Upload it exactly as downloaded — no unzipping needed.</span>
       </div>
     </div>
   </div>
 
-  <!-- TIP -->
   <div class="tip-card">
-    <div class="tip-card-title">&#x2713; Large accounts are fully supported</div>
-    <p>If you have a large follower list, Instagram splits your data across multiple files inside the ZIP. FindTheSnakes automatically finds and processes all of them. You do not need to do anything extra — just upload the ZIP as-is.</p>
+    <div class="tip-title">&#x2713; Large accounts are fully supported</div>
+    <p>If you have a large follower list, Instagram splits your data across multiple files inside the ZIP. FindTheSnakes finds and processes all of them automatically.</p>
   </div>
 
 </div>

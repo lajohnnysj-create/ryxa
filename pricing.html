@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  :root { --bg:#07070f;--surface:#0f0f1a;--surface2:#161625;--border:rgba(255,255,255,0.07);--border-hover:rgba(255,255,255,0.14);--accent:#7c3aed;--accent2:#a855f7;--accent-glow:rgba(124,58,237,0.3);--text:#f0eef8;--muted:#7a788f;--muted2:#3d3b52; }
+  :root { --bg:#07070f;--surface:#0f0f1a;--surface2:#161625;--border:rgba(255,255,255,0.07);--border-hover:rgba(255,255,255,0.14);--accent:#7c3aed;--accent2:#a855f7;--accent-glow:rgba(124,58,237,0.3);--text:#f0eef8;--muted:#7a788f;--muted2:#9a98b0; }
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
   html{scroll-behavior:smooth;}
   body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
@@ -87,6 +87,22 @@
   .footer-links a{color:var(--muted);font-size:13px;text-decoration:none;transition:color 0.2s;}
   .footer-links a:hover{color:var(--text);}
   @media(max-width:768px){nav{padding:0 20px;}.nav-links,.nav-right{display:none;}.hamburger{display:flex;}.pricing-grid{grid-template-columns:1fr;}.pricing-section{padding:0 20px 60px;}.page-header{padding:60px 20px 40px;}footer{flex-direction:column;text-align:center;padding:24px 20px;}}
+
+  /* === A11Y: visible focus ring for keyboard users === */
+  *:focus-visible {
+    outline: 2px solid #c4b5fd;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  /* === A11Y: respect reduced-motion preferences === */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 </style>
 </head>
 <body>
@@ -105,7 +121,7 @@
 
 <div class="modal-backdrop" id="auth-modal">
   <div class="modal">
-    <button class="modal-close" onclick="closeAuthModal()">&#x2715;</button>
+    <button class="modal-close" onclick="closeAuthModal()" aria-label="Close">&#x2715;</button>
     <h2 id="auth-title">Welcome back</h2>
     <p id="auth-sub">Sign in to access your creator tools.</p>
     <div class="modal-msg" id="auth-msg"></div>

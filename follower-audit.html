@@ -25,7 +25,7 @@
     --gold: #f5c842;
     --text: #f0eef8;
     --muted: #7a788f;
-    --muted2: #3d3b52;
+    --muted2: #9a98b0;
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   html { scroll-behavior: smooth; }
@@ -836,6 +836,22 @@ body { overflow-x: hidden; }
 .dash-welcome { margin-bottom: 32px; }
 .dash-welcome h1 { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800; margin-bottom: 4px; }
 .dash-welcome p { color: var(--muted); font-size: 14px; }
+
+  /* === A11Y: visible focus ring for keyboard users === */
+  *:focus-visible {
+    outline: 2px solid #c4b5fd;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  /* === A11Y: respect reduced-motion preferences === */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 </style>
 </head>
 <body>
@@ -843,7 +859,7 @@ body { overflow-x: hidden; }
 <!-- CANCEL SUBSCRIPTION MODAL -->
 <div class="modal-backdrop" id="cancel-modal">
   <div class="modal">
-    <button class="modal-close" onclick="closeCancelModal()">✕</button>
+    <button class="modal-close" onclick="closeCancelModal()" aria-label="Close">✕</button>
     <div class="cancel-modal-inner">
       <div class="cancel-modal-icon">😢</div>
       <h2>Cancel your Pro plan?</h2>
@@ -861,7 +877,7 @@ body { overflow-x: hidden; }
 <!-- CANCEL SUBSCRIPTION MODAL -->
 <div class="modal-backdrop" id="cancel-modal">
   <div class="modal">
-    <button class="modal-close" onclick="closeCancelModal()">✕</button>
+    <button class="modal-close" onclick="closeCancelModal()" aria-label="Close">✕</button>
     <div class="cancel-modal-inner">
       <div class="cancel-modal-icon">😢</div>
       <h2>Cancel your Pro plan?</h2>
@@ -877,7 +893,7 @@ body { overflow-x: hidden; }
 <!-- SIGN OUT MODAL -->
 <div id="signout-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;pointer-events:all;">
   <div style="max-width:420px;width:90%;background:#12121a;border:1px solid rgba(255,255,255,0.15);border-radius:20px;padding:40px 32px;text-align:center;position:relative;z-index:10000;pointer-events:all;">
-    <button onclick="closeSignoutModal()" style="position:absolute;top:16px;right:16px;background:none;border:none;color:#7a788f;font-size:20px;cursor:pointer;line-height:1;pointer-events:all;z-index:10001;">✕</button>
+    <button onclick="closeSignoutModal()" style="position:absolute;top:16px;right:16px;background:none;border:none;color:#7a788f;font-size:20px;cursor:pointer;line-height:1;pointer-events:all;z-index:10001;" aria-label="Close">✕</button>
     <div style="font-size:48px;margin-bottom:16px;">👋</div>
     <h2 style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;margin-bottom:8px;color:#f0eef8;">Sign out?</h2>
     <p style="color:#7a788f;font-size:14px;margin-bottom:28px;line-height:1.6;">You'll need to sign back in to access your dashboard and results.</p>
@@ -902,7 +918,7 @@ body { overflow-x: hidden; }
 <!-- SIGN OUT MODAL -->
 <div id="signout-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;pointer-events:all;">
   <div style="max-width:420px;width:90%;background:#12121a;border:1px solid rgba(255,255,255,0.15);border-radius:20px;padding:40px 32px;text-align:center;position:relative;z-index:10000;pointer-events:all;">
-    <button onclick="closeSignoutModal()" style="position:absolute;top:16px;right:16px;background:none;border:none;color:#7a788f;font-size:20px;cursor:pointer;line-height:1;pointer-events:all;z-index:10001;">✕</button>
+    <button onclick="closeSignoutModal()" style="position:absolute;top:16px;right:16px;background:none;border:none;color:#7a788f;font-size:20px;cursor:pointer;line-height:1;pointer-events:all;z-index:10001;" aria-label="Close">✕</button>
     <div style="font-size:48px;margin-bottom:16px;">👋</div>
     <h2 style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;margin-bottom:8px;color:#f0eef8;">Sign out?</h2>
     <p style="color:#7a788f;font-size:14px;margin-bottom:28px;line-height:1.6;">You'll need to sign back in to access your dashboard and results.</p>
@@ -916,7 +932,7 @@ body { overflow-x: hidden; }
 <!-- LOADING MODAL -->
 <!-- MOBILE MENU -->
 <div class="mobile-menu" id="mobile-menu">
-  <button onclick="closeMobileMenu()" style="position:absolute;top:20px;right:20px;background:none;border:none;color:var(--muted);font-size:24px;cursor:pointer;line-height:1;padding:4px;">✕</button>
+  <button onclick="closeMobileMenu()" style="position:absolute;top:20px;right:20px;background:none;border:none;color:var(--muted);font-size:24px;cursor:pointer;line-height:1;padding:4px;" aria-label="Close">✕</button>
   <div class="mobile-menu-links">
     <a href="dashboard.html" onclick="closeMobileMenu()" style="color:var(--accent);">Dashboard</a>
     <a href="instructions.html">Instructions</a>
