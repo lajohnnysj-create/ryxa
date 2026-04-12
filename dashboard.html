@@ -771,6 +771,8 @@
     border-radius: 14px;
     padding: 20px;
     min-height: 400px;
+    max-width: 100%;
+    overflow: hidden;
   }
   .pdfsign-tip-row {
     display: flex;
@@ -791,7 +793,7 @@
   }
   .pdfsign-tip strong { color: #c4b5fd; }
 
-  .pdfsign-pages { display: flex; flex-direction: column; gap: 16px; align-items: center; }
+  .pdfsign-pages { display: flex; flex-direction: column; gap: 16px; align-items: center; width: 100%; min-width: 0; }
   .pdfsign-page-wrap {
     position: relative;
     background: #fff;
@@ -799,8 +801,9 @@
     border-radius: 6px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.2);
     max-width: 100%;
+    min-width: 0;
   }
-  .pdfsign-page-wrap canvas { display: block; max-width: 100%; height: auto; border-radius: 6px; }
+  .pdfsign-page-wrap canvas { display: block; width: 100%; height: auto; max-width: 100%; border-radius: 6px; }
   .pdfsign-field-overlay {
     position: absolute;
     inset: 0;
@@ -5858,8 +5861,10 @@ async function renderAllPages() {
     const wrap = document.createElement('div');
     wrap.className = 'pdfsign-page-wrap';
     wrap.dataset.pageIndex = i - 1;
+    // Use aspect ratio + max-width so the page is always responsive
     wrap.style.width = viewport.width + 'px';
     wrap.style.maxWidth = '100%';
+    wrap.style.aspectRatio = `${viewport.width} / ${viewport.height}`;
 
     const canvas = document.createElement('canvas');
     canvas.width = viewport.width;
