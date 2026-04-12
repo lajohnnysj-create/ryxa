@@ -1414,7 +1414,7 @@
 
                 <!-- Opacity -->
                 <div class="custom-opacity-row">
-                  <label>Background opacity</label>
+                  <label for="bio-custom-bg-opacity">Background opacity</label>
                   <input type="range" id="bio-custom-bg-opacity" min="0" max="1" step="0.05" value="0.4" oninput="onBioCustomOpacityChange(this.value)">
                   <span id="bio-custom-bg-opacity-val" class="custom-opacity-val">40%</span>
                 </div>
@@ -1651,7 +1651,7 @@
                     </div>
                   </div>
                   <div class="custom-opacity-row">
-                    <label>Background opacity</label>
+                    <label for="mk-custom-bg-opacity">Background opacity</label>
                     <input type="range" id="mk-custom-bg-opacity" min="0" max="1" step="0.05" value="0.4" oninput="onMKCustomOpacityChange(this.value)">
                     <span id="mk-custom-bg-opacity-val" class="custom-opacity-val">40%</span>
                   </div>
@@ -2250,7 +2250,7 @@
               </div>
             </div>
             <div id="pdfsign-sig-type" class="pdfsign-sig-panel" style="display:none;">
-              <input type="text" id="pdfsign-sig-type-input" placeholder="Type your full name" oninput="updateTypedSig()" style="width:100%;padding:14px 16px;background:var(--surface);border:1px solid var(--border-hover);border-radius:10px;font-size:15px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;margin-bottom:12px;box-sizing:border-box;">
+              <input type="text" id="pdfsign-sig-type-input" placeholder="Type your full name" aria-label="Type your full name" oninput="updateTypedSig()" style="width:100%;padding:14px 16px;background:var(--surface);border:1px solid var(--border-hover);border-radius:10px;font-size:15px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;margin-bottom:12px;box-sizing:border-box;">
               <div id="pdfsign-sig-type-preview" style="background:#fff;border:1px solid var(--border-hover);border-radius:10px;padding:24px 16px;min-height:90px;display:flex;align-items:center;justify-content:center;font-family:'Brush Script MT',cursive;font-size:40px;color:#000;font-style:italic;">Type to preview</div>
             </div>
             <div id="pdfsign-sig-upload" class="pdfsign-sig-panel" style="display:none;">
@@ -2276,7 +2276,7 @@
           <div class="pdfsign-modal-inner" style="max-width:420px;">
             <button onclick="closeTextModal()" aria-label="Close" class="pdfsign-modal-close">&#x2715;</button>
             <h3 id="pdfsign-text-title" style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;margin-bottom:12px;letter-spacing:-0.3px;">Enter text</h3>
-            <input type="text" id="pdfsign-text-input" oninput="null" style="width:100%;padding:12px 14px;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+            <input type="text" id="pdfsign-text-input" aria-label="Field value" oninput="null" style="width:100%;padding:12px 14px;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
             <div style="display:flex;gap:10px;margin-top:14px;justify-content:flex-end;">
               <button onclick="closeTextModal()" style="padding:9px 14px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;">Cancel</button>
               <button onclick="applyTextToField()" style="padding:9px 16px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Apply</button>
