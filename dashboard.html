@@ -215,6 +215,235 @@
   .mk-rate-price-row { display: flex; gap: 6px; align-items: center; }
   .mk-rate-price-row .mk-rate-prefix { flex-shrink: 0; font-size: 13px; color: var(--muted); padding: 0 4px 0 2px; }
 
+  /* ================ GRID PLANNER ================ */
+  .grid-wrap { max-width: 1100px; margin: 0 auto; }
+  .grid-editor-grid { display: grid; grid-template-columns: 1fr 320px; gap: 24px; align-items: start; }
+  @media (max-width: 900px) {
+    .grid-editor-grid { grid-template-columns: 1fr; }
+    .grid-phone-wrap { max-width: 320px; margin: 0 auto; }
+  }
+
+  /* Drop zone */
+  .grid-drop-zone {
+    background: var(--surface2);
+    border: 2px dashed var(--border-hover);
+    border-radius: 14px;
+    transition: border-color 0.2s, background 0.2s;
+    min-height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .grid-drop-zone.drag-over {
+    border-color: var(--accent);
+    background: rgba(124,58,237,0.08);
+  }
+
+  /* Thumbnails (3 columns, same as phone grid for visual parity) */
+  .grid-thumbnails {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 6px;
+  }
+  @media (max-width: 700px) {
+    .grid-thumbnails { grid-template-columns: repeat(4, 1fr); }
+  }
+  @media (max-width: 420px) {
+    .grid-thumbnails { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  .grid-thumb {
+    position: relative;
+    aspect-ratio: 4 / 5;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: grab;
+    touch-action: none;
+  }
+  .grid-thumb:active { cursor: grabbing; }
+  .grid-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    pointer-events: none;
+  }
+  .grid-thumb-order {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    background: rgba(0,0,0,0.7);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    pointer-events: none;
+  }
+  .grid-thumb-remove {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: rgba(239,68,68,0.9);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .grid-thumb:hover .grid-thumb-remove { opacity: 1; }
+  .grid-thumb.sortable-ghost { opacity: 0.4; }
+  .grid-thumb.sortable-chosen { box-shadow: 0 4px 14px rgba(124,58,237,0.4); }
+
+  /* Phone mockup (IG-inspired, rebranded) */
+  .grid-phone-wrap { position: sticky; top: 100px; }
+  .grid-phone {
+    background: #0a0a0a;
+    border: 2px solid #262626;
+    border-radius: 32px;
+    padding: 10px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.04);
+    width: 100%;
+    max-width: 320px;
+    margin: 0 auto;
+    position: relative;
+  }
+  .grid-phone-notch {
+    position: absolute;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 18px;
+    background: #000;
+    border-radius: 10px;
+    z-index: 2;
+  }
+  .grid-phone-screen {
+    background: #000;
+    border-radius: 22px;
+    overflow: hidden;
+    padding-top: 36px;
+    height: 620px;
+    display: flex;
+    flex-direction: column;
+  }
+  .grid-phone-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    color: #fff;
+    flex-shrink: 0;
+    border-bottom: 0.5px solid #1a1a1a;
+  }
+  .grid-phone-header-back { display: flex; align-items: center; }
+  .grid-phone-header-name {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .grid-phone-header-menu { color: #fff; }
+  .grid-phone-profile {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 14px 10px;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .grid-phone-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #7c3aed, #e879f9);
+    flex-shrink: 0;
+    border: 2px solid #000;
+    box-shadow: 0 0 0 2px #7c3aed;
+  }
+  .grid-phone-stats {
+    display: flex;
+    flex: 1;
+    justify-content: space-around;
+  }
+  .grid-phone-stat {
+    text-align: center;
+    color: #fff;
+  }
+  .grid-phone-stat-num {
+    font-size: 14px;
+    font-weight: 700;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .grid-phone-stat-lbl {
+    font-size: 11px;
+    color: #999;
+    margin-top: 1px;
+  }
+  .grid-phone-tabs {
+    display: flex;
+    border-top: 0.5px solid #262626;
+    border-bottom: 0.5px solid #262626;
+    flex-shrink: 0;
+    background: #000;
+  }
+  .grid-phone-tab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    color: #555;
+    border-bottom: 1px solid transparent;
+    margin-bottom: -1px;
+  }
+  .grid-phone-tab.active {
+    color: #fff;
+    border-bottom-color: #fff;
+  }
+  /* The scrollable grid inside the phone */
+  .grid-phone-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5px;
+    overflow-y: auto;
+    flex: 1;
+    background: #000;
+    padding: 1.5px;
+    scrollbar-width: thin;
+    scrollbar-color: #333 transparent;
+  }
+  .grid-phone-grid::-webkit-scrollbar { width: 3px; }
+  .grid-phone-grid::-webkit-scrollbar-track { background: transparent; }
+  .grid-phone-grid::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+  .grid-phone-cell {
+    aspect-ratio: 1;
+    background: #111;
+    overflow: hidden;
+  }
+  .grid-phone-cell img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .grid-phone-cell.empty {
+    background: #0a0a0a;
+    border: 1px dashed #222;
+  }
+
   /* === A11Y: visible focus ring for keyboard users === */
   *:focus-visible {
     outline: 2px solid #c4b5fd;
@@ -338,6 +567,10 @@
       <span class="sidebar-item-label">Media Kit</span>
       <span class="sidebar-item-badge">PRO</span>
     </button>
+    <button class="sidebar-item" id="nav-grid" onclick="showTool('grid')">
+      <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
+      <span class="sidebar-item-label">Grid Planner</span>
+    </button>
     <button class="sidebar-item" id="nav-follower" onclick="showFollowerTool()">
       <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></div>
       <span class="sidebar-item-label">Follow-Back Audit</span>
@@ -439,6 +672,13 @@
             <div>
               <div class="welcome-tool-name">Media Kit <span style="font-size:9px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;padding:2px 6px;border-radius:4px;margin-left:4px;vertical-align:middle;">PRO</span></div>
               <div class="welcome-tool-desc">Pitch brands with a professional media kit and rate card</div>
+            </div>
+          </div>
+          <div class="welcome-tool-card" onclick="showTool('grid')">
+            <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
+            <div>
+              <div class="welcome-tool-name">Grid Planner</div>
+              <div class="welcome-tool-desc">Plan your Instagram grid — drop photos, drag to reorder</div>
             </div>
           </div>
           <div class="welcome-tool-card" onclick="showFollowerTool()">
@@ -848,6 +1088,126 @@
       </div>
     </div>
 
+    <!-- GRID PLANNER -->
+    <div id="tool-grid" style="display:none;">
+      <div class="grid-wrap">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+          <div>
+            <h2 style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;margin-bottom:4px;letter-spacing:-0.5px;">Grid Planner</h2>
+            <p style="color:var(--muted);font-size:14px;">Plan your Instagram grid before you post. Drop photos, drag to reorder, preview how it looks.</p>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <button id="grid-clear-btn" onclick="clearGrid()" style="display:none;padding:9px 14px;background:transparent;color:var(--muted);border:1px solid var(--border-hover);border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Clear all</button>
+            <button id="grid-save-btn" onclick="saveGrid()" style="padding:10px 18px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow);">Save</button>
+          </div>
+        </div>
+
+        <!-- Pro save info banner (Free users only) -->
+        <div id="grid-free-banner" style="display:none;background:linear-gradient(135deg,rgba(124,58,237,0.08),rgba(232,121,249,0.05));border:1px solid rgba(124,58,237,0.25);border-radius:12px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:200px;">
+            <div style="width:32px;height:32px;border-radius:8px;background:rgba(124,58,237,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+            </div>
+            <div>
+              <div style="font-size:13px;font-weight:500;color:var(--text);">Save your grid with Pro</div>
+              <div style="font-size:12px;color:var(--muted);margin-top:2px;">Free users can plan in this session — upgrade to Pro to save and return later.</div>
+            </div>
+          </div>
+          <button onclick="startCheckout()" style="padding:8px 14px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;white-space:nowrap;">Upgrade — $10/mo</button>
+        </div>
+
+        <!-- Save status for Pro -->
+        <div id="grid-save-status" style="display:none;margin-bottom:16px;font-size:13px;color:var(--muted);"></div>
+
+        <!-- Main editor grid -->
+        <div class="grid-editor-grid">
+
+          <!-- LEFT: Drop zone + thumbnails -->
+          <div>
+            <div id="grid-drop-zone" ondrop="onGridDrop(event)" ondragover="onGridDragOver(event)" ondragleave="onGridDragLeave(event)" class="grid-drop-zone">
+              <div id="grid-drop-empty" style="text-align:center;padding:32px 20px;">
+                <div style="width:48px;height:48px;margin:0 auto 12px;background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.25);border-radius:12px;display:flex;align-items:center;justify-content:center;">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                </div>
+                <div style="font-size:14px;font-weight:500;color:var(--text);margin-bottom:4px;">Drop photos here</div>
+                <div style="font-size:12px;color:var(--muted);margin-bottom:14px;">Up to 18 photos · JPG, PNG, WebP, HEIC</div>
+                <label style="display:inline-block;padding:9px 16px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:8px;font-size:13px;cursor:pointer;font-weight:500;">
+                  Browse photos
+                  <input type="file" id="grid-file-input" accept="image/*" multiple onchange="onGridFiles(this.files); this.value=''" aria-label="Upload photos" style="display:none;">
+                </label>
+              </div>
+              <div id="grid-processing" style="display:none;padding:28px 20px;text-align:center;">
+                <div style="font-size:13px;color:var(--muted);margin-bottom:10px;"><span id="grid-processing-text">Processing…</span></div>
+                <div style="height:4px;background:var(--surface);border-radius:2px;overflow:hidden;">
+                  <div id="grid-progress-bar" style="height:100%;width:0;background:var(--accent);transition:width 0.2s;"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Thumbnail list (drag to reorder) -->
+            <div style="margin-top:20px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+                <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;">
+                  Your photos <span id="grid-count" style="color:var(--muted);font-weight:500;margin-left:4px;"></span>
+                </div>
+                <div style="font-size:11px;color:var(--muted);">Drag to reorder</div>
+              </div>
+              <div id="grid-thumbnails" class="grid-thumbnails"></div>
+              <div id="grid-empty-hint" style="padding:20px;text-align:center;font-size:12px;color:var(--muted);background:var(--surface2);border:1px dashed var(--border);border-radius:12px;">
+                Your uploaded photos will appear here.
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT: Phone mockup with preview -->
+          <div class="grid-phone-wrap">
+            <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);font-weight:600;margin-bottom:12px;text-align:center;">Preview</div>
+            <div class="grid-phone">
+              <div class="grid-phone-notch"></div>
+              <div class="grid-phone-screen">
+                <!-- Rebranded feed header -->
+                <div class="grid-phone-header">
+                  <div class="grid-phone-header-back">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+                  </div>
+                  <div class="grid-phone-header-name">
+                    <span id="grid-phone-username">yourhandle</span>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                  </div>
+                  <div class="grid-phone-header-menu">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                  </div>
+                </div>
+                <!-- Profile bar -->
+                <div class="grid-phone-profile">
+                  <div class="grid-phone-avatar"></div>
+                  <div class="grid-phone-stats">
+                    <div class="grid-phone-stat"><div class="grid-phone-stat-num" id="grid-phone-post-count">0</div><div class="grid-phone-stat-lbl">posts</div></div>
+                    <div class="grid-phone-stat"><div class="grid-phone-stat-num">12K</div><div class="grid-phone-stat-lbl">followers</div></div>
+                    <div class="grid-phone-stat"><div class="grid-phone-stat-num">842</div><div class="grid-phone-stat-lbl">following</div></div>
+                  </div>
+                </div>
+                <!-- Tab bar -->
+                <div class="grid-phone-tabs">
+                  <div class="grid-phone-tab active">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                  </div>
+                  <div class="grid-phone-tab">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                  </div>
+                  <div class="grid-phone-tab">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                  </div>
+                </div>
+                <!-- Grid -->
+                <div class="grid-phone-grid" id="grid-phone-grid"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- IMAGE CONVERTER -->
     <div id="tool-image" style="display:none;">
       <div style="max-width:680px;">
@@ -1168,6 +1528,7 @@ const toolTitles = {
   welcome: 'Dashboard',
   bio: 'Link in Bio',
   mediakit: 'Media Kit',
+  grid: 'Grid Planner',
   follower: 'Follow-Back Audit',
   image: 'Image Converter',
   qr: 'QR Generator',
@@ -1261,7 +1622,7 @@ function showFollowerTool() {
 
 function showTool(tool) {
   // Hide all tools
-  ['welcome','bio','mediakit','follower','image','qr','invoice','tax'].forEach(t => {
+  ['welcome','bio','mediakit','grid','follower','image','qr','invoice','tax'].forEach(t => {
     const el = document.getElementById('tool-' + t);
     if (el) el.style.display = 'none';
     const nav = document.getElementById('nav-' + t);
@@ -1286,6 +1647,7 @@ function showTool(tool) {
   if (tool === 'tax') initTaxTracker();
   if (tool === 'bio') initBioTool();
   if (tool === 'mediakit') initMediaKitTool();
+  if (tool === 'grid') initGridTool();
   // Close sidebar on mobile
   closeSidebar();
 }
@@ -3237,6 +3599,398 @@ function buildMKPreviewHTML() {
     ${contactHtml}
     ${bannerHtml}
   </div></body></html>`;
+}
+
+// =====================================================
+// GRID PLANNER
+// =====================================================
+const GRID_MAX_PHOTOS = 18;
+const GRID_TARGET_PX = 400;
+const GRID_QUALITY = 0.65;
+const GRID_MAX_FILE_SIZE = 100 * 1024; // 100KB (matches bucket limit)
+const GRID_UPLOAD_TIMEOUT = 20000; // 20 seconds per file
+
+let gridPhotos = []; // Array of {id, url, isSaved} — url is Supabase public URL for saved, or blob: URL for unsaved
+let gridInited = false;
+let gridIdSeq = 1;
+let gridSortable = null;
+let gridDirty = false; // true if there are unsaved changes (for Pro users)
+let gridLoaded = false; // has data been loaded from DB yet
+
+function initGridTool() {
+  const isPro = userTier === 'monthly';
+  document.getElementById('grid-free-banner').style.display = isPro ? 'none' : 'flex';
+  document.getElementById('grid-save-btn').style.display = isPro ? 'inline-block' : 'none';
+  updateGridHandle();
+  if (gridInited) { renderGrid(); return; }
+  gridInited = true;
+  if (isPro) loadSavedGrid();
+  renderGrid();
+}
+
+function updateGridHandle() {
+  const el = document.getElementById('grid-phone-username');
+  if (!el) return;
+  // Use Link in Bio username if available, else fallback
+  const uname = (typeof bioState !== 'undefined' && bioState.username)
+    ? bioState.username
+    : (typeof bioOriginalUsername !== 'undefined' ? bioOriginalUsername : 'yourhandle');
+  el.textContent = uname || 'yourhandle';
+}
+
+// ======== FILE UPLOAD + COMPRESSION ========
+function onGridDragOver(e) {
+  e.preventDefault();
+  document.getElementById('grid-drop-zone').classList.add('drag-over');
+}
+function onGridDragLeave(e) {
+  document.getElementById('grid-drop-zone').classList.remove('drag-over');
+}
+function onGridDrop(e) {
+  e.preventDefault();
+  document.getElementById('grid-drop-zone').classList.remove('drag-over');
+  const files = Array.from(e.dataTransfer.files || []).filter(f => f.type.startsWith('image/'));
+  onGridFiles(files);
+}
+
+async function onGridFiles(files) {
+  const list = Array.from(files);
+  if (!list.length) return;
+
+  const remainingSlots = GRID_MAX_PHOTOS - gridPhotos.length;
+  if (remainingSlots <= 0) {
+    showGridStatus('error', `Grid is full. Maximum ${GRID_MAX_PHOTOS} photos.`);
+    return;
+  }
+  const toProcess = list.slice(0, remainingSlots);
+  const skipped = list.length - toProcess.length;
+
+  const empty = document.getElementById('grid-drop-empty');
+  const proc = document.getElementById('grid-processing');
+  const bar = document.getElementById('grid-progress-bar');
+  const txt = document.getElementById('grid-processing-text');
+  empty.style.display = 'none';
+  proc.style.display = 'block';
+
+  for (let i = 0; i < toProcess.length; i++) {
+    txt.textContent = `Processing ${i + 1}/${toProcess.length}…`;
+    bar.style.width = `${((i) / toProcess.length) * 100}%`;
+    try {
+      const blob = await compressGridImage(toProcess[i]);
+      if (!blob) throw new Error('Could not compress');
+      const url = URL.createObjectURL(blob);
+      gridPhotos.push({ id: gridIdSeq++, url, blob, isSaved: false });
+      gridDirty = true;
+    } catch (e) {
+      console.error('Grid compression failed for file', i, e);
+    }
+  }
+  bar.style.width = '100%';
+  setTimeout(() => {
+    proc.style.display = 'none';
+    empty.style.display = 'block';
+    bar.style.width = '0';
+  }, 300);
+
+  if (skipped > 0) {
+    showGridStatus('error', `${skipped} photo${skipped > 1 ? 's' : ''} skipped — grid is limited to ${GRID_MAX_PHOTOS}.`);
+  }
+  renderGrid();
+}
+
+async function compressGridImage(file) {
+  // Load image
+  const imgUrl = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((resolve, reject) => {
+      const image = new Image();
+      image.onload = () => resolve(image);
+      image.onerror = () => reject(new Error('Could not load image'));
+      image.src = imgUrl;
+    });
+
+    // Resize maintaining aspect ratio, max 400px on the longest side
+    const scale = Math.min(1, GRID_TARGET_PX / Math.max(img.naturalWidth, img.naturalHeight));
+    const w = Math.round(img.naturalWidth * scale);
+    const h = Math.round(img.naturalHeight * scale);
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(img, 0, 0, w, h);
+
+    const blob = await Promise.race([
+      new Promise((resolve, reject) => {
+        canvas.toBlob(b => {
+          if (b) resolve(b);
+          else reject(new Error('Encode failed'));
+        }, 'image/webp', GRID_QUALITY);
+      }),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Compression timeout')), 10000))
+    ]);
+    if (!blob) throw new Error('No blob');
+
+    // Safety net: if still over 100KB, recompress at lower quality
+    if (blob.size > GRID_MAX_FILE_SIZE) {
+      const smaller = await new Promise((resolve, reject) => {
+        canvas.toBlob(b => b ? resolve(b) : reject(new Error('Encode failed')), 'image/webp', 0.5);
+      });
+      return smaller;
+    }
+    return blob;
+  } finally {
+    URL.revokeObjectURL(imgUrl);
+  }
+}
+
+// ======== REMOVE / CLEAR ========
+function removeGridPhoto(id) {
+  const photo = gridPhotos.find(p => p.id === id);
+  if (!photo) return;
+  if (photo.url.startsWith('blob:')) URL.revokeObjectURL(photo.url);
+  gridPhotos = gridPhotos.filter(p => p.id !== id);
+  gridDirty = true;
+  renderGrid();
+}
+
+function clearGrid() {
+  if (gridPhotos.length === 0) return;
+  if (!confirm('Remove all photos from the grid?')) return;
+  gridPhotos.forEach(p => {
+    if (p.url.startsWith('blob:')) URL.revokeObjectURL(p.url);
+  });
+  gridPhotos = [];
+  gridDirty = true;
+  renderGrid();
+}
+
+// ======== RENDER ========
+function renderGrid() {
+  const thumbsEl = document.getElementById('grid-thumbnails');
+  const emptyHint = document.getElementById('grid-empty-hint');
+  const countEl = document.getElementById('grid-count');
+  const clearBtn = document.getElementById('grid-clear-btn');
+  const emptyDrop = document.getElementById('grid-drop-empty');
+  const saveBtn = document.getElementById('grid-save-btn');
+  if (!thumbsEl) return;
+
+  // Counter
+  countEl.textContent = gridPhotos.length > 0
+    ? `(${gridPhotos.length}/${GRID_MAX_PHOTOS})`
+    : '';
+  clearBtn.style.display = gridPhotos.length > 0 ? 'inline-block' : 'none';
+  emptyHint.style.display = gridPhotos.length === 0 ? 'block' : 'none';
+
+  // Swap drop zone text when photos exist
+  if (gridPhotos.length > 0) {
+    const remaining = GRID_MAX_PHOTOS - gridPhotos.length;
+    if (remaining > 0) {
+      emptyDrop.innerHTML = `<div style="padding:18px 20px;text-align:center;">
+        <div style="font-size:13px;color:var(--muted);margin-bottom:10px;">Drop more photos · ${remaining} slot${remaining > 1 ? 's' : ''} left</div>
+        <label style="display:inline-block;padding:7px 14px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:8px;font-size:12px;cursor:pointer;font-weight:500;">
+          Browse photos
+          <input type="file" accept="image/*" multiple onchange="onGridFiles(this.files); this.value=''" aria-label="Upload more photos" style="display:none;">
+        </label>
+      </div>`;
+    } else {
+      emptyDrop.innerHTML = `<div style="padding:18px 20px;text-align:center;font-size:13px;color:var(--muted);">Grid is full (18/18)</div>`;
+    }
+  } else {
+    // Restore original empty state
+    emptyDrop.innerHTML = `
+      <div style="text-align:center;padding:32px 20px;">
+        <div style="width:48px;height:48px;margin:0 auto 12px;background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.25);border-radius:12px;display:flex;align-items:center;justify-content:center;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        </div>
+        <div style="font-size:14px;font-weight:500;color:var(--text);margin-bottom:4px;">Drop photos here</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:14px;">Up to ${GRID_MAX_PHOTOS} photos · JPG, PNG, WebP, HEIC</div>
+        <label style="display:inline-block;padding:9px 16px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:8px;font-size:13px;cursor:pointer;font-weight:500;">
+          Browse photos
+          <input type="file" accept="image/*" multiple onchange="onGridFiles(this.files); this.value=''" aria-label="Upload photos" style="display:none;">
+        </label>
+      </div>`;
+  }
+
+  // Thumbnails (draggable)
+  thumbsEl.innerHTML = gridPhotos.map((p, i) => `
+    <div class="grid-thumb" data-id="${p.id}">
+      <div class="grid-thumb-order">${i + 1}</div>
+      <img src="${escapeHtml(p.url)}" alt="Photo ${i + 1}">
+      <button class="grid-thumb-remove" onclick="removeGridPhoto(${p.id})" aria-label="Remove photo">&#x2715;</button>
+    </div>
+  `).join('');
+
+  // Init SortableJS (once)
+  if (typeof Sortable !== 'undefined') {
+    if (gridSortable) gridSortable.destroy();
+    gridSortable = new Sortable(thumbsEl, {
+      animation: 150,
+      delay: 50,
+      delayOnTouchOnly: true,
+      onEnd: () => {
+        const order = Array.from(thumbsEl.children).map(el => parseInt(el.dataset.id));
+        gridPhotos = order.map(id => gridPhotos.find(p => p.id === id)).filter(Boolean);
+        gridDirty = true;
+        renderPhonePreview();
+      }
+    });
+  }
+
+  // Update save button state
+  if (saveBtn) {
+    if (gridDirty && gridPhotos.length > 0) {
+      saveBtn.textContent = 'Save';
+      saveBtn.disabled = false;
+      saveBtn.style.opacity = '1';
+    } else if (gridLoaded && !gridDirty) {
+      saveBtn.textContent = 'Saved ✓';
+      saveBtn.disabled = true;
+      saveBtn.style.opacity = '0.6';
+    } else {
+      saveBtn.textContent = 'Save';
+      saveBtn.disabled = gridPhotos.length === 0;
+      saveBtn.style.opacity = gridPhotos.length === 0 ? '0.5' : '1';
+    }
+  }
+
+  renderPhonePreview();
+}
+
+function renderPhonePreview() {
+  const grid = document.getElementById('grid-phone-grid');
+  const countEl = document.getElementById('grid-phone-post-count');
+  if (!grid) return;
+  countEl.textContent = gridPhotos.length;
+
+  // Show all uploaded + empty placeholders to fill out the 3-column pattern
+  const cells = [];
+  gridPhotos.forEach(p => {
+    cells.push(`<div class="grid-phone-cell"><img src="${escapeHtml(p.url)}" alt=""></div>`);
+  });
+  // Pad to a multiple of 3 with empty cells (at least 3 rows visible)
+  const minRows = 3;
+  const targetCount = Math.max(gridPhotos.length, minRows * 3);
+  const padToMultiple = Math.ceil(targetCount / 3) * 3;
+  while (cells.length < padToMultiple) {
+    cells.push(`<div class="grid-phone-cell empty"></div>`);
+  }
+  grid.innerHTML = cells.join('');
+}
+
+function showGridStatus(kind, msg) {
+  const el = document.getElementById('grid-save-status');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.display = 'block';
+  el.style.color = kind === 'error' ? '#fca5a5' : kind === 'success' ? '#4ade80' : 'var(--muted)';
+  if (kind !== 'error') setTimeout(() => { if (el.textContent === msg) { el.textContent = ''; el.style.display = 'none'; } }, 3000);
+}
+
+// ======== SAVE / LOAD (Pro only) ========
+async function loadSavedGrid() {
+  if (!currentUser) return;
+  try {
+    const { data, error } = await sb.from('grid_plan').select('photo_urls').eq('user_id', currentUser.id).maybeSingle();
+    if (error || !data) { gridLoaded = true; return; }
+    const urls = Array.isArray(data.photo_urls) ? data.photo_urls : [];
+    // Validate URLs (only from grid-photos bucket)
+    const valid = urls.filter(validGridPhotoUrl);
+    gridPhotos = valid.map(url => ({ id: gridIdSeq++, url, isSaved: true }));
+    gridDirty = false;
+    gridLoaded = true;
+    renderGrid();
+  } catch (e) {
+    console.warn('loadSavedGrid', e);
+    gridLoaded = true;
+  }
+}
+
+function validGridPhotoUrl(u) {
+  if (!u || typeof u !== 'string') return false;
+  try {
+    const url = new URL(u);
+    if (url.protocol !== 'https:') return false;
+    if (url.hostname !== 'kjytapcgxukalwsyputk.supabase.co') return false;
+    if (!url.pathname.includes('/storage/v1/object/public/grid-photos/')) return false;
+    return true;
+  } catch { return false; }
+}
+
+async function saveGrid() {
+  if (userTier !== 'monthly') { showGridStatus('error', 'Upgrade to Pro to save your grid.'); return; }
+  if (!currentUser) return;
+  if (gridPhotos.length === 0) { showGridStatus('error', 'Add at least one photo first.'); return; }
+
+  const btn = document.getElementById('grid-save-btn');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+
+  try {
+    // 1. Upload any new (unsaved) photos
+    for (let i = 0; i < gridPhotos.length; i++) {
+      const p = gridPhotos[i];
+      if (p.isSaved) continue;
+      btn.textContent = `Uploading ${i + 1}/${gridPhotos.length}…`;
+      const fileName = `${currentUser.id}/photo-${Date.now()}-${Math.random().toString(36).slice(2,8)}.webp`;
+      const uploadPromise = sb.storage.from('grid-photos').upload(fileName, p.blob, {
+        contentType: 'image/webp',
+        upsert: false
+      });
+      const { error: upErr } = await Promise.race([
+        uploadPromise,
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Upload timeout')), GRID_UPLOAD_TIMEOUT))
+      ]);
+      if (upErr) throw new Error(upErr.message || 'Upload failed');
+      const { data: urlData } = sb.storage.from('grid-photos').getPublicUrl(fileName);
+      if (!urlData?.publicUrl) throw new Error('Could not get photo URL');
+      // Replace blob URL with the public one; keep blob alive until after DB save succeeds
+      if (p.url.startsWith('blob:')) URL.revokeObjectURL(p.url);
+      p.url = urlData.publicUrl;
+      p.blob = null;
+      p.isSaved = true;
+    }
+
+    btn.textContent = 'Saving…';
+
+    // 2. Upsert DB row with the new URL list
+    const payload = {
+      user_id: currentUser.id,
+      photo_urls: gridPhotos.map(p => p.url)
+    };
+    const { error: dbErr } = await sb.from('grid_plan').upsert(payload, { onConflict: 'user_id' });
+    if (dbErr) throw dbErr;
+
+    // 3. Clean up any photos in the user's folder that aren't referenced anymore
+    await deleteStaleGridPhotos();
+
+    gridDirty = false;
+    gridLoaded = true;
+    showGridStatus('success', 'Grid saved ✓');
+    renderGrid();
+  } catch (e) {
+    console.error('saveGrid', e);
+    showGridStatus('error', e.message || 'Save failed.');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function deleteStaleGridPhotos() {
+  if (!currentUser) return;
+  try {
+    const { data: files, error: listErr } = await sb.storage.from('grid-photos').list(currentUser.id, { limit: 100 });
+    if (listErr || !Array.isArray(files)) return;
+    const inUse = new Set();
+    gridPhotos.forEach(p => {
+      const m = p.url.match(/grid-photos\/(.+)$/);
+      if (m) inUse.add(m[1]);
+    });
+    const toDelete = files
+      .map(f => `${currentUser.id}/${f.name}`)
+      .filter(path => !inUse.has(path));
+    if (toDelete.length > 0) await sb.storage.from('grid-photos').remove(toDelete);
+  } catch (e) { console.warn('deleteStaleGridPhotos', e); }
 }
 
 // =====================================================
