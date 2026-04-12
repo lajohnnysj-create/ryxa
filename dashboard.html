@@ -397,6 +397,7 @@
     border-top: 0.5px solid #262626;
     flex-shrink: 0;
     background: #000;
+    position: relative;
   }
   .grid-phone-tab {
     flex: 1;
@@ -405,19 +406,24 @@
     justify-content: center;
     padding: 10px;
     color: #555;
-    border-bottom: 1px solid transparent;
+    position: relative;
   }
   .grid-phone-tab.active {
     color: #fff;
-    border-bottom-color: #fff;
+  }
+  .grid-phone-tab.active::after {
+    content: '';
+    position: absolute;
+    left: 25%;
+    right: 25%;
+    bottom: 0;
+    height: 1px;
+    background: #fff;
   }
   /* The scrollable grid inside the phone */
   .grid-phone-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0;
-    row-gap: 0;
-    column-gap: 0;
+    display: flex;
+    flex-wrap: wrap;
     overflow-y: auto;
     flex: 1;
     background: #000;
@@ -430,6 +436,7 @@
   .grid-phone-grid::-webkit-scrollbar-track { background: transparent; }
   .grid-phone-grid::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
   .grid-phone-cell {
+    width: 33.3333%;
     aspect-ratio: 1;
     background: #111;
     overflow: hidden;
@@ -438,6 +445,7 @@
     padding: 0;
     border: 0;
     line-height: 0;
+    vertical-align: top;
   }
   .grid-phone-cell img {
     width: 100%;
@@ -447,6 +455,7 @@
     margin: 0;
     padding: 0;
     border: 0;
+    vertical-align: top;
   }
   .grid-phone-cell.empty {
     background: #0a0a0a;
@@ -686,7 +695,7 @@
             <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
             <div>
               <div class="welcome-tool-name">Grid Planner</div>
-              <div class="welcome-tool-desc">Plan your Instagram grid — drop photos, drag to reorder</div>
+              <div class="welcome-tool-desc">Plan your social media grid — drop photos, drag to reorder</div>
             </div>
           </div>
           <div class="welcome-tool-card" onclick="showFollowerTool()">
@@ -1102,7 +1111,7 @@
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
           <div>
             <h2 style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;margin-bottom:4px;letter-spacing:-0.5px;">Grid Planner</h2>
-            <p style="color:var(--muted);font-size:14px;">Plan your Instagram grid before you post. Drop photos, drag to reorder, preview how it looks.</p>
+            <p style="color:var(--muted);font-size:14px;">Plan your social media grid before you post. Drop photos, drag to reorder, preview how it looks.</p>
           </div>
           <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
             <button id="grid-clear-btn" onclick="clearGrid()" style="display:none;padding:9px 14px;background:transparent;color:var(--muted);border:1px solid var(--border-hover);border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Clear all</button>
