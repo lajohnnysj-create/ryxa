@@ -150,6 +150,181 @@
     transition: all 0.15s;
   }
   .scripts-back-btn:hover { border-color: var(--accent2); color: var(--text); }
+
+  /* View toggle */
+  .scripts-view-toggle {
+    display: inline-flex;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    padding: 3px;
+    gap: 2px;
+  }
+  .scripts-view-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 11px;
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .scripts-view-btn:hover { color: var(--text); }
+  .scripts-view-btn.active {
+    background: var(--accent);
+    color: #fff;
+    box-shadow: 0 0 12px var(--accent-glow);
+  }
+
+  /* Storyboard */
+  .sb-hook-card {
+    background: linear-gradient(135deg, rgba(167,139,250,0.1), rgba(232,121,249,0.08));
+    border: 1px solid rgba(232,121,249,0.35);
+    border-radius: 14px;
+    padding: 18px 20px;
+    margin-bottom: 20px;
+    cursor: pointer;
+    transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+  }
+  .sb-hook-card:hover {
+    transform: translateY(-1px);
+    border-color: #e879f9;
+    box-shadow: 0 8px 24px rgba(232,121,249,0.15);
+  }
+  .sb-hook-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-weight: 700;
+    background: linear-gradient(135deg, #a78bfa, #e879f9);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+  }
+  .sb-hook-text {
+    font-size: 17px;
+    line-height: 1.45;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .sb-section-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-weight: 600;
+    color: var(--muted2);
+    margin: 8px 0 10px;
+    padding: 10px 0 6px;
+    border-top: 1px solid var(--border);
+  }
+  .sb-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .sb-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    cursor: pointer;
+    transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+    display: flex;
+    flex-direction: column;
+    min-height: 180px;
+  }
+  .sb-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(124,58,237,0.5);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+  }
+  .sb-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .sb-scene-num {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #a78bfa, #e879f9);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .sb-timecode {
+    font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+  .sb-card-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .sb-card-title-dim { color: var(--muted); font-weight: 500; }
+  .sb-card-body {
+    font-size: 12.5px;
+    color: var(--muted2);
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    flex: 1;
+  }
+  .sb-card-empty { font-style: italic; opacity: 0.6; }
+  .sb-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    font-size: 10px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+  .sb-duration-pill {
+    background: rgba(124,58,237,0.15);
+    color: #c4b5fd;
+    padding: 3px 8px;
+    border-radius: 100px;
+    font-size: 10px;
+    font-weight: 600;
+  }
+  .scripts-sb-empty {
+    text-align: center;
+    padding: 60px 20px;
+    background: var(--surface2);
+    border: 1px dashed var(--border-hover);
+    border-radius: 14px;
+  }
+  @media (max-width: 900px) {
+    .sb-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 560px) {
+    .sb-grid { grid-template-columns: 1fr; }
+    .sb-hook-text { font-size: 15px; }
+    .sb-card { min-height: 140px; padding: 12px; }
+  }
   .scripts-editor-status { flex: 1; text-align: center; }
   .scripts-save-status { font-size: 12px; color: var(--muted); }
   .scripts-save-status.success { color: #4ade80; }
@@ -8160,6 +8335,7 @@ let currentScript = null;
 let scriptsDirty = false;
 let scriptsAutoSaveTimer = null;
 let scriptItemIdCounter = 0;
+let currentScriptView = 'script'; // 'script' | 'storyboard'
 
 function initScriptsTool() {
   const isMaxUser = isMax();
@@ -8335,6 +8511,7 @@ async function openScriptEditor(id) {
   currentScript = JSON.parse(JSON.stringify(script));
   if (!Array.isArray(currentScript.items)) currentScript.items = [];
   scriptsDirty = false;
+  currentScriptView = 'script';
   document.getElementById('scripts-list-view').style.display = 'none';
   document.getElementById('scripts-edit-view').style.display = 'block';
   renderScriptEditor();
@@ -8355,6 +8532,16 @@ function renderScriptEditor() {
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
         Back to scripts
       </button>
+      <div class="scripts-view-toggle">
+        <button class="scripts-view-btn ${currentScriptView === 'script' ? 'active' : ''}" onclick="setScriptView('script')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="14" y2="18"/></svg>
+          Script
+        </button>
+        <button class="scripts-view-btn ${currentScriptView === 'storyboard' ? 'active' : ''}" onclick="setScriptView('storyboard')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          Storyboard
+        </button>
+      </div>
       <div class="scripts-editor-status">
         <span id="scripts-save-status"></span>
       </div>
@@ -8388,33 +8575,164 @@ function renderScriptEditor() {
       </div>
     </div>
 
-    <div class="scripts-hook-wrap">
-      <div class="scripts-hook-label">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m13 2-2 2.5h3L12 7"/><path d="M10 14a4 4 0 1 1-4-4c1.1 0 2.5.4 2.5.4L5 17"/><path d="M7 14v0"/><circle cx="18" cy="17" r="4"/></svg>
-        Hook
+    <!-- SCRIPT VIEW -->
+    <div id="scripts-view-script" style="display:${currentScriptView === 'script' ? 'block' : 'none'};">
+      <div class="scripts-hook-wrap">
+        <div class="scripts-hook-label">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m13 2-2 2.5h3L12 7"/><path d="M10 14a4 4 0 1 1-4-4c1.1 0 2.5.4 2.5.4L5 17"/><path d="M7 14v0"/><circle cx="18" cy="17" r="4"/></svg>
+          Hook
+        </div>
+        <textarea id="scripts-hook-input" class="scripts-hook-input" maxlength="200" rows="2" placeholder="What's the one sentence that stops the scroll?" oninput="onScriptHookChange(this.value)" aria-label="Hook">${escapeHtml(currentScript.hook || '')}</textarea>
+        <div class="scripts-hook-meta"><span id="scripts-hook-count">${(currentScript.hook || '').length}</span>/200</div>
       </div>
-      <textarea id="scripts-hook-input" class="scripts-hook-input" maxlength="200" rows="2" placeholder="What's the one sentence that stops the scroll?" oninput="onScriptHookChange(this.value)" aria-label="Hook">${escapeHtml(currentScript.hook || '')}</textarea>
-      <div class="scripts-hook-meta"><span id="scripts-hook-count">${(currentScript.hook || '').length}</span>/200</div>
+
+      <div class="scripts-add-row">
+        <button class="scripts-add-btn" onclick="addScriptSection()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          Add section header
+        </button>
+        <button class="scripts-add-btn primary" onclick="addScriptBlock()" id="scripts-add-block-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add block
+        </button>
+      </div>
+
+      <div id="scripts-items-list" class="scripts-items-list"></div>
     </div>
 
-    <div class="scripts-add-row">
-      <button class="scripts-add-btn" onclick="addScriptSection()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-        Add section header
-      </button>
-      <button class="scripts-add-btn primary" onclick="addScriptBlock()" id="scripts-add-block-btn">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Add block
-      </button>
+    <!-- STORYBOARD VIEW -->
+    <div id="scripts-view-storyboard" style="display:${currentScriptView === 'storyboard' ? 'block' : 'none'};">
+      <div id="scripts-storyboard-content"></div>
     </div>
-
-    <div id="scripts-items-list" class="scripts-items-list"></div>
   `;
-  renderScriptItems();
+  if (currentScriptView === 'script') {
+    renderScriptItems();
+  } else {
+    renderStoryboard();
+  }
   // Dismiss export menu on outside click
   setTimeout(() => {
     document.addEventListener('click', scriptsExportOutsideClick);
   }, 10);
+}
+
+function setScriptView(view) {
+  currentScriptView = view;
+  const scriptView = document.getElementById('scripts-view-script');
+  const sbView = document.getElementById('scripts-view-storyboard');
+  const toggleBtns = document.querySelectorAll('.scripts-view-btn');
+  if (scriptView) scriptView.style.display = view === 'script' ? 'block' : 'none';
+  if (sbView) sbView.style.display = view === 'storyboard' ? 'block' : 'none';
+  toggleBtns.forEach((b, i) => {
+    b.classList.toggle('active', (i === 0 && view === 'script') || (i === 1 && view === 'storyboard'));
+  });
+  if (view === 'storyboard') renderStoryboard();
+  else renderScriptItems();
+}
+
+function renderStoryboard() {
+  const wrap = document.getElementById('scripts-storyboard-content');
+  if (!wrap || !currentScript) return;
+
+  const hook = currentScript.hook || '';
+  const items = currentScript.items || [];
+  const blocks = items.filter(i => i.type === 'block');
+  const hasAny = hook || blocks.length > 0;
+
+  if (!hasAny) {
+    wrap.innerHTML = `<div class="scripts-sb-empty">
+      <div style="font-size:14px;font-weight:500;color:var(--text);margin-bottom:6px;">Nothing to storyboard yet</div>
+      <div style="font-size:13px;color:var(--muted);">Add a hook and some blocks in Script view to see your video laid out here.</div>
+    </div>`;
+    return;
+  }
+
+  let html = '';
+
+  // Hook card (full-width)
+  if (hook) {
+    html += `<div class="sb-hook-card" onclick="setScriptView('script')">
+      <div class="sb-hook-label">HOOK · 0:00</div>
+      <div class="sb-hook-text">${escapeHtml(hook)}</div>
+    </div>`;
+  }
+
+  // Walk items in order, grouping blocks by preceding section
+  let sceneNum = 0;
+  let runningSeconds = estimateSeconds(hook);
+  let currentSection = null;
+  let currentRow = [];
+
+  function flushRow() {
+    if (currentRow.length === 0) return;
+    html += `<div class="sb-grid">${currentRow.join('')}</div>`;
+    currentRow = [];
+  }
+
+  items.forEach(item => {
+    if (item.type === 'section') {
+      flushRow();
+      currentSection = item.text || 'Section';
+      html += `<div class="sb-section-label">${escapeHtml(currentSection)}</div>`;
+    } else if (item.type === 'block') {
+      sceneNum++;
+      const body = (item.body || '').trim();
+      const title = item.title || '';
+      const wordCount = body.split(/\s+/).filter(Boolean).length;
+      const seconds = Math.max(1, Math.round((wordCount / SCRIPT_WPM) * 60));
+      const timecode = formatTimecode(runningSeconds);
+      runningSeconds += seconds;
+
+      const titleHtml = title
+        ? `<div class="sb-card-title">${escapeHtml(title)}</div>`
+        : `<div class="sb-card-title sb-card-title-dim">Scene ${sceneNum}</div>`;
+      const bodyHtml = body
+        ? `<div class="sb-card-body">${escapeHtml(body)}</div>`
+        : `<div class="sb-card-body sb-card-empty">(empty)</div>`;
+
+      currentRow.push(`<div class="sb-card" data-id="${item.id}" onclick="jumpToBlockInScript('${item.id}')">
+        <div class="sb-card-header">
+          <span class="sb-scene-num">${sceneNum}</span>
+          <span class="sb-timecode">${timecode}</span>
+        </div>
+        ${titleHtml}
+        ${bodyHtml}
+        <div class="sb-card-footer">
+          <span>${wordCount} ${wordCount === 1 ? 'word' : 'words'}</span>
+          <span class="sb-duration-pill">${seconds}s</span>
+        </div>
+      </div>`);
+    }
+  });
+
+  flushRow();
+  wrap.innerHTML = html;
+}
+
+function jumpToBlockInScript(id) {
+  setScriptView('script');
+  setTimeout(() => {
+    const el = document.querySelector(`.scripts-block[data-id="${id}"]`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.style.transition = 'box-shadow 0.3s';
+      el.style.boxShadow = '0 0 0 3px rgba(232,121,249,0.3)';
+      setTimeout(() => { el.style.boxShadow = ''; }, 1500);
+      const textarea = el.querySelector('.scripts-block-body');
+      if (textarea) textarea.focus();
+    }
+  }, 80);
+}
+
+function estimateSeconds(text) {
+  const words = (text || '').trim().split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.round((words / SCRIPT_WPM) * 60));
+}
+
+function formatTimecode(totalSeconds) {
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  return `${m}:${String(s).padStart(2, '0')}`;
 }
 
 function exitScriptEditor() {
@@ -8468,7 +8786,7 @@ function renderSectionItem(item) {
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/></svg>
     </div>
     <div class="scripts-section-line"></div>
-    <input type="text" class="scripts-section-input" maxlength="40" value="${text}" placeholder="Section name" oninput="onScriptSectionEdit('${item.id}', this.value)" aria-label="Section name">
+    <input type="text" class="scripts-section-input" maxlength="40" value="${text}" placeholder="Section name" oninput="onScriptSectionEdit('${item.id}', this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}" aria-label="Section name">
     <div class="scripts-section-line"></div>
     <button class="scripts-remove-btn" onclick="removeScriptItem('${item.id}')" aria-label="Delete section">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -8546,17 +8864,18 @@ function removeScriptItem(id) {
 }
 
 function addScriptSection() {
+  const newId = genScriptItemId('section');
   currentScript.items.push({
-    id: genScriptItemId('section'),
+    id: newId,
     type: 'section',
     text: 'New section',
   });
   renderScriptItems();
   markScriptDirty();
-  // Focus newly added section
+  // Focus + select the text of the newly added section
   setTimeout(() => {
-    const last = document.querySelector('.scripts-section:last-child .scripts-section-input');
-    if (last) { last.focus(); last.select(); }
+    const el = document.querySelector(`.scripts-section[data-id="${newId}"] .scripts-section-input`);
+    if (el) { el.focus(); el.select(); }
   }, 20);
 }
 
