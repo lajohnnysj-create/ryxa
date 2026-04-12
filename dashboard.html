@@ -1027,7 +1027,15 @@
       <div id="settings-sub-pro" style="display:none;">
         <p id="settings-sub-pro-msg" style="font-size:13px;color:var(--muted);margin-bottom:16px;">You are on the <strong id="settings-sub-pro-label" style="color:#e879f9;">Pro plan</strong>. You have full access to all tools and features.</p>
         <button id="settings-upgrade-max" onclick="confirmUpgradeToMax()" style="display:none;width:100%;padding:11px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px rgba(232,121,249,0.35);margin-bottom:8px;">Upgrade to Creator Max — $20/mo</button>
-        <button id="settings-downgrade-pro" onclick="confirmDowngradeToPro()" style="display:none;width:100%;padding:11px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;margin-bottom:8px;">Downgrade to Pro — $10/mo</button>
+        <button id="settings-downgrade-pro" onclick="handleDowngradeToPro()" style="display:none;width:100%;padding:11px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;margin-bottom:8px;">Downgrade to Pro — $10/mo</button>
+        <div id="settings-downgrade-confirm" style="display:none;margin-top:0;margin-bottom:8px;padding:14px;background:rgba(124,58,237,0.06);border:1px solid rgba(124,58,237,0.25);border-radius:8px;">
+          <p style="font-size:13px;color:#c4b5fd;margin-bottom:4px;font-weight:600;">Downgrade to Pro?</p>
+          <p style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5;">Takes effect immediately with prorated credit for your unused Creator Max time. Your custom theme and hero links will remain saved but won't display until you upgrade again.</p>
+          <div style="display:flex;gap:8px;">
+            <button onclick="confirmDowngradeToPro()" style="flex:1;padding:9px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.35);color:#c4b5fd;border-radius:7px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Yes, downgrade</button>
+            <button onclick="dismissSettingsMsg()" style="flex:1;padding:9px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:7px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;">Keep Max</button>
+          </div>
+        </div>
         <button id="settings-cancel-btn" onclick="handleSettingsCancel()" style="width:100%;padding:11px;background:transparent;border:1px solid rgba(239,68,68,0.3);color:#fca5a5;border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.08)'" onmouseout="this.style.background='transparent'">Cancel subscription</button>
         <div id="settings-cancel-confirm" style="display:none;margin-top:12px;padding:14px;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);border-radius:8px;">
           <p style="font-size:13px;color:#fca5a5;margin-bottom:12px;">Are you sure? You will keep Pro access until the end of your billing period.</p>
@@ -2568,8 +2576,16 @@ async function confirmUpgradeToMax() {
   await startCheckout('max');
 }
 
+// Step 1: user clicked "Downgrade to Pro" — show inline confirmation
+function handleDowngradeToPro() {
+  dismissSettingsMsg();
+  const el = document.getElementById('settings-downgrade-confirm');
+  if (el) el.style.display = 'block';
+}
+
+// Step 2: user clicked "Yes, downgrade" — actually trigger Stripe
 async function confirmDowngradeToPro() {
-  if (!confirm("Downgrade to Pro for $10/month? You'll keep your custom theme settings but they won't display until you upgrade again. The change takes effect at your next billing cycle or prorated now.")) return;
+  dismissSettingsMsg();
   await startCheckout('monthly');
 }
 function closeSignoutModal() {
@@ -6804,9 +6820,16 @@ function handleSettingsCancel() {
 }
 
 function dismissSettingsMsg() {
-  document.getElementById('settings-cancel-confirm').style.display = 'none';
-  document.getElementById('settings-renew-confirm').style.display = 'none';
-  document.getElementById('settings-result-msg').style.display = 'none';
+  const els = [
+    'settings-cancel-confirm',
+    'settings-renew-confirm',
+    'settings-downgrade-confirm',
+    'settings-result-msg',
+  ];
+  els.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
 }
 
 function showSettingsResult(type, msg) {
