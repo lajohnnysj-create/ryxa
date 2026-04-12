@@ -432,14 +432,19 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: { persistSession: false, autoRefreshToken: false }
 });
 
-// Get username from either a URL query param (?u=username) or from the path segment
+// Get username from either a URL query param (?u=username) or from the path segment.
+// Returns a strictly sanitized lowercase string of [a-z0-9_] only, or null.
 function getUsername() {
+  let raw = null;
   const params = new URLSearchParams(window.location.search);
-  if (params.has('u')) return params.get('u').replace(/^@/, '').toLowerCase().trim();
-  // Fallback: derive from /username path (Vercel rewrites /username → ?u=username, but handle direct too)
-  const m = window.location.pathname.match(/^\/@?([a-z0-9_]+)/i);
-  if (m) return m[1].toLowerCase();
-  return null;
+  if (params.has('u')) raw = params.get('u');
+  else {
+    const m = window.location.pathname.match(/^\/@?([^/?#]+)/);
+    if (m) raw = m[1];
+  }
+  if (!raw) return null;
+  const cleaned = String(raw).replace(/^@/, '').toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 30);
+  return cleaned || null;
 }
 
 function esc(s) {
@@ -454,6 +459,21 @@ function validUrl(u) {
   try {
     const url = new URL(u);
     if (url.protocol !== 'http:' && url.protocol !== 'https:') return null;
+    return url.toString();
+  } catch { return null; }
+}
+
+// Image URLs are restricted to our own Supabase Storage bucket to prevent
+// tracking pixels, IP-logging, or javascript:/data: injection via DB writes.
+function validImageUrl(u) {
+  if (!u) return null;
+  try {
+    const url = new URL(u);
+    if (url.protocol !== 'https:') return null;
+    // Must be our Supabase Storage, bio-photos bucket
+    const expectedHost = 'kjytapcgxukalwsyputk.supabase.co';
+    if (url.hostname !== expectedHost) return null;
+    if (!url.pathname.includes('/storage/v1/object/public/bio-photos/')) return null;
     return url.toString();
   } catch { return null; }
 }
@@ -479,9 +499,10 @@ function renderNotFound(username) {
 function buildAvatar(profile, bio) {
   const name = bio.display_name || profile.username || '';
   const initial = (name[0] || profile.username[0] || '?').toUpperCase();
-  if (bio.avatar_url) {
+  const safeAvatar = validImageUrl(bio.avatar_url);
+  if (safeAvatar) {
     return `<div class="avatar-frame">
-      <img class="avatar" src="${esc(bio.avatar_url)}" alt="${esc(name)}" onerror="this.outerHTML='<div class=&quot;avatar-fallback&quot;>${esc(initial)}</div>'">
+      <img class="avatar" src="${esc(safeAvatar)}" alt="${esc(name)}">
     </div>`;
   }
   return `<div class="avatar-frame"><div class="avatar-fallback">${esc(initial)}</div></div>`;
@@ -493,14 +514,18 @@ function buildLink(link) {
   const title = esc(link.title || '');
   const desc = link.description ? `<div class="link-desc">${esc(link.description)}</div>` : '';
 
-  if (link.featured && link.photoUrl) {
-    return `<a class="featured-link" href="${esc(url)}" target="_blank" rel="noopener nofollow">
-      <img class="featured-photo" src="${esc(link.photoUrl)}" alt="" loading="lazy">
-      <div class="featured-body">
-        <div class="featured-title">${title}</div>
-        ${link.description ? `<div class="featured-desc">${esc(link.description)}</div>` : ''}
-      </div>
-    </a>`;
+  if (link.featured) {
+    const safePhoto = validImageUrl(link.photoUrl);
+    if (safePhoto) {
+      return `<a class="featured-link" href="${esc(url)}" target="_blank" rel="noopener nofollow">
+        <img class="featured-photo" src="${esc(safePhoto)}" alt="" loading="lazy">
+        <div class="featured-body">
+          <div class="featured-title">${title}</div>
+          ${link.description ? `<div class="featured-desc">${esc(link.description)}</div>` : ''}
+        </div>
+      </a>`;
+    }
+    // Featured without a valid photo falls back to regular style
   }
   return `<a class="link-btn" href="${esc(url)}" target="_blank" rel="noopener nofollow">
     <div class="link-title">${title}</div>

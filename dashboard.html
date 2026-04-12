@@ -1613,17 +1613,43 @@ async function confirmCrop() {
 }
 
 // Delete stale photos from Supabase Storage (old avatars, removed featured photos)
+// Delete any photos in the user's bio-photos folder that are NOT currently
+// referenced in bioState (avatar + any featured link photos).
+// This handles both "replaced photo" and "abandoned upload" orphan cases.
 async function deleteStalePhotos() {
-  if (!bioStalePhotos.length) return;
-  const paths = bioStalePhotos.map(url => {
-    // Extract "userId/filename.webp" from the public URL
-    const m = url.match(/bio-photos\/(.+)$/);
-    return m ? m[1] : null;
-  }).filter(Boolean);
-  if (!paths.length) { bioStalePhotos = []; return; }
+  if (!currentUser) return;
   try {
-    await sb.storage.from('bio-photos').remove(paths);
-  } catch (e) { console.warn('Failed to delete stale photos', e); }
+    // List all files in the user's bio-photos folder
+    const { data: files, error: listErr } = await sb.storage.from('bio-photos').list(currentUser.id, { limit: 100 });
+    if (listErr || !Array.isArray(files)) {
+      bioStalePhotos = [];
+      return;
+    }
+    // Build the set of photos currently in use
+    const inUse = new Set();
+    const extractPath = (url) => {
+      if (!url) return null;
+      const m = url.match(/bio-photos\/(.+)$/);
+      return m ? m[1] : null;
+    };
+    const addInUse = (url) => {
+      const p = extractPath(url);
+      if (p) inUse.add(p);
+    };
+    addInUse(bioState.avatar_url);
+    bioState.links.forEach(l => { if (l.featured && l.photoUrl) addInUse(l.photoUrl); });
+
+    // Any file not in the in-use set is stale and safe to delete
+    const toDelete = files
+      .map(f => `${currentUser.id}/${f.name}`)
+      .filter(path => !inUse.has(path));
+
+    if (toDelete.length > 0) {
+      await sb.storage.from('bio-photos').remove(toDelete);
+    }
+  } catch (e) {
+    console.warn('Failed to cleanup stale photos', e);
+  }
   bioStalePhotos = [];
 }
 
@@ -1665,12 +1691,19 @@ async function saveBio() {
     }
 
     // Clean links/videos before save: strip internal _id, require URL for links
+    const normalizeUrl = (u) => {
+      const s = (u || '').trim();
+      if (!s) return '';
+      // If already has a scheme, leave as-is; otherwise prepend https://
+      if (/^[a-z][a-z0-9+.-]*:/i.test(s)) return s;
+      return 'https://' + s;
+    };
     const cleanLinks = bioState.links
       .filter(l => (l.title || '').trim() || (l.url || '').trim())
       .map(l => ({
         title: (l.title || '').slice(0, 80),
         description: (l.description || '').slice(0, 120),
-        url: (l.url || '').trim(),
+        url: normalizeUrl(l.url),
         featured: !!l.featured,
         photoUrl: l.photoUrl || '',
       }));
