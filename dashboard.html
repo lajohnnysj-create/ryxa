@@ -3771,15 +3771,39 @@ function removeGridPhoto(id) {
   renderGrid();
 }
 
-function clearGrid() {
+async function clearGrid() {
   if (gridPhotos.length === 0) return;
   if (!confirm('Remove all photos from the grid?')) return;
+
+  // Revoke any blob URLs
   gridPhotos.forEach(p => {
     if (p.url.startsWith('blob:')) URL.revokeObjectURL(p.url);
   });
   gridPhotos = [];
   gridDirty = true;
   renderGrid();
+
+  // If Pro + user has a saved grid, delete it from Supabase
+  if (userTier === 'monthly' && currentUser) {
+    const btn = document.getElementById('grid-clear-btn');
+    if (btn) { btn.disabled = true; }
+    try {
+      // Delete DB row
+      const { error: dbErr } = await sb.from('grid_plan').delete().eq('user_id', currentUser.id);
+      if (dbErr) throw dbErr;
+      // Delete all files in user's grid-photos folder
+      await deleteStaleGridPhotos();
+      gridDirty = false;
+      gridLoaded = true;
+      showGridStatus('success', 'Grid cleared ✓');
+      renderGrid();
+    } catch (e) {
+      console.error('clearGrid', e);
+      showGridStatus('error', 'Failed to clear saved grid. Try again.');
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  }
 }
 
 // ======== RENDER ========
