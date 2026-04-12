@@ -417,11 +417,10 @@
   .grid-phone-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 1.5px;
+    gap: 0;
     overflow-y: auto;
     flex: 1;
     background: #000;
-    padding: 1.5px;
     scrollbar-width: thin;
     scrollbar-color: #333 transparent;
   }
@@ -441,7 +440,6 @@
   }
   .grid-phone-cell.empty {
     background: #0a0a0a;
-    border: 1px dashed #222;
   }
 
   /* === A11Y: visible focus ring for keyboard users === */
