@@ -580,17 +580,22 @@ function validUrl(u) {
   } catch { return null; }
 }
 
-// Image URLs are restricted to our own Supabase Storage bucket to prevent
-// tracking pixels, IP-logging, or javascript:/data: injection via DB writes.
+// Image URLs are restricted to our own Supabase Storage buckets.
+// Allowed: bio-photos (link-in-bio), media-kit-photos (headshots cross-referenced),
+// and bio-backgrounds (Creator Max custom backgrounds — forward-compat).
 function validImageUrl(u) {
   if (!u) return null;
   try {
     const url = new URL(u);
     if (url.protocol !== 'https:') return null;
-    // Must be our Supabase Storage, bio-photos bucket
     const expectedHost = 'kjytapcgxukalwsyputk.supabase.co';
     if (url.hostname !== expectedHost) return null;
-    if (!url.pathname.includes('/storage/v1/object/public/bio-photos/')) return null;
+    const allowedBuckets = [
+      '/storage/v1/object/public/bio-photos/',
+      '/storage/v1/object/public/media-kit-photos/',
+      '/storage/v1/object/public/bio-backgrounds/',
+    ];
+    if (!allowedBuckets.some(b => url.pathname.includes(b))) return null;
     return url.toString();
   } catch { return null; }
 }
