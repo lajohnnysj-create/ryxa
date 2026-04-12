@@ -160,6 +160,21 @@
     #bio-preview-frame { height: 600px; max-width: 400px; margin: 0 auto; }
   }
   .bio-theme.selected { border-color: var(--accent) !important; box-shadow: 0 0 0 2px var(--accent) !important; }
+  .bio-themes-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .bio-theme-btn { position: relative; padding: 10px 6px; border: 1px solid var(--border-hover); border-radius: 10px; cursor: pointer; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 500; transition: border-color 0.2s, transform 0.15s; text-align: center; overflow: hidden; }
+  .bio-theme-btn:hover:not(.locked) { transform: translateY(-1px); }
+  .bio-theme-btn.selected { border-color: var(--accent) !important; box-shadow: 0 0 0 2px var(--accent) !important; }
+  .bio-theme-swatch { width: 22px; height: 22px; border-radius: 50%; margin: 0 auto 5px; }
+  .bio-theme-btn.locked { cursor: pointer; }
+  .bio-theme-btn.locked .bio-theme-swatch, .bio-theme-btn.locked .bio-theme-name { opacity: 0.5; }
+  .bio-theme-lock { position: absolute; top: 4px; right: 4px; background: rgba(124,58,237,0.85); color: #fff; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.4); }
+  .bio-theme-lock svg { width: 10px; height: 10px; stroke: #fff; stroke-width: 2.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  @media (max-width: 500px) {
+    .bio-themes-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 360px) {
+    .bio-themes-grid { grid-template-columns: repeat(2, 1fr); }
+  }
   .bio-social-row { display: flex; gap: 10px; align-items: center; }
   .bio-social-row .bio-social-icon { width: 32px; height: 32px; border-radius: 8px; background: var(--surface); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--muted); }
   .bio-social-row .bio-social-icon svg { width: 16px; height: 16px; fill: currentColor; }
@@ -520,20 +535,7 @@
             <!-- Theme -->
             <div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:20px;">
               <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:14px;">Theme</div>
-              <div id="bio-themes" style="display:flex;gap:10px;flex-wrap:wrap;">
-                <button type="button" class="bio-theme" data-theme="purple" onclick="pickTheme('purple')" style="flex:1;min-width:100px;padding:14px;border:1px solid var(--border-hover);border-radius:10px;background:linear-gradient(135deg,#07070f,#161625);cursor:pointer;color:var(--text);font-family:DM Sans,sans-serif;font-size:13px;font-weight:500;transition:border-color 0.2s;">
-                  <div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#a78bfa,#e879f9);margin:0 auto 6px;"></div>
-                  Purple
-                </button>
-                <button type="button" class="bio-theme" data-theme="midnight" onclick="pickTheme('midnight')" style="flex:1;min-width:100px;padding:14px;border:1px solid var(--border-hover);border-radius:10px;background:linear-gradient(135deg,#050508,#13131b);cursor:pointer;color:var(--text);font-family:DM Sans,sans-serif;font-size:13px;font-weight:500;transition:border-color 0.2s;">
-                  <div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#9ca3af,#e5e7eb);margin:0 auto 6px;"></div>
-                  Midnight
-                </button>
-                <button type="button" class="bio-theme" data-theme="sunset" onclick="pickTheme('sunset')" style="flex:1;min-width:100px;padding:14px;border:1px solid var(--border-hover);border-radius:10px;background:linear-gradient(135deg,#120808,#251414);cursor:pointer;color:var(--text);font-family:DM Sans,sans-serif;font-size:13px;font-weight:500;transition:border-color 0.2s;">
-                  <div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#fb923c,#f472b6);margin:0 auto 6px;"></div>
-                  Sunset
-                </button>
-              </div>
+              <div id="bio-themes" class="bio-themes-grid"></div>
             </div>
 
             <!-- Branding toggle -->
@@ -973,7 +975,7 @@ function updateTierUI() {
 
   // Refresh tax tracker if it's the active tool (Pro gating may have changed)
   if (currentTool === 'tax') initTaxTracker();
-  if (currentTool === 'bio') syncBrandingToggle();
+  if (currentTool === 'bio') { syncBrandingToggle(); renderBioThemes(); }
 
   // Update cancel button in settings modal if open
   updateSettingsCancelBtn();
@@ -1127,6 +1129,7 @@ let linkIdSeq = 1;
 function initBioTool() {
   if (bioInited) { updateBioPreview(); return; }
   bioInited = true;
+  renderBioThemes();
   renderBioSocials();
   renderBioLinks();
   renderBioVideos();
@@ -1159,6 +1162,7 @@ async function loadBioData() {
     }
   } catch (e) { console.error('loadBioData', e); }
   syncBioForm();
+  renderBioThemes();
   renderBioSocials();
   renderBioLinks();
   renderBioVideos();
@@ -1172,10 +1176,8 @@ function syncBioForm() {
   document.getElementById('bio-name-count').textContent = bioState.display_name.length;
   document.getElementById('bio-bio-count').textContent = bioState.bio.length;
   renderAvatarPreview();
-  // theme
-  document.querySelectorAll('.bio-theme').forEach(b => {
-    b.classList.toggle('selected', b.dataset.theme === bioState.theme);
-  });
+  // theme grid re-renders with lock states
+  renderBioThemes();
   // branding toggle — Free users: disabled/greyed + always checked; Pro users: interactive
   syncBrandingToggle();
 }
@@ -1347,11 +1349,54 @@ async function copyBioLink(url, btn) {
   }
 }
 
+// All 12 themes — first 3 are Free, rest are Pro
+const BIO_THEMES = [
+  { key:'purple',   name:'Purple',   bg:'#07070f', bg2:'#161625', grad:'linear-gradient(135deg,#a78bfa,#e879f9)', pro:false },
+  { key:'midnight', name:'Midnight', bg:'#050508', bg2:'#13131b', grad:'linear-gradient(135deg,#9ca3af,#e5e7eb)', pro:false },
+  { key:'sunset',   name:'Sunset',   bg:'#120808', bg2:'#251414', grad:'linear-gradient(135deg,#fb923c,#f472b6)', pro:false },
+  { key:'ocean',    name:'Ocean',    bg:'#040a14', bg2:'#111d33', grad:'linear-gradient(135deg,#22d3ee,#60a5fa)', pro:true  },
+  { key:'forest',   name:'Forest',   bg:'#040a06', bg2:'#11211a', grad:'linear-gradient(135deg,#34d399,#a7f3d0)', pro:true  },
+  { key:'rose',     name:'Rose',     bg:'#140710', bg2:'#2a1624', grad:'linear-gradient(135deg,#fb7185,#fda4af)', pro:true  },
+  { key:'amber',    name:'Amber',    bg:'#0f0a04', bg2:'#251b0e', grad:'linear-gradient(135deg,#fbbf24,#fde68a)', pro:true  },
+  { key:'crimson',  name:'Crimson',  bg:'#0f0405', bg2:'#260c10', grad:'linear-gradient(135deg,#ef4444,#fca5a5)', pro:true  },
+  { key:'electric', name:'Electric', bg:'#050814', bg2:'#111a38', grad:'linear-gradient(135deg,#60a5fa,#a5b4fc)', pro:true  },
+  { key:'mint',     name:'Mint',     bg:'#030e0c', bg2:'#102623', grad:'linear-gradient(135deg,#2dd4bf,#a7f3d0)', pro:true  },
+  { key:'violet',   name:'Violet',   bg:'#0c0418', bg2:'#220f37', grad:'linear-gradient(135deg,#c084fc,#e9d5ff)', pro:true  },
+  { key:'graphite', name:'Graphite', bg:'#0a0a0a', bg2:'#1e1e1e', grad:'linear-gradient(135deg,#d1d5db,#f3f4f6)', pro:true  },
+];
+
+function renderBioThemes() {
+  const container = document.getElementById('bio-themes');
+  if (!container) return;
+  const isPro = userTier === 'monthly';
+  container.innerHTML = BIO_THEMES.map(t => {
+    const locked = t.pro && !isPro;
+    const selected = bioState.theme === t.key ? 'selected' : '';
+    const lockedClass = locked ? 'locked' : '';
+    const lock = locked ? `<div class="bio-theme-lock" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>` : '';
+    return `<button type="button" class="bio-theme-btn ${selected} ${lockedClass}" data-theme="${t.key}" onclick="pickTheme('${t.key}')"
+      style="background:linear-gradient(135deg,${t.bg},${t.bg2});">
+      <div class="bio-theme-swatch" style="background:${t.grad};"></div>
+      <div class="bio-theme-name">${t.name}</div>
+      ${lock}
+    </button>`;
+  }).join('');
+}
+
 function pickTheme(t) {
+  const theme = BIO_THEMES.find(x => x.key === t);
+  if (!theme) return;
+  const isPro = userTier === 'monthly';
+  if (theme.pro && !isPro) {
+    // Pro-gated theme — open upgrade flow
+    showBioStatus('error', `${theme.name} is a Pro theme. Upgrade to unlock 12 themes.`);
+    if (typeof startCheckout === 'function') {
+      setTimeout(() => { try { startCheckout(); } catch(e){} }, 200);
+    }
+    return;
+  }
   bioState.theme = t;
-  document.querySelectorAll('.bio-theme').forEach(b => {
-    b.classList.toggle('selected', b.dataset.theme === t);
-  });
+  renderBioThemes();
   schedulePreviewUpdate();
 }
 
@@ -1905,7 +1950,13 @@ async function saveBio() {
       display_name: bioState.display_name || null,
       bio: bioState.bio || null,
       avatar_url: bioState.avatar_url || null,
-      theme: bioState.theme,
+      theme: (() => {
+        // Defense-in-depth: Free users cannot save a Pro theme
+        const chosen = BIO_THEMES.find(x => x.key === bioState.theme);
+        if (!chosen) return 'purple';
+        if (chosen.pro && userTier !== 'monthly') return 'purple';
+        return bioState.theme;
+      })(),
       socials: bioState.socials,
       links: cleanLinks,
       videos: cleanVideos,
@@ -2003,6 +2054,15 @@ function buildPreviewHTML() {
     purple:   { bg:'#07070f', surface:'#0f0f1a', surface2:'#161625', text:'#f0eef8', muted:'#b4b2c8', muted2:'#c9c7dc', accent:'#7c3aed', accent2:'#a855f7', glow:'rgba(124,58,237,0.3)', border:'rgba(255,255,255,0.1)', avatarBorder:'linear-gradient(135deg,#a78bfa,#e879f9)' },
     midnight: { bg:'#050508', surface:'#0c0c12', surface2:'#13131b', text:'#f3f4f6', muted:'#c9ccd4', muted2:'#dde0e6', accent:'#4b5563', accent2:'#9ca3af', glow:'rgba(156,163,175,0.25)', border:'rgba(255,255,255,0.09)', avatarBorder:'linear-gradient(135deg,#9ca3af,#e5e7eb)' },
     sunset:   { bg:'#120808', surface:'#1c0e0e', surface2:'#251414', text:'#fff6f0', muted:'#f3c8b2', muted2:'#f7dcca', accent:'#f97316', accent2:'#ec4899', glow:'rgba(249,115,22,0.3)', border:'rgba(255,180,150,0.12)', avatarBorder:'linear-gradient(135deg,#fb923c,#f472b6)' },
+    ocean:    { bg:'#040a14', surface:'#0b1424', surface2:'#111d33', text:'#eaf6ff', muted:'#a5c8e0', muted2:'#c3dcf0', accent:'#0891b2', accent2:'#22d3ee', glow:'rgba(34,211,238,0.3)',  border:'rgba(150,200,255,0.12)', avatarBorder:'linear-gradient(135deg,#22d3ee,#60a5fa)' },
+    forest:   { bg:'#040a06', surface:'#0b1610', surface2:'#11211a', text:'#eefaf2', muted:'#a8ccb7', muted2:'#c5dfd0', accent:'#10b981', accent2:'#34d399', glow:'rgba(52,211,153,0.3)',  border:'rgba(150,255,180,0.1)',  avatarBorder:'linear-gradient(135deg,#34d399,#a7f3d0)' },
+    rose:     { bg:'#140710', surface:'#1e0f1a', surface2:'#2a1624', text:'#fff0f5', muted:'#f0bfd1', muted2:'#f7d5e0', accent:'#e11d48', accent2:'#fb7185', glow:'rgba(251,113,133,0.3)', border:'rgba(255,180,210,0.12)', avatarBorder:'linear-gradient(135deg,#fb7185,#fda4af)' },
+    amber:    { bg:'#0f0a04', surface:'#1a1208', surface2:'#251b0e', text:'#fff8ec', muted:'#e7c9a1', muted2:'#f1dcc0', accent:'#d97706', accent2:'#fbbf24', glow:'rgba(251,191,36,0.3)',  border:'rgba(255,210,150,0.12)', avatarBorder:'linear-gradient(135deg,#fbbf24,#fde68a)' },
+    crimson:  { bg:'#0f0405', surface:'#1a080a', surface2:'#260c10', text:'#fff0f0', muted:'#ecb9b9', muted2:'#f5d0d0', accent:'#b91c1c', accent2:'#ef4444', glow:'rgba(239,68,68,0.3)',   border:'rgba(255,160,160,0.12)', avatarBorder:'linear-gradient(135deg,#ef4444,#fca5a5)' },
+    electric: { bg:'#050814', surface:'#0b1124', surface2:'#111a38', text:'#eaf0ff', muted:'#a8bce0', muted2:'#c5d4ee', accent:'#2563eb', accent2:'#60a5fa', glow:'rgba(96,165,250,0.35)', border:'rgba(150,180,255,0.14)', avatarBorder:'linear-gradient(135deg,#60a5fa,#a5b4fc)' },
+    mint:     { bg:'#030e0c', surface:'#0a1a18', surface2:'#102623', text:'#ecfefa', muted:'#a4d6cd', muted2:'#c3e4de', accent:'#0d9488', accent2:'#2dd4bf', glow:'rgba(45,212,191,0.3)',  border:'rgba(150,255,230,0.12)', avatarBorder:'linear-gradient(135deg,#2dd4bf,#a7f3d0)' },
+    violet:   { bg:'#0c0418', surface:'#170a26', surface2:'#220f37', text:'#f5ecff', muted:'#c9b8e6', muted2:'#dccdf0', accent:'#6d28d9', accent2:'#c084fc', glow:'rgba(192,132,252,0.3)', border:'rgba(200,170,255,0.12)', avatarBorder:'linear-gradient(135deg,#c084fc,#e9d5ff)' },
+    graphite: { bg:'#0a0a0a', surface:'#141414', surface2:'#1e1e1e', text:'#f5f5f5', muted:'#b3b3b3', muted2:'#d1d1d1', accent:'#6b7280', accent2:'#d1d5db', glow:'rgba(209,213,219,0.2)', border:'rgba(255,255,255,0.08)', avatarBorder:'linear-gradient(135deg,#d1d5db,#f3f4f6)' },
   };
   const t = themes[bioState.theme] || themes.purple;
   const name = bioState.display_name || bioState.username || 'Your name';
