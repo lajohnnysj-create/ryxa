@@ -347,6 +347,19 @@
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
+  a.stat-link {
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.15s, border-color 0.15s, background 0.15s;
+  }
+  a.stat-link:hover, a.stat-link:focus-visible {
+    transform: translateY(-2px);
+    border-color: var(--accent2);
+    background: var(--surface);
+  }
+  a.stat-link:hover .stat-icon, a.stat-link:focus-visible .stat-icon {
+    color: var(--accent2);
+  }
   .engagement-row {
     margin-top: 14px;
     padding: 14px 16px;
@@ -633,14 +646,22 @@ function buildHero(kit, headshot) {
 }
 
 function buildAudience(kit) {
-  const socials = kit.socials || {};
+  const rawSocials = kit.socials || {};
+  // Normalize: legacy number-only, or {count, url}
+  const normalized = {};
+  for (const key of Object.keys(rawSocials)) {
+    const v = rawSocials[key];
+    if (typeof v === 'number') normalized[key] = { count: v, url: '' };
+    else if (v && typeof v === 'object') normalized[key] = { count: parseInt(v.count) || 0, url: v.url || '' };
+  }
+
   const filled = SOCIAL_PLATFORMS
-    .map(p => ({ ...p, count: parseInt(socials[p.key]) || 0 }))
-    .filter(p => p.count > 0);
+    .map(p => ({ ...p, data: normalized[p.key] || { count: 0, url: '' } }))
+    .filter(p => p.data.count > 0);
 
   if (filled.length === 0 && !kit.engagement_rate) return '';
 
-  const total = filled.reduce((sum, p) => sum + p.count, 0);
+  const total = filled.reduce((sum, p) => sum + p.data.count, 0);
 
   const totalHtml = total > 0 ? `<div class="total-followers">
     <div class="total-followers-num">${formatNumber(total)}</div>
@@ -648,13 +669,19 @@ function buildAudience(kit) {
   </div>` : '';
 
   const statsHtml = filled.length > 0 ? `<div class="stats-grid">
-    ${filled.map(p => `<div class="stat-card">
-      <div class="stat-icon">${p.svg}</div>
+    ${filled.map(p => {
+      const inner = `<div class="stat-icon">${p.svg}</div>
       <div class="stat-text">
-        <div class="stat-num">${formatNumber(p.count)}</div>
+        <div class="stat-num">${formatNumber(p.data.count)}</div>
         <div class="stat-label">${esc(p.label)}</div>
-      </div>
-    </div>`).join('')}
+      </div>`;
+      // If URL is present and valid, wrap as a link
+      const safeUrl = validExternalUrl(p.data.url);
+      if (safeUrl) {
+        return `<a class="stat-card stat-link" href="${esc(safeUrl)}" target="_blank" rel="noopener nofollow" aria-label="${esc(p.label)} profile">${inner}</a>`;
+      }
+      return `<div class="stat-card">${inner}</div>`;
+    }).join('')}
   </div>` : '';
 
   const engagementHtml = (kit.engagement_rate && parseFloat(kit.engagement_rate) > 0) ? `<div class="engagement-row">
@@ -668,6 +695,16 @@ function buildAudience(kit) {
     ${statsHtml}
     ${engagementHtml}
   </div>`;
+}
+
+// Validates any external http(s) URL — used for social profile links
+function validExternalUrl(u) {
+  if (!u) return null;
+  try {
+    const url = new URL(u);
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') return null;
+    return url.toString();
+  } catch { return null; }
 }
 
 function buildRateCard(kit) {

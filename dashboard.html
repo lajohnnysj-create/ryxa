@@ -192,6 +192,29 @@
   .bio-featured-photo-slot img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .bio-featured-photo-slot input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
 
+  /* Media Kit collapsible sections */
+  .mk-section { background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+  .mk-section-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 16px 20px; width: 100%; text-align: left; background: transparent; border: none; color: var(--text); font-family: 'DM Sans', sans-serif; }
+  button.mk-collapsible { cursor: pointer; transition: background 0.15s; }
+  button.mk-collapsible:hover { background: var(--surface); }
+  .mk-section-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent2); font-weight: 600; }
+  .mk-chevron { transition: transform 0.2s; color: var(--muted); flex-shrink: 0; }
+  button.mk-collapsible[aria-expanded="true"] .mk-chevron { transform: rotate(180deg); }
+  .mk-section-body { padding: 0 20px 20px; }
+  .mk-social-row { display: flex; gap: 10px; align-items: center; }
+  .mk-social-row .mk-social-icon { width: 32px; height: 32px; border-radius: 8px; background: var(--surface); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--muted); }
+  .mk-social-row .mk-social-icon svg { width: 15px; height: 15px; fill: currentColor; }
+  .mk-social-row .mk-social-label { flex: 0 0 80px; font-size: 12px; color: var(--muted); }
+  .mk-social-row input { flex: 1; min-width: 0; background: var(--surface); border: 1px solid var(--border-hover); border-radius: 8px; padding: 8px 10px; font-size: 13px; color: var(--text); font-family: 'DM Sans', sans-serif; outline: none; }
+  .mk-rate-row { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
+  .mk-rate-row .mk-rate-top { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .mk-rate-row .mk-rate-label-text { flex: 1; font-size: 13px; font-weight: 500; color: var(--text); }
+  .mk-rate-row input { width: 100%; background: var(--surface2); border: 1px solid var(--border-hover); border-radius: 6px; padding: 8px 10px; font-size: 13px; color: var(--text); font-family: 'DM Sans', sans-serif; outline: none; box-sizing: border-box; margin-bottom: 6px; }
+  .mk-rate-row .mk-rate-label-input { margin-bottom: 6px; }
+  .mk-rate-row .mk-rate-remove { padding: 4px 10px; background: transparent; border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; border-radius: 6px; font-size: 11px; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+  .mk-rate-price-row { display: flex; gap: 6px; align-items: center; }
+  .mk-rate-price-row .mk-rate-prefix { flex-shrink: 0; font-size: 13px; color: var(--muted); padding: 0 4px 0 2px; }
+
   /* === A11Y: visible focus ring for keyboard users === */
   *:focus-visible {
     outline: 2px solid #c4b5fd;
@@ -309,6 +332,11 @@
     <button class="sidebar-item" id="nav-bio" onclick="showTool('bio')">
       <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
       <span class="sidebar-item-label">Link in Bio</span>
+    </button>
+    <button class="sidebar-item" id="nav-mediakit" onclick="showTool('mediakit')">
+      <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg></div>
+      <span class="sidebar-item-label">Media Kit</span>
+      <span class="sidebar-item-badge">PRO</span>
     </button>
     <button class="sidebar-item" id="nav-follower" onclick="showFollowerTool()">
       <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></div>
@@ -597,6 +625,197 @@
 
         <!-- Bottom save bar on mobile -->
         <div id="bio-save-status" style="margin-top:16px;font-size:13px;color:var(--muted);text-align:center;min-height:20px;"></div>
+      </div>
+    </div>
+
+    <!-- MEDIA KIT TOOL -->
+    <div id="tool-mediakit" style="display:none;">
+      <div id="mediakit-paywall" style="display:none;max-width:560px;margin:40px auto;background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:40px;text-align:center;">
+        <div style="width:56px;height:56px;margin:0 auto 16px;background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.25);border-radius:14px;display:flex;align-items:center;justify-content:center;">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>
+        </div>
+        <h2 style="font-family:Syne,sans-serif;font-size:22px;font-weight:800;margin-bottom:8px;letter-spacing:-0.3px;">Media Kit is a Pro feature</h2>
+        <p style="color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:24px;">Build a professional media kit with your audience stats, engagement rate, and rate card. Share a single link with brands — or download it as a PDF.</p>
+        <button onclick="startCheckout()" style="padding:12px 26px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow);">Upgrade to Pro — $10/mo</button>
+      </div>
+
+      <div id="mediakit-editor" class="bio-tool-wrap" style="display:none;">
+        <!-- Header -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+          <div>
+            <h2 style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;margin-bottom:4px;letter-spacing:-0.5px;">Media Kit</h2>
+            <p style="color:var(--muted);font-size:14px;">Professional creator media kit. Share with brands or download as PDF.</p>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <a id="mk-view-live" href="#" target="_blank" rel="noopener" style="display:none;padding:9px 14px;background:transparent;color:var(--accent2);border:1px solid rgba(124,58,237,0.4);border-radius:10px;font-size:13px;font-weight:500;text-decoration:none;">View live page ↗</a>
+            <button id="mk-save-btn" onclick="saveMediaKit()" style="padding:10px 18px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow);">Save</button>
+          </div>
+        </div>
+
+        <!-- Status bar -->
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span id="mk-status-dot" style="width:8px;height:8px;border-radius:50%;background:var(--muted2);"></span>
+            <div>
+              <div id="mk-status-label" style="font-size:14px;font-weight:500;color:var(--text);">Not published</div>
+              <div id="mk-status-sub" style="font-size:12px;color:var(--muted);">Your media kit isn't live yet. Publish to share it.</div>
+            </div>
+          </div>
+          <button id="mk-publish-btn" onclick="toggleMediaKitPublish()" style="padding:9px 16px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Publish</button>
+        </div>
+
+        <!-- Grid: form + preview -->
+        <div class="bio-grid" style="display:grid;grid-template-columns:1fr 380px;gap:24px;align-items:start;">
+
+          <!-- FORM COLUMN -->
+          <div style="display:flex;flex-direction:column;gap:12px;">
+
+            <!-- Username (shared with Link in Bio) -->
+            <div class="mk-section">
+              <div class="mk-section-header">
+                <div class="mk-section-label">Your public URL</div>
+              </div>
+              <div class="mk-section-body">
+                <div style="display:flex;gap:8px;align-items:stretch;flex-wrap:wrap;">
+                  <div style="display:flex;align-items:center;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding-left:12px;font-size:13px;color:var(--muted);flex:1;min-width:200px;">
+                    <span>findthesnakes.com/mediakit/</span>
+                    <input type="text" id="mk-username" aria-label="Username" placeholder="yourname" maxlength="30" oninput="onMKUsernameInput()" style="background:transparent;border:none;padding:10px 10px 10px 2px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;flex:1;min-width:0;">
+                  </div>
+                </div>
+                <div id="mk-username-hint" style="font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5;">Same username as your Link in Bio. Changing it here updates both.</div>
+              </div>
+            </div>
+
+            <!-- Profile (collapsible) -->
+            <div class="mk-section">
+              <button type="button" class="mk-section-header mk-collapsible" onclick="toggleMKSection('profile')" aria-expanded="true">
+                <div class="mk-section-label">Profile</div>
+                <svg class="mk-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div class="mk-section-body" id="mk-body-profile">
+                <div style="display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap;">
+                  <div style="flex-shrink:0;">
+                    <div id="mk-headshot-preview" style="width:110px;height:110px;border-radius:16px;background:linear-gradient(135deg,#a78bfa,#e879f9);padding:3px;position:relative;">
+                      <div id="mk-headshot-inner" style="width:100%;height:100%;border-radius:13px;background:var(--surface);display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;font-size:40px;font-weight:800;color:var(--text);overflow:hidden;">?</div>
+                    </div>
+                    <div style="display:flex;gap:6px;margin-top:8px;">
+                      <label style="padding:6px 10px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:6px;font-size:11px;cursor:pointer;position:relative;flex:1;text-align:center;">
+                        Upload
+                        <input type="file" id="mk-headshot-input" accept="image/*" aria-label="Upload headshot" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;" onchange="openCropper(this,'headshot')">
+                      </label>
+                      <button id="mk-headshot-remove" onclick="removeHeadshot()" style="padding:6px 10px;background:transparent;border:1px solid rgba(239,68,68,0.3);color:#fca5a5;border-radius:6px;font-size:11px;cursor:pointer;font-family:DM Sans,sans-serif;display:none;">Remove</button>
+                    </div>
+                  </div>
+                  <div style="flex:1;min-width:200px;display:flex;flex-direction:column;gap:10px;">
+                    <div>
+                      <label for="mk-display-name" style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);display:block;margin-bottom:5px;">Name</label>
+                      <input type="text" id="mk-display-name" maxlength="60" oninput="onMKField()" placeholder="Your name" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+                    </div>
+                    <div>
+                      <label for="mk-handle" style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);display:block;margin-bottom:5px;">Handle (optional)</label>
+                      <input type="text" id="mk-handle" maxlength="40" oninput="onMKField()" placeholder="@yourhandle" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+                    </div>
+                    <div>
+                      <label for="mk-category" style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);display:block;margin-bottom:5px;">Category</label>
+                      <input type="text" id="mk-category" maxlength="60" oninput="onMKField()" placeholder="e.g. Lifestyle Creator · NYC" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+                      <div style="text-align:right;font-size:11px;color:var(--muted);margin-top:3px;"><span id="mk-category-count">0</span>/60</div>
+                    </div>
+                    <div>
+                      <label for="mk-bio" style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);display:block;margin-bottom:5px;">Bio</label>
+                      <textarea id="mk-bio" maxlength="300" rows="3" oninput="onMKField()" placeholder="A few sentences about you, your audience, and what you create." style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;resize:vertical;min-height:72px;line-height:1.5;"></textarea>
+                      <div style="text-align:right;font-size:11px;color:var(--muted);margin-top:3px;"><span id="mk-bio-count">0</span>/300</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Audience (collapsible) -->
+            <div class="mk-section">
+              <button type="button" class="mk-section-header mk-collapsible" onclick="toggleMKSection('audience')" aria-expanded="false">
+                <div class="mk-section-label">Audience & Stats</div>
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <span id="mk-total-display" style="font-size:11px;color:var(--muted);"></span>
+                  <svg class="mk-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+              </button>
+              <div class="mk-section-body" id="mk-body-audience" style="display:none;">
+                <div id="mk-socials-form" style="display:flex;flex-direction:column;gap:8px;"></div>
+                <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+                  <label for="mk-engagement" style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);display:block;margin-bottom:5px;">Engagement rate (%)</label>
+                  <input type="number" id="mk-engagement" min="0" max="100" step="0.01" placeholder="e.g. 4.25" oninput="onMKField()" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+                </div>
+              </div>
+            </div>
+
+            <!-- Rate card (collapsible) -->
+            <div class="mk-section">
+              <button type="button" class="mk-section-header mk-collapsible" onclick="toggleMKSection('rates')" aria-expanded="false">
+                <div class="mk-section-label">Rate Card</div>
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <span id="mk-rates-count" style="font-size:11px;color:var(--muted);"></span>
+                  <svg class="mk-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+              </button>
+              <div class="mk-section-body" id="mk-body-rates" style="display:none;">
+                <div id="mk-rates-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px;"></div>
+                <button type="button" onclick="addCustomRate()" style="width:100%;padding:10px;background:transparent;border:1px dashed rgba(124,58,237,0.4);color:var(--accent2);border-radius:8px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;">+ Add custom rate</button>
+              </div>
+            </div>
+
+            <!-- Contact (collapsible) -->
+            <div class="mk-section">
+              <button type="button" class="mk-section-header mk-collapsible" onclick="toggleMKSection('contact')" aria-expanded="false">
+                <div class="mk-section-label">Contact</div>
+                <svg class="mk-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div class="mk-section-body" id="mk-body-contact" style="display:none;">
+                <label for="mk-contact-email" style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);display:block;margin-bottom:5px;">Email (required to publish)</label>
+                <input type="email" id="mk-contact-email" oninput="onMKField()" placeholder="you@yourdomain.com" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;margin-bottom:10px;">
+                <label for="mk-contact-note" style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);display:block;margin-bottom:5px;">Note (optional)</label>
+                <textarea id="mk-contact-note" maxlength="200" rows="2" oninput="onMKField()" placeholder="e.g. Best reached via email. Typical response: 24-48 hours." style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;resize:vertical;line-height:1.5;"></textarea>
+              </div>
+            </div>
+
+            <!-- Theme (collapsible) -->
+            <div class="mk-section">
+              <button type="button" class="mk-section-header mk-collapsible" onclick="toggleMKSection('theme')" aria-expanded="false">
+                <div class="mk-section-label">Theme</div>
+                <svg class="mk-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div class="mk-section-body" id="mk-body-theme" style="display:none;">
+                <div id="mk-themes" class="bio-themes-grid"></div>
+              </div>
+            </div>
+
+            <!-- Settings (collapsible) -->
+            <div class="mk-section">
+              <button type="button" class="mk-section-header mk-collapsible" onclick="toggleMKSection('settings')" aria-expanded="false">
+                <div class="mk-section-label">Settings</div>
+                <svg class="mk-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div class="mk-section-body" id="mk-body-settings" style="display:none;">
+                <label for="mk-show-branding" style="display:flex;align-items:flex-start;gap:12px;cursor:pointer;user-select:none;">
+                  <input type="checkbox" id="mk-show-branding" onchange="onMKField()" style="margin-top:3px;width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0;">
+                  <div style="flex:1;">
+                    <div style="font-size:14px;color:var(--text);font-weight:500;">Show FindTheSnakes branding</div>
+                    <div style="font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5;">Display a small "Built with FindTheSnakes" badge at the bottom of your media kit.</div>
+                  </div>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- PREVIEW COLUMN -->
+          <div style="position:sticky;top:100px;">
+            <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);font-weight:600;margin-bottom:10px;text-align:center;">Live preview</div>
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:12px;height:720px;overflow:hidden;">
+              <iframe id="mk-preview-iframe" srcdoc="" style="width:100%;height:100%;border:none;border-radius:12px;background:var(--bg);"></iframe>
+            </div>
+          </div>
+        </div>
+
+        <div id="mk-save-status" style="margin-top:16px;font-size:13px;color:var(--muted);text-align:center;min-height:20px;"></div>
       </div>
     </div>
 
@@ -919,6 +1138,7 @@ let currentTool = 'welcome';
 const toolTitles = {
   welcome: 'Dashboard',
   bio: 'Link in Bio',
+  mediakit: 'Media Kit',
   follower: 'Follow-Back Audit',
   image: 'Image Converter',
   qr: 'QR Generator',
@@ -1012,7 +1232,7 @@ function showFollowerTool() {
 
 function showTool(tool) {
   // Hide all tools
-  ['welcome','bio','follower','image','qr','invoice','tax'].forEach(t => {
+  ['welcome','bio','mediakit','follower','image','qr','invoice','tax'].forEach(t => {
     const el = document.getElementById('tool-' + t);
     if (el) el.style.display = 'none';
     const nav = document.getElementById('nav-' + t);
@@ -1036,6 +1256,7 @@ function showTool(tool) {
   if (tool === 'invoice') { initInvoiceGenerator(); loadSavedLogo(); }
   if (tool === 'tax') initTaxTracker();
   if (tool === 'bio') initBioTool();
+  if (tool === 'mediakit') initMediaKitTool();
   // Close sidebar on mobile
   closeSidebar();
 }
@@ -1747,7 +1968,12 @@ function openCropper(input, target, linkId) {
   // Always reset the confirm button + error in case previous upload failed or hung
   resetCropperButton();
   bioCropSource = file;
-  bioCropTarget = target === 'avatar' ? 'avatar' : { type: 'featured', linkId };
+  // Targets: 'avatar' (1:1), 'headshot' (1:1), or featured {type, linkId} (16:9)
+  if (target === 'avatar' || target === 'headshot') {
+    bioCropTarget = target;
+  } else {
+    bioCropTarget = { type: 'featured', linkId };
+  }
   const reader = new FileReader();
   reader.onload = e => {
     const modal = document.getElementById('bio-cropper-modal');
@@ -1757,8 +1983,9 @@ function openCropper(input, target, linkId) {
     if (bioCropper) { bioCropper.destroy(); bioCropper = null; }
     // Wait for image to load before initializing cropper
     img.onload = () => {
+      const is1to1 = (target === 'avatar' || target === 'headshot');
       bioCropper = new Cropper(img, {
-        aspectRatio: target === 'avatar' ? 1 : 16/9,
+        aspectRatio: is1to1 ? 1 : 16/9,
         viewMode: 1,
         background: false,
         autoCropArea: 1,
@@ -1784,8 +2011,10 @@ function closeCropper() {
 async function confirmCrop() {
   if (!bioCropper || !currentUser) return;
   const isAvatar = bioCropTarget === 'avatar';
-  const targetW = isAvatar ? 400 : 800;
-  const targetH = isAvatar ? 400 : 450;
+  const isHeadshot = bioCropTarget === 'headshot';
+  // Sizes: avatar 400x400, headshot 600x600, featured 800x450
+  const targetW = isAvatar ? 400 : isHeadshot ? 600 : 800;
+  const targetH = isAvatar ? 400 : isHeadshot ? 600 : 450;
   const btn = document.getElementById('bio-cropper-confirm');
   btn.disabled = true;
   btn.textContent = 'Uploading…';
@@ -1810,16 +2039,18 @@ async function confirmCrop() {
 
     if (!blob) throw new Error('Could not process image.');
 
-    const kind = isAvatar ? 'avatar' : 'featured';
+    // Choose bucket + filename based on target
+    const bucket = isHeadshot ? 'media-kit-photos' : 'bio-photos';
+    const kind = isAvatar ? 'avatar' : isHeadshot ? 'headshot' : 'featured';
     const fileName = `${currentUser.id}/${kind}-${Date.now()}-${Math.random().toString(36).slice(2,8)}.webp`;
 
-    const { error: upErr } = await sb.storage.from('bio-photos').upload(fileName, blob, {
+    const { error: upErr } = await sb.storage.from(bucket).upload(fileName, blob, {
       contentType: 'image/webp',
       upsert: false
     });
     if (upErr) throw new Error(upErr.message || 'Upload rejected. Please try again.');
 
-    const { data: urlData } = sb.storage.from('bio-photos').getPublicUrl(fileName);
+    const { data: urlData } = sb.storage.from(bucket).getPublicUrl(fileName);
     const publicUrl = urlData?.publicUrl;
     if (!publicUrl) throw new Error('Could not get photo URL.');
 
@@ -1827,6 +2058,12 @@ async function confirmCrop() {
       if (bioState.avatar_url) bioStalePhotos.push(bioState.avatar_url);
       bioState.avatar_url = publicUrl;
       renderAvatarPreview();
+      schedulePreviewUpdate();
+    } else if (isHeadshot) {
+      if (mkState.headshot_url) mkStalePhotos.push(mkState.headshot_url);
+      mkState.headshot_url = publicUrl;
+      renderMKHeadshotPreview();
+      scheduleMKPreview();
     } else {
       const link = bioState.links.find(l => l._id === bioCropTarget.linkId);
       if (link) {
@@ -1834,8 +2071,8 @@ async function confirmCrop() {
         link.photoUrl = publicUrl;
       }
       renderBioLinks();
+      schedulePreviewUpdate();
     }
-    schedulePreviewUpdate();
     closeCropper();
   } catch (e) {
     console.error('Upload error:', e);
@@ -2146,6 +2383,737 @@ function buildPreviewVideos(t) {
   }).filter(Boolean).join('');
   if (!cards) return '';
   return `<div class="vids"><div class="vids-r">${cards}</div></div>`;
+}
+
+// =====================================================
+// MEDIA KIT
+// =====================================================
+const MK_SOCIAL_PLATFORMS = [
+  { key:'instagram', label:'Instagram', urlPrefix:'https://instagram.com/', svg:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.2c3.2 0 3.6 0 4.85.07 1.17.05 1.8.25 2.22.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.05.41 2.22.06 1.26.07 1.64.07 4.82s-.01 3.57-.07 4.82c-.05 1.17-.25 1.8-.41 2.22a3.72 3.72 0 0 1-.9 1.38c-.42.42-.82.68-1.38.9-.42.16-1.05.36-2.22.41-1.26.06-1.64.07-4.82.07s-3.57-.01-4.82-.07c-1.17-.05-1.8-.25-2.22-.41a3.72 3.72 0 0 1-1.38-.9 3.72 3.72 0 0 1-.9-1.38c-.16-.42-.36-1.05-.41-2.22C2.21 15.57 2.2 15.19 2.2 12s.01-3.57.07-4.82c.05-1.17.25-1.8.41-2.22.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.05-.36 2.22-.41C8.43 2.21 8.81 2.2 12 2.2M12 0C8.74 0 8.33.01 7.05.07 5.78.13 4.9.33 4.14.63a5.92 5.92 0 0 0-2.13 1.39A5.92 5.92 0 0 0 .62 4.14C.33 4.9.13 5.78.07 7.05.01 8.33 0 8.74 0 12c0 3.26.01 3.67.07 4.95.06 1.27.26 2.15.56 2.91a5.92 5.92 0 0 0 1.39 2.13c.66.66 1.32 1.06 2.13 1.39.76.3 1.64.5 2.91.56C8.33 23.99 8.74 24 12 24c3.26 0 3.67-.01 4.95-.07 1.27-.06 2.15-.26 2.91-.56a5.92 5.92 0 0 0 2.13-1.39c.66-.66 1.06-1.32 1.39-2.13.3-.76.5-1.64.56-2.91.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.06-1.27-.26-2.15-.56-2.91a5.92 5.92 0 0 0-1.39-2.13A5.92 5.92 0 0 0 19.86.62c-.76-.3-1.64-.5-2.91-.56C15.67.01 15.26 0 12 0Zm0 5.84a6.16 6.16 0 1 0 0 12.32 6.16 6.16 0 0 0 0-12.32Zm0 10.16a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm6.41-11.88a1.44 1.44 0 1 0 0 2.88 1.44 1.44 0 0 0 0-2.88Z"/></svg>' },
+  { key:'tiktok', label:'TikTok', urlPrefix:'https://tiktok.com/@', svg:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5.8 20.1a6.34 6.34 0 0 0 10.86-4.43V8.83a8.16 8.16 0 0 0 4.77 1.52V6.9a4.85 4.85 0 0 1-1.84-.21Z"/></svg>' },
+  { key:'youtube', label:'YouTube', urlPrefix:'', svg:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.12C19.54 3.58 12 3.58 12 3.58s-7.54 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.07 0 12 0 12s0 3.93.5 5.8a3 3 0 0 0 2.1 2.12c1.86.5 9.4.5 9.4.5s7.54 0 9.4-.5a3 3 0 0 0 2.1-2.12C24 15.93 24 12 24 12s0-3.93-.5-5.8ZM9.55 15.57V8.43L15.82 12l-6.27 3.57Z"/></svg>' },
+  { key:'twitter', label:'Twitter/X', urlPrefix:'https://x.com/', svg:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>' },
+  { key:'facebook', label:'Facebook', urlPrefix:'https://facebook.com/', svg:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.68.23 2.68.23v2.97h-1.51c-1.49 0-1.95.93-1.95 1.89v2.26h3.32l-.53 3.49h-2.79V24C19.61 23.1 24 18.1 24 12.07Z"/></svg>' },
+  { key:'threads', label:'Threads', urlPrefix:'https://threads.net/@', svg:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.472 12.01v-.017c.03-3.579.879-6.43 2.525-8.482C5.845 1.205 8.6.024 12.18 0h.014c2.746.02 5.043.725 6.826 2.098 1.677 1.29 2.858 3.13 3.509 5.467l-2.04.569c-1.104-3.96-3.898-5.984-8.304-6.015-2.91.022-5.11.936-6.54 2.717C4.307 6.504 3.616 8.914 3.589 12c.027 3.086.718 5.496 2.057 7.164 1.43 1.783 3.631 2.698 6.54 2.717 2.623-.02 4.358-.631 5.8-2.045 1.647-1.613 1.618-3.593 1.09-4.798-.31-.71-.873-1.3-1.634-1.75-.192 1.352-.622 2.446-1.284 3.272-.886 1.102-2.14 1.704-3.73 1.79-1.202.065-2.361-.218-3.259-.801-1.063-.689-1.685-1.74-1.752-2.964-.065-1.19.408-2.285 1.33-3.082.88-.76 2.119-1.207 3.583-1.291 1.034-.06 1.995 0 2.917.175-.084-.689-.302-1.235-.646-1.62-.523-.584-1.252-.823-2.196-.734a3.62 3.62 0 0 0-1.907.795l-1.078-1.66c.845-.621 2.027-.964 3.158-.988 1.692-.035 2.979.492 3.853 1.575.781.968 1.147 2.329 1.09 4.039 1.32.639 2.316 1.674 2.854 2.972.768 1.855.82 4.84-1.639 7.245-1.876 1.834-4.215 2.658-7.39 2.678z"/></svg>' },
+  { key:'snapchat', label:'Snapchat', urlPrefix:'https://snapchat.com/add/', svg:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.02 0C5.44 0 4.73 5.08 4.86 7.15c.03.5.05 1.01.06 1.52-.3.16-.79.38-1.29.38-.38 0-.75-.14-1.08-.41-.06-.05-.17-.14-.35-.14-.3 0-.65.17-.92.47-.3.34-.3.78.02 1.08.27.26.7.48 1.2.62.68.19 1.56.49 1.79 1.04.13.3-.01.69-.41 1.17a.35.35 0 0 1-.03.03c-.01.02-1.28 2.08-4.21 2.56-.22.04-.38.24-.36.46 0 .05.02.1.04.15.13.3.56.52 1.32.68.08.02.14.11.17.3.03.18.07.4.17.63.1.23.29.35.55.35.14 0 .3-.03.48-.06.25-.05.57-.11.96-.11.22 0 .44.02.68.06.45.07.83.34 1.27.65.63.45 1.35.96 2.43.96.08 0 .17 0 .26-.02.08.01.2.02.33.02 1.08 0 1.8-.51 2.43-.96.44-.31.82-.58 1.27-.65.24-.04.46-.06.68-.06.38 0 .68.05.96.11.2.04.36.06.48.06h.02c.19 0 .41-.08.53-.35.1-.22.14-.43.17-.62.02-.17.09-.28.17-.3.76-.16 1.19-.38 1.32-.68a.43.43 0 0 0 .04-.15c.02-.22-.14-.42-.36-.46-2.93-.48-4.2-2.54-4.21-2.56a.57.57 0 0 1-.03-.03c-.4-.48-.54-.87-.41-1.17.23-.55 1.11-.85 1.79-1.04.5-.14.93-.36 1.2-.62.33-.32.33-.76.03-1.08-.28-.3-.63-.47-.92-.47-.19 0-.3.08-.35.14-.32.26-.69.41-1.08.41-.5 0-.99-.22-1.29-.38.01-.51.03-1.02.06-1.52.13-2.07-.58-7.15-7.16-7.15Z"/></svg>' },
+  { key:'pinterest', label:'Pinterest', urlPrefix:'https://pinterest.com/', svg:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 0C5.373 0 0 5.372 0 12c0 5.084 3.163 9.426 7.627 11.174-.105-.949-.2-2.405.042-3.441.218-.937 1.407-5.965 1.407-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738.098.119.112.224.083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.889-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.359-.631-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/></svg>' },
+  { key:'linkedin', label:'LinkedIn', urlPrefix:'', svg:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.95v5.66H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.26 2.37 4.26 5.45v6.29ZM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12ZM7.12 20.45H3.56V9h3.56v11.45ZM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0Z"/></svg>' },
+  { key:'twitch', label:'Twitch', urlPrefix:'https://twitch.tv/', svg:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>' },
+];
+
+const MK_PREDEFINED_RATES = [
+  { id:'ig_reel',  label:'Instagram Reel' },
+  { id:'ig_post',  label:'Instagram Post' },
+  { id:'ig_story', label:'Instagram Story' },
+  { id:'tiktok',   label:'TikTok Video' },
+  { id:'youtube',  label:'YouTube Video' },
+];
+
+let mkState = {
+  headshot_url: '',
+  display_name: '',
+  handle: '',
+  bio: '',
+  category: '',
+  socials: {}, // { instagram: { count: N, url: "..." }, ... }
+  engagement_rate: '',
+  rate_card: [], // array of {id, label, price, note}
+  contact_email: '',
+  contact_note: '',
+  theme: 'purple',
+  show_branding: false,
+  published: false,
+};
+let mkInited = false;
+let mkPreviewTimer = null;
+let mkStalePhotos = [];
+let mkRateIdSeq = 1;
+
+function initMediaKitTool() {
+  const isPro = userTier === 'monthly';
+  document.getElementById('mediakit-paywall').style.display = isPro ? 'none' : 'block';
+  document.getElementById('mediakit-editor').style.display = isPro ? 'block' : 'none';
+  if (!isPro) return;
+
+  if (mkInited) {
+    renderMKSocials();
+    renderMKRates();
+    renderMKThemes();
+    updateMKPreview();
+    return;
+  }
+  mkInited = true;
+
+  // Seed predefined rate card rows (all blank — user fills in what they charge for)
+  if (mkState.rate_card.length === 0) {
+    mkState.rate_card = MK_PREDEFINED_RATES.map(r => ({ _id: mkRateIdSeq++, id: r.id, label: r.label, price: '', note: '' }));
+  }
+
+  renderMKSocials();
+  renderMKRates();
+  renderMKThemes();
+  loadMediaKit();
+
+  document.getElementById('mk-headshot-inner').addEventListener('click', () => {
+    document.getElementById('mk-headshot-input').click();
+  });
+}
+
+async function loadMediaKit() {
+  if (!currentUser) return;
+  try {
+    // Load shared username from profiles
+    const { data: profile } = await sb.from('profiles').select('username').eq('user_id', currentUser.id).maybeSingle();
+    if (profile?.username) {
+      document.getElementById('mk-username').value = profile.username;
+      // Keep bioOriginalUsername in sync (Link in Bio uses this)
+      if (typeof bioOriginalUsername !== 'undefined') bioOriginalUsername = profile.username;
+      if (typeof bioState !== 'undefined') bioState.username = profile.username;
+    }
+    // Load media kit data
+    const { data: kit } = await sb.from('media_kit').select('*').eq('user_id', currentUser.id).maybeSingle();
+    if (kit) {
+      mkState.headshot_url = kit.headshot_url || '';
+      mkState.display_name = kit.display_name || '';
+      mkState.handle = kit.handle || '';
+      mkState.bio = kit.bio || '';
+      mkState.category = kit.category || '';
+      // Migrate legacy number-only socials to {count, url}
+      const rawSocials = kit.socials || {};
+      const socials = {};
+      for (const key of Object.keys(rawSocials)) {
+        const v = rawSocials[key];
+        if (typeof v === 'number') socials[key] = { count: v, url: '' };
+        else if (v && typeof v === 'object') socials[key] = { count: parseInt(v.count) || 0, url: v.url || '' };
+      }
+      mkState.socials = socials;
+      mkState.engagement_rate = kit.engagement_rate || '';
+      mkState.contact_email = kit.contact_email || '';
+      mkState.contact_note = kit.contact_note || '';
+      mkState.theme = kit.theme || 'purple';
+      mkState.show_branding = !!kit.show_branding;
+      mkState.published = !!kit.published;
+      // Merge DB rate card with predefined rows
+      const dbRates = Array.isArray(kit.rate_card) ? kit.rate_card : [];
+      mkState.rate_card = MK_PREDEFINED_RATES.map(r => {
+        const existing = dbRates.find(x => x.id === r.id);
+        return { _id: mkRateIdSeq++, id: r.id, label: r.label, price: existing?.price || '', note: existing?.note || '' };
+      });
+      // Add any custom rates
+      dbRates.filter(r => !MK_PREDEFINED_RATES.find(p => p.id === r.id)).forEach(r => {
+        mkState.rate_card.push({ _id: mkRateIdSeq++, id: r.id || ('custom-' + Date.now() + '-' + Math.random().toString(36).slice(2,6)), label: r.label || 'Custom', price: r.price || '', note: r.note || '' });
+      });
+    }
+  } catch (e) { console.error('loadMediaKit', e); }
+  syncMKForm();
+  renderMKSocials();
+  renderMKRates();
+  renderMKThemes();
+  updateMKPublishUI();
+  updateMKPreview();
+}
+
+function syncMKForm() {
+  document.getElementById('mk-display-name').value = mkState.display_name;
+  document.getElementById('mk-handle').value = mkState.handle;
+  document.getElementById('mk-category').value = mkState.category;
+  document.getElementById('mk-bio').value = mkState.bio;
+  document.getElementById('mk-category-count').textContent = mkState.category.length;
+  document.getElementById('mk-bio-count').textContent = mkState.bio.length;
+  document.getElementById('mk-engagement').value = mkState.engagement_rate;
+  document.getElementById('mk-contact-email').value = mkState.contact_email;
+  document.getElementById('mk-contact-note').value = mkState.contact_note;
+  document.getElementById('mk-show-branding').checked = mkState.show_branding;
+  renderMKHeadshotPreview();
+}
+
+function renderMKHeadshotPreview() {
+  const inner = document.getElementById('mk-headshot-inner');
+  const removeBtn = document.getElementById('mk-headshot-remove');
+  if (mkState.headshot_url) {
+    inner.innerHTML = `<img alt="" src="${escapeHtml(mkState.headshot_url)}" style="width:100%;height:100%;object-fit:cover;border-radius:13px;">`;
+    removeBtn.style.display = 'inline-block';
+  } else {
+    const name = mkState.display_name || '?';
+    inner.textContent = (name[0] || '?').toUpperCase();
+    removeBtn.style.display = 'none';
+  }
+}
+
+function onMKField() {
+  mkState.display_name = document.getElementById('mk-display-name').value;
+  mkState.handle = document.getElementById('mk-handle').value;
+  mkState.category = document.getElementById('mk-category').value;
+  mkState.bio = document.getElementById('mk-bio').value;
+  mkState.engagement_rate = document.getElementById('mk-engagement').value;
+  mkState.contact_email = document.getElementById('mk-contact-email').value;
+  mkState.contact_note = document.getElementById('mk-contact-note').value;
+  mkState.show_branding = document.getElementById('mk-show-branding').checked;
+  document.getElementById('mk-category-count').textContent = mkState.category.length;
+  document.getElementById('mk-bio-count').textContent = mkState.bio.length;
+  if (!mkState.headshot_url) renderMKHeadshotPreview();
+  scheduleMKPreview();
+}
+
+function toggleMKSection(name) {
+  const body = document.getElementById('mk-body-' + name);
+  const btn = body.previousElementSibling;
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  btn.setAttribute('aria-expanded', !isOpen);
+}
+
+function removeHeadshot() {
+  if (mkState.headshot_url) mkStalePhotos.push(mkState.headshot_url);
+  mkState.headshot_url = '';
+  renderMKHeadshotPreview();
+  scheduleMKPreview();
+}
+
+// ==== Username sync with Link in Bio ====
+let mkUsernameCheckTimer = null;
+let mkUsernameCheckToken = 0;
+function onMKUsernameInput() {
+  const raw = document.getElementById('mk-username').value;
+  const cleaned = raw.toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 30);
+  if (cleaned !== raw) document.getElementById('mk-username').value = cleaned;
+  // Keep Link in Bio state in sync (since it's the same profile row)
+  if (typeof bioState !== 'undefined') bioState.username = cleaned;
+  // Update Link in Bio's input if the tool has been initialized
+  const bioInput = document.getElementById('bio-username');
+  if (bioInput && bioInput.value !== cleaned) bioInput.value = cleaned;
+
+  const hint = document.getElementById('mk-username-hint');
+  clearTimeout(mkUsernameCheckTimer);
+  mkUsernameCheckToken++;
+
+  if (!cleaned) {
+    hint.textContent = 'Same username as your Link in Bio. Changing it here updates both.';
+    hint.style.color = 'var(--muted)';
+  } else if (cleaned.length < 3) {
+    hint.textContent = 'Too short — minimum 3 characters';
+    hint.style.color = '#fca5a5';
+  } else if (typeof BIO_RESERVED !== 'undefined' && BIO_RESERVED.has(cleaned)) {
+    hint.textContent = 'That username is reserved. Pick another.';
+    hint.style.color = '#fca5a5';
+  } else if (typeof bioOriginalUsername !== 'undefined' && cleaned === bioOriginalUsername) {
+    renderMKUsernameAvailable(cleaned);
+  } else {
+    hint.innerHTML = `<span style="color:var(--muted);">Checking <strong>${cleaned}</strong>…</span>`;
+    hint.style.color = 'var(--muted)';
+    const myToken = mkUsernameCheckToken;
+    mkUsernameCheckTimer = setTimeout(() => checkMKUsernameAvailability(cleaned, myToken), 500);
+  }
+  scheduleMKPreview();
+}
+
+async function checkMKUsernameAvailability(username, token) {
+  const hint = document.getElementById('mk-username-hint');
+  try {
+    const { data, error } = await sb.from('profiles').select('user_id').eq('username', username).maybeSingle();
+    if (token !== mkUsernameCheckToken) return;
+    if (error) {
+      hint.innerHTML = `<span style="color:var(--muted);">Couldn't check availability. Will verify on save.</span>`;
+      return;
+    }
+    if (!data || data.user_id === currentUser?.id) {
+      renderMKUsernameAvailable(username);
+    } else {
+      hint.innerHTML = `<span style="color:#fca5a5;">✕ <strong>${escapeHtml(username)}</strong> is taken — try another.</span>`;
+    }
+  } catch (e) {
+    if (token !== mkUsernameCheckToken) return;
+  }
+}
+
+function renderMKUsernameAvailable(cleaned) {
+  const hint = document.getElementById('mk-username-hint');
+  const fullUrl = `https://www.findthesnakes.com/mediakit/${cleaned}`;
+  hint.innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <span style="color:#4ade80;">✓</span>
+      <span>Media kit URL: <strong style="color:var(--accent2)">findthesnakes.com/mediakit/${escapeHtml(cleaned)}</strong></span>
+      <button type="button" onclick="copyBioLink('${fullUrl}', this)"
+        style="padding:4px 10px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:6px;font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;font-weight:500;">
+        Copy link
+      </button>
+    </div>`;
+  hint.style.color = 'var(--muted)';
+}
+
+// ==== Socials ====
+function renderMKSocials() {
+  const container = document.getElementById('mk-socials-form');
+  if (!container) return;
+  container.innerHTML = MK_SOCIAL_PLATFORMS.map(p => {
+    const data = mkState.socials[p.key] || { count: 0, url: '' };
+    return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px;">
+      <div class="mk-social-row" style="margin-bottom:6px;">
+        <div class="mk-social-icon">${p.svg}</div>
+        <div class="mk-social-label">${p.label}</div>
+        <input type="number" min="0" placeholder="Follower count"
+          value="${data.count || ''}"
+          oninput="onMKSocialCount('${p.key}',this.value)"
+          aria-label="${p.label} follower count">
+      </div>
+      <input type="url" placeholder="Profile URL (optional — makes icon clickable)"
+        value="${escapeHtml(data.url || '')}"
+        oninput="onMKSocialUrl('${p.key}',this.value)"
+        aria-label="${p.label} profile URL"
+        style="width:100%;background:var(--surface2);border:1px solid var(--border-hover);border-radius:6px;padding:7px 10px;font-size:12px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;box-sizing:border-box;">
+    </div>`;
+  }).join('');
+  updateMKTotalDisplay();
+}
+
+function onMKSocialCount(key, val) {
+  const n = parseInt(val);
+  if (!mkState.socials[key]) mkState.socials[key] = { count: 0, url: '' };
+  mkState.socials[key].count = isFinite(n) && n > 0 ? n : 0;
+  // If both fields empty, drop the whole entry
+  if (!mkState.socials[key].count && !mkState.socials[key].url) delete mkState.socials[key];
+  updateMKTotalDisplay();
+  scheduleMKPreview();
+}
+
+function onMKSocialUrl(key, val) {
+  if (!mkState.socials[key]) mkState.socials[key] = { count: 0, url: '' };
+  mkState.socials[key].url = (val || '').trim();
+  if (!mkState.socials[key].count && !mkState.socials[key].url) delete mkState.socials[key];
+  scheduleMKPreview();
+}
+
+function updateMKTotalDisplay() {
+  const total = Object.values(mkState.socials).reduce((sum, s) => sum + (parseInt(s.count) || 0), 0);
+  const el = document.getElementById('mk-total-display');
+  if (!el) return;
+  if (total > 0) {
+    el.textContent = formatNumberShort(total) + ' total';
+  } else {
+    el.textContent = '';
+  }
+}
+
+function formatNumberShort(n) {
+  const num = parseInt(n);
+  if (!num || num < 0) return '0';
+  if (num >= 1000000) return (num / 1000000).toFixed(num % 1000000 === 0 ? 0 : 1) + 'M';
+  if (num >= 1000) return (num / 1000).toFixed(num % 1000 === 0 ? 0 : 1) + 'K';
+  return String(num);
+}
+
+// ==== Rate card ====
+function addCustomRate() {
+  mkState.rate_card.push({
+    _id: mkRateIdSeq++,
+    id: 'custom-' + Date.now() + '-' + Math.random().toString(36).slice(2,6),
+    label: '',
+    price: '',
+    note: ''
+  });
+  renderMKRates();
+  scheduleMKPreview();
+}
+
+function removeRate(id) {
+  mkState.rate_card = mkState.rate_card.filter(r => r._id !== id);
+  renderMKRates();
+  scheduleMKPreview();
+}
+
+function onRateField(id, field, val) {
+  const r = mkState.rate_card.find(x => x._id === id);
+  if (!r) return;
+  r[field] = val;
+  scheduleMKPreview();
+}
+
+function renderMKRates() {
+  const el = document.getElementById('mk-rates-list');
+  const counts = document.getElementById('mk-rates-count');
+  if (!el) return;
+  const filled = mkState.rate_card.filter(r => parseFloat(r.price) > 0).length;
+  if (counts) counts.textContent = filled > 0 ? `${filled} active` : '';
+
+  el.innerHTML = mkState.rate_card.map(r => {
+    const isPredefined = MK_PREDEFINED_RATES.some(p => p.id === r.id);
+    const labelEl = isPredefined
+      ? `<div class="mk-rate-label-text">${escapeHtml(r.label)}</div>`
+      : `<input type="text" class="mk-rate-label-input" placeholder="Rate label (e.g. Podcast Integration)" maxlength="60"
+           value="${escapeHtml(r.label || '')}"
+           oninput="onRateField(${r._id},'label',this.value)"
+           aria-label="Rate label">`;
+    const removeBtn = !isPredefined
+      ? `<button class="mk-rate-remove" onclick="removeRate(${r._id})">Remove</button>`
+      : '';
+    return `<div class="mk-rate-row">
+      ${isPredefined ? `<div class="mk-rate-top">${labelEl}${removeBtn}</div>` : labelEl}
+      <div class="mk-rate-price-row">
+        <span class="mk-rate-prefix">$</span>
+        <input type="number" min="0" step="1" placeholder="Price (USD)"
+          value="${escapeHtml(r.price ? String(r.price) : '')}"
+          oninput="onRateField(${r._id},'price',this.value)"
+          aria-label="Price in USD"
+          style="flex:1;">
+      </div>
+      <input type="text" placeholder="Note (optional — e.g. Includes 14-day usage rights)" maxlength="120"
+        value="${escapeHtml(r.note || '')}"
+        oninput="onRateField(${r._id},'note',this.value)"
+        aria-label="Rate note"
+        style="margin-bottom:0;">
+      ${!isPredefined ? '' : `<div style="text-align:right;margin-top:6px;"><button class="mk-rate-remove" onclick="onRateField(${r._id},'price','');onRateField(${r._id},'note','');renderMKRates();scheduleMKPreview();">Clear</button></div>`}
+    </div>`;
+  }).join('');
+}
+
+// ==== Theme ====
+function renderMKThemes() {
+  const container = document.getElementById('mk-themes');
+  if (!container) return;
+  // All 12 themes unlocked for Pro (Media Kit is Pro-only)
+  container.innerHTML = BIO_THEMES.map(t => {
+    const selected = mkState.theme === t.key ? 'selected' : '';
+    return `<button type="button" class="bio-theme-btn ${selected}" data-theme="${t.key}" onclick="pickMKTheme('${t.key}')"
+      style="background:linear-gradient(135deg,${t.bg},${t.bg2});">
+      <div class="bio-theme-swatch" style="background:${t.grad};"></div>
+      <div class="bio-theme-name">${t.name}</div>
+    </button>`;
+  }).join('');
+}
+
+function pickMKTheme(t) {
+  mkState.theme = t;
+  renderMKThemes();
+  scheduleMKPreview();
+}
+
+// ==== Save / Publish ====
+function showMKStatus(kind, msg) {
+  const el = document.getElementById('mk-save-status');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.color = kind === 'error' ? '#fca5a5' : kind === 'success' ? '#4ade80' : 'var(--muted)';
+  if (kind !== 'error') setTimeout(() => { if (el.textContent === msg) el.textContent = ''; }, 3000);
+}
+
+async function saveMediaKit() {
+  if (!currentUser) return;
+  if (userTier !== 'monthly') { showMKStatus('error', 'Media Kit is a Pro feature.'); return; }
+  const btn = document.getElementById('mk-save-btn');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+  try {
+    // Username (shared with Link in Bio)
+    const uname = document.getElementById('mk-username').value.trim();
+    if (uname) {
+      if (uname.length < 3) throw new Error('Username must be at least 3 characters.');
+      if (!/^[a-z0-9_]+$/.test(uname)) throw new Error('Username: lowercase letters, numbers, underscore only.');
+      if (typeof BIO_RESERVED !== 'undefined' && BIO_RESERVED.has(uname)) throw new Error('That username is reserved.');
+      // Check availability if changed
+      const originalUname = (typeof bioOriginalUsername !== 'undefined') ? bioOriginalUsername : '';
+      if (uname !== originalUname) {
+        const { data: existing } = await sb.from('profiles').select('user_id').eq('username', uname).maybeSingle();
+        if (existing && existing.user_id !== currentUser.id) throw new Error('That username is already taken.');
+        const { error: upErr } = await sb.from('profiles').upsert({ user_id: currentUser.id, username: uname }, { onConflict: 'user_id' });
+        if (upErr) throw upErr;
+        if (typeof bioOriginalUsername !== 'undefined') bioOriginalUsername = uname;
+        if (typeof bioState !== 'undefined') bioState.username = uname;
+      }
+    }
+
+    // Clean rate card — strip _id, only save rows with valid price or note
+    const cleanRates = mkState.rate_card
+      .filter(r => {
+        const p = parseFloat(r.price);
+        return (isFinite(p) && p > 0) || (r.note && r.note.trim());
+      })
+      .map(r => ({
+        id: r.id,
+        label: (r.label || '').slice(0, 60),
+        price: parseFloat(r.price) || 0,
+        note: (r.note || '').slice(0, 120),
+      }));
+
+    // Normalize social URLs before save
+    const cleanSocials = {};
+    for (const key of Object.keys(mkState.socials)) {
+      const s = mkState.socials[key];
+      const count = parseInt(s.count) || 0;
+      let url = (s.url || '').trim();
+      if (url) {
+        // If no protocol, try to prepend https://
+        if (!/^[a-z][a-z0-9+.-]*:/i.test(url)) url = 'https://' + url;
+        // Basic URL validation
+        try {
+          const parsed = new URL(url);
+          if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') url = '';
+        } catch { url = ''; }
+      }
+      if (count > 0 || url) cleanSocials[key] = { count, url };
+    }
+
+    const engagement = parseFloat(mkState.engagement_rate);
+    const payload = {
+      user_id: currentUser.id,
+      headshot_url: mkState.headshot_url || null,
+      display_name: mkState.display_name || null,
+      handle: mkState.handle || null,
+      bio: mkState.bio || null,
+      category: mkState.category || null,
+      socials: cleanSocials,
+      engagement_rate: isFinite(engagement) && engagement >= 0 ? engagement : null,
+      rate_card: cleanRates,
+      contact_email: mkState.contact_email || null,
+      contact_note: mkState.contact_note || null,
+      theme: mkState.theme,
+      show_branding: !!mkState.show_branding,
+      published: mkState.published,
+    };
+    const { error } = await sb.from('media_kit').upsert(payload, { onConflict: 'user_id' });
+    if (error) throw error;
+
+    await deleteMKStalePhotos();
+    updateMKPublishUI();
+    showMKStatus('success', 'Saved ✓');
+  } catch (e) {
+    console.error(e);
+    showMKStatus('error', e.message || 'Save failed.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Save';
+  }
+}
+
+async function toggleMediaKitPublish() {
+  if (!currentUser) return;
+  if (userTier !== 'monthly') { showMKStatus('error', 'Media Kit is a Pro feature.'); return; }
+  const wantPublish = !mkState.published;
+  if (wantPublish) {
+    const uname = document.getElementById('mk-username').value.trim();
+    if (!uname) { showMKStatus('error', 'Pick a username first.'); return; }
+    if (uname.length < 3) { showMKStatus('error', 'Username must be at least 3 characters.'); return; }
+    if (!mkState.contact_email) { showMKStatus('error', 'Add a contact email before publishing.'); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mkState.contact_email)) { showMKStatus('error', 'Contact email looks invalid.'); return; }
+  }
+  const btn = document.getElementById('mk-publish-btn');
+  btn.disabled = true;
+  btn.textContent = wantPublish ? 'Publishing…' : 'Unpublishing…';
+  try {
+    mkState.published = wantPublish;
+    await saveMediaKit();
+    updateMKPublishUI();
+    showMKStatus('success', wantPublish ? 'Your media kit is live 🎉' : 'Media kit unpublished.');
+  } catch (e) {
+    mkState.published = !wantPublish;
+    showMKStatus('error', 'Failed to ' + (wantPublish ? 'publish' : 'unpublish'));
+  } finally {
+    btn.disabled = false;
+    updateMKPublishUI();
+  }
+}
+
+function updateMKPublishUI() {
+  const dot = document.getElementById('mk-status-dot');
+  const label = document.getElementById('mk-status-label');
+  const sub = document.getElementById('mk-status-sub');
+  const btn = document.getElementById('mk-publish-btn');
+  const viewLink = document.getElementById('mk-view-live');
+  const uname = document.getElementById('mk-username').value.trim();
+  if (mkState.published) {
+    dot.style.background = '#4ade80';
+    label.textContent = 'Published';
+    sub.innerHTML = uname
+      ? `Live at <strong style="color:var(--accent2)">findthesnakes.com/mediakit/${escapeHtml(uname)}</strong>`
+      : 'Your media kit is live.';
+    btn.textContent = 'Unpublish';
+    btn.style.background = 'transparent';
+    btn.style.border = '1px solid var(--border-hover)';
+    btn.style.color = 'var(--muted)';
+    if (viewLink && uname) {
+      viewLink.href = '/mediakit/' + uname;
+      viewLink.style.display = 'inline-flex';
+    } else if (viewLink) {
+      viewLink.style.display = 'none';
+    }
+  } else {
+    dot.style.background = 'var(--muted2)';
+    label.textContent = 'Not published';
+    sub.textContent = "Your media kit isn't live yet. Publish to share it.";
+    btn.textContent = 'Publish';
+    btn.style.background = 'var(--accent)';
+    btn.style.border = 'none';
+    btn.style.color = '#fff';
+    if (viewLink) viewLink.style.display = 'none';
+  }
+}
+
+// Delete stale media-kit-photos
+async function deleteMKStalePhotos() {
+  if (!currentUser) return;
+  try {
+    const { data: files, error: listErr } = await sb.storage.from('media-kit-photos').list(currentUser.id, { limit: 100 });
+    if (listErr || !Array.isArray(files)) { mkStalePhotos = []; return; }
+    const inUse = new Set();
+    const extractPath = (url) => {
+      if (!url) return null;
+      const m = url.match(/media-kit-photos\/(.+)$/);
+      return m ? m[1] : null;
+    };
+    const p = extractPath(mkState.headshot_url);
+    if (p) inUse.add(p);
+    const toDelete = files.map(f => `${currentUser.id}/${f.name}`).filter(path => !inUse.has(path));
+    if (toDelete.length > 0) await sb.storage.from('media-kit-photos').remove(toDelete);
+  } catch (e) { console.warn('Failed to cleanup MK stale photos', e); }
+  mkStalePhotos = [];
+}
+
+// ==== Live preview ====
+function scheduleMKPreview() {
+  clearTimeout(mkPreviewTimer);
+  mkPreviewTimer = setTimeout(updateMKPreview, 200);
+}
+
+function updateMKPreview() {
+  const iframe = document.getElementById('mk-preview-iframe');
+  if (!iframe) return;
+  iframe.srcdoc = buildMKPreviewHTML();
+}
+
+function buildMKPreviewHTML() {
+  const themes = {
+    purple:   { bg:'#07070f', surface:'#0f0f1a', surface2:'#161625', text:'#f0eef8', muted:'#b4b2c8', muted2:'#c9c7dc', accent:'#7c3aed', accent2:'#a855f7', glow:'rgba(124,58,237,0.3)', border:'rgba(255,255,255,0.1)', avatarBorder:'linear-gradient(135deg,#a78bfa,#e879f9)' },
+    midnight: { bg:'#050508', surface:'#0c0c12', surface2:'#13131b', text:'#f3f4f6', muted:'#c9ccd4', muted2:'#dde0e6', accent:'#4b5563', accent2:'#9ca3af', glow:'rgba(156,163,175,0.25)', border:'rgba(255,255,255,0.09)', avatarBorder:'linear-gradient(135deg,#9ca3af,#e5e7eb)' },
+    sunset:   { bg:'#120808', surface:'#1c0e0e', surface2:'#251414', text:'#fff6f0', muted:'#f3c8b2', muted2:'#f7dcca', accent:'#f97316', accent2:'#ec4899', glow:'rgba(249,115,22,0.3)', border:'rgba(255,180,150,0.12)', avatarBorder:'linear-gradient(135deg,#fb923c,#f472b6)' },
+    ocean:    { bg:'#040a14', surface:'#0b1424', surface2:'#111d33', text:'#eaf6ff', muted:'#a5c8e0', muted2:'#c3dcf0', accent:'#0891b2', accent2:'#22d3ee', glow:'rgba(34,211,238,0.3)', border:'rgba(150,200,255,0.12)', avatarBorder:'linear-gradient(135deg,#22d3ee,#60a5fa)' },
+    forest:   { bg:'#040a06', surface:'#0b1610', surface2:'#11211a', text:'#eefaf2', muted:'#a8ccb7', muted2:'#c5dfd0', accent:'#10b981', accent2:'#34d399', glow:'rgba(52,211,153,0.3)', border:'rgba(150,255,180,0.1)', avatarBorder:'linear-gradient(135deg,#34d399,#a7f3d0)' },
+    rose:     { bg:'#140710', surface:'#1e0f1a', surface2:'#2a1624', text:'#fff0f5', muted:'#f0bfd1', muted2:'#f7d5e0', accent:'#e11d48', accent2:'#fb7185', glow:'rgba(251,113,133,0.3)', border:'rgba(255,180,210,0.12)', avatarBorder:'linear-gradient(135deg,#fb7185,#fda4af)' },
+    amber:    { bg:'#0f0a04', surface:'#1a1208', surface2:'#251b0e', text:'#fff8ec', muted:'#e7c9a1', muted2:'#f1dcc0', accent:'#d97706', accent2:'#fbbf24', glow:'rgba(251,191,36,0.3)', border:'rgba(255,210,150,0.12)', avatarBorder:'linear-gradient(135deg,#fbbf24,#fde68a)' },
+    crimson:  { bg:'#0f0405', surface:'#1a080a', surface2:'#260c10', text:'#fff0f0', muted:'#ecb9b9', muted2:'#f5d0d0', accent:'#b91c1c', accent2:'#ef4444', glow:'rgba(239,68,68,0.3)', border:'rgba(255,160,160,0.12)', avatarBorder:'linear-gradient(135deg,#ef4444,#fca5a5)' },
+    electric: { bg:'#050814', surface:'#0b1124', surface2:'#111a38', text:'#eaf0ff', muted:'#a8bce0', muted2:'#c5d4ee', accent:'#2563eb', accent2:'#60a5fa', glow:'rgba(96,165,250,0.35)', border:'rgba(150,180,255,0.14)', avatarBorder:'linear-gradient(135deg,#60a5fa,#a5b4fc)' },
+    mint:     { bg:'#030e0c', surface:'#0a1a18', surface2:'#102623', text:'#ecfefa', muted:'#a4d6cd', muted2:'#c3e4de', accent:'#0d9488', accent2:'#2dd4bf', glow:'rgba(45,212,191,0.3)', border:'rgba(150,255,230,0.12)', avatarBorder:'linear-gradient(135deg,#2dd4bf,#a7f3d0)' },
+    violet:   { bg:'#0c0418', surface:'#170a26', surface2:'#220f37', text:'#f5ecff', muted:'#c9b8e6', muted2:'#dccdf0', accent:'#6d28d9', accent2:'#c084fc', glow:'rgba(192,132,252,0.3)', border:'rgba(200,170,255,0.12)', avatarBorder:'linear-gradient(135deg,#c084fc,#e9d5ff)' },
+    graphite: { bg:'#0a0a0a', surface:'#141414', surface2:'#1e1e1e', text:'#f5f5f5', muted:'#b3b3b3', muted2:'#d1d1d1', accent:'#6b7280', accent2:'#d1d5db', glow:'rgba(209,213,219,0.2)', border:'rgba(255,255,255,0.08)', avatarBorder:'linear-gradient(135deg,#d1d5db,#f3f4f6)' },
+  };
+  const t = themes[mkState.theme] || themes.purple;
+  const name = mkState.display_name || 'Your name';
+  const initial = (name[0] || '?').toUpperCase();
+  const headshot = mkState.headshot_url
+    ? `<img src="${escapeHtml(mkState.headshot_url)}" alt="" style="width:100%;height:100%;border-radius:10px;object-fit:cover;display:block;">`
+    : `<div style="width:100%;height:100%;border-radius:10px;background:${t.surface2};display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;font-size:40px;font-weight:800;color:${t.text};">${escapeHtml(initial)}</div>`;
+
+  // Audience
+  const filledSocials = MK_SOCIAL_PLATFORMS
+    .map(p => ({ ...p, data: mkState.socials[p.key] || { count: 0, url: '' } }))
+    .filter(p => (parseInt(p.data.count) || 0) > 0);
+  const total = filledSocials.reduce((s, p) => s + (parseInt(p.data.count) || 0), 0);
+  let audienceHtml = '';
+  if (total > 0 || (parseFloat(mkState.engagement_rate) > 0)) {
+    const totalHtml = total > 0 ? `<div class="total-block">
+      <div class="total-num">${formatNumberShort(total)}</div>
+      <div class="total-lbl">Total Followers</div>
+    </div>` : '';
+    const socialsHtml = filledSocials.length > 0 ? `<div class="stats-grid">
+      ${filledSocials.map(p => `<div class="stat-card">
+        <div class="stat-icn">${p.svg}</div>
+        <div><div class="stat-n">${formatNumberShort(p.data.count)}</div><div class="stat-l">${p.label}</div></div>
+      </div>`).join('')}
+    </div>` : '';
+    const eng = parseFloat(mkState.engagement_rate);
+    const engagementHtml = (eng > 0) ? `<div class="eng-row">
+      <div class="eng-l">Engagement Rate</div>
+      <div class="eng-v">${eng.toFixed(2)}%</div>
+    </div>` : '';
+    audienceHtml = `<div class="sec">
+      <div class="sec-t">Audience</div>
+      ${totalHtml}
+      ${socialsHtml}
+      ${engagementHtml}
+    </div>`;
+  }
+
+  // Rate card
+  const validRates = mkState.rate_card.filter(r => parseFloat(r.price) > 0);
+  const ratesHtml = validRates.length > 0 ? `<div class="sec">
+    <div class="sec-t">Rate Card</div>
+    ${validRates.map(r => {
+      const lbl = r.label || 'Custom';
+      const priceStr = '$' + Math.round(parseFloat(r.price)).toLocaleString('en-US');
+      return `<div class="rate-r">
+        <div>
+          <div class="rate-lbl">${escapeHtml(lbl)}</div>
+          ${r.note ? `<div class="rate-n">${escapeHtml(r.note)}</div>` : ''}
+        </div>
+        <div class="rate-p">${priceStr}</div>
+      </div>`;
+    }).join('')}
+  </div>` : '';
+
+  // Contact
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mkState.contact_email || '');
+  const contactHtml = emailValid ? `<div class="sec">
+    <div class="sec-t">Contact</div>
+    <div class="contact-box">${escapeHtml(mkState.contact_email)}</div>
+    ${mkState.contact_note ? `<div class="contact-n">${escapeHtml(mkState.contact_note)}</div>` : ''}
+  </div>` : '';
+
+  const bannerHtml = mkState.show_branding ? `<div class="banner-wrap"><div class="banner">Built with <strong>FindTheSnakes</strong></div></div>` : '';
+
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'DM Sans',sans-serif;background:${t.bg};color:${t.text};min-height:100vh;padding:24px 14px;overflow-x:hidden;}
+  body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 50% 0%,${t.glow} 0%,transparent 60%);pointer-events:none;z-index:0;}
+  .w{position:relative;z-index:1;max-width:100%;}
+  .hero{display:flex;gap:14px;align-items:center;padding:16px;background:${t.surface};border:1px solid ${t.border};border-radius:14px;margin-bottom:10px;}
+  .hs-frame{width:80px;height:80px;padding:2px;border-radius:12px;background:${t.avatarBorder};flex-shrink:0;}
+  .hs-frame > *{width:100%;height:100%;}
+  .h-body{flex:1;min-width:0;}
+  .h-name{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.3px;word-break:break-word;}
+  .h-handle{font-size:11px;color:${t.accent2};font-weight:500;margin-top:2px;word-break:break-word;}
+  .h-cat{font-size:10px;color:${t.muted};text-transform:uppercase;letter-spacing:0.06em;margin-top:4px;word-break:break-word;}
+  .h-bio{font-size:11px;color:${t.muted2};line-height:1.5;margin-top:6px;word-break:break-word;}
+  .sec{background:${t.surface};border:1px solid ${t.border};border-radius:14px;padding:14px 16px;margin-bottom:10px;}
+  .sec-t{font-family:'Syne',sans-serif;font-size:9px;text-transform:uppercase;letter-spacing:0.1em;color:${t.accent2};font-weight:700;margin-bottom:10px;}
+  .total-block{padding:12px;background:${t.surface2};border:1px solid ${t.border};border-radius:10px;text-align:center;margin-bottom:8px;}
+  .total-num{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;letter-spacing:-0.8px;background:${t.avatarBorder};-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;}
+  .total-lbl{font-size:9px;color:${t.muted};text-transform:uppercase;letter-spacing:0.06em;margin-top:4px;}
+  .stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;}
+  .stat-card{background:${t.surface2};border:1px solid ${t.border};border-radius:8px;padding:8px 10px;display:flex;align-items:center;gap:8px;}
+  .stat-icn{width:22px;height:22px;border-radius:6px;background:${t.surface};border:1px solid ${t.border};display:flex;align-items:center;justify-content:center;color:${t.muted2};flex-shrink:0;}
+  .stat-icn svg{width:11px;height:11px;fill:currentColor;}
+  .stat-n{font-family:'Syne',sans-serif;font-size:12px;font-weight:800;color:${t.text};}
+  .stat-l{font-size:9px;color:${t.muted};text-transform:uppercase;letter-spacing:0.04em;}
+  .eng-row{margin-top:8px;padding:10px 12px;background:${t.surface2};border:1px solid ${t.border};border-radius:8px;display:flex;align-items:center;justify-content:space-between;}
+  .eng-l{font-size:9px;color:${t.muted};text-transform:uppercase;letter-spacing:0.05em;font-weight:500;}
+  .eng-v{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:${t.accent2};}
+  .rate-r{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start;padding:10px 0;border-bottom:1px solid ${t.border};}
+  .rate-r:last-child{border-bottom:none;}
+  .rate-lbl{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:${t.text};letter-spacing:-0.1px;word-break:break-word;}
+  .rate-n{font-size:10px;color:${t.muted};margin-top:2px;line-height:1.4;word-break:break-word;}
+  .rate-p{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:${t.accent2};letter-spacing:-0.2px;white-space:nowrap;}
+  .contact-box{display:inline-block;padding:10px 14px;background:${t.surface2};border:1px solid ${t.border};border-radius:8px;color:${t.text};font-size:11px;font-weight:500;word-break:break-all;}
+  .contact-n{margin-top:8px;font-size:10px;color:${t.muted2};line-height:1.5;}
+  .banner-wrap{text-align:center;margin-top:14px;}
+  .banner{display:inline-block;padding:7px 14px;background:${t.surface};border:1px solid ${t.border};border-radius:100px;font-size:9px;color:${t.muted};}
+  .banner strong{color:${t.text};font-weight:600;}
+  </style></head><body>
+  <div class="w">
+    <div class="hero">
+      <div class="hs-frame">${headshot}</div>
+      <div class="h-body">
+        <div class="h-name">${escapeHtml(name)}</div>
+        ${mkState.handle ? `<div class="h-handle">${escapeHtml(mkState.handle)}</div>` : ''}
+        ${mkState.category ? `<div class="h-cat">${escapeHtml(mkState.category)}</div>` : ''}
+        ${mkState.bio ? `<div class="h-bio">${escapeHtml(mkState.bio)}</div>` : ''}
+      </div>
+    </div>
+    ${audienceHtml}
+    ${ratesHtml}
+    ${contactHtml}
+    ${bannerHtml}
+  </div></body></html>`;
 }
 
 // =====================================================
