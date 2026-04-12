@@ -660,6 +660,28 @@
   }
   .scripts-hook-right { display: flex; align-items: center; gap: 10px; }
 
+  /* Hook collapsed display */
+  .scripts-hook-display {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.4;
+    letter-spacing: -0.3px;
+    color: #fff;
+    padding: 8px 0 4px;
+    cursor: text;
+    border-radius: 6px;
+    transition: background 0.15s;
+  }
+  .scripts-hook-display:hover { background: rgba(255,255,255,0.03); }
+  .scripts-hook-placeholder {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--muted);
+    letter-spacing: 0;
+  }
+
   /* Block meta row */
   .scripts-block-meta {
     display: flex;
@@ -751,15 +773,90 @@
 
   /* Mobile */
   @media (max-width: 640px) {
-    .scripts-title-input { font-size: 22px; }
-    .scripts-editor-top { gap: 8px; }
-    .scripts-editor-status { flex: 1 1 100%; text-align: left; order: 3; }
+    /* Editor top bar - let view toggle wrap its own line */
+    .scripts-editor-top {
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .scripts-back-btn { order: 1; flex-shrink: 0; padding: 7px 10px; font-size: 11px; }
+    .scripts-view-toggle {
+      order: 4;
+      width: 100%;
+      justify-content: stretch;
+      padding: 3px;
+    }
+    .scripts-view-toggle .scripts-view-btn {
+      flex: 1;
+      justify-content: center;
+      padding: 7px 4px;
+      font-size: 10px;
+      gap: 3px;
+      min-width: 0;
+    }
+    .scripts-editor-status { order: 5; flex: 1 1 100%; text-align: center; margin-top: 2px; }
+    .scripts-editor-actions { order: 2; margin-left: auto; }
     .scripts-action-btn { padding: 7px 10px; font-size: 11px; }
-    .scripts-hook-wrap { padding: 12px; }
+
+    /* Title + meta */
+    .scripts-title-input { font-size: 22px; padding: 4px 0; }
+    .scripts-meta-row { font-size: 11px; gap: 6px; }
+    .scripts-meta-row select { font-size: 11px; padding: 3px 20px 3px 7px; }
+
+    /* Hook */
+    .scripts-hook-wrap { padding: 12px; margin-bottom: 12px; }
+    .scripts-hook-input { font-size: 14px; padding: 10px 12px; min-height: 54px; }
+    .scripts-hook-display { font-size: 15px; padding: 6px 0 2px; }
+    .scripts-hook-placeholder { font-size: 13px; }
+
+    /* Add row buttons */
+    .scripts-add-row { gap: 6px; margin-bottom: 12px; }
+    .scripts-add-btn { padding: 9px 10px; font-size: 12px; flex: 1; justify-content: center; }
+
+    /* Blocks */
     .scripts-block { padding: 10px 12px; }
-    .scripts-block-title { font-size: 12px; }
-    .scripts-block-body { font-size: 13px; }
-    .scripts-export-menu { right: auto; left: 0; }
+    .scripts-block-header { gap: 6px; margin-bottom: 6px; }
+    .scripts-block-title { font-size: 13px; }
+    .scripts-block-body { font-size: 13px; padding: 9px 11px; min-height: 64px; }
+    .scripts-items-list { gap: 8px; }
+
+    /* Collapsed block */
+    .scripts-block.collapsed { padding: 9px 11px; }
+    .scripts-block-collapsed-title { font-size: 12px; }
+    .scripts-block-collapsed-preview { font-size: 11px; }
+    .scripts-block-collapsed-meta { font-size: 9px; padding: 2px 6px; }
+
+    /* Section dividers */
+    .scripts-section { gap: 6px; }
+    .scripts-section-input { min-width: 80px; font-size: 10px; padding: 4px 6px; }
+
+    /* Buttons */
+    .scripts-remove-btn, .scripts-collapse-btn, .scripts-expand-btn { width: 24px; height: 24px; }
+    .scripts-drag-handle { width: 22px; height: 22px; }
+
+    /* Kbd hint — hide on very small screens so meta row stays clean */
+    .scripts-kbd-hint { font-size: 9px; }
+    .scripts-kbd-hint kbd { font-size: 9px; min-width: 16px; padding: 1px 4px; }
+
+    /* Inline save */
+    .scripts-inline-save { padding: 4px 10px; font-size: 10px; }
+
+    /* Export menu positioning */
+    .scripts-export-menu { right: auto; left: 0; min-width: 200px; }
+
+    /* List cards */
+    .scripts-card { padding: 12px 14px; gap: 10px; }
+    .scripts-card-title { font-size: 13px; }
+    .scripts-card-meta { font-size: 10px; }
+    .scripts-card-btn { width: 28px; height: 28px; }
+  }
+
+  @media (max-width: 420px) {
+    /* Ultra narrow: drop the kbd hint entirely */
+    .scripts-kbd-hint { display: none; }
+    .scripts-editor-meta { margin-bottom: 12px; }
+    .scripts-title-input { font-size: 20px; }
+    .scripts-view-toggle .scripts-view-btn { padding: 7px 2px; font-size: 9px; }
+    .scripts-view-toggle .scripts-view-btn svg { display: none; }
   }
 
   /* ==================== TELEPROMPTER ==================== */
@@ -2350,6 +2447,13 @@
             <div>
               <div class="welcome-tool-name">Media Kit <span style="font-size:9px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;padding:2px 6px;border-radius:4px;margin-left:4px;vertical-align:middle;">PRO</span></div>
               <div class="welcome-tool-desc">Pitch brands with a professional media kit and rate card</div>
+            </div>
+          </div>
+          <div class="welcome-tool-card" onclick="showTool('scripts')">
+            <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/><path d="M6 21l-2-2 2-2M18 21l2-2-2-2"/></svg></div>
+            <div>
+              <div class="welcome-tool-name">Script Builder <span style="font-size:9px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;padding:2px 6px;border-radius:4px;margin-left:4px;vertical-align:middle;font-weight:700;letter-spacing:0.03em;">MAX</span></div>
+              <div class="welcome-tool-desc">Write, storyboard, and play back scripts cinematically</div>
             </div>
           </div>
           <div class="welcome-tool-card" onclick="showTool('grid')">
@@ -8697,7 +8801,8 @@ let currentScript = null;
 let scriptsDirty = false;
 let scriptsAutoSaveTimer = null;
 let scriptItemIdCounter = 0;
-let currentScriptView = 'script'; // 'script' | 'storyboard'
+let currentScriptView = 'script';
+let hookEditing = false;
 
 function initScriptsTool() {
   const isMaxUser = isMax();
@@ -8874,6 +8979,7 @@ async function openScriptEditor(id) {
   if (!Array.isArray(currentScript.items)) currentScript.items = [];
   scriptsDirty = false;
   currentScriptView = 'script';
+  hookEditing = false;
   document.getElementById('scripts-list-view').style.display = 'none';
   document.getElementById('scripts-edit-view').style.display = 'block';
   renderScriptEditor();
@@ -8946,17 +9052,20 @@ function renderScriptEditor() {
 
     <!-- SCRIPT VIEW -->
     <div id="scripts-view-script" style="display:${currentScriptView === 'script' ? 'block' : 'none'};">
-      <div class="scripts-hook-wrap">
+      <div class="scripts-hook-wrap" id="scripts-hook-wrap">
         <div class="scripts-hook-label">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m13 2-2 2.5h3L12 7"/><path d="M10 14a4 4 0 1 1-4-4c1.1 0 2.5.4 2.5.4L5 17"/><path d="M7 14v0"/><circle cx="18" cy="17" r="4"/></svg>
           Hook
         </div>
-        <textarea id="scripts-hook-input" class="scripts-hook-input" maxlength="200" rows="2" placeholder="What's the one sentence that stops the scroll?" oninput="onScriptHookChange(this.value)" onkeydown="if((event.key==='Enter')&&(event.ctrlKey||event.metaKey)){event.preventDefault();this.blur();saveScriptNow();}" aria-label="Hook">${escapeHtml(currentScript.hook || '')}</textarea>
-        <div class="scripts-hook-meta">
-          <span class="scripts-kbd-hint"><kbd>Ctrl</kbd>+<kbd>Enter</kbd> to save</span>
-          <div class="scripts-hook-right">
-            <span><span id="scripts-hook-count">${(currentScript.hook || '').length}</span>/200</span>
-            <button class="scripts-inline-save" onclick="saveAndBlurHook()">Save</button>
+        <div id="scripts-hook-display" class="scripts-hook-display" onclick="editHook()" style="display:${(currentScript.hook && !hookEditing) ? 'block' : 'none'};">${escapeHtml(currentScript.hook || '') || '<span class="scripts-hook-placeholder">What\'s the one sentence that stops the scroll?</span>'}</div>
+        <div id="scripts-hook-edit" style="display:${(currentScript.hook && !hookEditing) ? 'none' : 'block'};">
+          <textarea id="scripts-hook-input" class="scripts-hook-input" maxlength="200" rows="2" placeholder="What's the one sentence that stops the scroll?" oninput="onScriptHookChange(this.value)" onkeydown="if((event.key==='Enter')&&(event.ctrlKey||event.metaKey)){event.preventDefault();saveAndCollapseHook();}" aria-label="Hook">${escapeHtml(currentScript.hook || '')}</textarea>
+          <div class="scripts-hook-meta">
+            <span class="scripts-kbd-hint"><kbd>Ctrl</kbd>+<kbd>Enter</kbd> to save</span>
+            <div class="scripts-hook-right">
+              <span><span id="scripts-hook-count">${(currentScript.hook || '').length}</span>/200</span>
+              <button class="scripts-inline-save" onclick="saveAndCollapseHook()">Save</button>
+            </div>
           </div>
         </div>
       </div>
@@ -9249,10 +9358,38 @@ async function saveAndCollapseBlock(id) {
   await saveScriptNow();
 }
 
-async function saveAndBlurHook() {
-  const hook = document.getElementById('scripts-hook-input');
-  if (hook) hook.blur();
+async function saveAndCollapseHook() {
+  const display = document.getElementById('scripts-hook-display');
+  const editWrap = document.getElementById('scripts-hook-edit');
+  if (!display || !editWrap) return;
+  const hookText = currentScript.hook || '';
+  if (hookText.trim()) {
+    display.innerHTML = escapeHtml(hookText);
+    display.style.display = 'block';
+    editWrap.style.display = 'none';
+    hookEditing = false;
+  }
+  // If empty, stay in edit mode
   await saveScriptNow();
+}
+
+function editHook() {
+  const display = document.getElementById('scripts-hook-display');
+  const editWrap = document.getElementById('scripts-hook-edit');
+  if (!display || !editWrap) return;
+  display.style.display = 'none';
+  editWrap.style.display = 'block';
+  hookEditing = true;
+  // Focus the textarea
+  setTimeout(() => {
+    const textarea = document.getElementById('scripts-hook-input');
+    if (textarea) {
+      textarea.focus();
+      // Place cursor at end instead of selecting all
+      const len = textarea.value.length;
+      textarea.setSelectionRange(len, len);
+    }
+  }, 20);
 }
 
 // ========== Item mutators ==========
