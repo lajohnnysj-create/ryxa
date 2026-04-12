@@ -177,8 +177,11 @@
   }
   /* Tighter mobile fixes */
   @media (max-width: 640px) {
-    /* Force every descendant of the bio tool to respect viewport width */
-    .bio-tool-wrap, .bio-tool-wrap * { min-width: 0 !important; }
+    /* Force every descendant of the bio tool to respect viewport width,
+       but DON'T touch form controls that need their size preserved */
+    .bio-tool-wrap, .bio-tool-wrap *:not(input):not(button):not(svg):not(img) { min-width: 0 !important; }
+    /* Keep checkbox/radio at their specified width */
+    .bio-tool-wrap input[type="checkbox"], .bio-tool-wrap input[type="radio"] { min-width: 18px !important; flex-shrink: 0 !important; }
     .bio-tool-wrap { max-width: 100%; overflow: hidden; padding: 0 !important; }
     .bio-tool-wrap h2 { font-size: 20px !important; }
     .bio-tool-wrap p { font-size: 13px !important; }
@@ -202,8 +205,13 @@
     .bio-tool-wrap button { font-size: 12px !important; }
     /* Input prefix "findthesnakes.com/" might overflow — allow wrap */
     .bio-username-prefix { font-size: 12px !important; }
-    /* Ensure all inputs don't overflow */
-    .bio-tool-wrap input, .bio-tool-wrap textarea { max-width: 100% !important; box-sizing: border-box !important; width: 100% !important; }
+    /* Ensure text inputs don't overflow (but NOT checkboxes/radios) */
+    .bio-tool-wrap input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]):not([type="file"]),
+    .bio-tool-wrap textarea {
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+      width: 100% !important;
+    }
     /* Video card thumbnails keep aspect */
     .bio-video-thumb { max-width: 100% !important; }
     /* Social icon grid more compact */
