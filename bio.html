@@ -617,12 +617,13 @@ function render(profile, bio, userTier) {
   const linksHtml = links.map(buildLink).filter(Boolean).join('');
   const videosHtml = buildVideos(videos);
 
-  // Free users see the banner. Pro users don't.
-  // Note: we don't know tier from public data — for now show on all pages; later
-  // this can be gated if we expose a public tier flag.
-  const banner = `<a class="brand-banner" href="https://www.findthesnakes.com">
+  // Banner rule: always show for non-Pro users (downgrade reverts branding).
+  // Pro users can opt out via show_branding=false.
+  const isPro = profile.tier === 'monthly';
+  const showBanner = !isPro || bio.show_branding !== false;
+  const banner = showBanner ? `<a class="brand-banner" href="https://www.findthesnakes.com">
     Get your free link-in-bio at <strong>FindTheSnakes</strong>
-  </a>`;
+  </a>` : '';
 
   document.getElementById('wrap').innerHTML = `
     ${buildAvatar(profile, bio)}
@@ -639,10 +640,10 @@ async function load() {
   const username = getUsername();
   if (!username) { renderNotFound(null); return; }
 
-  // 1) Look up the profile by username
+  // 1) Look up the profile + tier via the public view (one query, no sensitive data exposed)
   const { data: profile, error: pErr } = await sb
-    .from('profiles')
-    .select('user_id, username')
+    .from('public_profile_tiers')
+    .select('user_id, username, tier')
     .eq('username', username)
     .maybeSingle();
 
@@ -651,7 +652,7 @@ async function load() {
   // 2) Fetch their published link-in-bio page
   const { data: bio, error: bErr } = await sb
     .from('link_in_bio')
-    .select('display_name, bio, avatar_url, theme, links, videos, socials, published')
+    .select('display_name, bio, avatar_url, theme, links, videos, socials, show_branding, published')
     .eq('user_id', profile.user_id)
     .eq('published', true)
     .maybeSingle();

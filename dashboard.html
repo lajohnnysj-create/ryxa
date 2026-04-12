@@ -512,6 +512,24 @@
               </div>
             </div>
 
+            <!-- Branding toggle -->
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:20px;">
+              <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:14px;">Branding</div>
+              <label id="bio-branding-label" for="bio-show-branding" style="display:flex;align-items:flex-start;gap:12px;cursor:pointer;user-select:none;">
+                <input type="checkbox" id="bio-show-branding" checked onchange="onBrandingToggle()"
+                  style="margin-top:3px;width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0;">
+                <div style="flex:1;">
+                  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                    <span style="font-size:14px;color:var(--text);font-weight:500;">Show FindTheSnakes branding at bottom</span>
+                    <span id="bio-branding-pro-pill" style="font-size:10px;background:rgba(124,58,237,0.2);color:#c4b5fd;border-radius:100px;padding:2px 8px;font-weight:700;letter-spacing:0.05em;display:none;">PRO</span>
+                  </div>
+                  <div id="bio-branding-hint" style="font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5;">
+                    The footer link helps other creators find FindTheSnakes. Upgrade to Pro to remove it.
+                  </div>
+                </div>
+              </label>
+            </div>
+
             <!-- Socials -->
             <div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:20px;">
               <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:14px;">Social icons</div>
@@ -931,6 +949,7 @@ function updateTierUI() {
 
   // Refresh tax tracker if it's the active tool (Pro gating may have changed)
   if (currentTool === 'tax') initTaxTracker();
+  if (currentTool === 'bio') syncBrandingToggle();
 
   // Update cancel button in settings modal if open
   updateSettingsCancelBtn();
@@ -1070,6 +1089,7 @@ let bioState = {
   links: [],
   videos: [],
   published: false,
+  show_branding: true,
 };
 let bioInited = false;
 let bioCropper = null;
@@ -1111,6 +1131,7 @@ async function loadBioData() {
       bioState.links = Array.isArray(bio.links) ? bio.links.map(l => ({ ...l, _id: linkIdSeq++ })) : [];
       bioState.videos = Array.isArray(bio.videos) ? bio.videos.map(v => ({ ...v, _id: linkIdSeq++ })) : [];
       bioState.published = !!bio.published;
+      bioState.show_branding = bio.show_branding !== false; // default true
     }
   } catch (e) { console.error('loadBioData', e); }
   syncBioForm();
@@ -1131,6 +1152,48 @@ function syncBioForm() {
   document.querySelectorAll('.bio-theme').forEach(b => {
     b.classList.toggle('selected', b.dataset.theme === bioState.theme);
   });
+  // branding toggle — Free users: disabled/greyed + always checked; Pro users: interactive
+  syncBrandingToggle();
+}
+
+function syncBrandingToggle() {
+  const isPro = userTier === 'monthly';
+  const cb = document.getElementById('bio-show-branding');
+  const label = document.getElementById('bio-branding-label');
+  const pill = document.getElementById('bio-branding-pro-pill');
+  const hint = document.getElementById('bio-branding-hint');
+  if (!cb) return;
+
+  if (isPro) {
+    cb.disabled = false;
+    cb.checked = bioState.show_branding;
+    label.style.opacity = '1';
+    label.style.cursor = 'pointer';
+    if (pill) pill.style.display = 'none';
+    if (hint) hint.textContent = "Uncheck to hide the \"Get your free link-in-bio\" footer on your public page.";
+  } else {
+    // Free: force checked on, disabled
+    cb.checked = true;
+    cb.disabled = true;
+    label.style.opacity = '0.65';
+    label.style.cursor = 'not-allowed';
+    if (pill) pill.style.display = 'inline-flex';
+    if (hint) hint.textContent = "The footer link helps other creators find FindTheSnakes. Upgrade to Pro to remove it.";
+    // Ensure state matches the forced-on checkbox
+    bioState.show_branding = true;
+  }
+}
+
+function onBrandingToggle() {
+  const isPro = userTier === 'monthly';
+  if (!isPro) {
+    // Shouldn't be able to toggle, but force it back on if it somehow fires
+    document.getElementById('bio-show-branding').checked = true;
+    bioState.show_branding = true;
+    return;
+  }
+  bioState.show_branding = document.getElementById('bio-show-branding').checked;
+  schedulePreviewUpdate();
 }
 
 function renderAvatarPreview() {
@@ -1155,38 +1218,80 @@ function onBioFieldChange() {
   schedulePreviewUpdate();
 }
 
+let bioUsernameCheckTimer = null;
+let bioUsernameCheckToken = 0; // handles out-of-order async responses
+
 function onUsernameInput() {
   const raw = document.getElementById('bio-username').value;
   const cleaned = raw.toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 30);
   if (cleaned !== raw) document.getElementById('bio-username').value = cleaned;
   bioState.username = cleaned;
   const hint = document.getElementById('bio-username-hint');
+
+  // Cancel any pending availability check
+  clearTimeout(bioUsernameCheckTimer);
+  bioUsernameCheckToken++;
+
   if (!cleaned) {
     hint.textContent = '3-30 characters · lowercase letters, numbers, underscore only';
     hint.style.color = 'var(--muted)';
-    hint.style.display = 'block';
   } else if (cleaned.length < 3) {
     hint.textContent = 'Too short — minimum 3 characters';
     hint.style.color = '#fca5a5';
-    hint.style.display = 'block';
   } else if (BIO_RESERVED.has(cleaned)) {
     hint.textContent = 'That username is reserved. Pick another.';
     hint.style.color = '#fca5a5';
-    hint.style.display = 'block';
+  } else if (cleaned === bioOriginalUsername) {
+    // User's own current username — no need to check
+    renderUsernameAvailable(cleaned);
   } else {
-    const fullUrl = `https://www.findthesnakes.com/${cleaned}`;
-    hint.innerHTML = `
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-        <span>Your page will be at <strong style="color:var(--accent2)">findthesnakes.com/${cleaned}</strong></span>
-        <button type="button" onclick="copyBioLink('${fullUrl}', this)"
-          style="padding:4px 10px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:6px;font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;font-weight:500;">
-          Copy link
-        </button>
-      </div>`;
+    // Show "Checking..." state, then query Supabase after a 500ms pause
+    hint.innerHTML = `<span style="color:var(--muted);">Checking <strong>findthesnakes.com/${cleaned}</strong>…</span>`;
     hint.style.color = 'var(--muted)';
-    hint.style.display = 'block';
+    const myToken = bioUsernameCheckToken;
+    bioUsernameCheckTimer = setTimeout(() => checkUsernameAvailability(cleaned, myToken), 500);
   }
   schedulePreviewUpdate();
+}
+
+async function checkUsernameAvailability(username, token) {
+  const hint = document.getElementById('bio-username-hint');
+  try {
+    const { data, error } = await sb
+      .from('profiles')
+      .select('user_id')
+      .eq('username', username)
+      .maybeSingle();
+    // Ignore if the user kept typing after this request fired
+    if (token !== bioUsernameCheckToken) return;
+    if (error) {
+      hint.innerHTML = `<span style="color:var(--muted);">Couldn't check availability. Will verify on save.</span>`;
+      return;
+    }
+    if (!data || data.user_id === currentUser?.id) {
+      renderUsernameAvailable(username);
+    } else {
+      hint.innerHTML = `<span style="color:#fca5a5;">✕ <strong>${username}</strong> is already taken — try another.</span>`;
+    }
+  } catch (e) {
+    if (token !== bioUsernameCheckToken) return;
+    hint.innerHTML = `<span style="color:var(--muted);">Couldn't check availability. Will verify on save.</span>`;
+  }
+}
+
+function renderUsernameAvailable(cleaned) {
+  const hint = document.getElementById('bio-username-hint');
+  const fullUrl = `https://www.findthesnakes.com/${cleaned}`;
+  hint.innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <span style="color:#4ade80;">✓</span>
+      <span>Your page will be at <strong style="color:var(--accent2)">findthesnakes.com/${cleaned}</strong></span>
+      <button type="button" onclick="copyBioLink('${fullUrl}', this)"
+        style="padding:4px 10px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:6px;font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;font-weight:500;">
+        Copy link
+      </button>
+    </div>`;
+  hint.style.color = 'var(--muted)';
 }
 
 async function copyBioLink(url, btn) {
@@ -1583,6 +1688,8 @@ async function saveBio() {
       links: cleanLinks,
       videos: cleanVideos,
       published: bioState.published,
+      // Free users cannot hide branding — force true regardless of client state
+      show_branding: userTier === 'monthly' ? !!bioState.show_branding : true,
     };
     const { error } = await sb.from('link_in_bio').upsert(payload, { onConflict: 'user_id' });
     if (error) throw error;
@@ -1722,7 +1829,7 @@ function buildPreviewHTML() {
     ${bioState.bio ? `<div class="bio-line">${escapeHtml(bioState.bio)}</div>` : ''}
     ${linksHtml ? `<div class="links">${linksHtml}</div>` : ''}
     ${videosHtml}
-    <div class="banner">Get your free link-in-bio at <strong>FindTheSnakes</strong></div>
+    ${bioState.show_branding ? '<div class="banner">Get your free link-in-bio at <strong>FindTheSnakes</strong></div>' : ''}
   </div></body></html>`;
 }
 
