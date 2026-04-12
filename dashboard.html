@@ -81,6 +81,543 @@
   .sidebar-item-label { flex: 1; }
   .sidebar-item-badge { font-size: 10px; background: rgba(124,58,237,0.2); color: #c4b5fd; border-radius: 100px; padding: 2px 7px; font-weight: 600; }
   .sidebar-item-badge.green { background: rgba(74,222,128,0.15); color: #4ade80; }
+  .sidebar-item-badge.max { background: linear-gradient(135deg,#a78bfa,#e879f9); color: #fff; }
+
+  /* ==================== SCRIPT BUILDER ==================== */
+  .scripts-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: border-color 0.15s, transform 0.12s;
+  }
+  .scripts-card:hover { border-color: rgba(124,58,237,0.4); transform: translateY(-1px); }
+  .scripts-card-main { flex: 1; min-width: 0; }
+  .scripts-card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-bottom: 3px;
+  }
+  .scripts-card-meta {
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .scripts-card-actions { display: flex; gap: 4px; flex-shrink: 0; }
+  .scripts-card-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 7px;
+    background: transparent;
+    border: 1px solid var(--border-hover);
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .scripts-card-btn:hover { border-color: var(--accent2); color: var(--text); }
+  .scripts-card-btn.danger:hover { border-color: rgba(239,68,68,0.5); color: #fca5a5; }
+
+  /* Editor top bar */
+  .scripts-editor-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+  .scripts-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: transparent;
+    border: 1px solid var(--border-hover);
+    color: var(--muted);
+    border-radius: 8px;
+    font-size: 12px;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .scripts-back-btn:hover { border-color: var(--accent2); color: var(--text); }
+  .scripts-editor-status { flex: 1; text-align: center; }
+  .scripts-save-status { font-size: 12px; color: var(--muted); }
+  .scripts-save-status.success { color: #4ade80; }
+  .scripts-save-status.error { color: #fca5a5; }
+  .scripts-editor-actions { display: flex; gap: 8px; align-items: center; }
+  .scripts-export-wrap { position: relative; }
+  .scripts-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border-hover);
+    transition: all 0.15s;
+  }
+  .scripts-action-btn:hover { border-color: var(--accent2); }
+  .scripts-action-btn.primary {
+    background: var(--accent);
+    color: #fff;
+    border: 1px solid transparent;
+    box-shadow: 0 0 16px var(--accent-glow);
+  }
+  .scripts-action-btn.primary:hover { background: var(--accent2); }
+  .scripts-export-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    min-width: 220px;
+    background: var(--surface2);
+    border: 1px solid var(--border-hover);
+    border-radius: 10px;
+    padding: 6px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .scripts-export-menu button {
+    text-align: left;
+    padding: 9px 12px;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+  }
+  .scripts-export-menu button:hover { background: rgba(124,58,237,0.1); color: #c4b5fd; }
+  .scripts-export-menu button.primary { color: #e879f9; font-weight: 500; }
+
+  /* Title + meta */
+  .scripts-editor-meta { margin-bottom: 20px; }
+  .scripts-title-input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    outline: none;
+    padding: 4px 0;
+    margin-bottom: 6px;
+  }
+  .scripts-title-input:focus { outline: 1px dashed rgba(124,58,237,0.3); outline-offset: 4px; border-radius: 4px; }
+  .scripts-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--muted);
+    flex-wrap: wrap;
+  }
+  .scripts-meta-row select {
+    background: var(--surface);
+    border: 1px solid var(--border-hover);
+    color: var(--text);
+    border-radius: 6px;
+    padding: 4px 24px 4px 8px;
+    font-size: 12px;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    outline: none;
+  }
+  .scripts-meta-sep { color: var(--muted); opacity: 0.5; }
+
+  /* Hook */
+  .scripts-hook-wrap {
+    background: linear-gradient(135deg, rgba(167,139,250,0.08), rgba(232,121,249,0.06));
+    border: 1px solid rgba(232,121,249,0.3);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 16px;
+    position: relative;
+  }
+  .scripts-hook-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 700;
+    background: linear-gradient(135deg, #a78bfa, #e879f9);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 10px;
+  }
+  .scripts-hook-input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 15px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    line-height: 1.5;
+    resize: vertical;
+    min-height: 60px;
+    outline: none;
+    box-sizing: border-box;
+  }
+  .scripts-hook-input:focus { border-color: #e879f9; }
+  .scripts-hook-meta {
+    text-align: right;
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  /* Add buttons */
+  .scripts-add-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .scripts-add-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 14px;
+    background: transparent;
+    border: 1px dashed rgba(124,58,237,0.4);
+    color: var(--accent2);
+    border-radius: 10px;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .scripts-add-btn:hover:not(:disabled) { background: rgba(124,58,237,0.06); border-color: var(--accent); }
+  .scripts-add-btn.primary {
+    background: rgba(124,58,237,0.1);
+    border: 1px solid rgba(124,58,237,0.35);
+    color: #c4b5fd;
+  }
+  .scripts-add-btn:disabled { cursor: not-allowed; }
+
+  /* Items list */
+  .scripts-items-list { display: flex; flex-direction: column; gap: 10px; }
+  .scripts-empty-items {
+    text-align: center;
+    padding: 30px 20px;
+    color: var(--muted);
+    font-size: 13px;
+    background: var(--surface2);
+    border: 1px dashed var(--border-hover);
+    border-radius: 12px;
+  }
+
+  /* Section */
+  .scripts-section {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+  }
+  .scripts-section-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+  .scripts-section-input {
+    background: transparent;
+    border: none;
+    color: var(--muted2);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-weight: 600;
+    text-align: center;
+    padding: 4px 8px;
+    outline: none;
+    border-radius: 6px;
+    min-width: 120px;
+  }
+  .scripts-section-input:focus, .scripts-section-input:hover {
+    background: var(--surface2);
+    color: var(--text);
+  }
+
+  /* Block */
+  .scripts-block {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 14px;
+    transition: border-color 0.15s;
+  }
+  .scripts-block:focus-within { border-color: var(--accent); }
+  .scripts-block-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .scripts-block-title {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 4px 0;
+    outline: none;
+  }
+  .scripts-block-title::placeholder { color: var(--muted); font-weight: 400; }
+  .scripts-block-body {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 14px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    line-height: 1.55;
+    resize: vertical;
+    min-height: 72px;
+    outline: none;
+    box-sizing: border-box;
+  }
+  .scripts-block-body:focus { border-color: var(--accent2); }
+  .scripts-block-meta {
+    display: flex;
+    justify-content: flex-end;
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  /* Drag handle + remove */
+  .scripts-drag-handle {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: grab;
+    color: var(--muted);
+    opacity: 0.4;
+    transition: opacity 0.15s, color 0.15s;
+    flex-shrink: 0;
+  }
+  .scripts-drag-handle:hover { opacity: 1; color: var(--accent2); }
+  .scripts-drag-handle:active { cursor: grabbing; }
+  .scripts-remove-btn {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .scripts-remove-btn:hover {
+    background: rgba(239,68,68,0.08);
+    border-color: rgba(239,68,68,0.25);
+    color: #fca5a5;
+  }
+
+  /* Mobile */
+  @media (max-width: 640px) {
+    .scripts-title-input { font-size: 22px; }
+    .scripts-editor-top { gap: 8px; }
+    .scripts-editor-status { flex: 1 1 100%; text-align: left; order: 3; }
+    .scripts-action-btn { padding: 7px 10px; font-size: 11px; }
+    .scripts-hook-wrap { padding: 12px; }
+    .scripts-block { padding: 10px 12px; }
+    .scripts-block-title { font-size: 12px; }
+    .scripts-block-body { font-size: 13px; }
+    .scripts-export-menu { right: auto; left: 0; }
+  }
+
+  /* ==================== TELEPROMPTER ==================== */
+  #teleprompter-overlay {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    color: #fff;
+  }
+  .tp-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    background: rgba(0,0,0,0.9);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    gap: 16px;
+    flex-shrink: 0;
+  }
+  .tp-close-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+  }
+  .tp-close-btn:hover { background: rgba(255,255,255,0.08); }
+  .tp-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.6);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+    text-align: right;
+  }
+  .tp-scroll-area {
+    flex: 1;
+    overflow-y: scroll;
+    scroll-behavior: auto;
+    position: relative;
+    scrollbar-width: none;
+  }
+  .tp-scroll-area::-webkit-scrollbar { display: none; }
+  .tp-spacer-top { height: 50vh; }
+  .tp-spacer-bottom { height: 50vh; }
+  .tp-content {
+    font-size: 48px;
+    line-height: 1.55;
+    font-weight: 500;
+    color: #fff;
+    padding: 0 8vw;
+    max-width: 1200px;
+    margin: 0 auto;
+    text-align: center;
+    font-family: 'DM Sans', sans-serif;
+    letter-spacing: -0.3px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  }
+  .tp-center-line {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(to right, transparent, rgba(232,121,249,0.4), transparent);
+    pointer-events: none;
+    z-index: 2;
+  }
+  .tp-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 16px 20px;
+    background: rgba(0,0,0,0.95);
+    border-top: 1px solid rgba(255,255,255,0.08);
+    flex-shrink: 0;
+    flex-wrap: wrap;
+  }
+  .tp-ctrl-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: #fff;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .tp-ctrl-btn small { font-size: 10px; opacity: 0.7; margin-left: 1px; }
+  .tp-ctrl-btn:hover { background: rgba(255,255,255,0.14); }
+  .tp-ctrl-btn.primary {
+    width: auto;
+    padding: 0 18px;
+    background: linear-gradient(135deg, #a78bfa, #e879f9);
+    border-color: transparent;
+    font-weight: 600;
+  }
+  .tp-ctrl-btn.primary:hover { background: linear-gradient(135deg, #9366f8, #d93eea); }
+  .tp-speed-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    height: 40px;
+    color: #fff;
+    font-weight: 700;
+    font-family: 'DM Sans', sans-serif;
+    line-height: 1;
+  }
+  .tp-speed-display .tp-speed-unit {
+    font-size: 8px;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: rgba(255,255,255,0.5);
+    margin-top: 2px;
+  }
+  .tp-speed-display span:first-child { font-size: 16px; }
+  .tp-divider {
+    width: 1px;
+    height: 24px;
+    background: rgba(255,255,255,0.12);
+    margin: 0 4px;
+  }
+  .tp-hint {
+    text-align: center;
+    font-size: 11px;
+    color: rgba(255,255,255,0.35);
+    padding: 8px 16px 16px;
+    background: rgba(0,0,0,0.95);
+    flex-shrink: 0;
+  }
+  @media (max-width: 640px) {
+    .tp-content { font-size: 32px; padding: 0 6vw; }
+    .tp-hint { display: none; }
+    .tp-ctrl-btn { width: 36px; height: 36px; }
+    .tp-ctrl-btn.primary { padding: 0 14px; }
+    .tp-title { display: none; }
+  }
   .sidebar-bottom { padding: 16px 12px; border-top: 1px solid var(--border); }
   .sidebar-user { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; background: var(--surface2); margin-bottom: 8px; }
   .sidebar-avatar { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent2)); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0; }
@@ -1185,6 +1722,11 @@
     <button class="sidebar-item" id="nav-pdfsign" onclick="showTool('pdfsign')">
       <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M3 17l3-3 2 2 5-5 3 3"/></svg></div>
       <span class="sidebar-item-label">Sign PDF</span>
+    </button>
+    <button class="sidebar-item" id="nav-scripts" onclick="showTool('scripts')">
+      <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/><path d="M6 21l-2-2 2-2M18 21l2-2-2-2"/></svg></div>
+      <span class="sidebar-item-label">Script Builder</span>
+      <span class="sidebar-item-badge max">MAX</span>
     </button>
     <button class="sidebar-item" id="nav-tax" onclick="showTool('tax')">
       <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
@@ -2316,6 +2858,59 @@
       </div>
     </div>
 
+    <!-- SCRIPT BUILDER (Creator Max) -->
+    <div id="tool-scripts" style="display:none;">
+      <!-- Paywall for non-Max users -->
+      <div id="scripts-paywall" style="display:none;max-width:560px;margin:40px auto;background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:40px;text-align:center;">
+        <div style="width:56px;height:56px;margin:0 auto 16px;background:linear-gradient(135deg,rgba(167,139,250,0.15),rgba(232,121,249,0.12));border:1px solid rgba(232,121,249,0.3);border-radius:14px;display:flex;align-items:center;justify-content:center;">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#e879f9" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
+        </div>
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;background:linear-gradient(135deg,#a78bfa,#e879f9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:700;margin-bottom:8px;">Creator Max</div>
+        <h2 style="font-family:Syne,sans-serif;font-size:22px;font-weight:800;margin-bottom:8px;letter-spacing:-0.3px;">Script Builder is a Creator Max feature</h2>
+        <p style="color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:24px;">Write and organize your video scripts with draggable blocks. Add a hook, break into sections, rearrange freely, and export as PDF or teleprompter.</p>
+        <button onclick="startCheckout('max')" style="padding:12px 26px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px rgba(232,121,249,0.35);">Upgrade to Creator Max — $20/mo</button>
+      </div>
+
+      <!-- Editor wrapper (shown when Max) -->
+      <div id="scripts-editor-wrap" style="display:none;">
+        <!-- LIST VIEW -->
+        <div id="scripts-list-view">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+            <div>
+              <h2 style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;margin-bottom:4px;letter-spacing:-0.5px;">Script Builder</h2>
+              <p style="color:var(--muted);font-size:14px;">Write and organize your video scripts. Drag blocks to rearrange. Export to PDF or teleprompter.</p>
+            </div>
+            <button onclick="createNewScript()" id="scripts-new-btn" style="padding:10px 18px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow);display:inline-flex;align-items:center;gap:6px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              New script
+            </button>
+          </div>
+
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+            <div id="scripts-count" style="font-size:13px;color:var(--muted);">—</div>
+            <div style="font-size:11px;color:var(--muted);">100 max per account</div>
+          </div>
+
+          <div id="scripts-list" style="display:flex;flex-direction:column;gap:8px;">
+            <!-- populated by renderScriptList() -->
+          </div>
+
+          <div id="scripts-empty" style="display:none;background:var(--surface2);border:1px dashed var(--border-hover);border-radius:14px;padding:48px 24px;text-align:center;color:var(--muted);">
+            <div style="width:48px;height:48px;margin:0 auto 14px;background:rgba(124,58,237,0.08);border-radius:12px;display:flex;align-items:center;justify-content:center;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <div style="font-size:14px;font-weight:500;color:var(--text);margin-bottom:6px;">No scripts yet</div>
+            <div style="font-size:13px;">Click "New script" above to write your first one.</div>
+          </div>
+        </div>
+
+        <!-- EDITOR VIEW -->
+        <div id="scripts-edit-view" style="display:none;">
+          <!-- populated by openScriptEditor() -->
+        </div>
+      </div>
+    </div>
+
     <!-- TAX TRACKER -->
     <div id="tool-tax" style="display:none;">
       <div style="max-width:900px;">
@@ -2435,6 +3030,7 @@ const toolTitles = {
   qr: 'QR Generator',
   invoice: 'Invoice Generator',
   pdfsign: 'Sign PDF',
+  scripts: 'Script Builder',
   tax: 'Tax Tracker'
 };
 
@@ -2561,7 +3157,7 @@ function showFollowerTool() {
 
 function showTool(tool) {
   // Hide all tools
-  ['welcome','bio','mediakit','grid','follower','image','qr','invoice','pdfsign','tax'].forEach(t => {
+  ['welcome','bio','mediakit','grid','follower','image','qr','invoice','pdfsign','tax','scripts'].forEach(t => {
     const el = document.getElementById('tool-' + t);
     if (el) el.style.display = 'none';
     const nav = document.getElementById('nav-' + t);
@@ -2588,6 +3184,7 @@ function showTool(tool) {
   if (tool === 'mediakit') initMediaKitTool();
   if (tool === 'grid') initGridTool();
   if (tool === 'pdfsign') initPdfSignTool();
+  if (tool === 'scripts') initScriptsTool();
   // Close sidebar on mobile
   closeSidebar();
 }
@@ -7541,6 +8138,919 @@ function loadQRLibrary(callback) {
   script.onerror = () => console.error('Failed to load QR library');
   document.head.appendChild(script);
 }
+
+// ======================================================================
+// SCRIPT BUILDER — Creator Max tool
+// ======================================================================
+const SCRIPTS_MAX = 100;
+const SCRIPT_BLOCKS_MAX = 50;
+const SCRIPT_WPM = 150;
+const SCRIPT_PLATFORMS = {
+  reel:    'Instagram Reel',
+  tiktok:  'TikTok',
+  short:   'YouTube Short',
+  long:    'YouTube (Long)',
+  podcast: 'Podcast',
+  other:   'Other',
+};
+
+let scriptsList = [];
+let scriptsLoaded = false;
+let currentScript = null;
+let scriptsDirty = false;
+let scriptsAutoSaveTimer = null;
+let scriptItemIdCounter = 0;
+
+function initScriptsTool() {
+  const isMaxUser = isMax();
+  const paywall = document.getElementById('scripts-paywall');
+  const editorWrap = document.getElementById('scripts-editor-wrap');
+  if (!isMaxUser) {
+    if (paywall) paywall.style.display = 'block';
+    if (editorWrap) editorWrap.style.display = 'none';
+    return;
+  }
+  if (paywall) paywall.style.display = 'none';
+  if (editorWrap) editorWrap.style.display = 'block';
+  loadScriptsList();
+  showScriptsList();
+}
+
+function showScriptsList() {
+  document.getElementById('scripts-list-view').style.display = 'block';
+  document.getElementById('scripts-edit-view').style.display = 'none';
+  currentScript = null;
+  scriptsDirty = false;
+}
+
+async function loadScriptsList() {
+  if (!currentUser) return;
+  try {
+    const { data, error } = await sb
+      .from('scripts')
+      .select('id, title, hook, platform, items, updated_at')
+      .eq('user_id', currentUser.id)
+      .order('updated_at', { ascending: false });
+    if (error) throw error;
+    scriptsList = data || [];
+    scriptsLoaded = true;
+    renderScriptsList();
+  } catch (e) {
+    console.error('loadScriptsList', e);
+  }
+}
+
+function renderScriptsList() {
+  const countEl = document.getElementById('scripts-count');
+  const listEl = document.getElementById('scripts-list');
+  const emptyEl = document.getElementById('scripts-empty');
+  const newBtn = document.getElementById('scripts-new-btn');
+  if (!listEl) return;
+  if (countEl) countEl.textContent = `${scriptsList.length}/${SCRIPTS_MAX} scripts`;
+  if (newBtn) {
+    newBtn.disabled = scriptsList.length >= SCRIPTS_MAX;
+    newBtn.style.opacity = scriptsList.length >= SCRIPTS_MAX ? 0.5 : 1;
+  }
+  if (scriptsList.length === 0) {
+    listEl.innerHTML = '';
+    if (emptyEl) emptyEl.style.display = 'block';
+    return;
+  }
+  if (emptyEl) emptyEl.style.display = 'none';
+  listEl.innerHTML = scriptsList.map(s => renderScriptCard(s)).join('');
+}
+
+function renderScriptCard(s) {
+  const platform = SCRIPT_PLATFORMS[s.platform] || 'Script';
+  const duration = calcScriptDuration(s);
+  const blockCount = (s.items || []).filter(i => i.type === 'block').length;
+  const updated = formatRelativeTime(s.updated_at);
+  const title = escapeHtml(s.title || 'Untitled script');
+  return `<div class="scripts-card" onclick="openScriptEditor('${s.id}')">
+    <div class="scripts-card-main">
+      <div class="scripts-card-title">${title}</div>
+      <div class="scripts-card-meta">${platform} · ${duration}s · ${blockCount} ${blockCount === 1 ? 'block' : 'blocks'} · Updated ${updated}</div>
+    </div>
+    <div class="scripts-card-actions" onclick="event.stopPropagation()">
+      <button type="button" class="scripts-card-btn" onclick="duplicateScript('${s.id}')" aria-label="Duplicate">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      </button>
+      <button type="button" class="scripts-card-btn danger" onclick="deleteScript('${s.id}')" aria-label="Delete">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+      </button>
+    </div>
+  </div>`;
+}
+
+function calcScriptDuration(s) {
+  const hook = s.hook || '';
+  const items = Array.isArray(s.items) ? s.items : [];
+  const totalText = hook + ' ' + items.filter(i => i.type === 'block').map(i => i.body || '').join(' ');
+  const words = totalText.trim().split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.round((words / SCRIPT_WPM) * 60));
+}
+
+function formatRelativeTime(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const diff = (Date.now() - d.getTime()) / 1000;
+  if (diff < 60) return 'just now';
+  if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+  if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+  if (diff < 604800) return Math.floor(diff / 86400) + 'd ago';
+  return d.toLocaleDateString();
+}
+
+async function createNewScript() {
+  if (!isMax()) return;
+  if (scriptsList.length >= SCRIPTS_MAX) {
+    alert(`You've reached the ${SCRIPTS_MAX} script limit. Delete some to make more.`);
+    return;
+  }
+  try {
+    const { data, error } = await sb.from('scripts').insert({
+      user_id: currentUser.id,
+      title: 'Untitled script',
+      hook: '',
+      platform: 'reel',
+      items: [],
+    }).select().single();
+    if (error) throw error;
+    scriptsList.unshift(data);
+    openScriptEditor(data.id);
+  } catch (e) {
+    console.error(e);
+    alert('Could not create script: ' + (e.message || 'unknown'));
+  }
+}
+
+async function deleteScript(id) {
+  const script = scriptsList.find(s => s.id === id);
+  if (!script) return;
+  if (!confirm(`Delete "${script.title}"? This cannot be undone.`)) return;
+  try {
+    const { error } = await sb.from('scripts').delete().eq('id', id);
+    if (error) throw error;
+    scriptsList = scriptsList.filter(s => s.id !== id);
+    renderScriptsList();
+  } catch (e) {
+    console.error(e);
+    alert('Could not delete: ' + (e.message || 'unknown'));
+  }
+}
+
+async function duplicateScript(id) {
+  const script = scriptsList.find(s => s.id === id);
+  if (!script) return;
+  if (scriptsList.length >= SCRIPTS_MAX) {
+    alert(`You've reached the ${SCRIPTS_MAX} script limit.`);
+    return;
+  }
+  try {
+    const newItems = (script.items || []).map(i => ({ ...i, id: genScriptItemId(i.type) }));
+    const { data, error } = await sb.from('scripts').insert({
+      user_id: currentUser.id,
+      title: script.title + ' (copy)',
+      hook: script.hook || '',
+      platform: script.platform || 'reel',
+      items: newItems,
+    }).select().single();
+    if (error) throw error;
+    scriptsList.unshift(data);
+    renderScriptsList();
+  } catch (e) {
+    console.error(e);
+    alert('Could not duplicate: ' + (e.message || 'unknown'));
+  }
+}
+
+function genScriptItemId(type) {
+  return (type === 'section' ? 's-' : 'b-') + Date.now() + '-' + (++scriptItemIdCounter);
+}
+
+// Full editor
+async function openScriptEditor(id) {
+  const script = scriptsList.find(s => s.id === id);
+  if (!script) return;
+  currentScript = JSON.parse(JSON.stringify(script));
+  if (!Array.isArray(currentScript.items)) currentScript.items = [];
+  scriptsDirty = false;
+  document.getElementById('scripts-list-view').style.display = 'none';
+  document.getElementById('scripts-edit-view').style.display = 'block';
+  renderScriptEditor();
+}
+
+function renderScriptEditor() {
+  const wrap = document.getElementById('scripts-edit-view');
+  if (!wrap || !currentScript) return;
+  const platformOpts = Object.entries(SCRIPT_PLATFORMS)
+    .map(([k, v]) => `<option value="${k}" ${currentScript.platform === k ? 'selected' : ''}>${v}</option>`)
+    .join('');
+  const duration = calcScriptDuration(currentScript);
+  const blockCount = currentScript.items.filter(i => i.type === 'block').length;
+
+  wrap.innerHTML = `
+    <div class="scripts-editor-top">
+      <button class="scripts-back-btn" onclick="exitScriptEditor()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        Back to scripts
+      </button>
+      <div class="scripts-editor-status">
+        <span id="scripts-save-status"></span>
+      </div>
+      <div class="scripts-editor-actions">
+        <div class="scripts-export-wrap">
+          <button class="scripts-action-btn" onclick="toggleScriptsExportMenu()" aria-haspopup="true">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div id="scripts-export-menu" class="scripts-export-menu" style="display:none;">
+            <button onclick="exportScriptCopyAll()">Copy all text</button>
+            <button onclick="exportScriptCopySpoken()">Copy spoken lines only</button>
+            <button onclick="exportScriptDownloadTxt()">Download as .txt</button>
+            <button onclick="exportScriptPDF()">Save as PDF</button>
+            <button onclick="openTeleprompter()" class="primary">Teleprompter mode</button>
+          </div>
+        </div>
+        <button class="scripts-action-btn primary" onclick="saveScriptNow()">Save</button>
+      </div>
+    </div>
+
+    <div class="scripts-editor-meta">
+      <input type="text" id="scripts-title-input" class="scripts-title-input" maxlength="80" value="${escapeHtml(currentScript.title || '')}" placeholder="Untitled script" oninput="onScriptTitleChange(this.value)" aria-label="Script title">
+      <div class="scripts-meta-row">
+        <select id="scripts-platform" onchange="onScriptPlatformChange(this.value)" aria-label="Platform">${platformOpts}</select>
+        <span class="scripts-meta-sep">·</span>
+        <span class="scripts-meta-duration"><span id="scripts-total-duration">${duration}</span>s total</span>
+        <span class="scripts-meta-sep">·</span>
+        <span><span id="scripts-block-count">${blockCount}</span>/${SCRIPT_BLOCKS_MAX} blocks</span>
+      </div>
+    </div>
+
+    <div class="scripts-hook-wrap">
+      <div class="scripts-hook-label">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m13 2-2 2.5h3L12 7"/><path d="M10 14a4 4 0 1 1-4-4c1.1 0 2.5.4 2.5.4L5 17"/><path d="M7 14v0"/><circle cx="18" cy="17" r="4"/></svg>
+        Hook
+      </div>
+      <textarea id="scripts-hook-input" class="scripts-hook-input" maxlength="200" rows="2" placeholder="What's the one sentence that stops the scroll?" oninput="onScriptHookChange(this.value)" aria-label="Hook">${escapeHtml(currentScript.hook || '')}</textarea>
+      <div class="scripts-hook-meta"><span id="scripts-hook-count">${(currentScript.hook || '').length}</span>/200</div>
+    </div>
+
+    <div class="scripts-add-row">
+      <button class="scripts-add-btn" onclick="addScriptSection()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        Add section header
+      </button>
+      <button class="scripts-add-btn primary" onclick="addScriptBlock()" id="scripts-add-block-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add block
+      </button>
+    </div>
+
+    <div id="scripts-items-list" class="scripts-items-list"></div>
+  `;
+  renderScriptItems();
+  // Dismiss export menu on outside click
+  setTimeout(() => {
+    document.addEventListener('click', scriptsExportOutsideClick);
+  }, 10);
+}
+
+function exitScriptEditor() {
+  document.removeEventListener('click', scriptsExportOutsideClick);
+  // If dirty, save silently before leaving
+  if (scriptsDirty) {
+    saveScriptNow(true).finally(() => showScriptsList());
+  } else {
+    showScriptsList();
+  }
+}
+
+function renderScriptItems() {
+  const list = document.getElementById('scripts-items-list');
+  if (!list) return;
+  const items = currentScript.items || [];
+  if (items.length === 0) {
+    list.innerHTML = `<div class="scripts-empty-items">Add a block to start writing, or a section header to organize.</div>`;
+    updateScriptMeta();
+    return;
+  }
+  list.innerHTML = items.map(i => {
+    if (i.type === 'section') return renderSectionItem(i);
+    return renderBlockItem(i);
+  }).join('');
+  // Init sortable
+  if (window.Sortable) {
+    if (list._sortable) list._sortable.destroy();
+    list._sortable = Sortable.create(list, {
+      handle: '.scripts-drag-handle',
+      animation: 180,
+      onEnd: () => {
+        const order = [...list.children].map(c => c.dataset.id);
+        const next = [];
+        order.forEach(id => {
+          const found = currentScript.items.find(x => x.id === id);
+          if (found) next.push(found);
+        });
+        currentScript.items = next;
+        markScriptDirty();
+      },
+    });
+  }
+  updateScriptMeta();
+}
+
+function renderSectionItem(item) {
+  const text = escapeHtml(item.text || '');
+  return `<div class="scripts-section" data-id="${item.id}">
+    <div class="scripts-drag-handle" aria-label="Drag to reorder">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/></svg>
+    </div>
+    <div class="scripts-section-line"></div>
+    <input type="text" class="scripts-section-input" maxlength="40" value="${text}" placeholder="Section name" oninput="onScriptSectionEdit('${item.id}', this.value)" aria-label="Section name">
+    <div class="scripts-section-line"></div>
+    <button class="scripts-remove-btn" onclick="removeScriptItem('${item.id}')" aria-label="Delete section">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>`;
+}
+
+function renderBlockItem(item) {
+  const title = escapeHtml(item.title || '');
+  const body = escapeHtml(item.body || '');
+  const wordCount = (item.body || '').trim().split(/\s+/).filter(Boolean).length;
+  const seconds = Math.max(1, Math.round((wordCount / SCRIPT_WPM) * 60));
+  return `<div class="scripts-block" data-id="${item.id}">
+    <div class="scripts-block-header">
+      <div class="scripts-drag-handle" aria-label="Drag to reorder">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/></svg>
+      </div>
+      <input type="text" class="scripts-block-title" maxlength="60" value="${title}" placeholder="Title (optional)" oninput="onScriptBlockEdit('${item.id}', 'title', this.value)" aria-label="Block title">
+      <button class="scripts-remove-btn" onclick="removeScriptItem('${item.id}')" aria-label="Delete block">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg>
+      </button>
+    </div>
+    <textarea class="scripts-block-body" maxlength="1500" rows="3" placeholder="What you'll say..." oninput="onScriptBlockEdit('${item.id}', 'body', this.value)" aria-label="Block body">${body}</textarea>
+    <div class="scripts-block-meta">
+      <span class="scripts-block-count" data-id="${item.id}">${wordCount} words · ${seconds}s</span>
+    </div>
+  </div>`;
+}
+
+// ========== Item mutators ==========
+function onScriptTitleChange(v) {
+  currentScript.title = v;
+  markScriptDirty();
+}
+
+function onScriptHookChange(v) {
+  currentScript.hook = v;
+  const counter = document.getElementById('scripts-hook-count');
+  if (counter) counter.textContent = v.length;
+  updateScriptMeta();
+  markScriptDirty();
+}
+
+function onScriptPlatformChange(v) {
+  currentScript.platform = v;
+  markScriptDirty();
+}
+
+function onScriptSectionEdit(id, text) {
+  const item = currentScript.items.find(x => x.id === id);
+  if (item) { item.text = text; markScriptDirty(); }
+}
+
+function onScriptBlockEdit(id, field, value) {
+  const item = currentScript.items.find(x => x.id === id);
+  if (!item) return;
+  item[field] = value;
+  if (field === 'body') {
+    // Update the block's own word/seconds meta inline
+    const metaEl = document.querySelector(`.scripts-block-count[data-id="${id}"]`);
+    if (metaEl) {
+      const wordCount = (value || '').trim().split(/\s+/).filter(Boolean).length;
+      const seconds = Math.max(1, Math.round((wordCount / SCRIPT_WPM) * 60));
+      metaEl.textContent = `${wordCount} words · ${seconds}s`;
+    }
+    updateScriptMeta();
+  }
+  markScriptDirty();
+}
+
+function removeScriptItem(id) {
+  currentScript.items = currentScript.items.filter(x => x.id !== id);
+  renderScriptItems();
+  markScriptDirty();
+}
+
+function addScriptSection() {
+  currentScript.items.push({
+    id: genScriptItemId('section'),
+    type: 'section',
+    text: 'New section',
+  });
+  renderScriptItems();
+  markScriptDirty();
+  // Focus newly added section
+  setTimeout(() => {
+    const last = document.querySelector('.scripts-section:last-child .scripts-section-input');
+    if (last) { last.focus(); last.select(); }
+  }, 20);
+}
+
+function addScriptBlock() {
+  const blockCount = currentScript.items.filter(i => i.type === 'block').length;
+  if (blockCount >= SCRIPT_BLOCKS_MAX) {
+    alert(`Block limit reached (${SCRIPT_BLOCKS_MAX}). Delete existing blocks to add more.`);
+    return;
+  }
+  currentScript.items.push({
+    id: genScriptItemId('block'),
+    type: 'block',
+    title: '',
+    body: '',
+  });
+  renderScriptItems();
+  markScriptDirty();
+  // Focus new block body
+  setTimeout(() => {
+    const last = document.querySelector('.scripts-block:last-child .scripts-block-body');
+    if (last) last.focus();
+  }, 20);
+}
+
+function updateScriptMeta() {
+  const duration = calcScriptDuration(currentScript);
+  const blockCount = currentScript.items.filter(i => i.type === 'block').length;
+  const durEl = document.getElementById('scripts-total-duration');
+  const cntEl = document.getElementById('scripts-block-count');
+  const addBtn = document.getElementById('scripts-add-block-btn');
+  if (durEl) durEl.textContent = duration;
+  if (cntEl) cntEl.textContent = blockCount;
+  if (addBtn) {
+    addBtn.disabled = blockCount >= SCRIPT_BLOCKS_MAX;
+    addBtn.style.opacity = blockCount >= SCRIPT_BLOCKS_MAX ? 0.5 : 1;
+  }
+}
+
+// ========== Save + dirty tracking ==========
+function markScriptDirty() {
+  scriptsDirty = true;
+  updateSaveStatus('Unsaved');
+  // Debounced autosave
+  if (scriptsAutoSaveTimer) clearTimeout(scriptsAutoSaveTimer);
+  scriptsAutoSaveTimer = setTimeout(() => {
+    saveScriptNow(true);
+  }, 2000);
+}
+
+function updateSaveStatus(msg, kind) {
+  const el = document.getElementById('scripts-save-status');
+  if (!el) return;
+  el.textContent = msg || '';
+  el.className = 'scripts-save-status ' + (kind || '');
+}
+
+async function saveScriptNow(silent) {
+  if (!currentScript || !currentUser) return;
+  if (scriptsAutoSaveTimer) { clearTimeout(scriptsAutoSaveTimer); scriptsAutoSaveTimer = null; }
+  if (!silent) updateSaveStatus('Saving…');
+  try {
+    const payload = {
+      title: (currentScript.title || 'Untitled script').slice(0, 80),
+      hook: (currentScript.hook || '').slice(0, 200),
+      platform: currentScript.platform || 'reel',
+      items: currentScript.items || [],
+    };
+    const { data, error } = await sb
+      .from('scripts')
+      .update(payload)
+      .eq('id', currentScript.id)
+      .eq('user_id', currentUser.id)
+      .select()
+      .single();
+    if (error) throw error;
+    // Update cached list
+    const idx = scriptsList.findIndex(s => s.id === currentScript.id);
+    if (idx !== -1) scriptsList[idx] = { ...scriptsList[idx], ...payload, updated_at: data.updated_at };
+    scriptsDirty = false;
+    updateSaveStatus('Saved ✓', 'success');
+    setTimeout(() => {
+      if (!scriptsDirty) updateSaveStatus('');
+    }, 2000);
+  } catch (e) {
+    console.error(e);
+    updateSaveStatus('Save failed', 'error');
+  }
+}
+
+// ========== Export menu ==========
+function toggleScriptsExportMenu() {
+  const menu = document.getElementById('scripts-export-menu');
+  if (!menu) return;
+  menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+}
+
+function scriptsExportOutsideClick(e) {
+  const wrap = document.querySelector('.scripts-export-wrap');
+  if (wrap && !wrap.contains(e.target)) {
+    const menu = document.getElementById('scripts-export-menu');
+    if (menu) menu.style.display = 'none';
+  }
+}
+
+function exportScriptCopyAll() {
+  const text = buildScriptFullText();
+  copyToClipboard(text);
+  toggleScriptsExportMenu();
+}
+
+function exportScriptCopySpoken() {
+  const parts = [];
+  if (currentScript.hook) parts.push(currentScript.hook);
+  currentScript.items.forEach(i => {
+    if (i.type === 'block' && i.body) parts.push(i.body);
+  });
+  copyToClipboard(parts.join('\n\n'));
+  toggleScriptsExportMenu();
+}
+
+function exportScriptDownloadTxt() {
+  const text = buildScriptFullText();
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = (currentScript.title || 'script').replace(/[^a-z0-9]+/gi, '-').toLowerCase() + '.txt';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  toggleScriptsExportMenu();
+}
+
+function exportScriptPDF() {
+  toggleScriptsExportMenu();
+  if (!currentScript) return;
+
+  // Build a clean print-ready HTML doc in a hidden iframe and trigger print
+  const iframe = document.createElement('iframe');
+  iframe.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;';
+  document.body.appendChild(iframe);
+
+  const doc = iframe.contentDocument || iframe.contentWindow.document;
+  const html = buildScriptPrintHTML();
+  doc.open();
+  doc.write(html);
+  doc.close();
+
+  // Wait for fonts/layout, then print
+  iframe.onload = () => {
+    try {
+      iframe.contentWindow.focus();
+      iframe.contentWindow.print();
+    } catch (e) {
+      console.error('print', e);
+    }
+    // Clean up the iframe after print dialog closes
+    setTimeout(() => {
+      try { document.body.removeChild(iframe); } catch (e) {}
+    }, 1000);
+  };
+}
+
+function buildScriptPrintHTML() {
+  const title = escapeHtml(currentScript.title || 'Untitled script');
+  const platform = SCRIPT_PLATFORMS[currentScript.platform] || 'Script';
+  const duration = calcScriptDuration(currentScript);
+  const blockCount = currentScript.items.filter(i => i.type === 'block').length;
+  const hook = escapeHtml(currentScript.hook || '');
+
+  const itemsHtml = currentScript.items.map(i => {
+    if (i.type === 'section') {
+      return `<div class="section">${escapeHtml(i.text || 'Section')}</div>`;
+    }
+    const bTitle = i.title ? `<div class="b-title">${escapeHtml(i.title)}</div>` : '';
+    const body = escapeHtml(i.body || '').replace(/\n/g, '<br>');
+    const wordCount = (i.body || '').trim().split(/\s+/).filter(Boolean).length;
+    const seconds = Math.max(1, Math.round((wordCount / SCRIPT_WPM) * 60));
+    return `<div class="block">${bTitle}<div class="b-body">${body || '<em class="empty">(empty)</em>'}</div><div class="b-meta">${wordCount} words · ${seconds}s</div></div>`;
+  }).join('');
+
+  const showBrand = isPro() ? false : true;  // Max removes branding; matching existing pattern
+  const brandFooter = showBrand
+    ? '<div class="brand-footer">Built with <strong>FindTheSnakes</strong> · findthesnakes.com</div>'
+    : '';
+
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${title}</title>
+<style>
+  @page { size: letter; margin: 0.75in; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+    color: #111;
+    background: #fff;
+    line-height: 1.5;
+    font-size: 11pt;
+    margin: 0;
+    padding: 0;
+  }
+  .doc { max-width: 100%; }
+  .title {
+    font-size: 22pt;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin-bottom: 4pt;
+    color: #000;
+  }
+  .subtitle {
+    font-size: 10pt;
+    color: #666;
+    margin-bottom: 24pt;
+    padding-bottom: 12pt;
+    border-bottom: 1px solid #ddd;
+  }
+  .hook-box {
+    background: #f8f6ff;
+    border-left: 3px solid #7c3aed;
+    padding: 12pt 14pt;
+    margin-bottom: 20pt;
+    border-radius: 0 6pt 6pt 0;
+    page-break-inside: avoid;
+  }
+  .hook-label {
+    font-size: 8pt;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #7c3aed;
+    font-weight: 700;
+    margin-bottom: 4pt;
+  }
+  .hook-text {
+    font-size: 13pt;
+    font-weight: 500;
+    color: #111;
+    line-height: 1.45;
+  }
+  .section {
+    font-size: 9pt;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #888;
+    font-weight: 700;
+    margin: 20pt 0 10pt;
+    padding-top: 8pt;
+    border-top: 1px solid #eaeaea;
+  }
+  .section:first-of-type { margin-top: 10pt; }
+  .block {
+    margin-bottom: 14pt;
+    padding: 10pt 12pt;
+    background: #fafafa;
+    border: 1px solid #eee;
+    border-radius: 4pt;
+    page-break-inside: avoid;
+  }
+  .b-title {
+    font-size: 10pt;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 4pt;
+  }
+  .b-body {
+    font-size: 11pt;
+    color: #222;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+  .b-body .empty { color: #bbb; font-style: italic; }
+  .b-meta {
+    font-size: 8pt;
+    color: #999;
+    margin-top: 6pt;
+    text-align: right;
+  }
+  .brand-footer {
+    margin-top: 32pt;
+    padding-top: 12pt;
+    border-top: 1px solid #eee;
+    font-size: 8pt;
+    color: #999;
+    text-align: center;
+  }
+  .brand-footer strong { color: #7c3aed; }
+  @media print {
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+<div class="doc">
+  <div class="title">${title}</div>
+  <div class="subtitle">${platform} · ${duration}s · ${blockCount} ${blockCount === 1 ? 'block' : 'blocks'}</div>
+  ${hook ? `<div class="hook-box"><div class="hook-label">Hook</div><div class="hook-text">${hook.replace(/\n/g, '<br>')}</div></div>` : ''}
+  ${itemsHtml || '<div style="color:#999;font-style:italic;">No content yet.</div>'}
+  ${brandFooter}
+</div>
+</body></html>`;
+}
+
+function openTeleprompter() {
+  toggleScriptsExportMenu();
+  if (!currentScript) return;
+
+  // Build the text to scroll
+  const parts = [];
+  if (currentScript.hook) parts.push(currentScript.hook);
+  currentScript.items.forEach(i => {
+    if (i.type === 'block' && i.body) parts.push(i.body);
+  });
+  const script = parts.join('\n\n').trim();
+  if (!script) {
+    alert('Add some content first — the teleprompter needs text to scroll.');
+    return;
+  }
+
+  // Create fullscreen overlay
+  let tp = document.getElementById('teleprompter-overlay');
+  if (tp) tp.remove();
+
+  tp = document.createElement('div');
+  tp.id = 'teleprompter-overlay';
+  tp.innerHTML = `
+    <div class="tp-top">
+      <button class="tp-close-btn" onclick="closeTeleprompter()" aria-label="Close teleprompter">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        Exit
+      </button>
+      <div class="tp-title">${escapeHtml(currentScript.title || 'Untitled script')}</div>
+    </div>
+    <div class="tp-scroll-area" id="tp-scroll-area">
+      <div class="tp-spacer-top"></div>
+      <div class="tp-content" id="tp-content">${escapeHtml(script).replace(/\n/g, '<br>')}</div>
+      <div class="tp-spacer-bottom"></div>
+    </div>
+    <div class="tp-center-line"></div>
+    <div class="tp-controls">
+      <button class="tp-ctrl-btn" onclick="tpAdjustSpeed(-1)" aria-label="Slower">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+      <div class="tp-speed-display"><span id="tp-speed-val">3</span><span class="tp-speed-unit">speed</span></div>
+      <button class="tp-ctrl-btn" onclick="tpAdjustSpeed(1)" aria-label="Faster">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+      <div class="tp-divider"></div>
+      <button class="tp-ctrl-btn primary" onclick="tpTogglePlay()" id="tp-play-btn">
+        <svg id="tp-play-icon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+        <span id="tp-play-label">Play</span>
+      </button>
+      <button class="tp-ctrl-btn" onclick="tpRestart()" aria-label="Restart">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+      </button>
+      <div class="tp-divider"></div>
+      <button class="tp-ctrl-btn" onclick="tpAdjustFontSize(-1)" aria-label="Smaller text">A<small>−</small></button>
+      <button class="tp-ctrl-btn" onclick="tpAdjustFontSize(1)" aria-label="Larger text">A<small>+</small></button>
+    </div>
+    <div class="tp-hint">Space: play/pause · ↑↓: speed · Esc: exit</div>
+  `;
+  document.body.appendChild(tp);
+
+  // State
+  tpState = {
+    playing: false,
+    speed: 3,        // pixels per frame at normal
+    fontSize: 48,
+    rafId: null,
+    keyHandler: null,
+  };
+  applyTpFontSize();
+  tpState.keyHandler = tpOnKey;
+  document.addEventListener('keydown', tpState.keyHandler);
+  // Auto-scroll so first line starts at center line
+  setTimeout(() => {
+    const area = document.getElementById('tp-scroll-area');
+    if (area) area.scrollTop = 0;
+  }, 50);
+}
+
+let tpState = null;
+
+function closeTeleprompter() {
+  if (tpState?.rafId) cancelAnimationFrame(tpState.rafId);
+  if (tpState?.keyHandler) document.removeEventListener('keydown', tpState.keyHandler);
+  tpState = null;
+  const tp = document.getElementById('teleprompter-overlay');
+  if (tp) tp.remove();
+}
+
+function tpTogglePlay() {
+  if (!tpState) return;
+  tpState.playing = !tpState.playing;
+  const icon = document.getElementById('tp-play-icon');
+  const label = document.getElementById('tp-play-label');
+  if (tpState.playing) {
+    if (icon) icon.innerHTML = '<rect x="5" y="3" width="5" height="18"/><rect x="14" y="3" width="5" height="18"/>';
+    if (label) label.textContent = 'Pause';
+    tpTick();
+  } else {
+    if (icon) icon.innerHTML = '<polygon points="6 3 20 12 6 21 6 3"/>';
+    if (label) label.textContent = 'Play';
+    if (tpState.rafId) cancelAnimationFrame(tpState.rafId);
+  }
+}
+
+function tpTick() {
+  if (!tpState || !tpState.playing) return;
+  const area = document.getElementById('tp-scroll-area');
+  if (!area) return;
+  // Scroll speed: roughly speed pixels per frame (60fps)
+  area.scrollTop += tpState.speed * 0.5;
+  // Stop at bottom
+  if (area.scrollTop + area.clientHeight >= area.scrollHeight - 1) {
+    tpTogglePlay();
+    return;
+  }
+  tpState.rafId = requestAnimationFrame(tpTick);
+}
+
+function tpAdjustSpeed(delta) {
+  if (!tpState) return;
+  tpState.speed = Math.max(1, Math.min(10, tpState.speed + delta));
+  const el = document.getElementById('tp-speed-val');
+  if (el) el.textContent = tpState.speed;
+}
+
+function tpAdjustFontSize(delta) {
+  if (!tpState) return;
+  tpState.fontSize = Math.max(24, Math.min(96, tpState.fontSize + delta * 4));
+  applyTpFontSize();
+}
+
+function applyTpFontSize() {
+  const content = document.getElementById('tp-content');
+  if (content && tpState) content.style.fontSize = tpState.fontSize + 'px';
+}
+
+function tpRestart() {
+  const area = document.getElementById('tp-scroll-area');
+  if (area) area.scrollTop = 0;
+}
+
+function tpOnKey(e) {
+  if (!tpState) return;
+  if (e.key === 'Escape') {
+    e.preventDefault();
+    closeTeleprompter();
+  } else if (e.key === ' ') {
+    e.preventDefault();
+    tpTogglePlay();
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    tpAdjustSpeed(1);
+  } else if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    tpAdjustSpeed(-1);
+  } else if (e.key === 'Home' || e.key === 'r') {
+    e.preventDefault();
+    tpRestart();
+  }
+}
+
+function buildScriptFullText() {
+  const parts = [];
+  parts.push(currentScript.title || 'Untitled script');
+  parts.push('='.repeat((currentScript.title || 'Untitled script').length));
+  parts.push('');
+  if (currentScript.hook) {
+    parts.push('HOOK: ' + currentScript.hook);
+    parts.push('');
+  }
+  currentScript.items.forEach(i => {
+    if (i.type === 'section') {
+      parts.push('');
+      parts.push('— ' + (i.text || 'Section') + ' —');
+      parts.push('');
+    } else {
+      if (i.title) parts.push('[' + i.title + ']');
+      if (i.body) parts.push(i.body);
+      parts.push('');
+    }
+  });
+  return parts.join('\n').trim();
+}
+
+function copyToClipboard(text) {
+  try {
+    navigator.clipboard.writeText(text);
+    updateSaveStatus('Copied to clipboard', 'success');
+    setTimeout(() => {
+      if (!scriptsDirty) updateSaveStatus('');
+    }, 2000);
+  } catch (e) {
+    console.warn('clipboard', e);
+  }
+}
+
 
 initAuth();
 
