@@ -2,7 +2,7 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
-    { "source": "/mediakit/:username", "destination": "/mediakit.html?u=:username" },
-    { "source": "/:username", "destination": "/bio.html?u=:username" }
+    { "source": "/mediakit/:username", "destination": "/mediakit?u=:username" },
+    { "source": "/:username", "destination": "/bio?u=:username" }
   ]
 }
