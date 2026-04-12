@@ -173,6 +173,35 @@
     .bio-grid > div:last-child { position: static !important; }
     #bio-preview-frame { height: 600px; max-width: 400px; margin: 0 auto; }
   }
+  /* Tighter mobile fixes */
+  @media (max-width: 640px) {
+    .bio-tool-wrap { max-width: 100%; overflow: hidden; }
+    .bio-tool-wrap h2 { font-size: 20px !important; }
+    .bio-tool-wrap p { font-size: 13px !important; }
+    .bio-link-row { padding: 10px !important; }
+    .bio-link-row input, .bio-link-row textarea { font-size: 13px !important; }
+    .bio-link-row .bio-link-header { flex-wrap: wrap; }
+    /* Avatar + name side-by-side becomes stacked */
+    .bio-tool-wrap .bio-avatar-row { flex-direction: column !important; align-items: center !important; text-align: center; }
+    /* Username input — allow wrapping of the URL prefix */
+    #bio-username-row { flex-wrap: wrap; }
+    /* Theme grid: 3 cols on mobile */
+    .bio-themes-grid { grid-template-columns: repeat(3, 1fr) !important; }
+    .bio-theme-btn { font-size: 10px !important; padding: 8px 4px !important; }
+    /* Preview iframe smaller on phones */
+    #bio-preview-frame { height: 500px !important; max-width: 100% !important; }
+    /* Publish status bar stacks nicely */
+    .bio-tool-wrap button { font-size: 12px !important; }
+    /* Input prefix "findthesnakes.com/" might overflow — allow wrap */
+    .bio-username-prefix { font-size: 12px !important; }
+    /* Ensure all inputs don't overflow */
+    .bio-tool-wrap input, .bio-tool-wrap textarea { max-width: 100% !important; box-sizing: border-box !important; }
+    /* Video card thumbnails keep aspect */
+    .bio-video-thumb { max-width: 100% !important; }
+  }
+  @media (max-width: 420px) {
+    .bio-themes-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  }
   .bio-theme.selected { border-color: var(--accent) !important; box-shadow: 0 0 0 2px var(--accent) !important; }
   .bio-themes-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
   .bio-theme-btn { position: relative; padding: 10px 6px; border: 1px solid var(--border-hover); border-radius: 10px; cursor: pointer; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 500; transition: border-color 0.2s, transform 0.15s; text-align: center; overflow: hidden; }
@@ -202,6 +231,22 @@
   .bio-link-row input, .bio-link-row textarea { width: 100%; background: var(--surface2); border: 1px solid var(--border-hover); border-radius: 6px; padding: 8px 10px; font-size: 13px; color: var(--text); font-family: 'DM Sans', sans-serif; outline: none; box-sizing: border-box; margin-bottom: 6px; }
   .bio-link-row textarea { resize: none; }
   .bio-link-row .bio-link-remove { padding: 4px 10px; background: transparent; border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; border-radius: 6px; font-size: 11px; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+  .bio-link-row.bio-link-mediakit {
+    background: linear-gradient(135deg, rgba(124,58,237,0.08), rgba(232,121,249,0.05)) !important;
+    border: 1px solid rgba(124,58,237,0.35) !important;
+  }
+  .bio-link-row.bio-link-mediakit:hover { border-color: rgba(124,58,237,0.55) !important; }
+  .bio-mediakit-badge {
+    font-size: 10px;
+    background: linear-gradient(135deg, rgba(124,58,237,0.25), rgba(232,121,249,0.2));
+    color: #c4b5fd;
+    border: 1px solid rgba(124,58,237,0.35);
+    border-radius: 100px;
+    padding: 2px 8px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
   .bio-featured-photo-slot { width: 100%; aspect-ratio: 16/9; border: 1px dashed rgba(124,58,237,0.4); border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; margin-bottom: 8px; overflow: hidden; background: var(--surface2); color: var(--muted); font-size: 12px; }
   .bio-featured-photo-slot img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .bio-featured-photo-slot input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
@@ -1201,8 +1246,8 @@
             <div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:20px;">
               <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:10px;">Your public URL</div>
               <div style="display:flex;gap:8px;align-items:stretch;flex-wrap:wrap;">
-                <div style="display:flex;align-items:center;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding-left:12px;font-size:13px;color:var(--muted);flex:1;min-width:200px;">
-                  <span>findthesnakes.com/</span>
+                <div class="bio-username-prefix-wrap" style="display:flex;align-items:center;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding-left:12px;font-size:13px;color:var(--muted);flex:1;min-width:0;">
+                  <span class="bio-username-prefix">findthesnakes.com/</span>
                   <input type="text" id="bio-username" aria-label="Username" placeholder="yourname" maxlength="30" oninput="onUsernameInput()" style="background:transparent;border:none;padding:10px 10px 10px 2px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;flex:1;min-width:0;">
                 </div>
               </div>
@@ -1281,6 +1326,10 @@
                 <button type="button" id="bio-add-link-btn" onclick="addLink(false)" style="flex:1;min-width:140px;padding:10px;background:transparent;border:1px dashed rgba(124,58,237,0.4);color:var(--accent2);border-radius:8px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;">+ Add link</button>
                 <button type="button" id="bio-add-featured-btn" onclick="addLink(true)" style="flex:1;min-width:140px;padding:10px;background:transparent;border:1px dashed rgba(124,58,237,0.4);color:var(--accent2);border-radius:8px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;">+ Add featured link</button>
               </div>
+              <button type="button" id="bio-add-mediakit-link" onclick="addMediaKitLink()" style="display:none;width:100%;margin-top:8px;padding:10px;background:linear-gradient(135deg,rgba(124,58,237,0.1),rgba(232,121,249,0.06));border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:8px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;align-items:center;justify-content:center;gap:8px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>
+                Add link to your Media Kit
+              </button>
             </div>
 
             <!-- Videos -->
@@ -1357,8 +1406,8 @@
               </div>
               <div class="mk-section-body">
                 <div style="display:flex;gap:8px;align-items:stretch;flex-wrap:wrap;">
-                  <div style="display:flex;align-items:center;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding-left:12px;font-size:13px;color:var(--muted);flex:1;min-width:200px;">
-                    <span>findthesnakes.com/mediakit/</span>
+                  <div class="bio-username-prefix-wrap" style="display:flex;align-items:center;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding-left:12px;font-size:13px;color:var(--muted);flex:1;min-width:0;">
+                    <span class="bio-username-prefix">findthesnakes.com/mediakit/</span>
                     <input type="text" id="mk-username" aria-label="Username" placeholder="yourname" maxlength="30" oninput="onMKUsernameInput()" style="background:transparent;border:none;padding:10px 10px 10px 2px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;flex:1;min-width:0;">
                   </div>
                 </div>
@@ -2368,6 +2417,7 @@ async function resyncBioUsername() {
     input.value = mkInput.value;
     bioState.username = mkInput.value;
     updatePublishUI();
+    updateMediaKitLinkButton();
     return;
   }
   // Fallback: query profiles table
@@ -2380,6 +2430,7 @@ async function resyncBioUsername() {
     }
   } catch (e) { console.warn('resyncBioUsername', e); }
   updatePublishUI();
+  updateMediaKitLinkButton();
 }
 
 async function loadBioData() {
@@ -2411,6 +2462,7 @@ async function loadBioData() {
   renderBioVideos();
   updatePublishUI();
   updateBioPreview();
+  updateMediaKitLinkButton();
 }
 
 function syncBioForm() {
@@ -2700,6 +2752,91 @@ function addLink(isFeatured) {
   schedulePreviewUpdate();
 }
 
+// If user has a published Media Kit, add a pre-filled link to it
+async function addMediaKitLink() {
+  if (userTier !== 'monthly') {
+    showBioStatus('error', 'Media Kit is a Pro feature.');
+    return;
+  }
+  if (!currentUser) return;
+
+  const { maxLinks } = bioLimits();
+  const regularCount = bioState.links.filter(l => !l.featured).length;
+  if (regularCount >= maxLinks) {
+    showBioStatus('error', `Link limit reached (${maxLinks}).`);
+    return;
+  }
+
+  // Get username (prefer Link in Bio's input, fallback to profile)
+  let uname = document.getElementById('bio-username').value.trim();
+  if (!uname) {
+    try {
+      const { data: profile } = await sb.from('profiles').select('username').eq('user_id', currentUser.id).maybeSingle();
+      uname = profile?.username || '';
+    } catch (e) {}
+  }
+  if (!uname) {
+    showBioStatus('error', 'Set your username first.');
+    return;
+  }
+
+  // Check if media kit is published
+  try {
+    const { data: kit } = await sb.from('media_kit').select('published').eq('user_id', currentUser.id).maybeSingle();
+    if (!kit || !kit.published) {
+      showBioStatus('error', 'Publish your Media Kit first.');
+      return;
+    }
+  } catch (e) {
+    showBioStatus('error', 'Could not check Media Kit. Try again.');
+    return;
+  }
+
+  // Don't add duplicate
+  const mediaKitUrl = `https://www.findthesnakes.com/mediakit/${uname}`;
+  const existing = bioState.links.find(l => l.isMediaKit);
+  if (existing) {
+    showBioStatus('error', 'Media Kit link already added.');
+    return;
+  }
+
+  const newId = linkIdSeq++;
+  bioState.links.push({
+    _id: newId,
+    title: 'My Media Kit',
+    description: 'Audience stats, rate card, contact info',
+    url: mediaKitUrl,
+    featured: false,
+    photoUrl: '',
+    isMediaKit: true,
+  });
+  renderBioLinks();
+  schedulePreviewUpdate();
+  showBioStatus('success', 'Media Kit link added — remember to save.');
+}
+
+// Toggle Media Kit link button visibility based on tier + media kit status
+async function updateMediaKitLinkButton() {
+  const btn = document.getElementById('bio-add-mediakit-link');
+  if (!btn) return;
+  const isPro = userTier === 'monthly';
+  if (!isPro || !currentUser) {
+    btn.style.display = 'none';
+    return;
+  }
+  // Already in the list? hide
+  if (bioState.links.some(l => l.isMediaKit)) {
+    btn.style.display = 'none';
+    return;
+  }
+  try {
+    const { data: kit } = await sb.from('media_kit').select('published').eq('user_id', currentUser.id).maybeSingle();
+    btn.style.display = (kit && kit.published) ? 'flex' : 'none';
+  } catch (e) {
+    btn.style.display = 'none';
+  }
+}
+
 function removeLink(id) {
   const link = bioState.links.find(l => l._id === id);
   // If it had a photo, queue it for deletion on save (we'll track old URLs)
@@ -2709,6 +2846,7 @@ function removeLink(id) {
   bioState.links = bioState.links.filter(l => l._id !== id);
   renderBioLinks();
   schedulePreviewUpdate();
+  updateMediaKitLinkButton();
 }
 
 function updateLinkField(id, field, val) {
@@ -2772,12 +2910,13 @@ function renderLinkCollapsed(link, dragSvg, editSvg) {
   const title = escapeHtml(link.title || 'Untitled');
   const url = (link.url || '').trim();
   const urlDisplay = url ? escapeHtml(url.length > 50 ? url.slice(0, 47) + '…' : url) : '<span style="color:#fca5a5;">No URL set</span>';
+  const mkClass = link.isMediaKit ? ' bio-link-mediakit' : '';
 
   if (link.featured) {
     const thumb = link.photoUrl
       ? `<img alt="" src="${escapeHtml(link.photoUrl)}" style="width:56px;height:32px;object-fit:cover;border-radius:4px;flex-shrink:0;">`
       : `<div style="width:56px;height:32px;border-radius:4px;background:var(--surface2);border:1px dashed rgba(124,58,237,0.3);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--muted);">16:9</div>`;
-    return `<div class="bio-link-row bio-link-collapsed" data-id="${link._id}" onclick="expandLink(${link._id})" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:10px 12px;">
+    return `<div class="bio-link-row bio-link-collapsed${mkClass}" data-id="${link._id}" onclick="expandLink(${link._id})" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:10px 12px;">
       <div class="bio-link-drag" aria-label="Drag to reorder" onclick="event.stopPropagation();">${dragSvg}</div>
       ${thumb}
       <div style="flex:1;min-width:0;">
@@ -2792,10 +2931,17 @@ function renderLinkCollapsed(link, dragSvg, editSvg) {
     </div>`;
   }
 
-  return `<div class="bio-link-row bio-link-collapsed" data-id="${link._id}" onclick="expandLink(${link._id})" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:10px 12px;">
+  const mkIcon = link.isMediaKit ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0;"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>' : '';
+  const mkBadge = link.isMediaKit ? '<span class="bio-mediakit-badge">Media Kit</span>' : '';
+
+  return `<div class="bio-link-row bio-link-collapsed${mkClass}" data-id="${link._id}" onclick="expandLink(${link._id})" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:10px 12px;">
     <div class="bio-link-drag" aria-label="Drag to reorder" onclick="event.stopPropagation();">${dragSvg}</div>
+    ${mkIcon}
     <div style="flex:1;min-width:0;">
-      <div style="font-size:13px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${title}</div>
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+        <span style="font-size:13px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;">${title}</span>
+        ${mkBadge}
+      </div>
       <div style="font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px;">${urlDisplay}</div>
     </div>
     <button type="button" aria-label="Edit link" onclick="event.stopPropagation();expandLink(${link._id})" style="background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:6px;padding:5px 9px;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:4px;">${editSvg} Edit</button>
@@ -3204,6 +3350,7 @@ async function saveBio() {
         url: normalizeUrl(l.url),
         featured: !!l.featured,
         photoUrl: l.photoUrl || '',
+        ...(l.isMediaKit ? { isMediaKit: true } : {}),
       }));
     const cleanVideos = bioState.videos
       .filter(v => (v.url || '').trim())
