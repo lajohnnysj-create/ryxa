@@ -3890,7 +3890,10 @@ async function deleteStalePhotos() {
       if (p) inUse.add(p);
     };
     addInUse(bioState.avatar_url);
-    bioState.links.forEach(l => { if (l.featured && l.photoUrl) addInUse(l.photoUrl); });
+    // Include both featured AND hero link photos as in-use
+    bioState.links.forEach(l => {
+      if ((l.featured || l.isHero) && l.photoUrl) addInUse(l.photoUrl);
+    });
 
     // Any file not in the in-use set is stale and safe to delete
     const toDelete = files
