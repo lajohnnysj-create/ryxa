@@ -1370,7 +1370,12 @@ let bioPreviewTimer = null;
 let linkIdSeq = 1;
 
 function initBioTool() {
-  if (bioInited) { updateBioPreview(); return; }
+  if (bioInited) {
+    // Re-sync username from profiles in case it was changed in the Media Kit tool
+    resyncBioUsername();
+    updateBioPreview();
+    return;
+  }
   bioInited = true;
   renderBioThemes();
   renderBioSocials();
@@ -1380,6 +1385,22 @@ function initBioTool() {
   document.getElementById('bio-avatar-inner').addEventListener('click', () => {
     document.getElementById('bio-avatar-input').click();
   });
+}
+
+// Pulls the latest username from profiles and refreshes the publish UI.
+// Called every time the Link in Bio tool is reopened.
+async function resyncBioUsername() {
+  const input = document.getElementById('bio-username');
+  if (!input || !currentUser) return;
+  try {
+    const { data: profile } = await sb.from('profiles').select('username').eq('user_id', currentUser.id).maybeSingle();
+    if (profile?.username) {
+      input.value = profile.username;
+      bioState.username = profile.username;
+      bioOriginalUsername = profile.username;
+    }
+  } catch (e) { console.warn('resyncBioUsername', e); }
+  updatePublishUI();
 }
 
 async function loadBioData() {
@@ -2463,6 +2484,8 @@ function initMediaKitTool() {
   if (!isPro) return;
 
   if (mkInited) {
+    // Re-sync username from profiles in case it was changed in the Link in Bio tool
+    resyncMKUsername();
     renderMKSocials();
     renderMKRates();
     renderMKThemes();
@@ -2484,6 +2507,28 @@ function initMediaKitTool() {
   document.getElementById('mk-headshot-inner').addEventListener('click', () => {
     document.getElementById('mk-headshot-input').click();
   });
+}
+
+// Pulls the latest username from profiles (or bioOriginalUsername if already loaded) and refreshes the publish UI.
+// Called every time the Media Kit tool is reopened.
+async function resyncMKUsername() {
+  const input = document.getElementById('mk-username');
+  if (!input || !currentUser) return;
+  // Fast path: use in-memory value if Link in Bio has already loaded
+  if (typeof bioOriginalUsername !== 'undefined' && bioOriginalUsername) {
+    input.value = bioOriginalUsername;
+    updateMKPublishUI();
+    return;
+  }
+  // Fallback: query profiles table
+  try {
+    const { data: profile } = await sb.from('profiles').select('username').eq('user_id', currentUser.id).maybeSingle();
+    if (profile?.username) {
+      input.value = profile.username;
+      if (typeof bioOriginalUsername !== 'undefined') bioOriginalUsername = profile.username;
+    }
+  } catch (e) { console.warn('resyncMKUsername', e); }
+  updateMKPublishUI();
 }
 
 async function loadMediaKit() {
