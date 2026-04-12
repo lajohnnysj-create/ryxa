@@ -608,9 +608,7 @@
   }
 
   /* ================ PDF SIGN ================ */
-  .pdfsign-wrap { max-width: 100%; margin: 0 auto; min-width: 0; }
-  .pdfsign-wrap, .pdfsign-wrap * { min-width: 0; box-sizing: border-box; }
-  #tool-pdfsign { max-width: 100%; overflow-x: hidden; }
+  .pdfsign-wrap { max-width: 100%; margin: 0 auto; }
   .pdfsign-dropzone {
     background: var(--surface2);
     border: 2px dashed var(--border-hover);
@@ -754,27 +752,16 @@
   .pdfsign-palette-name { font-size: 12px; font-weight: 500; color: var(--text); white-space: nowrap; }
 
   @media (max-width: 640px) {
-    .pdfsign-palette { padding: 10px 12px; max-width: 100%; }
-    .pdfsign-palette-header { gap: 8px; flex-wrap: nowrap; max-width: 100%; }
+    .pdfsign-palette { padding: 10px 12px; }
+    .pdfsign-palette-header { gap: 8px; }
     .pdfsign-palette-label, .pdfsign-privacy-badge { display: none; }
-    .pdfsign-palette-items {
-      gap: 6px;
-      justify-content: flex-start;
-      overflow-x: auto;
-      flex-wrap: nowrap;
-      padding-bottom: 2px;
-      -webkit-overflow-scrolling: touch;
-      min-width: 0;
-      flex: 1 1 0;
-      width: 100%;
-    }
+    .pdfsign-palette-items { gap: 6px; justify-content: flex-start; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 2px; -webkit-overflow-scrolling: touch; }
     .pdfsign-palette-item { padding: 7px 10px; flex-shrink: 0; }
     .pdfsign-palette-name { font-size: 11px; }
-    .pdfsign-canvas-area { padding: 10px; max-width: 100%; }
+    .pdfsign-canvas-area { padding: 10px; }
     .pdfsign-tip { min-width: 0; font-size: 11px; padding: 8px 10px; }
     .pdfsign-wrap { padding: 0 !important; }
     .pdfsign-action-btn { padding: 8px 12px; font-size: 11px; }
-    .pdfsign-palette-actions { flex-shrink: 0; }
   }
 
   /* Canvas area now takes full width */
@@ -813,10 +800,10 @@
     border: 1px solid var(--border);
     border-radius: 6px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-    max-width: 100%;
-    min-width: 0;
+    width: 100%;
+    max-width: 918px; /* roughly PDF at 1.5x scale for US Letter */
   }
-  .pdfsign-page-wrap canvas { display: block; width: 100%; height: auto; max-width: 100%; border-radius: 6px; }
+  .pdfsign-page-wrap canvas { display: block; width: 100%; height: auto; border-radius: 6px; }
   .pdfsign-field-overlay {
     position: absolute;
     inset: 0;
@@ -5874,9 +5861,7 @@ async function renderAllPages() {
     const wrap = document.createElement('div');
     wrap.className = 'pdfsign-page-wrap';
     wrap.dataset.pageIndex = i - 1;
-    // Use aspect ratio + max-width so the page is always responsive
-    wrap.style.width = viewport.width + 'px';
-    wrap.style.maxWidth = '100%';
+    // Let the canvas define intrinsic size; CSS handles responsive scaling
     wrap.style.aspectRatio = `${viewport.width} / ${viewport.height}`;
 
     const canvas = document.createElement('canvas');
