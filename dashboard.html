@@ -1164,17 +1164,58 @@ function onUsernameInput() {
   if (!cleaned) {
     hint.textContent = '3-30 characters · lowercase letters, numbers, underscore only';
     hint.style.color = 'var(--muted)';
+    hint.style.display = 'block';
   } else if (cleaned.length < 3) {
     hint.textContent = 'Too short — minimum 3 characters';
     hint.style.color = '#fca5a5';
+    hint.style.display = 'block';
   } else if (BIO_RESERVED.has(cleaned)) {
     hint.textContent = 'That username is reserved. Pick another.';
     hint.style.color = '#fca5a5';
+    hint.style.display = 'block';
   } else {
-    hint.innerHTML = `Your page will be at <strong style="color:var(--accent2)">findthesnakes.com/${cleaned}</strong>`;
+    const fullUrl = `https://www.findthesnakes.com/${cleaned}`;
+    hint.innerHTML = `
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <span>Your page will be at <strong style="color:var(--accent2)">findthesnakes.com/${cleaned}</strong></span>
+        <button type="button" onclick="copyBioLink('${fullUrl}', this)"
+          style="padding:4px 10px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:6px;font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;font-weight:500;">
+          Copy link
+        </button>
+      </div>`;
     hint.style.color = 'var(--muted)';
+    hint.style.display = 'block';
   }
   schedulePreviewUpdate();
+}
+
+async function copyBioLink(url, btn) {
+  try {
+    await navigator.clipboard.writeText(url);
+    const original = btn.textContent;
+    btn.textContent = 'Copied ✓';
+    btn.style.background = 'rgba(74,222,128,0.15)';
+    btn.style.borderColor = 'rgba(74,222,128,0.4)';
+    btn.style.color = '#4ade80';
+    setTimeout(() => {
+      btn.textContent = original;
+      btn.style.background = 'rgba(124,58,237,0.1)';
+      btn.style.borderColor = 'rgba(124,58,237,0.3)';
+      btn.style.color = '#c4b5fd';
+    }, 1500);
+  } catch (e) {
+    // Fallback for browsers without clipboard API
+    const ta = document.createElement('textarea');
+    ta.value = url;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); btn.textContent = 'Copied ✓'; }
+    catch { btn.textContent = 'Copy failed'; }
+    document.body.removeChild(ta);
+    setTimeout(() => { btn.textContent = 'Copy link'; }, 1500);
+  }
 }
 
 function pickTheme(t) {
@@ -1658,12 +1699,12 @@ function buildPreviewHTML() {
   .sb{width:34px;height:34px;border-radius:50%;background:${t.surface};border:1px solid ${t.border};display:flex;align-items:center;justify-content:center;color:${t.text};}
   .sb svg{width:16px;height:16px;fill:currentColor;}
   .links{width:100%;display:flex;flex-direction:column;gap:9px;margin-top:4px;}
-  .lk{background:${t.surface};border:1px solid ${t.border};border-radius:13px;padding:14px 18px;color:${t.text};}
+  .lk{background:${t.surface};border:1px solid ${t.border};border-radius:13px;padding:14px 18px;color:${t.text};text-align:center;}
   .lk-t{font-size:14px;font-weight:600;}
   .lk-d{font-size:12px;color:${t.muted};line-height:1.4;margin-top:2px;word-break:break-word;}
   .fl{background:${t.surface};border:1px solid ${t.border};border-radius:16px;overflow:hidden;}
   .fl img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:${t.surface2};}
-  .fl-b{padding:14px 18px 16px;}
+  .fl-b{padding:14px 18px 16px;text-align:center;}
   .fl-t{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;letter-spacing:-0.2px;word-break:break-word;}
   .fl-d{font-size:12px;color:${t.muted};line-height:1.4;margin-top:3px;word-break:break-word;}
   .vids{width:100%;margin-top:8px;overflow-x:auto;scrollbar-width:none;}
