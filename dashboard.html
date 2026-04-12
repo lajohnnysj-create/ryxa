@@ -1056,6 +1056,14 @@
       <div id="settings-sub-pro" style="display:none;">
         <p id="settings-sub-pro-msg" style="font-size:13px;color:var(--muted);margin-bottom:16px;">You are on the <strong id="settings-sub-pro-label" style="color:#e879f9;">Pro plan</strong>. You have full access to all tools and features.</p>
         <button id="settings-upgrade-max" onclick="confirmUpgradeToMax()" style="display:none;width:100%;padding:11px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px rgba(232,121,249,0.35);margin-bottom:8px;">Upgrade to Creator Max — $20/mo</button>
+        <div id="settings-upgrade-confirm" style="display:none;margin-top:0;margin-bottom:8px;padding:14px;background:linear-gradient(135deg,rgba(167,139,250,0.08),rgba(232,121,249,0.06));border:1px solid rgba(232,121,249,0.3);border-radius:8px;">
+          <p style="font-size:13px;color:#e879f9;margin-bottom:4px;font-weight:600;">Upgrade to Creator Max?</p>
+          <p style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5;">Takes effect immediately. You'll be charged a prorated amount today, then $20/month going forward. Unlocks custom themes, hero links, and full branding control.</p>
+          <div style="display:flex;gap:8px;">
+            <button onclick="confirmUpgradeToMaxFinal()" style="flex:1;padding:9px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 14px rgba(232,121,249,0.3);">Yes, upgrade</button>
+            <button onclick="dismissSettingsMsg()" style="flex:1;padding:9px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:7px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;">Stay on Pro</button>
+          </div>
+        </div>
         <button id="settings-downgrade-pro" onclick="handleDowngradeToPro()" style="display:none;width:100%;padding:11px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;margin-bottom:8px;">Downgrade to Pro — $10/mo</button>
         <div id="settings-downgrade-confirm" style="display:none;margin-top:0;margin-bottom:8px;padding:14px;background:rgba(124,58,237,0.06);border:1px solid rgba(124,58,237,0.25);border-radius:8px;">
           <p style="font-size:13px;color:#c4b5fd;margin-bottom:4px;font-weight:600;">Downgrade to Pro?</p>
@@ -2430,13 +2438,18 @@ async function setUser(user) {
   // Post-signup checkout: if user arrived with a plan intent from pricing page
   try {
     const intent = localStorage.getItem('fts_intended_plan');
-    if (intent && !isPro()) {
+    if (intent) {
+      // ALWAYS clear the intent — we don't want it to persist across sessions
       localStorage.removeItem('fts_intended_plan');
-      setTimeout(() => startCheckout(intent), 500);
-    } else if (intent) {
-      localStorage.removeItem('fts_intended_plan');
+      // Only auto-fire checkout if user is on Free tier AND has no active subscription.
+      // This prevents accidental upgrades for Pro/Max users who happened to click a
+      // pricing page button while already logged in.
+      const hasActiveSub = userStatus === 'active' || userStatus === 'cancelling';
+      if (userTier === 'free' && !hasActiveSub) {
+        setTimeout(() => startCheckout(intent), 500);
+      }
     }
-  } catch (e) {}
+  } catch (e) { console.warn('intent check', e); }
 }
 
 async function fetchTier(userId) {
@@ -2581,17 +2594,31 @@ async function startCheckout(plan) {
     try { localStorage.removeItem('fts_intended_plan'); } catch (e) {}
     if (data?.url) {
       if (data.upgraded || data.alreadyOnPlan) {
-        // Tier updated in-place — refresh user tier and show status
+        // Tier updated in-place — refresh user tier and show status inline
         await fetchTier(currentUser.id);
-        alert(data.alreadyOnPlan ? "You're already on this plan." : "Plan updated successfully.");
-        window.location.href = data.url;
+        const msg = data.alreadyOnPlan ? "You're already on this plan." : "Plan updated successfully.";
+        // Show in settings modal if open, otherwise a subtle toast
+        if (typeof showSettingsResult === 'function' && document.getElementById('settings-modal')?.classList.contains('open')) {
+          showSettingsResult('success', msg);
+        } else {
+          // Settings modal is closed — open it so the user sees their new state
+          if (typeof openSettingsModal === 'function') {
+            openSettingsModal();
+            setTimeout(() => showSettingsResult('success', msg), 150);
+          }
+        }
       } else {
         window.location.href = data.url;
       }
     }
   } catch (err) {
     console.error('Checkout error:', err);
-    alert('Something went wrong. Please try again.');
+    // Show inline error instead of browser alert
+    if (typeof showSettingsResult === 'function' && document.getElementById('settings-modal')?.classList.contains('open')) {
+      showSettingsResult('error', 'Something went wrong. Please try again.');
+    } else {
+      alert('Something went wrong. Please try again.');
+    }
   }
 }
 
@@ -2600,8 +2627,16 @@ function openSignoutModal() {
   if (modal) modal.style.display = 'flex';
 }
 
-async function confirmUpgradeToMax() {
-  if (!confirm("Upgrade to Creator Max for $20/month? You'll be charged a prorated amount today and $20/month going forward.")) return;
+// Step 1: user clicked "Upgrade to Creator Max" — show inline confirmation
+function confirmUpgradeToMax() {
+  dismissSettingsMsg();
+  const el = document.getElementById('settings-upgrade-confirm');
+  if (el) el.style.display = 'block';
+}
+
+// Step 2: user clicked "Yes, upgrade" — actually trigger Stripe
+async function confirmUpgradeToMaxFinal() {
+  dismissSettingsMsg();
   await startCheckout('max');
 }
 
@@ -6856,6 +6891,7 @@ function dismissSettingsMsg() {
     'settings-cancel-confirm',
     'settings-renew-confirm',
     'settings-downgrade-confirm',
+    'settings-upgrade-confirm',
     'settings-result-msg',
   ];
   els.forEach(id => {
