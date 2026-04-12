@@ -253,13 +253,23 @@ const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let authMode = 'signin';
 let intendedPlan = null; // 'monthly' or 'max', remembered across signup for post-signup checkout
+let isLoggedIn = false;
 document.querySelectorAll('.copy-year').forEach(el => el.textContent = new Date().getFullYear());
 
 sb.auth.getSession().then(({ data: { session } }) => {
-  if (session?.user) window.location.href = 'dashboard.html';
+  if (session?.user) {
+    isLoggedIn = true;
+    window.location.href = 'dashboard.html';
+  }
 });
 
 function openAuthModal(plan) {
+  // If already logged in, skip intent — just send to dashboard
+  // (user can manage their plan from Settings there)
+  if (isLoggedIn) {
+    window.location.href = 'dashboard.html';
+    return;
+  }
   authMode = 'signup';
   intendedPlan = plan || null;
   if (intendedPlan) {
