@@ -1140,7 +1140,7 @@ const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUser = null;
 let userTier = 'free'; // 'free' | 'one_time' | 'monthly' | 'max'
-function userIsPro() { return userIsPro() || userTier === 'max'; }
+function userIsPro() { return userTier === 'monthly' || userTier === 'max'; }
 let currentAnalysisPaid = false; // true if this analysis was paid for
 let userStatus = 'free'; // 'free' | 'active' | 'cancelling' | 'cancelled'
 
