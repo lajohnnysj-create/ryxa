@@ -1139,7 +1139,8 @@ const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUser = null;
-let userTier = 'free'; // 'free' | 'one_time' | 'monthly'
+let userTier = 'free'; // 'free' | 'one_time' | 'monthly' | 'max'
+function userIsPro() { return userIsPro() || userTier === 'max'; }
 let currentAnalysisPaid = false; // true if this analysis was paid for
 let userStatus = 'free'; // 'free' | 'active' | 'cancelling' | 'cancelled'
 
@@ -1214,7 +1215,7 @@ function showDashboard() {
   // Show last audit date for Pro users
   const lastAuditMsg = document.getElementById('last-audit-msg');
   if (lastAuditMsg) {
-    if (userTier === 'monthly' && auditHistory.length > 0) {
+    if (userIsPro() && auditHistory.length > 0) {
       const lastDate = new Date(auditHistory[0].created_at);
       const formatted = lastDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
       lastAuditMsg.innerHTML = `, you last ran an audit on <strong style="color:var(--text)">${formatted}</strong>`;
@@ -1552,7 +1553,7 @@ function updateWhitelistTabCount() {
 }
 
 async function toggleWhitelist(handle) {
-  if (!currentUser || userTier !== 'monthly') return;
+  if (!currentUser || !userIsPro()) return;
   handle = handle.toLowerCase();
 
   if (userWhitelist.has(handle)) {
@@ -1577,7 +1578,7 @@ async function toggleWhitelist(handle) {
 
 
 async function clearWhitelist() {
-  if (!currentUser || userTier !== 'monthly') return;
+  if (!currentUser || !userIsPro()) return;
   sb.functions.invoke('manage-whitelist', { body: { userId: currentUser.id, action: 'clear' } });
   userWhitelist.clear();
   showMiniToast('Whitelist cleared');
@@ -1600,7 +1601,7 @@ let auditHistory = [];
 let lastAuditUnfollowers = new Set();
 
 async function saveAudit() {
-  if (!currentUser || userTier !== 'monthly') return;
+  if (!currentUser || !userIsPro()) return;
 
   // EGRESS/STORAGE OPTIMIZATION: only store counts, never username arrays.
   // Username lists for the current audit live in browser memory (allResults)
@@ -1625,7 +1626,7 @@ async function saveAudit() {
 }
 
 async function loadAuditHistory() {
-  if (!currentUser || userTier !== 'monthly') return;
+  if (!currentUser || !userIsPro()) return;
 
   // EGRESS OPTIMIZATION: only fetch the latest audit, only count columns.
   // No username arrays are stored or fetched anymore.
@@ -1727,7 +1728,7 @@ async function clearAllAudits() {
 let accountNotes = {}; // handle -> note text
 
 async function loadNotes() {
-  if (!currentUser || userTier !== 'monthly') return;
+  if (!currentUser || !userIsPro()) return;
   const { data } = await sb.from('account_notes').select('handle, note').eq('user_id', currentUser.id);
   if (data) {
     accountNotes = {};
@@ -1737,7 +1738,7 @@ async function loadNotes() {
 }
 
 async function saveNote(handle, note) {
-  if (!currentUser || userTier !== 'monthly') return;
+  if (!currentUser || !userIsPro()) return;
   handle = handle.toLowerCase();
 
   // Update locally first for instant feedback
@@ -1764,8 +1765,8 @@ async function saveNote(handle, note) {
 }
 
 function toggleNoteRow(handle) {
-  if (userTier !== 'monthly') {
-    showMiniToast('Notes are available on the Monthly plan 🐍');
+  if (!userIsPro()) {
+    showMiniToast('Notes are available on the Pro plan 🐍');
     return;
   }
   const row = document.getElementById('note-row-' + handle);
@@ -1890,7 +1891,7 @@ function updateSnakeTabCount() {
 }
 
 async function toggleSnakeList(handle) {
-  if (!currentUser || userTier !== 'monthly') return;
+  if (!currentUser || !userIsPro()) return;
   handle = handle.toLowerCase();
   if (userSnakeList.has(handle)) {
     // Update UI instantly
@@ -2050,7 +2051,7 @@ function startOver() {
   if (newBadge) newBadge.style.display = 'none';
   if (paywall) paywall.innerHTML = '';
 
-  if (userTier === 'monthly') {
+  if (userIsPro()) {
     // Stay on dashboard, show empty state
     if (scroll) scroll.innerHTML = `<div class="no-analysis-msg">
       <span class="emoji">📂</span>
@@ -2185,12 +2186,14 @@ function updateNavTierBadge() {
     }
   }
 
-  if (userTier === 'monthly') {
+  if (userIsPro()) {
     const isCancelling = userStatus === 'cancelling';
-    badge.textContent = isCancelling ? 'Pro (cancelling)' : 'Pro';
+    const isMaxUser = userTier === 'max';
+    const tierLabel = isMaxUser ? 'Max' : 'Pro';
+    badge.textContent = isCancelling ? `${tierLabel} (cancelling)` : tierLabel;
     badge.className = 'account-tier-badge pro';
     const bottomBadge = document.getElementById('account-tier-display');
-    if (bottomBadge) { bottomBadge.textContent = isCancelling ? 'Pro (cancelling)' : 'Pro'; bottomBadge.className = 'account-tier-badge pro'; }
+    if (bottomBadge) { bottomBadge.textContent = isCancelling ? `${tierLabel} (cancelling)` : tierLabel; bottomBadge.className = 'account-tier-badge pro'; }
     if (cancelBtn) {
       cancelBtn.style.display = 'inline-flex';
       cancelBtn.textContent = isCancelling ? '↩ Renew plan' : 'Cancel plan';
@@ -2235,7 +2238,7 @@ function updateMobileMenu() {
     if (accountInfo) accountInfo.classList.add('visible');
     if (emailDisplay) emailDisplay.textContent = currentUser.email;
     if (cancelBtn) {
-      cancelBtn.style.display = userTier === 'monthly' ? 'block' : 'none';
+      cancelBtn.style.display = userIsPro() ? 'block' : 'none';
       cancelBtn.textContent = userStatus === 'cancelling' ? '↩ Renew subscription' : '✕ Cancel subscription';
     }
   } else {
@@ -2246,7 +2249,7 @@ function updateMobileMenu() {
 
 function updateToolBtns() {
   updateWhitelistTab();
-  const isPaid = userTier === 'one_time' || userTier === 'monthly' || currentAnalysisPaid;
+  const isPaid = userTier === 'one_time' || userIsPro() || currentAnalysisPaid;
   ['print-btn', 'csv-btn'].forEach(id => {
     const btn = document.getElementById(id);
     if (!btn) return;
@@ -2256,17 +2259,17 @@ function updateToolBtns() {
 }
 
 function handleToolBtn(type) {
-  const isPaid = userTier === 'one_time' || userTier === 'monthly' || currentAnalysisPaid;
+  const isPaid = userTier === 'one_time' || userIsPro() || currentAnalysisPaid;
   if (!isPaid) return; // locked, tooltip handles the message
   if (type === 'print') printReport();
   if (type === 'csv') exportCSV();
 }
 
 function exportCSV() {
-  const isPaid = userTier === 'one_time' || userTier === 'monthly' || currentAnalysisPaid;
+  const isPaid = userTier === 'one_time' || userIsPro() || currentAnalysisPaid;
   if (!isPaid) return;
 
-  const isMonthly = userTier === 'monthly';
+  const isMonthly = userIsPro();
   const date = new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
   const rows = [];
 
@@ -2401,7 +2404,7 @@ function exportCSV() {
 }
 
 function printReport() {
-  const isMonthly = userTier === 'monthly';
+  const isMonthly = userIsPro();
   const date = new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
   const unfollowers = allResults.filter(r => !r.mutual && !r.followerOnly);
   const mutuals = allResults.filter(r => r.mutual);
@@ -2660,7 +2663,7 @@ function analyze() {
       renderResults();
 
       // Save audit (counts only) for monthly users
-      if (userTier === 'monthly') {
+      if (userIsPro()) {
         currentAnalysisPaid = true;
         saveAudit();
       }
@@ -2808,7 +2811,7 @@ function renderResults() {
 
 function filterResults() {
   const query = '';
-  const isPaid = userTier === 'one_time' || userTier === 'monthly' || currentAnalysisPaid;
+  const isPaid = userTier === 'one_time' || userIsPro() || currentAnalysisPaid;
 
   // Update whitelist tab count
   const wlTabCount = document.getElementById('wl-tab-count');
@@ -2906,7 +2909,7 @@ function filterResults() {
   const wlCount = userWhitelist.size;
   const wlBanner = document.getElementById('wl-banner');
   if (wlBanner) {
-    if (wlCount > 0 && userTier === 'monthly') {
+    if (wlCount > 0 && userIsPro()) {
       wlBanner.style.display = 'flex';
       wlBanner.querySelector('span').textContent = `${wlCount} account${wlCount > 1 ? 's' : ''} hidden by your whitelist`;
     } else {
@@ -2926,7 +2929,7 @@ function buildRow(r, blurred) {
     ? `<span style="color:var(--muted)">@••••••••••</span>`
     : `<a href="https://instagram.com/${r.handle}" target="_blank" rel="noopener">@${r.handle}</a>`;
 
-  const isMonthly = userTier === 'monthly';
+  const isMonthly = userIsPro();
   const isWhitelisted = userWhitelist.has(r.handle.toLowerCase());
   const existingNote = accountNotes[r.handle.toLowerCase()] || '';
 
@@ -2957,8 +2960,8 @@ function buildRow(r, blurred) {
           </div>
         </div>`;
     } else {
-      wlBtn = `<button class="whitelist-btn locked-wl" title="Whitelist available on Monthly plan" onclick="showMiniToast('Whitelist is available on the Monthly plan 🐍')">+ Hide</button>`;
-      noteBtn = `<button class="note-icon-btn" style="opacity:0.25;cursor:not-allowed" title="Notes available on Monthly plan" onclick="showMiniToast('Notes are available on the Monthly plan 🐍')">📝</button>`;
+      wlBtn = `<button class="whitelist-btn locked-wl" title="Whitelist available on Pro plan" onclick="showMiniToast('Whitelist is available on the Pro plan 🐍')">+ Hide</button>`;
+      noteBtn = `<button class="note-icon-btn" style="opacity:0.25;cursor:not-allowed" title="Notes available on Pro plan" onclick="showMiniToast('Notes are available on the Pro plan 🐍')">📝</button>`;
     }
   } else {
     wlBtn = '<span></span>';
@@ -2973,7 +2976,7 @@ function buildRow(r, blurred) {
         title="${inSnakeList ? 'Remove from Snake List' : 'Add to your Snake List'}"
         onclick="toggleSnakeList('${r.handle}')">🐍</button>`;
     } else {
-      snakeBtn = `<button class="snake-btn locked-snake" title="Snake List available on Monthly plan" onclick="showMiniToast('Snake List is available on the Monthly plan 🐍')">🐍</button>`;
+      snakeBtn = `<button class="snake-btn locked-snake" title="Snake List available on Pro plan" onclick="showMiniToast('Snake List is available on the Pro plan 🐍')">🐍</button>`;
     }
   } else {
     snakeBtn = '<span></span>';
@@ -3009,29 +3012,29 @@ function buildPaywall(hiddenCount, totalUnfollowers) {
 }
 
 function setFilter(f, btn) {
-  const isPaid = userTier === 'one_time' || userTier === 'monthly' || currentAnalysisPaid;
-  if (f === 'analytics' && userTier !== 'monthly') {
-    showMiniToast('Analytics is available on the Monthly plan 🐍');
+  const isPaid = userTier === 'one_time' || userIsPro() || currentAnalysisPaid;
+  if (f === 'analytics' && !userIsPro()) {
+    showMiniToast('Analytics is available on the Pro plan 🐍');
     return;
   }
   if (f === 'mutual' && !isPaid) {
     showMiniToast('Unlock to see your Mutual followers 🐍');
     return;
   }
-  if (f === 'whitelist' && userTier !== 'monthly') {
-    showMiniToast('Whitelist is available on the Monthly plan 🐍');
+  if (f === 'whitelist' && !userIsPro()) {
+    showMiniToast('Whitelist is available on the Pro plan 🐍');
     return;
   }
-  if (f === 'history' && userTier !== 'monthly') {
-    showMiniToast('Audit History is available on the Monthly plan 🐍');
+  if (f === 'history' && !userIsPro()) {
+    showMiniToast('Audit History is available on the Pro plan 🐍');
     return;
   }
-  if (f === 'log' && userTier !== 'monthly') {
-    showMiniToast('Unfollower Log is available on the Monthly plan 🐍');
+  if (f === 'log' && !userIsPro()) {
+    showMiniToast('Unfollower Log is available on the Pro plan 🐍');
     return;
   }
-  if (f === 'snakes' && userTier !== 'monthly') {
-    showMiniToast('Snake List is available on the Monthly plan 🐍');
+  if (f === 'snakes' && !userIsPro()) {
+    showMiniToast('Snake List is available on the Pro plan 🐍');
     return;
   }
   currentFilter = f;
@@ -3133,12 +3136,12 @@ function renderWhitelistSection() {
 }
 
 function updateWhitelistTab() {
-  const isPaid = userTier === 'one_time' || userTier === 'monthly' || currentAnalysisPaid;
+  const isPaid = userTier === 'one_time' || userIsPro() || currentAnalysisPaid;
   const tab = document.getElementById('whitelist-tab');
   if (!tab) return;
-  if (userTier !== 'monthly') {
+  if (!userIsPro()) {
     tab.classList.add('wl-locked');
-    tab.title = 'Whitelist available on Monthly plan';
+    tab.title = 'Whitelist available on Pro plan';
   } else {
     tab.classList.remove('wl-locked');
     tab.title = '';
@@ -3147,7 +3150,7 @@ function updateWhitelistTab() {
   // Lock Mutual tab for free/unpaid users
   const analyticsTab = document.getElementById('analytics-tab');
   if (analyticsTab) {
-    if (userTier !== 'monthly') { analyticsTab.classList.add('wl-locked'); analyticsTab.title = 'Analytics available on Monthly plan'; }
+    if (!userIsPro()) { analyticsTab.classList.add('wl-locked'); analyticsTab.title = 'Analytics available on Pro plan'; }
     else { analyticsTab.classList.remove('wl-locked'); analyticsTab.title = ''; }
   }
   const mutualTab = document.getElementById('mutual-tab');
@@ -3158,19 +3161,19 @@ function updateWhitelistTab() {
 
   const histTab = document.getElementById('history-tab');
   if (histTab) {
-    if (userTier !== 'monthly') { histTab.classList.add('wl-locked'); histTab.title = 'Audit History available on Monthly plan'; }
+    if (!userIsPro()) { histTab.classList.add('wl-locked'); histTab.title = 'Audit History available on Pro plan'; }
     else { histTab.classList.remove('wl-locked'); histTab.title = ''; }
   }
 
   const logTab = document.getElementById('log-tab');
   if (logTab) {
-    if (userTier !== 'monthly') { logTab.classList.add('wl-locked'); logTab.title = 'Unfollower Log available on Monthly plan'; }
+    if (!userIsPro()) { logTab.classList.add('wl-locked'); logTab.title = 'Unfollower Log available on Pro plan'; }
     else { logTab.classList.remove('wl-locked'); logTab.title = ''; }
   }
 
   const snakeTab = document.getElementById('snake-tab');
   if (snakeTab) {
-    if (userTier !== 'monthly') { snakeTab.classList.add('wl-locked'); snakeTab.title = 'Snake List available on Monthly plan'; }
+    if (!userIsPro()) { snakeTab.classList.add('wl-locked'); snakeTab.title = 'Snake List available on Pro plan'; }
     else { snakeTab.classList.remove('wl-locked'); snakeTab.title = ''; }
   }
 }
@@ -3185,5 +3188,6 @@ initAuth();
 document.querySelectorAll(".copy-year, #copy-year").forEach(el => el.textContent = new Date().getFullYear());
 checkPaymentReturn();
 </script>
+<script src="/cookie-banner.js"></script>
 </body>
 </html>
