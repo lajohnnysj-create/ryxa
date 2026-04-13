@@ -120,7 +120,7 @@
     banner.setAttribute('aria-label', 'Cookie notice');
     banner.innerHTML =
       '<div class="fts-cookie-title">Cookies &amp; your data</div>' +
-      '<div>We use essential cookies to keep you signed in and the service running. No ads, no tracking, no third-party analytics. <a href="/privacy.html">Privacy policy</a>.</div>' +
+      '<div>We use essential cookies to keep you signed in and the service running, plus minimal analytics to understand how our tools are used. No advertising, no selling your data. <a href="/privacy.html">Privacy policy</a>.</div>' +
       '<div class="fts-cookie-actions">' +
         '<button class="fts-cookie-accept" type="button">Got it</button>' +
         '<button class="fts-cookie-decline" type="button">Learn more</button>' +
