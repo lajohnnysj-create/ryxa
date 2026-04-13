@@ -1331,6 +1331,18 @@
     color: #f0abfc;
     box-shadow: 0 0 20px rgba(232,121,249,0.15);
   }
+  body.max-user .welcome-tool-card:hover {
+    border-color: rgba(232,121,249,0.45);
+    background: linear-gradient(135deg, rgba(167,139,250,0.08), rgba(232,121,249,0.08));
+    box-shadow: 0 8px 24px rgba(232,121,249,0.12);
+  }
+  body.max-user .welcome-tool-card:hover .welcome-tool-icon {
+    background: linear-gradient(135deg, rgba(167,139,250,0.25), rgba(232,121,249,0.25));
+    border-color: rgba(232,121,249,0.4);
+  }
+  body.max-user .welcome-tool-card:hover .welcome-tool-icon svg {
+    stroke: #f0abfc;
+  }
 
   /* ── MAIN ── */
   .main { margin-left: var(--sidebar-width); flex: 1; min-height: 100vh; display: flex; flex-direction: column; }
