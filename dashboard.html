@@ -8578,6 +8578,10 @@ async function loadSavedLogo() {
   if (!currentUser || !isPro()) return;
   try {
     const path = `${currentUser.id}/logo`;
+    // Check if file exists first to avoid 400 noise in console
+    const { data: list } = await sb.storage.from('logos').list(currentUser.id, { limit: 1, search: 'logo' });
+    if (!list || list.length === 0) return; // no logo uploaded yet — silent exit
+
     const { data, error } = await sb.storage.from('logos').createSignedUrl(path, 3600);
     if (data?.signedUrl) {
       invLogoDataUrl = data.signedUrl;
