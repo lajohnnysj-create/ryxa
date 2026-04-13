@@ -1075,9 +1075,9 @@ function render(profile, bio, userTier) {
   const videosHtml = buildVideos(videos);
 
   // Banner rule: always show for non-Pro users (downgrade reverts branding).
-  // Pro users can opt out via show_branding=false.
-  const isPro = profile.tier === 'monthly';
-  const showBanner = !isPro || bio.show_branding !== false;
+  // Pro and Max users can opt out via show_branding=false.
+  const isPaid = profile.tier === 'monthly' || profile.tier === 'max';
+  const showBanner = !isPaid || bio.show_branding !== false;
   const banner = showBanner ? `<a class="brand-banner" href="https://www.findthesnakes.com">
     Get your free link-in-bio at <strong>FindTheSnakes</strong>
   </a>` : '';
