@@ -1307,6 +1307,31 @@
     background: rgba(239,68,68,0.05);
   }
 
+  /* === CREATOR MAX: sidebar nav hover === */
+  body.max-user .sidebar-item:hover {
+    background: linear-gradient(135deg, rgba(167,139,250,0.12), rgba(232,121,249,0.12));
+    color: #fff;
+  }
+  body.max-user .sidebar-item:hover .sidebar-item-icon {
+    background: linear-gradient(135deg, rgba(167,139,250,0.25), rgba(232,121,249,0.25));
+  }
+  body.max-user .sidebar-item.active {
+    background: linear-gradient(135deg, rgba(167,139,250,0.18), rgba(232,121,249,0.18));
+    color: #fff;
+    border: 1px solid rgba(232,121,249,0.35);
+  }
+  body.max-user .sidebar-item.active .sidebar-item-icon {
+    background: linear-gradient(135deg, rgba(167,139,250,0.3), rgba(232,121,249,0.3));
+  }
+
+  /* === CREATOR MAX: welcome card === */
+  body.max-user .welcome-badge {
+    background: linear-gradient(135deg, rgba(167,139,250,0.18), rgba(232,121,249,0.18));
+    border: 1px solid rgba(232,121,249,0.4);
+    color: #f0abfc;
+    box-shadow: 0 0 20px rgba(232,121,249,0.15);
+  }
+
   /* ── MAIN ── */
   .main { margin-left: var(--sidebar-width); flex: 1; min-height: 100vh; display: flex; flex-direction: column; }
   .topbar { height: var(--topbar-height); background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 32px; position: sticky; top: 0; z-index: 50; }
@@ -2475,7 +2500,7 @@
     <!-- WELCOME SCREEN -->
     <div id="tool-welcome" style="display:block;">
       <div class="welcome-screen">
-        <div class="welcome-badge">&#x1F40D; Creator Tools</div>
+        <div class="welcome-badge" id="welcome-badge">&#x1F40D; Creator Tools</div>
         <h1>Welcome back, creator. <span>Let's get to work.</span></h1>
         <p>Your creator toolkit is ready. Choose a tool from the sidebar or pick one below to get started.</p>
         <div class="welcome-tools-grid">
@@ -3786,9 +3811,15 @@ function updateTierUI() {
     tierBadge.className = 'tier-badge ' + (max ? 'max' : pro ? 'pro' : 'free');
   }
   if (sidebarTier) sidebarTier.textContent = planText;
-  // Toggle Creator Max styling on sidebar bottom
+  // Toggle Creator Max styling on sidebar bottom and body
   const sidebarBottom = document.querySelector('.sidebar-bottom');
   if (sidebarBottom) sidebarBottom.classList.toggle('max-mode', max);
+  document.body.classList.toggle('max-user', max);
+  // Welcome badge text adapts to tier
+  const welcomeBadge = document.getElementById('welcome-badge');
+  if (welcomeBadge) {
+    welcomeBadge.innerHTML = max ? '&#x2728; Creator Max' : '&#x1F40D; Creator Tools';
+  }
   if (upgradeBtn) upgradeBtn.style.display = pro ? 'none' : 'block';
   if (upgradeBanner) upgradeBanner.style.display = pro ? 'none' : 'flex';
 
