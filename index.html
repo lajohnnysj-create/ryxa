@@ -71,23 +71,23 @@
   .mobile-signin { width: 100%; padding: 16px; background: transparent; border: 1px solid var(--border-hover); color: var(--text); border-radius: 12px; font-size: 16px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; text-decoration: none; display: block; text-align: center; }
   .modal-backdrop { display: none; position: fixed; inset: 0; z-index: 500; background: rgba(0,0,0,0.75); backdrop-filter: blur(4px); align-items: center; justify-content: center; }
   .modal-backdrop.open { display: flex; }
-  .modal { background: var(--surface); border: 1px solid var(--border-hover); border-radius: 20px; padding: 40px 36px; width: 100%; max-width: 420px; position: relative; }
-  .modal-close { position: absolute; top: 16px; right: 16px; background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer; line-height: 1; }
-  .modal h2 { font-family: "Syne", sans-serif; font-size: 24px; font-weight: 800; margin-bottom: 6px; letter-spacing: -0.5px; text-align: center; }
-  .modal p { color: var(--muted); font-size: 14px; margin-bottom: 28px; text-align: center; }
-  .auth-tabs { display: flex; gap: 4px; padding: 4px; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 20px; }
-  .auth-tab { flex: 1; background: transparent; border: none; color: var(--muted); font-size: 13px; font-weight: 600; font-family: "DM Sans", sans-serif; padding: 10px 8px; cursor: pointer; border-radius: 7px; transition: all 0.15s; }
+  .modal { background: var(--surface); border: 1px solid var(--border-hover); border-radius: 20px; padding: 28px 30px; width: 100%; max-width: 400px; max-height: 92vh; overflow-y: auto; position: relative; }
+  .modal-close { position: absolute; top: 14px; right: 14px; background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer; line-height: 1; }
+  .modal h2 { font-family: "Syne", sans-serif; font-size: 22px; font-weight: 800; margin-bottom: 4px; letter-spacing: -0.5px; text-align: center; }
+  .modal p { color: var(--muted); font-size: 13px; margin-bottom: 18px; text-align: center; }
+  .auth-tabs { display: flex; gap: 4px; padding: 4px; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 16px; }
+  .auth-tab { flex: 1; background: transparent; border: none; color: var(--muted); font-size: 13px; font-weight: 600; font-family: "DM Sans", sans-serif; padding: 8px 8px; cursor: pointer; border-radius: 7px; transition: all 0.15s; }
   .auth-tab:hover { color: var(--text); }
   .auth-tab.active { background: var(--accent); color: #fff; box-shadow: 0 2px 8px rgba(124,58,237,0.3); }
-  .google-btn { width: 100%; padding: 12px; background: #fff; color: #1f1f1f; border: 1px solid var(--border-hover); border-radius: 10px; font-size: 14px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 14px; }
+  .google-btn { width: 100%; padding: 11px; background: #fff; color: #1f1f1f; border: 1px solid var(--border-hover); border-radius: 10px; font-size: 14px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 10px; }
   .google-btn:hover { background: #f8f8f8; border-color: var(--accent); }
   .google-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-  .auth-divider { display: flex; align-items: center; gap: 12px; margin: 14px 0 16px 0; }
+  .auth-divider { display: flex; align-items: center; gap: 12px; margin: 10px 0 12px 0; }
   .auth-divider::before, .auth-divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }
   .auth-divider span { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
-  .modal-input { width: 100%; background: var(--surface2); border: 1px solid var(--border-hover); border-radius: 10px; padding: 13px 16px; font-size: 15px; color: var(--text); font-family: "DM Sans", sans-serif; margin-bottom: 12px; outline: none; transition: border-color 0.2s; }
+  .modal-input { width: 100%; background: var(--surface2); border: 1px solid var(--border-hover); border-radius: 10px; padding: 11px 14px; font-size: 14px; color: var(--text); font-family: "DM Sans", sans-serif; margin-bottom: 10px; outline: none; transition: border-color 0.2s; }
   .modal-input:focus { border-color: var(--accent); }
-  .modal-btn { width: 100%; padding: 14px; background: var(--accent); color: #fff; border: none; border-radius: 10px; font-size: 15px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.2s; margin-top: 4px; box-shadow: 0 0 30px var(--accent-glow); }
+  .modal-btn { width: 100%; padding: 12px; background: var(--accent); color: #fff; border: none; border-radius: 10px; font-size: 14px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.2s; margin-top: 4px; box-shadow: 0 0 30px var(--accent-glow); }
   .modal-btn:hover { background: var(--accent2); }
   .modal-btn:disabled { background: var(--muted2); cursor: not-allowed; box-shadow: none; }
   .modal-switch { text-align: center; margin-top: 20px; font-size: 13px; color: var(--muted); }
@@ -340,7 +340,7 @@
 <div class="modal-backdrop" id="auth-modal">
   <div class="modal">
     <button class="modal-close" onclick="closeAuthModal()" aria-label="Close">&#x2715;</button>
-    <img src="/logo.png" alt="Ryxa" style="width:48px;height:48px;display:block;margin:0 auto 12px;object-fit:contain;">
+    <img src="/logo.png" alt="Ryxa" style="width:40px;height:40px;display:block;margin:0 auto 10px;object-fit:contain;">
     <div class="auth-tabs">
       <button type="button" class="auth-tab" id="auth-tab-signin" onclick="setAuthMode('signin')">Sign in</button>
       <button type="button" class="auth-tab" id="auth-tab-signup" onclick="setAuthMode('signup')">Create account</button>
@@ -361,7 +361,7 @@
     <input class="modal-input" id="auth-email" type="email" aria-label="Email address" placeholder="Email address" autocomplete="email">
     <input class="modal-input" id="auth-password" type="password" aria-label="Password" placeholder="Password" autocomplete="current-password">
     <a class="forgot-link" id="forgot-password-link" onclick="handleForgotPassword()">Forgot password?</a>
-    <div id="auth-turnstile" style="margin:14px 0;display:flex;justify-content:center;min-height:65px;"></div>
+    <div id="auth-turnstile" style="margin:10px 0 12px;display:flex;justify-content:center;min-height:60px;"></div>
     <button class="modal-btn" id="auth-submit-btn" onclick="handleAuth()">Sign in</button>
   </div>
 </div>
@@ -792,7 +792,7 @@ async function handleForgotPassword() {
   else showAuthMsg('success', 'Password reset email sent! Check your inbox.');
 }
 
-document.getElementById('auth-modal').addEventListener('click', function(e) { if (e.target === this) closeAuthModal(); });
+// Auth modal stays open until user explicitly closes via X button (prevents accidental dismiss while typing credentials)
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') closeAuthModal();
   if (e.key === 'Enter' && document.getElementById('auth-modal').classList.contains('open')) handleAuth();
