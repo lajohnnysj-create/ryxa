@@ -3908,6 +3908,17 @@ const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let currentUser = null;
 let userTier = 'free';
 
+// HTML escape utility — used everywhere to prevent XSS when rendering user content
+function escapeHtml(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 // Tier helpers — use these everywhere instead of raw string comparison
 function isPro() { return userTier === 'monthly' || userTier === 'max'; }
 function isMax() { return userTier === 'max'; }
