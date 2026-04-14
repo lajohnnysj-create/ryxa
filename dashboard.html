@@ -1349,6 +1349,12 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
+  /* Inline badges (PRO / MAX labels) inside the gradient name need their own color reset */
+  body.max-user .welcome-tool-name span {
+    -webkit-text-fill-color: #fff;
+    background-clip: border-box;
+    -webkit-background-clip: border-box;
+  }
   /* Hover state — more pronounced for Max */
   body.max-user .welcome-tool-card:hover {
     border-color: rgba(232,121,249,0.5);
