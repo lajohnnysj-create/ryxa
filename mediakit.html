@@ -8,12 +8,12 @@
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="shortcut icon" href="/favicon.ico">
-<title>Loading… | FindTheSnakes</title>
-<meta name="description" content="A creator's media kit on FindTheSnakes.">
+<title>Loading… | Ryxa</title>
+<meta name="description" content="A creator's media kit on Ryxa.">
 <meta name="robots" content="index, follow">
 <meta property="og:type" content="profile">
-<meta property="og:title" content="Loading… | FindTheSnakes">
-<meta property="og:description" content="A creator's media kit on FindTheSnakes.">
+<meta property="og:title" content="Loading… | Ryxa">
+<meta property="og:description" content="A creator's media kit on Ryxa.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -605,12 +605,12 @@ function formatPrice(p) {
 }
 
 function renderNotFound(username) {
-  document.title = 'Not found | FindTheSnakes';
+  document.title = 'Not found | Ryxa';
   document.getElementById('wrap').innerHTML = `
     <div class="state">
       <h1>This media kit isn't here yet</h1>
-      <p>${username ? `<strong>${esc(username)}</strong> hasn't published a media kit on FindTheSnakes.` : 'No username in the URL.'}</p>
-      <a class="cta" href="https://www.findthesnakes.com">Create your own →</a>
+      <p>${username ? `<strong>${esc(username)}</strong> hasn't published a media kit on Ryxa.` : 'No username in the URL.'}</p>
+      <a class="cta" href="https://www.ryxa.io">Create your own →</a>
     </div>
   `;
 }
@@ -797,7 +797,7 @@ function updateMKOgTags({ title, description, image, url }) {
 function render(profile, kit) {
   const name = kit.display_name || profile.username;
   const username = profile.username || '';
-  const title = `${name}. Media Kit | FindTheSnakes`;
+  const title = `${name}. Media Kit | Ryxa`;
   document.title = title;
   const headshot = validImageUrl(kit.headshot_url);
   const description = kit.bio || `${name}'s creator media kit — collaborations, audience stats, and rates.`;
@@ -823,8 +823,8 @@ function render(profile, kit) {
   const showBanner = !isPaid || kit.show_branding === true;
 
   const bannerHtml = showBanner ? `<div class="banner-wrap">
-    <a class="brand-banner" href="https://www.findthesnakes.com">
-      Built with <strong>FindTheSnakes</strong>
+    <a class="brand-banner" href="https://www.ryxa.io">
+      Built with <strong>Ryxa</strong>
     </a>
   </div>` : '';
 

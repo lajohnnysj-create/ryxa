@@ -8,7 +8,7 @@
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="shortcut icon" href="/favicon.ico">
-<title>Dashboard. FindTheSnakes</title>
+<title>Dashboard. Ryxa</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
@@ -994,7 +994,7 @@ body { overflow-x: hidden; }
       <div id="results" style="display:none;margin-top:36px;">
         <div class="stats-row" id="stats-row"></div>
         <div class="print-header" id="print-header">
-          <div style="font-size:22px;font-weight:800;font-family:Syne,sans-serif;color:#7c3aed;margin-bottom:4px">FindTheSnakes</div>
+          <div style="font-size:22px;font-weight:800;font-family:Syne,sans-serif;color:#7c3aed;margin-bottom:4px">Ryxa</div>
           <div style="font-size:13px;color:#666" id="print-date"></div>
         </div>
         <div class="dashboard-welcome" id="dashboard-welcome">
@@ -1398,7 +1398,7 @@ async function handleForgotPassword() {
     return;
   }
   const { error } = await sb.auth.resetPasswordForEmail(email, {
-    redirectTo: 'https://findthesnakes.com/reset-password.html',
+    redirectTo: 'https://ryxa.io/reset-password.html',
   });
   if (error) {
     showAuthMsg('error', error.message);
@@ -2118,7 +2118,7 @@ async function reactivateSubscription() {
 
   if (error || !data?.success) {
     if (btn) { btn.disabled = false; btn.textContent = '↩ Renew plan'; }
-    showMiniToast('Something went wrong. Please email hello@findthesnakes.com');
+    showMiniToast('Something went wrong. Please email hello@ryxa.io');
     return;
   }
 
@@ -2141,7 +2141,7 @@ async function confirmCancel() {
   if (error || !data?.success) {
     btn.disabled = false;
     btn.textContent = 'Yes, cancel my subscription';
-    showMiniToast('Something went wrong. Please email hello@findthesnakes.com');
+    showMiniToast('Something went wrong. Please email hello@ryxa.io');
     return;
   }
 
@@ -2272,7 +2272,7 @@ function exportCSV() {
   const rows = [];
 
   // ── HEADER ──
-  rows.push(['FindTheSnakes. Full Export', '', '', '', '']);
+  rows.push(['Ryxa. Full Export', '', '', '', '']);
   rows.push(['Generated:', date, '', '', '']);
   rows.push([]);
 
@@ -2396,7 +2396,7 @@ function exportCSV() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'findthesnakes-full-export-' + new Date().toISOString().slice(0,10) + '.csv';
+  a.download = 'ryxa-full-export-' + new Date().toISOString().slice(0,10) + '.csv';
   a.click();
   URL.revokeObjectURL(url);
 }

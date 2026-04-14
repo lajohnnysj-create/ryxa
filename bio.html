@@ -8,12 +8,12 @@
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="shortcut icon" href="/favicon.ico">
-<title>Loading… | FindTheSnakes</title>
-<meta name="description" content="A creator's link-in-bio page on FindTheSnakes.">
+<title>Loading… | Ryxa</title>
+<meta name="description" content="A creator's link-in-bio page on Ryxa.">
 <meta name="robots" content="index, follow">
 <meta property="og:type" content="profile">
-<meta property="og:title" content="Loading… | FindTheSnakes">
-<meta property="og:description" content="A creator's link-in-bio page on FindTheSnakes.">
+<meta property="og:title" content="Loading… | Ryxa">
+<meta property="og:description" content="A creator's link-in-bio page on Ryxa.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -761,12 +761,12 @@ function extractYouTubeId(url) {
 }
 
 function renderNotFound(username) {
-  document.title = 'Not found | FindTheSnakes';
+  document.title = 'Not found | Ryxa';
   document.getElementById('wrap').innerHTML = `
     <div class="state">
       <h1>This page isn't here yet</h1>
-      <p>${username ? `<strong>@${esc(username)}</strong> hasn't created their FindTheSnakes page, or it's not published yet.` : 'No username in the URL.'}</p>
-      <a class="cta" href="https://www.findthesnakes.com">Create your own →</a>
+      <p>${username ? `<strong>@${esc(username)}</strong> hasn't created their Ryxa page, or it's not published yet.` : 'No username in the URL.'}</p>
+      <a class="cta" href="https://www.ryxa.io">Create your own →</a>
     </div>
   `;
 }
@@ -1037,11 +1037,11 @@ function render(profile, bio, userTier) {
   const name = bio.display_name || profile.username || '';
   const username = profile.username || '';
   const title = `all of ${username ? '@' + username : name}'s links`;
-  document.title = `${name} | FindTheSnakes`;
+  document.title = `${name} | Ryxa`;
   const avatar = validImageUrl(bio.avatar_url);
   updateOgTags({
     title: title,
-    description: bio.bio || `Find all of ${username ? '@' + username : name}'s links in one place on FindTheSnakes.`,
+    description: bio.bio || `Find all of ${username ? '@' + username : name}'s links in one place on Ryxa.`,
     image: avatar,
     url: window.location.href,
   });
@@ -1078,8 +1078,8 @@ function render(profile, bio, userTier) {
   // Pro and Max users can opt out via show_branding=false.
   const isPaid = profile.tier === 'monthly' || profile.tier === 'max';
   const showBanner = !isPaid || bio.show_branding !== false;
-  const banner = showBanner ? `<a class="brand-banner" href="https://www.findthesnakes.com">
-    Get your free link-in-bio at <strong>FindTheSnakes</strong>
+  const banner = showBanner ? `<a class="brand-banner" href="https://www.ryxa.io">
+    Get your free link-in-bio at <strong>Ryxa</strong>
   </a>` : '';
 
   document.getElementById('wrap').innerHTML = `
