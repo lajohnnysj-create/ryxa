@@ -359,7 +359,7 @@
     <input class="modal-input" id="auth-email" type="email" aria-label="Email address" placeholder="Email address" autocomplete="email">
     <input class="modal-input" id="auth-password" type="password" aria-label="Password" placeholder="Password" autocomplete="current-password">
     <a class="forgot-link" id="forgot-password-link" onclick="handleForgotPassword()">Forgot password?</a>
-    <div id="auth-turnstile" style="margin:8px 0 10px;display:flex;justify-content:center;min-height:0;"></div>
+    <div id="auth-turnstile" style="margin:8px 0 10px;display:flex;justify-content:center;min-height:60px;"></div>
     <button class="modal-btn" id="auth-submit-btn" onclick="handleAuth()">Sign in</button>
   </div>
 </div>
@@ -723,7 +723,7 @@ function renderTurnstileWidget() {
   turnstileWidgetId = turnstile.render('#auth-turnstile', {
     sitekey: TURNSTILE_SITE_KEY,
     theme: 'dark',
-    size: 'compact',
+    size: 'flexible',
   });
 }
 
