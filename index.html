@@ -51,6 +51,31 @@
   .nav-links { display: flex; align-items: center; gap: 32px; }
   .nav-links a { color: var(--muted); font-size: 14px; text-decoration: none; transition: color 0.2s; }
   .nav-links a:hover { color: var(--text); }
+
+  /* Tools dropdown */
+  .nav-tools-wrap { position: relative; display: flex; align-items: center; }
+  .nav-tools-trigger { display: inline-flex; align-items: center; gap: 5px; color: var(--muted); font-size: 14px; cursor: pointer; background: none; border: none; font-family: 'DM Sans', sans-serif; padding: 0; transition: color 0.2s; }
+  .nav-tools-trigger:hover, .nav-tools-wrap:hover .nav-tools-trigger { color: var(--text); }
+  .nav-tools-trigger svg { transition: transform 0.2s; }
+  .nav-tools-wrap:hover .nav-tools-trigger svg { transform: rotate(180deg); }
+  .nav-tools-menu { position: absolute; top: 100%; left: 50%; transform: translateX(-50%) translateY(8px); width: 720px; max-width: calc(100vw - 32px); background: rgba(15,15,26,0.98); backdrop-filter: blur(20px); border: 1px solid var(--border-hover); border-radius: 16px; padding: 18px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); opacity: 0; pointer-events: none; transition: opacity 0.18s, transform 0.18s; z-index: 250; }
+  .nav-tools-wrap:hover .nav-tools-menu { opacity: 1; pointer-events: all; transform: translateX(-50%) translateY(0); }
+  /* Invisible bridge to prevent flicker between trigger and menu */
+  .nav-tools-wrap::before { content: ''; position: absolute; top: 100%; left: 0; right: 0; height: 12px; }
+  .nav-tools-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+  .nav-tools-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px; border-radius: 10px; text-decoration: none; transition: background 0.15s; color: inherit; }
+  .nav-tools-item:hover { background: rgba(124,58,237,0.08); }
+  .nav-tools-item-icon { width: 36px; height: 36px; border-radius: 9px; background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #c4b5fd; }
+  .nav-tools-item-icon svg { width: 17px; height: 17px; }
+  .nav-tools-item-content { flex: 1; min-width: 0; }
+  .nav-tools-item-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; color: var(--text); margin-bottom: 2px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .nav-tools-item-desc { font-size: 11px; color: var(--muted); line-height: 1.4; }
+  .nav-tools-tier { font-size: 8px; padding: 2px 6px; border-radius: 4px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; vertical-align: middle; }
+  .nav-tools-tier.pro { background: rgba(124,58,237,0.15); border: 1px solid rgba(124,58,237,0.3); color: #c4b5fd; }
+  .nav-tools-tier.max { background: linear-gradient(135deg,#a78bfa,#e879f9); color: #fff; border: none; }
+  .nav-tools-footer { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .nav-tools-footer-link { font-size: 12px; color: var(--accent2); text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 4px; }
+  .nav-tools-footer-link:hover { color: #c4b5fd; }
   .nav-right { display: flex; align-items: center; gap: 12px; }
   .btn-ghost { background: transparent; border: 1px solid var(--border-hover); color: var(--text); border-radius: 8px; padding: 8px 20px; font-size: 14px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.2s; }
   .btn-ghost:hover { border-color: var(--accent2); color: var(--accent2); }
@@ -325,6 +350,7 @@
 <div class="mobile-menu" id="mobile-menu">
   <button onclick="closeMobileMenu()" aria-label="Close menu" style="position:absolute;top:20px;right:20px;background:none;border:none;color:var(--muted);font-size:24px;cursor:pointer;line-height:1;padding:8px;">&#x2715;</button>
   <div class="mobile-menu-links">
+    <a href="tools/" onclick="closeMobileMenu()">Tools</a>
     <a href="pricing.html" onclick="closeMobileMenu()">Pricing</a>
     <a href="blog.html" onclick="closeMobileMenu()">Blog</a>
     <a href="faq.html" onclick="closeMobileMenu()">FAQ</a>
@@ -370,6 +396,90 @@
   </a>
   <div class="nav-links" id="nav-links">
     <a href="dashboard.html" id="dashboard-link" style="display:none;color:#c4b5fd;font-weight:500;">Dashboard</a>
+    <div class="nav-tools-wrap">
+      <button class="nav-tools-trigger" type="button" onclick="window.location.href='tools/'">
+        Tools
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="nav-tools-menu" role="menu">
+        <div class="nav-tools-grid">
+          <a href="tools/brand-deal-crm.html" class="nav-tools-item">
+            <div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 12h18"/></svg></div>
+            <div class="nav-tools-item-content">
+              <div class="nav-tools-item-title">Brand Deal CRM <span class="nav-tools-tier max">Max</span></div>
+              <div class="nav-tools-item-desc">Track partnerships, contracts, deliverables, revenue</div>
+            </div>
+          </a>
+          <a href="tools/script-builder.html" class="nav-tools-item">
+            <div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg></div>
+            <div class="nav-tools-item-content">
+              <div class="nav-tools-item-title">Script Builder <span class="nav-tools-tier max">Max</span></div>
+              <div class="nav-tools-item-desc">Plan reels, videos, podcasts in blocks</div>
+            </div>
+          </a>
+          <a href="tools/link-in-bio.html" class="nav-tools-item">
+            <div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
+            <div class="nav-tools-item-content">
+              <div class="nav-tools-item-title">Link in Bio</div>
+              <div class="nav-tools-item-desc">A clean, customizable page for all your links</div>
+            </div>
+          </a>
+          <a href="tools/media-kit.html" class="nav-tools-item">
+            <div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="17" x2="8" y2="13"/><line x1="12" y1="17" x2="12" y2="11"/><line x1="16" y1="17" x2="16" y2="15"/></svg></div>
+            <div class="nav-tools-item-content">
+              <div class="nav-tools-item-title">Media Kit <span class="nav-tools-tier pro">Pro</span></div>
+              <div class="nav-tools-item-desc">Pitch brands with a pro media kit and rate card</div>
+            </div>
+          </a>
+          <a href="tools/grid-planner.html" class="nav-tools-item">
+            <div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
+            <div class="nav-tools-item-content">
+              <div class="nav-tools-item-title">Grid Planner</div>
+              <div class="nav-tools-item-desc">Plan your social grid, drag to reorder</div>
+            </div>
+          </a>
+          <a href="tools/follower-audit.html" class="nav-tools-item">
+            <div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></div>
+            <div class="nav-tools-item-content">
+              <div class="nav-tools-item-title">Follow-Back Audit</div>
+              <div class="nav-tools-item-desc">See who unfollowed you on Instagram</div>
+            </div>
+          </a>
+          <a href="tools/image-studio.html" class="nav-tools-item">
+            <div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg></div>
+            <div class="nav-tools-item-content">
+              <div class="nav-tools-item-title">Image Studio</div>
+              <div class="nav-tools-item-desc">Crop, adjust, convert with creator-ready ratios</div>
+            </div>
+          </a>
+          <a href="tools/qr-generator.html" class="nav-tools-item">
+            <div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20v1"/></svg></div>
+            <div class="nav-tools-item-content">
+              <div class="nav-tools-item-title">QR Generator</div>
+              <div class="nav-tools-item-desc">Create QR codes for your links and profiles</div>
+            </div>
+          </a>
+          <a href="tools/invoice-generator.html" class="nav-tools-item">
+            <div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg></div>
+            <div class="nav-tools-item-content">
+              <div class="nav-tools-item-title">Invoice Generator</div>
+              <div class="nav-tools-item-desc">Pro invoices for brand deals and collaborations</div>
+            </div>
+          </a>
+          <a href="tools/sign-pdf.html" class="nav-tools-item">
+            <div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M3 17l3-3 2 2 5-5 3 3"/></svg></div>
+            <div class="nav-tools-item-content">
+              <div class="nav-tools-item-title">Sign PDF</div>
+              <div class="nav-tools-item-desc">Fill and sign PDFs — no printer, no scanner</div>
+            </div>
+          </a>
+        </div>
+        <div class="nav-tools-footer">
+          <div style="font-size:11px;color:var(--muted);">10 tools, one workspace</div>
+          <a href="tools/" class="nav-tools-footer-link">View all tools <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a>
+        </div>
+      </div>
+    </div>
     <a href="pricing.html">Pricing</a>
     <a href="blog.html">Blog</a>
     <a href="faq.html">FAQ</a>
@@ -522,70 +632,70 @@
   <h2 class="section-title">Tools built for creators</h2>
   <p class="section-sub">Focused tools for the work behind the creating. Add them to your workflow.</p>
   <div class="tools-grid">
-    <a class="tool-card" href="dashboard.html" onclick="requireAuth(event)">
+    <a class="tool-card" href="tools/link-in-bio.html">
       <div class="tool-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
       <div class="tool-card-title">Link in Bio</div>
       <div class="tool-card-desc">Create your free link in bio page with us to share your content, links, and more with your audience — all from one clean page.</div>
       <div class="tool-card-badge"><span class="tool-card-badge-dot"></span> Free to start</div>
       <div class="tool-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
     </a>
-    <a class="tool-card" href="dashboard.html" onclick="requireAuth(event)">
+    <a class="tool-card" href="tools/media-kit.html">
       <div class="tool-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="17" x2="8" y2="13"/><line x1="12" y1="17" x2="12" y2="11"/><line x1="16" y1="17" x2="16" y2="15"/></svg></div>
       <div class="tool-card-title">Media Kit</div>
       <div class="tool-card-desc">A professional media kit brands will actually read. Audience stats, engagement rate, and a rate card. Share a link or download as PDF.</div>
       <div class="tool-card-badge pro"><span class="tool-card-badge-dot"></span> Pro only</div>
       <div class="tool-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
     </a>
-    <a class="tool-card" href="dashboard.html" onclick="requireAuth(event)">
+    <a class="tool-card" href="tools/grid-planner.html">
       <div class="tool-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
       <div class="tool-card-title">Grid Planner</div>
       <div class="tool-card-desc">Plan your feed before you post. Drop photos, drag to reorder, and preview how your grid looks.</div>
       <div class="tool-card-badge"><span class="tool-card-badge-dot"></span> Free to start</div>
       <div class="tool-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
     </a>
-    <a class="tool-card" href="dashboard.html" onclick="requireAuth(event)">
+    <a class="tool-card" href="tools/follower-audit.html">
       <div class="tool-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></div>
       <div class="tool-card-title">Follower Audit</div>
       <div class="tool-card-desc">Find out who stopped following you back on Instagram. No password required. Upload your own data and see the truth in seconds.</div>
       <div class="tool-card-badge"><span class="tool-card-badge-dot"></span> Free to start</div>
       <div class="tool-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
     </a>
-    <a class="tool-card" href="dashboard.html" onclick="requireAuth(event)">
+    <a class="tool-card" href="tools/image-studio.html">
       <div class="tool-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg></div>
       <div class="tool-card-title">Image Studio</div>
       <div class="tool-card-desc">Crop, resize, and convert images with aspect ratio presets for Instagram, TikTok, YouTube, and more. Everything happens in your browser.</div>
       <div class="tool-card-badge"><span class="tool-card-badge-dot"></span> Free to start</div>
       <div class="tool-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
     </a>
-    <a class="tool-card" href="dashboard.html" onclick="requireAuth(event)">
+    <a class="tool-card" href="tools/qr-generator.html">
       <div class="tool-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20v1"/></svg></div>
       <div class="tool-card-title">QR Code Generator</div>
       <div class="tool-card-desc">Generate clean, professional QR codes for your links, social profiles, and campaigns. Download instantly in high resolution.</div>
       <div class="tool-card-badge"><span class="tool-card-badge-dot"></span> Free to start</div>
       <div class="tool-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
     </a>
-    <a class="tool-card" href="dashboard.html" onclick="requireAuth(event)">
+    <a class="tool-card" href="tools/invoice-generator.html">
       <div class="tool-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/></svg></div>
       <div class="tool-card-title">Invoice Generator</div>
       <div class="tool-card-desc">Create professional invoices for your brand deals, collaborations, business, and more. Download as PDF.</div>
       <div class="tool-card-badge"><span class="tool-card-badge-dot"></span> Free to start</div>
       <div class="tool-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
     </a>
-    <a class="tool-card" href="dashboard.html" onclick="requireAuth(event)">
+    <a class="tool-card" href="tools/sign-pdf.html">
       <div class="tool-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M3 17l3-3 2 2 5-5 3 3"/></svg></div>
       <div class="tool-card-title">Sign PDF</div>
       <div class="tool-card-desc">Fill out and sign any PDF right in your browser. Files are processed entirely in your browser — never uploaded to our servers.</div>
       <div class="tool-card-badge"><span class="tool-card-badge-dot"></span> Free to use</div>
       <div class="tool-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
     </a>
-    <a class="tool-card" href="dashboard.html" onclick="requireAuth(event)">
+    <a class="tool-card" href="tools/script-builder.html">
       <div class="tool-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/><path d="M6 21l-2-2 2-2M18 21l2-2-2-2"/></svg></div>
       <div class="tool-card-title">Script Builder</div>
       <div class="tool-card-desc">The all-in-one workspace to write your next reel, video, podcast, or story. Plan in blocks, lock your hook, then play it back in storyboard, teleprompter, or cinematic mode.</div>
       <div class="tool-card-badge max"><span class="tool-card-badge-dot"></span> Creator Max</div>
       <div class="tool-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
     </a>
-    <a class="tool-card" href="dashboard.html" onclick="requireAuth(event)">
+    <a class="tool-card" href="tools/brand-deal-crm.html">
       <div class="tool-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 12h18"/></svg></div>
       <div class="tool-card-title">Brand Deal CRM</div>
       <div class="tool-card-desc">Track every brand partnership in one place. Store signed contracts, manage deliverables, and share a secure portal with the brand — all with built-in revenue analytics.</div>
