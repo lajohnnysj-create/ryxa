@@ -3209,11 +3209,11 @@
       </div>
     </div>
 
-    <!-- IMAGE CONVERTER -->
+    <!-- IMAGE STUDIO -->
     <div id="tool-image" style="display:none;">
       <div style="max-width:680px;">
         <h2 style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;margin-bottom:6px;letter-spacing:-0.5px;">Image Studio</h2>
-        <p style="color:var(--muted);font-size:14px;margin-bottom:8px;">Crop, resize, and convert images. Everything happens in your browser — nothing is uploaded.</p>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:8px;">Crop, adjust, and convert images. Everything happens in your browser — nothing is uploaded.</p>
         <p id="img-limit-note" style="font-size:13px;color:#a78bfa;margin-bottom:24px;"></p>
 
         <!-- Drop Zone -->
@@ -3224,23 +3224,22 @@
           <div style="font-size:13px;color:var(--muted);" id="img-size-note">or click to browse</div>
         </div>
 
-        <!-- Preview + File Info -->
-        <div id="img-preview-area" style="display:none;margin-bottom:16px;">
-          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:14px;">
-            <img id="img-preview" alt="Image thumbnail" style="width:48px;height:48px;object-fit:cover;border-radius:6px;border:1px solid var(--border);">
+        <!-- File Info (compact strip above preview) -->
+        <div id="img-preview-area" style="display:none;margin-bottom:12px;">
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:12px;">
+            <img id="img-preview" alt="Image thumbnail" style="width:40px;height:40px;object-fit:cover;border-radius:6px;border:1px solid var(--border);">
             <div style="flex:1;min-width:0;">
-              <div id="img-filename" style="font-size:13px;font-weight:500;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
+              <div id="img-filename" style="font-size:13px;font-weight:500;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
               <div id="img-filesize" style="font-size:11px;color:var(--muted);"></div>
             </div>
             <button onclick="clearImage()" aria-label="Remove image" style="background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:4px 8px;">&#x2715;</button>
           </div>
         </div>
 
-        <!-- Interactive Crop Canvas -->
-        <div id="img-crop-area" style="display:none;margin-bottom:16px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;">
-          <div style="margin-bottom:12px;">
-            <label style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;font-weight:600;">Crop &amp; Aspect Ratio</label>
-          </div>
+        <!-- Main editor (preview + tabs + controls) -->
+        <div id="img-editor" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:16px;">
+
+          <!-- Preview Stage -->
           <div id="img-crop-stage" style="position:relative;width:100%;background:#000;border-radius:8px;overflow:hidden;user-select:none;touch-action:none;min-height:240px;max-height:540px;display:flex;align-items:center;justify-content:center;">
             <div id="img-crop-inner" style="position:relative;display:inline-block;transform-origin:center center;transform:translate(0px,0px) scale(1);will-change:transform;">
               <img id="img-crop-src" alt="Image to crop" style="display:block;max-width:100%;max-height:540px;pointer-events:none;">
@@ -3252,104 +3251,121 @@
               <div class="img-crop-handle" data-handle="se" style="position:absolute;bottom:-8px;right:-8px;width:16px;height:16px;background:#fff;border:2px solid #7c3aed;border-radius:50%;cursor:nwse-resize;"></div>
             </div>
           </div>
-          <!-- Zoom slider -->
-          <div style="display:flex;align-items:center;gap:10px;margin-top:10px;font-size:12px;color:var(--muted);">
-            <span style="flex-shrink:0;">🔍</span>
-            <input type="range" id="img-crop-zoom" min="100" max="400" value="100" step="10" aria-label="Zoom image" style="flex:1;accent-color:var(--accent);">
+
+          <!-- Always-visible: Zoom + Dimensions readout -->
+          <div style="display:flex;align-items:center;gap:10px;margin-top:10px;font-size:12px;color:var(--muted);flex-wrap:wrap;">
+            <span style="flex-shrink:0;">&#x1F50D;</span>
+            <input type="range" id="img-crop-zoom" min="100" max="400" value="100" step="10" aria-label="Zoom image" style="flex:1;min-width:120px;accent-color:var(--accent);">
             <span id="img-crop-zoom-val" style="flex-shrink:0;min-width:44px;text-align:right;">100%</span>
-            <button type="button" onclick="resetCropZoom()" style="background:none;border:1px solid var(--border-hover);color:var(--muted);font-size:11px;padding:5px 10px;border-radius:6px;cursor:pointer;font-family:DM Sans,sans-serif;flex-shrink:0;">Reset</button>
+            <button type="button" onclick="resetCropZoom()" style="background:none;border:1px solid var(--border-hover);color:var(--muted);font-size:11px;padding:5px 10px;border-radius:6px;cursor:pointer;font-family:DM Sans,sans-serif;flex-shrink:0;">Reset zoom</button>
           </div>
-          <!-- Aspect ratio buttons -->
-          <div id="img-aspect-buttons" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;">
-            <button type="button" data-aspect="original" onclick="applyAspectPreset('original')" class="img-aspect-btn img-aspect-active" style="background:var(--accent);color:#fff;border:1px solid var(--accent);font-size:12px;padding:7px 12px;border-radius:7px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:500;transition:all 0.15s;">Original</button>
-            <button type="button" data-aspect="free" onclick="applyAspectPreset('free')" class="img-aspect-btn" style="background:var(--surface);color:var(--muted);border:1px solid var(--border-hover);font-size:12px;padding:7px 12px;border-radius:7px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:500;transition:all 0.15s;">Free</button>
-            <button type="button" data-aspect="1:1" onclick="applyAspectPreset('1:1')" class="img-aspect-btn" style="background:var(--surface);color:var(--muted);border:1px solid var(--border-hover);font-size:12px;padding:7px 12px;border-radius:7px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:500;transition:all 0.15s;">Square 1:1</button>
-            <button type="button" data-aspect="4:5" onclick="applyAspectPreset('4:5')" class="img-aspect-btn" style="background:var(--surface);color:var(--muted);border:1px solid var(--border-hover);font-size:12px;padding:7px 12px;border-radius:7px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:500;transition:all 0.15s;">Portrait 4:5</button>
-            <button type="button" data-aspect="9:16" onclick="applyAspectPreset('9:16')" class="img-aspect-btn" style="background:var(--surface);color:var(--muted);border:1px solid var(--border-hover);font-size:12px;padding:7px 12px;border-radius:7px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:500;transition:all 0.15s;">Reel/Story 9:16</button>
-            <button type="button" data-aspect="16:9" onclick="applyAspectPreset('16:9')" class="img-aspect-btn" style="background:var(--surface);color:var(--muted);border:1px solid var(--border-hover);font-size:12px;padding:7px 12px;border-radius:7px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:500;transition:all 0.15s;">YouTube/Landscape 16:9</button>
-            <button type="button" data-aspect="3:1" onclick="applyAspectPreset('3:1')" class="img-aspect-btn" style="background:var(--surface);color:var(--muted);border:1px solid var(--border-hover);font-size:12px;padding:7px 12px;border-radius:7px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:500;transition:all 0.15s;">Wide 3:1</button>
+          <div style="font-size:11px;color:var(--muted);margin-top:6px;">
+            <span id="img-crop-dims">&mdash;</span>
           </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:12px;color:var(--muted);gap:10px;flex-wrap:wrap;">
-            <span id="img-crop-dims">—</span>
-            <button type="button" id="img-crop-lock-btn" onclick="toggleCropLock()" style="background:var(--surface);border:1px solid var(--border-hover);color:var(--text);font-size:12px;padding:7px 14px;border-radius:7px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:500;transition:all 0.15s;">Lock crop</button>
+
+          <!-- Tab Bar -->
+          <div id="img-tabs" style="display:flex;gap:0;margin-top:14px;border-bottom:1px solid var(--border);">
+            <button type="button" data-tab="crop" onclick="switchImgTab(&apos;crop&apos;)" class="img-tab img-tab-active" style="flex:1;background:transparent;border:none;border-bottom:2px solid var(--accent);color:var(--text);font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;padding:10px 8px;cursor:pointer;transition:all 0.15s;">Crop</button>
+            <button type="button" data-tab="adjust" onclick="switchImgTab(&apos;adjust&apos;)" class="img-tab" style="flex:1;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--muted);font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;padding:10px 8px;cursor:pointer;transition:all 0.15s;">Adjust</button>
+            <button type="button" data-tab="output" onclick="switchImgTab(&apos;output&apos;)" class="img-tab" style="flex:1;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--muted);font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;padding:10px 8px;cursor:pointer;transition:all 0.15s;">Output</button>
+          </div>
+
+          <!-- Tab Panels -->
+          <div style="padding-top:14px;min-height:160px;">
+            <!-- CROP TAB -->
+            <div id="img-tab-crop" class="img-tab-panel">
+              <div id="img-aspect-buttons" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;">
+                <button type="button" data-aspect="original" onclick="applyAspectPreset(&apos;original&apos;)" class="img-aspect-btn img-aspect-active" style="background:var(--accent);color:#fff;border:1px solid var(--accent);font-size:12px;padding:7px 12px;border-radius:7px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:500;transition:all 0.15s;">Original</button>
+                <button type="button" data-aspect="free" onclick="applyAspectPreset(&apos;free&apos;)" class="img-aspect-btn" style="background:var(--surface);color:var(--muted);border:1px solid var(--border-hover);font-size:12px;padding:7px 12px;border-radius:7px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:500;transition:all 0.15s;">Free</button>
+                <button type="button" data-aspect="1:1" onclick="applyAspectPreset(&apos;1:1&apos;)" class="img-aspect-btn" style="background:var(--surface);color:var(--muted);border:1px solid var(--border-hover);font-size:12px;padding:7px 12px;border-radius:7px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:500;transition:all 0.15s;">Square 1:1</button>
+                <button type="button" data-aspect="4:5" onclick="applyAspectPreset(&apos;4:5&apos;)" class="img-aspect-btn" style="background:var(--surface);color:var(--muted);border:1px solid var(--border-hover);font-size:12px;padding:7px 12px;border-radius:7px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:500;transition:all 0.15s;">Portrait 4:5</button>
+                <button type="button" data-aspect="9:16" onclick="applyAspectPreset(&apos;9:16&apos;)" class="img-aspect-btn" style="background:var(--surface);color:var(--muted);border:1px solid var(--border-hover);font-size:12px;padding:7px 12px;border-radius:7px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:500;transition:all 0.15s;">Reel/Story 9:16</button>
+                <button type="button" data-aspect="16:9" onclick="applyAspectPreset(&apos;16:9&apos;)" class="img-aspect-btn" style="background:var(--surface);color:var(--muted);border:1px solid var(--border-hover);font-size:12px;padding:7px 12px;border-radius:7px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:500;transition:all 0.15s;">YouTube/Landscape 16:9</button>
+                <button type="button" data-aspect="3:1" onclick="applyAspectPreset(&apos;3:1&apos;)" class="img-aspect-btn" style="background:var(--surface);color:var(--muted);border:1px solid var(--border-hover);font-size:12px;padding:7px 12px;border-radius:7px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:500;transition:all 0.15s;">Wide 3:1</button>
+              </div>
+              <div style="display:flex;justify-content:flex-end;">
+                <button type="button" id="img-crop-lock-btn" onclick="toggleCropLock()" style="background:var(--surface);border:1px solid var(--border-hover);color:var(--text);font-size:12px;padding:7px 14px;border-radius:7px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:500;transition:all 0.15s;">Lock crop</button>
+              </div>
+            </div>
+
+            <!-- ADJUST TAB -->
+            <div id="img-tab-adjust" class="img-tab-panel" style="display:none;">
+              <div style="display:grid;grid-template-columns:1fr;gap:12px;">
+                <div>
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                    <label for="img-brightness" style="font-size:12px;color:var(--muted);">Brightness</label>
+                    <span id="img-brightness-val" style="font-size:11px;color:var(--muted);">0</span>
+                  </div>
+                  <input type="range" id="img-brightness" min="-100" max="100" value="0" step="1" style="width:100%;accent-color:var(--accent);" aria-label="Brightness">
+                </div>
+                <div>
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                    <label for="img-contrast" style="font-size:12px;color:var(--muted);">Contrast</label>
+                    <span id="img-contrast-val" style="font-size:11px;color:var(--muted);">0</span>
+                  </div>
+                  <input type="range" id="img-contrast" min="-100" max="100" value="0" step="1" style="width:100%;accent-color:var(--accent);" aria-label="Contrast">
+                </div>
+                <div>
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                    <label for="img-saturation" style="font-size:12px;color:var(--muted);">Saturation</label>
+                    <span id="img-saturation-val" style="font-size:11px;color:var(--muted);">0</span>
+                  </div>
+                  <input type="range" id="img-saturation" min="-100" max="100" value="0" step="1" style="width:100%;accent-color:var(--accent);" aria-label="Saturation">
+                </div>
+              </div>
+              <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">
+                <button type="button" onclick="rotateImage90()" style="flex:1;min-width:90px;background:var(--surface);border:1px solid var(--border-hover);color:var(--text);font-size:12px;padding:9px 12px;border-radius:7px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:500;display:flex;align-items:center;justify-content:center;gap:6px;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                  Rotate 90&deg;
+                </button>
+                <button type="button" onclick="flipImageH()" style="flex:1;min-width:90px;background:var(--surface);border:1px solid var(--border-hover);color:var(--text);font-size:12px;padding:9px 12px;border-radius:7px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:500;display:flex;align-items:center;justify-content:center;gap:6px;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+                  Flip H
+                </button>
+                <button type="button" onclick="flipImageV()" style="flex:1;min-width:90px;background:var(--surface);border:1px solid var(--border-hover);color:var(--text);font-size:12px;padding:9px 12px;border-radius:7px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:500;display:flex;align-items:center;justify-content:center;gap:6px;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="transform:rotate(90deg);"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+                  Flip V
+                </button>
+              </div>
+              <div style="margin-top:12px;display:flex;justify-content:flex-end;">
+                <button type="button" onclick="resetAllAdjustments()" style="background:none;border:1px solid var(--border-hover);color:var(--muted);font-size:11px;padding:5px 10px;border-radius:6px;cursor:pointer;font-family:DM Sans,sans-serif;">Reset adjustments</button>
+              </div>
+            </div>
+
+            <!-- OUTPUT TAB -->
+            <div id="img-tab-output" class="img-tab-panel" style="display:none;">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                <div>
+                  <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;">Format</label>
+                  <select id="img-format" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;" aria-label="Output format">
+                    <option value="image/jpeg" selected>JPEG</option>
+                    <option value="image/png">PNG</option>
+                    <option value="image/webp">WebP</option>
+                    <option value="image/gif">GIF</option>
+                    <option value="image/bmp">BMP</option>
+                    <option value="image/tiff">TIFF</option>
+                    <option value="image/avif">AVIF</option>
+                    <option value="image/x-icon">ICO</option>
+                  </select>
+                </div>
+                <div id="quality-group">
+                  <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;">Quality <span id="quality-val">90</span>%</label>
+                  <input type="range" id="img-quality" min="10" max="100" value="90" style="width:100%;accent-color:var(--accent);" oninput="document.getElementById(&apos;quality-val&apos;).textContent=this.value" aria-label="Compression quality">
+                </div>
+              </div>
+              <!-- Hidden legacy inputs (JS compat) -->
+              <input type="hidden" id="img-width" value="">
+              <input type="hidden" id="img-height" value="">
+              <input type="checkbox" id="img-resize-lock" checked style="display:none;">
+              <div id="pro-resize" style="display:none;"></div>
+            </div>
           </div>
         </div>
 
-        <!-- Adjust section (brightness/contrast/saturation + rotate/flip) -->
-        <div id="img-adjust-area" style="display:none;margin-bottom:16px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
-            <label style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;font-weight:600;">Adjust</label>
-            <button type="button" onclick="resetAllAdjustments()" style="background:none;border:1px solid var(--border-hover);color:var(--muted);font-size:11px;padding:5px 10px;border-radius:6px;cursor:pointer;font-family:DM Sans,sans-serif;">Reset all</button>
-          </div>
-          <!-- Sliders -->
-          <div style="display:grid;grid-template-columns:1fr;gap:12px;">
-            <div>
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-                <label for="img-brightness" style="font-size:12px;color:var(--muted);">Brightness</label>
-                <span id="img-brightness-val" style="font-size:11px;color:var(--muted);">0</span>
-              </div>
-              <input type="range" id="img-brightness" min="-100" max="100" value="0" step="1" style="width:100%;accent-color:var(--accent);" aria-label="Brightness">
-            </div>
-            <div>
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-                <label for="img-contrast" style="font-size:12px;color:var(--muted);">Contrast</label>
-                <span id="img-contrast-val" style="font-size:11px;color:var(--muted);">0</span>
-              </div>
-              <input type="range" id="img-contrast" min="-100" max="100" value="0" step="1" style="width:100%;accent-color:var(--accent);" aria-label="Contrast">
-            </div>
-            <div>
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-                <label for="img-saturation" style="font-size:12px;color:var(--muted);">Saturation</label>
-                <span id="img-saturation-val" style="font-size:11px;color:var(--muted);">0</span>
-              </div>
-              <input type="range" id="img-saturation" min="-100" max="100" value="0" step="1" style="width:100%;accent-color:var(--accent);" aria-label="Saturation">
-            </div>
-          </div>
-          <!-- Rotate + Flip buttons -->
-          <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">
-            <button type="button" onclick="rotateImage90()" style="flex:1;min-width:100px;background:var(--surface);border:1px solid var(--border-hover);color:var(--text);font-size:12px;padding:9px 12px;border-radius:7px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:500;display:flex;align-items:center;justify-content:center;gap:6px;">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-              Rotate 90°
-            </button>
-            <button type="button" onclick="flipImageH()" style="flex:1;min-width:100px;background:var(--surface);border:1px solid var(--border-hover);color:var(--text);font-size:12px;padding:9px 12px;border-radius:7px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:500;display:flex;align-items:center;justify-content:center;gap:6px;">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-              Flip H
-            </button>
-            <button type="button" onclick="flipImageV()" style="flex:1;min-width:100px;background:var(--surface);border:1px solid var(--border-hover);color:var(--text);font-size:12px;padding:9px 12px;border-radius:7px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:500;display:flex;align-items:center;justify-content:center;gap:6px;">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="transform:rotate(90deg);"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-              Flip V
-            </button>
-          </div>
-        </div>
-
-        <!-- Options -->
-        <div id="img-options" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:20px;">
-          <!-- Format + Quality row -->
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-            <div>
-              <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;">Format</label>
-              <select id="img-format" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;" aria-label="Output format">
-                <option value="image/jpeg" selected>JPEG</option>
-                <option value="image/png">PNG</option>
-                <option value="image/webp">WebP</option>
-                <option value="image/gif">GIF</option>
-                <option value="image/bmp">BMP</option>
-                <option value="image/tiff">TIFF</option>
-                <option value="image/avif">AVIF</option>
-                <option value="image/x-icon">ICO</option>
-              </select>
-            </div>
-            <div id="quality-group">
-              <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;">Quality <span id="quality-val">90</span>%</label>
-              <input type="range" id="img-quality" min="10" max="100" value="90" style="width:100%;accent-color:var(--accent);" oninput="document.getElementById('quality-val').textContent=this.value" aria-label="Compression quality">
-            </div>
-          </div>
-          <!-- Hidden inputs kept so existing JS doesn't throw errors -->
-          <input type="hidden" id="img-width" value="">
-          <input type="hidden" id="img-height" value="">
-          <input type="checkbox" id="img-resize-lock" checked style="display:none;">
-          <div id="pro-resize" style="display:none;"></div>
-        </div>
+        <!-- Hidden legacy containers (kept for JS compatibility) -->
+        <div id="img-crop-area" style="display:none;"></div>
+        <div id="img-adjust-area" style="display:none;"></div>
+        <div id="img-options" style="display:none;"></div>
 
         <button id="img-convert-btn" onclick="convertImage()" style="display:none;width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.2s;box-shadow:0 0 20px var(--accent-glow);">Download Image</button>
         <div id="img-result" style="display:none;margin-top:16px;"></div>
@@ -8629,11 +8645,13 @@ function handleImageFile(file) {
   reader.onload = e => {
     document.getElementById('img-preview').src = e.target.result;
     document.getElementById('img-preview-area').style.display = 'block';
-    document.getElementById('img-options').style.display = 'block';
+    document.getElementById('img-editor').style.display = 'block';
     document.getElementById('img-convert-btn').style.display = 'block';
     document.getElementById('img-result').style.display = 'none';
     document.getElementById('img-filename').textContent = file.name;
     document.getElementById('img-filesize').textContent = (file.size / 1024 / 1024).toFixed(2) + ' MB';
+    // Always default to Crop tab on new image load
+    switchImgTab('crop');
     // Set up crop stage with full-size image
     setupCropStage(e.target.result);
   };
@@ -8643,10 +8661,8 @@ function handleImageFile(file) {
 function clearImage() {
   imgFile = null;
   document.getElementById('img-preview-area').style.display = 'none';
-  document.getElementById('img-crop-area').style.display = 'none';
-  const adjustArea = document.getElementById('img-adjust-area');
-  if (adjustArea) adjustArea.style.display = 'none';
-  document.getElementById('img-options').style.display = 'none';
+  const editor = document.getElementById('img-editor');
+  if (editor) editor.style.display = 'none';
   document.getElementById('img-convert-btn').style.display = 'none';
   document.getElementById('img-result').style.display = 'none';
   document.getElementById('img-input').value = '';
@@ -8683,15 +8699,32 @@ let imgRotation = 0;                // 0, 90, 180, 270 degrees
 let imgFlipH = false;
 let imgFlipV = false;
 
+function switchImgTab(tabName) {
+  const panels = ['crop', 'adjust', 'output'];
+  panels.forEach(name => {
+    const panel = document.getElementById('img-tab-' + name);
+    if (panel) panel.style.display = (name === tabName) ? 'block' : 'none';
+  });
+  document.querySelectorAll('.img-tab').forEach(btn => {
+    const isActive = btn.getAttribute('data-tab') === tabName;
+    if (isActive) {
+      btn.classList.add('img-tab-active');
+      btn.style.color = 'var(--text)';
+      btn.style.borderBottomColor = 'var(--accent)';
+    } else {
+      btn.classList.remove('img-tab-active');
+      btn.style.color = 'var(--muted)';
+      btn.style.borderBottomColor = 'transparent';
+    }
+  });
+}
+
 function setupCropStage(dataUrl) {
   const stageImg = document.getElementById('img-crop-src');
   const stage = document.getElementById('img-crop-stage');
-  const cropArea = document.getElementById('img-crop-area');
 
   stageImg.onload = () => {
     imgNatural = { w: stageImg.naturalWidth, h: stageImg.naturalHeight };
-    // Show the crop area FIRST so the browser can lay out the image
-    cropArea.style.display = 'block';
     // Wait one frame for layout to settle, THEN measure displayed size
     requestAnimationFrame(() => {
       imgDisplaySize = { w: stageImg.clientWidth, h: stageImg.clientHeight };
@@ -8713,9 +8746,6 @@ function setupCropStage(dataUrl) {
       resetCropZoom();
       // Default new images to "Original" (full image, no crop applied by default)
       applyAspectPreset('original');
-      // Show adjust panel
-      const adjustArea = document.getElementById('img-adjust-area');
-      if (adjustArea) adjustArea.style.display = 'block';
     });
   };
   stageImg.src = dataUrl;
