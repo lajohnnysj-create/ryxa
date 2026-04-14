@@ -56,6 +56,18 @@ module.exports = async (req, res) => {
     return res.status(400).send('Missing username');
   }
 
+  // Reject filenames and reserved paths that may have leaked through cleanUrls normalization
+  // (e.g., /brand-portal.html → /brand-portal → matches /:username catch-all)
+  const RESERVED = new Set([
+    'brand-portal', 'deal', 'about', 'blog', 'dashboard', 'faq', 'follower-audit',
+    'index', 'instructions', 'pricing', 'privacy', 'reset-password', 'terms',
+    'mediakit', 'api', 'admin', 'support', 'help', 'login', 'signin', 'signup'
+  ]);
+  if (username.includes('.') || username.includes('/') || RESERVED.has(username.toLowerCase())) {
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    return res.status(404).send('Not found');
+  }
+
   // Read the source HTML file from project root
   const htmlPath = path.join(process.cwd(), 'bio.html');
   let html;
