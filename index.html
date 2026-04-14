@@ -345,8 +345,6 @@
       <button type="button" class="auth-tab" id="auth-tab-signin" onclick="setAuthMode('signin')">Sign in</button>
       <button type="button" class="auth-tab" id="auth-tab-signup" onclick="setAuthMode('signup')">Create account</button>
     </div>
-    <h2 id="auth-title">Welcome back</h2>
-    <p id="auth-sub">Sign in to access your creator tools.</p>
     <div class="modal-msg" id="auth-msg"></div>
     <button type="button" class="google-btn" onclick="handleGoogleAuth()" aria-label="Continue with Google">
       <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
@@ -361,7 +359,7 @@
     <input class="modal-input" id="auth-email" type="email" aria-label="Email address" placeholder="Email address" autocomplete="email">
     <input class="modal-input" id="auth-password" type="password" aria-label="Password" placeholder="Password" autocomplete="current-password">
     <a class="forgot-link" id="forgot-password-link" onclick="handleForgotPassword()">Forgot password?</a>
-    <div id="auth-turnstile" style="margin:10px 0 12px;display:flex;justify-content:center;min-height:60px;"></div>
+    <div id="auth-turnstile" style="margin:8px 0 10px;display:flex;justify-content:center;min-height:0;"></div>
     <button class="modal-btn" id="auth-submit-btn" onclick="handleAuth()">Sign in</button>
   </div>
 </div>
@@ -683,8 +681,6 @@ function closeAuthModal() {
 
 function syncAuthModal() {
   const isSignIn = authMode === 'signin';
-  document.getElementById('auth-title').textContent = isSignIn ? 'Welcome back' : 'Create your account';
-  document.getElementById('auth-sub').textContent = isSignIn ? 'Sign in to access your creator tools.' : 'Free to start. No credit card required.';
   document.getElementById('auth-submit-btn').textContent = isSignIn ? 'Sign in' : 'Create account';
   document.getElementById('auth-msg').style.display = 'none';
   const fl = document.getElementById('forgot-password-link'); if (fl) fl.style.display = isSignIn ? 'block' : 'none';
@@ -727,7 +723,7 @@ function renderTurnstileWidget() {
   turnstileWidgetId = turnstile.render('#auth-turnstile', {
     sitekey: TURNSTILE_SITE_KEY,
     theme: 'dark',
-    size: 'flexible',
+    size: 'compact',
   });
 }
 
