@@ -1538,6 +1538,11 @@
     .deals-charts-grid { grid-template-columns: 1fr !important; }
   }
   /* Brand Deal CRM — shared styles */
+  /* Custom scrollbar for messages thread (webkit browsers) */
+  #deal-messages-thread::-webkit-scrollbar { width: 8px; }
+  #deal-messages-thread::-webkit-scrollbar-track { background: transparent; }
+  #deal-messages-thread::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+  #deal-messages-thread::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
   .deal-label { display: block; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 6px; }
   .deal-input { width: 100%; background: var(--surface2); border: 1px solid var(--border-hover); border-radius: 8px; padding: 10px 12px; font-size: 14px; color: var(--text); font-family: 'DM Sans', sans-serif; outline: none; box-sizing: border-box; transition: border-color 0.15s; }
   .deal-input:focus { border-color: var(--accent); }
@@ -4150,6 +4155,41 @@
                 <div id="deal-contract-progress" style="display:none;margin-top:8px;font-size:12px;color:var(--muted);">Uploading...</div>
               </div>
 
+              <!-- INVOICE UPLOAD section -->
+              <div style="margin-bottom:24px;">
+                <div style="font-family:Syne,sans-serif;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:14px;">Invoice <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;">(PDF, max 10MB)</span></div>
+                <!-- Empty state: no invoice -->
+                <div id="deal-invoice-empty" style="padding:20px;background:var(--surface);border:1px dashed var(--border);border-radius:10px;text-align:center;">
+                  <div id="deal-invoice-uploader">
+                    <input type="file" id="deal-invoice-input" accept="application/pdf" style="display:none;" onchange="handleInvoiceFileSelected(event)">
+                    <button type="button" id="deal-invoice-choose-btn" onclick="document.getElementById('deal-invoice-input').click()" style="padding:9px 16px;background:transparent;border:1px solid var(--border-hover);color:var(--text);border-radius:8px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Upload Invoice PDF</button>
+                  </div>
+                </div>
+                <!-- Populated state: invoice exists -->
+                <div id="deal-invoice-existing" style="display:none;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;align-items:center;gap:12px;">
+                  <div style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;background:rgba(74,222,128,0.12);border:1px solid rgba(74,222,128,0.3);border-radius:8px;flex-shrink:0;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#4ade80;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M8 13h8M8 17h5"/></svg>
+                  </div>
+                  <div style="flex:1;min-width:0;">
+                    <div id="deal-invoice-filename" style="font-size:13px;color:var(--text);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">invoice.pdf</div>
+                    <div id="deal-invoice-status" style="font-size:11px;color:var(--muted);">Invoice uploaded</div>
+                  </div>
+                  <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;">
+                    <button type="button" id="deal-invoice-view-btn" onclick="viewInvoice()" style="padding:7px 12px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:7px;font-size:11px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">View</button>
+                    <button type="button" id="deal-invoice-replace-btn" onclick="document.getElementById('deal-invoice-input').click()" style="padding:7px 12px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:7px;font-size:11px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Replace</button>
+                    <button type="button" id="deal-invoice-remove-btn" onclick="removeInvoice()" style="padding:7px 12px;background:transparent;border:1px solid rgba(239,68,68,0.3);color:#fca5a5;border-radius:7px;font-size:11px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Remove</button>
+                  </div>
+                </div>
+                <!-- Send to brand button -->
+                <div id="deal-invoice-send-row" style="display:none;margin-top:10px;padding:12px 14px;background:rgba(124,58,237,0.06);border:1px solid rgba(124,58,237,0.2);border-radius:10px;display:none;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+                  <div style="flex:1;min-width:200px;font-size:12px;color:var(--muted);line-height:1.5;">
+                    <span id="deal-invoice-send-status">Ready to send to the brand. They'll get an email with a link to view the invoice.</span>
+                  </div>
+                  <button type="button" id="deal-invoice-send-btn" onclick="sendInvoiceToBrand()" style="padding:9px 18px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;flex-shrink:0;">Send invoice to brand</button>
+                </div>
+                <div id="deal-invoice-progress" style="display:none;margin-top:8px;font-size:12px;color:var(--muted);">Uploading...</div>
+              </div>
+
               <!-- PRIVATE NOTES section -->
               <div style="margin-bottom:20px;">
                 <div style="font-family:Syne,sans-serif;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:14px;">Private Notes <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;">(only visible to you)</span></div>
@@ -4182,7 +4222,7 @@
               </div>
 
               <!-- Messages thread (newest at bottom) -->
-              <div id="deal-messages-thread" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;max-height:500px;overflow-y:auto;padding-right:4px;">
+              <div id="deal-messages-thread" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;max-height:340px;overflow-y:auto;padding-right:6px;">
                 <!-- populated dynamically -->
               </div>
 
@@ -10353,11 +10393,13 @@ function showDealDetail(dealId) {
     document.getElementById('deal-delete-btn').style.display = 'inline-block';
     loadDealDeliverables(deal.id);
     renderContractUI(deal);
+    renderInvoiceUI(deal);
   } else {
     document.getElementById('deal-detail-title').textContent = 'New Brand Deal';
     document.getElementById('deal-delete-btn').style.display = 'none';
     renderDeliverables();
     renderContractUI(null);
+    renderInvoiceUI(null);
   }
 
   applyDealLockState();
@@ -10645,6 +10687,10 @@ async function postCreatorMessage() {
     showDealModalMsg('error', 'Failed to send message: ' + error.message);
     return;
   }
+
+  // Fire-and-forget brand notification (smart batching enforced server-side)
+  const preview = content.length > 200 ? content.slice(0, 200) + '…' : content;
+  notifyBrandOfCreatorMessage(currentDealId, preview);
 
   // Clear input + reload thread
   input.value = '';
@@ -11029,6 +11075,257 @@ async function removeContract() {
     dealsList[dealIdx].contract_file_name = null;
   }
   renderContractUI(dealsList[dealIdx]);
+}
+
+// =====================================================
+// BRAND DEAL CRM — Invoice upload/view/remove + send to brand
+// =====================================================
+const DEAL_INVOICE_MAX_BYTES = 10 * 1024 * 1024; // 10 MB
+
+function renderInvoiceUI(deal) {
+  const emptyEl = document.getElementById('deal-invoice-empty');
+  const existingEl = document.getElementById('deal-invoice-existing');
+  const sendRowEl = document.getElementById('deal-invoice-send-row');
+  const fileInput = document.getElementById('deal-invoice-input');
+  if (fileInput) fileInput.value = '';
+  document.getElementById('deal-invoice-progress').style.display = 'none';
+
+  if (deal && deal.invoice_file_path) {
+    emptyEl.style.display = 'none';
+    existingEl.style.display = 'flex';
+    document.getElementById('deal-invoice-filename').textContent = deal.invoice_file_name || 'invoice.pdf';
+    // Status text reflects whether it's been sent
+    const statusEl = document.getElementById('deal-invoice-status');
+    const sendStatusEl = document.getElementById('deal-invoice-send-status');
+    const sendBtn = document.getElementById('deal-invoice-send-btn');
+    if (deal.invoice_sent_at) {
+      const dt = new Date(deal.invoice_sent_at);
+      const dateStr = dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      statusEl.textContent = `Sent to brand on ${dateStr}`;
+      statusEl.style.color = '#86efac';
+      sendStatusEl.innerHTML = `Invoice was sent to the brand on ${dateStr}. You can resend it if needed.`;
+      sendBtn.textContent = 'Resend invoice';
+    } else {
+      statusEl.textContent = 'Invoice uploaded — not sent yet';
+      statusEl.style.color = 'var(--muted)';
+      sendStatusEl.textContent = "Ready to send to the brand. They'll get an email with a link to view the invoice.";
+      sendBtn.textContent = 'Send invoice to brand';
+    }
+    sendRowEl.style.display = 'flex';
+  } else {
+    existingEl.style.display = 'none';
+    emptyEl.style.display = 'block';
+    sendRowEl.style.display = 'none';
+  }
+}
+
+async function handleInvoiceFileSelected(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+    showDealModalMsg('error', 'Please upload a PDF file.');
+    event.target.value = '';
+    return;
+  }
+  if (file.size > DEAL_INVOICE_MAX_BYTES) {
+    showDealModalMsg('error', 'File is too large. Maximum size is 10MB.');
+    event.target.value = '';
+    return;
+  }
+
+  // Auto-save as draft if needed
+  if (!currentDealId) {
+    const autoSaved = await autoSaveDraftForContract();
+    if (!autoSaved) {
+      event.target.value = '';
+      return;
+    }
+  }
+
+  const progressEl = document.getElementById('deal-invoice-progress');
+  progressEl.style.display = 'block';
+  progressEl.textContent = 'Uploading...';
+
+  // Store invoices in same bucket, separate path: {user_id}/{deal_id}_invoice.pdf
+  const storagePath = `${currentUser.id}/${currentDealId}_invoice.pdf`;
+
+  const { error: uploadError } = await sb.storage
+    .from('deal-contracts')
+    .upload(storagePath, file, {
+      contentType: 'application/pdf',
+      upsert: true
+    });
+
+  if (uploadError) {
+    progressEl.style.display = 'none';
+    showDealModalMsg('error', 'Upload failed: ' + uploadError.message);
+    event.target.value = '';
+    return;
+  }
+
+  // If replacing, the new file invalidates the prior "sent" state
+  // Reset invoice_sent_at so user can re-send the new version
+  const { error: updateError } = await sb
+    .from('brand_deals')
+    .update({
+      invoice_file_path: storagePath,
+      invoice_file_name: file.name,
+      invoice_sent_at: null
+    })
+    .eq('id', currentDealId);
+
+  if (updateError) {
+    progressEl.style.display = 'none';
+    showDealModalMsg('error', 'Upload succeeded but saving failed: ' + updateError.message);
+    return;
+  }
+
+  const dealIdx = dealsList.findIndex(d => d.id === currentDealId);
+  if (dealIdx >= 0) {
+    dealsList[dealIdx].invoice_file_path = storagePath;
+    dealsList[dealIdx].invoice_file_name = file.name;
+    dealsList[dealIdx].invoice_sent_at = null;
+  }
+  progressEl.style.display = 'none';
+  renderInvoiceUI(dealsList[dealIdx]);
+  showDealModalMsg('success', 'Invoice uploaded. Click "Send invoice to brand" to email it.');
+  setTimeout(() => {
+    const msg = document.getElementById('deal-detail-msg');
+    if (msg) msg.style.display = 'none';
+  }, 4000);
+}
+
+async function viewInvoice() {
+  if (!currentDealId) return;
+  const deal = dealsList.find(d => d.id === currentDealId);
+  if (!deal || !deal.invoice_file_path) return;
+
+  const { data, error } = await sb.storage.from('deal-contracts').createSignedUrl(deal.invoice_file_path, 3600);
+  if (error || !data?.signedUrl) {
+    showDealModalMsg('error', 'Could not generate view link: ' + (error?.message || 'unknown error'));
+    return;
+  }
+  window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
+}
+
+async function removeInvoice() {
+  if (!currentDealId) return;
+  const deal = dealsList.find(d => d.id === currentDealId);
+  if (!deal || !deal.invoice_file_path) return;
+
+  if (!confirm('Remove the uploaded invoice? This cannot be undone.')) return;
+
+  const path = deal.invoice_file_path;
+  const { error: storageErr } = await sb.storage.from('deal-contracts').remove([path]);
+  if (storageErr) console.warn('Storage delete warning:', storageErr);
+
+  const { error } = await sb
+    .from('brand_deals')
+    .update({ invoice_file_path: null, invoice_file_name: null, invoice_sent_at: null })
+    .eq('id', currentDealId);
+
+  if (error) {
+    showDealModalMsg('error', 'Failed to remove: ' + error.message);
+    return;
+  }
+
+  const dealIdx = dealsList.findIndex(d => d.id === currentDealId);
+  if (dealIdx >= 0) {
+    dealsList[dealIdx].invoice_file_path = null;
+    dealsList[dealIdx].invoice_file_name = null;
+    dealsList[dealIdx].invoice_sent_at = null;
+  }
+  renderInvoiceUI(dealsList[dealIdx]);
+}
+
+async function sendInvoiceToBrand() {
+  if (!currentDealId) return;
+  const deal = dealsList.find(d => d.id === currentDealId);
+  if (!deal || !deal.invoice_file_path) {
+    showDealModalMsg('error', 'Upload an invoice file first.');
+    return;
+  }
+  if (!deal.brand_contact_email) {
+    showDealModalMsg('error', 'Add a brand contact email to the deal first.');
+    document.getElementById('deal-brand-contact-email').focus();
+    return;
+  }
+
+  // Need an active share token for the portal link in the email
+  if (!deal.share_token || deal.share_revoked_at) {
+    showDealModalMsg('error', 'Click "Share with brand" first to enable the brand portal link.');
+    return;
+  }
+
+  const isResend = !!deal.invoice_sent_at;
+  const confirmMsg = isResend
+    ? `Resend the invoice email to ${deal.brand_contact_email}?`
+    : `Send the invoice to ${deal.brand_contact_email}?`;
+  if (!confirm(confirmMsg)) return;
+
+  const btn = document.getElementById('deal-invoice-send-btn');
+  const origText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Sending...';
+
+  try {
+    // Call edge function
+    const { data, error } = await sb.functions.invoke('send-deal-notification', {
+      body: {
+        type: 'invoice_uploaded',
+        deal_id: currentDealId
+      }
+    });
+
+    if (error) throw new Error(error.message || 'Failed to send');
+    if (data && data.error) throw new Error(data.error);
+
+    // Mark invoice as sent in DB
+    const { error: markErr } = await sb.rpc('mark_invoice_sent', { p_deal_id: currentDealId });
+    if (markErr) console.warn('mark_invoice_sent failed:', markErr);
+
+    // Update local cache
+    const dealIdx = dealsList.findIndex(d => d.id === currentDealId);
+    if (dealIdx >= 0) {
+      dealsList[dealIdx].invoice_sent_at = new Date().toISOString();
+    }
+    renderInvoiceUI(dealsList[dealIdx]);
+    showDealModalMsg('success', `Invoice email sent to ${deal.brand_contact_email}.`);
+    setTimeout(() => {
+      const msg = document.getElementById('deal-detail-msg');
+      if (msg) msg.style.display = 'none';
+    }, 4000);
+  } catch (err) {
+    showDealModalMsg('error', 'Failed to send invoice: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = origText;
+  }
+}
+
+// =====================================================
+// BRAND DEAL CRM — Notifications (background, fire-and-forget)
+// =====================================================
+function notifyBrandOfCreatorMessage(dealId, messagePreview) {
+  // Fire-and-forget — we don't block the UI on this
+  sb.functions.invoke('send-deal-notification', {
+    body: {
+      type: 'creator_message_to_brand',
+      deal_id: dealId,
+      message_preview: messagePreview
+    }
+  }).catch(err => console.warn('Notification failed (non-fatal):', err));
+}
+
+function notifyCreatorOfBrandMessage(dealId, messagePreview) {
+  sb.functions.invoke('send-deal-notification', {
+    body: {
+      type: 'brand_message_to_creator',
+      deal_id: dealId,
+      message_preview: messagePreview
+    }
+  }).catch(err => console.warn('Notification failed (non-fatal):', err));
 }
 
 // =====================================================
