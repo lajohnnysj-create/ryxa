@@ -1887,8 +1887,7 @@
   .pdfsign-palette-header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 12px;
+    gap: 10px;
     flex-wrap: wrap;
   }
   .pdfsign-palette-label {
@@ -1903,8 +1902,9 @@
     display: flex;
     gap: 6px;
     flex-wrap: wrap;
-    flex: 1;
-    justify-content: center;
+    flex: 1 1 auto;
+    min-width: 0;
+    justify-content: flex-start;
   }
   .pdfsign-privacy-badge {
     display: inline-flex;
@@ -1918,15 +1918,14 @@
     height: 32px;
     border-radius: 8px;
     white-space: nowrap;
+    flex-shrink: 0;
   }
   .pdfsign-privacy-badge svg { width: 12px; height: 12px; flex-shrink: 0; }
 
   .pdfsign-palette-actions {
     display: flex;
     gap: 6px;
-    padding-left: 12px;
-    border-left: 1px solid var(--border);
-    margin-left: 4px;
+    flex-shrink: 0;
   }
   .pdfsign-action-btn {
     display: inline-flex;
@@ -2005,13 +2004,20 @@
   .pdfsign-palette-icon svg { width: 11px; height: 11px; }
   .pdfsign-palette-name { font-size: 12px; font-weight: 500; color: var(--text); white-space: nowrap; }
 
+  @media (max-width: 860px) {
+    /* Tablet: actions wrap to their own line below items */
+    .pdfsign-palette-header { gap: 10px; }
+    .pdfsign-palette-items { width: 100%; order: 2; }
+    .pdfsign-palette-actions { order: 3; width: 100%; justify-content: flex-end; padding-top: 8px; border-top: 1px solid var(--border); }
+    .pdfsign-privacy-badge { order: 1; }
+  }
   @media (max-width: 640px) {
     /* Full-bleed: cancel tool-area horizontal padding specifically for pdfsign */
     #tool-pdfsign { margin-left: -16px; margin-right: -16px; }
     .pdfsign-palette { padding: 8px 10px; border-radius: 0; border-left: none; border-right: none; }
     .pdfsign-palette-header { gap: 6px; }
     .pdfsign-palette-label, .pdfsign-privacy-badge { display: none; }
-    .pdfsign-palette-items { gap: 5px; justify-content: flex-start; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 2px; -webkit-overflow-scrolling: touch; }
+    .pdfsign-palette-items { gap: 5px; justify-content: flex-start; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 2px; -webkit-overflow-scrolling: touch; width: 100%; order: 1; }
     .pdfsign-palette-item { padding: 5px 8px; flex-shrink: 0; gap: 5px; border-radius: 7px; }
     .pdfsign-palette-icon { width: 20px; height: 20px; border-radius: 5px; }
     .pdfsign-palette-icon svg { width: 11px; height: 11px; }
@@ -2020,7 +2026,7 @@
     .pdfsign-tip { min-width: 0; font-size: 11px; padding: 8px 10px; }
     .pdfsign-wrap { padding: 0 !important; }
     .pdfsign-action-btn { padding: 6px 10px; font-size: 11px; }
-    .pdfsign-palette-actions { padding-top: 8px; margin-top: 2px; }
+    .pdfsign-palette-actions { padding-top: 8px; margin-top: 2px; order: 2; border-top: 1px solid var(--border); }
   }
   @media (max-width: 420px) {
     #tool-pdfsign { margin-left: -10px; margin-right: -10px; }
