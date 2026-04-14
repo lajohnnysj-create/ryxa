@@ -3241,14 +3241,23 @@
           <div style="margin-bottom:12px;">
             <label style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;font-weight:600;">Crop &amp; Aspect Ratio</label>
           </div>
-          <div id="img-crop-stage" style="position:relative;width:100%;background:#000;border-radius:8px;overflow:hidden;user-select:none;touch-action:none;display:flex;align-items:center;justify-content:center;min-height:240px;">
-            <img id="img-crop-src" alt="Image to crop" style="display:block;max-width:100%;max-height:540px;pointer-events:none;">
-            <div id="img-crop-box" style="position:absolute;border:2px solid #fff;box-shadow:0 0 0 9999px rgba(0,0,0,0.55);cursor:move;display:none;">
-              <div class="img-crop-handle" data-handle="nw" style="position:absolute;top:-8px;left:-8px;width:16px;height:16px;background:#fff;border:2px solid #7c3aed;border-radius:50%;cursor:nwse-resize;"></div>
-              <div class="img-crop-handle" data-handle="ne" style="position:absolute;top:-8px;right:-8px;width:16px;height:16px;background:#fff;border:2px solid #7c3aed;border-radius:50%;cursor:nesw-resize;"></div>
-              <div class="img-crop-handle" data-handle="sw" style="position:absolute;bottom:-8px;left:-8px;width:16px;height:16px;background:#fff;border:2px solid #7c3aed;border-radius:50%;cursor:nesw-resize;"></div>
-              <div class="img-crop-handle" data-handle="se" style="position:absolute;bottom:-8px;right:-8px;width:16px;height:16px;background:#fff;border:2px solid #7c3aed;border-radius:50%;cursor:nwse-resize;"></div>
+          <div id="img-crop-stage" style="position:relative;width:100%;background:#000;border-radius:8px;overflow:auto;user-select:none;touch-action:none;min-height:240px;max-height:540px;">
+            <div id="img-crop-inner" style="position:relative;display:inline-block;transform-origin:top left;transform:scale(1);">
+              <img id="img-crop-src" alt="Image to crop" style="display:block;max-width:100%;max-height:540px;pointer-events:none;">
+              <div id="img-crop-box" style="position:absolute;border:2px solid #fff;box-shadow:0 0 0 9999px rgba(0,0,0,0.55);cursor:move;display:none;">
+                <div class="img-crop-handle" data-handle="nw" style="position:absolute;top:-8px;left:-8px;width:16px;height:16px;background:#fff;border:2px solid #7c3aed;border-radius:50%;cursor:nwse-resize;"></div>
+                <div class="img-crop-handle" data-handle="ne" style="position:absolute;top:-8px;right:-8px;width:16px;height:16px;background:#fff;border:2px solid #7c3aed;border-radius:50%;cursor:nesw-resize;"></div>
+                <div class="img-crop-handle" data-handle="sw" style="position:absolute;bottom:-8px;left:-8px;width:16px;height:16px;background:#fff;border:2px solid #7c3aed;border-radius:50%;cursor:nesw-resize;"></div>
+                <div class="img-crop-handle" data-handle="se" style="position:absolute;bottom:-8px;right:-8px;width:16px;height:16px;background:#fff;border:2px solid #7c3aed;border-radius:50%;cursor:nwse-resize;"></div>
+              </div>
             </div>
+          </div>
+          <!-- Zoom slider -->
+          <div style="display:flex;align-items:center;gap:10px;margin-top:10px;font-size:12px;color:var(--muted);">
+            <span style="flex-shrink:0;">🔍</span>
+            <input type="range" id="img-crop-zoom" min="100" max="400" value="100" step="10" aria-label="Zoom image" style="flex:1;accent-color:var(--accent);">
+            <span id="img-crop-zoom-val" style="flex-shrink:0;min-width:44px;text-align:right;">100%</span>
+            <button type="button" onclick="resetCropZoom()" style="background:none;border:1px solid var(--border-hover);color:var(--muted);font-size:11px;padding:5px 10px;border-radius:6px;cursor:pointer;font-family:DM Sans,sans-serif;flex-shrink:0;">Reset</button>
           </div>
           <!-- Aspect ratio buttons -->
           <div id="img-aspect-buttons" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;">
@@ -8520,6 +8529,15 @@ function initImageConverter() {
 
   // Aspect ratio buttons use inline onclick handlers (no listener needed here).
 
+  // Zoom slider
+  const zoomSlider = document.getElementById('img-crop-zoom');
+  if (zoomSlider && !zoomSlider.__wired) {
+    zoomSlider.__wired = true;
+    zoomSlider.addEventListener('input', function() {
+      applyCropZoom(parseInt(this.value));
+    });
+  }
+
   // Crop box drag (move + resize handles)
   const cropBoxEl = document.getElementById('img-crop-box');
   if (cropBoxEl && !cropBoxEl.__wired) {
@@ -8588,6 +8606,12 @@ function clearImage() {
   document.getElementById('img-width').value = '';
   document.getElementById('img-height').value = '';
   imgNatural = { w: 0, h: 0 };
+  // Reset zoom state
+  const zoomSlider = document.getElementById('img-crop-zoom');
+  if (zoomSlider) zoomSlider.value = '100';
+  const inner = document.getElementById('img-crop-inner');
+  if (inner) inner.style.transform = 'scale(1)';
+  imgCropZoom = 1;
 }
 
 // ───── Crop box state ─────
@@ -8597,6 +8621,7 @@ let imgDisplaySize = { w: 0, h: 0 };// Displayed image size in CSS pixels
 let imgAspectLock = null;           // e.g. 1 for 1:1, 9/16 for 9:16, null for free
 let imgCropMode = 'original';       // 'free' | '1:1' | '4:5' | '9:16' | '16:9' | '3:1' | 'original'
 let imgCropLocked = false;          // true = crop committed; box can't move or resize
+let imgCropZoom = 1;                // 1 = 100%, scales the image + crop box together
 
 function setupCropStage(dataUrl) {
   const stageImg = document.getElementById('img-crop-src');
@@ -8621,6 +8646,8 @@ function setupCropStage(dataUrl) {
         };
       }
       imgCropBox = { x: 0, y: 0, w: imgDisplaySize.w, h: imgDisplaySize.h };
+      // Reset zoom to 100% for new image
+      resetCropZoom();
       // Default new images to "Original" (full image, no crop applied by default)
       applyAspectPreset('original');
     });
@@ -8733,7 +8760,6 @@ function toggleCropLock() {
 
 function renderCropBox() {
   if (!imgCropBox) return;
-  const stage = document.getElementById('img-crop-stage');
   const stageImg = document.getElementById('img-crop-src');
   const box = document.getElementById('img-crop-box');
   // Refresh display size each render in case of layout changes
@@ -8741,19 +8767,15 @@ function renderCropBox() {
     imgDisplaySize = { w: stageImg.clientWidth, h: stageImg.clientHeight };
   }
   if (!imgDisplaySize.w || !imgDisplaySize.h) return;
-  // Offset image within stage (for letterboxing)
-  const stageRect = stage.getBoundingClientRect();
-  const imgRect = stageImg.getBoundingClientRect();
-  const offsetX = imgRect.left - stageRect.left;
-  const offsetY = imgRect.top - stageRect.top;
   // Clamp box dimensions first, then position
   imgCropBox.w = Math.min(imgCropBox.w, imgDisplaySize.w);
   imgCropBox.h = Math.min(imgCropBox.h, imgDisplaySize.h);
   imgCropBox.x = Math.max(0, Math.min(imgDisplaySize.w - imgCropBox.w, imgCropBox.x));
   imgCropBox.y = Math.max(0, Math.min(imgDisplaySize.h - imgCropBox.h, imgCropBox.y));
+  // Box is now a sibling of image inside img-crop-inner, so positioning is simple
   box.style.display = 'block';
-  box.style.left = (offsetX + imgCropBox.x) + 'px';
-  box.style.top = (offsetY + imgCropBox.y) + 'px';
+  box.style.left = imgCropBox.x + 'px';
+  box.style.top = imgCropBox.y + 'px';
   box.style.width = imgCropBox.w + 'px';
   box.style.height = imgCropBox.h + 'px';
   // Visual state: dashed/purple when locked, solid white when active
@@ -8779,6 +8801,20 @@ function renderCropBox() {
   if (dims) dims.textContent = `Crop: ${pixelW} × ${pixelH} px`;
 }
 
+function applyCropZoom(zoomPct) {
+  imgCropZoom = zoomPct / 100;
+  const inner = document.getElementById('img-crop-inner');
+  if (inner) inner.style.transform = `scale(${imgCropZoom})`;
+  const valEl = document.getElementById('img-crop-zoom-val');
+  if (valEl) valEl.textContent = `${zoomPct}%`;
+}
+
+function resetCropZoom() {
+  const slider = document.getElementById('img-crop-zoom');
+  if (slider) slider.value = '100';
+  applyCropZoom(100);
+}
+
 function startCropInteraction(e, mode, handle) {
   // When locked, no interaction allowed
   if (imgCropLocked) { e.preventDefault(); return; }
@@ -8794,8 +8830,9 @@ function startCropInteraction(e, mode, handle) {
   function onMove(ev) {
     const cx = ev.touches ? ev.touches[0].clientX : ev.clientX;
     const cy = ev.touches ? ev.touches[0].clientY : ev.clientY;
-    const dx = cx - startX;
-    const dy = cy - startY;
+    // Divide by zoom so movement feels right when zoomed in
+    const dx = (cx - startX) / imgCropZoom;
+    const dy = (cy - startY) / imgCropZoom;
 
     if (mode === 'move') {
       imgCropBox.x = origBox.x + dx;
