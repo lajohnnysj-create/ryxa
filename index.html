@@ -25,6 +25,7 @@
 <meta name="twitter:image" content="https://www.ryxa.io/og-image.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
@@ -344,6 +345,7 @@
     <input class="modal-input" id="auth-email" type="email" aria-label="Email address" placeholder="Email address" autocomplete="email">
     <input class="modal-input" id="auth-password" type="password" aria-label="Password" placeholder="Password" autocomplete="current-password">
     <a class="forgot-link" id="forgot-password-link" onclick="handleForgotPassword()">Forgot password?</a>
+    <div id="auth-turnstile" style="margin:14px 0;display:flex;justify-content:center;min-height:65px;"></div>
     <button class="modal-btn" id="auth-submit-btn" onclick="handleAuth()">Sign in</button>
   </div>
 </div>
@@ -640,12 +642,14 @@ function openAuthModal() {
   authMode = 'signin'; syncAuthModal();
   document.getElementById('auth-modal').classList.add('open');
   setTimeout(() => document.getElementById('auth-email')?.focus(), 100);
+  renderTurnstileWidget();
 }
 
 function openSignupModal() {
   authMode = 'signup'; syncAuthModal();
   document.getElementById('auth-modal').classList.add('open');
   setTimeout(() => document.getElementById('auth-email')?.focus(), 100);
+  renderTurnstileWidget();
 }
 
 // Open signup modal if URL has #signup (from external page links)
@@ -687,17 +691,56 @@ function showAuthMsg(type, msg) {
   el.style.display = 'block'; el.className = 'modal-msg ' + type; el.textContent = msg;
 }
 
+// Cloudflare Turnstile (CAPTCHA) configuration
+const TURNSTILE_SITE_KEY = '0x4AAAAAAC9W8avdI3sdVEcc';
+let turnstileWidgetId = null;
+
+function renderTurnstileWidget() {
+  if (typeof turnstile === 'undefined') {
+    // Script not loaded yet — try again shortly
+    setTimeout(renderTurnstileWidget, 200);
+    return;
+  }
+  const container = document.getElementById('auth-turnstile');
+  if (!container) return;
+  // If already rendered, reset instead of re-rendering
+  if (turnstileWidgetId !== null) {
+    try { turnstile.reset(turnstileWidgetId); } catch (e) {}
+    return;
+  }
+  turnstileWidgetId = turnstile.render('#auth-turnstile', {
+    sitekey: TURNSTILE_SITE_KEY,
+    theme: 'dark',
+    size: 'flexible',
+  });
+}
+
+function getTurnstileToken() {
+  if (typeof turnstile === 'undefined' || turnstileWidgetId === null) return null;
+  try { return turnstile.getResponse(turnstileWidgetId); } catch (e) { return null; }
+}
+
+function resetTurnstile() {
+  if (typeof turnstile !== 'undefined' && turnstileWidgetId !== null) {
+    try { turnstile.reset(turnstileWidgetId); } catch (e) {}
+  }
+}
+
 async function handleAuth() {
   const email = document.getElementById('auth-email').value.trim();
   const password = document.getElementById('auth-password').value;
   const btn = document.getElementById('auth-submit-btn');
   if (!email || !password) { showAuthMsg('error', 'Please enter your email and password.'); return; }
+  const captchaToken = getTurnstileToken();
+  if (!captchaToken) { showAuthMsg('error', 'Please complete the verification check.'); return; }
   btn.disabled = true;
   btn.innerHTML = '<span class="auth-spinner"></span>' + (authMode === 'signin' ? 'Signing in...' : 'Creating account...');
   const result = authMode === 'signin'
-    ? await sb.auth.signInWithPassword({ email, password })
-    : await sb.auth.signUp({ email, password });
+    ? await sb.auth.signInWithPassword({ email, password, options: { captchaToken } })
+    : await sb.auth.signUp({ email, password, options: { captchaToken } });
   btn.disabled = false; btn.textContent = authMode === 'signin' ? 'Sign in' : 'Create account';
+  // CAPTCHA token is single-use — always reset for next attempt
+  resetTurnstile();
   if (result.error) { showAuthMsg('error', result.error.message); }
   else if (authMode === 'signup') {
     // Supabase returns a user object with empty identities array when email already exists
@@ -715,7 +758,10 @@ async function handleAuth() {
 async function handleForgotPassword() {
   const email = document.getElementById('auth-email').value.trim();
   if (!email) { showAuthMsg('error', 'Enter your email address above first.'); return; }
-  const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: 'https://ryxa.io/reset-password.html' });
+  const captchaToken = getTurnstileToken();
+  if (!captchaToken) { showAuthMsg('error', 'Please complete the verification check.'); return; }
+  const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: 'https://ryxa.io/reset-password.html', captchaToken });
+  resetTurnstile();
   if (error) showAuthMsg('error', error.message);
   else showAuthMsg('success', 'Password reset email sent! Check your inbox.');
 }
