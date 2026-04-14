@@ -2013,7 +2013,7 @@
   }
   @media (max-width: 640px) {
     /* Full-bleed: cancel tool-area horizontal padding specifically for pdfsign */
-    #tool-pdfsign { margin-left: -16px; margin-right: -16px; }
+    #tool-pdfsign { margin-left: -16px; margin-right: -16px; max-width: 100vw; overflow-x: hidden; }
     .pdfsign-palette { padding: 8px 10px; border-radius: 0; border-left: none; border-right: none; }
     .pdfsign-palette-header { gap: 6px; }
     .pdfsign-palette-label, .pdfsign-privacy-badge { display: none; }
@@ -2022,11 +2022,13 @@
     .pdfsign-palette-icon { width: 20px; height: 20px; border-radius: 5px; }
     .pdfsign-palette-icon svg { width: 11px; height: 11px; }
     .pdfsign-palette-name { font-size: 10px; }
-    .pdfsign-canvas-area { padding: 8px; border-radius: 0; border-left: none; border-right: none; }
+    .pdfsign-canvas-area { padding: 8px; border-radius: 0; border-left: none; border-right: none; max-width: 100vw; overflow-x: hidden; }
     .pdfsign-tip { min-width: 0; font-size: 11px; padding: 8px 10px; }
     .pdfsign-wrap { padding: 0 !important; }
     .pdfsign-action-btn { padding: 6px 10px; font-size: 11px; }
     .pdfsign-palette-actions { padding-top: 8px; margin-top: 2px; order: 2; border-top: 1px solid var(--border); }
+    /* Prevent iOS Safari auto-zoom on input focus (requires 16px min font-size) */
+    #pdfsign-text-input { font-size: 16px !important; }
   }
   @media (max-width: 420px) {
     #tool-pdfsign { margin-left: -10px; margin-right: -10px; }
@@ -2061,7 +2063,7 @@
   }
   .pdfsign-tip strong { color: #c4b5fd; }
 
-  .pdfsign-pages { display: flex; flex-direction: column; gap: 16px; align-items: center; width: 100%; min-width: 0; }
+  .pdfsign-pages { display: flex; flex-direction: column; gap: 16px; align-items: center; width: 100%; min-width: 0; max-width: 100%; }
   .pdfsign-page-wrap {
     position: relative;
     background: #fff;
@@ -2070,8 +2072,9 @@
     box-shadow: 0 4px 20px rgba(0,0,0,0.2);
     width: 100%;
     max-width: 918px; /* roughly PDF at 1.5x scale for US Letter */
+    min-width: 0;
   }
-  .pdfsign-page-wrap canvas { display: block; width: 100%; height: auto; border-radius: 6px; }
+  .pdfsign-page-wrap canvas { display: block; width: 100%; max-width: 100%; height: auto; border-radius: 6px; }
   .pdfsign-field-overlay {
     position: absolute;
     inset: 0;
