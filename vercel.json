@@ -2,6 +2,7 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
+    { "source": "/test123", "destination": "/portal/index.html?t=test" },
     { "source": "/deal/:token", "destination": "/portal/index.html?t=:token" },
     { "source": "/mediakit/:username", "destination": "/api/mediakit?u=:username" },
     { "source": "/:username", "destination": "/api/bio?u=:username" }
