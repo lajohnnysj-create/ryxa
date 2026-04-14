@@ -1,1 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Creator Tools | Ryxa</title>
+<meta name="description" content="10 focused tools for creators — Brand Deal CRM, Script Builder, Link in Bio, Media Kit, Grid Planner, and more. All in one workspace.">
+<meta property="og:title" content="Creator Tools | Ryxa">
+<meta property="og:description" content="10 focused tools for creators, all in one workspace.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.ryxa.io/tools">
+<meta property="og:image" content="https://www.ryxa.io/og-image.png">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="shortcut icon" href="/favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --bg: #07070f;
+    --surface: #11111b;
+    --surface2: #181822;
+    --border: rgba(255,255,255,0.08);
+    --border-hover: rgba(255,255,255,0.18);
+    --accent: #7c3aed;
+    --accent2: #a78bfa;
+    --accent3: #e879f9;
+    --accent-glow: rgba(124,58,237,0.45);
+    --text: #f0eef8;
+    --muted: #b4b2c8;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { font-family: "DM Sans", sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
 
+  nav { position: fixed; top: 0; left: 0; right: 0; z-index: 200; display: flex; align-items: center; justify-content: space-between; padding: 0 48px; height: 68px; background: rgba(7,7,15,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); }
+  .logo { font-family: "Syne", sans-serif; font-weight: 800; font-size: 22px; letter-spacing: -0.5px; display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); }
+  .logo img { width: 38px; height: 38px; object-fit: contain; }
+  .nav-links { display: flex; align-items: center; gap: 32px; }
+  .nav-links a { color: var(--muted); font-size: 14px; text-decoration: none; transition: color 0.2s; }
+  .nav-links a:hover, .nav-links a.active { color: var(--text); }
+  .nav-tools-wrap { position: relative; display: flex; align-items: center; }
+  .nav-tools-trigger { display: inline-flex; align-items: center; gap: 5px; color: var(--text); font-size: 14px; cursor: pointer; background: none; border: none; font-family: 'DM Sans', sans-serif; padding: 0; }
+  .nav-right { display: flex; align-items: center; gap: 12px; }
+  .btn-ghost { background: transparent; border: 1px solid var(--border-hover); color: var(--text); border-radius: 8px; padding: 8px 20px; font-size: 14px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.2s; }
+  .btn-ghost:hover { border-color: var(--accent2); color: var(--accent2); }
+  .btn-nav-cta { background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 9px 22px; font-size: 14px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.2s; box-shadow: 0 0 20px var(--accent-glow); }
+  .btn-nav-cta:hover { background: var(--accent2); transform: translateY(-1px); }
+  .hamburger { display: none; flex-direction: column; justify-content: center; gap: 5px; background: none; border: none; cursor: pointer; padding: 6px; }
+  .hamburger span { display: block; width: 22px; height: 2px; background: var(--text); border-radius: 2px; }
+  .mobile-menu { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 300; flex-direction: column; padding: 80px 32px 40px; }
+  .mobile-menu.open { display: flex; }
+  .mobile-menu-links { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+  .mobile-menu-links a { color: var(--text); font-size: 24px; font-family: "Syne", sans-serif; font-weight: 700; text-decoration: none; padding: 14px 0; border-bottom: 1px solid var(--border); }
+  .mobile-menu-bottom { margin-top: 32px; display: flex; flex-direction: column; gap: 12px; }
+  .mobile-cta { width: 100%; padding: 16px; background: var(--accent); color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; text-decoration: none; display: block; text-align: center; }
+  .mobile-signin { width: 100%; padding: 16px; background: transparent; border: 1px solid var(--border-hover); color: var(--text); border-radius: 12px; font-size: 16px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; text-decoration: none; display: block; text-align: center; }
+
+  .hero { position: relative; padding: 140px 32px 50px; text-align: center; max-width: 1100px; margin: 0 auto; }
+  .hero-bg { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 800px; height: 500px; background: radial-gradient(ellipse at top, rgba(232,121,249,0.12) 0%, transparent 60%); pointer-events: none; }
+  .hero-content { position: relative; z-index: 1; max-width: 800px; margin: 0 auto; }
+  .hero-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.25); border-radius: 999px; font-size: 12px; color: #c4b5fd; margin-bottom: 24px; }
+  .hero-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: #c4b5fd; box-shadow: 0 0 8px #c4b5fd; }
+  .hero h1 { font-family: "Syne", sans-serif; font-size: clamp(38px, 6vw, 60px); font-weight: 800; line-height: 1.1; letter-spacing: -1.5px; margin-bottom: 18px; }
+  .gradient-text { background: linear-gradient(135deg, var(--accent2), var(--accent3)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .hero-tagline { font-size: 18px; color: var(--muted); line-height: 1.6; max-width: 620px; margin: 0 auto; }
+
+  .tools-section { padding: 40px 32px 80px; max-width: 1200px; margin: 0 auto; }
+  .tools-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 24px; }
+  .tool-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px 24px; text-decoration: none; color: inherit; position: relative; transition: all 0.3s; display: flex; flex-direction: column; min-height: 220px; overflow: hidden; }
+  .tool-card:hover { border-color: rgba(124,58,237,0.4); background: rgba(124,58,237,0.04); transform: translateY(-4px); box-shadow: 0 16px 40px rgba(124,58,237,0.15); }
+  .tool-card-icon { width: 44px; height: 44px; background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; color: #c4b5fd; transition: all 0.3s; }
+  .tool-card:hover .tool-card-icon { background: rgba(124,58,237,0.2); border-color: rgba(124,58,237,0.4); }
+  .tool-card-icon svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .tool-card-title { font-family: "Syne", sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .tool-card-desc { font-size: 13px; color: var(--muted); line-height: 1.55; flex: 1; margin-bottom: 16px; }
+  .tool-card-badge { font-size: 10px; padding: 4px 10px; border-radius: 999px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; display: inline-flex; align-items: center; gap: 5px; align-self: flex-start; }
+  .tool-card-badge.free { background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.25); color: #4ade80; }
+  .tool-card-badge.pro { background: rgba(124,58,237,0.15); border: 1px solid rgba(124,58,237,0.3); color: #c4b5fd; }
+  .tool-card-badge.max { background: linear-gradient(135deg,#a78bfa,#e879f9); color: #fff; border: none; }
+  .tool-card-arrow { position: absolute; top: 22px; right: 22px; width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; color: var(--muted); transition: all 0.3s; }
+  .tool-card:hover .tool-card-arrow { background: var(--accent); color: #fff; border-color: var(--accent); transform: rotate(-45deg); }
+
+  .bottom-section { padding: 60px 32px 100px; max-width: 800px; margin: 0 auto; text-align: center; }
+  .bottom-section h2 { font-family: "Syne", sans-serif; font-size: clamp(28px, 4vw, 38px); font-weight: 800; letter-spacing: -1px; margin-bottom: 14px; }
+  .bottom-section p { font-size: 16px; color: var(--muted); margin-bottom: 28px; }
+  .btn-primary { background: var(--accent); color: #fff; border: none; border-radius: 12px; padding: 14px 28px; font-size: 15px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 24px var(--accent-glow); text-decoration: none; display: inline-block; }
+  .btn-primary:hover { background: var(--accent2); transform: translateY(-1px); }
+  .btn-secondary { background: transparent; border: 1px solid var(--border-hover); color: var(--text); border-radius: 12px; padding: 14px 28px; font-size: 15px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-block; margin-left: 8px; }
+  .btn-secondary:hover { border-color: var(--accent2); color: var(--accent2); }
+
+  footer { padding: 50px 32px 30px; max-width: 1200px; margin: 0 auto; border-top: 1px solid var(--border); }
+  .footer-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
+  .footer-links { display: flex; gap: 24px; flex-wrap: wrap; }
+  .footer-links a { color: var(--muted); font-size: 13px; text-decoration: none; }
+  .footer-links a:hover { color: var(--text); }
+  .footer-copy { font-size: 12px; color: var(--muted); }
+
+  @media (max-width: 900px) {
+    .tools-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 640px) {
+    nav { padding: 0 20px; }
+    .nav-links, .nav-right { display: none; }
+    .hamburger { display: flex; }
+    .hero { padding: 120px 20px 30px; }
+    .tools-section { padding: 30px 20px 60px; }
+    .tools-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="logo" href="../index.html">
+    <img src="/logo.png" alt=""> Ryxa
+  </a>
+  <div class="nav-links">
+    <a href="index.html" class="active" style="color:var(--text);">Tools</a>
+    <a href="../pricing.html">Pricing</a>
+    <a href="../blog.html">Blog</a>
+    <a href="../faq.html">FAQ</a>
+    <a href="../about.html">About</a>
+  </div>
+  <div class="nav-right">
+    <button class="btn-ghost" onclick="goSignIn()">Sign in</button>
+    <button class="btn-nav-cta" onclick="goSignUp()">Get started free</button>
+  </div>
+  <button class="hamburger" id="hamburger-btn" onclick="toggleMobileMenu()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<div class="mobile-menu" id="mobile-menu">
+  <button onclick="toggleMobileMenu()" aria-label="Close menu" style="position:absolute;top:20px;right:20px;background:none;border:none;color:var(--muted);font-size:24px;cursor:pointer;line-height:1;padding:8px;">&#x2715;</button>
+  <div class="mobile-menu-links">
+    <a href="index.html">Tools</a>
+    <a href="../pricing.html">Pricing</a>
+    <a href="../blog.html">Blog</a>
+    <a href="../faq.html">FAQ</a>
+    <a href="../about.html">About</a>
+  </div>
+  <div class="mobile-menu-bottom">
+    <button class="mobile-cta" onclick="goSignUp()">Get started free</button>
+    <button class="mobile-signin" onclick="goSignIn()">Sign in</button>
+  </div>
+</div>
+
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <div class="hero-badge"><span class="hero-badge-dot"></span>10 tools, one workspace</div>
+    <h1>Every tool a creator<br>actually <span class="gradient-text">needs</span></h1>
+    <p class="hero-tagline">From your link in bio to your brand deal CRM, Ryxa packs the day-to-day creator workflow into a single dashboard. Pick your tier, grab your tools, get back to creating.</p>
+  </div>
+</section>
+
+<section class="tools-section">
+  <div class="tools-grid">
+
+    <a href="brand-deal-crm.html" class="tool-card">
+      <div class="tool-card-icon"><svg viewBox="0 0 24 24"><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 12h18"/></svg></div>
+      <div class="tool-card-title">Brand Deal CRM</div>
+      <div class="tool-card-desc">Track every brand partnership in one place. Store contracts, manage deliverables, and share a secure portal with the brand — all with built-in revenue analytics.</div>
+      <div class="tool-card-badge max">Creator Max</div>
+      <div class="tool-card-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
+    </a>
+
+    <a href="script-builder.html" class="tool-card">
+      <div class="tool-card-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg></div>
+      <div class="tool-card-title">Script Builder</div>
+      <div class="tool-card-desc">The all-in-one workspace to write your next reel, video, podcast, or story. Plan in blocks, lock your hook, then play it back in storyboard, teleprompter, or cinematic mode.</div>
+      <div class="tool-card-badge max">Creator Max</div>
+      <div class="tool-card-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
+    </a>
+
+    <a href="link-in-bio.html" class="tool-card">
+      <div class="tool-card-icon"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
+      <div class="tool-card-title">Link in Bio</div>
+      <div class="tool-card-desc">A clean, customizable page for your link in bio. Share your content, social profiles, products, and more — all from one branded URL.</div>
+      <div class="tool-card-badge free">Free to start</div>
+      <div class="tool-card-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
+    </a>
+
+    <a href="media-kit.html" class="tool-card">
+      <div class="tool-card-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="17" x2="8" y2="13"/><line x1="12" y1="17" x2="12" y2="11"/><line x1="16" y1="17" x2="16" y2="15"/></svg></div>
+      <div class="tool-card-title">Media Kit</div>
+      <div class="tool-card-desc">Pitch brands with a professional media kit. Show audience stats, engagement rates, past collaborations, and a clear rate card — all on one link.</div>
+      <div class="tool-card-badge pro">Creator Pro</div>
+      <div class="tool-card-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
+    </a>
+
+    <a href="grid-planner.html" class="tool-card">
+      <div class="tool-card-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
+      <div class="tool-card-title">Grid Planner</div>
+      <div class="tool-card-desc">Plan your social media feed before you post. Drop in photos, drag to reorder, and preview how your grid will look before going live.</div>
+      <div class="tool-card-badge free">Free to start</div>
+      <div class="tool-card-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
+    </a>
+
+    <a href="follower-audit.html" class="tool-card">
+      <div class="tool-card-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></div>
+      <div class="tool-card-title">Follow-Back Audit</div>
+      <div class="tool-card-desc">Find out who stopped following you back on Instagram. No password required — upload your own data and see the truth in seconds.</div>
+      <div class="tool-card-badge free">Free to start</div>
+      <div class="tool-card-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
+    </a>
+
+    <a href="image-studio.html" class="tool-card">
+      <div class="tool-card-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg></div>
+      <div class="tool-card-title">Image Studio</div>
+      <div class="tool-card-desc">Crop, resize, and convert images with aspect ratio presets for Instagram, TikTok, YouTube, and more — all in your browser.</div>
+      <div class="tool-card-badge free">Free to start</div>
+      <div class="tool-card-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
+    </a>
+
+    <a href="qr-generator.html" class="tool-card">
+      <div class="tool-card-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20v1"/></svg></div>
+      <div class="tool-card-title">QR Generator</div>
+      <div class="tool-card-desc">Generate clean, professional QR codes for your links, social profiles, and campaigns. Download instantly in high resolution.</div>
+      <div class="tool-card-badge free">Free to start</div>
+      <div class="tool-card-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
+    </a>
+
+    <a href="invoice-generator.html" class="tool-card">
+      <div class="tool-card-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg></div>
+      <div class="tool-card-title">Invoice Generator</div>
+      <div class="tool-card-desc">Create professional invoices for brand deals, collaborations, and freelance work. Download as PDF — ready to send.</div>
+      <div class="tool-card-badge free">Free to start</div>
+      <div class="tool-card-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
+    </a>
+
+    <a href="sign-pdf.html" class="tool-card">
+      <div class="tool-card-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M3 17l3-3 2 2 5-5 3 3"/></svg></div>
+      <div class="tool-card-title">Sign PDF</div>
+      <div class="tool-card-desc">Fill out and sign any PDF right in your browser. Files are processed locally — never uploaded to our servers.</div>
+      <div class="tool-card-badge free">Free to use</div>
+      <div class="tool-card-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
+    </a>
+
+  </div>
+</section>
+
+<section class="bottom-section">
+  <h2>One workspace. Everything you need.</h2>
+  <p>Stop juggling 10 different SaaS subscriptions. Get every tool a creator uses, all in one place.</p>
+  <a href="../index.html?action=signup" class="btn-primary">Get started free</a>
+  <a href="../pricing.html" class="btn-secondary">See pricing</a>
+</section>
+
+<footer>
+  <div class="footer-content">
+    <div class="footer-links">
+      <a href="../index.html">Home</a>
+      <a href="index.html">Tools</a>
+      <a href="../pricing.html">Pricing</a>
+      <a href="../about.html">About</a>
+      <a href="../faq.html">FAQ</a>
+      <a href="../blog.html">Blog</a>
+      <a href="../privacy.html">Privacy</a>
+      <a href="../terms.html">Terms</a>
+    </div>
+    <div class="footer-copy">© 2026 MRLA Media LLC · Ryxa</div>
+  </div>
+</footer>
+
+<script>
+function goSignIn() { window.location.href = '../index.html?action=signin'; }
+function goSignUp() { window.location.href = '../index.html?action=signup'; }
+function toggleMobileMenu() { document.getElementById('mobile-menu').classList.toggle('open'); }
+</script>
+
+</body>
+</html>
