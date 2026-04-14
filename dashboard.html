@@ -10566,15 +10566,72 @@ function renderContractUI(deal) {
   } else {
     existingEl.style.display = 'none';
     emptyEl.style.display = 'block';
-    if (!currentDealId) {
-      // New unsaved deal — tell user to save first
-      saveFirstEl.style.display = 'block';
-      uploaderEl.style.display = 'none';
-    } else {
-      saveFirstEl.style.display = 'none';
-      uploaderEl.style.display = 'block';
-    }
+    // Always show the uploader — we auto-save as draft when needed on file select
+    if (saveFirstEl) saveFirstEl.style.display = 'none';
+    if (uploaderEl) uploaderEl.style.display = 'block';
   }
+}
+
+// Auto-save the current form as a Draft so the contract can be uploaded with a valid deal_id.
+// Returns true on success (and sets currentDealId), false on validation/save failure.
+async function autoSaveDraftForContract() {
+  const title = document.getElementById('deal-title').value.trim();
+  const brandName = document.getElementById('deal-brand-name').value.trim();
+
+  if (!title) {
+    showDealModalMsg('error', 'Please enter the deal title before uploading a contract.');
+    document.getElementById('deal-title').focus();
+    return false;
+  }
+  if (!brandName) {
+    showDealModalMsg('error', 'Please enter the brand name before uploading a contract.');
+    document.getElementById('deal-brand-name').focus();
+    return false;
+  }
+
+  const brandContactName = document.getElementById('deal-brand-contact-name').value.trim();
+  const brandContactEmail = document.getElementById('deal-brand-contact-email').value.trim();
+  if (brandContactEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(brandContactEmail)) {
+    showDealModalMsg('error', 'Please enter a valid brand contact email.');
+    document.getElementById('deal-brand-contact-email').focus();
+    return false;
+  }
+
+  const amountRaw = document.getElementById('deal-amount').value;
+  const amountCents = amountRaw ? Math.round(parseFloat(amountRaw) * 100) : 0;
+  const campaignStart = document.getElementById('deal-campaign-start').value || null;
+  const campaignEnd = document.getElementById('deal-campaign-end').value || null;
+  const paymentStatus = document.getElementById('deal-payment-status').value;
+  const privateNotes = document.getElementById('deal-private-notes').value.trim();
+
+  const payload = {
+    user_id: currentUser.id,
+    deal_title: title,
+    brand_name: brandName,
+    brand_contact_name: brandContactName || null,
+    brand_contact_email: brandContactEmail || null,
+    deal_amount_cents: amountCents,
+    campaign_start_date: campaignStart,
+    campaign_end_date: campaignEnd,
+    status: 'draft',  // Auto-save always creates a draft
+    payment_status: paymentStatus,
+    private_notes: privateNotes || null
+  };
+
+  const { data, error } = await sb.from('brand_deals').insert(payload).select().single();
+  if (error) {
+    showDealModalMsg('error', 'Could not save draft: ' + error.message);
+    return false;
+  }
+
+  currentDealId = data.id;
+  // Refresh list cache so analytics / lists include this new draft
+  await loadDealsList();
+  // Update UI to "Edit" mode (show delete button, update title)
+  document.getElementById('deal-detail-title').textContent = 'Edit Brand Deal';
+  document.getElementById('deal-delete-btn').style.display = 'inline-block';
+  document.getElementById('deal-status').value = 'draft';
+  return true;
 }
 
 async function handleContractFileSelected(event) {
@@ -10593,10 +10650,15 @@ async function handleContractFileSelected(event) {
     event.target.value = '';
     return;
   }
+
+  // Auto-save as draft if this is a new (unsaved) deal — need a deal_id to scope the upload path
   if (!currentDealId) {
-    showDealModalMsg('error', 'Please save the deal before uploading a contract.');
-    event.target.value = '';
-    return;
+    const autoSaved = await autoSaveDraftForContract();
+    if (!autoSaved) {
+      // validation failed or save errored — error message already shown
+      event.target.value = '';
+      return;
+    }
   }
 
   const progressEl = document.getElementById('deal-contract-progress');
@@ -10790,25 +10852,8 @@ async function saveDeal() {
   saveBtn.disabled = false;
   saveBtn.textContent = origBtnText;
 
-  if (wasNewDeal) {
-    // Stay on the detail page so user can upload contract, add deliverables, etc.
-    await loadDealsList();
-    const savedDeal = dealsList.find(d => d.id === dealId);
-    if (savedDeal) {
-      document.getElementById('deal-detail-title').textContent = 'Edit Brand Deal';
-      document.getElementById('deal-delete-btn').style.display = 'inline-block';
-      renderContractUI(savedDeal);
-      showDealModalMsg('success', 'Deal saved. You can now upload a contract.');
-      setTimeout(() => {
-        const msg = document.getElementById('deal-detail-msg');
-        if (msg) msg.style.display = 'none';
-      }, 3000);
-    }
-  } else {
-    // Edit — return to list
-    await loadDealsList();
-    showDealsList();
-  }
+  await loadDealsList();
+  showDealsList();
 }
 
 function showDealModalMsg(type, text) {
