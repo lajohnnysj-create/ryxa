@@ -3897,28 +3897,189 @@
 
         <!-- Main CRM (for Max users) -->
         <div id="deals-main" style="display:none;">
-          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:16px;">
-            <div>
-              <h2 style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;margin-bottom:4px;letter-spacing:-0.5px;">Brand Deal CRM</h2>
-              <p style="color:var(--muted);font-size:14px;">Track your brand partnerships, deliverables, contracts, and revenue.</p>
+
+          <!-- ========== LIST VIEW ========== -->
+          <div id="deals-list-view">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:16px;">
+              <div>
+                <h2 style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;margin-bottom:4px;letter-spacing:-0.5px;">Brand Deal CRM</h2>
+                <p style="color:var(--muted);font-size:14px;">Track your brand partnerships, deliverables, contracts, and revenue.</p>
+              </div>
+              <button id="deals-new-btn" onclick="showDealDetail(null)" style="padding:10px 18px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 24px var(--accent-glow);">+ New deal</button>
             </div>
-            <button id="deals-new-btn" onclick="openDealModal()" style="padding:10px 18px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 24px var(--accent-glow);">+ New deal</button>
+            <div id="deals-content">
+              <div id="deals-empty" style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:60px 24px;text-align:center;">
+                <div style="display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:14px;background:var(--surface);border:1px solid var(--border);margin-bottom:16px;">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--muted);"><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 12h18"/></svg>
+                </div>
+                <div style="font-size:15px;color:var(--text);margin-bottom:4px;font-weight:500;">No brand deals yet</div>
+                <div style="font-size:13px;color:var(--muted);margin-bottom:20px;">Track your brand partnerships, contracts, and revenue all in one place.</div>
+                <button onclick="showDealDetail(null)" style="padding:10px 20px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 24px var(--accent-glow);">Create your first deal</button>
+              </div>
+              <div id="deals-table" style="display:none;"></div>
+            </div>
           </div>
 
-          <!-- Deals list container (populated by loadDealsList) -->
-          <div id="deals-content">
-            <!-- Empty state shown by default; loadDealsList() replaces with table -->
-            <div id="deals-empty" style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:60px 24px;text-align:center;">
-              <div style="display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:14px;background:var(--surface);border:1px solid var(--border);margin-bottom:16px;">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--muted);"><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 12h18"/></svg>
-              </div>
-              <div style="font-size:15px;color:var(--text);margin-bottom:4px;font-weight:500;">No brand deals yet</div>
-              <div style="font-size:13px;color:var(--muted);margin-bottom:20px;">Track your brand partnerships, contracts, and revenue all in one place.</div>
-              <button onclick="openDealModal()" style="padding:10px 20px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 24px var(--accent-glow);">Create your first deal</button>
+          <!-- ========== DETAIL VIEW ========== -->
+          <div id="deals-detail-view" style="display:none;">
+            <!-- Back link + header -->
+            <div style="margin-bottom:18px;">
+              <button onclick="showDealsList()" style="display:inline-flex;align-items:center;gap:6px;padding:6px 10px;background:transparent;border:none;color:var(--muted);font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;margin-left:-10px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                Back to deals
+              </button>
             </div>
-            <!-- Deals table rendered here when deals exist -->
-            <div id="deals-table" style="display:none;"></div>
+
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:16px;">
+              <div>
+                <h2 id="deal-detail-title" style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;margin-bottom:4px;letter-spacing:-0.5px;">New Brand Deal</h2>
+                <p style="color:var(--muted);font-size:14px;">Fill in the deal details below. You can share with the brand once saved.</p>
+              </div>
+            </div>
+
+            <!-- Locked banner (shown when deal is Completed or Cancelled) -->
+            <div id="deal-locked-banner" style="display:none;padding:14px 18px;background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);border-radius:12px;margin-bottom:18px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#4ade80;flex-shrink:0;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                  <div>
+                    <div id="deal-locked-title" style="font-size:13px;font-weight:600;color:#4ade80;">Deal Completed</div>
+                    <div style="font-size:11px;color:var(--muted);">This deal is locked. Revert to Active to make changes.</div>
+                  </div>
+                </div>
+                <button onclick="revertDealToActive()" style="padding:7px 14px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.35);color:#c4b5fd;border-radius:7px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Revert to Active</button>
+              </div>
+            </div>
+
+            <!-- Detail content in a card container -->
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:24px;">
+              <input type="hidden" id="deal-id">
+
+              <!-- BASIC INFO section -->
+              <div style="margin-bottom:24px;">
+                <div style="font-family:Syne,sans-serif;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:14px;">Deal Details</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;" class="deal-grid-2">
+                  <div style="grid-column:1 / -1;">
+                    <label class="deal-label">Deal Title *</label>
+                    <input type="text" id="deal-title" placeholder="e.g., Spring Collection Reel" maxlength="120" class="deal-input">
+                  </div>
+                  <div>
+                    <label class="deal-label">Brand Name *</label>
+                    <input type="text" id="deal-brand-name" placeholder="e.g., Nike" maxlength="120" class="deal-input">
+                  </div>
+                  <div>
+                    <label class="deal-label">Brand Contact Name</label>
+                    <input type="text" id="deal-brand-contact-name" placeholder="e.g., Sarah Johnson" maxlength="120" class="deal-input">
+                  </div>
+                  <div>
+                    <label class="deal-label">Brand Contact Email</label>
+                    <input type="email" id="deal-brand-contact-email" placeholder="contact@brand.com" maxlength="240" class="deal-input">
+                  </div>
+                  <div>
+                    <label class="deal-label">Deal Amount (USD)</label>
+                    <input type="number" id="deal-amount" placeholder="0" min="0" step="0.01" class="deal-input">
+                  </div>
+                </div>
+              </div>
+
+              <!-- TIMING section -->
+              <div style="margin-bottom:24px;">
+                <div style="font-family:Syne,sans-serif;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:14px;">Timing</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;" class="deal-grid-2">
+                  <div>
+                    <label class="deal-label">Campaign Start Date</label>
+                    <input type="date" id="deal-campaign-start" class="deal-input">
+                  </div>
+                  <div>
+                    <label class="deal-label">Campaign End Date</label>
+                    <input type="date" id="deal-campaign-end" class="deal-input">
+                    <div style="font-size:11px;color:var(--muted);margin-top:4px;">We'll remind you 3 days before.</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- STATUS section -->
+              <div style="margin-bottom:24px;">
+                <div style="font-family:Syne,sans-serif;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:14px;">Status</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;" class="deal-grid-2">
+                  <div>
+                    <label class="deal-label">Deal Status</label>
+                    <select id="deal-status" class="deal-input" onchange="handleDealStatusChange()">
+                      <option value="draft">Draft</option>
+                      <option value="pending_contract">Pending Contract</option>
+                      <option value="active">Active</option>
+                      <option value="completed">Completed</option>
+                      <option value="cancelled">Cancelled</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="deal-label">Payment Status</label>
+                    <select id="deal-payment-status" class="deal-input">
+                      <option value="waiting">Waiting for Payment</option>
+                      <option value="paid">Paid</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- DELIVERABLES section -->
+              <div style="margin-bottom:24px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+                  <div style="font-family:Syne,sans-serif;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);">Deliverables</div>
+                  <button type="button" id="deal-deliverable-add-btn" onclick="addDeliverableRow()" style="padding:6px 12px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:7px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">+ Add deliverable</button>
+                </div>
+                <div id="deal-deliverables-list" style="display:flex;flex-direction:column;gap:10px;"></div>
+                <div id="deal-deliverables-empty" style="padding:24px;background:var(--surface);border:1px dashed var(--border);border-radius:10px;text-align:center;font-size:12px;color:var(--muted);">No deliverables yet. Click "+ Add deliverable" to start.</div>
+              </div>
+
+              <!-- CONTRACT UPLOAD section -->
+              <div style="margin-bottom:24px;">
+                <div style="font-family:Syne,sans-serif;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:14px;">Signed Contract <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;">(PDF, max 10MB)</span></div>
+                <!-- Empty state: no contract -->
+                <div id="deal-contract-empty" style="padding:20px;background:var(--surface);border:1px dashed var(--border);border-radius:10px;text-align:center;">
+                  <div id="deal-contract-save-first" style="display:none;font-size:12px;color:var(--muted);">Save the deal first, then upload the contract here.</div>
+                  <div id="deal-contract-uploader" style="display:none;">
+                    <input type="file" id="deal-contract-input" accept="application/pdf" style="display:none;" onchange="handleContractFileSelected(event)">
+                    <button type="button" id="deal-contract-choose-btn" onclick="document.getElementById('deal-contract-input').click()" style="padding:9px 16px;background:transparent;border:1px solid var(--border-hover);color:var(--text);border-radius:8px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Choose PDF</button>
+                  </div>
+                </div>
+                <!-- Populated state: contract exists -->
+                <div id="deal-contract-existing" style="display:none;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;align-items:center;gap:12px;">
+                  <div style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);border-radius:8px;flex-shrink:0;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#c4b5fd;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                  </div>
+                  <div style="flex:1;min-width:0;">
+                    <div id="deal-contract-filename" style="font-size:13px;color:var(--text);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">contract.pdf</div>
+                    <div style="font-size:11px;color:var(--muted);">PDF uploaded</div>
+                  </div>
+                  <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;">
+                    <button type="button" id="deal-contract-view-btn" onclick="viewContract()" style="padding:7px 12px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:7px;font-size:11px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">View</button>
+                    <button type="button" id="deal-contract-replace-btn" onclick="document.getElementById('deal-contract-input').click()" style="padding:7px 12px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:7px;font-size:11px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Replace</button>
+                    <button type="button" id="deal-contract-remove-btn" onclick="removeContract()" style="padding:7px 12px;background:transparent;border:1px solid rgba(239,68,68,0.3);color:#fca5a5;border-radius:7px;font-size:11px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Remove</button>
+                  </div>
+                </div>
+                <div id="deal-contract-progress" style="display:none;margin-top:8px;font-size:12px;color:var(--muted);">Uploading...</div>
+              </div>
+
+              <!-- PRIVATE NOTES section -->
+              <div style="margin-bottom:20px;">
+                <div style="font-family:Syne,sans-serif;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:14px;">Private Notes <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;">(only visible to you)</span></div>
+                <textarea id="deal-private-notes" rows="3" placeholder="Internal notes, reminders, talking points..." class="deal-input" style="resize:vertical;min-height:80px;"></textarea>
+              </div>
+
+              <!-- Error/success message -->
+              <div id="deal-detail-msg" style="display:none;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:14px;"></div>
+
+              <!-- ACTIONS -->
+              <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding-top:6px;border-top:1px solid var(--border);margin-top:4px;padding-top:20px;">
+                <button id="deal-save-btn" onclick="saveDeal()" style="padding:12px 24px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow);">Save deal</button>
+                <button onclick="showDealsList()" style="padding:12px 20px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Cancel</button>
+                <div style="flex:1;"></div>
+                <button id="deal-delete-btn" onclick="promptDeleteDeal()" style="display:none;padding:12px 16px;background:transparent;border:1px solid rgba(239,68,68,0.3);color:#fca5a5;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Delete</button>
+              </div>
+            </div>
           </div>
+
         </div>
       </div>
     </div>
@@ -9667,7 +9828,17 @@ function initDealsCrm() {
   }
   if (upsell) upsell.style.display = 'none';
   if (main) main.style.display = 'block';
+  // Always show list when entering the tool
+  showDealsList();
   loadDealsList();
+}
+
+// Switch to list view
+function showDealsList() {
+  document.getElementById('deals-list-view').style.display = 'block';
+  document.getElementById('deals-detail-view').style.display = 'none';
+  currentDealId = null;
+  currentDealDeliverables = [];
 }
 
 // =====================================================
@@ -9740,7 +9911,7 @@ function renderDealsList() {
       ? 'background:rgba(74,222,128,0.12);color:#4ade80;border:1px solid rgba(74,222,128,0.3);'
       : 'background:rgba(251,191,36,0.1);color:#fbbf24;border:1px solid rgba(251,191,36,0.3);';
     return `
-      <div class="deal-row" onclick="openDealModal('${d.id}')">
+      <div class="deal-row" onclick="showDealDetail('${d.id}')">
         <div>
           <div style="font-weight:500;color:var(--text);font-size:14px;margin-bottom:2px;">${escapeHtml(d.deal_title)}</div>
           ${d.campaign_end_date ? `<div style="font-size:11px;color:var(--muted);">Ends ${formatDateShort(d.campaign_end_date)}</div>` : ''}
@@ -9781,13 +9952,13 @@ function formatDateShort(isoDate) {
 }
 
 // =====================================================
-// BRAND DEAL CRM — Modal Open / Close
+// BRAND DEAL CRM — Detail View Open / Close
 // =====================================================
-function openDealModal(dealId) {
+function showDealDetail(dealId) {
   currentDealId = dealId || null;
   currentDealDeliverables = [];
 
-  // Reset form
+  // Reset form fields
   document.getElementById('deal-id').value = '';
   document.getElementById('deal-title').value = '';
   document.getElementById('deal-brand-name').value = '';
@@ -9799,13 +9970,12 @@ function openDealModal(dealId) {
   document.getElementById('deal-status').value = 'draft';
   document.getElementById('deal-payment-status').value = 'waiting';
   document.getElementById('deal-private-notes').value = '';
-  document.getElementById('deal-modal-msg').style.display = 'none';
+  document.getElementById('deal-detail-msg').style.display = 'none';
 
   if (dealId) {
-    // Edit mode — populate from cache
     const deal = dealsList.find(d => d.id === dealId);
     if (!deal) return;
-    document.getElementById('deal-modal-title').textContent = 'Edit Brand Deal';
+    document.getElementById('deal-detail-title').textContent = 'Edit Brand Deal';
     document.getElementById('deal-id').value = deal.id;
     document.getElementById('deal-title').value = deal.deal_title || '';
     document.getElementById('deal-brand-name').value = deal.brand_name || '';
@@ -9818,28 +9988,24 @@ function openDealModal(dealId) {
     document.getElementById('deal-payment-status').value = deal.payment_status || 'waiting';
     document.getElementById('deal-private-notes').value = deal.private_notes || '';
     document.getElementById('deal-delete-btn').style.display = 'inline-block';
-    // Load deliverables for this deal
     loadDealDeliverables(deal.id);
-    // Render contract state
     renderContractUI(deal);
   } else {
-    // New deal mode
-    document.getElementById('deal-modal-title').textContent = 'New Brand Deal';
+    document.getElementById('deal-detail-title').textContent = 'New Brand Deal';
     document.getElementById('deal-delete-btn').style.display = 'none';
     renderDeliverables();
     renderContractUI(null);
   }
 
-  // Apply lock state based on status
   applyDealLockState();
 
-  document.getElementById('deal-modal').style.display = 'flex';
-}
-
-function closeDealModal() {
-  document.getElementById('deal-modal').style.display = 'none';
-  currentDealId = null;
-  currentDealDeliverables = [];
+  // Switch views
+  document.getElementById('deals-list-view').style.display = 'none';
+  document.getElementById('deals-detail-view').style.display = 'block';
+  // Scroll to top
+  const toolArea = document.querySelector('.tool-area');
+  if (toolArea) toolArea.scrollTop = 0;
+  window.scrollTo({ top: 0, behavior: 'instant' });
 }
 
 function handleDealStatusChange() {
@@ -9872,10 +10038,13 @@ function applyDealLockState() {
       ['deal-contract-choose-btn','deal-contract-replace-btn','deal-contract-remove-btn'].forEach(id => {
         const el = document.getElementById(id); if (el) el.disabled = true;
       });
-      // Hide deliverable remove buttons
-      document.querySelectorAll('#deal-deliverables-list button[aria-label="Remove deliverable"]').forEach(b => b.style.display = 'none');
-      document.querySelectorAll('#deal-deliverables-list input, #deal-deliverables-list textarea').forEach(el => el.disabled = true);
-      const addDelivBtn = document.querySelector('button[onclick="addDeliverableRow()"]');
+      // Collapse all deliverables and re-render (locked state hides edit/remove buttons via renderDeliverables check below)
+      currentDealDeliverables.forEach(d => { d._expanded = false; });
+      renderDeliverables();
+      // Hide edit and remove buttons in collapsed cards when locked
+      document.querySelectorAll('#deal-deliverables-list button[aria-label="Remove deliverable"], #deal-deliverables-list button[aria-label="Edit deliverable"]').forEach(b => b.style.display = 'none');
+      // Hide + Add deliverable button
+      const addDelivBtn = document.getElementById('deal-deliverable-add-btn');
       if (addDelivBtn) addDelivBtn.style.display = 'none';
       return;
     }
@@ -9889,9 +10058,8 @@ function applyDealLockState() {
   ['deal-contract-choose-btn','deal-contract-replace-btn','deal-contract-remove-btn'].forEach(id => {
     const el = document.getElementById(id); if (el) el.disabled = false;
   });
-  document.querySelectorAll('#deal-deliverables-list button[aria-label="Remove deliverable"]').forEach(b => b.style.display = '');
-  document.querySelectorAll('#deal-deliverables-list input, #deal-deliverables-list textarea').forEach(el => el.disabled = false);
-  const addDelivBtn = document.querySelector('button[onclick="addDeliverableRow()"]');
+  document.querySelectorAll('#deal-deliverables-list button[aria-label="Remove deliverable"], #deal-deliverables-list button[aria-label="Edit deliverable"]').forEach(b => b.style.display = '');
+  const addDelivBtn = document.getElementById('deal-deliverable-add-btn');
   if (addDelivBtn) addDelivBtn.style.display = '';
 }
 
@@ -9904,7 +10072,7 @@ async function revertDealToActive() {
   }
   // Refresh and re-open
   await loadDealsList();
-  openDealModal(currentDealId);
+  showDealDetail(currentDealId);
 }
 
 // =====================================================
@@ -9926,14 +10094,15 @@ async function loadDealDeliverables(dealId) {
       title: d.title,
       notes: d.notes || '',
       submitted_url: d.submitted_url || '',
-      _existing: true
+      _existing: true,
+      _expanded: false
     }));
   }
   renderDeliverables();
 }
 
 function addDeliverableRow() {
-  currentDealDeliverables.push({ id: null, title: '', notes: '', submitted_url: '', _existing: false });
+  currentDealDeliverables.push({ id: null, title: '', notes: '', submitted_url: '', _existing: false, _expanded: true });
   renderDeliverables();
   // Focus the new title input
   setTimeout(() => {
@@ -9953,6 +10122,36 @@ function updateDeliverableField(index, field, value) {
   }
 }
 
+// Collapse a deliverable to its summary card (no DB write — page-level Save persists)
+function collapseDeliverable(index) {
+  if (currentDealDeliverables[index]) {
+    // Require at least a title to collapse
+    const title = (currentDealDeliverables[index].title || '').trim();
+    if (!title) {
+      // Shake/flash to signal error
+      const card = document.querySelector(`#deal-deliverables-list > div[data-idx="${index}"]`);
+      if (card) {
+        const input = card.querySelector('input[data-field="title"]');
+        if (input) {
+          input.style.borderColor = '#ef4444';
+          input.focus();
+          setTimeout(() => { input.style.borderColor = ''; }, 1800);
+        }
+      }
+      return;
+    }
+    currentDealDeliverables[index]._expanded = false;
+    renderDeliverables();
+  }
+}
+
+function expandDeliverable(index) {
+  if (currentDealDeliverables[index]) {
+    currentDealDeliverables[index]._expanded = true;
+    renderDeliverables();
+  }
+}
+
 function renderDeliverables() {
   const listEl = document.getElementById('deal-deliverables-list');
   const emptyEl = document.getElementById('deal-deliverables-empty');
@@ -9965,24 +10164,72 @@ function renderDeliverables() {
   }
   emptyEl.style.display = 'none';
 
-  listEl.innerHTML = currentDealDeliverables.map((d, i) => `
-    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;">
-      <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:8px;">
-        <input type="text" data-field="title" placeholder="e.g., 1 Instagram Reel" maxlength="200" value="${escapeHtml(d.title)}"
-          oninput="updateDeliverableField(${i}, 'title', this.value)"
-          class="deal-input" style="flex:1;">
-        <button type="button" onclick="removeDeliverableRow(${i})" aria-label="Remove deliverable" style="background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;padding:10px;cursor:pointer;flex-shrink:0;line-height:1;">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
-        </button>
-      </div>
-      <textarea data-field="notes" rows="2" placeholder="Notes (optional) — tone, length, dates, hashtags..." maxlength="1000"
-        oninput="updateDeliverableField(${i}, 'notes', this.value)"
-        class="deal-input" style="resize:vertical;min-height:50px;margin-bottom:8px;">${escapeHtml(d.notes)}</textarea>
-      <input type="url" data-field="submitted_url" placeholder="Submitted link (e.g., Instagram post URL)" maxlength="500" value="${escapeHtml(d.submitted_url)}"
-        oninput="updateDeliverableField(${i}, 'submitted_url', this.value)"
-        class="deal-input">
-    </div>
-  `).join('');
+  listEl.innerHTML = currentDealDeliverables.map((d, i) => {
+    if (d._expanded) {
+      // EXPANDED: form for editing
+      return `
+        <div data-idx="${i}" style="background:var(--surface);border:1px solid var(--border-hover);border-radius:10px;padding:14px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:10px;">
+            <div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);">Deliverable ${i + 1}</div>
+            <button type="button" onclick="removeDeliverableRow(${i})" aria-label="Remove deliverable" title="Remove" style="background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:7px;padding:6px 8px;cursor:pointer;line-height:1;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+            </button>
+          </div>
+          <div style="margin-bottom:10px;">
+            <label class="deal-label">Title *</label>
+            <input type="text" data-field="title" placeholder="e.g., 1 Instagram Reel" maxlength="200" value="${escapeHtml(d.title)}"
+              oninput="updateDeliverableField(${i}, 'title', this.value)"
+              class="deal-input">
+          </div>
+          <div style="margin-bottom:10px;">
+            <label class="deal-label">Notes <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;">(optional)</span></label>
+            <textarea data-field="notes" rows="2" placeholder="Tone, length, dates, hashtags..." maxlength="1000"
+              oninput="updateDeliverableField(${i}, 'notes', this.value)"
+              class="deal-input" style="resize:vertical;min-height:60px;">${escapeHtml(d.notes)}</textarea>
+          </div>
+          <div style="margin-bottom:12px;">
+            <label class="deal-label">Submitted URL <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;">(link to posted content)</span></label>
+            <input type="url" data-field="submitted_url" placeholder="https://instagram.com/p/..." maxlength="500" value="${escapeHtml(d.submitted_url)}"
+              oninput="updateDeliverableField(${i}, 'submitted_url', this.value)"
+              class="deal-input">
+          </div>
+          <div style="display:flex;justify-content:flex-end;">
+            <button type="button" onclick="collapseDeliverable(${i})" style="padding:8px 16px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.35);color:#c4b5fd;border-radius:8px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Done</button>
+          </div>
+        </div>
+      `;
+    } else {
+      // COLLAPSED: summary card with edit pencil
+      const notesPreview = (d.notes || '').trim();
+      const notesOneLine = notesPreview.split(/\r?\n/)[0];
+      const notesTrunc = notesOneLine.length > 140 ? notesOneLine.slice(0, 140) + '…' : notesOneLine;
+      const hasUrl = (d.submitted_url || '').trim().length > 0;
+      const safeUrl = hasUrl ? escapeHtml(d.submitted_url) : '';
+      const urlDisplay = hasUrl ? escapeHtml(d.submitted_url.length > 60 ? d.submitted_url.slice(0, 57) + '…' : d.submitted_url) : '';
+      return `
+        <div data-idx="${i}" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;display:flex;gap:12px;align-items:flex-start;">
+          <div style="flex:1;min-width:0;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:${notesPreview || hasUrl ? '6px' : '0'};">
+              <div style="font-size:14px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;">${escapeHtml(d.title) || '<span style="color:var(--muted);font-style:italic;">Untitled deliverable</span>'}</div>
+            </div>
+            ${notesTrunc ? `<div style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:${hasUrl ? '6px' : '0'};">${escapeHtml(notesTrunc)}</div>` : ''}
+            ${hasUrl ? `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:#c4b5fd;text-decoration:none;word-break:break-all;" onclick="event.stopPropagation()">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+              ${urlDisplay}
+            </a>` : ''}
+          </div>
+          <div style="display:flex;gap:4px;flex-shrink:0;">
+            <button type="button" onclick="expandDeliverable(${i})" aria-label="Edit deliverable" title="Edit" style="background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:7px;padding:6px 8px;cursor:pointer;line-height:1;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            <button type="button" onclick="removeDeliverableRow(${i})" aria-label="Remove deliverable" title="Remove" style="background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:7px;padding:6px 8px;cursor:pointer;line-height:1;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+            </button>
+          </div>
+        </div>
+      `;
+    }
+  }).join('');
 }
 
 // =====================================================
@@ -10081,7 +10328,7 @@ async function handleContractFileSelected(event) {
   renderContractUI(dealsList[dealIdx]);
   showDealModalMsg('success', 'Contract uploaded.');
   setTimeout(() => {
-    document.getElementById('deal-modal-msg').style.display = 'none';
+    document.getElementById('deal-detail-msg').style.display = 'none';
   }, 2500);
   event.target.value = '';
 }
@@ -10231,28 +10478,28 @@ async function saveDeal() {
   saveBtn.textContent = origBtnText;
 
   if (wasNewDeal) {
-    // Keep modal open so user can upload contract. Refresh the modal title
-    // and switch from "new" mode to "edit" mode (shows delete button, enables upload).
+    // Stay on the detail page so user can upload contract, add deliverables, etc.
     await loadDealsList();
     const savedDeal = dealsList.find(d => d.id === dealId);
     if (savedDeal) {
-      document.getElementById('deal-modal-title').textContent = 'Edit Brand Deal';
+      document.getElementById('deal-detail-title').textContent = 'Edit Brand Deal';
       document.getElementById('deal-delete-btn').style.display = 'inline-block';
       renderContractUI(savedDeal);
       showDealModalMsg('success', 'Deal saved. You can now upload a contract.');
       setTimeout(() => {
-        const msg = document.getElementById('deal-modal-msg');
+        const msg = document.getElementById('deal-detail-msg');
         if (msg) msg.style.display = 'none';
       }, 3000);
     }
   } else {
-    closeDealModal();
+    // Edit — return to list
     await loadDealsList();
+    showDealsList();
   }
 }
 
 function showDealModalMsg(type, text) {
-  const el = document.getElementById('deal-modal-msg');
+  const el = document.getElementById('deal-detail-msg');
   el.style.display = 'block';
   if (type === 'error') {
     el.style.background = 'rgba(239,68,68,0.1)';
@@ -10311,8 +10558,8 @@ async function confirmDeleteDeal() {
     return;
   }
   closeDealDeleteModal();
-  closeDealModal();
   await loadDealsList();
+  showDealsList();
 }
 
 function initScriptsTool() {
@@ -11742,10 +11989,7 @@ document.getElementById('signout-modal').addEventListener('click', function(e) {
   if (e.target === this) closeSignoutModal();
 });
 
-// Brand Deal CRM — click-outside-to-close
-document.getElementById('deal-modal').addEventListener('click', function(e) {
-  if (e.target === this) closeDealModal();
-});
+// Brand Deal CRM — delete modal click-outside-to-close
 document.getElementById('deal-delete-modal').addEventListener('click', function(e) {
   if (e.target === this) closeDealDeleteModal();
 });
@@ -11770,150 +12014,6 @@ document.getElementById('deal-delete-modal').addEventListener('click', function(
 </div>
 
 
-<!-- =============================================== -->
-<!-- BRAND DEAL CRM — Deal Create/Edit Modal         -->
-<!-- =============================================== -->
-<div id="deal-modal" style="display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,0.7);align-items:flex-start;justify-content:center;pointer-events:all;overflow-y:auto;padding:40px 20px;">
-  <div style="background:#0f0f1a;border:1px solid rgba(255,255,255,0.1);border-radius:20px;width:100%;max-width:720px;pointer-events:all;position:relative;margin:auto;">
-    <button onclick="closeDealModal()" style="position:absolute;top:16px;right:16px;background:none;border:none;color:#7a788f;font-size:20px;cursor:pointer;z-index:2;" aria-label="Close">&#x2715;</button>
-
-    <!-- Locked banner (shown when deal is Completed or Cancelled) -->
-    <div id="deal-locked-banner" style="display:none;padding:14px 24px;background:rgba(74,222,128,0.08);border-bottom:1px solid rgba(74,222,128,0.2);border-radius:20px 20px 0 0;">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-        <div style="display:flex;align-items:center;gap:10px;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#4ade80;flex-shrink:0;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          <div>
-            <div id="deal-locked-title" style="font-size:13px;font-weight:600;color:#4ade80;">Deal Completed</div>
-            <div style="font-size:11px;color:var(--muted);">This deal is locked. Revert to Active to make changes.</div>
-          </div>
-        </div>
-        <button onclick="revertDealToActive()" style="padding:7px 14px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.35);color:#c4b5fd;border-radius:7px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Revert to Active</button>
-      </div>
-    </div>
-
-    <div style="padding:28px 30px 32px;">
-      <h2 id="deal-modal-title" style="font-family:Syne,sans-serif;font-size:22px;font-weight:800;margin-bottom:4px;letter-spacing:-0.3px;">New Brand Deal</h2>
-      <p style="color:var(--muted);font-size:13px;margin-bottom:22px;">Fill in the deal details. You can share with the brand once saved.</p>
-
-      <input type="hidden" id="deal-id">
-
-      <!-- BASIC INFO -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
-        <div style="grid-column:1 / -1;">
-          <label class="deal-label">Deal Title *</label>
-          <input type="text" id="deal-title" placeholder="e.g., Spring Collection Reel" maxlength="120" class="deal-input">
-        </div>
-        <div>
-          <label class="deal-label">Brand Name *</label>
-          <input type="text" id="deal-brand-name" placeholder="e.g., Nike" maxlength="120" class="deal-input">
-        </div>
-        <div>
-          <label class="deal-label">Brand Contact Name</label>
-          <input type="text" id="deal-brand-contact-name" placeholder="e.g., Sarah Johnson" maxlength="120" class="deal-input">
-        </div>
-        <div>
-          <label class="deal-label">Brand Contact Email</label>
-          <input type="email" id="deal-brand-contact-email" placeholder="contact@brand.com" maxlength="240" class="deal-input">
-        </div>
-        <div>
-          <label class="deal-label">Deal Amount (USD)</label>
-          <input type="number" id="deal-amount" placeholder="0" min="0" step="0.01" class="deal-input">
-        </div>
-      </div>
-
-      <!-- DATES -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;">
-        <div>
-          <label class="deal-label">Campaign Start Date</label>
-          <input type="date" id="deal-campaign-start" class="deal-input">
-        </div>
-        <div>
-          <label class="deal-label">Campaign End Date</label>
-          <input type="date" id="deal-campaign-end" class="deal-input">
-          <div style="font-size:11px;color:var(--muted);margin-top:4px;">We'll remind you 3 days before.</div>
-        </div>
-      </div>
-
-      <!-- STATUS -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;">
-        <div>
-          <label class="deal-label">Deal Status</label>
-          <select id="deal-status" class="deal-input" onchange="handleDealStatusChange()">
-            <option value="draft">Draft</option>
-            <option value="pending_contract">Pending Contract</option>
-            <option value="active">Active</option>
-            <option value="completed">Completed</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
-        </div>
-        <div>
-          <label class="deal-label">Payment Status</label>
-          <select id="deal-payment-status" class="deal-input">
-            <option value="waiting">Waiting for Payment</option>
-            <option value="paid">Paid</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- DELIVERABLES -->
-      <div style="margin-bottom:18px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-          <label class="deal-label" style="margin-bottom:0;">Deliverables</label>
-          <button type="button" onclick="addDeliverableRow()" style="padding:5px 10px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:6px;font-size:11px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">+ Add deliverable</button>
-        </div>
-        <div id="deal-deliverables-list" style="display:flex;flex-direction:column;gap:10px;"></div>
-        <div id="deal-deliverables-empty" style="padding:20px;background:var(--surface2);border:1px dashed var(--border);border-radius:10px;text-align:center;font-size:12px;color:var(--muted);">No deliverables yet. Click "+ Add deliverable" to start.</div>
-      </div>
-
-      <!-- CONTRACT UPLOAD -->
-      <div style="margin-bottom:18px;">
-        <label class="deal-label">Signed Contract <span style="font-weight:400;color:var(--muted);font-size:11px;text-transform:none;letter-spacing:0;">(PDF, max 10MB)</span></label>
-        <!-- Empty state: no contract uploaded -->
-        <div id="deal-contract-empty" style="padding:16px;background:var(--surface2);border:1px dashed var(--border);border-radius:10px;text-align:center;">
-          <div id="deal-contract-save-first" style="display:none;font-size:12px;color:var(--muted);">Save the deal first, then upload the contract here.</div>
-          <div id="deal-contract-uploader" style="display:none;">
-            <input type="file" id="deal-contract-input" accept="application/pdf" style="display:none;" onchange="handleContractFileSelected(event)">
-            <button type="button" id="deal-contract-choose-btn" onclick="document.getElementById('deal-contract-input').click()" style="padding:9px 16px;background:transparent;border:1px solid var(--border-hover);color:var(--text);border-radius:8px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Choose PDF</button>
-            <div style="font-size:11px;color:var(--muted);margin-top:8px;">Drag and drop coming soon</div>
-          </div>
-        </div>
-        <!-- Populated state: contract exists -->
-        <div id="deal-contract-existing" style="display:none;padding:12px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;display:none;align-items:center;gap:12px;">
-          <div style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);border-radius:8px;flex-shrink:0;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#c4b5fd;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-          </div>
-          <div style="flex:1;min-width:0;">
-            <div id="deal-contract-filename" style="font-size:13px;color:var(--text);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">contract.pdf</div>
-            <div style="font-size:11px;color:var(--muted);">PDF uploaded</div>
-          </div>
-          <div style="display:flex;gap:6px;flex-shrink:0;">
-            <button type="button" id="deal-contract-view-btn" onclick="viewContract()" style="padding:7px 12px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:7px;font-size:11px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">View</button>
-            <button type="button" id="deal-contract-replace-btn" onclick="document.getElementById('deal-contract-input').click()" style="padding:7px 12px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:7px;font-size:11px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Replace</button>
-            <button type="button" id="deal-contract-remove-btn" onclick="removeContract()" style="padding:7px 12px;background:transparent;border:1px solid rgba(239,68,68,0.3);color:#fca5a5;border-radius:7px;font-size:11px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Remove</button>
-          </div>
-        </div>
-        <!-- Upload progress indicator -->
-        <div id="deal-contract-progress" style="display:none;margin-top:8px;font-size:12px;color:var(--muted);">Uploading...</div>
-      </div>
-
-      <!-- PRIVATE NOTES -->
-      <div style="margin-bottom:18px;">
-        <label class="deal-label">Private Notes <span style="font-weight:400;color:var(--muted);font-size:11px;text-transform:none;letter-spacing:0;">(only visible to you)</span></label>
-        <textarea id="deal-private-notes" rows="3" placeholder="Internal notes, reminders, talking points..." class="deal-input" style="resize:vertical;min-height:70px;"></textarea>
-      </div>
-
-      <!-- Error/success message -->
-      <div id="deal-modal-msg" style="display:none;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:14px;"></div>
-
-      <!-- ACTIONS -->
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-        <button id="deal-save-btn" onclick="saveDeal()" style="flex:1;min-width:140px;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow);">Save deal</button>
-        <button onclick="closeDealModal()" style="padding:12px 20px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Cancel</button>
-        <button id="deal-delete-btn" onclick="promptDeleteDeal()" style="display:none;padding:12px 16px;background:transparent;border:1px solid rgba(239,68,68,0.3);color:#fca5a5;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Delete</button>
-      </div>
-    </div>
-  </div>
-</div>
 
 <!-- =============================================== -->
 <!-- BRAND DEAL CRM — Delete Confirmation Modal      -->
