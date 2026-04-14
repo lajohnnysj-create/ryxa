@@ -3244,12 +3244,12 @@
           <div id="img-crop-stage" style="position:relative;width:100%;background:#000;border-radius:8px;overflow:hidden;user-select:none;touch-action:none;min-height:240px;max-height:540px;display:flex;align-items:center;justify-content:center;">
             <div id="img-crop-inner" style="position:relative;display:inline-block;transform-origin:center center;transform:translate(0px,0px) scale(1);will-change:transform;">
               <img id="img-crop-src" alt="Image to crop" style="display:block;max-width:100%;max-height:540px;pointer-events:none;">
-              <div id="img-crop-box" style="position:absolute;border:2px solid #fff;box-shadow:0 0 0 9999px rgba(0,0,0,0.55);cursor:move;display:none;">
-                <div class="img-crop-handle" data-handle="nw" style="position:absolute;top:-8px;left:-8px;width:16px;height:16px;background:#fff;border:2px solid #7c3aed;border-radius:50%;cursor:nwse-resize;"></div>
-                <div class="img-crop-handle" data-handle="ne" style="position:absolute;top:-8px;right:-8px;width:16px;height:16px;background:#fff;border:2px solid #7c3aed;border-radius:50%;cursor:nesw-resize;"></div>
-                <div class="img-crop-handle" data-handle="sw" style="position:absolute;bottom:-8px;left:-8px;width:16px;height:16px;background:#fff;border:2px solid #7c3aed;border-radius:50%;cursor:nesw-resize;"></div>
-                <div class="img-crop-handle" data-handle="se" style="position:absolute;bottom:-8px;right:-8px;width:16px;height:16px;background:#fff;border:2px solid #7c3aed;border-radius:50%;cursor:nwse-resize;"></div>
-              </div>
+            </div>
+            <div id="img-crop-box" style="position:absolute;border:2px solid #fff;box-shadow:0 0 0 9999px rgba(0,0,0,0.55);cursor:move;display:none;">
+              <div class="img-crop-handle" data-handle="nw" style="position:absolute;top:-8px;left:-8px;width:16px;height:16px;background:#fff;border:2px solid #7c3aed;border-radius:50%;cursor:nwse-resize;"></div>
+              <div class="img-crop-handle" data-handle="ne" style="position:absolute;top:-8px;right:-8px;width:16px;height:16px;background:#fff;border:2px solid #7c3aed;border-radius:50%;cursor:nesw-resize;"></div>
+              <div class="img-crop-handle" data-handle="sw" style="position:absolute;bottom:-8px;left:-8px;width:16px;height:16px;background:#fff;border:2px solid #7c3aed;border-radius:50%;cursor:nesw-resize;"></div>
+              <div class="img-crop-handle" data-handle="se" style="position:absolute;bottom:-8px;right:-8px;width:16px;height:16px;background:#fff;border:2px solid #7c3aed;border-radius:50%;cursor:nwse-resize;"></div>
             </div>
           </div>
           <!-- Zoom slider -->
@@ -8669,61 +8669,73 @@ function setupCropStage(dataUrl) {
 }
 
 function resetCropBox() {
-  if (!imgDisplaySize.w) return;
+  const stage = document.getElementById('img-crop-stage');
+  if (!stage) return;
   imgAspectLock = null;
   imgCropMode = 'free';
   imgCropLocked = false;
   updateAspectButtonsUI();
   updateLockButtonUI();
-  // Default: a centered 80% box
-  const w = imgDisplaySize.w * 0.8;
-  const h = imgDisplaySize.h * 0.8;
+  const stageW = stage.clientWidth;
+  const stageH = stage.clientHeight;
+  // Default: a centered 80% box sized to the stage (where the image sits)
+  const w = stageW * 0.7;
+  const h = stageH * 0.7;
   imgCropBox = {
-    x: (imgDisplaySize.w - w) / 2,
-    y: (imgDisplaySize.h - h) / 2,
+    x: (stageW - w) / 2,
+    y: (stageH - h) / 2,
     w, h
   };
   renderCropBox();
 }
 
 function applyAspectPreset(preset) {
-  if (!imgDisplaySize.w) return;
+  const stage = document.getElementById('img-crop-stage');
+  if (!stage || !imgDisplaySize.w) return;
   // Selecting a preset always unlocks (user is picking a new ratio)
   imgCropLocked = false;
   imgCropMode = preset;
   updateAspectButtonsUI();
   updateLockButtonUI();
 
+  const stageW = stage.clientWidth;
+  const stageH = stage.clientHeight;
+
   if (preset === 'free') {
     imgAspectLock = null;
-    // Keep current box size if one exists, otherwise default to 80%
+    // Keep current box if one exists
     if (!imgCropBox) {
-      const w = imgDisplaySize.w * 0.8;
-      const h = imgDisplaySize.h * 0.8;
-      imgCropBox = { x: (imgDisplaySize.w - w) / 2, y: (imgDisplaySize.h - h) / 2, w, h };
+      const w = stageW * 0.7;
+      const h = stageH * 0.7;
+      imgCropBox = { x: (stageW - w) / 2, y: (stageH - h) / 2, w, h };
     }
     renderCropBox();
     return;
   }
   if (preset === 'original') {
     imgAspectLock = null;
-    imgCropBox = { x: 0, y: 0, w: imgDisplaySize.w, h: imgDisplaySize.h };
+    // Fit the crop box to exactly cover the displayed image
+    imgCropBox = {
+      x: (stageW - imgDisplaySize.w) / 2,
+      y: (stageH - imgDisplaySize.h) / 2,
+      w: imgDisplaySize.w,
+      h: imgDisplaySize.h
+    };
     renderCropBox();
     return;
   }
   const [a, b] = preset.split(':').map(Number);
   imgAspectLock = a / b;
-  // Center a box of that ratio that fits inside the image at ~90% of max
-  let cw = imgDisplaySize.w;
+  // Center an aspect-ratio box of up to 80% of the stage (not the image)
+  let cw = stageW * 0.85;
   let ch = cw / imgAspectLock;
-  if (ch > imgDisplaySize.h) {
-    ch = imgDisplaySize.h;
+  if (ch > stageH * 0.85) {
+    ch = stageH * 0.85;
     cw = ch * imgAspectLock;
   }
-  cw *= 0.9; ch *= 0.9;
   imgCropBox = {
-    x: (imgDisplaySize.w - cw) / 2,
-    y: (imgDisplaySize.h - ch) / 2,
+    x: (stageW - cw) / 2,
+    y: (stageH - ch) / 2,
     w: cw, h: ch
   };
   renderCropBox();
@@ -8773,6 +8785,7 @@ function toggleCropLock() {
 
 function renderCropBox() {
   if (!imgCropBox) return;
+  const stage = document.getElementById('img-crop-stage');
   const stageImg = document.getElementById('img-crop-src');
   const box = document.getElementById('img-crop-box');
   // Refresh display size each render in case of layout changes
@@ -8780,12 +8793,14 @@ function renderCropBox() {
     imgDisplaySize = { w: stageImg.clientWidth, h: stageImg.clientHeight };
   }
   if (!imgDisplaySize.w || !imgDisplaySize.h) return;
-  // Clamp box dimensions first, then position
-  imgCropBox.w = Math.min(imgCropBox.w, imgDisplaySize.w);
-  imgCropBox.h = Math.min(imgCropBox.h, imgDisplaySize.h);
-  imgCropBox.x = Math.max(0, Math.min(imgDisplaySize.w - imgCropBox.w, imgCropBox.x));
-  imgCropBox.y = Math.max(0, Math.min(imgDisplaySize.h - imgCropBox.h, imgCropBox.y));
-  // Box is now a sibling of image inside img-crop-inner, so positioning is simple
+  const stageW = stage.clientWidth;
+  const stageH = stage.clientHeight;
+  // Clamp box size to not exceed the stage
+  imgCropBox.w = Math.min(imgCropBox.w, stageW);
+  imgCropBox.h = Math.min(imgCropBox.h, stageH);
+  // Clamp box position to stay within stage
+  imgCropBox.x = Math.max(0, Math.min(stageW - imgCropBox.w, imgCropBox.x));
+  imgCropBox.y = Math.max(0, Math.min(stageH - imgCropBox.h, imgCropBox.y));
   box.style.display = 'block';
   box.style.left = imgCropBox.x + 'px';
   box.style.top = imgCropBox.y + 'px';
@@ -8806,18 +8821,59 @@ function renderCropBox() {
   document.querySelectorAll('.img-crop-handle').forEach(h => {
     h.style.display = handlesVisible ? 'block' : 'none';
   });
-  // Update dimensions readout (in natural-pixel coordinates)
-  const scale = imgNatural.w / imgDisplaySize.w;
-  const pixelW = Math.round(imgCropBox.w * scale);
-  const pixelH = Math.round(imgCropBox.h * scale);
+  // Update dimensions readout — calculated from crop region in natural-pixel space
+  const region = computeCropRegionInNaturalPixels();
   const dims = document.getElementById('img-crop-dims');
-  if (dims) dims.textContent = `Crop: ${pixelW} × ${pixelH} px`;
+  if (dims) dims.textContent = `Crop: ${region.w} × ${region.h} px`;
+}
+
+// Compute what region of the ORIGINAL image lies inside the stage-fixed crop box,
+// accounting for current zoom and pan of the image.
+// Returns {x, y, w, h} in natural-pixel coordinates of the original image.
+function computeCropRegionInNaturalPixels() {
+  const stage = document.getElementById('img-crop-stage');
+  const stageW = stage.clientWidth;
+  const stageH = stage.clientHeight;
+  // Image center in stage CSS pixels (image is flex-centered, then translated)
+  const imgCenterX = stageW / 2 + imgCropPan.x;
+  const imgCenterY = stageH / 2 + imgCropPan.y;
+  // Scaled image dimensions in stage space
+  const scaledImgW = imgDisplaySize.w * imgCropZoom;
+  const scaledImgH = imgDisplaySize.h * imgCropZoom;
+  // Top-left of image in stage space
+  const imgLeft = imgCenterX - scaledImgW / 2;
+  const imgTop  = imgCenterY - scaledImgH / 2;
+  // Crop box corners in stage space
+  const cropLeft = imgCropBox.x;
+  const cropTop  = imgCropBox.y;
+  const cropRight = imgCropBox.x + imgCropBox.w;
+  const cropBottom = imgCropBox.y + imgCropBox.h;
+  // Convert to DISPLAYED-image space (0 to imgDisplaySize.w/h)
+  const dispX1 = (cropLeft   - imgLeft) / imgCropZoom;
+  const dispY1 = (cropTop    - imgTop)  / imgCropZoom;
+  const dispX2 = (cropRight  - imgLeft) / imgCropZoom;
+  const dispY2 = (cropBottom - imgTop)  / imgCropZoom;
+  // Clip to displayed image bounds (so user can't include areas outside image)
+  const clipX1 = Math.max(0, Math.min(imgDisplaySize.w, dispX1));
+  const clipY1 = Math.max(0, Math.min(imgDisplaySize.h, dispY1));
+  const clipX2 = Math.max(0, Math.min(imgDisplaySize.w, dispX2));
+  const clipY2 = Math.max(0, Math.min(imgDisplaySize.h, dispY2));
+  // Map to natural image pixels
+  const scale = imgNatural.w / imgDisplaySize.w;
+  return {
+    x: Math.round(clipX1 * scale),
+    y: Math.round(clipY1 * scale),
+    w: Math.round((clipX2 - clipX1) * scale),
+    h: Math.round((clipY2 - clipY1) * scale),
+  };
 }
 
 function applyInnerTransform() {
   const inner = document.getElementById('img-crop-inner');
   if (!inner) return;
   inner.style.transform = `translate(${imgCropPan.x}px, ${imgCropPan.y}px) scale(${imgCropZoom})`;
+  // Re-render crop box so dimensions readout reflects current image position
+  if (imgCropBox) renderCropBox();
 }
 
 function clampPan() {
@@ -8917,9 +8973,9 @@ function startCropInteraction(e, mode, handle) {
   function onMove(ev) {
     const cx = ev.touches ? ev.touches[0].clientX : ev.clientX;
     const cy = ev.touches ? ev.touches[0].clientY : ev.clientY;
-    // Divide by zoom so movement feels right when zoomed in
-    const dx = (cx - startX) / imgCropZoom;
-    const dy = (cy - startY) / imgCropZoom;
+    // Crop box lives in stage space; mouse deltas translate 1:1
+    const dx = cx - startX;
+    const dy = cy - startY;
 
     if (mode === 'move') {
       imgCropBox.x = origBox.x + dx;
@@ -8961,12 +9017,13 @@ function setResizePreset(pixels) {
   const lock = document.getElementById('img-resize-lock').checked;
   wInput.value = pixels;
   if (lock && imgNatural.w && imgCropBox) {
-    // If a crop is active, use the CROPPED aspect ratio
-    const scale = imgNatural.w / imgDisplaySize.w;
-    const cropNatW = imgCropBox.w * scale;
-    const cropNatH = imgCropBox.h * scale;
-    hInput.value = Math.round(pixels * (cropNatH / cropNatW));
-  } else if (lock && imgNatural.w) {
+    const region = computeCropRegionInNaturalPixels();
+    if (region.w > 0 && region.h > 0) {
+      hInput.value = Math.round(pixels * (region.h / region.w));
+      return;
+    }
+  }
+  if (lock && imgNatural.w) {
     hInput.value = Math.round(pixels * (imgNatural.h / imgNatural.w));
   }
 }
@@ -8994,11 +9051,13 @@ async function convertImage() {
     // Step 1: Figure out crop rect in NATURAL pixel coordinates
     let cropX = 0, cropY = 0, cropW = img.width, cropH = img.height;
     if (imgCropBox && imgDisplaySize.w > 0) {
-      const scale = img.width / imgDisplaySize.w;
-      cropX = Math.round(imgCropBox.x * scale);
-      cropY = Math.round(imgCropBox.y * scale);
-      cropW = Math.round(imgCropBox.w * scale);
-      cropH = Math.round(imgCropBox.h * scale);
+      const region = computeCropRegionInNaturalPixels();
+      if (region.w > 0 && region.h > 0) {
+        cropX = region.x;
+        cropY = region.y;
+        cropW = region.w;
+        cropH = region.h;
+      }
     }
 
     // Step 2: Figure out final output size (resize)
