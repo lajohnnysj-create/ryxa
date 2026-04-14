@@ -1522,16 +1522,6 @@
     .inv-grid-3 { grid-template-columns: 1fr !important; }
     .inv-meta-grid { grid-template-columns: 1fr !important; }
     .inv-download-row { flex-direction: column; }
-    .tax-summary-grid { grid-template-columns: 1fr !important; }
-    .tax-form-grid { grid-template-columns: 1fr !important; }
-    .tax-form-grid input { font-size: 14px !important; padding: 11px 12px !important; height: 42px !important; line-height: 1.2 !important; -webkit-appearance: none !important; appearance: none !important; }
-    .tax-form-grid input[type="date"] { min-height: 42px !important; }
-    .tax-form-grid button { width: 100%; height: 42px !important; }
-    .tax-entry-row { grid-template-columns: 1fr 110px !important; gap: 4px !important; padding: 14px 16px !important; }
-    .tax-entry-row > div:nth-child(1) { grid-column: 1; font-size: 11px !important; }
-    .tax-entry-row > div:nth-child(2) { grid-column: 1; grid-row: 2; }
-    .tax-entry-row > div:nth-child(3) { grid-column: 1; grid-row: 3; font-size: 12px !important; }
-    .tax-entry-row > div:nth-child(4) { grid-column: 2; grid-row: 1 / span 3; align-self: center; }
   }
   @media (max-width: 1100px) {
     .bio-grid { grid-template-columns: 1fr !important; min-width: 0 !important; }
@@ -2545,6 +2535,11 @@
       <span class="sidebar-item-label">Media Kit</span>
       <span class="sidebar-item-badge">PRO</span>
     </button>
+    <button class="sidebar-item" id="nav-deals" onclick="showTool('deals')">
+      <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 12h18"/></svg></div>
+      <span class="sidebar-item-label">Brand Deal CRM</span>
+      <span class="sidebar-item-badge max">MAX</span>
+    </button>
     <button class="sidebar-item" id="nav-scripts" onclick="showTool('scripts')">
       <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/><path d="M6 21l-2-2 2-2M18 21l2-2-2-2"/></svg></div>
       <span class="sidebar-item-label">Script Builder</span>
@@ -2573,11 +2568,6 @@
     <button class="sidebar-item" id="nav-pdfsign" onclick="showTool('pdfsign')">
       <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M3 17l3-3 2 2 5-5 3 3"/></svg></div>
       <span class="sidebar-item-label">Sign PDF</span>
-    </button>
-    <button class="sidebar-item" id="nav-tax" onclick="showTool('tax')">
-      <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
-      <span class="sidebar-item-label">Tax Tracker</span>
-      <span class="sidebar-item-badge">PRO</span>
     </button>
 
     <div class="sidebar-section-label" style="margin-top:16px;">Help</div>
@@ -2710,11 +2700,11 @@
               <div class="welcome-tool-desc">Fill out and sign any PDF, no printing, no scanning</div>
             </div>
           </div>
-          <div class="welcome-tool-card" onclick="showTool('tax')">
-            <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+          <div class="welcome-tool-card" onclick="showTool('deals')">
+            <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 12h18"/></svg></div>
             <div>
-              <div class="welcome-tool-name">Tax Tracker</div>
-              <div class="welcome-tool-desc">Track creator income and estimate taxes year-round</div>
+              <div class="welcome-tool-name">Brand Deal CRM <span style="display:inline-block;margin-left:6px;padding:2px 8px;background:linear-gradient(135deg,rgba(167,139,250,0.2),rgba(232,121,249,0.2));border:1px solid rgba(167,139,250,0.3);border-radius:999px;font-size:9px;font-weight:700;color:#e879f9;letter-spacing:0.08em;text-transform:uppercase;vertical-align:middle;">MAX</span></div>
+              <div class="welcome-tool-desc">Manage brand partnerships, contracts, deliverables, and revenue</div>
             </div>
           </div>
         </div>
@@ -3869,84 +3859,35 @@
       </div>
     </div>
 
-    <!-- TAX TRACKER -->
-    <div id="tool-tax" style="display:none;">
-      <div style="max-width:900px;">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:16px;">
-          <div>
-            <h2 style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;margin-bottom:4px;letter-spacing:-0.5px;">Tax Tracker</h2>
-            <p style="color:var(--muted);font-size:14px;">Log your creator income throughout the year and see your estimated tax liability in real time.</p>
-          </div>
-          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-            <select id="tax-year-select" onchange="loadTaxEntries()" style="background:var(--surface2);border:1px solid var(--border-hover);color:var(--text);border-radius:10px;padding:10px 14px;font-size:14px;font-family:DM Sans,sans-serif;outline:none;cursor:pointer;" aria-label="Tax year"></select>
-            <button id="tax-export-btn" onclick="exportTaxCSV()" style="padding:10px 18px;background:transparent;color:var(--accent2);border:1px solid rgba(124,58,237,0.4);border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">⬇ Export CSV</button>
-          </div>
+    <!-- BRAND DEAL CRM (Creator Max) -->
+    <div id="tool-deals" style="display:none;">
+      <div style="max-width:1100px;">
+        <!-- Max upsell (for non-Max users) -->
+        <div id="deals-max-upsell" style="display:none;text-align:center;padding:60px 24px;">
+          <div style="display:inline-flex;align-items:center;gap:8px;padding:6px 14px;background:linear-gradient(135deg,rgba(167,139,250,0.15),rgba(232,121,249,0.15));border:1px solid rgba(167,139,250,0.3);border-radius:999px;font-size:11px;font-weight:700;color:#e879f9;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:20px;">MAX Feature</div>
+          <h2 style="font-family:Syne,sans-serif;font-size:22px;font-weight:800;margin-bottom:8px;letter-spacing:-0.3px;">Brand Deal CRM is a Creator Max feature</h2>
+          <p style="color:var(--muted);font-size:14px;max-width:480px;margin:0 auto 24px;">Manage your brand deals, track deliverables, securely share details with brands, and see your revenue analytics — all in one place.</p>
+          <button onclick="showTool('welcome'); setTimeout(() => document.getElementById('settings-modal')?.classList.add('open'), 100);" style="padding:12px 28px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 8px 24px rgba(167,139,250,0.3);">Upgrade to Creator Max</button>
         </div>
 
-        <!-- PRO GATE -->
-        <div id="tax-pro-gate" style="display:none;background:linear-gradient(135deg,rgba(124,58,237,0.12) 0%,var(--surface2) 100%);border:1px solid rgba(124,58,237,0.3);border-radius:16px;padding:48px 32px;text-align:center;">
-          <div style="font-size:42px;margin-bottom:16px;">🔒</div>
-          <h3 style="font-family:Syne,sans-serif;font-size:22px;font-weight:800;margin-bottom:8px;">Tax Tracker is a Pro feature</h3>
-          <p style="color:var(--muted);font-size:14px;line-height:1.6;max-width:440px;margin:0 auto 24px;">Track your creator income year-round and see your estimated tax liability in real time. Available exclusively on the Pro plan.</p>
-          <button onclick="startCheckout()" style="padding:13px 28px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow);">Upgrade to Pro — $10/mo ⭐</button>
-        </div>
-
-        <!-- MAIN TAX UI (Pro only) -->
-        <div id="tax-main" style="display:none;">
-
-          <!-- SUMMARY CARDS -->
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;" class="tax-summary-grid">
-            <div style="background:linear-gradient(135deg,rgba(124,58,237,0.15) 0%,var(--surface2) 100%);border:1px solid rgba(124,58,237,0.3);border-radius:16px;padding:24px;">
-              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#c4b5fd;font-weight:600;margin-bottom:10px;">Estimated Tax Owed</div>
-              <div id="tax-owed-display" style="font-family:Syne,sans-serif;font-size:36px;font-weight:800;background:linear-gradient(135deg,#a78bfa,#e879f9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-1px;">$0.00</div>
-              <div style="font-size:12px;color:var(--muted);margin-top:6px;">Based on 25% flat estimate</div>
+        <!-- Main CRM (for Max users) -->
+        <div id="deals-main" style="display:none;">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:16px;">
+            <div>
+              <h2 style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;margin-bottom:4px;letter-spacing:-0.5px;">Brand Deal CRM</h2>
+              <p style="color:var(--muted);font-size:14px;">Track your brand partnerships, deliverables, contracts, and revenue.</p>
             </div>
-            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:24px;">
-              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:10px;">Total Gross Earnings</div>
-              <div id="tax-gross-display" style="font-family:Syne,sans-serif;font-size:36px;font-weight:800;color:var(--text);letter-spacing:-1px;">$0.00</div>
-              <div id="tax-entry-count" style="font-size:12px;color:var(--muted);margin-top:6px;">0 entries this year</div>
-            </div>
+            <button id="deals-new-btn" style="padding:10px 18px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 24px var(--accent-glow);">+ New deal</button>
           </div>
 
-          <!-- DISCLAIMER -->
-          <div style="background:rgba(124,58,237,0.06);border:1px solid rgba(124,58,237,0.2);border-radius:10px;padding:12px 16px;margin-bottom:24px;display:flex;gap:10px;align-items:flex-start;">
-            <span style="font-size:14px;flex-shrink:0;">ℹ️</span>
-            <p style="font-size:12px;color:var(--muted);line-height:1.6;margin:0;">This is an estimation tool only, not tax advice. The 25% rate is a flat estimate covering federal income tax + self-employment tax. Your actual tax liability depends on your final earnings, deductions, expenses, filing status, and state. Always consult a licensed CPA or tax professional.</p>
-          </div>
-
-          <!-- ADD ENTRY FORM -->
-          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:20px;">
-            <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:14px;">Add New Entry</div>
-            <div class="tax-form-grid" style="display:grid;grid-template-columns:130px 1fr 1.5fr 130px auto;gap:10px;align-items:end;">
-              <div>
-                <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:5px;">Date</label>
-                <input type="date" id="tax-input-date" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:9px 10px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;" aria-label="Entry date">
+          <!-- Empty state / deals list will render here -->
+          <div id="deals-content" style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;overflow:hidden;">
+            <div style="padding:60px 24px;text-align:center;">
+              <div style="display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:14px;background:var(--surface);border:1px solid var(--border);margin-bottom:16px;">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--muted);"><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 12h18"/></svg>
               </div>
-              <div>
-                <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:5px;">Company / Client</label>
-                <input type="text" id="tax-input-company" placeholder="e.g. Nike" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;" aria-label="Company or client">
-              </div>
-              <div>
-                <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:5px;">Description</label>
-                <input type="text" id="tax-input-desc" placeholder="e.g. Sponsored Reel" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;" aria-label="Description">
-              </div>
-              <div>
-                <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:5px;">Gross Amount</label>
-                <input type="number" id="tax-input-amount" placeholder="0.00" min="0" step="0.01" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;" aria-label="Gross amount">
-              </div>
-              <button onclick="addTaxEntry()" style="padding:9px 18px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;height:36px;white-space:nowrap;">+ Add</button>
-            </div>
-            <div id="tax-add-error" style="display:none;margin-top:10px;font-size:12px;color:#fca5a5;"></div>
-          </div>
-
-          <!-- ENTRIES TABLE -->
-          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;overflow:hidden;">
-            <div style="padding:16px 20px;border-bottom:1px solid var(--border);font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;">Income Entries</div>
-            <div id="tax-entries-list"></div>
-            <div id="tax-empty-state" style="display:none;padding:48px 24px;text-align:center;">
-              <div style="font-size:36px;margin-bottom:12px;opacity:0.4;">💰</div>
-              <div style="font-size:14px;color:var(--muted);margin-bottom:4px;">No entries yet for this year</div>
-              <div style="font-size:12px;color:var(--muted2);">Add your first income entry above to start tracking</div>
+              <div style="font-size:15px;color:var(--text);margin-bottom:4px;font-weight:500;">No brand deals yet</div>
+              <div style="font-size:13px;color:var(--muted);">Deal creation coming in the next update.</div>
             </div>
           </div>
         </div>
@@ -3989,7 +3930,7 @@ const toolTitles = {
   invoice: 'Invoice Generator',
   pdfsign: 'Sign PDF',
   scripts: 'Script Builder',
-  tax: 'Tax Tracker'
+  deals: 'Brand Deal CRM'
 };
 
 async function initAuth() {
@@ -4079,8 +4020,8 @@ function updateTierUI() {
   if (upgradeBtn) upgradeBtn.style.display = pro ? 'none' : 'block';
   if (upgradeBanner) upgradeBanner.style.display = pro ? 'none' : 'flex';
 
-  // Refresh tax tracker if it's the active tool (Pro gating may have changed)
-  if (currentTool === 'tax') initTaxTracker();
+  // Refresh Brand Deal CRM if it's the active tool (Max gating may have changed)
+  if (currentTool === 'deals') initDealsCrm();
   if (currentTool === 'bio') { syncBrandingToggle(); renderBioThemes(); }
 
   // Update cancel button in settings modal if open
@@ -4138,7 +4079,7 @@ function showTool(tool) {
     if (typeof hidePdfSignStatus === 'function') hidePdfSignStatus();
   }
   // Hide all tools
-  ['welcome','bio','mediakit','grid','follower','image','qr','invoice','pdfsign','tax','scripts'].forEach(t => {
+  ['welcome','bio','mediakit','grid','follower','image','qr','invoice','pdfsign','deals','scripts'].forEach(t => {
     const el = document.getElementById('tool-' + t);
     if (el) el.style.display = 'none';
     const nav = document.getElementById('nav-' + t);
@@ -4160,7 +4101,7 @@ function showTool(tool) {
   if (tool === 'image') initImageConverter();
   if (tool === 'qr') { initQRGenerator(); loadQRLibrary(null); }
   if (tool === 'invoice') { initInvoiceGenerator(); loadSavedLogo(); }
-  if (tool === 'tax') initTaxTracker();
+  if (tool === 'deals') initDealsCrm();
   if (tool === 'bio') initBioTool();
   if (tool === 'mediakit') initMediaKitTool();
   if (tool === 'grid') initGridTool();
@@ -8275,226 +8216,6 @@ async function printSignedPdf() {
   }
 }
 
-// =====================================================
-// TAX TRACKER
-// =====================================================
-const TAX_RATE = 0.25; // 25% flat estimate
-let taxEntries = [];
-let taxInited = false;
-
-function initTaxTracker() {
-  // Pro gate check
-  const pro = isPro();
-  document.getElementById('tax-pro-gate').style.display = pro ? 'none' : 'block';
-  document.getElementById('tax-main').style.display = pro ? 'block' : 'none';
-  if (!pro) return;
-
-  if (!taxInited) {
-    // Populate year dropdown (current year + 4 prior)
-    const select = document.getElementById('tax-year-select');
-    const currentYear = new Date().getFullYear();
-    select.innerHTML = '';
-    for (let y = currentYear; y >= currentYear - 4; y--) {
-      const opt = document.createElement('option');
-      opt.value = y;
-      opt.textContent = y;
-      select.appendChild(opt);
-    }
-    // Default date input to today
-    document.getElementById('tax-input-date').value = new Date().toISOString().split('T')[0];
-    taxInited = true;
-  }
-  loadTaxEntries();
-}
-
-async function loadTaxEntries() {
-  if (!currentUser) return;
-  const year = parseInt(document.getElementById('tax-year-select').value);
-  const { data, error } = await sb
-    .from('tax_entries')
-    .select('*')
-    .eq('user_id', currentUser.id)
-    .eq('tax_year', year)
-    .order('entry_date', { ascending: false })
-    .order('created_at', { ascending: false });
-
-  if (error) { console.error('Failed to load tax entries:', error); return; }
-  taxEntries = data || [];
-  renderTaxEntries();
-  updateTaxSummary();
-}
-
-function renderTaxEntries() {
-  const list = document.getElementById('tax-entries-list');
-  const empty = document.getElementById('tax-empty-state');
-
-  if (taxEntries.length === 0) {
-    list.innerHTML = '';
-    empty.style.display = 'block';
-    return;
-  }
-  empty.style.display = 'none';
-
-  list.innerHTML = taxEntries.map(entry => {
-    const dateFormatted = new Date(entry.entry_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    const amount = parseFloat(entry.gross_amount).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-    const desc = entry.description ? escapeHtml(entry.description) : '<span style="color:var(--muted2);">—</span>';
-    return `
-      <div class="tax-entry-row" onclick="openTaxEditModal('${entry.id}')" style="display:grid;grid-template-columns:130px 1fr 1.5fr 130px;gap:10px;align-items:center;padding:14px 20px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='rgba(124,58,237,0.04)'" onmouseout="this.style.background='transparent'">
-        <div style="font-size:13px;color:var(--muted);">${dateFormatted}</div>
-        <div style="font-size:14px;color:var(--text);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(entry.company)}</div>
-        <div style="font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${desc}</div>
-        <div style="font-size:14px;color:var(--text);font-weight:600;text-align:right;font-variant-numeric:tabular-nums;">${amount}</div>
-      </div>
-    `;
-  }).join('');
-}
-
-function escapeHtml(str) {
-  if (str == null) return '';
-  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
-
-function updateTaxSummary() {
-  const totalGross = taxEntries.reduce((sum, e) => sum + parseFloat(e.gross_amount), 0);
-  const taxOwed = totalGross * TAX_RATE;
-  document.getElementById('tax-gross-display').textContent = totalGross.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-  document.getElementById('tax-owed-display').textContent = taxOwed.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-  const count = taxEntries.length;
-  document.getElementById('tax-entry-count').textContent = `${count} ${count === 1 ? 'entry' : 'entries'} this year`;
-}
-
-async function addTaxEntry() {
-  const date = document.getElementById('tax-input-date').value;
-  const company = document.getElementById('tax-input-company').value.trim();
-  const desc = document.getElementById('tax-input-desc').value.trim();
-  const amount = parseFloat(document.getElementById('tax-input-amount').value);
-  document.getElementById('tax-add-error').style.display = 'none';
-
-  if (!date) return showTaxError('tax-add-error', 'Please select a date.');
-  if (!company) return showTaxError('tax-add-error', 'Company / client name is required.');
-  if (isNaN(amount) || amount < 0) return showTaxError('tax-add-error', 'Please enter a valid amount.');
-
-  const taxYear = new Date(date + 'T00:00:00').getFullYear();
-
-  const { error } = await sb.from('tax_entries').insert({
-    user_id: currentUser.id,
-    entry_date: date,
-    company: company,
-    description: desc || null,
-    gross_amount: amount,
-    tax_year: taxYear
-  });
-
-  if (error) return showTaxError('tax-add-error', 'Failed to save: ' + error.message);
-
-  // Clear form
-  document.getElementById('tax-input-company').value = '';
-  document.getElementById('tax-input-desc').value = '';
-  document.getElementById('tax-input-amount').value = '';
-  document.getElementById('tax-input-date').value = new Date().toISOString().split('T')[0];
-
-  // If entry's year doesn't match selected year, switch to it
-  const selectedYear = parseInt(document.getElementById('tax-year-select').value);
-  if (taxYear !== selectedYear) {
-    const select = document.getElementById('tax-year-select');
-    if (![...select.options].some(o => parseInt(o.value) === taxYear)) {
-      const opt = document.createElement('option');
-      opt.value = taxYear;
-      opt.textContent = taxYear;
-      select.appendChild(opt);
-    }
-    select.value = taxYear;
-  }
-  loadTaxEntries();
-}
-
-function showTaxError(id, msg) {
-  const el = document.getElementById(id);
-  el.textContent = msg;
-  el.style.display = 'block';
-}
-
-function openTaxEditModal(entryId) {
-  const entry = taxEntries.find(e => e.id === entryId);
-  if (!entry) return;
-  document.getElementById('tax-edit-id').value = entry.id;
-  document.getElementById('tax-edit-date').value = entry.entry_date;
-  document.getElementById('tax-edit-company').value = entry.company;
-  document.getElementById('tax-edit-desc').value = entry.description || '';
-  document.getElementById('tax-edit-amount').value = entry.gross_amount;
-  document.getElementById('tax-edit-error').style.display = 'none';
-  document.getElementById('tax-edit-modal').style.display = 'flex';
-}
-
-function closeTaxEditModal() {
-  document.getElementById('tax-edit-modal').style.display = 'none';
-}
-
-async function saveTaxEdit() {
-  const id = document.getElementById('tax-edit-id').value;
-  const date = document.getElementById('tax-edit-date').value;
-  const company = document.getElementById('tax-edit-company').value.trim();
-  const desc = document.getElementById('tax-edit-desc').value.trim();
-  const amount = parseFloat(document.getElementById('tax-edit-amount').value);
-
-  if (!date) return showTaxError('tax-edit-error', 'Please select a date.');
-  if (!company) return showTaxError('tax-edit-error', 'Company / client name is required.');
-  if (isNaN(amount) || amount < 0) return showTaxError('tax-edit-error', 'Please enter a valid amount.');
-
-  const taxYear = new Date(date + 'T00:00:00').getFullYear();
-
-  const { error } = await sb.from('tax_entries').update({
-    entry_date: date,
-    company: company,
-    description: desc || null,
-    gross_amount: amount,
-    tax_year: taxYear
-  }).eq('id', id);
-
-  if (error) return showTaxError('tax-edit-error', 'Failed to update: ' + error.message);
-
-  closeTaxEditModal();
-  loadTaxEntries();
-}
-
-async function deleteTaxEntryFromModal() {
-  const id = document.getElementById('tax-edit-id').value;
-  if (!confirm('Delete this entry? This cannot be undone.')) return;
-  const { error } = await sb.from('tax_entries').delete().eq('id', id);
-  if (error) return showTaxError('tax-edit-error', 'Failed to delete: ' + error.message);
-  closeTaxEditModal();
-  loadTaxEntries();
-}
-
-function exportTaxCSV() {
-  if (taxEntries.length === 0) {
-    alert('No entries to export for this year.');
-    return;
-  }
-  const year = document.getElementById('tax-year-select').value;
-  const rows = [['Date', 'Company', 'Description', 'Gross Amount']];
-  taxEntries.forEach(e => {
-    rows.push([e.entry_date, e.company, e.description || '', parseFloat(e.gross_amount).toFixed(2)]);
-  });
-  const totalGross = taxEntries.reduce((sum, e) => sum + parseFloat(e.gross_amount), 0);
-  rows.push([]);
-  rows.push(['', '', 'Total Gross Earnings', totalGross.toFixed(2)]);
-  rows.push(['', '', 'Estimated Tax (25%)', (totalGross * TAX_RATE).toFixed(2)]);
-
-  const csv = rows.map(row => row.map(cell => {
-    const s = String(cell);
-    return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s.replace(/"/g, '""')}"` : s;
-  }).join(',')).join('\n');
-
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `tax-tracker-${year}.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
-}
 
 document.getElementById('signout-modal').addEventListener('click', function(e) {
   if (e.target === this) closeSignoutModal();
@@ -9891,6 +9612,23 @@ let scriptsAutoSaveTimer = null;
 let scriptItemIdCounter = 0;
 let currentScriptView = 'script';
 let hookEditing = false;
+
+// =====================================================
+// BRAND DEAL CRM
+// =====================================================
+function initDealsCrm() {
+  const isMaxUser = isMax();
+  const upsell = document.getElementById('deals-max-upsell');
+  const main = document.getElementById('deals-main');
+  if (!isMaxUser) {
+    if (upsell) upsell.style.display = 'block';
+    if (main) main.style.display = 'none';
+    return;
+  }
+  if (upsell) upsell.style.display = 'none';
+  if (main) main.style.display = 'block';
+  // TODO Phase 2.2: loadDealsList()
+}
 
 function initScriptsTool() {
   const isMaxUser = isMax();
@@ -11339,45 +11077,6 @@ document.getElementById('signout-modal').addEventListener('click', function(e) {
   </div>
 </div>
 
-<div id="tax-edit-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;pointer-events:all;">
-  <div style="background:#0f0f1a;border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:32px;position:relative;width:100%;max-width:460px;pointer-events:all;margin:20px;">
-    <button onclick="closeTaxEditModal()" style="position:absolute;top:16px;right:16px;background:none;border:none;color:#7a788f;font-size:18px;cursor:pointer;" aria-label="Close">&#x2715;</button>
-    <h2 style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;margin-bottom:4px;letter-spacing:-0.3px;">Edit Entry</h2>
-    <p style="color:var(--muted);font-size:13px;margin-bottom:24px;">Update this income entry</p>
-
-    <input type="hidden" id="tax-edit-id">
-
-    <div style="margin-bottom:14px;">
-      <label style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);display:block;margin-bottom:6px;">Date</label>
-      <input type="date" id="tax-edit-date" style="width:100%;background:var(--surface2);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;" aria-label="Entry date">
-    </div>
-    <div style="margin-bottom:14px;">
-      <label style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);display:block;margin-bottom:6px;">Company / Client</label>
-      <input type="text" id="tax-edit-company" style="width:100%;background:var(--surface2);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;" aria-label="Company or client">
-    </div>
-    <div style="margin-bottom:14px;">
-      <label style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);display:block;margin-bottom:6px;">Description</label>
-      <input type="text" id="tax-edit-desc" style="width:100%;background:var(--surface2);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;" aria-label="Description">
-    </div>
-    <div style="margin-bottom:20px;">
-      <label style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);display:block;margin-bottom:6px;">Gross Amount</label>
-      <input type="number" id="tax-edit-amount" min="0" step="0.01" style="width:100%;background:var(--surface2);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;" aria-label="Gross amount">
-    </div>
-
-    <div id="tax-edit-error" style="display:none;margin-bottom:12px;font-size:12px;color:#fca5a5;"></div>
-
-    <div style="display:flex;gap:10px;">
-      <button onclick="saveTaxEdit()" style="flex:1;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow);">Save Changes</button>
-      <button onclick="deleteTaxEntryFromModal()" style="padding:12px 18px;background:transparent;border:1px solid rgba(239,68,68,0.3);color:#fca5a5;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Delete</button>
-    </div>
-  </div>
-</div>
-
-<script>
-document.getElementById('tax-edit-modal').addEventListener('click', function(e) {
-  if (e.target === this) closeTaxEditModal();
-});
-</script>
 
 <script src="/cookie-banner.js"></script>
 </body>
