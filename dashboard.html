@@ -1525,6 +1525,18 @@
     #deal-modal > div { max-width: 100% !important; }
     .deal-grid-2 { grid-template-columns: 1fr !important; }
   }
+  /* Brand Deal CRM — Analytics */
+  .deals-stat-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+  .deals-stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); font-weight: 500; margin-bottom: 6px; }
+  .deals-stat-value { font-family: Syne, sans-serif; font-size: 22px; font-weight: 800; color: var(--text); letter-spacing: -0.3px; line-height: 1.1; margin-bottom: 2px; }
+  .deals-stat-sub { font-size: 11px; color: var(--muted); }
+  .deals-bar { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; min-width: 0; }
+  .deals-bar-inner { width: 100%; background: linear-gradient(180deg, #a78bfa 0%, #7c3aed 100%); border-radius: 5px 5px 0 0; transition: height 0.3s ease; position: relative; }
+  .deals-bar-label { flex: 1; text-align: center; font-size: 10px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  @media (max-width: 780px) {
+    .deals-stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+    .deals-charts-grid { grid-template-columns: 1fr !important; }
+  }
   /* Brand Deal CRM — shared styles */
   .deal-label { display: block; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 6px; }
   .deal-input { width: 100%; background: var(--surface2); border: 1px solid var(--border-hover); border-radius: 8px; padding: 10px 12px; font-size: 14px; color: var(--text); font-family: 'DM Sans', sans-serif; outline: none; box-sizing: border-box; transition: border-color 0.15s; }
@@ -3907,6 +3919,73 @@
               </div>
               <button id="deals-new-btn" onclick="showDealDetail(null)" style="padding:10px 18px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 24px var(--accent-glow);">+ New deal</button>
             </div>
+
+            <!-- ANALYTICS DASHBOARD (populated by renderDealsAnalytics) -->
+            <div id="deals-analytics" style="display:none;margin-bottom:24px;">
+              <!-- Top row: 4 stat cards -->
+              <div class="deals-stats-grid" style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px;">
+                <div class="deals-stat-card">
+                  <div class="deals-stat-label">This Month</div>
+                  <div id="deals-stat-month" class="deals-stat-value">$0</div>
+                  <div id="deals-stat-month-sub" class="deals-stat-sub">&mdash;</div>
+                </div>
+                <div class="deals-stat-card">
+                  <div class="deals-stat-label">Year to Date</div>
+                  <div id="deals-stat-ytd" class="deals-stat-value">$0</div>
+                  <div id="deals-stat-ytd-sub" class="deals-stat-sub">&mdash;</div>
+                </div>
+                <div class="deals-stat-card">
+                  <div class="deals-stat-label">Lifetime</div>
+                  <div id="deals-stat-lifetime" class="deals-stat-value">$0</div>
+                  <div id="deals-stat-lifetime-sub" class="deals-stat-sub">&mdash;</div>
+                </div>
+                <div class="deals-stat-card">
+                  <div class="deals-stat-label">Pending Payment</div>
+                  <div id="deals-stat-pending" class="deals-stat-value" style="color:#fbbf24;">$0</div>
+                  <div id="deals-stat-pending-sub" class="deals-stat-sub">&mdash;</div>
+                </div>
+              </div>
+
+              <!-- Middle row: chart + top brands -->
+              <div class="deals-charts-grid" style="display:grid;grid-template-columns:1.4fr 1fr;gap:12px;margin-bottom:16px;">
+                <!-- Revenue by month bar chart -->
+                <div class="deals-stat-card" style="padding:18px;">
+                  <div class="deals-stat-label" style="margin-bottom:14px;">Revenue, Last 6 Months</div>
+                  <div id="deals-revenue-chart" style="display:flex;align-items:flex-end;gap:8px;height:130px;">
+                    <!-- bars rendered dynamically -->
+                  </div>
+                  <div id="deals-revenue-chart-labels" style="display:flex;gap:8px;margin-top:10px;">
+                    <!-- labels rendered dynamically -->
+                  </div>
+                </div>
+
+                <!-- Top brands + status donut -->
+                <div class="deals-stat-card" style="padding:18px;">
+                  <div class="deals-stat-label" style="margin-bottom:14px;">Top Brands by Revenue</div>
+                  <div id="deals-top-brands" style="display:flex;flex-direction:column;gap:10px;">
+                    <!-- populated dynamically -->
+                  </div>
+                </div>
+              </div>
+
+              <!-- Bottom row: deals-by-status + upcoming end dates -->
+              <div class="deals-charts-grid" style="display:grid;grid-template-columns:1fr 1.4fr;gap:12px;">
+                <div class="deals-stat-card" style="padding:18px;">
+                  <div class="deals-stat-label" style="margin-bottom:14px;">Deals by Status</div>
+                  <div id="deals-status-breakdown" style="display:flex;flex-direction:column;gap:8px;">
+                    <!-- populated dynamically -->
+                  </div>
+                </div>
+
+                <div class="deals-stat-card" style="padding:18px;">
+                  <div class="deals-stat-label" style="margin-bottom:14px;">Upcoming Campaign End Dates</div>
+                  <div id="deals-upcoming-ends" style="display:flex;flex-direction:column;gap:8px;">
+                    <!-- populated dynamically -->
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div id="deals-content">
               <div id="deals-empty" style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:60px 24px;text-align:center;">
                 <div style="display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:14px;background:var(--surface);border:1px solid var(--border);margin-bottom:16px;">
@@ -9877,6 +9956,7 @@ async function loadDealsList() {
   }
   dealsList = data || [];
   renderDealsList();
+  await loadDealsAnalytics();
 }
 
 function renderDealsList() {
@@ -9949,6 +10029,243 @@ function formatDateShort(isoDate) {
   if (!isoDate) return '';
   const d = new Date(isoDate + 'T00:00:00');
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+// =====================================================
+// BRAND DEAL CRM — Analytics
+// =====================================================
+async function loadDealsAnalytics() {
+  if (!currentUser || !isMax()) return;
+
+  const analyticsEl = document.getElementById('deals-analytics');
+  if (!analyticsEl) return;
+
+  // Hide analytics panel entirely when there are no deals (keeps empty state clean)
+  if (dealsList.length === 0) {
+    analyticsEl.style.display = 'none';
+    return;
+  }
+  analyticsEl.style.display = 'block';
+
+  // Fetch all revenue events for this user
+  const { data: revenue, error } = await sb
+    .from('revenue_events')
+    .select('*')
+    .eq('user_id', currentUser.id)
+    .order('received_at', { ascending: false });
+
+  if (error) {
+    console.error('Failed to load revenue events:', error);
+    return;
+  }
+
+  const revenueEvents = revenue || [];
+  renderDealsAnalytics(revenueEvents);
+}
+
+function renderDealsAnalytics(revenueEvents) {
+  const now = new Date();
+  const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const ytdStart = new Date(now.getFullYear(), 0, 1);
+
+  // ======= Top stats =======
+  let monthTotal = 0, ytdTotal = 0, lifetimeTotal = 0, monthCount = 0, ytdCount = 0;
+  revenueEvents.forEach(ev => {
+    const dt = new Date(ev.received_at);
+    lifetimeTotal += ev.amount_cents;
+    if (dt >= ytdStart) { ytdTotal += ev.amount_cents; ytdCount++; }
+    if (dt >= thisMonthStart) { monthTotal += ev.amount_cents; monthCount++; }
+  });
+
+  // Pending payment = sum of deals with payment_status='waiting' and status active/pending_contract (not draft, cancelled, or already paid completed)
+  const pendingDeals = dealsList.filter(d =>
+    d.payment_status === 'waiting'
+    && (d.status === 'active' || d.status === 'pending_contract' || d.status === 'completed')
+  );
+  const pendingTotal = pendingDeals.reduce((sum, d) => sum + (d.deal_amount_cents || 0), 0);
+
+  // Active deals count (status = active)
+  const activeCount = dealsList.filter(d => d.status === 'active').length;
+
+  document.getElementById('deals-stat-month').textContent = formatUSD(monthTotal);
+  document.getElementById('deals-stat-month-sub').textContent = monthCount === 1 ? '1 deal completed' : `${monthCount} deals completed`;
+  document.getElementById('deals-stat-ytd').textContent = formatUSD(ytdTotal);
+  document.getElementById('deals-stat-ytd-sub').textContent = ytdCount === 1 ? '1 deal this year' : `${ytdCount} deals this year`;
+  document.getElementById('deals-stat-lifetime').textContent = formatUSD(lifetimeTotal);
+  document.getElementById('deals-stat-lifetime-sub').textContent = activeCount === 1 ? '1 active deal now' : `${activeCount} active deals now`;
+  document.getElementById('deals-stat-pending').textContent = formatUSD(pendingTotal);
+  document.getElementById('deals-stat-pending-sub').textContent = pendingDeals.length === 1 ? '1 deal awaiting payment' : `${pendingDeals.length} deals awaiting payment`;
+
+  // ======= Revenue by month chart (last 6 months) =======
+  renderRevenueChart(revenueEvents, now);
+
+  // ======= Top brands =======
+  renderTopBrands(revenueEvents);
+
+  // ======= Deals by status breakdown =======
+  renderStatusBreakdown();
+
+  // ======= Upcoming campaign end dates =======
+  renderUpcomingEnds();
+}
+
+function renderRevenueChart(revenueEvents, now) {
+  const chartEl = document.getElementById('deals-revenue-chart');
+  const labelsEl = document.getElementById('deals-revenue-chart-labels');
+  if (!chartEl || !labelsEl) return;
+
+  // Build last 6 months (including current)
+  const months = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push({ year: d.getFullYear(), month: d.getMonth(), total: 0, label: d.toLocaleDateString('en-US', { month: 'short' }) });
+  }
+
+  revenueEvents.forEach(ev => {
+    const dt = new Date(ev.received_at);
+    const m = months.find(x => x.year === dt.getFullYear() && x.month === dt.getMonth());
+    if (m) m.total += ev.amount_cents;
+  });
+
+  const maxCents = Math.max(...months.map(m => m.total), 1); // avoid divide-by-zero
+
+  chartEl.innerHTML = months.map(m => {
+    const pct = (m.total / maxCents) * 100;
+    const heightPct = m.total === 0 ? 2 : Math.max(pct, 4); // minimum visible height when >0
+    const barColor = m.total === 0 ? 'rgba(124,58,237,0.15)' : '';
+    return `
+      <div class="deals-bar" title="${m.label}: ${formatUSD(m.total)}">
+        <div class="deals-bar-inner" style="height:${heightPct}%;${barColor ? 'background:' + barColor + ';' : ''}"></div>
+      </div>
+    `;
+  }).join('');
+
+  labelsEl.innerHTML = months.map(m => `<div class="deals-bar-label">${m.label}</div>`).join('');
+}
+
+function renderTopBrands(revenueEvents) {
+  const el = document.getElementById('deals-top-brands');
+  if (!el) return;
+
+  // Aggregate by counterparty_name
+  const brandMap = {};
+  revenueEvents.forEach(ev => {
+    const name = ev.counterparty_name || 'Unknown';
+    brandMap[name] = (brandMap[name] || 0) + ev.amount_cents;
+  });
+
+  const topBrands = Object.entries(brandMap)
+    .sort(([,a], [,b]) => b - a)
+    .slice(0, 3);
+
+  if (topBrands.length === 0) {
+    el.innerHTML = '<div style="font-size:12px;color:var(--muted);padding:20px 0;text-align:center;">Complete a deal to see top brands here.</div>';
+    return;
+  }
+
+  const totalTop = topBrands.reduce((s, [,v]) => s + v, 0);
+
+  el.innerHTML = topBrands.map(([name, cents], i) => {
+    const pct = totalTop > 0 ? (cents / totalTop) * 100 : 0;
+    const rankColors = ['#e879f9', '#a78bfa', '#7c3aed'];
+    const color = rankColors[i] || '#7c3aed';
+    return `
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+          <div style="font-size:13px;color:var(--text);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:60%;">${escapeHtml(name)}</div>
+          <div style="font-size:13px;color:var(--text);font-weight:500;">${formatUSD(cents)}</div>
+        </div>
+        <div style="height:4px;background:var(--surface);border-radius:4px;overflow:hidden;">
+          <div style="height:100%;width:${pct}%;background:${color};border-radius:4px;"></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderStatusBreakdown() {
+  const el = document.getElementById('deals-status-breakdown');
+  if (!el) return;
+
+  // Exclude drafts per design decision
+  const relevantDeals = dealsList.filter(d => d.status !== 'draft');
+  if (relevantDeals.length === 0) {
+    el.innerHTML = '<div style="font-size:12px;color:var(--muted);padding:20px 0;text-align:center;">No deals yet (drafts excluded).</div>';
+    return;
+  }
+
+  const counts = {};
+  relevantDeals.forEach(d => { counts[d.status] = (counts[d.status] || 0) + 1; });
+  const total = relevantDeals.length;
+
+  const order = ['active', 'pending_contract', 'completed', 'cancelled'];
+  const statusColors = {
+    active: '#c4b5fd',
+    pending_contract: '#fbbf24',
+    completed: '#4ade80',
+    cancelled: '#fca5a5'
+  };
+
+  el.innerHTML = order.filter(s => counts[s]).map(status => {
+    const count = counts[status];
+    const pct = (count / total) * 100;
+    const color = statusColors[status];
+    return `
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
+          <div style="font-size:12px;color:var(--text);">${escapeHtml(DEAL_STATUS_LABELS[status])}</div>
+          <div style="font-size:12px;color:var(--muted);">${count} <span style="opacity:0.6;">(${pct.toFixed(0)}%)</span></div>
+        </div>
+        <div style="height:4px;background:var(--surface);border-radius:4px;overflow:hidden;">
+          <div style="height:100%;width:${pct}%;background:${color};border-radius:4px;"></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderUpcomingEnds() {
+  const el = document.getElementById('deals-upcoming-ends');
+  if (!el) return;
+
+  const now = new Date();
+  const in30Days = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+  // Only active/completed deals with an end date in the next 30 days, not already past
+  const upcoming = dealsList.filter(d => {
+    if (!d.campaign_end_date) return false;
+    if (d.status === 'draft' || d.status === 'cancelled') return false;
+    const endDate = new Date(d.campaign_end_date + 'T00:00:00');
+    return endDate >= new Date(now.getFullYear(), now.getMonth(), now.getDate()) && endDate <= in30Days;
+  }).sort((a, b) => a.campaign_end_date.localeCompare(b.campaign_end_date));
+
+  if (upcoming.length === 0) {
+    el.innerHTML = '<div style="font-size:12px;color:var(--muted);padding:20px 0;text-align:center;">No campaigns ending in the next 30 days.</div>';
+    return;
+  }
+
+  el.innerHTML = upcoming.slice(0, 5).map(d => {
+    const endDate = new Date(d.campaign_end_date + 'T00:00:00');
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const diffDays = Math.round((endDate - today) / (24 * 60 * 60 * 1000));
+    let urgencyColor = 'var(--muted)';
+    let urgencyText;
+    if (diffDays === 0) { urgencyText = 'Ends today'; urgencyColor = '#fca5a5'; }
+    else if (diffDays === 1) { urgencyText = 'Ends tomorrow'; urgencyColor = '#fbbf24'; }
+    else if (diffDays <= 3) { urgencyText = `In ${diffDays} days`; urgencyColor = '#fbbf24'; }
+    else if (diffDays <= 7) { urgencyText = `In ${diffDays} days`; urgencyColor = '#c4b5fd'; }
+    else { urgencyText = formatDateShort(d.campaign_end_date); }
+
+    return `
+      <div onclick="showDealDetail('${d.id}')" style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--surface);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:border-color 0.15s;gap:10px;" onmouseover="this.style.borderColor='var(--border-hover)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div style="min-width:0;flex:1;">
+          <div style="font-size:13px;color:var(--text);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(d.deal_title)}</div>
+          <div style="font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(d.brand_name)}</div>
+        </div>
+        <div style="font-size:11px;color:${urgencyColor};font-weight:500;white-space:nowrap;flex-shrink:0;">${urgencyText}</div>
+      </div>
+    `;
+  }).join('');
 }
 
 // =====================================================
