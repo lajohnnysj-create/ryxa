@@ -1331,14 +1331,34 @@
     color: #f0abfc;
     box-shadow: 0 0 20px rgba(232,121,249,0.15);
   }
+  /* Default card styling for Max users — subtly distinguished */
+  body.max-user .welcome-tool-card {
+    border-color: rgba(232,121,249,0.15);
+    background: linear-gradient(135deg, rgba(167,139,250,0.03), rgba(232,121,249,0.03));
+  }
+  body.max-user .welcome-tool-icon {
+    background: linear-gradient(135deg, rgba(167,139,250,0.15), rgba(232,121,249,0.15));
+    border-color: rgba(232,121,249,0.25);
+  }
+  body.max-user .welcome-tool-icon svg {
+    stroke: #e9c4f7;
+  }
+  body.max-user .welcome-tool-name {
+    background: linear-gradient(135deg, #f0eef8 0%, #f0abfc 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  /* Hover state — more pronounced for Max */
   body.max-user .welcome-tool-card:hover {
-    border-color: rgba(232,121,249,0.45);
-    background: linear-gradient(135deg, rgba(167,139,250,0.08), rgba(232,121,249,0.08));
-    box-shadow: 0 8px 24px rgba(232,121,249,0.12);
+    border-color: rgba(232,121,249,0.5);
+    background: linear-gradient(135deg, rgba(167,139,250,0.1), rgba(232,121,249,0.1));
+    box-shadow: 0 8px 28px rgba(232,121,249,0.18);
+    transform: translateY(-2px);
   }
   body.max-user .welcome-tool-card:hover .welcome-tool-icon {
-    background: linear-gradient(135deg, rgba(167,139,250,0.25), rgba(232,121,249,0.25));
-    border-color: rgba(232,121,249,0.4);
+    background: linear-gradient(135deg, rgba(167,139,250,0.3), rgba(232,121,249,0.3));
+    border-color: rgba(232,121,249,0.5);
   }
   body.max-user .welcome-tool-card:hover .welcome-tool-icon svg {
     stroke: #f0abfc;
@@ -2573,7 +2593,7 @@
             <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg></div>
             <div>
               <div class="welcome-tool-name">Image Studio</div>
-              <div class="welcome-tool-desc">Crop, resize, and convert images with creator-ready aspect ratios</div>
+              <div class="welcome-tool-desc">Crop, adjust, and convert images with creator-ready aspect ratios</div>
             </div>
           </div>
           <div class="welcome-tool-card" onclick="showTool('qr')">
