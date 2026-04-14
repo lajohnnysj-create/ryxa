@@ -1530,8 +1530,8 @@
   .deals-stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); font-weight: 500; margin-bottom: 6px; }
   .deals-stat-value { font-family: Syne, sans-serif; font-size: 22px; font-weight: 800; color: var(--text); letter-spacing: -0.3px; line-height: 1.1; margin-bottom: 2px; }
   .deals-stat-sub { font-size: 11px; color: var(--muted); }
-  .deals-bar { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; min-width: 0; }
-  .deals-bar-inner { width: 100%; background: linear-gradient(180deg, #a78bfa 0%, #7c3aed 100%); border-radius: 5px 5px 0 0; transition: height 0.3s ease; position: relative; }
+  .deals-bar { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; min-width: 0; height: 100%; }
+  .deals-bar-inner { width: 100%; background: linear-gradient(180deg, #a78bfa 0%, #7c3aed 100%); border-radius: 5px 5px 0 0; transition: height 0.3s ease; position: relative; min-height: 2px; }
   .deals-bar-label { flex: 1; text-align: center; font-size: 10px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
   @media (max-width: 780px) {
     .deals-stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
@@ -10040,11 +10040,7 @@ async function loadDealsAnalytics() {
   const analyticsEl = document.getElementById('deals-analytics');
   if (!analyticsEl) return;
 
-  // Hide analytics panel entirely when there are no deals (keeps empty state clean)
-  if (dealsList.length === 0) {
-    analyticsEl.style.display = 'none';
-    return;
-  }
+  // Always visible — zero-state shows $0 / empty widgets so user sees the layout even before data
   analyticsEl.style.display = 'block';
 
   // Fetch all revenue events for this user
