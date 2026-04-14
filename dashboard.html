@@ -3238,17 +3238,8 @@
 
         <!-- Interactive Crop Canvas -->
         <div id="img-crop-area" style="display:none;margin-bottom:16px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:10px;">
+          <div style="margin-bottom:12px;">
             <label style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;font-weight:600;">Crop &amp; Aspect Ratio</label>
-            <select id="img-aspect" aria-label="Aspect ratio preset" style="background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:7px 10px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;">
-              <option value="free" selected>Free</option>
-              <option value="1:1">Square 1:1 (IG Post)</option>
-              <option value="4:5">Portrait 4:5 (IG Post Tall)</option>
-              <option value="9:16">Story/Reel 9:16</option>
-              <option value="16:9">Landscape 16:9 (YouTube)</option>
-              <option value="3:1">Wide 3:1 (X Header)</option>
-              <option value="original">Original</option>
-            </select>
           </div>
           <div id="img-crop-stage" style="position:relative;width:100%;background:#000;border-radius:8px;overflow:hidden;user-select:none;touch-action:none;display:flex;align-items:center;justify-content:center;min-height:240px;">
             <img id="img-crop-src" alt="Image to crop" style="display:block;max-width:100%;max-height:540px;pointer-events:none;">
@@ -3259,9 +3250,19 @@
               <div class="img-crop-handle" data-handle="se" style="position:absolute;bottom:-8px;right:-8px;width:16px;height:16px;background:#fff;border:2px solid #7c3aed;border-radius:50%;cursor:nwse-resize;"></div>
             </div>
           </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:12px;color:var(--muted);">
+          <!-- Aspect ratio buttons -->
+          <div id="img-aspect-buttons" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;">
+            <button type="button" data-aspect="free" onclick="applyAspectPreset('free')" class="img-aspect-btn img-aspect-active" style="background:var(--accent);color:#fff;border:1px solid var(--accent);font-size:12px;padding:7px 12px;border-radius:7px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:500;transition:all 0.15s;">Free</button>
+            <button type="button" data-aspect="1:1" onclick="applyAspectPreset('1:1')" class="img-aspect-btn" style="background:var(--surface);color:var(--muted);border:1px solid var(--border-hover);font-size:12px;padding:7px 12px;border-radius:7px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:500;transition:all 0.15s;">Square 1:1</button>
+            <button type="button" data-aspect="4:5" onclick="applyAspectPreset('4:5')" class="img-aspect-btn" style="background:var(--surface);color:var(--muted);border:1px solid var(--border-hover);font-size:12px;padding:7px 12px;border-radius:7px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:500;transition:all 0.15s;">Portrait 4:5</button>
+            <button type="button" data-aspect="9:16" onclick="applyAspectPreset('9:16')" class="img-aspect-btn" style="background:var(--surface);color:var(--muted);border:1px solid var(--border-hover);font-size:12px;padding:7px 12px;border-radius:7px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:500;transition:all 0.15s;">Story 9:16</button>
+            <button type="button" data-aspect="16:9" onclick="applyAspectPreset('16:9')" class="img-aspect-btn" style="background:var(--surface);color:var(--muted);border:1px solid var(--border-hover);font-size:12px;padding:7px 12px;border-radius:7px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:500;transition:all 0.15s;">Landscape 16:9</button>
+            <button type="button" data-aspect="3:1" onclick="applyAspectPreset('3:1')" class="img-aspect-btn" style="background:var(--surface);color:var(--muted);border:1px solid var(--border-hover);font-size:12px;padding:7px 12px;border-radius:7px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:500;transition:all 0.15s;">Wide 3:1</button>
+            <button type="button" data-aspect="original" onclick="applyAspectPreset('original')" class="img-aspect-btn" style="background:var(--surface);color:var(--muted);border:1px solid var(--border-hover);font-size:12px;padding:7px 12px;border-radius:7px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:500;transition:all 0.15s;">Original</button>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:12px;color:var(--muted);gap:10px;flex-wrap:wrap;">
             <span id="img-crop-dims">—</span>
-            <button type="button" onclick="resetCropBox()" style="background:none;border:1px solid var(--border-hover);color:var(--muted);font-size:11px;padding:5px 10px;border-radius:6px;cursor:pointer;font-family:DM Sans,sans-serif;">Reset crop</button>
+            <button type="button" id="img-crop-lock-btn" onclick="toggleCropLock()" style="background:var(--surface);border:1px solid var(--border-hover);color:var(--text);font-size:12px;padding:7px 14px;border-radius:7px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:500;transition:all 0.15s;">Lock crop</button>
           </div>
         </div>
 
@@ -8517,12 +8518,7 @@ function initImageConverter() {
     const noQuality = ['image/png','image/gif','image/bmp','image/x-icon','image/tiff']; document.getElementById('quality-group').style.display = noQuality.includes(this.value) ? 'none' : 'block';
   });
 
-  // Aspect ratio preset
-  const aspectSel = document.getElementById('img-aspect');
-  if (aspectSel && !aspectSel.__wired) {
-    aspectSel.__wired = true;
-    aspectSel.addEventListener('change', function() { applyAspectPreset(this.value); });
-  }
+  // Aspect ratio buttons use inline onclick handlers (no listener needed here).
 
   // Crop box drag (move + resize handles)
   const cropBoxEl = document.getElementById('img-crop-box');
@@ -8599,6 +8595,8 @@ let imgNatural = { w: 0, h: 0 };    // Original image dimensions
 let imgCropBox = null;              // { x, y, w, h } in pixels relative to the DISPLAYED (scaled) image
 let imgDisplaySize = { w: 0, h: 0 };// Displayed image size in CSS pixels
 let imgAspectLock = null;           // e.g. 1 for 1:1, 9/16 for 9:16, null for free
+let imgCropMode = 'free';           // 'free' | '1:1' | '4:5' | '9:16' | '16:9' | '3:1' | 'original'
+let imgCropLocked = false;          // true = crop committed; box can't move or resize
 
 function setupCropStage(dataUrl) {
   const stageImg = document.getElementById('img-crop-src');
@@ -8632,8 +8630,10 @@ function setupCropStage(dataUrl) {
 function resetCropBox() {
   if (!imgDisplaySize.w) return;
   imgAspectLock = null;
-  const sel = document.getElementById('img-aspect');
-  if (sel) sel.value = 'free';
+  imgCropMode = 'free';
+  imgCropLocked = false;
+  updateAspectButtonsUI();
+  updateLockButtonUI();
   // Default: a centered 80% box
   const w = imgDisplaySize.w * 0.8;
   const h = imgDisplaySize.h * 0.8;
@@ -8647,8 +8647,20 @@ function resetCropBox() {
 
 function applyAspectPreset(preset) {
   if (!imgDisplaySize.w) return;
+  // Selecting a preset always unlocks (user is picking a new ratio)
+  imgCropLocked = false;
+  imgCropMode = preset;
+  updateAspectButtonsUI();
+  updateLockButtonUI();
+
   if (preset === 'free') {
     imgAspectLock = null;
+    // Keep current box size if one exists, otherwise default to 80%
+    if (!imgCropBox) {
+      const w = imgDisplaySize.w * 0.8;
+      const h = imgDisplaySize.h * 0.8;
+      imgCropBox = { x: (imgDisplaySize.w - w) / 2, y: (imgDisplaySize.h - h) / 2, w, h };
+    }
     renderCropBox();
     return;
   }
@@ -8660,21 +8672,66 @@ function applyAspectPreset(preset) {
   }
   const [a, b] = preset.split(':').map(Number);
   imgAspectLock = a / b;
-  // Center a box of that ratio that fits inside the image
+  // Center a box of that ratio that fits inside the image at ~90% of max
   let cw = imgDisplaySize.w;
   let ch = cw / imgAspectLock;
   if (ch > imgDisplaySize.h) {
     ch = imgDisplaySize.h;
     cw = ch * imgAspectLock;
   }
-  // Shrink to 95% so it has breathing room
-  cw *= 0.95; ch *= 0.95;
+  cw *= 0.9; ch *= 0.9;
   imgCropBox = {
     x: (imgDisplaySize.w - cw) / 2,
     y: (imgDisplaySize.h - ch) / 2,
     w: cw, h: ch
   };
   renderCropBox();
+}
+
+function updateAspectButtonsUI() {
+  const btns = document.querySelectorAll('.img-aspect-btn');
+  btns.forEach(btn => {
+    const isActive = btn.getAttribute('data-aspect') === imgCropMode;
+    if (isActive) {
+      btn.classList.add('img-aspect-active');
+      btn.style.background = 'var(--accent)';
+      btn.style.color = '#fff';
+      btn.style.borderColor = 'var(--accent)';
+    } else {
+      btn.classList.remove('img-aspect-active');
+      btn.style.background = 'var(--surface)';
+      btn.style.color = 'var(--muted)';
+      btn.style.borderColor = 'var(--border-hover)';
+    }
+  });
+}
+
+function updateLockButtonUI() {
+  const btn = document.getElementById('img-crop-lock-btn');
+  if (!btn) return;
+  if (imgCropLocked) {
+    btn.textContent = 'Reset crop';
+    btn.style.background = 'rgba(124,58,237,0.12)';
+    btn.style.color = 'var(--accent2)';
+    btn.style.borderColor = 'rgba(124,58,237,0.4)';
+  } else {
+    btn.textContent = 'Lock crop';
+    btn.style.background = 'var(--surface)';
+    btn.style.color = 'var(--text)';
+    btn.style.borderColor = 'var(--border-hover)';
+  }
+}
+
+function toggleCropLock() {
+  if (imgCropLocked) {
+    // Currently locked → "Reset crop" action
+    resetCropBox();
+  } else {
+    // Currently unlocked → lock it
+    imgCropLocked = true;
+    updateLockButtonUI();
+    renderCropBox();
+  }
 }
 
 function renderCropBox() {
@@ -8702,6 +8759,21 @@ function renderCropBox() {
   box.style.top = (offsetY + imgCropBox.y) + 'px';
   box.style.width = imgCropBox.w + 'px';
   box.style.height = imgCropBox.h + 'px';
+  // Visual state: dashed/purple when locked, solid white when active
+  if (imgCropLocked) {
+    box.style.cursor = 'default';
+    box.style.borderColor = '#a78bfa';
+    box.style.borderStyle = 'dashed';
+  } else {
+    box.style.cursor = 'move';
+    box.style.borderColor = '#fff';
+    box.style.borderStyle = 'solid';
+  }
+  // Show resize handles ONLY when in Free mode and not locked
+  const handlesVisible = (imgCropMode === 'free' && !imgCropLocked);
+  document.querySelectorAll('.img-crop-handle').forEach(h => {
+    h.style.display = handlesVisible ? 'block' : 'none';
+  });
   // Update dimensions readout (in natural-pixel coordinates)
   const scale = imgNatural.w / imgDisplaySize.w;
   const pixelW = Math.round(imgCropBox.w * scale);
@@ -8711,6 +8783,10 @@ function renderCropBox() {
 }
 
 function startCropInteraction(e, mode, handle) {
+  // When locked, no interaction allowed
+  if (imgCropLocked) { e.preventDefault(); return; }
+  // Resize only allowed in free mode; preset crops can only be moved
+  if (mode === 'resize' && imgCropMode !== 'free') { e.preventDefault(); return; }
   e.preventDefault();
   e.stopPropagation();
   if (!imgCropBox) return;
