@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>Brand Deal Portal</title>
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --bg: #0a0a14;
+    --surface: #15151f;
+    --surface2: #1a1a26;
+    --border: rgba(255,255,255,0.08);
+    --border-hover: rgba(255,255,255,0.18);
+    --text: #f5f5fa;
+    --muted: #8a8aa0;
+    --accent: #7c3aed;
+    --accent-glow: rgba(124,58,237,0.35);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif; min-height: 100vh; }
+  body { background: radial-gradient(ellipse at top, rgba(124,58,237,0.06) 0%, transparent 50%), var(--bg); }
+
+  .portal-wrap { max-width: 800px; margin: 0 auto; padding: 24px 20px 60px; }
+
+  /* PIN entry */
+  .pin-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+  .pin-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 18px; padding: 36px 32px; max-width: 420px; width: 100%; text-align: center; }
+  .pin-card h1 { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; margin: 0 0 8px; letter-spacing: -0.4px; }
+  .pin-card p { color: var(--muted); font-size: 14px; line-height: 1.55; margin: 0 0 24px; }
+  .pin-input { width: 100%; padding: 14px 16px; font-family: monospace; font-size: 22px; text-align: center; letter-spacing: 0.3em; background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: 10px; outline: none; transition: border-color 0.15s; }
+  .pin-input:focus { border-color: var(--accent); }
+  .pin-submit { width: 100%; padding: 13px; margin-top: 14px; background: var(--accent); color: #fff; border: none; border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; box-shadow: 0 0 20px var(--accent-glow); transition: opacity 0.15s; }
+  .pin-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+  .pin-error { display: none; margin-top: 14px; padding: 10px 14px; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25); border-radius: 8px; color: #fca5a5; font-size: 13px; }
+  .pin-info { display: none; margin-top: 14px; padding: 10px 14px; background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.25); border-radius: 8px; color: #fbbf24; font-size: 13px; }
+
+  /* Portal main view */
+  .portal-header { margin-bottom: 24px; }
+  .portal-from { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500; margin-bottom: 6px; }
+  .portal-creator { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 14px; }
+  .portal-deal-title { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; letter-spacing: -0.6px; margin: 0 0 8px; line-height: 1.15; }
+  .portal-brand-name { color: var(--muted); font-size: 14px; margin-bottom: 12px; }
+
+  .portal-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; padding: 22px; margin-bottom: 16px; }
+  .portal-card-title { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 0 0 14px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: space-between; }
+
+  .portal-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 540px) { .portal-info-grid { grid-template-columns: 1fr; } }
+  .portal-info-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 500; margin-bottom: 4px; }
+  .portal-info-value { font-size: 14px; color: var(--text); font-weight: 500; }
+  .portal-info-value.amount { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; letter-spacing: -0.3px; }
+
+  /* Status badges */
+  .badge { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+  .badge-status-draft { background: rgba(255,255,255,0.05); color: var(--muted); border: 1px solid var(--border); }
+  .badge-status-pending_contract { background: rgba(251,191,36,0.1); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
+  .badge-status-active { background: rgba(124,58,237,0.15); color: #c4b5fd; border: 1px solid rgba(124,58,237,0.3); }
+  .badge-status-completed { background: rgba(74,222,128,0.12); color: #4ade80; border: 1px solid rgba(74,222,128,0.3); }
+  .badge-status-cancelled { background: rgba(239,68,68,0.1); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
+  .badge-payment-waiting { background: rgba(251,191,36,0.1); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
+  .badge-payment-paid { background: rgba(74,222,128,0.12); color: #4ade80; border: 1px solid rgba(74,222,128,0.3); }
+  .badge-row { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  /* Deliverables */
+  .deliv-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 8px; }
+  .deliv-title { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
+  .deliv-notes { font-size: 12px; color: var(--muted); line-height: 1.5; margin-bottom: 6px; white-space: pre-wrap; }
+  .deliv-url { font-size: 12px; color: #c4b5fd; text-decoration: none; word-break: break-all; display: inline-flex; align-items: center; gap: 4px; }
+  .deliv-url:hover { text-decoration: underline; }
+
+  /* Contract */
+  .contract-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; }
+  .contract-icon { width: 36px; height: 36px; flex-shrink: 0; background: rgba(124,58,237,0.12); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #c4b5fd; }
+  .contract-info { flex: 1; min-width: 0; }
+  .contract-name { font-size: 13px; color: var(--text); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .contract-status { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .contract-soon-tag { padding: 5px 10px; background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.25); color: #fbbf24; border-radius: 6px; font-size: 11px; font-weight: 500; flex-shrink: 0; }
+
+  /* Messages thread */
+  .msg-thread { display: flex; flex-direction: column; gap: 10px; max-height: 500px; overflow-y: auto; padding-right: 4px; margin-bottom: 16px; }
+  .msg-bubble-wrap { display: flex; }
+  .msg-bubble-wrap.brand { justify-content: flex-end; }
+  .msg-bubble-wrap.creator { justify-content: flex-start; }
+  .msg-bubble { max-width: 75%; border-radius: 12px; padding: 10px 14px; }
+  .msg-bubble.brand { background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.25); }
+  .msg-bubble.creator { background: var(--surface); border: 1px solid var(--border); }
+  .msg-meta { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; }
+  .msg-author { font-size: 12px; font-weight: 600; }
+  .msg-author.brand { color: #fbbf24; }
+  .msg-author.creator { color: #c4b5fd; }
+  .msg-time { font-size: 10px; color: var(--muted); }
+  .msg-content { font-size: 13px; color: var(--text); line-height: 1.5; word-break: break-word; white-space: pre-wrap; }
+  .msg-empty { padding: 28px 20px; background: var(--surface); border: 1px dashed var(--border); border-radius: 10px; text-align: center; color: var(--muted); font-size: 13px; }
+
+  .msg-composer { display: flex; flex-direction: column; gap: 8px; }
+  .msg-textarea { width: 100%; padding: 11px 14px; background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 13px; line-height: 1.5; resize: vertical; min-height: 70px; outline: none; transition: border-color 0.15s; }
+  .msg-textarea:focus { border-color: var(--accent); }
+  .msg-actions { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .msg-char { font-size: 11px; color: var(--muted); }
+  .msg-send { padding: 9px 18px; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; box-shadow: 0 0 16px var(--accent-glow); transition: opacity 0.15s; }
+  .msg-send:disabled { opacity: 0.5; cursor: not-allowed; }
+  .msg-error { display: none; margin-top: 8px; padding: 8px 12px; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25); color: #fca5a5; border-radius: 8px; font-size: 12px; }
+
+  /* Refresh button */
+  .refresh-btn { padding: 8px 12px; background: transparent; border: 1px solid var(--border-hover); color: var(--muted); border-radius: 8px; font-size: 12px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+  .refresh-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Loading + global error states */
+  .full-error { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+  .full-error-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 18px; padding: 36px; max-width: 440px; text-align: center; }
+  .full-error-card h2 { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; margin: 0 0 12px; }
+  .full-error-card p { color: var(--muted); font-size: 14px; line-height: 1.55; margin: 0; }
+
+  .loading-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; color: var(--muted); font-size: 14px; }
+</style>
+</head>
+<body>
+
+<!-- Loading state (initial) -->
+<div id="loading-screen" class="loading-screen">Loading…</div>
+
+<!-- PIN entry screen -->
+<div id="pin-screen" class="pin-screen" style="display:none;">
+  <div class="pin-card">
+    <div style="margin-bottom:18px;">
+      <div style="display:inline-flex;align-items:center;justify-content:center;width:52px;height:52px;background:rgba(124,58,237,0.12);border-radius:14px;color:#c4b5fd;">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+    </div>
+    <h1>Brand Deal Portal</h1>
+    <p>This portal is private. Enter the 6-digit PIN provided by the creator to view the deal.</p>
+    <input type="text" id="pin-input" class="pin-input" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off" placeholder="••••••">
+    <button id="pin-submit" class="pin-submit">Unlock portal</button>
+    <div id="pin-error" class="pin-error"></div>
+    <div id="pin-info" class="pin-info"></div>
+  </div>
+</div>
+
+<!-- Full-screen error (e.g., invalid token, revoked) -->
+<div id="full-error" class="full-error" style="display:none;">
+  <div class="full-error-card">
+    <div style="display:inline-flex;align-items:center;justify-content:center;width:52px;height:52px;background:rgba(239,68,68,0.1);border-radius:14px;color:#fca5a5;margin-bottom:14px;">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    </div>
+    <h2 id="full-error-title">Unable to load</h2>
+    <p id="full-error-msg">This deal portal link doesn't appear to be valid.</p>
+  </div>
+</div>
+
+<!-- Main portal view -->
+<div id="portal-main" class="portal-wrap" style="display:none;">
+
+  <div class="portal-header">
+    <div class="portal-from">From</div>
+    <div class="portal-creator" id="portal-creator-name">@creator</div>
+    <h1 class="portal-deal-title" id="portal-deal-title">Deal Title</h1>
+    <div class="portal-brand-name" id="portal-brand-name">Brand</div>
+    <div class="badge-row">
+      <span id="portal-status-badge" class="badge badge-status-draft">Draft</span>
+      <span id="portal-payment-badge" class="badge badge-payment-waiting">Waiting for Payment</span>
+    </div>
+  </div>
+
+  <!-- Deal info card -->
+  <div class="portal-card">
+    <div class="portal-card-title">Deal Details</div>
+    <div class="portal-info-grid">
+      <div>
+        <div class="portal-info-label">Amount</div>
+        <div class="portal-info-value amount" id="portal-amount">$0</div>
+      </div>
+      <div>
+        <div class="portal-info-label">Brand Contact</div>
+        <div class="portal-info-value" id="portal-contact-name">—</div>
+      </div>
+      <div>
+        <div class="portal-info-label">Campaign Start</div>
+        <div class="portal-info-value" id="portal-start-date">—</div>
+      </div>
+      <div>
+        <div class="portal-info-label">Campaign End</div>
+        <div class="portal-info-value" id="portal-end-date">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Deliverables -->
+  <div class="portal-card" id="portal-deliverables-card">
+    <div class="portal-card-title">Deliverables</div>
+    <div id="portal-deliverables-list"></div>
+    <div id="portal-deliverables-empty" style="font-size:13px;color:var(--muted);text-align:center;padding:14px;display:none;">No deliverables listed yet.</div>
+  </div>
+
+  <!-- Contract -->
+  <div class="portal-card" id="portal-contract-card" style="display:none;">
+    <div class="portal-card-title">Signed Contract</div>
+    <div class="contract-row">
+      <div class="contract-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      </div>
+      <div class="contract-info">
+        <div class="contract-name" id="portal-contract-filename">contract.pdf</div>
+        <div class="contract-status">Signed contract on file</div>
+      </div>
+      <div class="contract-soon-tag">Download coming soon</div>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div class="portal-card">
+    <div class="portal-card-title">
+      <span>Messages</span>
+      <button class="refresh-btn" onclick="refreshMessages(this)" title="Refresh" id="msg-refresh-btn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        Refresh
+      </button>
+    </div>
+    <div id="portal-messages-thread" class="msg-thread"></div>
+    <div id="portal-messages-empty" class="msg-empty" style="display:none;">No messages yet. Start the conversation below.</div>
+    <div class="msg-composer">
+      <textarea id="msg-input" class="msg-textarea" rows="3" placeholder="Write a message to the creator..." maxlength="5000" oninput="updateMsgCharCount()"></textarea>
+      <div class="msg-actions">
+        <div class="msg-char" id="msg-char">0 / 5000</div>
+        <button id="msg-send" class="msg-send" onclick="sendMessage()">Send</button>
+      </div>
+      <div id="msg-error" class="msg-error"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+// CONFIG
+// ============================================================
+const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtqeXRhcGNneHVrYWx3c3lwdXRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMTcxMzEsImV4cCI6MjA5MDg5MzEzMX0.VC8mcU5lUeA56kG2gHssvl88EVWr018XttA86jpfEn0';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { persistSession: false }
+});
+
+// PIN security: 5 attempts → 15 min lockout, tracked client-side per token
+const MAX_PIN_ATTEMPTS = 5;
+const LOCKOUT_MS = 15 * 60 * 1000;
+
+// State
+let dealToken = null;
+let dealPin = null;
+let dealData = null;
+
+// ============================================================
+// HELPERS
+// ============================================================
+function escapeHtml(str) {
+  if (str == null) return '';
+  return String(str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function formatUSD(cents) {
+  if (!cents) return '$0';
+  return '$' + (cents / 100).toLocaleString('en-US', { maximumFractionDigits: 2 });
+}
+
+function formatDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso + 'T00:00:00');
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function statusLabel(s) {
+  return ({
+    draft: 'Draft',
+    pending_contract: 'Pending Contract',
+    active: 'Active',
+    completed: 'Completed',
+    cancelled: 'Cancelled'
+  })[s] || s;
+}
+
+function paymentLabel(s) {
+  return s === 'paid' ? 'Paid' : 'Waiting for Payment';
+}
+
+// ============================================================
+// LOCKOUT
+// ============================================================
+function getLockoutKey() { return 'ryxa_portal_lockout_' + dealToken; }
+function getAttemptsKey() { return 'ryxa_portal_attempts_' + dealToken; }
+
+function isLockedOut() {
+  if (!dealToken) return false;
+  try {
+    const until = parseInt(localStorage.getItem(getLockoutKey()) || '0', 10);
+    return until > Date.now();
+  } catch (e) { return false; }
+}
+
+function getLockoutTimeRemaining() {
+  try {
+    const until = parseInt(localStorage.getItem(getLockoutKey()) || '0', 10);
+    return Math.max(0, until - Date.now());
+  } catch (e) { return 0; }
+}
+
+function recordFailedAttempt() {
+  try {
+    const attempts = parseInt(localStorage.getItem(getAttemptsKey()) || '0', 10) + 1;
+    localStorage.setItem(getAttemptsKey(), String(attempts));
+    if (attempts >= MAX_PIN_ATTEMPTS) {
+      localStorage.setItem(getLockoutKey(), String(Date.now() + LOCKOUT_MS));
+    }
+    return attempts;
+  } catch (e) { return 0; }
+}
+
+function clearAttempts() {
+  try {
+    localStorage.removeItem(getAttemptsKey());
+    localStorage.removeItem(getLockoutKey());
+  } catch (e) {}
+}
+
+function formatLockoutMins(ms) {
+  const mins = Math.ceil(ms / 60000);
+  return mins === 1 ? '1 minute' : `${mins} minutes`;
+}
+
+// ============================================================
+// PIN PERSISTENCE (sessionStorage — persists across refresh, not new tab)
+// ============================================================
+function getPinKey() { return 'ryxa_portal_pin_' + dealToken; }
+function savePinToSession(pin) {
+  try { sessionStorage.setItem(getPinKey(), pin); } catch (e) {}
+}
+function getPinFromSession() {
+  try { return sessionStorage.getItem(getPinKey()); } catch (e) { return null; }
+}
+function clearPinFromSession() {
+  try { sessionStorage.removeItem(getPinKey()); } catch (e) {}
+}
+
+// ============================================================
+// LOAD DEAL VIA RPC
+// ============================================================
+async function loadDeal() {
+  const { data, error } = await sb.rpc('get_deal_by_token', { p_token: dealToken, p_pin: dealPin });
+  if (error) {
+    return { ok: false, message: error.message || 'Network error' };
+  }
+  if (data && data.error) {
+    return { ok: false, message: data.error };
+  }
+  return { ok: true, data };
+}
+
+// ============================================================
+// RENDER PORTAL
+// ============================================================
+function renderPortal() {
+  const deal = dealData.deal;
+  document.getElementById('portal-creator-name').textContent = deal.creator_display || 'Creator';
+  document.getElementById('portal-deal-title').textContent = deal.deal_title;
+  document.getElementById('portal-brand-name').textContent = 'For ' + deal.brand_name;
+
+  const statusBadge = document.getElementById('portal-status-badge');
+  statusBadge.textContent = statusLabel(deal.status);
+  statusBadge.className = 'badge badge-status-' + deal.status;
+
+  const payBadge = document.getElementById('portal-payment-badge');
+  payBadge.textContent = paymentLabel(deal.payment_status);
+  payBadge.className = 'badge badge-payment-' + deal.payment_status;
+
+  document.getElementById('portal-amount').textContent = formatUSD(deal.deal_amount_cents);
+  document.getElementById('portal-contact-name').textContent = deal.brand_contact_name || '—';
+  document.getElementById('portal-start-date').textContent = formatDate(deal.campaign_start_date);
+  document.getElementById('portal-end-date').textContent = formatDate(deal.campaign_end_date);
+
+  // Deliverables
+  renderDeliverables(dealData.deliverables || []);
+
+  // Contract
+  if (deal.contract_file_path) {
+    document.getElementById('portal-contract-card').style.display = 'block';
+    document.getElementById('portal-contract-filename').textContent = deal.contract_file_name || 'contract.pdf';
+  } else {
+    document.getElementById('portal-contract-card').style.display = 'none';
+  }
+
+  // Messages
+  renderMessages(dealData.messages || []);
+
+  // Show
+  document.getElementById('loading-screen').style.display = 'none';
+  document.getElementById('pin-screen').style.display = 'none';
+  document.getElementById('portal-main').style.display = 'block';
+}
+
+function renderDeliverables(items) {
+  const listEl = document.getElementById('portal-deliverables-list');
+  const emptyEl = document.getElementById('portal-deliverables-empty');
+  if (items.length === 0) {
+    listEl.innerHTML = '';
+    emptyEl.style.display = 'block';
+    return;
+  }
+  emptyEl.style.display = 'none';
+  listEl.innerHTML = items.map(d => {
+    const url = (d.submitted_url || '').trim();
+    const safeUrl = escapeHtml(url);
+    const urlDisplay = url.length > 60 ? url.slice(0, 57) + '…' : url;
+    return `
+      <div class="deliv-card">
+        <div class="deliv-title">${escapeHtml(d.title) || '<span style="color:var(--muted);font-style:italic;">Untitled</span>'}</div>
+        ${d.notes ? `<div class="deliv-notes">${escapeHtml(d.notes)}</div>` : ''}
+        ${url ? `<a class="deliv-url" href="${safeUrl}" target="_blank" rel="noopener noreferrer">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          ${escapeHtml(urlDisplay)}
+        </a>` : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+function renderMessages(messages) {
+  const threadEl = document.getElementById('portal-messages-thread');
+  const emptyEl = document.getElementById('portal-messages-empty');
+  if (messages.length === 0) {
+    threadEl.innerHTML = '';
+    threadEl.style.display = 'none';
+    emptyEl.style.display = 'block';
+    return;
+  }
+  emptyEl.style.display = 'none';
+  threadEl.style.display = 'flex';
+  threadEl.innerHTML = messages.map(m => {
+    const isBrand = m.author_type === 'brand';
+    const dt = new Date(m.created_at);
+    const timeStr = dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' · ' + dt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    const authorLabel = isBrand ? 'You' : escapeHtml(m.author_name || 'Creator');
+    return `
+      <div class="msg-bubble-wrap ${isBrand ? 'brand' : 'creator'}">
+        <div class="msg-bubble ${isBrand ? 'brand' : 'creator'}">
+          <div class="msg-meta">
+            <div class="msg-author ${isBrand ? 'brand' : 'creator'}">${authorLabel}</div>
+            <div class="msg-time">${timeStr}</div>
+          </div>
+          <div class="msg-content">${escapeHtml(m.content)}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+  setTimeout(() => { threadEl.scrollTop = threadEl.scrollHeight; }, 50);
+}
+
+// ============================================================
+// REFRESH MESSAGES (via re-fetching whole deal)
+// ============================================================
+async function refreshMessages(btn) {
+  if (!btn) return;
+  const original = btn.innerHTML;
+  btn.disabled = true;
+  btn.style.opacity = '0.6';
+  btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 0.7s linear infinite;"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Refreshing`;
+
+  const result = await loadDeal();
+  if (result.ok) {
+    dealData = result.data;
+    renderMessages(dealData.messages || []);
+    btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> <span style="color:#4ade80;">Updated</span>`;
+  } else {
+    btn.innerHTML = `<span style="color:#fca5a5;">Failed</span>`;
+  }
+  setTimeout(() => {
+    btn.innerHTML = original;
+    btn.disabled = false;
+    btn.style.opacity = '';
+  }, 1200);
+}
+
+// ============================================================
+// SEND MESSAGE
+// ============================================================
+function updateMsgCharCount() {
+  const input = document.getElementById('msg-input');
+  const countEl = document.getElementById('msg-char');
+  const len = (input.value || '').length;
+  countEl.textContent = `${len} / 5000`;
+  countEl.style.color = len > 4900 ? '#fca5a5' : 'var(--muted)';
+}
+
+async function sendMessage() {
+  const input = document.getElementById('msg-input');
+  const content = (input.value || '').trim();
+  const errEl = document.getElementById('msg-error');
+  errEl.style.display = 'none';
+
+  if (!content) {
+    input.focus();
+    return;
+  }
+  if (content.length > 5000) {
+    errEl.textContent = 'Message too long (max 5000 characters).';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  const btn = document.getElementById('msg-send');
+  btn.disabled = true;
+  btn.textContent = 'Sending...';
+
+  const { data, error } = await sb.rpc('post_brand_message', {
+    p_token: dealToken,
+    p_pin: dealPin,
+    p_content: content
+  });
+
+  btn.disabled = false;
+  btn.textContent = 'Send';
+
+  if (error) {
+    errEl.textContent = error.message || 'Failed to send message.';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (data && data.error) {
+    errEl.textContent = data.error;
+    errEl.style.display = 'block';
+    return;
+  }
+
+  // Clear input and refresh thread
+  input.value = '';
+  updateMsgCharCount();
+  // Re-fetch full deal to get the latest message list
+  const result = await loadDeal();
+  if (result.ok) {
+    dealData = result.data;
+    renderMessages(dealData.messages || []);
+  }
+}
+
+// ============================================================
+// PIN ENTRY FLOW
+// ============================================================
+async function attemptUnlock(pin) {
+  if (isLockedOut()) {
+    showLockoutMessage();
+    return;
+  }
+  const submitBtn = document.getElementById('pin-submit');
+  const errEl = document.getElementById('pin-error');
+  const infoEl = document.getElementById('pin-info');
+  errEl.style.display = 'none';
+  infoEl.style.display = 'none';
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Verifying...';
+
+  dealPin = pin;
+  const result = await loadDeal();
+
+  submitBtn.disabled = false;
+  submitBtn.textContent = 'Unlock portal';
+
+  if (!result.ok) {
+    if (result.message && (result.message.toLowerCase().includes('revoked') || result.message.toLowerCase().includes('access'))) {
+      // Revoked deals are a permanent error — show full screen
+      showFullError('Access Revoked', result.message);
+      return;
+    }
+    // Wrong PIN or invalid token
+    const attempts = recordFailedAttempt();
+    const remaining = MAX_PIN_ATTEMPTS - attempts;
+    if (remaining <= 0) {
+      showLockoutMessage();
+    } else {
+      errEl.textContent = `${result.message}. ${remaining} attempt${remaining === 1 ? '' : 's'} remaining.`;
+      errEl.style.display = 'block';
+    }
+    dealPin = null;
+    return;
+  }
+
+  // Success
+  clearAttempts();
+  savePinToSession(pin);
+  dealData = result.data;
+  renderPortal();
+}
+
+function showLockoutMessage() {
+  const remaining = getLockoutTimeRemaining();
+  const errEl = document.getElementById('pin-error');
+  const submitBtn = document.getElementById('pin-submit');
+  errEl.textContent = `Too many incorrect attempts. Please try again in ${formatLockoutMins(remaining)}.`;
+  errEl.style.display = 'block';
+  submitBtn.disabled = true;
+  document.getElementById('pin-input').disabled = true;
+}
+
+function showFullError(title, message) {
+  document.getElementById('loading-screen').style.display = 'none';
+  document.getElementById('pin-screen').style.display = 'none';
+  document.getElementById('portal-main').style.display = 'none';
+  document.getElementById('full-error-title').textContent = title;
+  document.getElementById('full-error-msg').textContent = message;
+  document.getElementById('full-error').style.display = 'flex';
+}
+
+// ============================================================
+// INIT
+// ============================================================
+function getTokenFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('t');
+}
+
+async function init() {
+  dealToken = getTokenFromUrl();
+  if (!dealToken || dealToken.length < 10) {
+    showFullError('Invalid Link', 'This portal link appears to be malformed or incomplete.');
+    return;
+  }
+
+  // Check lockout
+  if (isLockedOut()) {
+    document.getElementById('loading-screen').style.display = 'none';
+    document.getElementById('pin-screen').style.display = 'flex';
+    showLockoutMessage();
+    return;
+  }
+
+  // Try cached PIN from sessionStorage first
+  const cachedPin = getPinFromSession();
+  if (cachedPin) {
+    dealPin = cachedPin;
+    const result = await loadDeal();
+    if (result.ok) {
+      dealData = result.data;
+      renderPortal();
+      return;
+    }
+    // Cached PIN failed (e.g., new token issued) — clear and fall through to PIN entry
+    clearPinFromSession();
+    dealPin = null;
+  }
+
+  // Show PIN entry
+  document.getElementById('loading-screen').style.display = 'none';
+  document.getElementById('pin-screen').style.display = 'flex';
+  document.getElementById('pin-input').focus();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  init();
+
+  // PIN form submission
+  const submitBtn = document.getElementById('pin-submit');
+  const input = document.getElementById('pin-input');
+  // Strip non-digits as they type
+  input.addEventListener('input', () => {
+    input.value = input.value.replace(/\D/g, '').slice(0, 6);
+  });
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && input.value.length === 6) submitBtn.click();
+  });
+  submitBtn.addEventListener('click', () => {
+    const pin = input.value.trim();
+    if (pin.length !== 6) {
+      const errEl = document.getElementById('pin-error');
+      errEl.textContent = 'Please enter the full 6-digit PIN.';
+      errEl.style.display = 'block';
+      return;
+    }
+    attemptUnlock(pin);
+  });
+});
+</script>
+
+</body>
+</html>
