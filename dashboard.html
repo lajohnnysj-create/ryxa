@@ -3277,27 +3277,6 @@
 
         <!-- Options -->
         <div id="img-options" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:20px;">
-          <!-- Resize row (everyone) -->
-          <div style="margin-bottom:16px;">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-              <label style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;font-weight:600;">Resize (optional)</label>
-              <label style="font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px;cursor:pointer;">
-                <input type="checkbox" id="img-resize-lock" checked style="accent-color:var(--accent);"> Lock ratio
-              </label>
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-              <input type="number" id="img-width" placeholder="Width (auto)" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;" aria-label="Output width in pixels">
-              <input type="number" id="img-height" placeholder="Height (auto)" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;" aria-label="Output height in pixels">
-            </div>
-            <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
-              <button type="button" onclick="setResizePreset(720)" class="img-size-preset" style="background:var(--surface);border:1px solid var(--border-hover);color:var(--muted);font-size:11px;padding:5px 10px;border-radius:6px;cursor:pointer;font-family:DM Sans,sans-serif;">720px</button>
-              <button type="button" onclick="setResizePreset(1080)" class="img-size-preset" style="background:var(--surface);border:1px solid var(--border-hover);color:var(--muted);font-size:11px;padding:5px 10px;border-radius:6px;cursor:pointer;font-family:DM Sans,sans-serif;">1080px</button>
-              <button type="button" onclick="setResizePreset(1920)" class="img-size-preset" style="background:var(--surface);border:1px solid var(--border-hover);color:var(--muted);font-size:11px;padding:5px 10px;border-radius:6px;cursor:pointer;font-family:DM Sans,sans-serif;">1920px</button>
-              <button type="button" onclick="setResizePreset(2560)" class="img-size-preset" style="background:var(--surface);border:1px solid var(--border-hover);color:var(--muted);font-size:11px;padding:5px 10px;border-radius:6px;cursor:pointer;font-family:DM Sans,sans-serif;">2560px</button>
-              <button type="button" onclick="clearResize()" class="img-size-preset" style="background:transparent;border:1px solid var(--border-hover);color:var(--muted);font-size:11px;padding:5px 10px;border-radius:6px;cursor:pointer;font-family:DM Sans,sans-serif;">Clear</button>
-            </div>
-          </div>
-
           <!-- Format + Quality row -->
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
             <div>
@@ -3318,7 +3297,10 @@
               <input type="range" id="img-quality" min="10" max="100" value="90" style="width:100%;accent-color:var(--accent);" oninput="document.getElementById('quality-val').textContent=this.value" aria-label="Compression quality">
             </div>
           </div>
-          <!-- Hidden legacy grid — kept so existing JS referencing pro-resize still runs without errors -->
+          <!-- Hidden inputs kept so existing JS doesn't throw errors -->
+          <input type="hidden" id="img-width" value="">
+          <input type="hidden" id="img-height" value="">
+          <input type="checkbox" id="img-resize-lock" checked style="display:none;">
           <div id="pro-resize" style="display:none;"></div>
         </div>
 
