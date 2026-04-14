@@ -11989,9 +11989,10 @@ document.getElementById('signout-modal').addEventListener('click', function(e) {
   if (e.target === this) closeSignoutModal();
 });
 
-// Brand Deal CRM — delete modal click-outside-to-close
-document.getElementById('deal-delete-modal').addEventListener('click', function(e) {
-  if (e.target === this) closeDealDeleteModal();
+// Brand Deal CRM — delete modal click-outside-to-close (attached after DOMContentLoaded since modal is below)
+window.addEventListener('DOMContentLoaded', () => {
+  const ddm = document.getElementById('deal-delete-modal');
+  if (ddm) ddm.addEventListener('click', function(e) { if (e.target === this) closeDealDeleteModal(); });
 });
 </script>
 
