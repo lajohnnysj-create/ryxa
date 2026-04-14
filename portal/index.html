@@ -609,7 +609,9 @@ async function sendMessage() {
     body: {
       type: 'brand_message_to_creator',
       deal_id: dealData.deal.id,
-      message_preview: preview
+      message_preview: preview,
+      share_token: dealToken,
+      share_pin: dealPin
     }
   }).catch(err => console.warn('Notification failed (non-fatal):', err));
 
