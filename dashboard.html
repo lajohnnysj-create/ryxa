@@ -3241,8 +3241,8 @@
           <div style="margin-bottom:12px;">
             <label style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;font-weight:600;">Crop &amp; Aspect Ratio</label>
           </div>
-          <div id="img-crop-stage" style="position:relative;width:100%;background:#000;border-radius:8px;overflow:auto;user-select:none;touch-action:none;min-height:240px;max-height:540px;">
-            <div id="img-crop-inner" style="position:relative;display:inline-block;transform-origin:top left;transform:scale(1);">
+          <div id="img-crop-stage" style="position:relative;width:100%;background:#000;border-radius:8px;overflow:hidden;user-select:none;touch-action:none;min-height:240px;max-height:540px;display:flex;align-items:center;justify-content:center;">
+            <div id="img-crop-inner" style="position:relative;display:inline-block;transform-origin:center center;transform:translate(0px,0px) scale(1);will-change:transform;">
               <img id="img-crop-src" alt="Image to crop" style="display:block;max-width:100%;max-height:540px;pointer-events:none;">
               <div id="img-crop-box" style="position:absolute;border:2px solid #fff;box-shadow:0 0 0 9999px rgba(0,0,0,0.55);cursor:move;display:none;">
                 <div class="img-crop-handle" data-handle="nw" style="position:absolute;top:-8px;left:-8px;width:16px;height:16px;background:#fff;border:2px solid #7c3aed;border-radius:50%;cursor:nwse-resize;"></div>
@@ -8535,7 +8535,18 @@ function initImageConverter() {
     zoomSlider.__wired = true;
     zoomSlider.addEventListener('input', function() {
       applyCropZoom(parseInt(this.value));
+      // Update stage cursor based on zoom level
+      const stage = document.getElementById('img-crop-stage');
+      if (stage) stage.style.cursor = imgCropZoom > 1 ? 'grab' : 'default';
     });
+  }
+
+  // Stage pan (click anywhere outside crop box to drag image around when zoomed in)
+  const stage = document.getElementById('img-crop-stage');
+  if (stage && !stage.__panWired) {
+    stage.__panWired = true;
+    stage.addEventListener('mousedown', startStagePan);
+    stage.addEventListener('touchstart', startStagePan, { passive: false });
   }
 
   // Crop box drag (move + resize handles)
@@ -8610,8 +8621,9 @@ function clearImage() {
   const zoomSlider = document.getElementById('img-crop-zoom');
   if (zoomSlider) zoomSlider.value = '100';
   const inner = document.getElementById('img-crop-inner');
-  if (inner) inner.style.transform = 'scale(1)';
+  if (inner) inner.style.transform = 'translate(0px,0px) scale(1)';
   imgCropZoom = 1;
+  imgCropPan = { x: 0, y: 0 };
 }
 
 // ───── Crop box state ─────
@@ -8622,6 +8634,7 @@ let imgAspectLock = null;           // e.g. 1 for 1:1, 9/16 for 9:16, null for f
 let imgCropMode = 'original';       // 'free' | '1:1' | '4:5' | '9:16' | '16:9' | '3:1' | 'original'
 let imgCropLocked = false;          // true = crop committed; box can't move or resize
 let imgCropZoom = 1;                // 1 = 100%, scales the image + crop box together
+let imgCropPan = { x: 0, y: 0 };    // Translation offset in CSS pixels (screen space)
 
 function setupCropStage(dataUrl) {
   const stageImg = document.getElementById('img-crop-src');
@@ -8801,10 +8814,49 @@ function renderCropBox() {
   if (dims) dims.textContent = `Crop: ${pixelW} × ${pixelH} px`;
 }
 
-function applyCropZoom(zoomPct) {
-  imgCropZoom = zoomPct / 100;
+function applyInnerTransform() {
   const inner = document.getElementById('img-crop-inner');
-  if (inner) inner.style.transform = `scale(${imgCropZoom})`;
+  if (!inner) return;
+  inner.style.transform = `translate(${imgCropPan.x}px, ${imgCropPan.y}px) scale(${imgCropZoom})`;
+}
+
+function clampPan() {
+  // Allow the image to be panned but keep at least some portion visible
+  const stage = document.getElementById('img-crop-stage');
+  const inner = document.getElementById('img-crop-inner');
+  if (!stage || !inner) return;
+  const stageW = stage.clientWidth;
+  const stageH = stage.clientHeight;
+  const scaledW = imgDisplaySize.w * imgCropZoom;
+  const scaledH = imgDisplaySize.h * imgCropZoom;
+  // When not zoomed (image fits in stage), no panning allowed
+  if (scaledW <= stageW) imgCropPan.x = 0;
+  else {
+    const maxX = (scaledW - stageW) / 2;
+    imgCropPan.x = Math.max(-maxX, Math.min(maxX, imgCropPan.x));
+  }
+  if (scaledH <= stageH) imgCropPan.y = 0;
+  else {
+    const maxY = (scaledH - stageH) / 2;
+    imgCropPan.y = Math.max(-maxY, Math.min(maxY, imgCropPan.y));
+  }
+}
+
+function applyCropZoom(zoomPct) {
+  const prevZoom = imgCropZoom;
+  imgCropZoom = zoomPct / 100;
+  // When zooming out to 100%, reset pan (no panning needed)
+  if (imgCropZoom <= 1) imgCropPan = { x: 0, y: 0 };
+  else {
+    // Scale existing pan proportionally so view stays roughly centered on the same spot
+    if (prevZoom > 0) {
+      const ratio = imgCropZoom / prevZoom;
+      imgCropPan.x *= ratio;
+      imgCropPan.y *= ratio;
+    }
+    clampPan();
+  }
+  applyInnerTransform();
   const valEl = document.getElementById('img-crop-zoom-val');
   if (valEl) valEl.textContent = `${zoomPct}%`;
 }
@@ -8812,7 +8864,42 @@ function applyCropZoom(zoomPct) {
 function resetCropZoom() {
   const slider = document.getElementById('img-crop-zoom');
   if (slider) slider.value = '100';
+  imgCropPan = { x: 0, y: 0 };
   applyCropZoom(100);
+}
+
+function startStagePan(e) {
+  // Only pan if clicking inside the stage but NOT on the crop box or its handles
+  if (e.target.closest('#img-crop-box')) return;
+  // Don't pan if zoomed out fully (nothing to pan)
+  if (imgCropZoom <= 1) return;
+  e.preventDefault();
+  const stage = document.getElementById('img-crop-stage');
+  const startX = e.touches ? e.touches[0].clientX : e.clientX;
+  const startY = e.touches ? e.touches[0].clientY : e.clientY;
+  const origPan = { ...imgCropPan };
+  stage.style.cursor = 'grabbing';
+
+  function onMove(ev) {
+    const cx = ev.touches ? ev.touches[0].clientX : ev.clientX;
+    const cy = ev.touches ? ev.touches[0].clientY : ev.clientY;
+    imgCropPan.x = origPan.x + (cx - startX);
+    imgCropPan.y = origPan.y + (cy - startY);
+    clampPan();
+    applyInnerTransform();
+    ev.preventDefault();
+  }
+  function onEnd() {
+    stage.style.cursor = 'grab';
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onEnd);
+    document.removeEventListener('touchmove', onMove);
+    document.removeEventListener('touchend', onEnd);
+  }
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', onEnd);
+  document.addEventListener('touchmove', onMove, { passive: false });
+  document.addEventListener('touchend', onEnd);
 }
 
 function startCropInteraction(e, mode, handle) {
