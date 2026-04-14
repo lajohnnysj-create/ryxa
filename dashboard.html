@@ -4036,7 +4036,13 @@
 
               <!-- BASIC INFO section -->
               <div style="margin-bottom:24px;">
-                <div style="font-family:Syne,sans-serif;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:14px;">Deal Details</div>
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
+                  <div style="font-family:Syne,sans-serif;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);">Deal Details</div>
+                  <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                    <span id="deal-detail-status-badge" class="deal-status-badge deal-status-draft">Draft</span>
+                    <span id="deal-detail-payment-badge" class="deal-status-badge" style="background:rgba(251,191,36,0.1);color:#fbbf24;border:1px solid rgba(251,191,36,0.3);">Waiting for Payment</span>
+                  </div>
+                </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;" class="deal-grid-2">
                   <div style="grid-column:1 / -1;">
                     <label class="deal-label">Deal Title *</label>
@@ -4093,7 +4099,7 @@
                   </div>
                   <div>
                     <label class="deal-label">Payment Status</label>
-                    <select id="deal-payment-status" class="deal-input">
+                    <select id="deal-payment-status" class="deal-input" onchange="updateDealDetailBadges()">
                       <option value="waiting">Waiting for Payment</option>
                       <option value="paid">Paid</option>
                     </select>
@@ -10311,6 +10317,7 @@ function showDealDetail(dealId) {
   }
 
   applyDealLockState();
+  updateDealDetailBadges();
 
   // Switch views
   document.getElementById('deals-list-view').style.display = 'none';
@@ -10323,6 +10330,35 @@ function showDealDetail(dealId) {
 
 function handleDealStatusChange() {
   applyDealLockState();
+  updateDealDetailBadges();
+}
+
+// Update the status + payment badges at the top of the detail page to reflect current form values
+function updateDealDetailBadges() {
+  const status = document.getElementById('deal-status').value;
+  const payment = document.getElementById('deal-payment-status').value;
+
+  const statusBadge = document.getElementById('deal-detail-status-badge');
+  if (statusBadge) {
+    statusBadge.textContent = DEAL_STATUS_LABELS[status] || status;
+    // Swap classes — remove any prior deal-status-* and add the new one
+    statusBadge.className = 'deal-status-badge deal-status-' + status;
+  }
+
+  const paymentBadge = document.getElementById('deal-detail-payment-badge');
+  if (paymentBadge) {
+    paymentBadge.textContent = DEAL_PAYMENT_LABELS[payment] || payment;
+    paymentBadge.className = 'deal-status-badge';
+    if (payment === 'paid') {
+      paymentBadge.style.background = 'rgba(74,222,128,0.12)';
+      paymentBadge.style.color = '#4ade80';
+      paymentBadge.style.border = '1px solid rgba(74,222,128,0.3)';
+    } else {
+      paymentBadge.style.background = 'rgba(251,191,36,0.1)';
+      paymentBadge.style.color = '#fbbf24';
+      paymentBadge.style.border = '1px solid rgba(251,191,36,0.3)';
+    }
+  }
 }
 
 function applyDealLockState() {
