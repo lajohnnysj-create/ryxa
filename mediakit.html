@@ -922,6 +922,31 @@ async function load() {
   if (kErr || !kit) { renderNotFound(username); return; }
 
   render(profile, kit);
+
+  // Track page view (fire-and-forget, non-blocking)
+  trackPageView(username, 'mediakit');
+}
+
+// Page view tracking with visitor dedup
+async function trackPageView(username, pageType) {
+  try {
+    const raw = [
+      navigator.userAgent || '',
+      navigator.language || '',
+      screen.width + 'x' + screen.height,
+      new Date().getTimezoneOffset().toString()
+    ].join('|');
+    const msgBuf = new TextEncoder().encode(raw);
+    const hashBuf = await crypto.subtle.digest('SHA-256', msgBuf);
+    const hashArr = Array.from(new Uint8Array(hashBuf));
+    const visitorHash = hashArr.map(b => b.toString(16).padStart(2, '0')).join('');
+
+    sb.rpc('record_page_view', {
+      p_username: username,
+      p_page_type: pageType,
+      p_visitor_hash: visitorHash
+    }).catch(() => {});
+  } catch (e) { /* tracking is best-effort */ }
 }
 
 load().catch(err => {
