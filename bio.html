@@ -338,6 +338,18 @@
     gap: 10px;
     margin-top: 8px;
   }
+  .link-header {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    text-align: center;
+    padding: 16px 8px 6px;
+    opacity: 0.85;
+    word-break: break-word;
+  }
   .link-btn {
     display: flex;
     flex-direction: column;
@@ -784,6 +796,11 @@ function buildAvatar(profile, bio) {
 }
 
 function buildLink(link) {
+  // Header — text divider, no link, no clickable anchor
+  if (link.isHeader) {
+    if (!link.title) return '';
+    return `<div class="link-header">${esc(link.title)}</div>`;
+  }
   const url = validUrl(link.url);
   if (!url) return '';
   const title = esc(link.title || '');
