@@ -2538,8 +2538,8 @@
       <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:12px;">Subscription</div>
       <div id="settings-sub-free" style="display:none;">
         <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">You are on the Free plan. Upgrade to unlock full access.</p>
-        <button onclick="closeSettingsModal();startCheckout('monthly');" style="width:100%;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow);margin-bottom:8px;">Upgrade to Pro — $10/mo</button>
-        <button onclick="closeSettingsModal();startCheckout('max');" style="width:100%;padding:11px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px rgba(232,121,249,0.35);">Get Creator Max — $20/mo</button>
+        <button onclick="startCheckout('monthly', this)" style="width:100%;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow);margin-bottom:8px;">Upgrade to Pro — $10/mo</button>
+        <button onclick="startCheckout('max', this)" style="width:100%;padding:11px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px rgba(232,121,249,0.35);">Get Creator Max — $20/mo</button>
       </div>
       <div id="settings-sub-pro" style="display:none;">
         <p id="settings-sub-pro-msg" style="font-size:13px;color:var(--muted);margin-bottom:16px;">You are on the <strong id="settings-sub-pro-label" style="color:#e879f9;">Pro plan</strong>. You have full access to all tools and features.</p>
@@ -2548,7 +2548,7 @@
           <p style="font-size:13px;color:#e879f9;margin-bottom:4px;font-weight:600;">Upgrade to Creator Max?</p>
           <p style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5;">Takes effect immediately. You'll be charged a prorated amount today, then $20/month going forward. Unlocks custom themes, hero links, and full branding control.</p>
           <div style="display:flex;gap:8px;">
-            <button onclick="confirmUpgradeToMaxFinal()" style="flex:1;padding:9px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 14px rgba(232,121,249,0.3);">Yes, upgrade</button>
+            <button onclick="confirmUpgradeToMaxFinal(event)" style="flex:1;padding:9px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 14px rgba(232,121,249,0.3);">Yes, upgrade</button>
             <button onclick="dismissSettingsMsg()" style="flex:1;padding:9px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:7px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;">Stay on Pro</button>
           </div>
         </div>
@@ -2557,7 +2557,7 @@
           <p style="font-size:13px;color:#c4b5fd;margin-bottom:4px;font-weight:600;">Downgrade to Pro?</p>
           <p style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5;">Takes effect immediately with prorated credit for your unused Creator Max time. Your custom theme and hero links will remain saved but won't display until you upgrade again.</p>
           <div style="display:flex;gap:8px;">
-            <button onclick="confirmDowngradeToPro()" style="flex:1;padding:9px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.35);color:#c4b5fd;border-radius:7px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Yes, downgrade</button>
+            <button onclick="confirmDowngradeToPro(event)" style="flex:1;padding:9px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.35);color:#c4b5fd;border-radius:7px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Yes, downgrade</button>
             <button onclick="dismissSettingsMsg()" style="flex:1;padding:9px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:7px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;">Keep Max</button>
           </div>
         </div>
@@ -2709,7 +2709,7 @@
     </div>
     <div class="topbar-right">
       <span class="tier-badge free" id="topbar-tier-badge">Free</span>
-      <button class="upgrade-btn" id="topbar-upgrade-btn" onclick="startCheckout()">Upgrade to Pro</button>
+      <button class="upgrade-btn" id="topbar-upgrade-btn" onclick="startCheckout(undefined, this)">Upgrade to Pro</button>
     </div>
   </div>
 
@@ -2720,8 +2720,8 @@
     <div class="upgrade-banner" id="upgrade-banner" style="display:none;">
       <div class="upgrade-banner-text"><strong>Unlock everything with Pro</strong>. Full follower audit, unlimited invoices, more QR codes and image conversions.</div>
       <div class="upgrade-banner-btns">
-        <button class="upgrade-banner-btn-pro" onclick="startCheckout()">Go Pro &#x2014; $10/mo &#x2B50;</button>
-        <button class="upgrade-banner-btn-max" onclick="startCheckout('max')">Upgrade to Creator Max &#x2014; $20/mo</button>
+        <button class="upgrade-banner-btn-pro" onclick="startCheckout(undefined, this)">Go Pro &#x2014; $10/mo &#x2B50;</button>
+        <button class="upgrade-banner-btn-max" onclick="startCheckout('max', this)">Upgrade to Creator Max &#x2014; $20/mo</button>
       </div>
     </div>
 
@@ -3082,7 +3082,7 @@
         </div>
         <h2 style="font-family:Syne,sans-serif;font-size:22px;font-weight:800;margin-bottom:8px;letter-spacing:-0.3px;">Media Kit is a Pro feature</h2>
         <p style="color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:24px;">Build a professional media kit with your audience stats, engagement rate, and rate card. Share a single link with brands, or download it as a PDF.</p>
-        <button onclick="startCheckout()" style="padding:12px 26px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow);">Upgrade to Pro — $10/mo</button>
+        <button onclick="startCheckout(undefined, this)" style="padding:12px 26px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow);">Upgrade to Pro — $10/mo</button>
       </div>
 
       <div id="mediakit-editor" class="bio-tool-wrap" style="display:none;">
@@ -3364,7 +3364,7 @@
               <div style="font-size:12px;color:var(--muted);margin-top:2px;">Free users can plan in this session, upgrade to Pro to save and return later.</div>
             </div>
           </div>
-          <button onclick="startCheckout()" style="padding:8px 14px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;white-space:nowrap;">Upgrade — $10/mo</button>
+          <button onclick="startCheckout(undefined, this)" style="padding:8px 14px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;white-space:nowrap;">Upgrade — $10/mo</button>
         </div>
 
         <!-- Save status for Pro -->
@@ -3957,7 +3957,7 @@
         <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;background:linear-gradient(135deg,#a78bfa,#e879f9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:700;margin-bottom:8px;">Creator Max</div>
         <h2 style="font-family:Syne,sans-serif;font-size:22px;font-weight:800;margin-bottom:8px;letter-spacing:-0.3px;">Script Builder is a Creator Max feature</h2>
         <p style="color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:24px;">Write and organize your video scripts with draggable blocks. Add a hook, break into sections, rearrange freely, and export as PDF or teleprompter.</p>
-        <button onclick="handleMaxUpgradeClick()" style="padding:12px 26px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px rgba(232,121,249,0.35);">Upgrade to Creator Max — $20/mo</button>
+        <button onclick="handleMaxUpgradeClick(event)" style="padding:12px 26px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px rgba(232,121,249,0.35);">Upgrade to Creator Max — $20/mo</button>
       </div>
 
       <!-- Editor wrapper (shown when Max) -->
@@ -4008,7 +4008,7 @@
           <div style="display:inline-flex;align-items:center;gap:8px;padding:6px 14px;background:linear-gradient(135deg,rgba(167,139,250,0.15),rgba(232,121,249,0.15));border:1px solid rgba(167,139,250,0.3);border-radius:999px;font-size:11px;font-weight:700;color:#e879f9;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:20px;">MAX Feature</div>
           <h2 style="font-family:Syne,sans-serif;font-size:22px;font-weight:800;margin-bottom:8px;letter-spacing:-0.3px;">Brand Deal CRM is a Creator Max feature</h2>
           <p style="color:var(--muted);font-size:14px;max-width:480px;margin:0 auto 24px;">Manage your brand deals, track deliverables, securely share details with brands, and see your revenue analytics — all in one place.</p>
-          <button onclick="handleMaxUpgradeClick()" style="padding:12px 28px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 8px 24px rgba(167,139,250,0.3);">Upgrade to Creator Max</button>
+          <button onclick="handleMaxUpgradeClick(event)" style="padding:12px 28px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 8px 24px rgba(167,139,250,0.3);">Upgrade to Creator Max</button>
         </div>
 
         <!-- Main CRM (for Max users) -->
@@ -4514,7 +4514,7 @@ function updateTierUI() {
       // Free user: show Pro upgrade with default styling
       upgradeBtn.style.display = 'block';
       upgradeBtn.textContent = 'Upgrade to Pro';
-      upgradeBtn.onclick = () => startCheckout();
+      upgradeBtn.onclick = function() { startCheckout(undefined, this); };
       upgradeBtn.style.background = '';
       upgradeBtn.style.boxShadow = '';
     }
@@ -4614,8 +4614,45 @@ function showTool(tool) {
   closeSidebar();
 }
 
-async function startCheckout(plan) {
+// ===== Button loading state helpers =====
+// Captures the original innerHTML and disables the button while a checkout is opening.
+// Inline SVG spinner is reused by every call so styling stays consistent.
+const _btnLoadingState = new WeakMap();
+function setBtnLoading(btn, label) {
+  if (!btn || _btnLoadingState.has(btn)) return;
+  _btnLoadingState.set(btn, { html: btn.innerHTML, disabled: btn.disabled, cursor: btn.style.cursor });
+  btn.disabled = true;
+  btn.style.cursor = 'wait';
+  btn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:8px;justify-content:center;">' +
+    '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true" style="animation:btn-spin 0.7s linear infinite;flex-shrink:0;">' +
+    '<path d="M21 12a9 9 0 1 1-6.2-8.55"/>' +
+    '</svg>' +
+    '<span>' + (label || 'Opening checkout…') + '</span>' +
+    '</span>';
+}
+function clearBtnLoading(btn) {
+  if (!btn) return;
+  const prev = _btnLoadingState.get(btn);
+  if (!prev) return;
+  btn.innerHTML = prev.html;
+  btn.disabled = prev.disabled;
+  btn.style.cursor = prev.cursor;
+  _btnLoadingState.delete(btn);
+}
+// Inject the spin keyframes once (no-op if already added).
+(function ensureBtnSpinKeyframes(){
+  if (document.getElementById('btn-spin-keyframes')) return;
+  const style = document.createElement('style');
+  style.id = 'btn-spin-keyframes';
+  style.textContent = '@keyframes btn-spin { to { transform: rotate(360deg); } }';
+  document.head.appendChild(style);
+})();
+
+async function startCheckout(plan, triggerBtn) {
   if (!currentUser) { window.location.href = 'index.html'; return; }
+  // Try to find the button that triggered this call so we can show a loading state.
+  const btn = triggerBtn || (typeof event !== 'undefined' && event && event.currentTarget && event.currentTarget.tagName === 'BUTTON' ? event.currentTarget : null);
+  if (btn) setBtnLoading(btn, 'Opening checkout…');
   // Resolve plan: explicit arg → localStorage intent → default Pro
   let targetPlan = plan;
   if (!targetPlan) {
@@ -4651,12 +4688,17 @@ async function startCheckout(plan) {
             setTimeout(() => showSettingsResult('success', msg), 150);
           }
         }
+        clearBtnLoading(btn);
       } else {
+        // Page is about to navigate away — keep the loading state so users don't double-click
         window.location.href = data.url;
       }
+    } else {
+      clearBtnLoading(btn);
     }
   } catch (err) {
     console.error('Checkout error:', err);
+    clearBtnLoading(btn);
     // Show inline error instead of browser alert
     if (typeof showSettingsResult === 'function' && document.getElementById('settings-modal')?.classList.contains('open')) {
       showSettingsResult('error', 'Something went wrong. Please try again.');
@@ -4679,9 +4721,10 @@ function confirmUpgradeToMax() {
 }
 
 // Step 2: user clicked "Yes, upgrade" — actually trigger Stripe
-async function confirmUpgradeToMaxFinal() {
+async function confirmUpgradeToMaxFinal(ev) {
   dismissSettingsMsg();
-  await startCheckout('max');
+  const btn = ev && ev.currentTarget && ev.currentTarget.tagName === 'BUTTON' ? ev.currentTarget : null;
+  await startCheckout('max', btn);
 }
 
 // Confirm + trigger upgrade from outside the settings modal (e.g. topbar button)
@@ -4695,19 +4738,24 @@ function closeTopbarUpgradeConfirm() {
   if (modal) modal.style.display = 'none';
 }
 
-async function confirmTopbarUpgradeToMax() {
+async function confirmTopbarUpgradeToMax(ev) {
+  const btn = ev && ev.currentTarget && ev.currentTarget.tagName === 'BUTTON' ? ev.currentTarget : null;
+  // Modal stays open while loading so the spinner is visible. On success the page
+  // navigates to Stripe (or in-place upgrade opens settings) — close the confirm
+  // modal afterward in either case so it doesn't sit on top.
+  await startCheckout('max', btn);
   closeTopbarUpgradeConfirm();
-  await startCheckout('max');
 }
 
 // Unified handler for any "Upgrade to Creator Max" button outside the topbar.
 // Free users go straight to Stripe checkout (need to enter card).
 // Pro users see the confirmation modal first (avoid accidental in-place upgrade).
-function handleMaxUpgradeClick() {
+function handleMaxUpgradeClick(ev) {
   if (isPro() && !isMax()) {
     promptUpgradeToMax();
   } else {
-    startCheckout('max');
+    const btn = ev && ev.currentTarget && ev.currentTarget.tagName === 'BUTTON' ? ev.currentTarget : null;
+    startCheckout('max', btn);
   }
 }
 
@@ -4719,9 +4767,10 @@ function handleDowngradeToPro() {
 }
 
 // Step 2: user clicked "Yes, downgrade" — actually trigger Stripe
-async function confirmDowngradeToPro() {
+async function confirmDowngradeToPro(ev) {
   dismissSettingsMsg();
-  await startCheckout('monthly');
+  const btn = ev && ev.currentTarget && ev.currentTarget.tagName === 'BUTTON' ? ev.currentTarget : null;
+  await startCheckout('monthly', btn);
 }
 function closeSignoutModal() {
   const modal = document.getElementById('signout-modal');
@@ -13756,7 +13805,7 @@ window.addEventListener('DOMContentLoaded', () => {
     <p style="color:var(--muted);font-size:13px;margin-bottom:14px;line-height:1.6;">Your current Pro plan will be upgraded immediately. Stripe will charge a prorated amount for the difference and your billing date stays the same.</p>
     <p style="color:var(--muted);font-size:13px;margin-bottom:20px;line-height:1.6;">Creator Max is <strong style="color:var(--text);">$20/month</strong>.</p>
     <div style="display:flex;gap:10px;">
-      <button onclick="confirmTopbarUpgradeToMax()" style="flex:1;padding:11px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 16px rgba(167,139,250,0.25);">Yes, upgrade</button>
+      <button onclick="confirmTopbarUpgradeToMax(event)" style="flex:1;padding:11px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 16px rgba(167,139,250,0.25);">Yes, upgrade</button>
       <button onclick="closeTopbarUpgradeConfirm()" style="padding:11px 18px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Cancel</button>
     </div>
   </div>
