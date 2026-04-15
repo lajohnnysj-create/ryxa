@@ -10773,14 +10773,27 @@ function updateMessagesCardVisibility() {
   }
   card.style.display = 'block';
 
-  // Decide: show "share not enabled" notice if no active share token
   const noShareEl = document.getElementById('deal-messages-no-share');
   const composer = document.getElementById('deal-message-composer');
   const isShared = deal.share_token && !deal.share_revoked_at;
+  const brandHasAccessed = !!deal.brand_first_accessed_at;
+
   if (!isShared) {
-    if (noShareEl) noShareEl.style.display = 'block';
+    // No share token yet — show "share with brand first"
+    if (noShareEl) {
+      noShareEl.style.display = 'block';
+      noShareEl.querySelector('div').innerHTML = 'Messages will be visible to the brand once you share this deal. Click <strong style="color:var(--text);">Share with brand</strong> above to generate the portal link.';
+    }
+    if (composer) composer.style.display = 'none';
+  } else if (!brandHasAccessed) {
+    // Shared but brand hasn't logged into portal yet — wait for them
+    if (noShareEl) {
+      noShareEl.style.display = 'block';
+      noShareEl.querySelector('div').innerHTML = '<strong style="color:var(--text);">Chat will be enabled when the brand logs in.</strong> Send them the portal link and PIN above so they can access the deal.';
+    }
     if (composer) composer.style.display = 'none';
   } else {
+    // Brand has logged in — chat is fully enabled
     if (noShareEl) noShareEl.style.display = 'none';
     if (composer) composer.style.display = 'flex';
   }
@@ -10882,6 +10895,16 @@ async function postCreatorMessage() {
 
   const deal = dealsList.find(d => d.id === currentDealId);
   if (!deal) return;
+
+  // Gate: chat is only enabled after brand has logged into portal once
+  if (!deal.share_token || deal.share_revoked_at) {
+    showDealModalMsg('error', 'Share this deal with the brand first to enable messaging.');
+    return;
+  }
+  if (!deal.brand_first_accessed_at) {
+    showDealModalMsg('error', 'Chat will be enabled once the brand opens the portal with the PIN.');
+    return;
+  }
 
   // Get creator display name — prefer profiles.username, fall back to email prefix
   let authorName = 'Creator';
