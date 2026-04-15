@@ -13,6 +13,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <script src="https://cdn.jsdelivr.net/npm/stripe-js@3"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css">
 <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js" defer></script>
@@ -2527,6 +2528,7 @@
     <div id="settings-password-section" style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;">
       <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:12px;">Password</div>
       <p style="font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.5;">We'll email you a secure link to change your password.</p>
+      <div id="settings-password-turnstile" style="display:none;margin-bottom:10px;justify-content:center;min-height:60px;"></div>
       <button id="settings-reset-password-btn" onclick="sendPasswordReset()" style="width:100%;padding:11px;background:transparent;border:1px solid var(--border-hover);color:var(--text);border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(124,58,237,0.4)';this.style.color='#c4b5fd'" onmouseout="this.style.borderColor='var(--border-hover)';this.style.color='var(--text)'">Send password reset email</button>
       <div id="settings-password-msg" style="display:none;margin-top:10px;padding:10px 12px;border-radius:8px;font-size:12px;line-height:1.5;"></div>
     </div>
@@ -4504,7 +4506,7 @@ function updateTierUI() {
       // Pro user: show Max upgrade with gradient styling
       upgradeBtn.style.display = 'block';
       upgradeBtn.textContent = 'Upgrade to Creator Max';
-      upgradeBtn.onclick = () => startCheckout('max');
+      upgradeBtn.onclick = () => promptUpgradeToMax();
       upgradeBtn.style.background = 'linear-gradient(135deg,#a78bfa,#e879f9)';
       upgradeBtn.style.boxShadow = '0 0 20px rgba(232,121,249,0.35)';
     } else {
@@ -4678,6 +4680,19 @@ function confirmUpgradeToMax() {
 // Step 2: user clicked "Yes, upgrade" — actually trigger Stripe
 async function confirmUpgradeToMaxFinal() {
   dismissSettingsMsg();
+  await startCheckout('max');
+}
+
+// Confirm + trigger upgrade from outside the settings modal (e.g. topbar button)
+async function promptUpgradeToMax() {
+  const ok = await ryxaConfirm({
+    title: 'Upgrade to Creator Max?',
+    body: 'Your current Pro plan will be upgraded immediately. Stripe will charge a prorated amount for the difference and your billing date stays the same.<br><br>Creator Max is <strong style="color:var(--text);">$20/month</strong>.',
+    okText: 'Yes, upgrade',
+    okColor: 'purple',
+    iconType: 'send'
+  });
+  if (!ok) return;
   await startCheckout('max');
 }
 
@@ -8890,26 +8905,76 @@ function openSettingsModal() {
   // Reset password section each time modal opens
   const pwBtn = document.getElementById('settings-reset-password-btn');
   const pwMsg = document.getElementById('settings-password-msg');
+  const pwTurnstile = document.getElementById('settings-password-turnstile');
   if (pwBtn) { pwBtn.disabled = false; pwBtn.textContent = 'Send password reset email'; }
   if (pwMsg) pwMsg.style.display = 'none';
+  if (pwTurnstile) pwTurnstile.style.display = 'none';
+  resetSettingsTurnstile();
   modal.style.display = 'flex';
   closeSidebar();
 }
 
 function closeSettingsModal() {
   document.getElementById('settings-modal').style.display = 'none';
+  resetSettingsTurnstile();
+}
+
+const SETTINGS_TURNSTILE_SITE_KEY = '0x4AAAAAAC9W8avdI3sdVEcc';
+let settingsTurnstileWidgetId = null;
+
+function getSettingsTurnstileToken() {
+  if (typeof turnstile === 'undefined' || settingsTurnstileWidgetId === null) return null;
+  try { return turnstile.getResponse(settingsTurnstileWidgetId); } catch (e) { return null; }
+}
+
+function resetSettingsTurnstile() {
+  if (typeof turnstile !== 'undefined' && settingsTurnstileWidgetId !== null) {
+    try { turnstile.reset(settingsTurnstileWidgetId); } catch (e) {}
+  }
+}
+
+function showSettingsTurnstile() {
+  const container = document.getElementById('settings-password-turnstile');
+  if (!container) return;
+  container.style.display = 'flex';
+  if (typeof turnstile === 'undefined') {
+    container.textContent = 'Loading verification...';
+    return;
+  }
+  if (settingsTurnstileWidgetId !== null) {
+    try { turnstile.reset(settingsTurnstileWidgetId); } catch (e) {}
+    return;
+  }
+  settingsTurnstileWidgetId = turnstile.render('#settings-password-turnstile', {
+    sitekey: SETTINGS_TURNSTILE_SITE_KEY,
+    theme: 'dark'
+  });
 }
 
 async function sendPasswordReset() {
   if (!currentUser?.email) return;
   const btn = document.getElementById('settings-reset-password-btn');
   const msg = document.getElementById('settings-password-msg');
+
+  // Step 1: if Turnstile widget isn't shown yet, render it and prompt user to verify
+  const captchaToken = getSettingsTurnstileToken();
+  if (!captchaToken) {
+    showSettingsTurnstile();
+    msg.textContent = 'Please complete the verification check above, then click again.';
+    msg.style.background = 'rgba(124,58,237,0.08)';
+    msg.style.border = '1px solid rgba(124,58,237,0.25)';
+    msg.style.color = '#c4b5fd';
+    msg.style.display = 'block';
+    return;
+  }
+
   btn.disabled = true;
   btn.textContent = 'Sending…';
   msg.style.display = 'none';
   try {
     const { error } = await sb.auth.resetPasswordForEmail(currentUser.email, {
-      redirectTo: window.location.origin + '/reset-password.html'
+      redirectTo: window.location.origin + '/reset-password.html',
+      captchaToken
     });
     if (error) throw error;
     msg.innerHTML = `Check your inbox, we sent a reset link to <strong>${escapeHtml(currentUser.email)}</strong>.`;
@@ -8918,6 +8983,8 @@ async function sendPasswordReset() {
     msg.style.color = '#4ade80';
     msg.style.display = 'block';
     btn.textContent = 'Email sent ✓';
+    // Reset captcha — single-use
+    resetSettingsTurnstile();
     // Re-enable after 30s so they can resend if email didn't arrive
     setTimeout(() => {
       btn.disabled = false;
