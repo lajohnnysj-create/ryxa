@@ -11880,20 +11880,31 @@ async function openShareModal() {
     return;
   }
 
-  // If deal already has an active, non-revoked share — reuse it (no warning)
-  let token = deal.share_token;
-  let pin = deal.share_pin;
-  const needsNewToken = !token || !pin || deal.share_revoked_at;
-
-  // First-time share: warn that the email will be locked
-  if (needsNewToken) {
-    const ok = confirm(
-      `Heads up: once you share this deal, the brand contact email (${deal.brand_contact_email}) will be locked.\n\n` +
-      `If you need to change it later, you'll have to revoke sharing first or create a new deal.\n\n` +
-      `Continue and generate the portal link?`
-    );
-    if (!ok) return;
+  // If deal already has an active, non-revoked share — skip confirm and open directly
+  const needsNewToken = !deal.share_token || !deal.share_pin || deal.share_revoked_at;
+  if (!needsNewToken) {
+    proceedOpenShareModal();
+    return;
   }
+
+  // First-time share — show styled confirm modal
+  document.getElementById('deal-share-confirm-email').textContent = deal.brand_contact_email;
+  document.getElementById('deal-share-confirm-modal').style.display = 'flex';
+}
+
+function closeShareConfirmModal() {
+  document.getElementById('deal-share-confirm-modal').style.display = 'none';
+}
+
+async function confirmShareGenerate() {
+  closeShareConfirmModal();
+  await proceedOpenShareModal();
+}
+
+async function proceedOpenShareModal() {
+  if (!currentDealId) return;
+  const deal = dealsList.find(d => d.id === currentDealId);
+  if (!deal) return;
 
   // Set up modal
   document.getElementById('deal-share-brand-name').textContent = deal.brand_name || 'the brand';
@@ -11902,8 +11913,11 @@ async function openShareModal() {
   document.getElementById('deal-share-error').style.display = 'none';
   document.getElementById('deal-share-modal').style.display = 'flex';
 
+  let token = deal.share_token;
+  let pin = deal.share_pin;
+  const needsNewToken = !token || !pin || deal.share_revoked_at;
+
   if (needsNewToken) {
-    // Call RPC to generate a new token+PIN
     const { data, error } = await sb.rpc('generate_deal_share_token', { p_deal_id: currentDealId });
     if (error || !data || data.error) {
       document.getElementById('deal-share-generating').style.display = 'none';
@@ -11914,14 +11928,12 @@ async function openShareModal() {
     }
     token = data.token;
     pin = data.pin;
-    // Update local cache
     const idx = dealsList.findIndex(d => d.id === currentDealId);
     if (idx >= 0) {
       dealsList[idx].share_token = token;
       dealsList[idx].share_pin = pin;
       dealsList[idx].share_revoked_at = null;
     }
-    // Messages card + email lock now reflect the share
     updateMessagesCardVisibility();
     applyDealLockState();
   }
@@ -13529,6 +13541,25 @@ window.addEventListener('DOMContentLoaded', () => {
     <div style="display:flex;gap:10px;">
       <button id="deal-delete-confirm-btn" onclick="confirmDeleteDeal()" disabled style="flex:1;padding:11px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:rgba(252,165,165,0.5);border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:not-allowed;">Delete forever</button>
       <button onclick="closeDealDeleteModal()" style="padding:11px 18px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Cancel</button>
+    </div>
+  </div>
+</div>
+
+
+<div id="deal-share-confirm-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.8);align-items:center;justify-content:center;pointer-events:all;">
+  <div style="background:#0f0f1a;border:1px solid rgba(124,58,237,0.35);border-radius:16px;padding:28px;position:relative;width:100%;max-width:440px;pointer-events:all;margin:20px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+      <div style="width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,rgba(124,58,237,0.18),rgba(232,121,249,0.12));border:1px solid rgba(167,139,250,0.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+      </div>
+      <h3 style="font-family:Syne,sans-serif;font-size:18px;font-weight:700;color:var(--text);margin:0;">Share with brand</h3>
+    </div>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:12px;line-height:1.6;">Once you share this deal, the brand contact email will be locked:</p>
+    <div id="deal-share-confirm-email" style="padding:10px 14px;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.25);border-radius:8px;font-size:13px;color:#c4b5fd;font-family:monospace;margin-bottom:14px;word-break:break-all;"></div>
+    <p style="color:var(--muted);font-size:12px;margin-bottom:20px;line-height:1.6;">If you need to change it later, you'll have to revoke sharing first or create a new deal.</p>
+    <div style="display:flex;gap:10px;">
+      <button onclick="confirmShareGenerate()" style="flex:1;padding:11px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Continue and generate link</button>
+      <button onclick="closeShareConfirmModal()" style="padding:11px 18px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Cancel</button>
     </div>
   </div>
 </div>
