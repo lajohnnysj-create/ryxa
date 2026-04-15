@@ -956,7 +956,7 @@ body { overflow-x: hidden; }
       <strong>Upgrade to unlock full results</strong>. See everyone who unfollowed you, manage your whitelist, snake list, audit history and more.
     </div>
     <div class="upgrade-btns">
-      <button class="upgrade-btn-pro" onclick="startCheckout('monthly')">Go Pro — $10/mo ⭐</button>
+      <button class="upgrade-btn-pro" onclick="startCheckout('monthly', this)">Go Pro — $10/mo ⭐</button>
     </div>
   </div>
 
@@ -1439,14 +1439,61 @@ async function handleAuth() {
 // ════════════════════════════════════════════
 // STRIPE CHECKOUT — Edge Function
 // ════════════════════════════════════════════
-async function startCheckout(planType) {
+// ===== Button loading state helpers =====
+const _btnLoadingState = new WeakMap();
+function setBtnLoading(btn, label) {
+  if (!btn || _btnLoadingState.has(btn)) return;
+  _btnLoadingState.set(btn, { html: btn.innerHTML, disabled: btn.disabled, cursor: btn.style.cursor });
+  btn.disabled = true;
+  btn.style.cursor = 'wait';
+  btn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:8px;justify-content:center;">' +
+    '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true" style="animation:btn-spin 0.7s linear infinite;flex-shrink:0;">' +
+    '<path d="M21 12a9 9 0 1 1-6.2-8.55"/>' +
+    '</svg>' +
+    '<span>' + (label || 'Opening checkout…') + '</span>' +
+    '</span>';
+}
+function clearBtnLoading(btn) {
+  if (!btn) return;
+  const prev = _btnLoadingState.get(btn);
+  if (!prev) return;
+  btn.innerHTML = prev.html;
+  btn.disabled = prev.disabled;
+  btn.style.cursor = prev.cursor;
+  _btnLoadingState.delete(btn);
+}
+(function ensureBtnSpinKeyframes(){
+  if (document.getElementById('btn-spin-keyframes')) return;
+  const style = document.createElement('style');
+  style.id = 'btn-spin-keyframes';
+  style.textContent = '@keyframes btn-spin { to { transform: rotate(360deg); } }';
+  document.head.appendChild(style);
+})();
+
+// Returns the top-level window so the redirect breaks out of the dashboard iframe.
+// Falls back to window.location if cross-origin access is blocked (shouldn't happen
+// since dashboard.html and follower-audit.html are same-origin).
+function topNavigate(url) {
+  try {
+    if (window.top && window.top !== window) {
+      window.top.location.href = url;
+      return;
+    }
+  } catch (e) {}
+  window.location.href = url;
+}
+
+async function startCheckout(planType, triggerBtn) {
+  const btn = triggerBtn || (typeof event !== 'undefined' && event && event.currentTarget && event.currentTarget.tagName === 'BUTTON' ? event.currentTarget : null);
   try {
   if (!currentUser) {
     pendingCheckout = planType;
-    window.location.href='index.html?action=signin';
+    topNavigate('index.html?action=signin');
     showAuthMsg('error', 'Sign in or create a free account to continue to checkout.');
     return;
   }
+
+  if (btn) setBtnLoading(btn, 'Opening checkout…');
 
   const priceId = STRIPE_PRICE_MONTHLY;
 
@@ -1461,13 +1508,16 @@ async function startCheckout(planType) {
 
   if (error || !data?.url) {
     console.error('Checkout error:', error, data);
+    clearBtnLoading(btn);
     alert('Could not start checkout. Please try again. Error: ' + (error?.message || JSON.stringify(data)));
     return;
   }
 
-  window.location.href = data.url;
+  // Redirect the top window so Stripe checkout takes the full page, not the iframe.
+  topNavigate(data.url);
   } catch(err) {
     console.error('startCheckout error:', err);
+    clearBtnLoading(btn);
     alert('Something went wrong. Please refresh the page and try again.');
   }
 }
@@ -2975,7 +3025,7 @@ function buildPaywall(hiddenCount, totalUnfollowers) {
     <h3>Unlock your full list</h3>
     <p>You've seen ${FREE_LIMIT} of ${totalUnfollowers} people not following you back. Upgrade to Pro to see everyone.</p>
     <div class="paywall-btns">
-      <button class="paywall-btn primary" onclick="startCheckout('monthly')">
+      <button class="paywall-btn primary" onclick="startCheckout('monthly', this)">
         <span>Upgrade to Pro</span>
         <span class="paywall-btn-price">$10/mo. Unlimited access</span>
       </button>
