@@ -957,6 +957,7 @@ body { overflow-x: hidden; }
     </div>
     <div class="upgrade-btns">
       <button class="upgrade-btn-pro" onclick="startCheckout('monthly', this)">Go Pro — $10/mo ⭐</button>
+      <button class="upgrade-btn-pro" style="background:linear-gradient(135deg,#a78bfa,#e879f9);box-shadow:0 0 20px rgba(232,121,249,0.35);" onclick="startCheckout('max', this)">Creator Max — $20/mo</button>
     </div>
   </div>
 
@@ -1120,6 +1121,7 @@ window.onunhandledrejection = function(e) {
 const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtqeXRhcGNneHVrYWx3c3lwdXRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMTcxMzEsImV4cCI6MjA5MDg5MzEzMX0.VC8mcU5lUeA56kG2gHssvl88EVWr018XttA86jpfEn0';
 const STRIPE_PRICE_MONTHLY  = 'price_1TIZ8pFQ1L0aeJrZEX1bQnUI';
+const STRIPE_PRICE_MAX      = 'price_1TLQdmFQ1L0aeJrZxntN3EhI';
 
 // Free tier limit
 const FREE_LIMIT = 3;
@@ -1495,7 +1497,7 @@ async function startCheckout(planType, triggerBtn) {
 
   if (btn) setBtnLoading(btn, 'Opening checkout…');
 
-  const priceId = STRIPE_PRICE_MONTHLY;
+  const priceId = planType === 'max' ? STRIPE_PRICE_MAX : STRIPE_PRICE_MONTHLY;
 
   const { data, error } = await sb.functions.invoke('create-checkout-session', {
     body: {
@@ -2807,7 +2809,18 @@ function renderResults() {
   }
   const _results = document.getElementById('results');
   if (_results) _results.style.display = 'block';
-  document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // Defer scroll until after filterResults() below has populated the DOM and the
+  // browser has done a layout pass — otherwise smooth-scroll targets a stale Y
+  // position and lands in the wrong place. requestAnimationFrame x2 = next paint.
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    const isPaid = userTier === 'one_time' || userIsPro() || currentAnalysisPaid;
+    const paywallEl = document.getElementById('paywall-container');
+    // Free users: scroll to the upsell so they see it. Paid users: scroll to results top.
+    const target = (!isPaid && paywallEl && paywallEl.children.length > 0)
+      ? paywallEl
+      : document.getElementById('results');
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }));
   // Update tool buttons based on tier
   updateToolBtns();
 
@@ -3028,6 +3041,10 @@ function buildPaywall(hiddenCount, totalUnfollowers) {
       <button class="paywall-btn primary" onclick="startCheckout('monthly', this)">
         <span>Upgrade to Pro</span>
         <span class="paywall-btn-price">$10/mo. Unlimited access</span>
+      </button>
+      <button class="paywall-btn primary" style="background:linear-gradient(135deg,#a78bfa,#e879f9);box-shadow:0 0 30px rgba(232,121,249,0.3);" onclick="startCheckout('max', this)">
+        <span>Upgrade to Creator Max</span>
+        <span class="paywall-btn-price">$20/mo. Pro + Brand Deal CRM, Script Builder &amp; more</span>
       </button>
     </div>
     ${!currentUser ? `<p style="margin-top:20px;font-size:13px;color:var(--muted)">Already paid? <a href="#" onclick="window.location.href='index.html?action=signin';return false;" style="color:var(--accent)">Sign in to restore access</a></p>` : ''}
