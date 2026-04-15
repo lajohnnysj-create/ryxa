@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Image Studio | Ryxa</title>
-<meta name="description" content="Crop, resize, and convert images with creator-ready aspect ratios. Free, browser-based, no signup needed for basic edits.">
+<meta name="description" content="Crop, resize, and convert images with creator-ready aspect ratios. Free with daily limit, processed in your browser.">
 <meta property="og:title" content="Image Studio | Ryxa">
-<meta property="og:description" content="Crop, resize, and convert images with creator-ready aspect ratios. Free, browser-based, no signup needed for basic edits.">
+<meta property="og:description" content="Crop, resize, and convert images with creator-ready aspect ratios. Free with daily limit, processed in your browser.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://www.ryxa.io/tools-image-studio">
 <meta property="og:image" content="https://www.ryxa.io/og-image.png">
@@ -311,7 +311,7 @@
   <div class="hero-content">
     <div class="hero-tier-badge" style="color:#4ade80;border-color:#4ade8055;background:linear-gradient(135deg,#4ade8026,#4ade801a);">Free to start</div>
     <h1>Crop, resize, convert.<br><span class="gradient-text">All in your browser.</span></h1>
-    <p class="hero-tagline">One-click aspect ratio presets for every platform — Instagram, TikTok, YouTube, X, Pinterest. Convert between formats. Adjust quality. No uploads, no waiting.</p>
+    <p class="hero-tagline">One-click aspect ratio presets for the most common social formats. Convert between 8 image formats. Adjust quality. All processed in your browser.</p>
     <div class="hero-cta-row">
       <a href="dashboard.html" onclick="return tryThisTool(event)" class="btn-primary">Open Image Studio</a>
       <a href="pricing.html" class="btn-secondary">See pricing</a>
@@ -410,20 +410,22 @@
             <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;">
               <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:8px;font-weight:600;">Aspect ratio</div>
               <div style="display:flex;flex-direction:column;gap:5px;">
-                <div style="font-size:10px;padding:6px 9px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);border-radius:5px;color:#c4b5fd;">📱 Reel 9:16</div>
-                <div style="font-size:10px;padding:6px 9px;border:1px solid var(--border);border-radius:5px;color:var(--muted);">⬜ Post 1:1</div>
-                <div style="font-size:10px;padding:6px 9px;border:1px solid var(--border);border-radius:5px;color:var(--muted);">📺 YT 16:9</div>
-                <div style="font-size:10px;padding:6px 9px;border:1px solid var(--border);border-radius:5px;color:var(--muted);">📌 Pin 2:3</div>
-                <div style="font-size:10px;padding:6px 9px;border:1px solid var(--border);border-radius:5px;color:var(--muted);">⚙️ Custom</div>
+                <div style="font-size:10px;padding:6px 9px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);border-radius:5px;color:#c4b5fd;">📱 Reel/Story 9:16</div>
+                <div style="font-size:10px;padding:6px 9px;border:1px solid var(--border);border-radius:5px;color:var(--muted);">⬜ Square 1:1</div>
+                <div style="font-size:10px;padding:6px 9px;border:1px solid var(--border);border-radius:5px;color:var(--muted);">📐 Portrait 4:5</div>
+                <div style="font-size:10px;padding:6px 9px;border:1px solid var(--border);border-radius:5px;color:var(--muted);">📺 YouTube 16:9</div>
+                <div style="font-size:10px;padding:6px 9px;border:1px solid var(--border);border-radius:5px;color:var(--muted);">📏 Wide 3:1</div>
               </div>
             </div>
             <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;">
               <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:6px;font-weight:600;">Format</div>
-              <div style="display:flex;gap:4px;">
-                <div style="font-size:10px;padding:5px 10px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);border-radius:5px;color:#c4b5fd;flex:1;text-align:center;">JPG</div>
-                <div style="font-size:10px;padding:5px 10px;border:1px solid var(--border);border-radius:5px;color:var(--muted);flex:1;text-align:center;">PNG</div>
-                <div style="font-size:10px;padding:5px 10px;border:1px solid var(--border);border-radius:5px;color:var(--muted);flex:1;text-align:center;">WebP</div>
+              <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                <div style="font-size:10px;padding:5px 10px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);border-radius:5px;color:#c4b5fd;flex:1;text-align:center;min-width:42px;">JPEG</div>
+                <div style="font-size:10px;padding:5px 10px;border:1px solid var(--border);border-radius:5px;color:var(--muted);flex:1;text-align:center;min-width:42px;">PNG</div>
+                <div style="font-size:10px;padding:5px 10px;border:1px solid var(--border);border-radius:5px;color:var(--muted);flex:1;text-align:center;min-width:42px;">WebP</div>
+                <div style="font-size:10px;padding:5px 10px;border:1px solid var(--border);border-radius:5px;color:var(--muted);flex:1;text-align:center;min-width:42px;">AVIF</div>
               </div>
+              <div style="font-size:9px;color:var(--muted);margin-top:6px;text-align:center;">+ GIF, BMP, TIFF, ICO</div>
             </div>
           </div>
         </div>
@@ -436,8 +438,9 @@
 <!-- ============ HOW IT WORKS ============ -->
 <section>
   <div class="section-label">How it works</div>
-  <h2 class="section-title">From inquiry to invoice paid, in four steps.</h2>
-  <p class="section-sub">Built around the actual workflow of a creator running brand partnerships — not generic project management software bent into shape.</p>
+  <div class="section-label">How it works</div>
+  <h2 class="section-title">From raw photo to ready-to-post, in four steps.</h2>
+  <p class="section-sub">No editing software needed. Drop in an image, crop it to the right ratio, convert the format, and download.</p>
   <div class="steps-grid">
     <div class="step-card">
       <div class="step-num">Step 1</div>
@@ -448,8 +451,8 @@
     <div class="step-card">
       <div class="step-num">Step 2</div>
       <div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
-      <div class="step-title">Pick a preset</div>
-      <div class="step-desc">Instagram Reel (9:16), Story (9:16), Post (1:1 or 4:5), YouTube thumbnail (16:9), Pinterest pin (2:3), or custom.</div>
+      <div class="step-title">Pick an aspect ratio</div>
+      <div class="step-desc">Square 1:1, Portrait 4:5, Reel/Story 9:16, YouTube/Landscape 16:9, Wide 3:1, or free crop.</div>
     </div>
     <div class="step-card">
       <div class="step-num">Step 3</div>
@@ -461,7 +464,7 @@
       <div class="step-num">Step 4</div>
       <div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
       <div class="step-title">Download</div>
-      <div class="step-desc">Export in JPG, PNG, or WebP. Choose quality. Download instantly — no signup, no email gate.</div>
+      <div class="step-desc">Export in JPEG, PNG, WebP, GIF, BMP, TIFF, AVIF, or ICO. Choose quality. Download instantly.</div>
     </div>
   </div>
 </section>
@@ -469,13 +472,13 @@
 <!-- ============ FEATURES ============ -->
 <section>
   <div class="section-label">Features</div>
-  <h2 class="section-title">Everything you need to manage brand deals professionally.</h2>
-  <p class="section-sub">No more chasing payments through DMs. No more "wait, what did we agree on?" Built for creators who treat their content like the business it is.</p>
+  <h2 class="section-title">All the editor basics, none of the bloat.</h2>
+  <p class="section-sub">A focused tool that does the things creators actually need every day — without forcing you into a learning curve.</p>
   <div class="features-grid">
     <div class="feature-card">
       <div class="feature-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg></div>
       <div class="feature-title">Creator aspect ratios</div>
-      <div class="feature-desc">Reel 9:16, Post 1:1 / 4:5, Story 9:16, Thumbnail 16:9, Pin 2:3 — every social platform's preset, ready to go.</div>
+      <div class="feature-desc">Square 1:1, Portrait 4:5, Reel/Story 9:16, YouTube/Landscape 16:9, Wide 3:1 — common social ratios as one-click presets.</div>
     </div>
     <div class="feature-card">
       <div class="feature-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="18" rx="2"/><line x1="2" y1="9" x2="22" y2="9"/><circle cx="6" cy="6" r="0.5" fill="currentColor"/></svg></div>
@@ -485,12 +488,12 @@
     <div class="feature-card">
       <div class="feature-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></div>
       <div class="feature-title">Format conversion</div>
-      <div class="feature-desc">JPG ↔ PNG ↔ WebP. Strip metadata. Compress for web. Export ready-to-upload files.</div>
+      <div class="feature-desc">Convert between JPEG, PNG, WebP, GIF, BMP, TIFF, AVIF, and ICO. Compress for web. Export ready-to-upload files.</div>
     </div>
     <div class="feature-card">
       <div class="feature-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
       <div class="feature-title">Quality control</div>
-      <div class="feature-desc">Adjust JPEG quality from 60% (small) to 100% (lossless). See file size estimates as you slide.</div>
+      <div class="feature-desc">Adjust JPEG quality from 10% (smallest) to 100% (lossless) with a slider, so you can shrink files for web or keep them sharp.</div>
     </div>
     <div class="feature-card">
       <div class="feature-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
@@ -499,8 +502,8 @@
     </div>
     <div class="feature-card">
       <div class="feature-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg></div>
-      <div class="feature-title">No signup needed</div>
-      <div class="feature-desc">Use the basic editor without an account. Sign up only if you want to save edits or batch-process multiple images.</div>
+      <div class="feature-title">Free with daily limit</div>
+      <div class="feature-desc">Free accounts get 5 image conversions per day. Pro removes the cap and lets you upload up to 50MB files.</div>
     </div>
   </div>
 </section>
@@ -515,12 +518,12 @@
     <div class="pricing-callout-content">
       <div class="pricing-tier-name">Free</div>
       <div class="pricing-tier-price">$0<span class="pricing-tier-price-period">/forever</span></div>
-      <div class="pricing-tier-desc">Image Studio is free. Use it without signup for basic edits.</div>
+      <div class="pricing-tier-desc">Image Studio is free with a daily limit. Pro removes the cap and bumps the file size limit.</div>
       <div class="pricing-tier-includes">
-        <span class="pricing-tier-pill">Image Studio (free)</span>
-        <span class="pricing-tier-pill">All ratios</span>
-        <span class="pricing-tier-pill">Format conversion</span>
-        <span class="pricing-tier-pill">Quality control</span>
+        <span class="pricing-tier-pill">5 conversions/day (free)</span>
+        <span class="pricing-tier-pill">Unlimited (Pro)</span>
+        <span class="pricing-tier-pill">5MB → 50MB (Pro)</span>
+        <span class="pricing-tier-pill">All ratios &amp; formats</span>
       </div>
       <a href="pricing.html" class="btn-primary">View pricing</a>
     </div>
@@ -544,28 +547,28 @@
         <div class="faq-q-text">What file formats are supported?</div>
         <div class="faq-toggle">+</div>
       </div>
-      <div class="faq-a">Input: JPG, PNG, WebP, GIF (single frame), HEIC. Output: JPG, PNG, WebP. We're adding AVIF support.</div>
+      <div class="faq-a">Input: most common image formats (JPEG, PNG, WebP, GIF, BMP, TIFF, HEIC, and more). Output: JPEG, PNG, WebP, GIF, BMP, TIFF, AVIF, and ICO.</div>
     </div>
     <div class="faq-item">
       <div class="faq-q" onclick="toggleFaq(this)">
         <div class="faq-q-text">Is there a file size limit?</div>
         <div class="faq-toggle">+</div>
       </div>
-      <div class="faq-a">Practical limit is around 50MB — beyond that, browsers start to slow down. For most photos and screenshots that's plenty.</div>
+      <div class="faq-a">Free accounts can upload up to 5MB per image. Pro raises this to 50MB. There's also a daily conversion limit of 5 on Free; Pro is unlimited.</div>
     </div>
     <div class="faq-item">
       <div class="faq-q" onclick="toggleFaq(this)">
         <div class="faq-q-text">Can I batch-process multiple images?</div>
         <div class="faq-toggle">+</div>
       </div>
-      <div class="faq-a">Single-image at a time for now. Batch processing is on the roadmap for Creator Pro.</div>
+      <div class="faq-a">Single-image at a time for now.</div>
     </div>
     <div class="faq-item">
       <div class="faq-q" onclick="toggleFaq(this)">
         <div class="faq-q-text">What if I need to remove backgrounds?</div>
         <div class="faq-toggle">+</div>
       </div>
-      <div class="faq-a">Background removal isn't currently supported but is a frequently requested feature. We're evaluating whether to bring it in as a Pro feature.</div>
+      <div class="faq-a">Background removal isn't currently supported.</div>
     </div>
   </div>
 </section>
@@ -573,7 +576,7 @@
 <!-- ============ BOTTOM CTA ============ -->
 <section class="bottom-cta">
   <h2>Ready to start with Image Studio?</h2>
-  <p>One-click aspect ratio presets for every platform — Instagram, TikTok, YouTube, X, Pinterest. Convert between formats. Adjust quality. No uploads, no waiting.</p>
+  <p>One-click aspect ratio presets for the most common social formats. Convert between 8 image formats. Adjust quality. All processed in your browser.</p>
   <div class="hero-cta-row">
     <a href="dashboard.html" onclick="return tryThisTool(event)" class="btn-primary">Open Image Studio</a>
     <a href="pricing.html" class="btn-secondary">See pricing</a>
