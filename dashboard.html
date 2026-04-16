@@ -1689,14 +1689,44 @@
   .pipeline-card-footer { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
   .pipeline-card-amount { font-family: Syne, sans-serif; font-size: 14px; font-weight: 700; color: var(--text); }
   .pipeline-card-payment { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; padding: 2px 7px; border-radius: 100px; }
+  /* Mobile move buttons (hidden on desktop) */
+  .pipeline-card-moves { display: none; }
+
   @media (max-width: 640px) {
-    .pipeline-board { gap: 8px; }
-    .pipeline-col-header { padding: 10px 12px 8px; }
-    .pipeline-col-title { font-size: 11px; }
-    .pipeline-card { padding: 10px 12px; }
-    .pipeline-card-title { font-size: 12px; }
-    .pipeline-card-brand { font-size: 10px; }
-    .pipeline-card-amount { font-size: 12px; }
+    .pipeline-board { flex-direction: column; gap: 12px; }
+    .pipeline-col { min-height: auto; }
+    .pipeline-col-body { min-height: 0; }
+    .pipeline-card { cursor: default; -webkit-user-select: auto; user-select: auto; -webkit-user-drag: none; }
+    .pipeline-card:active { cursor: default; }
+    .pipeline-card:hover { border-color: var(--border); }
+    .pipeline-card.dragging { opacity: 1; border-color: var(--border); box-shadow: none; }
+    /* Hide drag affordance text, show move buttons */
+    .pipeline-card-moves {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid var(--border);
+    }
+    .pipeline-move-btn {
+      flex: 1;
+      padding: 7px 0;
+      background: rgba(124,58,237,0.08);
+      border: 1px solid rgba(124,58,237,0.25);
+      color: #c4b5fd;
+      border-radius: 7px;
+      font-size: 12px;
+      font-weight: 500;
+      font-family: "DM Sans", sans-serif;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+    .pipeline-move-btn:hover { background: rgba(124,58,237,0.15); }
+    .pipeline-move-btn:disabled { opacity: 0.25; cursor: not-allowed; }
   }
     .bio-grid { grid-template-columns: 1fr !important; min-width: 0 !important; }
     .bio-grid > div { min-width: 0 !important; }
@@ -10789,6 +10819,14 @@ function buildPipelineCard(d) {
   const payLabel = isPaid ? 'Paid' : 'Unpaid';
   const endDate = d.campaign_end_date ? `<div style="font-size:10px;color:var(--muted);margin-top:4px;">Ends ${formatDateShort(d.campaign_end_date)}</div>` : '';
 
+  // Determine prev/next statuses for mobile move buttons
+  const statusKeys = PIPELINE_COLUMNS.map(c => c.key);
+  const idx = statusKeys.indexOf(d.status);
+  const prevStatus = idx > 0 ? statusKeys[idx - 1] : null;
+  const nextStatus = idx < statusKeys.length - 1 ? statusKeys[idx + 1] : null;
+  const prevLabel = prevStatus ? DEAL_STATUS_LABELS[prevStatus] : '';
+  const nextLabel = nextStatus ? DEAL_STATUS_LABELS[nextStatus] : '';
+
   return `<div class="pipeline-card" draggable="true"
     data-deal-id="${d.id}"
     ondragstart="onPipelineDragStart(event, '${d.id}')"
@@ -10801,7 +10839,41 @@ function buildPipelineCard(d) {
       <span class="pipeline-card-payment" style="${payStyle}">${payLabel}</span>
     </div>
     ${endDate}
+    <div class="pipeline-card-moves">
+      <button class="pipeline-move-btn" onclick="event.stopPropagation();moveDealStatus('${d.id}','${prevStatus}')" ${!prevStatus ? 'disabled' : ''}>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        ${prevLabel ? escapeHtml(prevLabel) : '—'}
+      </button>
+      <button class="pipeline-move-btn" onclick="event.stopPropagation();moveDealStatus('${d.id}','${nextStatus}')" ${!nextStatus ? 'disabled' : ''}>
+        ${nextLabel ? escapeHtml(nextLabel) : '—'}
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
   </div>`;
+}
+
+// Move a deal to a new status via the mobile move buttons
+async function moveDealStatus(dealId, newStatus) {
+  if (!newStatus || newStatus === 'null') return;
+  const deal = dealsList.find(d => d.id === dealId);
+  if (!deal || deal.status === newStatus) return;
+
+  const oldStatus = deal.status;
+  deal.status = newStatus;
+  renderPipeline();
+  renderDealsList();
+
+  const { error } = await sb.from('brand_deals')
+    .update({ status: newStatus })
+    .eq('id', dealId)
+    .eq('user_id', currentUser.id);
+
+  if (error) {
+    console.error('Failed to move deal:', error);
+    deal.status = oldStatus;
+    renderPipeline();
+    renderDealsList();
+  }
 }
 
 // --- Drag & Drop ---
@@ -10937,6 +11009,8 @@ async function onPipelineDrop(e, newStatus) {
   }
 
   document.addEventListener('touchstart', function(e) {
+    // On mobile (<=640px), we use move buttons instead of touch drag
+    if (window.innerWidth <= 640) return;
     const card = e.target.closest('.pipeline-card');
     if (!card) return;
     dragCard = card;
