@@ -932,6 +932,14 @@
     letter-spacing: -0.3px;
     text-shadow: 0 2px 4px rgba(0,0,0,0.5);
   }
+  .tp-chunk {
+    transition: color 0.3s, opacity 0.3s;
+    opacity: 0.45;
+  }
+  .tp-chunk.active {
+    opacity: 1;
+    color: #fff;
+  }
   .tp-center-line {
     position: absolute;
     top: 50%;
@@ -13842,7 +13850,7 @@ function openTeleprompter() {
         <button class="tp-voice-speed-btn" onclick="tpAdjustVoiceSpeed(0.15)" aria-label="Faster voice">+</button>
       </div>
     </div>
-    <div class="tp-hint">Space: play/pause · ↑↓: speed · V: voice · Esc: exit</div>
+    <div class="tp-hint">Space: play/pause · ↑↓: speed · V: toggle voice · Esc: exit</div>
   `;
   document.body.appendChild(tp);
 
@@ -13889,21 +13897,28 @@ function tpTogglePlay() {
   if (tpState.playing) {
     if (icon) icon.innerHTML = '<rect x="5" y="3" width="5" height="18"/><rect x="14" y="3" width="5" height="18"/>';
     if (label) label.textContent = 'Pause';
-    tpTick();
+    if (tpState.voiceOn) {
+      // Voice mode: voice drives scroll
+      tpStartVoice();
+    } else {
+      // Normal mode: plain auto-scroll
+      tpTick();
+    }
   } else {
     if (icon) icon.innerHTML = '<polygon points="6 3 20 12 6 21 6 3"/>';
     if (label) label.textContent = 'Play';
     if (tpState.rafId) cancelAnimationFrame(tpState.rafId);
+    if (tpState.voiceOn) tpPauseVoice();
   }
 }
 
 function tpTick() {
   if (!tpState || !tpState.playing) return;
+  // If voice is on, voice drives scroll — don't also auto-scroll
+  if (tpState.voiceOn) return;
   const area = document.getElementById('tp-scroll-area');
   if (!area) return;
-  // Scroll speed: roughly speed pixels per frame (60fps)
   area.scrollTop += tpState.speed * 0.5;
-  // Stop at bottom
   if (area.scrollTop + area.clientHeight >= area.scrollHeight - 1) {
     tpTogglePlay();
     return;
@@ -13932,6 +13947,16 @@ function applyTpFontSize() {
 function tpRestart() {
   const area = document.getElementById('tp-scroll-area');
   if (area) area.scrollTop = 0;
+  if (tpState) {
+    tpState.voiceChunkIndex = 0;
+    // If voice is playing, stop and rebuild from beginning
+    if (tpState.voiceOn && tpState.playing) {
+      tpStopVoice();
+      tpState.voiceChunks = null;
+      tpStartVoice();
+    }
+  }
+  document.querySelectorAll('.tp-chunk.active').forEach(s => s.classList.remove('active'));
 }
 
 function tpOnKey(e) {
@@ -13971,51 +13996,88 @@ function tpToggleVoice() {
     if (btn) btn.classList.add('active');
     if (label) label.textContent = 'Voice On';
     if (speedRow) speedRow.classList.add('visible');
-    tpStartVoice();
+    // If already playing, start voice now
+    if (tpState.playing) {
+      // Stop plain auto-scroll, let voice drive
+      if (tpState.rafId) cancelAnimationFrame(tpState.rafId);
+      tpStartVoice();
+    }
+    // Otherwise, voice starts when they press Play
   } else {
     if (btn) btn.classList.remove('active');
     if (label) label.textContent = 'Voice';
     if (speedRow) speedRow.classList.remove('visible');
     tpStopVoice();
+    // If playing, resume plain auto-scroll
+    if (tpState.playing) tpTick();
   }
+}
+
+function tpBuildChunkSpans() {
+  // Wrap each sentence/chunk in a <span> so we can scroll to it as it's read
+  const content = document.getElementById('tp-content');
+  if (!content || !tpState) return;
+
+  const text = (tpState.voiceParts || []).join('.\n\n');
+  if (!text.trim()) return;
+
+  const chunks = text.match(/[^.!?\n]+[.!?\n]+|[^.!?\n]+$/g) || [text];
+  tpState.voiceChunks = chunks;
+
+  // Rebuild content with spans
+  content.innerHTML = chunks.map((c, i) =>
+    `<span class="tp-chunk" data-chunk="${i}">${escapeHtml(c.trim())}</span> `
+  ).join('');
+}
+
+function tpScrollToChunk(index) {
+  const area = document.getElementById('tp-scroll-area');
+  const span = document.querySelector(`.tp-chunk[data-chunk="${index}"]`);
+  if (!area || !span) return;
+
+  // Highlight current chunk
+  document.querySelectorAll('.tp-chunk.active').forEach(s => s.classList.remove('active'));
+  span.classList.add('active');
+
+  // Scroll so the chunk is roughly in the center of the viewport
+  const areaRect = area.getBoundingClientRect();
+  const spanRect = span.getBoundingClientRect();
+  const targetScroll = area.scrollTop + (spanRect.top - areaRect.top) - (areaRect.height / 2) + (spanRect.height / 2);
+  area.scrollTo({ top: Math.max(0, targetScroll), behavior: 'smooth' });
 }
 
 function tpStartVoice() {
   if (!tpState || !window.speechSynthesis) return;
   window.speechSynthesis.cancel();
 
-  // Combine all script parts into one text
-  const text = (tpState.voiceParts || []).join('.\n\n');
-  if (!text.trim()) return;
+  // Build chunk spans if not already done
+  if (!tpState.voiceChunks) tpBuildChunkSpans();
+  const chunks = tpState.voiceChunks;
+  if (!chunks || chunks.length === 0) return;
 
-  // Split into sentences/chunks to avoid the browser cutting off long utterances
-  const chunks = text.match(/[^.!?\n]+[.!?\n]+|[^.!?\n]+$/g) || [text];
-
-  let chunkIndex = 0;
+  // Resume from where we paused, or start from beginning
+  let chunkIndex = tpState.voiceChunkIndex || 0;
 
   function speakNext() {
-    if (!tpState || !tpState.voiceOn || chunkIndex >= chunks.length) {
-      // Done speaking — turn off voice
-      if (tpState && tpState.voiceOn) {
-        tpState.voiceOn = false;
-        const btn = document.getElementById('tp-voice-toggle');
-        const label = document.getElementById('tp-voice-label');
-        const speedRow = document.getElementById('tp-voice-speed');
-        if (btn) btn.classList.remove('active');
-        if (label) label.textContent = 'Voice';
-        if (speedRow) speedRow.classList.remove('visible');
+    if (!tpState || !tpState.voiceOn || !tpState.playing || chunkIndex >= chunks.length) {
+      // Done speaking — pause playback
+      if (tpState && chunkIndex >= chunks.length) {
+        tpState.voiceChunkIndex = 0;
+        tpTogglePlay(); // stop
       }
       return;
     }
+
+    tpState.voiceChunkIndex = chunkIndex;
+    tpScrollToChunk(chunkIndex);
 
     const utterance = new SpeechSynthesisUtterance(chunks[chunkIndex].trim());
     utterance.rate = tpState.voiceRate;
     utterance.pitch = 1;
     utterance.volume = 1;
 
-    // Try to pick a good voice (prefer en-US, non-robotic)
     const voices = window.speechSynthesis.getVoices();
-    const preferred = voices.find(v => v.lang.startsWith('en') && v.name.includes('Samantha')) // iOS
+    const preferred = voices.find(v => v.lang.startsWith('en') && v.name.includes('Samantha'))
       || voices.find(v => v.lang.startsWith('en-US') && !v.name.includes('Google'))
       || voices.find(v => v.lang.startsWith('en-US'))
       || voices.find(v => v.lang.startsWith('en'))
@@ -14024,17 +14086,18 @@ function tpStartVoice() {
 
     utterance.onend = function() {
       chunkIndex++;
+      tpState.voiceChunkIndex = chunkIndex;
       speakNext();
     };
     utterance.onerror = function() {
       chunkIndex++;
+      tpState.voiceChunkIndex = chunkIndex;
       speakNext();
     };
 
     window.speechSynthesis.speak(utterance);
   }
 
-  // Chrome requires voices to be loaded — they load async
   if (window.speechSynthesis.getVoices().length === 0) {
     window.speechSynthesis.onvoiceschanged = function() {
       window.speechSynthesis.onvoiceschanged = null;
@@ -14045,10 +14108,23 @@ function tpStartVoice() {
   }
 }
 
+function tpPauseVoice() {
+  if (window.speechSynthesis) {
+    window.speechSynthesis.cancel();
+  }
+  // voiceChunkIndex is preserved so resume picks up where we left off
+}
+
 function tpStopVoice() {
   if (window.speechSynthesis) {
     window.speechSynthesis.cancel();
   }
+  if (tpState) {
+    tpState.voiceChunkIndex = 0;
+    tpState.voiceChunks = null;
+  }
+  // Remove chunk highlights
+  document.querySelectorAll('.tp-chunk.active').forEach(s => s.classList.remove('active'));
 }
 
 function tpAdjustVoiceSpeed(delta) {
@@ -14057,9 +14133,10 @@ function tpAdjustVoiceSpeed(delta) {
   const el = document.getElementById('tp-voice-speed-val');
   if (el) el.textContent = tpState.voiceRate.toFixed(1) + '×';
 
-  // If currently speaking, restart with new speed
-  if (tpState.voiceOn && window.speechSynthesis && window.speechSynthesis.speaking) {
-    tpStopVoice();
+  // If currently speaking, restart from current chunk with new speed
+  if (tpState.voiceOn && tpState.playing && window.speechSynthesis) {
+    window.speechSynthesis.cancel();
+    // voiceChunkIndex is already set — tpStartVoice will resume from there
     tpStartVoice();
   }
 }
