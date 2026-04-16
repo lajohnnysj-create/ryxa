@@ -2899,6 +2899,36 @@
       </div>
     </div>
 
+    <!-- Stripe Connect -->
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:12px;">Payouts</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.5;">Connect your Stripe account to receive payments from Courses, Brand Deals, and 1:1 Private Coaching.</p>
+
+      <!-- Not connected state -->
+      <div id="settings-stripe-disconnected">
+        <button id="settings-stripe-connect-btn" onclick="connectStripeAccount()" style="width:100%;padding:11px;background:rgba(99,91,255,0.08);border:1px solid rgba(99,91,255,0.25);color:var(--text);border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(124,58,237,0.5)';this.style.background='rgba(124,58,237,0.12)'" onmouseout="this.style.borderColor='rgba(99,91,255,0.25)';this.style.background='rgba(99,91,255,0.08)'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>
+          Connect Stripe Account
+        </button>
+      </div>
+
+      <!-- Connected state -->
+      <div id="settings-stripe-connected" style="display:none;">
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(74,222,128,0.06);border:1px solid rgba(74,222,128,0.2);border-radius:8px;margin-bottom:10px;">
+          <div style="width:28px;height:28px;border-radius:8px;background:rgba(74,222,128,0.12);border:1px solid rgba(74,222,128,0.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:13px;font-weight:500;color:#4ade80;">Stripe Connected</div>
+            <div id="settings-stripe-acct-id" style="font-size:11px;color:var(--muted);font-family:monospace;margin-top:1px;">acct_•••</div>
+          </div>
+        </div>
+        <button onclick="disconnectStripeAccount()" style="width:100%;padding:9px;background:transparent;border:1px solid rgba(239,68,68,0.25);color:#fca5a5;border-radius:8px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.06)'" onmouseout="this.style.background='transparent'">Disconnect Stripe</button>
+      </div>
+
+      <div id="settings-stripe-msg" style="display:none;margin-top:8px;padding:10px 12px;border-radius:8px;font-size:12px;line-height:1.5;"></div>
+    </div>
+
     <!-- Help -->
     <div style="display:flex;gap:10px;">
       <a href="faq.html" style="flex:1;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--muted);text-decoration:none;text-align:center;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--border-hover)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">FAQ</a>
@@ -4791,6 +4821,32 @@ async function setUser(user) {
 
   // Load dashboard home stats (page views + revenue)
   loadDashStats();
+
+  // Handle Stripe Connect callback redirect
+  handleStripeConnectRedirect();
+}
+
+function handleStripeConnectRedirect() {
+  const params = new URLSearchParams(window.location.search);
+  const stripeConnect = params.get('stripe_connect');
+  if (!stripeConnect) return;
+
+  // Clean the URL so refreshing doesn't re-trigger
+  const cleanUrl = window.location.pathname;
+  window.history.replaceState({}, '', cleanUrl);
+
+  // Open settings modal and show message
+  setTimeout(() => {
+    openSettingsModal();
+    setTimeout(() => {
+      if (stripeConnect === 'success') {
+        showStripeMsg('success', 'Stripe account connected successfully! You\'re ready to receive payouts.');
+      } else {
+        const reason = params.get('reason') || 'Unknown error';
+        showStripeMsg('error', 'Failed to connect Stripe: ' + reason);
+      }
+    }, 300);
+  }, 500);
 }
 
 async function fetchTier(userId) {
@@ -9387,8 +9443,108 @@ function openSettingsModal() {
   if (pwMsg) pwMsg.style.display = 'none';
   if (pwTurnstile) pwTurnstile.style.display = 'none';
   resetSettingsTurnstile();
+  // Load Stripe Connect status
+  loadStripeConnectStatus();
   modal.style.display = 'flex';
   closeSidebar();
+}
+
+// =====================================================
+// STRIPE CONNECT
+// =====================================================
+const STRIPE_CONNECT_CLIENT_ID = 'ca_ULc7AzJR6nqlaSnY1d8TvXn6WeNcLWpL';
+
+async function loadStripeConnectStatus() {
+  const disconnectedEl = document.getElementById('settings-stripe-disconnected');
+  const connectedEl = document.getElementById('settings-stripe-connected');
+  const acctIdEl = document.getElementById('settings-stripe-acct-id');
+  const msgEl = document.getElementById('settings-stripe-msg');
+  if (msgEl) msgEl.style.display = 'none';
+
+  if (!currentUser) return;
+
+  try {
+    const { data: profile } = await sb
+      .from('profiles')
+      .select('stripe_account_id')
+      .eq('user_id', currentUser.id)
+      .maybeSingle();
+
+    if (profile?.stripe_account_id) {
+      // Connected
+      if (disconnectedEl) disconnectedEl.style.display = 'none';
+      if (connectedEl) connectedEl.style.display = 'block';
+      if (acctIdEl) {
+        const id = profile.stripe_account_id;
+        acctIdEl.textContent = id.substring(0, 8) + '••••' + id.substring(id.length - 4);
+      }
+    } else {
+      // Not connected
+      if (disconnectedEl) disconnectedEl.style.display = 'block';
+      if (connectedEl) connectedEl.style.display = 'none';
+    }
+  } catch (err) {
+    console.error('Failed to load Stripe status:', err);
+  }
+}
+
+function connectStripeAccount() {
+  if (!currentUser) return;
+
+  const btn = document.getElementById('settings-stripe-connect-btn');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" style="animation:btn-spin 0.6s linear infinite;" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Redirecting to Stripe...`;
+  }
+
+  // Build the Stripe OAuth URL
+  const redirectUri = encodeURIComponent('https://ryxa.io/api/stripe-connect-callback');
+  const state = encodeURIComponent(currentUser.id);
+  const url = `https://connect.stripe.com/oauth/authorize`
+    + `?response_type=code`
+    + `&client_id=${STRIPE_CONNECT_CLIENT_ID}`
+    + `&scope=read_write`
+    + `&redirect_uri=${redirectUri}`
+    + `&state=${state}`;
+
+  window.location.href = url;
+}
+
+async function disconnectStripeAccount() {
+  if (!currentUser) return;
+
+  if (!confirm('Disconnect your Stripe account? You won\'t receive payouts until you reconnect.')) return;
+
+  try {
+    const { error } = await sb
+      .from('profiles')
+      .update({ stripe_account_id: null })
+      .eq('user_id', currentUser.id);
+
+    if (error) throw error;
+
+    showStripeMsg('success', 'Stripe account disconnected.');
+    loadStripeConnectStatus();
+  } catch (err) {
+    console.error('Failed to disconnect Stripe:', err);
+    showStripeMsg('error', 'Failed to disconnect. Please try again.');
+  }
+}
+
+function showStripeMsg(type, text) {
+  const el = document.getElementById('settings-stripe-msg');
+  if (!el) return;
+  el.style.display = 'block';
+  el.textContent = text;
+  if (type === 'success') {
+    el.style.background = 'rgba(74,222,128,0.08)';
+    el.style.color = '#4ade80';
+    el.style.border = '1px solid rgba(74,222,128,0.2)';
+  } else {
+    el.style.background = 'rgba(239,68,68,0.08)';
+    el.style.color = '#fca5a5';
+    el.style.border = '1px solid rgba(239,68,68,0.2)';
+  }
 }
 
 function closeSettingsModal() {
