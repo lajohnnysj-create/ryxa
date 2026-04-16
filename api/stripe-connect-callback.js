@@ -1,18 +1,6 @@
 // Vercel serverless function
 // Handles Stripe Connect OAuth callback with signed state verification
 // Deploy to: /api/stripe-connect-callback.js
-//
-// Required Vercel environment variables:
-//   STRIPE_SECRET_KEY - Your platform's Stripe secret key (sk_live_...)
-//   SUPABASE_SERVICE_ROLE_KEY - Supabase service role key
-//
-// Flow:
-// 1. /api/stripe-connect-start generates a signed state token (userId:timestamp:hmac)
-// 2. Creator authorizes on Stripe → Stripe redirects here with ?code=xxx&state=signed_token
-// 3. This function verifies the HMAC signature to confirm the state wasn't tampered with
-// 4. Exchanges the code for a stripe_account_id via Stripe API
-// 5. Stores it in the profiles table via Supabase
-// 6. Redirects back to dashboard.html?stripe_connect=success
 
 const crypto = require('crypto');
 
@@ -20,49 +8,54 @@ const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 
-// Must match the signing key in stripe-connect-start.js
 function getSigningKey() {
   return crypto.createHash('sha256').update('ryxa_connect_' + STRIPE_SECRET_KEY).digest();
 }
 
-function verifyState(state) {
-  // State format: userId:timestamp:hmac
-  const parts = state.split(':');
-  if (parts.length < 3) return null;
-
-  const hmac = parts.pop();
-  const payload = parts.join(':'); // userId:timestamp (userId itself contains hyphens)
-
-  // Re-split to extract userId and timestamp
-  const lastColon = payload.lastIndexOf(':');
-  if (lastColon === -1) return null;
-
-  const userId = payload.substring(0, lastColon);
-  const timestamp = parseInt(payload.substring(lastColon + 1), 10);
-
-  // Verify HMAC
-  const expectedHmac = crypto.createHmac('sha256', getSigningKey()).update(payload).digest('hex');
+function verifyState(rawState) {
   try {
-    if (!crypto.timingSafeEqual(Buffer.from(hmac, 'hex'), Buffer.from(expectedHmac, 'hex'))) {
-      return null; // Signature mismatch — tampered
+    // Decode base64url
+    const decoded = Buffer.from(rawState, 'base64url').toString('utf8');
+    const { p: payload, h: hmac } = JSON.parse(decoded);
+
+    if (!payload || !hmac) {
+      console.error('State missing payload or hmac');
+      return null;
     }
+
+    // Verify HMAC
+    const expectedHmac = crypto.createHmac('sha256', getSigningKey()).update(payload).digest('hex');
+    if (hmac.length !== expectedHmac.length) {
+      console.error('HMAC length mismatch');
+      return null;
+    }
+    if (!crypto.timingSafeEqual(Buffer.from(hmac, 'hex'), Buffer.from(expectedHmac, 'hex'))) {
+      console.error('HMAC signature mismatch');
+      return null;
+    }
+
+    // Parse payload
+    const { uid, ts } = JSON.parse(payload);
+
+    // Check expiry (10 minutes)
+    const age = Date.now() - ts;
+    if (isNaN(age) || age < 0 || age > 10 * 60 * 1000) {
+      console.error('State expired, age:', age);
+      return null;
+    }
+
+    // Validate UUID
+    const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!UUID_REGEX.test(uid)) {
+      console.error('Invalid UUID in state:', uid);
+      return null;
+    }
+
+    return uid;
   } catch (e) {
-    return null; // Buffer length mismatch or invalid hex
-  }
-
-  // Check expiry (10 minutes max)
-  const age = Date.now() - timestamp;
-  if (isNaN(age) || age < 0 || age > 10 * 60 * 1000) {
-    return null; // Expired or future timestamp
-  }
-
-  // Validate userId is a UUID
-  const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  if (!UUID_REGEX.test(userId)) {
+    console.error('State verification error:', e.message);
     return null;
   }
-
-  return userId;
 }
 
 module.exports = async function handler(req, res) {
@@ -74,7 +67,6 @@ module.exports = async function handler(req, res) {
     return res.redirect(302, `/dashboard.html?stripe_connect=error&reason=${reason}`);
   }
 
-  // Validate we have what we need
   if (!code || !state) {
     return res.redirect(302, `/dashboard.html?stripe_connect=error&reason=${encodeURIComponent('Missing authorization code')}`);
   }
@@ -90,9 +82,9 @@ module.exports = async function handler(req, res) {
   }
 
   // Verify the signed state token
-  const userId = verifyState(decodeURIComponent(state));
+  const userId = verifyState(state);
   if (!userId) {
-    console.error('Invalid or expired state token');
+    console.error('State verification failed for state:', state?.substring(0, 20) + '...');
     return res.redirect(302, `/dashboard.html?stripe_connect=error&reason=${encodeURIComponent('Session expired or invalid. Please try again.')}`);
   }
 
@@ -144,8 +136,6 @@ module.exports = async function handler(req, res) {
     }
 
     console.log(`Stripe Connect: user ${userId} connected account ${stripeAccountId}`);
-
-    // Success — redirect back to dashboard
     return res.redirect(302, `/dashboard.html?stripe_connect=success`);
 
   } catch (err) {
