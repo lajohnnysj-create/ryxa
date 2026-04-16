@@ -1635,7 +1635,17 @@
   }
 
   /* ── KANBAN PIPELINE VIEW ── */
-  .pipeline-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 8px; }
+  .pipeline-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 8px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(124,58,237,0.4) transparent;
+  }
+  .pipeline-wrap::-webkit-scrollbar { height: 8px; }
+  .pipeline-wrap::-webkit-scrollbar-track { background: transparent; }
+  .pipeline-wrap::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.35); border-radius: 4px; }
+  .pipeline-wrap::-webkit-scrollbar-thumb:hover { background: rgba(124,58,237,0.55); }
   .pipeline-board { display: flex; gap: 14px; min-width: min-content; padding: 2px; }
   .pipeline-col {
     flex: 0 0 240px;
@@ -4087,7 +4097,7 @@
                 <p style="color:var(--muted);font-size:14px;">Track your brand partnerships, deliverables, contracts, and revenue.</p>
               </div>
               <div style="display:flex;gap:10px;flex-wrap:wrap;">
-                <button id="deals-pipeline-toggle" onclick="togglePipelineView()" style="padding:10px 18px;background:transparent;border:1px solid var(--border-hover);color:var(--text);border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(124,58,237,0.4)';this.style.color='#c4b5fd'" onmouseout="if(!this.classList.contains('active')){this.style.borderColor='var(--border-hover)';this.style.color='var(--text)'}">View Pipeline</button>
+                <button id="deals-pipeline-toggle" onclick="togglePipelineView()" style="padding:10px 18px;background:linear-gradient(135deg,#a78bfa,#e879f9);border:none;color:#fff;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.2s;box-shadow:0 0 20px rgba(232,121,249,0.25);" onmouseover="this.style.filter='brightness(1.15)'" onmouseout="this.style.filter=''">View Pipeline</button>
                 <button id="deals-new-btn" onclick="showDealDetail(null)" style="padding:10px 18px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 24px var(--accent-glow);">+ New deal</button>
               </div>
             </div>
@@ -10712,8 +10722,10 @@ function togglePipelineView() {
     if (btn) {
       btn.textContent = 'View List';
       btn.classList.add('active');
-      btn.style.borderColor = 'rgba(124,58,237,0.4)';
-      btn.style.color = '#c4b5fd';
+      btn.style.background = 'transparent';
+      btn.style.border = '1px solid rgba(232,121,249,0.4)';
+      btn.style.color = '#e879f9';
+      btn.style.boxShadow = 'none';
     }
     renderPipeline();
   } else {
@@ -10724,8 +10736,10 @@ function togglePipelineView() {
     if (btn) {
       btn.textContent = 'View Pipeline';
       btn.classList.remove('active');
-      btn.style.borderColor = 'var(--border-hover)';
-      btn.style.color = 'var(--text)';
+      btn.style.background = 'linear-gradient(135deg,#a78bfa,#e879f9)';
+      btn.style.border = 'none';
+      btn.style.color = '#fff';
+      btn.style.boxShadow = '0 0 20px rgba(232,121,249,0.25)';
     }
   }
 }
@@ -10785,23 +10799,56 @@ function buildPipelineCard(d) {
 
 // --- Drag & Drop ---
 let pipelineDragId = null;
+let pipelineAutoScrollRAF = null;
 
 function onPipelineDragStart(e, dealId) {
   pipelineDragId = dealId;
   e.dataTransfer.effectAllowed = 'move';
   e.dataTransfer.setData('text/plain', dealId);
-  // Add dragging class after a tick so the browser captures the card snapshot first
   requestAnimationFrame(() => {
     const card = document.querySelector(`.pipeline-card[data-deal-id="${dealId}"]`);
     if (card) card.classList.add('dragging');
   });
+  // Start auto-scroll edge detection
+  startPipelineAutoScroll();
 }
 
 function onPipelineDragEnd(e) {
-  // Clean up all drag states
   document.querySelectorAll('.pipeline-card.dragging').forEach(c => c.classList.remove('dragging'));
   document.querySelectorAll('.pipeline-col-body.drag-over').forEach(c => c.classList.remove('drag-over'));
   pipelineDragId = null;
+  stopPipelineAutoScroll();
+}
+
+// Desktop: auto-scroll the pipeline-wrap when dragging near its left/right edges
+let _pipelineDragClientX = 0;
+function _onPipelineDragOverGlobal(e) {
+  _pipelineDragClientX = e.clientX;
+}
+
+function startPipelineAutoScroll() {
+  document.addEventListener('dragover', _onPipelineDragOverGlobal);
+  function tick() {
+    const wrap = document.querySelector('.pipeline-wrap');
+    if (!wrap || !pipelineDragId) { stopPipelineAutoScroll(); return; }
+    const rect = wrap.getBoundingClientRect();
+    const edgeZone = 60; // px from edge to start scrolling
+    const speed = 12;    // px per frame
+    const x = _pipelineDragClientX;
+    if (x > 0 && x < rect.left + edgeZone && wrap.scrollLeft > 0) {
+      wrap.scrollLeft -= speed;
+    } else if (x > rect.right - edgeZone && x < rect.right + 40) {
+      wrap.scrollLeft += speed;
+    }
+    pipelineAutoScrollRAF = requestAnimationFrame(tick);
+  }
+  pipelineAutoScrollRAF = requestAnimationFrame(tick);
+}
+
+function stopPipelineAutoScroll() {
+  if (pipelineAutoScrollRAF) cancelAnimationFrame(pipelineAutoScrollRAF);
+  pipelineAutoScrollRAF = null;
+  document.removeEventListener('dragover', _onPipelineDragOverGlobal);
 }
 
 function onPipelineDragOver(e) {
@@ -10857,12 +10904,30 @@ async function onPipelineDrop(e, newStatus) {
   }
 }
 
-// Touch support for mobile drag-and-drop
+// Touch support for mobile drag-and-drop (locks scroll while dragging)
 (function initPipelineTouchDrag() {
   let dragCard = null;
   let dragClone = null;
   let startX, startY;
   let currentDropTarget = null;
+  let scrollLocked = false;
+
+  function lockPipelineScroll() {
+    if (scrollLocked) return;
+    scrollLocked = true;
+    const wrap = document.querySelector('.pipeline-wrap');
+    if (wrap) wrap.style.overflowX = 'hidden';
+    // Also prevent body scroll
+    document.body.style.overflow = 'hidden';
+  }
+
+  function unlockPipelineScroll() {
+    if (!scrollLocked) return;
+    scrollLocked = false;
+    const wrap = document.querySelector('.pipeline-wrap');
+    if (wrap) wrap.style.overflowX = 'auto';
+    document.body.style.overflow = '';
+  }
 
   document.addEventListener('touchstart', function(e) {
     const card = e.target.closest('.pipeline-card');
@@ -10877,14 +10942,15 @@ async function onPipelineDrop(e, newStatus) {
     if (!dragCard) return;
     const touch = e.touches[0];
     const dx = Math.abs(touch.clientX - startX);
-    const dy = Math.abs(touch.clientY - startY);
 
-    // Only start drag if moved enough horizontally (pipeline is horizontal)
+    // Only start drag if moved enough horizontally
     if (!dragClone && dx < 10) return;
 
     e.preventDefault();
 
     if (!dragClone) {
+      // Lock scrolling the moment drag begins
+      lockPipelineScroll();
       // Create visual clone
       dragClone = dragCard.cloneNode(true);
       dragClone.style.position = 'fixed';
@@ -10894,6 +10960,7 @@ async function onPipelineDrop(e, newStatus) {
       dragClone.style.opacity = '0.85';
       dragClone.style.boxShadow = '0 8px 32px rgba(0,0,0,0.5)';
       dragClone.style.transform = 'rotate(2deg)';
+      dragClone.style.borderRadius = '10px';
       document.body.appendChild(dragClone);
       dragCard.classList.add('dragging');
       pipelineDragId = dragCard.dataset.dealId;
@@ -10904,7 +10971,10 @@ async function onPipelineDrop(e, newStatus) {
 
     // Find which column body we're over
     document.querySelectorAll('.pipeline-col-body.drag-over').forEach(c => c.classList.remove('drag-over'));
+    // Temporarily hide the clone so elementFromPoint finds the column underneath
+    dragClone.style.display = 'none';
     const elUnder = document.elementFromPoint(touch.clientX, touch.clientY);
+    dragClone.style.display = '';
     const colBody = elUnder?.closest('.pipeline-col-body');
     if (colBody) {
       colBody.classList.add('drag-over');
@@ -10936,6 +11006,8 @@ async function onPipelineDrop(e, newStatus) {
     dragCard = null;
     currentDropTarget = null;
     pipelineDragId = null;
+    // Unlock scrolling
+    unlockPipelineScroll();
   }, { passive: true });
 })();
 
