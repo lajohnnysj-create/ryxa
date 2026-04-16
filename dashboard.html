@@ -1601,6 +1601,8 @@
     #deal-invoice-existing > div { gap: 10px; }
     #deal-contract-existing .deal-btn-row,
     #deal-invoice-existing .deal-btn-row { width: 100%; }
+    .deal-input { max-width: 100% !important; min-width: 0 !important; font-size: 16px !important; }
+    .deal-grid-2 > div { min-width: 0 !important; }
   }
   /* Brand Deal CRM — Analytics */
   .deals-stat-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
@@ -4314,13 +4316,13 @@
               <div style="margin-bottom:24px;">
                 <div style="font-family:Syne,sans-serif;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:14px;">Timing</div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;" class="deal-grid-2">
-                  <div>
-                    <label class="deal-label" for="deal-campaign-start">Campaign Start Date</label>
-                    <input type="date" id="deal-campaign-start" class="deal-input">
+                  <div style="min-width:0;">
+                    <label class="deal-label" for="deal-campaign-start">Start Date</label>
+                    <input type="date" id="deal-campaign-start" class="deal-input" style="max-width:100%;min-width:0;">
                   </div>
-                  <div>
-                    <label class="deal-label" for="deal-campaign-end">Campaign End Date</label>
-                    <input type="date" id="deal-campaign-end" class="deal-input">
+                  <div style="min-width:0;">
+                    <label class="deal-label" for="deal-campaign-end">End Date</label>
+                    <input type="date" id="deal-campaign-end" class="deal-input" style="max-width:100%;min-width:0;">
                     <div style="font-size:11px;color:var(--muted);margin-top:4px;">We'll remind you 3 days before.</div>
                   </div>
                 </div>
@@ -11835,7 +11837,7 @@ function renderDeliverables() {
           </div>
           <div style="margin-bottom:10px;">
             <label class="deal-label">Title *</label>
-            <input type="text" data-field="title" placeholder="e.g., 1 Instagram Reel" maxlength="200" value="${escapeHtml(d.title)}"
+            <input type="text" data-field="title" placeholder="e.g., 1 Instagram Reel, 1 TikTok Video, Usage Rights, Exclusivity" maxlength="200" value="${escapeHtml(d.title)}"
               oninput="updateDeliverableField(${i}, 'title', this.value)"
               aria-label="Deliverable title"
               class="deal-input">
