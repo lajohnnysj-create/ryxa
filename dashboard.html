@@ -2117,6 +2117,15 @@
   .mk-chevron { transition: transform 0.2s; color: var(--muted); flex-shrink: 0; }
   button.mk-collapsible[aria-expanded="true"] .mk-chevron { transform: rotate(180deg); }
   .mk-section-body { padding: 0 20px 20px; }
+  /* Bio editor collapsible sections — reuses mk-section pattern */
+  .bio-section { background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+  .bio-section-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 16px 20px; width: 100%; text-align: left; background: transparent; border: none; color: var(--text); font-family: 'DM Sans', sans-serif; }
+  button.bio-collapsible { cursor: pointer; transition: background 0.15s; }
+  button.bio-collapsible:hover { background: var(--surface); }
+  .bio-section-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent2); font-weight: 600; }
+  .bio-chevron { transition: transform 0.2s ease; }
+  button.bio-collapsible[aria-expanded="true"] .bio-chevron { transform: rotate(180deg); }
+  .bio-section-body { padding: 0 20px 20px; }
   .mk-social-row { display: flex; gap: 10px; align-items: center; }
   .mk-social-row .mk-social-icon { width: 32px; height: 32px; border-radius: 8px; background: var(--surface); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--muted); }
   .mk-social-row .mk-social-icon svg { width: 15px; height: 15px; fill: currentColor; }
@@ -3279,8 +3288,12 @@
             </div>
 
             <!-- Avatar + identity -->
-            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:20px;">
-              <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:14px;">Profile</div>
+            <div class="bio-section">
+              <button type="button" class="bio-section-header bio-collapsible" onclick="toggleBioSection('profile')" aria-expanded="true">
+                <div class="bio-section-label">Profile</div>
+                <svg class="bio-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div class="bio-section-body" id="bio-body-profile">
               <div style="display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap;">
                 <div style="flex-shrink:0;">
                   <div id="bio-avatar-preview" style="width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,#a78bfa,#e879f9);padding:3px;cursor:pointer;position:relative;">
@@ -3310,8 +3323,12 @@
             </div>
 
             <!-- Theme -->
-            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:20px;">
-              <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:14px;">Theme</div>
+            <div class="bio-section">
+              <button type="button" class="bio-section-header bio-collapsible" onclick="toggleBioSection('theme')" aria-expanded="true">
+                <div class="bio-section-label">Theme</div>
+                <svg class="bio-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div class="bio-section-body" id="bio-body-theme">
               <div id="bio-themes" class="bio-themes-grid"></div>
 
               <!-- Custom theme editor (Creator Max only) -->
@@ -3372,11 +3389,16 @@
 
                 <button type="button" onclick="resetBioCustomColors()" style="width:100%;padding:8px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:6px;font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer;">Reset to defaults</button>
               </div>
+              </div>
             </div>
 
             <!-- Branding toggle -->
-            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:20px;">
-              <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:14px;">Branding</div>
+            <div class="bio-section">
+              <button type="button" class="bio-section-header bio-collapsible" onclick="toggleBioSection('branding')" aria-expanded="true">
+                <div class="bio-section-label">Branding</div>
+                <svg class="bio-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div class="bio-section-body" id="bio-body-branding">
               <label id="bio-branding-label" for="bio-show-branding" style="display:flex;align-items:flex-start;gap:12px;cursor:pointer;user-select:none;">
                 <input type="checkbox" id="bio-show-branding" checked onchange="onBrandingToggle()"
                   style="margin-top:3px;width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0;">
@@ -3390,20 +3412,30 @@
                   </div>
                 </div>
               </label>
+              </div>
             </div>
 
             <!-- Socials -->
-            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:20px;">
-              <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:14px;">Social icons</div>
+            <div class="bio-section">
+              <button type="button" class="bio-section-header bio-collapsible" onclick="toggleBioSection('socials')" aria-expanded="true">
+                <div class="bio-section-label">Social icons</div>
+                <svg class="bio-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div class="bio-section-body" id="bio-body-socials">
               <div id="bio-socials-form" style="display:flex;flex-direction:column;gap:10px;"></div>
+              </div>
             </div>
 
             <!-- Links -->
-            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:20px;">
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
-                <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;">Links</div>
-                <div id="bio-links-counts" style="font-size:11px;color:var(--muted);"></div>
-              </div>
+            <div class="bio-section">
+              <button type="button" class="bio-section-header bio-collapsible" onclick="toggleBioSection('links')" aria-expanded="true">
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                  <div class="bio-section-label">Links</div>
+                  <div id="bio-links-counts" style="font-size:11px;color:var(--muted);"></div>
+                </div>
+                <svg class="bio-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div class="bio-section-body" id="bio-body-links">
               <div id="bio-links-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
               <div style="display:flex;gap:8px;flex-wrap:wrap;">
                 <button type="button" id="bio-add-link-btn" onclick="addLink(false)" style="flex:1;min-width:140px;padding:10px;background:transparent;border:1px dashed rgba(124,58,237,0.4);color:var(--accent2);border-radius:8px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;">+ Add link</button>
@@ -3418,16 +3450,22 @@
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="17" x2="8" y2="13"/><line x1="12" y1="17" x2="12" y2="11"/><line x1="16" y1="17" x2="16" y2="15"/></svg>
                 Add link to your Media Kit
               </button>
+              </div>
             </div>
 
             <!-- Videos -->
-            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:20px;">
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
-                <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;">YouTube videos</div>
-                <div id="bio-videos-count" style="font-size:11px;color:var(--muted);"></div>
-              </div>
+            <div class="bio-section">
+              <button type="button" class="bio-section-header bio-collapsible" onclick="toggleBioSection('videos')" aria-expanded="true">
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                  <div class="bio-section-label">YouTube videos</div>
+                  <div id="bio-videos-count" style="font-size:11px;color:var(--muted);"></div>
+                </div>
+                <svg class="bio-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div class="bio-section-body" id="bio-body-videos">
               <div id="bio-videos-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
               <button type="button" id="bio-add-video-btn" onclick="openVideoDraft()" style="width:100%;padding:10px;background:transparent;border:1px dashed rgba(124,58,237,0.4);color:var(--accent2);border-radius:8px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;">+ Add YouTube video</button>
+              </div>
             </div>
           </div>
 
@@ -5413,6 +5451,50 @@ let bioDraggingLink = false;
 let bioPreviewTimer = null;
 let linkIdSeq = 1;
 
+// =====================================================
+// LINK IN BIO — Collapsible Sections
+// =====================================================
+const BIO_COLLAPSE_KEY = 'ryxa_bio_collapsed';
+
+function getBioCollapsed() {
+  try {
+    return JSON.parse(localStorage.getItem(BIO_COLLAPSE_KEY)) || [];
+  } catch { return []; }
+}
+
+function saveBioCollapsed(list) {
+  try { localStorage.setItem(BIO_COLLAPSE_KEY, JSON.stringify(list)); } catch {}
+}
+
+function toggleBioSection(name) {
+  const body = document.getElementById('bio-body-' + name);
+  if (!body) return;
+  const btn = body.previousElementSibling;
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  if (btn) btn.setAttribute('aria-expanded', !isOpen);
+
+  // Save to localStorage
+  let collapsed = getBioCollapsed();
+  if (isOpen) {
+    if (!collapsed.includes(name)) collapsed.push(name);
+  } else {
+    collapsed = collapsed.filter(s => s !== name);
+  }
+  saveBioCollapsed(collapsed);
+}
+
+function restoreBioCollapsed() {
+  const collapsed = getBioCollapsed();
+  collapsed.forEach(name => {
+    const body = document.getElementById('bio-body-' + name);
+    if (!body) return;
+    body.style.display = 'none';
+    const btn = body.previousElementSibling;
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+  });
+}
+
 function initBioTool() {
   if (bioInited) {
     // Re-sync username from profiles in case it was changed in the Media Kit tool
@@ -5421,6 +5503,7 @@ function initBioTool() {
     return;
   }
   bioInited = true;
+  restoreBioCollapsed();
   renderBioThemes();
   renderBioSocials();
   renderBioLinks();
