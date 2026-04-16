@@ -2757,9 +2757,9 @@
           <button class="dash-range-btn" onclick="setDashRange(30)" id="dash-range-30">30d</button>
           <div class="dash-range-custom" id="dash-range-custom">
             <span class="dash-range-custom-label">Custom:</span>
-            <input type="date" class="dash-range-date" id="dash-range-start" onchange="setDashCustomRange()" onclick="event.stopPropagation()">
+            <input type="date" class="dash-range-date" id="dash-range-start" aria-label="Custom range start date" onchange="setDashCustomRange()" onclick="event.stopPropagation()">
             <span style="font-size:11px;color:var(--muted);">→</span>
-            <input type="date" class="dash-range-date" id="dash-range-end" onchange="setDashCustomRange()" onclick="event.stopPropagation()">
+            <input type="date" class="dash-range-date" id="dash-range-end" aria-label="Custom range end date" onchange="setDashCustomRange()" onclick="event.stopPropagation()">
           </div>
         </div>
 
@@ -2944,12 +2944,12 @@
                 <div style="flex:1;min-width:200px;display:flex;flex-direction:column;gap:10px;">
                   <div>
                     <label for="bio-display-name" style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);display:block;margin-bottom:5px;">Display name</label>
-                    <input type="text" id="bio-display-name" maxlength="40" oninput="onBioFieldChange()" placeholder="Your name" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+                    <input type="text" id="bio-display-name" maxlength="40" aria-label="Display name" oninput="onBioFieldChange()" placeholder="Your name" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
                     <div style="text-align:right;font-size:11px;color:var(--muted);margin-top:3px;"><span id="bio-name-count">0</span>/40</div>
                   </div>
                   <div>
                     <label for="bio-bio" style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);display:block;margin-bottom:5px;">Bio</label>
-                    <textarea id="bio-bio" maxlength="60" rows="2" oninput="onBioFieldChange()" placeholder="A short line about you" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;resize:none;line-height:1.5;"></textarea>
+                    <textarea id="bio-bio" maxlength="60" rows="2" aria-label="Bio text" oninput="onBioFieldChange()" placeholder="A short line about you" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;resize:none;line-height:1.5;"></textarea>
                     <div style="text-align:right;font-size:11px;color:var(--muted);margin-top:3px;"><span id="bio-bio-count">0</span>/60</div>
                   </div>
                 </div>
@@ -2988,7 +2988,7 @@
                 <!-- Opacity -->
                 <div class="custom-opacity-row">
                   <label for="bio-custom-bg-opacity">Background opacity</label>
-                  <input type="range" id="bio-custom-bg-opacity" min="0" max="1" step="0.05" value="0.4" oninput="onBioCustomOpacityChange(this.value)">
+                  <input type="range" id="bio-custom-bg-opacity" aria-label="Background opacity" min="0" max="1" step="0.05" value="0.4" oninput="onBioCustomOpacityChange(this.value)">
                   <span id="bio-custom-bg-opacity-val" class="custom-opacity-val">40%</span>
                 </div>
 
@@ -2997,22 +2997,22 @@
                 <div class="custom-color-grid">
                   <div class="custom-color-item">
                     <label for="bio-color-bg">Page BG</label>
-                    <input type="color" id="bio-color-bg" class="custom-color-input" value="#07070f" onchange="onBioColorChange('bg', this.value)">
+                    <input type="color" id="bio-color-bg" class="custom-color-input" aria-label="Page background color" value="#07070f" onchange="onBioColorChange('bg', this.value)">
                     <div id="bio-color-bg-hex" class="custom-color-hex">#07070f</div>
                   </div>
                   <div class="custom-color-item">
                     <label for="bio-color-card">Card</label>
-                    <input type="color" id="bio-color-card" class="custom-color-input" value="#161625" onchange="onBioColorChange('card', this.value)">
+                    <input type="color" id="bio-color-card" class="custom-color-input" aria-label="Card color" value="#161625" onchange="onBioColorChange('card', this.value)">
                     <div id="bio-color-card-hex" class="custom-color-hex">#161625</div>
                   </div>
                   <div class="custom-color-item">
                     <label for="bio-color-text">Text</label>
-                    <input type="color" id="bio-color-text" class="custom-color-input" value="#ffffff" onchange="onBioColorChange('text', this.value)">
+                    <input type="color" id="bio-color-text" class="custom-color-input" aria-label="Text color" value="#ffffff" onchange="onBioColorChange('text', this.value)">
                     <div id="bio-color-text-hex" class="custom-color-hex">#ffffff</div>
                   </div>
                   <div class="custom-color-item">
                     <label for="bio-color-accent">Accent</label>
-                    <input type="color" id="bio-color-accent" class="custom-color-input" value="#a78bfa" onchange="onBioColorChange('accent', this.value)">
+                    <input type="color" id="bio-color-accent" class="custom-color-input" aria-label="Accent color" value="#a78bfa" onchange="onBioColorChange('accent', this.value)">
                     <div id="bio-color-accent-hex" class="custom-color-hex">#a78bfa</div>
                   </div>
                 </div>
@@ -3173,20 +3173,20 @@
                   <div style="flex:1;min-width:200px;display:flex;flex-direction:column;gap:10px;">
                     <div>
                       <label for="mk-display-name" style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);display:block;margin-bottom:5px;">Name</label>
-                      <input type="text" id="mk-display-name" maxlength="60" oninput="onMKField()" placeholder="Your name" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+                      <input type="text" id="mk-display-name" maxlength="60" aria-label="Display name" oninput="onMKField()" placeholder="Your name" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
                     </div>
                     <div>
                       <label for="mk-handle" style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);display:block;margin-bottom:5px;">Handle (optional)</label>
-                      <input type="text" id="mk-handle" maxlength="40" oninput="onMKField()" placeholder="@yourhandle" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+                      <input type="text" id="mk-handle" maxlength="40" aria-label="Your handle" oninput="onMKField()" placeholder="@yourhandle" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
                     </div>
                     <div>
                       <label for="mk-category" style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);display:block;margin-bottom:5px;">Category</label>
-                      <input type="text" id="mk-category" maxlength="60" oninput="onMKField()" placeholder="e.g. Lifestyle Creator · NYC" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+                      <input type="text" id="mk-category" maxlength="60" aria-label="Category or tagline" oninput="onMKField()" placeholder="e.g. Lifestyle Creator · NYC" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
                       <div style="text-align:right;font-size:11px;color:var(--muted);margin-top:3px;"><span id="mk-category-count">0</span>/60</div>
                     </div>
                     <div>
                       <label for="mk-bio" style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);display:block;margin-bottom:5px;">Bio</label>
-                      <textarea id="mk-bio" maxlength="300" rows="3" oninput="onMKField()" placeholder="A few sentences about you, your audience, and what you create." style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;resize:vertical;min-height:72px;line-height:1.5;"></textarea>
+                      <textarea id="mk-bio" maxlength="300" rows="3" aria-label="Bio text" oninput="onMKField()" placeholder="A few sentences about you, your audience, and what you create." style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;resize:vertical;min-height:72px;line-height:1.5;"></textarea>
                       <div style="text-align:right;font-size:11px;color:var(--muted);margin-top:3px;"><span id="mk-bio-count">0</span>/300</div>
                     </div>
                   </div>
@@ -3226,29 +3226,29 @@
                   </div>
                   <div class="custom-opacity-row">
                     <label for="mk-custom-bg-opacity">Background opacity</label>
-                    <input type="range" id="mk-custom-bg-opacity" min="0" max="1" step="0.05" value="0.4" oninput="onMKCustomOpacityChange(this.value)">
+                    <input type="range" id="mk-custom-bg-opacity" aria-label="Background opacity" min="0" max="1" step="0.05" value="0.4" oninput="onMKCustomOpacityChange(this.value)">
                     <span id="mk-custom-bg-opacity-val" class="custom-opacity-val">40%</span>
                   </div>
                   <div style="font-size:11px;color:var(--muted);margin:16px 0 8px;">COLORS</div>
                   <div class="custom-color-grid">
                     <div class="custom-color-item">
                       <label for="mk-color-bg">Page BG</label>
-                      <input type="color" id="mk-color-bg" class="custom-color-input" value="#07070f" onchange="onMKColorChange('bg', this.value)">
+                      <input type="color" id="mk-color-bg" class="custom-color-input" aria-label="Page background color" value="#07070f" onchange="onMKColorChange('bg', this.value)">
                       <div id="mk-color-bg-hex" class="custom-color-hex">#07070f</div>
                     </div>
                     <div class="custom-color-item">
                       <label for="mk-color-card">Card</label>
-                      <input type="color" id="mk-color-card" class="custom-color-input" value="#161625" onchange="onMKColorChange('card', this.value)">
+                      <input type="color" id="mk-color-card" class="custom-color-input" aria-label="Card color" value="#161625" onchange="onMKColorChange('card', this.value)">
                       <div id="mk-color-card-hex" class="custom-color-hex">#161625</div>
                     </div>
                     <div class="custom-color-item">
                       <label for="mk-color-text">Text</label>
-                      <input type="color" id="mk-color-text" class="custom-color-input" value="#ffffff" onchange="onMKColorChange('text', this.value)">
+                      <input type="color" id="mk-color-text" class="custom-color-input" aria-label="Text color" value="#ffffff" onchange="onMKColorChange('text', this.value)">
                       <div id="mk-color-text-hex" class="custom-color-hex">#ffffff</div>
                     </div>
                     <div class="custom-color-item">
                       <label for="mk-color-accent">Accent</label>
-                      <input type="color" id="mk-color-accent" class="custom-color-input" value="#a78bfa" onchange="onMKColorChange('accent', this.value)">
+                      <input type="color" id="mk-color-accent" class="custom-color-input" aria-label="Accent color" value="#a78bfa" onchange="onMKColorChange('accent', this.value)">
                       <div id="mk-color-accent-hex" class="custom-color-hex">#a78bfa</div>
                     </div>
                   </div>
@@ -3277,7 +3277,7 @@
                       How to calculate
                     </button>
                   </div>
-                  <input type="number" id="mk-engagement" min="0" max="100" step="0.01" placeholder="e.g. 4.25" oninput="onMKField()" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+                  <input type="number" id="mk-engagement" aria-label="Engagement rate percentage" min="0" max="100" step="0.01" placeholder="e.g. 4.25" oninput="onMKField()" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
                   <div id="mk-engagement-help" style="display:none;margin-top:10px;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--muted2);line-height:1.6;">
                     <div style="font-weight:600;color:var(--text);margin-bottom:6px;">How to calculate engagement rate</div>
                     <div style="margin-bottom:8px;">The industry-standard formula:</div>
@@ -3320,9 +3320,9 @@
               </button>
               <div class="mk-section-body" id="mk-body-contact" style="display:none;">
                 <label for="mk-contact-email" style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);display:block;margin-bottom:5px;">Email (required to publish)</label>
-                <input type="email" id="mk-contact-email" oninput="onMKField()" placeholder="you@yourdomain.com" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;margin-bottom:10px;">
+                <input type="email" id="mk-contact-email" aria-label="Contact email" oninput="onMKField()" placeholder="you@yourdomain.com" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;margin-bottom:10px;">
                 <label for="mk-contact-note" style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);display:block;margin-bottom:5px;">Note (optional)</label>
-                <textarea id="mk-contact-note" maxlength="200" rows="2" oninput="onMKField()" placeholder="e.g. Best reached via email. Typical response: 24-48 hours." style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;resize:vertical;line-height:1.5;"></textarea>
+                <textarea id="mk-contact-note" maxlength="200" rows="2" aria-label="Contact note" oninput="onMKField()" placeholder="e.g. Best reached via email. Typical response: 24-48 hours." style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;resize:vertical;line-height:1.5;"></textarea>
               </div>
             </div>
 
@@ -4171,19 +4171,19 @@
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;" class="deal-grid-2">
                   <div style="grid-column:1 / -1;">
-                    <label class="deal-label">Deal Title *</label>
+                    <label class="deal-label" for="deal-title">Deal Title *</label>
                     <input type="text" id="deal-title" placeholder="e.g., Spring Collection Reel" maxlength="120" class="deal-input">
                   </div>
                   <div>
-                    <label class="deal-label">Brand Name *</label>
+                    <label class="deal-label" for="deal-brand-name">Brand Name *</label>
                     <input type="text" id="deal-brand-name" placeholder="e.g., Nike" maxlength="120" class="deal-input">
                   </div>
                   <div>
-                    <label class="deal-label">Brand Contact Name</label>
+                    <label class="deal-label" for="deal-brand-contact-name">Brand Contact Name</label>
                     <input type="text" id="deal-brand-contact-name" placeholder="e.g., Sarah Johnson" maxlength="120" class="deal-input">
                   </div>
                   <div>
-                    <label class="deal-label">Brand Contact Email</label>
+                    <label class="deal-label" for="deal-brand-contact-email">Brand Contact Email</label>
                     <input type="email" id="deal-brand-contact-email" placeholder="contact@brand.com" maxlength="240" class="deal-input">
                     <div id="deal-brand-email-hint" style="display:none;margin-top:6px;font-size:11px;color:var(--muted);line-height:1.4;">
                       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-1px;margin-right:3px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
@@ -4191,7 +4191,7 @@
                     </div>
                   </div>
                   <div>
-                    <label class="deal-label">Deal Amount (USD)</label>
+                    <label class="deal-label" for="deal-amount">Deal Amount (USD)</label>
                     <input type="number" id="deal-amount" placeholder="0" min="0" step="0.01" class="deal-input">
                   </div>
                 </div>
@@ -4202,11 +4202,11 @@
                 <div style="font-family:Syne,sans-serif;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:14px;">Timing</div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;" class="deal-grid-2">
                   <div>
-                    <label class="deal-label">Campaign Start Date</label>
+                    <label class="deal-label" for="deal-campaign-start">Campaign Start Date</label>
                     <input type="date" id="deal-campaign-start" class="deal-input">
                   </div>
                   <div>
-                    <label class="deal-label">Campaign End Date</label>
+                    <label class="deal-label" for="deal-campaign-end">Campaign End Date</label>
                     <input type="date" id="deal-campaign-end" class="deal-input">
                     <div style="font-size:11px;color:var(--muted);margin-top:4px;">We'll remind you 3 days before.</div>
                   </div>
@@ -4218,7 +4218,7 @@
                 <div style="font-family:Syne,sans-serif;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:14px;">Status</div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;" class="deal-grid-2">
                   <div>
-                    <label class="deal-label">Deal Status</label>
+                    <label class="deal-label" for="deal-status">Deal Status</label>
                     <select id="deal-status" class="deal-input" onchange="handleDealStatusChange()">
                       <option value="draft">Draft</option>
                       <option value="pending_contract">Pending Contract</option>
@@ -4228,7 +4228,7 @@
                     </select>
                   </div>
                   <div>
-                    <label class="deal-label">Payment Status</label>
+                    <label class="deal-label" for="deal-payment-status">Payment Status</label>
                     <select id="deal-payment-status" class="deal-input" onchange="updateDealDetailBadges()">
                       <option value="waiting">Waiting for Payment</option>
                       <option value="paid">Paid</option>
@@ -4340,7 +4340,7 @@
 
                 <!-- Composer -->
                 <div id="deal-message-composer" style="display:flex;flex-direction:column;gap:6px;">
-                  <textarea id="deal-message-input" rows="2" placeholder="Write a message to the brand..." maxlength="5000" class="deal-input" style="resize:none;min-height:56px;max-height:56px;background:rgba(0,0,0,0.2);border-color:rgba(124,58,237,0.2);" oninput="updateMessageCharCount()"></textarea>
+                  <textarea id="deal-message-input" rows="2" aria-label="Message to brand" placeholder="Write a message to the brand..." maxlength="5000" class="deal-input" style="resize:none;min-height:56px;max-height:56px;background:rgba(0,0,0,0.2);border-color:rgba(124,58,237,0.2);" oninput="updateMessageCharCount()"></textarea>
                   <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
                     <div id="deal-message-char-count" style="font-size:10px;color:var(--muted);">0 / 5000</div>
                     <button onclick="postCreatorMessage()" id="deal-message-send-btn" style="padding:7px 16px;background:var(--accent);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 12px var(--accent-glow);">Send</button>
@@ -4356,7 +4356,7 @@
               <!-- PRIVATE NOTES section -->
               <div style="margin-bottom:20px;">
                 <div style="font-family:Syne,sans-serif;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:14px;">Private Notes <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;">(only visible to you)</span></div>
-                <textarea id="deal-private-notes" rows="3" placeholder="Internal notes, reminders, talking points..." class="deal-input" style="resize:vertical;min-height:80px;"></textarea>
+                <textarea id="deal-private-notes" rows="3" aria-label="Private notes" placeholder="Internal notes, reminders, talking points..." class="deal-input" style="resize:vertical;min-height:80px;"></textarea>
               </div>
 
               <!-- Error/success message -->
@@ -11338,18 +11338,21 @@ function renderDeliverables() {
             <label class="deal-label">Title *</label>
             <input type="text" data-field="title" placeholder="e.g., 1 Instagram Reel" maxlength="200" value="${escapeHtml(d.title)}"
               oninput="updateDeliverableField(${i}, 'title', this.value)"
+              aria-label="Deliverable title"
               class="deal-input">
           </div>
           <div style="margin-bottom:10px;">
             <label class="deal-label">Notes <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;">(optional)</span></label>
             <textarea data-field="notes" rows="2" placeholder="Tone, length, dates, hashtags..." maxlength="1000"
               oninput="updateDeliverableField(${i}, 'notes', this.value)"
+              aria-label="Deliverable notes"
               class="deal-input" style="resize:vertical;min-height:60px;">${escapeHtml(d.notes)}</textarea>
           </div>
           <div style="margin-bottom:12px;">
             <label class="deal-label">Submitted URL <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;">(link to posted content)</span></label>
             <input type="url" data-field="submitted_url" placeholder="https://instagram.com/p/..." maxlength="500" value="${escapeHtml(d.submitted_url)}"
               oninput="updateDeliverableField(${i}, 'submitted_url', this.value)"
+              aria-label="Deliverable submitted URL"
               class="deal-input">
           </div>
           <div style="display:flex;justify-content:flex-end;">
@@ -13745,7 +13748,7 @@ window.addEventListener('DOMContentLoaded', () => {
     <div id="deal-share-content" style="display:none;">
       <!-- Link -->
       <div style="margin-bottom:14px;">
-        <label class="deal-label">Portal Link</label>
+        <label class="deal-label" for="deal-share-link">Portal Link</label>
         <div style="display:flex;gap:8px;align-items:center;">
           <input type="text" id="deal-share-link" readonly class="deal-input" style="flex:1;font-size:12px;" onclick="this.select()">
           <button onclick="copyShareLink()" id="deal-share-link-copy" style="padding:10px 14px;background:transparent;border:1px solid var(--border-hover);color:var(--text);border-radius:8px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;white-space:nowrap;">Copy</button>
@@ -13753,7 +13756,7 @@ window.addEventListener('DOMContentLoaded', () => {
       </div>
       <!-- PIN -->
       <div style="margin-bottom:18px;">
-        <label class="deal-label">PIN</label>
+        <label class="deal-label" for="deal-share-pin">PIN</label>
         <div style="display:flex;gap:8px;align-items:center;">
           <input type="text" id="deal-share-pin" readonly class="deal-input" style="flex:1;font-family:monospace;font-size:16px;letter-spacing:0.2em;" onclick="this.select()">
           <button onclick="copySharePin()" id="deal-share-pin-copy" style="padding:10px 14px;background:transparent;border:1px solid var(--border-hover);color:var(--text);border-radius:8px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;white-space:nowrap;">Copy</button>
@@ -13762,7 +13765,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
       <!-- Message preview -->
       <div style="margin-bottom:14px;">
-        <label class="deal-label">Message to send <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;">(edit if you'd like)</span></label>
+        <label class="deal-label" for="deal-share-message">Message to send <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;">(edit if you'd like)</span></label>
         <textarea id="deal-share-message" rows="4" class="deal-input" style="resize:vertical;min-height:90px;font-size:13px;line-height:1.5;"></textarea>
       </div>
 
@@ -13789,7 +13792,7 @@ window.addEventListener('DOMContentLoaded', () => {
     <h3 style="font-family:Syne,sans-serif;font-size:18px;font-weight:700;margin-bottom:6px;color:#fca5a5;">Delete this deal?</h3>
     <p style="color:var(--muted);font-size:13px;margin-bottom:8px;line-height:1.5;">This permanently removes the deal, all deliverables, messages, and the uploaded contract. This cannot be undone.</p>
     <p style="color:var(--muted);font-size:13px;margin-bottom:16px;line-height:1.5;">Type <strong style="color:#fca5a5;">DELETE</strong> to confirm.</p>
-    <input type="text" id="deal-delete-confirm-input" placeholder="DELETE" class="deal-input" style="margin-bottom:14px;" oninput="updateDealDeleteButton()">
+    <input type="text" id="deal-delete-confirm-input" aria-label="Type DELETE to confirm" placeholder="DELETE" class="deal-input" style="margin-bottom:14px;" oninput="updateDealDeleteButton()">
     <div style="display:flex;gap:10px;">
       <button id="deal-delete-confirm-btn" onclick="confirmDeleteDeal()" disabled style="flex:1;padding:11px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:rgba(252,165,165,0.5);border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:not-allowed;">Delete forever</button>
       <button onclick="closeDealDeleteModal()" style="padding:11px 18px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Cancel</button>
