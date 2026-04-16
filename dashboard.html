@@ -1766,6 +1766,7 @@
   #loading-overlay { position: fixed; inset: 0; z-index: 9998; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; pointer-events: all; }
   #loading-overlay.active { display: flex; }
   @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(-10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
   .auth-spinner { display: inline-block; width: 15px; height: 15px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 8px; }
 
   /* ── SIGN OUT MODAL ── */
@@ -2905,12 +2906,8 @@
 
     <!-- Stripe Connect -->
     <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;">Payouts</div>
-        <svg width="40" height="16" viewBox="0 0 60 25" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity:0.5;">
-          <path d="M5.4 8.4c0-1 .8-1.4 2.1-1.4 1.9 0 4.2.6 6.1 1.6V3.2C11.7 2.4 9.8 2 7.5 2 3 2 0 4.4 0 8.7c0 6.7 9.2 5.6 9.2 8.5 0 1.2-1 1.5-2.4 1.5-2.1 0-4.8-.8-6.8-2v5.5c2.3 1 4.6 1.4 6.8 1.4 4.6 0 7.8-2.3 7.8-6.7C14.6 10 5.4 11.3 5.4 8.4zm14.8-5.2L15.8 4l-.1.5v14.8h4.5V3.2zm5.9-3L21.6.9v21.4H26V.2h.1zm8.3 3L34 4l-.1.5v14.8h4.5V3.2zm13-1C45.6 2 44.2 3 43.4 4.2l-.2-2h-4v20.1h4.5V9.5c1.1-1.4 2.9-1.1 3.4-1V3.2c-.6-.2-2.5-.5-3.5 1zm7.5-1.9L50.5 4 50.4 7H48v3.9h2.4v8c0 3.4 1.6 4.8 4.8 4.8 1.5 0 2.5-.3 2.5-.3V19.5s-.7.2-1.5.2c-1.1 0-1.7-.4-1.7-1.8v-6h1.7V8h-1.7V.3h-.1zm11.7 5.3c-3.5 0-6 1.9-6 4.7 0 3.6 3.3 4.3 5.7 5 1.6.5 2.4.8 2.4 1.5 0 .9-.9 1.3-2 1.3-1.8 0-3.5-.7-5-1.7v3.7c1.3.7 3.2 1.2 5 1.2 3.6 0 6.2-1.8 6.2-4.8 0-3.8-3.4-4.4-5.8-5.1-1.5-.5-2.3-.7-2.3-1.4 0-.7.7-1.1 1.8-1.1 1.5 0 3.3.6 4.8 1.4V5.9c-1.4-.6-3.1-1-4.8-1z" fill="#635BFF"/>
-        </svg>
-      </div>
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:8px;">Payouts</div>
+      <img src="/stripe.svg" alt="Stripe" style="height:16px;opacity:0.5;margin-bottom:12px;display:block;">
       <p style="font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.5;">Connect your Stripe account to receive payments from Courses, Brand Deals, and 1:1 Private Coaching.</p>
 
       <!-- Not connected state -->
@@ -2932,7 +2929,15 @@
             <div id="settings-stripe-acct-id" style="font-size:11px;color:var(--muted);font-family:monospace;margin-top:1px;">acct_•••</div>
           </div>
         </div>
-        <button onclick="disconnectStripeAccount()" style="width:100%;padding:9px;background:transparent;border:1px solid rgba(239,68,68,0.25);color:#fca5a5;border-radius:8px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.06)'" onmouseout="this.style.background='transparent'">Disconnect Stripe</button>
+        <button id="stripe-disconnect-btn" onclick="showStripeDisconnectConfirm()" style="width:100%;padding:9px;background:transparent;border:1px solid rgba(239,68,68,0.25);color:#fca5a5;border-radius:8px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.06)'" onmouseout="this.style.background='transparent'">Disconnect Stripe</button>
+        <div id="stripe-disconnect-confirm" style="display:none;margin-top:10px;padding:14px;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);border-radius:8px;">
+          <p style="font-size:13px;color:#fca5a5;margin-bottom:4px;font-weight:600;">Disconnect Stripe?</p>
+          <p style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5;">You won't receive payouts until you reconnect. Your Stripe account itself is not affected.</p>
+          <div style="display:flex;gap:8px;">
+            <button onclick="confirmDisconnectStripe()" style="flex:1;padding:9px;background:transparent;border:1px solid rgba(239,68,68,0.25);color:#fca5a5;border-radius:7px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Yes, disconnect</button>
+            <button onclick="hideStripeDisconnectConfirm()" style="flex:1;padding:9px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.4);color:#c4b5fd;border-radius:7px;font-size:12px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;">Keep connected</button>
+          </div>
+        </div>
       </div>
 
       <div id="settings-stripe-msg" style="display:none;margin-top:8px;padding:10px 12px;border-radius:8px;font-size:12px;line-height:1.5;"></div>
@@ -4844,18 +4849,41 @@ function handleStripeConnectRedirect() {
   const cleanUrl = window.location.pathname;
   window.history.replaceState({}, '', cleanUrl);
 
-  // Open settings modal and show message
+  // Show a toast popup on the dashboard
+  if (stripeConnect === 'success') {
+    showDashToast('success', 'Stripe connected successfully! You\'re ready to receive payouts.');
+  } else {
+    const reason = params.get('reason') || 'Unknown error';
+    showDashToast('error', 'Failed to connect Stripe: ' + reason);
+  }
+}
+
+function showDashToast(type, message) {
+  // Remove existing toast if any
+  const existing = document.getElementById('dash-toast');
+  if (existing) existing.remove();
+
+  const toast = document.createElement('div');
+  toast.id = 'dash-toast';
+  const isSuccess = type === 'success';
+  const bg = isSuccess ? 'rgba(74,222,128,0.12)' : 'rgba(239,68,68,0.12)';
+  const border = isSuccess ? 'rgba(74,222,128,0.3)' : 'rgba(239,68,68,0.3)';
+  const color = isSuccess ? '#4ade80' : '#fca5a5';
+  const icon = isSuccess
+    ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+    : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
+
+  toast.style.cssText = `position:fixed;top:24px;left:50%;transform:translateX(-50%);z-index:10000;background:${bg};border:1px solid ${border};color:${color};padding:14px 24px;border-radius:12px;font-size:14px;font-weight:500;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,0.4);backdrop-filter:blur(12px);max-width:90vw;animation:toastIn 0.4s ease;`;
+  toast.innerHTML = `${icon}<span>${message}</span>`;
+  document.body.appendChild(toast);
+
+  // Auto-dismiss after 5 seconds
   setTimeout(() => {
-    openSettingsModal();
-    setTimeout(() => {
-      if (stripeConnect === 'success') {
-        showStripeMsg('success', 'Stripe account connected successfully! You\'re ready to receive payouts.');
-      } else {
-        const reason = params.get('reason') || 'Unknown error';
-        showStripeMsg('error', 'Failed to connect Stripe: ' + reason);
-      }
-    }, 300);
-  }, 500);
+    toast.style.transition = 'opacity 0.4s, transform 0.4s';
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(-50%) translateY(-10px)';
+    setTimeout(() => toast.remove(), 400);
+  }, 5000);
 }
 
 async function fetchTier(userId) {
@@ -9531,10 +9559,22 @@ async function connectStripeAccount() {
   }
 }
 
-async function disconnectStripeAccount() {
-  if (!currentUser) return;
+function showStripeDisconnectConfirm() {
+  const confirm = document.getElementById('stripe-disconnect-confirm');
+  const btn = document.getElementById('stripe-disconnect-btn');
+  if (confirm) confirm.style.display = 'block';
+  if (btn) btn.style.display = 'none';
+}
 
-  if (!confirm('Disconnect your Stripe account? You won\'t receive payouts until you reconnect.')) return;
+function hideStripeDisconnectConfirm() {
+  const confirm = document.getElementById('stripe-disconnect-confirm');
+  const btn = document.getElementById('stripe-disconnect-btn');
+  if (confirm) confirm.style.display = 'none';
+  if (btn) btn.style.display = 'block';
+}
+
+async function confirmDisconnectStripe() {
+  if (!currentUser) return;
 
   try {
     const { error } = await sb
@@ -9544,6 +9584,7 @@ async function disconnectStripeAccount() {
 
     if (error) throw error;
 
+    hideStripeDisconnectConfirm();
     showStripeMsg('success', 'Stripe account disconnected.');
     loadStripeConnectStatus();
   } catch (err) {
