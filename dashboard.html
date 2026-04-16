@@ -2123,7 +2123,7 @@
   button.bio-collapsible { cursor: pointer; transition: background 0.15s; }
   button.bio-collapsible:hover { background: var(--surface); }
   .bio-section-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent2); font-weight: 600; }
-  .bio-chevron { transition: transform 0.2s ease; }
+  .bio-chevron { transition: transform 0.2s ease; color: var(--muted); flex-shrink: 0; }
   button.bio-collapsible[aria-expanded="true"] .bio-chevron { transform: rotate(180deg); }
   .bio-section-body { padding: 0 20px 20px; }
   .mk-social-row { display: flex; gap: 10px; align-items: center; }
@@ -3181,7 +3181,7 @@
           <div class="welcome-tool-card" onclick="showTool('scripts')">
             <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/><path d="M6 21l-2-2 2-2M18 21l2-2-2-2"/></svg></div>
             <div>
-              <div class="welcome-tool-name">Script Builder <span style="font-size:9px;background:var(--accent);color:#fff;padding:2px 6px;border-radius:4px;margin-left:4px;vertical-align:middle;font-weight:700;letter-spacing:0.03em;">PRO</span></div>
+              <div class="welcome-tool-name">Script Builder <span style="font-size:9px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;padding:2px 6px;border-radius:4px;margin-left:4px;vertical-align:middle;">PRO</span></div>
               <div class="welcome-tool-desc">Write your next reel, video, podcast, or story in blocks</div>
             </div>
           </div>
