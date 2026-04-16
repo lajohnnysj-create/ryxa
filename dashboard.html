@@ -45,7 +45,7 @@
     --accent2: #a855f7;
     --accent-glow: rgba(124,58,237,0.3);
     --text: #f0eef8;
-    --muted: #b4b2c8;
+    --muted: #bdbcd0;
     --muted2: #c9c7dc;
     --sidebar-width: 240px;
     --topbar-height: 60px;
@@ -296,7 +296,7 @@
     overflow: hidden;
     flex: 1;
   }
-  .sb-card-empty { font-style: italic; opacity: 0.6; }
+  .sb-card-empty { font-style: italic; color: var(--muted); }
   .sb-card-footer {
     display: flex;
     align-items: center;
@@ -424,7 +424,7 @@
     cursor: pointer;
     outline: none;
   }
-  .scripts-meta-sep { color: var(--muted); opacity: 0.5; }
+  .scripts-meta-sep { color: var(--muted); }
 
   /* Hook */
   .scripts-hook-wrap {
@@ -766,7 +766,7 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .scripts-block-collapsed-main .dim { color: var(--muted); opacity: 0.6; font-style: italic; font-weight: 400; }
+  .scripts-block-collapsed-main .dim { color: var(--muted); font-style: italic; font-weight: 400; }
   .scripts-block-collapsed-meta {
     font-size: 10px;
     color: var(--muted);
@@ -1018,7 +1018,7 @@
   .tp-hint {
     text-align: center;
     font-size: 11px;
-    color: rgba(255,255,255,0.35);
+    color: rgba(255,255,255,0.6);
     padding: 8px 16px 16px;
     background: rgba(0,0,0,0.95);
     flex-shrink: 0;
@@ -1205,7 +1205,7 @@
     text-transform: uppercase;
     letter-spacing: 0.18em;
     font-weight: 600;
-    color: rgba(196,181,253,0.8);
+    color: rgba(210,198,255,0.9);
     margin-bottom: 24px;
   }
   .cine-card-block .cine-block-text {
@@ -1287,7 +1287,7 @@
     left: 50%;
     transform: translateX(-50%);
     font-size: 11px;
-    color: rgba(255,255,255,0.4);
+    color: rgba(255,255,255,0.6);
     letter-spacing: 0.15em;
     text-transform: uppercase;
     z-index: 6;
@@ -1374,7 +1374,7 @@
     padding: 5px 10px;
     background: transparent;
     border: 1px solid rgba(255,255,255,0.1);
-    color: rgba(255,255,255,0.5);
+    color: rgba(255,255,255,0.6);
     border-radius: 7px;
     font-size: 11px;
     font-family: 'DM Sans', sans-serif;
@@ -1383,22 +1383,7 @@
   }
   .cine-music-btn:hover { border-color: rgba(255,255,255,0.25); color: rgba(255,255,255,0.8); }
   .cine-music-btn.active { background: rgba(124,58,237,0.2); border-color: rgba(124,58,237,0.5); color: #c4b5fd; }
-  .cine-music-mute {
-    width: 34px;
-    height: 34px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: transparent;
-    border: 1px solid rgba(255,255,255,0.1);
-    color: rgba(255,255,255,0.5);
-    border-radius: 7px;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-  .cine-music-mute:hover { color: #fff; border-color: rgba(255,255,255,0.25); }
-  .cine-music-mute.muted { color: rgba(255,255,255,0.2); }
-  .cine-music-label { font-size: 10px; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 0.08em; margin-right: 4px; }
+  .cine-music-label { font-size: 10px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.08em; margin-right: 4px; }
   /* Hover zone — invisible trigger area at bottom */
   .cine-hover-zone {
     position: absolute;
@@ -14294,9 +14279,6 @@ function openCinematic() {
             <button class="cine-music-btn" data-mood="comedy" onclick="event.stopPropagation();setCineMood('comedy')">Comedy</button>
             <button class="cine-music-btn" data-mood="action" onclick="event.stopPropagation();setCineMood('action')">Action</button>
           </div>
-          <button class="cine-music-mute" id="cine-music-mute" onclick="event.stopPropagation();toggleCineMusic()" aria-label="Toggle music">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
-          </button>
         </div>
       </div>
     </div>
