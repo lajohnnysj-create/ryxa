@@ -1633,7 +1633,54 @@
     .deal-row-mobile-label { display: block !important; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 8px; }
     .deal-row > div:first-child { margin-top: 0 !important; }
   }
-  @media (max-width: 1100px) {
+
+  /* ── KANBAN PIPELINE VIEW ── */
+  .pipeline-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 8px; }
+  .pipeline-board { display: flex; gap: 14px; min-width: min-content; padding: 2px; }
+  .pipeline-col {
+    flex: 0 0 240px;
+    min-height: 200px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .pipeline-col-header {
+    padding: 14px 16px 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .pipeline-col-title { font-family: Syne, sans-serif; font-size: 13px; font-weight: 700; color: var(--text); }
+  .pipeline-col-count { font-size: 11px; color: var(--muted); background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 100px; padding: 2px 8px; }
+  .pipeline-col-body { flex: 1; padding: 10px; display: flex; flex-direction: column; gap: 8px; min-height: 60px; transition: background 0.15s; }
+  .pipeline-col-body.drag-over { background: rgba(124,58,237,0.06); }
+  .pipeline-col-empty { text-align: center; padding: 20px 10px; font-size: 12px; color: var(--muted); }
+  .pipeline-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    cursor: grab;
+    transition: border-color 0.15s, box-shadow 0.15s, opacity 0.15s;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .pipeline-card:hover { border-color: rgba(124,58,237,0.35); }
+  .pipeline-card:active { cursor: grabbing; }
+  .pipeline-card.dragging { opacity: 0.4; border-color: var(--accent); box-shadow: 0 0 20px var(--accent-glow); }
+  .pipeline-card-title { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 4px; line-height: 1.3; }
+  .pipeline-card-brand { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+  .pipeline-card-footer { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+  .pipeline-card-amount { font-family: Syne, sans-serif; font-size: 14px; font-weight: 700; color: var(--text); }
+  .pipeline-card-payment { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; padding: 2px 7px; border-radius: 100px; }
+  @media (max-width: 640px) {
+    .pipeline-col { flex: 0 0 200px; }
+  }
     .bio-grid { grid-template-columns: 1fr !important; min-width: 0 !important; }
     .bio-grid > div { min-width: 0 !important; }
     .bio-grid > div:last-child { position: static !important; }
@@ -4039,7 +4086,10 @@
                 <h2 style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;margin-bottom:4px;letter-spacing:-0.5px;">Brand Deal CRM</h2>
                 <p style="color:var(--muted);font-size:14px;">Track your brand partnerships, deliverables, contracts, and revenue.</p>
               </div>
-              <button id="deals-new-btn" onclick="showDealDetail(null)" style="padding:10px 18px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 24px var(--accent-glow);">+ New deal</button>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                <button id="deals-pipeline-toggle" onclick="togglePipelineView()" style="padding:10px 18px;background:transparent;border:1px solid var(--border-hover);color:var(--text);border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(124,58,237,0.4)';this.style.color='#c4b5fd'" onmouseout="if(!this.classList.contains('active')){this.style.borderColor='var(--border-hover)';this.style.color='var(--text)'}">View Pipeline</button>
+                <button id="deals-new-btn" onclick="showDealDetail(null)" style="padding:10px 18px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 24px var(--accent-glow);">+ New deal</button>
+              </div>
             </div>
 
             <!-- ANALYTICS DASHBOARD (populated by renderDealsAnalytics) -->
@@ -4118,6 +4168,13 @@
                 <button onclick="showDealDetail(null)" style="padding:10px 20px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 24px var(--accent-glow);">Create your first deal</button>
               </div>
               <div id="deals-table" style="display:none;"></div>
+            </div>
+
+            <!-- ========== PIPELINE VIEW ========== -->
+            <div id="deals-pipeline-view" style="display:none;">
+              <div class="pipeline-wrap">
+                <div class="pipeline-board" id="pipeline-board"></div>
+              </div>
             </div>
           </div>
 
@@ -10492,8 +10549,24 @@ function initDealsCrm() {
 
 // Switch to list view
 function showDealsList() {
-  document.getElementById('deals-list-view').style.display = 'block';
   document.getElementById('deals-detail-view').style.display = 'none';
+  document.getElementById('deals-list-view').style.display = 'block';
+
+  // Restore the correct sub-view (list vs pipeline)
+  const content = document.getElementById('deals-content');
+  const pipeline = document.getElementById('deals-pipeline-view');
+  const analytics = document.getElementById('deals-analytics');
+  if (pipelineViewActive) {
+    if (content) content.style.display = 'none';
+    if (pipeline) pipeline.style.display = 'block';
+    if (analytics) analytics.style.display = 'none';
+    renderPipeline();
+  } else {
+    if (content) content.style.display = 'block';
+    if (pipeline) pipeline.style.display = 'none';
+    if (analytics && dealsList.length > 0) analytics.style.display = 'block';
+  }
+
   currentDealId = null;
   currentDealDeliverables = [];
 }
@@ -10595,6 +10668,9 @@ function renderDealsList() {
   }).join('');
 
   tableEl.innerHTML = `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;overflow:hidden;">${header}${rows}</div>`;
+
+  // Keep pipeline in sync if it's active
+  if (pipelineViewActive) renderPipeline();
 }
 
 function formatUSD(cents) {
@@ -10608,6 +10684,260 @@ function formatDateShort(isoDate) {
   const d = new Date(isoDate + 'T00:00:00');
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
+
+// =====================================================
+// BRAND DEAL CRM — Pipeline (Kanban) View
+// =====================================================
+let pipelineViewActive = false;
+
+const PIPELINE_COLUMNS = [
+  { key: 'draft', label: 'Draft', color: 'rgba(122,120,143,0.3)' },
+  { key: 'pending_contract', label: 'Pending Contract', color: 'rgba(251,191,36,0.3)' },
+  { key: 'active', label: 'Active', color: 'rgba(124,58,237,0.35)' },
+  { key: 'completed', label: 'Completed', color: 'rgba(74,222,128,0.3)' },
+  { key: 'cancelled', label: 'Cancelled', color: 'rgba(239,68,68,0.3)' }
+];
+
+function togglePipelineView() {
+  pipelineViewActive = !pipelineViewActive;
+  const btn = document.getElementById('deals-pipeline-toggle');
+  const content = document.getElementById('deals-content');
+  const pipeline = document.getElementById('deals-pipeline-view');
+  const analytics = document.getElementById('deals-analytics');
+
+  if (pipelineViewActive) {
+    if (content) content.style.display = 'none';
+    if (analytics) analytics.style.display = 'none';
+    if (pipeline) pipeline.style.display = 'block';
+    if (btn) {
+      btn.textContent = 'View List';
+      btn.classList.add('active');
+      btn.style.borderColor = 'rgba(124,58,237,0.4)';
+      btn.style.color = '#c4b5fd';
+    }
+    renderPipeline();
+  } else {
+    if (content) content.style.display = 'block';
+    if (pipeline) pipeline.style.display = 'none';
+    // Re-show analytics if there are deals
+    if (analytics && dealsList.length > 0) analytics.style.display = 'block';
+    if (btn) {
+      btn.textContent = 'View Pipeline';
+      btn.classList.remove('active');
+      btn.style.borderColor = 'var(--border-hover)';
+      btn.style.color = 'var(--text)';
+    }
+  }
+}
+
+function renderPipeline() {
+  const board = document.getElementById('pipeline-board');
+  if (!board) return;
+
+  board.innerHTML = PIPELINE_COLUMNS.map(col => {
+    const deals = dealsList.filter(d => d.status === col.key);
+    const totalCents = deals.reduce((sum, d) => sum + (d.deal_amount_cents || 0), 0);
+    const cards = deals.length === 0
+      ? `<div class="pipeline-col-empty">No deals</div>`
+      : deals.map(d => buildPipelineCard(d)).join('');
+
+    return `<div class="pipeline-col" data-status="${col.key}">
+      <div class="pipeline-col-header" style="border-top:3px solid ${col.color};border-radius:14px 14px 0 0;">
+        <div>
+          <div class="pipeline-col-title">${col.label}</div>
+          ${totalCents > 0 ? `<div style="font-size:11px;color:var(--muted);margin-top:2px;">${formatUSD(totalCents)}</div>` : ''}
+        </div>
+        <span class="pipeline-col-count">${deals.length}</span>
+      </div>
+      <div class="pipeline-col-body"
+        ondragover="onPipelineDragOver(event)"
+        ondragleave="onPipelineDragLeave(event)"
+        ondrop="onPipelineDrop(event, '${col.key}')">
+        ${cards}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function buildPipelineCard(d) {
+  const amount = formatUSD(d.deal_amount_cents);
+  const isPaid = d.payment_status === 'paid';
+  const payStyle = isPaid
+    ? 'background:rgba(74,222,128,0.12);color:#4ade80;border:1px solid rgba(74,222,128,0.3);'
+    : 'background:rgba(251,191,36,0.1);color:#fbbf24;border:1px solid rgba(251,191,36,0.3);';
+  const payLabel = isPaid ? 'Paid' : 'Unpaid';
+  const endDate = d.campaign_end_date ? `<div style="font-size:10px;color:var(--muted);margin-top:4px;">Ends ${formatDateShort(d.campaign_end_date)}</div>` : '';
+
+  return `<div class="pipeline-card" draggable="true"
+    data-deal-id="${d.id}"
+    ondragstart="onPipelineDragStart(event, '${d.id}')"
+    ondragend="onPipelineDragEnd(event)"
+    onclick="showDealDetail('${d.id}')">
+    <div class="pipeline-card-title">${escapeHtml(d.deal_title || 'Untitled')}</div>
+    <div class="pipeline-card-brand">${escapeHtml(d.brand_name || '')}</div>
+    <div class="pipeline-card-footer">
+      <div class="pipeline-card-amount">${amount}</div>
+      <span class="pipeline-card-payment" style="${payStyle}">${payLabel}</span>
+    </div>
+    ${endDate}
+  </div>`;
+}
+
+// --- Drag & Drop ---
+let pipelineDragId = null;
+
+function onPipelineDragStart(e, dealId) {
+  pipelineDragId = dealId;
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', dealId);
+  // Add dragging class after a tick so the browser captures the card snapshot first
+  requestAnimationFrame(() => {
+    const card = document.querySelector(`.pipeline-card[data-deal-id="${dealId}"]`);
+    if (card) card.classList.add('dragging');
+  });
+}
+
+function onPipelineDragEnd(e) {
+  // Clean up all drag states
+  document.querySelectorAll('.pipeline-card.dragging').forEach(c => c.classList.remove('dragging'));
+  document.querySelectorAll('.pipeline-col-body.drag-over').forEach(c => c.classList.remove('drag-over'));
+  pipelineDragId = null;
+}
+
+function onPipelineDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  e.currentTarget.classList.add('drag-over');
+}
+
+function onPipelineDragLeave(e) {
+  e.currentTarget.classList.remove('drag-over');
+}
+
+async function onPipelineDrop(e, newStatus) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+
+  const dealId = pipelineDragId || e.dataTransfer.getData('text/plain');
+  if (!dealId) return;
+
+  // Find the deal in our local list
+  const deal = dealsList.find(d => d.id === dealId);
+  if (!deal || deal.status === newStatus) {
+    // No change — just clean up
+    renderPipeline();
+    return;
+  }
+
+  const oldStatus = deal.status;
+  // Optimistically update local state + re-render
+  deal.status = newStatus;
+  renderPipeline();
+  // Also update the list view table behind the scenes
+  renderDealsList();
+
+  // Persist to Supabase
+  const { error } = await sb.from('brand_deals')
+    .update({ status: newStatus })
+    .eq('id', dealId)
+    .eq('user_id', currentUser.id);
+
+  if (error) {
+    console.error('Failed to update deal status:', error);
+    // Revert on failure
+    deal.status = oldStatus;
+    renderPipeline();
+    renderDealsList();
+    // Brief visual feedback
+    const card = document.querySelector(`.pipeline-card[data-deal-id="${dealId}"]`);
+    if (card) {
+      card.style.borderColor = 'rgba(239,68,68,0.6)';
+      setTimeout(() => { card.style.borderColor = ''; }, 1500);
+    }
+  }
+}
+
+// Touch support for mobile drag-and-drop
+(function initPipelineTouchDrag() {
+  let dragCard = null;
+  let dragClone = null;
+  let startX, startY;
+  let currentDropTarget = null;
+
+  document.addEventListener('touchstart', function(e) {
+    const card = e.target.closest('.pipeline-card');
+    if (!card) return;
+    dragCard = card;
+    const touch = e.touches[0];
+    startX = touch.clientX;
+    startY = touch.clientY;
+  }, { passive: true });
+
+  document.addEventListener('touchmove', function(e) {
+    if (!dragCard) return;
+    const touch = e.touches[0];
+    const dx = Math.abs(touch.clientX - startX);
+    const dy = Math.abs(touch.clientY - startY);
+
+    // Only start drag if moved enough horizontally (pipeline is horizontal)
+    if (!dragClone && dx < 10) return;
+
+    e.preventDefault();
+
+    if (!dragClone) {
+      // Create visual clone
+      dragClone = dragCard.cloneNode(true);
+      dragClone.style.position = 'fixed';
+      dragClone.style.width = dragCard.offsetWidth + 'px';
+      dragClone.style.zIndex = '99999';
+      dragClone.style.pointerEvents = 'none';
+      dragClone.style.opacity = '0.85';
+      dragClone.style.boxShadow = '0 8px 32px rgba(0,0,0,0.5)';
+      dragClone.style.transform = 'rotate(2deg)';
+      document.body.appendChild(dragClone);
+      dragCard.classList.add('dragging');
+      pipelineDragId = dragCard.dataset.dealId;
+    }
+
+    dragClone.style.left = (touch.clientX - dragClone.offsetWidth / 2) + 'px';
+    dragClone.style.top = (touch.clientY - 20) + 'px';
+
+    // Find which column body we're over
+    document.querySelectorAll('.pipeline-col-body.drag-over').forEach(c => c.classList.remove('drag-over'));
+    const elUnder = document.elementFromPoint(touch.clientX, touch.clientY);
+    const colBody = elUnder?.closest('.pipeline-col-body');
+    if (colBody) {
+      colBody.classList.add('drag-over');
+      currentDropTarget = colBody;
+    } else {
+      currentDropTarget = null;
+    }
+  }, { passive: false });
+
+  document.addEventListener('touchend', function(e) {
+    if (!dragCard) return;
+
+    if (dragClone) {
+      // Perform the drop
+      if (currentDropTarget) {
+        const col = currentDropTarget.closest('.pipeline-col');
+        const newStatus = col?.dataset.status;
+        if (newStatus) {
+          onPipelineDrop({ preventDefault(){}, currentTarget: currentDropTarget, dataTransfer: { getData: () => pipelineDragId } }, newStatus);
+        }
+        currentDropTarget.classList.remove('drag-over');
+      }
+      dragClone.remove();
+      dragClone = null;
+    }
+
+    dragCard.classList.remove('dragging');
+    document.querySelectorAll('.pipeline-col-body.drag-over').forEach(c => c.classList.remove('drag-over'));
+    dragCard = null;
+    currentDropTarget = null;
+    pipelineDragId = null;
+  }, { passive: true });
+})();
 
 // =====================================================
 // BRAND DEAL CRM — Analytics
@@ -10908,6 +11238,9 @@ function showDealDetail(dealId) {
   // Switch views
   document.getElementById('deals-list-view').style.display = 'none';
   document.getElementById('deals-detail-view').style.display = 'block';
+  // Also hide pipeline if it was active (we'll restore it on "Back to deals")
+  const pipelineEl = document.getElementById('deals-pipeline-view');
+  if (pipelineEl) pipelineEl.style.display = 'none';
   // Scroll to top
   const toolArea = document.querySelector('.tool-area');
   if (toolArea) toolArea.scrollTop = 0;
