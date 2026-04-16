@@ -849,6 +849,122 @@ body { overflow-x: hidden; }
       scroll-behavior: auto !important;
     }
   }
+  /* === INSTRUCTIONS MODAL === */
+  .instr-modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background: rgba(0,0,0,0.85);
+    align-items: flex-start;
+    justify-content: center;
+    padding: 40px 20px;
+    overflow-y: auto;
+  }
+  .instr-modal-backdrop.open { display: flex; }
+  .instr-modal-inner {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    width: 100%;
+    max-width: 760px;
+    margin: auto;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 80px);
+  }
+  .instr-modal-close-x {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    font-family: "DM Sans", sans-serif;
+    transition: all 0.2s;
+  }
+  .instr-modal-close-x:hover {
+    color: var(--text);
+    border-color: var(--border-hover);
+    background: rgba(255,255,255,0.1);
+  }
+  .instr-modal-scroll {
+    overflow-y: auto;
+    padding: 48px 40px 32px;
+    flex: 1;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(124,58,237,0.4) transparent;
+  }
+  .instr-modal-scroll::-webkit-scrollbar { width: 8px; }
+  .instr-modal-scroll::-webkit-scrollbar-track { background: transparent; }
+  .instr-modal-scroll::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.35); border-radius: 4px; transition: background 0.2s; }
+  .instr-modal-scroll::-webkit-scrollbar-thumb:hover { background: rgba(124,58,237,0.55); }
+  .instr-modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    justify-content: flex-end;
+    flex-shrink: 0;
+  }
+  .instr-modal-close-btn {
+    padding: 10px 24px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: "DM Sans", sans-serif;
+    cursor: pointer;
+    transition: background 0.2s;
+    box-shadow: 0 0 20px var(--accent-glow);
+  }
+  .instr-modal-close-btn:hover { background: var(--accent2); }
+
+  .instr-m-header { margin-bottom: 28px; }
+  .instr-m-badge { display: inline-flex; align-items: center; gap: 8px; border: 1px solid rgba(124,58,237,0.4); background: rgba(124,58,237,0.08); border-radius: 100px; padding: 6px 16px; font-size: 12px; color: #c4b5fd; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 20px; }
+  .instr-m-header h1 { font-family: "Syne", sans-serif; font-size: clamp(24px, 4vw, 34px); font-weight: 800; letter-spacing: -1px; line-height: 1.15; margin-bottom: 12px; color: var(--text); }
+  .instr-m-header h1 em { font-style: normal; color: var(--accent2); }
+  .instr-m-header p { font-size: 14px; color: var(--muted); line-height: 1.7; }
+  .instr-m-steps { display: flex; flex-direction: column; gap: 14px; }
+  .instr-m-step-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; transition: border-color 0.2s; }
+  .instr-m-step-card:hover { border-color: var(--border-hover); }
+  .instr-m-step-card-header { padding: 16px 22px; display: flex; align-items: center; gap: 14px; border-bottom: 1px solid var(--border); background: var(--surface2); }
+  .instr-m-step-number { width: 32px; height: 32px; border-radius: 9px; background: rgba(124,58,237,0.15); border: 1px solid rgba(124,58,237,0.3); display: flex; align-items: center; justify-content: center; font-family: "Syne", sans-serif; font-size: 14px; font-weight: 800; color: #c4b5fd; flex-shrink: 0; }
+  .instr-m-step-title { font-family: "Syne", sans-serif; font-size: 15px; font-weight: 700; color: var(--text); }
+  .instr-m-step-body { padding: 18px 22px; }
+  .instr-m-step-list { list-style: none; display: flex; flex-direction: column; gap: 10px; padding: 0; margin: 0; }
+  .instr-m-step-list li { font-size: 13.5px; color: var(--muted); padding-left: 20px; position: relative; line-height: 1.6; }
+  .instr-m-step-list li::before { content: "→"; position: absolute; left: 0; color: var(--accent2); font-size: 12px; top: 3px; }
+  .instr-m-step-list li strong { color: var(--text); font-weight: 500; }
+  .instr-m-settings-highlight { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+  .instr-m-setting-item { display: flex; align-items: flex-start; gap: 10px; }
+  .instr-m-setting-check { color: #4ade80; font-size: 15px; flex-shrink: 0; margin-top: 2px; }
+  .instr-m-setting-label strong { font-size: 13.5px; color: var(--text); display: block; }
+  .instr-m-setting-label span { font-size: 13px; color: var(--muted); }
+  .instr-m-info-box { background: rgba(124,58,237,0.06); border: 1px solid rgba(124,58,237,0.2); border-radius: 10px; padding: 14px 18px; display: flex; gap: 10px; margin-top: 14px; font-size: 13px; color: var(--muted); line-height: 1.6; }
+  .instr-modal-inner code { background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.25); color: #c4b5fd; border-radius: 5px; padding: 2px 7px; font-size: 12px; }
+  .instr-m-tip-card { background: var(--surface); border: 1px solid rgba(74,222,128,0.2); border-radius: 14px; padding: 18px 22px; margin-top: 14px; }
+  .instr-m-tip-title { font-family: "Syne", sans-serif; font-size: 14px; font-weight: 700; color: #4ade80; margin-bottom: 8px; }
+  .instr-m-tip-card p { font-size: 13.5px; color: var(--muted); line-height: 1.7; }
+
+  @media (max-width: 640px) {
+    .instr-modal-backdrop { padding: 0; }
+    .instr-modal-inner { border-radius: 0; max-height: 100vh; min-height: 100vh; }
+    .instr-modal-scroll { padding: 44px 20px 24px; }
+    .instr-modal-footer { padding: 12px 16px; }
+  }
 </style>
 </head>
 <body>
@@ -932,7 +1048,7 @@ body { overflow-x: hidden; }
   <button onclick="closeMobileMenu()" style="position:absolute;top:20px;right:20px;background:none;border:none;color:var(--muted);font-size:24px;cursor:pointer;line-height:1;padding:4px;" aria-label="Close">✕</button>
   <div class="mobile-menu-links">
     <a href="dashboard.html" onclick="closeMobileMenu()" style="color:var(--accent);">Dashboard</a>
-    <a href="instructions.html">Instructions</a>
+    <a href="#" onclick="event.preventDefault();closeMobileMenu();openInstructions();">Instructions</a>
     <a href="faq.html" onclick="closeMobileMenu()">FAQ</a>
     <a href="about.html" onclick="closeMobileMenu()">About</a>
     <a href="blog.html" onclick="closeMobileMenu()">Blog</a>
@@ -967,7 +1083,7 @@ body { overflow-x: hidden; }
       <div class="tool-header" style="margin-bottom:40px;text-align:center;">
         <h2 class="section-title" style="text-align:center;margin:0 0 8px;">Analyze your followers</h2>
         <p style="color:var(--muted);font-size:14px;line-height:1.6;max-width:520px;margin:0 auto;">Download your data from Instagram's Account Center, then upload the ZIP here to instantly see who doesn't follow you back.</p>
-        <a href="instructions.html" style="display:inline-flex;align-items:center;gap:8px;margin-top:16px;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.3);border-radius:10px;padding:10px 18px;color:#c4b5fd;font-size:13px;text-decoration:none;" onmouseover="this.style.background='rgba(124,58,237,0.15)'" onmouseout="this.style.background='rgba(124,58,237,0.08)'">
+        <a href="#" onclick="event.preventDefault();openInstructions();" style="display:inline-flex;align-items:center;gap:8px;margin-top:16px;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.3);border-radius:10px;padding:10px 18px;color:#c4b5fd;font-size:13px;text-decoration:none;" onmouseover="this.style.background='rgba(124,58,237,0.15)'" onmouseout="this.style.background='rgba(124,58,237,0.08)'">
           📋 <span>Need help getting your files? Follow our step-by-step instructions →</span>
         </a>
       </div>
@@ -1233,7 +1349,7 @@ function showDashboard() {
     if (scroll) scroll.innerHTML = `<div class="no-analysis-msg">
       <span class="emoji">📂</span>
       No analysis yet. Upload your Instagram JSON files above and click <strong>Analyze Now</strong> to see your results.<br><br>
-      <a href="instructions.html">Need help getting your files? →</a>
+      <a href="#" onclick="event.preventDefault();openInstructions();">Need help getting your files? →</a>
     </div>`;
 
     // Default to whitelist tab if they have whitelist items, otherwise snake list
@@ -2097,7 +2213,7 @@ function startOver() {
     if (scroll) scroll.innerHTML = `<div class="no-analysis-msg">
       <span class="emoji">📂</span>
       Upload your Instagram JSON files above and click <strong>Analyze Now</strong> to run a new analysis.<br><br>
-      <a href="instructions.html">Need help getting your files? →</a>
+      <a href="#" onclick="event.preventDefault();openInstructions();">Need help getting your files? →</a>
     </div>`;
     // Show welcome banner again
     const welcome = document.getElementById('dashboard-welcome');
@@ -3228,6 +3344,158 @@ initAuth();
 document.querySelectorAll(".copy-year, #copy-year").forEach(el => el.textContent = new Date().getFullYear());
 checkPaymentReturn();
 </script>
+<!-- INSTRUCTIONS MODAL -->
+<div class="instr-modal-backdrop" id="instr-modal" onclick="if(event.target===this)closeInstructions()" role="dialog" aria-modal="true" aria-labelledby="instr-m-title">
+  <div class="instr-modal-inner">
+    <button class="instr-modal-close-x" onclick="closeInstructions()" aria-label="Close instructions">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div class="instr-modal-scroll">
+      <div class="instr-m-header">
+        <div class="instr-m-badge">&#x1F4CB; Step-by-step guide</div>
+        <h1 id="instr-m-title">How to Download Your <em>Instagram Data</em></h1>
+        <p>Follow these steps to get your Instagram data export. Upload the ZIP file directly to Ryxa &mdash; no unzipping needed.</p>
+      </div>
+
+      <div class="instr-m-steps">
+        <div class="instr-m-step-card">
+          <div class="instr-m-step-card-header">
+            <div class="instr-m-step-number">1</div>
+            <div class="instr-m-step-title">Open Instagram Settings</div>
+          </div>
+          <div class="instr-m-step-body">
+            <ul class="instr-m-step-list">
+              <li>Open <strong>Instagram</strong> on your phone</li>
+              <li>Go to your <strong>profile</strong> tab</li>
+              <li>Tap the <strong>hamburger menu (&#x2630;)</strong> in the top right</li>
+              <li>Tap <strong>Accounts Center</strong></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="instr-m-step-card">
+          <div class="instr-m-step-card-header">
+            <div class="instr-m-step-number">2</div>
+            <div class="instr-m-step-title">Request Your Data Export</div>
+          </div>
+          <div class="instr-m-step-body">
+            <ul class="instr-m-step-list">
+              <li>Tap <strong>Your information and permissions</strong></li>
+              <li>Tap <strong>Export your information</strong></li>
+              <li>Tap <strong>Create export</strong></li>
+              <li>Select your <strong>Instagram account</strong></li>
+              <li>Tap <strong>Export to device</strong></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="instr-m-step-card">
+          <div class="instr-m-step-card-header">
+            <div class="instr-m-step-number">3</div>
+            <div class="instr-m-step-title">Select Followers and Following Only</div>
+          </div>
+          <div class="instr-m-step-body">
+            <ul class="instr-m-step-list">
+              <li>Tap <strong>Customize information</strong></li>
+              <li>Clear all sections except <strong>Followers and following</strong></li>
+              <li>Tap <strong>Save</strong></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="instr-m-step-card">
+          <div class="instr-m-step-card-header">
+            <div class="instr-m-step-number">4</div>
+            <div class="instr-m-step-title">Set Export Settings</div>
+          </div>
+          <div class="instr-m-step-body">
+            <p style="font-size:13.5px;color:var(--muted);margin-bottom:14px;">Make sure both of these are set correctly before continuing:</p>
+            <div class="instr-m-settings-highlight">
+              <div class="instr-m-setting-item">
+                <span class="instr-m-setting-check">&#x2713;</span>
+                <div class="instr-m-setting-label">
+                  <strong>Date range</strong>
+                  <span>Set to <strong>All time</strong></span>
+                </div>
+              </div>
+              <div class="instr-m-setting-item">
+                <span class="instr-m-setting-check">&#x2713;</span>
+                <div class="instr-m-setting-label">
+                  <strong>Format</strong>
+                  <span>Set to <strong>JSON</strong> (not HTML)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="instr-m-step-card">
+          <div class="instr-m-step-card-header">
+            <div class="instr-m-step-number">5</div>
+            <div class="instr-m-step-title">Submit and Wait for the Email</div>
+          </div>
+          <div class="instr-m-step-body">
+            <ul class="instr-m-step-list">
+              <li>Tap <strong>Create files</strong> or <strong>Start export</strong></li>
+              <li>Instagram will <strong>email you a download link</strong> when ready</li>
+              <li>This usually takes a <strong>few minutes</strong> but can take up to 48 hours</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="instr-m-step-card">
+          <div class="instr-m-step-card-header">
+            <div class="instr-m-step-number">6</div>
+            <div class="instr-m-step-title">Download the ZIP and Upload It</div>
+          </div>
+          <div class="instr-m-step-body">
+            <ul class="instr-m-step-list">
+              <li>Open the email from Instagram and click the <strong>Download</strong> button</li>
+              <li>Save the <strong>ZIP file</strong> to your device &mdash; do not extract it</li>
+              <li>Come back to Follow-Back Audit and upload the ZIP directly</li>
+              <li>We&rsquo;ll find the right files automatically and run your analysis</li>
+            </ul>
+            <div class="instr-m-info-box">
+              <span style="font-size:18px;flex-shrink:0;">&#x1F4A1;</span>
+              <span>The ZIP is named something like <code>instagram-username-2026-04-01.zip</code>. Upload it exactly as downloaded &mdash; no unzipping needed.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="instr-m-tip-card">
+          <div class="instr-m-tip-title">&#x2713; Large accounts are fully supported</div>
+          <p>If you have a large follower list, Instagram splits your data across multiple files inside the ZIP. Ryxa finds and processes all of them automatically.</p>
+        </div>
+      </div>
+    </div>
+    <div class="instr-modal-footer">
+      <button class="instr-modal-close-btn" onclick="closeInstructions()">Close</button>
+    </div>
+  </div>
+</div>
+<script>
+function openInstructions() {
+  const m = document.getElementById('instr-modal');
+  if (!m) return;
+  m.classList.add('open');
+  const scrollEl = m.querySelector('.instr-modal-scroll');
+  if (scrollEl) scrollEl.scrollTop = 0;
+  document.body.style.overflow = 'hidden';
+}
+function closeInstructions() {
+  const m = document.getElementById('instr-modal');
+  if (!m) return;
+  m.classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    const m = document.getElementById('instr-modal');
+    if (m && m.classList.contains('open')) closeInstructions();
+  }
+});
+</script>
+
 <script src="/cookie-banner.js"></script>
 </body>
 </html>
