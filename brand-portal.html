@@ -12,6 +12,12 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js" defer></script>
+<script type="module">
+  import * as pdfjsLib from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.mjs';
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.mjs';
+  window.pdfjsLib = pdfjsLib;
+</script>
 <style>
   :root {
     --bg: #0a0a14;
@@ -207,16 +213,66 @@
 
   <!-- Contract -->
   <div class="portal-card" id="portal-contract-card" style="display:none;">
-    <div class="portal-card-title">Signed Contract</div>
+    <div class="portal-card-title">Contract</div>
+    <!-- Signing status -->
+    <div id="portal-contract-status" style="margin-bottom:12px;">
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:12px;color:var(--muted);">Creator</span>
+          <span id="portal-creator-sign-status" style="font-size:11px;font-weight:500;"></span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:12px;color:var(--muted);">Brand</span>
+          <span id="portal-brand-sign-status" style="font-size:11px;font-weight:500;"></span>
+        </div>
+      </div>
+    </div>
+    <!-- Contract file row -->
     <div class="contract-row">
       <div class="contract-icon">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
       </div>
       <div class="contract-info">
         <div class="contract-name" id="portal-contract-filename">contract.pdf</div>
-        <div class="contract-status">Signed contract on file</div>
+        <div class="contract-status" id="portal-contract-label">Contract on file</div>
       </div>
-      <div class="contract-soon-tag">Download coming soon</div>
+      <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;">
+        <button id="portal-contract-view-btn" onclick="viewPortalContract()" style="padding:7px 12px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:7px;font-size:11px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">View</button>
+        <button id="portal-contract-sign-btn" onclick="openPortalSignModal()" style="padding:7px 14px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;border:none;border-radius:7px;font-size:11px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;display:none;">Sign Contract</button>
+        <button id="portal-contract-marksigned-btn" onclick="markPortalBrandSigned()" style="padding:7px 12px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:7px;font-size:11px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;display:none;">Mark as signed</button>
+      </div>
+    </div>
+    <!-- Locked message -->
+    <div id="portal-contract-locked" style="display:none;margin-top:10px;text-align:center;font-size:11px;color:#4ade80;font-weight:500;">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      Fully executed — contract is locked
+    </div>
+  </div>
+
+  <!-- Contract signing modal (hidden) -->
+  <div id="portal-sign-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.75);backdrop-filter:blur(4px);padding:16px;overflow-y:auto;">
+    <div style="max-width:800px;margin:0 auto;background:var(--bg);border:1px solid var(--border);border-radius:16px;overflow:hidden;">
+      <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div style="font-family:Syne,sans-serif;font-size:16px;font-weight:700;color:var(--text);">Sign Contract</div>
+          <div id="portal-sign-filename" style="font-size:11px;color:var(--muted);margin-top:2px;"></div>
+        </div>
+        <button onclick="closePortalSignModal()" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:4px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div style="padding:10px 20px;background:rgba(124,58,237,0.06);border-bottom:1px solid var(--border);font-size:11px;color:var(--text);">
+        Click on the document to place your signature. Then click <strong>Save Signature</strong>.
+      </div>
+      <div style="padding:10px 20px;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center;">
+        <span style="font-size:11px;color:var(--muted);">Your signature:</span>
+        <input type="text" id="portal-sign-name" placeholder="Type your full name" style="flex:1;padding:8px 12px;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;font-size:13px;color:var(--text);font-family:'Syne',sans-serif;font-weight:700;outline:none;">
+      </div>
+      <div id="portal-sign-pages" style="padding:16px 20px;display:flex;flex-direction:column;gap:12px;align-items:center;max-height:60vh;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(168,85,247,0.4) transparent;"></div>
+      <div style="padding:14px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;">
+        <button onclick="closePortalSignModal()" style="padding:9px 18px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Cancel</button>
+        <button id="portal-sign-save-btn" onclick="savePortalSignature()" style="padding:9px 18px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;">Save Signature</button>
+      </div>
     </div>
   </div>
 
@@ -397,6 +453,7 @@ function renderPortal() {
   if (deal.contract_file_path) {
     document.getElementById('portal-contract-card').style.display = 'block';
     document.getElementById('portal-contract-filename').textContent = deal.contract_file_name || 'contract.pdf';
+    renderPortalContractStatus(deal);
   } else {
     document.getElementById('portal-contract-card').style.display = 'none';
   }
@@ -689,6 +746,278 @@ document.addEventListener('DOMContentLoaded', () => {
     attemptUnlock(pin);
   });
 });
+
+// ============================================================
+// CONTRACT SIGNING (Brand Side)
+// ============================================================
+
+function renderPortalContractStatus(deal) {
+  const creatorEl = document.getElementById('portal-creator-sign-status');
+  const brandEl = document.getElementById('portal-brand-sign-status');
+  const signBtn = document.getElementById('portal-contract-sign-btn');
+  const markBtn = document.getElementById('portal-contract-marksigned-btn');
+  const lockedEl = document.getElementById('portal-contract-locked');
+  const isLocked = deal.contract_locked;
+
+  // Creator status
+  if (deal.creator_signed_at) {
+    const d = new Date(deal.creator_signed_at);
+    creatorEl.innerHTML = '<span style="color:#4ade80;">Signed</span> <span style="color:var(--muted);font-weight:400;">' + d.toLocaleDateString() + '</span>';
+  } else {
+    creatorEl.innerHTML = '<span style="color:#fbbf24;">Not signed</span>';
+  }
+
+  // Brand status
+  if (deal.brand_signed_at) {
+    const d = new Date(deal.brand_signed_at);
+    brandEl.innerHTML = '<span style="color:#4ade80;">Signed</span> <span style="color:var(--muted);font-weight:400;">' + d.toLocaleDateString() + '</span>';
+  } else {
+    brandEl.innerHTML = '<span style="color:#fbbf24;">Not signed</span>';
+  }
+
+  if (isLocked) {
+    signBtn.style.display = 'none';
+    markBtn.style.display = 'none';
+    lockedEl.style.display = 'block';
+  } else if (!deal.brand_signed_at) {
+    signBtn.style.display = 'inline-block';
+    markBtn.style.display = 'inline-block';
+    lockedEl.style.display = 'none';
+  } else {
+    signBtn.style.display = 'none';
+    markBtn.style.display = 'none';
+    lockedEl.style.display = 'none';
+  }
+}
+
+async function viewPortalContract() {
+  const deal = dealData.deal;
+  if (!deal || !deal.contract_file_path) return;
+  const btn = document.getElementById('portal-contract-view-btn');
+  btn.disabled = true;
+  btn.textContent = 'Loading...';
+  try {
+    const { data, error } = await sb.storage
+      .from('deal-contracts')
+      .createSignedUrl(deal.contract_file_path, 3600);
+    if (error || !data?.signedUrl) throw new Error(error?.message || 'Could not load');
+    window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
+  } catch (err) {
+    alert('Failed to open contract: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'View';
+  }
+}
+
+// Signature placement state
+let portalSignFields = [];
+let portalSignPdfBytes = null;
+
+async function openPortalSignModal() {
+  const deal = dealData.deal;
+  if (!deal || !deal.contract_file_path) return;
+
+  const btn = document.getElementById('portal-contract-sign-btn');
+  btn.disabled = true;
+  btn.textContent = 'Loading...';
+
+  try {
+    const { data, error } = await sb.storage
+      .from('deal-contracts')
+      .createSignedUrl(deal.contract_file_path, 3600);
+    if (error || !data?.signedUrl) throw new Error(error?.message || 'Could not load');
+
+    const resp = await fetch(data.signedUrl);
+    if (!resp.ok) throw new Error('Failed to download');
+    const arrayBuffer = await resp.arrayBuffer();
+    portalSignPdfBytes = new Uint8Array(arrayBuffer);
+    portalSignFields = [];
+
+    document.getElementById('portal-sign-filename').textContent = deal.contract_file_name || 'contract.pdf';
+    document.getElementById('portal-sign-name').value = '';
+
+    // Render pages
+    const container = document.getElementById('portal-sign-pages');
+    container.innerHTML = '<div style="color:var(--muted);padding:20px;text-align:center;">Rendering PDF...</div>';
+
+    const loadingTask = window.pdfjsLib.getDocument({ data: new Uint8Array(portalSignPdfBytes) });
+    const pdfDoc = await loadingTask.promise;
+    container.innerHTML = '';
+
+    for (let i = 0; i < pdfDoc.numPages; i++) {
+      const page = await pdfDoc.getPage(i + 1);
+      const viewport = page.getViewport({ scale: 1.5 });
+      const canvas = document.createElement('canvas');
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      canvas.style.cssText = 'width:100%;height:auto;display:block;border-radius:8px;cursor:crosshair;';
+      canvas.dataset.pageIndex = i;
+      const ctx = canvas.getContext('2d');
+      await page.render({ canvasContext: ctx, viewport }).promise;
+
+      const pageWrap = document.createElement('div');
+      pageWrap.style.cssText = 'position:relative;width:100%;max-width:720px;border:1px solid var(--border);border-radius:8px;overflow:visible;';
+      pageWrap.appendChild(canvas);
+      container.appendChild(pageWrap);
+
+      canvas.addEventListener('click', function(e) {
+        const sigName = document.getElementById('portal-sign-name').value.trim();
+        if (!sigName) {
+          alert('Please type your name in the signature field first.');
+          return;
+        }
+        const rect = canvas.getBoundingClientRect();
+        const normX = (e.clientX - rect.left) / rect.width;
+        const normY = (e.clientY - rect.top) / rect.height;
+        placePortalSignature(parseInt(canvas.dataset.pageIndex), normX, normY, pageWrap, sigName);
+      });
+    }
+
+    document.getElementById('portal-sign-modal').style.display = 'block';
+  } catch (err) {
+    alert('Failed to load contract: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Sign Contract';
+  }
+}
+
+function placePortalSignature(pageIndex, normX, normY, pageWrap, sigName) {
+  const w = 0.25, h = 0.06;
+  const field = {
+    id: Date.now() + '-' + Math.random().toString(36).slice(2,6),
+    pageIndex: pageIndex,
+    x: Math.max(0, Math.min(normX - w/2, 1 - w)),
+    y: Math.max(0, Math.min(normY - h/2, 1 - h)),
+    w: w, h: h,
+    value: sigName
+  };
+  portalSignFields.push(field);
+
+  const el = document.createElement('div');
+  el.id = 'psf-' + field.id;
+  el.style.cssText = 'position:absolute;left:' + (field.x*100) + '%;top:' + (field.y*100) + '%;width:' + (field.w*100) + '%;height:' + (field.h*100) + '%;border:2px solid rgba(124,58,237,0.6);background:rgba(124,58,237,0.08);border-radius:3px;display:flex;align-items:center;padding:2px 6px;font-family:Syne,sans-serif;font-weight:700;font-size:12px;color:var(--text);cursor:default;';
+  el.textContent = sigName;
+
+  // Delete button
+  const del = document.createElement('div');
+  del.style.cssText = 'position:absolute;top:-8px;right:-8px;width:16px;height:16px;background:#ef4444;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:10px;color:#fff;line-height:1;';
+  del.textContent = '×';
+  del.addEventListener('click', function(e) {
+    e.stopPropagation();
+    portalSignFields = portalSignFields.filter(function(f) { return f.id !== field.id; });
+    el.remove();
+  });
+  el.appendChild(del);
+  pageWrap.appendChild(el);
+}
+
+function closePortalSignModal() {
+  document.getElementById('portal-sign-modal').style.display = 'none';
+  portalSignFields = [];
+  portalSignPdfBytes = null;
+  document.getElementById('portal-sign-pages').innerHTML = '';
+}
+
+async function savePortalSignature() {
+  if (portalSignFields.length === 0) {
+    alert('Please place at least one signature on the document.');
+    return;
+  }
+  if (!portalSignPdfBytes) { alert('No PDF loaded.'); return; }
+
+  const btn = document.getElementById('portal-sign-save-btn');
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+
+  try {
+    if (!window.PDFLib) throw new Error('PDF editor not loaded. Refresh the page.');
+    const { PDFDocument, rgb, StandardFonts } = window.PDFLib;
+    const pdfDoc = await PDFDocument.load(portalSignPdfBytes);
+    const helv = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const pages = pdfDoc.getPages();
+
+    for (const field of portalSignFields) {
+      const page = pages[field.pageIndex];
+      if (!page) continue;
+      const { width: pW, height: pH } = page.getSize();
+      const absX = field.x * pW;
+      const absY = pH - (field.y * pH) - (field.h * pH);
+      const absW = field.w * pW;
+      const absH = field.h * pH;
+      const text = String(field.value || '');
+      let fontSize = Math.min(14, absH * 0.7);
+      let textWidth = helv.widthOfTextAtSize(text, fontSize);
+      while (textWidth > absW - 4 && fontSize > 5) { fontSize -= 0.5; textWidth = helv.widthOfTextAtSize(text, fontSize); }
+      page.drawText(text, {
+        x: absX + 2,
+        y: absY + (absH - fontSize) / 2 + fontSize * 0.25,
+        size: fontSize, font: helv, color: rgb(0, 0, 0),
+      });
+    }
+
+    const signedBytes = await pdfDoc.save();
+    const blob = new Blob([signedBytes], { type: 'application/pdf' });
+    const deal = dealData.deal;
+
+    // Upload back to same path
+    const { error: uploadError } = await sb.storage
+      .from('deal-contracts')
+      .upload(deal.contract_file_path, blob, { contentType: 'application/pdf', upsert: true });
+    if (uploadError) throw new Error(uploadError.message);
+
+    // Mark brand as signed + lock if creator already signed
+    const now = new Date().toISOString();
+    const shouldLock = !!deal.creator_signed_at;
+    const { error: updateError } = await sb.rpc('brand_sign_contract', {
+      p_deal_id: deal.id,
+      p_token: dealToken,
+      p_pin: dealPin,
+      p_signed_at: now,
+      p_lock: shouldLock
+    });
+    if (updateError) throw new Error(updateError.message);
+
+    // Update local state
+    deal.brand_signed_at = now;
+    if (shouldLock) deal.contract_locked = true;
+
+    closePortalSignModal();
+    renderPortalContractStatus(deal);
+    alert('Contract signed successfully!' + (shouldLock ? ' The contract is now fully executed and locked.' : ''));
+
+  } catch (err) {
+    alert('Failed to save signature: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Save Signature';
+  }
+}
+
+async function markPortalBrandSigned() {
+  if (!confirm('Mark the contract as signed by your organization? Use this if you signed the contract outside of this portal.')) return;
+  try {
+    const deal = dealData.deal;
+    const now = new Date().toISOString();
+    const shouldLock = !!deal.creator_signed_at;
+    const { error } = await sb.rpc('brand_sign_contract', {
+      p_deal_id: deal.id,
+      p_token: dealToken,
+      p_pin: dealPin,
+      p_signed_at: now,
+      p_lock: shouldLock
+    });
+    if (error) throw new Error(error.message);
+
+    deal.brand_signed_at = now;
+    if (shouldLock) deal.contract_locked = true;
+    renderPortalContractStatus(deal);
+    alert('Contract marked as signed.' + (shouldLock ? ' The contract is now fully executed and locked.' : ''));
+  } catch (err) {
+    alert('Failed: ' + err.message);
+  }
+}
 </script>
 
 </body>
