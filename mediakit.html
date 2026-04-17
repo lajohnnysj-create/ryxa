@@ -460,20 +460,23 @@
   .brand-banner {
     margin: 32px auto 0;
     padding: 12px 22px;
-    background: var(--surface);
+    background: #0a0a14;
     border: 1px solid var(--border);
     border-radius: 100px;
     font-size: 12px;
-    color: var(--muted);
+    color: rgba(255,255,255,0.7);
     text-decoration: none;
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
     transition: border-color 0.15s, color 0.15s;
   }
   .brand-banner:hover, .brand-banner:focus-visible {
     border-color: var(--accent2);
-    color: var(--text);
+    color: #fff;
   }
-  .brand-banner strong { color: var(--text); font-weight: 600; }
+  .brand-banner strong { color: #fff; font-weight: 600; }
+  .brand-banner-logo { width: 18px; height: 18px; border-radius: 5px; flex-shrink: 0; }
   .banner-wrap { text-align: center; }
 
   /* Accessibility */
@@ -826,7 +829,7 @@ function render(profile, kit) {
   const showBanner = !isPaid || kit.show_branding === true;
 
   const bannerHtml = showBanner ? `<div class="banner-wrap">
-    <a class="brand-banner" href="https://www.ryxa.io">Built with <strong>Ryxa</strong></a>
+    <a class="brand-banner" href="https://www.ryxa.io"><img src="https://www.ryxa.io/logo.png" alt="" class="brand-banner-logo"><span>Media Kit powered by <strong>Ryxa</strong></span></a>
   </div>` : '';
 
   document.getElementById('wrap').innerHTML = `

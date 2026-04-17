@@ -4213,7 +4213,7 @@
                   <input type="checkbox" id="mk-show-branding" onchange="onMKField()" style="margin-top:3px;width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0;">
                   <div style="flex:1;">
                     <div style="font-size:14px;color:var(--text);font-weight:500;">Show Ryxa branding</div>
-                    <div style="font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5;">Display a small "Built with Ryxa" badge at the bottom of your media kit.</div>
+                    <div style="font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5;">Display a small "Media Kit powered by Ryxa" badge at the bottom of your media kit.</div>
                   </div>
                 </label>
               </div>
@@ -8792,7 +8792,7 @@ function buildMKPreviewHTML() {
     ${mkState.contact_note ? `<div class="contact-n">${escapeHtml(mkState.contact_note)}</div>` : ''}
   </div>` : '';
 
-  const bannerHtml = mkState.show_branding ? `<div class="banner-wrap"><div class="banner">Built with <strong>Ryxa</strong></div></div>` : '';
+  const bannerHtml = mkState.show_branding ? `<div class="banner-wrap"><div class="banner"><img src="logo.png" alt="" style="width:12px;height:12px;border-radius:3px;"><span>Media Kit powered by <strong>Ryxa</strong></span></div></div>` : '';
 
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -8838,8 +8838,8 @@ function buildMKPreviewHTML() {
   .contact-box{display:inline-block;padding:10px 14px;background:${t.surface2};border:1px solid ${t.border};border-radius:8px;color:${t.text};font-size:11px;font-weight:500;word-break:break-all;}
   .contact-n{margin-top:8px;font-size:10px;color:${t.muted2};line-height:1.5;}
   .banner-wrap{text-align:center;margin-top:14px;}
-  .banner{display:inline-block;padding:7px 14px;background:${t.surface};border:1px solid ${t.border};border-radius:100px;font-size:9px;color:${t.muted};}
-  .banner strong{color:${t.text};font-weight:600;}
+  .banner{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:#0a0a14;border:1px solid ${t.border};border-radius:100px;font-size:9px;color:rgba(255,255,255,0.7);}
+  .banner strong{color:#fff;font-weight:600;}
   </style></head><body>
   <div class="w">
     <div class="hero">
