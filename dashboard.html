@@ -508,7 +508,7 @@
   .scripts-add-btn:disabled { cursor: not-allowed; }
 
   /* Items list */
-  .scripts-items-list { display: flex; flex-direction: column; gap: 10px; }
+  .scripts-items-list { display: flex; flex-direction: column; gap: 10px; max-width: 100%; overflow: hidden; }
   .scripts-empty-items {
     text-align: center;
     padding: 30px 20px;
@@ -590,6 +590,7 @@
     min-height: 72px;
     outline: none;
     box-sizing: border-box;
+    max-width: 100%;
   }
   .scripts-block-body:focus { border-color: var(--accent2); }
   .scripts-block-meta {
@@ -869,6 +870,10 @@
     .scripts-title-input { font-size: 20px; }
     .scripts-view-toggle .scripts-view-btn { padding: 7px 2px; font-size: 9px; }
     .scripts-view-toggle .scripts-view-btn svg { display: none; }
+    .scripts-add-btn { padding: 8px 8px; font-size: 11px; }
+    .scripts-block-body { font-size: 13px; min-height: 56px; padding: 8px 10px; }
+    .scripts-hook-input { font-size: 13px; min-height: 48px; padding: 8px 10px; }
+    .scripts-block-header { flex-wrap: wrap; }
   }
 
   /* ==================== TELEPROMPTER ==================== */
