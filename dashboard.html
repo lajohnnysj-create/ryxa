@@ -7809,17 +7809,19 @@ function buildPreviewHTML() {
   .hero-info .nm{text-shadow:0 2px 10px rgba(0,0,0,0.6);}
   .hero-info .bio-line{text-shadow:0 1px 6px rgba(0,0,0,0.5);}
   .hero-info .sb{background:rgba(0,0,0,0.35);border-color:rgba(255,255,255,0.2);backdrop-filter:blur(6px);}
+  .hero-info{display:none;}
+  .hero-below{margin-top:-60px;position:relative;z-index:3;display:flex;flex-direction:column;align-items:center;gap:8px;padding:0 18px;}
   </style></head><body>
   <div class="w">
     ${(bioState.avatar_display === 'hero' && bioState.avatar_url) ? `
     <div class="hero-wrap">
       <img class="hero-img" src="${escapeHtml(bioState.avatar_url)}" alt="">
       <div class="hero-fade"></div>
-      <div class="hero-info">
-        <div class="nm">${escapeHtml(name)}</div>
-        ${socialsHtml}
-        ${bioState.bio ? `<div class="bio-line">${escapeHtml(bioState.bio)}</div>` : ''}
-      </div>
+    </div>
+    <div class="hero-below">
+      <div class="nm">${escapeHtml(name)}</div>
+      ${socialsHtml}
+      ${bioState.bio ? `<div class="bio-line">${escapeHtml(bioState.bio)}</div>` : ''}
     </div>` : `
     <div class="avfr">${avatarHtml}</div>
     <div class="nm">${escapeHtml(name)}</div>
