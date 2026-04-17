@@ -138,16 +138,15 @@
   .hero-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-bottom: 48px; }
 
   /* TESTIMONIALS */
-  .testimonials-section { max-width: 100%; margin: 0 auto 56px; padding: 0 20px; }
-  .testimonials-heading { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; text-align: center; margin-bottom: 6px; color: var(--text); letter-spacing: -0.5px; }
+  .testimonials-section { margin: 0 0 56px; padding: 0; overflow: hidden; width: 100%; }
+  .testimonials-heading { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; text-align: center; margin-bottom: 6px; color: var(--text); letter-spacing: -0.5px; padding: 0 20px; }
   .testimonials-heading span { background: linear-gradient(135deg, #a78bfa, #e879f9); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-  .testimonials-sub { font-size: 15px; color: var(--muted); text-align: center; margin-bottom: 28px; }
-  .testimonials-track-wrap { position: relative; display: flex; align-items: center; gap: 12px; max-width: 1200px; margin: 0 auto; }
-  .testimonials-track { display: flex; gap: 20px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; scrollbar-width: none; -ms-overflow-style: none; padding: 4px 0; flex: 1; min-width: 0; }
-  .testimonials-track::-webkit-scrollbar { display: none; }
-  .testimonial-arrow { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: all 0.2s; z-index: 2; }
-  .testimonial-arrow:hover { color: var(--text); border-color: var(--accent); background: rgba(124,58,237,0.1); }
-  .testimonial-card { position: relative; min-width: 340px; max-width: 400px; border-radius: 20px; overflow: visible; flex-shrink: 0; scroll-snap-align: center; }
+  .testimonials-sub { font-size: 15px; color: var(--muted); text-align: center; margin-bottom: 28px; padding: 0 20px; }
+  .testimonials-track-wrap { position: relative; width: 100%; }
+  .testimonials-track { display: flex; gap: 24px; width: max-content; animation: testimonialScroll 20s linear infinite; padding: 8px 0; }
+  .testimonials-track:hover { animation-play-state: paused; }
+  @keyframes testimonialScroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+  .testimonial-card { position: relative; width: 380px; border-radius: 20px; overflow: visible; flex-shrink: 0; }
   .testimonial-card-inner { position: relative; border-radius: 20px; overflow: hidden; height: 100%; }
   /* Animated glowing border */
   .testimonial-card::before { content: ''; position: absolute; inset: -2px; border-radius: 22px; background: conic-gradient(from var(--testimonial-angle, 0deg), #7c3aed, #e879f9, #a78bfa, #7c3aed); z-index: -1; animation: testimonialBorderSpin 4s linear infinite; opacity: 0.7; transition: opacity 0.3s; }
@@ -166,13 +165,10 @@
   .testimonial-name { font-size: 14px; font-weight: 600; color: #fff; }
   .testimonial-handle { font-size: 12px; color: var(--accent2); }
   @media (max-width: 600px) {
-    .testimonials-section { padding: 0 16px; overflow: hidden; }
-    .testimonials-track-wrap { gap: 0; }
-    .testimonials-track { gap: 16px; padding: 4px 0; }
-    .testimonial-card { min-width: calc(100vw - 32px); max-width: calc(100vw - 32px); }
+    .testimonial-card { width: 320px; }
     .testimonial-content { padding: 24px 20px 22px; min-height: 260px; }
-    .testimonial-arrow { display: none; }
     .testimonial-card::after { filter: blur(10px); }
+    .testimonials-track { gap: 16px; }
   }
   .btn-primary { background: var(--accent); color: #fff; border: none; border-radius: 10px; padding: 15px 36px; font-size: 16px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.25s; box-shadow: 0 0 40px var(--accent-glow); text-decoration: none; display: inline-block; }
   .btn-primary:hover { background: var(--accent2); transform: translateY(-2px); }
@@ -553,9 +549,6 @@
       <h2 class="testimonials-heading">Trusted by creators <span>who mean business</span></h2>
       <p class="testimonials-sub">See what they say about Ryxa!</p>
       <div class="testimonials-track-wrap">
-        <button class="testimonial-arrow testimonial-arrow-left" onclick="scrollTestimonials(-1)" aria-label="Previous testimonial">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-        </button>
         <div class="testimonials-track" id="testimonials-track">
 
           <!-- Testimonial 1 -->
@@ -594,10 +587,42 @@
             </div>
           </div>
 
+          <!-- Duplicates for seamless infinite loop -->
+          <div class="testimonial-card" aria-hidden="true">
+            <div class="testimonial-card-inner">
+              <div class="testimonial-bg" style="background-image:url('testimonials/pinsta.jpg');"></div>
+              <div class="testimonial-content">
+                <p class="testimonial-quote">"I was able to grow my audience as a content creator with Ryxa! The tools that they offer are unbeatable. It has certainly helped make things easier for me!"</p>
+                <div class="testimonial-stars">★★★★★</div>
+                <div class="testimonial-author">
+                  <img src="testimonials/pinsta.jpg" alt="Pinhwa Su" class="testimonial-avatar">
+                  <div>
+                    <div class="testimonial-name">Pinhwa Su</div>
+                    <div class="testimonial-handle">@xo.pinsta</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="testimonial-card" aria-hidden="true">
+            <div class="testimonial-card-inner">
+              <div class="testimonial-bg" style="background-image:url('testimonials/jaed.jpg');"></div>
+              <div class="testimonial-content">
+                <p class="testimonial-quote">"Being a content creator is more than just posting... it's a business. Ryxa helps simplify that side of things and makes it easier to grow with purpose. I'd recommend it to anyone serious about leveling up!"</p>
+                <div class="testimonial-stars">★★★★★</div>
+                <div class="testimonial-author">
+                  <img src="testimonials/jaed.jpg" alt="Jaed" class="testimonial-avatar">
+                  <div>
+                    <div class="testimonial-name">Jaed</div>
+                    <div class="testimonial-handle">@jaed.official</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
-        <button class="testimonial-arrow testimonial-arrow-right" onclick="scrollTestimonials(1)" aria-label="Next testimonial">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
-        </button>
       </div>
     </div>
 
@@ -837,41 +862,12 @@
 </footer>
 
 <script>
-function scrollTestimonials(dir) {
-  const track = document.getElementById('testimonials-track');
-  if (!track) return;
-  const card = track.querySelector('.testimonial-card');
-  const scrollAmount = card ? card.offsetWidth + 20 : 360;
-  track.scrollBy({ left: dir * scrollAmount, behavior: 'smooth' });
-}
-
-// Auto-scroll testimonials
-let testimonialAutoScroll = null;
-function startTestimonialScroll() {
-  const track = document.getElementById('testimonials-track');
-  if (!track) return;
-  testimonialAutoScroll = setInterval(() => {
-    const card = track.querySelector('.testimonial-card');
-    const scrollAmount = card ? card.offsetWidth + 20 : 360;
-    const maxScroll = track.scrollWidth - track.clientWidth;
-    if (track.scrollLeft >= maxScroll - 5) {
-      track.scrollTo({ left: 0, behavior: 'smooth' });
-    } else {
-      track.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-    }
-  }, 4000);
-}
-function stopTestimonialScroll() {
-  if (testimonialAutoScroll) { clearInterval(testimonialAutoScroll); testimonialAutoScroll = null; }
-}
+// Testimonials: pause on touch for mobile
 document.addEventListener('DOMContentLoaded', () => {
   const track = document.getElementById('testimonials-track');
   if (track) {
-    startTestimonialScroll();
-    track.addEventListener('mouseenter', stopTestimonialScroll);
-    track.addEventListener('mouseleave', startTestimonialScroll);
-    track.addEventListener('touchstart', stopTestimonialScroll, { passive: true });
-    track.addEventListener('touchend', () => setTimeout(startTestimonialScroll, 3000));
+    track.addEventListener('touchstart', () => { track.style.animationPlayState = 'paused'; }, { passive: true });
+    track.addEventListener('touchend', () => { setTimeout(() => { track.style.animationPlayState = 'running'; }, 2000); });
   }
 });
 
