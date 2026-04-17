@@ -13603,17 +13603,23 @@ async function saveSignedContractBack() {
       .upload(ctx.storagePath, blob, { contentType: 'application/pdf', upsert: true });
     if (uploadError) throw new Error(uploadError.message);
 
-    // Mark creator as signed
+    // Mark creator as signed — auto-lock + activate if brand already signed
     const now = new Date().toISOString();
+    const dealIdx = dealsList.findIndex(d => d.id === ctx.dealId);
+    const brandAlreadySigned = dealIdx >= 0 && dealsList[dealIdx].brand_signed_at;
+    const updatePayload = { creator_signed_at: now };
+    if (brandAlreadySigned) { updatePayload.contract_locked = true; updatePayload.status = 'active'; }
     const { error: updateError } = await sb
       .from('brand_deals')
-      .update({ creator_signed_at: now })
+      .update(updatePayload)
       .eq('id', ctx.dealId);
     if (updateError) throw new Error(updateError.message);
 
     // Update local cache
-    const dealIdx = dealsList.findIndex(d => d.id === ctx.dealId);
-    if (dealIdx >= 0) dealsList[dealIdx].creator_signed_at = now;
+    if (dealIdx >= 0) {
+      dealsList[dealIdx].creator_signed_at = now;
+      if (brandAlreadySigned) { dealsList[dealIdx].contract_locked = true; dealsList[dealIdx].status = 'active'; }
+    }
 
     // Clean up and go back to deals
     const dealId = ctx.dealId;
@@ -13648,16 +13654,23 @@ async function markContractCreatorSigned() {
 
   try {
     const now = new Date().toISOString();
+    const dealIdx = dealsList.findIndex(d => d.id === currentDealId);
+    const brandAlreadySigned = dealIdx >= 0 && dealsList[dealIdx].brand_signed_at;
+    const updatePayload = { creator_signed_at: now };
+    if (brandAlreadySigned) { updatePayload.contract_locked = true; updatePayload.status = 'active'; }
     const { error } = await sb
       .from('brand_deals')
-      .update({ creator_signed_at: now })
+      .update(updatePayload)
       .eq('id', currentDealId);
     if (error) throw new Error(error.message);
 
-    const dealIdx = dealsList.findIndex(d => d.id === currentDealId);
-    if (dealIdx >= 0) dealsList[dealIdx].creator_signed_at = now;
+    if (dealIdx >= 0) {
+      dealsList[dealIdx].creator_signed_at = now;
+      if (brandAlreadySigned) { dealsList[dealIdx].contract_locked = true; dealsList[dealIdx].status = 'active'; }
+    }
     renderContractUI(dealsList[dealIdx]);
-    showDealModalMsg('success', 'Contract marked as signed.');
+    renderDealsList();
+    showDealModalMsg('success', 'Contract marked as signed.' + (brandAlreadySigned ? ' Deal is now active.' : ''));
     setTimeout(() => { const msg = document.getElementById('deal-detail-msg'); if (msg) msg.style.display = 'none'; }, 2500);
   } catch (err) {
     showDealModalMsg('error', 'Failed: ' + err.message);
