@@ -396,7 +396,7 @@
   .scripts-export-menu button.primary { color: #e879f9; font-weight: 500; }
 
   /* Title + meta */
-  .scripts-editor-meta { margin-bottom: 20px; }
+  .scripts-editor-meta { margin-bottom: 20px; max-width: 100%; overflow: hidden; }
   .scripts-title-input {
     width: 100%;
     background: transparent;
@@ -409,6 +409,7 @@
     outline: none;
     padding: 4px 0;
     margin-bottom: 6px;
+    box-sizing: border-box;
   }
   .scripts-title-input:focus { outline: 1px dashed rgba(124,58,237,0.3); outline-offset: 4px; border-radius: 4px; }
   .scripts-meta-row {
@@ -787,10 +788,21 @@
   /* Mobile */
   @media (max-width: 640px) {
     /* Editor top bar - let view toggle wrap its own line */
+    /* Script editor mobile: constrain widths */
     .scripts-editor-top {
       gap: 8px;
       margin-bottom: 14px;
     }
+    #scripts-editor-wrap { max-width: 100%; overflow-x: hidden; }
+    #tool-scripts { max-width: 100%; overflow-x: hidden; }
+    .scripts-editor-top { max-width: 100%; }
+    .scripts-view-toggle { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .scripts-editor-meta { max-width: 100%; }
+    .scripts-title-input { max-width: 100%; }
+    .scripts-hook-wrap { max-width: 100%; overflow: hidden; }
+    .scripts-hook-input { max-width: 100%; }
+    .scripts-add-row { max-width: 100%; }
+    .scripts-block { max-width: 100%; overflow: hidden; }
     .scripts-back-btn { order: 1; flex-shrink: 0; padding: 7px 10px; font-size: 11px; }
     .scripts-view-toggle {
       order: 4;
