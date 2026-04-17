@@ -188,30 +188,32 @@
     .hero-left { align-items: center; padding-left: 0; padding-top: 0; }
     .hero-sub { margin: 0 auto 32px; }
     .hero-actions { justify-content: center; }
-    .hero-phone-device { width: 140px; transform: perspective(800px) rotateY(-16deg) rotateX(5deg) translateY(-15px); border-radius: 12px; }
-    .hero-phone-device:hover { transform: perspective(800px) rotateY(-16deg) rotateX(5deg) translateY(-15px); }
-    .hero-phone { padding: 10px 20px 10px 40px; justify-content: flex-end; }
+    .hero-phone-device { width: 140px; transform: perspective(600px) rotateY(-20deg) rotateX(6deg) translateY(-15px); border-radius: 12px; }
+    .hero-phone-device:hover { transform: perspective(600px) rotateY(-20deg) rotateX(6deg) translateY(-15px); }
+    .hero-phone { padding: 10px 60px 10px 10px; justify-content: flex-start; }
     .hero-phone::before,
     .hero-phone::after {
       display: block;
       width: 140px;
-      height: 100%;
       max-height: 280px;
       border-radius: 12px;
+      left: 10px;
+      top: 50%;
     }
     .hero-phone::before {
-      transform: translate(-38%, -50%) perspective(800px) rotateY(-10deg) rotateX(3deg) translateX(14px) translateY(-8px);
+      transform: translateY(-50%) perspective(600px) rotateY(-14deg) rotateX(4deg) translateX(22px) translateY(-8px);
     }
     .hero-phone::after {
-      transform: translate(-30%, -50%) perspective(800px) rotateY(-5deg) rotateX(1deg) translateX(28px) translateY(-3px);
+      transform: translateY(-50%) perspective(600px) rotateY(-8deg) rotateX(2deg) translateX(44px) translateY(-3px);
     }
     .hero-phone-ghost-3 {
       display: block;
       width: 140px;
-      height: 100%;
       max-height: 280px;
       border-radius: 12px;
-      transform: translate(-22%, -50%) perspective(800px) rotateY(0deg) translateX(42px) translateY(2px);
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%) perspective(600px) rotateY(-2deg) translateX(66px) translateY(2px);
     }
     .hero-phone-screen { height: 250px; border-radius: 12px; }
     .hero-phone-screen > div { transform: scale(0.65); transform-origin: top left; width: 154%; }
@@ -613,7 +615,7 @@
   <div class="hero-content">
     <div class="hero-split">
       <div class="hero-left">
-        <h1>The all-in-one toolkit for <span class="gradient-text">content creators</span></h1>
+        <h1>Creator tools to <span class="gradient-text">empower your growth</span></h1>
         <p class="hero-sub">Everything you need to look professional, stay organized, and grow your brand — link in bio, media kit, brand deal tracking, and more. All in one dashboard.</p>
         <div class="hero-actions">
           <button class="btn-primary" onclick="openSignupModal()">Get started free &#x2192;</button>
