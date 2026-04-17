@@ -872,11 +872,13 @@ async function viewPortalContract() {
   btn.disabled = true;
   btn.textContent = 'Loading...';
   try {
-    const { data, error } = await sb.storage
-      .from('deal-contracts')
-      .createSignedUrl(deal.contract_file_path, 3600);
-    if (error || !data?.signedUrl) throw new Error(error?.message || 'Could not load');
-    window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
+    const { data, error } = await sb.functions.invoke('deal-file-url', {
+      body: { token: dealToken, pin: dealPin, file_type: 'contract' }
+    });
+    if (error) throw new Error(error.message || 'Failed to load');
+    if (data && data.error) throw new Error(data.error);
+    if (!data || !data.url) throw new Error('No URL returned');
+    window.open(data.url, '_blank', 'noopener,noreferrer');
   } catch (err) {
     alert('Failed to open contract: ' + err.message);
   } finally {
@@ -897,12 +899,15 @@ async function openPortalSignModal() {
   btn.textContent = 'Loading...';
 
   try {
-    const { data, error } = await sb.storage
-      .from('deal-contracts')
-      .createSignedUrl(deal.contract_file_path, 3600);
-    if (error || !data?.signedUrl) throw new Error(error?.message || 'Could not load');
+    // Get signed URL via edge function
+    const { data, error } = await sb.functions.invoke('deal-file-url', {
+      body: { token: dealToken, pin: dealPin, file_type: 'contract' }
+    });
+    if (error) throw new Error(error.message || 'Failed to load');
+    if (data && data.error) throw new Error(data.error);
+    if (!data || !data.url) throw new Error('No URL returned');
 
-    const resp = await fetch(data.signedUrl);
+    const resp = await fetch(data.url);
     if (!resp.ok) throw new Error('Failed to download');
     const arrayBuffer = await resp.arrayBuffer();
     portalSignPdfBytes = new Uint8Array(arrayBuffer);
@@ -1024,24 +1029,27 @@ async function savePortalSignature() {
     }
 
     const signedBytes = await pdfDoc.save();
-    const blob = new Blob([signedBytes], { type: 'application/pdf' });
     const deal = dealData.deal;
 
-    const { error: uploadError } = await sb.storage
-      .from('deal-contracts')
-      .upload(deal.contract_file_path, blob, { contentType: 'application/pdf', upsert: true });
-    if (uploadError) throw new Error(uploadError.message);
+    // Convert to base64 for edge function upload
+    const base64Pdf = btoa(String.fromCharCode.apply(null, new Uint8Array(signedBytes)));
 
+    // Upload signed contract and mark brand as signed via edge function
     const now = new Date().toISOString();
     const shouldLock = !!deal.creator_signed_at;
-    const { error: updateError } = await sb.rpc('brand_sign_contract', {
-      p_deal_id: deal.id,
-      p_token: dealToken,
-      p_pin: dealPin,
-      p_signed_at: now,
-      p_lock: shouldLock
+    const { data, error } = await sb.functions.invoke('brand-sign-contract', {
+      body: {
+        token: dealToken,
+        pin: dealPin,
+        deal_id: deal.id,
+        signed_pdf_base64: base64Pdf,
+        signed_at: now,
+        lock: shouldLock
+      }
     });
-    if (updateError) throw new Error(updateError.message);
+
+    if (error) throw new Error(error.message || 'Failed to save');
+    if (data && data.error) throw new Error(data.error);
 
     deal.brand_signed_at = now;
     if (shouldLock) deal.contract_locked = true;
@@ -1063,14 +1071,18 @@ async function markPortalBrandSigned() {
     const deal = dealData.deal;
     const now = new Date().toISOString();
     const shouldLock = !!deal.creator_signed_at;
-    const { error } = await sb.rpc('brand_sign_contract', {
-      p_deal_id: deal.id,
-      p_token: dealToken,
-      p_pin: dealPin,
-      p_signed_at: now,
-      p_lock: shouldLock
+    const { data, error } = await sb.functions.invoke('brand-sign-contract', {
+      body: {
+        token: dealToken,
+        pin: dealPin,
+        deal_id: deal.id,
+        signed_at: now,
+        lock: shouldLock,
+        mark_only: true
+      }
     });
-    if (error) throw new Error(error.message);
+    if (error) throw new Error(error.message || 'Failed');
+    if (data && data.error) throw new Error(data.error);
 
     deal.brand_signed_at = now;
     if (shouldLock) deal.contract_locked = true;
