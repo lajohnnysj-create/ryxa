@@ -13471,6 +13471,9 @@ async function signContractAsCreator() {
     const loadingTask = window.pdfjsLib.getDocument({ data: new Uint8Array(pdfsignOriginalBytes) });
     pdfsignDoc = await loadingTask.promise;
 
+    // Mark as inited so showTool doesn't call resetPdfSign
+    pdfsignInited = true;
+
     // Switch to Sign PDF tool (must happen BEFORE setting context)
     showTool('pdfsign');
 
