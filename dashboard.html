@@ -53,7 +53,7 @@
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   html { scroll-behavior: smooth; }
-  body { font-family: "DM Sans", sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; display: flex; }
+  body { font-family: "DM Sans", sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; overflow-y: scroll; display: flex; }
 
   /* ── SIDEBAR ── */
   .sidebar {
@@ -16677,16 +16677,19 @@ function faFilterResults() {
   }
   const el = document.getElementById('fa-results-list-scroll');
   const paywallEl = document.getElementById('fa-paywall-container');
-  if (!filtered.length) { el.innerHTML = `<div class="fa-empty-state"><span class="emoji">🔍</span>No results match your search.</div>`; paywallEl.innerHTML = ''; return; }
+  // Lock the tool-follower height to prevent layout shift during innerHTML swap
+  const toolEl = document.getElementById('tool-follower');
+  if (toolEl) toolEl.style.minHeight = toolEl.offsetHeight + 'px';
+  if (!filtered.length) { el.innerHTML = `<div class="fa-empty-state"><span class="emoji">🔍</span>No results match your search.</div>`; paywallEl.innerHTML = ''; if (toolEl) requestAnimationFrame(() => { toolEl.style.minHeight = ''; }); return; }
   if (faCurrentFilter === 'whitelist') {
-    if (faUserWhitelist.size === 0) { el.innerHTML = '<div class="fa-empty-state"><span class="emoji">🛡</span>Your whitelist is empty.</div>'; paywallEl.innerHTML = ''; return; }
+    if (faUserWhitelist.size === 0) { el.innerHTML = '<div class="fa-empty-state"><span class="emoji">🛡</span>Your whitelist is empty.</div>'; paywallEl.innerHTML = ''; if (toolEl) requestAnimationFrame(() => { toolEl.style.minHeight = ''; }); return; }
     const wlRows = [...faUserWhitelist].map(handle => {
       const result = faAllResults.find(r => r.handle.toLowerCase() === handle.toLowerCase());
       if (result) return faBuildRow(result, false);
       const note = faAccountNotes[handle.toLowerCase()] || '';
       return `<div class="fa-result-item"><div><div class="fa-result-handle"><a href="https://instagram.com/${handle}" target="_blank" rel="noopener">@${handle}</a></div>${note ? `<div class="fa-note-display">📝 ${note}</div>` : ''}</div><div><span class="fa-tag unfollow" style="background:rgba(255,255,255,0.05);color:var(--muted);border-color:var(--border)">Whitelisted</span></div><div><button class="fa-whitelist-btn whitelisted" onclick="faToggleWhitelist('${handle}')">✓ Unhide</button></div><div><button class="fa-note-icon-btn" onclick="faToggleNoteRow('${handle}')">📝</button></div><div></div></div>`;
     });
-    el.innerHTML = wlRows.join(''); paywallEl.innerHTML = ''; return;
+    el.innerHTML = wlRows.join(''); paywallEl.innerHTML = ''; if (toolEl) requestAnimationFrame(() => { toolEl.style.minHeight = ''; }); return;
   }
   const unfollowerResults = filtered.filter(r => !r.mutual && !r.followerOnly && !faUserWhitelist.has(r.handle.toLowerCase()));
   const otherResults = filtered.filter(r => r.mutual || r.followerOnly);
@@ -16698,6 +16701,8 @@ function faFilterResults() {
   const hiddenCount = isPaid ? 0 : Math.max(0, unfollowerResults.length - FA_FREE_LIMIT);
   if (hiddenCount > 0) paywallEl.innerHTML = faBuildPaywall(hiddenCount, unfollowerResults.length);
   else paywallEl.innerHTML = '';
+  // Release the height lock after the new content is in the DOM
+  if (toolEl) requestAnimationFrame(() => { toolEl.style.minHeight = ''; });
   const wlCount = faUserWhitelist.size;
   const wlBanner = document.getElementById('fa-wl-banner');
   if (wlBanner) {
