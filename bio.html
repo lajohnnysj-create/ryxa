@@ -300,16 +300,11 @@
     object-position: center top;
     display: block;
     border-radius: 0;
+    -webkit-mask-image: linear-gradient(to bottom, black 0%, black 55%, transparent 100%);
+    mask-image: linear-gradient(to bottom, black 0%, black 55%, transparent 100%);
   }
   .hero-header-fade {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background:
-      linear-gradient(to bottom, transparent 0%, transparent 60%, var(--bg) 100%),
-      radial-gradient(ellipse 80% 40% at 50% 100%, var(--bg) 0%, transparent 70%),
-      radial-gradient(ellipse 30% 25% at 0% 100%, var(--bg) 0%, transparent 70%),
-      radial-gradient(ellipse 30% 25% at 100% 100%, var(--bg) 0%, transparent 70%);
+    display: none;
   }
   .hero-header-info {
     display: none;
