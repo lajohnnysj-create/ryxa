@@ -828,9 +828,7 @@ function render(profile, kit) {
   const showBanner = !isPaid || kit.show_branding === true;
 
   const bannerHtml = showBanner ? `<div class="banner-wrap">
-    <a class="brand-banner" href="https://www.ryxa.io">
-      Built with <strong>Ryxa</strong>
-    </a>
+    <a class="brand-banner" href="https://www.ryxa.io">Built with <strong>Ryxa</strong></a>
   </div>` : '';
 
   document.getElementById('wrap').innerHTML = `
