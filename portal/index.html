@@ -1095,7 +1095,8 @@ function psmHandleDrop(e, pageIndex, overlay) {
   const normX = (e.clientX - rect.left) / rect.width;
   const normY = (e.clientY - rect.top) / rect.height;
   const fieldType = psmDragType || e.dataTransfer.getData('text/plain');
-  if (!fieldType) return;
+  const validTypes = ['signature', 'text', 'date', 'checkbox', 'crossout'];
+  if (!fieldType || validTypes.indexOf(fieldType) === -1) return;
   psmAddField(pageIndex, fieldType, normX, normY);
   psmDragType = null;
 }
@@ -1142,6 +1143,7 @@ function psmRenderField(field) {
   const el = document.createElement('div');
   el.className = 'pdfsign-field' + (psmHasValue(field) ? ' filled' : '');
   el.id = 'psm-' + field.id;
+  el.draggable = false;
   el.style.left = (field.x*100)+'%'; el.style.top = (field.y*100)+'%';
   el.style.width = (field.w*100)+'%'; el.style.height = (field.h*100)+'%';
 
@@ -1171,8 +1173,8 @@ function psmRenderField(field) {
   el.appendChild(resize);
 
   // Move via drag
-  el.addEventListener('mousedown', function(e) { if (e.target.closest('.pdfsign-field-delete,.pdfsign-field-resize')) return; psmStartMove(e, field.id, el); });
-  el.addEventListener('touchstart', function(e) { if (e.target.closest('.pdfsign-field-delete,.pdfsign-field-resize')) return; psmStartMove(e.touches[0], field.id, el); }, { passive: false });
+  el.addEventListener('mousedown', function(e) { if (e.target.closest('.pdfsign-field-delete,.pdfsign-field-resize')) return; e.preventDefault(); psmStartMove(e, field.id, el); });
+  el.addEventListener('touchstart', function(e) { if (e.target.closest('.pdfsign-field-delete,.pdfsign-field-resize')) return; e.preventDefault(); psmStartMove(e.touches[0], field.id, el); }, { passive: false });
 
   // Click to edit
   el.addEventListener('dblclick', function(e) { e.stopPropagation(); psmEditField(field); });
