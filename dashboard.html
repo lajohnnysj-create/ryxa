@@ -3285,7 +3285,7 @@
                   <input type="text" id="bio-username" aria-label="Username" placeholder="yourname" maxlength="30" oninput="onUsernameInput()" style="background:transparent;border:none;padding:10px 10px 10px 2px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;flex:1;min-width:0;">
                 </div>
               </div>
-              <div id="bio-username-hint" style="font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5;">Same username as your Media Kit. Changing it here updates both.</div>
+              <div id="bio-username-hint" style="font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5;">Same username as your Media Kit. You can change it up to 2 times per week.</div>
             </div>
 
             <!-- Avatar + identity -->
@@ -3539,7 +3539,7 @@
                     <input type="text" id="mk-username" aria-label="Username" placeholder="yourname" maxlength="30" oninput="onMKUsernameInput()" style="background:transparent;border:none;padding:10px 10px 10px 2px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;flex:1;min-width:0;">
                   </div>
                 </div>
-                <div id="mk-username-hint" style="font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5;">Same username as your Link in Bio. Changing it here updates both.</div>
+                <div id="mk-username-hint" style="font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5;">Same username as your Link in Bio. You can change it up to 2 times per week.</div>
               </div>
             </div>
 
@@ -5712,6 +5712,43 @@ function onBioFieldChange() {
   schedulePreviewUpdate();
 }
 
+// Username change rate limiting: 2 changes per 7 days
+const USERNAME_CHANGE_LIMIT = 2;
+const USERNAME_CHANGE_WINDOW_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+async function checkUsernameChangeLimit() {
+  const { data: profile } = await sb.from('profiles').select('username_changes').eq('user_id', currentUser.id).maybeSingle();
+  const changes = (profile?.username_changes || []).filter(ts => {
+    return (Date.now() - new Date(ts).getTime()) < USERNAME_CHANGE_WINDOW_MS;
+  });
+  return { allowed: changes.length < USERNAME_CHANGE_LIMIT, remaining: USERNAME_CHANGE_LIMIT - changes.length, changes };
+}
+
+async function recordUsernameChange() {
+  const { data: profile } = await sb.from('profiles').select('username_changes').eq('user_id', currentUser.id).maybeSingle();
+  const now = new Date().toISOString();
+  // Keep only changes within the window, then add the new one
+  const changes = (profile?.username_changes || []).filter(ts => {
+    return (Date.now() - new Date(ts).getTime()) < USERNAME_CHANGE_WINDOW_MS;
+  });
+  changes.push(now);
+  await sb.from('profiles').update({ username_changes: changes }).eq('user_id', currentUser.id);
+}
+
+function formatNextChangeTime(changes) {
+  // Find the oldest change in the window — that's the one that will expire first
+  const sorted = changes.map(ts => new Date(ts).getTime()).sort((a, b) => a - b);
+  const earliest = sorted[0];
+  const availableAt = new Date(earliest + USERNAME_CHANGE_WINDOW_MS);
+  const diff = availableAt - Date.now();
+  const days = Math.ceil(diff / (24 * 60 * 60 * 1000));
+  if (days <= 1) {
+    const hours = Math.ceil(diff / (60 * 60 * 1000));
+    return hours <= 1 ? 'in about an hour' : `in about ${hours} hours`;
+  }
+  return `in ${days} day${days > 1 ? 's' : ''}`;
+}
+
 let bioUsernameCheckTimer = null;
 let bioUsernameCheckToken = 0; // handles out-of-order async responses
 
@@ -6898,6 +6935,11 @@ async function saveBio() {
 
     // Username upsert (if changed or not set)
     if (uname && uname !== bioOriginalUsername) {
+      // Rate limit: 2 changes per 7 days
+      const { allowed, remaining, changes } = await checkUsernameChangeLimit();
+      if (!allowed) {
+        throw new Error(`You've used both username changes this week. Try again ${formatNextChangeTime(changes)}.`);
+      }
       // Check availability
       const { data: existing } = await sb.from('profiles').select('user_id').eq('username', uname).maybeSingle();
       if (existing && existing.user_id !== currentUser.id) {
@@ -6907,6 +6949,7 @@ async function saveBio() {
         user_id: currentUser.id, username: uname
       }, { onConflict: 'user_id' });
       if (upErr) throw upErr;
+      await recordUsernameChange();
       bioOriginalUsername = uname;
     }
 
@@ -7827,10 +7870,16 @@ async function saveMediaKit() {
       // Check availability if changed
       const originalUname = (typeof bioOriginalUsername !== 'undefined') ? bioOriginalUsername : '';
       if (uname !== originalUname) {
+        // Rate limit: 2 changes per 7 days
+        const { allowed, remaining, changes } = await checkUsernameChangeLimit();
+        if (!allowed) {
+          throw new Error(`You've used both username changes this week. Try again ${formatNextChangeTime(changes)}.`);
+        }
         const { data: existing } = await sb.from('profiles').select('user_id').eq('username', uname).maybeSingle();
         if (existing && existing.user_id !== currentUser.id) throw new Error('That username is already taken.');
         const { error: upErr } = await sb.from('profiles').upsert({ user_id: currentUser.id, username: uname }, { onConflict: 'user_id' });
         if (upErr) throw upErr;
+        await recordUsernameChange();
         if (typeof bioOriginalUsername !== 'undefined') bioOriginalUsername = uname;
         if (typeof bioState !== 'undefined') bioState.username = uname;
       }
