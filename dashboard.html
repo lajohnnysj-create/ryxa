@@ -13479,17 +13479,20 @@ function resolveDashConfirm(val) {
 // Post an automated contract event message to the deal's chat thread
 async function postContractEventMessage(dealId, message) {
   try {
-    const profile = await sb.from('profiles').select('username').eq('id', currentUser.id).single();
+    const profile = await sb.from('profiles').select('username').eq('user_id', currentUser.id).maybeSingle();
     const authorName = profile.data?.username || currentUser.email.split('@')[0];
-    sb.from('deal_messages').insert({
+    const { error } = await sb.from('deal_messages').insert({
       deal_id: dealId,
       user_id: currentUser.id,
       author_type: 'creator',
       author_name: authorName,
       content: message
-    }).then(function() {
-      notifyBrandOfCreatorMessage(dealId, message);
     });
+    if (error) {
+      console.warn('Contract event message insert failed:', error);
+    } else {
+      notifyBrandOfCreatorMessage(dealId, message);
+    }
   } catch (err) {
     console.warn('Auto-message failed (non-fatal):', err);
   }
