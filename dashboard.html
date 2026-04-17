@@ -3835,6 +3835,14 @@
                     </label>
                     <button id="bio-avatar-remove" onclick="removeAvatar()" style="padding:6px 10px;background:transparent;border:1px solid rgba(239,68,68,0.3);color:#fca5a5;border-radius:6px;font-size:11px;cursor:pointer;font-family:DM Sans,sans-serif;display:none;">Remove</button>
                   </div>
+                  <!-- Avatar display mode: Default / Hero (Max only) -->
+                  <div id="bio-avatar-display-wrap" style="display:none;margin-top:6px;">
+                    <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);margin-bottom:5px;">Display style</div>
+                    <div style="display:flex;gap:4px;">
+                      <button id="bio-avatar-mode-default" onclick="setAvatarDisplay('default')" style="flex:1;padding:6px 8px;border-radius:6px;font-size:11px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.15s;background:var(--accent);color:#fff;border:1px solid var(--accent);">Default</button>
+                      <button id="bio-avatar-mode-hero" onclick="setAvatarDisplay('hero')" style="flex:1;padding:6px 8px;border-radius:6px;font-size:11px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.15s;background:transparent;color:var(--muted);border:1px solid var(--border-hover);">Hero</button>
+                    </div>
+                  </div>
                 </div>
                 <div style="flex:1;min-width:200px;display:flex;flex-direction:column;gap:10px;">
                   <div>
@@ -5980,6 +5988,7 @@ let bioState = {
   display_name: '',
   bio: '',
   avatar_url: '',
+  avatar_display: 'default',
   theme: 'purple',
   socials: {},
   links: [],
@@ -6157,6 +6166,7 @@ async function loadBioData() {
       bioState.display_name = bio.display_name || '';
       bioState.bio = bio.bio || '';
       bioState.avatar_url = bio.avatar_url || '';
+      bioState.avatar_display = bio.avatar_display || 'default';
       bioState.theme = bio.theme || 'purple';
       bioState.socials = bio.socials || {};
       bioState.links = Array.isArray(bio.links) ? bio.links.map(l => ({ ...l, _id: linkIdSeq++ })) : [];
@@ -6187,7 +6197,7 @@ function syncBioForm() {
   document.getElementById('bio-name-count').textContent = bioState.display_name.length;
   document.getElementById('bio-bio-count').textContent = bioState.bio.length;
   renderAvatarPreview();
-  // theme grid re-renders with lock states
+  updateAvatarDisplayUI();
   renderBioThemes();
   // branding toggle — Free users: disabled/greyed + always checked; Pro users: interactive
   syncBrandingToggle();
@@ -7278,10 +7288,40 @@ function renderBioVideos() {
   addBtn.style.opacity = (atLimit || bioVideoDraftOpen) ? 0.5 : 1;
 }
 
+function setAvatarDisplay(mode) {
+  if (mode === 'hero' && !isMax()) {
+    showBioStatus('error', 'Hero display is a Creator Max feature.');
+    return;
+  }
+  bioState.avatar_display = mode;
+  updateAvatarDisplayUI();
+  schedulePreviewUpdate();
+}
+
+function updateAvatarDisplayUI() {
+  const wrap = document.getElementById('bio-avatar-display-wrap');
+  const btnDefault = document.getElementById('bio-avatar-mode-default');
+  const btnHero = document.getElementById('bio-avatar-mode-hero');
+  if (!wrap) return;
+  // Only show if Max and has an avatar
+  wrap.style.display = (isMax() && bioState.avatar_url) ? 'block' : 'none';
+  if (btnDefault && btnHero) {
+    const isHero = bioState.avatar_display === 'hero';
+    btnDefault.style.background = isHero ? 'transparent' : 'var(--accent)';
+    btnDefault.style.color = isHero ? 'var(--muted)' : '#fff';
+    btnDefault.style.borderColor = isHero ? 'var(--border-hover)' : 'var(--accent)';
+    btnHero.style.background = isHero ? 'var(--accent)' : 'transparent';
+    btnHero.style.color = isHero ? '#fff' : 'var(--muted)';
+    btnHero.style.borderColor = isHero ? 'var(--accent)' : 'var(--border-hover)';
+  }
+}
+
 function removeAvatar() {
   if (bioState.avatar_url) bioStalePhotos.push(bioState.avatar_url);
   bioState.avatar_url = '';
+  bioState.avatar_display = 'default';
   renderAvatarPreview();
+  updateAvatarDisplayUI();
   schedulePreviewUpdate();
 }
 
@@ -7405,6 +7445,7 @@ async function confirmCrop() {
       if (bioState.avatar_url) bioStalePhotos.push(bioState.avatar_url);
       bioState.avatar_url = publicUrl;
       renderAvatarPreview();
+      updateAvatarDisplayUI();
       schedulePreviewUpdate();
     } else if (isHeadshot) {
       if (mkState.headshot_url) mkStalePhotos.push(mkState.headshot_url);
@@ -7546,6 +7587,7 @@ async function saveBio() {
       display_name: bioState.display_name || null,
       bio: bioState.bio || null,
       avatar_url: bioState.avatar_url || null,
+      avatar_display: isMax() ? (bioState.avatar_display || 'default') : 'default',
       theme: (() => {
         // Defense-in-depth: Free users cannot save a Pro theme
         const chosen = BIO_THEMES.find(x => x.key === bioState.theme);
@@ -7715,10 +7757,11 @@ function buildPreviewHTML() {
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
-  body{margin:0;padding:40px 18px 24px;font-family:'DM Sans',sans-serif;background:${t.bg};color:${t.text};min-height:100vh;}
+  body{margin:0;padding:${(bioState.avatar_display === 'hero' && bioState.avatar_url) ? '0 0 24px' : '40px 18px 24px'};font-family:'DM Sans',sans-serif;background:${t.bg};color:${t.text};min-height:100vh;}
   ${bgImageCSS}
   ${bgOverlayCSS || glowCSS}
-  .w{position:relative;z-index:1;max-width:480px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:14px;}
+  .w{position:relative;z-index:1;max-width:480px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:14px;${(bioState.avatar_display === 'hero' && bioState.avatar_url) ? 'max-width:100%;' : ''}}
+  .hero-wrap+.links,.hero-wrap~.vids,.hero-wrap~.banner{max-width:480px;margin-left:auto;margin-right:auto;width:100%;padding:0 18px;box-sizing:border-box;}
   .avfr{width:100px;height:100px;border-radius:50%;padding:3px;background:${t.avatarBorder};margin-bottom:6px;}
   .nm{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;letter-spacing:-0.4px;text-align:center;word-break:break-word;}
   .bio-line{font-size:13px;color:${t.muted2};text-align:center;line-height:1.4;max-width:340px;word-break:break-word;}
@@ -7756,12 +7799,30 @@ function buildPreviewHTML() {
   .vc img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:${t.surface2};}
   .banner{margin-top:18px;padding:11px 18px;background:${t.surface};border:1px solid ${t.border};border-radius:100px;font-size:11px;color:${t.muted};text-decoration:none;display:inline-flex;align-items:center;gap:6px;}
   .banner strong{color:${t.text};font-weight:600;}
+  /* Hero avatar display */
+  .hero-wrap{position:relative;width:100%;margin-bottom:8px;}
+  .hero-img{width:100%;aspect-ratio:3/4;object-fit:cover;display:block;}
+  .hero-fade{position:absolute;bottom:0;left:0;right:0;height:60%;background:linear-gradient(to bottom,transparent 0%,${t.bg} 100%);pointer-events:none;}
+  .hero-info{position:absolute;bottom:16px;left:0;right:0;display:flex;flex-direction:column;align-items:center;gap:8px;z-index:2;}
+  .hero-info .nm{text-shadow:0 2px 8px rgba(0,0,0,0.5);}
+  .hero-info .bio-line{text-shadow:0 1px 4px rgba(0,0,0,0.4);}
+  .hero-info .sb{background:rgba(0,0,0,0.4);border-color:rgba(255,255,255,0.15);backdrop-filter:blur(4px);}
   </style></head><body>
   <div class="w">
+    ${(bioState.avatar_display === 'hero' && bioState.avatar_url) ? `
+    <div class="hero-wrap">
+      <img class="hero-img" src="${escapeHtml(bioState.avatar_url)}" alt="">
+      <div class="hero-fade"></div>
+      <div class="hero-info">
+        <div class="nm">${escapeHtml(name)}</div>
+        ${socialsHtml}
+        ${bioState.bio ? `<div class="bio-line">${escapeHtml(bioState.bio)}</div>` : ''}
+      </div>
+    </div>` : `
     <div class="avfr">${avatarHtml}</div>
     <div class="nm">${escapeHtml(name)}</div>
     ${socialsHtml}
-    ${bioState.bio ? `<div class="bio-line">${escapeHtml(bioState.bio)}</div>` : ''}
+    ${bioState.bio ? `<div class="bio-line">${escapeHtml(bioState.bio)}</div>` : ''}`}
     ${linksHtml ? `<div class="links">${linksHtml}</div>` : ''}
     ${videosHtml}
     ${bioState.show_branding ? '<div class="banner">Get your free link-in-bio at <strong>Ryxa</strong></div>' : ''}

@@ -279,6 +279,68 @@
     word-break: break-word;
     max-width: 100%;
   }
+
+  /* Hero avatar display mode */
+  .wrap.hero-mode {
+    max-width: 100%;
+    gap: 0;
+    padding-top: 0;
+  }
+  .hero-header {
+    position: relative;
+    width: 100%;
+    margin-bottom: 8px;
+  }
+  .hero-header-img {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+    display: block;
+  }
+  .hero-header-fade {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60%;
+    background: linear-gradient(to bottom, transparent 0%, var(--bg) 100%);
+    pointer-events: none;
+  }
+  .hero-header-info {
+    position: absolute;
+    bottom: 20px;
+    left: 0;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    z-index: 2;
+  }
+  .hero-header-info .name {
+    text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    color: #fff;
+  }
+  .hero-header-info .bio {
+    text-shadow: 0 1px 4px rgba(0,0,0,0.4);
+    color: rgba(255,255,255,0.9);
+  }
+  .hero-header-info .social-btn {
+    background: rgba(0,0,0,0.4);
+    border-color: rgba(255,255,255,0.15);
+    backdrop-filter: blur(4px);
+  }
+  .hero-content-below {
+    max-width: 540px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 0 18px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
   .handle {
     font-size: 13px;
     color: var(--muted);
@@ -787,12 +849,33 @@ function buildAvatar(profile, bio) {
   const name = bio.display_name || profile.username || '';
   const initial = (name[0] || profile.username[0] || '?').toUpperCase();
   const safeAvatar = validImageUrl(bio.avatar_url);
+  const isMaxTier = profile.tier === 'max';
+  const isHero = bio.avatar_display === 'hero' && safeAvatar && isMaxTier;
+
+  if (isHero) {
+    return ''; // hero is rendered separately in the wrap
+  }
   if (safeAvatar) {
     return `<div class="avatar-frame">
       <img class="avatar" src="${esc(safeAvatar)}" alt="${esc(name)}">
     </div>`;
   }
   return `<div class="avatar-frame"><div class="avatar-fallback">${esc(initial)}</div></div>`;
+}
+
+function buildHeroHeader(profile, bio, socialsHtml) {
+  const safeAvatar = validImageUrl(bio.avatar_url);
+  const name = bio.display_name || profile.username || '';
+  if (!safeAvatar) return '';
+  return `<div class="hero-header">
+    <img class="hero-header-img" src="${esc(safeAvatar)}" alt="${esc(name)}">
+    <div class="hero-header-fade"></div>
+    <div class="hero-header-info">
+      <div class="name">${esc(name)}</div>
+      ${socialsHtml}
+      ${bio.bio ? `<div class="bio">${esc(bio.bio)}</div>` : ''}
+    </div>
+  </div>`;
 }
 
 function buildLink(link) {
@@ -1099,15 +1182,31 @@ function render(profile, bio, userTier) {
     Get your free link-in-bio at <strong>Ryxa</strong>
   </a>` : '';
 
-  document.getElementById('wrap').innerHTML = `
-    ${buildAvatar(profile, bio)}
-    <div class="name">${esc(name)}</div>
-    ${socialsHtml}
-    ${bio.bio ? `<div class="bio">${esc(bio.bio)}</div>` : ''}
-    ${linksHtml ? `<div class="links">${linksHtml}</div>` : ''}
-    ${videosHtml}
-    ${banner}
-  `;
+  const isMaxTier = profile.tier === 'max';
+  const isHeroMode = bio.avatar_display === 'hero' && validImageUrl(bio.avatar_url) && isMaxTier;
+
+  if (isHeroMode) {
+    document.body.style.paddingTop = '0';
+    document.getElementById('wrap').classList.add('hero-mode');
+    document.getElementById('wrap').innerHTML = `
+      ${buildHeroHeader(profile, bio, socialsHtml)}
+      <div class="hero-content-below">
+        ${linksHtml ? `<div class="links">${linksHtml}</div>` : ''}
+        ${videosHtml}
+        ${banner}
+      </div>
+    `;
+  } else {
+    document.getElementById('wrap').innerHTML = `
+      ${buildAvatar(profile, bio)}
+      <div class="name">${esc(name)}</div>
+      ${socialsHtml}
+      ${bio.bio ? `<div class="bio">${esc(bio.bio)}</div>` : ''}
+      ${linksHtml ? `<div class="links">${linksHtml}</div>` : ''}
+      ${videosHtml}
+      ${banner}
+    `;
+  }
 }
 
 async function load() {
@@ -1126,7 +1225,7 @@ async function load() {
   // 2) Fetch their published link-in-bio page
   const { data: bio, error: bErr } = await sb
     .from('link_in_bio')
-    .select('display_name, bio, avatar_url, theme, links, videos, socials, show_branding, published, custom_theme')
+    .select('display_name, bio, avatar_url, avatar_display, theme, links, videos, socials, show_branding, published, custom_theme')
     .eq('user_id', profile.user_id)
     .eq('published', true)
     .maybeSingle();
