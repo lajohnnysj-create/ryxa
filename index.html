@@ -139,13 +139,13 @@
 
   /* TESTIMONIALS */
   .testimonials-section { margin: 0 0 56px; padding: 0; overflow: hidden; width: 100vw; position: relative; left: 50%; transform: translateX(-50%); }
-  .testimonials-heading { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; text-align: center; margin-bottom: 6px; color: var(--text); letter-spacing: -0.5px; padding: 0 20px; }
+  .testimonials-heading { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; text-align: center; margin: 0 auto 6px; color: var(--text); letter-spacing: -0.5px; padding: 0 20px; max-width: 900px; }
   .testimonials-heading span { background: linear-gradient(135deg, #a78bfa, #e879f9); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-  .testimonials-sub { font-size: 15px; color: var(--muted); text-align: center; margin-bottom: 28px; padding: 0 20px; }
+  .testimonials-sub { font-size: 15px; color: var(--muted); text-align: center; margin: 0 auto 28px; padding: 0 20px; max-width: 900px; }
   .testimonials-track-wrap { position: relative; width: 100%; }
-  .testimonials-track { display: flex; gap: 24px; width: max-content; animation: testimonialScroll 20s linear infinite; padding: 8px 0; }
+  .testimonials-track { display: flex; gap: 24px; width: max-content; animation: testimonialScroll 30s linear infinite; padding: 8px 0; }
   .testimonials-track:hover { animation-play-state: paused; }
-  @keyframes testimonialScroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+  @keyframes testimonialScroll { 0% { transform: translateX(0); } 100% { transform: translateX(calc(-50% - 12px)); } }
   .testimonial-card { position: relative; width: 380px; border-radius: 20px; overflow: visible; flex-shrink: 0; }
   .testimonial-card-inner { position: relative; border-radius: 20px; overflow: hidden; height: 100%; }
   /* Animated glowing border */
@@ -165,7 +165,9 @@
   .testimonial-name { font-size: 14px; font-weight: 600; color: #fff; }
   .testimonial-handle { font-size: 12px; color: var(--accent2); }
   @media (max-width: 600px) {
-    .testimonial-card { width: 320px; }
+    .testimonials-heading { font-size: 20px; letter-spacing: -0.3px; }
+    .testimonials-sub { font-size: 13px; margin-bottom: 20px; }
+    .testimonial-card { width: 300px; }
     .testimonial-content { padding: 24px 20px 22px; min-height: 260px; }
     .testimonial-card::after { filter: blur(10px); }
     .testimonials-track { gap: 16px; }
@@ -588,41 +590,6 @@
             </div>
           </div>
 
-          <!-- Duplicates for seamless infinite loop -->
-          <div class="testimonial-card" aria-hidden="true">
-            <div class="testimonial-card-inner">
-              <div class="testimonial-bg" style="background-image:url('testimonials/pinsta.jpg');"></div>
-              <div class="testimonial-content">
-                <p class="testimonial-quote">"I was able to grow my audience as a content creator with Ryxa! The tools that they offer are unbeatable. It has certainly helped make things easier for me!"</p>
-                <div class="testimonial-stars">★★★★★</div>
-                <div class="testimonial-author">
-                  <img src="testimonials/pinsta.jpg" alt="Pinhwa Su" class="testimonial-avatar">
-                  <div>
-                    <div class="testimonial-name">Pinhwa Su</div>
-                    <div class="testimonial-handle">@xo.pinsta</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="testimonial-card" aria-hidden="true">
-            <div class="testimonial-card-inner">
-              <div class="testimonial-bg" style="background-image:url('testimonials/jaed.jpg');"></div>
-              <div class="testimonial-content">
-                <p class="testimonial-quote">"Being a content creator is more than just posting... it's a business. Ryxa helps simplify that side of things and makes it easier to grow with purpose. I'd recommend it to anyone serious about leveling up!"</p>
-                <div class="testimonial-stars">★★★★★</div>
-                <div class="testimonial-author">
-                  <img src="testimonials/jaed.jpg" alt="Jaed" class="testimonial-avatar">
-                  <div>
-                    <div class="testimonial-name">Jaed</div>
-                    <div class="testimonial-handle">@jaed.official</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
         </div>
       </div>
     </div>
@@ -864,13 +831,32 @@
 </footer>
 
 <script>
-// Testimonials: pause on touch for mobile
+// Testimonials: clone cards to fill viewport, then duplicate set for seamless loop
 document.addEventListener('DOMContentLoaded', () => {
   const track = document.getElementById('testimonials-track');
-  if (track) {
-    track.addEventListener('touchstart', () => { track.style.animationPlayState = 'paused'; }, { passive: true });
-    track.addEventListener('touchend', () => { setTimeout(() => { track.style.animationPlayState = 'running'; }, 2000); });
+  if (!track) return;
+  const originals = Array.from(track.children);
+  if (!originals.length) return;
+  // Clone originals enough times so one set is wider than the viewport
+  const cardWidth = 380 + 24; // card width + gap
+  const needed = Math.ceil((window.innerWidth * 2) / (originals.length * cardWidth)) + 1;
+  for (let i = 1; i < needed; i++) {
+    originals.forEach(card => {
+      const clone = card.cloneNode(true);
+      clone.setAttribute('aria-hidden', 'true');
+      track.appendChild(clone);
+    });
   }
+  // Now duplicate the entire set for the seamless loop
+  const allCards = Array.from(track.children);
+  allCards.forEach(card => {
+    const clone = card.cloneNode(true);
+    clone.setAttribute('aria-hidden', 'true');
+    track.appendChild(clone);
+  });
+  // Pause on hover/touch
+  track.addEventListener('touchstart', () => { track.style.animationPlayState = 'paused'; }, { passive: true });
+  track.addEventListener('touchend', () => { setTimeout(() => { track.style.animationPlayState = 'running'; }, 2000); });
 });
 
 const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
