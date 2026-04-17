@@ -148,10 +148,10 @@
   .testimonial-arrow:hover { color: var(--text); border-color: var(--accent); background: rgba(124,58,237,0.1); }
   .testimonial-card { position: relative; width: 380px; min-width: 380px; border-radius: 20px; overflow: hidden; flex-shrink: 0; scroll-snap-align: center; }
   .testimonial-card-inner { position: relative; border-radius: 20px; overflow: hidden; height: 100%; }
-  .testimonial-bg { position: absolute; inset: 0; background-size: cover; background-position: center top; filter: brightness(0.35); z-index: 0; transition: transform 2.5s ease-out; }
+  .testimonial-bg { position: absolute; inset: 0; background-size: cover; background-position: center top; filter: brightness(0.35); z-index: 0; transition: transform 0.5s ease; }
   .testimonial-bg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.7) 60%, rgba(0,0,0,0.9) 100%); }
-  .testimonial-card:hover .testimonial-bg { transform: scale(1.12); }
-  .testimonial-card.testimonial-active .testimonial-bg { transform: scale(1.12); }
+  .testimonial-card:hover .testimonial-bg { transform: scale(1.08); }
+  .testimonial-card.testimonial-active .testimonial-bg { transform: scale(1.12); transition: transform 2.5s ease-out; }
   .testimonial-content { position: relative; z-index: 1; padding: 32px 28px 28px; display: flex; flex-direction: column; min-height: 280px; justify-content: flex-end; text-align: left; }
   .testimonial-stars { color: #facc15; font-size: 18px; letter-spacing: 2px; margin-bottom: 16px; }
   .testimonial-quote { font-size: 15px; line-height: 1.65; color: #f0eef8; margin-bottom: 20px; font-style: italic; }
@@ -865,14 +865,16 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   track.style.cursor = 'grab';
 
-  // Mobile: zoom background on the most visible card
-  const cards = track.querySelectorAll('.testimonial-card');
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      entry.target.classList.toggle('testimonial-active', entry.isIntersecting);
-    });
-  }, { root: track, threshold: 0.6 });
-  cards.forEach(card => observer.observe(card));
+  // Mobile only: zoom background on the most visible card
+  if (window.innerWidth <= 600) {
+    const cards = track.querySelectorAll('.testimonial-card');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        entry.target.classList.toggle('testimonial-active', entry.isIntersecting);
+      });
+    }, { root: track, threshold: 0.6 });
+    cards.forEach(card => observer.observe(card));
+  }
 });
 
 const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
