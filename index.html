@@ -125,21 +125,39 @@
   .forgot-link:hover { color: var(--accent2); }
   @keyframes spin { to { transform: rotate(360deg); } }
   .auth-spinner { display: inline-block; width: 15px; height: 15px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 8px; }
-  .hero { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 120px 24px 80px; text-align: center; position: relative; overflow-x: clip; }
-  .hero-bg { position: absolute; inset: 0; pointer-events: none; z-index: 0; background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(124,58,237,0.15) 0%, transparent 70%), radial-gradient(ellipse 50% 40% at 80% 80%, rgba(168,85,247,0.08) 0%, transparent 60%); }
-  .grid-lines { position: absolute; inset: 0; pointer-events: none; z-index: 0; background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px); background-size: 60px 60px; mask-image: radial-gradient(ellipse at 50% 30%, black 0%, transparent 70%); }
-  .hero-content { position: relative; z-index: 1; max-width: 900px; }
-  .hero-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(124,58,237,0.12); border: 1px solid rgba(124,58,237,0.35); border-radius: 100px; padding: 7px 18px; font-size: 12px; color: #c4b5fd; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 32px; }
-  .hero-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent2); animation: pulse 2s infinite; }
-  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-  .hero h1 { font-family: "Syne", sans-serif; font-size: clamp(42px, 7vw, 80px); font-weight: 800; letter-spacing: -3px; line-height: 1.05; margin-bottom: 24px; }
+  .hero { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 120px 24px 60px; text-align: left; position: relative; overflow-x: clip; }
+  .hero-bg { position: absolute; inset: 0; pointer-events: none; z-index: 0; background: radial-gradient(ellipse 60% 50% at 20% 30%, rgba(124,58,237,0.08) 0%, transparent 70%); }
+  .grid-lines { position: absolute; inset: 0; pointer-events: none; z-index: 0; background-image: linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px); background-size: 60px 60px; mask-image: radial-gradient(ellipse at 50% 30%, black 0%, transparent 70%); }
+  .hero-content { position: relative; z-index: 1; max-width: 1100px; width: 100%; }
+  .hero-split { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
+  .hero-left { display: flex; flex-direction: column; align-items: flex-start; }
+  .hero h1 { font-family: "Syne", sans-serif; font-size: clamp(32px, 5vw, 52px); font-weight: 800; letter-spacing: -2px; line-height: 1.1; margin-bottom: 20px; color: #fff; }
   .gradient-text { background: linear-gradient(135deg, #a78bfa, #e879f9, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-  .hero-sub { font-size: clamp(16px, 2.5vw, 20px); color: var(--muted); line-height: 1.7; max-width: 600px; margin: 0 auto 40px; font-weight: 300; }
-  .hero-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: nowrap; margin-bottom: 48px; }
+  .hero-sub { font-size: clamp(15px, 2vw, 17px); color: var(--muted); line-height: 1.7; max-width: 480px; margin: 0 0 32px; font-weight: 400; }
+  .hero-actions { display: flex; gap: 14px; flex-wrap: nowrap; }
   @media (max-width: 600px) {
     .hero-actions { gap: 10px; }
     .hero-actions .btn-primary,
     .hero-actions .btn-secondary { padding: 13px 20px; font-size: 14px; }
+  }
+  /* Phone mockup for hero */
+  .hero-phone { position: relative; display: flex; justify-content: center; }
+  .hero-phone-device { background: #0a0a0a; border: 2px solid #262626; border-radius: 40px; padding: 12px; box-shadow: 0 30px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04); width: 280px; transform: perspective(800px) rotateY(-8deg) rotateX(2deg); transition: transform 0.4s ease; }
+  .hero-phone-device:hover { transform: perspective(800px) rotateY(-3deg) rotateX(1deg); }
+  .hero-phone-notch { width: 80px; height: 18px; background: #000; border-radius: 10px; margin: 0 auto 8px; }
+  .hero-phone-screen { background: var(--bg); border-radius: 28px; overflow: hidden; height: 520px; }
+  .hero-phone-screen img { width: 100%; height: 100%; object-fit: cover; object-position: top left; }
+  .hero-phone-placeholder { width: 100%; height: 100%; background: var(--surface); display: flex; flex-direction: column; padding: 16px; gap: 8px; }
+  .hero-phone-placeholder-bar { height: 10px; background: var(--surface2); border-radius: 4px; }
+  .hero-phone-placeholder-bar.short { width: 60%; }
+  @media (max-width: 768px) {
+    .hero-split { grid-template-columns: 1fr; gap: 40px; text-align: center; }
+    .hero-left { align-items: center; }
+    .hero-sub { margin: 0 auto 32px; }
+    .hero-actions { justify-content: center; }
+    .hero-phone-device { width: 240px; transform: none; }
+    .hero-phone-device:hover { transform: none; }
+    .hero { padding: 100px 20px 40px; }
   }
 
   /* TESTIMONIALS */
@@ -535,15 +553,39 @@
   <div class="hero-bg"></div>
   <div class="grid-lines"></div>
   <div class="hero-content">
-    <div class="hero-badge">
-      <span class="hero-badge-dot"></span>
-      Built for creators, by a creator
-    </div>
-    <h1>A host of creator tools<br>to <span class="gradient-text">empower your growth</span></h1>
-    <p class="hero-sub">Build your link-in-bio, pitch brands with a media kit, plan content, generate invoices, and more. Focused creator tools, all in one dashboard. Free to start.</p>
-    <div class="hero-actions">
-      <button class="btn-primary" onclick="openSignupModal()">Get started free &#x2192;</button>
-      <a class="btn-secondary" href="pricing.html">See pricing</a>
+    <div class="hero-split">
+      <div class="hero-left">
+        <h1>The all-in-one toolkit for <span class="gradient-text">content creators</span></h1>
+        <p class="hero-sub">Everything you need to look professional, stay organized, and grow your brand — link in bio, media kit, brand deal tracking, and more. All in one dashboard.</p>
+        <div class="hero-actions">
+          <button class="btn-primary" onclick="openSignupModal()">Get started free &#x2192;</button>
+        </div>
+      </div>
+      <div class="hero-phone">
+        <div class="hero-phone-device">
+          <div class="hero-phone-notch"></div>
+          <div class="hero-phone-screen">
+            <div class="hero-phone-placeholder">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#7c3aed,#e879f9);"></div>
+                <div style="font-size:14px;font-weight:700;color:#fff;font-family:Syne,sans-serif;">Ryxa</div>
+              </div>
+              <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin:8px 0 4px;">Tools</div>
+              <div style="display:flex;flex-direction:column;gap:4px;">
+                <div style="padding:8px 10px;background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.25);border-radius:8px;font-size:11px;color:#c4b5fd;font-weight:500;">Link in Bio</div>
+                <div style="padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:11px;color:var(--muted);">Media Kit</div>
+                <div style="padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:11px;color:var(--muted);">Script Builder</div>
+                <div style="padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:11px;color:var(--muted);">Brand Deals</div>
+                <div style="padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:11px;color:var(--muted);">Grid Planner</div>
+                <div style="padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:11px;color:var(--muted);">Follower Audit</div>
+                <div style="padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:11px;color:var(--muted);">Image Studio</div>
+                <div style="padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:11px;color:var(--muted);">QR Generator</div>
+                <div style="padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:11px;color:var(--muted);">Invoice Generator</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -599,124 +641,6 @@
       </div>
     </div>
 
-  <div class="hero-content">
-    <div class="hero-mockup">
-      <div class="mockup-glow"></div>
-      <div class="mockup-frame">
-        <div class="mockup-titlebar">
-          <div class="mockup-dot red"></div>
-          <div class="mockup-dot yellow"></div>
-          <div class="mockup-dot green"></div>
-          <div class="mockup-url">ryxa.io/dashboard</div>
-        </div>
-        <div class="mockup-body">
-          <div class="mockup-sidebar mockup-sidebar-max">
-            <div class="mockup-logo">
-              <div class="mockup-logo-text">Ryxa</div>
-            </div>
-            <div class="mockup-section-label">Tools</div>
-            <div class="mockup-nav-item">
-              <svg viewBox="0 0 24 24" class="mockup-nav-icon" aria-hidden="true"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 0 0 1 1h3v-6h6v6h3a1 1 0 0 0 1-1V10"/></svg>
-              Home
-            </div>
-            <div class="mockup-nav-item active">
-              <svg viewBox="0 0 24 24" class="mockup-nav-icon" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-              Link in Bio
-            </div>
-            <div class="mockup-nav-item">
-              <svg viewBox="0 0 24 24" class="mockup-nav-icon" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="17" x2="8" y2="13"/><line x1="12" y1="17" x2="12" y2="11"/><line x1="16" y1="17" x2="16" y2="15"/></svg>
-              Media Kit
-              <span class="mockup-pro-badge">PRO</span>
-            </div>
-            <div class="mockup-nav-item">
-              <svg viewBox="0 0 24 24" class="mockup-nav-icon" aria-hidden="true"><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 12h18"/></svg>
-              Brand Deals
-              <span class="mockup-max-badge">MAX</span>
-            </div>
-            <div class="mockup-nav-item">
-              <svg viewBox="0 0 24 24" class="mockup-nav-icon" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/><path d="M6 21l-2-2 2-2M18 21l2-2-2-2"/></svg>
-              Script Builder
-              <span class="mockup-pro-badge">PRO</span>
-            </div>
-            <div class="mockup-nav-item">
-              <svg viewBox="0 0 24 24" class="mockup-nav-icon" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-              Grid Planner
-            </div>
-            <div class="mockup-nav-item">
-              <svg viewBox="0 0 24 24" class="mockup-nav-icon" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-              Follow-Back Audit
-            </div>
-            <div class="mockup-nav-item">
-              <svg viewBox="0 0 24 24" class="mockup-nav-icon" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
-              Image Studio
-            </div>
-            <div class="mockup-nav-item">
-              <svg viewBox="0 0 24 24" class="mockup-nav-icon" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20v1"/></svg>
-              QR Generator
-            </div>
-            <div class="mockup-nav-item">
-              <svg viewBox="0 0 24 24" class="mockup-nav-icon" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/></svg>
-              Invoice Generator
-            </div>
-            <div class="mockup-nav-item">
-              <svg viewBox="0 0 24 24" class="mockup-nav-icon" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M3 17l3-3 2 2 5-5 3 3"/></svg>
-              Sign PDF
-            </div>
-            <div class="mockup-sidebar-bottom">
-              <div class="mockup-sidebar-avatar">M</div>
-              <div class="mockup-sidebar-user">
-                <div class="mockup-sidebar-name">miapark</div>
-                <div class="mockup-sidebar-tier">Creator Max</div>
-              </div>
-            </div>
-          </div>
-          <div class="mockup-content mockup-bio-content">
-            <div class="mockup-bio-left">
-              <div class="mockup-bio-header">
-                <div class="mockup-bio-title">Link in Bio</div>
-                <div class="mockup-bio-status"><span class="mockup-bio-dot"></span> Published</div>
-              </div>
-              <div class="mockup-bio-url-box">ryxa.io/<strong>miapark</strong></div>
-              <div class="mockup-bio-section">
-                <div class="mockup-bio-label">Profile</div>
-                <div class="mockup-bio-profile-row">
-                  <div class="mockup-bio-avatar">M</div>
-                  <div class="mockup-bio-profile-fields">
-                    <div class="mockup-bio-field">Mia Park</div>
-                    <div class="mockup-bio-field small">Creator on the move 🐍</div>
-                  </div>
-                </div>
-              </div>
-              <div class="mockup-bio-section">
-                <div class="mockup-bio-label">Links</div>
-                <div class="mockup-bio-link-row">📝 My new podcast episode</div>
-                <div class="mockup-bio-link-row featured">✨ Latest collab drop <span class="mockup-bio-tag">FEATURED</span></div>
-              </div>
-            </div>
-            <div class="mockup-bio-right">
-              <div class="mockup-bio-phone">
-                <div class="mockup-bio-phone-avatar">M</div>
-                <div class="mockup-bio-phone-name">Mia Park</div>
-                <div class="mockup-bio-phone-socials">
-                  <div class="mockup-bio-phone-social"></div>
-                  <div class="mockup-bio-phone-social"></div>
-                  <div class="mockup-bio-phone-social"></div>
-                  <div class="mockup-bio-phone-social"></div>
-                </div>
-                <div class="mockup-bio-phone-bio">Creator on the move 🐍</div>
-                <div class="mockup-bio-phone-link">My new podcast episode</div>
-                <div class="mockup-bio-phone-featured">
-                  <div class="mockup-bio-phone-featured-img">✨</div>
-                  <div class="mockup-bio-phone-featured-title">Latest collab drop</div>
-                </div>
-                <div class="mockup-bio-phone-link">Book a 1:1 session</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 </section>
 
 <section class="tools-section">
