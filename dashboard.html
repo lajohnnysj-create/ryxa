@@ -4722,7 +4722,7 @@
         <div id="pdfsign-editor" style="display:none;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:12px;flex-wrap:wrap;">
             <div style="display:flex;align-items:center;gap:12px;min-width:0;flex:1;">
-              <button onclick="resetPdfSign()" aria-label="Upload a different PDF" style="padding:8px 12px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;white-space:nowrap;">← New PDF</button>
+              <button id="pdfsign-new-btn" onclick="resetPdfSign()" aria-label="Upload a different PDF" style="padding:8px 12px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;white-space:nowrap;">← New PDF</button>
               <div style="min-width:0;overflow:hidden;">
                 <div id="pdfsign-filename" style="font-size:14px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
                 <div id="pdfsign-pages-info" style="font-size:11px;color:var(--muted);margin-top:2px;"></div>
@@ -4775,7 +4775,7 @@
                   Download
                 </button>
               </div>
-              <div class="pdfsign-privacy-badge">
+              <div class="pdfsign-privacy-badge" id="pdfsign-privacy-badge">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                 <span>Private · in-browser</span>
               </div>
@@ -5588,6 +5588,11 @@ function showTool(tool) {
   // Clean up contract signing mode if navigating away from pdfsign
   if (tool !== 'pdfsign' && typeof removeContractSaveButton === 'function') {
     removeContractSaveButton();
+  }
+  // If clicking pdfsign from sidebar while in contract mode, reset to normal
+  if (tool === 'pdfsign' && window._contractSignContext && typeof removeContractSaveButton === 'function') {
+    removeContractSaveButton();
+    if (typeof resetPdfSign === 'function') resetPdfSign();
   }
   // Hide all tools
   ['welcome','bio','mediakit','grid','follower','image','qr','invoice','pdfsign','deals','scripts'].forEach(t => {
@@ -13500,6 +13505,38 @@ function showContractSaveButton() {
   const old = document.getElementById('pdfsign-contract-save-btn');
   if (old) old.remove();
 
+  // Hide "New PDF" button and privacy badge
+  const newBtn = document.getElementById('pdfsign-new-btn');
+  if (newBtn) newBtn.style.display = 'none';
+  const privBadge = document.getElementById('pdfsign-privacy-badge');
+  if (privBadge) privBadge.style.display = 'none';
+  // Hide print and download buttons
+  const printBtn = document.getElementById('pdfsign-print-btn');
+  if (printBtn) printBtn.style.display = 'none';
+  const dlBtn = document.getElementById('pdfsign-download-btn');
+  if (dlBtn) dlBtn.style.display = 'none';
+
+  // Add "Back to Brand Deal CRM" button in place of New PDF
+  const oldBack = document.getElementById('pdfsign-contract-back-btn');
+  if (oldBack) oldBack.remove();
+  const backBtn = document.createElement('button');
+  backBtn.id = 'pdfsign-contract-back-btn';
+  backBtn.style.cssText = 'padding:8px 12px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;white-space:nowrap;';
+  backBtn.textContent = '← Back to Brand Deal CRM';
+  backBtn.onclick = function() {
+    const ctx = window._contractSignContext;
+    const dealId = ctx ? ctx.dealId : null;
+    removeContractSaveButton();
+    pdfsignOriginalBytes = null;
+    pdfsignFields = [];
+    pdfsignDoc = null;
+    document.getElementById('pdfsign-upload').style.display = 'block';
+    document.getElementById('pdfsign-editor').style.display = 'none';
+    showTool('deals');
+    if (dealId) setTimeout(() => { showDealDetail(dealId); }, 200);
+  };
+  if (newBtn && newBtn.parentNode) newBtn.parentNode.insertBefore(backBtn, newBtn);
+
   const actionsEl = document.querySelector('.pdfsign-palette-actions');
   if (!actionsEl) return;
 
@@ -13529,6 +13566,17 @@ function removeContractSaveButton() {
   if (btn) btn.remove();
   const banner = document.getElementById('pdfsign-contract-banner');
   if (banner) banner.remove();
+  const backBtn = document.getElementById('pdfsign-contract-back-btn');
+  if (backBtn) backBtn.remove();
+  // Restore hidden elements
+  const newBtn = document.getElementById('pdfsign-new-btn');
+  if (newBtn) newBtn.style.display = '';
+  const privBadge = document.getElementById('pdfsign-privacy-badge');
+  if (privBadge) privBadge.style.display = '';
+  const printBtn = document.getElementById('pdfsign-print-btn');
+  if (printBtn) printBtn.style.display = '';
+  const dlBtn = document.getElementById('pdfsign-download-btn');
+  if (dlBtn) dlBtn.style.display = '';
   window._contractSignContext = null;
 }
 
