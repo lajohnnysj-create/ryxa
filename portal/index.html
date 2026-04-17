@@ -1101,7 +1101,7 @@ function psmHandleDrop(e, pageIndex, overlay) {
 }
 
 function psmHandleOverlayClick(e, pageIndex) {
-  if (psmDidDrag) { psmDidDrag = false; return; }
+  if (psmDidDrag) return;
   if (!psmTouchPending) return;
   if (e.target.closest('.pdfsign-field')) return;
   const rect = e.currentTarget.getBoundingClientRect();
@@ -1178,7 +1178,7 @@ function psmRenderField(field) {
   el.addEventListener('dblclick', function(e) { e.stopPropagation(); psmEditField(field); });
   el.addEventListener('click', function(e) {
     e.stopPropagation();
-    if (psmDidDrag) { psmDidDrag = false; return; }
+    if (psmDidDrag) return;
     if (field.type === 'checkbox') { field.value = !field.value; psmRenderFieldContent(field); }
     else if (field.type === 'crossout') { /* toggle not needed */ }
   });
@@ -1256,7 +1256,7 @@ function psmStartMove(e, fieldId, fieldEl) {
     field.y = Math.max(0, Math.min(origY + (cy - startY)/rect.height, 1 - field.h));
     fieldEl.style.left = (field.x*100)+'%'; fieldEl.style.top = (field.y*100)+'%';
   }
-  function onUp() { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); document.removeEventListener('touchmove', onMove); document.removeEventListener('touchend', onUp); }
+  function onUp() { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); document.removeEventListener('touchmove', onMove); document.removeEventListener('touchend', onUp); if (psmDidDrag) setTimeout(function(){ psmDidDrag = false; }, 100); }
   document.addEventListener('mousemove', onMove);
   document.addEventListener('mouseup', onUp);
   document.addEventListener('touchmove', onMove, { passive: false });
