@@ -1599,6 +1599,7 @@ async function savePortalSignature() {
     closePortalSignModal();
     renderPortalContractStatus(deal);
     showPortalToast('success', 'Contract signed successfully!' + (shouldLock ? ' The contract is now fully executed and the deal is active.' : ''));
+    sb.functions.invoke('send-deal-notification', { body: { type: 'contract_brand_signed', deal_id: deal.id, share_token: dealToken, share_pin: dealPin } }).then(function(r) { if (r.error) console.warn('Notification failed:', r.error); });
   } catch (err) {
     showPortalToast('error', 'Failed to save signature: ' + err.message);
   } finally {
@@ -1623,6 +1624,7 @@ async function markPortalBrandSigned() {
     if (shouldLock) { deal.contract_locked = true; deal.status = 'active'; }
     renderPortalContractStatus(deal);
     showPortalToast('success', 'Contract marked as signed.' + (shouldLock ? ' The contract is now fully executed and the deal is active.' : ''));
+    sb.functions.invoke('send-deal-notification', { body: { type: 'contract_brand_signed', deal_id: deal.id, share_token: dealToken, share_pin: dealPin } }).then(function(r) { if (r.error) console.warn('Notification failed:', r.error); });
   } catch (err) { showPortalToast('error', err.message); }
 }
 </script>
