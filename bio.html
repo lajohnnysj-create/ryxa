@@ -1195,7 +1195,7 @@ function render(profile, bio, userTier) {
   // Pro and Max users can opt out via show_branding=false.
   const isPaid = profile.tier === 'monthly' || profile.tier === 'max';
   const showBanner = !isPaid || bio.show_branding !== false;
-  const banner = showBanner ? `<a class="brand-banner" href="https://www.ryxa.io"><img src="https://www.ryxa.io/logo.png" alt="" class="brand-banner-logo">Get your free link-in-bio at <strong>Ryxa</strong></a>` : '';
+  const banner = showBanner ? `<a class="brand-banner" href="https://www.ryxa.io"><img src="https://www.ryxa.io/logo.png" alt="" class="brand-banner-logo"><span>Get your free link-in-bio at <strong>Ryxa</strong></span></a>` : '';
 
   const isHeroMode = bio.avatar_display === 'hero' && validImageUrl(bio.avatar_url) && isMaxTier;
 
