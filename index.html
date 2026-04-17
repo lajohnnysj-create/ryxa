@@ -142,11 +142,11 @@
   .testimonials-heading { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 800; text-align: center; margin: 0 auto 28px; color: #fff; letter-spacing: -0.3px; padding: 0 20px; width: 100%; box-sizing: border-box; }
   .testimonials-heading span { background: linear-gradient(135deg, #a78bfa, #e879f9); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
   .testimonials-track-wrap { position: relative; display: flex; align-items: center; gap: 12px; padding: 0 20px; }
-  .testimonials-track { display: flex; gap: 20px; overflow-x: auto; scroll-snap-type: x proximity; scroll-behavior: smooth; scrollbar-width: none; -ms-overflow-style: none; padding: 8px 0; flex: 1; min-width: 0; -webkit-overflow-scrolling: touch; }
+  .testimonials-track { display: flex; gap: 20px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; scrollbar-width: none; -ms-overflow-style: none; padding: 8px 0; flex: 1; min-width: 0; -webkit-overflow-scrolling: touch; }
   .testimonials-track::-webkit-scrollbar { display: none; }
   .testimonial-arrow { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: all 0.2s; z-index: 2; }
   .testimonial-arrow:hover { color: var(--text); border-color: var(--accent); background: rgba(124,58,237,0.1); }
-  .testimonial-card { position: relative; width: 380px; min-width: 380px; border-radius: 20px; overflow: hidden; flex-shrink: 0; scroll-snap-align: center; }
+  .testimonial-card { position: relative; width: 380px; min-width: 380px; border-radius: 20px; overflow: hidden; flex-shrink: 0; scroll-snap-align: center; scroll-snap-stop: always; }
   .testimonial-card-inner { position: relative; border-radius: 20px; overflow: hidden; height: 100%; }
   .testimonial-bg { position: absolute; inset: 0; background-size: cover; background-position: center top; filter: brightness(0.35); z-index: 0; transition: transform 0.5s ease; }
   .testimonial-bg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.7) 60%, rgba(0,0,0,0.9) 100%); }
