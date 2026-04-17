@@ -937,6 +937,7 @@ let psmSessionSig = null;
 let psmActiveFieldId = null;
 let psmDragType = null;
 let psmTouchPending = null;
+let psmDidDrag = false;
 
 const PSM_FIELD_DEFAULTS = {
   signature: { w: 0.22, h: 0.055 },
@@ -1149,11 +1150,10 @@ function psmRenderField(field) {
   label.textContent = field.type;
   el.appendChild(label);
 
-  // Content
+  // Content container (populated after DOM insertion)
   const content = document.createElement('div');
   content.className = 'pdfsign-field-content';
   el.appendChild(content);
-  psmRenderFieldContent(field);
 
   // Delete button
   const del = document.createElement('button');
@@ -1177,11 +1177,15 @@ function psmRenderField(field) {
   el.addEventListener('dblclick', function(e) { e.stopPropagation(); psmEditField(field); });
   el.addEventListener('click', function(e) {
     e.stopPropagation();
+    if (psmDidDrag) { psmDidDrag = false; return; }
     if (field.type === 'checkbox') { field.value = !field.value; psmRenderFieldContent(field); }
     else if (field.type === 'crossout') { /* toggle not needed */ }
   });
 
   overlay.appendChild(el);
+
+  // Render content AFTER element is in the DOM (getElementById needs it)
+  psmRenderFieldContent(field);
 }
 
 function psmRenderFieldContent(field) {
@@ -1241,8 +1245,10 @@ function psmStartMove(e, fieldId, fieldEl) {
   const startX = (e.clientX || e.pageX) - rect.left;
   const startY = (e.clientY || e.pageY) - rect.top;
   const origX = field.x, origY = field.y;
+  psmDidDrag = false;
 
   function onMove(ev) {
+    psmDidDrag = true;
     const cx = (ev.clientX || (ev.touches && ev.touches[0].clientX)) - rect.left;
     const cy = (ev.clientY || (ev.touches && ev.touches[0].clientY)) - rect.top;
     field.x = Math.max(0, Math.min(origX + (cx - startX)/rect.width, 1 - field.w));
