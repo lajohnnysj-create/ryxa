@@ -5818,6 +5818,11 @@ async function checkUsernameAvailability(username, token) {
       if (!allowed) {
         const nextDate = formatNextChangeDate(changes);
         hint.innerHTML = `<span style="color:#fca5a5;">You've reached the max username changes. Try again on ${nextDate}.</span>`;
+        // Revert input to current username so save still works for other changes
+        document.getElementById('bio-username').value = bioOriginalUsername;
+        bioState.username = bioOriginalUsername;
+        const mkInput = document.getElementById('mk-username');
+        if (mkInput) mkInput.value = bioOriginalUsername;
         return;
       }
       renderUsernameAvailable(username);
@@ -7556,6 +7561,12 @@ async function checkMKUsernameAvailability(username, token) {
       if (!allowed) {
         const nextDate = formatNextChangeDate(changes);
         hint.innerHTML = `<span style="color:#fca5a5;">You've reached the max username changes. Try again on ${nextDate}.</span>`;
+        // Revert input to current username so save still works for other changes
+        const originalUname = (typeof bioOriginalUsername !== 'undefined') ? bioOriginalUsername : '';
+        document.getElementById('mk-username').value = originalUname;
+        if (typeof bioState !== 'undefined') bioState.username = originalUname;
+        const bioInput = document.getElementById('bio-username');
+        if (bioInput) bioInput.value = originalUname;
         return;
       }
       renderMKUsernameAvailable(username);
