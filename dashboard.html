@@ -5164,6 +5164,32 @@
                   </div>
                 </div>
                 <div id="deal-contract-progress" style="display:none;margin-top:8px;font-size:12px;color:var(--muted);">Uploading...</div>
+                <!-- Contract signing status & actions -->
+                <div id="deal-contract-signing" style="display:none;margin-top:12px;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;">
+                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                    <div style="font-size:12px;font-weight:600;color:var(--text);">Signing Status</div>
+                  </div>
+                  <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;">
+                      <div style="font-size:12px;color:var(--muted);">Creator</div>
+                      <div id="deal-contract-creator-status" style="font-size:11px;font-weight:500;"></div>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:space-between;">
+                      <div style="font-size:12px;color:var(--muted);">Brand</div>
+                      <div id="deal-contract-brand-status" style="font-size:11px;font-weight:500;"></div>
+                    </div>
+                  </div>
+                  <div id="deal-contract-sign-actions" style="display:flex;gap:6px;flex-wrap:wrap;">
+                    <button type="button" id="deal-contract-sign-btn" onclick="signContractAsCreator()" style="padding:8px 14px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;border:none;border-radius:8px;font-size:11px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;display:none;">Sign contract</button>
+                    <button type="button" id="deal-contract-marksigned-btn" onclick="markContractCreatorSigned()" style="padding:8px 14px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:11px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;display:none;">Mark as signed</button>
+                    <button type="button" id="deal-contract-send-btn" onclick="sendContractToBrand()" style="padding:8px 14px;background:transparent;border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:8px;font-size:11px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;display:none;">Send to brand</button>
+                  </div>
+                  <div id="deal-contract-locked-msg" style="display:none;font-size:11px;color:#4ade80;font-weight:500;text-align:center;padding:4px 0;">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    Fully executed — contract is locked
+                  </div>
+                </div>
               </div>
 
               <!-- INVOICE UPLOAD section -->
@@ -13133,6 +13159,7 @@ function renderContractUI(deal) {
   const existingEl = document.getElementById('deal-contract-existing');
   const saveFirstEl = document.getElementById('deal-contract-save-first');
   const uploaderEl = document.getElementById('deal-contract-uploader');
+  const signingEl = document.getElementById('deal-contract-signing');
   const fileInput = document.getElementById('deal-contract-input');
   if (fileInput) fileInput.value = ''; // reset so same file can be re-selected
   document.getElementById('deal-contract-progress').style.display = 'none';
@@ -13141,8 +13168,57 @@ function renderContractUI(deal) {
     emptyEl.style.display = 'none';
     existingEl.style.display = 'flex';
     document.getElementById('deal-contract-filename').textContent = deal.contract_file_name || 'contract.pdf';
+
+    // Signing status
+    signingEl.style.display = 'block';
+    const creatorStatusEl = document.getElementById('deal-contract-creator-status');
+    const brandStatusEl = document.getElementById('deal-contract-brand-status');
+    const signBtn = document.getElementById('deal-contract-sign-btn');
+    const markSignedBtn = document.getElementById('deal-contract-marksigned-btn');
+    const sendBtn = document.getElementById('deal-contract-send-btn');
+    const lockedMsg = document.getElementById('deal-contract-locked-msg');
+    const actionsEl = document.getElementById('deal-contract-sign-actions');
+
+    const isLocked = deal.contract_locked;
+
+    // Creator status
+    if (deal.creator_signed_at) {
+      const d = new Date(deal.creator_signed_at);
+      creatorStatusEl.innerHTML = `<span style="color:#4ade80;">Signed</span> <span style="color:var(--muted);font-weight:400;">${d.toLocaleDateString()}</span>`;
+    } else {
+      creatorStatusEl.innerHTML = '<span style="color:#fbbf24;">Not signed</span>';
+    }
+
+    // Brand status
+    if (deal.brand_signed_at) {
+      const d = new Date(deal.brand_signed_at);
+      brandStatusEl.innerHTML = `<span style="color:#4ade80;">Signed</span> <span style="color:var(--muted);font-weight:400;">${d.toLocaleDateString()}</span>`;
+    } else {
+      brandStatusEl.innerHTML = '<span style="color:#fbbf24;">Not signed</span>';
+    }
+
+    if (isLocked) {
+      // Fully executed — hide all action buttons, show locked message
+      actionsEl.style.display = 'none';
+      lockedMsg.style.display = 'block';
+      // Hide replace/remove buttons when locked
+      const replaceBtn = document.getElementById('deal-contract-replace-btn');
+      const removeBtn = document.getElementById('deal-contract-remove-btn');
+      if (replaceBtn) replaceBtn.style.display = 'none';
+      if (removeBtn) removeBtn.style.display = 'none';
+    } else {
+      actionsEl.style.display = 'flex';
+      lockedMsg.style.display = 'none';
+      // Show sign/mark-signed if creator hasn't signed
+      signBtn.style.display = deal.creator_signed_at ? 'none' : 'inline-block';
+      markSignedBtn.style.display = deal.creator_signed_at ? 'none' : 'inline-block';
+      // Show send button if creator has signed and deal is shared
+      const isShared = deal.share_token && !deal.share_revoked_at;
+      sendBtn.style.display = (deal.creator_signed_at && isShared) ? 'inline-block' : 'none';
+    }
   } else {
     existingEl.style.display = 'none';
+    signingEl.style.display = 'none';
     emptyEl.style.display = 'block';
     // Always show the uploader — we auto-save as draft when needed on file select
     if (saveFirstEl) saveFirstEl.style.display = 'none';
@@ -13308,6 +13384,12 @@ async function removeContract() {
   const deal = dealsList.find(d => d.id === currentDealId);
   if (!deal || !deal.contract_file_path) return;
 
+  // Locked contracts cannot be removed
+  if (deal.contract_locked) {
+    showDealModalMsg('error', 'This contract is fully executed and cannot be removed.');
+    return;
+  }
+
   if (!confirm('Remove the uploaded contract? This cannot be undone.')) return;
 
   const path = deal.contract_file_path;
@@ -13316,10 +13398,10 @@ async function removeContract() {
   const { error: storageErr } = await sb.storage.from('deal-contracts').remove([path]);
   if (storageErr) console.warn('Storage delete warning:', storageErr);
 
-  // Clear DB fields
+  // Clear DB fields including signing status
   const { error } = await sb
     .from('brand_deals')
-    .update({ contract_file_path: null, contract_file_name: null })
+    .update({ contract_file_path: null, contract_file_name: null, creator_signed_at: null, brand_signed_at: null, contract_locked: false })
     .eq('id', currentDealId);
 
   if (error) {
@@ -13332,8 +13414,245 @@ async function removeContract() {
   if (dealIdx >= 0) {
     dealsList[dealIdx].contract_file_path = null;
     dealsList[dealIdx].contract_file_name = null;
+    dealsList[dealIdx].creator_signed_at = null;
+    dealsList[dealIdx].brand_signed_at = null;
+    dealsList[dealIdx].contract_locked = false;
   }
   renderContractUI(dealsList[dealIdx]);
+}
+
+// =====================================================
+// BRAND DEAL CRM — Contract Signing
+// =====================================================
+
+// Sign contract using the Sign PDF tool — loads the contract, lets creator sign, saves back
+async function signContractAsCreator() {
+  if (!currentDealId) return;
+  const deal = dealsList.find(d => d.id === currentDealId);
+  if (!deal || !deal.contract_file_path) return;
+
+  const btn = document.getElementById('deal-contract-sign-btn');
+  const origText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Loading...';
+
+  try {
+    // Get signed URL for the contract
+    const { data, error } = await sb.storage
+      .from('deal-contracts')
+      .createSignedUrl(deal.contract_file_path, 3600);
+    if (error || !data?.signedUrl) throw new Error(error?.message || 'Could not load contract');
+
+    // Fetch the PDF bytes
+    const resp = await fetch(data.signedUrl);
+    if (!resp.ok) throw new Error('Failed to download contract');
+    const arrayBuffer = await resp.arrayBuffer();
+    const pdfBytes = new Uint8Array(arrayBuffer);
+
+    // Close the deal modal
+    closeDealDetailModal();
+
+    // Store the deal context for after signing
+    window._contractSignContext = {
+      dealId: currentDealId,
+      storagePath: deal.contract_file_path,
+      fileName: deal.contract_file_name || 'contract.pdf'
+    };
+
+    // Switch to Sign PDF tool and load the contract
+    switchTool('pdfsign');
+    // Wait a tick for the tool to render, then load the PDF
+    setTimeout(() => {
+      loadPdfForContractSigning(pdfBytes, deal.contract_file_name || 'contract.pdf');
+    }, 200);
+
+  } catch (err) {
+    showDealModalMsg('error', 'Failed to load contract: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = origText;
+  }
+}
+
+// Load PDF into the Sign PDF tool for contract signing
+async function loadPdfForContractSigning(pdfBytes, filename) {
+  // Use the existing Sign PDF tool's loading mechanism
+  pdfsignOriginalBytes = pdfBytes;
+  pdfsignFilename = filename;
+  pdfsignFields = [];
+  pdfsignActiveFieldType = null;
+
+  try {
+    // Load with PDF.js
+    const loadingTask = window.pdfjsLib.getDocument({ data: new Uint8Array(pdfsignOriginalBytes) });
+    pdfsignDoc = await loadingTask.promise;
+
+    // Switch to editor view
+    document.getElementById('pdfsign-upload').style.display = 'none';
+    document.getElementById('pdfsign-editor').style.display = 'block';
+    document.getElementById('pdfsign-filename').textContent = filename;
+    document.getElementById('pdfsign-pages-info').textContent = `${pdfsignDoc.numPages} page${pdfsignDoc.numPages > 1 ? 's' : ''}`;
+
+    await renderAllPages();
+
+    // Show the contract signing banner
+    const wrap = document.querySelector('.pdfsign-wrap');
+    const oldBanner = document.getElementById('pdfsign-contract-banner');
+    if (oldBanner) oldBanner.remove();
+
+    const banner = document.createElement('div');
+    banner.id = 'pdfsign-contract-banner';
+    banner.style.cssText = 'padding:12px 16px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);border-radius:10px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;';
+    banner.innerHTML = `
+      <div style="font-size:12px;color:var(--text);"><strong style="color:#c4b5fd;">Contract Signing Mode</strong> — Add your signature, then click "Save & Upload" to save back to the deal.</div>
+      <button type="button" id="pdfsign-contract-save-btn" onclick="saveSignedContractBack()" style="padding:8px 16px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;white-space:nowrap;">Save & Upload</button>
+    `;
+    if (wrap) wrap.insertBefore(banner, wrap.firstChild);
+  } catch (e) {
+    console.error('Contract PDF load error', e);
+    showDashToast('error', 'Could not load contract PDF: ' + (e.message || 'unknown error'));
+    switchTool('deals');
+  }
+}
+
+// Save signed contract back to Supabase Storage (overwrites same file)
+async function saveSignedContractBack() {
+  const ctx = window._contractSignContext;
+  if (!ctx) {
+    alert('No contract signing context. Please try again.');
+    return;
+  }
+
+  const btn = document.getElementById('pdfsign-contract-save-btn');
+  if (!btn) return;
+  const origText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+
+  try {
+    // Build the signed PDF
+    const pdfBytes = await buildSignedPdfBytes();
+    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+
+    // Upload back to same storage path (upsert = overwrite)
+    const { error: uploadError } = await sb.storage
+      .from('deal-contracts')
+      .upload(ctx.storagePath, blob, {
+        contentType: 'application/pdf',
+        upsert: true
+      });
+    if (uploadError) throw new Error(uploadError.message);
+
+    // Mark creator as signed in DB
+    const now = new Date().toISOString();
+    const { error: updateError } = await sb
+      .from('brand_deals')
+      .update({ creator_signed_at: now })
+      .eq('id', ctx.dealId);
+    if (updateError) throw new Error(updateError.message);
+
+    // Update local cache
+    const dealIdx = dealsList.findIndex(d => d.id === ctx.dealId);
+    if (dealIdx >= 0) {
+      dealsList[dealIdx].creator_signed_at = now;
+    }
+
+    // Clean up
+    window._contractSignContext = null;
+    const banner = document.getElementById('pdfsign-contract-banner');
+    if (banner) banner.remove();
+
+    // Show success and switch back to deals
+    showDashToast('success', 'Contract signed and saved.');
+    switchTool('deals');
+
+    // Re-open the deal
+    setTimeout(() => { openDealDetail(ctx.dealId); }, 300);
+
+  } catch (err) {
+    alert('Failed to save signed contract: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = origText;
+  }
+}
+
+// Mark contract as signed without using the Sign PDF tool (e.g. signed externally)
+async function markContractCreatorSigned() {
+  if (!currentDealId) return;
+  if (!confirm('Mark the contract as signed by you? Use this if you signed the contract outside of Ryxa.')) return;
+
+  try {
+    const now = new Date().toISOString();
+    const { error } = await sb
+      .from('brand_deals')
+      .update({ creator_signed_at: now })
+      .eq('id', currentDealId);
+    if (error) throw new Error(error.message);
+
+    const dealIdx = dealsList.findIndex(d => d.id === currentDealId);
+    if (dealIdx >= 0) {
+      dealsList[dealIdx].creator_signed_at = now;
+    }
+    renderContractUI(dealsList[dealIdx]);
+    showDealModalMsg('success', 'Contract marked as signed.');
+    setTimeout(() => {
+      const msg = document.getElementById('deal-detail-msg');
+      if (msg) msg.style.display = 'none';
+    }, 2500);
+  } catch (err) {
+    showDealModalMsg('error', 'Failed: ' + err.message);
+  }
+}
+
+// Send contract to brand via email
+async function sendContractToBrand() {
+  if (!currentDealId) return;
+  const deal = dealsList.find(d => d.id === currentDealId);
+  if (!deal || !deal.contract_file_path) return;
+
+  if (!deal.brand_contact_email) {
+    showDealModalMsg('error', 'Add a brand contact email to the deal first.');
+    document.getElementById('deal-brand-contact-email').focus();
+    return;
+  }
+  if (!deal.share_token || deal.share_revoked_at) {
+    showDealModalMsg('error', 'Click "Share with brand" first to enable the brand portal.');
+    return;
+  }
+  if (!deal.brand_first_accessed_at) {
+    showDealModalMsg('error', 'Sending unlocks once the brand opens the portal with the PIN.');
+    return;
+  }
+
+  if (!confirm(`Send the contract to ${deal.brand_contact_email} for signing?`)) return;
+
+  const btn = document.getElementById('deal-contract-send-btn');
+  const origText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Sending...';
+
+  try {
+    const { data, error } = await sb.functions.invoke('send-deal-notification', {
+      body: {
+        type: 'contract_for_signing',
+        deal_id: currentDealId
+      }
+    });
+    if (error) throw new Error(error.message || 'Failed to send');
+    if (data && data.error) throw new Error(data.error);
+
+    showDealModalMsg('success', `Contract sent to ${deal.brand_contact_email}.`);
+    setTimeout(() => {
+      const msg = document.getElementById('deal-detail-msg');
+      if (msg) msg.style.display = 'none';
+    }, 4000);
+  } catch (err) {
+    showDealModalMsg('error', 'Failed to send: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = origText;
+  }
 }
 
 // =====================================================
