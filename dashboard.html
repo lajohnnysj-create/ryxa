@@ -13462,13 +13462,6 @@ async function signContractAsCreator() {
     if (!resp.ok) throw new Error('Failed to download contract');
     const arrayBuffer = await resp.arrayBuffer();
 
-    // Store context for save-back
-    window._contractSignContext = {
-      dealId: currentDealId,
-      storagePath: deal.contract_file_path,
-      fileName: deal.contract_file_name || 'contract.pdf'
-    };
-
     // Load into the Sign PDF tool
     pdfsignOriginalBytes = new Uint8Array(arrayBuffer);
     pdfsignFilename = deal.contract_file_name || 'contract.pdf';
@@ -13478,8 +13471,15 @@ async function signContractAsCreator() {
     const loadingTask = window.pdfjsLib.getDocument({ data: new Uint8Array(pdfsignOriginalBytes) });
     pdfsignDoc = await loadingTask.promise;
 
-    // Switch to Sign PDF tool
+    // Switch to Sign PDF tool (must happen BEFORE setting context)
     showTool('pdfsign');
+
+    // NOW set context — after showTool so the cleanup check doesn't trigger
+    window._contractSignContext = {
+      dealId: currentDealId,
+      storagePath: deal.contract_file_path,
+      fileName: deal.contract_file_name || 'contract.pdf'
+    };
 
     // Switch to editor view
     document.getElementById('pdfsign-upload').style.display = 'none';
