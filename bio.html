@@ -1182,7 +1182,6 @@ function render(profile, bio, userTier) {
     Get your free link-in-bio at <strong>Ryxa</strong>
   </a>` : '';
 
-  const isMaxTier = profile.tier === 'max';
   const isHeroMode = bio.avatar_display === 'hero' && validImageUrl(bio.avatar_url) && isMaxTier;
 
   if (isHeroMode) {
