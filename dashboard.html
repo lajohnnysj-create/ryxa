@@ -13477,27 +13477,6 @@ function resolveDashConfirm(val) {
 }
 
 // Post an automated contract event message to the deal's chat thread
-async function postContractEventMessage(dealId, message) {
-  try {
-    const profile = await sb.from('profiles').select('username').eq('user_id', currentUser.id).maybeSingle();
-    const authorName = profile.data?.username || currentUser.email.split('@')[0];
-    const { error } = await sb.from('deal_messages').insert({
-      deal_id: dealId,
-      user_id: currentUser.id,
-      author_type: 'creator',
-      author_name: authorName,
-      content: message
-    });
-    if (error) {
-      console.warn('Contract event message insert failed:', error);
-    } else {
-      notifyBrandOfCreatorMessage(dealId, message);
-    }
-  } catch (err) {
-    console.warn('Auto-message failed (non-fatal):', err);
-  }
-}
-
 async function signContractAsCreator() {
   if (!currentDealId) return;
   const deal = dealsList.find(d => d.id === currentDealId);
@@ -13695,7 +13674,6 @@ async function saveSignedContractBack() {
 
     showTool('deals');
     showDashToast('success', 'Contract signed and saved to deal.');
-    postContractEventMessage(dealId, '📝 Contract has been signed by the creator.');
 
     // Re-open the deal detail
     setTimeout(() => {
@@ -13733,7 +13711,6 @@ async function markContractCreatorSigned() {
     }
     renderContractUI(dealsList[dealIdx]);
     showDealModalMsg('success', 'Contract marked as signed.' + (brandAlreadySigned ? ' Deal is now active.' : ''));
-    postContractEventMessage(currentDealId, '📝 Contract has been signed by the creator.');
     setTimeout(() => { const msg = document.getElementById('deal-detail-msg'); if (msg) msg.style.display = 'none'; }, 2500);
   } catch (err) {
     showDealModalMsg('error', 'Failed: ' + err.message);
