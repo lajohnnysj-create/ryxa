@@ -75,6 +75,7 @@
   .nav-tools-item-content { flex: 1; min-width: 0; }
   .nav-tools-item-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; color: var(--text); margin-bottom: 2px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
   .nav-tools-item-desc { font-size: 11px; color: var(--muted); line-height: 1.4; }
+  .nav-tools-tier.popular { background: rgba(250,204,21,0.15); border: 1px solid rgba(250,204,21,0.3); color: #fbbf24; }
   .nav-tools-tier { font-size: 8px; padding: 2px 6px; border-radius: 4px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; vertical-align: middle; }
   .nav-tools-tier.pro { background: rgba(124,58,237,0.15); border: 1px solid rgba(124,58,237,0.3); color: #c4b5fd; }
   .nav-tools-tier.free { background: rgba(74,222,128,0.12); border: 1px solid rgba(74,222,128,0.3); color: #4ade80; }
@@ -570,6 +571,13 @@
       </button>
       <div class="nav-tools-menu">
         <div class="nav-tools-grid">
+          <a href="tools-link-in-bio.html" class="nav-tools-item">
+            <div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
+            <div class="nav-tools-item-content">
+              <div class="nav-tools-item-title">Link in Bio <span class="nav-tools-tier popular">Popular</span></div>
+              <div class="nav-tools-item-desc">A clean, customizable page for all your links</div>
+            </div>
+          </a>
           <a href="tools-brand-deal-crm.html" class="nav-tools-item">
             <div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 12h18"/></svg></div>
             <div class="nav-tools-item-content">
@@ -577,25 +585,18 @@
               <div class="nav-tools-item-desc">Track partnerships, contracts, deliverables, revenue</div>
             </div>
           </a>
-          <a href="tools-script-builder.html" class="nav-tools-item">
-            <div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg></div>
-            <div class="nav-tools-item-content">
-              <div class="nav-tools-item-title">Script Builder <span class="nav-tools-tier pro">Pro</span></div>
-              <div class="nav-tools-item-desc">Plan reels, videos, podcasts in blocks</div>
-            </div>
-          </a>
-          <a href="tools-link-in-bio.html" class="nav-tools-item">
-            <div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
-            <div class="nav-tools-item-content">
-              <div class="nav-tools-item-title">Link in Bio <span class="nav-tools-tier free">Free</span></div>
-              <div class="nav-tools-item-desc">A clean, customizable page for all your links</div>
-            </div>
-          </a>
           <a href="tools-media-kit.html" class="nav-tools-item">
             <div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="17" x2="8" y2="13"/><line x1="12" y1="17" x2="12" y2="11"/><line x1="16" y1="17" x2="16" y2="15"/></svg></div>
             <div class="nav-tools-item-content">
               <div class="nav-tools-item-title">Media Kit <span class="nav-tools-tier pro">Pro</span></div>
               <div class="nav-tools-item-desc">Pitch brands with a pro media kit and rate card</div>
+            </div>
+          </a>
+          <a href="tools-script-builder.html" class="nav-tools-item">
+            <div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg></div>
+            <div class="nav-tools-item-content">
+              <div class="nav-tools-item-title">Script Builder <span class="nav-tools-tier pro">Pro</span></div>
+              <div class="nav-tools-item-desc">Plan reels, videos, podcasts in blocks</div>
             </div>
           </a>
           <a href="tools-grid-planner.html" class="nav-tools-item">
@@ -934,7 +935,7 @@
 
 <footer>
   <a class="logo" href="index.html"><img src="logo.png" alt=""> Ryxa</a>
-  <p style="font-size:13px;color:var(--muted);">&#x00A9; <span class="copy-year"></span> Ryxa. Not affiliated with Instagram or Meta.</p>
+  <p style="font-size:13px;color:var(--muted);">&#x00A9; <span class="copy-year"></span> Ryxa.</p>
   <div class="footer-links">
     <a href="pricing.html">Pricing</a>
     <a href="blog.html">Blog</a>
