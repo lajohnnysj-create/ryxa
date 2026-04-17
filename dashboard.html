@@ -1638,7 +1638,7 @@
   }
 
   /* ── MAIN ── */
-  .main { margin-left: var(--sidebar-width); flex: 1; min-height: 100vh; display: flex; flex-direction: column; }
+  .main { margin-left: var(--sidebar-width); flex: 1; min-height: 100vh; display: flex; flex-direction: column; min-width: 0; overflow-x: hidden; }
   .topbar { height: var(--topbar-height); background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 32px; position: sticky; top: 0; z-index: 50; }
   .topbar-left { display: flex; align-items: center; gap: 12px; }
   .mobile-menu-btn { display: none; background: none; border: none; color: var(--text); cursor: pointer; padding: 6px; border-radius: 8px; }
@@ -1669,7 +1669,7 @@
   }
 
   /* ── TOOL CONTENT AREA ── */
-  .tool-area { flex: 1; padding: 32px; max-width: 1100px; width: 100%; }
+  .tool-area { flex: 1; padding: 32px; max-width: 1100px; width: 100%; min-width: 0; overflow-x: hidden; box-sizing: border-box; }
 
   /* ── WELCOME SCREEN ── */
   .welcome-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: calc(100vh - var(--topbar-height)); text-align: center; padding: 40px 24px; }
