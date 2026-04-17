@@ -733,28 +733,27 @@
     left: 50%;
     transform: translateX(-50%);
     padding: 12px 24px;
-    background: var(--surface);
+    background: #0a0a14;
     border: 1px solid var(--border);
     border-radius: 100px;
     font-size: 13px;
-    color: var(--muted);
+    color: rgba(255,255,255,0.7);
     text-decoration: none;
     display: inline-flex;
     align-items: center;
     gap: 10px;
     transition: border-color 0.15s, color 0.15s, box-shadow 0.15s;
     z-index: 100;
-    backdrop-filter: blur(12px);
     box-shadow: 0 4px 20px rgba(0,0,0,0.3);
     white-space: nowrap;
   }
   .brand-banner:hover, .brand-banner:focus-visible {
     border-color: var(--accent2);
-    color: var(--text);
+    color: #fff;
     box-shadow: 0 4px 24px rgba(124,58,237,0.25);
   }
   .brand-banner strong {
-    color: var(--text);
+    color: #fff;
     font-weight: 600;
   }
   .brand-banner-logo {
