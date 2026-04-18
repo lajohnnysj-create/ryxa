@@ -5819,7 +5819,7 @@
             <canvas id="ana-main-chart" style="width:100%;height:200px;"></canvas>
           </div>
 
-          <!-- Mini charts -->
+          <!-- Revenue mini charts -->
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
             <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;">
               <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:600;margin-bottom:8px;">Courses</div>
@@ -5835,6 +5835,31 @@
               <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:600;margin-bottom:8px;">Brand Deals</div>
               <div id="ana-deals-total" style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;letter-spacing:-0.5px;margin-bottom:8px;">$0</div>
               <canvas id="ana-deals-chart" style="width:100%;height:60px;"></canvas>
+            </div>
+          </div>
+
+          <!-- Page views mini charts -->
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);font-weight:600;margin-top:24px;margin-bottom:12px;">Page Views by Source</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px;">
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;">
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:600;margin-bottom:8px;">Bio</div>
+              <div id="ana-pv-bio-total" style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;letter-spacing:-0.5px;margin-bottom:8px;">0</div>
+              <canvas id="ana-pv-bio-chart" style="width:100%;height:60px;"></canvas>
+            </div>
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;">
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:600;margin-bottom:8px;">Courses</div>
+              <div id="ana-pv-courses-total" style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;letter-spacing:-0.5px;margin-bottom:8px;">0</div>
+              <canvas id="ana-pv-courses-chart" style="width:100%;height:60px;"></canvas>
+            </div>
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;">
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:600;margin-bottom:8px;">Coaching</div>
+              <div id="ana-pv-coaching-total" style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;letter-spacing:-0.5px;margin-bottom:8px;">0</div>
+              <canvas id="ana-pv-coaching-chart" style="width:100%;height:60px;"></canvas>
+            </div>
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;">
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:600;margin-bottom:8px;">Media Kit</div>
+              <div id="ana-pv-mediakit-total" style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;letter-spacing:-0.5px;margin-bottom:8px;">0</div>
+              <canvas id="ana-pv-mediakit-chart" style="width:100%;height:60px;"></canvas>
             </div>
           </div>
         </div>
@@ -19354,13 +19379,26 @@ async function loadAnalyticsData() {
   document.getElementById('ana-coaching-total').textContent = formatDashUSD(bySource.coaching || 0);
   document.getElementById('ana-deals-total').textContent = formatDashUSD(bySource.brand_deal || 0);
 
+  // Page view totals by source
+  const byPage = (viewsRes && !viewsRes.error && viewsRes.data) ? (viewsRes.data.by_page || {}) : {};
+  document.getElementById('ana-pv-bio-total').textContent = (byPage.bio || 0).toLocaleString();
+  document.getElementById('ana-pv-courses-total').textContent = (byPage.course || 0).toLocaleString();
+  document.getElementById('ana-pv-coaching-total').textContent = (byPage.coaching || 0).toLocaleString();
+  document.getElementById('ana-pv-mediakit-total').textContent = (byPage.mediakit || 0).toLocaleString();
+
   // Render main chart (dual line)
   renderAnaLineChart('ana-main-chart', viewsDaily, revDaily, dayCount);
 
-  // Render mini charts
+  // Render revenue mini charts
   renderAnaMiniChart('ana-courses-chart', revDaily, 'course', '#a78bfa');
   renderAnaMiniChart('ana-coaching-chart', revDaily, 'coaching', '#e879f9');
   renderAnaMiniChart('ana-deals-chart', revDaily, 'brand_deal', '#7c3aed');
+
+  // Render page view mini charts (uses overall daily views as trend line)
+  renderAnaMiniChart('ana-pv-bio-chart', viewsDaily, 'count', '#e879f9');
+  renderAnaMiniChart('ana-pv-courses-chart', viewsDaily, 'count', '#a78bfa');
+  renderAnaMiniChart('ana-pv-coaching-chart', viewsDaily, 'count', '#c084fc');
+  renderAnaMiniChart('ana-pv-mediakit-chart', viewsDaily, 'count', '#818cf8');
 }
 
 function renderAnaLineChart(canvasId, viewsDaily, revDaily, dayCount) {
