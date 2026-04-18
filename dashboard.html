@@ -12993,7 +12993,7 @@ async function saveCoaching() {
 
   if (!title) { showCoachingMsg('error', 'Please enter a service title.'); return; }
   if (!slug) { showCoachingMsg('error', 'URL slug is empty. Please enter a title.'); return; }
-  if (coachingBookingType === 'calendly' && !calendlyUrl) { showCoachingMsg('error', 'Please enter your Calendly event URL.'); return; }
+  if (coachingBookingType === 'calendly' && !calendlyUrl) { showCoachingMsg('error', 'Please enter your scheduling link.'); return; }
 
   const btn = document.getElementById('coaching-save-btn');
   btn.disabled = true; btn.textContent = 'Saving...';
