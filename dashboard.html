@@ -12621,7 +12621,7 @@ function copyCourseUrl() {
     var orig = btn.innerHTML;
     btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Copied';
     btn.style.color = '#4ade80';
-    setTimeout(function() { btn.innerHTML = orig; btn.style.color = ''; }, 1500);
+    setTimeout(function() { btn.innerHTML = orig; btn.style.color = 'var(--muted)'; }, 1500);
   });
 }
 
@@ -12967,10 +12967,10 @@ function renderCourseModules() {
       + '</div>'
       + lessonsHtml
       + '<div style="display:flex;gap:8px;margin-top:10px;">'
-      + '<button onclick="addCourseLesson(' + mi + ',\'video\')" style="flex:1;padding:6px 12px;background:transparent;border:1px dashed var(--border-hover);color:var(--muted);border-radius:6px;font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:4px;">'
+      + '<button onclick="addCourseLesson(' + mi + ',\'video\')" style="flex:1;padding:6px 12px;background:transparent;border:1px dashed rgba(124,58,237,0.4);color:var(--accent2);border-radius:6px;font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:4px;">'
       + '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>'
       + 'Embed Video</button>'
-      + '<button onclick="addCourseLesson(' + mi + ',\'text\')" style="flex:1;padding:6px 12px;background:transparent;border:1px dashed var(--border-hover);color:var(--muted);border-radius:6px;font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:4px;">'
+      + '<button onclick="addCourseLesson(' + mi + ',\'text\')" style="flex:1;padding:6px 12px;background:transparent;border:1px dashed rgba(124,58,237,0.4);color:var(--accent2);border-radius:6px;font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:4px;">'
       + '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>'
       + 'Add Text</button>'
       + '</div>'
