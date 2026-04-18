@@ -11600,12 +11600,12 @@ function buildVCardString() {
   if (email) vcard += 'EMAIL:' + email + '\n';
   if (website) vcard += 'URL:' + website + '\n';
   if (address) vcard += 'ADR;TYPE=HOME:;;' + address + ';;;;\n';
-  if (instagram) vcard += 'X-SOCIALPROFILE;TYPE=instagram:https://instagram.com/' + instagram + '\n';
-  if (tiktok) vcard += 'X-SOCIALPROFILE;TYPE=tiktok:https://tiktok.com/@' + tiktok + '\n';
-  if (youtube) { var ytUrl = youtube.startsWith('http') ? youtube : 'https://youtube.com/' + youtube; vcard += 'X-SOCIALPROFILE;TYPE=youtube:' + ytUrl + '\n'; }
-  if (linkedin) { var liUrl = linkedin.startsWith('http') ? linkedin : 'https://linkedin.com/in/' + linkedin; vcard += 'X-SOCIALPROFILE;TYPE=linkedin:' + liUrl + '\n'; }
-  if (twitter) vcard += 'X-SOCIALPROFILE;TYPE=twitter:https://x.com/' + twitter + '\n';
-  if (facebook) { var fbUrl = facebook.startsWith('http') ? facebook : 'https://facebook.com/' + facebook; vcard += 'X-SOCIALPROFILE;TYPE=facebook:' + fbUrl + '\n'; }
+  if (instagram) vcard += 'URL;TYPE=Instagram:https://instagram.com/' + instagram + '\n';
+  if (tiktok) vcard += 'URL;TYPE=TikTok:https://tiktok.com/@' + tiktok + '\n';
+  if (youtube) { var ytUrl = youtube.startsWith('http') ? youtube : 'https://youtube.com/' + youtube; vcard += 'URL;TYPE=YouTube:' + ytUrl + '\n'; }
+  if (linkedin) { var liUrl = linkedin.startsWith('http') ? linkedin : 'https://linkedin.com/in/' + linkedin; vcard += 'URL;TYPE=LinkedIn:' + liUrl + '\n'; }
+  if (twitter) vcard += 'URL;TYPE=X:https://x.com/' + twitter + '\n';
+  if (facebook) { var fbUrl = facebook.startsWith('http') ? facebook : 'https://facebook.com/' + facebook; vcard += 'URL;TYPE=Facebook:' + fbUrl + '\n'; }
   if (note) vcard += 'NOTE:' + note.replace(/\n/g, ' ') + '\n';
   vcard += 'END:VCARD';
   return vcard;
