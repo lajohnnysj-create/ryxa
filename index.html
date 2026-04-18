@@ -7,1177 +7,762 @@
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-<link rel="shortcut icon" href="/favicon.ico">
-<title>Ryxa | Creator Tools- Free Link in Bio, Brand Deals CRM, Media Kit & more</title>
-<meta name="description" content="Free creator tools for Instagram, TikTok, and YouTube. Link in bio, follow-back audit, media kit, grid planner, script builder, invoice generator, and more. Built for creators. Free to start.">
-<meta name="keywords" content="creator tools, free creator tools, link in bio, follow-back audit, instagram unfollower tracker, media kit, grid planner, script builder, invoice generator, qr code generator, creator growth tools">
-<meta name="author" content="Ryxa">
-<meta name="robots" content="index, follow">
-<link rel="canonical" href="https://www.ryxa.io/">
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://www.ryxa.io/">
-<meta property="og:title" content="Creator Tools | Free Link in Bio, Follow-Back Audit, Media Kit & More">
-<meta property="og:description" content="Free creator tools for Instagram, TikTok, and YouTube. Link in bio, follow-back audit, media kit, grid planner, script builder, and more.">
-<meta property="og:image" content="https://www.ryxa.io/og-image.png">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Creator Tools | Free Link in Bio, Follow-Back Audit, Media Kit & More">
-<meta name="twitter:description" content="Free creator tools for Instagram, TikTok, and YouTube. Link in bio, follow-back audit, media kit, and more.">
-<meta name="twitter:image" content="https://www.ryxa.io/og-image.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<title>My Courses — Ryxa</title>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #07070f;
-    --surface: #0f0f1a;
-    --surface2: #161625;
-    --border: rgba(255,255,255,0.07);
-    --border-hover: rgba(255,255,255,0.14);
-    --accent: #7c3aed;
-    --accent2: #a855f7;
-    --accent-glow: rgba(124,58,237,0.3);
-    --text: #f0eef8;
-    --muted: #b4b2c8;
-    --muted2: #c9c7dc;
+    --bg: #000;
+    --surface: #0a0a0a;
+    --surface2: #0d0d0d;
+    --border: rgba(255,255,255,0.1);
+    --border-hover: rgba(255,255,255,0.2);
+    --text: #fff;
+    --text-secondary: rgba(255,255,255,0.7);
+    --muted: rgba(255,255,255,0.5);
+    --btn-bg: #fff;
+    --btn-text: #000;
+    --btn-outline-border: rgba(255,255,255,0.4);
+    --btn-outline-text: #fff;
+    --check-color: #fff;
   }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scrollbar-width: thin; scrollbar-color: rgba(168,85,247,0.4) #0a0a14; }
+  body.light-mode {
+    --bg: #fff;
+    --surface: #f2f2f2;
+    --surface2: #f8f8f8;
+    --border: rgba(0,0,0,0.1);
+    --border-hover: rgba(0,0,0,0.2);
+    --text: #000;
+    --text-secondary: rgba(0,0,0,0.7);
+    --muted: rgba(0,0,0,0.5);
+    --btn-bg: #000;
+    --btn-text: #fff;
+    --btn-outline-border: rgba(0,0,0,0.4);
+    --btn-outline-text: #000;
+    --check-color: #000;
+  }
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; transition: background 0.2s, color 0.2s; }
+
   ::-webkit-scrollbar { width: 8px; }
-  ::-webkit-scrollbar-track { background: #0a0a14; }
-  ::-webkit-scrollbar-thumb { background: rgba(168,85,247,0.4); border-radius: 4px; }
-  ::-webkit-scrollbar-thumb:hover { background: rgba(168,85,247,0.6); }
-  html { scroll-behavior: smooth; }
-  body { font-family: "DM Sans", sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
-  nav { position: fixed; top: 0; left: 0; right: 0; z-index: 200; display: flex; align-items: center; justify-content: space-between; padding: 0 48px; height: 68px; background: rgba(7,7,15,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); }
-  .logo { font-family: "Syne", sans-serif; font-weight: 800; font-size: 22px; letter-spacing: -0.5px; display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); }
-  .logo img { width: 38px; height: 38px; object-fit: contain; }
-  .logo-icon { width: 32px; height: 32px; background: linear-gradient(135deg, var(--accent), var(--accent2)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
-  .nav-links { display: flex; align-items: center; gap: 32px; }
-  .nav-links a { color: var(--muted); font-size: 14px; text-decoration: none; transition: color 0.2s; }
-  .nav-links a:hover { color: var(--text); }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: rgba(128,128,128,0.4); border-radius: 10px; }
+  html { scrollbar-width: thin; scrollbar-color: rgba(128,128,128,0.4) var(--bg); }
 
-  /* Tools dropdown */
-  .nav-tools-wrap { position: relative; display: flex; align-items: center; }
-  .nav-tools-trigger { display: inline-flex; align-items: center; gap: 5px; color: var(--muted); font-size: 14px; cursor: pointer; background: none; border: none; font-family: 'DM Sans', sans-serif; padding: 0; transition: color 0.2s; }
-  .nav-tools-trigger:hover, .nav-tools-wrap:hover .nav-tools-trigger { color: var(--text); }
-  .nav-tools-trigger svg { transition: transform 0.2s; }
-  .nav-tools-wrap:hover .nav-tools-trigger svg { transform: rotate(180deg); }
-  .nav-tools-menu { position: absolute; top: 100%; left: 0; transform: translateY(8px); width: 720px; max-width: calc(100vw - 32px); background: rgba(15,15,26,0.98); backdrop-filter: blur(20px); border: 1px solid var(--border-hover); border-radius: 16px; padding: 18px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); opacity: 0; pointer-events: none; transition: opacity 0.18s, transform 0.18s; z-index: 250; }
-  .nav-tools-wrap:hover .nav-tools-menu { opacity: 1; pointer-events: all; transform: translateY(0); }
-  /* Invisible bridge to prevent flicker between trigger and menu */
-  .nav-tools-wrap::before { content: ''; position: absolute; top: 100%; left: 0; right: 0; height: 12px; }
-  .nav-tools-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
-  .nav-tools-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px; border-radius: 10px; text-decoration: none; transition: background 0.15s; color: inherit; }
-  .nav-tools-item:hover { background: rgba(124,58,237,0.08); }
-  .nav-tools-item-icon { width: 36px; height: 36px; border-radius: 9px; background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #c4b5fd; }
-  .nav-tools-item-icon svg { width: 17px; height: 17px; }
-  .nav-tools-item-content { flex: 1; min-width: 0; }
-  .nav-tools-item-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; color: var(--text); margin-bottom: 2px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-  .nav-tools-item-desc { font-size: 11px; color: var(--muted); line-height: 1.4; }
-  .nav-tools-tier.popular { background: rgba(250,204,21,0.15); border: 1px solid rgba(250,204,21,0.3); color: #fbbf24; }
-  .nav-tools-tier { font-size: 8px; padding: 2px 6px; border-radius: 4px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; vertical-align: middle; }
-  .nav-tools-tier.pro { background: rgba(124,58,237,0.15); border: 1px solid rgba(124,58,237,0.3); color: #c4b5fd; }
-  .nav-tools-tier.free { background: rgba(74,222,128,0.12); border: 1px solid rgba(74,222,128,0.3); color: #4ade80; }
-  .nav-tools-tier.max { background: linear-gradient(135deg,#a78bfa,#e879f9); color: #fff; border: none; }
-  .nav-tools-footer { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-  .nav-tools-footer-link { font-size: 12px; color: var(--accent2); text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 4px; }
-  .nav-tools-footer-link:hover { color: #c4b5fd; }
-  .nav-right { display: flex; align-items: center; gap: 12px; }
-  .btn-ghost { background: transparent; border: 1px solid var(--border-hover); color: var(--text); border-radius: 8px; padding: 8px 20px; font-size: 14px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.2s; }
-  .btn-ghost:hover { border-color: var(--accent2); color: var(--accent2); }
-  .btn-nav-cta { background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 9px 22px; font-size: 14px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.2s; box-shadow: 0 0 20px var(--accent-glow); }
-  .btn-nav-cta:hover { background: var(--accent2); transform: translateY(-1px); }
-  .hamburger { display: none; flex-direction: column; justify-content: center; gap: 5px; background: none; border: none; cursor: pointer; padding: 6px; }
-  .hamburger span { display: block; width: 22px; height: 2px; background: var(--text); border-radius: 2px; transition: all 0.25s; }
-  .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
-  .hamburger.open span:nth-child(2) { opacity: 0; }
-  .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
-  .mobile-menu { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 300; flex-direction: column; padding: 80px 32px 40px; pointer-events: none; }
-  .mobile-menu.open { display: flex; pointer-events: all; }
-  .mobile-menu-links { display: flex; flex-direction: column; gap: 4px; flex: 1; }
-  .mobile-menu-links a { color: var(--text); font-size: 24px; font-family: "Syne", sans-serif; font-weight: 700; text-decoration: none; padding: 14px 0; border-bottom: 1px solid var(--border); transition: color 0.2s; }
-  .mobile-menu-links a:hover { color: var(--accent2); }
-  .mobile-menu-bottom { margin-top: 32px; display: flex; flex-direction: column; gap: 12px; }
-  .mobile-cta { width: 100%; padding: 16px; background: var(--accent); color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; text-decoration: none; display: block; text-align: center; }
-  .mobile-signin { width: 100%; padding: 16px; background: transparent; border: 1px solid var(--border-hover); color: var(--text); border-radius: 12px; font-size: 16px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; text-decoration: none; display: block; text-align: center; }
-  .modal-backdrop { display: none; position: fixed; inset: 0; z-index: 500; background: rgba(0,0,0,0.75); backdrop-filter: blur(4px); align-items: center; justify-content: center; }
-  .modal-backdrop.open { display: flex; }
-  .modal { background: var(--surface); border: 1px solid var(--border-hover); border-radius: 20px; padding: 28px 30px; width: 100%; max-width: 400px; max-height: 92vh; overflow-y: auto; position: relative; }
-  .modal-close { position: absolute; top: 14px; right: 14px; background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer; line-height: 1; }
-  .modal h2 { font-family: "Syne", sans-serif; font-size: 22px; font-weight: 800; margin-bottom: 4px; letter-spacing: -0.5px; text-align: center; }
-  .modal p { color: var(--muted); font-size: 13px; margin-bottom: 18px; text-align: center; }
-  .auth-tabs { display: flex; gap: 4px; padding: 4px; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 16px; }
-  .auth-tab { flex: 1; background: transparent; border: none; color: var(--muted); font-size: 13px; font-weight: 600; font-family: "DM Sans", sans-serif; padding: 8px 8px; cursor: pointer; border-radius: 7px; transition: all 0.15s; }
-  .auth-tab:hover { color: var(--text); }
-  .auth-tab.active { background: var(--accent); color: #fff; box-shadow: 0 2px 8px rgba(124,58,237,0.3); }
-  .google-btn { width: 100%; padding: 11px; background: #fff; color: #1f1f1f; border: 1px solid var(--border-hover); border-radius: 10px; font-size: 14px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 10px; }
-  .google-btn:hover { background: #f8f8f8; border-color: var(--accent); }
-  .google-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-  .auth-divider { display: flex; align-items: center; gap: 12px; margin: 10px 0 12px 0; }
-  .auth-divider::before, .auth-divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }
-  .auth-divider span { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
-  .modal-input { width: 100%; background: var(--surface2); border: 1px solid var(--border-hover); border-radius: 10px; padding: 11px 14px; font-size: 14px; color: var(--text); font-family: "DM Sans", sans-serif; margin-bottom: 10px; outline: none; transition: border-color 0.2s; }
-  .modal-input:focus { border-color: var(--accent); }
-  .modal-btn { width: 100%; padding: 12px; background: var(--accent); color: #fff; border: none; border-radius: 10px; font-size: 14px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.2s; margin-top: 4px; box-shadow: 0 0 30px var(--accent-glow); }
-  .modal-btn:hover { background: var(--accent2); }
-  .modal-btn:disabled { background: var(--muted2); cursor: not-allowed; box-shadow: none; }
-  .modal-switch { text-align: center; margin-top: 20px; font-size: 13px; color: var(--muted); }
-  .modal-switch a { color: var(--accent2); cursor: pointer; text-decoration: none; }
-  .modal-msg { padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 12px; display: none; }
-  .modal-msg.error { background: rgba(239,68,68,0.1); color: #fca5a5; border: 1px solid rgba(239,68,68,0.2); }
-  .modal-msg.success { background: rgba(74,222,128,0.1); color: #86efac; border: 1px solid rgba(74,222,128,0.2); }
-  .forgot-link { text-align: right; font-size: 12px; color: var(--muted); cursor: pointer; margin-top: -6px; margin-bottom: 12px; display: block; }
-  .forgot-link:hover { color: var(--accent2); }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .auth-spinner { display: inline-block; width: 15px; height: 15px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 8px; }
-  .hero { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 120px 24px 60px; text-align: left; position: relative; overflow-x: clip; }
-  .hero-bg { position: absolute; inset: 0; pointer-events: none; z-index: 0; background: radial-gradient(ellipse 60% 50% at 20% 30%, rgba(124,58,237,0.08) 0%, transparent 70%); }
-  .grid-lines { position: absolute; inset: 0; pointer-events: none; z-index: 0; background-image: linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px); background-size: 60px 60px; mask-image: radial-gradient(ellipse at 50% 30%, black 0%, transparent 70%); }
-  .hero-content { position: relative; z-index: 1; max-width: 1100px; width: 100%; }
-  .hero-split { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
-  .hero-left { display: flex; flex-direction: column; align-items: flex-start; padding-left: 40px; padding-top: 30px; }
-  .hero h1 { font-family: "Syne", sans-serif; font-size: clamp(32px, 5vw, 52px); font-weight: 800; letter-spacing: -2px; line-height: 1.1; margin-bottom: 20px; color: #fff; }
-  .gradient-text { background: linear-gradient(135deg, #a78bfa, #e879f9, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-  .hero-sub { font-size: clamp(15px, 2vw, 17px); color: var(--muted); line-height: 1.7; max-width: 480px; margin: 0 0 32px; font-weight: 400; }
-  .hero-actions { display: flex; gap: 14px; flex-wrap: nowrap; }
-  @media (max-width: 600px) {
-    .hero-actions { gap: 10px; }
-    .hero-actions .btn-primary,
-    .hero-actions .btn-secondary { padding: 13px 20px; font-size: 14px; }
-  }
-  /* Screen mockup for hero */
-  .hero-phone { position: relative; display: flex; justify-content: center; padding: 20px 60px 20px 20px; }
-  .hero-phone-device { background: var(--bg); border: 1.5px solid rgba(232,121,249,0.3); border-radius: 16px; padding: 0; box-shadow: 0 20px 50px rgba(0,0,0,0.4), 0 0 30px rgba(124,58,237,0.1); width: 220px; transform: perspective(800px) rotateY(-12deg) rotateX(3deg) translateY(-10px); transition: transform 0.4s ease; position: relative; z-index: 4; overflow: hidden; }
-  .hero-phone-device:hover { transform: perspective(800px) rotateY(-5deg) rotateX(1deg) translateY(-10px); }
-  /* Layered ghost screens — fanning to the right */
-  .hero-phone::before,
-  .hero-phone::after,
-  .hero-phone-ghost-3 {
-    content: '';
-    position: absolute;
-    width: 220px;
-    height: 100%;
-    max-height: 400px;
-    border-radius: 16px;
-    top: 50%;
-    left: 50%;
-  }
-  .hero-phone::before {
-    background: linear-gradient(135deg, rgba(124,58,237,0.12), rgba(232,121,249,0.06));
-    border: 1px solid rgba(232,121,249,0.18);
-    transform: translate(-42%, -50%) perspective(800px) rotateY(-8deg) rotateX(2deg) translateX(18px) translateY(-5px);
-    z-index: 3;
-    filter: blur(0.5px);
-  }
-  .hero-phone::after {
-    background: linear-gradient(135deg, rgba(124,58,237,0.08), rgba(232,121,249,0.04));
-    border: 1px solid rgba(232,121,249,0.12);
-    transform: translate(-35%, -50%) perspective(800px) rotateY(-4deg) rotateX(1deg) translateX(36px) translateY(0px);
-    z-index: 2;
-    filter: blur(1px);
-  }
-  .hero-phone-ghost-3 {
-    background: linear-gradient(135deg, rgba(124,58,237,0.04), rgba(232,121,249,0.02));
-    border: 1px solid rgba(232,121,249,0.07);
-    transform: translate(-28%, -50%) perspective(800px) rotateY(0deg) translateX(54px) translateY(5px);
-    z-index: 1;
-    filter: blur(2px);
-  }
-  .hero-phone-ghost-4 {
-    position: absolute; width: 220px; height: 100%; max-height: 400px; border-radius: 16px; top: 50%; left: 50%;
-    background: linear-gradient(135deg, rgba(124,58,237,0.03), rgba(232,121,249,0.015));
-    border: 1px solid rgba(232,121,249,0.05);
-    transform: translate(-21%, -50%) perspective(800px) rotateY(4deg) translateX(72px) translateY(8px);
-    z-index: 0;
-    filter: blur(3px);
-    display: none;
-  }
-  .hero-phone-ghost-5 {
-    position: absolute; width: 220px; height: 100%; max-height: 400px; border-radius: 16px; top: 50%; left: 50%;
-    background: linear-gradient(135deg, rgba(124,58,237,0.02), rgba(232,121,249,0.01));
-    border: 1px solid rgba(232,121,249,0.035);
-    transform: translate(-14%, -50%) perspective(800px) rotateY(8deg) translateX(90px) translateY(10px);
-    z-index: 0;
-    filter: blur(4px);
-    display: none;
-  }
-  .hero-phone-ghost-6 {
-    position: absolute; width: 220px; height: 100%; max-height: 400px; border-radius: 16px; top: 50%; left: 50%;
-    background: linear-gradient(135deg, rgba(124,58,237,0.01), rgba(232,121,249,0.005));
-    border: 1px solid rgba(232,121,249,0.02);
-    transform: translate(-7%, -50%) perspective(800px) rotateY(12deg) translateX(108px) translateY(12px);
-    z-index: 0;
-    filter: blur(5px);
-    display: none;
-  }
-  .hero-phone-screen { overflow: hidden; }
-  .hero-phone-screen img { width: 100%; height: 100%; object-fit: cover; object-position: top left; }
-  .hero-phone-placeholder { width: 100%; height: 100%; background: var(--surface); display: flex; flex-direction: column; padding: 16px; gap: 8px; }
-  .hero-phone-placeholder-bar { height: 10px; background: var(--surface2); border-radius: 4px; }
-  .hero-phone-placeholder-bar.short { width: 60%; }
-  @media (max-width: 768px) {
-    .hero-split { grid-template-columns: 1fr; gap: 40px; text-align: center; }
-    .hero-left { align-items: center; padding-left: 0; padding-top: 0; }
-    .hero-sub { margin: 0 auto 32px; }
-    .hero-actions { justify-content: center; }
-    .hero-phone-device { width: 120px; transform: perspective(600px) rotateY(-20deg) rotateX(6deg) translateY(-15px); border-radius: 10px; }
-    .hero-phone-device:hover { transform: perspective(600px) rotateY(-20deg) rotateX(6deg) translateY(-15px); }
-    .hero-phone { padding: 10px 15px 10px 20px; justify-content: center; margin-left: 40px; }
-    .hero-phone::before,
-    .hero-phone::after {
-      display: block;
-      width: 120px;
-      max-height: 220px;
-      border-radius: 10px;
-      left: 50%;
-      right: auto;
-      top: 50%;
-    }
-    .hero-phone::before {
-      transform: translate(-50%, -50%) perspective(600px) rotateY(-14deg) rotateX(4deg) translateX(12px) translateY(-6px);
-      z-index: 3;
-    }
-    .hero-phone::after {
-      transform: translate(-50%, -50%) perspective(600px) rotateY(-8deg) rotateX(2deg) translateX(28px) translateY(-3px);
-      z-index: 2;
-    }
-    .hero-phone-ghost-3 {
-      display: block;
-      width: 120px;
-      max-height: 220px;
-      border-radius: 10px;
-      left: 50%;
-      right: auto;
-      top: 50%;
-      transform: translate(-50%, -50%) perspective(600px) rotateY(-2deg) translateX(44px) translateY(0px);
-      z-index: 1;
-    }
-    .hero-phone-ghost-4 {
-      display: block;
-      width: 120px; max-height: 220px; border-radius: 10px; left: 50%; right: auto; top: 50%;
-      transform: translate(-50%, -50%) perspective(600px) rotateY(4deg) translateX(60px) translateY(3px);
-    }
-    .hero-phone-ghost-5 {
-      display: block;
-      width: 120px; max-height: 220px; border-radius: 10px; left: 50%; right: auto; top: 50%;
-      transform: translate(-50%, -50%) perspective(600px) rotateY(8deg) translateX(76px) translateY(5px);
-    }
-    .hero-phone-ghost-6 {
-      display: block;
-      width: 120px; max-height: 220px; border-radius: 10px; left: 50%; right: auto; top: 50%;
-      transform: translate(-50%, -50%) perspective(600px) rotateY(12deg) translateX(92px) translateY(7px);
-    }
-    .hero-phone-screen { height: 210px; border-radius: 10px; }
-    .hero-phone-screen > div { transform: scale(0.55); transform-origin: top left; width: 182%; }
-    .hero { padding: 100px 20px 40px; }
-  }
+  /* Nav - always dark */
+  .nav { padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); background: #000; }
+  .nav-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; color: #fff; font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; letter-spacing: -0.4px; }
+  .nav-logo img { width: 28px; height: 28px; border-radius: 6px; }
+  .nav-right { display: flex; gap: 10px; align-items: center; }
+  .nav-btn { padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; text-decoration: none; border: none; transition: all 0.15s; }
+  .nav-btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.4); color: #fff; }
+  .nav-btn-outline:hover { background: #111; }
+  .nav-btn-signout { background: #7c3aed; color: #fff; border: none; box-shadow: 0 0 16px rgba(124,58,237,0.35); }
+  .nav-btn-signout:hover { background: #6d28d9; }
+  .nav-user { font-size: 13px; color: #fff; }
+  .theme-switch { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
+  .theme-switch-label { font-size: 11px; color: rgba(255,255,255,0.6); font-family: 'DM Sans', sans-serif; }
+  .theme-switch-track { width: 36px; height: 20px; background: rgba(255,255,255,0.25); border-radius: 100px; position: relative; transition: background 0.2s; flex-shrink: 0; }
+  .theme-switch-track.on { background: #fff; }
+  .theme-switch-thumb { width: 16px; height: 16px; background: #fff; border-radius: 50%; position: absolute; top: 2px; left: 2px; transition: transform 0.2s; }
+  .theme-switch-track.on .theme-switch-thumb { transform: translateX(16px); background: #000; }
 
-  /* TESTIMONIALS */
-  .testimonials-section { margin: 0 0 56px; padding: 0; overflow: hidden; align-self: stretch; margin-left: -24px; margin-right: -24px; margin-top: 60px; }
-  .testimonials-heading { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 800; text-align: center; margin: 0 auto 28px; color: #fff; letter-spacing: -0.3px; padding: 0 20px; width: 100%; box-sizing: border-box; }
-  .testimonials-heading span { background: linear-gradient(135deg, #a78bfa, #e879f9); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-  .testimonials-track-wrap { position: relative; display: flex; align-items: center; gap: 12px; padding: 0 20px; }
-  .testimonials-track { display: flex; gap: 20px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; scrollbar-width: none; -ms-overflow-style: none; padding: 8px 0; flex: 1; min-width: 0; -webkit-overflow-scrolling: touch; }
-  .testimonials-track::-webkit-scrollbar { display: none; }
-  .testimonial-arrow { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: all 0.2s; z-index: 2; }
-  .testimonial-arrow:hover { color: var(--text); border-color: var(--accent); background: rgba(124,58,237,0.1); }
-  .testimonial-card { position: relative; width: 380px; min-width: 380px; border-radius: 20px; overflow: hidden; flex-shrink: 0; scroll-snap-align: center; scroll-snap-stop: always; }
-  .testimonial-card-inner { position: relative; border-radius: 20px; overflow: hidden; height: 100%; }
-  .testimonial-bg { position: absolute; inset: 0; background-size: cover; background-position: center top; filter: brightness(0.45); z-index: 0; transition: transform 0.5s ease; }
-  .testimonial-bg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.6) 60%, rgba(0,0,0,0.88) 100%); }
-  .testimonial-card:hover .testimonial-bg { transform: scale(1.08); }
-  .testimonial-card.testimonial-active .testimonial-bg { transform: scale(1.12); transition: transform 2.5s ease-out; }
-  .testimonial-content { position: relative; z-index: 1; padding: 32px 28px 28px; display: flex; flex-direction: column; min-height: 280px; justify-content: flex-end; text-align: left; }
-  .testimonial-stars { color: #facc15; font-size: 18px; letter-spacing: 2px; margin-bottom: 16px; }
-  .testimonial-quote { font-size: 15px; line-height: 1.65; color: #f0eef8; margin-bottom: 20px; font-style: italic; }
-  .testimonial-author { display: flex; align-items: center; gap: 12px; }
-  .testimonial-avatar { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(124,58,237,0.5); flex-shrink: 0; }
-  .testimonial-name { font-size: 14px; font-weight: 600; color: #fff; }
-  .testimonial-handle { font-size: 12px; color: var(--accent2); }
-  @media (max-width: 600px) {
-    .testimonials-heading { font-size: 13px; letter-spacing: -0.2px; margin-bottom: 20px; }
-    .testimonial-card { width: 300px; min-width: 300px; }
-    .testimonial-content { padding: 24px 20px 22px; min-height: 260px; }
-    .testimonials-track { gap: 16px; }
-    .testimonial-arrow { width: 34px; height: 34px; }
-    .testimonials-track-wrap { padding: 0 12px; gap: 8px; }
-  }
-  .btn-primary { background: var(--accent); color: #fff; border: none; border-radius: 10px; padding: 15px 36px; font-size: 16px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.25s; box-shadow: 0 0 40px var(--accent-glow); text-decoration: none; display: inline-block; }
-  .btn-primary:hover { background: var(--accent2); transform: translateY(-2px); }
-  .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border-hover); border-radius: 10px; padding: 15px 36px; font-size: 16px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.25s; text-decoration: none; display: inline-block; }
-  .btn-secondary:hover { border-color: var(--accent2); color: var(--accent2); transform: translateY(-1px); }
-  .hero-mockup { position: relative; display: inline-block; perspective: 1200px; margin-bottom: 80px; }
-  .mockup-frame { width: min(820px, 90vw); background: var(--surface); border: 1px solid rgba(124,58,237,0.3); border-radius: 16px; overflow: hidden; transform: rotateX(8deg) rotateY(-6deg) rotateZ(1deg); box-shadow: 0 40px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(124,58,237,0.2); transition: transform 0.4s ease; }
-  .mockup-frame:hover { transform: rotateX(4deg) rotateY(-3deg) rotateZ(0.5deg); }
-  .mockup-titlebar { background: var(--surface2); padding: 10px 16px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border); }
-  .mockup-dot { width: 10px; height: 10px; border-radius: 50%; }
-  .mockup-dot.red { background: #ff5f57; }
-  .mockup-dot.yellow { background: #febc2e; }
-  .mockup-dot.green { background: #28c840; }
-  .mockup-url { background: var(--surface); border-radius: 6px; padding: 4px 12px; font-size: 11px; color: var(--muted); margin-left: 8px; flex: 1; max-width: 260px; }
-  .mockup-body { display: flex; min-height: 380px; }
-  .mockup-sidebar { width: 220px; background: rgba(0,0,0,0.2); border-right: 1px solid var(--border); padding: 18px 12px; display: flex; flex-direction: column; gap: 3px; flex-shrink: 0; }
-  .mockup-logo { display: flex; align-items: center; gap: 8px; padding: 6px 8px; margin-bottom: 12px; }
-  .mockup-logo-text { font-family: "Syne", sans-serif; font-size: 15px; font-weight: 800; color: var(--text); letter-spacing: -0.2px; }
-  .mockup-section-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted2); font-weight: 600; padding: 6px 10px 4px; }
-  .mockup-nav-item { padding: 8px 10px; border-radius: 7px; font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
-  .mockup-nav-item.active { background: rgba(124,58,237,0.15); color: #c4b5fd; border: 1px solid rgba(124,58,237,0.2); }
-  .mockup-nav-icon { width: 15px; height: 15px; stroke: #fff; stroke-width: 1.8; fill: none; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
-  .mockup-nav-item.active .mockup-nav-icon { stroke: #c4b5fd; }
+  /* Auth form */
+  .auth-wrap { max-width: 400px; margin: 80px auto; padding: 0 24px; }
+  .auth-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 16px; padding: 32px; }
+  .auth-title { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; margin-bottom: 6px; letter-spacing: -0.5px; text-align: center; }
+  .auth-sub { font-size: 14px; color: var(--muted); text-align: center; margin-bottom: 24px; }
+  .auth-input { width: 100%; padding: 12px 16px; background: var(--surface); border: 1px solid var(--border-hover); border-radius: 8px; font-size: 14px; color: var(--text); font-family: 'DM Sans', sans-serif; outline: none; margin-bottom: 12px; box-sizing: border-box; }
+  .auth-input:focus { border-color: var(--btn-outline-text); }
+  .auth-btn { width: 100%; padding: 13px; background: var(--btn-bg); color: var(--btn-text); border: none; border-radius: 8px; font-size: 15px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; margin-top: 4px; }
+  .auth-toggle { font-size: 13px; color: var(--muted); text-align: center; margin-top: 16px; }
+  .auth-toggle a { color: var(--text); cursor: pointer; text-decoration: underline; font-weight: 600; }
+  .auth-error { font-size: 13px; color: #f87171; text-align: center; margin-top: 12px; display: none; }
 
-  /* Max user sidebar styling (mirrors real dashboard body.max-user) */
-  .mockup-sidebar-max { background: linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(167,139,250,0.05) 70%, rgba(232,121,249,0.08) 100%); }
-  .mockup-sidebar-max .mockup-nav-item.active {
-    background: linear-gradient(135deg, rgba(167,139,250,0.18), rgba(232,121,249,0.18));
-    border: 1px solid rgba(232,121,249,0.35);
-    color: #f0abfc;
-    box-shadow: 0 0 12px rgba(232,121,249,0.15);
-  }
-  .mockup-sidebar-max .mockup-nav-item.active .mockup-nav-icon { stroke: #f0abfc; }
+  /* Dashboard */
+  .dash-wrap { max-width: 960px; margin: 0 auto; padding: 40px 32px; }
+  .dash-title { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; letter-spacing: -1px; margin-bottom: 24px; }
+  .courses-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+  .course-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; cursor: pointer; transition: border-color 0.15s; text-decoration: none; color: var(--text); display: block; }
+  .course-card:hover { border-color: var(--btn-outline-text); }
+  .course-card-cover { height: 140px; background: var(--surface); display: flex; align-items: center; justify-content: center; font-size: 32px; background-size: cover; background-position: center; }
+  .course-card-body { padding: 14px 16px; }
+  .course-card-title { font-size: 15px; font-weight: 600; margin-bottom: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .course-card-creator { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+  .course-card-progress { height: 4px; background: var(--border-hover); border-radius: 100px; overflow: hidden; }
+  .course-card-progress-bar { height: 100%; background: var(--text); border-radius: 100px; transition: width 0.3s; }
+  .empty-state { text-align: center; padding: 60px 24px; color: var(--muted); font-size: 14px; }
 
-  /* Sidebar bottom user card */
-  .mockup-sidebar-bottom {
-    margin-top: auto;
-    padding: 10px 8px;
-    border-top: 1px solid rgba(255,255,255,0.08);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .mockup-sidebar-max .mockup-sidebar-bottom {
-    background: linear-gradient(135deg, rgba(167,139,250,0.1), rgba(232,121,249,0.1));
-    border-top-color: rgba(232,121,249,0.25);
-    border-radius: 8px;
-    padding: 10px;
-    margin-top: 12px;
-    box-shadow: 0 0 14px rgba(232,121,249,0.1);
-  }
-  .mockup-sidebar-avatar {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #a78bfa, #e879f9);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: "Syne", sans-serif;
-    font-size: 12px;
-    font-weight: 800;
-    color: #fff;
-    flex-shrink: 0;
-  }
-  .mockup-sidebar-user { flex: 1; min-width: 0; }
-  .mockup-sidebar-name { font-size: 12px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .mockup-sidebar-tier {
-    font-size: 10px;
-    font-weight: 600;
-    background: linear-gradient(135deg, #a78bfa, #e879f9);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    letter-spacing: 0.02em;
-  }
+  /* Course Viewer - Page by page layout */
+  .viewer-wrap { max-width: 900px; margin: 0 auto; padding: 32px; }
+  .viewer-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+  .viewer-back { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; background: transparent; border: 1px solid var(--btn-outline-border); color: var(--text); border-radius: 8px; font-size: 12px; font-family: 'DM Sans', sans-serif; cursor: pointer; text-decoration: none; }
+  .viewer-back:hover { background: var(--surface); }
+  .viewer-title { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; letter-spacing: -0.5px; flex: 1; }
+  .viewer-toc-btn { padding: 8px 14px; background: transparent; border: 1px solid var(--btn-outline-border); color: var(--text); border-radius: 8px; font-size: 12px; font-family: 'DM Sans', sans-serif; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+  .viewer-toc-btn:hover { background: var(--surface); }
+  .viewer-toc { display: none; background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 24px; }
+  .viewer-toc.open { display: block; }
+  .viewer-sidebar { display: flex; flex-direction: column; gap: 4px; }
+  .viewer-module-title { font-size: 11px; color: var(--text); font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding: 12px 0 4px; }
+  .viewer-module-title:first-child { padding-top: 0; }
+  .viewer-lesson-btn { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: transparent; border: 1px solid transparent; border-radius: 10px; cursor: pointer; transition: all 0.15s; font-size: 13px; color: var(--text-secondary); text-align: left; width: 100%; font-family: 'DM Sans', sans-serif; }
+  .viewer-lesson-btn:hover { background: var(--surface); color: var(--text); }
+  .viewer-lesson-btn.active { border-color: var(--text); background: var(--surface); color: var(--text); }
+  .viewer-lesson-btn.completed { color: var(--check-color); }
+  .viewer-check { width: 18px; height: 18px; flex-shrink: 0; text-align: center; }
+  .viewer-content { background: var(--surface2); border: 1px solid var(--border); border-radius: 16px; padding: 28px; min-height: 300px; }
+  .viewer-lesson-header { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+  .viewer-lesson-title { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; letter-spacing: -0.4px; margin-bottom: 20px; }
+  .viewer-video { width: 100%; aspect-ratio: 16/9; border-radius: 12px; border: none; margin-bottom: 16px; }
+  .viewer-text { font-size: 15px; line-height: 1.75; color: var(--text); white-space: pre-wrap; }
+  .viewer-complete-btn { margin-top: 24px; padding: 10px 20px; background: var(--btn-bg); color: var(--btn-text); border: none; border-radius: 8px; font-size: 13px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; }
+  .viewer-completed-msg { margin-top: 24px; padding: 10px 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; font-size: 13px; color: var(--check-color); display: inline-flex; align-items: center; gap: 6px; }
+  .viewer-nav { display: flex; justify-content: space-between; align-items: stretch; gap: 12px; margin-top: 24px; }
+  .viewer-nav-btn { flex: 1; padding: 14px 16px; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; cursor: pointer; transition: all 0.15s; text-decoration: none; display: flex; flex-direction: column; gap: 4px; font-family: 'DM Sans', sans-serif; }
+  .viewer-nav-btn:hover { border-color: var(--btn-outline-text); }
+  .viewer-nav-btn.disabled { opacity: 0.3; cursor: default; pointer-events: none; }
+  .viewer-nav-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .viewer-nav-title { font-size: 13px; color: var(--text); font-weight: 500; }
+  .viewer-nav-prev { text-align: left; }
+  .viewer-nav-next { text-align: right; }
+  .viewer-progress-bar { height: 3px; background: var(--surface); border-radius: 100px; margin-bottom: 24px; overflow: hidden; }
+  .viewer-progress-fill { height: 100%; background: var(--text); border-radius: 100px; transition: width 0.3s; }
 
-  .mockup-pro-badge { margin-left: auto; font-size: 10px; background: rgba(124,58,237,0.2); color: #c4b5fd; border-radius: 100px; padding: 1px 6px; font-weight: 700; letter-spacing: 0.05em; }
-  .mockup-max-badge { margin-left: auto; font-size: 10px; background: linear-gradient(135deg,#a78bfa,#e879f9); color: #fff; border-radius: 100px; padding: 1px 6px; font-weight: 700; letter-spacing: 0.05em; }
-  .mockup-content { flex: 1; padding: 28px 24px; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-  .mockup-welcome { width: 100%; }
-  .mockup-welcome-badge { display: inline-flex; align-items: center; gap: 6px; border: 1px solid rgba(124,58,237,0.4); background: rgba(124,58,237,0.08); border-radius: 100px; padding: 5px 14px; font-size: 11px; color: #c4b5fd; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 14px; }
-  .mockup-welcome-title { font-family: "Syne", sans-serif; font-size: 22px; font-weight: 800; letter-spacing: -0.5px; line-height: 1.15; margin-bottom: 8px; color: var(--text); }
-  .mockup-welcome-title span { background: linear-gradient(135deg, #a78bfa, #e879f9); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-  .mockup-welcome-sub { font-size: 13px; color: var(--muted); margin-bottom: 18px; }
-  .mockup-welcome-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; max-width: 360px; margin: 0 auto; }
-  .mockup-welcome-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 10px; display: flex; align-items: center; gap: 10px; }
-  .mockup-welcome-icon { width: 28px; height: 28px; background: rgba(124,58,237,0.12); border: 1px solid rgba(124,58,237,0.25); border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
-  .mockup-welcome-name { font-size: 12px; font-weight: 600; color: var(--text); text-align: left; }
-
-  /* Link in Bio tool mockup (inside dashboard frame) */
-  .mockup-bio-content { padding: 18px 20px !important; text-align: left !important; align-items: stretch !important; justify-content: flex-start !important; gap: 18px; flex-direction: row !important; overflow: hidden; }
-  .mockup-bio-left { flex: 1; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
-  .mockup-bio-right { width: 180px; flex-shrink: 0; display: flex; align-items: flex-start; justify-content: center; }
-  .mockup-bio-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-  .mockup-bio-title { font-family: "Syne", sans-serif; font-size: 17px; font-weight: 800; color: var(--text); letter-spacing: -0.3px; }
-  .mockup-bio-status { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; color: #4ade80; font-weight: 500; }
-  .mockup-bio-dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; }
-  .mockup-bio-url-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; font-size: 11px; color: var(--muted); font-family: monospace; }
-  .mockup-bio-url-box strong { color: #c4b5fd; font-weight: 600; }
-  .mockup-bio-section { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
-  .mockup-bio-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; color: #a78bfa; font-weight: 600; margin-bottom: 8px; }
-  .mockup-bio-profile-row { display: flex; align-items: center; gap: 10px; }
-  .mockup-bio-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #a78bfa, #e879f9); display: flex; align-items: center; justify-content: center; font-family: "Syne", sans-serif; font-size: 15px; font-weight: 800; color: #fff; flex-shrink: 0; }
-  .mockup-bio-profile-fields { flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-  .mockup-bio-field { background: var(--surface); border: 1px solid var(--border); border-radius: 5px; padding: 5px 8px; font-size: 11px; color: var(--text); }
-  .mockup-bio-field.small { font-size: 10px; color: var(--muted); }
-  .mockup-bio-link-row { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; font-size: 11px; color: var(--text); margin-bottom: 5px; display: flex; align-items: center; justify-content: space-between; }
-  .mockup-bio-link-row:last-child { margin-bottom: 0; }
-  .mockup-bio-link-row.featured { border-color: rgba(124,58,237,0.3); }
-  .mockup-bio-tag { font-size: 8px; background: rgba(124,58,237,0.2); color: #c4b5fd; border-radius: 100px; padding: 1px 6px; font-weight: 700; letter-spacing: 0.05em; }
-
-  /* Phone preview inside mockup right column */
-  .mockup-bio-phone { width: 100%; background: #07070f; border: 3px solid #1a1a24; border-radius: 16px; padding: 14px 10px 10px; display: flex; flex-direction: column; align-items: center; gap: 5px; position: relative; overflow: hidden; }
-  .mockup-bio-phone::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 60%; background: radial-gradient(ellipse 100% 80% at 50% 0%, rgba(124,58,237,0.3), transparent 65%); pointer-events: none; }
-  .mockup-bio-phone-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #a78bfa, #e879f9); display: flex; align-items: center; justify-content: center; font-family: "Syne", sans-serif; font-size: 14px; font-weight: 800; color: #fff; z-index: 1; }
-  .mockup-bio-phone-name { font-family: "Syne", sans-serif; font-size: 11px; font-weight: 800; color: #f0eef8; z-index: 1; }
-  .mockup-bio-phone-socials { display: flex; gap: 3px; z-index: 1; }
-  .mockup-bio-phone-social { width: 12px; height: 12px; border-radius: 50%; background: #0f0f1a; border: 1px solid rgba(255,255,255,0.15); }
-  .mockup-bio-phone-bio { font-size: 8px; color: #c9c7dc; z-index: 1; }
-  .mockup-bio-phone-link { width: 100%; background: #0f0f1a; border: 1px solid rgba(255,255,255,0.1); border-radius: 5px; padding: 5px; text-align: center; font-size: 8px; color: #f0eef8; z-index: 1; }
-  .mockup-bio-phone-featured { width: 100%; background: #0f0f1a; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; overflow: hidden; z-index: 1; }
-  .mockup-bio-phone-featured-img { width: 100%; aspect-ratio: 16/9; background: linear-gradient(135deg, #4c1d95, #7c3aed, #ec4899); display: flex; align-items: center; justify-content: center; font-size: 13px; }
-  .mockup-bio-phone-featured-title { padding: 4px 6px 6px; text-align: center; font-size: 8px; font-weight: 600; color: #f0eef8; font-family: "Syne", sans-serif; }
-
-  @media (max-width: 900px) {
-    .mockup-bio-right { display: none; }
-  }
-  .mockup-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
-  .mockup-stat { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
-  .mockup-stat-num { font-family: "Syne", sans-serif; font-size: 20px; font-weight: 800; color: #a78bfa; }
-  .mockup-stat-num.green { color: #4ade80; }
-  .mockup-stat-label { font-size: 10px; color: var(--muted); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
-  .mockup-table { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
-  .mockup-table-header { display: grid; grid-template-columns: 1fr 80px 60px; padding: 8px 12px; font-size: 9px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.2); }
-  .mockup-table-row { display: grid; grid-template-columns: 1fr 80px 60px; padding: 8px 12px; font-size: 11px; border-bottom: 1px solid var(--border); align-items: center; }
-  .mockup-table-row:last-child { border-bottom: none; }
-  .mockup-handle { color: var(--text); font-weight: 500; }
-  .mockup-tag { background: rgba(168,85,247,0.12); color: #c4b5fd; border: 1px solid rgba(168,85,247,0.25); border-radius: 100px; padding: 2px 8px; font-size: 9px; font-weight: 500; display: inline-block; }
-  .mockup-tag.red { background: rgba(239,68,68,0.1); color: #fca5a5; border-color: rgba(239,68,68,0.2); }
-  .mockup-cursor { position: absolute; bottom: 28%; right: 18%; width: 22px; height: 22px; pointer-events: none; z-index: 10; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); animation: cursorFloat 3s ease-in-out infinite; }
-  @keyframes cursorFloat { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(4px, -6px); } }
-  .mockup-glow { position: absolute; inset: -20px; background: radial-gradient(ellipse at 50% 50%, rgba(124,58,237,0.12) 0%, transparent 70%); pointer-events: none; border-radius: 24px; }
-  .tools-section { padding: 80px 48px 100px; max-width: 1200px; margin: 0 auto; }
-  .section-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent2); font-weight: 600; margin-bottom: 16px; display: block; }
-  .section-title { font-family: "Syne", sans-serif; font-size: clamp(28px, 4vw, 44px); font-weight: 800; letter-spacing: -1.5px; margin-bottom: 16px; }
-  .section-sub { color: var(--muted); font-size: 16px; line-height: 1.7; max-width: 500px; margin-bottom: 56px; }
-  .tools-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-  .tool-card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 24px; text-decoration: none; display: block; transition: all 0.25s; position: relative; overflow: hidden; cursor: pointer; }
-  .tool-card:hover { border-color: rgba(124,58,237,0.4); transform: translateY(-3px); box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
-  .tool-card-icon { width: 44px; height: 44px; background: rgba(124,58,237,0.12); border: 1px solid rgba(124,58,237,0.25); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; color: #c4b5fd; }
-  .tool-card-icon svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-  .tool-card-title { font-family: "Syne", sans-serif; font-size: 18px; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.3px; background: linear-gradient(135deg, #a78bfa, #e879f9); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-  .tool-card-desc { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 16px; }
-  .tool-card-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: #4ade80; font-weight: 500; }
-  .tool-card-badge.pro { color: #c4b5fd; }
-  .tool-card-badge.pro .tool-card-badge-dot { background: #c4b5fd; }
-  .tool-card-badge.max { background: linear-gradient(135deg,#a78bfa,#e879f9); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 600; }
-  .tool-card-badge.max .tool-card-badge-dot { background: #e879f9; }
-  .tool-card-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; }
-  .tool-card-arrow { position: absolute; top: 24px; right: 24px; color: var(--muted2); transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
-  .tool-card:hover .tool-card-arrow { color: var(--accent2); transform: translate(2px, -2px); }
-  .features-section { padding: 80px 48px; background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-  .features-inner { max-width: 1100px; margin: 0 auto; }
-  .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; margin-top: 56px; }
-  .feat { display: flex; flex-direction: column; gap: 12px; }
-  .feat-icon { width: 44px; height: 44px; background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #c4b5fd; }
-  .feat-icon svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-  .feat-title { font-family: "Syne", sans-serif; font-size: 16px; font-weight: 700; }
-  .feat-desc { font-size: 14px; color: var(--muted); line-height: 1.65; }
-  .cta-section { padding: 100px 48px; text-align: center; position: relative; overflow: hidden; }
-  .cta-bg { position: absolute; inset: 0; background: radial-gradient(ellipse 70% 60% at 50% 50%, rgba(124,58,237,0.1) 0%, transparent 70%); pointer-events: none; }
-  .cta-inner { position: relative; z-index: 1; max-width: 600px; margin: 0 auto; }
-  .cta-inner h2 { font-family: "Syne", sans-serif; font-size: clamp(28px, 4vw, 48px); font-weight: 800; letter-spacing: -1.5px; margin-bottom: 16px; }
-  .cta-inner p { color: var(--muted); font-size: 17px; margin-bottom: 36px; line-height: 1.7; }
-  footer { border-top: 1px solid var(--border); padding: 32px 48px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
-  .footer-links { display: flex; gap: 24px; flex-wrap: wrap; }
-  .footer-links a { color: var(--muted); font-size: 13px; text-decoration: none; transition: color 0.2s; }
-  .footer-links a:hover { color: var(--text); }
-  @media (max-width: 1024px) { .tools-grid { grid-template-columns: repeat(2, 1fr); } }
-  @media (max-width: 900px) { .features-grid { grid-template-columns: 1fr; } }
-  @media (max-width: 640px) { .tools-grid { grid-template-columns: 1fr; } }
-  @media (max-width: 768px) {
-    nav { padding: 0 20px; }
-    .nav-links, .nav-right { display: none; }
-    .hamburger { display: flex; }
-    .tools-section { padding: 60px 20px 80px; }
-    .features-section { padding: 60px 20px; }
-    .cta-section { padding: 60px 20px; }
-    footer { flex-direction: column; text-align: center; padding: 24px 20px; }
-    .mockup-sidebar { display: none; }
-    .mockup-frame { transform: rotateX(5deg) rotateY(-3deg); }
-  }
-
-  /* === A11Y: visible focus ring for keyboard users === */
-  *:focus-visible {
-    outline: 2px solid #c4b5fd;
-    outline-offset: 2px;
-    border-radius: 4px;
-  }
-  /* === A11Y: respect reduced-motion preferences === */
-  @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
-      animation-duration: 0.001ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.001ms !important;
-      scroll-behavior: auto !important;
-    }
+  @media (max-width: 640px) {
+    .nav { padding: 12px 16px; }
+    .dash-wrap, .viewer-wrap { padding: 24px 16px; }
+    .auth-wrap { margin: 40px auto; }
   }
 </style>
 </head>
 <body>
 
-<div class="mobile-menu" id="mobile-menu">
-  <button onclick="closeMobileMenu()" aria-label="Close menu" style="position:absolute;top:20px;right:20px;background:none;border:none;color:var(--muted);font-size:24px;cursor:pointer;line-height:1;padding:8px;">&#x2715;</button>
-  <div class="mobile-menu-links">
-    <a href="tools.html" onclick="closeMobileMenu()">Tools</a>
-    <a href="pricing.html" onclick="closeMobileMenu()">Pricing</a>
-    <a href="blog.html" onclick="closeMobileMenu()">Blog</a>
-    <a href="faq.html" onclick="closeMobileMenu()">FAQ</a>
-    <a href="about.html" onclick="closeMobileMenu()">About</a>
-  </div>
-  <div class="mobile-menu-bottom">
-    <a class="mobile-cta" href="dashboard.html" id="mobile-dashboard-link" style="display:none;">Go to Dashboard</a>
-    <button class="mobile-cta" onclick="openSignupModal()" id="mobile-signup-btn">Get started free</button>
-    <button class="mobile-signin" onclick="openAuthModal()">Sign in</button>
-  </div>
-</div>
-
-<div class="modal-backdrop" id="auth-modal">
-  <div class="modal">
-    <button class="modal-close" onclick="closeAuthModal()" aria-label="Close">&#x2715;</button>
-    <img src="/logo.png" alt="Ryxa" style="width:40px;height:40px;display:block;margin:0 auto 10px;object-fit:contain;">
-    <div class="auth-tabs">
-      <button type="button" class="auth-tab" id="auth-tab-signin" onclick="setAuthMode('signin')">Sign in</button>
-      <button type="button" class="auth-tab" id="auth-tab-signup" onclick="setAuthMode('signup')">Create account</button>
-    </div>
-    <div class="modal-msg" id="auth-msg"></div>
-    <button type="button" class="google-btn" onclick="handleGoogleAuth()" aria-label="Continue with Google">
-      <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
-        <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/>
-        <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.836.86-3.048.86-2.344 0-4.328-1.584-5.036-3.71H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
-        <path fill="#FBBC05" d="M3.964 10.71c-.18-.54-.282-1.117-.282-1.71s.102-1.17.282-1.71V4.958H.957C.347 6.173 0 7.548 0 9s.348 2.827.957 4.042l3.007-2.332z"/>
-        <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/>
-      </svg>
-      <span>Continue with Google</span>
-    </button>
-    <div class="auth-divider"><span>or</span></div>
-    <input class="modal-input" id="auth-email" type="email" aria-label="Email address" placeholder="Email address" autocomplete="email">
-    <input class="modal-input" id="auth-password" type="password" aria-label="Password" placeholder="Password" autocomplete="current-password">
-    <a class="forgot-link" id="forgot-password-link" onclick="handleForgotPassword()">Forgot password?</a>
-    <div id="auth-turnstile" style="margin:8px 0 10px;display:flex;justify-content:center;min-height:60px;"></div>
-    <button class="modal-btn" id="auth-submit-btn" onclick="handleAuth()">Sign in</button>
-  </div>
-</div>
-
-<nav>
-  <a class="logo" href="index.html">
-    <img src="logo.png" alt=""> Ryxa
-  </a>
-  <div class="nav-links" id="nav-links">
-    <a href="dashboard.html" id="dashboard-link" style="display:none;color:#c4b5fd;font-weight:500;">Dashboard</a>
-    <div class="nav-tools-wrap">
-      <button class="nav-tools-trigger" type="button" onclick="window.location.href='tools.html'">
-        Tools
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-      </button>
-      <div class="nav-tools-menu">
-        <div class="nav-tools-grid">
-          <a href="tools-link-in-bio.html" class="nav-tools-item">
-            <div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
-            <div class="nav-tools-item-content">
-              <div class="nav-tools-item-title">Link in Bio <span class="nav-tools-tier popular">Popular</span></div>
-              <div class="nav-tools-item-desc">A clean, customizable page for all your links</div>
-            </div>
-          </a>
-          <a href="tools-brand-deal-crm.html" class="nav-tools-item">
-            <div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 12h18"/></svg></div>
-            <div class="nav-tools-item-content">
-              <div class="nav-tools-item-title">Brand Deal CRM <span class="nav-tools-tier max">Max</span></div>
-              <div class="nav-tools-item-desc">Track partnerships, contracts, deliverables, revenue</div>
-            </div>
-          </a>
-          <a href="tools-media-kit.html" class="nav-tools-item">
-            <div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="17" x2="8" y2="13"/><line x1="12" y1="17" x2="12" y2="11"/><line x1="16" y1="17" x2="16" y2="15"/></svg></div>
-            <div class="nav-tools-item-content">
-              <div class="nav-tools-item-title">Media Kit <span class="nav-tools-tier pro">Pro</span></div>
-              <div class="nav-tools-item-desc">Pitch brands with a pro media kit and rate card</div>
-            </div>
-          </a>
-          <a href="tools-script-builder.html" class="nav-tools-item">
-            <div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg></div>
-            <div class="nav-tools-item-content">
-              <div class="nav-tools-item-title">Script Builder <span class="nav-tools-tier pro">Pro</span></div>
-              <div class="nav-tools-item-desc">Plan reels, videos, podcasts in blocks</div>
-            </div>
-          </a>
-          <a href="tools-grid-planner.html" class="nav-tools-item">
-            <div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
-            <div class="nav-tools-item-content">
-              <div class="nav-tools-item-title">Grid Planner <span class="nav-tools-tier free">Free</span></div>
-              <div class="nav-tools-item-desc">Plan your social grid, drag to reorder</div>
-            </div>
-          </a>
-          <a href="tools-follower-audit.html" class="nav-tools-item">
-            <div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></div>
-            <div class="nav-tools-item-content">
-              <div class="nav-tools-item-title">Follow-Back Audit <span class="nav-tools-tier free">Free</span></div>
-              <div class="nav-tools-item-desc">See who unfollowed you on Instagram</div>
-            </div>
-          </a>
-          <a href="tools-image-studio.html" class="nav-tools-item">
-            <div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg></div>
-            <div class="nav-tools-item-content">
-              <div class="nav-tools-item-title">Image Studio <span class="nav-tools-tier free">Free</span></div>
-              <div class="nav-tools-item-desc">Crop, adjust, convert with creator-ready ratios</div>
-            </div>
-          </a>
-          <a href="tools-qr-generator.html" class="nav-tools-item">
-            <div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20v1"/></svg></div>
-            <div class="nav-tools-item-content">
-              <div class="nav-tools-item-title">QR Generator <span class="nav-tools-tier free">Free</span></div>
-              <div class="nav-tools-item-desc">Create QR codes for your links and profiles</div>
-            </div>
-          </a>
-          <a href="tools-invoice-generator.html" class="nav-tools-item">
-            <div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg></div>
-            <div class="nav-tools-item-content">
-              <div class="nav-tools-item-title">Invoice Generator <span class="nav-tools-tier free">Free</span></div>
-              <div class="nav-tools-item-desc">Pro invoices for brand deals and collaborations</div>
-            </div>
-          </a>
-          <a href="tools-sign-pdf.html" class="nav-tools-item">
-            <div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M3 17l3-3 2 2 5-5 3 3"/></svg></div>
-            <div class="nav-tools-item-content">
-              <div class="nav-tools-item-title">Sign PDF <span class="nav-tools-tier free">Free</span></div>
-              <div class="nav-tools-item-desc">Fill and sign PDFs — no printer, no scanner</div>
-            </div>
-          </a>
-        </div>
-        <div class="nav-tools-footer">
-          <div style="font-size:11px;color:var(--muted);">10 tools, one workspace</div>
-          <a href="tools.html" class="nav-tools-footer-link">View all tools <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a>
-        </div>
+<nav class="nav">
+  <a href="/" class="nav-logo"><img src="/logo.png" alt=""> Ryxa</a>
+  <div style="display:flex;align-items:center;gap:14px;">
+    <div class="theme-switch" onclick="toggleLearnTheme()">
+      <span class="theme-switch-label" id="theme-label">Dark mode</span>
+      <div class="theme-switch-track" id="theme-track">
+        <div class="theme-switch-thumb"></div>
       </div>
     </div>
-    <a href="pricing.html">Pricing</a>
-    <a href="blog.html">Blog</a>
-    <a href="faq.html">FAQ</a>
-    <a href="about.html">About</a>
+    <div class="nav-right" id="nav-right">
+      <a href="/" class="nav-btn nav-btn-outline">Home</a>
+    </div>
   </div>
-  <div class="nav-right">
-    <button class="btn-ghost" onclick="openAuthModal()" id="nav-signin-btn">Sign in</button>
-    <button class="btn-nav-cta" onclick="openSignupModal()">Get started free</button>
-  </div>
-  <button class="hamburger" id="hamburger-btn" onclick="toggleMobileMenu()" aria-label="Menu">
-    <span></span><span></span><span></span>
-  </button>
 </nav>
 
-<section class="hero">
-  <div class="hero-bg"></div>
-  <div class="grid-lines"></div>
-  <div class="hero-content">
-    <div class="hero-split">
-      <div class="hero-left">
-        <h1>Creator tools to <span class="gradient-text">empower</span> your growth</h1>
-        <p class="hero-sub">Everything you need to look professional and grow your brand. Link in bio, media kit, brand deal CRM, and more. In one simple dashboard.</p>
-        <div class="hero-actions">
-          <button class="btn-primary" onclick="openSignupModal()">Get started free &#x2192;</button>
-        </div>
-      </div>
-      <div class="hero-phone">
-        <div class="hero-phone-ghost-6"></div>
-        <div class="hero-phone-ghost-5"></div>
-        <div class="hero-phone-ghost-4"></div>
-        <div class="hero-phone-ghost-3"></div>
-        <div class="hero-phone-device">
-          <div class="hero-phone-screen">
-            <div style="padding:14px 12px;overflow:hidden;">
-              <!-- Header -->
-              <div style="display:flex;align-items:center;gap:6px;margin-bottom:12px;">
-                <img src="logo.png" alt="" style="width:18px;height:18px;border-radius:4px;">
-                <div style="font-size:11px;font-weight:700;color:#fff;font-family:Syne,sans-serif;">Ryxa</div>
-                <div style="margin-left:auto;font-size:7px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;padding:2px 5px;border-radius:4px;font-weight:700;">CREATOR MAX</div>
-              </div>
-              <!-- Stats -->
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;">
-                <div style="background:linear-gradient(135deg,rgba(167,139,250,0.03),rgba(232,121,249,0.03));border:1px solid rgba(232,121,249,0.15);border-radius:8px;padding:8px 7px;">
-                  <div style="display:flex;align-items:center;gap:3px;margin-bottom:4px;">
-                    <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#e9c4f7" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                    <span style="font-size:6.5px;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;">Page Visits</span>
-                  </div>
-                  <div style="font-size:15px;font-weight:800;color:#fff;font-family:Syne,sans-serif;">1,247</div>
-                  <div style="font-size:6.5px;color:#4ade80;margin-top:2px;">+12% this week</div>
-                  <div style="display:flex;align-items:flex-end;gap:1.5px;height:14px;margin-top:4px;">
-                    <div style="width:100%;height:40%;background:rgba(232,121,249,0.2);border-radius:1.5px;"></div>
-                    <div style="width:100%;height:60%;background:rgba(232,121,249,0.3);border-radius:1.5px;"></div>
-                    <div style="width:100%;height:45%;background:rgba(232,121,249,0.25);border-radius:1.5px;"></div>
-                    <div style="width:100%;height:80%;background:rgba(232,121,249,0.4);border-radius:1.5px;"></div>
-                    <div style="width:100%;height:55%;background:rgba(232,121,249,0.3);border-radius:1.5px;"></div>
-                    <div style="width:100%;height:90%;background:rgba(232,121,249,0.5);border-radius:1.5px;"></div>
-                    <div style="width:100%;height:100%;background:#e879f9;border-radius:1.5px;"></div>
-                  </div>
-                </div>
-                <div style="background:linear-gradient(135deg,rgba(167,139,250,0.03),rgba(232,121,249,0.03));border:1px solid rgba(232,121,249,0.15);border-radius:8px;padding:8px 7px;">
-                  <div style="display:flex;align-items:center;gap:3px;margin-bottom:4px;">
-                    <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#e9c4f7" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                    <span style="font-size:6.5px;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;">Revenue</span>
-                  </div>
-                  <div style="font-size:15px;font-weight:800;color:#fff;font-family:Syne,sans-serif;">$3,820</div>
-                  <div style="font-size:6.5px;color:#4ade80;margin-top:2px;">+8% this month</div>
-                  <div style="display:flex;align-items:flex-end;gap:1.5px;height:14px;margin-top:4px;">
-                    <div style="width:100%;height:30%;background:rgba(74,222,128,0.2);border-radius:1.5px;"></div>
-                    <div style="width:100%;height:50%;background:rgba(74,222,128,0.3);border-radius:1.5px;"></div>
-                    <div style="width:100%;height:70%;background:rgba(74,222,128,0.3);border-radius:1.5px;"></div>
-                    <div style="width:100%;height:45%;background:rgba(74,222,128,0.25);border-radius:1.5px;"></div>
-                    <div style="width:100%;height:85%;background:rgba(74,222,128,0.4);border-radius:1.5px;"></div>
-                    <div style="width:100%;height:65%;background:rgba(74,222,128,0.35);border-radius:1.5px;"></div>
-                    <div style="width:100%;height:100%;background:#4ade80;border-radius:1.5px;"></div>
-                  </div>
-                </div>
-              </div>
-              <!-- Tools label -->
-              <div style="font-size:7px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:6px;font-weight:600;">Your Tools</div>
-              <!-- Tool cards — Creator Max theme -->
-              <div style="display:flex;flex-direction:column;gap:4px;">
-                <div style="padding:7px 8px;background:linear-gradient(135deg,rgba(167,139,250,0.1),rgba(232,121,249,0.1));border:1px solid rgba(232,121,249,0.3);border-radius:6px;display:flex;align-items:center;gap:6px;">
-                  <div style="width:18px;height:18px;background:linear-gradient(135deg,rgba(167,139,250,0.2),rgba(232,121,249,0.2));border:1px solid rgba(232,121,249,0.3);border-radius:5px;display:flex;align-items:center;justify-content:center;">
-                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#e9c4f7" stroke-width="2.5"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-                  </div>
-                  <span style="font-size:9px;font-weight:600;color:#f0abfc;">Link in Bio</span>
-                </div>
-                <div style="padding:7px 8px;background:linear-gradient(135deg,rgba(167,139,250,0.03),rgba(232,121,249,0.03));border:1px solid rgba(232,121,249,0.15);border-radius:6px;display:flex;align-items:center;gap:6px;">
-                  <div style="width:18px;height:18px;background:linear-gradient(135deg,rgba(167,139,250,0.15),rgba(232,121,249,0.15));border:1px solid rgba(232,121,249,0.25);border-radius:5px;display:flex;align-items:center;justify-content:center;">
-                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#e9c4f7" stroke-width="2.5"><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><rect x="3" y="7" width="18" height="13" rx="2"/></svg>
-                  </div>
-                  <span style="font-size:9px;font-weight:500;color:#e9c4f7;">Brand Deals</span>
-                  <span style="margin-left:auto;font-size:6px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;padding:1px 4px;border-radius:3px;font-weight:700;">MAX</span>
-                </div>
-                <div style="padding:7px 8px;background:linear-gradient(135deg,rgba(167,139,250,0.03),rgba(232,121,249,0.03));border:1px solid rgba(232,121,249,0.15);border-radius:6px;display:flex;align-items:center;gap:6px;">
-                  <div style="width:18px;height:18px;background:linear-gradient(135deg,rgba(167,139,250,0.15),rgba(232,121,249,0.15));border:1px solid rgba(232,121,249,0.25);border-radius:5px;display:flex;align-items:center;justify-content:center;">
-                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#e9c4f7" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                  </div>
-                  <span style="font-size:9px;font-weight:500;color:#e9c4f7;">Media Kit</span>
-                  <span style="margin-left:auto;font-size:6px;background:rgba(232,121,249,0.15);border:1px solid rgba(232,121,249,0.3);color:#f0abfc;padding:1px 4px;border-radius:3px;font-weight:600;">PRO</span>
-                </div>
-                <div style="padding:7px 8px;background:linear-gradient(135deg,rgba(167,139,250,0.03),rgba(232,121,249,0.03));border:1px solid rgba(232,121,249,0.15);border-radius:6px;display:flex;align-items:center;gap:6px;">
-                  <div style="width:18px;height:18px;background:linear-gradient(135deg,rgba(167,139,250,0.15),rgba(232,121,249,0.15));border:1px solid rgba(232,121,249,0.25);border-radius:5px;display:flex;align-items:center;justify-content:center;">
-                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#e9c4f7" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/></svg>
-                  </div>
-                  <span style="font-size:9px;font-weight:500;color:#e9c4f7;">Script Builder</span>
-                  <span style="margin-left:auto;font-size:6px;background:rgba(232,121,249,0.15);border:1px solid rgba(232,121,249,0.3);color:#f0abfc;padding:1px 4px;border-radius:3px;font-weight:600;">PRO</span>
-                </div>
-                <div style="padding:7px 8px;background:linear-gradient(135deg,rgba(167,139,250,0.03),rgba(232,121,249,0.03));border:1px solid rgba(232,121,249,0.15);border-radius:6px;display:flex;align-items:center;gap:6px;">
-                  <div style="width:18px;height:18px;background:linear-gradient(135deg,rgba(167,139,250,0.15),rgba(232,121,249,0.15));border:1px solid rgba(232,121,249,0.25);border-radius:5px;display:flex;align-items:center;justify-content:center;">
-                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#e9c4f7" stroke-width="2.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-                  </div>
-                  <span style="font-size:9px;font-weight:500;color:#e9c4f7;">Grid Planner</span>
-                </div>
-                <div style="padding:7px 8px;background:linear-gradient(135deg,rgba(167,139,250,0.03),rgba(232,121,249,0.03));border:1px solid rgba(232,121,249,0.15);border-radius:6px;display:flex;align-items:center;gap:6px;">
-                  <div style="width:18px;height:18px;background:linear-gradient(135deg,rgba(167,139,250,0.15),rgba(232,121,249,0.15));border:1px solid rgba(232,121,249,0.25);border-radius:5px;display:flex;align-items:center;justify-content:center;">
-                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#e9c4f7" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-                  </div>
-                  <span style="font-size:9px;font-weight:500;color:#e9c4f7;">Follower Audit</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+<!-- Auth Screen -->
+<div id="auth-screen" class="auth-wrap" style="display:none;">
+  <div class="auth-card">
+    <h1 class="auth-title" id="auth-title">Sign In</h1>
+    <p class="auth-sub" id="auth-sub">Access your courses</p>
+    <input type="email" id="auth-email" class="auth-input" placeholder="Email address" aria-label="Email address">
+    <input type="password" id="auth-password" class="auth-input" placeholder="Password" aria-label="Password">
+    <div id="auth-turnstile" style="margin:8px 0 10px;display:flex;justify-content:center;min-height:60px;"></div>
+    <button class="auth-btn" id="auth-btn" onclick="handleAuth()">Sign In</button>
+    <div class="auth-toggle" id="auth-toggle">Don't have an account? <a onclick="toggleAuthMode()">Sign up</a></div>
+    <div class="auth-error" id="auth-error"></div>
   </div>
+</div>
 
-    <!-- TESTIMONIALS -->
-    <div class="testimonials-section">
-      <h2 class="testimonials-heading">Trusted by <span>creators</span> who<br>are serious about their business</h2>
-      <div class="testimonials-track-wrap">
-        <button class="testimonial-arrow" onclick="scrollTestimonials(-1)" aria-label="Previous testimonial">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-        </button>
-        <div class="testimonials-track" id="testimonials-track">
-
-          <!-- Testimonial 1 -->
-          <div class="testimonial-card">
-            <div class="testimonial-card-inner">
-              <div class="testimonial-bg" style="background-image:url('testimonials/pinsta.jpg');"></div>
-              <div class="testimonial-content">
-                <p class="testimonial-quote">"I was able to grow my audience as a content creator with Ryxa! The tools that they offer are unbeatable. It has certainly helped make things easier for me!"</p>
-                <div class="testimonial-stars">★★★★★</div>
-                <div class="testimonial-author">
-                  <img src="testimonials/pinsta.jpg" alt="Pinhwa Su" class="testimonial-avatar">
-                  <div>
-                    <div class="testimonial-name">Pinhwa Su</div>
-                    <div class="testimonial-handle">@xo.pinsta</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Testimonial 2 -->
-          <div class="testimonial-card">
-            <div class="testimonial-card-inner">
-              <div class="testimonial-bg" style="background-image:url('testimonials/jaed.jpg');"></div>
-              <div class="testimonial-content">
-                <p class="testimonial-quote">"Being a content creator is more than just posting... it's a business. Ryxa helps simplify that side of things and makes it easier to grow with purpose. I'd recommend it to anyone serious about leveling up!"</p>
-                <div class="testimonial-stars">★★★★★</div>
-                <div class="testimonial-author">
-                  <img src="testimonials/jaed.jpg" alt="Jaed" class="testimonial-avatar">
-                  <div>
-                    <div class="testimonial-name">Jaed</div>
-                    <div class="testimonial-handle">@jaed.official</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-        </div>
-        <button class="testimonial-arrow" onclick="scrollTestimonials(1)" aria-label="Next testimonial">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
-        </button>
-      </div>
-    </div>
-
-</section>
-
-<section class="tools-section">
-  <span class="section-label">What is inside</span>
-  <h2 class="section-title">Tools built for creators</h2>
-  <p class="section-sub">Focused tools for the work behind the creating. Add them to your workflow.</p>
-  <div class="tools-grid">
-    <a class="tool-card" href="tools-link-in-bio.html">
-      <div class="tool-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
-      <div class="tool-card-title">Link in Bio</div>
-      <div class="tool-card-desc">Create your free link in bio page with us to share your content, links, and more with your audience — all from one clean page.</div>
-      <div class="tool-card-badge"><span class="tool-card-badge-dot"></span> Free to start</div>
-      <div class="tool-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
-    </a>
-    <a class="tool-card" href="tools-media-kit.html">
-      <div class="tool-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="17" x2="8" y2="13"/><line x1="12" y1="17" x2="12" y2="11"/><line x1="16" y1="17" x2="16" y2="15"/></svg></div>
-      <div class="tool-card-title">Media Kit</div>
-      <div class="tool-card-desc">A professional media kit brands will actually read. Audience stats, engagement rate, and a rate card. Share a link or download as PDF.</div>
-      <div class="tool-card-badge pro"><span class="tool-card-badge-dot"></span> Pro only</div>
-      <div class="tool-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
-    </a>
-    <a class="tool-card" href="tools-grid-planner.html">
-      <div class="tool-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
-      <div class="tool-card-title">Grid Planner</div>
-      <div class="tool-card-desc">Plan your feed before you post. Drop photos, drag to reorder, and preview how your grid looks.</div>
-      <div class="tool-card-badge"><span class="tool-card-badge-dot"></span> Free to start</div>
-      <div class="tool-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
-    </a>
-    <a class="tool-card" href="tools-follower-audit.html">
-      <div class="tool-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></div>
-      <div class="tool-card-title">Follower Audit</div>
-      <div class="tool-card-desc">Find out who stopped following you back on Instagram. No password required. Upload your own data and see the truth in seconds.</div>
-      <div class="tool-card-badge"><span class="tool-card-badge-dot"></span> Free to start</div>
-      <div class="tool-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
-    </a>
-    <a class="tool-card" href="tools-image-studio.html">
-      <div class="tool-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg></div>
-      <div class="tool-card-title">Image Studio</div>
-      <div class="tool-card-desc">Crop, resize, and convert images with aspect ratio presets for Instagram, TikTok, YouTube, and more. Everything happens in your browser.</div>
-      <div class="tool-card-badge"><span class="tool-card-badge-dot"></span> Free to start</div>
-      <div class="tool-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
-    </a>
-    <a class="tool-card" href="tools-qr-generator.html">
-      <div class="tool-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20v1"/></svg></div>
-      <div class="tool-card-title">QR Code Generator</div>
-      <div class="tool-card-desc">Generate clean, professional QR codes for your links, social profiles, and campaigns. Download instantly in high resolution.</div>
-      <div class="tool-card-badge"><span class="tool-card-badge-dot"></span> Free to start</div>
-      <div class="tool-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
-    </a>
-    <a class="tool-card" href="tools-invoice-generator.html">
-      <div class="tool-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/></svg></div>
-      <div class="tool-card-title">Invoice Generator</div>
-      <div class="tool-card-desc">Create professional invoices for your brand deals, collaborations, business, and more. Download as PDF.</div>
-      <div class="tool-card-badge"><span class="tool-card-badge-dot"></span> Free to start</div>
-      <div class="tool-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
-    </a>
-    <a class="tool-card" href="tools-sign-pdf.html">
-      <div class="tool-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M3 17l3-3 2 2 5-5 3 3"/></svg></div>
-      <div class="tool-card-title">Sign PDF</div>
-      <div class="tool-card-desc">Fill out and sign any PDF right in your browser. Files are processed entirely in your browser — never uploaded to our servers.</div>
-      <div class="tool-card-badge"><span class="tool-card-badge-dot"></span> Free to use</div>
-      <div class="tool-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
-    </a>
-    <a class="tool-card" href="tools-script-builder.html">
-      <div class="tool-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/><path d="M6 21l-2-2 2-2M18 21l2-2-2-2"/></svg></div>
-      <div class="tool-card-title">Script Builder</div>
-      <div class="tool-card-desc">The all-in-one workspace to write your next reel, video, podcast, or story. Plan in blocks, lock your hook, then play it back in storyboard, teleprompter, or cinematic mode.</div>
-      <div class="tool-card-badge pro"><span class="tool-card-badge-dot"></span> Pro</div>
-      <div class="tool-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
-    </a>
-    <a class="tool-card" href="tools-brand-deal-crm.html">
-      <div class="tool-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 12h18"/></svg></div>
-      <div class="tool-card-title">Brand Deal CRM</div>
-      <div class="tool-card-desc">Track every brand partnership in one place. Store signed contracts, manage deliverables, and share a secure portal with the brand — all with built-in revenue analytics.</div>
-      <div class="tool-card-badge max"><span class="tool-card-badge-dot"></span> Creator Max</div>
-      <div class="tool-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
-    </a>
+<!-- Dashboard (My Courses) -->
+<div id="dash-screen" class="dash-wrap" style="display:none;">
+  <h1 class="dash-title">My Courses</h1>
+  <div id="dash-courses" class="courses-grid"></div>
+  <div id="dash-empty" class="empty-state" style="display:none;">
+    <div style="width:48px;height:48px;margin:0 auto 12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;display:flex;align-items:center;justify-content:center;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M8 7h8M8 11h6"/></svg></div>
+    <p>You haven't enrolled in any courses yet.</p>
+    <p style="margin-top:8px;"><a href="/" style="color:var(--text);text-decoration:underline;">Browse Ryxa</a> to find courses from creators.</p>
   </div>
-</section>
+</div>
 
-<section class="features-section">
-  <div class="features-inner">
-    <span class="section-label">Why Ryxa</span>
-    <h2 class="section-title">Built by a creator. For creators.</h2>
-    <div class="features-grid">
-      <div class="feat"><div class="feat-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M5.5 21a7.5 7.5 0 0 1 13 0"/></svg></div><div class="feat-title">Built by a creator</div><div class="feat-desc">I'm a creator myself. Every tool here was built because I needed it. If you've been in the trenches, you'll recognize these problems.</div></div>
-      <div class="feat"><div class="feat-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></div><div class="feat-title">Find your snakes</div><div class="feat-desc">Know who actually supports you. Stop giving energy to people who are not giving it back.</div></div>
-      <div class="feat"><div class="feat-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div><div class="feat-title">Free to start</div><div class="feat-desc">Create a free account and start using most tools right away. Upgrade to Pro only when you need saves or unlimited use.</div></div>
-      <div class="feat"><div class="feat-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="feat-title">Affordable by design</div><div class="feat-desc">Pro is $10 a month. Less than a lunch. No surprise fees, no annual commitments. Cancel anytime.</div></div>
-      <div class="feat"><div class="feat-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div><div class="feat-title">One clean dashboard</div><div class="feat-desc">Your link-in-bio, media kit, invoices, and tax tracking in one place. No more paying 5 different services to run your creator business.</div></div>
-      <div class="feat"><div class="feat-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22c5.5 0 10-4.5 10-10S17.5 2 12 2 2 6.5 2 12s4.5 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg></div><div class="feat-title">Focused, not bloated</div><div class="feat-desc">Every tool earns its place. No feature creep, no endless menus. Just what you actually need to run your creator business.</div></div>
-    </div>
+<!-- Course Viewer -->
+<div id="viewer-screen" class="viewer-wrap" style="display:none;">
+  <div class="viewer-header">
+    <a href="#" onclick="backToDash();return false;" class="viewer-back">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      My Courses
+    </a>
+    <h1 class="viewer-title" id="viewer-course-title"></h1>
+    <button class="viewer-toc-btn" onclick="toggleToc()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      Contents
+    </button>
   </div>
-</section>
-
-<section class="cta-section">
-  <div class="cta-bg"></div>
-  <div class="cta-inner">
-    <h2>Ready to grow smarter?</h2>
-    <p>Join creators using Ryxa to protect their energy and grow their brand.</p>
-    <button class="btn-primary" onclick="openSignupModal()" style="font-size:17px;padding:17px 44px;">Get started free &#x2192;</button>
-    <div style="margin-top:20px;font-size:14px;color:var(--muted);">Already have an account? <a onclick="openAuthModal()" style="color:var(--accent2);cursor:pointer;">Sign in</a> &nbsp;·&nbsp; <a href="pricing.html" style="color:var(--accent2);">View plans</a></div>
+  <div class="viewer-progress-bar"><div class="viewer-progress-fill" id="viewer-progress-fill" style="width:0%"></div></div>
+  <div class="viewer-toc" id="viewer-toc">
+    <div class="viewer-sidebar" id="viewer-sidebar"></div>
   </div>
-</section>
-
-<footer>
-  <a class="logo" href="index.html"><img src="logo.png" alt=""> Ryxa</a>
-  <p style="font-size:13px;color:var(--muted);">&#x00A9; <span class="copy-year"></span> Ryxa.</p>
-  <div class="footer-links">
-    <a href="pricing.html">Pricing</a>
-    <a href="blog.html">Blog</a>
-    <a href="faq.html">FAQ</a>
-    <a href="about.html">About</a>
-    <a href="privacy.html">Privacy</a>
-    <a href="terms.html">Terms</a>
+  <div class="viewer-content" id="viewer-content">
+    <p style="color:var(--muted);font-size:14px;">Select a lesson to begin.</p>
   </div>
-</footer>
+  <div class="viewer-nav" id="viewer-nav"></div>
+</div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-// Testimonials: scroll left/right
-function scrollTestimonials(dir) {
-  const track = document.getElementById('testimonials-track');
-  if (!track) return;
-  const card = track.querySelector('.testimonial-card');
-  const scrollAmount = card ? card.offsetWidth + 20 : 400;
-  const maxScroll = track.scrollWidth - track.clientWidth;
-  if (dir === -1 && track.scrollLeft <= 0) return;
-  if (dir === 1 && track.scrollLeft >= maxScroll - 1) return;
-  track.scrollBy({ left: dir * scrollAmount, behavior: 'smooth' });
-}
-
-// Desktop drag-to-scroll
-document.addEventListener('DOMContentLoaded', () => {
-  const track = document.getElementById('testimonials-track');
-  if (!track) return;
-  let isDown = false, startX, scrollStart;
-  track.addEventListener('mousedown', (e) => {
-    isDown = true;
-    track.style.cursor = 'grabbing';
-    startX = e.pageX - track.offsetLeft;
-    scrollStart = track.scrollLeft;
-    e.preventDefault();
-  });
-  track.addEventListener('mouseleave', () => { isDown = false; track.style.cursor = 'grab'; });
-  track.addEventListener('mouseup', () => { isDown = false; track.style.cursor = 'grab'; });
-  track.addEventListener('mousemove', (e) => {
-    if (!isDown) return;
-    const x = e.pageX - track.offsetLeft;
-    const walk = (x - startX) * 1.5;
-    track.scrollLeft = scrollStart - walk;
-  });
-  track.style.cursor = 'grab';
-
-  // Mobile only: zoom background on the most visible card
-  if (window.innerWidth <= 600) {
-    const cards = track.querySelectorAll('.testimonial-card');
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        entry.target.classList.toggle('testimonial-active', entry.isIntersecting);
-      });
-    }, { root: track, threshold: 0.6 });
-    cards.forEach(card => observer.observe(card));
-  }
-});
-
 const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtqeXRhcGNneHVrYWx3c3lwdXRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMTcxMzEsImV4cCI6MjA5MDg5MzEzMX0.VC8mcU5lUeA56kG2gHssvl88EVWr018XttA86jpfEn0';
-const { createClient } = supabase;
-const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-let authMode = 'signin';
-let currentUser = null;
-document.querySelectorAll('.copy-year').forEach(el => el.textContent = new Date().getFullYear());
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-async function initAuth() {
-  const { data: { session } } = await sb.auth.getSession();
-  if (session?.user) { currentUser = session.user; window.location.href = 'dashboard.html'; return; }
-  sb.auth.onAuthStateChange((_event, session) => {
-    if (_event === 'SIGNED_IN' && session?.user) window.location.href = 'dashboard.html';
-  });
+// Theme toggle
+function toggleLearnTheme() {
+  var isLight = document.body.classList.toggle('light-mode');
+  localStorage.setItem('ryxa-learn-theme', isLight ? 'light' : 'dark');
+  updateThemeToggleUI(isLight);
 }
 
-function requireAuth(e) { if (!currentUser) { e.preventDefault(); openAuthModal(); } }
-
-function openAuthModal() {
-  authMode = 'signin'; syncAuthModal();
-  document.getElementById('auth-modal').classList.add('open');
-  setTimeout(() => document.getElementById('auth-email')?.focus(), 100);
-  renderTurnstileWidget();
+function updateThemeToggleUI(isLight) {
+  var track = document.getElementById('theme-track');
+  var label = document.getElementById('theme-label');
+  if (track) { if (isLight) track.classList.add('on'); else track.classList.remove('on'); }
+  if (label) label.textContent = isLight ? 'Light mode' : 'Dark mode';
 }
 
-function openSignupModal() {
-  authMode = 'signup'; syncAuthModal();
-  document.getElementById('auth-modal').classList.add('open');
-  setTimeout(() => document.getElementById('auth-email')?.focus(), 100);
-  renderTurnstileWidget();
-}
-
-// Open signup modal if URL has #signup OR ?action=signup (from external page links)
-// Also supports ?action=signin
-window.addEventListener('load', () => {
-  if (currentUser) return;
-  const params = new URLSearchParams(window.location.search);
-  const action = params.get('action');
-  if (window.location.hash === '#signup' || action === 'signup') {
-    setTimeout(openSignupModal, 300);
-  } else if (action === 'signin') {
-    setTimeout(openAuthModal, 300);
+// Apply saved theme on load
+(function() {
+  var saved = localStorage.getItem('ryxa-learn-theme');
+  if (saved === 'light') {
+    document.body.classList.add('light-mode');
+    updateThemeToggleUI(true);
   }
-});
+})();
 
-function closeAuthModal() {
-  document.getElementById('auth-modal').classList.remove('open');
-  const el = document.getElementById('auth-msg'); if (el) el.style.display = 'none';
-  const btn = document.getElementById('auth-submit-btn'); if (btn) { btn.disabled = false; btn.textContent = 'Sign in'; }
-}
+let currentUser = null;
+let enrollments = [];
+let viewerCourse = null;
+let viewerModules = [];
+let viewerLessons = [];
+let viewerProgress = [];
+let viewerEnrollmentId = null;
+let currentLessonId = null;
+let authMode = 'signin';
 
-function syncAuthModal() {
-  const isSignIn = authMode === 'signin';
-  document.getElementById('auth-submit-btn').textContent = isSignIn ? 'Sign in' : 'Create account';
-  document.getElementById('auth-msg').style.display = 'none';
-  const fl = document.getElementById('forgot-password-link'); if (fl) fl.style.display = isSignIn ? 'block' : 'none';
-  // Update tab active states
-  const signinTab = document.getElementById('auth-tab-signin');
-  const signupTab = document.getElementById('auth-tab-signup');
-  if (signinTab) signinTab.classList.toggle('active', isSignIn);
-  if (signupTab) signupTab.classList.toggle('active', !isSignIn);
-  // Update password autocomplete hint to help browser pickers
-  const pw = document.getElementById('auth-password');
-  if (pw) pw.setAttribute('autocomplete', isSignIn ? 'current-password' : 'new-password');
-}
-
-function setAuthMode(mode) { authMode = mode; syncAuthModal(); }
-
-function toggleAuthMode() { authMode = authMode === 'signin' ? 'signup' : 'signin'; syncAuthModal(); }
-
-function showAuthMsg(type, msg) {
-  const el = document.getElementById('auth-msg'); if (!el) return;
-  el.style.display = 'block'; el.className = 'modal-msg ' + type; el.textContent = msg;
-}
-
-// Cloudflare Turnstile (CAPTCHA) configuration
+// Cloudflare Turnstile
 const TURNSTILE_SITE_KEY = '0x4AAAAAAC9W8avdI3sdVEcc';
 let turnstileWidgetId = null;
 
 function renderTurnstileWidget() {
-  if (typeof turnstile === 'undefined') {
-    // Script not loaded yet — try again shortly
-    setTimeout(renderTurnstileWidget, 200);
-    return;
-  }
-  const container = document.getElementById('auth-turnstile');
+  if (typeof turnstile === 'undefined') { setTimeout(renderTurnstileWidget, 200); return; }
+  var container = document.getElementById('auth-turnstile');
   if (!container) return;
-  // If already rendered, reset instead of re-rendering
-  if (turnstileWidgetId !== null) {
-    try { turnstile.reset(turnstileWidgetId); } catch (e) {}
-    return;
-  }
-  turnstileWidgetId = turnstile.render('#auth-turnstile', {
-    sitekey: TURNSTILE_SITE_KEY,
-    theme: 'dark',
-    size: 'flexible',
-  });
+  if (turnstileWidgetId !== null) { try { turnstile.reset(turnstileWidgetId); } catch(e) {} return; }
+  turnstileWidgetId = turnstile.render('#auth-turnstile', { sitekey: TURNSTILE_SITE_KEY, theme: 'dark', size: 'flexible' });
 }
 
 function getTurnstileToken() {
   if (typeof turnstile === 'undefined' || turnstileWidgetId === null) return null;
-  try { return turnstile.getResponse(turnstileWidgetId); } catch (e) { return null; }
+  try { return turnstile.getResponse(turnstileWidgetId); } catch(e) { return null; }
 }
 
 function resetTurnstile() {
-  if (typeof turnstile !== 'undefined' && turnstileWidgetId !== null) {
-    try { turnstile.reset(turnstileWidgetId); } catch (e) {}
-  }
+  if (typeof turnstile !== 'undefined' && turnstileWidgetId !== null) { try { turnstile.reset(turnstileWidgetId); } catch(e) {} }
 }
 
-async function handleGoogleAuth() {
-  const { error } = await sb.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: 'https://ryxa.io/dashboard.html',
-    },
+async function init() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session?.user) {
+    currentUser = session.user;
+    await onLoggedIn();
+  } else {
+    showAuth();
+  }
+
+  sb.auth.onAuthStateChange(function(_event, session) {
+    if (session?.user && !currentUser) {
+      currentUser = session.user;
+      onLoggedIn();
+    } else if (!session?.user) {
+      currentUser = null;
+      showAuth();
+    }
   });
-  if (error) showAuthMsg('error', error.message);
+}
+
+function showAuth() {
+  document.getElementById('auth-screen').style.display = 'block';
+  document.getElementById('dash-screen').style.display = 'none';
+  document.getElementById('viewer-screen').style.display = 'none';
+  document.getElementById('nav-right').innerHTML = '<a href="/" class="nav-btn nav-btn-outline">Home</a>';
+  renderTurnstileWidget();
+}
+
+function toggleAuthMode() {
+  authMode = authMode === 'signin' ? 'signup' : 'signin';
+  document.getElementById('auth-title').textContent = authMode === 'signin' ? 'Sign In' : 'Create Account';
+  document.getElementById('auth-sub').textContent = authMode === 'signin' ? 'Access your courses' : 'Sign up to enroll in courses';
+  document.getElementById('auth-btn').textContent = authMode === 'signin' ? 'Sign In' : 'Sign Up';
+  document.getElementById('auth-toggle').innerHTML = authMode === 'signin'
+    ? 'Don\'t have an account? <a onclick="toggleAuthMode()">Sign up</a>'
+    : 'Already have an account? <a onclick="toggleAuthMode()">Sign in</a>';
+  document.getElementById('auth-error').style.display = 'none';
 }
 
 async function handleAuth() {
   const email = document.getElementById('auth-email').value.trim();
   const password = document.getElementById('auth-password').value;
-  const btn = document.getElementById('auth-submit-btn');
-  if (!email || !password) { showAuthMsg('error', 'Please enter your email and password.'); return; }
-  const captchaToken = getTurnstileToken();
-  if (!captchaToken) { showAuthMsg('error', 'Please complete the verification check.'); return; }
-  btn.disabled = true;
-  btn.innerHTML = '<span class="auth-spinner"></span>' + (authMode === 'signin' ? 'Signing in...' : 'Creating account...');
-  const result = authMode === 'signin'
-    ? await sb.auth.signInWithPassword({ email, password, options: { captchaToken } })
-    : await sb.auth.signUp({ email, password, options: { captchaToken } });
-  btn.disabled = false; btn.textContent = authMode === 'signin' ? 'Sign in' : 'Create account';
-  // CAPTCHA token is single-use — always reset for next attempt
-  resetTurnstile();
-  if (result.error) { showAuthMsg('error', result.error.message); }
-  else if (authMode === 'signup') {
-    // Supabase returns a user object with empty identities array when email already exists
-    // (this is intentional anti-enumeration behavior, no actual signup occurs).
-    const identities = result.data?.user?.identities;
-    if (identities && identities.length === 0) {
-      showAuthMsg('error', 'An account with this email already exists. Try signing in instead.');
+  const errEl = document.getElementById('auth-error');
+  errEl.style.display = 'none';
+
+  if (!email || !password) { errEl.textContent = 'Please enter email and password.'; errEl.style.display = 'block'; return; }
+  if (password.length < 6) { errEl.textContent = 'Password must be at least 6 characters.'; errEl.style.display = 'block'; return; }
+
+  var captchaToken = getTurnstileToken();
+  if (!captchaToken) { errEl.textContent = 'Please complete the verification check.'; errEl.style.display = 'block'; errEl.style.color = '#f87171'; return; }
+
+  const btn = document.getElementById('auth-btn');
+  btn.disabled = true; btn.textContent = 'Loading...';
+
+  try {
+    var result;
+    if (authMode === 'signup') {
+      result = await sb.auth.signUp({ email: email, password: password, options: { captchaToken: captchaToken } });
+      if (result.error) throw result.error;
+      if (result.data?.user && !result.data.session) {
+        errEl.textContent = 'Check your email for a confirmation link.';
+        errEl.style.display = 'block';
+        errEl.style.color = 'var(--text)';
+        btn.disabled = false; btn.textContent = 'Sign Up';
+        return;
+      }
     } else {
-      showAuthMsg('success', 'Check your email to confirm your account!');
+      result = await sb.auth.signInWithPassword({ email: email, password: password, options: { captchaToken: captchaToken } });
+      if (result.error) throw result.error;
+    }
+    currentUser = result.data.user;
+    await onLoggedIn();
+  } catch (err) {
+    errEl.textContent = err.message || 'Authentication failed.';
+    errEl.style.display = 'block';
+    errEl.style.color = '#f87171';
+    resetTurnstile();
+  } finally {
+    btn.disabled = false;
+    btn.textContent = authMode === 'signin' ? 'Sign In' : 'Sign Up';
+  }
+}
+
+async function onLoggedIn() {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('nav-right').innerHTML = '<span class="nav-user">' + escapeHtml(currentUser.email) + '</span> <button class="nav-btn nav-btn-signout" onclick="signOut()">Sign Out</button>';
+
+  // Create course_users row if needed
+  await sb.from('course_users').upsert({ user_id: currentUser.id, display_name: currentUser.email.split('@')[0] }, { onConflict: 'user_id' });
+
+  // Check URL params
+  const params = new URLSearchParams(window.location.search);
+  const redirect = params.get('redirect');
+  const courseId = params.get('course');
+
+  // If redirected from a course page, send them back
+  if (redirect) {
+    window.location.href = redirect;
+    return;
+  }
+
+  if (courseId) {
+    await openCourseViewer(courseId);
+  } else {
+    await loadDashboard();
+  }
+}
+
+async function signOut() {
+  await sb.auth.signOut();
+  currentUser = null;
+  showAuth();
+}
+
+async function loadDashboard() {
+  document.getElementById('dash-screen').style.display = 'block';
+  document.getElementById('viewer-screen').style.display = 'none';
+
+  const { data } = await sb
+    .from('course_enrollments')
+    .select('*, courses(*)')
+    .eq('user_id', currentUser.id)
+    .order('enrolled_at', { ascending: false });
+
+  enrollments = data || [];
+
+  // Load progress for each enrollment
+  for (var i = 0; i < enrollments.length; i++) {
+    var e = enrollments[i];
+    if (!e.courses) continue;
+    // Get total lessons
+    var { count: totalLessons } = await sb.from('course_lessons').select('id', { count: 'exact', head: true }).eq('course_id', e.courses.id);
+    // Get completed lessons
+    var { count: completedLessons } = await sb.from('course_progress').select('id', { count: 'exact', head: true }).eq('enrollment_id', e.id);
+    e._totalLessons = totalLessons || 0;
+    e._completedLessons = completedLessons || 0;
+  }
+
+  renderDashboard();
+}
+
+function renderDashboard() {
+  const grid = document.getElementById('dash-courses');
+  const empty = document.getElementById('dash-empty');
+
+  if (enrollments.length === 0) {
+    grid.innerHTML = '';
+    grid.style.display = 'none';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  grid.style.display = 'grid';
+
+  grid.innerHTML = enrollments.map(function(e) {
+    var c = e.courses;
+    if (!c) return '';
+    var coverStyle = c.cover_image_path
+      ? 'background-image:url(' + sb.storage.from("course-covers").getPublicUrl(c.cover_image_path).data.publicUrl + ');background-size:cover;background-position:center;'
+      : '';
+    var total = e._totalLessons || 0;
+    var completed = e._completedLessons || 0;
+    var pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+    var progressLabel = total > 0 ? completed + '/' + total + ' lessons' : '';
+    return '<a class="course-card" href="#" onclick="openCourseViewer(\'' + c.id + '\');return false;">'
+      + '<div class="course-card-cover" style="' + coverStyle + '">' + (c.cover_image_path ? '' : '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M8 7h8M8 11h6"/></svg>') + '</div>'
+      + '<div class="course-card-body">'
+      + '<div class="course-card-title">' + escapeHtml(c.title) + '</div>'
+      + (progressLabel ? '<div style="font-size:11px;color:var(--muted);margin-bottom:6px;">' + progressLabel + (pct === 100 ? ' — Complete' : '') + '</div>' : '')
+      + '<div class="course-card-progress"><div class="course-card-progress-bar" style="width:' + pct + '%"></div></div>'
+      + '</div></a>';
+  }).join('');
+}
+
+async function openCourseViewer(courseId) {
+  document.getElementById('dash-screen').style.display = 'none';
+  document.getElementById('viewer-screen').style.display = 'block';
+
+  // Load course
+  const { data: course } = await sb.from('courses').select('*').eq('id', courseId).single();
+  if (!course) { backToDash(); return; }
+  viewerCourse = course;
+  document.getElementById('viewer-course-title').textContent = course.title;
+
+  // Load modules & lessons
+  const { data: modules } = await sb.from('course_modules').select('*').eq('course_id', courseId).order('sort_order');
+  const { data: lessons } = await sb.from('course_lessons').select('*').eq('course_id', courseId).order('sort_order');
+  viewerModules = modules || [];
+  viewerLessons = lessons || [];
+
+  // Load enrollment & progress
+  const { data: enrollment } = await sb.from('course_enrollments').select('id').eq('course_id', courseId).eq('user_id', currentUser.id).single();
+  viewerEnrollmentId = enrollment?.id || null;
+
+  if (viewerEnrollmentId) {
+    const { data: progress } = await sb.from('course_progress').select('lesson_id').eq('enrollment_id', viewerEnrollmentId);
+    viewerProgress = (progress || []).map(function(p) { return p.lesson_id; });
+  } else {
+    viewerProgress = [];
+  }
+
+  currentLessonId = null;
+  renderViewer();
+  showCourseOverview();
+}
+
+function showCourseOverview() {
+  currentLessonId = null;
+  renderViewer();
+  var content = document.getElementById('viewer-content');
+  var nav = document.getElementById('viewer-nav');
+
+  var html = '';
+  // Cover image
+  if (viewerCourse.cover_image_path) {
+    var coverUrl = sb.storage.from('course-covers').getPublicUrl(viewerCourse.cover_image_path).data.publicUrl;
+    html += '<img src="' + coverUrl + '" alt="" style="width:100%;max-height:300px;object-fit:cover;border-radius:12px;margin-bottom:24px;">';
+  }
+
+  html += '<div class="viewer-lesson-title">' + escapeHtml(viewerCourse.title) + '</div>';
+  if (viewerCourse.description) {
+    html += '<div class="viewer-text" style="margin-bottom:28px;">' + escapeHtml(viewerCourse.description) + '</div>';
+  }
+
+  // Curriculum list
+  html += '<div style="margin-top:8px;">';
+  html += '<h3 style="font-family:Syne,sans-serif;font-size:16px;font-weight:800;letter-spacing:-0.3px;margin-bottom:16px;">Curriculum</h3>';
+  viewerModules.forEach(function(mod, mi) {
+    var modLessons = viewerLessons.filter(function(l) { return l.module_id === mod.id; });
+    html += '<div style="margin-bottom:16px;">';
+    html += '<div style="font-size:12px;color:var(--text);font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Module ' + (mi + 1) + ': ' + escapeHtml(mod.title) + '</div>';
+    modLessons.forEach(function(l, li) {
+      var isCompleted = viewerProgress.indexOf(l.id) !== -1;
+      var icon = l.lesson_type === 'video' ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>' : '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>';
+      var check = isCompleted ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' : '<span style="width:14px;height:14px;display:inline-block;border:1.5px solid var(--muted);border-radius:50%;"></span>';
+      html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:13px;color:var(--text);">'
+        + check + ' ' + icon + ' ' + escapeHtml(l.title || 'Untitled')
+        + '</div>';
+    });
+    html += '</div>';
+  });
+  html += '</div>';
+
+  // Progress summary
+  var total = viewerLessons.length;
+  var completed = viewerProgress.length;
+  if (total > 0) {
+    html += '<div style="margin-top:20px;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--text);">'
+      + completed + ' of ' + total + ' lessons completed (' + Math.round((completed / total) * 100) + '%)'
+      + '</div>';
+  }
+
+  content.innerHTML = html;
+
+  // Nav: no prev, next is first lesson
+  var all = getAllLessonsOrdered();
+  if (all.length > 0) {
+    nav.innerHTML = '<div class="viewer-nav-btn viewer-nav-prev disabled"><span class="viewer-nav-label">← Previous</span><span class="viewer-nav-title"></span></div>'
+      + '<a href="#" onclick="selectLesson(\'' + all[0].id + '\');return false;" class="viewer-nav-btn viewer-nav-next">'
+      + '<span class="viewer-nav-label">Next →</span>'
+      + '<span class="viewer-nav-title">' + escapeHtml(all[0].title || 'Untitled') + '</span></a>';
+  } else {
+    nav.innerHTML = '';
+  }
+}
+
+function showCourseCompletion() {
+  currentLessonId = null;
+  renderViewer();
+  var content = document.getElementById('viewer-content');
+  var nav = document.getElementById('viewer-nav');
+
+  var total = viewerLessons.length;
+  var completed = viewerProgress.length;
+  var pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+  var html = '<div style="text-align:center;padding:20px 0;">';
+  html += '<div style="width:64px;height:64px;margin:0 auto 20px;background:var(--surface);border:1px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>';
+  html += '<div class="viewer-lesson-title" style="text-align:center;">Course Complete!</div>';
+  html += '<div style="font-size:15px;color:var(--text);margin-bottom:24px;">' + completed + ' of ' + total + ' lessons completed (' + pct + '%)</div>';
+
+  if (viewerCourse.completion_message) {
+    html += '<div style="text-align:left;padding:20px 24px;background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:24px;">';
+    html += '<div class="viewer-text">' + escapeHtml(viewerCourse.completion_message) + '</div>';
+    html += '</div>';
+  }
+
+  html += '<a href="#" onclick="backToDash();return false;" style="display:inline-block;padding:12px 28px;background:var(--btn-bg);color:var(--btn-text);border:none;border-radius:10px;font-size:14px;font-weight:500;text-decoration:none;font-family:DM Sans,sans-serif;">Back to My Courses</a>';
+  html += '</div>';
+
+  content.innerHTML = html;
+
+  // Nav: prev is last lesson, no next
+  var all = getAllLessonsOrdered();
+  if (all.length > 0) {
+    var last = all[all.length - 1];
+    nav.innerHTML = '<a href="#" onclick="selectLesson(\'' + last.id + '\');return false;" class="viewer-nav-btn viewer-nav-prev">'
+      + '<span class="viewer-nav-label">← Previous</span>'
+      + '<span class="viewer-nav-title">' + escapeHtml(last.title || 'Untitled') + '</span></a>'
+      + '<div class="viewer-nav-btn viewer-nav-next disabled"><span class="viewer-nav-label">Next →</span><span class="viewer-nav-title"></span></div>';
+  } else {
+    nav.innerHTML = '';
+  }
+}
+
+function getAllLessonsOrdered() {
+  var ordered = [];
+  viewerModules.forEach(function(mod) {
+    var modLessons = viewerLessons.filter(function(l) { return l.module_id === mod.id; });
+    modLessons.forEach(function(l) { ordered.push(l); });
+  });
+  return ordered;
+}
+
+function getCurrentLessonIndex() {
+  var all = getAllLessonsOrdered();
+  for (var i = 0; i < all.length; i++) {
+    if (all[i].id === currentLessonId) return i;
+  }
+  return -1;
+}
+
+function getModuleForLesson(lessonId) {
+  var lesson = viewerLessons.find(function(l) { return l.id === lessonId; });
+  if (!lesson) return null;
+  return viewerModules.find(function(m) { return m.id === lesson.module_id; });
+}
+
+function updateProgressBar() {
+  var total = viewerLessons.length;
+  if (total === 0) return;
+  var completed = viewerProgress.length;
+  var pct = Math.round((completed / total) * 100);
+  var fill = document.getElementById('viewer-progress-fill');
+  if (fill) fill.style.width = pct + '%';
+}
+
+function toggleToc() {
+  var toc = document.getElementById('viewer-toc');
+  toc.classList.toggle('open');
+}
+
+function renderViewer() {
+  var sidebar = document.getElementById('viewer-sidebar');
+  sidebar.innerHTML = viewerModules.map(function(mod, mi) {
+    var modLessons = viewerLessons.filter(function(l) { return l.module_id === mod.id; });
+    return '<div class="viewer-module-title">Module ' + (mi + 1) + ': ' + escapeHtml(mod.title) + '</div>'
+      + modLessons.map(function(l) {
+        var isCompleted = viewerProgress.indexOf(l.id) !== -1;
+        var isActive = l.id === currentLessonId;
+        var icon = l.lesson_type === 'video' ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>' : '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>';
+        var check = isCompleted ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' : '';
+        return '<button class="viewer-lesson-btn' + (isActive ? ' active' : '') + (isCompleted ? ' completed' : '') + '" onclick="selectLesson(\'' + l.id + '\')">'
+          + '<span class="viewer-check">' + check + '</span>'
+          + '<span>' + icon + ' ' + escapeHtml(l.title || 'Untitled') + '</span>'
+          + '</button>';
+      }).join('');
+  }).join('');
+
+  updateProgressBar();
+}
+
+function selectLesson(lessonId) {
+  currentLessonId = lessonId;
+  renderViewer();
+  // Close TOC on mobile after selecting
+  document.getElementById('viewer-toc').classList.remove('open');
+
+  var lesson = viewerLessons.find(function(l) { return l.id === lessonId; });
+  if (!lesson) return;
+
+  var content = document.getElementById('viewer-content');
+  var isCompleted = viewerProgress.indexOf(lessonId) !== -1;
+  var mod = getModuleForLesson(lessonId);
+  var modIndex = viewerModules.indexOf(mod);
+
+  // Lesson header
+  var html = '';
+  if (mod) {
+    html += '<div class="viewer-lesson-header">Module ' + (modIndex + 1) + ': ' + escapeHtml(mod.title) + '</div>';
+  }
+  html += '<div class="viewer-lesson-title">' + escapeHtml(lesson.title || 'Untitled Lesson') + '</div>';
+
+  // Content
+  if (lesson.lesson_type === 'video' && lesson.video_url) {
+    var embedUrl = getEmbedUrl(lesson.video_url);
+    if (embedUrl) {
+      html += '<iframe class="viewer-video" src="' + embedUrl + '" allowfullscreen></iframe>';
+    } else {
+      html += '<p style="color:var(--muted);font-size:14px;margin-bottom:16px;">Video: <a href="' + escapeHtml(lesson.video_url) + '" target="_blank" style="color:var(--text);text-decoration:underline;">' + escapeHtml(lesson.video_url) + '</a></p>';
     }
   }
-  else {
-    closeAuthModal();
-    // Honor ?redirect=... if provided (used by gated pages like follower-audit).
-    // Only allow same-origin relative paths to prevent open-redirect abuse.
-    const params = new URLSearchParams(window.location.search);
-    const redirect = params.get('redirect');
-    const safe = redirect && redirect.startsWith('/') && !redirect.startsWith('//');
-    window.location.href = safe ? redirect : 'dashboard.html';
+  if (lesson.text_content) {
+    html += '<div class="viewer-text">' + escapeHtml(lesson.text_content) + '</div>';
+  }
+  if (!lesson.video_url && !lesson.text_content) {
+    html += '<p style="color:var(--muted);font-size:14px;">This lesson has no content yet.</p>';
+  }
+
+  // Complete button
+  if (isCompleted) {
+    html += '<div class="viewer-completed-msg"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Completed</div>';
+  } else {
+    html += '<button class="viewer-complete-btn" onclick="markComplete(\'' + lessonId + '\')">Mark as Complete</button>';
+  }
+
+  content.innerHTML = html;
+
+  // Render prev/next navigation
+  renderLessonNav();
+
+  // Scroll to top
+  window.scrollTo(0, 0);
+}
+
+function renderLessonNav() {
+  var nav = document.getElementById('viewer-nav');
+  var all = getAllLessonsOrdered();
+  var idx = getCurrentLessonIndex();
+
+  var prevHtml = '';
+  var nextHtml = '';
+
+  if (idx > 0) {
+    var prev = all[idx - 1];
+    prevHtml = '<a href="#" onclick="selectLesson(\'' + prev.id + '\');return false;" class="viewer-nav-btn viewer-nav-prev">'
+      + '<span class="viewer-nav-label">← Previous</span>'
+      + '<span class="viewer-nav-title">' + escapeHtml(prev.title || 'Untitled') + '</span>'
+      + '</a>';
+  } else {
+    prevHtml = '<a href="#" onclick="showCourseOverview();return false;" class="viewer-nav-btn viewer-nav-prev">'
+      + '<span class="viewer-nav-label">← Previous</span>'
+      + '<span class="viewer-nav-title">Course Overview</span>'
+      + '</a>';
+  }
+
+  if (idx < all.length - 1) {
+    var next = all[idx + 1];
+    nextHtml = '<a href="#" onclick="selectLesson(\'' + next.id + '\');return false;" class="viewer-nav-btn viewer-nav-next">'
+      + '<span class="viewer-nav-label">Next →</span>'
+      + '<span class="viewer-nav-title">' + escapeHtml(next.title || 'Untitled') + '</span>'
+      + '</a>';
+  } else {
+    nextHtml = '<a href="#" onclick="showCourseCompletion();return false;" class="viewer-nav-btn viewer-nav-next">'
+      + '<span class="viewer-nav-label">Next →</span>'
+      + '<span class="viewer-nav-title">Course Complete</span>'
+      + '</a>';
+  }
+
+  nav.innerHTML = prevHtml + nextHtml;
+}
+
+async function markComplete(lessonId) {
+  if (!viewerEnrollmentId) return;
+  try {
+    await sb.from('course_progress').insert({ enrollment_id: viewerEnrollmentId, lesson_id: lessonId });
+    if (viewerProgress.indexOf(lessonId) === -1) viewerProgress.push(lessonId);
+    selectLesson(lessonId);
+    renderViewer();
+  } catch (err) {
+    console.warn('Mark complete failed:', err);
   }
 }
 
-async function handleForgotPassword() {
-  const email = document.getElementById('auth-email').value.trim();
-  if (!email) { showAuthMsg('error', 'Enter your email address above first.'); return; }
-  const captchaToken = getTurnstileToken();
-  if (!captchaToken) { showAuthMsg('error', 'Please complete the verification check.'); return; }
-  const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: 'https://ryxa.io/reset-password.html', captchaToken });
-  resetTurnstile();
-  if (error) showAuthMsg('error', error.message);
-  else showAuthMsg('success', 'Password reset email sent! Check your inbox.');
+function backToDash() {
+  // Clear URL params
+  window.history.replaceState({}, '', '/learn/');
+  document.getElementById('viewer-screen').style.display = 'none';
+  loadDashboard();
 }
 
-// Auth modal stays open until user explicitly closes via X button (prevents accidental dismiss while typing credentials)
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') closeAuthModal();
-  if (e.key === 'Enter' && document.getElementById('auth-modal').classList.contains('open')) handleAuth();
+function getEmbedUrl(url) {
+  if (!url) return null;
+  // YouTube
+  var ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/);
+  if (ytMatch) return 'https://www.youtube.com/embed/' + ytMatch[1];
+  // Vimeo
+  var vmMatch = url.match(/vimeo\.com\/(\d+)/);
+  if (vmMatch) return 'https://player.vimeo.com/video/' + vmMatch[1];
+  // Loom
+  var loomMatch = url.match(/loom\.com\/share\/([a-zA-Z0-9]+)/);
+  if (loomMatch) return 'https://www.loom.com/embed/' + loomMatch[1];
+  return null;
+}
+
+function escapeHtml(s) {
+  if (s == null) return '';
+  return String(s).replace(/[&<>"']/g, function(c) {
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+
+// Handle Enter key on auth inputs
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && (e.target.id === 'auth-email' || e.target.id === 'auth-password')) {
+    handleAuth();
+  }
 });
 
-function toggleMobileMenu() {
-  document.getElementById('mobile-menu').classList.toggle('open');
-  document.getElementById('hamburger-btn').classList.toggle('open');
-}
-function closeMobileMenu() {
-  document.getElementById('mobile-menu').classList.remove('open');
-  document.getElementById('hamburger-btn').classList.remove('open');
-}
-
-initAuth();
+init();
 </script>
-<script src="/cookie-banner.js"></script>
 </body>
 </html>
