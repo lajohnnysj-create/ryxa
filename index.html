@@ -219,7 +219,8 @@
   .beam-up .hero-beam-line::before { background:linear-gradient(270deg,rgba(232,121,249,0.4),rgba(232,121,249,0.05)); }
   .beam-mid .hero-beam-line::before { background:linear-gradient(270deg,rgba(167,139,250,0.4),rgba(167,139,250,0.05)); }
   .beam-down .hero-beam-line::before { background:linear-gradient(270deg,rgba(124,58,237,0.4),rgba(124,58,237,0.05)); }
-  .hero-beam-badge { padding:7px 14px; background:rgba(15,15,26,0.85); border:1px solid rgba(232,121,249,0.2); border-radius:20px; font-size:10px; font-weight:600; color:#e9c4f7; backdrop-filter:blur(8px); box-shadow:0 0 15px rgba(232,121,249,0.06); white-space:nowrap; }
+  .hero-beam-badge { padding:7px 14px; background:rgba(15,15,26,0.85); border:1px solid rgba(232,121,249,0.2); border-radius:20px; font-size:10px; font-weight:600; color:#e9c4f7; backdrop-filter:blur(8px); box-shadow:0 0 15px rgba(232,121,249,0.06); white-space:nowrap; display:inline-flex; align-items:center; gap:8px; }
+  .hero-beam-badge svg { width:16px; height:16px; flex-shrink:0; filter:drop-shadow(0 0 4px currentColor); }
   .beam-up { transform:translateY(-40px); }
   .beam-mid { transform:translateY(0); }
   .beam-down { transform:translateY(40px); }
@@ -720,15 +721,15 @@
         <div class="hero-beams">
           <div class="hero-beam beam-up">
             <div class="hero-beam-line"></div>
-            <div class="hero-beam-badge">Sell courses and<br>private coaching</div>
+            <div class="hero-beam-badge"><svg viewBox="0 0 24 24" fill="none" stroke="#e879f9" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M2 10h2M20 10h2M2 14h2M20 14h2"/></svg>Sell courses and<br>private coaching</div>
           </div>
           <div class="hero-beam beam-mid">
             <div class="hero-beam-line"></div>
-            <div class="hero-beam-badge">Manage Brand Deals</div>
+            <div class="hero-beam-badge"><svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 17a4 4 0 0 1-4-4V5a2 2 0 0 1 4 0v8"/><path d="M13 17a4 4 0 0 0 4-4V5a2 2 0 0 0-4 0v8"/><path d="M11 17h2"/><path d="M7 21h10"/><path d="M12 17v4"/></svg>Manage Brand Deals</div>
           </div>
           <div class="hero-beam beam-down">
             <div class="hero-beam-line"></div>
-            <div class="hero-beam-badge">Free Link-in-Bio</div>
+            <div class="hero-beam-badge"><svg viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Free Link-in-Bio</div>
           </div>
         </div>
         <div class="hero-phone-ghost-6"></div>
