@@ -4053,14 +4053,15 @@
             <input type="hidden" id="course-id">
             <div style="margin-bottom:16px;">
               <label for="course-title-input" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Course Title</label>
-              <input type="text" id="course-title-input" placeholder="e.g., Master Instagram Reels in 30 Days" maxlength="120" aria-label="Course title" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:12px 16px;font-size:15px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+              <input type="text" id="course-title-input" placeholder="e.g., Master Instagram Reels in 30 Days" maxlength="80" aria-label="Course title" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:12px 16px;font-size:15px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
             </div>
             <div style="margin-bottom:16px;">
-              <label for="course-slug-input" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">URL Slug</label>
+              <label for="course-slug-input" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Course URL</label>
               <div style="display:flex;align-items:center;gap:0;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;overflow:hidden;">
                 <span style="padding:12px 0 12px 16px;font-size:13px;color:var(--muted);white-space:nowrap;">ryxa.io/course/</span>
-                <input type="text" id="course-slug-input" placeholder="my-course" maxlength="80" aria-label="Course URL slug" style="flex:1;background:transparent;border:none;padding:12px 16px 12px 0;font-size:15px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+                <input type="text" id="course-slug-input" placeholder="my-course" maxlength="80" aria-label="Course URL slug" readonly style="flex:1;background:transparent;border:none;padding:12px 16px 12px 0;font-size:15px;color:var(--muted);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;cursor:default;">
               </div>
+              <div id="course-slug-notice" style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.4;">This URL is generated from your title and locked permanently once saved.</div>
             </div>
             <div style="margin-bottom:16px;">
               <label for="course-desc-input" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Description</label>
@@ -12336,6 +12337,7 @@ async function openCourseEditor(courseId) {
     document.getElementById('course-id').value = course.id;
     document.getElementById('course-title-input').value = course.title || '';
     document.getElementById('course-slug-input').value = course.slug || '';
+    document.getElementById('course-slug-notice').textContent = 'This URL is permanently locked and cannot be changed.';
     document.getElementById('course-desc-input').value = course.description || '';
     document.getElementById('course-price-input').value = course.price_cents ? (course.price_cents / 100).toString() : '';
     document.getElementById('course-danger-zone').style.display = 'block';
@@ -12375,6 +12377,7 @@ async function openCourseEditor(courseId) {
     }
   } else {
     document.getElementById('courses-editor-title').textContent = 'New Course';
+    document.getElementById('course-slug-notice').textContent = 'This URL is generated from your title and locked permanently once saved.';
   }
 }
 
@@ -12396,10 +12399,17 @@ function showCourseMsg(type, msg) {
 }
 
 function generateSlug(text) {
-  return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 80);
+  var base = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60);
+  // Append creator username
+  var username = '';
+  var usernameEl = document.getElementById('bio-username');
+  if (usernameEl && usernameEl.value) { username = usernameEl.value.trim().toLowerCase(); }
+  if (!username && currentUser) { username = currentUser.email.split('@')[0].toLowerCase().replace(/[^a-z0-9]+/g, ''); }
+  if (username && base) return (base + '-' + username).slice(0, 80);
+  return base;
 }
 
-// Auto-generate slug from title
+// Auto-generate slug from title (only for new courses — slug is locked once saved)
 document.addEventListener('input', function(e) {
   if (e.target.id === 'course-title-input' && !currentCourseId) {
     document.getElementById('course-slug-input').value = generateSlug(e.target.value);
@@ -12447,8 +12457,7 @@ async function saveCourse() {
   const priceCents = Math.round(parseFloat(priceStr || '0') * 100);
 
   if (!title) { showCourseMsg('error', 'Please enter a course title.'); return; }
-  if (!slug) { showCourseMsg('error', 'Please enter a URL slug.'); return; }
-  if (!/^[a-z0-9-]+$/.test(slug)) { showCourseMsg('error', 'Slug can only contain lowercase letters, numbers, and hyphens.'); return; }
+  if (!slug) { showCourseMsg('error', 'URL slug is empty. Please enter a title.'); return; }
 
   const btn = document.getElementById('course-save-btn');
   btn.disabled = true; btn.textContent = 'Saving...';
@@ -12467,7 +12476,6 @@ async function saveCourse() {
 
     const payload = {
       title,
-      slug,
       description,
       price_cents: priceCents,
       updated_at: new Date().toISOString()
@@ -12479,16 +12487,23 @@ async function saveCourse() {
       const { error } = await sb.from('courses').update(payload).eq('id', courseId);
       if (error) throw new Error(error.message);
     } else {
-      // Insert
+      // Insert — slug is set once and locked permanently
       payload.user_id = currentUser.id;
       payload.status = 'draft';
+      payload.slug = slug;
       const { data, error } = await sb.from('courses').insert(payload).select().single();
-      if (error) throw new Error(error.message);
+      if (error) {
+        if (error.message && error.message.includes('duplicate')) {
+          throw new Error('This URL slug is already taken. Try changing your title slightly.');
+        }
+        throw new Error(error.message);
+      }
       courseId = data.id;
       currentCourseId = courseId;
       document.getElementById('course-id').value = courseId;
       document.getElementById('courses-editor-title').textContent = 'Edit Course';
       document.getElementById('course-danger-zone').style.display = 'block';
+      document.getElementById('course-slug-notice').textContent = 'This URL is permanently locked and cannot be changed.';
       // Show publish button
       const pubBtn = document.getElementById('course-publish-btn');
       pubBtn.style.display = 'inline-block';
