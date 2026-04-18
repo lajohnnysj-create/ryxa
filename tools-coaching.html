@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>1:1 Private Coaching | Ryxa</title>
-<meta name="description" content="Sell private coaching sessions, consultations, and 1-on-1 calls. Set your price, connect your calendar, and let clients book directly. 0% platform fees.">
+<meta name="description" content="Sell private coaching sessions, consultations, and 1-on-1 calls. Set your price, connect your calendar, and let clients book directly. 0% platform fees — all from one workspace.">
 <meta property="og:title" content="1:1 Private Coaching | Ryxa">
 <meta property="og:description" content="Sell private coaching sessions and consultations. Set your price, connect your calendar. Ryxa takes 0%.">
 <meta property="og:type" content="website">
@@ -36,11 +36,6 @@
     --muted2: #c9c7dc;
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scrollbar-width: thin; scrollbar-color: rgba(168,85,247,0.4) #0a0a14; }
-  ::-webkit-scrollbar { width: 8px; }
-  ::-webkit-scrollbar-track { background: #0a0a14; }
-  ::-webkit-scrollbar-thumb { background: rgba(168,85,247,0.4); border-radius: 4px; }
-  ::-webkit-scrollbar-thumb:hover { background: rgba(168,85,247,0.6); }
   html { scroll-behavior: smooth; }
   body { font-family: "DM Sans", sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
 
@@ -66,7 +61,6 @@
   .nav-tools-item-icon svg { width: 17px; height: 17px; }
   .nav-tools-item-content { flex: 1; min-width: 0; }
   .nav-tools-item-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; color: var(--text); margin-bottom: 2px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-  .nav-tools-tier.popular { background: rgba(250,204,21,0.15); border: 1px solid rgba(250,204,21,0.3); color: #fbbf24; }
   .nav-tools-item-desc { font-size: 11px; color: var(--muted); line-height: 1.4; }
   .nav-tools-tier { font-size: 8px; padding: 2px 6px; border-radius: 4px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; vertical-align: middle; }
   .nav-tools-tier.pro { background: rgba(124,58,237,0.15); border: 1px solid rgba(124,58,237,0.3); color: #c4b5fd; }
@@ -190,6 +184,67 @@
     .pricing-callout { padding: 30px 20px; }
     .pricing-tier-price { font-size: 36px; }
   }
+
+  /* ===========================================
+     APP MOCKUP STYLES (Brand Deal CRM screenshot)
+     =========================================== */
+  .mock-app { display: flex; min-height: 480px; }
+  .mock-sidebar { width: 200px; background: rgba(15,15,26,0.6); border-right: 1px solid var(--border); padding: 16px 12px; flex-shrink: 0; }
+  .mock-sidebar-logo { display: flex; align-items: center; gap: 8px; padding: 6px 8px; margin-bottom: 16px; }
+  .mock-sidebar-logo-img { width: 24px; height: 24px; background: linear-gradient(135deg, var(--accent2), var(--accent3)); border-radius: 6px; }
+  .mock-sidebar-logo-text { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 14px; }
+  .mock-nav-item { display: flex; align-items: center; gap: 8px; padding: 7px 9px; border-radius: 6px; font-size: 11px; color: var(--muted); margin-bottom: 2px; }
+  .mock-nav-item.active { background: rgba(124,58,237,0.15); color: #c4b5fd; border: 1px solid rgba(124,58,237,0.25); }
+  .mock-nav-item svg { width: 13px; height: 13px; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; }
+  .mock-nav-pill { font-size: 7px; padding: 1px 5px; border-radius: 3px; font-weight: 700; letter-spacing: 0.05em; margin-left: auto; }
+  .mock-nav-pill.max { background: linear-gradient(135deg,#a78bfa,#e879f9); color: #fff; }
+  .mock-nav-pill.pro { background: rgba(124,58,237,0.2); color: #c4b5fd; border: 1px solid rgba(124,58,237,0.3); }
+
+  .mock-main { flex: 1; padding: 20px 24px; min-width: 0; }
+  .mock-main-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+  .mock-main-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800; }
+  .mock-main-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .mock-cta-btn { padding: 7px 14px; background: var(--accent); color: #fff; border-radius: 7px; font-size: 11px; font-weight: 500; border: none; }
+
+  /* Stats row */
+  .mock-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; }
+  .mock-stat { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
+  .mock-stat-label { font-size: 8px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 4px; }
+  .mock-stat-value { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 800; }
+  .mock-stat-value.amber { color: #fbbf24; }
+  .mock-stat-sub { font-size: 8px; color: var(--muted); margin-top: 2px; }
+
+  /* Charts row */
+  .mock-charts { display: grid; grid-template-columns: 1.4fr 1fr; gap: 8px; margin-bottom: 14px; }
+  .mock-chart-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
+  .mock-chart-title { font-size: 9px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 12px; font-weight: 600; }
+  .mock-bars { display: flex; align-items: flex-end; gap: 6px; height: 80px; margin-bottom: 6px; }
+  .mock-bar-wrap { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; height: 100%; }
+  .mock-bar { width: 100%; background: linear-gradient(180deg, #a78bfa 0%, #7c3aed 100%); border-radius: 3px 3px 0 0; }
+  .mock-bar-labels { display: flex; gap: 6px; }
+  .mock-bar-label { flex: 1; font-size: 8px; text-align: center; color: var(--muted); }
+  .mock-brand-row { margin-bottom: 8px; }
+  .mock-brand-row:last-child { margin-bottom: 0; }
+  .mock-brand-info { display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 3px; }
+  .mock-brand-name { color: var(--text); }
+  .mock-brand-amount { color: var(--text); font-weight: 600; }
+  .mock-brand-bar { height: 3px; background: var(--surface); border-radius: 2px; overflow: hidden; }
+  .mock-brand-bar-fill { height: 100%; border-radius: 2px; }
+
+  /* Deals table */
+  .mock-table { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .mock-table-row { display: grid; grid-template-columns: 2.2fr 1.5fr 1fr 90px 80px; gap: 8px; padding: 10px 14px; align-items: center; font-size: 10px; border-bottom: 1px solid var(--border); }
+  .mock-table-row:last-child { border-bottom: none; }
+  .mock-table-row.header { background: rgba(255,255,255,0.02); font-size: 9px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 600; padding: 8px 14px; }
+  .mock-deal-title { color: var(--text); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mock-deal-brand { color: var(--muted); }
+  .mock-deal-amount { font-family: 'Syne', sans-serif; font-weight: 700; color: var(--text); }
+  .mock-status-badge { font-size: 8px; padding: 2px 7px; border-radius: 999px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; text-align: center; display: inline-block; }
+  .mock-status-active { background: rgba(124,58,237,0.15); color: #c4b5fd; border: 1px solid rgba(124,58,237,0.3); }
+  .mock-status-completed { background: rgba(74,222,128,0.12); color: #4ade80; border: 1px solid rgba(74,222,128,0.3); }
+  .mock-status-pending { background: rgba(251,191,36,0.1); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
+  .mock-pay-paid { color: #4ade80; }
+  .mock-pay-waiting { color: #fbbf24; }
 </style>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
@@ -207,12 +262,12 @@
       </button>
       <div class="nav-tools-menu">
         <div class="nav-tools-grid">
-          <a href="/tools-link-in-bio.html" class="nav-tools-item"><div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div><div class="nav-tools-item-content"><div class="nav-tools-item-title">Link in Bio <span class="nav-tools-tier popular">Popular</span></div><div class="nav-tools-item-desc">A clean, customizable page for all your links</div></div></a>
           <a href="/tools-brand-deal-crm.html" class="nav-tools-item"><div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 12h18"/></svg></div><div class="nav-tools-item-content"><div class="nav-tools-item-title">Brand Deal CRM <span class="nav-tools-tier max">Max</span></div><div class="nav-tools-item-desc">Track partnerships, contracts, deliverables, revenue</div></div></a>
+          <a href="/tools-script-builder.html" class="nav-tools-item"><div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg></div><div class="nav-tools-item-content"><div class="nav-tools-item-title">Script Builder <span class="nav-tools-tier pro">Pro</span></div><div class="nav-tools-item-desc">Plan reels, videos, podcasts in blocks</div></div></a>
+          <a href="/tools-link-in-bio.html" class="nav-tools-item"><div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div><div class="nav-tools-item-content"><div class="nav-tools-item-title">Link in Bio <span class="nav-tools-tier free">Free</span></div><div class="nav-tools-item-desc">A clean, customizable page for all your links</div></div></a>
           <a href="/tools-course-builder.html" class="nav-tools-item"><div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M8 7h8M8 11h6"/></svg></div><div class="nav-tools-item-content"><div class="nav-tools-item-title">Course Builder <span class="nav-tools-tier max">Max</span></div><div class="nav-tools-item-desc">Build and sell courses with Stripe payments</div></div></a>
           <a href="/tools-coaching.html" class="nav-tools-item"><div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div><div class="nav-tools-item-content"><div class="nav-tools-item-title">1:1 Coaching <span class="nav-tools-tier max">Max</span></div><div class="nav-tools-item-desc">Sell private sessions and consultations</div></div></a>
           <a href="/tools-media-kit.html" class="nav-tools-item"><div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="17" x2="8" y2="13"/><line x1="12" y1="17" x2="12" y2="11"/><line x1="16" y1="17" x2="16" y2="15"/></svg></div><div class="nav-tools-item-content"><div class="nav-tools-item-title">Media Kit <span class="nav-tools-tier pro">Pro</span></div><div class="nav-tools-item-desc">Pitch brands with a pro media kit and rate card</div></div></a>
-          <a href="/tools-script-builder.html" class="nav-tools-item"><div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg></div><div class="nav-tools-item-content"><div class="nav-tools-item-title">Script Builder <span class="nav-tools-tier pro">Pro</span></div><div class="nav-tools-item-desc">Plan reels, videos, podcasts in blocks</div></div></a>
           <a href="/tools-grid-planner.html" class="nav-tools-item"><div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div><div class="nav-tools-item-content"><div class="nav-tools-item-title">Grid Planner <span class="nav-tools-tier free">Free</span></div><div class="nav-tools-item-desc">Plan your social grid, drag to reorder</div></div></a>
           <a href="/tools-follower-audit.html" class="nav-tools-item"><div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></div><div class="nav-tools-item-content"><div class="nav-tools-item-title">Follow-Back Audit <span class="nav-tools-tier free">Free</span></div><div class="nav-tools-item-desc">See who unfollowed you on Instagram</div></div></a>
           <a href="/tools-image-studio.html" class="nav-tools-item"><div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg></div><div class="nav-tools-item-content"><div class="nav-tools-item-title">Image Studio <span class="nav-tools-tier free">Free</span></div><div class="nav-tools-item-desc">Crop, adjust, convert with creator-ready ratios</div></div></a>
@@ -254,17 +309,42 @@
 <div class="mobile-menu" id="mobile-menu">
   <button onclick="toggleMobileMenu()" aria-label="Close menu" style="position:absolute;top:20px;right:20px;background:none;border:none;color:var(--muted);font-size:24px;cursor:pointer;line-height:1;padding:8px;">&#x2715;</button>
   <div class="mobile-menu-links">
-    <a href="tools.html" onclick="closeMobileMenu ? closeMobileMenu() : toggleMobileMenu()">Tools</a>
-    <a href="pricing.html" onclick="closeMobileMenu ? closeMobileMenu() : toggleMobileMenu()">Pricing</a>
-    <a href="about.html" onclick="closeMobileMenu ? closeMobileMenu() : toggleMobileMenu()">About</a>
-    <a href="/learn/" onclick="closeMobileMenu ? closeMobileMenu() : toggleMobileMenu()">Learning Hub</a>
-    <a href="blog.html" onclick="closeMobileMenu ? closeMobileMenu() : toggleMobileMenu()">Blog</a>
+    <a href="tools.html">Tools</a>
+    <a href="pricing.html">Pricing</a>
+    <a href="about.html">About</a>
+    <a href="/learn/">Learning Hub</a>
+    <a href="blog.html">Blog</a>
   </div>
   <div class="mobile-menu-bottom">
-    <button class="mobile-cta" onclick="goSignUp ? goSignUp() : (window.location.href='index.html?action=signup')">Get started free</button>
-    <button class="mobile-signin" onclick="goSignIn ? goSignIn() : (window.location.href='index.html?action=signin')">Sign in</button>
+    <button class="mobile-cta" onclick="goSignUp()">Get started free</button>
+    <button class="mobile-signin" onclick="goSignIn()">Sign in</button>
   </div>
 </div>
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <div class="hero-tier-badge">Creator Max</div>
+    <h1>Sell private sessions<br><span class="gradient-text">on your terms</span></h1>
+    <p class="hero-tagline">Offer coaching, consulting, or 1-on-1 calls. Set your price, connect your calendar, and let clients book directly from your landing page. Ryxa takes 0%.</p>
+    <div class="hero-cta-row">
+      <a href="dashboard.html" onclick="return tryThisTool(event)" class="btn-primary">Try 1:1 Coaching</a>
+      <a href="pricing.html" class="btn-secondary">See pricing</a>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="section-label">How it works</div>
+  <h2 class="section-title">From setup to first booking, in four steps.</h2>
+  <p class="section-sub">No scheduling software to learn. No separate payment tools. Just create, publish, and get booked.</p>
+  <div class="steps-grid">
+    <div class="step-card"><div class="step-num">Step 1</div><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></div><div class="step-title">Create your service</div><div class="step-desc">Add a title, description, session duration, cover image, and set your price.</div></div>
+    <div class="step-card"><div class="step-num">Step 2</div><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><div class="step-title">Choose booking method</div><div class="step-desc">Connect Calendly or Cal.com for automated scheduling, or choose manual booking and handle it yourself.</div></div>
+    <div class="step-card"><div class="step-num">Step 3</div><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="step-title">Connect Stripe</div><div class="step-desc">Link your Stripe account. Clients pay upfront — money goes directly to you. 0% platform fees.</div></div>
+    <div class="step-card"><div class="step-num">Step 4</div><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><div class="step-title">Publish & share</div><div class="step-desc">Your service gets its own landing page. Add it to your Link in Bio and start booking clients.</div></div>
+  </div>
 </section>
 
 <section>
@@ -342,7 +422,7 @@
     </div>
   </div>
   <div style="border-top:1px solid var(--border);padding-top:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
-    <p style="font-size:12px;color:var(--muted);">&copy; <span class="copy-year"></span> MRLA Media LLC &middot; Ryxa</p>
+    <p style="font-size:12px;color:var(--muted);">© <span class="copy-year"></span> MRLA Media LLC · Ryxa</p>
   </div>
 </footer>
 
