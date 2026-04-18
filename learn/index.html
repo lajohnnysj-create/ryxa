@@ -26,7 +26,7 @@
     --btn-text: #000;
     --btn-outline-border: rgba(255,255,255,0.4);
     --btn-outline-text: #fff;
-    --check-color: #4ade80;
+    --check-color: #fff;
   }
   body.light-mode {
     --bg: #fff;
@@ -41,7 +41,7 @@
     --btn-text: #fff;
     --btn-outline-border: rgba(0,0,0,0.4);
     --btn-outline-text: #000;
-    --check-color: #16a34a;
+    --check-color: #000;
   }
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
   body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; transition: background 0.2s, color 0.2s; }
@@ -102,7 +102,7 @@
   .viewer-sidebar { display: flex; flex-direction: column; gap: 4px; }
   .viewer-module-title { font-size: 11px; color: var(--text); font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding: 12px 0 4px; }
   .viewer-module-title:first-child { padding-top: 0; }
-  .viewer-lesson-btn { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: transparent; border: 1px solid transparent; border-radius: 10px; cursor: pointer; transition: all 0.15s; font-size: 13px; color: var(--muted); text-align: left; width: 100%; font-family: 'DM Sans', sans-serif; }
+  .viewer-lesson-btn { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: transparent; border: 1px solid transparent; border-radius: 10px; cursor: pointer; transition: all 0.15s; font-size: 13px; color: var(--text-secondary); text-align: left; width: 100%; font-family: 'DM Sans', sans-serif; }
   .viewer-lesson-btn:hover { background: var(--surface); color: var(--text); }
   .viewer-lesson-btn.active { border-color: var(--text); background: var(--surface); color: var(--text); }
   .viewer-lesson-btn.completed { color: var(--check-color); }
@@ -113,7 +113,7 @@
   .viewer-video { width: 100%; aspect-ratio: 16/9; border-radius: 12px; border: none; margin-bottom: 16px; }
   .viewer-text { font-size: 15px; line-height: 1.75; color: var(--text); white-space: pre-wrap; }
   .viewer-complete-btn { margin-top: 24px; padding: 10px 20px; background: var(--btn-bg); color: var(--btn-text); border: none; border-radius: 8px; font-size: 13px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; }
-  .viewer-completed-msg { margin-top: 24px; padding: 10px 20px; background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.25); border-radius: 8px; font-size: 13px; color: var(--check-color); display: inline-flex; align-items: center; gap: 6px; }
+  .viewer-completed-msg { margin-top: 24px; padding: 10px 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; font-size: 13px; color: var(--check-color); display: inline-flex; align-items: center; gap: 6px; }
   .viewer-nav { display: flex; justify-content: space-between; align-items: stretch; gap: 12px; margin-top: 24px; }
   .viewer-nav-btn { flex: 1; padding: 14px 16px; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; cursor: pointer; transition: all 0.15s; text-decoration: none; display: flex; flex-direction: column; gap: 4px; font-family: 'DM Sans', sans-serif; }
   .viewer-nav-btn:hover { border-color: var(--btn-outline-text); }
@@ -317,7 +317,7 @@ async function handleAuth() {
       if (result.data?.user && !result.data.session) {
         errEl.textContent = 'Check your email for a confirmation link.';
         errEl.style.display = 'block';
-        errEl.style.color = '#4ade80';
+        errEl.style.color = 'var(--text)';
         btn.disabled = false; btn.textContent = 'Sign Up';
         return;
       }
@@ -470,9 +470,9 @@ function showCourseOverview() {
     html += '<div style="font-size:12px;color:var(--text);font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Module ' + (mi + 1) + ': ' + escapeHtml(mod.title) + '</div>';
     modLessons.forEach(function(l, li) {
       var isCompleted = viewerProgress.indexOf(l.id) !== -1;
-      var icon = l.lesson_type === 'video' ? '▶' : '📝';
-      var check = isCompleted ? '<span style="color:#4ade80;">✓</span>' : '<span style="color:var(--muted);">○</span>';
-      html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:13px;color:var(--muted);">'
+      var icon = l.lesson_type === 'video' ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>' : '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>';
+      var check = isCompleted ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' : '<span style="width:14px;height:14px;display:inline-block;border:1.5px solid var(--muted);border-radius:50%;"></span>';
+      html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:13px;color:var(--text);">'
         + check + ' ' + icon + ' ' + escapeHtml(l.title || 'Untitled')
         + '</div>';
     });
@@ -484,7 +484,7 @@ function showCourseOverview() {
   var total = viewerLessons.length;
   var completed = viewerProgress.length;
   if (total > 0) {
-    html += '<div style="margin-top:20px;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--muted);">'
+    html += '<div style="margin-top:20px;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--text);">'
       + completed + ' of ' + total + ' lessons completed (' + Math.round((completed / total) * 100) + '%)'
       + '</div>';
   }
@@ -514,9 +514,9 @@ function showCourseCompletion() {
   var pct = total > 0 ? Math.round((completed / total) * 100) : 0;
 
   var html = '<div style="text-align:center;padding:20px 0;">';
-  html += '<div style="width:64px;height:64px;margin:0 auto 20px;background:rgba(74,222,128,0.12);border:1px solid rgba(74,222,128,0.25);border-radius:50%;display:flex;align-items:center;justify-content:center;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>';
+  html += '<div style="width:64px;height:64px;margin:0 auto 20px;background:var(--surface);border:1px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>';
   html += '<div class="viewer-lesson-title" style="text-align:center;">Course Complete!</div>';
-  html += '<div style="font-size:15px;color:var(--muted);margin-bottom:24px;">' + completed + ' of ' + total + ' lessons completed (' + pct + '%)</div>';
+  html += '<div style="font-size:15px;color:var(--text);margin-bottom:24px;">' + completed + ' of ' + total + ' lessons completed (' + pct + '%)</div>';
 
   if (viewerCourse.completion_message) {
     html += '<div style="text-align:left;padding:20px 24px;background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:24px;">';
@@ -587,8 +587,8 @@ function renderViewer() {
       + modLessons.map(function(l) {
         var isCompleted = viewerProgress.indexOf(l.id) !== -1;
         var isActive = l.id === currentLessonId;
-        var icon = l.lesson_type === 'video' ? '▶' : '📝';
-        var check = isCompleted ? '✓' : '';
+        var icon = l.lesson_type === 'video' ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>' : '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>';
+        var check = isCompleted ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' : '';
         return '<button class="viewer-lesson-btn' + (isActive ? ' active' : '') + (isCompleted ? ' completed' : '') + '" onclick="selectLesson(\'' + l.id + '\')">'
           + '<span class="viewer-check">' + check + '</span>'
           + '<span>' + icon + ' ' + escapeHtml(l.title || 'Untitled') + '</span>'
