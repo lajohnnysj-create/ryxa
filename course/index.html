@@ -104,7 +104,7 @@
 
 <div id="loading" class="loading">Loading course...</div>
 <div id="error-page" class="error-page" style="display:none;">
-  <div style="font-size:48px;margin-bottom:16px;">📚</div>
+  <div style="width:56px;height:56px;margin:0 auto 16px;background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.25);border-radius:14px;display:flex;align-items:center;justify-content:center;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M8 7h8M8 11h6"/></svg></div>
   <h1 style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;margin-bottom:8px;">Course Not Found</h1>
   <p style="color:var(--muted);font-size:14px;margin-bottom:24px;">This course doesn't exist or hasn't been published yet.</p>
   <a href="/" class="nav-btn nav-btn-primary" style="text-decoration:none;">Go to Ryxa</a>
@@ -231,7 +231,7 @@ function renderCourse(course, creatorName, modules, lessons) {
     const url = sb.storage.from('course-covers').getPublicUrl(course.cover_image_path).data.publicUrl;
     coverEl.innerHTML = '<img class="course-cover" src="' + url + '" alt="">';
   } else {
-    coverEl.innerHTML = '<div class="course-cover-placeholder">📚</div>';
+    coverEl.innerHTML = '<div class="course-cover-placeholder"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="rgba(167,139,250,0.5)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M8 7h8M8 11h6"/></svg></div>';
   }
 
   // Title, creator, description
