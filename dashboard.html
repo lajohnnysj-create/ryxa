@@ -3242,12 +3242,43 @@
     </div>
 
     <!-- Password -->
-    <div id="settings-password-section" style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;">
-      <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:12px;">Password</div>
-      <p style="font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.5;">We'll email you a secure link to change your password.</p>
-      <div id="settings-password-turnstile" style="display:none;margin-bottom:10px;justify-content:center;min-height:60px;"></div>
-      <button id="settings-reset-password-btn" onclick="sendPasswordReset()" style="width:100%;padding:11px;background:transparent;border:1px solid var(--border-hover);color:var(--text);border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(124,58,237,0.4)';this.style.color='#c4b5fd'" onmouseout="this.style.borderColor='var(--border-hover)';this.style.color='var(--text)'">Send password reset email</button>
-      <div id="settings-password-msg" style="display:none;margin-top:10px;padding:10px 12px;border-radius:8px;font-size:12px;line-height:1.5;"></div>
+    <!-- Stripe Connect -->
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:8px;">Payouts</div>
+      <img src="/stripe.svg" alt="Stripe" style="height:36px;opacity:0.5;margin-bottom:12px;display:block;">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.5;">Connect your Stripe account to receive payments from Courses, Brand Deals, and 1:1 Private Coaching.</p>
+
+      <!-- Not connected state -->
+      <div id="settings-stripe-disconnected">
+        <button id="settings-stripe-connect-btn" onclick="connectStripeAccount()" style="width:100%;padding:11px;background:rgba(99,91,255,0.08);border:1px solid rgba(99,91,255,0.25);color:var(--text);border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(124,58,237,0.5)';this.style.background='rgba(124,58,237,0.12)'" onmouseout="this.style.borderColor='rgba(99,91,255,0.25)';this.style.background='rgba(99,91,255,0.08)'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>
+          Connect Stripe Account
+        </button>
+      </div>
+
+      <!-- Connected state -->
+      <div id="settings-stripe-connected" style="display:none;">
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(74,222,128,0.06);border:1px solid rgba(74,222,128,0.2);border-radius:8px;margin-bottom:10px;">
+          <div style="width:28px;height:28px;border-radius:8px;background:rgba(74,222,128,0.12);border:1px solid rgba(74,222,128,0.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:13px;font-weight:500;color:#4ade80;">Stripe Connected</div>
+            <div id="settings-stripe-acct-id" style="font-size:11px;color:var(--muted);font-family:monospace;margin-top:1px;">acct_•••</div>
+          </div>
+        </div>
+        <button id="stripe-disconnect-btn" onclick="showStripeDisconnectConfirm()" style="width:100%;padding:9px;background:transparent;border:1px solid rgba(239,68,68,0.25);color:#fca5a5;border-radius:8px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.06)'" onmouseout="this.style.background='transparent'">Disconnect Stripe</button>
+        <div id="stripe-disconnect-confirm" style="display:none;margin-top:10px;padding:14px;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);border-radius:8px;">
+          <p style="font-size:13px;color:#fca5a5;margin-bottom:4px;font-weight:600;">Disconnect Stripe?</p>
+          <p style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5;">You won't receive payouts until you reconnect. Your Stripe account itself is not affected.</p>
+          <div style="display:flex;gap:8px;">
+            <button onclick="confirmDisconnectStripe()" style="flex:1;padding:9px;background:transparent;border:1px solid rgba(239,68,68,0.25);color:#fca5a5;border-radius:7px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Yes, disconnect</button>
+            <button onclick="hideStripeDisconnectConfirm()" style="flex:1;padding:9px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.4);color:#c4b5fd;border-radius:7px;font-size:12px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;">Keep connected</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="settings-stripe-msg" style="display:none;margin-top:8px;padding:10px 12px;border-radius:8px;font-size:12px;line-height:1.5;"></div>
     </div>
 
     <!-- Subscription -->
@@ -3298,45 +3329,13 @@
       </div>
     </div>
 
-    <!-- Stripe Connect -->
-    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;">
-      <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:8px;">Payouts</div>
-      <img src="/stripe.svg" alt="Stripe" style="height:36px;opacity:0.5;margin-bottom:12px;display:block;">
-      <p style="font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.5;">Connect your Stripe account to receive payments from Courses, Brand Deals, and 1:1 Private Coaching.</p>
-
-      <!-- Not connected state -->
-      <div id="settings-stripe-disconnected">
-        <button id="settings-stripe-connect-btn" onclick="connectStripeAccount()" style="width:100%;padding:11px;background:rgba(99,91,255,0.08);border:1px solid rgba(99,91,255,0.25);color:var(--text);border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(124,58,237,0.5)';this.style.background='rgba(124,58,237,0.12)'" onmouseout="this.style.borderColor='rgba(99,91,255,0.25)';this.style.background='rgba(99,91,255,0.08)'">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>
-          Connect Stripe Account
-        </button>
-      </div>
-
-      <!-- Connected state -->
-      <div id="settings-stripe-connected" style="display:none;">
-        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(74,222,128,0.06);border:1px solid rgba(74,222,128,0.2);border-radius:8px;margin-bottom:10px;">
-          <div style="width:28px;height:28px;border-radius:8px;background:rgba(74,222,128,0.12);border:1px solid rgba(74,222,128,0.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-          </div>
-          <div style="flex:1;min-width:0;">
-            <div style="font-size:13px;font-weight:500;color:#4ade80;">Stripe Connected</div>
-            <div id="settings-stripe-acct-id" style="font-size:11px;color:var(--muted);font-family:monospace;margin-top:1px;">acct_•••</div>
-          </div>
-        </div>
-        <button id="stripe-disconnect-btn" onclick="showStripeDisconnectConfirm()" style="width:100%;padding:9px;background:transparent;border:1px solid rgba(239,68,68,0.25);color:#fca5a5;border-radius:8px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.06)'" onmouseout="this.style.background='transparent'">Disconnect Stripe</button>
-        <div id="stripe-disconnect-confirm" style="display:none;margin-top:10px;padding:14px;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);border-radius:8px;">
-          <p style="font-size:13px;color:#fca5a5;margin-bottom:4px;font-weight:600;">Disconnect Stripe?</p>
-          <p style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5;">You won't receive payouts until you reconnect. Your Stripe account itself is not affected.</p>
-          <div style="display:flex;gap:8px;">
-            <button onclick="confirmDisconnectStripe()" style="flex:1;padding:9px;background:transparent;border:1px solid rgba(239,68,68,0.25);color:#fca5a5;border-radius:7px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Yes, disconnect</button>
-            <button onclick="hideStripeDisconnectConfirm()" style="flex:1;padding:9px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.4);color:#c4b5fd;border-radius:7px;font-size:12px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;">Keep connected</button>
-          </div>
-        </div>
-      </div>
-
-      <div id="settings-stripe-msg" style="display:none;margin-top:8px;padding:10px 12px;border-radius:8px;font-size:12px;line-height:1.5;"></div>
+    <div id="settings-password-section" style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:12px;">Password</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.5;">We'll email you a secure link to change your password.</p>
+      <div id="settings-password-turnstile" style="display:none;margin-bottom:10px;justify-content:center;min-height:60px;"></div>
+      <button id="settings-reset-password-btn" onclick="sendPasswordReset()" style="width:100%;padding:11px;background:transparent;border:1px solid var(--border-hover);color:var(--text);border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(124,58,237,0.4)';this.style.color='#c4b5fd'" onmouseout="this.style.borderColor='var(--border-hover)';this.style.color='var(--text)'">Send password reset email</button>
+      <div id="settings-password-msg" style="display:none;margin-top:10px;padding:10px 12px;border-radius:8px;font-size:12px;line-height:1.5;"></div>
     </div>
-
     <!-- Help -->
     <div style="display:flex;gap:10px;">
       <a href="faq.html" style="flex:1;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--muted);text-decoration:none;text-align:center;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--border-hover)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">FAQ</a>
