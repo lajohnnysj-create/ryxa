@@ -69,23 +69,41 @@
   .course-card-progress-bar { height: 100%; background: linear-gradient(90deg, #a78bfa, #e879f9); border-radius: 100px; transition: width 0.3s; }
   .empty-state { text-align: center; padding: 60px 24px; color: var(--muted); font-size: 14px; }
 
-  /* Course Viewer */
+  /* Course Viewer - Page by page layout */
   .viewer-wrap { max-width: 900px; margin: 0 auto; padding: 32px; }
-  .viewer-back { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; background: transparent; border: 1px solid var(--border-hover); color: var(--muted); border-radius: 8px; font-size: 12px; font-family: 'DM Sans', sans-serif; cursor: pointer; margin-bottom: 24px; text-decoration: none; }
+  .viewer-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+  .viewer-back { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; background: transparent; border: 1px solid var(--border-hover); color: var(--muted); border-radius: 8px; font-size: 12px; font-family: 'DM Sans', sans-serif; cursor: pointer; text-decoration: none; }
   .viewer-back:hover { border-color: var(--accent); color: var(--text); }
-  .viewer-title { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 24px; }
-  .viewer-sidebar { display: flex; flex-direction: column; gap: 8px; margin-bottom: 32px; }
-  .viewer-module-title { font-size: 11px; color: var(--accent2); font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding: 8px 0 4px; }
-  .viewer-lesson-btn { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; cursor: pointer; transition: all 0.15s; font-size: 13px; color: var(--muted); text-align: left; width: 100%; font-family: 'DM Sans', sans-serif; }
-  .viewer-lesson-btn:hover { border-color: rgba(124,58,237,0.4); color: var(--text); }
+  .viewer-title { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; letter-spacing: -0.5px; flex: 1; }
+  .viewer-toc-btn { padding: 8px 14px; background: transparent; border: 1px solid var(--border-hover); color: var(--muted); border-radius: 8px; font-size: 12px; font-family: 'DM Sans', sans-serif; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+  .viewer-toc-btn:hover { border-color: var(--accent); color: var(--text); }
+  .viewer-toc { display: none; background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 24px; }
+  .viewer-toc.open { display: block; }
+  .viewer-sidebar { display: flex; flex-direction: column; gap: 4px; }
+  .viewer-module-title { font-size: 11px; color: var(--accent2); font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding: 12px 0 4px; }
+  .viewer-module-title:first-child { padding-top: 0; }
+  .viewer-lesson-btn { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: transparent; border: 1px solid transparent; border-radius: 10px; cursor: pointer; transition: all 0.15s; font-size: 13px; color: var(--muted); text-align: left; width: 100%; font-family: 'DM Sans', sans-serif; }
+  .viewer-lesson-btn:hover { background: rgba(124,58,237,0.04); color: var(--text); }
   .viewer-lesson-btn.active { border-color: var(--accent); background: rgba(124,58,237,0.08); color: var(--text); }
   .viewer-lesson-btn.completed { color: #4ade80; }
-  .viewer-check { width: 18px; height: 18px; flex-shrink: 0; }
-  .viewer-content { background: var(--surface2); border: 1px solid var(--border); border-radius: 16px; padding: 24px; min-height: 300px; }
+  .viewer-check { width: 18px; height: 18px; flex-shrink: 0; text-align: center; }
+  .viewer-content { background: var(--surface2); border: 1px solid var(--border); border-radius: 16px; padding: 28px; min-height: 300px; }
+  .viewer-lesson-header { font-size: 11px; color: var(--accent2); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+  .viewer-lesson-title { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; letter-spacing: -0.4px; margin-bottom: 20px; }
   .viewer-video { width: 100%; aspect-ratio: 16/9; border-radius: 12px; border: none; margin-bottom: 16px; }
   .viewer-text { font-size: 15px; line-height: 1.75; color: var(--muted); white-space: pre-wrap; }
-  .viewer-complete-btn { margin-top: 20px; padding: 10px 20px; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; }
-  .viewer-completed-msg { margin-top: 20px; padding: 10px 20px; background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.25); border-radius: 8px; font-size: 13px; color: #4ade80; display: inline-flex; align-items: center; gap: 6px; }
+  .viewer-complete-btn { margin-top: 24px; padding: 10px 20px; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; }
+  .viewer-completed-msg { margin-top: 24px; padding: 10px 20px; background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.25); border-radius: 8px; font-size: 13px; color: #4ade80; display: inline-flex; align-items: center; gap: 6px; }
+  .viewer-nav { display: flex; justify-content: space-between; align-items: stretch; gap: 12px; margin-top: 24px; }
+  .viewer-nav-btn { flex: 1; padding: 14px 16px; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; cursor: pointer; transition: all 0.15s; text-decoration: none; display: flex; flex-direction: column; gap: 4px; font-family: 'DM Sans', sans-serif; }
+  .viewer-nav-btn:hover { border-color: rgba(124,58,237,0.4); }
+  .viewer-nav-btn.disabled { opacity: 0.3; cursor: default; pointer-events: none; }
+  .viewer-nav-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .viewer-nav-title { font-size: 13px; color: var(--text); font-weight: 500; }
+  .viewer-nav-prev { text-align: left; }
+  .viewer-nav-next { text-align: right; }
+  .viewer-progress-bar { height: 3px; background: var(--surface); border-radius: 100px; margin-bottom: 24px; overflow: hidden; }
+  .viewer-progress-fill { height: 100%; background: linear-gradient(90deg, #a78bfa, #e879f9); border-radius: 100px; transition: width 0.3s; }
 
   @media (max-width: 640px) {
     .nav { padding: 12px 16px; }
@@ -130,15 +148,25 @@
 
 <!-- Course Viewer -->
 <div id="viewer-screen" class="viewer-wrap" style="display:none;">
-  <a href="#" onclick="backToDash();return false;" class="viewer-back">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-    My Courses
-  </a>
-  <h1 class="viewer-title" id="viewer-course-title"></h1>
-  <div class="viewer-sidebar" id="viewer-sidebar"></div>
+  <div class="viewer-header">
+    <a href="#" onclick="backToDash();return false;" class="viewer-back">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      My Courses
+    </a>
+    <h1 class="viewer-title" id="viewer-course-title"></h1>
+    <button class="viewer-toc-btn" onclick="toggleToc()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      Contents
+    </button>
+  </div>
+  <div class="viewer-progress-bar"><div class="viewer-progress-fill" id="viewer-progress-fill" style="width:0%"></div></div>
+  <div class="viewer-toc" id="viewer-toc">
+    <div class="viewer-sidebar" id="viewer-sidebar"></div>
+  </div>
   <div class="viewer-content" id="viewer-content">
     <p style="color:var(--muted);font-size:14px;">Select a lesson to begin.</p>
   </div>
+  <div class="viewer-nav" id="viewer-nav"></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -363,6 +391,47 @@ async function openCourseViewer(courseId) {
 
   currentLessonId = null;
   renderViewer();
+  // Auto-select first lesson
+  if (viewerLessons.length > 0) {
+    selectLesson(viewerLessons[0].id);
+  }
+}
+
+function getAllLessonsOrdered() {
+  var ordered = [];
+  viewerModules.forEach(function(mod) {
+    var modLessons = viewerLessons.filter(function(l) { return l.module_id === mod.id; });
+    modLessons.forEach(function(l) { ordered.push(l); });
+  });
+  return ordered;
+}
+
+function getCurrentLessonIndex() {
+  var all = getAllLessonsOrdered();
+  for (var i = 0; i < all.length; i++) {
+    if (all[i].id === currentLessonId) return i;
+  }
+  return -1;
+}
+
+function getModuleForLesson(lessonId) {
+  var lesson = viewerLessons.find(function(l) { return l.id === lessonId; });
+  if (!lesson) return null;
+  return viewerModules.find(function(m) { return m.id === lesson.module_id; });
+}
+
+function updateProgressBar() {
+  var total = viewerLessons.length;
+  if (total === 0) return;
+  var completed = viewerProgress.length;
+  var pct = Math.round((completed / total) * 100);
+  var fill = document.getElementById('viewer-progress-fill');
+  if (fill) fill.style.width = pct + '%';
+}
+
+function toggleToc() {
+  var toc = document.getElementById('viewer-toc');
+  toc.classList.toggle('open');
 }
 
 function renderViewer() {
@@ -381,18 +450,32 @@ function renderViewer() {
           + '</button>';
       }).join('');
   }).join('');
+
+  updateProgressBar();
 }
 
 function selectLesson(lessonId) {
   currentLessonId = lessonId;
   renderViewer();
+  // Close TOC on mobile after selecting
+  document.getElementById('viewer-toc').classList.remove('open');
+
   var lesson = viewerLessons.find(function(l) { return l.id === lessonId; });
   if (!lesson) return;
 
   var content = document.getElementById('viewer-content');
   var isCompleted = viewerProgress.indexOf(lessonId) !== -1;
+  var mod = getModuleForLesson(lessonId);
+  var modIndex = viewerModules.indexOf(mod);
 
+  // Lesson header
   var html = '';
+  if (mod) {
+    html += '<div class="viewer-lesson-header">Module ' + (modIndex + 1) + ': ' + escapeHtml(mod.title) + '</div>';
+  }
+  html += '<div class="viewer-lesson-title">' + escapeHtml(lesson.title || 'Untitled Lesson') + '</div>';
+
+  // Content
   if (lesson.lesson_type === 'video' && lesson.video_url) {
     var embedUrl = getEmbedUrl(lesson.video_url);
     if (embedUrl) {
@@ -404,10 +487,11 @@ function selectLesson(lessonId) {
   if (lesson.text_content) {
     html += '<div class="viewer-text">' + escapeHtml(lesson.text_content) + '</div>';
   }
-  if (!html) {
-    html = '<p style="color:var(--muted);font-size:14px;">This lesson has no content yet.</p>';
+  if (!lesson.video_url && !lesson.text_content) {
+    html += '<p style="color:var(--muted);font-size:14px;">This lesson has no content yet.</p>';
   }
 
+  // Complete button
   if (isCompleted) {
     html += '<div class="viewer-completed-msg"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Completed</div>';
   } else {
@@ -415,6 +499,43 @@ function selectLesson(lessonId) {
   }
 
   content.innerHTML = html;
+
+  // Render prev/next navigation
+  renderLessonNav();
+
+  // Scroll to top
+  window.scrollTo(0, 0);
+}
+
+function renderLessonNav() {
+  var nav = document.getElementById('viewer-nav');
+  var all = getAllLessonsOrdered();
+  var idx = getCurrentLessonIndex();
+
+  var prevHtml = '';
+  var nextHtml = '';
+
+  if (idx > 0) {
+    var prev = all[idx - 1];
+    prevHtml = '<a href="#" onclick="selectLesson(\'' + prev.id + '\');return false;" class="viewer-nav-btn viewer-nav-prev">'
+      + '<span class="viewer-nav-label">← Previous</span>'
+      + '<span class="viewer-nav-title">' + escapeHtml(prev.title || 'Untitled') + '</span>'
+      + '</a>';
+  } else {
+    prevHtml = '<div class="viewer-nav-btn viewer-nav-prev disabled"><span class="viewer-nav-label">← Previous</span><span class="viewer-nav-title"></span></div>';
+  }
+
+  if (idx < all.length - 1) {
+    var next = all[idx + 1];
+    nextHtml = '<a href="#" onclick="selectLesson(\'' + next.id + '\');return false;" class="viewer-nav-btn viewer-nav-next">'
+      + '<span class="viewer-nav-label">Next →</span>'
+      + '<span class="viewer-nav-title">' + escapeHtml(next.title || 'Untitled') + '</span>'
+      + '</a>';
+  } else {
+    nextHtml = '<div class="viewer-nav-btn viewer-nav-next disabled"><span class="viewer-nav-label">Next →</span><span class="viewer-nav-title"></span></div>';
+  }
+
+  nav.innerHTML = prevHtml + nextHtml;
 }
 
 async function markComplete(lessonId) {
