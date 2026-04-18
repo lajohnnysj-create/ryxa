@@ -77,7 +77,7 @@
   .pricing-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;}
   .plan{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:36px 28px;position:relative;overflow:hidden;}
   .plan.featured{border-color:rgba(124,58,237,0.5);background:linear-gradient(160deg,rgba(124,58,237,0.07) 0%,var(--surface) 60%);}
-  .plan-badge{position:absolute;top:20px;right:20px;background:var(--accent);color:#fff;font-size:11px;font-weight:600;padding:4px 12px;border-radius:100px;letter-spacing:0.03em;}
+  .plan-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;font-size:11px;font-weight:600;padding:5px 16px;border-radius:100px;letter-spacing:0.03em;white-space:nowrap;z-index:1;}
   .plan-name{font-family:"Syne",sans-serif;font-size:20px;font-weight:800;margin-bottom:8px;}
   .plan-price{font-family:"Syne",sans-serif;font-size:48px;font-weight:800;letter-spacing:-2px;margin-bottom:4px;line-height:1;white-space:nowrap;}
   .plan-price span{font-size:18px;color:var(--muted);font-weight:400;letter-spacing:0;white-space:nowrap;}
@@ -222,6 +222,8 @@
         <div class="plan-divider"></div>
         <div class="plan-feature locked"><span class="plan-feature-x">&#x2715;</span><span>Media Kit</span></div>
         <div class="plan-feature locked"><span class="plan-feature-x">&#x2715;</span><span>Script Builder</span></div>
+        <div class="plan-feature locked"><span class="plan-feature-x">&#x2715;</span><span>Course Builder</span></div>
+        <div class="plan-feature locked"><span class="plan-feature-x">&#x2715;</span><span>1:1 Private Coaching</span></div>
         <div class="plan-feature locked"><span class="plan-feature-x">&#x2715;</span><span>Brand Deal CRM</span></div>
         <div class="plan-feature locked"><span class="plan-feature-x">&#x2715;</span><span>Custom themes and backgrounds</span></div>
         <div class="plan-feature locked"><span class="plan-feature-x">&#x2715;</span><span>Hero links</span></div>
@@ -251,6 +253,8 @@
         <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span><strong>Sign PDF</strong>. Unlimited, fully in-browser</span></div>
         <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span>Cancel anytime</span></div>
         <div class="plan-divider"></div>
+        <div class="plan-feature locked"><span class="plan-feature-x">&#x2715;</span><span>Course Builder (Creator Max)</span></div>
+        <div class="plan-feature locked"><span class="plan-feature-x">&#x2715;</span><span>1:1 Private Coaching (Creator Max)</span></div>
         <div class="plan-feature locked"><span class="plan-feature-x">&#x2715;</span><span>Brand Deal CRM (Creator Max)</span></div>
         <div class="plan-feature locked"><span class="plan-feature-x">&#x2715;</span><span>Custom backgrounds and colors</span></div>
         <div class="plan-feature locked"><span class="plan-feature-x">&#x2715;</span><span>Hero links</span></div>
@@ -260,12 +264,14 @@
 
     <!-- CREATOR MAX -->
     <div class="plan max-plan">
-      <div class="plan-badge max-badge">Take control</div>
+      <div class="plan-badge max-badge">Earn and Take Control</div>
       <div class="plan-name">Creator Max</div>
       <div class="plan-price">$20 <span>/ month</span></div>
-      <div class="plan-desc">Everything in Pro, plus full branding control to make your pages truly yours.</div>
+      <div class="plan-desc">Everything in Pro, plus revenue tools and full branding control.</div>
       <button class="plan-btn max" onclick="window.location.href='index.html?action=signup'">Get Creator Max</button>
       <div class="plan-features">
+        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span><strong>Course Builder</strong>. Build and sell online courses with modules, lessons, and video embeds. 0% fees</span></div>
+        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span><strong>1:1 Private Coaching</strong>. Sell coaching sessions with Calendly, Cal.com, or manual booking. 0% fees</span></div>
         <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span><strong>Brand Deal CRM</strong>. Track partnerships, store contracts, share secure portal with brands, send invoices, revenue analytics</span></div>
         <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span><strong>Custom backgrounds</strong>. Upload your own image for Link in Bio and Media Kit</span></div>
         <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span><strong>Custom colors</strong>. Full RGB control over your page colors</span></div>
