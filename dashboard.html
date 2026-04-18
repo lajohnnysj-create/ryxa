@@ -1638,7 +1638,7 @@
   }
 
   /* ── MAIN ── */
-  .main { margin-left: var(--sidebar-width); flex: 1; min-height: 100vh; display: flex; flex-direction: column; min-width: 0; overflow-x: hidden; }
+  .main { margin-left: var(--sidebar-width); flex: 1; min-height: 100vh; display: flex; flex-direction: column; min-width: 0; overflow-x: clip; }
   .topbar { height: var(--topbar-height); background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 32px; position: sticky; top: 0; z-index: 50; }
   .topbar-left { display: flex; align-items: center; gap: 12px; }
   .mobile-menu-btn { display: none; background: none; border: none; color: var(--text); cursor: pointer; padding: 6px; border-radius: 8px; }
@@ -1669,7 +1669,7 @@
   }
 
   /* ── TOOL CONTENT AREA ── */
-  .tool-area { flex: 1; padding: 32px; max-width: 1100px; width: 100%; min-width: 0; overflow-x: hidden; box-sizing: border-box; }
+  .tool-area { flex: 1; padding: 32px; max-width: 1100px; width: 100%; min-width: 0; overflow-x: clip; box-sizing: border-box; }
 
   /* ── WELCOME SCREEN ── */
   .welcome-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: calc(100vh - var(--topbar-height)); text-align: center; padding: 40px 24px; }
@@ -5582,6 +5582,27 @@
                       <option value="waiting">Waiting for Payment</option>
                       <option value="paid">Paid</option>
                     </select>
+                  </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;">
+                  <div>
+                    <label class="deal-label" for="deal-payment-method">Payment Method</label>
+                    <select id="deal-payment-method" class="deal-input">
+                      <option value="">Select method...</option>
+                      <option value="ach">ACH / Bank Transfer</option>
+                      <option value="venmo">Venmo</option>
+                      <option value="paypal">PayPal</option>
+                      <option value="zelle">Zelle</option>
+                      <option value="cashapp">Cash App</option>
+                      <option value="wire">Wire Transfer</option>
+                      <option value="check">Check</option>
+                      <option value="crypto">Crypto</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="deal-label" for="deal-payment-details">Payment Details</label>
+                    <input type="text" id="deal-payment-details" placeholder="e.g. @username, email, account info" class="deal-input">
                   </div>
                 </div>
               </div>
@@ -14606,6 +14627,8 @@ function showDealDetail(dealId) {
   document.getElementById('deal-campaign-end').value = '';
   document.getElementById('deal-status').value = 'draft';
   document.getElementById('deal-payment-status').value = 'waiting';
+  document.getElementById('deal-payment-method').value = '';
+  document.getElementById('deal-payment-details').value = '';
   document.getElementById('deal-private-notes').value = '';
   document.getElementById('deal-detail-msg').style.display = 'none';
 
@@ -14623,6 +14646,8 @@ function showDealDetail(dealId) {
     document.getElementById('deal-campaign-end').value = deal.campaign_end_date || '';
     document.getElementById('deal-status').value = deal.status || 'draft';
     document.getElementById('deal-payment-status').value = deal.payment_status || 'waiting';
+    document.getElementById('deal-payment-method').value = deal.payment_method || '';
+    document.getElementById('deal-payment-details').value = deal.payment_details || '';
     document.getElementById('deal-private-notes').value = deal.private_notes || '';
     document.getElementById('deal-delete-btn').style.display = 'inline-block';
     loadDealDeliverables(deal.id);
@@ -16010,6 +16035,8 @@ async function saveDeal() {
   const campaignEnd = document.getElementById('deal-campaign-end').value || null;
   const status = document.getElementById('deal-status').value;
   const paymentStatus = document.getElementById('deal-payment-status').value;
+  const paymentMethod = document.getElementById('deal-payment-method').value;
+  const paymentDetails = document.getElementById('deal-payment-details').value.trim();
   const privateNotes = document.getElementById('deal-private-notes').value.trim();
 
   // Validation
@@ -16042,6 +16069,8 @@ async function saveDeal() {
     campaign_end_date: campaignEnd,
     status,
     payment_status: paymentStatus,
+    payment_method: paymentMethod || null,
+    payment_details: paymentDetails || null,
     private_notes: privateNotes || null
   };
 
