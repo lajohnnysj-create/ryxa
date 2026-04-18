@@ -12776,11 +12776,13 @@ async function toggleCoursePublish() {
       stripeOverlay.innerHTML = '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:24px;max-width:400px;width:100%;text-align:center;">'
         + '<div style="width:48px;height:48px;margin:0 auto 16px;background:rgba(99,91,255,0.1);border:1px solid rgba(99,91,255,0.25);border-radius:12px;display:flex;align-items:center;justify-content:center;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>'
         + '<div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.3px;margin-bottom:8px;">Connect Stripe to Publish</div>'
-        + '<p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:20px;">You need to connect your Stripe account before you can publish a course. This lets you accept payments from students.</p>'
-        + '<button onclick="this.closest(\'div[style]\').remove();openSettingsModal();" style="width:100%;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow);margin-bottom:8px;">Go to Settings</button>'
-        + '<button onclick="this.closest(\'div[style]\').parentElement.remove();" style="width:100%;padding:10px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;">Cancel</button>'
+        + '<p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:20px;">You need to connect your Stripe account before you can publish a paid course. This lets you accept payments from students.</p>'
+        + '<button id="stripe-modal-settings-btn" style="width:100%;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow);margin-bottom:8px;">Go to Settings</button>'
+        + '<button id="stripe-modal-cancel-btn" style="width:100%;padding:10px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;">Cancel</button>'
         + '</div>';
       document.body.appendChild(stripeOverlay);
+      document.getElementById('stripe-modal-settings-btn').onclick = function() { stripeOverlay.remove(); openSettingsModal(); };
+      document.getElementById('stripe-modal-cancel-btn').onclick = function() { stripeOverlay.remove(); };
       stripeOverlay.onclick = function(e) { if (e.target === stripeOverlay) stripeOverlay.remove(); };
       return;
     }
