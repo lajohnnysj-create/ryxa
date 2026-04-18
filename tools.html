@@ -49,7 +49,20 @@
   .nav-links a { color: var(--muted); font-size: 14px; text-decoration: none; transition: color 0.2s; }
   .nav-links a:hover, .nav-links a.active { color: var(--text); }
   .nav-tools-wrap { position: relative; display: flex; align-items: center; }
-  .nav-tools-trigger { display: inline-flex; align-items: center; gap: 5px; color: var(--text); font-size: 14px; cursor: pointer; background: none; border: none; font-family: 'DM Sans', sans-serif; padding: 0; }
+  .nav-tools-trigger { display: inline-flex; align-items: center; gap: 5px; color: var(--muted); font-size: 14px; cursor: pointer; background: none; border: none; font-family: 'DM Sans', sans-serif; padding: 0; transition: color 0.2s; }
+  .nav-tools-trigger:hover, .nav-tools-wrap:hover .nav-tools-trigger { color: var(--text); }
+  .nav-tools-trigger svg { transition: transform 0.2s; }
+  .nav-tools-wrap:hover .nav-tools-trigger svg { transform: rotate(180deg); }
+  .nav-tools-menu { position: absolute; top: 100%; left: 50%; transform: translateX(-50%) translateY(8px); background: rgba(15,15,26,0.98); backdrop-filter: blur(20px); border: 1px solid var(--border-hover); border-radius: 16px; padding: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); opacity: 0; pointer-events: none; transition: opacity 0.18s, transform 0.18s; z-index: 250; }
+  .nav-tools-wrap:hover .nav-tools-menu { opacity: 1; pointer-events: all; transform: translateX(-50%) translateY(0); }
+  .nav-tools-wrap::before { content: ''; position: absolute; top: 100%; left: 0; right: 0; height: 12px; }
+  .nav-tools-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px; border-radius: 10px; text-decoration: none; transition: background 0.15s; color: inherit; }
+  .nav-tools-item:hover { background: rgba(124,58,237,0.08); }
+  .nav-tools-item-icon { width: 36px; height: 36px; border-radius: 9px; background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #c4b5fd; }
+  .nav-tools-item-icon svg { width: 17px; height: 17px; }
+  .nav-tools-item-content { flex: 1; min-width: 0; }
+  .nav-tools-item-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; color: var(--text); margin-bottom: 2px; }
+  .nav-tools-item-desc { font-size: 11px; color: var(--muted); line-height: 1.4; }
   .nav-right { display: flex; align-items: center; gap: 12px; }
   .btn-ghost { background: transparent; border: 1px solid var(--border-hover); color: var(--text); border-radius: 8px; padding: 8px 20px; font-size: 14px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.2s; }
   .btn-ghost:hover { border-color: var(--accent2); color: var(--accent2); }
