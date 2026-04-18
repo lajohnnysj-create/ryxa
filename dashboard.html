@@ -4583,33 +4583,81 @@
           <div id="qr-mode-vcard" style="display:none;">
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
               <div>
-                <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">First Name</label>
+                <label for="qr-vc-first" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">First Name</label>
                 <input type="text" id="qr-vc-first" placeholder="John" aria-label="First name" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 14px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
               </div>
               <div>
-                <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Last Name</label>
+                <label for="qr-vc-last" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Last Name</label>
                 <input type="text" id="qr-vc-last" placeholder="Doe" aria-label="Last name" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 14px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
               </div>
             </div>
             <div style="margin-bottom:12px;">
-              <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Phone</label>
+              <label for="qr-vc-phone" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Phone</label>
               <input type="tel" id="qr-vc-phone" placeholder="+1 (555) 123-4567" aria-label="Phone number" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 14px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
             </div>
             <div style="margin-bottom:12px;">
-              <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Email</label>
+              <label for="qr-vc-email" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Email</label>
               <input type="email" id="qr-vc-email" placeholder="john@example.com" aria-label="Email address" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 14px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
             </div>
             <div style="margin-bottom:12px;">
-              <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Website</label>
+              <label for="qr-vc-website" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Website</label>
               <input type="url" id="qr-vc-website" placeholder="https://yourwebsite.com" aria-label="Website URL" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 14px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
             </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+              <div>
+                <label for="qr-vc-company" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Company</label>
+                <input type="text" id="qr-vc-company" placeholder="Company name" aria-label="Company name" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 14px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+              </div>
+              <div>
+                <label for="qr-vc-title" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Title / Role</label>
+                <input type="text" id="qr-vc-title" placeholder="Content Creator" aria-label="Title or role" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 14px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+              </div>
+            </div>
             <div style="margin-bottom:12px;">
-              <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Company</label>
-              <input type="text" id="qr-vc-company" placeholder="Company name" aria-label="Company name" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 14px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+              <label for="qr-vc-address" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Address</label>
+              <input type="text" id="qr-vc-address" placeholder="123 Main St, Los Angeles, CA 90001" aria-label="Address" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 14px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+            </div>
+
+            <div style="margin:20px 0 12px;padding-top:16px;border-top:1px solid var(--border);">
+              <span style="font-size:11px;color:var(--accent2);text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Social Profiles</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+              <div>
+                <label for="qr-vc-instagram" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Instagram</label>
+                <input type="text" id="qr-vc-instagram" placeholder="@username" aria-label="Instagram handle" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 14px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+              </div>
+              <div>
+                <label for="qr-vc-tiktok" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">TikTok</label>
+                <input type="text" id="qr-vc-tiktok" placeholder="@username" aria-label="TikTok handle" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 14px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+              <div>
+                <label for="qr-vc-youtube" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">YouTube</label>
+                <input type="text" id="qr-vc-youtube" placeholder="Channel name or URL" aria-label="YouTube channel" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 14px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+              </div>
+              <div>
+                <label for="qr-vc-linkedin" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">LinkedIn</label>
+                <input type="text" id="qr-vc-linkedin" placeholder="Profile URL" aria-label="LinkedIn profile" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 14px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+              <div>
+                <label for="qr-vc-twitter" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">X / Twitter</label>
+                <input type="text" id="qr-vc-twitter" placeholder="@handle" aria-label="X or Twitter handle" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 14px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+              </div>
+              <div>
+                <label for="qr-vc-facebook" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Facebook</label>
+                <input type="text" id="qr-vc-facebook" placeholder="Profile URL" aria-label="Facebook profile" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 14px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+              </div>
+            </div>
+
+            <div style="margin:20px 0 12px;padding-top:16px;border-top:1px solid var(--border);">
+              <span style="font-size:11px;color:var(--accent2);text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Additional</span>
             </div>
             <div style="margin-bottom:16px;">
-              <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Title / Role</label>
-              <input type="text" id="qr-vc-title" placeholder="Content Creator" aria-label="Title or role" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 14px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+              <label for="qr-vc-note" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Note / Bio</label>
+              <textarea id="qr-vc-note" placeholder="A short bio or note about yourself" aria-label="Note or bio" rows="3" maxlength="300" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 14px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;resize:vertical;"></textarea>
             </div>
             <button onclick="generateVCardQR()" style="width:100%;padding:13px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.2s;box-shadow:0 0 20px var(--accent-glow);">Generate Contact Card QR</button>
           </div>
@@ -11534,9 +11582,15 @@ function buildVCardString() {
   const website = (document.getElementById('qr-vc-website').value || '').trim();
   const company = (document.getElementById('qr-vc-company').value || '').trim();
   const title = (document.getElementById('qr-vc-title').value || '').trim();
-
+  const address = (document.getElementById('qr-vc-address').value || '').trim();
+  const instagram = (document.getElementById('qr-vc-instagram').value || '').trim().replace(/^@/, '');
+  const tiktok = (document.getElementById('qr-vc-tiktok').value || '').trim().replace(/^@/, '');
+  const youtube = (document.getElementById('qr-vc-youtube').value || '').trim();
+  const linkedin = (document.getElementById('qr-vc-linkedin').value || '').trim();
+  const twitter = (document.getElementById('qr-vc-twitter').value || '').trim().replace(/^@/, '');
+  const facebook = (document.getElementById('qr-vc-facebook').value || '').trim();
+  const note = (document.getElementById('qr-vc-note').value || '').trim();
   if (!first && !last) return null;
-
   let vcard = 'BEGIN:VCARD\nVERSION:3.0\n';
   vcard += 'N:' + last + ';' + first + ';;;\n';
   vcard += 'FN:' + (first + ' ' + last).trim() + '\n';
@@ -11545,6 +11599,14 @@ function buildVCardString() {
   if (phone) vcard += 'TEL;TYPE=CELL:' + phone + '\n';
   if (email) vcard += 'EMAIL:' + email + '\n';
   if (website) vcard += 'URL:' + website + '\n';
+  if (address) vcard += 'ADR;TYPE=HOME:;;' + address + ';;;;\n';
+  if (instagram) vcard += 'X-SOCIALPROFILE;TYPE=instagram:https://instagram.com/' + instagram + '\n';
+  if (tiktok) vcard += 'X-SOCIALPROFILE;TYPE=tiktok:https://tiktok.com/@' + tiktok + '\n';
+  if (youtube) { var ytUrl = youtube.startsWith('http') ? youtube : 'https://youtube.com/' + youtube; vcard += 'X-SOCIALPROFILE;TYPE=youtube:' + ytUrl + '\n'; }
+  if (linkedin) { var liUrl = linkedin.startsWith('http') ? linkedin : 'https://linkedin.com/in/' + linkedin; vcard += 'X-SOCIALPROFILE;TYPE=linkedin:' + liUrl + '\n'; }
+  if (twitter) vcard += 'X-SOCIALPROFILE;TYPE=twitter:https://x.com/' + twitter + '\n';
+  if (facebook) { var fbUrl = facebook.startsWith('http') ? facebook : 'https://facebook.com/' + facebook; vcard += 'X-SOCIALPROFILE;TYPE=facebook:' + fbUrl + '\n'; }
+  if (note) vcard += 'NOTE:' + note.replace(/\n/g, ' ') + '\n';
   vcard += 'END:VCARD';
   return vcard;
 }
