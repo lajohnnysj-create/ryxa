@@ -74,18 +74,12 @@
   .nav-menu-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 4px 0; }
   .nav-menu-email { padding: 10px 12px; font-size: 12px; color: rgba(255,255,255,0.7); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; align-items: center; }
 
-  /* Marketplace modal */
-  .mp-overlay { display:none; position:fixed; inset:0; z-index:200; background:rgba(0,0,0,0.7); backdrop-filter:blur(4px); align-items:flex-start; justify-content:center; padding:80px 20px 40px; }
-  .mp-overlay.open { display:flex; }
-  .mp-modal { background:#111; border:1px solid rgba(255,255,255,0.1); border-radius:16px; width:100%; max-width:520px; max-height:calc(100vh - 120px); display:flex; flex-direction:column; overflow:hidden; }
-  .mp-header { padding:20px 20px 0; }
-  .mp-header h2 { font-family:'Syne',sans-serif; font-size:20px; font-weight:800; color:#fff; letter-spacing:-0.5px; margin-bottom:14px; }
+  /* Marketplace search */
   .mp-search-wrap { position:relative; }
   .mp-search-wrap svg { position:absolute; left:14px; top:50%; transform:translateY(-50%); width:16px; height:16px; stroke:rgba(255,255,255,0.35); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; pointer-events:none; }
   .mp-search { width:100%; padding:12px 14px 12px 40px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); border-radius:10px; font-size:14px; color:#fff; font-family:'DM Sans',sans-serif; outline:none; transition:border-color 0.15s; }
   .mp-search:focus { border-color:rgba(124,58,237,0.5); }
   .mp-search::placeholder { color:rgba(255,255,255,0.3); }
-  .mp-results { padding:8px; overflow-y:auto; flex:1; }
   .mp-empty { padding:32px 20px; text-align:center; color:rgba(255,255,255,0.35); font-size:13px; }
   .mp-item { display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:10px; text-decoration:none; color:#fff; transition:background 0.12s; cursor:pointer; }
   .mp-item:hover { background:rgba(255,255,255,0.06); }
@@ -179,22 +173,19 @@
   </div>
 </nav>
 
-<!-- Marketplace Modal -->
-<div class="mp-overlay" id="mp-overlay" onclick="if(event.target===this)closeMarketplace();">
-  <div class="mp-modal">
-    <div class="mp-header">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-        <h2>Search Marketplace</h2>
-        <button onclick="closeMarketplace()" style="background:none;border:none;color:rgba(255,255,255,0.4);font-size:20px;cursor:pointer;padding:4px;line-height:1;">&#x2715;</button>
-      </div>
-      <div class="mp-search-wrap">
-        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" class="mp-search" id="mp-search-input" placeholder="Search courses..." autocomplete="off">
-      </div>
-    </div>
-    <div class="mp-results" id="mp-results">
-      <div class="mp-empty">Start typing to discover courses from creators on Ryxa.</div>
-    </div>
+<!-- Marketplace Search (inline) -->
+<div id="mp-screen" style="display:none;max-width:600px;margin:0 auto;padding:40px 20px;">
+  <button onclick="closeMarketplace()" style="background:none;border:none;color:rgba(255,255,255,0.5);font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;display:inline-flex;align-items:center;gap:6px;margin-bottom:24px;padding:0;">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    Return to dashboard
+  </button>
+  <h2 style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fff;letter-spacing:-0.5px;margin-bottom:16px;">Search Marketplace</h2>
+  <div class="mp-search-wrap">
+    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="text" class="mp-search" id="mp-search-input" placeholder="Search courses..." autocomplete="off">
+  </div>
+  <div class="mp-results" id="mp-results" style="margin-top:12px;">
+    <div class="mp-empty">Start typing to discover courses from creators on Ryxa.</div>
   </div>
 </div>
 
@@ -234,6 +225,7 @@
 </div>
 
 <!-- Dashboard (My Courses) -->
+<div id="learn-main">
 <div id="dash-screen" class="dash-wrap" style="display:none;">
   <h1 class="dash-title">My Courses</h1>
   <div id="dash-courses" class="courses-grid"></div>
@@ -271,6 +263,7 @@
     <p style="color:var(--muted);font-size:14px;">Select a lesson to begin.</p>
   </div>
   <div class="viewer-nav" id="viewer-nav"></div>
+</div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -971,19 +964,18 @@ document.addEventListener('keydown', function(e) {
 let mpDebounce = null;
 
 function openMarketplace() {
-  document.getElementById('mp-overlay').classList.add('open');
-  setTimeout(() => document.getElementById('mp-search-input').focus(), 100);
+  // Hide main content, show marketplace
+  document.getElementById('learn-main').style.display = 'none';
+  document.getElementById('mp-screen').style.display = 'block';
+  setTimeout(function() { document.getElementById('mp-search-input').focus(); }, 100);
 }
 
 function closeMarketplace() {
-  document.getElementById('mp-overlay').classList.remove('open');
+  document.getElementById('mp-screen').style.display = 'none';
+  document.getElementById('learn-main').style.display = 'block';
   document.getElementById('mp-search-input').value = '';
   document.getElementById('mp-results').innerHTML = '<div class="mp-empty">Start typing to discover courses from creators on Ryxa.</div>';
 }
-
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape' && document.getElementById('mp-overlay').classList.contains('open')) closeMarketplace();
-});
 
 document.addEventListener('input', function(e) {
   if (e.target.id !== 'mp-search-input') return;
@@ -1031,7 +1023,7 @@ async function searchMarketplace(query) {
       var coverUrl = c.cover_image_path
         ? 'https://kjytapcgxukalwsyputk.supabase.co/storage/v1/object/public/course-covers/' + c.cover_image_path
         : '';
-      var courseUrl = '/course/?slug=' + encodeURIComponent(c.slug) + '&creator=' + encodeURIComponent(c.user_id);
+      var courseUrl = '/course/' + encodeURIComponent(c.slug);
 
       html += '<a href="' + courseUrl + '" class="mp-item">';
       if (coverUrl) {
