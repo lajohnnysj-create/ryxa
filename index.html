@@ -211,6 +211,15 @@
     filter: blur(5px);
     display: none;
   }
+  /* Feature beams from phone */
+  .hero-beams { position:absolute; left:0; top:50%; transform:translateY(-50%); z-index:5; pointer-events:none; }
+  .hero-beam { position:absolute; right:0; display:flex; align-items:center; }
+  .hero-beam-line { width:80px; height:1.5px; background:linear-gradient(90deg,rgba(232,121,249,0.5),rgba(167,139,250,0.1)); }
+  .hero-beam-badge { white-space:nowrap; padding:8px 16px; background:rgba(15,15,26,0.9); border:1px solid rgba(232,121,249,0.25); border-radius:20px; font-size:11px; font-weight:600; color:#e9c4f7; backdrop-filter:blur(8px); box-shadow:0 0 20px rgba(232,121,249,0.08); }
+  .beam-up { transform:translateX(-100%) rotate(-25deg); transform-origin:right center; top:-60px; right:20px; }
+  .beam-mid { transform:translateX(-100%); top:0; right:20px; }
+  .beam-down { transform:translateX(-100%) rotate(25deg); transform-origin:right center; top:60px; right:20px; }
+  @media (max-width:768px) { .hero-beams { display:none; } }
   .hero-phone-screen { overflow: hidden; }
   .hero-phone-screen img { width: 100%; height: 100%; object-fit: cover; object-position: top left; }
   .hero-phone-placeholder { width: 100%; height: 100%; background: var(--surface); display: flex; flex-direction: column; padding: 16px; gap: 8px; }
@@ -703,6 +712,21 @@
         </div>
       </div>
       <div class="hero-phone">
+        <!-- Feature beams -->
+        <div class="hero-beams">
+          <div class="hero-beam beam-up">
+            <div class="hero-beam-line"></div>
+            <div class="hero-beam-badge">Sell courses and<br>private coaching</div>
+          </div>
+          <div class="hero-beam beam-mid">
+            <div class="hero-beam-line"></div>
+            <div class="hero-beam-badge">Manage Brand Deals</div>
+          </div>
+          <div class="hero-beam beam-down">
+            <div class="hero-beam-line"></div>
+            <div class="hero-beam-badge">Free Link-in-Bio</div>
+          </div>
+        </div>
         <div class="hero-phone-ghost-6"></div>
         <div class="hero-phone-ghost-5"></div>
         <div class="hero-phone-ghost-4"></div>
