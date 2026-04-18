@@ -270,7 +270,14 @@ async function onLoggedIn() {
 
   // Check URL params
   const params = new URLSearchParams(window.location.search);
+  const redirect = params.get('redirect');
   const courseId = params.get('course');
+
+  // If redirected from a course page, send them back
+  if (redirect) {
+    window.location.href = redirect;
+    return;
+  }
 
   if (courseId) {
     await openCourseViewer(courseId);
