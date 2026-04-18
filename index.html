@@ -214,10 +214,11 @@
   /* Feature beams from phone */
   .hero-beams { position:absolute; left:-10px; top:50%; transform:translateY(-50%); z-index:5; pointer-events:none; display:flex; flex-direction:column; align-items:flex-end; gap:0; }
   .hero-beam { position:relative; display:flex; align-items:center; flex-direction:row-reverse; }
-  .hero-beam-line { width:50px; height:1.5px; flex-shrink:0; }
-  .beam-up .hero-beam-line { background:linear-gradient(90deg,transparent,rgba(232,121,249,0.4)); }
-  .beam-mid .hero-beam-line { background:linear-gradient(90deg,transparent,rgba(167,139,250,0.4)); }
-  .beam-down .hero-beam-line { background:linear-gradient(90deg,transparent,rgba(124,58,237,0.4)); }
+  .hero-beam-line { width:50px; height:2px; flex-shrink:0; position:relative; }
+  .hero-beam-line::before { content:''; position:absolute; right:0; top:50%; transform:translateY(-50%); width:100%; height:100%; clip-path:polygon(100% 30%, 0% 50%, 100% 70%); }
+  .beam-up .hero-beam-line::before { background:linear-gradient(90deg,rgba(232,121,249,0.5),rgba(232,121,249,0.05)); height:18px; }
+  .beam-mid .hero-beam-line::before { background:linear-gradient(90deg,rgba(167,139,250,0.5),rgba(167,139,250,0.05)); height:18px; }
+  .beam-down .hero-beam-line::before { background:linear-gradient(90deg,rgba(124,58,237,0.5),rgba(124,58,237,0.05)); height:18px; }
   .hero-beam-badge { padding:7px 14px; background:rgba(15,15,26,0.85); border:1px solid rgba(232,121,249,0.2); border-radius:20px; font-size:10px; font-weight:600; color:#e9c4f7; backdrop-filter:blur(8px); box-shadow:0 0 15px rgba(232,121,249,0.06); white-space:nowrap; }
   .beam-up { transform:translateY(-40px); }
   .beam-mid { transform:translateY(0); }
