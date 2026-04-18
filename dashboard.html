@@ -14366,11 +14366,12 @@ async function loadDealsAnalytics() {
   // Always visible — zero-state shows $0 / empty widgets so user sees the layout even before data
   analyticsEl.style.display = 'block';
 
-  // Fetch all revenue events for this user
+  // Fetch brand deal revenue events only (exclude course/coaching)
   const { data: revenue, error } = await sb
     .from('revenue_events')
     .select('*')
     .eq('user_id', currentUser.id)
+    .eq('source', 'brand_deal')
     .order('received_at', { ascending: false });
 
   if (error) {
