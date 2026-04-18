@@ -4070,8 +4070,20 @@
             <div id="course-section-details" style="padding:0 24px 24px;">
             <input type="hidden" id="course-id">
             <div style="margin-bottom:16px;">
-              <label for="course-title-input" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Course Title</label>
-              <input type="text" id="course-title-input" placeholder="e.g., Master Instagram Reels in 30 Days" maxlength="80" aria-label="Course title" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:12px 16px;font-size:15px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+              <div style="display:flex;gap:12px;align-items:flex-end;">
+                <div style="flex:1;min-width:0;">
+                  <label for="course-title-input" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Course Title</label>
+                  <input type="text" id="course-title-input" placeholder="e.g., Master Instagram Reels in 30 Days" maxlength="80" aria-label="Course title" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:12px 16px;font-size:15px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+                </div>
+                <div style="width:120px;flex-shrink:0;">
+                  <label for="course-price-input" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Price</label>
+                  <div style="display:flex;align-items:center;gap:0;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;overflow:hidden;">
+                    <span style="padding:12px 0 12px 12px;font-size:15px;color:var(--muted);">$</span>
+                    <input type="text" inputmode="decimal" id="course-price-input" placeholder="29" aria-label="Course price in USD" style="flex:1;background:transparent;border:none;padding:12px 12px 12px 4px;font-size:15px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;width:100%;">
+                  </div>
+                </div>
+              </div>
+              <div style="font-size:11px;color:var(--muted);margin-top:4px;">Set price to 0 for a free course</div>
             </div>
             <div style="margin-bottom:16px;">
               <label for="course-slug-input" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Course URL</label>
@@ -4103,14 +4115,6 @@
                 </button>
                 <input type="file" id="course-cover-file" accept="image/*" onchange="onCourseCoverSelect(this.files[0])" style="display:none;" aria-label="Course cover image">
               </div>
-            </div>
-            <div style="margin-bottom:16px;">
-              <label for="course-price-input" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Price (USD)</label>
-              <div style="display:flex;align-items:center;gap:0;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;overflow:hidden;">
-                <span style="padding:12px 0 12px 16px;font-size:15px;color:var(--muted);">$</span>
-                <input type="number" id="course-price-input" placeholder="29" min="0" step="0.01" aria-label="Course price in USD" style="flex:1;background:transparent;border:none;padding:12px 16px 12px 4px;font-size:15px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
-              </div>
-              <div style="font-size:11px;color:var(--muted);margin-top:4px;">Set to 0 for a free course</div>
             </div>
             </div>
           </div>
