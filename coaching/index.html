@@ -229,7 +229,7 @@ function renderCoaching(coaching, creatorName) {
   if (coaching.duration_minutes) {
     metaHtml += '<div class="coaching-meta-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>' + formatDuration(coaching.duration_minutes) + '</div>';
   }
-  var bookingLabel = coaching.booking_type === 'calendly' ? 'Calendly Scheduling' : 'Manual Booking';
+  var bookingLabel = coaching.booking_type === 'calendly' ? 'Scheduling Link' : 'Manual Booking';
   metaHtml += '<div class="coaching-meta-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>' + bookingLabel + '</div>';
   document.getElementById('cp-meta').innerHTML = metaHtml;
 
@@ -301,17 +301,32 @@ async function showConfirmation(coachingId) {
     if (coaching) {
       document.getElementById('confirm-sub').textContent = 'Your payment for "' + coaching.title + '" was successful.';
 
+      // Get creator contact info
+      var { data: creatorProfile } = await sb.from('profiles').select('username').eq('user_id', coaching.user_id).maybeSingle();
+      var creatorName = creatorProfile?.username || '';
+      var { data: creatorUser } = await sb.auth.admin?.getUserById?.(coaching.user_id) || {};
+      
+      // Try to get creator email from a different approach - load from profiles or use username bio link
+      var contactHtml = '<div style="margin-top:20px;margin-bottom:24px;padding:14px 18px;background:var(--surface);border:1px solid var(--border);border-radius:10px;text-align:center;">'
+        + '<p style="font-size:13px;color:var(--muted);margin-bottom:6px;">Having trouble booking?</p>';
+      if (creatorName) {
+        contactHtml += '<p style="font-size:13px;color:var(--muted);">Visit the creator\'s page: <a href="/' + escapeHtml(creatorName) + '" style="color:var(--accent2);text-decoration:none;font-weight:600;">@' + escapeHtml(creatorName) + '</a></p>';
+      }
+      contactHtml += '</div>';
+
       var bodyEl = document.getElementById('confirm-body');
       if (coaching.booking_type === 'calendly' && coaching.calendly_url) {
-        // Embed Calendly widget
-        bodyEl.innerHTML = '<div class="calendly-embed" style="min-height:600px;"><iframe src="' + escapeHtml(coaching.calendly_url) + '" width="100%" height="700" frameborder="0" style="border-radius:12px;"></iframe></div>'
-          + '<p style="font-size:13px;color:var(--muted);margin-bottom:24px;">Pick a time that works for you above. You\'ll receive a confirmation email with the session details.</p>';
+        bodyEl.innerHTML = '<div class="calendly-embed" style="min-height:600px;"><iframe src="' + escapeHtml(coaching.calendly_url) + '" width="100%" height="700" frameborder="0" style="border-radius:12px;" id="scheduling-iframe"></iframe></div>'
+          + '<p style="font-size:13px;color:var(--muted);margin-bottom:8px;">Pick a time that works for you above.</p>'
+          + '<p style="font-size:12px;color:var(--muted);margin-bottom:4px;">If the scheduler doesn\'t load, <a href="' + escapeHtml(coaching.calendly_url) + '" target="_blank" style="color:var(--accent2);">click here to open it directly</a>.</p>'
+          + contactHtml;
       } else {
         // Manual booking message
         bodyEl.innerHTML = '<div class="confirm-manual">'
           + '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:10px;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>'
           + '<p>The creator will reach out to you via email to schedule your session. Keep an eye on your inbox!</p>'
-          + '</div>';
+          + '</div>'
+          + contactHtml;
       }
     }
   }
