@@ -120,7 +120,7 @@
   <h1 class="dash-title">My Courses</h1>
   <div id="dash-courses" class="courses-grid"></div>
   <div id="dash-empty" class="empty-state" style="display:none;">
-    <div style="font-size:40px;margin-bottom:12px;">📚</div>
+    <div style="width:48px;height:48px;margin:0 auto 12px;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.2);border-radius:12px;display:flex;align-items:center;justify-content:center;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M8 7h8M8 11h6"/></svg></div>
     <p>You haven't enrolled in any courses yet.</p>
     <p style="margin-top:8px;"><a href="/" style="color:var(--accent2);">Browse Ryxa</a> to find courses from creators.</p>
   </div>
@@ -291,7 +291,7 @@ function renderDashboard() {
       ? 'background-image:url(' + sb.storage.from("course-covers").getPublicUrl(c.cover_image_path).data.publicUrl + ');background-size:cover;background-position:center;'
       : '';
     return '<a class="course-card" href="#" onclick="openCourseViewer(\'' + c.id + '\');return false;">'
-      + '<div class="course-card-cover" style="' + coverStyle + '">' + (c.cover_image_path ? '' : '📚') + '</div>'
+      + '<div class="course-card-cover" style="' + coverStyle + '">' + (c.cover_image_path ? '' : '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(167,139,250,0.5)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M8 7h8M8 11h6"/></svg>') + '</div>'
       + '<div class="course-card-body">'
       + '<div class="course-card-title">' + escapeHtml(c.title) + '</div>'
       + '<div class="course-card-progress"><div class="course-card-progress-bar" style="width:0%"></div></div>'
