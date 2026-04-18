@@ -429,10 +429,13 @@ async function loadDashboard() {
 
   enrollments = data || [];
 
-  // Load progress for each enrollment
+  // Load creator names and progress for each enrollment
   for (var i = 0; i < enrollments.length; i++) {
     var e = enrollments[i];
     if (!e.courses) continue;
+    // Get creator username
+    var { data: creatorProfile } = await sb.from('profiles').select('username, display_name').eq('user_id', e.courses.user_id).maybeSingle();
+    e._creatorName = creatorProfile?.display_name || creatorProfile?.username || 'Creator';
     // Get total lessons
     var { count: totalLessons } = await sb.from('course_lessons').select('id', { count: 'exact', head: true }).eq('course_id', e.courses.id);
     // Get completed lessons
@@ -471,6 +474,7 @@ function renderDashboard() {
       + '<div class="course-card-cover" style="' + coverStyle + '">' + (c.cover_image_path ? '' : '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M8 7h8M8 11h6"/></svg>') + '</div>'
       + '<div class="course-card-body">'
       + '<div class="course-card-title">' + escapeHtml(c.title) + '</div>'
+      + '<div style="font-size:12px;color:var(--muted);margin-bottom:6px;">by ' + escapeHtml(e._creatorName) + '</div>'
       + (progressLabel ? '<div style="font-size:11px;color:var(--muted);margin-bottom:6px;">' + progressLabel + (pct === 100 ? ' — Complete' : '') + '</div>' : '')
       + '<div class="course-card-progress"><div class="course-card-progress-bar" style="width:' + pct + '%"></div></div>'
       + '</div></a>';
