@@ -64,10 +64,10 @@
   .nav-user { font-size: 13px; color: #fff; }
   .theme-switch { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
   .theme-switch-label { font-size: 11px; color: rgba(255,255,255,0.6); font-family: 'DM Sans', sans-serif; }
-  .theme-switch-track { width: 36px; height: 20px; background: rgba(255,255,255,0.15); border-radius: 100px; position: relative; transition: background 0.2s; flex-shrink: 0; }
-  .theme-switch-track.on { background: #7c3aed; }
+  .theme-switch-track { width: 36px; height: 20px; background: rgba(255,255,255,0.25); border-radius: 100px; position: relative; transition: background 0.2s; flex-shrink: 0; }
+  .theme-switch-track.on { background: #fff; }
   .theme-switch-thumb { width: 16px; height: 16px; background: #fff; border-radius: 50%; position: absolute; top: 2px; left: 2px; transition: transform 0.2s; }
-  .theme-switch-track.on .theme-switch-thumb { transform: translateX(16px); }
+  .theme-switch-track.on .theme-switch-thumb { transform: translateX(16px); background: #000; }
 
   /* Auth form */
   .auth-wrap { max-width: 400px; margin: 80px auto; padding: 0 24px; }
@@ -144,7 +144,7 @@
   <a href="/" class="nav-logo"><img src="/logo.png" alt=""> Ryxa</a>
   <div style="display:flex;align-items:center;gap:14px;">
     <div class="theme-switch" onclick="toggleLearnTheme()">
-      <span class="theme-switch-label" id="theme-label">Light mode</span>
+      <span class="theme-switch-label" id="theme-label">Dark mode</span>
       <div class="theme-switch-track" id="theme-track">
         <div class="theme-switch-thumb"></div>
       </div>
@@ -220,7 +220,7 @@ function updateThemeToggleUI(isLight) {
   var track = document.getElementById('theme-track');
   var label = document.getElementById('theme-label');
   if (track) { if (isLight) track.classList.add('on'); else track.classList.remove('on'); }
-  if (label) label.textContent = isLight ? 'Dark mode' : 'Light mode';
+  if (label) label.textContent = isLight ? 'Light mode' : 'Dark mode';
 }
 
 // Apply saved theme on load
