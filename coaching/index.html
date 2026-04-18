@@ -256,15 +256,18 @@ async function bookCoaching() {
   if (btn) { btn.disabled = true; btn.textContent = 'Booking...'; }
 
   try {
-    // Free booking — skip Stripe
+    // All bookings go through the edge function (handles payment + notifications)
     if (coachingData.price_cents === 0) {
-      var { error: bookErr } = await sb.from('coaching_bookings').insert({
-        coaching_id: coachingData.id,
-        user_id: session.user.id,
-        buyer_email: session.user.email || '',
-        amount_paid_cents: 0
+      // Free booking — edge function handles insert + creator notification
+      var { data, error } = await sb.functions.invoke('create-coaching-checkout', {
+        body: {
+          coaching_id: coachingData.id,
+          free_booking: true
+        }
       });
-      if (bookErr) throw new Error(bookErr.message);
+      if (error || !data || data.error) {
+        throw new Error((data && data.error) || error?.message || 'Failed to book');
+      }
       window.location.href = '/coaching/' + coachingData.slug + '?success=1&coaching_id=' + coachingData.id;
       return;
     }
