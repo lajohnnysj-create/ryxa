@@ -12663,22 +12663,22 @@ function renderCourseModules() {
       return '<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-top:8px;">'
         + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">'
         + '<span style="font-size:11px;color:var(--muted);font-weight:600;min-width:20px;">' + (li + 1) + '.</span>'
-        + '<input type="text" value="' + escapeHtml(l.title) + '" placeholder="Lesson title" onchange="updateLessonField(' + mi + ',' + li + ',\'title\',this.value)" aria-label="Lesson title" style="flex:1;background:transparent;border:none;color:var(--text);font-size:13px;font-weight:500;outline:none;font-family:DM Sans,sans-serif;min-width:0;">'
+        + '<input type="text" value="' + escapeHtml(l.title) + '" placeholder="Lesson title" oninput="updateLessonField(' + mi + ',' + li + ',\'title\',this.value)" aria-label="Lesson title" style="flex:1;background:transparent;border:none;color:var(--text);font-size:13px;font-weight:500;outline:none;font-family:DM Sans,sans-serif;min-width:0;">'
         + typeLabel
         + previewBadge
         + '<button onclick="toggleLessonPreview(' + mi + ',' + li + ')" title="' + (l.is_preview ? 'Remove preview' : 'Mark as free preview') + '" style="padding:3px 6px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:5px;font-size:10px;font-family:DM Sans,sans-serif;cursor:pointer;">' + (l.is_preview ? 'Paid' : 'Free') + '</button>'
         + '<button onclick="removeCourseLesson(' + mi + ',' + li + ')" style="width:22px;height:22px;background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:0;display:flex;align-items:center;justify-content:center;" title="Remove lesson">×</button>'
         + '</div>'
         + (isVideo
-          ? '<input type="url" value="' + escapeHtml(l.video_url || '') + '" placeholder="Video URL (YouTube, Vimeo, etc.)" onchange="updateLessonField(' + mi + ',' + li + ',\'video_url\',this.value)" aria-label="Video URL" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-size:12px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">'
-          : '<textarea placeholder="Lesson content..." onchange="updateLessonField(' + mi + ',' + li + ',\'text_content\',this.value)" aria-label="Lesson text content" rows="4" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-size:12px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;resize:vertical;">' + escapeHtml(l.text_content || '') + '</textarea>')
+          ? '<input type="url" value="' + escapeHtml(l.video_url || '') + '" placeholder="Video URL (YouTube, Vimeo, etc.)" oninput="updateLessonField(' + mi + ',' + li + ',\'video_url\',this.value)" aria-label="Video URL" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-size:12px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">'
+          : '<textarea placeholder="Lesson content..." oninput="updateLessonField(' + mi + ',' + li + ',\'text_content\',this.value)" aria-label="Lesson text content" rows="4" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-size:12px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;resize:vertical;">' + escapeHtml(l.text_content || '') + '</textarea>')
         + '</div>';
     }).join('');
 
     return '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:16px;">'
       + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">'
       + '<span style="font-size:11px;color:var(--accent2);font-weight:700;text-transform:uppercase;letter-spacing:0.08em;">Module ' + (mi + 1) + '</span>'
-      + '<input type="text" value="' + escapeHtml(mod.title) + '" placeholder="Module title (e.g., Getting Started)" onchange="updateModuleTitle(' + mi + ',this.value)" aria-label="Module title" style="flex:1;background:transparent;border:none;color:var(--text);font-size:14px;font-weight:600;outline:none;font-family:DM Sans,sans-serif;min-width:0;">'
+      + '<input type="text" value="' + escapeHtml(mod.title) + '" placeholder="Module title (e.g., Getting Started)" oninput="updateModuleTitle(' + mi + ',this.value)" aria-label="Module title" style="flex:1;background:transparent;border:none;color:var(--text);font-size:14px;font-weight:600;outline:none;font-family:DM Sans,sans-serif;min-width:0;">'
       + '<button onclick="removeCourseModule(' + mi + ')" style="padding:4px 8px;background:transparent;border:1px solid rgba(239,68,68,0.3);color:#ef4444;border-radius:6px;font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer;">Remove</button>'
       + '</div>'
       + lessonsHtml
