@@ -14,24 +14,42 @@
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0a0a14;
-    --surface: #12121e;
-    --surface2: #16162a;
-    --border: rgba(255,255,255,0.06);
-    --border-hover: rgba(255,255,255,0.12);
-    --text: #eee;
-    --muted: rgba(255,255,255,0.45);
-    --accent: #7c3aed;
-    --accent2: #a855f7;
-    --accent-glow: rgba(124,58,237,0.35);
+    --bg: #000;
+    --surface: #111;
+    --surface2: #161616;
+    --border: rgba(255,255,255,0.08);
+    --border-hover: rgba(255,255,255,0.16);
+    --text: #fff;
+    --text-secondary: rgba(255,255,255,0.6);
+    --muted: rgba(255,255,255,0.4);
+    --btn-bg: #fff;
+    --btn-text: #000;
+    --btn-outline-border: rgba(255,255,255,0.2);
+    --btn-outline-text: rgba(255,255,255,0.6);
+    --check-color: #4ade80;
+  }
+  body.light-mode {
+    --bg: #fff;
+    --surface: #f5f5f5;
+    --surface2: #fafafa;
+    --border: rgba(0,0,0,0.08);
+    --border-hover: rgba(0,0,0,0.16);
+    --text: #111;
+    --text-secondary: rgba(0,0,0,0.6);
+    --muted: rgba(0,0,0,0.4);
+    --btn-bg: #111;
+    --btn-text: #fff;
+    --btn-outline-border: rgba(0,0,0,0.2);
+    --btn-outline-text: rgba(0,0,0,0.5);
+    --check-color: #16a34a;
   }
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; transition: background 0.2s, color 0.2s; }
 
   ::-webkit-scrollbar { width: 8px; }
   ::-webkit-scrollbar-track { background: var(--bg); }
-  ::-webkit-scrollbar-thumb { background: rgba(168,85,247,0.4); border-radius: 10px; }
-  html { scrollbar-width: thin; scrollbar-color: rgba(168,85,247,0.4) var(--bg); }
+  ::-webkit-scrollbar-thumb { background: rgba(128,128,128,0.4); border-radius: 10px; }
+  html { scrollbar-width: thin; scrollbar-color: rgba(128,128,128,0.4) var(--bg); }
 
   /* Nav */
   .nav { padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
@@ -39,9 +57,11 @@
   .nav-logo img { width: 28px; height: 28px; border-radius: 6px; }
   .nav-right { display: flex; gap: 10px; align-items: center; }
   .nav-btn { padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; text-decoration: none; border: none; transition: all 0.15s; }
-  .nav-btn-outline { background: transparent; border: 1px solid var(--border-hover); color: var(--muted); }
-  .nav-btn-outline:hover { border-color: var(--accent); color: var(--text); }
+  .nav-btn-outline { background: transparent; border: 1px solid var(--btn-outline-border); color: var(--btn-outline-text); }
+  .nav-btn-outline:hover { border-color: var(--text); color: var(--text); }
   .nav-user { font-size: 13px; color: var(--muted); }
+  .theme-toggle { padding: 6px 12px; background: transparent; border: 1px solid var(--btn-outline-border); color: var(--muted); border-radius: 6px; font-size: 11px; font-family: 'DM Sans', sans-serif; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
+  .theme-toggle:hover { border-color: var(--text); color: var(--text); }
 
   /* Auth form */
   .auth-wrap { max-width: 400px; margin: 80px auto; padding: 0 24px; }
@@ -49,10 +69,10 @@
   .auth-title { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; margin-bottom: 6px; letter-spacing: -0.5px; text-align: center; }
   .auth-sub { font-size: 14px; color: var(--muted); text-align: center; margin-bottom: 24px; }
   .auth-input { width: 100%; padding: 12px 16px; background: var(--surface); border: 1px solid var(--border-hover); border-radius: 8px; font-size: 14px; color: var(--text); font-family: 'DM Sans', sans-serif; outline: none; margin-bottom: 12px; box-sizing: border-box; }
-  .auth-input:focus { border-color: var(--accent); }
-  .auth-btn { width: 100%; padding: 13px; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; box-shadow: 0 0 20px var(--accent-glow); margin-top: 4px; }
+  .auth-input:focus { border-color: var(--text); }
+  .auth-btn { width: 100%; padding: 13px; background: var(--btn-bg); color: var(--btn-text); border: none; border-radius: 8px; font-size: 15px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; margin-top: 4px; }
   .auth-toggle { font-size: 13px; color: var(--muted); text-align: center; margin-top: 16px; }
-  .auth-toggle a { color: var(--accent2); cursor: pointer; text-decoration: none; }
+  .auth-toggle a { color: var(--text); cursor: pointer; text-decoration: underline; }
   .auth-error { font-size: 13px; color: #f87171; text-align: center; margin-top: 12px; display: none; }
 
   /* Dashboard */
@@ -60,50 +80,50 @@
   .dash-title { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; letter-spacing: -1px; margin-bottom: 24px; }
   .courses-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
   .course-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; cursor: pointer; transition: border-color 0.15s; text-decoration: none; color: var(--text); display: block; }
-  .course-card:hover { border-color: rgba(124,58,237,0.4); }
-  .course-card-cover { height: 140px; background: linear-gradient(135deg, rgba(124,58,237,0.15), rgba(232,121,249,0.1)); display: flex; align-items: center; justify-content: center; font-size: 32px; background-size: cover; background-position: center; }
+  .course-card:hover { border-color: var(--btn-outline-text); }
+  .course-card-cover { height: 140px; background: var(--surface); display: flex; align-items: center; justify-content: center; font-size: 32px; background-size: cover; background-position: center; }
   .course-card-body { padding: 14px 16px; }
   .course-card-title { font-size: 15px; font-weight: 600; margin-bottom: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .course-card-creator { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
   .course-card-progress { height: 4px; background: var(--surface); border-radius: 100px; overflow: hidden; }
-  .course-card-progress-bar { height: 100%; background: linear-gradient(90deg, #a78bfa, #e879f9); border-radius: 100px; transition: width 0.3s; }
+  .course-card-progress-bar { height: 100%; background: var(--text); border-radius: 100px; transition: width 0.3s; }
   .empty-state { text-align: center; padding: 60px 24px; color: var(--muted); font-size: 14px; }
 
   /* Course Viewer - Page by page layout */
   .viewer-wrap { max-width: 900px; margin: 0 auto; padding: 32px; }
   .viewer-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
-  .viewer-back { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; background: transparent; border: 1px solid var(--border-hover); color: var(--muted); border-radius: 8px; font-size: 12px; font-family: 'DM Sans', sans-serif; cursor: pointer; text-decoration: none; }
-  .viewer-back:hover { border-color: var(--accent); color: var(--text); }
+  .viewer-back { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; background: transparent; border: 1px solid var(--btn-outline-border); color: var(--btn-outline-text); border-radius: 8px; font-size: 12px; font-family: 'DM Sans', sans-serif; cursor: pointer; text-decoration: none; }
+  .viewer-back:hover { border-color: var(--text); color: var(--text); }
   .viewer-title { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; letter-spacing: -0.5px; flex: 1; }
-  .viewer-toc-btn { padding: 8px 14px; background: transparent; border: 1px solid var(--border-hover); color: var(--muted); border-radius: 8px; font-size: 12px; font-family: 'DM Sans', sans-serif; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
-  .viewer-toc-btn:hover { border-color: var(--accent); color: var(--text); }
+  .viewer-toc-btn { padding: 8px 14px; background: transparent; border: 1px solid var(--btn-outline-border); color: var(--btn-outline-text); border-radius: 8px; font-size: 12px; font-family: 'DM Sans', sans-serif; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+  .viewer-toc-btn:hover { border-color: var(--text); color: var(--text); }
   .viewer-toc { display: none; background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 24px; }
   .viewer-toc.open { display: block; }
   .viewer-sidebar { display: flex; flex-direction: column; gap: 4px; }
-  .viewer-module-title { font-size: 11px; color: var(--accent2); font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding: 12px 0 4px; }
+  .viewer-module-title { font-size: 11px; color: var(--text-secondary); font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding: 12px 0 4px; }
   .viewer-module-title:first-child { padding-top: 0; }
   .viewer-lesson-btn { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: transparent; border: 1px solid transparent; border-radius: 10px; cursor: pointer; transition: all 0.15s; font-size: 13px; color: var(--muted); text-align: left; width: 100%; font-family: 'DM Sans', sans-serif; }
-  .viewer-lesson-btn:hover { background: rgba(124,58,237,0.04); color: var(--text); }
-  .viewer-lesson-btn.active { border-color: var(--accent); background: rgba(124,58,237,0.08); color: var(--text); }
-  .viewer-lesson-btn.completed { color: #4ade80; }
+  .viewer-lesson-btn:hover { background: var(--surface); color: var(--text); }
+  .viewer-lesson-btn.active { border-color: var(--text); background: var(--surface); color: var(--text); }
+  .viewer-lesson-btn.completed { color: var(--check-color); }
   .viewer-check { width: 18px; height: 18px; flex-shrink: 0; text-align: center; }
   .viewer-content { background: var(--surface2); border: 1px solid var(--border); border-radius: 16px; padding: 28px; min-height: 300px; }
-  .viewer-lesson-header { font-size: 11px; color: var(--accent2); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+  .viewer-lesson-header { font-size: 11px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
   .viewer-lesson-title { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; letter-spacing: -0.4px; margin-bottom: 20px; }
   .viewer-video { width: 100%; aspect-ratio: 16/9; border-radius: 12px; border: none; margin-bottom: 16px; }
-  .viewer-text { font-size: 15px; line-height: 1.75; color: var(--muted); white-space: pre-wrap; }
-  .viewer-complete-btn { margin-top: 24px; padding: 10px 20px; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; }
-  .viewer-completed-msg { margin-top: 24px; padding: 10px 20px; background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.25); border-radius: 8px; font-size: 13px; color: #4ade80; display: inline-flex; align-items: center; gap: 6px; }
+  .viewer-text { font-size: 15px; line-height: 1.75; color: var(--text-secondary); white-space: pre-wrap; }
+  .viewer-complete-btn { margin-top: 24px; padding: 10px 20px; background: var(--btn-bg); color: var(--btn-text); border: none; border-radius: 8px; font-size: 13px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; }
+  .viewer-completed-msg { margin-top: 24px; padding: 10px 20px; background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.25); border-radius: 8px; font-size: 13px; color: var(--check-color); display: inline-flex; align-items: center; gap: 6px; }
   .viewer-nav { display: flex; justify-content: space-between; align-items: stretch; gap: 12px; margin-top: 24px; }
   .viewer-nav-btn { flex: 1; padding: 14px 16px; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; cursor: pointer; transition: all 0.15s; text-decoration: none; display: flex; flex-direction: column; gap: 4px; font-family: 'DM Sans', sans-serif; }
-  .viewer-nav-btn:hover { border-color: rgba(124,58,237,0.4); }
+  .viewer-nav-btn:hover { border-color: var(--btn-outline-text); }
   .viewer-nav-btn.disabled { opacity: 0.3; cursor: default; pointer-events: none; }
   .viewer-nav-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
   .viewer-nav-title { font-size: 13px; color: var(--text); font-weight: 500; }
   .viewer-nav-prev { text-align: left; }
   .viewer-nav-next { text-align: right; }
   .viewer-progress-bar { height: 3px; background: var(--surface); border-radius: 100px; margin-bottom: 24px; overflow: hidden; }
-  .viewer-progress-fill { height: 100%; background: linear-gradient(90deg, #a78bfa, #e879f9); border-radius: 100px; transition: width 0.3s; }
+  .viewer-progress-fill { height: 100%; background: var(--text); border-radius: 100px; transition: width 0.3s; }
 
   @media (max-width: 640px) {
     .nav { padding: 12px 16px; }
@@ -116,8 +136,15 @@
 
 <nav class="nav">
   <a href="/" class="nav-logo"><img src="/logo.png" alt=""> Ryxa</a>
-  <div class="nav-right" id="nav-right">
-    <a href="/" class="nav-btn nav-btn-outline">Home</a>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <button class="theme-toggle" id="theme-toggle" onclick="toggleLearnTheme()">
+      <svg id="theme-icon-sun" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <svg id="theme-icon-moon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <span id="theme-label">Light mode</span>
+    </button>
+    <div class="nav-right" id="nav-right">
+      <a href="/" class="nav-btn nav-btn-outline">Home</a>
+    </div>
   </div>
 </nav>
 
@@ -174,6 +201,28 @@
 const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtqeXRhcGNneHVrYWx3c3lwdXRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMTcxMzEsImV4cCI6MjA5MDg5MzEzMX0.VC8mcU5lUeA56kG2gHssvl88EVWr018XttA86jpfEn0';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// Theme toggle
+function toggleLearnTheme() {
+  var isLight = document.body.classList.toggle('light-mode');
+  localStorage.setItem('ryxa-learn-theme', isLight ? 'light' : 'dark');
+  updateThemeToggleUI(isLight);
+}
+
+function updateThemeToggleUI(isLight) {
+  document.getElementById('theme-icon-sun').style.display = isLight ? 'inline' : 'none';
+  document.getElementById('theme-icon-moon').style.display = isLight ? 'none' : 'inline';
+  document.getElementById('theme-label').textContent = isLight ? 'Dark mode' : 'Light mode';
+}
+
+// Apply saved theme on load
+(function() {
+  var saved = localStorage.getItem('ryxa-learn-theme');
+  if (saved === 'light') {
+    document.body.classList.add('light-mode');
+    updateThemeToggleUI(true);
+  }
+})();
 
 let currentUser = null;
 let enrollments = [];
