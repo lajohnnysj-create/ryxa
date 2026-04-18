@@ -844,6 +844,7 @@ function validImageUrl(u) {
       '/storage/v1/object/public/media-kit-photos/',
       '/storage/v1/object/public/bio-backgrounds/',
       '/storage/v1/object/public/course-covers/',
+      '/storage/v1/object/public/coaching-covers/',
     ];
     if (!allowedBuckets.some(b => url.pathname.includes(b))) return null;
     return url.toString();
@@ -947,6 +948,18 @@ function buildLink(link) {
       + '<div style="padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">'
       + '<div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;">' + title + '</div>'
       + '<div style="font-size:13px;font-weight:600;flex-shrink:0;margin-left:8px;">' + crossoutHtml + priceDisplay + '</div>'
+      + '</div></a>';
+  }
+  // Coaching link — same card style as courses
+  if (link.isCoaching) {
+    const safePhoto = validImageUrl(link.photoUrl);
+    const priceDisplay = link.coachingPrice > 0 ? '$' + (link.coachingPrice / 100).toFixed(2) : 'Free';
+    const coverHtml = safePhoto ? '<img src="' + esc(safePhoto) + '" alt="" loading="lazy" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px 10px 0 0;display:block;">' : '';
+    return '<a class="course-link-card" href="' + esc(url) + '" target="_blank" rel="noopener nofollow" style="display:block;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;text-decoration:none;color:var(--text);margin-bottom:8px;transition:transform 0.15s,border-color 0.15s;" onmouseover="this.style.transform=\'translateY(-2px)\';this.style.borderColor=\'var(--accent)\'" onmouseout="this.style.transform=\'\';this.style.borderColor=\'var(--border)\'">'
+      + coverHtml
+      + '<div style="padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">'
+      + '<div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;">' + title + '</div>'
+      + '<div style="font-size:13px;font-weight:600;flex-shrink:0;margin-left:8px;">' + priceDisplay + '</div>'
       + '</div></a>';
   }
   // Media Kit link gets a distinct style — headshot background if available, gradient fallback

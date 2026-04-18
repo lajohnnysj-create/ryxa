@@ -3960,6 +3960,10 @@
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
                 Add Course
               </button>
+              <button type="button" id="bio-add-coaching-link" onclick="openCoachingPickerModal()" style="display:none;flex:1;padding:10px;background:linear-gradient(135deg,rgba(124,58,237,0.1),rgba(232,121,249,0.06));border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:8px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;align-items:center;justify-content:center;gap:5px;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                Add Coaching
+              </button>
               </div>
               </div>
             </div>
@@ -4272,11 +4276,11 @@
           <div style="margin-bottom:16px;">
             <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Booking Method</label>
             <div style="display:flex;gap:8px;">
-              <button type="button" id="coaching-type-calendly" onclick="setCoachingBookingType('calendly')" style="flex:1;padding:12px;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;font-size:13px;color:var(--muted);font-family:DM Sans,sans-serif;cursor:pointer;text-align:center;transition:all 0.15s;">
+              <button type="button" id="coaching-type-calendly" onclick="setCoachingBookingType('calendly')" style="flex:1;padding:12px;background:var(--surface);border:1px solid var(--accent);border-radius:8px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;cursor:pointer;text-align:center;transition:all 0.15s;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto 6px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                Calendly
+                Scheduling Link
               </button>
-              <button type="button" id="coaching-type-manual" onclick="setCoachingBookingType('manual')" style="flex:1;padding:12px;background:var(--surface);border:1px solid var(--accent);border-radius:8px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;cursor:pointer;text-align:center;transition:all 0.15s;">
+              <button type="button" id="coaching-type-manual" onclick="setCoachingBookingType('manual')" style="flex:1;padding:12px;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;font-size:13px;color:var(--muted);font-family:DM Sans,sans-serif;cursor:pointer;text-align:center;transition:all 0.15s;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto 6px;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                 Manual Booking
               </button>
@@ -4284,16 +4288,16 @@
           </div>
 
           <!-- Calendly URL (shown when calendly selected) -->
-          <div id="coaching-calendly-section" style="display:none;margin-bottom:16px;">
-            <label for="coaching-calendly-input" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Calendly Event URL</label>
-            <input type="url" id="coaching-calendly-input" placeholder="https://calendly.com/yourname/30min" aria-label="Calendly URL" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:12px 16px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+          <div id="coaching-calendly-section" style="margin-bottom:16px;">
+            <label for="coaching-calendly-input" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Scheduling Link</label>
+            <input type="url" id="coaching-calendly-input" placeholder="https://calendly.com/yourname/30min or https://cal.com/yourname/30min" aria-label="Scheduling URL" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:12px 16px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
             <div style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5;">
-              <strong>How to set up:</strong> Create a free <a href="https://calendly.com" target="_blank" style="color:var(--accent2);">Calendly</a> account, add an event type for this service (don't add payment — Ryxa handles that), then paste the event URL here.
+              Paste your booking page URL from <a href="https://calendly.com" target="_blank" style="color:var(--accent2);">Calendly</a>, <a href="https://cal.com" target="_blank" style="color:var(--accent2);">Cal.com</a> (free), or any scheduling tool. Don't add payment on your scheduling tool — Ryxa handles that.
             </div>
           </div>
 
           <!-- Manual booking info -->
-          <div id="coaching-manual-section" style="margin-bottom:16px;">
+          <div id="coaching-manual-section" style="display:none;margin-bottom:16px;">
             <div style="padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:8px;font-size:13px;color:var(--muted);line-height:1.6;">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px;"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
               When someone books, you'll receive an email with their contact info. Reach out to schedule the session directly.
@@ -7418,6 +7422,95 @@ function addCourseToLinks(courseId, title, priceCents, slug, coverUrl) {
   showBioStatus('success', 'Course added to your links. Remember to save.');
 }
 
+async function openCoachingPickerModal() {
+  if (!isMax()) {
+    handleMaxUpgradeClick(event);
+    return;
+  }
+  if (!currentUser) return;
+
+  const { data: services } = await sb.from('coaching_services').select('id, title, slug, price_cents, cover_image_path, duration_minutes').eq('user_id', currentUser.id).eq('status', 'published').order('created_at', { ascending: false });
+
+  if (!services || services.length === 0) {
+    showBioStatus('error', 'No published coaching services found. Create and publish one first.');
+    return;
+  }
+
+  const addedIds = bioState.links.filter(l => l.isCoaching).map(l => l.coachingId);
+
+  let modalHtml = '<div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.3px;margin-bottom:16px;">Add Coaching to Bio</div>';
+  modalHtml += '<div style="display:flex;flex-direction:column;gap:10px;">';
+
+  services.forEach(function(c) {
+    const isAdded = addedIds.indexOf(c.id) !== -1;
+    const coverUrl = c.cover_image_path ? sb.storage.from('coaching-covers').getPublicUrl(c.cover_image_path).data.publicUrl : '';
+    const coverHtml = coverUrl
+      ? '<img src="' + escapeHtml(coverUrl) + '" alt="" style="width:60px;height:40px;object-fit:cover;border-radius:6px;flex-shrink:0;">'
+      : '<div style="width:60px;height:40px;border-radius:6px;background:var(--surface);border:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>';
+    const priceText = c.price_cents > 0 ? '$' + (c.price_cents / 100).toFixed(2) : 'Free';
+
+    modalHtml += '<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;">'
+      + coverHtml
+      + '<div style="flex:1;min-width:0;">'
+      + '<div style="font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escapeHtml(c.title) + '</div>'
+      + '<div style="font-size:12px;color:var(--muted);">' + priceText + '</div>'
+      + '</div>';
+
+    if (isAdded) {
+      modalHtml += '<span style="font-size:11px;color:var(--muted);padding:5px 12px;border:1px solid var(--border);border-radius:6px;">Added</span>';
+    } else {
+      modalHtml += '<button onclick="addCoachingToLinks(\'' + c.id + '\',\'' + escapeHtml(c.title.replace(/'/g, "\\'")) + '\',' + c.price_cents + ',\'' + escapeHtml(c.slug) + '\',\'' + escapeHtml(coverUrl) + '\')" style="padding:5px 12px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Add</button>';
+    }
+
+    modalHtml += '</div>';
+  });
+
+  modalHtml += '</div>';
+  modalHtml += '<button onclick="closeCoachingPickerModal()" style="width:100%;margin-top:16px;padding:10px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;">Close</button>';
+
+  let overlay = document.getElementById('coaching-picker-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'coaching-picker-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;';
+    overlay.onclick = function(e) { if (e.target === overlay) closeCoachingPickerModal(); };
+    document.body.appendChild(overlay);
+  }
+  overlay.innerHTML = '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:24px;max-width:480px;width:100%;max-height:80vh;overflow-y:auto;">' + modalHtml + '</div>';
+  overlay.style.display = 'flex';
+}
+
+function closeCoachingPickerModal() {
+  const overlay = document.getElementById('coaching-picker-overlay');
+  if (overlay) overlay.style.display = 'none';
+}
+
+function addCoachingToLinks(coachingId, title, priceCents, slug, coverUrl) {
+  if (bioState.links.some(l => l.isCoaching && l.coachingId === coachingId)) {
+    showBioStatus('error', 'This coaching service is already in your links.');
+    return;
+  }
+
+  const newId = linkIdSeq++;
+  const priceDisplay = priceCents > 0 ? '$' + (priceCents / 100).toFixed(2) : 'Free';
+  bioState.links.push({
+    _id: newId,
+    title: title,
+    description: priceDisplay,
+    url: 'https://www.ryxa.io/coaching/' + slug,
+    featured: false,
+    photoUrl: coverUrl || '',
+    isCoaching: true,
+    coachingId: coachingId,
+    coachingPrice: priceCents,
+  });
+  bioExpandedLinks.add(newId);
+  renderBioLinks();
+  schedulePreviewUpdate();
+  closeCoachingPickerModal();
+  showBioStatus('success', 'Coaching service added to your links. Remember to save.');
+}
+
 function removeLink(id) {
   const link = bioState.links.find(l => l._id === id);
   // If it had a photo, queue it for deletion on save (we'll track old URLs)
@@ -7478,6 +7571,8 @@ function renderBioLinks() {
   // Course button: visible for Max users
   const courseBtn = document.getElementById('bio-add-course-link');
   if (courseBtn) courseBtn.style.display = max ? 'flex' : 'none';
+  const coachingBtn = document.getElementById('bio-add-coaching-link');
+  if (coachingBtn) coachingBtn.style.display = max ? 'flex' : 'none';
   // Enable Sortable (reinit)
   if (window.Sortable) {
     const prev = el._sortable;
@@ -7563,6 +7658,26 @@ function renderLinkCollapsed(link, dragSvg, editSvg) {
           <span class="bio-featured-badge" style="background:rgba(124,58,237,0.15);color:#c4b5fd;border:1px solid rgba(124,58,237,0.3);">Course</span>
         </div>
         <div style="font-size:11px;color:var(--muted);margin-top:2px;">${priceText}${crossoutText}</div>
+      </div>
+      <button type="button" aria-label="Edit link" onclick="event.stopPropagation();expandLink(${link._id})" style="background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:6px;padding:5px 9px;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:4px;">${editSvg} Edit</button>
+      <button class="bio-link-remove" onclick="event.stopPropagation();removeLink(${link._id})">Remove</button>
+    </div>`;
+  }
+
+  if (link.isCoaching) {
+    const thumb = link.photoUrl
+      ? `<img alt="" src="${escapeHtml(link.photoUrl)}" style="width:56px;height:38px;object-fit:cover;border-radius:6px;flex-shrink:0;">`
+      : `<div style="width:56px;height:38px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>`;
+    const priceText = link.coachingPrice > 0 ? '$' + (link.coachingPrice / 100).toFixed(2) : 'Free';
+    return `<div class="bio-link-row bio-link-collapsed" data-id="${link._id}" onclick="expandLink(${link._id})" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:10px 12px;">
+      <div class="bio-link-drag" aria-label="Drag to reorder" onclick="event.stopPropagation();">${dragSvg}</div>
+      ${thumb}
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+          <span style="font-size:13px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;">${title}</span>
+          <span class="bio-featured-badge" style="background:rgba(124,58,237,0.15);color:#c4b5fd;border:1px solid rgba(124,58,237,0.3);">Coaching</span>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;">${priceText}</div>
       </div>
       <button type="button" aria-label="Edit link" onclick="event.stopPropagation();expandLink(${link._id})" style="background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:6px;padding:5px 9px;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:4px;">${editSvg} Edit</button>
       <button class="bio-link-remove" onclick="event.stopPropagation();removeLink(${link._id})">Remove</button>
@@ -7685,6 +7800,30 @@ function renderLinkExpanded(link, dragSvg) {
             oninput="updateLinkField(${link._id},'courseCrossoutPrice',Math.round(parseFloat(this.value||0)*100))"
             aria-label="Crossout price" style="flex:1;background:transparent;border:none;padding:10px 12px 10px 0;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;min-width:0;margin:0;">
         </div>
+      </div>
+      <button type="button" onclick="saveLinkRow(${link._id})"
+        style="width:100%;padding:9px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">
+        Save link
+      </button>
+    </div>`;
+  }
+  if (link.isCoaching) {
+    const coverHtml = link.photoUrl
+      ? `<img alt="" src="${escapeHtml(link.photoUrl)}" style="width:100%;height:120px;object-fit:cover;border-radius:8px;margin-bottom:10px;">`
+      : '';
+    const priceDisplay = link.coachingPrice > 0 ? '$' + (link.coachingPrice / 100).toFixed(2) : 'Free';
+    return `<div class="bio-link-row" data-id="${link._id}">
+      <div class="bio-link-header">
+        <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
+        <span class="bio-featured-badge" style="background:rgba(124,58,237,0.15);color:#c4b5fd;border:1px solid rgba(124,58,237,0.3);">Coaching</span>
+        <div style="flex:1;"></div>
+        <button class="bio-link-remove" onclick="removeLink(${link._id})">Remove</button>
+      </div>
+      ${coverHtml}
+      <input type="text" value="${escapeHtml(link.title || '')}" readonly style="opacity:0.6;cursor:default;" aria-label="Coaching title">
+      <div style="display:flex;align-items:center;gap:0;background:var(--surface);border:1px solid var(--border-hover);border-radius:6px;overflow:hidden;margin-bottom:6px;">
+        <span style="padding:10px 0 10px 12px;font-size:13px;color:var(--muted);white-space:nowrap;">Price:</span>
+        <span style="padding:10px 12px 10px 4px;font-size:13px;color:var(--text);">${priceDisplay}</span>
       </div>
       <button type="button" onclick="saveLinkRow(${link._id})"
         style="width:100%;padding:9px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">
@@ -8159,6 +8298,7 @@ async function saveBio() {
         ...(l.isHero ? { isHero: true } : {}),
         ...(l.isHeader ? { isHeader: true } : {}),
         ...(l.isCourse ? { isCourse: true, courseId: l.courseId, coursePrice: l.coursePrice || 0, courseCrossoutPrice: l.courseCrossoutPrice || 0 } : {}),
+        ...(l.isCoaching ? { isCoaching: true, coachingId: l.coachingId, coachingPrice: l.coachingPrice || 0 } : {}),
       }));
     const cleanVideos = bioState.videos
       .filter(v => (v.url || '').trim())
@@ -8454,6 +8594,19 @@ function buildPreviewLink(l, t) {
           <div style="font-size:12px;font-weight:600;color:${t.text};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(l.title || 'Untitled')}</div>
         </div>
         <div style="font-size:12px;font-weight:600;color:${t.text};flex-shrink:0;margin-left:8px;">${crossoutHtml}${priceDisplay}</div>
+      </div>
+    </div>`;
+  }
+  if (l.isCoaching) {
+    const priceDisplay = l.coachingPrice > 0 ? '$' + (l.coachingPrice / 100).toFixed(2) : 'Free';
+    const coverHtml = l.photoUrl ? `<img src="${escapeHtml(l.photoUrl)}" alt="" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px 8px 0 0;">` : '';
+    return `<div style="background:${t.surface};border:1px solid ${t.border};border-radius:10px;overflow:hidden;margin-bottom:8px;">
+      ${coverHtml}
+      <div style="padding:10px 12px;display:flex;align-items:center;justify-content:space-between;">
+        <div style="min-width:0;flex:1;">
+          <div style="font-size:12px;font-weight:600;color:${t.text};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(l.title || 'Untitled')}</div>
+        </div>
+        <div style="font-size:12px;font-weight:600;color:${t.text};flex-shrink:0;margin-left:8px;">${priceDisplay}</div>
       </div>
     </div>`;
   }
@@ -12665,7 +12818,7 @@ function renderCoachingList() {
     const coverBg = c.cover_image_path
       ? 'background-image:url(' + sb.storage.from("coaching-covers").getPublicUrl(c.cover_image_path).data.publicUrl + ');background-size:cover;background-position:center;'
       : 'background:linear-gradient(135deg,rgba(124,58,237,0.15),rgba(232,121,249,0.1));display:flex;align-items:center;justify-content:center;';
-    const bookingLabel = c.booking_type === 'calendly' ? 'Calendly' : 'Manual';
+    const bookingLabel = c.booking_type === 'calendly' ? 'Scheduling Link' : 'Manual';
     return '<div onclick="openCoachingEditor(\'' + c.id + '\')" style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;overflow:hidden;cursor:pointer;transition:border-color 0.15s;" onmouseover="this.style.borderColor=\'rgba(124,58,237,0.4)\'" onmouseout="this.style.borderColor=\'var(--border)\'">'
       + '<div style="height:140px;' + coverBg + '">' + (c.cover_image_path ? '' : '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(167,139,250,0.5)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>') + '</div>'
       + '<div style="padding:14px 16px;">'
@@ -12700,7 +12853,7 @@ function openCoachingEditor(coachingId) {
   document.getElementById('coaching-danger-zone').style.display = 'none';
   document.getElementById('coaching-publish-btn').style.display = 'none';
   document.getElementById('coaching-editor-msg').style.display = 'none';
-  setCoachingBookingType('manual');
+  setCoachingBookingType('calendly');
 
   if (coachingId) {
     document.getElementById('coaching-editor-title').textContent = 'Edit Service';
@@ -12958,6 +13111,21 @@ async function deleteCoaching() {
   await sb.from('coaching_bookings').delete().eq('coaching_id', currentCoachingId);
   var { error } = await sb.from('coaching_services').delete().eq('id', currentCoachingId);
   if (error) { showCoachingMsg('error', 'Failed: ' + error.message); return; }
+
+  // Remove from bio links if present
+  try {
+    var { data: bioData } = await sb.from('link_in_bio').select('links').eq('user_id', currentUser.id).maybeSingle();
+    if (bioData && Array.isArray(bioData.links)) {
+      var filtered = bioData.links.filter(function(l) { return !(l.isCoaching && l.coachingId === currentCoachingId); });
+      if (filtered.length !== bioData.links.length) {
+        await sb.from('link_in_bio').update({ links: filtered }).eq('user_id', currentUser.id);
+        if (typeof bioState !== 'undefined' && bioState.links) {
+          bioState.links = bioState.links.filter(function(l) { return !(l.isCoaching && l.coachingId === currentCoachingId); });
+        }
+      }
+    }
+  } catch (bioErr) { console.warn('Failed to clean bio link:', bioErr); }
+
   coachingList = coachingList.filter(function(c) { return c.id !== currentCoachingId; });
   closeCoachingEditor();
 }
