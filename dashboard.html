@@ -12599,7 +12599,7 @@ async function loadCourseModules(courseId) {
 
   courseModules = (modules || []).map(m => ({
     ...m,
-    lessons: (lessons || []).filter(l => l.module_id === m.id)
+    lessons: (lessons || []).filter(l => l.module_id === m.id).map(l => ({ ...l, _collapsed: true }))
   }));
   renderCourseModules();
 }
