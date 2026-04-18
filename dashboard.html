@@ -3380,6 +3380,11 @@
       <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
       <span class="sidebar-item-label">Link in Bio</span>
     </button>
+    <button class="sidebar-item" id="nav-courses" onclick="showTool('courses')">
+      <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M8 7h8M8 11h6"/></svg></div>
+      <span class="sidebar-item-label">Courses</span>
+      <span class="sidebar-item-badge max">MAX</span>
+    </button>
     <button class="sidebar-item" id="nav-deals" onclick="showTool('deals')">
       <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 12h18"/></svg></div>
       <span class="sidebar-item-label">Brand Deals <span style="font-size:9px;font-weight:600;letter-spacing:0.08em;color:var(--muted);vertical-align:middle;margin-left:2px;">CRM</span></span>
@@ -3996,6 +4001,123 @@
     </div>
 
     <!-- MEDIA KIT TOOL -->
+    <!-- COURSES -->
+    <div id="tool-courses" style="display:none;">
+      <div style="max-width:900px;">
+
+        <!-- Max-only upsell (non-Max users) -->
+        <div id="courses-upsell" style="display:none;text-align:center;padding:60px 24px;">
+          <div style="font-size:48px;margin-bottom:16px;">📚</div>
+          <h2 style="font-family:Syne,sans-serif;font-size:28px;font-weight:800;margin-bottom:8px;letter-spacing:-0.5px;">Courses</h2>
+          <p style="color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:24px;max-width:440px;margin-left:auto;margin-right:auto;">Build and sell your own courses directly to your audience. Create modules, add video lessons, set your price, and share your course landing page. Available on Creator Max.</p>
+          <button onclick="startCheckout('max_monthly', this)" style="padding:12px 26px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px rgba(232,121,249,0.3);">Upgrade to Creator Max</button>
+        </div>
+
+        <!-- Course list view (Max users) -->
+        <div id="courses-list-view" style="display:none;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+            <div>
+              <h2 style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;margin-bottom:4px;letter-spacing:-0.5px;">Courses</h2>
+              <p style="color:var(--muted);font-size:14px;">Build and sell courses to your audience.</p>
+            </div>
+            <button id="courses-create-btn" onclick="openCourseEditor()" style="padding:10px 20px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;display:inline-flex;align-items:center;gap:6px;box-shadow:0 0 20px var(--accent-glow);">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              New Course
+            </button>
+          </div>
+          <div id="courses-empty" style="display:none;text-align:center;padding:48px 24px;">
+            <div style="font-size:40px;margin-bottom:12px;">📚</div>
+            <p style="color:var(--muted);font-size:14px;margin-bottom:16px;">You haven't created any courses yet.</p>
+            <button onclick="openCourseEditor()" style="padding:10px 20px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow);">Create Your First Course</button>
+          </div>
+          <div id="courses-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;"></div>
+        </div>
+
+        <!-- Course editor view -->
+        <div id="courses-editor-view" style="display:none;">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;flex-wrap:wrap;">
+            <button onclick="closeCourseEditor()" style="padding:8px 14px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              Back
+            </button>
+            <h2 id="courses-editor-title" style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;letter-spacing:-0.5px;">New Course</h2>
+            <div style="margin-left:auto;display:flex;gap:8px;">
+              <button id="course-save-btn" onclick="saveCourse()" style="padding:8px 18px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 16px var(--accent-glow);">Save</button>
+              <button id="course-publish-btn" onclick="toggleCoursePublish()" style="padding:8px 18px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;display:none;">Publish</button>
+            </div>
+          </div>
+          <div id="course-editor-msg" style="display:none;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:16px;"></div>
+
+          <!-- Course details -->
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:20px;">
+            <input type="hidden" id="course-id">
+            <div style="margin-bottom:16px;">
+              <label for="course-title-input" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Course Title</label>
+              <input type="text" id="course-title-input" placeholder="e.g., Master Instagram Reels in 30 Days" maxlength="120" aria-label="Course title" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:12px 16px;font-size:15px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+            </div>
+            <div style="margin-bottom:16px;">
+              <label for="course-slug-input" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">URL Slug</label>
+              <div style="display:flex;align-items:center;gap:0;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;overflow:hidden;">
+                <span style="padding:12px 0 12px 16px;font-size:13px;color:var(--muted);white-space:nowrap;">ryxa.io/course/</span>
+                <input type="text" id="course-slug-input" placeholder="my-course" maxlength="80" aria-label="Course URL slug" style="flex:1;background:transparent;border:none;padding:12px 16px 12px 0;font-size:15px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+              </div>
+            </div>
+            <div style="margin-bottom:16px;">
+              <label for="course-desc-input" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Description</label>
+              <textarea id="course-desc-input" placeholder="What will students learn? Why should they take this course?" maxlength="2000" rows="4" aria-label="Course description" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:12px 16px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;resize:vertical;"></textarea>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+              <div>
+                <label for="course-price-input" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Price (USD)</label>
+                <div style="display:flex;align-items:center;gap:0;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;overflow:hidden;">
+                  <span style="padding:12px 0 12px 16px;font-size:15px;color:var(--muted);">$</span>
+                  <input type="number" id="course-price-input" placeholder="29" min="0" step="0.01" aria-label="Course price in USD" style="flex:1;background:transparent;border:none;padding:12px 16px 12px 4px;font-size:15px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+                </div>
+                <div style="font-size:11px;color:var(--muted);margin-top:4px;">Set to 0 for a free course</div>
+              </div>
+              <div>
+                <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Cover Image</label>
+                <div id="course-cover-area">
+                  <button onclick="document.getElementById('course-cover-file').click()" style="width:100%;padding:12px;background:var(--surface);border:1px dashed var(--border-hover);border-radius:8px;color:var(--muted);font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;text-align:center;">Upload cover image</button>
+                  <input type="file" id="course-cover-file" accept="image/*" onchange="onCourseCoverSelect(this.files[0])" style="display:none;" aria-label="Course cover image">
+                  <div id="course-cover-preview" style="display:none;margin-top:8px;position:relative;">
+                    <img id="course-cover-img" alt="" style="width:100%;border-radius:8px;max-height:160px;object-fit:cover;">
+                    <button onclick="removeCourseCover()" style="position:absolute;top:4px;right:4px;width:24px;height:24px;background:rgba(0,0,0,0.7);color:#fff;border:none;border-radius:50%;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">×</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modules & Lessons -->
+          <div style="margin-bottom:20px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+              <h3 style="font-family:Syne,sans-serif;font-size:16px;font-weight:800;letter-spacing:-0.3px;">Modules & Lessons</h3>
+              <button onclick="addCourseModule()" style="padding:7px 14px;background:transparent;border:1px dashed rgba(124,58,237,0.4);color:var(--accent2);border-radius:8px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;display:inline-flex;align-items:center;gap:5px;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Add Module
+              </button>
+            </div>
+            <div id="course-modules-list" style="display:flex;flex-direction:column;gap:12px;"></div>
+            <div id="course-modules-empty" style="text-align:center;padding:32px 16px;color:var(--muted);font-size:13px;border:1px dashed var(--border-hover);border-radius:12px;">Add a module to start building your course content.</div>
+          </div>
+
+          <!-- Enrollments (existing courses only) -->
+          <div id="course-enrollments-section" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:20px;">
+            <h3 style="font-family:Syne,sans-serif;font-size:16px;font-weight:800;letter-spacing:-0.3px;margin-bottom:12px;">Enrollments</h3>
+            <div id="course-enrollments-count" style="font-size:14px;color:var(--text);"></div>
+            <div id="course-revenue" style="font-size:13px;color:var(--muted);margin-top:4px;"></div>
+          </div>
+
+          <!-- Danger zone -->
+          <div id="course-danger-zone" style="display:none;border-top:1px solid var(--border);padding-top:20px;margin-top:20px;">
+            <button id="course-delete-btn" onclick="deleteCourse()" style="padding:8px 16px;background:transparent;border:1px solid rgba(239,68,68,0.4);color:#ef4444;border-radius:8px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;">Delete Course</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
     <div id="tool-mediakit" style="display:none;">
       <div id="mediakit-paywall" style="display:none;max-width:560px;margin:40px auto;background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:40px;text-align:center;">
         <div style="width:56px;height:56px;margin:0 auto 16px;background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.25);border-radius:14px;display:flex;align-items:center;justify-content:center;">
@@ -5461,6 +5583,7 @@ let currentTool = 'welcome';
 const toolTitles = {
   welcome: 'Dashboard',
   bio: 'Link in Bio',
+  courses: 'Courses',
   mediakit: 'Media Kit',
   grid: 'Grid Planner',
   follower: 'Follow-Back Audit',
@@ -5718,7 +5841,7 @@ function showTool(tool) {
     if (typeof resetPdfSign === 'function') resetPdfSign();
   }
   // Hide all tools
-  ['welcome','bio','mediakit','grid','follower','image','qr','invoice','pdfsign','deals','scripts'].forEach(t => {
+  ['welcome','bio','courses','mediakit','grid','follower','image','qr','invoice','pdfsign','deals','scripts'].forEach(t => {
     const el = document.getElementById('tool-' + t);
     if (el) el.style.display = 'none';
     const nav = document.getElementById('nav-' + t);
@@ -5742,6 +5865,7 @@ function showTool(tool) {
   if (tool === 'invoice') { initInvoiceGenerator(); loadSavedLogo(); }
   if (tool === 'deals') initDealsCrm();
   if (tool === 'bio') initBioTool();
+  if (tool === 'courses') initCoursesTool();
   if (tool === 'mediakit') initMediaKitTool();
   if (tool === 'grid') initGridTool();
   if (tool === 'pdfsign') initPdfSignTool();
@@ -12117,6 +12241,428 @@ function showDealsList() {
 
   currentDealId = null;
   currentDealDeliverables = [];
+}
+
+// =====================================================
+// COURSES — Creator Course Builder (Max only)
+// =====================================================
+let coursesList = [];
+let currentCourseId = null;
+let courseModules = []; // local working copy: [{id, title, sort_order, lessons: [{id, title, lesson_type, video_url, text_content, sort_order, is_preview}]}]
+let courseCoverFile = null;
+let coursesInited = false;
+
+function initCoursesTool() {
+  const max = isMax();
+  document.getElementById('courses-upsell').style.display = max ? 'none' : 'block';
+  document.getElementById('courses-list-view').style.display = max ? 'block' : 'none';
+  document.getElementById('courses-editor-view').style.display = 'none';
+  if (max && !coursesInited) {
+    coursesInited = true;
+    loadCoursesList();
+  } else if (max) {
+    renderCoursesList();
+  }
+}
+
+async function loadCoursesList() {
+  const { data, error } = await sb
+    .from('courses')
+    .select('*')
+    .eq('user_id', currentUser.id)
+    .order('created_at', { ascending: false });
+  if (error) { console.error('Failed to load courses:', error); return; }
+  coursesList = data || [];
+  renderCoursesList();
+}
+
+function renderCoursesList() {
+  const grid = document.getElementById('courses-grid');
+  const empty = document.getElementById('courses-empty');
+  if (coursesList.length === 0) {
+    grid.innerHTML = '';
+    grid.style.display = 'none';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  grid.style.display = 'grid';
+  grid.innerHTML = coursesList.map(c => {
+    const statusColor = c.status === 'published' ? '#4ade80' : c.status === 'archived' ? '#f87171' : '#fbbf24';
+    const statusLabel = c.status.charAt(0).toUpperCase() + c.status.slice(1);
+    const price = c.price_cents === 0 ? 'Free' : '$' + (c.price_cents / 100).toFixed(2);
+    const coverBg = c.cover_image_path
+      ? 'background-image:url(' + sb.storage.from("course-covers").getPublicUrl(c.cover_image_path).data.publicUrl + ');background-size:cover;background-position:center;'
+      : 'background:linear-gradient(135deg,rgba(124,58,237,0.15),rgba(232,121,249,0.1));display:flex;align-items:center;justify-content:center;font-size:32px;';
+    return '<div onclick="openCourseEditor(\'' + c.id + '\')" style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;overflow:hidden;cursor:pointer;transition:border-color 0.15s;" onmouseover="this.style.borderColor=\'rgba(124,58,237,0.4)\'" onmouseout="this.style.borderColor=\'var(--border)\'">'
+      + '<div style="height:140px;' + coverBg + '">' + (c.cover_image_path ? '' : '📚') + '</div>'
+      + '<div style="padding:14px 16px;">'
+      + '<div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escapeHtml(c.title || 'Untitled Course') + '</div>'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;">'
+      + '<span style="font-size:12px;color:' + statusColor + ';font-weight:600;">' + statusLabel + '</span>'
+      + '<span style="font-size:13px;color:var(--muted);font-weight:500;">' + price + '</span>'
+      + '</div>'
+      + '</div></div>';
+  }).join('');
+}
+
+async function openCourseEditor(courseId) {
+  currentCourseId = courseId || null;
+  courseCoverFile = null;
+  courseModules = [];
+  document.getElementById('courses-list-view').style.display = 'none';
+  document.getElementById('courses-editor-view').style.display = 'block';
+  document.getElementById('course-editor-msg').style.display = 'none';
+
+  // Reset form
+  document.getElementById('course-id').value = '';
+  document.getElementById('course-title-input').value = '';
+  document.getElementById('course-slug-input').value = '';
+  document.getElementById('course-desc-input').value = '';
+  document.getElementById('course-price-input').value = '';
+  document.getElementById('course-cover-preview').style.display = 'none';
+  document.getElementById('course-cover-file').value = '';
+  document.getElementById('course-modules-list').innerHTML = '';
+  document.getElementById('course-modules-empty').style.display = 'block';
+  document.getElementById('course-enrollments-section').style.display = 'none';
+  document.getElementById('course-danger-zone').style.display = 'none';
+  document.getElementById('course-publish-btn').style.display = 'none';
+
+  if (courseId) {
+    // Edit existing
+    const course = coursesList.find(c => c.id === courseId);
+    if (!course) return;
+    document.getElementById('courses-editor-title').textContent = 'Edit Course';
+    document.getElementById('course-id').value = course.id;
+    document.getElementById('course-title-input').value = course.title || '';
+    document.getElementById('course-slug-input').value = course.slug || '';
+    document.getElementById('course-desc-input').value = course.description || '';
+    document.getElementById('course-price-input').value = course.price_cents ? (course.price_cents / 100).toString() : '';
+    document.getElementById('course-danger-zone').style.display = 'block';
+
+    // Cover image
+    if (course.cover_image_path) {
+      const url = sb.storage.from('course-covers').getPublicUrl(course.cover_image_path).data.publicUrl;
+      document.getElementById('course-cover-img').src = url;
+      document.getElementById('course-cover-preview').style.display = 'block';
+    }
+
+    // Publish button
+    const pubBtn = document.getElementById('course-publish-btn');
+    pubBtn.style.display = 'inline-block';
+    if (course.status === 'published') {
+      pubBtn.textContent = 'Unpublish';
+      pubBtn.style.borderColor = 'rgba(239,68,68,0.4)';
+      pubBtn.style.color = '#ef4444';
+    } else {
+      pubBtn.textContent = 'Publish';
+      pubBtn.style.borderColor = 'rgba(74,222,128,0.4)';
+      pubBtn.style.color = '#4ade80';
+    }
+
+    // Load modules & lessons
+    await loadCourseModules(courseId);
+
+    // Load enrollment count
+    const { count } = await sb.from('course_enrollments').select('id', { count: 'exact', head: true }).eq('course_id', courseId);
+    if (count !== null && count > 0) {
+      document.getElementById('course-enrollments-section').style.display = 'block';
+      document.getElementById('course-enrollments-count').textContent = count + ' student' + (count !== 1 ? 's' : '') + ' enrolled';
+      // Revenue
+      const { data: revData } = await sb.from('course_enrollments').select('amount_paid_cents').eq('course_id', courseId);
+      const totalRev = (revData || []).reduce((sum, e) => sum + (e.amount_paid_cents || 0), 0);
+      document.getElementById('course-revenue').textContent = 'Total revenue: $' + (totalRev / 100).toFixed(2);
+    }
+  } else {
+    document.getElementById('courses-editor-title').textContent = 'New Course';
+  }
+}
+
+function closeCourseEditor() {
+  document.getElementById('courses-editor-view').style.display = 'none';
+  document.getElementById('courses-list-view').style.display = 'block';
+  currentCourseId = null;
+  loadCoursesList();
+}
+
+function showCourseMsg(type, msg) {
+  const el = document.getElementById('course-editor-msg');
+  el.style.display = 'block';
+  el.style.background = type === 'error' ? 'rgba(239,68,68,0.1)' : 'rgba(74,222,128,0.1)';
+  el.style.color = type === 'error' ? '#f87171' : '#4ade80';
+  el.style.border = '1px solid ' + (type === 'error' ? 'rgba(239,68,68,0.3)' : 'rgba(74,222,128,0.3)');
+  el.textContent = msg;
+  setTimeout(() => { el.style.display = 'none'; }, 4000);
+}
+
+function generateSlug(text) {
+  return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 80);
+}
+
+// Auto-generate slug from title
+document.addEventListener('input', function(e) {
+  if (e.target.id === 'course-title-input' && !currentCourseId) {
+    document.getElementById('course-slug-input').value = generateSlug(e.target.value);
+  }
+});
+
+function onCourseCoverSelect(file) {
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) { showCourseMsg('error', 'Cover image must be under 5MB.'); return; }
+  courseCoverFile = file;
+  const reader = new FileReader();
+  reader.onload = function() {
+    document.getElementById('course-cover-img').src = reader.result;
+    document.getElementById('course-cover-preview').style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeCourseCover() {
+  courseCoverFile = null;
+  document.getElementById('course-cover-preview').style.display = 'none';
+  document.getElementById('course-cover-file').value = '';
+  document.getElementById('course-cover-img').src = '';
+}
+
+async function saveCourse() {
+  const title = document.getElementById('course-title-input').value.trim();
+  const slug = document.getElementById('course-slug-input').value.trim();
+  const description = document.getElementById('course-desc-input').value.trim();
+  const priceStr = document.getElementById('course-price-input').value;
+  const priceCents = Math.round(parseFloat(priceStr || '0') * 100);
+
+  if (!title) { showCourseMsg('error', 'Please enter a course title.'); return; }
+  if (!slug) { showCourseMsg('error', 'Please enter a URL slug.'); return; }
+  if (!/^[a-z0-9-]+$/.test(slug)) { showCourseMsg('error', 'Slug can only contain lowercase letters, numbers, and hyphens.'); return; }
+
+  const btn = document.getElementById('course-save-btn');
+  btn.disabled = true; btn.textContent = 'Saving...';
+
+  try {
+    let courseId = currentCourseId;
+
+    // Upload cover image if new file selected
+    let coverPath = null;
+    if (courseCoverFile) {
+      const ext = courseCoverFile.name.split('.').pop();
+      const path = currentUser.id + '/' + (courseId || 'new') + '_' + Date.now() + '.' + ext;
+      const { error: uploadErr } = await sb.storage.from('course-covers').upload(path, courseCoverFile, { upsert: true });
+      if (uploadErr) throw new Error('Cover upload failed: ' + uploadErr.message);
+      coverPath = path;
+    }
+
+    const payload = {
+      title,
+      slug,
+      description,
+      price_cents: priceCents,
+      updated_at: new Date().toISOString()
+    };
+    if (coverPath) payload.cover_image_path = coverPath;
+
+    if (courseId) {
+      // Update
+      const { error } = await sb.from('courses').update(payload).eq('id', courseId);
+      if (error) throw new Error(error.message);
+    } else {
+      // Insert
+      payload.user_id = currentUser.id;
+      payload.status = 'draft';
+      const { data, error } = await sb.from('courses').insert(payload).select().single();
+      if (error) throw new Error(error.message);
+      courseId = data.id;
+      currentCourseId = courseId;
+      document.getElementById('course-id').value = courseId;
+      document.getElementById('courses-editor-title').textContent = 'Edit Course';
+      document.getElementById('course-danger-zone').style.display = 'block';
+      // Show publish button
+      const pubBtn = document.getElementById('course-publish-btn');
+      pubBtn.style.display = 'inline-block';
+      pubBtn.textContent = 'Publish';
+      pubBtn.style.borderColor = 'rgba(74,222,128,0.4)';
+      pubBtn.style.color = '#4ade80';
+    }
+
+    // Save modules & lessons
+    await saveCourseModules(courseId);
+
+    showCourseMsg('success', 'Course saved!');
+    courseCoverFile = null;
+  } catch (err) {
+    showCourseMsg('error', 'Failed to save: ' + err.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Save';
+  }
+}
+
+async function toggleCoursePublish() {
+  if (!currentCourseId) return;
+  const course = coursesList.find(c => c.id === currentCourseId);
+  const newStatus = (course && course.status === 'published') ? 'draft' : 'published';
+  const updates = { status: newStatus };
+  if (newStatus === 'published') updates.published_at = new Date().toISOString();
+
+  const { error } = await sb.from('courses').update(updates).eq('id', currentCourseId);
+  if (error) { showCourseMsg('error', 'Failed: ' + error.message); return; }
+
+  if (course) course.status = newStatus;
+  const pubBtn = document.getElementById('course-publish-btn');
+  if (newStatus === 'published') {
+    pubBtn.textContent = 'Unpublish';
+    pubBtn.style.borderColor = 'rgba(239,68,68,0.4)';
+    pubBtn.style.color = '#ef4444';
+    showCourseMsg('success', 'Course published! Landing page: ryxa.io/course/' + (course?.slug || ''));
+  } else {
+    pubBtn.textContent = 'Publish';
+    pubBtn.style.borderColor = 'rgba(74,222,128,0.4)';
+    pubBtn.style.color = '#4ade80';
+    showCourseMsg('success', 'Course unpublished.');
+  }
+}
+
+async function deleteCourse() {
+  if (!currentCourseId) return;
+  const confirmed = await dashConfirm('Delete this course permanently? All modules, lessons, and enrollment data will be lost.');
+  if (!confirmed) return;
+
+  const { error } = await sb.from('courses').delete().eq('id', currentCourseId);
+  if (error) { showCourseMsg('error', 'Failed: ' + error.message); return; }
+  coursesList = coursesList.filter(c => c.id !== currentCourseId);
+  closeCourseEditor();
+}
+
+// ---- Modules & Lessons ----
+async function loadCourseModules(courseId) {
+  const { data: modules } = await sb.from('course_modules').select('*').eq('course_id', courseId).order('sort_order');
+  const { data: lessons } = await sb.from('course_lessons').select('*').eq('course_id', courseId).order('sort_order');
+
+  courseModules = (modules || []).map(m => ({
+    ...m,
+    lessons: (lessons || []).filter(l => l.module_id === m.id)
+  }));
+  renderCourseModules();
+}
+
+async function saveCourseModules(courseId) {
+  // Delete existing and re-insert (simplest approach for MVP)
+  await sb.from('course_lessons').delete().eq('course_id', courseId);
+  await sb.from('course_modules').delete().eq('course_id', courseId);
+
+  for (let mi = 0; mi < courseModules.length; mi++) {
+    const mod = courseModules[mi];
+    const { data: savedMod, error: modErr } = await sb.from('course_modules').insert({
+      course_id: courseId,
+      title: mod.title || 'Untitled Module',
+      sort_order: mi
+    }).select().single();
+    if (modErr || !savedMod) continue;
+    mod.id = savedMod.id;
+
+    for (let li = 0; li < (mod.lessons || []).length; li++) {
+      const lesson = mod.lessons[li];
+      await sb.from('course_lessons').insert({
+        course_id: courseId,
+        module_id: savedMod.id,
+        title: lesson.title || 'Untitled Lesson',
+        lesson_type: lesson.lesson_type || 'video',
+        video_url: lesson.video_url || null,
+        text_content: lesson.text_content || '',
+        sort_order: li,
+        is_preview: !!lesson.is_preview
+      });
+    }
+  }
+}
+
+function addCourseModule() {
+  courseModules.push({ id: 'new_' + Date.now(), title: '', lessons: [] });
+  renderCourseModules();
+}
+
+function removeCourseModule(idx) {
+  courseModules.splice(idx, 1);
+  renderCourseModules();
+}
+
+function addCourseLesson(modIdx) {
+  courseModules[modIdx].lessons.push({
+    id: 'new_' + Date.now(),
+    title: '',
+    lesson_type: 'video',
+    video_url: '',
+    text_content: '',
+    is_preview: false
+  });
+  renderCourseModules();
+}
+
+function removeCourseLesson(modIdx, lessonIdx) {
+  courseModules[modIdx].lessons.splice(lessonIdx, 1);
+  renderCourseModules();
+}
+
+function updateModuleTitle(modIdx, val) {
+  courseModules[modIdx].title = val;
+}
+
+function updateLessonField(modIdx, lessonIdx, field, val) {
+  courseModules[modIdx].lessons[lessonIdx][field] = val;
+}
+
+function toggleLessonPreview(modIdx, lessonIdx) {
+  courseModules[modIdx].lessons[lessonIdx].is_preview = !courseModules[modIdx].lessons[lessonIdx].is_preview;
+  renderCourseModules();
+}
+
+function toggleLessonType(modIdx, lessonIdx) {
+  const lesson = courseModules[modIdx].lessons[lessonIdx];
+  lesson.lesson_type = lesson.lesson_type === 'video' ? 'text' : 'video';
+  renderCourseModules();
+}
+
+function renderCourseModules() {
+  const container = document.getElementById('course-modules-list');
+  const empty = document.getElementById('course-modules-empty');
+
+  if (courseModules.length === 0) {
+    container.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  container.innerHTML = courseModules.map((mod, mi) => {
+    const lessonsHtml = (mod.lessons || []).map((l, li) => {
+      const isVideo = l.lesson_type === 'video';
+      const previewBadge = l.is_preview ? '<span style="font-size:9px;background:rgba(74,222,128,0.15);color:#4ade80;border:1px solid rgba(74,222,128,0.3);padding:2px 6px;border-radius:100px;font-weight:600;letter-spacing:0.05em;">PREVIEW</span>' : '';
+      return '<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-top:8px;">'
+        + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">'
+        + '<span style="font-size:11px;color:var(--muted);font-weight:600;min-width:20px;">' + (li + 1) + '.</span>'
+        + '<input type="text" value="' + escapeHtml(l.title) + '" placeholder="Lesson title" onchange="updateLessonField(' + mi + ',' + li + ',\'title\',this.value)" aria-label="Lesson title" style="flex:1;background:transparent;border:none;color:var(--text);font-size:13px;font-weight:500;outline:none;font-family:DM Sans,sans-serif;min-width:0;">'
+        + previewBadge
+        + '<button onclick="toggleLessonPreview(' + mi + ',' + li + ')" title="' + (l.is_preview ? 'Remove preview' : 'Mark as free preview') + '" style="padding:3px 6px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:5px;font-size:10px;font-family:DM Sans,sans-serif;cursor:pointer;">' + (l.is_preview ? 'Paid' : 'Free') + '</button>'
+        + '<button onclick="toggleLessonType(' + mi + ',' + li + ')" title="Switch type" style="padding:3px 6px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:5px;font-size:10px;font-family:DM Sans,sans-serif;cursor:pointer;">' + (isVideo ? '🎬' : '📝') + '</button>'
+        + '<button onclick="removeCourseLesson(' + mi + ',' + li + ')" style="width:22px;height:22px;background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:0;display:flex;align-items:center;justify-content:center;" title="Remove lesson">×</button>'
+        + '</div>'
+        + (isVideo
+          ? '<input type="url" value="' + escapeHtml(l.video_url || '') + '" placeholder="Video URL (YouTube, Vimeo, etc.)" onchange="updateLessonField(' + mi + ',' + li + ',\'video_url\',this.value)" aria-label="Video URL" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-size:12px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">'
+          : '<textarea placeholder="Lesson content..." onchange="updateLessonField(' + mi + ',' + li + ',\'text_content\',this.value)" aria-label="Lesson text content" rows="4" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-size:12px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;resize:vertical;">' + escapeHtml(l.text_content || '') + '</textarea>')
+        + '</div>';
+    }).join('');
+
+    return '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:16px;">'
+      + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">'
+      + '<span style="font-size:11px;color:var(--accent2);font-weight:700;text-transform:uppercase;letter-spacing:0.08em;">Module ' + (mi + 1) + '</span>'
+      + '<input type="text" value="' + escapeHtml(mod.title) + '" placeholder="Module title (e.g., Getting Started)" onchange="updateModuleTitle(' + mi + ',this.value)" aria-label="Module title" style="flex:1;background:transparent;border:none;color:var(--text);font-size:14px;font-weight:600;outline:none;font-family:DM Sans,sans-serif;min-width:0;">'
+      + '<button onclick="removeCourseModule(' + mi + ')" style="padding:4px 8px;background:transparent;border:1px solid rgba(239,68,68,0.3);color:#ef4444;border-radius:6px;font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer;">Remove</button>'
+      + '</div>'
+      + lessonsHtml
+      + '<button onclick="addCourseLesson(' + mi + ')" style="margin-top:10px;padding:6px 12px;background:transparent;border:1px dashed var(--border-hover);color:var(--muted);border-radius:6px;font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer;display:inline-flex;align-items:center;gap:4px;width:100%;justify-content:center;">'
+      + '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'
+      + 'Add Lesson</button>'
+      + '</div>';
+  }).join('');
 }
 
 // =====================================================
