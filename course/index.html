@@ -269,7 +269,7 @@ function renderCourse(course, creatorName, modules, lessons) {
 
   // Title, creator, description
   document.getElementById('cp-title').textContent = course.title;
-  document.getElementById('cp-creator').innerHTML = 'by <a href="/' + escapeHtml(creatorName) + '" style="color:inherit;text-decoration:underline;text-underline-offset:2px;"><strong>' + escapeHtml(creatorName) + '</strong></a>';
+  document.getElementById('cp-creator').innerHTML = 'by <a href="/' + escapeHtml(creatorName) + '" style="color:inherit;text-decoration:none;"><strong>' + escapeHtml(creatorName) + '</strong></a>';
   document.getElementById('cp-desc').textContent = course.description || '';
 
   // Price & buy
