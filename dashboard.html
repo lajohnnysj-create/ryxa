@@ -3570,6 +3570,13 @@
               <div class="welcome-tool-desc">Build and sell courses to your audience with Stripe payments</div>
             </div>
           </div>
+          <div class="welcome-tool-card" onclick="showTool('coaching')">
+            <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+            <div>
+              <div class="welcome-tool-name">1:1 Coaching <span style="font-size:9px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;padding:2px 6px;border-radius:4px;margin-left:4px;vertical-align:middle;font-weight:700;letter-spacing:0.03em;">MAX</span></div>
+              <div class="welcome-tool-desc">Sell private coaching sessions and consultations</div>
+            </div>
+          </div>
           <div class="welcome-tool-card" onclick="showTool('mediakit')">
             <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="17" x2="8" y2="13"/><line x1="12" y1="17" x2="12" y2="11"/><line x1="16" y1="17" x2="16" y2="15"/></svg></div>
             <div>
@@ -3948,22 +3955,10 @@
                 <button type="button" id="bio-add-header-btn" onclick="addHeader()" style="flex:1;min-width:140px;padding:10px;background:transparent;border:1px dashed rgba(124,58,237,0.4);color:var(--accent2);border-radius:8px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;">+ Add header</button>
               </div>
               <div style="display:flex;gap:8px;margin-top:8px;">
-              <button type="button" id="bio-add-hero-btn" onclick="addLink(false, true)" style="display:none;flex:1;padding:10px;background:linear-gradient(135deg,rgba(167,139,250,0.12),rgba(232,121,249,0.08));border:1px solid rgba(232,121,249,0.35);color:#e879f9;border-radius:8px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;align-items:center;justify-content:center;gap:5px;">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
-                Hero Link
-              </button>
-              <button type="button" id="bio-add-mediakit-link" onclick="addMediaKitLink()" style="display:none;flex:1;padding:10px;background:linear-gradient(135deg,rgba(124,58,237,0.1),rgba(232,121,249,0.06));border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:8px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;align-items:center;justify-content:center;gap:5px;">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="17" x2="8" y2="13"/><line x1="12" y1="17" x2="12" y2="11"/><line x1="16" y1="17" x2="16" y2="15"/></svg>
-                Add Media Kit
-              </button>
-              <button type="button" id="bio-add-course-link" onclick="openCoursePickerModal()" style="display:none;flex:1;padding:10px;background:linear-gradient(135deg,rgba(124,58,237,0.1),rgba(232,121,249,0.06));border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:8px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;align-items:center;justify-content:center;gap:5px;">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-                Add Course
-              </button>
-              <button type="button" id="bio-add-coaching-link" onclick="openCoachingPickerModal()" style="display:none;flex:1;padding:10px;background:linear-gradient(135deg,rgba(124,58,237,0.1),rgba(232,121,249,0.06));border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:8px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;align-items:center;justify-content:center;gap:5px;">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-                Add Coaching
-              </button>
+              <button type="button" id="bio-add-hero-btn" onclick="addLink(false, true)" style="display:none;flex:1;padding:10px;background:linear-gradient(135deg,rgba(167,139,250,0.12),rgba(232,121,249,0.08));border:1px solid rgba(232,121,249,0.35);color:#e879f9;border-radius:8px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;text-align:center;">+ Hero Link</button>
+              <button type="button" id="bio-add-mediakit-link" onclick="addMediaKitLink()" style="display:none;flex:1;padding:10px;background:linear-gradient(135deg,rgba(124,58,237,0.1),rgba(232,121,249,0.06));border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:8px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;text-align:center;">+ Media Kit</button>
+              <button type="button" id="bio-add-course-link" onclick="openCoursePickerModal()" style="display:none;flex:1;padding:10px;background:linear-gradient(135deg,rgba(124,58,237,0.1),rgba(232,121,249,0.06));border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:8px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;text-align:center;">+ Course</button>
+              <button type="button" id="bio-add-coaching-link" onclick="openCoachingPickerModal()" style="display:none;flex:1;padding:10px;background:linear-gradient(135deg,rgba(124,58,237,0.1),rgba(232,121,249,0.06));border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:8px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;text-align:center;">+ Coaching</button>
               </div>
               </div>
             </div>
@@ -4189,20 +4184,25 @@
             </button>
           </div>
           <div id="coaching-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;"></div>
-          <div id="coaching-empty" style="display:none;text-align:center;padding:32px 16px;color:var(--muted);font-size:13px;border:1px dashed var(--border-hover);border-radius:12px;">Create your first coaching service to start booking clients.</div>
+          <div id="coaching-empty" style="display:none;text-align:center;padding:48px 24px;">
+            <div style="width:48px;height:48px;margin:0 auto 12px;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.2);border-radius:12px;display:flex;align-items:center;justify-content:center;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+            <p style="color:var(--muted);font-size:14px;margin-bottom:16px;">You haven't created any coaching services yet.</p>
+            <button onclick="openCoachingEditor()" style="padding:10px 20px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow);">Create Your First Service</button>
+          </div>
         </div>
 
         <!-- Coaching editor -->
         <div id="coaching-editor-view" style="display:none;">
-          <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;flex-wrap:wrap;">
             <button onclick="closeCoachingEditor()" style="padding:8px 14px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
               Back
             </button>
-            <h2 id="coaching-editor-title" style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;letter-spacing:-0.4px;">New Service</h2>
-            <div style="flex:1;"></div>
-            <button id="coaching-publish-btn" onclick="toggleCoachingPublish()" style="padding:8px 18px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;display:none;">Publish</button>
-            <button id="coaching-save-btn" onclick="saveCoaching()" style="padding:8px 18px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 16px var(--accent-glow);">Save</button>
+            <h2 id="coaching-editor-title" style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;letter-spacing:-0.5px;">New Service</h2>
+            <div style="margin-left:auto;display:flex;gap:8px;">
+              <button id="coaching-save-btn" onclick="saveCoaching()" style="padding:8px 18px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 16px var(--accent-glow);">Save</button>
+              <button id="coaching-publish-btn" onclick="toggleCoachingPublish()" style="padding:8px 18px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;display:none;">Publish</button>
+            </div>
           </div>
           <div id="coaching-editor-msg" style="display:none;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:16px;"></div>
 
