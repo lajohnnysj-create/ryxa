@@ -434,8 +434,8 @@ async function loadDashboard() {
     var e = enrollments[i];
     if (!e.courses) continue;
     // Get creator username
-    var { data: creatorProfile } = await sb.from('profiles').select('username, display_name').eq('user_id', e.courses.user_id).maybeSingle();
-    e._creatorName = creatorProfile?.display_name || creatorProfile?.username || 'Creator';
+    var { data: creatorProfile } = await sb.from('profiles').select('username').eq('user_id', e.courses.user_id).maybeSingle();
+    e._creatorName = creatorProfile?.username || 'Creator';
     // Get total lessons
     var { count: totalLessons } = await sb.from('course_lessons').select('id', { count: 'exact', head: true }).eq('course_id', e.courses.id);
     // Get completed lessons
