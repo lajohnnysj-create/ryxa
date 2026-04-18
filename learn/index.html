@@ -76,18 +76,21 @@
 
   /* Marketplace search */
   .mp-search-wrap { position:relative; }
-  .mp-search-wrap svg { position:absolute; left:14px; top:50%; transform:translateY(-50%); width:16px; height:16px; stroke:rgba(255,255,255,0.35); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; pointer-events:none; }
-  .mp-search { width:100%; padding:12px 14px 12px 40px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); border-radius:10px; font-size:14px; color:#fff; font-family:'DM Sans',sans-serif; outline:none; transition:border-color 0.15s; }
+  .mp-search-wrap svg { position:absolute; left:14px; top:50%; transform:translateY(-50%); width:16px; height:16px; stroke:var(--muted); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; pointer-events:none; }
+  .mp-search { width:100%; padding:12px 14px 12px 40px; background:var(--surface); border:1px solid var(--border); border-radius:10px; font-size:14px; color:var(--text); font-family:'DM Sans',sans-serif; outline:none; transition:border-color 0.15s; }
   .mp-search:focus { border-color:rgba(124,58,237,0.5); }
-  .mp-search::placeholder { color:rgba(255,255,255,0.3); }
-  .mp-empty { padding:32px 20px; text-align:center; color:rgba(255,255,255,0.35); font-size:13px; }
-  .mp-item { display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:10px; text-decoration:none; color:#fff; transition:background 0.12s; cursor:pointer; }
-  .mp-item:hover { background:rgba(255,255,255,0.06); }
-  .mp-item-cover { width:48px; height:32px; border-radius:6px; background:rgba(255,255,255,0.06); object-fit:cover; flex-shrink:0; }
+  .mp-search::placeholder { color:var(--muted); }
+  .mp-empty { padding:32px 20px; text-align:center; color:var(--muted); font-size:13px; }
+  .mp-item { display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:10px; text-decoration:none; color:var(--text); transition:background 0.12s; cursor:pointer; }
+  .mp-item:hover { background:var(--surface); }
+  .mp-item-cover { width:48px; height:32px; border-radius:6px; background:var(--surface); object-fit:cover; flex-shrink:0; }
   .mp-item-info { flex:1; min-width:0; }
   .mp-item-title { font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .mp-item-creator { font-size:11px; color:rgba(255,255,255,0.4); margin-top:2px; }
-  .mp-item-price { font-family:'Syne',sans-serif; font-size:14px; font-weight:700; color:#a78bfa; flex-shrink:0; }
+  .mp-item-creator { font-size:11px; color:var(--muted); margin-top:2px; }
+  .mp-item-price { font-family:'Syne',sans-serif; font-size:14px; font-weight:700; color:#7c3aed; flex-shrink:0; }
+  .mp-item-type { font-size:9px; font-weight:600; letter-spacing:0.05em; text-transform:uppercase; padding:2px 6px; border-radius:4px; flex-shrink:0; }
+  .mp-item-type.course { background:rgba(124,58,237,0.1); color:#7c3aed; border:1px solid rgba(124,58,237,0.2); }
+  .mp-item-type.coaching { background:rgba(232,121,249,0.1); color:#e879f9; border:1px solid rgba(232,121,249,0.2); }
   .theme-switch { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
   .theme-switch-label { font-size: 11px; color: rgba(255,255,255,0.6); font-family: 'DM Sans', sans-serif; }
   .theme-switch-track { width: 36px; height: 20px; background: rgba(255,255,255,0.25); border-radius: 100px; position: relative; transition: background 0.2s; flex-shrink: 0; }
@@ -167,7 +170,7 @@
 <body>
 
 <nav class="nav">
-  <a href="/" class="nav-logo"><img src="/logo.png" alt=""> Ryxa</a>
+  <a href="/" class="nav-logo"><img src="/logo.png" alt=""> Ryxa <span style="font-weight:500;font-size:14px;color:rgba(255,255,255,0.5);margin-left:2px;">Learning Hub</span></a>
   <div class="nav-right" id="nav-right">
     <a href="/" class="nav-btn nav-btn-outline">Home</a>
   </div>
@@ -175,17 +178,17 @@
 
 <!-- Marketplace Search (inline) -->
 <div id="mp-screen" style="display:none;max-width:600px;margin:0 auto;padding:40px 20px;">
-  <button onclick="closeMarketplace()" style="background:none;border:none;color:rgba(255,255,255,0.5);font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;display:inline-flex;align-items:center;gap:6px;margin-bottom:24px;padding:0;">
+  <button onclick="closeMarketplace()" style="background:none;border:none;color:var(--muted);font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;display:inline-flex;align-items:center;gap:6px;margin-bottom:24px;padding:0;">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
     Return to dashboard
   </button>
-  <h2 style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fff;letter-spacing:-0.5px;margin-bottom:16px;">Search Marketplace</h2>
+  <h2 style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--text);letter-spacing:-0.5px;margin-bottom:16px;">Search Marketplace</h2>
   <div class="mp-search-wrap">
     <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-    <input type="text" class="mp-search" id="mp-search-input" placeholder="Search courses..." autocomplete="off">
+    <input type="text" class="mp-search" id="mp-search-input" placeholder="Search courses and coaching..." autocomplete="off">
   </div>
   <div class="mp-results" id="mp-results" style="margin-top:12px;">
-    <div class="mp-empty">Start typing to discover courses from creators on Ryxa.</div>
+    <div class="mp-empty">Start typing to discover courses and coaching from creators on Ryxa.</div>
   </div>
 </div>
 
@@ -974,7 +977,7 @@ function closeMarketplace() {
   document.getElementById('mp-screen').style.display = 'none';
   document.getElementById('learn-main').style.display = 'block';
   document.getElementById('mp-search-input').value = '';
-  document.getElementById('mp-results').innerHTML = '<div class="mp-empty">Start typing to discover courses from creators on Ryxa.</div>';
+  document.getElementById('mp-results').innerHTML = '<div class="mp-empty">Start typing to discover courses and coaching from creators on Ryxa.</div>';
 }
 
 document.addEventListener('input', function(e) {
@@ -982,7 +985,7 @@ document.addEventListener('input', function(e) {
   clearTimeout(mpDebounce);
   var q = e.target.value.trim();
   if (q.length < 2) {
-    document.getElementById('mp-results').innerHTML = '<div class="mp-empty">Start typing to discover courses from creators on Ryxa.</div>';
+    document.getElementById('mp-results').innerHTML = '<div class="mp-empty">Start typing to discover courses and coaching from creators on Ryxa.</div>';
     return;
   }
   mpDebounce = setTimeout(function() { searchMarketplace(q); }, 300);
@@ -990,26 +993,41 @@ document.addEventListener('input', function(e) {
 
 async function searchMarketplace(query) {
   var results = document.getElementById('mp-results');
-  results.innerHTML = '<div class="mp-empty" style="color:rgba(255,255,255,0.25);">Searching...</div>';
+  results.innerHTML = '<div class="mp-empty">Searching...</div>';
 
   try {
-    var { data, error } = await sb
+    // Search courses
+    var { data: courses, error: cErr } = await sb
       .from('courses')
       .select('id, title, slug, price_cents, cover_image_path, user_id')
       .eq('status', 'published')
       .ilike('title', '%' + query + '%')
       .order('created_at', { ascending: false })
-      .limit(20);
+      .limit(10);
 
-    if (error) throw error;
+    // Search coaching
+    var { data: coaching, error: coErr } = await sb
+      .from('coaching_services')
+      .select('id, title, slug, price_cents, cover_image_path, user_id')
+      .eq('status', 'published')
+      .ilike('title', '%' + query + '%')
+      .order('created_at', { ascending: false })
+      .limit(10);
 
-    if (!data || data.length === 0) {
-      results.innerHTML = '<div class="mp-empty">No courses found for "' + escapeHtml(query) + '"</div>';
+    if (cErr) throw cErr;
+    if (coErr) throw coErr;
+
+    var items = [];
+    (courses || []).forEach(function(c) { items.push(Object.assign({}, c, { _type: 'course' })); });
+    (coaching || []).forEach(function(c) { items.push(Object.assign({}, c, { _type: 'coaching' })); });
+
+    if (items.length === 0) {
+      results.innerHTML = '<div class="mp-empty">No results found for "' + escapeHtml(query) + '"</div>';
       return;
     }
 
-    // Fetch usernames for all unique user_ids
-    var userIds = [...new Set(data.map(function(c) { return c.user_id; }))];
+    // Fetch usernames
+    var userIds = [...new Set(items.map(function(c) { return c.user_id; }))];
     var usernameMap = {};
     if (userIds.length > 0) {
       var { data: profiles } = await sb.from('profiles').select('user_id, username').in('user_id', userIds);
@@ -1017,24 +1035,28 @@ async function searchMarketplace(query) {
     }
 
     var html = '';
-    data.forEach(function(c) {
+    items.forEach(function(c) {
       var username = usernameMap[c.user_id] || 'creator';
       var price = c.price_cents > 0 ? '$' + (c.price_cents / 100).toFixed(0) : 'Free';
+      var bucket = c._type === 'course' ? 'course-covers' : 'coaching-covers';
       var coverUrl = c.cover_image_path
-        ? 'https://kjytapcgxukalwsyputk.supabase.co/storage/v1/object/public/course-covers/' + c.cover_image_path
+        ? 'https://kjytapcgxukalwsyputk.supabase.co/storage/v1/object/public/' + bucket + '/' + c.cover_image_path
         : '';
-      var courseUrl = '/course/' + encodeURIComponent(c.slug);
+      var pageUrl = c._type === 'course' ? '/course/' + encodeURIComponent(c.slug) : '/coaching/' + encodeURIComponent(c.slug);
+      var typeLabel = c._type === 'course' ? 'Course' : 'Coaching';
+      var typeClass = c._type;
 
-      html += '<a href="' + courseUrl + '" class="mp-item">';
+      html += '<a href="' + pageUrl + '" class="mp-item">';
       if (coverUrl) {
         html += '<img src="' + escapeHtml(coverUrl) + '" class="mp-item-cover" alt="">';
       } else {
-        html += '<div class="mp-item-cover" style="display:flex;align-items:center;justify-content:center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>';
+        html += '<div class="mp-item-cover" style="display:flex;align-items:center;justify-content:center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>';
       }
       html += '<div class="mp-item-info">';
       html += '<div class="mp-item-title">' + escapeHtml(c.title) + '</div>';
       html += '<div class="mp-item-creator">by @' + escapeHtml(username) + '</div>';
       html += '</div>';
+      html += '<span class="mp-item-type ' + typeClass + '">' + typeLabel + '</span>';
       html += '<div class="mp-item-price">' + price + '</div>';
       html += '</a>';
     });
