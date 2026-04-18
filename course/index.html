@@ -1,1 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<title>Course — Ryxa</title>
+<meta name="description" content="Learn from creators on Ryxa.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a14;
+    --surface: #12121e;
+    --surface2: #16162a;
+    --border: rgba(255,255,255,0.06);
+    --border-hover: rgba(255,255,255,0.12);
+    --text: #eee;
+    --muted: rgba(255,255,255,0.45);
+    --accent: #7c3aed;
+    --accent2: #a855f7;
+    --accent-glow: rgba(124,58,237,0.35);
+  }
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
 
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: rgba(168,85,247,0.4); border-radius: 10px; }
+  html { scrollbar-width: thin; scrollbar-color: rgba(168,85,247,0.4) var(--bg); }
+
+  /* Loading */
+  .loading { display: flex; align-items: center; justify-content: center; min-height: 60vh; color: var(--muted); font-size: 14px; }
+  .error-page { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; text-align: center; padding: 40px 24px; }
+
+  /* Nav */
+  .nav { padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+  .nav-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text); font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; letter-spacing: -0.4px; }
+  .nav-logo img { width: 28px; height: 28px; border-radius: 6px; }
+  .nav-right { display: flex; gap: 10px; align-items: center; }
+  .nav-btn { padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; text-decoration: none; transition: all 0.15s; }
+  .nav-btn-outline { background: transparent; border: 1px solid var(--border-hover); color: var(--muted); }
+  .nav-btn-outline:hover { border-color: var(--accent); color: var(--text); }
+  .nav-btn-primary { background: var(--accent); color: #fff; border: none; box-shadow: 0 0 16px var(--accent-glow); }
+
+  /* Hero */
+  .course-hero { max-width: 960px; margin: 0 auto; padding: 48px 32px; }
+  .course-cover { width: 100%; max-height: 400px; object-fit: cover; border-radius: 16px; margin-bottom: 32px; border: 1px solid var(--border); }
+  .course-cover-placeholder { width: 100%; height: 240px; background: linear-gradient(135deg, rgba(124,58,237,0.15), rgba(232,121,249,0.1)); border-radius: 16px; margin-bottom: 32px; display: flex; align-items: center; justify-content: center; font-size: 48px; border: 1px solid var(--border); }
+  .course-title { font-family: 'Syne', sans-serif; font-size: clamp(28px, 5vw, 44px); font-weight: 800; letter-spacing: -1.5px; line-height: 1.1; margin-bottom: 16px; }
+  .course-creator { font-size: 14px; color: var(--muted); margin-bottom: 24px; }
+  .course-creator strong { color: var(--accent2); font-weight: 600; }
+  .course-desc { font-size: 16px; line-height: 1.75; color: var(--muted); margin-bottom: 32px; max-width: 700px; }
+
+  /* Buy section */
+  .course-buy-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 16px; padding: 28px; margin-bottom: 40px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+  .course-price { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; letter-spacing: -1px; }
+  .course-price-free { color: #4ade80; }
+  .course-buy-btn { padding: 14px 36px; background: linear-gradient(135deg, #a78bfa, #e879f9); color: #fff; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer; box-shadow: 0 4px 24px rgba(167,139,250,0.3); transition: all 0.2s; }
+  .course-buy-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 30px rgba(167,139,250,0.4); }
+  .course-buy-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .course-enrolled-badge { padding: 12px 24px; background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.3); border-radius: 10px; color: #4ade80; font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; }
+
+  /* Curriculum */
+  .course-curriculum { max-width: 960px; margin: 0 auto; padding: 0 32px 80px; }
+  .curriculum-title { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 20px; }
+  .module-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-bottom: 12px; }
+  .module-header { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .module-number { font-size: 11px; color: var(--accent2); font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+  .lesson-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; font-size: 13px; color: var(--muted); transition: background 0.15s; }
+  .lesson-row:hover { background: rgba(124,58,237,0.04); }
+  .lesson-icon { width: 20px; height: 20px; flex-shrink: 0; color: var(--muted); }
+  .lesson-title { flex: 1; }
+  .lesson-preview-badge { font-size: 10px; background: rgba(74,222,128,0.12); color: #4ade80; border: 1px solid rgba(74,222,128,0.25); padding: 2px 8px; border-radius: 100px; font-weight: 600; letter-spacing: 0.05em; }
+  .lesson-locked { color: var(--muted); opacity: 0.5; }
+
+  /* Footer */
+  .course-footer { text-align: center; padding: 32px; border-top: 1px solid var(--border); }
+  .course-footer a { color: var(--muted); text-decoration: none; font-size: 12px; }
+  .course-footer a:hover { color: var(--text); }
+
+  @media (max-width: 640px) {
+    .nav { padding: 12px 16px; }
+    .course-hero { padding: 32px 16px; }
+    .course-curriculum { padding: 0 16px 60px; }
+    .course-buy-card { flex-direction: column; text-align: center; }
+    .course-buy-btn { width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo"><img src="/logo.png" alt=""> Ryxa</a>
+  <div class="nav-right">
+    <a href="/learn/" class="nav-btn nav-btn-outline">My Courses</a>
+  </div>
+</nav>
+
+<div id="loading" class="loading">Loading course...</div>
+<div id="error-page" class="error-page" style="display:none;">
+  <div style="font-size:48px;margin-bottom:16px;">📚</div>
+  <h1 style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;margin-bottom:8px;">Course Not Found</h1>
+  <p style="color:var(--muted);font-size:14px;margin-bottom:24px;">This course doesn't exist or hasn't been published yet.</p>
+  <a href="/" class="nav-btn nav-btn-primary" style="text-decoration:none;">Go to Ryxa</a>
+</div>
+
+<div id="course-page" style="display:none;">
+  <section class="course-hero">
+    <div id="cp-cover"></div>
+    <h1 class="course-title" id="cp-title"></h1>
+    <div class="course-creator" id="cp-creator"></div>
+    <div class="course-desc" id="cp-desc"></div>
+    <div class="course-buy-card">
+      <div class="course-price" id="cp-price"></div>
+      <div id="cp-buy-area"></div>
+    </div>
+  </section>
+
+  <section class="course-curriculum">
+    <h2 class="curriculum-title">Curriculum</h2>
+    <div id="cp-curriculum"></div>
+  </section>
+</div>
+
+<footer class="course-footer">
+  <a href="/">Powered by Ryxa</a>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtqeXRhcGNneHVrYWx3c3lwdXRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMTcxMzEsImV4cCI6MjA5MDg5MzEzMX0.VC8mcU5lUeA56kG2gHssvl88EVWr018XttA86jpfEn0';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let courseData = null;
+let isEnrolled = false;
+
+async function init() {
+  // Get slug from URL path: /course/my-slug or /course/my-slug/
+  const pathParts = window.location.pathname.replace(/\/$/, '').split('/');
+  const slug = pathParts[pathParts.length - 1];
+
+  if (!slug || slug === 'course') {
+    showError();
+    return;
+  }
+
+  // Load course
+  const { data: course, error } = await sb
+    .from('courses')
+    .select('*')
+    .eq('slug', slug)
+    .eq('status', 'published')
+    .single();
+
+  if (error || !course) {
+    showError();
+    return;
+  }
+
+  courseData = course;
+
+  // Get creator info
+  const { data: profile } = await sb
+    .from('profiles')
+    .select('username')
+    .eq('user_id', course.user_id)
+    .maybeSingle();
+
+  const creatorName = profile?.username || 'Creator';
+
+  // Load modules & lessons
+  const { data: modules } = await sb
+    .from('course_modules')
+    .select('*')
+    .eq('course_id', course.id)
+    .order('sort_order');
+
+  const { data: lessons } = await sb
+    .from('course_lessons')
+    .select('id, module_id, title, lesson_type, sort_order, is_preview')
+    .eq('course_id', course.id)
+    .order('sort_order');
+
+  // Check enrollment
+  const { data: { session } } = await sb.auth.getSession();
+  if (session?.user) {
+    const { data: enrollment } = await sb
+      .from('course_enrollments')
+      .select('id')
+      .eq('course_id', course.id)
+      .eq('user_id', session.user.id)
+      .maybeSingle();
+    isEnrolled = !!enrollment;
+  }
+
+  // Update page meta
+  document.title = course.title + ' — Ryxa';
+  const metaDesc = document.querySelector('meta[name="description"]');
+  if (metaDesc) metaDesc.content = (course.description || '').slice(0, 160);
+
+  // Render
+  renderCourse(course, creatorName, modules || [], lessons || []);
+}
+
+function showError() {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('error-page').style.display = 'flex';
+}
+
+function escapeHtml(s) {
+  if (s == null) return '';
+  return String(s).replace(/[&<>"']/g, function(c) {
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+
+function renderCourse(course, creatorName, modules, lessons) {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('course-page').style.display = 'block';
+
+  // Cover
+  const coverEl = document.getElementById('cp-cover');
+  if (course.cover_image_path) {
+    const url = sb.storage.from('course-covers').getPublicUrl(course.cover_image_path).data.publicUrl;
+    coverEl.innerHTML = '<img class="course-cover" src="' + url + '" alt="">';
+  } else {
+    coverEl.innerHTML = '<div class="course-cover-placeholder">📚</div>';
+  }
+
+  // Title, creator, description
+  document.getElementById('cp-title').textContent = course.title;
+  document.getElementById('cp-creator').innerHTML = 'by <strong>' + escapeHtml(creatorName) + '</strong>';
+  document.getElementById('cp-desc').textContent = course.description || '';
+
+  // Price & buy
+  const priceEl = document.getElementById('cp-price');
+  const buyArea = document.getElementById('cp-buy-area');
+  if (course.price_cents === 0) {
+    priceEl.innerHTML = '<span class="course-price-free">Free</span>';
+  } else {
+    priceEl.textContent = '$' + (course.price_cents / 100).toFixed(2);
+  }
+
+  if (isEnrolled) {
+    buyArea.innerHTML = '<div class="course-enrolled-badge"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Enrolled</div>';
+  } else if (course.price_cents === 0) {
+    buyArea.innerHTML = '<button class="course-buy-btn" onclick="enrollFree()">Enroll for Free</button>';
+  } else {
+    buyArea.innerHTML = '<button class="course-buy-btn" onclick="buyCourse()">Enroll Now</button>';
+  }
+
+  // Curriculum
+  const curriculumEl = document.getElementById('cp-curriculum');
+  if (modules.length === 0) {
+    curriculumEl.innerHTML = '<p style="color:var(--muted);font-size:14px;text-align:center;padding:24px;">Curriculum coming soon.</p>';
+    return;
+  }
+
+  curriculumEl.innerHTML = modules.map(function(mod, mi) {
+    const modLessons = lessons.filter(function(l) { return l.module_id === mod.id; });
+    const lessonsHtml = modLessons.map(function(l) {
+      const icon = l.lesson_type === 'video'
+        ? '<svg class="lesson-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>'
+        : '<svg class="lesson-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>';
+      const previewBadge = l.is_preview ? '<span class="lesson-preview-badge">Preview</span>' : '';
+      const lockedClass = (!isEnrolled && !l.is_preview) ? ' lesson-locked' : '';
+      return '<div class="lesson-row' + lockedClass + '">'
+        + icon
+        + '<span class="lesson-title">' + escapeHtml(l.title || 'Untitled Lesson') + '</span>'
+        + previewBadge
+        + '</div>';
+    }).join('');
+
+    return '<div class="module-card">'
+      + '<div class="module-header"><span class="module-number">Module ' + (mi + 1) + '</span> ' + escapeHtml(mod.title || '') + '</div>'
+      + lessonsHtml
+      + '</div>';
+  }).join('');
+}
+
+async function enrollFree() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session?.user) {
+    window.location.href = '/learn/?redirect=' + encodeURIComponent(window.location.pathname);
+    return;
+  }
+
+  const btn = document.querySelector('.course-buy-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Enrolling...'; }
+
+  try {
+    // Create course_users row if needed
+    await sb.from('course_users').upsert({ user_id: session.user.id, display_name: session.user.email.split('@')[0] }, { onConflict: 'user_id' });
+
+    // Create enrollment
+    const { error } = await sb.from('course_enrollments').insert({
+      course_id: courseData.id,
+      user_id: session.user.id,
+      amount_paid_cents: 0
+    });
+
+    if (error) {
+      if (error.code === '23505') {
+        // Already enrolled
+        isEnrolled = true;
+      } else {
+        throw error;
+      }
+    } else {
+      isEnrolled = true;
+    }
+
+    // Redirect to course viewer
+    window.location.href = '/learn/?course=' + courseData.id;
+  } catch (err) {
+    if (btn) { btn.disabled = false; btn.textContent = 'Enroll for Free'; }
+    alert('Failed to enroll: ' + err.message);
+  }
+}
+
+async function buyCourse() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session?.user) {
+    window.location.href = '/learn/?redirect=' + encodeURIComponent(window.location.pathname);
+    return;
+  }
+
+  const btn = document.querySelector('.course-buy-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Loading checkout...'; }
+
+  try {
+    // Call edge function to create Stripe checkout session
+    const { data, error } = await sb.functions.invoke('create-course-checkout', {
+      body: {
+        course_id: courseData.id,
+        success_url: window.location.origin + '/learn/?course=' + courseData.id + '&enrolled=1',
+        cancel_url: window.location.href
+      }
+    });
+
+    if (error || !data || data.error) {
+      throw new Error((data && data.error) || error?.message || 'Failed to create checkout');
+    }
+
+    window.location.href = data.checkout_url;
+  } catch (err) {
+    if (btn) { btn.disabled = false; btn.textContent = 'Enroll Now'; }
+    alert('Failed: ' + err.message);
+  }
+}
+
+init();
+</script>
+</body>
+</html>
