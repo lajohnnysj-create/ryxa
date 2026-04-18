@@ -15,8 +15,8 @@
 <style>
   :root {
     --bg: #000;
-    --surface: #111;
-    --surface2: #161616;
+    --surface: #0a0a0a;
+    --surface2: #0d0d0d;
     --border: rgba(255,255,255,0.1);
     --border-hover: rgba(255,255,255,0.2);
     --text: #fff;
@@ -51,17 +51,17 @@
   ::-webkit-scrollbar-thumb { background: rgba(128,128,128,0.4); border-radius: 10px; }
   html { scrollbar-width: thin; scrollbar-color: rgba(128,128,128,0.4) var(--bg); }
 
-  /* Nav */
-  .nav { padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
-  .nav-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text); font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; letter-spacing: -0.4px; }
+  /* Nav - always dark */
+  .nav { padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); background: #000; }
+  .nav-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; color: #fff; font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; letter-spacing: -0.4px; }
   .nav-logo img { width: 28px; height: 28px; border-radius: 6px; }
   .nav-right { display: flex; gap: 10px; align-items: center; }
   .nav-btn { padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; text-decoration: none; border: none; transition: all 0.15s; }
-  .nav-btn-outline { background: transparent; border: 1px solid var(--btn-outline-border); color: var(--btn-outline-text); }
-  .nav-btn-outline:hover { background: var(--surface); border-color: var(--text); }
-  .nav-user { font-size: 13px; color: var(--text); }
-  .theme-toggle { padding: 6px 12px; background: transparent; border: 1px solid var(--btn-outline-border); color: var(--text); border-radius: 6px; font-size: 11px; font-family: 'DM Sans', sans-serif; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
-  .theme-toggle:hover { background: var(--surface); }
+  .nav-btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.4); color: #fff; }
+  .nav-btn-outline:hover { background: #111; }
+  .nav-user { font-size: 13px; color: #fff; }
+  .theme-toggle { padding: 6px 12px; background: transparent; border: 1px solid rgba(255,255,255,0.4); color: #fff; border-radius: 6px; font-size: 11px; font-family: 'DM Sans', sans-serif; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
+  .theme-toggle:hover { background: #111; }
 
   /* Auth form */
   .auth-wrap { max-width: 400px; margin: 80px auto; padding: 0 24px; }
