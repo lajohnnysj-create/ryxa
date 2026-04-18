@@ -162,13 +162,28 @@
     <p style="font-size:14px;color:var(--muted);line-height:1.6;max-width:320px;margin:0 auto;">Sign in to access courses you've purchased from creators on Ryxa. All your progress in one place.</p>
   </div>
   <div class="auth-card">
-    <h2 class="auth-title" id="auth-title">Sign In</h2>
-    <p class="auth-sub" id="auth-sub">Access your courses</p>
+    <div style="display:flex;gap:4px;padding:4px;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:16px;">
+      <button type="button" class="auth-tab-btn" id="learn-tab-signin" onclick="setLearnAuthMode('signin')" style="flex:1;padding:8px;border:none;border-radius:7px;font-size:13px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.15s;background:var(--btn-bg);color:var(--btn-text);">Sign In</button>
+      <button type="button" class="auth-tab-btn" id="learn-tab-signup" onclick="setLearnAuthMode('signup')" style="flex:1;padding:8px;border:none;border-radius:7px;font-size:13px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.15s;background:transparent;color:var(--muted);">Create Account</button>
+    </div>
+    <button type="button" onclick="handleLearnGoogleAuth()" style="width:100%;padding:11px;background:#fff;color:#1f1f1f;border:1px solid var(--border-hover);border-radius:10px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px;transition:all 0.15s;" onmouseover="this.style.background='#f8f8f8'" onmouseout="this.style.background='#fff'">
+      <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+        <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/>
+        <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.836.86-3.048.86-2.344 0-4.328-1.584-5.036-3.71H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
+        <path fill="#FBBC05" d="M3.964 10.71c-.18-.54-.282-1.117-.282-1.71s.102-1.17.282-1.71V4.958H.957C.347 6.173 0 7.548 0 9s.348 2.827.957 4.042l3.007-2.332z"/>
+        <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/>
+      </svg>
+      <span>Continue with Google</span>
+    </button>
+    <div style="display:flex;align-items:center;gap:12px;margin:12px 0;">
+      <div style="flex:1;height:1px;background:var(--border);"></div>
+      <span style="font-size:12px;color:var(--muted);">or</span>
+      <div style="flex:1;height:1px;background:var(--border);"></div>
+    </div>
     <input type="email" id="auth-email" class="auth-input" placeholder="Email address" aria-label="Email address">
     <input type="password" id="auth-password" class="auth-input" placeholder="Password" aria-label="Password">
     <div id="auth-turnstile" style="margin:8px 0 10px;display:flex;justify-content:center;min-height:60px;"></div>
     <button class="auth-btn" id="auth-btn" onclick="handleAuth()">Sign In</button>
-    <div class="auth-toggle" id="auth-toggle">Don't have an account? <a onclick="toggleAuthMode()">Sign up</a></div>
     <div class="auth-error" id="auth-error"></div>
   </div>
   <p style="text-align:center;margin-top:20px;font-size:13px;color:var(--muted);">Create and sell your own courses with <a href="/" style="color:var(--text);font-weight:600;text-decoration:none;">Ryxa</a></p>
@@ -247,7 +262,39 @@ let viewerEnrollmentId = null;
 let currentLessonId = null;
 let authMode = 'signin';
 
-// Cloudflare Turnstile
+function setLearnAuthMode(mode) {
+  authMode = mode;
+  var signinTab = document.getElementById('learn-tab-signin');
+  var signupTab = document.getElementById('learn-tab-signup');
+  var btn = document.getElementById('auth-btn');
+  if (mode === 'signin') {
+    signinTab.style.background = 'var(--btn-bg)'; signinTab.style.color = 'var(--btn-text)';
+    signupTab.style.background = 'transparent'; signupTab.style.color = 'var(--muted)';
+    btn.textContent = 'Sign In';
+  } else {
+    signupTab.style.background = 'var(--btn-bg)'; signupTab.style.color = 'var(--btn-text)';
+    signinTab.style.background = 'transparent'; signinTab.style.color = 'var(--muted)';
+    btn.textContent = 'Create Account';
+  }
+  document.getElementById('auth-error').style.display = 'none';
+}
+
+async function handleLearnGoogleAuth() {
+  var params = new URLSearchParams(window.location.search);
+  var redirect = params.get('redirect');
+  var redirectUrl = 'https://ryxa.io/learn/';
+  if (redirect && redirect.startsWith('/') && !redirect.startsWith('//')) redirectUrl = 'https://ryxa.io' + redirect;
+  var { error } = await sb.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: redirectUrl }
+  });
+  if (error) {
+    var errEl = document.getElementById('auth-error');
+    errEl.textContent = error.message;
+    errEl.style.display = 'block';
+    errEl.style.color = '#f87171';
+  }
+}
 const TURNSTILE_SITE_KEY = '0x4AAAAAAC9W8avdI3sdVEcc';
 let turnstileWidgetId = null;
 
@@ -296,17 +343,6 @@ function showAuth() {
   renderTurnstileWidget();
 }
 
-function toggleAuthMode() {
-  authMode = authMode === 'signin' ? 'signup' : 'signin';
-  document.getElementById('auth-title').textContent = authMode === 'signin' ? 'Sign In' : 'Create Account';
-  document.getElementById('auth-sub').textContent = authMode === 'signin' ? 'Access your courses' : 'Sign up to enroll in courses';
-  document.getElementById('auth-btn').textContent = authMode === 'signin' ? 'Sign In' : 'Sign Up';
-  document.getElementById('auth-toggle').innerHTML = authMode === 'signin'
-    ? 'Don\'t have an account? <a onclick="toggleAuthMode()">Sign up</a>'
-    : 'Already have an account? <a onclick="toggleAuthMode()">Sign in</a>';
-  document.getElementById('auth-error').style.display = 'none';
-}
-
 async function handleAuth() {
   const email = document.getElementById('auth-email').value.trim();
   const password = document.getElementById('auth-password').value;
@@ -347,7 +383,7 @@ async function handleAuth() {
     resetTurnstile();
   } finally {
     btn.disabled = false;
-    btn.textContent = authMode === 'signin' ? 'Sign In' : 'Sign Up';
+    btn.textContent = authMode === 'signin' ? 'Sign In' : 'Create Account';
   }
 }
 
