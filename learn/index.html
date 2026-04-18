@@ -1,1 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<title>My Courses — Ryxa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a14;
+    --surface: #12121e;
+    --surface2: #16162a;
+    --border: rgba(255,255,255,0.06);
+    --border-hover: rgba(255,255,255,0.12);
+    --text: #eee;
+    --muted: rgba(255,255,255,0.45);
+    --accent: #7c3aed;
+    --accent2: #a855f7;
+    --accent-glow: rgba(124,58,237,0.35);
+  }
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
 
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: rgba(168,85,247,0.4); border-radius: 10px; }
+  html { scrollbar-width: thin; scrollbar-color: rgba(168,85,247,0.4) var(--bg); }
+
+  /* Nav */
+  .nav { padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+  .nav-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text); font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; letter-spacing: -0.4px; }
+  .nav-logo img { width: 28px; height: 28px; border-radius: 6px; }
+  .nav-right { display: flex; gap: 10px; align-items: center; }
+  .nav-btn { padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; text-decoration: none; border: none; transition: all 0.15s; }
+  .nav-btn-outline { background: transparent; border: 1px solid var(--border-hover); color: var(--muted); }
+  .nav-btn-outline:hover { border-color: var(--accent); color: var(--text); }
+  .nav-user { font-size: 13px; color: var(--muted); }
+
+  /* Auth form */
+  .auth-wrap { max-width: 400px; margin: 80px auto; padding: 0 24px; }
+  .auth-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 16px; padding: 32px; }
+  .auth-title { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; margin-bottom: 6px; letter-spacing: -0.5px; text-align: center; }
+  .auth-sub { font-size: 14px; color: var(--muted); text-align: center; margin-bottom: 24px; }
+  .auth-input { width: 100%; padding: 12px 16px; background: var(--surface); border: 1px solid var(--border-hover); border-radius: 8px; font-size: 14px; color: var(--text); font-family: 'DM Sans', sans-serif; outline: none; margin-bottom: 12px; box-sizing: border-box; }
+  .auth-input:focus { border-color: var(--accent); }
+  .auth-btn { width: 100%; padding: 13px; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; box-shadow: 0 0 20px var(--accent-glow); margin-top: 4px; }
+  .auth-toggle { font-size: 13px; color: var(--muted); text-align: center; margin-top: 16px; }
+  .auth-toggle a { color: var(--accent2); cursor: pointer; text-decoration: none; }
+  .auth-error { font-size: 13px; color: #f87171; text-align: center; margin-top: 12px; display: none; }
+
+  /* Dashboard */
+  .dash-wrap { max-width: 960px; margin: 0 auto; padding: 40px 32px; }
+  .dash-title { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; letter-spacing: -1px; margin-bottom: 24px; }
+  .courses-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+  .course-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; cursor: pointer; transition: border-color 0.15s; text-decoration: none; color: var(--text); display: block; }
+  .course-card:hover { border-color: rgba(124,58,237,0.4); }
+  .course-card-cover { height: 140px; background: linear-gradient(135deg, rgba(124,58,237,0.15), rgba(232,121,249,0.1)); display: flex; align-items: center; justify-content: center; font-size: 32px; background-size: cover; background-position: center; }
+  .course-card-body { padding: 14px 16px; }
+  .course-card-title { font-size: 15px; font-weight: 600; margin-bottom: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .course-card-creator { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+  .course-card-progress { height: 4px; background: var(--surface); border-radius: 100px; overflow: hidden; }
+  .course-card-progress-bar { height: 100%; background: linear-gradient(90deg, #a78bfa, #e879f9); border-radius: 100px; transition: width 0.3s; }
+  .empty-state { text-align: center; padding: 60px 24px; color: var(--muted); font-size: 14px; }
+
+  /* Course Viewer */
+  .viewer-wrap { max-width: 900px; margin: 0 auto; padding: 32px; }
+  .viewer-back { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; background: transparent; border: 1px solid var(--border-hover); color: var(--muted); border-radius: 8px; font-size: 12px; font-family: 'DM Sans', sans-serif; cursor: pointer; margin-bottom: 24px; text-decoration: none; }
+  .viewer-back:hover { border-color: var(--accent); color: var(--text); }
+  .viewer-title { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 24px; }
+  .viewer-sidebar { display: flex; flex-direction: column; gap: 8px; margin-bottom: 32px; }
+  .viewer-module-title { font-size: 11px; color: var(--accent2); font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding: 8px 0 4px; }
+  .viewer-lesson-btn { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; cursor: pointer; transition: all 0.15s; font-size: 13px; color: var(--muted); text-align: left; width: 100%; font-family: 'DM Sans', sans-serif; }
+  .viewer-lesson-btn:hover { border-color: rgba(124,58,237,0.4); color: var(--text); }
+  .viewer-lesson-btn.active { border-color: var(--accent); background: rgba(124,58,237,0.08); color: var(--text); }
+  .viewer-lesson-btn.completed { color: #4ade80; }
+  .viewer-check { width: 18px; height: 18px; flex-shrink: 0; }
+  .viewer-content { background: var(--surface2); border: 1px solid var(--border); border-radius: 16px; padding: 24px; min-height: 300px; }
+  .viewer-video { width: 100%; aspect-ratio: 16/9; border-radius: 12px; border: none; margin-bottom: 16px; }
+  .viewer-text { font-size: 15px; line-height: 1.75; color: var(--muted); white-space: pre-wrap; }
+  .viewer-complete-btn { margin-top: 20px; padding: 10px 20px; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; }
+  .viewer-completed-msg { margin-top: 20px; padding: 10px 20px; background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.25); border-radius: 8px; font-size: 13px; color: #4ade80; display: inline-flex; align-items: center; gap: 6px; }
+
+  @media (max-width: 640px) {
+    .nav { padding: 12px 16px; }
+    .dash-wrap, .viewer-wrap { padding: 24px 16px; }
+    .auth-wrap { margin: 40px auto; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo"><img src="/logo.png" alt=""> Ryxa</a>
+  <div class="nav-right" id="nav-right">
+    <a href="/" class="nav-btn nav-btn-outline">Home</a>
+  </div>
+</nav>
+
+<!-- Auth Screen -->
+<div id="auth-screen" class="auth-wrap" style="display:none;">
+  <div class="auth-card">
+    <h1 class="auth-title" id="auth-title">Sign In</h1>
+    <p class="auth-sub" id="auth-sub">Access your courses</p>
+    <input type="email" id="auth-email" class="auth-input" placeholder="Email address" aria-label="Email address">
+    <input type="password" id="auth-password" class="auth-input" placeholder="Password" aria-label="Password">
+    <button class="auth-btn" id="auth-btn" onclick="handleAuth()">Sign In</button>
+    <div class="auth-toggle" id="auth-toggle">Don't have an account? <a onclick="toggleAuthMode()">Sign up</a></div>
+    <div class="auth-error" id="auth-error"></div>
+  </div>
+</div>
+
+<!-- Dashboard (My Courses) -->
+<div id="dash-screen" class="dash-wrap" style="display:none;">
+  <h1 class="dash-title">My Courses</h1>
+  <div id="dash-courses" class="courses-grid"></div>
+  <div id="dash-empty" class="empty-state" style="display:none;">
+    <div style="font-size:40px;margin-bottom:12px;">📚</div>
+    <p>You haven't enrolled in any courses yet.</p>
+    <p style="margin-top:8px;"><a href="/" style="color:var(--accent2);">Browse Ryxa</a> to find courses from creators.</p>
+  </div>
+</div>
+
+<!-- Course Viewer -->
+<div id="viewer-screen" class="viewer-wrap" style="display:none;">
+  <a href="#" onclick="backToDash();return false;" class="viewer-back">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    My Courses
+  </a>
+  <h1 class="viewer-title" id="viewer-course-title"></h1>
+  <div class="viewer-sidebar" id="viewer-sidebar"></div>
+  <div class="viewer-content" id="viewer-content">
+    <p style="color:var(--muted);font-size:14px;">Select a lesson to begin.</p>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtqeXRhcGNneHVrYWx3c3lwdXRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMTcxMzEsImV4cCI6MjA5MDg5MzEzMX0.VC8mcU5lUeA56kG2gHssvl88EVWr018XttA86jpfEn0';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let currentUser = null;
+let enrollments = [];
+let viewerCourse = null;
+let viewerModules = [];
+let viewerLessons = [];
+let viewerProgress = [];
+let viewerEnrollmentId = null;
+let currentLessonId = null;
+let authMode = 'signin';
+
+async function init() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session?.user) {
+    currentUser = session.user;
+    await onLoggedIn();
+  } else {
+    showAuth();
+  }
+
+  sb.auth.onAuthStateChange(function(_event, session) {
+    if (session?.user && !currentUser) {
+      currentUser = session.user;
+      onLoggedIn();
+    } else if (!session?.user) {
+      currentUser = null;
+      showAuth();
+    }
+  });
+}
+
+function showAuth() {
+  document.getElementById('auth-screen').style.display = 'block';
+  document.getElementById('dash-screen').style.display = 'none';
+  document.getElementById('viewer-screen').style.display = 'none';
+  document.getElementById('nav-right').innerHTML = '<a href="/" class="nav-btn nav-btn-outline">Home</a>';
+}
+
+function toggleAuthMode() {
+  authMode = authMode === 'signin' ? 'signup' : 'signin';
+  document.getElementById('auth-title').textContent = authMode === 'signin' ? 'Sign In' : 'Create Account';
+  document.getElementById('auth-sub').textContent = authMode === 'signin' ? 'Access your courses' : 'Sign up to enroll in courses';
+  document.getElementById('auth-btn').textContent = authMode === 'signin' ? 'Sign In' : 'Sign Up';
+  document.getElementById('auth-toggle').innerHTML = authMode === 'signin'
+    ? 'Don\'t have an account? <a onclick="toggleAuthMode()">Sign up</a>'
+    : 'Already have an account? <a onclick="toggleAuthMode()">Sign in</a>';
+  document.getElementById('auth-error').style.display = 'none';
+}
+
+async function handleAuth() {
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  const errEl = document.getElementById('auth-error');
+  errEl.style.display = 'none';
+
+  if (!email || !password) { errEl.textContent = 'Please enter email and password.'; errEl.style.display = 'block'; return; }
+  if (password.length < 6) { errEl.textContent = 'Password must be at least 6 characters.'; errEl.style.display = 'block'; return; }
+
+  const btn = document.getElementById('auth-btn');
+  btn.disabled = true; btn.textContent = 'Loading...';
+
+  try {
+    var result;
+    if (authMode === 'signup') {
+      result = await sb.auth.signUp({ email: email, password: password });
+      if (result.error) throw result.error;
+      if (result.data?.user && !result.data.session) {
+        errEl.textContent = 'Check your email for a confirmation link.';
+        errEl.style.display = 'block';
+        errEl.style.color = '#4ade80';
+        btn.disabled = false; btn.textContent = 'Sign Up';
+        return;
+      }
+    } else {
+      result = await sb.auth.signInWithPassword({ email: email, password: password });
+      if (result.error) throw result.error;
+    }
+    currentUser = result.data.user;
+    await onLoggedIn();
+  } catch (err) {
+    errEl.textContent = err.message || 'Authentication failed.';
+    errEl.style.display = 'block';
+    errEl.style.color = '#f87171';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = authMode === 'signin' ? 'Sign In' : 'Sign Up';
+  }
+}
+
+async function onLoggedIn() {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('nav-right').innerHTML = '<span class="nav-user">' + escapeHtml(currentUser.email) + '</span> <button class="nav-btn nav-btn-outline" onclick="signOut()">Sign Out</button>';
+
+  // Create course_users row if needed
+  await sb.from('course_users').upsert({ user_id: currentUser.id, display_name: currentUser.email.split('@')[0] }, { onConflict: 'user_id' });
+
+  // Check URL params
+  const params = new URLSearchParams(window.location.search);
+  const courseId = params.get('course');
+
+  if (courseId) {
+    await openCourseViewer(courseId);
+  } else {
+    await loadDashboard();
+  }
+}
+
+async function signOut() {
+  await sb.auth.signOut();
+  currentUser = null;
+  showAuth();
+}
+
+async function loadDashboard() {
+  document.getElementById('dash-screen').style.display = 'block';
+  document.getElementById('viewer-screen').style.display = 'none';
+
+  const { data } = await sb
+    .from('course_enrollments')
+    .select('*, courses(*)')
+    .eq('user_id', currentUser.id)
+    .order('enrolled_at', { ascending: false });
+
+  enrollments = data || [];
+  renderDashboard();
+}
+
+function renderDashboard() {
+  const grid = document.getElementById('dash-courses');
+  const empty = document.getElementById('dash-empty');
+
+  if (enrollments.length === 0) {
+    grid.innerHTML = '';
+    grid.style.display = 'none';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  grid.style.display = 'grid';
+
+  grid.innerHTML = enrollments.map(function(e) {
+    var c = e.courses;
+    if (!c) return '';
+    var coverStyle = c.cover_image_path
+      ? 'background-image:url(' + sb.storage.from("course-covers").getPublicUrl(c.cover_image_path).data.publicUrl + ');background-size:cover;background-position:center;'
+      : '';
+    return '<a class="course-card" href="#" onclick="openCourseViewer(\'' + c.id + '\');return false;">'
+      + '<div class="course-card-cover" style="' + coverStyle + '">' + (c.cover_image_path ? '' : '📚') + '</div>'
+      + '<div class="course-card-body">'
+      + '<div class="course-card-title">' + escapeHtml(c.title) + '</div>'
+      + '<div class="course-card-progress"><div class="course-card-progress-bar" style="width:0%"></div></div>'
+      + '</div></a>';
+  }).join('');
+}
+
+async function openCourseViewer(courseId) {
+  document.getElementById('dash-screen').style.display = 'none';
+  document.getElementById('viewer-screen').style.display = 'block';
+
+  // Load course
+  const { data: course } = await sb.from('courses').select('*').eq('id', courseId).single();
+  if (!course) { backToDash(); return; }
+  viewerCourse = course;
+  document.getElementById('viewer-course-title').textContent = course.title;
+
+  // Load modules & lessons
+  const { data: modules } = await sb.from('course_modules').select('*').eq('course_id', courseId).order('sort_order');
+  const { data: lessons } = await sb.from('course_lessons').select('*').eq('course_id', courseId).order('sort_order');
+  viewerModules = modules || [];
+  viewerLessons = lessons || [];
+
+  // Load enrollment & progress
+  const { data: enrollment } = await sb.from('course_enrollments').select('id').eq('course_id', courseId).eq('user_id', currentUser.id).single();
+  viewerEnrollmentId = enrollment?.id || null;
+
+  if (viewerEnrollmentId) {
+    const { data: progress } = await sb.from('course_progress').select('lesson_id').eq('enrollment_id', viewerEnrollmentId);
+    viewerProgress = (progress || []).map(function(p) { return p.lesson_id; });
+  } else {
+    viewerProgress = [];
+  }
+
+  currentLessonId = null;
+  renderViewer();
+}
+
+function renderViewer() {
+  var sidebar = document.getElementById('viewer-sidebar');
+  sidebar.innerHTML = viewerModules.map(function(mod, mi) {
+    var modLessons = viewerLessons.filter(function(l) { return l.module_id === mod.id; });
+    return '<div class="viewer-module-title">Module ' + (mi + 1) + ': ' + escapeHtml(mod.title) + '</div>'
+      + modLessons.map(function(l) {
+        var isCompleted = viewerProgress.indexOf(l.id) !== -1;
+        var isActive = l.id === currentLessonId;
+        var icon = l.lesson_type === 'video' ? '▶' : '📝';
+        var check = isCompleted ? '✓' : '';
+        return '<button class="viewer-lesson-btn' + (isActive ? ' active' : '') + (isCompleted ? ' completed' : '') + '" onclick="selectLesson(\'' + l.id + '\')">'
+          + '<span class="viewer-check">' + check + '</span>'
+          + '<span>' + icon + ' ' + escapeHtml(l.title || 'Untitled') + '</span>'
+          + '</button>';
+      }).join('');
+  }).join('');
+}
+
+function selectLesson(lessonId) {
+  currentLessonId = lessonId;
+  renderViewer();
+  var lesson = viewerLessons.find(function(l) { return l.id === lessonId; });
+  if (!lesson) return;
+
+  var content = document.getElementById('viewer-content');
+  var isCompleted = viewerProgress.indexOf(lessonId) !== -1;
+
+  var html = '';
+  if (lesson.lesson_type === 'video' && lesson.video_url) {
+    var embedUrl = getEmbedUrl(lesson.video_url);
+    if (embedUrl) {
+      html += '<iframe class="viewer-video" src="' + embedUrl + '" allowfullscreen></iframe>';
+    } else {
+      html += '<p style="color:var(--muted);font-size:14px;margin-bottom:16px;">Video: <a href="' + escapeHtml(lesson.video_url) + '" target="_blank" style="color:var(--accent2);">' + escapeHtml(lesson.video_url) + '</a></p>';
+    }
+  }
+  if (lesson.text_content) {
+    html += '<div class="viewer-text">' + escapeHtml(lesson.text_content) + '</div>';
+  }
+  if (!html) {
+    html = '<p style="color:var(--muted);font-size:14px;">This lesson has no content yet.</p>';
+  }
+
+  if (isCompleted) {
+    html += '<div class="viewer-completed-msg"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Completed</div>';
+  } else {
+    html += '<button class="viewer-complete-btn" onclick="markComplete(\'' + lessonId + '\')">Mark as Complete</button>';
+  }
+
+  content.innerHTML = html;
+}
+
+async function markComplete(lessonId) {
+  if (!viewerEnrollmentId) return;
+  try {
+    await sb.from('course_progress').insert({ enrollment_id: viewerEnrollmentId, lesson_id: lessonId });
+    if (viewerProgress.indexOf(lessonId) === -1) viewerProgress.push(lessonId);
+    selectLesson(lessonId);
+    renderViewer();
+  } catch (err) {
+    console.warn('Mark complete failed:', err);
+  }
+}
+
+function backToDash() {
+  // Clear URL params
+  window.history.replaceState({}, '', '/learn/');
+  document.getElementById('viewer-screen').style.display = 'none';
+  loadDashboard();
+}
+
+function getEmbedUrl(url) {
+  if (!url) return null;
+  // YouTube
+  var ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/);
+  if (ytMatch) return 'https://www.youtube.com/embed/' + ytMatch[1];
+  // Vimeo
+  var vmMatch = url.match(/vimeo\.com\/(\d+)/);
+  if (vmMatch) return 'https://player.vimeo.com/video/' + vmMatch[1];
+  // Loom
+  var loomMatch = url.match(/loom\.com\/share\/([a-zA-Z0-9]+)/);
+  if (loomMatch) return 'https://www.loom.com/embed/' + loomMatch[1];
+  return null;
+}
+
+function escapeHtml(s) {
+  if (s == null) return '';
+  return String(s).replace(/[&<>"']/g, function(c) {
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+
+// Handle Enter key on auth inputs
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && (e.target.id === 'auth-email' || e.target.id === 'auth-password')) {
+    handleAuth();
+  }
+});
+
+init();
+</script>
+</body>
+</html>
