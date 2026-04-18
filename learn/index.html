@@ -8,6 +8,7 @@
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <title>My Courses — Ryxa</title>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -109,6 +110,7 @@
     <p class="auth-sub" id="auth-sub">Access your courses</p>
     <input type="email" id="auth-email" class="auth-input" placeholder="Email address" aria-label="Email address">
     <input type="password" id="auth-password" class="auth-input" placeholder="Password" aria-label="Password">
+    <div id="auth-turnstile" style="margin:8px 0 10px;display:flex;justify-content:center;min-height:60px;"></div>
     <button class="auth-btn" id="auth-btn" onclick="handleAuth()">Sign In</button>
     <div class="auth-toggle" id="auth-toggle">Don't have an account? <a onclick="toggleAuthMode()">Sign up</a></div>
     <div class="auth-error" id="auth-error"></div>
@@ -155,6 +157,27 @@ let viewerEnrollmentId = null;
 let currentLessonId = null;
 let authMode = 'signin';
 
+// Cloudflare Turnstile
+const TURNSTILE_SITE_KEY = '0x4AAAAAAC9W8avdI3sdVEcc';
+let turnstileWidgetId = null;
+
+function renderTurnstileWidget() {
+  if (typeof turnstile === 'undefined') { setTimeout(renderTurnstileWidget, 200); return; }
+  var container = document.getElementById('auth-turnstile');
+  if (!container) return;
+  if (turnstileWidgetId !== null) { try { turnstile.reset(turnstileWidgetId); } catch(e) {} return; }
+  turnstileWidgetId = turnstile.render('#auth-turnstile', { sitekey: TURNSTILE_SITE_KEY, theme: 'dark', size: 'flexible' });
+}
+
+function getTurnstileToken() {
+  if (typeof turnstile === 'undefined' || turnstileWidgetId === null) return null;
+  try { return turnstile.getResponse(turnstileWidgetId); } catch(e) { return null; }
+}
+
+function resetTurnstile() {
+  if (typeof turnstile !== 'undefined' && turnstileWidgetId !== null) { try { turnstile.reset(turnstileWidgetId); } catch(e) {} }
+}
+
 async function init() {
   const { data: { session } } = await sb.auth.getSession();
   if (session?.user) {
@@ -180,6 +203,7 @@ function showAuth() {
   document.getElementById('dash-screen').style.display = 'none';
   document.getElementById('viewer-screen').style.display = 'none';
   document.getElementById('nav-right').innerHTML = '<a href="/" class="nav-btn nav-btn-outline">Home</a>';
+  renderTurnstileWidget();
 }
 
 function toggleAuthMode() {
@@ -202,13 +226,16 @@ async function handleAuth() {
   if (!email || !password) { errEl.textContent = 'Please enter email and password.'; errEl.style.display = 'block'; return; }
   if (password.length < 6) { errEl.textContent = 'Password must be at least 6 characters.'; errEl.style.display = 'block'; return; }
 
+  var captchaToken = getTurnstileToken();
+  if (!captchaToken) { errEl.textContent = 'Please complete the verification check.'; errEl.style.display = 'block'; errEl.style.color = '#f87171'; return; }
+
   const btn = document.getElementById('auth-btn');
   btn.disabled = true; btn.textContent = 'Loading...';
 
   try {
     var result;
     if (authMode === 'signup') {
-      result = await sb.auth.signUp({ email: email, password: password });
+      result = await sb.auth.signUp({ email: email, password: password, options: { captchaToken: captchaToken } });
       if (result.error) throw result.error;
       if (result.data?.user && !result.data.session) {
         errEl.textContent = 'Check your email for a confirmation link.';
@@ -218,7 +245,7 @@ async function handleAuth() {
         return;
       }
     } else {
-      result = await sb.auth.signInWithPassword({ email: email, password: password });
+      result = await sb.auth.signInWithPassword({ email: email, password: password, options: { captchaToken: captchaToken } });
       if (result.error) throw result.error;
     }
     currentUser = result.data.user;
@@ -227,6 +254,7 @@ async function handleAuth() {
     errEl.textContent = err.message || 'Authentication failed.';
     errEl.style.display = 'block';
     errEl.style.color = '#f87171';
+    resetTurnstile();
   } finally {
     btn.disabled = false;
     btn.textContent = authMode === 'signin' ? 'Sign In' : 'Sign Up';
