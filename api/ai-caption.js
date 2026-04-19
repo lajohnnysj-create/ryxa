@@ -1,0 +1,73 @@
+// Vercel serverless function
+// Receives a base64 image, sends to Claude for caption generation
+// POST /api/ai-caption { image: "data:image/...;base64,..." }
+
+module.exports = async (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) return res.status(500).json({ error: 'API key not configured' });
+
+  const { image } = req.body || {};
+  if (!image) return res.status(400).json({ error: 'No image provided' });
+
+  const match = image.match(/^data:(image\/\w+);base64,(.+)$/);
+  if (!match) return res.status(400).json({ error: 'Invalid image format' });
+
+  const mediaType = match[1];
+  const base64Data = match[2];
+
+  if (base64Data.length > 7 * 1024 * 1024) {
+    return res.status(400).json({ error: 'Image too large. Max 5MB.' });
+  }
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 500,
+        messages: [{
+          role: 'user',
+          content: [
+            {
+              type: 'image',
+              source: {
+                type: 'base64',
+                media_type: mediaType,
+                data: base64Data
+              }
+            },
+            {
+              type: 'text',
+              text: 'Generate 3 social media captions for this image. For each caption, write an engaging caption (2-3 sentences max) followed by 5-8 relevant hashtags. Format your response exactly like this with no other text:\n\nCAPTION 1:\n[caption text]\n[hashtags]\n\nCAPTION 2:\n[caption text]\n[hashtags]\n\nCAPTION 3:\n[caption text]\n[hashtags]\n\nMake the first caption professional, the second casual/fun, and the third short and punchy.'
+            }
+          ]
+        }]
+      })
+    });
+
+    if (!response.ok) {
+      const err = await response.text();
+      console.error('Claude API error:', err);
+      return res.status(500).json({ error: 'AI service error' });
+    }
+
+    const data = await response.json();
+    const text = data.content?.[0]?.text?.trim() || '';
+
+    return res.status(200).json({ captions: text });
+  } catch (err) {
+    console.error('Caption error:', err);
+    return res.status(500).json({ error: 'Failed to generate captions' });
+  }
+};
