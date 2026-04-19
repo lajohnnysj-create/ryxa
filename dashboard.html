@@ -4980,7 +4980,7 @@
           </div>
 
           <!-- Canvas -->
-          <div style="flex:1;display:flex;justify-content:center;">
+          <div id="ds-canvas-flex" style="flex:1;display:flex;justify-content:center;width:100%;min-width:0;">
             <div id="ds-canvas-outer" style="position:relative;">
               <div id="ds-canvas-wrap" style="background:#1a1a2e;border:1px solid var(--border);border-radius:8px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.3);position:relative;">
                 <canvas id="ds-canvas"></canvas>
@@ -20255,12 +20255,15 @@ function confirmCustomSize() {
 
 function initDesignCanvas() {
   initDesignFontSelect();
-  dsResizeCanvas();
+  // Delay so layout has rendered and flex container has width
+  setTimeout(function() {
+    dsResizeCanvas();
+    if (!dsCanvas) return;
 
-  dsCanvas.on('selection:created', dsOnSelect);
-  dsCanvas.on('selection:updated', dsOnSelect);
-  dsCanvas.on('selection:cleared', dsOnDeselect);
-  dsCanvas.on('object:modified', function() { dsCanvas.renderAll(); dsSaveState(); });
+    dsCanvas.on('selection:created', dsOnSelect);
+    dsCanvas.on('selection:updated', dsOnSelect);
+    dsCanvas.on('selection:cleared', dsOnDeselect);
+    dsCanvas.on('object:modified', function() { dsCanvas.renderAll(); dsSaveState(); });
 
   // Save state on add/remove
   dsCanvas.on('object:added', function(e) { if (!e.target._isGuideLine) dsSaveState(); });
@@ -20290,6 +20293,7 @@ function initDesignCanvas() {
 
   // Keyboard shortcuts
   document.addEventListener('keydown', dsKeyHandler);
+  }, 50); // end setTimeout
 }
 
 var dsGuideLines = [];
@@ -20467,24 +20471,22 @@ var _dsResizeTimer = null;
 
 function dsResizeCanvas() {
   var wrap = document.getElementById('ds-canvas-wrap');
-  if (!wrap) return;
-  var parent = wrap.parentElement;
-  var maxW = parent.offsetWidth - 2;
+  var outer = document.getElementById('ds-canvas-outer');
+  if (!wrap || !outer) return;
+  // Read width from the flex container
+  var flexParent = document.getElementById('ds-canvas-flex');
+  var maxW = (flexParent ? flexParent.offsetWidth : 800) - 2;
   var maxH = window.innerHeight - 260;
   if (maxH < 300) maxH = 300;
   var scale = Math.min(maxW / dsProjectW, maxH / dsProjectH, 1);
 
-  // Canvas always works at full project dimensions
-  // CSS transform handles visual scaling
   wrap.style.width = dsProjectW + 'px';
   wrap.style.height = dsProjectH + 'px';
   wrap.style.transform = 'scale(' + scale + ')';
   wrap.style.transformOrigin = 'top left';
 
-  // Parent needs explicit size to prevent layout collapse
-  var parentWrap = wrap.parentElement;
-  parentWrap.style.width = Math.round(dsProjectW * scale) + 'px';
-  parentWrap.style.height = Math.round(dsProjectH * scale) + 'px';
+  outer.style.width = Math.round(dsProjectW * scale) + 'px';
+  outer.style.height = Math.round(dsProjectH * scale) + 'px';
 
   if (!dsCanvas) {
     dsCanvas = new fabric.Canvas('ds-canvas', {
