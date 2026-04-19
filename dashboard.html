@@ -17211,6 +17211,10 @@ function renderScriptEditor() {
         <div class="scripts-hook-label">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m13 2-2 2.5h3L12 7"/><path d="M10 14a4 4 0 1 1-4-4c1.1 0 2.5.4 2.5.4L5 17"/><path d="M7 14v0"/><circle cx="18" cy="17" r="4"/></svg>
           Hook
+          <button onclick="dsAIHook()" class="ds-tool-btn" id="script-ai-hook-btn" title="AI Hook Generator" style="width:auto;padding:0 8px;gap:4px;font-size:11px;margin-left:8px;height:24px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+            AI Hook
+          </button>
         </div>
         <div id="scripts-hook-display" class="scripts-hook-display" onclick="editHook()" style="display:${(currentScript.hook && !hookEditing) ? 'block' : 'none'};">${escapeHtml(currentScript.hook || '') || '<span class="scripts-hook-placeholder">What\'s the one sentence that stops the scroll?</span>'}</div>
         <div id="scripts-hook-edit" style="display:${(currentScript.hook && !hookEditing) ? 'none' : 'block'};">
@@ -17478,6 +17482,10 @@ function renderBlockItem(item) {
       <span class="scripts-kbd-hint"><kbd>Ctrl</kbd>+<kbd>Enter</kbd> to save & collapse</span>
       <div class="scripts-block-meta-right">
         <span class="scripts-block-count" data-id="${item.id}">${wordCount} words · ${seconds}s</span>
+        <button class="ds-tool-btn" onclick="dsAIAssist('${item.id}')" title="AI Assist" style="width:auto;padding:0 8px;gap:4px;font-size:11px;height:24px;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+          AI
+        </button>
         <button class="scripts-inline-save" onclick="saveAndCollapseBlock('${item.id}')">Save</button>
       </div>
     </div>
@@ -17511,6 +17519,171 @@ async function saveAndCollapseBlock(id) {
   item.collapsed = true;
   renderScriptItems();
   await saveScriptNow();
+}
+
+// ===== SCRIPT AI TOOLS =====
+function dsAIHook() {
+  if (typeof isPro === 'function' && !isPro()) {
+    showModalAlert('Pro Feature', 'AI Hook Generator is a Pro feature. Upgrade to use it.');
+    return;
+  }
+
+  var hookInput = document.getElementById('scripts-hook-input');
+  var topic = hookInput ? hookInput.value.trim() : '';
+
+  var overlay = document.createElement('div');
+  overlay.id = 'script-ai-hook-modal';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;';
+  overlay.innerHTML = '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:28px;max-width:440px;width:100%;">'
+    + '<div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.3px;margin-bottom:12px;">AI Hook Generator</div>'
+    + '<p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Describe your video topic and we\'ll generate scroll-stopping hooks.</p>'
+    + '<input type="text" id="script-ai-hook-topic" value="' + escapeHtml(topic) + '" placeholder="e.g. How I grew to 100k followers in 6 months" maxlength="200" style="width:100%;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;margin-bottom:16px;" onfocus="this.select()">'
+    + '<div style="display:flex;gap:8px;">'
+    + '<button onclick="generateHooks()" id="script-ai-hook-gen-btn" style="flex:1;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Generate Hooks</button>'
+    + '<button onclick="document.getElementById(\'script-ai-hook-modal\').remove()" style="flex:1;padding:11px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:14px;font-family:DM Sans,sans-serif;cursor:pointer;">Cancel</button>'
+    + '</div>'
+    + '<div id="script-ai-hook-results" style="margin-top:16px;"></div>'
+    + '</div>';
+  overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+  document.body.appendChild(overlay);
+  document.getElementById('script-ai-hook-topic').focus();
+}
+
+function generateHooks() {
+  var topic = document.getElementById('script-ai-hook-topic')?.value?.trim();
+  if (!topic) { return; }
+  var btn = document.getElementById('script-ai-hook-gen-btn');
+  btn.disabled = true;
+  btn.textContent = 'Generating...';
+
+  fetch('/api/ai-script', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ mode: 'hook', topic: topic })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    btn.disabled = false;
+    btn.textContent = 'Generate Hooks';
+    if (data.error) { showDsMsg('error', data.error); return; }
+
+    var sections = data.result.split(/HOOK \d+:\n?/i).filter(function(s) { return s.trim(); });
+    var resultsEl = document.getElementById('script-ai-hook-results');
+    resultsEl.innerHTML = sections.map(function(s, i) {
+      return '<div style="padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;">'
+        + '<div style="font-size:13px;color:var(--text);line-height:1.6;" id="script-hook-option-' + i + '">' + escapeHtml(s.trim()) + '</div>'
+        + '<button onclick="applyHook(' + i + ')" style="margin-top:8px;padding:5px 12px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:6px;font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer;">Use this hook</button>'
+        + '</div>';
+    }).join('');
+  })
+  .catch(function() {
+    btn.disabled = false;
+    btn.textContent = 'Generate Hooks';
+    showDsMsg('error', 'Failed to generate hooks. Try again.');
+  });
+}
+
+function applyHook(idx) {
+  var text = document.getElementById('script-hook-option-' + idx)?.textContent;
+  if (!text || !currentScript) return;
+  currentScript.hook = text;
+  var hookInput = document.getElementById('scripts-hook-input');
+  if (hookInput) hookInput.value = text;
+  var hookCount = document.getElementById('scripts-hook-count');
+  if (hookCount) hookCount.textContent = text.length;
+  markScriptDirty();
+  document.getElementById('script-ai-hook-modal')?.remove();
+}
+
+function dsAIAssist(blockId) {
+  if (typeof isPro === 'function' && !isPro()) {
+    showModalAlert('Pro Feature', 'AI Assist is a Pro feature. Upgrade to use it.');
+    return;
+  }
+
+  var item = currentScript.items.find(function(x) { return x.id === blockId; });
+  if (!item || !item.body || !item.body.trim()) {
+    showModalAlert('Empty Block', 'Write some text in the block first, then use AI to improve it.');
+    return;
+  }
+
+  var overlay = document.createElement('div');
+  overlay.id = 'script-ai-assist-modal';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;';
+  overlay.innerHTML = '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:28px;max-width:400px;width:100%;">'
+    + '<div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.3px;margin-bottom:6px;">AI Assist</div>'
+    + '<div style="font-size:12px;color:var(--muted);margin-bottom:20px;">What would you like to do with this block?</div>'
+    + '<div style="display:flex;flex-direction:column;gap:8px;">'
+    + '<button onclick="runAIAssist(\'' + blockId + '\', \'improve\')" class="script-ai-assist-opt" style="padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:10px;cursor:pointer;text-align:left;transition:border-color 0.15s;color:var(--text);font-family:DM Sans,sans-serif;font-size:13px;" onmouseover="this.style.borderColor=\'rgba(124,58,237,0.4)\'" onmouseout="this.style.borderColor=\'var(--border)\'">'
+    + '<div style="font-weight:600;margin-bottom:2px;">Improve</div>'
+    + '<div style="font-size:12px;color:var(--muted);">Make it clearer and more engaging</div>'
+    + '</button>'
+    + '<button onclick="runAIAssist(\'' + blockId + '\', \'expand\')" class="script-ai-assist-opt" style="padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:10px;cursor:pointer;text-align:left;transition:border-color 0.15s;color:var(--text);font-family:DM Sans,sans-serif;font-size:13px;" onmouseover="this.style.borderColor=\'rgba(124,58,237,0.4)\'" onmouseout="this.style.borderColor=\'var(--border)\'">'
+    + '<div style="font-weight:600;margin-bottom:2px;">Expand</div>'
+    + '<div style="font-size:12px;color:var(--muted);">Add more detail and examples</div>'
+    + '</button>'
+    + '<button onclick="runAIAssist(\'' + blockId + '\', \'shorten\')" class="script-ai-assist-opt" style="padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:10px;cursor:pointer;text-align:left;transition:border-color 0.15s;color:var(--text);font-family:DM Sans,sans-serif;font-size:13px;" onmouseover="this.style.borderColor=\'rgba(124,58,237,0.4)\'" onmouseout="this.style.borderColor=\'var(--border)\'">'
+    + '<div style="font-weight:600;margin-bottom:2px;">Shorten</div>'
+    + '<div style="font-size:12px;color:var(--muted);">Make it more concise</div>'
+    + '</button>'
+    + '</div>'
+    + '<button onclick="document.getElementById(\'script-ai-assist-modal\').remove()" style="width:100%;padding:10px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;margin-top:12px;">Cancel</button>'
+    + '</div>';
+  overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+  document.body.appendChild(overlay);
+}
+
+function runAIAssist(blockId, mode) {
+  var item = currentScript.items.find(function(x) { return x.id === blockId; });
+  if (!item) return;
+
+  // Replace modal content with loading
+  var modal = document.getElementById('script-ai-assist-modal');
+  if (!modal) return;
+  var inner = modal.querySelector('div');
+  inner.innerHTML = '<div style="text-align:center;padding:40px 0;">'
+    + '<svg width="24" height="24" viewBox="0 0 24 24" style="animation:btn-spin 0.6s linear infinite;margin-bottom:12px;" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>'
+    + '<div style="font-size:14px;color:var(--text);">AI is ' + (mode === 'improve' ? 'improving' : mode === 'expand' ? 'expanding' : 'shortening') + ' your text...</div>'
+    + '</div>';
+
+  fetch('/api/ai-script', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ mode: mode, text: item.body })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data.error) { modal.remove(); showModalAlert('Error', data.error); return; }
+
+    inner.innerHTML = '<div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.3px;margin-bottom:12px;">Result</div>'
+      + '<div style="padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:16px;">'
+      + '<div style="font-size:11px;color:var(--accent2);font-weight:600;margin-bottom:6px;">Original</div>'
+      + '<div style="font-size:12px;color:var(--muted);line-height:1.5;">' + escapeHtml(item.body.substring(0, 150)) + (item.body.length > 150 ? '...' : '') + '</div>'
+      + '</div>'
+      + '<div style="padding:14px;background:var(--surface);border:1px solid rgba(124,58,237,0.25);border-radius:10px;margin-bottom:16px;">'
+      + '<div style="font-size:11px;color:var(--accent2);font-weight:600;margin-bottom:6px;">' + (mode.charAt(0).toUpperCase() + mode.slice(1)) + 'd</div>'
+      + '<div style="font-size:13px;color:var(--text);line-height:1.6;" id="script-ai-result">' + escapeHtml(data.result) + '</div>'
+      + '</div>'
+      + '<div style="display:flex;gap:8px;">'
+      + '<button onclick="applyAIAssist(\'' + blockId + '\')" style="flex:1;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Apply</button>'
+      + '<button onclick="document.getElementById(\'script-ai-assist-modal\').remove()" style="flex:1;padding:11px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:14px;font-family:DM Sans,sans-serif;cursor:pointer;">Keep original</button>'
+      + '</div>';
+  })
+  .catch(function() {
+    modal.remove();
+    showModalAlert('Error', 'Failed to process text. Try again.');
+  });
+}
+
+function applyAIAssist(blockId) {
+  var result = document.getElementById('script-ai-result')?.textContent;
+  if (!result || !currentScript) return;
+  var item = currentScript.items.find(function(x) { return x.id === blockId; });
+  if (!item) return;
+  item.body = result;
+  renderScriptItems();
+  markScriptDirty();
+  document.getElementById('script-ai-assist-modal')?.remove();
 }
 
 async function saveAndCollapseHook() {
