@@ -4083,6 +4083,17 @@
               <button id="course-publish-btn" onclick="toggleCoursePublish()" style="padding:8px 18px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;display:none;">Publish</button>
             </div>
           </div>
+          <div id="course-marketplace-toggle" style="display:none;margin-bottom:16px;padding:14px 18px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <div>
+                <div style="font-size:13px;font-weight:600;color:var(--text);">List in Marketplace</div>
+                <div style="font-size:12px;color:var(--muted);margin-top:2px;">Make this course discoverable in the Learning Hub. <span id="course-marketplace-count" style="color:var(--accent2);"></span></div>
+              </div>
+              <button id="course-marketplace-btn" onclick="toggleCourseMarketplace()" style="width:44px;height:24px;border-radius:100px;border:none;cursor:pointer;position:relative;transition:background 0.2s;background:rgba(255,255,255,0.15);">
+                <div id="course-marketplace-thumb" style="width:18px;height:18px;border-radius:50%;background:#fff;position:absolute;top:3px;left:3px;transition:transform 0.2s;"></div>
+              </button>
+            </div>
+          </div>
           <div id="course-editor-msg" style="display:none;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:16px;"></div>
 
           <!-- Course details -->
@@ -4223,6 +4234,17 @@
             <div style="margin-left:auto;display:flex;gap:8px;">
               <button id="coaching-save-btn" onclick="saveCoaching()" style="padding:8px 18px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 16px var(--accent-glow);">Save</button>
               <button id="coaching-publish-btn" onclick="toggleCoachingPublish()" style="padding:8px 18px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;display:none;">Publish</button>
+            </div>
+          </div>
+          <div id="coaching-marketplace-toggle" style="display:none;margin-bottom:16px;padding:14px 18px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <div>
+                <div style="font-size:13px;font-weight:600;color:var(--text);">List in Marketplace</div>
+                <div style="font-size:12px;color:var(--muted);margin-top:2px;">Make this service discoverable in the Learning Hub. <span id="coaching-marketplace-count" style="color:var(--accent2);"></span></div>
+              </div>
+              <button id="coaching-marketplace-btn" onclick="toggleCoachingMarketplace()" style="width:44px;height:24px;border-radius:100px;border:none;cursor:pointer;position:relative;transition:background 0.2s;background:rgba(255,255,255,0.15);">
+                <div id="coaching-marketplace-thumb" style="width:18px;height:18px;border-radius:50%;background:#fff;position:absolute;top:3px;left:3px;transition:transform 0.2s;"></div>
+              </button>
             </div>
           </div>
           <div id="coaching-editor-msg" style="display:none;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:16px;"></div>
@@ -13029,6 +13051,8 @@ function openCoachingEditor(coachingId) {
   document.getElementById('coaching-danger-zone').style.display = 'none';
   document.getElementById('coaching-publish-btn').style.display = 'none';
   document.getElementById('coaching-editor-msg').style.display = 'none';
+  document.getElementById('coaching-marketplace-toggle').style.display = 'none';
+  updateMarketplaceToggleUI('coaching', false);
   setCoachingBookingType('calendly');
 
   if (coachingId) {
@@ -13057,6 +13081,9 @@ function openCoachingEditor(coachingId) {
       pubBtn.textContent = 'Unpublish';
       pubBtn.style.borderColor = 'rgba(239,68,68,0.4)';
       pubBtn.style.color = '#ef4444';
+      document.getElementById('coaching-marketplace-toggle').style.display = 'block';
+      updateMarketplaceToggleUI('coaching', !!coaching.listed_in_marketplace);
+      updateMarketplaceCountDisplay();
     } else {
       pubBtn.textContent = 'Publish';
       pubBtn.style.borderColor = 'rgba(74,222,128,0.4)';
@@ -13265,11 +13292,19 @@ async function toggleCoachingPublish() {
     pubBtn.textContent = 'Unpublish';
     pubBtn.style.borderColor = 'rgba(239,68,68,0.4)';
     pubBtn.style.color = '#ef4444';
+    document.getElementById('coaching-marketplace-toggle').style.display = 'block';
+    updateMarketplaceCountDisplay();
     showCoachingMsg('success', 'Published! Landing page: ryxa.io/coaching/' + (coaching?.slug || ''));
   } else {
     pubBtn.textContent = 'Publish';
     pubBtn.style.borderColor = 'rgba(74,222,128,0.4)';
     pubBtn.style.color = '#4ade80';
+    if (coaching && coaching.listed_in_marketplace) {
+      await sb.from('coaching_services').update({ listed_in_marketplace: false }).eq('id', currentCoachingId);
+      coaching.listed_in_marketplace = false;
+    }
+    document.getElementById('coaching-marketplace-toggle').style.display = 'none';
+    updateMarketplaceToggleUI('coaching', false);
     showCoachingMsg('success', 'Unpublished.');
   }
 }
@@ -13393,6 +13428,8 @@ async function openCourseEditor(courseId) {
   document.getElementById('course-modules-empty').style.display = 'block';
   document.getElementById('course-danger-zone').style.display = 'none';
   document.getElementById('course-publish-btn').style.display = 'none';
+  document.getElementById('course-marketplace-toggle').style.display = 'none';
+  updateMarketplaceToggleUI('course', false);
 
   if (courseId) {
     // Edit existing
@@ -13424,6 +13461,10 @@ async function openCourseEditor(courseId) {
       pubBtn.textContent = 'Unpublish';
       pubBtn.style.borderColor = 'rgba(239,68,68,0.4)';
       pubBtn.style.color = '#ef4444';
+      // Show marketplace toggle only when published
+      document.getElementById('course-marketplace-toggle').style.display = 'block';
+      updateMarketplaceToggleUI('course', !!course.listed_in_marketplace);
+      updateMarketplaceCountDisplay();
     } else {
       pubBtn.textContent = 'Publish';
       pubBtn.style.borderColor = 'rgba(74,222,128,0.4)';
@@ -13643,13 +13684,101 @@ async function toggleCoursePublish() {
     pubBtn.textContent = 'Unpublish';
     pubBtn.style.borderColor = 'rgba(239,68,68,0.4)';
     pubBtn.style.color = '#ef4444';
+    document.getElementById('course-marketplace-toggle').style.display = 'block';
+    updateMarketplaceCountDisplay();
     showCourseMsg('success', 'Course published! Landing page: ryxa.io/course/' + (course?.slug || ''));
   } else {
     pubBtn.textContent = 'Publish';
     pubBtn.style.borderColor = 'rgba(74,222,128,0.4)';
     pubBtn.style.color = '#4ade80';
+    // Unpublishing also unlists from marketplace
+    if (course && course.listed_in_marketplace) {
+      await sb.from('courses').update({ listed_in_marketplace: false }).eq('id', currentCourseId);
+      course.listed_in_marketplace = false;
+    }
+    document.getElementById('course-marketplace-toggle').style.display = 'none';
+    updateMarketplaceToggleUI('course', false);
     showCourseMsg('success', 'Course unpublished.');
   }
+}
+
+// =====================================================
+// MARKETPLACE LISTING (Courses + Coaching)
+// =====================================================
+const MARKETPLACE_MAX = 20;
+
+async function getMarketplaceCount() {
+  if (!currentUser) return 0;
+  const { data, error } = await sb.rpc('get_published_content_count', { p_user_id: currentUser.id });
+  if (error) { console.error('Marketplace count error:', error); return 0; }
+  return data || 0;
+}
+
+function updateMarketplaceToggleUI(prefix, isListed) {
+  const btn = document.getElementById(prefix + '-marketplace-btn');
+  const thumb = document.getElementById(prefix + '-marketplace-thumb');
+  if (!btn || !thumb) return;
+  if (isListed) {
+    btn.style.background = 'linear-gradient(135deg,#a78bfa,#e879f9)';
+    thumb.style.transform = 'translateX(20px)';
+  } else {
+    btn.style.background = 'rgba(255,255,255,0.15)';
+    thumb.style.transform = 'translateX(0)';
+  }
+}
+
+async function updateMarketplaceCountDisplay() {
+  const count = await getMarketplaceCount();
+  const countEl1 = document.getElementById('course-marketplace-count');
+  const countEl2 = document.getElementById('coaching-marketplace-count');
+  const label = count + '/' + MARKETPLACE_MAX + ' listed';
+  if (countEl1) countEl1.textContent = label;
+  if (countEl2) countEl2.textContent = label;
+  return count;
+}
+
+async function toggleCourseMarketplace() {
+  if (!currentCourseId) return;
+  const course = coursesList.find(c => c.id === currentCourseId);
+  if (!course) return;
+  const newVal = !(course.listed_in_marketplace);
+
+  if (newVal) {
+    const count = await getMarketplaceCount();
+    if (count >= MARKETPLACE_MAX) {
+      showCourseMsg('error', 'You\'ve reached the maximum of ' + MARKETPLACE_MAX + ' marketplace listings. Unlist another course or coaching service first.');
+      return;
+    }
+  }
+
+  const { error } = await sb.from('courses').update({ listed_in_marketplace: newVal }).eq('id', currentCourseId);
+  if (error) { showCourseMsg('error', 'Failed: ' + error.message); return; }
+  course.listed_in_marketplace = newVal;
+  updateMarketplaceToggleUI('course', newVal);
+  updateMarketplaceCountDisplay();
+  showCourseMsg('success', newVal ? 'Course listed in marketplace.' : 'Course removed from marketplace.');
+}
+
+async function toggleCoachingMarketplace() {
+  if (!currentCoachingId) return;
+  const coaching = coachingList.find(c => c.id === currentCoachingId);
+  if (!coaching) return;
+  const newVal = !(coaching.listed_in_marketplace);
+
+  if (newVal) {
+    const count = await getMarketplaceCount();
+    if (count >= MARKETPLACE_MAX) {
+      showCoachingMsg('error', 'You\'ve reached the maximum of ' + MARKETPLACE_MAX + ' marketplace listings. Unlist another course or coaching service first.');
+      return;
+    }
+  }
+
+  const { error } = await sb.from('coaching_services').update({ listed_in_marketplace: newVal }).eq('id', currentCoachingId);
+  if (error) { showCoachingMsg('error', 'Failed: ' + error.message); return; }
+  coaching.listed_in_marketplace = newVal;
+  updateMarketplaceToggleUI('coaching', newVal);
+  updateMarketplaceCountDisplay();
+  showCoachingMsg('success', newVal ? 'Service listed in marketplace.' : 'Service removed from marketplace.');
 }
 
 async function deleteCourse() {
