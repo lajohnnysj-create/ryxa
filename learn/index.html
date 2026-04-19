@@ -1001,6 +1001,7 @@ async function searchMarketplace(query) {
       .from('courses')
       .select('id, title, slug, price_cents, cover_image_path, user_id')
       .eq('status', 'published')
+      .eq('listed_in_marketplace', true)
       .ilike('title', '%' + query + '%')
       .order('created_at', { ascending: false })
       .limit(10);
@@ -1010,6 +1011,7 @@ async function searchMarketplace(query) {
       .from('coaching_services')
       .select('id, title, slug, price_cents, cover_image_path, user_id')
       .eq('status', 'published')
+      .eq('listed_in_marketplace', true)
       .ilike('title', '%' + query + '%')
       .order('created_at', { ascending: false })
       .limit(10);
