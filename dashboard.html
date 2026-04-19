@@ -3227,128 +3227,6 @@
 
 
 <!-- SETTINGS MODAL -->
-<div id="settings-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;pointer-events:all;">
-  <div style="background:#0f0f1a;border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:36px;position:relative;width:100%;max-width:440px;pointer-events:all;margin:20px;max-height:calc(100vh - 80px);overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(124,58,237,0.4) transparent;" class="settings-modal-inner">
-    <button onclick="closeSettingsModal()" style="position:absolute;top:16px;right:16px;background:none;border:none;color:#7a788f;font-size:18px;cursor:pointer;z-index:2;" aria-label="Close">&#x2715;</button>
-    <h2 style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;margin-bottom:4px;letter-spacing:-0.3px;">Settings</h2>
-    <p style="color:var(--muted);font-size:13px;margin-bottom:28px;">Manage your account and subscription</p>
-
-    <!-- Account Info -->
-    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;">
-      <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:12px;">Account</div>
-      <div style="display:flex;align-items:center;gap:12px;">
-        <div id="settings-avatar" style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff;flex-shrink:0;"></div>
-        <div>
-          <div id="settings-email" style="font-size:14px;font-weight:500;color:var(--text);"></div>
-          <div id="settings-tier" style="font-size:12px;color:var(--accent2);margin-top:2px;"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Password -->
-    <!-- Stripe Connect -->
-    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;">
-      <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:8px;">Payouts</div>
-      <img src="/stripe.svg" alt="Stripe" style="height:36px;opacity:0.5;margin-bottom:12px;display:block;">
-      <p style="font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.5;">Connect your Stripe account to receive payments from Courses, Brand Deals, and 1:1 Private Coaching.</p>
-
-      <!-- Not connected state -->
-      <div id="settings-stripe-disconnected">
-        <button id="settings-stripe-connect-btn" onclick="connectStripeAccount()" style="width:100%;padding:11px;background:rgba(99,91,255,0.08);border:1px solid rgba(99,91,255,0.25);color:var(--text);border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(124,58,237,0.5)';this.style.background='rgba(124,58,237,0.12)'" onmouseout="this.style.borderColor='rgba(99,91,255,0.25)';this.style.background='rgba(99,91,255,0.08)'">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>
-          Connect Stripe Account
-        </button>
-      </div>
-
-      <!-- Connected state -->
-      <div id="settings-stripe-connected" style="display:none;">
-        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(74,222,128,0.06);border:1px solid rgba(74,222,128,0.2);border-radius:8px;margin-bottom:10px;">
-          <div style="width:28px;height:28px;border-radius:8px;background:rgba(74,222,128,0.12);border:1px solid rgba(74,222,128,0.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-          </div>
-          <div style="flex:1;min-width:0;">
-            <div style="font-size:13px;font-weight:500;color:#4ade80;">Stripe Connected</div>
-            <div id="settings-stripe-acct-id" style="font-size:11px;color:var(--muted);font-family:monospace;margin-top:1px;">acct_•••</div>
-          </div>
-        </div>
-        <button id="stripe-disconnect-btn" onclick="showStripeDisconnectConfirm()" style="width:100%;padding:9px;background:transparent;border:1px solid rgba(239,68,68,0.25);color:#fca5a5;border-radius:8px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.06)'" onmouseout="this.style.background='transparent'">Disconnect Stripe</button>
-        <div id="stripe-disconnect-confirm" style="display:none;margin-top:10px;padding:14px;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);border-radius:8px;">
-          <p style="font-size:13px;color:#fca5a5;margin-bottom:4px;font-weight:600;">Disconnect Stripe?</p>
-          <p style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5;">You won't receive payouts until you reconnect. Your Stripe account itself is not affected.</p>
-          <div style="display:flex;gap:8px;">
-            <button onclick="confirmDisconnectStripe()" style="flex:1;padding:9px;background:transparent;border:1px solid rgba(239,68,68,0.25);color:#fca5a5;border-radius:7px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Yes, disconnect</button>
-            <button onclick="hideStripeDisconnectConfirm()" style="flex:1;padding:9px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.4);color:#c4b5fd;border-radius:7px;font-size:12px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;">Keep connected</button>
-          </div>
-        </div>
-      </div>
-
-      <div id="settings-stripe-msg" style="display:none;margin-top:8px;padding:10px 12px;border-radius:8px;font-size:12px;line-height:1.5;"></div>
-    </div>
-
-    <!-- Subscription -->
-    <div id="settings-sub-section" style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;">
-      <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:12px;">Subscription</div>
-      <div id="settings-sub-free" style="display:none;">
-        <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">You are on the Free plan. Upgrade to unlock full access.</p>
-        <button onclick="startCheckout('monthly', this)" style="width:100%;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow);margin-bottom:8px;">Upgrade to Pro — $10/mo</button>
-        <button onclick="startCheckout('max', this)" style="width:100%;padding:11px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px rgba(232,121,249,0.35);">Get Creator Max — $20/mo</button>
-      </div>
-      <div id="settings-sub-pro" style="display:none;">
-        <p id="settings-sub-pro-msg" style="font-size:13px;color:var(--muted);margin-bottom:16px;">You are on the <strong id="settings-sub-pro-label" style="color:#e879f9;">Pro plan</strong>. You have full access to all tools and features.</p>
-        <button id="settings-upgrade-max" onclick="confirmUpgradeToMax()" style="display:none;width:100%;padding:11px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px rgba(232,121,249,0.35);margin-bottom:8px;">Upgrade to Creator Max — $20/mo</button>
-        <div id="settings-upgrade-confirm" style="display:none;margin-top:0;margin-bottom:8px;padding:14px;background:linear-gradient(135deg,rgba(167,139,250,0.08),rgba(232,121,249,0.06));border:1px solid rgba(232,121,249,0.3);border-radius:8px;">
-          <p style="font-size:13px;color:#e879f9;margin-bottom:4px;font-weight:600;">Upgrade to Creator Max?</p>
-          <p style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5;">Takes effect immediately. You'll be charged a prorated amount today, then $20/month going forward. Unlocks custom themes, hero links, and full branding control.</p>
-          <div style="display:flex;gap:8px;">
-            <button onclick="confirmUpgradeToMaxFinal(event)" style="flex:1;padding:9px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 14px rgba(232,121,249,0.3);">Yes, upgrade</button>
-            <button onclick="dismissSettingsMsg()" style="flex:1;padding:9px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:7px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;">Stay on Pro</button>
-          </div>
-        </div>
-        <button id="settings-downgrade-pro" onclick="handleDowngradeToPro()" style="display:none;width:100%;padding:11px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;margin-bottom:8px;">Downgrade to Pro — $10/mo</button>
-        <div id="settings-downgrade-confirm" style="display:none;margin-top:0;margin-bottom:8px;padding:14px;background:rgba(124,58,237,0.06);border:1px solid rgba(124,58,237,0.25);border-radius:8px;">
-          <p style="font-size:13px;color:#c4b5fd;margin-bottom:4px;font-weight:600;">Downgrade to Pro?</p>
-          <p style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5;">Takes effect immediately with prorated credit for your unused Creator Max time. Your custom theme and hero links will remain saved but won't display until you upgrade again.</p>
-          <div style="display:flex;gap:8px;">
-            <button onclick="confirmDowngradeToPro(event)" style="flex:1;padding:9px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.35);color:#c4b5fd;border-radius:7px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Yes, downgrade</button>
-            <button onclick="dismissSettingsMsg()" style="flex:1;padding:9px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:7px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;">Keep Max</button>
-          </div>
-        </div>
-        <button id="settings-cancel-btn" onclick="handleSettingsCancel()" style="width:100%;padding:11px;background:transparent;border:1px solid rgba(239,68,68,0.3);color:#fca5a5;border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.08)'" onmouseout="this.style.background='transparent'">Cancel subscription</button>
-        <div id="settings-cancel-confirm" style="display:none;margin-top:12px;padding:14px;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);border-radius:8px;">
-          <p style="font-size:13px;color:#fca5a5;margin-bottom:8px;">Are you sure? You'll keep your plan until the end of your billing period.</p>
-          <p style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5;">Your data stays saved — if you ever come back, everything will be right where you left it.</p>
-          <div style="display:flex;gap:8px;">
-            <button onclick="confirmSettingsCancel()" style="flex:1;padding:9px;background:transparent;border:1px solid rgba(239,68,68,0.2);color:rgba(252,165,165,0.5);border-radius:7px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Yes, cancel</button>
-            <button onclick="dismissSettingsMsg()" style="flex:1;padding:9px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.4);color:#c4b5fd;border-radius:7px;font-size:12px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;">Keep my plan</button>
-          </div>
-        </div>
-        <div id="settings-renew-confirm" style="display:none;margin-top:12px;padding:14px;background:rgba(74,222,128,0.06);border:1px solid rgba(74,222,128,0.2);border-radius:8px;">
-          <p style="font-size:13px;color:#4ade80;margin-bottom:12px;">Reactivate your Pro plan? Your subscription will continue as normal.</p>
-          <div style="display:flex;gap:8px;">
-            <button onclick="confirmSettingsCancel()" style="flex:1;padding:9px;background:rgba(74,222,128,0.15);border:1px solid rgba(74,222,128,0.3);color:#4ade80;border-radius:7px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Yes, reactivate</button>
-            <button onclick="dismissSettingsMsg()" style="flex:1;padding:9px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:7px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;">Never mind</button>
-          </div>
-        </div>
-        <div id="settings-result-msg" style="display:none;margin-top:12px;padding:12px 14px;border-radius:8px;font-size:13px;"></div>
-      </div>
-    </div>
-
-    <div id="settings-password-section" style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;">
-      <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:12px;">Password</div>
-      <p style="font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.5;">We'll email you a secure link to change your password.</p>
-      <div id="settings-password-turnstile" style="display:none;margin-bottom:10px;justify-content:center;min-height:60px;"></div>
-      <button id="settings-reset-password-btn" onclick="sendPasswordReset()" style="width:100%;padding:11px;background:transparent;border:1px solid var(--border-hover);color:var(--text);border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(124,58,237,0.4)';this.style.color='#c4b5fd'" onmouseout="this.style.borderColor='var(--border-hover)';this.style.color='var(--text)'">Send password reset email</button>
-      <div id="settings-password-msg" style="display:none;margin-top:10px;padding:10px 12px;border-radius:8px;font-size:12px;line-height:1.5;"></div>
-    </div>
-    <!-- Help -->
-    <div style="display:flex;gap:10px;">
-      <a href="faq.html" style="flex:1;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--muted);text-decoration:none;text-align:center;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--border-hover)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">FAQ</a>
-      <a href="privacy.html" style="flex:1;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--muted);text-decoration:none;text-align:center;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--border-hover)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">Privacy</a>
-    </div>
-    <p style="margin-top:12px;font-size:12px;color:var(--muted);text-align:center;">Support: hello@ryxa.io</p>
-  </div>
-</div>
-
 <!-- SIGN OUT MODAL -->
 <div id="signout-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;pointer-events:all;">
   <div style="background:#0f0f1a;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:32px 36px;text-align:center;position:relative;min-width:280px;max-width:400px;pointer-events:all;">
@@ -3395,7 +3273,7 @@
       <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 12h18"/></svg></div>
       <span class="sidebar-item-label">Brand Deals <span style="font-size:9px;font-weight:600;letter-spacing:0.08em;color:var(--muted);vertical-align:middle;margin-left:2px;">CRM</span></span>
     </button>
-    <button class="sidebar-item" id="nav-analytics" onclick="showTool('analytics')">
+    <button class="sidebar-item" id="nav-analytics" onclick="showTool('analytics', 'settings')">
       <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 20V10M12 20V4M6 20v-6"/></svg></div>
       <span class="sidebar-item-label">Analytics</span>
     </button>
@@ -3432,7 +3310,7 @@
       <span class="sidebar-item-label">Sign PDF</span>
     </button>
 
-    <button class="sidebar-item" onclick="openSettingsModal();closeSidebar();">
+    <button class="sidebar-item" id="nav-settings" onclick="showTool('settings')">
       <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
       <span class="sidebar-item-label">Settings</span>
     </button>
@@ -5788,6 +5666,129 @@
       </div>
     </div>
 
+    <!-- SETTINGS -->
+    <div id="tool-settings" style="display:none;">
+      <div style="max-width:480px;">
+<h2 style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;margin-bottom:4px;letter-spacing:-0.3px;">Settings</h2>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:28px;">Manage your account and subscription</p>
+
+    <!-- Account Info -->
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:12px;">Account</div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div id="settings-avatar" style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff;flex-shrink:0;"></div>
+        <div>
+          <div id="settings-email" style="font-size:14px;font-weight:500;color:var(--text);"></div>
+          <div id="settings-tier" style="font-size:12px;color:var(--accent2);margin-top:2px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Password -->
+    <!-- Stripe Connect -->
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:8px;">Payouts</div>
+      <img src="/stripe.svg" alt="Stripe" style="height:36px;opacity:0.5;margin-bottom:12px;display:block;">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.5;">Connect your Stripe account to receive payments from Courses, Brand Deals, and 1:1 Private Coaching.</p>
+
+      <!-- Not connected state -->
+      <div id="settings-stripe-disconnected">
+        <button id="settings-stripe-connect-btn" onclick="connectStripeAccount()" style="width:100%;padding:11px;background:rgba(99,91,255,0.08);border:1px solid rgba(99,91,255,0.25);color:var(--text);border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(124,58,237,0.5)';this.style.background='rgba(124,58,237,0.12)'" onmouseout="this.style.borderColor='rgba(99,91,255,0.25)';this.style.background='rgba(99,91,255,0.08)'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>
+          Connect Stripe Account
+        </button>
+      </div>
+
+      <!-- Connected state -->
+      <div id="settings-stripe-connected" style="display:none;">
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(74,222,128,0.06);border:1px solid rgba(74,222,128,0.2);border-radius:8px;margin-bottom:10px;">
+          <div style="width:28px;height:28px;border-radius:8px;background:rgba(74,222,128,0.12);border:1px solid rgba(74,222,128,0.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:13px;font-weight:500;color:#4ade80;">Stripe Connected</div>
+            <div id="settings-stripe-acct-id" style="font-size:11px;color:var(--muted);font-family:monospace;margin-top:1px;">acct_•••</div>
+          </div>
+        </div>
+        <button id="stripe-disconnect-btn" onclick="showStripeDisconnectConfirm()" style="width:100%;padding:9px;background:transparent;border:1px solid rgba(239,68,68,0.25);color:#fca5a5;border-radius:8px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.06)'" onmouseout="this.style.background='transparent'">Disconnect Stripe</button>
+        <div id="stripe-disconnect-confirm" style="display:none;margin-top:10px;padding:14px;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);border-radius:8px;">
+          <p style="font-size:13px;color:#fca5a5;margin-bottom:4px;font-weight:600;">Disconnect Stripe?</p>
+          <p style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5;">You won't receive payouts until you reconnect. Your Stripe account itself is not affected.</p>
+          <div style="display:flex;gap:8px;">
+            <button onclick="confirmDisconnectStripe()" style="flex:1;padding:9px;background:transparent;border:1px solid rgba(239,68,68,0.25);color:#fca5a5;border-radius:7px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Yes, disconnect</button>
+            <button onclick="hideStripeDisconnectConfirm()" style="flex:1;padding:9px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.4);color:#c4b5fd;border-radius:7px;font-size:12px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;">Keep connected</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="settings-stripe-msg" style="display:none;margin-top:8px;padding:10px 12px;border-radius:8px;font-size:12px;line-height:1.5;"></div>
+    </div>
+
+    <!-- Subscription -->
+    <div id="settings-sub-section" style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:12px;">Subscription</div>
+      <div id="settings-sub-free" style="display:none;">
+        <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">You are on the Free plan. Upgrade to unlock full access.</p>
+        <button onclick="startCheckout('monthly', this)" style="width:100%;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow);margin-bottom:8px;">Upgrade to Pro — $10/mo</button>
+        <button onclick="startCheckout('max', this)" style="width:100%;padding:11px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px rgba(232,121,249,0.35);">Get Creator Max — $20/mo</button>
+      </div>
+      <div id="settings-sub-pro" style="display:none;">
+        <p id="settings-sub-pro-msg" style="font-size:13px;color:var(--muted);margin-bottom:16px;">You are on the <strong id="settings-sub-pro-label" style="color:#e879f9;">Pro plan</strong>. You have full access to all tools and features.</p>
+        <button id="settings-upgrade-max" onclick="confirmUpgradeToMax()" style="display:none;width:100%;padding:11px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px rgba(232,121,249,0.35);margin-bottom:8px;">Upgrade to Creator Max — $20/mo</button>
+        <div id="settings-upgrade-confirm" style="display:none;margin-top:0;margin-bottom:8px;padding:14px;background:linear-gradient(135deg,rgba(167,139,250,0.08),rgba(232,121,249,0.06));border:1px solid rgba(232,121,249,0.3);border-radius:8px;">
+          <p style="font-size:13px;color:#e879f9;margin-bottom:4px;font-weight:600;">Upgrade to Creator Max?</p>
+          <p style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5;">Takes effect immediately. You'll be charged a prorated amount today, then $20/month going forward. Unlocks custom themes, hero links, and full branding control.</p>
+          <div style="display:flex;gap:8px;">
+            <button onclick="confirmUpgradeToMaxFinal(event)" style="flex:1;padding:9px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 14px rgba(232,121,249,0.3);">Yes, upgrade</button>
+            <button onclick="dismissSettingsMsg()" style="flex:1;padding:9px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:7px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;">Stay on Pro</button>
+          </div>
+        </div>
+        <button id="settings-downgrade-pro" onclick="handleDowngradeToPro()" style="display:none;width:100%;padding:11px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;margin-bottom:8px;">Downgrade to Pro — $10/mo</button>
+        <div id="settings-downgrade-confirm" style="display:none;margin-top:0;margin-bottom:8px;padding:14px;background:rgba(124,58,237,0.06);border:1px solid rgba(124,58,237,0.25);border-radius:8px;">
+          <p style="font-size:13px;color:#c4b5fd;margin-bottom:4px;font-weight:600;">Downgrade to Pro?</p>
+          <p style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5;">Takes effect immediately with prorated credit for your unused Creator Max time. Your custom theme and hero links will remain saved but won't display until you upgrade again.</p>
+          <div style="display:flex;gap:8px;">
+            <button onclick="confirmDowngradeToPro(event)" style="flex:1;padding:9px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.35);color:#c4b5fd;border-radius:7px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Yes, downgrade</button>
+            <button onclick="dismissSettingsMsg()" style="flex:1;padding:9px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:7px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;">Keep Max</button>
+          </div>
+        </div>
+        <button id="settings-cancel-btn" onclick="handleSettingsCancel()" style="width:100%;padding:11px;background:transparent;border:1px solid rgba(239,68,68,0.3);color:#fca5a5;border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.08)'" onmouseout="this.style.background='transparent'">Cancel subscription</button>
+        <div id="settings-cancel-confirm" style="display:none;margin-top:12px;padding:14px;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);border-radius:8px;">
+          <p style="font-size:13px;color:#fca5a5;margin-bottom:8px;">Are you sure? You'll keep your plan until the end of your billing period.</p>
+          <p style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5;">Your data stays saved — if you ever come back, everything will be right where you left it.</p>
+          <div style="display:flex;gap:8px;">
+            <button onclick="confirmSettingsCancel()" style="flex:1;padding:9px;background:transparent;border:1px solid rgba(239,68,68,0.2);color:rgba(252,165,165,0.5);border-radius:7px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Yes, cancel</button>
+            <button onclick="dismissSettingsMsg()" style="flex:1;padding:9px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.4);color:#c4b5fd;border-radius:7px;font-size:12px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;">Keep my plan</button>
+          </div>
+        </div>
+        <div id="settings-renew-confirm" style="display:none;margin-top:12px;padding:14px;background:rgba(74,222,128,0.06);border:1px solid rgba(74,222,128,0.2);border-radius:8px;">
+          <p style="font-size:13px;color:#4ade80;margin-bottom:12px;">Reactivate your Pro plan? Your subscription will continue as normal.</p>
+          <div style="display:flex;gap:8px;">
+            <button onclick="confirmSettingsCancel()" style="flex:1;padding:9px;background:rgba(74,222,128,0.15);border:1px solid rgba(74,222,128,0.3);color:#4ade80;border-radius:7px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Yes, reactivate</button>
+            <button onclick="dismissSettingsMsg()" style="flex:1;padding:9px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:7px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;">Never mind</button>
+          </div>
+        </div>
+        <div id="settings-result-msg" style="display:none;margin-top:12px;padding:12px 14px;border-radius:8px;font-size:13px;"></div>
+      </div>
+    </div>
+
+    <div id="settings-password-section" style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:12px;">Password</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.5;">We'll email you a secure link to change your password.</p>
+      <div id="settings-password-turnstile" style="display:none;margin-bottom:10px;justify-content:center;min-height:60px;"></div>
+      <button id="settings-reset-password-btn" onclick="sendPasswordReset()" style="width:100%;padding:11px;background:transparent;border:1px solid var(--border-hover);color:var(--text);border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(124,58,237,0.4)';this.style.color='#c4b5fd'" onmouseout="this.style.borderColor='var(--border-hover)';this.style.color='var(--text)'">Send password reset email</button>
+      <div id="settings-password-msg" style="display:none;margin-top:10px;padding:10px 12px;border-radius:8px;font-size:12px;line-height:1.5;"></div>
+    </div>
+    <!-- Help -->
+    <div style="display:flex;gap:10px;">
+      <a href="faq.html" style="flex:1;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--muted);text-decoration:none;text-align:center;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--border-hover)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">FAQ</a>
+      <a href="privacy.html" style="flex:1;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--muted);text-decoration:none;text-align:center;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--border-hover)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">Privacy</a>
+    </div>
+    <p style="margin-top:12px;font-size:12px;color:var(--muted);text-align:center;">Support: hello@ryxa.io</p>
+  </div>
+      </div>
+    </div>
+
     <!-- ANALYTICS (Creator Max) -->
     <div id="tool-analytics" style="display:none;">
       <div style="max-width:900px;">
@@ -5970,7 +5971,8 @@ const toolTitles = {
   pdfsign: 'Sign PDF',
   scripts: 'Script Builder',
   deals: 'Brand Deal CRM',
-  analytics: 'Analytics'
+  analytics: 'Analytics',
+    settings: 'Settings'
 };
 
 async function initAuth() {
@@ -6320,7 +6322,7 @@ async function startCheckout(plan, triggerBtn) {
         await fetchTier(currentUser.id);
         const msg = data.alreadyOnPlan ? "You're already on this plan." : "Plan updated successfully.";
         // Show in settings modal if open, otherwise a subtle toast
-        if (typeof showSettingsResult === 'function' && document.getElementById('settings-modal')?.classList.contains('open')) {
+        if (typeof showSettingsResult === 'function' && document.getElementById('tool-settings')?.style.display !== 'none') {
           showSettingsResult('success', msg);
         } else {
           // Settings modal is closed — open it so the user sees their new state
@@ -6341,7 +6343,7 @@ async function startCheckout(plan, triggerBtn) {
     console.error('Checkout error:', err);
     clearBtnLoading(btn);
     // Show inline error instead of browser alert
-    if (typeof showSettingsResult === 'function' && document.getElementById('settings-modal')?.classList.contains('open')) {
+    if (typeof showSettingsResult === 'function' && document.getElementById('tool-settings')?.style.display !== 'none') {
       showSettingsResult('error', 'Something went wrong. Please try again.');
     } else {
       alert('Something went wrong. Please try again.');
@@ -11259,8 +11261,6 @@ if (urlParams.get('payment') === 'success') {
 initAuth();
 
 function openSettingsModal() {
-  const modal = document.getElementById('settings-modal');
-  if (!modal) return;
   const pro = isPro();
   if (currentUser) {
     document.getElementById('settings-avatar').textContent = currentUser.email[0].toUpperCase();
@@ -11269,7 +11269,7 @@ function openSettingsModal() {
   document.getElementById('settings-sub-free').style.display = pro ? 'none' : 'block';
   document.getElementById('settings-sub-pro').style.display = pro ? 'block' : 'none';
   updateSettingsCancelBtn();
-  // Reset password section each time modal opens
+  // Reset password section each time settings opens
   const pwBtn = document.getElementById('settings-reset-password-btn');
   const pwMsg = document.getElementById('settings-password-msg');
   const pwTurnstile = document.getElementById('settings-password-turnstile');
@@ -11279,8 +11279,11 @@ function openSettingsModal() {
   resetSettingsTurnstile();
   // Load Stripe Connect status
   loadStripeConnectStatus();
-  modal.style.display = 'flex';
-  closeSidebar();
+  showTool('settings');
+}
+
+function closeSettingsModal() {
+  // No-op now — settings is a tool view, not a modal
 }
 
 // =====================================================
@@ -11405,11 +11408,6 @@ function showStripeMsg(type, text) {
     el.style.color = '#fca5a5';
     el.style.border = '1px solid rgba(239,68,68,0.2)';
   }
-}
-
-function closeSettingsModal() {
-  document.getElementById('settings-modal').style.display = 'none';
-  resetSettingsTurnstile();
 }
 
 const SETTINGS_TURNSTILE_SITE_KEY = '0x4AAAAAAC9W8avdI3sdVEcc';
