@@ -1754,6 +1754,12 @@
   .ana-range-btn { padding: 6px 14px; background: transparent; border: 1px solid var(--border); color: var(--muted); border-radius: 8px; font-size: 12px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.15s; }
   .ana-range-btn:hover { border-color: rgba(124,58,237,0.4); color: var(--text); }
   .ana-range-btn.active { background: linear-gradient(135deg, rgba(124,58,237,0.2), rgba(232,121,249,0.1)); border-color: rgba(124,58,237,0.5); color: #c4b5fd; }
+  .topbar-bio-mobile { display: none; }
+  @media (max-width: 768px) {
+    .ana-range-btn { padding: 4px 10px; font-size: 12px; }
+    .topbar-bio-mobile { display: flex; }
+    #topbar-bio-link-wrap { display: none !important; }
+  }
   .ana-mini-tip { position:absolute; z-index:10; pointer-events:none; background:rgba(15,15,26,0.95); border:1px solid rgba(232,121,249,0.25); border-radius:8px; padding:6px 10px; font-size:10px; color:#e9c4f7; box-shadow:0 4px 16px rgba(0,0,0,0.4); white-space:nowrap; }
   .dash-range-custom { display: flex; align-items: center; gap: 6px; padding: 5px 10px; background: transparent; border: 1px solid var(--border); border-radius: 8px; transition: all 0.15s; cursor: pointer; }
   .dash-range-custom:hover { border-color: rgba(124,58,237,0.4); }
@@ -3345,6 +3351,14 @@
       <div style="width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0;"></div><div class="topbar-title" id="topbar-title">Dashboard</div>
     </div>
     <div class="topbar-right">
+      <button class="topbar-bio-mobile" id="topbar-bio-mobile-wrap" onclick="copyBioLink()" style="padding:5px 10px;background:var(--surface);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-family:DM Sans,sans-serif;font-size:12px;color:var(--muted);align-items:center;gap:5px;max-width:140px;" aria-label="Copy bio link">
+        <span id="ana-bio-link" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;">ryxa.io/...</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      </button>
+      <button id="topbar-bio-link-wrap" onclick="copyBioLink()" style="display:none;padding:6px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-family:DM Sans,sans-serif;font-size:12px;color:var(--muted);transition:all 0.15s;align-items:center;gap:6px;" onmouseover="this.style.borderColor='rgba(124,58,237,0.4)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'" aria-label="Copy bio link">
+        <span id="topbar-bio-link" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">ryxa.io/...</span>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      </button>
       <span class="tier-badge free" id="topbar-tier-badge">Free</span>
       <button class="upgrade-btn" id="topbar-upgrade-btn" onclick="startCheckout(undefined, this)">Upgrade to Pro</button>
       <button class="upgrade-btn" id="topbar-upgrade-max-btn" style="display:none;background:linear-gradient(135deg,#a78bfa,#e879f9);box-shadow:0 0 20px rgba(232,121,249,0.35);" onclick="startCheckout('max', this)">Upgrade to Creator Max</button>
@@ -5806,14 +5820,14 @@
           <!-- Date range -->
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
             <h2 style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;letter-spacing:-0.5px;">Analytics</h2>
-            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
               <button class="ana-range-btn active" onclick="setAnalyticsRange(7,this)">7d</button>
               <button class="ana-range-btn" onclick="setAnalyticsRange(14,this)">14d</button>
               <button class="ana-range-btn" onclick="setAnalyticsRange(30,this)">30d</button>
               <div style="display:flex;align-items:center;gap:4px;">
-                <input type="date" id="ana-range-start" aria-label="Analytics start date" style="background:var(--surface);border:1px solid var(--border-hover);border-radius:6px;padding:5px 8px;font-size:11px;color:var(--text);font-family:DM Sans,sans-serif;">
-                <span style="color:var(--muted);font-size:11px;">to</span>
-                <input type="date" id="ana-range-end" aria-label="Analytics end date" style="background:var(--surface);border:1px solid var(--border-hover);border-radius:6px;padding:5px 8px;font-size:11px;color:var(--text);font-family:DM Sans,sans-serif;">
+                <input type="date" id="ana-range-start" aria-label="Analytics start date" style="background:var(--surface);border:1px solid var(--border-hover);border-radius:6px;padding:5px 8px;font-size:12px;color:var(--text);font-family:DM Sans,sans-serif;">
+                <span style="color:var(--muted);font-size:12px;">to</span>
+                <input type="date" id="ana-range-end" aria-label="Analytics end date" style="background:var(--surface);border:1px solid var(--border-hover);border-radius:6px;padding:5px 8px;font-size:12px;color:var(--text);font-family:DM Sans,sans-serif;">
                 <button class="ana-range-btn" onclick="setAnalyticsCustomRange()">Go</button>
               </div>
             </div>
@@ -5994,12 +6008,28 @@ async function setUser(user) {
   if (avatar) avatar.textContent = user.email[0].toUpperCase();
   await fetchTier(user.id);
 
+  // Load avatar from bio profile
+  try {
+    const { data: bio } = await sb.from('bios').select('avatar_url').eq('user_id', user.id).maybeSingle();
+    if (bio?.avatar_url) {
+      updateDashboardAvatar(bio.avatar_url);
+    }
+  } catch (e) { /* keep default */ }
+
   // Set welcome name from profile
   try {
     const { data: profile } = await sb.from('profiles').select('username').eq('user_id', user.id).maybeSingle();
-    if (welcomeName) {
-      const name = profile?.username ? '@' + profile.username : 'creator';
-      welcomeName.textContent = name;
+    if (profile?.username) {
+      window._ryx_username = profile.username;
+      if (welcomeName) welcomeName.textContent = '@' + profile.username;
+      // Populate bio link in topbar
+      var bioLinkEl = document.getElementById('topbar-bio-link');
+      if (bioLinkEl) bioLinkEl.textContent = 'ryxa.io/' + profile.username;
+      var bioLinkMobile = document.getElementById('ana-bio-link');
+      if (bioLinkMobile) bioLinkMobile.textContent = 'ryxa.io/' + profile.username;
+      showBioLinkButtons();
+    } else {
+      if (welcomeName) welcomeName.textContent = 'creator';
     }
   } catch (e) { /* keep default */ }
 
@@ -6024,6 +6054,50 @@ async function setUser(user) {
 
   // Handle Stripe Connect callback redirect
   handleStripeConnectRedirect();
+}
+
+function updateDashboardAvatar(url) {
+
+function copyBioLink() {
+  var username = window._ryx_username;
+  if (!username) return;
+  var url = 'https://ryxa.io/' + username;
+  navigator.clipboard.writeText(url).then(function() {
+    // Flash the button to confirm
+    var desktopWrap = document.getElementById('topbar-bio-link-wrap');
+    var mobileWrap = document.getElementById('topbar-bio-mobile-wrap');
+    [desktopWrap, mobileWrap].forEach(function(el) {
+      if (!el) return;
+      el.style.borderColor = 'rgba(74,222,128,0.5)';
+      el.style.color = '#4ade80';
+      var origText = el.querySelector('span').textContent;
+      el.querySelector('span').textContent = 'Copied!';
+      setTimeout(function() {
+        el.style.borderColor = '';
+        el.style.color = '';
+        el.querySelector('span').textContent = origText;
+      }, 1500);
+    });
+  });
+}
+
+function showBioLinkButtons() {
+  var desktopWrap = document.getElementById('topbar-bio-link-wrap');
+  if (desktopWrap) desktopWrap.style.display = 'inline-flex';
+}
+
+function updateDashboardAvatar(url) {
+  const sidebarAvatar = document.getElementById('sidebar-avatar');
+  const settingsAvatar = document.getElementById('settings-avatar');
+  if (url) {
+    const imgHtml = '<img src="' + escapeHtml(url) + '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+    if (sidebarAvatar) { sidebarAvatar.innerHTML = imgHtml; sidebarAvatar.style.overflow = 'hidden'; }
+    if (settingsAvatar) { settingsAvatar.innerHTML = imgHtml; settingsAvatar.style.overflow = 'hidden'; }
+  } else {
+    const initial = currentUser ? currentUser.email[0].toUpperCase() : '?';
+    if (sidebarAvatar) { sidebarAvatar.textContent = initial; sidebarAvatar.style.overflow = ''; }
+    if (settingsAvatar) { settingsAvatar.textContent = initial; settingsAvatar.style.overflow = ''; }
+  }
 }
 
 function handleStripeConnectRedirect() {
@@ -6237,7 +6311,12 @@ function showTool(tool) {
   if (tool === 'settings') {
     const pro = isPro();
     if (currentUser) {
-      document.getElementById('settings-avatar').textContent = currentUser.email[0].toUpperCase();
+      // Avatar will be set by updateDashboardAvatar if bio has a photo
+      if (typeof bioState !== 'undefined' && bioState.avatar_url) {
+        updateDashboardAvatar(bioState.avatar_url);
+      } else {
+        document.getElementById('settings-avatar').textContent = currentUser.email[0].toUpperCase();
+      }
       document.getElementById('settings-email').textContent = currentUser.email;
     }
     document.getElementById('settings-sub-free').style.display = pro ? 'none' : 'block';
@@ -8247,6 +8326,7 @@ function removeAvatar() {
   bioState.avatar_display = 'default';
   renderAvatarPreview();
   updateAvatarDisplayUI();
+  updateDashboardAvatar(null);
   schedulePreviewUpdate();
 }
 
@@ -8371,6 +8451,7 @@ async function confirmCrop() {
       bioState.avatar_url = publicUrl;
       renderAvatarPreview();
       updateAvatarDisplayUI();
+      updateDashboardAvatar(publicUrl);
       schedulePreviewUpdate();
     } else if (isHeadshot) {
       if (mkState.headshot_url) mkStalePhotos.push(mkState.headshot_url);
