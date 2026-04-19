@@ -14216,7 +14216,7 @@ async function deleteCourse() {
   return new Promise(function(resolve) {
     var overlay = document.createElement('div');
     overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;';
-    overlay.innerHTML = '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:24px;max-width:400px;width:100%;">'
+    overlay.innerHTML = '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:24px;max-width:400px;width:100%;max-height:calc(100vh - 80px);overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(124,58,237,0.4) transparent;">'
       + '<div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.3px;margin-bottom:8px;">Delete Course</div>'
       + '<p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:16px;">This will permanently delete this course, all modules, lessons, and enrollment data. This cannot be undone.</p>'
       + '<p style="font-size:13px;color:var(--text);margin-bottom:8px;">Type <strong style="color:#ef4444;">DELETE</strong> to confirm:</p>'
@@ -17634,7 +17634,7 @@ function dsAIAssist(blockId) {
   var overlay = document.createElement('div');
   overlay.id = 'script-ai-assist-modal';
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;';
-  overlay.innerHTML = '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:28px;max-width:400px;width:100%;">'
+  overlay.innerHTML = '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:28px;max-width:400px;width:100%;max-height:calc(100vh - 80px);overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(124,58,237,0.4) transparent;">'
     + '<div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.3px;margin-bottom:6px;">AI Assist</div>'
     + '<div style="font-size:12px;color:var(--muted);margin-bottom:20px;">What would you like to do with this block?</div>'
     + '<div style="display:flex;flex-direction:column;gap:8px;">'
@@ -17725,7 +17725,7 @@ function aiBioAssist(textareaId, maxLen) {
   var overlay = document.createElement('div');
   overlay.id = 'ai-bio-modal';
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;';
-  overlay.innerHTML = '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:28px;max-width:440px;width:100%;text-align:center;">'
+  overlay.innerHTML = '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:28px;max-width:440px;width:100%;max-height:calc(100vh - 80px);overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(124,58,237,0.4) transparent;text-align:center;">'
     + '<svg width="24" height="24" viewBox="0 0 24 24" style="animation:btn-spin 0.6s linear infinite;margin-bottom:12px;" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>'
     + '<div style="font-size:14px;color:var(--text);">' + (mode === 'generate' ? 'Generating bio ideas...' : 'Rewriting your bio...') + '</div>'
     + '</div>';
@@ -17796,7 +17796,7 @@ function aiCleanUp(textareaId) {
   var overlay = document.createElement('div');
   overlay.id = 'ai-cleanup-modal';
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;';
-  overlay.innerHTML = '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:28px;max-width:440px;width:100%;text-align:center;">'
+  overlay.innerHTML = '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:28px;max-width:440px;width:100%;max-height:calc(100vh - 80px);overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(124,58,237,0.4) transparent;text-align:center;">'
     + '<svg width="24" height="24" viewBox="0 0 24 24" style="animation:btn-spin 0.6s linear infinite;margin-bottom:12px;" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>'
     + '<div style="font-size:14px;color:var(--text);">Cleaning up your text...</div>'
     + '</div>';
@@ -21447,7 +21447,7 @@ function showModalConfirm(title, message, onConfirm, confirmText, cancelText) {
   var overlay = document.createElement('div');
   overlay.id = 'modal-confirm-overlay';
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;';
-  overlay.innerHTML = '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:28px;max-width:380px;width:100%;">'
+  overlay.innerHTML = '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:28px;max-width:380px;width:100%;max-height:calc(100vh - 80px);overflow-y:auto;">'
     + '<div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.3px;margin-bottom:10px;">' + (title || 'Confirm') + '</div>'
     + '<p style="font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:22px;">' + (message || 'Are you sure?') + '</p>'
     + '<div style="display:flex;gap:8px;">'
@@ -21465,7 +21465,7 @@ function showModalAlert(title, message) {
   var overlay = document.createElement('div');
   overlay.id = 'modal-alert-overlay';
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;';
-  overlay.innerHTML = '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:28px;max-width:380px;width:100%;">'
+  overlay.innerHTML = '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:28px;max-width:380px;width:100%;max-height:calc(100vh - 80px);overflow-y:auto;">'
     + '<div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.3px;margin-bottom:10px;">' + (title || 'Notice') + '</div>'
     + '<p style="font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:22px;">' + (message || '') + '</p>'
     + '<button onclick="this.closest(\'[id=modal-alert-overlay]\').remove()" style="width:100%;padding:11px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:14px;font-family:DM Sans,sans-serif;cursor:pointer;">OK</button>'
