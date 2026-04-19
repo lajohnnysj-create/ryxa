@@ -3539,17 +3539,6 @@
     <div id="tool-follower" style="display:none;">
       <div class="fa-inner">
 
-        <!-- UPGRADE BANNER (shown for free users) -->
-        <div class="fa-upgrade-banner" id="fa-upgrade-banner">
-          <div class="fa-upgrade-banner-text">
-            <strong>Upgrade to unlock full results</strong>. See everyone who unfollowed you, manage your whitelist, snake list, audit history and more.
-          </div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;">
-            <button class="fa-upgrade-btn-pro" onclick="startCheckout('monthly', this)">Go Pro — $10/mo ⭐</button>
-            <button class="fa-upgrade-btn-pro" style="background:linear-gradient(135deg,#a78bfa,#e879f9);box-shadow:0 0 20px rgba(232,121,249,0.35);" onclick="startCheckout('max', this)">Creator Max — $20/mo</button>
-          </div>
-        </div>
-
         <!-- TOOL SECTION -->
         <div style="margin-bottom:40px;text-align:center;">
           <h2 style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;letter-spacing:-0.5px;margin-bottom:8px;">Analyze your followers</h2>
@@ -6103,6 +6092,19 @@ function fallbackCopy(text) {
   ta.select();
   document.execCommand('copy');
   document.body.removeChild(ta);
+}
+
+function copyPublishUrl(url, btn) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(function() {
+      btn.textContent = 'Copied!';
+      setTimeout(function() { btn.textContent = 'Copy'; }, 1500);
+    }).catch(function() { fallbackCopy(url); btn.textContent = 'Copied!'; setTimeout(function() { btn.textContent = 'Copy'; }, 1500); });
+  } else {
+    fallbackCopy(url);
+    btn.textContent = 'Copied!';
+    setTimeout(function() { btn.textContent = 'Copy'; }, 1500);
+  }
 }
 
 function showBioLinkButtons() {
@@ -13289,14 +13291,14 @@ function setCoachingBookingType(type) {
   }
 }
 
-function showCoachingMsg(type, msg) {
+function showCoachingMsg(type, msg, isHtml) {
   const el = document.getElementById('coaching-editor-msg');
   el.style.display = 'block';
   el.style.background = type === 'error' ? 'rgba(239,68,68,0.1)' : 'rgba(74,222,128,0.1)';
   el.style.color = type === 'error' ? '#f87171' : '#4ade80';
   el.style.border = '1px solid ' + (type === 'error' ? 'rgba(239,68,68,0.3)' : 'rgba(74,222,128,0.3)');
-  el.textContent = msg;
-  setTimeout(() => { el.style.display = 'none'; }, 4000);
+  if (isHtml) { el.innerHTML = msg; } else { el.textContent = msg; }
+  setTimeout(() => { el.style.display = 'none'; }, 5000);
 }
 
 function copyCoachingUrl() {
@@ -13459,7 +13461,7 @@ async function toggleCoachingPublish() {
     pubBtn.style.color = '#ef4444';
     document.getElementById('coaching-marketplace-toggle').style.display = 'block';
     updateMarketplaceCountDisplay();
-    showCoachingMsg('success', 'Published! Landing page: ryxa.io/coaching/' + (coaching?.slug || ''));
+    showCoachingMsg('success', 'Published! Landing page: ryxa.io/coaching/' + (coaching?.slug || '') + ' <button onclick="copyPublishUrl(\'https://ryxa.io/coaching/' + (coaching?.slug || '') + '\', this)" style="padding:3px 8px;background:rgba(74,222,128,0.15);border:1px solid rgba(74,222,128,0.3);color:#4ade80;border-radius:5px;font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer;margin-left:6px;vertical-align:middle;">Copy</button>', true);
   } else {
     pubBtn.textContent = 'Publish';
     pubBtn.style.borderColor = 'rgba(74,222,128,0.4)';
@@ -13674,14 +13676,14 @@ function toggleCourseSection(section) {
   if (chevron) chevron.style.transform = isOpen ? 'rotate(-90deg)' : '';
 }
 
-function showCourseMsg(type, msg) {
+function showCourseMsg(type, msg, isHtml) {
   const el = document.getElementById('course-editor-msg');
   el.style.display = 'block';
   el.style.background = type === 'error' ? 'rgba(239,68,68,0.1)' : 'rgba(74,222,128,0.1)';
   el.style.color = type === 'error' ? '#f87171' : '#4ade80';
   el.style.border = '1px solid ' + (type === 'error' ? 'rgba(239,68,68,0.3)' : 'rgba(74,222,128,0.3)');
-  el.textContent = msg;
-  setTimeout(() => { el.style.display = 'none'; }, 4000);
+  if (isHtml) { el.innerHTML = msg; } else { el.textContent = msg; }
+  setTimeout(() => { el.style.display = 'none'; }, 5000);
 }
 
 function generateSlug(text) {
@@ -13857,7 +13859,7 @@ async function toggleCoursePublish() {
     pubBtn.style.color = '#ef4444';
     document.getElementById('course-marketplace-toggle').style.display = 'block';
     updateMarketplaceCountDisplay();
-    showCourseMsg('success', 'Course published! Landing page: ryxa.io/course/' + (course?.slug || ''));
+    showCourseMsg('success', 'Course published! Landing page: ryxa.io/course/' + (course?.slug || '') + ' <button onclick="copyPublishUrl(\'https://ryxa.io/course/' + (course?.slug || '') + '\', this)" style="padding:3px 8px;background:rgba(74,222,128,0.15);border:1px solid rgba(74,222,128,0.3);color:#4ade80;border-radius:5px;font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer;margin-left:6px;vertical-align:middle;">Copy</button>', true);
   } else {
     pubBtn.textContent = 'Publish';
     pubBtn.style.borderColor = 'rgba(74,222,128,0.4)';
