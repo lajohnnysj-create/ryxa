@@ -4982,10 +4982,21 @@
             <button onclick="dsSendBackward()" class="ds-tool-btn" title="Send backward">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
             </button>
+            <div class="ds-sidebar-divider" style="height:1px;background:var(--border);margin:4px 0;"></div>
+            <button onclick="dsZoomIn()" class="ds-tool-btn" title="Zoom in">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+            </button>
+            <button onclick="dsZoomOut()" class="ds-tool-btn" title="Zoom out">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+            </button>
+            <button onclick="dsZoomFit()" class="ds-tool-btn" title="Fit to screen" style="font-size:10px;font-weight:700;">
+              FIT
+            </button>
+            <div id="ds-zoom-label" style="font-size:10px;color:var(--muted);text-align:center;white-space:nowrap;">100%</div>
           </div>
 
           <!-- Canvas -->
-          <div id="ds-canvas-flex" style="flex:1;display:flex;justify-content:center;width:100%;min-width:0;">
+          <div id="ds-canvas-flex" style="flex:1;display:flex;justify-content:center;align-items:flex-start;width:100%;min-width:0;overflow:auto;">
             <div id="ds-canvas-outer" style="position:relative;">
               <div id="ds-canvas-wrap" style="background:#1a1a2e;border:1px solid var(--border);border-radius:8px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.3);position:relative;">
                 <canvas id="ds-canvas"></canvas>
@@ -20626,10 +20637,76 @@ function dsResizeCanvas() {
       preserveObjectStacking: true
     });
     dsCanvas._projectScale = scale;
+    dsCurrentZoom = scale;
+    var label = document.getElementById('ds-zoom-label');
+    if (label) label.textContent = Math.round(scale * 100) + '%';
   }
 }
 
-// Canvas only resizes on project open, not during editing
+// ===== ZOOM =====
+var dsCurrentZoom = 1;
+
+function dsZoomIn() {
+  dsSetZoom(dsCurrentZoom + 0.15);
+}
+
+function dsZoomOut() {
+  dsSetZoom(dsCurrentZoom - 0.15);
+}
+
+function dsZoomFit() {
+  var flexParent = document.getElementById('ds-canvas-flex');
+  if (!flexParent || !dsCanvas) return;
+  var maxW = flexParent.offsetWidth - 20;
+  var maxH = flexParent.offsetHeight || (window.innerHeight - 260);
+  if (maxH < 300) maxH = 300;
+  var fitScale = Math.min(maxW / dsProjectW, maxH / dsProjectH, 1);
+  dsSetZoom(fitScale);
+}
+
+function dsSetZoom(newZoom) {
+  if (!dsCanvas) return;
+  newZoom = Math.max(0.1, Math.min(3, newZoom));
+  dsCurrentZoom = newZoom;
+
+  var dispW = Math.round(dsProjectW * newZoom);
+  var dispH = Math.round(dsProjectH * newZoom);
+
+  // Save canvas state
+  var json = dsCanvas.toJSON();
+  var oldW = dsCanvas.width;
+  var oldH = dsCanvas.height;
+  var ratio = newZoom / (dsCanvas._projectScale || 1);
+
+  dsCanvas.setWidth(dispW);
+  dsCanvas.setHeight(dispH);
+  dsCanvas._projectScale = newZoom;
+
+  // Rescale all objects
+  dsCanvas.getObjects().forEach(function(obj) {
+    if (obj._isGuideLine) return;
+    obj.set({
+      left: obj.left * ratio,
+      top: obj.top * ratio,
+      scaleX: obj.scaleX * ratio,
+      scaleY: obj.scaleY * ratio
+    });
+    if (obj.type === 'textbox' || obj.type === 'i-text') {
+      obj.set({ fontSize: Math.round(obj.fontSize * ratio), width: obj.width * ratio, scaleX: 1, scaleY: 1 });
+    }
+    obj.setCoords();
+  });
+
+  var wrap = document.getElementById('ds-canvas-wrap');
+  var outer = document.getElementById('ds-canvas-outer');
+  if (wrap) { wrap.style.width = dispW + 'px'; wrap.style.height = dispH + 'px'; }
+  if (outer) { outer.style.width = dispW + 'px'; outer.style.height = dispH + 'px'; }
+
+  dsCanvas.renderAll();
+
+  var label = document.getElementById('ds-zoom-label');
+  if (label) label.textContent = Math.round(newZoom * 100) + '%';
+}
 
 var dsClipboard = null;
 
@@ -20649,6 +20726,9 @@ function dsKeyHandler(e) {
   if (e.ctrlKey && e.key === 'c') { dsCopy(); e.preventDefault(); }
   if (e.ctrlKey && e.key === 'v') { dsPaste(); e.preventDefault(); }
   if (e.ctrlKey && e.key === 'x') { dsCut(); e.preventDefault(); }
+  if (e.ctrlKey && (e.key === '=' || e.key === '+')) { dsZoomIn(); e.preventDefault(); }
+  if (e.ctrlKey && e.key === '-') { dsZoomOut(); e.preventDefault(); }
+  if (e.ctrlKey && e.key === '0') { dsZoomFit(); e.preventDefault(); }
 }
 
 function dsCopy() {
