@@ -4893,6 +4893,14 @@
             BG
           </button>
           <div style="width:1px;height:24px;background:var(--border);margin:0 4px;"></div>
+          <!-- Undo/Redo -->
+          <button onclick="dsUndo()" class="ds-tool-btn" title="Undo (Ctrl+Z)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+          </button>
+          <button onclick="dsRedo()" class="ds-tool-btn" title="Redo (Ctrl+Shift+Z)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.13-9.36L23 10"/></svg>
+          </button>
+          <div style="width:1px;height:24px;background:var(--border);margin:0 4px;"></div>
           <!-- Text controls (shown when text selected) -->
           <div id="ds-text-controls" style="display:none;display:none;align-items:center;gap:6px;flex-wrap:wrap;">
             <select id="ds-font-select" onchange="dsSetFont(this.value)" style="padding:4px 8px;background:var(--surface);border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text);font-family:DM Sans,sans-serif;max-width:140px;" aria-label="Font family"></select>
@@ -4906,6 +4914,22 @@
             <button onclick="dsSetAlign('right')" class="ds-tool-btn" title="Align right"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="9" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
             <div style="width:1px;height:24px;background:var(--border);margin:0 2px;"></div>
             <input type="color" id="ds-text-color" value="#ffffff" oninput="dsSetTextColor(this.value)" style="width:28px;height:28px;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:2px;" aria-label="Text color">
+            <div style="width:1px;height:24px;background:var(--border);margin:0 2px;"></div>
+            <!-- Stroke -->
+            <input type="color" id="ds-stroke-color" value="#000000" oninput="dsSetStroke()" style="width:28px;height:28px;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:2px;" aria-label="Stroke color" title="Text stroke color">
+            <input type="number" id="ds-stroke-width" value="0" min="0" max="20" oninput="dsSetStroke()" style="width:44px;padding:4px 4px;background:var(--surface);border:1px solid var(--border);border-radius:6px;font-size:11px;color:var(--text);text-align:center;" aria-label="Stroke width" title="Stroke width (0 = off)">
+            <!-- Shadow -->
+            <button onclick="dsToggleShadow()" class="ds-tool-btn" id="ds-shadow-btn" title="Drop shadow" style="width:auto;padding:0 8px;font-size:11px;">Shadow</button>
+          </div>
+          <!-- Shared controls (shown when anything selected) -->
+          <div id="ds-shared-controls" style="display:none;align-items:center;gap:6px;">
+            <div style="font-size:11px;color:var(--muted);white-space:nowrap;">Opacity</div>
+            <input type="range" id="ds-opacity" min="0" max="100" value="100" oninput="dsSetOpacity(this.value)" style="width:80px;accent-color:#7c3aed;" aria-label="Opacity">
+            <span id="ds-opacity-val" style="font-size:11px;color:var(--muted);min-width:28px;">100%</span>
+            <div style="width:1px;height:24px;background:var(--border);margin:0 4px;"></div>
+            <button onclick="dsToggleLock()" class="ds-tool-btn" id="ds-lock-btn" title="Lock/Unlock position">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </button>
           </div>
           <!-- Image controls (shown when image selected) -->
           <div id="ds-image-controls" style="display:none;align-items:center;gap:6px;">
@@ -20178,6 +20202,8 @@ function startDesignProject(w, h, name) {
   dsProjectH = h;
   dsProjectName = name;
   dsCurrentProjectId = null;
+  dsUndoStack = [];
+  dsRedoStack = [];
   document.getElementById('ds-project-name').textContent = name;
   document.getElementById('design-start').style.display = 'none';
   document.getElementById('design-editor').style.display = 'block';
@@ -20237,7 +20263,11 @@ function initDesignCanvas() {
   dsCanvas.on('selection:created', dsOnSelect);
   dsCanvas.on('selection:updated', dsOnSelect);
   dsCanvas.on('selection:cleared', dsOnDeselect);
-  dsCanvas.on('object:modified', function() { dsCanvas.renderAll(); });
+  dsCanvas.on('object:modified', function() { dsCanvas.renderAll(); dsSaveState(); });
+
+  // Save state on add/remove
+  dsCanvas.on('object:added', function(e) { if (!e.target._isGuideLine) dsSaveState(); });
+  dsCanvas.on('object:removed', function(e) { if (!e.target._isGuideLine) dsSaveState(); });
 
   // Snap guidelines
   dsInitGuidelines();
@@ -20441,12 +20471,26 @@ function dsKeyHandler(e) {
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
   if (e.key === 'Delete' || e.key === 'Backspace') { dsDeleteSelected(); e.preventDefault(); }
   if (e.ctrlKey && e.key === 'd') { dsDuplicate(); e.preventDefault(); }
+  if (e.ctrlKey && e.key === 'z' && !e.shiftKey) { dsUndo(); e.preventDefault(); }
+  if (e.ctrlKey && e.key === 'z' && e.shiftKey) { dsRedo(); e.preventDefault(); }
+  if (e.ctrlKey && e.key === 'y') { dsRedo(); e.preventDefault(); }
 }
 
 function dsOnSelect() {
   var obj = dsCanvas.getActiveObject();
   var tc = document.getElementById('ds-text-controls');
   var ic = document.getElementById('ds-image-controls');
+  var sc = document.getElementById('ds-shared-controls');
+
+  if (obj && !obj._isGuideLine) {
+    sc.style.display = 'flex';
+    document.getElementById('ds-opacity').value = Math.round((obj.opacity || 1) * 100);
+    document.getElementById('ds-opacity-val').textContent = Math.round((obj.opacity || 1) * 100) + '%';
+    document.getElementById('ds-lock-btn').classList.toggle('active', !!obj.lockMovementX);
+  } else {
+    sc.style.display = 'none';
+  }
+
   if (obj && (obj.type === 'i-text' || obj.type === 'textbox')) {
     tc.style.display = 'flex';
     ic.style.display = 'none';
@@ -20456,6 +20500,9 @@ function dsOnSelect() {
     document.getElementById('ds-bold-btn').classList.toggle('active', obj.fontWeight === 'bold');
     document.getElementById('ds-italic-btn').classList.toggle('active', obj.fontStyle === 'italic');
     document.getElementById('ds-underline-btn').classList.toggle('active', !!obj.underline);
+    document.getElementById('ds-stroke-color').value = obj.stroke || '#000000';
+    document.getElementById('ds-stroke-width').value = obj.strokeWidth || 0;
+    document.getElementById('ds-shadow-btn').classList.toggle('active', !!obj.shadow);
   } else if (obj && obj.type === 'image') {
     tc.style.display = 'none';
     ic.style.display = 'flex';
@@ -20468,6 +20515,7 @@ function dsOnSelect() {
 function dsOnDeselect() {
   document.getElementById('ds-text-controls').style.display = 'none';
   document.getElementById('ds-image-controls').style.display = 'none';
+  document.getElementById('ds-shared-controls').style.display = 'none';
 }
 
 function dsAddText() {
@@ -20608,6 +20656,90 @@ function dsDuplicate() {
     dsCanvas.setActiveObject(cloned);
     dsCanvas.renderAll();
   });
+}
+
+// ===== UNDO / REDO =====
+var dsUndoStack = [];
+var dsRedoStack = [];
+var dsUndoLock = false;
+
+function dsSaveState() {
+  if (dsUndoLock || !dsCanvas) return;
+  dsUndoStack.push(JSON.stringify(dsCanvas.toJSON()));
+  if (dsUndoStack.length > 40) dsUndoStack.shift();
+  dsRedoStack = [];
+}
+
+function dsUndo() {
+  if (!dsCanvas || dsUndoStack.length === 0) return;
+  dsRedoStack.push(JSON.stringify(dsCanvas.toJSON()));
+  var state = dsUndoStack.pop();
+  dsUndoLock = true;
+  dsCanvas.loadFromJSON(state, function() {
+    dsCanvas.renderAll();
+    dsUndoLock = false;
+  });
+}
+
+function dsRedo() {
+  if (!dsCanvas || dsRedoStack.length === 0) return;
+  dsUndoStack.push(JSON.stringify(dsCanvas.toJSON()));
+  var state = dsRedoStack.pop();
+  dsUndoLock = true;
+  dsCanvas.loadFromJSON(state, function() {
+    dsCanvas.renderAll();
+    dsUndoLock = false;
+  });
+}
+
+// ===== STROKE =====
+function dsSetStroke() {
+  var obj = dsCanvas?.getActiveObject();
+  if (!obj || (obj.type !== 'i-text' && obj.type !== 'textbox')) return;
+  var color = document.getElementById('ds-stroke-color').value;
+  var width = parseInt(document.getElementById('ds-stroke-width').value) || 0;
+  obj.set({ stroke: width > 0 ? color : null, strokeWidth: width });
+  dsCanvas.renderAll();
+}
+
+// ===== SHADOW =====
+function dsToggleShadow() {
+  var obj = dsCanvas?.getActiveObject();
+  if (!obj || (obj.type !== 'i-text' && obj.type !== 'textbox')) return;
+  if (obj.shadow) {
+    obj.set('shadow', null);
+    document.getElementById('ds-shadow-btn').classList.remove('active');
+  } else {
+    obj.set('shadow', new fabric.Shadow({ color: 'rgba(0,0,0,0.6)', blur: 8, offsetX: 3, offsetY: 3 }));
+    document.getElementById('ds-shadow-btn').classList.add('active');
+  }
+  dsCanvas.renderAll();
+}
+
+// ===== OPACITY =====
+function dsSetOpacity(val) {
+  var obj = dsCanvas?.getActiveObject();
+  if (!obj) return;
+  obj.set('opacity', val / 100);
+  document.getElementById('ds-opacity-val').textContent = val + '%';
+  dsCanvas.renderAll();
+}
+
+// ===== LOCK / UNLOCK =====
+function dsToggleLock() {
+  var obj = dsCanvas?.getActiveObject();
+  if (!obj) return;
+  var locked = !obj.lockMovementX;
+  obj.set({
+    lockMovementX: locked,
+    lockMovementY: locked,
+    lockScalingX: locked,
+    lockScalingY: locked,
+    lockRotation: locked,
+    hasControls: !locked
+  });
+  document.getElementById('ds-lock-btn').classList.toggle('active', locked);
+  dsCanvas.renderAll();
 }
 
 function dsBringForward() {
