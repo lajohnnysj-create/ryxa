@@ -20232,8 +20232,153 @@ function initDesignCanvas() {
   dsCanvas.on('selection:cleared', dsOnDeselect);
   dsCanvas.on('object:modified', function() { dsCanvas.renderAll(); });
 
+  // Snap guidelines
+  dsInitGuidelines();
+
+  // Prevent text scaling — convert scale to font size and width changes
+  dsCanvas.on('object:scaling', function(e) {
+    var obj = e.target;
+    if (obj && (obj.type === 'textbox' || obj.type === 'i-text')) {
+      var newWidth = obj.width * obj.scaleX;
+      var newFontSize = Math.round(obj.fontSize * obj.scaleY);
+      obj.set({
+        width: newWidth,
+        fontSize: newFontSize,
+        scaleX: 1,
+        scaleY: 1
+      });
+      obj.setCoords();
+      // Update font size input
+      var fsInput = document.getElementById('ds-font-size');
+      if (fsInput) fsInput.value = newFontSize;
+    }
+  });
+
   // Keyboard shortcuts
   document.addEventListener('keydown', dsKeyHandler);
+}
+
+var dsGuideLines = [];
+var dsSnapThreshold = 6;
+
+function dsInitGuidelines() {
+  dsCanvas.on('object:moving', function(e) {
+    dsClearGuidelines();
+    var obj = e.target;
+    if (!obj) return;
+
+    var objCenter = obj.getCenterPoint();
+    var objBound = obj.getBoundingRect(true);
+    var objLeft = objBound.left;
+    var objTop = objBound.top;
+    var objRight = objBound.left + objBound.width;
+    var objBottom = objBound.top + objBound.height;
+    var objCenterX = objLeft + objBound.width / 2;
+    var objCenterY = objTop + objBound.height / 2;
+
+    var canvasCenterX = dsCanvas.width / 2;
+    var canvasCenterY = dsCanvas.height / 2;
+    var lines = [];
+
+    // Canvas center vertical
+    if (Math.abs(objCenterX - canvasCenterX) < dsSnapThreshold) {
+      obj.set('left', canvasCenterX - (objCenterX - obj.left));
+      lines.push(dsMakeLine(canvasCenterX, 0, canvasCenterX, dsCanvas.height));
+    }
+    // Canvas center horizontal
+    if (Math.abs(objCenterY - canvasCenterY) < dsSnapThreshold) {
+      obj.set('top', canvasCenterY - (objCenterY - obj.top));
+      lines.push(dsMakeLine(0, canvasCenterY, dsCanvas.width, canvasCenterY));
+    }
+
+    // Snap to other objects
+    dsCanvas.getObjects().forEach(function(other) {
+      if (other === obj || other._isGuideLine) return;
+      var ob = other.getBoundingRect(true);
+      var otherCenterX = ob.left + ob.width / 2;
+      var otherCenterY = ob.top + ob.height / 2;
+      var otherLeft = ob.left;
+      var otherRight = ob.left + ob.width;
+      var otherTop = ob.top;
+      var otherBottom = ob.top + ob.height;
+
+      // Center to center vertical
+      if (Math.abs(objCenterX - otherCenterX) < dsSnapThreshold) {
+        obj.set('left', otherCenterX - (objCenterX - obj.left));
+        lines.push(dsMakeLine(otherCenterX, Math.min(objTop, otherTop), otherCenterX, Math.max(objBottom, otherBottom)));
+      }
+      // Center to center horizontal
+      if (Math.abs(objCenterY - otherCenterY) < dsSnapThreshold) {
+        obj.set('top', otherCenterY - (objCenterY - obj.top));
+        lines.push(dsMakeLine(Math.min(objLeft, otherLeft), otherCenterY, Math.max(objRight, otherRight), otherCenterY));
+      }
+      // Left edge to left edge
+      if (Math.abs(objLeft - otherLeft) < dsSnapThreshold) {
+        obj.set('left', otherLeft - (objLeft - obj.left));
+        lines.push(dsMakeLine(otherLeft, Math.min(objTop, otherTop), otherLeft, Math.max(objBottom, otherBottom)));
+      }
+      // Right edge to right edge
+      if (Math.abs(objRight - otherRight) < dsSnapThreshold) {
+        obj.set('left', otherRight - objBound.width - (objLeft - obj.left));
+        lines.push(dsMakeLine(otherRight, Math.min(objTop, otherTop), otherRight, Math.max(objBottom, otherBottom)));
+      }
+      // Top edge to top edge
+      if (Math.abs(objTop - otherTop) < dsSnapThreshold) {
+        obj.set('top', otherTop - (objTop - obj.top));
+        lines.push(dsMakeLine(Math.min(objLeft, otherLeft), otherTop, Math.max(objRight, otherRight), otherTop));
+      }
+      // Bottom edge to bottom edge
+      if (Math.abs(objBottom - otherBottom) < dsSnapThreshold) {
+        obj.set('top', otherBottom - objBound.height - (objTop - obj.top));
+        lines.push(dsMakeLine(Math.min(objLeft, otherLeft), otherBottom, Math.max(objRight, otherRight), otherBottom));
+      }
+      // Left to right
+      if (Math.abs(objLeft - otherRight) < dsSnapThreshold) {
+        obj.set('left', otherRight - (objLeft - obj.left));
+        lines.push(dsMakeLine(otherRight, Math.min(objTop, otherTop), otherRight, Math.max(objBottom, otherBottom)));
+      }
+      // Right to left
+      if (Math.abs(objRight - otherLeft) < dsSnapThreshold) {
+        obj.set('left', otherLeft - objBound.width - (objLeft - obj.left));
+        lines.push(dsMakeLine(otherLeft, Math.min(objTop, otherTop), otherLeft, Math.max(objBottom, otherBottom)));
+      }
+      // Top to bottom
+      if (Math.abs(objTop - otherBottom) < dsSnapThreshold) {
+        obj.set('top', otherBottom - (objTop - obj.top));
+        lines.push(dsMakeLine(Math.min(objLeft, otherLeft), otherBottom, Math.max(objRight, otherRight), otherBottom));
+      }
+      // Bottom to top
+      if (Math.abs(objBottom - otherTop) < dsSnapThreshold) {
+        obj.set('top', otherTop - objBound.height - (objTop - obj.top));
+        lines.push(dsMakeLine(Math.min(objLeft, otherLeft), otherTop, Math.max(objRight, otherRight), otherTop));
+      }
+    });
+
+    lines.forEach(function(l) { dsCanvas.add(l); });
+    dsGuideLines = lines;
+    obj.setCoords();
+  });
+
+  dsCanvas.on('object:modified', function() { dsClearGuidelines(); });
+  dsCanvas.on('mouse:up', function() { dsClearGuidelines(); });
+}
+
+function dsMakeLine(x1, y1, x2, y2) {
+  var line = new fabric.Line([x1, y1, x2, y2], {
+    stroke: '#ff3b5c',
+    strokeWidth: 1,
+    strokeDashArray: [4, 3],
+    selectable: false,
+    evented: false,
+    excludeFromExport: true
+  });
+  line._isGuideLine = true;
+  return line;
+}
+
+function dsClearGuidelines() {
+  dsGuideLines.forEach(function(l) { dsCanvas.remove(l); });
+  dsGuideLines = [];
 }
 
 function dsKeyHandler(e) {
@@ -20247,7 +20392,7 @@ function dsOnSelect() {
   var obj = dsCanvas.getActiveObject();
   var tc = document.getElementById('ds-text-controls');
   var ic = document.getElementById('ds-image-controls');
-  if (obj && obj.type === 'i-text') {
+  if (obj && (obj.type === 'i-text' || obj.type === 'textbox')) {
     tc.style.display = 'flex';
     ic.style.display = 'none';
     document.getElementById('ds-font-select').value = obj.fontFamily || 'DM Sans';
@@ -20272,12 +20417,14 @@ function dsOnDeselect() {
 
 function dsAddText() {
   if (!dsCanvas) return;
-  var text = new fabric.IText('Your text', {
+  var text = new fabric.Textbox('Your text', {
     left: 50, top: 50,
+    width: 200,
     fontFamily: document.getElementById('ds-font-select')?.value || 'DM Sans',
     fontSize: 24,
     fill: '#ffffff',
-    editable: true
+    editable: true,
+    lockScalingFlip: true
   });
   dsCanvas.add(text);
   dsCanvas.setActiveObject(text);
@@ -20341,17 +20488,17 @@ function dsAddImage() {
 
 function dsSetFont(f) {
   var obj = dsCanvas?.getActiveObject();
-  if (obj && obj.type === 'i-text') { obj.set('fontFamily', f); dsCanvas.renderAll(); }
+  if (obj && (obj.type === 'i-text' || obj.type === 'textbox')) { obj.set('fontFamily', f); dsCanvas.renderAll(); }
 }
 
 function dsSetFontSize(s) {
   var obj = dsCanvas?.getActiveObject();
-  if (obj && obj.type === 'i-text') { obj.set('fontSize', parseInt(s) || 24); dsCanvas.renderAll(); }
+  if (obj && (obj.type === 'i-text' || obj.type === 'textbox')) { obj.set('fontSize', parseInt(s) || 24); dsCanvas.renderAll(); }
 }
 
 function dsToggleBold() {
   var obj = dsCanvas?.getActiveObject();
-  if (obj && obj.type === 'i-text') {
+  if (obj && (obj.type === 'i-text' || obj.type === 'textbox')) {
     obj.set('fontWeight', obj.fontWeight === 'bold' ? 'normal' : 'bold');
     document.getElementById('ds-bold-btn').classList.toggle('active');
     dsCanvas.renderAll();
@@ -20360,7 +20507,7 @@ function dsToggleBold() {
 
 function dsToggleItalic() {
   var obj = dsCanvas?.getActiveObject();
-  if (obj && obj.type === 'i-text') {
+  if (obj && (obj.type === 'i-text' || obj.type === 'textbox')) {
     obj.set('fontStyle', obj.fontStyle === 'italic' ? 'normal' : 'italic');
     document.getElementById('ds-italic-btn').classList.toggle('active');
     dsCanvas.renderAll();
@@ -20369,7 +20516,7 @@ function dsToggleItalic() {
 
 function dsToggleUnderline() {
   var obj = dsCanvas?.getActiveObject();
-  if (obj && obj.type === 'i-text') {
+  if (obj && (obj.type === 'i-text' || obj.type === 'textbox')) {
     obj.set('underline', !obj.underline);
     document.getElementById('ds-underline-btn').classList.toggle('active');
     dsCanvas.renderAll();
@@ -20378,12 +20525,12 @@ function dsToggleUnderline() {
 
 function dsSetAlign(align) {
   var obj = dsCanvas?.getActiveObject();
-  if (obj && obj.type === 'i-text') { obj.set('textAlign', align); dsCanvas.renderAll(); }
+  if (obj && (obj.type === 'i-text' || obj.type === 'textbox')) { obj.set('textAlign', align); dsCanvas.renderAll(); }
 }
 
 function dsSetTextColor(color) {
   var obj = dsCanvas?.getActiveObject();
-  if (obj && obj.type === 'i-text') { obj.set('fill', color); dsCanvas.renderAll(); }
+  if (obj && (obj.type === 'i-text' || obj.type === 'textbox')) { obj.set('fill', color); dsCanvas.renderAll(); }
 }
 
 function dsDeleteSelected() {
