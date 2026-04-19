@@ -3273,7 +3273,7 @@
       <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 12h18"/></svg></div>
       <span class="sidebar-item-label">Brand Deals <span style="font-size:9px;font-weight:600;letter-spacing:0.08em;color:var(--muted);vertical-align:middle;margin-left:2px;">CRM</span></span>
     </button>
-    <button class="sidebar-item" id="nav-analytics" onclick="showTool('analytics', 'settings')">
+    <button class="sidebar-item" id="nav-analytics" onclick="showTool('analytics')">
       <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 20V10M12 20V4M6 20v-6"/></svg></div>
       <span class="sidebar-item-label">Analytics</span>
     </button>
@@ -6221,7 +6221,7 @@ function showTool(tool) {
     if (typeof resetPdfSign === 'function') resetPdfSign();
   }
   // Hide all tools
-  ['welcome','bio','courses','coaching','mediakit','grid','follower','image','qr','invoice','pdfsign','deals','scripts','analytics'].forEach(t => {
+  ['welcome','bio','courses','coaching','mediakit','grid','follower','image','qr','invoice','pdfsign','deals','scripts','analytics','settings'].forEach(t => {
     const el = document.getElementById('tool-' + t);
     if (el) el.style.display = 'none';
     const nav = document.getElementById('nav-' + t);
@@ -6232,6 +6232,27 @@ function showTool(tool) {
   if (el) el.style.display = 'block';
   const nav = document.getElementById('nav-' + tool);
   if (nav) nav.classList.add('active');
+
+  // Init settings when shown
+  if (tool === 'settings') {
+    const pro = isPro();
+    if (currentUser) {
+      document.getElementById('settings-avatar').textContent = currentUser.email[0].toUpperCase();
+      document.getElementById('settings-email').textContent = currentUser.email;
+    }
+    document.getElementById('settings-sub-free').style.display = pro ? 'none' : 'block';
+    document.getElementById('settings-sub-pro').style.display = pro ? 'block' : 'none';
+    updateSettingsCancelBtn();
+    const pwBtn = document.getElementById('settings-reset-password-btn');
+    const pwMsg = document.getElementById('settings-password-msg');
+    const pwTurnstile = document.getElementById('settings-password-turnstile');
+    if (pwBtn) { pwBtn.disabled = false; pwBtn.textContent = 'Send password reset email'; }
+    if (pwMsg) pwMsg.style.display = 'none';
+    if (pwTurnstile) pwTurnstile.style.display = 'none';
+    if (typeof resetSettingsTurnstile === 'function') resetSettingsTurnstile();
+    // Load Stripe status with error handling
+    try { loadStripeConnectStatus(); } catch(e) { console.error('Stripe status error:', e); }
+  }
   // Update topbar title
   const title = document.getElementById('topbar-title');
   if (title) title.textContent = toolTitles[tool] || 'Dashboard';
@@ -11261,24 +11282,6 @@ if (urlParams.get('payment') === 'success') {
 initAuth();
 
 function openSettingsModal() {
-  const pro = isPro();
-  if (currentUser) {
-    document.getElementById('settings-avatar').textContent = currentUser.email[0].toUpperCase();
-    document.getElementById('settings-email').textContent = currentUser.email;
-  }
-  document.getElementById('settings-sub-free').style.display = pro ? 'none' : 'block';
-  document.getElementById('settings-sub-pro').style.display = pro ? 'block' : 'none';
-  updateSettingsCancelBtn();
-  // Reset password section each time settings opens
-  const pwBtn = document.getElementById('settings-reset-password-btn');
-  const pwMsg = document.getElementById('settings-password-msg');
-  const pwTurnstile = document.getElementById('settings-password-turnstile');
-  if (pwBtn) { pwBtn.disabled = false; pwBtn.textContent = 'Send password reset email'; }
-  if (pwMsg) pwMsg.style.display = 'none';
-  if (pwTurnstile) pwTurnstile.style.display = 'none';
-  resetSettingsTurnstile();
-  // Load Stripe Connect status
-  loadStripeConnectStatus();
   showTool('settings');
 }
 
