@@ -6071,41 +6071,38 @@ async function setUser(user) {
 }
 
 function copyBioLink() {
-  var username = window._ryx_username;
-  if (!username) return;
-  var fullUrl = 'https://ryxa.io/' + username;
   var textEl = document.getElementById('sidebar-menu-biolink-text');
-  try {
-    navigator.clipboard.writeText(fullUrl).then(function() {
-      if (textEl) {
-        var orig = textEl.textContent;
-        textEl.textContent = 'Copied!';
-        textEl.style.color = '#4ade80';
-        setTimeout(function() { textEl.textContent = orig; textEl.style.color = ''; }, 1500);
-      }
-    }).catch(function() {
-      // Fallback
-      var ta = document.createElement('textarea');
-      ta.value = fullUrl; ta.style.position = 'fixed'; ta.style.opacity = '0';
-      document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
-      if (textEl) {
-        var orig2 = textEl.textContent;
-        textEl.textContent = 'Copied!';
-        textEl.style.color = '#4ade80';
-        setTimeout(function() { textEl.textContent = orig2; textEl.style.color = ''; }, 1500);
-      }
-    });
-  } catch(e) {
-    var ta = document.createElement('textarea');
-    ta.value = fullUrl; ta.style.position = 'fixed'; ta.style.opacity = '0';
-    document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
-    if (textEl) {
-      var orig3 = textEl.textContent;
-      textEl.textContent = 'Copied!';
-      textEl.style.color = '#4ade80';
-      setTimeout(function() { textEl.textContent = orig3; textEl.style.color = ''; }, 1500);
-    }
+  if (!textEl) return;
+  var linkText = textEl.textContent;
+  if (!linkText || linkText === 'ryxa.io/...') return;
+  var fullUrl = 'https://' + linkText;
+
+  function showCopied() {
+    var orig = linkText;
+    textEl.textContent = 'Copied!';
+    textEl.style.color = '#4ade80';
+    setTimeout(function() { textEl.textContent = orig; textEl.style.color = ''; }, 1500);
   }
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(fullUrl).then(showCopied).catch(function() {
+      fallbackCopy(fullUrl);
+      showCopied();
+    });
+  } else {
+    fallbackCopy(fullUrl);
+    showCopied();
+  }
+}
+
+function fallbackCopy(text) {
+  var ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;opacity:0;left:-9999px;';
+  document.body.appendChild(ta);
+  ta.select();
+  document.execCommand('copy');
+  document.body.removeChild(ta);
 }
 
 function showBioLinkButtons() {
@@ -6137,18 +6134,17 @@ function closeSupportModal() {
 }
 
 function copyEmail(btn) {
-  try {
-    navigator.clipboard.writeText('hello@ryxa.io');
-  } catch(e) {
-    var ta = document.createElement('textarea');
-    ta.value = 'hello@ryxa.io'; ta.style.position = 'fixed'; ta.style.opacity = '0';
-    document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+  var email = 'hello@ryxa.io';
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(email).catch(function() { fallbackCopy(email); });
+  } else {
+    fallbackCopy(email);
   }
   var span = btn.querySelector('span');
   if (span) {
     span.textContent = 'Copied!';
     span.style.color = '#4ade80';
-    setTimeout(function() { span.textContent = 'hello@ryxa.io'; span.style.color = ''; }, 1500);
+    setTimeout(function() { span.textContent = email; span.style.color = ''; }, 1500);
   }
 }
 
