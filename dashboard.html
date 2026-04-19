@@ -4887,7 +4887,7 @@
           </button>
           <div style="width:1px;height:24px;background:var(--border);margin:0 4px;"></div>
           <!-- Background controls -->
-          <input type="color" id="ds-bg-color" value="#ffffff" onchange="dsSetBgColor(this.value)" title="Background color" style="width:28px;height:28px;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:2px;" aria-label="Background color">
+          <input type="color" id="ds-bg-color" value="#ffffff" oninput="dsSetBgColor(this.value)" title="Background color" style="width:28px;height:28px;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:2px;" aria-label="Background color">
           <button onclick="dsToggleTransparent()" class="ds-tool-btn" id="ds-transparent-btn" title="Transparent background" style="width:auto;padding:0 8px;gap:4px;font-size:11px;">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 3l18 18"/></svg>
             BG
@@ -4905,7 +4905,7 @@
             <button onclick="dsSetAlign('center')" class="ds-tool-btn" title="Align center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
             <button onclick="dsSetAlign('right')" class="ds-tool-btn" title="Align right"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="9" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
             <div style="width:1px;height:24px;background:var(--border);margin:0 2px;"></div>
-            <input type="color" id="ds-text-color" value="#ffffff" onchange="dsSetTextColor(this.value)" style="width:28px;height:28px;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:2px;" aria-label="Text color">
+            <input type="color" id="ds-text-color" value="#ffffff" oninput="dsSetTextColor(this.value)" style="width:28px;height:28px;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:2px;" aria-label="Text color">
           </div>
           <!-- Image controls (shown when image selected) -->
           <div id="ds-image-controls" style="display:none;align-items:center;gap:6px;">
