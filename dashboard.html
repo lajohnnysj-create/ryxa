@@ -6056,14 +6056,11 @@ async function setUser(user) {
   handleStripeConnectRedirect();
 }
 
-function updateDashboardAvatar(url) {
-
 function copyBioLink() {
   var username = window._ryx_username;
   if (!username) return;
   var url = 'https://ryxa.io/' + username;
   navigator.clipboard.writeText(url).then(function() {
-    // Flash the button to confirm
     var desktopWrap = document.getElementById('topbar-bio-link-wrap');
     var mobileWrap = document.getElementById('topbar-bio-mobile-wrap');
     [desktopWrap, mobileWrap].forEach(function(el) {
@@ -8563,6 +8560,13 @@ async function saveBio() {
       if (upErr) throw upErr;
       await recordUsernameChange();
       bioOriginalUsername = uname;
+      // Update topbar bio link
+      window._ryx_username = uname;
+      var bioLinkEl = document.getElementById('topbar-bio-link');
+      if (bioLinkEl) bioLinkEl.textContent = 'ryxa.io/' + uname;
+      var bioLinkMobile = document.getElementById('ana-bio-link');
+      if (bioLinkMobile) bioLinkMobile.textContent = 'ryxa.io/' + uname;
+      showBioLinkButtons();
     }
 
     // Clean links/videos before save: strip internal _id, require URL for links
