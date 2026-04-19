@@ -3339,7 +3339,7 @@
       </div>
       <!-- Bio link -->
       <div id="sidebar-menu-biolink" style="display:none;margin-bottom:8px;">
-        <button onclick="copyBioLink()" style="width:100%;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;display:flex;align-items:center;gap:8px;color:var(--text);transition:all 0.15s;" onmouseover="this.style.borderColor='rgba(124,58,237,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
+        <button onclick="copySidebarBioLink()" style="width:100%;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;display:flex;align-items:center;gap:8px;color:var(--text);transition:all 0.15s;" onmouseover="this.style.borderColor='rgba(124,58,237,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
           <span id="sidebar-menu-biolink-text" style="flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">ryxa.io/...</span>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
@@ -6070,7 +6070,7 @@ async function setUser(user) {
   handleStripeConnectRedirect();
 }
 
-function copyBioLink() {
+function copySidebarBioLink() {
   var textEl = document.getElementById('sidebar-menu-biolink-text');
   if (!textEl) return;
   var linkText = textEl.textContent;
