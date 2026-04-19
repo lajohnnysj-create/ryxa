@@ -20296,6 +20296,18 @@ function initDesignCanvas() {
   // Keyboard shortcuts
   document.addEventListener('keydown', dsKeyHandler);
 
+  // Bigger control handles
+  fabric.Object.prototype.set({
+    cornerSize: 14,
+    cornerStyle: 'circle',
+    cornerColor: '#7c3aed',
+    cornerStrokeColor: '#fff',
+    transparentCorners: false,
+    borderColor: '#7c3aed',
+    borderScaleFactor: 1.5,
+    padding: 6
+  });
+
   // Load pending project JSON if opening a saved project
   if (dsPendingJSON) {
     var json = dsPendingJSON;
@@ -20530,14 +20542,59 @@ window.addEventListener('resize', function() {
   _dsResizeTimer = setTimeout(dsResizeCanvas, 200);
 });
 
+var dsClipboard = null;
+
 function dsKeyHandler(e) {
   if (!dsCanvas || document.getElementById('design-editor').style.display === 'none') return;
+  // Allow typing in text objects
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+  // Don't intercept copy/paste when editing text on canvas
+  var activeObj = dsCanvas.getActiveObject();
+  if (activeObj && activeObj.isEditing) return;
+
   if (e.key === 'Delete' || e.key === 'Backspace') { dsDeleteSelected(); e.preventDefault(); }
   if (e.ctrlKey && e.key === 'd') { dsDuplicate(); e.preventDefault(); }
   if (e.ctrlKey && e.key === 'z' && !e.shiftKey) { dsUndo(); e.preventDefault(); }
   if (e.ctrlKey && e.key === 'z' && e.shiftKey) { dsRedo(); e.preventDefault(); }
   if (e.ctrlKey && e.key === 'y') { dsRedo(); e.preventDefault(); }
+  if (e.ctrlKey && e.key === 'c') { dsCopy(); e.preventDefault(); }
+  if (e.ctrlKey && e.key === 'v') { dsPaste(); e.preventDefault(); }
+  if (e.ctrlKey && e.key === 'x') { dsCut(); e.preventDefault(); }
+}
+
+function dsCopy() {
+  if (!dsCanvas) return;
+  var obj = dsCanvas.getActiveObject();
+  if (!obj) return;
+  obj.clone(function(cloned) {
+    dsClipboard = cloned;
+  });
+}
+
+function dsPaste() {
+  if (!dsCanvas || !dsClipboard) return;
+  dsClipboard.clone(function(cloned) {
+    cloned.set({ left: cloned.left + 20, top: cloned.top + 20 });
+    if (cloned.type === 'image' && dsCountImages() >= DS_MAX_IMAGES) {
+      showDsMsg('error', 'Maximum ' + DS_MAX_IMAGES + ' images per project.');
+      return;
+    }
+    dsCanvas.add(cloned);
+    dsCanvas.setActiveObject(cloned);
+    dsCanvas.renderAll();
+  });
+}
+
+function dsCut() {
+  if (!dsCanvas) return;
+  var obj = dsCanvas.getActiveObject();
+  if (!obj) return;
+  obj.clone(function(cloned) {
+    dsClipboard = cloned;
+    dsCanvas.remove(obj);
+    dsCanvas.discardActiveObject();
+    dsCanvas.renderAll();
+  });
 }
 
 function dsOnSelect() {
