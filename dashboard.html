@@ -3766,7 +3766,13 @@
                     <div style="text-align:right;font-size:11px;color:var(--muted);margin-top:3px;"><span id="bio-name-count">0</span>/40</div>
                   </div>
                   <div>
-                    <label for="bio-bio" style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);display:block;margin-bottom:5px;">Bio</label>
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
+                      <label for="bio-bio" style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);">Bio</label>
+                      <button onclick="aiBioAssist('bio-bio', 60)" class="ds-tool-btn" title="AI Bio Assist" style="width:auto;padding:0 8px;gap:4px;font-size:10px;height:22px;">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                        AI
+                      </button>
+                    </div>
                     <textarea id="bio-bio" maxlength="60" rows="2" aria-label="Bio text" oninput="onBioFieldChange()" placeholder="A short line about you" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;resize:none;line-height:1.5;"></textarea>
                     <div style="text-align:right;font-size:11px;color:var(--muted);margin-top:3px;"><span id="bio-bio-count">0</span>/60</div>
                   </div>
@@ -4357,7 +4363,13 @@
                       <div style="text-align:right;font-size:11px;color:var(--muted);margin-top:3px;"><span id="mk-category-count">0</span>/60</div>
                     </div>
                     <div>
-                      <label for="mk-bio" style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);display:block;margin-bottom:5px;">Bio</label>
+                      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
+                        <label for="mk-bio" style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);">Bio</label>
+                        <button onclick="aiBioAssist('mk-bio', 300)" class="ds-tool-btn" title="AI Bio Assist" style="width:auto;padding:0 8px;gap:4px;font-size:10px;height:22px;">
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                          AI
+                        </button>
+                      </div>
                       <textarea id="mk-bio" maxlength="300" rows="3" aria-label="Bio text" oninput="onMKField()" placeholder="A few sentences about you, your audience, and what you create." style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;resize:vertical;min-height:72px;line-height:1.5;"></textarea>
                       <div style="text-align:right;font-size:11px;color:var(--muted);margin-top:3px;"><span id="mk-bio-count">0</span>/300</div>
                     </div>
@@ -17682,6 +17694,74 @@ function applyAIAssist(blockId) {
   renderScriptItems();
   markScriptDirty();
   document.getElementById('script-ai-assist-modal')?.remove();
+}
+
+// ===== AI BIO ASSIST =====
+function aiBioAssist(textareaId, maxLen) {
+  if (typeof isPro === 'function' && !isPro()) {
+    showModalAlert('Pro Feature', 'AI Bio Assist is a Pro feature. Upgrade to use it.');
+    return;
+  }
+
+  var textarea = document.getElementById(textareaId);
+  if (!textarea) return;
+  var currentText = textarea.value.trim();
+  var mode = currentText ? 'improve' : 'generate';
+
+  var overlay = document.createElement('div');
+  overlay.id = 'ai-bio-modal';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;';
+  overlay.innerHTML = '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:28px;max-width:440px;width:100%;text-align:center;">'
+    + '<svg width="24" height="24" viewBox="0 0 24 24" style="animation:btn-spin 0.6s linear infinite;margin-bottom:12px;" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>'
+    + '<div style="font-size:14px;color:var(--text);">' + (mode === 'generate' ? 'Generating bio ideas...' : 'Rewriting your bio...') + '</div>'
+    + '</div>';
+  overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+  document.body.appendChild(overlay);
+
+  fetch('/api/ai-bio', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text: currentText, maxLength: maxLen, mode: mode })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data.error) { overlay.remove(); showModalAlert('Error', data.error); return; }
+
+    var sections = data.result.split(/BIO \d+:\n?/i).filter(function(s) { return s.trim(); });
+    var cards = sections.map(function(s, i) {
+      var bio = s.trim();
+      var charCount = bio.length;
+      var overLimit = charCount > maxLen;
+      return '<div style="padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;text-align:left;">'
+        + '<div style="font-size:13px;color:var(--text);line-height:1.6;" id="ai-bio-option-' + i + '">' + escapeHtml(bio) + '</div>'
+        + '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;">'
+        + '<span style="font-size:11px;color:' + (overLimit ? '#f87171' : 'var(--muted)') + ';">' + charCount + '/' + maxLen + '</span>'
+        + '<button onclick="applyAIBio(\'' + textareaId + '\', ' + i + ')" style="padding:5px 12px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:6px;font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer;">Use this</button>'
+        + '</div>'
+        + '</div>';
+    }).join('');
+
+    var inner = overlay.querySelector('div');
+    inner.style.textAlign = 'left';
+    inner.innerHTML = '<div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.3px;margin-bottom:6px;">AI Bio Suggestions</div>'
+      + (currentText ? '<div style="font-size:12px;color:var(--muted);margin-bottom:16px;">Based on: "' + escapeHtml(currentText.substring(0, 50)) + (currentText.length > 50 ? '...' : '') + '"</div>' : '<div style="font-size:12px;color:var(--muted);margin-bottom:16px;">Here are some ideas to get you started.</div>')
+      + cards
+      + '<button onclick="document.getElementById(\'ai-bio-modal\').remove()" style="width:100%;padding:10px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;margin-top:4px;">Cancel</button>';
+  })
+  .catch(function() {
+    overlay.remove();
+    showModalAlert('Error', 'Failed to generate bio suggestions. Try again.');
+  });
+}
+
+function applyAIBio(textareaId, idx) {
+  var text = document.getElementById('ai-bio-option-' + idx)?.textContent;
+  if (!text) return;
+  var textarea = document.getElementById(textareaId);
+  if (!textarea) return;
+  textarea.value = text;
+  textarea.dispatchEvent(new Event('input', { bubbles: true }));
+  document.getElementById('ai-bio-modal')?.remove();
 }
 
 async function saveAndCollapseHook() {
