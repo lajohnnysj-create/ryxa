@@ -20610,29 +20610,26 @@ function dsResizeCanvas() {
     scale = Math.min(scale, widthScale);
   }
 
-  wrap.style.width = dsProjectW + 'px';
-  wrap.style.height = dsProjectH + 'px';
-  wrap.style.transform = 'scale(' + scale + ')';
-  wrap.style.transformOrigin = 'top left';
+  var dispW = Math.round(dsProjectW * scale);
+  var dispH = Math.round(dsProjectH * scale);
 
-  outer.style.width = Math.round(dsProjectW * scale) + 'px';
-  outer.style.height = Math.round(dsProjectH * scale) + 'px';
+  wrap.style.width = dispW + 'px';
+  wrap.style.height = dispH + 'px';
+  wrap.style.transform = 'none';
+  outer.style.width = dispW + 'px';
+  outer.style.height = dispH + 'px';
 
   if (!dsCanvas) {
     dsCanvas = new fabric.Canvas('ds-canvas', {
-      width: dsProjectW, height: dsProjectH,
+      width: dispW, height: dispH,
       backgroundColor: '#ffffff',
       preserveObjectStacking: true
     });
+    dsCanvas._projectScale = scale;
   }
-  dsCanvas._projectScale = scale;
 }
 
-window.addEventListener('resize', function() {
-  if (!dsCanvas || document.getElementById('design-editor').style.display === 'none') return;
-  clearTimeout(_dsResizeTimer);
-  _dsResizeTimer = setTimeout(dsResizeCanvas, 200);
-});
+// Canvas only resizes on project open, not during editing
 
 var dsClipboard = null;
 
@@ -20972,7 +20969,9 @@ function dsSendBackward() {
 
 function exportDesign() {
   if (!dsCanvas) return;
-  var dataUrl = dsCanvas.toDataURL({ format: 'png', multiplier: 1 });
+  var scale = dsCanvas._projectScale || 1;
+  var multiplier = 1 / scale;
+  var dataUrl = dsCanvas.toDataURL({ format: 'png', multiplier: multiplier });
   var a = document.createElement('a');
   a.download = (dsProjectName || 'design').replace(/[^a-zA-Z0-9_-]/g, '_') + '.png';
   a.href = dataUrl;
