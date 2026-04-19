@@ -535,6 +535,7 @@
   <button onclick="closeMobileMenu()" aria-label="Close menu" style="position:absolute;top:20px;right:20px;background:none;border:none;color:var(--muted);font-size:24px;cursor:pointer;line-height:1;padding:8px;">&#x2715;</button>
   <div class="mobile-menu-links">
     <a href="tools.html" onclick="closeMobileMenu()">Tools</a>
+    <a href="tools-ai-design-studio.html" onclick="closeMobileMenu()">AI</a>
     <a href="pricing.html" onclick="closeMobileMenu()">Pricing</a>
     <a href="about.html" onclick="closeMobileMenu()">About</a>
     <a href="/learn/" onclick="closeMobileMenu()">Learning Hub</a>
@@ -676,6 +677,21 @@
           <div style="font-size:12px;color:var(--muted);">12 tools, one workspace</div>
           <a href="tools.html" class="nav-tools-footer-link">View all tools <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a>
         </div>
+      </div>
+    </div>
+    <div class="nav-tools-wrap">
+      <button class="nav-tools-trigger" type="button" onclick="window.location.href='tools-ai-design-studio.html'">
+        AI
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="nav-tools-menu" style="width:340px;">
+        <a href="tools-ai-design-studio.html" class="nav-tools-item">
+          <div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z"/></svg></div>
+          <div class="nav-tools-item-content">
+            <div class="nav-tools-item-title">AI Design Studio <span class="nav-tools-tier free">Free</span></div>
+            <div class="nav-tools-item-desc">Create graphics with AI background removal, captions, and more</div>
+          </div>
+        </a>
       </div>
     </div>
     <a href="pricing.html">Pricing</a>
@@ -948,6 +964,13 @@
       <div class="tool-card-title">Brand Deal CRM</div>
       <div class="tool-card-desc">Track every brand partnership in one place. Store signed contracts, manage deliverables, and share a secure portal with the brand — all with built-in revenue analytics.</div>
       <div class="tool-card-badge max"><span class="tool-card-badge-dot"></span> Creator Max</div>
+      <div class="tool-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
+    </a>
+    <a class="tool-card" href="tools-ai-design-studio.html">
+      <div class="tool-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z"/></svg></div>
+      <div class="tool-card-title">AI Design Studio</div>
+      <div class="tool-card-desc">Create graphics with AI-powered tools. Remove backgrounds, generate captions, upscale images, and design for any platform with 21 fonts and layered editing.</div>
+      <div class="tool-card-badge"><span class="tool-card-badge-dot"></span> Free to start · AI tools on Pro</div>
       <div class="tool-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
     </a>
     <a class="tool-card" href="tools-script-builder.html">
@@ -1269,6 +1292,15 @@
           </div>
 
           <div class="compare-row">
+            <div class="compare-icon"><svg viewBox="0 0 24 24"><path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z"/></svg></div>
+            <div class="compare-left">
+              <div class="compare-tool">AI Design Studio</div>
+              <div class="compare-replaces">Instead of Canva Pro, Adobe Express</div>
+            </div>
+            <div class="compare-price">$13<span>/mo</span></div>
+          </div>
+
+          <div class="compare-row">
             <div class="compare-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="17" x2="8" y2="13"/><line x1="12" y1="17" x2="12" y2="11"/><line x1="16" y1="17" x2="16" y2="15"/></svg></div>
             <div class="compare-left">
               <div class="compare-tool">Media Kit</div>
@@ -1293,7 +1325,7 @@
 
         <!-- Total comparison -->
         <div style="text-align:center;position:relative;z-index:1;">
-          <div style="font-size:13px;color:rgba(255,255,255,0.6);margin-bottom:6px;">That's <span style="color:#f87171;font-weight:700;text-decoration:line-through;">$258+/mo</span> with other tools</div>
+          <div style="font-size:13px;color:rgba(255,255,255,0.6);margin-bottom:6px;">That's <span style="color:#f87171;font-weight:700;text-decoration:line-through;">$271+/mo</span> with other tools</div>
           <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;letter-spacing:-0.8px;margin-bottom:4px;">
             <span style="background:linear-gradient(135deg,#a78bfa,#e879f9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Ryxa Creator Max — $20/mo</span>
           </div>
