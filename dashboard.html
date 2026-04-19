@@ -11427,6 +11427,13 @@ function closeSidebarMenu() {
   if (menu) menu.style.display = 'none';
 }
 
+document.addEventListener('click', function(e) {
+  var menu = document.getElementById('sidebar-user-menu');
+  if (!menu || menu.style.display === 'none') return;
+  var bottom = menu.closest('.sidebar-bottom');
+  if (bottom && !bottom.contains(e.target)) closeSidebarMenu();
+});
+
 // Check for payment return
 const urlParams = new URLSearchParams(window.location.search);
 if (urlParams.get('payment') === 'success') {
