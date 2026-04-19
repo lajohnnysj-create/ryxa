@@ -5776,7 +5776,7 @@
         <div id="settings-renew-confirm" style="display:none;margin-top:12px;padding:14px;background:rgba(74,222,128,0.06);border:1px solid rgba(74,222,128,0.2);border-radius:8px;">
           <p style="font-size:13px;color:#4ade80;margin-bottom:12px;">Reactivate your Pro plan? Your subscription will continue as normal.</p>
           <div style="display:flex;gap:8px;">
-            <button onclick="confirmSettingsCancel()" style="flex:1;padding:9px;background:rgba(74,222,128,0.15);border:1px solid rgba(74,222,128,0.3);color:#4ade80;border-radius:7px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Yes, reactivate</button>
+            <button onclick="confirmSettingsCancel()" style="flex:1;padding:9px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:7px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Yes, reactivate</button>
             <button onclick="dismissSettingsMsg()" style="flex:1;padding:9px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:7px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;">Never mind</button>
           </div>
         </div>
@@ -6958,6 +6958,9 @@ async function loadBioData() {
     }
   } catch (e) { console.error('loadBioData', e); }
   syncBioForm();
+  // Reset username hint to default message
+  var bioHint = document.getElementById('bio-username-hint');
+  if (bioHint) { bioHint.textContent = 'Same username as your Media Kit. You can change it up to 2 times per week.'; bioHint.style.color = 'var(--muted)'; }
   renderBioThemes();
   syncBioCustomEditorUI();
   renderBioSocials();
@@ -8761,7 +8764,7 @@ function updatePublishUI() {
     dot.style.background = '#4ade80';
     label.textContent = 'Published';
     sub.innerHTML = bioState.username
-      ? 'Live at <strong style="color:var(--accent2)">ryxa.io/' + bioState.username + '</strong> <button type="button" onclick="copyBioLink(\'https://ryxa.io/' + bioState.username + '\', this)" style="padding:3px 8px;background:rgba(74,222,128,0.12);border:1px solid rgba(74,222,128,0.25);color:#4ade80;border-radius:5px;font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer;margin-left:4px;vertical-align:middle;">Copy</button>'
+      ? 'Live at <strong style="color:var(--accent2)">ryxa.io/' + bioState.username + '</strong> <button type="button" onclick="copyBioLink(\'https://ryxa.io/' + bioState.username + '\', this)" style="padding:3px 8px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:5px;font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer;margin-left:4px;vertical-align:middle;">Copy</button>'
       : 'Your page is live.';
     btn.textContent = 'Unpublish';
     btn.style.background = 'transparent';
@@ -9066,6 +9069,9 @@ function initMediaKitTool() {
   if (mkInited) {
     // Re-sync username from profiles in case it was changed in the Link in Bio tool
     resyncMKUsername();
+    // Reset username hint to default
+    var mkHint = document.getElementById('mk-username-hint');
+    if (mkHint) { mkHint.textContent = 'Same username as your Link in Bio. You can change it up to 2 times per week.'; mkHint.style.color = 'var(--muted)'; }
     renderMKSocials();
     renderMKRates();
     renderMKThemes();
@@ -9113,7 +9119,6 @@ async function resyncMKUsername() {
     } catch (e) { console.warn('resyncMKUsername', e); }
   }
   updateMKPublishUI();
-  if (uname) renderMKUsernameAvailable(uname);
 }
 
 async function loadMediaKit() {
@@ -9165,15 +9170,15 @@ async function loadMediaKit() {
     }
   } catch (e) { console.error('loadMediaKit', e); }
   syncMKForm();
+  // Reset username hint to default
+  var mkHint2 = document.getElementById('mk-username-hint');
+  if (mkHint2) { mkHint2.textContent = 'Same username as your Link in Bio. You can change it up to 2 times per week.'; mkHint2.style.color = 'var(--muted)'; }
   renderMKSocials();
   renderMKRates();
   renderMKThemes();
   syncMKCustomEditorUI();
   updateMKPublishUI();
   updateMKPreview();
-  // Re-render username hint with copy button
-  var mkUname = document.getElementById('mk-username')?.value?.trim();
-  if (mkUname) renderMKUsernameAvailable(mkUname);
 }
 
 function syncMKForm() {
@@ -9812,7 +9817,7 @@ function updateMKPublishUI() {
     dot.style.background = '#4ade80';
     label.textContent = 'Published';
     sub.innerHTML = uname
-      ? `Live at <strong style="color:var(--accent2)">ryxa.io/mediakit/${escapeHtml(uname)}</strong>`
+      ? `Live at <strong style="color:var(--accent2)">ryxa.io/mediakit/${escapeHtml(uname)}</strong> <button type="button" onclick="copyBioLink('https://ryxa.io/mediakit/${escapeHtml(uname)}', this)" style="padding:3px 8px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:5px;font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer;margin-left:4px;vertical-align:middle;">Copy</button>`
       : 'Your media kit is live.';
     btn.textContent = 'Unpublish';
     btn.style.background = 'transparent';
@@ -13459,7 +13464,7 @@ async function toggleCoachingPublish() {
     pubBtn.style.color = '#ef4444';
     document.getElementById('coaching-marketplace-toggle').style.display = 'block';
     updateMarketplaceCountDisplay();
-    showCoachingMsg('success', 'Published! Landing page: ryxa.io/coaching/' + (coaching?.slug || '') + ' <button onclick="copyPublishUrl(\'https://ryxa.io/coaching/' + (coaching?.slug || '') + '\', this)" style="padding:3px 8px;background:rgba(74,222,128,0.15);border:1px solid rgba(74,222,128,0.3);color:#4ade80;border-radius:5px;font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer;margin-left:6px;vertical-align:middle;">Copy</button>', true);
+    showCoachingMsg('success', 'Published! Landing page: ryxa.io/coaching/' + (coaching?.slug || '') + ' <button onclick="copyPublishUrl(\'https://ryxa.io/coaching/' + (coaching?.slug || '') + '\', this)" style="padding:3px 8px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:5px;font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer;margin-left:6px;vertical-align:middle;">Copy</button>', true);
   } else {
     pubBtn.textContent = 'Publish';
     pubBtn.style.borderColor = 'rgba(74,222,128,0.4)';
@@ -13857,7 +13862,7 @@ async function toggleCoursePublish() {
     pubBtn.style.color = '#ef4444';
     document.getElementById('course-marketplace-toggle').style.display = 'block';
     updateMarketplaceCountDisplay();
-    showCourseMsg('success', 'Course published! Landing page: ryxa.io/course/' + (course?.slug || '') + ' <button onclick="copyPublishUrl(\'https://ryxa.io/course/' + (course?.slug || '') + '\', this)" style="padding:3px 8px;background:rgba(74,222,128,0.15);border:1px solid rgba(74,222,128,0.3);color:#4ade80;border-radius:5px;font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer;margin-left:6px;vertical-align:middle;">Copy</button>', true);
+    showCourseMsg('success', 'Course published! Landing page: ryxa.io/course/' + (course?.slug || '') + ' <button onclick="copyPublishUrl(\'https://ryxa.io/course/' + (course?.slug || '') + '\', this)" style="padding:3px 8px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:5px;font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer;margin-left:6px;vertical-align:middle;">Copy</button>', true);
   } else {
     pubBtn.textContent = 'Publish';
     pubBtn.style.borderColor = 'rgba(74,222,128,0.4)';
