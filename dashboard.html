@@ -20308,6 +20308,29 @@ function initDesignCanvas() {
     padding: 6
   });
 
+  // Hover highlight
+  dsCanvas.on('mouse:over', function(e) {
+    if (!e.target || e.target._isGuideLine) return;
+    if (dsCanvas.getActiveObject() === e.target) return;
+    e.target._dsOrigStroke = e.target.stroke;
+    e.target._dsOrigStrokeWidth = e.target.strokeWidth;
+    e.target.set({ stroke: '#7c3aed', strokeWidth: 2 });
+    dsCanvas.renderAll();
+  });
+
+  dsCanvas.on('mouse:out', function(e) {
+    if (!e.target || e.target._isGuideLine) return;
+    if (typeof e.target._dsOrigStroke !== 'undefined') {
+      e.target.set({
+        stroke: e.target._dsOrigStroke,
+        strokeWidth: e.target._dsOrigStrokeWidth
+      });
+      delete e.target._dsOrigStroke;
+      delete e.target._dsOrigStrokeWidth;
+      dsCanvas.renderAll();
+    }
+  });
+
   // Load pending project JSON if opening a saved project
   if (dsPendingJSON) {
     var json = dsPendingJSON;
