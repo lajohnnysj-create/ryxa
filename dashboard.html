@@ -1759,7 +1759,7 @@
   }
   .ana-mini-tip { position:absolute; z-index:10; pointer-events:none; background:rgba(15,15,26,0.95); border:1px solid rgba(232,121,249,0.25); border-radius:8px; padding:6px 10px; font-size:10px; color:#e9c4f7; box-shadow:0 4px 16px rgba(0,0,0,0.4); white-space:nowrap; }
 
-  /* AI Design Studio */
+  /* Design Studio */
   .ds-preset-btn { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px; cursor:pointer; text-align:center; transition:all 0.15s; display:flex; flex-direction:column; align-items:center; gap:8px; }
   .ds-preset-btn:hover { border-color:rgba(124,58,237,0.4); background:rgba(124,58,237,0.04); }
   .ds-preset-icon { width:48px; max-height:48px; background:var(--surface2); border:1px solid var(--border); border-radius:6px; display:flex; align-items:center; justify-content:center; }
@@ -3285,6 +3285,12 @@
       <span class="sidebar-item-label">Link in Bio</span>
     </button>
 
+    <div class="sidebar-section-label">AI</div>
+    <button class="sidebar-item" id="nav-design" onclick="showTool('design')">
+      <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z"/></svg></div>
+      <span class="sidebar-item-label">Design Studio</span>
+    </button>
+
     <div class="sidebar-section-label">Create & Earn</div>
     <button class="sidebar-item" id="nav-courses" onclick="showTool('courses')">
       <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M8 7h8M8 11h6"/></svg></div>
@@ -3297,10 +3303,6 @@
     <button class="sidebar-item" id="nav-deals" onclick="showTool('deals')">
       <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 12h18"/></svg></div>
       <span class="sidebar-item-label">Brand Deals <span style="font-size:9px;font-weight:600;letter-spacing:0.08em;color:var(--muted);vertical-align:middle;margin-left:2px;">CRM</span></span>
-    </button>
-    <button class="sidebar-item" id="nav-design" onclick="showTool('design')">
-      <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z"/></svg></div>
-      <span class="sidebar-item-label">AI Design Studio</span>
     </button>
 
     <div class="sidebar-section-label">Analytics</div>
@@ -4827,7 +4829,7 @@
     <!-- DESIGN STUDIO -->
     <div id="tool-design" style="display:none;">
       <div id="design-start" style="max-width:680px;margin:0 auto;">
-        <h2 style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;margin-bottom:6px;letter-spacing:-0.5px;">AI Design Studio</h2>
+        <h2 style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;margin-bottom:6px;letter-spacing:-0.5px;">Design Studio</h2>
         <p style="color:var(--muted);font-size:14px;margin-bottom:24px;">Create graphics with text, images, and layers. Export or save projects.</p>
 
         <!-- New project presets -->
@@ -6203,7 +6205,7 @@ const toolTitles = {
   deals: 'Brand Deal CRM',
   analytics: 'Analytics',
     settings: 'Settings',
-    design: 'AI Design Studio'
+    design: 'Design Studio'
 };
 
 async function initAuth() {
