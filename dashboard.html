@@ -20308,27 +20308,33 @@ function initDesignCanvas() {
     padding: 6
   });
 
-  // Hover highlight
+  // Hover highlight — dashed purple border around hovered object
+  var dsHoveredObj = null;
+
   dsCanvas.on('mouse:over', function(e) {
     if (!e.target || e.target._isGuideLine) return;
     if (dsCanvas.getActiveObject() === e.target) return;
-    e.target._dsOrigStroke = e.target.stroke;
-    e.target._dsOrigStrokeWidth = e.target.strokeWidth;
-    e.target.set({ stroke: '#7c3aed', strokeWidth: 2 });
+    dsHoveredObj = e.target;
     dsCanvas.renderAll();
   });
 
   dsCanvas.on('mouse:out', function(e) {
-    if (!e.target || e.target._isGuideLine) return;
-    if (typeof e.target._dsOrigStroke !== 'undefined') {
-      e.target.set({
-        stroke: e.target._dsOrigStroke,
-        strokeWidth: e.target._dsOrigStrokeWidth
-      });
-      delete e.target._dsOrigStroke;
-      delete e.target._dsOrigStrokeWidth;
+    if (dsHoveredObj) {
+      dsHoveredObj = null;
       dsCanvas.renderAll();
     }
+  });
+
+  dsCanvas.on('after:render', function() {
+    if (!dsHoveredObj || dsCanvas.getActiveObject() === dsHoveredObj) return;
+    var ctx = dsCanvas.contextContainer;
+    var bound = dsHoveredObj.getBoundingRect();
+    ctx.save();
+    ctx.strokeStyle = 'rgba(124,58,237,0.6)';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([6, 4]);
+    ctx.strokeRect(bound.left - 1, bound.top - 1, bound.width + 2, bound.height + 2);
+    ctx.restore();
   });
 
   // Load pending project JSON if opening a saved project
