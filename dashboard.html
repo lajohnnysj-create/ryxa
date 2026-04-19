@@ -1754,11 +1754,8 @@
   .ana-range-btn { padding: 6px 14px; background: transparent; border: 1px solid var(--border); color: var(--muted); border-radius: 8px; font-size: 12px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.15s; }
   .ana-range-btn:hover { border-color: rgba(124,58,237,0.4); color: var(--text); }
   .ana-range-btn.active { background: linear-gradient(135deg, rgba(124,58,237,0.2), rgba(232,121,249,0.1)); border-color: rgba(124,58,237,0.5); color: #c4b5fd; }
-  .topbar-bio-mobile { display: none; }
   @media (max-width: 768px) {
     .ana-range-btn { padding: 4px 10px; font-size: 12px; }
-    .topbar-bio-mobile { display: flex; }
-    #topbar-bio-link-wrap { display: none !important; }
   }
   .ana-mini-tip { position:absolute; z-index:10; pointer-events:none; background:rgba(15,15,26,0.95); border:1px solid rgba(232,121,249,0.25); border-radius:8px; padding:6px 10px; font-size:10px; color:#e9c4f7; box-shadow:0 4px 16px rgba(0,0,0,0.4); white-space:nowrap; }
   .dash-range-custom { display: flex; align-items: center; gap: 6px; padding: 5px 10px; background: transparent; border: 1px solid var(--border); border-radius: 8px; transition: all 0.15s; cursor: pointer; }
@@ -3329,10 +3326,32 @@
         <div class="sidebar-user-email" id="sidebar-email">Loading...</div>
         <div class="sidebar-user-tier" id="sidebar-tier">Free</div>
       </div>
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-left:auto;"><polyline points="6 15 12 9 18 15"/></svg>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-left:auto;transition:transform 0.2s;" id="sidebar-menu-chevron"><polyline points="6 15 12 9 18 15"/></svg>
     </div>
-    <div id="sidebar-user-menu" style="display:none;position:absolute;bottom:100%;left:12px;right:12px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:6px;margin-bottom:8px;box-shadow:0 -8px 24px rgba(0,0,0,0.3);">
-      <button onclick="openSignoutModal();closeSidebarMenu();" style="width:100%;padding:10px 12px;background:none;border:none;border-radius:8px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;display:flex;align-items:center;gap:8px;color:#f87171;transition:background 0.12s;">
+    <div id="sidebar-user-menu" style="display:none;position:absolute;bottom:100%;left:8px;right:8px;background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:10px;box-shadow:0 -12px 40px rgba(0,0,0,0.4);">
+      <!-- Avatar + email -->
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+        <div id="sidebar-menu-avatar" style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff;flex-shrink:0;overflow:hidden;">?</div>
+        <div style="flex:1;min-width:0;">
+          <div id="sidebar-menu-email" style="font-size:13px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Loading...</div>
+          <div id="sidebar-menu-tier" style="font-size:12px;color:var(--accent2);margin-top:1px;">Free</div>
+        </div>
+      </div>
+      <!-- Bio link -->
+      <div id="sidebar-menu-biolink" style="display:none;margin-bottom:8px;">
+        <button onclick="copyBioLink()" style="width:100%;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;display:flex;align-items:center;gap:8px;color:var(--text);transition:all 0.15s;" onmouseover="this.style.borderColor='rgba(124,58,237,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          <span id="sidebar-menu-biolink-text" style="flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">ryxa.io/...</span>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        </button>
+      </div>
+      <!-- Get Support -->
+      <button onclick="openSupportModal();closeSidebarMenu();" style="width:100%;padding:10px 12px;background:none;border:none;border-radius:10px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;display:flex;align-items:center;gap:8px;color:var(--text);transition:background 0.12s;margin-bottom:4px;" onmouseover="this.style.background='var(--surface)'" onmouseout="this.style.background='none'">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r="0.5" fill="currentColor" stroke="none"/></svg>
+        Get Support
+      </button>
+      <!-- Sign Out -->
+      <button onclick="openSignoutModal();closeSidebarMenu();" style="width:100%;padding:10px 12px;background:none;border:none;border-radius:10px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;display:flex;align-items:center;gap:8px;color:#f87171;transition:background 0.12s;" onmouseover="this.style.background='rgba(239,68,68,0.06)'" onmouseout="this.style.background='none'">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         Sign Out
       </button>
@@ -3351,15 +3370,8 @@
       <div style="width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0;"></div><div class="topbar-title" id="topbar-title">Dashboard</div>
     </div>
     <div class="topbar-right">
-      <button class="topbar-bio-mobile" id="topbar-bio-mobile-wrap" onclick="copyBioLink()" style="padding:5px 10px;background:var(--surface);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-family:DM Sans,sans-serif;font-size:12px;color:var(--muted);align-items:center;gap:5px;max-width:140px;" aria-label="Copy bio link">
-        <span id="ana-bio-link" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;">ryxa.io/...</span>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-      </button>
-      <button id="topbar-bio-link-wrap" onclick="copyBioLink()" style="display:none;padding:6px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-family:DM Sans,sans-serif;font-size:12px;color:var(--muted);transition:all 0.15s;align-items:center;gap:6px;" onmouseover="this.style.borderColor='rgba(124,58,237,0.4)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'" aria-label="Copy bio link">
-        <span id="topbar-bio-link" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">ryxa.io/...</span>
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-      </button>
-      <span class="tier-badge free" id="topbar-tier-badge">Free</span>
+
+<span class="tier-badge free" id="topbar-tier-badge">Free</span>
       <button class="upgrade-btn" id="topbar-upgrade-btn" onclick="startCheckout(undefined, this)">Upgrade to Pro</button>
       <button class="upgrade-btn" id="topbar-upgrade-max-btn" style="display:none;background:linear-gradient(135deg,#a78bfa,#e879f9);box-shadow:0 0 20px rgba(232,121,249,0.35);" onclick="startCheckout('max', this)">Upgrade to Creator Max</button>
     </div>
@@ -6006,6 +6018,11 @@ async function setUser(user) {
   const welcomeName = document.getElementById('welcome-name');
   if (email) email.textContent = user.email;
   if (avatar) avatar.textContent = user.email[0].toUpperCase();
+  // Also set menu popup elements
+  var menuEmail = document.getElementById('sidebar-menu-email');
+  var menuAvatar = document.getElementById('sidebar-menu-avatar');
+  if (menuEmail) menuEmail.textContent = user.email;
+  if (menuAvatar) menuAvatar.textContent = user.email[0].toUpperCase();
   await fetchTier(user.id);
 
   // Load avatar from bio profile
@@ -6022,11 +6039,8 @@ async function setUser(user) {
     if (profile?.username) {
       window._ryx_username = profile.username;
       if (welcomeName) welcomeName.textContent = '@' + profile.username;
-      // Populate bio link in topbar
-      var bioLinkEl = document.getElementById('topbar-bio-link');
-      if (bioLinkEl) bioLinkEl.textContent = 'ryxa.io/' + profile.username;
-      var bioLinkMobile = document.getElementById('ana-bio-link');
-      if (bioLinkMobile) bioLinkMobile.textContent = 'ryxa.io/' + profile.username;
+      var bioLinkText = document.getElementById('sidebar-menu-biolink-text');
+      if (bioLinkText) bioLinkText.textContent = 'ryxa.io/' + profile.username;
       showBioLinkButtons();
     } else {
       if (welcomeName) welcomeName.textContent = 'creator';
@@ -6059,41 +6073,51 @@ async function setUser(user) {
 function copyBioLink() {
   var username = window._ryx_username;
   if (!username) return;
-  var url = 'https://ryxa.io/' + username;
-  navigator.clipboard.writeText(url).then(function() {
-    var desktopWrap = document.getElementById('topbar-bio-link-wrap');
-    var mobileWrap = document.getElementById('topbar-bio-mobile-wrap');
-    [desktopWrap, mobileWrap].forEach(function(el) {
-      if (!el) return;
-      el.style.borderColor = 'rgba(74,222,128,0.5)';
-      el.style.color = '#4ade80';
-      var origText = el.querySelector('span').textContent;
-      el.querySelector('span').textContent = 'Copied!';
-      setTimeout(function() {
-        el.style.borderColor = '';
-        el.style.color = '';
-        el.querySelector('span').textContent = origText;
-      }, 1500);
-    });
+  var fullUrl = 'https://ryxa.io/' + username;
+  navigator.clipboard.writeText(fullUrl).then(function() {
+    var textEl = document.getElementById('sidebar-menu-biolink-text');
+    if (textEl) {
+      var orig = textEl.textContent;
+      textEl.textContent = 'Copied!';
+      textEl.style.color = '#4ade80';
+      setTimeout(function() { textEl.textContent = orig; textEl.style.color = ''; }, 1500);
+    }
   });
 }
 
 function showBioLinkButtons() {
-  var desktopWrap = document.getElementById('topbar-bio-link-wrap');
-  if (desktopWrap) desktopWrap.style.display = 'inline-flex';
+  var el = document.getElementById('sidebar-menu-biolink');
+  if (el) el.style.display = 'block';
+}
+
+function openSupportModal() {
+  var overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;';
+  overlay.innerHTML = '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:28px;max-width:380px;width:100%;text-align:center;">'
+    + '<div style="width:48px;height:48px;margin:0 auto 16px;background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.25);border-radius:12px;display:flex;align-items:center;justify-content:center;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>'
+    + '<div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.3px;margin-bottom:8px;">Get Support</div>'
+    + '<p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:20px;">Have a question or need help? Reach out to us and we\'ll get back to you as soon as possible.</p>'
+    + '<a href="mailto:hello@ryxa.io" style="display:block;width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;text-decoration:none;box-shadow:0 0 16px var(--accent-glow);margin-bottom:10px;">Email hello@ryxa.io</a>'
+    + '<button onclick="this.closest(\'div[style*=position\\:fixed]\').remove()" style="width:100%;padding:10px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:10px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;">Close</button>'
+    + '</div>';
+  overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+  document.body.appendChild(overlay);
 }
 
 function updateDashboardAvatar(url) {
   const sidebarAvatar = document.getElementById('sidebar-avatar');
   const settingsAvatar = document.getElementById('settings-avatar');
+  const menuAvatar = document.getElementById('sidebar-menu-avatar');
   if (url) {
     const imgHtml = '<img src="' + escapeHtml(url) + '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
     if (sidebarAvatar) { sidebarAvatar.innerHTML = imgHtml; sidebarAvatar.style.overflow = 'hidden'; }
     if (settingsAvatar) { settingsAvatar.innerHTML = imgHtml; settingsAvatar.style.overflow = 'hidden'; }
+    if (menuAvatar) { menuAvatar.innerHTML = imgHtml; }
   } else {
     const initial = currentUser ? currentUser.email[0].toUpperCase() : '?';
     if (sidebarAvatar) { sidebarAvatar.textContent = initial; sidebarAvatar.style.overflow = ''; }
     if (settingsAvatar) { settingsAvatar.textContent = initial; settingsAvatar.style.overflow = ''; }
+    if (menuAvatar) { menuAvatar.textContent = initial; }
   }
 }
 
@@ -6174,6 +6198,8 @@ function updateTierUI() {
     tierBadge.className = 'tier-badge ' + (max ? 'max' : pro ? 'pro' : 'free');
   }
   if (sidebarTier) sidebarTier.textContent = planText;
+  var menuTier = document.getElementById('sidebar-menu-tier');
+  if (menuTier) menuTier.textContent = planText;
   // Toggle Creator Max styling on sidebar bottom and body
   const sidebarBottom = document.querySelector('.sidebar-bottom');
   if (sidebarBottom) {
