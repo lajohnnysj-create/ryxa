@@ -4900,6 +4900,13 @@
             <div style="width:1px;height:24px;background:var(--border);margin:0 2px;"></div>
             <input type="color" id="ds-text-color" value="#ffffff" onchange="dsSetTextColor(this.value)" style="width:28px;height:28px;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:2px;" aria-label="Text color">
           </div>
+          <!-- Image controls (shown when image selected) -->
+          <div id="ds-image-controls" style="display:none;align-items:center;gap:6px;">
+            <button onclick="dsRemoveBg()" class="ds-tool-btn" id="ds-removebg-btn" title="Remove Background" style="width:auto;padding:0 10px;gap:6px;font-size:12px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5l14 14M2 12a10 10 0 0 1 10-10M22 12a10 10 0 0 1-10 10"/></svg>
+              Remove BG
+            </button>
+          </div>
           <!-- General controls -->
           <div style="margin-left:auto;display:flex;gap:6px;">
             <button onclick="dsDeleteSelected()" class="ds-tool-btn" title="Delete selected">
@@ -20124,7 +20131,7 @@ var dsCanvas = null;
 var dsProjectW = 1080, dsProjectH = 1080;
 var dsCurrentProjectId = null;
 var dsProjectName = 'Untitled';
-var dsSaveLimit = { free: 5, pro: 20, max: 50 };
+var dsSaveLimit = { free: 10, pro: 50, max: 100 };
 
 var DS_FONTS = [
   'DM Sans','Inter','Poppins','Montserrat','Bebas Neue','Oswald','Caveat','Dancing Script',
@@ -20223,21 +20230,28 @@ function dsKeyHandler(e) {
 function dsOnSelect() {
   var obj = dsCanvas.getActiveObject();
   var tc = document.getElementById('ds-text-controls');
+  var ic = document.getElementById('ds-image-controls');
   if (obj && obj.type === 'i-text') {
     tc.style.display = 'flex';
+    ic.style.display = 'none';
     document.getElementById('ds-font-select').value = obj.fontFamily || 'DM Sans';
     document.getElementById('ds-font-size').value = Math.round(obj.fontSize || 24);
     document.getElementById('ds-text-color').value = obj.fill || '#ffffff';
     document.getElementById('ds-bold-btn').classList.toggle('active', obj.fontWeight === 'bold');
     document.getElementById('ds-italic-btn').classList.toggle('active', obj.fontStyle === 'italic');
     document.getElementById('ds-underline-btn').classList.toggle('active', !!obj.underline);
+  } else if (obj && obj.type === 'image') {
+    tc.style.display = 'none';
+    ic.style.display = 'flex';
   } else {
     tc.style.display = 'none';
+    ic.style.display = 'none';
   }
 }
 
 function dsOnDeselect() {
   document.getElementById('ds-text-controls').style.display = 'none';
+  document.getElementById('ds-image-controls').style.display = 'none';
 }
 
 function dsAddText() {
@@ -20254,14 +20268,48 @@ function dsAddText() {
   dsCanvas.renderAll();
 }
 
+var DS_MAX_IMAGES = 15;
+var DS_MAX_IMG_PX = 1500;
+
+function dsCountImages() {
+  if (!dsCanvas) return 0;
+  return dsCanvas.getObjects().filter(function(o) { return o.type === 'image'; }).length;
+}
+
+function dsCompressImage(file, callback) {
+  var img = new Image();
+  img.onload = function() {
+    var w = img.width, h = img.height;
+    if (w > DS_MAX_IMG_PX || h > DS_MAX_IMG_PX) {
+      var ratio = Math.min(DS_MAX_IMG_PX / w, DS_MAX_IMG_PX / h);
+      w = Math.round(w * ratio);
+      h = Math.round(h * ratio);
+    }
+    var c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    var ctx = c.getContext('2d');
+    ctx.drawImage(img, 0, 0, w, h);
+    var dataUrl = c.toDataURL('image/webp', 0.8);
+    callback(dataUrl);
+  };
+  img.src = URL.createObjectURL(file);
+}
+
 function dsAddImage() {
+  if (dsCountImages() >= DS_MAX_IMAGES) {
+    showDsMsg('error', 'Maximum ' + DS_MAX_IMAGES + ' images per project.');
+    return;
+  }
   document.getElementById('ds-image-input').onchange = function(e) {
     var file = e.target.files[0];
     if (!file) return;
-    var reader = new FileReader();
-    reader.onload = function(ev) {
-      fabric.Image.fromURL(ev.target.result, function(img) {
-        var scale = dsCanvas._projectScale || 1;
+    if (dsCountImages() >= DS_MAX_IMAGES) {
+      showDsMsg('error', 'Maximum ' + DS_MAX_IMAGES + ' images per project.');
+      e.target.value = '';
+      return;
+    }
+    dsCompressImage(file, function(dataUrl) {
+      fabric.Image.fromURL(dataUrl, function(img) {
         var maxDim = Math.min(dsCanvas.width, dsCanvas.height) * 0.6;
         var imgScale = Math.min(maxDim / img.width, maxDim / img.height, 1);
         img.set({ left: 30, top: 30, scaleX: imgScale, scaleY: imgScale });
@@ -20269,8 +20317,7 @@ function dsAddImage() {
         dsCanvas.setActiveObject(img);
         dsCanvas.renderAll();
       });
-    };
-    reader.readAsDataURL(file);
+    });
     e.target.value = '';
   };
   document.getElementById('ds-image-input').click();
@@ -20333,6 +20380,10 @@ function dsDuplicate() {
   if (!dsCanvas) return;
   var obj = dsCanvas.getActiveObject();
   if (!obj) return;
+  if (obj.type === 'image' && dsCountImages() >= DS_MAX_IMAGES) {
+    showDsMsg('error', 'Maximum ' + DS_MAX_IMAGES + ' images per project.');
+    return;
+  }
   obj.clone(function(cloned) {
     cloned.set({ left: obj.left + 20, top: obj.top + 20 });
     dsCanvas.add(cloned);
@@ -20403,6 +20454,10 @@ async function saveDesignProject() {
     }
 
     var canvasJSON = JSON.stringify(dsCanvas.toJSON());
+    // Reject if project data is too large (5MB)
+    if (canvasJSON.length > 5 * 1024 * 1024) {
+      throw new Error('Project is too large to save. Try removing some images.');
+    }
     // Generate thumbnail
     var thumbScale = 200 / Math.max(dsCanvas.width, dsCanvas.height);
     var thumbUrl = dsCanvas.toDataURL({ format: 'webp', quality: 0.6, multiplier: thumbScale });
@@ -20499,6 +20554,94 @@ async function deleteDesignProject(id) {
 
 // Load projects when Design Studio is opened
 var _dsLoadedOnce = false;
+var _dsBgRemovalLoaded = false;
+var _dsBgRemovalLoading = false;
+
+function dsRemoveBg() {
+  if (!dsCanvas) return;
+  var obj = dsCanvas.getActiveObject();
+  if (!obj || obj.type !== 'image') { showDsMsg('error', 'Select an image first.'); return; }
+
+  // Pro/Max gate
+  if (typeof isPro === 'function' && !isPro()) {
+    showDsMsg('error', 'Remove Background is a Pro feature. Upgrade to use it.');
+    return;
+  }
+
+  var btn = document.getElementById('ds-removebg-btn');
+  btn.disabled = true;
+
+  function doRemoval() {
+    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" style="animation:btn-spin 0.6s linear infinite;" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Processing...';
+
+    // Get image data from the fabric object
+    var imgEl = obj.getElement();
+    var c = document.createElement('canvas');
+    c.width = imgEl.naturalWidth || imgEl.width;
+    c.height = imgEl.naturalHeight || imgEl.height;
+    var ctx = c.getContext('2d');
+    ctx.drawImage(imgEl, 0, 0);
+    c.toBlob(function(blob) {
+      imgly.removeBackground(blob).then(function(resultBlob) {
+        var url = URL.createObjectURL(resultBlob);
+        fabric.Image.fromURL(url, function(newImg) {
+          newImg.set({
+            left: obj.left, top: obj.top,
+            scaleX: obj.scaleX, scaleY: obj.scaleY,
+            angle: obj.angle
+          });
+          dsCanvas.remove(obj);
+          dsCanvas.add(newImg);
+          dsCanvas.setActiveObject(newImg);
+          dsCanvas.renderAll();
+          btn.disabled = false;
+          btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5l14 14M2 12a10 10 0 0 1 10-10M22 12a10 10 0 0 1-10 10"/></svg> Remove BG';
+          showDsMsg('success', 'Background removed!');
+        });
+      }).catch(function(err) {
+        console.error('BG removal error:', err);
+        btn.disabled = false;
+        btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5l14 14M2 12a10 10 0 0 1 10-10M22 12a10 10 0 0 1-10 10"/></svg> Remove BG';
+        showDsMsg('error', 'Background removal failed. Try a different image.');
+      });
+    }, 'image/png');
+  }
+
+  if (_dsBgRemovalLoaded) {
+    doRemoval();
+    return;
+  }
+
+  // Load the library
+  if (_dsBgRemovalLoading) {
+    showDsMsg('error', 'Still loading background removal. Please wait...');
+    btn.disabled = false;
+    return;
+  }
+
+  _dsBgRemovalLoading = true;
+  btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" style="animation:btn-spin 0.6s linear infinite;" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Downloading model...';
+  showDsMsg('success', 'Downloading background removal model. This only happens once and may take a moment...');
+
+  var script = document.createElement('script');
+  script.src = 'https://unpkg.com/@imgly/background-removal@1.4.5/dist/index.js';
+  script.onload = function() {
+    _dsBgRemovalLoaded = true;
+    _dsBgRemovalLoading = false;
+    // The library exposes imgly on window via UMD
+    if (typeof imgly === 'undefined' && typeof window.backgroundRemoval !== 'undefined') {
+      window.imgly = { removeBackground: window.backgroundRemoval };
+    }
+    doRemoval();
+  };
+  script.onerror = function() {
+    _dsBgRemovalLoading = false;
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5l14 14M2 12a10 10 0 0 1 10-10M22 12a10 10 0 0 1-10 10"/></svg> Remove BG';
+    showDsMsg('error', 'Failed to load background removal. Check your connection.');
+  };
+  document.head.appendChild(script);
+}
 </script>
 </body>
 </html>
