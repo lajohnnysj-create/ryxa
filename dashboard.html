@@ -20308,6 +20308,33 @@ function initDesignCanvas() {
     padding: 6
   });
 
+  // Custom rotation control icon
+  var rotateIcon = new Image();
+  rotateIcon.src = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6"/><path d="M2.5 22v-6h6"/><path d="M21.5 8A10 10 0 0 0 5 4.5L2.5 8"/><path d="M2.5 16a10 10 0 0 0 16.5 3.5l2.5-3.5"/></svg>');
+
+  fabric.Object.prototype.controls.mtr.render = function(ctx, left, top, styleOverride, fabricObject) {
+    var size = 22;
+    ctx.save();
+    ctx.translate(left, top);
+    ctx.rotate(fabric.util.degreesToRadians(fabricObject.angle));
+    // White circle background
+    ctx.beginPath();
+    ctx.arc(0, 0, size / 2 + 2, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffffff';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    // Draw icon
+    if (rotateIcon.complete) {
+      ctx.drawImage(rotateIcon, -size / 2, -size / 2, size, size);
+    }
+    ctx.restore();
+  };
+
+  // Move rotation control a bit further from the object
+  fabric.Object.prototype.controls.mtr.offsetY = -30;
+
   // Hover highlight — dashed purple border around hovered object
   var dsHoveredObj = null;
 
