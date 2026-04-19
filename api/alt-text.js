@@ -66,7 +66,7 @@ module.exports = async (req, res) => {
     if (!response.ok) {
       const err = await response.text();
       console.error('Claude API error:', err);
-      return res.status(500).json({ error: 'AI service error' });
+      return res.status(500).json({ error: 'AI service error', detail: err });
     }
 
     const data = await response.json();
