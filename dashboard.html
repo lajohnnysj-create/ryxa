@@ -6966,6 +6966,8 @@ async function loadBioData() {
   updatePublishUI();
   updateBioPreview();
   updateMediaKitLinkButton();
+  // Re-render username hint with copy button if username exists
+  if (bioOriginalUsername) renderUsernameAvailable(bioOriginalUsername);
 }
 
 function syncBioForm() {
