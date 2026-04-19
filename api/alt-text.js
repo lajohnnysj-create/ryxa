@@ -11,7 +11,11 @@ module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) return res.status(500).json({ error: 'API key not configured' });
+  if (!apiKey) {
+    // Debug: list available env var names (not values) to diagnose
+    const envKeys = Object.keys(process.env).filter(k => k.includes('ANTHROPIC') || k.includes('API'));
+    return res.status(500).json({ error: 'API key not configured', debug_keys: envKeys });
+  }
 
   const { image } = req.body || {};
   if (!image) return res.status(400).json({ error: 'No image provided' });
