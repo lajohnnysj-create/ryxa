@@ -4886,6 +4886,13 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
           </button>
           <div style="width:1px;height:24px;background:var(--border);margin:0 4px;"></div>
+          <!-- Background controls -->
+          <input type="color" id="ds-bg-color" value="#ffffff" onchange="dsSetBgColor(this.value)" title="Background color" style="width:28px;height:28px;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:2px;" aria-label="Background color">
+          <button onclick="dsToggleTransparent()" class="ds-tool-btn" id="ds-transparent-btn" title="Transparent background" style="width:auto;padding:0 8px;gap:4px;font-size:11px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 3l18 18"/></svg>
+            BG
+          </button>
+          <div style="width:1px;height:24px;background:var(--border);margin:0 4px;"></div>
           <!-- Text controls (shown when text selected) -->
           <div id="ds-text-controls" style="display:none;display:none;align-items:center;gap:6px;flex-wrap:wrap;">
             <select id="ds-font-select" onchange="dsSetFont(this.value)" style="padding:4px 8px;background:var(--surface);border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text);font-family:DM Sans,sans-serif;max-width:140px;" aria-label="Font family"></select>
@@ -20260,6 +20267,41 @@ function initDesignCanvas() {
 
 var dsGuideLines = [];
 var dsSnapThreshold = 6;
+var dsTransparentBg = false;
+
+function dsSetBgColor(color) {
+  if (!dsCanvas) return;
+  dsTransparentBg = false;
+  document.getElementById('ds-transparent-btn').classList.remove('active');
+  dsCanvas.backgroundColor = color;
+  document.getElementById('ds-canvas-wrap').style.backgroundImage = 'none';
+  dsCanvas.renderAll();
+}
+
+function dsToggleTransparent() {
+  if (!dsCanvas) return;
+
+  if (typeof isPro === 'function' && !isPro()) {
+    showDsMsg('error', 'Transparent background is a Pro feature. Upgrade to use it.');
+    return;
+  }
+
+  dsTransparentBg = !dsTransparentBg;
+  var btn = document.getElementById('ds-transparent-btn');
+  btn.classList.toggle('active', dsTransparentBg);
+
+  if (dsTransparentBg) {
+    dsCanvas.backgroundColor = null;
+    // Show checkerboard pattern on canvas wrap
+    document.getElementById('ds-canvas-wrap').style.backgroundImage = 'repeating-conic-gradient(#808080 0% 25%, #b0b0b0 0% 50%)';
+    document.getElementById('ds-canvas-wrap').style.backgroundSize = '16px 16px';
+  } else {
+    var color = document.getElementById('ds-bg-color').value || '#ffffff';
+    dsCanvas.backgroundColor = color;
+    document.getElementById('ds-canvas-wrap').style.backgroundImage = 'none';
+  }
+  dsCanvas.renderAll();
+}
 
 function dsInitGuidelines() {
   dsCanvas.on('object:moving', function(e) {
@@ -20267,7 +20309,6 @@ function dsInitGuidelines() {
     var obj = e.target;
     if (!obj) return;
 
-    var objCenter = obj.getCenterPoint();
     var objBound = obj.getBoundingRect(true);
     var objLeft = objBound.left;
     var objTop = objBound.top;
@@ -20279,16 +20320,20 @@ function dsInitGuidelines() {
     var canvasCenterX = dsCanvas.width / 2;
     var canvasCenterY = dsCanvas.height / 2;
     var lines = [];
+    var snappedX = false;
+    var snappedY = false;
 
     // Canvas center vertical
     if (Math.abs(objCenterX - canvasCenterX) < dsSnapThreshold) {
       obj.set('left', canvasCenterX - (objCenterX - obj.left));
       lines.push(dsMakeLine(canvasCenterX, 0, canvasCenterX, dsCanvas.height));
+      snappedX = true;
     }
     // Canvas center horizontal
     if (Math.abs(objCenterY - canvasCenterY) < dsSnapThreshold) {
       obj.set('top', canvasCenterY - (objCenterY - obj.top));
       lines.push(dsMakeLine(0, canvasCenterY, dsCanvas.width, canvasCenterY));
+      snappedY = true;
     }
 
     // Snap to other objects
@@ -20303,54 +20348,64 @@ function dsInitGuidelines() {
       var otherBottom = ob.top + ob.height;
 
       // Center to center vertical
-      if (Math.abs(objCenterX - otherCenterX) < dsSnapThreshold) {
+      if (!snappedX && Math.abs(objCenterX - otherCenterX) < dsSnapThreshold) {
         obj.set('left', otherCenterX - (objCenterX - obj.left));
         lines.push(dsMakeLine(otherCenterX, Math.min(objTop, otherTop), otherCenterX, Math.max(objBottom, otherBottom)));
+        snappedX = true;
       }
       // Center to center horizontal
-      if (Math.abs(objCenterY - otherCenterY) < dsSnapThreshold) {
+      if (!snappedY && Math.abs(objCenterY - otherCenterY) < dsSnapThreshold) {
         obj.set('top', otherCenterY - (objCenterY - obj.top));
         lines.push(dsMakeLine(Math.min(objLeft, otherLeft), otherCenterY, Math.max(objRight, otherRight), otherCenterY));
+        snappedY = true;
       }
       // Left edge to left edge
-      if (Math.abs(objLeft - otherLeft) < dsSnapThreshold) {
+      if (!snappedX && Math.abs(objLeft - otherLeft) < dsSnapThreshold) {
         obj.set('left', otherLeft - (objLeft - obj.left));
         lines.push(dsMakeLine(otherLeft, Math.min(objTop, otherTop), otherLeft, Math.max(objBottom, otherBottom)));
+        snappedX = true;
       }
       // Right edge to right edge
-      if (Math.abs(objRight - otherRight) < dsSnapThreshold) {
+      if (!snappedX && Math.abs(objRight - otherRight) < dsSnapThreshold) {
         obj.set('left', otherRight - objBound.width - (objLeft - obj.left));
         lines.push(dsMakeLine(otherRight, Math.min(objTop, otherTop), otherRight, Math.max(objBottom, otherBottom)));
+        snappedX = true;
       }
       // Top edge to top edge
-      if (Math.abs(objTop - otherTop) < dsSnapThreshold) {
+      if (!snappedY && Math.abs(objTop - otherTop) < dsSnapThreshold) {
         obj.set('top', otherTop - (objTop - obj.top));
         lines.push(dsMakeLine(Math.min(objLeft, otherLeft), otherTop, Math.max(objRight, otherRight), otherTop));
+        snappedY = true;
       }
       // Bottom edge to bottom edge
-      if (Math.abs(objBottom - otherBottom) < dsSnapThreshold) {
+      if (!snappedY && Math.abs(objBottom - otherBottom) < dsSnapThreshold) {
         obj.set('top', otherBottom - objBound.height - (objTop - obj.top));
         lines.push(dsMakeLine(Math.min(objLeft, otherLeft), otherBottom, Math.max(objRight, otherRight), otherBottom));
+        snappedY = true;
       }
       // Left to right
-      if (Math.abs(objLeft - otherRight) < dsSnapThreshold) {
+      if (!snappedX && Math.abs(objLeft - otherRight) < dsSnapThreshold) {
         obj.set('left', otherRight - (objLeft - obj.left));
         lines.push(dsMakeLine(otherRight, Math.min(objTop, otherTop), otherRight, Math.max(objBottom, otherBottom)));
+        snappedX = true;
       }
       // Right to left
-      if (Math.abs(objRight - otherLeft) < dsSnapThreshold) {
+      if (!snappedX && Math.abs(objRight - otherLeft) < dsSnapThreshold) {
         obj.set('left', otherLeft - objBound.width - (objLeft - obj.left));
         lines.push(dsMakeLine(otherLeft, Math.min(objTop, otherTop), otherLeft, Math.max(objBottom, otherBottom)));
+        snappedX = true;
       }
       // Top to bottom
-      if (Math.abs(objTop - otherBottom) < dsSnapThreshold) {
+      if (!snappedY && Math.abs(objTop - otherBottom) < dsSnapThreshold) {
         obj.set('top', otherBottom - (objTop - obj.top));
         lines.push(dsMakeLine(Math.min(objLeft, otherLeft), otherBottom, Math.max(objRight, otherRight), otherBottom));
+        snappedY = true;
       }
       // Bottom to top
-      if (Math.abs(objBottom - otherTop) < dsSnapThreshold) {
+      if (!snappedY && Math.abs(objBottom - otherTop) < dsSnapThreshold) {
         obj.set('top', otherTop - objBound.height - (objTop - obj.top));
         lines.push(dsMakeLine(Math.min(objLeft, otherLeft), otherTop, Math.max(objRight, otherRight), otherTop));
+        snappedY = true;
       }
     });
 
@@ -20580,6 +20635,10 @@ function exportDesign() {
 function closeDesignEditor() {
   document.getElementById('design-editor').style.display = 'none';
   document.getElementById('design-start').style.display = 'block';
+  document.getElementById('ds-canvas-wrap').style.backgroundImage = 'none';
+  dsTransparentBg = false;
+  var tbtn = document.getElementById('ds-transparent-btn');
+  if (tbtn) tbtn.classList.remove('active');
   if (dsCanvas) { dsCanvas.dispose(); dsCanvas = null; }
   document.removeEventListener('keydown', dsKeyHandler);
   loadDesignProjects();
