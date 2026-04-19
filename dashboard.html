@@ -4981,8 +4981,10 @@
 
           <!-- Canvas -->
           <div style="flex:1;display:flex;justify-content:center;">
-            <div id="ds-canvas-wrap" style="background:#1a1a2e;border:1px solid var(--border);border-radius:8px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.3);position:relative;">
-              <canvas id="ds-canvas"></canvas>
+            <div id="ds-canvas-outer" style="position:relative;">
+              <div id="ds-canvas-wrap" style="background:#1a1a2e;border:1px solid var(--border);border-radius:8px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.3);position:relative;">
+                <canvas id="ds-canvas"></canvas>
+              </div>
             </div>
           </div>
         </div>
@@ -20471,40 +20473,27 @@ function dsResizeCanvas() {
   var maxH = window.innerHeight - 260;
   if (maxH < 300) maxH = 300;
   var scale = Math.min(maxW / dsProjectW, maxH / dsProjectH, 1);
-  var dispW = Math.round(dsProjectW * scale);
-  var dispH = Math.round(dsProjectH * scale);
-  wrap.style.width = dispW + 'px';
-  wrap.style.height = dispH + 'px';
+
+  // Canvas always works at full project dimensions
+  // CSS transform handles visual scaling
+  wrap.style.width = dsProjectW + 'px';
+  wrap.style.height = dsProjectH + 'px';
+  wrap.style.transform = 'scale(' + scale + ')';
+  wrap.style.transformOrigin = 'top left';
+
+  // Parent needs explicit size to prevent layout collapse
+  var parentWrap = wrap.parentElement;
+  parentWrap.style.width = Math.round(dsProjectW * scale) + 'px';
+  parentWrap.style.height = Math.round(dsProjectH * scale) + 'px';
 
   if (!dsCanvas) {
     dsCanvas = new fabric.Canvas('ds-canvas', {
-      width: dispW, height: dispH,
+      width: dsProjectW, height: dsProjectH,
       backgroundColor: '#ffffff',
       preserveObjectStacking: true
     });
-    dsCanvas._projectScale = scale;
-  } else {
-    // Preserve canvas state during resize
-    var json = dsCanvas.toJSON();
-    var oldScale = dsCanvas._projectScale || 1;
-    dsCanvas.setWidth(dispW);
-    dsCanvas.setHeight(dispH);
-    dsCanvas._projectScale = scale;
-
-    // Rescale all objects proportionally
-    var ratio = scale / oldScale;
-    dsCanvas.getObjects().forEach(function(obj) {
-      if (obj._isGuideLine) return;
-      obj.set({
-        left: obj.left * ratio,
-        top: obj.top * ratio,
-        scaleX: obj.scaleX * ratio,
-        scaleY: obj.scaleY * ratio
-      });
-      obj.setCoords();
-    });
-    dsCanvas.renderAll();
   }
+  dsCanvas._projectScale = scale;
 }
 
 window.addEventListener('resize', function() {
@@ -20806,10 +20795,7 @@ function dsSendBackward() {
 
 function exportDesign() {
   if (!dsCanvas) return;
-  // Render at full resolution
-  var scale = dsCanvas._projectScale || 1;
-  var multiplier = 1 / scale;
-  var dataUrl = dsCanvas.toDataURL({ format: 'png', multiplier: multiplier });
+  var dataUrl = dsCanvas.toDataURL({ format: 'png', multiplier: 1 });
   var a = document.createElement('a');
   a.download = (dsProjectName || 'design').replace(/[^a-zA-Z0-9_-]/g, '_') + '.png';
   a.href = dataUrl;
