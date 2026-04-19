@@ -20554,8 +20554,9 @@ async function deleteDesignProject(id) {
 
 // Load projects when Design Studio is opened
 var _dsLoadedOnce = false;
-var _dsBgRemovalLoaded = false;
+var _dsBgRemovalReady = false;
 var _dsBgRemovalLoading = false;
+var _dsBgRemoveFunc = null;
 
 function dsRemoveBg() {
   if (!dsCanvas) return;
@@ -20574,7 +20575,6 @@ function dsRemoveBg() {
   function doRemoval() {
     btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" style="animation:btn-spin 0.6s linear infinite;" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Processing...';
 
-    // Get image data from the fabric object
     var imgEl = obj.getElement();
     var c = document.createElement('canvas');
     c.width = imgEl.naturalWidth || imgEl.width;
@@ -20582,7 +20582,7 @@ function dsRemoveBg() {
     var ctx = c.getContext('2d');
     ctx.drawImage(imgEl, 0, 0);
     c.toBlob(function(blob) {
-      imgly.removeBackground(blob).then(function(resultBlob) {
+      _dsBgRemoveFunc(blob).then(function(resultBlob) {
         var url = URL.createObjectURL(resultBlob);
         fabric.Image.fromURL(url, function(newImg) {
           newImg.set({
@@ -20594,27 +20594,29 @@ function dsRemoveBg() {
           dsCanvas.add(newImg);
           dsCanvas.setActiveObject(newImg);
           dsCanvas.renderAll();
-          btn.disabled = false;
-          btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5l14 14M2 12a10 10 0 0 1 10-10M22 12a10 10 0 0 1-10 10"/></svg> Remove BG';
+          dsResetBgBtn(btn);
           showDsMsg('success', 'Background removed!');
         });
       }).catch(function(err) {
         console.error('BG removal error:', err);
-        btn.disabled = false;
-        btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5l14 14M2 12a10 10 0 0 1 10-10M22 12a10 10 0 0 1-10 10"/></svg> Remove BG';
+        dsResetBgBtn(btn);
         showDsMsg('error', 'Background removal failed. Try a different image.');
       });
     }, 'image/png');
   }
 
-  if (_dsBgRemovalLoaded) {
+  function dsResetBgBtn(b) {
+    b.disabled = false;
+    b.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5l14 14M2 12a10 10 0 0 1 10-10M22 12a10 10 0 0 1-10 10"/></svg> Remove BG';
+  }
+
+  if (_dsBgRemovalReady && _dsBgRemoveFunc) {
     doRemoval();
     return;
   }
 
-  // Load the library
   if (_dsBgRemovalLoading) {
-    showDsMsg('error', 'Still loading background removal. Please wait...');
+    showDsMsg('error', 'Still loading background removal model. Please wait...');
     btn.disabled = false;
     return;
   }
@@ -20623,24 +20625,35 @@ function dsRemoveBg() {
   btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" style="animation:btn-spin 0.6s linear infinite;" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Downloading model...';
   showDsMsg('success', 'Downloading background removal model. This only happens once and may take a moment...');
 
-  var script = document.createElement('script');
-  script.src = 'https://unpkg.com/@imgly/background-removal@1.4.5/dist/index.js';
-  script.onload = function() {
-    _dsBgRemovalLoaded = true;
+  // Load via inline module script to support ESM import
+  var moduleScript = document.createElement('script');
+  moduleScript.type = 'module';
+  moduleScript.textContent = `
+    import { removeBackground } from 'https://esm.sh/@imgly/background-removal@1.4.5';
+    window._dsBgRemoveFunc = removeBackground;
+    window.dispatchEvent(new Event('ds-bg-ready'));
+  `;
+
+  function onReady() {
+    window.removeEventListener('ds-bg-ready', onReady);
+    _dsBgRemoveFunc = window._dsBgRemoveFunc;
+    _dsBgRemovalReady = true;
     _dsBgRemovalLoading = false;
-    // The library exposes imgly on window via UMD
-    if (typeof imgly === 'undefined' && typeof window.backgroundRemoval !== 'undefined') {
-      window.imgly = { removeBackground: window.backgroundRemoval };
-    }
     doRemoval();
-  };
-  script.onerror = function() {
-    _dsBgRemovalLoading = false;
-    btn.disabled = false;
-    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5l14 14M2 12a10 10 0 0 1 10-10M22 12a10 10 0 0 1-10 10"/></svg> Remove BG';
-    showDsMsg('error', 'Failed to load background removal. Check your connection.');
-  };
-  document.head.appendChild(script);
+  }
+
+  window.addEventListener('ds-bg-ready', onReady);
+  document.head.appendChild(moduleScript);
+
+  // Timeout fallback
+  setTimeout(function() {
+    if (!_dsBgRemovalReady) {
+      window.removeEventListener('ds-bg-ready', onReady);
+      _dsBgRemovalLoading = false;
+      dsResetBgBtn(btn);
+      showDsMsg('error', 'Failed to load background removal. Try again.');
+    }
+  }, 30000);
 }
 </script>
 </body>
