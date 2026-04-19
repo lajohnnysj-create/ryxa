@@ -3287,7 +3287,7 @@
 
     <div class="sidebar-section-label">AI</div>
     <button class="sidebar-item" id="nav-design" onclick="showTool('design')">
-      <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z"/></svg></div>
+      <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 22s5-2 7.5-7c.4-.8 1-1.5 1.8-2l.2-.2c.6-.5 1.4-.8 2.2-.8 1 0 2 .4 2.8 1.1.7.8 1.1 1.8 1.1 2.8 0 .8-.3 1.6-.8 2.2l-.2.2c-.5.7-1.2 1.3-2 1.8C9.5 22 7 22.5 2 22z"/><path d="M20.5 3.5a2.12 2.12 0 0 1 0 3L13 14"/></svg></div>
       <span class="sidebar-item-label">Design Studio</span>
     </button>
     <button class="sidebar-item" id="nav-scripts" onclick="showTool('scripts')">
@@ -4206,11 +4206,10 @@
             <label for="coaching-desc-input" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Description</label>
             <textarea id="coaching-desc-input" placeholder="Describe what the buyer will get. What will you cover? What should they prepare?" maxlength="3000" rows="5" aria-label="Service description" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:12px 16px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;resize:vertical;"></textarea>
               <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
-                <button onclick="aiCleanUp('coaching-desc-input')" class="ds-tool-btn" title="AI Clean Up" style="width:auto;padding:0 8px;gap:4px;font-size:10px;height:22px;">
+                <button onclick="aiBioAssist('coaching-desc-input', 3000)" class="ds-tool-btn" title="AI Assist" style="width:auto;padding:0 8px;gap:4px;font-size:10px;height:22px;">
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-                  AI Clean Up
+                  AI
                 </button>
-                <span style="font-size:10px;color:var(--muted);font-style:italic;">Fixes grammar and readability. Won't generate new content.</span>
               </div>
           </div>
 
@@ -17770,6 +17769,14 @@ function aiBioAssist(textareaId, maxLen) {
 }
 
 function applyAIBio(textareaId, idx) {
+  var text = document.getElementById('ai-bio-option-' + idx)?.textContent;
+  if (!text) return;
+  var textarea = document.getElementById(textareaId);
+  if (!textarea) return;
+  textarea.value = text;
+  textarea.dispatchEvent(new Event('input', { bubbles: true }));
+  document.getElementById('ai-bio-modal')?.remove();
+}
 
 // ===== AI CLEAN UP (Courses / Coaching) =====
 function aiCleanUp(textareaId) {
