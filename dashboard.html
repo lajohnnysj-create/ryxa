@@ -20645,6 +20645,42 @@ function closeDesignEditor() {
 }
 
 function showDsMsg(type, msg) {
+
+// =====================================================
+// REUSABLE MODAL CONFIRM / ALERT (replaces browser popups)
+// =====================================================
+function showModalConfirm(title, message, onConfirm, confirmText, cancelText) {
+  var overlay = document.createElement('div');
+  overlay.id = 'modal-confirm-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;';
+  overlay.innerHTML = '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:28px;max-width:380px;width:100%;">'
+    + '<div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.3px;margin-bottom:10px;">' + (title || 'Confirm') + '</div>'
+    + '<p style="font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:22px;">' + (message || 'Are you sure?') + '</p>'
+    + '<div style="display:flex;gap:8px;">'
+    + '<button id="modal-confirm-yes" style="flex:1;padding:11px;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);color:#fca5a5;border-radius:8px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">' + (confirmText || 'Delete') + '</button>'
+    + '<button id="modal-confirm-no" style="flex:1;padding:11px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:14px;font-family:DM Sans,sans-serif;cursor:pointer;">' + (cancelText || 'Cancel') + '</button>'
+    + '</div>'
+    + '</div>';
+  overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+  document.body.appendChild(overlay);
+  document.getElementById('modal-confirm-yes').onclick = function() { overlay.remove(); if (onConfirm) onConfirm(); };
+  document.getElementById('modal-confirm-no').onclick = function() { overlay.remove(); };
+}
+
+function showModalAlert(title, message) {
+  var overlay = document.createElement('div');
+  overlay.id = 'modal-alert-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;';
+  overlay.innerHTML = '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:28px;max-width:380px;width:100%;">'
+    + '<div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.3px;margin-bottom:10px;">' + (title || 'Notice') + '</div>'
+    + '<p style="font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:22px;">' + (message || '') + '</p>'
+    + '<button onclick="this.closest(\'[id=modal-alert-overlay]\').remove()" style="width:100%;padding:11px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:14px;font-family:DM Sans,sans-serif;cursor:pointer;">OK</button>'
+    + '</div>';
+  overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+  document.body.appendChild(overlay);
+}
+
+function showDsMsg(type, msg) {
   var el = document.getElementById('ds-editor-msg');
   el.style.display = 'block';
   el.style.background = type === 'error' ? 'rgba(239,68,68,0.1)' : 'rgba(74,222,128,0.1)';
@@ -20751,7 +20787,7 @@ async function loadDesignProjects() {
 
 async function openDesignProject(id) {
   var { data, error } = await sb.from('design_projects').select('*').eq('id', id).single();
-  if (error || !data) { alert('Could not load project.'); return; }
+  if (error || !data) { showModalAlert('Error', 'Could not load project. Please try again.'); return; }
 
   dsProjectW = data.canvas_width;
   dsProjectH = data.canvas_height;
@@ -20769,9 +20805,10 @@ async function openDesignProject(id) {
 }
 
 async function deleteDesignProject(id) {
-  if (!confirm('Delete this project?')) return;
-  await sb.from('design_projects').delete().eq('id', id);
-  loadDesignProjects();
+  showModalConfirm('Delete Project', 'This project will be permanently deleted. This cannot be undone.', async function() {
+    await sb.from('design_projects').delete().eq('id', id);
+    loadDesignProjects();
+  });
 }
 
 // Load projects when AI Design Studio is opened
