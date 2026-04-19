@@ -1758,6 +1758,18 @@
     .ana-range-btn { padding: 4px 10px; font-size: 12px; }
   }
   .ana-mini-tip { position:absolute; z-index:10; pointer-events:none; background:rgba(15,15,26,0.95); border:1px solid rgba(232,121,249,0.25); border-radius:8px; padding:6px 10px; font-size:10px; color:#e9c4f7; box-shadow:0 4px 16px rgba(0,0,0,0.4); white-space:nowrap; }
+
+  /* Design Studio */
+  .ds-preset-btn { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px; cursor:pointer; text-align:center; transition:all 0.15s; display:flex; flex-direction:column; align-items:center; gap:8px; }
+  .ds-preset-btn:hover { border-color:rgba(124,58,237,0.4); background:rgba(124,58,237,0.04); }
+  .ds-preset-icon { width:48px; max-height:48px; background:var(--surface2); border:1px solid var(--border); border-radius:6px; display:flex; align-items:center; justify-content:center; }
+  .ds-preset-label { font-size:13px; font-weight:600; color:var(--text); font-family:DM Sans,sans-serif; }
+  .ds-preset-size { font-size:12px; color:var(--muted); font-family:DM Sans,sans-serif; }
+  .ds-tool-btn { width:32px; height:32px; display:flex; align-items:center; justify-content:center; background:transparent; border:1px solid var(--border); border-radius:6px; color:var(--text); cursor:pointer; transition:all 0.12s; font-family:DM Sans,sans-serif; font-size:13px; }
+  .ds-tool-btn:hover { border-color:rgba(124,58,237,0.4); background:rgba(124,58,237,0.06); }
+  .ds-tool-btn.active { background:rgba(124,58,237,0.15); border-color:rgba(124,58,237,0.5); color:#c4b5fd; }
+  .ds-project-card { display:flex; align-items:center; gap:14px; padding:14px; background:var(--surface); border:1px solid var(--border); border-radius:12px; cursor:pointer; transition:all 0.15s; }
+  .ds-project-card:hover { border-color:rgba(124,58,237,0.3); background:rgba(124,58,237,0.03); }
   .dash-range-custom { display: flex; align-items: center; gap: 6px; padding: 5px 10px; background: transparent; border: 1px solid var(--border); border-radius: 8px; transition: all 0.15s; cursor: pointer; }
   .dash-range-custom:hover { border-color: rgba(124,58,237,0.4); }
   .dash-range-custom.active { background: linear-gradient(135deg, rgba(124,58,237,0.2), rgba(232,121,249,0.1)); border-color: rgba(124,58,237,0.5); }
@@ -3300,6 +3312,10 @@
       <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg></div>
       <span class="sidebar-item-label">Image Studio</span>
     </button>
+    <button class="sidebar-item" id="nav-design" onclick="showTool('design')">
+      <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z"/></svg></div>
+      <span class="sidebar-item-label">Design Studio</span>
+    </button>
     <button class="sidebar-item" id="nav-qr" onclick="showTool('qr')">
       <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20v1"/></svg></div>
       <span class="sidebar-item-label">QR Generator</span>
@@ -4790,6 +4806,118 @@
       </div>
     </div>
 
+    <!-- DESIGN STUDIO -->
+    <div id="tool-design" style="display:none;">
+      <div id="design-start" style="max-width:680px;margin:0 auto;">
+        <h2 style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;margin-bottom:6px;letter-spacing:-0.5px;">Design Studio</h2>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:24px;">Create graphics with text, images, and layers. Export or save projects.</p>
+
+        <!-- New project presets -->
+        <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:14px;">New Project</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:32px;">
+          <button onclick="startDesignProject(1080,1080,'Instagram Post')" class="ds-preset-btn">
+            <div class="ds-preset-icon" style="aspect-ratio:1/1;"></div>
+            <div class="ds-preset-label">Instagram Post</div>
+            <div class="ds-preset-size">1080 × 1080</div>
+          </button>
+          <button onclick="startDesignProject(1080,1920,'Instagram Story')" class="ds-preset-btn">
+            <div class="ds-preset-icon" style="aspect-ratio:9/16;"></div>
+            <div class="ds-preset-label">Instagram Story</div>
+            <div class="ds-preset-size">1080 × 1920</div>
+          </button>
+          <button onclick="startDesignProject(1280,720,'YouTube Thumbnail')" class="ds-preset-btn">
+            <div class="ds-preset-icon" style="aspect-ratio:16/9;"></div>
+            <div class="ds-preset-label">YouTube Thumbnail</div>
+            <div class="ds-preset-size">1280 × 720</div>
+          </button>
+          <button onclick="startDesignProject(1200,628,'Facebook Post')" class="ds-preset-btn">
+            <div class="ds-preset-icon" style="aspect-ratio:1200/628;"></div>
+            <div class="ds-preset-label">Facebook Post</div>
+            <div class="ds-preset-size">1200 × 628</div>
+          </button>
+          <button onclick="startDesignProject(1500,500,'Twitter Header')" class="ds-preset-btn">
+            <div class="ds-preset-icon" style="aspect-ratio:3/1;"></div>
+            <div class="ds-preset-label">Twitter/X Header</div>
+            <div class="ds-preset-size">1500 × 500</div>
+          </button>
+          <button onclick="startDesignProject(1080,1080,'Custom')" class="ds-preset-btn">
+            <div class="ds-preset-icon" style="aspect-ratio:1/1;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><path d="M12 5v14M5 12h14"/></svg></div>
+            <div class="ds-preset-label">Custom Size</div>
+            <div class="ds-preset-size">Any dimension</div>
+          </button>
+        </div>
+
+        <!-- Saved projects -->
+        <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:14px;">Saved Projects <span id="ds-save-count" style="color:var(--muted);font-weight:500;text-transform:none;letter-spacing:0;"></span></div>
+        <div id="ds-projects-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px;"></div>
+        <div id="ds-projects-empty" style="padding:32px;background:var(--surface);border:1px dashed var(--border);border-radius:12px;text-align:center;font-size:13px;color:var(--muted);">No saved projects yet. Start a new project above.</div>
+      </div>
+
+      <!-- Editor view (hidden until project starts) -->
+      <div id="design-editor" style="display:none;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+          <button onclick="closeDesignEditor()" style="padding:6px 12px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:8px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;display:flex;align-items:center;gap:6px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            Back
+          </button>
+          <h2 id="ds-project-name" style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.3px;flex:1;">Untitled</h2>
+          <div style="display:flex;gap:8px;">
+            <button onclick="saveDesignProject()" id="ds-save-btn" style="padding:8px 16px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Save</button>
+            <button onclick="exportDesign()" style="padding:8px 16px;background:transparent;border:1px solid var(--border-hover);color:var(--text);border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Export ↓</button>
+          </div>
+        </div>
+        <div id="ds-editor-msg" style="display:none;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:12px;"></div>
+
+        <!-- Toolbar -->
+        <div id="ds-toolbar" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;">
+          <button onclick="dsAddText()" class="ds-tool-btn" title="Add Text">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+          </button>
+          <button onclick="dsAddImage()" class="ds-tool-btn" title="Add Image">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
+          </button>
+          <div style="width:1px;height:24px;background:var(--border);margin:0 4px;"></div>
+          <!-- Text controls (shown when text selected) -->
+          <div id="ds-text-controls" style="display:none;display:none;align-items:center;gap:6px;flex-wrap:wrap;">
+            <select id="ds-font-select" onchange="dsSetFont(this.value)" style="padding:4px 8px;background:var(--surface);border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text);font-family:DM Sans,sans-serif;max-width:140px;" aria-label="Font family"></select>
+            <input type="number" id="ds-font-size" value="24" min="8" max="200" onchange="dsSetFontSize(this.value)" style="width:52px;padding:4px 6px;background:var(--surface);border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text);text-align:center;" aria-label="Font size">
+            <button onclick="dsToggleBold()" class="ds-tool-btn" id="ds-bold-btn" title="Bold"><strong>B</strong></button>
+            <button onclick="dsToggleItalic()" class="ds-tool-btn" id="ds-italic-btn" title="Italic"><em>I</em></button>
+            <button onclick="dsToggleUnderline()" class="ds-tool-btn" id="ds-underline-btn" title="Underline"><span style="text-decoration:underline;">U</span></button>
+            <div style="width:1px;height:24px;background:var(--border);margin:0 2px;"></div>
+            <button onclick="dsSetAlign('left')" class="ds-tool-btn" title="Align left"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+            <button onclick="dsSetAlign('center')" class="ds-tool-btn" title="Align center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+            <button onclick="dsSetAlign('right')" class="ds-tool-btn" title="Align right"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="9" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+            <div style="width:1px;height:24px;background:var(--border);margin:0 2px;"></div>
+            <input type="color" id="ds-text-color" value="#ffffff" onchange="dsSetTextColor(this.value)" style="width:28px;height:28px;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:2px;" aria-label="Text color">
+          </div>
+          <!-- General controls -->
+          <div style="margin-left:auto;display:flex;gap:6px;">
+            <button onclick="dsDeleteSelected()" class="ds-tool-btn" title="Delete selected">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
+            <button onclick="dsDuplicate()" class="ds-tool-btn" title="Duplicate">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            </button>
+            <button onclick="dsBringForward()" class="ds-tool-btn" title="Bring forward">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+            </button>
+            <button onclick="dsSendBackward()" class="ds-tool-btn" title="Send backward">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Canvas area -->
+        <div style="display:flex;justify-content:center;padding-bottom:60px;">
+          <div id="ds-canvas-wrap" style="background:#1a1a2e;border:1px solid var(--border);border-radius:8px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.3);position:relative;">
+            <canvas id="ds-canvas"></canvas>
+          </div>
+        </div>
+      </div>
+      <input type="file" id="ds-image-input" accept="image/*" style="display:none;" aria-label="Upload image">
+    </div>
+
     <!-- QR GENERATOR -->
     <div id="tool-qr" style="display:none;">
       <div style="max-width:680px;">
@@ -5984,7 +6112,8 @@ const toolTitles = {
   scripts: 'Script Builder',
   deals: 'Brand Deal CRM',
   analytics: 'Analytics',
-    settings: 'Settings'
+    settings: 'Settings',
+    design: 'Design Studio'
 };
 
 async function initAuth() {
@@ -6361,7 +6490,7 @@ function showTool(tool) {
     if (typeof resetPdfSign === 'function') resetPdfSign();
   }
   // Hide all tools
-  ['welcome','bio','courses','coaching','mediakit','grid','follower','image','qr','invoice','pdfsign','deals','scripts','analytics','settings'].forEach(t => {
+  ['welcome','bio','courses','coaching','mediakit','grid','follower','image','design','qr','invoice','pdfsign','deals','scripts','analytics','settings'].forEach(t => {
     const el = document.getElementById('tool-' + t);
     if (el) el.style.display = 'none';
     const nav = document.getElementById('nav-' + t);
@@ -6397,6 +6526,11 @@ function showTool(tool) {
     if (typeof resetSettingsTurnstile === 'function') resetSettingsTurnstile();
     // Load Stripe status with error handling
     try { loadStripeConnectStatus(); } catch(e) { console.error('Stripe status error:', e); }
+  }
+  // Init Design Studio
+  if (tool === 'design') {
+    if (!_dsLoadedOnce) { _dsLoadedOnce = true; }
+    loadDesignProjects();
   }
   // Update topbar title
   const title = document.getElementById('topbar-title');
@@ -19971,5 +20105,367 @@ function renderAnaMiniChart(canvasId, dailyData, valKey, color) {
 </script>
 
 <script src="/cookie-banner.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Poppins:wght@400;700&family=Montserrat:wght@400;700&family=Bebas+Neue&family=Oswald:wght@400;700&family=Caveat:wght@400;700&family=Dancing+Script:wght@400;700&family=Playfair+Display:wght@400;700&family=Lora:wght@400;700&family=Roboto:wght@400;700&family=Open+Sans:wght@400;700&family=Raleway:wght@400;700&family=Nunito:wght@400;700&family=Quicksand:wght@400;700&family=Pacifico&family=Lobster&family=Permanent+Marker&family=Righteous&family=Abril+Fatface&family=Comfortaa:wght@400;700&display=swap" rel="stylesheet">
+<script>
+// =====================================================
+// DESIGN STUDIO
+// =====================================================
+var dsCanvas = null;
+var dsProjectW = 1080, dsProjectH = 1080;
+var dsCurrentProjectId = null;
+var dsProjectName = 'Untitled';
+var dsSaveLimit = { free: 5, pro: 20, max: 50 };
+
+var DS_FONTS = [
+  'DM Sans','Inter','Poppins','Montserrat','Bebas Neue','Oswald','Caveat','Dancing Script',
+  'Playfair Display','Lora','Roboto','Open Sans','Raleway','Nunito','Quicksand',
+  'Pacifico','Lobster','Permanent Marker','Righteous','Abril Fatface','Comfortaa'
+];
+
+function initDesignFontSelect() {
+  var sel = document.getElementById('ds-font-select');
+  if (!sel || sel.options.length > 1) return;
+  sel.innerHTML = '';
+  DS_FONTS.forEach(function(f) {
+    var opt = document.createElement('option');
+    opt.value = f; opt.textContent = f; opt.style.fontFamily = f;
+    sel.appendChild(opt);
+  });
+}
+
+function startDesignProject(w, h, name) {
+  if (name === 'Custom') {
+    var cw = prompt('Width (px):', '1080');
+    var ch = prompt('Height (px):', '1080');
+    if (!cw || !ch) return;
+    w = Math.min(Math.max(parseInt(cw) || 1080, 100), 4000);
+    h = Math.min(Math.max(parseInt(ch) || 1080, 100), 4000);
+    name = w + ' × ' + h;
+  }
+  dsProjectW = w;
+  dsProjectH = h;
+  dsProjectName = name;
+  dsCurrentProjectId = null;
+  document.getElementById('ds-project-name').textContent = name;
+  document.getElementById('design-start').style.display = 'none';
+  document.getElementById('design-editor').style.display = 'block';
+  initDesignCanvas();
+}
+
+function initDesignCanvas() {
+  initDesignFontSelect();
+  var wrap = document.getElementById('ds-canvas-wrap');
+  var maxW = wrap.parentElement.offsetWidth - 2;
+  var scale = Math.min(maxW / dsProjectW, 600 / dsProjectH, 1);
+  var dispW = Math.round(dsProjectW * scale);
+  var dispH = Math.round(dsProjectH * scale);
+  wrap.style.width = dispW + 'px';
+  wrap.style.height = dispH + 'px';
+
+  if (dsCanvas) { dsCanvas.dispose(); }
+  dsCanvas = new fabric.Canvas('ds-canvas', {
+    width: dispW, height: dispH,
+    backgroundColor: '#ffffff',
+    preserveObjectStacking: true
+  });
+  dsCanvas._projectScale = scale;
+
+  dsCanvas.on('selection:created', dsOnSelect);
+  dsCanvas.on('selection:updated', dsOnSelect);
+  dsCanvas.on('selection:cleared', dsOnDeselect);
+  dsCanvas.on('object:modified', function() { dsCanvas.renderAll(); });
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', dsKeyHandler);
+}
+
+function dsKeyHandler(e) {
+  if (!dsCanvas || document.getElementById('design-editor').style.display === 'none') return;
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+  if (e.key === 'Delete' || e.key === 'Backspace') { dsDeleteSelected(); e.preventDefault(); }
+  if (e.ctrlKey && e.key === 'd') { dsDuplicate(); e.preventDefault(); }
+}
+
+function dsOnSelect() {
+  var obj = dsCanvas.getActiveObject();
+  var tc = document.getElementById('ds-text-controls');
+  if (obj && obj.type === 'i-text') {
+    tc.style.display = 'flex';
+    document.getElementById('ds-font-select').value = obj.fontFamily || 'DM Sans';
+    document.getElementById('ds-font-size').value = Math.round(obj.fontSize || 24);
+    document.getElementById('ds-text-color').value = obj.fill || '#ffffff';
+    document.getElementById('ds-bold-btn').classList.toggle('active', obj.fontWeight === 'bold');
+    document.getElementById('ds-italic-btn').classList.toggle('active', obj.fontStyle === 'italic');
+    document.getElementById('ds-underline-btn').classList.toggle('active', !!obj.underline);
+  } else {
+    tc.style.display = 'none';
+  }
+}
+
+function dsOnDeselect() {
+  document.getElementById('ds-text-controls').style.display = 'none';
+}
+
+function dsAddText() {
+  if (!dsCanvas) return;
+  var text = new fabric.IText('Your text', {
+    left: 50, top: 50,
+    fontFamily: document.getElementById('ds-font-select')?.value || 'DM Sans',
+    fontSize: 24,
+    fill: '#ffffff',
+    editable: true
+  });
+  dsCanvas.add(text);
+  dsCanvas.setActiveObject(text);
+  dsCanvas.renderAll();
+}
+
+function dsAddImage() {
+  document.getElementById('ds-image-input').onchange = function(e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      fabric.Image.fromURL(ev.target.result, function(img) {
+        var scale = dsCanvas._projectScale || 1;
+        var maxDim = Math.min(dsCanvas.width, dsCanvas.height) * 0.6;
+        var imgScale = Math.min(maxDim / img.width, maxDim / img.height, 1);
+        img.set({ left: 30, top: 30, scaleX: imgScale, scaleY: imgScale });
+        dsCanvas.add(img);
+        dsCanvas.setActiveObject(img);
+        dsCanvas.renderAll();
+      });
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+  document.getElementById('ds-image-input').click();
+}
+
+function dsSetFont(f) {
+  var obj = dsCanvas?.getActiveObject();
+  if (obj && obj.type === 'i-text') { obj.set('fontFamily', f); dsCanvas.renderAll(); }
+}
+
+function dsSetFontSize(s) {
+  var obj = dsCanvas?.getActiveObject();
+  if (obj && obj.type === 'i-text') { obj.set('fontSize', parseInt(s) || 24); dsCanvas.renderAll(); }
+}
+
+function dsToggleBold() {
+  var obj = dsCanvas?.getActiveObject();
+  if (obj && obj.type === 'i-text') {
+    obj.set('fontWeight', obj.fontWeight === 'bold' ? 'normal' : 'bold');
+    document.getElementById('ds-bold-btn').classList.toggle('active');
+    dsCanvas.renderAll();
+  }
+}
+
+function dsToggleItalic() {
+  var obj = dsCanvas?.getActiveObject();
+  if (obj && obj.type === 'i-text') {
+    obj.set('fontStyle', obj.fontStyle === 'italic' ? 'normal' : 'italic');
+    document.getElementById('ds-italic-btn').classList.toggle('active');
+    dsCanvas.renderAll();
+  }
+}
+
+function dsToggleUnderline() {
+  var obj = dsCanvas?.getActiveObject();
+  if (obj && obj.type === 'i-text') {
+    obj.set('underline', !obj.underline);
+    document.getElementById('ds-underline-btn').classList.toggle('active');
+    dsCanvas.renderAll();
+  }
+}
+
+function dsSetAlign(align) {
+  var obj = dsCanvas?.getActiveObject();
+  if (obj && obj.type === 'i-text') { obj.set('textAlign', align); dsCanvas.renderAll(); }
+}
+
+function dsSetTextColor(color) {
+  var obj = dsCanvas?.getActiveObject();
+  if (obj && obj.type === 'i-text') { obj.set('fill', color); dsCanvas.renderAll(); }
+}
+
+function dsDeleteSelected() {
+  if (!dsCanvas) return;
+  var obj = dsCanvas.getActiveObject();
+  if (obj) { dsCanvas.remove(obj); dsCanvas.discardActiveObject(); dsCanvas.renderAll(); }
+}
+
+function dsDuplicate() {
+  if (!dsCanvas) return;
+  var obj = dsCanvas.getActiveObject();
+  if (!obj) return;
+  obj.clone(function(cloned) {
+    cloned.set({ left: obj.left + 20, top: obj.top + 20 });
+    dsCanvas.add(cloned);
+    dsCanvas.setActiveObject(cloned);
+    dsCanvas.renderAll();
+  });
+}
+
+function dsBringForward() {
+  var obj = dsCanvas?.getActiveObject();
+  if (obj) { dsCanvas.bringForward(obj); dsCanvas.renderAll(); }
+}
+
+function dsSendBackward() {
+  var obj = dsCanvas?.getActiveObject();
+  if (obj) { dsCanvas.sendBackwards(obj); dsCanvas.renderAll(); }
+}
+
+function exportDesign() {
+  if (!dsCanvas) return;
+  // Render at full resolution
+  var scale = dsCanvas._projectScale || 1;
+  var multiplier = 1 / scale;
+  var dataUrl = dsCanvas.toDataURL({ format: 'png', multiplier: multiplier });
+  var a = document.createElement('a');
+  a.download = (dsProjectName || 'design').replace(/[^a-zA-Z0-9_-]/g, '_') + '.png';
+  a.href = dataUrl;
+  a.click();
+}
+
+function closeDesignEditor() {
+  document.getElementById('design-editor').style.display = 'none';
+  document.getElementById('design-start').style.display = 'block';
+  if (dsCanvas) { dsCanvas.dispose(); dsCanvas = null; }
+  document.removeEventListener('keydown', dsKeyHandler);
+  loadDesignProjects();
+}
+
+function showDsMsg(type, msg) {
+  var el = document.getElementById('ds-editor-msg');
+  el.style.display = 'block';
+  el.style.background = type === 'error' ? 'rgba(239,68,68,0.1)' : 'rgba(74,222,128,0.1)';
+  el.style.color = type === 'error' ? '#f87171' : '#4ade80';
+  el.style.border = '1px solid ' + (type === 'error' ? 'rgba(239,68,68,0.3)' : 'rgba(74,222,128,0.3)');
+  el.textContent = msg;
+  setTimeout(function() { el.style.display = 'none'; }, 4000);
+}
+
+function getDsSaveMax() {
+  if (typeof isMax === 'function' && isMax()) return dsSaveLimit.max;
+  if (typeof isPro === 'function' && isPro()) return dsSaveLimit.pro;
+  return dsSaveLimit.free;
+}
+
+async function saveDesignProject() {
+  if (!dsCanvas || !currentUser) return;
+  var btn = document.getElementById('ds-save-btn');
+  btn.disabled = true; btn.textContent = 'Saving...';
+
+  try {
+    var max = getDsSaveMax();
+    // Check limit if new project
+    if (!dsCurrentProjectId) {
+      var { count } = await sb.from('design_projects').select('id', { count: 'exact', head: true }).eq('user_id', currentUser.id);
+      if (count >= max) {
+        throw new Error('You\'ve reached your save limit (' + max + ' projects). Delete a project to save a new one.');
+      }
+    }
+
+    var canvasJSON = JSON.stringify(dsCanvas.toJSON());
+    // Generate thumbnail
+    var thumbScale = 200 / Math.max(dsCanvas.width, dsCanvas.height);
+    var thumbUrl = dsCanvas.toDataURL({ format: 'webp', quality: 0.6, multiplier: thumbScale });
+
+    var payload = {
+      user_id: currentUser.id,
+      name: dsProjectName,
+      canvas_width: dsProjectW,
+      canvas_height: dsProjectH,
+      canvas_json: canvasJSON,
+      thumbnail: thumbUrl
+    };
+
+    if (dsCurrentProjectId) {
+      var { error } = await sb.from('design_projects').update(payload).eq('id', dsCurrentProjectId);
+      if (error) throw error;
+    } else {
+      var { data, error } = await sb.from('design_projects').insert(payload).select('id').single();
+      if (error) throw error;
+      dsCurrentProjectId = data.id;
+    }
+
+    showDsMsg('success', 'Project saved!');
+  } catch (e) {
+    showDsMsg('error', e.message || 'Save failed.');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Save';
+  }
+}
+
+async function loadDesignProjects() {
+  if (!currentUser) return;
+  var list = document.getElementById('ds-projects-list');
+  var empty = document.getElementById('ds-projects-empty');
+  var countEl = document.getElementById('ds-save-count');
+
+  var { data, error } = await sb.from('design_projects')
+    .select('id, name, canvas_width, canvas_height, thumbnail, updated_at')
+    .eq('user_id', currentUser.id)
+    .order('updated_at', { ascending: false });
+
+  if (error || !data) { data = []; }
+
+  var max = getDsSaveMax();
+  countEl.textContent = '(' + data.length + '/' + max + ')';
+
+  if (data.length === 0) {
+    list.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  list.innerHTML = data.map(function(p) {
+    var date = new Date(p.updated_at).toLocaleDateString();
+    var thumb = p.thumbnail || '';
+    return '<div class="ds-project-card" onclick="openDesignProject(\'' + p.id + '\')">'
+      + (thumb ? '<img src="' + escapeHtml(thumb) + '" style="width:56px;height:40px;object-fit:cover;border-radius:6px;background:var(--surface2);flex-shrink:0;" alt="">' : '<div style="width:56px;height:40px;background:var(--surface2);border-radius:6px;flex-shrink:0;"></div>')
+      + '<div style="flex:1;min-width:0;">'
+      + '<div style="font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escapeHtml(p.name) + '</div>'
+      + '<div style="font-size:12px;color:var(--muted);margin-top:2px;">' + p.canvas_width + ' × ' + p.canvas_height + ' · ' + date + '</div>'
+      + '</div>'
+      + '<button onclick="event.stopPropagation();deleteDesignProject(\'' + p.id + '\')" style="padding:6px;background:none;border:none;color:var(--muted);cursor:pointer;" title="Delete">'
+      + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>'
+      + '</button>'
+      + '</div>';
+  }).join('');
+}
+
+async function openDesignProject(id) {
+  var { data, error } = await sb.from('design_projects').select('*').eq('id', id).single();
+  if (error || !data) { alert('Could not load project.'); return; }
+
+  dsProjectW = data.canvas_width;
+  dsProjectH = data.canvas_height;
+  dsProjectName = data.name;
+  dsCurrentProjectId = data.id;
+  document.getElementById('ds-project-name').textContent = data.name;
+  document.getElementById('design-start').style.display = 'none';
+  document.getElementById('design-editor').style.display = 'block';
+  initDesignCanvas();
+
+  // Load canvas state
+  dsCanvas.loadFromJSON(data.canvas_json, function() {
+    dsCanvas.renderAll();
+  });
+}
+
+async function deleteDesignProject(id) {
+  if (!confirm('Delete this project?')) return;
+  await sb.from('design_projects').delete().eq('id', id);
+  loadDesignProjects();
+}
+
+// Load projects when Design Studio is opened
+var _dsLoadedOnce = false;
+</script>
 </body>
 </html>
