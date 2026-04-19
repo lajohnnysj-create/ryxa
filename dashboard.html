@@ -4906,6 +4906,14 @@
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5l14 14M2 12a10 10 0 0 1 10-10M22 12a10 10 0 0 1-10 10"/></svg>
               AI Background Remove
             </button>
+            <button onclick="dsUpscaleImage()" class="ds-tool-btn" id="ds-upscale-btn" title="Smart Upscale 2x" style="width:auto;padding:0 10px;gap:6px;font-size:12px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+              Smart Upscale 2x
+            </button>
+            <button onclick="dsAutoCrop()" class="ds-tool-btn" id="ds-autocrop-btn" title="AI Auto-Crop" style="width:auto;padding:0 10px;gap:6px;font-size:12px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2v4M18 2v4M6 18v4M18 18v4M2 6h4M2 18h4M18 6h4M18 18h4"/><rect x="6" y="6" width="12" height="12" rx="1"/></svg>
+              AI Auto-Crop
+            </button>
           </div>
           <!-- General controls -->
           <div style="margin-left:auto;display:flex;gap:6px;">
@@ -20554,6 +20562,209 @@ async function deleteDesignProject(id) {
 
 // Load projects when Design Studio is opened
 var _dsLoadedOnce = false;
+
+function dsAutoCrop() {
+  if (!dsCanvas) return;
+  var obj = dsCanvas.getActiveObject();
+  if (!obj || obj.type !== 'image') { showDsMsg('error', 'Select an image first.'); return; }
+
+  var btn = document.getElementById('ds-autocrop-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" style="animation:btn-spin 0.6s linear infinite;" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Analyzing...';
+
+  setTimeout(function() {
+    try {
+      var imgEl = obj.getElement();
+      var w = imgEl.naturalWidth || imgEl.width;
+      var h = imgEl.naturalHeight || imgEl.height;
+
+      // Analyze at reduced size for speed
+      var analyzeScale = Math.min(200 / Math.max(w, h), 1);
+      var aW = Math.round(w * analyzeScale);
+      var aH = Math.round(h * analyzeScale);
+
+      var c = document.createElement('canvas');
+      c.width = aW; c.height = aH;
+      var ctx = c.getContext('2d');
+      ctx.drawImage(imgEl, 0, 0, aW, aH);
+      var data = ctx.getImageData(0, 0, aW, aH).data;
+
+      // Build saliency map — find regions with high contrast/edges
+      var salMap = new Float32Array(aW * aH);
+      for (var y = 1; y < aH - 1; y++) {
+        for (var x = 1; x < aW - 1; x++) {
+          var idx = (y * aW + x) * 4;
+          var lum = data[idx] * 0.299 + data[idx+1] * 0.587 + data[idx+2] * 0.114;
+          // Compare with neighbors (gradient magnitude)
+          var idxR = (y * aW + x + 1) * 4;
+          var idxD = ((y + 1) * aW + x) * 4;
+          var lumR = data[idxR] * 0.299 + data[idxR+1] * 0.587 + data[idxR+2] * 0.114;
+          var lumD = data[idxD] * 0.299 + data[idxD+1] * 0.587 + data[idxD+2] * 0.114;
+          var grad = Math.abs(lum - lumR) + Math.abs(lum - lumD);
+          // Also boost saturation
+          var maxC = Math.max(data[idx], data[idx+1], data[idx+2]);
+          var minC = Math.min(data[idx], data[idx+1], data[idx+2]);
+          var sat = maxC > 0 ? (maxC - minC) / maxC : 0;
+          salMap[y * aW + x] = grad + sat * 30;
+        }
+      }
+
+      // Find bounding box of salient region (top 30% of saliency)
+      var vals = Array.from(salMap).sort(function(a, b) { return b - a; });
+      var threshold = vals[Math.floor(vals.length * 0.3)] || 0;
+
+      var minX = aW, minY = aH, maxX = 0, maxY = 0;
+      for (var y2 = 0; y2 < aH; y2++) {
+        for (var x2 = 0; x2 < aW; x2++) {
+          if (salMap[y2 * aW + x2] >= threshold) {
+            if (x2 < minX) minX = x2;
+            if (x2 > maxX) maxX = x2;
+            if (y2 < minY) minY = y2;
+            if (y2 > maxY) maxY = y2;
+          }
+        }
+      }
+
+      // Add 10% padding
+      var bw = maxX - minX;
+      var bh = maxY - minY;
+      var padX = Math.round(bw * 0.1);
+      var padY = Math.round(bh * 0.1);
+      minX = Math.max(0, minX - padX);
+      minY = Math.max(0, minY - padY);
+      maxX = Math.min(aW - 1, maxX + padX);
+      maxY = Math.min(aH - 1, maxY + padY);
+
+      // Scale back to original dimensions
+      var cropX = Math.round(minX / analyzeScale);
+      var cropY = Math.round(minY / analyzeScale);
+      var cropW = Math.round((maxX - minX) / analyzeScale);
+      var cropH = Math.round((maxY - minY) / analyzeScale);
+
+      // Crop the original image
+      var cropCanvas = document.createElement('canvas');
+      cropCanvas.width = cropW;
+      cropCanvas.height = cropH;
+      var cropCtx = cropCanvas.getContext('2d');
+      cropCtx.drawImage(imgEl, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+
+      var dataUrl = cropCanvas.toDataURL('image/png');
+      fabric.Image.fromURL(dataUrl, function(newImg) {
+        var fitScale = Math.min(
+          (dsCanvas.width * 0.8) / cropW,
+          (dsCanvas.height * 0.8) / cropH,
+          1
+        );
+        newImg.set({
+          left: (dsCanvas.width - cropW * fitScale) / 2,
+          top: (dsCanvas.height - cropH * fitScale) / 2,
+          scaleX: fitScale,
+          scaleY: fitScale
+        });
+        dsCanvas.remove(obj);
+        dsCanvas.add(newImg);
+        dsCanvas.setActiveObject(newImg);
+        dsCanvas.renderAll();
+        btn.disabled = false;
+        btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2v4M18 2v4M6 18v4M18 18v4M2 6h4M2 18h4M18 6h4M18 18h4"/><rect x="6" y="6" width="12" height="12" rx="1"/></svg> AI Auto-Crop';
+        showDsMsg('success', 'Auto-cropped to ' + cropW + ' × ' + cropH + 'px');
+      });
+    } catch(err) {
+      console.error('Auto-crop error:', err);
+      btn.disabled = false;
+      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2v4M18 2v4M6 18v4M18 18v4M2 6h4M2 18h4M18 6h4M18 18h4"/><rect x="6" y="6" width="12" height="12" rx="1"/></svg> AI Auto-Crop';
+      showDsMsg('error', 'Auto-crop failed. Try a different image.');
+    }
+  }, 50);
+}
+
+function dsUpscaleImage() {
+  if (!dsCanvas) return;
+  var obj = dsCanvas.getActiveObject();
+  if (!obj || obj.type !== 'image') { showDsMsg('error', 'Select an image first.'); return; }
+
+  // Pro/Max gate
+  if (typeof isPro === 'function' && !isPro()) {
+    showDsMsg('error', 'AI Upscale is a Pro feature. Upgrade to use it.');
+    return;
+  }
+
+  var btn = document.getElementById('ds-upscale-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" style="animation:btn-spin 0.6s linear infinite;" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Upscaling...';
+
+  setTimeout(function() {
+    try {
+      var imgEl = obj.getElement();
+      var srcW = imgEl.naturalWidth || imgEl.width;
+      var srcH = imgEl.naturalHeight || imgEl.height;
+      var scale = 2;
+      var outW = srcW * scale;
+      var outH = srcH * scale;
+
+      // Cap at 4000px to avoid memory issues
+      if (outW > 4000 || outH > 4000) {
+        var capScale = Math.min(4000 / outW, 4000 / outH);
+        outW = Math.round(outW * capScale);
+        outH = Math.round(outH * capScale);
+      }
+
+      // Step 1: High-quality upscale using multi-step bilinear
+      var c1 = document.createElement('canvas');
+      c1.width = outW; c1.height = outH;
+      var ctx1 = c1.getContext('2d');
+      ctx1.imageSmoothingEnabled = true;
+      ctx1.imageSmoothingQuality = 'high';
+      ctx1.drawImage(imgEl, 0, 0, outW, outH);
+
+      // Step 2: Apply unsharp mask for clarity
+      var imageData = ctx1.getImageData(0, 0, outW, outH);
+      var data = imageData.data;
+
+      // Create a blurred copy for unsharp mask
+      var c2 = document.createElement('canvas');
+      c2.width = outW; c2.height = outH;
+      var ctx2 = c2.getContext('2d');
+      ctx2.filter = 'blur(1px)';
+      ctx2.drawImage(c1, 0, 0);
+      var blurData = ctx2.getImageData(0, 0, outW, outH).data;
+
+      // Unsharp mask: original + (original - blur) * amount
+      var amount = 0.6;
+      for (var i = 0; i < data.length; i += 4) {
+        data[i] = Math.min(255, Math.max(0, data[i] + (data[i] - blurData[i]) * amount));
+        data[i+1] = Math.min(255, Math.max(0, data[i+1] + (data[i+1] - blurData[i+1]) * amount));
+        data[i+2] = Math.min(255, Math.max(0, data[i+2] + (data[i+2] - blurData[i+2]) * amount));
+      }
+      ctx1.putImageData(imageData, 0, 0);
+
+      // Replace on canvas
+      var dataUrl = c1.toDataURL('image/png');
+      fabric.Image.fromURL(dataUrl, function(newImg) {
+        // Scale down to fit the same visual size on canvas
+        var newScaleX = (obj.scaleX * srcW) / outW;
+        var newScaleY = (obj.scaleY * srcH) / outH;
+        newImg.set({
+          left: obj.left, top: obj.top,
+          scaleX: newScaleX, scaleY: newScaleY,
+          angle: obj.angle
+        });
+        dsCanvas.remove(obj);
+        dsCanvas.add(newImg);
+        dsCanvas.setActiveObject(newImg);
+        dsCanvas.renderAll();
+        btn.disabled = false;
+        btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg> Smart Upscale 2x';
+        showDsMsg('success', 'Image upscaled to ' + outW + ' × ' + outH + 'px!');
+      });
+    } catch(err) {
+      console.error('Upscale error:', err);
+      btn.disabled = false;
+      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg> Smart Upscale 2x';
+      showDsMsg('error', 'Upscale failed. Try a smaller image.');
+    }
+  }, 50);
+}
 var _dsBgRemovalReady = false;
 var _dsBgRemovalLoading = false;
 var _dsBgRemoveFunc = null;
@@ -20622,8 +20833,8 @@ function dsRemoveBg() {
   }
 
   _dsBgRemovalLoading = true;
-  btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" style="animation:btn-spin 0.6s linear infinite;" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Downloading model...';
-  showDsMsg('success', 'Downloading background removal model. This only happens once and may take a moment...');
+  btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" style="animation:btn-spin 0.6s linear infinite;" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Loading AI model...';
+  showDsMsg('success', 'Loading AI model. This may take a moment on first use...');
 
   // Load via inline module script to support ESM import
   var moduleScript = document.createElement('script');
