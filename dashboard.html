@@ -8605,6 +8605,9 @@ async function saveBio() {
   try {
     // Validate username if one is entered (required if they want to publish, optional as draft)
     const uname = bioState.username.trim();
+    if (!uname && bioOriginalUsername) {
+      throw new Error('Username cannot be removed once set.');
+    }
     if (uname) {
       if (uname.length < 3) throw new Error('Username must be at least 3 characters.');
       if (!/^[a-z0-9_]+$/.test(uname)) throw new Error('Username: lowercase letters, numbers, underscore only.');
@@ -9626,12 +9629,15 @@ async function saveMediaKit() {
   try {
     // Username (shared with Link in Bio)
     const uname = document.getElementById('mk-username').value.trim();
+    const originalUname = (typeof bioOriginalUsername !== 'undefined') ? bioOriginalUsername : '';
+    if (!uname && originalUname) {
+      throw new Error('Username cannot be removed once set.');
+    }
     if (uname) {
       if (uname.length < 3) throw new Error('Username must be at least 3 characters.');
       if (!/^[a-z0-9_]+$/.test(uname)) throw new Error('Username: lowercase letters, numbers, underscore only.');
       if (typeof BIO_RESERVED !== 'undefined' && BIO_RESERVED.has(uname)) throw new Error('That username is reserved.');
       // Check availability if changed
-      const originalUname = (typeof bioOriginalUsername !== 'undefined') ? bioOriginalUsername : '';
       if (uname !== originalUname) {
         // Rate limit: 2 changes per 7 days
         const { allowed, remaining, changes } = await checkUsernameChangeLimit();
@@ -13415,6 +13421,11 @@ async function toggleCoachingPublish() {
   const newStatus = (coaching && coaching.status === 'published') ? 'draft' : 'published';
 
   if (newStatus === 'published') {
+    if (!bioOriginalUsername && !window._ryx_username) {
+      showCoachingMsg('error', 'Set up your username in Link in Bio before publishing.');
+      return;
+    }
+
     var { data: stripeProfile } = await sb.from('profiles').select('stripe_account_id').eq('user_id', currentUser.id).maybeSingle();
     if (!stripeProfile || !stripeProfile.stripe_account_id) {
       var stripeOverlay = document.createElement('div');
@@ -13805,8 +13816,14 @@ async function toggleCoursePublish() {
   const course = coursesList.find(c => c.id === currentCourseId);
   const newStatus = (course && course.status === 'published') ? 'draft' : 'published';
 
-  // If publishing, check Stripe is connected
+  // If publishing, check username exists
   if (newStatus === 'published') {
+    if (!bioOriginalUsername && !window._ryx_username) {
+      showCourseMsg('error', 'Set up your username in Link in Bio before publishing.');
+      return;
+    }
+
+    // Check Stripe is connected
     var { data: stripeProfile } = await sb.from('profiles').select('stripe_account_id').eq('user_id', currentUser.id).maybeSingle();
     if (!stripeProfile || !stripeProfile.stripe_account_id) {
       var stripeOverlay = document.createElement('div');
