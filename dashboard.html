@@ -1775,6 +1775,9 @@
     .ds-left-sidebar { flex-direction:row !important; overflow-x:auto; scrollbar-width:none; -webkit-overflow-scrolling:touch; }
     .ds-left-sidebar::-webkit-scrollbar { display:none; }
     .ds-sidebar-divider { width:1px !important; height:24px !important; margin:0 4px !important; }
+    #ds-context-bar { font-size:11px; padding:8px 10px; }
+    #ds-context-bar .ds-tool-btn { width:28px; height:28px; font-size:11px; }
+    #ds-context-bar select, #ds-context-bar input[type="number"] { font-size:11px; }
   }
   .dash-range-custom { display: flex; align-items: center; gap: 6px; padding: 5px 10px; background: transparent; border: 1px solid var(--border); border-radius: 8px; transition: all 0.15s; cursor: pointer; }
   .dash-range-custom:hover { border-color: rgba(124,58,237,0.4); }
@@ -20250,21 +20253,7 @@ function confirmCustomSize() {
 
 function initDesignCanvas() {
   initDesignFontSelect();
-  var wrap = document.getElementById('ds-canvas-wrap');
-  var maxW = wrap.parentElement.offsetWidth - 2;
-  var scale = Math.min(maxW / dsProjectW, 600 / dsProjectH, 1);
-  var dispW = Math.round(dsProjectW * scale);
-  var dispH = Math.round(dsProjectH * scale);
-  wrap.style.width = dispW + 'px';
-  wrap.style.height = dispH + 'px';
-
-  if (dsCanvas) { dsCanvas.dispose(); }
-  dsCanvas = new fabric.Canvas('ds-canvas', {
-    width: dispW, height: dispH,
-    backgroundColor: '#ffffff',
-    preserveObjectStacking: true
-  });
-  dsCanvas._projectScale = scale;
+  dsResizeCanvas();
 
   dsCanvas.on('selection:created', dsOnSelect);
   dsCanvas.on('selection:updated', dsOnSelect);
@@ -20471,6 +20460,58 @@ function dsClearGuidelines() {
   dsGuideLines.forEach(function(l) { dsCanvas.remove(l); });
   dsGuideLines = [];
 }
+
+var _dsResizeTimer = null;
+
+function dsResizeCanvas() {
+  var wrap = document.getElementById('ds-canvas-wrap');
+  if (!wrap) return;
+  var parent = wrap.parentElement;
+  var maxW = parent.offsetWidth - 2;
+  var maxH = window.innerHeight - 260;
+  if (maxH < 300) maxH = 300;
+  var scale = Math.min(maxW / dsProjectW, maxH / dsProjectH, 1);
+  var dispW = Math.round(dsProjectW * scale);
+  var dispH = Math.round(dsProjectH * scale);
+  wrap.style.width = dispW + 'px';
+  wrap.style.height = dispH + 'px';
+
+  if (!dsCanvas) {
+    dsCanvas = new fabric.Canvas('ds-canvas', {
+      width: dispW, height: dispH,
+      backgroundColor: '#ffffff',
+      preserveObjectStacking: true
+    });
+    dsCanvas._projectScale = scale;
+  } else {
+    // Preserve canvas state during resize
+    var json = dsCanvas.toJSON();
+    var oldScale = dsCanvas._projectScale || 1;
+    dsCanvas.setWidth(dispW);
+    dsCanvas.setHeight(dispH);
+    dsCanvas._projectScale = scale;
+
+    // Rescale all objects proportionally
+    var ratio = scale / oldScale;
+    dsCanvas.getObjects().forEach(function(obj) {
+      if (obj._isGuideLine) return;
+      obj.set({
+        left: obj.left * ratio,
+        top: obj.top * ratio,
+        scaleX: obj.scaleX * ratio,
+        scaleY: obj.scaleY * ratio
+      });
+      obj.setCoords();
+    });
+    dsCanvas.renderAll();
+  }
+}
+
+window.addEventListener('resize', function() {
+  if (!dsCanvas || document.getElementById('design-editor').style.display === 'none') return;
+  clearTimeout(_dsResizeTimer);
+  _dsResizeTimer = setTimeout(dsResizeCanvas, 200);
+});
 
 function dsKeyHandler(e) {
   if (!dsCanvas || document.getElementById('design-editor').style.display === 'none') return;
