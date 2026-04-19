@@ -6887,6 +6887,9 @@ function initBioTool() {
   if (bioInited) {
     // Re-sync username from profiles in case it was changed in the Media Kit tool
     resyncBioUsername();
+    // Reset username hint to default
+    var bioHint = document.getElementById('bio-username-hint');
+    if (bioHint) { bioHint.textContent = 'Same username as your Media Kit. You can change it up to 2 times per week.'; bioHint.style.color = 'var(--muted)'; }
     updateBioPreview();
     return;
   }
