@@ -4914,6 +4914,10 @@
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2v4M18 2v4M6 18v4M18 18v4M2 6h4M2 18h4M18 6h4M18 18h4"/><rect x="6" y="6" width="12" height="12" rx="1"/></svg>
               AI Auto-Crop
             </button>
+            <button onclick="dsAltText()" class="ds-tool-btn" id="ds-alttext-btn" title="AI Alt Text" style="width:auto;padding:0 10px;gap:6px;font-size:12px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h5"/></svg>
+              AI Alt Text
+            </button>
           </div>
           <!-- General controls -->
           <div style="margin-left:auto;display:flex;gap:6px;">
@@ -20562,6 +20566,87 @@ async function deleteDesignProject(id) {
 
 // Load projects when Design Studio is opened
 var _dsLoadedOnce = false;
+
+function dsAltText() {
+  if (!dsCanvas) return;
+  var obj = dsCanvas.getActiveObject();
+  if (!obj || obj.type !== 'image') { showDsMsg('error', 'Select an image first.'); return; }
+
+  var btn = document.getElementById('ds-alttext-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" style="animation:btn-spin 0.6s linear infinite;" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Analyzing...';
+
+  // Get image as base64
+  var imgEl = obj.getElement();
+  var c = document.createElement('canvas');
+  var maxDim = 1024;
+  var w = imgEl.naturalWidth || imgEl.width;
+  var h = imgEl.naturalHeight || imgEl.height;
+  var scale = Math.min(maxDim / Math.max(w, h), 1);
+  c.width = Math.round(w * scale);
+  c.height = Math.round(h * scale);
+  var ctx = c.getContext('2d');
+  ctx.drawImage(imgEl, 0, 0, c.width, c.height);
+  var dataUrl = c.toDataURL('image/jpeg', 0.8);
+
+  fetch('/api/alt-text', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ image: dataUrl })
+  })
+  .then(function(res) { return res.json(); })
+  .then(function(data) {
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h5"/></svg> AI Alt Text';
+    if (data.error) {
+      showDsMsg('error', data.error);
+      return;
+    }
+    if (!data.alt) {
+      showDsMsg('error', 'Could not generate alt text.');
+      return;
+    }
+    // Show modal with the alt text and copy button
+    var overlay = document.createElement('div');
+    overlay.id = 'ds-alttext-modal';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;';
+    overlay.innerHTML = '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:28px;max-width:420px;width:100%;">'
+      + '<div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.3px;margin-bottom:16px;">AI Generated Alt Text</div>'
+      + '<div style="padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;font-size:14px;color:var(--text);line-height:1.6;margin-bottom:16px;word-wrap:break-word;" id="ds-alttext-result">' + escapeHtml(data.alt) + '</div>'
+      + '<div style="display:flex;gap:8px;">'
+      + '<button onclick="dsAltTextCopy()" style="flex:1;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Copy</button>'
+      + '<button onclick="document.getElementById(\'ds-alttext-modal\').remove()" style="flex:1;padding:11px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:14px;font-family:DM Sans,sans-serif;cursor:pointer;">Close</button>'
+      + '</div>'
+      + '</div>';
+    overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+    document.body.appendChild(overlay);
+  })
+  .catch(function(err) {
+    console.error('Alt text error:', err);
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h5"/></svg> AI Alt Text';
+    showDsMsg('error', 'Failed to generate alt text. Try again.');
+  });
+}
+
+function dsAltTextCopy() {
+  var text = document.getElementById('ds-alttext-result')?.textContent;
+  if (!text) return;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function() {
+      showDsMsg('success', 'Alt text copied to clipboard!');
+      document.getElementById('ds-alttext-modal')?.remove();
+    }).catch(function() {
+      fallbackCopy(text);
+      showDsMsg('success', 'Alt text copied to clipboard!');
+      document.getElementById('ds-alttext-modal')?.remove();
+    });
+  } else {
+    fallbackCopy(text);
+    showDsMsg('success', 'Alt text copied to clipboard!');
+    document.getElementById('ds-alttext-modal')?.remove();
+  }
+}
 
 function dsAutoCrop() {
   if (!dsCanvas) return;
