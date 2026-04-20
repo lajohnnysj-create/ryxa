@@ -11,7 +11,9 @@
 // =====================
 var style = document.createElement('style');
 style.textContent = ''
-  // Anti-flash: hide until JS renders, reserve space to prevent jolt
+  // Anti-flash: fade entire page in after render
+  + 'body{opacity:0;transition:opacity 0.2s ease;}'
+  + 'body.site-ready{opacity:1;}'
   + '#site-header{min-height:68px;}'
   + '#site-footer{min-height:200px;}'
   // Nav
@@ -276,5 +278,6 @@ function siteNavCheckAuth() {
 // =====================
 renderHeader();
 renderFooter();
+document.body.classList.add('site-ready');
 
 })();
