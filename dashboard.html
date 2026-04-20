@@ -3287,12 +3287,12 @@
 
     <div class="sidebar-section-label">AI</div>
     <button class="sidebar-item" id="nav-design" onclick="showTool('design')">
-      <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 22 8.5 12 22 2 8.5"/><line x1="2" y1="8.5" x2="22" y2="8.5"/><line x1="12" y1="2" x2="7" y2="8.5"/><line x1="12" y1="2" x2="17" y2="8.5"/><line x1="7" y1="8.5" x2="12" y2="22"/><line x1="17" y1="8.5" x2="12" y2="22"/></svg></div>
+      <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="12" rx="10" ry="4.5"/><ellipse cx="12" cy="12" rx="10" ry="4.5" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="10" ry="4.5" transform="rotate(120 12 12)"/><circle cx="12" cy="12" r="2"/></svg></div>
       <span class="sidebar-item-label">Design Studio</span>
     </button>
     <button class="sidebar-item" id="nav-scripts" onclick="showTool('scripts')">
       <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/><path d="M6 21l-2-2 2-2M18 21l2-2-2-2"/></svg></div>
-      <span class="sidebar-item-label">AI Script Builder</span>
+      <span class="sidebar-item-label">Script Builder</span>
     </button>
 
     <div class="sidebar-section-label">Create & Earn</div>
@@ -4852,7 +4852,7 @@
     <!-- DESIGN STUDIO -->
     <div id="tool-design" style="display:none;">
       <div id="design-start" style="max-width:680px;margin:0 auto;">
-        <h2 style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;margin-bottom:6px;letter-spacing:-0.5px;">Design Studio</h2>
+        <h2 style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;margin-bottom:6px;letter-spacing:-0.5px;">AI Design Studio</h2>
         <p style="color:var(--muted);font-size:14px;margin-bottom:24px;">Create graphics with text, images, and layers. Export or save projects.</p>
 
         <!-- New project presets -->
@@ -6228,7 +6228,7 @@ const toolTitles = {
   deals: 'Brand Deal CRM',
   analytics: 'Analytics',
     settings: 'Settings',
-    design: 'Design Studio'
+    design: 'AI Design Studio'
 };
 
 async function initAuth() {
