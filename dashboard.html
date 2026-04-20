@@ -1785,6 +1785,9 @@
   .ds-swatches-grid { display:grid;grid-template-columns:repeat(8,1fr);gap:4px; }
   .ds-swatch { width:20px;height:20px;border-radius:4px;border:1px solid rgba(255,255,255,0.12);cursor:pointer;transition:transform 0.1s,border-color 0.1s;padding:0; }
   .ds-swatch:hover { transform:scale(1.2);border-color:rgba(255,255,255,0.4); }
+  .ds-fmt-btn { background:var(--surface);border:1px solid var(--border);color:var(--muted); }
+  .ds-fmt-btn:hover { border-color:rgba(124,58,237,0.4); }
+  .ds-fmt-btn.active { background:rgba(124,58,237,0.15);border-color:rgba(124,58,237,0.5);color:#c4b5fd; }
   .ds-project-card { display:flex; align-items:center; gap:14px; padding:14px; background:var(--surface); border:1px solid var(--border); border-radius:12px; cursor:pointer; transition:all 0.15s; }
   .ds-project-card:hover { border-color:rgba(124,58,237,0.3); background:rgba(124,58,237,0.03); }
   @media (max-width: 768px) {
@@ -4941,7 +4944,29 @@
           <h2 id="ds-project-name" onclick="dsEditProjectName()" style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.3px;flex:1;cursor:pointer;border-bottom:1px dashed transparent;transition:border-color 0.15s;" onmouseover="this.style.borderColor='rgba(124,58,237,0.4)'" onmouseout="this.style.borderColor='transparent'" title="Click to rename">Untitled</h2>
           <div style="display:flex;gap:8px;">
             <button onclick="saveDesignProject()" id="ds-save-btn" style="padding:8px 16px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Save</button>
-            <button onclick="exportDesign()" style="padding:8px 16px;background:transparent;border:1px solid var(--border-hover);color:var(--text);border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Export ↓</button>
+            <div style="position:relative;">
+              <button onclick="dsToggleExportMenu()" id="ds-export-btn" style="padding:8px 16px;background:linear-gradient(135deg,rgba(124,58,237,0.15),rgba(232,121,249,0.1));border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all 0.15s;" onmouseover="this.style.borderColor='rgba(124,58,237,0.5)';this.style.background='rgba(124,58,237,0.2)'" onmouseout="this.style.borderColor='rgba(124,58,237,0.3)';this.style.background='linear-gradient(135deg,rgba(124,58,237,0.15),rgba(232,121,249,0.1))'">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Export
+              </button>
+              <div id="ds-export-menu" style="display:none;position:absolute;top:40px;right:0;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,0.4);width:220px;">
+                <div style="font-size:12px;font-weight:600;margin-bottom:12px;">Export as</div>
+                <div style="display:flex;gap:6px;margin-bottom:14px;">
+                  <button onclick="dsSetExportFormat('png')" id="ds-fmt-png" class="ds-fmt-btn active" style="flex:1;padding:8px;border-radius:8px;font-size:12px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.12s;">PNG</button>
+                  <button onclick="dsSetExportFormat('jpeg')" id="ds-fmt-jpg" class="ds-fmt-btn" style="flex:1;padding:8px;border-radius:8px;font-size:12px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.12s;">JPG</button>
+                  <button onclick="dsSetExportFormat('webp')" id="ds-fmt-webp" class="ds-fmt-btn" style="flex:1;padding:8px;border-radius:8px;font-size:12px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.12s;">WebP</button>
+                </div>
+                <div id="ds-quality-row" style="display:none;margin-bottom:14px;">
+                  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                    <span style="font-size:11px;color:var(--muted);">Quality</span>
+                    <span id="ds-quality-val" style="font-size:11px;color:var(--text);font-weight:600;">90%</span>
+                  </div>
+                  <input type="range" id="ds-quality-slider" min="10" max="100" value="90" oninput="document.getElementById('ds-quality-val').textContent=this.value+'%'" style="width:100%;accent-color:#7c3aed;" aria-label="Export quality">
+                </div>
+                <div id="ds-export-info" style="font-size:11px;color:var(--muted);margin-bottom:14px;">Lossless. Supports transparency.</div>
+                <button onclick="exportDesign()" style="width:100%;padding:10px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 16px rgba(124,58,237,0.3);">Download</button>
+              </div>
+            </div>
           </div>
         </div>
         <div id="ds-editor-msg" style="display:none;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:12px;"></div>
@@ -22223,16 +22248,61 @@ function dsSendBackward() {
   if (obj) { dsCanvas.sendBackwards(obj); dsCanvas.renderAll(); }
 }
 
+var dsExportFormat = 'png';
+
+function dsToggleExportMenu() {
+  var menu = document.getElementById('ds-export-menu');
+  if (menu.style.display === 'block') {
+    menu.style.display = 'none';
+  } else {
+    menu.style.display = 'block';
+  }
+}
+
+function dsSetExportFormat(fmt) {
+  dsExportFormat = fmt;
+  document.querySelectorAll('.ds-fmt-btn').forEach(function(b) { b.classList.remove('active'); });
+  document.getElementById('ds-fmt-' + (fmt === 'jpeg' ? 'jpg' : fmt)).classList.add('active');
+
+  var qualityRow = document.getElementById('ds-quality-row');
+  var info = document.getElementById('ds-export-info');
+
+  if (fmt === 'png') {
+    qualityRow.style.display = 'none';
+    info.textContent = 'Lossless. Supports transparency.';
+  } else if (fmt === 'jpeg') {
+    qualityRow.style.display = 'block';
+    info.textContent = 'Smaller file size. No transparency.';
+  } else if (fmt === 'webp') {
+    qualityRow.style.display = 'block';
+    info.textContent = 'Modern format. Smallest size. Supports transparency.';
+  }
+}
+
 function exportDesign() {
   if (!dsCanvas) return;
   var scale = dsCanvas._projectScale || 1;
   var multiplier = 1 / scale;
-  var dataUrl = dsCanvas.toDataURL({ format: 'png', multiplier: multiplier });
+  var fmt = dsExportFormat || 'png';
+  var quality = fmt === 'png' ? 1 : (parseInt(document.getElementById('ds-quality-slider').value) || 90) / 100;
+  var ext = fmt === 'jpeg' ? 'jpg' : fmt;
+
+  var dataUrl = dsCanvas.toDataURL({ format: fmt, multiplier: multiplier, quality: quality });
   var a = document.createElement('a');
-  a.download = (dsProjectName || 'design').replace(/[^a-zA-Z0-9_-]/g, '_') + '.png';
+  a.download = (dsProjectName || 'design').replace(/[^a-zA-Z0-9_-]/g, '_') + '.' + ext;
   a.href = dataUrl;
   a.click();
+  document.getElementById('ds-export-menu').style.display = 'none';
 }
+
+// Close export menu on outside click
+document.addEventListener('click', function(e) {
+  var menu = document.getElementById('ds-export-menu');
+  var btn = document.getElementById('ds-export-btn');
+  if (menu && menu.style.display === 'block' && !menu.contains(e.target) && !btn.contains(e.target)) {
+    menu.style.display = 'none';
+  }
+});
 
 // =====================================================
 // CONTRACT ANALYZER
