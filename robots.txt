@@ -1,4 +1,4 @@
-# FindTheSnakes — Creator Tools
+# Ryxa — AI Creator Tools
 # Marketing pages are open to crawlers. Authenticated app pages are not.
 
 User-agent: *
@@ -29,4 +29,4 @@ Disallow: /
 User-agent: PerplexityBot
 Disallow: /
 
-Sitemap: https://www.findthesnakes.com/sitemap.xml
+Sitemap: https://ryxa.io/sitemap.xml
