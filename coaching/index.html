@@ -210,7 +210,7 @@ function renderCoaching(coaching, creatorName) {
   var coverEl = document.getElementById('cp-cover');
   if (coaching.cover_image_path) {
     var url = sb.storage.from('coaching-covers').getPublicUrl(coaching.cover_image_path).data.publicUrl;
-    coverEl.innerHTML = '<img class="coaching-cover" src="' + url + '" alt="">';
+    coverEl.innerHTML = '<img class="coaching-cover" src="' + url + '" alt="Coaching session cover">';
   } else {
     coverEl.innerHTML = '<div class="coaching-cover-placeholder"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="rgba(167,139,250,0.5)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>';
   }
