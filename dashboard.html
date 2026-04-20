@@ -1770,6 +1770,11 @@
   .ds-tool-btn.active { background:rgba(124,58,237,0.15); border-color:rgba(124,58,237,0.5); color:#c4b5fd; }
   .ds-shape-option { display:flex;align-items:center;gap:8px;width:100%;padding:8px 10px;background:none;border:none;border-radius:6px;color:var(--text);font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;transition:background 0.12s; }
   .ds-shape-option:hover { background:rgba(124,58,237,0.1); }
+  .ds-element-shape { width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);cursor:pointer;transition:all 0.12s;padding:0; }
+  .ds-element-shape:hover { border-color:rgba(124,58,237,0.4);background:rgba(124,58,237,0.08);transform:scale(1.08); }
+  .ds-icon-item { width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:var(--surface);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all 0.12s;padding:4px; }
+  .ds-icon-item:hover { border-color:rgba(124,58,237,0.4);background:rgba(124,58,237,0.08);transform:scale(1.05); }
+  .ds-icon-item svg { width:28px;height:28px;color:var(--text); }
   .ds-layer-item { display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:8px;cursor:pointer;transition:background 0.12s;border:1px solid transparent;font-size:12px;color:var(--text);user-select:none; }
   .ds-layer-item:hover { background:rgba(255,255,255,0.04); }
   .ds-layer-item.active { background:rgba(124,58,237,0.1);border-color:rgba(124,58,237,0.3); }
@@ -5104,17 +5109,32 @@
             <button onclick="dsAddImage()" class="ds-tool-btn" title="Add Image" aria-label="Add Image">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
             </button>
-            <button onclick="dsToggleShapeMenu()" class="ds-tool-btn" id="ds-shapes-btn" title="Add Shape" aria-label="Add Shape" style="position:relative;">
+            <button onclick="dsToggleShapeMenu()" class="ds-tool-btn" id="ds-shapes-btn" title="Elements" aria-label="Elements" style="position:relative;">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><circle cx="17.5" cy="6.5" r="3.5"/><path d="M14 14l3.5 7L21 14z"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
             </button>
-            <div id="ds-shape-menu" style="display:none;position:absolute;left:48px;top:0;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,0.4);min-width:160px;">
-              <div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.08em;padding:4px 8px 8px;">Add Shape</div>
-              <button onclick="dsAddShape('rect')" class="ds-shape-option"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg> Rectangle</button>
-              <button onclick="dsAddShape('circle')" class="ds-shape-option"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg> Circle</button>
-              <button onclick="dsAddShape('triangle')" class="ds-shape-option"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 22h20z"/></svg> Triangle</button>
-              <button onclick="dsAddShape('line')" class="ds-shape-option"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="19" x2="19" y2="5"/></svg> Line</button>
-              <button onclick="dsAddShape('arrow')" class="ds-shape-option"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg> Arrow</button>
-              <button onclick="dsAddShape('star')" class="ds-shape-option"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> Star</button>
+            <div id="ds-shape-menu" style="display:none;position:absolute;left:54px;top:0;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,0.4);width:260px;">
+              <!-- Shapes row -->
+              <div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">Shapes</div>
+              <div style="display:flex;gap:6px;margin-bottom:14px;">
+                <button onclick="dsAddShape('rect')" class="ds-element-shape" title="Rectangle" aria-label="Rectangle"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg></button>
+                <button onclick="dsAddShape('circle')" class="ds-element-shape" title="Circle" aria-label="Circle"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg></button>
+                <button onclick="dsAddShape('triangle')" class="ds-element-shape" title="Triangle" aria-label="Triangle"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 22h20z"/></svg></button>
+                <button onclick="dsAddShape('line')" class="ds-element-shape" title="Line" aria-label="Line"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="19" x2="19" y2="5"/></svg></button>
+                <button onclick="dsAddShape('arrow')" class="ds-element-shape" title="Arrow" aria-label="Arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
+                <button onclick="dsAddShape('star')" class="ds-element-shape" title="Star" aria-label="Star"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+              </div>
+              <!-- Icon search -->
+              <div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">Icons</div>
+              <div style="position:relative;margin-bottom:10px;">
+                <input type="text" id="ds-icon-search" placeholder="Search icons..." maxlength="50" onkeydown="if(event.key==='Enter')dsSearchIcons()" style="width:100%;padding:8px 36px 8px 10px;background:var(--surface);border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--text);font-family:DM Sans,sans-serif;" aria-label="Search icons">
+                <button onclick="dsSearchIcons()" style="position:absolute;right:4px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;padding:4px;" aria-label="Search">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                </button>
+              </div>
+              <!-- Results grid -->
+              <div id="ds-icon-results" style="max-height:240px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(124,58,237,0.4) transparent;">
+                <div style="text-align:center;padding:20px 0;font-size:11px;color:var(--muted);">Search for icons like "arrow", "heart", "star", "check"</div>
+              </div>
             </div>
             <div class="ds-sidebar-divider" style="height:1px;background:var(--border);margin:4px 0;"></div>
             <input type="color" id="ds-bg-color" value="#ffffff" oninput="dsSetBgColor(this.value)" title="Background color" style="width:32px;height:28px;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:2px;" aria-label="Background color">
@@ -21745,7 +21765,7 @@ function dsGetLayerName(obj) {
   }
   if (obj.type === 'image') return 'Image';
   if (obj._dsShape) {
-    var names = { rect:'Rectangle', circle:'Circle', triangle:'Triangle', line:'Line', arrow:'Arrow', star:'Star' };
+    var names = { rect:'Rectangle', circle:'Circle', triangle:'Triangle', line:'Line', arrow:'Arrow', star:'Star', icon:'Icon' };
     return names[obj._dsShapeType] || 'Shape';
   }
   return 'Object';
@@ -21903,6 +21923,59 @@ function dsCloseShapeMenu() {
   if (menu) menu.style.display = 'none';
   var btn = document.getElementById('ds-shapes-btn');
   if (btn) btn.classList.remove('active');
+}
+
+// =====================================================
+// ICON SEARCH (Iconify API)
+// =====================================================
+var dsIconSearchTimeout = null;
+
+function dsSearchIcons() {
+  var query = (document.getElementById('ds-icon-search').value || '').trim();
+  if (!query) return;
+  var results = document.getElementById('ds-icon-results');
+  results.innerHTML = '<div style="text-align:center;padding:20px 0;"><svg width="20" height="20" viewBox="0 0 24 24" style="animation:btn-spin 0.6s linear infinite;" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg></div>';
+
+  fetch('https://api.iconify.design/search?query=' + encodeURIComponent(query) + '&limit=48')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (!data.icons || data.icons.length === 0) {
+        results.innerHTML = '<div style="text-align:center;padding:20px 0;font-size:11px;color:var(--muted);">No icons found. Try a different keyword.</div>';
+        return;
+      }
+      var grid = '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;">';
+      data.icons.forEach(function(iconName) {
+        grid += '<button class="ds-icon-item" onclick="dsAddIcon(\'' + iconName.replace(/'/g, "\\'") + '\')" title="' + iconName.split(':')[1] + '">'
+          + '<img src="https://api.iconify.design/' + iconName + '.svg?color=%23f0eef8" alt="" style="width:28px;height:28px;" loading="lazy">'
+          + '</button>';
+      });
+      grid += '</div>';
+      results.innerHTML = grid;
+    })
+    .catch(function() {
+      results.innerHTML = '<div style="text-align:center;padding:20px 0;font-size:11px;color:var(--muted);">Failed to search. Check your connection.</div>';
+    });
+}
+
+function dsAddIcon(iconName) {
+  if (!dsCanvas) return;
+  var url = 'https://api.iconify.design/' + iconName + '.svg?color=%23000000&height=120';
+
+  fabric.Image.fromURL(url, function(img) {
+    if (!img) { showDsMsg('error', 'Failed to load icon.'); return; }
+    img.set({
+      left: 80,
+      top: 80,
+      lockScalingFlip: true
+    });
+    img._dsShape = true;
+    img._dsShapeType = 'icon';
+    dsCanvas.add(img);
+    dsCanvas.setActiveObject(img);
+    dsCanvas.renderAll();
+    dsSaveState();
+    dsCloseShapeMenu();
+  }, { crossOrigin: 'anonymous' });
 }
 
 function dsAddShape(type) {
