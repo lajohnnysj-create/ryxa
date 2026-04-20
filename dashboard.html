@@ -21436,13 +21436,13 @@ function dsAddShape(type) {
       obj = new fabric.Triangle({ left:80, top:80, width:120, height:120, fill:fill, stroke:stroke, strokeWidth:sw });
       break;
     case 'line':
-      obj = new fabric.Line([50,50,250,50], { left:80, top:80, stroke:stroke || '#ffffff', strokeWidth:3, fill:'' });
+      obj = new fabric.Line([50,50,250,50], { left:80, top:80, stroke:'#000000', strokeWidth:3, fill:'' });
       fill = '';
       break;
     case 'arrow':
       // Arrow as a single path
       obj = new fabric.Path('M 0 10 L 80 10 L 80 0 L 100 15 L 80 30 L 80 20 L 0 20 Z', {
-        left: 80, top: 80, fill: '#ffffff', stroke: '', strokeWidth: 0
+        left: 80, top: 80, fill: '#000000', stroke: '', strokeWidth: 0
       });
       obj._dsShapeType = 'arrow';
       break;
