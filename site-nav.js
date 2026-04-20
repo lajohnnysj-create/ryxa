@@ -38,6 +38,10 @@ style.textContent = ''
   + '.mobile-menu-links{display:flex;flex-direction:column;gap:4px;flex:1;}'
   + '.mobile-menu-links a{color:var(--text);font-size:24px;font-family:"Syne",sans-serif;font-weight:700;text-decoration:none;padding:14px 0;border-bottom:1px solid var(--border);transition:color 0.2s;}'
   + '.mobile-menu-links a:hover{color:var(--accent2);}'
+  // Mobile submenu
+  + '.mobile-submenu{display:none;flex-direction:column;gap:0;padding:0 0 8px 20px;overflow:hidden;}'
+  + '.mobile-submenu a{font-size:16px !important;padding:10px 0 !important;border-bottom:1px solid rgba(255,255,255,0.04) !important;color:var(--muted) !important;font-weight:500 !important;}'
+  + '.mobile-submenu a:hover{color:var(--accent2) !important;}'
   + '.mobile-menu-bottom{margin-top:32px;}'
   + '.mobile-cta{width:100%;padding:16px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:500;font-family:"DM Sans",sans-serif;cursor:pointer;text-decoration:none;display:block;text-align:center;}'
   + '.mobile-signin{width:100%;padding:14px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:12px;font-size:15px;font-family:"DM Sans",sans-serif;cursor:pointer;margin-top:10px;text-align:center;}'
@@ -91,8 +95,26 @@ function renderHeader() {
   + '<div class="mobile-menu" id="mobile-menu">'
   +   '<button onclick="closeMobileMenu()" aria-label="Close menu" style="position:absolute;top:20px;right:20px;background:none;border:none;color:var(--muted);font-size:24px;cursor:pointer;line-height:1;padding:8px;">&#x2715;</button>'
   +   '<div class="mobile-menu-links">'
-  +     '<a href="tools.html" onclick="closeMobileMenu()">Tools</a>'
-  +     '<a href="tools-ai-design-studio.html" onclick="closeMobileMenu()">AI</a>'
+  +     '<a href="#" onclick="event.preventDefault();toggleMobileSubmenu(\'mobile-tools-sub\')">Tools <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle;margin-left:6px;"><polyline points="6 9 12 15 18 9"/></svg></a>'
+  +     '<div id="mobile-tools-sub" class="mobile-submenu" style="display:none;">'
+  +       '<a href="tools-link-in-bio.html" onclick="closeMobileMenu()">Link in Bio</a>'
+  +       '<a href="tools-course-builder.html" onclick="closeMobileMenu()">Course Builder</a>'
+  +       '<a href="tools-coaching.html" onclick="closeMobileMenu()">1:1 Coaching</a>'
+  +       '<a href="tools-brand-deal-crm.html" onclick="closeMobileMenu()">Brand Deal CRM</a>'
+  +       '<a href="tools-media-kit.html" onclick="closeMobileMenu()">Media Kit</a>'
+  +       '<a href="tools-grid-planner.html" onclick="closeMobileMenu()">Grid Planner</a>'
+  +       '<a href="tools-follower-audit.html" onclick="closeMobileMenu()">Follow-Back Audit</a>'
+  +       '<a href="tools-image-studio.html" onclick="closeMobileMenu()">Photo Editor</a>'
+  +       '<a href="tools-qr-generator.html" onclick="closeMobileMenu()">QR Generator</a>'
+  +       '<a href="tools-invoice-generator.html" onclick="closeMobileMenu()">Invoice Generator</a>'
+  +       '<a href="tools-sign-pdf.html" onclick="closeMobileMenu()">Sign PDF</a>'
+  +       '<a href="tools.html" onclick="closeMobileMenu()" style="color:var(--accent2) !important;">View All Tools</a>'
+  +     '</div>'
+  +     '<a href="#" onclick="event.preventDefault();toggleMobileSubmenu(\'mobile-ai-sub\')">AI <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle;margin-left:6px;"><polyline points="6 9 12 15 18 9"/></svg></a>'
+  +     '<div id="mobile-ai-sub" class="mobile-submenu" style="display:none;">'
+  +       '<a href="tools-ai-design-studio.html" onclick="closeMobileMenu()">AI Design Studio</a>'
+  +       '<a href="tools-script-builder.html" onclick="closeMobileMenu()">AI Script Builder</a>'
+  +     '</div>'
   +     '<a href="pricing.html" onclick="closeMobileMenu()">Pricing</a>'
   +     '<a href="about.html" onclick="closeMobileMenu()">About</a>'
   +     '<a href="/learn/" onclick="closeMobileMenu()">Learning Hub</a>'
@@ -243,6 +265,16 @@ window.closeMobileMenu = function() {
   if (menu) menu.classList.remove('open');
   if (btn) btn.classList.remove('open');
   document.body.style.overflow = '';
+};
+
+window.toggleMobileSubmenu = function(id) {
+  var sub = document.getElementById(id);
+  if (!sub) return;
+  if (sub.style.display === 'flex') {
+    sub.style.display = 'none';
+  } else {
+    sub.style.display = 'flex';
+  }
 };
 
 // =====================
