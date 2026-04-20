@@ -432,7 +432,14 @@ async function handleAuth() {
   try {
     var result;
     if (authMode === 'signup') {
-      result = await sb.auth.signUp({ email: email, password: password, options: { captchaToken: captchaToken } });
+      // Build redirect URL so email confirmation sends user back here
+      var confirmRedirect = 'https://ryxa.io/learn/';
+      var params = new URLSearchParams(window.location.search);
+      var redirect = params.get('redirect');
+      if (redirect && redirect.startsWith('/') && !redirect.startsWith('//')) {
+        confirmRedirect = 'https://ryxa.io/learn/?redirect=' + encodeURIComponent(redirect);
+      }
+      result = await sb.auth.signUp({ email: email, password: password, options: { captchaToken: captchaToken, emailRedirectTo: confirmRedirect } });
       if (result.error) throw result.error;
       if (result.data?.user && !result.data.session) {
         errEl.textContent = 'Check your email for a confirmation link.';
