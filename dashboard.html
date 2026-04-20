@@ -21578,7 +21578,6 @@ function dsApplyEffect(effect) {
       break;
     case 'outline':
       obj.set({ stroke: '#000000', strokeWidth: 3 });
-      if (obj.fill === '#000000') obj.set('fill', '#ffffff');
       document.getElementById('ds-stroke-color').value = '#000000';
       document.getElementById('ds-stroke-width').value = 3;
       break;
@@ -21602,9 +21601,10 @@ function dsApplyEffect(effect) {
       break;
   }
 
+  // Update effects button state without re-running full dsOnSelect
+  document.getElementById('ds-effects-btn').classList.toggle('active', !!(obj.shadow || obj.strokeWidth));
   dsCanvas.renderAll();
   dsSaveState();
-  dsOnSelect(); // Refresh toolbar state
 }
 
 // Close effects menu and swatches on outside click
