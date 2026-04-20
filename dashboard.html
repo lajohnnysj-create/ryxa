@@ -21106,6 +21106,19 @@ function initDesignCanvas() {
     var json = dsPendingJSON;
     dsPendingJSON = null;
     dsCanvas.loadFromJSON(json, function() {
+      // Rescale objects from 1:1 project coordinates to current display scale
+      var loadScale = dsCanvas._projectScale || 1;
+      if (loadScale !== 1) {
+        dsCanvas.getObjects().forEach(function(obj) {
+          if (obj._isGuideLine) return;
+          if (obj.type === 'textbox' || obj.type === 'i-text') {
+            obj.set({ fontSize: Math.round(obj.fontSize * loadScale), width: obj.width * loadScale, left: obj.left * loadScale, top: obj.top * loadScale });
+          } else {
+            obj.set({ left: obj.left * loadScale, top: obj.top * loadScale, scaleX: obj.scaleX * loadScale, scaleY: obj.scaleY * loadScale });
+          }
+          obj.setCoords();
+        });
+      }
       dsCanvas.renderAll();
     });
   }
@@ -23093,7 +23106,30 @@ async function saveDesignProject() {
       }
     }
 
+    // Normalize canvas to 1:1 project scale before saving
+    var saveZoom = dsCurrentZoom;
+    if (saveZoom !== 1) {
+      var ratio = 1 / dsCanvas._projectScale;
+      dsCanvas.getObjects().forEach(function(obj) {
+        if (obj._isGuideLine) return;
+        if (obj.type === 'textbox' || obj.type === 'i-text') {
+          obj.set({ fontSize: Math.round(obj.fontSize * ratio), width: obj.width * ratio, left: obj.left * ratio, top: obj.top * ratio });
+        } else {
+          obj.set({ left: obj.left * ratio, top: obj.top * ratio, scaleX: obj.scaleX * ratio, scaleY: obj.scaleY * ratio });
+        }
+        obj.setCoords();
+      });
+      dsCanvas.setWidth(dsProjectW);
+      dsCanvas.setHeight(dsProjectH);
+      dsCanvas._projectScale = 1;
+    }
+
     var canvasJSON = JSON.stringify(dsCanvas.toJSON());
+
+    // Restore zoom after capturing JSON
+    if (saveZoom !== 1) {
+      dsSetZoom(saveZoom);
+    }
     // Reject if project data is too large (5MB)
     if (canvasJSON.length > 5 * 1024 * 1024) {
       throw new Error('Project is too large to save. Try removing some images.');
