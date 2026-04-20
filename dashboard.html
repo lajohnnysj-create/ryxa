@@ -1768,6 +1768,8 @@
   .ds-tool-btn { width:32px; height:32px; display:flex; align-items:center; justify-content:center; background:transparent; border:1px solid var(--border); border-radius:6px; color:var(--text); cursor:pointer; transition:all 0.12s; font-family:DM Sans,sans-serif; font-size:13px; }
   .ds-tool-btn:hover { border-color:rgba(124,58,237,0.4); background:rgba(124,58,237,0.06); }
   .ds-tool-btn.active { background:rgba(124,58,237,0.15); border-color:rgba(124,58,237,0.5); color:#c4b5fd; }
+  .ds-shape-option { display:flex;align-items:center;gap:8px;width:100%;padding:8px 10px;background:none;border:none;border-radius:6px;color:var(--text);font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;transition:background 0.12s; }
+  .ds-shape-option:hover { background:rgba(124,58,237,0.1); }
   .ds-project-card { display:flex; align-items:center; gap:14px; padding:14px; background:var(--surface); border:1px solid var(--border); border-radius:12px; cursor:pointer; transition:all 0.15s; }
   .ds-project-card:hover { border-color:rgba(124,58,237,0.3); background:rgba(124,58,237,0.03); }
   @media (max-width: 768px) {
@@ -4974,6 +4976,19 @@
               AI Caption
             </button>
           </div>
+          <!-- Shape controls (shown when shape selected) -->
+          <div id="ds-shape-controls" style="display:none;align-items:center;gap:6px;flex-wrap:wrap;">
+            <div style="font-size:11px;color:var(--muted);white-space:nowrap;">Fill</div>
+            <input type="color" id="ds-shape-fill" value="#7c3aed" oninput="dsSetShapeFill(this.value)" style="width:28px;height:28px;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:2px;" aria-label="Shape fill color">
+            <button onclick="dsToggleShapeFill()" class="ds-tool-btn" id="ds-shape-nofill-btn" title="Toggle fill on/off" style="width:auto;padding:0 8px;font-size:10px;" aria-label="Toggle fill">No fill</button>
+            <div style="width:1px;height:24px;background:var(--border);margin:0 2px;"></div>
+            <div style="font-size:11px;color:var(--muted);white-space:nowrap;">Stroke</div>
+            <input type="color" id="ds-shape-stroke-color" value="#ffffff" oninput="dsSetShapeStroke()" style="width:28px;height:28px;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:2px;" aria-label="Shape stroke color">
+            <input type="number" id="ds-shape-stroke-width" value="2" min="0" max="20" oninput="dsSetShapeStroke()" style="width:44px;padding:4px 4px;background:var(--surface);border:1px solid var(--border);border-radius:6px;font-size:11px;color:var(--text);text-align:center;" aria-label="Shape stroke width" title="Stroke width">
+            <div style="width:1px;height:24px;background:var(--border);margin:0 2px;"></div>
+            <div style="font-size:11px;color:var(--muted);white-space:nowrap;">Radius</div>
+            <input type="number" id="ds-shape-radius" value="0" min="0" max="100" oninput="dsSetShapeRadius(this.value)" style="width:44px;padding:4px 4px;background:var(--surface);border:1px solid var(--border);border-radius:6px;font-size:11px;color:var(--text);text-align:center;" aria-label="Corner radius" title="Corner radius">
+          </div>
           <!-- Shared controls (shown when anything selected) -->
           <div id="ds-shared-controls" style="display:none;align-items:center;gap:6px;margin-left:auto;">
             <div style="font-size:11px;color:var(--muted);white-space:nowrap;">Opacity</div>
@@ -4988,13 +5003,25 @@
         <!-- Editor body: Left sidebar + Canvas -->
         <div class="ds-editor-body" style="display:flex;gap:12px;padding-bottom:60px;">
           <!-- Left tool sidebar -->
-          <div class="ds-left-sidebar" style="display:flex;flex-direction:column;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:10px;flex-shrink:0;">
+          <div class="ds-left-sidebar" style="display:flex;flex-direction:column;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:10px;flex-shrink:0;position:relative;">
             <button onclick="dsAddText()" class="ds-tool-btn" title="Add Text">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
             </button>
-            <button onclick="dsAddImage()" class="ds-tool-btn" title="Add Image">
+            <button onclick="dsAddImage()" class="ds-tool-btn" title="Add Image" aria-label="Add Image">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
             </button>
+            <button onclick="dsToggleShapeMenu()" class="ds-tool-btn" id="ds-shapes-btn" title="Add Shape" aria-label="Add Shape" style="position:relative;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><circle cx="17.5" cy="6.5" r="3.5"/><path d="M14 14l3.5 7L21 14z"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+            </button>
+            <div id="ds-shape-menu" style="display:none;position:absolute;left:48px;top:0;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,0.4);min-width:160px;">
+              <div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.08em;padding:4px 8px 8px;">Add Shape</div>
+              <button onclick="dsAddShape('rect')" class="ds-shape-option"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg> Rectangle</button>
+              <button onclick="dsAddShape('circle')" class="ds-shape-option"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg> Circle</button>
+              <button onclick="dsAddShape('triangle')" class="ds-shape-option"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 22h20z"/></svg> Triangle</button>
+              <button onclick="dsAddShape('line')" class="ds-shape-option"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="19" x2="19" y2="5"/></svg> Line</button>
+              <button onclick="dsAddShape('arrow')" class="ds-shape-option"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg> Arrow</button>
+              <button onclick="dsAddShape('star')" class="ds-shape-option"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> Star</button>
+            </div>
             <div class="ds-sidebar-divider" style="height:1px;background:var(--border);margin:4px 0;"></div>
             <input type="color" id="ds-bg-color" value="#ffffff" oninput="dsSetBgColor(this.value)" title="Background color" style="width:32px;height:28px;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:2px;" aria-label="Background color">
             <button onclick="dsToggleTransparent()" class="ds-tool-btn" id="ds-transparent-btn" title="Transparent background">
@@ -21306,6 +21333,7 @@ function dsOnSelect() {
   var obj = dsCanvas.getActiveObject();
   var tc = document.getElementById('ds-text-controls');
   var ic = document.getElementById('ds-image-controls');
+  var shc = document.getElementById('ds-shape-controls');
   var sc = document.getElementById('ds-shared-controls');
   var hint = document.getElementById('ds-context-default');
 
@@ -21320,9 +21348,12 @@ function dsOnSelect() {
     sc.style.display = 'none';
   }
 
+  var isShape = obj && obj._dsShape;
+
   if (obj && (obj.type === 'i-text' || obj.type === 'textbox')) {
     tc.style.display = 'flex';
     ic.style.display = 'none';
+    shc.style.display = 'none';
     document.getElementById('ds-font-select').value = obj.fontFamily || 'DM Sans';
     document.getElementById('ds-font-size').value = Math.round(obj.fontSize || 24);
     document.getElementById('ds-text-color').value = obj.fill || '#ffffff';
@@ -21332,22 +21363,166 @@ function dsOnSelect() {
     document.getElementById('ds-stroke-color').value = obj.stroke || '#000000';
     document.getElementById('ds-stroke-width').value = obj.strokeWidth || 0;
     document.getElementById('ds-shadow-btn').classList.toggle('active', !!obj.shadow);
+  } else if (isShape) {
+    tc.style.display = 'none';
+    ic.style.display = 'none';
+    shc.style.display = 'flex';
+    document.getElementById('ds-shape-fill').value = obj.fill || '#7c3aed';
+    document.getElementById('ds-shape-nofill-btn').classList.toggle('active', obj.fill === 'transparent' || obj.fill === '');
+    document.getElementById('ds-shape-stroke-color').value = obj.stroke || '#ffffff';
+    document.getElementById('ds-shape-stroke-width').value = obj.strokeWidth || 0;
+    document.getElementById('ds-shape-radius').value = obj.rx || 0;
+    // Hide radius for non-rect shapes
+    document.getElementById('ds-shape-radius').parentElement.querySelectorAll('[aria-label="Corner radius"], [title="Corner radius"]').forEach(function(el) { el.style.display = obj._dsShapeType === 'rect' ? '' : 'none'; });
+    var radiusLabel = shc.querySelector('div[style*="Radius"]');
   } else if (obj && obj.type === 'image') {
     tc.style.display = 'none';
     ic.style.display = 'flex';
+    shc.style.display = 'none';
   } else {
     tc.style.display = 'none';
     ic.style.display = 'none';
+    shc.style.display = 'none';
   }
 }
 
 function dsOnDeselect() {
   document.getElementById('ds-text-controls').style.display = 'none';
   document.getElementById('ds-image-controls').style.display = 'none';
+  document.getElementById('ds-shape-controls').style.display = 'none';
   document.getElementById('ds-shared-controls').style.display = 'none';
   var hint = document.getElementById('ds-context-default');
   if (hint) hint.style.display = 'block';
+  dsCloseShapeMenu();
 }
+
+// =====================================================
+// SHAPE TOOLS
+// =====================================================
+function dsToggleShapeMenu() {
+  var menu = document.getElementById('ds-shape-menu');
+  if (menu.style.display === 'block') { dsCloseShapeMenu(); }
+  else { menu.style.display = 'block'; document.getElementById('ds-shapes-btn').classList.add('active'); }
+}
+function dsCloseShapeMenu() {
+  var menu = document.getElementById('ds-shape-menu');
+  if (menu) menu.style.display = 'none';
+  var btn = document.getElementById('ds-shapes-btn');
+  if (btn) btn.classList.remove('active');
+}
+
+function dsAddShape(type) {
+  if (!dsCanvas) return;
+  dsCloseShapeMenu();
+  var fill = '#7c3aed';
+  var stroke = '#ffffff';
+  var sw = 0;
+  var obj;
+
+  switch (type) {
+    case 'rect':
+      obj = new fabric.Rect({ left:80, top:80, width:150, height:100, fill:fill, stroke:stroke, strokeWidth:sw, rx:0, ry:0 });
+      break;
+    case 'circle':
+      obj = new fabric.Circle({ left:80, top:80, radius:60, fill:fill, stroke:stroke, strokeWidth:sw });
+      break;
+    case 'triangle':
+      obj = new fabric.Triangle({ left:80, top:80, width:120, height:120, fill:fill, stroke:stroke, strokeWidth:sw });
+      break;
+    case 'line':
+      obj = new fabric.Line([50,50,250,50], { left:80, top:80, stroke:stroke || '#ffffff', strokeWidth:3, fill:'' });
+      fill = '';
+      break;
+    case 'arrow':
+      // Arrow as a group: line + triangle head
+      var line = new fabric.Line([0,15,100,15], { stroke:'#ffffff', strokeWidth:3, fill:'' });
+      var head = new fabric.Triangle({ left:90, top:5, width:20, height:20, fill:'#ffffff', angle:90 });
+      obj = new fabric.Group([line, head], { left:80, top:80 });
+      fill = '';
+      break;
+    case 'star':
+      var points = dsStarPoints(5, 50, 22);
+      obj = new fabric.Polygon(points, { left:80, top:80, fill:fill, stroke:stroke, strokeWidth:sw });
+      break;
+    default:
+      return;
+  }
+
+  obj._dsShape = true;
+  obj._dsShapeType = type;
+  obj.set({ lockScalingFlip: true });
+  dsCanvas.add(obj);
+  dsCanvas.setActiveObject(obj);
+  dsCanvas.renderAll();
+  dsSaveState();
+}
+
+function dsStarPoints(spikes, outerR, innerR) {
+  var points = [];
+  var step = Math.PI / spikes;
+  for (var i = 0; i < 2 * spikes; i++) {
+    var r = i % 2 === 0 ? outerR : innerR;
+    var angle = i * step - Math.PI / 2;
+    points.push({ x: outerR + r * Math.cos(angle), y: outerR + r * Math.sin(angle) });
+  }
+  return points;
+}
+
+function dsSetShapeFill(color) {
+  if (!dsCanvas) return;
+  var obj = dsCanvas.getActiveObject();
+  if (!obj || !obj._dsShape) return;
+  obj.set('fill', color);
+  document.getElementById('ds-shape-nofill-btn').classList.remove('active');
+  dsCanvas.renderAll();
+  dsSaveState();
+}
+
+function dsToggleShapeFill() {
+  if (!dsCanvas) return;
+  var obj = dsCanvas.getActiveObject();
+  if (!obj || !obj._dsShape) return;
+  var btn = document.getElementById('ds-shape-nofill-btn');
+  if (obj.fill === 'transparent' || obj.fill === '') {
+    obj.set('fill', document.getElementById('ds-shape-fill').value || '#7c3aed');
+    btn.classList.remove('active');
+  } else {
+    obj.set('fill', 'transparent');
+    btn.classList.add('active');
+  }
+  dsCanvas.renderAll();
+  dsSaveState();
+}
+
+function dsSetShapeStroke() {
+  if (!dsCanvas) return;
+  var obj = dsCanvas.getActiveObject();
+  if (!obj || !obj._dsShape) return;
+  var color = document.getElementById('ds-shape-stroke-color').value;
+  var width = parseInt(document.getElementById('ds-shape-stroke-width').value) || 0;
+  obj.set({ stroke: color, strokeWidth: width });
+  dsCanvas.renderAll();
+  dsSaveState();
+}
+
+function dsSetShapeRadius(val) {
+  if (!dsCanvas) return;
+  var obj = dsCanvas.getActiveObject();
+  if (!obj || !obj._dsShape || obj._dsShapeType !== 'rect') return;
+  var r = parseInt(val) || 0;
+  obj.set({ rx: r, ry: r });
+  dsCanvas.renderAll();
+  dsSaveState();
+}
+
+// Close shape menu on click outside
+document.addEventListener('click', function(e) {
+  var menu = document.getElementById('ds-shape-menu');
+  var btn = document.getElementById('ds-shapes-btn');
+  if (menu && menu.style.display === 'block' && !menu.contains(e.target) && !btn.contains(e.target)) {
+    dsCloseShapeMenu();
+  }
+});
 
 function dsAddText() {
   if (!dsCanvas) return;
