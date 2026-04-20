@@ -5073,8 +5073,8 @@
         <div id="ta-loading" style="display:none;">
           <div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:32px;overflow:hidden;">
             <!-- Scanning animation over image -->
-            <div style="position:relative;border-radius:10px;overflow:hidden;margin-bottom:24px;">
-              <img id="ta-loading-img" alt="" style="width:100%;display:block;filter:brightness(0.7);">
+            <div style="position:relative;border-radius:10px;overflow:hidden;margin-bottom:24px;max-height:250px;display:flex;align-items:center;justify-content:center;background:#0a0a14;">
+              <img id="ta-loading-img" alt="" style="max-width:100%;max-height:250px;display:block;filter:brightness(0.7);object-fit:contain;">
               <div id="ta-scan-line" style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,#7c3aed,#e879f9,#7c3aed,transparent);box-shadow:0 0 20px rgba(124,58,237,0.6);animation:taScan 2s ease-in-out infinite;"></div>
               <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(124,58,237,0.05),rgba(124,58,237,0.15));pointer-events:none;"></div>
             </div>
