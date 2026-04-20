@@ -88,7 +88,6 @@ function renderHeader() {
 
   var pricingStyle = page === 'pricing' ? 'color:var(--text);' : '';
   var aboutStyle = page === 'about' ? 'color:var(--text);' : '';
-  var blogStyle = page === 'blog' ? 'color:var(--text);' : '';
 
   el.innerHTML = ''
   // Mobile menu
@@ -104,7 +103,7 @@ function renderHeader() {
   +       '<a href="tools-media-kit.html" onclick="closeMobileMenu()">Media Kit</a>'
   +       '<a href="tools-grid-planner.html" onclick="closeMobileMenu()">Grid Planner</a>'
   +       '<a href="tools-follower-audit.html" onclick="closeMobileMenu()">Follow-Back Audit</a>'
-  +       '<a href="tools-image-studio.html" onclick="closeMobileMenu()">Photo Editor</a>'
+  +       '<a href="tools-photo-editor.html" onclick="closeMobileMenu()">Photo Editor</a>'
   +       '<a href="tools-qr-generator.html" onclick="closeMobileMenu()">QR Generator</a>'
   +       '<a href="tools-invoice-generator.html" onclick="closeMobileMenu()">Invoice Generator</a>'
   +       '<a href="tools-sign-pdf.html" onclick="closeMobileMenu()">Sign PDF</a>'
@@ -118,7 +117,6 @@ function renderHeader() {
   +     '<a href="pricing.html" onclick="closeMobileMenu()">Pricing</a>'
   +     '<a href="about.html" onclick="closeMobileMenu()">About</a>'
   +     '<a href="/learn/" onclick="closeMobileMenu()">Learning Hub</a>'
-  +     '<a href="blog.html" onclick="closeMobileMenu()">Blog</a>'
   +   '</div>'
   +   '<div class="mobile-menu-bottom">'
   +     '<a class="mobile-cta" href="dashboard.html" id="mobile-dashboard-link" style="display:none;">Go to Dashboard</a>'
@@ -144,7 +142,7 @@ function renderHeader() {
   +         '<a href="tools-media-kit.html" class="nav-tools-item"><div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="17" x2="8" y2="13"/><line x1="12" y1="17" x2="12" y2="11"/><line x1="16" y1="17" x2="16" y2="15"/></svg></div><div class="nav-tools-item-content"><div class="nav-tools-item-title">Media Kit <span class="nav-tools-tier pro">Pro</span></div><div class="nav-tools-item-desc">Pitch brands with a pro media kit and rate card</div></div></a>'
   +         '<a href="tools-grid-planner.html" class="nav-tools-item"><div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div><div class="nav-tools-item-content"><div class="nav-tools-item-title">Grid Planner <span class="nav-tools-tier free">Free</span></div><div class="nav-tools-item-desc">Plan your social grid, drag to reorder</div></div></a>'
   +         '<a href="tools-follower-audit.html" class="nav-tools-item"><div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></div><div class="nav-tools-item-content"><div class="nav-tools-item-title">Follow-Back Audit <span class="nav-tools-tier free">Free</span></div><div class="nav-tools-item-desc">See who unfollowed you on Instagram</div></div></a>'
-  +         '<a href="tools-image-studio.html" class="nav-tools-item"><div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg></div><div class="nav-tools-item-content"><div class="nav-tools-item-title">Photo Editor <span class="nav-tools-tier free">Free</span></div><div class="nav-tools-item-desc">Crop, adjust, convert with creator-ready ratios</div></div></a>'
+  +         '<a href="tools-photo-editor.html" class="nav-tools-item"><div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg></div><div class="nav-tools-item-content"><div class="nav-tools-item-title">Photo Editor <span class="nav-tools-tier free">Free</span></div><div class="nav-tools-item-desc">Crop, adjust, convert with creator-ready ratios</div></div></a>'
   +         '<a href="tools-qr-generator.html" class="nav-tools-item"><div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20v1"/></svg></div><div class="nav-tools-item-content"><div class="nav-tools-item-title">QR Generator <span class="nav-tools-tier free">Free</span></div><div class="nav-tools-item-desc">Create QR codes for your links and profiles</div></div></a>'
   +         '<a href="tools-invoice-generator.html" class="nav-tools-item"><div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg></div><div class="nav-tools-item-content"><div class="nav-tools-item-title">Invoice Generator <span class="nav-tools-tier free">Free</span></div><div class="nav-tools-item-desc">Pro invoices for brand deals and collaborations</div></div></a>'
   +         '<a href="tools-sign-pdf.html" class="nav-tools-item"><div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M3 17l3-3 2 2 5-5 3 3"/></svg></div><div class="nav-tools-item-content"><div class="nav-tools-item-title">Sign PDF <span class="nav-tools-tier free">Free</span></div><div class="nav-tools-item-desc">Fill and sign PDFs — no printer, no scanner</div></div></a>'
@@ -173,7 +171,6 @@ function renderHeader() {
   +       '</div>'
   +     '</div>'
 
-  +     '<a href="blog.html" style="' + blogStyle + '">Blog</a>'
   +   '</div>'
 
   // Right side buttons
