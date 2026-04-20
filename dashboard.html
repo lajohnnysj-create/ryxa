@@ -4978,16 +4978,20 @@
           </div>
           <!-- Shape controls (shown when shape selected) -->
           <div id="ds-shape-controls" style="display:none;align-items:center;gap:6px;flex-wrap:wrap;">
-            <div style="font-size:11px;color:var(--muted);white-space:nowrap;">Fill</div>
-            <input type="color" id="ds-shape-fill" value="#7c3aed" oninput="dsSetShapeFill(this.value)" style="width:28px;height:28px;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:2px;" aria-label="Shape fill color">
-            <button onclick="dsToggleShapeFill()" class="ds-tool-btn" id="ds-shape-nofill-btn" title="Toggle fill on/off" style="width:auto;padding:0 8px;font-size:10px;" aria-label="Toggle fill">No fill</button>
-            <div style="width:1px;height:24px;background:var(--border);margin:0 2px;"></div>
+            <div id="ds-shape-fill-group" style="display:flex;align-items:center;gap:6px;">
+              <div style="font-size:11px;color:var(--muted);white-space:nowrap;">Fill</div>
+              <input type="color" id="ds-shape-fill" value="#7c3aed" oninput="dsSetShapeFill(this.value)" style="width:28px;height:28px;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:2px;" aria-label="Shape fill color">
+              <button onclick="dsToggleShapeFill()" class="ds-tool-btn" id="ds-shape-nofill-btn" title="Toggle fill on/off" style="width:auto;padding:0 8px;font-size:10px;" aria-label="Toggle fill">No fill</button>
+              <div style="width:1px;height:24px;background:var(--border);margin:0 2px;"></div>
+            </div>
             <div style="font-size:11px;color:var(--muted);white-space:nowrap;">Stroke</div>
             <input type="color" id="ds-shape-stroke-color" value="#ffffff" oninput="dsSetShapeStroke()" style="width:28px;height:28px;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:2px;" aria-label="Shape stroke color">
             <input type="number" id="ds-shape-stroke-width" value="2" min="0" max="20" oninput="dsSetShapeStroke()" style="width:44px;padding:4px 4px;background:var(--surface);border:1px solid var(--border);border-radius:6px;font-size:11px;color:var(--text);text-align:center;" aria-label="Shape stroke width" title="Stroke width">
-            <div style="width:1px;height:24px;background:var(--border);margin:0 2px;"></div>
-            <div style="font-size:11px;color:var(--muted);white-space:nowrap;">Radius</div>
-            <input type="number" id="ds-shape-radius" value="0" min="0" max="100" oninput="dsSetShapeRadius(this.value)" style="width:44px;padding:4px 4px;background:var(--surface);border:1px solid var(--border);border-radius:6px;font-size:11px;color:var(--text);text-align:center;" aria-label="Corner radius" title="Corner radius">
+            <div id="ds-shape-radius-group" style="display:flex;align-items:center;gap:6px;">
+              <div style="width:1px;height:24px;background:var(--border);margin:0 2px;"></div>
+              <div style="font-size:11px;color:var(--muted);white-space:nowrap;">Radius</div>
+              <input type="number" id="ds-shape-radius" value="0" min="0" max="100" oninput="dsSetShapeRadius(this.value)" style="width:44px;padding:4px 4px;background:var(--surface);border:1px solid var(--border);border-radius:6px;font-size:11px;color:var(--text);text-align:center;" aria-label="Corner radius" title="Corner radius">
+            </div>
           </div>
           <!-- Shared controls (shown when anything selected) -->
           <div id="ds-shared-controls" style="display:none;align-items:center;gap:6px;margin-left:auto;">
@@ -21367,14 +21371,16 @@ function dsOnSelect() {
     tc.style.display = 'none';
     ic.style.display = 'none';
     shc.style.display = 'flex';
-    document.getElementById('ds-shape-fill').value = obj.fill || '#7c3aed';
-    document.getElementById('ds-shape-nofill-btn').classList.toggle('active', obj.fill === 'transparent' || obj.fill === '');
+    var isLineType = obj._dsShapeType === 'line' || obj._dsShapeType === 'arrow';
+    document.getElementById('ds-shape-fill-group').style.display = isLineType ? 'none' : 'flex';
+    document.getElementById('ds-shape-radius-group').style.display = obj._dsShapeType === 'rect' ? 'flex' : 'none';
+    if (!isLineType) {
+      document.getElementById('ds-shape-fill').value = (obj.fill && obj.fill !== 'transparent') ? obj.fill : '#7c3aed';
+      document.getElementById('ds-shape-nofill-btn').classList.toggle('active', obj.fill === 'transparent' || obj.fill === '');
+    }
     document.getElementById('ds-shape-stroke-color').value = obj.stroke || '#ffffff';
     document.getElementById('ds-shape-stroke-width').value = obj.strokeWidth || 0;
-    document.getElementById('ds-shape-radius').value = obj.rx || 0;
-    // Hide radius for non-rect shapes
-    document.getElementById('ds-shape-radius').parentElement.querySelectorAll('[aria-label="Corner radius"], [title="Corner radius"]').forEach(function(el) { el.style.display = obj._dsShapeType === 'rect' ? '' : 'none'; });
-    var radiusLabel = shc.querySelector('div[style*="Radius"]');
+    if (obj._dsShapeType === 'rect') document.getElementById('ds-shape-radius').value = obj.rx || 0;
   } else if (obj && obj.type === 'image') {
     tc.style.display = 'none';
     ic.style.display = 'flex';
@@ -21434,9 +21440,9 @@ function dsAddShape(type) {
       fill = '';
       break;
     case 'arrow':
-      // Arrow as a group: line + triangle head
-      var line = new fabric.Line([0,15,100,15], { stroke:'#ffffff', strokeWidth:3, fill:'' });
-      var head = new fabric.Triangle({ left:90, top:5, width:20, height:20, fill:'#ffffff', angle:90 });
+      // Arrow as a group: line + triangle head at the end
+      var line = new fabric.Line([0,10,90,10], { stroke:'#ffffff', strokeWidth:3, fill:'' });
+      var head = new fabric.Triangle({ left:85, top:0, width:20, height:20, fill:'#ffffff', angle:90, stroke:'', strokeWidth:0 });
       obj = new fabric.Group([line, head], { left:80, top:80 });
       fill = '';
       break;
@@ -21500,7 +21506,14 @@ function dsSetShapeStroke() {
   if (!obj || !obj._dsShape) return;
   var color = document.getElementById('ds-shape-stroke-color').value;
   var width = parseInt(document.getElementById('ds-shape-stroke-width').value) || 0;
-  obj.set({ stroke: color, strokeWidth: width });
+  if (obj.type === 'group' && obj._objects) {
+    obj._objects.forEach(function(child) {
+      child.set({ stroke: color, strokeWidth: width });
+      if (child.fill && child.fill !== '' && child.fill !== 'transparent') child.set('fill', color);
+    });
+  } else {
+    obj.set({ stroke: color, strokeWidth: width });
+  }
   dsCanvas.renderAll();
   dsSaveState();
 }
