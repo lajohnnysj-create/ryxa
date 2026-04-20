@@ -21593,12 +21593,16 @@ function dsDragEnd(e) {
   if (wasDragging) {
     // Dropped — find position on canvas
     var touch = e.changedTouches ? e.changedTouches[0] : e;
-    var canvasEl = document.getElementById('ds-canvas');
+    var canvasEl = document.querySelector('#ds-canvas-wrap canvas');
+    if (!canvasEl) canvasEl = document.getElementById('ds-canvas');
     if (!canvasEl) return;
     var rect = canvasEl.getBoundingClientRect();
-    var scale = dsCanvas._projectScale || 1;
-    var x = (touch.clientX - rect.left) / scale;
-    var y = (touch.clientY - rect.top) / scale;
+    // Canvas coordinates = mouse position relative to canvas element, 
+    // scaled by the ratio of internal canvas size to display size
+    var scaleX = dsCanvas.getWidth() / rect.width;
+    var scaleY = dsCanvas.getHeight() / rect.height;
+    var x = (touch.clientX - rect.left) * scaleX;
+    var y = (touch.clientY - rect.top) * scaleY;
 
     // Clamp to canvas bounds
     x = Math.max(10, Math.min(x, dsCanvas.getWidth() - 10));
