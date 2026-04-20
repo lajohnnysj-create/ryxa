@@ -247,79 +247,13 @@
   .mock-pay-waiting { color: #fbbf24; }
 </style>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<style>body{opacity:0;transition:opacity 0.2s ease;}body.site-ready{opacity:1;}</style>
 </head>
 <body>
 
-<nav>
-  <a class="logo" href="index.html">
-    <img src="/logo.png" alt=""> Ryxa
-  </a>
-  <div class="nav-links">
-    <div class="nav-tools-wrap">
-      <button class="nav-tools-trigger" type="button" onclick="window.location.href='/tools.html'">
-        Tools
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-      </button>
-      <div class="nav-tools-menu">
-        <div class="nav-tools-grid">
-          <a href="/tools-link-in-bio.html" class="nav-tools-item"><div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div><div class="nav-tools-item-content"><div class="nav-tools-item-title">Link in Bio <span class="nav-tools-tier popular">Popular</span></div><div class="nav-tools-item-desc">A clean, customizable page for all your links</div></div></a>
-          <a href="/tools-brand-deal-crm.html" class="nav-tools-item"><div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 12h18"/></svg></div><div class="nav-tools-item-content"><div class="nav-tools-item-title">Brand Deal CRM <span class="nav-tools-tier max">Max</span></div><div class="nav-tools-item-desc">Track partnerships, contracts, deliverables, revenue</div></div></a>
-          <a href="/tools-course-builder.html" class="nav-tools-item"><div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M8 7h8M8 11h6"/></svg></div><div class="nav-tools-item-content"><div class="nav-tools-item-title">Course Builder <span class="nav-tools-tier max">Max</span></div><div class="nav-tools-item-desc">Build and sell courses with Stripe payments</div></div></a>
-          <a href="/tools-coaching.html" class="nav-tools-item"><div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div><div class="nav-tools-item-content"><div class="nav-tools-item-title">1:1 Coaching <span class="nav-tools-tier max">Max</span></div><div class="nav-tools-item-desc">Sell private sessions and consultations</div></div></a>
-          <a href="/tools-media-kit.html" class="nav-tools-item"><div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="17" x2="8" y2="13"/><line x1="12" y1="17" x2="12" y2="11"/><line x1="16" y1="17" x2="16" y2="15"/></svg></div><div class="nav-tools-item-content"><div class="nav-tools-item-title">Media Kit <span class="nav-tools-tier pro">Pro</span></div><div class="nav-tools-item-desc">Pitch brands with a pro media kit and rate card</div></div></a>
-          <a href="/tools-script-builder.html" class="nav-tools-item"><div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg></div><div class="nav-tools-item-content"><div class="nav-tools-item-title">Script Builder <span class="nav-tools-tier pro">Pro</span></div><div class="nav-tools-item-desc">Plan reels, videos, podcasts in blocks</div></div></a>
-          <a href="/tools-grid-planner.html" class="nav-tools-item"><div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div><div class="nav-tools-item-content"><div class="nav-tools-item-title">Grid Planner <span class="nav-tools-tier free">Free</span></div><div class="nav-tools-item-desc">Plan your social grid, drag to reorder</div></div></a>
-          <a href="/tools-follower-audit.html" class="nav-tools-item"><div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></div><div class="nav-tools-item-content"><div class="nav-tools-item-title">Follow-Back Audit <span class="nav-tools-tier free">Free</span></div><div class="nav-tools-item-desc">See who unfollowed you on Instagram</div></div></a>
-          <a href="/tools-image-studio.html" class="nav-tools-item"><div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg></div><div class="nav-tools-item-content"><div class="nav-tools-item-title">Image Studio <span class="nav-tools-tier free">Free</span></div><div class="nav-tools-item-desc">Crop, adjust, convert with creator-ready ratios</div></div></a>
-          <a href="/tools-qr-generator.html" class="nav-tools-item"><div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20v1"/></svg></div><div class="nav-tools-item-content"><div class="nav-tools-item-title">QR Generator <span class="nav-tools-tier free">Free</span></div><div class="nav-tools-item-desc">Create QR codes for your links and profiles</div></div></a>
-          <a href="/tools-invoice-generator.html" class="nav-tools-item"><div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg></div><div class="nav-tools-item-content"><div class="nav-tools-item-title">Invoice Generator <span class="nav-tools-tier free">Free</span></div><div class="nav-tools-item-desc">Pro invoices for brand deals and collaborations</div></div></a>
-          <a href="/tools-sign-pdf.html" class="nav-tools-item"><div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M3 17l3-3 2 2 5-5 3 3"/></svg></div><div class="nav-tools-item-content"><div class="nav-tools-item-title">Sign PDF <span class="nav-tools-tier free">Free</span></div><div class="nav-tools-item-desc">Fill and sign PDFs — no printer, no scanner</div></div></a>
-        </div>
-        <div class="nav-tools-footer"><div style="font-size:11px;color:var(--muted);">12 tools, one workspace</div><a href="/tools.html" class="nav-tools-footer-link">View all tools <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a></div>
-      </div>
-    </div>
-    <a href="pricing.html">Pricing</a>
-    <a href="about.html">About</a>
-    <div class="nav-tools-wrap">
-      <button class="nav-tools-trigger" type="button" onclick="window.location.href='/learn/'">
-        Learning Hub
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-      </button>
-      <div class="nav-tools-menu" style="width:300px;">
-        <a href="/learn/" class="nav-tools-item">
-          <div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M8 7h8M8 11h6"/></svg></div>
-          <div class="nav-tools-item-content">
-            <div class="nav-tools-item-title">Dashboard Login</div>
-            <div class="nav-tools-item-desc">Access courses and bookings you've purchased</div>
-          </div>
-        </a>
-      </div>
-    </div>
-    <a href="blog.html">Blog</a>
-  </div>
-  <div class="nav-right">
-    <button class="btn-ghost" onclick="goSignIn()">Sign in</button>
-    <button class="btn-nav-cta" onclick="goSignUp()">Get started free</button>
-  </div>
-  <button class="hamburger" id="hamburger-btn" onclick="toggleMobileMenu()" aria-label="Menu">
-    <span></span><span></span><span></span>
-  </button>
-</nav>
+<div id="site-header"></div>
 
-<div class="mobile-menu" id="mobile-menu">
-  <button onclick="toggleMobileMenu()" aria-label="Close menu" style="position:absolute;top:20px;right:20px;background:none;border:none;color:var(--muted);font-size:24px;cursor:pointer;line-height:1;padding:8px;">&#x2715;</button>
-  <div class="mobile-menu-links">
-    <a href="tools.html">Tools</a>
-    <a href="pricing.html">Pricing</a>
-    <a href="about.html">About</a>
-    <a href="/learn/">Learning Hub</a>
-    <a href="blog.html">Blog</a>
-  </div>
-  <div class="mobile-menu-bottom">
-    <button class="mobile-cta" onclick="goSignUp()">Get started free</button>
-    <button class="mobile-signin" onclick="goSignIn()">Sign in</button>
-  </div>
-</div>
+
 
 <!-- ============ HERO ============ -->
 <section class="hero">
@@ -659,66 +593,8 @@
 </section>
 
 <!-- ============ FOOTER ============ -->
-<footer style="border-top:1px solid rgba(255,255,255,0.08);padding:60px 48px 32px;max-width:1200px;margin:0 auto;">
-  <div class="footer-grid" style="display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr 1fr;gap:32px;margin-bottom:40px;">
-    <div>
-      <a href="index.html" style="display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:var(--text);font-family:'Syne',sans-serif;font-weight:800;font-size:20px;margin-bottom:12px;"><img src="logo.png" alt="" style="width:32px;height:32px;object-fit:contain;"> Ryxa</a>
-      <p style="font-size:13px;color:var(--muted);line-height:1.6;max-width:200px;margin-bottom:16px;">Ryxa makes earning money and professional branding easy.</p>
-      <a href="https://www.instagram.com/ryxa.io" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:var(--muted);transition:all 0.15s;" aria-label="Instagram">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.2c3.2 0 3.6 0 4.85.07 1.17.05 1.8.25 2.22.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.05.41 2.22.06 1.26.07 1.64.07 4.82s-.01 3.57-.07 4.82c-.05 1.17-.25 1.8-.41 2.22a3.72 3.72 0 0 1-.9 1.38c-.42.42-.82.68-1.38.9-.42.16-1.05.36-2.22.41-1.26.06-1.64.07-4.82.07s-3.57-.01-4.82-.07c-1.17-.05-1.8-.25-2.22-.41a3.72 3.72 0 0 1-1.38-.9 3.72 3.72 0 0 1-.9-1.38c-.16-.42-.36-1.05-.41-2.22C2.21 15.57 2.2 15.19 2.2 12s.01-3.57.07-4.82c.05-1.17.25-1.8.41-2.22.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.05-.36 2.22-.41C8.43 2.21 8.81 2.2 12 2.2M12 0C8.74 0 8.33.01 7.05.07 5.78.13 4.9.33 4.14.63a5.92 5.92 0 0 0-2.13 1.39A5.92 5.92 0 0 0 .62 4.14C.33 4.9.13 5.78.07 7.05.01 8.33 0 8.74 0 12c0 3.26.01 3.67.07 4.95.06 1.27.26 2.15.56 2.91a5.92 5.92 0 0 0 1.39 2.13c.66.66 1.32 1.06 2.13 1.39.76.3 1.64.5 2.91.56C8.33 23.99 8.74 24 12 24c3.26 0 3.67-.01 4.95-.07 1.27-.06 2.15-.26 2.91-.56a5.92 5.92 0 0 0 2.13-1.39c.66-.66 1.06-1.32 1.39-2.13.3-.76.5-1.64.56-2.91.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.06-1.27-.26-2.15-.56-2.91a5.92 5.92 0 0 0-1.39-2.13A5.92 5.92 0 0 0 19.86.62c-.76-.3-1.64-.5-2.91-.56C15.67.01 15.26 0 12 0Zm0 5.84a6.16 6.16 0 1 0 0 12.32 6.16 6.16 0 0 0 0-12.32Zm0 10.16a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm6.41-11.88a1.44 1.44 0 1 0 0 2.88 1.44 1.44 0 0 0 0-2.88Z"/></svg>
-      </a>
-    </div>
-    <div>
-      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;margin-bottom:14px;">Tools</div>
-      <div style="display:flex;flex-direction:column;gap:8px;">
-        <a href="tools-link-in-bio.html" style="color:var(--muted);font-size:13px;text-decoration:none;">Link in Bio</a>
-        <a href="tools-course-builder.html" style="color:var(--muted);font-size:13px;text-decoration:none;">Course Builder</a>
-        <a href="tools-coaching.html" style="color:var(--muted);font-size:13px;text-decoration:none;">1:1 Coaching</a>
-        <a href="tools-brand-deal-crm.html" style="color:var(--muted);font-size:13px;text-decoration:none;">Brand Deal CRM</a>
-        <a href="tools-media-kit.html" style="color:var(--muted);font-size:13px;text-decoration:none;">Media Kit</a>
-        <a href="tools-script-builder.html" style="color:var(--muted);font-size:13px;text-decoration:none;">Script Builder</a>
-        <a href="tools.html" style="color:var(--muted);font-size:13px;text-decoration:none;">View All Tools</a>
-      </div>
-    </div>
-    <div>
-      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;margin-bottom:14px;">Product</div>
-      <div style="display:flex;flex-direction:column;gap:8px;">
-        <a href="pricing.html" style="color:var(--muted);font-size:13px;text-decoration:none;">Pricing</a>
-        <a href="/learn/" style="color:var(--muted);font-size:13px;text-decoration:none;">Learning Hub</a>
-        <a href="blog.html" style="color:var(--muted);font-size:13px;text-decoration:none;">Blog</a>
-      </div>
-    </div>
-    <div>
-      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;margin-bottom:14px;">Company</div>
-      <div style="display:flex;flex-direction:column;gap:8px;">
-        <a href="about.html" style="color:var(--muted);font-size:13px;text-decoration:none;">About</a>
-        <a href="privacy.html" style="color:var(--muted);font-size:13px;text-decoration:none;">Privacy</a>
-        <a href="terms.html" style="color:var(--muted);font-size:13px;text-decoration:none;">Terms</a>
-      </div>
-    </div>
-    <div>
-      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;margin-bottom:14px;">Support</div>
-      <div style="display:flex;flex-direction:column;gap:8px;">
-        <a href="mailto:hello@ryxa.io" style="color:var(--muted);font-size:13px;text-decoration:none;">hello@ryxa.io</a>
-      </div>
-    </div>
-  </div>
-  <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:20px;width:100%;clear:both;">
-    <p style="font-size:12px;color:var(--muted);margin:0;">© <span class="copy-year"></span> MRLA Media LLC · Ryxa</p>
-  </div>
-</footer>
-
-<style>
-  .footer-grid a:hover { color: var(--text) !important; }
-  @media (max-width:768px) {
-    footer { padding: 40px 20px 24px !important; }
-    .footer-grid { grid-template-columns: 1fr 1fr !important; gap: 24px !important; }
-    .footer-grid > div:first-child { grid-column: 1 / -1; }
-  }
-  @media (max-width:480px) {
-    .footer-grid { grid-template-columns: 1fr !important; }
-  }
-</style><script>
+<div id="site-footer"></div>
+<script>
 const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtqeXRhcGNneHVrYWx3c3lwdXRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMTcxMzEsImV4cCI6MjA5MDg5MzEzMX0.VC8mcU5lUeA56kG2gHssvl88EVWr018XttA86jpfEn0';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -737,12 +613,13 @@ async function tryThisTool(e) {
   return false;
 }
 
-function goSignIn() { window.location.href = 'index.html?action=signin'; }
-function goSignUp() { window.location.href = 'index.html?action=signup'; }
-function toggleMobileMenu() { document.getElementById('mobile-menu').classList.toggle('open'); }
 function toggleFaq(el) { el.parentElement.classList.toggle('open'); }
 </script>
 
-<script src="/auth-modal.js"></script>
+<script>
+function openSignupModal(){window.location.href="index.html?action=signup";}
+function openAuthModal(){window.location.href="index.html?action=signin";}
+</script>
+<script src="/site-nav.js"></script>
 </body>
 </html>
