@@ -6628,11 +6628,20 @@ function showTool(tool) {
   if (tool === 'settings') {
     const pro = isPro();
     if (currentUser) {
-      // Avatar will be set by updateDashboardAvatar if bio has a photo
+      // Avatar: check bioState first, then query DB
       if (typeof bioState !== 'undefined' && bioState.avatar_url) {
         updateDashboardAvatar(bioState.avatar_url);
       } else {
-        document.getElementById('settings-avatar').textContent = currentUser.email[0].toUpperCase();
+        // bioState might not be loaded yet — query directly
+        sb.from('link_in_bio').select('avatar_url').eq('user_id', currentUser.id).maybeSingle().then(function(res) {
+          if (res.data?.avatar_url) {
+            updateDashboardAvatar(res.data.avatar_url);
+          } else {
+            document.getElementById('settings-avatar').textContent = currentUser.email[0].toUpperCase();
+          }
+        }).catch(function() {
+          document.getElementById('settings-avatar').textContent = currentUser.email[0].toUpperCase();
+        });
       }
       document.getElementById('settings-email').textContent = currentUser.email;
     }
