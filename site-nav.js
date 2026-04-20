@@ -11,6 +11,9 @@
 // =====================
 var style = document.createElement('style');
 style.textContent = ''
+  // Anti-flash: hide until JS renders
+  + '#site-header,#site-footer{opacity:0;transition:opacity 0.15s ease;}'
+  + '#site-header.ready,#site-footer.ready{opacity:1;}'
   // Nav
   + 'nav{position:sticky;top:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:0 48px;height:68px;background:rgba(7,7,15,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}'
   + '.logo img{width:38px;height:38px;object-fit:contain;}'
@@ -273,5 +276,9 @@ function siteNavCheckAuth() {
 // =====================
 renderHeader();
 renderFooter();
+var h = document.getElementById('site-header');
+var f = document.getElementById('site-footer');
+if (h) h.classList.add('ready');
+if (f) f.classList.add('ready');
 
 })();
