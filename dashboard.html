@@ -1770,6 +1770,17 @@
   .ds-tool-btn.active { background:rgba(124,58,237,0.15); border-color:rgba(124,58,237,0.5); color:#c4b5fd; }
   .ds-shape-option { display:flex;align-items:center;gap:8px;width:100%;padding:8px 10px;background:none;border:none;border-radius:6px;color:var(--text);font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;transition:background 0.12s; }
   .ds-shape-option:hover { background:rgba(124,58,237,0.1); }
+  .ds-layer-item { display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:8px;cursor:pointer;transition:background 0.12s;border:1px solid transparent;font-size:12px;color:var(--text);user-select:none; }
+  .ds-layer-item:hover { background:rgba(255,255,255,0.04); }
+  .ds-layer-item.active { background:rgba(124,58,237,0.1);border-color:rgba(124,58,237,0.3); }
+  .ds-layer-item.drag-over { border-top:2px solid #7c3aed; }
+  .ds-layer-icon { width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--muted); }
+  .ds-layer-name { flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+  .ds-layer-vis { width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--muted);cursor:pointer;border:none;background:none;padding:0;transition:color 0.12s; }
+  .ds-layer-vis:hover { color:var(--text); }
+  .ds-layer-vis.hidden { opacity:0.3; }
+  .ds-layer-grip { cursor:grab;color:var(--muted);flex-shrink:0;display:flex;align-items:center; }
+  .ds-layer-grip:active { cursor:grabbing; }
   .ds-project-card { display:flex; align-items:center; gap:14px; padding:14px; background:var(--surface); border:1px solid var(--border); border-radius:12px; cursor:pointer; transition:all 0.15s; }
   .ds-project-card:hover { border-color:rgba(124,58,237,0.3); background:rgba(124,58,237,0.03); }
   @media (max-width: 768px) {
@@ -5048,9 +5059,20 @@
             <button onclick="dsBringForward()" class="ds-tool-btn" title="Bring forward">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
             </button>
-            <button onclick="dsSendBackward()" class="ds-tool-btn" title="Send backward">
+            <button onclick="dsSendBackward()" class="ds-tool-btn" title="Send backward" aria-label="Send backward">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
             </button>
+            <button onclick="dsToggleLayers()" class="ds-tool-btn" id="ds-layers-btn" title="Layers" aria-label="Layers">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+            </button>
+            <!-- Layers panel -->
+            <div id="ds-layers-panel" style="display:none;position:absolute;left:54px;top:0;background:var(--surface2);border:1px solid var(--border);border-radius:12px;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,0.4);width:220px;max-height:400px;overflow:hidden;display:none;">
+              <div style="padding:10px 14px 8px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+                <div style="font-size:12px;font-weight:600;">Layers</div>
+                <button onclick="dsToggleLayers()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:2px;" aria-label="Close layers">×</button>
+              </div>
+              <div id="ds-layers-list" style="overflow-y:auto;max-height:350px;padding:6px;scrollbar-width:thin;scrollbar-color:rgba(124,58,237,0.4) transparent;"></div>
+            </div>
             <div class="ds-sidebar-divider" style="height:1px;background:var(--border);margin:4px 0;"></div>
             <button onclick="dsZoomIn()" class="ds-tool-btn" title="Zoom in">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
@@ -20845,14 +20867,14 @@ function initDesignCanvas() {
     dsResizeCanvas();
     if (!dsCanvas) return;
 
-    dsCanvas.on('selection:created', dsOnSelect);
-    dsCanvas.on('selection:updated', dsOnSelect);
-    dsCanvas.on('selection:cleared', dsOnDeselect);
+    dsCanvas.on('selection:created', function() { dsOnSelect(); dsRefreshLayersIfOpen(); });
+    dsCanvas.on('selection:updated', function() { dsOnSelect(); dsRefreshLayersIfOpen(); });
+    dsCanvas.on('selection:cleared', function() { dsOnDeselect(); dsRefreshLayersIfOpen(); });
     dsCanvas.on('object:modified', function() { dsCanvas.renderAll(); dsSaveState(); });
 
   // Save state on add/remove
-  dsCanvas.on('object:added', function(e) { if (!e.target._isGuideLine) dsSaveState(); });
-  dsCanvas.on('object:removed', function(e) { if (!e.target._isGuideLine) dsSaveState(); });
+  dsCanvas.on('object:added', function(e) { if (!e.target._isGuideLine) { dsSaveState(); dsRefreshLayersIfOpen(); } });
+  dsCanvas.on('object:removed', function(e) { if (!e.target._isGuideLine) { dsSaveState(); dsRefreshLayersIfOpen(); } });
 
   // Snap guidelines
   dsInitGuidelines();
@@ -21400,6 +21422,171 @@ function dsOnDeselect() {
   var hint = document.getElementById('ds-context-default');
   if (hint) hint.style.display = 'block';
   dsCloseShapeMenu();
+}
+
+// =====================================================
+// LAYERS PANEL
+// =====================================================
+function dsToggleLayers() {
+  var panel = document.getElementById('ds-layers-panel');
+  var btn = document.getElementById('ds-layers-btn');
+  if (panel.style.display === 'block') {
+    panel.style.display = 'none';
+    btn.classList.remove('active');
+  } else {
+    panel.style.display = 'block';
+    btn.classList.add('active');
+    dsRenderLayers();
+  }
+}
+
+function dsGetLayerName(obj) {
+  if (obj.type === 'textbox' || obj.type === 'i-text') {
+    var txt = (obj.text || '').substring(0, 20);
+    return txt || 'Text';
+  }
+  if (obj.type === 'image') return 'Image';
+  if (obj._dsShape) {
+    var names = { rect:'Rectangle', circle:'Circle', triangle:'Triangle', line:'Line', arrow:'Arrow', star:'Star' };
+    return names[obj._dsShapeType] || 'Shape';
+  }
+  return 'Object';
+}
+
+function dsGetLayerIcon(obj) {
+  if (obj.type === 'textbox' || obj.type === 'i-text') return '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>';
+  if (obj.type === 'image') return '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>';
+  if (obj._dsShapeType === 'rect') return '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>';
+  if (obj._dsShapeType === 'circle') return '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>';
+  if (obj._dsShapeType === 'triangle') return '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 22h20z"/></svg>';
+  if (obj._dsShapeType === 'line') return '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="19" x2="19" y2="5"/></svg>';
+  if (obj._dsShapeType === 'arrow') return '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
+  if (obj._dsShapeType === 'star') return '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+  return '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>';
+}
+
+function dsRenderLayers() {
+  var list = document.getElementById('ds-layers-list');
+  if (!list || !dsCanvas) return;
+  var objects = dsCanvas.getObjects().filter(function(o) { return !o._isGuideLine; });
+  var active = dsCanvas.getActiveObject();
+
+  if (objects.length === 0) {
+    list.innerHTML = '<div style="padding:16px;text-align:center;font-size:12px;color:var(--muted);">No layers yet. Add text, images, or shapes.</div>';
+    return;
+  }
+
+  // Render in reverse order (top layer first)
+  var html = '';
+  for (var i = objects.length - 1; i >= 0; i--) {
+    var obj = objects[i];
+    var isActive = obj === active;
+    var isVisible = obj.visible !== false;
+    html += '<div class="ds-layer-item' + (isActive ? ' active' : '') + '" data-layer-idx="' + i + '" draggable="true"'
+      + ' onclick="dsSelectLayer(' + i + ')"'
+      + ' ondragstart="dsLayerDragStart(event,' + i + ')"'
+      + ' ondragover="dsLayerDragOver(event)"'
+      + ' ondragleave="dsLayerDragLeave(event)"'
+      + ' ondrop="dsLayerDrop(event,' + i + ')">'
+      + '<div class="ds-layer-grip" title="Drag to reorder"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><circle cx="8" cy="6" r="2"/><circle cx="16" cy="6" r="2"/><circle cx="8" cy="12" r="2"/><circle cx="16" cy="12" r="2"/><circle cx="8" cy="18" r="2"/><circle cx="16" cy="18" r="2"/></svg></div>'
+      + '<div class="ds-layer-icon">' + dsGetLayerIcon(obj) + '</div>'
+      + '<div class="ds-layer-name">' + escapeHtml(dsGetLayerName(obj)) + '</div>'
+      + '<button class="ds-layer-vis' + (isVisible ? '' : ' hidden') + '" onclick="event.stopPropagation();dsToggleLayerVis(' + i + ')" title="' + (isVisible ? 'Hide' : 'Show') + '" aria-label="' + (isVisible ? 'Hide layer' : 'Show layer') + '">'
+      + (isVisible ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>'
+        : '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>')
+      + '</button>'
+      + '</div>';
+  }
+  list.innerHTML = html;
+}
+
+function dsSelectLayer(idx) {
+  if (!dsCanvas) return;
+  var objects = dsCanvas.getObjects().filter(function(o) { return !o._isGuideLine; });
+  if (idx >= 0 && idx < objects.length) {
+    dsCanvas.setActiveObject(objects[idx]);
+    dsCanvas.renderAll();
+    dsRenderLayers();
+  }
+}
+
+function dsToggleLayerVis(idx) {
+  if (!dsCanvas) return;
+  var objects = dsCanvas.getObjects().filter(function(o) { return !o._isGuideLine; });
+  if (idx >= 0 && idx < objects.length) {
+    var obj = objects[idx];
+    obj.visible = !obj.visible;
+    if (!obj.visible) {
+      obj.evented = false;
+      if (dsCanvas.getActiveObject() === obj) dsCanvas.discardActiveObject();
+    } else {
+      obj.evented = true;
+    }
+    dsCanvas.renderAll();
+    dsRenderLayers();
+    dsSaveState();
+  }
+}
+
+// Drag and drop reorder
+var dsLayerDragIdx = -1;
+
+function dsLayerDragStart(e, idx) {
+  dsLayerDragIdx = idx;
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', idx);
+  e.target.style.opacity = '0.5';
+  setTimeout(function() { e.target.style.opacity = '0.5'; }, 0);
+}
+
+function dsLayerDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  var item = e.target.closest('.ds-layer-item');
+  if (item) item.classList.add('drag-over');
+}
+
+function dsLayerDragLeave(e) {
+  var item = e.target.closest('.ds-layer-item');
+  if (item) item.classList.remove('drag-over');
+}
+
+function dsLayerDrop(e, targetIdx) {
+  e.preventDefault();
+  var item = e.target.closest('.ds-layer-item');
+  if (item) item.classList.remove('drag-over');
+
+  if (dsLayerDragIdx === -1 || dsLayerDragIdx === targetIdx) return;
+
+  var objects = dsCanvas.getObjects().filter(function(o) { return !o._isGuideLine; });
+  var srcObj = objects[dsLayerDragIdx];
+  if (!srcObj) return;
+
+  // Remove and re-insert at target position
+  dsCanvas.remove(srcObj);
+  var allObjs = dsCanvas.getObjects();
+  // Count non-guideline objects to find the real insert index
+  var realTargetIdx = 0;
+  var count = 0;
+  for (var i = 0; i < allObjs.length; i++) {
+    if (!allObjs[i]._isGuideLine) {
+      if (count === targetIdx) { realTargetIdx = i; break; }
+      count++;
+    }
+    realTargetIdx = i + 1;
+  }
+  dsCanvas.insertAt(srcObj, realTargetIdx);
+  dsCanvas.setActiveObject(srcObj);
+  dsCanvas.renderAll();
+  dsRenderLayers();
+  dsSaveState();
+  dsLayerDragIdx = -1;
+}
+
+// Refresh layers panel when objects change
+function dsRefreshLayersIfOpen() {
+  var panel = document.getElementById('ds-layers-panel');
+  if (panel && panel.style.display === 'block') dsRenderLayers();
 }
 
 // =====================================================
