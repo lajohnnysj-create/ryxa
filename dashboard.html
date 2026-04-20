@@ -1781,6 +1781,10 @@
   .ds-layer-vis.hidden { opacity:0.3; }
   .ds-layer-grip { cursor:grab;color:var(--muted);flex-shrink:0;display:flex;align-items:center; }
   .ds-layer-grip:active { cursor:grabbing; }
+  .ds-swatches-panel { position:absolute;top:36px;left:0;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,0.4);min-width:180px; }
+  .ds-swatches-grid { display:grid;grid-template-columns:repeat(8,1fr);gap:4px; }
+  .ds-swatch { width:20px;height:20px;border-radius:4px;border:1px solid rgba(255,255,255,0.12);cursor:pointer;transition:transform 0.1s,border-color 0.1s;padding:0; }
+  .ds-swatch:hover { transform:scale(1.2);border-color:rgba(255,255,255,0.4); }
   .ds-project-card { display:flex; align-items:center; gap:14px; padding:14px; background:var(--surface); border:1px solid var(--border); border-radius:12px; cursor:pointer; transition:all 0.15s; }
   .ds-project-card:hover { border-color:rgba(124,58,237,0.3); background:rgba(124,58,237,0.03); }
   @media (max-width: 768px) {
@@ -4958,11 +4962,45 @@
             <button onclick="dsSetAlign('center')" class="ds-tool-btn" title="Align center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
             <button onclick="dsSetAlign('right')" class="ds-tool-btn" title="Align right"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="9" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
             <div style="width:1px;height:24px;background:var(--border);margin:0 2px;"></div>
-            <input type="color" id="ds-text-color" value="#000000" oninput="dsSetTextColor(this.value)" style="width:28px;height:28px;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:2px;" aria-label="Text color">
+            <div style="position:relative;display:flex;align-items:center;gap:4px;">
+              <input type="color" id="ds-text-color" value="#000000" oninput="dsSetTextColor(this.value)" style="width:28px;height:28px;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:2px;" aria-label="Text color">
+              <button onclick="dsToggleSwatches('ds-text-swatches')" class="ds-tool-btn" title="Color swatches" style="width:20px;height:28px;font-size:10px;padding:0;" aria-label="Show color swatches">▾</button>
+              <div id="ds-text-swatches" class="ds-swatches-panel" style="display:none;">
+                <div class="ds-swatches-grid" id="ds-text-swatch-grid"></div>
+              </div>
+            </div>
             <div style="width:1px;height:24px;background:var(--border);margin:0 2px;"></div>
             <input type="color" id="ds-stroke-color" value="#000000" oninput="dsSetStroke()" style="width:28px;height:28px;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:2px;" aria-label="Stroke color" title="Text stroke color">
             <input type="number" id="ds-stroke-width" value="0" min="0" max="20" oninput="dsSetStroke()" style="width:44px;padding:4px 4px;background:var(--surface);border:1px solid var(--border);border-radius:6px;font-size:11px;color:var(--text);text-align:center;" aria-label="Stroke width" title="Stroke width (0 = off)">
-            <button onclick="dsToggleShadow()" class="ds-tool-btn" id="ds-shadow-btn" title="Drop shadow" style="width:auto;padding:0 8px;font-size:11px;">Shadow</button>
+            <div style="position:relative;">
+              <button onclick="dsToggleEffectsMenu()" class="ds-tool-btn" id="ds-effects-btn" title="Text effects" style="width:auto;padding:0 10px;font-size:11px;gap:4px;" aria-label="Text effects">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+                Effects ▾
+              </button>
+              <div id="ds-effects-menu" style="display:none;position:absolute;top:36px;left:0;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:6px;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,0.4);min-width:180px;">
+                <button onclick="dsApplyEffect('shadow')" class="ds-shape-option" id="ds-fx-shadow">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="14" height="14" rx="2"/><path d="M7 21h14V7" opacity="0.3"/></svg>
+                  Drop Shadow
+                </button>
+                <button onclick="dsApplyEffect('outline')" class="ds-shape-option" id="ds-fx-outline">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+                  Bold Outline
+                </button>
+                <button onclick="dsApplyEffect('neon')" class="ds-shape-option" id="ds-fx-neon">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e879f9" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                  Neon Glow
+                </button>
+                <button onclick="dsApplyEffect('retro')" class="ds-shape-option" id="ds-fx-retro">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M7 7h10M7 12h10M7 17h10"/></svg>
+                  Retro Offset
+                </button>
+                <div style="height:1px;background:var(--border);margin:4px 0;"></div>
+                <button onclick="dsApplyEffect('none')" class="ds-shape-option">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                  Clear Effects
+                </button>
+              </div>
+            </div>
             <div style="width:1px;height:24px;background:var(--border);margin:0 2px;"></div>
             <button onclick="dsRewriteText()" class="ds-tool-btn" id="ds-rewrite-btn" title="AI Rewrite" style="width:auto;padding:0 10px;gap:6px;font-size:12px;">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
@@ -4973,7 +5011,7 @@
           <div id="ds-image-controls" style="display:none;align-items:center;gap:6px;flex-wrap:wrap;">
             <button onclick="dsRemoveBg()" class="ds-tool-btn" id="ds-removebg-btn" title="Remove Background" style="width:auto;padding:0 10px;gap:6px;font-size:12px;">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5l14 14M2 12a10 10 0 0 1 10-10M22 12a10 10 0 0 1-10 10"/></svg>
-              AI Background Remove
+              AI Remove Background
             </button>
             <button onclick="dsUpscaleImage()" class="ds-tool-btn" id="ds-upscale-btn" title="Smart Upscale 2x" style="width:auto;padding:0 10px;gap:6px;font-size:12px;">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
@@ -5001,7 +5039,13 @@
           <div id="ds-shape-controls" style="display:none;align-items:center;gap:6px;flex-wrap:wrap;">
             <div id="ds-shape-fill-group" style="display:flex;align-items:center;gap:6px;">
               <div style="font-size:11px;color:var(--muted);white-space:nowrap;">Fill</div>
-              <input type="color" id="ds-shape-fill" value="#7c3aed" oninput="dsSetShapeFill(this.value)" style="width:28px;height:28px;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:2px;" aria-label="Shape fill color">
+              <div style="position:relative;display:flex;align-items:center;gap:4px;">
+                <input type="color" id="ds-shape-fill" value="#7c3aed" oninput="dsSetShapeFill(this.value)" style="width:28px;height:28px;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:2px;" aria-label="Shape fill color">
+                <button onclick="dsToggleSwatches('ds-shape-swatches')" class="ds-tool-btn" title="Color swatches" style="width:20px;height:28px;font-size:10px;padding:0;" aria-label="Show color swatches">▾</button>
+                <div id="ds-shape-swatches" class="ds-swatches-panel" style="display:none;">
+                  <div class="ds-swatches-grid" id="ds-shape-swatch-grid"></div>
+                </div>
+              </div>
               <button onclick="dsToggleShapeFill()" class="ds-tool-btn" id="ds-shape-nofill-btn" title="Toggle fill on/off" style="width:auto;padding:0 8px;font-size:10px;" aria-label="Toggle fill">No fill</button>
               <div style="width:1px;height:24px;background:var(--border);margin:0 2px;"></div>
             </div>
@@ -21398,7 +21442,7 @@ function dsOnSelect() {
     document.getElementById('ds-underline-btn').classList.toggle('active', !!obj.underline);
     document.getElementById('ds-stroke-color').value = obj.stroke || '#000000';
     document.getElementById('ds-stroke-width').value = obj.strokeWidth || 0;
-    document.getElementById('ds-shadow-btn').classList.toggle('active', !!obj.shadow);
+    document.getElementById('ds-effects-btn').classList.toggle('active', !!(obj.shadow || obj.strokeWidth));
   } else if (isShape) {
     tc.style.display = 'none';
     ic.style.display = 'none';
@@ -21433,6 +21477,149 @@ function dsOnDeselect() {
   if (hint) hint.style.display = 'block';
   dsCloseShapeMenu();
 }
+
+// =====================================================
+// COLOR SWATCHES
+// =====================================================
+var DS_SWATCHES = [
+  '#000000','#ffffff','#f87171','#ef4444','#dc2626','#b91c1c',
+  '#fb923c','#f97316','#fbbf24','#eab308','#a3e635','#4ade80',
+  '#22c55e','#16a34a','#2dd4bf','#06b6d4','#38bdf8','#3b82f6',
+  '#6366f1','#7c3aed','#a855f7','#c084fc','#e879f9','#ec4899',
+  '#334155','#475569','#64748b','#94a3b8','#cbd5e1','#f1f5f9',
+  'transparent'
+];
+
+function dsInitSwatches(gridId, onPick) {
+  var grid = document.getElementById(gridId);
+  if (!grid || grid.children.length > 0) return;
+  DS_SWATCHES.forEach(function(color) {
+    var btn = document.createElement('button');
+    btn.className = 'ds-swatch';
+    btn.setAttribute('aria-label', color === 'transparent' ? 'Transparent' : color);
+    if (color === 'transparent') {
+      btn.style.background = 'repeating-conic-gradient(#808080 0% 25%, #b0b0b0 0% 50%)';
+      btn.style.backgroundSize = '8px 8px';
+    } else {
+      btn.style.background = color;
+    }
+    btn.onclick = function() { onPick(color); };
+    grid.appendChild(btn);
+  });
+}
+
+function dsToggleSwatches(panelId) {
+  var panel = document.getElementById(panelId);
+  if (!panel) return;
+  // Close other swatch panels
+  document.querySelectorAll('.ds-swatches-panel').forEach(function(p) {
+    if (p.id !== panelId) p.style.display = 'none';
+  });
+  if (panel.style.display === 'block') {
+    panel.style.display = 'none';
+  } else {
+    panel.style.display = 'block';
+    // Init swatches on first open
+    if (panelId === 'ds-text-swatches') {
+      dsInitSwatches('ds-text-swatch-grid', function(color) {
+        document.getElementById('ds-text-color').value = color === 'transparent' ? '#000000' : color;
+        dsSetTextColor(color === 'transparent' ? '#000000' : color);
+        document.getElementById('ds-text-swatches').style.display = 'none';
+      });
+    } else if (panelId === 'ds-shape-swatches') {
+      dsInitSwatches('ds-shape-swatch-grid', function(color) {
+        if (color === 'transparent') {
+          dsToggleShapeFill();
+        } else {
+          document.getElementById('ds-shape-fill').value = color;
+          dsSetShapeFill(color);
+        }
+        document.getElementById('ds-shape-swatches').style.display = 'none';
+      });
+    }
+  }
+}
+
+// =====================================================
+// TEXT EFFECTS
+// =====================================================
+function dsToggleEffectsMenu() {
+  var menu = document.getElementById('ds-effects-menu');
+  var btn = document.getElementById('ds-effects-btn');
+  if (menu.style.display === 'block') {
+    menu.style.display = 'none';
+    btn.classList.remove('active');
+  } else {
+    menu.style.display = 'block';
+    btn.classList.add('active');
+  }
+}
+
+function dsCloseEffectsMenu() {
+  var menu = document.getElementById('ds-effects-menu');
+  var btn = document.getElementById('ds-effects-btn');
+  if (menu) menu.style.display = 'none';
+  if (btn) btn.classList.remove('active');
+}
+
+function dsApplyEffect(effect) {
+  if (!dsCanvas) return;
+  var obj = dsCanvas.getActiveObject();
+  if (!obj || (obj.type !== 'i-text' && obj.type !== 'textbox')) return;
+  dsCloseEffectsMenu();
+
+  switch (effect) {
+    case 'shadow':
+      if (obj.shadow) {
+        obj.set('shadow', null);
+      } else {
+        obj.set('shadow', new fabric.Shadow({ color: 'rgba(0,0,0,0.6)', blur: 8, offsetX: 3, offsetY: 3 }));
+      }
+      break;
+    case 'outline':
+      obj.set({ stroke: '#000000', strokeWidth: 3 });
+      if (obj.fill === '#000000') obj.set('fill', '#ffffff');
+      document.getElementById('ds-stroke-color').value = '#000000';
+      document.getElementById('ds-stroke-width').value = 3;
+      break;
+    case 'neon':
+      var glowColor = obj.fill || '#e879f9';
+      obj.set('shadow', new fabric.Shadow({ color: glowColor, blur: 20, offsetX: 0, offsetY: 0 }));
+      obj.set({ stroke: glowColor, strokeWidth: 1 });
+      document.getElementById('ds-stroke-color').value = glowColor;
+      document.getElementById('ds-stroke-width').value = 1;
+      break;
+    case 'retro':
+      obj.set('shadow', new fabric.Shadow({ color: 'rgba(0,0,0,0.9)', blur: 0, offsetX: 4, offsetY: 4 }));
+      obj.set({ stroke: '#000000', strokeWidth: 2 });
+      document.getElementById('ds-stroke-color').value = '#000000';
+      document.getElementById('ds-stroke-width').value = 2;
+      break;
+    case 'none':
+      obj.set({ shadow: null, stroke: '', strokeWidth: 0 });
+      document.getElementById('ds-stroke-color').value = '#000000';
+      document.getElementById('ds-stroke-width').value = 0;
+      break;
+  }
+
+  dsCanvas.renderAll();
+  dsSaveState();
+  dsOnSelect(); // Refresh toolbar state
+}
+
+// Close effects menu and swatches on outside click
+document.addEventListener('click', function(e) {
+  var effectsMenu = document.getElementById('ds-effects-menu');
+  var effectsBtn = document.getElementById('ds-effects-btn');
+  if (effectsMenu && effectsMenu.style.display === 'block' && !effectsMenu.contains(e.target) && !effectsBtn.contains(e.target)) {
+    dsCloseEffectsMenu();
+  }
+  document.querySelectorAll('.ds-swatches-panel').forEach(function(panel) {
+    if (panel.style.display === 'block' && !panel.contains(e.target) && !panel.previousElementSibling?.contains(e.target) && !panel.parentElement?.querySelector('input[type=color]')?.contains(e.target)) {
+      panel.style.display = 'none';
+    }
+  });
+});
 
 // =====================================================
 // SET IMAGE AS BACKGROUND
@@ -21998,18 +22185,7 @@ function dsSetStroke() {
 }
 
 // ===== SHADOW =====
-function dsToggleShadow() {
-  var obj = dsCanvas?.getActiveObject();
-  if (!obj || (obj.type !== 'i-text' && obj.type !== 'textbox')) return;
-  if (obj.shadow) {
-    obj.set('shadow', null);
-    document.getElementById('ds-shadow-btn').classList.remove('active');
-  } else {
-    obj.set('shadow', new fabric.Shadow({ color: 'rgba(0,0,0,0.6)', blur: 8, offsetX: 3, offsetY: 3 }));
-    document.getElementById('ds-shadow-btn').classList.add('active');
-  }
-  dsCanvas.renderAll();
-}
+// Shadow toggle now handled by dsApplyEffect('shadow') in Effects menu
 
 // ===== OPACITY =====
 function dsSetOpacity(val) {
@@ -23199,7 +23375,7 @@ function dsRemoveBg() {
 
   function dsResetBgBtn(b) {
     b.disabled = false;
-    b.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5l14 14M2 12a10 10 0 0 1 10-10M22 12a10 10 0 0 1-10 10"/></svg> AI Background Remove';
+    b.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5l14 14M2 12a10 10 0 0 1 10-10M22 12a10 10 0 0 1-10 10"/></svg> AI Remove Background';
   }
 
   if (_dsBgRemovalReady && _dsBgRemoveFunc) {
