@@ -17782,7 +17782,7 @@ function generateHooks() {
 
   fetch('/api/ai-script', {
     method: 'POST',
-    headers: await getAIHeaders(),
+    headers: getAIHeaders(),
     body: JSON.stringify({ mode: 'hook', topic: topic })
   })
   .then(function(r) { return r.json(); })
@@ -17872,7 +17872,7 @@ function runAIAssist(blockId, mode) {
 
   fetch('/api/ai-script', {
     method: 'POST',
-    headers: await getAIHeaders(),
+    headers: getAIHeaders(),
     body: JSON.stringify({ mode: mode, text: item.body })
   })
   .then(function(r) { return r.json(); })
@@ -17934,7 +17934,7 @@ function aiBioAssist(textareaId, maxLen) {
 
   fetch('/api/ai-bio', {
     method: 'POST',
-    headers: await getAIHeaders(),
+    headers: getAIHeaders(),
     body: JSON.stringify({ text: currentText, maxLength: maxLen, mode: mode })
   })
   .then(function(r) { return r.json(); })
@@ -18005,7 +18005,7 @@ function aiCleanUp(textareaId) {
 
   fetch('/api/ai-cleanup', {
     method: 'POST',
-    headers: await getAIHeaders(),
+    headers: getAIHeaders(),
     body: JSON.stringify({ text: text })
   })
   .then(function(r) { return r.json(); })
@@ -21661,7 +21661,7 @@ async function caAnalyze() {
 
     var response = await fetch('/api/ai-contract', {
       method: 'POST',
-      headers: await getAIHeaders(),
+      headers: getAIHeaders(),
       body: JSON.stringify({ text: text })
     });
     var data = await response.json();
@@ -21891,7 +21891,7 @@ function taAnalyze() {
   // Send to API
   fetch('/api/ai-thumbnail', {
     method: 'POST',
-    headers: await getAIHeaders(),
+    headers: getAIHeaders(),
     body: JSON.stringify({ image: taImageData })
   })
   .then(function(r) { return r.json(); })
@@ -22233,7 +22233,7 @@ function dsAltText() {
 
   fetch('/api/alt-text', {
     method: 'POST',
-    headers: await getAIHeaders(),
+    headers: getAIHeaders(),
     body: JSON.stringify({ image: dataUrl })
   })
   .then(function(res) { return res.json(); })
@@ -22318,7 +22318,7 @@ function dsCaption() {
 
   fetch('/api/ai-caption', {
     method: 'POST',
-    headers: await getAIHeaders(),
+    headers: getAIHeaders(),
     body: JSON.stringify({ image: dataUrl })
   })
   .then(function(res) { return res.json(); })
@@ -22400,7 +22400,7 @@ function dsRewriteText() {
 
   fetch('/api/ai-rewrite', {
     method: 'POST',
-    headers: await getAIHeaders(),
+    headers: getAIHeaders(),
     body: JSON.stringify({ text: originalText })
   })
   .then(function(res) { return res.json(); })
