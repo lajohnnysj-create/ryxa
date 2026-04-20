@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="shortcut icon" href="/favicon.ico">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FAQ. Frequently Asked Questions. Ryxa</title>
+<meta name="description" content="Got questions about Ryxa? Find answers about how it works, privacy, billing, features, and troubleshooting.">
+<meta name="keywords" content="ryxa faq, instagram unfollower tool questions, instagram unfollower checker help, instagram data export help">
+<meta name="author" content="Ryxa">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://www.ryxa.io/faq.html">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.ryxa.io/faq.html">
+<meta property="og:title" content="FAQ. Ryxa">
+<meta property="og:description" content="Got questions about Ryxa? Find answers about how it works, privacy, billing, features, and troubleshooting.">
+<meta property="og:image" content="https://www.ryxa.io/og-image.png">
+
+<!-- Structured Data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type": "Question", "name": "What is Ryxa?", "acceptedAnswer": {"@type": "Answer", "text": "Ryxa is a tool that lets you upload your Instagram data export files and instantly see who you follow that isn't following you back, without needing your Instagram password."}},
+    {"@type": "Question", "name": "Do I need to give you my Instagram password?", "acceptedAnswer": {"@type": "Answer", "text": "Absolutely not. Ryxa never asks for your Instagram password and never connects to your Instagram account."}},
+    {"@type": "Question", "name": "Will using Ryxa get my Instagram account banned?", "acceptedAnswer": {"@type": "Answer", "text": "We do not connect to your Instagram account or use Instagram's API. The Follower Audit only processes data files that you export from Instagram yourself, so our tool operates entirely outside of Instagram's platform."}},
+    {"@type": "Question", "name": "How does Ryxa handle my data?", "acceptedAnswer": {"@type": "Answer", "text": "We store the data you create using our tools — such as your link in bio, media kit, scripts, tax entries, and other tool-specific content. Instagram export files for the Follower Audit are processed in your browser and not stored on our servers. Full details are in our privacy policy."}},
+    {"@type": "Question", "name": "Can I cancel my subscription?", "acceptedAnswer": {"@type": "Answer", "text": "Yes, you can cancel anytime. Your paid access continues until the end of your current billing period."}}
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #07070f; --surface: #0f0f1a; --surface2: #161625;
+    --border: rgba(255,255,255,0.07); --border-hover: rgba(255,255,255,0.14);
+    --accent: #7c3aed; --accent2: #a855f7; --accent-glow: rgba(124,58,237,0.3);
+    --text: #f0eef8; --muted: #b4b2c8; --muted2: #c9c7dc;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scrollbar-width: thin; scrollbar-color: rgba(168,85,247,0.4) #0a0a14; }
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: #0a0a14; }
+  ::-webkit-scrollbar-thumb { background: rgba(168,85,247,0.4); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(168,85,247,0.6); }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+
+  /* NAV */
+  nav { position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 20px 48px; background: rgba(10,10,15,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); }
+  .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 20px; letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text); }
+  .logo img { width: 38px; height: 38px; object-fit: contain; }
+  .logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); display: inline-block; }
+  .nav-links { display: flex; gap: 36px; }
+  .nav-links a { color: var(--muted); font-size: 14px; text-decoration: none; transition: color 0.2s; }
+  .nav-links a:hover { color: var(--text); }
+  /* Tools dropdown */
+  .nav-tools-wrap { position: relative; display: flex; align-items: center; }
+  .nav-tools-trigger { display: inline-flex; align-items: center; gap: 5px; color: var(--muted); font-size: 14px; cursor: pointer; background: none; border: none; font-family: 'DM Sans', sans-serif; padding: 0; transition: color 0.2s; }
+  .nav-tools-trigger:hover, .nav-tools-wrap:hover .nav-tools-trigger { color: var(--text); }
+  .nav-tools-trigger svg { transition: transform 0.2s; }
+  .nav-tools-wrap:hover .nav-tools-trigger svg { transform: rotate(180deg); }
+  .nav-tools-menu { position: absolute; top: 100%; left: 0; transform: translateY(8px); width: 720px; max-width: calc(100vw - 32px); background: rgba(15,15,26,0.98); backdrop-filter: blur(20px); border: 1px solid var(--border-hover); border-radius: 16px; padding: 18px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); opacity: 0; pointer-events: none; transition: opacity 0.18s, transform 0.18s; z-index: 250; }
+  .nav-tools-wrap:hover .nav-tools-menu { opacity: 1; pointer-events: all; transform: translateY(0); }
+  .nav-tools-wrap::before { content: ''; position: absolute; top: 100%; left: 0; right: 0; height: 12px; }
+  .nav-tools-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+  .nav-tools-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px; border-radius: 10px; text-decoration: none; transition: background 0.15s; color: inherit; }
+  .nav-tools-item:hover { background: rgba(124,58,237,0.08); }
+  .nav-tools-item-icon { width: 36px; height: 36px; border-radius: 9px; background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #c4b5fd; }
+  .nav-tools-item-icon svg { width: 17px; height: 17px; }
+  .nav-tools-item-content { flex: 1; min-width: 0; }
+  .nav-tools-item-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; color: var(--text); margin-bottom: 2px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .nav-tools-tier.popular { background: rgba(250,204,21,0.15); border: 1px solid rgba(250,204,21,0.3); color: #fbbf24; }
+  .nav-tools-item-desc { font-size: 11px; color: var(--muted); line-height: 1.4; }
+  .nav-tools-tier { font-size: 8px; padding: 2px 6px; border-radius: 4px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; vertical-align: middle; }
+  .nav-tools-tier.pro { background: rgba(124,58,237,0.15); border: 1px solid rgba(124,58,237,0.3); color: #c4b5fd; }
+  .nav-tools-tier.free { background: rgba(74,222,128,0.12); border: 1px solid rgba(74,222,128,0.3); color: #4ade80; }
+  .nav-tools-tier.max { background: linear-gradient(135deg,#a78bfa,#e879f9); color: #fff; border: none; }
+  .nav-tools-footer { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .nav-tools-footer-link { font-size: 12px; color: #a78bfa; text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 4px; }
+  .nav-tools-footer-link:hover { color: #c4b5fd; }
+
+  .nav-links a.active { color: var(--text); }
+  .nav-cta { background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 10px 22px; box-shadow: 0 0 20px var(--accent-glow); font-size: 14px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-block; }
+  .nav-cta:hover { background: #a855f7; transform: translateY(-1px); }
+
+  /* PAGE HEADER */
+  .page-header { padding: 80px 48px 60px; text-align: center; position: relative; overflow: hidden; }
+  .page-header::before { content: ''; position: absolute; top: -20%; left: 50%; transform: translateX(-50%); width: 600px; height: 600px; background: radial-gradient(ellipse, rgba(124,58,237,0.1) 0%, transparent 70%); border-radius: 50%; pointer-events: none; }
+  .badge { display: inline-flex; align-items: center; gap: 8px; border: 1px solid rgba(124,58,237,0.4); background: rgba(124,58,237,0.08); border-radius: 100px; padding: 6px 16px; font-size: 12px; color: #c4b5fd; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 24px; }
+  .page-header h1 { font-family: 'Syne', sans-serif; font-size: clamp(32px, 5vw, 58px); font-weight: 800; letter-spacing: -2px; line-height: 1.05; margin-bottom: 16px; }
+  .page-header h1 em { font-style: normal; color: var(--accent2); }
+  .page-header p { font-size: 16px; color: var(--muted); max-width: 440px; margin: 0 auto; line-height: 1.65; font-weight: 300; }
+
+  /* CATEGORY TABS */
+  .category-tabs { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin: 0 auto 48px; padding: 0 24px; max-width: 860px; }
+  .cat-tab { padding: 8px 20px; border-radius: 100px; font-size: 13px; cursor: pointer; border: 1px solid var(--border); background: transparent; color: var(--muted); font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
+  .cat-tab.active { background: var(--accent); color: #fff; border-color: var(--accent2); }
+  .cat-tab:hover:not(.active) { border-color: var(--border-hover); color: var(--text); }
+
+  /* FAQ CONTENT */
+  .faq-content { max-width: 760px; margin: 0 auto; padding: 0 24px 100px; }
+
+  .faq-category { margin-bottom: 48px; }
+  .faq-category-title { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent2); margin-bottom: 16px; }
+
+  /* ACCORDION */
+  .faq-item { border: 1px solid var(--border); border-radius: 12px; margin-bottom: 10px; overflow: hidden; transition: border-color 0.2s; }
+  .faq-item:hover { border-color: var(--border-hover); }
+  .faq-item.open { border-color: rgba(124,58,237,0.3); }
+  .faq-question { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; cursor: pointer; gap: 16px; background: var(--surface); transition: background 0.2s; user-select: none; }
+  .faq-item.open .faq-question { background: var(--surface2); }
+  .faq-question-text { font-size: 15px; font-weight: 500; line-height: 1.5; }
+  .faq-chevron { width: 20px; height: 20px; border-radius: 50%; background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; transition: all 0.25s; color: var(--muted); }
+  .faq-item.open .faq-chevron { background: rgba(124,58,237,0.15); color: var(--accent2); transform: rotate(180deg); }
+  .faq-answer { display: none; padding: 0 24px 20px; background: var(--surface2); }
+  .faq-item.open .faq-answer { display: block; }
+  .faq-answer p { font-size: 14px; line-height: 1.75; color: var(--muted); margin-bottom: 10px; font-weight: 300; }
+  .faq-answer p:last-child { margin-bottom: 0; }
+  .faq-answer a { color: var(--accent2); text-decoration: none; }
+  .faq-answer a:hover { text-decoration: underline; }
+  .faq-answer code { background: rgba(255,255,255,0.07); border: 1px solid var(--border-hover); border-radius: 5px; padding: 2px 7px; font-size: 13px; font-family: monospace; color: #c4b5fd; }
+  .faq-answer ul { list-style: none; display: flex; flex-direction: column; gap: 8px; margin: 10px 0; }
+  .faq-answer ul li { display: flex; align-items: flex-start; gap: 8px; font-size: 14px; line-height: 1.6; color: var(--muted); font-weight: 300; }
+  .faq-answer ul li::before { content: '→'; color: var(--accent2); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+
+  /* CTA BOX */
+  .cta-box { background: linear-gradient(135deg, rgba(124,58,237,0.08) 0%, var(--surface) 60%); border: 1px solid rgba(124,58,237,0.3); border-radius: 16px; padding: 40px; text-align: center; margin-top: 48px; }
+  .cta-box h3 { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; margin-bottom: 10px; }
+  .cta-box p { color: var(--muted); font-size: 15px; margin-bottom: 24px; }
+  .btn-primary { display: inline-block; background: var(--accent); color: #fff; border: none; border-radius: 10px; padding: 14px 32px; font-size: 15px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.25s; box-shadow: 0 0 40px rgba(124,58,237,0.3); text-decoration: none; }
+  .btn-primary:hover { background: #a855f7; transform: translateY(-2px); }
+
+  /* FOOTER */
+  footer { border-top: 1px solid var(--border); padding: 32px 48px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+  footer p { font-size: 13px; color: var(--muted); }
+  footer a { color: var(--muted); text-decoration: none; font-size: 13px; transition: color 0.2s; }
+  footer a:hover { color: var(--text); }
+  .footer-links { display: flex; gap: 24px; flex-wrap: wrap; }
+
+  @media (max-width: 768px) {
+    nav { padding: 16px 20px; }
+    .nav-links { display: none; }
+    .page-header { padding: 56px 20px 40px; }
+    .faq-content { padding: 0 16px 60px; }
+    footer { flex-direction: column; text-align: center; padding: 24px 20px; }
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky; top: 0; z-index: 200;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 48px;
+    background: rgba(10,10,15,0.85); backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+  .mobile-menu { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg); z-index: 400; flex-direction: column; padding: 80px 32px 40px; pointer-events: none; }
+  @keyframes slideDown { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:none} }
+  .mobile-menu.open { display: flex; pointer-events: all; }
+  .mobile-menu-links { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+  .mobile-menu-links a { color: var(--text); font-size: 22px; font-family: 'Syne', sans-serif; font-weight: 700; text-decoration: none; padding: 14px 0; border-bottom: 1px solid var(--border); transition: color 0.2s; letter-spacing: -0.5px; }
+  .mobile-menu-links a:hover { color: var(--accent2); }
+  .mobile-menu-bottom { margin-top: 32px; }
+  .mobile-cta { width: 100%; padding: 16px; background: var(--accent); color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; text-decoration: none; display: block; text-align: center; }
+  .mobile-cta:hover { background: #a855f7; }
+
+  .hamburger { display: none; flex-direction: column; justify-content: center; gap: 5px; background: none; border: none; cursor: pointer; padding: 6px; }
+  .hamburger span { display: block; width: 22px; height: 2px; background: var(--text); border-radius: 2px; transition: all 0.25s; }
+  .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .hamburger.open span:nth-child(2) { opacity: 0; }
+  .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+  @media (max-width: 768px) {
+    nav { padding: 0 20px; }
+    .nav-links, .nav-right { display: none; }
+    .hamburger { display: flex; }
+  }
+
+
+  /* === A11Y: visible focus ring for keyboard users === */
+  *:focus-visible {
+    outline: 2px solid #c4b5fd;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  /* === A11Y: respect reduced-motion preferences === */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+</style>
+<style>body{opacity:0;transition:opacity 0.2s ease;}body.site-ready{opacity:1;}</style>
+</head>
+<body>
+
+<!-- MOBILE MENU -->
+<div id="site-header"></div>
+
+
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <div class="badge">❓ Got questions?</div>
+  <h1>Frequently Asked <em>Questions</em></h1>
+  <p>Everything you need to know about Ryxa. Can't find your answer? Email us at hello@ryxa.io</p>
+</div>
+
+<!-- CATEGORY TABS -->
+<div class="category-tabs">
+  <button class="cat-tab active" onclick="showCategory('all', this)">All</button>
+  <button class="cat-tab" onclick="showCategory('general', this)">General</button>
+  <button class="cat-tab" onclick="showCategory('privacy', this)">Privacy & Safety</button>
+  <button class="cat-tab" onclick="showCategory('billing', this)">Billing</button>
+  <button class="cat-tab" onclick="showCategory('features', this)">Features</button>
+  <button class="cat-tab" onclick="showCategory('troubleshooting', this)">Troubleshooting</button>
+</div>
+
+<!-- FAQ CONTENT -->
+<div class="faq-content">
+
+  <!-- GENERAL -->
+  <div class="faq-category" data-category="general">
+    <div class="faq-category-title">General</div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-question-text">What is Ryxa?</span>
+        <span class="faq-chevron">▼</span>
+      </div>
+      <div class="faq-answer">
+        <p>Ryxa is a suite of creator tools designed to help you grow smarter, protect your energy, and run your creator business. Our tools include a Follower Audit, Image Studio, QR Code Generator, and Invoice Generator, all in one dashboard.</p>
+        <p>Everything is built with privacy in mind. Most tools run entirely in your browser for speed and simplicity.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-question-text">Do I need an account to use Ryxa?</span>
+        <span class="faq-chevron">▼</span>
+      </div>
+      <div class="faq-answer">
+        <p>Yes, a free account is required to access the tools. Creating an account is free and takes less than a minute. No credit card required.</p>
+        <p>Signing in allows us to save your preferences, track your usage limits, and unlock features like audit history and saved settings.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-question-text">What is the difference between Free, Pro, and Creator Max?</span>
+        <span class="faq-chevron">▼</span>
+      </div>
+      <div class="faq-answer">
+        <p><strong>Free</strong> gives you limited access to all tools — great for trying everything out.</p>
+        <p><strong>Pro ($10/month)</strong> unlocks full access to most tools with higher limits and premium features. Includes the Script Builder, full Follower Audit with whitelist, snake list, and CSV export, plus Link in Bio and Media Kit branding removal and custom theme presets.</p>
+        <p><strong>Creator Max ($20/month)</strong> includes everything in Pro plus the Brand Deal CRM, fully custom themes (including custom backgrounds), expanded link counts, and other Max-only features.</p>
+        <p>See our <a href="pricing.html" style="color:var(--accent2);">pricing page</a> for the full comparison.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-question-text">Is Ryxa affiliated with Instagram or Meta?</span>
+        <span class="faq-chevron">▼</span>
+      </div>
+      <div class="faq-answer">
+        <p>No. Ryxa is an independent tool and is not affiliated with, endorsed by, or connected to Instagram or Meta in any way. We use data that Instagram allows you to export from your own account.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-question-text">Why would this be important to me?</span>
+        <span class="faq-chevron">▼</span>
+      </div>
+      <div class="faq-answer">
+        <p>If you are a creator, influencer, small business, or anyone who puts real time and energy into building an audience on Instagram, knowing who actually supports you back matters.</p>
+        <p>You follow people, engage with their content, support their businesses, cheer them on. But are they doing the same for you? Ryxa gives you clarity so you can make intentional decisions about who you give your energy to.</p>
+        <p>Beyond the follower audit, our other tools help you run your creator business, from generating professional invoices for brand deals to creating QR codes for your campaigns. Your follow is a form of support. You deserve to know if it is mutual. 🐍</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- PRIVACY -->
+  <div class="faq-category" data-category="privacy">
+    <div class="faq-category-title">Privacy &amp; Safety</div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-question-text">Is my data safe with Ryxa?</span>
+        <span class="faq-chevron">▼</span>
+      </div>
+      <div class="faq-answer">
+        <p>Yes. We take privacy seriously and store only what's needed to operate the tools you use — your account info, subscription status, and the data you create using our tools (like your link in bio, media kit, scripts, tax entries, and other tool-specific content).</p>
+        <p>We never sell your data to third parties. For the full list of what we store and how, see our <a href="privacy.html" style="color:var(--accent2);">privacy policy</a>.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-question-text">Do you need my Instagram password?</span>
+        <span class="faq-chevron">▼</span>
+      </div>
+      <div class="faq-answer">
+        <p>Absolutely not. We never ask for your Instagram password. The Follower Audit works using data files you export directly from Instagram yourself. No account access, no scraping, no risk to your account.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-question-text">Will using Ryxa get my Instagram account banned?</span>
+        <span class="faq-chevron">▼</span>
+      </div>
+      <div class="faq-answer">
+        <p>We do not connect to your Instagram account or use any automated access. The Follower Audit only processes data files that you export from Instagram yourself through their official Download Your Information feature, so our tool operates entirely outside of Instagram's platform.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-question-text">Can I delete my account and data?</span>
+        <span class="faq-chevron">▼</span>
+      </div>
+      <div class="faq-answer">
+        <p>Yes. You can request account and data deletion at any time by emailing us at hello@ryxa.io. We will delete your account and all associated data within 30 days.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- BILLING -->
+  <div class="faq-category" data-category="billing">
+    <div class="faq-category-title">Billing</div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-question-text">Can I cancel my subscription anytime?</span>
+        <span class="faq-chevron">▼</span>
+      </div>
+      <div class="faq-answer">
+        <p>Yes, absolutely. You can cancel your Pro subscription at any time with no questions asked. When you cancel, you keep full Pro access until the end of your current billing period. After that, your account reverts to the Free plan.</p>
+        <p>You can cancel directly from your dashboard at the bottom of the page.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-question-text">Do you offer refunds?</span>
+        <span class="faq-chevron">▼</span>
+      </div>
+      <div class="faq-answer">
+        <p>We offer refunds within 7 days of purchase if you are not satisfied. Email us at hello@ryxa.io and we will take care of it promptly. No hassle, no hard feelings.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-question-text">Is my payment information secure?</span>
+        <span class="faq-chevron">▼</span>
+      </div>
+      <div class="faq-answer">
+        <p>Yes. All payments are processed by Stripe, one of the most trusted payment processors in the world. We never see or store your credit card details. Stripe handles all payment security and compliance.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-question-text">What happens to my data if I cancel?</span>
+        <span class="faq-chevron">▼</span>
+      </div>
+      <div class="faq-answer">
+        <p>Your data is preserved when you cancel. Your account downgrades to Free at the end of your billing period, but your audit history, snake list, whitelist, unfollower log, and all other Pro/Max data stays safely stored. If you resubscribe later — whether that's next month or next year — everything will be right where you left it. You can request permanent deletion at any time by emailing hello@ryxa.io.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-question-text">How do I upgrade to Pro?</span>
+        <span class="faq-chevron">▼</span>
+      </div>
+      <div class="faq-answer">
+        <p>You can upgrade from inside your dashboard. Click the "Upgrade to Pro" button at the top of the page or in any tool that has Pro-only features. You will be taken to a secure checkout page powered by Stripe.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- TOOLS -->
+  <div class="faq-category" data-category="tools">
+    <div class="faq-category-title">Tools</div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-question-text">How does the Follower Audit work?</span>
+        <span class="faq-chevron">▼</span>
+      </div>
+      <div class="faq-answer">
+        <p>Instagram lets you download your own data as JSON files. You download those files from Instagram, upload them to Ryxa, and we instantly compare your followers list against your following list to show you who is not following you back.</p>
+        <p>Your Instagram export files are processed in your browser for the comparison, we do not store the raw file contents.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-question-text">How long does Instagram take to send my data export?</span>
+        <span class="faq-chevron">▼</span>
+      </div>
+      <div class="faq-answer">
+        <p>Instagram will email you a download link. It usually arrives within a few minutes, but can take up to 48 hours depending on your account size and Instagram's servers. This is outside our control.</p>
+        <p>Check our Instructions page for a step-by-step guide on how to request and download your data.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-question-text">What image formats does the Image Studio support?</span>
+        <span class="faq-chevron">▼</span>
+      </div>
+      <div class="faq-answer">
+        <p>Image Studio lets you crop, resize, and convert images. JPEG, PNG, and WebP work on all modern browsers. Additional formats (GIF, BMP, TIFF, AVIF, ICO) show up when your browser supports them.</p>
+        <p>Crop presets include Square (1:1), Portrait (4:5), Story/Reel (9:16), Landscape (16:9), and Wide (3:1) — sized for Instagram, TikTok, YouTube, and X. Everything happens in your browser; your images are not uploaded to our servers.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-question-text">How many QR codes can I generate?</span>
+        <span class="faq-chevron">▼</span>
+      </div>
+      <div class="faq-answer">
+        <p>Free users can generate 3 QR codes per day. Pro users get unlimited QR codes. Pro users also get custom color options for their QR codes and high-resolution downloads.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-question-text">Is the Invoice Generator really free?</span>
+        <span class="faq-chevron">▼</span>
+      </div>
+      <div class="faq-answer">
+        <p>Yes, Free users can create 3 invoices per day. Pro users get unlimited invoices plus the ability to upload their logo. All invoices can be downloaded as a PDF directly from your browser.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span class="faq-question-text">What if someone unfollowed me but also removed me as their follower?</span>
+        <span class="faq-chevron">▼</span>
+      </div>
+      <div class="faq-answer">
+        <p>If someone unfollowed you AND removed you as their follower, they will not appear on your list at all. Ryxa works by comparing your followers list against your following list. If they are not in either list, there is nothing to compare.</p>
+        <p>But honestly? If they went through the trouble of removing themselves from your followers too, they did you a favor. They took their own trash out. 🗑️🐍</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-box">
+    <h3>Still have questions?</h3>
+    <p>We're happy to help. Reach us anytime at <strong>hello@ryxa.io</strong> and we'll get back to you quickly.</p>
+  </div>
+
+</div>
+
+<div id="site-footer"></div>
+<script>
+
+function toggleFaq(questionEl) {
+  const item = questionEl.closest('.faq-item');
+  const isOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+  if (!isOpen) item.classList.add('open');
+}
+
+function showCategory(cat, btn) {
+  document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.faq-category').forEach(c => {
+    c.style.display = (cat === 'all' || c.dataset.category === cat) ? 'block' : 'none';
+  });
+}
+</script>
+<script src="/cookie-banner.js"></script>
+<script>
+function openSignupModal(){window.location.href="index.html?action=signup";}
+function openAuthModal(){window.location.href="index.html?action=signin";}
+</script>
+<script src="/site-nav.js"></script>
+</body>
+</html>
