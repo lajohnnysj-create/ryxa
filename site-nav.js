@@ -200,7 +200,7 @@ function renderFooter() {
   + '<footer style="border-top:1px solid rgba(255,255,255,0.08);padding:60px 48px 32px;max-width:1200px;margin:0 auto;">'
   +   '<div class="footer-grid" style="display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr 1fr;gap:32px;margin-bottom:40px;">'
   +     '<div>'
-  +       '<a href="index.html" style="display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:var(--text);font-family:\'Syne\',sans-serif;font-weight:800;font-size:20px;margin-bottom:12px;"><img src="/logo.png" alt="" style="width:32px;height:32px;object-fit:contain;"> Ryxa</a>'
+  +       '<a href="index.html" style="display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:var(--text);font-family:\'Syne\',sans-serif;font-weight:800;font-size:20px;margin-bottom:12px;"><img src="/logo.png" alt="" style="width:32px;height:32px;object-fit:contain;"> Ryxa&trade;</a>'
   +       '<p style="font-size:13px;color:var(--muted);line-height:1.6;max-width:200px;margin-bottom:16px;">Ryxa makes earning money and professional branding easy.</p>'
   +       '<a href="https://www.instagram.com/ryxa.io" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:var(--muted);transition:all 0.15s;" aria-label="Instagram">'
   +         '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.2c3.2 0 3.6 0 4.85.07 1.17.05 1.8.25 2.22.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.05.41 2.22.06 1.26.07 1.64.07 4.82s-.01 3.57-.07 4.82c-.05 1.17-.25 1.8-.41 2.22a3.72 3.72 0 0 1-.9 1.38c-.42.42-.82.68-1.38.9-.42.16-1.05.36-2.22.41-1.26.06-1.64.07-4.82.07s-3.57-.01-4.82-.07c-1.17-.05-1.8-.25-2.22-.41a3.72 3.72 0 0 1-1.38-.9 3.72 3.72 0 0 1-.9-1.38c-.16-.42-.36-1.05-.41-2.22C2.21 15.57 2.2 15.19 2.2 12s.01-3.57.07-4.82c.05-1.17.25-1.8.41-2.22.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.05-.36 2.22-.41C8.43 2.21 8.81 2.2 12 2.2M12 0C8.74 0 8.33.01 7.05.07 5.78.13 4.9.33 4.14.63a5.92 5.92 0 0 0-2.13 1.39A5.92 5.92 0 0 0 .62 4.14C.33 4.9.13 5.78.07 7.05.01 8.33 0 8.74 0 12c0 3.26.01 3.67.07 4.95.06 1.27.26 2.15.56 2.91a5.92 5.92 0 0 0 1.39 2.13c.66.66 1.32 1.06 2.13 1.39.76.3 1.64.5 2.91.56C8.33 23.99 8.74 24 12 24c3.26 0 3.67-.01 4.95-.07 1.27-.06 2.15-.26 2.91-.56a5.92 5.92 0 0 0 2.13-1.39c.66-.66 1.06-1.32 1.39-2.13.3-.76.5-1.64.56-2.91.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.06-1.27-.26-2.15-.56-2.91a5.92 5.92 0 0 0-1.39-2.13A5.92 5.92 0 0 0 19.86.62c-.76-.3-1.64-.5-2.91-.56C15.67.01 15.26 0 12 0Zm0 5.84a6.16 6.16 0 1 0 0 12.32 6.16 6.16 0 0 0 0-12.32Zm0 10.16a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm6.41-11.88a1.44 1.44 0 1 0 0 2.88 1.44 1.44 0 0 0 0-2.88Z"/></svg>'
@@ -245,7 +245,7 @@ function renderFooter() {
   +     '</div>'
   +   '</div>'
   +   '<div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:20px;width:100%;clear:both;">'
-  +     '<p style="font-size:12px;color:var(--muted);margin:0;">&copy; ' + new Date().getFullYear() + ' MRLA Media LLC &middot; Ryxa</p>'
+  +     '<p style="font-size:12px;color:var(--muted);margin:0;">&copy; ' + new Date().getFullYear() + ' MRLA Media LLC &middot; Ryxa&trade;</p>'
   +   '</div>'
   + '</footer>';
 }
