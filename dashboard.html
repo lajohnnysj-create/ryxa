@@ -21508,8 +21508,12 @@ function dsSetShapeStroke() {
   var width = parseInt(document.getElementById('ds-shape-stroke-width').value) || 0;
   if (obj.type === 'group' && obj._objects) {
     obj._objects.forEach(function(child) {
-      child.set({ stroke: color, strokeWidth: width });
-      if (child.fill && child.fill !== '' && child.fill !== 'transparent') child.set('fill', color);
+      if (child.type === 'line') {
+        child.set({ stroke: color, strokeWidth: width });
+      } else {
+        // Triangle head — update fill to match, keep no stroke
+        child.set({ fill: color });
+      }
     });
   } else {
     obj.set({ stroke: color, strokeWidth: width });
