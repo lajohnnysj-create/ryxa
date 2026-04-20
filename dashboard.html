@@ -21546,7 +21546,7 @@ function dsDragStart(e, type) {
     ghost.id = 'ds-drag-ghost';
     ghost.style.cssText = 'position:fixed;z-index:9999;pointer-events:none;opacity:0.7;font-size:12px;font-weight:600;color:#c4b5fd;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.4);border-radius:8px;padding:6px 12px;white-space:nowrap;';
     var labels = { text:'Text', rect:'Rectangle', circle:'Circle', triangle:'Triangle', line:'Line', arrow:'Arrow', star:'Star' };
-    ghost.textContent = labels[type] || type;
+    ghost.textContent = type.startsWith('icon:') ? 'Icon' : (labels[type] || type);
     ghost.style.left = touch.clientX + 'px';
     ghost.style.top = touch.clientY + 'px';
     ghost.style.transform = 'translate(-50%,-50%)';
@@ -21609,15 +21609,19 @@ function dsDragEnd(e) {
     y = Math.max(10, Math.min(y, dsCanvas.getHeight() - 10));
 
     if (type === 'text') {
-      dsAddTextAt(x, y);
+      dsAddTextAt(x - 100, y - 12);
+    } else if (type.startsWith('icon:')) {
+      dsAddIconAt(type.substring(5), x, y);
     } else {
-      dsAddShapeAt(type, x, y);
+      dsAddShapeAt(type, x, y, true);
     }
     dsCloseShapeMenu();
   } else {
     // Quick click — add at default position
     if (type === 'text') {
       dsAddText();
+    } else if (type.startsWith('icon:')) {
+      dsAddIcon(type.substring(5));
     } else {
       dsAddShape(type);
     }
@@ -21643,7 +21647,7 @@ function dsAddTextAt(x, y) {
   dsCanvas.renderAll();
 }
 
-function dsAddShapeAt(type, x, y) {
+function dsAddShapeAt(type, x, y, center) {
   if (!dsCanvas) return;
   dsCloseShapeMenu();
   var fill = '#7c3aed';
@@ -21681,6 +21685,9 @@ function dsAddShapeAt(type, x, y) {
   obj._dsShape = true;
   if (!obj._dsShapeType) obj._dsShapeType = type;
   obj.set({ lockScalingFlip: true });
+  if (center) {
+    obj.set({ originX: 'center', originY: 'center' });
+  }
   dsCanvas.add(obj);
   dsCanvas.setActiveObject(obj);
   dsCanvas.renderAll();
@@ -22116,7 +22123,7 @@ function dsSearchIcons() {
       }
       var grid = '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;">';
       data.icons.forEach(function(iconName) {
-        grid += '<button class="ds-icon-item" onclick="dsAddIcon(\'' + iconName.replace(/'/g, "\\'") + '\')" title="' + iconName.split(':')[1] + '">'
+        grid += '<button class="ds-icon-item" onmousedown="dsDragStart(event,\'icon:' + iconName.replace(/'/g, "\\'") + '\')" ontouchstart="dsDragStart(event,\'icon:' + iconName.replace(/'/g, "\\'") + '\')" title="' + iconName.split(':')[1] + '">'
           + '<img src="https://api.iconify.design/' + iconName + '.svg?color=%23f0eef8" alt="" style="width:28px;height:28px;" loading="lazy">'
           + '</button>';
       });
@@ -22146,6 +22153,28 @@ function dsAddIcon(iconName) {
     dsCanvas.renderAll();
     dsSaveState();
     dsCloseShapeMenu();
+  }, { crossOrigin: 'anonymous' });
+}
+
+function dsAddIconAt(iconName, x, y) {
+  if (!dsCanvas) return;
+  var url = 'https://api.iconify.design/' + iconName + '.svg?color=%23000000&height=120';
+
+  fabric.Image.fromURL(url, function(img) {
+    if (!img) { showDsMsg('error', 'Failed to load icon.'); return; }
+    img.set({
+      left: x,
+      top: y,
+      originX: 'center',
+      originY: 'center',
+      lockScalingFlip: true
+    });
+    img._dsShape = true;
+    img._dsShapeType = 'icon';
+    dsCanvas.add(img);
+    dsCanvas.setActiveObject(img);
+    dsCanvas.renderAll();
+    dsSaveState();
   }, { crossOrigin: 'anonymous' });
 }
 
