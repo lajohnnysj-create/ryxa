@@ -3298,6 +3298,10 @@
       <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/><path d="M11 8v6M8 11h6"/></svg></div>
       <span class="sidebar-item-label">Thumbnail Analyzer</span>
     </button>
+    <button class="sidebar-item" id="nav-contractanalyzer" onclick="showTool('contractanalyzer')">
+      <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 15l2 2 4-4"/></svg></div>
+      <span class="sidebar-item-label">Contract Analyzer</span>
+    </button>
 
     <div class="sidebar-section-label">Create & Earn</div>
     <button class="sidebar-item" id="nav-courses" onclick="showTool('courses')">
@@ -5126,6 +5130,79 @@
       }
     </style>
 
+    <!-- CONTRACT ANALYZER -->
+    <div id="tool-contractanalyzer" style="display:none;">
+      <div style="max-width:720px;">
+        <h2 style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;margin-bottom:6px;letter-spacing:-0.5px;">AI Contract Analyzer</h2>
+        <p style="font-size:14px;color:var(--muted);margin-bottom:6px;">Upload a brand deal contract and get an instant AI-generated report with key terms, deliverables, and red flags.</p>
+        <p style="font-size:11px;color:rgba(255,255,255,0.4);font-style:italic;margin-bottom:24px;">This is not legal advice. Always consult a lawyer before signing binding agreements.</p>
+
+        <!-- Upload area -->
+        <div id="ca-upload-area" style="border:2px dashed var(--border-hover);border-radius:16px;padding:48px 24px;text-align:center;cursor:pointer;transition:all 0.2s;margin-bottom:24px;" onclick="document.getElementById('ca-file-input').click()" onmouseover="this.style.borderColor='rgba(124,58,237,0.4)';this.style.background='rgba(124,58,237,0.03)'" onmouseout="this.style.borderColor='var(--border-hover)';this.style.background='transparent'">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:12px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
+          <div style="font-size:15px;font-weight:500;margin-bottom:6px;">Drop your contract here or click to upload</div>
+          <div style="font-size:12px;color:var(--muted);">PDF files only — up to 20 pages</div>
+        </div>
+        <input type="file" id="ca-file-input" accept=".pdf,application/pdf" style="display:none;" onchange="caHandleUpload(this)">
+
+        <!-- File preview -->
+        <div id="ca-preview-area" style="display:none;margin-bottom:24px;">
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;margin-bottom:16px;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e879f9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <div style="flex:1;min-width:0;">
+              <div id="ca-filename" style="font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
+              <div id="ca-filesize" style="font-size:11px;color:var(--muted);"></div>
+            </div>
+            <button onclick="caReset()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;padding:4px;">×</button>
+          </div>
+          <button onclick="caAnalyze()" id="ca-analyze-btn" style="width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.2s;box-shadow:0 0 20px rgba(124,58,237,0.3);" onmouseover="this.style.background='var(--accent2)'" onmouseout="this.style.background='var(--accent)'">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:8px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M9 15l2 2 4-4"/></svg>Analyze Contract
+          </button>
+        </div>
+
+        <!-- Loading animation -->
+        <div id="ca-loading" style="display:none;">
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:32px;">
+            <div id="ca-steps" style="display:flex;flex-direction:column;gap:12px;">
+              <div class="ta-step" id="ca-step-0" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;opacity:0.4;transition:all 0.4s;">
+                <div class="ta-step-icon" style="width:24px;height:24px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.3s;">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <span style="font-size:13px;color:var(--muted);">Extracting contract text...</span>
+              </div>
+              <div class="ta-step" id="ca-step-1" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;opacity:0.4;transition:all 0.4s;">
+                <div class="ta-step-icon" style="width:24px;height:24px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.3s;">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <span style="font-size:13px;color:var(--muted);">Identifying parties and payment terms...</span>
+              </div>
+              <div class="ta-step" id="ca-step-2" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;opacity:0.4;transition:all 0.4s;">
+                <div class="ta-step-icon" style="width:24px;height:24px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.3s;">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <span style="font-size:13px;color:var(--muted);">Reviewing deliverables and usage rights...</span>
+              </div>
+              <div class="ta-step" id="ca-step-3" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;opacity:0.4;transition:all 0.4s;">
+                <div class="ta-step-icon" style="width:24px;height:24px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.3s;">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <span style="font-size:13px;color:var(--muted);">Scanning for red flags and exclusivity clauses...</span>
+              </div>
+              <div class="ta-step" id="ca-step-4" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;opacity:0.4;transition:all 0.4s;">
+                <div class="ta-step-icon" style="width:24px;height:24px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.3s;">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <span style="font-size:13px;color:var(--muted);">Generating report...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Results -->
+        <div id="ca-results" style="display:none;"></div>
+      </div>
+    </div>
+
     <!-- QR GENERATOR -->
     <div id="tool-qr" style="display:none;">
       <div style="max-width:680px;">
@@ -6319,6 +6396,7 @@ const toolTitles = {
   pdfsign: 'Sign PDF',
   scripts: 'AI Script Builder',
   thumbanalyzer: 'AI Thumbnail Analyzer',
+  contractanalyzer: 'AI Contract Analyzer',
   deals: 'Brand Deal CRM',
   analytics: 'Analytics',
     settings: 'Settings',
@@ -6699,7 +6777,7 @@ function showTool(tool) {
     if (typeof resetPdfSign === 'function') resetPdfSign();
   }
   // Hide all tools
-  ['welcome','bio','courses','coaching','mediakit','grid','follower','image','design','qr','invoice','pdfsign','deals','scripts','thumbanalyzer','analytics','settings'].forEach(t => {
+  ['welcome','bio','courses','coaching','mediakit','grid','follower','image','design','qr','invoice','pdfsign','deals','scripts','thumbanalyzer','contractanalyzer','analytics','settings'].forEach(t => {
     const el = document.getElementById('tool-' + t);
     if (el) el.style.display = 'none';
     const nav = document.getElementById('nav-' + t);
@@ -21495,6 +21573,223 @@ function exportDesign() {
   a.download = (dsProjectName || 'design').replace(/[^a-zA-Z0-9_-]/g, '_') + '.png';
   a.href = dataUrl;
   a.click();
+}
+
+// =====================================================
+// CONTRACT ANALYZER
+// =====================================================
+var caFileData = null;
+
+function caHandleUpload(input) {
+  var file = input.files[0];
+  if (!file) return;
+  if (file.type !== 'application/pdf') { showModalAlert('Invalid File', 'Please upload a PDF file.'); return; }
+  if (file.size > 15 * 1024 * 1024) { showModalAlert('Too Large', 'PDF must be under 15MB.'); return; }
+
+  caFileData = file;
+  document.getElementById('ca-filename').textContent = file.name;
+  document.getElementById('ca-filesize').textContent = (file.size / 1024 / 1024).toFixed(1) + ' MB';
+  document.getElementById('ca-upload-area').style.display = 'none';
+  document.getElementById('ca-preview-area').style.display = 'block';
+  document.getElementById('ca-results').style.display = 'none';
+  document.getElementById('ca-results').innerHTML = '';
+}
+
+function caReset() {
+  caFileData = null;
+  document.getElementById('ca-file-input').value = '';
+  document.getElementById('ca-upload-area').style.display = 'block';
+  document.getElementById('ca-preview-area').style.display = 'none';
+  document.getElementById('ca-loading').style.display = 'none';
+  document.getElementById('ca-results').style.display = 'none';
+  document.getElementById('ca-results').innerHTML = '';
+}
+
+async function caAnalyze() {
+  if (!caFileData) return;
+
+  if (typeof isPro === 'function' && !isPro()) {
+    showModalAlert('Pro Feature', 'AI Contract Analyzer is a Pro feature. Upgrade to use it.');
+    return;
+  }
+
+  document.getElementById('ca-preview-area').style.display = 'none';
+  document.getElementById('ca-loading').style.display = 'block';
+
+  // Reset steps
+  for (var i = 0; i < 5; i++) {
+    document.getElementById('ca-step-' + i).classList.remove('active', 'done');
+  }
+
+  // Animate steps
+  var stepTimers = [300, 1000, 2000, 3000, 4000];
+  stepTimers.forEach(function(delay, idx) {
+    setTimeout(function() {
+      if (idx > 0) document.getElementById('ca-step-' + (idx - 1)).classList.replace('active', 'done');
+      document.getElementById('ca-step-' + idx).classList.add('active');
+    }, delay);
+  });
+
+  // Extract text from PDF client-side using pdf.js
+  try {
+    var text = await caExtractPdfText(caFileData);
+    if (!text || text.trim().length < 50) {
+      document.getElementById('ca-loading').style.display = 'none';
+      document.getElementById('ca-preview-area').style.display = 'block';
+      showModalAlert('Cannot Read', 'Could not extract text from this PDF. It may be a scanned document or image-only PDF.');
+      return;
+    }
+
+    var response = await fetch('/api/ai-contract', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: text })
+    });
+    var data = await response.json();
+
+    // Complete all steps
+    for (var j = 0; j < 5; j++) {
+      document.getElementById('ca-step-' + j).classList.remove('active');
+      document.getElementById('ca-step-' + j).classList.add('done');
+    }
+
+    setTimeout(function() {
+      document.getElementById('ca-loading').style.display = 'none';
+      if (data.error) {
+        showModalAlert('Error', data.error);
+        document.getElementById('ca-preview-area').style.display = 'block';
+        return;
+      }
+      caRenderResults(data.result);
+    }, 600);
+
+  } catch (err) {
+    console.error('Contract analysis error:', err);
+    document.getElementById('ca-loading').style.display = 'none';
+    document.getElementById('ca-preview-area').style.display = 'block';
+    showModalAlert('Error', 'Failed to analyze contract. Please try again.');
+  }
+}
+
+async function caExtractPdfText(file) {
+  // Load pdf.js if not already loaded
+  if (!window.pdfjsLib) {
+    await new Promise(function(resolve, reject) {
+      var script = document.createElement('script');
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+      script.onload = resolve;
+      script.onerror = reject;
+      document.head.appendChild(script);
+    });
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+
+  var arrayBuffer = await file.arrayBuffer();
+  var pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  var text = '';
+  var maxPages = Math.min(pdf.numPages, 20);
+  for (var i = 1; i <= maxPages; i++) {
+    var page = await pdf.getPage(i);
+    var content = await page.getTextContent();
+    text += content.items.map(function(item) { return item.str; }).join(' ') + '\n\n';
+  }
+  return text;
+}
+
+function caRenderResults(r) {
+  function field(label, value) {
+    return '<div style="display:flex;gap:8px;padding:10px 0;border-bottom:1px solid var(--border);">'
+      + '<div style="font-size:12px;color:var(--muted);min-width:120px;flex-shrink:0;font-weight:500;">' + label + '</div>'
+      + '<div style="font-size:13px;color:var(--text);">' + escapeHtml(value || 'Not specified') + '</div>'
+      + '</div>';
+  }
+
+  function section(title, icon, content) {
+    return '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:14px;">'
+      + '<div style="font-family:Syne,sans-serif;font-size:15px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px;">' + icon + ' ' + title + '</div>'
+      + content
+      + '</div>';
+  }
+
+  // Parties
+  var partiesHtml = field('Brand', r.parties?.brand) + field('Creator', r.parties?.creator);
+
+  // Payment
+  var paymentHtml = field('Amount', r.payment?.amount) + field('Schedule', r.payment?.schedule) + field('Kill Fee', r.payment?.kill_fee);
+
+  // Deliverables
+  var deliverablesHtml = (r.deliverables || []).map(function(d, i) {
+    return '<div style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;' + (i < (r.deliverables.length - 1) ? 'border-bottom:1px solid var(--border);' : '') + '">'
+      + '<span style="color:#a78bfa;flex-shrink:0;font-size:12px;margin-top:2px;">' + (i + 1) + '.</span>'
+      + '<span style="font-size:13px;color:var(--text);">' + escapeHtml(d) + '</span>'
+      + '</div>';
+  }).join('');
+
+  // Timeline
+  var timelineHtml = field('Start Date', r.timeline?.start_date) + field('End Date', r.timeline?.end_date) + field('Content Deadline', r.timeline?.content_deadline) + field('Review Period', r.timeline?.review_period);
+
+  // Usage Rights
+  var usageHtml = field('Summary', r.usage_rights?.summary) + field('Duration', r.usage_rights?.duration) + field('Platforms', r.usage_rights?.platforms);
+
+  // Exclusivity
+  var exclColor = r.exclusivity?.has_exclusivity ? '#fbbf24' : '#4ade80';
+  var exclHtml = '<div style="display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--border);">'
+    + '<div style="font-size:12px;color:var(--muted);min-width:120px;flex-shrink:0;font-weight:500;">Status</div>'
+    + '<div style="font-size:13px;font-weight:600;color:' + exclColor + ';">' + (r.exclusivity?.has_exclusivity ? '⚠ Exclusivity clause found' : '✓ No exclusivity') + '</div>'
+    + '</div>'
+    + field('Details', r.exclusivity?.details)
+    + field('Duration', r.exclusivity?.duration);
+
+  // Ownership + Termination
+  var otherHtml = field('Content Ownership', r.content_ownership) + field('Termination', r.termination);
+
+  // Red flags
+  var redFlagsHtml = (r.red_flags || []).length > 0
+    ? (r.red_flags || []).map(function(f) {
+      return '<div style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;">'
+        + '<span style="color:#f87171;flex-shrink:0;">⚠</span>'
+        + '<span style="font-size:13px;color:var(--text);">' + escapeHtml(f) + '</span>'
+        + '</div>';
+    }).join('')
+    : '<div style="font-size:13px;color:#4ade80;padding:8px 0;">✓ No major red flags detected</div>';
+
+  // Misc details
+  var miscHtml = (r.misc_details || []).length > 0
+    ? (r.misc_details || []).map(function(d) {
+      return '<div style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;">'
+        + '<span style="color:var(--muted);flex-shrink:0;">•</span>'
+        + '<span style="font-size:13px;color:var(--text);">' + escapeHtml(d) + '</span>'
+        + '</div>';
+    }).join('')
+    : '<div style="font-size:13px;color:var(--muted);padding:8px 0;">No additional details noted.</div>';
+
+  var html = ''
+    // Overall assessment
+    + '<div style="background:linear-gradient(135deg,rgba(124,58,237,0.08),rgba(232,121,249,0.05));border:1px solid rgba(124,58,237,0.2);border-radius:14px;padding:20px;margin-bottom:14px;">'
+    + '<div style="font-family:Syne,sans-serif;font-size:15px;font-weight:700;margin-bottom:8px;">Overall Assessment</div>'
+    + '<div style="font-size:14px;color:var(--text);line-height:1.7;">' + escapeHtml(r.overall_assessment || '') + '</div>'
+    + '</div>'
+
+    + section('Parties', '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>', partiesHtml)
+    + section('Payment', '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>', paymentHtml)
+    + section('Deliverables', '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>', deliverablesHtml)
+    + section('Timeline', '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>', timelineHtml)
+    + section('Usage Rights', '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>', usageHtml)
+    + section('Exclusivity', '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>', exclHtml)
+    + section('Ownership & Termination', '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>', otherHtml)
+    + section('Red Flags', '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>', redFlagsHtml)
+    + section('Other Details', '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>', miscHtml)
+
+    // Disclaimer + actions
+    + '<div style="font-size:11px;color:rgba(255,255,255,0.35);font-style:italic;text-align:center;margin:20px 0 16px;">This analysis is AI-generated and is not legal advice. Always consult a qualified lawyer before signing contracts.</div>'
+    + '<div style="display:flex;gap:10px;">'
+    + '<button onclick="window.print()" style="flex:1;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Print Report</button>'
+    + '<button onclick="caReset()" style="flex:1;padding:12px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:10px;font-size:14px;font-family:DM Sans,sans-serif;cursor:pointer;">Analyze another</button>'
+    + '</div>';
+
+  var resultsEl = document.getElementById('ca-results');
+  resultsEl.innerHTML = html;
+  resultsEl.style.display = 'block';
 }
 
 // =====================================================
