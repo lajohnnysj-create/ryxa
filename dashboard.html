@@ -5131,11 +5131,23 @@
     </style>
 
     <!-- CONTRACT ANALYZER -->
+    <style>
+      @media print {
+        body, #ca-results, #ca-results * { color: #000 !important; -webkit-print-color-adjust: exact; }
+        #ca-results div[style*="background"] { background: #fff !important; border-color: #ddd !important; }
+        #ca-results div[style*="linear-gradient"] { background: #f5f3ff !important; }
+        .sidebar, .topbar, #site-header, #site-footer, #ca-upload-area, #ca-preview-area, #ca-loading,
+        #ca-results button, .sidebar-toggle { display: none !important; }
+        #tool-contractanalyzer { display: block !important; padding: 0 !important; }
+        #tool-contractanalyzer > div { max-width: 100% !important; }
+        .tool-area { margin-left: 0 !important; padding: 20px !important; }
+      }
+    </style>
     <div id="tool-contractanalyzer" style="display:none;">
       <div style="max-width:720px;">
         <h2 style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;margin-bottom:6px;letter-spacing:-0.5px;">AI Contract Analyzer</h2>
         <p style="font-size:14px;color:var(--muted);margin-bottom:6px;">Upload a brand deal contract and get an instant AI-generated report with key terms, deliverables, and red flags.</p>
-        <p style="font-size:11px;color:rgba(255,255,255,0.4);font-style:italic;margin-bottom:24px;">This is not legal advice. Always consult a lawyer before signing binding agreements.</p>
+        <p style="font-size:11px;color:var(--muted);font-style:italic;margin-bottom:24px;">This is not legal advice. Always consult a lawyer before signing binding agreements.</p>
 
         <!-- Upload area -->
         <div id="ca-upload-area" style="border:2px dashed var(--border-hover);border-radius:16px;padding:48px 24px;text-align:center;cursor:pointer;transition:all 0.2s;margin-bottom:24px;" onclick="document.getElementById('ca-file-input').click()" onmouseover="this.style.borderColor='rgba(124,58,237,0.4)';this.style.background='rgba(124,58,237,0.03)'" onmouseout="this.style.borderColor='var(--border-hover)';this.style.background='transparent'">
@@ -21636,7 +21648,7 @@ async function caAnalyze() {
     if (!text || text.trim().length < 50) {
       document.getElementById('ca-loading').style.display = 'none';
       document.getElementById('ca-preview-area').style.display = 'block';
-      showModalAlert('Cannot Read', 'Could not extract text from this PDF. It may be a scanned document or image-only PDF.');
+      showModalAlert('Cannot Read', 'Could not extract text from this PDF. It may be a scanned document or image-only PDF. Text found: ' + (text ? text.trim().length : 0) + ' characters.');
       return;
     }
 
@@ -21667,7 +21679,7 @@ async function caAnalyze() {
     console.error('Contract analysis error:', err);
     document.getElementById('ca-loading').style.display = 'none';
     document.getElementById('ca-preview-area').style.display = 'block';
-    showModalAlert('Error', 'Failed to analyze contract. Please try again.');
+    showModalAlert('Error', 'Failed to analyze contract: ' + (err.message || 'Unknown error') + '. Please try again.');
   }
 }
 
@@ -21676,12 +21688,12 @@ async function caExtractPdfText(file) {
   if (!window.pdfjsLib) {
     await new Promise(function(resolve, reject) {
       var script = document.createElement('script');
-      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js';
       script.onload = resolve;
       script.onerror = reject;
       document.head.appendChild(script);
     });
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
   }
 
   var arrayBuffer = await file.arrayBuffer();
@@ -21781,7 +21793,7 @@ function caRenderResults(r) {
     + section('Other Details', '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>', miscHtml)
 
     // Disclaimer + actions
-    + '<div style="font-size:11px;color:rgba(255,255,255,0.35);font-style:italic;text-align:center;margin:20px 0 16px;">This analysis is AI-generated and is not legal advice. Always consult a qualified lawyer before signing contracts.</div>'
+    + '<div style="font-size:11px;color:var(--muted);font-style:italic;text-align:center;margin:20px 0 16px;">This analysis is AI-generated and is not legal advice. Always consult a qualified lawyer before signing contracts.</div>'
     + '<div style="display:flex;gap:10px;">'
     + '<button onclick="window.print()" style="flex:1;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Print Report</button>'
     + '<button onclick="caReset()" style="flex:1;padding:12px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:10px;font-size:14px;font-family:DM Sans,sans-serif;cursor:pointer;">Analyze another</button>'
