@@ -21327,6 +21327,10 @@ function dsResizeCanvas() {
   var dispW = Math.round(dsProjectW * scale);
   var dispH = Math.round(dsProjectH * scale);
 
+  // Enforce minimum 50% zoom so tall canvases don't look tiny
+  if (scale < 0.5) scale = 0.5;
+  dispW = Math.round(dsProjectW * scale);
+  dispH = Math.round(dsProjectH * scale);
   wrap.style.width = dispW + 'px';
   wrap.style.height = dispH + 'px';
   wrap.style.transform = 'none';
