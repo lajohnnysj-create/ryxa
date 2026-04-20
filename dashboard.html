@@ -23171,8 +23171,8 @@ async function openDesignProject(id) {
   var { data, error } = await sb.from('design_projects').select('*').eq('id', id).single();
   if (error || !data) { showModalAlert('Error', 'Could not load project. Please try again.'); return; }
 
-  dsProjectW = data.canvas_width;
-  dsProjectH = data.canvas_height;
+  dsProjectW = data.canvas_width || 1080;
+  dsProjectH = data.canvas_height || 1350;
   dsProjectName = data.name;
   dsCurrentProjectId = data.id;
   dsPendingJSON = data.canvas_json;
