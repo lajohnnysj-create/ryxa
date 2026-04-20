@@ -162,7 +162,9 @@ async function init() {
   const metaDesc = document.querySelector('meta[name="description"]');
   if (metaDesc) metaDesc.content = (coaching.description || '').slice(0, 160);
 
-  renderCoaching(coaching, creatorName);
+  // Check auth state for button text
+  var { data: { session } } = await sb.auth.getSession();
+  renderCoaching(coaching, creatorName, !!session?.user);
 
   // Track page view
   if (creatorName && creatorName !== 'Creator') {
@@ -202,7 +204,7 @@ function formatDuration(minutes) {
   return hrs + 'h ' + mins + 'min';
 }
 
-function renderCoaching(coaching, creatorName) {
+function renderCoaching(coaching, creatorName, isLoggedIn) {
   document.getElementById('loading').style.display = 'none';
   document.getElementById('coaching-page').style.display = 'block';
 
@@ -239,9 +241,9 @@ function renderCoaching(coaching, creatorName) {
   // Buy button
   var buyArea = document.getElementById('cp-buy-area');
   if (coaching.price_cents === 0) {
-    buyArea.innerHTML = '<button class="coaching-buy-btn" onclick="bookCoaching()">Book for Free</button>';
+    buyArea.innerHTML = '<button class="coaching-buy-btn" onclick="bookCoaching()">' + (isLoggedIn ? 'Proceed to Booking' : 'Book for Free') + '</button>';
   } else {
-    buyArea.innerHTML = '<button class="coaching-buy-btn" onclick="bookCoaching()">Book Now</button>';
+    buyArea.innerHTML = '<button class="coaching-buy-btn" onclick="bookCoaching()">' + (isLoggedIn ? 'Proceed to Booking' : 'Book Now') + '</button>';
   }
 }
 
