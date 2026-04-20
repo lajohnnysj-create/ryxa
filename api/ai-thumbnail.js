@@ -28,7 +28,7 @@ module.exports = async (req, res) => {
 
   const { image } = req.body || {};
   if (!image) return res.status(400).json({ error: 'No image provided' });
-  if (image.length > 2 * 1024 * 1024) return res.status(400).json({ error: 'Image too large (max 2MB base64)' });
+  if (image.length > 5 * 1024 * 1024) return res.status(400).json({ error: 'Image too large (max 5MB)' });
 
   // Strip data URL prefix if present
   const base64Data = image.replace(/^data:image\/[a-z]+;base64,/, '');
