@@ -19,8 +19,8 @@ style.textContent = ''
   + '.nav-links a{color:var(--muted);font-size:14px;text-decoration:none;transition:color 0.2s;}'
   + '.nav-links a:hover{color:var(--text);}'
   + '.nav-right{display:flex;align-items:center;gap:12px;}'
-  + '.btn-ghost{background:none;border:none;color:var(--muted);font-size:14px;font-family:"DM Sans",sans-serif;cursor:pointer;padding:9px 16px;transition:color 0.2s;}'
-  + '.btn-ghost:hover{color:var(--text);}'
+  + '.btn-ghost{background:transparent;border:1px solid var(--border-hover);color:var(--text);border-radius:8px;padding:8px 20px;font-size:14px;font-weight:500;font-family:"DM Sans",sans-serif;cursor:pointer;transition:all 0.2s;}'
+  + '.btn-ghost:hover{border-color:var(--accent2);color:var(--accent2);}'
   + '.btn-nav-cta{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:9px 22px;font-size:14px;font-weight:500;font-family:"DM Sans",sans-serif;cursor:pointer;transition:all 0.2s;box-shadow:0 0 20px var(--accent-glow);}'
   + '.btn-nav-cta:hover{background:var(--accent2);transform:translateY(-1px);}'
   // Hamburger
@@ -66,7 +66,7 @@ style.textContent = ''
   // Footer
   + '.footer-grid a:hover{color:var(--text) !important;}'
   // Responsive
-  + '@media(max-width:768px){nav{padding:0 20px;}.nav-links,.nav-right{display:none;}.hamburger{display:flex;}footer{flex-direction:column;text-align:center;padding:40px 20px 24px !important;}.footer-grid{grid-template-columns:1fr 1fr !important;gap:24px !important;}.footer-grid>div:first-child{grid-column:1/-1;}}'
+  + '@media(max-width:768px){nav{padding:0 20px;}.nav-links,.nav-right{display:none;}.hamburger{display:flex;}footer{flex-direction:column;text-align:center;padding:40px 20px 24px !important;}.footer-grid{grid-template-columns:1fr 1fr !important;gap:24px !important;}.footer-grid>div:first-child{grid-column:1/-1;}.footer-grid>div:first-child p{margin-left:auto;margin-right:auto;}}'
   + '@media(max-width:480px){.footer-grid{grid-template-columns:1fr !important;}}';
 
 document.head.appendChild(style);
