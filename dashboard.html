@@ -3298,7 +3298,7 @@
 <!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar">
   <a class="sidebar-logo" href="index.html">
-    <img src="logo.png" alt="">
+    <img src="logo.png" alt="Ryxa">
     <span class="sidebar-logo-text">Ryxa</span>
   </a>
 
@@ -4101,7 +4101,7 @@
               <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Cover Image</label>
               <div id="course-cover-area">
                 <div id="course-cover-preview" style="display:none;margin-bottom:8px;position:relative;">
-                  <img id="course-cover-img" alt="" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px;display:block;">
+                  <img id="course-cover-img" alt="Course cover image" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px;display:block;">
                   <button onclick="removeCourseCover()" style="position:absolute;top:8px;right:8px;width:28px;height:28px;background:rgba(0,0,0,0.7);color:#fff;border:none;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);">×</button>
                   <button onclick="document.getElementById('course-cover-file').click()" style="position:absolute;bottom:8px;right:8px;padding:5px 12px;background:rgba(0,0,0,0.7);color:#fff;border:none;border-radius:6px;font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer;backdrop-filter:blur(4px);">Change</button>
                 </div>
@@ -4271,7 +4271,7 @@
             <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Cover Image (optional)</label>
             <div id="coaching-cover-area">
               <div id="coaching-cover-preview" style="display:none;margin-bottom:8px;position:relative;">
-                <img id="coaching-cover-img" alt="" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px;display:block;">
+                <img id="coaching-cover-img" alt="Coaching cover image" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px;display:block;">
                 <button onclick="removeCoachingCover()" style="position:absolute;top:8px;right:8px;width:28px;height:28px;background:rgba(0,0,0,0.7);color:#fff;border:none;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);">×</button>
                 <button onclick="document.getElementById('coaching-cover-file').click()" style="position:absolute;bottom:8px;right:8px;padding:5px 12px;background:rgba(0,0,0,0.7);color:#fff;border:none;border-radius:6px;font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer;backdrop-filter:blur(4px);">Change</button>
               </div>
@@ -5230,7 +5230,7 @@
           <div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:32px;overflow:hidden;">
             <!-- Scanning animation over image -->
             <div style="position:relative;border-radius:10px;overflow:hidden;margin-bottom:24px;max-height:250px;display:flex;align-items:center;justify-content:center;background:#0a0a14;">
-              <img id="ta-loading-img" alt="" style="max-width:100%;max-height:250px;display:block;filter:brightness(0.7);object-fit:contain;">
+              <img id="ta-loading-img" alt="Analyzing thumbnail" style="max-width:100%;max-height:250px;display:block;filter:brightness(0.7);object-fit:contain;">
               <div id="ta-scan-line" style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,#7c3aed,#e879f9,#7c3aed,transparent);box-shadow:0 0 20px rgba(124,58,237,0.6);animation:taScan 2s ease-in-out infinite;"></div>
               <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(124,58,237,0.05),rgba(124,58,237,0.15));pointer-events:none;"></div>
             </div>
@@ -5753,7 +5753,7 @@
                 <input type="file" id="pdfsign-sig-upload-input" accept="image/*" aria-label="Upload signature" onchange="onSigUpload(this.files[0])" style="display:none;">
               </label>
               <div id="pdfsign-sig-upload-preview" style="display:none;margin-top:12px;background:#fff;border:1px solid var(--border-hover);border-radius:10px;padding:16px;text-align:center;">
-                <img id="pdfsign-sig-upload-img" alt="" style="max-height:120px;max-width:100%;">
+                <img id="pdfsign-sig-upload-img" alt="Uploaded signature" style="max-height:120px;max-width:100%;">
               </div>
             </div>
             <div style="display:flex;gap:10px;margin-top:16px;justify-content:flex-end;">
@@ -6741,7 +6741,7 @@ function updateDashboardAvatar(url) {
   const settingsAvatar = document.getElementById('settings-avatar');
   const menuAvatar = document.getElementById('sidebar-menu-avatar');
   if (url) {
-    const imgHtml = '<img src="' + escapeHtml(url) + '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+    const imgHtml = '<img src="' + escapeHtml(url) + '" alt="Profile photo" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
     if (sidebarAvatar) { sidebarAvatar.innerHTML = imgHtml; sidebarAvatar.style.overflow = 'hidden'; }
     if (settingsAvatar) { settingsAvatar.innerHTML = imgHtml; settingsAvatar.style.overflow = 'hidden'; }
     if (menuAvatar) { menuAvatar.innerHTML = imgHtml; }
@@ -7633,7 +7633,7 @@ function renderAvatarPreview() {
   const inner = document.getElementById('bio-avatar-inner');
   const removeBtn = document.getElementById('bio-avatar-remove');
   if (bioState.avatar_url) {
-    inner.innerHTML = `<img alt="" src="${escapeHtml(bioState.avatar_url)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+    inner.innerHTML = `<img alt="Profile photo" src="${escapeHtml(bioState.avatar_url)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
     removeBtn.style.display = 'inline-block';
   } else {
     const name = bioState.display_name || bioState.username || '?';
@@ -8313,7 +8313,7 @@ async function openCoursePickerModal() {
     const isAdded = addedCourseIds.indexOf(c.id) !== -1;
     const coverUrl = c.cover_image_path ? sb.storage.from('course-covers').getPublicUrl(c.cover_image_path).data.publicUrl : '';
     const coverHtml = coverUrl
-      ? '<img src="' + escapeHtml(coverUrl) + '" alt="" style="width:60px;height:40px;object-fit:cover;border-radius:6px;flex-shrink:0;">'
+      ? '<img src="' + escapeHtml(coverUrl) + '" alt="Course thumbnail" style="width:60px;height:40px;object-fit:cover;border-radius:6px;flex-shrink:0;">'
       : '<div style="width:60px;height:40px;border-radius:6px;background:var(--surface);border:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>';
     const priceText = c.price_cents > 0 ? '$' + (c.price_cents / 100).toFixed(2) : 'Free';
 
@@ -8405,7 +8405,7 @@ async function openCoachingPickerModal() {
     const isAdded = addedIds.indexOf(c.id) !== -1;
     const coverUrl = c.cover_image_path ? sb.storage.from('coaching-covers').getPublicUrl(c.cover_image_path).data.publicUrl : '';
     const coverHtml = coverUrl
-      ? '<img src="' + escapeHtml(coverUrl) + '" alt="" style="width:60px;height:40px;object-fit:cover;border-radius:6px;flex-shrink:0;">'
+      ? '<img src="' + escapeHtml(coverUrl) + '" alt="Course thumbnail" style="width:60px;height:40px;object-fit:cover;border-radius:6px;flex-shrink:0;">'
       : '<div style="width:60px;height:40px;border-radius:6px;background:var(--surface);border:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>';
     const priceText = c.price_cents > 0 ? '$' + (c.price_cents / 100).toFixed(2) : 'Free';
 
@@ -8586,7 +8586,7 @@ function renderLinkCollapsed(link, dragSvg, editSvg) {
 
   if (link.isHero) {
     const thumb = link.photoUrl
-      ? `<img alt="" src="${escapeHtml(link.photoUrl)}" style="width:56px;height:56px;object-fit:cover;border-radius:6px;flex-shrink:0;">`
+      ? `<img alt="Link thumbnail" src="${escapeHtml(link.photoUrl)}" style="width:56px;height:56px;object-fit:cover;border-radius:6px;flex-shrink:0;">`
       : `<div style="width:56px;height:56px;border-radius:6px;background:linear-gradient(135deg,rgba(167,139,250,0.15),rgba(232,121,249,0.1));border:1px dashed rgba(232,121,249,0.4);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;color:#e879f9;">Hero</div>`;
     return `<div class="bio-link-row bio-link-collapsed${heroClass}" data-id="${link._id}" onclick="expandLink(${link._id})" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:10px 12px;">
       <div class="bio-link-drag" aria-label="Drag to reorder" onclick="event.stopPropagation();">${dragSvg}</div>
@@ -8605,7 +8605,7 @@ function renderLinkCollapsed(link, dragSvg, editSvg) {
 
   if (link.isCourse) {
     const thumb = link.photoUrl
-      ? `<img alt="" src="${escapeHtml(link.photoUrl)}" style="width:56px;height:38px;object-fit:cover;border-radius:6px;flex-shrink:0;">`
+      ? `<img alt="Link thumbnail" src="${escapeHtml(link.photoUrl)}" style="width:56px;height:38px;object-fit:cover;border-radius:6px;flex-shrink:0;">`
       : `<div style="width:56px;height:38px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>`;
     const priceText = link.coursePrice > 0 ? '$' + (link.coursePrice / 100).toFixed(2) : 'Free';
     const crossoutText = link.courseCrossoutPrice > 0 ? '<span style="text-decoration:line-through;color:var(--muted);font-size:10px;margin-left:4px;">$' + (link.courseCrossoutPrice / 100).toFixed(2) + '</span>' : '';
@@ -8626,7 +8626,7 @@ function renderLinkCollapsed(link, dragSvg, editSvg) {
 
   if (link.isCoaching) {
     const thumb = link.photoUrl
-      ? `<img alt="" src="${escapeHtml(link.photoUrl)}" style="width:56px;height:38px;object-fit:cover;border-radius:6px;flex-shrink:0;">`
+      ? `<img alt="Link thumbnail" src="${escapeHtml(link.photoUrl)}" style="width:56px;height:38px;object-fit:cover;border-radius:6px;flex-shrink:0;">`
       : `<div style="width:56px;height:38px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>`;
     const priceText = link.coachingPrice > 0 ? '$' + (link.coachingPrice / 100).toFixed(2) : 'Free';
     return `<div class="bio-link-row bio-link-collapsed" data-id="${link._id}" onclick="expandLink(${link._id})" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:10px 12px;">
@@ -8646,7 +8646,7 @@ function renderLinkCollapsed(link, dragSvg, editSvg) {
 
   if (link.featured) {
     const thumb = link.photoUrl
-      ? `<img alt="" src="${escapeHtml(link.photoUrl)}" style="width:56px;height:32px;object-fit:cover;border-radius:4px;flex-shrink:0;">`
+      ? `<img alt="Link thumbnail" src="${escapeHtml(link.photoUrl)}" style="width:56px;height:32px;object-fit:cover;border-radius:4px;flex-shrink:0;">`
       : `<div style="width:56px;height:32px;border-radius:4px;background:var(--surface2);border:1px dashed rgba(124,58,237,0.3);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--muted);">16:9</div>`;
     return `<div class="bio-link-row bio-link-collapsed${mkClass}" data-id="${link._id}" onclick="expandLink(${link._id})" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:10px 12px;">
       <div class="bio-link-drag" aria-label="Drag to reorder" onclick="event.stopPropagation();">${dragSvg}</div>
@@ -8736,7 +8736,7 @@ function renderLinkExpanded(link, dragSvg) {
   if (link.isCourse) {
     // Course link — show cover, locked title/URL, crossout price option
     const coverHtml = link.photoUrl
-      ? `<img alt="" src="${escapeHtml(link.photoUrl)}" style="width:100%;height:120px;object-fit:cover;border-radius:8px;margin-bottom:10px;">`
+      ? `<img alt="Link cover" src="${escapeHtml(link.photoUrl)}" style="width:100%;height:120px;object-fit:cover;border-radius:8px;margin-bottom:10px;">`
       : '';
     const priceDisplay = link.coursePrice > 0 ? '$' + (link.coursePrice / 100).toFixed(2) : 'Free';
     const crossoutVal = link.courseCrossoutPrice > 0 ? (link.courseCrossoutPrice / 100).toFixed(2) : '';
@@ -8769,7 +8769,7 @@ function renderLinkExpanded(link, dragSvg) {
   }
   if (link.isCoaching) {
     const coverHtml = link.photoUrl
-      ? `<img alt="" src="${escapeHtml(link.photoUrl)}" style="width:100%;height:120px;object-fit:cover;border-radius:8px;margin-bottom:10px;">`
+      ? `<img alt="Link cover" src="${escapeHtml(link.photoUrl)}" style="width:100%;height:120px;object-fit:cover;border-radius:8px;margin-bottom:10px;">`
       : '';
     const priceDisplay = link.coachingPrice > 0 ? '$' + (link.coachingPrice / 100).toFixed(2) : 'Free';
     return `<div class="bio-link-row" data-id="${link._id}">
@@ -8795,7 +8795,7 @@ function renderLinkExpanded(link, dragSvg) {
     photoSlot = `
     <div class="bio-featured-photo-slot">
       ${link.photoUrl
-        ? `<img alt="" src="${escapeHtml(link.photoUrl)}">`
+        ? `<img alt="Link thumbnail" src="${escapeHtml(link.photoUrl)}">`
         : '<span>+ Upload 16:9 photo</span>'}
       <input type="file" accept="image/*" aria-label="Upload featured photo" onchange="openCropper(this,'featured',${link._id})">
     </div>`;
@@ -8803,7 +8803,7 @@ function renderLinkExpanded(link, dragSvg) {
     photoSlot = `
     <div class="bio-hero-photo-slot">
       ${link.photoUrl
-        ? `<img alt="" src="${escapeHtml(link.photoUrl)}">`
+        ? `<img alt="Link thumbnail" src="${escapeHtml(link.photoUrl)}">`
         : '<span>+ Upload hero image</span>'}
       <input type="file" accept="image/*" aria-label="Upload hero photo" onchange="onHeroPhotoSelected(this,${link._id})">
     </div>`;
@@ -8925,7 +8925,7 @@ function renderBioVideos() {
     html = bioState.videos.map(v => {
       const ytId = extractYouTubeIdDash(v.url);
       const thumb = ytId
-        ? `<img alt="" src="https://i.ytimg.com/vi/${ytId}/default.jpg" style="width:60px;height:45px;object-fit:cover;border-radius:5px;flex-shrink:0;" onerror="this.style.background='var(--surface2)';this.removeAttribute('src');">`
+        ? `<img alt="YouTube video thumbnail" src="https://i.ytimg.com/vi/${ytId}/default.jpg" style="width:60px;height:45px;object-fit:cover;border-radius:5px;flex-shrink:0;" onerror="this.style.background='var(--surface2)';this.removeAttribute('src');">`
         : `<div style="width:60px;height:45px;border-radius:5px;background:var(--surface2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--muted);">?</div>`;
       const urlDisplay = escapeHtml(v.url.length > 50 ? v.url.slice(0, 47) + '…' : v.url);
       return `<div class="bio-link-row" data-id="${v._id}" style="display:flex;gap:10px;align-items:center;padding:10px 12px;">
@@ -9436,7 +9436,7 @@ function buildPreviewHTML() {
   const name = bioState.display_name || bioState.username || 'Your name';
   const initial = (name[0] || '?').toUpperCase();
   const avatarHtml = bioState.avatar_url
-    ? `<img src="${escapeHtml(bioState.avatar_url)}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;">`
+    ? `<img src="${escapeHtml(bioState.avatar_url)}" alt="Profile photo" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;">`
     : `<div style="width:100%;height:100%;border-radius:50%;background:${t.surface2};display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;font-size:36px;font-weight:800;color:${t.text};">${escapeHtml(initial)}</div>`;
   const socialsHtml = buildPreviewSocials(t);
   const linksHtml = bioState.links.filter(l => l.isHeader || (l.url || '').trim()).map(l => buildPreviewLink(l, t)).join('');
@@ -9513,7 +9513,7 @@ function buildPreviewHTML() {
   <div class="w">
     ${(bioState.avatar_display === 'hero' && bioState.avatar_url) ? `
     <div class="hero-wrap">
-      <img class="hero-img" src="${escapeHtml(bioState.avatar_url)}" alt="">
+      <img class="hero-img" src="${escapeHtml(bioState.avatar_url)}" alt="Profile photo">
       <div class="hero-fade"></div>
     </div>
     <div class="hero-below">
@@ -9527,7 +9527,7 @@ function buildPreviewHTML() {
     ${bioState.bio ? `<div class="bio-line">${escapeHtml(bioState.bio)}</div>` : ''}`}
     ${linksHtml ? `<div class="links">${linksHtml}</div>` : ''}
     ${videosHtml}
-    ${bioState.show_branding ? '<div class="banner"><img src="logo.png" alt=""><span>Get your free link-in-bio at <strong>Ryxa</strong></span></div>' : ''}
+    ${bioState.show_branding ? '<div class="banner"><img src="logo.png" alt="Ryxa"><span>Get your free link-in-bio at <strong>Ryxa</strong></span></div>' : ''}
   </div>
 </body></html>`;
 }
@@ -9547,7 +9547,7 @@ function buildPreviewLink(l, t) {
   }
   if (l.isHero && l.photoUrl) {
     return `<div class="hl">
-      <img class="hl-bg" src="${escapeHtml(l.photoUrl)}" alt="">
+      <img class="hl-bg" src="${escapeHtml(l.photoUrl)}" alt="Link background">
       <div class="hl-ov"></div>
       <div class="hl-c">
         <div class="hl-t">${escapeHtml(l.title || 'Untitled')}</div>
@@ -9558,7 +9558,7 @@ function buildPreviewLink(l, t) {
   if (l.isCourse) {
     const priceDisplay = l.coursePrice > 0 ? '$' + (l.coursePrice / 100).toFixed(2) : 'Free';
     const crossoutHtml = l.courseCrossoutPrice > 0 ? `<span style="text-decoration:line-through;color:${t.muted};font-size:11px;margin-right:4px;">$${(l.courseCrossoutPrice / 100).toFixed(2)}</span>` : '';
-    const coverHtml = l.photoUrl ? `<img src="${escapeHtml(l.photoUrl)}" alt="" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px 8px 0 0;">` : '';
+    const coverHtml = l.photoUrl ? `<img src="${escapeHtml(l.photoUrl)}" alt="Link cover" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px 8px 0 0;">` : '';
     return `<div style="background:${t.surface};border:1px solid ${t.border};border-radius:10px;overflow:hidden;margin-bottom:8px;">
       ${coverHtml}
       <div style="padding:10px 12px;display:flex;align-items:center;justify-content:space-between;">
@@ -9571,7 +9571,7 @@ function buildPreviewLink(l, t) {
   }
   if (l.isCoaching) {
     const priceDisplay = l.coachingPrice > 0 ? '$' + (l.coachingPrice / 100).toFixed(2) : 'Free';
-    const coverHtml = l.photoUrl ? `<img src="${escapeHtml(l.photoUrl)}" alt="" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px 8px 0 0;">` : '';
+    const coverHtml = l.photoUrl ? `<img src="${escapeHtml(l.photoUrl)}" alt="Link cover" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px 8px 0 0;">` : '';
     return `<div style="background:${t.surface};border:1px solid ${t.border};border-radius:10px;overflow:hidden;margin-bottom:8px;">
       ${coverHtml}
       <div style="padding:10px 12px;display:flex;align-items:center;justify-content:space-between;">
@@ -9584,7 +9584,7 @@ function buildPreviewLink(l, t) {
   }
   if (l.featured && l.photoUrl) {
     return `<div class="fl">
-      <img src="${escapeHtml(l.photoUrl)}" alt="">
+      <img src="${escapeHtml(l.photoUrl)}" alt="Link thumbnail">
       <div class="fl-b">
         <div class="fl-t">${escapeHtml(l.title || 'Untitled')}</div>
         ${l.description ? `<div class="fl-d">${escapeHtml(l.description)}</div>` : ''}
@@ -9593,7 +9593,7 @@ function buildPreviewLink(l, t) {
   }
   if (l.isMediaKit && l.photoUrl) {
     return `<div class="mkh">
-      <img class="mkh-bg" src="${escapeHtml(l.photoUrl)}" alt="">
+      <img class="mkh-bg" src="${escapeHtml(l.photoUrl)}" alt="Link background">
       <div class="mkh-ov"></div>
       <div class="mkh-c">
         <svg class="mkh-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="17" x2="8" y2="13"/><line x1="12" y1="17" x2="12" y2="11"/><line x1="16" y1="17" x2="16" y2="15"/></svg>
@@ -9614,7 +9614,7 @@ function buildPreviewVideos(t) {
   const cards = bioState.videos.map(v => {
     const id = extractYouTubeIdDash(v.url);
     if (!id) return '';
-    return `<div class="vc"><img src="https://i.ytimg.com/vi/${id}/hqdefault.jpg" alt="" onerror="this.src='https://i.ytimg.com/vi/${id}/default.jpg'"></div>`;
+    return `<div class="vc"><img src="https://i.ytimg.com/vi/${id}/hqdefault.jpg" alt="YouTube video thumbnail" onerror="this.src='https://i.ytimg.com/vi/${id}/default.jpg'"></div>`;
   }).filter(Boolean).join('');
   if (!cards) return '';
   return `<div class="vids"><div class="vids-r">${cards}</div></div>`;
@@ -9805,7 +9805,7 @@ function renderMKHeadshotPreview() {
   const inner = document.getElementById('mk-headshot-inner');
   const removeBtn = document.getElementById('mk-headshot-remove');
   if (mkState.headshot_url) {
-    inner.innerHTML = `<img alt="" src="${escapeHtml(mkState.headshot_url)}" style="width:100%;height:100%;object-fit:cover;border-radius:13px;">`;
+    inner.innerHTML = `<img alt="Media kit headshot" src="${escapeHtml(mkState.headshot_url)}" style="width:100%;height:100%;object-fit:cover;border-radius:13px;">`;
     removeBtn.style.display = 'inline-block';
   } else {
     const name = mkState.display_name || '?';
@@ -10511,7 +10511,7 @@ function buildMKPreviewHTML() {
   const name = mkState.display_name || 'Your name';
   const initial = (name[0] || '?').toUpperCase();
   const headshot = mkState.headshot_url
-    ? `<img src="${escapeHtml(mkState.headshot_url)}" alt="" style="width:100%;height:100%;border-radius:10px;object-fit:cover;display:block;">`
+    ? `<img src="${escapeHtml(mkState.headshot_url)}" alt="Media kit headshot" style="width:100%;height:100%;border-radius:10px;object-fit:cover;display:block;">`
     : `<div style="width:100%;height:100%;border-radius:10px;background:${t.surface2};display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;font-size:40px;font-weight:800;color:${t.text};">${escapeHtml(initial)}</div>`;
 
   // Audience
@@ -10569,7 +10569,7 @@ function buildMKPreviewHTML() {
     ${mkState.contact_note ? `<div class="contact-n">${escapeHtml(mkState.contact_note)}</div>` : ''}
   </div>` : '';
 
-  const bannerHtml = mkState.show_branding ? `<div class="banner-wrap"><div class="banner"><img src="logo.png" alt="" style="width:12px;height:12px;border-radius:3px;"><span>Media Kit powered by <strong>Ryxa</strong></span></div></div>` : '';
+  const bannerHtml = mkState.show_branding ? `<div class="banner-wrap"><div class="banner"><img src="logo.png" alt="Ryxa" style="width:12px;height:12px;border-radius:3px;"><span>Media Kit powered by <strong>Ryxa</strong></span></div></div>` : '';
 
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -10930,7 +10930,7 @@ function renderPhonePreview() {
   // Show all uploaded + empty placeholders to fill out the 3-column pattern
   const cells = [];
   gridPhotos.forEach(p => {
-    cells.push(`<div class="grid-phone-cell"><img src="${escapeHtml(p.url)}" alt=""></div>`);
+    cells.push(`<div class="grid-phone-cell"><img src="${escapeHtml(p.url)}" alt="Grid post"></div>`);
   });
   // Pad to a multiple of 3 with empty cells (at least 3 rows visible)
   const minRows = 3;
@@ -22129,7 +22129,7 @@ function dsSearchIcons() {
       var grid = '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;">';
       data.icons.forEach(function(iconName) {
         grid += '<button class="ds-icon-item" onmousedown="dsDragStart(event,\'icon:' + iconName.replace(/'/g, "\\'") + '\')" ontouchstart="dsDragStart(event,\'icon:' + iconName.replace(/'/g, "\\'") + '\')" title="' + iconName.split(':')[1] + '">'
-          + '<img src="https://api.iconify.design/' + iconName + '.svg?color=%23f0eef8" alt="" style="width:28px;height:28px;" loading="lazy">'
+          + '<img src="https://api.iconify.design/' + iconName + '.svg?color=%23f0eef8" alt="' + iconName + ' icon" style="width:28px;height:28px;" loading="lazy">'
           + '</button>';
       });
       grid += '</div>';
@@ -22951,7 +22951,7 @@ function taRenderResults(r) {
     // Score header with ring
     + '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:28px;margin-bottom:16px;">'
     + '<div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;">'
-    + '<div style="position:relative;border-radius:12px;overflow:hidden;width:200px;flex-shrink:0;"><img src="' + taImageData + '" alt="" style="width:100%;display:block;border-radius:12px;"></div>'
+    + '<div style="position:relative;border-radius:12px;overflow:hidden;width:200px;flex-shrink:0;"><img src="' + taImageData + '" alt="Thumbnail analysis result" style="width:100%;display:block;border-radius:12px;"></div>'
     + '<div style="flex:1;min-width:200px;display:flex;align-items:center;gap:20px;">'
     + '<div class="ta-score-ring"><svg width="80" height="80" viewBox="0 0 80 80"><circle cx="40" cy="40" r="36" fill="none" stroke="var(--surface)" stroke-width="6"/><circle cx="40" cy="40" r="36" fill="none" stroke="' + scoreColor + '" stroke-width="6" stroke-dasharray="' + circumference + '" stroke-dashoffset="' + offset + '" stroke-linecap="round" style="transition:stroke-dashoffset 1s ease;"/></svg><div class="ta-score-num" style="color:' + scoreColor + ';">' + r.overall_score + '</div></div>'
     + '<div><div style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;margin-bottom:4px;">Overall Score</div><div style="font-size:13px;color:var(--muted);">' + (r.overall_score >= 70 ? 'Great thumbnail! Ready to publish.' : r.overall_score >= 40 ? 'Good start. A few tweaks could boost clicks.' : 'Needs work. Check the suggestions below.') + '</div></div>'
@@ -23155,7 +23155,7 @@ async function loadDesignProjects() {
     var date = new Date(p.updated_at).toLocaleDateString();
     var thumb = p.thumbnail || '';
     return '<div class="ds-project-card" onclick="openDesignProject(\'' + p.id + '\')">'
-      + (thumb ? '<img src="' + escapeHtml(thumb) + '" style="width:56px;height:40px;object-fit:cover;border-radius:6px;background:var(--surface2);flex-shrink:0;" alt="">' : '<div style="width:56px;height:40px;background:var(--surface2);border-radius:6px;flex-shrink:0;"></div>')
+      + (thumb ? '<img src="' + escapeHtml(thumb) + '" style="width:56px;height:40px;object-fit:cover;border-radius:6px;background:var(--surface2);flex-shrink:0;" alt="Contract thumbnail">' : '<div style="width:56px;height:40px;background:var(--surface2);border-radius:6px;flex-shrink:0;"></div>')
       + '<div style="flex:1;min-width:0;">'
       + '<div style="font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escapeHtml(p.name) + '</div>'
       + '<div style="font-size:12px;color:var(--muted);margin-top:2px;">' + p.canvas_width + ' × ' + p.canvas_height + ' · ' + date + '</div>'

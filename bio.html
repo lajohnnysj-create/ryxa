@@ -913,7 +913,7 @@ function buildLink(link) {
     const safePhoto = validImageUrl(link.photoUrl);
     if (safePhoto) {
       return `<a class="link-btn hero-link" href="${esc(url)}" target="_blank" rel="noopener nofollow">
-        <img class="hero-bg" src="${esc(safePhoto)}" alt="" loading="lazy">
+        <img class="hero-bg" src="${esc(safePhoto)}" alt="Link background" loading="lazy">
         <div class="hero-overlay"></div>
         <div class="hero-content">
           <div class="link-title">${title}</div>
@@ -928,7 +928,7 @@ function buildLink(link) {
     const safePhoto = validImageUrl(link.photoUrl);
     if (safePhoto) {
       return `<a class="featured-link" href="${esc(url)}" target="_blank" rel="noopener nofollow">
-        <img class="featured-photo" src="${esc(safePhoto)}" alt="" loading="lazy">
+        <img class="featured-photo" src="${esc(safePhoto)}" alt="Featured link" loading="lazy">
         <div class="featured-body">
           <div class="featured-title">${title}</div>
           ${link.description ? `<div class="featured-desc">${esc(link.description)}</div>` : ''}
@@ -942,7 +942,7 @@ function buildLink(link) {
     const safePhoto = validImageUrl(link.photoUrl);
     const priceDisplay = link.coursePrice > 0 ? '$' + (link.coursePrice / 100).toFixed(2) : 'Free';
     const crossoutHtml = link.courseCrossoutPrice > 0 ? '<span style="text-decoration:line-through;opacity:0.5;font-size:12px;margin-right:4px;">$' + (link.courseCrossoutPrice / 100).toFixed(2) + '</span>' : '';
-    const coverHtml = safePhoto ? '<img src="' + esc(safePhoto) + '" alt="" loading="lazy" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px 10px 0 0;display:block;">' : '';
+    const coverHtml = safePhoto ? '<img src="' + esc(safePhoto) + '" alt="Link cover" loading="lazy" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px 10px 0 0;display:block;">' : '';
     return '<a class="course-link-card" href="' + esc(url) + '" target="_blank" rel="noopener nofollow" style="display:block;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;text-decoration:none;color:var(--text);margin-bottom:8px;transition:transform 0.15s,border-color 0.15s;" onmouseover="this.style.transform=\'translateY(-2px)\';this.style.borderColor=\'var(--accent)\'" onmouseout="this.style.transform=\'\';this.style.borderColor=\'var(--border)\'">'
       + coverHtml
       + '<div style="padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">'
@@ -954,7 +954,7 @@ function buildLink(link) {
   if (link.isCoaching) {
     const safePhoto = validImageUrl(link.photoUrl);
     const priceDisplay = link.coachingPrice > 0 ? '$' + (link.coachingPrice / 100).toFixed(2) : 'Free';
-    const coverHtml = safePhoto ? '<img src="' + esc(safePhoto) + '" alt="" loading="lazy" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px 10px 0 0;display:block;">' : '';
+    const coverHtml = safePhoto ? '<img src="' + esc(safePhoto) + '" alt="Link cover" loading="lazy" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px 10px 0 0;display:block;">' : '';
     return '<a class="course-link-card" href="' + esc(url) + '" target="_blank" rel="noopener nofollow" style="display:block;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;text-decoration:none;color:var(--text);margin-bottom:8px;transition:transform 0.15s,border-color 0.15s;" onmouseover="this.style.transform=\'translateY(-2px)\';this.style.borderColor=\'var(--accent)\'" onmouseout="this.style.transform=\'\';this.style.borderColor=\'var(--border)\'">'
       + coverHtml
       + '<div style="padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">'
@@ -969,7 +969,7 @@ function buildLink(link) {
     if (safePhoto) {
       // Hero style: headshot fills the card, darkened, text/icon in front
       return `<a class="link-btn mediakit-link mediakit-hero" href="${esc(url)}" target="_blank" rel="noopener nofollow" aria-label="View Media Kit">
-        <img class="mediakit-hero-bg" src="${esc(safePhoto)}" alt="" loading="lazy">
+        <img class="mediakit-hero-bg" src="${esc(safePhoto)}" alt="Link background" loading="lazy">
         <div class="mediakit-hero-overlay"></div>
         <div class="mediakit-hero-content">
           ${mkIconSvg}
@@ -1005,7 +1005,7 @@ function buildVideos(videos) {
               onclick="playVideo(this,'${id}')"
               onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();playVideo(this,'${id}')}">
       <div class="video-thumb-wrap">
-        <img class="video-thumb" src="${thumb}" alt="" loading="lazy" onerror="this.src='https://i.ytimg.com/vi/${id}/default.jpg'">
+        <img class="video-thumb" src="${thumb}" alt="YouTube video thumbnail" loading="lazy" onerror="this.src='https://i.ytimg.com/vi/${id}/default.jpg'">
         <div class="video-play"><div class="video-play-icon"></div></div>
       </div>
     </div>`;
@@ -1222,7 +1222,7 @@ function render(profile, bio, userTier) {
   // Pro and Max users can opt out via show_branding=false.
   const isPaid = profile.tier === 'monthly' || profile.tier === 'max';
   const showBanner = !isPaid || bio.show_branding !== false;
-  const banner = showBanner ? `<a class="brand-banner" href="https://www.ryxa.io"><img src="https://www.ryxa.io/logo.png" alt="" class="brand-banner-logo"><span>Get your free link-in-bio at <strong>Ryxa</strong></span></a>` : '';
+  const banner = showBanner ? `<a class="brand-banner" href="https://www.ryxa.io"><img src="https://www.ryxa.io/logo.png" alt="Ryxa" class="brand-banner-logo"><span>Get your free link-in-bio at <strong>Ryxa</strong></span></a>` : '';
   if (showBanner) document.body.style.paddingBottom = '80px';
 
   const isHeroMode = bio.avatar_display === 'hero' && validImageUrl(bio.avatar_url) && isMaxTier;
