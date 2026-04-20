@@ -6367,6 +6367,13 @@ const STRIPE_PRICE_MAX = 'price_1TLQdmFQ1L0aeJrZxntN3EhI';
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// Helper: get auth headers for AI API calls
+function getAIHeaders() {
+  var headers = { 'Content-Type': 'application/json' };
+  if (window._supabaseAccessToken) headers['Authorization'] = 'Bearer ' + window._supabaseAccessToken;
+  return headers;
+}
+
 let currentUser = null;
 let userTier = 'free';
 
@@ -6416,9 +6423,11 @@ const toolTitles = {
 async function initAuth() {
   const { data: { session } } = await sb.auth.getSession();
   if (!session?.user) { window.location.href = 'index.html'; return; }
+  window._supabaseAccessToken = session.access_token || '';
   await setUser(session.user);
   sb.auth.onAuthStateChange((_event, session) => {
     if (!session?.user) window.location.href = 'index.html';
+    else window._supabaseAccessToken = session.access_token || '';
   });
 }
 
@@ -17773,7 +17782,7 @@ function generateHooks() {
 
   fetch('/api/ai-script', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: await getAIHeaders(),
     body: JSON.stringify({ mode: 'hook', topic: topic })
   })
   .then(function(r) { return r.json(); })
@@ -17863,7 +17872,7 @@ function runAIAssist(blockId, mode) {
 
   fetch('/api/ai-script', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: await getAIHeaders(),
     body: JSON.stringify({ mode: mode, text: item.body })
   })
   .then(function(r) { return r.json(); })
@@ -17925,7 +17934,7 @@ function aiBioAssist(textareaId, maxLen) {
 
   fetch('/api/ai-bio', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: await getAIHeaders(),
     body: JSON.stringify({ text: currentText, maxLength: maxLen, mode: mode })
   })
   .then(function(r) { return r.json(); })
@@ -17996,7 +18005,7 @@ function aiCleanUp(textareaId) {
 
   fetch('/api/ai-cleanup', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: await getAIHeaders(),
     body: JSON.stringify({ text: text })
   })
   .then(function(r) { return r.json(); })
@@ -21652,7 +21661,7 @@ async function caAnalyze() {
 
     var response = await fetch('/api/ai-contract', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await getAIHeaders(),
       body: JSON.stringify({ text: text })
     });
     var data = await response.json();
@@ -21882,7 +21891,7 @@ function taAnalyze() {
   // Send to API
   fetch('/api/ai-thumbnail', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: await getAIHeaders(),
     body: JSON.stringify({ image: taImageData })
   })
   .then(function(r) { return r.json(); })
@@ -22224,7 +22233,7 @@ function dsAltText() {
 
   fetch('/api/alt-text', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: await getAIHeaders(),
     body: JSON.stringify({ image: dataUrl })
   })
   .then(function(res) { return res.json(); })
@@ -22309,7 +22318,7 @@ function dsCaption() {
 
   fetch('/api/ai-caption', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: await getAIHeaders(),
     body: JSON.stringify({ image: dataUrl })
   })
   .then(function(res) { return res.json(); })
@@ -22391,7 +22400,7 @@ function dsRewriteText() {
 
   fetch('/api/ai-rewrite', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: await getAIHeaders(),
     body: JSON.stringify({ text: originalText })
   })
   .then(function(res) { return res.json(); })
