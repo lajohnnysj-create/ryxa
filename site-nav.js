@@ -80,6 +80,20 @@ style.textContent = ''
 document.head.appendChild(style);
 
 // =====================
+// GOOGLE ANALYTICS
+// =====================
+if (!window.gtag) {
+  var gs = document.createElement('script');
+  gs.async = true;
+  gs.src = 'https://www.googletagmanager.com/gtag/js?id=G-G7QJHCCX63';
+  document.head.appendChild(gs);
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = function(){dataLayer.push(arguments);};
+  gtag('js', new Date());
+  gtag('config', 'G-G7QJHCCX63');
+}
+
+// =====================
 // HEADER
 // =====================
 function renderHeader() {
