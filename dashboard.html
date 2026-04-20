@@ -4927,7 +4927,7 @@
             <button onclick="dsSetAlign('center')" class="ds-tool-btn" title="Align center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
             <button onclick="dsSetAlign('right')" class="ds-tool-btn" title="Align right"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="9" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
             <div style="width:1px;height:24px;background:var(--border);margin:0 2px;"></div>
-            <input type="color" id="ds-text-color" value="#ffffff" oninput="dsSetTextColor(this.value)" style="width:28px;height:28px;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:2px;" aria-label="Text color">
+            <input type="color" id="ds-text-color" value="#000000" oninput="dsSetTextColor(this.value)" style="width:28px;height:28px;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:2px;" aria-label="Text color">
             <div style="width:1px;height:24px;background:var(--border);margin:0 2px;"></div>
             <input type="color" id="ds-stroke-color" value="#000000" oninput="dsSetStroke()" style="width:28px;height:28px;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:2px;" aria-label="Stroke color" title="Text stroke color">
             <input type="number" id="ds-stroke-width" value="0" min="0" max="20" oninput="dsSetStroke()" style="width:44px;padding:4px 4px;background:var(--surface);border:1px solid var(--border);border-radius:6px;font-size:11px;color:var(--text);text-align:center;" aria-label="Stroke width" title="Stroke width (0 = off)">
@@ -21156,7 +21156,7 @@ function dsAddText() {
     width: 200,
     fontFamily: document.getElementById('ds-font-select')?.value || 'DM Sans',
     fontSize: 24,
-    fill: '#ffffff',
+    fill: '#000000',
     editable: true,
     lockScalingFlip: true
   });
