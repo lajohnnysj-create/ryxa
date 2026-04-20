@@ -1772,9 +1772,9 @@
   .ds-shape-option:hover { background:rgba(124,58,237,0.1); }
   .ds-element-shape { width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);cursor:pointer;transition:all 0.12s;padding:0; }
   .ds-element-shape:hover { border-color:rgba(124,58,237,0.4);background:rgba(124,58,237,0.08);transform:scale(1.08); }
-  .ds-icon-item { width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:var(--surface);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all 0.12s;padding:4px; }
+  .ds-icon-item { width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;background:var(--surface);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all 0.12s;padding:4px;box-sizing:border-box;overflow:hidden; }
   .ds-icon-item:hover { border-color:rgba(124,58,237,0.4);background:rgba(124,58,237,0.08);transform:scale(1.05); }
-  .ds-icon-item svg { width:28px;height:28px;color:var(--text); }
+  .ds-icon-item img { width:28px;height:28px;object-fit:contain; }
   .ds-layer-item { display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:8px;cursor:pointer;transition:background 0.12s;border:1px solid transparent;font-size:12px;color:var(--text);user-select:none; }
   .ds-layer-item:hover { background:rgba(255,255,255,0.04); }
   .ds-layer-item.active { background:rgba(124,58,237,0.1);border-color:rgba(124,58,237,0.3); }
@@ -1797,12 +1797,14 @@
   .ds-project-card:hover { border-color:rgba(124,58,237,0.3); background:rgba(124,58,237,0.03); }
   @media (max-width: 768px) {
     .ds-editor-body { flex-direction:column !important; }
-    .ds-left-sidebar { flex-direction:row !important; overflow-x:auto; scrollbar-width:none; -webkit-overflow-scrolling:touch; }
+    .ds-left-sidebar { flex-direction:row !important; flex-wrap:wrap; justify-content:center; position:static !important; }
     .ds-left-sidebar::-webkit-scrollbar { display:none; }
     .ds-sidebar-divider { width:1px !important; height:24px !important; margin:0 4px !important; }
     #ds-context-bar { font-size:11px; padding:8px 10px; }
     #ds-context-bar .ds-tool-btn { width:28px; height:28px; font-size:11px; }
     #ds-context-bar select, #ds-context-bar input[type="number"] { font-size:11px; }
+    #ds-shape-menu, #ds-layers-panel { position:fixed !important; left:50% !important; top:50% !important; transform:translate(-50%,-50%) !important; max-height:70vh !important; }
+    #ds-export-menu { position:fixed !important; left:50% !important; top:50% !important; transform:translate(-50%,-50%) !important; right:auto !important; }
   }
   .dash-range-custom { display: flex; align-items: center; gap: 6px; padding: 5px 10px; background: transparent; border: 1px solid var(--border); border-radius: 8px; transition: all 0.15s; cursor: pointer; }
   .dash-range-custom:hover { border-color: rgba(124,58,237,0.4); }
@@ -5112,7 +5114,7 @@
             <button onclick="dsToggleShapeMenu()" class="ds-tool-btn" id="ds-shapes-btn" title="Elements" aria-label="Elements" style="position:relative;">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><circle cx="17.5" cy="6.5" r="3.5"/><path d="M14 14l3.5 7L21 14z"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
             </button>
-            <div id="ds-shape-menu" style="display:none;position:absolute;left:54px;top:0;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,0.4);width:260px;">
+            <div id="ds-shape-menu" style="display:none;position:absolute;left:54px;top:0;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,0.4);width:260px;overflow:hidden;">
               <!-- Shapes row -->
               <div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">Shapes</div>
               <div style="display:flex;gap:6px;margin-bottom:14px;">
@@ -5126,7 +5128,7 @@
               <!-- Icon search -->
               <div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">Icons</div>
               <div style="position:relative;margin-bottom:10px;">
-                <input type="text" id="ds-icon-search" placeholder="Search icons..." maxlength="50" onkeydown="if(event.key==='Enter')dsSearchIcons()" style="width:100%;padding:8px 36px 8px 10px;background:var(--surface);border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--text);font-family:DM Sans,sans-serif;" aria-label="Search icons">
+                <input type="text" id="ds-icon-search" placeholder="Search icons..." maxlength="50" oninput="dsDebounceIconSearch()" onkeydown="if(event.key==='Enter'){clearTimeout(dsIconSearchTimeout);dsSearchIcons();}" style="width:100%;padding:8px 36px 8px 10px;background:var(--surface);border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--text);font-family:DM Sans,sans-serif;box-sizing:border-box;" aria-label="Search icons">
                 <button onclick="dsSearchIcons()" style="position:absolute;right:4px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;padding:4px;" aria-label="Search">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
                 </button>
@@ -21929,6 +21931,13 @@ function dsCloseShapeMenu() {
 // ICON SEARCH (Iconify API)
 // =====================================================
 var dsIconSearchTimeout = null;
+
+function dsDebounceIconSearch() {
+  clearTimeout(dsIconSearchTimeout);
+  var query = (document.getElementById('ds-icon-search').value || '').trim();
+  if (query.length < 2) return;
+  dsIconSearchTimeout = setTimeout(dsSearchIcons, 400);
+}
 
 function dsSearchIcons() {
   var query = (document.getElementById('ds-icon-search').value || '').trim();
