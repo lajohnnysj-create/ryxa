@@ -11,9 +11,7 @@
 // =====================
 var style = document.createElement('style');
 style.textContent = ''
-  // Anti-flash: fade entire page in after render
-  + 'body{opacity:0;transition:opacity 0.2s ease;}'
-  + 'body.site-ready{opacity:1;}'
+  // Anti-flash: reserve space
   + '#site-header{min-height:68px;}'
   + '#site-footer{min-height:200px;}'
   // Nav
