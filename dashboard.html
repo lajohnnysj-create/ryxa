@@ -20967,7 +20967,7 @@ function initDesignCanvas() {
     }
 
     // Draw hover highlight
-    if (dsHoveredObj && dsCanvas.getActiveObject() !== dsHoveredObj) {
+    if (dsHoveredObj && dsCanvas.getObjects().indexOf(dsHoveredObj) !== -1 && dsCanvas.getActiveObject() !== dsHoveredObj) {
       var hBound = dsHoveredObj.getBoundingRect();
       ctx.save();
       ctx.strokeStyle = 'rgba(124,58,237,0.6)';
@@ -21371,7 +21371,7 @@ function dsOnSelect() {
     tc.style.display = 'none';
     ic.style.display = 'none';
     shc.style.display = 'flex';
-    var isLineType = obj._dsShapeType === 'line' || obj._dsShapeType === 'arrow';
+    var isLineType = obj._dsShapeType === 'line';
     document.getElementById('ds-shape-fill-group').style.display = isLineType ? 'none' : 'flex';
     document.getElementById('ds-shape-radius-group').style.display = obj._dsShapeType === 'rect' ? 'flex' : 'none';
     if (!isLineType) {
@@ -21440,11 +21440,11 @@ function dsAddShape(type) {
       fill = '';
       break;
     case 'arrow':
-      // Arrow as a group: line + triangle head at the end
-      var line = new fabric.Line([0,10,90,10], { stroke:'#ffffff', strokeWidth:3, fill:'' });
-      var head = new fabric.Triangle({ left:85, top:0, width:20, height:20, fill:'#ffffff', angle:90, stroke:'', strokeWidth:0 });
-      obj = new fabric.Group([line, head], { left:80, top:80 });
-      fill = '';
+      // Arrow as a single path
+      obj = new fabric.Path('M 0 10 L 80 10 L 80 0 L 100 15 L 80 30 L 80 20 L 0 20 Z', {
+        left: 80, top: 80, fill: '#ffffff', stroke: '', strokeWidth: 0
+      });
+      obj._dsShapeType = 'arrow';
       break;
     case 'star':
       var points = dsStarPoints(5, 50, 22);
@@ -21506,18 +21506,7 @@ function dsSetShapeStroke() {
   if (!obj || !obj._dsShape) return;
   var color = document.getElementById('ds-shape-stroke-color').value;
   var width = parseInt(document.getElementById('ds-shape-stroke-width').value) || 0;
-  if (obj.type === 'group' && obj._objects) {
-    obj._objects.forEach(function(child) {
-      if (child.type === 'line') {
-        child.set({ stroke: color, strokeWidth: width });
-      } else {
-        // Triangle head — update fill to match, keep no stroke
-        child.set({ fill: color });
-      }
-    });
-  } else {
-    obj.set({ stroke: color, strokeWidth: width });
-  }
+  obj.set({ stroke: color, strokeWidth: width });
   dsCanvas.renderAll();
   dsSaveState();
 }
@@ -21662,7 +21651,14 @@ function dsSetTextColor(color) {
 function dsDeleteSelected() {
   if (!dsCanvas) return;
   var obj = dsCanvas.getActiveObject();
-  if (obj) { dsCanvas.remove(obj); dsCanvas.discardActiveObject(); dsCanvas.renderAll(); }
+  if (obj) {
+    dsCanvas.remove(obj);
+    dsCanvas.discardActiveObject();
+    // Clear hover highlight reference to prevent lingering border
+    if (typeof dsHoveredObj !== 'undefined') dsHoveredObj = null;
+    dsCanvas.renderAll();
+    dsSaveState();
+  }
 }
 
 function dsDuplicate() {
