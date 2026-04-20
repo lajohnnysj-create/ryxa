@@ -20,7 +20,7 @@ function esc(s) {
 
 async function fetchMediaKit(username) {
   const profileRes = await fetch(
-    `${SUPABASE_URL}/rest/v1/profiles?username=eq.${encodeURIComponent(username)}&select=user_id,username,tier`,
+    `${SUPABASE_URL}/rest/v1/profiles?username=eq.${encodeURIComponent(username)}&select=user_id,username`,
     {
       headers: {
         apikey: SUPABASE_ANON_KEY,
