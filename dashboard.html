@@ -4017,7 +4017,7 @@
                 <div style="font-size:13px;font-weight:600;color:var(--text);">List in Marketplace</div>
                 <div style="font-size:12px;color:var(--muted);margin-top:2px;">Make this course discoverable in the Learning Hub. <span id="course-marketplace-count" style="color:var(--accent2);"></span></div>
               </div>
-              <button id="course-marketplace-btn" onclick="toggleCourseMarketplace()" style="width:44px;height:24px;border-radius:100px;border:none;cursor:pointer;position:relative;transition:background 0.2s;background:rgba(255,255,255,0.15);">
+              <button id="course-marketplace-btn" onclick="toggleCourseMarketplace()" aria-label="Toggle course marketplace listing" style="width:44px;height:24px;border-radius:100px;border:none;cursor:pointer;position:relative;transition:background 0.2s;background:rgba(255,255,255,0.15);">
                 <div id="course-marketplace-thumb" style="width:18px;height:18px;border-radius:50%;background:#fff;position:absolute;top:3px;left:3px;transition:transform 0.2s;"></div>
               </button>
             </div>
@@ -4177,7 +4177,7 @@
                 <div style="font-size:13px;font-weight:600;color:var(--text);">List in Marketplace</div>
                 <div style="font-size:12px;color:var(--muted);margin-top:2px;">Make this service discoverable in the Learning Hub. <span id="coaching-marketplace-count" style="color:var(--accent2);"></span></div>
               </div>
-              <button id="coaching-marketplace-btn" onclick="toggleCoachingMarketplace()" style="width:44px;height:24px;border-radius:100px;border:none;cursor:pointer;position:relative;transition:background 0.2s;background:rgba(255,255,255,0.15);">
+              <button id="coaching-marketplace-btn" onclick="toggleCoachingMarketplace()" aria-label="Toggle coaching marketplace listing" style="width:44px;height:24px;border-radius:100px;border:none;cursor:pointer;position:relative;transition:background 0.2s;background:rgba(255,255,255,0.15);">
                 <div id="coaching-marketplace-thumb" style="width:18px;height:18px;border-radius:50%;background:#fff;position:absolute;top:3px;left:3px;transition:transform 0.2s;"></div>
               </button>
             </div>
@@ -5058,7 +5058,7 @@
           <div style="font-size:15px;font-weight:500;margin-bottom:6px;">Drop your thumbnail here or click to upload</div>
           <div style="font-size:12px;color:var(--muted);">PNG, JPG, or WebP — recommended 1280×720 for YouTube</div>
         </div>
-        <input type="file" id="ta-file-input" accept="image/*" style="display:none;" onchange="taHandleUpload(this)">
+        <input type="file" id="ta-file-input" accept="image/*" style="display:none;" onchange="taHandleUpload(this)" aria-label="Upload thumbnail image">
 
         <!-- Preview + Analyze -->
         <div id="ta-preview-area" style="display:none;margin-bottom:24px;">
@@ -5153,7 +5153,7 @@
           <div style="font-size:15px;font-weight:500;margin-bottom:6px;">Drop your contract here or click to upload</div>
           <div style="font-size:12px;color:var(--muted);">PDF files only — up to 20 pages</div>
         </div>
-        <input type="file" id="ca-file-input" accept=".pdf,application/pdf" style="display:none;" onchange="caHandleUpload(this)">
+        <input type="file" id="ca-file-input" accept=".pdf,application/pdf" style="display:none;" onchange="caHandleUpload(this)" aria-label="Upload contract PDF">
 
         <!-- File preview -->
         <div id="ca-preview-area" style="display:none;margin-bottom:24px;">
