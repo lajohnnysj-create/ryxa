@@ -36,7 +36,7 @@ async function fetchProfile(username) {
 
   // Fetch the bio data for that user
   const bioRes = await fetch(
-    `${SUPABASE_URL}/rest/v1/bio?user_id=eq.${profile.user_id}&select=display_name,avatar_url,bio,published`,
+    `${SUPABASE_URL}/rest/v1/link_in_bio?user_id=eq.${profile.user_id}&select=display_name,avatar_url,bio,published`,
     {
       headers: {
         apikey: SUPABASE_ANON_KEY,
@@ -61,7 +61,13 @@ module.exports = async (req, res) => {
   const RESERVED = new Set([
     'brand-portal', 'deal', 'about', 'blog', 'dashboard', 'faq', 'follower-audit',
     'index', 'instructions', 'pricing', 'privacy', 'reset-password', 'terms',
-    'mediakit', 'api', 'admin', 'support', 'help', 'login', 'signin', 'signup'
+    'mediakit', 'bio', 'brand-deal-crm', 'api', 'admin', 'support', 'help', 'login', 'signin', 'signup',
+    'tools', 'tools-link-in-bio', 'tools-course-builder', 'tools-coaching', 'tools-brand-deal-crm',
+    'tools-media-kit', 'tools-script-builder', 'tools-ai-design-studio', 'tools-grid-planner',
+    'tools-follower-audit', 'tools-photo-editor', 'tools-image-studio', 'tools-qr-generator',
+    'tools-invoice-generator', 'tools-sign-pdf', 'tools-thumbnail-analyzer', 'tools-contract-analyzer',
+    'blog-best-linktree-alternatives', 'blog-why-did-my-friends-unfollow-me',
+    'learn', 'cookie-banner', 'site-nav'
   ]);
   if (username.includes('.') || username.includes('/') || RESERVED.has(username.toLowerCase())) {
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
