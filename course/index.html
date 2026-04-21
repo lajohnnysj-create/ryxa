@@ -205,7 +205,7 @@ async function init() {
   if (metaDesc) metaDesc.content = (course.description || '').slice(0, 160);
 
   // Render
-  renderCourse(course, creatorName, modules || [], lessons || []);
+  renderCourse(course, creatorName, modules || [], lessons || [], session);
 
   // Track page view (fire-and-forget)
   if (creatorName && creatorName !== 'Creator') {
@@ -254,7 +254,7 @@ function escapeHtml(s) {
   });
 }
 
-function renderCourse(course, creatorName, modules, lessons) {
+function renderCourse(course, creatorName, modules, lessons, session) {
   document.getElementById('loading').style.display = 'none';
   document.getElementById('course-page').style.display = 'block';
 
