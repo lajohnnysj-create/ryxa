@@ -19818,8 +19818,8 @@ var deferredInstallPrompt = null;
 var isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 var isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
 
-// Show install button on iOS (always, since beforeinstallprompt doesn't fire) or wait for Chrome prompt
-if (isIos && !isStandalone) {
+// Hide install button only if currently running as standalone, otherwise show it
+if (!isStandalone) {
   var btn = document.getElementById('sidebar-install-btn');
   if (btn) btn.style.display = 'flex';
 }
@@ -19827,8 +19827,6 @@ if (isIos && !isStandalone) {
 window.addEventListener('beforeinstallprompt', function(e) {
   e.preventDefault();
   deferredInstallPrompt = e;
-  var btn = document.getElementById('sidebar-install-btn');
-  if (btn) btn.style.display = 'flex';
 });
 
 function handleInstallClick() {
@@ -19855,13 +19853,6 @@ function closeInstallModal() {
   var modal = document.getElementById('install-modal');
   if (modal) modal.style.display = 'none';
 }
-
-// Hide install button if app is already installed
-window.addEventListener('appinstalled', function() {
-  deferredInstallPrompt = null;
-  var btn = document.getElementById('sidebar-install-btn');
-  if (btn) btn.style.display = 'none';
-});
 
 // Close install modal on click outside
 document.addEventListener('click', function(e) {
