@@ -7833,6 +7833,14 @@ async function resyncBioUsername() {
   } catch (e) { console.warn('resyncBioUsername', e); }
   updatePublishUI();
   updateMediaKitLinkButton();
+  // Override browser autofill
+  setTimeout(function() {
+    var el = document.getElementById('bio-username');
+    if (el && bioState.username && el.value !== bioState.username) {
+      el.value = bioState.username;
+      updatePublishUI();
+    }
+  }, 500);
 }
 
 async function loadBioData() {
@@ -7843,6 +7851,15 @@ async function loadBioData() {
       bioState.username = profile.username;
       bioOriginalUsername = profile.username;
       document.getElementById('bio-username').value = profile.username;
+      // Override browser autofill which may fire after our set
+      setTimeout(function() {
+        var el = document.getElementById('bio-username');
+        if (el && el.value !== bioState.username) el.value = bioState.username;
+      }, 500);
+      setTimeout(function() {
+        var el = document.getElementById('bio-username');
+        if (el && el.value !== bioState.username) el.value = bioState.username;
+      }, 1500);
     }
     const { data: bio } = await sb.from('link_in_bio').select('*').eq('user_id', currentUser.id).maybeSingle();
     if (bio) {
