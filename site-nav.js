@@ -97,6 +97,22 @@ if (!window.gtag) {
 }
 
 // =====================
+// PWA META TAGS
+// =====================
+if (!document.querySelector('link[rel="manifest"]')) {
+  var manifest = document.createElement('link');
+  manifest.rel = 'manifest';
+  manifest.href = '/site.webmanifest';
+  document.head.appendChild(manifest);
+}
+if (!document.querySelector('meta[name="apple-mobile-web-app-capable"]')) {
+  var m1 = document.createElement('meta'); m1.name = 'apple-mobile-web-app-capable'; m1.content = 'yes'; document.head.appendChild(m1);
+  var m2 = document.createElement('meta'); m2.name = 'apple-mobile-web-app-status-bar-style'; m2.content = 'black-translucent'; document.head.appendChild(m2);
+  var m3 = document.createElement('meta'); m3.name = 'apple-mobile-web-app-title'; m3.content = 'Ryxa'; document.head.appendChild(m3);
+  var m4 = document.createElement('meta'); m4.name = 'theme-color'; m4.content = '#07070f'; document.head.appendChild(m4);
+}
+
+// =====================
 // HEADER
 // =====================
 function renderHeader() {
