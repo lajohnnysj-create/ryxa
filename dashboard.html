@@ -6469,7 +6469,7 @@
       <div style="max-width:900px;">
 
         <!-- Max upsell -->
-        <div id="analytics-upsell" style="display:none;text-align:center;padding:60px 24px;min-height:calc(100vh - var(--topbar-height) - 100px);flex-direction:column;align-items:center;justify-content:center;">
+        <div id="analytics-upsell" style="display:none;text-align:center;padding:60px 24px;">
           <div style="width:56px;height:56px;margin:0 auto 16px;background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.25);border-radius:14px;display:flex;align-items:center;justify-content:center;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg></div>
           <h2 style="font-family:Syne,sans-serif;font-size:28px;font-weight:800;margin-bottom:8px;letter-spacing:-0.5px;">Analytics</h2>
           <p style="color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:24px;max-width:440px;margin-left:auto;margin-right:auto;">See your page views, revenue trends, and sales breakdown across courses, coaching, and brand deals. Available on Creator Max.</p>
@@ -7052,6 +7052,10 @@ function showTool(tool) {
   if (el) el.style.display = 'block';
   const nav = document.getElementById('nav-' + tool);
   if (nav) nav.classList.add('active');
+  // Scroll to top when switching tools
+  window.scrollTo({ top: 0, behavior: 'instant' });
+  const toolArea = document.querySelector('.tool-area');
+  if (toolArea) toolArea.scrollTop = 0;
 
   // Init settings when shown
   if (tool === 'settings') {
@@ -20894,7 +20898,7 @@ function setAnalyticsCustomRange() {
 
 function initAnalyticsTool() {
   const isMax = userTier === 'max';
-  document.getElementById('analytics-upsell').style.display = isMax ? 'none' : 'flex';
+  document.getElementById('analytics-upsell').style.display = isMax ? 'none' : 'block';
   document.getElementById('analytics-content').style.display = isMax ? 'block' : 'none';
   if (isMax) loadAnalyticsData();
 }
