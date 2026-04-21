@@ -7334,7 +7334,7 @@ function showPwaLogin() {
   if (main) main.style.display = 'none';
   // In standalone/PWA mode, remove logo link
   var logoWrap = document.getElementById('pwa-login-logo');
-  if (logoWrap && isStandalone) {
+  if (logoWrap && isPwaMode) {
     logoWrap.innerHTML = '<img src="/logo.png" alt="Ryxa" style="width:56px;height:56px;margin:0 auto 16px;display:block;">';
   }
   // Reset form
