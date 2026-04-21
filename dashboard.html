@@ -3288,7 +3288,7 @@
 
 
 <!-- PWA LOGIN SCREEN (shown instead of redirect when in standalone/app mode) -->
-<div id="pwa-login-screen" style="display:none;position:fixed;inset:0;z-index:10000;background:var(--bg);align-items:center;justify-content:center;flex-direction:column;padding:24px;padding-top:calc(24px + env(safe-area-inset-top, 0px));overflow:hidden;">
+<div id="pwa-login-screen" style="display:none;position:fixed;inset:0;z-index:10000;background:var(--bg);align-items:center;justify-content:center;flex-direction:column;padding:24px;padding-top:calc(24px + env(safe-area-inset-top, 0px));overflow:hidden;touch-action:none;-webkit-overflow-scrolling:auto;">
   <div style="width:100%;max-width:400px;">
     <div style="text-align:center;margin-bottom:32px;">
       <div id="pwa-login-logo"><a href="/"><img src="/logo.png" alt="Ryxa" style="width:56px;height:56px;margin:0 auto 16px;display:block;"></a></div>
@@ -7324,6 +7324,9 @@ function showPwaLogin() {
   screen.style.display = 'flex';
   document.body.style.overflow = 'hidden';
   document.documentElement.style.overflow = 'hidden';
+  document.body.style.position = 'fixed';
+  document.body.style.width = '100%';
+  document.body.style.height = '100%';
   // Hide dashboard content
   var sidebar = document.getElementById('sidebar');
   var main = document.querySelector('.main');
@@ -7352,6 +7355,9 @@ function hidePwaLogin() {
   if (screen) screen.style.display = 'none';
   document.body.style.overflow = '';
   document.documentElement.style.overflow = '';
+  document.body.style.position = '';
+  document.body.style.width = '';
+  document.body.style.height = '';
   var sidebar = document.getElementById('sidebar');
   var main = document.querySelector('.main');
   if (sidebar) sidebar.style.display = '';
