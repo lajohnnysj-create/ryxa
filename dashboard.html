@@ -3856,7 +3856,10 @@
               <div style="display:flex;gap:8px;align-items:stretch;flex-wrap:wrap;">
                 <div class="bio-username-prefix-wrap" style="display:flex;align-items:center;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding-left:12px;font-size:13px;color:var(--muted);flex:1;min-width:0;">
                   <span class="bio-username-prefix">ryxa.io/</span>
-                  <input type="text" id="bio-username" aria-label="Username" placeholder="yourname" maxlength="30" autocomplete="one-time-code" data-1p-ignore="true" data-lpignore="true" oninput="onUsernameInput()" style="background:transparent;border:none;padding:10px 10px 10px 2px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;flex:1;min-width:0;">
+                  <!-- Hidden decoys to prevent Chrome autofill on the real input -->
+                  <input type="text" name="fakeusernameremembered" style="position:absolute;opacity:0;height:0;width:0;pointer-events:none;" tabindex="-1" aria-hidden="true">
+                  <input type="password" name="fakepasswordremembered" style="position:absolute;opacity:0;height:0;width:0;pointer-events:none;" tabindex="-1" aria-hidden="true">
+                  <input type="text" id="bio-username" name="bio_display_handle" aria-label="Username" placeholder="yourname" maxlength="30" autocomplete="one-time-code" data-1p-ignore="true" data-lpignore="true" oninput="onUsernameInput()" style="background:transparent;border:none;padding:10px 10px 10px 2px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;flex:1;min-width:0;">
                 </div>
               </div>
               <div id="bio-username-hint" style="font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5;">Same username as your Media Kit. You can change it up to 2 times per week.</div>
@@ -4595,7 +4598,9 @@
                 <div style="display:flex;gap:8px;align-items:stretch;flex-wrap:wrap;">
                   <div class="bio-username-prefix-wrap" style="display:flex;align-items:center;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding-left:12px;font-size:13px;color:var(--muted);flex:1;min-width:0;">
                     <span class="bio-username-prefix">ryxa.io/mediakit/</span>
-                    <input type="text" id="mk-username" aria-label="Username" placeholder="yourname" maxlength="30" autocomplete="one-time-code" data-1p-ignore="true" data-lpignore="true" oninput="onMKUsernameInput()" style="background:transparent;border:none;padding:10px 10px 10px 2px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;flex:1;min-width:0;">
+                    <input type="text" name="fakeusernameremembered2" style="position:absolute;opacity:0;height:0;width:0;pointer-events:none;" tabindex="-1" aria-hidden="true">
+                    <input type="password" name="fakepasswordremembered2" style="position:absolute;opacity:0;height:0;width:0;pointer-events:none;" tabindex="-1" aria-hidden="true">
+                    <input type="text" id="mk-username" name="mk_display_handle" aria-label="Username" placeholder="yourname" maxlength="30" autocomplete="one-time-code" data-1p-ignore="true" data-lpignore="true" oninput="onMKUsernameInput()" style="background:transparent;border:none;padding:10px 10px 10px 2px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;flex:1;min-width:0;">
                   </div>
                 </div>
                 <div id="mk-username-hint" style="font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5;">Same username as your Link in Bio. You can change it up to 2 times per week.</div>
