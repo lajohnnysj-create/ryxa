@@ -7313,6 +7313,7 @@ async function confirmSignOut() {
   bioInited = false;
   bioState = { username: '', display_name: '', bio: '', avatar_url: '', avatar_display: 'default', theme: 'purple', socials: {}, links: [], videos: [], published: false, show_branding: true, custom_theme: null };
   bioOriginalUsername = '';
+  window._ryx_username = '';
   gridInited = false;
   gridPhotos = [];
   gridLoaded = false;
@@ -7322,6 +7323,13 @@ async function confirmSignOut() {
   if (typeof window._faListenersReady !== 'undefined') window._faListenersReady = false;
   currentUser = null;
   userTier = 'free';
+  // Clear stale DOM inputs
+  var bioInput = document.getElementById('bio-username');
+  if (bioInput) bioInput.value = '';
+  var mkInput = document.getElementById('mk-username');
+  if (mkInput) mkInput.value = '';
+  var welcomeName = document.getElementById('welcome-name');
+  if (welcomeName) welcomeName.textContent = 'creator';
   showPwaLogin();
 }
 
