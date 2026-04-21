@@ -4410,6 +4410,136 @@
       </div>
     </div>
 
+    <div id="tool-analytics" style="display:none;">
+      <div style="max-width:900px;">
+
+        <!-- Max upsell -->
+        <div id="analytics-upsell" style="display:none;text-align:center;padding:60px 24px;">
+          <div style="width:56px;height:56px;margin:0 auto 16px;background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.25);border-radius:14px;display:flex;align-items:center;justify-content:center;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg></div>
+          <h2 style="font-family:Syne,sans-serif;font-size:28px;font-weight:800;margin-bottom:8px;letter-spacing:-0.5px;">Analytics</h2>
+          <p style="color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:24px;max-width:440px;margin-left:auto;margin-right:auto;">See your page views, revenue trends, and sales breakdown across courses, coaching, and brand deals. Available on Creator Max.</p>
+          <button onclick="handleMaxUpgradeClick(event)" style="padding:12px 28px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px rgba(232,121,249,0.3);">Upgrade to Creator Max</button>
+        </div>
+
+        <!-- Analytics content (Max only) -->
+        <div id="analytics-content" style="display:none;padding-bottom:60px;">
+          <!-- Date range -->
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+            <h2 style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;letter-spacing:-0.5px;">Analytics</h2>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+              <button class="ana-range-btn active" onclick="setAnalyticsRange(7,this)">7d</button>
+              <button class="ana-range-btn" onclick="setAnalyticsRange(14,this)">14d</button>
+              <button class="ana-range-btn" onclick="setAnalyticsRange(30,this)">30d</button>
+              <div style="display:flex;align-items:center;gap:4px;">
+                <input type="date" id="ana-range-start" aria-label="Analytics start date" style="background:var(--surface);border:1px solid var(--border-hover);border-radius:6px;padding:5px 8px;font-size:12px;color:var(--text);font-family:DM Sans,sans-serif;">
+                <span style="color:var(--muted);font-size:12px;">to</span>
+                <input type="date" id="ana-range-end" aria-label="Analytics end date" style="background:var(--surface);border:1px solid var(--border-hover);border-radius:6px;padding:5px 8px;font-size:12px;color:var(--text);font-family:DM Sans,sans-serif;">
+                <button class="ana-range-btn" onclick="setAnalyticsCustomRange()">Go</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stats boxes -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;">
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+                <div style="width:32px;height:32px;border-radius:8px;background:rgba(232,121,249,0.1);border:1px solid rgba(232,121,249,0.25);display:flex;align-items:center;justify-content:center;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#e879f9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
+                <span style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);font-weight:600;">Page Views</span>
+              </div>
+              <div id="ana-views-total" style="font-family:Syne,sans-serif;font-size:28px;font-weight:800;letter-spacing:-1px;background:linear-gradient(135deg,#e879f9,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">—</div>
+              <div id="ana-views-sub" style="font-size:11px;color:var(--muted);margin-top:4px;">Loading...</div>
+            </div>
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+                <div style="width:32px;height:32px;border-radius:8px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.25);display:flex;align-items:center;justify-content:center;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+                <span style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);font-weight:600;">Revenue</span>
+              </div>
+              <div id="ana-revenue-total" style="font-family:Syne,sans-serif;font-size:28px;font-weight:800;letter-spacing:-1px;background:linear-gradient(135deg,#a78bfa,#e879f9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">—</div>
+              <div id="ana-revenue-sub" style="font-size:11px;color:var(--muted);margin-top:4px;">Loading...</div>
+            </div>
+          </div>
+
+          <!-- Main chart -->
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:24px;position:relative;">
+            <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);font-weight:600;margin-bottom:16px;">Trends</div>
+            <div style="display:flex;gap:16px;margin-bottom:12px;">
+              <div style="display:flex;align-items:center;gap:6px;"><div style="width:10px;height:3px;background:#e879f9;border-radius:2px;"></div><span style="font-size:10px;color:var(--muted);">Page Views</span></div>
+              <div style="display:flex;align-items:center;gap:6px;"><div style="width:10px;height:3px;background:#7c3aed;border-radius:2px;"></div><span style="font-size:10px;color:var(--muted);">Revenue</span></div>
+            </div>
+            <div style="position:relative;">
+              <canvas id="ana-main-chart" style="width:100%;height:200px;"></canvas>
+              <div id="ana-main-tooltip" style="display:none;position:absolute;z-index:10;pointer-events:none;background:rgba(15,15,26,0.95);border:1px solid rgba(232,121,249,0.25);border-radius:10px;padding:10px 14px;font-size:10px;box-shadow:0 4px 20px rgba(0,0,0,0.4);"></div>
+            </div>
+          </div>
+
+          <!-- Revenue mini charts -->
+          <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);font-weight:600;margin-bottom:12px;">Revenue by Source</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;position:relative;">
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:600;margin-bottom:8px;">Courses</div>
+              <div id="ana-courses-total" style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;letter-spacing:-0.5px;margin-bottom:8px;">$0</div>
+              <div style="position:relative;">
+                <canvas id="ana-courses-chart" style="width:100%;height:60px;"></canvas>
+                <div id="ana-courses-chart-tip" class="ana-mini-tip" style="display:none;"></div>
+              </div>
+            </div>
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;position:relative;">
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:600;margin-bottom:8px;">Coaching</div>
+              <div id="ana-coaching-total" style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;letter-spacing:-0.5px;margin-bottom:8px;">$0</div>
+              <div style="position:relative;">
+                <canvas id="ana-coaching-chart" style="width:100%;height:60px;"></canvas>
+                <div id="ana-coaching-chart-tip" class="ana-mini-tip" style="display:none;"></div>
+              </div>
+            </div>
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;position:relative;">
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:600;margin-bottom:8px;">Brand Deals</div>
+              <div id="ana-deals-total" style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;letter-spacing:-0.5px;margin-bottom:8px;">$0</div>
+              <div style="position:relative;">
+                <canvas id="ana-deals-chart" style="width:100%;height:60px;"></canvas>
+                <div id="ana-deals-chart-tip" class="ana-mini-tip" style="display:none;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Page views mini charts -->
+          <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);font-weight:600;margin-top:24px;margin-bottom:12px;">Page Views by Source</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px;">
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;position:relative;">
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:600;margin-bottom:8px;">Bio</div>
+              <div id="ana-pv-bio-total" style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;letter-spacing:-0.5px;margin-bottom:8px;">0</div>
+              <div style="position:relative;">
+                <canvas id="ana-pv-bio-chart" style="width:100%;height:60px;"></canvas>
+                <div id="ana-pv-bio-chart-tip" class="ana-mini-tip" style="display:none;"></div>
+              </div>
+            </div>
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;position:relative;">
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:600;margin-bottom:8px;">Courses</div>
+              <div id="ana-pv-courses-total" style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;letter-spacing:-0.5px;margin-bottom:8px;">0</div>
+              <div style="position:relative;">
+                <canvas id="ana-pv-courses-chart" style="width:100%;height:60px;"></canvas>
+                <div id="ana-pv-courses-chart-tip" class="ana-mini-tip" style="display:none;"></div>
+              </div>
+            </div>
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;position:relative;">
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:600;margin-bottom:8px;">Coaching</div>
+              <div id="ana-pv-coaching-total" style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;letter-spacing:-0.5px;margin-bottom:8px;">0</div>
+              <div style="position:relative;">
+                <canvas id="ana-pv-coaching-chart" style="width:100%;height:60px;"></canvas>
+                <div id="ana-pv-coaching-chart-tip" class="ana-mini-tip" style="display:none;"></div>
+              </div>
+            </div>
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;position:relative;">
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:600;margin-bottom:8px;">Media Kit</div>
+              <div id="ana-pv-mediakit-total" style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;letter-spacing:-0.5px;margin-bottom:8px;">0</div>
+              <div style="position:relative;">
+                <canvas id="ana-pv-mediakit-chart" style="width:100%;height:60px;"></canvas>
+                <div id="ana-pv-mediakit-chart-tip" class="ana-mini-tip" style="display:none;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     <div id="tool-mediakit" style="display:none;">
       <div id="mediakit-paywall" style="display:none;max-width:560px;margin:40px auto;background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:40px;text-align:center;">
         <div style="width:56px;height:56px;margin:0 auto 16px;background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.25);border-radius:14px;display:flex;align-items:center;justify-content:center;">
@@ -6465,137 +6595,6 @@
     </div>
 
     <!-- ANALYTICS (Creator Max) -->
-    <div id="tool-analytics" style="display:none;">
-      <div style="max-width:900px;">
-
-        <!-- Max upsell -->
-        <div id="analytics-upsell" style="display:none;text-align:center;padding:60px 24px;">
-          <div style="width:56px;height:56px;margin:0 auto 16px;background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.25);border-radius:14px;display:flex;align-items:center;justify-content:center;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg></div>
-          <h2 style="font-family:Syne,sans-serif;font-size:28px;font-weight:800;margin-bottom:8px;letter-spacing:-0.5px;">Analytics</h2>
-          <p style="color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:24px;max-width:440px;margin-left:auto;margin-right:auto;">See your page views, revenue trends, and sales breakdown across courses, coaching, and brand deals. Available on Creator Max.</p>
-          <button onclick="handleMaxUpgradeClick(event)" style="padding:12px 28px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px rgba(232,121,249,0.3);">Upgrade to Creator Max</button>
-        </div>
-
-        <!-- Analytics content (Max only) -->
-        <div id="analytics-content" style="display:none;padding-bottom:60px;">
-          <!-- Date range -->
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
-            <h2 style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;letter-spacing:-0.5px;">Analytics</h2>
-            <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
-              <button class="ana-range-btn active" onclick="setAnalyticsRange(7,this)">7d</button>
-              <button class="ana-range-btn" onclick="setAnalyticsRange(14,this)">14d</button>
-              <button class="ana-range-btn" onclick="setAnalyticsRange(30,this)">30d</button>
-              <div style="display:flex;align-items:center;gap:4px;">
-                <input type="date" id="ana-range-start" aria-label="Analytics start date" style="background:var(--surface);border:1px solid var(--border-hover);border-radius:6px;padding:5px 8px;font-size:12px;color:var(--text);font-family:DM Sans,sans-serif;">
-                <span style="color:var(--muted);font-size:12px;">to</span>
-                <input type="date" id="ana-range-end" aria-label="Analytics end date" style="background:var(--surface);border:1px solid var(--border-hover);border-radius:6px;padding:5px 8px;font-size:12px;color:var(--text);font-family:DM Sans,sans-serif;">
-                <button class="ana-range-btn" onclick="setAnalyticsCustomRange()">Go</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Stats boxes -->
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;">
-            <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;">
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-                <div style="width:32px;height:32px;border-radius:8px;background:rgba(232,121,249,0.1);border:1px solid rgba(232,121,249,0.25);display:flex;align-items:center;justify-content:center;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#e879f9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
-                <span style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);font-weight:600;">Page Views</span>
-              </div>
-              <div id="ana-views-total" style="font-family:Syne,sans-serif;font-size:28px;font-weight:800;letter-spacing:-1px;background:linear-gradient(135deg,#e879f9,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">—</div>
-              <div id="ana-views-sub" style="font-size:11px;color:var(--muted);margin-top:4px;">Loading...</div>
-            </div>
-            <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;">
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-                <div style="width:32px;height:32px;border-radius:8px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.25);display:flex;align-items:center;justify-content:center;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
-                <span style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);font-weight:600;">Revenue</span>
-              </div>
-              <div id="ana-revenue-total" style="font-family:Syne,sans-serif;font-size:28px;font-weight:800;letter-spacing:-1px;background:linear-gradient(135deg,#a78bfa,#e879f9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">—</div>
-              <div id="ana-revenue-sub" style="font-size:11px;color:var(--muted);margin-top:4px;">Loading...</div>
-            </div>
-          </div>
-
-          <!-- Main chart -->
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:24px;position:relative;">
-            <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);font-weight:600;margin-bottom:16px;">Trends</div>
-            <div style="display:flex;gap:16px;margin-bottom:12px;">
-              <div style="display:flex;align-items:center;gap:6px;"><div style="width:10px;height:3px;background:#e879f9;border-radius:2px;"></div><span style="font-size:10px;color:var(--muted);">Page Views</span></div>
-              <div style="display:flex;align-items:center;gap:6px;"><div style="width:10px;height:3px;background:#7c3aed;border-radius:2px;"></div><span style="font-size:10px;color:var(--muted);">Revenue</span></div>
-            </div>
-            <div style="position:relative;">
-              <canvas id="ana-main-chart" style="width:100%;height:200px;"></canvas>
-              <div id="ana-main-tooltip" style="display:none;position:absolute;z-index:10;pointer-events:none;background:rgba(15,15,26,0.95);border:1px solid rgba(232,121,249,0.25);border-radius:10px;padding:10px 14px;font-size:10px;box-shadow:0 4px 20px rgba(0,0,0,0.4);"></div>
-            </div>
-          </div>
-
-          <!-- Revenue mini charts -->
-          <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);font-weight:600;margin-bottom:12px;">Revenue by Source</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
-            <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;position:relative;">
-              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:600;margin-bottom:8px;">Courses</div>
-              <div id="ana-courses-total" style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;letter-spacing:-0.5px;margin-bottom:8px;">$0</div>
-              <div style="position:relative;">
-                <canvas id="ana-courses-chart" style="width:100%;height:60px;"></canvas>
-                <div id="ana-courses-chart-tip" class="ana-mini-tip" style="display:none;"></div>
-              </div>
-            </div>
-            <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;position:relative;">
-              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:600;margin-bottom:8px;">Coaching</div>
-              <div id="ana-coaching-total" style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;letter-spacing:-0.5px;margin-bottom:8px;">$0</div>
-              <div style="position:relative;">
-                <canvas id="ana-coaching-chart" style="width:100%;height:60px;"></canvas>
-                <div id="ana-coaching-chart-tip" class="ana-mini-tip" style="display:none;"></div>
-              </div>
-            </div>
-            <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;position:relative;">
-              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:600;margin-bottom:8px;">Brand Deals</div>
-              <div id="ana-deals-total" style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;letter-spacing:-0.5px;margin-bottom:8px;">$0</div>
-              <div style="position:relative;">
-                <canvas id="ana-deals-chart" style="width:100%;height:60px;"></canvas>
-                <div id="ana-deals-chart-tip" class="ana-mini-tip" style="display:none;"></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Page views mini charts -->
-          <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);font-weight:600;margin-top:24px;margin-bottom:12px;">Page Views by Source</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px;">
-            <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;position:relative;">
-              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:600;margin-bottom:8px;">Bio</div>
-              <div id="ana-pv-bio-total" style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;letter-spacing:-0.5px;margin-bottom:8px;">0</div>
-              <div style="position:relative;">
-                <canvas id="ana-pv-bio-chart" style="width:100%;height:60px;"></canvas>
-                <div id="ana-pv-bio-chart-tip" class="ana-mini-tip" style="display:none;"></div>
-              </div>
-            </div>
-            <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;position:relative;">
-              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:600;margin-bottom:8px;">Courses</div>
-              <div id="ana-pv-courses-total" style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;letter-spacing:-0.5px;margin-bottom:8px;">0</div>
-              <div style="position:relative;">
-                <canvas id="ana-pv-courses-chart" style="width:100%;height:60px;"></canvas>
-                <div id="ana-pv-courses-chart-tip" class="ana-mini-tip" style="display:none;"></div>
-              </div>
-            </div>
-            <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;position:relative;">
-              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:600;margin-bottom:8px;">Coaching</div>
-              <div id="ana-pv-coaching-total" style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;letter-spacing:-0.5px;margin-bottom:8px;">0</div>
-              <div style="position:relative;">
-                <canvas id="ana-pv-coaching-chart" style="width:100%;height:60px;"></canvas>
-                <div id="ana-pv-coaching-chart-tip" class="ana-mini-tip" style="display:none;"></div>
-              </div>
-            </div>
-            <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;position:relative;">
-              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:600;margin-bottom:8px;">Media Kit</div>
-              <div id="ana-pv-mediakit-total" style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;letter-spacing:-0.5px;margin-bottom:8px;">0</div>
-              <div style="position:relative;">
-                <canvas id="ana-pv-mediakit-chart" style="width:100%;height:60px;"></canvas>
-                <div id="ana-pv-mediakit-chart-tip" class="ana-mini-tip" style="display:none;"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
   </div>
 </div>
 
@@ -7052,10 +7051,6 @@ function showTool(tool) {
   if (el) el.style.display = 'block';
   const nav = document.getElementById('nav-' + tool);
   if (nav) nav.classList.add('active');
-  // Scroll to top when switching tools
-  window.scrollTo({ top: 0, behavior: 'instant' });
-  const toolArea = document.querySelector('.tool-area');
-  if (toolArea) toolArea.scrollTop = 0;
 
   // Init settings when shown
   if (tool === 'settings') {
