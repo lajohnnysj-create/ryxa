@@ -20190,7 +20190,7 @@ function faShowDashboard() {
     if (faUserWhitelist.size > 0) {
       const wlTab = document.getElementById('fa-whitelist-tab');
       if (wlTab) faSetFilter('whitelist', wlTab);
-    } else if (faUserSnakeList.size > 0) {
+    } else if (faUserSnakeList.size > 0 && isPro()) {
       const snakeTab = document.getElementById('fa-snake-tab');
       if (snakeTab) faSetFilter('snakes', snakeTab);
     }
@@ -20387,7 +20387,7 @@ async function faLoadSnakeList() {
 function faUpdateSnakeTabCount() {
   const badge = document.getElementById('fa-snake-tab-count');
   if (badge) {
-    if (faUserSnakeList.size > 0) { badge.textContent = faUserSnakeList.size; badge.style.display = 'inline'; }
+    if (faUserSnakeList.size > 0 && isPro()) { badge.textContent = faUserSnakeList.size; badge.style.display = 'inline'; }
     else badge.style.display = 'none';
   }
 }
