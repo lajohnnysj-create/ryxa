@@ -7309,6 +7309,19 @@ async function confirmSignOut() {
   const btn = document.getElementById('signout-confirm-btn');
   if (btn) { btn.disabled = true; btn.innerHTML = '<span class="auth-spinner"></span> Signing out...'; }
   try { await sb.auth.signOut(); } catch(e) { console.error(e); }
+  // Reset tool init flags so fresh data loads on next login
+  bioInited = false;
+  bioState = { username: '', display_name: '', bio: '', avatar_url: '', avatar_display: 'default', theme: 'purple', socials: {}, links: [], videos: [], published: false, show_branding: true, custom_theme: null };
+  bioOriginalUsername = '';
+  gridInited = false;
+  gridPhotos = [];
+  gridLoaded = false;
+  gridDirty = false;
+  if (typeof mkInited !== 'undefined') mkInited = false;
+  if (typeof window._faDataLoaded !== 'undefined') window._faDataLoaded = false;
+  if (typeof window._faListenersReady !== 'undefined') window._faListenersReady = false;
+  currentUser = null;
+  userTier = 'free';
   showPwaLogin();
 }
 
