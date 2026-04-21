@@ -3288,10 +3288,10 @@
 
 
 <!-- PWA LOGIN SCREEN (shown instead of redirect when in standalone/app mode) -->
-<div id="pwa-login-screen" style="display:none;position:fixed;inset:0;z-index:10000;background:var(--bg);align-items:center;justify-content:center;flex-direction:column;padding:24px;padding-top:calc(24px + env(safe-area-inset-top, 0px));">
+<div id="pwa-login-screen" style="display:none;position:fixed;inset:0;z-index:10000;background:var(--bg);align-items:center;justify-content:center;flex-direction:column;padding:24px;padding-top:calc(24px + env(safe-area-inset-top, 0px));overflow:hidden;">
   <div style="width:100%;max-width:400px;">
     <div style="text-align:center;margin-bottom:32px;">
-      <a href="/"><img src="/logo.png" alt="Ryxa" style="width:56px;height:56px;margin:0 auto 16px;display:block;"></a>
+      <div id="pwa-login-logo"><a href="/"><img src="/logo.png" alt="Ryxa" style="width:56px;height:56px;margin:0 auto 16px;display:block;"></a></div>
       <h1 style="font-family:Syne,sans-serif;font-size:28px;font-weight:800;letter-spacing:-1px;margin-bottom:8px;">Welcome to Ryxa</h1>
       <p style="color:var(--muted);font-size:14px;">Sign in to access your dashboard</p>
     </div>
@@ -7327,6 +7327,11 @@ function showPwaLogin() {
   var main = document.querySelector('.main-content');
   if (sidebar) sidebar.style.display = 'none';
   if (main) main.style.display = 'none';
+  // In standalone/PWA mode, remove logo link
+  var logoWrap = document.getElementById('pwa-login-logo');
+  if (logoWrap && isStandalone) {
+    logoWrap.innerHTML = '<img src="/logo.png" alt="Ryxa" style="width:56px;height:56px;margin:0 auto 16px;display:block;">';
+  }
   // Reset form
   var emailEl = document.getElementById('pwa-email');
   var pwEl = document.getElementById('pwa-password');
@@ -7403,7 +7408,10 @@ function resetPwaTurnstile() {
 async function handlePwaGoogleAuth() {
   var { error } = await sb.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: 'https://ryxa.io/dashboard.html' }
+    options: {
+      redirectTo: 'https://ryxa.io/dashboard.html',
+      queryParams: { prompt: 'select_account' }
+    }
   });
   if (error) showPwaMsg('error', error.message);
 }
