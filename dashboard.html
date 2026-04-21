@@ -7325,7 +7325,7 @@ function showPwaLogin() {
   document.body.style.overflow = 'hidden';
   // Hide dashboard content
   var sidebar = document.getElementById('sidebar');
-  var main = document.querySelector('.main-content');
+  var main = document.querySelector('.main');
   if (sidebar) sidebar.style.display = 'none';
   if (main) main.style.display = 'none';
   // In standalone/PWA mode, remove logo link
@@ -7351,7 +7351,7 @@ function hidePwaLogin() {
   if (screen) screen.style.display = 'none';
   document.body.style.overflow = '';
   var sidebar = document.getElementById('sidebar');
-  var main = document.querySelector('.main-content');
+  var main = document.querySelector('.main');
   if (sidebar) sidebar.style.display = '';
   if (main) main.style.display = '';
 }
