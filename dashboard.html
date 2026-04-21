@@ -19835,12 +19835,13 @@ function handleInstallClick() {
     deferredInstallPrompt.prompt();
     deferredInstallPrompt.userChoice.then(function(result) {
       deferredInstallPrompt = null;
-      var btn = document.getElementById('sidebar-install-btn');
-      if (btn) btn.style.display = 'none';
     });
-  } else {
-    // iOS or other — show instruction modal
+  } else if (isIos) {
+    // iOS — show instruction modal
     openInstallModal();
+  } else {
+    // Desktop/other with no prompt available — already installed or not supported
+    showModalAlert('Already Installed', 'Ryxa is already installed on your device. Look for it in your apps or taskbar.');
   }
 }
 
