@@ -362,4 +362,9 @@ if (!document.getElementById('main-content')) {
 
 document.body.classList.add('site-ready');
 
+// Block PWA install prompt on marketing pages — only allow on dashboard
+window.addEventListener('beforeinstallprompt', function(e) {
+  e.preventDefault();
+});
+
 })();

@@ -3443,6 +3443,11 @@
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
         </button>
       </div>
+      <!-- Install App (only visible when PWA install is available) -->
+      <button id="sidebar-install-btn" onclick="installPwa();closeSidebarMenu();" style="display:none;width:100%;padding:10px 12px;background:none;border:none;border-radius:10px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;display:none;align-items:center;gap:8px;color:var(--text);transition:background 0.12s;margin-bottom:4px;" onmouseover="this.style.background='var(--surface)'" onmouseout="this.style.background='none'">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Install App
+      </button>
       <!-- Get Support -->
       <button onclick="openSupportModal();closeSidebarMenu();" style="width:100%;padding:10px 12px;background:none;border:none;border-radius:10px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;display:flex;align-items:center;gap:8px;color:var(--text);transition:background 0.12s;margin-bottom:4px;" onmouseover="this.style.background='var(--surface)'" onmouseout="this.style.background='none'">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r="0.5" fill="currentColor" stroke="none"/></svg>
@@ -19771,6 +19776,32 @@ function copyToClipboard(text) {
 
 
 initAuth();
+
+// PWA Install — capture prompt and show install button in sidebar
+var deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', function(e) {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  var btn = document.getElementById('sidebar-install-btn');
+  if (btn) btn.style.display = 'flex';
+});
+
+function installPwa() {
+  if (!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  deferredInstallPrompt.userChoice.then(function(result) {
+    deferredInstallPrompt = null;
+    var btn = document.getElementById('sidebar-install-btn');
+    if (btn) btn.style.display = 'none';
+  });
+}
+
+// Hide install button if app is already installed
+window.addEventListener('appinstalled', function() {
+  deferredInstallPrompt = null;
+  var btn = document.getElementById('sidebar-install-btn');
+  if (btn) btn.style.display = 'none';
+});
 
 
 document.getElementById('signout-modal').addEventListener('click', function(e) {
