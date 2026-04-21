@@ -5424,6 +5424,17 @@
     <!-- THUMBNAIL ANALYZER -->
     <div id="tool-thumbanalyzer" style="display:none;">
       <div style="max-width:720px;">
+
+        <!-- Pro upsell (non-Pro users) -->
+        <div id="thumbanalyzer-upsell" style="display:none;text-align:center;padding:60px 24px;">
+          <div style="width:56px;height:56px;margin:0 auto 16px;background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.25);border-radius:14px;display:flex;align-items:center;justify-content:center;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/><path d="M11 8v6M8 11h6"/></svg></div>
+          <h2 style="font-family:Syne,sans-serif;font-size:28px;font-weight:800;margin-bottom:8px;letter-spacing:-0.5px;">Thumbnail Analyzer</h2>
+          <p style="color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:24px;max-width:440px;margin-left:auto;margin-right:auto;">Upload a thumbnail and get AI-powered feedback on clickability, composition, and text readability. Available on Pro.</p>
+          <button onclick="promptUpgradeToPro(event)" style="padding:12px 28px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow);">Upgrade to Pro</button>
+        </div>
+
+        <!-- Tool content (Pro+ users) -->
+        <div id="thumbanalyzer-content" style="display:none;">
         <h2 style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;margin-bottom:6px;letter-spacing:-0.5px;">AI Thumbnail Analyzer</h2>
         <p style="font-size:14px;color:var(--muted);margin-bottom:24px;">Upload a thumbnail and get AI-powered feedback on clickability, composition, and text readability.</p>
 
@@ -5487,6 +5498,7 @@
 
         <!-- Results -->
         <div id="ta-results" style="display:none;"></div>
+        </div><!-- /thumbanalyzer-content -->
       </div>
     </div>
     <style>
@@ -5518,6 +5530,17 @@
     </style>
     <div id="tool-contractanalyzer" style="display:none;">
       <div style="max-width:720px;">
+
+        <!-- Pro upsell (non-Pro users) -->
+        <div id="contractanalyzer-upsell" style="display:none;text-align:center;padding:60px 24px;">
+          <div style="width:56px;height:56px;margin:0 auto 16px;background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.25);border-radius:14px;display:flex;align-items:center;justify-content:center;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 15l2 2 4-4"/></svg></div>
+          <h2 style="font-family:Syne,sans-serif;font-size:28px;font-weight:800;margin-bottom:8px;letter-spacing:-0.5px;">Contract Analyzer</h2>
+          <p style="color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:24px;max-width:440px;margin-left:auto;margin-right:auto;">Upload a brand deal contract and get an instant AI-generated report with key terms, deliverables, and red flags. Available on Pro.</p>
+          <button onclick="promptUpgradeToPro(event)" style="padding:12px 28px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow);">Upgrade to Pro</button>
+        </div>
+
+        <!-- Tool content (Pro+ users) -->
+        <div id="contractanalyzer-content" style="display:none;">
         <h2 style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;margin-bottom:6px;letter-spacing:-0.5px;">AI Contract Analyzer</h2>
         <p style="font-size:14px;color:var(--muted);margin-bottom:6px;">Upload a brand deal contract and get an instant AI-generated report with key terms, deliverables, and red flags.</p>
         <p style="font-size:11px;color:var(--muted);font-style:italic;margin-bottom:24px;">This is not legal advice. Always consult a lawyer before signing binding agreements.</p>
@@ -5585,6 +5608,7 @@
 
         <!-- Results -->
         <div id="ca-results" style="display:none;"></div>
+        </div><!-- /contractanalyzer-content -->
       </div>
     </div>
 
@@ -7116,6 +7140,8 @@ function showTool(tool) {
   if (tool === 'pdfsign') initPdfSignTool();
   if (tool === 'scripts') initScriptsTool();
   if (tool === 'analytics') initAnalyticsTool();
+  if (tool === 'thumbanalyzer') initThumbanalyzerTool();
+  if (tool === 'contractanalyzer') initContractanalyzerTool();
   if (tool === 'welcome') loadDashStats();
   // Close sidebar on mobile
   closeSidebar();
@@ -20903,6 +20929,18 @@ function initAnalyticsTool() {
   if (isMax) loadAnalyticsData();
 }
 
+function initThumbanalyzerTool() {
+  const pro = typeof isPro === 'function' && isPro();
+  document.getElementById('thumbanalyzer-upsell').style.display = pro ? 'none' : 'block';
+  document.getElementById('thumbanalyzer-content').style.display = pro ? 'block' : 'none';
+}
+
+function initContractanalyzerTool() {
+  const pro = typeof isPro === 'function' && isPro();
+  document.getElementById('contractanalyzer-upsell').style.display = pro ? 'none' : 'block';
+  document.getElementById('contractanalyzer-content').style.display = pro ? 'block' : 'none';
+}
+
 async function loadAnalyticsData() {
   if (!currentUser) return;
   const { start, end } = getAnaDateRange();
@@ -22919,11 +22957,6 @@ function caReset() {
 async function caAnalyze() {
   if (!caFileData) return;
 
-  if (typeof isPro === 'function' && !isPro()) {
-    showModalAlert('Pro Feature', 'AI Contract Analyzer is a Pro feature. Upgrade to use it.');
-    return;
-  }
-
   document.getElementById('ca-preview-area').style.display = 'none';
   document.getElementById('ca-loading').style.display = 'block';
 
@@ -23153,11 +23186,6 @@ function taReset() {
 
 function taAnalyze() {
   if (!taImageData) return;
-
-  if (typeof isPro === 'function' && !isPro()) {
-    showModalAlert('Pro Feature', 'AI Thumbnail Analyzer is a Pro feature. Upgrade to use it.');
-    return;
-  }
 
   // Show loading with scanning animation
   document.getElementById('ta-preview-area').style.display = 'none';
