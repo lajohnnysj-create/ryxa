@@ -11132,7 +11132,7 @@ function renderGrid() {
       </div>`;
     } else {
       emptyDrop.innerHTML = `<div style="padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;">
-        <div style="font-size:12px;color:var(--muted);">Upload your next post to update grid</div>
+        <div style="font-size:12px;color:var(--muted);">Upload your next post to update grid. <span style="color:rgba(255,255,255,0.4);">(Last photo will be removed)</span></div>
         <label style="display:inline-block;padding:6px 12px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:7px;font-size:11px;cursor:pointer;font-weight:500;white-space:nowrap;">
           Browse
           <input type="file" accept="image/*" onchange="onGridFiles(this.files); this.value=''" aria-label="Upload next post" style="display:none;">
