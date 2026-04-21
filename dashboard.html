@@ -10957,13 +10957,19 @@ async function onGridFiles(files) {
   const list = Array.from(files);
   if (!list.length) return;
 
-  const remainingSlots = GRID_MAX_PHOTOS - gridPhotos.length;
-  if (remainingSlots <= 0) {
-    showGridStatus('error', `Grid is full. Maximum ${GRID_MAX_PHOTOS} photos.`);
-    return;
+  const isFull = gridPhotos.length >= GRID_MAX_PHOTOS;
+  let toProcess;
+  let skipped = 0;
+
+  if (isFull) {
+    // Grid is full — accept only 1 photo, remove the last, prepend the new one
+    toProcess = [list[0]];
+    if (list.length > 1) skipped = list.length - 1;
+  } else {
+    const remainingSlots = GRID_MAX_PHOTOS - gridPhotos.length;
+    toProcess = list.slice(0, remainingSlots);
+    skipped = list.length - toProcess.length;
   }
-  const toProcess = list.slice(0, remainingSlots);
-  const skipped = list.length - toProcess.length;
 
   const empty = document.getElementById('grid-drop-empty');
   const proc = document.getElementById('grid-processing');
@@ -10979,7 +10985,14 @@ async function onGridFiles(files) {
       const blob = await compressGridImage(toProcess[i]);
       if (!blob) throw new Error('Could not compress');
       const url = URL.createObjectURL(blob);
-      gridPhotos.push({ id: gridIdSeq++, url, blob, isSaved: false });
+      if (isFull) {
+        // Remove last photo and prepend new one
+        const removed = gridPhotos.pop();
+        if (removed && removed.url && removed.url.startsWith('blob:')) URL.revokeObjectURL(removed.url);
+        gridPhotos.unshift({ id: gridIdSeq++, url, blob, isSaved: false });
+      } else {
+        gridPhotos.push({ id: gridIdSeq++, url, blob, isSaved: false });
+      }
       gridDirty = true;
     } catch (e) {
       console.error('Grid compression failed for file', i, e);
@@ -10992,7 +11005,7 @@ async function onGridFiles(files) {
     bar.style.width = '0';
   }, 300);
 
-  if (skipped > 0) {
+  if (skipped > 0 && !isFull) {
     showGridStatus('error', `${skipped} photo${skipped > 1 ? 's' : ''} skipped, grid is limited to ${GRID_MAX_PHOTOS}.`);
   }
   renderGrid();
@@ -11118,7 +11131,13 @@ function renderGrid() {
         </label>
       </div>`;
     } else {
-      emptyDrop.innerHTML = `<div style="padding:12px 16px;text-align:center;font-size:12px;color:var(--muted);width:100%;">Grid is full (18/18)</div>`;
+      emptyDrop.innerHTML = `<div style="padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;">
+        <div style="font-size:12px;color:var(--muted);">Upload your next post to update grid</div>
+        <label style="display:inline-block;padding:6px 12px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:7px;font-size:11px;cursor:pointer;font-weight:500;white-space:nowrap;">
+          Browse
+          <input type="file" accept="image/*" onchange="onGridFiles(this.files); this.value=''" aria-label="Upload next post" style="display:none;">
+        </label>
+      </div>`;
     }
   } else {
     // Restore original empty state (compact inline)
