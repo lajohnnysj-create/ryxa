@@ -3277,6 +3277,32 @@
 <body>
 
 
+<!-- PWA LOGIN SCREEN (shown instead of redirect when in standalone/app mode) -->
+<div id="pwa-login-screen" style="display:none;position:fixed;inset:0;z-index:10000;background:var(--bg);align-items:center;justify-content:center;flex-direction:column;padding:24px;">
+  <div style="width:100%;max-width:400px;">
+    <div style="text-align:center;margin-bottom:32px;">
+      <img src="/logo.png" alt="Ryxa" style="width:56px;height:56px;margin:0 auto 16px;display:block;">
+      <h1 style="font-family:Syne,sans-serif;font-size:28px;font-weight:800;letter-spacing:-1px;margin-bottom:8px;">Welcome to Ryxa</h1>
+      <p style="color:var(--muted);font-size:14px;">Sign in to access your dashboard</p>
+    </div>
+    <div style="display:flex;gap:4px;padding:4px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;margin-bottom:16px;">
+      <button type="button" class="pwa-auth-tab" id="pwa-tab-signin" onclick="setPwaAuthMode('signin')" style="flex:1;background:var(--accent);color:#fff;border:none;font-size:13px;font-weight:600;font-family:DM Sans,sans-serif;padding:8px;cursor:pointer;border-radius:7px;transition:all 0.15s;">Sign in</button>
+      <button type="button" class="pwa-auth-tab" id="pwa-tab-signup" onclick="setPwaAuthMode('signup')" style="flex:1;background:transparent;color:var(--muted);border:none;font-size:13px;font-weight:600;font-family:DM Sans,sans-serif;padding:8px;cursor:pointer;border-radius:7px;transition:all 0.15s;">Create account</button>
+    </div>
+    <div id="pwa-auth-msg" style="padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:12px;display:none;"></div>
+    <button type="button" id="pwa-google-btn" onclick="handlePwaGoogleAuth()" style="width:100%;padding:11px;background:#fff;color:#1f1f1f;border:1px solid var(--border-hover);border-radius:10px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px;">
+      <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.836.86-3.048.86-2.344 0-4.328-1.584-5.036-3.71H.957v2.332C2.438 15.983 5.482 18 9 18z"/><path fill="#FBBC05" d="M3.964 10.71c-.18-.54-.282-1.117-.282-1.71s.102-1.17.282-1.71V4.958H.957C.347 6.173 0 7.548 0 9s.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/></svg>
+      <span>Continue with Google</span>
+    </button>
+    <div style="display:flex;align-items:center;gap:12px;margin:10px 0 12px;"><div style="flex:1;height:1px;background:var(--border);"></div><span style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;">or</span><div style="flex:1;height:1px;background:var(--border);"></div></div>
+    <input id="pwa-email" type="email" placeholder="Email address" aria-label="Email address" autocomplete="email" style="width:100%;background:var(--surface2);border:1px solid var(--border-hover);border-radius:10px;padding:11px 14px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;margin-bottom:10px;outline:none;box-sizing:border-box;">
+    <input id="pwa-password" type="password" placeholder="Password" aria-label="Password" autocomplete="current-password" style="width:100%;background:var(--surface2);border:1px solid var(--border-hover);border-radius:10px;padding:11px 14px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;margin-bottom:10px;outline:none;box-sizing:border-box;">
+    <a id="pwa-forgot-link" onclick="handlePwaForgotPassword()" style="text-align:right;font-size:12px;color:var(--muted);cursor:pointer;display:block;margin-top:-6px;margin-bottom:12px;">Forgot password?</a>
+    <div id="pwa-turnstile" style="margin-bottom:12px;"></div>
+    <button type="button" id="pwa-submit-btn" onclick="handlePwaAuth()" style="width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 30px var(--accent-glow);">Sign in</button>
+  </div>
+</div>
+
 <!-- SETTINGS MODAL -->
 <!-- SIGN OUT MODAL -->
 <div id="signout-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;pointer-events:all;">
@@ -6588,13 +6614,22 @@ const toolTitles = {
     design: 'AI Design Studio'
 };
 
+// Detect PWA / standalone mode
+var isPwaMode = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
 async function initAuth() {
   const { data: { session } } = await sb.auth.getSession();
-  if (!session?.user) { window.location.href = 'index.html'; return; }
+  if (!session?.user) {
+    if (isPwaMode) { showPwaLogin(); return; }
+    window.location.href = 'index.html'; return;
+  }
   window._supabaseAccessToken = session.access_token || '';
   await setUser(session.user);
   sb.auth.onAuthStateChange((_event, session) => {
-    if (!session?.user) window.location.href = 'index.html';
+    if (!session?.user) {
+      if (isPwaMode) { showPwaLogin(); return; }
+      window.location.href = 'index.html';
+    }
     else window._supabaseAccessToken = session.access_token || '';
   });
 }
@@ -7206,8 +7241,155 @@ async function confirmSignOut() {
   const btn = document.getElementById('signout-confirm-btn');
   if (btn) { btn.disabled = true; btn.innerHTML = '<span class="auth-spinner"></span> Signing out...'; }
   try { await sb.auth.signOut(); } catch(e) { console.error(e); }
-  finally { window.location.href = 'index.html'; }
+  finally {
+    if (isPwaMode) { showPwaLogin(); return; }
+    window.location.href = 'index.html';
+  }
 }
+
+// =====================================================
+// PWA LOGIN SCREEN
+// =====================================================
+var pwaAuthMode = 'signin';
+var pwaTurnstileWidgetId = null;
+
+function showPwaLogin() {
+  var screen = document.getElementById('pwa-login-screen');
+  if (!screen) return;
+  screen.style.display = 'flex';
+  // Hide dashboard content
+  var sidebar = document.getElementById('sidebar');
+  var main = document.querySelector('.main-content');
+  if (sidebar) sidebar.style.display = 'none';
+  if (main) main.style.display = 'none';
+  // Reset form
+  var emailEl = document.getElementById('pwa-email');
+  var pwEl = document.getElementById('pwa-password');
+  if (emailEl) emailEl.value = '';
+  if (pwEl) pwEl.value = '';
+  var msg = document.getElementById('pwa-auth-msg');
+  if (msg) msg.style.display = 'none';
+  var btn = document.getElementById('pwa-submit-btn');
+  if (btn) { btn.disabled = false; btn.textContent = pwaAuthMode === 'signin' ? 'Sign in' : 'Create account'; }
+  renderPwaTurnstile();
+  setTimeout(function() { if (emailEl) emailEl.focus(); }, 100);
+}
+
+function hidePwaLogin() {
+  var screen = document.getElementById('pwa-login-screen');
+  if (screen) screen.style.display = 'none';
+  var sidebar = document.getElementById('sidebar');
+  var main = document.querySelector('.main-content');
+  if (sidebar) sidebar.style.display = '';
+  if (main) main.style.display = '';
+}
+
+function setPwaAuthMode(mode) {
+  pwaAuthMode = mode;
+  var signinTab = document.getElementById('pwa-tab-signin');
+  var signupTab = document.getElementById('pwa-tab-signup');
+  var btn = document.getElementById('pwa-submit-btn');
+  var forgot = document.getElementById('pwa-forgot-link');
+  var pw = document.getElementById('pwa-password');
+  if (mode === 'signin') {
+    if (signinTab) { signinTab.style.background = 'var(--accent)'; signinTab.style.color = '#fff'; }
+    if (signupTab) { signupTab.style.background = 'transparent'; signupTab.style.color = 'var(--muted)'; }
+    if (btn) btn.textContent = 'Sign in';
+    if (forgot) forgot.style.display = 'block';
+    if (pw) pw.setAttribute('autocomplete', 'current-password');
+  } else {
+    if (signupTab) { signupTab.style.background = 'var(--accent)'; signupTab.style.color = '#fff'; }
+    if (signinTab) { signinTab.style.background = 'transparent'; signinTab.style.color = 'var(--muted)'; }
+    if (btn) btn.textContent = 'Create account';
+    if (forgot) forgot.style.display = 'none';
+    if (pw) pw.setAttribute('autocomplete', 'new-password');
+  }
+  var msg = document.getElementById('pwa-auth-msg');
+  if (msg) msg.style.display = 'none';
+}
+
+function showPwaMsg(type, text) {
+  var el = document.getElementById('pwa-auth-msg');
+  if (!el) return;
+  el.style.display = 'block';
+  el.style.background = type === 'error' ? 'rgba(239,68,68,0.1)' : 'rgba(74,222,128,0.1)';
+  el.style.color = type === 'error' ? '#fca5a5' : '#86efac';
+  el.style.border = '1px solid ' + (type === 'error' ? 'rgba(239,68,68,0.2)' : 'rgba(74,222,128,0.2)');
+  el.textContent = text;
+}
+
+function renderPwaTurnstile() {
+  if (typeof turnstile === 'undefined') { setTimeout(renderPwaTurnstile, 200); return; }
+  var container = document.getElementById('pwa-turnstile');
+  if (!container) return;
+  if (pwaTurnstileWidgetId !== null) { try { turnstile.reset(pwaTurnstileWidgetId); } catch(e) {} return; }
+  pwaTurnstileWidgetId = turnstile.render('#pwa-turnstile', { sitekey: '0x4AAAAAAC9W8avdI3sdVEcc', theme: 'dark', size: 'flexible' });
+}
+
+function getPwaTurnstileToken() {
+  if (typeof turnstile === 'undefined' || pwaTurnstileWidgetId === null) return null;
+  try { return turnstile.getResponse(pwaTurnstileWidgetId); } catch(e) { return null; }
+}
+
+function resetPwaTurnstile() {
+  if (typeof turnstile !== 'undefined' && pwaTurnstileWidgetId !== null) { try { turnstile.reset(pwaTurnstileWidgetId); } catch(e) {} }
+}
+
+async function handlePwaGoogleAuth() {
+  var { error } = await sb.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: 'https://ryxa.io/dashboard.html' }
+  });
+  if (error) showPwaMsg('error', error.message);
+}
+
+async function handlePwaAuth() {
+  var email = document.getElementById('pwa-email').value.trim();
+  var password = document.getElementById('pwa-password').value;
+  var btn = document.getElementById('pwa-submit-btn');
+  if (!email || !password) { showPwaMsg('error', 'Please enter your email and password.'); return; }
+  var captchaToken = getPwaTurnstileToken();
+  if (!captchaToken) { showPwaMsg('error', 'Please complete the verification check.'); return; }
+  btn.disabled = true;
+  btn.innerHTML = '<span class="auth-spinner"></span>' + (pwaAuthMode === 'signin' ? 'Signing in...' : 'Creating account...');
+  var result = pwaAuthMode === 'signin'
+    ? await sb.auth.signInWithPassword({ email: email, password: password, options: { captchaToken: captchaToken } })
+    : await sb.auth.signUp({ email: email, password: password, options: { captchaToken: captchaToken, emailRedirectTo: 'https://ryxa.io/dashboard.html' } });
+  btn.disabled = false;
+  btn.textContent = pwaAuthMode === 'signin' ? 'Sign in' : 'Create account';
+  resetPwaTurnstile();
+  if (result.error) { showPwaMsg('error', result.error.message); return; }
+  if (pwaAuthMode === 'signup') {
+    var identities = result.data?.user?.identities;
+    if (identities && identities.length === 0) {
+      showPwaMsg('error', 'An account with this email already exists. Try signing in instead.');
+    } else if (result.data?.user && !result.data.session) {
+      showPwaMsg('success', 'Check your email to confirm your account!');
+    } else {
+      hidePwaLogin();
+      window.location.reload();
+    }
+  } else {
+    hidePwaLogin();
+    window.location.reload();
+  }
+}
+
+async function handlePwaForgotPassword() {
+  var email = document.getElementById('pwa-email').value.trim();
+  if (!email) { showPwaMsg('error', 'Enter your email address above first.'); return; }
+  var captchaToken = getPwaTurnstileToken();
+  if (!captchaToken) { showPwaMsg('error', 'Please complete the verification check.'); return; }
+  var { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: 'https://ryxa.io/reset-password.html', captchaToken: captchaToken });
+  resetPwaTurnstile();
+  if (error) showPwaMsg('error', error.message);
+  else showPwaMsg('success', 'Password reset email sent! Check your inbox.');
+}
+
+// Enter key submits PWA login
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && document.getElementById('pwa-login-screen').style.display === 'flex') handlePwaAuth();
+});
 
 // =====================================================
 // =====================================================
