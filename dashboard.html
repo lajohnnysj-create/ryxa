@@ -1674,7 +1674,17 @@
   }
 
   /* ── TOOL CONTENT AREA ── */
-  .tool-area { flex: 1; padding: 32px; max-width: 1100px; width: 100%; min-width: 0; overflow-x: clip; box-sizing: border-box; }
+  .tool-area { flex: 1; padding: 32px; padding-bottom: 72px; max-width: 1100px; width: 100%; min-width: 0; overflow-x: clip; box-sizing: border-box; }
+
+  /* ── INSTALL APP BAR ── */
+  .install-bar { position: fixed; bottom: 0; left: var(--sidebar-width); right: 0; height: 48px; background: var(--surface); border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: center; gap: 16px; z-index: 49; padding: 0 24px; }
+  .install-bar-icons { display: flex; align-items: center; gap: 10px; }
+  .install-bar-icons svg { width: 18px; height: 18px; }
+  .install-bar-btn { background: none; border: none; color: var(--accent2); font-size: 13px; font-weight: 600; font-family: "DM Sans", sans-serif; cursor: pointer; display: flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 8px; transition: all 0.15s; }
+  .install-bar-btn:hover { background: rgba(124,58,237,0.08); color: #c4b5fd; }
+  @media (max-width: 768px) {
+    .install-bar { left: 0; }
+  }
 
   /* ── WELCOME SCREEN ── */
   .welcome-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: calc(100vh - var(--topbar-height)); text-align: center; padding: 40px 24px; }
@@ -3511,6 +3521,22 @@
     <div class="topbar-right">
 <span class="tier-badge free" id="topbar-tier-badge">Free</span>
     </div>
+  </div>
+
+  <!-- INSTALL APP BAR -->
+  <div class="install-bar" id="install-bar" style="display:none;">
+    <div class="install-bar-icons">
+      <!-- Windows -->
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 12.5L10.5 11.4V4.2L3 5.1V12.5Z" fill="#c4b5fd"/><path d="M11.5 11.3L21 9.8V2L11.5 4V11.3Z" fill="#c4b5fd"/><path d="M3 13.5L10.5 14.6V21.8L3 20.9V13.5Z" fill="#c4b5fd"/><path d="M11.5 14.7L21 16.2V24L11.5 22V14.7Z" fill="#c4b5fd"/></svg>
+      <!-- Apple -->
+      <svg viewBox="0 0 24 24" fill="#c4b5fd" aria-hidden="true"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11Z"/></svg>
+      <!-- Android -->
+      <svg viewBox="0 0 24 24" fill="#c4b5fd" aria-hidden="true"><path d="M17.6 9.48l1.84-3.18c.16-.31.04-.69-.27-.86-.31-.16-.69-.04-.86.27l-1.87 3.23C14.88 8.32 13.47 8 12 8s-2.88.32-4.44.94L5.69 5.71c-.16-.31-.54-.43-.86-.27-.31.16-.43.55-.27.86L6.4 9.48C3.3 11.25 1.28 14.44 1 18h22c-.28-3.56-2.3-6.75-5.4-8.52zM7 15.25a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5zm10 0a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5z"/></svg>
+    </div>
+    <button class="install-bar-btn" onclick="handleInstallClick()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Install App
+    </button>
   </div>
 
   <!-- TOOL AREA -->
@@ -19822,6 +19848,8 @@ var isStandalone = window.matchMedia('(display-mode: standalone)').matches || wi
 if (!isStandalone) {
   var btn = document.getElementById('sidebar-install-btn');
   if (btn) btn.style.display = 'flex';
+  var bar = document.getElementById('install-bar');
+  if (bar) bar.style.display = 'flex';
 }
 
 window.addEventListener('beforeinstallprompt', function(e) {
