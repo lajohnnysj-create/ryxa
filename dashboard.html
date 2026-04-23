@@ -6699,9 +6699,10 @@ var isPwaMode = window.matchMedia('(display-mode: standalone)').matches
 
 async function initAuth() {
   const { data: { session } } = await sb.auth.getSession();
-  if (!session?.user) { showPwaLogin(); return; }
+  if (!session?.user) { _authCompleted = true; showPwaLogin(); return; }
   window._supabaseAccessToken = session.access_token || '';
   await setUser(session.user);
+  _authCompleted = true;
   sb.auth.onAuthStateChange((_event, session) => {
     if (!session?.user) { showPwaLogin(); }
     else window._supabaseAccessToken = session.access_token || '';
@@ -12418,13 +12419,11 @@ if (urlParams.get('payment') === 'success') {
 initAuth();
 // Reveal page once layout is stable
 requestAnimationFrame(function() { document.body.classList.add('ready'); });
-// Fallback: show welcome content after 5s even if auth hangs
+// Fallback: if auth hasn't completed in 8s, reload the page
+var _authCompleted = false;
 setTimeout(function() {
-  var dl = document.getElementById('dash-loading');
-  if (dl) dl.style.display = 'none';
-  var wc = document.getElementById('welcome-content');
-  if (wc) wc.style.display = '';
-}, 5000);
+  if (!_authCompleted) window.location.reload();
+}, 8000);
 
 function openSettingsModal() {
   showTool('settings');
