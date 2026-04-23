@@ -12429,6 +12429,10 @@ setTimeout(function() {
       if (!retried) {
         sessionStorage.setItem('_authRetry', '1');
         window.location.reload();
+      } else {
+        sessionStorage.removeItem('_authRetry');
+        var dl = document.getElementById('dash-loading');
+        if (dl) dl.innerHTML = '<div style="text-align:center;"><div style="font-size:14px;color:var(--muted);margin-bottom:12px;">Something went wrong. Please try again.</div><button onclick="window.location.reload()" style="padding:10px 24px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;">Retry</button></div>';
       }
     } catch(e) {}
   }
