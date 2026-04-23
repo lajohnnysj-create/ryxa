@@ -3284,20 +3284,9 @@
   }
 
 </style>
-<style>
-  .main, .sidebar, .sidebar-overlay { opacity: 0; transition: opacity 0.4s ease; }
-  .main.ready, .sidebar.ready, .sidebar-overlay.ready { opacity: 1; }
-</style>
 
 </head>
 <body>
-
-<!-- LOADING SPLASH SCREEN -->
-<div id="app-splash" style="position:fixed;inset:0;z-index:99999;background:#07070f;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px;transition:opacity 0.3s;">
-  <img src="/logo.png" alt="Ryxa" style="width:48px;height:48px;">
-  <div style="width:24px;height:24px;border:2px solid rgba(124,58,237,0.2);border-top-color:#a78bfa;border-radius:50%;animation:splash-spin 0.8s linear infinite;"></div>
-</div>
-<style>@keyframes splash-spin { to { transform: rotate(360deg); } }</style>
 
 
 <!-- PWA LOGIN SCREEN (shown instead of redirect when in standalone/app mode) -->
@@ -3544,7 +3533,12 @@
 
     <!-- WELCOME SCREEN -->
     <div id="tool-welcome" style="display:block;">
-      <div class="welcome-screen">
+      <!-- Loading spinner — shown until data loads -->
+      <div id="dash-loading" style="display:flex;align-items:center;justify-content:center;padding:80px 0;">
+        <div style="width:28px;height:28px;border:2px solid rgba(124,58,237,0.2);border-top-color:#a78bfa;border-radius:50%;animation:dash-spin 0.8s linear infinite;"></div>
+      </div>
+      <style>@keyframes dash-spin { to { transform: rotate(360deg); } }</style>
+      <div class="welcome-screen" id="welcome-screen-content" style="display:none;">
         <h1>Welcome back, <span id="welcome-name">creator</span>.</h1>
 
         <!-- Time Range Controls -->
@@ -6714,13 +6708,10 @@ async function initAuth() {
 }
 
 function hideSplash() {
-  var splash = document.getElementById('app-splash');
-  if (splash) {
-    splash.style.opacity = '0';
-    setTimeout(function() { splash.remove(); }, 300);
-  }
-  // Reveal dashboard content
-  document.querySelectorAll('.main, .sidebar, .sidebar-overlay').forEach(function(el) { el.classList.add('ready'); });
+  var loader = document.getElementById('dash-loading');
+  if (loader) loader.style.display = 'none';
+  var content = document.getElementById('welcome-screen-content');
+  if (content) content.style.display = '';
 }
 // Fallback: remove splash after 5s even if auth hangs
 setTimeout(hideSplash, 5000);
