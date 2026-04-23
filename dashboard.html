@@ -3285,6 +3285,7 @@
   }
 
 </style>
+<style>html{background:#07070f;}body{visibility:hidden;}body.ready{visibility:visible;}</style>
 
 </head>
 <body>
@@ -12404,6 +12405,8 @@ if (urlParams.get('payment') === 'success') {
 }
 
 initAuth();
+// Reveal page once layout is stable
+requestAnimationFrame(function() { document.body.classList.add('ready'); });
 
 function openSettingsModal() {
   showTool('settings');
