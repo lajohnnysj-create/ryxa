@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" style="background:#07070f;">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -10,7 +10,7 @@
 <link rel="shortcut icon" href="/favicon.ico">
 <link rel="manifest" href="/site.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Ryxa">
 <meta name="theme-color" content="#07070f">
 <title>Creator Dashboard | Ryxa</title>
@@ -3533,12 +3533,7 @@
 
     <!-- WELCOME SCREEN -->
     <div id="tool-welcome" style="display:block;">
-      <!-- Loading spinner — shown until data loads -->
-      <div id="dash-loading" style="display:flex;align-items:center;justify-content:center;padding:80px 0;">
-        <div style="width:28px;height:28px;border:2px solid rgba(124,58,237,0.2);border-top-color:#a78bfa;border-radius:50%;animation:dash-spin 0.8s linear infinite;"></div>
-      </div>
-      <style>@keyframes dash-spin { to { transform: rotate(360deg); } }</style>
-      <div class="welcome-screen" id="welcome-screen-content" style="display:none;">
+      <div class="welcome-screen">
         <h1>Welcome back, <span id="welcome-name">creator</span>.</h1>
 
         <!-- Time Range Controls -->
@@ -6697,24 +6692,14 @@ var isPwaMode = window.matchMedia('(display-mode: standalone)').matches
 
 async function initAuth() {
   const { data: { session } } = await sb.auth.getSession();
-  if (!session?.user) { hideSplash(); showPwaLogin(); return; }
+  if (!session?.user) { showPwaLogin(); return; }
   window._supabaseAccessToken = session.access_token || '';
   await setUser(session.user);
-  hideSplash();
   sb.auth.onAuthStateChange((_event, session) => {
     if (!session?.user) { showPwaLogin(); }
     else window._supabaseAccessToken = session.access_token || '';
   });
 }
-
-function hideSplash() {
-  var loader = document.getElementById('dash-loading');
-  if (loader) loader.style.display = 'none';
-  var content = document.getElementById('welcome-screen-content');
-  if (content) content.style.display = '';
-}
-// Fallback: remove splash after 5s even if auth hangs
-setTimeout(hideSplash, 5000);
 
 async function setUser(user) {
   currentUser = user;
