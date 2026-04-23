@@ -6703,6 +6703,7 @@ async function initAuth() {
   window._supabaseAccessToken = session.access_token || '';
   await setUser(session.user);
   _authCompleted = true;
+  try { sessionStorage.removeItem('_authRetry'); } catch(e) {}
   sb.auth.onAuthStateChange((_event, session) => {
     if (!session?.user) { showPwaLogin(); }
     else window._supabaseAccessToken = session.access_token || '';
@@ -12419,10 +12420,18 @@ if (urlParams.get('payment') === 'success') {
 initAuth();
 // Reveal page once layout is stable
 requestAnimationFrame(function() { document.body.classList.add('ready'); });
-// Fallback: if auth hasn't completed in 8s, reload the page
+// Fallback: if auth hasn't completed in 8s, reload once
 var _authCompleted = false;
 setTimeout(function() {
-  if (!_authCompleted) window.location.reload();
+  if (!_authCompleted) {
+    try {
+      var retried = sessionStorage.getItem('_authRetry');
+      if (!retried) {
+        sessionStorage.setItem('_authRetry', '1');
+        window.location.reload();
+      }
+    } catch(e) {}
+  }
 }, 8000);
 
 function openSettingsModal() {
