@@ -3284,17 +3284,20 @@
   }
 
 </style>
-<style>body { opacity: 0; animation: body-fade-in 0.5s ease 0.3s forwards; } @keyframes body-fade-in { to { opacity: 1; } }</style>
+<style>
+  .main, .sidebar, .sidebar-overlay { opacity: 0; transition: opacity 0.4s ease; }
+  .main.ready, .sidebar.ready, .sidebar-overlay.ready { opacity: 1; }
+</style>
 
-<!-- LOADING SPLASH SCREEN (outside body so body opacity doesn't affect it) -->
+</head>
+<body>
+
+<!-- LOADING SPLASH SCREEN -->
 <div id="app-splash" style="position:fixed;inset:0;z-index:99999;background:#07070f;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px;transition:opacity 0.3s;">
   <img src="/logo.png" alt="Ryxa" style="width:48px;height:48px;">
   <div style="width:24px;height:24px;border:2px solid rgba(124,58,237,0.2);border-top-color:#a78bfa;border-radius:50%;animation:splash-spin 0.8s linear infinite;"></div>
 </div>
 <style>@keyframes splash-spin { to { transform: rotate(360deg); } }</style>
-
-</head>
-<body>
 
 
 <!-- PWA LOGIN SCREEN (shown instead of redirect when in standalone/app mode) -->
@@ -6712,9 +6715,12 @@ async function initAuth() {
 
 function hideSplash() {
   var splash = document.getElementById('app-splash');
-  if (!splash) return;
-  splash.style.opacity = '0';
-  setTimeout(function() { splash.remove(); }, 300);
+  if (splash) {
+    splash.style.opacity = '0';
+    setTimeout(function() { splash.remove(); }, 300);
+  }
+  // Reveal dashboard content
+  document.querySelectorAll('.main, .sidebar, .sidebar-overlay').forEach(function(el) { el.classList.add('ready'); });
 }
 // Fallback: remove splash after 5s even if auth hangs
 setTimeout(hideSplash, 5000);
