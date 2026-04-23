@@ -3284,19 +3284,18 @@
   }
 
 </style>
+<style>body { opacity: 0; animation: body-fade-in 0.5s ease 0.3s forwards; } @keyframes body-fade-in { to { opacity: 1; } }</style>
 </head>
 <body>
 
 <!-- LOADING SPLASH SCREEN -->
 <div id="app-splash" style="position:fixed;inset:0;z-index:99999;background:#07070f;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px;transition:opacity 0.3s;">
-  <div id="app-splash-content" style="display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px;opacity:0;animation:splash-fade-in 0.4s ease 0.05s forwards;">
-    <img src="/logo.png" alt="Ryxa" style="width:48px;height:48px;">
-    <div style="width:24px;height:24px;border:2px solid rgba(124,58,237,0.2);border-top-color:#a78bfa;border-radius:50%;animation:splash-spin 0.8s linear infinite;"></div>
-  </div>
+  <img src="/logo.png" alt="Ryxa" style="width:48px;height:48px;opacity:0;animation:splash-content-in 0.4s ease 0.4s forwards;">
+  <div style="width:24px;height:24px;border:2px solid rgba(124,58,237,0.2);border-top-color:#a78bfa;border-radius:50%;opacity:0;animation:splash-spin 0.8s linear infinite, splash-content-in 0.4s ease 0.6s forwards;"></div>
 </div>
 <style>
   @keyframes splash-spin { to { transform: rotate(360deg); } }
-  @keyframes splash-fade-in { to { opacity: 1; } }
+  @keyframes splash-content-in { to { opacity: 1; } }
 </style>
 
 
