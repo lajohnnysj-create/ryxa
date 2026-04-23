@@ -6942,7 +6942,6 @@ async function fetchTier(userId) {
   if (data && data.length > 0) {
     userTier = data[0].tier || 'free';
     userStatus = data[0].status || 'free';
-    if (userTier === 'one_time') userTier = 'free'; // Remove one_time tier
   }
   updateTierUI();
 }
@@ -20231,7 +20230,6 @@ let faUnfollowerLog = [];
 let faCurrentLogFilter = 'all';
 let faUserSnakeList = new Set();
 let faSnakeListDates = {};
-let faCurrentAnalysisPaid = false;
 
 const FA_FREE_LIMIT = 3;
 
@@ -20568,7 +20566,7 @@ async function faClearSnakeList() {
 
 // ── START OVER ──
 function faStartOver() {
-  faCurrentAnalysisPaid = false; faAllResults = [];
+  faAllResults = [];
   faFollowersData = []; faFollowingData = [];
   const zipInput = document.getElementById('fa-zip-input');
   if (zipInput) zipInput.value = '';
@@ -20604,7 +20602,7 @@ function faStartOver() {
 // ── TOOL BUTTONS ──
 function faUpdateToolBtns() {
   faUpdateWhitelistTab();
-  const isPaid = userTier === 'one_time' || isPro() || faCurrentAnalysisPaid;
+  const isPaid = isPro();
   ['fa-print-btn', 'fa-csv-btn'].forEach(id => {
     const btn = document.getElementById(id);
     if (!btn) return;
@@ -20612,7 +20610,7 @@ function faUpdateToolBtns() {
   });
 }
 function faHandleToolBtn(type) {
-  const isPaid = userTier === 'one_time' || isPro() || faCurrentAnalysisPaid;
+  const isPaid = isPro();
   if (!isPaid) return;
   if (type === 'print') faPrintReport();
   if (type === 'csv') faExportCSV();
@@ -20620,7 +20618,7 @@ function faHandleToolBtn(type) {
 
 // ── CSV EXPORT ──
 function faExportCSV() {
-  const isPaid = userTier === 'one_time' || isPro() || faCurrentAnalysisPaid;
+  const isPaid = isPro();
   if (!isPaid) return;
   const isMonthly = isPro();
   const date = new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
@@ -20764,11 +20762,7 @@ function faAnalyze() {
       followers.forEach(handle => { if (!following.has(handle)) faAllResults.push({ handle, followerOnly: true }); });
       faAllResults.sort((a, b) => a.handle.localeCompare(b.handle));
       faRenderResults();
-      if (isPro()) { faCurrentAnalysisPaid = true; faSaveAudit(); }
-      if (userTier === 'one_time' && currentUser) {
-        faCurrentAnalysisPaid = true; userTier = 'free'; userStatus = 'free'; updateNavTierBadge();
-        sb.functions.invoke('record-analysis', { body: { userId: currentUser.id } });
-      }
+      if (isPro()) { faSaveAudit(); }
     } catch(err) { console.error('Analysis error:', err); faShowError('Something went wrong during analysis.'); }
     finally {
       btn.disabled = true; btn.classList.remove('processing'); btn.innerHTML = '✦ &nbsp;Analyze Now';
@@ -20816,7 +20810,7 @@ function faRenderResults() {
   const _results = document.getElementById('fa-results');
   if (_results) _results.style.display = 'block';
   requestAnimationFrame(() => requestAnimationFrame(() => {
-    const isPaid = userTier === 'one_time' || isPro() || faCurrentAnalysisPaid;
+    const isPaid = isPro();
     const paywallEl = document.getElementById('fa-paywall-container');
     const target = (!isPaid && paywallEl && paywallEl.children.length > 0) ? paywallEl : document.getElementById('fa-results');
     if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -20835,7 +20829,7 @@ function faRenderResults() {
 }
 
 function faFilterResults() {
-  const isPaid = userTier === 'one_time' || isPro() || faCurrentAnalysisPaid;
+  const isPaid = isPro();
   faUpdateWhitelistTabCount();
   let filtered = [...faAllResults];
   if (faCurrentFilter === 'whitelist') filtered = filtered.filter(r => faUserWhitelist.has(r.handle.toLowerCase()));
@@ -20906,7 +20900,7 @@ function faBuildPaywall(hiddenCount, totalUnfollowers) {
 }
 
 function faSetFilter(f, btn) {
-  const isPaid = userTier === 'one_time' || isPro() || faCurrentAnalysisPaid;
+  const isPaid = isPro();
   if (f === 'analytics' && !isPro()) { faShowMiniToast('Analytics is available on the Pro plan 🐍'); return; }
   if (f === 'mutual' && !isPaid) { faShowMiniToast('Unlock to see your Mutual followers 🐍'); return; }
   if (f === 'whitelist' && !isPro()) { faShowMiniToast('Whitelist is available on the Pro plan 🐍'); return; }
@@ -20988,7 +20982,7 @@ function faRenderWhitelistSection() {
 }
 
 function faUpdateWhitelistTab() {
-  const isPaid = userTier === 'one_time' || isPro() || faCurrentAnalysisPaid;
+  const isPaid = isPro();
   const tab = document.getElementById('fa-whitelist-tab');
   if (tab) {
     if (!isPro()) { tab.classList.add('wl-locked'); tab.title = 'Whitelist available on Pro plan'; }
