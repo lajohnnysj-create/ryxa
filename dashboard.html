@@ -3535,7 +3535,12 @@
 
     <!-- WELCOME SCREEN -->
     <div id="tool-welcome" style="display:block;">
-      <div class="welcome-screen">
+      <!-- Loading spinner — shown until data loads -->
+      <div id="dash-loading" style="display:flex;align-items:center;justify-content:center;padding:120px 0;">
+        <div style="width:28px;height:28px;border:2px solid rgba(124,58,237,0.2);border-top-color:#a78bfa;border-radius:50%;animation:dash-spin 0.8s linear infinite;"></div>
+      </div>
+      <style>@keyframes dash-spin { to { transform: rotate(360deg); } }</style>
+      <div class="welcome-screen" style="display:none;" id="welcome-content">
         <h1>Welcome back, <span id="welcome-name">creator</span>.</h1>
 
         <!-- Time Range Controls -->
@@ -6758,6 +6763,12 @@ async function setUser(user) {
 
   // Load dashboard home stats (page views + revenue)
   loadDashStats();
+
+  // Hide loading spinner, show welcome content
+  var dashLoader = document.getElementById('dash-loading');
+  if (dashLoader) dashLoader.style.display = 'none';
+  var welcomeContent = document.getElementById('welcome-content');
+  if (welcomeContent) welcomeContent.style.display = '';
 
   // Handle Stripe Connect callback redirect
   handleStripeConnectRedirect();
@@ -12407,6 +12418,13 @@ if (urlParams.get('payment') === 'success') {
 initAuth();
 // Reveal page once layout is stable
 requestAnimationFrame(function() { document.body.classList.add('ready'); });
+// Fallback: show welcome content after 5s even if auth hangs
+setTimeout(function() {
+  var dl = document.getElementById('dash-loading');
+  if (dl) dl.style.display = 'none';
+  var wc = document.getElementById('welcome-content');
+  if (wc) wc.style.display = '';
+}, 5000);
 
 function openSettingsModal() {
   showTool('settings');
