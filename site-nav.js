@@ -266,7 +266,7 @@ function renderFooter() {
   +     '</div>'
   +   '</div>'
   +   '<div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:20px;width:100%;clear:both;">'
-  +     '<p style="font-size:12px;color:var(--muted);margin:0;">&copy; ' + new Date().getFullYear() + ' MRLA Media LLC &middot; Ryxa&trade;</p>'
+  +     '<p style="font-size:12px;color:var(--muted);margin:0;">&copy; ' + new Date().getFullYear() + ' <a href="https://www.mrla-media.com" target="_blank" rel="noopener noreferrer" style="color:var(--muted);text-decoration:none;">MRLA Media LLC</a> &middot; Ryxa&trade;</p>'
   +   '</div>'
   + '</footer>';
 }
