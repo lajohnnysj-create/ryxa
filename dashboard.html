@@ -3334,6 +3334,27 @@
   </div>
 </div>
 
+<!-- TERMS ACCEPTANCE MODAL (first login) -->
+<div id="terms-modal" style="display:none;position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;pointer-events:all;padding:24px;">
+  <div style="background:#0f0f1a;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:32px 36px;text-align:center;position:relative;min-width:280px;max-width:440px;width:100%;pointer-events:all;">
+    <img src="/logo.png" alt="Ryxa" style="width:48px;height:48px;margin:0 auto 16px;display:block;">
+    <h2 style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;margin-bottom:8px;">Welcome to Ryxa</h2>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:20px;line-height:1.6;">Before you get started, please review and accept our terms.</p>
+    <div style="text-align:left;margin-bottom:20px;">
+      <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:13px;color:var(--text);line-height:1.5;margin-bottom:12px;">
+        <input type="checkbox" id="terms-accept-check" style="accent-color:#7c3aed;width:16px;height:16px;cursor:pointer;margin-top:2px;flex-shrink:0;">
+        I agree to the <a href="/terms.html" target="_blank" style="color:var(--accent2);text-decoration:underline;">Terms of Service</a> and <a href="/privacy.html" target="_blank" style="color:var(--accent2);text-decoration:underline;">Privacy Policy</a>.
+      </label>
+      <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:13px;color:var(--muted);line-height:1.5;">
+        <input type="checkbox" id="terms-marketing-check" style="accent-color:#7c3aed;width:16px;height:16px;cursor:pointer;margin-top:2px;flex-shrink:0;">
+        Send me product updates and news from Ryxa. (Optional)
+      </label>
+    </div>
+    <button onclick="acceptTerms()" id="terms-accept-btn" style="width:100%;padding:12px;background:#7c3aed;border:none;color:#fff;border-radius:10px;font-size:15px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;opacity:0.5;pointer-events:none;" disabled>Continue</button>
+    <div id="terms-error" style="display:none;color:#fca5a5;font-size:12px;margin-top:8px;"></div>
+  </div>
+</div>
+
 <!-- INSTALL APP MODAL (iOS instructions) -->
 <div id="install-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:24px;">
   <div style="background:var(--surface);border:1px solid var(--border-hover);border-radius:20px;padding:28px 28px 24px;width:100%;max-width:380px;position:relative;">
@@ -4654,9 +4675,10 @@
             </button>
           </div>
 
-          <!-- Search -->
-          <div style="margin-bottom:16px;">
-            <input type="text" id="clients-search" placeholder="Search subscribers..." oninput="filterSubscribers()" readonly onfocus="this.removeAttribute('readonly')" autocomplete="off" data-1p-ignore="true" data-lpignore="true" style="width:100%;max-width:320px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+          <!-- Search and filter -->
+          <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;align-items:center;">
+            <input type="text" id="clients-search" placeholder="Search subscribers..." oninput="filterSubscribers()" readonly onfocus="this.removeAttribute('readonly')" autocomplete="off" data-1p-ignore="true" data-lpignore="true" style="flex:1;min-width:200px;max-width:320px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap;"><input type="checkbox" id="clients-optin-filter" onchange="filterSubscribers()" style="accent-color:#7c3aed;cursor:pointer;"> Opted in only</label>
           </div>
 
           <!-- Subscribers table -->
@@ -4666,11 +4688,12 @@
                 <thead>
                   <tr style="border-bottom:1px solid var(--border);">
                     <th style="text-align:left;padding:12px 16px;color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;">Email</th>
+                    <th style="text-align:left;padding:12px 16px;color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;">Opt In</th>
                     <th style="text-align:left;padding:12px 16px;color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;">Date Joined</th>
                   </tr>
                 </thead>
                 <tbody id="clients-tbody">
-                  <tr><td colspan="2" style="text-align:center;padding:32px 16px;color:var(--muted);font-size:13px;">No subscribers yet</td></tr>
+                  <tr><td colspan="3" style="text-align:center;padding:32px 16px;color:var(--muted);font-size:13px;">No subscribers yet</td></tr>
                 </tbody>
               </table>
             </div>
@@ -6753,6 +6776,16 @@
       <button id="settings-reset-password-btn" onclick="sendPasswordReset()" style="width:100%;padding:11px;background:transparent;border:1px solid var(--border-hover);color:var(--text);border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(124,58,237,0.4)';this.style.color='#c4b5fd'" onmouseout="this.style.borderColor='var(--border-hover)';this.style.color='var(--text)'">Send password reset email</button>
       <div id="settings-password-msg" style="display:none;margin-top:10px;padding:10px 12px;border-radius:8px;font-size:12px;line-height:1.5;"></div>
     </div>
+
+    <!-- Email Preferences -->
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:12px;">Email Preferences</div>
+      <label style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
+        <span style="font-size:13px;color:var(--text);">Receive product updates and news from Ryxa</span>
+        <input type="checkbox" id="settings-marketing-emails" onchange="toggleMarketingEmails(this.checked)" style="accent-color:#7c3aed;width:18px;height:18px;cursor:pointer;">
+      </label>
+    </div>
+
     <!-- Help -->
     <p style="margin-top:12px;font-size:12px;color:var(--muted);text-align:center;">Support: hello@ryxa.io</p>
   </div>
@@ -6907,6 +6940,63 @@ async function setUser(user) {
 
   // Handle Stripe Connect callback redirect
   handleStripeConnectRedirect();
+
+  // Check if user has accepted terms
+  checkTermsAcceptance();
+}
+
+async function checkTermsAcceptance() {
+  if (!currentUser) return;
+  try {
+    var { data } = await sb.from('profiles').select('accepted_terms, marketing_emails').eq('user_id', currentUser.id).single();
+    if (data && data.accepted_terms) {
+      // Load marketing preference into settings
+      var toggle = document.getElementById('settings-marketing-emails');
+      if (toggle) toggle.checked = !!data.marketing_emails;
+      return;
+    }
+    // Show terms modal
+    var modal = document.getElementById('terms-modal');
+    if (modal) modal.style.display = 'flex';
+    var check = document.getElementById('terms-accept-check');
+    var btn = document.getElementById('terms-accept-btn');
+    if (check && btn) {
+      check.addEventListener('change', function() {
+        btn.disabled = !check.checked;
+        btn.style.opacity = check.checked ? '1' : '0.5';
+        btn.style.pointerEvents = check.checked ? 'auto' : 'none';
+      });
+    }
+  } catch (e) { console.error('Terms check error:', e); }
+}
+
+async function toggleMarketingEmails(checked) {
+  if (!currentUser) return;
+  try {
+    await sb.from('profiles').update({ marketing_emails: checked }).eq('user_id', currentUser.id);
+  } catch (e) { console.error('Marketing toggle error:', e); }
+}
+
+async function acceptTerms() {
+  var check = document.getElementById('terms-accept-check');
+  if (!check || !check.checked) return;
+  var btn = document.getElementById('terms-accept-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+  try {
+    var marketingCheck = document.getElementById('terms-marketing-check');
+    var { error } = await sb.from('profiles').update({
+      accepted_terms: true,
+      marketing_emails: marketingCheck ? marketingCheck.checked : false
+    }).eq('user_id', currentUser.id);
+    if (error) throw error;
+    var modal = document.getElementById('terms-modal');
+    if (modal) modal.style.display = 'none';
+  } catch (e) {
+    console.error('Accept terms error:', e);
+    var errEl = document.getElementById('terms-error');
+    if (errEl) { errEl.textContent = 'Something went wrong. Please try again.'; errEl.style.display = 'block'; }
+    if (btn) { btn.disabled = false; btn.textContent = 'Continue'; }
+  }
 }
 
 function copySidebarBioLink() {
@@ -21717,7 +21807,12 @@ var CLIENTS_PER_PAGE = 50;
 
 function filterSubscribers() {
   var query = (document.getElementById('clients-search')?.value || '').toLowerCase().trim();
-  clientsFiltered = query ? clientsData.filter(function(c) { return c.email.toLowerCase().includes(query); }) : clientsData.slice();
+  var optinOnly = document.getElementById('clients-optin-filter')?.checked || false;
+  clientsFiltered = clientsData.filter(function(c) {
+    if (query && !c.email.toLowerCase().includes(query)) return false;
+    if (optinOnly && !c.optin) return false;
+    return true;
+  });
   clientsCurrentPage = 0;
   renderSubscribersPage();
 }
@@ -21736,13 +21831,17 @@ function renderSubscribersPage() {
   var maxPage = Math.max(0, Math.floor((clientsFiltered.length - 1) / CLIENTS_PER_PAGE));
 
   if (page.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="2" style="text-align:center;padding:32px 16px;color:var(--muted);font-size:13px;">' + (clientsData.length > 0 ? 'No results found' : 'No subscribers yet') + '</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:32px 16px;color:var(--muted);font-size:13px;">' + (clientsData.length > 0 ? 'No results found' : 'No subscribers yet') + '</td></tr>';
   } else {
     tbody.innerHTML = page.map(function(c) {
       var d = new Date(c.date);
       var date = (d.getMonth()+1) + '/' + d.getDate() + '/' + d.getFullYear();
+      var optinBadge = c.optin
+        ? '<span style="color:#4ade80;font-size:11px;font-weight:600;">Yes</span>'
+        : '<span style="color:var(--muted);font-size:11px;">No</span>';
       return '<tr style="border-top:1px solid var(--border);">'
         + '<td style="padding:10px 16px;color:var(--text);font-size:13px;max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + c.email + '</td>'
+        + '<td style="padding:10px 16px;">' + optinBadge + '</td>'
         + '<td style="padding:10px 16px;color:var(--muted);font-size:13px;white-space:nowrap;">' + date + '</td>'
         + '</tr>';
     }).join('');
@@ -21768,7 +21867,7 @@ async function loadClients() {
 
     const { data: enrollments } = await sb
       .from('course_enrollments')
-      .select('user_id, buyer_email, enrolled_at, courses(user_id)')
+      .select('user_id, buyer_email, enrolled_at, marketing_consent, courses(user_id)')
       .eq('courses.user_id', currentUser.id)
       .order('enrolled_at', { ascending: false });
     if (enrollments) {
@@ -21777,14 +21876,16 @@ async function loadClients() {
         var email = e.buyer_email || '';
         var key = email || e.user_id;
         if (!clientMap[key]) {
-          clientMap[key] = { email: email, date: e.enrolled_at };
+          clientMap[key] = { email: email, date: e.enrolled_at, optin: !!e.marketing_consent };
+        } else if (e.marketing_consent) {
+          clientMap[key].optin = true;
         }
       });
     }
 
     const { data: bookings } = await sb
       .from('coaching_bookings')
-      .select('user_id, buyer_email, booked_at, coaching_services(user_id)')
+      .select('user_id, buyer_email, booked_at, marketing_consent, coaching_services(user_id)')
       .eq('coaching_services.user_id', currentUser.id)
       .order('booked_at', { ascending: false });
     if (bookings) {
@@ -21793,14 +21894,15 @@ async function loadClients() {
         var email = b.buyer_email || '';
         var key = email || b.user_id;
         if (!clientMap[key]) {
-          clientMap[key] = { email: email, date: b.booked_at };
-        } else if (new Date(b.booked_at) < new Date(clientMap[key].date)) {
-          clientMap[key].date = b.booked_at;
+          clientMap[key] = { email: email, date: b.booked_at, optin: !!b.marketing_consent };
+        } else {
+          if (b.marketing_consent) clientMap[key].optin = true;
+          if (new Date(b.booked_at) < new Date(clientMap[key].date)) clientMap[key].date = b.booked_at;
         }
       });
     }
 
-    // Fetch bio email signups
+    // Fetch bio email signups (always opted in)
     const { data: signups } = await sb
       .from('bio_email_signups')
       .select('email, created_at')
@@ -21811,9 +21913,10 @@ async function loadClients() {
         var email = s.email || '';
         if (!email) return;
         if (!clientMap[email]) {
-          clientMap[email] = { email: email, date: s.created_at };
-        } else if (new Date(s.created_at) < new Date(clientMap[email].date)) {
-          clientMap[email].date = s.created_at;
+          clientMap[email] = { email: email, date: s.created_at, optin: true };
+        } else {
+          clientMap[email].optin = true;
+          if (new Date(s.created_at) < new Date(clientMap[email].date)) clientMap[email].date = s.created_at;
         }
       });
     }
@@ -21843,11 +21946,11 @@ function exportSubscribers() {
     showModalAlert('No Data', 'No subscribers to export yet.');
     return;
   }
-  var csv = 'Email,Date Joined\n';
+  var csv = 'Email,Opt In,Date Joined\n';
   clientsData.forEach(function(c) {
     var d = new Date(c.date);
     var date = (d.getMonth()+1) + '/' + d.getDate() + '/' + d.getFullYear();
-    csv += '"' + c.email.replace(/"/g, '""') + '",' + date + '\n';
+    csv += '"' + c.email.replace(/"/g, '""') + '",' + (c.optin ? 'Yes' : 'No') + ',' + date + '\n';
   });
   var blob = new Blob([csv], { type: 'text/csv' });
   var url = URL.createObjectURL(blob);
