@@ -340,7 +340,8 @@ async function enrollFree() {
     const { error } = await sb.from('course_enrollments').insert({
       course_id: courseData.id,
       user_id: session.user.id,
-      amount_paid_cents: 0
+      amount_paid_cents: 0,
+      buyer_email: session.user.email || ''
     });
 
     if (error) {
