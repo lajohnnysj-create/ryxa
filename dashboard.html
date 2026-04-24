@@ -4052,6 +4052,10 @@
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
                 Add Coaching
               </button>
+              <button type="button" id="bio-add-subscribe-btn" onclick="addSubscribeBlock()" style="padding:10px;background:linear-gradient(135deg,rgba(124,58,237,0.1),rgba(232,121,249,0.06));border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:8px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                Add Subscribe
+              </button>
               </div>
               </div>
             </div>
@@ -8037,6 +8041,7 @@ async function loadBioData() {
   updatePublishUI();
   updateBioPreview();
   updateMediaKitLinkButton();
+  updateSubscribeBtn();
 }
 
 function syncBioForm() {
@@ -8641,6 +8646,28 @@ function addLink(isFeatured, isHero) {
 }
 
 // If user has a published Media Kit, add a pre-filled link to it
+function addSubscribeBlock() {
+  if (bioState.links.some(l => l.isSubscribe)) return;
+  bioState.links.push({
+    _id: linkIdSeq++,
+    isSubscribe: true,
+    title: 'Subscribe to my newsletter',
+    url: ''
+  });
+  updateSubscribeBtn();
+  renderBioLinks();
+  showBioStatus('saved', 'Subscribe block added');
+}
+
+function updateSubscribeBtn() {
+  var btn = document.getElementById('bio-add-subscribe-btn');
+  if (!btn) return;
+  var hasSubscribe = bioState.links.some(l => l.isSubscribe);
+  btn.disabled = hasSubscribe;
+  btn.style.opacity = hasSubscribe ? '0.4' : '1';
+  btn.style.cursor = hasSubscribe ? 'default' : 'pointer';
+}
+
 async function addMediaKitLink() {
   if (!isPro()) {
     showBioStatus('error', 'Media Kit is a Pro feature.');
@@ -8935,7 +8962,6 @@ function addCoachingToLinks(coachingId, title, priceCents, slug, coverUrl) {
 
 function removeLink(id) {
   const link = bioState.links.find(l => l._id === id);
-  // If it had a photo, queue it for deletion on save (we'll track old URLs)
   if (link?.photoUrl) {
     bioStalePhotos.push(link.photoUrl);
   }
@@ -8943,6 +8969,7 @@ function removeLink(id) {
   renderBioLinks();
   schedulePreviewUpdate();
   updateMediaKitLinkButton();
+  updateSubscribeBtn();
 }
 
 function updateLinkField(id, field, val) {
@@ -9036,6 +9063,22 @@ function renderLinkCollapsed(link, dragSvg, editSvg) {
         </div>
       </div>
       <button type="button" aria-label="Edit header" onclick="event.stopPropagation();expandLink(${link._id})" style="background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:6px;padding:5px 9px;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:4px;">${editSvg} Edit</button>
+      <button class="bio-link-remove" onclick="event.stopPropagation();removeLink(${link._id})">Remove</button>
+    </div>`;
+  }
+
+  // Subscribe block
+  if (link.isSubscribe) {
+    return `<div class="bio-link-row bio-link-collapsed" data-id="${link._id}" onclick="expandLink(${link._id})" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:10px 12px;">
+      <div class="bio-link-drag" aria-label="Drag to reorder" onclick="event.stopPropagation();">${dragSvg}</div>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+          <span style="font-size:13px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;">${escapeHtml(link.title || 'Subscribe to my newsletter')}</span>
+          <span class="bio-featured-badge" style="background:rgba(124,58,237,0.15);color:#c4b5fd;border:1px solid rgba(124,58,237,0.3);">Subscribe</span>
+        </div>
+      </div>
+      <button type="button" aria-label="Edit subscribe" onclick="event.stopPropagation();expandLink(${link._id})" style="background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:6px;padding:5px 9px;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:4px;">${editSvg} Edit</button>
       <button class="bio-link-remove" onclick="event.stopPropagation();removeLink(${link._id})">Remove</button>
     </div>`;
   }
@@ -9194,6 +9237,26 @@ function renderLinkExpanded(link, dragSvg) {
       </button>
     </div>`;
   }
+
+  // Subscribe block — just a title/label field
+  if (link.isSubscribe) {
+    return `<div class="bio-link-row" data-id="${link._id}" style="background:linear-gradient(135deg,rgba(124,58,237,0.04),rgba(232,121,249,0.02));border:1px solid rgba(124,58,237,0.25);">
+      <div class="bio-link-header">
+        <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
+        <span class="bio-featured-badge" style="background:rgba(124,58,237,0.15);color:#c4b5fd;border:1px solid rgba(124,58,237,0.3);">Subscribe</span>
+        <div style="flex:1;"></div>
+        <button class="bio-link-remove" onclick="removeLink(${link._id})">Remove</button>
+      </div>
+      <input type="text" placeholder="Subscribe heading (e.g. Join my newsletter)" maxlength="80" value="${escapeHtml(link.title || '')}"
+        oninput="updateLinkField(${link._id},'title',this.value)" aria-label="Subscribe heading" style="margin-bottom:6px;">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">Visitors will see an email input and subscribe button styled to your theme.</div>
+      <button type="button" onclick="saveLinkRow(${link._id})"
+        style="width:100%;padding:9px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">
+        Save
+      </button>
+    </div>`;
+  }
+
   let photoSlot = '';
   if (link.isCourse) {
     // Course link — show cover, locked title/URL, crossout price option
@@ -9302,8 +9365,8 @@ function saveLinkRow(id) {
   const link = bioState.links.find(l => l._id === id);
   if (!link) return;
 
-  // Headers don't require a URL
-  if (link.isHeader) {
+  // Headers and subscribe blocks don't require a URL
+  if (link.isHeader || link.isSubscribe) {
     bioExpandedLinks.delete(id);
     renderBioLinks();
     schedulePreviewUpdate();
@@ -21721,6 +21784,24 @@ async function loadClients() {
           clientMap[key] = { email: email, date: b.booked_at };
         } else if (new Date(b.booked_at) < new Date(clientMap[key].date)) {
           clientMap[key].date = b.booked_at;
+        }
+      });
+    }
+
+    // Fetch bio email signups
+    const { data: signups } = await sb
+      .from('bio_email_signups')
+      .select('email, created_at')
+      .eq('creator_id', currentUser.id)
+      .order('created_at', { ascending: false });
+    if (signups) {
+      signups.forEach(function(s) {
+        var email = s.email || '';
+        if (!email) return;
+        if (!clientMap[email]) {
+          clientMap[email] = { email: email, date: s.created_at };
+        } else if (new Date(s.created_at) < new Date(clientMap[email].date)) {
+          clientMap[email].date = s.created_at;
         }
       });
     }

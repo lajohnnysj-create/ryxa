@@ -903,6 +903,20 @@ function buildLink(link) {
     if (!link.title) return '';
     return `<div class="link-header">${esc(link.title)}</div>`;
   }
+
+  // Subscribe block — email signup form
+  if (link.isSubscribe) {
+    const heading = esc(link.title || 'Subscribe to my newsletter');
+    return `<div class="subscribe-block" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;text-align:center;">
+      <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:12px;">${heading}</div>
+      <div style="display:flex;gap:8px;max-width:360px;margin:0 auto;" id="subscribe-form">
+        <input type="email" id="subscribe-email" placeholder="Your email" aria-label="Email address" required style="flex:1;padding:10px 14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;font-family:inherit;outline:none;min-width:0;">
+        <button onclick="submitSubscribe()" style="padding:10px 18px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap;transition:opacity 0.15s;" id="subscribe-btn">Subscribe</button>
+      </div>
+      <div id="subscribe-msg" style="display:none;font-size:12px;margin-top:8px;"></div>
+    </div>`;
+  }
+
   const url = validUrl(link.url);
   if (!url) return '';
   const title = esc(link.title || '');
@@ -1318,6 +1332,56 @@ load().catch(err => {
   console.error(err);
   renderNotFound(getUsername());
 });
+
+async function submitSubscribe() {
+  var emailInput = document.getElementById('subscribe-email');
+  var btn = document.getElementById('subscribe-btn');
+  var msg = document.getElementById('subscribe-msg');
+  if (!emailInput || !btn) return;
+
+  var email = emailInput.value.trim().toLowerCase();
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    msg.textContent = 'Please enter a valid email.';
+    msg.style.color = '#fca5a5';
+    msg.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '...';
+
+  try {
+    var username = getUsername();
+    var { data: profile } = await sb.from('profiles').select('user_id').eq('username', username).single();
+    if (!profile) throw new Error('Creator not found');
+
+    var { error } = await sb.from('bio_email_signups').insert({
+      creator_id: profile.user_id,
+      email: email
+    });
+
+    if (error) {
+      if (error.code === '23505') {
+        msg.textContent = "You're already subscribed!";
+        msg.style.color = 'var(--accent)';
+      } else {
+        throw error;
+      }
+    } else {
+      msg.textContent = 'Thanks for subscribing!';
+      msg.style.color = '#4ade80';
+      emailInput.value = '';
+    }
+    msg.style.display = 'block';
+  } catch (e) {
+    console.error('Subscribe error:', e);
+    msg.textContent = 'Something went wrong. Try again.';
+    msg.style.color = '#fca5a5';
+    msg.style.display = 'block';
+  }
+  btn.disabled = false;
+  btn.textContent = 'Subscribe';
+}
 </script>
 <script src="/cookie-banner.js"></script>
 </body>
