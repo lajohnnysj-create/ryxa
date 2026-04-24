@@ -4561,10 +4561,31 @@
               </div>
             </div>
           </div>
+
+          <!-- Latest Sales -->
+          <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);font-weight:600;margin-top:24px;margin-bottom:12px;">Latest Sales</div>
+          <div id="ana-sales-list" style="background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;">
+            <div style="overflow-x:auto;">
+              <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                <thead>
+                  <tr style="border-bottom:1px solid var(--border);">
+                    <th style="text-align:left;padding:12px 16px;color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;">Date</th>
+                    <th style="text-align:left;padding:12px 16px;color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;">Buyer</th>
+                    <th style="text-align:left;padding:12px 16px;color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;">Product</th>
+                    <th style="text-align:left;padding:12px 16px;color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;">Type</th>
+                    <th style="text-align:right;padding:12px 16px;color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;">Amount</th>
+                  </tr>
+                </thead>
+                <tbody id="ana-sales-tbody">
+                  <tr><td colspan="5" style="text-align:center;padding:32px 16px;color:var(--muted);font-size:13px;">No sales in this period</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
-    <div id="tool-mediakit" style="display:none;">
       <div id="mediakit-paywall" style="display:none;max-width:560px;margin:40px auto;background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:40px;text-align:center;">
         <div style="width:56px;height:56px;margin:0 auto 16px;background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.25);border-radius:14px;display:flex;align-items:center;justify-content:center;">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="17" x2="8" y2="13"/><line x1="12" y1="17" x2="12" y2="11"/><line x1="16" y1="17" x2="16" y2="15"/></svg>
@@ -21118,6 +21139,50 @@ async function loadAnalyticsData() {
   renderAnaMiniChart('ana-pv-courses-chart', viewsDaily, 'count', '#a78bfa');
   renderAnaMiniChart('ana-pv-coaching-chart', viewsDaily, 'count', '#c084fc');
   renderAnaMiniChart('ana-pv-mediakit-chart', viewsDaily, 'count', '#818cf8');
+
+  // Load latest sales
+  loadAnalyticsSales(start, end);
+}
+
+async function loadAnalyticsSales(start, end) {
+  const tbody = document.getElementById('ana-sales-tbody');
+  if (!tbody || !currentUser) return;
+  tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:32px 16px;color:var(--muted);font-size:13px;">Loading...</td></tr>';
+  try {
+    const { data, error } = await sb
+      .from('revenue_events')
+      .select('*')
+      .eq('user_id', currentUser.id)
+      .gte('received_at', start + 'T00:00:00')
+      .lte('received_at', end + 'T23:59:59')
+      .order('received_at', { ascending: false })
+      .limit(50);
+    if (error || !data || data.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:32px 16px;color:var(--muted);font-size:13px;">No sales in this period</td></tr>';
+      return;
+    }
+    tbody.innerHTML = data.map(function(s) {
+      const d = new Date(s.received_at);
+      const date = (d.getMonth()+1) + '/' + d.getDate() + '/' + d.getFullYear();
+      const source = s.source || '';
+      const type = source === 'course' ? 'Course' : source === 'coaching' ? 'Coaching' : source === 'brand_deal' ? 'Brand Deal' : source || '—';
+      const amount = '$' + ((s.amount_cents || 0) / 100).toFixed(2);
+      const buyer = s.buyer_email || s.description || '—';
+      const product = s.product_title || s.description || '—';
+      return '<tr style="border-top:1px solid var(--border);">'
+        + '<td style="padding:10px 16px;color:var(--muted);font-size:13px;white-space:nowrap;">' + date + '</td>'
+        + '<td style="padding:10px 16px;color:var(--text);font-size:13px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + buyer + '</td>'
+        + '<td style="padding:10px 16px;color:var(--text);font-size:13px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + product + '</td>'
+        + '<td style="padding:10px 16px;font-size:13px;"><span style="padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;'
+        + (type === 'Course' ? 'background:rgba(167,139,250,0.15);color:#c4b5fd;' : type === 'Coaching' ? 'background:rgba(232,121,249,0.15);color:#e879f9;' : 'background:rgba(124,58,237,0.15);color:#a78bfa;')
+        + '">' + type + '</span></td>'
+        + '<td style="padding:10px 16px;color:#4ade80;font-size:13px;font-weight:600;text-align:right;">' + amount + '</td>'
+        + '</tr>';
+    }).join('');
+  } catch (e) {
+    console.error('Sales load error:', e);
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:32px 16px;color:var(--muted);font-size:13px;">Could not load sales</td></tr>';
+  }
 }
 
 function renderAnaLineChart(canvasId, viewsDaily, revDaily, dayCount) {
