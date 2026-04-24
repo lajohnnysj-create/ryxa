@@ -21335,9 +21335,16 @@ async function loadProductPerformance(start, end) {
         const orders = orderCount || 0;
         const revenue = enrollments ? enrollments.reduce(function(sum, e) { return sum + (e.amount_paid_cents || 0); }, 0) : 0;
 
-        // Get page views for this course
-        const { data: viewData } = await sb.rpc('get_product_views', { p_product_type: 'course', p_product_id: course.id, p_start_date: start, p_end_date: end });
-        const views = (viewData && typeof viewData === 'number') ? viewData : (viewData?.count || 0);
+        // Get per-product page views
+        const { data: viewRows } = await sb
+          .from('page_view_counts')
+          .select('view_count')
+          .eq('user_id', currentUser.id)
+          .eq('page_type', 'course')
+          .eq('product_id', course.id)
+          .gte('view_date', start)
+          .lte('view_date', end);
+        const views = viewRows ? viewRows.reduce(function(sum, r) { return sum + (r.view_count || 0); }, 0) : 0;
 
         products.push({ title: course.title || 'Untitled Course', type: 'Course', views: views, orders: orders, revenue: revenue });
       }
@@ -21361,8 +21368,15 @@ async function loadProductPerformance(start, end) {
         const orders = bookCount || 0;
         const revenue = bookings ? bookings.reduce(function(sum, b) { return sum + (b.amount_paid_cents || 0); }, 0) : 0;
 
-        const { data: viewData } = await sb.rpc('get_product_views', { p_product_type: 'coaching', p_product_id: svc.id, p_start_date: start, p_end_date: end });
-        const views = (viewData && typeof viewData === 'number') ? viewData : (viewData?.count || 0);
+        const { data: viewRows } = await sb
+          .from('page_view_counts')
+          .select('view_count')
+          .eq('user_id', currentUser.id)
+          .eq('page_type', 'coaching')
+          .eq('product_id', svc.id)
+          .gte('view_date', start)
+          .lte('view_date', end);
+        const views = viewRows ? viewRows.reduce(function(sum, r) { return sum + (r.view_count || 0); }, 0) : 0;
 
         products.push({ title: svc.title || 'Coaching Session', type: 'Coaching', views: views, orders: orders, revenue: revenue });
       }
@@ -21378,14 +21392,15 @@ async function loadProductPerformance(start, end) {
 
     tbody.innerHTML = products.map(function(p) {
       var convRate = p.views > 0 ? ((p.orders / p.views) * 100).toFixed(1) + '%' : '—';
+      var viewsText = p.views > 0 ? p.views.toLocaleString() : '0';
       var amount = '$' + (p.revenue / 100).toFixed(2);
       var pillStyle = p.type === 'Course' ? 'background:rgba(167,139,250,0.15);color:#c4b5fd;' : 'background:rgba(232,121,249,0.15);color:#e879f9;';
       return '<tr style="border-top:1px solid var(--border);">'
         + '<td style="padding:10px 16px;color:var(--text);font-size:13px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + p.title + '</td>'
         + '<td style="padding:10px 16px;font-size:13px;"><span style="padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;' + pillStyle + '">' + p.type + '</span></td>'
-        + '<td style="padding:10px 16px;color:var(--text);font-size:13px;text-align:right;">' + p.views.toLocaleString() + '</td>'
+        + '<td style="padding:10px 16px;color:var(--muted);font-size:13px;text-align:right;">' + viewsText + '</td>'
         + '<td style="padding:10px 16px;color:var(--text);font-size:13px;text-align:right;">' + p.orders + '</td>'
-        + '<td style="padding:10px 16px;color:' + (p.views > 0 && p.orders > 0 ? '#4ade80' : 'var(--muted)') + ';font-size:13px;font-weight:600;text-align:right;">' + convRate + '</td>'
+        + '<td style="padding:10px 16px;color:var(--muted);font-size:13px;text-align:right;">' + convRate + '</td>'
         + '<td style="padding:10px 16px;color:#4ade80;font-size:13px;font-weight:600;text-align:right;">' + amount + '</td>'
         + '</tr>';
     }).join('');
