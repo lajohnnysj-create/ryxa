@@ -44,9 +44,10 @@ module.exports = async (req, res) => {
         max_tokens: 2000,
         messages: [{
           role: 'user',
-          content: `Clean up the following text. Fix grammar, spelling, punctuation, and improve readability. Do NOT add new content, change the meaning, or rewrite it in a different style. Keep the author's voice and intent. Only polish what's already there. Return ONLY the cleaned-up text, nothing else.
+          content: `Clean up the following text. Fix grammar, spelling, punctuation, and improve readability. Do NOT add new content, change the meaning, or rewrite it in a different style. Keep the author's voice and intent. Only polish what's already there. Return ONLY the cleaned-up text with no quotes or extra formatting.
 
-Text: "${text.trim()}"`
+Text:
+${text.trim()}`
         }]
       })
     });
@@ -58,7 +59,11 @@ Text: "${text.trim()}"`
     }
 
     const data = await response.json();
-    const result = data.content?.[0]?.text?.trim() || '';
+    let result = data.content?.[0]?.text?.trim() || '';
+    // Strip wrapping quotes if AI added them
+    if ((result.startsWith('"') && result.endsWith('"')) || (result.startsWith('\u201c') && result.endsWith('\u201d'))) {
+      result = result.slice(1, -1).trim();
+    }
     return res.status(200).json({ result });
   } catch (err) {
     console.error('Cleanup error:', err);
