@@ -4247,6 +4247,12 @@
             <div id="course-section-completion" style="padding:0 24px 24px;">
               <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">Shown to students after they finish the last lesson. Thank them, share next steps, or promote another course.</p>
               <textarea id="course-completion-msg" placeholder="Congratulations on finishing the course! Here's what to do next..." maxlength="1000" rows="4" aria-label="Completion message" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:12px 16px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;resize:vertical;"></textarea>
+              <div style="display:flex;justify-content:flex-end;margin-top:8px;">
+                <button onclick="aiCleanUp('course-completion-msg')" style="padding:6px 14px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.25);color:#c4b5fd;border-radius:8px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all 0.15s;" onmouseover="this.style.background='rgba(124,58,237,0.2)'" onmouseout="this.style.background='rgba(124,58,237,0.1)'">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14l-5-4.87 6.91-1.01z"/></svg>
+                  Clean Up
+                </button>
+              </div>
             </div>
           </div>
 
