@@ -168,18 +168,20 @@ async function init() {
 
   // Track page view
   if (creatorName && creatorName !== 'Creator') {
-    trackPageView(creatorName, 'coaching');
+    trackPageView(creatorName, 'coaching', coaching.id);
   }
 }
 
-async function trackPageView(username, pageType) {
+async function trackPageView(username, pageType, productId) {
   try {
     var raw = [navigator.userAgent || '', navigator.language || '', screen.width + 'x' + screen.height, new Date().getTimezoneOffset().toString()].join('|');
     var msgBuf = new TextEncoder().encode(raw);
     var hashBuf = await crypto.subtle.digest('SHA-256', msgBuf);
     var hashArr = Array.from(new Uint8Array(hashBuf));
     var visitorHash = hashArr.map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
-    await sb.rpc('record_page_view', { p_username: username, p_page_type: pageType, p_visitor_hash: visitorHash });
+    var params = { p_username: username, p_page_type: pageType, p_visitor_hash: visitorHash };
+    if (productId) params.p_product_id = productId;
+    await sb.rpc('record_page_view', params);
   } catch (e) { console.error('trackPageView failed:', e); }
 }
 
