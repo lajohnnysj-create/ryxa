@@ -15564,26 +15564,18 @@ function renderCourseModules() {
         // Collapsed view
         return '<div onclick="expandLesson(' + mi + ',' + li + ')" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-top:8px;cursor:pointer;transition:border-color 0.15s;" onmouseover="this.style.borderColor=\'rgba(124,58,237,0.3)\'" onmouseout="this.style.borderColor=\'var(--border)\'">'
           + '<div style="display:flex;align-items:center;gap:8px;">'
-          + '<div onclick="event.stopPropagation();" style="display:flex;flex-direction:column;gap:2px;">'
-          + (li > 0 ? '<button onclick="event.stopPropagation();moveLessonUp(' + mi + ',' + li + ')" style="background:none;border:none;cursor:pointer;padding:0;color:var(--muted);line-height:1;" title="Move up"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg></button>' : '<div style="width:12px;height:12px;"></div>')
-          + (li < (mod.lessons.length - 1) ? '<button onclick="event.stopPropagation();moveLessonDown(' + mi + ',' + li + ')" style="background:none;border:none;cursor:pointer;padding:0;color:var(--muted);line-height:1;" title="Move down"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>' : '<div style="width:12px;height:12px;"></div>')
-          + '</div>'
           + '<span style="font-size:11px;color:var(--muted);font-weight:600;min-width:20px;">' + (li + 1) + '.</span>'
           + '<span style="flex:1;font-size:13px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escapeHtml(l.title || 'Untitled') + '</span>'
           + typeLabel + ' ' + previewBadge
           + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polyline points="6 9 12 15 18 9"/></svg>'
           + '</div>'
-          + (preview ? '<div style="font-size:11px;color:var(--muted);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-left:40px;">' + escapeHtml(preview) + (preview.length >= 40 ? '...' : '') + '</div>' : '')
+          + (preview ? '<div style="font-size:11px;color:var(--muted);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-left:28px;">' + escapeHtml(preview) + (preview.length >= 40 ? '...' : '') + '</div>' : '')
           + '</div>';
       }
 
       // Expanded view
       return '<div style="background:var(--surface);border:1px solid rgba(124,58,237,0.25);border-radius:10px;margin-top:8px;">'
         + '<div onclick="collapseLesson(' + mi + ',' + li + ')" style="display:flex;align-items:center;gap:8px;padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);" onmouseover="this.style.background=\'rgba(124,58,237,0.04)\'" onmouseout="this.style.background=\'none\'">'
-        + '<div onclick="event.stopPropagation();" style="display:flex;flex-direction:column;gap:2px;">'
-        + (li > 0 ? '<button onclick="event.stopPropagation();moveLessonUp(' + mi + ',' + li + ')" style="background:none;border:none;cursor:pointer;padding:0;color:var(--muted);line-height:1;" title="Move up"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg></button>' : '<div style="width:12px;height:12px;"></div>')
-        + (li < (mod.lessons.length - 1) ? '<button onclick="event.stopPropagation();moveLessonDown(' + mi + ',' + li + ')" style="background:none;border:none;cursor:pointer;padding:0;color:var(--muted);line-height:1;" title="Move down"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>' : '<div style="width:12px;height:12px;"></div>')
-        + '</div>'
         + '<span style="font-size:11px;color:var(--muted);font-weight:600;min-width:20px;">' + (li + 1) + '.</span>'
         + '<span style="flex:1;font-size:13px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escapeHtml(l.title || 'Untitled') + '</span>'
         + typeLabel + ' ' + previewBadge
@@ -15622,6 +15614,11 @@ function renderCourseModules() {
             + '<input type="file" accept="image/*" onchange="handleLessonImage(this.files,' + mi + ',' + li + ');this.value=\'\'" style="display:none;">'
             + '</label>'
           : '')
+        + '</div>'
+        // Move buttons
+        + '<div style="display:flex;gap:8px;margin-top:12px;border-top:1px solid var(--border);padding-top:12px;">'
+        + (li > 0 ? '<button onclick="moveLessonUp(' + mi + ',' + li + ')" style="padding:6px 12px;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.2);color:#c4b5fd;border-radius:6px;font-size:11px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;display:flex;align-items:center;gap:4px;transition:all 0.15s;" onmouseover="this.style.background=\'rgba(124,58,237,0.15)\'" onmouseout="this.style.background=\'rgba(124,58,237,0.08)\'"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg> Move Up</button>' : '')
+        + (li < (mod.lessons.length - 1) ? '<button onclick="moveLessonDown(' + mi + ',' + li + ')" style="padding:6px 12px;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.2);color:#c4b5fd;border-radius:6px;font-size:11px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;display:flex;align-items:center;gap:4px;transition:all 0.15s;" onmouseover="this.style.background=\'rgba(124,58,237,0.15)\'" onmouseout="this.style.background=\'rgba(124,58,237,0.08)\'"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg> Move Down</button>' : '')
         + '</div>'
         + '</div>'
         + '</div>';
