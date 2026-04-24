@@ -1768,6 +1768,8 @@
   @media (max-width: 768px) {
     .ana-range-btn { padding: 4px 10px; font-size: 12px; }
     #ana-pv-grid { grid-template-columns: 1fr 1fr !important; }
+    #ana-rev-grid { grid-template-columns: 1fr 1fr !important; }
+    #ana-rev-grid > div:last-child { grid-column: 1 / -1; }
   }
   .ana-mini-tip { position:absolute; z-index:10; pointer-events:none; background:rgba(15,15,26,0.95); border:1px solid rgba(232,121,249,0.25); border-radius:8px; padding:6px 10px; font-size:10px; color:#e9c4f7; box-shadow:0 4px 16px rgba(0,0,0,0.4); white-space:nowrap; }
 
@@ -4498,7 +4500,7 @@
 
           <!-- Revenue mini charts -->
           <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);font-weight:600;margin-bottom:12px;">Revenue by Source</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+          <div id="ana-rev-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
             <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;position:relative;">
               <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:600;margin-bottom:8px;">Courses</div>
               <div id="ana-courses-total" style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;letter-spacing:-0.5px;margin-bottom:8px;">$0</div>
