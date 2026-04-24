@@ -209,12 +209,12 @@ async function init() {
 
   // Track page view (fire-and-forget)
   if (creatorName && creatorName !== 'Creator') {
-    trackPageView(creatorName, 'course');
+    trackPageView(creatorName, 'course', course.id);
   }
 }
 
 // Page view tracking with visitor dedup (same as bio.html)
-async function trackPageView(username, pageType) {
+async function trackPageView(username, pageType, productId) {
   try {
     var visitorHash;
     try {
@@ -231,11 +231,13 @@ async function trackPageView(username, pageType) {
     } catch (hashErr) {
       visitorHash = 'fb-' + btoa(navigator.userAgent + screen.width + screen.height).slice(0, 32);
     }
-    var result = await sb.rpc('record_page_view', {
+    var params = {
       p_username: username,
       p_page_type: pageType,
       p_visitor_hash: visitorHash
-    });
+    };
+    if (productId) params.p_product_id = productId;
+    var result = await sb.rpc('record_page_view', params);
     if (result.error) console.error('Page view tracking error:', result.error.message);
   } catch (e) {
     console.error('trackPageView failed:', e);
