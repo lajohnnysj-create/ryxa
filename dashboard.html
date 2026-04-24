@@ -4581,6 +4581,11 @@
                 </tbody>
               </table>
             </div>
+            <div id="ana-sales-pagination" style="display:none;border-top:1px solid var(--border);padding:10px 16px;display:none;align-items:center;justify-content:space-between;">
+              <button id="ana-sales-prev" onclick="anaSalesPage(-1)" style="padding:6px 14px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.25);color:#c4b5fd;border-radius:6px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.background='rgba(124,58,237,0.2)'" onmouseout="this.style.background='rgba(124,58,237,0.1)'">← Back</button>
+              <span id="ana-sales-page-info" style="font-size:12px;color:var(--muted);"></span>
+              <button id="ana-sales-next" onclick="anaSalesPage(1)" style="padding:6px 14px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.25);color:#c4b5fd;border-radius:6px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.background='rgba(124,58,237,0.2)'" onmouseout="this.style.background='rgba(124,58,237,0.1)'">Next →</button>
+            </div>
           </div>
 
         </div>
@@ -21141,13 +21146,63 @@ async function loadAnalyticsData() {
   renderAnaMiniChart('ana-pv-mediakit-chart', viewsDaily, 'count', '#818cf8');
 
   // Load latest sales
+  anaSalesAllData = [];
+  anaSalesCurrentPage = 0;
   loadAnalyticsSales(start, end);
+}
+
+var anaSalesAllData = [];
+var anaSalesCurrentPage = 0;
+var ANA_SALES_PER_PAGE = 50;
+
+function anaSalesPage(dir) {
+  var maxPage = Math.floor((anaSalesAllData.length - 1) / ANA_SALES_PER_PAGE);
+  anaSalesCurrentPage = Math.max(0, Math.min(maxPage, anaSalesCurrentPage + dir));
+  renderAnalyticsSalesPage();
+}
+
+function renderAnalyticsSalesPage() {
+  var tbody = document.getElementById('ana-sales-tbody');
+  if (!tbody) return;
+  var start = anaSalesCurrentPage * ANA_SALES_PER_PAGE;
+  var page = anaSalesAllData.slice(start, start + ANA_SALES_PER_PAGE);
+  var maxPage = Math.floor((anaSalesAllData.length - 1) / ANA_SALES_PER_PAGE);
+
+  tbody.innerHTML = page.map(function(s) {
+    var d = new Date(s.date);
+    var date = (d.getMonth()+1) + '/' + d.getDate() + '/' + d.getFullYear();
+    var buyer = s.buyer;
+    var amount = '$' + (s.amount / 100).toFixed(2);
+    var pillStyle = '';
+    if (s.type === 'Course') pillStyle = 'background:rgba(167,139,250,0.15);color:#c4b5fd;';
+    else if (s.type === 'Coaching') pillStyle = 'background:rgba(232,121,249,0.15);color:#e879f9;';
+    else pillStyle = 'background:rgba(124,58,237,0.15);color:#a78bfa;';
+    return '<tr style="border-top:1px solid var(--border);">'
+      + '<td style="padding:10px 16px;color:var(--muted);font-size:13px;white-space:nowrap;">' + date + '</td>'
+      + '<td style="padding:10px 16px;color:var(--text);font-size:13px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + buyer + '</td>'
+      + '<td style="padding:10px 16px;color:var(--text);font-size:13px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + s.product + '</td>'
+      + '<td style="padding:10px 16px;font-size:13px;"><span style="padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;' + pillStyle + '">' + s.type + '</span></td>'
+      + '<td style="padding:10px 16px;color:#4ade80;font-size:13px;font-weight:600;text-align:right;">' + amount + '</td>'
+      + '</tr>';
+  }).join('');
+
+  // Pagination controls
+  var pagination = document.getElementById('ana-sales-pagination');
+  if (anaSalesAllData.length > ANA_SALES_PER_PAGE) {
+    pagination.style.display = 'flex';
+    document.getElementById('ana-sales-prev').style.visibility = anaSalesCurrentPage > 0 ? 'visible' : 'hidden';
+    document.getElementById('ana-sales-next').style.visibility = anaSalesCurrentPage < maxPage ? 'visible' : 'hidden';
+    document.getElementById('ana-sales-page-info').textContent = (start + 1) + '–' + Math.min(start + ANA_SALES_PER_PAGE, anaSalesAllData.length) + ' of ' + anaSalesAllData.length;
+  } else {
+    pagination.style.display = 'none';
+  }
 }
 
 async function loadAnalyticsSales(start, end) {
   const tbody = document.getElementById('ana-sales-tbody');
   if (!tbody || !currentUser) return;
   tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:32px 16px;color:var(--muted);font-size:13px;">Loading...</td></tr>';
+  document.getElementById('ana-sales-pagination').style.display = 'none';
   try {
     const sales = [];
 
@@ -21158,8 +21213,7 @@ async function loadAnalyticsSales(start, end) {
       .eq('courses.user_id', currentUser.id)
       .gte('enrolled_at', start + 'T00:00:00')
       .lte('enrolled_at', end + 'T23:59:59')
-      .order('enrolled_at', { ascending: false })
-      .limit(50);
+      .order('enrolled_at', { ascending: false });
     if (enrollments) {
       enrollments.forEach(function(e) {
         if (!e.courses || e.courses.user_id !== currentUser.id) return;
@@ -21174,8 +21228,7 @@ async function loadAnalyticsSales(start, end) {
       .eq('coaching_services.user_id', currentUser.id)
       .gte('booked_at', start + 'T00:00:00')
       .lte('booked_at', end + 'T23:59:59')
-      .order('booked_at', { ascending: false })
-      .limit(50);
+      .order('booked_at', { ascending: false });
     if (bookings) {
       bookings.forEach(function(b) {
         if (!b.coaching_services || b.coaching_services.user_id !== currentUser.id) return;
@@ -21191,8 +21244,7 @@ async function loadAnalyticsSales(start, end) {
       .eq('source', 'brand_deal')
       .gte('received_at', start + 'T00:00:00')
       .lte('received_at', end + 'T23:59:59')
-      .order('received_at', { ascending: false })
-      .limit(50);
+      .order('received_at', { ascending: false });
     if (deals) {
       deals.forEach(function(d) {
         sales.push({ date: d.received_at, buyer: d.counterparty_name || '—', product: 'Brand Deal', type: 'Brand Deal', amount: d.amount_cents || 0 });
@@ -21203,41 +21255,33 @@ async function loadAnalyticsSales(start, end) {
     sales.sort(function(a, b) { return new Date(b.date) - new Date(a.date); });
 
     if (sales.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:32px 16px;color:var(--muted);font-size:13px;">No sales in this period</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:32px 16px;color:var(--muted);font-size:13px;">No earnings in this period</td></tr>';
       return;
     }
 
-    // For course enrollments, buyer is a user_id — try to resolve emails
+    // For course enrollments, buyer is a user_id — resolve usernames
     const buyerIds = sales.filter(function(s) { return s.type === 'Course' && s.buyer && s.buyer.length > 20; }).map(function(s) { return s.buyer; });
-    let emailMap = {};
     if (buyerIds.length > 0) {
       const { data: profiles } = await sb
         .from('profiles')
         .select('user_id, username')
         .in('user_id', buyerIds);
-      if (profiles) profiles.forEach(function(p) { emailMap[p.user_id] = p.username || p.user_id.slice(0, 8); });
+      if (profiles) {
+        var emailMap = {};
+        profiles.forEach(function(p) { emailMap[p.user_id] = p.username || p.user_id.slice(0, 8); });
+        sales.forEach(function(s) {
+          if (s.type === 'Course' && emailMap[s.buyer]) s.buyer = emailMap[s.buyer];
+          else if (s.type === 'Course' && s.buyer.length > 20) s.buyer = s.buyer.slice(0, 8) + '...';
+        });
+      }
     }
 
-    tbody.innerHTML = sales.slice(0, 50).map(function(s) {
-      const d = new Date(s.date);
-      const date = (d.getMonth()+1) + '/' + d.getDate() + '/' + d.getFullYear();
-      const buyer = s.type === 'Course' ? (emailMap[s.buyer] || s.buyer.slice(0, 8) + '...') : s.buyer;
-      const amount = '$' + (s.amount / 100).toFixed(2);
-      var pillStyle = '';
-      if (s.type === 'Course') pillStyle = 'background:rgba(167,139,250,0.15);color:#c4b5fd;';
-      else if (s.type === 'Coaching') pillStyle = 'background:rgba(232,121,249,0.15);color:#e879f9;';
-      else pillStyle = 'background:rgba(124,58,237,0.15);color:#a78bfa;';
-      return '<tr style="border-top:1px solid var(--border);">'
-        + '<td style="padding:10px 16px;color:var(--muted);font-size:13px;white-space:nowrap;">' + date + '</td>'
-        + '<td style="padding:10px 16px;color:var(--text);font-size:13px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + buyer + '</td>'
-        + '<td style="padding:10px 16px;color:var(--text);font-size:13px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + s.product + '</td>'
-        + '<td style="padding:10px 16px;font-size:13px;"><span style="padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;' + pillStyle + '">' + s.type + '</span></td>'
-        + '<td style="padding:10px 16px;color:#4ade80;font-size:13px;font-weight:600;text-align:right;">' + amount + '</td>'
-        + '</tr>';
-    }).join('');
+    anaSalesAllData = sales;
+    anaSalesCurrentPage = 0;
+    renderAnalyticsSalesPage();
   } catch (e) {
     console.error('Sales load error:', e);
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:32px 16px;color:var(--muted);font-size:13px;">Could not load sales</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:32px 16px;color:var(--muted);font-size:13px;">Could not load earnings</td></tr>';
   }
 }
 
