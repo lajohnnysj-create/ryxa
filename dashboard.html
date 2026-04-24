@@ -6962,9 +6962,11 @@ async function checkTermsAcceptance() {
       if (toggle) toggle.checked = !!data.marketing_emails;
       return;
     }
-    // Show terms modal
+    // Show terms modal with existing marketing preference
     var modal = document.getElementById('terms-modal');
     if (modal) modal.style.display = 'flex';
+    var marketingCheck = document.getElementById('terms-marketing-check');
+    if (marketingCheck) marketingCheck.checked = !!data?.marketing_emails;
     var check = document.getElementById('terms-accept-check');
     var btn = document.getElementById('terms-accept-btn');
     if (check && btn) {
