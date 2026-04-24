@@ -4650,6 +4650,11 @@
             </button>
           </div>
 
+          <!-- Search -->
+          <div style="margin-bottom:16px;">
+            <input type="text" id="clients-search" placeholder="Search by email..." oninput="filterSubscribers()" style="width:100%;max-width:320px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;" autocomplete="off">
+          </div>
+
           <!-- Subscribers table -->
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;">
             <div style="overflow-x:auto;">
@@ -4664,6 +4669,11 @@
                   <tr><td colspan="2" style="text-align:center;padding:32px 16px;color:var(--muted);font-size:13px;">No subscribers yet</td></tr>
                 </tbody>
               </table>
+            </div>
+            <div id="clients-pagination" style="display:none;border-top:1px solid var(--border);padding:10px 16px;align-items:center;justify-content:space-between;">
+              <button id="clients-prev" onclick="clientsPage(-1)" style="padding:6px 14px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.25);color:#c4b5fd;border-radius:6px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.background='rgba(124,58,237,0.2)'" onmouseout="this.style.background='rgba(124,58,237,0.1)'">← Back</button>
+              <span id="clients-page-info" style="font-size:12px;color:var(--muted);"></span>
+              <button id="clients-next" onclick="clientsPage(1)" style="padding:6px 14px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.25);color:#c4b5fd;border-radius:6px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.background='rgba(124,58,237,0.2)'" onmouseout="this.style.background='rgba(124,58,237,0.1)'">Next →</button>
             </div>
           </div>
         </div>
@@ -21568,6 +21578,53 @@ function initClientsTool() {
 }
 
 var clientsData = [];
+var clientsFiltered = [];
+var clientsCurrentPage = 0;
+var CLIENTS_PER_PAGE = 50;
+
+function filterSubscribers() {
+  var query = (document.getElementById('clients-search')?.value || '').toLowerCase().trim();
+  clientsFiltered = query ? clientsData.filter(function(c) { return c.email.toLowerCase().includes(query); }) : clientsData.slice();
+  clientsCurrentPage = 0;
+  renderSubscribersPage();
+}
+
+function clientsPage(dir) {
+  var maxPage = Math.max(0, Math.floor((clientsFiltered.length - 1) / CLIENTS_PER_PAGE));
+  clientsCurrentPage = Math.max(0, Math.min(maxPage, clientsCurrentPage + dir));
+  renderSubscribersPage();
+}
+
+function renderSubscribersPage() {
+  var tbody = document.getElementById('clients-tbody');
+  if (!tbody) return;
+  var start = clientsCurrentPage * CLIENTS_PER_PAGE;
+  var page = clientsFiltered.slice(start, start + CLIENTS_PER_PAGE);
+  var maxPage = Math.max(0, Math.floor((clientsFiltered.length - 1) / CLIENTS_PER_PAGE));
+
+  if (page.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="2" style="text-align:center;padding:32px 16px;color:var(--muted);font-size:13px;">' + (clientsData.length > 0 ? 'No results found' : 'No subscribers yet') + '</td></tr>';
+  } else {
+    tbody.innerHTML = page.map(function(c) {
+      var d = new Date(c.date);
+      var date = (d.getMonth()+1) + '/' + d.getDate() + '/' + d.getFullYear();
+      return '<tr style="border-top:1px solid var(--border);">'
+        + '<td style="padding:10px 16px;color:var(--text);font-size:13px;max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + c.email + '</td>'
+        + '<td style="padding:10px 16px;color:var(--muted);font-size:13px;white-space:nowrap;">' + date + '</td>'
+        + '</tr>';
+    }).join('');
+  }
+
+  var pagination = document.getElementById('clients-pagination');
+  if (clientsFiltered.length > CLIENTS_PER_PAGE) {
+    pagination.style.display = 'flex';
+    document.getElementById('clients-prev').style.visibility = clientsCurrentPage > 0 ? 'visible' : 'hidden';
+    document.getElementById('clients-next').style.visibility = clientsCurrentPage < maxPage ? 'visible' : 'hidden';
+    document.getElementById('clients-page-info').textContent = (start + 1) + '–' + Math.min(start + CLIENTS_PER_PAGE, clientsFiltered.length) + ' of ' + clientsFiltered.length;
+  } else {
+    pagination.style.display = 'none';
+  }
+}
 
 async function loadClients() {
   const tbody = document.getElementById('clients-tbody');
@@ -21576,7 +21633,6 @@ async function loadClients() {
   try {
     const clientMap = {};
 
-    // Fetch course enrollments
     const { data: enrollments } = await sb
       .from('course_enrollments')
       .select('user_id, buyer_email, enrolled_at, courses(user_id)')
@@ -21593,7 +21649,6 @@ async function loadClients() {
       });
     }
 
-    // Fetch coaching bookings
     const { data: bookings } = await sb
       .from('coaching_bookings')
       .select('user_id, buyer_email, booked_at, coaching_services(user_id)')
@@ -21615,23 +21670,17 @@ async function loadClients() {
     var clients = Object.values(clientMap).filter(function(c) { return c.email; });
     clients.sort(function(a, b) { return new Date(b.date) - new Date(a.date); });
     clientsData = clients;
+    clientsFiltered = clients.slice();
+    clientsCurrentPage = 0;
 
     var countEl = document.getElementById('clients-count');
-    if (countEl) countEl.textContent = clients.length + ' subscriber' + (clients.length !== 1 ? 's' : '') + ' · Everyone who has purchased your courses or coaching sessions.';
+    if (countEl) countEl.textContent = clients.length + ' subscriber' + (clients.length !== 1 ? 's' : '');
 
-    if (clients.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="2" style="text-align:center;padding:32px 16px;color:var(--muted);font-size:13px;">No subscribers yet</td></tr>';
-      return;
-    }
+    // Clear search on reload
+    var searchEl = document.getElementById('clients-search');
+    if (searchEl) searchEl.value = '';
 
-    tbody.innerHTML = clients.map(function(c) {
-      var d = new Date(c.date);
-      var date = (d.getMonth()+1) + '/' + d.getDate() + '/' + d.getFullYear();
-      return '<tr style="border-top:1px solid var(--border);">'
-        + '<td style="padding:10px 16px;color:var(--text);font-size:13px;max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + c.email + '</td>'
-        + '<td style="padding:10px 16px;color:var(--muted);font-size:13px;white-space:nowrap;">' + date + '</td>'
-        + '</tr>';
-    }).join('');
+    renderSubscribersPage();
   } catch (e) {
     console.error('Subscribers load error:', e);
     tbody.innerHTML = '<tr><td colspan="2" style="text-align:center;padding:32px 16px;color:var(--muted);font-size:13px;">Could not load subscribers</td></tr>';
