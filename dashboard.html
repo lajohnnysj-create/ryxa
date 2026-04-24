@@ -15397,19 +15397,24 @@ function renderCourseModules() {
       }
 
       // Expanded view
-      return '<div onclick="collapseLesson(' + mi + ',' + li + ')" style="background:var(--surface);border:1px solid rgba(124,58,237,0.25);border-radius:10px;padding:12px 14px;margin-top:8px;cursor:pointer;">'
-        + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">'
+      return '<div style="background:var(--surface);border:1px solid rgba(124,58,237,0.25);border-radius:10px;margin-top:8px;">'
+        + '<div onclick="collapseLesson(' + mi + ',' + li + ')" style="display:flex;align-items:center;gap:8px;padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);" onmouseover="this.style.background=\'rgba(124,58,237,0.04)\'" onmouseout="this.style.background=\'none\'">'
         + '<div onclick="event.stopPropagation();" style="display:flex;flex-direction:column;gap:2px;">'
         + (li > 0 ? '<button onclick="event.stopPropagation();moveLessonUp(' + mi + ',' + li + ')" style="background:none;border:none;cursor:pointer;padding:0;color:var(--muted);line-height:1;" title="Move up"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg></button>' : '<div style="width:12px;height:12px;"></div>')
         + (li < (mod.lessons.length - 1) ? '<button onclick="event.stopPropagation();moveLessonDown(' + mi + ',' + li + ')" style="background:none;border:none;cursor:pointer;padding:0;color:var(--muted);line-height:1;" title="Move down"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>' : '<div style="width:12px;height:12px;"></div>')
         + '</div>'
         + '<span style="font-size:11px;color:var(--muted);font-weight:600;min-width:20px;">' + (li + 1) + '.</span>'
-        + '<input onclick="event.stopPropagation();" type="text" value="' + escapeHtml(l.title) + '" placeholder="Lesson title" oninput="updateLessonField(' + mi + ',' + li + ',\'title\',this.value)" aria-label="Lesson title" style="flex:1;background:transparent;border:1px solid transparent;color:var(--text);font-size:13px;font-weight:500;outline:none;font-family:DM Sans,sans-serif;min-width:0;border-radius:4px;padding:2px 6px;transition:border-color 0.15s;" onfocus="this.style.borderColor=\'rgba(124,58,237,0.4)\'" onblur="this.style.borderColor=\'transparent\'" onmouseover="this.style.borderColor=\'rgba(255,255,255,0.15)\'" onmouseout="if(document.activeElement!==this)this.style.borderColor=\'transparent\'">'
-        + typeLabel
-        + previewBadge
-        + '<button onclick="event.stopPropagation();toggleLessonPreview(' + mi + ',' + li + ')" title="' + (l.is_preview ? 'Remove preview' : 'Mark as free preview') + '" style="padding:3px 6px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:5px;font-size:10px;font-family:DM Sans,sans-serif;cursor:pointer;">' + (l.is_preview ? 'Paid' : 'Free') + '</button>'
-        + '<button onclick="event.stopPropagation();confirmRemoveLesson(' + mi + ',' + li + ')" style="width:24px;height:24px;background:transparent;border:1px solid rgba(239,68,68,0.3);color:#ef4444;cursor:pointer;border-radius:6px;padding:0;display:flex;align-items:center;justify-content:center;" title="Delete lesson"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>'
+        + '<span style="flex:1;font-size:13px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escapeHtml(l.title || 'Untitled') + '</span>'
+        + typeLabel + ' ' + previewBadge
+        + '<span onclick="event.stopPropagation();"><button onclick="event.stopPropagation();confirmRemoveLesson(' + mi + ',' + li + ')" style="width:24px;height:24px;background:transparent;border:1px solid rgba(239,68,68,0.3);color:#ef4444;cursor:pointer;border-radius:6px;padding:0;display:flex;align-items:center;justify-content:center;" title="Delete lesson"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></span>'
         + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polyline points="18 15 12 9 6 15"/></svg>'
+        + '</div>'
+        + '<div style="padding:12px 14px;">'
+        + '<div style="margin-bottom:8px;">'
+        + '<input type="text" value="' + escapeHtml(l.title) + '" placeholder="Lesson title" oninput="updateLessonField(' + mi + ',' + li + ',\'title\',this.value)" aria-label="Lesson title" style="width:100%;background:transparent;border:1px solid transparent;color:var(--text);font-size:13px;font-weight:500;outline:none;font-family:DM Sans,sans-serif;border-radius:4px;padding:2px 6px;transition:border-color 0.15s;box-sizing:border-box;" onfocus="this.style.borderColor=\'rgba(124,58,237,0.4)\'" onblur="this.style.borderColor=\'transparent\'" onmouseover="this.style.borderColor=\'rgba(255,255,255,0.15)\'" onmouseout="if(document.activeElement!==this)this.style.borderColor=\'transparent\'">'
+        + '</div>'
+        + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">'
+        + '<button onclick="toggleLessonPreview(' + mi + ',' + li + ')" title="' + (l.is_preview ? 'Remove preview' : 'Mark as free preview') + '" style="padding:3px 6px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:5px;font-size:10px;font-family:DM Sans,sans-serif;cursor:pointer;">' + (l.is_preview ? 'Paid' : 'Free') + '</button>'
         + '</div>'
         + (isVideo
           ? '<input onclick="event.stopPropagation();" type="url" value="' + escapeHtml(l.video_url || '') + '" placeholder="Video URL (YouTube, Vimeo, etc.)" oninput="updateLessonField(' + mi + ',' + li + ',\'video_url\',this.value)" aria-label="Video URL" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-size:12px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">'
@@ -15436,6 +15441,7 @@ function renderCourseModules() {
             + '<input type="file" accept="image/*" onchange="handleLessonImage(this.files,' + mi + ',' + li + ');this.value=\'\'" style="display:none;">'
             + '</label>'
           : '')
+        + '</div>'
         + '</div>'
         + '</div>';
     }).join('');
