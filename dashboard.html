@@ -4588,9 +4588,32 @@
             </div>
           </div>
 
+          <!-- Product Performance -->
+          <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);font-weight:600;margin-top:24px;margin-bottom:12px;">Product Performance</div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;">
+            <div style="overflow-x:auto;">
+              <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                <thead>
+                  <tr style="border-bottom:1px solid var(--border);">
+                    <th style="text-align:left;padding:12px 16px;color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;">Product</th>
+                    <th style="text-align:left;padding:12px 16px;color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;">Type</th>
+                    <th style="text-align:right;padding:12px 16px;color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;">Views</th>
+                    <th style="text-align:right;padding:12px 16px;color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;">Orders</th>
+                    <th style="text-align:right;padding:12px 16px;color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;">Conv. Rate</th>
+                    <th style="text-align:right;padding:12px 16px;color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;">Revenue</th>
+                  </tr>
+                </thead>
+                <tbody id="ana-product-perf-tbody">
+                  <tr><td colspan="6" style="text-align:center;padding:32px 16px;color:var(--muted);font-size:13px;">No products in this period</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
+    <div id="tool-mediakit" style="display:none;">
       <div id="mediakit-paywall" style="display:none;max-width:560px;margin:40px auto;background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:40px;text-align:center;">
         <div style="width:56px;height:56px;margin:0 auto 16px;background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.25);border-radius:14px;display:flex;align-items:center;justify-content:center;">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="17" x2="8" y2="13"/><line x1="12" y1="17" x2="12" y2="11"/><line x1="16" y1="17" x2="16" y2="15"/></svg>
@@ -21149,6 +21172,7 @@ async function loadAnalyticsData() {
   anaSalesAllData = [];
   anaSalesCurrentPage = 0;
   loadAnalyticsSales(start, end);
+  loadProductPerformance(start, end);
 }
 
 var anaSalesAllData = [];
@@ -21282,6 +21306,92 @@ async function loadAnalyticsSales(start, end) {
   } catch (e) {
     console.error('Sales load error:', e);
     tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:32px 16px;color:var(--muted);font-size:13px;">Could not load earnings</td></tr>';
+  }
+}
+
+async function loadProductPerformance(start, end) {
+  const tbody = document.getElementById('ana-product-perf-tbody');
+  if (!tbody || !currentUser) return;
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px 16px;color:var(--muted);font-size:13px;">Loading...</td></tr>';
+  try {
+    const products = [];
+
+    // Get creator's courses
+    const { data: courses } = await sb
+      .from('courses')
+      .select('id, title, price_cents')
+      .eq('user_id', currentUser.id);
+
+    if (courses && courses.length > 0) {
+      for (const course of courses) {
+        // Get enrollments for this course in date range
+        const { data: enrollments, count: orderCount } = await sb
+          .from('course_enrollments')
+          .select('amount_paid_cents', { count: 'exact' })
+          .eq('course_id', course.id)
+          .gte('enrolled_at', start + 'T00:00:00')
+          .lte('enrolled_at', end + 'T23:59:59');
+
+        const orders = orderCount || 0;
+        const revenue = enrollments ? enrollments.reduce(function(sum, e) { return sum + (e.amount_paid_cents || 0); }, 0) : 0;
+
+        // Get page views for this course
+        const { data: viewData } = await sb.rpc('get_product_views', { p_product_type: 'course', p_product_id: course.id, p_start_date: start, p_end_date: end });
+        const views = (viewData && typeof viewData === 'number') ? viewData : (viewData?.count || 0);
+
+        products.push({ title: course.title || 'Untitled Course', type: 'Course', views: views, orders: orders, revenue: revenue });
+      }
+    }
+
+    // Get creator's coaching services
+    const { data: services } = await sb
+      .from('coaching_services')
+      .select('id, title, price_cents')
+      .eq('user_id', currentUser.id);
+
+    if (services && services.length > 0) {
+      for (const svc of services) {
+        const { data: bookings, count: bookCount } = await sb
+          .from('coaching_bookings')
+          .select('amount_paid_cents', { count: 'exact' })
+          .eq('coaching_id', svc.id)
+          .gte('booked_at', start + 'T00:00:00')
+          .lte('booked_at', end + 'T23:59:59');
+
+        const orders = bookCount || 0;
+        const revenue = bookings ? bookings.reduce(function(sum, b) { return sum + (b.amount_paid_cents || 0); }, 0) : 0;
+
+        const { data: viewData } = await sb.rpc('get_product_views', { p_product_type: 'coaching', p_product_id: svc.id, p_start_date: start, p_end_date: end });
+        const views = (viewData && typeof viewData === 'number') ? viewData : (viewData?.count || 0);
+
+        products.push({ title: svc.title || 'Coaching Session', type: 'Coaching', views: views, orders: orders, revenue: revenue });
+      }
+    }
+
+    if (products.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px 16px;color:var(--muted);font-size:13px;">No products found</td></tr>';
+      return;
+    }
+
+    // Sort by revenue descending
+    products.sort(function(a, b) { return b.revenue - a.revenue; });
+
+    tbody.innerHTML = products.map(function(p) {
+      var convRate = p.views > 0 ? ((p.orders / p.views) * 100).toFixed(1) + '%' : '—';
+      var amount = '$' + (p.revenue / 100).toFixed(2);
+      var pillStyle = p.type === 'Course' ? 'background:rgba(167,139,250,0.15);color:#c4b5fd;' : 'background:rgba(232,121,249,0.15);color:#e879f9;';
+      return '<tr style="border-top:1px solid var(--border);">'
+        + '<td style="padding:10px 16px;color:var(--text);font-size:13px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + p.title + '</td>'
+        + '<td style="padding:10px 16px;font-size:13px;"><span style="padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;' + pillStyle + '">' + p.type + '</span></td>'
+        + '<td style="padding:10px 16px;color:var(--text);font-size:13px;text-align:right;">' + p.views.toLocaleString() + '</td>'
+        + '<td style="padding:10px 16px;color:var(--text);font-size:13px;text-align:right;">' + p.orders + '</td>'
+        + '<td style="padding:10px 16px;color:' + (p.views > 0 && p.orders > 0 ? '#4ade80' : 'var(--muted)') + ';font-size:13px;font-weight:600;text-align:right;">' + convRate + '</td>'
+        + '<td style="padding:10px 16px;color:#4ade80;font-size:13px;font-weight:600;text-align:right;">' + amount + '</td>'
+        + '</tr>';
+    }).join('');
+  } catch (e) {
+    console.error('Product performance error:', e);
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px 16px;color:var(--muted);font-size:13px;">Could not load product data</td></tr>';
   }
 }
 
