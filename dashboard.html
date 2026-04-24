@@ -7348,6 +7348,13 @@ function showTool(tool) {
     if (typeof resetSettingsTurnstile === 'function') resetSettingsTurnstile();
     // Load Stripe status with error handling
     try { loadStripeConnectStatus(); } catch(e) { console.error('Stripe status error:', e); }
+    // Load marketing email preference
+    try {
+      sb.from('profiles').select('marketing_emails').eq('user_id', currentUser.id).single().then(function(res) {
+        var toggle = document.getElementById('settings-marketing-emails');
+        if (toggle && res.data) toggle.checked = !!res.data.marketing_emails;
+      });
+    } catch(e) {}
   }
   // Init AI Design Studio
   if (tool === 'design') {
