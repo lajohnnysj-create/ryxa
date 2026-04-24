@@ -242,7 +242,7 @@ function renderCoaching(coaching, creatorName, isLoggedIn) {
 
   // Buy button
   var buyArea = document.getElementById('cp-buy-area');
-  var consentHtml = '<label style="display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer;font-size:13px;color:var(--muted);"><input type="checkbox" id="marketing-consent" style="accent-color:#7c3aed;width:16px;height:16px;cursor:pointer;"> Get updates from this creator</label>';
+  var consentHtml = isLoggedIn ? '<label style="display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer;font-size:13px;color:var(--muted);"><input type="checkbox" id="marketing-consent" style="accent-color:#7c3aed;width:16px;height:16px;cursor:pointer;"> Get updates from this creator</label>' : '';
   if (coaching.price_cents === 0) {
     buyArea.innerHTML = '<button class="coaching-buy-btn" onclick="bookCoaching()">' + (isLoggedIn ? 'Proceed to Booking' : 'Book for Free') + '</button>' + consentHtml;
   } else {
