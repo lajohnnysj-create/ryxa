@@ -3409,7 +3409,7 @@
     </button>
     <button class="sidebar-item" id="nav-clients" onclick="showTool('clients')">
       <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
-      <span class="sidebar-item-label">Clients <span class="sidebar-pill max">MAX</span></span>
+      <span class="sidebar-item-label">Subscribers <span class="sidebar-pill max">MAX</span></span>
     </button>
 
     <div class="sidebar-section-label">AI</div>
@@ -4632,32 +4632,36 @@
         <!-- Max upsell (non-Max users) -->
         <div id="clients-upsell" style="display:none;text-align:center;padding:60px 24px;">
           <div style="width:56px;height:56px;margin:0 auto 16px;background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.25);border-radius:14px;display:flex;align-items:center;justify-content:center;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
-          <h2 style="font-family:Syne,sans-serif;font-size:28px;font-weight:800;margin-bottom:8px;letter-spacing:-0.5px;">Clients</h2>
-          <p style="color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:24px;max-width:440px;margin-left:auto;margin-right:auto;">See everyone who has purchased your courses and coaching sessions. Build your client list and grow your audience. Available on Creator Max.</p>
+          <h2 style="font-family:Syne,sans-serif;font-size:28px;font-weight:800;margin-bottom:8px;letter-spacing:-0.5px;">Subscribers</h2>
+          <p style="color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:24px;max-width:440px;margin-left:auto;margin-right:auto;">See everyone who has purchased your courses and coaching sessions. Export your email list and grow your audience. Available on Creator Max.</p>
           <button onclick="handleMaxUpgradeClick(event)" style="padding:12px 28px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px rgba(232,121,249,0.3);">Try Creator Max Free — 7 Days</button>
         </div>
 
-        <!-- Clients content (Max only) -->
+        <!-- Subscribers content (Max only) -->
         <div id="clients-content" style="display:none;">
-          <h2 style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;margin-bottom:6px;letter-spacing:-0.5px;">Clients</h2>
-          <p style="font-size:14px;color:var(--muted);margin-bottom:24px;">Everyone who has purchased your courses or coaching sessions.</p>
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:24px;">
+            <div>
+              <h2 style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;margin-bottom:6px;letter-spacing:-0.5px;">Subscribers</h2>
+              <p style="font-size:14px;color:var(--muted);" id="clients-count">Everyone who has purchased your courses or coaching sessions.</p>
+            </div>
+            <button onclick="exportSubscribers()" style="padding:8px 16px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.25);color:#c4b5fd;border-radius:8px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all 0.15s;white-space:nowrap;" onmouseover="this.style.background='rgba(124,58,237,0.2)'" onmouseout="this.style.background='rgba(124,58,237,0.1)'">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Export Emails
+            </button>
+          </div>
 
-          <!-- Client count -->
-          <div id="clients-count" style="font-size:13px;color:var(--muted);margin-bottom:16px;"></div>
-
-          <!-- Clients table -->
+          <!-- Subscribers table -->
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;">
             <div style="overflow-x:auto;">
               <table style="width:100%;border-collapse:collapse;font-size:13px;">
                 <thead>
                   <tr style="border-bottom:1px solid var(--border);">
-                    <th style="text-align:left;padding:12px 16px;color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;">Name</th>
                     <th style="text-align:left;padding:12px 16px;color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;">Email</th>
                     <th style="text-align:left;padding:12px 16px;color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;">Date Joined</th>
                   </tr>
                 </thead>
                 <tbody id="clients-tbody">
-                  <tr><td colspan="3" style="text-align:center;padding:32px 16px;color:var(--muted);font-size:13px;">No clients yet</td></tr>
+                  <tr><td colspan="2" style="text-align:center;padding:32px 16px;color:var(--muted);font-size:13px;">No subscribers yet</td></tr>
                 </tbody>
               </table>
             </div>
@@ -6802,7 +6806,7 @@ const toolTitles = {
   contractanalyzer: 'AI Contract Analyzer',
   deals: 'Brand Deal CRM',
   analytics: 'Analytics',
-    clients: 'Clients',
+    clients: 'Subscribers',
     settings: 'Settings',
     design: 'AI Design Studio'
 };
@@ -21473,10 +21477,12 @@ function initClientsTool() {
   if (max) loadClients();
 }
 
+var clientsData = [];
+
 async function loadClients() {
   const tbody = document.getElementById('clients-tbody');
   if (!tbody || !currentUser) return;
-  tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:32px 16px;color:var(--muted);font-size:13px;">Loading...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="2" style="text-align:center;padding:32px 16px;color:var(--muted);font-size:13px;">Loading...</td></tr>';
   try {
     const clientMap = {};
 
@@ -21492,7 +21498,7 @@ async function loadClients() {
         var email = e.buyer_email || '';
         var key = email || e.user_id;
         if (!clientMap[key]) {
-          clientMap[key] = { email: email, user_id: e.user_id, date: e.enrolled_at };
+          clientMap[key] = { email: email, date: e.enrolled_at };
         }
       });
     }
@@ -21509,52 +21515,57 @@ async function loadClients() {
         var email = b.buyer_email || '';
         var key = email || b.user_id;
         if (!clientMap[key]) {
-          clientMap[key] = { email: email, user_id: b.user_id, date: b.booked_at };
+          clientMap[key] = { email: email, date: b.booked_at };
         } else if (new Date(b.booked_at) < new Date(clientMap[key].date)) {
           clientMap[key].date = b.booked_at;
         }
       });
     }
 
-    var clients = Object.values(clientMap);
-
-    // Resolve usernames for display names
-    var userIds = clients.map(function(c) { return c.user_id; }).filter(Boolean);
-    var nameMap = {};
-    if (userIds.length > 0) {
-      const { data: profiles } = await sb
-        .from('profiles')
-        .select('user_id, username')
-        .in('user_id', userIds);
-      if (profiles) profiles.forEach(function(p) { nameMap[p.user_id] = p.username; });
-    }
-
-    // Sort by date descending (newest first)
+    var clients = Object.values(clientMap).filter(function(c) { return c.email; });
     clients.sort(function(a, b) { return new Date(b.date) - new Date(a.date); });
+    clientsData = clients;
 
     var countEl = document.getElementById('clients-count');
-    if (countEl) countEl.textContent = clients.length + ' client' + (clients.length !== 1 ? 's' : '');
+    if (countEl) countEl.textContent = clients.length + ' subscriber' + (clients.length !== 1 ? 's' : '') + ' · Everyone who has purchased your courses or coaching sessions.';
 
     if (clients.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:32px 16px;color:var(--muted);font-size:13px;">No clients yet</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="2" style="text-align:center;padding:32px 16px;color:var(--muted);font-size:13px;">No subscribers yet</td></tr>';
       return;
     }
 
     tbody.innerHTML = clients.map(function(c) {
       var d = new Date(c.date);
       var date = (d.getMonth()+1) + '/' + d.getDate() + '/' + d.getFullYear();
-      var name = nameMap[c.user_id] || c.email.split('@')[0] || '—';
-      var email = c.email || '—';
       return '<tr style="border-top:1px solid var(--border);">'
-        + '<td style="padding:10px 16px;color:var(--text);font-size:13px;">' + name + '</td>'
-        + '<td style="padding:10px 16px;color:var(--muted);font-size:13px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + email + '</td>'
+        + '<td style="padding:10px 16px;color:var(--text);font-size:13px;max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + c.email + '</td>'
         + '<td style="padding:10px 16px;color:var(--muted);font-size:13px;white-space:nowrap;">' + date + '</td>'
         + '</tr>';
     }).join('');
   } catch (e) {
-    console.error('Clients load error:', e);
-    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:32px 16px;color:var(--muted);font-size:13px;">Could not load clients</td></tr>';
+    console.error('Subscribers load error:', e);
+    tbody.innerHTML = '<tr><td colspan="2" style="text-align:center;padding:32px 16px;color:var(--muted);font-size:13px;">Could not load subscribers</td></tr>';
   }
+}
+
+function exportSubscribers() {
+  if (!clientsData || clientsData.length === 0) {
+    showModalAlert('No Data', 'No subscribers to export yet.');
+    return;
+  }
+  var csv = 'Email,Date Joined\n';
+  clientsData.forEach(function(c) {
+    var d = new Date(c.date);
+    var date = (d.getMonth()+1) + '/' + d.getDate() + '/' + d.getFullYear();
+    csv += '"' + c.email.replace(/"/g, '""') + '",' + date + '\n';
+  });
+  var blob = new Blob([csv], { type: 'text/csv' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'ryxa-subscribers.csv';
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 function renderAnaLineChart(canvasId, viewsDaily, revDaily, dayCount) {
