@@ -288,9 +288,11 @@ function renderCourse(course, creatorName, modules, lessons, session) {
   if (isEnrolled) {
     buyArea.innerHTML = '<a href="/learn/?course=' + course.id + '" class="course-enrolled-badge" style="text-decoration:none;cursor:pointer;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Go to Course</a>';
   } else if (course.price_cents === 0) {
-    buyArea.innerHTML = '<button class="course-buy-btn" onclick="enrollFree()">' + (isLoggedIn ? 'Proceed to Enrollment' : 'Enroll for Free') + '</button>';
+    buyArea.innerHTML = '<button class="course-buy-btn" onclick="enrollFree()">' + (isLoggedIn ? 'Proceed to Enrollment' : 'Enroll for Free') + '</button>'
+      + '<label style="display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer;font-size:13px;color:var(--muted);"><input type="checkbox" id="marketing-consent" style="accent-color:#7c3aed;width:16px;height:16px;cursor:pointer;"> Get updates from this creator</label>';
   } else {
-    buyArea.innerHTML = '<button class="course-buy-btn" onclick="buyCourse()">' + (isLoggedIn ? 'Proceed to Checkout' : 'Enroll Now') + '</button>';
+    buyArea.innerHTML = '<button class="course-buy-btn" onclick="buyCourse()">' + (isLoggedIn ? 'Proceed to Checkout' : 'Enroll Now') + '</button>'
+      + '<label style="display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer;font-size:13px;color:var(--muted);"><input type="checkbox" id="marketing-consent" style="accent-color:#7c3aed;width:16px;height:16px;cursor:pointer;"> Get updates from this creator</label>';
   }
 
   // Curriculum
@@ -337,11 +339,13 @@ async function enrollFree() {
     await sb.from('course_users').upsert({ user_id: session.user.id, display_name: session.user.email.split('@')[0] }, { onConflict: 'user_id' });
 
     // Create enrollment
+    var consentCheck = document.getElementById('marketing-consent');
     const { error } = await sb.from('course_enrollments').insert({
       course_id: courseData.id,
       user_id: session.user.id,
       amount_paid_cents: 0,
-      buyer_email: session.user.email || ''
+      buyer_email: session.user.email || '',
+      marketing_consent: consentCheck ? consentCheck.checked : false
     });
 
     if (error) {
@@ -375,9 +379,11 @@ async function buyCourse() {
 
   try {
     // Call edge function to create Stripe checkout session
+    var consentCheck = document.getElementById('marketing-consent');
     const { data, error } = await sb.functions.invoke('create-course-checkout', {
       body: {
         course_id: courseData.id,
+        marketing_consent: consentCheck ? consentCheck.checked : false,
         success_url: window.location.origin + '/learn/?course=' + courseData.id + '&enrolled=1',
         cancel_url: window.location.href
       }
