@@ -286,7 +286,7 @@ function renderCourse(course, creatorName, modules, lessons, session) {
   var isLoggedIn = !!session?.user;
 
   if (isEnrolled) {
-    buyArea.innerHTML = '<div class="course-enrolled-badge"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Enrolled</div>';
+    buyArea.innerHTML = '<a href="/learn/?course=' + course.id + '" class="course-enrolled-badge" style="text-decoration:none;cursor:pointer;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Go to Course</a>';
   } else if (course.price_cents === 0) {
     buyArea.innerHTML = '<button class="course-buy-btn" onclick="enrollFree()">' + (isLoggedIn ? 'Proceed to Enrollment' : 'Enroll for Free') + '</button>';
   } else {
