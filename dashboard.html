@@ -4652,7 +4652,7 @@
 
           <!-- Search -->
           <div style="margin-bottom:16px;">
-            <input type="text" id="clients-search" placeholder="Search by email..." oninput="filterSubscribers()" style="width:100%;max-width:320px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;" autocomplete="off">
+            <input type="text" id="clients-search" placeholder="Search by email..." oninput="filterSubscribers()" readonly onfocus="this.removeAttribute('readonly')" autocomplete="off" data-1p-ignore="true" data-lpignore="true" style="width:100%;max-width:320px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
           </div>
 
           <!-- Subscribers table -->
