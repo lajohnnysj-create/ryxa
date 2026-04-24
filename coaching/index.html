@@ -242,10 +242,11 @@ function renderCoaching(coaching, creatorName, isLoggedIn) {
 
   // Buy button
   var buyArea = document.getElementById('cp-buy-area');
+  var consentHtml = '<label style="display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer;font-size:13px;color:var(--muted);"><input type="checkbox" id="marketing-consent" style="accent-color:#7c3aed;width:16px;height:16px;cursor:pointer;"> Get updates from this creator</label>';
   if (coaching.price_cents === 0) {
-    buyArea.innerHTML = '<button class="coaching-buy-btn" onclick="bookCoaching()">' + (isLoggedIn ? 'Proceed to Booking' : 'Book for Free') + '</button>';
+    buyArea.innerHTML = '<button class="coaching-buy-btn" onclick="bookCoaching()">' + (isLoggedIn ? 'Proceed to Booking' : 'Book for Free') + '</button>' + consentHtml;
   } else {
-    buyArea.innerHTML = '<button class="coaching-buy-btn" onclick="bookCoaching()">' + (isLoggedIn ? 'Proceed to Booking' : 'Book Now') + '</button>';
+    buyArea.innerHTML = '<button class="coaching-buy-btn" onclick="bookCoaching()">' + (isLoggedIn ? 'Proceed to Booking' : 'Book Now') + '</button>' + consentHtml;
   }
 }
 
@@ -260,13 +261,17 @@ async function bookCoaching() {
   if (btn) { btn.disabled = true; btn.textContent = 'Booking...'; }
 
   try {
+    var consentCheck = document.getElementById('marketing-consent');
+    var marketingConsent = consentCheck ? consentCheck.checked : false;
+
     // All bookings go through the edge function (handles payment + notifications)
     if (coachingData.price_cents === 0) {
       // Free booking — edge function handles insert + creator notification
       var { data, error } = await sb.functions.invoke('create-coaching-checkout', {
         body: {
           coaching_id: coachingData.id,
-          free_booking: true
+          free_booking: true,
+          marketing_consent: marketingConsent
         }
       });
       if (error || !data || data.error) {
@@ -280,6 +285,7 @@ async function bookCoaching() {
     var { data, error } = await sb.functions.invoke('create-coaching-checkout', {
       body: {
         coaching_id: coachingData.id,
+        marketing_consent: marketingConsent,
         success_url: window.location.origin + '/coaching/' + coachingData.slug + '?success=1&coaching_id=' + coachingData.id,
         cancel_url: window.location.href
       }
