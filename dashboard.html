@@ -21949,12 +21949,13 @@ async function loadClients() {
 }
 
 function exportSubscribers() {
-  if (!clientsData || clientsData.length === 0) {
-    showModalAlert('No Data', 'No subscribers to export yet.');
+  var exportData = clientsFiltered.length > 0 ? clientsFiltered : clientsData;
+  if (!exportData || exportData.length === 0) {
+    showModalAlert('No Data', 'No subscribers to export.');
     return;
   }
   var csv = 'Email,Opt In,Date Joined\n';
-  clientsData.forEach(function(c) {
+  exportData.forEach(function(c) {
     var d = new Date(c.date);
     var date = (d.getMonth()+1) + '/' + d.getDate() + '/' + d.getFullYear();
     csv += '"' + c.email.replace(/"/g, '""') + '",' + (c.optin ? 'Yes' : 'No') + ',' + date + '\n';
