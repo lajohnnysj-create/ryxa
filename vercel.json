@@ -1,6 +1,11 @@
 {
   "cleanUrls": true,
   "trailingSlash": false,
+  "redirects": [
+    { "source": "/blog-best-linktree-alternatives", "destination": "/blog/best-linktree-alternatives", "statusCode": 301 },
+    { "source": "/blog-why-did-my-friends-unfollow-me", "destination": "/blog/why-did-my-friends-unfollow-me", "statusCode": 301 },
+    { "source": "/blog-why-you-should-not-tell-your-dreams-to-others", "destination": "/blog/why-you-should-not-tell-your-dreams-to-others", "statusCode": 301 }
+  ],
   "rewrites": [
     { "source": "/deal/:token", "destination": "/portal?t=:token" },
     { "source": "/course/:slug", "destination": "/course" },
