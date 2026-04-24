@@ -9964,7 +9964,7 @@ function buildPreviewHTML() {
     ? `<img src="${escapeHtml(bioState.avatar_url)}" alt="Profile photo" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;">`
     : `<div style="width:100%;height:100%;border-radius:50%;background:${t.surface2};display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;font-size:36px;font-weight:800;color:${t.text};">${escapeHtml(initial)}</div>`;
   const socialsHtml = buildPreviewSocials(t);
-  const linksHtml = bioState.links.filter(l => l.isHeader || (l.url || '').trim()).map(l => buildPreviewLink(l, t)).join('');
+  const linksHtml = bioState.links.filter(l => l.isHeader || l.isSubscribe || (l.url || '').trim()).map(l => buildPreviewLink(l, t)).join('');
   const videosHtml = buildPreviewVideos(t);
 
   // For custom themes with a bg image, we dim the radial glow (since bg image is already bg)
@@ -10069,6 +10069,16 @@ function buildPreviewLink(l, t) {
   if (l.isHeader) {
     if (!l.title) return '';
     return `<div class="hdr">${escapeHtml(l.title)}</div>`;
+  }
+  // Subscribe block
+  if (l.isSubscribe) {
+    return `<div style="background:${t.surface};border:1px solid ${t.border};border-radius:10px;padding:14px;text-align:center;margin-bottom:8px;">
+      <div style="font-size:11px;font-weight:600;color:${t.text};margin-bottom:8px;">${escapeHtml(l.title || 'Subscribe to my newsletter')}</div>
+      <div style="display:flex;gap:4px;">
+        <div style="flex:1;padding:6px 8px;border-radius:6px;border:1px solid ${t.border};background:${t.bg};color:${t.muted};font-size:9px;text-align:left;">Your email</div>
+        <div style="padding:6px 10px;background:${t.accent};color:#fff;border-radius:6px;font-size:9px;font-weight:600;">Subscribe</div>
+      </div>
+    </div>`;
   }
   if (l.isHero && l.photoUrl) {
     return `<div class="hl">
