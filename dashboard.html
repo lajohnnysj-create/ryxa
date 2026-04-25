@@ -15512,18 +15512,30 @@ function moveLessonDown(modIdx, lessonIdx) {
 }
 
 function showEmbedInfo() {
-  showModalAlert('Video Embedding', 
-    'Ryxa embeds videos from YouTube or Vimeo to keep hosting costs low for creators. Here\'s how to protect your content:\n\n'
-    + '📺 YouTube: Upload your video as "Unlisted." It won\'t appear in search — only people with the direct link (or embedded in your course) can watch it.\n\n'
-    + '🎬 Vimeo (recommended for extra security): Use domain-level privacy to restrict where your video can be embedded.\n\n'
-    + 'Vimeo Setup:\n'
-    + '1. Go to your video\'s settings on Vimeo\n'
-    + '2. Click the "Share" button at the top\n'
-    + '3. Under "Where can this be embedded?" select "Specific domains"\n'
-    + '4. Add your Ryxa domain (e.g., ryxa.io)\n'
-    + '5. Save — now the video only plays on your course page\n\n'
-    + 'This prevents anyone from taking your embed link and playing it on their own site. Vimeo\'s paid plans include this feature.'
-  );
+  var overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;padding:24px;';
+  overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+  overlay.innerHTML = '<div style="background:#0f0f1a;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:28px 32px;max-width:480px;width:100%;max-height:70vh;display:flex;flex-direction:column;">'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">'
+    + '<h3 style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.3px;">Video Embedding</h3>'
+    + '<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:4px;">✕</button>'
+    + '</div>'
+    + '<div style="overflow-y:auto;flex:1;padding-right:8px;">'
+    + '<p style="font-size:13px;color:#c8c6d8;line-height:1.7;margin-bottom:16px;">Ryxa embeds videos from YouTube or Vimeo to keep hosting costs low for creators. This means you host your videos on those platforms and paste the link into your lesson — the video plays directly inside your course.</p>'
+    + '<p style="font-size:13px;color:#c8c6d8;line-height:1.7;margin-bottom:16px;"><strong style="color:var(--text);">📺 YouTube</strong><br>Upload your video as "Unlisted." It won\'t appear in search results — only people with the direct link or viewing it embedded in your course can watch it.</p>'
+    + '<p style="font-size:13px;color:#c8c6d8;line-height:1.7;margin-bottom:16px;"><strong style="color:var(--text);">🎬 Vimeo (recommended for extra security)</strong><br>Vimeo offers domain-level privacy, which restricts where your video can be embedded. This prevents anyone from copying your embed link and playing it on their own site.</p>'
+    + '<p style="font-size:13px;color:var(--text);font-weight:600;margin-bottom:8px;">Vimeo Domain Restriction Setup:</p>'
+    + '<div style="font-size:13px;color:#c8c6d8;line-height:1.8;margin-bottom:16px;padding-left:4px;">'
+    + '1. Go to your video\'s settings on Vimeo<br>'
+    + '2. Click the <strong style="color:var(--text);">Share</strong> button at the top<br>'
+    + '3. Under "Where can this be embedded?" select <strong style="color:var(--text);">Specific domains</strong><br>'
+    + '4. Add <strong style="color:var(--accent2);">ryxa.io</strong> as an allowed domain<br>'
+    + '5. Save — your video now only plays on your course page'
+    + '</div>'
+    + '<p style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:0;">Note: Domain-level privacy requires a paid Vimeo plan. YouTube\'s Unlisted setting is free and works well for most creators.</p>'
+    + '</div>'
+    + '</div>';
+  document.body.appendChild(overlay);
 }
 
 function moveModuleUp(modIdx) {
