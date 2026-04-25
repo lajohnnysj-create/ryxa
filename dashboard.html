@@ -3430,7 +3430,7 @@
     </button>
     <button class="sidebar-item" id="nav-clients" onclick="showTool('clients')">
       <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
-      <span class="sidebar-item-label">Subscribers <span class="sidebar-pill max">MAX</span></span>
+      <span class="sidebar-item-label">Subscribers</span>
     </button>
 
     <div class="sidebar-section-label">AI</div>
@@ -3666,7 +3666,7 @@
           <div class="welcome-tool-card" onclick="showTool('clients')">
             <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
             <div>
-              <div class="welcome-tool-name">Subscribers <span style="font-size:9px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;padding:2px 6px;border-radius:4px;margin-left:4px;vertical-align:middle;font-weight:700;letter-spacing:0.03em;">MAX</span></div>
+              <div class="welcome-tool-name">Subscribers</div>
               <div class="welcome-tool-desc">View and export your email list from purchases and signups</div>
             </div>
           </div>
@@ -4662,14 +4662,7 @@
       <div style="max-width:900px;">
 
         <!-- Max upsell (non-Max users) -->
-        <div id="clients-upsell" style="display:none;text-align:center;padding:60px 24px;">
-          <div style="width:56px;height:56px;margin:0 auto 16px;background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.25);border-radius:14px;display:flex;align-items:center;justify-content:center;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
-          <h2 style="font-family:Syne,sans-serif;font-size:28px;font-weight:800;margin-bottom:8px;letter-spacing:-0.5px;">Subscribers</h2>
-          <p style="color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:24px;max-width:440px;margin-left:auto;margin-right:auto;">View your email subscribers and customers in one place. Export your list and grow your audience. Available on Creator Max.</p>
-          <button onclick="handleMaxUpgradeClick(event)" style="padding:12px 28px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px rgba(232,121,249,0.3);">Try Creator Max Free — 7 Days</button>
-        </div>
-
-        <!-- Subscribers content (Max only) -->
+        <!-- Subscribers content -->
         <div id="clients-content" style="display:none;">
           <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:24px;">
             <div>
@@ -21807,10 +21800,8 @@ async function loadProductPerformance(start, end) {
 }
 
 function initClientsTool() {
-  const max = userTier === 'max';
-  document.getElementById('clients-upsell').style.display = max ? 'none' : 'block';
-  document.getElementById('clients-content').style.display = max ? 'block' : 'none';
-  if (max) loadClients();
+  document.getElementById('clients-content').style.display = 'block';
+  loadClients();
 }
 
 var clientsData = [];
