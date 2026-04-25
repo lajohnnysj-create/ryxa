@@ -15511,6 +15511,21 @@ function moveLessonDown(modIdx, lessonIdx) {
   renderCourseModules();
 }
 
+function showEmbedInfo() {
+  showModalAlert('Video Embedding', 
+    'Ryxa embeds videos from YouTube or Vimeo to keep hosting costs low for creators. Here\'s how to protect your content:\n\n'
+    + '📺 YouTube: Upload your video as "Unlisted." It won\'t appear in search — only people with the direct link (or embedded in your course) can watch it.\n\n'
+    + '🎬 Vimeo (recommended for extra security): Use domain-level privacy to restrict where your video can be embedded.\n\n'
+    + 'Vimeo Setup:\n'
+    + '1. Go to your video\'s settings on Vimeo\n'
+    + '2. Click the "Share" button at the top\n'
+    + '3. Under "Where can this be embedded?" select "Specific domains"\n'
+    + '4. Add your Ryxa domain (e.g., ryxa.io)\n'
+    + '5. Save — now the video only plays on your course page\n\n'
+    + 'This prevents anyone from taking your embed link and playing it on their own site. Vimeo\'s paid plans include this feature.'
+  );
+}
+
 function moveModuleUp(modIdx) {
   if (modIdx <= 0) return;
   var temp = courseModules[modIdx];
@@ -15612,6 +15627,8 @@ function renderCourseModules() {
         + '<div style="display:flex;gap:8px;margin-top:12px;border-top:1px solid var(--border);padding-top:12px;">'
         + (li > 0 ? '<button onclick="moveLessonUp(' + mi + ',' + li + ')" style="padding:6px 12px;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.2);color:#c4b5fd;border-radius:6px;font-size:11px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;display:flex;align-items:center;gap:4px;transition:all 0.15s;" onmouseover="this.style.background=\'rgba(124,58,237,0.15)\'" onmouseout="this.style.background=\'rgba(124,58,237,0.08)\'"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg> Move Up</button>' : '')
         + (li < (mod.lessons.length - 1) ? '<button onclick="moveLessonDown(' + mi + ',' + li + ')" style="padding:6px 12px;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.2);color:#c4b5fd;border-radius:6px;font-size:11px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;display:flex;align-items:center;gap:4px;transition:all 0.15s;" onmouseover="this.style.background=\'rgba(124,58,237,0.15)\'" onmouseout="this.style.background=\'rgba(124,58,237,0.08)\'"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg> Move Down</button>' : '')
+        + '<div style="flex:1;"></div>'
+        + '<button onclick="showEmbedInfo()" style="padding:6px 12px;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.2);color:#c4b5fd;border-radius:6px;font-size:11px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;display:flex;align-items:center;gap:4px;transition:all 0.15s;" onmouseover="this.style.background=\'rgba(124,58,237,0.15)\'" onmouseout="this.style.background=\'rgba(124,58,237,0.08)\'"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg> Embed Info</button>'
         + '</div>'
         + '</div>'
         + '</div>';
