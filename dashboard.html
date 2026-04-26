@@ -8675,7 +8675,7 @@ function bioLimits() {
   const pro = isPro();
   const max = isMax();
   return {
-    maxLinks: max ? 150 : (pro ? 50 : 10),
+    maxLinks: max ? 1000 : (pro ? 200 : 50),
     maxFeatured: max ? 10 : (pro ? 3 : 1),
     maxHero: max ? 10 : 0,
     maxVideos: pro ? 20 : 5,
@@ -8725,7 +8725,7 @@ function addLink(isFeatured, isHero) {
     }
   } else {
     if (regularCount >= maxLinks) {
-      showBioStatus('error', `Link limit reached (${maxLinks}). ${!isPro() ? 'Upgrade to Pro for 50.' : ''}`);
+      showBioStatus('error', `Link limit reached (${maxLinks}). ${!isPro() ? 'Upgrade to Pro for 200.' : ''}`);
       return;
     }
   }
