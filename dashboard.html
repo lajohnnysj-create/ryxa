@@ -10299,9 +10299,9 @@ function buildPreviewLink(l, t) {
     </div>`;
   }
   if (l.photoUrl && !l.featured && !l.isHero && !l.isCourse && !l.isCoaching && !l.isMediaKit) {
-    return `<div class="lk" style="display:flex;align-items:center;gap:8px;">
+    return `<div class="lk" style="display:flex;flex-direction:row;align-items:center;gap:8px;text-align:left;">
       <img src="${escapeHtml(l.photoUrl)}" alt="" style="width:24px;height:24px;object-fit:cover;border-radius:4px;flex-shrink:0;">
-      <div>
+      <div style="flex:1;min-width:0;">
         <div class="lk-t">${escapeHtml(l.title || 'Untitled')}</div>
         ${l.description ? `<div class="lk-d">${escapeHtml(l.description)}</div>` : ''}
       </div>
