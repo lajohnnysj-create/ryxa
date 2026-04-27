@@ -11,6 +11,8 @@
     { "source": "/course/:slug", "destination": "/course" },
     { "source": "/coaching/:slug", "destination": "/coaching" },
     { "source": "/mediakit/:username", "destination": "/api/mediakit?u=:username" },
+    { "source": "/sitemap.xml", "destination": "/sitemap.xml" },
+    { "source": "/robots.txt", "destination": "/robots.txt" },
     { "source": "/:username", "destination": "/api/bio?u=:username" }
   ]
 }
