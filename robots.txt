@@ -13,10 +13,16 @@ Disallow: /reset-password.html
 Disallow: /api/
 
 # Allow Facebook and social media crawlers explicitly
-User-agent: facebookexternalhit
+User-agent: Twitterbot
 Allow: /
 
-User-agent: Twitterbot
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: facebookexternalhit
 Allow: /
 
 # Block AI training scrapers entirely
