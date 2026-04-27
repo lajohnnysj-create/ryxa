@@ -19,15 +19,22 @@ function esc(s) {
 }
 
 async function fetchProfile(username) {
+  return fetchProfileWithSignal(username, null);
+}
+
+async function fetchProfileWithSignal(username, signal) {
+  const fetchOpts = {
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+    },
+  };
+  if (signal) fetchOpts.signal = signal;
+
   // Look up user by username
   const profileRes = await fetch(
     `${SUPABASE_URL}/rest/v1/profiles?username=eq.${encodeURIComponent(username)}&select=user_id,username`,
-    {
-      headers: {
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-      },
-    }
+    fetchOpts
   );
   if (!profileRes.ok) return null;
   const profiles = await profileRes.json();
@@ -37,12 +44,7 @@ async function fetchProfile(username) {
   // Fetch the bio data for that user
   const bioRes = await fetch(
     `${SUPABASE_URL}/rest/v1/link_in_bio?user_id=eq.${profile.user_id}&select=display_name,avatar_url,bio,published`,
-    {
-      headers: {
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-      },
-    }
+    fetchOpts
   );
   if (!bioRes.ok) return { profile, bio: null };
   const bios = await bioRes.json();
@@ -52,6 +54,12 @@ async function fetchProfile(username) {
 module.exports = async (req, res) => {
   const username = (req.query.u || '').trim();
   if (!username) {
+    res.writeHead(301, { Location: 'https://www.ryxa.io/' });
+    return res.end();
+  }
+
+  // Fast fail: reject anything that doesn't look like a valid username
+  if (!/^[a-zA-Z0-9._-]{1,30}$/.test(username)) {
     res.writeHead(301, { Location: 'https://www.ryxa.io/' });
     return res.end();
   }
@@ -90,9 +98,12 @@ module.exports = async (req, res) => {
   let image = 'https://www.ryxa.io/og-image.png';
   const url = `https://www.ryxa.io/${encodeURIComponent(username)}`;
 
-  // Fetch real data
+  // Fetch real data with timeout fallback
   try {
-    const result = await fetchProfile(username);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 3000);
+    const result = await fetchProfileWithSignal(username, controller.signal);
+    clearTimeout(timeout);
     if (result && result.bio && result.bio.published !== false) {
       const name = result.bio.display_name || result.profile.username;
       title = `all of @${result.profile.username}'s links`;
@@ -102,7 +113,7 @@ module.exports = async (req, res) => {
       if (result.bio.avatar_url) image = result.bio.avatar_url;
     }
   } catch (e) {
-    // If anything goes wrong, fall through with defaults
+    // If anything goes wrong or times out, fall through with defaults
     console.error('bio OG fetch error', e);
   }
 
