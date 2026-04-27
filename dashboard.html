@@ -20769,7 +20769,7 @@ let faCurrentLogFilter = 'all';
 let faUserSnakeList = new Set();
 let faSnakeListDates = {};
 
-const FA_FREE_LIMIT = 3;
+const FA_FREE_LIMIT = 50;
 
 // ── INIT (called once when tool first opened) ──
 // ── SETUP LISTENERS (always runs, no auth needed) ──
@@ -21434,7 +21434,7 @@ function faBuildRow(r, blurred) {
 }
 
 function faBuildPaywall(hiddenCount, totalUnfollowers) {
-  return `<div class="fa-paywall-gate"><div class="fa-paywall-lock">🔒</div><div class="fa-paywall-count">${hiddenCount}</div><div class="fa-paywall-count-label">more people not following you back</div><h3>Unlock your full list</h3><p>You've seen ${FA_FREE_LIMIT} of ${totalUnfollowers} people not following you back. Upgrade to Pro to see everyone.</p><div class="fa-paywall-btns"><button class="fa-paywall-btn primary" onclick="startCheckout('monthly', this)"><span>Upgrade to Pro</span><span class="fa-paywall-btn-price">$10/mo. Unlimited access</span></button><button class="fa-paywall-btn primary" style="background:linear-gradient(135deg,#a78bfa,#e879f9);box-shadow:0 0 30px rgba(232,121,249,0.3);" onclick="startCheckout('max', this)"><span>Try Creator Max Free — 7 Days</span><span class="fa-paywall-btn-price">$20/mo. Pro + Brand Deal CRM, Script Builder &amp; more</span></button></div>${!currentUser ? `<p style="margin-top:20px;font-size:13px;color:var(--muted)">Already paid? <a href="#" onclick="window.location.href='index.html?action=signin';return false;" style="color:var(--accent)">Sign in to restore access</a></p>` : ''}</div>`;
+  return `<div class="fa-paywall-gate"><div class="fa-paywall-lock">🔒</div><div class="fa-paywall-count">${hiddenCount}</div><div class="fa-paywall-count-label">more people not following you back</div><h3>Unlock your full list</h3><p>You've seen the first ${FA_FREE_LIMIT} of ${totalUnfollowers} people not following you back. Upgrade to Pro to see everyone.</p><div class="fa-paywall-btns"><button class="fa-paywall-btn primary" onclick="startCheckout('monthly', this)"><span>Upgrade to Pro</span><span class="fa-paywall-btn-price">$10/mo. Unlimited access</span></button><button class="fa-paywall-btn primary" style="background:linear-gradient(135deg,#a78bfa,#e879f9);box-shadow:0 0 30px rgba(232,121,249,0.3);" onclick="startCheckout('max', this)"><span>Try Creator Max Free — 7 Days</span><span class="fa-paywall-btn-price">$20/mo. Pro + Brand Deal CRM, Script Builder &amp; more</span></button></div>${!currentUser ? `<p style="margin-top:20px;font-size:13px;color:var(--muted)">Already paid? <a href="#" onclick="window.location.href='index.html?action=signin';return false;" style="color:var(--accent)">Sign in to restore access</a></p>` : ''}</div>`;
 }
 
 function faSetFilter(f, btn) {
