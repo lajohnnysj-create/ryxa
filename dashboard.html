@@ -9271,7 +9271,7 @@ function renderLinkCollapsed(link, dragSvg, editSvg) {
   const mkIcon = link.isMediaKit ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="17" x2="8" y2="13"/><line x1="12" y1="17" x2="12" y2="11"/><line x1="16" y1="17" x2="16" y2="15"/></svg>' : '';
   const mkBadge = link.isMediaKit ? '<span class="bio-mediakit-badge">Media Kit</span>' : '';
   const linkThumb = (!link.isMediaKit && link.photoUrl)
-    ? `<img alt="Link thumbnail" src="${escapeHtml(link.photoUrl)}" style="width:36px;height:36px;object-fit:cover;border-radius:6px;flex-shrink:0;border:1px solid var(--border);">`
+    ? `<img alt="" src="${escapeHtml(link.photoUrl)}" loading="lazy" onerror="this.style.display='none'" style="width:36px;height:36px;object-fit:cover;border-radius:6px;flex-shrink:0;border:1px solid var(--border);">`
     : '';
 
   return `<div class="bio-link-row bio-link-collapsed${mkClass}" data-id="${link._id}" onclick="expandLink(${link._id})" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:10px 12px;">
