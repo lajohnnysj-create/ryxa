@@ -9270,10 +9270,13 @@ function renderLinkCollapsed(link, dragSvg, editSvg) {
 
   const mkIcon = link.isMediaKit ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="17" x2="8" y2="13"/><line x1="12" y1="17" x2="12" y2="11"/><line x1="16" y1="17" x2="16" y2="15"/></svg>' : '';
   const mkBadge = link.isMediaKit ? '<span class="bio-mediakit-badge">Media Kit</span>' : '';
+  const linkThumb = (!link.isMediaKit && link.photoUrl)
+    ? `<img alt="Link thumbnail" src="${escapeHtml(link.photoUrl)}" style="width:36px;height:36px;object-fit:cover;border-radius:6px;flex-shrink:0;border:1px solid var(--border);">`
+    : '';
 
   return `<div class="bio-link-row bio-link-collapsed${mkClass}" data-id="${link._id}" onclick="expandLink(${link._id})" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:10px 12px;">
     <div class="bio-link-drag" aria-label="Drag to reorder" onclick="event.stopPropagation();">${dragSvg}</div>
-    ${mkIcon}
+    ${mkIcon}${linkThumb}
     <div style="flex:1;min-width:0;">
       <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
         <span style="font-size:13px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;">${title}</span>
@@ -9284,6 +9287,50 @@ function renderLinkCollapsed(link, dragSvg, editSvg) {
     <button type="button" aria-label="Edit link" onclick="event.stopPropagation();expandLink(${link._id})" style="background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:6px;padding:5px 9px;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:4px;">${editSvg} Edit</button>
     <button class="bio-link-remove" onclick="event.stopPropagation();removeLink(${link._id})">Remove</button>
   </div>`;
+}
+
+async function onLinkThumbSelected(input, linkId) {
+  const file = input.files[0];
+  input.value = '';
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { showBioStatus('error', 'Please upload an image.'); return; }
+  if (file.size > 10 * 1024 * 1024) { showBioStatus('error', 'Image is too large (10MB max).'); return; }
+
+  // Check 10 link photo limit
+  var photoCount = bioState.links.filter(function(l) { return l.photoUrl && !l.featured && !l.isHero && !l.isCourse && !l.isCoaching; }).length;
+  if (photoCount >= 20) { showBioStatus('error', 'Thumbnail limit reached (20 links).'); return; }
+
+  var link = bioState.links.find(function(l) { return l._id === linkId; });
+  if (!link) return;
+
+  try {
+    showBioStatus('info', 'Uploading…');
+    var blob = await compressBgImage(file, 200, 200, 30 * 1024);
+    var fileName = 'thumb-' + linkId + '-' + Date.now() + '-' + Math.random().toString(36).slice(2,8) + '.webp';
+    var path = currentUser.id + '/' + fileName;
+    var { error: upErr } = await sb.storage.from('bio-photos').upload(path, blob, { contentType: 'image/webp', upsert: false });
+    if (upErr) throw upErr;
+    var { data: { publicUrl } } = sb.storage.from('bio-photos').getPublicUrl(path);
+
+    if (link.photoUrl) bioStalePhotos.push(link.photoUrl);
+    link.photoUrl = publicUrl;
+    renderBioLinks();
+    schedulePreviewUpdate();
+    showBioStatus('success', 'Thumbnail added. Remember to save.');
+  } catch (e) {
+    console.error(e);
+    showBioStatus('error', 'Upload failed: ' + (e.message || 'unknown'));
+  }
+}
+
+function removeLinkThumb(linkId) {
+  var link = bioState.links.find(function(l) { return l._id === linkId; });
+  if (!link || !link.photoUrl) return;
+  bioStalePhotos.push(link.photoUrl);
+  link.photoUrl = '';
+  renderBioLinks();
+  schedulePreviewUpdate();
+  showBioStatus('info', 'Thumbnail removed. Remember to save.');
 }
 
 async function onHeroPhotoSelected(input, linkId) {
@@ -9359,6 +9406,7 @@ function renderLinkExpanded(link, dragSvg) {
 
   let photoSlot = '';
   if (link.isCourse) {
+
     // Course link — show cover, locked title/URL, crossout price option
     const coverHtml = link.photoUrl
       ? `<img alt="Link cover" src="${escapeHtml(link.photoUrl)}" style="width:100%;height:120px;object-fit:cover;border-radius:8px;margin-bottom:10px;">`
@@ -9442,6 +9490,16 @@ function renderLinkExpanded(link, dragSvg) {
       <button class="bio-link-remove" onclick="removeLink(${link._id})">Remove</button>
     </div>
     ${photoSlot}
+    ${!link.featured && !link.isHero ? `<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+      ${link.photoUrl
+        ? `<img alt="Link thumbnail" src="${escapeHtml(link.photoUrl)}" style="width:40px;height:40px;object-fit:cover;border-radius:8px;border:1px solid var(--border);">
+           <button type="button" onclick="removeLinkThumb(${link._id})" style="padding:4px 10px;background:transparent;border:1px solid rgba(239,68,68,0.3);color:#ef4444;border-radius:6px;font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer;">Remove</button>`
+        : `<label style="display:inline-flex;align-items:center;gap:5px;padding:5px 10px;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.2);color:#c4b5fd;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.background='rgba(124,58,237,0.15)'" onmouseout="this.style.background='rgba(124,58,237,0.08)'">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            Add Thumbnail
+            <input type="file" accept="image/*" onchange="onLinkThumbSelected(this,${link._id})" style="display:none;">
+          </label>`}
+    </div>` : ''}
     <input type="text" placeholder="Title" maxlength="80" value="${escapeHtml(link.title || '')}"
       oninput="updateLinkField(${link._id},'title',this.value)" aria-label="Link title">
     <input type="text" placeholder="Description (optional)" maxlength="120" value="${escapeHtml(link.description || '')}"
@@ -10237,6 +10295,15 @@ function buildPreviewLink(l, t) {
           <div class="mkh-t">${escapeHtml(l.title || 'Untitled')}</div>
           ${l.description ? `<div class="mkh-d">${escapeHtml(l.description)}</div>` : ''}
         </div>
+      </div>
+    </div>`;
+  }
+  if (l.photoUrl && !l.featured && !l.isHero && !l.isCourse && !l.isCoaching && !l.isMediaKit) {
+    return `<div class="lk" style="display:flex;align-items:center;gap:8px;">
+      <img src="${escapeHtml(l.photoUrl)}" alt="" style="width:24px;height:24px;object-fit:cover;border-radius:4px;flex-shrink:0;">
+      <div>
+        <div class="lk-t">${escapeHtml(l.title || 'Untitled')}</div>
+        ${l.description ? `<div class="lk-d">${escapeHtml(l.description)}</div>` : ''}
       </div>
     </div>`;
   }
