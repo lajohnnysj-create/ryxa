@@ -6,13 +6,14 @@ Allow: /
 Disallow: /dashboard
 Disallow: /dashboard.html
 Disallow: /learn/
-Disallow: /follower-audit
-Disallow: /follower-audit.html
 Disallow: /reset-password
 Disallow: /reset-password.html
 Disallow: /api/
 
-# Allow Facebook and social media crawlers explicitly
+# Allow social media and search crawlers explicitly
+User-agent: facebookexternalhit
+Allow: /
+
 User-agent: Twitterbot
 Allow: /
 
@@ -20,9 +21,6 @@ User-agent: Googlebot
 Allow: /
 
 User-agent: Bingbot
-Allow: /
-
-User-agent: facebookexternalhit
 Allow: /
 
 # Block AI training scrapers entirely
