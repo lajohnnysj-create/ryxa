@@ -347,4 +347,12 @@ if (!document.getElementById('main-content')) {
 
 document.body.classList.add('site-ready');
 
+// Fallback auth functions for pages that don't have their own modal
+if (typeof window.openAuthModal === 'undefined') {
+  window.openAuthModal = function() { window.location.href = '/index.html?action=signin'; };
+}
+if (typeof window.openSignupModal === 'undefined') {
+  window.openSignupModal = function() { window.location.href = '/index.html?action=signup'; };
+}
+
 })();
