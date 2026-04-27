@@ -1004,13 +1004,18 @@ function buildLink(link) {
     </a>`;
   }
   const thumbUrl = validImageUrl(link.photoUrl);
-  const thumbHtml = thumbUrl ? `<img src="${esc(thumbUrl)}" alt="" loading="lazy" style="width:36px;height:36px;object-fit:cover;border-radius:8px;flex-shrink:0;">` : '';
-  return `<a class="link-btn" href="${esc(url)}" target="_blank" rel="noopener nofollow"${thumbHtml ? ' style="display:flex;align-items:center;gap:12px;"' : ''}>
-    ${thumbHtml}
-    <div${thumbHtml ? '' : ''}>
-      <div class="link-title">${title}</div>
-      ${desc}
-    </div>
+  if (thumbUrl) {
+    return `<a class="link-btn" href="${esc(url)}" target="_blank" rel="noopener nofollow" style="flex-direction:row;align-items:center;gap:14px;text-align:left;">
+      <img src="${esc(thumbUrl)}" alt="" loading="lazy" style="width:40px;height:40px;object-fit:cover;border-radius:10px;flex-shrink:0;">
+      <div style="flex:1;min-width:0;">
+        <div class="link-title">${title}</div>
+        ${desc}
+      </div>
+    </a>`;
+  }
+  return `<a class="link-btn" href="${esc(url)}" target="_blank" rel="noopener nofollow">
+    <div class="link-title">${title}</div>
+    ${desc}
   </a>`;
 }
 
