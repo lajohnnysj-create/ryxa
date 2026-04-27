@@ -52,8 +52,8 @@ async function fetchProfile(username) {
 module.exports = async (req, res) => {
   const username = (req.query.u || '').trim();
   if (!username) {
-    res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    return res.status(400).send('Missing username');
+    res.writeHead(301, { Location: 'https://www.ryxa.io/' });
+    return res.end();
   }
 
   // Reject filenames and reserved paths that may have leaked through cleanUrls normalization
@@ -70,8 +70,8 @@ module.exports = async (req, res) => {
     'learn', 'cookie-banner', 'site-nav'
   ]);
   if (username.includes('.') || username.includes('/') || RESERVED.has(username.toLowerCase())) {
-    res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    return res.status(404).send('Not found');
+    res.writeHead(301, { Location: 'https://www.ryxa.io/' + username });
+    return res.end();
   }
 
   // Read the source HTML file from project root
