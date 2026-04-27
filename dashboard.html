@@ -3428,6 +3428,10 @@
       <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 20V10M12 20V4M6 20v-6"/></svg></div>
       <span class="sidebar-item-label">Analytics <span class="sidebar-pill max">MAX</span></span>
     </button>
+    <button class="sidebar-item" id="nav-calendar" onclick="showTool('calendar')">
+      <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+      <span class="sidebar-item-label">Calendar</span>
+    </button>
     <button class="sidebar-item" id="nav-clients" onclick="showTool('clients')">
       <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
       <span class="sidebar-item-label">Subscribers</span>
@@ -4654,6 +4658,65 @@
           </div>
 
         </div>
+      </div>
+    </div>
+
+    <!-- CALENDAR -->
+    <div id="tool-calendar" style="display:none;">
+      <div style="max-width:900px;">
+        <div style="margin-bottom:24px;">
+          <h2 style="font-family:Syne,sans-serif;font-size:28px;font-weight:800;letter-spacing:-0.5px;margin-bottom:8px;">Calendar</h2>
+          <p style="color:var(--muted);font-size:14px;line-height:1.6;">Plan your content, coaching sessions, and brand deals in one place. Events sync across your tools as we add integrations.</p>
+        </div>
+
+        <!-- Calendar Header -->
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:12px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <button onclick="calPrevMonth()" aria-label="Previous month" style="width:36px;height:36px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--border-hover)'" onmouseout="this.style.borderColor='var(--border)'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+              <button onclick="calToggleMonthPicker()" id="cal-month-label" style="padding:8px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Syne',sans-serif;font-size:16px;font-weight:700;cursor:pointer;letter-spacing:-0.3px;transition:all 0.15s;min-width:160px;" onmouseover="this.style.borderColor='var(--border-hover)'" onmouseout="this.style.borderColor='var(--border)'">Month Year</button>
+              <button onclick="calNextMonth()" aria-label="Next month" style="width:36px;height:36px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--border-hover)'" onmouseout="this.style.borderColor='var(--border)'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <button onclick="calToday()" style="padding:8px 14px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:13px;font-weight:500;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--border-hover)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">Today</button>
+              <button onclick="calOpenSettings()" aria-label="Settings" style="width:36px;height:36px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--border-hover)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+            </div>
+          </div>
+
+          <!-- Month Picker (hidden by default) -->
+          <div id="cal-month-picker" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+              <button onclick="calPickerPrevYear()" aria-label="Previous year" style="width:28px;height:28px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+              <span id="cal-picker-year" style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--text);"></span>
+              <button onclick="calPickerNextYear()" aria-label="Next year" style="width:28px;height:28px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+            </div>
+            <div id="cal-picker-months" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;"></div>
+          </div>
+
+          <!-- Weekday Headers -->
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px;">
+            <div style="text-align:center;font-size:11px;font-weight:600;color:var(--muted);letter-spacing:0.5px;padding:6px 0;">SUN</div>
+            <div style="text-align:center;font-size:11px;font-weight:600;color:var(--muted);letter-spacing:0.5px;padding:6px 0;">MON</div>
+            <div style="text-align:center;font-size:11px;font-weight:600;color:var(--muted);letter-spacing:0.5px;padding:6px 0;">TUE</div>
+            <div style="text-align:center;font-size:11px;font-weight:600;color:var(--muted);letter-spacing:0.5px;padding:6px 0;">WED</div>
+            <div style="text-align:center;font-size:11px;font-weight:600;color:var(--muted);letter-spacing:0.5px;padding:6px 0;">THU</div>
+            <div style="text-align:center;font-size:11px;font-weight:600;color:var(--muted);letter-spacing:0.5px;padding:6px 0;">FRI</div>
+            <div style="text-align:center;font-size:11px;font-weight:600;color:var(--muted);letter-spacing:0.5px;padding:6px 0;">SAT</div>
+          </div>
+
+          <!-- Calendar Grid -->
+          <div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;"></div>
+        </div>
+
+        <!-- Day Events Section -->
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+            <h3 id="cal-day-label" style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;letter-spacing:-0.3px;">Today</h3>
+            <button onclick="calOpenAddEvent()" style="padding:8px 14px;background:var(--accent);border:none;border-radius:8px;color:#fff;font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all 0.15s;" onmouseover="this.style.background='#a855f7'" onmouseout="this.style.background='var(--accent)'"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Event</button>
+          </div>
+          <div id="cal-day-events"></div>
+        </div>
+
       </div>
     </div>
 
@@ -7305,7 +7368,7 @@ function showTool(tool) {
     if (typeof resetPdfSign === 'function') resetPdfSign();
   }
   // Hide all tools
-  ['welcome','bio','courses','coaching','mediakit','grid','follower','image','design','qr','invoice','pdfsign','deals','scripts','thumbanalyzer','contractanalyzer','analytics','clients','settings'].forEach(t => {
+  ['welcome','bio','courses','coaching','mediakit','grid','follower','image','design','qr','invoice','pdfsign','deals','scripts','thumbanalyzer','contractanalyzer','analytics','calendar','clients','settings'].forEach(t => {
     const el = document.getElementById('tool-' + t);
     if (el) el.style.display = 'none';
     const nav = document.getElementById('nav-' + t);
@@ -7383,6 +7446,7 @@ function showTool(tool) {
   if (tool === 'pdfsign') initPdfSignTool();
   if (tool === 'scripts') initScriptsTool();
   if (tool === 'analytics') initAnalyticsTool();
+  if (tool === 'calendar') initCalendarTool();
   if (tool === 'thumbanalyzer') initThumbanalyzerTool();
   if (tool === 'contractanalyzer') initContractanalyzerTool();
   if (tool === 'clients') initClientsTool();
@@ -21898,6 +21962,385 @@ async function loadProductPerformance(start, end) {
 function initClientsTool() {
   document.getElementById('clients-content').style.display = 'block';
   loadClients();
+}
+
+// =====================
+// CALENDAR
+// =====================
+var calState = {
+  viewYear: new Date().getFullYear(),
+  viewMonth: new Date().getMonth(),
+  selectedDate: null, // YYYY-MM-DD
+  pickerYear: new Date().getFullYear(),
+  events: [], // loaded from Supabase
+  timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+  loaded: false
+};
+
+function calToYmd(date) {
+  var y = date.getFullYear();
+  var m = String(date.getMonth() + 1).padStart(2, '0');
+  var d = String(date.getDate()).padStart(2, '0');
+  return y + '-' + m + '-' + d;
+}
+
+function calFormatDayLabel(ymd) {
+  var parts = ymd.split('-').map(Number);
+  var date = new Date(parts[0], parts[1] - 1, parts[2]);
+  var today = calToYmd(new Date());
+  var prefix = ymd === today ? 'Today, ' : '';
+  return prefix + date.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
+}
+
+function calFormatMonthLabel(year, month) {
+  var d = new Date(year, month, 1);
+  return d.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+}
+
+async function initCalendarTool() {
+  // Load timezone preference
+  try {
+    var saved = localStorage.getItem('ryxa_cal_tz');
+    if (saved) calState.timezone = saved;
+  } catch (e) {}
+
+  if (!calState.selectedDate) {
+    calState.selectedDate = calToYmd(new Date());
+    calState.viewYear = new Date().getFullYear();
+    calState.viewMonth = new Date().getMonth();
+  }
+
+  if (!calState.loaded && currentUser) {
+    await calLoadEvents();
+    calState.loaded = true;
+  }
+
+  calRender();
+}
+
+async function calLoadEvents() {
+  if (!currentUser) return;
+  try {
+    var { data, error } = await sb.from('calendar_events')
+      .select('*')
+      .eq('creator_id', currentUser.id)
+      .order('start_at', { ascending: true });
+    if (error) {
+      // Table might not exist yet
+      console.warn('Calendar events not loaded:', error.message);
+      calState.events = [];
+      return;
+    }
+    calState.events = data || [];
+  } catch (e) {
+    console.error('calLoadEvents:', e);
+    calState.events = [];
+  }
+}
+
+function calRender() {
+  document.getElementById('cal-month-label').textContent = calFormatMonthLabel(calState.viewYear, calState.viewMonth);
+  calRenderGrid();
+  calRenderDayEvents();
+}
+
+function calRenderGrid() {
+  var grid = document.getElementById('cal-grid');
+  if (!grid) return;
+  var firstDay = new Date(calState.viewYear, calState.viewMonth, 1);
+  var lastDay = new Date(calState.viewYear, calState.viewMonth + 1, 0);
+  var startWeekday = firstDay.getDay();
+  var daysInMonth = lastDay.getDate();
+  var prevLastDay = new Date(calState.viewYear, calState.viewMonth, 0).getDate();
+
+  var todayYmd = calToYmd(new Date());
+  var html = '';
+
+  // Days from previous month
+  for (var i = startWeekday - 1; i >= 0; i--) {
+    var dayNum = prevLastDay - i;
+    html += calRenderCell(calState.viewYear, calState.viewMonth - 1, dayNum, true, todayYmd);
+  }
+  // Current month
+  for (var d = 1; d <= daysInMonth; d++) {
+    html += calRenderCell(calState.viewYear, calState.viewMonth, d, false, todayYmd);
+  }
+  // Fill remaining cells with next month
+  var totalCells = startWeekday + daysInMonth;
+  var remaining = (7 - (totalCells % 7)) % 7;
+  for (var n = 1; n <= remaining; n++) {
+    html += calRenderCell(calState.viewYear, calState.viewMonth + 1, n, true, todayYmd);
+  }
+  grid.innerHTML = html;
+}
+
+function calRenderCell(year, month, day, isOtherMonth, todayYmd) {
+  var date = new Date(year, month, day);
+  var ymd = calToYmd(date);
+  var isToday = ymd === todayYmd;
+  var isSelected = ymd === calState.selectedDate;
+  var dayEvents = calState.events.filter(function(e) {
+    var startDate = e.start_at ? e.start_at.slice(0, 10) : null;
+    return startDate === ymd;
+  });
+  var hasEvents = dayEvents.length > 0;
+
+  var bg = isSelected ? 'var(--accent)' : (isToday ? 'rgba(124,58,237,0.15)' : 'var(--surface2)');
+  var color = isSelected ? '#fff' : (isOtherMonth ? 'var(--muted)' : 'var(--text)');
+  var border = isSelected ? '1px solid var(--accent)' : (isToday ? '1px solid rgba(124,58,237,0.4)' : '1px solid var(--border)');
+  var opacity = isOtherMonth ? '0.4' : '1';
+  var dotColor = isSelected ? '#fff' : 'var(--accent2)';
+  var dot = hasEvents ? '<div style="position:absolute;bottom:4px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:' + dotColor + ';"></div>' : '';
+
+  return '<button onclick="calSelectDate(\'' + ymd + '\')" style="position:relative;aspect-ratio:1;background:' + bg + ';border:' + border + ';border-radius:8px;color:' + color + ';font-size:13px;font-weight:500;cursor:pointer;font-family:DM Sans,sans-serif;padding:0;display:flex;align-items:center;justify-content:center;opacity:' + opacity + ';transition:all 0.15s;" onmouseover="if(!this.dataset.selected)this.style.borderColor=\'var(--border-hover)\'" onmouseout="if(!this.dataset.selected)this.style.borderColor=\'' + (isToday ? 'rgba(124,58,237,0.4)' : 'var(--border)') + '\'">' + day + dot + '</button>';
+}
+
+function calRenderDayEvents() {
+  document.getElementById('cal-day-label').textContent = calFormatDayLabel(calState.selectedDate);
+  var container = document.getElementById('cal-day-events');
+  var dayEvents = calState.events.filter(function(e) {
+    var startDate = e.start_at ? e.start_at.slice(0, 10) : null;
+    return startDate === calState.selectedDate;
+  }).sort(function(a, b) {
+    return (a.start_at || '').localeCompare(b.start_at || '');
+  });
+
+  if (dayEvents.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:32px 16px;color:var(--muted);font-size:13px;">No events on this day. Click "Add Event" to create one.</div>';
+    return;
+  }
+
+  container.innerHTML = dayEvents.map(function(e) {
+    var startTime = e.start_at ? new Date(e.start_at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) : '';
+    var endTime = e.end_at ? new Date(e.end_at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) : '';
+    var timeLabel = startTime + (endTime ? ' - ' + endTime : '');
+    var typeLabel = e.event_type === 'manual' ? '' : '<span style="display:inline-block;padding:2px 8px;background:rgba(124,58,237,0.15);border-radius:4px;font-size:10px;color:#c4b5fd;font-weight:600;letter-spacing:0.3px;text-transform:uppercase;margin-left:6px;">' + e.event_type + '</span>';
+    var color = e.color || '#7c3aed';
+    return '<div style="display:flex;align-items:flex-start;gap:12px;padding:14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;">'
+      + '<div style="width:3px;align-self:stretch;background:' + color + ';border-radius:2px;flex-shrink:0;"></div>'
+      + '<div style="flex:1;min-width:0;">'
+      + '<div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:4px;"><span style="font-weight:600;color:var(--text);font-size:14px;">' + escapeHtml(e.title || 'Untitled') + '</span>' + typeLabel + '</div>'
+      + (timeLabel ? '<div style="font-size:12px;color:var(--muted);margin-bottom:6px;">' + escapeHtml(timeLabel) + '</div>' : '')
+      + (e.notes ? '<div style="font-size:13px;color:#c8c6d8;line-height:1.5;">' + escapeHtml(e.notes) + '</div>' : '')
+      + '</div>'
+      + (e.event_type === 'manual' ? '<button onclick="calDeleteEvent(\'' + e.id + '\')" aria-label="Delete event" style="width:28px;height:28px;background:transparent;border:1px solid rgba(239,68,68,0.3);border-radius:6px;color:#ef4444;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg></button>' : '')
+      + '</div>';
+  }).join('');
+}
+
+function calSelectDate(ymd) {
+  calState.selectedDate = ymd;
+  calRender();
+}
+
+function calPrevMonth() {
+  calState.viewMonth--;
+  if (calState.viewMonth < 0) { calState.viewMonth = 11; calState.viewYear--; }
+  calRender();
+}
+
+function calNextMonth() {
+  calState.viewMonth++;
+  if (calState.viewMonth > 11) { calState.viewMonth = 0; calState.viewYear++; }
+  calRender();
+}
+
+function calToday() {
+  var today = new Date();
+  calState.viewYear = today.getFullYear();
+  calState.viewMonth = today.getMonth();
+  calState.selectedDate = calToYmd(today);
+  calRender();
+}
+
+function calToggleMonthPicker() {
+  var picker = document.getElementById('cal-month-picker');
+  if (picker.style.display === 'none' || !picker.style.display) {
+    calState.pickerYear = calState.viewYear;
+    calRenderMonthPicker();
+    picker.style.display = 'block';
+  } else {
+    picker.style.display = 'none';
+  }
+}
+
+function calRenderMonthPicker() {
+  document.getElementById('cal-picker-year').textContent = calState.pickerYear;
+  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  document.getElementById('cal-picker-months').innerHTML = months.map(function(m, i) {
+    var isCurrent = (i === calState.viewMonth && calState.pickerYear === calState.viewYear);
+    var bg = isCurrent ? 'var(--accent)' : 'transparent';
+    var color = isCurrent ? '#fff' : 'var(--text)';
+    var border = isCurrent ? '1px solid var(--accent)' : '1px solid var(--border)';
+    return '<button onclick="calPickMonth(' + i + ')" style="padding:10px;background:' + bg + ';border:' + border + ';border-radius:6px;color:' + color + ';font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">' + m + '</button>';
+  }).join('');
+}
+
+function calPickerPrevYear() {
+  calState.pickerYear--;
+  calRenderMonthPicker();
+}
+
+function calPickerNextYear() {
+  calState.pickerYear++;
+  calRenderMonthPicker();
+}
+
+function calPickMonth(month) {
+  calState.viewYear = calState.pickerYear;
+  calState.viewMonth = month;
+  document.getElementById('cal-month-picker').style.display = 'none';
+  calRender();
+}
+
+function calOpenAddEvent() {
+  if (!currentUser) {
+    showModalAlert('Sign in required', 'Please sign in to add calendar events.');
+    return;
+  }
+  // Build modal
+  var existingModal = document.getElementById('cal-event-modal');
+  if (existingModal) existingModal.remove();
+
+  var defaultStart = '09:00';
+  var defaultEnd = '09:15';
+  var modal = document.createElement('div');
+  modal.id = 'cal-event-modal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;padding:24px;';
+  modal.onclick = function(e) { if (e.target === modal) modal.remove(); };
+  modal.innerHTML = '<div style="background:#0f0f1a;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:24px;max-width:440px;width:100%;max-height:90vh;overflow-y:auto;">'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">'
+    + '<h3 style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.3px;">Add Event</h3>'
+    + '<button onclick="document.getElementById(\'cal-event-modal\').remove()" style="background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:4px;">✕</button>'
+    + '</div>'
+    + '<div style="margin-bottom:14px;"><label style="display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:500;">Title</label>'
+    + '<input id="cal-modal-title" type="text" placeholder="Event title" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;"></div>'
+    + '<div style="margin-bottom:14px;"><label style="display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:500;">Date</label>'
+    + '<input id="cal-modal-date" type="date" value="' + calState.selectedDate + '" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;color-scheme:dark;"></div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">'
+    + '<div><label style="display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:500;">Start</label><input id="cal-modal-start" type="time" step="900" value="' + defaultStart + '" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;color-scheme:dark;"></div>'
+    + '<div><label style="display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:500;">End</label><input id="cal-modal-end" type="time" step="900" value="' + defaultEnd + '" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;color-scheme:dark;"></div>'
+    + '</div>'
+    + '<div style="margin-bottom:14px;"><label style="display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:500;">Color</label>'
+    + '<div id="cal-modal-colors" style="display:flex;gap:8px;flex-wrap:wrap;"></div></div>'
+    + '<div style="margin-bottom:18px;"><label style="display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:500;">Notes (optional)</label>'
+    + '<textarea id="cal-modal-notes" placeholder="Add notes..." rows="3" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;resize:vertical;"></textarea></div>'
+    + '<button onclick="calSaveEvent()" style="width:100%;padding:12px;background:var(--accent);border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.background=\'#a855f7\'" onmouseout="this.style.background=\'var(--accent)\'">Save Event</button>'
+    + '</div>';
+  document.body.appendChild(modal);
+
+  // Render color picker
+  var colors = ['#7c3aed', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#ec4899'];
+  document.getElementById('cal-modal-colors').innerHTML = colors.map(function(c, i) {
+    return '<button onclick="calSelectColor(\'' + c + '\')" data-color="' + c + '" class="cal-color-btn" style="width:32px;height:32px;border-radius:50%;background:' + c + ';border:' + (i === 0 ? '3px solid #fff' : '2px solid var(--border)') + ';cursor:pointer;"></button>';
+  }).join('');
+  window._calSelectedColor = colors[0];
+
+  setTimeout(function() { document.getElementById('cal-modal-title').focus(); }, 50);
+}
+
+function calSelectColor(c) {
+  window._calSelectedColor = c;
+  document.querySelectorAll('.cal-color-btn').forEach(function(b) {
+    b.style.border = b.dataset.color === c ? '3px solid #fff' : '2px solid var(--border)';
+  });
+}
+
+async function calSaveEvent() {
+  var title = document.getElementById('cal-modal-title').value.trim();
+  var date = document.getElementById('cal-modal-date').value;
+  var startTime = document.getElementById('cal-modal-start').value;
+  var endTime = document.getElementById('cal-modal-end').value;
+  var notes = document.getElementById('cal-modal-notes').value.trim();
+  var color = window._calSelectedColor || '#7c3aed';
+
+  if (!title) { showModalAlert('Missing title', 'Please enter an event title.'); return; }
+  if (!date) { showModalAlert('Missing date', 'Please select a date.'); return; }
+  if (!startTime || !endTime) { showModalAlert('Missing time', 'Please set start and end times.'); return; }
+
+  var startAt = date + 'T' + startTime + ':00';
+  var endAt = date + 'T' + endTime + ':00';
+
+  if (new Date(endAt) <= new Date(startAt)) {
+    showModalAlert('Invalid time', 'End time must be after start time.');
+    return;
+  }
+
+  try {
+    var { data, error } = await sb.from('calendar_events').insert({
+      creator_id: currentUser.id,
+      title: title,
+      start_at: startAt,
+      end_at: endAt,
+      event_type: 'manual',
+      source_id: null,
+      color: color,
+      notes: notes || null,
+      timezone: calState.timezone
+    }).select().single();
+    if (error) throw error;
+    calState.events.push(data);
+    document.getElementById('cal-event-modal').remove();
+    calState.selectedDate = date;
+    var dParts = date.split('-').map(Number);
+    calState.viewYear = dParts[0];
+    calState.viewMonth = dParts[1] - 1;
+    calRender();
+  } catch (e) {
+    console.error('Save event failed:', e);
+    showModalAlert('Save failed', e.message || 'Could not save event. Please try again.');
+  }
+}
+
+async function calDeleteEvent(eventId) {
+  if (!confirm('Delete this event?')) return;
+  try {
+    var { error } = await sb.from('calendar_events').delete().eq('id', eventId);
+    if (error) throw error;
+    calState.events = calState.events.filter(function(e) { return e.id !== eventId; });
+    calRender();
+  } catch (e) {
+    console.error('Delete failed:', e);
+    showModalAlert('Delete failed', e.message || 'Could not delete event.');
+  }
+}
+
+function calOpenSettings() {
+  var existing = document.getElementById('cal-settings-modal');
+  if (existing) existing.remove();
+
+  var modal = document.createElement('div');
+  modal.id = 'cal-settings-modal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;padding:24px;';
+  modal.onclick = function(e) { if (e.target === modal) modal.remove(); };
+  modal.innerHTML = '<div style="background:#0f0f1a;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:24px;max-width:420px;width:100%;">'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">'
+    + '<h3 style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.3px;">Calendar Settings</h3>'
+    + '<button onclick="document.getElementById(\'cal-settings-modal\').remove()" style="background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:4px;">✕</button>'
+    + '</div>'
+    + '<div style="margin-bottom:18px;"><label style="display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:500;">Time Zone</label>'
+    + '<select id="cal-tz-select" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;"></select>'
+    + '<p style="font-size:11px;color:var(--muted);margin-top:6px;">Used for displaying event times. Stored locally.</p></div>'
+    + '<button onclick="calSaveSettings()" style="width:100%;padding:12px;background:var(--accent);border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Save</button>'
+    + '</div>';
+  document.body.appendChild(modal);
+
+  // Populate timezones
+  var commonTzs = ['America/Los_Angeles','America/Denver','America/Chicago','America/New_York','America/Toronto','America/Mexico_City','America/Sao_Paulo','Europe/London','Europe/Berlin','Europe/Paris','Europe/Madrid','Europe/Moscow','Africa/Cairo','Africa/Johannesburg','Asia/Dubai','Asia/Kolkata','Asia/Bangkok','Asia/Shanghai','Asia/Tokyo','Asia/Singapore','Australia/Sydney','Pacific/Auckland'];
+  var sel = document.getElementById('cal-tz-select');
+  // Add user's detected tz if not in list
+  if (commonTzs.indexOf(calState.timezone) === -1) commonTzs.unshift(calState.timezone);
+  sel.innerHTML = commonTzs.map(function(tz) {
+    return '<option value="' + tz + '"' + (tz === calState.timezone ? ' selected' : '') + '>' + tz.replace(/_/g, ' ') + '</option>';
+  }).join('');
+}
+
+function calSaveSettings() {
+  var tz = document.getElementById('cal-tz-select').value;
+  calState.timezone = tz;
+  try { localStorage.setItem('ryxa_cal_tz', tz); } catch (e) {}
+  document.getElementById('cal-settings-modal').remove();
+  calRender();
 }
 
 var clientsData = [];
