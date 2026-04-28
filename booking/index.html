@@ -1,1 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<title>Booking — Ryxa</title>
+<meta name="description" content="Book a private session on Ryxa.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a14;
+    --surface: #12121e;
+    --surface2: #16162a;
+    --border: rgba(255,255,255,0.06);
+    --border-hover: rgba(255,255,255,0.12);
+    --text: #eee;
+    --muted: rgba(255,255,255,0.45);
+    --accent: #7c3aed;
+    --accent2: #a855f7;
+    --accent-glow: rgba(124,58,237,0.35);
+  }
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
 
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: rgba(168,85,247,0.4); border-radius: 10px; }
+  html { scrollbar-width: thin; scrollbar-color: rgba(168,85,247,0.4) var(--bg); }
+
+  .loading { display: flex; align-items: center; justify-content: center; min-height: 60vh; color: var(--muted); font-size: 14px; }
+  .error-page { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; text-align: center; padding: 40px 24px; }
+
+  .nav { padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+  .nav-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text); font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; letter-spacing: -0.4px; }
+  .nav-logo img { width: 28px; height: 28px; border-radius: 6px; }
+
+  .coaching-hero { max-width: 720px; margin: 0 auto; padding: 48px 24px; }
+  .coaching-cover { width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 16px; margin-bottom: 32px; border: 1px solid var(--border); display: block; }
+  .coaching-cover-placeholder { width: 100%; aspect-ratio: 16/9; background: linear-gradient(135deg, rgba(124,58,237,0.15), rgba(232,121,249,0.1)); border-radius: 16px; margin-bottom: 32px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); }
+  .coaching-title { font-family: 'Syne', sans-serif; font-size: clamp(28px, 5vw, 40px); font-weight: 800; letter-spacing: -1.2px; line-height: 1.1; margin-bottom: 12px; }
+  .coaching-creator { font-size: 14px; color: var(--muted); margin-bottom: 20px; }
+  .coaching-creator a { color: var(--accent2); text-decoration: none; font-weight: 600; }
+  .coaching-meta { display: flex; align-items: center; gap: 16px; margin-bottom: 28px; flex-wrap: wrap; }
+  .coaching-meta-item { display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--muted); }
+  .coaching-meta-item svg { flex-shrink: 0; }
+  .coaching-price { font-size: 28px; font-weight: 700; color: var(--text); }
+  .coaching-desc { font-size: 15px; line-height: 1.8; color: var(--muted); margin-bottom: 16px; white-space: pre-line; }
+
+  .coaching-buy-btn { width: 100%; padding: 16px; background: var(--accent); color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer; box-shadow: 0 0 30px var(--accent-glow); transition: all 0.15s; }
+  .coaching-buy-btn:hover { transform: translateY(-1px); box-shadow: 0 0 40px var(--accent-glow); }
+  .coaching-buy-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+  /* Date/Time Picker for Ryxa Calendar */
+  .picker-wrap { max-width: 720px; margin: 0 auto; padding: 32px 24px; }
+  .picker-back { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; text-decoration: none; margin-bottom: 16px; padding: 6px 10px; border-radius: 6px; background: transparent; border: 1px solid var(--border); cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s; }
+  .picker-back:hover { color: var(--text); border-color: var(--border-hover); }
+  .picker-h1 { font-family: 'Syne', sans-serif; font-size: clamp(22px, 4vw, 28px); font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px; }
+  .picker-sub { font-size: 14px; color: var(--muted); margin-bottom: 28px; line-height: 1.6; }
+  .picker-section-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; margin-bottom: 12px; display: block; }
+  .picker-date-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; margin-bottom: 28px; }
+  .picker-date-btn { padding: 12px 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; cursor: pointer; text-align: center; transition: all 0.15s; font-family: 'DM Sans', sans-serif; }
+  .picker-date-btn:hover:not(.disabled) { border-color: var(--border-hover); }
+  .picker-date-btn.selected { background: var(--accent); border-color: var(--accent); }
+  .picker-date-btn.selected .picker-date-num, .picker-date-btn.selected .picker-date-day, .picker-date-btn.selected .picker-date-mo { color: #fff; }
+  .picker-date-btn.disabled { opacity: 0.3; cursor: not-allowed; }
+  .picker-date-day { font-size: 11px; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; font-weight: 600; }
+  .picker-date-num { font-size: 20px; color: var(--text); font-weight: 700; font-family: 'Syne', sans-serif; }
+  .picker-date-mo { font-size: 10px; color: var(--muted); margin-top: 2px; text-transform: uppercase; }
+  .picker-time-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; margin-bottom: 28px; }
+  .picker-time-btn { padding: 12px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; cursor: pointer; text-align: center; font-size: 14px; font-weight: 500; color: var(--text); font-family: 'DM Sans', sans-serif; transition: all 0.15s; }
+  .picker-time-btn:hover { border-color: var(--accent); }
+  .picker-time-btn.selected { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .picker-empty { padding: 24px; text-align: center; color: var(--muted); font-size: 13px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 28px; }
+  .picker-tz-info { font-size: 12px; color: var(--muted); margin-bottom: 16px; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; display: inline-block; }
+  .picker-summary { padding: 14px 18px; background: rgba(124,58,237,0.08); border: 1px solid rgba(124,58,237,0.25); border-radius: 12px; margin-bottom: 16px; }
+  .picker-summary-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+  .picker-summary-value { font-size: 15px; color: var(--text); font-weight: 600; }
+
+  .coaching-footer { text-align: center; padding: 32px 24px; font-size: 12px; color: var(--muted); }
+  .coaching-footer a { color: var(--accent2); text-decoration: none; }
+
+  /* Confirmation page */
+  .confirm-wrap { max-width: 720px; margin: 0 auto; padding: 48px 24px; text-align: center; }
+  .confirm-icon { width: 64px; height: 64px; margin: 0 auto 20px; background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+  .confirm-title { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; letter-spacing: -0.8px; margin-bottom: 8px; }
+  .confirm-sub { font-size: 15px; color: var(--muted); line-height: 1.6; margin-bottom: 32px; }
+  .calendly-embed { margin-bottom: 32px; border-radius: 12px; overflow: hidden; }
+  .confirm-manual { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 32px; }
+  .confirm-manual p { font-size: 14px; color: var(--muted); line-height: 1.6; }
+  .confirm-back-btn { display: inline-block; padding: 10px 24px; background: transparent; border: 1px solid var(--border-hover); color: var(--muted); border-radius: 8px; font-size: 13px; font-family: 'DM Sans', sans-serif; text-decoration: none; transition: all 0.15s; }
+  .confirm-back-btn:hover { border-color: var(--accent); color: var(--text); }
+
+  @media (max-width: 600px) {
+    .nav { padding: 14px 18px; }
+    .coaching-hero { padding: 32px 18px; }
+    .coaching-meta { gap: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo">
+    <img src="/logo.png" alt="Ryxa">
+    Ryxa
+  </a>
+</nav>
+
+<div id="loading" class="loading">Loading...</div>
+<div id="error-page" class="error-page" style="display:none;">
+  <div style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;margin-bottom:8px;">Not Found</div>
+  <p style="color:var(--muted);font-size:14px;margin-bottom:24px;">This booking page doesn't exist or isn't published yet.</p>
+  <a href="/" style="color:var(--accent2);font-size:14px;text-decoration:none;">Back to Ryxa</a>
+</div>
+
+<!-- Main landing page -->
+<div id="coaching-page" style="display:none;">
+  <div class="coaching-hero">
+    <div id="cp-cover"></div>
+    <h1 class="coaching-title" id="cp-title"></h1>
+    <div class="coaching-creator" id="cp-creator"></div>
+    <div class="coaching-meta" id="cp-meta"></div>
+    <div id="cp-buy-area" style="margin-bottom:28px;"></div>
+    <div class="coaching-desc" id="cp-desc"></div>
+  </div>
+  <div class="coaching-footer">
+    Powered by <a href="/">Ryxa</a> · 1:1 Booking Platform
+  </div>
+</div>
+
+<!-- Ryxa Calendar Picker Page -->
+<div id="picker-page" style="display:none;">
+  <div class="picker-wrap">
+    <button class="picker-back" onclick="closePicker()">← Back</button>
+    <h1 class="picker-h1">Pick a date and time</h1>
+    <p class="picker-sub" id="picker-sub">Choose when you'd like your session.</p>
+
+    <div class="picker-tz-info" id="picker-tz">Your timezone: <span id="picker-tz-name"></span></div>
+
+    <span class="picker-section-label">Select a date</span>
+    <div class="picker-date-grid" id="picker-dates"></div>
+
+    <span class="picker-section-label">Available times</span>
+    <div id="picker-times-wrap"></div>
+
+    <div id="picker-summary-wrap" style="display:none;">
+      <div class="picker-summary">
+        <div class="picker-summary-label">Your session</div>
+        <div class="picker-summary-value" id="picker-summary-text"></div>
+      </div>
+      <button class="coaching-buy-btn" id="picker-confirm-btn" onclick="confirmPickerSelection()">Continue to Checkout</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirmation page (after payment) -->
+<div id="confirm-page" style="display:none;">
+  <div class="confirm-wrap">
+    <div class="confirm-icon">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <div class="confirm-title">Booking Confirmed!</div>
+    <div class="confirm-sub" id="confirm-sub">Your payment was successful.</div>
+    <div id="confirm-body"></div>
+    <a href="/" class="confirm-back-btn">Back to Ryxa</a>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtqeXRhcGNneHVrYWx3c3lwdXRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMTcxMzEsImV4cCI6MjA5MDg5MzEzMX0.VC8mcU5lUeA56kG2gHssvl88EVWr018XttA86jpfEn0';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let coachingData = null;
+
+async function init() {
+  const params = new URLSearchParams(window.location.search);
+
+  // Check if returning from successful checkout
+  if (params.get('success') === '1') {
+    await showConfirmation(params.get('coaching_id'));
+    return;
+  }
+
+  // Get slug from URL path
+  const pathParts = window.location.pathname.split('/').filter(Boolean);
+  const slug = pathParts[pathParts.length - 1];
+  if (!slug || slug === 'coaching') { showError(); return; }
+
+  // Load coaching service
+  const { data: coaching, error } = await sb
+    .from('coaching_services')
+    .select('*')
+    .eq('slug', slug)
+    .eq('status', 'published')
+    .single();
+
+  if (error || !coaching) { showError(); return; }
+  coachingData = coaching;
+
+  // Load creator name and currency
+  const { data: profile } = await sb.from('profiles').select('username, display_currency, calendar_timezone').eq('user_id', coaching.user_id).maybeSingle();
+  const creatorName = profile?.username || 'Creator';
+  // Stash the creator's display currency for price formatting
+  window._creatorCurrency = (profile && profile.display_currency) ? profile.display_currency : 'USD';
+  // Stash the creator's timezone — slot generation uses this so bookers in any
+  // timezone see the creator's actual working hours (converted to their local).
+  // Fall back to UTC if not set (older accounts before this field existed).
+  window._creatorTimezone = (profile && profile.calendar_timezone) ? profile.calendar_timezone : 'UTC';
+
+  document.title = coaching.title + ' — Ryxa';
+  const metaDesc = document.querySelector('meta[name="description"]');
+  if (metaDesc) metaDesc.content = (coaching.description || '').slice(0, 160);
+
+  // Check auth state for button text
+  var { data: { session } } = await sb.auth.getSession();
+  renderCoaching(coaching, creatorName, !!session?.user);
+
+  // Track page view
+  if (creatorName && creatorName !== 'Creator') {
+    trackPageView(creatorName, 'coaching', coaching.id);
+  }
+}
+
+async function trackPageView(username, pageType, productId) {
+  try {
+    var raw = [navigator.userAgent || '', navigator.language || '', screen.width + 'x' + screen.height, new Date().getTimezoneOffset().toString()].join('|');
+    var msgBuf = new TextEncoder().encode(raw);
+    var hashBuf = await crypto.subtle.digest('SHA-256', msgBuf);
+    var hashArr = Array.from(new Uint8Array(hashBuf));
+    var visitorHash = hashArr.map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
+    var params = { p_username: username, p_page_type: pageType, p_visitor_hash: visitorHash };
+    if (productId) params.p_product_id = productId;
+    await sb.rpc('record_page_view', params);
+  } catch (e) { console.error('trackPageView failed:', e); }
+}
+
+function showError() {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('error-page').style.display = 'flex';
+}
+
+function escapeHtml(s) {
+  if (s == null) return '';
+  return String(s).replace(/[&<>"']/g, function(c) {
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+
+function formatDuration(minutes) {
+  if (!minutes) return '';
+  if (minutes < 60) return minutes + ' min';
+  var hrs = Math.floor(minutes / 60);
+  var mins = minutes % 60;
+  if (mins === 0) return hrs + ' hour' + (hrs > 1 ? 's' : '');
+  return hrs + 'h ' + mins + 'min';
+}
+
+function renderCoaching(coaching, creatorName, isLoggedIn) {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('coaching-page').style.display = 'block';
+
+  // Format a cents amount in the creator's currency
+  function fmtPrice(cents) {
+    var code = window._creatorCurrency || 'USD';
+    var localeMap = { USD:'en-US', EUR:'en-IE', GBP:'en-GB', CAD:'en-CA', AUD:'en-AU', JPY:'ja-JP', INR:'en-IN', BRL:'pt-BR', MXN:'es-MX', CHF:'de-CH', SGD:'en-SG', SEK:'sv-SE', NOK:'nb-NO', NZD:'en-NZ', ZAR:'en-ZA' };
+    var locale = localeMap[code] || 'en-US';
+    var fractionDigits = (code === 'JPY') ? 0 : 2;
+    try {
+      return new Intl.NumberFormat(locale, { style:'currency', currency:code, minimumFractionDigits:fractionDigits, maximumFractionDigits:fractionDigits }).format(cents / 100);
+    } catch (e) {
+      return '$' + (cents / 100).toFixed(fractionDigits);
+    }
+  }
+
+  // Cover
+  var coverEl = document.getElementById('cp-cover');
+  if (coaching.cover_image_path) {
+    var url = sb.storage.from('coaching-covers').getPublicUrl(coaching.cover_image_path).data.publicUrl;
+    coverEl.innerHTML = '<img class="coaching-cover" src="' + url + '" alt="Coaching session cover">';
+  } else {
+    coverEl.innerHTML = '<div class="coaching-cover-placeholder"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="rgba(167,139,250,0.5)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>';
+  }
+
+  // Title & creator
+  document.getElementById('cp-title').textContent = coaching.title;
+  document.getElementById('cp-creator').innerHTML = 'by <a href="/' + escapeHtml(creatorName) + '">' + escapeHtml(creatorName) + '</a>';
+
+  // Meta (price + duration)
+  var metaHtml = '';
+  if (coaching.price_cents > 0) {
+    metaHtml += '<div class="coaching-price">' + fmtPrice(coaching.price_cents) + '</div>';
+  } else {
+    metaHtml += '<div class="coaching-price" style="color:#4ade80;">Free</div>';
+  }
+  if (coaching.duration_minutes) {
+    metaHtml += '<div class="coaching-meta-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>' + formatDuration(coaching.duration_minutes) + '</div>';
+  }
+  var bookingLabel = coaching.booking_type === 'ryxa_calendar' ? 'Pick a Time' : (coaching.booking_type === 'calendly' ? 'Scheduling Link' : 'Manual Booking');
+  metaHtml += '<div class="coaching-meta-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>' + bookingLabel + '</div>';
+  document.getElementById('cp-meta').innerHTML = metaHtml;
+
+  // Description
+  document.getElementById('cp-desc').textContent = coaching.description || '';
+
+  // Buy button
+  var buyArea = document.getElementById('cp-buy-area');
+  var consentHtml = isLoggedIn ? '<label style="display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer;font-size:13px;color:var(--muted);"><input type="checkbox" id="marketing-consent" style="accent-color:#7c3aed;width:16px;height:16px;cursor:pointer;"> Get updates from this creator</label>' : '';
+  if (coaching.price_cents === 0) {
+    buyArea.innerHTML = '<button class="coaching-buy-btn" onclick="bookCoaching()">' + (isLoggedIn ? 'Proceed to Booking' : 'Book for Free') + '</button>' + consentHtml;
+  } else {
+    buyArea.innerHTML = '<button class="coaching-buy-btn" onclick="bookCoaching()">' + (isLoggedIn ? 'Proceed to Booking' : 'Book Now') + '</button>' + consentHtml;
+  }
+}
+
+async function bookCoaching() {
+  var { data: { session } } = await sb.auth.getSession();
+  if (!session?.user) {
+    window.location.href = '/learn/?redirect=' + encodeURIComponent(window.location.pathname);
+    return;
+  }
+
+  // For Ryxa Calendar bookings, show the date/time picker first
+  if (coachingData.booking_type === 'ryxa_calendar') {
+    showPicker();
+    return;
+  }
+
+  await proceedWithBooking(null);
+}
+
+async function proceedWithBooking(slotInfo) {
+  var btn = document.querySelector('.coaching-buy-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Booking...'; }
+
+  try {
+    var consentCheck = document.getElementById('marketing-consent');
+    var marketingConsent = consentCheck ? consentCheck.checked : false;
+
+    var requestBody = {
+      coaching_id: coachingData.id,
+      marketing_consent: marketingConsent
+    };
+
+    // Add slot info for Ryxa Calendar bookings
+    if (slotInfo) {
+      requestBody.slot_start = slotInfo.start_at;
+      requestBody.slot_end = slotInfo.end_at;
+      requestBody.slot_timezone = slotInfo.timezone;
+      requestBody.reservation_id = slotInfo.reservation_id;
+    }
+
+    if (coachingData.price_cents === 0) {
+      // Free booking
+      requestBody.free_booking = true;
+      var { data, error } = await sb.functions.invoke('create-coaching-checkout', { body: requestBody });
+      if (error || !data || data.error) {
+        throw new Error((data && data.error) || error?.message || 'Failed to book');
+      }
+      window.location.href = '/booking/' + coachingData.slug + '?success=1&coaching_id=' + coachingData.id;
+      return;
+    }
+
+    // Paid booking — Stripe checkout
+    requestBody.success_url = window.location.origin + '/booking/' + coachingData.slug + '?success=1&coaching_id=' + coachingData.id;
+    requestBody.cancel_url = window.location.href;
+
+    var { data, error } = await sb.functions.invoke('create-coaching-checkout', { body: requestBody });
+    if (error || !data || data.error) {
+      throw new Error((data && data.error) || error?.message || 'Failed to create checkout');
+    }
+    window.location.href = data.checkout_url;
+  } catch (err) {
+    if (btn) { btn.disabled = false; btn.textContent = 'Book Now'; }
+    alert('Failed: ' + err.message);
+  }
+}
+
+// =====================
+// RYXA CALENDAR PICKER
+// =====================
+var pickerState = {
+  selectedDate: null, // YYYY-MM-DD
+  selectedTime: null, // ISO start
+  selectedSlot: null, // full slot object
+  bookedSlots: [], // existing bookings { start_at, end_at }
+  reservedSlots: [], // active reservations { start_at, end_at }
+  bookerTz: Intl.DateTimeFormat().resolvedOptions().timeZone
+};
+
+async function showPicker() {
+  document.getElementById('coaching-page').style.display = 'none';
+  document.getElementById('picker-page').style.display = 'block';
+  document.getElementById('picker-tz-name').textContent = pickerState.bookerTz.replace(/_/g, ' ');
+
+  // Get marketing consent before navigating away
+  var consentCheck = document.getElementById('marketing-consent');
+  pickerState.marketingConsent = consentCheck ? consentCheck.checked : false;
+
+  // Load existing bookings + active reservations
+  await loadBookedSlots();
+
+  renderPickerDates();
+  document.getElementById('picker-times-wrap').innerHTML = '<div class="picker-empty">Select a date to see available times.</div>';
+  document.getElementById('picker-summary-wrap').style.display = 'none';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function closePicker() {
+  document.getElementById('picker-page').style.display = 'none';
+  document.getElementById('coaching-page').style.display = 'block';
+  pickerState.selectedDate = null;
+  pickerState.selectedTime = null;
+  pickerState.selectedSlot = null;
+}
+
+async function loadBookedSlots() {
+  pickerState.bookedSlots = [];
+  pickerState.reservedSlots = [];
+  try {
+    // Step 1: get all of this creator's coaching service IDs.
+    // We need this so we can find bookings/reservations across ALL their services
+    // (not just the one being viewed) to prevent double-booking.
+    var { data: services } = await sb.from('coaching_services')
+      .select('id')
+      .eq('user_id', coachingData.user_id);
+    var serviceIds = (services || []).map(function(s) { return s.id; });
+
+    // Existing confirmed bookings — across all of the creator's services
+    if (serviceIds.length > 0) {
+      var { data: bookings } = await sb.from('coaching_bookings')
+        .select('slot_start, slot_end')
+        .in('coaching_id', serviceIds)
+        .not('slot_start', 'is', null);
+      if (bookings) {
+        pickerState.bookedSlots = pickerState.bookedSlots.concat(bookings.map(function(b) {
+          return { start_at: b.slot_start, end_at: b.slot_end };
+        }));
+      }
+    }
+
+    // Calendar events — manually added events also block slots so the creator
+    // doesn't get double-booked over personal events. We use an RPC that returns
+    // only start/end times (no titles or notes) to keep events private.
+    var { data: busyEvents } = await sb.rpc('get_creator_busy_slots', {
+      p_creator_id: coachingData.user_id
+    });
+    if (busyEvents && busyEvents.length) {
+      pickerState.bookedSlots = pickerState.bookedSlots.concat(busyEvents.map(function(e) {
+        return { start_at: e.start_at, end_at: e.end_at };
+      }));
+    }
+
+    // Active reservations (not yet expired) — also check across all services
+    var nowIso = new Date().toISOString();
+    if (serviceIds.length > 0) {
+      var { data: reservations } = await sb.from('coaching_slot_reservations')
+        .select('slot_start, slot_end')
+        .in('coaching_id', serviceIds)
+        .gt('expires_at', nowIso);
+      if (reservations) {
+        pickerState.reservedSlots = reservations.map(function(r) {
+          return { start_at: r.slot_start, end_at: r.slot_end };
+        });
+      }
+    }
+  } catch (e) {
+    console.warn('Could not load existing slots:', e);
+  }
+}
+
+function renderPickerDates() {
+  var avail = coachingData.availability_settings || {};
+  var windowDays = avail.booking_window_days || 14;
+  var leadHours = typeof avail.lead_time_hours === 'number' ? avail.lead_time_hours : 24;
+  var dayKeys = ['sun','mon','tue','wed','thu','fri','sat'];
+  var monthsShort = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  var earliest = new Date(Date.now() + leadHours * 60 * 60 * 1000);
+  var html = '';
+  var hasAny = false;
+
+  for (var i = 0; i < windowDays; i++) {
+    var date = new Date();
+    date.setDate(date.getDate() + i);
+    date.setHours(0, 0, 0, 0);
+
+    var dayKey = dayKeys[date.getDay()];
+    var dayConf = (avail.days && avail.days[dayKey]) || { enabled: false };
+    var ymd = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+
+    // Disable if day not enabled, or if entire day is before lead time
+    var dayEnd = new Date(date);
+    dayEnd.setHours(23, 59, 59, 999);
+    var disabled = !dayConf.enabled || dayEnd < earliest;
+
+    var weekdayLabel = ['SUN','MON','TUE','WED','THU','FRI','SAT'][date.getDay()];
+    var btnClass = 'picker-date-btn' + (disabled ? ' disabled' : '') + (pickerState.selectedDate === ymd ? ' selected' : '');
+    var onClick = disabled ? '' : ' onclick="selectPickerDate(\'' + ymd + '\')"';
+
+    html += '<button class="' + btnClass + '"' + onClick + '>'
+      + '<div class="picker-date-day">' + weekdayLabel + '</div>'
+      + '<div class="picker-date-num">' + date.getDate() + '</div>'
+      + '<div class="picker-date-mo">' + monthsShort[date.getMonth()] + '</div>'
+      + '</button>';
+    if (!disabled) hasAny = true;
+  }
+
+  document.getElementById('picker-dates').innerHTML = html;
+  if (!hasAny) {
+    document.getElementById('picker-times-wrap').innerHTML = '<div class="picker-empty">No available dates in the booking window. Please contact the creator directly.</div>';
+  }
+}
+
+function selectPickerDate(ymd) {
+  pickerState.selectedDate = ymd;
+  pickerState.selectedTime = null;
+  pickerState.selectedSlot = null;
+  document.getElementById('picker-summary-wrap').style.display = 'none';
+  renderPickerDates();
+  renderPickerTimes();
+}
+
+// Build a UTC Date object for a given local time in a specific IANA timezone.
+// E.g., creatorLocalToUtc('2026-04-29', 9, 0, 'America/Los_Angeles') returns
+// the Date corresponding to "9:00 AM PDT on April 29, 2026" in UTC.
+function creatorLocalToUtc(ymd, hours, minutes, timezone) {
+  var parts = ymd.split('-').map(Number);
+  // First, build a candidate UTC time treating the local fields naively
+  var naiveUtc = Date.UTC(parts[0], parts[1] - 1, parts[2], hours, minutes, 0, 0);
+  // Now figure out what that same instant looks like in the target timezone
+  // and compute the offset between naive and actual
+  var dtf = new Intl.DateTimeFormat('en-US', {
+    timeZone: timezone,
+    hour12: false,
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit'
+  });
+  var fParts = {};
+  dtf.formatToParts(new Date(naiveUtc)).forEach(function(p) {
+    if (p.type !== 'literal') fParts[p.type] = parseInt(p.value, 10);
+  });
+  // Treat fParts as if it's UTC, find the difference from naiveUtc
+  var asUtc = Date.UTC(
+    fParts.year, fParts.month - 1, fParts.day,
+    fParts.hour === 24 ? 0 : fParts.hour, fParts.minute, fParts.second
+  );
+  var offset = naiveUtc - asUtc;
+  // The actual UTC moment is naiveUtc + offset
+  return new Date(naiveUtc + offset);
+}
+
+// Get the day-of-week (0=Sun..6=Sat) for a YYYY-MM-DD date as it falls in a specific timezone
+function dayOfWeekInTz(ymd, timezone) {
+  // Use noon UTC of that date to avoid edge-case timezone shifts crossing midnight
+  var parts = ymd.split('-').map(Number);
+  var noonUtc = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2], 12, 0, 0));
+  var dayName = new Intl.DateTimeFormat('en-US', { timeZone: timezone, weekday: 'short' }).format(noonUtc);
+  var map = { Sun:0, Mon:1, Tue:2, Wed:3, Thu:4, Fri:5, Sat:6 };
+  return map[dayName] != null ? map[dayName] : new Date(parts[0], parts[1] - 1, parts[2]).getDay();
+}
+
+function renderPickerTimes() {
+  var avail = coachingData.availability_settings || {};
+  var duration = avail.duration_minutes || 30;
+  var buffer = typeof avail.buffer_minutes === 'number' ? avail.buffer_minutes : 0;
+  var leadHours = typeof avail.lead_time_hours === 'number' ? avail.lead_time_hours : 24;
+  var dayKeys = ['sun','mon','tue','wed','thu','fri','sat'];
+
+  var creatorTz = window._creatorTimezone || 'UTC';
+  // Day-of-week is determined in the CREATOR's timezone — that's whose schedule we follow
+  var dayKey = dayKeys[dayOfWeekInTz(pickerState.selectedDate, creatorTz)];
+  var dayConf = (avail.days && avail.days[dayKey]) || null;
+
+  if (!dayConf || !dayConf.enabled) {
+    document.getElementById('picker-times-wrap').innerHTML = '<div class="picker-empty">Not available on this day.</div>';
+    return;
+  }
+
+  var startParts = (dayConf.start || '09:00').split(':').map(Number);
+  var endParts = (dayConf.end || '17:00').split(':').map(Number);
+
+  // Generate slots in CREATOR's timezone (their working hours), then display in BOOKER's local time
+  // Each slot's start/end is a real UTC moment, regardless of who's viewing
+  var slotStart = creatorLocalToUtc(pickerState.selectedDate, startParts[0], startParts[1], creatorTz);
+  var dayEnd = creatorLocalToUtc(pickerState.selectedDate, endParts[0], endParts[1], creatorTz);
+
+  var earliest = new Date(Date.now() + leadHours * 60 * 60 * 1000);
+  var slots = [];
+
+  while (slotStart.getTime() + duration * 60 * 1000 <= dayEnd.getTime()) {
+    var slotEnd = new Date(slotStart.getTime() + duration * 60 * 1000);
+
+    // Check lead time
+    if (slotStart < earliest) {
+      slotStart = new Date(slotStart.getTime() + 15 * 60 * 1000);
+      continue;
+    }
+
+    // Check if conflicts with booked or reserved slot
+    var startIso = slotStart.toISOString();
+    var endIso = slotEnd.toISOString();
+    var conflict = false;
+    var allBlocked = pickerState.bookedSlots.concat(pickerState.reservedSlots);
+    for (var i = 0; i < allBlocked.length; i++) {
+      var bs = new Date(allBlocked[i].start_at).getTime();
+      var be = new Date(allBlocked[i].end_at).getTime();
+      var ss = slotStart.getTime();
+      var se = slotEnd.getTime();
+      // Overlap check
+      if (ss < be && se > bs) { conflict = true; break; }
+    }
+
+    if (!conflict) {
+      slots.push({ start: new Date(slotStart), end: slotEnd });
+    }
+
+    // Advance by duration + buffer
+    slotStart = new Date(slotStart.getTime() + (duration + buffer) * 60 * 1000);
+  }
+
+  if (slots.length === 0) {
+    document.getElementById('picker-times-wrap').innerHTML = '<div class="picker-empty">No available times on this date. Try another day.</div>';
+    return;
+  }
+
+  var html = '<div class="picker-time-grid">';
+  slots.forEach(function(s) {
+    // Display in the BOOKER's local timezone (toLocaleTimeString defaults to local)
+    var label = s.start.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+    var iso = s.start.toISOString();
+    var endIso = s.end.toISOString();
+    var selectedClass = pickerState.selectedTime === iso ? ' selected' : '';
+    html += '<button class="picker-time-btn' + selectedClass + '" onclick="selectPickerTime(\'' + iso + '\', \'' + endIso + '\')">' + label + '</button>';
+  });
+  html += '</div>';
+  document.getElementById('picker-times-wrap').innerHTML = html;
+}
+
+function selectPickerTime(startIso, endIso) {
+  pickerState.selectedTime = startIso;
+  pickerState.selectedSlot = { start_at: startIso, end_at: endIso, timezone: pickerState.bookerTz };
+  renderPickerTimes();
+
+  // Show summary
+  var startDate = new Date(startIso);
+  var endDate = new Date(endIso);
+  var dateStr = startDate.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
+  var timeStr = startDate.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) + ' - ' + endDate.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+  document.getElementById('picker-summary-text').textContent = dateStr + ' at ' + timeStr;
+  document.getElementById('picker-summary-wrap').style.display = 'block';
+}
+
+async function confirmPickerSelection() {
+  if (!pickerState.selectedSlot) return;
+
+  var btn = document.getElementById('picker-confirm-btn');
+  btn.disabled = true;
+  btn.textContent = 'Reserving slot...';
+
+  try {
+    // Create slot reservation (10-min hold)
+    var { data: { session } } = await sb.auth.getSession();
+    if (!session?.user) throw new Error('Sign in required');
+
+    var expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+    var { data: reservation, error } = await sb.from('coaching_slot_reservations').insert({
+      coaching_id: coachingData.id,
+      booker_id: session.user.id,
+      slot_start: pickerState.selectedSlot.start_at,
+      slot_end: pickerState.selectedSlot.end_at,
+      booker_timezone: pickerState.bookerTz,
+      expires_at: expiresAt
+    }).select().single();
+
+    if (error) throw error;
+
+    // Pass reservation info to checkout flow
+    pickerState.selectedSlot.reservation_id = reservation.id;
+
+    // Restore consent state for proceedWithBooking
+    var consentCheck = document.getElementById('marketing-consent');
+    if (consentCheck) consentCheck.checked = pickerState.marketingConsent;
+
+    await proceedWithBooking(pickerState.selectedSlot);
+  } catch (err) {
+    btn.disabled = false;
+    btn.textContent = 'Continue to Checkout';
+    alert('Could not reserve slot: ' + err.message + '. Someone may have just booked it. Please pick another time.');
+    // Reload booked slots in case it was taken
+    await loadBookedSlots();
+    renderPickerTimes();
+  }
+}
+
+async function showConfirmation(coachingId) {
+  document.getElementById('loading').style.display = 'none';
+
+  // Load coaching data for confirmation
+  if (coachingId) {
+    var { data: coaching } = await sb.from('coaching_services').select('*').eq('id', coachingId).maybeSingle();
+    if (coaching) {
+      document.getElementById('confirm-sub').textContent = 'Your payment for "' + coaching.title + '" was successful.';
+
+      // Get creator contact info
+      var { data: creatorProfile } = await sb.from('profiles').select('username').eq('user_id', coaching.user_id).maybeSingle();
+      var creatorName = creatorProfile?.username || '';
+      var { data: creatorUser } = await sb.auth.admin?.getUserById?.(coaching.user_id) || {};
+      
+      // Try to get creator email from a different approach - load from profiles or use username bio link
+      var contactHtml = '<div style="margin-top:20px;margin-bottom:24px;padding:14px 18px;background:var(--surface);border:1px solid var(--border);border-radius:10px;text-align:center;">'
+        + '<p style="font-size:13px;color:var(--muted);margin-bottom:6px;">Having trouble booking?</p>';
+      if (creatorName) {
+        contactHtml += '<p style="font-size:13px;color:var(--muted);">Visit the creator\'s page: <a href="/' + escapeHtml(creatorName) + '" style="color:var(--accent2);text-decoration:none;font-weight:600;">@' + escapeHtml(creatorName) + '</a></p>';
+      }
+      contactHtml += '</div>';
+
+      var bodyEl = document.getElementById('confirm-body');
+      if (coaching.booking_type === 'ryxa_calendar') {
+        // Look up the booking with slot info
+        try {
+          var { data: { session } } = await sb.auth.getSession();
+          if (session?.user) {
+            var { data: booking } = await sb.from('coaching_bookings')
+              .select('slot_start, slot_end')
+              .eq('coaching_id', coachingId)
+              .eq('user_id', session.user.id)
+              .order('created_at', { ascending: false })
+              .limit(1)
+              .maybeSingle();
+            if (booking && booking.slot_start) {
+              var startDate = new Date(booking.slot_start);
+              var endDate = new Date(booking.slot_end);
+              var dateStr = startDate.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
+              var timeStr = startDate.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) + ' - ' + endDate.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+              bodyEl.innerHTML = '<div class="confirm-manual">'
+                + '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:10px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>'
+                + '<p style="font-size:15px;color:var(--text);margin-bottom:8px;font-weight:600;">' + escapeHtml(dateStr) + '</p>'
+                + '<p style="font-size:14px;color:var(--muted);">' + escapeHtml(timeStr) + '</p>'
+                + '<p style="font-size:13px;color:var(--muted);margin-top:14px;">Your session is confirmed. The creator will reach out with meeting details.</p>'
+                + '</div>' + contactHtml;
+            } else {
+              bodyEl.innerHTML = '<div class="confirm-manual"><p>Your booking is confirmed. The creator will reach out shortly.</p></div>' + contactHtml;
+            }
+          }
+        } catch (e) {
+          bodyEl.innerHTML = '<div class="confirm-manual"><p>Your booking is confirmed. The creator will reach out shortly.</p></div>' + contactHtml;
+        }
+      } else if (coaching.booking_type === 'calendly' && coaching.calendly_url) {
+        bodyEl.innerHTML = '<div class="calendly-embed" style="min-height:600px;"><iframe src="' + escapeHtml(coaching.calendly_url) + '" width="100%" height="700" frameborder="0" style="border-radius:12px;" id="scheduling-iframe"></iframe></div>'
+          + '<p style="font-size:13px;color:var(--muted);margin-bottom:8px;">Pick a time that works for you above.</p>'
+          + '<p style="font-size:12px;color:var(--muted);margin-bottom:4px;">If the scheduler doesn\'t load, <a href="' + escapeHtml(coaching.calendly_url) + '" target="_blank" style="color:var(--accent2);">click here to open it directly</a>.</p>'
+          + contactHtml;
+      } else {
+        // Manual booking message
+        bodyEl.innerHTML = '<div class="confirm-manual">'
+          + '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:10px;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>'
+          + '<p>The creator will reach out to you via email to schedule your session. Keep an eye on your inbox!</p>'
+          + '</div>'
+          + contactHtml;
+      }
+    }
+  }
+
+  document.getElementById('confirm-page').style.display = 'block';
+}
+
+init();
+</script>
+</body>
+</html>
