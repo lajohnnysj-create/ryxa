@@ -15060,13 +15060,29 @@ function renderAvailabilityDays() {
       + '<input type="checkbox" ' + (enabled ? 'checked' : '') + ' onchange="toggleAvailDay(\'' + k + '\', this.checked)" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);">'
       + '<span style="font-size:13px;color:var(--text);font-weight:500;">' + dayLabels[k] + '</span>'
       + '</label>'
-      + '<div style="display:flex;align-items:center;gap:6px;flex:1;opacity:' + opacity + ';">'
-      + '<select ' + (enabled ? '' : 'disabled') + ' onchange="setAvailTime(\'' + k + '\', \'start\', this.value)" aria-label="' + dayLabels[k] + ' start time" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:6px 24px 6px 8px;color:var(--text);font-size:12px;font-family:DM Sans,sans-serif;outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url(\'data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;10&quot; height=&quot;10&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;%23999&quot; stroke-width=&quot;2.2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><polyline points=&quot;6 9 12 15 18 9&quot;/></svg>\');background-repeat:no-repeat;background-position:right 6px center;">' + calBuildTimeOptions(d.start) + '</select>'
+      + '<div style="display:flex;align-items:center;gap:6px;flex:1;opacity:' + opacity + ';flex-wrap:wrap;">'
+      + calBuildTimePicker('avail-' + k + '-start', d.start, !enabled)
       + '<span style="color:var(--muted);font-size:12px;">to</span>'
-      + '<select ' + (enabled ? '' : 'disabled') + ' onchange="setAvailTime(\'' + k + '\', \'end\', this.value)" aria-label="' + dayLabels[k] + ' end time" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:6px 24px 6px 8px;color:var(--text);font-size:12px;font-family:DM Sans,sans-serif;outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url(\'data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;10&quot; height=&quot;10&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;%23999&quot; stroke-width=&quot;2.2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><polyline points=&quot;6 9 12 15 18 9&quot;/></svg>\');background-repeat:no-repeat;background-position:right 6px center;">' + calBuildTimeOptions(d.end) + '</select>'
+      + calBuildTimePicker('avail-' + k + '-end', d.end, !enabled)
       + '</div>'
       + '</div>';
   }).join('');
+
+  // Wire up change handlers for the new picker dropdowns
+  dayKeys.forEach(function(k) {
+    ['start', 'end'].forEach(function(which) {
+      var prefix = 'avail-' + k + '-' + which;
+      ['h', 'm', 'p'].forEach(function(suffix) {
+        var el = document.getElementById(prefix + '-' + suffix);
+        if (el) {
+          el.addEventListener('change', function() {
+            var newVal = calReadTimePicker(prefix);
+            if (newVal) setAvailTime(k, which, newVal);
+          });
+        }
+      });
+    });
+  });
 }
 
 function toggleAvailDay(key, enabled) {
@@ -22782,6 +22798,65 @@ function calOpenAddEvent() {
   calOpenEventModal(null);
 }
 
+// Builds two adjacent dropdowns: one for hour (12-hr) and one for minute (15-min steps),
+// plus an AM/PM toggle. Value persists in 24-hour HH:MM format for compatibility.
+// Returns the HTML string. Reads the value via calReadTimePicker(prefix).
+function calBuildTimePicker(prefix, selectedValue, disabled) {
+  // Parse selected value (HH:MM 24-hour)
+  var parts = (selectedValue || '09:00').split(':').map(Number);
+  var h24 = parts[0];
+  var m = parts[1];
+  // Round minute to nearest 15 for spinner
+  m = Math.round(m / 15) * 15;
+  if (m === 60) { m = 0; h24 = (h24 + 1) % 24; }
+
+  var period = h24 >= 12 ? 'PM' : 'AM';
+  var h12 = h24 % 12;
+  if (h12 === 0) h12 = 12;
+
+  var dis = disabled ? ' disabled' : '';
+  var commonSelectStyle = 'background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px 22px 8px 10px;color:var(--text);font-size:13px;font-family:DM Sans,sans-serif;outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url(\'data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;10&quot; height=&quot;10&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;%23999&quot; stroke-width=&quot;2.2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><polyline points=&quot;6 9 12 15 18 9&quot;/></svg>\');background-repeat:no-repeat;background-position:right 6px center;text-align:center;text-align-last:center;';
+
+  // Hour options (1–12)
+  var hourOpts = '';
+  for (var i = 1; i <= 12; i++) {
+    hourOpts += '<option value="' + i + '"' + (i === h12 ? ' selected' : '') + '>' + i + '</option>';
+  }
+
+  // Minute options (00, 15, 30, 45)
+  var minOpts = '';
+  [0, 15, 30, 45].forEach(function(mm) {
+    var label = String(mm).padStart(2, '0');
+    minOpts += '<option value="' + mm + '"' + (mm === m ? ' selected' : '') + '>' + label + '</option>';
+  });
+
+  // AM/PM options
+  var pmOpts = '<option value="AM"' + (period === 'AM' ? ' selected' : '') + '>AM</option>'
+             + '<option value="PM"' + (period === 'PM' ? ' selected' : '') + '>PM</option>';
+
+  return '<div class="cal-time-picker" data-prefix="' + prefix + '" style="display:flex;align-items:center;gap:4px;flex:1;min-width:0;">'
+    + '<select id="' + prefix + '-h"' + dis + ' aria-label="Hour" style="' + commonSelectStyle + 'flex:1;min-width:0;">' + hourOpts + '</select>'
+    + '<span style="color:var(--muted);font-weight:600;">:</span>'
+    + '<select id="' + prefix + '-m"' + dis + ' aria-label="Minute" style="' + commonSelectStyle + 'flex:1;min-width:0;">' + minOpts + '</select>'
+    + '<select id="' + prefix + '-p"' + dis + ' aria-label="AM or PM" style="' + commonSelectStyle + 'flex:1;min-width:0;">' + pmOpts + '</select>'
+    + '</div>';
+}
+
+// Reads the current value from a time picker built by calBuildTimePicker.
+// Returns "HH:MM" in 24-hour format.
+function calReadTimePicker(prefix) {
+  var hEl = document.getElementById(prefix + '-h');
+  var mEl = document.getElementById(prefix + '-m');
+  var pEl = document.getElementById(prefix + '-p');
+  if (!hEl || !mEl || !pEl) return null;
+  var h12 = parseInt(hEl.value, 10);
+  var m = parseInt(mEl.value, 10);
+  var period = pEl.value;
+  var h24 = h12 % 12;
+  if (period === 'PM') h24 += 12;
+  return String(h24).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+}
+
 // Builds a list of <option> tags for a 15-minute-increment time picker.
 // Times shown in 12-hour format with AM/PM (more user-friendly than 24h).
 // Values stay in 24-hour HH:MM so existing parse logic works unchanged.
@@ -22866,8 +22941,8 @@ function calOpenEventModal(existingEvent) {
     + '<div style="margin-bottom:14px;"><label for="cal-modal-date" style="display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:500;">Date</label>'
     + '<input id="cal-modal-date" type="date" value="' + defaultDate + '" style="width:100%;min-width:0;max-width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;color-scheme:dark;-webkit-appearance:none;appearance:none;display:block;"></div>'
     + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;min-width:0;">'
-    + '<div style="min-width:0;"><label for="cal-modal-start" style="display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:500;">Start</label><select id="cal-modal-start" style="width:100%;min-width:0;max-width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url(\'data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;12&quot; height=&quot;12&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;%23999&quot; stroke-width=&quot;2.2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><polyline points=&quot;6 9 12 15 18 9&quot;/></svg>\');background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;">' + calBuildTimeOptions(defaultStart) + '</select></div>'
-    + '<div style="min-width:0;"><label for="cal-modal-end" style="display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:500;">End</label><select id="cal-modal-end" style="width:100%;min-width:0;max-width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url(\'data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;12&quot; height=&quot;12&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;%23999&quot; stroke-width=&quot;2.2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><polyline points=&quot;6 9 12 15 18 9&quot;/></svg>\');background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;">' + calBuildTimeOptions(defaultEnd) + '</select></div>'
+    + '<div style="min-width:0;"><label style="display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:500;">Start</label>' + calBuildTimePicker('cal-modal-start', defaultStart, false) + '</div>'
+    + '<div style="min-width:0;"><label style="display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:500;">End</label>' + calBuildTimePicker('cal-modal-end', defaultEnd, false) + '</div>'
     + '</div>'
     + '<div style="margin-bottom:14px;"><label style="display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:500;">Color</label>'
     + '<div id="cal-modal-colors" role="radiogroup" aria-label="Event color" style="display:flex;gap:8px;flex-wrap:wrap;"></div></div>'
@@ -22907,8 +22982,8 @@ function calSelectColor(c) {
 async function calSaveEvent() {
   var title = document.getElementById('cal-modal-title').value.trim();
   var date = document.getElementById('cal-modal-date').value;
-  var startTime = document.getElementById('cal-modal-start').value;
-  var endTime = document.getElementById('cal-modal-end').value;
+  var startTime = calReadTimePicker('cal-modal-start');
+  var endTime = calReadTimePicker('cal-modal-end');
   var notes = document.getElementById('cal-modal-notes').value.trim();
   var color = window._calSelectedColor || '#7c3aed';
 
