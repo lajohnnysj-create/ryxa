@@ -4432,6 +4432,13 @@
               </div>
           </div>
 
+          <!-- Meeting Details -->
+          <div style="margin-bottom:16px;">
+            <label for="coaching-meeting-details-input" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Meeting Details (Optional)</label>
+            <textarea id="coaching-meeting-details-input" placeholder="Paste a Zoom or Google Meet link, an address, or any instructions buyers should see after booking. Leave blank if you'd rather send details per-booking." maxlength="1000" rows="3" aria-label="Meeting details" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:12px 16px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;resize:vertical;"></textarea>
+            <div style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5;">If filled, this is automatically included in the buyer's booking confirmation email and 24-hour reminder. You can also send a one-off message per booking from the calendar.</div>
+          </div>
+
           <!-- Duration -->
           <div style="margin-bottom:16px;">
             <label for="coaching-duration-input" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Session Duration</label>
@@ -14927,6 +14934,8 @@ function openCoachingEditor(coachingId) {
   document.getElementById('coaching-price-input').value = '';
   document.getElementById('coaching-calendly-input').value = '';
   document.getElementById('coaching-duration-input').value = '30';
+  var mdInput = document.getElementById('coaching-meeting-details-input');
+  if (mdInput) mdInput.value = '';
   document.getElementById('coaching-cover-preview').style.display = 'none';
   document.getElementById('coaching-cover-img').src = '';
   var uploadBtn = document.getElementById('coaching-cover-upload-btn');
@@ -14950,6 +14959,8 @@ function openCoachingEditor(coachingId) {
     document.getElementById('coaching-price-input').value = coaching.price_cents ? (coaching.price_cents / 100).toString() : '';
     document.getElementById('coaching-calendly-input').value = coaching.calendly_url || '';
     document.getElementById('coaching-duration-input').value = coaching.duration_minutes ? String(coaching.duration_minutes) : '30';
+    var mdInputLoad = document.getElementById('coaching-meeting-details-input');
+    if (mdInputLoad) mdInputLoad.value = coaching.meeting_details || '';
     loadAvailabilityIntoUI(coaching.availability_settings);
     setCoachingBookingType(coaching.booking_type || 'manual');
 
@@ -15261,6 +15272,7 @@ async function saveCoaching() {
     }
 
     const durationMinutes = parseInt(document.getElementById('coaching-duration-input').value) || 30;
+    const meetingDetails = (document.getElementById('coaching-meeting-details-input')?.value || '').trim();
 
     // Read current availability values from inputs before saving
     onAvailChanged();
@@ -15270,6 +15282,7 @@ async function saveCoaching() {
       description,
       price_cents: priceCents,
       duration_minutes: durationMinutes,
+      meeting_details: meetingDetails || null,
       booking_type: coachingBookingType,
       calendly_url: coachingBookingType === 'calendly' ? calendlyUrl : '',
       availability_settings: coachingBookingType === 'ryxa_calendar' ? coachingAvailability : null,
@@ -22757,11 +22770,15 @@ function calRenderDayEvents() {
       + (function() {
           var deleteLabel = e.event_type === 'brand_deal' ? 'Remove from calendar' : 'Delete event';
           var canEdit = e.event_type !== 'brand_deal';
+          // Coaching events get a "Send Meeting Details" button next to edit/delete
+          var sendMsgBtn = (e.event_type === 'coaching' && e.source_id)
+            ? '<button onclick="calOpenSendMessage(\'' + e.source_id + '\', \'' + escapeHtml(e.title || '').replace(/'/g, "\\'") + '\')" aria-label="Send meeting details to booker" title="Send meeting details" style="height:28px;padding:0 10px;background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.35);border-radius:6px;color:#c4b5fd;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:6px;font-size:11px;font-family:DM Sans,sans-serif;font-weight:500;white-space:nowrap;gap:4px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>Send Details</button>'
+            : '';
           var editBtn = canEdit
             ? '<button onclick="calOpenEditEvent(\'' + e.id + '\')" aria-label="Edit event" title="Edit event" style="width:28px;height:28px;background:transparent;border:1px solid var(--border-hover);border-radius:6px;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'
             : '';
           var deleteBtn = '<button onclick="calDeleteEvent(\'' + e.id + '\', \'' + e.event_type + '\')" aria-label="' + deleteLabel + '" title="' + deleteLabel + '" style="width:28px;height:28px;background:transparent;border:1px solid rgba(239,68,68,0.3);border-radius:6px;color:#ef4444;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg></button>';
-          return '<div style="display:flex;align-items:flex-start;flex-shrink:0;">' + editBtn + deleteBtn + '</div>';
+          return '<div style="display:flex;align-items:flex-start;flex-shrink:0;flex-wrap:wrap;gap:6px;">' + sendMsgBtn + editBtn + deleteBtn + '</div>';
         })()
       + '</div>';
   }).join('');
@@ -23173,6 +23190,86 @@ async function calSaveEvent() {
   } catch (e) {
     console.error('Save event failed:', e);
     showError(e.message || 'Could not save event. Please try again.');
+  }
+}
+
+// Opens a modal to send a one-off "meeting details" message to the booker of a coaching event.
+// The message is sent via email immediately and is not stored anywhere — purely transactional.
+function calOpenSendMessage(bookingId, eventTitle) {
+  var existing = document.getElementById('cal-send-msg-modal');
+  if (existing) existing.remove();
+
+  var modal = document.createElement('div');
+  modal.id = 'cal-send-msg-modal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;padding:12px;';
+  modal.onclick = function(e) { if (e.target === modal) modal.remove(); };
+
+  modal.innerHTML = '<div style="background:#0f0f1a;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:20px 18px;max-width:480px;width:100%;max-height:90vh;overflow-y:auto;">'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">'
+    + '<h3 style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.3px;">Send Meeting Details</h3>'
+    + '<button onclick="document.getElementById(\'cal-send-msg-modal\').remove()" style="background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:4px;" aria-label="Close">✕</button>'
+    + '</div>'
+    + '<p style="font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.5;">Send a message to the booker for <strong style="color:var(--text);">' + escapeHtml(eventTitle) + '</strong>. Use this for the Zoom link, address, or any last-minute instructions.</p>'
+    + '<div style="margin-bottom:14px;"><label for="cal-send-msg-text" style="display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:500;">Message</label>'
+    + '<textarea id="cal-send-msg-text" rows="6" maxlength="2000" placeholder="Hi! Here&#39;s the link for our session: https://zoom.us/j/... See you soon!" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;resize:vertical;line-height:1.5;"></textarea>'
+    + '<div style="font-size:11px;color:var(--muted);margin-top:6px;">The booker will receive this as an email from Ryxa.</div></div>'
+    + '<div id="cal-send-msg-error" style="display:none;margin-bottom:10px;padding:10px 12px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:8px;color:#f87171;font-size:12px;"></div>'
+    + '<div id="cal-send-msg-success" style="display:none;margin-bottom:10px;padding:10px 12px;background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);border-radius:8px;color:#4ade80;font-size:12px;">Sent! The booker has been notified.</div>'
+    + '<div style="display:flex;gap:8px;">'
+    + '<button onclick="document.getElementById(\'cal-send-msg-modal\').remove()" style="flex:1;padding:11px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Cancel</button>'
+    + '<button id="cal-send-msg-btn" onclick="calSendMessageNow(\'' + bookingId + '\')" style="flex:1;padding:11px;background:var(--accent);border:none;color:#fff;border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Send Email</button>'
+    + '</div>'
+    + '</div>';
+
+  document.body.appendChild(modal);
+  setTimeout(function() {
+    var ta = document.getElementById('cal-send-msg-text');
+    if (ta) ta.focus();
+  }, 50);
+}
+
+async function calSendMessageNow(bookingId) {
+  var text = (document.getElementById('cal-send-msg-text')?.value || '').trim();
+  var errEl = document.getElementById('cal-send-msg-error');
+  var okEl = document.getElementById('cal-send-msg-success');
+  var btn = document.getElementById('cal-send-msg-btn');
+
+  function showError(msg) {
+    if (errEl) {
+      errEl.textContent = msg;
+      errEl.style.display = 'block';
+      setTimeout(function() { if (errEl) errEl.style.display = 'none'; }, 5000);
+    }
+  }
+
+  if (!text) { showError('Please enter a message before sending.'); return; }
+  if (!currentUser) { showError('You must be signed in.'); return; }
+
+  if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; btn.style.opacity = '0.6'; }
+
+  try {
+    // Call edge function to send the email
+    var { data: { session } } = await sb.auth.getSession();
+    var resp = await fetch('https://kjytapcgxukalwsyputk.supabase.co/functions/v1/send-booking-message', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + (session?.access_token || '')
+      },
+      body: JSON.stringify({ booking_id: bookingId, message: text })
+    });
+    var result = await resp.json().catch(function() { return {}; });
+    if (!resp.ok || result.error) throw new Error(result.error || 'Could not send email.');
+
+    if (okEl) okEl.style.display = 'block';
+    setTimeout(function() {
+      var modal = document.getElementById('cal-send-msg-modal');
+      if (modal) modal.remove();
+    }, 1500);
+  } catch (e) {
+    console.error('Send message failed:', e);
+    if (btn) { btn.disabled = false; btn.textContent = 'Send Email'; btn.style.opacity = '1'; }
+    showError(e.message || 'Could not send. Please try again.');
   }
 }
 
