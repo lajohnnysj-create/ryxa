@@ -15055,18 +15055,42 @@ function renderAvailabilityDays() {
     var enabled = d.enabled;
     var bg = enabled ? 'var(--surface2)' : 'rgba(20,20,32,0.5)';
     var opacity = enabled ? '1' : '0.5';
-    return '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:' + bg + ';border:1px solid var(--border);border-radius:8px;margin-bottom:6px;">'
-      + '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;min-width:100px;">'
+    // Layout: checkbox + day name on the left (fixed width), Start/End pickers
+    // stacked vertically on the right. This keeps each row compact even with
+    // the 3-spinner picker, and is mobile-friendly without needing media queries.
+    return '<div style="display:flex;align-items:center;gap:14px;padding:12px;background:' + bg + ';border:1px solid var(--border);border-radius:8px;margin-bottom:6px;">'
+      + '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;min-width:110px;flex-shrink:0;">'
       + '<input type="checkbox" ' + (enabled ? 'checked' : '') + ' onchange="toggleAvailDay(\'' + k + '\', this.checked)" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);">'
       + '<span style="font-size:13px;color:var(--text);font-weight:500;">' + dayLabels[k] + '</span>'
       + '</label>'
-      + '<div style="display:flex;align-items:center;gap:6px;flex:1;opacity:' + opacity + ';">'
-      + '<input type="time" step="900" value="' + d.start + '" ' + (enabled ? '' : 'disabled') + ' onchange="setAvailTime(\'' + k + '\', \'start\', this.value)" aria-label="' + dayLabels[k] + ' start time" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:6px 8px;color:var(--text);font-size:12px;font-family:DM Sans,sans-serif;outline:none;color-scheme:dark;">'
-      + '<span style="color:var(--muted);font-size:12px;">to</span>'
-      + '<input type="time" step="900" value="' + d.end + '" ' + (enabled ? '' : 'disabled') + ' onchange="setAvailTime(\'' + k + '\', \'end\', this.value)" aria-label="' + dayLabels[k] + ' end time" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:6px 8px;color:var(--text);font-size:12px;font-family:DM Sans,sans-serif;outline:none;color-scheme:dark;">'
+      + '<div style="display:flex;flex-direction:column;gap:6px;flex:1;opacity:' + opacity + ';min-width:0;">'
+      + '<div style="display:flex;align-items:center;gap:8px;min-width:0;">'
+      + '<span style="font-size:11px;color:var(--muted);font-weight:500;min-width:36px;">Start</span>'
+      + calBuildTimePicker('avail-' + k + '-start', d.start, !enabled)
+      + '</div>'
+      + '<div style="display:flex;align-items:center;gap:8px;min-width:0;">'
+      + '<span style="font-size:11px;color:var(--muted);font-weight:500;min-width:36px;">End</span>'
+      + calBuildTimePicker('avail-' + k + '-end', d.end, !enabled)
+      + '</div>'
       + '</div>'
       + '</div>';
   }).join('');
+
+  // Wire up change handlers for the new picker dropdowns
+  dayKeys.forEach(function(k) {
+    ['start', 'end'].forEach(function(which) {
+      var prefix = 'avail-' + k + '-' + which;
+      ['h', 'm', 'p'].forEach(function(suffix) {
+        var el = document.getElementById(prefix + '-' + suffix);
+        if (el) {
+          el.addEventListener('change', function() {
+            var newVal = calReadTimePicker(prefix);
+            if (newVal) setAvailTime(k, which, newVal);
+          });
+        }
+      });
+    });
+  });
 }
 
 function toggleAvailDay(key, enabled) {
