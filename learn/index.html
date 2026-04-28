@@ -1060,7 +1060,7 @@ async function searchMarketplace(query) {
         ? 'https://kjytapcgxukalwsyputk.supabase.co/storage/v1/object/public/' + bucket + '/' + c.cover_image_path
         : '';
       var pageUrl = c._type === 'course' ? '/course/' + encodeURIComponent(c.slug) : '/coaching/' + encodeURIComponent(c.slug);
-      var typeLabel = c._type === 'course' ? 'Course' : 'Coaching';
+      var typeLabel = c._type === 'course' ? 'Course' : '1:1 Booking';
       var typeClass = c._type;
 
       html += '<a href="' + pageUrl + '" class="mp-item">';
