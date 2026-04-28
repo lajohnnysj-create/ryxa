@@ -23083,11 +23083,13 @@ async function calSaveEvent() {
         .single();
       if (error) throw error;
 
-      // For coaching events, also update the booking's slot times
+      // For coaching events, also update the booking's slot times.
+      // Reset reminder_sent_at so the cron job re-sends with the new time —
+      // this prevents buyers from showing up at the original time after a reschedule.
       if (existing.event_type === 'coaching' && existing.source_id) {
         try {
           await sb.from('coaching_bookings')
-            .update({ slot_start: startAt, slot_end: endAt })
+            .update({ slot_start: startAt, slot_end: endAt, reminder_sent_at: null })
             .eq('id', existing.source_id);
         } catch (e) {
           console.error('Could not update coaching booking slot:', e);
