@@ -168,11 +168,13 @@ async function init() {
   // Get creator info
   const { data: profile } = await sb
     .from('profiles')
-    .select('username')
+    .select('username, display_currency')
     .eq('user_id', course.user_id)
     .maybeSingle();
 
   const creatorName = profile?.username || 'Creator';
+  // Stash creator currency for price formatting
+  window._creatorCurrency = (profile && profile.display_currency) ? profile.display_currency : 'USD';
 
   // Load modules & lessons
   const { data: modules } = await sb
@@ -277,10 +279,24 @@ function renderCourse(course, creatorName, modules, lessons, session) {
   // Price & buy
   const priceEl = document.getElementById('cp-price');
   const buyArea = document.getElementById('cp-buy-area');
+
+  // Format a cents amount in the creator's currency
+  function fmtPrice(cents) {
+    var code = window._creatorCurrency || 'USD';
+    var localeMap = { USD:'en-US', EUR:'en-IE', GBP:'en-GB', CAD:'en-CA', AUD:'en-AU', JPY:'ja-JP', INR:'en-IN', BRL:'pt-BR', MXN:'es-MX', CHF:'de-CH', SGD:'en-SG', SEK:'sv-SE', NOK:'nb-NO', NZD:'en-NZ', ZAR:'en-ZA' };
+    var locale = localeMap[code] || 'en-US';
+    var fractionDigits = (code === 'JPY') ? 0 : 2;
+    try {
+      return new Intl.NumberFormat(locale, { style:'currency', currency:code, minimumFractionDigits:fractionDigits, maximumFractionDigits:fractionDigits }).format(cents / 100);
+    } catch (e) {
+      return '$' + (cents / 100).toFixed(fractionDigits);
+    }
+  }
+
   if (course.price_cents === 0) {
     priceEl.innerHTML = '<span class="course-price-free">Free</span>';
   } else {
-    priceEl.textContent = '$' + (course.price_cents / 100).toFixed(2);
+    priceEl.textContent = fmtPrice(course.price_cents);
   }
 
   var isLoggedIn = !!session?.user;
