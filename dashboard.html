@@ -22543,11 +22543,37 @@ function calFormatMonthLabel(year, month) {
 }
 
 async function initCalendarTool() {
-  // Load timezone preference
-  try {
-    var saved = localStorage.getItem('ryxa_cal_tz');
-    if (saved) calState.timezone = saved;
-  } catch (e) {}
+  // Load timezone preference — prefer DB (so it's known to coaching page), fall back to localStorage
+  if (currentUser) {
+    try {
+      var { data: prof } = await sb.from('profiles').select('calendar_timezone').eq('user_id', currentUser.id).maybeSingle();
+      if (prof && prof.calendar_timezone) {
+        calState.timezone = prof.calendar_timezone;
+        try { localStorage.setItem('ryxa_cal_tz', prof.calendar_timezone); } catch (e) {}
+      } else {
+        // No DB value yet — check localStorage and migrate it to DB
+        try {
+          var saved = localStorage.getItem('ryxa_cal_tz');
+          if (saved) {
+            calState.timezone = saved;
+            // Migrate: persist to DB for future sessions / public pages
+            await sb.from('profiles').update({ calendar_timezone: saved }).eq('user_id', currentUser.id);
+          }
+        } catch (e) {}
+      }
+    } catch (e) {
+      // DB read failed — fall back to localStorage only
+      try {
+        var saved2 = localStorage.getItem('ryxa_cal_tz');
+        if (saved2) calState.timezone = saved2;
+      } catch (e2) {}
+    }
+  } else {
+    try {
+      var saved3 = localStorage.getItem('ryxa_cal_tz');
+      if (saved3) calState.timezone = saved3;
+    } catch (e) {}
+  }
 
   if (!calState.selectedDate) {
     calState.selectedDate = calToYmd(new Date());
@@ -23038,10 +23064,17 @@ function calOpenSettings() {
   }).join('');
 }
 
-function calSaveSettings() {
+async function calSaveSettings() {
   var tz = document.getElementById('cal-tz-select').value;
   calState.timezone = tz;
+  // Save to localStorage as a quick cache, but also persist to DB so the public
+  // coaching page can know the creator's timezone for proper slot generation
   try { localStorage.setItem('ryxa_cal_tz', tz); } catch (e) {}
+  if (currentUser) {
+    try {
+      await sb.from('profiles').update({ calendar_timezone: tz }).eq('user_id', currentUser.id);
+    } catch (e) { console.error('Failed to save calendar_timezone:', e); }
+  }
   document.getElementById('cal-settings-modal').remove();
   calRender();
 }
