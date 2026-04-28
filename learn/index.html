@@ -583,28 +583,60 @@ function renderBookings(bookings) {
     var date = new Date(b.booked_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     var priceText = b.amount_paid_cents > 0 ? '$' + (b.amount_paid_cents / 100).toFixed(2) : 'Free';
 
+    // Format the actual session date/time (if booked through Ryxa Calendar)
+    var slotInfo = '';
+    if (b.slot_start && b.slot_end) {
+      var slotStart = new Date(b.slot_start);
+      var slotEnd = new Date(b.slot_end);
+      var slotDate = slotStart.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+      var slotTime = slotStart.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) + ' – ' + slotEnd.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+      slotInfo = slotDate + ' at ' + slotTime;
+    }
+
     var actionHtml = '';
-    if (c.booking_type === 'calendly' && c.calendly_url) {
+    if (c.booking_type === 'calendly' && c.calendly_url && !b.slot_start) {
       actionHtml = '<a href="' + escapeHtml(c.calendly_url) + '" target="_blank" style="padding:6px 14px;background:var(--btn-bg);color:var(--btn-text);border:none;border-radius:6px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;text-decoration:none;flex-shrink:0;">Schedule</a>';
-    } else {
+    } else if (!b.slot_start) {
       actionHtml = '<span style="font-size:11px;color:var(--muted);flex-shrink:0;">Creator will contact you</span>';
     }
 
     var coverHtml = '';
     if (c.cover_image_path) {
       var coverUrl = sb.storage.from('coaching-covers').getPublicUrl(c.cover_image_path).data.publicUrl;
-      coverHtml = '<img src="' + escapeHtml(coverUrl) + '" alt="Course thumbnail" style="width:56px;height:38px;object-fit:cover;border-radius:6px;flex-shrink:0;">';
+      coverHtml = '<img src="' + escapeHtml(coverUrl) + '" alt="Booking cover" style="width:56px;height:38px;object-fit:cover;border-radius:6px;flex-shrink:0;">';
     } else {
       coverHtml = '<div style="width:56px;height:38px;border-radius:6px;background:var(--surface);border:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>';
     }
 
-    return '<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;">'
+    // Meeting details block — only render if the creator set details on the service.
+    // Auto-link URLs and respect line breaks.
+    var meetingDetailsHtml = '';
+    if (c.meeting_details) {
+      var md = String(c.meeting_details)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer" style="color:var(--accent2);text-decoration:underline;">$1</a>')
+        .replace(/\n/g, '<br>');
+      meetingDetailsHtml = '<div style="margin-top:10px;padding:10px 12px;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.2);border-radius:8px;">'
+        + '<div style="font-size:10px;font-weight:600;color:#c4b5fd;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:4px;">Meeting Details</div>'
+        + '<div style="font-size:12px;color:var(--text);line-height:1.5;word-break:break-word;">' + md + '</div>'
+        + '</div>';
+    }
+
+    // Build the meta line: who, when booked, price, and slot info if present
+    var metaParts = ['by ' + escapeHtml(b._creatorName)];
+    if (slotInfo) metaParts.push(slotInfo);
+    metaParts.push(priceText);
+
+    return '<div style="padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;">'
+      + '<div style="display:flex;align-items:center;gap:12px;">'
       + coverHtml
       + '<div style="flex:1;min-width:0;">'
       + '<div style="font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escapeHtml(c.title) + '</div>'
-      + '<div style="font-size:12px;color:var(--muted);margin-top:2px;">by ' + escapeHtml(b._creatorName) + ' · ' + date + ' · ' + priceText + '</div>'
+      + '<div style="font-size:12px;color:var(--muted);margin-top:2px;">' + metaParts.join(' · ') + '</div>'
       + '</div>'
       + actionHtml
+      + '</div>'
+      + meetingDetailsHtml
       + '</div>';
   }).join('');
 }
