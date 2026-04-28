@@ -24,7 +24,7 @@ function getStripeKey() {
   return k;
 }
 
-const PLATFORM_FEE_BPS = 500;  // 5% platform fee
+const PLATFORM_FEE_BPS = 0;  // 0% — Ryxa takes 0% transaction fees, Stripe still processes fees
 
 async function sbSelect(path) {
   var key = getServiceKey();
