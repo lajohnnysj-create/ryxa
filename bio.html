@@ -830,6 +830,19 @@ function validUrl(u) {
 }
 
 // Image URLs are restricted to our own Supabase Storage buckets.
+// Format a cents amount in the creator's currency
+function fmtPrice(cents) {
+  var code = window._creatorCurrency || 'USD';
+  var localeMap = { USD:'en-US', EUR:'en-IE', GBP:'en-GB', CAD:'en-CA', AUD:'en-AU', JPY:'ja-JP', INR:'en-IN', BRL:'pt-BR', MXN:'es-MX', CHF:'de-CH', SGD:'en-SG', SEK:'sv-SE', NOK:'nb-NO', NZD:'en-NZ', ZAR:'en-ZA' };
+  var locale = localeMap[code] || 'en-US';
+  var fractionDigits = (code === 'JPY') ? 0 : 2;
+  try {
+    return new Intl.NumberFormat(locale, { style:'currency', currency:code, minimumFractionDigits:fractionDigits, maximumFractionDigits:fractionDigits }).format(cents / 100);
+  } catch (e) {
+    return '$' + (cents / 100).toFixed(fractionDigits);
+  }
+}
+
 // Allowed: bio-photos (link-in-bio), media-kit-photos (headshots cross-referenced),
 // and bio-backgrounds (Creator Max custom backgrounds — forward-compat).
 function validImageUrl(u) {
@@ -954,8 +967,8 @@ function buildLink(link) {
   // Course link — cover image card with price
   if (link.isCourse) {
     const safePhoto = validImageUrl(link.photoUrl);
-    const priceDisplay = link.coursePrice > 0 ? '$' + (link.coursePrice / 100).toFixed(2) : 'Free';
-    const crossoutHtml = link.courseCrossoutPrice > 0 ? '<span style="text-decoration:line-through;opacity:0.5;font-size:12px;margin-right:4px;">$' + (link.courseCrossoutPrice / 100).toFixed(2) + '</span>' : '';
+    const priceDisplay = link.coursePrice > 0 ? fmtPrice(link.coursePrice) : 'Free';
+    const crossoutHtml = link.courseCrossoutPrice > 0 ? '<span style="text-decoration:line-through;opacity:0.5;font-size:12px;margin-right:4px;">' + fmtPrice(link.courseCrossoutPrice) + '</span>' : '';
     const coverHtml = safePhoto ? '<img src="' + esc(safePhoto) + '" alt="Link cover" loading="lazy" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px 10px 0 0;display:block;">' : '';
     return '<a class="course-link-card" href="' + esc(url) + '" target="_blank" rel="noopener nofollow" style="display:block;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;text-decoration:none;color:var(--text);margin-bottom:8px;transition:transform 0.15s,border-color 0.15s;" onmouseover="this.style.transform=\'translateY(-2px)\';this.style.borderColor=\'var(--accent)\'" onmouseout="this.style.transform=\'\';this.style.borderColor=\'var(--border)\'">'
       + coverHtml
@@ -967,7 +980,7 @@ function buildLink(link) {
   // Coaching link — same card style as courses
   if (link.isCoaching) {
     const safePhoto = validImageUrl(link.photoUrl);
-    const priceDisplay = link.coachingPrice > 0 ? '$' + (link.coachingPrice / 100).toFixed(2) : 'Free';
+    const priceDisplay = link.coachingPrice > 0 ? fmtPrice(link.coachingPrice) : 'Free';
     const coverHtml = safePhoto ? '<img src="' + esc(safePhoto) + '" alt="Link cover" loading="lazy" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px 10px 0 0;display:block;">' : '';
     return '<a class="course-link-card" href="' + esc(url) + '" target="_blank" rel="noopener nofollow" style="display:block;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;text-decoration:none;color:var(--text);margin-bottom:8px;transition:transform 0.15s,border-color 0.15s;" onmouseover="this.style.transform=\'translateY(-2px)\';this.style.borderColor=\'var(--accent)\'" onmouseout="this.style.transform=\'\';this.style.borderColor=\'var(--border)\'">'
       + coverHtml
@@ -1284,11 +1297,14 @@ async function load() {
   // 1) Look up the profile + tier via the public view (one query, no sensitive data exposed)
   const { data: profile, error: pErr } = await sb
     .from('public_profile_tiers')
-    .select('user_id, username, tier')
+    .select('user_id, username, tier, display_currency')
     .eq('username', username)
     .maybeSingle();
 
   if (pErr || !profile) { renderNotFound(username); return; }
+
+  // Set creator's display currency for price formatting
+  window._creatorCurrency = profile.display_currency || 'USD';
 
   // 2) Fetch their published link-in-bio page
   const { data: bio, error: bErr } = await sb

@@ -607,7 +607,14 @@ function formatNumber(n) {
 function formatPrice(p) {
   const num = parseFloat(p);
   if (!isFinite(num) || num < 0) return '';
-  return '$' + Math.round(num).toLocaleString('en-US');
+  var code = window._creatorCurrency || 'USD';
+  var localeMap = { USD:'en-US', EUR:'en-IE', GBP:'en-GB', CAD:'en-CA', AUD:'en-AU', JPY:'ja-JP', INR:'en-IN', BRL:'pt-BR', MXN:'es-MX', CHF:'de-CH', SGD:'en-SG', SEK:'sv-SE', NOK:'nb-NO', NZD:'en-NZ', ZAR:'en-ZA' };
+  var locale = localeMap[code] || 'en-US';
+  try {
+    return new Intl.NumberFormat(locale, { style:'currency', currency:code, minimumFractionDigits:0, maximumFractionDigits:0 }).format(Math.round(num));
+  } catch (e) {
+    return '$' + Math.round(num).toLocaleString('en-US');
+  }
 }
 
 function renderNotFound(username) {
@@ -910,11 +917,14 @@ async function load() {
 
   const { data: profile, error: pErr } = await sb
     .from('public_profile_tiers')
-    .select('user_id, username, tier')
+    .select('user_id, username, tier, display_currency')
     .eq('username', username)
     .maybeSingle();
 
   if (pErr || !profile) { renderNotFound(username); return; }
+
+  // Set creator's display currency for price formatting
+  window._creatorCurrency = profile.display_currency || 'USD';
 
   const { data: kit, error: kErr } = await sb
     .from('media_kit')
