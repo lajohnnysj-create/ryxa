@@ -24703,6 +24703,92 @@ async function removeProductFile(fileId) {
   });
 }
 
+// Client-side cover image compression. Resizes to max 1600px wide and
+// re-encodes JPEGs at quality 0.82. Preserves transparency for PNG/WebP.
+// Returns a new File ready for upload. Falls back to the original if
+// compression fails or the file is already small enough.
+async function dpCompressCoverImage(file) {
+  // Skip if already small + reasonable
+  if (file.size < 200 * 1024) {
+    return file;
+  }
+
+  return new Promise(function(resolve) {
+    var img = new Image();
+    var url = URL.createObjectURL(file);
+
+    img.onload = function() {
+      try {
+        URL.revokeObjectURL(url);
+
+        var maxWidth = 1600;
+        var w = img.naturalWidth;
+        var h = img.naturalHeight;
+
+        // Skip if already small enough in both dims and under 500KB
+        if (w <= maxWidth && file.size < 500 * 1024) {
+          resolve(file);
+          return;
+        }
+
+        // Compute new dimensions preserving aspect ratio
+        if (w > maxWidth) {
+          h = Math.round(h * (maxWidth / w));
+          w = maxWidth;
+        }
+
+        var canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+
+        // Decide output format
+        var outputType, quality, outputExt;
+        if (file.type === 'image/png') {
+          outputType = 'image/png';
+          quality = undefined;  // PNG ignores quality
+          outputExt = 'png';
+        } else if (file.type === 'image/webp') {
+          outputType = 'image/webp';
+          quality = 0.85;
+          outputExt = 'webp';
+        } else {
+          // Default: JPEG (best compression for photos)
+          outputType = 'image/jpeg';
+          quality = 0.82;
+          outputExt = 'jpg';
+        }
+
+        canvas.toBlob(function(blob) {
+          if (!blob) {
+            resolve(file);
+            return;
+          }
+          // Only use the compressed version if it's actually smaller
+          if (blob.size >= file.size) {
+            resolve(file);
+            return;
+          }
+          var newName = file.name.replace(/\.[^.]+$/, '') + '-compressed.' + outputExt;
+          var compressed = new File([blob], newName, { type: outputType });
+          resolve(compressed);
+        }, outputType, quality);
+      } catch (e) {
+        console.error('Compression failed:', e);
+        resolve(file);
+      }
+    };
+
+    img.onerror = function() {
+      URL.revokeObjectURL(url);
+      resolve(file);  // fallback: upload original
+    };
+
+    img.src = url;
+  });
+}
+
 async function uploadProductCover(input) {
   var file = (input.files || [])[0];
   input.value = '';
@@ -24725,11 +24811,13 @@ async function uploadProductCover(input) {
   }
 
   try {
-    var ext = file.name.split('.').pop().toLowerCase();
-    var path = currentUser.id + '/' + productsState.editingId + '/cover-' + Date.now() + '.' + ext;
-    var { error: upErr } = await sb.storage.from('digital-products').upload(path, file, {
+    // Compress before upload — typical 4MB phone photo becomes ~150KB
+    var compressed = await dpCompressCoverImage(file);
+    var compressedExt = compressed.name.split('.').pop().toLowerCase();
+    var path = currentUser.id + '/' + productsState.editingId + '/cover-' + Date.now() + '.' + compressedExt;
+    var { error: upErr } = await sb.storage.from('digital-products').upload(path, compressed, {
       upsert: true,
-      contentType: file.type
+      contentType: compressed.type
     });
     if (upErr) throw upErr;
 
