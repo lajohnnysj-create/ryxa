@@ -130,7 +130,7 @@
     <div class="coaching-desc" id="cp-desc"></div>
   </div>
   <div class="coaching-footer">
-    Powered by <a href="/">Ryxa</a> · 1:1 Coaching Platform
+    Powered by <a href="/">Ryxa</a> · 1:1 Booking Platform
   </div>
 </div>
 
@@ -425,16 +425,25 @@ async function loadBookedSlots() {
   pickerState.bookedSlots = [];
   pickerState.reservedSlots = [];
   try {
-    // Existing confirmed bookings — check ALL of the creator's coaching services
-    // (not just this one) to prevent double-booking across multiple services
-    var { data: bookings } = await sb.from('coaching_bookings')
-      .select('slot_start, slot_end')
-      .eq('user_id', coachingData.user_id)
-      .not('slot_start', 'is', null);
-    if (bookings) {
-      pickerState.bookedSlots = pickerState.bookedSlots.concat(bookings.map(function(b) {
-        return { start_at: b.slot_start, end_at: b.slot_end };
-      }));
+    // Step 1: get all of this creator's coaching service IDs.
+    // We need this so we can find bookings/reservations across ALL their services
+    // (not just the one being viewed) to prevent double-booking.
+    var { data: services } = await sb.from('coaching_services')
+      .select('id')
+      .eq('user_id', coachingData.user_id);
+    var serviceIds = (services || []).map(function(s) { return s.id; });
+
+    // Existing confirmed bookings — across all of the creator's services
+    if (serviceIds.length > 0) {
+      var { data: bookings } = await sb.from('coaching_bookings')
+        .select('slot_start, slot_end')
+        .in('coaching_id', serviceIds)
+        .not('slot_start', 'is', null);
+      if (bookings) {
+        pickerState.bookedSlots = pickerState.bookedSlots.concat(bookings.map(function(b) {
+          return { start_at: b.slot_start, end_at: b.slot_end };
+        }));
+      }
     }
 
     // Calendar events — manually added events also block slots so the creator
@@ -450,13 +459,7 @@ async function loadBookedSlots() {
     }
 
     // Active reservations (not yet expired) — also check across all services
-    // Step 1: get all of this creator's coaching service IDs
-    // Step 2: find any active reservations on any of them
     var nowIso = new Date().toISOString();
-    var { data: services } = await sb.from('coaching_services')
-      .select('id')
-      .eq('user_id', coachingData.user_id);
-    var serviceIds = (services || []).map(function(s) { return s.id; });
     if (serviceIds.length > 0) {
       var { data: reservations } = await sb.from('coaching_slot_reservations')
         .select('slot_start, slot_end')
