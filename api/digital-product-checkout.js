@@ -1,11 +1,16 @@
 // Vercel serverless function — creates a Stripe Checkout Session for a
 // digital product. Uses Stripe Connect so payment goes directly to the
-// creator's connected account (you collect application_fee).
+// creator's connected account.
+//
+// Buyer must be authenticated (matches courses pattern).
+// On success, the webhook records the purchase using buyer_id from metadata.
 //
 // POST /api/digital-product-checkout
-// Body: { product_id, buyer_email, marketing_consent, success_url, cancel_url }
+// Headers: Authorization: Bearer <buyer_access_token>
+// Body: { product_id, marketing_consent, success_url, cancel_url }
 
 const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtqeXRhcGNneHVrYWx3c3lwdXRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMTcxMzEsImV4cCI6MjA5MDg5MzEzMX0.VC8mcU5lUeA56kG2gHssvl88EVWr018XttA86jpfEn0';
 
 function getServiceKey() {
   var k = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -19,10 +24,7 @@ function getStripeKey() {
   return k;
 }
 
-// Application fee in basis points. 500 = 5%. Match what your other
-// checkouts use; if zero, the creator gets 100% (you still earn via
-// the $20/mo Max subscription).
-const PLATFORM_FEE_BPS = 500;  // 5%
+const PLATFORM_FEE_BPS = 500;  // 5% platform fee
 
 async function sbSelect(path) {
   var key = getServiceKey();
@@ -36,8 +38,21 @@ async function sbSelect(path) {
   return await res.json();
 }
 
-// Build form-encoded body for Stripe API. Stripe expects
-// application/x-www-form-urlencoded with bracket notation for nested fields.
+async function verifyBuyerJWT(authHeader) {
+  if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
+  var token = authHeader.split(' ')[1];
+  try {
+    var res = await fetch(SUPABASE_URL + '/auth/v1/user', {
+      headers: { 'Authorization': 'Bearer ' + token, 'apikey': SUPABASE_ANON_KEY }
+    });
+    if (!res.ok) return null;
+    var data = await res.json();
+    return data?.id ? { id: data.id, email: data.email } : null;
+  } catch (e) {
+    return null;
+  }
+}
+
 function stripeForm(obj, prefix) {
   prefix = prefix || '';
   var parts = [];
@@ -80,31 +95,33 @@ async function stripeRequest(path, body) {
 }
 
 module.exports = async (req, res) => {
-  // CORS
   var origin = req.headers.origin || '';
   var allowed = ['https://ryxa.io', 'https://www.ryxa.io', 'http://localhost:3000'];
   if (allowed.includes(origin)) res.setHeader('Access-Control-Allow-Origin', origin);
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
+    // 1. Verify buyer is signed in
+    var buyer = await verifyBuyerJWT(req.headers.authorization || '');
+    if (!buyer) {
+      return res.status(401).json({ error: 'You must be signed in to checkout' });
+    }
+
+    // 2. Parse body
     var body = req.body || {};
     var productId = body.product_id;
-    var buyerEmail = (body.buyer_email || '').trim().toLowerCase();
     var marketingConsent = !!body.marketing_consent;
     var successUrl = body.success_url;
     var cancelUrl = body.cancel_url;
 
-    if (!productId || !buyerEmail || !successUrl || !cancelUrl) {
+    if (!productId || !successUrl || !cancelUrl) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(buyerEmail)) {
-      return res.status(400).json({ error: 'Invalid email' });
-    }
 
-    // Load product
+    // 3. Load product
     var products = await sbSelect('digital_products?id=eq.' + encodeURIComponent(productId) + '&is_active=eq.true&select=id,user_id,title,price_cents,currency,slug&limit=1');
     if (!products || products.length === 0) {
       return res.status(404).json({ error: 'Product not found or unavailable' });
@@ -115,27 +132,27 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'This is a free product. Use the free claim flow.' });
     }
 
-    // Load creator's stripe_account_id
+    // 4. Load creator's stripe_account_id
     var profiles = await sbSelect('profiles?user_id=eq.' + encodeURIComponent(product.user_id) + '&select=stripe_account_id,username&limit=1');
     if (!profiles || profiles.length === 0 || !profiles[0].stripe_account_id) {
       return res.status(400).json({ error: 'Creator has not connected a payment account' });
     }
     var creator = profiles[0];
 
-    // Verify product has at least one file
+    // 5. Verify product has at least one file
     var files = await sbSelect('digital_product_files?product_id=eq.' + encodeURIComponent(productId) + '&select=id&limit=1');
     if (!files || files.length === 0) {
       return res.status(400).json({ error: 'This product has no files yet' });
     }
 
-    // Create Checkout Session via Stripe Connect
+    // 6. Create Stripe Checkout Session via Connect
     var amountCents = Number(product.price_cents);
     var feeAmount = Math.floor(amountCents * (PLATFORM_FEE_BPS / 10000));
 
     var session = await stripeRequest('checkout/sessions', {
       mode: 'payment',
       payment_method_types: ['card'],
-      customer_email: buyerEmail,
+      customer_email: buyer.email,
       line_items: [{
         price_data: {
           currency: (product.currency || 'usd').toLowerCase(),
@@ -150,16 +167,16 @@ module.exports = async (req, res) => {
         metadata: {
           type: 'digital_product',
           product_id: product.id,
+          buyer_id: buyer.id,
           creator_user_id: product.user_id,
-          buyer_email: buyerEmail,
           marketing_consent: marketingConsent ? '1' : '0'
         }
       },
       metadata: {
         type: 'digital_product',
         product_id: product.id,
+        buyer_id: buyer.id,
         creator_user_id: product.user_id,
-        buyer_email: buyerEmail,
         marketing_consent: marketingConsent ? '1' : '0'
       },
       success_url: successUrl,
