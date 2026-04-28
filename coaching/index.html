@@ -205,9 +205,11 @@ async function init() {
   if (error || !coaching) { showError(); return; }
   coachingData = coaching;
 
-  // Load creator name
-  const { data: profile } = await sb.from('profiles').select('username').eq('user_id', coaching.user_id).maybeSingle();
+  // Load creator name and currency
+  const { data: profile } = await sb.from('profiles').select('username, display_currency').eq('user_id', coaching.user_id).maybeSingle();
   const creatorName = profile?.username || 'Creator';
+  // Stash the creator's display currency for price formatting
+  window._creatorCurrency = (profile && profile.display_currency) ? profile.display_currency : 'USD';
 
   document.title = coaching.title + ' — Ryxa';
   const metaDesc = document.querySelector('meta[name="description"]');
@@ -261,6 +263,19 @@ function renderCoaching(coaching, creatorName, isLoggedIn) {
   document.getElementById('loading').style.display = 'none';
   document.getElementById('coaching-page').style.display = 'block';
 
+  // Format a cents amount in the creator's currency
+  function fmtPrice(cents) {
+    var code = window._creatorCurrency || 'USD';
+    var localeMap = { USD:'en-US', EUR:'en-IE', GBP:'en-GB', CAD:'en-CA', AUD:'en-AU', JPY:'ja-JP', INR:'en-IN', BRL:'pt-BR', MXN:'es-MX', CHF:'de-CH', SGD:'en-SG', SEK:'sv-SE', NOK:'nb-NO', NZD:'en-NZ', ZAR:'en-ZA' };
+    var locale = localeMap[code] || 'en-US';
+    var fractionDigits = (code === 'JPY') ? 0 : 2;
+    try {
+      return new Intl.NumberFormat(locale, { style:'currency', currency:code, minimumFractionDigits:fractionDigits, maximumFractionDigits:fractionDigits }).format(cents / 100);
+    } catch (e) {
+      return '$' + (cents / 100).toFixed(fractionDigits);
+    }
+  }
+
   // Cover
   var coverEl = document.getElementById('cp-cover');
   if (coaching.cover_image_path) {
@@ -277,7 +292,7 @@ function renderCoaching(coaching, creatorName, isLoggedIn) {
   // Meta (price + duration)
   var metaHtml = '';
   if (coaching.price_cents > 0) {
-    metaHtml += '<div class="coaching-price">$' + (coaching.price_cents / 100).toFixed(2) + '</div>';
+    metaHtml += '<div class="coaching-price">' + fmtPrice(coaching.price_cents) + '</div>';
   } else {
     metaHtml += '<div class="coaching-price" style="color:#4ade80;">Free</div>';
   }
