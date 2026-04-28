@@ -2,7 +2,7 @@
 // Receives text, returns 3 rewritten variations
 // POST /api/ai-rewrite { text: "..." }
 
-const { checkAndAuth, recordUsage } = require('./_ai-rate-limit.js');
+const { checkAndAuth, reserveSlot, refundSlot } = require('./_ai-rate-limit.js');
 
 module.exports = async (req, res) => {
   const origin = req.headers.origin || '';
@@ -19,6 +19,7 @@ module.exports = async (req, res) => {
   // Auth + rate limit
   const auth = await checkAndAuth(req, 'ai-rewrite');
   if (!auth.ok) return res.status(auth.status).json({ error: auth.error, ...(auth.extras || {}) });
+  const usageId = await reserveSlot(auth.userId, 'ai-rewrite');
 
 
   const { text } = req.body || {};
@@ -45,16 +46,14 @@ module.exports = async (req, res) => {
     if (!response.ok) {
       const err = await response.text();
       console.error('Claude API error:', err);
-      return res.status(500).json({ error: 'AI service error' });
+      await refundSlot(usageId); return res.status(500).json({ error: 'AI service error' });
     }
 
     const data = await response.json();
     const result = data.content?.[0]?.text?.trim() || '';
-
-    recordUsage(auth.userId, 'ai-rewrite');
     return res.status(200).json({ rewrites: result });
   } catch (err) {
     console.error('Rewrite error:', err);
-    return res.status(500).json({ error: 'Failed to generate rewrites' });
+    await refundSlot(usageId); return res.status(500).json({ error: 'Failed to generate rewrites' });
   }
 };

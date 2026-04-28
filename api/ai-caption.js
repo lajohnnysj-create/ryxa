@@ -2,7 +2,7 @@
 // Receives a base64 image, sends to Claude for caption generation
 // POST /api/ai-caption { image: "data:image/...;base64,..." }
 
-const { checkAndAuth, recordUsage } = require('./_ai-rate-limit.js');
+const { checkAndAuth, reserveSlot, refundSlot } = require('./_ai-rate-limit.js');
 
 module.exports = async (req, res) => {
   const origin = req.headers.origin || '';
@@ -19,6 +19,7 @@ module.exports = async (req, res) => {
   // Auth + rate limit
   const auth = await checkAndAuth(req, 'ai-caption');
   if (!auth.ok) return res.status(auth.status).json({ error: auth.error, ...(auth.extras || {}) });
+  const usageId = await reserveSlot(auth.userId, 'ai-caption');
 
 
   const { image } = req.body || {};
@@ -68,16 +69,14 @@ module.exports = async (req, res) => {
     if (!response.ok) {
       const err = await response.text();
       console.error('Claude API error:', err);
-      return res.status(500).json({ error: 'AI service error' });
+      await refundSlot(usageId); return res.status(500).json({ error: 'AI service error' });
     }
 
     const data = await response.json();
     const text = data.content?.[0]?.text?.trim() || '';
-
-    recordUsage(auth.userId, 'ai-caption');
     return res.status(200).json({ captions: text });
   } catch (err) {
     console.error('Caption error:', err);
-    return res.status(500).json({ error: 'Failed to generate captions' });
+    await refundSlot(usageId); return res.status(500).json({ error: 'Failed to generate captions' });
   }
 };

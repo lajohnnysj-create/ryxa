@@ -2,7 +2,7 @@
 // Analyzes a brand deal contract PDF text and returns structured report
 // POST /api/ai-contract { text: "extracted PDF text..." }
 
-const { checkAndAuth, recordUsage } = require('./_ai-rate-limit.js');
+const { checkAndAuth, reserveSlot, refundSlot } = require('./_ai-rate-limit.js');
 
 module.exports = async (req, res) => {
   const origin = req.headers.origin || '';
@@ -19,6 +19,7 @@ module.exports = async (req, res) => {
   // Auth + rate limit
   const auth = await checkAndAuth(req, 'ai-contract');
   if (!auth.ok) return res.status(auth.status).json({ error: auth.error, ...(auth.extras || {}) });
+  const usageId = await reserveSlot(auth.userId, 'ai-contract');
 
 
   const { text } = req.body || {};
@@ -101,18 +102,16 @@ ${contractText}
     if (!response.ok) {
       const err = await response.text();
       console.error('Claude API error:', err);
-      return res.status(500).json({ error: 'AI service error' });
+      await refundSlot(usageId); return res.status(500).json({ error: 'AI service error' });
     }
 
     const data = await response.json();
     const resultText = data.content?.[0]?.text?.trim() || '';
     const clean = resultText.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
     const result = JSON.parse(clean);
-
-    recordUsage(auth.userId, 'ai-contract');
     return res.status(200).json({ result });
   } catch (err) {
     console.error('Contract analysis error:', err);
-    return res.status(500).json({ error: 'Failed to analyze contract' });
+    await refundSlot(usageId); return res.status(500).json({ error: 'Failed to analyze contract' });
   }
 };

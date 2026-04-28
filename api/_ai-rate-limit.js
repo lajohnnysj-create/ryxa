@@ -78,6 +78,28 @@ async function sbSelect(path, options = {}) {
   return { rows, count };
 }
 
+// INSERT a row and return its id
+async function sbInsertReturningId(table, row) {
+  const key = getServiceKey();
+  const url = SUPABASE_URL + '/rest/v1/' + table;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'apikey': key,
+      'Authorization': 'Bearer ' + key,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation',
+    },
+    body: JSON.stringify(row),
+  });
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    throw new Error('Supabase INSERT failed (' + res.status + '): ' + body);
+  }
+  const rows = await res.json();
+  return rows?.[0]?.id || null;
+}
+
 // INSERT a row
 async function sbInsert(table, row) {
   const key = getServiceKey();
@@ -213,33 +235,51 @@ async function checkAndAuth(req, endpointName) {
     tier: tier,
     used: userCount,
     limit: limit,
+    usageId: null,  // set below after recording
   };
 }
 
 // ============================================================
-// recordUsage — fire-and-forget after a successful AI call
+// reserveSlot — call this RIGHT AFTER checkAndAuth returns ok.
+// Records the usage row immediately so the slot is reserved
+// before the long-running AI call. Returns the row id so the
+// caller can refund on failure.
 // ============================================================
 
-// ============================================================
-// recordUsage — runs after a successful AI call.
-// Retries once on transient failures (network blips, cold-start lag).
-// Always swallows errors so the user's request still succeeds.
-// ============================================================
-
-async function recordUsage(userId, endpoint) {
+async function reserveSlot(userId, endpoint) {
   for (let attempt = 1; attempt <= 2; attempt++) {
     try {
-      await sbInsert('ai_usage', { user_id: userId, endpoint: endpoint });
-      return;
+      const id = await sbInsertReturningId('ai_usage', { user_id: userId, endpoint: endpoint });
+      return id;
     } catch (e) {
       if (attempt === 2) {
-        console.error('recordUsage failed after retry: ' + endpoint + ' user=' + userId + ' — ' + e.message);
-        return;
+        console.error('reserveSlot failed after retry: ' + endpoint + ' user=' + userId + ' — ' + e.message);
+        return null;
       }
-      // Brief backoff before retry
       await new Promise(r => setTimeout(r, 200));
     }
   }
 }
 
-module.exports = { checkAndAuth, recordUsage, TIER_LIMITS, GLOBAL_DAILY_COST_CAP_USD };
+// ============================================================
+// refundSlot — call this if the AI call fails, so the user
+// doesn't get charged for a call that didn't deliver value.
+// ============================================================
+
+async function refundSlot(usageId) {
+  if (!usageId) return;
+  try {
+    const key = getServiceKey();
+    await fetch(SUPABASE_URL + '/rest/v1/ai_usage?id=eq.' + encodeURIComponent(usageId), {
+      method: 'DELETE',
+      headers: {
+        'apikey': key,
+        'Authorization': 'Bearer ' + key,
+      },
+    });
+  } catch (e) {
+    console.error('refundSlot failed:', e.message);
+  }
+}
+
+module.exports = { checkAndAuth, reserveSlot, refundSlot, TIER_LIMITS, GLOBAL_DAILY_COST_CAP_USD };

@@ -2,7 +2,7 @@
 // Bio writing assistance — improve existing bio or generate from scratch
 // POST /api/ai-bio { text: "...", maxLength: 60, mode: "improve"|"generate" }
 
-const { checkAndAuth, recordUsage } = require('./_ai-rate-limit.js');
+const { checkAndAuth, reserveSlot, refundSlot } = require('./_ai-rate-limit.js');
 
 module.exports = async (req, res) => {
   const origin = req.headers.origin || '';
@@ -19,6 +19,7 @@ module.exports = async (req, res) => {
   // Auth + rate limit
   const auth = await checkAndAuth(req, 'ai-bio');
   if (!auth.ok) return res.status(auth.status).json({ error: auth.error, ...(auth.extras || {}) });
+  const usageId = await reserveSlot(auth.userId, 'ai-bio');
 
   const { text, maxLength, mode } = req.body || {};
   const limit = maxLength || 60;
@@ -49,18 +50,17 @@ module.exports = async (req, res) => {
     if (!response.ok) {
       const err = await response.text();
       console.error('Claude API error:', err);
-      return res.status(500).json({ error: 'AI service error' });
+      await refundSlot(usageId); return res.status(500).json({ error: 'AI service error' });
     }
 
     const data = await response.json();
     const result = data.content?.[0]?.text?.trim() || '';
 
     // Record usage AFTER success (fire-and-forget)
-    recordUsage(auth.userId, 'ai-bio');
 
     return res.status(200).json({ result });
   } catch (err) {
     console.error('Bio AI error:', err);
-    return res.status(500).json({ error: 'Failed to generate bio' });
+    await refundSlot(usageId); return res.status(500).json({ error: 'Failed to generate bio' });
   }
 };

@@ -2,7 +2,7 @@
 // Analyzes a thumbnail image for clickability, composition, text readability
 // POST /api/ai-thumbnail { image: "base64..." }
 
-const { checkAndAuth, recordUsage } = require('./_ai-rate-limit.js');
+const { checkAndAuth, reserveSlot, refundSlot } = require('./_ai-rate-limit.js');
 
 module.exports = async (req, res) => {
   const origin = req.headers.origin || '';
@@ -19,6 +19,7 @@ module.exports = async (req, res) => {
   // Auth + rate limit
   const auth = await checkAndAuth(req, 'ai-thumbnail');
   if (!auth.ok) return res.status(auth.status).json({ error: auth.error, ...(auth.extras || {}) });
+  const usageId = await reserveSlot(auth.userId, 'ai-thumbnail');
 
 
   const { image } = req.body || {};
@@ -75,7 +76,7 @@ Be specific and actionable. Reference what you actually see in the image. If the
     if (!response.ok) {
       const err = await response.text();
       console.error('Claude API error:', err);
-      return res.status(500).json({ error: 'AI service error' });
+      await refundSlot(usageId); return res.status(500).json({ error: 'AI service error' });
     }
 
     const data = await response.json();
@@ -84,11 +85,9 @@ Be specific and actionable. Reference what you actually see in the image. If the
     // Parse JSON from response (strip markdown fences if present)
     const clean = text.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
     const result = JSON.parse(clean);
-
-    recordUsage(auth.userId, 'ai-thumbnail');
     return res.status(200).json({ result });
   } catch (err) {
     console.error('Thumbnail analysis error:', err);
-    return res.status(500).json({ error: 'Failed to analyze thumbnail' });
+    await refundSlot(usageId); return res.status(500).json({ error: 'Failed to analyze thumbnail' });
   }
 };

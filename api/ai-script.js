@@ -2,7 +2,7 @@
 // Script writing assistance — hook generation and text improvement
 // POST /api/ai-script { mode: "hook"|"improve"|"expand"|"shorten", text: "...", topic: "..." }
 
-const { checkAndAuth, recordUsage } = require('./_ai-rate-limit.js');
+const { checkAndAuth, reserveSlot, refundSlot } = require('./_ai-rate-limit.js');
 
 module.exports = async (req, res) => {
   const origin = req.headers.origin || '';
@@ -19,6 +19,7 @@ module.exports = async (req, res) => {
   // Auth + rate limit
   const auth = await checkAndAuth(req, 'ai-script');
   if (!auth.ok) return res.status(auth.status).json({ error: auth.error, ...(auth.extras || {}) });
+  const usageId = await reserveSlot(auth.userId, 'ai-script');
 
 
   const { mode, text, topic } = req.body || {};
@@ -87,16 +88,14 @@ Original: "${text.trim()}"`;
     if (!response.ok) {
       const err = await response.text();
       console.error('Claude API error:', err);
-      return res.status(500).json({ error: 'AI service error' });
+      await refundSlot(usageId); return res.status(500).json({ error: 'AI service error' });
     }
 
     const data = await response.json();
     const result = data.content?.[0]?.text?.trim() || '';
-
-    recordUsage(auth.userId, 'ai-script');
     return res.status(200).json({ result });
   } catch (err) {
     console.error('Script AI error:', err);
-    return res.status(500).json({ error: 'Failed to generate content' });
+    await refundSlot(usageId); return res.status(500).json({ error: 'Failed to generate content' });
   }
 };

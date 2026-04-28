@@ -2,7 +2,7 @@
 // Receives a base64 image, sends to Claude for alt text generation
 // POST /api/alt-text { image: "data:image/...;base64,..." }
 
-const { checkAndAuth, recordUsage } = require('./_ai-rate-limit.js');
+const { checkAndAuth, reserveSlot, refundSlot } = require('./_ai-rate-limit.js');
 
 module.exports = async (req, res) => {
   // CORS
@@ -20,6 +20,7 @@ module.exports = async (req, res) => {
   // Auth + rate limit
   const auth = await checkAndAuth(req, 'alt-text');
   if (!auth.ok) return res.status(auth.status).json({ error: auth.error, ...(auth.extras || {}) });
+  const usageId = await reserveSlot(auth.userId, 'alt-text');
 
 
   const { image } = req.body || {};
@@ -71,16 +72,14 @@ module.exports = async (req, res) => {
     if (!response.ok) {
       const err = await response.text();
       console.error('Claude API error:', err);
-      return res.status(500).json({ error: 'AI service error' });
+      await refundSlot(usageId); return res.status(500).json({ error: 'AI service error' });
     }
 
     const data = await response.json();
     const altText = data.content?.[0]?.text?.trim() || '';
-
-    recordUsage(auth.userId, 'alt-text');
     return res.status(200).json({ alt: altText });
   } catch (err) {
     console.error('Alt text error:', err);
-    return res.status(500).json({ error: 'Failed to generate alt text' });
+    await refundSlot(usageId); return res.status(500).json({ error: 'Failed to generate alt text' });
   }
 };
