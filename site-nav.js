@@ -138,7 +138,7 @@ function renderHeader() {
   +     '</div>'
   +     '<a href="/pricing.html" onclick="closeMobileMenu()">Pricing</a>'
   +     '<a href="/about.html" onclick="closeMobileMenu()">About</a>'
-  +     '<a href="/learn/" onclick="closeMobileMenu()">Learning Hub</a>'
+  +     '<a href="/learn/" onclick="closeMobileMenu()">Hub</a>'
   +   '</div>'
   +   '<div class="mobile-menu-bottom">'
   +     '<a class="mobile-cta" href="/dashboard.html" id="mobile-dashboard-link" style="display:none;">Go to Dashboard</a>'
@@ -187,9 +187,9 @@ function renderHeader() {
   +     '<a href="/pricing.html" style="' + pricingStyle + '">Pricing</a>'
   +     '<a href="/about.html" style="' + aboutStyle + '">About</a>'
 
-  // Learning Hub dropdown
+  // Hub dropdown
   +     '<div class="nav-tools-wrap">'
-  +       '<button class="nav-tools-trigger" type="button" onclick="window.location.href=\'/learn/\'">Learning Hub <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>'
+  +       '<button class="nav-tools-trigger" type="button" onclick="window.location.href=\'/learn/\'">Hub <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>'
   +       '<div class="nav-tools-menu" style="width:300px;">'
   +         '<a href="/learn/" class="nav-tools-item"><div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M8 7h8M8 11h6"/></svg></div><div class="nav-tools-item-content"><div class="nav-tools-item-title">Dashboard Login</div><div class="nav-tools-item-desc">Access courses and bookings you\'ve purchased</div></div></a>'
   +       '</div>'
@@ -245,7 +245,7 @@ function renderFooter() {
   +       '<div style="font-family:\'Syne\',sans-serif;font-weight:700;font-size:13px;margin-bottom:14px;">Product</div>'
   +       '<div style="display:flex;flex-direction:column;gap:8px;">'
   +         '<a href="/pricing.html" style="color:var(--muted);font-size:13px;text-decoration:none;">Pricing</a>'
-  +         '<a href="/learn/" style="color:var(--muted);font-size:13px;text-decoration:none;">Learning Hub</a>'
+  +         '<a href="/learn/" style="color:var(--muted);font-size:13px;text-decoration:none;">Hub</a>'
   +         '<a href="/blog.html" style="color:var(--muted);font-size:13px;text-decoration:none;">Blog</a>'
   +         '<a href="/faq.html" style="color:var(--muted);font-size:13px;text-decoration:none;">FAQ</a>'
   +       '</div>'
