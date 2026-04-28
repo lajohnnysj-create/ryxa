@@ -4624,7 +4624,7 @@
           <div id="ana-rev-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
             <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;position:relative;">
               <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:600;margin-bottom:8px;">Courses</div>
-              <div id="ana-courses-total" style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;letter-spacing:-0.5px;margin-bottom:8px;">$0</div>
+              <div id="ana-courses-total" class="currency-zero-placeholder" style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;letter-spacing:-0.5px;margin-bottom:8px;">$0</div>
               <div style="position:relative;">
                 <canvas id="ana-courses-chart" style="width:100%;height:60px;"></canvas>
                 <div id="ana-courses-chart-tip" class="ana-mini-tip" style="display:none;"></div>
@@ -4632,7 +4632,7 @@
             </div>
             <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;position:relative;">
               <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:600;margin-bottom:8px;">Coaching</div>
-              <div id="ana-coaching-total" style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;letter-spacing:-0.5px;margin-bottom:8px;">$0</div>
+              <div id="ana-coaching-total" class="currency-zero-placeholder" style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;letter-spacing:-0.5px;margin-bottom:8px;">$0</div>
               <div style="position:relative;">
                 <canvas id="ana-coaching-chart" style="width:100%;height:60px;"></canvas>
                 <div id="ana-coaching-chart-tip" class="ana-mini-tip" style="display:none;"></div>
@@ -4640,7 +4640,7 @@
             </div>
             <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;position:relative;">
               <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:600;margin-bottom:8px;">Brand Deals</div>
-              <div id="ana-deals-total" style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;letter-spacing:-0.5px;margin-bottom:8px;">$0</div>
+              <div id="ana-deals-total" class="currency-zero-placeholder" style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;letter-spacing:-0.5px;margin-bottom:8px;">$0</div>
               <div style="position:relative;">
                 <canvas id="ana-deals-chart" style="width:100%;height:60px;"></canvas>
                 <div id="ana-deals-chart-tip" class="ana-mini-tip" style="display:none;"></div>
@@ -6411,22 +6411,22 @@
               <div class="deals-stats-grid" style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px;">
                 <div class="deals-stat-card">
                   <div class="deals-stat-label">This Month</div>
-                  <div id="deals-stat-month" class="deals-stat-value">$0</div>
+                  <div id="deals-stat-month" class="deals-stat-value currency-zero-placeholder">$0</div>
                   <div id="deals-stat-month-sub" class="deals-stat-sub">&mdash;</div>
                 </div>
                 <div class="deals-stat-card">
                   <div class="deals-stat-label">Year to Date</div>
-                  <div id="deals-stat-ytd" class="deals-stat-value">$0</div>
+                  <div id="deals-stat-ytd" class="deals-stat-value currency-zero-placeholder">$0</div>
                   <div id="deals-stat-ytd-sub" class="deals-stat-sub">&mdash;</div>
                 </div>
                 <div class="deals-stat-card">
                   <div class="deals-stat-label">Lifetime</div>
-                  <div id="deals-stat-lifetime" class="deals-stat-value">$0</div>
+                  <div id="deals-stat-lifetime" class="deals-stat-value currency-zero-placeholder">$0</div>
                   <div id="deals-stat-lifetime-sub" class="deals-stat-sub">&mdash;</div>
                 </div>
                 <div class="deals-stat-card">
                   <div class="deals-stat-label">Pending Payment</div>
-                  <div id="deals-stat-pending" class="deals-stat-value" style="color:#fbbf24;">$0</div>
+                  <div id="deals-stat-pending" class="deals-stat-value currency-zero-placeholder" style="color:#fbbf24;">$0</div>
                   <div id="deals-stat-pending-sub" class="deals-stat-sub">&mdash;</div>
                 </div>
               </div>
@@ -6561,7 +6561,7 @@
                     </div>
                   </div>
                   <div>
-                    <label class="deal-label" for="deal-amount">Deal Amount (USD)</label>
+                    <label class="deal-label" for="deal-amount">Deal Amount</label>
                     <input type="number" id="deal-amount" placeholder="0" min="0" step="0.01" class="deal-input">
                   </div>
                 </div>
@@ -11118,11 +11118,11 @@ function renderMKRates() {
     return `<div class="mk-rate-row">
       ${headerHtml}
       <div class="mk-rate-price-row">
-        <span class="mk-rate-prefix">$</span>
-        <input type="number" min="0" step="1" placeholder="Price (USD)"
+        <span class="mk-rate-prefix currency-symbol-prefix">${getCurrencySymbol()}</span>
+        <input type="number" min="0" step="1" placeholder="Price"
           value="${escapeHtml(r.price ? String(r.price) : '')}"
           oninput="onRateField(${r._id},'price',this.value)"
-          aria-label="Price in USD"
+          aria-label="Price"
           style="flex:1;">
       </div>
       <input type="text" placeholder="Note (optional, e.g. Includes 14-day usage rights)" maxlength="120"
