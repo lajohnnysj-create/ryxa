@@ -6597,20 +6597,20 @@
 
           <div style="display:grid;grid-template-columns:1fr;gap:18px;max-width:680px;">
 
-            <!-- Cover -->
-            <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;">
-              <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;">Cover Image</label>
-              <div id="products-cover-preview" style="width:100%;aspect-ratio:16/9;background:var(--bg);border:1px dashed var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;cursor:pointer;background-size:cover;background-position:center;" onclick="document.getElementById('products-cover-input').click()">
-                Click to upload (1280×720 recommended)
-              </div>
-              <input type="file" id="products-cover-input" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="uploadProductCover(this)">
-              <button id="products-cover-remove" onclick="removeProductCover()" style="display:none;margin-top:8px;padding:6px 10px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:12px;cursor:pointer;font-family:DM Sans,sans-serif;">Remove cover</button>
-            </div>
-
             <!-- Title -->
             <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;">
               <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;">Title</label>
               <input type="text" id="products-title" maxlength="120" placeholder="e.g. Lightroom Preset Pack" oninput="autoUpdateProductSlug()" style="width:100%;padding:11px 14px;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;font-family:DM Sans,sans-serif;outline:none;">
+            </div>
+
+            <!-- Cover -->
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;">
+              <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;">Cover Image</label>
+              <div id="products-cover-preview" style="width:100%;aspect-ratio:16/9;background:var(--bg);border:1px dashed var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;cursor:pointer;background-size:cover;background-position:center;" onclick="dpClickCover()">
+                Click to upload (1280×720 recommended)
+              </div>
+              <input type="file" id="products-cover-input" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="uploadProductCover(this)">
+              <button id="products-cover-remove" onclick="removeProductCover()" style="display:none;margin-top:8px;padding:6px 10px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:12px;cursor:pointer;font-family:DM Sans,sans-serif;">Remove cover</button>
             </div>
 
             <!-- Slug -->
@@ -6646,7 +6646,7 @@
                 <div id="products-files-size" style="font-size:11px;color:var(--muted);">0 MB used of this product's 300 MB</div>
               </div>
               <div id="products-files-list" style="margin-bottom:10px;"></div>
-              <button onclick="document.getElementById('products-file-input').click()" id="products-add-file-btn" style="width:100%;padding:14px;background:var(--bg);border:1px dashed var(--border);border-radius:10px;color:var(--muted);font-size:13px;cursor:pointer;font-family:DM Sans,sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;">
+              <button onclick="dpClickAddFile()" id="products-add-file-btn" style="width:100%;padding:14px;background:var(--bg);border:1px dashed var(--border);border-radius:10px;color:var(--muted);font-size:13px;cursor:pointer;font-family:DM Sans,sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                 Upload file (max 100 MB)
               </button>
@@ -24701,6 +24701,30 @@ async function removeProductFile(fileId) {
       showModalAlert('Error', 'Could not delete this file.');
     }
   });
+}
+
+// Guard helpers — title is required before any upload because we need a
+// product ID to namespace the storage path. Show a clear message and
+// focus the title input if it's missing.
+function dpRequireTitleBeforeUpload() {
+  if (productsState.editingId) return true;
+  var titleEl = document.getElementById('products-title');
+  if (titleEl && titleEl.value.trim()) return true;
+  showModalAlert('Add a title first', 'Please give your product a title before uploading files. The title can be changed at any time.');
+  if (titleEl) {
+    titleEl.focus();
+    titleEl.style.borderColor = 'rgba(239,68,68,0.6)';
+    setTimeout(function() { titleEl.style.borderColor = ''; }, 2000);
+  }
+  return false;
+}
+function dpClickCover() {
+  if (!dpRequireTitleBeforeUpload()) return;
+  document.getElementById('products-cover-input').click();
+}
+function dpClickAddFile() {
+  if (!dpRequireTitleBeforeUpload()) return;
+  document.getElementById('products-file-input').click();
 }
 
 // Client-side cover image compression. Resizes to max 1600px wide and
