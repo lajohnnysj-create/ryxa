@@ -3597,6 +3597,10 @@
       <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
       <span class="sidebar-item-label">1:1 Booking <span class="sidebar-pill max">MAX</span></span>
     </button>
+    <button class="sidebar-item" id="nav-products" onclick="showTool('products')">
+      <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>
+      <span class="sidebar-item-label">Digital Products <span class="sidebar-pill max">MAX</span></span>
+    </button>
     <button class="sidebar-item" id="nav-deals" onclick="showTool('deals')">
       <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 12h18"/></svg></div>
       <span class="sidebar-item-label">Brand Deals <span class="sidebar-pill max">MAX</span><br><span style="font-size:10px;font-weight:400;color:var(--muted);font-family:DM Sans,sans-serif;">CRM</span></span>
@@ -6533,6 +6537,146 @@
       </div>
     </div>
 
+    <!-- DIGITAL PRODUCTS (Max only) -->
+    <div id="tool-products" style="display:none;">
+      <div style="max-width:900px;">
+
+        <!-- Max-only upsell -->
+        <div id="products-upsell" style="display:none;text-align:center;padding:60px 24px;">
+          <div style="width:56px;height:56px;margin:0 auto 16px;background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.25);border-radius:14px;display:flex;align-items:center;justify-content:center;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>
+          <h2 style="font-family:Syne,sans-serif;font-size:28px;font-weight:800;margin-bottom:8px;letter-spacing:-0.5px;">Digital Products</h2>
+          <p style="color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:24px;max-width:440px;margin-left:auto;margin-right:auto;">Sell ebooks, templates, presets, and design files. Upload your files, set a price, and share your product link. Buyers download from their Ryxa Hub. Available on Creator Max.</p>
+          <button onclick="handleMaxUpgradeClick(event)" style="padding:12px 26px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px rgba(232,121,249,0.3);">Try Creator Max Free — 7 Days</button>
+        </div>
+
+        <!-- LIST VIEW (Max users) -->
+        <div id="products-list-view" style="display:none;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+            <div>
+              <h2 style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;margin-bottom:4px;letter-spacing:-0.5px;">Digital Products</h2>
+              <p style="color:var(--muted);font-size:14px;">Sell ebooks, templates, and presets to your audience.</p>
+            </div>
+            <button onclick="openProductEditor()" style="padding:10px 20px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;display:inline-flex;align-items:center;gap:6px;box-shadow:0 0 20px var(--accent-glow);">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              New Product
+            </button>
+          </div>
+
+          <!-- Storage usage indicator -->
+          <div id="products-storage-bar" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:20px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;">Storage Used</div>
+              <div id="products-storage-text" style="font-size:12px;color:var(--text);">0 MB / 2 GB</div>
+            </div>
+            <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;">
+              <div id="products-storage-fill" style="height:100%;width:0%;background:#22c55e;transition:width 0.3s ease, background 0.3s ease;border-radius:3px;"></div>
+            </div>
+          </div>
+
+          <!-- Product cards container -->
+          <div id="products-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;"></div>
+
+          <!-- Empty state -->
+          <div id="products-empty" style="display:none;text-align:center;padding:60px 24px;background:var(--surface);border:1px dashed var(--border);border-radius:14px;">
+            <div style="width:48px;height:48px;margin:0 auto 14px;background:rgba(124,58,237,0.1);border-radius:12px;display:flex;align-items:center;justify-content:center;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>
+            <div style="font-family:Syne,sans-serif;font-size:18px;font-weight:700;margin-bottom:6px;">No products yet</div>
+            <div style="color:var(--muted);font-size:13px;margin-bottom:18px;">Create your first digital product to start selling.</div>
+            <button onclick="openProductEditor()" style="padding:9px 18px;background:var(--accent);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Create your first product</button>
+          </div>
+        </div>
+
+        <!-- EDITOR VIEW -->
+        <div id="products-editor-view" style="display:none;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+            <button onclick="closeProductEditor()" style="padding:6px 10px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;display:inline-flex;align-items:center;gap:5px;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+              Back
+            </button>
+            <h2 id="products-editor-title" style="font-family:Syne,sans-serif;font-size:22px;font-weight:800;letter-spacing:-0.4px;">New Product</h2>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr;gap:18px;max-width:680px;">
+
+            <!-- Cover -->
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;">
+              <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;">Cover Image</label>
+              <div id="products-cover-preview" style="width:100%;aspect-ratio:16/9;background:var(--bg);border:1px dashed var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;cursor:pointer;background-size:cover;background-position:center;" onclick="document.getElementById('products-cover-input').click()">
+                Click to upload (1280×720 recommended)
+              </div>
+              <input type="file" id="products-cover-input" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="uploadProductCover(this)">
+              <button id="products-cover-remove" onclick="removeProductCover()" style="display:none;margin-top:8px;padding:6px 10px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:12px;cursor:pointer;font-family:DM Sans,sans-serif;">Remove cover</button>
+            </div>
+
+            <!-- Title -->
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;">
+              <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;">Title</label>
+              <input type="text" id="products-title" maxlength="120" placeholder="e.g. Lightroom Preset Pack" oninput="autoUpdateProductSlug()" style="width:100%;padding:11px 14px;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;font-family:DM Sans,sans-serif;outline:none;">
+            </div>
+
+            <!-- Slug -->
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;">
+              <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;">URL Slug</label>
+              <div style="display:flex;align-items:center;gap:0;">
+                <span style="padding:11px 0 11px 14px;background:var(--bg);border:1px solid var(--border);border-right:none;border-radius:10px 0 0 10px;color:var(--muted);font-size:13px;font-family:DM Sans,sans-serif;white-space:nowrap;">ryxa.io/p/</span>
+                <input type="text" id="products-slug" maxlength="80" placeholder="lightroom-preset-pack" style="flex:1;padding:11px 14px;background:var(--bg);border:1px solid var(--border);border-radius:0 10px 10px 0;color:var(--text);font-size:14px;font-family:DM Sans,sans-serif;outline:none;">
+              </div>
+              <div id="products-slug-status" style="font-size:11px;margin-top:6px;color:var(--muted);">Lowercase letters, numbers, and hyphens only.</div>
+            </div>
+
+            <!-- Description -->
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;">
+              <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;">Description</label>
+              <textarea id="products-description" maxlength="2000" rows="4" placeholder="What's included in your product? Who is it for?" style="width:100%;padding:11px 14px;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;font-family:DM Sans,sans-serif;outline:none;resize:vertical;"></textarea>
+            </div>
+
+            <!-- Price -->
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;">
+              <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;">Price</label>
+              <div style="display:flex;align-items:center;gap:0;max-width:240px;">
+                <span style="padding:11px 14px;background:var(--bg);border:1px solid var(--border);border-right:none;border-radius:10px 0 0 10px;color:var(--muted);font-size:14px;font-family:DM Sans,sans-serif;">$</span>
+                <input type="number" id="products-price" min="0" step="0.01" placeholder="9.99" style="flex:1;padding:11px 14px;background:var(--bg);border:1px solid var(--border);border-radius:0 10px 10px 0;color:var(--text);font-size:14px;font-family:DM Sans,sans-serif;outline:none;">
+              </div>
+              <div style="font-size:11px;color:var(--muted);margin-top:6px;">Set to 0 for a free download (lead magnet).</div>
+            </div>
+
+            <!-- Files -->
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <label style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;">Files <span id="products-files-count" style="opacity:0.7;font-weight:400;text-transform:none;">(0)</span></label>
+                <div id="products-files-size" style="font-size:11px;color:var(--muted);">0 MB used of this product's 300 MB</div>
+              </div>
+              <div id="products-files-list" style="margin-bottom:10px;"></div>
+              <button onclick="document.getElementById('products-file-input').click()" id="products-add-file-btn" style="width:100%;padding:14px;background:var(--bg);border:1px dashed var(--border);border-radius:10px;color:var(--muted);font-size:13px;cursor:pointer;font-family:DM Sans,sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Upload file (max 100 MB)
+              </button>
+              <input type="file" id="products-file-input" multiple style="display:none;" onchange="uploadProductFiles(this)">
+              <div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;">
+                PDFs, ebooks, templates, presets, and design files only. Up to 100 MB per file. No videos, audio, or executables.
+              </div>
+            </div>
+
+            <!-- Delivery message -->
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;">
+              <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;">Thank-You Message <span style="text-transform:none;font-weight:400;opacity:0.7;">(optional)</span></label>
+              <textarea id="products-delivery-message" maxlength="500" rows="3" placeholder="Thanks for buying! Here are some tips on getting started..." style="width:100%;padding:11px 14px;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;font-family:DM Sans,sans-serif;outline:none;resize:vertical;"></textarea>
+              <div style="font-size:11px;color:var(--muted);margin-top:6px;">Shown on the buyer's download page after purchase.</div>
+            </div>
+
+            <!-- Action buttons -->
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+              <button id="products-delete-btn" onclick="deleteProduct()" style="display:none;padding:10px 16px;background:transparent;border:1px solid rgba(239,68,68,0.4);border-radius:9px;color:#f87171;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Delete product</button>
+              <div style="display:flex;gap:10px;margin-left:auto;">
+                <button id="products-save-draft-btn" onclick="saveProduct(false)" style="padding:10px 18px;background:var(--surface);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Save as draft</button>
+                <button id="products-publish-btn" onclick="saveProduct(true)" style="padding:10px 18px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:9px;color:#fff;font-size:13px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow);">Publish</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
     <!-- AI CHAT (Pro+) -->
     <div id="tool-aichat" style="display:none;">
       <!-- Paywall for Free users -->
@@ -7310,6 +7454,7 @@ const toolTitles = {
   bio: 'Link in Bio',
   courses: 'Courses',
   coaching: '1:1 Booking',
+  products: 'Digital Products',
   mediakit: 'Media Kit',
   grid: 'Grid Planner',
   follower: 'Follow-Back Audit',
@@ -7785,7 +7930,7 @@ function showTool(tool) {
     if (typeof resetPdfSign === 'function') resetPdfSign();
   }
   // Hide all tools
-  ['welcome','bio','courses','coaching','mediakit','grid','follower','image','design','aichat','qr','invoice','pdfsign','deals','scripts','thumbanalyzer','contractanalyzer','analytics','calendar','clients','settings'].forEach(t => {
+  ['welcome','bio','courses','coaching','products','mediakit','grid','follower','image','design','aichat','qr','invoice','pdfsign','deals','scripts','thumbanalyzer','contractanalyzer','analytics','calendar','clients','settings'].forEach(t => {
     const el = document.getElementById('tool-' + t);
     if (el) el.style.display = 'none';
     const nav = document.getElementById('nav-' + t);
@@ -7849,6 +7994,10 @@ function showTool(tool) {
   // Init AI Chat
   if (tool === 'aichat') {
     initAiChat();
+  }
+  // Init Digital Products
+  if (tool === 'products') {
+    initDigitalProducts();
   }
   // Update topbar title
   const title = document.getElementById('topbar-title');
@@ -24130,6 +24279,630 @@ function renderAnaMiniChart(canvasId, dailyData, valKey, color) {
 <script src="/cookie-banner.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Poppins:wght@400;700&family=Montserrat:wght@400;700&family=Bebas+Neue&family=Oswald:wght@400;700&family=Caveat:wght@400;700&family=Dancing+Script:wght@400;700&family=Playfair+Display:wght@400;700&family=Lora:wght@400;700&family=Roboto:wght@400;700&family=Open+Sans:wght@400;700&family=Raleway:wght@400;700&family=Nunito:wght@400;700&family=Quicksand:wght@400;700&family=Pacifico&family=Lobster&family=Permanent+Marker&family=Righteous&family=Abril+Fatface&family=Comfortaa:wght@400;700&display=swap" rel="stylesheet">
+
+<script>
+// =====================================================
+// DIGITAL PRODUCTS
+// =====================================================
+
+// Hard limits — must match SQL bucket config and migration
+var DP_MAX_FILE_BYTES    = 100 * 1024 * 1024;   // 100 MB
+var DP_MAX_PRODUCT_BYTES = 300 * 1024 * 1024;   // 300 MB
+var DP_MAX_ACCOUNT_BYTES = 2 * 1024 * 1024 * 1024;  // 2 GB
+
+// Allowed file extensions (lowercase). MUST match docs in marketing copy.
+var DP_ALLOWED_EXTS = [
+  'pdf','epub','mobi','txt','md','docx','pages',
+  'csv','xlsx','numbers',
+  'pptx','key',
+  'jpg','jpeg','png','gif','webp','svg',
+  'psd','ai','indd','sketch','fig','afphoto','afdesign',
+  'cube','3dl','lrtemplate','xmp','dng',
+  'atn','abr','asl','tpl',
+  'drp',
+  'zip','rar','7z'
+];
+
+// Magic byte signatures for MIME validation
+var DP_MAGIC_BYTES = {
+  pdf:  ['25504446'],
+  zip:  ['504B0304', '504B0506', '504B0708'],
+  rar:  ['526172211A0700', '526172211A070100'],
+  '7z': ['377ABCAF271C'],
+  png:  ['89504E470D0A1A0A'],
+  gif:  ['474946383761', '474946383961'],
+  jpg:  ['FFD8FF'],
+  jpeg: ['FFD8FF'],
+  webp: ['52494646'],
+  docx: ['504B0304'],
+  xlsx: ['504B0304'],
+  pptx: ['504B0304'],
+  epub: ['504B0304'],
+  psd:  ['38425053']
+};
+
+var productsState = {
+  inited: false,
+  list: [],
+  storageBytes: 0,
+  editingId: null,
+  editing: null,
+  editingFiles: [],
+  editingProductBytes: 0
+};
+
+function initDigitalProducts() {
+  if (!isMax()) {
+    document.getElementById('products-upsell').style.display = 'block';
+    document.getElementById('products-list-view').style.display = 'none';
+    document.getElementById('products-editor-view').style.display = 'none';
+    return;
+  }
+  document.getElementById('products-upsell').style.display = 'none';
+  document.getElementById('products-editor-view').style.display = 'none';
+  document.getElementById('products-list-view').style.display = 'block';
+  if (!productsState.inited) {
+    productsState.inited = true;
+  }
+  loadProductsList();
+  refreshProductsStorage();
+}
+
+async function loadProductsList() {
+  var listEl = document.getElementById('products-list');
+  var emptyEl = document.getElementById('products-empty');
+  listEl.innerHTML = '<div style="grid-column:1/-1;color:var(--muted);font-size:13px;text-align:center;padding:30px 0;">Loading...</div>';
+  try {
+    var { data, error } = await sb
+      .from('digital_products')
+      .select('id, slug, title, description, cover_image_url, price_cents, currency, is_active, total_size_bytes, updated_at')
+      .order('updated_at', { ascending: false });
+    if (error) throw error;
+    productsState.list = data || [];
+    if (!productsState.list.length) {
+      listEl.innerHTML = '';
+      listEl.style.display = 'none';
+      emptyEl.style.display = 'block';
+      return;
+    }
+    listEl.style.display = 'grid';
+    emptyEl.style.display = 'none';
+    renderProductsList();
+  } catch (e) {
+    console.error('loadProductsList failed:', e);
+    listEl.innerHTML = '<div style="grid-column:1/-1;color:#f87171;font-size:13px;text-align:center;padding:30px 0;">Could not load your products</div>';
+  }
+}
+
+function renderProductsList() {
+  var listEl = document.getElementById('products-list');
+  var html = productsState.list.map(function(p) {
+    var price = p.price_cents > 0 ? '$' + (p.price_cents / 100).toFixed(2) : 'Free';
+    var statusBadge = p.is_active
+      ? '<span style="font-size:10px;font-weight:600;color:#22c55e;background:rgba(34,197,94,0.12);padding:2px 7px;border-radius:5px;">Live</span>'
+      : '<span style="font-size:10px;font-weight:600;color:var(--muted);background:var(--bg);padding:2px 7px;border-radius:5px;">Draft</span>';
+    var coverStyle = p.cover_image_url
+      ? 'background-image:url(' + dpEscapeHtml(p.cover_image_url) + ');background-size:cover;background-position:center;'
+      : 'background:linear-gradient(135deg,rgba(124,58,237,0.18),rgba(232,121,249,0.14));display:flex;align-items:center;justify-content:center;';
+    var coverInner = p.cover_image_url ? '' : '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>';
+    return '<div onclick="openProductEditor(\'' + p.id + '\')" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;transition:transform 0.15s, border-color 0.15s;" onmouseover="this.style.borderColor=\'rgba(124,58,237,0.4)\'" onmouseout="this.style.borderColor=\'var(--border)\'">'
+      + '<div style="width:100%;aspect-ratio:16/9;' + coverStyle + '">' + coverInner + '</div>'
+      + '<div style="padding:14px;">'
+      + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px;">'
+      + '<div style="font-size:14px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + dpEscapeHtml(p.title || 'Untitled') + '</div>'
+      + statusBadge
+      + '</div>'
+      + '<div style="font-size:12px;color:var(--muted);">' + price + ' \u00b7 ' + dpFormatBytes(p.total_size_bytes) + '</div>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+  listEl.innerHTML = html;
+}
+
+async function refreshProductsStorage() {
+  try {
+    var { data, error } = await sb.rpc('get_digital_products_storage_used');
+    if (error) throw error;
+    productsState.storageBytes = Number(data || 0);
+    var pct = Math.min(100, Math.round((productsState.storageBytes / DP_MAX_ACCOUNT_BYTES) * 100));
+    var color = pct < 60 ? '#22c55e' : (pct < 85 ? '#eab308' : '#ef4444');
+    var fill = document.getElementById('products-storage-fill');
+    var txt = document.getElementById('products-storage-text');
+    if (fill) { fill.style.width = pct + '%'; fill.style.background = color; }
+    if (txt) txt.textContent = dpFormatBytes(productsState.storageBytes) + ' / 2 GB';
+  } catch (e) {
+    console.error('refreshProductsStorage failed:', e);
+  }
+}
+
+async function openProductEditor(productId) {
+  document.getElementById('products-list-view').style.display = 'none';
+  document.getElementById('products-editor-view').style.display = 'block';
+  productsState.editingFiles = [];
+  productsState.editingProductBytes = 0;
+
+  if (productId) {
+    productsState.editingId = productId;
+    document.getElementById('products-editor-title').textContent = 'Edit Product';
+    document.getElementById('products-delete-btn').style.display = 'inline-block';
+    try {
+      var { data: prod, error: e1 } = await sb.from('digital_products').select('*').eq('id', productId).single();
+      if (e1) throw e1;
+      productsState.editing = prod;
+      var { data: files, error: e2 } = await sb.from('digital_product_files').select('*').eq('product_id', productId).order('sort_order', { ascending: true });
+      if (e2) throw e2;
+      productsState.editingFiles = files || [];
+      productsState.editingProductBytes = (files || []).reduce(function(s,f){return s + Number(f.file_size_bytes || 0);}, 0);
+      hydrateProductEditor(prod);
+    } catch (e) {
+      console.error('Load product failed:', e);
+      showModalAlert('Error', 'Could not load this product.');
+      closeProductEditor();
+      return;
+    }
+  } else {
+    productsState.editingId = null;
+    productsState.editing = null;
+    document.getElementById('products-editor-title').textContent = 'New Product';
+    document.getElementById('products-delete-btn').style.display = 'none';
+    hydrateProductEditor(null);
+  }
+  renderProductFiles();
+}
+
+function hydrateProductEditor(prod) {
+  document.getElementById('products-title').value = prod ? (prod.title || '') : '';
+  document.getElementById('products-slug').value = prod ? (prod.slug || '') : '';
+  document.getElementById('products-description').value = prod ? (prod.description || '') : '';
+  document.getElementById('products-price').value = prod ? (prod.price_cents > 0 ? (prod.price_cents / 100).toFixed(2) : '') : '';
+  document.getElementById('products-delivery-message').value = prod ? (prod.delivery_message || '') : '';
+
+  var coverEl = document.getElementById('products-cover-preview');
+  var removeBtn = document.getElementById('products-cover-remove');
+  if (prod && prod.cover_image_url) {
+    coverEl.style.backgroundImage = 'url(' + prod.cover_image_url + ')';
+    coverEl.textContent = '';
+    removeBtn.style.display = 'inline-block';
+  } else {
+    coverEl.style.backgroundImage = '';
+    coverEl.textContent = 'Click to upload (1280\u00d7720 recommended)';
+    removeBtn.style.display = 'none';
+  }
+}
+
+function closeProductEditor() {
+  document.getElementById('products-editor-view').style.display = 'none';
+  document.getElementById('products-list-view').style.display = 'block';
+  productsState.editingId = null;
+  productsState.editing = null;
+  productsState.editingFiles = [];
+  productsState.editingProductBytes = 0;
+  loadProductsList();
+  refreshProductsStorage();
+}
+
+var _dpSlugManuallyEdited = false;
+function autoUpdateProductSlug() {
+  if (productsState.editingId) return;
+  var slugEl = document.getElementById('products-slug');
+  if (_dpSlugManuallyEdited && slugEl.value) return;
+  var title = document.getElementById('products-title').value;
+  slugEl.value = dpSlugify(title);
+}
+document.addEventListener('input', function(e) {
+  if (e.target && e.target.id === 'products-slug') _dpSlugManuallyEdited = true;
+});
+
+function dpSlugify(s) {
+  return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80);
+}
+
+function dpFormatBytes(bytes) {
+  bytes = Number(bytes || 0);
+  if (bytes === 0) return '0 MB';
+  if (bytes < 1024 * 1024) return Math.max(1, Math.round(bytes / 1024)) + ' KB';
+  if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+}
+
+function dpEscapeHtml(str) {
+  if (str == null) return '';
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function dpReadMagicBytes(file) {
+  return new Promise(function(resolve, reject) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var bytes = new Uint8Array(e.target.result);
+      var hex = '';
+      for (var i = 0; i < bytes.length; i++) hex += bytes[i].toString(16).padStart(2, '0').toUpperCase();
+      resolve(hex);
+    };
+    reader.onerror = function() { reject(new Error('Could not read file')); };
+    reader.readAsArrayBuffer(file.slice(0, 16));
+  });
+}
+
+async function dpValidateFileType(file) {
+  var name = file.name.toLowerCase();
+  var ext = name.split('.').pop();
+  if (DP_ALLOWED_EXTS.indexOf(ext) === -1) {
+    return { ok: false, error: 'File type ".' + ext + '" not allowed. Only ebooks, templates, presets, and design files are accepted.' };
+  }
+  var sigList = DP_MAGIC_BYTES[ext];
+  if (sigList) {
+    try {
+      var hex = await dpReadMagicBytes(file);
+      var matches = sigList.some(function(sig) { return hex.startsWith(sig); });
+      if (!matches) return { ok: false, error: 'File "' + file.name + '" appears to be corrupt or its content does not match the .' + ext + ' extension.' };
+    } catch (e) {
+      return { ok: false, error: 'Could not verify file content. Please try again.' };
+    }
+  }
+  return { ok: true };
+}
+
+async function dpInspectZipContents(file) {
+  var BLOCKED = ['exe','msi','bat','cmd','com','scr','cpl','ps1','vbs','wsf','app','dmg','pkg','sh','run','bin','jar','apk','ipa','iso','html','htm'];
+  try {
+    var size = file.size;
+    var readStart = Math.max(0, size - 65536);
+    var buf = await file.slice(readStart).arrayBuffer();
+    var text = new TextDecoder('utf-8', { fatal: false }).decode(buf);
+    var pattern = new RegExp('[a-zA-Z0-9_\\-\\. /\\\\]+\\.(' + BLOCKED.join('|') + ')(?=\\x00|\\x01|\\x02|\\x03|PK)', 'gi');
+    var matches = text.match(pattern);
+    if (matches && matches.length > 0) {
+      return { ok: false, error: 'ZIP file contains blocked file types (' + matches.slice(0, 3).join(', ') + '). Remove these and re-upload.' };
+    }
+    return { ok: true };
+  } catch (e) {
+    console.error('ZIP inspection failed:', e);
+    return { ok: false, error: 'Could not inspect ZIP contents. Please try again or use an uncompressed file.' };
+  }
+}
+
+async function uploadProductFiles(input) {
+  var files = Array.from(input.files || []);
+  input.value = '';
+  if (!files.length) return;
+
+  if (!productsState.editingId) {
+    var savedOk = await saveProductDraftSilently();
+    if (!savedOk) {
+      showModalAlert('Could not start upload', 'Please add a title and try again.');
+      return;
+    }
+  }
+
+  for (var i = 0; i < files.length; i++) {
+    await uploadSingleFile(files[i]);
+  }
+  renderProductFiles();
+  await refreshProductsStorage();
+}
+
+async function uploadSingleFile(file) {
+  if (file.size > DP_MAX_FILE_BYTES) {
+    showModalAlert('File too large', '"' + file.name + '" is ' + dpFormatBytes(file.size) + '. Max file size is 100 MB.');
+    return;
+  }
+  if (productsState.editingProductBytes + file.size > DP_MAX_PRODUCT_BYTES) {
+    showModalAlert('Product is full', 'Adding "' + file.name + '" would exceed the 300 MB per-product limit. Remove a file first or split into a separate product.');
+    return;
+  }
+  if (productsState.storageBytes + file.size > DP_MAX_ACCOUNT_BYTES) {
+    showModalAlert('Storage full', 'Adding "' + file.name + '" would exceed your 2 GB account storage. Delete some files first.');
+    return;
+  }
+  var validation = await dpValidateFileType(file);
+  if (!validation.ok) {
+    showModalAlert('File rejected', validation.error);
+    return;
+  }
+  var ext = file.name.toLowerCase().split('.').pop();
+  if (ext === 'zip') {
+    var zipCheck = await dpInspectZipContents(file);
+    if (!zipCheck.ok) {
+      showModalAlert('ZIP rejected', zipCheck.error);
+      return;
+    }
+  }
+
+  var tempId = 'temp-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
+  productsState.editingFiles.push({
+    id: tempId,
+    filename: file.name,
+    file_size_bytes: file.size,
+    _uploading: true
+  });
+  productsState.editingProductBytes += file.size;
+  renderProductFiles();
+
+  try {
+    var path = currentUser.id + '/' + productsState.editingId + '/' + Date.now() + '-' + dpSlugify(file.name.replace(/\.[^.]+$/, '')) + '.' + ext;
+    var { error: upErr } = await sb.storage.from('digital-products').upload(path, file, {
+      cacheControl: '0',
+      upsert: false,
+      contentType: file.type || 'application/octet-stream'
+    });
+    if (upErr) throw upErr;
+
+    var { data: row, error: insErr } = await sb.from('digital_product_files').insert({
+      product_id: productsState.editingId,
+      filename: file.name,
+      storage_path: path,
+      file_size_bytes: file.size,
+      mime_type: file.type || null,
+      scan_status: 'clean',
+      sort_order: productsState.editingFiles.length
+    }).select().single();
+    if (insErr) {
+      await sb.storage.from('digital-products').remove([path]);
+      throw insErr;
+    }
+
+    var idx = productsState.editingFiles.findIndex(function(f) { return f.id === tempId; });
+    if (idx >= 0) productsState.editingFiles[idx] = row;
+  } catch (e) {
+    console.error('Upload failed:', e);
+    productsState.editingFiles = productsState.editingFiles.filter(function(f) { return f.id !== tempId; });
+    productsState.editingProductBytes -= file.size;
+    showModalAlert('Upload failed', 'Could not upload "' + file.name + '": ' + (e.message || 'Unknown error'));
+  }
+  renderProductFiles();
+}
+
+function renderProductFiles() {
+  var listEl = document.getElementById('products-files-list');
+  var countEl = document.getElementById('products-files-count');
+  var sizeEl = document.getElementById('products-files-size');
+  if (!listEl) return;
+
+  countEl.textContent = '(' + productsState.editingFiles.length + ')';
+  sizeEl.textContent = dpFormatBytes(productsState.editingProductBytes) + " used of this product's 300 MB";
+
+  if (!productsState.editingFiles.length) {
+    listEl.innerHTML = '';
+    return;
+  }
+
+  listEl.innerHTML = productsState.editingFiles.map(function(f) {
+    var status = f._uploading
+      ? '<span style="color:var(--muted);font-size:11px;">Uploading...</span>'
+      : '<span style="color:#22c55e;font-size:11px;">\u2713 Ready</span>';
+    var deleteBtn = f._uploading ? '' : '<button onclick="removeProductFile(\'' + f.id + '\')" style="padding:5px 9px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--muted);font-size:11px;cursor:pointer;font-family:DM Sans,sans-serif;">Remove</button>';
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg);border:1px solid var(--border);border-radius:9px;margin-bottom:8px;gap:10px;">'
+      + '<div style="flex:1;min-width:0;">'
+      + '<div style="font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + dpEscapeHtml(f.filename) + '</div>'
+      + '<div style="font-size:11px;color:var(--muted);margin-top:2px;">' + dpFormatBytes(f.file_size_bytes) + ' \u00b7 ' + status + '</div>'
+      + '</div>'
+      + deleteBtn
+      + '</div>';
+  }).join('');
+}
+
+async function removeProductFile(fileId) {
+  showModalConfirm('Remove file?', 'This file will be permanently deleted.', async function() {
+    var f = productsState.editingFiles.find(function(x) { return x.id === fileId; });
+    if (!f) return;
+    try {
+      if (f.storage_path) {
+        await sb.storage.from('digital-products').remove([f.storage_path]);
+      }
+      var { error } = await sb.from('digital_product_files').delete().eq('id', fileId);
+      if (error) throw error;
+      productsState.editingFiles = productsState.editingFiles.filter(function(x) { return x.id !== fileId; });
+      productsState.editingProductBytes -= Number(f.file_size_bytes || 0);
+      renderProductFiles();
+      await refreshProductsStorage();
+    } catch (e) {
+      console.error('Remove file failed:', e);
+      showModalAlert('Error', 'Could not delete this file.');
+    }
+  });
+}
+
+async function uploadProductCover(input) {
+  var file = (input.files || [])[0];
+  input.value = '';
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) {
+    showModalAlert('Image too large', 'Cover images must be under 5 MB.');
+    return;
+  }
+  if (['image/jpeg','image/png','image/webp'].indexOf(file.type) === -1) {
+    showModalAlert('Invalid format', 'Cover must be JPG, PNG, or WebP.');
+    return;
+  }
+
+  if (!productsState.editingId) {
+    var savedOk = await saveProductDraftSilently();
+    if (!savedOk) {
+      showModalAlert('Could not save', 'Please add a title and try again.');
+      return;
+    }
+  }
+
+  try {
+    var ext = file.name.split('.').pop().toLowerCase();
+    var path = currentUser.id + '/' + productsState.editingId + '/cover-' + Date.now() + '.' + ext;
+    var { error: upErr } = await sb.storage.from('digital-products').upload(path, file, {
+      upsert: true,
+      contentType: file.type
+    });
+    if (upErr) throw upErr;
+
+    var { data: signedData } = await sb.storage.from('digital-products').createSignedUrl(path, 60 * 60 * 24 * 365);
+    var coverUrl = signedData && signedData.signedUrl ? signedData.signedUrl : '';
+
+    var { error: updErr } = await sb.from('digital_products').update({ cover_image_url: coverUrl }).eq('id', productsState.editingId);
+    if (updErr) throw updErr;
+
+    productsState.editing = productsState.editing || {};
+    productsState.editing.cover_image_url = coverUrl;
+
+    var coverEl = document.getElementById('products-cover-preview');
+    coverEl.style.backgroundImage = 'url(' + coverUrl + ')';
+    coverEl.textContent = '';
+    document.getElementById('products-cover-remove').style.display = 'inline-block';
+  } catch (e) {
+    console.error('Cover upload failed:', e);
+    showModalAlert('Upload failed', 'Could not upload cover: ' + (e.message || 'Unknown error'));
+  }
+}
+
+async function removeProductCover() {
+  if (!productsState.editingId) return;
+  showModalConfirm('Remove cover image?', 'The cover image will be removed.', async function() {
+    try {
+      var { error } = await sb.from('digital_products').update({ cover_image_url: null }).eq('id', productsState.editingId);
+      if (error) throw error;
+      var coverEl = document.getElementById('products-cover-preview');
+      coverEl.style.backgroundImage = '';
+      coverEl.textContent = 'Click to upload (1280\u00d7720 recommended)';
+      document.getElementById('products-cover-remove').style.display = 'none';
+      productsState.editing.cover_image_url = null;
+    } catch (e) {
+      console.error(e);
+      showModalAlert('Error', 'Could not remove cover image.');
+    }
+  });
+}
+
+async function saveProductDraftSilently() {
+  var title = (document.getElementById('products-title').value || '').trim();
+  var slug = (document.getElementById('products-slug').value || '').trim();
+  if (!title) return false;
+  if (!slug) slug = dpSlugify(title);
+  slug = await ensureUniqueProductSlug(slug);
+
+  try {
+    var { data, error } = await sb.from('digital_products').insert({
+      user_id: currentUser.id,
+      title: title,
+      slug: slug,
+      is_active: false
+    }).select().single();
+    if (error) throw error;
+    productsState.editingId = data.id;
+    productsState.editing = data;
+    document.getElementById('products-slug').value = slug;
+    document.getElementById('products-editor-title').textContent = 'Edit Product';
+    document.getElementById('products-delete-btn').style.display = 'inline-block';
+    return true;
+  } catch (e) {
+    console.error('Silent draft save failed:', e);
+    return false;
+  }
+}
+
+async function ensureUniqueProductSlug(baseSlug) {
+  var slug = baseSlug;
+  for (var attempt = 0; attempt < 20; attempt++) {
+    var { data: ok } = await sb.rpc('is_digital_product_slug_available', { p_slug: slug, p_exclude_id: productsState.editingId || null });
+    if (ok) return slug;
+    slug = baseSlug + '-' + Math.random().toString(36).slice(2, 6);
+  }
+  return baseSlug + '-' + Date.now();
+}
+
+async function saveProduct(publish) {
+  var title = (document.getElementById('products-title').value || '').trim();
+  var slug = (document.getElementById('products-slug').value || '').trim();
+  var description = (document.getElementById('products-description').value || '').trim();
+  var priceStr = (document.getElementById('products-price').value || '').trim();
+  var deliveryMessage = (document.getElementById('products-delivery-message').value || '').trim();
+
+  if (!title) {
+    showModalAlert('Title required', 'Please add a title for your product.');
+    return;
+  }
+  if (!slug || !/^[a-z0-9-]+$/.test(slug)) {
+    showModalAlert('Invalid URL slug', 'Slug must be lowercase letters, numbers, and hyphens only.');
+    return;
+  }
+
+  var { data: slugOk } = await sb.rpc('is_digital_product_slug_available', { p_slug: slug, p_exclude_id: productsState.editingId || null });
+  if (!slugOk) {
+    showModalAlert('URL taken', 'This URL slug is already in use. Please choose a different one.');
+    return;
+  }
+
+  var priceCents = 0;
+  if (priceStr !== '') {
+    var n = Number(priceStr);
+    if (isNaN(n) || n < 0) {
+      showModalAlert('Invalid price', 'Price must be 0 or greater.');
+      return;
+    }
+    priceCents = Math.round(n * 100);
+  }
+
+  if (publish && productsState.editingFiles.length === 0) {
+    showModalAlert('Add at least one file', 'You need to upload at least one file before publishing.');
+    return;
+  }
+
+  try {
+    var payload = {
+      title: title,
+      slug: slug,
+      description: description || null,
+      price_cents: priceCents,
+      delivery_message: deliveryMessage || null,
+      is_active: !!publish
+    };
+    if (productsState.editingId) {
+      var { error } = await sb.from('digital_products').update(payload).eq('id', productsState.editingId);
+      if (error) throw error;
+    } else {
+      payload.user_id = currentUser.id;
+      var { data, error: e2 } = await sb.from('digital_products').insert(payload).select().single();
+      if (e2) throw e2;
+      productsState.editingId = data.id;
+    }
+    showModalAlert('Saved', publish ? 'Your product is live.' : 'Saved as draft.');
+    closeProductEditor();
+  } catch (e) {
+    console.error('Save failed:', e);
+    showModalAlert('Save failed', e.message || 'Could not save this product.');
+  }
+}
+
+async function deleteProduct() {
+  if (!productsState.editingId) return;
+  showModalConfirm(
+    'Delete this product?',
+    'This will permanently delete the product and all its files. Buyers who already purchased will lose access. This cannot be undone.',
+    async function() {
+      try {
+        var paths = productsState.editingFiles.map(function(f) { return f.storage_path; }).filter(Boolean);
+        var deletedId = productsState.editingId;
+        var { error } = await sb.from('digital_products').delete().eq('id', deletedId);
+        if (error) throw error;
+        if (paths.length) {
+          await sb.storage.from('digital-products').remove(paths);
+        }
+        try {
+          var folder = currentUser.id + '/' + deletedId;
+          var { data: folderItems } = await sb.storage.from('digital-products').list(folder);
+          if (folderItems && folderItems.length) {
+            var leftover = folderItems.map(function(it) { return folder + '/' + it.name; });
+            await sb.storage.from('digital-products').remove(leftover);
+          }
+        } catch (cleanupErr) { }
+        closeProductEditor();
+      } catch (e) {
+        console.error('Delete failed:', e);
+        showModalAlert('Delete failed', e.message || 'Could not delete this product.');
+      }
+    },
+    'Delete'
+  );
+}
+</script>
+
 <script>
 // =====================================================
 // AI CHAT
