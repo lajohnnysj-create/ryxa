@@ -220,12 +220,25 @@ async function checkAndAuth(req, endpointName) {
 // recordUsage — fire-and-forget after a successful AI call
 // ============================================================
 
+// ============================================================
+// recordUsage — runs after a successful AI call.
+// Retries once on transient failures (network blips, cold-start lag).
+// Always swallows errors so the user's request still succeeds.
+// ============================================================
+
 async function recordUsage(userId, endpoint) {
-  try {
-    await sbInsert('ai_usage', { user_id: userId, endpoint: endpoint });
-  } catch (e) {
-    // Don't fail the request just because logging failed
-    console.error('recordUsage failed:', e.message);
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      await sbInsert('ai_usage', { user_id: userId, endpoint: endpoint });
+      return;
+    } catch (e) {
+      if (attempt === 2) {
+        console.error('recordUsage failed after retry: ' + endpoint + ' user=' + userId + ' — ' + e.message);
+        return;
+      }
+      // Brief backoff before retry
+      await new Promise(r => setTimeout(r, 200));
+    }
   }
 }
 
