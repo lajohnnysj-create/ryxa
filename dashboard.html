@@ -6820,31 +6820,6 @@
       </div>
     </div>
 
-    <!-- Display Currency -->
-    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;">
-      <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:8px;">Display Currency</div>
-      <p style="font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.5;">Used to display prices, revenue, and analytics throughout your dashboard. Stripe payouts always happen in your Stripe account's currency — this only changes how amounts are shown to you.</p>
-      <label for="settings-currency-select" class="visually-hidden" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">Display currency</label>
-      <select id="settings-currency-select" onchange="changeDisplayCurrency(this.value)" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:11px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;cursor:pointer;">
-        <option value="USD">US Dollar (USD) — $</option>
-        <option value="EUR">Euro (EUR) — €</option>
-        <option value="GBP">British Pound (GBP) — £</option>
-        <option value="CAD">Canadian Dollar (CAD) — CA$</option>
-        <option value="AUD">Australian Dollar (AUD) — A$</option>
-        <option value="JPY">Japanese Yen (JPY) — ¥</option>
-        <option value="INR">Indian Rupee (INR) — ₹</option>
-        <option value="BRL">Brazilian Real (BRL) — R$</option>
-        <option value="MXN">Mexican Peso (MXN) — MX$</option>
-        <option value="CHF">Swiss Franc (CHF)</option>
-        <option value="SGD">Singapore Dollar (SGD) — S$</option>
-        <option value="SEK">Swedish Krona (SEK) — kr</option>
-        <option value="NOK">Norwegian Krone (NOK) — kr</option>
-        <option value="NZD">New Zealand Dollar (NZD) — NZ$</option>
-        <option value="ZAR">South African Rand (ZAR) — R</option>
-      </select>
-      <div id="settings-currency-msg" style="display:none;margin-top:8px;padding:8px 12px;background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);border-radius:7px;font-size:12px;color:#4ade80;">Saved.</div>
-    </div>
-
     <!-- Password -->
     <!-- Stripe Connect -->
     <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;">
@@ -6883,6 +6858,31 @@
       </div>
 
       <div id="settings-stripe-msg" style="display:none;margin-top:8px;padding:10px 12px;border-radius:8px;font-size:12px;line-height:1.5;"></div>
+    </div>
+
+    <!-- Display Currency -->
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:8px;">Display Currency</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.5;">Used to display prices, revenue, and analytics throughout your dashboard. Stripe payouts always happen in your Stripe account's currency — this only changes how amounts are shown to you.</p>
+      <label for="settings-currency-select" class="visually-hidden" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">Display currency</label>
+      <select id="settings-currency-select" onchange="changeDisplayCurrency(this.value)" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:11px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;cursor:pointer;">
+        <option value="USD">US Dollar (USD) — $</option>
+        <option value="EUR">Euro (EUR) — €</option>
+        <option value="GBP">British Pound (GBP) — £</option>
+        <option value="CAD">Canadian Dollar (CAD) — CA$</option>
+        <option value="AUD">Australian Dollar (AUD) — A$</option>
+        <option value="JPY">Japanese Yen (JPY) — ¥</option>
+        <option value="INR">Indian Rupee (INR) — ₹</option>
+        <option value="BRL">Brazilian Real (BRL) — R$</option>
+        <option value="MXN">Mexican Peso (MXN) — MX$</option>
+        <option value="CHF">Swiss Franc (CHF)</option>
+        <option value="SGD">Singapore Dollar (SGD) — S$</option>
+        <option value="SEK">Swedish Krona (SEK) — kr</option>
+        <option value="NOK">Norwegian Krone (NOK) — kr</option>
+        <option value="NZD">New Zealand Dollar (NZD) — NZ$</option>
+        <option value="ZAR">South African Rand (ZAR) — R</option>
+      </select>
+      <div id="settings-currency-msg" style="display:none;margin-top:8px;padding:8px 12px;background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);border-radius:7px;font-size:12px;color:#4ade80;">Saved.</div>
     </div>
 
     <!-- Subscription -->
