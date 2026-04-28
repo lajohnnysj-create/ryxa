@@ -6606,7 +6606,7 @@
                 Send
               </button>
             </div>
-            <div id="aichat-hint" style="text-align:center;font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;">Ryxa AI is powered by AI and can make mistakes. Always verify important information. Each message uses 1 AI slot.</div>
+            <div id="aichat-hint" style="text-align:center;font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;">Ryxa AI can make mistakes. Not medical, legal, or financial advice — always verify important information. Each message uses 1 AI slot.</div>
           </div>
         </div>
       </div>
@@ -24153,6 +24153,48 @@ function initAiChat() {
     aichatState.inited = true;
     aichatLoadConversations();
   }
+  // Show one-time disclaimer the first time this user opens Chatbox.
+  // Stored in localStorage keyed to user id so it shows once per account.
+  try {
+    var key = 'aichat_disclaimer_v1_' + (currentUser?.id || 'anon');
+    if (!localStorage.getItem(key)) {
+      showAichatDisclaimer(function() {
+        try { localStorage.setItem(key, '1'); } catch (e) {}
+      });
+    }
+  } catch (e) { /* localStorage may be disabled — non-fatal */ }
+}
+
+// First-time disclaimer modal shown before a user can use Chatbox.
+// They must click "I understand" to dismiss; we record their acknowledgment.
+function showAichatDisclaimer(onAccept) {
+  var overlay = document.createElement('div');
+  overlay.id = 'aichat-disclaimer-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;';
+  overlay.innerHTML = '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:28px;max-width:480px;width:100%;max-height:calc(100vh - 80px);overflow-y:auto;">'
+    + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">'
+    + '<div style="width:32px;height:32px;background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.25);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'
+    + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
+    + '</div>'
+    + '<div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.3px;">Before you use Ryxa AI</div>'
+    + '</div>'
+    + '<div style="font-size:13px;color:var(--muted);line-height:1.65;margin-bottom:18px;">'
+    + '<p style="margin-bottom:12px;">Ryxa AI is an AI-powered assistant designed to help with creator-related questions like content ideas, pricing, scripts, and brand outreach.</p>'
+    + '<p style="margin-bottom:12px;"><strong style="color:var(--text);">It is not a substitute for professional advice.</strong> Ryxa AI does not provide:</p>'
+    + '<ul style="margin:0 0 12px 20px;padding:0;">'
+    + '<li style="margin-bottom:4px;">Medical, mental health, or therapeutic advice</li>'
+    + '<li style="margin-bottom:4px;">Legal advice or contract interpretation</li>'
+    + '<li style="margin-bottom:4px;">Financial, tax, or investment advice</li>'
+    + '</ul>'
+    + '<p style="margin-bottom:0;">For those topics, please consult a qualified professional. AI responses can also be inaccurate — always verify important information independently.</p>'
+    + '</div>'
+    + '<button id="aichat-disclaimer-accept" style="width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;">I understand</button>'
+    + '</div>';
+  document.body.appendChild(overlay);
+  document.getElementById('aichat-disclaimer-accept').onclick = function() {
+    overlay.remove();
+    if (onAccept) onAccept();
+  };
 }
 
 async function aichatLoadConversations() {
