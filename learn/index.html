@@ -609,15 +609,16 @@ function renderBookings(bookings) {
     }
 
     // Meeting details block — only render if the creator set details on the service.
+    // Uses pure monochrome contrast (white-on-black in dark mode, black-on-white in light mode).
     // Auto-link URLs and respect line breaks.
     var meetingDetailsHtml = '';
     if (c.meeting_details) {
       var md = String(c.meeting_details)
         .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-        .replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer" style="color:var(--accent2);text-decoration:underline;">$1</a>')
+        .replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer" style="color:var(--text);text-decoration:underline;font-weight:500;">$1</a>')
         .replace(/\n/g, '<br>');
-      meetingDetailsHtml = '<div style="margin-top:10px;padding:10px 12px;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.2);border-radius:8px;">'
-        + '<div style="font-size:10px;font-weight:600;color:#c4b5fd;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:4px;">Meeting Details</div>'
+      meetingDetailsHtml = '<div style="margin-top:10px;padding:10px 12px;background:var(--bg);border:1px solid var(--border-hover);border-radius:8px;">'
+        + '<div style="font-size:10px;font-weight:600;color:var(--muted);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:4px;">Meeting Details</div>'
         + '<div style="font-size:12px;color:var(--text);line-height:1.5;word-break:break-word;">' + md + '</div>'
         + '</div>';
     }
