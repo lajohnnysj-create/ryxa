@@ -858,6 +858,7 @@ function validImageUrl(u) {
       '/storage/v1/object/public/bio-backgrounds/',
       '/storage/v1/object/public/course-covers/',
       '/storage/v1/object/public/coaching-covers/',
+      '/storage/v1/object/sign/digital-products/',
     ];
     if (!allowedBuckets.some(b => url.pathname.includes(b))) return null;
     return url.toString();
