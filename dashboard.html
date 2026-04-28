@@ -1801,8 +1801,20 @@
     transform: translateY(-1px);
   }
   .aichat-example-icon {
-    font-size: 20px;
-    margin-bottom: 6px;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: rgba(124,58,237,0.12);
+    border: 1px solid rgba(124,58,237,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+    color: #a78bfa;
+  }
+  .aichat-example-icon svg {
+    width: 15px;
+    height: 15px;
   }
   .aichat-example-title {
     font-size: 13px;
@@ -3609,7 +3621,7 @@
     </button>
     <button class="sidebar-item" id="nav-aichat" onclick="showTool('aichat')">
       <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
-      <span class="sidebar-item-label">AI Chat <span class="sidebar-pill pro">PRO</span></span>
+      <span class="sidebar-item-label">Chatbox <span class="sidebar-pill pro">PRO</span></span>
     </button>
     <button class="sidebar-item" id="nav-scripts" onclick="showTool('scripts')">
       <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/><path d="M6 21l-2-2 2-2M18 21l2-2-2-2"/></svg></div>
@@ -6555,27 +6567,27 @@
             <div style="width:60px;height:60px;background:linear-gradient(135deg,rgba(167,139,250,0.18),rgba(232,121,249,0.14));border:1px solid rgba(232,121,249,0.3);border-radius:16px;display:flex;align-items:center;justify-content:center;margin-bottom:18px;">
               <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             </div>
-            <h2 style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;margin-bottom:6px;letter-spacing:-0.5px;text-align:center;">Ryxa AI</h2>
-            <p style="color:var(--muted);font-size:14px;margin-bottom:28px;text-align:center;max-width:380px;">Your creator-focused AI assistant. Ask anything about content, brand deals, pricing, or growing your audience.</p>
+            <h2 style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;margin-bottom:6px;letter-spacing:-0.5px;text-align:center;">Hi, I'm Ryxa AI</h2>
+            <p style="color:var(--muted);font-size:14px;margin-bottom:28px;text-align:center;max-width:420px;line-height:1.55;">I'm specifically trained to handle creator-related questions. Ask me about brand deals, content ideas, pricing, scripts, or anything else about growing your audience.</p>
 
             <div style="width:100%;max-width:560px;display:grid;grid-template-columns:repeat(2,1fr);gap:10px;">
-              <button class="aichat-example" onclick="aichatUseExample(this)" data-prompt="How much should I charge for a brand deal? I have 50K followers on Instagram and they want one Reel and three Stories.">
-                <div class="aichat-example-icon">💰</div>
-                <div class="aichat-example-title">Brand deal pricing</div>
-                <div class="aichat-example-sub">How much to charge a brand</div>
+              <button class="aichat-example" onclick="aichatUseExample(this)" data-prompt="How much should I charge for a 30-second Instagram Reel on a 10K-follower account?">
+                <div class="aichat-example-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+                <div class="aichat-example-title">Reel pricing</div>
+                <div class="aichat-example-sub">Rate for a 30-sec Reel on 10K</div>
               </button>
               <button class="aichat-example" onclick="aichatUseExample(this)" data-prompt="Help me write a 30-second Instagram Reel script about morning routines for busy moms. Hook should be strong.">
-                <div class="aichat-example-icon">🎬</div>
+                <div class="aichat-example-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></div>
                 <div class="aichat-example-title">Write a Reel script</div>
                 <div class="aichat-example-sub">Get a script for your next video</div>
               </button>
               <button class="aichat-example" onclick="aichatUseExample(this)" data-prompt="Give me 10 hook ideas for a YouTube video about productivity. Make them punchy.">
-                <div class="aichat-example-icon">⚡</div>
+                <div class="aichat-example-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
                 <div class="aichat-example-title">Brainstorm hooks</div>
                 <div class="aichat-example-sub">10 punchy hooks for any video</div>
               </button>
               <button class="aichat-example" onclick="aichatUseExample(this)" data-prompt="A brand reached out wanting to work with me but their offer is way below my rate. How should I respond without burning the bridge?">
-                <div class="aichat-example-icon">📧</div>
+                <div class="aichat-example-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
                 <div class="aichat-example-title">Reply to a brand</div>
                 <div class="aichat-example-sub">Negotiate without burning bridges</div>
               </button>
@@ -6594,7 +6606,7 @@
                 Send
               </button>
             </div>
-            <div id="aichat-hint" style="text-align:center;font-size:11px;color:var(--muted);margin-top:8px;">Press Enter to send · Shift+Enter for new line · Each message uses 1 AI slot</div>
+            <div id="aichat-hint" style="text-align:center;font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;">Ryxa AI is powered by AI and can make mistakes. Always verify important information. Each message uses 1 AI slot.</div>
           </div>
         </div>
       </div>
@@ -7313,7 +7325,7 @@ const toolTitles = {
     clients: 'Subscribers',
     settings: 'Settings',
     design: 'AI Design Studio',
-    aichat: 'AI Chat'
+    aichat: 'Chatbox'
 };
 
 // Detect PWA / standalone mode
