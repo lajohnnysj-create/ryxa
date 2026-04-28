@@ -23020,7 +23020,7 @@ async function loadAnalyticsSales(start, end) {
     if (dpPurchases) {
       dpPurchases.forEach(function(p) {
         if (!p.digital_products || p.digital_products.user_id !== currentUser.id) return;
-        sales.push({ date: p.purchased_at, buyer: p.buyer_email || '—', product: p.digital_products.title || 'Digital Product', type: 'Digital Product', amount: p.amount_cents || 0 });
+        sales.push({ date: p.purchased_at, buyer: p.buyer_email || '—', product: p.digital_products.title || 'Digital Product', type: 'Digital', amount: p.amount_cents || 0 });
       });
     }
 
@@ -23175,7 +23175,7 @@ async function loadProductPerformance(start, end) {
           .lte('view_date', end);
         const views = viewRows ? viewRows.reduce(function(sum, r) { return sum + (r.view_count || 0); }, 0) : 0;
 
-        products.push({ title: dp.title || 'Digital Product', type: 'Digital Product', views: views, orders: orders, revenue: revenue });
+        products.push({ title: dp.title || 'Digital Product', type: 'Digital', views: views, orders: orders, revenue: revenue });
       }
     }
 
@@ -23194,7 +23194,7 @@ async function loadProductPerformance(start, end) {
       var pillStyle;
       if (p.type === 'Course') pillStyle = 'background:rgba(167,139,250,0.15);color:#c4b5fd;';
       else if (p.type === 'Coaching') pillStyle = 'background:rgba(232,121,249,0.15);color:#e879f9;';
-      else if (p.type === 'Digital Product') pillStyle = 'background:rgba(240,171,252,0.15);color:#f0abfc;';
+      else if (p.type === 'Digital') pillStyle = 'background:rgba(240,171,252,0.15);color:#f0abfc;';
       else pillStyle = 'background:rgba(124,58,237,0.15);color:#c4b5fd;';
       return '<tr style="border-top:1px solid var(--border);">'
         + '<td style="padding:10px 16px;color:var(--text);font-size:13px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + p.title + '</td>'
