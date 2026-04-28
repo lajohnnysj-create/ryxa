@@ -15060,29 +15060,13 @@ function renderAvailabilityDays() {
       + '<input type="checkbox" ' + (enabled ? 'checked' : '') + ' onchange="toggleAvailDay(\'' + k + '\', this.checked)" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);">'
       + '<span style="font-size:13px;color:var(--text);font-weight:500;">' + dayLabels[k] + '</span>'
       + '</label>'
-      + '<div style="display:flex;align-items:center;gap:6px;flex:1;opacity:' + opacity + ';flex-wrap:wrap;">'
-      + calBuildTimePicker('avail-' + k + '-start', d.start, !enabled)
+      + '<div style="display:flex;align-items:center;gap:6px;flex:1;opacity:' + opacity + ';">'
+      + '<input type="time" step="900" value="' + d.start + '" ' + (enabled ? '' : 'disabled') + ' onchange="setAvailTime(\'' + k + '\', \'start\', this.value)" aria-label="' + dayLabels[k] + ' start time" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:6px 8px;color:var(--text);font-size:12px;font-family:DM Sans,sans-serif;outline:none;color-scheme:dark;">'
       + '<span style="color:var(--muted);font-size:12px;">to</span>'
-      + calBuildTimePicker('avail-' + k + '-end', d.end, !enabled)
+      + '<input type="time" step="900" value="' + d.end + '" ' + (enabled ? '' : 'disabled') + ' onchange="setAvailTime(\'' + k + '\', \'end\', this.value)" aria-label="' + dayLabels[k] + ' end time" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:6px 8px;color:var(--text);font-size:12px;font-family:DM Sans,sans-serif;outline:none;color-scheme:dark;">'
       + '</div>'
       + '</div>';
   }).join('');
-
-  // Wire up change handlers for the new picker dropdowns
-  dayKeys.forEach(function(k) {
-    ['start', 'end'].forEach(function(which) {
-      var prefix = 'avail-' + k + '-' + which;
-      ['h', 'm', 'p'].forEach(function(suffix) {
-        var el = document.getElementById(prefix + '-' + suffix);
-        if (el) {
-          el.addEventListener('change', function() {
-            var newVal = calReadTimePicker(prefix);
-            if (newVal) setAvailTime(k, which, newVal);
-          });
-        }
-      });
-    });
-  });
 }
 
 function toggleAvailDay(key, enabled) {
