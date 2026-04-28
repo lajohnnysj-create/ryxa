@@ -433,24 +433,14 @@ async function loadBookedSlots() {
       }));
     }
 
-    // Calendar events — manually added events (and brand deal events) also block slots
-    // so the creator doesn't get double-booked over personal events or campaign work
-    var { data: calEvents } = await sb.from('calendar_events')
-      .select('start_at, end_at, event_type')
-      .eq('creator_id', coachingData.user_id);
-    if (calEvents) {
-      // Skip brand deal events that are all-day (they don't really block coaching slots)
-      // Block manual events and any time-specific brand deal events
-      var blockingEvents = calEvents.filter(function(e) {
-        // Coaching events are already covered above by the bookings query
-        if (e.event_type === 'coaching') return false;
-        // Brand deal events are typically all-day deliverable reminders, not appointments
-        // — don't block slots for them
-        if (e.event_type === 'brand_deal') return false;
-        // Block manual events
-        return true;
-      });
-      pickerState.bookedSlots = pickerState.bookedSlots.concat(blockingEvents.map(function(e) {
+    // Calendar events — manually added events also block slots so the creator
+    // doesn't get double-booked over personal events. We use an RPC that returns
+    // only start/end times (no titles or notes) to keep events private.
+    var { data: busyEvents } = await sb.rpc('get_creator_busy_slots', {
+      p_creator_id: coachingData.user_id
+    });
+    if (busyEvents && busyEvents.length) {
+      pickerState.bookedSlots = pickerState.bookedSlots.concat(busyEvents.map(function(e) {
         return { start_at: e.start_at, end_at: e.end_at };
       }));
     }
