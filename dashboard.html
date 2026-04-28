@@ -22524,9 +22524,7 @@ function calRenderDayEvents() {
       + (e.notes ? '<div style="font-size:13px;color:#c8c6d8;line-height:1.5;">' + escapeHtml(e.notes) + '</div>' : '')
       + '</div>'
       + (function() {
-          var deleteLabel = e.event_type === 'coaching' ? 'Cancel or reschedule booking'
-                          : e.event_type === 'brand_deal' ? 'Remove from calendar'
-                          : 'Delete event';
+          var deleteLabel = e.event_type === 'brand_deal' ? 'Remove from calendar' : 'Delete event';
           var canEdit = e.event_type !== 'brand_deal';
           var editBtn = canEdit
             ? '<button onclick="calOpenEditEvent(\'' + e.id + '\')" aria-label="Edit event" title="Edit event" style="width:28px;height:28px;background:transparent;border:1px solid var(--border-hover);border-radius:6px;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'
@@ -22819,8 +22817,8 @@ async function calDeleteEvent(eventId, eventType) {
 
   var confirmTitle, confirmMsg;
   if (eventType === 'coaching') {
-    confirmTitle = 'Cancel Coaching Booking';
-    confirmMsg = 'This will remove the booking from your calendar and delete the booking record. If this was a paid booking, you may need to manually refund the client via Stripe.\n\nIf you\'re rescheduling rather than cancelling, you can keep the payment and manually add a new event for the updated time. Continue?';
+    confirmTitle = 'Delete Coaching Booking';
+    confirmMsg = 'This will remove the booking from your calendar and delete the booking record. If this was a paid booking, you may need to manually refund the client via Stripe.\n\nIf you\'re rescheduling, close this and use the edit button instead — your client\'s payment will stay intact. Continue with deletion?';
   } else if (eventType === 'brand_deal') {
     confirmTitle = 'Delete Brand Deal Event';
     confirmMsg = 'This will only remove this event from your calendar. To fully manage the brand deal, edit it from the Brand Deal CRM. Continue?';
