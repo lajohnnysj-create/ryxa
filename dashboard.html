@@ -3521,6 +3521,20 @@
           <div id="sidebar-menu-tier" style="font-size:12px;color:var(--accent2);margin-top:1px;">Free</div>
         </div>
       </div>
+      <!-- AI Usage (only shown for Pro / Max) -->
+      <div id="sidebar-ai-usage" style="display:none;margin-bottom:14px;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;">AI Usage Today</div>
+          <div id="sidebar-ai-pct" style="font-size:11px;font-weight:600;color:var(--muted);">0%</div>
+        </div>
+        <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:6px;">
+          <div id="sidebar-ai-bar" style="height:100%;width:0%;background:#22c55e;transition:width 0.3s ease, background 0.3s ease;border-radius:3px;"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div id="sidebar-ai-count" style="font-size:11px;color:var(--muted2);">0 / 0 calls</div>
+          <div id="sidebar-ai-reset" style="font-size:10px;color:var(--muted);"></div>
+        </div>
+      </div>
       <!-- Bio link -->
       <div id="sidebar-menu-biolink" style="display:none;margin-bottom:8px;">
         <button onclick="copySidebarBioLink()" style="width:100%;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;display:flex;align-items:center;gap:8px;color:var(--text);transition:all 0.15s;" onmouseover="this.style.borderColor='rgba(124,58,237,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
@@ -13148,11 +13162,62 @@ function closeSidebar() {
 
 function toggleSidebarMenu() {
   var menu = document.getElementById('sidebar-user-menu');
-  if (menu) menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+  if (menu) {
+    var willOpen = menu.style.display === 'none';
+    menu.style.display = willOpen ? 'block' : 'none';
+    if (willOpen) loadAiUsage();
+  }
 }
 function closeSidebarMenu() {
   var menu = document.getElementById('sidebar-user-menu');
   if (menu) menu.style.display = 'none';
+}
+
+// Load and render AI usage in the sidebar menu.
+// Only shown for Pro/Max tiers — Free users don't have AI access.
+async function loadAiUsage() {
+  var box = document.getElementById('sidebar-ai-usage');
+  if (!box) return;
+  try {
+    var { data, error } = await sb.rpc('get_ai_usage');
+    if (error || !data) { box.style.display = 'none'; return; }
+    if (data.error) { box.style.display = 'none'; return; }
+    var limit = Number(data.limit || 0);
+    if (limit === 0) { box.style.display = 'none'; return; }  // free tier hides
+
+    var used = Number(data.used || 0);
+    var pct = Math.min(100, Math.round((used / limit) * 100));
+    var color = pct < 60 ? '#22c55e' : (pct < 85 ? '#eab308' : '#ef4444');
+
+    document.getElementById('sidebar-ai-bar').style.width = pct + '%';
+    document.getElementById('sidebar-ai-bar').style.background = color;
+    document.getElementById('sidebar-ai-pct').textContent = pct + '%';
+    document.getElementById('sidebar-ai-pct').style.color = color;
+    document.getElementById('sidebar-ai-count').textContent = used + ' / ' + limit + ' calls';
+
+    var resetEl = document.getElementById('sidebar-ai-reset');
+    if (data.next_reset_at && used >= limit) {
+      var resetDate = new Date(data.next_reset_at);
+      var diffMs = resetDate.getTime() - Date.now();
+      if (diffMs > 0) {
+        var hours = Math.floor(diffMs / 3600000);
+        var minutes = Math.floor((diffMs % 3600000) / 60000);
+        resetEl.textContent = 'Resets at ' + resetDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+      } else {
+        resetEl.textContent = '';
+      }
+    } else if (data.next_reset_at) {
+      var resetDate2 = new Date(data.next_reset_at);
+      resetEl.textContent = '+1 slot at ' + resetDate2.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    } else {
+      resetEl.textContent = '';
+    }
+
+    box.style.display = 'block';
+  } catch (e) {
+    console.error('loadAiUsage failed:', e);
+    box.style.display = 'none';
+  }
 }
 
 document.addEventListener('click', function(e) {
