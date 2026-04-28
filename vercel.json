@@ -10,6 +10,7 @@
     { "source": "/deal/:token", "destination": "/portal?t=:token" },
     { "source": "/course/:slug", "destination": "/course" },
     { "source": "/booking/:slug", "destination": "/booking" },
+    { "source": "/product/:slug", "destination": "/api/product?slug=:slug" },
     { "source": "/mediakit/:username", "destination": "/api/mediakit?u=:username" },
     { "source": "/sitemap.xml", "destination": "/sitemap.xml" },
     { "source": "/robots.txt", "destination": "/robots.txt" },
