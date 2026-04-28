@@ -15086,6 +15086,40 @@ function renderAvailabilityDays() {
           el.addEventListener('change', function() {
             var newVal = calReadTimePicker(prefix);
             if (newVal) setAvailTime(k, which, newVal);
+
+            // If the user changed the START time, auto-adjust END time when it's
+            // now equal to or before the new start (bumps end to start + 30 min).
+            // Won't override end if it's already ahead of start.
+            if (which === 'start') {
+              var startStr = calReadTimePicker('avail-' + k + '-start');
+              var endStr = calReadTimePicker('avail-' + k + '-end');
+              if (startStr && endStr) {
+                var sP = startStr.split(':').map(Number);
+                var eP = endStr.split(':').map(Number);
+                var sMins = sP[0] * 60 + sP[1];
+                var eMins = eP[0] * 60 + eP[1];
+                if (eMins <= sMins) {
+                  var newEndMins = sMins + 30;
+                  if (newEndMins >= 24 * 60) newEndMins = 23 * 60 + 45;
+                  var nh24 = Math.floor(newEndMins / 60);
+                  var nm = newEndMins % 60;
+                  nm = Math.round(nm / 15) * 15;
+                  if (nm === 60) { nm = 0; nh24 = (nh24 + 1) % 24; }
+                  var period = nh24 >= 12 ? 'PM' : 'AM';
+                  var h12 = nh24 % 12; if (h12 === 0) h12 = 12;
+                  var endPrefix = 'avail-' + k + '-end';
+                  var hEl = document.getElementById(endPrefix + '-h');
+                  var mEl = document.getElementById(endPrefix + '-m');
+                  var pEl = document.getElementById(endPrefix + '-p');
+                  if (hEl) hEl.value = String(h12);
+                  if (mEl) mEl.value = String(nm);
+                  if (pEl) pEl.value = period;
+                  // Persist the new end value in state too
+                  var newEndStr = String(nh24).padStart(2, '0') + ':' + String(nm).padStart(2, '0');
+                  setAvailTime(k, 'end', newEndStr);
+                }
+              }
+            }
           });
         }
       });
