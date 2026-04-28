@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sell Digital Products: Ebooks, Templates, Presets & Design Files | Ryxa</title>
+<meta name="description" content="Sell ebooks, templates, presets, and design files directly to your audience. Upload your files, set a price, share your product link. Buyers get instant access through their Ryxa Hub. 0% platform fees.">
+<meta property="og:title" content="Sell Digital Products: Ebooks, Templates, Presets & Design Files | Ryxa">
+<meta property="og:description" content="Sell ebooks, templates, presets, and design files. Upload, price, share. Ryxa takes 0%.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.ryxa.io/tools-digital-products">
+<meta property="og:image" content="https://www.ryxa.io/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="shortcut icon" href="/favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --bg: #07070f;
+    --surface: #11111b;
+    --surface2: #181822;
+    --border: rgba(255,255,255,0.08);
+    --border-hover: rgba(255,255,255,0.18);
+    --accent: #7c3aed;
+    --accent2: #a78bfa;
+    --accent3: #e879f9;
+    --accent-glow: rgba(124,58,237,0.45);
+    --text: #f0eef8;
+    --muted: #b4b2c8;
+    --muted2: #c9c7dc;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { font-family: "DM Sans", sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+
+  /* HERO */
+  .hero { position: relative; padding: 140px 32px 60px; text-align: center; max-width: 1200px; margin: 0 auto; }
+  .hero-bg { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 800px; height: 500px; background: radial-gradient(ellipse at top, rgba(232,121,249,0.12) 0%, transparent 60%); pointer-events: none; }
+  .hero-content { position: relative; z-index: 1; max-width: 880px; margin: 0 auto; }
+  .hero-tier-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; background: linear-gradient(135deg,rgba(167,139,250,0.15),rgba(232,121,249,0.15)); border: 1px solid rgba(167,139,250,0.35); border-radius: 999px; font-size: 12px; color: #e879f9; font-weight: 600; margin-bottom: 24px; letter-spacing: 0.05em; text-transform: uppercase; }
+  .hero-tier-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #e879f9; box-shadow: 0 0 8px #e879f9; }
+  .hero h1 { font-family: "Syne", sans-serif; font-size: clamp(36px, 6vw, 64px); font-weight: 800; line-height: 1.1; letter-spacing: -1.5px; margin-bottom: 20px; }
+  .gradient-text { background: linear-gradient(135deg, var(--accent2), var(--accent3)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .hero-tagline { font-size: 18px; color: var(--muted); line-height: 1.6; margin-bottom: 32px; max-width: 640px; margin-left: auto; margin-right: auto; }
+  .hero-cta-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn-primary { background: var(--accent); color: #fff; border: none; border-radius: 12px; padding: 14px 28px; font-size: 15px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 24px var(--accent-glow); text-decoration: none; display: inline-block; }
+  .btn-primary:hover { background: var(--accent2); transform: translateY(-1px); box-shadow: 0 6px 28px var(--accent-glow); }
+  .btn-secondary { background: transparent; border: 1px solid var(--border-hover); color: var(--text); border-radius: 12px; padding: 14px 28px; font-size: 15px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-block; }
+  .btn-secondary:hover { border-color: var(--accent2); color: var(--accent2); }
+
+  /* SECTIONS */
+  section { padding: 80px 32px; max-width: 1200px; margin: 0 auto; position: relative; }
+  .section-label { display: inline-block; padding: 5px 13px; background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.25); border-radius: 999px; font-size: 11px; color: #c4b5fd; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600; margin-bottom: 16px; }
+  .section-title { font-family: "Syne", sans-serif; font-size: clamp(28px, 4vw, 42px); font-weight: 800; line-height: 1.15; letter-spacing: -1px; margin-bottom: 14px; max-width: 700px; }
+  .section-sub { font-size: 16px; color: var(--muted); line-height: 1.6; max-width: 640px; margin-bottom: 50px; }
+
+  /* HOW IT WORKS / FEATURES / WHO */
+  .steps-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+  .step-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px 24px; position: relative; transition: all 0.3s; }
+  .step-card:hover { border-color: rgba(124,58,237,0.4); transform: translateY(-4px); }
+  .step-num { font-family: "Syne", sans-serif; font-size: 14px; font-weight: 700; color: var(--accent2); margin-bottom: 14px; letter-spacing: 0.05em; }
+  .step-icon { width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, rgba(167,139,250,0.15), rgba(232,121,249,0.1)); border: 1px solid rgba(167,139,250,0.25); display: flex; align-items: center; justify-content: center; color: #c4b5fd; margin-bottom: 16px; }
+  .step-title { font-family: "Syne", sans-serif; font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+  .step-desc { font-size: 13px; color: var(--muted); line-height: 1.55; }
+
+  /* FAQ */
+  .faq-list { max-width: 720px; margin: 0 auto; }
+  .faq-item { border-bottom: 1px solid var(--border); padding: 22px 0; }
+  .faq-item:first-child { border-top: 1px solid var(--border); }
+  .faq-q { display: flex; align-items: center; justify-content: space-between; cursor: pointer; gap: 16px; }
+  .faq-q-text { font-family: "Syne", sans-serif; font-size: 17px; font-weight: 600; color: var(--text); flex: 1; }
+  .faq-toggle { width: 28px; height: 28px; border-radius: 50%; background: var(--surface); border: 1px solid var(--border); color: var(--muted); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s; font-size: 18px; line-height: 1; }
+  .faq-item.open .faq-toggle { background: var(--accent); color: #fff; border-color: var(--accent); transform: rotate(45deg); }
+  .faq-a { max-height: 0; overflow: hidden; transition: max-height 0.3s ease, padding 0.3s; color: var(--muted); font-size: 14px; line-height: 1.65; }
+  .faq-item.open .faq-a { max-height: 500px; padding-top: 12px; }
+
+  /* BOTTOM CTA */
+  .bottom-cta { padding: 80px 32px 100px; text-align: center; max-width: 800px; margin: 0 auto; }
+  .bottom-cta h2 { font-family: "Syne", sans-serif; font-size: clamp(28px, 4vw, 40px); font-weight: 800; letter-spacing: -1px; margin-bottom: 14px; }
+  .bottom-cta p { font-size: 16px; color: var(--muted); margin-bottom: 28px; }
+
+  /* RESPONSIVE */
+  @media (max-width: 900px) {
+    .steps-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 640px) {
+    .hero { padding: 120px 20px 40px; }
+    section { padding: 60px 20px; }
+    .steps-grid { grid-template-columns: 1fr; }
+  }
+</style>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<style>body{opacity:0;transition:opacity 0.2s ease;}body.site-ready{opacity:1;}</style>
+</head>
+<body>
+
+<div id="site-header"></div>
+
+
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <div class="hero-tier-badge">Creator Max</div>
+    <h1>Sell digital products<br><span class="gradient-text">in minutes</span></h1>
+    <p class="hero-tagline">Sell ebooks, templates, presets, design files, and any other download you can think of. Upload your files, set a price, share your link. Buyers get instant access through their Ryxa Hub. Ryxa takes 0%.</p>
+    <div class="hero-cta-row">
+      <a href="dashboard.html" onclick="return tryThisTool(event)" class="btn-primary">Try Digital Products</a>
+      <a href="pricing.html" class="btn-secondary">See pricing</a>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="section-label">How it works</div>
+  <h2 class="section-title">From upload to first sale, in four steps.</h2>
+  <p class="section-sub">No download platform to learn. No third-party file hosting. Just upload, price, publish, and share.</p>
+  <div class="steps-grid">
+    <div class="step-card"><div class="step-num">Step 1</div><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><div class="step-title">Create your product</div><div class="step-desc">Add a title, description, cover image, and upload your files. PDFs, ebooks, design files, templates, presets, archives, and more.</div></div>
+    <div class="step-card"><div class="step-num">Step 2</div><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="step-title">Set your price</div><div class="step-desc">Charge what you want. Or set it to free as a lead magnet. Add a thank-you message buyers see after purchase.</div></div>
+    <div class="step-card"><div class="step-num">Step 3</div><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></div><div class="step-title">Connect Stripe</div><div class="step-desc">Link your Stripe account. Buyers pay through Stripe — money goes directly to you. 0% platform fees.</div></div>
+    <div class="step-card"><div class="step-num">Step 4</div><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><div class="step-title">Share & sell</div><div class="step-desc">Your product gets its own landing page. Add it to your Link in Bio, share on socials, and start earning.</div></div>
+  </div>
+</section>
+
+<section>
+  <div class="section-label">Features</div>
+  <h2 class="section-title">Everything you need to sell downloads.</h2>
+  <div class="steps-grid">
+    <div class="step-card"><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><div class="step-title">Multi-file products</div><div class="step-desc">Bundle multiple files into one product. Sell a Lightroom preset pack with 50 presets, or a brand kit with logos, fonts, and templates.</div></div>
+    <div class="step-card"><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div class="step-title">Secure file delivery</div><div class="step-desc">Files are private by default. Buyers download through their Ryxa Hub with time-limited signed URLs. No public links, no piracy worries.</div></div>
+    <div class="step-card"><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg></div><div class="step-title">Lifetime buyer access</div><div class="step-desc">Buyers can re-download their purchases anytime from their Ryxa Hub. No expiring links, no lost downloads.</div></div>
+    <div class="step-card"><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="step-title">0% platform fees</div><div class="step-desc">Keep every dollar. Ryxa doesn't take a cut. Standard Stripe processing fees still apply.</div></div>
+  </div>
+</section>
+
+<section>
+  <div class="section-label">Who it's for</div>
+  <h2 class="section-title">Built for any kind of creator who sells files.</h2>
+  <p class="section-sub">If your work can be downloaded, you can sell it on Ryxa. The tool handles the upload, the secure delivery, and the payment — you focus on the work.</p>
+  <div class="steps-grid">
+    <div class="step-card"><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg></div><div class="step-title">Photographers</div><div class="step-desc">Lightroom presets, Photoshop actions, Capture One styles, photo editing courses, and signature look packs.</div></div>
+    <div class="step-card"><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></div><div class="step-title">Writers & Educators</div><div class="step-desc">Ebooks, guides, workbooks, lesson plans, study guides, journaling templates, and digital workbooks.</div></div>
+    <div class="step-card"><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg></div><div class="step-title">Designers & Artists</div><div class="step-desc">Notion templates, Figma kits, Canva templates, illustrations, fonts, brand kits, icon packs, and digital art.</div></div>
+    <div class="step-card"><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15 8.5 22 9.3 17 14.1 18.2 21 12 17.8 5.8 21 7 14.1 2 9.3 9 8.5 12 2"/></svg></div><div class="step-title">Content Creators</div><div class="step-desc">Video LUTs, sound effects, content planners, hook templates, swipe files, scripts, and creator guides.</div></div>
+  </div>
+</section>
+
+<section>
+  <h2 class="section-title">Common questions about Digital Products.</h2>
+  <div class="faq-list">
+    <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)"><div class="faq-q-text">What kinds of files can I sell?</div><div class="faq-toggle">+</div></div><div class="faq-a">PDFs, ebooks, design files (PSD, AI, Figma), templates (Notion, Canva), presets (Lightroom, Capture One), LUTs, archives (ZIP, RAR), and most common image formats. Files are checked for safety on upload — executable file types and scripts are not allowed. Video and audio files are not currently supported as digital products. We may add support later.</div></div>
+    <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)"><div class="faq-q-text">What are the file size limits?</div><div class="faq-toggle">+</div></div><div class="faq-a">Up to 100MB per file, 300MB per product, and 2GB total across your account. If you need to sell larger files, contact support and we can discuss options.</div></div>
+    <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)"><div class="faq-q-text">Does Ryxa take a percentage of my sales?</div><div class="faq-toggle">+</div></div><div class="faq-a">No. Ryxa takes 0%. Payments go directly to your connected Stripe account. The only fees are Stripe's standard processing fees.</div></div>
+    <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)"><div class="faq-q-text">Can I offer free products?</div><div class="faq-toggle">+</div></div><div class="faq-a">Yes. Set the price to $0 and you have an instant lead magnet. Buyers still create a free account to access the download, so you can build your audience.</div></div>
+    <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)"><div class="faq-q-text">How do buyers download what they bought?</div><div class="faq-toggle">+</div></div><div class="faq-a">After payment, buyers are sent to their Ryxa Hub where their purchases live. They can download the files anytime, with no expiration. They also get a confirmation email with a direct link to the Hub.</div></div>
+    <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)"><div class="faq-q-text">Can I sell multiple files in one product?</div><div class="faq-toggle">+</div></div><div class="faq-a">Yes. Bundle as many files as you want into a single product, up to the per-product limit. Useful for preset packs, multi-format templates, brand kits, and similar products.</div></div>
+    <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)"><div class="faq-q-text">Can buyers share the download link?</div><div class="faq-toggle">+</div></div><div class="faq-a">Download links are time-limited signed URLs generated for each buyer's session. They expire after a few minutes. Buyers can always re-download from their Ryxa Hub, but they can't share a permanent public link to your file.</div></div>
+  </div>
+</section>
+
+<section class="bottom-cta">
+  <h2>Start selling digital products today.</h2>
+  <p>Upload your files, set your price, and share your product link. Keep every dollar.</p>
+  <div class="hero-cta-row">
+    <a href="dashboard.html" onclick="return tryThisTool(event)" class="btn-primary">Try Digital Products</a>
+    <a href="pricing.html" class="btn-secondary">See pricing</a>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<div id="site-footer"></div>
+<script>
+const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtqeXRhcGNneHVrYWx3c3lwdXRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMTcxMzEsImV4cCI6MjA5MDg5MzEzMX0.VC8mcU5lUeA56kG2gHssvl88EVWr018XttA86jpfEn0';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// Smart Try button: opens signup modal if logged out, sends to dashboard if logged in.
+async function tryThisTool(e) {
+  if (e) e.preventDefault();
+  try {
+    const { data: sessionData } = await sb.auth.getSession();
+    if (sessionData && sessionData.session) {
+      window.location.href = 'dashboard.html';
+      return false;
+    }
+  } catch (err) { /* fall through to signup */ }
+  window.location.href = 'index.html?action=signup';
+  return false;
+}
+
+function toggleFaq(el) { el.parentElement.classList.toggle('open'); }
+</script>
+
+<script>
+function openSignupModal(){window.location.href="index.html?action=signup";}
+function openAuthModal(){window.location.href="index.html?action=signin";}
+</script>
+<script src="/site-nav.js"></script>
+</body>
+</html>
