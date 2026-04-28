@@ -1776,11 +1776,14 @@
   .ana-range-btn { padding: 6px 14px; background: transparent; border: 1px solid var(--border); color: var(--muted); border-radius: 8px; font-size: 12px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.15s; }
   .ana-range-btn:hover { border-color: rgba(124,58,237,0.4); color: var(--text); }
   .ana-range-btn.active { background: linear-gradient(135deg, rgba(124,58,237,0.2), rgba(232,121,249,0.1)); border-color: rgba(124,58,237,0.5); color: #c4b5fd; }
+  @media (max-width: 1100px) {
+    #ana-pv-grid { grid-template-columns: repeat(3, 1fr) !important; }
+    #ana-rev-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  }
   @media (max-width: 768px) {
     .ana-range-btn { padding: 4px 10px; font-size: 12px; }
     #ana-pv-grid { grid-template-columns: 1fr 1fr !important; }
     #ana-rev-grid { grid-template-columns: 1fr 1fr !important; }
-    #ana-rev-grid > div:last-child { grid-column: 1 / -1; }
   }
   .ana-mini-tip { position:absolute; z-index:10; pointer-events:none; background:rgba(15,15,26,0.95); border:1px solid rgba(232,121,249,0.25); border-radius:8px; padding:6px 10px; font-size:10px; color:#e9c4f7; box-shadow:0 4px 16px rgba(0,0,0,0.4); white-space:nowrap; }
 
@@ -3812,7 +3815,7 @@
               </div>
               <div class="dash-stat-label">Page Visits
                 <span class="dash-stat-info">i
-                  <span class="dash-stat-info-tip">Total views for Link in Bio, Media Kit, Course, and Coaching pages</span>
+                  <span class="dash-stat-info-tip">Total views for Link in Bio, Media Kit, Course, 1:1 Booking, and Digital Product pages</span>
                 </span>
               </div>
             </div>
@@ -3830,7 +3833,7 @@
               </div>
               <div class="dash-stat-label">Total Revenue
                 <span class="dash-stat-info">i
-                  <span class="dash-stat-info-tip">Total revenue from Courses, Brand Deals, 1:1 Booking</span>
+                  <span class="dash-stat-info-tip">Total revenue from Courses, 1:1 Bookings, Digital Products, and Brand Deals</span>
                 </span>
               </div>
             </div>
@@ -4781,7 +4784,7 @@
         <div id="analytics-upsell" style="display:none;text-align:center;padding:60px 24px;">
           <div style="width:56px;height:56px;margin:0 auto 16px;background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.25);border-radius:14px;display:flex;align-items:center;justify-content:center;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg></div>
           <h2 style="font-family:Syne,sans-serif;font-size:28px;font-weight:800;margin-bottom:8px;letter-spacing:-0.5px;">Analytics</h2>
-          <p style="color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:24px;max-width:440px;margin-left:auto;margin-right:auto;">See your page views, revenue trends, and sales breakdown across courses, coaching, and brand deals. Available on Creator Max.</p>
+          <p style="color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:24px;max-width:440px;margin-left:auto;margin-right:auto;">See your page views, revenue trends, and sales breakdown across courses, coaching, digital products, and brand deals. Available on Creator Max.</p>
           <button onclick="handleMaxUpgradeClick(event)" style="padding:12px 28px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px rgba(232,121,249,0.3);">Try Creator Max Free — 7 Days</button>
         </div>
 
@@ -4838,7 +4841,7 @@
 
           <!-- Revenue mini charts -->
           <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);font-weight:600;margin-bottom:12px;">Revenue by Source</div>
-          <div id="ana-rev-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+          <div id="ana-rev-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;">
             <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;position:relative;">
               <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:600;margin-bottom:8px;">Courses</div>
               <div id="ana-courses-total" class="currency-zero-placeholder" style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;letter-spacing:-0.5px;margin-bottom:8px;">$0</div>
@@ -4856,6 +4859,14 @@
               </div>
             </div>
             <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;position:relative;">
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:600;margin-bottom:8px;">Digital Products</div>
+              <div id="ana-dp-total" class="currency-zero-placeholder" style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;letter-spacing:-0.5px;margin-bottom:8px;">$0</div>
+              <div style="position:relative;">
+                <canvas id="ana-dp-chart" style="width:100%;height:60px;"></canvas>
+                <div id="ana-dp-chart-tip" class="ana-mini-tip" style="display:none;"></div>
+              </div>
+            </div>
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;position:relative;">
               <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:600;margin-bottom:8px;">Brand Deals</div>
               <div id="ana-deals-total" class="currency-zero-placeholder" style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;letter-spacing:-0.5px;margin-bottom:8px;">$0</div>
               <div style="position:relative;">
@@ -4867,7 +4878,7 @@
 
           <!-- Page views mini charts -->
           <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);font-weight:600;margin-top:24px;margin-bottom:12px;">Page Views by Source</div>
-          <div id="ana-pv-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px;">
+          <div id="ana-pv-grid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:16px;">
             <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;position:relative;">
               <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:600;margin-bottom:8px;">Bio</div>
               <div id="ana-pv-bio-total" style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;letter-spacing:-0.5px;margin-bottom:8px;">0</div>
@@ -4890,6 +4901,14 @@
               <div style="position:relative;">
                 <canvas id="ana-pv-coaching-chart" style="width:100%;height:60px;"></canvas>
                 <div id="ana-pv-coaching-chart-tip" class="ana-mini-tip" style="display:none;"></div>
+              </div>
+            </div>
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;position:relative;">
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:600;margin-bottom:8px;">Digital Products</div>
+              <div id="ana-pv-dp-total" style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;letter-spacing:-0.5px;margin-bottom:8px;">0</div>
+              <div style="position:relative;">
+                <canvas id="ana-pv-dp-chart" style="width:100%;height:60px;"></canvas>
+                <div id="ana-pv-dp-chart-tip" class="ana-mini-tip" style="display:none;"></div>
               </div>
             </div>
             <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;position:relative;">
@@ -8667,6 +8686,7 @@ async function loadDashStats() {
     if (bp.mediakit) pills.push(`<span class="dash-stat-pill">Media Kit: ${Number(bp.mediakit).toLocaleString()}</span>`);
     if (bp.course) pills.push(`<span class="dash-stat-pill">Course: ${Number(bp.course).toLocaleString()}</span>`);
     if (bp.coaching) pills.push(`<span class="dash-stat-pill">1:1 Bookings: ${Number(bp.coaching).toLocaleString()}</span>`);
+    if (bp.digital_product) pills.push(`<span class="dash-stat-pill">Digital Products: ${Number(bp.digital_product).toLocaleString()}</span>`);
     vBreak.innerHTML = pills.join('');
     renderSparkline('dash-views-sparkline', v.daily, 'count');
   }
@@ -8704,6 +8724,7 @@ async function loadDashStats() {
     if (bs.brand_deal) sources.push(`<span class="dash-stat-pill">Brand Deals: ${formatDashUSD(bs.brand_deal)}</span>`);
     if (bs.course) sources.push(`<span class="dash-stat-pill">Courses: ${formatDashUSD(bs.course)}</span>`);
     if (bs.coaching) sources.push(`<span class="dash-stat-pill">1:1 Bookings: ${formatDashUSD(bs.coaching)}</span>`);
+    if (bs.digital_product) sources.push(`<span class="dash-stat-pill">Digital Products: ${formatDashUSD(bs.digital_product)}</span>`);
     if (bs.other) sources.push(`<span class="dash-stat-pill">Other: ${formatDashUSD(bs.other)}</span>`);
     rBreak.innerHTML = sources.join('');
     if (r.total_cents > 0) {
@@ -22868,6 +22889,7 @@ async function loadAnalyticsData() {
   // Mini chart totals
   document.getElementById('ana-courses-total').textContent = formatDashUSD(bySource.course || 0);
   document.getElementById('ana-coaching-total').textContent = formatDashUSD(bySource.coaching || 0);
+  document.getElementById('ana-dp-total').textContent = formatDashUSD(bySource.digital_product || 0);
   document.getElementById('ana-deals-total').textContent = formatDashUSD(bySource.brand_deal || 0);
 
   // Page view totals by source
@@ -22875,6 +22897,7 @@ async function loadAnalyticsData() {
   document.getElementById('ana-pv-bio-total').textContent = (byPage.bio || 0).toLocaleString();
   document.getElementById('ana-pv-courses-total').textContent = (byPage.course || 0).toLocaleString();
   document.getElementById('ana-pv-coaching-total').textContent = (byPage.coaching || 0).toLocaleString();
+  document.getElementById('ana-pv-dp-total').textContent = (byPage.digital_product || 0).toLocaleString();
   document.getElementById('ana-pv-mediakit-total').textContent = (byPage.mediakit || 0).toLocaleString();
 
   // Render main chart (dual line)
@@ -22883,12 +22906,14 @@ async function loadAnalyticsData() {
   // Render revenue mini charts
   renderAnaMiniChart('ana-courses-chart', revDaily, 'course', '#a78bfa');
   renderAnaMiniChart('ana-coaching-chart', revDaily, 'coaching', '#e879f9');
+  renderAnaMiniChart('ana-dp-chart', revDaily, 'digital_product', '#f0abfc');
   renderAnaMiniChart('ana-deals-chart', revDaily, 'brand_deal', '#7c3aed');
 
   // Render page view mini charts (uses overall daily views as trend line)
   renderAnaMiniChart('ana-pv-bio-chart', viewsDaily, 'count', '#e879f9');
   renderAnaMiniChart('ana-pv-courses-chart', viewsDaily, 'count', '#a78bfa');
   renderAnaMiniChart('ana-pv-coaching-chart', viewsDaily, 'count', '#c084fc');
+  renderAnaMiniChart('ana-pv-dp-chart', viewsDaily, 'count', '#f0abfc');
   renderAnaMiniChart('ana-pv-mediakit-chart', viewsDaily, 'count', '#818cf8');
 
   // Load latest sales
@@ -22980,6 +23005,22 @@ async function loadAnalyticsSales(start, end) {
       bookings.forEach(function(b) {
         if (!b.coaching_services || b.coaching_services.user_id !== currentUser.id) return;
         sales.push({ date: b.booked_at, buyer: b.buyer_email || '—', product: b.coaching_services.title || '1:1 Booking', type: 'Coaching', amount: b.amount_paid_cents || 0 });
+      });
+    }
+
+    // Fetch digital product purchases
+    const { data: dpPurchases } = await sb
+      .from('digital_product_purchases')
+      .select('purchased_at, amount_cents, buyer_email, status, product_id, digital_products(title, user_id)')
+      .eq('digital_products.user_id', currentUser.id)
+      .eq('status', 'completed')
+      .gte('purchased_at', start + 'T00:00:00')
+      .lte('purchased_at', end + 'T23:59:59')
+      .order('purchased_at', { ascending: false });
+    if (dpPurchases) {
+      dpPurchases.forEach(function(p) {
+        if (!p.digital_products || p.digital_products.user_id !== currentUser.id) return;
+        sales.push({ date: p.purchased_at, buyer: p.buyer_email || '—', product: p.digital_products.title || 'Digital Product', type: 'Digital Product', amount: p.amount_cents || 0 });
       });
     }
 
@@ -23105,6 +23146,39 @@ async function loadProductPerformance(start, end) {
       }
     }
 
+    // Get creator's digital products
+    const { data: digitalProducts } = await sb
+      .from('digital_products')
+      .select('id, title, price_cents')
+      .eq('user_id', currentUser.id);
+
+    if (digitalProducts && digitalProducts.length > 0) {
+      for (const dp of digitalProducts) {
+        const { data: dpPurchases, count: dpCount } = await sb
+          .from('digital_product_purchases')
+          .select('amount_cents', { count: 'exact' })
+          .eq('product_id', dp.id)
+          .eq('status', 'completed')
+          .gte('purchased_at', start + 'T00:00:00')
+          .lte('purchased_at', end + 'T23:59:59');
+
+        const orders = dpCount || 0;
+        const revenue = dpPurchases ? dpPurchases.reduce(function(sum, p) { return sum + (p.amount_cents || 0); }, 0) : 0;
+
+        const { data: viewRows } = await sb
+          .from('page_view_counts')
+          .select('view_count')
+          .eq('user_id', currentUser.id)
+          .eq('page_type', 'digital_product')
+          .eq('product_id', dp.id)
+          .gte('view_date', start)
+          .lte('view_date', end);
+        const views = viewRows ? viewRows.reduce(function(sum, r) { return sum + (r.view_count || 0); }, 0) : 0;
+
+        products.push({ title: dp.title || 'Digital Product', type: 'Digital Product', views: views, orders: orders, revenue: revenue });
+      }
+    }
+
     if (products.length === 0) {
       tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px 16px;color:var(--muted);font-size:13px;">No products found</td></tr>';
       return;
@@ -23117,7 +23191,11 @@ async function loadProductPerformance(start, end) {
       var convRate = p.views > 0 ? ((p.orders / p.views) * 100).toFixed(1) + '%' : '—';
       var viewsText = p.views > 0 ? p.views.toLocaleString() : '0';
       var amount = formatMoney(p.revenue, {alwaysShowCents:true});
-      var pillStyle = p.type === 'Course' ? 'background:rgba(167,139,250,0.15);color:#c4b5fd;' : 'background:rgba(232,121,249,0.15);color:#e879f9;';
+      var pillStyle;
+      if (p.type === 'Course') pillStyle = 'background:rgba(167,139,250,0.15);color:#c4b5fd;';
+      else if (p.type === 'Coaching') pillStyle = 'background:rgba(232,121,249,0.15);color:#e879f9;';
+      else if (p.type === 'Digital Product') pillStyle = 'background:rgba(240,171,252,0.15);color:#f0abfc;';
+      else pillStyle = 'background:rgba(124,58,237,0.15);color:#c4b5fd;';
       return '<tr style="border-top:1px solid var(--border);">'
         + '<td style="padding:10px 16px;color:var(--text);font-size:13px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + p.title + '</td>'
         + '<td style="padding:10px 16px;font-size:13px;"><span style="padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;' + pillStyle + '">' + p.type + '</span></td>'
