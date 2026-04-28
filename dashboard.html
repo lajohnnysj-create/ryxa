@@ -25307,9 +25307,13 @@ function showModalConfirm(title, message, onConfirm, confirmText, cancelText) {
   var overlay = document.createElement('div');
   overlay.id = 'modal-confirm-overlay';
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;';
+  // Convert \n\n into paragraph breaks for cleaner formatting
+  var msgHtml = (message || 'Are you sure?').split(/\n\n+/).map(function(p) {
+    return '<p style="font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:14px;">' + p.replace(/\n/g, '<br>') + '</p>';
+  }).join('');
   overlay.innerHTML = '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:28px;max-width:380px;width:100%;max-height:calc(100vh - 80px);overflow-y:auto;">'
     + '<div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.3px;margin-bottom:10px;">' + (title || 'Confirm') + '</div>'
-    + '<p style="font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:22px;">' + (message || 'Are you sure?') + '</p>'
+    + '<div style="margin-bottom:8px;">' + msgHtml + '</div>'
     + '<div style="display:flex;gap:8px;">'
     + '<button id="modal-confirm-yes" style="flex:1;padding:11px;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);color:#fca5a5;border-radius:8px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">' + (confirmText || 'Delete') + '</button>'
     + '<button id="modal-confirm-no" style="flex:1;padding:11px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:14px;font-family:DM Sans,sans-serif;cursor:pointer;">' + (cancelText || 'Cancel') + '</button>'
@@ -25325,9 +25329,13 @@ function showModalAlert(title, message) {
   var overlay = document.createElement('div');
   overlay.id = 'modal-alert-overlay';
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;';
+  // Convert \n\n into paragraph breaks
+  var msgHtml = (message || '').split(/\n\n+/).map(function(p) {
+    return '<p style="font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:14px;">' + p.replace(/\n/g, '<br>') + '</p>';
+  }).join('');
   overlay.innerHTML = '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:28px;max-width:380px;width:100%;max-height:calc(100vh - 80px);overflow-y:auto;">'
     + '<div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.3px;margin-bottom:10px;">' + (title || 'Notice') + '</div>'
-    + '<p style="font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:22px;">' + (message || '') + '</p>'
+    + '<div style="margin-bottom:8px;">' + msgHtml + '</div>'
     + '<button onclick="this.closest(\'[id=modal-alert-overlay]\').remove()" style="width:100%;padding:11px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:14px;font-family:DM Sans,sans-serif;cursor:pointer;">OK</button>'
     + '</div>';
   overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
