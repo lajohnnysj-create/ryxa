@@ -72,7 +72,7 @@ module.exports = async (req, res) => {
     'mediakit', 'bio', 'brand-deal-crm', 'api', 'admin', 'support', 'help', 'login', 'signin', 'signup',
     'tools', 'tools-link-in-bio', 'tools-course-builder', 'tools-coaching', 'tools-brand-deal-crm',
     'tools-media-kit', 'tools-script-builder', 'tools-ai-design-studio', 'tools-grid-planner',
-    'tools-follower-audit', 'tools-photo-editor', 'tools-image-studio', 'tools-qr-generator',
+    'tools-follower-audit', 'tools-photo-editor', 'tools-qr-generator',
     'tools-invoice-generator', 'tools-sign-pdf', 'tools-thumbnail-analyzer', 'tools-contract-analyzer',
     'blog-best-linktree-alternatives', 'blog-why-did-my-friends-unfollow-me',
     'learn', 'cookie-banner', 'site-nav'
