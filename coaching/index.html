@@ -206,10 +206,14 @@ async function init() {
   coachingData = coaching;
 
   // Load creator name and currency
-  const { data: profile } = await sb.from('profiles').select('username, display_currency').eq('user_id', coaching.user_id).maybeSingle();
+  const { data: profile } = await sb.from('profiles').select('username, display_currency, calendar_timezone').eq('user_id', coaching.user_id).maybeSingle();
   const creatorName = profile?.username || 'Creator';
   // Stash the creator's display currency for price formatting
   window._creatorCurrency = (profile && profile.display_currency) ? profile.display_currency : 'USD';
+  // Stash the creator's timezone — slot generation uses this so bookers in any
+  // timezone see the creator's actual working hours (converted to their local).
+  // Fall back to UTC if not set (older accounts before this field existed).
+  window._creatorTimezone = (profile && profile.calendar_timezone) ? profile.calendar_timezone : 'UTC';
 
   document.title = coaching.title + ' — Ryxa';
   const metaDesc = document.querySelector('meta[name="description"]');
@@ -521,6 +525,45 @@ function selectPickerDate(ymd) {
   renderPickerTimes();
 }
 
+// Build a UTC Date object for a given local time in a specific IANA timezone.
+// E.g., creatorLocalToUtc('2026-04-29', 9, 0, 'America/Los_Angeles') returns
+// the Date corresponding to "9:00 AM PDT on April 29, 2026" in UTC.
+function creatorLocalToUtc(ymd, hours, minutes, timezone) {
+  var parts = ymd.split('-').map(Number);
+  // First, build a candidate UTC time treating the local fields naively
+  var naiveUtc = Date.UTC(parts[0], parts[1] - 1, parts[2], hours, minutes, 0, 0);
+  // Now figure out what that same instant looks like in the target timezone
+  // and compute the offset between naive and actual
+  var dtf = new Intl.DateTimeFormat('en-US', {
+    timeZone: timezone,
+    hour12: false,
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit'
+  });
+  var fParts = {};
+  dtf.formatToParts(new Date(naiveUtc)).forEach(function(p) {
+    if (p.type !== 'literal') fParts[p.type] = parseInt(p.value, 10);
+  });
+  // Treat fParts as if it's UTC, find the difference from naiveUtc
+  var asUtc = Date.UTC(
+    fParts.year, fParts.month - 1, fParts.day,
+    fParts.hour === 24 ? 0 : fParts.hour, fParts.minute, fParts.second
+  );
+  var offset = naiveUtc - asUtc;
+  // The actual UTC moment is naiveUtc + offset
+  return new Date(naiveUtc + offset);
+}
+
+// Get the day-of-week (0=Sun..6=Sat) for a YYYY-MM-DD date as it falls in a specific timezone
+function dayOfWeekInTz(ymd, timezone) {
+  // Use noon UTC of that date to avoid edge-case timezone shifts crossing midnight
+  var parts = ymd.split('-').map(Number);
+  var noonUtc = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2], 12, 0, 0));
+  var dayName = new Intl.DateTimeFormat('en-US', { timeZone: timezone, weekday: 'short' }).format(noonUtc);
+  var map = { Sun:0, Mon:1, Tue:2, Wed:3, Thu:4, Fri:5, Sat:6 };
+  return map[dayName] != null ? map[dayName] : new Date(parts[0], parts[1] - 1, parts[2]).getDay();
+}
+
 function renderPickerTimes() {
   var avail = coachingData.availability_settings || {};
   var duration = avail.duration_minutes || 30;
@@ -528,9 +571,9 @@ function renderPickerTimes() {
   var leadHours = typeof avail.lead_time_hours === 'number' ? avail.lead_time_hours : 24;
   var dayKeys = ['sun','mon','tue','wed','thu','fri','sat'];
 
-  var ymdParts = pickerState.selectedDate.split('-').map(Number);
-  var date = new Date(ymdParts[0], ymdParts[1] - 1, ymdParts[2]);
-  var dayKey = dayKeys[date.getDay()];
+  var creatorTz = window._creatorTimezone || 'UTC';
+  // Day-of-week is determined in the CREATOR's timezone — that's whose schedule we follow
+  var dayKey = dayKeys[dayOfWeekInTz(pickerState.selectedDate, creatorTz)];
   var dayConf = (avail.days && avail.days[dayKey]) || null;
 
   if (!dayConf || !dayConf.enabled) {
@@ -541,13 +584,10 @@ function renderPickerTimes() {
   var startParts = (dayConf.start || '09:00').split(':').map(Number);
   var endParts = (dayConf.end || '17:00').split(':').map(Number);
 
-  // Generate slots in CREATOR's local time, but display in BOOKER's timezone
-  // Note: We treat creator's times as the source of truth for availability blocks
-  // For now, generate slots relative to the date's local time
-  var slotStart = new Date(date);
-  slotStart.setHours(startParts[0], startParts[1], 0, 0);
-  var dayEnd = new Date(date);
-  dayEnd.setHours(endParts[0], endParts[1], 0, 0);
+  // Generate slots in CREATOR's timezone (their working hours), then display in BOOKER's local time
+  // Each slot's start/end is a real UTC moment, regardless of who's viewing
+  var slotStart = creatorLocalToUtc(pickerState.selectedDate, startParts[0], startParts[1], creatorTz);
+  var dayEnd = creatorLocalToUtc(pickerState.selectedDate, endParts[0], endParts[1], creatorTz);
 
   var earliest = new Date(Date.now() + leadHours * 60 * 60 * 1000);
   var slots = [];
@@ -590,6 +630,7 @@ function renderPickerTimes() {
 
   var html = '<div class="picker-time-grid">';
   slots.forEach(function(s) {
+    // Display in the BOOKER's local timezone (toLocaleTimeString defaults to local)
     var label = s.start.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
     var iso = s.start.toISOString();
     var endIso = s.end.toISOString();
