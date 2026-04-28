@@ -22512,8 +22512,10 @@ function calRenderDayEvents() {
     var startTime = e.start_at ? new Date(e.start_at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) : '';
     var endTime = e.end_at ? new Date(e.end_at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) : '';
     var timeLabel = startTime + (endTime ? ' - ' + endTime : '');
-    var typeLabel = e.event_type === 'manual' ? '' : '<span style="display:inline-block;padding:2px 8px;background:rgba(124,58,237,0.15);border-radius:4px;font-size:10px;color:#c4b5fd;font-weight:600;letter-spacing:0.3px;text-transform:uppercase;margin-left:6px;">' + e.event_type + '</span>';
-    var color = e.color || '#7c3aed';
+    var typeLabel = e.event_type === 'manual' ? '' : '<span style="display:inline-block;padding:2px 8px;background:rgba(124,58,237,0.15);border-radius:4px;font-size:10px;color:#c4b5fd;font-weight:600;letter-spacing:0.3px;text-transform:uppercase;margin-left:6px;">' + escapeHtml(e.event_type || '') + '</span>';
+    // Validate color is hex format only (no JS injection via style)
+    var rawColor = e.color || '#7c3aed';
+    var color = /^#[0-9a-fA-F]{3,8}$/.test(rawColor) ? rawColor : '#7c3aed';
     return '<div style="display:flex;align-items:flex-start;gap:12px;padding:14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;">'
       + '<div style="width:3px;align-self:stretch;background:' + color + ';border-radius:2px;flex-shrink:0;"></div>'
       + '<div style="flex:1;min-width:0;">'
@@ -22521,7 +22523,7 @@ function calRenderDayEvents() {
       + (timeLabel ? '<div style="font-size:12px;color:var(--muted);margin-bottom:6px;">' + escapeHtml(timeLabel) + '</div>' : '')
       + (e.notes ? '<div style="font-size:13px;color:#c8c6d8;line-height:1.5;">' + escapeHtml(e.notes) + '</div>' : '')
       + '</div>'
-      + (e.event_type === 'manual' ? '<button onclick="calDeleteEvent(\'' + e.id + '\')" aria-label="Delete event" style="width:28px;height:28px;background:transparent;border:1px solid rgba(239,68,68,0.3);border-radius:6px;color:#ef4444;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg></button>' : '')
+      + '<button onclick="calDeleteEvent(\'' + e.id + '\', \'' + e.event_type + '\')" aria-label="Delete event" style="width:28px;height:28px;background:transparent;border:1px solid rgba(239,68,68,0.3);border-radius:6px;color:#ef4444;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg></button>'
       + '</div>';
   }).join('');
 }
@@ -22700,11 +22702,39 @@ async function calSaveEvent() {
   }
 }
 
-async function calDeleteEvent(eventId) {
-  showModalConfirm('Delete Event', 'Are you sure you want to delete this event?', async function() {
+async function calDeleteEvent(eventId, eventType) {
+  // Find the event in state to get source_id
+  var event = calState.events.find(function(e) { return e.id === eventId; });
+  if (!event) return;
+
+  var confirmTitle, confirmMsg;
+  if (eventType === 'coaching') {
+    confirmTitle = 'Cancel Coaching Booking';
+    confirmMsg = 'This will remove the booking from your calendar and delete the booking record. If this was a paid booking, you may need to manually refund the client via Stripe.\n\nIf you\'re rescheduling rather than cancelling, you can keep the payment and manually add a new event for the updated time. Continue?';
+  } else if (eventType === 'brand_deal') {
+    confirmTitle = 'Delete Brand Deal Event';
+    confirmMsg = 'This will only remove this event from your calendar. To fully manage the brand deal, edit it from the Brand Deal CRM. Continue?';
+  } else {
+    confirmTitle = 'Delete Event';
+    confirmMsg = 'Are you sure you want to delete this event?';
+  }
+
+  showModalConfirm(confirmTitle, confirmMsg, async function() {
     try {
+      // Delete the calendar event
       var { error } = await sb.from('calendar_events').delete().eq('id', eventId);
       if (error) throw error;
+
+      // For coaching events, also delete the booking record
+      if (eventType === 'coaching' && event.source_id) {
+        try {
+          await sb.from('coaching_bookings').delete().eq('id', event.source_id);
+        } catch (e) {
+          console.error('Could not delete coaching booking:', e);
+          // Non-fatal — calendar event already deleted
+        }
+      }
+
       calState.events = calState.events.filter(function(e) { return e.id !== eventId; });
       calRender();
     } catch (e) {
