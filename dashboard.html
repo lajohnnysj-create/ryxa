@@ -4243,8 +4243,8 @@
                 <div style="width:120px;flex-shrink:0;">
                   <label for="course-price-input" style="font-size:12px;color:var(--muted);display:flex;align-items:center;gap:4px;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Price <span class="dash-stat-info" style="position:relative;cursor:help;display:inline-flex;background:none;border:none;padding:0;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg><span class="dash-stat-info-tip" style="width:170px;left:50%;transform:translateX(-50%);">Set to $0 for a free course</span></span></label>
                   <div style="display:flex;align-items:center;gap:0;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;overflow:hidden;">
-                    <span style="padding:12px 0 12px 12px;font-size:15px;color:var(--muted);">$</span>
-                    <input type="text" inputmode="decimal" id="course-price-input" placeholder="29" aria-label="Course price in USD" style="flex:1;background:transparent;border:none;padding:12px 12px 12px 4px;font-size:15px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;width:100%;">
+                    <span class="currency-symbol-prefix" style="padding:12px 0 12px 12px;font-size:15px;color:var(--muted);">$</span>
+                    <input type="text" inputmode="decimal" id="course-price-input" placeholder="29" aria-label="Course price" style="flex:1;background:transparent;border:none;padding:12px 12px 12px 4px;font-size:15px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;width:100%;">
                   </div>
                 </div>
               </div>
@@ -4401,7 +4401,7 @@
             <div style="width:120px;flex-shrink:0;">
               <label for="coaching-price-input" style="font-size:12px;color:var(--muted);display:flex;align-items:center;gap:4px;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Price</label>
               <div style="display:flex;align-items:center;gap:0;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;overflow:hidden;">
-                <span style="padding:12px 0 12px 12px;font-size:15px;color:var(--muted);">$</span>
+                <span class="currency-symbol-prefix" style="padding:12px 0 12px 12px;font-size:15px;color:var(--muted);">$</span>
                 <input type="text" inputmode="decimal" id="coaching-price-input" placeholder="50" aria-label="Price" style="flex:1;background:transparent;border:none;padding:12px 12px 12px 4px;font-size:15px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;width:100%;">
               </div>
             </div>
@@ -6820,6 +6820,31 @@
       </div>
     </div>
 
+    <!-- Display Currency -->
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:8px;">Display Currency</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.5;">Used to display prices, revenue, and analytics throughout your dashboard. Stripe payouts always happen in your Stripe account's currency — this only changes how amounts are shown to you.</p>
+      <label for="settings-currency-select" class="visually-hidden" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">Display currency</label>
+      <select id="settings-currency-select" onchange="changeDisplayCurrency(this.value)" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:11px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;cursor:pointer;">
+        <option value="USD">US Dollar (USD) — $</option>
+        <option value="EUR">Euro (EUR) — €</option>
+        <option value="GBP">British Pound (GBP) — £</option>
+        <option value="CAD">Canadian Dollar (CAD) — CA$</option>
+        <option value="AUD">Australian Dollar (AUD) — A$</option>
+        <option value="JPY">Japanese Yen (JPY) — ¥</option>
+        <option value="INR">Indian Rupee (INR) — ₹</option>
+        <option value="BRL">Brazilian Real (BRL) — R$</option>
+        <option value="MXN">Mexican Peso (MXN) — MX$</option>
+        <option value="CHF">Swiss Franc (CHF)</option>
+        <option value="SGD">Singapore Dollar (SGD) — S$</option>
+        <option value="SEK">Swedish Krona (SEK) — kr</option>
+        <option value="NOK">Norwegian Krone (NOK) — kr</option>
+        <option value="NZD">New Zealand Dollar (NZD) — NZ$</option>
+        <option value="ZAR">South African Rand (ZAR) — R</option>
+      </select>
+      <div id="settings-currency-msg" style="display:none;margin-top:8px;padding:8px 12px;background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);border-radius:7px;font-size:12px;color:#4ade80;">Saved.</div>
+    </div>
+
     <!-- Password -->
     <!-- Stripe Connect -->
     <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;">
@@ -7040,7 +7065,7 @@ async function setUser(user) {
 
   // Set welcome name from profile
   try {
-    const { data: profile } = await sb.from('profiles').select('username').eq('user_id', user.id).maybeSingle();
+    const { data: profile } = await sb.from('profiles').select('username, display_currency').eq('user_id', user.id).maybeSingle();
     if (profile?.username) {
       window._ryx_username = profile.username;
       if (welcomeName) welcomeName.textContent = '@' + profile.username;
@@ -7050,7 +7075,14 @@ async function setUser(user) {
     } else {
       if (welcomeName) welcomeName.textContent = 'creator';
     }
+    // Load display currency (defaults to USD if not set)
+    if (profile?.display_currency && SUPPORTED_CURRENCIES[profile.display_currency]) {
+      currentCurrency = profile.display_currency;
+    }
   } catch (e) { /* keep default */ }
+
+  // Apply currency symbol to all prefix elements throughout the dashboard
+  applyCurrencySymbols();
 
   // Post-signup checkout: if user arrived with a plan intent from pricing page
   try {
@@ -7459,6 +7491,9 @@ function showTool(tool) {
   // Init settings when shown
   if (tool === 'settings') {
     const pro = isPro();
+    // Pre-select current currency dropdown
+    var ccSel = document.getElementById('settings-currency-select');
+    if (ccSel) ccSel.value = currentCurrency;
     if (currentUser) {
       // Avatar: check bioState first, then query DB
       if (typeof bioState !== 'undefined' && bioState.avatar_url) {
@@ -8002,9 +8037,122 @@ function setDashCustomRange() {
   loadDashStats();
 }
 
+// =====================================================
+// CURRENCY SYSTEM (global)
+// =====================================================
+// Holds the current user's display currency. Loaded from profile on signin,
+// updated when user changes it in Settings. Defaults to USD.
+var currentCurrency = 'USD';
+
+// Map of supported currencies → { symbol, code, locale }
+var SUPPORTED_CURRENCIES = {
+  USD: { symbol: '$', code: 'USD', locale: 'en-US', name: 'US Dollar' },
+  EUR: { symbol: '€', code: 'EUR', locale: 'en-IE', name: 'Euro' },
+  GBP: { symbol: '£', code: 'GBP', locale: 'en-GB', name: 'British Pound' },
+  CAD: { symbol: 'CA$', code: 'CAD', locale: 'en-CA', name: 'Canadian Dollar' },
+  AUD: { symbol: 'A$', code: 'AUD', locale: 'en-AU', name: 'Australian Dollar' },
+  JPY: { symbol: '¥', code: 'JPY', locale: 'ja-JP', name: 'Japanese Yen' },
+  INR: { symbol: '₹', code: 'INR', locale: 'en-IN', name: 'Indian Rupee' },
+  BRL: { symbol: 'R$', code: 'BRL', locale: 'pt-BR', name: 'Brazilian Real' },
+  MXN: { symbol: 'MX$', code: 'MXN', locale: 'es-MX', name: 'Mexican Peso' },
+  CHF: { symbol: 'CHF', code: 'CHF', locale: 'de-CH', name: 'Swiss Franc' },
+  SGD: { symbol: 'S$', code: 'SGD', locale: 'en-SG', name: 'Singapore Dollar' },
+  SEK: { symbol: 'kr', code: 'SEK', locale: 'sv-SE', name: 'Swedish Krona' },
+  NOK: { symbol: 'kr', code: 'NOK', locale: 'nb-NO', name: 'Norwegian Krone' },
+  NZD: { symbol: 'NZ$', code: 'NZD', locale: 'en-NZ', name: 'New Zealand Dollar' },
+  ZAR: { symbol: 'R', code: 'ZAR', locale: 'en-ZA', name: 'South African Rand' }
+};
+
+// Returns the currency symbol for the current display currency
+function getCurrencySymbol() {
+  var c = SUPPORTED_CURRENCIES[currentCurrency] || SUPPORTED_CURRENCIES.USD;
+  return c.symbol;
+}
+
+// Format a value (in cents) as the user's display currency.
+// fractionDigits=null = smart default (0 for whole amounts, 2 for cents).
+function formatMoney(cents, opts) {
+  opts = opts || {};
+  if (cents == null) cents = 0;
+  var amount = cents / 100;
+  var fractionDigits = opts.fractionDigits;
+  if (fractionDigits == null) {
+    // Smart default: show cents if they're meaningful, else whole amounts
+    fractionDigits = (amount % 1 === 0) ? 0 : 2;
+  }
+  if (opts.alwaysShowCents) fractionDigits = 2;
+
+  var c = SUPPORTED_CURRENCIES[currentCurrency] || SUPPORTED_CURRENCIES.USD;
+  // JPY has no fractional unit
+  if (c.code === 'JPY') fractionDigits = 0;
+
+  try {
+    return new Intl.NumberFormat(c.locale, {
+      style: 'currency',
+      currency: c.code,
+      minimumFractionDigits: fractionDigits,
+      maximumFractionDigits: fractionDigits
+    }).format(amount);
+  } catch (e) {
+    // Fallback if browser doesn't support the locale
+    return c.symbol + amount.toLocaleString('en-US', { minimumFractionDigits: fractionDigits, maximumFractionDigits: fractionDigits });
+  }
+}
+
+// Backward-compatible alias — many places in code call formatDashUSD
 function formatDashUSD(cents) {
-  if (cents == null || cents === 0) return '$0';
-  return '$' + (cents / 100).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  return formatMoney(cents, { fractionDigits: 0 });
+}
+
+// Updates all UI elements that show the currency symbol prefix (e.g., $ in price inputs)
+function applyCurrencySymbols() {
+  var symbol = getCurrencySymbol();
+  document.querySelectorAll('.currency-symbol-prefix').forEach(function(el) {
+    el.textContent = symbol;
+  });
+  // Also update any static $0 stat placeholders that haven't been populated yet
+  document.querySelectorAll('.currency-zero-placeholder').forEach(function(el) {
+    el.textContent = formatMoney(0);
+  });
+  // Recalculate invoice totals so the placeholders refresh in the right currency
+  if (typeof calcTotals === 'function') {
+    try { calcTotals(); } catch (e) { /* invoice tool not loaded yet */ }
+  }
+  // Pre-select current currency in the settings dropdown
+  var sel = document.getElementById('settings-currency-select');
+  if (sel) sel.value = currentCurrency;
+}
+
+// Called when user picks a new currency from the Settings dropdown
+async function changeDisplayCurrency(newCurrency) {
+  if (!SUPPORTED_CURRENCIES[newCurrency]) return;
+  if (!currentUser) return;
+  var prev = currentCurrency;
+  currentCurrency = newCurrency;
+  applyCurrencySymbols();
+
+  try {
+    var { error } = await sb.from('profiles')
+      .update({ display_currency: newCurrency })
+      .eq('user_id', currentUser.id);
+    if (error) throw error;
+
+    var msg = document.getElementById('settings-currency-msg');
+    if (msg) {
+      msg.style.display = 'block';
+      setTimeout(function() { if (msg) msg.style.display = 'none'; }, 2500);
+    }
+
+    // Re-render any data views that are currently visible so amounts refresh
+    if (typeof loadDashStats === 'function') { try { loadDashStats(); } catch(e){} }
+    if (typeof loadDealsStats === 'function') { try { loadDealsStats(); } catch(e){} }
+    if (typeof loadAnalytics === 'function') { try { loadAnalytics(); } catch(e){} }
+  } catch (e) {
+    console.error('Currency save failed:', e);
+    currentCurrency = prev;
+    applyCurrencySymbols();
+    showModalAlert('Save Failed', 'Could not save your currency preference. Please try again.');
+  }
 }
 
 function renderSparkline(containerId, data, maxKey) {
@@ -9120,7 +9268,7 @@ async function openCoursePickerModal() {
     const coverHtml = coverUrl
       ? '<img src="' + escapeHtml(coverUrl) + '" alt="Course thumbnail" style="width:60px;height:40px;object-fit:cover;border-radius:6px;flex-shrink:0;">'
       : '<div style="width:60px;height:40px;border-radius:6px;background:var(--surface);border:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>';
-    const priceText = c.price_cents > 0 ? '$' + (c.price_cents / 100).toFixed(2) : 'Free';
+    const priceText = c.price_cents > 0 ? formatMoney(c.price_cents, {alwaysShowCents:true}) : 'Free';
 
     modalHtml += '<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;">'
       + coverHtml
@@ -9167,7 +9315,7 @@ function addCourseToLinks(courseId, title, priceCents, slug, coverUrl) {
   }
 
   const newId = linkIdSeq++;
-  const priceDisplay = priceCents > 0 ? '$' + (priceCents / 100).toFixed(2) : 'Free';
+  const priceDisplay = priceCents > 0 ? formatMoney(priceCents, {alwaysShowCents:true}) : 'Free';
   bioState.links.push({
     _id: newId,
     title: title,
@@ -9212,7 +9360,7 @@ async function openCoachingPickerModal() {
     const coverHtml = coverUrl
       ? '<img src="' + escapeHtml(coverUrl) + '" alt="Course thumbnail" style="width:60px;height:40px;object-fit:cover;border-radius:6px;flex-shrink:0;">'
       : '<div style="width:60px;height:40px;border-radius:6px;background:var(--surface);border:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>';
-    const priceText = c.price_cents > 0 ? '$' + (c.price_cents / 100).toFixed(2) : 'Free';
+    const priceText = c.price_cents > 0 ? formatMoney(c.price_cents, {alwaysShowCents:true}) : 'Free';
 
     modalHtml += '<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;">'
       + coverHtml
@@ -9257,7 +9405,7 @@ function addCoachingToLinks(coachingId, title, priceCents, slug, coverUrl) {
   }
 
   const newId = linkIdSeq++;
-  const priceDisplay = priceCents > 0 ? '$' + (priceCents / 100).toFixed(2) : 'Free';
+  const priceDisplay = priceCents > 0 ? formatMoney(priceCents, {alwaysShowCents:true}) : 'Free';
   bioState.links.push({
     _id: newId,
     title: title,
@@ -9428,7 +9576,7 @@ function renderLinkCollapsed(link, dragSvg, editSvg) {
     const thumb = link.photoUrl
       ? `<img alt="Link thumbnail" src="${escapeHtml(link.photoUrl)}" style="width:56px;height:38px;object-fit:cover;border-radius:6px;flex-shrink:0;">`
       : `<div style="width:56px;height:38px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>`;
-    const priceText = link.coursePrice > 0 ? '$' + (link.coursePrice / 100).toFixed(2) : 'Free';
+    const priceText = link.coursePrice > 0 ? formatMoney(link.coursePrice, {alwaysShowCents:true}) : 'Free';
     const crossoutText = link.courseCrossoutPrice > 0 ? '<span style="text-decoration:line-through;color:var(--muted);font-size:10px;margin-left:4px;">$' + (link.courseCrossoutPrice / 100).toFixed(2) + '</span>' : '';
     return `<div class="bio-link-row bio-link-collapsed" data-id="${link._id}" onclick="expandLink(${link._id})" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:10px 12px;">
       <div class="bio-link-drag" aria-label="Drag to reorder" onclick="event.stopPropagation();">${dragSvg}</div>
@@ -9449,7 +9597,7 @@ function renderLinkCollapsed(link, dragSvg, editSvg) {
     const thumb = link.photoUrl
       ? `<img alt="Link thumbnail" src="${escapeHtml(link.photoUrl)}" style="width:56px;height:38px;object-fit:cover;border-radius:6px;flex-shrink:0;">`
       : `<div style="width:56px;height:38px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>`;
-    const priceText = link.coachingPrice > 0 ? '$' + (link.coachingPrice / 100).toFixed(2) : 'Free';
+    const priceText = link.coachingPrice > 0 ? formatMoney(link.coachingPrice, {alwaysShowCents:true}) : 'Free';
     return `<div class="bio-link-row bio-link-collapsed" data-id="${link._id}" onclick="expandLink(${link._id})" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:10px 12px;">
       <div class="bio-link-drag" aria-label="Drag to reorder" onclick="event.stopPropagation();">${dragSvg}</div>
       ${thumb}
@@ -9627,7 +9775,7 @@ function renderLinkExpanded(link, dragSvg) {
     const coverHtml = link.photoUrl
       ? `<img alt="Link cover" src="${escapeHtml(link.photoUrl)}" style="width:100%;height:120px;object-fit:cover;border-radius:8px;margin-bottom:10px;">`
       : '';
-    const priceDisplay = link.coursePrice > 0 ? '$' + (link.coursePrice / 100).toFixed(2) : 'Free';
+    const priceDisplay = link.coursePrice > 0 ? formatMoney(link.coursePrice, {alwaysShowCents:true}) : 'Free';
     const crossoutVal = link.courseCrossoutPrice > 0 ? (link.courseCrossoutPrice / 100).toFixed(2) : '';
     return `<div class="bio-link-row" data-id="${link._id}">
       <div class="bio-link-header">
@@ -9660,7 +9808,7 @@ function renderLinkExpanded(link, dragSvg) {
     const coverHtml = link.photoUrl
       ? `<img alt="Link cover" src="${escapeHtml(link.photoUrl)}" style="width:100%;height:120px;object-fit:cover;border-radius:8px;margin-bottom:10px;">`
       : '';
-    const priceDisplay = link.coachingPrice > 0 ? '$' + (link.coachingPrice / 100).toFixed(2) : 'Free';
+    const priceDisplay = link.coachingPrice > 0 ? formatMoney(link.coachingPrice, {alwaysShowCents:true}) : 'Free';
     return `<div class="bio-link-row" data-id="${link._id}">
       <div class="bio-link-header">
         <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
@@ -10466,8 +10614,8 @@ function buildPreviewLink(l, t) {
     </div>`;
   }
   if (l.isCourse) {
-    const priceDisplay = l.coursePrice > 0 ? '$' + (l.coursePrice / 100).toFixed(2) : 'Free';
-    const crossoutHtml = l.courseCrossoutPrice > 0 ? `<span style="text-decoration:line-through;color:${t.muted};font-size:11px;margin-right:4px;">$${(l.courseCrossoutPrice / 100).toFixed(2)}</span>` : '';
+    const priceDisplay = l.coursePrice > 0 ? formatMoney(l.coursePrice, {alwaysShowCents:true}) : 'Free';
+    const crossoutHtml = l.courseCrossoutPrice > 0 ? `<span style="text-decoration:line-through;color:${t.muted};font-size:11px;margin-right:4px;">${formatMoney(l.courseCrossoutPrice, {alwaysShowCents:true})}</span>` : '';
     const coverHtml = l.photoUrl ? `<img src="${escapeHtml(l.photoUrl)}" alt="Link cover" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px 8px 0 0;">` : '';
     return `<div style="background:${t.surface};border:1px solid ${t.border};border-radius:10px;overflow:hidden;margin-bottom:8px;">
       ${coverHtml}
@@ -10480,7 +10628,7 @@ function buildPreviewLink(l, t) {
     </div>`;
   }
   if (l.isCoaching) {
-    const priceDisplay = l.coachingPrice > 0 ? '$' + (l.coachingPrice / 100).toFixed(2) : 'Free';
+    const priceDisplay = l.coachingPrice > 0 ? formatMoney(l.coachingPrice, {alwaysShowCents:true}) : 'Free';
     const coverHtml = l.photoUrl ? `<img src="${escapeHtml(l.photoUrl)}" alt="Link cover" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px 8px 0 0;">` : '';
     return `<div style="background:${t.surface};border:1px solid ${t.border};border-radius:10px;overflow:hidden;margin-bottom:8px;">
       ${coverHtml}
@@ -11469,7 +11617,7 @@ function buildMKPreviewHTML() {
     <div class="sec-t">Rate Card</div>
     ${validRates.map(r => {
       const lbl = r.label || 'Custom';
-      const priceStr = '$' + Math.round(parseFloat(r.price)).toLocaleString('en-US');
+      const priceStr = formatMoney(Math.round(parseFloat(r.price)) * 100, {fractionDigits:0});
       return `<div class="rate-r">
         <div>
           <div class="rate-lbl">${escapeHtml(lbl)}</div>
@@ -14495,7 +14643,7 @@ function calcTotals() {
   const taxPct = parseFloat(document.getElementById('inv-tax')?.value || 0);
   const taxAmt = subtotal * taxPct / 100;
   const total = subtotal + taxAmt;
-  const fmt = n => '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  const fmt = n => formatMoney(Math.round(n * 100), {alwaysShowCents:true});
   if (document.getElementById('inv-subtotal')) document.getElementById('inv-subtotal').textContent = fmt(subtotal);
   if (document.getElementById('inv-tax-amount')) document.getElementById('inv-tax-amount').textContent = fmt(taxAmt);
   if (document.getElementById('inv-total')) document.getElementById('inv-total').textContent = fmt(total);
@@ -14523,7 +14671,7 @@ function downloadInvoicePDF() {
   const subtotal = invItems.reduce((sum, i) => sum + (i.qty * i.rate), 0);
   const taxAmt = subtotal * taxPct / 100;
   const total = subtotal + taxAmt;
-  const fmt = n => '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  const fmt = n => formatMoney(Math.round(n * 100), {alwaysShowCents:true});
 
   const logoHtml = (pro && invLogoDataUrl)
     ? `<img src="${invLogoDataUrl}" alt="Invoice logo" style="max-height:60px;max-width:160px;object-fit:contain;display:block;margin-bottom:8px;">`
@@ -14747,7 +14895,7 @@ function renderCoachingList() {
   grid.innerHTML = coachingList.map(c => {
     const statusColor = c.status === 'published' ? '#4ade80' : '#fbbf24';
     const statusLabel = c.status.charAt(0).toUpperCase() + c.status.slice(1);
-    const price = c.price_cents === 0 ? 'Free' : '$' + (c.price_cents / 100).toFixed(2);
+    const price = c.price_cents === 0 ? 'Free' : formatMoney(c.price_cents, {alwaysShowCents:true});
     const coverBg = c.cover_image_path
       ? 'background-image:url(' + sb.storage.from("coaching-covers").getPublicUrl(c.cover_image_path).data.publicUrl + ');background-size:cover;background-position:center;'
       : 'background:linear-gradient(135deg,rgba(124,58,237,0.15),rgba(232,121,249,0.1));display:flex;align-items:center;justify-content:center;';
@@ -15240,7 +15388,7 @@ function renderCoursesList() {
   grid.innerHTML = coursesList.map(c => {
     const statusColor = c.status === 'published' ? '#4ade80' : c.status === 'archived' ? '#f87171' : '#fbbf24';
     const statusLabel = c.status.charAt(0).toUpperCase() + c.status.slice(1);
-    const price = c.price_cents === 0 ? 'Free' : '$' + (c.price_cents / 100).toFixed(2);
+    const price = c.price_cents === 0 ? 'Free' : formatMoney(c.price_cents, {alwaysShowCents:true});
     const coverBg = c.cover_image_path
       ? 'background-image:url(' + sb.storage.from("course-covers").getPublicUrl(c.cover_image_path).data.publicUrl + ');background-size:cover;background-position:center;'
       : 'background:linear-gradient(135deg,rgba(124,58,237,0.15),rgba(232,121,249,0.1));display:flex;align-items:center;justify-content:center;font-size:32px;';
@@ -16168,9 +16316,8 @@ function renderDealsList() {
 }
 
 function formatUSD(cents) {
-  if (!cents) return '$0';
-  const dollars = cents / 100;
-  return '$' + dollars.toLocaleString('en-US', { minimumFractionDigits: dollars % 1 === 0 ? 0 : 2, maximumFractionDigits: 2 });
+  // Now currency-aware — uses the user's display currency
+  return formatMoney(cents);
 }
 
 function formatDateShort(isoDate) {
@@ -22143,7 +22290,7 @@ function renderAnalyticsSalesPage() {
     var d = new Date(s.date);
     var date = (d.getMonth()+1) + '/' + d.getDate() + '/' + d.getFullYear();
     var buyer = s.buyer;
-    var amount = '$' + (s.amount / 100).toFixed(2);
+    var amount = formatMoney(s.amount, {alwaysShowCents:true});
     var pillStyle = '';
     if (s.type === 'Course') pillStyle = 'background:rgba(167,139,250,0.15);color:#c4b5fd;';
     else if (s.type === 'Coaching') pillStyle = 'background:rgba(232,121,249,0.15);color:#e879f9;';
@@ -22340,7 +22487,7 @@ async function loadProductPerformance(start, end) {
     tbody.innerHTML = products.map(function(p) {
       var convRate = p.views > 0 ? ((p.orders / p.views) * 100).toFixed(1) + '%' : '—';
       var viewsText = p.views > 0 ? p.views.toLocaleString() : '0';
-      var amount = '$' + (p.revenue / 100).toFixed(2);
+      var amount = formatMoney(p.revenue, {alwaysShowCents:true});
       var pillStyle = p.type === 'Course' ? 'background:rgba(167,139,250,0.15);color:#c4b5fd;' : 'background:rgba(232,121,249,0.15);color:#e879f9;';
       return '<tr style="border-top:1px solid var(--border);">'
         + '<td style="padding:10px 16px;color:var(--text);font-size:13px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + p.title + '</td>'
@@ -23226,7 +23373,7 @@ function renderAnaMiniChart(canvasId, dailyData, valKey, color) {
       ctx.fillStyle = color; ctx.fill(); ctx.strokeStyle = '#0a0a14'; ctx.lineWidth = 1.5; ctx.stroke();
 
       if (tipEl) {
-        const valText = isCurrency ? '$' + vals[hoverIdx].toLocaleString() : vals[hoverIdx].toLocaleString();
+        const valText = isCurrency ? formatMoney(Math.round(vals[hoverIdx] * 100), {fractionDigits:0}) : vals[hoverIdx].toLocaleString();
         tipEl.style.display = 'block';
         tipEl.innerHTML = '<span style="color:rgba(255,255,255,0.5);">' + dates[hoverIdx] + '</span> <span style="color:' + color + ';font-weight:600;">' + valText + '</span>';
         let tx = hx - tipEl.offsetWidth / 2;
