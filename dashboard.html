@@ -4422,7 +4422,7 @@
           <div style="margin-bottom:16px;">
             <label for="coaching-slug-input" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Service URL</label>
             <div style="display:flex;align-items:center;gap:0;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;overflow:hidden;">
-              <span style="padding:12px 0 12px 16px;font-size:13px;color:var(--muted);white-space:nowrap;">ryxa.io/coaching/</span>
+              <span style="padding:12px 0 12px 16px;font-size:13px;color:var(--muted);white-space:nowrap;">ryxa.io/booking/</span>
               <input type="text" id="coaching-slug-input" placeholder="my-service" maxlength="80" aria-label="Service URL slug" readonly style="flex:1;background:transparent;border:none;padding:12px 16px 12px 0;font-size:15px;color:var(--muted);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;cursor:default;">
               <button onclick="copyCoachingUrl()" id="coaching-copy-url-btn" style="padding:8px 14px;background:transparent;border:none;border-left:1px solid var(--border-hover);color:var(--muted);font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:5px;transition:color 0.15s;" title="Copy URL">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
@@ -9428,7 +9428,7 @@ function addCoachingToLinks(coachingId, title, priceCents, slug, coverUrl) {
     _id: newId,
     title: title,
     description: priceDisplay,
-    url: 'https://www.ryxa.io/coaching/' + slug,
+    url: 'https://www.ryxa.io/booking/' + slug,
     featured: false,
     photoUrl: coverUrl || '',
     isCoaching: true,
@@ -15209,7 +15209,7 @@ function showCoachingMsg(type, msg, isHtml) {
 function copyCoachingUrl() {
   var slug = document.getElementById('coaching-slug-input').value;
   if (!slug) return;
-  var url = 'https://www.ryxa.io/coaching/' + slug;
+  var url = 'https://www.ryxa.io/booking/' + slug;
   navigator.clipboard.writeText(url).then(function() {
     var btn = document.getElementById('coaching-copy-url-btn');
     var orig = btn.innerHTML;
@@ -15377,7 +15377,7 @@ async function toggleCoachingPublish() {
     pubBtn.style.color = '#ef4444';
     document.getElementById('coaching-marketplace-toggle').style.display = 'block';
     updateMarketplaceCountDisplay();
-    showCoachingMsg('success', 'Published! Landing page: ryxa.io/coaching/' + (coaching?.slug || '') + ' <button onclick="copyPublishUrl(\'https://ryxa.io/coaching/' + (coaching?.slug || '') + '\', this)" style="padding:3px 8px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:5px;font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer;margin-left:6px;vertical-align:middle;">Copy</button>', true);
+    showCoachingMsg('success', 'Published! Landing page: ryxa.io/booking/' + (coaching?.slug || '') + ' <button onclick="copyPublishUrl(\'https://ryxa.io/booking/' + (coaching?.slug || '') + '\', this)" style="padding:3px 8px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:5px;font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer;margin-left:6px;vertical-align:middle;">Copy</button>', true);
   } else {
     pubBtn.textContent = 'Publish';
     pubBtn.style.borderColor = 'rgba(74,222,128,0.4)';
