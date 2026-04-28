@@ -7928,18 +7928,33 @@ async function loadUpcomingEvents() {
     listEl.innerHTML = events.map(function(e) {
       var startDate = new Date(e.start_at);
       var endDate = new Date(e.end_at);
-      var dateStr = startDate.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
-      var timeStr = startDate.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) + ' – ' + endDate.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
-      var color = e.color || '#7c3aed';
-      var typeBadge = e.event_type !== 'manual'
-        ? '<span style="display:inline-block;padding:1px 6px;background:rgba(124,58,237,0.15);border-radius:4px;font-size:9px;color:#c4b5fd;font-weight:600;letter-spacing:0.3px;text-transform:uppercase;margin-left:5px;vertical-align:middle;">' + e.event_type + '</span>'
+      var dateStr = startDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      var timeStr = startDate.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+
+      // Tier-based color stripe based on event type
+      // Max features: coaching, brand_deal (gradient pink/purple)
+      // Pro features: future
+      // Free/manual: lavender purple
+      var stripeStyle;
+      var typeBadgeStyle = '';
+      var typeBadgeText = '';
+      if (e.event_type === 'coaching' || e.event_type === 'brand_deal') {
+        stripeStyle = 'background:linear-gradient(180deg, #a78bfa, #e879f9);';
+        typeBadgeStyle = 'background:linear-gradient(135deg,rgba(167,139,250,0.2),rgba(232,121,249,0.2));color:#fff;border:1px solid rgba(232,121,249,0.4);';
+        typeBadgeText = e.event_type === 'coaching' ? 'COACHING' : 'BRAND DEAL';
+      } else {
+        stripeStyle = 'background:#c4b5fd;';
+      }
+
+      var typeBadge = typeBadgeText
+        ? '<span style="' + typeBadgeStyle + 'display:inline-block;padding:1px 6px;border-radius:4px;font-size:9px;font-weight:600;letter-spacing:0.3px;margin-right:8px;flex-shrink:0;">' + typeBadgeText + '</span>'
         : '';
-      return '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);">'
-        + '<div style="width:3px;align-self:stretch;background:' + color + ';border-radius:2px;flex-shrink:0;min-height:34px;"></div>'
-        + '<div style="flex:1;min-width:0;">'
-        + '<div style="font-size:13px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escapeHtml(e.title || 'Untitled') + typeBadge + '</div>'
-        + '<div style="font-size:11px;color:var(--muted);margin-top:2px;">' + escapeHtml(dateStr) + ' · ' + escapeHtml(timeStr) + '</div>'
-        + '</div>'
+
+      return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);">'
+        + '<div style="width:3px;height:20px;' + stripeStyle + 'border-radius:2px;flex-shrink:0;"></div>'
+        + typeBadge
+        + '<div style="flex:1;min-width:0;font-size:13px;color:var(--text);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;">' + escapeHtml(e.title || 'Untitled') + '</div>'
+        + '<div style="font-size:11px;color:var(--muted);flex-shrink:0;white-space:nowrap;">' + escapeHtml(dateStr) + ' · ' + escapeHtml(timeStr) + '</div>'
         + '</div>';
     }).join('');
 
