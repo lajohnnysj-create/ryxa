@@ -22383,16 +22383,17 @@ function calOpenAddEvent() {
     + '<div style="margin-bottom:14px;"><label style="display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:500;">Title</label>'
     + '<input id="cal-modal-title" type="text" placeholder="Event title" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;"></div>'
     + '<div style="margin-bottom:14px;"><label style="display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:500;">Date</label>'
-    + '<input id="cal-modal-date" type="date" value="' + calState.selectedDate + '" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;color-scheme:dark;"></div>'
-    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">'
-    + '<div><label style="display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:500;">Start</label><input id="cal-modal-start" type="time" step="900" value="' + defaultStart + '" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;color-scheme:dark;"></div>'
-    + '<div><label style="display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:500;">End</label><input id="cal-modal-end" type="time" step="900" value="' + defaultEnd + '" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;color-scheme:dark;"></div>'
+    + '<input id="cal-modal-date" type="date" value="' + calState.selectedDate + '" style="width:100%;min-width:0;max-width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;color-scheme:dark;-webkit-appearance:none;appearance:none;display:block;"></div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;min-width:0;">'
+    + '<div style="min-width:0;"><label style="display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:500;">Start</label><input id="cal-modal-start" type="time" step="900" value="' + defaultStart + '" style="width:100%;min-width:0;max-width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;color-scheme:dark;-webkit-appearance:none;appearance:none;display:block;"></div>'
+    + '<div style="min-width:0;"><label style="display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:500;">End</label><input id="cal-modal-end" type="time" step="900" value="' + defaultEnd + '" style="width:100%;min-width:0;max-width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;color-scheme:dark;-webkit-appearance:none;appearance:none;display:block;"></div>'
     + '</div>'
     + '<div style="margin-bottom:14px;"><label style="display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:500;">Color</label>'
     + '<div id="cal-modal-colors" style="display:flex;gap:8px;flex-wrap:wrap;"></div></div>'
     + '<div style="margin-bottom:18px;"><label style="display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:500;">Notes (optional)</label>'
     + '<textarea id="cal-modal-notes" placeholder="Add notes..." rows="3" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;resize:vertical;"></textarea></div>'
     + '<button onclick="calSaveEvent()" style="width:100%;padding:12px;background:var(--accent);border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.background=\'#a855f7\'" onmouseout="this.style.background=\'var(--accent)\'">Save Event</button>'
+    + '<div id="cal-modal-error" style="display:none;margin-top:10px;padding:10px 12px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:8px;color:#f87171;font-size:12px;text-align:center;"></div>'
     + '</div>';
   document.body.appendChild(modal);
 
@@ -22421,15 +22422,20 @@ async function calSaveEvent() {
   var notes = document.getElementById('cal-modal-notes').value.trim();
   var color = window._calSelectedColor || '#7c3aed';
 
-  if (!title) { showModalAlert('Missing title', 'Please enter an event title.'); return; }
-  if (!date) { showModalAlert('Missing date', 'Please select a date.'); return; }
-  if (!startTime || !endTime) { showModalAlert('Missing time', 'Please set start and end times.'); return; }
+  function showError(msg) {
+    var err = document.getElementById('cal-modal-error');
+    if (err) { err.textContent = msg; err.style.display = 'block'; }
+  }
+
+  if (!title) { showError('Please enter an event title.'); return; }
+  if (!date) { showError('Please select a date.'); return; }
+  if (!startTime || !endTime) { showError('Please set start and end times.'); return; }
 
   var startAt = date + 'T' + startTime + ':00';
   var endAt = date + 'T' + endTime + ':00';
 
   if (new Date(endAt) <= new Date(startAt)) {
-    showModalAlert('Invalid time', 'End time must be after start time.');
+    showError('End time must be after start time.');
     return;
   }
 
@@ -22455,7 +22461,7 @@ async function calSaveEvent() {
     calRender();
   } catch (e) {
     console.error('Save event failed:', e);
-    showModalAlert('Save failed', e.message || 'Could not save event. Please try again.');
+    showError(e.message || 'Could not save event. Please try again.');
   }
 }
 
