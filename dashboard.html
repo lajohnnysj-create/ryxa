@@ -22871,8 +22871,16 @@ async function calSaveEvent() {
   if (!date) { showError('Please select a date.'); return; }
   if (!startTime || !endTime) { showError('Please set start and end times.'); return; }
 
-  var startAt = date + 'T' + startTime + ':00';
-  var endAt = date + 'T' + endTime + ':00';
+  // Build ISO timestamps using LOCAL timezone, not naive strings.
+  // Naive strings like "2026-04-28T14:00:00" get interpreted as UTC by Postgres,
+  // which causes events to display at wrong times in the user's timezone.
+  function localToIso(ymd, hhmm) {
+    var dParts = ymd.split('-').map(Number);
+    var tParts = hhmm.split(':').map(Number);
+    return new Date(dParts[0], dParts[1] - 1, dParts[2], tParts[0], tParts[1], 0, 0).toISOString();
+  }
+  var startAt = localToIso(date, startTime);
+  var endAt = localToIso(date, endTime);
 
   if (new Date(endAt) <= new Date(startAt)) {
     showError('End time must be after start time.');
