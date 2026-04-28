@@ -6633,7 +6633,7 @@
               <div id="products-cover-preview" style="width:100%;aspect-ratio:16/9;background:var(--bg);border:1px dashed var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;cursor:pointer;background-size:cover;background-position:center;" onclick="dpClickCover()">
                 Click to upload (1280×720 recommended)
               </div>
-              <input type="file" id="products-cover-input" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="uploadProductCover(this)">
+              <input type="file" id="products-cover-input" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="onProductCoverSelect(this)">
               <button id="products-cover-remove" onclick="removeProductCover()" style="display:none;margin-top:8px;padding:6px 10px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:12px;cursor:pointer;font-family:DM Sans,sans-serif;">Remove cover</button>
             </div>
 
@@ -6691,12 +6691,12 @@
               <div style="font-size:11px;color:var(--muted);margin-top:6px;">Shown on the buyer's download page after purchase.</div>
             </div>
 
-            <!-- Action buttons -->
+            <!-- Action buttons (matches Coaching pattern: Save always, Publish toggle once saved) -->
             <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
               <button id="products-delete-btn" onclick="deleteProduct()" style="display:none;padding:10px 16px;background:transparent;border:1px solid rgba(239,68,68,0.4);border-radius:9px;color:#f87171;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Delete product</button>
               <div style="display:flex;gap:10px;margin-left:auto;">
-                <button id="products-save-draft-btn" onclick="saveProduct(false)" style="padding:10px 18px;background:var(--surface);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Save as draft</button>
-                <button id="products-publish-btn" onclick="saveProduct(true)" style="padding:10px 18px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:9px;color:#fff;font-size:13px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow);">Publish</button>
+                <button id="products-save-btn" onclick="saveProduct()" style="padding:10px 18px;background:var(--accent);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 16px var(--accent-glow);">Save</button>
+                <button id="products-publish-btn" onclick="toggleProductPublish()" style="display:none;padding:10px 18px;background:transparent;border:1px solid rgba(74,222,128,0.4);color:#4ade80;border-radius:9px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Publish</button>
               </div>
             </div>
           </div>
@@ -24415,7 +24415,10 @@ var productsState = {
   editingId: null,
   editing: null,
   editingFiles: [],
-  editingProductBytes: 0
+  editingProductBytes: 0,
+  coverFile: null,           // In-memory File object until Save
+  coverPreviewUrl: null,     // Blob URL for preview (revoked on close)
+  coverRemoved: false        // True if user clicked Remove on an existing cover
 };
 
 function initDigitalProducts() {
@@ -24505,8 +24508,15 @@ async function refreshProductsStorage() {
 async function openProductEditor(productId) {
   document.getElementById('products-list-view').style.display = 'none';
   document.getElementById('products-editor-view').style.display = 'block';
+  // Reset cover in-memory state
+  if (productsState.coverPreviewUrl) {
+    try { URL.revokeObjectURL(productsState.coverPreviewUrl); } catch (e) {}
+  }
   productsState.editingFiles = [];
   productsState.editingProductBytes = 0;
+  productsState.coverFile = null;
+  productsState.coverPreviewUrl = null;
+  productsState.coverRemoved = false;
 
   if (productId) {
     productsState.editingId = productId;
@@ -24557,6 +24567,7 @@ function hydrateProductEditor(prod) {
   }
 
   dpUpdateLinkButtons();
+  updateProductPublishButton();
 }
 
 // Show or hide the inline Copy button based on whether the product has been
@@ -24594,10 +24605,17 @@ function copyProductUrl() {
 function closeProductEditor() {
   document.getElementById('products-editor-view').style.display = 'none';
   document.getElementById('products-list-view').style.display = 'block';
+  // Revoke the in-memory cover preview URL to free memory
+  if (productsState.coverPreviewUrl) {
+    try { URL.revokeObjectURL(productsState.coverPreviewUrl); } catch (e) {}
+  }
   productsState.editingId = null;
   productsState.editing = null;
   productsState.editingFiles = [];
   productsState.editingProductBytes = 0;
+  productsState.coverFile = null;
+  productsState.coverPreviewUrl = null;
+  productsState.coverRemoved = false;
   loadProductsList();
   refreshProductsStorage();
 }
@@ -24808,11 +24826,20 @@ async function removeProductFile(fileId) {
     var f = productsState.editingFiles.find(function(x) { return x.id === fileId; });
     if (!f) return;
     try {
-      if (f.storage_path) {
-        await sb.storage.from('digital-products').remove([f.storage_path]);
-      }
+      // Delete DB row FIRST so a failed storage delete doesn't leave a dangling
+      // DB row pointing at a missing object. If the storage delete fails after,
+      // we get a harmless orphan storage object instead of a broken file row.
       var { error } = await sb.from('digital_product_files').delete().eq('id', fileId);
       if (error) throw error;
+      if (f.storage_path) {
+        try {
+          await sb.storage.from('digital-products').remove([f.storage_path]);
+        } catch (storageErr) {
+          // Non-fatal — the DB row is already gone, so the buyer side won't
+          // see it. Log for cleanup but don't block the UI.
+          console.warn('Storage cleanup failed for', f.storage_path, storageErr);
+        }
+      }
       productsState.editingFiles = productsState.editingFiles.filter(function(x) { return x.id !== fileId; });
       productsState.editingProductBytes -= Number(f.file_size_bytes || 0);
       renderProductFiles();
@@ -24840,7 +24867,7 @@ function dpRequireTitleBeforeUpload() {
   return false;
 }
 function dpClickCover() {
-  if (!dpRequireTitleBeforeUpload()) return;
+  // Cover is held in memory until Save, so no title required up-front
   document.getElementById('products-cover-input').click();
 }
 function dpClickAddFile() {
@@ -24934,7 +24961,10 @@ async function dpCompressCoverImage(file) {
   });
 }
 
-async function uploadProductCover(input) {
+// Cover image select — held in memory until Save (matches Course/Coaching pattern).
+// Reads the file, compresses it, generates a preview blob URL, and stores
+// the File on productsState. Actual upload happens in saveProduct().
+async function onProductCoverSelect(input) {
   var file = (input.files || [])[0];
   input.value = '';
   if (!file) return;
@@ -24947,59 +24977,45 @@ async function uploadProductCover(input) {
     return;
   }
 
-  if (!productsState.editingId) {
-    var savedOk = await saveProductDraftSilently();
-    if (!savedOk) {
-      showModalAlert('Could not save', 'Please add a title and try again.');
-      return;
-    }
-  }
-
   try {
-    // Compress before upload — typical 4MB phone photo becomes ~150KB
     var compressed = await dpCompressCoverImage(file);
-    var compressedExt = compressed.name.split('.').pop().toLowerCase();
-    var path = currentUser.id + '/' + productsState.editingId + '/cover-' + Date.now() + '.' + compressedExt;
-    var { error: upErr } = await sb.storage.from('digital-products').upload(path, compressed, {
-      upsert: true,
-      contentType: compressed.type
-    });
-    if (upErr) throw upErr;
 
-    var { data: signedData } = await sb.storage.from('digital-products').createSignedUrl(path, 60 * 60 * 24 * 365);
-    var coverUrl = signedData && signedData.signedUrl ? signedData.signedUrl : '';
+    // Revoke previous preview URL if any
+    if (productsState.coverPreviewUrl) {
+      try { URL.revokeObjectURL(productsState.coverPreviewUrl); } catch (e) {}
+    }
 
-    var { error: updErr } = await sb.from('digital_products').update({ cover_image_url: coverUrl }).eq('id', productsState.editingId);
-    if (updErr) throw updErr;
-
-    productsState.editing = productsState.editing || {};
-    productsState.editing.cover_image_url = coverUrl;
+    productsState.coverFile = compressed;
+    productsState.coverPreviewUrl = URL.createObjectURL(compressed);
+    productsState.coverRemoved = false;  // user picked a new cover, override any pending remove
 
     var coverEl = document.getElementById('products-cover-preview');
-    coverEl.style.backgroundImage = 'url(' + coverUrl + ')';
+    coverEl.style.backgroundImage = 'url(' + productsState.coverPreviewUrl + ')';
     coverEl.textContent = '';
     document.getElementById('products-cover-remove').style.display = 'inline-block';
   } catch (e) {
-    console.error('Cover upload failed:', e);
-    showModalAlert('Upload failed', 'Could not upload cover: ' + (e.message || 'Unknown error'));
+    console.error('Cover select failed:', e);
+    showModalAlert('Image error', 'Could not process this image: ' + (e.message || 'Unknown error'));
   }
 }
 
-async function removeProductCover() {
-  if (!productsState.editingId) return;
-  showModalConfirm('Remove cover image?', 'The cover image will be removed.', async function() {
-    try {
-      var { error } = await sb.from('digital_products').update({ cover_image_url: null }).eq('id', productsState.editingId);
-      if (error) throw error;
-      var coverEl = document.getElementById('products-cover-preview');
-      coverEl.style.backgroundImage = '';
-      coverEl.textContent = 'Click to upload (1280\u00d7720 recommended)';
-      document.getElementById('products-cover-remove').style.display = 'none';
-      productsState.editing.cover_image_url = null;
-    } catch (e) {
-      console.error(e);
-      showModalAlert('Error', 'Could not remove cover image.');
+// Remove cover — clears the in-memory File and the preview. The actual storage
+// object (if any) is deleted when the user hits Save.
+function removeProductCover() {
+  showModalConfirm('Remove cover image?', 'The cover image will be removed when you save.', function() {
+    if (productsState.coverPreviewUrl) {
+      try { URL.revokeObjectURL(productsState.coverPreviewUrl); } catch (e) {}
     }
+    productsState.coverFile = null;
+    productsState.coverPreviewUrl = null;
+    // If there's an existing cover in the DB, mark it for removal on save
+    if (productsState.editing && productsState.editing.cover_image_url) {
+      productsState.coverRemoved = true;
+    }
+    var coverEl = document.getElementById('products-cover-preview');
+    coverEl.style.backgroundImage = '';
+    coverEl.textContent = 'Click to upload (1280\u00d7720 recommended)';
+    document.getElementById('products-cover-remove').style.display = 'none';
   });
 }
 
@@ -25041,7 +25057,7 @@ async function ensureUniqueProductSlug(baseSlug) {
   return baseSlug + '-' + Date.now();
 }
 
-async function saveProduct(publish) {
+async function saveProduct() {
   var title = (document.getElementById('products-title').value || '').trim();
   var slug = (document.getElementById('products-slug').value || '').trim();
   var description = (document.getElementById('products-description').value || '').trim();
@@ -25073,34 +25089,202 @@ async function saveProduct(publish) {
     priceCents = Math.round(n * 100);
   }
 
-  if (publish && productsState.editingFiles.length === 0) {
-    showModalAlert('Add at least one file', 'You need to upload at least one file before publishing.');
-    return;
-  }
+  var saveBtn = document.getElementById('products-save-btn');
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'Saving...';
 
   try {
+    // Handle cover changes BEFORE writing the DB row, since we need the
+    // resulting URL (or null) for the DB update.
+    var newCoverUrl = null;          // URL to set in DB (if uploading new cover)
+    var clearCoverInDb = false;       // Set cover_image_url=null in DB (if user clicked Remove)
+    var oldCoverPath = null;          // Storage path of the previous cover, to delete after success
+
+    // If we have a saved product with an existing cover, capture its storage path
+    // so we can clean it up after a successful replace or removal.
+    if (productsState.editing && productsState.editing.cover_image_url) {
+      oldCoverPath = parseStoragePathFromCoverUrl(productsState.editing.cover_image_url);
+    }
+
+    if (productsState.coverFile) {
+      // We need a product_id to namespace the storage path. If it's a new
+      // product, we'll do the cover upload AFTER inserting the DB row below
+      // (handled in step 2). For existing products, do it now.
+      if (productsState.editingId) {
+        var ext = (productsState.coverFile.name.split('.').pop() || 'jpg').toLowerCase();
+        var path = currentUser.id + '/' + productsState.editingId + '/cover-' + Date.now() + '.' + ext;
+        var { error: upErr } = await sb.storage.from('digital-products').upload(path, productsState.coverFile, {
+          upsert: true,
+          contentType: productsState.coverFile.type
+        });
+        if (upErr) throw upErr;
+        var { data: signedData } = await sb.storage.from('digital-products').createSignedUrl(path, 60 * 60 * 24 * 365);
+        newCoverUrl = signedData && signedData.signedUrl ? signedData.signedUrl : '';
+      }
+      // For new products, defer the upload until after we have the ID (below)
+    } else if (productsState.coverRemoved) {
+      clearCoverInDb = true;
+    }
+
     var payload = {
       title: title,
       slug: slug,
       description: description || null,
       price_cents: priceCents,
-      delivery_message: deliveryMessage || null,
-      is_active: !!publish
+      delivery_message: deliveryMessage || null
+      // is_active is left alone — managed by the Publish/Unpublish toggle separately
     };
+    if (newCoverUrl !== null) payload.cover_image_url = newCoverUrl;
+    if (clearCoverInDb) payload.cover_image_url = null;
+
+    var savedId;
     if (productsState.editingId) {
       var { error } = await sb.from('digital_products').update(payload).eq('id', productsState.editingId);
       if (error) throw error;
+      savedId = productsState.editingId;
     } else {
       payload.user_id = currentUser.id;
+      payload.is_active = false;  // New products start as draft
       var { data, error: e2 } = await sb.from('digital_products').insert(payload).select().single();
       if (e2) throw e2;
-      productsState.editingId = data.id;
+      savedId = data.id;
+      productsState.editingId = savedId;
+      productsState.editing = data;
+
+      // For new products with a cover, upload it now that we have the ID
+      if (productsState.coverFile) {
+        var ext2 = (productsState.coverFile.name.split('.').pop() || 'jpg').toLowerCase();
+        var path2 = currentUser.id + '/' + savedId + '/cover-' + Date.now() + '.' + ext2;
+        var { error: upErr2 } = await sb.storage.from('digital-products').upload(path2, productsState.coverFile, {
+          upsert: true,
+          contentType: productsState.coverFile.type
+        });
+        if (upErr2) throw upErr2;
+        var { data: signedData2 } = await sb.storage.from('digital-products').createSignedUrl(path2, 60 * 60 * 24 * 365);
+        var coverUrl2 = signedData2 && signedData2.signedUrl ? signedData2.signedUrl : '';
+        var { error: updErr2 } = await sb.from('digital_products').update({ cover_image_url: coverUrl2 }).eq('id', savedId);
+        if (updErr2) throw updErr2;
+        productsState.editing.cover_image_url = coverUrl2;
+      }
     }
-    showModalAlert('Saved', publish ? 'Your product is live.' : 'Saved as draft.');
-    closeProductEditor();
+
+    // Refresh in-memory editing state with what we just saved
+    if (newCoverUrl !== null) productsState.editing.cover_image_url = newCoverUrl;
+    if (clearCoverInDb) productsState.editing.cover_image_url = null;
+    Object.assign(productsState.editing, payload);
+
+    // Best-effort cleanup of the previous cover storage object
+    // (only after the new cover/null write succeeded — prevents orphan loss
+    //  on failure, prevents orphan accumulation on success).
+    if (oldCoverPath && (newCoverUrl !== null || clearCoverInDb)) {
+      try {
+        await sb.storage.from('digital-products').remove([oldCoverPath]);
+      } catch (cleanupErr) {
+        console.warn('Old cover cleanup failed:', cleanupErr);
+      }
+    }
+
+    // Clear in-memory cover state (no longer pending)
+    if (productsState.coverPreviewUrl) {
+      try { URL.revokeObjectURL(productsState.coverPreviewUrl); } catch (e) {}
+    }
+    productsState.coverFile = null;
+    productsState.coverPreviewUrl = null;
+    productsState.coverRemoved = false;
+
+    // Update the editor UI to reflect saved state
+    var coverEl = document.getElementById('products-cover-preview');
+    if (productsState.editing.cover_image_url) {
+      coverEl.style.backgroundImage = 'url(' + productsState.editing.cover_image_url + ')';
+      coverEl.textContent = '';
+      document.getElementById('products-cover-remove').style.display = 'inline-block';
+    } else {
+      coverEl.style.backgroundImage = '';
+      coverEl.textContent = 'Click to upload (1280\u00d7720 recommended)';
+      document.getElementById('products-cover-remove').style.display = 'none';
+    }
+
+    // Show Publish button + Delete button now that we have a saved row
+    document.getElementById('products-editor-title').textContent = 'Edit Product';
+    document.getElementById('products-delete-btn').style.display = 'inline-block';
+    updateProductPublishButton();
+    dpUpdateLinkButtons();
+
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Saved!';
+    setTimeout(function() { saveBtn.textContent = 'Save'; }, 1500);
   } catch (e) {
     console.error('Save failed:', e);
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Save';
     showModalAlert('Save failed', e.message || 'Could not save this product.');
+  }
+}
+
+// Parse a storage path out of a signed cover URL. Signed URLs look like:
+//   https://<project>.supabase.co/storage/v1/object/sign/digital-products/<userId>/<productId>/cover-<ts>.<ext>?token=...
+// We extract the part after "/digital-products/" and before "?".
+function parseStoragePathFromCoverUrl(url) {
+  if (!url) return null;
+  try {
+    var marker = '/digital-products/';
+    var idx = url.indexOf(marker);
+    if (idx === -1) return null;
+    var rest = url.substring(idx + marker.length);
+    var queryIdx = rest.indexOf('?');
+    if (queryIdx >= 0) rest = rest.substring(0, queryIdx);
+    return rest ? decodeURIComponent(rest) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+// Show/style the Publish button based on the current is_active state
+function updateProductPublishButton() {
+  var btn = document.getElementById('products-publish-btn');
+  if (!btn) return;
+  if (!productsState.editingId || !productsState.editing) {
+    btn.style.display = 'none';
+    return;
+  }
+  btn.style.display = 'inline-block';
+  if (productsState.editing.is_active) {
+    btn.textContent = 'Unpublish';
+    btn.style.borderColor = 'rgba(239,68,68,0.4)';
+    btn.style.color = '#ef4444';
+  } else {
+    btn.textContent = 'Publish';
+    btn.style.borderColor = 'rgba(74,222,128,0.4)';
+    btn.style.color = '#4ade80';
+  }
+}
+
+// Toggle is_active on the current product. Requires at least one file to publish.
+async function toggleProductPublish() {
+  if (!productsState.editingId || !productsState.editing) return;
+  var goingLive = !productsState.editing.is_active;
+
+  if (goingLive && productsState.editingFiles.length === 0) {
+    showModalAlert('Add at least one file', 'You need to upload at least one file before publishing this product.');
+    return;
+  }
+
+  var btn = document.getElementById('products-publish-btn');
+  btn.disabled = true;
+  var origText = btn.textContent;
+  btn.textContent = goingLive ? 'Publishing...' : 'Unpublishing...';
+
+  try {
+    var { error } = await sb.from('digital_products').update({ is_active: goingLive }).eq('id', productsState.editingId);
+    if (error) throw error;
+    productsState.editing.is_active = goingLive;
+    updateProductPublishButton();
+  } catch (e) {
+    console.error('Publish toggle failed:', e);
+    btn.textContent = origText;
+    showModalAlert('Could not update', e.message || 'Failed to change publish status.');
+  } finally {
+    btn.disabled = false;
   }
 }
 
