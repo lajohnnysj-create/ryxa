@@ -93,7 +93,7 @@ Original: "${text.trim()}"`;
     const data = await response.json();
     const result = data.content?.[0]?.text?.trim() || '';
 
-    recordUsage(auth.userId, 'ai-script', auth.sb);
+    recordUsage(auth.userId, 'ai-script');
     return res.status(200).json({ result });
   } catch (err) {
     console.error('Script AI error:', err);

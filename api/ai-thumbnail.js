@@ -85,7 +85,7 @@ Be specific and actionable. Reference what you actually see in the image. If the
     const clean = text.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
     const result = JSON.parse(clean);
 
-    recordUsage(auth.userId, 'ai-thumbnail', auth.sb);
+    recordUsage(auth.userId, 'ai-thumbnail');
     return res.status(200).json({ result });
   } catch (err) {
     console.error('Thumbnail analysis error:', err);

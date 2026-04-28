@@ -51,7 +51,7 @@ module.exports = async (req, res) => {
     const data = await response.json();
     const result = data.content?.[0]?.text?.trim() || '';
 
-    recordUsage(auth.userId, 'ai-rewrite', auth.sb);
+    recordUsage(auth.userId, 'ai-rewrite');
     return res.status(200).json({ rewrites: result });
   } catch (err) {
     console.error('Rewrite error:', err);

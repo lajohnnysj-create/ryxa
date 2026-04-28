@@ -109,7 +109,7 @@ ${contractText}
     const clean = resultText.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
     const result = JSON.parse(clean);
 
-    recordUsage(auth.userId, 'ai-contract', auth.sb);
+    recordUsage(auth.userId, 'ai-contract');
     return res.status(200).json({ result });
   } catch (err) {
     console.error('Contract analysis error:', err);

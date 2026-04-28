@@ -74,7 +74,7 @@ module.exports = async (req, res) => {
     const data = await response.json();
     const text = data.content?.[0]?.text?.trim() || '';
 
-    recordUsage(auth.userId, 'ai-caption', auth.sb);
+    recordUsage(auth.userId, 'ai-caption');
     return res.status(200).json({ captions: text });
   } catch (err) {
     console.error('Caption error:', err);

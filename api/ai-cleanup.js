@@ -59,7 +59,7 @@ ${text.trim()}`
     if ((result.startsWith('"') && result.endsWith('"')) || (result.startsWith('\u201c') && result.endsWith('\u201d'))) {
       result = result.slice(1, -1).trim();
     }
-    recordUsage(auth.userId, 'ai-cleanup', auth.sb);
+    recordUsage(auth.userId, 'ai-cleanup');
     return res.status(200).json({ result });
   } catch (err) {
     console.error('Cleanup error:', err);

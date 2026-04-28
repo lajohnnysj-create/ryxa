@@ -56,7 +56,7 @@ module.exports = async (req, res) => {
     const result = data.content?.[0]?.text?.trim() || '';
 
     // Record usage AFTER success (fire-and-forget)
-    recordUsage(auth.userId, 'ai-bio', auth.sb);
+    recordUsage(auth.userId, 'ai-bio');
 
     return res.status(200).json({ result });
   } catch (err) {

@@ -77,7 +77,7 @@ module.exports = async (req, res) => {
     const data = await response.json();
     const altText = data.content?.[0]?.text?.trim() || '';
 
-    recordUsage(auth.userId, 'alt-text', auth.sb);
+    recordUsage(auth.userId, 'alt-text');
     return res.status(200).json({ alt: altText });
   } catch (err) {
     console.error('Alt text error:', err);
