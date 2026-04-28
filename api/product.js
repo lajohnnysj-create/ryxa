@@ -275,6 +275,36 @@ async function init() {
 }
 init();
 
+// Page view tracking (fire-and-forget, same visitor dedup pattern as course/booking)
+async function trackPageView() {
+  try {
+    var visitorHash;
+    try {
+      var raw = [
+        navigator.userAgent || '',
+        navigator.language || '',
+        screen.width + 'x' + screen.height,
+        new Date().getTimezoneOffset().toString()
+      ].join('|');
+      var msgBuf = new TextEncoder().encode(raw);
+      var hashBuf = await crypto.subtle.digest('SHA-256', msgBuf);
+      var hashArr = Array.from(new Uint8Array(hashBuf));
+      visitorHash = hashArr.map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
+    } catch (hashErr) {
+      visitorHash = 'fb-' + btoa(navigator.userAgent + screen.width + screen.height).slice(0, 32);
+    }
+    await sb.rpc('record_page_view', {
+      p_username: '${esc(creatorName)}',
+      p_page_type: 'digital_product',
+      p_visitor_hash: visitorHash,
+      p_product_id: PRODUCT_ID
+    });
+  } catch (e) {
+    console.error('trackPageView failed:', e);
+  }
+}
+trackPageView();
+
 async function handleBuyClick() {
   var { data: { session } } = await sb.auth.getSession();
   if (!session?.user) {
