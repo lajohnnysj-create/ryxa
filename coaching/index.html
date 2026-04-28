@@ -421,27 +421,58 @@ async function loadBookedSlots() {
   pickerState.bookedSlots = [];
   pickerState.reservedSlots = [];
   try {
-    // Existing confirmed bookings
+    // Existing confirmed bookings — check ALL of the creator's coaching services
+    // (not just this one) to prevent double-booking across multiple services
     var { data: bookings } = await sb.from('coaching_bookings')
       .select('slot_start, slot_end')
-      .eq('coaching_id', coachingData.id)
+      .eq('user_id', coachingData.user_id)
       .not('slot_start', 'is', null);
     if (bookings) {
-      pickerState.bookedSlots = bookings.map(function(b) {
+      pickerState.bookedSlots = pickerState.bookedSlots.concat(bookings.map(function(b) {
         return { start_at: b.slot_start, end_at: b.slot_end };
-      });
+      }));
     }
 
-    // Active reservations (not yet expired)
-    var nowIso = new Date().toISOString();
-    var { data: reservations } = await sb.from('coaching_slot_reservations')
-      .select('slot_start, slot_end')
-      .eq('coaching_id', coachingData.id)
-      .gt('expires_at', nowIso);
-    if (reservations) {
-      pickerState.reservedSlots = reservations.map(function(r) {
-        return { start_at: r.slot_start, end_at: r.slot_end };
+    // Calendar events — manually added events (and brand deal events) also block slots
+    // so the creator doesn't get double-booked over personal events or campaign work
+    var { data: calEvents } = await sb.from('calendar_events')
+      .select('start_at, end_at, event_type')
+      .eq('creator_id', coachingData.user_id);
+    if (calEvents) {
+      // Skip brand deal events that are all-day (they don't really block coaching slots)
+      // Block manual events and any time-specific brand deal events
+      var blockingEvents = calEvents.filter(function(e) {
+        // Coaching events are already covered above by the bookings query
+        if (e.event_type === 'coaching') return false;
+        // Brand deal events are typically all-day deliverable reminders, not appointments
+        // — don't block slots for them
+        if (e.event_type === 'brand_deal') return false;
+        // Block manual events
+        return true;
       });
+      pickerState.bookedSlots = pickerState.bookedSlots.concat(blockingEvents.map(function(e) {
+        return { start_at: e.start_at, end_at: e.end_at };
+      }));
+    }
+
+    // Active reservations (not yet expired) — also check across all services
+    // Step 1: get all of this creator's coaching service IDs
+    // Step 2: find any active reservations on any of them
+    var nowIso = new Date().toISOString();
+    var { data: services } = await sb.from('coaching_services')
+      .select('id')
+      .eq('user_id', coachingData.user_id);
+    var serviceIds = (services || []).map(function(s) { return s.id; });
+    if (serviceIds.length > 0) {
+      var { data: reservations } = await sb.from('coaching_slot_reservations')
+        .select('slot_start, slot_end')
+        .in('coaching_id', serviceIds)
+        .gt('expires_at', nowIso);
+      if (reservations) {
+        pickerState.reservedSlots = reservations.map(function(r) {
+          return { start_at: r.slot_start, end_at: r.slot_end };
+        });
+      }
     }
   } catch (e) {
     console.warn('Could not load existing slots:', e);
