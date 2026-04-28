@@ -17184,6 +17184,7 @@ async function loadDealDeliverables(dealId) {
       title: d.title,
       notes: d.notes || '',
       submitted_url: d.submitted_url || '',
+      due_date: d.due_date || '',
       _existing: true,
       _expanded: false
     }));
@@ -17192,7 +17193,7 @@ async function loadDealDeliverables(dealId) {
 }
 
 function addDeliverableRow() {
-  currentDealDeliverables.push({ id: null, title: '', notes: '', submitted_url: '', _existing: false, _expanded: true });
+  currentDealDeliverables.push({ id: null, title: '', notes: '', submitted_url: '', due_date: '', _existing: false, _expanded: true });
   renderDeliverables();
   // Focus the new title input
   setTimeout(() => {
@@ -17279,6 +17280,13 @@ function renderDeliverables() {
               aria-label="Deliverable notes"
               class="deal-input" style="resize:vertical;min-height:60px;">${escapeHtml(d.notes)}</textarea>
           </div>
+          <div style="margin-bottom:10px;">
+            <label class="deal-label">Due Date <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;">(optional — adds to your calendar)</span></label>
+            <input type="date" data-field="due_date" value="${escapeHtml(d.due_date || '')}"
+              onchange="updateDeliverableField(${i}, 'due_date', this.value)"
+              aria-label="Deliverable due date"
+              class="deal-input" style="min-width:0;max-width:100%;-webkit-appearance:none;appearance:none;display:block;color-scheme:dark;">
+          </div>
           <div style="margin-bottom:12px;">
             <label class="deal-label">Submitted URL <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;">(link to posted content)</span></label>
             <input type="url" data-field="submitted_url" placeholder="https://instagram.com/p/..." maxlength="500" value="${escapeHtml(d.submitted_url)}"
@@ -17299,11 +17307,17 @@ function renderDeliverables() {
       const hasUrl = (d.submitted_url || '').trim().length > 0;
       const safeUrl = hasUrl ? escapeHtml(d.submitted_url) : '';
       const urlDisplay = hasUrl ? escapeHtml(d.submitted_url.length > 60 ? d.submitted_url.slice(0, 57) + '…' : d.submitted_url) : '';
+      const hasDueDate = !!(d.due_date && d.due_date.length);
+      const dueDateLabel = hasDueDate ? new Date(d.due_date + 'T00:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : '';
       return `
         <div data-idx="${i}" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;display:flex;gap:12px;align-items:flex-start;">
           <div style="flex:1;min-width:0;">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:${notesPreview || hasUrl ? '6px' : '0'};">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:${notesPreview || hasUrl || hasDueDate ? '6px' : '0'};flex-wrap:wrap;">
               <div style="font-size:14px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;">${escapeHtml(d.title) || '<span style="color:var(--muted);font-style:italic;">Untitled deliverable</span>'}</div>
+              ${hasDueDate ? `<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.25);border-radius:6px;font-size:11px;color:#c4b5fd;font-weight:500;">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                Due ${escapeHtml(dueDateLabel)}
+              </span>` : ''}
             </div>
             ${notesTrunc ? `<div style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:${hasUrl ? '6px' : '0'};">${escapeHtml(notesTrunc)}</div>` : ''}
             ${hasUrl ? `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:#c4b5fd;text-decoration:none;word-break:break-all;" onclick="event.stopPropagation()">
@@ -18263,6 +18277,7 @@ async function saveDeal() {
         title: d.title.trim(),
         notes: (d.notes || '').trim() || null,
         submitted_url: (d.submitted_url || '').trim() || null,
+        due_date: (d.due_date && d.due_date.length) ? d.due_date : null,
         sort_order: i
       }));
     if (deliverablesToInsert.length > 0) {
@@ -18292,8 +18307,99 @@ async function saveDeal() {
   applyDealLockState();
   updateMessagesCardVisibility();
 
+  // Sync calendar events for this deal
+  if (dealId) {
+    syncDealCalendarEvents(dealId, brandName, status, campaignStart, campaignEnd, currentDealDeliverables);
+  }
+
   // Inline success message — stay on the detail view
   showDealModalMsg('success', 'Saved.');
+}
+
+// =====================================================
+// CALENDAR SYNC FOR BRAND DEALS
+// =====================================================
+// Removes all existing calendar events for this deal, then creates fresh ones
+// based on the current deal state. Called after saving or deleting a deal.
+async function syncDealCalendarEvents(dealId, brandName, status, campaignStart, campaignEnd, deliverables) {
+  if (!currentUser || !dealId) return;
+
+  try {
+    // Always start clean: delete all existing calendar events linked to this deal
+    await sb.from('calendar_events')
+      .delete()
+      .eq('creator_id', currentUser.id)
+      .eq('event_type', 'brand_deal')
+      .eq('source_id', dealId);
+
+    // If deal is in a "dead" state, leave calendar empty
+    var deadStatuses = ['cancelled', 'lost', 'rejected'];
+    if (deadStatuses.indexOf((status || '').toLowerCase()) !== -1) return;
+
+    var brand = (brandName || 'Brand Deal').trim();
+    var eventsToInsert = [];
+
+    // Campaign Start event (all-day at 00:00)
+    if (campaignStart) {
+      eventsToInsert.push({
+        creator_id: currentUser.id,
+        title: brand + ' – Starts',
+        start_at: campaignStart + 'T00:00:00',
+        end_at: campaignStart + 'T23:59:00',
+        event_type: 'brand_deal',
+        source_id: dealId,
+        color: '#a855f7',
+        notes: 'Campaign start date for ' + brand,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+      });
+    }
+
+    // Campaign End event (all-day at 00:00)
+    if (campaignEnd) {
+      eventsToInsert.push({
+        creator_id: currentUser.id,
+        title: brand + ' – Ends',
+        start_at: campaignEnd + 'T00:00:00',
+        end_at: campaignEnd + 'T23:59:00',
+        event_type: 'brand_deal',
+        source_id: dealId,
+        color: '#a855f7',
+        notes: 'Campaign end date for ' + brand,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+      });
+    }
+
+    // Deliverables with due dates
+    if (Array.isArray(deliverables)) {
+      deliverables.forEach(function(d) {
+        if (d.due_date && d.due_date.length && (d.title || '').trim().length > 0) {
+          eventsToInsert.push({
+            creator_id: currentUser.id,
+            title: brand + ' – ' + d.title.trim(),
+            start_at: d.due_date + 'T00:00:00',
+            end_at: d.due_date + 'T23:59:00',
+            event_type: 'brand_deal',
+            source_id: dealId,
+            color: '#a855f7',
+            notes: 'Deliverable due for ' + brand + (d.notes ? '\n\n' + d.notes : ''),
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+          });
+        }
+      });
+    }
+
+    if (eventsToInsert.length > 0) {
+      var { error: insErr } = await sb.from('calendar_events').insert(eventsToInsert);
+      if (insErr) console.error('Failed to insert deal calendar events:', insErr);
+    }
+
+    // If user is currently viewing the calendar, refresh
+    if (typeof calState !== 'undefined' && calState.loaded) {
+      calState.loaded = false;
+    }
+  } catch (e) {
+    console.error('syncDealCalendarEvents failed:', e);
+  }
 }
 
 function showDealModalMsg(type, text) {
@@ -18362,12 +18468,28 @@ async function confirmDeleteDeal() {
     }
   }
 
+  // Capture deal id before delete so we can clean up calendar events
+  var deletedDealId = currentDealId;
+
   const { error } = await sb.from('brand_deals').delete().eq('id', currentDealId);
   btn.textContent = 'Delete forever';
   if (error) {
     alert('Failed to delete: ' + error.message);
     return;
   }
+
+  // Clean up associated calendar events
+  if (deletedDealId) {
+    try {
+      await sb.from('calendar_events')
+        .delete()
+        .eq('creator_id', currentUser.id)
+        .eq('event_type', 'brand_deal')
+        .eq('source_id', deletedDealId);
+      if (typeof calState !== 'undefined') calState.loaded = false;
+    } catch (e) { console.error('Calendar cleanup failed:', e); }
+  }
+
   closeDealDeleteModal();
   await loadDealsList();
   showDealsList();
