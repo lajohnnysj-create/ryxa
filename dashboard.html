@@ -18324,6 +18324,16 @@ async function saveDeal() {
 async function syncDealCalendarEvents(dealId, brandName, status, campaignStart, campaignEnd, deliverables) {
   if (!currentUser || !dealId) return;
 
+  // Build an ISO timestamp that represents midnight LOCAL time on a given date
+  // (not midnight UTC). This way the event displays on the correct date in the
+  // user's timezone.
+  function localMidnightToIso(ymd, hours, minutes) {
+    if (!ymd) return null;
+    var parts = ymd.split('-').map(Number);
+    var d = new Date(parts[0], parts[1] - 1, parts[2], hours || 0, minutes || 0, 0, 0);
+    return d.toISOString();
+  }
+
   try {
     // Always start clean: delete all existing calendar events linked to this deal
     await sb.from('calendar_events')
@@ -18337,35 +18347,36 @@ async function syncDealCalendarEvents(dealId, brandName, status, campaignStart, 
     if (deadStatuses.indexOf((status || '').toLowerCase()) !== -1) return;
 
     var brand = (brandName || 'Brand Deal').trim();
+    var userTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     var eventsToInsert = [];
 
-    // Campaign Start event (all-day at 00:00)
+    // Campaign Start event (all-day: 12:00 AM to 11:59 PM local time)
     if (campaignStart) {
       eventsToInsert.push({
         creator_id: currentUser.id,
         title: brand + ' – Starts',
-        start_at: campaignStart + 'T00:00:00',
-        end_at: campaignStart + 'T23:59:00',
+        start_at: localMidnightToIso(campaignStart, 0, 0),
+        end_at: localMidnightToIso(campaignStart, 23, 59),
         event_type: 'brand_deal',
         source_id: dealId,
         color: '#a855f7',
         notes: 'Campaign start date for ' + brand,
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+        timezone: userTz
       });
     }
 
-    // Campaign End event (all-day at 00:00)
+    // Campaign End event (all-day: 12:00 AM to 11:59 PM local time)
     if (campaignEnd) {
       eventsToInsert.push({
         creator_id: currentUser.id,
         title: brand + ' – Ends',
-        start_at: campaignEnd + 'T00:00:00',
-        end_at: campaignEnd + 'T23:59:00',
+        start_at: localMidnightToIso(campaignEnd, 0, 0),
+        end_at: localMidnightToIso(campaignEnd, 23, 59),
         event_type: 'brand_deal',
         source_id: dealId,
         color: '#a855f7',
         notes: 'Campaign end date for ' + brand,
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+        timezone: userTz
       });
     }
 
@@ -18376,13 +18387,13 @@ async function syncDealCalendarEvents(dealId, brandName, status, campaignStart, 
           eventsToInsert.push({
             creator_id: currentUser.id,
             title: brand + ' – ' + d.title.trim(),
-            start_at: d.due_date + 'T00:00:00',
-            end_at: d.due_date + 'T23:59:00',
+            start_at: localMidnightToIso(d.due_date, 0, 0),
+            end_at: localMidnightToIso(d.due_date, 23, 59),
             event_type: 'brand_deal',
             source_id: dealId,
             color: '#a855f7',
             notes: 'Deliverable due for ' + brand + (d.notes ? '\n\n' + d.notes : ''),
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+            timezone: userTz
           });
         }
       });
