@@ -4443,20 +4443,87 @@
           <!-- Booking Type -->
           <div style="margin-bottom:16px;">
             <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Booking Method</label>
-            <div style="display:flex;gap:8px;">
-              <button type="button" id="coaching-type-calendly" onclick="setCoachingBookingType('calendly')" style="flex:1;padding:12px;background:var(--surface);border:1px solid var(--accent);border-radius:8px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;cursor:pointer;text-align:center;transition:all 0.15s;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto 6px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                Scheduling Link
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button type="button" id="coaching-type-ryxa" onclick="setCoachingBookingType('ryxa_calendar')" style="flex:1;min-width:130px;padding:12px;background:var(--surface);border:1px solid var(--accent);border-radius:8px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;cursor:pointer;text-align:center;transition:all 0.15s;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto 6px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="14" x2="15" y2="14"/><line x1="12" y1="11" x2="12" y2="17"/></svg>
+                Ryxa Calendar
               </button>
-              <button type="button" id="coaching-type-manual" onclick="setCoachingBookingType('manual')" style="flex:1;padding:12px;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;font-size:13px;color:var(--muted);font-family:DM Sans,sans-serif;cursor:pointer;text-align:center;transition:all 0.15s;">
+              <button type="button" id="coaching-type-calendly" onclick="setCoachingBookingType('calendly')" style="flex:1;min-width:130px;padding:12px;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;font-size:13px;color:var(--muted);font-family:DM Sans,sans-serif;cursor:pointer;text-align:center;transition:all 0.15s;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto 6px;"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                External Link
+              </button>
+              <button type="button" id="coaching-type-manual" onclick="setCoachingBookingType('manual')" style="flex:1;min-width:130px;padding:12px;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;font-size:13px;color:var(--muted);font-family:DM Sans,sans-serif;cursor:pointer;text-align:center;transition:all 0.15s;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto 6px;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-                Manual Booking
+                Manual
               </button>
             </div>
           </div>
 
+          <!-- Ryxa Calendar Availability Settings (shown when ryxa_calendar selected) -->
+          <div id="coaching-ryxa-section" style="margin-bottom:16px;">
+            <div style="padding:14px 16px;background:rgba(124,58,237,0.06);border:1px solid rgba(124,58,237,0.2);border-radius:10px;margin-bottom:14px;font-size:13px;color:#c8c6d8;line-height:1.6;">
+              <strong style="color:var(--text);">Built-in scheduling.</strong> Set your weekly availability and clients will see open time slots when they book. Sessions automatically appear in your Ryxa calendar.
+            </div>
+
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:14px;">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+                <div>
+                  <label for="coaching-avail-duration" style="font-size:11px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.04em;font-weight:600;">Session Duration</label>
+                  <select id="coaching-avail-duration" onchange="onAvailChanged()" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 10px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+                    <option value="15">15 minutes</option>
+                    <option value="30" selected>30 minutes</option>
+                    <option value="45">45 minutes</option>
+                    <option value="60">60 minutes</option>
+                    <option value="90">90 minutes</option>
+                    <option value="120">120 minutes</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="coaching-avail-buffer" style="font-size:11px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.04em;font-weight:600;">Buffer Between Sessions</label>
+                  <select id="coaching-avail-buffer" onchange="onAvailChanged()" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 10px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+                    <option value="0" selected>None</option>
+                    <option value="5">5 minutes</option>
+                    <option value="10">10 minutes</option>
+                    <option value="15">15 minutes</option>
+                    <option value="30">30 minutes</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+                <div>
+                  <label for="coaching-avail-window" style="font-size:11px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.04em;font-weight:600;">Booking Window</label>
+                  <select id="coaching-avail-window" onchange="onAvailChanged()" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 10px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+                    <option value="7">7 days ahead</option>
+                    <option value="14" selected>14 days ahead</option>
+                    <option value="30">30 days ahead</option>
+                    <option value="60">60 days ahead</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="coaching-avail-leadtime" style="font-size:11px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.04em;font-weight:600;">Minimum Notice</label>
+                  <select id="coaching-avail-leadtime" onchange="onAvailChanged()" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 10px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+                    <option value="1">1 hour notice</option>
+                    <option value="4">4 hours notice</option>
+                    <option value="24" selected>1 day notice</option>
+                    <option value="48">2 days notice</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style="margin-bottom:8px;">
+                <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.04em;font-weight:600;">Weekly Availability</label>
+                <div id="coaching-avail-days"></div>
+              </div>
+
+              <div style="font-size:11px;color:var(--muted);line-height:1.5;margin-top:10px;">
+                Times are shown in your timezone. Clients book in their own timezone — Ryxa converts automatically.
+              </div>
+            </div>
+          </div>
+
           <!-- Calendly URL (shown when calendly selected) -->
-          <div id="coaching-calendly-section" style="margin-bottom:16px;">
+          <div id="coaching-calendly-section" style="display:none;margin-bottom:16px;">
             <label for="coaching-calendly-input" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Scheduling Link</label>
             <input type="url" id="coaching-calendly-input" placeholder="https://calendly.com/yourname/30min or https://cal.com/yourname/30min" aria-label="Scheduling URL" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:12px 16px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
             <div style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5;">
@@ -14599,7 +14666,7 @@ function renderCoachingList() {
     const coverBg = c.cover_image_path
       ? 'background-image:url(' + sb.storage.from("coaching-covers").getPublicUrl(c.cover_image_path).data.publicUrl + ');background-size:cover;background-position:center;'
       : 'background:linear-gradient(135deg,rgba(124,58,237,0.15),rgba(232,121,249,0.1));display:flex;align-items:center;justify-content:center;';
-    const bookingLabel = c.booking_type === 'calendly' ? 'Scheduling Link' : 'Manual';
+    const bookingLabel = c.booking_type === 'ryxa_calendar' ? 'Ryxa Calendar' : (c.booking_type === 'calendly' ? 'Scheduling Link' : 'Manual');
     return '<div onclick="openCoachingEditor(\'' + c.id + '\')" style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;overflow:hidden;cursor:pointer;transition:border-color 0.15s;" onmouseover="this.style.borderColor=\'rgba(124,58,237,0.4)\'" onmouseout="this.style.borderColor=\'var(--border)\'">'
       + '<div style="height:140px;' + coverBg + '">' + (c.cover_image_path ? '' : '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(167,139,250,0.5)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>') + '</div>'
       + '<div style="padding:14px 16px;">'
@@ -14636,7 +14703,8 @@ function openCoachingEditor(coachingId) {
   document.getElementById('coaching-editor-msg').style.display = 'none';
   document.getElementById('coaching-marketplace-toggle').style.display = 'none';
   updateMarketplaceToggleUI('coaching', false);
-  setCoachingBookingType('calendly');
+  loadAvailabilityIntoUI(null); // reset to defaults
+  setCoachingBookingType('ryxa_calendar');
 
   if (coachingId) {
     document.getElementById('coaching-editor-title').textContent = 'Edit Service';
@@ -14649,6 +14717,7 @@ function openCoachingEditor(coachingId) {
     document.getElementById('coaching-price-input').value = coaching.price_cents ? (coaching.price_cents / 100).toString() : '';
     document.getElementById('coaching-calendly-input').value = coaching.calendly_url || '';
     document.getElementById('coaching-duration-input').value = coaching.duration_minutes ? String(coaching.duration_minutes) : '30';
+    loadAvailabilityIntoUI(coaching.availability_settings);
     setCoachingBookingType(coaching.booking_type || 'manual');
 
     if (coaching.cover_image_path) {
@@ -14695,21 +14764,125 @@ function closeCoachingEditor() {
 
 function setCoachingBookingType(type) {
   coachingBookingType = type;
+  var ryxaBtn = document.getElementById('coaching-type-ryxa');
   var calBtn = document.getElementById('coaching-type-calendly');
   var manBtn = document.getElementById('coaching-type-manual');
+  var ryxaSection = document.getElementById('coaching-ryxa-section');
   var calSection = document.getElementById('coaching-calendly-section');
   var manSection = document.getElementById('coaching-manual-section');
-  if (type === 'calendly') {
-    calBtn.style.borderColor = 'var(--accent)'; calBtn.style.color = 'var(--text)';
-    manBtn.style.borderColor = 'var(--border-hover)'; manBtn.style.color = 'var(--muted)';
-    calSection.style.display = 'block';
-    manSection.style.display = 'none';
+
+  // Reset all to inactive
+  [ryxaBtn, calBtn, manBtn].forEach(function(btn) {
+    if (btn) { btn.style.borderColor = 'var(--border-hover)'; btn.style.color = 'var(--muted)'; }
+  });
+
+  // Hide all sections
+  if (ryxaSection) ryxaSection.style.display = 'none';
+  if (calSection) calSection.style.display = 'none';
+  if (manSection) manSection.style.display = 'none';
+
+  // Activate selected
+  if (type === 'ryxa_calendar') {
+    if (ryxaBtn) { ryxaBtn.style.borderColor = 'var(--accent)'; ryxaBtn.style.color = 'var(--text)'; }
+    if (ryxaSection) ryxaSection.style.display = 'block';
+    renderAvailabilityDays();
+  } else if (type === 'calendly') {
+    if (calBtn) { calBtn.style.borderColor = 'var(--accent)'; calBtn.style.color = 'var(--text)'; }
+    if (calSection) calSection.style.display = 'block';
   } else {
-    manBtn.style.borderColor = 'var(--accent)'; manBtn.style.color = 'var(--text)';
-    calBtn.style.borderColor = 'var(--border-hover)'; calBtn.style.color = 'var(--muted)';
-    calSection.style.display = 'none';
-    manSection.style.display = 'block';
+    if (manBtn) { manBtn.style.borderColor = 'var(--accent)'; manBtn.style.color = 'var(--text)'; }
+    if (manSection) manSection.style.display = 'block';
   }
+}
+
+// Default availability state
+var coachingAvailability = {
+  duration_minutes: 30,
+  buffer_minutes: 0,
+  booking_window_days: 14,
+  lead_time_hours: 24,
+  days: {
+    sun: { enabled: false, start: '09:00', end: '17:00' },
+    mon: { enabled: true, start: '09:00', end: '17:00' },
+    tue: { enabled: true, start: '09:00', end: '17:00' },
+    wed: { enabled: true, start: '09:00', end: '17:00' },
+    thu: { enabled: true, start: '09:00', end: '17:00' },
+    fri: { enabled: true, start: '09:00', end: '17:00' },
+    sat: { enabled: false, start: '09:00', end: '17:00' }
+  }
+};
+
+function renderAvailabilityDays() {
+  var container = document.getElementById('coaching-avail-days');
+  if (!container) return;
+  var dayKeys = ['sun','mon','tue','wed','thu','fri','sat'];
+  var dayLabels = { sun:'Sunday', mon:'Monday', tue:'Tuesday', wed:'Wednesday', thu:'Thursday', fri:'Friday', sat:'Saturday' };
+  container.innerHTML = dayKeys.map(function(k) {
+    var d = coachingAvailability.days[k];
+    var enabled = d.enabled;
+    var bg = enabled ? 'var(--surface2)' : 'rgba(20,20,32,0.5)';
+    var opacity = enabled ? '1' : '0.5';
+    return '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:' + bg + ';border:1px solid var(--border);border-radius:8px;margin-bottom:6px;">'
+      + '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;min-width:100px;">'
+      + '<input type="checkbox" ' + (enabled ? 'checked' : '') + ' onchange="toggleAvailDay(\'' + k + '\', this.checked)" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);">'
+      + '<span style="font-size:13px;color:var(--text);font-weight:500;">' + dayLabels[k] + '</span>'
+      + '</label>'
+      + '<div style="display:flex;align-items:center;gap:6px;flex:1;opacity:' + opacity + ';">'
+      + '<input type="time" step="900" value="' + d.start + '" ' + (enabled ? '' : 'disabled') + ' onchange="setAvailTime(\'' + k + '\', \'start\', this.value)" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:6px 8px;color:var(--text);font-size:12px;font-family:DM Sans,sans-serif;outline:none;color-scheme:dark;">'
+      + '<span style="color:var(--muted);font-size:12px;">to</span>'
+      + '<input type="time" step="900" value="' + d.end + '" ' + (enabled ? '' : 'disabled') + ' onchange="setAvailTime(\'' + k + '\', \'end\', this.value)" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:6px 8px;color:var(--text);font-size:12px;font-family:DM Sans,sans-serif;outline:none;color-scheme:dark;">'
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function toggleAvailDay(key, enabled) {
+  coachingAvailability.days[key].enabled = enabled;
+  renderAvailabilityDays();
+}
+
+function setAvailTime(key, which, value) {
+  coachingAvailability.days[key][which] = value;
+}
+
+function onAvailChanged() {
+  var dur = document.getElementById('coaching-avail-duration');
+  var buf = document.getElementById('coaching-avail-buffer');
+  var win = document.getElementById('coaching-avail-window');
+  var lead = document.getElementById('coaching-avail-leadtime');
+  if (dur) coachingAvailability.duration_minutes = parseInt(dur.value, 10);
+  if (buf) coachingAvailability.buffer_minutes = parseInt(buf.value, 10);
+  if (win) coachingAvailability.booking_window_days = parseInt(win.value, 10);
+  if (lead) coachingAvailability.lead_time_hours = parseInt(lead.value, 10);
+}
+
+function loadAvailabilityIntoUI(avail) {
+  if (!avail) avail = {};
+  // Merge with defaults
+  coachingAvailability = {
+    duration_minutes: avail.duration_minutes || 30,
+    buffer_minutes: typeof avail.buffer_minutes === 'number' ? avail.buffer_minutes : 0,
+    booking_window_days: avail.booking_window_days || 14,
+    lead_time_hours: typeof avail.lead_time_hours === 'number' ? avail.lead_time_hours : 24,
+    days: avail.days || {
+      sun: { enabled: false, start: '09:00', end: '17:00' },
+      mon: { enabled: true, start: '09:00', end: '17:00' },
+      tue: { enabled: true, start: '09:00', end: '17:00' },
+      wed: { enabled: true, start: '09:00', end: '17:00' },
+      thu: { enabled: true, start: '09:00', end: '17:00' },
+      fri: { enabled: true, start: '09:00', end: '17:00' },
+      sat: { enabled: false, start: '09:00', end: '17:00' }
+    }
+  };
+  var dur = document.getElementById('coaching-avail-duration');
+  var buf = document.getElementById('coaching-avail-buffer');
+  var win = document.getElementById('coaching-avail-window');
+  var lead = document.getElementById('coaching-avail-leadtime');
+  if (dur) dur.value = String(coachingAvailability.duration_minutes);
+  if (buf) buf.value = String(coachingAvailability.buffer_minutes);
+  if (win) win.value = String(coachingAvailability.booking_window_days);
+  if (lead) lead.value = String(coachingAvailability.lead_time_hours);
+  renderAvailabilityDays();
 }
 
 function showCoachingMsg(type, msg, isHtml) {
@@ -14780,6 +14953,11 @@ async function saveCoaching() {
   if (!title) { showCoachingMsg('error', 'Please enter a service title.'); return; }
   if (!slug) { showCoachingMsg('error', 'URL slug is empty. Please enter a title.'); return; }
   if (coachingBookingType === 'calendly' && !calendlyUrl) { showCoachingMsg('error', 'Please enter your scheduling link.'); return; }
+  if (coachingBookingType === 'ryxa_calendar') {
+    onAvailChanged();
+    var enabledDays = Object.keys(coachingAvailability.days).filter(function(k) { return coachingAvailability.days[k].enabled; });
+    if (enabledDays.length === 0) { showCoachingMsg('error', 'Please enable at least one day in your weekly availability.'); return; }
+  }
 
   const btn = document.getElementById('coaching-save-btn');
   btn.disabled = true; btn.textContent = 'Saving...';
@@ -14795,6 +14973,9 @@ async function saveCoaching() {
 
     const durationMinutes = parseInt(document.getElementById('coaching-duration-input').value) || 30;
 
+    // Read current availability values from inputs before saving
+    onAvailChanged();
+
     const payload = {
       title,
       description,
@@ -14802,6 +14983,7 @@ async function saveCoaching() {
       duration_minutes: durationMinutes,
       booking_type: coachingBookingType,
       calendly_url: coachingBookingType === 'calendly' ? calendlyUrl : '',
+      availability_settings: coachingBookingType === 'ryxa_calendar' ? coachingAvailability : null,
       updated_at: new Date().toISOString()
     };
     if (coverPath) payload.cover_image_path = coverPath;
