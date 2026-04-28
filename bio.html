@@ -989,6 +989,18 @@ function buildLink(link) {
       + '<div style="font-size:13px;font-weight:600;flex-shrink:0;margin-left:8px;">' + priceDisplay + '</div>'
       + '</div></a>';
   }
+  // Digital Product link — same card style as courses/coaching
+  if (link.isProduct) {
+    const safePhoto = validImageUrl(link.photoUrl);
+    const priceDisplay = link.productPrice > 0 ? fmtPrice(link.productPrice) : 'Free';
+    const coverHtml = safePhoto ? '<img src="' + esc(safePhoto) + '" alt="Link cover" loading="lazy" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px 10px 0 0;display:block;">' : '';
+    return '<a class="course-link-card" href="' + esc(url) + '" target="_blank" rel="noopener nofollow" style="display:block;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;text-decoration:none;color:var(--text);margin-bottom:8px;transition:transform 0.15s,border-color 0.15s;" onmouseover="this.style.transform=\'translateY(-2px)\';this.style.borderColor=\'var(--accent)\'" onmouseout="this.style.transform=\'\';this.style.borderColor=\'var(--border)\'">'
+      + coverHtml
+      + '<div style="padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">'
+      + '<div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;">' + title + '</div>'
+      + '<div style="font-size:13px;font-weight:600;flex-shrink:0;margin-left:8px;">' + priceDisplay + '</div>'
+      + '</div></a>';
+  }
   // Media Kit link gets a distinct style — headshot background if available, gradient fallback
   if (link.isMediaKit) {
     const mkIconSvg = '<svg class="mediakit-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="17" x2="8" y2="13"/><line x1="12" y1="17" x2="12" y2="11"/><line x1="16" y1="17" x2="16" y2="15"/></svg>';

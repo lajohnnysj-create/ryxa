@@ -4319,6 +4319,10 @@
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
                 Add Coaching
               </button>
+              <button type="button" id="bio-add-product-link" onclick="openProductPickerModal()" style="display:none;padding:10px;background:linear-gradient(135deg,rgba(124,58,237,0.1),rgba(232,121,249,0.06));border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:8px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;align-items:center;justify-content:center;gap:6px;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                Add Product
+              </button>
               <button type="button" id="bio-add-subscribe-btn" onclick="addSubscribeBlock()" style="padding:10px;background:linear-gradient(135deg,rgba(124,58,237,0.1),rgba(232,121,249,0.06));border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:8px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                 Add Subscribe
@@ -9916,6 +9920,96 @@ function addCoachingToLinks(coachingId, title, priceCents, slug, coverUrl) {
   showBioStatus('success', 'Coaching service added to your links. Remember to save.');
 }
 
+async function openProductPickerModal() {
+  if (!isMax()) {
+    handleMaxUpgradeClick(event);
+    return;
+  }
+  if (!currentUser) return;
+
+  // Load active digital products
+  const { data: products } = await sb.from('digital_products').select('id, title, slug, price_cents, cover_image_url').eq('user_id', currentUser.id).eq('is_active', true).order('updated_at', { ascending: false });
+
+  if (!products || products.length === 0) {
+    showBioStatus('error', 'No published digital products found. Create and publish one first.');
+    return;
+  }
+
+  const addedProductIds = bioState.links.filter(l => l.isProduct).map(l => l.productId);
+
+  let modalHtml = '<div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.3px;margin-bottom:16px;">Add Digital Product to Bio</div>';
+  modalHtml += '<div style="display:flex;flex-direction:column;gap:10px;">';
+
+  products.forEach(function(p) {
+    const isAdded = addedProductIds.indexOf(p.id) !== -1;
+    const coverUrl = p.cover_image_url || '';
+    const coverHtml = coverUrl
+      ? '<img src="' + escapeHtml(coverUrl) + '" alt="Product thumbnail" style="width:60px;height:40px;object-fit:cover;border-radius:6px;flex-shrink:0;">'
+      : '<div style="width:60px;height:40px;border-radius:6px;background:var(--surface);border:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>';
+    const priceText = p.price_cents > 0 ? formatMoney(p.price_cents, {alwaysShowCents:true}) : 'Free';
+
+    modalHtml += '<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;">'
+      + coverHtml
+      + '<div style="flex:1;min-width:0;">'
+      + '<div style="font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escapeHtml(p.title) + '</div>'
+      + '<div style="font-size:12px;color:var(--muted);">' + priceText + '</div>'
+      + '</div>';
+
+    if (isAdded) {
+      modalHtml += '<span style="font-size:11px;color:var(--muted);padding:5px 12px;border:1px solid var(--border);border-radius:6px;">Added</span>';
+    } else {
+      modalHtml += '<button onclick="addProductToLinks(\'' + p.id + '\',\'' + escapeHtml(p.title.replace(/'/g, "\\'")) + '\',' + p.price_cents + ',\'' + escapeHtml(p.slug) + '\',\'' + escapeHtml(coverUrl) + '\')" style="padding:5px 12px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Add</button>';
+    }
+
+    modalHtml += '</div>';
+  });
+
+  modalHtml += '</div>';
+  modalHtml += '<button onclick="closeProductPickerModal()" style="width:100%;margin-top:16px;padding:10px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;">Close</button>';
+
+  let overlay = document.getElementById('product-picker-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'product-picker-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;';
+    overlay.onclick = function(e) { if (e.target === overlay) closeProductPickerModal(); };
+    document.body.appendChild(overlay);
+  }
+  overlay.innerHTML = '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:24px;max-width:480px;width:100%;max-height:80vh;overflow-y:auto;">' + modalHtml + '</div>';
+  overlay.style.display = 'flex';
+}
+
+function closeProductPickerModal() {
+  const overlay = document.getElementById('product-picker-overlay');
+  if (overlay) overlay.style.display = 'none';
+}
+
+function addProductToLinks(productId, title, priceCents, slug, coverUrl) {
+  if (bioState.links.some(l => l.isProduct && l.productId === productId)) {
+    showBioStatus('error', 'This product is already in your links.');
+    return;
+  }
+
+  const newId = linkIdSeq++;
+  const priceDisplay = priceCents > 0 ? formatMoney(priceCents, {alwaysShowCents:true}) : 'Free';
+  bioState.links.push({
+    _id: newId,
+    title: title,
+    description: priceDisplay,
+    url: 'https://www.ryxa.io/product/' + slug,
+    featured: false,
+    photoUrl: coverUrl || '',
+    isProduct: true,
+    productId: productId,
+    productPrice: priceCents,
+  });
+  bioExpandedLinks.add(newId);
+  renderBioLinks();
+  schedulePreviewUpdate();
+  closeProductPickerModal();
+  showBioStatus('success', 'Digital product added to your links. Remember to save.');
+}
+
 function removeLink(id) {
   const link = bioState.links.find(l => l._id === id);
   if (link?.photoUrl) {
@@ -9978,6 +10072,8 @@ function renderBioLinks() {
   if (courseBtn) courseBtn.style.display = max ? 'flex' : 'none';
   const coachingBtn = document.getElementById('bio-add-coaching-link');
   if (coachingBtn) coachingBtn.style.display = max ? 'flex' : 'none';
+  const productBtn = document.getElementById('bio-add-product-link');
+  if (productBtn) productBtn.style.display = max ? 'flex' : 'none';
   // Enable Sortable (reinit)
   if (window.Sortable) {
     const prev = el._sortable;
@@ -10105,6 +10201,26 @@ function renderLinkCollapsed(link, dragSvg, editSvg) {
     </div>`;
   }
 
+  if (link.isProduct) {
+    const thumb = link.photoUrl
+      ? `<img alt="Link thumbnail" src="${escapeHtml(link.photoUrl)}" style="width:56px;height:38px;object-fit:cover;border-radius:6px;flex-shrink:0;">`
+      : `<div style="width:56px;height:38px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>`;
+    const priceText = link.productPrice > 0 ? formatMoney(link.productPrice, {alwaysShowCents:true}) : 'Free';
+    return `<div class="bio-link-row bio-link-collapsed" data-id="${link._id}" onclick="expandLink(${link._id})" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:10px 12px;">
+      <div class="bio-link-drag" aria-label="Drag to reorder" onclick="event.stopPropagation();">${dragSvg}</div>
+      ${thumb}
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+          <span style="font-size:13px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;">${title}</span>
+          <span class="bio-featured-badge" style="background:rgba(124,58,237,0.15);color:#c4b5fd;border:1px solid rgba(124,58,237,0.3);">Product</span>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;">${priceText}</div>
+      </div>
+      <button type="button" aria-label="Edit link" onclick="event.stopPropagation();expandLink(${link._id})" style="background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:6px;padding:5px 9px;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:4px;">${editSvg} Edit</button>
+      <button class="bio-link-remove" onclick="event.stopPropagation();removeLink(${link._id})">Remove</button>
+    </div>`;
+  }
+
   if (link.featured) {
     const thumb = link.photoUrl
       ? `<img alt="Link thumbnail" src="${escapeHtml(link.photoUrl)}" style="width:56px;height:32px;object-fit:cover;border-radius:4px;flex-shrink:0;">`
@@ -10153,7 +10269,7 @@ async function onLinkThumbSelected(input, linkId) {
   if (file.size > 10 * 1024 * 1024) { showBioStatus('error', 'Image is too large (10MB max).'); return; }
 
   // Check 10 link photo limit
-  var photoCount = bioState.links.filter(function(l) { return l.photoUrl && !l.featured && !l.isHero && !l.isCourse && !l.isCoaching; }).length;
+  var photoCount = bioState.links.filter(function(l) { return l.photoUrl && !l.featured && !l.isHero && !l.isCourse && !l.isCoaching && !l.isProduct; }).length;
   if (photoCount >= 20) { showBioStatus('error', 'Thumbnail limit reached (20 links).'); return; }
 
   var link = bioState.links.find(function(l) { return l._id === linkId; });
@@ -10310,6 +10426,30 @@ function renderLinkExpanded(link, dragSvg) {
       </div>
       ${coverHtml}
       <input type="text" value="${escapeHtml(link.title || '')}" readonly style="opacity:0.6;cursor:default;" aria-label="Coaching title">
+      <div style="display:flex;align-items:center;gap:0;background:var(--surface);border:1px solid var(--border-hover);border-radius:6px;overflow:hidden;margin-bottom:6px;">
+        <span style="padding:10px 0 10px 12px;font-size:13px;color:var(--muted);white-space:nowrap;">Price:</span>
+        <span style="padding:10px 12px 10px 4px;font-size:13px;color:var(--text);">${priceDisplay}</span>
+      </div>
+      <button type="button" onclick="saveLinkRow(${link._id})"
+        style="width:100%;padding:9px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">
+        Save link
+      </button>
+    </div>`;
+  }
+  if (link.isProduct) {
+    const coverHtml = link.photoUrl
+      ? `<img alt="Link cover" src="${escapeHtml(link.photoUrl)}" style="width:100%;height:120px;object-fit:cover;border-radius:8px;margin-bottom:10px;">`
+      : '';
+    const priceDisplay = link.productPrice > 0 ? formatMoney(link.productPrice, {alwaysShowCents:true}) : 'Free';
+    return `<div class="bio-link-row" data-id="${link._id}">
+      <div class="bio-link-header">
+        <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
+        <span class="bio-featured-badge" style="background:rgba(124,58,237,0.15);color:#c4b5fd;border:1px solid rgba(124,58,237,0.3);">Product</span>
+        <div style="flex:1;"></div>
+        <button class="bio-link-remove" onclick="removeLink(${link._id})">Remove</button>
+      </div>
+      ${coverHtml}
+      <input type="text" value="${escapeHtml(link.title || '')}" readonly style="opacity:0.6;cursor:default;" aria-label="Product title">
       <div style="display:flex;align-items:center;gap:0;background:var(--surface);border:1px solid var(--border-hover);border-radius:6px;overflow:hidden;margin-bottom:6px;">
         <span style="padding:10px 0 10px 12px;font-size:13px;color:var(--muted);white-space:nowrap;">Price:</span>
         <span style="padding:10px 12px 10px 4px;font-size:13px;color:var(--text);">${priceDisplay}</span>
@@ -10810,6 +10950,7 @@ async function saveBio() {
         ...(l.isHeader ? { isHeader: true } : {}),
         ...(l.isCourse ? { isCourse: true, courseId: l.courseId, coursePrice: l.coursePrice || 0, courseCrossoutPrice: l.courseCrossoutPrice || 0 } : {}),
         ...(l.isCoaching ? { isCoaching: true, coachingId: l.coachingId, coachingPrice: l.coachingPrice || 0 } : {}),
+        ...(l.isProduct ? { isProduct: true, productId: l.productId, productPrice: l.productPrice || 0 } : {}),
         ...(l.isSubscribe ? { isSubscribe: true } : {}),
       }));
     const cleanVideos = bioState.videos
@@ -11132,6 +11273,19 @@ function buildPreviewLink(l, t) {
       </div>
     </div>`;
   }
+  if (l.isProduct) {
+    const priceDisplay = l.productPrice > 0 ? formatMoney(l.productPrice, {alwaysShowCents:true}) : 'Free';
+    const coverHtml = l.photoUrl ? `<img src="${escapeHtml(l.photoUrl)}" alt="Link cover" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px 8px 0 0;">` : '';
+    return `<div style="background:${t.surface};border:1px solid ${t.border};border-radius:10px;overflow:hidden;margin-bottom:8px;">
+      ${coverHtml}
+      <div style="padding:10px 12px;display:flex;align-items:center;justify-content:space-between;">
+        <div style="min-width:0;flex:1;">
+          <div style="font-size:12px;font-weight:600;color:${t.text};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(l.title || 'Untitled')}</div>
+        </div>
+        <div style="font-size:12px;font-weight:600;color:${t.text};flex-shrink:0;margin-left:8px;">${priceDisplay}</div>
+      </div>
+    </div>`;
+  }
   if (l.featured && l.photoUrl) {
     return `<div class="fl">
       <img src="${escapeHtml(l.photoUrl)}" alt="Link thumbnail">
@@ -11154,7 +11308,7 @@ function buildPreviewLink(l, t) {
       </div>
     </div>`;
   }
-  if (l.photoUrl && !l.featured && !l.isHero && !l.isCourse && !l.isCoaching && !l.isMediaKit) {
+  if (l.photoUrl && !l.featured && !l.isHero && !l.isCourse && !l.isCoaching && !l.isProduct && !l.isMediaKit) {
     return `<div class="lk" style="display:flex;flex-direction:row;align-items:center;gap:8px;text-align:left;">
       <img src="${escapeHtml(l.photoUrl)}" alt="" style="width:24px;height:24px;object-fit:cover;border-radius:4px;flex-shrink:0;">
       <div style="flex:1;min-width:0;">
@@ -25310,6 +25464,21 @@ async function deleteProduct() {
             await sb.storage.from('digital-products').remove(leftover);
           }
         } catch (cleanupErr) { }
+
+        // Remove from bio links if present (matches Course/Coaching cleanup pattern)
+        try {
+          var { data: bioData } = await sb.from('link_in_bio').select('links').eq('user_id', currentUser.id).maybeSingle();
+          if (bioData && Array.isArray(bioData.links)) {
+            var filtered = bioData.links.filter(function(l) { return !(l.isProduct && l.productId === deletedId); });
+            if (filtered.length !== bioData.links.length) {
+              await sb.from('link_in_bio').update({ links: filtered }).eq('user_id', currentUser.id);
+              if (typeof bioState !== 'undefined' && bioState.links) {
+                bioState.links = bioState.links.filter(function(l) { return !(l.isProduct && l.productId === deletedId); });
+              }
+            }
+          }
+        } catch (bioErr) { console.warn('Failed to clean bio link:', bioErr); }
+
         closeProductEditor();
       } catch (e) {
         console.error('Delete failed:', e);
