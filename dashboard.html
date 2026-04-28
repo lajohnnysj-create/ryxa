@@ -15061,9 +15061,9 @@ function renderAvailabilityDays() {
       + '<span style="font-size:13px;color:var(--text);font-weight:500;">' + dayLabels[k] + '</span>'
       + '</label>'
       + '<div style="display:flex;align-items:center;gap:6px;flex:1;opacity:' + opacity + ';">'
-      + '<input type="time" step="900" value="' + d.start + '" ' + (enabled ? '' : 'disabled') + ' onchange="setAvailTime(\'' + k + '\', \'start\', this.value)" aria-label="' + dayLabels[k] + ' start time" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:6px 8px;color:var(--text);font-size:12px;font-family:DM Sans,sans-serif;outline:none;color-scheme:dark;">'
+      + '<select ' + (enabled ? '' : 'disabled') + ' onchange="setAvailTime(\'' + k + '\', \'start\', this.value)" aria-label="' + dayLabels[k] + ' start time" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:6px 24px 6px 8px;color:var(--text);font-size:12px;font-family:DM Sans,sans-serif;outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url(\'data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;10&quot; height=&quot;10&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;%23999&quot; stroke-width=&quot;2.2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><polyline points=&quot;6 9 12 15 18 9&quot;/></svg>\');background-repeat:no-repeat;background-position:right 6px center;">' + calBuildTimeOptions(d.start) + '</select>'
       + '<span style="color:var(--muted);font-size:12px;">to</span>'
-      + '<input type="time" step="900" value="' + d.end + '" ' + (enabled ? '' : 'disabled') + ' onchange="setAvailTime(\'' + k + '\', \'end\', this.value)" aria-label="' + dayLabels[k] + ' end time" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:6px 8px;color:var(--text);font-size:12px;font-family:DM Sans,sans-serif;outline:none;color-scheme:dark;">'
+      + '<select ' + (enabled ? '' : 'disabled') + ' onchange="setAvailTime(\'' + k + '\', \'end\', this.value)" aria-label="' + dayLabels[k] + ' end time" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:6px 24px 6px 8px;color:var(--text);font-size:12px;font-family:DM Sans,sans-serif;outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url(\'data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;10&quot; height=&quot;10&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;%23999&quot; stroke-width=&quot;2.2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><polyline points=&quot;6 9 12 15 18 9&quot;/></svg>\');background-repeat:no-repeat;background-position:right 6px center;">' + calBuildTimeOptions(d.end) + '</select>'
       + '</div>'
       + '</div>';
   }).join('');
@@ -22782,6 +22782,26 @@ function calOpenAddEvent() {
   calOpenEventModal(null);
 }
 
+// Builds a list of <option> tags for a 15-minute-increment time picker.
+// Times shown in 12-hour format with AM/PM (more user-friendly than 24h).
+// Values stay in 24-hour HH:MM so existing parse logic works unchanged.
+function calBuildTimeOptions(selectedValue) {
+  var html = '';
+  for (var totalMin = 0; totalMin < 24 * 60; totalMin += 15) {
+    var h24 = Math.floor(totalMin / 60);
+    var m = totalMin % 60;
+    var value = String(h24).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+    // Format for display: 12-hour with AM/PM
+    var period = h24 >= 12 ? 'PM' : 'AM';
+    var h12 = h24 % 12;
+    if (h12 === 0) h12 = 12;
+    var label = h12 + ':' + String(m).padStart(2, '0') + ' ' + period;
+    var sel = (value === selectedValue) ? ' selected' : '';
+    html += '<option value="' + value + '"' + sel + '>' + label + '</option>';
+  }
+  return html;
+}
+
 function calOpenEditEvent(eventId) {
   var event = calState.events.find(function(e) { return e.id === eventId; });
   if (!event) return;
@@ -22800,16 +22820,24 @@ function calOpenEventModal(existingEvent) {
     var startD = new Date(existingEvent.start_at);
     var endD = new Date(existingEvent.end_at);
     var pad = function(n) { return String(n).padStart(2, '0'); };
+    // Round minutes to nearest 15 to match dropdown options
+    var roundTo15 = function(d) {
+      var m = d.getMinutes();
+      var rounded = Math.round(m / 15) * 15;
+      var h = d.getHours();
+      if (rounded === 60) { rounded = 0; h = (h + 1) % 24; }
+      return pad(h) + ':' + pad(rounded);
+    };
     defaultDate = startD.getFullYear() + '-' + pad(startD.getMonth() + 1) + '-' + pad(startD.getDate());
-    defaultStart = pad(startD.getHours()) + ':' + pad(startD.getMinutes());
-    defaultEnd = pad(endD.getHours()) + ':' + pad(endD.getMinutes());
+    defaultStart = roundTo15(startD);
+    defaultEnd = roundTo15(endD);
     defaultTitle = existingEvent.title || '';
     defaultNotes = existingEvent.notes || '';
     defaultColor = existingEvent.color || '#7c3aed';
   } else {
     defaultDate = calState.selectedDate;
     defaultStart = '09:00';
-    defaultEnd = '09:15';
+    defaultEnd = '10:00';
     defaultTitle = '';
     defaultNotes = '';
     defaultColor = '#7c3aed';
@@ -22838,8 +22866,8 @@ function calOpenEventModal(existingEvent) {
     + '<div style="margin-bottom:14px;"><label for="cal-modal-date" style="display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:500;">Date</label>'
     + '<input id="cal-modal-date" type="date" value="' + defaultDate + '" style="width:100%;min-width:0;max-width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;color-scheme:dark;-webkit-appearance:none;appearance:none;display:block;"></div>'
     + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;min-width:0;">'
-    + '<div style="min-width:0;"><label for="cal-modal-start" style="display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:500;">Start</label><input id="cal-modal-start" type="time" step="900" value="' + defaultStart + '" style="width:100%;min-width:0;max-width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;color-scheme:dark;-webkit-appearance:none;appearance:none;display:block;"></div>'
-    + '<div style="min-width:0;"><label for="cal-modal-end" style="display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:500;">End</label><input id="cal-modal-end" type="time" step="900" value="' + defaultEnd + '" style="width:100%;min-width:0;max-width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;color-scheme:dark;-webkit-appearance:none;appearance:none;display:block;"></div>'
+    + '<div style="min-width:0;"><label for="cal-modal-start" style="display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:500;">Start</label><select id="cal-modal-start" style="width:100%;min-width:0;max-width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url(\'data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;12&quot; height=&quot;12&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;%23999&quot; stroke-width=&quot;2.2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><polyline points=&quot;6 9 12 15 18 9&quot;/></svg>\');background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;">' + calBuildTimeOptions(defaultStart) + '</select></div>'
+    + '<div style="min-width:0;"><label for="cal-modal-end" style="display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:500;">End</label><select id="cal-modal-end" style="width:100%;min-width:0;max-width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url(\'data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;12&quot; height=&quot;12&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;%23999&quot; stroke-width=&quot;2.2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><polyline points=&quot;6 9 12 15 18 9&quot;/></svg>\');background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;">' + calBuildTimeOptions(defaultEnd) + '</select></div>'
     + '</div>'
     + '<div style="margin-bottom:14px;"><label style="display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:500;">Color</label>'
     + '<div id="cal-modal-colors" role="radiogroup" aria-label="Event color" style="display:flex;gap:8px;flex-wrap:wrap;"></div></div>'
