@@ -22970,6 +22970,43 @@ function calOpenEventModal(existingEvent) {
       if (titleInput) titleInput.focus();
     }, 50);
   }
+
+  // Auto-adjust end time when start changes:
+  // If the new start is at or after the current end, bump end to start + 30min.
+  // If end is still ahead of start, leave it alone (don't override user's choice).
+  function calAutoAdjustEnd() {
+    var startStr = calReadTimePicker('cal-modal-start');
+    var endStr = calReadTimePicker('cal-modal-end');
+    if (!startStr || !endStr) return;
+    var sParts = startStr.split(':').map(Number);
+    var eParts = endStr.split(':').map(Number);
+    var sMins = sParts[0] * 60 + sParts[1];
+    var eMins = eParts[0] * 60 + eParts[1];
+    if (eMins <= sMins) {
+      var newEndMins = sMins + 30;
+      // Cap at 23:45 to fit within the picker's range (must be HH:MM in valid range)
+      if (newEndMins >= 24 * 60) newEndMins = 23 * 60 + 45;
+      var newH24 = Math.floor(newEndMins / 60);
+      var newM = newEndMins % 60;
+      // Snap to 15-min boundary just in case
+      newM = Math.round(newM / 15) * 15;
+      if (newM === 60) { newM = 0; newH24 = (newH24 + 1) % 24; }
+      // Update the end picker spinners
+      var period = newH24 >= 12 ? 'PM' : 'AM';
+      var h12 = newH24 % 12; if (h12 === 0) h12 = 12;
+      var hEl = document.getElementById('cal-modal-end-h');
+      var mEl = document.getElementById('cal-modal-end-m');
+      var pEl = document.getElementById('cal-modal-end-p');
+      if (hEl) hEl.value = String(h12);
+      if (mEl) mEl.value = String(newM);
+      if (pEl) pEl.value = period;
+    }
+  }
+  // Wire up listeners on each spinner of the start picker
+  ['h', 'm', 'p'].forEach(function(suffix) {
+    var el = document.getElementById('cal-modal-start-' + suffix);
+    if (el) el.addEventListener('change', calAutoAdjustEnd);
+  });
 }
 
 function calSelectColor(c) {
