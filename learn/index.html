@@ -1059,7 +1059,7 @@ async function searchMarketplace(query) {
       var coverUrl = c.cover_image_path
         ? 'https://kjytapcgxukalwsyputk.supabase.co/storage/v1/object/public/' + bucket + '/' + c.cover_image_path
         : '';
-      var pageUrl = c._type === 'course' ? '/course/' + encodeURIComponent(c.slug) : '/coaching/' + encodeURIComponent(c.slug);
+      var pageUrl = c._type === 'course' ? '/course/' + encodeURIComponent(c.slug) : '/booking/' + encodeURIComponent(c.slug);
       var typeLabel = c._type === 'course' ? 'Course' : '1:1 Booking';
       var typeClass = c._type;
 
