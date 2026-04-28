@@ -1784,6 +1784,160 @@
   }
   .ana-mini-tip { position:absolute; z-index:10; pointer-events:none; background:rgba(15,15,26,0.95); border:1px solid rgba(232,121,249,0.25); border-radius:8px; padding:6px 10px; font-size:10px; color:#e9c4f7; box-shadow:0 4px 16px rgba(0,0,0,0.4); white-space:nowrap; }
 
+  /* AI Chat */
+  .aichat-example {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    text-align: left;
+    cursor: pointer;
+    font-family: DM Sans, sans-serif;
+    transition: border-color 0.15s, transform 0.15s;
+    color: var(--text);
+  }
+  .aichat-example:hover {
+    border-color: rgba(124,58,237,0.45);
+    transform: translateY(-1px);
+  }
+  .aichat-example-icon {
+    font-size: 20px;
+    margin-bottom: 6px;
+  }
+  .aichat-example-title {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+  .aichat-example-sub {
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .aichat-conv-item {
+    padding: 9px 11px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--text);
+    transition: background 0.12s;
+    margin-bottom: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    position: relative;
+  }
+  .aichat-conv-item:hover {
+    background: var(--surface);
+  }
+  .aichat-conv-item.active {
+    background: rgba(124,58,237,0.15);
+    color: var(--text);
+  }
+  .aichat-conv-delete {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 3px;
+    border-radius: 4px;
+    display: none;
+  }
+  .aichat-conv-item:hover .aichat-conv-delete {
+    display: block;
+  }
+  .aichat-conv-delete:hover {
+    background: rgba(239,68,68,0.15);
+    color: #f87171;
+  }
+  .aichat-msg {
+    max-width: 760px;
+    margin: 0 auto 18px auto;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .aichat-msg-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .aichat-msg.user .aichat-msg-avatar {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  }
+  .aichat-msg.assistant .aichat-msg-avatar {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+  }
+  .aichat-msg-body {
+    flex: 1;
+    min-width: 0;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text);
+    word-wrap: break-word;
+  }
+  .aichat-msg-body p { margin: 0 0 12px 0; }
+  .aichat-msg-body p:last-child { margin-bottom: 0; }
+  .aichat-msg-body ul, .aichat-msg-body ol { margin: 0 0 12px 0; padding-left: 22px; }
+  .aichat-msg-body li { margin-bottom: 4px; }
+  .aichat-msg-body code {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  .aichat-msg-body pre {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 12px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 0 0 12px 0;
+  }
+  .aichat-msg-body pre code {
+    background: transparent;
+    border: none;
+    padding: 0;
+    font-size: 12px;
+  }
+  .aichat-msg-body strong { font-weight: 600; }
+  .aichat-msg-body a { color: var(--accent2); }
+  .aichat-typing {
+    display: inline-flex;
+    gap: 4px;
+    padding: 6px 0;
+  }
+  .aichat-typing span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--muted);
+    animation: aichatPulse 1.4s ease-in-out infinite;
+  }
+  .aichat-typing span:nth-child(2) { animation-delay: 0.2s; }
+  .aichat-typing span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes aichatPulse {
+    0%, 60%, 100% { opacity: 0.3; }
+    30% { opacity: 1; }
+  }
+  @media (max-width: 720px) {
+    #aichat-side { width: 180px; }
+    .aichat-example { padding: 12px; }
+    .aichat-example-title { font-size: 12px; }
+  }
+
   /* Design Studio */
   .ds-preset-btn { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px; cursor:pointer; text-align:center; transition:all 0.15s; display:flex; flex-direction:column; align-items:center; gap:8px; }
   .ds-preset-btn:hover { border-color:rgba(124,58,237,0.4); background:rgba(124,58,237,0.04); }
@@ -3452,6 +3606,10 @@
     <button class="sidebar-item" id="nav-design" onclick="showTool('design')">
       <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="12" rx="10" ry="4.5"/><ellipse cx="12" cy="12" rx="10" ry="4.5" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="10" ry="4.5" transform="rotate(120 12 12)"/><circle cx="12" cy="12" r="2"/></svg></div>
       <span class="sidebar-item-label">Design Studio</span>
+    </button>
+    <button class="sidebar-item" id="nav-aichat" onclick="showTool('aichat')">
+      <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+      <span class="sidebar-item-label">AI Chat <span class="sidebar-pill pro">PRO</span></span>
     </button>
     <button class="sidebar-item" id="nav-scripts" onclick="showTool('scripts')">
       <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/><path d="M6 21l-2-2 2-2M18 21l2-2-2-2"/></svg></div>
@@ -6363,6 +6521,85 @@
       </div>
     </div>
 
+    <!-- AI CHAT (Pro+) -->
+    <div id="tool-aichat" style="display:none;">
+      <!-- Paywall for Free users -->
+      <div id="aichat-paywall" style="display:none;max-width:560px;margin:40px auto;background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:40px;text-align:center;">
+        <div style="width:56px;height:56px;margin:0 auto 16px;background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.25);border-radius:14px;display:flex;align-items:center;justify-content:center;">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <h2 style="font-family:Syne,sans-serif;font-size:28px;font-weight:800;margin-bottom:8px;letter-spacing:-0.5px;">AI Chat</h2>
+        <p style="color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:24px;max-width:440px;margin-left:auto;margin-right:auto;">Ask anything about your creator business. Get help with rates, scripts, contracts, content ideas, and more. Available on Pro.</p>
+        <button onclick="startCheckout('monthly', this)" style="padding:12px 28px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow);">Upgrade to Pro</button>
+      </div>
+
+      <!-- Main chat UI (Pro+ only) -->
+      <div id="aichat-content" style="display:none;height:calc(100vh - 120px);min-height:560px;display:flex;gap:0;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--surface);">
+        <!-- Conversations sidebar -->
+        <div id="aichat-side" style="width:240px;flex-shrink:0;border-right:1px solid var(--border);background:var(--surface2);display:flex;flex-direction:column;">
+          <div style="padding:14px 14px 10px 14px;border-bottom:1px solid var(--border);">
+            <button id="aichat-new-btn" onclick="aichatNewConversation()" style="width:100%;padding:9px 12px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:9px;color:#fff;font-size:13px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:opacity 0.15s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              New Chat
+            </button>
+          </div>
+          <div id="aichat-conv-list" style="flex:1;overflow-y:auto;padding:8px;">
+            <div style="color:var(--muted);font-size:12px;text-align:center;padding:20px 0;">Loading...</div>
+          </div>
+        </div>
+
+        <!-- Chat area -->
+        <div id="aichat-main" style="flex:1;display:flex;flex-direction:column;min-width:0;">
+          <!-- Empty state with example prompts -->
+          <div id="aichat-empty" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;overflow-y:auto;">
+            <div style="width:60px;height:60px;background:linear-gradient(135deg,rgba(167,139,250,0.18),rgba(232,121,249,0.14));border:1px solid rgba(232,121,249,0.3);border-radius:16px;display:flex;align-items:center;justify-content:center;margin-bottom:18px;">
+              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            </div>
+            <h2 style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;margin-bottom:6px;letter-spacing:-0.5px;text-align:center;">Ryxa AI</h2>
+            <p style="color:var(--muted);font-size:14px;margin-bottom:28px;text-align:center;max-width:380px;">Your creator-focused AI assistant. Ask anything about content, brand deals, pricing, or growing your audience.</p>
+
+            <div style="width:100%;max-width:560px;display:grid;grid-template-columns:repeat(2,1fr);gap:10px;">
+              <button class="aichat-example" onclick="aichatUseExample(this)" data-prompt="How much should I charge for a brand deal? I have 50K followers on Instagram and they want one Reel and three Stories.">
+                <div class="aichat-example-icon">💰</div>
+                <div class="aichat-example-title">Brand deal pricing</div>
+                <div class="aichat-example-sub">How much to charge a brand</div>
+              </button>
+              <button class="aichat-example" onclick="aichatUseExample(this)" data-prompt="Help me write a 30-second Instagram Reel script about morning routines for busy moms. Hook should be strong.">
+                <div class="aichat-example-icon">🎬</div>
+                <div class="aichat-example-title">Write a Reel script</div>
+                <div class="aichat-example-sub">Get a script for your next video</div>
+              </button>
+              <button class="aichat-example" onclick="aichatUseExample(this)" data-prompt="Give me 10 hook ideas for a YouTube video about productivity. Make them punchy.">
+                <div class="aichat-example-icon">⚡</div>
+                <div class="aichat-example-title">Brainstorm hooks</div>
+                <div class="aichat-example-sub">10 punchy hooks for any video</div>
+              </button>
+              <button class="aichat-example" onclick="aichatUseExample(this)" data-prompt="A brand reached out wanting to work with me but their offer is way below my rate. How should I respond without burning the bridge?">
+                <div class="aichat-example-icon">📧</div>
+                <div class="aichat-example-title">Reply to a brand</div>
+                <div class="aichat-example-sub">Negotiate without burning bridges</div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Conversation messages -->
+          <div id="aichat-messages" style="display:none;flex:1;overflow-y:auto;padding:24px;"></div>
+
+          <!-- Input bar -->
+          <div style="padding:12px 16px 16px 16px;border-top:1px solid var(--border);background:var(--surface);">
+            <div style="display:flex;gap:8px;align-items:flex-end;max-width:760px;margin:0 auto;">
+              <textarea id="aichat-input" rows="1" placeholder="Ask anything..." style="flex:1;min-height:42px;max-height:160px;padding:11px 14px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:14px;font-family:DM Sans,sans-serif;outline:none;resize:none;line-height:1.4;" oninput="aichatAutosizeInput(this)" onkeydown="aichatHandleKey(event)"></textarea>
+              <button id="aichat-send-btn" onclick="aichatSend()" style="padding:11px 16px;background:var(--accent);border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;flex-shrink:0;height:42px;display:flex;align-items:center;gap:6px;transition:opacity 0.15s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                Send
+              </button>
+            </div>
+            <div id="aichat-hint" style="text-align:center;font-size:11px;color:var(--muted);margin-top:8px;">Press Enter to send · Shift+Enter for new line · Each message uses 1 AI slot</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- SCRIPT BUILDER (Creator Max) -->
     <div id="tool-scripts" style="display:none;">
       <!-- Paywall for non-Max users -->
@@ -7075,7 +7312,8 @@ const toolTitles = {
   analytics: 'Analytics',
     clients: 'Subscribers',
     settings: 'Settings',
-    design: 'AI Design Studio'
+    design: 'AI Design Studio',
+    aichat: 'AI Chat'
 };
 
 // Detect PWA / standalone mode
@@ -7535,7 +7773,7 @@ function showTool(tool) {
     if (typeof resetPdfSign === 'function') resetPdfSign();
   }
   // Hide all tools
-  ['welcome','bio','courses','coaching','mediakit','grid','follower','image','design','qr','invoice','pdfsign','deals','scripts','thumbanalyzer','contractanalyzer','analytics','calendar','clients','settings'].forEach(t => {
+  ['welcome','bio','courses','coaching','mediakit','grid','follower','image','design','aichat','qr','invoice','pdfsign','deals','scripts','thumbanalyzer','contractanalyzer','analytics','calendar','clients','settings'].forEach(t => {
     const el = document.getElementById('tool-' + t);
     if (el) el.style.display = 'none';
     const nav = document.getElementById('nav-' + t);
@@ -7595,6 +7833,10 @@ function showTool(tool) {
   if (tool === 'design') {
     if (!_dsLoadedOnce) { _dsLoadedOnce = true; }
     loadDesignProjects();
+  }
+  // Init AI Chat
+  if (tool === 'aichat') {
+    initAiChat();
   }
   // Update topbar title
   const title = document.getElementById('topbar-title');
@@ -23876,6 +24118,305 @@ function renderAnaMiniChart(canvasId, dailyData, valKey, color) {
 <script src="/cookie-banner.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Poppins:wght@400;700&family=Montserrat:wght@400;700&family=Bebas+Neue&family=Oswald:wght@400;700&family=Caveat:wght@400;700&family=Dancing+Script:wght@400;700&family=Playfair+Display:wght@400;700&family=Lora:wght@400;700&family=Roboto:wght@400;700&family=Open+Sans:wght@400;700&family=Raleway:wght@400;700&family=Nunito:wght@400;700&family=Quicksand:wght@400;700&family=Pacifico&family=Lobster&family=Permanent+Marker&family=Righteous&family=Abril+Fatface&family=Comfortaa:wght@400;700&display=swap" rel="stylesheet">
+<script>
+// =====================================================
+// AI CHAT
+// =====================================================
+var aichatState = {
+  inited: false,
+  conversationId: null,
+  conversations: [],
+  isLoading: false,
+};
+
+function initAiChat() {
+  if (!isPro() && !isMax()) {
+    document.getElementById('aichat-paywall').style.display = 'block';
+    document.getElementById('aichat-content').style.display = 'none';
+    return;
+  }
+  document.getElementById('aichat-paywall').style.display = 'none';
+  document.getElementById('aichat-content').style.display = 'flex';
+  if (!aichatState.inited) {
+    aichatState.inited = true;
+    aichatLoadConversations();
+  }
+}
+
+async function aichatLoadConversations() {
+  var listEl = document.getElementById('aichat-conv-list');
+  try {
+    var { data, error } = await sb
+      .from('ai_chat_conversations')
+      .select('id, title, updated_at')
+      .order('updated_at', { ascending: false })
+      .limit(50);
+    if (error) throw error;
+    aichatState.conversations = data || [];
+    aichatRenderConversationList();
+  } catch (e) {
+    console.error('Failed to load conversations:', e);
+    listEl.innerHTML = '<div style="color:var(--muted);font-size:12px;text-align:center;padding:20px 8px;">Could not load conversations</div>';
+  }
+}
+
+function aichatRenderConversationList() {
+  var listEl = document.getElementById('aichat-conv-list');
+  if (!aichatState.conversations.length) {
+    listEl.innerHTML = '<div style="color:var(--muted);font-size:12px;text-align:center;padding:20px 8px;line-height:1.5;">No chats yet.<br>Start a new one!</div>';
+    return;
+  }
+  var html = '';
+  aichatState.conversations.forEach(function(c) {
+    var active = c.id === aichatState.conversationId ? ' active' : '';
+    html += '<div class="aichat-conv-item' + active + '" onclick="aichatLoadConversation(\'' + c.id + '\')" title="' + escapeHtml(c.title) + '">'
+      + escapeHtml(c.title)
+      + '<button class="aichat-conv-delete" onclick="event.stopPropagation();aichatDeleteConversation(\'' + c.id + '\')" title="Delete chat" aria-label="Delete chat">'
+      + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>'
+      + '</button>'
+      + '</div>';
+  });
+  listEl.innerHTML = html;
+}
+
+function aichatNewConversation() {
+  aichatState.conversationId = null;
+  document.getElementById('aichat-empty').style.display = 'flex';
+  document.getElementById('aichat-messages').style.display = 'none';
+  document.getElementById('aichat-messages').innerHTML = '';
+  aichatRenderConversationList();
+  var inp = document.getElementById('aichat-input');
+  if (inp) inp.focus();
+}
+
+async function aichatLoadConversation(convId) {
+  aichatState.conversationId = convId;
+  aichatRenderConversationList();
+  var messagesEl = document.getElementById('aichat-messages');
+  document.getElementById('aichat-empty').style.display = 'none';
+  messagesEl.style.display = 'block';
+  messagesEl.innerHTML = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:40px 0;">Loading...</div>';
+  try {
+    var { data, error } = await sb
+      .from('ai_chat_messages')
+      .select('id, role, content, created_at')
+      .eq('conversation_id', convId)
+      .order('created_at', { ascending: true });
+    if (error) throw error;
+    var html = '';
+    (data || []).forEach(function(m) {
+      html += aichatRenderMessage(m.role, m.content);
+    });
+    messagesEl.innerHTML = html;
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  } catch (e) {
+    console.error('Failed to load messages:', e);
+    messagesEl.innerHTML = '<div style="color:#f87171;font-size:13px;text-align:center;padding:40px 0;">Could not load this chat</div>';
+  }
+}
+
+async function aichatDeleteConversation(convId) {
+  showModalConfirm('Delete this chat?', 'This conversation and all its messages will be permanently deleted.', async function() {
+    try {
+      var { error } = await sb.from('ai_chat_conversations').delete().eq('id', convId);
+      if (error) throw error;
+      aichatState.conversations = aichatState.conversations.filter(function(c) { return c.id !== convId; });
+      if (aichatState.conversationId === convId) {
+        aichatNewConversation();
+      } else {
+        aichatRenderConversationList();
+      }
+    } catch (e) {
+      console.error('Delete failed:', e);
+      showModalAlert('Error', 'Could not delete this chat. Please try again.');
+    }
+  });
+}
+
+function aichatRenderMessage(role, content) {
+  var avatarLetter = role === 'user' ? (currentUser?.email?.[0]?.toUpperCase() || 'U') : 'R';
+  var bodyHtml = role === 'assistant' ? aichatMarkdownToHtml(content) : '<p>' + escapeHtml(content).replace(/\n/g, '<br>') + '</p>';
+  return '<div class="aichat-msg ' + role + '">'
+    + '<div class="aichat-msg-avatar">' + escapeHtml(avatarLetter) + '</div>'
+    + '<div class="aichat-msg-body">' + bodyHtml + '</div>'
+    + '</div>';
+}
+
+// Minimal markdown renderer — handles paragraphs, bold, italic, code, lists, links
+function aichatMarkdownToHtml(md) {
+  var s = String(md || '');
+  // Escape HTML first
+  s = s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  // Code blocks (```)
+  s = s.replace(/```([\s\S]*?)```/g, function(_, code) {
+    return '<pre><code>' + code.replace(/\n$/, '') + '</code></pre>';
+  });
+  // Inline code (`...`)
+  s = s.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+  // Bold (**...**)
+  s = s.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
+  // Italic (*...*) — non-greedy, single-line
+  s = s.replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<em>$2</em>');
+  // Links [text](url)
+  s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, function(_, text, url) {
+    var safe = url.replace(/"/g, '&quot;');
+    return '<a href="' + safe + '" target="_blank" rel="noopener nofollow">' + text + '</a>';
+  });
+  // Split into lines, group lists, paragraphs
+  var lines = s.split(/\n/);
+  var out = [];
+  var inList = null; // 'ul' or 'ol'
+  var paragraph = [];
+  function flushPara() {
+    if (paragraph.length) { out.push('<p>' + paragraph.join('<br>') + '</p>'); paragraph = []; }
+  }
+  function closeList() {
+    if (inList) { out.push('</' + inList + '>'); inList = null; }
+  }
+  lines.forEach(function(line) {
+    var ulMatch = line.match(/^\s*[-*]\s+(.+)$/);
+    var olMatch = line.match(/^\s*\d+\.\s+(.+)$/);
+    if (ulMatch) {
+      flushPara();
+      if (inList !== 'ul') { closeList(); out.push('<ul>'); inList = 'ul'; }
+      out.push('<li>' + ulMatch[1] + '</li>');
+    } else if (olMatch) {
+      flushPara();
+      if (inList !== 'ol') { closeList(); out.push('<ol>'); inList = 'ol'; }
+      out.push('<li>' + olMatch[1] + '</li>');
+    } else if (line.trim() === '') {
+      flushPara();
+      closeList();
+    } else {
+      closeList();
+      paragraph.push(line);
+    }
+  });
+  flushPara();
+  closeList();
+  return out.join('\n');
+}
+
+function aichatUseExample(btn) {
+  var prompt = btn.getAttribute('data-prompt') || '';
+  var inp = document.getElementById('aichat-input');
+  inp.value = prompt;
+  aichatAutosizeInput(inp);
+  inp.focus();
+}
+
+function aichatAutosizeInput(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(160, el.scrollHeight) + 'px';
+}
+
+function aichatHandleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    aichatSend();
+  }
+}
+
+async function aichatSend() {
+  if (aichatState.isLoading) return;
+  var inp = document.getElementById('aichat-input');
+  var text = (inp.value || '').trim();
+  if (!text) return;
+  if (text.length > 4000) {
+    showModalAlert('Message too long', 'Keep messages under 4000 characters.');
+    return;
+  }
+
+  aichatState.isLoading = true;
+  inp.disabled = true;
+  document.getElementById('aichat-send-btn').disabled = true;
+  document.getElementById('aichat-send-btn').style.opacity = '0.6';
+
+  // Show conversation view if not already
+  document.getElementById('aichat-empty').style.display = 'none';
+  var messagesEl = document.getElementById('aichat-messages');
+  messagesEl.style.display = 'block';
+
+  // Append user message immediately
+  messagesEl.insertAdjacentHTML('beforeend', aichatRenderMessage('user', text));
+  // Append typing indicator
+  var typingHtml = '<div class="aichat-msg assistant" id="aichat-typing">'
+    + '<div class="aichat-msg-avatar">R</div>'
+    + '<div class="aichat-msg-body"><div class="aichat-typing"><span></span><span></span><span></span></div></div>'
+    + '</div>';
+  messagesEl.insertAdjacentHTML('beforeend', typingHtml);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+
+  inp.value = '';
+  aichatAutosizeInput(inp);
+
+  try {
+    var resp = await fetch('/api/ai-chat', {
+      method: 'POST',
+      headers: getAIHeaders(),
+      body: JSON.stringify({
+        conversation_id: aichatState.conversationId,
+        message: text,
+      }),
+    });
+    var data = await resp.json();
+
+    // Remove typing indicator
+    var typingEl = document.getElementById('aichat-typing');
+    if (typingEl) typingEl.remove();
+
+    if (!resp.ok || data.error) {
+      var errMsg = data.error || 'Something went wrong.';
+      // Append error inline as an assistant-style message
+      messagesEl.insertAdjacentHTML('beforeend',
+        '<div class="aichat-msg assistant"><div class="aichat-msg-avatar" style="background:#f87171;">!</div><div class="aichat-msg-body" style="color:#f87171;">' + escapeHtml(errMsg) + '</div></div>'
+      );
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+
+      // If rate-limited, also surface the helpful info via the usage bar refresh
+      if (resp.status === 429 && data.next_reset_at) {
+        // Already wrapped fetch refreshes usage bar
+      }
+      return;
+    }
+
+    // Append the response
+    messagesEl.insertAdjacentHTML('beforeend', aichatRenderMessage('assistant', data.response));
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+
+    // If new conversation, set state and refresh sidebar
+    if (data.is_new && data.conversation_id) {
+      aichatState.conversationId = data.conversation_id;
+      // Reload conversations to pick up the new one
+      aichatLoadConversations();
+    } else {
+      // Move this conversation to the top of the list (it just got an update)
+      var idx = aichatState.conversations.findIndex(function(c) { return c.id === aichatState.conversationId; });
+      if (idx >= 0) {
+        var c = aichatState.conversations[idx];
+        c.updated_at = new Date().toISOString();
+        aichatState.conversations.splice(idx, 1);
+        aichatState.conversations.unshift(c);
+        aichatRenderConversationList();
+      }
+    }
+  } catch (e) {
+    console.error('aichat send error:', e);
+    var typingEl2 = document.getElementById('aichat-typing');
+    if (typingEl2) typingEl2.remove();
+    messagesEl.insertAdjacentHTML('beforeend',
+      '<div class="aichat-msg assistant"><div class="aichat-msg-avatar" style="background:#f87171;">!</div><div class="aichat-msg-body" style="color:#f87171;">Network error. Please try again.</div></div>'
+    );
+  } finally {
+    aichatState.isLoading = false;
+    inp.disabled = false;
+    document.getElementById('aichat-send-btn').disabled = false;
+    document.getElementById('aichat-send-btn').style.opacity = '1';
+    inp.focus();
+  }
+}
+</script>
+
 <script>
 // =====================================================
 // DESIGN STUDIO
