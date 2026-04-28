@@ -1,5 +1,5 @@
 // Vercel serverless function — SSR landing page for digital products
-// Renders /product/<slug> server-side with cache headers so a viral product
+// Renders /product/<slug> with cache headers so a viral product
 // doesn't melt the database. Cached at the CDN edge for 60s.
 //
 // Buyer flow matches courses + coaching: must be signed in first.
@@ -32,37 +32,35 @@ function notFoundResponse() {
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-body { margin:0; background:#0a0a14; color:#eee; font-family:'DM Sans',sans-serif; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; text-align:center; }
+:root { --bg:#0a0a14; --surface:#12121e; --surface2:#16162a; --border:rgba(255,255,255,0.06); --border-hover:rgba(255,255,255,0.12); --text:#eee; --muted:rgba(255,255,255,0.45); --accent:#7c3aed; --accent2:#a855f7; --accent-glow:rgba(124,58,237,0.35); }
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; text-align:center; }
 h1 { font-family:'Syne',sans-serif; font-size:32px; font-weight:800; margin-bottom:12px; letter-spacing:-1px; }
-p { color:rgba(255,255,255,0.55); font-size:15px; line-height:1.6; max-width:420px; margin:0 auto 24px; }
-a { display:inline-block; padding:12px 26px; background:#7c3aed; color:#fff; border-radius:10px; text-decoration:none; font-weight:600; font-size:14px; }
+p { color:var(--muted); font-size:15px; line-height:1.6; max-width:420px; margin:0 auto 24px; }
+a.btn { display:inline-block; padding:12px 26px; background:var(--accent); color:#fff; border-radius:10px; text-decoration:none; font-weight:600; font-size:14px; box-shadow:0 0 16px var(--accent-glow); }
 </style>
 </head>
 <body>
 <div>
 <h1>Product not found</h1>
 <p>This product doesn't exist or has been taken down by the creator.</p>
-<a href="https://ryxa.io">Visit Ryxa</a>
+<a href="https://ryxa.io" class="btn">Back to Ryxa</a>
 </div>
 </body>
 </html>`;
 }
 
 function renderPage(product, creator) {
-  var coverHtml = product.cover_image_url
-    ? `<div class="cover" style="background-image:url('${esc(product.cover_image_url)}');"></div>`
-    : `<div class="cover cover-default"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>`;
-
+  var creatorName = creator?.username || 'Creator';
   var price = fmtPrice(product.price_cents, product.currency);
   var isFree = !product.price_cents || product.price_cents <= 0;
-  var btnText = isFree ? 'Get for free' : 'Buy for ' + price;
 
-  var creatorHandle = creator?.username ? '@' + creator.username : '';
-  var creatorName = creator?.username || 'A creator';
-  var avatarHtml = `<div class="creator-avatar creator-avatar-default">${esc((creatorName[0] || 'R').toUpperCase())}</div>`;
+  var coverHtml = product.cover_image_url
+    ? `<img src="${esc(product.cover_image_url)}" alt="" class="dp-cover">`
+    : `<div class="dp-cover-placeholder"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="rgba(167,139,250,0.5)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>`;
 
   var description = product.description
-    ? `<div class="description">${esc(product.description).replace(/\n/g, '<br>')}</div>`
+    ? `<div class="dp-desc">${esc(product.description).replace(/\n/g, '<br>')}</div>`
     : '';
 
   var ogImage = product.cover_image_url || 'https://ryxa.io/og-default.png';
@@ -96,91 +94,117 @@ function renderPage(product, creator) {
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
+  :root { --bg:#0a0a14; --surface:#12121e; --surface2:#16162a; --border:rgba(255,255,255,0.06); --border-hover:rgba(255,255,255,0.12); --text:#eee; --muted:rgba(255,255,255,0.45); --accent:#7c3aed; --accent2:#a855f7; --accent-glow:rgba(124,58,237,0.35); }
   *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
-  body { background:#0a0a14; color:#eee; font-family:'DM Sans',sans-serif; min-height:100vh; line-height:1.5; }
+  body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; min-height:100vh; line-height:1.5; }
   a { color:inherit; text-decoration:none; }
-  .topbar { padding:16px 24px; border-bottom:1px solid rgba(255,255,255,0.06); display:flex; align-items:center; justify-content:space-between; }
-  .topbar-brand { font-family:'Syne',sans-serif; font-size:20px; font-weight:800; letter-spacing:-0.5px; }
-  .topbar-link { font-size:13px; color:rgba(255,255,255,0.5); padding:8px 14px; border:1px solid rgba(255,255,255,0.1); border-radius:8px; transition:border-color 0.15s; }
-  .topbar-link:hover { border-color:rgba(255,255,255,0.25); color:#fff; }
-  .container { max-width:760px; margin:0 auto; padding:32px 24px 64px; }
-  .cover { width:100%; aspect-ratio:16/9; background-size:cover; background-position:center; background-color:#16162a; border-radius:18px; margin-bottom:28px; box-shadow:0 20px 60px rgba(0,0,0,0.4); }
-  .cover-default { background:linear-gradient(135deg,rgba(124,58,237,0.18),rgba(232,121,249,0.14)); display:flex; align-items:center; justify-content:center; }
-  .title { font-family:'Syne',sans-serif; font-size:clamp(28px,5vw,44px); font-weight:800; letter-spacing:-1px; margin-bottom:16px; line-height:1.1; }
-  .creator { display:flex; align-items:center; gap:10px; margin-bottom:28px; padding:12px 14px; background:#12121e; border:1px solid rgba(255,255,255,0.06); border-radius:12px; max-width:360px; transition:border-color 0.15s; }
-  .creator:hover { border-color:rgba(255,255,255,0.15); }
-  .creator-avatar { width:36px; height:36px; border-radius:50%; flex-shrink:0; }
-  .creator-avatar-default { background:linear-gradient(135deg,#7c3aed,#a855f7); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:15px; }
-  .creator-name { font-size:14px; font-weight:600; }
-  .creator-handle { font-size:12px; color:rgba(255,255,255,0.45); }
-  .description { font-size:15px; color:rgba(255,255,255,0.78); line-height:1.7; margin-bottom:32px; white-space:pre-wrap; word-wrap:break-word; }
-  .checkout-box { background:#12121e; border:1px solid rgba(255,255,255,0.06); border-radius:14px; padding:22px; }
-  .price-row { display:flex; align-items:baseline; gap:8px; margin-bottom:18px; }
-  .price { font-family:'Syne',sans-serif; font-size:32px; font-weight:800; }
-  .price-suffix { color:rgba(255,255,255,0.45); font-size:13px; }
-  .signed-in-row { display:flex; align-items:center; gap:8px; padding:10px 12px; background:rgba(124,58,237,0.08); border:1px solid rgba(124,58,237,0.2); border-radius:9px; margin-bottom:14px; font-size:12px; color:rgba(255,255,255,0.7); }
-  .signed-in-row strong { color:#fff; font-weight:600; }
-  .consent-row { display:flex; align-items:flex-start; gap:8px; margin-bottom:14px; font-size:12px; color:rgba(255,255,255,0.5); cursor:pointer; }
-  .consent-row input { margin-top:2px; flex-shrink:0; }
-  .buy-btn { width:100%; padding:14px; background:linear-gradient(135deg,#7c3aed,#a855f7); border:none; border-radius:10px; color:#fff; font-size:15px; font-weight:600; font-family:'DM Sans',sans-serif; cursor:pointer; box-shadow:0 4px 24px rgba(124,58,237,0.35); transition:transform 0.1s; }
-  .buy-btn:hover:not(:disabled) { transform:translateY(-1px); }
-  .buy-btn:disabled { opacity:0.6; cursor:not-allowed; transform:none; }
-  .secure-row { display:flex; align-items:center; justify-content:center; gap:6px; margin-top:12px; font-size:11px; color:rgba(255,255,255,0.4); }
-  .footer { text-align:center; padding:32px 16px 24px; font-size:12px; color:rgba(255,255,255,0.35); }
-  .footer a { color:rgba(255,255,255,0.55); }
+
+  /* Nav — matches course/booking pages */
+  .nav { padding:16px 32px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--border); position:relative; }
+  .nav-logo { display:flex; align-items:center; gap:8px; text-decoration:none; color:var(--text); font-family:'Syne',sans-serif; font-size:20px; font-weight:800; letter-spacing:-0.4px; }
+  .nav-logo img { width:28px; height:28px; border-radius:6px; }
+  .nav-right { display:flex; gap:10px; align-items:center; }
+
+  /* Signed-in chip */
+  .signin-chip { display:none; align-items:center; gap:8px; padding:7px 12px; background:var(--surface); border:1px solid var(--border-hover); border-radius:999px; font-size:12px; color:var(--muted); cursor:pointer; transition:border-color 0.15s, color 0.15s; }
+  .signin-chip:hover { border-color:var(--accent); color:var(--text); }
+  .signin-chip-avatar { width:20px; height:20px; border-radius:50%; background:linear-gradient(135deg,var(--accent),var(--accent2)); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:10px; flex-shrink:0; }
+  .signin-chip-email { max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .signin-popover { display:none; position:absolute; top:62px; right:32px; background:var(--surface); border:1px solid var(--border-hover); border-radius:12px; box-shadow:0 12px 40px rgba(0,0,0,0.4); z-index:50; min-width:240px; overflow:hidden; }
+  .signin-popover-email { padding:14px 16px 12px; border-bottom:1px solid var(--border); font-size:13px; color:var(--muted); }
+  .signin-popover-email strong { display:block; color:var(--text); font-weight:600; margin-top:2px; word-break:break-all; }
+  .signin-popover-btn { width:100%; padding:11px 16px; background:transparent; border:none; color:var(--text); font-size:13px; font-family:'DM Sans',sans-serif; cursor:pointer; text-align:left; display:flex; align-items:center; gap:8px; transition:background 0.15s; }
+  .signin-popover-btn:hover { background:rgba(124,58,237,0.08); }
+  .signin-popover-btn.danger { color:#fca5a5; }
+  .signin-popover-btn.danger:hover { background:rgba(239,68,68,0.08); }
+
+  /* Hero */
+  .dp-hero { max-width:960px; margin:0 auto; padding:48px 32px; }
+  .dp-cover { width:100%; max-height:400px; object-fit:cover; border-radius:16px; margin-bottom:32px; border:1px solid var(--border); display:block; }
+  .dp-cover-placeholder { width:100%; height:240px; background:linear-gradient(135deg,rgba(124,58,237,0.15),rgba(232,121,249,0.1)); border-radius:16px; margin-bottom:32px; display:flex; align-items:center; justify-content:center; border:1px solid var(--border); }
+  .dp-title { font-family:'Syne',sans-serif; font-size:clamp(28px,5vw,44px); font-weight:800; letter-spacing:-1.5px; line-height:1.1; margin-bottom:16px; }
+  .dp-creator { font-size:14px; color:var(--muted); margin-bottom:24px; }
+  .dp-creator strong { color:var(--accent2); font-weight:600; }
+  .dp-desc { font-size:16px; line-height:1.75; color:var(--muted); margin-bottom:32px; max-width:700px; white-space:pre-wrap; word-wrap:break-word; }
+
+  /* Buy card — matches course page */
+  .dp-buy-card { background:var(--surface2); border:1px solid var(--border); border-radius:16px; padding:28px; margin-bottom:24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; }
+  .dp-price { font-family:'Syne',sans-serif; font-size:32px; font-weight:800; letter-spacing:-1px; }
+  .dp-price-free { color:#4ade80; }
+  .dp-buy-btn { padding:14px 36px; background:linear-gradient(135deg,#a78bfa,#e879f9); color:#fff; border:none; border-radius:10px; font-size:16px; font-weight:600; font-family:'DM Sans',sans-serif; cursor:pointer; box-shadow:0 4px 24px rgba(167,139,250,0.3); transition:all 0.2s; }
+  .dp-buy-btn:hover:not(:disabled) { transform:translateY(-1px); box-shadow:0 6px 30px rgba(167,139,250,0.4); }
+  .dp-buy-btn:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+  .dp-purchased-badge { padding:12px 24px; background:rgba(74,222,128,0.1); border:1px solid rgba(74,222,128,0.3); border-radius:10px; color:#4ade80; font-size:14px; font-weight:600; display:inline-flex; align-items:center; gap:8px; text-decoration:none; }
+
+  /* Consent */
+  .dp-consent { display:flex; align-items:center; gap:8px; margin-top:8px; cursor:pointer; font-size:13px; color:var(--muted); }
+  .dp-consent input { accent-color:var(--accent); width:16px; height:16px; cursor:pointer; }
+
+  /* Footer */
+  .dp-footer { text-align:center; padding:32px; border-top:1px solid var(--border); }
+  .dp-footer a { color:var(--muted); text-decoration:none; font-size:12px; }
+  .dp-footer a:hover { color:var(--text); }
+
   .toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); padding:11px 18px; background:rgba(15,15,30,0.95); border:1px solid rgba(255,255,255,0.1); border-radius:10px; font-size:13px; max-width:90%; box-shadow:0 8px 32px rgba(0,0,0,0.4); display:none; backdrop-filter:blur(8px); z-index:99; }
   .toast.error { border-color:rgba(239,68,68,0.4); color:#fca5a5; }
   .toast.success { border-color:rgba(34,197,94,0.4); color:#86efac; }
+
+  @media (max-width:640px) {
+    .nav { padding:12px 16px; }
+    .signin-popover { right:16px; }
+    .dp-hero { padding:32px 16px; }
+    .dp-buy-card { flex-direction:column; text-align:center; align-items:stretch; }
+    .dp-buy-btn { width:100%; }
+    .signin-chip-email { max-width:100px; }
+  }
 </style>
 </head>
 <body>
 
-<header class="topbar">
-  <a href="https://ryxa.io" class="topbar-brand">Ryxa</a>
-  <a href="https://ryxa.io" class="topbar-link">Sell digital products on Ryxa</a>
-</header>
-
-<main class="container">
-  ${coverHtml}
-  <h1 class="title">${esc(product.title)}</h1>
-
-  ${creator?.username ? `<a href="https://ryxa.io/${esc(creator.username)}" class="creator">
-    ${avatarHtml}
-    <div>
-      <div class="creator-name">${esc(creatorName)}</div>
-      <div class="creator-handle">${esc(creatorHandle)}</div>
+<nav class="nav">
+  <a href="/" class="nav-logo"><img src="/logo.png" alt="Ryxa"> Ryxa</a>
+  <div class="nav-right">
+    <button id="signin-chip" class="signin-chip" type="button" onclick="toggleSigninPopover(event)">
+      <span class="signin-chip-avatar" id="signin-chip-avatar">U</span>
+      <span class="signin-chip-email" id="signin-chip-email"></span>
+    </button>
+  </div>
+  <div id="signin-popover" class="signin-popover">
+    <div class="signin-popover-email">
+      Signed in as
+      <strong id="signin-popover-email"></strong>
     </div>
-  </a>` : ''}
+    <a href="/learn/" class="signin-popover-btn" style="text-decoration:none;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Ryxa Hub
+    </a>
+    <button class="signin-popover-btn danger" onclick="signOutAndReload()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Sign out
+    </button>
+  </div>
+</nav>
 
+<section class="dp-hero">
+  ${coverHtml}
+  <h1 class="dp-title">${esc(product.title)}</h1>
+  <div class="dp-creator">by <a href="/${esc(creatorName)}" style="color:inherit;text-decoration:none;"><strong>${esc(creatorName)}</strong></a></div>
   ${description}
 
-  <div class="checkout-box">
-    <div class="price-row">
-      <div class="price">${price}</div>
-      ${!isFree ? '<div class="price-suffix">one-time payment</div>' : ''}
-    </div>
-
-    <div id="signed-in-row" class="signed-in-row" style="display:none;">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-      <span>Signed in as <strong id="signed-in-email"></strong></span>
-    </div>
-
-    <label class="consent-row">
-      <input type="checkbox" id="marketing-consent">
-      <span>I'd like to receive updates from ${esc(creatorName)}</span>
-    </label>
-
-    <button type="button" id="buy-btn" class="buy-btn" onclick="handleBuyClick()">${btnText}</button>
-
-    <div class="secure-row">
-      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-      ${isFree ? 'Instant access in your Ryxa Hub' : 'Secure checkout via Stripe'}
+  <div class="dp-buy-card">
+    <div class="dp-price">${isFree ? '<span class="dp-price-free">Free</span>' : esc(price)}</div>
+    <div id="dp-buy-area">
+      <button id="buy-btn" class="dp-buy-btn" onclick="handleBuyClick()">${isFree ? 'Get for free' : 'Buy now'}</button>
     </div>
   </div>
-</main>
+  <label class="dp-consent" id="consent-row" style="display:none;">
+    <input type="checkbox" id="marketing-consent">
+    <span>Get updates from this creator</span>
+  </label>
+</section>
 
-<footer class="footer">
-  <p>Powered by <a href="https://ryxa.io">Ryxa</a> · <a href="/terms.html">Terms</a> · <a href="/privacy.html">Privacy</a></p>
+<footer class="dp-footer">
+  <a href="/">Powered by Ryxa</a>
 </footer>
 
 <div id="toast" class="toast"></div>
@@ -189,10 +213,9 @@ function renderPage(product, creator) {
 const PRODUCT_ID = '${esc(product.id)}';
 const PRODUCT_SLUG = '${esc(product.slug)}';
 const IS_FREE = ${isFree ? 'true' : 'false'};
-const BTN_TEXT = '${btnText}';
 const SUPABASE_URL = '${SUPABASE_URL}';
 const SUPABASE_ANON_KEY = '${SUPABASE_ANON_KEY}';
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 function showToast(msg, type) {
   var el = document.getElementById('toast');
@@ -202,13 +225,49 @@ function showToast(msg, type) {
   setTimeout(function() { el.style.display = 'none'; }, 5000);
 }
 
+// Signed-in indicator
+function toggleSigninPopover(evt) {
+  if (evt) evt.stopPropagation();
+  var pop = document.getElementById('signin-popover');
+  pop.style.display = pop.style.display === 'block' ? 'none' : 'block';
+}
+document.addEventListener('click', function(e) {
+  var pop = document.getElementById('signin-popover');
+  var chip = document.getElementById('signin-chip');
+  if (pop.style.display === 'block' && !pop.contains(e.target) && !chip.contains(e.target)) {
+    pop.style.display = 'none';
+  }
+});
+
+async function signOutAndReload() {
+  await sb.auth.signOut();
+  window.location.reload();
+}
+
 // On load: detect existing session, update UI
 async function init() {
   try {
     var { data: { session } } = await sb.auth.getSession();
     if (session?.user) {
-      document.getElementById('signed-in-email').textContent = session.user.email || '';
-      document.getElementById('signed-in-row').style.display = 'flex';
+      var email = session.user.email || '';
+      document.getElementById('signin-chip-email').textContent = email;
+      document.getElementById('signin-chip-avatar').textContent = (email[0] || 'U').toUpperCase();
+      document.getElementById('signin-chip').style.display = 'inline-flex';
+      document.getElementById('signin-popover-email').textContent = email;
+      document.getElementById('consent-row').style.display = 'flex';
+
+      // If already purchased, swap button for "Go to Ryxa Hub" link
+      try {
+        var { data: existing } = await sb.from('digital_product_purchases')
+          .select('id')
+          .eq('product_id', PRODUCT_ID)
+          .eq('buyer_user_id', session.user.id)
+          .limit(1);
+        if (existing && existing.length > 0) {
+          document.getElementById('dp-buy-area').innerHTML = '<a href="/learn/?dp=' + PRODUCT_ID + '" class="dp-purchased-badge"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Go to your download</a>';
+          document.getElementById('consent-row').style.display = 'none';
+        }
+      } catch (e) { /* non-fatal */ }
     }
   } catch (e) {
     console.error('Session check failed:', e);
@@ -219,12 +278,12 @@ init();
 async function handleBuyClick() {
   var { data: { session } } = await sb.auth.getSession();
   if (!session?.user) {
-    // Redirect to /learn/ for sign up / sign in, with redirect back here
     window.location.href = '/learn/?redirect=' + encodeURIComponent(window.location.pathname);
     return;
   }
 
-  var consent = document.getElementById('marketing-consent').checked;
+  var consentEl = document.getElementById('marketing-consent');
+  var consent = consentEl ? consentEl.checked : false;
   var btn = document.getElementById('buy-btn');
   btn.disabled = true;
   btn.textContent = IS_FREE ? 'Processing...' : 'Loading checkout...';
@@ -270,7 +329,7 @@ async function handleBuyClick() {
     window.location.href = data.checkout_url;
   } catch (err) {
     btn.disabled = false;
-    btn.textContent = BTN_TEXT;
+    btn.textContent = IS_FREE ? 'Get for free' : 'Buy now';
     showToast(err.message || 'Something went wrong', 'error');
   }
 }
