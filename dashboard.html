@@ -6616,9 +6616,13 @@
             <!-- Slug -->
             <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;">
               <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;">URL Slug</label>
-              <div style="display:flex;align-items:center;gap:0;">
-                <span style="padding:11px 0 11px 14px;background:var(--bg);border:1px solid var(--border);border-right:none;border-radius:10px 0 0 10px;color:var(--muted);font-size:13px;font-family:DM Sans,sans-serif;white-space:nowrap;">ryxa.io/product/</span>
-                <input type="text" id="products-slug" maxlength="80" placeholder="lightroom-preset-pack" style="flex:1;padding:11px 14px;background:var(--bg);border:1px solid var(--border);border-radius:0 10px 10px 0;color:var(--text);font-size:14px;font-family:DM Sans,sans-serif;outline:none;">
+              <div style="display:flex;align-items:center;gap:0;background:var(--bg);border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+                <span style="padding:11px 0 11px 14px;color:var(--muted);font-size:13px;font-family:DM Sans,sans-serif;white-space:nowrap;">ryxa.io/product/</span>
+                <input type="text" id="products-slug" maxlength="80" placeholder="lightroom-preset-pack" style="flex:1;background:transparent;border:none;padding:11px 14px;color:var(--text);font-size:14px;font-family:DM Sans,sans-serif;outline:none;">
+                <button type="button" onclick="copyProductUrl()" id="products-copy-url-btn" style="display:none;padding:8px 14px;background:transparent;border:none;border-left:1px solid var(--border);color:var(--muted);font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer;white-space:nowrap;align-items:center;gap:5px;transition:color 0.15s;" title="Copy URL">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                  Copy
+                </button>
               </div>
               <div id="products-slug-status" style="font-size:11px;margin-top:6px;color:var(--muted);">Lowercase letters, numbers, and hyphens only.</div>
             </div>
@@ -24468,6 +24472,40 @@ function hydrateProductEditor(prod) {
     coverEl.textContent = 'Click to upload (1280\u00d7720 recommended)';
     removeBtn.style.display = 'none';
   }
+
+  dpUpdateLinkButtons();
+}
+
+// Show or hide the inline Copy button based on whether the product has been
+// saved (has an editingId) and has a non-empty slug.
+function dpUpdateLinkButtons() {
+  var slug = (document.getElementById('products-slug').value || '').trim();
+  var btn = document.getElementById('products-copy-url-btn');
+  if (!btn) return;
+  if (productsState.editingId && slug) {
+    btn.style.display = 'flex';
+  } else {
+    btn.style.display = 'none';
+  }
+}
+
+// Hide the link button while the slug is being edited so there's no confusion
+// about which slug the link points to. Reappears after save.
+document.addEventListener('input', function(e) {
+  if (e.target && e.target.id === 'products-slug') dpUpdateLinkButtons();
+});
+
+function copyProductUrl() {
+  var slug = (document.getElementById('products-slug').value || '').trim();
+  if (!productsState.editingId || !slug) return;
+  var url = 'https://www.ryxa.io/product/' + slug;
+  navigator.clipboard.writeText(url).then(function() {
+    var btn = document.getElementById('products-copy-url-btn');
+    var orig = btn.innerHTML;
+    btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Copied';
+    btn.style.color = '#4ade80';
+    setTimeout(function() { btn.innerHTML = orig; btn.style.color = 'var(--muted)'; }, 1500);
+  });
 }
 
 function closeProductEditor() {
@@ -24902,6 +24940,7 @@ async function saveProductDraftSilently() {
     document.getElementById('products-slug').value = slug;
     document.getElementById('products-editor-title').textContent = 'Edit Product';
     document.getElementById('products-delete-btn').style.display = 'inline-block';
+    dpUpdateLinkButtons();
     return true;
   } catch (e) {
     console.error('Silent draft save failed:', e);
