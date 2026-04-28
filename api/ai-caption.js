@@ -2,6 +2,8 @@
 // Receives a base64 image, sends to Claude for caption generation
 // POST /api/ai-caption { image: "data:image/...;base64,..." }
 
+const { checkAndAuth, recordUsage } = require('./_ai-rate-limit.js');
+
 module.exports = async (req, res) => {
   const origin = req.headers.origin || '';
   const allowed = ['https://ryxa.io', 'https://www.ryxa.io', 'http://localhost:3000'];
@@ -14,16 +16,9 @@ module.exports = async (req, res) => {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return res.status(500).json({ error: 'API key not configured' });
 
-  // Auth: verify Supabase JWT
-  const authHeader = req.headers.authorization || '';
-  if (!authHeader.startsWith('Bearer ')) return res.status(401).json({ error: 'Unauthorized' });
-  const token = authHeader.split(' ')[1];
-  try {
-    const authRes = await fetch('https://kjytapcgxukalwsyputk.supabase.co/auth/v1/user', {
-      headers: { 'Authorization': 'Bearer ' + token, 'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtqeXRhcGNneHVrYWx3c3lwdXRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMTcxMzEsImV4cCI6MjA5MDg5MzEzMX0.VC8mcU5lUeA56kG2gHssvl88EVWr018XttA86jpfEn0' }
-    });
-    if (!authRes.ok) return res.status(401).json({ error: 'Unauthorized' });
-  } catch (e) { return res.status(401).json({ error: 'Auth verification failed' }); }
+  // Auth + rate limit
+  const auth = await checkAndAuth(req, 'ai-caption');
+  if (!auth.ok) return res.status(auth.status).json({ error: auth.error, ...(auth.extras || {}) });
 
 
   const { image } = req.body || {};
@@ -79,6 +74,7 @@ module.exports = async (req, res) => {
     const data = await response.json();
     const text = data.content?.[0]?.text?.trim() || '';
 
+    recordUsage(auth.userId, 'ai-caption', auth.sb);
     return res.status(200).json({ captions: text });
   } catch (err) {
     console.error('Caption error:', err);
