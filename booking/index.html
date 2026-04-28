@@ -36,9 +36,23 @@
   .loading { display: flex; align-items: center; justify-content: center; min-height: 60vh; color: var(--muted); font-size: 14px; }
   .error-page { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; text-align: center; padding: 40px 24px; }
 
-  .nav { padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+  .nav { padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); position: relative; }
   .nav-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text); font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; letter-spacing: -0.4px; }
   .nav-logo img { width: 28px; height: 28px; border-radius: 6px; }
+  .nav-right { display: flex; gap: 10px; align-items: center; }
+
+  /* Signed-in chip */
+  .signin-chip { display: none; align-items: center; gap: 8px; padding: 7px 12px; background: var(--surface); border: 1px solid var(--border-hover); border-radius: 999px; font-size: 12px; color: var(--muted); cursor: pointer; transition: border-color 0.15s, color 0.15s; font-family: 'DM Sans', sans-serif; }
+  .signin-chip:hover { border-color: var(--accent); color: var(--text); }
+  .signin-chip-avatar { width: 20px; height: 20px; border-radius: 50%; background: linear-gradient(135deg,var(--accent),var(--accent2)); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 10px; flex-shrink: 0; }
+  .signin-chip-email { max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .signin-popover { display: none; position: absolute; top: 62px; right: 32px; background: var(--surface); border: 1px solid var(--border-hover); border-radius: 12px; box-shadow: 0 12px 40px rgba(0,0,0,0.4); z-index: 50; min-width: 240px; overflow: hidden; }
+  .signin-popover-email { padding: 14px 16px 12px; border-bottom: 1px solid var(--border); font-size: 13px; color: var(--muted); }
+  .signin-popover-email strong { display: block; color: var(--text); font-weight: 600; margin-top: 2px; word-break: break-all; }
+  .signin-popover-btn { width: 100%; padding: 11px 16px; background: transparent; border: none; color: var(--text); font-size: 13px; font-family: 'DM Sans', sans-serif; cursor: pointer; text-align: left; display: flex; align-items: center; gap: 8px; transition: background 0.15s; text-decoration: none; }
+  .signin-popover-btn:hover { background: rgba(124,58,237,0.08); }
+  .signin-popover-btn.danger { color: #fca5a5; }
+  .signin-popover-btn.danger:hover { background: rgba(239,68,68,0.08); }
 
   .coaching-hero { max-width: 720px; margin: 0 auto; padding: 48px 24px; }
   .coaching-cover { width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 16px; margin-bottom: 32px; border: 1px solid var(--border); display: block; }
@@ -98,6 +112,8 @@
 
   @media (max-width: 600px) {
     .nav { padding: 14px 18px; }
+    .signin-popover { right: 18px; }
+    .signin-chip-email { max-width: 100px; }
     .coaching-hero { padding: 32px 18px; }
     .coaching-meta { gap: 12px; }
   }
@@ -110,6 +126,26 @@
     <img src="/logo.png" alt="Ryxa">
     Ryxa
   </a>
+  <div class="nav-right">
+    <button id="signin-chip" class="signin-chip" type="button" onclick="toggleSigninPopover(event)">
+      <span class="signin-chip-avatar" id="signin-chip-avatar">U</span>
+      <span class="signin-chip-email" id="signin-chip-email"></span>
+    </button>
+  </div>
+  <div id="signin-popover" class="signin-popover">
+    <div class="signin-popover-email">
+      Signed in as
+      <strong id="signin-popover-email"></strong>
+    </div>
+    <a href="/learn/" class="signin-popover-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Ryxa Hub
+    </a>
+    <button class="signin-popover-btn danger" onclick="signOutAndReload()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Sign out
+    </button>
+  </div>
 </nav>
 
 <div id="loading" class="loading">Loading...</div>
@@ -221,6 +257,7 @@ async function init() {
 
   // Check auth state for button text
   var { data: { session } } = await sb.auth.getSession();
+  if (session?.user) hydrateSigninChip(session.user.email || '');
   renderCoaching(coaching, creatorName, !!session?.user);
 
   // Track page view
@@ -252,6 +289,31 @@ function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, function(c) {
     return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
   });
+}
+
+// Signed-in chip on top right
+function hydrateSigninChip(email) {
+  if (!email) return;
+  document.getElementById('signin-chip-email').textContent = email;
+  document.getElementById('signin-chip-avatar').textContent = (email[0] || 'U').toUpperCase();
+  document.getElementById('signin-chip').style.display = 'inline-flex';
+  document.getElementById('signin-popover-email').textContent = email;
+}
+function toggleSigninPopover(evt) {
+  if (evt) evt.stopPropagation();
+  var pop = document.getElementById('signin-popover');
+  pop.style.display = pop.style.display === 'block' ? 'none' : 'block';
+}
+document.addEventListener('click', function(e) {
+  var pop = document.getElementById('signin-popover');
+  var chip = document.getElementById('signin-chip');
+  if (pop && pop.style.display === 'block' && !pop.contains(e.target) && !chip.contains(e.target)) {
+    pop.style.display = 'none';
+  }
+});
+async function signOutAndReload() {
+  await sb.auth.signOut();
+  window.location.reload();
 }
 
 function formatDuration(minutes) {
