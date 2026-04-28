@@ -1176,13 +1176,13 @@
         <div class="receipt-stamp">
           <div class="receipt-stamp-inner">
             <div class="receipt-stamp-line">★ 0% PLATFORM FEES ★</div>
-            <div class="receipt-stamp-sub">RYXA · MRLA MEDIA</div>
+            <div class="receipt-stamp-sub">RYXA</div>
           </div>
         </div>
 
         <!-- Header -->
         <div class="receipt-header">
-          <div class="receipt-brand">RYXA RECEIPT</div>
+          <div class="receipt-brand">RECEIPT</div>
           <div class="receipt-meta">CREATOR TOOLKIT · ALL-IN-ONE</div>
           <div class="receipt-meta-line">— — — — — — — — — — — — — — — — —</div>
         </div>
@@ -1190,22 +1190,41 @@
         <!-- Items -->
         <div class="receipt-items">
           <div class="receipt-line"><span class="receipt-line-name">Link-in-Bio</span><span class="receipt-line-dots"></span><span class="receipt-line-price">$24.00</span></div>
+          <div class="receipt-line-sub">vs. Linktree, Beacons</div>
+
           <div class="receipt-line"><span class="receipt-line-name">Course Builder</span><span class="receipt-line-dots"></span><span class="receipt-line-price">$149.00</span></div>
+          <div class="receipt-line-sub">vs. Kajabi, Teachable</div>
+
           <div class="receipt-line"><span class="receipt-line-name">1:1 Booking</span><span class="receipt-line-dots"></span><span class="receipt-line-price">$30.00</span></div>
+          <div class="receipt-line-sub">vs. Calendly, Stan Store</div>
+
           <div class="receipt-line"><span class="receipt-line-name">Digital Products</span><span class="receipt-line-dots"></span><span class="receipt-line-price">$20.00</span></div>
+          <div class="receipt-line-sub">vs. Gumroad, Payhip</div>
+
           <div class="receipt-line"><span class="receipt-line-name">Brand Deal CRM</span><span class="receipt-line-dots"></span><span class="receipt-line-price">$16.00</span></div>
+          <div class="receipt-line-sub">vs. Honeybook, Monday</div>
+
           <div class="receipt-line"><span class="receipt-line-name">AI Design Studio</span><span class="receipt-line-dots"></span><span class="receipt-line-price">$13.00</span></div>
+          <div class="receipt-line-sub">vs. Canva Pro, Adobe Express</div>
+
           <div class="receipt-line"><span class="receipt-line-name">Media Kit</span><span class="receipt-line-dots"></span><span class="receipt-line-price">$29.00</span></div>
+          <div class="receipt-line-sub">vs. Squarespace, Wix</div>
+
           <div class="receipt-line"><span class="receipt-line-name">AI Script Builder</span><span class="receipt-line-dots"></span><span class="receipt-line-price">$10.00</span></div>
+          <div class="receipt-line-sub">vs. Notion, Celtx</div>
+
           <div class="receipt-line"><span class="receipt-line-name">AI Thumbnail Analyzer</span><span class="receipt-line-dots"></span><span class="receipt-line-price">$10.00</span></div>
+          <div class="receipt-line-sub">vs. Thumblytics, VidIQ</div>
+
           <div class="receipt-line"><span class="receipt-line-name">Chatbox &amp; AI Tools</span><span class="receipt-line-dots"></span><span class="receipt-line-price">$20.00</span></div>
+          <div class="receipt-line-sub">vs. ChatGPT Plus</div>
         </div>
 
         <div class="receipt-divider"></div>
 
         <!-- Subtotal + discount -->
         <div class="receipt-subtotal">
-          <div class="receipt-line"><span class="receipt-line-name">SUBTOTAL</span><span class="receipt-line-dots"></span><span class="receipt-line-price receipt-strike">$321.00</span></div>
+          <div class="receipt-line"><span class="receipt-line-name">SUBTOTAL</span><span class="receipt-line-dots"></span><span class="receipt-line-price receipt-cross">$321.00</span></div>
           <div class="receipt-line receipt-discount"><span class="receipt-line-name">RYXA CREATOR MAX</span><span class="receipt-line-dots"></span><span class="receipt-line-price">-$301.00</span></div>
         </div>
 
@@ -1214,7 +1233,12 @@
         <!-- Total -->
         <div class="receipt-total-row">
           <span class="receipt-total-label">TOTAL</span>
-          <span class="receipt-total-amount">$20.00<span class="receipt-total-mo">/mo</span></span>
+          <span class="receipt-total-amount-wrap">
+            <span class="receipt-total-amount">$20.00<span class="receipt-total-mo">/mo</span></span>
+            <svg class="receipt-total-circle" viewBox="0 0 220 90" aria-hidden="true" preserveAspectRatio="none">
+              <path d="M 14 48 C 14 22, 60 14, 110 14 C 168 14, 208 26, 206 48 C 204 72, 152 80, 100 78 C 48 76, 12 72, 16 50" fill="none" stroke="#c0392b" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+          </span>
         </div>
 
         <div class="receipt-divider receipt-divider-double"></div>
@@ -1224,12 +1248,14 @@
           <div class="receipt-thanks">★ THANK YOU FOR SWITCHING ★</div>
           <div class="receipt-fine">All tools included · 0% transaction fees</div>
           <div class="receipt-barcode">|||| || ||||| | || |||| || | |||||</div>
+          <div class="receipt-disclaimer">* Competitor pricing reflects publicly listed rates as of 2026 and is provided for comparison only.</div>
         </div>
       </div>
     </div>
 
     <!-- CTA below receipt -->
     <a href="index.html?action=signup" class="receipt-cta">Try Free for 7 Days</a>
+    <div class="receipt-disclaimer">Pricing reflects comparable plans from each provider. Plans, features and prices vary by tool.</div>
   </div>
 </section>
 <style>
@@ -1353,6 +1379,15 @@
     font-variant-numeric:tabular-nums;
     font-weight:600;
   }
+  .receipt-line-sub {
+    font-size:10px;
+    color:#888;
+    font-style:italic;
+    margin-top:-6px;
+    margin-bottom:6px;
+    margin-left:2px;
+    letter-spacing:0.2px;
+  }
 
   /* Dividers */
   .receipt-divider {
@@ -1377,6 +1412,30 @@
     text-decoration-thickness:1.5px;
     text-decoration-color:#c0392b;
     color:#666 !important;
+  }
+  /* Hand-drawn X cross-out — number stays readable */
+  .receipt-cross {
+    position:relative;
+    color:#1a1a1a !important;
+    display:inline-block;
+  }
+  .receipt-cross::before,
+  .receipt-cross::after {
+    content:'';
+    position:absolute;
+    top:50%;
+    left:-3%;
+    width:106%;
+    height:2px;
+    background:#c0392b;
+    border-radius:2px;
+    pointer-events:none;
+  }
+  .receipt-cross::before {
+    transform:translateY(-50%) rotate(-12deg);
+  }
+  .receipt-cross::after {
+    transform:translateY(-50%) rotate(12deg);
   }
   .receipt-discount .receipt-line-name,
   .receipt-discount .receipt-line-price {
@@ -1404,6 +1463,24 @@
     letter-spacing:-0.8px;
     color:#1a1a1a;
     font-variant-numeric:tabular-nums;
+    position:relative;
+    z-index:1;
+  }
+  .receipt-total-amount-wrap {
+    position:relative;
+    display:inline-block;
+    padding:4px 10px;
+  }
+  .receipt-total-circle {
+    position:absolute;
+    top:-4px;
+    left:-6px;
+    width:calc(100% + 12px);
+    height:calc(100% + 8px);
+    overflow:visible;
+    pointer-events:none;
+    z-index:0;
+    opacity:0.85;
   }
   .receipt-total-mo {
     font-size:12px;
@@ -1441,6 +1518,15 @@
     transform-origin:center;
     margin-bottom:6px;
   }
+  .receipt-disclaimer {
+    font-size:8.5px;
+    color:#888;
+    font-style:italic;
+    line-height:1.4;
+    letter-spacing:0.2px;
+    margin-top:14px;
+    padding:0 4px;
+  }
 
   /* CTA below receipt */
   .receipt-cta {
@@ -1457,6 +1543,15 @@
     transition:transform 0.15s;
   }
   .receipt-cta:hover { transform:translateY(-2px); }
+  .receipt-disclaimer {
+    margin-top:18px;
+    font-size:11px;
+    color:rgba(255,255,255,0.35);
+    max-width:480px;
+    margin-left:auto;
+    margin-right:auto;
+    line-height:1.5;
+  }
 
   /* Mobile */
   @media (max-width:560px) {
