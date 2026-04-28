@@ -63,6 +63,17 @@
   ::-webkit-scrollbar-track { background: #0a0a14; }
   ::-webkit-scrollbar-thumb { background: rgba(168,85,247,0.4); border-radius: 4px; }
   ::-webkit-scrollbar-thumb:hover { background: rgba(168,85,247,0.6); }
+
+  /* Scrollbar that's hidden by default, revealed on hover. Used for
+     ambient/optional-scroll regions like the dashboard upcoming events list
+     where the scrollbar would otherwise create visual noise. */
+  .scroll-on-hover { scrollbar-width: none; }
+  .scroll-on-hover::-webkit-scrollbar { width: 8px; background: transparent; }
+  .scroll-on-hover::-webkit-scrollbar-track { background: transparent; }
+  .scroll-on-hover::-webkit-scrollbar-thumb { background: transparent; border-radius: 4px; transition: background 0.2s; }
+  .scroll-on-hover:hover { scrollbar-width: thin; }
+  .scroll-on-hover:hover::-webkit-scrollbar-thumb { background: rgba(168,85,247,0.4); }
+  .scroll-on-hover:hover::-webkit-scrollbar-thumb:hover { background: rgba(168,85,247,0.6); }
   html { scroll-behavior: smooth; }
   body { font-family: "DM Sans", sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; display: flex; }
 
@@ -3643,7 +3654,7 @@
             </div>
             <button onclick="showTool('calendar')" style="padding:5px 10px;background:transparent;border:1px solid rgba(124,58,237,0.3);border-radius:6px;color:#c4b5fd;font-size:11px;font-weight:500;cursor:pointer;font-family:DM Sans,sans-serif;transition:all 0.15s;position:relative;" onmouseover="this.style.borderColor='rgba(124,58,237,0.6)';this.style.color='#fff'" onmouseout="this.style.borderColor='rgba(124,58,237,0.3)';this.style.color='#c4b5fd'">View Calendar →</button>
           </div>
-          <div id="dash-upcoming-list" style="max-height:300px;overflow-y:auto;position:relative;"></div>
+          <div id="dash-upcoming-list" class="scroll-on-hover" style="max-height:300px;overflow-y:auto;position:relative;"></div>
         </div>
 
         <div class="welcome-tools-grid">
