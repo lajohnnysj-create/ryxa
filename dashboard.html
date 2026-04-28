@@ -22523,7 +22523,17 @@ function calRenderDayEvents() {
       + (timeLabel ? '<div style="font-size:12px;color:var(--muted);margin-bottom:6px;">' + escapeHtml(timeLabel) + '</div>' : '')
       + (e.notes ? '<div style="font-size:13px;color:#c8c6d8;line-height:1.5;">' + escapeHtml(e.notes) + '</div>' : '')
       + '</div>'
-      + '<button onclick="calDeleteEvent(\'' + e.id + '\', \'' + e.event_type + '\')" aria-label="Delete event" style="width:28px;height:28px;background:transparent;border:1px solid rgba(239,68,68,0.3);border-radius:6px;color:#ef4444;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg></button>'
+      + (function() {
+          var deleteLabel = e.event_type === 'coaching' ? 'Cancel or reschedule booking'
+                          : e.event_type === 'brand_deal' ? 'Remove from calendar'
+                          : 'Delete event';
+          var canEdit = e.event_type !== 'brand_deal';
+          var editBtn = canEdit
+            ? '<button onclick="calOpenEditEvent(\'' + e.id + '\')" aria-label="Edit event" title="Edit event" style="width:28px;height:28px;background:transparent;border:1px solid var(--border-hover);border-radius:6px;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'
+            : '';
+          var deleteBtn = '<button onclick="calDeleteEvent(\'' + e.id + '\', \'' + e.event_type + '\')" aria-label="' + deleteLabel + '" title="' + deleteLabel + '" style="width:28px;height:28px;background:transparent;border:1px solid rgba(239,68,68,0.3);border-radius:6px;color:#ef4444;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg></button>';
+          return '<div style="display:flex;align-items:flex-start;flex-shrink:0;">' + editBtn + deleteBtn + '</div>';
+        })()
       + '</div>';
   }).join('');
 }
@@ -22598,25 +22608,64 @@ function calOpenAddEvent() {
     showModalAlert('Sign in required', 'Please sign in to add calendar events.');
     return;
   }
+  calOpenEventModal(null);
+}
+
+function calOpenEditEvent(eventId) {
+  var event = calState.events.find(function(e) { return e.id === eventId; });
+  if (!event) return;
+  calOpenEventModal(event);
+}
+
+function calOpenEventModal(existingEvent) {
   // Build modal
   var existingModal = document.getElementById('cal-event-modal');
   if (existingModal) existingModal.remove();
 
-  var defaultStart = '09:00';
-  var defaultEnd = '09:15';
+  var isEdit = !!existingEvent;
+  var defaultDate, defaultStart, defaultEnd, defaultTitle, defaultNotes, defaultColor;
+
+  if (isEdit) {
+    var startD = new Date(existingEvent.start_at);
+    var endD = new Date(existingEvent.end_at);
+    var pad = function(n) { return String(n).padStart(2, '0'); };
+    defaultDate = startD.getFullYear() + '-' + pad(startD.getMonth() + 1) + '-' + pad(startD.getDate());
+    defaultStart = pad(startD.getHours()) + ':' + pad(startD.getMinutes());
+    defaultEnd = pad(endD.getHours()) + ':' + pad(endD.getMinutes());
+    defaultTitle = existingEvent.title || '';
+    defaultNotes = existingEvent.notes || '';
+    defaultColor = existingEvent.color || '#7c3aed';
+  } else {
+    defaultDate = calState.selectedDate;
+    defaultStart = '09:00';
+    defaultEnd = '09:15';
+    defaultTitle = '';
+    defaultNotes = '';
+    defaultColor = '#7c3aed';
+  }
+
+  // For coaching events, lock title (it comes from the coaching service)
+  var isCoachingEvent = isEdit && existingEvent.event_type === 'coaching';
+  var titleDisabledAttr = isCoachingEvent ? ' readonly style="cursor:not-allowed;opacity:0.7;"' : '';
+  var titleHint = isCoachingEvent ? '<div style="font-size:11px;color:var(--muted);margin-top:4px;">Title is set by the coaching service.</div>' : '';
+
   var modal = document.createElement('div');
   modal.id = 'cal-event-modal';
   modal.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;padding:12px;';
   modal.onclick = function(e) { if (e.target === modal) modal.remove(); };
+  // Store event id for save handler
+  if (isEdit) modal.dataset.editingId = existingEvent.id;
+
   modal.innerHTML = '<div style="background:#0f0f1a;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:20px 18px;max-width:440px;width:100%;max-height:90vh;overflow-y:auto;">'
     + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">'
-    + '<h3 style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.3px;">Add Event</h3>'
+    + '<h3 style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.3px;">' + (isEdit ? 'Edit Event' : 'Add Event') + '</h3>'
     + '<button onclick="document.getElementById(\'cal-event-modal\').remove()" style="background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:4px;">✕</button>'
     + '</div>'
     + '<div style="margin-bottom:14px;"><label style="display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:500;">Title</label>'
-    + '<input id="cal-modal-title" type="text" placeholder="Event title" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;"></div>'
+    + '<input id="cal-modal-title" type="text" placeholder="Event title" value="' + escapeHtml(defaultTitle) + '"' + titleDisabledAttr + ' style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">'
+    + titleHint + '</div>'
     + '<div style="margin-bottom:14px;"><label style="display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:500;">Date</label>'
-    + '<input id="cal-modal-date" type="date" value="' + calState.selectedDate + '" style="width:100%;min-width:0;max-width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;color-scheme:dark;-webkit-appearance:none;appearance:none;display:block;"></div>'
+    + '<input id="cal-modal-date" type="date" value="' + defaultDate + '" style="width:100%;min-width:0;max-width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;color-scheme:dark;-webkit-appearance:none;appearance:none;display:block;"></div>'
     + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;min-width:0;">'
     + '<div style="min-width:0;"><label style="display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:500;">Start</label><input id="cal-modal-start" type="time" step="900" value="' + defaultStart + '" style="width:100%;min-width:0;max-width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;color-scheme:dark;-webkit-appearance:none;appearance:none;display:block;"></div>'
     + '<div style="min-width:0;"><label style="display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:500;">End</label><input id="cal-modal-end" type="time" step="900" value="' + defaultEnd + '" style="width:100%;min-width:0;max-width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;color-scheme:dark;-webkit-appearance:none;appearance:none;display:block;"></div>'
@@ -22624,20 +22673,28 @@ function calOpenAddEvent() {
     + '<div style="margin-bottom:14px;"><label style="display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:500;">Color</label>'
     + '<div id="cal-modal-colors" style="display:flex;gap:8px;flex-wrap:wrap;"></div></div>'
     + '<div style="margin-bottom:18px;"><label style="display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:500;">Notes (optional)</label>'
-    + '<textarea id="cal-modal-notes" placeholder="Add notes..." rows="3" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;resize:vertical;"></textarea></div>'
-    + '<button onclick="calSaveEvent()" style="width:100%;padding:12px;background:var(--accent);border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.background=\'#a855f7\'" onmouseout="this.style.background=\'var(--accent)\'">Save Event</button>'
+    + '<textarea id="cal-modal-notes" placeholder="Add notes..." rows="3" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;resize:vertical;">' + escapeHtml(defaultNotes) + '</textarea></div>'
+    + '<button onclick="calSaveEvent()" style="width:100%;padding:12px;background:var(--accent);border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.background=\'#a855f7\'" onmouseout="this.style.background=\'var(--accent)\'">' + (isEdit ? 'Save Changes' : 'Save Event') + '</button>'
     + '<div id="cal-modal-error" style="display:none;margin-top:10px;padding:10px 12px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:8px;color:#f87171;font-size:12px;text-align:center;"></div>'
     + '</div>';
   document.body.appendChild(modal);
 
   // Render color picker
   var colors = ['#7c3aed', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#ec4899'];
-  document.getElementById('cal-modal-colors').innerHTML = colors.map(function(c, i) {
-    return '<button onclick="calSelectColor(\'' + c + '\')" data-color="' + c + '" class="cal-color-btn" style="width:32px;height:32px;border-radius:50%;background:' + c + ';border:' + (i === 0 ? '3px solid #fff' : '2px solid var(--border)') + ';cursor:pointer;"></button>';
+  // If editing with a non-standard color, prepend it
+  if (isEdit && colors.indexOf(defaultColor) === -1) colors.unshift(defaultColor);
+  document.getElementById('cal-modal-colors').innerHTML = colors.map(function(c) {
+    var selected = c === defaultColor;
+    return '<button onclick="calSelectColor(\'' + c + '\')" data-color="' + c + '" class="cal-color-btn" style="width:32px;height:32px;border-radius:50%;background:' + c + ';border:' + (selected ? '3px solid #fff' : '2px solid var(--border)') + ';cursor:pointer;"></button>';
   }).join('');
-  window._calSelectedColor = colors[0];
+  window._calSelectedColor = defaultColor;
 
-  setTimeout(function() { document.getElementById('cal-modal-title').focus(); }, 50);
+  if (!isCoachingEvent) {
+    setTimeout(function() {
+      var titleInput = document.getElementById('cal-modal-title');
+      if (titleInput) titleInput.focus();
+    }, 50);
+  }
 }
 
 function calSelectColor(c) {
@@ -22676,26 +22733,79 @@ async function calSaveEvent() {
     return;
   }
 
+  // Detect edit mode from modal data attribute
+  var modal = document.getElementById('cal-event-modal');
+  var editingId = modal && modal.dataset ? modal.dataset.editingId : null;
+
   try {
-    var { data, error } = await sb.from('calendar_events').insert({
-      creator_id: currentUser.id,
-      title: title,
-      start_at: startAt,
-      end_at: endAt,
-      event_type: 'manual',
-      source_id: null,
-      color: color,
-      notes: notes || null,
-      timezone: calState.timezone
-    }).select().single();
-    if (error) throw error;
-    calState.events.push(data);
-    document.getElementById('cal-event-modal').remove();
-    calState.selectedDate = date;
-    var dParts = date.split('-').map(Number);
-    calState.viewYear = dParts[0];
-    calState.viewMonth = dParts[1] - 1;
-    calRender();
+    if (editingId) {
+      // EDIT mode — update existing event
+      var existing = calState.events.find(function(e) { return e.id === editingId; });
+      if (!existing) { showError('Event not found.'); return; }
+
+      var updatePayload = {
+        title: title,
+        start_at: startAt,
+        end_at: endAt,
+        color: color,
+        notes: notes || null
+      };
+
+      // Coaching events: don't allow title changes (locked to coaching service)
+      if (existing.event_type === 'coaching') {
+        delete updatePayload.title;
+      }
+
+      var { data, error } = await sb.from('calendar_events')
+        .update(updatePayload)
+        .eq('id', editingId)
+        .select()
+        .single();
+      if (error) throw error;
+
+      // For coaching events, also update the booking's slot times
+      if (existing.event_type === 'coaching' && existing.source_id) {
+        try {
+          await sb.from('coaching_bookings')
+            .update({ slot_start: startAt, slot_end: endAt })
+            .eq('id', existing.source_id);
+        } catch (e) {
+          console.error('Could not update coaching booking slot:', e);
+        }
+      }
+
+      // Update local state
+      var idx = calState.events.findIndex(function(e) { return e.id === editingId; });
+      if (idx !== -1) calState.events[idx] = data;
+
+      document.getElementById('cal-event-modal').remove();
+      calState.selectedDate = date;
+      var dParts = date.split('-').map(Number);
+      calState.viewYear = dParts[0];
+      calState.viewMonth = dParts[1] - 1;
+      calRender();
+    } else {
+      // ADD mode — insert new event
+      var { data, error } = await sb.from('calendar_events').insert({
+        creator_id: currentUser.id,
+        title: title,
+        start_at: startAt,
+        end_at: endAt,
+        event_type: 'manual',
+        source_id: null,
+        color: color,
+        notes: notes || null,
+        timezone: calState.timezone
+      }).select().single();
+      if (error) throw error;
+      calState.events.push(data);
+      document.getElementById('cal-event-modal').remove();
+      calState.selectedDate = date;
+      var dParts = date.split('-').map(Number);
+      calState.viewYear = dParts[0];
+      calState.viewMonth = dParts[1] - 1;
+      calRender();
+    }
   } catch (e) {
     console.error('Save event failed:', e);
     showError(e.message || 'Could not save event. Please try again.');
