@@ -3631,6 +3631,18 @@
           </div>
         </div>
 
+        <!-- Upcoming Events -->
+        <div id="dash-upcoming-wrap" style="max-width:720px;width:100%;margin-bottom:32px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              <h3 style="font-family:Syne,sans-serif;font-size:15px;font-weight:700;letter-spacing:-0.2px;color:var(--text);">Upcoming Events</h3>
+            </div>
+            <button onclick="showTool('calendar')" style="padding:5px 10px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--muted);font-size:11px;font-weight:500;cursor:pointer;font-family:DM Sans,sans-serif;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--border-hover)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">View Calendar →</button>
+          </div>
+          <div id="dash-upcoming-list" style="max-height:300px;overflow-y:auto;"></div>
+        </div>
+
         <div class="welcome-tools-grid">
           <div class="welcome-tool-card" onclick="showTool('bio')">
             <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
@@ -7882,6 +7894,64 @@ function getDashDateRange() {
   };
 }
 
+async function loadUpcomingEvents() {
+  if (!currentUser) return;
+  var listEl = document.getElementById('dash-upcoming-list');
+  if (!listEl) return;
+
+  // Determine forward window (matches selected range, but forward-looking)
+  var days = dashCustomStart && dashCustomEnd
+    ? Math.ceil((new Date(dashCustomEnd) - new Date(dashCustomStart)) / 86400000) + 1
+    : dashRangeDays;
+
+  var now = new Date();
+  var futureEnd = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+
+  try {
+    var { data: events, error } = await sb.from('calendar_events')
+      .select('id, title, start_at, end_at, event_type, color, notes')
+      .eq('creator_id', currentUser.id)
+      .gte('start_at', now.toISOString())
+      .lte('start_at', futureEnd.toISOString())
+      .order('start_at', { ascending: true });
+
+    if (error) {
+      listEl.innerHTML = '<div style="text-align:center;padding:24px 12px;color:var(--muted);font-size:12px;">Could not load events</div>';
+      return;
+    }
+
+    if (!events || events.length === 0) {
+      listEl.innerHTML = '<div style="text-align:center;padding:24px 12px;color:var(--muted);font-size:12px;">No events in the next ' + days + ' days. <a href="#" onclick="showTool(\'calendar\');return false;" style="color:var(--accent2);text-decoration:none;">Add one →</a></div>';
+      return;
+    }
+
+    listEl.innerHTML = events.map(function(e) {
+      var startDate = new Date(e.start_at);
+      var endDate = new Date(e.end_at);
+      var dateStr = startDate.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+      var timeStr = startDate.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) + ' – ' + endDate.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+      var color = e.color || '#7c3aed';
+      var typeBadge = e.event_type !== 'manual'
+        ? '<span style="display:inline-block;padding:1px 6px;background:rgba(124,58,237,0.15);border-radius:4px;font-size:9px;color:#c4b5fd;font-weight:600;letter-spacing:0.3px;text-transform:uppercase;margin-left:5px;vertical-align:middle;">' + e.event_type + '</span>'
+        : '';
+      return '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);">'
+        + '<div style="width:3px;align-self:stretch;background:' + color + ';border-radius:2px;flex-shrink:0;min-height:34px;"></div>'
+        + '<div style="flex:1;min-width:0;">'
+        + '<div style="font-size:13px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escapeHtml(e.title || 'Untitled') + typeBadge + '</div>'
+        + '<div style="font-size:11px;color:var(--muted);margin-top:2px;">' + escapeHtml(dateStr) + ' · ' + escapeHtml(timeStr) + '</div>'
+        + '</div>'
+        + '</div>';
+    }).join('');
+
+    // Remove last border for cleaner look
+    var rows = listEl.querySelectorAll('div[style*="border-bottom"]');
+    if (rows.length > 0) rows[rows.length - 1].style.borderBottom = 'none';
+  } catch (e) {
+    console.error('loadUpcomingEvents:', e);
+    listEl.innerHTML = '<div style="text-align:center;padding:24px 12px;color:var(--muted);font-size:12px;">Could not load events</div>';
+  }
+}
+
 function setDashRange(days) {
   dashRangeDays = days;
   dashCustomStart = null;
@@ -7927,6 +7997,9 @@ function renderSparkline(containerId, data, maxKey) {
 async function loadDashStats() {
   if (!currentUser) return;
   const { start, end } = getDashDateRange();
+
+  // Load upcoming events (independent of stats)
+  loadUpcomingEvents();
 
   // Load page views (always)
   const viewsRes = await sb.rpc('get_page_view_stats', { p_start_date: start, p_end_date: end });
