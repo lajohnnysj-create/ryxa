@@ -9,7 +9,7 @@
   "rewrites": [
     { "source": "/deal/:token", "destination": "/portal?t=:token" },
     { "source": "/course/:slug", "destination": "/course" },
-    { "source": "/coaching/:slug", "destination": "/coaching" },
+    { "source": "/booking/:slug", "destination": "/booking" },
     { "source": "/mediakit/:username", "destination": "/api/mediakit?u=:username" },
     { "source": "/sitemap.xml", "destination": "/sitemap.xml" },
     { "source": "/robots.txt", "destination": "/robots.txt" },
