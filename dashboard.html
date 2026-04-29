@@ -11200,6 +11200,10 @@ function buildPreviewHTML() {
   /* Half-width preview course/coaching/product cards — column layout matches halves */
   .pcc.link-half{min-height:120px;display:flex;flex-direction:column;}
   .pcc.link-half > div{flex:1;}
+  .pcc .pcc-title{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .pcc.link-half .pcc-body{flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:8px 10px;}
+  .pcc.link-half .pcc-title{white-space:normal;text-align:center;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-overflow:clip;flex:none;}
+  .pcc.link-half .pcc-price{margin-left:0;}
   .hdr{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:${t.text};text-transform:uppercase;letter-spacing:0.1em;text-align:center;padding:14px 8px 6px;opacity:0.85;word-break:break-word;}
   .lk{background:${t.surface};border:1px solid ${t.border};border-radius:13px;padding:14px 18px;color:${t.text};text-align:center;}
   .lk-t{font-size:14px;font-weight:600;}
@@ -11309,11 +11313,11 @@ function buildPreviewLink(l, t) {
     const coverHtml = l.photoUrl ? `<img src="${escapeHtml(l.photoUrl)}" alt="Link cover" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px 8px 0 0;">` : '';
     return `<div class="pcc ${halfClass}" style="background:${t.surface};border:1px solid ${t.border};border-radius:10px;overflow:hidden;">
       ${coverHtml}
-      <div style="padding:10px 12px;display:flex;align-items:center;justify-content:space-between;">
+      <div class="pcc-body" style="padding:10px 12px;display:flex;align-items:center;justify-content:space-between;">
         <div style="min-width:0;flex:1;">
-          <div style="font-size:12px;font-weight:600;color:${t.text};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(l.title || 'Untitled')}</div>
+          <div class="pcc-title" style="font-size:12px;font-weight:600;color:${t.text};">${escapeHtml(l.title || 'Untitled')}</div>
         </div>
-        <div style="font-size:12px;font-weight:600;color:${t.text};flex-shrink:0;margin-left:8px;">${crossoutHtml}${priceDisplay}</div>
+        <div class="pcc-price" style="font-size:12px;font-weight:600;color:${t.text};flex-shrink:0;margin-left:8px;">${crossoutHtml}${priceDisplay}</div>
       </div>
     </div>`;
   }
@@ -11322,11 +11326,11 @@ function buildPreviewLink(l, t) {
     const coverHtml = l.photoUrl ? `<img src="${escapeHtml(l.photoUrl)}" alt="Link cover" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px 8px 0 0;">` : '';
     return `<div class="pcc ${halfClass}" style="background:${t.surface};border:1px solid ${t.border};border-radius:10px;overflow:hidden;">
       ${coverHtml}
-      <div style="padding:10px 12px;display:flex;align-items:center;justify-content:space-between;">
+      <div class="pcc-body" style="padding:10px 12px;display:flex;align-items:center;justify-content:space-between;">
         <div style="min-width:0;flex:1;">
-          <div style="font-size:12px;font-weight:600;color:${t.text};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(l.title || 'Untitled')}</div>
+          <div class="pcc-title" style="font-size:12px;font-weight:600;color:${t.text};">${escapeHtml(l.title || 'Untitled')}</div>
         </div>
-        <div style="font-size:12px;font-weight:600;color:${t.text};flex-shrink:0;margin-left:8px;">${priceDisplay}</div>
+        <div class="pcc-price" style="font-size:12px;font-weight:600;color:${t.text};flex-shrink:0;margin-left:8px;">${priceDisplay}</div>
       </div>
     </div>`;
   }
@@ -11335,11 +11339,11 @@ function buildPreviewLink(l, t) {
     const coverHtml = l.photoUrl ? `<img src="${escapeHtml(l.photoUrl)}" alt="Link cover" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px 8px 0 0;">` : '';
     return `<div class="pcc ${halfClass}" style="background:${t.surface};border:1px solid ${t.border};border-radius:10px;overflow:hidden;">
       ${coverHtml}
-      <div style="padding:10px 12px;display:flex;align-items:center;justify-content:space-between;">
+      <div class="pcc-body" style="padding:10px 12px;display:flex;align-items:center;justify-content:space-between;">
         <div style="min-width:0;flex:1;">
-          <div style="font-size:12px;font-weight:600;color:${t.text};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(l.title || 'Untitled')}</div>
+          <div class="pcc-title" style="font-size:12px;font-weight:600;color:${t.text};">${escapeHtml(l.title || 'Untitled')}</div>
         </div>
-        <div style="font-size:12px;font-weight:600;color:${t.text};flex-shrink:0;margin-left:8px;">${priceDisplay}</div>
+        <div class="pcc-price" style="font-size:12px;font-weight:600;color:${t.text};flex-shrink:0;margin-left:8px;">${priceDisplay}</div>
       </div>
     </div>`;
   }
