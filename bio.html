@@ -755,13 +755,10 @@
     word-break: break-word;
   }
 
-  /* YouTube videos — horizontal scroll. When this block sits inside the
-     .links grid, it spans full-width and breaks out to the viewport edges
-     for an edge-to-edge carousel. */
+  /* YouTube videos — horizontal scroll. Sits inline inside the .links grid
+     and matches the link width so it lines up with the cards above and below. */
   .videos {
-    width: 100vw;
-    margin-left: calc(-50vw + 50%);
-    padding: 4px 20px 4px;
+    width: 100%;
     position: relative;
   }
   /* Desktop arrow buttons — overlay the carousel edges. Hidden on mobile
@@ -778,7 +775,7 @@
     background: var(--surface);
     color: var(--text);
     cursor: pointer;
-    display: none;
+    display: flex;
     align-items: center;
     justify-content: center;
     z-index: 2;
@@ -792,18 +789,18 @@
     cursor: default;
   }
   .videos-arrow:disabled:hover { background: var(--surface); }
-  .videos-arrow-l { left: max(8px, calc(50vw - 290px)); }
-  .videos-arrow-r { right: max(8px, calc(50vw - 290px)); }
-  /* Show only on screens wider than typical mobile breakpoints. */
-  @media (min-width: 641px) {
-    .videos-arrow { display: flex; }
+  .videos-arrow-l { left: 4px; }
+  .videos-arrow-r { right: 4px; }
+  /* Hide on touch-only devices (real phones/tablets). Desktop users with
+     a narrow window still get arrows since they don't have touch scroll. */
+  @media (hover: none) and (pointer: coarse) {
+    .videos-arrow { display: none; }
   }
   .videos-scroll {
     display: flex;
     gap: 12px;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
-    padding: 0 max(20px, calc(50vw - 270px));
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
   }
