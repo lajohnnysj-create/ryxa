@@ -11306,7 +11306,7 @@ function buildPreviewHTML() {
     ${linksHtml ? `<div class="links">${linksHtml}</div>` : ''}
     ${bioState.show_branding ? '<div class="banner"><img src="logo.png" alt="Ryxa"><span>Get your free link-in-bio at <strong>Ryxa</strong></span></div>' : ''}
   </div>
-  <script>
+  <\u0073cript>
     // Wire desktop arrow buttons on every YouTube preview carousel inside the iframe.
     document.querySelectorAll('.vids').forEach(function(block) {
       var scroller = block.querySelector('.vids-r');
@@ -11324,7 +11324,7 @@ function buildPreviewHTML() {
       scroller.addEventListener('scroll', updateState, { passive: true });
       updateState();
     });
-  </script>
+  <\/script>
 </body></html>`;
 }
 
