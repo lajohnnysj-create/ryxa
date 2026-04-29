@@ -26133,6 +26133,43 @@ function aichatRenderMessage(role, content) {
     + '</div>';
 }
 
+// Progressively reveal an assistant message word-by-word.
+// Total reveal time scales with response length: ~0.6s for short, ~1.5s max for long.
+function aichatRevealMessage(bodyEl, fullText) {
+  var text = String(fullText || '');
+  if (!text) return;
+  // Split into word+whitespace tokens to preserve spacing
+  var tokens = text.split(/(\s+)/);
+  var wordCount = tokens.filter(function(t) { return t.trim().length > 0; }).length;
+  if (wordCount === 0) {
+    bodyEl.innerHTML = aichatMarkdownToHtml(text);
+    return;
+  }
+  // Animate over 600-1500ms. ~25-50 tokens/sec feels smooth without dragging.
+  var totalDuration = Math.min(1500, Math.max(600, wordCount * 25));
+  // Reveal in chunks proportional to length so total stays in budget
+  var ticksPerSec = 30; // updates per second
+  var totalTicks = Math.max(1, Math.round(totalDuration / 1000 * ticksPerSec));
+  var tokensPerTick = Math.max(1, Math.ceil(tokens.length / totalTicks));
+  var tickDelay = totalDuration / totalTicks;
+
+  var i = 0;
+  var messagesEl = document.getElementById('aichat-messages');
+  function tick() {
+    i = Math.min(tokens.length, i + tokensPerTick);
+    var partial = tokens.slice(0, i).join('');
+    bodyEl.innerHTML = aichatMarkdownToHtml(partial);
+    if (messagesEl) messagesEl.scrollTop = messagesEl.scrollHeight;
+    if (i < tokens.length) {
+      setTimeout(tick, tickDelay);
+    } else {
+      // Ensure final render is the full text (in case partial markdown was malformed)
+      bodyEl.innerHTML = aichatMarkdownToHtml(text);
+    }
+  }
+  setTimeout(tick, tickDelay);
+}
+
 // Minimal markdown renderer — handles paragraphs, bold, italic, code, lists, links
 function aichatMarkdownToHtml(md) {
   var s = String(md || '');
@@ -26271,8 +26308,17 @@ async function aichatSend() {
       return;
     }
 
-    // Append the response
-    messagesEl.insertAdjacentHTML('beforeend', aichatRenderMessage('assistant', data.response));
+    // Insert assistant bubble with empty body, then animate text in
+    var emptyBubble = '<div class="aichat-msg assistant">'
+      + '<div class="aichat-msg-avatar" style="overflow:hidden;"><img src="/logo-spaced.jpg" alt="Ryxa" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"></div>'
+      + '<div class="aichat-msg-body"></div>'
+      + '</div>';
+    messagesEl.insertAdjacentHTML('beforeend', emptyBubble);
+    var allBubbles = messagesEl.querySelectorAll('.aichat-msg.assistant .aichat-msg-body');
+    var lastBody = allBubbles[allBubbles.length - 1];
+    if (lastBody) {
+      aichatRevealMessage(lastBody, data.response);
+    }
     messagesEl.scrollTop = messagesEl.scrollHeight;
 
     // If new conversation, set state and refresh sidebar
