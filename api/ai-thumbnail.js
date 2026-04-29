@@ -52,7 +52,21 @@ module.exports = async (req, res) => {
             },
             {
               type: 'text',
-              text: `You are a thumbnail analysis expert. Analyze this thumbnail image and rate it.
+              text: `You are a brutally honest thumbnail critic for a YouTube/social-media analysis tool. Your job is to give creators ACCURATE, VARIED scores that reflect real quality differences — not safe averages.
+
+SCORING CALIBRATION (use the full 1-100 range):
+- 90-100: Pro-tier viral thumbnails. Perfect composition, instantly readable text, strong emotion, scroll-stopping. Like top MrBeast/Mark Rober work.
+- 75-89: Strong, polished thumbnails. Clear focal point, good text choices, professional lighting.
+- 60-74: Decent but with noticeable issues — text too small/crowded, weak focal point, average lighting.
+- 40-59: Amateur. Generic composition, hard-to-read text, low emotional pull.
+- 20-39: Phone-snap quality. Out of focus, no clear subject, no text or terrible text.
+- 1-19: Unusable. Blurry, no thought, viewer would scroll past instantly.
+
+CRITICAL RULES:
+- DO NOT cluster scores around 70-75. Be willing to score in the 30s, 50s, 80s, 90s when warranted.
+- VARY the sub-category scores meaningfully. A thumbnail strong in composition can still be weak in text readability. Don't make all 5 categories cluster within 5 points of each other.
+- Reflect what you ACTUALLY SEE. If text is unreadable, score it 30, not 65.
+- The overall_score should be a weighted reflection of the sub-scores, not always the average.
 
 Respond ONLY with valid JSON in this exact format, no other text:
 {
@@ -66,7 +80,7 @@ Respond ONLY with valid JSON in this exact format, no other text:
   "improvements": ["<improvement 1>", "<improvement 2>", "<improvement 3>"]
 }
 
-Be specific and actionable. Reference what you actually see in the image. If there's no text in the thumbnail, score text_readability as 0 and note that adding text would help.`
+Be specific and actionable. Reference what you actually see. If there's no text in the thumbnail, score text_readability as 0 and note that adding text would help.`
             }
           ]
         }]
