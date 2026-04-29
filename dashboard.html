@@ -1896,7 +1896,7 @@
     background: linear-gradient(135deg, #6366f1, #8b5cf6);
   }
   .aichat-msg.assistant .aichat-msg-avatar {
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    background: #000;
   }
   .aichat-msg-body {
     flex: 1;
@@ -7965,7 +7965,10 @@ function copyEmail(btn) {
   }
 }
 
+var dashboardAvatarUrl = ''; // cached for chatbox and other tools that need the avatar
+
 function updateDashboardAvatar(url) {
+  dashboardAvatarUrl = url || '';
   const sidebarAvatar = document.getElementById('sidebar-avatar');
   const settingsAvatar = document.getElementById('settings-avatar');
   const menuAvatar = document.getElementById('sidebar-menu-avatar');
@@ -26113,7 +26116,7 @@ async function aichatDeleteConversation(convId) {
 function aichatRenderMessage(role, content) {
   var avatarHtml;
   if (role === 'user') {
-    var userAvatarUrl = (typeof bioState !== 'undefined' && bioState.avatar_url) ? bioState.avatar_url : '';
+    var userAvatarUrl = (typeof dashboardAvatarUrl === 'string' && dashboardAvatarUrl) ? dashboardAvatarUrl : '';
     if (userAvatarUrl) {
       avatarHtml = '<div class="aichat-msg-avatar" style="overflow:hidden;"><img src="' + escapeHtml(userAvatarUrl) + '" alt="Your profile photo" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"></div>';
     } else {
@@ -26121,7 +26124,7 @@ function aichatRenderMessage(role, content) {
       avatarHtml = '<div class="aichat-msg-avatar">' + escapeHtml(avatarLetter) + '</div>';
     }
   } else {
-    avatarHtml = '<div class="aichat-msg-avatar" style="overflow:hidden;"><img src="/logo.png" alt="Ryxa" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"></div>';
+    avatarHtml = '<div class="aichat-msg-avatar" style="overflow:hidden;"><img src="/logo-spaced.jpg" alt="Ryxa" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"></div>';
   }
   var bodyHtml = role === 'assistant' ? aichatMarkdownToHtml(content) : '<p>' + escapeHtml(content).replace(/\n/g, '<br>') + '</p>';
   return '<div class="aichat-msg ' + role + '">'
@@ -26229,7 +26232,7 @@ async function aichatSend() {
   messagesEl.insertAdjacentHTML('beforeend', aichatRenderMessage('user', text));
   // Append typing indicator
   var typingHtml = '<div class="aichat-msg assistant" id="aichat-typing">'
-    + '<div class="aichat-msg-avatar" style="overflow:hidden;"><img src="/logo.png" alt="Ryxa" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"></div>'
+    + '<div class="aichat-msg-avatar" style="overflow:hidden;"><img src="/logo-spaced.jpg" alt="Ryxa" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"></div>'
     + '<div class="aichat-msg-body"><div class="aichat-typing"><span></span><span></span><span></span></div></div>'
     + '</div>';
   messagesEl.insertAdjacentHTML('beforeend', typingHtml);
