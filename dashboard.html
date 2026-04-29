@@ -10029,6 +10029,41 @@ function updateLinkField(id, field, val) {
   schedulePreviewUpdate();
 }
 
+// Toggle half-width on a link. Re-renders the editor and the live preview.
+function toggleLinkHalfWidth(id, checked) {
+  const link = bioState.links.find(l => l._id === id);
+  if (!link) return;
+  if (checked) link.halfWidth = true;
+  else delete link.halfWidth;
+  // Re-render so the badge in the row header updates immediately
+  renderBioLinks();
+  schedulePreviewUpdate();
+}
+
+// Small "½" badge for the collapsed link row when half-width is enabled.
+function bioHalfBadge(link) {
+  return link.halfWidth
+    ? '<span class="bio-featured-badge" style="background:rgba(74,222,128,0.12);color:#4ade80;border:1px solid rgba(74,222,128,0.3);" title="Half width">½</span>'
+    : '';
+}
+
+// Returns the HTML for a half-width toggle row (used inside the expanded
+// editor for links/courses/bookings/products). Two consecutive halves end up
+// side-by-side; a half next to a full-width link is half with empty space.
+function bioHalfWidthToggle(link) {
+  const isOn = !!link.halfWidth;
+  return `<label class="bio-half-toggle" style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;background:var(--surface);border:1px solid var(--border-hover);border-radius:6px;margin-bottom:6px;cursor:pointer;font-size:13px;color:var(--text);">
+    <span style="display:flex;align-items:center;gap:8px;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="8" height="12" rx="1.5"/><rect x="13" y="6" width="8" height="12" rx="1.5"/></svg>
+      Half width
+    </span>
+    <span class="bio-half-switch ${isOn ? 'on' : ''}" aria-hidden="true" style="position:relative;width:34px;height:20px;background:${isOn ? 'var(--accent)' : 'var(--bg)'};border:1px solid ${isOn ? 'var(--accent)' : 'var(--border-hover)'};border-radius:11px;transition:background 0.15s,border-color 0.15s;flex-shrink:0;">
+      <span style="position:absolute;top:2px;left:${isOn ? '16px' : '2px'};width:14px;height:14px;background:#fff;border-radius:50%;transition:left 0.15s;"></span>
+    </span>
+    <input type="checkbox" ${isOn ? 'checked' : ''} onchange="toggleLinkHalfWidth(${link._id}, this.checked)" aria-label="Half width" style="position:absolute;opacity:0;pointer-events:none;width:0;height:0;">
+  </label>`;
+}
+
 let bioStalePhotos = []; // photos to delete on next save
 let bioExpandedLinks = new Set(); // _ids of links currently expanded for editing
 let bioVideoDraftOpen = false; // is the "Add video" input currently visible
@@ -10172,7 +10207,7 @@ function renderLinkCollapsed(link, dragSvg, editSvg) {
       <div style="flex:1;min-width:0;">
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
           <span style="font-size:13px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;">${title}</span>
-          <span class="bio-featured-badge" style="background:rgba(124,58,237,0.15);color:#c4b5fd;border:1px solid rgba(124,58,237,0.3);">Course</span>
+          <span class="bio-featured-badge" style="background:rgba(124,58,237,0.15);color:#c4b5fd;border:1px solid rgba(124,58,237,0.3);">Course</span>${bioHalfBadge(link)}
         </div>
         <div style="font-size:11px;color:var(--muted);margin-top:2px;">${priceText}${crossoutText}</div>
       </div>
@@ -10192,7 +10227,7 @@ function renderLinkCollapsed(link, dragSvg, editSvg) {
       <div style="flex:1;min-width:0;">
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
           <span style="font-size:13px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;">${title}</span>
-          <span class="bio-featured-badge" style="background:rgba(124,58,237,0.15);color:#c4b5fd;border:1px solid rgba(124,58,237,0.3);">Booking</span>
+          <span class="bio-featured-badge" style="background:rgba(124,58,237,0.15);color:#c4b5fd;border:1px solid rgba(124,58,237,0.3);">Booking</span>${bioHalfBadge(link)}
         </div>
         <div style="font-size:11px;color:var(--muted);margin-top:2px;">${priceText}</div>
       </div>
@@ -10212,7 +10247,7 @@ function renderLinkCollapsed(link, dragSvg, editSvg) {
       <div style="flex:1;min-width:0;">
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
           <span style="font-size:13px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;">${title}</span>
-          <span class="bio-featured-badge" style="background:rgba(124,58,237,0.15);color:#c4b5fd;border:1px solid rgba(124,58,237,0.3);">Product</span>
+          <span class="bio-featured-badge" style="background:rgba(124,58,237,0.15);color:#c4b5fd;border:1px solid rgba(124,58,237,0.3);">Product</span>${bioHalfBadge(link)}
         </div>
         <div style="font-size:11px;color:var(--muted);margin-top:2px;">${priceText}</div>
       </div>
@@ -10252,7 +10287,7 @@ function renderLinkCollapsed(link, dragSvg, editSvg) {
     <div style="flex:1;min-width:0;">
       <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
         <span style="font-size:13px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;">${title}</span>
-        ${mkBadge}
+        ${mkBadge}${bioHalfBadge(link)}
       </div>
       <div style="font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px;">${urlDisplay}</div>
     </div>
@@ -10388,7 +10423,7 @@ function renderLinkExpanded(link, dragSvg) {
     return `<div class="bio-link-row" data-id="${link._id}">
       <div class="bio-link-header">
         <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
-        <span class="bio-featured-badge" style="background:rgba(124,58,237,0.15);color:#c4b5fd;border:1px solid rgba(124,58,237,0.3);">Course</span>
+        <span class="bio-featured-badge" style="background:rgba(124,58,237,0.15);color:#c4b5fd;border:1px solid rgba(124,58,237,0.3);">Course</span>${bioHalfBadge(link)}
         <div style="flex:1;"></div>
         <button class="bio-link-remove" onclick="removeLink(${link._id})">Remove</button>
       </div>
@@ -10406,6 +10441,7 @@ function renderLinkExpanded(link, dragSvg) {
             aria-label="Crossout price" style="flex:1;background:transparent;border:none;padding:10px 12px 10px 0;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;min-width:0;margin:0;">
         </div>
       </div>
+      ${bioHalfWidthToggle(link)}
       <button type="button" onclick="saveLinkRow(${link._id})"
         style="width:100%;padding:9px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">
         Save link
@@ -10420,7 +10456,7 @@ function renderLinkExpanded(link, dragSvg) {
     return `<div class="bio-link-row" data-id="${link._id}">
       <div class="bio-link-header">
         <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
-        <span class="bio-featured-badge" style="background:rgba(124,58,237,0.15);color:#c4b5fd;border:1px solid rgba(124,58,237,0.3);">Booking</span>
+        <span class="bio-featured-badge" style="background:rgba(124,58,237,0.15);color:#c4b5fd;border:1px solid rgba(124,58,237,0.3);">Booking</span>${bioHalfBadge(link)}
         <div style="flex:1;"></div>
         <button class="bio-link-remove" onclick="removeLink(${link._id})">Remove</button>
       </div>
@@ -10430,6 +10466,7 @@ function renderLinkExpanded(link, dragSvg) {
         <span style="padding:10px 0 10px 12px;font-size:13px;color:var(--muted);white-space:nowrap;">Price:</span>
         <span style="padding:10px 12px 10px 4px;font-size:13px;color:var(--text);">${priceDisplay}</span>
       </div>
+      ${bioHalfWidthToggle(link)}
       <button type="button" onclick="saveLinkRow(${link._id})"
         style="width:100%;padding:9px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">
         Save link
@@ -10444,7 +10481,7 @@ function renderLinkExpanded(link, dragSvg) {
     return `<div class="bio-link-row" data-id="${link._id}">
       <div class="bio-link-header">
         <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
-        <span class="bio-featured-badge" style="background:rgba(124,58,237,0.15);color:#c4b5fd;border:1px solid rgba(124,58,237,0.3);">Product</span>
+        <span class="bio-featured-badge" style="background:rgba(124,58,237,0.15);color:#c4b5fd;border:1px solid rgba(124,58,237,0.3);">Product</span>${bioHalfBadge(link)}
         <div style="flex:1;"></div>
         <button class="bio-link-remove" onclick="removeLink(${link._id})">Remove</button>
       </div>
@@ -10454,6 +10491,7 @@ function renderLinkExpanded(link, dragSvg) {
         <span style="padding:10px 0 10px 12px;font-size:13px;color:var(--muted);white-space:nowrap;">Price:</span>
         <span style="padding:10px 12px 10px 4px;font-size:13px;color:var(--text);">${priceDisplay}</span>
       </div>
+      ${bioHalfWidthToggle(link)}
       <button type="button" onclick="saveLinkRow(${link._id})"
         style="width:100%;padding:9px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">
         Save link
@@ -10502,6 +10540,7 @@ function renderLinkExpanded(link, dragSvg) {
       oninput="updateLinkField(${link._id},'description',this.value)" aria-label="Link description">
     <input type="url" placeholder="https://..." value="${escapeHtml(link.url || '')}"
       oninput="updateLinkField(${link._id},'url',this.value)" aria-label="Link URL" style="margin-bottom:6px;">
+    ${(!link.featured && !link.isHero) ? bioHalfWidthToggle(link) : ''}
     <div id="bio-link-err-${link._id}" style="display:none;color:#fca5a5;font-size:12px;margin-bottom:6px;"></div>
     <button type="button" onclick="saveLinkRow(${link._id})"
       style="width:100%;padding:9px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">
@@ -10951,6 +10990,7 @@ async function saveBio() {
         ...(l.isCourse ? { isCourse: true, courseId: l.courseId, coursePrice: l.coursePrice || 0, courseCrossoutPrice: l.courseCrossoutPrice || 0 } : {}),
         ...(l.isCoaching ? { isCoaching: true, coachingId: l.coachingId, coachingPrice: l.coachingPrice || 0 } : {}),
         ...(l.isProduct ? { isProduct: true, productId: l.productId, productPrice: l.productPrice || 0 } : {}),
+        ...(l.halfWidth ? { halfWidth: true } : {}),
         ...(l.isSubscribe ? { isSubscribe: true } : {}),
       }));
     const cleanVideos = bioState.videos
@@ -11148,7 +11188,11 @@ function buildPreviewHTML() {
   .socials{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:2px 0 4px;}
   .sb{width:34px;height:34px;border-radius:50%;background:${t.surface};border:1px solid ${t.border};display:flex;align-items:center;justify-content:center;color:${t.text};}
   .sb svg{width:16px;height:16px;fill:currentColor;}
-  .links{width:100%;display:flex;flex-direction:column;gap:9px;margin-top:4px;max-width:480px;padding:0 18px;box-sizing:border-box;align-self:center;}
+  .links{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:4px;max-width:480px;padding:0 18px;box-sizing:border-box;align-self:center;}
+  .links > *{grid-column:span 2;}
+  .links > .link-half{grid-column:span 1;}
+  .lk.lk-thumb.link-half .lk-thumb-img{width:38px;}
+  .lk.lk-thumb.link-half .lk-thumb-body{padding:6px 12px;}
   .hdr{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:${t.text};text-transform:uppercase;letter-spacing:0.1em;text-align:center;padding:14px 8px 6px;opacity:0.85;word-break:break-word;}
   .lk{background:${t.surface};border:1px solid ${t.border};border-radius:13px;padding:14px 18px;color:${t.text};text-align:center;}
   .lk-t{font-size:14px;font-weight:600;}
@@ -11224,6 +11268,9 @@ function buildPreviewSocials(t) {
 }
 
 function buildPreviewLink(l, t) {
+  // Half-width modifier — applies the .link-half class on the four eligible
+  // link types so the preview matches the public bio's grid layout.
+  const halfClass = l.halfWidth ? 'link-half' : '';
   // Header — text divider, no link, no clickable target
   if (l.isHeader) {
     if (!l.title) return '';
@@ -11253,7 +11300,7 @@ function buildPreviewLink(l, t) {
     const priceDisplay = l.coursePrice > 0 ? formatMoney(l.coursePrice, {alwaysShowCents:true}) : 'Free';
     const crossoutHtml = l.courseCrossoutPrice > 0 ? `<span style="text-decoration:line-through;color:${t.muted};font-size:11px;margin-right:4px;">${formatMoney(l.courseCrossoutPrice, {alwaysShowCents:true})}</span>` : '';
     const coverHtml = l.photoUrl ? `<img src="${escapeHtml(l.photoUrl)}" alt="Link cover" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px 8px 0 0;">` : '';
-    return `<div style="background:${t.surface};border:1px solid ${t.border};border-radius:10px;overflow:hidden;margin-bottom:8px;">
+    return `<div class="${halfClass}" style="background:${t.surface};border:1px solid ${t.border};border-radius:10px;overflow:hidden;">
       ${coverHtml}
       <div style="padding:10px 12px;display:flex;align-items:center;justify-content:space-between;">
         <div style="min-width:0;flex:1;">
@@ -11266,7 +11313,7 @@ function buildPreviewLink(l, t) {
   if (l.isCoaching) {
     const priceDisplay = l.coachingPrice > 0 ? formatMoney(l.coachingPrice, {alwaysShowCents:true}) : 'Free';
     const coverHtml = l.photoUrl ? `<img src="${escapeHtml(l.photoUrl)}" alt="Link cover" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px 8px 0 0;">` : '';
-    return `<div style="background:${t.surface};border:1px solid ${t.border};border-radius:10px;overflow:hidden;margin-bottom:8px;">
+    return `<div class="${halfClass}" style="background:${t.surface};border:1px solid ${t.border};border-radius:10px;overflow:hidden;">
       ${coverHtml}
       <div style="padding:10px 12px;display:flex;align-items:center;justify-content:space-between;">
         <div style="min-width:0;flex:1;">
@@ -11279,7 +11326,7 @@ function buildPreviewLink(l, t) {
   if (l.isProduct) {
     const priceDisplay = l.productPrice > 0 ? formatMoney(l.productPrice, {alwaysShowCents:true}) : 'Free';
     const coverHtml = l.photoUrl ? `<img src="${escapeHtml(l.photoUrl)}" alt="Link cover" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px 8px 0 0;">` : '';
-    return `<div style="background:${t.surface};border:1px solid ${t.border};border-radius:10px;overflow:hidden;margin-bottom:8px;">
+    return `<div class="${halfClass}" style="background:${t.surface};border:1px solid ${t.border};border-radius:10px;overflow:hidden;">
       ${coverHtml}
       <div style="padding:10px 12px;display:flex;align-items:center;justify-content:space-between;">
         <div style="min-width:0;flex:1;">
@@ -11313,7 +11360,7 @@ function buildPreviewLink(l, t) {
   }
   if (l.photoUrl && !l.featured && !l.isHero && !l.isCourse && !l.isCoaching && !l.isProduct && !l.isMediaKit) {
     // Seamless thumb-variant: square image flush-left, content centered to the right
-    return `<div class="lk lk-thumb">
+    return `<div class="lk lk-thumb ${halfClass}">
       <img src="${escapeHtml(l.photoUrl)}" alt="" class="lk-thumb-img">
       <div class="lk-thumb-body">
         <div class="lk-t">${escapeHtml(l.title || 'Untitled')}</div>
@@ -11321,7 +11368,7 @@ function buildPreviewLink(l, t) {
       </div>
     </div>`;
   }
-  return `<div class="lk">
+  return `<div class="lk ${halfClass}">
     <div class="lk-t">${escapeHtml(l.title || 'Untitled')}</div>
     ${l.description ? `<div class="lk-d">${escapeHtml(l.description)}</div>` : ''}
   </div>`;
