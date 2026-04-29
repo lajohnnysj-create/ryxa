@@ -414,9 +414,51 @@
   }
   .links > * { grid-column: span 2; }
   .links > .link-half { grid-column: span 1; }
-  /* Half-width thumb variant uses a smaller image so the box doesn't get crushed */
-  .link-btn.link-btn-thumb.link-half .link-thumb-img { width: 44px; }
-  .link-btn.link-btn-thumb.link-half .link-thumb-body { padding: 8px 12px; }
+
+  /* Half-width thumb-variant — flip from flush-left layout to image-on-top
+     stacked layout, matching the visual structure of course/booking/product
+     cards at half width. min-height gives visual consistency between rows. */
+  .link-btn.link-btn-thumb.link-half {
+    flex-direction: column;
+    align-items: stretch;
+    min-height: 150px;
+  }
+  .link-btn.link-btn-thumb.link-half .link-thumb-img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    border-top-left-radius: 14px;
+    border-top-right-radius: 14px;
+    border-bottom-left-radius: 0;
+  }
+  .link-btn.link-btn-thumb.link-half .link-thumb-body {
+    flex: 1;
+    padding: 10px 14px;
+    justify-content: center;
+  }
+
+  /* Half-width regular text-only link — give it a min-height so a half text
+     link next to a half thumb/course card doesn't look orphaned. */
+  .link-btn.link-half:not(.link-btn-thumb) {
+    min-height: 70px;
+    justify-content: center;
+  }
+
+  /* Half-width course/coaching/product cards — column layout matches the
+     thumb halves visually so a row of mixed half cards aligns. */
+  .course-link-card.link-half {
+    min-height: 150px;
+    display: flex;
+    flex-direction: column;
+  }
+  /* Body div sits below the cover image and grows to fill remaining height,
+     keeping the title+price row centered vertically. */
+  .course-link-card.link-half > div {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
   .link-header {
     font-family: 'Syne', sans-serif;
     font-size: 14px;

@@ -11191,8 +11191,15 @@ function buildPreviewHTML() {
   .links{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:4px;max-width:480px;padding:0 18px;box-sizing:border-box;align-self:center;}
   .links > *{grid-column:span 2;}
   .links > .link-half{grid-column:span 1;}
-  .lk.lk-thumb.link-half .lk-thumb-img{width:38px;}
-  .lk.lk-thumb.link-half .lk-thumb-body{padding:6px 12px;}
+  /* Half-width thumb-variant: image-on-top + text-below, matches courses/products */
+  .lk.lk-thumb.link-half{flex-direction:column;align-items:stretch;min-height:120px;}
+  .lk.lk-thumb.link-half .lk-thumb-img{width:100%;height:auto;aspect-ratio:16/9;border-top-left-radius:13px;border-top-right-radius:13px;border-bottom-left-radius:0;}
+  .lk.lk-thumb.link-half .lk-thumb-body{flex:1;padding:8px 12px;justify-content:center;}
+  /* Half-width text-only link gets a min-height for row alignment */
+  .lk.link-half:not(.lk-thumb){min-height:56px;display:flex;flex-direction:column;justify-content:center;}
+  /* Half-width preview course/coaching/product cards — column layout matches halves */
+  .pcc.link-half{min-height:120px;display:flex;flex-direction:column;}
+  .pcc.link-half > div{flex:1;}
   .hdr{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:${t.text};text-transform:uppercase;letter-spacing:0.1em;text-align:center;padding:14px 8px 6px;opacity:0.85;word-break:break-word;}
   .lk{background:${t.surface};border:1px solid ${t.border};border-radius:13px;padding:14px 18px;color:${t.text};text-align:center;}
   .lk-t{font-size:14px;font-weight:600;}
@@ -11300,7 +11307,7 @@ function buildPreviewLink(l, t) {
     const priceDisplay = l.coursePrice > 0 ? formatMoney(l.coursePrice, {alwaysShowCents:true}) : 'Free';
     const crossoutHtml = l.courseCrossoutPrice > 0 ? `<span style="text-decoration:line-through;color:${t.muted};font-size:11px;margin-right:4px;">${formatMoney(l.courseCrossoutPrice, {alwaysShowCents:true})}</span>` : '';
     const coverHtml = l.photoUrl ? `<img src="${escapeHtml(l.photoUrl)}" alt="Link cover" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px 8px 0 0;">` : '';
-    return `<div class="${halfClass}" style="background:${t.surface};border:1px solid ${t.border};border-radius:10px;overflow:hidden;">
+    return `<div class="pcc ${halfClass}" style="background:${t.surface};border:1px solid ${t.border};border-radius:10px;overflow:hidden;">
       ${coverHtml}
       <div style="padding:10px 12px;display:flex;align-items:center;justify-content:space-between;">
         <div style="min-width:0;flex:1;">
@@ -11313,7 +11320,7 @@ function buildPreviewLink(l, t) {
   if (l.isCoaching) {
     const priceDisplay = l.coachingPrice > 0 ? formatMoney(l.coachingPrice, {alwaysShowCents:true}) : 'Free';
     const coverHtml = l.photoUrl ? `<img src="${escapeHtml(l.photoUrl)}" alt="Link cover" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px 8px 0 0;">` : '';
-    return `<div class="${halfClass}" style="background:${t.surface};border:1px solid ${t.border};border-radius:10px;overflow:hidden;">
+    return `<div class="pcc ${halfClass}" style="background:${t.surface};border:1px solid ${t.border};border-radius:10px;overflow:hidden;">
       ${coverHtml}
       <div style="padding:10px 12px;display:flex;align-items:center;justify-content:space-between;">
         <div style="min-width:0;flex:1;">
@@ -11326,7 +11333,7 @@ function buildPreviewLink(l, t) {
   if (l.isProduct) {
     const priceDisplay = l.productPrice > 0 ? formatMoney(l.productPrice, {alwaysShowCents:true}) : 'Free';
     const coverHtml = l.photoUrl ? `<img src="${escapeHtml(l.photoUrl)}" alt="Link cover" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px 8px 0 0;">` : '';
-    return `<div class="${halfClass}" style="background:${t.surface};border:1px solid ${t.border};border-radius:10px;overflow:hidden;">
+    return `<div class="pcc ${halfClass}" style="background:${t.surface};border:1px solid ${t.border};border-radius:10px;overflow:hidden;">
       ${coverHtml}
       <div style="padding:10px 12px;display:flex;align-items:center;justify-content:space-between;">
         <div style="min-width:0;flex:1;">
