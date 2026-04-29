@@ -2338,6 +2338,85 @@
   .bio-link-row input, .bio-link-row textarea { width: 100%; background: var(--surface2); border: 1px solid var(--border-hover); border-radius: 6px; padding: 8px 10px; font-size: 13px; color: var(--text); font-family: 'DM Sans', sans-serif; outline: none; box-sizing: border-box; margin-bottom: 6px; }
   .bio-link-row textarea { resize: none; }
   .bio-link-row .bio-link-remove { padding: 4px 10px; background: transparent; border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; border-radius: 6px; font-size: 11px; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+
+  /* Add buttons (Content + Tools groups) — shared base + group-specific styling.
+     Hover lifts the button slightly; active pushes it down (tactile feedback). */
+  .bio-add-btn {
+    padding: 9px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: transform 0.12s ease-out, border-color 0.15s, background 0.15s, box-shadow 0.15s, color 0.15s;
+    will-change: transform;
+    user-select: none;
+  }
+  .bio-add-btn svg { flex-shrink: 0; }
+  .bio-add-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(124, 58, 237, 0.18);
+  }
+  .bio-add-btn:active {
+    transform: translateY(0) scale(0.97);
+    transition: transform 0.05s ease-out;
+    box-shadow: 0 1px 3px rgba(124, 58, 237, 0.15);
+  }
+  .bio-add-btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .bio-add-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+  .bio-add-btn:disabled:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* Content variant — dashed border, transparent bg (lighter feel for structural blocks). */
+  .bio-add-btn-content {
+    background: transparent;
+    border: 1px dashed rgba(124, 58, 237, 0.4);
+    color: var(--accent2);
+  }
+  .bio-add-btn-content:hover {
+    border-color: rgba(124, 58, 237, 0.7);
+    background: rgba(124, 58, 237, 0.06);
+    color: #d8b4fe;
+  }
+
+  /* Tools variant — gradient bg, solid border (richer feel for product integrations). */
+  .bio-add-btn-tool {
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(232, 121, 249, 0.06));
+    border: 1px solid rgba(124, 58, 237, 0.3);
+    color: #c4b5fd;
+  }
+  .bio-add-btn-tool:hover {
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.18), rgba(232, 121, 249, 0.12));
+    border-color: rgba(124, 58, 237, 0.5);
+    color: #ddd6fe;
+  }
+
+  /* Hero — premium tier accent, slightly different gradient. */
+  .bio-add-btn-hero {
+    background: linear-gradient(135deg, rgba(167, 139, 250, 0.12), rgba(232, 121, 249, 0.08));
+    border: 1px solid rgba(232, 121, 249, 0.35);
+    color: #e879f9;
+  }
+  .bio-add-btn-hero:hover {
+    background: linear-gradient(135deg, rgba(167, 139, 250, 0.2), rgba(232, 121, 249, 0.14));
+    border-color: rgba(232, 121, 249, 0.55);
+    color: #f0abfc;
+  }
+
   .bio-link-row.bio-link-mediakit {
     background: linear-gradient(135deg, rgba(124,58,237,0.08), rgba(232,121,249,0.05)) !important;
     border: 1px solid rgba(124,58,237,0.35) !important;
@@ -4297,40 +4376,57 @@
               </button>
               <div class="bio-section-body" id="bio-body-links">
               <div id="bio-links-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
-              <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                <button type="button" id="bio-add-link-btn" onclick="addLink(false)" style="flex:1;min-width:140px;padding:10px;background:transparent;border:1px dashed rgba(124,58,237,0.4);color:var(--accent2);border-radius:8px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;">+ Add link</button>
-                <button type="button" id="bio-add-featured-btn" onclick="addLink(true)" style="flex:1;min-width:140px;padding:10px;background:transparent;border:1px dashed rgba(124,58,237,0.4);color:var(--accent2);border-radius:8px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;">+ Add featured link</button>
-                <button type="button" id="bio-add-header-btn" onclick="addHeader()" style="flex:1;min-width:140px;padding:10px;background:transparent;border:1px dashed rgba(124,58,237,0.4);color:var(--accent2);border-radius:8px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;">+ Add header</button>
+
+              <!-- Group 1: Content blocks (structural pieces creators arrange in their bio) -->
+              <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;padding-left:2px;">Content</div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:6px;margin-bottom:14px;">
+                <button type="button" id="bio-add-link-btn" onclick="addLink(false)" class="bio-add-btn bio-add-btn-content">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                  Link
+                </button>
+                <button type="button" id="bio-add-featured-btn" onclick="addLink(true)" class="bio-add-btn bio-add-btn-content">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                  Featured
+                </button>
+                <button type="button" id="bio-add-header-btn" onclick="addHeader()" class="bio-add-btn bio-add-btn-content">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4v16"/><path d="M18 4v16"/><path d="M6 12h12"/></svg>
+                  Header
+                </button>
+                <button type="button" id="bio-add-video-link" onclick="addVideoBlock()" class="bio-add-btn bio-add-btn-content">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m23 7-9 6 9 6V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                  YouTube
+                </button>
+                <button type="button" id="bio-add-subscribe-btn" onclick="addSubscribeBlock()" class="bio-add-btn bio-add-btn-content">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                  Subscribe
+                </button>
               </div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
-              <button type="button" id="bio-add-hero-btn" onclick="addLink(false, true)" style="display:none;padding:10px;background:linear-gradient(135deg,rgba(167,139,250,0.12),rgba(232,121,249,0.08));border:1px solid rgba(232,121,249,0.35);color:#e879f9;border-radius:8px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;align-items:center;justify-content:center;gap:6px;">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
-                Add Hero Link
-              </button>
-              <button type="button" id="bio-add-mediakit-link" onclick="addMediaKitLink()" style="display:none;padding:10px;background:linear-gradient(135deg,rgba(124,58,237,0.1),rgba(232,121,249,0.06));border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:8px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;align-items:center;justify-content:center;gap:6px;">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="17" x2="8" y2="13"/><line x1="12" y1="17" x2="12" y2="11"/><line x1="16" y1="17" x2="16" y2="15"/></svg>
-                Add Media Kit
-              </button>
-              <button type="button" id="bio-add-course-link" onclick="openCoursePickerModal()" style="display:none;padding:10px;background:linear-gradient(135deg,rgba(124,58,237,0.1),rgba(232,121,249,0.06));border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:8px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;align-items:center;justify-content:center;gap:6px;">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-                Add Course
-              </button>
-              <button type="button" id="bio-add-coaching-link" onclick="openCoachingPickerModal()" style="display:none;padding:10px;background:linear-gradient(135deg,rgba(124,58,237,0.1),rgba(232,121,249,0.06));border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:8px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;align-items:center;justify-content:center;gap:6px;">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-                Add Booking
-              </button>
-              <button type="button" id="bio-add-product-link" onclick="openProductPickerModal()" style="display:none;padding:10px;background:linear-gradient(135deg,rgba(124,58,237,0.1),rgba(232,121,249,0.06));border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:8px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;align-items:center;justify-content:center;gap:6px;">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-                Add Digital
-              </button>
-              <button type="button" id="bio-add-video-link" onclick="addVideoBlock()" style="padding:10px;background:linear-gradient(135deg,rgba(124,58,237,0.1),rgba(232,121,249,0.06));border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:8px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m23 7-9 6 9 6V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-                Add YouTube
-              </button>
-              <button type="button" id="bio-add-subscribe-btn" onclick="addSubscribeBlock()" style="padding:10px;background:linear-gradient(135deg,rgba(124,58,237,0.1),rgba(232,121,249,0.06));border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:8px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-                Add Subscribe
-              </button>
+
+              <!-- Group 2: Tools (existing Ryxa products being attached to the bio) -->
+              <div id="bio-tools-group-wrap" style="display:none;">
+                <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;padding-left:2px;">Tools</div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:6px;">
+                  <button type="button" id="bio-add-course-link" onclick="openCoursePickerModal()" class="bio-add-btn bio-add-btn-tool" style="display:none;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                    Course
+                  </button>
+                  <button type="button" id="bio-add-coaching-link" onclick="openCoachingPickerModal()" class="bio-add-btn bio-add-btn-tool" style="display:none;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                    Booking
+                  </button>
+                  <button type="button" id="bio-add-product-link" onclick="openProductPickerModal()" class="bio-add-btn bio-add-btn-tool" style="display:none;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                    Digital
+                  </button>
+                  <button type="button" id="bio-add-mediakit-link" onclick="addMediaKitLink()" class="bio-add-btn bio-add-btn-tool" style="display:none;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="17" x2="8" y2="13"/><line x1="12" y1="17" x2="12" y2="11"/><line x1="16" y1="17" x2="16" y2="15"/></svg>
+                    Media Kit
+                  </button>
+                  <button type="button" id="bio-add-hero-btn" onclick="addLink(false, true)" class="bio-add-btn bio-add-btn-tool bio-add-btn-hero" style="display:none;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                    Hero
+                  </button>
+                </div>
               </div>
               </div>
             </div>
@@ -10132,8 +10228,11 @@ function renderBioLinks() {
   const featuredCount = bioState.links.filter(l => l.featured).length;
   const heroCount = bioState.links.filter(l => l.isHero).length;
   if (counts) {
+    const videoBlockCount = bioState.links.filter(l => l.isVideoBlock).length;
+    const maxVideoBlocks = pro ? 5 : 1;
     const parts = [`${regularCount}/${maxLinks} links`, `${featuredCount}/${maxFeatured} featured`];
     if (max) parts.push(`${heroCount}/${maxHero} hero`);
+    parts.push(`${videoBlockCount}/${maxVideoBlocks} YouTube`);
     counts.textContent = parts.join(' · ');
   }
 
@@ -10164,6 +10263,9 @@ function renderBioLinks() {
   if (coachingBtn) coachingBtn.style.display = max ? 'flex' : 'none';
   const productBtn = document.getElementById('bio-add-product-link');
   if (productBtn) productBtn.style.display = max ? 'flex' : 'none';
+  // Show the Tools group wrapper if any tool button is visible (Pro or Max).
+  const toolsWrap = document.getElementById('bio-tools-group-wrap');
+  if (toolsWrap) toolsWrap.style.display = (pro || max) ? 'block' : 'none';
   // Enable Sortable (reinit)
   if (window.Sortable) {
     const prev = el._sortable;
