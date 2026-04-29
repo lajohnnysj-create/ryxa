@@ -11382,7 +11382,30 @@ function updatePublishUI() {
     btn.style.border = '1px solid var(--border-hover)';
     btn.style.color = 'var(--muted)';
     if (viewLink && bioState.username) {
-      viewLink.href = '/' + bioState.username;
+      var bioFullUrl = 'https://www.ryxa.io/' + bioState.username;
+      if (isPwaMode) {
+        viewLink.href = '#';
+        viewLink.removeAttribute('target');
+        viewLink.textContent = 'Copy link';
+        viewLink.onclick = function(e) {
+          e.preventDefault();
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(bioFullUrl).then(function() {
+              viewLink.textContent = 'Copied!';
+              setTimeout(function() { viewLink.textContent = 'Copy link'; }, 1500);
+            }).catch(function() { fallbackCopy(bioFullUrl); viewLink.textContent = 'Copied!'; setTimeout(function() { viewLink.textContent = 'Copy link'; }, 1500); });
+          } else {
+            fallbackCopy(bioFullUrl);
+            viewLink.textContent = 'Copied!';
+            setTimeout(function() { viewLink.textContent = 'Copy link'; }, 1500);
+          }
+        };
+      } else {
+        viewLink.href = '/' + bioState.username;
+        viewLink.setAttribute('target', '_blank');
+        viewLink.textContent = 'View live page \u2197';
+        viewLink.onclick = null;
+      }
       viewLink.style.display = 'inline-flex';
     }
   } else {
@@ -12525,7 +12548,30 @@ function updateMKPublishUI() {
     btn.style.border = '1px solid var(--border-hover)';
     btn.style.color = 'var(--muted)';
     if (viewLink && uname) {
-      viewLink.href = '/mediakit/' + uname;
+      var mkFullUrl = 'https://www.ryxa.io/mediakit/' + uname;
+      if (isPwaMode) {
+        viewLink.href = '#';
+        viewLink.removeAttribute('target');
+        viewLink.textContent = 'Copy link';
+        viewLink.onclick = function(e) {
+          e.preventDefault();
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(mkFullUrl).then(function() {
+              viewLink.textContent = 'Copied!';
+              setTimeout(function() { viewLink.textContent = 'Copy link'; }, 1500);
+            }).catch(function() { fallbackCopy(mkFullUrl); viewLink.textContent = 'Copied!'; setTimeout(function() { viewLink.textContent = 'Copy link'; }, 1500); });
+          } else {
+            fallbackCopy(mkFullUrl);
+            viewLink.textContent = 'Copied!';
+            setTimeout(function() { viewLink.textContent = 'Copy link'; }, 1500);
+          }
+        };
+      } else {
+        viewLink.href = '/mediakit/' + uname;
+        viewLink.setAttribute('target', '_blank');
+        viewLink.textContent = 'View live page \u2197';
+        viewLink.onclick = null;
+      }
       viewLink.style.display = 'inline-flex';
     } else if (viewLink) {
       viewLink.style.display = 'none';
