@@ -169,6 +169,10 @@ function buildHeroHeader(profile, bio) {
 // ==========================================================================
 
 function buildLink(link, currency) {
+  // Half-width modifier — only used by the four eligible link types: regular
+  // links, course cards, booking cards, and digital product cards. Hero,
+  // featured, mediakit, subscribe, and headers are full-width only.
+  const halfClass = link.halfWidth ? ' link-half' : '';
   // Header — text divider, no link
   if (link.isHeader) {
     if (!link.title) return '';
@@ -228,7 +232,7 @@ function buildLink(link, currency) {
     const priceDisplay = link.coursePrice > 0 ? fmtPrice(link.coursePrice, currency) : 'Free';
     const crossoutHtml = link.courseCrossoutPrice > 0 ? '<span style="text-decoration:line-through;opacity:0.5;font-size:12px;margin-right:4px;">' + fmtPrice(link.courseCrossoutPrice, currency) + '</span>' : '';
     const coverHtml = safePhoto ? '<img src="' + esc(safePhoto) + '" alt="Link cover" loading="lazy" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px 10px 0 0;display:block;">' : '';
-    return '<a class="course-link-card" href="' + esc(url) + '" target="_blank" rel="noopener nofollow" style="display:block;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;text-decoration:none;color:var(--text);margin-bottom:8px;transition:transform 0.15s,border-color 0.15s;" onmouseover="this.style.transform=\'translateY(-2px)\';this.style.borderColor=\'var(--accent)\'" onmouseout="this.style.transform=\'\';this.style.borderColor=\'var(--border)\'">'
+    return '<a class="course-link-card' + halfClass + '" href="' + esc(url) + '" target="_blank" rel="noopener nofollow" style="display:block;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;text-decoration:none;color:var(--text);transition:transform 0.15s,border-color 0.15s;" onmouseover="this.style.transform=\'translateY(-2px)\';this.style.borderColor=\'var(--accent)\'" onmouseout="this.style.transform=\'\';this.style.borderColor=\'var(--border)\'">'
       + coverHtml
       + '<div style="padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">'
       + '<div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;">' + title + '</div>'
@@ -241,7 +245,7 @@ function buildLink(link, currency) {
     const safePhoto = validImageUrl(link.photoUrl);
     const priceDisplay = link.coachingPrice > 0 ? fmtPrice(link.coachingPrice, currency) : 'Free';
     const coverHtml = safePhoto ? '<img src="' + esc(safePhoto) + '" alt="Link cover" loading="lazy" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px 10px 0 0;display:block;">' : '';
-    return '<a class="course-link-card" href="' + esc(url) + '" target="_blank" rel="noopener nofollow" style="display:block;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;text-decoration:none;color:var(--text);margin-bottom:8px;transition:transform 0.15s,border-color 0.15s;" onmouseover="this.style.transform=\'translateY(-2px)\';this.style.borderColor=\'var(--accent)\'" onmouseout="this.style.transform=\'\';this.style.borderColor=\'var(--border)\'">'
+    return '<a class="course-link-card' + halfClass + '" href="' + esc(url) + '" target="_blank" rel="noopener nofollow" style="display:block;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;text-decoration:none;color:var(--text);transition:transform 0.15s,border-color 0.15s;" onmouseover="this.style.transform=\'translateY(-2px)\';this.style.borderColor=\'var(--accent)\'" onmouseout="this.style.transform=\'\';this.style.borderColor=\'var(--border)\'">'
       + coverHtml
       + '<div style="padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">'
       + '<div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;">' + title + '</div>'
@@ -254,7 +258,7 @@ function buildLink(link, currency) {
     const safePhoto = validImageUrl(link.photoUrl);
     const priceDisplay = link.productPrice > 0 ? fmtPrice(link.productPrice, currency) : 'Free';
     const coverHtml = safePhoto ? '<img src="' + esc(safePhoto) + '" alt="Link cover" loading="lazy" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px 10px 0 0;display:block;">' : '';
-    return '<a class="course-link-card" href="' + esc(url) + '" target="_blank" rel="noopener nofollow" style="display:block;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;text-decoration:none;color:var(--text);margin-bottom:8px;transition:transform 0.15s,border-color 0.15s;" onmouseover="this.style.transform=\'translateY(-2px)\';this.style.borderColor=\'var(--accent)\'" onmouseout="this.style.transform=\'\';this.style.borderColor=\'var(--border)\'">'
+    return '<a class="course-link-card' + halfClass + '" href="' + esc(url) + '" target="_blank" rel="noopener nofollow" style="display:block;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;text-decoration:none;color:var(--text);transition:transform 0.15s,border-color 0.15s;" onmouseover="this.style.transform=\'translateY(-2px)\';this.style.borderColor=\'var(--accent)\'" onmouseout="this.style.transform=\'\';this.style.borderColor=\'var(--border)\'">'
       + coverHtml
       + '<div style="padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">'
       + '<div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;">' + title + '</div>'
@@ -293,7 +297,7 @@ function buildLink(link, currency) {
   if (thumbUrl) {
     // Image on the left (square, flush to box edge, shares rounded corners with the box).
     // Title/desc fill the rest of the row, padding restored, text centered. CSS lives in bio.html.
-    return `<a class="link-btn link-btn-thumb" href="${esc(url)}" target="_blank" rel="noopener nofollow">
+    return `<a class="link-btn link-btn-thumb${halfClass}" href="${esc(url)}" target="_blank" rel="noopener nofollow">
       <img class="link-thumb-img" src="${esc(thumbUrl)}" alt="" loading="lazy">
       <div class="link-thumb-body">
         <div class="link-title">${title}</div>
@@ -301,7 +305,7 @@ function buildLink(link, currency) {
       </div>
     </a>`;
   }
-  return `<a class="link-btn" href="${esc(url)}" target="_blank" rel="noopener nofollow">
+  return `<a class="link-btn${halfClass}" href="${esc(url)}" target="_blank" rel="noopener nofollow">
     <div class="link-title">${title}</div>
     ${desc}
   </a>`;
