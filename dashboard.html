@@ -24490,6 +24490,26 @@ async function loadClients() {
       });
     }
 
+    // Digital product purchases — same opt-in pattern as courses/bookings
+    const { data: dpPurchases } = await sb
+      .from('digital_product_purchases')
+      .select('buyer_user_id, buyer_email, purchased_at, marketing_consent, digital_products(user_id)')
+      .eq('digital_products.user_id', currentUser.id)
+      .order('purchased_at', { ascending: false });
+    if (dpPurchases) {
+      dpPurchases.forEach(function(p) {
+        if (!p.digital_products || p.digital_products.user_id !== currentUser.id) return;
+        var email = p.buyer_email || '';
+        var key = email || p.buyer_user_id;
+        if (!clientMap[key]) {
+          clientMap[key] = { email: email, date: p.purchased_at, optin: !!p.marketing_consent };
+        } else {
+          if (p.marketing_consent) clientMap[key].optin = true;
+          if (new Date(p.purchased_at) < new Date(clientMap[key].date)) clientMap[key].date = p.purchased_at;
+        }
+      });
+    }
+
     // Fetch bio email signups (always opted in)
     const { data: signups } = await sb
       .from('bio_email_signups')
