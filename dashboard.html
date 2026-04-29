@@ -1948,10 +1948,120 @@
     30% { opacity: 1; }
   }
   @media (max-width: 720px) {
-    #aichat-side { width: 180px; }
-    .aichat-example { padding: 12px; }
-    .aichat-example-title { font-size: 12px; }
+    /* Layout: full-screen chat, sidebar slides in as overlay */
+    #aichat-content {
+      height: calc(100vh - 100px) !important;
+      min-height: 0 !important;
+      border-radius: 10px !important;
+      position: relative;
+    }
+    #aichat-side {
+      position: absolute !important;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 78% !important;
+      max-width: 280px;
+      z-index: 20;
+      transform: translateX(-100%);
+      transition: transform 0.22s ease;
+      box-shadow: 4px 0 24px rgba(0,0,0,0.4);
+      border-right: 1px solid var(--border);
+    }
+    #aichat-side.aichat-side-open {
+      transform: translateX(0);
+    }
+    #aichat-side-backdrop {
+      display: none;
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 15;
+    }
+    #aichat-side-backdrop.aichat-side-open {
+      display: block;
+    }
+    #aichat-mobile-header {
+      display: flex !important;
+    }
+    /* Compact empty state */
+    #aichat-empty {
+      padding: 24px 16px !important;
+    }
+    #aichat-empty h2 {
+      font-size: 20px !important;
+    }
+    #aichat-empty p {
+      font-size: 13px !important;
+      margin-bottom: 18px !important;
+    }
+    #aichat-empty > div:last-child {
+      grid-template-columns: 1fr !important;
+      gap: 8px !important;
+    }
+    .aichat-example {
+      padding: 12px !important;
+    }
+    .aichat-example-title {
+      font-size: 13px !important;
+    }
+    .aichat-example-sub {
+      font-size: 11px !important;
+    }
+    /* Compact messages */
+    #aichat-messages {
+      padding: 14px !important;
+    }
+    .aichat-msg {
+      gap: 10px !important;
+    }
+    .aichat-msg-avatar {
+      width: 30px !important;
+      height: 30px !important;
+      font-size: 12px !important;
+      flex-shrink: 0;
+    }
+    .aichat-msg-body {
+      font-size: 14px !important;
+    }
+    /* Compact input */
+    #aichat-main > div:last-child {
+      padding: 10px 12px 12px 12px !important;
+    }
+    #aichat-input {
+      font-size: 15px !important; /* 16px+ avoids iOS zoom on focus, but 15px is small enough to still look right */
+    }
+    #aichat-hint {
+      font-size: 10px !important;
+      margin-top: 6px !important;
+    }
   }
+  /* Mobile header (hidden by default, shown via media query) */
+  #aichat-mobile-header {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+    flex-shrink: 0;
+  }
+  .aichat-mobile-toggle {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    padding: 0;
+  }
+  .aichat-mobile-toggle:hover { background: var(--surface); border-color: var(--accent2); }
+  .aichat-mobile-toggle svg { width: 18px; height: 18px; }
 
   /* Design Studio */
   .ds-preset-btn { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px; cursor:pointer; text-align:center; transition:all 0.15s; display:flex; flex-direction:column; align-items:center; gap:8px; }
@@ -6715,7 +6825,7 @@
             <h2 id="products-editor-title" style="font-family:Syne,sans-serif;font-size:22px;font-weight:800;letter-spacing:-0.4px;">New Product</h2>
           </div>
 
-          <div style="display:grid;grid-template-columns:1fr;gap:18px;max-width:680px;">
+          <div style="display:grid;grid-template-columns:1fr;gap:18px;max-width:680px;min-width:0;">
 
             <!-- Title -->
             <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;">
@@ -6736,10 +6846,10 @@
             <!-- Slug -->
             <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;">
               <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;">URL Slug</label>
-              <div style="display:flex;align-items:center;gap:0;background:var(--bg);border:1px solid var(--border);border-radius:10px;overflow:hidden;">
-                <span style="padding:11px 0 11px 14px;color:var(--muted);font-size:13px;font-family:DM Sans,sans-serif;white-space:nowrap;">ryxa.io/product/</span>
-                <input type="text" id="products-slug" maxlength="80" placeholder="lightroom-preset-pack" style="flex:1;background:transparent;border:none;padding:11px 14px;color:var(--text);font-size:14px;font-family:DM Sans,sans-serif;outline:none;">
-                <button type="button" onclick="copyProductUrl()" id="products-copy-url-btn" style="display:none;padding:8px 14px;background:transparent;border:none;border-left:1px solid var(--border);color:var(--muted);font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer;white-space:nowrap;align-items:center;gap:5px;transition:color 0.15s;" title="Copy URL">
+              <div style="display:flex;align-items:center;gap:0;background:var(--bg);border:1px solid var(--border);border-radius:10px;overflow:hidden;min-width:0;">
+                <span style="padding:11px 0 11px 14px;color:var(--muted);font-size:13px;font-family:DM Sans,sans-serif;white-space:nowrap;flex-shrink:0;">ryxa.io/product/</span>
+                <input type="text" id="products-slug" maxlength="80" placeholder="lightroom-preset-pack" style="flex:1;min-width:0;background:transparent;border:none;padding:11px 14px;color:var(--text);font-size:14px;font-family:DM Sans,sans-serif;outline:none;">
+                <button type="button" onclick="copyProductUrl()" id="products-copy-url-btn" style="display:none;padding:8px 14px;background:transparent;border:none;border-left:1px solid var(--border);color:var(--muted);font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer;white-space:nowrap;align-items:center;gap:5px;transition:color 0.15s;flex-shrink:0;" title="Copy URL">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                   Copy
                 </button>
@@ -6765,7 +6875,7 @@
 
             <!-- Files -->
             <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:6px;">
                 <label style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;">Files <span id="products-files-count" style="opacity:0.7;font-weight:400;text-transform:none;">(0)</span></label>
                 <div id="products-files-size" style="font-size:11px;color:var(--muted);">0 MB used of this product's 300 MB</div>
               </div>
@@ -6814,7 +6924,9 @@
       </div>
 
       <!-- Main chat UI (Pro+ only) -->
-      <div id="aichat-content" style="display:none;height:calc(100vh - 120px);min-height:560px;display:flex;gap:0;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--surface);">
+      <div id="aichat-content" style="display:none;height:calc(100vh - 120px);min-height:560px;display:flex;gap:0;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--surface);position:relative;">
+        <!-- Mobile backdrop (only visible when sidebar is open on mobile) -->
+        <div id="aichat-side-backdrop" onclick="aichatToggleSide(false)"></div>
         <!-- Conversations sidebar -->
         <div id="aichat-side" style="width:240px;flex-shrink:0;border-right:1px solid var(--border);background:var(--surface2);display:flex;flex-direction:column;">
           <div style="padding:14px 14px 10px 14px;border-bottom:1px solid var(--border);">
@@ -6830,6 +6942,16 @@
 
         <!-- Chat area -->
         <div id="aichat-main" style="flex:1;display:flex;flex-direction:column;min-width:0;">
+          <!-- Mobile header (only shown on small screens via CSS) -->
+          <div id="aichat-mobile-header">
+            <button class="aichat-mobile-toggle" onclick="aichatToggleSide(true)" aria-label="Open conversations">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
+            <div style="flex:1;font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="aichat-mobile-title">Ryxa AI</div>
+            <button class="aichat-mobile-toggle" onclick="aichatNewConversation()" aria-label="New chat">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+          </div>
           <!-- Empty state with example prompts -->
           <div id="aichat-empty" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;overflow-y:auto;">
             <div style="width:60px;height:60px;background:linear-gradient(135deg,rgba(167,139,250,0.18),rgba(232,121,249,0.14));border:1px solid rgba(232,121,249,0.3);border-radius:16px;display:flex;align-items:center;justify-content:center;margin-bottom:18px;">
@@ -25864,13 +25986,38 @@ function aichatNewConversation() {
   document.getElementById('aichat-messages').style.display = 'none';
   document.getElementById('aichat-messages').innerHTML = '';
   aichatRenderConversationList();
+  aichatToggleSide(false);
+  var titleEl = document.getElementById('aichat-mobile-title');
+  if (titleEl) titleEl.textContent = 'Ryxa AI';
   var inp = document.getElementById('aichat-input');
   if (inp) inp.focus();
+}
+
+// Mobile sidebar toggle
+function aichatToggleSide(forceState) {
+  var side = document.getElementById('aichat-side');
+  var backdrop = document.getElementById('aichat-side-backdrop');
+  if (!side || !backdrop) return;
+  var open = (forceState === undefined)
+    ? !side.classList.contains('aichat-side-open')
+    : !!forceState;
+  if (open) {
+    side.classList.add('aichat-side-open');
+    backdrop.classList.add('aichat-side-open');
+  } else {
+    side.classList.remove('aichat-side-open');
+    backdrop.classList.remove('aichat-side-open');
+  }
 }
 
 async function aichatLoadConversation(convId) {
   aichatState.conversationId = convId;
   aichatRenderConversationList();
+  aichatToggleSide(false);
+  // Set the mobile header title from the conversation list
+  var convInList = (aichatState.conversations || []).find(function(c) { return c.id === convId; });
+  var titleEl = document.getElementById('aichat-mobile-title');
+  if (titleEl) titleEl.textContent = (convInList && convInList.title) ? convInList.title : 'Ryxa AI';
   var messagesEl = document.getElementById('aichat-messages');
   document.getElementById('aichat-empty').style.display = 'none';
   messagesEl.style.display = 'block';
