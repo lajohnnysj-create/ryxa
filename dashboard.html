@@ -1864,6 +1864,11 @@
   .aichat-conv-item:hover .aichat-conv-delete {
     display: block;
   }
+  /* Touch devices have no hover — show delete button always */
+  @media (hover: none) and (pointer: coarse) {
+    .aichat-conv-delete { display: block; }
+    .aichat-conv-item { padding-right: 32px; }
+  }
   .aichat-conv-delete:hover {
     background: rgba(239,68,68,0.15);
     color: #f87171;
@@ -2388,6 +2393,19 @@
     /* Settings (MK) input rows stack */
     .mk-section-body { padding: 14px !important; }
     .mk-section-header { padding: 12px 14px !important; }
+  }
+  /* Digital Products mobile fixes — force every descendant to respect viewport */
+  @media (max-width: 640px) {
+    #tool-products, #tool-products *:not(input):not(button):not(svg):not(img) { min-width: 0 !important; }
+    #tool-products { max-width: 100%; overflow: hidden; }
+    /* Editor cards — reduce padding so they don't push past the viewport */
+    #products-editor-view > div[style*="display:grid"] > div { padding: 14px !important; }
+    /* Slug row prefix — allow it to wrap on tiny screens */
+    #products-editor-view div[style*="ryxa.io/product"] { flex-wrap: wrap !important; }
+    /* List view product cards — single column on narrow screens */
+    #products-list { grid-template-columns: 1fr !important; }
+    /* File rows shouldn't overflow */
+    #products-files-list > div { flex-wrap: wrap !important; }
   }
   /* Extra-tight fixes for narrow phones */
   @media (max-width: 420px) {
@@ -6945,12 +6963,9 @@
           <!-- Mobile header (only shown on small screens via CSS) -->
           <div id="aichat-mobile-header">
             <button class="aichat-mobile-toggle" onclick="aichatToggleSide(true)" aria-label="Open conversations">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-            </button>
-            <div style="flex:1;font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="aichat-mobile-title">Ryxa AI</div>
-            <button class="aichat-mobile-toggle" onclick="aichatNewConversation()" aria-label="New chat">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </button>
+            <div style="flex:1;font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="aichat-mobile-title">Ryxa AI</div>
           </div>
           <!-- Empty state with example prompts -->
           <div id="aichat-empty" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;overflow-y:auto;">
