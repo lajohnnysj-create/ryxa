@@ -21,8 +21,8 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 // ============================================================
 
 const TIER_LIMITS = {
-  max: 200,         // Creator Max: 200 calls per rolling 24h
-  monthly: 100,     // Pro: 100 calls per rolling 24h
+  max: 85,          // Creator Max: 85 calls per rolling 24h
+  monthly: 40,      // Pro: 40 calls per rolling 24h
   free: 0,          // Free: no AI access
 };
 
