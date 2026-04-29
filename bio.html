@@ -441,6 +441,36 @@
     border-color: var(--accent2);
     background: var(--surface2);
   }
+  /* Thumb variant — square image flush-left, content area centered to the right */
+  .link-btn.link-btn-thumb {
+    flex-direction: row;
+    padding: 0;
+    align-items: stretch;
+    overflow: hidden;
+  }
+  .link-btn.link-btn-thumb .link-thumb-img {
+    align-self: stretch;
+    aspect-ratio: 1 / 1;
+    height: auto;
+    object-fit: cover;
+    flex-shrink: 0;
+    display: block;
+    /* Image inherits the wrapper's left rounded corners; right edge is square so
+       it joins seamlessly to the body. */
+    border-top-left-radius: 14px;
+    border-bottom-left-radius: 14px;
+  }
+  .link-btn.link-btn-thumb .link-thumb-body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 16px 20px;
+    gap: 2px;
+  }
   .link-title {
     font-size: 15px;
     font-weight: 600;
@@ -1031,9 +1061,11 @@ function buildLink(link) {
   }
   const thumbUrl = validImageUrl(link.photoUrl);
   if (thumbUrl) {
-    return `<a class="link-btn" href="${esc(url)}" target="_blank" rel="noopener nofollow" style="flex-direction:row;align-items:center;gap:14px;text-align:left;">
-      <img src="${esc(thumbUrl)}" alt="" loading="lazy" style="width:40px;height:40px;object-fit:cover;border-radius:10px;flex-shrink:0;">
-      <div style="flex:1;min-width:0;">
+    // Image on the left (square, flush to box edge, shares rounded corners with the box).
+    // Title/desc fill the rest of the row, padding restored, text centered.
+    return `<a class="link-btn link-btn-thumb" href="${esc(url)}" target="_blank" rel="noopener nofollow">
+      <img class="link-thumb-img" src="${esc(thumbUrl)}" alt="" loading="lazy">
+      <div class="link-thumb-body">
         <div class="link-title">${title}</div>
         ${desc}
       </div>

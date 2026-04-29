@@ -11153,6 +11153,9 @@ function buildPreviewHTML() {
   .lk{background:${t.surface};border:1px solid ${t.border};border-radius:13px;padding:14px 18px;color:${t.text};text-align:center;}
   .lk-t{font-size:14px;font-weight:600;}
   .lk-d{font-size:12px;color:${t.muted};line-height:1.4;margin-top:2px;word-break:break-word;}
+  .lk.lk-thumb{display:flex;flex-direction:row;align-items:stretch;padding:0;overflow:hidden;}
+  .lk-thumb-img{align-self:stretch;aspect-ratio:1/1;height:auto;object-fit:cover;flex-shrink:0;display:block;border-top-left-radius:13px;border-bottom-left-radius:13px;}
+  .lk-thumb-body{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:14px 18px;gap:2px;}
   .fl{background:${t.surface};border:1px solid ${t.border};border-radius:16px;overflow:hidden;}
   .fl img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:${t.surface2};}
   .fl-b{padding:14px 18px 16px;text-align:center;}
@@ -11309,9 +11312,10 @@ function buildPreviewLink(l, t) {
     </div>`;
   }
   if (l.photoUrl && !l.featured && !l.isHero && !l.isCourse && !l.isCoaching && !l.isProduct && !l.isMediaKit) {
-    return `<div class="lk" style="display:flex;flex-direction:row;align-items:center;gap:8px;text-align:left;">
-      <img src="${escapeHtml(l.photoUrl)}" alt="" style="width:24px;height:24px;object-fit:cover;border-radius:4px;flex-shrink:0;">
-      <div style="flex:1;min-width:0;">
+    // Seamless thumb-variant: square image flush-left, content centered to the right
+    return `<div class="lk lk-thumb">
+      <img src="${escapeHtml(l.photoUrl)}" alt="" class="lk-thumb-img">
+      <div class="lk-thumb-body">
         <div class="lk-t">${escapeHtml(l.title || 'Untitled')}</div>
         ${l.description ? `<div class="lk-d">${escapeHtml(l.description)}</div>` : ''}
       </div>
