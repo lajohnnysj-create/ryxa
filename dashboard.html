@@ -6837,7 +6837,7 @@
 
             <!-- Title -->
             <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;">
-              <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;">Title</label>
+              <label for="products-title" style="display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;">Title</label>
               <input type="text" id="products-title" maxlength="120" placeholder="e.g. Lightroom Preset Pack" oninput="autoUpdateProductSlug()" style="width:100%;padding:11px 14px;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;font-family:DM Sans,sans-serif;outline:none;">
             </div>
 
@@ -6847,13 +6847,13 @@
               <div id="products-cover-preview" style="width:100%;aspect-ratio:16/9;background:var(--bg);border:1px dashed var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;cursor:pointer;background-size:cover;background-position:center;" onclick="dpClickCover()">
                 Click to upload (1280×720 recommended)
               </div>
-              <input type="file" id="products-cover-input" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="onProductCoverSelect(this)">
+              <input type="file" id="products-cover-input" aria-label="Upload product cover image" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="onProductCoverSelect(this)">
               <button id="products-cover-remove" onclick="removeProductCover()" style="display:none;margin-top:8px;padding:6px 10px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:12px;cursor:pointer;font-family:DM Sans,sans-serif;">Remove cover</button>
             </div>
 
             <!-- Slug -->
             <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;">
-              <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;">URL Slug</label>
+              <label for="products-slug" style="display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;">URL Slug</label>
               <div style="display:flex;align-items:center;gap:0;background:var(--bg);border:1px solid var(--border);border-radius:10px;overflow:hidden;min-width:0;">
                 <span style="padding:11px 0 11px 14px;color:var(--muted);font-size:13px;font-family:DM Sans,sans-serif;white-space:nowrap;flex-shrink:0;">ryxa.io/product/</span>
                 <input type="text" id="products-slug" maxlength="80" placeholder="lightroom-preset-pack" style="flex:1;min-width:0;background:transparent;border:none;padding:11px 14px;color:var(--text);font-size:14px;font-family:DM Sans,sans-serif;outline:none;">
@@ -6867,13 +6867,13 @@
 
             <!-- Description -->
             <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;">
-              <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;">Description</label>
+              <label for="products-description" style="display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;">Description</label>
               <textarea id="products-description" maxlength="2000" rows="4" placeholder="What's included in your product? Who is it for?" style="width:100%;padding:11px 14px;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;font-family:DM Sans,sans-serif;outline:none;resize:vertical;"></textarea>
             </div>
 
             <!-- Price -->
             <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;">
-              <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;">Price</label>
+              <label for="products-price" style="display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;">Price</label>
               <div style="display:flex;align-items:center;gap:0;max-width:240px;">
                 <span style="padding:11px 14px;background:var(--bg);border:1px solid var(--border);border-right:none;border-radius:10px 0 0 10px;color:var(--muted);font-size:14px;font-family:DM Sans,sans-serif;">$</span>
                 <input type="number" id="products-price" min="0" step="0.01" placeholder="9.99" style="flex:1;padding:11px 14px;background:var(--bg);border:1px solid var(--border);border-radius:0 10px 10px 0;color:var(--text);font-size:14px;font-family:DM Sans,sans-serif;outline:none;">
@@ -6892,7 +6892,7 @@
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                 Upload file (max 100 MB)
               </button>
-              <input type="file" id="products-file-input" multiple style="display:none;" onchange="uploadProductFiles(this)">
+              <input type="file" id="products-file-input" aria-label="Upload product files" multiple style="display:none;" onchange="uploadProductFiles(this)">
               <div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;">
                 PDFs, ebooks, templates, presets, and design files only. Up to 100 MB per file. No videos, audio, or executables.
               </div>
@@ -6900,7 +6900,7 @@
 
             <!-- Delivery message -->
             <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;">
-              <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;">Thank-You Message <span style="text-transform:none;font-weight:400;opacity:0.7;">(optional)</span></label>
+              <label for="products-delivery-message" style="display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;">Thank-You Message <span style="text-transform:none;font-weight:400;opacity:0.7;">(optional)</span></label>
               <textarea id="products-delivery-message" maxlength="500" rows="3" placeholder="Thanks for buying! Here are some tips on getting started..." style="width:100%;padding:11px 14px;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;font-family:DM Sans,sans-serif;outline:none;resize:vertical;"></textarea>
               <div style="font-size:11px;color:var(--muted);margin-top:6px;">Shown on the buyer's download page after purchase.</div>
             </div>
