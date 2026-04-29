@@ -192,6 +192,28 @@ function buildLink(link, currency) {
     </div>`;
   }
 
+  // Video block — horizontal-scrollable carousel of up to 5 YouTube videos.
+  // Sits inline inside the .links container so reordering moves the whole
+  // block. Renders nothing (filtered out) when there are no valid videos.
+  if (link.isVideoBlock) {
+    const videos = Array.isArray(link.videos) ? link.videos : [];
+    const cards = videos.map(v => {
+      const id = extractYouTubeId(v && (v.url || v.videoId));
+      if (!id) return '';
+      const thumb = `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+      return `<div class="video-card" tabindex="0" role="button" aria-label="Play video"
+                onclick="playVideo(this,'${id}')"
+                onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();playVideo(this,'${id}')}">
+        <div class="video-thumb-wrap">
+          <img class="video-thumb" src="${thumb}" alt="YouTube video thumbnail" loading="lazy" onerror="this.src='https://i.ytimg.com/vi/${id}/default.jpg'">
+          <div class="video-play"><div class="video-play-icon"></div></div>
+        </div>
+      </div>`;
+    }).filter(Boolean).join('');
+    if (!cards) return '';
+    return `<div class="videos"><div class="videos-scroll">${cards}</div></div>`;
+  }
+
   const url = validUrl(link.url);
   if (!url) return '';
   const title = esc(link.title || '');
@@ -311,25 +333,6 @@ function buildLink(link, currency) {
   </a>`;
 }
 
-function buildVideos(videos) {
-  if (!Array.isArray(videos) || videos.length === 0) return '';
-  const cards = videos.map(v => {
-    const id = extractYouTubeId(v.url || v.videoId);
-    if (!id) return '';
-    const thumb = `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
-    return `<div class="video-card" tabindex="0" role="button" aria-label="Play video"
-              onclick="playVideo(this,'${id}')"
-              onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();playVideo(this,'${id}')}">
-      <div class="video-thumb-wrap">
-        <img class="video-thumb" src="${thumb}" alt="YouTube video thumbnail" loading="lazy" onerror="this.src='https://i.ytimg.com/vi/${id}/default.jpg'">
-        <div class="video-play"><div class="video-play-icon"></div></div>
-      </div>
-    </div>`;
-  }).filter(Boolean).join('');
-  if (!cards) return '';
-  return `<div class="videos"><div class="videos-scroll">${cards}</div></div>`;
-}
-
 // ==========================================================================
 // CUSTOM THEME (Max tier only) — emit a <style> block with theme overrides
 // so colors are correct on first paint, before client JS runs.
@@ -394,10 +397,8 @@ function renderBioContent(profile, bio) {
   const isHeroMode = bio.avatar_display === 'hero' && validImageUrl(bio.avatar_url) && isMaxTier;
 
   const links = Array.isArray(bio.links) ? bio.links : [];
-  const videos = Array.isArray(bio.videos) ? bio.videos : [];
   const socialsHtml = buildSocials(bio.socials);
   const linksHtml = links.map(l => buildLink(l, currency)).filter(Boolean).join('');
-  const videosHtml = buildVideos(videos);
 
   // Branding banner: free users always show it; Pro/Max can opt out
   const isPaid = profile.tier === 'monthly' || profile.tier === 'max';
@@ -414,7 +415,6 @@ function renderBioContent(profile, bio) {
         ${socialsHtml}
         ${bio.bio ? `<div class="bio">${esc(bio.bio)}</div>` : ''}
         ${linksHtml ? `<div class="links">${linksHtml}</div>` : ''}
-        ${videosHtml}
         ${banner}
       </div>`;
   } else {
@@ -423,7 +423,6 @@ function renderBioContent(profile, bio) {
       ${socialsHtml}
       ${bio.bio ? `<div class="bio">${esc(bio.bio)}</div>` : ''}
       ${linksHtml ? `<div class="links">${linksHtml}</div>` : ''}
-      ${videosHtml}
       ${banner}`;
   }
 
