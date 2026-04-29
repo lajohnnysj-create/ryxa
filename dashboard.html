@@ -9618,8 +9618,9 @@ function updateSubscribeBtn() {
 }
 
 // ---- Video Block (YouTube carousel inside the link list) ----
-// Each block holds up to 5 YouTube URLs. Free creators are limited to 1 block;
-// Pro/Max can add multiple (constrained naturally by maxLinks).
+// Each block holds up to 10 YouTube URLs. Free creators get 1 block max;
+// Pro/Max creators get up to 5 blocks. The block count is also constrained
+// naturally by maxLinks.
 function addVideoBlock() {
   const { maxLinks } = bioLimits();
   const totalLinkCount = bioState.links.length;
@@ -9627,11 +9628,15 @@ function addVideoBlock() {
     showBioStatus('error', `Link limit reached (${maxLinks}).`);
     return;
   }
-  // Free creators get one video block; Pro/Max get unlimited
+  const existingBlocks = bioState.links.filter(l => l.isVideoBlock).length;
   if (!isPro()) {
-    const existingBlocks = bioState.links.filter(l => l.isVideoBlock).length;
     if (existingBlocks >= 1) {
-      showBioStatus('error', 'Free plan supports one YouTube block. Upgrade to Pro for multiple.');
+      showBioStatus('error', 'Free plan supports one YouTube block. Upgrade to Pro for up to 5.');
+      return;
+    }
+  } else {
+    if (existingBlocks >= 5) {
+      showBioStatus('error', 'YouTube block limit reached (5).');
       return;
     }
   }
@@ -9656,12 +9661,12 @@ function updateVideoBlockUrl(linkId, idx, url) {
   schedulePreviewUpdate();
 }
 
-// Add another empty URL slot to a video block (max 5).
+// Add another empty URL slot to a video block (max 10).
 function addVideoToBlock(linkId) {
   const link = bioState.links.find(l => l._id === linkId);
   if (!link || !link.isVideoBlock) return;
   if (!Array.isArray(link.videos)) link.videos = [];
-  if (link.videos.length >= 5) return;
+  if (link.videos.length >= 10) return;
   link.videos.push({ url: '' });
   renderBioLinks();
   schedulePreviewUpdate();
@@ -10491,12 +10496,12 @@ function renderLinkExpanded(link, dragSvg) {
     </div>`;
   }
 
-  // Video block — list of up to 5 YouTube URL inputs, each removable. An
-  // "Add another video" button appears at the bottom when fewer than 5 are
+  // Video block — list of up to 10 YouTube URL inputs, each removable. An
+  // "Add another video" button appears at the bottom when fewer than 10 are
   // present. The whole block can be removed via the row's Remove button.
   if (link.isVideoBlock) {
     const videos = Array.isArray(link.videos) && link.videos.length ? link.videos : [{ url: '' }];
-    const atMax = videos.length >= 5;
+    const atMax = videos.length >= 10;
     const inputsHtml = videos.map((v, idx) => {
       const value = escapeHtml(v && v.url ? v.url : '');
       return `<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;">
@@ -10515,11 +10520,11 @@ function renderLinkExpanded(link, dragSvg) {
         <div style="flex:1;"></div>
         <button class="bio-link-remove" onclick="removeLink(${link._id})">Remove</button>
       </div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Add up to 5 YouTube videos. They'll appear as a horizontal carousel on your bio.</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Add up to 10 YouTube videos. They'll appear as a horizontal carousel on your bio.</div>
       ${inputsHtml}
       <button type="button" onclick="addVideoToBlock(${link._id})" ${atMax ? 'disabled' : ''}
         style="width:100%;padding:8px;background:transparent;border:1px dashed rgba(124,58,237,0.4);color:${atMax ? 'var(--muted)' : 'var(--accent2)'};border-radius:6px;font-size:12px;font-family:'DM Sans',sans-serif;cursor:${atMax ? 'default' : 'pointer'};margin-bottom:6px;opacity:${atMax ? 0.5 : 1};">
-        ${atMax ? '5 video limit reached' : '+ Add another video'}
+        ${atMax ? '10 video limit reached' : '+ Add another video'}
       </button>
       <button type="button" onclick="saveLinkRow(${link._id})"
         style="width:100%;padding:9px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">
@@ -11023,7 +11028,7 @@ async function saveBio() {
           videos: (Array.isArray(l.videos) ? l.videos : [])
             .map(v => ({ url: (v && v.url ? v.url : '').trim() }))
             .filter(v => v.url)
-            .slice(0, 5)
+            .slice(0, 10)
         } : {}),
       }));
     // Old top-level videos array is no longer used — videos now live inside
