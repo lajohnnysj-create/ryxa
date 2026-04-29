@@ -177,7 +177,7 @@
   <div style="margin-bottom:48px;">
     <span style="font-size:12px;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent2);font-weight:600;display:block;margin-bottom:12px;">Legal</span>
     <h1 style="font-family:'Syne',sans-serif;font-size:clamp(32px,5vw,48px);font-weight:800;letter-spacing:-2px;margin-bottom:12px;">Privacy Policy</h1>
-    <p style="color:var(--muted);font-size:14px;">Effective date: April 12, 2026 · Last updated: April 28, 2026</p>
+    <p style="color:var(--muted);font-size:14px;">Effective date: April 12, 2026 · Last updated: April 29, 2026</p>
   </div>
 
   <div style="display:flex;flex-direction:column;gap:40px;font-size:15px;line-height:1.8;color:var(--muted);">
@@ -283,16 +283,46 @@
         <li><strong style="color:var(--text);">Stripe</strong> — payment processing. PCI-DSS compliant. <a href="https://stripe.com/privacy" target="_blank" rel="noopener" style="color:var(--accent2);">Privacy policy</a></li>
         <li><strong style="color:var(--text);">Resend</strong> — transactional email delivery (password resets, receipts). <a href="https://resend.com/legal/privacy-policy" target="_blank" rel="noopener" style="color:var(--accent2);">Privacy policy</a></li>
         <li><strong style="color:var(--text);">Anthropic</strong> — AI provider for AI-powered features (Chatbox, Design Studio, Script Builder, Bio Writer, Caption Generator, Thumbnail Analyzer, Contract Analyzer, Alt-text Generator). Prompts and inputs you send to AI features are processed by Anthropic. Anthropic does not use API inputs or outputs to train their models. <a href="https://www.anthropic.com/legal/privacy" target="_blank" rel="noopener" style="color:var(--accent2);">Privacy policy</a></li>
+        <li><strong style="color:var(--text);">Meta Platforms (Instagram)</strong> — social account integration via the official Instagram Graph API, only when you choose to connect your Instagram account. See Section 8 below for details. <a href="https://www.facebook.com/policy.php" target="_blank" rel="noopener" style="color:var(--accent2);">Privacy policy</a></li>
       </ul>
     </div>
 
     <div>
-      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">8. Where your data is stored</h2>
+      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">8. Connecting your Instagram account</h2>
+      <p style="margin-bottom:12px;">Ryxa lets you connect your Instagram account to power features like media kit auto-fill, follower count display, and engagement insights. Connecting is always optional — Ryxa works fully without it.</p>
+
+      <p style="margin-bottom:12px;"><strong style="color:var(--text);">How the connection works.</strong> When you click "Connect Instagram," you're sent to Meta's official OAuth authorization page. You log in to Instagram directly with Meta — Ryxa never sees your password. After you approve, Meta sends Ryxa a secure access token that lets us call the Instagram Graph API on your behalf. You can revoke this access at any time (see below).</p>
+
+      <p style="margin-bottom:12px;"><strong style="color:var(--text);">What we receive from Meta.</strong> Depending on the permissions you grant, Ryxa may receive:</p>
+      <ul style="padding-left:22px;margin-bottom:12px;">
+        <li>Your Instagram username, profile picture, biography, and account type (basic profile info)</li>
+        <li>Your follower count, media count, and account-level insights (reach, impressions, profile views) — used for media kit auto-fill and analytics</li>
+        <li>Direct messaging access for features you explicitly enable (e.g., automated DM responses), if you grant that specific permission</li>
+      </ul>
+
+      <p style="margin-bottom:12px;"><strong style="color:var(--text);">How we use this data.</strong> Instagram data is used solely to power features you've activated in Ryxa — for example, populating your media kit with up-to-date follower counts or showing analytics on your dashboard. We do NOT sell, rent, or share your Instagram data with third parties. We do NOT use it for advertising. We do NOT use it to train AI models.</p>
+
+      <p style="margin-bottom:12px;"><strong style="color:var(--text);">How we store this data.</strong> Your Instagram access token is stored encrypted in our Supabase database, accessible only by you and our authenticated systems. Profile and insights data is fetched live from Meta when you view it; we may cache recent values briefly (up to 24 hours) to keep your dashboard fast.</p>
+
+      <p style="margin-bottom:12px;"><strong style="color:var(--text);">How to disconnect or delete your Instagram data.</strong> You can disconnect Instagram from Ryxa at any time:</p>
+      <ul style="padding-left:22px;margin-bottom:12px;">
+        <li><strong style="color:var(--text);">Inside Ryxa:</strong> Go to Settings → Connected Accounts → Disconnect Instagram. This revokes our access token and deletes any cached Instagram data within 24 hours.</li>
+        <li><strong style="color:var(--text);">Inside Instagram:</strong> Go to Instagram Settings → Apps and Websites → Active → Find "Ryxa" → Remove. This revokes our access on Meta's side immediately.</li>
+        <li><strong style="color:var(--text);">By request:</strong> Email <a href="mailto:hello@ryxa.io" style="color:var(--accent2);">hello@ryxa.io</a> and we'll permanently delete all Instagram data associated with your account within 30 days.</li>
+      </ul>
+
+      <p style="margin-bottom:12px;"><strong style="color:var(--text);">Compliance with Meta Platform Terms.</strong> Ryxa's use of information received from the Instagram Graph API and Meta APIs adheres to the <a href="https://developers.facebook.com/terms" target="_blank" rel="noopener" style="color:var(--accent2);">Meta Platform Terms</a> and <a href="https://developers.facebook.com/devpolicy/" target="_blank" rel="noopener" style="color:var(--accent2);">Developer Policies</a>. We will not transfer Meta-derived data to any ad network, data broker, or other advertising or monetization-related service.</p>
+
+      <p><strong style="color:var(--text);">Note on affiliation.</strong> Ryxa is an independent platform. We are not affiliated with, endorsed by, or sponsored by Instagram or Meta Platforms, Inc.</p>
+    </div>
+
+    <div>
+      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">9. Where your data is stored</h2>
       <p>Your data is stored primarily in the United States (AWS us-east-2, Ohio). If you are accessing the service from outside the US, by using Ryxa you consent to your data being transferred to and processed in the United States.</p>
     </div>
 
     <div>
-      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">9. Data retention</h2>
+      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">10. Data retention</h2>
       <p style="margin-bottom:12px;"><strong style="color:var(--text);">Active accounts:</strong> We retain your data as long as your account is active.</p>
       <p style="margin-bottom:12px;"><strong style="color:var(--text);">Cancelled Pro/Max subscriptions:</strong> When you cancel Pro or Max, your account downgrades to Free at the end of your billing period, but your feature data (grid plans, scripts, custom themes, media kit, audit history) is preserved. If you resubscribe later, your data will be right where you left it.</p>
       <p style="margin-bottom:12px;"><strong style="color:var(--text);">Chatbox conversations:</strong> Stored as long as your account is active. You can delete individual conversations at any time from the Chatbox sidebar — deletion is permanent and removes all messages in that conversation.</p>
@@ -300,7 +330,7 @@
     </div>
 
     <div>
-      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">10. Your rights</h2>
+      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">11. Your rights</h2>
       <p style="margin-bottom:12px;">Regardless of where you live, you have the right to:</p>
       <ul style="padding-left:22px;margin-bottom:12px;">
         <li><strong>Access</strong> your data — request a copy of what we store</li>
@@ -315,23 +345,23 @@
     </div>
 
     <div>
-      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">11. Security</h2>
+      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">12. Security</h2>
       <p>We take reasonable measures to protect your data, including encrypted connections (HTTPS everywhere), industry-standard authentication practices, row-level security policies on all database tables, and limited access to production data. No online service is 100% secure, but we work to minimize risk.</p>
       <p style="margin-top:12px;">In the event of a data breach affecting your personal information, we will notify you within 72 hours of discovery via email, in accordance with applicable laws (including CCPA in California and GDPR if applicable). The notification will include the nature of the breach, the data affected, and steps we are taking to address it.</p>
     </div>
 
     <div>
-      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">12. Children's privacy</h2>
+      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">13. Children's privacy</h2>
       <p>Ryxa is not directed at children under 13. We do not knowingly collect personal information from anyone under 13. If you are a parent and believe your child has signed up, please contact us at hello@ryxa.io and we will delete the account.</p>
     </div>
 
     <div>
-      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">13. Changes to this policy</h2>
+      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">14. Changes to this policy</h2>
       <p>We may update this policy as the service evolves. We will update the "Last updated" date at the top. For material changes, we will notify you by email or via an in-app notice. Continued use of the service after updates constitutes acceptance of the updated policy.</p>
     </div>
 
     <div>
-      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">14. Contact</h2>
+      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">15. Contact</h2>
       <p>Questions about privacy? Email hello@ryxa.io.</p>
       <p style="margin-top:12px;">MRLA Media LLC</p>
     </div>
