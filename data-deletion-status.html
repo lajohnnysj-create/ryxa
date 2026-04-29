@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="shortcut icon" href="/favicon.ico">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Deletion Status | Ryxa</title>
+<meta name="description" content="Check the status of a Ryxa data deletion request submitted via Meta.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #07070f; --surface: #0f0f1a; --surface2: #161625;
+    --border: rgba(255,255,255,0.07); --border-hover: rgba(255,255,255,0.14);
+    --accent: #7c3aed; --accent2: #a855f7; --accent-glow: rgba(124,58,237,0.3);
+    --text: #f0eef8; --muted: #b4b2c8;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 48px; background: rgba(10,10,15,0.85);
+    backdrop-filter: blur(20px); border-bottom: 1px solid var(--border);
+  }
+  .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 20px; letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text); }
+  .logo img { width: 38px; height: 38px; object-fit: contain; }
+
+  main { flex: 1; padding: 80px 24px 60px; max-width: 640px; margin: 0 auto; width: 100%; }
+  h1 { font-family: 'Syne', sans-serif; font-size: clamp(28px, 4vw, 40px); font-weight: 800; letter-spacing: -1px; margin-bottom: 12px; }
+  .subtitle { font-size: 15px; color: var(--muted); margin-bottom: 36px; line-height: 1.6; }
+
+  .status-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    margin-bottom: 24px;
+  }
+  .status-icon {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 18px;
+    flex-shrink: 0;
+  }
+  .status-icon.completed { background: rgba(34,197,94,0.15); }
+  .status-icon.pending { background: rgba(234,179,8,0.15); }
+  .status-icon.notfound { background: rgba(239,68,68,0.15); }
+  .status-icon svg { width: 28px; height: 28px; }
+  .status-icon.completed svg { color: #22c55e; }
+  .status-icon.pending svg { color: #eab308; }
+  .status-icon.notfound svg { color: #ef4444; }
+
+  .status-title { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; margin-bottom: 10px; }
+  .status-desc { font-size: 14px; color: var(--muted); line-height: 1.7; margin-bottom: 18px; }
+
+  .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-top: 1px solid var(--border); font-size: 13px; }
+  .detail-row:first-of-type { border-top: none; }
+  .detail-row .label { color: var(--muted); }
+  .detail-row .value { color: var(--text); font-family: monospace; }
+
+  .info-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 22px;
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+  .info-box strong { color: var(--text); font-weight: 500; }
+  .info-box a { color: var(--accent2); text-decoration: none; }
+  .info-box a:hover { text-decoration: underline; }
+
+  .loading { text-align: center; color: var(--muted); padding: 40px 0; font-size: 14px; }
+
+  footer { border-top: 1px solid var(--border); padding: 24px 48px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 16px; font-size: 13px; color: var(--muted); }
+  footer a { color: var(--muted); text-decoration: none; }
+  footer a:hover { color: var(--text); }
+  .footer-links { display: flex; gap: 24px; }
+
+  @media (max-width: 640px) {
+    nav { padding: 16px 20px; }
+    main { padding: 48px 16px 40px; }
+    .status-card { padding: 24px; }
+    footer { padding: 20px; flex-direction: column; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="logo">
+    <img src="/logo-black.png" alt="Ryxa">
+    Ryxa
+  </a>
+</nav>
+
+<main>
+  <h1>Data Deletion Status</h1>
+  <p class="subtitle">Use the confirmation code from Meta's deletion confirmation to verify the status of your request.</p>
+
+  <div id="status-content">
+    <div class="loading">Loading…</div>
+  </div>
+
+  <div class="info-box">
+    <p style="margin-bottom:10px;"><strong>About this page</strong></p>
+    <p style="margin-bottom:10px;">This page shows the status of data deletion requests Meta sends to Ryxa when a user removes our app from their Instagram or Facebook account.</p>
+    <p>If you'd like to delete your entire Ryxa account and all associated data, email us at <a href="mailto:hello@ryxa.io">hello@ryxa.io</a>. See our <a href="/privacy.html">Privacy Policy</a> for full details on how we handle your data.</p>
+  </div>
+</main>
+
+<footer>
+  <p>&copy; 2026 Ryxa. All rights reserved.</p>
+  <div class="footer-links">
+    <a href="/privacy.html">Privacy</a>
+    <a href="/terms.html">Terms</a>
+    <a href="/">Home</a>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtqeXRhcGNneHVrYWx3c3lwdXRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMTcxMzEsImV4cCI6MjA5MDg5MzEzMX0.VC8mcU5lUeA56kG2gHssvl88EVWr018XttA86jpfEn0';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, function(c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+
+function formatDate(iso) {
+  if (!iso) return '—';
+  try {
+    var d = new Date(iso);
+    return d.toLocaleString(undefined, {
+      year: 'numeric', month: 'short', day: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    });
+  } catch (e) {
+    return iso;
+  }
+}
+
+function renderStatus(html) {
+  document.getElementById('status-content').innerHTML = html;
+}
+
+function renderNotFound(code) {
+  renderStatus(`
+    <div class="status-card">
+      <div class="status-icon notfound">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+      </div>
+      <div class="status-title">Confirmation code not found</div>
+      <div class="status-desc">${code ? 'We couldn\'t find a deletion request matching this code. Double-check the code from Meta\'s confirmation, or contact us at hello@ryxa.io for assistance.' : 'No confirmation code was provided in the URL. The page should be opened from the link in Meta\'s deletion confirmation.'}</div>
+    </div>
+  `);
+}
+
+function renderCompleted(row) {
+  renderStatus(`
+    <div class="status-card">
+      <div class="status-icon completed">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      </div>
+      <div class="status-title">Deletion completed</div>
+      <div class="status-desc">Your Instagram connection data has been permanently removed from Ryxa.</div>
+      <div class="detail-row">
+        <span class="label">Confirmation code</span>
+        <span class="value">${escapeHtml(row.confirmation_code)}</span>
+      </div>
+      <div class="detail-row">
+        <span class="label">Requested</span>
+        <span class="value">${escapeHtml(formatDate(row.requested_at))}</span>
+      </div>
+      <div class="detail-row">
+        <span class="label">Completed</span>
+        <span class="value">${escapeHtml(formatDate(row.completed_at))}</span>
+      </div>
+    </div>
+  `);
+}
+
+function renderPending(row) {
+  renderStatus(`
+    <div class="status-card">
+      <div class="status-icon pending">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+        </svg>
+      </div>
+      <div class="status-title">Deletion in progress</div>
+      <div class="status-desc">Your deletion request was received and is being processed. This page will reflect completion once it finishes.</div>
+      <div class="detail-row">
+        <span class="label">Confirmation code</span>
+        <span class="value">${escapeHtml(row.confirmation_code)}</span>
+      </div>
+      <div class="detail-row">
+        <span class="label">Requested</span>
+        <span class="value">${escapeHtml(formatDate(row.requested_at))}</span>
+      </div>
+    </div>
+  `);
+}
+
+async function loadStatus() {
+  var params = new URLSearchParams(window.location.search);
+  var code = (params.get('code') || '').trim();
+
+  if (!code) {
+    renderNotFound('');
+    return;
+  }
+
+  try {
+    var { data, error } = await sb.rpc('get_deletion_status', { p_code: code });
+    if (error) {
+      console.error('RPC error:', error);
+      renderNotFound(code);
+      return;
+    }
+    if (!data || data.length === 0) {
+      renderNotFound(code);
+      return;
+    }
+    var row = data[0];
+    if (row.status === 'completed' && row.completed_at) {
+      renderCompleted(row);
+    } else {
+      renderPending(row);
+    }
+  } catch (e) {
+    console.error('Failed to load status:', e);
+    renderNotFound(code);
+  }
+}
+
+loadStatus();
+</script>
+
+</body>
+</html>
