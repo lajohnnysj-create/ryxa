@@ -291,9 +291,11 @@ function buildLink(link, currency) {
   // Regular link — with or without thumbnail
   const thumbUrl = validImageUrl(link.photoUrl);
   if (thumbUrl) {
-    return `<a class="link-btn" href="${esc(url)}" target="_blank" rel="noopener nofollow" style="flex-direction:row;align-items:center;gap:14px;text-align:left;">
-      <img src="${esc(thumbUrl)}" alt="" loading="lazy" style="width:40px;height:40px;object-fit:cover;border-radius:10px;flex-shrink:0;">
-      <div style="flex:1;min-width:0;">
+    // Image on the left (square, flush to box edge, shares rounded corners with the box).
+    // Title/desc fill the rest of the row, padding restored, text centered. CSS lives in bio.html.
+    return `<a class="link-btn link-btn-thumb" href="${esc(url)}" target="_blank" rel="noopener nofollow">
+      <img class="link-thumb-img" src="${esc(thumbUrl)}" alt="" loading="lazy">
+      <div class="link-thumb-body">
         <div class="link-title">${title}</div>
         ${desc}
       </div>
