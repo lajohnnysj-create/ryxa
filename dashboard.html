@@ -4317,7 +4317,7 @@
               </button>
               <button type="button" id="bio-add-coaching-link" onclick="openCoachingPickerModal()" style="display:none;padding:10px;background:linear-gradient(135deg,rgba(124,58,237,0.1),rgba(232,121,249,0.06));border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:8px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;align-items:center;justify-content:center;gap:6px;">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-                Add Coaching
+                Add Booking
               </button>
               <button type="button" id="bio-add-product-link" onclick="openProductPickerModal()" style="display:none;padding:10px;background:linear-gradient(135deg,rgba(124,58,237,0.1),rgba(232,121,249,0.06));border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:8px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;align-items:center;justify-content:center;gap:6px;">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
@@ -9841,20 +9841,20 @@ async function openCoachingPickerModal() {
   const { data: services } = await sb.from('coaching_services').select('id, title, slug, price_cents, cover_image_path, duration_minutes').eq('user_id', currentUser.id).eq('status', 'published').order('created_at', { ascending: false });
 
   if (!services || services.length === 0) {
-    showBioStatus('error', 'No published coaching services found. Create and publish one first.');
+    showBioStatus('error', 'No published bookings found. Create and publish one first.');
     return;
   }
 
   const addedIds = bioState.links.filter(l => l.isCoaching).map(l => l.coachingId);
 
-  let modalHtml = '<div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.3px;margin-bottom:16px;">Add Coaching to Bio</div>';
+  let modalHtml = '<div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.3px;margin-bottom:16px;">Add Booking to Bio</div>';
   modalHtml += '<div style="display:flex;flex-direction:column;gap:10px;">';
 
   services.forEach(function(c) {
     const isAdded = addedIds.indexOf(c.id) !== -1;
     const coverUrl = c.cover_image_path ? sb.storage.from('coaching-covers').getPublicUrl(c.cover_image_path).data.publicUrl : '';
     const coverHtml = coverUrl
-      ? '<img src="' + escapeHtml(coverUrl) + '" alt="Course thumbnail" style="width:60px;height:40px;object-fit:cover;border-radius:6px;flex-shrink:0;">'
+      ? '<img src="' + escapeHtml(coverUrl) + '" alt="Booking thumbnail" style="width:60px;height:40px;object-fit:cover;border-radius:6px;flex-shrink:0;">'
       : '<div style="width:60px;height:40px;border-radius:6px;background:var(--surface);border:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>';
     const priceText = c.price_cents > 0 ? formatMoney(c.price_cents, {alwaysShowCents:true}) : 'Free';
 
@@ -9896,7 +9896,7 @@ function closeCoachingPickerModal() {
 
 function addCoachingToLinks(coachingId, title, priceCents, slug, coverUrl) {
   if (bioState.links.some(l => l.isCoaching && l.coachingId === coachingId)) {
-    showBioStatus('error', 'This coaching service is already in your links.');
+    showBioStatus('error', 'This booking is already in your links.');
     return;
   }
 
@@ -9917,7 +9917,7 @@ function addCoachingToLinks(coachingId, title, priceCents, slug, coverUrl) {
   renderBioLinks();
   schedulePreviewUpdate();
   closeCoachingPickerModal();
-  showBioStatus('success', 'Coaching service added to your links. Remember to save.');
+  showBioStatus('success', 'Booking added to your links. Remember to save.');
 }
 
 async function openProductPickerModal() {
