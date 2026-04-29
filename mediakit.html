@@ -915,6 +915,16 @@ async function load() {
   const username = getUsername();
   if (!username) { renderNotFound(null); return; }
 
+  // FAST PATH: server-side rendered. Skip the data fetch + render entirely.
+  // The page is already painted with the creator's content; we only need to
+  // track the page view (which has to happen client-side so we don't count
+  // bots or CDN cache warmers as views).
+  if (window._ssrHydrated && window._ssrUsername) {
+    trackPageView(window._ssrUsername, 'mediakit');
+    return;
+  }
+
+  // FALLBACK PATH: server-side render failed or wasn't applied. Render client-side.
   const { data: profile, error: pErr } = await sb
     .from('public_profile_tiers')
     .select('user_id, username, tier, display_currency')
