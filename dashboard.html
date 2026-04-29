@@ -4321,28 +4321,17 @@
               </button>
               <button type="button" id="bio-add-product-link" onclick="openProductPickerModal()" style="display:none;padding:10px;background:linear-gradient(135deg,rgba(124,58,237,0.1),rgba(232,121,249,0.06));border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:8px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;align-items:center;justify-content:center;gap:6px;">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-                Add Product
+                Add Digital
+              </button>
+              <button type="button" id="bio-add-video-link" onclick="addVideoBlock()" style="padding:10px;background:linear-gradient(135deg,rgba(124,58,237,0.1),rgba(232,121,249,0.06));border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:8px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m23 7-9 6 9 6V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                Add YouTube
               </button>
               <button type="button" id="bio-add-subscribe-btn" onclick="addSubscribeBlock()" style="padding:10px;background:linear-gradient(135deg,rgba(124,58,237,0.1),rgba(232,121,249,0.06));border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:8px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                 Add Subscribe
               </button>
               </div>
-              </div>
-            </div>
-
-            <!-- Videos -->
-            <div class="bio-section">
-              <button type="button" class="bio-section-header bio-collapsible" onclick="toggleBioSection('videos')" aria-expanded="true">
-                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-                  <div class="bio-section-label">YouTube videos</div>
-                  <div id="bio-videos-count" style="font-size:11px;color:var(--muted);"></div>
-                </div>
-                <svg class="bio-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
-              </button>
-              <div class="bio-section-body" id="bio-body-videos">
-              <div id="bio-videos-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
-              <button type="button" id="bio-add-video-btn" onclick="openVideoDraft()" style="width:100%;padding:10px;background:transparent;border:1px dashed rgba(124,58,237,0.4);color:var(--accent2);border-radius:8px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;">+ Add YouTube video</button>
               </div>
             </div>
 
@@ -8909,7 +8898,6 @@ function initBioTool() {
   renderBioThemes();
   renderBioSocials();
   renderBioLinks();
-  renderBioVideos();
   loadBioData();
   document.getElementById('bio-avatar-inner').addEventListener('click', () => {
     document.getElementById('bio-avatar-input').click();
@@ -8978,7 +8966,9 @@ async function loadBioData() {
       bioState.theme = bio.theme || 'purple';
       bioState.socials = bio.socials || {};
       bioState.links = Array.isArray(bio.links) ? bio.links.map(l => ({ ...l, _id: linkIdSeq++ })) : [];
-      bioState.videos = Array.isArray(bio.videos) ? bio.videos.map(v => ({ ...v, _id: linkIdSeq++ })) : [];
+      // Old videos array is no longer used — YouTube embeds now live as
+      // isVideoBlock entries inside bioState.links. Wipe any legacy data.
+      bioState.videos = [];
       bioState.published = !!bio.published;
       bioState.show_branding = bio.show_branding !== false;
       bioState.custom_theme = bio.custom_theme || null;
@@ -8996,7 +8986,6 @@ async function loadBioData() {
   syncBioCustomEditorUI();
   renderBioSocials();
   renderBioLinks();
-  renderBioVideos();
   updatePublishUI();
   updateBioPreview();
   updateMediaKitLinkButton();
@@ -9628,6 +9617,68 @@ function updateSubscribeBtn() {
   btn.style.cursor = hasSubscribe ? 'default' : 'pointer';
 }
 
+// ---- Video Block (YouTube carousel inside the link list) ----
+// Each block holds up to 5 YouTube URLs. Free creators are limited to 1 block;
+// Pro/Max can add multiple (constrained naturally by maxLinks).
+function addVideoBlock() {
+  const { maxLinks } = bioLimits();
+  const totalLinkCount = bioState.links.length;
+  if (totalLinkCount >= maxLinks) {
+    showBioStatus('error', `Link limit reached (${maxLinks}).`);
+    return;
+  }
+  // Free creators get one video block; Pro/Max get unlimited
+  if (!isPro()) {
+    const existingBlocks = bioState.links.filter(l => l.isVideoBlock).length;
+    if (existingBlocks >= 1) {
+      showBioStatus('error', 'Free plan supports one YouTube block. Upgrade to Pro for multiple.');
+      return;
+    }
+  }
+  const newId = linkIdSeq++;
+  bioState.links.push({
+    _id: newId,
+    isVideoBlock: true,
+    videos: [{ url: '' }]  // start with one empty input
+  });
+  bioExpandedLinks.add(newId);
+  renderBioLinks();
+  schedulePreviewUpdate();
+  showBioStatus('saved', 'YouTube block added');
+}
+
+// Update the URL of a video at a given index inside a video block link.
+function updateVideoBlockUrl(linkId, idx, url) {
+  const link = bioState.links.find(l => l._id === linkId);
+  if (!link || !link.isVideoBlock || !Array.isArray(link.videos)) return;
+  if (idx < 0 || idx >= link.videos.length) return;
+  link.videos[idx].url = url;
+  schedulePreviewUpdate();
+}
+
+// Add another empty URL slot to a video block (max 5).
+function addVideoToBlock(linkId) {
+  const link = bioState.links.find(l => l._id === linkId);
+  if (!link || !link.isVideoBlock) return;
+  if (!Array.isArray(link.videos)) link.videos = [];
+  if (link.videos.length >= 5) return;
+  link.videos.push({ url: '' });
+  renderBioLinks();
+  schedulePreviewUpdate();
+}
+
+// Remove a single video URL from a video block. If it was the last one, leave
+// one empty slot so the block stays editable (creator can also delete the
+// whole block via the row's Remove button).
+function removeVideoFromBlock(linkId, idx) {
+  const link = bioState.links.find(l => l._id === linkId);
+  if (!link || !link.isVideoBlock || !Array.isArray(link.videos)) return;
+  link.videos.splice(idx, 1);
+  if (link.videos.length === 0) link.videos.push({ url: '' });
+  renderBioLinks();
+  schedulePreviewUpdate();
+}
+
 async function addMediaKitLink() {
   if (!isPro()) {
     showBioStatus('error', 'Media Kit is a Pro feature.');
@@ -10066,7 +10117,6 @@ function bioHalfWidthToggle(link) {
 
 let bioStalePhotos = []; // photos to delete on next save
 let bioExpandedLinks = new Set(); // _ids of links currently expanded for editing
-let bioVideoDraftOpen = false; // is the "Add video" input currently visible
 
 function renderBioLinks() {
   const el = document.getElementById('bio-links-list');
@@ -10150,6 +10200,36 @@ function renderLinkCollapsed(link, dragSvg, editSvg) {
         </div>
       </div>
       <button type="button" aria-label="Edit header" onclick="event.stopPropagation();expandLink(${link._id})" style="background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:6px;padding:5px 9px;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:4px;">${editSvg} Edit</button>
+      <button class="bio-link-remove" onclick="event.stopPropagation();removeLink(${link._id})">Remove</button>
+    </div>`;
+  }
+
+  // Video block — collapsed shows video count + first thumbnail (if any).
+  if (link.isVideoBlock) {
+    const videos = Array.isArray(link.videos) ? link.videos : [];
+    const filledCount = videos.filter(v => v && v.url && v.url.trim()).length;
+    const firstId = (() => {
+      for (const v of videos) {
+        const id = extractYouTubeIdDash(v && v.url);
+        if (id) return id;
+      }
+      return null;
+    })();
+    const thumb = firstId
+      ? `<img alt="YouTube preview" src="https://i.ytimg.com/vi/${firstId}/default.jpg" style="width:56px;height:38px;object-fit:cover;border-radius:6px;flex-shrink:0;" onerror="this.style.background='var(--surface2)';this.removeAttribute('src');">`
+      : `<div style="width:56px;height:38px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><path d="m23 7-9 6 9 6V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></div>`;
+    const countText = filledCount === 0 ? 'No videos yet' : (filledCount === 1 ? '1 video' : `${filledCount} videos`);
+    return `<div class="bio-link-row bio-link-collapsed" data-id="${link._id}" onclick="expandLink(${link._id})" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:10px 12px;">
+      <div class="bio-link-drag" aria-label="Drag to reorder" onclick="event.stopPropagation();">${dragSvg}</div>
+      ${thumb}
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+          <span style="font-size:13px;font-weight:500;color:var(--text);">YouTube videos</span>
+          <span class="bio-featured-badge" style="background:rgba(239,68,68,0.12);color:#fca5a5;border:1px solid rgba(239,68,68,0.25);">YouTube</span>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;">${countText}</div>
+      </div>
+      <button type="button" aria-label="Edit videos" onclick="event.stopPropagation();expandLink(${link._id})" style="background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:6px;padding:5px 9px;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:4px;">${editSvg} Edit</button>
       <button class="bio-link-remove" onclick="event.stopPropagation();removeLink(${link._id})">Remove</button>
     </div>`;
   }
@@ -10411,6 +10491,43 @@ function renderLinkExpanded(link, dragSvg) {
     </div>`;
   }
 
+  // Video block — list of up to 5 YouTube URL inputs, each removable. An
+  // "Add another video" button appears at the bottom when fewer than 5 are
+  // present. The whole block can be removed via the row's Remove button.
+  if (link.isVideoBlock) {
+    const videos = Array.isArray(link.videos) && link.videos.length ? link.videos : [{ url: '' }];
+    const atMax = videos.length >= 5;
+    const inputsHtml = videos.map((v, idx) => {
+      const value = escapeHtml(v && v.url ? v.url : '');
+      return `<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;">
+        <input type="url" placeholder="https://youtube.com/watch?v=..." value="${value}"
+          oninput="updateVideoBlockUrl(${link._id}, ${idx}, this.value)"
+          aria-label="YouTube URL ${idx + 1}"
+          style="flex:1;margin:0;">
+        <button type="button" aria-label="Remove this video" onclick="removeVideoFromBlock(${link._id}, ${idx})"
+          style="flex-shrink:0;width:34px;height:34px;background:transparent;border:1px solid rgba(239,68,68,0.3);color:#ef4444;border-radius:6px;font-size:14px;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;">×</button>
+      </div>`;
+    }).join('');
+    return `<div class="bio-link-row" data-id="${link._id}">
+      <div class="bio-link-header">
+        <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
+        <span class="bio-featured-badge" style="background:rgba(239,68,68,0.12);color:#fca5a5;border:1px solid rgba(239,68,68,0.25);">YouTube</span>
+        <div style="flex:1;"></div>
+        <button class="bio-link-remove" onclick="removeLink(${link._id})">Remove</button>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Add up to 5 YouTube videos. They'll appear as a horizontal carousel on your bio.</div>
+      ${inputsHtml}
+      <button type="button" onclick="addVideoToBlock(${link._id})" ${atMax ? 'disabled' : ''}
+        style="width:100%;padding:8px;background:transparent;border:1px dashed rgba(124,58,237,0.4);color:${atMax ? 'var(--muted)' : 'var(--accent2)'};border-radius:6px;font-size:12px;font-family:'DM Sans',sans-serif;cursor:${atMax ? 'default' : 'pointer'};margin-bottom:6px;opacity:${atMax ? 0.5 : 1};">
+        ${atMax ? '5 video limit reached' : '+ Add another video'}
+      </button>
+      <button type="button" onclick="saveLinkRow(${link._id})"
+        style="width:100%;padding:9px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">
+        Save
+      </button>
+    </div>`;
+  }
+
   let photoSlot = '';
   if (link.isCourse) {
 
@@ -10558,8 +10675,8 @@ function saveLinkRow(id) {
   const link = bioState.links.find(l => l._id === id);
   if (!link) return;
 
-  // Headers and subscribe blocks don't require a URL
-  if (link.isHeader || link.isSubscribe) {
+  // Headers, subscribe blocks, and video blocks don't require a URL
+  if (link.isHeader || link.isSubscribe || link.isVideoBlock) {
     bioExpandedLinks.delete(id);
     renderBioLinks();
     schedulePreviewUpdate();
@@ -10581,106 +10698,12 @@ function saveLinkRow(id) {
 }
 
 // ====== VIDEOS ======
+// Helper for extracting a YouTube ID — used by video block renderers in
+// both the editor (collapsed thumb) and the live preview.
 function extractYouTubeIdDash(url) {
   if (!url) return null;
   const m = String(url).match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
   return m ? m[1] : null;
-}
-function removeVideo(id) {
-  bioState.videos = bioState.videos.filter(v => v._id !== id);
-  renderBioVideos();
-  schedulePreviewUpdate();
-}
-
-function openVideoDraft() {
-  const { maxVideos } = bioLimits();
-  if (bioState.videos.length >= maxVideos) {
-    showBioStatus('error', `Video limit reached (${maxVideos}). ${!isPro() ? 'Upgrade to Pro for 20.' : ''}`);
-    return;
-  }
-  bioVideoDraftOpen = true;
-  renderBioVideos();
-  // Focus the input once it renders
-  setTimeout(() => {
-    const input = document.getElementById('bio-video-draft-input');
-    if (input) input.focus();
-  }, 0);
-}
-
-function cancelVideoDraft() {
-  bioVideoDraftOpen = false;
-  renderBioVideos();
-}
-
-function confirmVideoDraft() {
-  const input = document.getElementById('bio-video-draft-input');
-  if (!input) return;
-  const url = (input.value || '').trim();
-  const errEl = document.getElementById('bio-video-draft-err');
-  if (!url) {
-    if (errEl) { errEl.textContent = 'Paste a YouTube URL first.'; errEl.style.display = 'block'; }
-    return;
-  }
-  bioState.videos.push({ _id: linkIdSeq++, url });
-  bioVideoDraftOpen = false;
-  renderBioVideos();
-  schedulePreviewUpdate();
-}
-
-function renderBioVideos() {
-  const el = document.getElementById('bio-videos-list');
-  const counts = document.getElementById('bio-videos-count');
-  const addBtn = document.getElementById('bio-add-video-btn');
-  if (!el) return;
-  const { maxVideos } = bioLimits();
-  if (counts) counts.textContent = `${bioState.videos.length}/${maxVideos}`;
-
-  let html = '';
-  if (bioState.videos.length === 0 && !bioVideoDraftOpen) {
-    html = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px;">No videos yet.</div>';
-  } else {
-    // Render saved videos as compact rows
-    html = bioState.videos.map(v => {
-      const ytId = extractYouTubeIdDash(v.url);
-      const thumb = ytId
-        ? `<img alt="YouTube video thumbnail" src="https://i.ytimg.com/vi/${ytId}/default.jpg" style="width:60px;height:45px;object-fit:cover;border-radius:5px;flex-shrink:0;" onerror="this.style.background='var(--surface2)';this.removeAttribute('src');">`
-        : `<div style="width:60px;height:45px;border-radius:5px;background:var(--surface2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--muted);">?</div>`;
-      const urlDisplay = escapeHtml(v.url.length > 50 ? v.url.slice(0, 47) + '…' : v.url);
-      return `<div class="bio-link-row" data-id="${v._id}" style="display:flex;gap:10px;align-items:center;padding:10px 12px;">
-        ${thumb}
-        <div style="flex:1;min-width:0;font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${urlDisplay}</div>
-        <button class="bio-link-remove" onclick="removeVideo(${v._id})">Remove</button>
-      </div>`;
-    }).join('');
-  }
-
-  // Render draft input if open
-  if (bioVideoDraftOpen) {
-    html += `<div class="bio-link-row" style="padding:12px;">
-      <input type="url" id="bio-video-draft-input" placeholder="https://youtube.com/watch?v=..."
-        aria-label="YouTube URL"
-        onkeydown="if(event.key==='Enter'){event.preventDefault();confirmVideoDraft();}else if(event.key==='Escape'){cancelVideoDraft();}"
-        style="margin-bottom:8px;">
-      <div id="bio-video-draft-err" style="display:none;color:#fca5a5;font-size:12px;margin-bottom:8px;"></div>
-      <div style="display:flex;gap:6px;">
-        <button type="button" onclick="cancelVideoDraft()"
-          style="flex:1;padding:8px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:6px;font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;">
-          Cancel
-        </button>
-        <button type="button" onclick="confirmVideoDraft()"
-          style="flex:2;padding:8px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">
-          Add
-        </button>
-      </div>
-    </div>`;
-  }
-
-  el.innerHTML = html;
-
-  // Toggle "+ Add video" button state
-  const atLimit = bioState.videos.length >= maxVideos;
-  addBtn.disabled = atLimit || bioVideoDraftOpen;
-  addBtn.style.opacity = (atLimit || bioVideoDraftOpen) ? 0.5 : 1;
 }
 
 function setAvatarDisplay(mode) {
@@ -10977,7 +11000,7 @@ async function saveBio() {
       return 'https://' + s;
     };
     const cleanLinks = bioState.links
-      .filter(l => (l.title || '').trim() || (l.url || '').trim())
+      .filter(l => (l.title || '').trim() || (l.url || '').trim() || l.isVideoBlock || l.isHeader || l.isSubscribe || l.isMediaKit)
       .map(l => ({
         title: (l.title || '').slice(0, 80),
         description: (l.description || '').slice(0, 120),
@@ -10992,10 +11015,20 @@ async function saveBio() {
         ...(l.isProduct ? { isProduct: true, productId: l.productId, productPrice: l.productPrice || 0 } : {}),
         ...(l.halfWidth ? { halfWidth: true } : {}),
         ...(l.isSubscribe ? { isSubscribe: true } : {}),
+        // Video block — array of YouTube URLs (capped at 5 by the editor).
+        // Filter out empty/blank URL slots so the saved payload never carries
+        // partially-filled rows.
+        ...(l.isVideoBlock ? {
+          isVideoBlock: true,
+          videos: (Array.isArray(l.videos) ? l.videos : [])
+            .map(v => ({ url: (v && v.url ? v.url : '').trim() }))
+            .filter(v => v.url)
+            .slice(0, 5)
+        } : {}),
       }));
-    const cleanVideos = bioState.videos
-      .filter(v => (v.url || '').trim())
-      .map(v => ({ url: (v.url || '').trim() }));
+    // Old top-level videos array is no longer used — videos now live inside
+    // isVideoBlock entries in `links`. Always write empty so legacy data clears.
+    const cleanVideos = [];
 
     const payload = {
       user_id: currentUser.id,
@@ -11160,8 +11193,7 @@ function buildPreviewHTML() {
     ? `<img src="${escapeHtml(bioState.avatar_url)}" alt="Profile photo" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;">`
     : `<div style="width:100%;height:100%;border-radius:50%;background:${t.surface2};display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;font-size:36px;font-weight:800;color:${t.text};">${escapeHtml(initial)}</div>`;
   const socialsHtml = buildPreviewSocials(t);
-  const linksHtml = bioState.links.filter(l => l.isHeader || l.isSubscribe || (l.url || '').trim()).map(l => buildPreviewLink(l, t)).join('');
-  const videosHtml = buildPreviewVideos(t);
+  const linksHtml = bioState.links.filter(l => l.isHeader || l.isSubscribe || l.isVideoBlock || (l.url || '').trim()).map(l => buildPreviewLink(l, t)).join('');
 
   // For custom themes with a bg image, we dim the radial glow (since bg image is already bg)
   const glowCSS = (bioState.theme === 'custom' && isMax() && bioState.custom_theme?.bgUrl)
@@ -11230,7 +11262,7 @@ function buildPreviewHTML() {
   .hl-c{position:relative;z-index:2;display:flex;flex-direction:column;padding:20px;min-height:110px;justify-content:flex-end;}
   .hl-t{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,0.5);letter-spacing:-0.3px;}
   .hl-d{font-size:13px;color:rgba(255,255,255,0.9);text-shadow:0 1px 4px rgba(0,0,0,0.5);line-height:1.35;margin-top:4px;word-break:break-word;}
-  .vids{width:100%;margin-top:8px;overflow-x:auto;scrollbar-width:none;}
+  .vids{width:100%;overflow-x:auto;scrollbar-width:none;}
   .vids::-webkit-scrollbar{display:none;}
   .vids-r{display:flex;gap:10px;padding:2px 0;}
   .vc{flex:0 0 220px;background:${t.surface};border:1px solid ${t.border};border-radius:12px;overflow:hidden;}
@@ -11265,7 +11297,6 @@ function buildPreviewHTML() {
     ${socialsHtml}
     ${bioState.bio ? `<div class="bio-line">${escapeHtml(bioState.bio)}</div>` : ''}`}
     ${linksHtml ? `<div class="links">${linksHtml}</div>` : ''}
-    ${videosHtml}
     ${bioState.show_branding ? '<div class="banner"><img src="logo.png" alt="Ryxa"><span>Get your free link-in-bio at <strong>Ryxa</strong></span></div>' : ''}
   </div>
 </body></html>`;
@@ -11296,6 +11327,24 @@ function buildPreviewLink(l, t) {
         <div style="padding:6px 10px;background:${t.accent};color:#fff;border-radius:6px;font-size:9px;font-weight:600;">Subscribe</div>
       </div>
     </div>`;
+  }
+
+  // Video block — horizontal-scrollable carousel of up to 5 YouTube thumbnails.
+  // Renders as a child of .links and respects the link's drag order, so when
+  // the creator reorders, the entire carousel moves with it.
+  if (l.isVideoBlock) {
+    const videos = Array.isArray(l.videos) ? l.videos : [];
+    const cards = videos.map(v => {
+      const id = extractYouTubeIdDash(v && v.url);
+      if (!id) return '';
+      return `<div class="vc"><img src="https://i.ytimg.com/vi/${id}/hqdefault.jpg" alt="YouTube video thumbnail" onerror="this.src='https://i.ytimg.com/vi/${id}/default.jpg'"></div>`;
+    }).filter(Boolean).join('');
+    if (!cards) {
+      // Empty placeholder — only shown in editor preview when a block was just
+      // added with no URLs yet
+      return `<div style="background:${t.surface};border:1px dashed ${t.border};border-radius:10px;padding:14px;text-align:center;color:${t.muted};font-size:11px;">YouTube videos will appear here</div>`;
+    }
+    return `<div class="vids"><div class="vids-r">${cards}</div></div>`;
   }
   if (l.isHero && l.photoUrl) {
     return `<div class="hl">
@@ -11383,16 +11432,6 @@ function buildPreviewLink(l, t) {
     <div class="lk-t">${escapeHtml(l.title || 'Untitled')}</div>
     ${l.description ? `<div class="lk-d">${escapeHtml(l.description)}</div>` : ''}
   </div>`;
-}
-
-function buildPreviewVideos(t) {
-  const cards = bioState.videos.map(v => {
-    const id = extractYouTubeIdDash(v.url);
-    if (!id) return '';
-    return `<div class="vc"><img src="https://i.ytimg.com/vi/${id}/hqdefault.jpg" alt="YouTube video thumbnail" onerror="this.src='https://i.ytimg.com/vi/${id}/default.jpg'"></div>`;
-  }).filter(Boolean).join('');
-  if (!cards) return '';
-  return `<div class="vids"><div class="vids-r">${cards}</div></div>`;
 }
 
 // =====================================================
