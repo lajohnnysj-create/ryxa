@@ -504,6 +504,7 @@ module.exports = async (req, res) => {
     'tools-media-kit', 'tools-script-builder', 'tools-ai-design-studio', 'tools-grid-planner',
     'tools-follower-audit', 'tools-photo-editor', 'tools-qr-generator',
     'tools-invoice-generator', 'tools-sign-pdf', 'tools-thumbnail-analyzer', 'tools-contract-analyzer',
+    'tools-digital-products', 'data-deletion-status',
     'blog-best-linktree-alternatives', 'blog-why-did-my-friends-unfollow-me',
     'learn', 'cookie-banner', 'site-nav', 'booking', 'course', 'portal'
   ]);
