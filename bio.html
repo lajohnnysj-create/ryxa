@@ -762,6 +762,41 @@
     width: 100vw;
     margin-left: calc(-50vw + 50%);
     padding: 4px 20px 4px;
+    position: relative;
+  }
+  /* Desktop arrow buttons — overlay the carousel edges. Hidden on mobile
+     (touch devices swipe-scroll naturally). The buttons disable when the
+     scroll position can't go further in that direction. */
+  .videos-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    padding: 0;
+    transition: opacity 0.15s, transform 0.15s, background 0.15s;
+  }
+  .videos-arrow:hover { background: var(--surface2); }
+  .videos-arrow:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+  .videos-arrow:disabled:hover { background: var(--surface); }
+  .videos-arrow-l { left: max(8px, calc(50vw - 290px)); }
+  .videos-arrow-r { right: max(8px, calc(50vw - 290px)); }
+  /* Show only on screens wider than typical mobile breakpoints. */
+  @media (min-width: 641px) {
+    .videos-arrow { display: flex; }
   }
   .videos-scroll {
     display: flex;
@@ -1068,7 +1103,11 @@ function buildLink(link) {
       </div>`;
     }).filter(Boolean).join('');
     if (!cards) return '';
-    return `<div class="videos"><div class="videos-scroll">${cards}</div></div>`;
+    return `<div class="videos">
+      <button type="button" class="videos-arrow videos-arrow-l" aria-label="Scroll left" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <button type="button" class="videos-arrow videos-arrow-r" aria-label="Scroll right" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button>
+      <div class="videos-scroll">${cards}</div>
+    </div>`;
   }
 
   const url = validUrl(link.url);
@@ -1420,6 +1459,42 @@ function render(profile, bio, userTier) {
       ${banner}
     `;
   }
+  initVideoArrows();
+}
+
+// Wire up the desktop arrow buttons on every YouTube carousel. Each .videos
+// block has a left + right arrow that scrolls the inner .videos-scroll by
+// roughly one card width. Buttons disable when there's no more room to
+// scroll in that direction.
+function initVideoArrows() {
+  const blocks = document.querySelectorAll('.videos');
+  blocks.forEach(block => {
+    if (block.dataset.arrowsInit) return;
+    block.dataset.arrowsInit = '1';
+    const scroller = block.querySelector('.videos-scroll');
+    const left = block.querySelector('.videos-arrow-l');
+    const right = block.querySelector('.videos-arrow-r');
+    if (!scroller || !left || !right) return;
+
+    const cardWidth = 272; // 260px card + 12px gap
+    const updateState = () => {
+      const max = scroller.scrollWidth - scroller.clientWidth;
+      // Tolerance for sub-pixel rounding
+      left.disabled = scroller.scrollLeft <= 1;
+      right.disabled = scroller.scrollLeft >= max - 1;
+    };
+    left.addEventListener('click', e => {
+      e.preventDefault();
+      scroller.scrollBy({ left: -cardWidth, behavior: 'smooth' });
+    });
+    right.addEventListener('click', e => {
+      e.preventDefault();
+      scroller.scrollBy({ left: cardWidth, behavior: 'smooth' });
+    });
+    scroller.addEventListener('scroll', updateState, { passive: true });
+    window.addEventListener('resize', updateState);
+    updateState();
+  });
 }
 
 async function load() {
@@ -1432,6 +1507,7 @@ async function load() {
   // bots or CDN cache warmers as views).
   if (window._ssrHydrated && window._ssrUsername) {
     trackPageView(window._ssrUsername, 'bio');
+    initVideoArrows();
     return;
   }
 

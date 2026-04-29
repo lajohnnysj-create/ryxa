@@ -11262,11 +11262,18 @@ function buildPreviewHTML() {
   .hl-c{position:relative;z-index:2;display:flex;flex-direction:column;padding:20px;min-height:110px;justify-content:flex-end;}
   .hl-t{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,0.5);letter-spacing:-0.3px;}
   .hl-d{font-size:13px;color:rgba(255,255,255,0.9);text-shadow:0 1px 4px rgba(0,0,0,0.5);line-height:1.35;margin-top:4px;word-break:break-word;}
-  .vids{width:100%;overflow-x:auto;scrollbar-width:none;}
-  .vids::-webkit-scrollbar{display:none;}
-  .vids-r{display:flex;gap:10px;padding:2px 0;}
+  .vids{width:100%;position:relative;}
+  .vids-r{display:flex;gap:10px;padding:2px 0;overflow-x:auto;scrollbar-width:none;}
+  .vids-r::-webkit-scrollbar{display:none;}
   .vc{flex:0 0 220px;background:${t.surface};border:1px solid ${t.border};border-radius:12px;overflow:hidden;}
   .vc img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:${t.surface2};}
+  /* Preview arrow buttons — small since the preview is itself small */
+  .vids-arrow{position:absolute;top:50%;transform:translateY(-50%);width:28px;height:28px;border-radius:50%;border:1px solid ${t.border};background:${t.surface};color:${t.text};cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2;box-shadow:0 2px 6px rgba(0,0,0,0.2);padding:0;transition:opacity 0.15s,background 0.15s;}
+  .vids-arrow:hover{background:${t.surface2};}
+  .vids-arrow:disabled{opacity:0.35;cursor:default;}
+  .vids-arrow:disabled:hover{background:${t.surface};}
+  .vids-arrow-l{left:2px;}
+  .vids-arrow-r{right:2px;}
   .banner{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);padding:12px 24px;background:#0a0a14;border:1px solid ${t.border};border-radius:100px;font-size:13px;color:rgba(255,255,255,0.7);text-decoration:none;display:inline-flex;align-items:center;gap:10px;z-index:100;box-shadow:0 4px 20px rgba(0,0,0,0.3);white-space:nowrap;}
   .banner strong{color:#fff;font-weight:600;}
   .banner img{width:18px;height:18px;border-radius:4px;}
@@ -11299,6 +11306,25 @@ function buildPreviewHTML() {
     ${linksHtml ? `<div class="links">${linksHtml}</div>` : ''}
     ${bioState.show_branding ? '<div class="banner"><img src="logo.png" alt="Ryxa"><span>Get your free link-in-bio at <strong>Ryxa</strong></span></div>' : ''}
   </div>
+  <script>
+    // Wire desktop arrow buttons on every YouTube preview carousel inside the iframe.
+    document.querySelectorAll('.vids').forEach(function(block) {
+      var scroller = block.querySelector('.vids-r');
+      var left = block.querySelector('.vids-arrow-l');
+      var right = block.querySelector('.vids-arrow-r');
+      if (!scroller || !left || !right) return;
+      var cardWidth = 230; // 220px card + 10px gap
+      function updateState() {
+        var max = scroller.scrollWidth - scroller.clientWidth;
+        left.disabled = scroller.scrollLeft <= 1;
+        right.disabled = scroller.scrollLeft >= max - 1;
+      }
+      left.addEventListener('click', function(e) { e.preventDefault(); scroller.scrollBy({ left: -cardWidth, behavior: 'smooth' }); });
+      right.addEventListener('click', function(e) { e.preventDefault(); scroller.scrollBy({ left: cardWidth, behavior: 'smooth' }); });
+      scroller.addEventListener('scroll', updateState, { passive: true });
+      updateState();
+    });
+  </script>
 </body></html>`;
 }
 
@@ -11344,7 +11370,11 @@ function buildPreviewLink(l, t) {
       // added with no URLs yet
       return `<div style="background:${t.surface};border:1px dashed ${t.border};border-radius:10px;padding:14px;text-align:center;color:${t.muted};font-size:11px;">YouTube videos will appear here</div>`;
     }
-    return `<div class="vids"><div class="vids-r">${cards}</div></div>`;
+    return `<div class="vids">
+      <button type="button" class="vids-arrow vids-arrow-l" aria-label="Scroll left" tabindex="-1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <button type="button" class="vids-arrow vids-arrow-r" aria-label="Scroll right" tabindex="-1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button>
+      <div class="vids-r">${cards}</div>
+    </div>`;
   }
   if (l.isHero && l.photoUrl) {
     return `<div class="hl">
