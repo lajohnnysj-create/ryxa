@@ -28400,8 +28400,25 @@ function taAnalyze() {
   });
 }
 
+function taScoreToGrade(score) {
+  // Returns { letter, color }
+  if (score >= 97) return { letter: 'A+', color: '#4ade80' };
+  if (score >= 93) return { letter: 'A',  color: '#4ade80' };
+  if (score >= 90) return { letter: 'A-', color: '#4ade80' };
+  if (score >= 87) return { letter: 'B+', color: '#84cc16' };
+  if (score >= 83) return { letter: 'B',  color: '#84cc16' };
+  if (score >= 80) return { letter: 'B-', color: '#84cc16' };
+  if (score >= 77) return { letter: 'C+', color: '#fbbf24' };
+  if (score >= 73) return { letter: 'C',  color: '#fbbf24' };
+  if (score >= 70) return { letter: 'C-', color: '#fbbf24' };
+  if (score >= 67) return { letter: 'D+', color: '#fb923c' };
+  if (score >= 60) return { letter: 'D',  color: '#fb923c' };
+  return { letter: 'F', color: '#f87171' };
+}
+
 function taRenderResults(r) {
-  var scoreColor = r.overall_score >= 70 ? '#4ade80' : r.overall_score >= 40 ? '#fbbf24' : '#f87171';
+  var overallGrade = taScoreToGrade(r.overall_score);
+  var scoreColor = overallGrade.color;
   var circumference = 2 * Math.PI * 36;
   var offset = circumference - (r.overall_score / 100) * circumference;
 
@@ -28415,11 +28432,15 @@ function taRenderResults(r) {
 
   var categoryCards = categories.map(function(cat) {
     var d = r[cat.key] || { score: 0, feedback: '' };
-    var catColor = d.score >= 70 ? '#4ade80' : d.score >= 40 ? '#fbbf24' : '#f87171';
+    var catGrade = taScoreToGrade(d.score);
+    var catColor = catGrade.color;
     return '<div style="padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;">'
       + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">'
       + '<div style="display:flex;align-items:center;gap:8px;">' + cat.icon + '<span style="font-size:13px;font-weight:600;">' + cat.label + '</span></div>'
-      + '<span style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;color:' + catColor + ';">' + d.score + '</span>'
+      + '<div style="display:flex;align-items:baseline;gap:6px;">'
+      + '<span style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;color:' + catColor + ';">' + catGrade.letter + '</span>'
+      + '<span style="font-size:11px;color:var(--muted);font-weight:500;">' + d.score + '</span>'
+      + '</div>'
       + '</div>'
       + '<div style="height:4px;background:var(--surface2);border-radius:2px;margin-bottom:10px;overflow:hidden;">'
       + '<div style="height:100%;width:' + d.score + '%;background:' + catColor + ';border-radius:2px;transition:width 0.8s ease;"></div>'
@@ -28436,14 +28457,19 @@ function taRenderResults(r) {
     return '<div style="display:flex;align-items:flex-start;gap:8px;font-size:13px;"><span style="color:#fbbf24;flex-shrink:0;">→</span><span style="color:var(--muted);">' + escapeHtml(s) + '</span></div>';
   }).join('');
 
+  var verdictText = r.overall_score >= 80 ? 'Strong thumbnail. Ready to publish.'
+                  : r.overall_score >= 70 ? 'Solid foundation. A few tweaks could boost clicks.'
+                  : r.overall_score >= 60 ? 'Decent start. See the suggestions below.'
+                  : 'Needs work. Check the suggestions below.';
+
   var html = ''
     // Score header with ring
     + '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:28px;margin-bottom:16px;">'
     + '<div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;">'
     + '<div style="position:relative;border-radius:12px;overflow:hidden;width:200px;flex-shrink:0;"><img src="' + taImageData + '" alt="Thumbnail analysis result" style="width:100%;display:block;border-radius:12px;"></div>'
     + '<div style="flex:1;min-width:200px;display:flex;align-items:center;gap:20px;">'
-    + '<div class="ta-score-ring"><svg width="80" height="80" viewBox="0 0 80 80"><circle cx="40" cy="40" r="36" fill="none" stroke="var(--surface)" stroke-width="6"/><circle cx="40" cy="40" r="36" fill="none" stroke="' + scoreColor + '" stroke-width="6" stroke-dasharray="' + circumference + '" stroke-dashoffset="' + offset + '" stroke-linecap="round" style="transition:stroke-dashoffset 1s ease;"/></svg><div class="ta-score-num" style="color:' + scoreColor + ';">' + r.overall_score + '</div></div>'
-    + '<div><div style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;margin-bottom:4px;">Overall Score</div><div style="font-size:13px;color:var(--muted);">' + (r.overall_score >= 70 ? 'Great thumbnail! Ready to publish.' : r.overall_score >= 40 ? 'Good start. A few tweaks could boost clicks.' : 'Needs work. Check the suggestions below.') + '</div></div>'
+    + '<div class="ta-score-ring"><svg width="80" height="80" viewBox="0 0 80 80"><circle cx="40" cy="40" r="36" fill="none" stroke="var(--surface)" stroke-width="6"/><circle cx="40" cy="40" r="36" fill="none" stroke="' + scoreColor + '" stroke-width="6" stroke-dasharray="' + circumference + '" stroke-dashoffset="' + offset + '" stroke-linecap="round" style="transition:stroke-dashoffset 1s ease;"/></svg><div class="ta-score-num" style="color:' + scoreColor + ';display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;"><span style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;">' + overallGrade.letter + '</span><span style="font-size:10px;color:var(--muted);font-weight:500;margin-top:2px;">' + r.overall_score + '/100</span></div></div>'
+    + '<div><div style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;margin-bottom:4px;">Overall Grade</div><div style="font-size:13px;color:var(--muted);">' + verdictText + '</div></div>'
     + '</div>'
     + '</div>'
     + '</div>'
