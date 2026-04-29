@@ -10223,7 +10223,7 @@ function renderBioLinks() {
   const el = document.getElementById('bio-links-list');
   if (!el) return;
   const counts = document.getElementById('bio-links-counts');
-  const { maxLinks, maxFeatured, maxHero, isPro: pro, isMax: max } = bioLimits();
+  const { maxLinks, maxFeatured, maxHero, pro, isMax: max } = bioLimits();
   const regularCount = bioState.links.filter(l => !l.featured && !l.isHero).length;
   const featuredCount = bioState.links.filter(l => l.featured).length;
   const heroCount = bioState.links.filter(l => l.isHero).length;
