@@ -289,26 +289,35 @@
 
     <div>
       <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">8. Connecting your Instagram account</h2>
-      <p style="margin-bottom:12px;">Ryxa lets you connect your Instagram account to power features like media kit auto-fill, follower count display, and engagement insights. Connecting is always optional — Ryxa works fully without it.</p>
+      <p style="margin-bottom:12px;">Ryxa lets you connect your Instagram Business or Creator account to keep your audience data synced with your Ryxa profile and media kit. Connecting is always optional — Ryxa works fully without it.</p>
 
-      <p style="margin-bottom:12px;"><strong style="color:var(--text);">How the connection works.</strong> When you click "Connect Instagram," you're sent to Meta's official OAuth authorization page. You log in to Instagram directly with Meta — Ryxa never sees your password. After you approve, Meta sends Ryxa a secure access token that lets us call the Instagram Graph API on your behalf. You can revoke this access at any time (see below).</p>
+      <p style="margin-bottom:12px;"><strong style="color:var(--text);">How the connection works.</strong> When you click "Connect Instagram," you're sent to Meta's official OAuth authorization page. You log in to Instagram directly with Meta — Ryxa never sees your password. After you approve, Meta sends Ryxa a long-lived access token (valid for approximately 60 days, refreshable) that lets us call the Instagram Graph API on your behalf. You can revoke this access at any time (see below).</p>
 
-      <p style="margin-bottom:12px;"><strong style="color:var(--text);">What we receive from Meta.</strong> Depending on the permissions you grant, Ryxa may receive:</p>
+      <p style="margin-bottom:12px;"><strong style="color:var(--text);">What we receive from Meta.</strong> When you grant the permissions <code style="font-size:12px;color:var(--accent2);">instagram_business_basic</code> and <code style="font-size:12px;color:var(--accent2);">instagram_business_manage_insights</code>, Ryxa may receive:</p>
       <ul style="padding-left:22px;margin-bottom:12px;">
-        <li>Your Instagram username, profile picture, biography, and account type (basic profile info)</li>
-        <li>Your follower count, media count, and account-level insights (reach, impressions, profile views) — used for media kit auto-fill and analytics</li>
-        <li>Direct messaging access for features you explicitly enable (e.g., automated DM responses), if you grant that specific permission</li>
+        <li>Profile information: Instagram username, profile picture, account type, and display name</li>
+        <li>Account totals: follower count, following count, and media count</li>
+        <li>30-day account insights: reach, profile views, total interactions, and views (formerly impressions)</li>
+        <li>Recent media metadata: up to 25 most recent posts, including like and comment counts, post type, and timestamps</li>
+        <li>Per-reel view counts and per-story view counts (where available, used for engagement averages)</li>
+        <li>Audience demographics for accounts with 100+ followers: top countries, top cities, age ranges, and gender breakdown</li>
       </ul>
 
-      <p style="margin-bottom:12px;"><strong style="color:var(--text);">How we use this data.</strong> Instagram data is used solely to power features you've activated in Ryxa — for example, populating your media kit with up-to-date follower counts or showing analytics on your dashboard. We do NOT sell, rent, or share your Instagram data with third parties. We do NOT use it for advertising. We do NOT use it to train AI models.</p>
+      <p style="margin-bottom:12px;"><strong style="color:var(--text);">How we use this data.</strong> Instagram data powers features you have activated in Ryxa, such as:</p>
+      <ul style="padding-left:22px;margin-bottom:12px;">
+        <li>Auto-filling your Ryxa media kit with current follower counts, engagement metrics, and audience demographics that brands can view on your public media kit page</li>
+        <li>Calculating engagement rates and per-post averages for display on your media kit and dashboard</li>
+        <li>Showing your follower demographics (gender, age, top countries, top cities) on your public media kit so brands can evaluate audience fit</li>
+      </ul>
+      <p style="margin-bottom:12px;">We do NOT sell, rent, or share your Instagram data with third parties. We do NOT use it for advertising. We do NOT use it to train AI models.</p>
 
-      <p style="margin-bottom:12px;"><strong style="color:var(--text);">How we store this data.</strong> Your Instagram access token is stored encrypted in our Supabase database, accessible only by you and our authenticated systems. Profile and insights data is fetched live from Meta when you view it; we may cache recent values briefly (up to 24 hours) to keep your dashboard fast.</p>
+      <p style="margin-bottom:12px;"><strong style="color:var(--text);">How we store this data.</strong> Your Instagram access token and the data we receive from Meta are stored in our Supabase database, encrypted at rest. Access is restricted by row-level security policies so only you and our authenticated systems can read your data. We refresh the cached data automatically every 24 hours so your media kit stays current, and you can also trigger a manual refresh from your dashboard at any time.</p>
 
       <p style="margin-bottom:12px;"><strong style="color:var(--text);">How to disconnect or delete your Instagram data.</strong> You can disconnect Instagram from Ryxa at any time:</p>
       <ul style="padding-left:22px;margin-bottom:12px;">
-        <li><strong style="color:var(--text);">Inside Ryxa:</strong> Go to Settings → Connected Accounts → Disconnect Instagram. This revokes our access token and deletes any cached Instagram data within 24 hours.</li>
-        <li><strong style="color:var(--text);">Inside Instagram:</strong> Go to Instagram Settings → Apps and Websites → Active → Find "Ryxa" → Remove. This revokes our access on Meta's side immediately.</li>
-        <li><strong style="color:var(--text);">By request:</strong> Email <a href="mailto:hello@ryxa.io" style="color:var(--accent2);">hello@ryxa.io</a> and we'll permanently delete all Instagram data associated with your account within 30 days.</li>
+        <li><strong style="color:var(--text);">Inside Ryxa:</strong> Go to Settings → Connected Accounts → Disconnect Instagram. This revokes our access token on Meta's side and immediately deletes all cached Instagram data from our database.</li>
+        <li><strong style="color:var(--text);">Inside Instagram:</strong> Go to Instagram Settings → Apps and Websites → Active → Find "Ryxa" → Remove. This revokes our access on Meta's side immediately. Meta will also send our endpoint a deletion notification, and we will delete your data within 24 hours.</li>
+        <li><strong style="color:var(--text);">By request:</strong> Email <a href="mailto:hello@ryxa.io" style="color:var(--accent2);">hello@ryxa.io</a> and we will permanently delete all Instagram data associated with your account within 30 days.</li>
       </ul>
 
       <p style="margin-bottom:12px;"><strong style="color:var(--text);">Compliance with Meta Platform Terms.</strong> Ryxa's use of information received from the Instagram Graph API and Meta APIs adheres to the <a href="https://developers.facebook.com/terms" target="_blank" rel="noopener" style="color:var(--accent2);">Meta Platform Terms</a> and <a href="https://developers.facebook.com/devpolicy/" target="_blank" rel="noopener" style="color:var(--accent2);">Developer Policies</a>. We will not transfer Meta-derived data to any ad network, data broker, or other advertising or monetization-related service.</p>
