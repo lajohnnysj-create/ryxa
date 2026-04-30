@@ -2627,28 +2627,14 @@
   .mk-aud-cta { display: inline-block; padding: 8px 16px; background: var(--accent); color: #fff; border-radius: 8px; font-size: 12px; font-weight: 500; cursor: pointer; border: none; font-family: 'DM Sans', sans-serif; }
   .mk-aud-cta:hover { filter: brightness(1.08); }
   .mk-aud-connected { display: flex; flex-direction: column; gap: 12px; }
-  .mk-aud-meta { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; flex-wrap: wrap; }
-  .mk-aud-meta-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
-  .mk-aud-meta-icon { width: 26px; height: 26px; border-radius: 7px; background: linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #fff; }
-  .mk-aud-meta-icon svg { width: 14px; height: 14px; fill: currentColor; }
-  .mk-aud-meta-text { font-size: 12px; color: var(--text); min-width: 0; }
-  .mk-aud-meta-text .mk-aud-handle { font-weight: 600; }
-  .mk-aud-meta-text .mk-aud-fresh { display: block; font-size: 11px; color: var(--muted); margin-top: 1px; }
-  .mk-aud-refresh-btn { padding: 7px 12px; background: var(--surface2); border: 1px solid var(--border-hover); border-radius: 8px; color: var(--text); font-size: 12px; font-family: 'DM Sans', sans-serif; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: background 0.15s; }
-  .mk-aud-refresh-btn:hover:not(:disabled) { background: var(--surface); }
-  .mk-aud-refresh-btn:disabled { cursor: not-allowed; opacity: 0.55; }
-  .mk-aud-refresh-btn svg { width: 12px; height: 12px; }
-  .mk-aud-data-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-  .mk-aud-data-card { padding: 10px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; }
-  .mk-aud-data-num { font-size: 16px; font-weight: 600; color: var(--text); }
-  .mk-aud-data-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
   .mk-aud-error-note { padding: 10px 12px; background: rgba(252,176,69,0.06); border: 1px solid rgba(252,176,69,0.18); border-radius: 8px; font-size: 12px; color: var(--muted2); line-height: 1.5; }
 
   /* Platform connection list (in Automatic pane) */
   .mk-aud-platforms { display: flex; flex-direction: column; gap: 6px; }
   .mk-aud-platform-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; }
   .mk-aud-platform-row.mk-aud-platform-soon { opacity: 0.55; }
-  .mk-aud-platform-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .mk-aud-platform-left { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; }
+  .mk-aud-platform-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
   .mk-aud-platform-icon { width: 28px; height: 28px; border-radius: 7px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #fff; }
   .mk-aud-platform-icon svg { width: 14px; height: 14px; }
   .mk-aud-platform-icon.mk-aud-platform-ig { background: linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%); fill: #fff; }
@@ -2659,15 +2645,36 @@
   .mk-aud-platform-text { min-width: 0; }
   .mk-aud-platform-name { font-size: 13px; color: var(--text); font-weight: 500; }
   .mk-aud-platform-handle { font-size: 11px; color: var(--muted); margin-top: 1px; }
+  .mk-aud-platform-fresh { font-size: 10px; color: var(--muted); margin-top: 2px; }
   .mk-aud-platform-status { font-size: 11px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; }
   .mk-aud-platform-status-connected { color: #34d399; }
   .mk-aud-status-dot { width: 7px; height: 7px; border-radius: 50%; background: #34d399; box-shadow: 0 0 0 2px rgba(52,211,153,0.18); }
 
-  /* Data section header (above stat cards in Automatic pane) */
-  .mk-aud-data-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 4px; padding-bottom: 6px; flex-wrap: wrap; }
-  .mk-aud-data-header-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent2); font-weight: 600; }
-  .mk-aud-data-header-right { display: flex; align-items: center; gap: 10px; }
-  .mk-aud-fresh { font-size: 11px; color: var(--muted); }
+  /* Per-row refresh button (lives at the right end of each platform row) */
+  .mk-aud-row-refresh {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 10px;
+    background: var(--surface2);
+    border: 1px solid var(--border-hover);
+    border-radius: 7px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .mk-aud-row-refresh:hover:not(:disabled) {
+    background: var(--surface);
+    border-color: var(--accent2);
+  }
+  .mk-aud-row-refresh:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+  }
+  .mk-aud-row-refresh svg { width: 11px; height: 11px; flex-shrink: 0; }
+  .mk-aud-row-refresh-label { white-space: nowrap; }
   /* Bio editor collapsible sections — reuses mk-section pattern */
   .bio-section { background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
   .bio-section-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 16px 20px; width: 100%; text-align: left; background: transparent; border: none; color: var(--text); font-family: 'DM Sans', sans-serif; }
@@ -12728,8 +12735,7 @@ async function manualRefreshIG() {
   if (Date.now() < mkAudRefreshLockUntil) return;
 
   btn.disabled = true;
-  const originalLabel = btn.innerHTML;
-  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Refreshing&hellip;';
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg><span class="mk-aud-row-refresh-label">Refreshing&hellip;</span>';
 
   const res = await refreshIGData();
   if (res && res.ok && res.data) {
@@ -12749,13 +12755,17 @@ async function manualRefreshIG() {
   }, 5 * 60 * 1000);
 }
 
-function formatRelativeTime(iso) {
-  if (!iso) return 'just now';
-  const ms = Date.now() - new Date(iso).getTime();
-  if (ms < 60 * 1000) return 'just now';
-  if (ms < 60 * 60 * 1000) return Math.floor(ms / (60 * 1000)) + ' min ago';
-  if (ms < 24 * 60 * 60 * 1000) return Math.floor(ms / (60 * 60 * 1000)) + ' hr ago';
-  return Math.floor(ms / (24 * 60 * 60 * 1000)) + ' days ago';
+function formatLastRefreshed(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '';
+  const month = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()];
+  const day = d.getDate();
+  let hours = d.getHours();
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12 || 12;
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  return `${month} ${day} at ${hours}:${minutes} ${ampm}`;
 }
 
 function fmtNum(n) {
@@ -12790,36 +12800,21 @@ function renderAudienceAutomatic() {
 
   // ---- State: connected, render data ----
   const d = mkAudCache.data || {};
-  const fresh = formatRelativeTime(d.data_last_fetched_at);
   const handle = d.ig_username ? '@' + d.ig_username : 'Instagram';
 
-  // Refresh button — disabled if in cooldown
+  // Format the last-refreshed timestamp as "Apr 30 at 9:45 AM" or hide if none.
+  const freshLabel = formatLastRefreshed(d.data_last_fetched_at);
+
+  // Refresh button state — disabled during cooldown
   const remainingMs = Math.max(0, mkAudRefreshLockUntil - Date.now());
   const refreshDisabled = remainingMs > 0;
   const refreshLabel = refreshDisabled
-    ? `Refresh in ${Math.ceil(remainingMs / 1000)}s`
+    ? 'Wait ' + Math.ceil(remainingMs / 1000) + 's'
     : 'Refresh';
+  const refreshTooltip = 'Auto-refreshes every 24 hours. Click to refresh now.';
   const refreshSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>';
 
-  // Stat cards — only show fields with values
-  const cards = [];
-  if (typeof d.followers_count === 'number') cards.push({ n: fmtNum(d.followers_count), l: 'Followers' });
-  if (typeof d.engagement_rate === 'number') cards.push({ n: d.engagement_rate.toFixed(2) + '%', l: 'Engagement Rate' });
-  if (typeof d.reach_30d === 'number') cards.push({ n: fmtNum(d.reach_30d), l: '30-Day Reach' });
-  if (typeof d.total_interactions_30d === 'number') cards.push({ n: fmtNum(d.total_interactions_30d), l: 'Engagements (30d)' });
-  if (typeof d.views_30d === 'number') cards.push({ n: fmtNum(d.views_30d), l: 'Impressions (30d)' });
-  if (typeof d.avg_likes === 'number') cards.push({ n: fmtNum(Math.round(d.avg_likes)), l: 'Avg Likes' });
-  if (typeof d.avg_comments === 'number') cards.push({ n: fmtNum(Math.round(d.avg_comments)), l: 'Avg Comments' });
-  if (typeof d.avg_reel_views === 'number') cards.push({ n: fmtNum(Math.round(d.avg_reel_views)), l: 'Avg Reel Views' });
-  if (typeof d.avg_story_views === 'number') cards.push({ n: fmtNum(Math.round(d.avg_story_views)), l: 'Avg Story Views' });
-
-  const cardsHtml = cards.length
-    ? `<div class="mk-aud-data-grid">
-        ${cards.map(c => `<div class="mk-aud-data-card"><div class="mk-aud-data-num">${escapeHtml(c.n)}</div><div class="mk-aud-data-label">${escapeHtml(c.l)}</div></div>`).join('')}
-      </div>`
-    : '<div class="mk-aud-error-note">No data yet. Try clicking Refresh.</div>';
-
-  // Error/note rendering for partial fetches (e.g. <100 followers, no demographics)
+  // Friendly "100+ follower" / partial-fetch note
   let errorNoteHtml = '';
   if (d.data_fetch_error) {
     const friendly = /100\+? followers/i.test(d.data_fetch_error)
@@ -12828,79 +12823,75 @@ function renderAudienceAutomatic() {
     errorNoteHtml = `<div class="mk-aud-error-note">${escapeHtml(friendly)}</div>`;
   }
 
+  // Helper: build one platform row. `connected` rows get a working refresh button;
+  // "soon" rows show a disabled refresh slot for visual consistency.
+  function platformRow(opts) {
+    const isConnected = !!opts.connected;
+    const rowClass = isConnected ? 'mk-aud-platform-active' : 'mk-aud-platform-soon';
+    const statusHtml = isConnected
+      ? `<div class="mk-aud-platform-status mk-aud-platform-status-connected"><span class="mk-aud-status-dot"></span>Connected</div>`
+      : `<div class="mk-aud-platform-status">Coming soon</div>`;
+
+    // Sublabel under platform name: handle for connected, "Last refreshed ..." second line
+    const subParts = [];
+    if (isConnected && opts.handle) subParts.push(`<div class="mk-aud-platform-handle">${escapeHtml(opts.handle)}</div>`);
+    if (isConnected && opts.refreshedLabel) subParts.push(`<div class="mk-aud-platform-fresh">Last refreshed ${escapeHtml(opts.refreshedLabel)}</div>`);
+
+    // Refresh button — only Instagram is wired up for now. Coming-soon rows render
+    // a disabled placeholder so the row alignment matches.
+    let refreshBtnHtml;
+    if (isConnected) {
+      refreshBtnHtml = `<button type="button" id="${opts.btnId || ''}" class="mk-aud-row-refresh" onclick="${opts.onClick || ''}" title="${escapeHtml(refreshTooltip)}" aria-label="Refresh ${escapeHtml(opts.name)} data" ${opts.disabled ? 'disabled' : ''}>
+        ${refreshSvg}<span class="mk-aud-row-refresh-label">${escapeHtml(opts.label || 'Refresh')}</span>
+      </button>`;
+    } else {
+      refreshBtnHtml = `<button type="button" class="mk-aud-row-refresh" disabled aria-hidden="true" tabindex="-1">
+        ${refreshSvg}<span class="mk-aud-row-refresh-label">Refresh</span>
+      </button>`;
+    }
+
+    return `<div class="mk-aud-platform-row ${rowClass}">
+      <div class="mk-aud-platform-left">
+        <div class="mk-aud-platform-icon ${opts.iconClass}" aria-hidden="true">${opts.iconSvg}</div>
+        <div class="mk-aud-platform-text">
+          <div class="mk-aud-platform-name">${escapeHtml(opts.name)}</div>
+          ${subParts.join('')}
+        </div>
+      </div>
+      <div class="mk-aud-platform-right">
+        ${statusHtml}
+        ${refreshBtnHtml}
+      </div>
+    </div>`;
+  }
+
+  // SVG sources (kept inline for copy-paste consistency with the rest of the file)
+  const igSvg = '<svg viewBox="0 0 24 24"><path d="M12 2.2c3.2 0 3.6 0 4.85.07 1.17.05 1.8.25 2.22.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.05.41 2.22.06 1.26.07 1.64.07 4.82s-.01 3.57-.07 4.82c-.05 1.17-.25 1.8-.41 2.22a3.72 3.72 0 0 1-.9 1.38c-.42.42-.82.68-1.38.9-.42.16-1.05.36-2.22.41-1.26.06-1.64.07-4.82.07s-3.57-.01-4.82-.07c-1.17-.05-1.8-.25-2.22-.41a3.72 3.72 0 0 1-1.38-.9 3.72 3.72 0 0 1-.9-1.38c-.16-.42-.36-1.05-.41-2.22C2.21 15.57 2.2 15.19 2.2 12s.01-3.57.07-4.82c.05-1.17.25-1.8.41-2.22.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.05-.36 2.22-.41C8.43 2.21 8.81 2.2 12 2.2M12 0C8.74 0 8.33.01 7.05.07 5.78.13 4.9.33 4.14.63a5.92 5.92 0 0 0-2.13 1.39A5.92 5.92 0 0 0 .62 4.14C.33 4.9.13 5.78.07 7.05.01 8.33 0 8.74 0 12c0 3.26.01 3.67.07 4.95.06 1.27.26 2.15.56 2.91a5.92 5.92 0 0 0 1.39 2.13c.66.66 1.32 1.06 2.13 1.39.76.3 1.64.5 2.91.56C8.33 23.99 8.74 24 12 24c3.26 0 3.67-.01 4.95-.07 1.27-.06 2.15-.26 2.91-.56a5.92 5.92 0 0 0 2.13-1.39c.66-.66 1.06-1.32 1.39-2.13.3-.76.5-1.64.56-2.91.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.06-1.27-.26-2.15-.56-2.91a5.92 5.92 0 0 0-1.39-2.13A5.92 5.92 0 0 0 19.86.62c-.76-.3-1.64-.5-2.91-.56C15.67.01 15.26 0 12 0Zm0 5.84a6.16 6.16 0 1 0 0 12.32 6.16 6.16 0 0 0 0-12.32Zm0 10.16a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm6.41-11.88a1.44 1.44 0 1 0 0 2.88 1.44 1.44 0 0 0 0-2.88Z"/></svg>';
+  const ytSvg = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.12C19.54 3.58 12 3.58 12 3.58s-7.54 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.07 0 12 0 12s0 3.93.5 5.8a3 3 0 0 0 2.1 2.12c1.86.5 9.4.5 9.4.5s7.54 0 9.4-.5a3 3 0 0 0 2.1-2.12C24 15.93 24 12 24 12s0-3.93-.5-5.8ZM9.55 15.57V8.43L15.82 12l-6.27 3.57Z"/></svg>';
+  const ttSvg = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5.8 20.1a6.34 6.34 0 0 0 10.86-4.43V8.83a8.16 8.16 0 0 0 4.77 1.52V6.9a4.85 4.85 0 0 1-1.84-.21Z"/></svg>';
+  const fbSvg = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.68.23 2.68.23v2.97h-1.51c-1.49 0-1.95.93-1.95 1.89v2.26h3.32l-.53 3.49h-2.79V24C19.61 23.1 24 18.1 24 12.07Z"/></svg>';
+  const liSvg = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.95v5.66H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.26 2.37 4.26 5.45v6.29ZM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12ZM7.12 20.45H3.56V9h3.56v11.45ZM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0Z"/></svg>';
+
   mount.innerHTML = `
     <div class="mk-aud-connected">
       <div class="mk-aud-platforms">
-        <div class="mk-aud-platform-row mk-aud-platform-active">
-          <div class="mk-aud-platform-left">
-            <div class="mk-aud-platform-icon mk-aud-platform-ig" aria-hidden="true">
-              <svg viewBox="0 0 24 24"><path d="M12 2.2c3.2 0 3.6 0 4.85.07 1.17.05 1.8.25 2.22.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.05.41 2.22.06 1.26.07 1.64.07 4.82s-.01 3.57-.07 4.82c-.05 1.17-.25 1.8-.41 2.22a3.72 3.72 0 0 1-.9 1.38c-.42.42-.82.68-1.38.9-.42.16-1.05.36-2.22.41-1.26.06-1.64.07-4.82.07s-3.57-.01-4.82-.07c-1.17-.05-1.8-.25-2.22-.41a3.72 3.72 0 0 1-1.38-.9 3.72 3.72 0 0 1-.9-1.38c-.16-.42-.36-1.05-.41-2.22C2.21 15.57 2.2 15.19 2.2 12s.01-3.57.07-4.82c.05-1.17.25-1.8.41-2.22.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.05-.36 2.22-.41C8.43 2.21 8.81 2.2 12 2.2M12 0C8.74 0 8.33.01 7.05.07 5.78.13 4.9.33 4.14.63a5.92 5.92 0 0 0-2.13 1.39A5.92 5.92 0 0 0 .62 4.14C.33 4.9.13 5.78.07 7.05.01 8.33 0 8.74 0 12c0 3.26.01 3.67.07 4.95.06 1.27.26 2.15.56 2.91a5.92 5.92 0 0 0 1.39 2.13c.66.66 1.32 1.06 2.13 1.39.76.3 1.64.5 2.91.56C8.33 23.99 8.74 24 12 24c3.26 0 3.67-.01 4.95-.07 1.27-.06 2.15-.26 2.91-.56a5.92 5.92 0 0 0 2.13-1.39c.66-.66 1.06-1.32 1.39-2.13.3-.76.5-1.64.56-2.91.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.06-1.27-.26-2.15-.56-2.91a5.92 5.92 0 0 0-1.39-2.13A5.92 5.92 0 0 0 19.86.62c-.76-.3-1.64-.5-2.91-.56C15.67.01 15.26 0 12 0Zm0 5.84a6.16 6.16 0 1 0 0 12.32 6.16 6.16 0 0 0 0-12.32Zm0 10.16a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm6.41-11.88a1.44 1.44 0 1 0 0 2.88 1.44 1.44 0 0 0 0-2.88Z"/></svg>
-            </div>
-            <div class="mk-aud-platform-text">
-              <div class="mk-aud-platform-name">Instagram</div>
-              <div class="mk-aud-platform-handle">${escapeHtml(handle)}</div>
-            </div>
-          </div>
-          <div class="mk-aud-platform-status mk-aud-platform-status-connected">
-            <span class="mk-aud-status-dot"></span>Connected
-          </div>
-        </div>
-        <div class="mk-aud-platform-row mk-aud-platform-soon">
-          <div class="mk-aud-platform-left">
-            <div class="mk-aud-platform-icon mk-aud-platform-yt" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.12C19.54 3.58 12 3.58 12 3.58s-7.54 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.07 0 12 0 12s0 3.93.5 5.8a3 3 0 0 0 2.1 2.12c1.86.5 9.4.5 9.4.5s7.54 0 9.4-.5a3 3 0 0 0 2.1-2.12C24 15.93 24 12 24 12s0-3.93-.5-5.8ZM9.55 15.57V8.43L15.82 12l-6.27 3.57Z"/></svg>
-            </div>
-            <div class="mk-aud-platform-text">
-              <div class="mk-aud-platform-name">YouTube</div>
-            </div>
-          </div>
-          <div class="mk-aud-platform-status">Coming soon</div>
-        </div>
-        <div class="mk-aud-platform-row mk-aud-platform-soon">
-          <div class="mk-aud-platform-left">
-            <div class="mk-aud-platform-icon mk-aud-platform-tt" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5.8 20.1a6.34 6.34 0 0 0 10.86-4.43V8.83a8.16 8.16 0 0 0 4.77 1.52V6.9a4.85 4.85 0 0 1-1.84-.21Z"/></svg>
-            </div>
-            <div class="mk-aud-platform-text">
-              <div class="mk-aud-platform-name">TikTok</div>
-            </div>
-          </div>
-          <div class="mk-aud-platform-status">Coming soon</div>
-        </div>
-        <div class="mk-aud-platform-row mk-aud-platform-soon">
-          <div class="mk-aud-platform-left">
-            <div class="mk-aud-platform-icon mk-aud-platform-fb" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.68.23 2.68.23v2.97h-1.51c-1.49 0-1.95.93-1.95 1.89v2.26h3.32l-.53 3.49h-2.79V24C19.61 23.1 24 18.1 24 12.07Z"/></svg>
-            </div>
-            <div class="mk-aud-platform-text">
-              <div class="mk-aud-platform-name">Facebook</div>
-            </div>
-          </div>
-          <div class="mk-aud-platform-status">Coming soon</div>
-        </div>
-        <div class="mk-aud-platform-row mk-aud-platform-soon">
-          <div class="mk-aud-platform-left">
-            <div class="mk-aud-platform-icon mk-aud-platform-li" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.95v5.66H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.26 2.37 4.26 5.45v6.29ZM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12ZM7.12 20.45H3.56V9h3.56v11.45ZM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0Z"/></svg>
-            </div>
-            <div class="mk-aud-platform-text">
-              <div class="mk-aud-platform-name">LinkedIn</div>
-            </div>
-          </div>
-          <div class="mk-aud-platform-status">Coming soon</div>
-        </div>
+        ${platformRow({
+          name: 'Instagram',
+          iconClass: 'mk-aud-platform-ig',
+          iconSvg: igSvg,
+          connected: true,
+          handle: handle,
+          refreshedLabel: freshLabel,
+          btnId: 'mk-aud-refresh-btn',
+          onClick: 'manualRefreshIG()',
+          disabled: refreshDisabled,
+          label: refreshLabel
+        })}
+        ${platformRow({ name: 'YouTube',  iconClass: 'mk-aud-platform-yt', iconSvg: ytSvg })}
+        ${platformRow({ name: 'TikTok',   iconClass: 'mk-aud-platform-tt', iconSvg: ttSvg })}
+        ${platformRow({ name: 'Facebook', iconClass: 'mk-aud-platform-fb', iconSvg: fbSvg })}
+        ${platformRow({ name: 'LinkedIn', iconClass: 'mk-aud-platform-li', iconSvg: liSvg })}
       </div>
-
-      <div class="mk-aud-data-header">
-        <div class="mk-aud-data-header-title">Instagram Data</div>
-        <div class="mk-aud-data-header-right">
-          <span class="mk-aud-fresh">Refreshed ${escapeHtml(fresh)}</span>
-          <button type="button" id="mk-aud-refresh-btn" class="mk-aud-refresh-btn" onclick="manualRefreshIG()" ${refreshDisabled ? 'disabled' : ''}>
-            ${refreshSvg} ${escapeHtml(refreshLabel)}
-          </button>
-        </div>
-      </div>
-      ${cardsHtml}
       ${errorNoteHtml}
     </div>`;
 
