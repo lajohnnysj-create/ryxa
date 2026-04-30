@@ -11175,7 +11175,7 @@ function renderLinkExpanded(link, dragSvg) {
       oninput="updateLinkField(${link._id},'description',this.value)" aria-label="Link description">
     <input type="url" placeholder="https://..." value="${escapeHtml(link.url || '')}"
       oninput="updateLinkField(${link._id},'url',this.value)" aria-label="Link URL" style="margin-bottom:6px;">
-    ${(!link.featured && !link.isHero) ? bioHalfWidthToggle(link) : ''}
+    ${(!link.featured && !link.isHero && !link.isMediaKit) ? bioHalfWidthToggle(link) : ''}
     <div id="bio-link-err-${link._id}" style="display:none;color:#fca5a5;font-size:12px;margin-bottom:6px;"></div>
     <button type="button" onclick="saveLinkRow(${link._id})"
       style="width:100%;padding:9px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">
