@@ -2607,13 +2607,15 @@
   .mk-section-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent2); font-weight: 600; }
   .mk-chevron { transition: transform 0.2s; color: var(--muted); flex-shrink: 0; }
   button.mk-collapsible[aria-expanded="true"] .mk-chevron { transform: rotate(180deg); }
+  .mk-section-header-static { cursor: default; }
   .mk-section-body { padding: 0 20px 20px; }
 
   /* Media Kit Audience & Stats — Manual/Automatic tabs */
   .mk-aud-tabs { display: flex; gap: 4px; padding: 4px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 14px; }
-  .mk-aud-tab { flex: 1; padding: 8px 12px; background: transparent; border: none; color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; cursor: pointer; border-radius: 7px; transition: background 0.15s, color 0.15s; }
+  .mk-aud-tab { flex: 1; padding: 8px 12px; background: transparent; border: none; color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; cursor: pointer; border-radius: 7px; transition: background 0.15s, color 0.15s, box-shadow 0.15s; }
   .mk-aud-tab:hover { color: var(--text); }
-  .mk-aud-tab-active { background: var(--surface2); color: var(--text); box-shadow: 0 1px 0 rgba(255,255,255,0.04); }
+  .mk-aud-tab-active { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; box-shadow: 0 0 16px var(--accent-glow); }
+  .mk-aud-tab-active:hover { color: #fff; }
   .mk-aud-pane { animation: mkFadeIn 0.18s ease; }
   @keyframes mkFadeIn { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; transform: translateY(0); } }
   .mk-aud-loading { padding: 28px 16px; text-align: center; color: var(--muted); font-size: 13px; }
@@ -3851,10 +3853,6 @@
       <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div>
       <span class="sidebar-item-label">Dashboard</span>
     </button>
-    <button class="sidebar-item" id="nav-bio" onclick="showTool('bio')">
-      <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
-      <span class="sidebar-item-label">Link in Bio</span>
-    </button>
 
     <div class="sidebar-section-label">The Suite</div>
     <button class="sidebar-item" id="nav-courses" onclick="showTool('courses')">
@@ -3908,7 +3906,11 @@
       <span class="sidebar-item-label">Contract <span class="sidebar-pill pro">PRO</span><br><span style="font-size:10px;font-weight:400;color:var(--muted);font-family:DM Sans,sans-serif;">Analyzer for Brand Deals</span></span>
     </button>
 
-    <div class="sidebar-section-label">Your Brand</div>
+    <div class="sidebar-section-label">Marketing</div>
+    <button class="sidebar-item" id="nav-bio" onclick="showTool('bio')">
+      <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
+      <span class="sidebar-item-label">Link in Bio</span>
+    </button>
     <button class="sidebar-item" id="nav-mediakit" onclick="showTool('mediakit')">
       <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="17" x2="8" y2="13"/><line x1="12" y1="17" x2="12" y2="11"/><line x1="16" y1="17" x2="16" y2="15"/></svg></div>
       <span class="sidebar-item-label">Media Kit <span class="sidebar-pill pro">PRO</span></span>
@@ -5525,16 +5527,15 @@
               </div>
             </div>
 
-            <!-- Audience (collapsible) -->
+            <!-- Audience (always expanded — not collapsible) -->
             <div class="mk-section">
-              <button type="button" class="mk-section-header mk-collapsible" onclick="toggleMKSection('audience')" aria-expanded="false">
+              <div class="mk-section-header mk-section-header-static">
                 <div class="mk-section-label">Audience & Stats</div>
                 <div style="display:flex;align-items:center;gap:10px;">
                   <span id="mk-total-display" style="font-size:11px;color:var(--muted);"></span>
-                  <svg class="mk-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
                 </div>
-              </button>
-              <div class="mk-section-body" id="mk-body-audience" style="display:none;">
+              </div>
+              <div class="mk-section-body" id="mk-body-audience">
 
                 <!-- Tabs: Manual vs Automatic -->
                 <div class="mk-aud-tabs" role="tablist" aria-label="Audience source">
