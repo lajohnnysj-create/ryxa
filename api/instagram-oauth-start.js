@@ -46,7 +46,7 @@ async function verifySupabaseUser(accessToken) {
     const res = await fetch(SUPABASE_URL + '/auth/v1/user', {
       headers: {
         Authorization: 'Bearer ' + accessToken,
-        apikey: process.env.SUPABASE_ANON_KEY || ''
+        apikey: process.env.SUPABASE_SERVICE_ROLE_KEY || ''
       }
     });
     if (!res.ok) return null;
