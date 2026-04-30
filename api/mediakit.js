@@ -654,12 +654,15 @@ async function fetchMediaKitData(username) {
     const kit = kits[0] || null;
 
     // Step 3: if media kit is in automatic mode, also pull cached IG data.
-    // This is a public read — only non-sensitive fields are selected (no token, no email).
+    // Reads from public_instagram_kit_data view (RLS-safe — exposes only
+    // the non-sensitive fields needed for public display). The underlying
+    // instagram_connections table has owner-only RLS, which would block
+    // this anon-key request.
     let ig = null;
     if (kit && kit.audience_mode === 'automatic') {
       try {
         const igRes = await fetch(
-          `${SUPABASE_URL}/rest/v1/instagram_connections?user_id=eq.${profile.user_id}&select=ig_username,profile_picture_url,account_type,followers_count,follows_count,media_count,reach_30d,total_interactions_30d,views_30d,profile_views_30d,avg_likes,avg_comments,avg_reel_views,avg_story_views,engagement_rate,demographics_age_gender,demographics_gender,demographics_top_countries,demographics_top_cities,data_last_fetched_at,data_fetch_error`,
+          `${SUPABASE_URL}/rest/v1/public_instagram_kit_data?user_id=eq.${profile.user_id}&select=ig_username,profile_picture_url,account_type,followers_count,follows_count,media_count,reach_30d,total_interactions_30d,views_30d,profile_views_30d,avg_likes,avg_comments,avg_reel_views,avg_story_views,engagement_rate,demographics_age_gender,demographics_gender,demographics_top_countries,demographics_top_cities,data_last_fetched_at,data_fetch_error`,
           fetchOpts(controller.signal)
         );
         if (igRes.ok) {
