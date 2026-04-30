@@ -199,19 +199,19 @@ function buildPlatformTabsHtml() {
     </span>
     <span class="ig-platform-tab" role="tab" aria-selected="false" aria-disabled="true">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.12C19.54 3.58 12 3.58 12 3.58s-7.54 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.07 0 12 0 12s0 3.93.5 5.8a3 3 0 0 0 2.1 2.12c1.86.5 9.4.5 9.4.5s7.54 0 9.4-.5a3 3 0 0 0 2.1-2.12C24 15.93 24 12 24 12s0-3.93-.5-5.8ZM9.55 15.57V8.43L15.82 12l-6.27 3.57Z"/></svg>
-      YouTube <span class="ig-platform-soon-pill">Soon</span>
+      YouTube
     </span>
     <span class="ig-platform-tab" role="tab" aria-selected="false" aria-disabled="true">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5.8 20.1a6.34 6.34 0 0 0 10.86-4.43V8.83a8.16 8.16 0 0 0 4.77 1.52V6.9a4.85 4.85 0 0 1-1.84-.21Z"/></svg>
-      TikTok <span class="ig-platform-soon-pill">Soon</span>
+      TikTok
     </span>
     <span class="ig-platform-tab" role="tab" aria-selected="false" aria-disabled="true">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.68.23 2.68.23v2.97h-1.51c-1.49 0-1.95.93-1.95 1.89v2.26h3.32l-.53 3.49h-2.79V24C19.61 23.1 24 18.1 24 12.07Z"/></svg>
-      Facebook <span class="ig-platform-soon-pill">Soon</span>
+      Facebook
     </span>
     <span class="ig-platform-tab" role="tab" aria-selected="false" aria-disabled="true">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.95v5.66H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.26 2.37 4.26 5.45v6.29ZM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12ZM7.12 20.45H3.56V9h3.56v11.45ZM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0Z"/></svg>
-      LinkedIn <span class="ig-platform-soon-pill">Soon</span>
+      LinkedIn
     </span>
   </div>`;
 }
@@ -282,6 +282,14 @@ function buildAudienceAutomatic(kit, ig) {
 
   const igHandle = ig.ig_username ? '@' + ig.ig_username : '';
   const igUrl = ig.ig_username ? 'https://instagram.com/' + encodeURIComponent(ig.ig_username) : null;
+  const lastSynced = formatLastSynced(ig.data_last_fetched_at);
+
+  // Attribution line: required for Meta App Review (signals data origin).
+  // Combined with the last sync timestamp on the same line so brands viewing
+  // the kit can see when the numbers were pulled.
+  const attributionInner = lastSynced
+    ? `Verified by Instagram <span class="ig-attr-sep" aria-hidden="true">&bull;</span> Last synced ${esc(lastSynced)}`
+    : 'Verified by Instagram';
 
   // Top header: handle + IG attribution
   const headerHtml = `<div class="ig-header">
@@ -290,7 +298,7 @@ function buildAudienceAutomatic(kit, ig) {
       ${igHandle ? (igUrl
         ? `<a class="ig-handle" href="${esc(igUrl)}" target="_blank" rel="noopener nofollow">${esc(igHandle)}</a>`
         : `<span class="ig-handle">${esc(igHandle)}</span>`) : ''}
-      <span class="ig-attribution">Verified by Instagram</span>
+      <span class="ig-attribution">${attributionInner}</span>
     </div>
   </div>`;
 
@@ -598,6 +606,13 @@ function renderMediaKitContent(profile, kit, ig) {
     ? buildAudienceAutomatic(kit, ig)
     : buildAudience(kit);
 
+  // Total Followers strip — sum across all connected platforms. For now only
+  // Instagram is wired up, but the structure already accumulates so future
+  // platforms (TikTok, YouTube, etc.) can each contribute their followers_count.
+  const totalFollowersHtml = kit.audience_mode === 'automatic'
+    ? buildTotalFollowers(kit, ig)
+    : '';
+
   const inner = `<div class="top-actions">
       <button class="btn-dl" onclick="window.print()" aria-label="Download as PDF">
         <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -605,12 +620,56 @@ function renderMediaKitContent(profile, kit, ig) {
       </button>
     </div>
     ${buildHero(kit, headshot)}
+    ${totalFollowersHtml}
     ${audienceHtml}
     ${buildRateCard(kit, profile.display_currency || 'USD')}
     ${buildContact(kit)}
     ${bannerHtml}`;
 
   return { inner, showBanner };
+}
+
+// Total Followers strip — appears below the hero, summing follower counts
+// across every connected platform. Currently only Instagram is wired up,
+// but this is structured to accept additional sources later (TikTok,
+// YouTube, etc.) by adding to the `sources` array.
+//
+// Renders only when at least one source has a follower count.
+function buildTotalFollowers(kit, ig) {
+  const sources = [];
+  if (ig && typeof ig.followers_count === 'number' && ig.followers_count > 0) {
+    sources.push({ platform: 'Instagram', count: ig.followers_count });
+  }
+  // Future: push more rows here as platforms come online.
+
+  if (sources.length === 0) return '';
+
+  const total = sources.reduce((s, x) => s + x.count, 0);
+  const platformList = sources.map(s => s.platform).join(', ');
+
+  return `<div class="total-followers-strip">
+    <div class="total-followers-label">Total Followers</div>
+    <div class="total-followers-value">${esc(formatNumber(total))}</div>
+    <div class="total-followers-sub">Combined across ${esc(platformList)}</div>
+  </div>`;
+}
+
+// Format a UTC timestamp for the public Media Kit page as
+// "Apr 30 at 9:45 AM" — note this renders server-side in the
+// container's TZ (UTC). For display on the public page that's
+// fine; we label it explicitly with the date.
+function formatLastSynced(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '';
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const month = months[d.getUTCMonth()];
+  const day = d.getUTCDate();
+  let hours = d.getUTCHours();
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12 || 12;
+  const minutes = String(d.getUTCMinutes()).padStart(2, '0');
+  return `${month} ${day} at ${hours}:${minutes} ${ampm} UTC`;
 }
 
 // ==========================================================================
