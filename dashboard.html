@@ -2459,7 +2459,8 @@
   .bio-social-row input { flex: 1; min-width: 0; background: var(--surface); border: 1px solid var(--border-hover); border-radius: 8px; padding: 8px 10px; font-size: 13px; color: var(--text); font-family: 'DM Sans', sans-serif; outline: none; }
   .bio-link-row { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
   .bio-link-row.bio-link-collapsed:hover { border-color: var(--accent2); background: var(--surface2); }
-  .bio-link-row .bio-link-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .bio-link-row .bio-link-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; cursor: pointer; padding: 2px 4px; border-radius: 6px; margin: -2px -4px 6px -4px; transition: background 0.12s; }
+  .bio-link-row .bio-link-header:hover { background: var(--surface2); }
   .bio-link-row .bio-link-drag { cursor: grab; color: var(--muted); flex-shrink: 0; padding: 4px; }
   .bio-link-row .bio-link-drag:active { cursor: grabbing; }
   .bio-link-row .bio-featured-badge { font-size: 10px; background: rgba(124,58,237,0.2); color: #c4b5fd; border-radius: 100px; padding: 2px 8px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
@@ -9382,6 +9383,31 @@ function initBioTool() {
   document.getElementById('bio-avatar-inner').addEventListener('click', () => {
     document.getElementById('bio-avatar-input').click();
   });
+
+  // Delegated click handler: clicking the header bar of an expanded link
+  // row collapses it (with save). Lets users dismiss the editor without
+  // hunting for the Save button. Inputs, buttons, and the drag handle
+  // intercept their own clicks via stopPropagation in their markup.
+  const linksList = document.getElementById('bio-links-list');
+  if (linksList) {
+    linksList.addEventListener('click', function(e) {
+      // Find the closest .bio-link-header that we clicked inside
+      const header = e.target.closest('.bio-link-header');
+      if (!header) return;
+      // Skip if click came from a button or input inside the header
+      if (e.target.closest('button, input, .bio-link-drag, a')) return;
+      // Find the row id from the parent .bio-link-row
+      const row = header.closest('.bio-link-row');
+      if (!row) return;
+      const idAttr = row.getAttribute('data-id');
+      const id = parseInt(idAttr, 10);
+      if (!isFinite(id)) return;
+      // Only collapse if this row is currently expanded (i.e., not a collapsed view header)
+      if (!bioExpandedLinks.has(id)) return;
+      // Use saveLinkRow — handles validation + save + collapse + preview update
+      if (typeof saveLinkRow === 'function') saveLinkRow(id);
+    });
+  }
 }
 
 // Pulls the latest username from the Media Kit input (if present) or profiles table,
@@ -10578,10 +10604,16 @@ function toggleLinkHalfWidth(id, checked) {
 
 // Small "½" indicator for the collapsed link row when half-width is enabled.
 // Renders as a tiny inline tag at the row's right edge — not a chunky pill.
+// Skipped entirely on row types that don't support half-width (Media Kit,
+// Hero, Header, Subscribe, Featured, Videos) to prevent stale flags from
+// rendering UI for a feature their expanded view doesn't expose.
 function bioHalfBadge(link) {
-  return link.halfWidth
-    ? '<span class="bio-row-half" title="Half width" aria-label="Half width">&frac12;</span>'
-    : '';
+  if (!link.halfWidth) return '';
+  if (link.isMediaKit || link.isHero || link.isHeader || link.isSubscribe ||
+      link.isVideoBlock || link.featured) {
+    return '';
+  }
+  return '<span class="bio-row-half" title="Half width" aria-label="Half width">&frac12;</span>';
 }
 
 // Resolve the type metadata for a link row. Single source of truth for the
