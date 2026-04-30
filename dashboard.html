@@ -2467,6 +2467,115 @@
   .bio-link-row textarea { resize: none; }
   .bio-link-row .bio-link-remove { padding: 4px 10px; background: transparent; border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; border-radius: 6px; font-size: 11px; cursor: pointer; font-family: 'DM Sans', sans-serif; }
 
+  /* ============================================================
+     Redesigned collapsed row — colored left-border accent +
+     monochrome line icon + minimal subline + trash-icon remove.
+     Replaces the older multi-pill layout for a tighter, scannable list.
+     ============================================================ */
+  .bio-link-row.bio-row-typed {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    cursor: pointer;
+    border-left: 3px solid var(--row-accent, var(--border));
+    transition: background 0.15s, border-color 0.15s, transform 0.1s;
+  }
+  .bio-link-row.bio-row-typed:hover {
+    background: var(--surface2);
+    border-color: var(--border-hover);
+    border-left-color: var(--row-accent, var(--accent2));
+  }
+  .bio-row-typeicon {
+    width: 32px;
+    height: 32px;
+    border-radius: 7px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .bio-row-typeicon svg {
+    width: 15px;
+    height: 15px;
+  }
+  .bio-row-body {
+    flex: 1;
+    min-width: 0;
+  }
+  .bio-row-title {
+    font-size: 13px;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .bio-row-subline {
+    font-size: 11px;
+    color: var(--muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-top: 2px;
+  }
+  .bio-row-half {
+    font-size: 12px;
+    color: var(--muted);
+    padding: 2px 5px;
+    background: var(--surface2);
+    border-radius: 4px;
+    flex-shrink: 0;
+    user-select: none;
+  }
+  .bio-row-edit, .bio-row-trash {
+    background: transparent;
+    border: 1px solid var(--border-hover);
+    color: var(--muted);
+    border-radius: 6px;
+    padding: 6px 8px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+  .bio-row-edit:hover {
+    background: var(--surface2);
+    color: var(--text);
+    border-color: var(--accent2);
+  }
+  .bio-row-trash:hover {
+    background: rgba(239,68,68,0.08);
+    color: #fca5a5;
+    border-color: rgba(239,68,68,0.3);
+  }
+  .bio-row-trash svg {
+    width: 14px;
+    height: 14px;
+  }
+  /* On narrow viewports, drop the half-width indicator's padding to save room.
+     The drag handle and trash button stay full-size for tap accessibility. */
+  @media (max-width: 480px) {
+    .bio-link-row.bio-row-typed {
+      gap: 8px;
+      padding: 9px 10px;
+    }
+    .bio-row-typeicon {
+      width: 28px;
+      height: 28px;
+    }
+    .bio-row-typeicon svg {
+      width: 13px;
+      height: 13px;
+    }
+    .bio-row-edit, .bio-row-trash {
+      padding: 5px 7px;
+    }
+  }
+
   /* Add buttons (Content + Tools groups) — shared base + group-specific styling.
      Hover lifts the button slightly; active pushes it down (tactile feedback). */
   .bio-add-btn {
@@ -10467,12 +10576,108 @@ function toggleLinkHalfWidth(id, checked) {
   schedulePreviewUpdate();
 }
 
-// Small "½" badge for the collapsed link row when half-width is enabled.
+// Small "½" indicator for the collapsed link row when half-width is enabled.
+// Renders as a tiny inline tag at the row's right edge — not a chunky pill.
 function bioHalfBadge(link) {
   return link.halfWidth
-    ? '<span class="bio-featured-badge" style="background:rgba(74,222,128,0.12);color:#4ade80;border:1px solid rgba(74,222,128,0.3);" title="Half width">½</span>'
+    ? '<span class="bio-row-half" title="Half width" aria-label="Half width">&frac12;</span>'
     : '';
 }
+
+// Resolve the type metadata for a link row. Single source of truth for the
+// type label, accent color, and the icon SVG used in the collapsed view.
+//
+// All icons are stroke-based, monochrome, ~14px, matching the rest of the
+// dashboard's icon language. The `accent` value is used for the row's
+// left-border tint and the icon stroke color.
+function bioRowTypeMeta(link) {
+  // Order matters — first match wins. Featured is a flag that can apply to
+  // a regular link, so it's checked late.
+  if (link.isHeader) {
+    return {
+      key: 'header',
+      label: 'Header',
+      accent: '#94a3b8',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="18" x2="14" y2="18"/></svg>'
+    };
+  }
+  if (link.isVideoBlock) {
+    return {
+      key: 'video',
+      label: 'Videos',
+      accent: '#fca5a5',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>'
+    };
+  }
+  if (link.isSubscribe) {
+    return {
+      key: 'subscribe',
+      label: 'Subscribe',
+      accent: '#f9a8d4',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>'
+    };
+  }
+  if (link.isHero) {
+    return {
+      key: 'hero',
+      label: 'Hero',
+      accent: '#a78bfa',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>'
+    };
+  }
+  if (link.isCourse) {
+    return {
+      key: 'course',
+      label: 'Course',
+      accent: '#fcd34d',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>'
+    };
+  }
+  if (link.isCoaching) {
+    return {
+      key: 'coaching',
+      label: 'Booking',
+      accent: '#67e8f9',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>'
+    };
+  }
+  if (link.isProduct) {
+    return {
+      key: 'product',
+      label: 'Product',
+      accent: '#7dd3fc',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>'
+    };
+  }
+  if (link.isMediaKit) {
+    return {
+      key: 'mediakit',
+      label: 'Media Kit',
+      accent: '#c4b5fd',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="17" x2="8" y2="13"/><line x1="12" y1="17" x2="12" y2="11"/><line x1="16" y1="17" x2="16" y2="15"/></svg>'
+    };
+  }
+  if (link.featured) {
+    return {
+      key: 'featured',
+      label: 'Featured',
+      accent: '#a78bfa',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>'
+    };
+  }
+  // Default: regular link
+  return {
+    key: 'link',
+    label: 'Link',
+    accent: '#86efac',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>'
+  };
+}
+
+// Trash-can SVG used as the row "remove" affordance. Replaces the prior
+// pill-style "Remove" button. Inline-styled so it renders correctly even
+// when the surrounding row CSS gets overridden.
+const BIO_TRASH_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/></svg>';
 
 // Returns the HTML for a half-width toggle row (used inside the expanded
 // editor for links/courses/bookings/products). Two consecutive halves end up
@@ -10569,25 +10774,20 @@ function renderLinkRow(link) {
 }
 
 function renderLinkCollapsed(link, dragSvg, editSvg) {
-  // Header — minimal collapsed view
-  if (link.isHeader) {
-    const headerText = escapeHtml(link.title || 'Empty header');
-    const isEmpty = !link.title;
-    return `<div class="bio-link-row bio-link-collapsed" data-id="${link._id}" onclick="expandLink(${link._id})" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:10px 12px;background:linear-gradient(135deg,rgba(124,58,237,0.04),rgba(232,121,249,0.02));border:1px dashed rgba(124,58,237,0.25);">
-      <div class="bio-link-drag" aria-label="Drag to reorder" onclick="event.stopPropagation();">${dragSvg}</div>
-      <div style="flex:1;min-width:0;">
-        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-          <span style="font-size:13px;font-weight:600;color:${isEmpty ? '#fca5a5' : 'var(--text)'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;">${headerText}</span>
-          <span class="bio-featured-badge" style="background:rgba(124,58,237,0.15);color:#c4b5fd;border:1px solid rgba(124,58,237,0.3);">Header</span>
-        </div>
-      </div>
-      <button type="button" aria-label="Edit header" onclick="event.stopPropagation();expandLink(${link._id})" style="background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:6px;padding:5px 9px;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:4px;">${editSvg} Edit</button>
-      <button class="bio-link-remove" onclick="event.stopPropagation();removeLink(${link._id})">Remove</button>
-    </div>`;
-  }
+  const meta = bioRowTypeMeta(link);
 
-  // Video block — collapsed shows video count + first thumbnail (if any).
-  if (link.isVideoBlock) {
+  // Per-type subline: what's shown under the title. Each branch here
+  // computes the secondary text (URL, video count, price, etc.) and the
+  // optional thumbnail. Everything else is shared by all row types.
+  let subline = '';
+  let thumb = '';
+  let title = escapeHtml(link.title || 'Untitled');
+  let titleColor = 'var(--text)';
+
+  if (link.isHeader) {
+    if (!link.title) { title = 'Empty header'; titleColor = '#fca5a5'; }
+    title = escapeHtml(link.title || 'Empty header');
+  } else if (link.isVideoBlock) {
     const videos = Array.isArray(link.videos) ? link.videos : [];
     const filledCount = videos.filter(v => v && v.url && v.url.trim()).length;
     const firstId = (() => {
@@ -10597,164 +10797,68 @@ function renderLinkCollapsed(link, dragSvg, editSvg) {
       }
       return null;
     })();
-    const thumb = firstId
-      ? `<img alt="YouTube preview" src="https://i.ytimg.com/vi/${firstId}/default.jpg" style="width:56px;height:38px;object-fit:cover;border-radius:6px;flex-shrink:0;" onerror="this.style.background='var(--surface2)';this.removeAttribute('src');">`
-      : `<div style="width:56px;height:38px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><path d="m23 7-9 6 9 6V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></div>`;
-    const countText = filledCount === 0 ? 'No videos yet' : (filledCount === 1 ? '1 video' : `${filledCount} videos`);
-    return `<div class="bio-link-row bio-link-collapsed" data-id="${link._id}" onclick="expandLink(${link._id})" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:10px 12px;">
-      <div class="bio-link-drag" aria-label="Drag to reorder" onclick="event.stopPropagation();">${dragSvg}</div>
-      ${thumb}
-      <div style="flex:1;min-width:0;">
-        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-          <span style="font-size:13px;font-weight:500;color:var(--text);">YouTube videos</span>
-          <span class="bio-featured-badge" style="background:rgba(239,68,68,0.12);color:#fca5a5;border:1px solid rgba(239,68,68,0.25);">YouTube</span>
-        </div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px;">${countText}</div>
-      </div>
-      <button type="button" aria-label="Edit videos" onclick="event.stopPropagation();expandLink(${link._id})" style="background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:6px;padding:5px 9px;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:4px;">${editSvg} Edit</button>
-      <button class="bio-link-remove" onclick="event.stopPropagation();removeLink(${link._id})">Remove</button>
-    </div>`;
-  }
-
-  // Subscribe block
-  if (link.isSubscribe) {
-    return `<div class="bio-link-row bio-link-collapsed" data-id="${link._id}" onclick="expandLink(${link._id})" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:10px 12px;">
-      <div class="bio-link-drag" aria-label="Drag to reorder" onclick="event.stopPropagation();">${dragSvg}</div>
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-      <div style="flex:1;min-width:0;">
-        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-          <span style="font-size:13px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;">${escapeHtml(link.title || 'Subscribe to my newsletter')}</span>
-          <span class="bio-featured-badge" style="background:rgba(124,58,237,0.15);color:#c4b5fd;border:1px solid rgba(124,58,237,0.3);">Subscribe</span>
-        </div>
-      </div>
-      <button type="button" aria-label="Edit subscribe" onclick="event.stopPropagation();expandLink(${link._id})" style="background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:6px;padding:5px 9px;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:4px;">${editSvg} Edit</button>
-      <button class="bio-link-remove" onclick="event.stopPropagation();removeLink(${link._id})">Remove</button>
-    </div>`;
-  }
-
-  const title = escapeHtml(link.title || 'Untitled');
-  const url = (link.url || '').trim();
-  const urlDisplay = url ? escapeHtml(url.length > 50 ? url.slice(0, 47) + '…' : url) : '<span style="color:#fca5a5;">No URL set</span>';
-  const mkClass = link.isMediaKit ? ' bio-link-mediakit' : '';
-  const heroClass = link.isHero ? ' bio-link-hero' : '';
-
-  if (link.isHero) {
-    const thumb = link.photoUrl
-      ? `<img alt="Link thumbnail" src="${escapeHtml(link.photoUrl)}" style="width:56px;height:56px;object-fit:cover;border-radius:6px;flex-shrink:0;">`
-      : `<div style="width:56px;height:56px;border-radius:6px;background:linear-gradient(135deg,rgba(167,139,250,0.15),rgba(232,121,249,0.1));border:1px dashed rgba(232,121,249,0.4);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;color:#e879f9;">Hero</div>`;
-    return `<div class="bio-link-row bio-link-collapsed${heroClass}" data-id="${link._id}" onclick="expandLink(${link._id})" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:10px 12px;">
-      <div class="bio-link-drag" aria-label="Drag to reorder" onclick="event.stopPropagation();">${dragSvg}</div>
-      ${thumb}
-      <div style="flex:1;min-width:0;">
-        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-          <span style="font-size:13px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;">${title}</span>
-          <span class="bio-hero-badge">Hero</span>
-        </div>
-        <div style="font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px;">${urlDisplay}</div>
-      </div>
-      <button type="button" aria-label="Edit link" onclick="event.stopPropagation();expandLink(${link._id})" style="background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:6px;padding:5px 9px;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:4px;">${editSvg} Edit</button>
-      <button class="bio-link-remove" onclick="event.stopPropagation();removeLink(${link._id})">Remove</button>
-    </div>`;
-  }
-
-  if (link.isCourse) {
-    const thumb = link.photoUrl
-      ? `<img alt="Link thumbnail" src="${escapeHtml(link.photoUrl)}" style="width:56px;height:38px;object-fit:cover;border-radius:6px;flex-shrink:0;">`
-      : `<div style="width:56px;height:38px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>`;
+    thumb = firstId
+      ? `<img alt="YouTube preview" src="https://i.ytimg.com/vi/${firstId}/default.jpg" style="width:48px;height:32px;object-fit:cover;border-radius:6px;flex-shrink:0;" onerror="this.style.background='var(--surface2)';this.removeAttribute('src');">`
+      : '';
+    title = 'YouTube videos';
+    subline = filledCount === 0 ? 'No videos yet' : (filledCount === 1 ? '1 video' : filledCount + ' videos');
+  } else if (link.isSubscribe) {
+    title = escapeHtml(link.title || 'Subscribe to my newsletter');
+  } else if (link.isHero) {
+    if (link.photoUrl) {
+      thumb = `<img alt="Hero thumbnail" src="${escapeHtml(link.photoUrl)}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;flex-shrink:0;">`;
+    }
+    const url = (link.url || '').trim();
+    subline = url
+      ? escapeHtml(url.length > 50 ? url.slice(0, 47) + '…' : url)
+      : '<span style="color:#fca5a5;">No URL set</span>';
+  } else if (link.isCourse) {
+    if (link.photoUrl) {
+      thumb = `<img alt="Course thumbnail" src="${escapeHtml(link.photoUrl)}" style="width:48px;height:32px;object-fit:cover;border-radius:6px;flex-shrink:0;">`;
+    }
     const priceText = link.coursePrice > 0 ? formatMoney(link.coursePrice, {alwaysShowCents:true}) : 'Free';
     const crossoutText = link.courseCrossoutPrice > 0 ? '<span style="text-decoration:line-through;color:var(--muted);font-size:10px;margin-left:4px;">$' + (link.courseCrossoutPrice / 100).toFixed(2) + '</span>' : '';
-    return `<div class="bio-link-row bio-link-collapsed" data-id="${link._id}" onclick="expandLink(${link._id})" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:10px 12px;">
-      <div class="bio-link-drag" aria-label="Drag to reorder" onclick="event.stopPropagation();">${dragSvg}</div>
-      ${thumb}
-      <div style="flex:1;min-width:0;">
-        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-          <span style="font-size:13px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;">${title}</span>
-          <span class="bio-featured-badge" style="background:rgba(124,58,237,0.15);color:#c4b5fd;border:1px solid rgba(124,58,237,0.3);">Course</span>${bioHalfBadge(link)}
-        </div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px;">${priceText}${crossoutText}</div>
-      </div>
-      <button type="button" aria-label="Edit link" onclick="event.stopPropagation();expandLink(${link._id})" style="background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:6px;padding:5px 9px;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:4px;">${editSvg} Edit</button>
-      <button class="bio-link-remove" onclick="event.stopPropagation();removeLink(${link._id})">Remove</button>
-    </div>`;
+    subline = priceText + crossoutText;
+  } else if (link.isCoaching) {
+    if (link.photoUrl) {
+      thumb = `<img alt="Booking thumbnail" src="${escapeHtml(link.photoUrl)}" style="width:48px;height:32px;object-fit:cover;border-radius:6px;flex-shrink:0;">`;
+    }
+    subline = link.coachingPrice > 0 ? formatMoney(link.coachingPrice, {alwaysShowCents:true}) : 'Free';
+  } else if (link.isProduct) {
+    if (link.photoUrl) {
+      thumb = `<img alt="Product thumbnail" src="${escapeHtml(link.photoUrl)}" style="width:48px;height:32px;object-fit:cover;border-radius:6px;flex-shrink:0;">`;
+    }
+    subline = link.productPrice > 0 ? formatMoney(link.productPrice, {alwaysShowCents:true}) : 'Free';
+  } else {
+    // Regular link / featured / mediakit
+    if (!link.isMediaKit && link.photoUrl) {
+      thumb = `<img alt="" src="${escapeHtml(link.photoUrl)}" loading="lazy" onerror="this.style.display='none'" style="width:36px;height:36px;object-fit:cover;border-radius:6px;flex-shrink:0;border:1px solid var(--border);">`;
+    }
+    const url = (link.url || '').trim();
+    subline = url
+      ? escapeHtml(url.length > 50 ? url.slice(0, 47) + '…' : url)
+      : '<span style="color:#fca5a5;">No URL set</span>';
   }
 
-  if (link.isCoaching) {
-    const thumb = link.photoUrl
-      ? `<img alt="Link thumbnail" src="${escapeHtml(link.photoUrl)}" style="width:56px;height:38px;object-fit:cover;border-radius:6px;flex-shrink:0;">`
-      : `<div style="width:56px;height:38px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>`;
-    const priceText = link.coachingPrice > 0 ? formatMoney(link.coachingPrice, {alwaysShowCents:true}) : 'Free';
-    return `<div class="bio-link-row bio-link-collapsed" data-id="${link._id}" onclick="expandLink(${link._id})" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:10px 12px;">
-      <div class="bio-link-drag" aria-label="Drag to reorder" onclick="event.stopPropagation();">${dragSvg}</div>
-      ${thumb}
-      <div style="flex:1;min-width:0;">
-        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-          <span style="font-size:13px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;">${title}</span>
-          <span class="bio-featured-badge" style="background:rgba(124,58,237,0.15);color:#c4b5fd;border:1px solid rgba(124,58,237,0.3);">Booking</span>${bioHalfBadge(link)}
-        </div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px;">${priceText}</div>
-      </div>
-      <button type="button" aria-label="Edit link" onclick="event.stopPropagation();expandLink(${link._id})" style="background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:6px;padding:5px 9px;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:4px;">${editSvg} Edit</button>
-      <button class="bio-link-remove" onclick="event.stopPropagation();removeLink(${link._id})">Remove</button>
-    </div>`;
-  }
+  // Type icon — shown if there's no thumbnail (otherwise thumbnail carries the visual weight)
+  const typeIconHtml = thumb
+    ? thumb
+    : `<div class="bio-row-typeicon" style="color:${meta.accent};">${meta.icon}</div>`;
 
-  if (link.isProduct) {
-    const thumb = link.photoUrl
-      ? `<img alt="Link thumbnail" src="${escapeHtml(link.photoUrl)}" style="width:56px;height:38px;object-fit:cover;border-radius:6px;flex-shrink:0;">`
-      : `<div style="width:56px;height:38px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>`;
-    const priceText = link.productPrice > 0 ? formatMoney(link.productPrice, {alwaysShowCents:true}) : 'Free';
-    return `<div class="bio-link-row bio-link-collapsed" data-id="${link._id}" onclick="expandLink(${link._id})" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:10px 12px;">
-      <div class="bio-link-drag" aria-label="Drag to reorder" onclick="event.stopPropagation();">${dragSvg}</div>
-      ${thumb}
-      <div style="flex:1;min-width:0;">
-        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-          <span style="font-size:13px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;">${title}</span>
-          <span class="bio-featured-badge" style="background:rgba(124,58,237,0.15);color:#c4b5fd;border:1px solid rgba(124,58,237,0.3);">Product</span>${bioHalfBadge(link)}
-        </div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px;">${priceText}</div>
-      </div>
-      <button type="button" aria-label="Edit link" onclick="event.stopPropagation();expandLink(${link._id})" style="background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:6px;padding:5px 9px;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:4px;">${editSvg} Edit</button>
-      <button class="bio-link-remove" onclick="event.stopPropagation();removeLink(${link._id})">Remove</button>
-    </div>`;
-  }
-
-  if (link.featured) {
-    const thumb = link.photoUrl
-      ? `<img alt="Link thumbnail" src="${escapeHtml(link.photoUrl)}" style="width:56px;height:32px;object-fit:cover;border-radius:4px;flex-shrink:0;">`
-      : `<div style="width:56px;height:32px;border-radius:4px;background:var(--surface2);border:1px dashed rgba(124,58,237,0.3);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--muted);">16:9</div>`;
-    return `<div class="bio-link-row bio-link-collapsed${mkClass}" data-id="${link._id}" onclick="expandLink(${link._id})" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:10px 12px;">
-      <div class="bio-link-drag" aria-label="Drag to reorder" onclick="event.stopPropagation();">${dragSvg}</div>
-      ${thumb}
-      <div style="flex:1;min-width:0;">
-        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-          <span style="font-size:13px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;">${title}</span>
-          <span class="bio-featured-badge">Featured</span>
-        </div>
-        <div style="font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px;">${urlDisplay}</div>
-      </div>
-      <button type="button" aria-label="Edit link" onclick="event.stopPropagation();expandLink(${link._id})" style="background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:6px;padding:5px 9px;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:4px;">${editSvg} Edit</button>
-      <button class="bio-link-remove" onclick="event.stopPropagation();removeLink(${link._id})">Remove</button>
-    </div>`;
-  }
-
-  const mkIcon = link.isMediaKit ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="17" x2="8" y2="13"/><line x1="12" y1="17" x2="12" y2="11"/><line x1="16" y1="17" x2="16" y2="15"/></svg>' : '';
-  const mkBadge = link.isMediaKit ? '<span class="bio-mediakit-badge">Media Kit</span>' : '';
-  const linkThumb = (!link.isMediaKit && link.photoUrl)
-    ? `<img alt="" src="${escapeHtml(link.photoUrl)}" loading="lazy" onerror="this.style.display='none'" style="width:36px;height:36px;object-fit:cover;border-radius:6px;flex-shrink:0;border:1px solid var(--border);">`
+  const sublineHtml = subline
+    ? `<div class="bio-row-subline">${subline}</div>`
     : '';
 
-  return `<div class="bio-link-row bio-link-collapsed${mkClass}" data-id="${link._id}" onclick="expandLink(${link._id})" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:10px 12px;">
+  return `<div class="bio-link-row bio-link-collapsed bio-row-typed" data-id="${link._id}" data-type="${meta.key}" onclick="expandLink(${link._id})" style="--row-accent:${meta.accent};">
     <div class="bio-link-drag" aria-label="Drag to reorder" onclick="event.stopPropagation();">${dragSvg}</div>
-    ${mkIcon}${linkThumb}
-    <div style="flex:1;min-width:0;">
-      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-        <span style="font-size:13px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;">${title}</span>
-        ${mkBadge}${bioHalfBadge(link)}
-      </div>
-      <div style="font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px;">${urlDisplay}</div>
+    ${typeIconHtml}
+    <div class="bio-row-body">
+      <div class="bio-row-title" style="color:${titleColor};">${title}</div>
+      ${sublineHtml}
     </div>
-    <button type="button" aria-label="Edit link" onclick="event.stopPropagation();expandLink(${link._id})" style="background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:6px;padding:5px 9px;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:4px;">${editSvg} Edit</button>
-    <button class="bio-link-remove" onclick="event.stopPropagation();removeLink(${link._id})">Remove</button>
+    ${bioHalfBadge(link)}
+    <button type="button" class="bio-row-edit" aria-label="Edit" onclick="event.stopPropagation();expandLink(${link._id})">${editSvg}</button>
+    <button type="button" class="bio-row-trash" aria-label="Remove" title="Remove" onclick="event.stopPropagation();removeLink(${link._id})">${BIO_TRASH_SVG}</button>
   </div>`;
 }
 
