@@ -15074,12 +15074,37 @@ async function connectInstagramAccount() {
   } catch (err) {
     console.error('Failed to start Instagram OAuth:', err);
     showInstagramMsg('error', 'Failed to start connection. Please try again.');
-    if (btn) {
-      btn.disabled = false;
-      btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg> Connect Instagram';
-    }
+    resetInstagramConnectButton(true);
   }
 }
+
+// Restore the Instagram connect button to its default "Connect Instagram" state.
+// Used both by the catch-block above and by the bfcache pageshow listener below.
+// `force` = true bypasses the stuck-state check (used by the immediate catch path).
+function resetInstagramConnectButton(force) {
+  const btn = document.getElementById('settings-instagram-connect-btn');
+  if (!btn) return;
+  // Only reset if explicitly forced OR the button is actually showing the "Redirecting" state
+  if (!force && !/Redirecting to Instagram/i.test(btn.innerText || btn.textContent || '')) return;
+  btn.disabled = false;
+  btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg> Connect Instagram';
+}
+
+// If the user clicks back from Meta's OAuth page (or from any post-redirect
+// page) the browser may restore this page from the back-forward cache with
+// the button still in its "Redirecting..." state. Reset it on bfcache restore.
+// Same logic applied to the Stripe Connect button to handle bailing on that flow.
+window.addEventListener('pageshow', function(e) {
+  if (e.persisted) {
+    resetInstagramConnectButton();
+    // Reset Stripe Connect button only if it's actually stuck on the redirecting state
+    const stripeBtn = document.getElementById('settings-stripe-connect-btn');
+    if (stripeBtn && /Redirecting to Stripe/i.test(stripeBtn.innerText || stripeBtn.textContent || '')) {
+      stripeBtn.disabled = false;
+      stripeBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg> Connect Stripe Account';
+    }
+  }
+});
 
 function showInstagramDisconnectConfirm() {
   const el = document.getElementById('instagram-disconnect-confirm');
