@@ -7557,6 +7557,48 @@
       <div id="settings-stripe-msg" style="display:none;margin-top:8px;padding:10px 12px;border-radius:8px;font-size:12px;line-height:1.5;"></div>
     </div>
 
+    <!-- Instagram Connect -->
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:8px;">Connected Accounts</div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text);"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+        <div style="font-family:Syne,sans-serif;font-size:15px;font-weight:700;">Instagram</div>
+      </div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.5;">Connect your Instagram business account to auto-fill your media kit with your follower count and profile data.</p>
+
+      <!-- Not connected state -->
+      <div id="settings-instagram-disconnected">
+        <button id="settings-instagram-connect-btn" onclick="connectInstagramAccount()" style="width:100%;padding:11px;background:linear-gradient(135deg,#833AB4,#E1306C,#FCB045);border:none;color:#fff;border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.2s;box-shadow:0 0 20px rgba(225,48,108,0.25);" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='none'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+          Connect Instagram
+        </button>
+      </div>
+
+      <!-- Connected state -->
+      <div id="settings-instagram-connected" style="display:none;">
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(74,222,128,0.06);border:1px solid rgba(74,222,128,0.2);border-radius:8px;margin-bottom:10px;">
+          <div id="settings-instagram-avatar" style="width:32px;height:32px;border-radius:50%;background:rgba(74,222,128,0.12);border:1px solid rgba(74,222,128,0.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:13px;font-weight:500;color:#4ade80;">Instagram Connected</div>
+            <div id="settings-instagram-username" style="font-size:11px;color:var(--muted);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">@username</div>
+          </div>
+        </div>
+        <button id="instagram-disconnect-btn" onclick="showInstagramDisconnectConfirm()" style="width:100%;padding:9px;background:transparent;border:1px solid rgba(239,68,68,0.25);color:#fca5a5;border-radius:8px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.06)'" onmouseout="this.style.background='transparent'">Disconnect Instagram</button>
+        <div id="instagram-disconnect-confirm" style="display:none;margin-top:10px;padding:14px;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);border-radius:8px;">
+          <p style="font-size:13px;color:#fca5a5;margin-bottom:4px;font-weight:600;">Disconnect Instagram?</p>
+          <p style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5;">Your media kit will stop auto-updating from Instagram. You can reconnect at any time.</p>
+          <div style="display:flex;gap:8px;">
+            <button onclick="confirmDisconnectInstagram()" style="flex:1;padding:9px;background:transparent;border:1px solid rgba(239,68,68,0.25);color:#fca5a5;border-radius:7px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Yes, disconnect</button>
+            <button onclick="hideInstagramDisconnectConfirm()" style="flex:1;padding:9px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.4);color:#c4b5fd;border-radius:7px;font-size:12px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;">Keep connected</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="settings-instagram-msg" style="display:none;margin-top:8px;padding:10px 12px;border-radius:8px;font-size:12px;line-height:1.5;"></div>
+    </div>
+
     <!-- Display Currency -->
     <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;">
       <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:8px;">Display Currency</div>
@@ -8247,6 +8289,7 @@ function showTool(tool) {
     if (typeof resetSettingsTurnstile === 'function') resetSettingsTurnstile();
     // Load Stripe status with error handling
     try { loadStripeConnectStatus(); } catch(e) { console.error('Stripe status error:', e); }
+    try { loadInstagramConnectionStatus(); } catch(e) { console.error('Instagram status error:', e); }
     // Load marketing email preference
     try {
       sb.from('profiles').select('marketing_emails').eq('user_id', currentUser.id).single().then(function(res) {
@@ -14479,6 +14522,160 @@ function showStripeMsg(type, text) {
     el.style.border = '1px solid rgba(239,68,68,0.2)';
   }
 }
+
+// ============================================================
+// Instagram Connection (Settings)
+// ============================================================
+async function loadInstagramConnectionStatus() {
+  const disconnectedEl = document.getElementById('settings-instagram-disconnected');
+  const connectedEl = document.getElementById('settings-instagram-connected');
+  const usernameEl = document.getElementById('settings-instagram-username');
+  const avatarEl = document.getElementById('settings-instagram-avatar');
+  const msgEl = document.getElementById('settings-instagram-msg');
+  if (msgEl) msgEl.style.display = 'none';
+
+  if (!currentUser) return;
+
+  try {
+    const { data: conn } = await sb
+      .from('instagram_connections')
+      .select('ig_username,profile_picture_url,connected_at')
+      .eq('user_id', currentUser.id)
+      .maybeSingle();
+
+    if (conn) {
+      // Connected
+      if (disconnectedEl) disconnectedEl.style.display = 'none';
+      if (connectedEl) connectedEl.style.display = 'block';
+      if (usernameEl) usernameEl.textContent = conn.ig_username ? '@' + conn.ig_username : 'Connected';
+      if (avatarEl && conn.profile_picture_url) {
+        avatarEl.innerHTML = '<img src="' + escapeHtml(conn.profile_picture_url) + '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+      }
+    } else {
+      // Not connected
+      if (disconnectedEl) disconnectedEl.style.display = 'block';
+      if (connectedEl) connectedEl.style.display = 'none';
+    }
+  } catch (err) {
+    console.error('Failed to load Instagram status:', err);
+  }
+}
+
+async function connectInstagramAccount() {
+  if (!currentUser) return;
+
+  const btn = document.getElementById('settings-instagram-connect-btn');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" style="animation:btn-spin 0.6s linear infinite;" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Redirecting to Instagram...';
+  }
+
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session || !session.access_token) {
+      throw new Error('No session');
+    }
+    // Redirect to OAuth start endpoint with the session token
+    window.location.href = '/api/instagram-oauth-start?token=' + encodeURIComponent(session.access_token);
+  } catch (err) {
+    console.error('Failed to start Instagram OAuth:', err);
+    showInstagramMsg('error', 'Failed to start connection. Please try again.');
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg> Connect Instagram';
+    }
+  }
+}
+
+function showInstagramDisconnectConfirm() {
+  const el = document.getElementById('instagram-disconnect-confirm');
+  if (el) el.style.display = 'block';
+}
+
+function hideInstagramDisconnectConfirm() {
+  const el = document.getElementById('instagram-disconnect-confirm');
+  if (el) el.style.display = 'none';
+}
+
+async function confirmDisconnectInstagram() {
+  if (!currentUser) return;
+
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session || !session.access_token) {
+      throw new Error('No session');
+    }
+    const res = await fetch('/api/instagram-disconnect', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + session.access_token
+      }
+    });
+    if (!res.ok) {
+      const errBody = await res.json().catch(() => ({}));
+      throw new Error(errBody.error || 'Disconnect failed');
+    }
+    hideInstagramDisconnectConfirm();
+    showInstagramMsg('success', 'Instagram disconnected.');
+    showDashToast('success', 'Instagram disconnected.');
+    loadInstagramConnectionStatus();
+  } catch (err) {
+    console.error('Failed to disconnect Instagram:', err);
+    showInstagramMsg('error', 'Failed to disconnect. Please try again.');
+  }
+}
+
+function showInstagramMsg(type, text) {
+  const el = document.getElementById('settings-instagram-msg');
+  if (!el) return;
+  el.style.display = 'block';
+  el.textContent = text;
+  if (type === 'success') {
+    el.style.background = 'rgba(74,222,128,0.08)';
+    el.style.color = '#4ade80';
+    el.style.border = '1px solid rgba(74,222,128,0.2)';
+  } else {
+    el.style.background = 'rgba(239,68,68,0.08)';
+    el.style.color = '#fca5a5';
+    el.style.border = '1px solid rgba(239,68,68,0.2)';
+  }
+}
+
+// Handle ?instagram_status=... return URL params from OAuth callback
+(function handleInstagramReturn() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get('instagram_status');
+    if (!status) return;
+
+    // Wait until dashboard is initialized to show toast
+    function showWhenReady() {
+      if (typeof showDashToast !== 'function') {
+        setTimeout(showWhenReady, 200);
+        return;
+      }
+      if (status === 'connected') {
+        showDashToast('success', 'Instagram connected!');
+      } else if (status === 'cancelled') {
+        showDashToast('info', 'Instagram connection cancelled.');
+      } else if (status === 'error') {
+        const msg = params.get('instagram_message') || 'Could not connect Instagram.';
+        showDashToast('error', msg);
+      }
+      // Clean up URL so refresh doesn't re-trigger toast
+      const cleanUrl = window.location.pathname;
+      window.history.replaceState({}, '', cleanUrl);
+      // Refresh connection display
+      if (typeof loadInstagramConnectionStatus === 'function') {
+        loadInstagramConnectionStatus();
+      }
+    }
+    showWhenReady();
+  } catch (e) {
+    console.error('handleInstagramReturn failed:', e);
+  }
+})();
 
 const SETTINGS_TURNSTILE_SITE_KEY = '0x4AAAAAAC9W8avdI3sdVEcc';
 let settingsTurnstileWidgetId = null;
