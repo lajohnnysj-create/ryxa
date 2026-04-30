@@ -3854,6 +3854,16 @@
       <span class="sidebar-item-label">Dashboard</span>
     </button>
 
+    <div class="sidebar-section-label">Marketing</div>
+    <button class="sidebar-item" id="nav-bio" onclick="showTool('bio')">
+      <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
+      <span class="sidebar-item-label">Link in Bio</span>
+    </button>
+    <button class="sidebar-item" id="nav-mediakit" onclick="showTool('mediakit')">
+      <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="17" x2="8" y2="13"/><line x1="12" y1="17" x2="12" y2="11"/><line x1="16" y1="17" x2="16" y2="15"/></svg></div>
+      <span class="sidebar-item-label">Media Kit <span class="sidebar-pill pro">PRO</span></span>
+    </button>
+
     <div class="sidebar-section-label">The Suite</div>
     <button class="sidebar-item" id="nav-courses" onclick="showTool('courses')">
       <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M8 7h8M8 11h6"/></svg></div>
@@ -3906,15 +3916,6 @@
       <span class="sidebar-item-label">Contract <span class="sidebar-pill pro">PRO</span><br><span style="font-size:10px;font-weight:400;color:var(--muted);font-family:DM Sans,sans-serif;">Analyzer for Brand Deals</span></span>
     </button>
 
-    <div class="sidebar-section-label">Marketing</div>
-    <button class="sidebar-item" id="nav-bio" onclick="showTool('bio')">
-      <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
-      <span class="sidebar-item-label">Link in Bio</span>
-    </button>
-    <button class="sidebar-item" id="nav-mediakit" onclick="showTool('mediakit')">
-      <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="17" x2="8" y2="13"/><line x1="12" y1="17" x2="12" y2="11"/><line x1="16" y1="17" x2="16" y2="15"/></svg></div>
-      <span class="sidebar-item-label">Media Kit <span class="sidebar-pill pro">PRO</span></span>
-    </button>
     <div class="sidebar-section-label">Tools</div>
     <button class="sidebar-item" id="nav-image" onclick="showTool('image')">
       <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg></div>
@@ -12902,6 +12903,10 @@ function renderAudienceAutomatic() {
       ${cardsHtml}
       ${errorNoteHtml}
     </div>`;
+
+  // Now that the IG cache may have changed, re-render the live preview so
+  // the Automatic-mode preview reflects the latest data.
+  if (typeof updateMKPreview === 'function') updateMKPreview();
 }
 
 function goToInstagramConnect() {
@@ -13097,34 +13102,89 @@ function buildMKPreviewHTML() {
     ? `<img src="${escapeHtml(mkState.headshot_url)}" alt="Media kit headshot" style="width:100%;height:100%;border-radius:10px;object-fit:cover;display:block;">`
     : `<div style="width:100%;height:100%;border-radius:10px;background:${t.surface2};display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;font-size:40px;font-weight:800;color:${t.text};">${escapeHtml(initial)}</div>`;
 
-  // Audience
-  const filledSocials = MK_SOCIAL_PLATFORMS
-    .map(p => ({ ...p, data: mkState.socials[p.key] || { count: 0, url: '' } }))
-    .filter(p => (parseInt(p.data.count) || 0) > 0);
-  const total = filledSocials.reduce((s, p) => s + (parseInt(p.data.count) || 0), 0);
+  // Audience — branches on audience_mode
   let audienceHtml = '';
-  if (total > 0 || (parseFloat(mkState.engagement_rate) > 0)) {
-    const totalHtml = total > 0 ? `<div class="total-block">
-      <div class="total-num">${formatNumberShort(total)}</div>
-      <div class="total-lbl">Total Followers</div>
-    </div>` : '';
-    const socialsHtml = filledSocials.length > 0 ? `<div class="stats-grid">
-      ${filledSocials.map(p => `<div class="stat-card">
-        <div class="stat-icn">${p.svg}</div>
-        <div><div class="stat-n">${formatNumberShort(p.data.count)}</div><div class="stat-l">${p.label}</div></div>
-      </div>`).join('')}
-    </div>` : '';
-    const eng = parseFloat(mkState.engagement_rate);
-    const engagementHtml = (eng > 0) ? `<div class="eng-row">
-      <div class="eng-l">Engagement Rate</div>
-      <div class="eng-v">${eng.toFixed(2)}%</div>
-    </div>` : '';
-    audienceHtml = `<div class="sec">
-      <div class="sec-t">Audience</div>
-      ${totalHtml}
-      ${socialsHtml}
-      ${engagementHtml}
-    </div>`;
+  if (mkState.audience_mode === 'automatic') {
+    // Pull from cached IG data on the client (already loaded into mkAudCache)
+    const ig = (typeof mkAudCache !== 'undefined' && mkAudCache && mkAudCache.connected) ? mkAudCache.data : null;
+    if (!ig) {
+      // Not connected (or cache not loaded yet) — show a friendly placeholder in the preview
+      audienceHtml = `<div class="sec">
+        <div class="sec-t">Audience &amp; Stats</div>
+        <div style="padding:14px;background:${t.surface2};border:1px dashed ${t.border};border-radius:10px;text-align:center;font-size:10px;color:${t.muted};">
+          Connect Instagram to auto-fill this section.
+        </div>
+      </div>`;
+    } else {
+      // Compact preview rendering of the IG data
+      const stats = [];
+      if (typeof ig.followers_count === 'number') stats.push({ n: formatNumberShort(ig.followers_count), l: 'Followers' });
+      if (typeof ig.engagement_rate === 'number') stats.push({ n: ig.engagement_rate.toFixed(2) + '%', l: 'Engagement' });
+      if (typeof ig.reach_30d === 'number') stats.push({ n: formatNumberShort(ig.reach_30d), l: '30d Reach' });
+      if (typeof ig.total_interactions_30d === 'number') stats.push({ n: formatNumberShort(ig.total_interactions_30d), l: '30d Engagements' });
+      if (typeof ig.views_30d === 'number') stats.push({ n: formatNumberShort(ig.views_30d), l: '30d Impressions' });
+      if (typeof ig.avg_likes === 'number') stats.push({ n: formatNumberShort(Math.round(ig.avg_likes)), l: 'Avg Likes' });
+      if (typeof ig.avg_comments === 'number') stats.push({ n: formatNumberShort(Math.round(ig.avg_comments)), l: 'Avg Comments' });
+      if (typeof ig.avg_reel_views === 'number') stats.push({ n: formatNumberShort(Math.round(ig.avg_reel_views)), l: 'Avg Reel Views' });
+
+      const igHandle = ig.ig_username ? '@' + ig.ig_username : 'Instagram';
+      const headerHtml = `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+        <div style="width:24px;height:24px;border-radius:6px;background:linear-gradient(135deg,#833ab4,#fd1d1d 50%,#fcb045);display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;">
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M12 2.2c3.2 0 3.6 0 4.85.07 1.17.05 1.8.25 2.22.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.05.41 2.22.06 1.26.07 1.64.07 4.82s-.01 3.57-.07 4.82c-.05 1.17-.25 1.8-.41 2.22a3.72 3.72 0 0 1-.9 1.38c-.42.42-.82.68-1.38.9-.42.16-1.05.36-2.22.41-1.26.06-1.64.07-4.82.07s-3.57-.01-4.82-.07c-1.17-.05-1.8-.25-2.22-.41a3.72 3.72 0 0 1-1.38-.9 3.72 3.72 0 0 1-.9-1.38c-.16-.42-.36-1.05-.41-2.22C2.21 15.57 2.2 15.19 2.2 12s.01-3.57.07-4.82c.05-1.17.25-1.8.41-2.22.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.05-.36 2.22-.41C8.43 2.21 8.81 2.2 12 2.2M12 0C8.74 0 8.33.01 7.05.07 5.78.13 4.9.33 4.14.63a5.92 5.92 0 0 0-2.13 1.39A5.92 5.92 0 0 0 .62 4.14C.33 4.9.13 5.78.07 7.05.01 8.33 0 8.74 0 12c0 3.26.01 3.67.07 4.95.06 1.27.26 2.15.56 2.91a5.92 5.92 0 0 0 1.39 2.13c.66.66 1.32 1.06 2.13 1.39.76.3 1.64.5 2.91.56C8.33 23.99 8.74 24 12 24c3.26 0 3.67-.01 4.95-.07 1.27-.06 2.15-.26 2.91-.56a5.92 5.92 0 0 0 2.13-1.39c.66-.66 1.06-1.32 1.39-2.13.3-.76.5-1.64.56-2.91.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.06-1.27-.26-2.15-.56-2.91a5.92 5.92 0 0 0-1.39-2.13A5.92 5.92 0 0 0 19.86.62c-.76-.3-1.64-.5-2.91-.56C15.67.01 15.26 0 12 0Zm0 5.84a6.16 6.16 0 1 0 0 12.32 6.16 6.16 0 0 0 0-12.32Zm0 10.16a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm6.41-11.88a1.44 1.44 0 1 0 0 2.88 1.44 1.44 0 0 0 0-2.88Z"/></svg>
+        </div>
+        <div style="min-width:0;flex:1;">
+          <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:${t.text};">${escapeHtml(igHandle)}</div>
+          <div style="font-size:8px;color:${t.muted};text-transform:uppercase;letter-spacing:0.06em;">Verified by Instagram</div>
+        </div>
+      </div>`;
+
+      const statsHtml = stats.length > 0 ? `<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;">
+        ${stats.map(s => `<div style="background:${t.surface2};border:1px solid ${t.border};border-radius:8px;padding:8px 10px;">
+          <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:${t.text};">${escapeHtml(s.n)}</div>
+          <div style="font-size:8px;color:${t.muted};text-transform:uppercase;letter-spacing:0.05em;margin-top:2px;">${escapeHtml(s.l)}</div>
+        </div>`).join('')}
+      </div>` : '';
+
+      // Tiny demographic teaser if we have any
+      const hasDemo = ig.demographics_gender || ig.demographics_top_countries;
+      const demoHint = hasDemo ? `<div style="margin-top:8px;padding:8px 10px;background:${t.surface2};border:1px solid ${t.border};border-radius:8px;font-size:9px;color:${t.muted};text-align:center;">+ Audience demographics shown on published page</div>` : '';
+
+      audienceHtml = `<div class="sec">
+        <div class="sec-t">Audience &amp; Stats</div>
+        ${headerHtml}
+        ${statsHtml}
+        ${demoHint}
+      </div>`;
+    }
+  } else {
+    // Manual mode — original behavior
+    const filledSocials = MK_SOCIAL_PLATFORMS
+      .map(p => ({ ...p, data: mkState.socials[p.key] || { count: 0, url: '' } }))
+      .filter(p => (parseInt(p.data.count) || 0) > 0);
+    const total = filledSocials.reduce((s, p) => s + (parseInt(p.data.count) || 0), 0);
+    if (total > 0 || (parseFloat(mkState.engagement_rate) > 0)) {
+      const totalHtml = total > 0 ? `<div class="total-block">
+        <div class="total-num">${formatNumberShort(total)}</div>
+        <div class="total-lbl">Total Followers</div>
+      </div>` : '';
+      const socialsHtml = filledSocials.length > 0 ? `<div class="stats-grid">
+        ${filledSocials.map(p => `<div class="stat-card">
+          <div class="stat-icn">${p.svg}</div>
+          <div><div class="stat-n">${formatNumberShort(p.data.count)}</div><div class="stat-l">${p.label}</div></div>
+        </div>`).join('')}
+      </div>` : '';
+      const eng = parseFloat(mkState.engagement_rate);
+      const engagementHtml = (eng > 0) ? `<div class="eng-row">
+        <div class="eng-l">Engagement Rate</div>
+        <div class="eng-v">${eng.toFixed(2)}%</div>
+      </div>` : '';
+      audienceHtml = `<div class="sec">
+        <div class="sec-t">Audience</div>
+        ${totalHtml}
+        ${socialsHtml}
+        ${engagementHtml}
+      </div>`;
+    }
   }
 
   // Rate card
