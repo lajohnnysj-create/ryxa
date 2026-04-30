@@ -2608,6 +2608,64 @@
   .mk-chevron { transition: transform 0.2s; color: var(--muted); flex-shrink: 0; }
   button.mk-collapsible[aria-expanded="true"] .mk-chevron { transform: rotate(180deg); }
   .mk-section-body { padding: 0 20px 20px; }
+
+  /* Media Kit Audience & Stats — Manual/Automatic tabs */
+  .mk-aud-tabs { display: flex; gap: 4px; padding: 4px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 14px; }
+  .mk-aud-tab { flex: 1; padding: 8px 12px; background: transparent; border: none; color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; cursor: pointer; border-radius: 7px; transition: background 0.15s, color 0.15s; }
+  .mk-aud-tab:hover { color: var(--text); }
+  .mk-aud-tab-active { background: var(--surface2); color: var(--text); box-shadow: 0 1px 0 rgba(255,255,255,0.04); }
+  .mk-aud-pane { animation: mkFadeIn 0.18s ease; }
+  @keyframes mkFadeIn { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; transform: translateY(0); } }
+  .mk-aud-loading { padding: 28px 16px; text-align: center; color: var(--muted); font-size: 13px; }
+  .mk-aud-empty { padding: 24px 18px; text-align: center; background: var(--surface); border: 1px dashed var(--border); border-radius: 10px; }
+  .mk-aud-empty-icon { width: 38px; height: 38px; margin: 0 auto 10px; border-radius: 10px; background: linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%); display: flex; align-items: center; justify-content: center; color: #fff; }
+  .mk-aud-empty-icon svg { width: 20px; height: 20px; fill: currentColor; }
+  .mk-aud-empty-title { font-size: 14px; color: var(--text); font-weight: 600; margin-bottom: 4px; }
+  .mk-aud-empty-msg { font-size: 12px; color: var(--muted); line-height: 1.55; margin-bottom: 14px; }
+  .mk-aud-cta { display: inline-block; padding: 8px 16px; background: var(--accent); color: #fff; border-radius: 8px; font-size: 12px; font-weight: 500; cursor: pointer; border: none; font-family: 'DM Sans', sans-serif; }
+  .mk-aud-cta:hover { filter: brightness(1.08); }
+  .mk-aud-connected { display: flex; flex-direction: column; gap: 12px; }
+  .mk-aud-meta { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; flex-wrap: wrap; }
+  .mk-aud-meta-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .mk-aud-meta-icon { width: 26px; height: 26px; border-radius: 7px; background: linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #fff; }
+  .mk-aud-meta-icon svg { width: 14px; height: 14px; fill: currentColor; }
+  .mk-aud-meta-text { font-size: 12px; color: var(--text); min-width: 0; }
+  .mk-aud-meta-text .mk-aud-handle { font-weight: 600; }
+  .mk-aud-meta-text .mk-aud-fresh { display: block; font-size: 11px; color: var(--muted); margin-top: 1px; }
+  .mk-aud-refresh-btn { padding: 7px 12px; background: var(--surface2); border: 1px solid var(--border-hover); border-radius: 8px; color: var(--text); font-size: 12px; font-family: 'DM Sans', sans-serif; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: background 0.15s; }
+  .mk-aud-refresh-btn:hover:not(:disabled) { background: var(--surface); }
+  .mk-aud-refresh-btn:disabled { cursor: not-allowed; opacity: 0.55; }
+  .mk-aud-refresh-btn svg { width: 12px; height: 12px; }
+  .mk-aud-data-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .mk-aud-data-card { padding: 10px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; }
+  .mk-aud-data-num { font-size: 16px; font-weight: 600; color: var(--text); }
+  .mk-aud-data-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
+  .mk-aud-error-note { padding: 10px 12px; background: rgba(252,176,69,0.06); border: 1px solid rgba(252,176,69,0.18); border-radius: 8px; font-size: 12px; color: var(--muted2); line-height: 1.5; }
+
+  /* Platform connection list (in Automatic pane) */
+  .mk-aud-platforms { display: flex; flex-direction: column; gap: 6px; }
+  .mk-aud-platform-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; }
+  .mk-aud-platform-row.mk-aud-platform-soon { opacity: 0.55; }
+  .mk-aud-platform-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .mk-aud-platform-icon { width: 28px; height: 28px; border-radius: 7px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #fff; }
+  .mk-aud-platform-icon svg { width: 14px; height: 14px; }
+  .mk-aud-platform-icon.mk-aud-platform-ig { background: linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%); fill: #fff; }
+  .mk-aud-platform-icon.mk-aud-platform-yt { background: #ff0000; }
+  .mk-aud-platform-icon.mk-aud-platform-tt { background: #000; }
+  .mk-aud-platform-icon.mk-aud-platform-fb { background: #1877f2; }
+  .mk-aud-platform-icon.mk-aud-platform-li { background: #0a66c2; }
+  .mk-aud-platform-text { min-width: 0; }
+  .mk-aud-platform-name { font-size: 13px; color: var(--text); font-weight: 500; }
+  .mk-aud-platform-handle { font-size: 11px; color: var(--muted); margin-top: 1px; }
+  .mk-aud-platform-status { font-size: 11px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; }
+  .mk-aud-platform-status-connected { color: #34d399; }
+  .mk-aud-status-dot { width: 7px; height: 7px; border-radius: 50%; background: #34d399; box-shadow: 0 0 0 2px rgba(52,211,153,0.18); }
+
+  /* Data section header (above stat cards in Automatic pane) */
+  .mk-aud-data-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 4px; padding-bottom: 6px; flex-wrap: wrap; }
+  .mk-aud-data-header-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent2); font-weight: 600; }
+  .mk-aud-data-header-right { display: flex; align-items: center; gap: 10px; }
+  .mk-aud-fresh { font-size: 11px; color: var(--muted); }
   /* Bio editor collapsible sections — reuses mk-section pattern */
   .bio-section { background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
   .bio-section-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 16px 20px; width: 100%; text-align: left; background: transparent; border: none; color: var(--text); font-family: 'DM Sans', sans-serif; }
@@ -5477,33 +5535,51 @@
                 </div>
               </button>
               <div class="mk-section-body" id="mk-body-audience" style="display:none;">
-                <div id="mk-socials-form" style="display:flex;flex-direction:column;gap:8px;"></div>
-                <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
-                  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px;flex-wrap:wrap;">
-                    <label for="mk-engagement" style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);">Engagement rate (%)</label>
-                    <button type="button" onclick="toggleEngagementHelp()" aria-expanded="false" id="mk-engagement-help-btn"
-                      style="background:transparent;border:none;color:var(--accent2);font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;display:inline-flex;align-items:center;gap:3px;padding:0;">
-                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r="0.5" fill="currentColor" stroke="none"/></svg>
-                      How to calculate
-                    </button>
-                  </div>
-                  <input type="number" id="mk-engagement" aria-label="Engagement rate percentage" min="0" max="100" step="0.01" placeholder="e.g. 4.25" oninput="onMKField()" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
-                  <div id="mk-engagement-help" style="display:none;margin-top:10px;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--muted2);line-height:1.6;">
-                    <div style="font-weight:600;color:var(--text);margin-bottom:6px;">How to calculate engagement rate</div>
-                    <div style="margin-bottom:8px;">The industry-standard formula:</div>
-                    <div style="padding:8px 10px;background:var(--surface2);border-radius:6px;font-family:monospace;font-size:11px;color:var(--accent2);margin-bottom:8px;">
-                      (Avg. likes + comments per post) ÷ Followers × 100
-                    </div>
-                    <div style="margin-bottom:6px;"><strong style="color:var(--text);">Quick method:</strong> Take your last 10 posts. Add up all likes + comments. Divide by 10 (your average). Divide that by your follower count. Multiply by 100.</div>
-                    <div style="margin-bottom:6px;"><strong style="color:var(--text);">What's a good rate?</strong></div>
-                    <div style="padding-left:14px;">
-                      • <strong style="color:var(--text);">1-3%</strong>. Typical for accounts with 100K+ followers<br>
-                      • <strong style="color:var(--text);">3-6%</strong>. Strong engagement<br>
-                      • <strong style="color:var(--text);">6%+</strong>. Exceptional engagement
-                    </div>
-                    <div style="margin-top:8px;color:var(--muted);">Report your primary platform's rate (usually Instagram). Brands care most about this number.</div>
+
+                <!-- Tabs: Manual vs Automatic -->
+                <div class="mk-aud-tabs" role="tablist" aria-label="Audience source">
+                  <button type="button" id="mk-aud-tab-automatic" role="tab" aria-selected="true" aria-controls="mk-aud-pane-automatic" onclick="setAudienceMode('automatic')" class="mk-aud-tab mk-aud-tab-active">Automatic</button>
+                  <button type="button" id="mk-aud-tab-manual" role="tab" aria-selected="false" aria-controls="mk-aud-pane-manual" onclick="setAudienceMode('manual')" class="mk-aud-tab">Manual</button>
+                </div>
+
+                <!-- Pane: Automatic -->
+                <div class="mk-aud-pane" id="mk-aud-pane-automatic" role="tabpanel" aria-labelledby="mk-aud-tab-automatic">
+                  <div id="mk-aud-auto-content">
+                    <div class="mk-aud-loading">Checking Instagram connection&hellip;</div>
                   </div>
                 </div>
+
+                <!-- Pane: Manual (original form, unchanged) -->
+                <div class="mk-aud-pane" id="mk-aud-pane-manual" role="tabpanel" aria-labelledby="mk-aud-tab-manual" style="display:none;">
+                  <div id="mk-socials-form" style="display:flex;flex-direction:column;gap:8px;"></div>
+                  <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px;flex-wrap:wrap;">
+                      <label for="mk-engagement" style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);">Engagement rate (%)</label>
+                      <button type="button" onclick="toggleEngagementHelp()" aria-expanded="false" id="mk-engagement-help-btn"
+                        style="background:transparent;border:none;color:var(--accent2);font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;display:inline-flex;align-items:center;gap:3px;padding:0;">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r="0.5" fill="currentColor" stroke="none"/></svg>
+                        How to calculate
+                      </button>
+                    </div>
+                    <input type="number" id="mk-engagement" aria-label="Engagement rate percentage" min="0" max="100" step="0.01" placeholder="e.g. 4.25" oninput="onMKField()" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+                    <div id="mk-engagement-help" style="display:none;margin-top:10px;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--muted2);line-height:1.6;">
+                      <div style="font-weight:600;color:var(--text);margin-bottom:6px;">How to calculate engagement rate</div>
+                      <div style="margin-bottom:8px;">The industry-standard formula:</div>
+                      <div style="padding:8px 10px;background:var(--surface2);border-radius:6px;font-family:monospace;font-size:11px;color:var(--accent2);margin-bottom:8px;">
+                        (Avg. likes + comments per post) &divide; Followers &times; 100
+                      </div>
+                      <div style="margin-bottom:6px;"><strong style="color:var(--text);">Quick method:</strong> Take your last 10 posts. Add up all likes + comments. Divide by 10 (your average). Divide that by your follower count. Multiply by 100.</div>
+                      <div style="margin-bottom:6px;"><strong style="color:var(--text);">What's a good rate?</strong></div>
+                      <div style="padding-left:14px;">
+                        &bull; <strong style="color:var(--text);">1-3%</strong>. Typical for accounts with 100K+ followers<br>
+                        &bull; <strong style="color:var(--text);">3-6%</strong>. Strong engagement<br>
+                        &bull; <strong style="color:var(--text);">6%+</strong>. Exceptional engagement
+                      </div>
+                      <div style="margin-top:8px;color:var(--muted);">Report your primary platform's rate (usually Instagram). Brands care most about this number.</div>
+                    </div>
+                  </div>
+                </div>
+
               </div>
             </div>
 
@@ -7558,7 +7634,7 @@
     </div>
 
     <!-- Instagram Connect -->
-    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;">
+    <div id="settings-connected-accounts" style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;">
       <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:8px;">Connected Accounts</div>
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
         <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text);"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
@@ -11821,6 +11897,7 @@ let mkState = {
   category: '',
   socials: {}, // { instagram: { count: N, url: "..." }, ... }
   engagement_rate: '',
+  audience_mode: 'manual', // 'manual' | 'automatic' — chosen tab in Audience & Stats
   rate_card: [], // array of {id, label, price, note}
   contact_email: '',
   contact_note: '',
@@ -11925,6 +12002,7 @@ async function loadMediaKit() {
       }
       mkState.socials = socials;
       mkState.engagement_rate = kit.engagement_rate || '';
+      mkState.audience_mode = (kit.audience_mode === 'automatic') ? 'automatic' : 'manual';
       mkState.contact_email = kit.contact_email || '';
       mkState.contact_note = kit.contact_note || '';
       mkState.theme = kit.theme || 'purple';
@@ -11952,6 +12030,7 @@ async function loadMediaKit() {
   renderMKRates();
   renderMKThemes();
   syncMKCustomEditorUI();
+  syncAudienceModeUI();
   updateMKPublishUI();
   updateMKPreview();
 }
@@ -12475,6 +12554,7 @@ async function saveMediaKit() {
       category: mkState.category || null,
       socials: cleanSocials,
       engagement_rate: isFinite(engagement) && engagement >= 0 ? engagement : null,
+      audience_mode: mkState.audience_mode === 'automatic' ? 'automatic' : 'manual',
       rate_card: cleanRates,
       contact_email: mkState.contact_email || null,
       contact_note: mkState.contact_note || null,
@@ -12520,6 +12600,316 @@ async function deleteMKStaleBgs() {
     try { await sb.storage.from('mediakit-backgrounds').remove(paths); } catch (e) { console.warn('mk bg cleanup', e); }
   }
   mkStaleBgs = [];
+}
+
+// ============================================================================
+// MEDIA KIT — AUDIENCE & STATS: Manual / Automatic mode
+// ============================================================================
+//
+// Two-tab control inside the Audience & Stats collapsible section.
+//   - 'manual'    → existing socials + engagement_rate form (unchanged)
+//   - 'automatic' → pulls cached IG data from instagram_connections via
+//                   /api/instagram-data-fetch and renders inline preview
+//
+// State lives on mkState.audience_mode and is persisted on saveMediaKit().
+// Whichever tab is active at save time becomes the mode shown on the public
+// Media Kit page.
+//
+// Refresh strategy:
+//   - On opening the editor, if cache > 24h old or missing, auto-trigger fetch
+//   - Manual "Refresh from Instagram" button with 5-minute client-side cooldown
+//   - Background pg_cron refreshes every 3 days as a backstop
+
+let mkAudCache = null;        // last-fetched IG data {connected, data, error}
+let mkAudInflight = false;    // prevent overlapping fetches
+let mkAudRefreshLockUntil = 0; // unix ms; refresh button disabled while in future
+
+function setAudienceMode(mode) {
+  mkState.audience_mode = (mode === 'automatic') ? 'automatic' : 'manual';
+  // Toggle tab visuals
+  const tA = document.getElementById('mk-aud-tab-automatic');
+  const tM = document.getElementById('mk-aud-tab-manual');
+  const pA = document.getElementById('mk-aud-pane-automatic');
+  const pM = document.getElementById('mk-aud-pane-manual');
+  if (!tA || !tM || !pA || !pM) return;
+  if (mkState.audience_mode === 'automatic') {
+    tA.classList.add('mk-aud-tab-active'); tA.setAttribute('aria-selected', 'true');
+    tM.classList.remove('mk-aud-tab-active'); tM.setAttribute('aria-selected', 'false');
+    pA.style.display = ''; pM.style.display = 'none';
+    // Lazy-load the data on first switch in
+    if (!mkAudCache && !mkAudInflight) loadAudienceAutomatic();
+  } else {
+    tM.classList.add('mk-aud-tab-active'); tM.setAttribute('aria-selected', 'true');
+    tA.classList.remove('mk-aud-tab-active'); tA.setAttribute('aria-selected', 'false');
+    pM.style.display = ''; pA.style.display = 'none';
+  }
+  if (typeof onMKField === 'function') onMKField();
+}
+
+// Apply persisted audience_mode after loadMediaKit. Called from initMediaKitTool.
+function syncAudienceModeUI() {
+  // Default to automatic in the UI even if mode is manual on first edit, per UX requirement.
+  // But if creator has explicitly saved 'manual', respect that.
+  const mode = mkState.audience_mode || 'automatic';
+  setAudienceMode(mode);
+}
+
+async function loadAudienceAutomatic() {
+  const mount = document.getElementById('mk-aud-auto-content');
+  if (!mount) return;
+  mkAudInflight = true;
+  mount.innerHTML = '<div class="mk-aud-loading">Pulling your Instagram data&hellip;</div>';
+
+  try {
+    // First check connection status from instagram_connections via Supabase client
+    // (cheap read, gives us current cached data without calling Meta if cache is fresh)
+    const { data: conn, error } = await sb
+      .from('instagram_connections')
+      .select('ig_username,profile_picture_url,followers_count,follows_count,media_count,reach_30d,total_interactions_30d,views_30d,profile_views_30d,avg_likes,avg_comments,avg_reel_views,avg_story_views,engagement_rate,demographics_age_gender,demographics_gender,demographics_top_countries,demographics_top_cities,data_last_fetched_at,data_fetch_error')
+      .eq('user_id', currentUser.id)
+      .maybeSingle();
+
+    if (error) throw error;
+
+    if (!conn) {
+      mkAudCache = { connected: false };
+      renderAudienceAutomatic();
+      return;
+    }
+
+    // Decide: do we need to refresh from Meta, or is cache fresh enough?
+    const cacheTs = conn.data_last_fetched_at ? new Date(conn.data_last_fetched_at).getTime() : 0;
+    const ageMs = Date.now() - cacheTs;
+    const STALE_MS = 24 * 60 * 60 * 1000; // 24h
+    const cacheStale = !cacheTs || ageMs > STALE_MS;
+
+    if (cacheStale) {
+      // Trigger a fresh fetch in the background
+      const refreshed = await refreshIGData();
+      if (refreshed && refreshed.ok && refreshed.data) {
+        mkAudCache = { connected: true, data: refreshed.data };
+      } else {
+        // Fall back to whatever is in DB (might still have partial data)
+        mkAudCache = { connected: true, data: conn };
+      }
+    } else {
+      mkAudCache = { connected: true, data: conn };
+    }
+    renderAudienceAutomatic();
+  } catch (e) {
+    console.error('loadAudienceAutomatic', e);
+    mount.innerHTML = '<div class="mk-aud-error-note">Couldn\'t load Instagram data right now. Try again in a moment.</div>';
+  } finally {
+    mkAudInflight = false;
+  }
+}
+
+async function refreshIGData() {
+  try {
+    const session = (await sb.auth.getSession()).data.session;
+    if (!session) return { ok: false, error: 'Not authenticated' };
+    const r = await fetch('/api/instagram-data-fetch', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + session.access_token }
+    });
+    const body = await r.json().catch(() => ({}));
+    return body;
+  } catch (e) {
+    console.error('refreshIGData', e);
+    return { ok: false, error: e.message };
+  }
+}
+
+async function manualRefreshIG() {
+  const btn = document.getElementById('mk-aud-refresh-btn');
+  if (!btn) return;
+  if (Date.now() < mkAudRefreshLockUntil) return;
+
+  btn.disabled = true;
+  const originalLabel = btn.innerHTML;
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Refreshing&hellip;';
+
+  const res = await refreshIGData();
+  if (res && res.ok && res.data) {
+    mkAudCache = { connected: true, data: res.data };
+    showDashToast('success', 'Instagram data refreshed.');
+  } else {
+    showDashToast('error', (res && res.error) || 'Could not refresh Instagram data.');
+  }
+  // 5-minute cooldown regardless of success — protects rate limits
+  mkAudRefreshLockUntil = Date.now() + 5 * 60 * 1000;
+  renderAudienceAutomatic();
+  // Re-enable after cooldown
+  setTimeout(() => {
+    const b = document.getElementById('mk-aud-refresh-btn');
+    if (b) { b.disabled = false; }
+    renderAudienceAutomatic();
+  }, 5 * 60 * 1000);
+}
+
+function formatRelativeTime(iso) {
+  if (!iso) return 'just now';
+  const ms = Date.now() - new Date(iso).getTime();
+  if (ms < 60 * 1000) return 'just now';
+  if (ms < 60 * 60 * 1000) return Math.floor(ms / (60 * 1000)) + ' min ago';
+  if (ms < 24 * 60 * 60 * 1000) return Math.floor(ms / (60 * 60 * 1000)) + ' hr ago';
+  return Math.floor(ms / (24 * 60 * 60 * 1000)) + ' days ago';
+}
+
+function fmtNum(n) {
+  if (typeof n !== 'number' || !isFinite(n)) return '—';
+  if (n >= 1000000) return (n / 1000000).toFixed(n % 1000000 === 0 ? 0 : 1) + 'M';
+  if (n >= 1000) return (n / 1000).toFixed(n % 1000 === 0 ? 0 : 1) + 'K';
+  return String(Math.round(n));
+}
+
+function renderAudienceAutomatic() {
+  const mount = document.getElementById('mk-aud-auto-content');
+  if (!mount) return;
+
+  if (!mkAudCache) {
+    mount.innerHTML = '<div class="mk-aud-loading">Loading&hellip;</div>';
+    return;
+  }
+
+  // ---- State: not connected ----
+  if (!mkAudCache.connected) {
+    mount.innerHTML = `
+      <div class="mk-aud-empty">
+        <div class="mk-aud-empty-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.2c3.2 0 3.6 0 4.85.07 1.17.05 1.8.25 2.22.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.05.41 2.22.06 1.26.07 1.64.07 4.82s-.01 3.57-.07 4.82c-.05 1.17-.25 1.8-.41 2.22a3.72 3.72 0 0 1-.9 1.38c-.42.42-.82.68-1.38.9-.42.16-1.05.36-2.22.41-1.26.06-1.64.07-4.82.07s-3.57-.01-4.82-.07c-1.17-.05-1.8-.25-2.22-.41a3.72 3.72 0 0 1-1.38-.9 3.72 3.72 0 0 1-.9-1.38c-.16-.42-.36-1.05-.41-2.22C2.21 15.57 2.2 15.19 2.2 12s.01-3.57.07-4.82c.05-1.17.25-1.8.41-2.22.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.05-.36 2.22-.41C8.43 2.21 8.81 2.2 12 2.2M12 0C8.74 0 8.33.01 7.05.07 5.78.13 4.9.33 4.14.63a5.92 5.92 0 0 0-2.13 1.39A5.92 5.92 0 0 0 .62 4.14C.33 4.9.13 5.78.07 7.05.01 8.33 0 8.74 0 12c0 3.26.01 3.67.07 4.95.06 1.27.26 2.15.56 2.91a5.92 5.92 0 0 0 1.39 2.13c.66.66 1.32 1.06 2.13 1.39.76.3 1.64.5 2.91.56C8.33 23.99 8.74 24 12 24c3.26 0 3.67-.01 4.95-.07 1.27-.06 2.15-.26 2.91-.56a5.92 5.92 0 0 0 2.13-1.39c.66-.66 1.06-1.32 1.39-2.13.3-.76.5-1.64.56-2.91.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.06-1.27-.26-2.15-.56-2.91a5.92 5.92 0 0 0-1.39-2.13A5.92 5.92 0 0 0 19.86.62c-.76-.3-1.64-.5-2.91-.56C15.67.01 15.26 0 12 0Zm0 5.84a6.16 6.16 0 1 0 0 12.32 6.16 6.16 0 0 0 0-12.32Zm0 10.16a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm6.41-11.88a1.44 1.44 0 1 0 0 2.88 1.44 1.44 0 0 0 0-2.88Z"/></svg>
+        </div>
+        <div class="mk-aud-empty-title">Connect Instagram to auto-fill</div>
+        <div class="mk-aud-empty-msg">We'll pull your follower count, engagement, audience demographics, and more. Updates automatically.</div>
+        <button type="button" class="mk-aud-cta" onclick="goToInstagramConnect()">Connect Instagram</button>
+      </div>`;
+    return;
+  }
+
+  // ---- State: connected, render data ----
+  const d = mkAudCache.data || {};
+  const fresh = formatRelativeTime(d.data_last_fetched_at);
+  const handle = d.ig_username ? '@' + d.ig_username : 'Instagram';
+
+  // Refresh button — disabled if in cooldown
+  const remainingMs = Math.max(0, mkAudRefreshLockUntil - Date.now());
+  const refreshDisabled = remainingMs > 0;
+  const refreshLabel = refreshDisabled
+    ? `Refresh in ${Math.ceil(remainingMs / 1000)}s`
+    : 'Refresh';
+  const refreshSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>';
+
+  // Stat cards — only show fields with values
+  const cards = [];
+  if (typeof d.followers_count === 'number') cards.push({ n: fmtNum(d.followers_count), l: 'Followers' });
+  if (typeof d.engagement_rate === 'number') cards.push({ n: d.engagement_rate.toFixed(2) + '%', l: 'Engagement Rate' });
+  if (typeof d.reach_30d === 'number') cards.push({ n: fmtNum(d.reach_30d), l: '30-Day Reach' });
+  if (typeof d.total_interactions_30d === 'number') cards.push({ n: fmtNum(d.total_interactions_30d), l: 'Engagements (30d)' });
+  if (typeof d.views_30d === 'number') cards.push({ n: fmtNum(d.views_30d), l: 'Impressions (30d)' });
+  if (typeof d.avg_likes === 'number') cards.push({ n: fmtNum(Math.round(d.avg_likes)), l: 'Avg Likes' });
+  if (typeof d.avg_comments === 'number') cards.push({ n: fmtNum(Math.round(d.avg_comments)), l: 'Avg Comments' });
+  if (typeof d.avg_reel_views === 'number') cards.push({ n: fmtNum(Math.round(d.avg_reel_views)), l: 'Avg Reel Views' });
+  if (typeof d.avg_story_views === 'number') cards.push({ n: fmtNum(Math.round(d.avg_story_views)), l: 'Avg Story Views' });
+
+  const cardsHtml = cards.length
+    ? `<div class="mk-aud-data-grid">
+        ${cards.map(c => `<div class="mk-aud-data-card"><div class="mk-aud-data-num">${escapeHtml(c.n)}</div><div class="mk-aud-data-label">${escapeHtml(c.l)}</div></div>`).join('')}
+      </div>`
+    : '<div class="mk-aud-error-note">No data yet. Try clicking Refresh.</div>';
+
+  // Error/note rendering for partial fetches (e.g. <100 followers, no demographics)
+  let errorNoteHtml = '';
+  if (d.data_fetch_error) {
+    const friendly = /100\+? followers/i.test(d.data_fetch_error)
+      ? 'Audience demographics will appear once your account has 100+ followers (Instagram requires this to share demographic data).'
+      : 'Some data couldn\'t be loaded — your connection may need refreshing. Click Refresh or reconnect Instagram in Settings.';
+    errorNoteHtml = `<div class="mk-aud-error-note">${escapeHtml(friendly)}</div>`;
+  }
+
+  mount.innerHTML = `
+    <div class="mk-aud-connected">
+      <div class="mk-aud-platforms">
+        <div class="mk-aud-platform-row mk-aud-platform-active">
+          <div class="mk-aud-platform-left">
+            <div class="mk-aud-platform-icon mk-aud-platform-ig" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M12 2.2c3.2 0 3.6 0 4.85.07 1.17.05 1.8.25 2.22.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.05.41 2.22.06 1.26.07 1.64.07 4.82s-.01 3.57-.07 4.82c-.05 1.17-.25 1.8-.41 2.22a3.72 3.72 0 0 1-.9 1.38c-.42.42-.82.68-1.38.9-.42.16-1.05.36-2.22.41-1.26.06-1.64.07-4.82.07s-3.57-.01-4.82-.07c-1.17-.05-1.8-.25-2.22-.41a3.72 3.72 0 0 1-1.38-.9 3.72 3.72 0 0 1-.9-1.38c-.16-.42-.36-1.05-.41-2.22C2.21 15.57 2.2 15.19 2.2 12s.01-3.57.07-4.82c.05-1.17.25-1.8.41-2.22.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.05-.36 2.22-.41C8.43 2.21 8.81 2.2 12 2.2M12 0C8.74 0 8.33.01 7.05.07 5.78.13 4.9.33 4.14.63a5.92 5.92 0 0 0-2.13 1.39A5.92 5.92 0 0 0 .62 4.14C.33 4.9.13 5.78.07 7.05.01 8.33 0 8.74 0 12c0 3.26.01 3.67.07 4.95.06 1.27.26 2.15.56 2.91a5.92 5.92 0 0 0 1.39 2.13c.66.66 1.32 1.06 2.13 1.39.76.3 1.64.5 2.91.56C8.33 23.99 8.74 24 12 24c3.26 0 3.67-.01 4.95-.07 1.27-.06 2.15-.26 2.91-.56a5.92 5.92 0 0 0 2.13-1.39c.66-.66 1.06-1.32 1.39-2.13.3-.76.5-1.64.56-2.91.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.06-1.27-.26-2.15-.56-2.91a5.92 5.92 0 0 0-1.39-2.13A5.92 5.92 0 0 0 19.86.62c-.76-.3-1.64-.5-2.91-.56C15.67.01 15.26 0 12 0Zm0 5.84a6.16 6.16 0 1 0 0 12.32 6.16 6.16 0 0 0 0-12.32Zm0 10.16a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm6.41-11.88a1.44 1.44 0 1 0 0 2.88 1.44 1.44 0 0 0 0-2.88Z"/></svg>
+            </div>
+            <div class="mk-aud-platform-text">
+              <div class="mk-aud-platform-name">Instagram</div>
+              <div class="mk-aud-platform-handle">${escapeHtml(handle)}</div>
+            </div>
+          </div>
+          <div class="mk-aud-platform-status mk-aud-platform-status-connected">
+            <span class="mk-aud-status-dot"></span>Connected
+          </div>
+        </div>
+        <div class="mk-aud-platform-row mk-aud-platform-soon">
+          <div class="mk-aud-platform-left">
+            <div class="mk-aud-platform-icon mk-aud-platform-yt" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.12C19.54 3.58 12 3.58 12 3.58s-7.54 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.07 0 12 0 12s0 3.93.5 5.8a3 3 0 0 0 2.1 2.12c1.86.5 9.4.5 9.4.5s7.54 0 9.4-.5a3 3 0 0 0 2.1-2.12C24 15.93 24 12 24 12s0-3.93-.5-5.8ZM9.55 15.57V8.43L15.82 12l-6.27 3.57Z"/></svg>
+            </div>
+            <div class="mk-aud-platform-text">
+              <div class="mk-aud-platform-name">YouTube</div>
+            </div>
+          </div>
+          <div class="mk-aud-platform-status">Coming soon</div>
+        </div>
+        <div class="mk-aud-platform-row mk-aud-platform-soon">
+          <div class="mk-aud-platform-left">
+            <div class="mk-aud-platform-icon mk-aud-platform-tt" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5.8 20.1a6.34 6.34 0 0 0 10.86-4.43V8.83a8.16 8.16 0 0 0 4.77 1.52V6.9a4.85 4.85 0 0 1-1.84-.21Z"/></svg>
+            </div>
+            <div class="mk-aud-platform-text">
+              <div class="mk-aud-platform-name">TikTok</div>
+            </div>
+          </div>
+          <div class="mk-aud-platform-status">Coming soon</div>
+        </div>
+        <div class="mk-aud-platform-row mk-aud-platform-soon">
+          <div class="mk-aud-platform-left">
+            <div class="mk-aud-platform-icon mk-aud-platform-fb" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.68.23 2.68.23v2.97h-1.51c-1.49 0-1.95.93-1.95 1.89v2.26h3.32l-.53 3.49h-2.79V24C19.61 23.1 24 18.1 24 12.07Z"/></svg>
+            </div>
+            <div class="mk-aud-platform-text">
+              <div class="mk-aud-platform-name">Facebook</div>
+            </div>
+          </div>
+          <div class="mk-aud-platform-status">Coming soon</div>
+        </div>
+        <div class="mk-aud-platform-row mk-aud-platform-soon">
+          <div class="mk-aud-platform-left">
+            <div class="mk-aud-platform-icon mk-aud-platform-li" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.95v5.66H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.26 2.37 4.26 5.45v6.29ZM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12ZM7.12 20.45H3.56V9h3.56v11.45ZM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0Z"/></svg>
+            </div>
+            <div class="mk-aud-platform-text">
+              <div class="mk-aud-platform-name">LinkedIn</div>
+            </div>
+          </div>
+          <div class="mk-aud-platform-status">Coming soon</div>
+        </div>
+      </div>
+
+      <div class="mk-aud-data-header">
+        <div class="mk-aud-data-header-title">Instagram Data</div>
+        <div class="mk-aud-data-header-right">
+          <span class="mk-aud-fresh">Refreshed ${escapeHtml(fresh)}</span>
+          <button type="button" id="mk-aud-refresh-btn" class="mk-aud-refresh-btn" onclick="manualRefreshIG()" ${refreshDisabled ? 'disabled' : ''}>
+            ${refreshSvg} ${escapeHtml(refreshLabel)}
+          </button>
+        </div>
+      </div>
+      ${cardsHtml}
+      ${errorNoteHtml}
+    </div>`;
+}
+
+function goToInstagramConnect() {
+  // Switch to Settings tool and scroll to Connected Accounts box
+  if (typeof showTool === 'function') showTool('settings');
+  setTimeout(() => {
+    const target = document.getElementById('settings-connected-accounts');
+    if (target && target.scrollIntoView) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 100);
 }
 
 async function toggleMediaKitPublish() {
@@ -14620,6 +15010,8 @@ async function confirmDisconnectInstagram() {
     showInstagramMsg('success', 'Instagram disconnected.');
     showDashToast('success', 'Instagram disconnected.');
     loadInstagramConnectionStatus();
+    // Invalidate Media Kit Automatic-tab cache so it shows "not connected" next view
+    if (typeof mkAudCache !== 'undefined') mkAudCache = null;
   } catch (err) {
     console.error('Failed to disconnect Instagram:', err);
     showInstagramMsg('error', 'Failed to disconnect. Please try again.');
@@ -14670,6 +15062,9 @@ function showInstagramMsg(type, text) {
       if (typeof loadInstagramConnectionStatus === 'function') {
         loadInstagramConnectionStatus();
       }
+      // Invalidate any cached IG data in the Media Kit editor so a fresh
+      // pull happens next time the creator opens that tab
+      if (typeof mkAudCache !== 'undefined') mkAudCache = null;
     }
     showWhenReady();
   } catch (e) {

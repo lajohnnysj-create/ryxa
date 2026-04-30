@@ -393,6 +393,253 @@
     letter-spacing: -0.3px;
   }
 
+  /* ============================================================
+     Automatic Audience (IG-pulled data) — public Media Kit
+     ============================================================ */
+
+  /* Platform tabs strip at top of Audience section */
+  .ig-platform-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .ig-platform-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    cursor: not-allowed;
+    user-select: none;
+  }
+  .ig-platform-tab.is-active {
+    background: var(--surface);
+    color: var(--text);
+    border-color: var(--accent2);
+    cursor: default;
+    box-shadow: 0 0 0 1px var(--accent2) inset;
+  }
+  .ig-platform-tab svg { width: 12px; height: 12px; flex-shrink: 0; fill: currentColor; }
+  .ig-platform-soon-pill {
+    font-size: 9px;
+    padding: 2px 6px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* IG section header (handle + verified-by-IG attribution) */
+  .ig-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .ig-header-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .ig-header-icon svg { width: 16px; height: 16px; fill: #fff; }
+  .ig-header-body { display: flex; flex-direction: column; min-width: 0; }
+  .ig-handle {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    text-decoration: none;
+    letter-spacing: -0.2px;
+  }
+  a.ig-handle:hover { color: var(--accent2); }
+  .ig-attribution {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-top: 1px;
+  }
+
+  /* Primary stat grid */
+  .ig-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 10px;
+  }
+  .ig-stat-card {
+    padding: 14px 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    text-align: left;
+  }
+  .ig-stat-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.4px;
+    line-height: 1.1;
+  }
+  .ig-stat-label {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-top: 6px;
+    font-weight: 500;
+  }
+
+  /* Subsections (per-post averages, demographics) */
+  .ig-subsection { margin-top: 22px; }
+  .ig-subtitle {
+    font-size: 11px;
+    color: var(--accent2);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+
+  /* Demographics — gender/age tabs and CSS bar charts */
+  .ig-demo-grid { display: grid; grid-template-columns: 1fr; gap: 22px; }
+  @media (min-width: 700px) {
+    .ig-demo-grid { grid-template-columns: 1fr 1fr; gap: 28px; }
+  }
+  .ig-demo-block {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .ig-demo-block-title {
+    font-size: 12px;
+    color: var(--text);
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .ig-demo-tabs {
+    display: flex;
+    gap: 4px;
+    padding: 3px;
+    background: var(--surface);
+    border-radius: 8px;
+    margin-bottom: 12px;
+  }
+  .ig-demo-tab {
+    flex: 1;
+    padding: 6px 8px;
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .ig-demo-tab:hover { color: var(--text); }
+  .ig-demo-tab.is-active {
+    background: var(--surface2);
+    color: var(--text);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.04);
+  }
+
+  /* Horizontal bar chart rows */
+  .ig-bar-list { display: flex; flex-direction: column; gap: 10px; }
+  .ig-bar-row { display: grid; grid-template-columns: 80px 1fr 50px; align-items: center; gap: 10px; }
+  .ig-bar-label {
+    font-size: 12px;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .ig-bar-track {
+    height: 8px;
+    background: var(--surface);
+    border-radius: 999px;
+    overflow: hidden;
+    position: relative;
+  }
+  .ig-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%);
+    border-radius: 999px;
+    transition: width 0.4s ease;
+  }
+  .ig-bar-pct {
+    font-size: 11px;
+    color: var(--muted);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Gender split as a single stacked bar */
+  .ig-gender-split {
+    display: flex;
+    height: 14px;
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 10px;
+    background: var(--surface);
+  }
+  .ig-gender-seg-male { background: #5b8def; }
+  .ig-gender-seg-female { background: #ec5e92; }
+  .ig-gender-seg-other { background: #a78bfa; }
+  .ig-gender-legend {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .ig-gender-legend-item { display: inline-flex; align-items: center; gap: 6px; }
+  .ig-gender-legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+
+  .ig-empty {
+    padding: 24px 16px;
+    text-align: center;
+    color: var(--muted);
+    background: var(--surface2);
+    border: 1px dashed var(--border);
+    border-radius: 12px;
+    font-size: 13px;
+  }
+  .ig-note {
+    margin-top: 14px;
+    padding: 10px 14px;
+    background: rgba(252,176,69,0.06);
+    border: 1px solid rgba(252,176,69,0.18);
+    border-radius: 10px;
+    font-size: 12px;
+    color: var(--muted2);
+    line-height: 1.5;
+  }
+  .ig-demo-loading { padding: 16px; text-align: center; color: var(--muted); font-size: 12px; }
+
+  /* Print: keep the IG section visible but flatten the colored bars to grayscale */
+  @media print {
+    .ig-bar-fill { background: #555 !important; }
+    .ig-gender-seg-male, .ig-gender-seg-female, .ig-gender-seg-other { background: #777 !important; }
+  }
+
   /* Rate card */
   .rate-row {
     display: grid;
@@ -921,6 +1168,7 @@ async function load() {
   // bots or CDN cache warmers as views).
   if (window._ssrHydrated && window._ssrUsername) {
     trackPageView(window._ssrUsername, 'mediakit');
+    initIgAgeGenderTabs();
     return;
   }
 
@@ -981,6 +1229,55 @@ async function trackPageView(username, pageType) {
   } catch (e) {
     console.error('trackPageView failed:', e);
   }
+}
+
+// Wire the All/Male/Female tabs in the IG age-gender chart.
+// SSR ships the "All" data already rendered; this just swaps in
+// the male/female data when the corresponding tab is clicked.
+function initIgAgeGenderTabs() {
+  const mounts = document.querySelectorAll('.ig-ag-mount[data-ag-payload]');
+  mounts.forEach(mount => {
+    let payload;
+    try { payload = JSON.parse(mount.getAttribute('data-ag-payload') || '{}'); }
+    catch { return; }
+
+    const tabsRoot = mount.parentElement && mount.parentElement.querySelector('[data-ag-tabs]');
+    if (!tabsRoot) return;
+
+    function renderBars(items) {
+      if (!items || items.length === 0) {
+        mount.innerHTML = '<div class="ig-demo-loading">No data for this view.</div>';
+        return;
+      }
+      mount.innerHTML = '<div class="ig-bar-list">' +
+        items.map(it =>
+          '<div class="ig-bar-row">' +
+            '<div class="ig-bar-label">' + escapeText(it.label) + '</div>' +
+            '<div class="ig-bar-track"><div class="ig-bar-fill" style="width:' + Number(it.pct).toFixed(1) + '%"></div></div>' +
+            '<div class="ig-bar-pct">' + Number(it.pct).toFixed(1) + '%</div>' +
+          '</div>'
+        ).join('') +
+        '</div>';
+    }
+
+    tabsRoot.addEventListener('click', e => {
+      const btn = e.target && e.target.closest('[data-ag-tab]');
+      if (!btn) return;
+      const which = btn.getAttribute('data-ag-tab'); // 'all' | 'male' | 'female'
+      // Update tab visual state
+      tabsRoot.querySelectorAll('.ig-demo-tab').forEach(t => t.classList.remove('is-active'));
+      btn.classList.add('is-active');
+      // Render the chosen dataset
+      renderBars(payload[which]);
+    });
+  });
+}
+
+function escapeText(s) {
+  if (s == null) return '';
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
 }
 
 load().catch(err => {
