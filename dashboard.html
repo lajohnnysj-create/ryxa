@@ -13114,6 +13114,13 @@ function buildMKPreviewHTML() {
       if (typeof ig.avg_reel_views === 'number') stats.push({ n: formatNumberShort(Math.round(ig.avg_reel_views)), l: 'Avg Reel Views' });
 
       const igHandle = ig.ig_username ? '@' + ig.ig_username : 'Instagram';
+      // Match the public page: "Verified by Instagram • Last synced Apr 30 at 9:45 AM"
+      const lastSyncedLabel = (typeof formatLastRefreshed === 'function')
+        ? formatLastRefreshed(ig.data_last_fetched_at)
+        : '';
+      const attributionInner = lastSyncedLabel
+        ? 'Verified by Instagram &bull; Last synced ' + escapeHtml(lastSyncedLabel)
+        : 'Verified by Instagram';
 
       // Compact platform-dots strip — Instagram active, others "coming soon".
       // Mirrors the public page's full tab strip but in a tighter visual that
@@ -13143,7 +13150,7 @@ function buildMKPreviewHTML() {
         </div>
         <div style="min-width:0;flex:1;">
           <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:${t.text};">${escapeHtml(igHandle)}</div>
-          <div style="font-size:8px;color:${t.muted};text-transform:uppercase;letter-spacing:0.06em;">Verified by Instagram</div>
+          <div style="font-size:8px;color:${t.muted};text-transform:uppercase;letter-spacing:0.06em;">${attributionInner}</div>
         </div>
       </div>`;
 
@@ -13197,6 +13204,27 @@ function buildMKPreviewHTML() {
     }
   }
 
+  // Total Followers strip — only renders in Automatic mode with at least one
+  // connected platform. Mirrors api/mediakit.js buildTotalFollowers() output.
+  let totalFollowersStripHtml = '';
+  if (mkState.audience_mode === 'automatic') {
+    const sources = [];
+    const igData = (typeof mkAudCache !== 'undefined' && mkAudCache && mkAudCache.connected) ? mkAudCache.data : null;
+    if (igData && typeof igData.followers_count === 'number' && igData.followers_count > 0) {
+      sources.push({ platform: 'Instagram', count: igData.followers_count });
+    }
+    // Future: push more rows as platforms come online.
+    if (sources.length > 0) {
+      const totalCount = sources.reduce((s, x) => s + x.count, 0);
+      const platformList = sources.map(s => s.platform).join(', ');
+      totalFollowersStripHtml = `<div class="tfs">
+        <div class="tfs-l">Total Followers</div>
+        <div class="tfs-v">${formatNumberShort(totalCount)}</div>
+        <div class="tfs-s">Combined across ${escapeHtml(platformList)}</div>
+      </div>`;
+    }
+  }
+
   // Rate card
   const validRates = mkState.rate_card.filter(r => parseFloat(r.price) > 0);
   const ratesHtml = validRates.length > 0 ? `<div class="sec">
@@ -13246,6 +13274,10 @@ function buildMKPreviewHTML() {
   .h-handle{font-size:11px;color:${t.accent2};font-weight:500;margin-top:2px;word-break:break-word;}
   .h-cat{font-size:10px;color:${t.muted};text-transform:uppercase;letter-spacing:0.06em;margin-top:4px;word-break:break-word;}
   .h-bio{font-size:11px;color:${t.muted2};line-height:1.5;margin-top:6px;word-break:break-word;}
+  .tfs{background:${t.surface};border:1px solid ${t.border};border-radius:14px;padding:14px 16px;margin-bottom:10px;text-align:center;}
+  .tfs-l{font-size:9px;color:${t.muted};text-transform:uppercase;letter-spacing:0.08em;font-weight:600;}
+  .tfs-v{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:${t.accent2};letter-spacing:-0.6px;line-height:1.1;margin-top:4px;}
+  .tfs-s{font-size:9px;color:${t.muted2};margin-top:3px;}
   .sec{background:${t.surface};border:1px solid ${t.border};border-radius:14px;padding:14px 16px;margin-bottom:10px;}
   .sec-t{font-family:'Syne',sans-serif;font-size:9px;text-transform:uppercase;letter-spacing:0.1em;color:${t.accent2};font-weight:700;margin-bottom:10px;}
   .total-block{padding:12px;background:${t.surface2};border:1px solid ${t.border};border-radius:10px;text-align:center;margin-bottom:8px;}
@@ -13281,6 +13313,7 @@ function buildMKPreviewHTML() {
         ${mkState.bio ? `<div class="h-bio">${escapeHtml(mkState.bio)}</div>` : ''}
       </div>
     </div>
+    ${totalFollowersStripHtml}
     ${audienceHtml}
     ${ratesHtml}
     ${contactHtml}

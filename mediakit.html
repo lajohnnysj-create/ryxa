@@ -397,6 +397,44 @@
      Automatic Audience (IG-pulled data) — public Media Kit
      ============================================================ */
 
+  /* Total Followers strip — sits between hero and audience section,
+     summing follower counts across all connected platforms. */
+  .total-followers-strip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 20px;
+    margin-bottom: 14px;
+    text-align: center;
+  }
+  .total-followers-label {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+  }
+  .total-followers-value {
+    font-family: 'Syne', sans-serif;
+    font-size: 38px;
+    font-weight: 800;
+    color: var(--accent2);
+    letter-spacing: -1px;
+    line-height: 1.1;
+    margin-top: 6px;
+  }
+  .total-followers-sub {
+    font-size: 11px;
+    color: var(--muted2);
+    margin-top: 4px;
+  }
+
+  /* Subtle separator dot used inside the IG attribution line */
+  .ig-attr-sep {
+    margin: 0 6px;
+    opacity: 0.6;
+  }
+
   /* Platform tabs strip at top of Audience section */
   .ig-platform-tabs {
     display: flex;
