@@ -2469,9 +2469,10 @@
   .bio-link-row .bio-link-remove { padding: 4px 10px; background: transparent; border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; border-radius: 6px; font-size: 11px; cursor: pointer; font-family: 'DM Sans', sans-serif; }
 
   /* ============================================================
-     Redesigned collapsed row — colored left-border accent +
-     monochrome line icon + minimal subline + trash-icon remove.
-     Replaces the older multi-pill layout for a tighter, scannable list.
+     Redesigned collapsed row — single accent-purple left edge for
+     decorative consistency, monochrome icons, trash-icon remove.
+     The left border is decorative, not a type indicator — type is
+     conveyed via the icon + title.
      ============================================================ */
   .bio-link-row.bio-row-typed {
     display: flex;
@@ -2479,13 +2480,13 @@
     gap: 10px;
     padding: 10px 12px;
     cursor: pointer;
-    border-left: 3px solid var(--row-accent, var(--border));
+    border-left: 3px solid var(--accent2);
     transition: background 0.15s, border-color 0.15s, transform 0.1s;
   }
   .bio-link-row.bio-row-typed:hover {
     background: var(--surface2);
     border-color: var(--border-hover);
-    border-left-color: var(--row-accent, var(--accent2));
+    border-left-color: var(--accent);
   }
   .bio-row-typeicon {
     width: 32px;
@@ -2497,6 +2498,7 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    color: var(--muted);
   }
   .bio-row-typeicon svg {
     width: 15px;
@@ -10617,11 +10619,12 @@ function bioHalfBadge(link) {
 }
 
 // Resolve the type metadata for a link row. Single source of truth for the
-// type label, accent color, and the icon SVG used in the collapsed view.
+// type label and the icon SVG used in the collapsed view.
 //
 // All icons are stroke-based, monochrome, ~14px, matching the rest of the
-// dashboard's icon language. The `accent` value is used for the row's
-// left-border tint and the icon stroke color.
+// dashboard's icon language. The row's left-border accent is a single
+// brand color (var(--accent2)) applied uniformly across all types — it's
+// decorative, not a type signal. Type is conveyed through the icon + title.
 function bioRowTypeMeta(link) {
   // Order matters — first match wins. Featured is a flag that can apply to
   // a regular link, so it's checked late.
@@ -10629,7 +10632,6 @@ function bioRowTypeMeta(link) {
     return {
       key: 'header',
       label: 'Header',
-      accent: '#94a3b8',
       icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="18" x2="14" y2="18"/></svg>'
     };
   }
@@ -10637,7 +10639,6 @@ function bioRowTypeMeta(link) {
     return {
       key: 'video',
       label: 'Videos',
-      accent: '#fca5a5',
       icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>'
     };
   }
@@ -10645,7 +10646,6 @@ function bioRowTypeMeta(link) {
     return {
       key: 'subscribe',
       label: 'Subscribe',
-      accent: '#f9a8d4',
       icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>'
     };
   }
@@ -10653,7 +10653,6 @@ function bioRowTypeMeta(link) {
     return {
       key: 'hero',
       label: 'Hero',
-      accent: '#a78bfa',
       icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>'
     };
   }
@@ -10661,7 +10660,6 @@ function bioRowTypeMeta(link) {
     return {
       key: 'course',
       label: 'Course',
-      accent: '#fcd34d',
       icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>'
     };
   }
@@ -10669,7 +10667,6 @@ function bioRowTypeMeta(link) {
     return {
       key: 'coaching',
       label: 'Booking',
-      accent: '#67e8f9',
       icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>'
     };
   }
@@ -10677,7 +10674,6 @@ function bioRowTypeMeta(link) {
     return {
       key: 'product',
       label: 'Product',
-      accent: '#7dd3fc',
       icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>'
     };
   }
@@ -10685,7 +10681,6 @@ function bioRowTypeMeta(link) {
     return {
       key: 'mediakit',
       label: 'Media Kit',
-      accent: '#c4b5fd',
       icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="17" x2="8" y2="13"/><line x1="12" y1="17" x2="12" y2="11"/><line x1="16" y1="17" x2="16" y2="15"/></svg>'
     };
   }
@@ -10693,7 +10688,6 @@ function bioRowTypeMeta(link) {
     return {
       key: 'featured',
       label: 'Featured',
-      accent: '#a78bfa',
       icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>'
     };
   }
@@ -10701,7 +10695,6 @@ function bioRowTypeMeta(link) {
   return {
     key: 'link',
     label: 'Link',
-    accent: '#86efac',
     icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>'
   };
 }
@@ -10875,13 +10868,13 @@ function renderLinkCollapsed(link, dragSvg, editSvg) {
   // Type icon — shown if there's no thumbnail (otherwise thumbnail carries the visual weight)
   const typeIconHtml = thumb
     ? thumb
-    : `<div class="bio-row-typeicon" style="color:${meta.accent};">${meta.icon}</div>`;
+    : `<div class="bio-row-typeicon">${meta.icon}</div>`;
 
   const sublineHtml = subline
     ? `<div class="bio-row-subline">${subline}</div>`
     : '';
 
-  return `<div class="bio-link-row bio-link-collapsed bio-row-typed" data-id="${link._id}" data-type="${meta.key}" onclick="expandLink(${link._id})" style="--row-accent:${meta.accent};">
+  return `<div class="bio-link-row bio-link-collapsed bio-row-typed" data-id="${link._id}" data-type="${meta.key}" onclick="expandLink(${link._id})">
     <div class="bio-link-drag" aria-label="Drag to reorder" onclick="event.stopPropagation();">${dragSvg}</div>
     ${typeIconHtml}
     <div class="bio-row-body">
