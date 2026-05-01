@@ -141,8 +141,8 @@ function buildAvatar(profile, bio) {
   const name = bio.display_name || profile.username || '';
   const initial = (name[0] || profile.username[0] || '?').toUpperCase();
   const safeAvatar = validImageUrl(bio.avatar_url);
-  const isMaxTier = profile.tier === 'max';
-  const isHero = bio.avatar_display === 'hero' && safeAvatar && isMaxTier;
+  const isPaidTier = profile.tier === 'monthly' || profile.tier === 'max';
+  const isHero = bio.avatar_display === 'hero' && safeAvatar && isPaidTier;
 
   if (isHero) return ''; // hero is rendered separately
   if (safeAvatar) {
@@ -398,8 +398,8 @@ function renderBioContent(profile, bio) {
   const name = bio.display_name || profile.username || '';
   const currency = profile.display_currency || 'USD';
 
-  const isMaxTier = profile.tier === 'max';
-  const isHeroMode = bio.avatar_display === 'hero' && validImageUrl(bio.avatar_url) && isMaxTier;
+  const isPaidTier = profile.tier === 'monthly' || profile.tier === 'max';
+  const isHeroMode = bio.avatar_display === 'hero' && validImageUrl(bio.avatar_url) && isPaidTier;
 
   const links = Array.isArray(bio.links) ? bio.links : [];
   const socialsHtml = buildSocials(bio.socials);
@@ -545,12 +545,12 @@ module.exports = async (req, res) => {
     description = bio.bio || `Find all of @${profile.username}'s links in one place on Ryxa.`;
     if (bio.avatar_url) image = bio.avatar_url;
 
-    // Pick theme: custom theme honored only for Max tier
-    const isMaxTier = profile.tier === 'max';
-    if (bio.theme === 'custom' && isMaxTier && bio.custom_theme) {
+    // Pick theme: custom theme honored for Pro and Max tiers
+    const isPaidTier = profile.tier === 'monthly' || profile.tier === 'max';
+    if (bio.theme === 'custom' && isPaidTier && bio.custom_theme) {
       theme = 'custom';
       customThemeStyle = buildCustomThemeStyle(bio.custom_theme);
-    } else if (bio.theme === 'custom' && !isMaxTier) {
+    } else if (bio.theme === 'custom' && !isPaidTier) {
       theme = 'purple';
     } else {
       theme = bio.theme || 'purple';
