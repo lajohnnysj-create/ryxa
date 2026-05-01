@@ -563,7 +563,7 @@ function buildCustomThemeStyle(ct) {
     const op = ct.bgOpacity != null ? ct.bgOpacity : 0.4;
     const darkness = 1 - op;
     css += `
-    body::before {
+    :root[data-theme="custom"] body::before {
       content: '';
       position: fixed;
       inset: 0;
@@ -572,7 +572,7 @@ function buildCustomThemeStyle(ct) {
       background-position: center;
       z-index: -2;
     }
-    body::after {
+    :root[data-theme="custom"] body::after {
       content: '';
       position: fixed;
       inset: 0;
