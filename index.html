@@ -688,6 +688,158 @@
 
 </section>
 
+<!-- Link in Bio promo section -->
+<section class="lib-promo">
+  <div class="lib-promo-inner">
+    <div class="lib-promo-text">
+      <h2 class="lib-promo-headline">Your <span class="gradient-text">Link in Bio</span> shouldn't be boring.</h2>
+      <p class="lib-promo-sub">Hero photos, custom themes, half-width product cards, video carousels, and built-in newsletter signups. Build something that looks like you.</p>
+      <button class="btn-primary lib-promo-cta" onclick="openSignupModal()">Start for free &#x2192;</button>
+    </div>
+    <div class="lib-promo-tablet-wrap">
+      <div class="lib-promo-tablet">
+        <div class="lib-promo-screen">
+          <img src="editor1.webp" class="lib-promo-img lib-promo-img-1" alt="Ryxa Link in Bio editor">
+          <img src="editor2.webp" class="lib-promo-img lib-promo-img-2" alt="Ryxa Link in Bio editor — customizing theme">
+          <img src="editor3.webp" class="lib-promo-img lib-promo-img-3" alt="Ryxa Link in Bio editor — adding links">
+          <svg class="lib-promo-cursor" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+            <path d="M5.5 3.5 L5.5 18 L9.5 14.5 L12 20 L14 19 L11.5 13.5 L17 13.5 Z" fill="#fff" stroke="#000" stroke-width="1.2" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<style>
+  .lib-promo {
+    padding: 80px 24px;
+    overflow: hidden;
+  }
+  .lib-promo-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+    gap: 60px;
+    align-items: center;
+  }
+  .lib-promo-text {
+    padding: 0 12px;
+  }
+  .lib-promo-headline {
+    font-family: "Syne", sans-serif;
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 800;
+    letter-spacing: -1.5px;
+    line-height: 1.15;
+    color: #fff;
+    margin: 0 0 20px;
+  }
+  .lib-promo-sub {
+    font-size: 16px;
+    color: var(--muted);
+    line-height: 1.7;
+    margin: 0 0 28px;
+    max-width: 480px;
+  }
+  .lib-promo-cta {
+    display: inline-flex;
+    padding: 13px 28px;
+    font-size: 15px;
+    box-shadow: 0 0 24px var(--accent-glow);
+  }
+  /* Tablet frame */
+  .lib-promo-tablet-wrap {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .lib-promo-tablet {
+    position: relative;
+    width: 100%;
+    max-width: 520px;
+    aspect-ratio: 4 / 3;
+    background: #0a0a14;
+    border: 2px solid rgba(255,255,255,0.12);
+    border-radius: 22px;
+    padding: 12px;
+    box-shadow:
+      0 30px 80px rgba(0,0,0,0.5),
+      0 0 60px rgba(124,58,237,0.15),
+      inset 0 0 0 1px rgba(255,255,255,0.04);
+    transform: perspective(1200px) rotateY(-4deg) rotateX(2deg);
+  }
+  .lib-promo-screen {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #07070f;
+  }
+  .lib-promo-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+    opacity: 0;
+    animation: lib-fade 12s infinite;
+  }
+  .lib-promo-img-1 { animation-delay: 0s; }
+  .lib-promo-img-2 { animation-delay: 4s; }
+  .lib-promo-img-3 { animation-delay: 8s; }
+  @keyframes lib-fade {
+    0%   { opacity: 0; }
+    4%   { opacity: 1; }
+    30%  { opacity: 1; }
+    36%  { opacity: 0; }
+    100% { opacity: 0; }
+  }
+  /* Cursor — animates between three positions matching the three screenshots */
+  .lib-promo-cursor {
+    position: absolute;
+    z-index: 10;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+    animation: lib-cursor 12s infinite cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+  }
+  @keyframes lib-cursor {
+    0%   { left: 22%;  top: 30%; }
+    30%  { left: 22%;  top: 30%; }
+    33%  { left: 60%;  top: 50%; }
+    63%  { left: 60%;  top: 50%; }
+    66%  { left: 35%;  top: 70%; }
+    96%  { left: 35%;  top: 70%; }
+    100% { left: 22%;  top: 30%; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .lib-promo-img { animation: none; opacity: 1; }
+    .lib-promo-img-2, .lib-promo-img-3 { display: none; }
+    .lib-promo-cursor { animation: none; left: 22%; top: 30%; }
+  }
+  @media (max-width: 900px) {
+    .lib-promo-inner {
+      grid-template-columns: 1fr;
+      gap: 40px;
+    }
+    .lib-promo-text {
+      text-align: center;
+      padding: 0;
+    }
+    .lib-promo-sub { margin-left: auto; margin-right: auto; }
+    .lib-promo-tablet {
+      max-width: 440px;
+      transform: none;
+    }
+  }
+  @media (max-width: 600px) {
+    .lib-promo { padding: 60px 20px; }
+    .lib-promo-tablet { max-width: 100%; }
+  }
+</style>
+
 <!-- 0% Transaction Fees + AI -->
 <section style="padding:64px 24px;">
   <div class="fees-grid" style="max-width:800px;margin:0 auto;display:grid;grid-template-columns:1fr auto 1fr;gap:32px;align-items:center;">
