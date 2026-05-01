@@ -8566,6 +8566,18 @@ function clearBtnLoading(btn) {
   document.head.appendChild(style);
 })();
 
+// When the page is restored from the browser's back-forward cache (bfcache),
+// any buttons left in a loading state from a previous navigation (e.g. Stripe
+// checkout) will appear stuck. Clear them all on pageshow.persisted = true.
+window.addEventListener('pageshow', function(e) {
+  if (!e.persisted) return;
+  if (!_btnLoadingState || !_btnLoadingState.size) return;
+  // Snapshot keys before iterating since clearBtnLoading mutates the map
+  Array.from(_btnLoadingState.keys()).forEach(function(btn) {
+    try { clearBtnLoading(btn); } catch (_) {}
+  });
+});
+
 async function startCheckout(plan, triggerBtn) {
   if (!currentUser) { window.location.href = 'index.html'; return; }
   // Try to find the button that triggered this call so we can show a loading state.
