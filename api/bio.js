@@ -368,16 +368,17 @@ function buildCustomThemeStyle(ct) {
     const darkness = 1 - op;
     const safeBgUrl = String(ct.bgUrl).replace(/"/g, '&quot;');
     css += `
-    body::before {
+    :root[data-theme="custom"] body::before {
       content: '';
       position: fixed;
       inset: 0;
       background-image: url("${safeBgUrl}");
       background-size: cover;
       background-position: center;
+      background-color: transparent;
       z-index: -2;
     }
-    body::after {
+    :root[data-theme="custom"] body::after {
       content: '';
       position: fixed;
       inset: 0;
