@@ -15044,19 +15044,17 @@ async function loadStripeConnectStatus() {
   if (!currentUser) return;
 
   try {
-    const { data: profile } = await sb
-      .from('profiles')
-      .select('stripe_account_id')
-      .eq('user_id', currentUser.id)
-      .maybeSingle();
+    const stripeStatusRes = await fetch('/api/stripe-status', {
+      headers: { Authorization: 'Bearer ' + (window._supabaseAccessToken || '') }
+    });
+    const status = stripeStatusRes.ok ? await stripeStatusRes.json() : { connected: false };
 
-    if (profile?.stripe_account_id) {
+    if (status.connected) {
       // Connected
       if (disconnectedEl) disconnectedEl.style.display = 'none';
       if (connectedEl) connectedEl.style.display = 'block';
-      if (acctIdEl) {
-        const id = profile.stripe_account_id;
-        acctIdEl.textContent = id.substring(0, 8) + '••••' + id.substring(id.length - 4);
+      if (acctIdEl && status.masked_id) {
+        acctIdEl.textContent = status.masked_id;
       }
     } else {
       // Not connected
@@ -17366,8 +17364,11 @@ async function toggleCoachingPublish() {
       return;
     }
 
-    var { data: stripeProfile } = await sb.from('profiles').select('stripe_account_id').eq('user_id', currentUser.id).maybeSingle();
-    if (!stripeProfile || !stripeProfile.stripe_account_id) {
+    var stripeStatusRes = await fetch('/api/stripe-status', {
+      headers: { Authorization: 'Bearer ' + (window._supabaseAccessToken || '') }
+    });
+    var stripeStatus = stripeStatusRes.ok ? await stripeStatusRes.json() : { connected: false };
+    if (!stripeStatus.connected) {
       var stripeOverlay = document.createElement('div');
       stripeOverlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;';
       stripeOverlay.innerHTML = '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:24px;max-width:400px;width:100%;text-align:center;">'
@@ -17764,8 +17765,11 @@ async function toggleCoursePublish() {
     }
 
     // Check Stripe is connected
-    var { data: stripeProfile } = await sb.from('profiles').select('stripe_account_id').eq('user_id', currentUser.id).maybeSingle();
-    if (!stripeProfile || !stripeProfile.stripe_account_id) {
+    var stripeStatusRes = await fetch('/api/stripe-status', {
+      headers: { Authorization: 'Bearer ' + (window._supabaseAccessToken || '') }
+    });
+    var stripeStatus = stripeStatusRes.ok ? await stripeStatusRes.json() : { connected: false };
+    if (!stripeStatus.connected) {
       var stripeOverlay = document.createElement('div');
       stripeOverlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;';
       stripeOverlay.innerHTML = '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:24px;max-width:400px;width:100%;text-align:center;">'
