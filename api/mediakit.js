@@ -793,12 +793,12 @@ module.exports = async (req, res) => {
       : `${name}'s creator media kit — collaborations, audience stats, and rates.`;
     if (kit.headshot_url) image = kit.headshot_url;
 
-    // Pick theme: custom theme honored only for Max tier
-    const isMaxTier = profile.tier === 'max';
-    if (kit.theme === 'custom' && isMaxTier && kit.custom_theme) {
+    // Pick theme: custom theme honored for Pro and Max tiers
+    const isPaidTier = profile.tier === 'monthly' || profile.tier === 'max';
+    if (kit.theme === 'custom' && isPaidTier && kit.custom_theme) {
       theme = 'custom';
       customThemeStyle = buildCustomThemeStyle(kit.custom_theme);
-    } else if (kit.theme === 'custom' && !isMaxTier) {
+    } else if (kit.theme === 'custom' && !isPaidTier) {
       theme = 'purple';
     } else {
       theme = kit.theme || 'purple';
