@@ -518,10 +518,25 @@
   .feat-title { font-family: "Syne", sans-serif; font-size: 16px; font-weight: 700; }
   .feat-desc { font-size: 14px; color: var(--muted); line-height: 1.65; }
   .cta-section { padding: 100px 48px; text-align: center; position: relative; overflow: hidden; }
-  .cta-bg { position: absolute; inset: 0; background: radial-gradient(ellipse 70% 60% at 50% 50%, rgba(124,58,237,0.1) 0%, transparent 70%); pointer-events: none; }
+  .cta-bg {
+    position: absolute;
+    inset: 0;
+    background-image: url("ryxamodel4.webp");
+    background-size: cover;
+    background-position: center 30%;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .cta-bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(7,7,15,0.85) 0%, rgba(7,7,15,0.78) 50%, rgba(7,7,15,0.85) 100%);
+    pointer-events: none;
+  }
   .cta-inner { position: relative; z-index: 1; max-width: 600px; margin: 0 auto; }
-  .cta-inner h2 { font-family: "Syne", sans-serif; font-size: clamp(28px, 4vw, 48px); font-weight: 800; letter-spacing: -1.5px; margin-bottom: 16px; }
-  .cta-inner p { color: var(--muted); font-size: 17px; margin-bottom: 36px; line-height: 1.7; }
+  .cta-inner h2 { font-family: "Syne", sans-serif; font-size: clamp(28px, 4vw, 48px); font-weight: 800; letter-spacing: -1.5px; margin-bottom: 16px; text-shadow: 0 2px 12px rgba(0,0,0,0.4); }
+  .cta-inner p { color: rgba(255,255,255,0.85); font-size: 17px; margin-bottom: 36px; line-height: 1.7; text-shadow: 0 1px 8px rgba(0,0,0,0.4); }
   footer { border-top: 1px solid var(--border); padding: 32px 48px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
   .footer-links { display: flex; gap: 24px; flex-wrap: wrap; }
   .footer-links a { color: var(--muted); font-size: 13px; text-decoration: none; transition: color 0.2s; }
@@ -1700,7 +1715,7 @@
   <div class="cta-bg"></div>
   <div class="cta-inner">
     <h2>Ready to grow smarter?</h2>
-    <p>Join creators using Ryxa to protect their energy and grow their brand.</p>
+    <p>Join creators who own what they build.</p>
     <button class="btn-primary" onclick="openSignupModal()" style="font-size:17px;padding:17px 44px;">Get started free &#x2192;</button>
     <div style="margin-top:20px;font-size:14px;color:var(--muted);">Already have an account? <a onclick="openAuthModal()" style="color:var(--accent2);cursor:pointer;text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='#e879f9'" onmouseout="this.style.color='var(--accent2)'">Sign in</a> &nbsp;·&nbsp; <a href="pricing.html" style="color:var(--accent2);text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='#e879f9'" onmouseout="this.style.color='var(--accent2)'">View plans</a></div>
   </div>
