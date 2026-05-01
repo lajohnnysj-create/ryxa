@@ -12060,6 +12060,13 @@ function initMediaKitTool() {
     renderMKSocials();
     renderMKRates();
     renderMKThemes();
+    // If the audience pane is in Automatic mode, refresh its connection status.
+    // Catches the case where the creator disconnected/connected Instagram in
+    // Settings between visits — the pane might otherwise show stale state.
+    if (mkState.audience_mode === 'automatic' && typeof loadAudienceAutomatic === 'function') {
+      mkAudCache = null;
+      loadAudienceAutomatic();
+    }
     updateMKPreview();
     return;
   }
@@ -15268,8 +15275,15 @@ async function confirmDisconnectInstagram() {
     showInstagramMsg('success', 'Instagram disconnected.');
     showDashToast('success', 'Instagram disconnected.');
     loadInstagramConnectionStatus();
-    // Invalidate Media Kit Automatic-tab cache so it shows "not connected" next view
-    if (typeof mkAudCache !== 'undefined') mkAudCache = null;
+    // Invalidate Media Kit Automatic-tab cache and re-render the pane so it
+    // shows the "not connected" state immediately, even if the user navigates
+    // back to Media Kit later. Setting cache to a known-disconnected sentinel
+    // avoids showing a stale "connected" UI after disconnect.
+    if (typeof mkAudCache !== 'undefined') mkAudCache = { connected: false };
+    if (typeof renderAudienceAutomatic === 'function' && document.getElementById('mk-aud-auto-content')) {
+      renderAudienceAutomatic();
+    }
+    if (typeof updateMKPreview === 'function') updateMKPreview();
   } catch (err) {
     console.error('Failed to disconnect Instagram:', err);
     showInstagramMsg('error', 'Failed to disconnect. Please try again.');
@@ -25906,6 +25920,7 @@ async function loadProductsList() {
     var { data, error } = await sb
       .from('digital_products')
       .select('id, slug, title, description, cover_image_url, price_cents, currency, is_active, total_size_bytes, updated_at')
+      .eq('user_id', currentUser.id)
       .order('updated_at', { ascending: false });
     if (error) throw error;
     productsState.list = data || [];
