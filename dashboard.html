@@ -9839,7 +9839,7 @@ function renderBioThemes() {
 
   // Show/hide custom editor panel based on selected theme + tier
   const editor = document.getElementById('bio-custom-editor');
-  if (editor) editor.style.display = (bioState.theme === 'custom' && max) ? 'block' : 'none';
+  if (editor) editor.style.display = (bioState.theme === 'custom' && pro) ? 'block' : 'none';
 }
 
 function pickTheme(t) {
@@ -12149,7 +12149,7 @@ async function loadMediaKit() {
       mkState.show_branding = !!kit.show_branding;
       mkState.published = !!kit.published;
       mkState.custom_theme = kit.custom_theme || null;
-      if (mkState.theme === 'custom' && !isMax()) mkState.theme = 'purple';
+      if (mkState.theme === 'custom' && !isPro()) mkState.theme = 'purple';
       // Merge DB rate card with predefined rows
       const dbRates = Array.isArray(kit.rate_card) ? kit.rate_card : [];
       mkState.rate_card = MK_PREDEFINED_RATES.map(r => {
@@ -12477,7 +12477,8 @@ function renderMKThemes() {
   const container = document.getElementById('mk-themes');
   if (!container) return;
   const max = isMax();
-  // All 12 themes unlocked for Pro (Media Kit is Pro-only). Custom only for Max.
+  const pro = isPro();
+  // All 12 themes unlocked for Pro (Media Kit is Pro-only). Custom is Pro.
   container.innerHTML = BIO_THEMES.map(t => {
     const locked = t.max && !max;
     const selected = mkState.theme === t.key ? 'selected' : '';
@@ -12497,15 +12498,19 @@ function renderMKThemes() {
   }).join('');
   // Show/hide custom editor panel
   const editor = document.getElementById('mk-custom-editor');
-  if (editor) editor.style.display = (mkState.theme === 'custom' && max) ? 'block' : 'none';
+  if (editor) editor.style.display = (mkState.theme === 'custom' && pro) ? 'block' : 'none';
 }
 
 function pickMKTheme(t) {
   const theme = BIO_THEMES.find(x => x.key === t);
   if (!theme) return;
+  if (theme.pro && !isPro()) {
+    showMKStatus('error', `${theme.name} is a Pro feature. Upgrade to unlock.`);
+    setTimeout(() => { try { openSettingsModal(); } catch(e){} }, 200);
+    return;
+  }
   if (theme.max && !isMax()) {
-    showMKStatus('error', 'Custom theme is a Creator Max feature.');
-    // Open Settings modal — don't auto-trigger Stripe
+    showMKStatus('error', 'This is a Creator Max feature.');
     setTimeout(() => { try { openSettingsModal(); } catch(e){} }, 200);
     return;
   }
@@ -12575,7 +12580,7 @@ async function onMKCustomBgSelected(input) {
   const file = input.files[0];
   input.value = '';
   if (!file) return;
-  if (!isMax()) { showMKStatus('error', 'Custom background is a Creator Max feature.'); return; }
+  if (!isPro()) { showMKStatus('error', 'Custom background is a Pro feature.'); return; }
   if (!file.type.startsWith('image/')) { showMKStatus('error', 'Please upload an image file.'); return; }
   if (file.size > 15 * 1024 * 1024) { showMKStatus('error', 'Image is too large (15MB max).'); return; }
 
@@ -12701,6 +12706,7 @@ async function saveMediaKit() {
       theme: (() => {
         const chosen = BIO_THEMES.find(x => x.key === mkState.theme);
         if (!chosen) return 'purple';
+        if (chosen.pro && !isPro()) return 'purple';
         if (chosen.max && !isMax()) return 'purple';
         return mkState.theme;
       })(),
@@ -13204,11 +13210,11 @@ function buildMKPreviewHTML() {
     violet:   { bg:'#0c0418', surface:'#170a26', surface2:'#220f37', text:'#f5ecff', muted:'#c9b8e6', muted2:'#dccdf0', accent:'#6d28d9', accent2:'#c084fc', glow:'rgba(192,132,252,0.3)', border:'rgba(200,170,255,0.12)', avatarBorder:'linear-gradient(135deg,#c084fc,#e9d5ff)' },
     graphite: { bg:'#0a0a0a', surface:'#141414', surface2:'#1e1e1e', text:'#f5f5f5', muted:'#b3b3b3', muted2:'#d1d1d1', accent:'#6b7280', accent2:'#d1d5db', glow:'rgba(209,213,219,0.2)', border:'rgba(255,255,255,0.08)', avatarBorder:'linear-gradient(135deg,#d1d5db,#f3f4f6)' },
   };
-  // Apply custom theme if Max + selected
+  // Apply custom theme if Pro + selected
   let t;
   let bgImageCSS = '';
   let bgOverlayCSS = '';
-  if (mkState.theme === 'custom' && isMax() && mkState.custom_theme) {
+  if (mkState.theme === 'custom' && isPro() && mkState.custom_theme) {
     t = buildCustomThemeVars(mkState.custom_theme);
     if (mkState.custom_theme.bgUrl) {
       bgImageCSS = `body::after{content:'';position:fixed;inset:0;background-image:url("${escapeHtml(mkState.custom_theme.bgUrl)}");background-size:cover;background-position:center;z-index:-2;}`;
