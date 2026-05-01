@@ -957,6 +957,44 @@
   }
 </style>
 
+<!-- Diagonal photo divider — reversed slash -->
+<section class="problem-divider problem-divider-reverse">
+  <div class="problem-divider-photo problem-divider-photo-2"></div>
+  <div class="problem-divider-overlay problem-divider-overlay-right"></div>
+  <div class="problem-divider-content problem-divider-content-right">
+    <div class="problem-divider-eyebrow">You're not just a creator.</div>
+    <h2 class="problem-divider-headline">You're a business.<br>Time to run it like one.</h2>
+  </div>
+</section>
+<style>
+  .problem-divider-reverse {
+    clip-path: polygon(0 0, 100% 8%, 100% 100%, 0 92%);
+  }
+  .problem-divider-photo-2 {
+    background-image: url("ryxamodel2.webp") !important;
+    background-position: center 35% !important;
+  }
+  .problem-divider-overlay-right {
+    background: linear-gradient(270deg, rgba(7,7,15,0.85) 0%, rgba(7,7,15,0.6) 35%, rgba(7,7,15,0.15) 65%, rgba(7,7,15,0) 100%) !important;
+  }
+  .problem-divider-content-right {
+    align-items: flex-end !important;
+    text-align: right;
+  }
+  @media (max-width: 768px) {
+    .problem-divider-reverse {
+      clip-path: polygon(0 0, 100% 4%, 100% 100%, 0 96%);
+    }
+    .problem-divider-overlay-right {
+      background: linear-gradient(180deg, rgba(7,7,15,0.5) 0%, rgba(7,7,15,0.85) 100%) !important;
+    }
+    .problem-divider-content-right {
+      align-items: center !important;
+      text-align: center;
+    }
+  }
+</style>
+
 <section style="text-align:center;padding:80px 32px 40px;">
   <h2 class="section-title" style="max-width:600px;margin:0 auto 16px;">Powerful Tools. No Coding.</h2>
   <p style="font-size:18px;color:var(--muted);line-height:1.6;max-width:520px;margin:0 auto;">Start building your creator business in minutes. No technical skills, no complicated setup. Just sign up and go.</p>
