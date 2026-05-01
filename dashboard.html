@@ -15495,19 +15495,8 @@ async function confirmSettingsCancel() {
 // IMAGE CONVERTER
 // ════════════════════════════════════════════
 let imgFile = null;
-let imgDailyCount = 0;
-const IMG_LIMIT_FREE = 5;
-const IMG_LIMIT_PRO = 9999;
-const IMG_SIZE_FREE = 5 * 1024 * 1024; // 5MB
-const IMG_SIZE_PRO = 50 * 1024 * 1024; // 50MB
 
 function initImageConverter() {
-  const pro = isPro();
-  const key = 'fts_img_' + new Date().toDateString();
-  imgDailyCount = parseInt(localStorage.getItem(key) || '0');
-  const limit = pro ? IMG_LIMIT_PRO : IMG_LIMIT_FREE;
-  const remaining = Math.max(0, limit - imgDailyCount);
-
   // Detect which output formats this browser actually supports via canvas.toDataURL
   // and remove unsupported options from the dropdown so users only see what works.
   (function pruneUnsupportedFormats() {
@@ -15533,9 +15522,7 @@ function initImageConverter() {
     // (already correct — it uses .value lookup, no list dependency)
   })();
 
-  document.getElementById('img-limit-note').textContent = pro
-    ? `Pro: ${remaining} of ${limit} edits remaining today`
-    : `Free: ${remaining} of ${limit} edits remaining today. Upgrade to Pro for 10/day and 50MB files.`;
+  document.getElementById('img-limit-note').textContent = 'Unlimited edits. Everything happens in your browser.';
   // Build the supported-formats note dynamically based on the pruned dropdown
   const supportedNote = (function() {
     const sel = document.getElementById('img-format');
@@ -15544,9 +15531,8 @@ function initImageConverter() {
     return labels.join(', ');
   })();
   const sizeNote = document.getElementById('img-size-note');
-  if (sizeNote) sizeNote.textContent = `Supports ${supportedNote} (max ${pro ? '50MB' : '5MB'})`;
+  if (sizeNote) sizeNote.textContent = `Supports ${supportedNote}`;
   document.getElementById('img-usage').textContent = '';
-  if (pro) { document.getElementById('pro-resize').style.display = 'grid'; }
   document.getElementById('img-format').addEventListener('change', function() {
     const noQuality = ['image/png','image/gif','image/bmp','image/x-icon','image/tiff']; document.getElementById('quality-group').style.display = noQuality.includes(this.value) ? 'none' : 'block';
   });
@@ -15623,12 +15609,6 @@ function initImageConverter() {
 }
 
 function handleImageFile(file) {
-  const pro = isPro();
-  const maxSize = pro ? IMG_SIZE_PRO : IMG_SIZE_FREE;
-  if (file.size > maxSize) {
-    alert(`File too large. ${pro ? 'Pro' : 'Free'} plan allows up to ${pro ? '50MB' : '5MB'}.`);
-    return;
-  }
   imgFile = file;
   const reader = new FileReader();
   reader.onload = e => {
@@ -16200,14 +16180,6 @@ function clearResize() {
 
 async function convertImage() {
   if (!imgFile) return;
-  const pro = isPro();
-  const limit = pro ? IMG_LIMIT_PRO : IMG_LIMIT_FREE;
-  const key = 'fts_img_' + new Date().toDateString();
-  imgDailyCount = parseInt(localStorage.getItem(key) || '0');
-  if (imgDailyCount >= limit) {
-    alert(`You have used all ${IMG_LIMIT_FREE} free conversions for today. Upgrade to Pro for unlimited.`);
-    return;
-  }
   const btn = document.getElementById('img-convert-btn');
   btn.textContent = 'Processing...'; btn.disabled = true;
   const format = document.getElementById('img-format').value;
@@ -16305,11 +16277,7 @@ async function convertImage() {
     a.href = dataUrl;
     a.download = imgFile.name.replace(/\.[^/.]+$/, '') + '_edited.' + ext;
     a.click();
-    imgDailyCount++;
-    localStorage.setItem(key, imgDailyCount.toString());
-    const remaining = Math.max(0, limit - imgDailyCount);
-    document.getElementById('img-usage').textContent = pro ? `Unlimited edits` : `${remaining} edit${remaining !== 1 ? 's' : ''} remaining today`;
-    document.getElementById('img-limit-note').textContent = `${pro ? 'Pro' : 'Free'}: ${remaining} of ${limit} edits remaining today`;
+    document.getElementById('img-usage').textContent = '';
     btn.textContent = 'Download Image'; btn.disabled = false;
   };
   img.src = URL.createObjectURL(imgFile);
