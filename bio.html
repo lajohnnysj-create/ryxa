@@ -1325,16 +1325,17 @@ function applyCustomTheme(ct) {
       document.head.appendChild(bgStyle);
     }
     bgStyle.textContent = `
-      body::before {
+      :root[data-theme="custom"] body::before {
         content: '';
         position: fixed;
         inset: 0;
         background-image: url("${ct.bgUrl.replace(/"/g, '&quot;')}");
         background-size: cover;
         background-position: center;
+        background-color: transparent;
         z-index: -2;
       }
-      body::after {
+      :root[data-theme="custom"] body::after {
         content: '';
         position: fixed;
         inset: 0;
