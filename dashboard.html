@@ -9480,8 +9480,8 @@ async function loadBioData() {
       bioState.published = !!bio.published;
       bioState.show_branding = bio.show_branding !== false;
       bioState.custom_theme = bio.custom_theme || null;
-      // Guard: if user selected custom but is no longer Max, revert to purple
-      if (bioState.theme === 'custom' && !isMax()) {
+      // Guard: if user selected custom but is no longer Pro, revert to purple
+      if (bioState.theme === 'custom' && !isPro()) {
         bioState.theme = 'purple';
       }
     }
@@ -9744,7 +9744,7 @@ async function copyBioLink(url, btn) {
 
 // All 12 themes — first 3 are Free, rest are Pro
 const BIO_THEMES = [
-  { key:'custom',   name:'Custom',   bg:'#07070f', bg2:'#161625', grad:'linear-gradient(135deg,#a78bfa,#e879f9)', pro:false, max:true },
+  { key:'custom',   name:'Custom',   bg:'#07070f', bg2:'#161625', grad:'linear-gradient(135deg,#a78bfa,#e879f9)', pro:true },
   { key:'purple',   name:'Purple',   bg:'#07070f', bg2:'#161625', grad:'linear-gradient(135deg,#a78bfa,#e879f9)', pro:false },
   { key:'midnight', name:'Midnight', bg:'#050508', bg2:'#13131b', grad:'linear-gradient(135deg,#9ca3af,#e5e7eb)', pro:false },
   { key:'sunset',   name:'Sunset',   bg:'#120808', bg2:'#251414', grad:'linear-gradient(135deg,#fb923c,#f472b6)', pro:false },
@@ -9927,7 +9927,7 @@ async function onBioCustomBgSelected(input) {
   const file = input.files[0];
   input.value = '';
   if (!file) return;
-  if (!isMax()) { showBioStatus('error', 'Custom background is a Creator Max feature.'); return; }
+  if (!isPro()) { showBioStatus('error', 'Custom background is a Pro feature.'); return; }
   if (!file.type.startsWith('image/')) { showBioStatus('error', 'Please upload an image file.'); return; }
   if (file.size > 15 * 1024 * 1024) { showBioStatus('error', 'Image is too large (15MB max).'); return; }
 
@@ -11218,8 +11218,8 @@ function extractYouTubeIdDash(url) {
 }
 
 function setAvatarDisplay(mode) {
-  if (mode === 'hero' && !isMax()) {
-    showBioStatus('error', 'Hero display is a Creator Max feature.');
+  if (mode === 'hero' && !isPro()) {
+    showBioStatus('error', 'Hero display is a Pro feature.');
     return;
   }
   bioState.avatar_display = mode;
@@ -11232,8 +11232,8 @@ function updateAvatarDisplayUI() {
   const btnDefault = document.getElementById('bio-avatar-mode-default');
   const btnHero = document.getElementById('bio-avatar-mode-hero');
   if (!wrap) return;
-  // Only show if Max and has an avatar
-  wrap.style.display = (isMax() && bioState.avatar_url) ? 'block' : 'none';
+  // Only show if Pro and has an avatar
+  wrap.style.display = (isPro() && bioState.avatar_url) ? 'block' : 'none';
   if (btnDefault && btnHero) {
     const isHero = bioState.avatar_display === 'hero';
     btnDefault.style.background = isHero ? 'transparent' : 'var(--accent)';
@@ -11546,7 +11546,7 @@ async function saveBio() {
       display_name: bioState.display_name || null,
       bio: bioState.bio || null,
       avatar_url: bioState.avatar_url || null,
-      avatar_display: isMax() ? (bioState.avatar_display || 'default') : 'default',
+      avatar_display: isPro() ? (bioState.avatar_display || 'default') : 'default',
       theme: (() => {
         // Defense-in-depth: Free users cannot save a Pro theme
         const chosen = BIO_THEMES.find(x => x.key === bioState.theme);
@@ -11561,8 +11561,8 @@ async function saveBio() {
       published: bioState.published,
       // Free users cannot hide branding — force true regardless of client state
       show_branding: isPro() ? !!bioState.show_branding : true,
-      // Max users can save custom_theme. Preserve for downgraded users but blank-out on write for non-Max to avoid RLS overreach
-      custom_theme: isMax() ? (bioState.custom_theme || null) : (bioState.custom_theme || null),
+      // Pro users can save custom_theme. Preserve for downgraded users but blank-out on write for non-Pro to avoid RLS overreach
+      custom_theme: isPro() ? (bioState.custom_theme || null) : (bioState.custom_theme || null),
     };
     const { error } = await sb.from('link_in_bio').upsert(payload, { onConflict: 'user_id' });
     if (error) throw error;
@@ -11711,7 +11711,7 @@ function buildPreviewHTML() {
   let t;
   let bgImageCSS = '';
   let bgOverlayCSS = '';
-  if (bioState.theme === 'custom' && isMax() && bioState.custom_theme) {
+  if (bioState.theme === 'custom' && isPro() && bioState.custom_theme) {
     t = buildCustomThemeVars(bioState.custom_theme);
     if (bioState.custom_theme.bgUrl) {
       bgImageCSS = `body::after{content:'';position:fixed;inset:0;background-image:url("${escapeHtml(bioState.custom_theme.bgUrl)}");background-size:cover;background-position:center;z-index:-2;}`;
@@ -11730,7 +11730,7 @@ function buildPreviewHTML() {
   const linksHtml = bioState.links.filter(l => l.isHeader || l.isSubscribe || l.isVideoBlock || (l.url || '').trim()).map(l => buildPreviewLink(l, t)).join('');
 
   // For custom themes with a bg image, we dim the radial glow (since bg image is already bg)
-  const glowCSS = (bioState.theme === 'custom' && isMax() && bioState.custom_theme?.bgUrl)
+  const glowCSS = (bioState.theme === 'custom' && isPro() && bioState.custom_theme?.bgUrl)
     ? '' // no radial glow when custom bg is set
     : `body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,${t.glow} 0%,transparent 60%);pointer-events:none;z-index:0;}`;
 
