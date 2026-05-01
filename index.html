@@ -1193,6 +1193,98 @@
   </div>
 </section>
 
+<!-- Asymmetric bleed photo divider -->
+<section class="bleed-divider">
+  <div class="bleed-divider-grid">
+    <div class="bleed-divider-text">
+      <div class="bleed-divider-eyebrow">Stop building someone else's dream.</div>
+      <h2 class="bleed-divider-headline">Build a creator business that's actually yours.</h2>
+    </div>
+    <div class="bleed-divider-photo-wrap">
+      <div class="bleed-divider-photo"></div>
+      <div class="bleed-divider-fade"></div>
+    </div>
+  </div>
+</section>
+<style>
+  .bleed-divider {
+    position: relative;
+    width: 100%;
+    margin: 80px 0;
+    overflow: hidden;
+  }
+  .bleed-divider-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    align-items: center;
+    gap: 48px;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding-left: 60px;
+  }
+  .bleed-divider-text {
+    padding-right: 24px;
+  }
+  .bleed-divider-eyebrow {
+    font-family: "DM Sans", sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.75);
+    letter-spacing: 0.02em;
+    margin-bottom: 18px;
+  }
+  .bleed-divider-headline {
+    font-family: "Syne", sans-serif;
+    font-size: clamp(32px, 5vw, 52px);
+    font-weight: 800;
+    letter-spacing: -1.5px;
+    line-height: 1.1;
+    color: #fff;
+    margin: 0;
+  }
+  .bleed-divider-photo-wrap {
+    position: relative;
+    width: calc(100% + 60px);
+    margin-right: -60px;
+    height: 480px;
+    border-radius: 20px 0 0 20px;
+    overflow: hidden;
+  }
+  .bleed-divider-photo {
+    position: absolute;
+    inset: 0;
+    background-image: url("ryxamodel3.webp");
+    background-size: cover;
+    background-position: center 28%;
+  }
+  .bleed-divider-fade {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(7,7,15,0.6) 0%, rgba(7,7,15,0) 25%, rgba(7,7,15,0) 75%, rgba(7,7,15,0.4) 100%);
+    pointer-events: none;
+  }
+  @media (max-width: 768px) {
+    .bleed-divider {
+      margin: 48px 0;
+    }
+    .bleed-divider-grid {
+      grid-template-columns: 1fr;
+      gap: 28px;
+      padding: 0 24px;
+      text-align: center;
+    }
+    .bleed-divider-text {
+      padding-right: 0;
+    }
+    .bleed-divider-photo-wrap {
+      width: 100%;
+      margin-right: 0;
+      height: 320px;
+      border-radius: 16px;
+    }
+  }
+</style>
+
 <!-- Comparison pricing section (receipt) -->
 <section style="padding:80px 24px;text-align:center;position:relative;overflow:hidden;">
   <div style="max-width:720px;margin:0 auto;position:relative;">
