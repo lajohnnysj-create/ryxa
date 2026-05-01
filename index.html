@@ -781,21 +781,27 @@
     position: absolute;
     inset: 0;
     width: 100%;
-    height: 100%;
+    height: auto;
+    min-height: 100%;
     object-fit: cover;
     object-position: top center;
     opacity: 0;
-    animation: lib-fade 12s infinite;
   }
-  .lib-promo-img-1 { animation-delay: 0s; }
-  .lib-promo-img-2 { animation-delay: 4s; }
-  .lib-promo-img-3 { animation-delay: 8s; }
+  .lib-promo-img-1 { animation: lib-fade 12s infinite, lib-scroll 12s infinite; animation-delay: 0s, 0s; }
+  .lib-promo-img-2 { animation: lib-fade 12s infinite, lib-scroll 12s infinite; animation-delay: 4s, 4s; }
+  .lib-promo-img-3 { animation: lib-fade 12s infinite, lib-scroll 12s infinite; animation-delay: 8s, 8s; }
   @keyframes lib-fade {
     0%   { opacity: 0; }
     4%   { opacity: 1; }
     30%  { opacity: 1; }
     36%  { opacity: 0; }
     100% { opacity: 0; }
+  }
+  @keyframes lib-scroll {
+    0%   { transform: translateY(0); }
+    4%   { transform: translateY(0); }
+    36%  { transform: translateY(-60%); }
+    100% { transform: translateY(-60%); }
   }
   /* Cursor — animates between three positions matching the three screenshots */
   .lib-promo-cursor {
