@@ -328,7 +328,7 @@
   .testimonial-arrow { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: all 0.2s; z-index: 2; }
   .testimonial-arrow:hover { color: var(--text); border-color: var(--accent); background: rgba(124,58,237,0.1); }
   .testimonial-card { position: relative; width: 380px; min-width: 380px; border-radius: 20px; overflow: hidden; flex-shrink: 0; scroll-snap-align: center; scroll-snap-stop: always; }
-  .testimonial-card-inner { position: relative; border-radius: 20px; overflow: hidden; height: 100%; }
+  .testimonial-card-inner { position: relative; border-radius: 20px; overflow: hidden; height: 100%; isolation: isolate; -webkit-mask-image: -webkit-radial-gradient(white, black); }
   .testimonial-bg { position: absolute; inset: 0; background-size: cover; background-position: center top; filter: brightness(0.45); z-index: 0; transition: transform 0.5s ease; }
   .testimonial-bg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.6) 60%, rgba(0,0,0,0.88) 100%); }
   .testimonial-card:hover .testimonial-bg { transform: scale(1.08); }
@@ -777,17 +777,19 @@
     overflow: hidden;
     background: #07070f;
     isolation: isolate;
+    contain: paint;
     -webkit-mask-image: -webkit-radial-gradient(white, black);
   }
   .lib-promo-img {
     position: absolute;
-    inset: 0;
+    top: 0;
+    left: 0;
+    right: 0;
     width: 100%;
     height: auto;
-    min-height: 100%;
-    object-fit: cover;
-    object-position: top center;
+    display: block;
     opacity: 0;
+    will-change: transform, opacity;
   }
   .lib-promo-img-1 { animation: lib-fade 12s infinite, lib-scroll 12s infinite; animation-delay: 0s, 0s; }
   .lib-promo-img-2 { animation: lib-fade 12s infinite, lib-scroll 12s infinite; animation-delay: 4s, 4s; }
