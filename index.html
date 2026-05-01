@@ -699,9 +699,9 @@
     <div class="lib-promo-tablet-wrap">
       <div class="lib-promo-tablet">
         <div class="lib-promo-screen">
-          <img src="editor1.webp" class="lib-promo-img lib-promo-img-1" alt="Ryxa Link in Bio editor">
-          <img src="editor2.webp" class="lib-promo-img lib-promo-img-2" alt="Ryxa Link in Bio editor — customizing theme">
-          <img src="editor3.webp" class="lib-promo-img lib-promo-img-3" alt="Ryxa Link in Bio editor — adding links">
+          <div class="lib-promo-img lib-promo-img-1" style="background-image:url('editor1.webp');" role="img" aria-label="Ryxa Link in Bio editor"></div>
+          <div class="lib-promo-img lib-promo-img-2" style="background-image:url('editor2.webp');" role="img" aria-label="Ryxa Link in Bio editor — customizing theme"></div>
+          <div class="lib-promo-img lib-promo-img-3" style="background-image:url('editor3.webp');" role="img" aria-label="Ryxa Link in Bio editor — adding links"></div>
           <svg class="lib-promo-cursor" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
             <path d="M5.5 3.5 L5.5 18 L9.5 14.5 L12 20 L14 19 L11.5 13.5 L17 13.5 Z" fill="#fff" stroke="#000" stroke-width="1.2" stroke-linejoin="round"/>
           </svg>
@@ -758,7 +758,6 @@
     position: relative;
     width: 100%;
     max-width: 380px;
-    aspect-ratio: 3 / 4;
     background: #0a0a14;
     border: 2px solid rgba(255,255,255,0.12);
     border-radius: 22px;
@@ -772,24 +771,19 @@
   .lib-promo-screen {
     position: relative;
     width: 100%;
-    height: 100%;
+    aspect-ratio: 3 / 4;
     border-radius: 12px;
     overflow: hidden;
     background: #07070f;
-    isolation: isolate;
-    contain: paint;
-    -webkit-mask-image: -webkit-radial-gradient(white, black);
   }
   .lib-promo-img {
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    height: auto;
-    display: block;
+    inset: 0;
+    background-size: 100% auto;
+    background-position: top center;
+    background-repeat: no-repeat;
     opacity: 0;
-    will-change: transform, opacity;
+    will-change: background-position, opacity;
   }
   .lib-promo-img-1 { animation: lib-fade 12s infinite, lib-scroll 12s infinite; animation-delay: 0s, 0s; }
   .lib-promo-img-2 { animation: lib-fade 12s infinite, lib-scroll 12s infinite; animation-delay: 4s, 4s; }
