@@ -8536,9 +8536,11 @@ function showTool(tool) {
 // Captures the original innerHTML and disables the button while a checkout is opening.
 // Inline SVG spinner is reused by every call so styling stays consistent.
 const _btnLoadingState = new WeakMap();
+const _btnLoadingSet = new Set();
 function setBtnLoading(btn, label) {
   if (!btn || _btnLoadingState.has(btn)) return;
   _btnLoadingState.set(btn, { html: btn.innerHTML, disabled: btn.disabled, cursor: btn.style.cursor });
+  _btnLoadingSet.add(btn);
   btn.disabled = true;
   btn.style.cursor = 'wait';
   btn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:8px;justify-content:center;">' +
@@ -8556,6 +8558,7 @@ function clearBtnLoading(btn) {
   btn.disabled = prev.disabled;
   btn.style.cursor = prev.cursor;
   _btnLoadingState.delete(btn);
+  _btnLoadingSet.delete(btn);
 }
 // Inject the spin keyframes once (no-op if already added).
 (function ensureBtnSpinKeyframes(){
@@ -8571,9 +8574,9 @@ function clearBtnLoading(btn) {
 // checkout) will appear stuck. Clear them all on pageshow.persisted = true.
 window.addEventListener('pageshow', function(e) {
   if (!e.persisted) return;
-  if (!_btnLoadingState || !_btnLoadingState.size) return;
-  // Snapshot keys before iterating since clearBtnLoading mutates the map
-  Array.from(_btnLoadingState.keys()).forEach(function(btn) {
+  if (!_btnLoadingSet.size) return;
+  // Snapshot before iterating since clearBtnLoading mutates the Set
+  Array.from(_btnLoadingSet).forEach(function(btn) {
     try { clearBtnLoading(btn); } catch (_) {}
   });
 });
