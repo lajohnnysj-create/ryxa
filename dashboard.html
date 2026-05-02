@@ -7101,7 +7101,7 @@
               </button>
               <input type="file" id="products-file-input" aria-label="Upload product files" multiple style="display:none;" onchange="uploadProductFiles(this)">
               <div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;">
-                PDFs, ebooks, templates, presets, and design files only. Up to 100 MB per file. No videos, audio, or executables.
+                PDFs, ebooks, templates, presets, and design files only. <a href="javascript:void(0)" onclick="showCompatibleFilesModal()" style="color:var(--accent2);text-decoration:none;border-bottom:1px dashed rgba(168,139,250,0.4);cursor:pointer;">See compatible files</a>. Up to 100 MB per file. No videos, audio, or executables.
               </div>
             </div>
 
@@ -29424,6 +29424,39 @@ function showModalConfirm(title, message, onConfirm, confirmText, cancelText) {
   document.body.appendChild(overlay);
   document.getElementById('modal-confirm-yes').onclick = function() { overlay.remove(); if (onConfirm) onConfirm(); };
   document.getElementById('modal-confirm-no').onclick = function() { overlay.remove(); };
+}
+
+function showCompatibleFilesModal() {
+  var existing = document.getElementById('modal-compat-overlay');
+  if (existing) existing.remove();
+  var overlay = document.createElement('div');
+  overlay.id = 'modal-compat-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;';
+  var groups = [
+    ['Documents & ebooks', 'PDF, EPUB, MOBI, TXT, MD, DOCX, Pages'],
+    ['Spreadsheets', 'CSV, XLSX, Numbers'],
+    ['Presentations', 'PPTX, Keynote'],
+    ['Images', 'JPG, PNG, GIF, WEBP, SVG'],
+    ['Design files', 'PSD, AI, INDD, Sketch, Figma, Affinity Photo, Affinity Designer'],
+    ['LUTs & color presets', 'CUBE, 3DL, Lightroom (LRTEMPLATE), XMP, DNG'],
+    ['Photoshop assets', 'Actions (ATN), Brushes (ABR), Layer Styles (ASL), Templates (TPL)'],
+    ['DaVinci Resolve', 'DRP presets'],
+    ['Archives', 'ZIP, RAR, 7Z']
+  ];
+  var rows = groups.map(function(g) {
+    return '<div style="padding:12px 0;border-bottom:1px solid var(--border);">'
+      + '<div style="font-size:11px;font-weight:600;color:var(--text);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;">' + g[0] + '</div>'
+      + '<div style="font-size:13px;color:var(--muted);line-height:1.5;">' + g[1] + '</div>'
+      + '</div>';
+  }).join('');
+  overlay.innerHTML = '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:24px;max-width:480px;width:100%;max-height:calc(100vh - 80px);overflow-y:auto;">'
+    + '<div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.3px;margin-bottom:6px;">Compatible files</div>'
+    + '<div style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:14px;">Files are checked for safety on upload. Executables and scripts are blocked.</div>'
+    + '<div style="margin-bottom:18px;">' + rows + '</div>'
+    + '<button onclick="this.closest(\'[id=modal-compat-overlay]\').remove()" style="width:100%;padding:11px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:14px;font-family:DM Sans,sans-serif;cursor:pointer;">Close</button>'
+    + '</div>';
+  overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+  document.body.appendChild(overlay);
 }
 
 function showModalAlert(title, message) {
