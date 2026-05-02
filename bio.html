@@ -237,6 +237,121 @@
     box-shadow: 0 0 20px var(--accent-glow);
   }
 
+  /* Not-found page (refreshed) */
+  .state.notfound {
+    padding: 48px 24px 60px;
+    position: relative;
+    overflow: hidden;
+  }
+  .notfound-logo-link {
+    display: inline-block;
+    margin-bottom: 56px;
+    transition: transform 0.2s ease;
+  }
+  .notfound-logo-link:hover { transform: scale(1.05); }
+  .notfound-logo {
+    width: 56px;
+    height: 56px;
+    display: block;
+    object-fit: contain;
+  }
+  .notfound-orb {
+    position: absolute;
+    top: 38%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 320px;
+    height: 320px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, rgba(168,85,247,0.35), rgba(124,58,237,0.15) 40%, transparent 70%);
+    filter: blur(40px);
+    pointer-events: none;
+    z-index: 0;
+    animation: notfound-orb-float 8s ease-in-out infinite;
+  }
+  @keyframes notfound-orb-float {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); }
+    50% { transform: translate(-50%, -55%) scale(1.08); }
+  }
+  .notfound-title {
+    position: relative;
+    z-index: 1;
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(28px, 6vw, 38px);
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 12px;
+    letter-spacing: -1px;
+    line-height: 1.15;
+  }
+  .notfound-sub {
+    position: relative;
+    z-index: 1;
+    font-size: 15px;
+    color: rgba(255,255,255,0.7);
+    line-height: 1.6;
+    max-width: 380px;
+    margin: 0 auto 40px;
+  }
+  .notfound-sub strong { color: var(--text); font-weight: 600; }
+  .notfound-actions {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 420px;
+    margin: 0 auto;
+  }
+  .notfound-action-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 18px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+  }
+  .notfound-action-label {
+    font-size: 13.5px;
+    color: rgba(255,255,255,0.75);
+    text-align: left;
+    flex: 1;
+  }
+  .notfound-btn {
+    display: inline-block;
+    padding: 9px 16px;
+    border-radius: 9px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .notfound-btn-primary {
+    background: var(--accent);
+    color: #fff;
+    box-shadow: 0 0 18px var(--accent-glow);
+  }
+  .notfound-btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 24px var(--accent-glow); }
+  .notfound-btn-secondary {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid rgba(255,255,255,0.18);
+  }
+  .notfound-btn-secondary:hover { border-color: rgba(255,255,255,0.32); transform: translateY(-1px); }
+  @media (max-width: 480px) {
+    .notfound-action-row {
+      flex-direction: column;
+      align-items: stretch;
+      text-align: center;
+      gap: 12px;
+    }
+    .notfound-action-label { text-align: center; }
+    .notfound-btn { text-align: center; }
+  }
+
   /* Profile header */
   .avatar-frame {
     width: 120px;
@@ -1017,12 +1132,25 @@ function extractYouTubeId(url) {
 }
 
 function renderNotFound(username) {
-  document.title = 'Not found | Ryxa';
+  document.title = 'Page not found | Ryxa';
   document.getElementById('wrap').innerHTML = `
-    <div class="state">
-      <h1>This page isn't here yet</h1>
-      <p>${username ? `<strong>@${esc(username)}</strong> hasn't created their Ryxa page, or it's not published yet.` : 'No username in the URL.'}</p>
-      <a class="cta" href="https://www.ryxa.io">Create your own →</a>
+    <div class="state notfound">
+      <a href="https://www.ryxa.io" class="notfound-logo-link" aria-label="Ryxa home">
+        <img src="https://www.ryxa.io/logo.png" alt="Ryxa" class="notfound-logo">
+      </a>
+      <div class="notfound-orb" aria-hidden="true"></div>
+      <h1 class="notfound-title">Hey! This page doesn't exist&hellip;</h1>
+      <p class="notfound-sub">${username ? `Looks like <strong>@${esc(username)}</strong> hasn't claimed this Ryxa page yet.` : `Looks like this URL hasn't been claimed yet.`}</p>
+      <div class="notfound-actions">
+        <div class="notfound-action-row">
+          <span class="notfound-action-label">Looking for your store?</span>
+          <a class="notfound-btn notfound-btn-secondary" href="https://www.ryxa.io/dashboard.html">Log in to publish</a>
+        </div>
+        <div class="notfound-action-row">
+          <span class="notfound-action-label">Claim your Ryxa page today</span>
+          <a class="notfound-btn notfound-btn-primary" href="https://www.ryxa.io/?signup=1">Sign up free &rarr;</a>
+        </div>
+      </div>
     </div>
   `;
 }
