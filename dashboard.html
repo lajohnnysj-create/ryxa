@@ -7533,7 +7533,7 @@
 
               <!-- CONTRACT UPLOAD section -->
               <div style="margin-bottom:24px;">
-                <div style="font-family:Syne,sans-serif;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:14px;">Signed Contract <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;">(PDF, max 3MB)</span></div>
+                <div style="font-family:Syne,sans-serif;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:14px;">Signed Contract <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;">(PDF, max 10MB)</span></div>
                 <!-- Empty state: no contract -->
                 <div id="deal-contract-empty" style="padding:20px;background:var(--surface);border:1px dashed var(--border);border-radius:10px;text-align:center;">
                   <div id="deal-contract-save-first" style="display:none;font-size:12px;color:var(--muted);">Save the deal first, then upload the contract here.</div>
@@ -7590,7 +7590,7 @@
 
               <!-- INVOICE UPLOAD section -->
               <div style="margin-bottom:24px;">
-                <div style="font-family:Syne,sans-serif;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:14px;">Invoice <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;">(PDF, max 3MB)</span></div>
+                <div style="font-family:Syne,sans-serif;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:14px;">Invoice <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;">(PDF, max 10MB)</span></div>
                 <!-- Empty state: no invoice -->
                 <div id="deal-invoice-empty" style="padding:20px;background:var(--surface);border:1px dashed var(--border);border-radius:10px;text-align:center;">
                   <div id="deal-invoice-uploader">
@@ -19683,7 +19683,7 @@ function renderDeliverables() {
 // =====================================================
 // BRAND DEAL CRM — Contract upload/view/remove
 // =====================================================
-const DEAL_CONTRACT_MAX_BYTES = 3 * 1024 * 1024; // 3 MB
+const DEAL_CONTRACT_MAX_BYTES = 10 * 1024 * 1024; // 10 MB
 
 function renderContractUI(deal) {
   const emptyEl = document.getElementById('deal-contract-empty');
@@ -19831,7 +19831,7 @@ async function handleContractFileSelected(event) {
   }
   // Validate size
   if (file.size > DEAL_CONTRACT_MAX_BYTES) {
-    showDealModalMsg('error', 'File is too large. Maximum size is 3MB.');
+    showDealModalMsg('error', 'File is too large. Maximum size is 10MB.');
     event.target.value = '';
     return;
   }
@@ -20262,7 +20262,7 @@ async function sendContractToBrand() {
 // =====================================================
 // BRAND DEAL CRM — Invoice upload/view/remove + send to brand
 // =====================================================
-const DEAL_INVOICE_MAX_BYTES = 3 * 1024 * 1024; // 3 MB
+const DEAL_INVOICE_MAX_BYTES = 10 * 1024 * 1024; // 10 MB
 
 function renderInvoiceUI(deal) {
   const emptyEl = document.getElementById('deal-invoice-empty');
@@ -20329,7 +20329,7 @@ async function handleInvoiceFileSelected(event) {
     return;
   }
   if (file.size > DEAL_INVOICE_MAX_BYTES) {
-    showDealModalMsg('error', 'File is too large. Maximum size is 3MB.');
+    showDealModalMsg('error', 'File is too large. Maximum size is 10MB.');
     event.target.value = '';
     return;
   }
