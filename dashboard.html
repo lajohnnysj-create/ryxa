@@ -7105,7 +7105,7 @@
               </button>
               <input type="file" id="products-file-input" aria-label="Upload product files" multiple style="display:none;" onchange="uploadProductFiles(this)">
               <div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;">
-                Documents, designs, presets, audio, fonts, and more. <a href="javascript:void(0)" onclick="showCompatibleFilesModal()" style="color:var(--accent2);text-decoration:none;border-bottom:1px dashed rgba(168,139,250,0.4);cursor:pointer;">See compatible files</a>. Up to 100 MB per file. No videos or executables.
+                Documents, designs, presets, audio, video, fonts, and more. <a href="javascript:void(0)" onclick="showCompatibleFilesModal()" style="color:var(--accent2);text-decoration:none;border-bottom:1px dashed rgba(168,139,250,0.4);cursor:pointer;">See compatible files</a>. Up to 100 MB per file. No executables.
               </div>
             </div>
 
@@ -25945,6 +25945,7 @@ var DP_ALLOWED_EXTS = [
   'atn','abr','asl','tpl',
   'drp',
   'mp3','wav','aiff','m4a','flac',
+  'mp4','mov','webm',
   'otf','ttf','woff','woff2',
   'brush','brushset','procreate',
   'blend','obj','fbx','stl','glb','gltf',
@@ -25972,6 +25973,11 @@ var DP_MAGIC_BYTES = {
   aiff: ['464F524D'],
   flac: ['664C6143'],
   m4a:  ['00000020667479704D344120', '0000001C667479704D344120'],
+  // Video files — ftyp box at offset 4 means we check bytes 4-11 (skip first 4 size bytes)
+  // mp4: various ftyp brands
+  mp4:  ['000000186674797069736F6D', '0000001C6674797069736F6D', '00000020667479706D703432', '0000001C667479706D703432'],
+  mov:  ['0000001466747970717420', '0000001466747970717420', '00000020667479707174'],
+  webm: ['1A45DFA3'],
   otf:  ['4F54544F'],
   ttf:  ['00010000', '74727565'],
   woff: ['774F4646'],
@@ -29553,6 +29559,7 @@ function showCompatibleFilesModal() {
     ['Photoshop assets', 'Actions (ATN), Brushes (ABR), Layer Styles (ASL), Templates (TPL)'],
     ['DaVinci Resolve', 'DRP presets'],
     ['Audio', 'MP3, WAV, AIFF, M4A, FLAC'],
+    ['Video', 'MP4, MOV, WEBM (up to 100 MB per file)'],
     ['Fonts', 'OTF, TTF, WOFF, WOFF2'],
     ['Procreate', 'Brushes (BRUSH), Brush Sets (BRUSHSET), Procreate files (PROCREATE)'],
     ['3D models', 'BLEND, OBJ, FBX, STL, GLB, GLTF'],
