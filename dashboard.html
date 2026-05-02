@@ -25991,7 +25991,7 @@ async function openProductEditor(productId) {
     document.getElementById('products-editor-title').textContent = 'Edit Product';
     document.getElementById('products-delete-btn').style.display = 'inline-block';
     try {
-      var { data: prod, error: e1 } = await sb.from('digital_products').select('*').eq('id', productId).single();
+      var { data: prod, error: e1 } = await sb.from('digital_products').select('*').eq('id', productId).eq('user_id', currentUser.id).single();
       if (e1) throw e1;
       productsState.editing = prod;
       var { data: files, error: e2 } = await sb.from('digital_product_files').select('*').eq('product_id', productId).order('sort_order', { ascending: true });
@@ -29572,7 +29572,7 @@ async function loadDesignProjects() {
 }
 
 async function openDesignProject(id) {
-  var { data, error } = await sb.from('design_projects').select('*').eq('id', id).single();
+  var { data, error } = await sb.from('design_projects').select('*').eq('id', id).eq('user_id', currentUser.id).single();
   if (error || !data) { showModalAlert('Error', 'Could not load project. Please try again.'); return; }
 
   dsProjectW = data.canvas_width || 1080;
