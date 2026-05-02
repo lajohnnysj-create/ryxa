@@ -7101,7 +7101,7 @@
               </button>
               <input type="file" id="products-file-input" aria-label="Upload product files" multiple style="display:none;" onchange="uploadProductFiles(this)">
               <div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;">
-                PDFs, ebooks, templates, presets, and design files only. <a href="javascript:void(0)" onclick="showCompatibleFilesModal()" style="color:var(--accent2);text-decoration:none;border-bottom:1px dashed rgba(168,139,250,0.4);cursor:pointer;">See compatible files</a>. Up to 100 MB per file. No videos, audio, or executables.
+                Documents, designs, presets, audio, fonts, and more. <a href="javascript:void(0)" onclick="showCompatibleFilesModal()" style="color:var(--accent2);text-decoration:none;border-bottom:1px dashed rgba(168,139,250,0.4);cursor:pointer;">See compatible files</a>. Up to 100 MB per file. No videos or executables.
               </div>
             </div>
 
@@ -25854,6 +25854,10 @@ var DP_ALLOWED_EXTS = [
   'cube','3dl','lrtemplate','xmp','dng',
   'atn','abr','asl','tpl',
   'drp',
+  'mp3','wav','aiff','m4a','flac',
+  'otf','ttf','woff','woff2',
+  'brush','brushset','procreate',
+  'blend','obj','fbx','stl','glb','gltf',
   'zip','rar','7z'
 ];
 
@@ -25872,7 +25876,24 @@ var DP_MAGIC_BYTES = {
   xlsx: ['504B0304'],
   pptx: ['504B0304'],
   epub: ['504B0304'],
-  psd:  ['38425053']
+  psd:  ['38425053'],
+  mp3:  ['494433', 'FFFB', 'FFF3', 'FFF2'],
+  wav:  ['52494646'],
+  aiff: ['464F524D'],
+  flac: ['664C6143'],
+  m4a:  ['00000020667479704D344120', '0000001C667479704D344120'],
+  otf:  ['4F54544F'],
+  ttf:  ['00010000', '74727565'],
+  woff: ['774F4646'],
+  woff2:['774F4632'],
+  // Procreate brushes/brushsets/files are zip-based
+  brush:    ['504B0304'],
+  brushset: ['504B0304'],
+  procreate:['504B0304'],
+  // 3D files: BLEND has magic bytes, others vary
+  blend:['424C454E444552'],
+  glb:  ['676C5446'],
+  // obj, fbx, stl, gltf, drp are text or proprietary binary; rely on extension only
 };
 
 var productsState = {
@@ -29441,6 +29462,10 @@ function showCompatibleFilesModal() {
     ['LUTs & color presets', 'CUBE, 3DL, Lightroom (LRTEMPLATE), XMP, DNG'],
     ['Photoshop assets', 'Actions (ATN), Brushes (ABR), Layer Styles (ASL), Templates (TPL)'],
     ['DaVinci Resolve', 'DRP presets'],
+    ['Audio', 'MP3, WAV, AIFF, M4A, FLAC'],
+    ['Fonts', 'OTF, TTF, WOFF, WOFF2'],
+    ['Procreate', 'Brushes (BRUSH), Brush Sets (BRUSHSET), Procreate files (PROCREATE)'],
+    ['3D models', 'BLEND, OBJ, FBX, STL, GLB, GLTF'],
     ['Archives', 'ZIP, RAR, 7Z']
   ];
   var rows = groups.map(function(g) {
