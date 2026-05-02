@@ -5885,7 +5885,7 @@
     <div id="tool-image" style="display:none;">
       <div style="max-width:680px;">
         <h2 style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;margin-bottom:6px;letter-spacing:-0.5px;">Photo Editor</h2>
-        <p style="color:var(--muted);font-size:14px;margin-bottom:8px;">A lightweight editor for quick photo edits. Crop, adjust, and convert images. Everything happens in your browser. Nothing is uploaded.</p>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:8px;">A lightweight editor for quick photo edits. Crop, adjust, convert, and remove backgrounds. Everything happens in your browser. Nothing is uploaded.</p>
         <p id="img-limit-note" style="font-size:13px;color:#a78bfa;margin-bottom:24px;"></p>
 
         <!-- Drop Zone -->
@@ -6048,6 +6048,11 @@
         <div id="img-adjust-area" style="display:none;"></div>
         <div id="img-options" style="display:none;"></div>
 
+        <button id="img-removebg-btn" onclick="imgRemoveBg()" style="display:none;width:100%;padding:13px;background:transparent;color:var(--text);border:1px solid var(--border-hover);border-radius:10px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.2s;margin-bottom:10px;display:none;align-items:center;justify-content:center;gap:8px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5l14 14M2 12a10 10 0 0 1 10-10M22 12a10 10 0 0 1-10 10"/></svg>
+          <span id="img-removebg-label">Remove Background</span>
+        </button>
+
         <button id="img-convert-btn" onclick="convertImage()" style="display:none;width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.2s;box-shadow:0 0 20px var(--accent-glow);">Download Image</button>
         <div id="img-result" style="display:none;margin-top:16px;"></div>
         <div id="img-usage" style="margin-top:16px;font-size:13px;color:var(--muted);text-align:center;"></div>
@@ -6208,7 +6213,7 @@
           <div id="ds-image-controls" style="display:none;align-items:center;gap:6px;flex-wrap:wrap;">
             <button onclick="dsRemoveBg()" class="ds-tool-btn" id="ds-removebg-btn" title="Remove Background" style="width:auto;padding:0 10px;gap:6px;font-size:12px;">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5l14 14M2 12a10 10 0 0 1 10-10M22 12a10 10 0 0 1-10 10"/></svg>
-              AI Remove Background
+              Remove Background
             </button>
             <button onclick="dsUpscaleImage()" class="ds-tool-btn" id="ds-upscale-btn" title="Smart Upscale 2x" style="width:auto;padding:0 10px;gap:6px;font-size:12px;">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
@@ -15631,6 +15636,7 @@ function handleImageFile(file) {
     document.getElementById('img-preview-area').style.display = 'block';
     document.getElementById('img-editor').style.display = 'block';
     document.getElementById('img-convert-btn').style.display = 'block';
+    document.getElementById('img-removebg-btn').style.display = 'flex';
     document.getElementById('img-result').style.display = 'none';
     document.getElementById('img-filename').textContent = file.name;
     document.getElementById('img-filesize').textContent = (file.size / 1024 / 1024).toFixed(2) + ' MB';
@@ -16191,6 +16197,103 @@ function setResizePreset(pixels) {
 function clearResize() {
   document.getElementById('img-width').value = '';
   document.getElementById('img-height').value = '';
+}
+
+async function imgRemoveBg() {
+  if (!imgFile) return;
+  var btn = document.getElementById('img-removebg-btn');
+  var label = document.getElementById('img-removebg-label');
+
+  function setLoading(text) {
+    btn.disabled = true;
+    label.textContent = text;
+  }
+  function resetBtn() {
+    btn.disabled = false;
+    label.textContent = 'Remove Background';
+  }
+
+  function doRemoval() {
+    setLoading('Processing...');
+    window._dsBgRemoveFunc(imgFile).then(function(resultBlob) {
+      // Replace imgFile with the transparent-bg PNG
+      var newName = imgFile.name.replace(/\.[^/.]+$/, '') + '_no-bg.png';
+      var newFile = new File([resultBlob], newName, { type: 'image/png' });
+      imgFile = newFile;
+
+      // Update preview
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById('img-preview').src = e.target.result;
+        document.getElementById('img-filename').textContent = newName;
+        document.getElementById('img-filesize').textContent = (newFile.size / 1024 / 1024).toFixed(2) + ' MB';
+        // Default output format to PNG to preserve transparency
+        var formatSel = document.getElementById('img-format');
+        if (formatSel) formatSel.value = 'image/png';
+        // Re-set up the crop stage with the new image
+        setupCropStage(e.target.result);
+        resetBtn();
+        // Use the existing usage area for the toast
+        var usageEl = document.getElementById('img-usage');
+        if (usageEl) {
+          usageEl.textContent = 'Background removed. Runs in your browser.';
+          usageEl.style.color = '#4ade80';
+          setTimeout(function() {
+            if (usageEl) { usageEl.textContent = ''; usageEl.style.color = ''; }
+          }, 4000);
+        }
+      };
+      reader.readAsDataURL(newFile);
+    }).catch(function(err) {
+      console.error('BG removal error:', err);
+      resetBtn();
+      var usageEl = document.getElementById('img-usage');
+      if (usageEl) {
+        usageEl.textContent = 'Background removal failed. Try a different image.';
+        usageEl.style.color = '#f87171';
+        setTimeout(function() {
+          if (usageEl) { usageEl.textContent = ''; usageEl.style.color = ''; }
+        }, 4000);
+      }
+    });
+  }
+
+  // Reuse the same model loader as Design Studio
+  if (_dsBgRemovalReady && window._dsBgRemoveFunc) {
+    doRemoval();
+    return;
+  }
+
+  if (_dsBgRemovalLoading) {
+    var usageEl = document.getElementById('img-usage');
+    if (usageEl) usageEl.textContent = 'Still loading the model. Please wait...';
+    return;
+  }
+
+  _dsBgRemovalLoading = true;
+  setLoading('Loading model...');
+  var usageEl = document.getElementById('img-usage');
+  if (usageEl) usageEl.textContent = 'Loading the model. This may take a moment on first use...';
+
+  var moduleScript = document.createElement('script');
+  moduleScript.type = 'module';
+  moduleScript.textContent = `
+    import { removeBackground } from 'https://esm.sh/@imgly/background-removal@1.4.5';
+    window._dsBgRemoveFunc = removeBackground;
+    window.dispatchEvent(new Event('ds-bg-ready'));
+  `;
+
+  function onReady() {
+    window.removeEventListener('ds-bg-ready', onReady);
+    _dsBgRemoveFunc = window._dsBgRemoveFunc;
+    _dsBgRemovalReady = true;
+    _dsBgRemovalLoading = false;
+    if (usageEl) usageEl.textContent = '';
+    doRemoval();
+  }
+
+  window.addEventListener('ds-bg-ready', onReady);
+  document.head.appendChild(moduleScript);
 }
 
 async function convertImage() {
@@ -30141,12 +30244,6 @@ function dsRemoveBg() {
   var obj = dsCanvas.getActiveObject();
   if (!obj || obj.type !== 'image') { showDsMsg('error', 'Select an image first.'); return; }
 
-  // Pro/Max gate
-  if (typeof isPro === 'function' && !isPro()) {
-    showDsMsg('error', 'Remove Background is a Pro feature. Upgrade to use it.');
-    return;
-  }
-
   var btn = document.getElementById('ds-removebg-btn');
   btn.disabled = true;
 
@@ -30173,7 +30270,7 @@ function dsRemoveBg() {
           dsCanvas.setActiveObject(newImg);
           dsCanvas.renderAll();
           dsResetBgBtn(btn);
-          showDsMsg('success', 'Background removed! This runs in your browser and doesn\'t count toward your AI usage.');
+          showDsMsg('success', 'Background removed! This runs in your browser.');
         });
       }).catch(function(err) {
         console.error('BG removal error:', err);
@@ -30185,7 +30282,7 @@ function dsRemoveBg() {
 
   function dsResetBgBtn(b) {
     b.disabled = false;
-    b.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5l14 14M2 12a10 10 0 0 1 10-10M22 12a10 10 0 0 1-10 10"/></svg> AI Remove Background';
+    b.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5l14 14M2 12a10 10 0 0 1 10-10M22 12a10 10 0 0 1-10 10"/></svg> Remove Background';
   }
 
   if (_dsBgRemovalReady && _dsBgRemoveFunc) {
@@ -30194,14 +30291,14 @@ function dsRemoveBg() {
   }
 
   if (_dsBgRemovalLoading) {
-    showDsMsg('error', 'Still loading background removal model. Please wait...');
+    showDsMsg('error', 'Still loading the background removal model. Please wait...');
     btn.disabled = false;
     return;
   }
 
   _dsBgRemovalLoading = true;
-  btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" style="animation:btn-spin 0.6s linear infinite;" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Loading AI model...';
-  showDsMsg('success', 'Loading AI model. This may take a moment on first use...');
+  btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" style="animation:btn-spin 0.6s linear infinite;" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Loading model...';
+  showDsMsg('success', 'Loading the model. This may take a moment on first use...');
 
   // Load via inline module script to support ESM import
   var moduleScript = document.createElement('script');
