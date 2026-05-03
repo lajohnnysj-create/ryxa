@@ -6247,12 +6247,16 @@
                   <div class="ds-swatches-grid" id="ds-shape-swatch-grid"></div>
                 </div>
               </div>
-              <button onclick="dsToggleShapeFill()" class="ds-tool-btn" id="ds-shape-nofill-btn" title="Toggle fill on/off" style="width:auto;padding:0 8px;font-size:10px;" aria-label="Toggle fill">No fill</button>
-              <div style="width:1px;height:24px;background:var(--border);margin:0 2px;"></div>
+              <span id="ds-shape-nofill-wrap" style="display:flex;align-items:center;gap:6px;">
+                <button onclick="dsToggleShapeFill()" class="ds-tool-btn" id="ds-shape-nofill-btn" title="Toggle fill on/off" style="width:auto;padding:0 8px;font-size:10px;" aria-label="Toggle fill">No fill</button>
+                <div style="width:1px;height:24px;background:var(--border);margin:0 2px;"></div>
+              </span>
             </div>
-            <div style="font-size:11px;color:var(--muted);white-space:nowrap;">Stroke</div>
-            <input type="color" id="ds-shape-stroke-color" value="#ffffff" oninput="dsSetShapeStroke()" style="width:28px;height:28px;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:2px;" aria-label="Shape stroke color">
-            <input type="number" id="ds-shape-stroke-width" value="2" min="0" max="20" oninput="dsSetShapeStroke()" style="width:44px;padding:4px 4px;background:var(--surface);border:1px solid var(--border);border-radius:6px;font-size:11px;color:var(--text);text-align:center;" aria-label="Shape stroke width" title="Stroke width">
+            <div id="ds-shape-stroke-group" style="display:flex;align-items:center;gap:6px;">
+              <div style="font-size:11px;color:var(--muted);white-space:nowrap;">Stroke</div>
+              <input type="color" id="ds-shape-stroke-color" value="#ffffff" oninput="dsSetShapeStroke()" style="width:28px;height:28px;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:2px;" aria-label="Shape stroke color">
+              <input type="number" id="ds-shape-stroke-width" value="2" min="0" max="20" oninput="dsSetShapeStroke()" style="width:44px;padding:4px 4px;background:var(--surface);border:1px solid var(--border);border-radius:6px;font-size:11px;color:var(--text);text-align:center;" aria-label="Shape stroke width" title="Stroke width">
+            </div>
             <div id="ds-shape-radius-group" style="display:flex;align-items:center;gap:6px;">
               <div style="width:1px;height:24px;background:var(--border);margin:0 2px;"></div>
               <div style="font-size:11px;color:var(--muted);white-space:nowrap;">Radius</div>
@@ -27862,7 +27866,7 @@ function dsSetZoom(newZoom) {
   var dispH = Math.round(dsProjectH * newZoom);
 
   // Save canvas state
-  var json = dsCanvas.toJSON(['_dsShape', '_dsShapeType']);
+  var json = dsCanvas.toJSON(['_dsShape', '_dsShapeType', '_dsIconName', '_dsIconColor']);
   var oldW = dsCanvas.width;
   var oldH = dsCanvas.height;
   var ratio = newZoom / (dsCanvas._projectScale || 1);
@@ -27994,11 +27998,20 @@ function dsOnSelect() {
     ic.style.display = 'none';
     shc.style.display = 'flex';
     var isLineType = obj._dsShapeType === 'line';
+    var isIconType = obj._dsShapeType === 'icon';
     document.getElementById('ds-shape-fill-group').style.display = isLineType ? 'none' : 'flex';
     document.getElementById('ds-shape-radius-group').style.display = obj._dsShapeType === 'rect' ? 'flex' : 'none';
+    // Icons are raster images — stroke and "no fill" don't have a meaningful
+    // effect on them, so hide those controls. Fill still works (it re-fetches
+    // a recolored icon from Iconify).
+    document.getElementById('ds-shape-stroke-group').style.display = isIconType ? 'none' : 'flex';
+    document.getElementById('ds-shape-nofill-wrap').style.display = isIconType ? 'none' : 'flex';
     if (!isLineType) {
-      document.getElementById('ds-shape-fill').value = (obj.fill && obj.fill !== 'transparent') ? obj.fill : '#7c3aed';
-      document.getElementById('ds-shape-nofill-btn').classList.toggle('active', obj.fill === 'transparent' || obj.fill === '');
+      var fillVal = isIconType
+        ? (obj._dsIconColor || '#000000')
+        : ((obj.fill && obj.fill !== 'transparent') ? obj.fill : '#7c3aed');
+      document.getElementById('ds-shape-fill').value = fillVal;
+      document.getElementById('ds-shape-nofill-btn').classList.toggle('active', !isIconType && (obj.fill === 'transparent' || obj.fill === ''));
     }
     document.getElementById('ds-shape-stroke-color').value = obj.stroke || '#ffffff';
     document.getElementById('ds-shape-stroke-width').value = obj.strokeWidth || 0;
@@ -28652,6 +28665,8 @@ function dsAddIcon(iconName) {
     });
     img._dsShape = true;
     img._dsShapeType = 'icon';
+    img._dsIconName = iconName;
+    img._dsIconColor = '#000000';
     dsCanvas.add(img);
     dsCanvas.setActiveObject(img);
     dsCanvas.renderAll();
@@ -28675,6 +28690,8 @@ function dsAddIconAt(iconName, x, y) {
     });
     img._dsShape = true;
     img._dsShapeType = 'icon';
+    img._dsIconName = iconName;
+    img._dsIconColor = '#000000';
     dsCanvas.add(img);
     dsCanvas.setActiveObject(img);
     dsCanvas.renderAll();
@@ -28743,6 +28760,27 @@ function dsSetShapeFill(color) {
   if (!dsCanvas) return;
   var obj = dsCanvas.getActiveObject();
   if (!obj || !obj._dsShape) return;
+
+  // Icons are raster images of SVGs — setting `fill` does nothing visually.
+  // Re-fetch from Iconify with the new color and swap the underlying image
+  // element in place. Position, scale, rotation are preserved.
+  if (obj._dsShapeType === 'icon' && obj._dsIconName) {
+    var iconName = obj._dsIconName;
+    var hex = (color || '#000000').replace('#', '%23');
+    var url = 'https://api.iconify.design/' + iconName + '.svg?color=' + hex + '&height=120';
+    fabric.Image.fromURL(url, function(img) {
+      if (!img || !img._element) return;
+      // Verify the icon is still the active object — user may have clicked
+      // away while the fetch was in flight.
+      if (dsCanvas.getActiveObject() !== obj) return;
+      obj.setElement(img._element);
+      obj._dsIconColor = color;
+      dsCanvas.renderAll();
+      dsSaveState();
+    }, { crossOrigin: 'anonymous' });
+    return;
+  }
+
   obj.set('fill', color);
   document.getElementById('ds-shape-nofill-btn').classList.remove('active');
   dsCanvas.renderAll();
@@ -28949,14 +28987,14 @@ var dsUndoLock = false;
 
 function dsSaveState() {
   if (dsUndoLock || !dsCanvas) return;
-  dsUndoStack.push(JSON.stringify(dsCanvas.toJSON(['_dsShape', '_dsShapeType'])));
+  dsUndoStack.push(JSON.stringify(dsCanvas.toJSON(['_dsShape', '_dsShapeType', '_dsIconName', '_dsIconColor'])));
   if (dsUndoStack.length > 40) dsUndoStack.shift();
   dsRedoStack = [];
 }
 
 function dsUndo() {
   if (!dsCanvas || dsUndoStack.length === 0) return;
-  dsRedoStack.push(JSON.stringify(dsCanvas.toJSON(['_dsShape', '_dsShapeType'])));
+  dsRedoStack.push(JSON.stringify(dsCanvas.toJSON(['_dsShape', '_dsShapeType', '_dsIconName', '_dsIconColor'])));
   var state = dsUndoStack.pop();
   dsUndoLock = true;
   dsCanvas.loadFromJSON(state, function() {
@@ -28967,7 +29005,7 @@ function dsUndo() {
 
 function dsRedo() {
   if (!dsCanvas || dsRedoStack.length === 0) return;
-  dsUndoStack.push(JSON.stringify(dsCanvas.toJSON(['_dsShape', '_dsShapeType'])));
+  dsUndoStack.push(JSON.stringify(dsCanvas.toJSON(['_dsShape', '_dsShapeType', '_dsIconName', '_dsIconColor'])));
   var state = dsRedoStack.pop();
   dsUndoLock = true;
   dsCanvas.loadFromJSON(state, function() {
@@ -29672,7 +29710,7 @@ async function saveDesignProject() {
       dsCanvas._projectScale = 1;
     }
 
-    var canvasJSON = JSON.stringify(dsCanvas.toJSON(['_dsShape', '_dsShapeType']));
+    var canvasJSON = JSON.stringify(dsCanvas.toJSON(['_dsShape', '_dsShapeType', '_dsIconName', '_dsIconColor']));
 
     // Restore zoom after capturing JSON
     if (saveZoom !== 1) {
