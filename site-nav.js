@@ -314,7 +314,7 @@ function siteNavCheckAuth() {
   try {
     var sb = window.supabase ? window.supabase.createClient(
       'https://kjytapcgxukalwsyputk.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtqeXRhcGNneHVrYWx3c3lwdXRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1OTkyODYsImV4cCI6MjA1ODE3NTI4Nn0.lOEoyBEFMV0bRoGjLoGsu3gRT25xGSnmlaJ2cBn-xqA'
+      'sb_publishable_PLU28Un_GfsUXeUsK3zB9Q_hvNM7aeG'
     ) : null;
     if (sb) {
       sb.auth.getSession().then(function(res) {
