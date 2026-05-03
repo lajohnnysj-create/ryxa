@@ -3,208 +3,595 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" type="image/x-icon" href="/favicon.ico">
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-<title>Ryxa Hub</title>
-<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<link rel="icon" type="image/x-icon" href="/favicon.ico?v=2">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=2">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=2">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=2">
+<link rel="shortcut icon" href="/favicon.ico?v=2">
+<meta name="theme-color" content="#07070f">
+<title>Build a creator business that's actually yours | Ryxa</title>
+<meta name="description" content="The all-in-one creator platform with AI tools, custom link-in-bio, courses, coaching, and digital products. Free to start.">
+<meta name="keywords" content="creator tools, free creator tools, link in bio, follow-back audit, instagram unfollower tracker, media kit, grid planner, script builder, invoice generator, qr code generator, creator growth tools">
+<meta name="author" content="Ryxa">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://www.ryxa.io/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.ryxa.io/">
+<meta property="og:title" content="Build a creator business that's actually yours | Ryxa">
+<meta property="og:description" content="The all-in-one creator platform with AI tools, custom link-in-bio, courses, coaching, and digital products. Free to start.">
+<meta property="og:image" content="https://www.ryxa.io/og-image.png">
+<meta property="fb:pages" content="1075301354600244">
+<meta name="twitter:card" content="summary_large_image">
+<meta property="og:site_name" content="Ryxa">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "Ryxa",
+  "alternateName": ["Ryxa.io", "RYXA"],
+  "url": "https://ryxa.io/"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Ryxa",
+  "legalName": "MRLA Media LLC",
+  "url": "https://ryxa.io",
+  "logo": "https://ryxa.io/logo-black.png",
+  "sameAs": [
+    "https://www.instagram.com/ryxaforcreators"
+  ],
+  "contactPoint": {
+    "@type": "ContactPoint",
+    "email": "hello@ryxa.io",
+    "contactType": "customer support"
+  }
+}
+</script>
+<meta name="twitter:title" content="Build a creator business that's actually yours | Ryxa">
+<meta name="twitter:description" content="The all-in-one creator platform with AI tools, custom link-in-bio, courses, coaching, and digital products. 0% transaction fees. Free forever.">
+<meta name="twitter:image" content="https://www.ryxa.io/og-image.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
-    --bg: #000;
-    --surface: #0a0a0a;
-    --surface2: #0d0d0d;
-    --border: rgba(255,255,255,0.1);
-    --border-hover: rgba(255,255,255,0.2);
-    --text: #fff;
-    --text-secondary: rgba(255,255,255,0.7);
-    --muted: rgba(255,255,255,0.5);
-    --btn-bg: #fff;
-    --btn-text: #000;
-    --btn-outline-border: rgba(255,255,255,0.4);
-    --btn-outline-text: #fff;
-    --check-color: #fff;
+    --bg: #07070f;
+    --surface: #0f0f1a;
+    --surface2: #161625;
+    --border: rgba(255,255,255,0.07);
+    --border-hover: rgba(255,255,255,0.14);
+    --accent: #7c3aed;
+    --accent2: #a855f7;
+    --accent-glow: rgba(124,58,237,0.3);
+    --text: #f0eef8;
+    --muted: #b4b2c8;
+    --muted2: #c9c7dc;
   }
-  body.light-mode {
-    --bg: #fff;
-    --surface: #f2f2f2;
-    --surface2: #f8f8f8;
-    --border: rgba(0,0,0,0.1);
-    --border-hover: rgba(0,0,0,0.2);
-    --text: #000;
-    --text-secondary: rgba(0,0,0,0.7);
-    --muted: rgba(0,0,0,0.5);
-    --btn-bg: #000;
-    --btn-text: #fff;
-    --btn-outline-border: rgba(0,0,0,0.4);
-    --btn-outline-text: #000;
-    --check-color: #000;
-  }
-  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; transition: background 0.2s, color 0.2s; }
-
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scrollbar-width: thin; scrollbar-color: rgba(168,85,247,0.4) #0a0a14; }
   ::-webkit-scrollbar { width: 8px; }
-  ::-webkit-scrollbar-track { background: var(--bg); }
-  ::-webkit-scrollbar-thumb { background: rgba(128,128,128,0.4); border-radius: 10px; }
-  html { scrollbar-width: thin; scrollbar-color: rgba(128,128,128,0.4) var(--bg); }
+  ::-webkit-scrollbar-track { background: #0a0a14; }
+  ::-webkit-scrollbar-thumb { background: rgba(168,85,247,0.4); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(168,85,247,0.6); }
+  html { scroll-behavior: smooth; }
+  body { font-family: "DM Sans", sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+  nav { position: fixed; top: 0; left: 0; right: 0; z-index: 200; display: flex; align-items: center; justify-content: space-between; padding: 0 48px; height: 68px; background: rgba(7,7,15,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); }
+  .logo { font-family: "Syne", sans-serif; font-weight: 800; font-size: 22px; letter-spacing: -0.5px; display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); }
+  .logo img { width: 38px; height: 38px; object-fit: contain; }
+  .logo-icon { width: 32px; height: 32px; background: linear-gradient(135deg, var(--accent), var(--accent2)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .nav-links { display: flex; align-items: center; gap: 32px; }
+  .nav-links a { color: var(--muted); font-size: 14px; text-decoration: none; transition: color 0.2s; }
+  .nav-links a:hover { color: var(--text); }
 
-  /* Nav - always dark */
-  .nav { padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); background: #000; }
-  .nav-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; color: #fff; font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; letter-spacing: -0.4px; }
-  .nav-logo img { width: 28px; height: 28px; border-radius: 6px; }
-  .nav-right { display: flex; gap: 10px; align-items: center; }
-  .nav-btn { padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; text-decoration: none; border: none; transition: all 0.15s; }
-  .nav-btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.4); color: #fff; }
-  .nav-btn-outline:hover { background: #111; }
-  .nav-btn-signout { background: #7c3aed; color: #fff; border: none; box-shadow: 0 0 16px rgba(124,58,237,0.35); }
-  .nav-btn-signout:hover { background: #6d28d9; }
-  .nav-user { font-size: 13px; color: #fff; }
-  .nav-menu-wrap { position: relative; }
-  .nav-menu-btn { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.15s; color: #fff; }
-  .nav-menu-btn:hover { background: rgba(255,255,255,0.18); }
-  .nav-menu-btn svg { width: 18px; height: 18px; }
-  .nav-menu-dropdown { display: none; position: absolute; top: calc(100% + 8px); right: 0; background: #111; border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 8px; min-width: 220px; box-shadow: 0 12px 40px rgba(0,0,0,0.5); z-index: 100; }
-  .nav-menu-dropdown.open { display: block; }
-  .nav-menu-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; font-size: 13px; color: rgba(255,255,255,0.8); cursor: pointer; transition: background 0.12s; border: none; background: none; width: 100%; text-align: left; font-family: 'DM Sans', sans-serif; }
-  .nav-menu-item:hover { background: rgba(255,255,255,0.06); }
-  .nav-menu-item svg { width: 16px; height: 16px; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-  .nav-menu-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 4px 0; }
-  .nav-menu-email { padding: 10px 12px; font-size: 12px; color: rgba(255,255,255,0.7); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; align-items: center; }
+  /* Tools dropdown */
+  .nav-tools-wrap { position: relative; display: flex; align-items: center; }
+  .nav-tools-trigger { display: inline-flex; align-items: center; gap: 5px; color: var(--muted); font-size: 14px; cursor: pointer; background: none; border: none; font-family: 'DM Sans', sans-serif; padding: 0; transition: color 0.2s; }
+  .nav-tools-trigger:hover, .nav-tools-wrap:hover .nav-tools-trigger { color: var(--text); }
+  .nav-tools-trigger svg { transition: transform 0.2s; }
+  .nav-tools-wrap:hover .nav-tools-trigger svg { transform: rotate(180deg); }
+  .nav-tools-menu { position: absolute; top: 100%; left: 0; transform: translateY(8px); width: 720px; max-width: calc(100vw - 32px); background: rgba(15,15,26,0.98); backdrop-filter: blur(20px); border: 1px solid var(--border-hover); border-radius: 16px; padding: 18px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); opacity: 0; pointer-events: none; transition: opacity 0.18s, transform 0.18s; z-index: 250; }
+  .nav-tools-wrap:hover .nav-tools-menu { opacity: 1; pointer-events: all; transform: translateY(0); }
+  /* Invisible bridge to prevent flicker between trigger and menu */
+  .nav-tools-wrap::before { content: ''; position: absolute; top: 100%; left: 0; right: 0; height: 12px; }
+  .nav-tools-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+  .nav-tools-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px; border-radius: 10px; text-decoration: none; transition: background 0.15s; color: inherit; }
+  .nav-tools-item:hover { background: rgba(124,58,237,0.08); }
+  .nav-tools-item-icon { width: 36px; height: 36px; border-radius: 9px; background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #c4b5fd; }
+  .nav-tools-item-icon svg { width: 17px; height: 17px; }
+  .nav-tools-item-content { flex: 1; min-width: 0; }
+  .nav-tools-item-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; color: var(--text); margin-bottom: 2px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .nav-tools-item-desc { font-size: 12px; color: var(--muted); line-height: 1.4; }
+  .nav-tools-tier.popular { background: rgba(250,204,21,0.15); border: 1px solid rgba(250,204,21,0.3); color: #fbbf24; }
+  .nav-tools-tier { font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; vertical-align: middle; }
+  .nav-tools-tier.pro { background: rgba(124,58,237,0.15); border: 1px solid rgba(124,58,237,0.3); color: #c4b5fd; }
+  .nav-tools-tier.free { background: rgba(74,222,128,0.12); border: 1px solid rgba(74,222,128,0.3); color: #4ade80; }
+  .nav-tools-tier.max { background: linear-gradient(135deg,#a78bfa,#e879f9); color: #fff; border: none; }
+  .nav-tools-footer { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .nav-tools-footer-link { font-size: 12px; color: var(--accent2); text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 4px; }
+  .nav-tools-footer-link:hover { color: #c4b5fd; }
+  .nav-right { display: flex; align-items: center; gap: 12px; }
+  .btn-ghost { background: transparent; border: 1px solid var(--border-hover); color: var(--text); border-radius: 8px; padding: 8px 20px; font-size: 14px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.2s; }
+  .btn-ghost:hover { border-color: var(--accent2); color: var(--accent2); }
+  .btn-nav-cta { background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 9px 22px; font-size: 14px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.2s; box-shadow: 0 0 20px var(--accent-glow); }
+  .btn-nav-cta:hover { background: var(--accent2); transform: translateY(-1px); }
+  .hamburger { display: none; flex-direction: column; justify-content: center; gap: 5px; background: none; border: none; cursor: pointer; padding: 6px; }
+  .hamburger span { display: block; width: 22px; height: 2px; background: var(--text); border-radius: 2px; transition: all 0.25s; }
+  .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .hamburger.open span:nth-child(2) { opacity: 0; }
+  .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+  .mobile-menu { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 300; flex-direction: column; padding: 80px 32px 40px; pointer-events: none; }
+  .mobile-menu.open { display: flex; pointer-events: all; }
+  .mobile-menu-links { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+  .mobile-menu-links a { color: var(--text); font-size: 24px; font-family: "Syne", sans-serif; font-weight: 700; text-decoration: none; padding: 14px 0; border-bottom: 1px solid var(--border); transition: color 0.2s; }
+  .mobile-menu-links a:hover { color: var(--accent2); }
+  .mobile-menu-bottom { margin-top: 32px; display: flex; flex-direction: column; gap: 12px; }
+  .mobile-cta { width: 100%; padding: 16px; background: var(--accent); color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; text-decoration: none; display: block; text-align: center; }
+  .mobile-signin { width: 100%; padding: 16px; background: transparent; border: 1px solid var(--border-hover); color: var(--text); border-radius: 12px; font-size: 16px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; text-decoration: none; display: block; text-align: center; }
+  .modal-backdrop { display: none; position: fixed; inset: 0; z-index: 500; background: rgba(0,0,0,0.75); backdrop-filter: blur(4px); align-items: center; justify-content: center; }
+  .modal-backdrop.open { display: flex; }
+  .modal { background: var(--surface); border: 1px solid var(--border-hover); border-radius: 20px; padding: 28px 30px; width: 100%; max-width: 400px; max-height: 92vh; overflow-y: auto; position: relative; display: flex; flex-direction: column; }
+  .modal-close { position: absolute; top: 14px; right: 14px; background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer; line-height: 1; }
+  .modal h2 { font-family: "Syne", sans-serif; font-size: 22px; font-weight: 800; margin-bottom: 4px; letter-spacing: -0.5px; text-align: center; }
+  .modal p { color: var(--muted); font-size: 13px; margin-bottom: 18px; text-align: center; }
+  .auth-tabs { display: flex; gap: 4px; padding: 4px; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 16px; }
+  .auth-tab { flex: 1; background: transparent; border: none; color: var(--muted); font-size: 13px; font-weight: 600; font-family: "DM Sans", sans-serif; padding: 8px 8px; cursor: pointer; border-radius: 7px; transition: all 0.15s; }
+  .auth-tab:hover { color: var(--text); }
+  .auth-tab.active { background: var(--accent); color: #fff; box-shadow: 0 2px 8px rgba(124,58,237,0.3); }
+  .google-btn { width: 100%; padding: 11px; background: #fff; color: #1f1f1f; border: 1px solid var(--border-hover); border-radius: 10px; font-size: 14px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 10px; }
+  .google-btn:hover { background: #f8f8f8; border-color: var(--accent); }
+  .google-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+  .auth-divider { display: flex; align-items: center; gap: 12px; margin: 10px 0 12px 0; }
+  .auth-divider::before, .auth-divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+  .auth-divider span { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
+  .modal-input { width: 100%; background: var(--surface2); border: 1px solid var(--border-hover); border-radius: 10px; padding: 11px 14px; font-size: 14px; color: var(--text); font-family: "DM Sans", sans-serif; margin-bottom: 10px; outline: none; transition: border-color 0.2s; }
+  .modal-input:focus { border-color: var(--accent); }
+  .modal-btn { width: 100%; padding: 12px; background: var(--accent); color: #fff; border: none; border-radius: 10px; font-size: 14px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.2s; margin-top: 4px; box-shadow: 0 0 30px var(--accent-glow); }
+  .modal-btn:hover { background: var(--accent2); }
+  .modal-btn:disabled { background: var(--muted2); cursor: not-allowed; box-shadow: none; }
+  .modal-switch { text-align: center; margin-top: 20px; font-size: 13px; color: var(--muted); }
+  .modal-switch a { color: var(--accent2); cursor: pointer; text-decoration: none; }
+  .modal-msg { padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 12px; display: none; }
+  .modal-msg.error { background: rgba(239,68,68,0.1); color: #fca5a5; border: 1px solid rgba(239,68,68,0.2); }
+  .modal-msg.success { background: rgba(74,222,128,0.1); color: #86efac; border: 1px solid rgba(74,222,128,0.2); }
+  .forgot-link { text-align: right; font-size: 12px; color: var(--muted); cursor: pointer; margin-top: -6px; margin-bottom: 12px; display: block; }
+  .forgot-link:hover { color: var(--accent2); }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .auth-spinner { display: inline-block; width: 15px; height: 15px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 8px; }
+  .hero { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 120px 24px 60px; text-align: left; position: relative; overflow-x: clip; }
+  .hero-bg { position: absolute; inset: 0; pointer-events: none; z-index: 0; background: radial-gradient(ellipse 60% 50% at 20% 30%, rgba(124,58,237,0.08) 0%, transparent 70%); }
+  .grid-lines { position: absolute; inset: 0; pointer-events: none; z-index: 0; background-image: linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px); background-size: 60px 60px; mask-image: radial-gradient(ellipse at 50% 30%, black 0%, transparent 70%); }
+  .hero-content { position: relative; z-index: 1; max-width: 1100px; width: 100%; }
+  .hero-split { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
+  .hero-left { display: flex; flex-direction: column; align-items: flex-start; padding-left: 40px; padding-top: 30px; }
+  .hero h1 { font-family: "Syne", sans-serif; font-size: clamp(30px, 4vw, 42px); font-weight: 800; letter-spacing: -1.5px; line-height: 1.15; margin-bottom: 20px; color: #fff; }
+  .gradient-text { background: linear-gradient(135deg, #a78bfa, #e879f9, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .hero-sub { font-size: clamp(15px, 2vw, 17px); color: var(--muted); line-height: 1.7; max-width: 480px; margin: 0 0 32px; font-weight: 400; }
+  .hero-eyebrow { font-family: "DM Sans", sans-serif; font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.6); letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 18px; }
+  .hero-actions { display: flex; gap: 14px; flex-wrap: nowrap; }
+  .hero-trust { margin-top: 16px; font-size: 13px; color: rgba(255,255,255,0.55); font-weight: 400; letter-spacing: 0.01em; }
+  @media (max-width: 600px) {
+    .hero-actions { gap: 10px; }
+    .hero-actions .btn-primary,
+    .hero-actions .btn-secondary { padding: 13px 20px; font-size: 14px; }
+  }
+  /* Screen mockup for hero */
+  .hero-phone { position: relative; display: flex; justify-content: center; padding: 20px 60px 20px 20px; }
+  .hero-phone-device { background: var(--bg); border: 1.5px solid rgba(232,121,249,0.3); border-radius: 16px; padding: 0; box-shadow: 0 20px 50px rgba(0,0,0,0.4), 0 0 30px rgba(124,58,237,0.1); width: 220px; transform: perspective(800px) rotateY(-12deg) rotateX(3deg) translateY(-10px); transition: transform 0.4s ease; position: relative; z-index: 4; overflow: hidden; }
+  .hero-phone-device:hover { transform: perspective(800px) rotateY(-5deg) rotateX(1deg) translateY(-10px); }
+  /* Layered ghost screens — fanning to the right */
+  .hero-phone::before,
+  .hero-phone::after,
+  .hero-phone-ghost-3 {
+    content: '';
+    position: absolute;
+    width: 220px;
+    height: 100%;
+    max-height: 400px;
+    border-radius: 16px;
+    top: 50%;
+    left: 50%;
+  }
+  .hero-phone::before {
+    background: linear-gradient(135deg, rgba(124,58,237,0.12), rgba(232,121,249,0.06));
+    border: 1px solid rgba(232,121,249,0.18);
+    transform: translate(-42%, -50%) perspective(800px) rotateY(-8deg) rotateX(2deg) translateX(18px) translateY(-5px);
+    z-index: 3;
+    filter: blur(0.5px);
+  }
+  .hero-phone::after {
+    background: linear-gradient(135deg, rgba(124,58,237,0.08), rgba(232,121,249,0.04));
+    border: 1px solid rgba(232,121,249,0.12);
+    transform: translate(-35%, -50%) perspective(800px) rotateY(-4deg) rotateX(1deg) translateX(36px) translateY(0px);
+    z-index: 2;
+    filter: blur(1px);
+  }
+  .hero-phone-ghost-3 {
+    background: linear-gradient(135deg, rgba(124,58,237,0.04), rgba(232,121,249,0.02));
+    border: 1px solid rgba(232,121,249,0.07);
+    transform: translate(-28%, -50%) perspective(800px) rotateY(0deg) translateX(54px) translateY(5px);
+    z-index: 1;
+    filter: blur(2px);
+  }
+  .hero-phone-ghost-4 {
+    position: absolute; width: 220px; height: 100%; max-height: 400px; border-radius: 16px; top: 50%; left: 50%;
+    background: linear-gradient(135deg, rgba(124,58,237,0.03), rgba(232,121,249,0.015));
+    border: 1px solid rgba(232,121,249,0.05);
+    transform: translate(-21%, -50%) perspective(800px) rotateY(4deg) translateX(72px) translateY(8px);
+    z-index: 0;
+    filter: blur(3px);
+    display: none;
+  }
+  .hero-phone-ghost-5 {
+    position: absolute; width: 220px; height: 100%; max-height: 400px; border-radius: 16px; top: 50%; left: 50%;
+    background: linear-gradient(135deg, rgba(124,58,237,0.02), rgba(232,121,249,0.01));
+    border: 1px solid rgba(232,121,249,0.035);
+    transform: translate(-14%, -50%) perspective(800px) rotateY(8deg) translateX(90px) translateY(10px);
+    z-index: 0;
+    filter: blur(4px);
+    display: none;
+  }
+  .hero-phone-ghost-6 {
+    position: absolute; width: 220px; height: 100%; max-height: 400px; border-radius: 16px; top: 50%; left: 50%;
+    background: linear-gradient(135deg, rgba(124,58,237,0.01), rgba(232,121,249,0.005));
+    border: 1px solid rgba(232,121,249,0.02);
+    transform: translate(-7%, -50%) perspective(800px) rotateY(12deg) translateX(108px) translateY(12px);
+    z-index: 0;
+    filter: blur(5px);
+    display: none;
+  }
+  /* Feature beams from phone */
+  .hero-beams { position:absolute; left:-10px; top:50%; transform:translateY(-50%); z-index:5; pointer-events:none; display:flex; flex-direction:column; align-items:flex-end; gap:0; }
+  .hero-beam { position:relative; display:flex; align-items:center; flex-direction:row-reverse; }
+  .hero-beam-line { width:50px; height:2px; flex-shrink:0; position:relative; }
+  .hero-beam-line::before { content:''; position:absolute; left:0; top:50%; transform:translateY(-50%); width:100%; height:20px; clip-path:polygon(0% 0%, 100% 40%, 100% 60%, 0% 100%); }
+  .beam-up .hero-beam-line::before { background:linear-gradient(270deg,rgba(232,121,249,0.4),rgba(232,121,249,0.05)); }
+  .beam-mid .hero-beam-line::before { background:linear-gradient(270deg,rgba(167,139,250,0.4),rgba(167,139,250,0.05)); }
+  .beam-down .hero-beam-line::before { background:linear-gradient(270deg,rgba(124,58,237,0.4),rgba(124,58,237,0.05)); }
+  .hero-beam-badge { padding:7px 14px; background:rgba(15,15,26,0.85); border:1px solid rgba(232,121,249,0.2); border-radius:20px; font-size:12px; font-weight:600; color:#e9c4f7; backdrop-filter:blur(8px); box-shadow:0 0 15px rgba(232,121,249,0.06); white-space:nowrap; display:inline-flex; align-items:center; gap:8px; transition:transform 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s ease, border-color 0.25s ease; cursor:default; pointer-events:auto; }
+  .hero-beam-badge:hover { transform:scale(1.12); box-shadow:0 0 25px rgba(232,121,249,0.2); border-color:rgba(232,121,249,0.45); }
+  .hero-beam-badge svg { width:16px; height:16px; flex-shrink:0; filter:drop-shadow(0 0 4px currentColor); transition:transform 0.25s ease; }
+  .hero-beam-badge:hover svg { transform:scale(1.15); }
+  .beam-up { transform:translateY(-40px); }
+  .beam-mid { transform:translateY(0); }
+  .beam-down { transform:translateY(40px); }
+  @media (max-width:900px) { .hero-beams { display:none; } }
+  .hero-phone-screen { overflow: hidden; }
+  .hero-phone-screen img { width: 100%; height: auto; display: block; }
+  .hero-phone-placeholder { width: 100%; height: 100%; background: var(--surface); display: flex; flex-direction: column; padding: 16px; gap: 8px; }
+  .hero-phone-placeholder-bar { height: 10px; background: var(--surface2); border-radius: 4px; }
+  .hero-phone-placeholder-bar.short { width: 60%; }
+  @media (max-width: 768px) {
+    .hero-split { grid-template-columns: 1fr; gap: 40px; text-align: center; }
+    .hero-left { align-items: center; padding-left: 0; padding-top: 0; }
+    .hero-sub { margin: 0 auto 32px; }
+    .hero-actions { justify-content: center; }
+    .hero-phone-device { width: 120px; transform: perspective(600px) rotateY(-20deg) rotateX(6deg) translateY(-15px); border-radius: 10px; }
+    .hero-phone-device:hover { transform: perspective(600px) rotateY(-20deg) rotateX(6deg) translateY(-15px); }
+    .hero-phone { padding: 10px 15px 10px 20px; justify-content: center; margin-left: 40px; }
+    .hero-phone::before,
+    .hero-phone::after {
+      display: block;
+      width: 120px;
+      max-height: 220px;
+      border-radius: 10px;
+      left: 50%;
+      right: auto;
+      top: 50%;
+    }
+    .hero-phone::before {
+      transform: translate(-50%, -50%) perspective(600px) rotateY(-14deg) rotateX(4deg) translateX(12px) translateY(-6px);
+      z-index: 3;
+    }
+    .hero-phone::after {
+      transform: translate(-50%, -50%) perspective(600px) rotateY(-8deg) rotateX(2deg) translateX(28px) translateY(-3px);
+      z-index: 2;
+    }
+    .hero-phone-ghost-3 {
+      display: block;
+      width: 120px;
+      max-height: 220px;
+      border-radius: 10px;
+      left: 50%;
+      right: auto;
+      top: 50%;
+      transform: translate(-50%, -50%) perspective(600px) rotateY(-2deg) translateX(44px) translateY(0px);
+      z-index: 1;
+    }
+    .hero-phone-ghost-4 {
+      display: block;
+      width: 120px; max-height: 220px; border-radius: 10px; left: 50%; right: auto; top: 50%;
+      transform: translate(-50%, -50%) perspective(600px) rotateY(4deg) translateX(60px) translateY(3px);
+    }
+    .hero-phone-ghost-5 {
+      display: block;
+      width: 120px; max-height: 220px; border-radius: 10px; left: 50%; right: auto; top: 50%;
+      transform: translate(-50%, -50%) perspective(600px) rotateY(8deg) translateX(76px) translateY(5px);
+    }
+    .hero-phone-ghost-6 {
+      display: block;
+      width: 120px; max-height: 220px; border-radius: 10px; left: 50%; right: auto; top: 50%;
+      transform: translate(-50%, -50%) perspective(600px) rotateY(12deg) translateX(92px) translateY(7px);
+    }
+    .hero-phone-screen { border-radius: 10px; }
+    .hero { padding: 60px 20px 40px; }
+  }
 
-  /* Marketplace search */
-  .mp-search-wrap { position:relative; }
-  .mp-search-wrap svg { position:absolute; left:14px; top:50%; transform:translateY(-50%); width:16px; height:16px; stroke:var(--muted); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; pointer-events:none; }
-  .mp-search { width:100%; padding:12px 14px 12px 40px; background:var(--surface); border:1px solid var(--border); border-radius:10px; font-size:14px; color:var(--text); font-family:'DM Sans',sans-serif; outline:none; transition:border-color 0.15s; }
-  .mp-search:focus { border-color:rgba(124,58,237,0.5); }
-  .mp-search::placeholder { color:var(--muted); }
-  .mp-empty { padding:32px 20px; text-align:center; color:var(--muted); font-size:13px; }
-  .mp-item { display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:10px; text-decoration:none; color:var(--text); transition:background 0.12s; cursor:pointer; }
-  .mp-item:hover { background:var(--surface); }
-  .mp-item-cover { width:48px; height:32px; border-radius:6px; background:var(--surface); object-fit:cover; flex-shrink:0; }
-  .mp-item-info { flex:1; min-width:0; }
-  .mp-item-title { font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .mp-item-creator { font-size:11px; color:var(--muted); margin-top:2px; }
-  .mp-item-price { font-family:'Syne',sans-serif; font-size:14px; font-weight:700; color:#7c3aed; flex-shrink:0; }
-  .mp-item-type { font-size:9px; font-weight:600; letter-spacing:0.05em; text-transform:uppercase; padding:2px 6px; border-radius:4px; flex-shrink:0; }
-  .mp-item-type.course { background:rgba(124,58,237,0.1); color:#7c3aed; border:1px solid rgba(124,58,237,0.2); }
-  .mp-item-type.coaching { background:rgba(232,121,249,0.1); color:#e879f9; border:1px solid rgba(232,121,249,0.2); }
-  .theme-switch { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
-  .theme-switch-label { font-size: 11px; color: rgba(255,255,255,0.6); font-family: 'DM Sans', sans-serif; }
-  .theme-switch-track { width: 36px; height: 20px; background: rgba(255,255,255,0.25); border-radius: 100px; position: relative; transition: background 0.2s; flex-shrink: 0; }
-  .theme-switch-track.on { background: #fff; }
-  .theme-switch-thumb { width: 16px; height: 16px; background: #fff; border-radius: 50%; position: absolute; top: 2px; left: 2px; transition: transform 0.2s; }
-  .theme-switch-track.on .theme-switch-thumb { transform: translateX(16px); background: #000; }
+  /* TESTIMONIALS */
+  .testimonials-section { margin: 0 0 56px; padding: 0; overflow: hidden; align-self: stretch; margin-left: -24px; margin-right: -24px; margin-top: 60px; }
+  .testimonials-heading { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 800; text-align: center; margin: 0 auto 28px; color: #fff; letter-spacing: -0.3px; padding: 0 20px; width: 100%; box-sizing: border-box; }
+  .testimonials-heading span { background: linear-gradient(135deg, #a78bfa, #e879f9); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .testimonials-track-wrap { position: relative; display: flex; align-items: center; gap: 12px; padding: 0 20px; }
+  .testimonials-track { display: flex; gap: 20px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; scrollbar-width: none; -ms-overflow-style: none; padding: 8px 0; flex: 1; min-width: 0; -webkit-overflow-scrolling: touch; }
+  .testimonials-track::-webkit-scrollbar { display: none; }
+  .testimonial-arrow { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: all 0.2s; z-index: 2; }
+  .testimonial-arrow:hover { color: var(--text); border-color: var(--accent); background: rgba(124,58,237,0.1); }
+  .testimonial-card { position: relative; width: 380px; min-width: 380px; border-radius: 20px; overflow: hidden; flex-shrink: 0; scroll-snap-align: center; scroll-snap-stop: always; }
+  .testimonial-card-inner { position: relative; border-radius: 20px; overflow: hidden; height: 100%; isolation: isolate; -webkit-mask-image: -webkit-radial-gradient(white, black); }
+  .testimonial-bg { position: absolute; inset: 0; background-size: cover; background-position: center top; filter: brightness(0.45); z-index: 0; transition: transform 0.5s ease; }
+  .testimonial-bg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.6) 60%, rgba(0,0,0,0.88) 100%); }
+  .testimonial-card:hover .testimonial-bg { transform: scale(1.08); }
+  .testimonial-card.testimonial-active .testimonial-bg { transform: scale(1.12); transition: transform 2.5s ease-out; }
+  .testimonial-content { position: relative; z-index: 1; padding: 32px 28px 28px; display: flex; flex-direction: column; min-height: 280px; justify-content: flex-end; text-align: left; }
+  .testimonial-stars { color: #facc15; font-size: 18px; letter-spacing: 2px; margin-bottom: 16px; }
+  .testimonial-quote { font-size: 15px; line-height: 1.65; color: #f0eef8; margin-bottom: 20px; font-style: italic; }
+  .testimonial-author { display: flex; align-items: center; gap: 12px; }
+  .testimonial-avatar { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(124,58,237,0.5); flex-shrink: 0; }
+  .testimonial-name { font-size: 14px; font-weight: 600; color: #fff; }
+  .testimonial-handle { font-size: 12px; color: var(--accent2); }
+  @media (max-width: 600px) {
+    .testimonials-heading { font-size: 13px; letter-spacing: -0.2px; margin-bottom: 20px; }
+    .testimonial-card { width: 300px; min-width: 300px; }
+    .testimonial-content { padding: 24px 20px 22px; min-height: 260px; }
+    .testimonials-track { gap: 16px; }
+    .testimonial-arrow { width: 34px; height: 34px; }
+    .testimonials-track-wrap { padding: 0 12px; gap: 8px; }
+  }
+  .btn-primary { background: var(--accent); color: #fff; border: none; border-radius: 10px; padding: 15px 36px; font-size: 16px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.25s; box-shadow: 0 0 40px var(--accent-glow); text-decoration: none; display: inline-block; }
+  .btn-primary:hover { background: var(--accent2); transform: translateY(-2px); }
+  .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border-hover); border-radius: 10px; padding: 15px 36px; font-size: 16px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.25s; text-decoration: none; display: inline-block; }
+  .btn-secondary:hover { border-color: var(--accent2); color: var(--accent2); transform: translateY(-1px); }
+  .hero-mockup { position: relative; display: inline-block; perspective: 1200px; margin-bottom: 80px; }
+  .mockup-frame { width: min(820px, 90vw); background: var(--surface); border: 1px solid rgba(124,58,237,0.3); border-radius: 16px; overflow: hidden; transform: rotateX(8deg) rotateY(-6deg) rotateZ(1deg); box-shadow: 0 40px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(124,58,237,0.2); transition: transform 0.4s ease; }
+  .mockup-frame:hover { transform: rotateX(4deg) rotateY(-3deg) rotateZ(0.5deg); }
+  .mockup-titlebar { background: var(--surface2); padding: 10px 16px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border); }
+  .mockup-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .mockup-dot.red { background: #ff5f57; }
+  .mockup-dot.yellow { background: #febc2e; }
+  .mockup-dot.green { background: #28c840; }
+  .mockup-url { background: var(--surface); border-radius: 6px; padding: 4px 12px; font-size: 11px; color: var(--muted); margin-left: 8px; flex: 1; max-width: 260px; }
+  .mockup-body { display: flex; min-height: 380px; }
+  .mockup-sidebar { width: 220px; background: rgba(0,0,0,0.2); border-right: 1px solid var(--border); padding: 18px 12px; display: flex; flex-direction: column; gap: 3px; flex-shrink: 0; }
+  .mockup-logo { display: flex; align-items: center; gap: 8px; padding: 6px 8px; margin-bottom: 12px; }
+  .mockup-logo-text { font-family: "Syne", sans-serif; font-size: 15px; font-weight: 800; color: var(--text); letter-spacing: -0.2px; }
+  .mockup-section-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted2); font-weight: 600; padding: 6px 10px 4px; }
+  .mockup-nav-item { padding: 8px 10px; border-radius: 7px; font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+  .mockup-nav-item.active { background: rgba(124,58,237,0.15); color: #c4b5fd; border: 1px solid rgba(124,58,237,0.2); }
+  .mockup-nav-icon { width: 15px; height: 15px; stroke: #fff; stroke-width: 1.8; fill: none; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+  .mockup-nav-item.active .mockup-nav-icon { stroke: #c4b5fd; }
 
-  /* Auth form */
-  .auth-wrap { max-width: 400px; margin: 80px auto; padding: 0 24px; }
-  .auth-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 16px; padding: 32px; }
-  .auth-title { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; margin-bottom: 6px; letter-spacing: -0.5px; text-align: center; }
-  .auth-sub { font-size: 14px; color: var(--muted); text-align: center; margin-bottom: 24px; }
-  .auth-input { width: 100%; padding: 12px 16px; background: var(--surface); border: 1px solid var(--border-hover); border-radius: 8px; font-size: 14px; color: var(--text); font-family: 'DM Sans', sans-serif; outline: none; margin-bottom: 12px; box-sizing: border-box; }
-  .auth-input:focus { border-color: var(--btn-outline-text); }
-  .auth-btn { width: 100%; padding: 13px; background: var(--btn-bg); color: var(--btn-text); border: none; border-radius: 8px; font-size: 15px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; margin-top: 4px; }
-  .auth-toggle { font-size: 13px; color: var(--muted); text-align: center; margin-top: 16px; }
-  .auth-toggle a { color: var(--text); cursor: pointer; text-decoration: underline; font-weight: 600; }
-  .auth-error { font-size: 13px; color: #f87171; text-align: center; margin-top: 12px; display: none; }
+  /* Max user sidebar styling (mirrors real dashboard body.max-user) */
+  .mockup-sidebar-max { background: linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(167,139,250,0.05) 70%, rgba(232,121,249,0.08) 100%); }
+  .mockup-sidebar-max .mockup-nav-item.active {
+    background: linear-gradient(135deg, rgba(167,139,250,0.18), rgba(232,121,249,0.18));
+    border: 1px solid rgba(232,121,249,0.35);
+    color: #f0abfc;
+    box-shadow: 0 0 12px rgba(232,121,249,0.15);
+  }
+  .mockup-sidebar-max .mockup-nav-item.active .mockup-nav-icon { stroke: #f0abfc; }
 
-  /* Dashboard */
-  .dash-wrap { max-width: 960px; margin: 0 auto; padding: 40px 32px; }
-  .dash-title { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; letter-spacing: -1px; margin-bottom: 24px; }
-  .courses-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
-  .course-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; cursor: pointer; transition: border-color 0.15s; text-decoration: none; color: var(--text); display: block; }
-  .course-card:hover { border-color: var(--btn-outline-text); }
-  .course-card-cover { height: 140px; background: var(--surface); display: flex; align-items: center; justify-content: center; font-size: 32px; background-size: cover; background-position: center; }
-  .course-card-body { padding: 14px 16px; }
-  .course-card-title { font-size: 15px; font-weight: 600; margin-bottom: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .course-card-creator { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
-  .course-card-progress { height: 4px; background: var(--border-hover); border-radius: 100px; overflow: hidden; }
-  .course-card-progress-bar { height: 100%; background: var(--text); border-radius: 100px; transition: width 0.3s; }
-  .empty-state { text-align: center; padding: 60px 24px; color: var(--muted); font-size: 14px; }
-  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  /* Sidebar bottom user card */
+  .mockup-sidebar-bottom {
+    margin-top: auto;
+    padding: 10px 8px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .mockup-sidebar-max .mockup-sidebar-bottom {
+    background: linear-gradient(135deg, rgba(167,139,250,0.1), rgba(232,121,249,0.1));
+    border-top-color: rgba(232,121,249,0.25);
+    border-radius: 8px;
+    padding: 10px;
+    margin-top: 12px;
+    box-shadow: 0 0 14px rgba(232,121,249,0.1);
+  }
+  .mockup-sidebar-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #a78bfa, #e879f9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Syne", sans-serif;
+    font-size: 12px;
+    font-weight: 800;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .mockup-sidebar-user { flex: 1; min-width: 0; }
+  .mockup-sidebar-name { font-size: 12px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mockup-sidebar-tier {
+    font-size: 12px;
+    font-weight: 600;
+    background: linear-gradient(135deg, #a78bfa, #e879f9);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 0.02em;
+  }
 
-  /* Course Viewer - Page by page layout */
-  .viewer-wrap { max-width: 900px; margin: 0 auto; padding: 32px; }
-  .viewer-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
-  .viewer-back { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; background: transparent; border: 1px solid var(--btn-outline-border); color: var(--text); border-radius: 8px; font-size: 12px; font-family: 'DM Sans', sans-serif; cursor: pointer; text-decoration: none; }
-  .viewer-back:hover { background: var(--surface); }
-  .viewer-title { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; letter-spacing: -0.5px; flex: 1; }
-  .viewer-toc-btn { padding: 8px 14px; background: transparent; border: 1px solid var(--btn-outline-border); color: var(--text); border-radius: 8px; font-size: 12px; font-family: 'DM Sans', sans-serif; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
-  .viewer-toc-btn:hover { background: var(--surface); }
-  .viewer-toc { display: none; background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 24px; }
-  .viewer-toc.open { display: block; }
-  .viewer-sidebar { display: flex; flex-direction: column; gap: 4px; }
-  .viewer-module-title { font-size: 11px; color: var(--text); font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding: 12px 0 4px; }
-  .viewer-module-title:first-child { padding-top: 0; }
-  .viewer-lesson-btn { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: transparent; border: 1px solid transparent; border-radius: 10px; cursor: pointer; transition: all 0.15s; font-size: 13px; color: var(--text-secondary); text-align: left; width: 100%; font-family: 'DM Sans', sans-serif; }
-  .viewer-lesson-btn:hover { background: var(--surface); color: var(--text); }
-  .viewer-lesson-btn.active { border-color: var(--text); background: var(--surface); color: var(--text); }
-  .viewer-lesson-btn.completed { color: var(--check-color); }
-  .viewer-check { width: 18px; height: 18px; flex-shrink: 0; text-align: center; }
-  .viewer-content { background: var(--surface2); border: 1px solid var(--border); border-radius: 16px; padding: 28px; min-height: 300px; }
-  .viewer-lesson-header { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
-  .viewer-lesson-title { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; letter-spacing: -0.4px; margin-bottom: 20px; }
-  .viewer-video { width: 100%; aspect-ratio: 16/9; border-radius: 12px; border: none; margin-bottom: 16px; }
-  .viewer-text { font-size: 15px; line-height: 1.75; color: var(--text); white-space: pre-wrap; }
-  .viewer-complete-btn { margin-top: 24px; padding: 10px 20px; background: var(--btn-bg); color: var(--btn-text); border: none; border-radius: 8px; font-size: 13px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; }
-  .viewer-completed-msg { margin-top: 24px; padding: 10px 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; font-size: 13px; color: var(--check-color); display: inline-flex; align-items: center; gap: 6px; }
-  .viewer-nav { display: flex; justify-content: space-between; align-items: stretch; gap: 12px; margin-top: 24px; }
-  .viewer-nav-btn { flex: 1; padding: 14px 16px; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; cursor: pointer; transition: all 0.15s; text-decoration: none; display: flex; flex-direction: column; gap: 4px; font-family: 'DM Sans', sans-serif; }
-  .viewer-nav-btn:hover { border-color: var(--btn-outline-text); }
-  .viewer-nav-btn.disabled { opacity: 0.3; cursor: default; pointer-events: none; }
-  .viewer-nav-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
-  .viewer-nav-title { font-size: 13px; color: var(--text); font-weight: 500; }
-  .viewer-nav-prev { text-align: left; }
-  .viewer-nav-next { text-align: right; }
-  .viewer-progress-bar { height: 3px; background: var(--surface); border-radius: 100px; margin-bottom: 24px; overflow: hidden; }
-  .viewer-progress-fill { height: 100%; background: var(--text); border-radius: 100px; transition: width 0.3s; }
+  .mockup-pro-badge { margin-left: auto; font-size: 10px; background: rgba(124,58,237,0.2); color: #c4b5fd; border-radius: 100px; padding: 1px 6px; font-weight: 700; letter-spacing: 0.05em; }
+  .mockup-max-badge { margin-left: auto; font-size: 10px; background: linear-gradient(135deg,#a78bfa,#e879f9); color: #fff; border-radius: 100px; padding: 1px 6px; font-weight: 700; letter-spacing: 0.05em; }
+  .mockup-content { flex: 1; padding: 28px 24px; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .mockup-welcome { width: 100%; }
+  .mockup-welcome-badge { display: inline-flex; align-items: center; gap: 6px; border: 1px solid rgba(124,58,237,0.4); background: rgba(124,58,237,0.08); border-radius: 100px; padding: 5px 14px; font-size: 12px; color: #c4b5fd; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 14px; }
+  .mockup-welcome-title { font-family: "Syne", sans-serif; font-size: 22px; font-weight: 800; letter-spacing: -0.5px; line-height: 1.15; margin-bottom: 8px; color: var(--text); }
+  .mockup-welcome-title span { background: linear-gradient(135deg, #a78bfa, #e879f9); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .mockup-welcome-sub { font-size: 13px; color: var(--muted); margin-bottom: 18px; }
+  .mockup-welcome-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; max-width: 360px; margin: 0 auto; }
+  .mockup-welcome-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 10px; display: flex; align-items: center; gap: 10px; }
+  .mockup-welcome-icon { width: 28px; height: 28px; background: rgba(124,58,237,0.12); border: 1px solid rgba(124,58,237,0.25); border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
+  .mockup-welcome-name { font-size: 12px; font-weight: 600; color: var(--text); text-align: left; }
 
-  @media (max-width: 640px) {
-    .nav { padding: 12px 16px; }
-    .dash-wrap, .viewer-wrap { padding: 24px 16px; }
-    .auth-wrap { margin: 40px auto; }
+  /* Link in Bio tool mockup (inside dashboard frame) */
+  .mockup-bio-content { padding: 18px 20px !important; text-align: left !important; align-items: stretch !important; justify-content: flex-start !important; gap: 18px; flex-direction: row !important; overflow: hidden; }
+  .mockup-bio-left { flex: 1; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  .mockup-bio-right { width: 180px; flex-shrink: 0; display: flex; align-items: flex-start; justify-content: center; }
+  .mockup-bio-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .mockup-bio-title { font-family: "Syne", sans-serif; font-size: 17px; font-weight: 800; color: var(--text); letter-spacing: -0.3px; }
+  .mockup-bio-status { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; color: #4ade80; font-weight: 500; }
+  .mockup-bio-dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; }
+  .mockup-bio-url-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; font-size: 11px; color: var(--muted); font-family: monospace; }
+  .mockup-bio-url-box strong { color: #c4b5fd; font-weight: 600; }
+  .mockup-bio-section { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
+  .mockup-bio-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; color: #a78bfa; font-weight: 600; margin-bottom: 8px; }
+  .mockup-bio-profile-row { display: flex; align-items: center; gap: 10px; }
+  .mockup-bio-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #a78bfa, #e879f9); display: flex; align-items: center; justify-content: center; font-family: "Syne", sans-serif; font-size: 15px; font-weight: 800; color: #fff; flex-shrink: 0; }
+  .mockup-bio-profile-fields { flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .mockup-bio-field { background: var(--surface); border: 1px solid var(--border); border-radius: 5px; padding: 5px 8px; font-size: 11px; color: var(--text); }
+  .mockup-bio-field.small { font-size: 10px; color: var(--muted); }
+  .mockup-bio-link-row { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; font-size: 11px; color: var(--text); margin-bottom: 5px; display: flex; align-items: center; justify-content: space-between; }
+  .mockup-bio-link-row:last-child { margin-bottom: 0; }
+  .mockup-bio-link-row.featured { border-color: rgba(124,58,237,0.3); }
+  .mockup-bio-tag { font-size: 8px; background: rgba(124,58,237,0.2); color: #c4b5fd; border-radius: 100px; padding: 1px 6px; font-weight: 700; letter-spacing: 0.05em; }
+
+  /* Phone preview inside mockup right column */
+  .mockup-bio-phone { width: 100%; background: #07070f; border: 3px solid #1a1a24; border-radius: 16px; padding: 14px 10px 10px; display: flex; flex-direction: column; align-items: center; gap: 5px; position: relative; overflow: hidden; }
+  .mockup-bio-phone::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 60%; background: radial-gradient(ellipse 100% 80% at 50% 0%, rgba(124,58,237,0.3), transparent 65%); pointer-events: none; }
+  .mockup-bio-phone-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #a78bfa, #e879f9); display: flex; align-items: center; justify-content: center; font-family: "Syne", sans-serif; font-size: 14px; font-weight: 800; color: #fff; z-index: 1; }
+  .mockup-bio-phone-name { font-family: "Syne", sans-serif; font-size: 11px; font-weight: 800; color: #f0eef8; z-index: 1; }
+  .mockup-bio-phone-socials { display: flex; gap: 3px; z-index: 1; }
+  .mockup-bio-phone-social { width: 12px; height: 12px; border-radius: 50%; background: #0f0f1a; border: 1px solid rgba(255,255,255,0.15); }
+  .mockup-bio-phone-bio { font-size: 8px; color: #c9c7dc; z-index: 1; }
+  .mockup-bio-phone-link { width: 100%; background: #0f0f1a; border: 1px solid rgba(255,255,255,0.1); border-radius: 5px; padding: 5px; text-align: center; font-size: 8px; color: #f0eef8; z-index: 1; }
+  .mockup-bio-phone-featured { width: 100%; background: #0f0f1a; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; overflow: hidden; z-index: 1; }
+  .mockup-bio-phone-featured-img { width: 100%; aspect-ratio: 16/9; background: linear-gradient(135deg, #4c1d95, #7c3aed, #ec4899); display: flex; align-items: center; justify-content: center; font-size: 13px; }
+  .mockup-bio-phone-featured-title { padding: 4px 6px 6px; text-align: center; font-size: 8px; font-weight: 600; color: #f0eef8; font-family: "Syne", sans-serif; }
+
+  @media (max-width: 900px) {
+    .mockup-bio-right { display: none; }
+  }
+  .mockup-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+  .mockup-stat { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
+  .mockup-stat-num { font-family: "Syne", sans-serif; font-size: 20px; font-weight: 800; color: #a78bfa; }
+  .mockup-stat-num.green { color: #4ade80; }
+  .mockup-stat-label { font-size: 10px; color: var(--muted); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .mockup-table { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .mockup-table-header { display: grid; grid-template-columns: 1fr 80px 60px; padding: 8px 12px; font-size: 9px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.2); }
+  .mockup-table-row { display: grid; grid-template-columns: 1fr 80px 60px; padding: 8px 12px; font-size: 11px; border-bottom: 1px solid var(--border); align-items: center; }
+  .mockup-table-row:last-child { border-bottom: none; }
+  .mockup-handle { color: var(--text); font-weight: 500; }
+  .mockup-tag { background: rgba(168,85,247,0.12); color: #c4b5fd; border: 1px solid rgba(168,85,247,0.25); border-radius: 100px; padding: 2px 8px; font-size: 9px; font-weight: 500; display: inline-block; }
+  .mockup-tag.red { background: rgba(239,68,68,0.1); color: #fca5a5; border-color: rgba(239,68,68,0.2); }
+  .mockup-cursor { position: absolute; bottom: 28%; right: 18%; width: 22px; height: 22px; pointer-events: none; z-index: 10; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); animation: cursorFloat 3s ease-in-out infinite; }
+  @keyframes cursorFloat { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(4px, -6px); } }
+  .mockup-glow { position: absolute; inset: -20px; background: radial-gradient(ellipse at 50% 50%, rgba(124,58,237,0.12) 0%, transparent 70%); pointer-events: none; border-radius: 24px; }
+  .tools-section { padding: 80px 48px 100px; max-width: 1200px; margin: 0 auto; }
+  .section-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent2); font-weight: 600; margin-bottom: 16px; display: block; }
+  .section-title { font-family: "Syne", sans-serif; font-size: clamp(28px, 4vw, 44px); font-weight: 800; letter-spacing: -1.5px; margin-bottom: 16px; }
+  .section-sub { color: var(--muted); font-size: 16px; line-height: 1.7; max-width: 500px; margin-bottom: 56px; }
+  .tools-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .tool-card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 24px; text-decoration: none; display: block; transition: all 0.25s; position: relative; overflow: hidden; cursor: pointer; }
+  .tool-card:hover { border-color: rgba(124,58,237,0.4); transform: translateY(-3px); box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+  .tool-card-icon { width: 44px; height: 44px; background: rgba(124,58,237,0.12); border: 1px solid rgba(124,58,237,0.25); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; color: #c4b5fd; }
+  .tool-card-icon svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .tool-card-title { font-family: "Syne", sans-serif; font-size: 18px; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.3px; background: linear-gradient(135deg, #a78bfa, #e879f9); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .tool-card-desc { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 16px; }
+  .tool-card-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: #4ade80; font-weight: 500; }
+  .tool-card-badge.pro { color: #c4b5fd; }
+  .tool-card-badge.pro .tool-card-badge-dot { background: #c4b5fd; }
+  .tool-card-badge.max { background: linear-gradient(135deg,#a78bfa,#e879f9); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 600; }
+  .tool-card-badge.max .tool-card-badge-dot { background: #e879f9; }
+  .tool-card-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; }
+  .tool-card-arrow { position: absolute; top: 24px; right: 24px; color: var(--muted2); transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+  .tool-card:hover .tool-card-arrow { color: var(--accent2); transform: translate(2px, -2px); }
+  .features-section { padding: 80px 48px; background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .features-inner { max-width: 1100px; margin: 0 auto; }
+  .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; margin-top: 56px; }
+  .feat { display: flex; flex-direction: column; gap: 12px; }
+  .feat-icon { width: 44px; height: 44px; background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #c4b5fd; }
+  .feat-icon svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .feat-title { font-family: "Syne", sans-serif; font-size: 16px; font-weight: 700; }
+  .feat-desc { font-size: 14px; color: var(--muted); line-height: 1.65; }
+  .cta-section { padding: 100px 48px; text-align: center; position: relative; overflow: hidden; }
+  .cta-bg {
+    position: absolute;
+    inset: 0;
+    background-image: url("ryxamodel4.webp");
+    background-size: cover;
+    background-position: center 30%;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .cta-bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(7,7,15,0.7) 0%, rgba(7,7,15,0.6) 50%, rgba(7,7,15,0.7) 100%);
+    pointer-events: none;
+  }
+  .cta-inner { position: relative; z-index: 1; max-width: 600px; margin: 0 auto; }
+  .cta-inner h2 { font-family: "Syne", sans-serif; font-size: clamp(28px, 4vw, 48px); font-weight: 800; letter-spacing: -1.5px; margin-bottom: 16px; text-shadow: 0 2px 12px rgba(0,0,0,0.4); }
+  .cta-inner p { color: rgba(255,255,255,0.85); font-size: 17px; margin-bottom: 36px; line-height: 1.7; text-shadow: 0 1px 8px rgba(0,0,0,0.4); }
+  footer { border-top: 1px solid var(--border); padding: 32px 48px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+  .footer-links { display: flex; gap: 24px; flex-wrap: wrap; }
+  .footer-links a { color: var(--muted); font-size: 13px; text-decoration: none; transition: color 0.2s; }
+  .footer-links a:hover { color: var(--text); }
+  @media (max-width: 1024px) { .tools-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 900px) { .features-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 640px) { .tools-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 768px) {
+    nav { padding: 0 20px; }
+    .nav-links, .nav-right { display: none; }
+    .hamburger { display: flex; }
+    .tools-section { padding: 60px 20px 80px; }
+    .features-section { padding: 60px 20px; }
+    .cta-section { padding: 60px 20px; }
+    footer { flex-direction: column; text-align: center; padding: 24px 20px; }
+    .mockup-sidebar { display: none; }
+    .mockup-frame { transform: rotateX(5deg) rotateY(-3deg); }
+  }
+
+  /* === A11Y: visible focus ring for keyboard users === */
+  *:focus-visible {
+    outline: 2px solid #c4b5fd;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  /* === A11Y: respect reduced-motion preferences === */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 </style>
+<style>body{opacity:0;transition:opacity 0.2s ease;}body.site-ready{opacity:1;}</style>
 </head>
 <body>
 
-<nav class="nav">
-  <a href="/learn/" class="nav-logo"><img src="/logo.png" alt="Ryxa"> Ryxa Hub</a>
-  <div class="nav-right" id="nav-right">
-    <a href="/" class="nav-btn nav-btn-outline">Home</a>
-  </div>
-</nav>
+<div id="site-header"></div>
 
-<!-- Marketplace Search (inline) -->
-<div id="mp-screen" style="display:none;max-width:600px;margin:0 auto;padding:40px 20px;">
-  <button onclick="closeMarketplace()" style="background:none;border:none;color:var(--muted);font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;display:inline-flex;align-items:center;gap:6px;margin-bottom:24px;padding:0;">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-    Return to dashboard
-  </button>
-  <h2 style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--text);letter-spacing:-0.5px;margin-bottom:16px;">Search Marketplace</h2>
-  <div class="mp-search-wrap">
-    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-    <input type="text" class="mp-search" id="mp-search-input" placeholder="Search courses and coaching..." autocomplete="off" aria-label="Search courses and coaching">
-  </div>
-  <div class="mp-results" id="mp-results" style="margin-top:12px;">
-    <div class="mp-empty">Start typing to discover courses and coaching from creators on Ryxa.</div>
-  </div>
-</div>
-
-<!-- Auth Screen -->
-<div id="auth-screen" class="auth-wrap" style="display:none;">
-  <div style="text-align:center;margin-bottom:28px;">
-    <h1 style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;letter-spacing:-0.8px;margin-bottom:8px;">Your Ryxa Hub</h1>
-    <p style="font-size:14px;color:var(--muted);line-height:1.6;max-width:340px;margin:0 auto;">Your courses, products, and bookings. All in one place.</p>
-  </div>
-  <div class="auth-card">
-    <div style="display:flex;gap:4px;padding:4px;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:16px;">
-      <button type="button" class="auth-tab-btn" id="learn-tab-signin" onclick="setLearnAuthMode('signin')" style="flex:1;padding:8px;border:none;border-radius:7px;font-size:13px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.15s;background:var(--btn-bg);color:var(--btn-text);">Sign In</button>
-      <button type="button" class="auth-tab-btn" id="learn-tab-signup" onclick="setLearnAuthMode('signup')" style="flex:1;padding:8px;border:none;border-radius:7px;font-size:13px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.15s;background:transparent;color:var(--muted);">Create Account</button>
+<div class="modal-backdrop" id="auth-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeAuthModal()" aria-label="Close">&#x2715;</button>
+    <img src="/logo.png" alt="Ryxa" style="width:40px;height:40px;display:block;margin:0 auto 10px;object-fit:contain;">
+    <h2 style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;text-align:center;margin-bottom:4px;letter-spacing:-0.3px;">Welcome to Ryxa</h2>
+    <p style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:14px;">Sign in to access your dashboard</p>
+    <div class="auth-tabs">
+      <button type="button" class="auth-tab" id="auth-tab-signin" onclick="setAuthMode('signin')">Sign in</button>
+      <button type="button" class="auth-tab" id="auth-tab-signup" onclick="setAuthMode('signup')">Create account</button>
     </div>
-    <button type="button" onclick="handleLearnGoogleAuth()" style="width:100%;padding:11px;background:#fff;color:#1f1f1f;border:1px solid var(--border-hover);border-radius:10px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px;transition:all 0.15s;" onmouseover="this.style.background='#f8f8f8'" onmouseout="this.style.background='#fff'">
+    <div class="modal-msg" id="auth-msg"></div>
+    <button type="button" class="google-btn" onclick="handleGoogleAuth()" aria-label="Continue with Google">
       <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
         <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/>
         <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.836.86-3.048.86-2.344 0-4.328-1.584-5.036-3.71H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
@@ -213,1146 +600,1520 @@
       </svg>
       <span>Continue with Google</span>
     </button>
-    <div style="display:flex;align-items:center;gap:12px;margin:12px 0;">
-      <div style="flex:1;height:1px;background:var(--border);"></div>
-      <span style="font-size:12px;color:var(--muted);">or</span>
-      <div style="flex:1;height:1px;background:var(--border);"></div>
+    <div class="auth-divider"><span>or</span></div>
+    <input class="modal-input" id="auth-email" type="email" aria-label="Email address" placeholder="Email address" autocomplete="email">
+    <input class="modal-input" id="auth-password" type="password" aria-label="Password" placeholder="Password" autocomplete="current-password">
+    <a class="forgot-link" id="forgot-password-link" onclick="handleForgotPassword()">Forgot password?</a>
+    <div id="auth-turnstile" style="margin-bottom:12px;"></div>
+    <button class="modal-btn" id="auth-submit-btn" onclick="handleAuth()">Sign in</button>
+  </div>
+</div>
+
+
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="grid-lines"></div>
+  <div class="hero-content">
+    <div class="hero-split">
+      <div class="hero-left">
+        <div class="hero-eyebrow">All-in-one platform for creators</div>
+        <h1>Build a <span class="gradient-text">creator business</span> that's actually yours.</h1>
+        <p class="hero-sub">Ryxa makes earning money and professional branding easy. Design your link in bio, build courses, sell coaching, and offer digital products, all in one AI-powered dashboard.</p>
+        <div class="hero-actions">
+          <button class="btn-primary" onclick="openSignupModal()">Get started free &#x2192;</button>
+          <a class="btn-secondary" href="pricing.html">See pricing</a>
+        </div>
+        <div class="hero-trust">Free forever · No credit card · Cancel anytime</div>
+      </div>
+      <div class="hero-phone">
+        <div class="hero-phone-ghost-6"></div>
+        <div class="hero-phone-ghost-5"></div>
+        <div class="hero-phone-ghost-4"></div>
+        <div class="hero-phone-ghost-3"></div>
+        <div class="hero-phone-device">
+          <div class="hero-phone-screen">
+            <img src="phonelinkinbio.jpg" alt="Example Ryxa link in bio page for a travel creator named Julie">
+          </div>
+        </div>
+      </div>
     </div>
-    <input type="email" id="auth-email" class="auth-input" placeholder="Email address" aria-label="Email address">
-    <input type="password" id="auth-password" class="auth-input" placeholder="Password" aria-label="Password">
-    <a onclick="handleLearnForgotPassword()" style="display:block;font-size:12px;color:var(--muted);text-align:right;margin-bottom:8px;cursor:pointer;text-decoration:none;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">Forgot password?</a>
-    <div id="auth-turnstile" style="margin:8px 0 10px;display:flex;justify-content:center;min-height:60px;"></div>
-    <button class="auth-btn" id="auth-btn" onclick="handleAuth()">Sign In</button>
-    <div class="auth-error" id="auth-error"></div>
-  </div>
-  <p style="text-align:center;margin-top:20px;font-size:13px;color:var(--muted);">Create and sell your own courses with <a href="/" style="color:var(--text);font-weight:600;text-decoration:none;">Ryxa</a></p>
-</div>
-
-<!-- Dashboard (My Courses) -->
-<div id="learn-main">
-<div id="dash-screen" class="dash-wrap" style="display:none;">
-  <h1 class="dash-title">My Courses</h1>
-  <div id="dash-courses" class="courses-grid"></div>
-  <div id="dash-empty" class="empty-state" style="display:none;">
-    <div style="width:48px;height:48px;margin:0 auto 12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;display:flex;align-items:center;justify-content:center;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M8 7h8M8 11h6"/></svg></div>
-    <p>You haven't enrolled in any courses yet.</p>
-    <p style="margin-top:8px;"><a href="/" style="color:var(--text);text-decoration:underline;">Browse Ryxa</a> to find courses from creators.</p>
   </div>
 
-  <!-- My Digital Products -->
-  <div id="dash-products-section" style="display:none;margin-top:40px;">
-    <h2 class="dash-title" style="font-size:22px;margin-bottom:16px;">My Digital Products</h2>
-    <div id="dash-products" style="display:flex;flex-direction:column;gap:12px;"></div>
-  </div>
+    <!-- TESTIMONIALS -->
+    <div class="testimonials-section">
+      <h2 class="testimonials-heading">Trusted by <span>creators</span> who<br>are serious about their business</h2>
+      <div class="testimonials-track-wrap">
+        <button class="testimonial-arrow" onclick="scrollTestimonials(-1)" aria-label="Previous testimonial">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <div class="testimonials-track" id="testimonials-track">
 
-  <!-- My Bookings -->
-  <div id="dash-bookings-section" style="display:none;margin-top:40px;">
-    <h2 class="dash-title" style="font-size:22px;margin-bottom:16px;">My Bookings</h2>
-    <div id="dash-bookings" style="display:flex;flex-direction:column;gap:12px;"></div>
-  </div>
-</div>
+          <!-- Testimonial 1 -->
+          <div class="testimonial-card">
+            <div class="testimonial-card-inner">
+              <div class="testimonial-bg" style="background-image:url('testimonials/pinsta.jpg');"></div>
+              <div class="testimonial-content">
+                <p class="testimonial-quote">"I was able to grow my audience as a content creator with Ryxa! The tools that they offer are unbeatable. It has certainly helped make things easier for me!"</p>
+                <div class="testimonial-stars">★★★★★</div>
+                <div class="testimonial-author">
+                  <img src="testimonials/pinsta.jpg" alt="Pinhwa Su" class="testimonial-avatar">
+                  <div>
+                    <div class="testimonial-name">Pinhwa Su</div>
+                    <div class="testimonial-handle">@xo.pinsta</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
-<!-- Course Viewer -->
-<div id="viewer-screen" class="viewer-wrap" style="display:none;">
-  <div class="viewer-header">
-    <a href="#" onclick="backToDash();return false;" class="viewer-back">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-      My Courses
+          <!-- Testimonial 2 -->
+          <div class="testimonial-card">
+            <div class="testimonial-card-inner">
+              <div class="testimonial-bg" style="background-image:url('testimonials/jaed.jpg');"></div>
+              <div class="testimonial-content">
+                <p class="testimonial-quote">"Being a content creator is more than just posting... it's a business. Ryxa helps simplify that side of things and makes it easier to grow with purpose. I'd recommend it to anyone serious about leveling up!"</p>
+                <div class="testimonial-stars">★★★★★</div>
+                <div class="testimonial-author">
+                  <img src="testimonials/jaed.jpg" alt="Jaed" class="testimonial-avatar">
+                  <div>
+                    <div class="testimonial-name">Jaed</div>
+                    <div class="testimonial-handle">@jaed.official</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <button class="testimonial-arrow" onclick="scrollTestimonials(1)" aria-label="Next testimonial">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
+        </button>
+      </div>
+    </div>
+
+</section>
+
+<!-- Link in Bio promo section -->
+<section class="lib-promo">
+  <div class="lib-promo-inner">
+    <div class="lib-promo-text">
+      <h2 class="lib-promo-headline">Your <span class="gradient-text">Link in Bio</span> shouldn't be boring.</h2>
+      <p class="lib-promo-sub">Show up like the brand you're becoming. Your link in bio is the front door of your business.</p>
+      <button class="btn-primary lib-promo-cta" onclick="openSignupModal()">Start for free &#x2192;</button>
+    </div>
+    <div class="lib-promo-tablet-wrap">
+      <div class="lib-promo-tablet">
+        <div class="lib-promo-screen">
+          <div class="lib-promo-img lib-promo-img-1" style="background-image:url('editor1.webp');" role="img" aria-label="Ryxa Link in Bio editor"></div>
+          <div class="lib-promo-img lib-promo-img-2" style="background-image:url('editor2.webp');" role="img" aria-label="Ryxa Link in Bio editor — customizing theme"></div>
+          <div class="lib-promo-img lib-promo-img-3" style="background-image:url('editor3.webp');" role="img" aria-label="Ryxa Link in Bio editor — adding links"></div>
+          <svg class="lib-promo-cursor" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+            <path d="M5.5 3.5 L5.5 18 L9.5 14.5 L12 20 L14 19 L11.5 13.5 L17 13.5 Z" fill="#fff" stroke="#000" stroke-width="1.2" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<style>
+  .lib-promo {
+    padding: 80px 24px;
+    overflow: hidden;
+  }
+  .lib-promo-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+    gap: 60px;
+    align-items: center;
+  }
+  .lib-promo-text {
+    padding: 0 12px;
+  }
+  .lib-promo-headline {
+    font-family: "Syne", sans-serif;
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 800;
+    letter-spacing: -1.5px;
+    line-height: 1.15;
+    color: #fff;
+    margin: 0 0 20px;
+  }
+  .lib-promo-sub {
+    font-size: 16px;
+    color: var(--muted);
+    line-height: 1.7;
+    margin: 0 0 28px;
+    max-width: 480px;
+  }
+  .lib-promo-cta {
+    display: inline-flex;
+    padding: 13px 28px;
+    font-size: 15px;
+    box-shadow: 0 0 24px var(--accent-glow);
+  }
+  /* Tablet frame */
+  .lib-promo-tablet-wrap {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .lib-promo-tablet {
+    position: relative;
+    width: 100%;
+    max-width: 380px;
+    background: #0a0a14;
+    border: 2px solid rgba(255,255,255,0.12);
+    border-radius: 22px;
+    padding: 12px;
+    box-shadow:
+      0 30px 80px rgba(0,0,0,0.5),
+      0 0 60px rgba(124,58,237,0.15),
+      inset 0 0 0 1px rgba(255,255,255,0.04);
+    transform: perspective(1200px) rotateY(-4deg) rotateX(2deg);
+  }
+  .lib-promo-screen {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #07070f;
+  }
+  .lib-promo-img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    background-size: 100% 100%;
+    background-position: top center;
+    background-repeat: no-repeat;
+    opacity: 0;
+    will-change: transform, opacity;
+  }
+  .lib-promo-img-1 { height: 141%; animation: lib-fade 12s infinite, lib-scroll 12s infinite; animation-delay: 0s, 0s; }
+  .lib-promo-img-2 { height: 123%; animation: lib-fade 12s infinite, lib-scroll 12s infinite; animation-delay: 4s, 4s; }
+  .lib-promo-img-3 { height: 131%; animation: lib-fade 12s infinite, lib-scroll 12s infinite; animation-delay: 8s, 8s; }
+  @keyframes lib-fade {
+    0%   { opacity: 0; }
+    4%   { opacity: 1; }
+    30%  { opacity: 1; }
+    36%  { opacity: 0; }
+    100% { opacity: 0; }
+  }
+  @keyframes lib-scroll {
+    0%   { transform: translateY(0); }
+    4%   { transform: translateY(0); }
+    8%   { transform: translateY(0); }
+    32%  { transform: translateY(-15%); }
+    100% { transform: translateY(-15%); }
+  }
+  /* Cursor — animates between three positions matching the three screenshots */
+  .lib-promo-cursor {
+    position: absolute;
+    z-index: 10;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+    animation: lib-cursor 12s infinite cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+  }
+  @keyframes lib-cursor {
+    0%   { left: 22%;  top: 30%; }
+    30%  { left: 22%;  top: 30%; }
+    33%  { left: 60%;  top: 50%; }
+    63%  { left: 60%;  top: 50%; }
+    66%  { left: 35%;  top: 70%; }
+    96%  { left: 35%;  top: 70%; }
+    100% { left: 22%;  top: 30%; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .lib-promo-img { animation: none; opacity: 1; }
+    .lib-promo-img-2, .lib-promo-img-3 { display: none; }
+    .lib-promo-cursor { animation: none; left: 22%; top: 30%; }
+  }
+  @media (max-width: 900px) {
+    .lib-promo-inner {
+      grid-template-columns: 1fr;
+      gap: 40px;
+    }
+    .lib-promo-text {
+      text-align: center;
+      padding: 0;
+    }
+    .lib-promo-sub { margin-left: auto; margin-right: auto; }
+    .lib-promo-tablet {
+      max-width: 320px;
+      transform: none;
+    }
+  }
+  @media (max-width: 600px) {
+    .lib-promo { padding: 24px 20px 60px; }
+    .lib-promo-tablet { max-width: 280px; }
+  }
+</style>
+
+<!-- 0% Transaction Fees + AI -->
+<section style="padding:64px 24px;">
+  <div class="fees-grid" style="max-width:800px;margin:0 auto;display:grid;grid-template-columns:1fr auto 1fr;gap:32px;align-items:center;">
+    <div style="text-align:center;">
+      <div style="font-family:'Syne',sans-serif;font-size:clamp(48px,8vw,72px);font-weight:800;letter-spacing:-2px;line-height:1;background:linear-gradient(135deg,#a78bfa,#e879f9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:16px;">0% fees</div>
+      <p style="font-size:18px;color:#fff;font-weight:500;margin-bottom:12px;">Ryxa takes no cut from your sales.</p>
+      <p style="font-size:13px;color:rgba(255,255,255,0.55);font-style:italic;">We're not greedy.</p>
+    </div>
+    <div class="fees-divider" style="width:1px;height:120px;background:rgba(255,255,255,0.15);"></div>
+    <div style="text-align:center;">
+      <div style="font-family:'Syne',sans-serif;font-size:clamp(28px,5vw,42px);font-weight:800;letter-spacing:-1.5px;line-height:1.1;background:linear-gradient(135deg,#818cf8,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:16px;">AI Powered</div>
+      <p style="font-size:16px;color:#fff;font-weight:500;margin-bottom:12px;max-width:360px;margin-left:auto;margin-right:auto;">Streamline your creativity with the assistance of AI.</p>
+      <p style="font-size:13px;color:rgba(255,255,255,0.55);font-style:italic;">Create at ease.</p>
+    </div>
+  </div>
+</section>
+<style>
+  @media (max-width:640px) {
+    .fees-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
+    .fees-grid .fees-divider { width: 80px !important; height: 1px !important; margin: 0 auto; }
+  }
+</style>
+
+<!-- Diagonal photo divider -->
+<section class="problem-divider">
+  <div class="problem-divider-photo"></div>
+  <div class="problem-divider-overlay"></div>
+  <div class="problem-divider-content">
+    <div class="problem-divider-eyebrow">What problem does Ryxa solve for creators?</div>
+    <h2 class="problem-divider-headline">Monetize your audience.<br>Without giving up an arm and a leg.</h2>
+  </div>
+</section>
+<style>
+  .problem-divider {
+    position: relative;
+    width: 100%;
+    height: 460px;
+    margin: 80px 0 16px;
+    overflow: hidden;
+    clip-path: polygon(0 12%, 100% 0, 100% 88%, 0 100%);
+  }
+  .problem-divider-photo {
+    position: absolute;
+    inset: 0;
+    background-image: url("ryxamodel.webp");
+    background-size: cover;
+    background-position: center 28%;
+    z-index: 0;
+  }
+  .problem-divider-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(7,7,15,0.85) 0%, rgba(7,7,15,0.6) 35%, rgba(7,7,15,0.15) 65%, rgba(7,7,15,0) 100%);
+    z-index: 1;
+  }
+  .problem-divider-content {
+    position: relative;
+    z-index: 2;
+    height: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 80px 60px 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+  }
+  .problem-divider-eyebrow {
+    font-family: "DM Sans", sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.75);
+    letter-spacing: 0.02em;
+    margin-bottom: 16px;
+    text-transform: none;
+  }
+  .problem-divider-headline {
+    font-family: "Syne", sans-serif;
+    font-size: clamp(32px, 5vw, 52px);
+    font-weight: 800;
+    letter-spacing: -1.5px;
+    line-height: 1.1;
+    color: #fff;
+    max-width: 620px;
+    margin: 0;
+    text-shadow: 0 2px 16px rgba(0,0,0,0.4);
+  }
+  @media (max-width: 768px) {
+    .problem-divider {
+      height: 420px;
+      margin: 48px 0 12px;
+      clip-path: polygon(0 6%, 100% 0, 100% 94%, 0 100%);
+    }
+    .problem-divider-overlay {
+      background: linear-gradient(180deg, rgba(7,7,15,0.5) 0%, rgba(7,7,15,0.85) 100%);
+    }
+    .problem-divider-content {
+      padding: 0 24px;
+      align-items: center;
+      text-align: center;
+      justify-content: flex-end;
+      padding-bottom: 40px;
+    }
+    .problem-divider-headline {
+      max-width: 100%;
+    }
+  }
+</style>
+
+<section class="tools-section">
+  <span class="section-label">What is inside</span>
+  <h2 class="section-title">Tools built for creators</h2>
+  <p class="section-sub">Each tool is curated and built for creators who are serious about their business.</p>
+  <div class="tools-grid">
+    <a class="tool-card" href="tools-link-in-bio.html">
+      <div class="tool-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
+      <div class="tool-card-title">Link in Bio</div>
+      <div class="tool-card-desc">Create your free link in bio page with us to share your content, links, and more with your audience — all from one clean page.</div>
+      <div class="tool-card-badge"><span class="tool-card-badge-dot"></span> Free to start</div>
+      <div class="tool-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
     </a>
-    <h1 class="viewer-title" id="viewer-course-title">Course</h1>
-    <button class="viewer-toc-btn" onclick="toggleToc()">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-      Contents
-    </button>
+    <a class="tool-card" href="tools-course-builder.html">
+      <div class="tool-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M8 7h8M8 11h6"/></svg></div>
+      <div class="tool-card-title">Course Builder</div>
+      <div class="tool-card-desc">Build and sell courses directly to your audience. Accept payments through Stripe. Ryxa takes 0% transaction fees.</div>
+      <div class="tool-card-badge max"><span class="tool-card-badge-dot"></span> Creator Max</div>
+      <div class="tool-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
+    </a>
+    <a class="tool-card" href="tools-coaching.html">
+      <div class="tool-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+      <div class="tool-card-title">1:1 Booking</div>
+      <div class="tool-card-desc">Sell your 1:1 services effortlessly. Coaching, consultations, training, in-person or virtual sessions, anything where you sell your time. Set your price and let clients book on your terms with Ryxa's calendar. Ryxa takes 0% transaction fees.</div>
+      <div class="tool-card-badge max"><span class="tool-card-badge-dot"></span> Creator Max</div>
+      <div class="tool-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
+    </a>
+    <a class="tool-card" href="tools-digital-products.html">
+      <div class="tool-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>
+      <div class="tool-card-title">Digital Products</div>
+      <div class="tool-card-desc">Sell ebooks, templates, presets, and design files. Upload your files, set a price, and share your product link. Buyers get instant access through their Ryxa Hub. Ryxa takes 0% transaction fees.</div>
+      <div class="tool-card-badge max"><span class="tool-card-badge-dot"></span> Creator Max</div>
+      <div class="tool-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
+    </a>
+    <a class="tool-card" href="tools-brand-deal-crm.html">
+      <div class="tool-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 12h18"/></svg></div>
+      <div class="tool-card-title">Brand Deal CRM</div>
+      <div class="tool-card-desc">Track every brand partnership in one place. Store signed contracts, manage deliverables, and share a secure portal with the brand — all with built-in revenue analytics.</div>
+      <div class="tool-card-badge max"><span class="tool-card-badge-dot"></span> Creator Max</div>
+      <div class="tool-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
+    </a>
+    <a class="tool-card" href="pricing.html">
+      <div class="tool-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 20V10M12 20V4M6 20v-6"/></svg></div>
+      <div class="tool-card-title">Analytics</div>
+      <div class="tool-card-desc">Track page views, revenue by source, product performance, and latest earnings — all in one dashboard with customizable date ranges.</div>
+      <div class="tool-card-badge max"><span class="tool-card-badge-dot"></span> Creator Max</div>
+      <div class="tool-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
+    </a>
+    <a class="tool-card" href="pricing.html">
+      <div class="tool-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+      <div class="tool-card-title">Subscribers</div>
+      <div class="tool-card-desc">Collect and manage emails from course and coaching purchases, digital products, and your link in bio. Export your list anytime.</div>
+      <div class="tool-card-badge"><span class="tool-card-badge-dot"></span> Free</div>
+      <div class="tool-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
+    </a>
+    <a class="tool-card" href="pricing.html">
+      <div class="tool-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+      <div class="tool-card-title">Calendar</div>
+      <div class="tool-card-desc">A unified calendar that syncs your coaching sessions, brand deal campaigns, and deliverable due dates — so nothing slips.</div>
+      <div class="tool-card-badge"><span class="tool-card-badge-dot"></span> Free</div>
+      <div class="tool-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
+    </a>
+    <a class="tool-card" href="tools-ai-design-studio.html">
+      <div class="tool-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z"/></svg></div>
+      <div class="tool-card-title">AI Design Studio</div>
+      <div class="tool-card-desc">Create graphics with AI-powered tools. Remove backgrounds, generate captions, upscale images, and design for any platform with 21 fonts and layered editing.</div>
+      <div class="tool-card-badge"><span class="tool-card-badge-dot"></span> Free to start · AI tools on Pro</div>
+      <div class="tool-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
+    </a>
+    <a class="tool-card" href="tools-script-builder.html">
+      <div class="tool-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/><path d="M6 21l-2-2 2-2M18 21l2-2-2-2"/></svg></div>
+      <div class="tool-card-title">AI Script Builder</div>
+      <div class="tool-card-desc">The all-in-one workspace to write your next reel, video, podcast, or story. Plan in blocks, lock your hook, then play it back in storyboard, teleprompter, or cinematic mode.</div>
+      <div class="tool-card-badge pro"><span class="tool-card-badge-dot"></span> Pro</div>
+      <div class="tool-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
+    </a>
+    <a class="tool-card" href="tools-thumbnail-analyzer.html">
+      <div class="tool-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/><path d="M11 8v6M8 11h6"/></svg></div>
+      <div class="tool-card-title">AI Thumbnail Analyzer</div>
+      <div class="tool-card-desc">Upload your thumbnail and get instant AI feedback on clickability, composition, text readability, and emotional impact with actionable suggestions.</div>
+      <div class="tool-card-badge pro"><span class="tool-card-badge-dot"></span> Pro</div>
+      <div class="tool-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
+    </a>
+    <a class="tool-card" href="tools-contract-analyzer.html">
+      <div class="tool-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 15l2 2 4-4"/></svg></div>
+      <div class="tool-card-title">AI Contract Analyzer</div>
+      <div class="tool-card-desc">Upload a brand deal contract and get an instant AI report with payment terms, deliverables, usage rights, exclusivity clauses, and red flags.</div>
+      <div class="tool-card-badge pro"><span class="tool-card-badge-dot"></span> Pro</div>
+      <div class="tool-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
+    </a>
+    <a class="tool-card" href="pricing.html">
+      <div class="tool-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+      <div class="tool-card-title">Chatbox</div>
+      <div class="tool-card-desc">A creator-trained AI assistant. Ask anything about brand deal rates, content ideas, scripts, or growing your audience and get specific, actionable answers.</div>
+      <div class="tool-card-badge pro"><span class="tool-card-badge-dot"></span> Pro</div>
+      <div class="tool-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
+    </a>
+    <a class="tool-card" href="tools-media-kit.html">
+      <div class="tool-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="17" x2="8" y2="13"/><line x1="12" y1="17" x2="12" y2="11"/><line x1="16" y1="17" x2="16" y2="15"/></svg></div>
+      <div class="tool-card-title">Media Kit</div>
+      <div class="tool-card-desc">A professional media kit brands will actually read. Audience stats, engagement rate, and a rate card. Share a link or download as PDF.</div>
+      <div class="tool-card-badge pro"><span class="tool-card-badge-dot"></span> Pro only</div>
+      <div class="tool-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
+    </a>
+    <a class="tool-card" href="tools-grid-planner.html">
+      <div class="tool-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
+      <div class="tool-card-title">Grid Planner</div>
+      <div class="tool-card-desc">Plan your feed before you post. Drop photos, drag to reorder, and preview how your grid looks.</div>
+      <div class="tool-card-badge"><span class="tool-card-badge-dot"></span> Free to start</div>
+      <div class="tool-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
+    </a>
+    <a class="tool-card" href="tools-follower-audit.html">
+      <div class="tool-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></div>
+      <div class="tool-card-title">Follower Audit</div>
+      <div class="tool-card-desc">Find out who stopped following you back on Instagram. No password required. Upload your own data and see the truth in seconds.</div>
+      <div class="tool-card-badge"><span class="tool-card-badge-dot"></span> Free to start</div>
+      <div class="tool-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
+    </a>
+    <a class="tool-card" href="tools-photo-editor.html">
+      <div class="tool-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg></div>
+      <div class="tool-card-title">Photo Editor</div>
+      <div class="tool-card-desc">A lightweight editor for quick photo edits. Crop, resize, convert, and remove backgrounds with on-device AI. Aspect ratio presets for Instagram, TikTok, YouTube, and more. Everything happens in your browser.</div>
+      <div class="tool-card-badge"><span class="tool-card-badge-dot"></span> Free to start</div>
+      <div class="tool-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
+    </a>
+    <a class="tool-card" href="tools-qr-generator.html">
+      <div class="tool-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20v1"/></svg></div>
+      <div class="tool-card-title">QR Code Generator</div>
+      <div class="tool-card-desc">Generate clean, professional QR codes for your links, social profiles, and campaigns. Download instantly in high resolution.</div>
+      <div class="tool-card-badge"><span class="tool-card-badge-dot"></span> Free to start</div>
+      <div class="tool-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
+    </a>
+    <a class="tool-card" href="tools-invoice-generator.html">
+      <div class="tool-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/></svg></div>
+      <div class="tool-card-title">Invoice Generator</div>
+      <div class="tool-card-desc">Create professional invoices for your brand deals, collaborations, business, and more. Download as PDF.</div>
+      <div class="tool-card-badge"><span class="tool-card-badge-dot"></span> Free to start</div>
+      <div class="tool-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
+    </a>
+    <a class="tool-card" href="tools-sign-pdf.html">
+      <div class="tool-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M3 17l3-3 2 2 5-5 3 3"/></svg></div>
+      <div class="tool-card-title">Sign PDF</div>
+      <div class="tool-card-desc">Fill out and sign any PDF right in your browser. Files are processed entirely in your browser — never uploaded to our servers.</div>
+      <div class="tool-card-badge"><span class="tool-card-badge-dot"></span> Free to use</div>
+      <div class="tool-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
+    </a>
   </div>
-  <div class="viewer-progress-bar"><div class="viewer-progress-fill" id="viewer-progress-fill" style="width:0%"></div></div>
-  <div class="viewer-toc" id="viewer-toc">
-    <div class="viewer-sidebar" id="viewer-sidebar"></div>
+</section>
+
+<!-- Marketplace Discoverable + Download App -->
+<section style="padding:24px 24px 40px;">
+  <div class="discover-app-grid" style="max-width:800px;margin:0 auto;display:grid;grid-template-columns:1fr auto 1fr;gap:32px;align-items:center;">
+    <div style="text-align:center;">
+      <div style="font-family:'Syne',sans-serif;font-size:clamp(28px,5vw,42px);font-weight:800;letter-spacing:-1.5px;line-height:1.1;background:linear-gradient(135deg,#e879f9,#818cf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:16px;">Marketplace Discoverable</div>
+      <p style="font-size:16px;color:#fff;font-weight:500;margin-bottom:12px;max-width:360px;margin-left:auto;margin-right:auto;">Courses and private coaching you build on Ryxa become discoverable in our Learning Hub marketplace.</p>
+      <p style="font-size:13px;color:rgba(255,255,255,0.55);font-style:italic;">Increase your chances of selling.</p>
+    </div>
+    <div class="discover-app-divider" style="width:1px;height:120px;background:rgba(255,255,255,0.15);"></div>
+    <div style="text-align:center;">
+      <div style="font-family:'Syne',sans-serif;font-size:clamp(28px,5vw,42px);font-weight:800;letter-spacing:-1.5px;line-height:1.1;background:linear-gradient(135deg,#a78bfa,#e879f9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:16px;">Get the App</div>
+      <p style="font-size:16px;color:#fff;font-weight:500;margin-bottom:12px;max-width:360px;margin-left:auto;margin-right:auto;">Install Ryxa through our dashboard and take us everywhere you go.</p>
+      <div style="display:flex;align-items:center;justify-content:center;gap:24px;margin-top:20px;">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="rgba(255,255,255,0.5)" aria-label="Windows"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-13.051-1.95"/></svg>
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="rgba(255,255,255,0.5)" aria-label="Apple"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="rgba(255,255,255,0.5)" aria-label="Android"><path d="M17.6 9.48l1.84-3.18c.16-.31.04-.69-.27-.86-.31-.16-.69-.04-.86.27l-1.87 3.23C14.88 8.32 13.47 8 12 8s-2.88.32-4.44.94L5.69 5.71c-.16-.31-.54-.43-.86-.27-.31.16-.43.55-.27.86L6.4 9.48C3.3 11.25 1.28 14.44 1 18h22c-.28-3.56-2.3-6.75-5.4-8.52zM7 15.25a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5zm10 0a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5z"/></svg>
+      </div>
+    </div>
   </div>
-  <div class="viewer-content" id="viewer-content">
-    <p style="color:var(--muted);font-size:14px;">Select a lesson to begin.</p>
+</section>
+<style>
+  @media (max-width:640px) {
+    .discover-app-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
+    .discover-app-grid .discover-app-divider { width: 80px !important; height: 1px !important; margin: 0 auto; }
+  }
+</style>
+
+<!-- Diagonal photo divider — reversed slash -->
+<section class="problem-divider problem-divider-reverse">
+  <div class="problem-divider-photo problem-divider-photo-2"></div>
+  <div class="problem-divider-overlay problem-divider-overlay-right"></div>
+  <div class="problem-divider-content problem-divider-content-right">
+    <div class="problem-divider-eyebrow">You're not just a creator.</div>
+    <h2 class="problem-divider-headline">You're a business.<br>Time to run it like one.</h2>
   </div>
-  <div class="viewer-nav" id="viewer-nav"></div>
-</div>
+</section>
+<style>
+  .problem-divider-reverse {
+    clip-path: polygon(0 0, 100% 8%, 100% 100%, 0 92%);
+  }
+  .problem-divider-photo-2 {
+    background-image: url("ryxamodel2.webp") !important;
+    background-position: center 35% !important;
+  }
+  .problem-divider-overlay-right {
+    background: linear-gradient(270deg, rgba(7,7,15,0.85) 0%, rgba(7,7,15,0.6) 35%, rgba(7,7,15,0.15) 65%, rgba(7,7,15,0) 100%) !important;
+  }
+  .problem-divider-content-right {
+    align-items: flex-end !important;
+    text-align: right;
+  }
+  @media (max-width: 768px) {
+    .problem-divider-reverse {
+      clip-path: polygon(0 0, 100% 4%, 100% 100%, 0 96%);
+    }
+    .problem-divider-overlay-right {
+      background: linear-gradient(180deg, rgba(7,7,15,0.5) 0%, rgba(7,7,15,0.85) 100%) !important;
+    }
+    .problem-divider-content-right {
+      align-items: center !important;
+      text-align: center;
+    }
+  }
+</style>
+
+<section style="text-align:center;padding:80px 32px 40px;">
+  <h2 class="section-title" style="max-width:600px;margin:0 auto 16px;">Powerful Tools. No Coding.</h2>
+  <p style="font-size:18px;color:var(--muted);line-height:1.6;max-width:520px;margin:0 auto;">Start building your creator business in minutes. No technical skills, no complicated setup. Just sign up and go.</p>
+</section>
+
+<section style="padding:0 32px 80px;max-width:800px;margin:0 auto;">
+  <div style="background:#0a0a14;border:1px solid rgba(255,255,255,0.08);border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.4);position:relative;">
+    <div style="display:flex;align-items:center;gap:8px;padding:14px 18px;background:rgba(255,255,255,0.03);border-bottom:1px solid rgba(255,255,255,0.06);position:relative;z-index:2;">
+      <div style="width:12px;height:12px;border-radius:50%;background:#ff5f57;"></div>
+      <div style="width:12px;height:12px;border-radius:50%;background:#ffbd2e;"></div>
+      <div style="width:12px;height:12px;border-radius:50%;background:#28c840;"></div>
+      <div style="flex:1;text-align:center;font-size:12px;color:rgba(255,255,255,0.5);font-family:monospace;">ryxa.io/dashboard</div>
+    </div>
+    <div style="position:relative;min-height:380px;display:flex;">
+      <canvas id="binary-rain" style="position:absolute;inset:0;width:100%;height:100%;opacity:0.15;pointer-events:none;"></canvas>
+      <div style="position:relative;z-index:2;padding:28px 24px;font-family:'DM Mono',monospace,monospace;font-size:13px;line-height:2;overflow:hidden;flex:1;">
+        <div id="terminal-lines">
+          <div style="color:#a78bfa;">$ ryxa init</div>
+          <div style="color:#e2e0f0;"><span style="color:#4ade80;">✓</span> Link in Bio created</div>
+          <div style="color:#e2e0f0;"><span style="color:#4ade80;">✓</span> Media Kit published</div>
+          <div style="color:#e2e0f0;"><span style="color:#4ade80;">✓</span> Course Builder ready</div>
+          <div style="color:#e2e0f0;"><span style="color:#4ade80;">✓</span> 1:1 Booking live</div>
+          <div style="color:#e2e0f0;"><span style="color:#4ade80;">✓</span> Stripe connected</div>
+          <div style="color:#e2e0f0;"><span style="color:#4ade80;">✓</span> Brand Deal CRM active</div>
+          <div style="color:#a78bfa;margin-top:4px;">$ ryxa status</div>
+          <div style="color:#e2e0f0;"><span style="color:#fbbf24;">→</span> 3 courses published</div>
+          <div style="color:#e2e0f0;"><span style="color:#fbbf24;">→</span> 12 coaching sessions booked</div>
+          <div style="color:#e2e0f0;"><span style="color:#fbbf24;">→</span> $4,200 revenue this month</div>
+          <div style="color:#a78bfa;margin-top:4px;">$ <span id="terminal-cursor" style="display:inline-block;width:8px;height:16px;background:#a78bfa;vertical-align:middle;animation:blink 1s step-end infinite;"></span></div>
+        </div>
+      </div>
+      <!-- Revenue counter panel -->
+      <div id="rev-panel" style="position:relative;z-index:2;width:200px;flex-shrink:0;border-left:1px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 16px;gap:12px;">
+        <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.6);font-weight:600;">Revenue</div>
+        <div id="rev-counter" style="font-family:'Syne',sans-serif;font-size:36px;font-weight:800;letter-spacing:-1px;background:linear-gradient(135deg,#a78bfa,#e879f9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">$0</div>
+        <div style="width:100%;height:40px;position:relative;overflow:hidden;border-radius:8px;">
+          <canvas id="rev-sparkline" style="width:100%;height:100%;"></canvas>
+        </div>
+        <div id="rev-label" style="font-size:12px;color:rgba(255,255,255,0.55);text-align:center;">this month</div>
+      </div>
+    </div>
+  </div>
+  <style>
+    @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0;} }
+  </style>
+  <script>
+  (function() {
+    var canvas = document.getElementById('binary-rain');
+    if (!canvas) return;
+    var ctx = canvas.getContext('2d');
+    var W, H, columns, drops;
+    function resize() {
+      W = canvas.offsetWidth; H = canvas.offsetHeight;
+      canvas.width = W * 2; canvas.height = H * 2;
+      ctx.scale(2, 2);
+      columns = Math.floor(W / 14);
+      drops = [];
+      for (var i = 0; i < columns; i++) drops[i] = Math.random() * -50;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+    function draw() {
+      ctx.fillStyle = 'rgba(10,10,20,0.12)';
+      ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#7c3aed';
+      ctx.font = '11px monospace';
+      for (var i = 0; i < columns; i++) {
+        var char = Math.random() > 0.5 ? '1' : '0';
+        ctx.fillText(char, i * 14, drops[i] * 14);
+        if (drops[i] * 14 > H && Math.random() > 0.97) drops[i] = 0;
+        drops[i] += 0.4;
+      }
+      requestAnimationFrame(draw);
+    }
+    setTimeout(draw, 500);
+  })();
+
+  // Revenue counter animation
+  (function() {
+    var el = document.getElementById('rev-counter');
+    var sparkCanvas = document.getElementById('rev-sparkline');
+    if (!el || !sparkCanvas) return;
+    var sCtx = sparkCanvas.getContext('2d');
+    var points = [];
+    var maxPoints = 30;
+
+    function randomRange(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+    function runCycle() {
+      var startVal = randomRange(120, 280);
+      var endVal = randomRange(550, 850);
+      var duration = randomRange(4000, 6000);
+      var startTime = performance.now();
+      points = [];
+
+      function tick(now) {
+        var elapsed = now - startTime;
+        var progress = Math.min(elapsed / duration, 1);
+        // Ease out cubic for natural feel
+        var eased = 1 - Math.pow(1 - progress, 3);
+        var current = startVal + (endVal - startVal) * eased;
+        // Add small random jitter
+        var jitter = (Math.random() - 0.5) * 8;
+        var display = Math.round(current + jitter);
+        el.textContent = '$' + display.toLocaleString();
+
+        // Sparkline
+        points.push(current);
+        if (points.length > maxPoints) points.shift();
+        drawSparkline();
+
+        if (progress < 1) {
+          requestAnimationFrame(tick);
+        } else {
+          // Hold at peak briefly, then restart
+          setTimeout(function() {
+            el.style.transition = 'opacity 0.4s';
+            el.style.opacity = '0.3';
+            setTimeout(function() {
+              el.style.opacity = '1';
+              runCycle();
+            }, 600);
+          }, randomRange(1500, 3000));
+        }
+      }
+      requestAnimationFrame(tick);
+    }
+
+    function drawSparkline() {
+      var w = sparkCanvas.offsetWidth;
+      var h = sparkCanvas.offsetHeight;
+      var dpr = window.devicePixelRatio || 1;
+      sparkCanvas.width = w * dpr;
+      sparkCanvas.height = h * dpr;
+      sCtx.scale(dpr, dpr);
+      sCtx.clearRect(0, 0, w, h);
+      if (points.length < 2) return;
+      var min = Math.min.apply(null, points);
+      var max = Math.max.apply(null, points);
+      var range = max - min || 1;
+
+      // Area fill
+      sCtx.beginPath();
+      points.forEach(function(v, i) {
+        var x = (i / (maxPoints - 1)) * w;
+        var y = h - ((v - min) / range) * (h - 4) - 2;
+        if (i === 0) sCtx.moveTo(x, y); else sCtx.lineTo(x, y);
+      });
+      var lastX = ((points.length - 1) / (maxPoints - 1)) * w;
+      sCtx.lineTo(lastX, h);
+      sCtx.lineTo(0, h);
+      sCtx.closePath();
+      sCtx.fillStyle = 'rgba(167,139,250,0.08)';
+      sCtx.fill();
+
+      // Line
+      sCtx.beginPath();
+      points.forEach(function(v, i) {
+        var x = (i / (maxPoints - 1)) * w;
+        var y = h - ((v - min) / range) * (h - 4) - 2;
+        if (i === 0) sCtx.moveTo(x, y); else sCtx.lineTo(x, y);
+      });
+      sCtx.strokeStyle = '#a78bfa';
+      sCtx.lineWidth = 1.5;
+      sCtx.lineJoin = 'round';
+      sCtx.stroke();
+    }
+
+    setTimeout(runCycle, 1500);
+  })();
+  </script>
+
+  <style>
+    @media (max-width:600px) {
+      #rev-panel { display:none !important; }
+    }
+  </style>
+</section>
+
+<div style="text-align:center;padding:0 32px 60px;">
+  <a href="index.html?action=signup" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;box-shadow:0 0 30px rgba(232,121,249,0.3);text-decoration:none;transition:all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">Try Creator Max Free — 7 Days</a>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<section class="features-section">
+  <div class="features-inner">
+    <span class="section-label">Why Ryxa</span>
+    <h2 class="section-title">Built by a creator. For creators.</h2>
+    <div class="features-grid">
+      <div class="feat"><div class="feat-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M5.5 21a7.5 7.5 0 0 1 13 0"/></svg></div><div class="feat-title">Built by a creator</div><div class="feat-desc">Built by a creator who got tired of paying $400 a month for tools that didn't talk to each other. If you've been in the trenches, you'll recognize the pain.</div></div>
+      <div class="feat"><div class="feat-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></div><div class="feat-title">Find people who unfollowed you</div><div class="feat-desc">Know who actually supports you. Find your real fans, and stop pouring energy into people who'll never pour it back.</div></div>
+      <div class="feat"><div class="feat-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div><div class="feat-title">Free to start</div><div class="feat-desc">We offer plenty of tools on the free-plan. Enjoy it on us!</div></div>
+      <div class="feat"><div class="feat-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="feat-title">Affordable by design</div><div class="feat-desc">Pro is $10 a month. Less than lunch. Upgrade to Creator Max when you're ready for the next level. Cancel any time you want.</div></div>
+      <div class="feat"><div class="feat-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div><div class="feat-title">One clean dashboard</div><div class="feat-desc">Your link-in-bio, courses, coaching, invoices, brand deals, all in one place. Stop paying five different services to run one creator business.</div></div>
+      <div class="feat"><div class="feat-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22c5.5 0 10-4.5 10-10S17.5 2 12 2 2 6.5 2 12s4.5 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg></div><div class="feat-title">Focused, not bloated</div><div class="feat-desc">Every tool earns its place. No menus stuffed with features you'll never use. Just what you actually need, nothing you don't.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- Asymmetric bleed photo divider -->
+<section class="bleed-divider">
+  <div class="bleed-divider-grid">
+    <div class="bleed-divider-text">
+      <div class="bleed-divider-eyebrow">Stop building someone else's dream.</div>
+      <h2 class="bleed-divider-headline">Build a creator business that's actually yours.</h2>
+    </div>
+    <div class="bleed-divider-photo-wrap">
+      <div class="bleed-divider-photo"></div>
+      <div class="bleed-divider-fade"></div>
+    </div>
+  </div>
+</section>
+<style>
+  .bleed-divider {
+    position: relative;
+    width: 100%;
+    margin: 80px 0;
+    overflow: hidden;
+  }
+  .bleed-divider-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    align-items: center;
+    gap: 48px;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding-left: 60px;
+  }
+  .bleed-divider-text {
+    padding-right: 24px;
+  }
+  .bleed-divider-eyebrow {
+    font-family: "DM Sans", sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.75);
+    letter-spacing: 0.02em;
+    margin-bottom: 18px;
+  }
+  .bleed-divider-headline {
+    font-family: "Syne", sans-serif;
+    font-size: clamp(32px, 5vw, 52px);
+    font-weight: 800;
+    letter-spacing: -1.5px;
+    line-height: 1.1;
+    color: #fff;
+    margin: 0;
+  }
+  .bleed-divider-photo-wrap {
+    position: relative;
+    width: calc(100% + 60px);
+    margin-right: -60px;
+    height: 480px;
+    border-radius: 20px 0 0 20px;
+    overflow: hidden;
+  }
+  .bleed-divider-photo {
+    position: absolute;
+    inset: 0;
+    background-image: url("ryxamodel3.webp");
+    background-size: cover;
+    background-position: center 28%;
+  }
+  .bleed-divider-fade {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(7,7,15,0.6) 0%, rgba(7,7,15,0) 25%, rgba(7,7,15,0) 75%, rgba(7,7,15,0.4) 100%);
+    pointer-events: none;
+  }
+  @media (max-width: 768px) {
+    .bleed-divider {
+      margin: 48px 0;
+    }
+    .bleed-divider-grid {
+      grid-template-columns: 1fr;
+      gap: 28px;
+      padding: 0 24px;
+      text-align: center;
+    }
+    .bleed-divider-text {
+      padding-right: 0;
+    }
+    .bleed-divider-photo-wrap {
+      width: 100%;
+      margin-right: 0;
+      height: 320px;
+      border-radius: 16px;
+    }
+  }
+</style>
+
+<!-- Comparison pricing section (receipt) -->
+<section style="padding:80px 24px;text-align:center;position:relative;overflow:hidden;">
+  <div style="max-width:720px;margin:0 auto;position:relative;">
+    <div style="font-family:'Syne',sans-serif;font-size:clamp(28px,5vw,40px);font-weight:800;letter-spacing:-1.5px;line-height:1.1;margin-bottom:12px;color:#fff;">Why Spend Hundreds?</div>
+    <p style="font-size:16px;color:rgba(255,255,255,0.55);margin-bottom:8px;max-width:560px;margin-left:auto;margin-right:auto;">Ryxa offers different plans based on your needs.</p>
+    <p style="font-size:15px;color:rgba(255,255,255,0.75);margin-bottom:56px;max-width:560px;margin-left:auto;margin-right:auto;font-weight:500;">Free forever, Pro for $10/mo, and Creator Max for $20/mo.</p>
+
+    <!-- Receipt -->
+    <div class="receipt-wrap">
+      <div class="receipt">
+        <!-- Stamp -->
+        <div class="receipt-stamp">
+          <div class="receipt-stamp-inner">
+            <div class="receipt-stamp-line">★ 0% PLATFORM FEES ★</div>
+            <div class="receipt-stamp-sub">RYXA</div>
+          </div>
+        </div>
+
+        <!-- Header -->
+        <div class="receipt-header">
+          <div class="receipt-brand">RECEIPT</div>
+          <div class="receipt-meta">CREATOR TOOLKIT · ALL-IN-ONE</div>
+          <div class="receipt-meta-line">— — — — — — — — — — — — — — — — —</div>
+        </div>
+
+        <!-- Items -->
+        <div class="receipt-items">
+          <div class="receipt-line"><span class="receipt-line-name">Link-in-Bio</span><span class="receipt-line-dots"></span><span class="receipt-line-price">$24.00</span></div>
+          <div class="receipt-line-sub">vs. Linktree, Beacons</div>
+
+          <div class="receipt-line"><span class="receipt-line-name">Course Builder</span><span class="receipt-line-dots"></span><span class="receipt-line-price">$149.00</span></div>
+          <div class="receipt-line-sub">vs. Kajabi, Teachable</div>
+
+          <div class="receipt-line"><span class="receipt-line-name">1:1 Booking</span><span class="receipt-line-dots"></span><span class="receipt-line-price">$30.00</span></div>
+          <div class="receipt-line-sub">vs. Calendly, Stan Store</div>
+
+          <div class="receipt-line"><span class="receipt-line-name">Digital Products</span><span class="receipt-line-dots"></span><span class="receipt-line-price">$20.00</span></div>
+          <div class="receipt-line-sub">vs. Gumroad, Payhip</div>
+
+          <div class="receipt-line"><span class="receipt-line-name">Brand Deal CRM</span><span class="receipt-line-dots"></span><span class="receipt-line-price">$16.00</span></div>
+          <div class="receipt-line-sub">vs. Honeybook, Monday</div>
+
+          <div class="receipt-line"><span class="receipt-line-name">AI Design Studio</span><span class="receipt-line-dots"></span><span class="receipt-line-price">$13.00</span></div>
+          <div class="receipt-line-sub">vs. Canva Pro, Adobe Express</div>
+
+          <div class="receipt-line"><span class="receipt-line-name">Media Kit</span><span class="receipt-line-dots"></span><span class="receipt-line-price">$29.00</span></div>
+          <div class="receipt-line-sub">vs. Squarespace, Wix</div>
+
+          <div class="receipt-line"><span class="receipt-line-name">AI Script Builder</span><span class="receipt-line-dots"></span><span class="receipt-line-price">$10.00</span></div>
+          <div class="receipt-line-sub">vs. Notion, Celtx</div>
+
+          <div class="receipt-line"><span class="receipt-line-name">AI Thumbnail Analyzer</span><span class="receipt-line-dots"></span><span class="receipt-line-price">$10.00</span></div>
+          <div class="receipt-line-sub">vs. Thumblytics, VidIQ</div>
+
+          <div class="receipt-line"><span class="receipt-line-name">Chatbox &amp; AI Tools</span><span class="receipt-line-dots"></span><span class="receipt-line-price">$20.00</span></div>
+          <div class="receipt-line-sub">vs. ChatGPT Plus</div>
+        </div>
+
+        <div class="receipt-divider"></div>
+
+        <!-- Subtotal + discount -->
+        <div class="receipt-subtotal">
+          <div class="receipt-line"><span class="receipt-line-name">SUBTOTAL</span><span class="receipt-line-dots"></span><span class="receipt-line-price receipt-cross">$321.00</span></div>
+          <div class="receipt-line receipt-discount"><span class="receipt-line-name">RYXA CREATOR MAX</span><span class="receipt-line-dots"></span><span class="receipt-line-price">-$301.00</span></div>
+        </div>
+
+        <div class="receipt-divider receipt-divider-double"></div>
+
+        <!-- Total -->
+        <div class="receipt-total-row">
+          <span class="receipt-total-label">TOTAL</span>
+          <span class="receipt-total-amount-wrap">
+            <span class="receipt-total-amount">$20.00<span class="receipt-total-mo">/mo</span></span>
+            <svg class="receipt-total-circle" viewBox="0 0 220 90" aria-hidden="true" preserveAspectRatio="none">
+              <path d="M 14 48 C 14 22, 60 14, 110 14 C 168 14, 208 26, 206 48 C 204 72, 152 80, 100 78 C 48 76, 12 72, 16 50" fill="none" stroke="#c0392b" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+          </span>
+        </div>
+
+        <div class="receipt-divider receipt-divider-double"></div>
+
+        <!-- Footer -->
+        <div class="receipt-footer">
+          <div class="receipt-thanks">★ THANK YOU FOR SWITCHING ★</div>
+          <div class="receipt-fine">All tools included · 0% transaction fees</div>
+          <div class="receipt-barcode">|||| || ||||| | || |||| || | |||||</div>
+          <div class="receipt-disclaimer">* Competitor pricing reflects publicly listed rates as of 2026 and is provided for comparison only.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CTA below receipt -->
+    <a href="index.html?action=signup" class="receipt-cta">Try Free for 7 Days</a>
+    <div class="receipt-disclaimer">Pricing reflects comparable plans from each provider. Plans, features and prices vary by tool.</div>
+  </div>
+</section>
+<style>
+  .receipt-wrap {
+    position:relative;
+    max-width:420px;
+    margin:0 auto 36px;
+    padding:0 16px;
+    perspective:1000px;
+  }
+  .receipt {
+    position:relative;
+    background:#f5f1e8;
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(0,0,0,0.018) 1px, transparent 1px),
+      radial-gradient(circle at 80% 70%, rgba(0,0,0,0.015) 1px, transparent 1px),
+      radial-gradient(circle at 50% 50%, rgba(0,0,0,0.012) 1px, transparent 1px);
+    background-size:18px 18px, 22px 22px, 14px 14px;
+    color:#1a1a1a;
+    font-family:'Courier Prime', 'IBM Plex Mono', 'Courier New', Courier, monospace;
+    padding:32px 28px 24px;
+    text-align:center;
+    transform:rotate(-1.2deg);
+    box-shadow:
+      0 1px 0 rgba(0,0,0,0.08) inset,
+      0 30px 60px -15px rgba(0,0,0,0.55),
+      0 12px 24px -8px rgba(0,0,0,0.35);
+    /* Torn/perforated edges via clip-path */
+    clip-path:polygon(
+      0% 1.2%, 4% 0%, 8% 1%, 12% 0.4%, 16% 1.4%, 20% 0.2%, 24% 1.2%, 28% 0.4%, 32% 1.4%, 36% 0%, 40% 1.2%, 44% 0.4%, 48% 1.4%, 52% 0%, 56% 1.2%, 60% 0.4%, 64% 1.4%, 68% 0.2%, 72% 1.2%, 76% 0.4%, 80% 1.4%, 84% 0%, 88% 1.2%, 92% 0.4%, 96% 1.4%, 100% 0.2%,
+      100% 99%, 96% 99.8%, 92% 98.6%, 88% 99.6%, 84% 98.8%, 80% 99.6%, 76% 98.6%, 72% 99.8%, 68% 98.6%, 64% 99.6%, 60% 98.8%, 56% 99.6%, 52% 98.6%, 48% 99.8%, 44% 98.8%, 40% 99.6%, 36% 98.6%, 32% 99.8%, 28% 98.6%, 24% 99.6%, 20% 98.6%, 16% 99.8%, 12% 98.6%, 8% 99.6%, 4% 98.8%, 0% 99.8%
+    );
+    transition:transform 0.4s cubic-bezier(.2,.8,.2,1.05);
+  }
+  .receipt:hover {
+    transform:rotate(0deg) translateY(-3px);
+  }
+
+  /* Stamp */
+  .receipt-stamp {
+    position:absolute;
+    top:46%;
+    right:-2%;
+    transform:rotate(-12deg);
+    z-index:3;
+    pointer-events:none;
+  }
+  .receipt-stamp-inner {
+    border:2.5px solid #c0392b;
+    color:#c0392b;
+    padding:8px 14px;
+    border-radius:4px;
+    background:rgba(192,57,43,0.04);
+    text-align:center;
+    opacity:0.78;
+    box-shadow:0 0 0 4px rgba(192,57,43,0.06);
+  }
+  .receipt-stamp-line {
+    font-family:'Syne','Impact',sans-serif;
+    font-size:13px;
+    font-weight:800;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    margin-bottom:2px;
+  }
+  .receipt-stamp-sub {
+    font-size:9px;
+    font-weight:600;
+    letter-spacing:1.5px;
+    opacity:0.85;
+  }
+
+  /* Header */
+  .receipt-header {
+    margin-bottom:14px;
+  }
+  .receipt-brand {
+    font-family:'Syne','Impact',sans-serif;
+    font-size:22px;
+    font-weight:800;
+    letter-spacing:3px;
+    color:#1a1a1a;
+    margin-bottom:4px;
+  }
+  .receipt-meta {
+    font-size:10px;
+    letter-spacing:1.5px;
+    color:#5a5a5a;
+    margin-bottom:6px;
+  }
+  .receipt-meta-line {
+    font-size:10px;
+    color:#aaa;
+    letter-spacing:0;
+  }
+
+  /* Items */
+  .receipt-items {
+    text-align:left;
+    margin-bottom:10px;
+  }
+  .receipt-line {
+    display:flex;
+    align-items:baseline;
+    font-size:13px;
+    line-height:1.9;
+    color:#2a2a2a;
+  }
+  .receipt-line-name {
+    flex-shrink:0;
+    white-space:nowrap;
+  }
+  .receipt-line-dots {
+    flex:1;
+    border-bottom:1.5px dotted #888;
+    margin:0 6px;
+    transform:translateY(-3px);
+  }
+  .receipt-line-price {
+    flex-shrink:0;
+    font-variant-numeric:tabular-nums;
+    font-weight:600;
+  }
+  .receipt-line-sub {
+    font-size:10px;
+    color:#888;
+    font-style:italic;
+    margin-top:-6px;
+    margin-bottom:6px;
+    margin-left:2px;
+    letter-spacing:0.2px;
+  }
+
+  /* Dividers */
+  .receipt-divider {
+    border-top:1.5px dashed #999;
+    margin:10px 0;
+  }
+  .receipt-divider-double {
+    border-top:2.5px solid #1a1a1a;
+    border-bottom:1px solid #1a1a1a;
+    height:3px;
+    margin:8px 0;
+  }
+
+  /* Subtotal */
+  .receipt-subtotal .receipt-line {
+    font-weight:700;
+    color:#1a1a1a;
+    font-size:13px;
+  }
+  .receipt-strike {
+    text-decoration:line-through;
+    text-decoration-thickness:1.5px;
+    text-decoration-color:#c0392b;
+    color:#666 !important;
+  }
+  /* Hand-drawn X cross-out — number stays readable */
+  .receipt-cross {
+    position:relative;
+    color:#1a1a1a !important;
+    display:inline-block;
+  }
+  .receipt-cross::before,
+  .receipt-cross::after {
+    content:'';
+    position:absolute;
+    top:50%;
+    left:-3%;
+    width:106%;
+    height:2px;
+    background:#c0392b;
+    border-radius:2px;
+    pointer-events:none;
+  }
+  .receipt-cross::before {
+    transform:translateY(-50%) rotate(-12deg);
+  }
+  .receipt-cross::after {
+    transform:translateY(-50%) rotate(12deg);
+  }
+  .receipt-discount .receipt-line-name,
+  .receipt-discount .receipt-line-price {
+    color:#c0392b !important;
+  }
+
+  /* Total */
+  .receipt-total-row {
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    padding:6px 0;
+  }
+  .receipt-total-label {
+    font-family:'Syne','Impact',sans-serif;
+    font-size:18px;
+    font-weight:800;
+    letter-spacing:2px;
+    color:#1a1a1a;
+  }
+  .receipt-total-amount {
+    font-family:'Syne','Impact',sans-serif;
+    font-size:28px;
+    font-weight:800;
+    letter-spacing:-0.8px;
+    color:#1a1a1a;
+    font-variant-numeric:tabular-nums;
+    position:relative;
+    z-index:1;
+  }
+  .receipt-total-amount-wrap {
+    position:relative;
+    display:inline-block;
+    padding:4px 10px;
+  }
+  .receipt-total-circle {
+    position:absolute;
+    top:-4px;
+    left:-6px;
+    width:calc(100% + 12px);
+    height:calc(100% + 8px);
+    overflow:visible;
+    pointer-events:none;
+    z-index:0;
+    opacity:0.85;
+  }
+  .receipt-total-mo {
+    font-size:12px;
+    font-weight:600;
+    color:#666;
+    letter-spacing:0;
+    margin-left:2px;
+  }
+
+  /* Footer */
+  .receipt-footer {
+    margin-top:8px;
+  }
+  .receipt-thanks {
+    font-family:'Syne','Impact',sans-serif;
+    font-size:11px;
+    letter-spacing:2px;
+    font-weight:700;
+    color:#1a1a1a;
+    margin-bottom:4px;
+  }
+  .receipt-fine {
+    font-size:10px;
+    color:#666;
+    margin-bottom:14px;
+    letter-spacing:0.3px;
+  }
+  .receipt-barcode {
+    font-family:'Courier Prime', monospace;
+    font-size:10px;
+    letter-spacing:-1px;
+    color:#1a1a1a;
+    line-height:0.7;
+    transform:scaleY(1.6);
+    transform-origin:center;
+    margin-bottom:6px;
+  }
+  .receipt-disclaimer {
+    font-size:8.5px;
+    color:#888;
+    font-style:italic;
+    line-height:1.4;
+    letter-spacing:0.2px;
+    margin-top:14px;
+    padding:0 4px;
+  }
+
+  /* CTA below receipt */
+  .receipt-cta {
+    display:inline-block;
+    padding:14px 32px;
+    background:linear-gradient(135deg,#a78bfa,#e879f9);
+    color:#fff;
+    border-radius:10px;
+    font-size:14px;
+    font-weight:600;
+    font-family:'DM Sans',sans-serif;
+    text-decoration:none;
+    box-shadow:0 0 30px rgba(232,121,249,0.3);
+    transition:transform 0.15s;
+  }
+  .receipt-cta:hover { transform:translateY(-2px); }
+  .receipt-disclaimer {
+    margin-top:18px;
+    font-size:11px;
+    color:rgba(255,255,255,0.6);
+    max-width:480px;
+    margin-left:auto;
+    margin-right:auto;
+    line-height:1.5;
+  }
+
+  /* Mobile */
+  @media (max-width:560px) {
+    .receipt-wrap { max-width:340px; padding:0 8px; }
+    .receipt {
+      transform:rotate(-0.6deg);
+      padding:24px 20px 18px;
+    }
+    .receipt-brand { font-size:18px; letter-spacing:2px; }
+    .receipt-total-amount { font-size:24px; }
+    .receipt-total-label { font-size:16px; letter-spacing:1.5px; }
+    .receipt-line { font-size:12px; }
+    .receipt-stamp { right:-4%; top:48%; }
+    .receipt-stamp-line { font-size:11px; }
+    .receipt-stamp-sub { font-size:8px; }
+  }
+  @media (max-width:380px) {
+    .receipt-line { font-size:11px; }
+    .receipt-line-name { max-width:55%; overflow:hidden; text-overflow:ellipsis; }
+  }
+</style>
+
+<section class="cta-section">
+  <div class="cta-bg"></div>
+  <div class="cta-inner">
+    <h2>Ready to grow smarter?</h2>
+    <p>Join creators who own what they build.</p>
+    <button class="btn-primary" onclick="openSignupModal()" style="font-size:17px;padding:17px 44px;">Get started free &#x2192;</button>
+    <div style="margin-top:20px;font-size:14px;color:var(--muted);">Already have an account? <a onclick="openAuthModal()" style="color:var(--accent2);cursor:pointer;text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='#e879f9'" onmouseout="this.style.color='var(--accent2)'">Sign in</a> &nbsp;·&nbsp; <a href="pricing.html" style="color:var(--accent2);text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='#e879f9'" onmouseout="this.style.color='var(--accent2)'">View plans</a></div>
+  </div>
+</section>
+
+<div id="site-footer"></div>
+
+
 <script>
-const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_PLU28Un_GfsUXeUsK3zB9Q_hvNM7aeG';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-// Theme toggle
-function toggleLearnTheme() {
-  var isLight = document.body.classList.toggle('light-mode');
-  localStorage.setItem('ryxa-learn-theme', isLight ? 'light' : 'dark');
-  document.documentElement.setAttribute('data-theme', isLight ? 'light' : 'dark');
+// Testimonials: scroll left/right
+function scrollTestimonials(dir) {
+  const track = document.getElementById('testimonials-track');
+  if (!track) return;
+  const card = track.querySelector('.testimonial-card');
+  const scrollAmount = card ? card.offsetWidth + 20 : 400;
+  const maxScroll = track.scrollWidth - track.clientWidth;
+  if (dir === -1 && track.scrollLeft <= 0) return;
+  if (dir === 1 && track.scrollLeft >= maxScroll - 1) return;
+  track.scrollBy({ left: dir * scrollAmount, behavior: 'smooth' });
 }
 
-function updateThemeMenuItem() {
-  var label = document.getElementById('theme-menu-label');
-  var isLight = document.body.classList.contains('light-mode');
-  if (label) label.textContent = isLight ? 'Dark Mode' : 'Light Mode';
-}
+// Desktop drag-to-scroll
+document.addEventListener('DOMContentLoaded', () => {
+  const track = document.getElementById('testimonials-track');
+  if (!track) return;
+  let isDown = false, startX, scrollStart;
+  track.addEventListener('mousedown', (e) => {
+    isDown = true;
+    track.style.cursor = 'grabbing';
+    startX = e.pageX - track.offsetLeft;
+    scrollStart = track.scrollLeft;
+    e.preventDefault();
+  });
+  track.addEventListener('mouseleave', () => { isDown = false; track.style.cursor = 'grab'; });
+  track.addEventListener('mouseup', () => { isDown = false; track.style.cursor = 'grab'; });
+  track.addEventListener('mousemove', (e) => {
+    if (!isDown) return;
+    const x = e.pageX - track.offsetLeft;
+    const walk = (x - startX) * 1.5;
+    track.scrollLeft = scrollStart - walk;
+  });
+  track.style.cursor = 'grab';
 
-function toggleNavMenu() {
-  var dd = document.getElementById('nav-menu-dropdown');
-  if (dd) dd.classList.toggle('open');
-}
-
-document.addEventListener('click', function(e) {
-  var dd = document.getElementById('nav-menu-dropdown');
-  if (!dd) return;
-  var wrap = dd.parentElement;
-  if (wrap && !wrap.contains(e.target)) dd.classList.remove('open');
+  // Mobile only: zoom background on the most visible card
+  if (window.innerWidth <= 600) {
+    const cards = track.querySelectorAll('.testimonial-card');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        entry.target.classList.toggle('testimonial-active', entry.isIntersecting);
+      });
+    }, { root: track, threshold: 0.6 });
+    cards.forEach(card => observer.observe(card));
+  }
 });
 
-// Apply saved theme on load
-(function() {
-  var saved = localStorage.getItem('ryxa-learn-theme');
-  if (saved === 'light') {
-    document.body.classList.add('light-mode');
-    document.documentElement.setAttribute('data-theme', 'light');
-  }
-})();
-
-let currentUser = null;
-let enrollments = [];
-let viewerCourse = null;
-let viewerModules = [];
-let viewerLessons = [];
-let viewerProgress = [];
-let viewerEnrollmentId = null;
-let currentLessonId = null;
+const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_PLU28Un_GfsUXeUsK3zB9Q_hvNM7aeG';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let authMode = 'signin';
+let currentUser = null;
 
-function setLearnAuthMode(mode) {
-  authMode = mode;
-  var signinTab = document.getElementById('learn-tab-signin');
-  var signupTab = document.getElementById('learn-tab-signup');
-  var btn = document.getElementById('auth-btn');
-  if (mode === 'signin') {
-    signinTab.style.background = 'var(--btn-bg)'; signinTab.style.color = 'var(--btn-text)';
-    signupTab.style.background = 'transparent'; signupTab.style.color = 'var(--muted)';
-    btn.textContent = 'Sign In';
-  } else {
-    signupTab.style.background = 'var(--btn-bg)'; signupTab.style.color = 'var(--btn-text)';
-    signinTab.style.background = 'transparent'; signinTab.style.color = 'var(--muted)';
-    btn.textContent = 'Create Account';
-  }
-  document.getElementById('auth-error').style.display = 'none';
-}
-
-async function handleLearnForgotPassword() {
-  var email = document.getElementById('auth-email').value.trim();
-  var errEl = document.getElementById('auth-error');
-  if (!email) { errEl.textContent = 'Enter your email address first.'; errEl.style.display = 'block'; errEl.style.color = '#f87171'; return; }
-  var captchaToken = getTurnstileToken();
-  if (!captchaToken) { errEl.textContent = 'Please complete the verification check.'; errEl.style.display = 'block'; errEl.style.color = '#f87171'; return; }
-  var { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: 'https://ryxa.io/reset-password.html', captchaToken: captchaToken });
-  if (error) {
-    var msg = error.message;
-    if (msg.toLowerCase().indexOf('captcha') !== -1 || msg.toLowerCase().indexOf('invalid-input') !== -1) {
-      msg = 'Verification failed. Please disable your ad blocker for ryxa.io and try again.';
-    }
-    errEl.textContent = msg;
-    errEl.style.display = 'block';
-    errEl.style.color = '#f87171';
-    resetTurnstile();
-    return;
-  }
-  errEl.textContent = 'Password reset link sent. Check your email.';
-  errEl.style.display = 'block';
-  errEl.style.color = 'var(--text)';
-  resetTurnstile();
-}
-
-async function handleLearnGoogleAuth() {
-  var params = new URLSearchParams(window.location.search);
-  var redirect = params.get('redirect');
-  var redirectUrl = 'https://ryxa.io/learn/';
-  if (redirect && redirect.startsWith('/') && !redirect.startsWith('//')) redirectUrl = 'https://ryxa.io' + redirect;
-  var { error } = await sb.auth.signInWithOAuth({
-    provider: 'google',
-    options: { redirectTo: redirectUrl }
+async function initAuth() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session?.user) { currentUser = session.user; window.location.href = 'dashboard.html'; return; }
+  sb.auth.onAuthStateChange((_event, session) => {
+    if (_event === 'SIGNED_IN' && session?.user) window.location.href = 'dashboard.html';
   });
-  if (error) {
-    var errEl = document.getElementById('auth-error');
-    errEl.textContent = error.message;
-    errEl.style.display = 'block';
-    errEl.style.color = '#f87171';
-  }
 }
+
+function requireAuth(e) { if (!currentUser) { e.preventDefault(); openAuthModal(); } }
+
+function openAuthModal() {
+  authMode = 'signin'; syncAuthModal();
+  document.getElementById('auth-modal').classList.add('open');
+  setTimeout(() => document.getElementById('auth-email')?.focus(), 100);
+  renderTurnstileWidget();
+}
+
+function openSignupModal() {
+  authMode = 'signup'; syncAuthModal();
+  document.getElementById('auth-modal').classList.add('open');
+  setTimeout(() => document.getElementById('auth-email')?.focus(), 100);
+  renderTurnstileWidget();
+}
+
+// Open signup modal if URL has #signup OR ?action=signup (from external page links)
+// Also supports ?action=signin
+window.addEventListener('load', () => {
+  if (currentUser) return;
+  const params = new URLSearchParams(window.location.search);
+  const action = params.get('action');
+  if (window.location.hash === '#signup' || action === 'signup') {
+    setTimeout(openSignupModal, 300);
+  } else if (action === 'signin') {
+    setTimeout(openAuthModal, 300);
+  }
+});
+
+function closeAuthModal() {
+  document.getElementById('auth-modal').classList.remove('open');
+  const el = document.getElementById('auth-msg'); if (el) el.style.display = 'none';
+  const btn = document.getElementById('auth-submit-btn'); if (btn) { btn.disabled = false; btn.textContent = 'Sign in'; }
+}
+
+function syncAuthModal() {
+  const isSignIn = authMode === 'signin';
+  document.getElementById('auth-submit-btn').textContent = isSignIn ? 'Sign in' : 'Create account';
+  document.getElementById('auth-msg').style.display = 'none';
+  const fl = document.getElementById('forgot-password-link'); if (fl) fl.style.display = isSignIn ? 'block' : 'none';
+  // Update tab active states
+  const signinTab = document.getElementById('auth-tab-signin');
+  const signupTab = document.getElementById('auth-tab-signup');
+  if (signinTab) signinTab.classList.toggle('active', isSignIn);
+  if (signupTab) signupTab.classList.toggle('active', !isSignIn);
+  // Update password autocomplete hint to help browser pickers
+  const pw = document.getElementById('auth-password');
+  if (pw) pw.setAttribute('autocomplete', isSignIn ? 'current-password' : 'new-password');
+}
+
+function setAuthMode(mode) { authMode = mode; syncAuthModal(); }
+
+function toggleAuthMode() { authMode = authMode === 'signin' ? 'signup' : 'signin'; syncAuthModal(); }
+
+function showAuthMsg(type, msg) {
+  const el = document.getElementById('auth-msg'); if (!el) return;
+  el.style.display = 'block'; el.className = 'modal-msg ' + type; el.textContent = msg;
+}
+
+// Cloudflare Turnstile (CAPTCHA) configuration
 const TURNSTILE_SITE_KEY = '0x4AAAAAAC9W8avdI3sdVEcc';
 let turnstileWidgetId = null;
 
 function renderTurnstileWidget() {
-  if (typeof turnstile === 'undefined') { setTimeout(renderTurnstileWidget, 200); return; }
-  var container = document.getElementById('auth-turnstile');
+  if (typeof turnstile === 'undefined') {
+    // Script not loaded yet — try again shortly
+    setTimeout(renderTurnstileWidget, 200);
+    return;
+  }
+  const container = document.getElementById('auth-turnstile');
   if (!container) return;
-  if (turnstileWidgetId !== null) { try { turnstile.reset(turnstileWidgetId); } catch(e) {} return; }
-  turnstileWidgetId = turnstile.render('#auth-turnstile', { sitekey: TURNSTILE_SITE_KEY, theme: 'dark', size: 'flexible' });
+  // If already rendered, reset instead of re-rendering
+  if (turnstileWidgetId !== null) {
+    try { turnstile.reset(turnstileWidgetId); } catch (e) {}
+    return;
+  }
+  turnstileWidgetId = turnstile.render('#auth-turnstile', {
+    sitekey: TURNSTILE_SITE_KEY,
+    theme: 'dark',
+    size: 'flexible',
+  });
 }
 
 function getTurnstileToken() {
   if (typeof turnstile === 'undefined' || turnstileWidgetId === null) return null;
-  try { return turnstile.getResponse(turnstileWidgetId); } catch(e) { return null; }
+  try { return turnstile.getResponse(turnstileWidgetId); } catch (e) { return null; }
 }
 
 function resetTurnstile() {
-  if (typeof turnstile !== 'undefined' && turnstileWidgetId !== null) { try { turnstile.reset(turnstileWidgetId); } catch(e) {} }
-}
-
-async function init() {
-  const { data: { session } } = await sb.auth.getSession();
-  if (session?.user) {
-    currentUser = session.user;
-    await onLoggedIn();
-  } else {
-    showAuth();
+  if (typeof turnstile !== 'undefined' && turnstileWidgetId !== null) {
+    try { turnstile.reset(turnstileWidgetId); } catch (e) {}
   }
-
-  sb.auth.onAuthStateChange(function(_event, session) {
-    if (session?.user && !currentUser) {
-      currentUser = session.user;
-      onLoggedIn();
-    } else if (!session?.user) {
-      currentUser = null;
-      showAuth();
-    }
-  });
 }
 
-function showAuth() {
-  document.getElementById('auth-screen').style.display = 'block';
-  document.getElementById('dash-screen').style.display = 'none';
-  document.getElementById('viewer-screen').style.display = 'none';
-  document.getElementById('nav-right').innerHTML = '<a href="/" class="nav-btn nav-btn-outline">Home</a>';
-  renderTurnstileWidget();
+async function handleGoogleAuth() {
+  const { error } = await sb.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: 'https://ryxa.io/dashboard.html',
+    },
+  });
+  if (error) showAuthMsg('error', error.message);
 }
 
 async function handleAuth() {
   const email = document.getElementById('auth-email').value.trim();
   const password = document.getElementById('auth-password').value;
-  const errEl = document.getElementById('auth-error');
-  errEl.style.display = 'none';
-
-  if (!email || !password) { errEl.textContent = 'Please enter email and password.'; errEl.style.display = 'block'; return; }
-  if (password.length < 6) { errEl.textContent = 'Password must be at least 6 characters.'; errEl.style.display = 'block'; return; }
-
-  var captchaToken = getTurnstileToken();
-  if (!captchaToken) { errEl.textContent = 'Please complete the verification check.'; errEl.style.display = 'block'; errEl.style.color = '#f87171'; return; }
-
-  const btn = document.getElementById('auth-btn');
-  btn.disabled = true; btn.textContent = 'Loading...';
-
-  try {
-    var result;
-    if (authMode === 'signup') {
-      // Build redirect URL so email confirmation sends user back here
-      var confirmRedirect = 'https://ryxa.io/learn/';
-      var params = new URLSearchParams(window.location.search);
-      var redirect = params.get('redirect');
-      if (redirect && redirect.startsWith('/') && !redirect.startsWith('//')) {
-        confirmRedirect = 'https://ryxa.io/learn/?redirect=' + encodeURIComponent(redirect);
-      }
-      result = await sb.auth.signUp({ email: email, password: password, options: { captchaToken: captchaToken, emailRedirectTo: confirmRedirect } });
-      if (result.error) throw result.error;
-      if (result.data?.user && !result.data.session) {
-        errEl.textContent = 'Check your email for a confirmation link.';
-        errEl.style.display = 'block';
-        errEl.style.color = 'var(--text)';
-        btn.disabled = false; btn.textContent = 'Sign Up';
-        return;
-      }
-    } else {
-      result = await sb.auth.signInWithPassword({ email: email, password: password, options: { captchaToken: captchaToken } });
-      if (result.error) throw result.error;
-    }
-    currentUser = result.data.user;
-    await onLoggedIn();
-  } catch (err) {
-    var msg = err.message || 'Authentication failed.';
-    // Detect captcha verification failures (often caused by ad blockers or strict privacy extensions)
-    if (msg.toLowerCase().indexOf('captcha') !== -1 || msg.toLowerCase().indexOf('invalid-input') !== -1) {
-      msg = 'Verification failed. Please disable your ad blocker for ryxa.io and try again.';
-    }
-    errEl.textContent = msg;
-    errEl.style.display = 'block';
-    errEl.style.color = '#f87171';
-    resetTurnstile();
-  } finally {
-    btn.disabled = false;
-    btn.textContent = authMode === 'signin' ? 'Sign In' : 'Create Account';
-  }
-}
-
-async function onLoggedIn() {
-  document.getElementById('auth-screen').style.display = 'none';
-  document.getElementById('nav-right').innerHTML = '<div class="nav-menu-wrap">'
-    + '<button class="nav-menu-btn" onclick="toggleNavMenu()" aria-label="Menu">'
-    + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>'
-    + '</button>'
-    + '<div class="nav-menu-dropdown" id="nav-menu-dropdown">'
-    + '<div class="nav-menu-email"><svg viewBox="0 0 24 24" style="width:14px;height:14px;flex-shrink:0;stroke:rgba(255,255,255,0.5);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle;margin-right:6px;display:inline;"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>' + escapeHtml(currentUser.email) + '</div>'
-    + '<div class="nav-menu-divider"></div>'
-    + '<button class="nav-menu-item" onclick="toggleLearnTheme();updateThemeMenuItem();">'
-    + '<svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>'
-    + '<span id="theme-menu-label">' + (document.documentElement.getAttribute('data-theme') === 'light' ? 'Dark Mode' : 'Light Mode') + '</span>'
-    + '</button>'
-    + '<button class="nav-menu-item" onclick="openMarketplace();toggleNavMenu();">'
-    + '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>'
-    + 'Search Marketplace'
-    + '</button>'
-    + '<a class="nav-menu-item" href="/dashboard" style="text-decoration:none;">'
-    + '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>'
-    + 'Creator Dashboard'
-    + '</a>'
-    + '<div class="nav-menu-divider"></div>'
-    + '<button class="nav-menu-item" onclick="signOut()" style="color:#f87171;">'
-    + '<svg viewBox="0 0 24 24" style="stroke:#f87171;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>'
-    + 'Sign Out'
-    + '</button>'
-    + '</div>'
-    + '</div>';
-
-  // Create course_users row if needed
-  await sb.from('course_users').upsert({ user_id: currentUser.id, display_name: currentUser.email.split('@')[0] }, { onConflict: 'user_id' });
-
-  // Check URL params
-  const params = new URLSearchParams(window.location.search);
-  const redirect = params.get('redirect');
-  const courseId = params.get('course');
-
-  // If redirected from a course page, send them back (only allow relative paths)
-  if (redirect && redirect.startsWith('/') && !redirect.startsWith('//')) {
-    window.location.href = redirect;
-    return;
-  }
-
-  if (courseId) {
-    await openCourseViewer(courseId);
-  } else {
-    await loadDashboard();
-  }
-}
-
-async function signOut() {
-  await sb.auth.signOut();
-  window.location.href = '/learn/';
-}
-
-async function loadDashboard() {
-  document.getElementById('dash-screen').style.display = 'block';
-  document.getElementById('viewer-screen').style.display = 'none';
-
-  const { data } = await sb
-    .from('course_enrollments')
-    .select('*, courses(*)')
-    .eq('user_id', currentUser.id)
-    .order('enrolled_at', { ascending: false });
-
-  enrollments = data || [];
-
-  // Load creator names and progress for each enrollment
-  for (var i = 0; i < enrollments.length; i++) {
-    var e = enrollments[i];
-    if (!e.courses) continue;
-    // Get creator username
-    var { data: creatorProfile } = await sb.from('profiles').select('username').eq('user_id', e.courses.user_id).maybeSingle();
-    e._creatorName = creatorProfile?.username || 'Creator';
-    // Get total lessons
-    var { count: totalLessons } = await sb.from('course_lessons').select('id', { count: 'exact', head: true }).eq('course_id', e.courses.id);
-    // Get completed lessons
-    var { count: completedLessons } = await sb.from('course_progress').select('id', { count: 'exact', head: true }).eq('enrollment_id', e.id);
-    e._totalLessons = totalLessons || 0;
-    e._completedLessons = completedLessons || 0;
-  }
-
-  renderDashboard();
-  await loadProducts();
-  await loadBookings();
-}
-
-// =====================================================
-// DIGITAL PRODUCTS — buyer side
-// =====================================================
-
-// On every dashboard load, retroactively link any orphan email-only purchases
-// to the buyer's user_id. (Defensive — our flow always sets buyer_user_id at
-// purchase time, but this catches edge cases like email-mismatch recovery.)
-async function linkOrphanDigitalPurchases() {
-  try {
-    await sb.rpc('link_digital_product_purchases_to_user');
-  } catch (e) {
-    console.warn('Could not link orphan purchases:', e);
-  }
-}
-
-async function loadProducts() {
-  await linkOrphanDigitalPurchases();
-
-  var { data: purchases, error } = await sb
-    .from('digital_product_purchases')
-    .select('*, digital_products(id, title, slug, description, cover_image_url, delivery_message, user_id)')
-    .eq('buyer_user_id', currentUser.id)
-    .eq('status', 'completed')
-    .order('purchased_at', { ascending: false });
-
-  if (error) {
-    console.error('loadProducts error:', error);
-    return;
-  }
-
-  purchases = purchases || [];
-
-  // Filter out any purchases whose product was deleted
-  purchases = purchases.filter(function(p) { return p.digital_products; });
-
-  if (!purchases.length) {
-    document.getElementById('dash-products-section').style.display = 'none';
-    return;
-  }
-
-  // Load files for each purchase's product (via server-side endpoint —
-  // direct DB access is RLS-blocked since buyers aren't the file owners)
-  var { data: { session } } = await sb.auth.getSession();
-  for (var i = 0; i < purchases.length; i++) {
-    var p = purchases[i];
-    var prodId = p.digital_products.id;
-
-    try {
-      var resp = await fetch('/api/list-product-files', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + (session?.access_token || '')
-        },
-        body: JSON.stringify({ product_id: prodId })
-      });
-      var data = await resp.json();
-      p._files = (resp.ok && data && data.files) ? data.files : [];
-    } catch (e) {
-      console.error('Could not load files for product', prodId, e);
-      p._files = [];
-    }
-
-    // Load creator name
-    var { data: creatorProfile } = await sb
-      .from('profiles')
-      .select('username')
-      .eq('user_id', p.digital_products.user_id)
-      .maybeSingle();
-    p._creatorName = creatorProfile?.username || 'Creator';
-  }
-
-  renderProducts(purchases);
-
-  // Honor ?dp=<id>&purchased=1 deep link — scroll to the matching product
-  try {
-    var params = new URLSearchParams(window.location.search);
-    var dpId = params.get('dp');
-    if (dpId) {
-      var el = document.getElementById('dp-purchase-' + dpId);
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        // Brief highlight pulse
-        el.style.transition = 'border-color 0.3s, box-shadow 0.3s';
-        var origBorder = el.style.borderColor;
-        var origShadow = el.style.boxShadow;
-        el.style.borderColor = 'rgba(124,58,237,0.6)';
-        el.style.boxShadow = '0 0 24px rgba(124,58,237,0.3)';
-        setTimeout(function() {
-          el.style.borderColor = origBorder;
-          el.style.boxShadow = origShadow;
-        }, 2400);
-      }
-    }
-  } catch (e) { /* non-fatal */ }
-}
-
-function renderProducts(purchases) {
-  var section = document.getElementById('dash-products-section');
-  var container = document.getElementById('dash-products');
-
-  if (!purchases || purchases.length === 0) {
-    section.style.display = 'none';
-    return;
-  }
-
-  section.style.display = 'block';
-  container.innerHTML = purchases.map(function(p) {
-    var prod = p.digital_products;
-    var coverHtml = prod.cover_image_url
-      ? '<div style="width:64px;height:64px;border-radius:10px;background-image:url(' + escapeAttr(prod.cover_image_url) + ');background-size:cover;background-position:center;flex-shrink:0;"></div>'
-      : '<div style="width:64px;height:64px;border-radius:10px;background:linear-gradient(135deg,rgba(124,58,237,0.18),rgba(232,121,249,0.14));display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(167,139,250,0.6)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>';
-
-    var purchasedDate = new Date(p.purchased_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    var priceText = p.amount_cents > 0 ? '$' + (p.amount_cents / 100).toFixed(2) : 'Free';
-
-    var filesHtml = (p._files || []).map(function(f) {
-      var sizeText = formatBytes(f.file_size_bytes);
-      return '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;">'
-        + '<div style="flex:1;min-width:0;">'
-        + '<div style="font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escapeHtml(f.filename) + '</div>'
-        + '<div style="font-size:11px;color:var(--muted);margin-top:2px;">' + sizeText + '</div>'
-        + '</div>'
-        + '<button onclick="downloadProductFile(\'' + f.id + '\', this)" style="padding:7px 14px;background:var(--btn-bg);color:var(--btn-text);border:none;border-radius:7px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;flex-shrink:0;display:inline-flex;align-items:center;gap:5px;">'
-        + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>'
-        + 'Download</button>'
-        + '</div>';
-    }).join('');
-
-    var deliveryHtml = '';
-    if (prod.delivery_message) {
-      deliveryHtml = '<div style="margin-top:12px;padding:12px 14px;background:rgba(124,58,237,0.06);border:1px solid rgba(124,58,237,0.15);border-radius:9px;font-size:13px;color:var(--text);line-height:1.5;white-space:pre-wrap;word-wrap:break-word;">' + escapeHtml(prod.delivery_message) + '</div>';
-    }
-
-    return '<div id="dp-purchase-' + p.id + '" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;">'
-      + '<div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:14px;">'
-      + coverHtml
-      + '<div style="flex:1;min-width:0;">'
-      + '<div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escapeHtml(prod.title) + '</div>'
-      + '<div style="font-size:12px;color:var(--muted);">by <a href="/' + escapeAttr(p._creatorName) + '" style="color:inherit;text-decoration:none;border-bottom:1px solid var(--border);">' + escapeHtml(p._creatorName) + '</a> \u00b7 ' + priceText + ' \u00b7 ' + purchasedDate + '</div>'
-      + '</div>'
-      + '</div>'
-      + (filesHtml ? '<div style="display:flex;flex-direction:column;gap:8px;">' + filesHtml + '</div>' : '<div style="font-size:12px;color:var(--muted);font-style:italic;">No files attached.</div>')
-      + deliveryHtml
-      + '</div>';
-  }).join('');
-}
-
-function formatBytes(bytes) {
-  bytes = Number(bytes || 0);
-  if (bytes === 0) return '0 KB';
-  if (bytes < 1024 * 1024) return Math.max(1, Math.round(bytes / 1024)) + ' KB';
-  if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-  return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
-}
-
-function escapeAttr(s) {
-  return escapeHtml(s).replace(/'/g, '&#39;');
-}
-
-async function downloadProductFile(fileId, btn) {
-  if (!btn) return;
-  var origText = btn.innerHTML;
+  const btn = document.getElementById('auth-submit-btn');
+  if (!email || !password) { showAuthMsg('error', 'Please enter your email and password.'); return; }
+  const captchaToken = getTurnstileToken();
+  if (!captchaToken) { showAuthMsg('error', 'Please complete the verification check.'); return; }
   btn.disabled = true;
-  btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 0.8s linear infinite;"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M22 12a10 10 0 0 1-10 10"/></svg> Preparing...';
-
-  try {
-    var { data: { session } } = await sb.auth.getSession();
-    if (!session?.access_token) {
-      throw new Error('You must be signed in to download');
-    }
-
-    var resp = await fetch('/api/download-product-file', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + session.access_token
-      },
-      body: JSON.stringify({ file_id: fileId })
-    });
-    var data = await resp.json();
-    if (!resp.ok || data.error) {
-      throw new Error(data.error || 'Could not generate download link');
-    }
-
-    // Trigger browser download via a transient link
-    var a = document.createElement('a');
-    a.href = data.url;
-    a.download = data.filename || '';
-    a.rel = 'noopener';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-
-    btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Started';
-    setTimeout(function() {
-      btn.innerHTML = origText;
-      btn.disabled = false;
-    }, 2000);
-  } catch (err) {
-    console.error('Download failed:', err);
-    btn.innerHTML = origText;
-    btn.disabled = false;
-    alert(err.message || 'Could not download this file');
-  }
-}
-
-async function loadBookings() {
-  var { data: bookings } = await sb
-    .from('coaching_bookings')
-    .select('*, coaching_services(*)')
-    .eq('user_id', currentUser.id)
-    .order('booked_at', { ascending: false });
-
-  bookings = bookings || [];
-
-  // Load creator names
-  for (var i = 0; i < bookings.length; i++) {
-    var b = bookings[i];
-    if (!b.coaching_services) continue;
-    var { data: creatorProfile } = await sb.from('profiles').select('username').eq('user_id', b.coaching_services.user_id).maybeSingle();
-    b._creatorName = creatorProfile?.username || 'Creator';
-  }
-
-  renderBookings(bookings);
-}
-
-function renderBookings(bookings) {
-  var section = document.getElementById('dash-bookings-section');
-  var container = document.getElementById('dash-bookings');
-
-  if (!bookings || bookings.length === 0) {
-    section.style.display = 'none';
-    return;
-  }
-
-  section.style.display = 'block';
-  container.innerHTML = bookings.map(function(b) {
-    var c = b.coaching_services;
-    if (!c) return '';
-    var date = new Date(b.booked_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    var priceText = b.amount_paid_cents > 0 ? '$' + (b.amount_paid_cents / 100).toFixed(2) : 'Free';
-
-    // Format the actual session date/time (if booked through Ryxa Calendar)
-    var slotInfo = '';
-    if (b.slot_start && b.slot_end) {
-      var slotStart = new Date(b.slot_start);
-      var slotEnd = new Date(b.slot_end);
-      var slotDate = slotStart.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
-      var slotTime = slotStart.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) + ' – ' + slotEnd.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-      slotInfo = slotDate + ' at ' + slotTime;
-    }
-
-    var actionHtml = '';
-    if (c.booking_type === 'calendly' && c.calendly_url && !b.slot_start) {
-      actionHtml = '<a href="' + escapeHtml(c.calendly_url) + '" target="_blank" style="padding:6px 14px;background:var(--btn-bg);color:var(--btn-text);border:none;border-radius:6px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;text-decoration:none;flex-shrink:0;">Schedule</a>';
-    } else if (!b.slot_start) {
-      actionHtml = '<span style="font-size:11px;color:var(--muted);flex-shrink:0;">Creator will contact you</span>';
-    }
-
-    var coverHtml = '';
-    if (c.cover_image_path) {
-      var coverUrl = sb.storage.from('coaching-covers').getPublicUrl(c.cover_image_path).data.publicUrl;
-      coverHtml = '<img src="' + escapeHtml(coverUrl) + '" alt="Booking cover" style="width:56px;height:38px;object-fit:cover;border-radius:6px;flex-shrink:0;">';
+  btn.innerHTML = '<span class="auth-spinner"></span>' + (authMode === 'signin' ? 'Signing in...' : 'Creating account...');
+  const result = authMode === 'signin'
+    ? await sb.auth.signInWithPassword({ email, password, options: { captchaToken } })
+    : await sb.auth.signUp({ email, password, options: { captchaToken } });
+  btn.disabled = false; btn.textContent = authMode === 'signin' ? 'Sign in' : 'Create account';
+  // CAPTCHA token is single-use — always reset for next attempt
+  resetTurnstile();
+  if (result.error) { showAuthMsg('error', result.error.message); }
+  else if (authMode === 'signup') {
+    // Supabase returns a user object with empty identities array when email already exists
+    // (this is intentional anti-enumeration behavior, no actual signup occurs).
+    const identities = result.data?.user?.identities;
+    if (identities && identities.length === 0) {
+      showAuthMsg('error', 'An account with this email already exists. Try signing in instead.');
     } else {
-      coverHtml = '<div style="width:56px;height:38px;border-radius:6px;background:var(--surface);border:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>';
-    }
-
-    // Meeting details block — only render if the creator set details on the service.
-    // Uses pure monochrome contrast (white-on-black in dark mode, black-on-white in light mode).
-    // Auto-link URLs and respect line breaks.
-    var meetingDetailsHtml = '';
-    if (c.meeting_details) {
-      var md = String(c.meeting_details)
-        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-        .replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer" style="color:var(--text);text-decoration:underline;font-weight:500;">$1</a>')
-        .replace(/\n/g, '<br>');
-      meetingDetailsHtml = '<div style="margin-top:10px;padding:10px 12px;background:var(--bg);border:1px solid var(--border-hover);border-radius:8px;">'
-        + '<div style="font-size:10px;font-weight:600;color:var(--muted);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:4px;">Meeting Details</div>'
-        + '<div style="font-size:12px;color:var(--text);line-height:1.5;word-break:break-word;">' + md + '</div>'
-        + '</div>';
-    }
-
-    // Build the meta line: who, when booked, price, and slot info if present
-    var metaParts = ['by ' + escapeHtml(b._creatorName)];
-    if (slotInfo) metaParts.push(slotInfo);
-    metaParts.push(priceText);
-
-    return '<div style="padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;">'
-      + '<div style="display:flex;align-items:center;gap:12px;">'
-      + coverHtml
-      + '<div style="flex:1;min-width:0;">'
-      + '<div style="font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escapeHtml(c.title) + '</div>'
-      + '<div style="font-size:12px;color:var(--muted);margin-top:2px;">' + metaParts.join(' · ') + '</div>'
-      + '</div>'
-      + actionHtml
-      + '</div>'
-      + meetingDetailsHtml
-      + '</div>';
-  }).join('');
-}
-
-function renderDashboard() {
-  const grid = document.getElementById('dash-courses');
-  const empty = document.getElementById('dash-empty');
-
-  if (enrollments.length === 0) {
-    grid.innerHTML = '';
-    grid.style.display = 'none';
-    empty.style.display = 'block';
-    return;
-  }
-  empty.style.display = 'none';
-  grid.style.display = 'grid';
-
-  grid.innerHTML = enrollments.map(function(e) {
-    var c = e.courses;
-    if (!c) return '';
-    var coverStyle = c.cover_image_path
-      ? 'background-image:url(' + sb.storage.from("course-covers").getPublicUrl(c.cover_image_path).data.publicUrl + ');background-size:cover;background-position:center;'
-      : '';
-    var total = e._totalLessons || 0;
-    var completed = e._completedLessons || 0;
-    var pct = total > 0 ? Math.round((completed / total) * 100) : 0;
-    var progressLabel = total > 0 ? completed + '/' + total + ' lessons' : '';
-    return '<a class="course-card" href="#" onclick="openCourseViewer(\'' + c.id + '\');return false;">'
-      + '<div class="course-card-cover" style="' + coverStyle + '">' + (c.cover_image_path ? '' : '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M8 7h8M8 11h6"/></svg>') + '</div>'
-      + '<div class="course-card-body">'
-      + '<div class="course-card-title">' + escapeHtml(c.title) + '</div>'
-      + '<div style="font-size:12px;color:var(--muted);margin-bottom:6px;">by ' + escapeHtml(e._creatorName) + '</div>'
-      + (progressLabel ? '<div style="font-size:11px;color:var(--muted);margin-bottom:6px;">' + progressLabel + (pct === 100 ? ' — Complete' : '') + '</div>' : '')
-      + '<div class="course-card-progress"><div class="course-card-progress-bar" style="width:' + pct + '%"></div></div>'
-      + '</div></a>';
-  }).join('');
-}
-
-async function openCourseViewer(courseId) {
-  document.getElementById('dash-screen').style.display = 'none';
-  document.getElementById('viewer-screen').style.display = 'block';
-
-  // Load course
-  const { data: course } = await sb.from('courses').select('*').eq('id', courseId).single();
-  if (!course) { backToDash(); return; }
-  viewerCourse = course;
-  document.getElementById('viewer-course-title').textContent = course.title;
-
-  // Load modules & lessons
-  const { data: modules } = await sb.from('course_modules').select('*').eq('course_id', courseId).order('sort_order');
-  const { data: lessons } = await sb.from('course_lessons').select('*').eq('course_id', courseId).order('sort_order');
-  viewerModules = modules || [];
-  viewerLessons = lessons || [];
-
-  // Load enrollment & progress
-  const { data: enrollment } = await sb.from('course_enrollments').select('id').eq('course_id', courseId).eq('user_id', currentUser.id).single();
-  viewerEnrollmentId = enrollment?.id || null;
-
-  if (viewerEnrollmentId) {
-    const { data: progress } = await sb.from('course_progress').select('lesson_id').eq('enrollment_id', viewerEnrollmentId);
-    viewerProgress = (progress || []).map(function(p) { return p.lesson_id; });
-  } else {
-    viewerProgress = [];
-  }
-
-  currentLessonId = null;
-  renderViewer();
-  showCourseOverview();
-}
-
-function showCourseOverview() {
-  currentLessonId = null;
-  renderViewer();
-  var content = document.getElementById('viewer-content');
-  var nav = document.getElementById('viewer-nav');
-
-  var html = '';
-  // Cover image
-  if (viewerCourse.cover_image_path) {
-    var coverUrl = sb.storage.from('course-covers').getPublicUrl(viewerCourse.cover_image_path).data.publicUrl;
-    html += '<img src="' + coverUrl + '" alt="Course cover" style="width:100%;max-height:300px;object-fit:cover;border-radius:12px;margin-bottom:24px;">';
-  }
-
-  html += '<div class="viewer-lesson-title">' + escapeHtml(viewerCourse.title) + '</div>';
-  if (viewerCourse.description) {
-    html += '<div class="viewer-text" style="margin-bottom:28px;">' + escapeHtml(viewerCourse.description) + '</div>';
-  }
-
-  // Curriculum list
-  html += '<div style="margin-top:8px;">';
-  html += '<h3 style="font-family:Syne,sans-serif;font-size:16px;font-weight:800;letter-spacing:-0.3px;margin-bottom:16px;">Curriculum</h3>';
-  viewerModules.forEach(function(mod, mi) {
-    var modLessons = viewerLessons.filter(function(l) { return l.module_id === mod.id; });
-    html += '<div style="margin-bottom:16px;">';
-    html += '<div style="font-size:12px;color:var(--text);font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Module ' + (mi + 1) + ': ' + escapeHtml(mod.title) + '</div>';
-    modLessons.forEach(function(l, li) {
-      var isCompleted = viewerProgress.indexOf(l.id) !== -1;
-      var icon = l.lesson_type === 'video' ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>' : '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>';
-      var check = isCompleted ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' : '<span style="width:14px;height:14px;display:inline-block;border:1.5px solid var(--muted);border-radius:50%;"></span>';
-      html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:13px;color:var(--text);">'
-        + check + ' ' + icon + ' ' + escapeHtml(l.title || 'Untitled')
-        + '</div>';
-    });
-    html += '</div>';
-  });
-  html += '</div>';
-
-  // Progress summary
-  var total = viewerLessons.length;
-  var completed = viewerProgress.length;
-  if (total > 0) {
-    html += '<div style="margin-top:20px;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--text);">'
-      + completed + ' of ' + total + ' lessons completed (' + Math.round((completed / total) * 100) + '%)'
-      + '</div>';
-  }
-
-  content.innerHTML = html;
-
-  // Nav: no prev, next is first lesson
-  var all = getAllLessonsOrdered();
-  if (all.length > 0) {
-    nav.innerHTML = '<div class="viewer-nav-btn viewer-nav-prev disabled"><span class="viewer-nav-label">← Previous</span><span class="viewer-nav-title"></span></div>'
-      + '<a href="#" onclick="selectLesson(\'' + all[0].id + '\');return false;" class="viewer-nav-btn viewer-nav-next">'
-      + '<span class="viewer-nav-label">Next →</span>'
-      + '<span class="viewer-nav-title">' + escapeHtml(all[0].title || 'Untitled') + '</span></a>';
-  } else {
-    nav.innerHTML = '';
-  }
-}
-
-function showCourseCompletion() {
-  currentLessonId = null;
-  renderViewer();
-  var content = document.getElementById('viewer-content');
-  var nav = document.getElementById('viewer-nav');
-
-  var total = viewerLessons.length;
-  var completed = viewerProgress.length;
-  var pct = total > 0 ? Math.round((completed / total) * 100) : 0;
-
-  var html = '<div style="text-align:center;padding:20px 0;">';
-  html += '<div style="width:64px;height:64px;margin:0 auto 20px;background:var(--surface);border:1px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>';
-  html += '<div class="viewer-lesson-title" style="text-align:center;">Course Complete!</div>';
-  html += '<div style="font-size:15px;color:var(--text);margin-bottom:24px;">' + completed + ' of ' + total + ' lessons completed (' + pct + '%)</div>';
-
-  if (viewerCourse.completion_message) {
-    html += '<div style="text-align:left;padding:20px 24px;background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:24px;">';
-    html += '<div class="viewer-text">' + escapeHtml(viewerCourse.completion_message) + '</div>';
-    html += '</div>';
-  }
-
-  html += '<a href="#" onclick="backToDash();return false;" style="display:inline-block;padding:12px 28px;background:var(--btn-bg);color:var(--btn-text);border:none;border-radius:10px;font-size:14px;font-weight:500;text-decoration:none;font-family:DM Sans,sans-serif;">Back to My Courses</a>';
-  html += '</div>';
-
-  content.innerHTML = html;
-
-  // Nav: prev is last lesson, no next
-  var all = getAllLessonsOrdered();
-  if (all.length > 0) {
-    var last = all[all.length - 1];
-    nav.innerHTML = '<a href="#" onclick="selectLesson(\'' + last.id + '\');return false;" class="viewer-nav-btn viewer-nav-prev">'
-      + '<span class="viewer-nav-label">← Previous</span>'
-      + '<span class="viewer-nav-title">' + escapeHtml(last.title || 'Untitled') + '</span></a>'
-      + '<div class="viewer-nav-btn viewer-nav-next disabled"><span class="viewer-nav-label">Next →</span><span class="viewer-nav-title"></span></div>';
-  } else {
-    nav.innerHTML = '';
-  }
-}
-
-function getAllLessonsOrdered() {
-  var ordered = [];
-  viewerModules.forEach(function(mod) {
-    var modLessons = viewerLessons.filter(function(l) { return l.module_id === mod.id; });
-    modLessons.forEach(function(l) { ordered.push(l); });
-  });
-  return ordered;
-}
-
-function getCurrentLessonIndex() {
-  var all = getAllLessonsOrdered();
-  for (var i = 0; i < all.length; i++) {
-    if (all[i].id === currentLessonId) return i;
-  }
-  return -1;
-}
-
-function getModuleForLesson(lessonId) {
-  var lesson = viewerLessons.find(function(l) { return l.id === lessonId; });
-  if (!lesson) return null;
-  return viewerModules.find(function(m) { return m.id === lesson.module_id; });
-}
-
-function updateProgressBar() {
-  var total = viewerLessons.length;
-  if (total === 0) return;
-  var completed = viewerProgress.length;
-  var pct = Math.round((completed / total) * 100);
-  var fill = document.getElementById('viewer-progress-fill');
-  if (fill) fill.style.width = pct + '%';
-}
-
-function toggleToc() {
-  var toc = document.getElementById('viewer-toc');
-  toc.classList.toggle('open');
-}
-
-function renderViewer() {
-  var sidebar = document.getElementById('viewer-sidebar');
-  sidebar.innerHTML = viewerModules.map(function(mod, mi) {
-    var modLessons = viewerLessons.filter(function(l) { return l.module_id === mod.id; });
-    return '<div class="viewer-module-title">Module ' + (mi + 1) + ': ' + escapeHtml(mod.title) + '</div>'
-      + modLessons.map(function(l) {
-        var isCompleted = viewerProgress.indexOf(l.id) !== -1;
-        var isActive = l.id === currentLessonId;
-        var icon = l.lesson_type === 'video' ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>' : '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>';
-        var check = isCompleted ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' : '';
-        return '<button class="viewer-lesson-btn' + (isActive ? ' active' : '') + (isCompleted ? ' completed' : '') + '" onclick="selectLesson(\'' + l.id + '\')">'
-          + '<span class="viewer-check">' + check + '</span>'
-          + '<span>' + icon + ' ' + escapeHtml(l.title || 'Untitled') + '</span>'
-          + '</button>';
-      }).join('');
-  }).join('');
-
-  updateProgressBar();
-}
-
-function selectLesson(lessonId) {
-  currentLessonId = lessonId;
-  renderViewer();
-  // Close TOC on mobile after selecting
-  document.getElementById('viewer-toc').classList.remove('open');
-
-  var lesson = viewerLessons.find(function(l) { return l.id === lessonId; });
-  if (!lesson) return;
-
-  var content = document.getElementById('viewer-content');
-  var isCompleted = viewerProgress.indexOf(lessonId) !== -1;
-  var mod = getModuleForLesson(lessonId);
-  var modIndex = viewerModules.indexOf(mod);
-
-  // Lesson header
-  var html = '';
-  if (mod) {
-    html += '<div class="viewer-lesson-header">Module ' + (modIndex + 1) + ': ' + escapeHtml(mod.title) + '</div>';
-  }
-  html += '<div class="viewer-lesson-title">' + escapeHtml(lesson.title || 'Untitled Lesson') + '</div>';
-
-  // Content
-  if (lesson.lesson_type === 'video' && lesson.video_url) {
-    var embedUrl = getEmbedUrl(lesson.video_url);
-    if (embedUrl) {
-      html += '<iframe class="viewer-video" src="' + embedUrl + '" allowfullscreen></iframe>';
-    } else {
-      html += '<p style="color:var(--muted);font-size:14px;margin-bottom:16px;">Video: <a href="' + escapeHtml(lesson.video_url) + '" target="_blank" style="color:var(--text);text-decoration:underline;">' + escapeHtml(lesson.video_url) + '</a></p>';
+      showAuthMsg('success', 'Check your email to confirm your account!');
     }
   }
-  if (lesson.text_content) {
-    html += '<div class="viewer-text">' + escapeHtml(lesson.text_content) + '</div>';
-  }
-  // Lesson images
-  if (lesson.images && lesson.images.length > 0) {
-    html += '<div style="margin-top:20px;display:flex;flex-direction:column;gap:16px;">';
-    lesson.images.forEach(function(url) {
-      html += '<img src="' + escapeHtml(url) + '" alt="Lesson image" style="width:100%;max-width:800px;border-radius:12px;border:1px solid rgba(255,255,255,0.08);">';
-    });
-    html += '</div>';
-  }
-  if (!lesson.video_url && !lesson.text_content && (!lesson.images || lesson.images.length === 0)) {
-    html += '<p style="color:var(--muted);font-size:14px;">This lesson has no content yet.</p>';
-  }
-
-  // Complete button
-  if (isCompleted) {
-    html += '<div class="viewer-completed-msg"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Completed</div>';
-  } else {
-    html += '<button class="viewer-complete-btn" onclick="markComplete(\'' + lessonId + '\')">Mark as Complete</button>';
-  }
-
-  content.innerHTML = html;
-
-  // Render prev/next navigation
-  renderLessonNav();
-
-  // Scroll to top
-  window.scrollTo(0, 0);
-}
-
-function renderLessonNav() {
-  var nav = document.getElementById('viewer-nav');
-  var all = getAllLessonsOrdered();
-  var idx = getCurrentLessonIndex();
-
-  var prevHtml = '';
-  var nextHtml = '';
-
-  if (idx > 0) {
-    var prev = all[idx - 1];
-    prevHtml = '<a href="#" onclick="selectLesson(\'' + prev.id + '\');return false;" class="viewer-nav-btn viewer-nav-prev">'
-      + '<span class="viewer-nav-label">← Previous</span>'
-      + '<span class="viewer-nav-title">' + escapeHtml(prev.title || 'Untitled') + '</span>'
-      + '</a>';
-  } else {
-    prevHtml = '<a href="#" onclick="showCourseOverview();return false;" class="viewer-nav-btn viewer-nav-prev">'
-      + '<span class="viewer-nav-label">← Previous</span>'
-      + '<span class="viewer-nav-title">Course Overview</span>'
-      + '</a>';
-  }
-
-  if (idx < all.length - 1) {
-    var next = all[idx + 1];
-    nextHtml = '<a href="#" onclick="selectLesson(\'' + next.id + '\');return false;" class="viewer-nav-btn viewer-nav-next">'
-      + '<span class="viewer-nav-label">Next →</span>'
-      + '<span class="viewer-nav-title">' + escapeHtml(next.title || 'Untitled') + '</span>'
-      + '</a>';
-  } else {
-    nextHtml = '<a href="#" onclick="showCourseCompletion();return false;" class="viewer-nav-btn viewer-nav-next">'
-      + '<span class="viewer-nav-label">Next →</span>'
-      + '<span class="viewer-nav-title">Course Complete</span>'
-      + '</a>';
-  }
-
-  nav.innerHTML = prevHtml + nextHtml;
-}
-
-async function markComplete(lessonId) {
-  if (!viewerEnrollmentId) return;
-  try {
-    await sb.from('course_progress').insert({ enrollment_id: viewerEnrollmentId, lesson_id: lessonId });
-    if (viewerProgress.indexOf(lessonId) === -1) viewerProgress.push(lessonId);
-    selectLesson(lessonId);
-    renderViewer();
-  } catch (err) {
-    console.warn('Mark complete failed:', err);
+  else {
+    closeAuthModal();
+    // Honor ?redirect=... if provided (used by gated pages like follower-audit).
+    // Only allow same-origin relative paths to prevent open-redirect abuse.
+    const params = new URLSearchParams(window.location.search);
+    const redirect = params.get('redirect');
+    const safe = redirect && redirect.startsWith('/') && !redirect.startsWith('//');
+    window.location.href = safe ? redirect : 'dashboard.html';
   }
 }
 
-function backToDash() {
-  // Clear URL params
-  window.history.replaceState({}, '', '/learn/');
-  document.getElementById('viewer-screen').style.display = 'none';
-  loadDashboard();
+async function handleForgotPassword() {
+  const email = document.getElementById('auth-email').value.trim();
+  if (!email) { showAuthMsg('error', 'Enter your email address above first.'); return; }
+  const captchaToken = getTurnstileToken();
+  if (!captchaToken) { showAuthMsg('error', 'Please complete the verification check.'); return; }
+  const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: 'https://ryxa.io/reset-password.html', captchaToken });
+  resetTurnstile();
+  if (error) showAuthMsg('error', error.message);
+  else showAuthMsg('success', 'Password reset email sent! Check your inbox.');
 }
 
-function getEmbedUrl(url) {
-  if (!url) return null;
-  // YouTube
-  var ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/);
-  if (ytMatch) return 'https://www.youtube.com/embed/' + ytMatch[1];
-  // Vimeo
-  var vmMatch = url.match(/vimeo\.com\/(\d+)/);
-  if (vmMatch) return 'https://player.vimeo.com/video/' + vmMatch[1];
-  // Loom
-  var loomMatch = url.match(/loom\.com\/share\/([a-zA-Z0-9]+)/);
-  if (loomMatch) return 'https://www.loom.com/embed/' + loomMatch[1];
-  return null;
-}
-
-function escapeHtml(s) {
-  if (s == null) return '';
-  return String(s).replace(/[&<>"']/g, function(c) {
-    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
-  });
-}
-
-// Handle Enter key on auth inputs
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Enter' && (e.target.id === 'auth-email' || e.target.id === 'auth-password')) {
-    handleAuth();
-  }
+// Auth modal stays open until user explicitly closes via X button (prevents accidental dismiss while typing credentials)
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeAuthModal();
+  if (e.key === 'Enter' && document.getElementById('auth-modal').classList.contains('open')) handleAuth();
 });
 
-// =====================================================
-// MARKETPLACE SEARCH
-// =====================================================
-let mpDebounce = null;
+// Mobile menu handled by site-nav.js
 
-function openMarketplace() {
-  // Hide main content, show marketplace
-  document.getElementById('learn-main').style.display = 'none';
-  document.getElementById('mp-screen').style.display = 'block';
-  setTimeout(function() { document.getElementById('mp-search-input').focus(); }, 100);
-}
-
-function closeMarketplace() {
-  document.getElementById('mp-screen').style.display = 'none';
-  document.getElementById('learn-main').style.display = 'block';
-  document.getElementById('mp-search-input').value = '';
-  document.getElementById('mp-results').innerHTML = '<div class="mp-empty">Start typing to discover courses and coaching from creators on Ryxa.</div>';
-}
-
-document.addEventListener('input', function(e) {
-  if (e.target.id !== 'mp-search-input') return;
-  clearTimeout(mpDebounce);
-  var q = e.target.value.trim();
-  if (q.length < 2) {
-    document.getElementById('mp-results').innerHTML = '<div class="mp-empty">Start typing to discover courses and coaching from creators on Ryxa.</div>';
-    return;
-  }
-  mpDebounce = setTimeout(function() { searchMarketplace(q); }, 300);
-});
-
-async function searchMarketplace(query) {
-  var results = document.getElementById('mp-results');
-  results.innerHTML = '<div class="mp-empty">Searching...</div>';
-
-  try {
-    // Search courses
-    var { data: courses, error: cErr } = await sb
-      .from('courses')
-      .select('id, title, slug, price_cents, cover_image_path, user_id')
-      .eq('status', 'published')
-      .eq('listed_in_marketplace', true)
-      .ilike('title', '%' + query + '%')
-      .order('created_at', { ascending: false })
-      .limit(10);
-
-    // Search coaching
-    var { data: coaching, error: coErr } = await sb
-      .from('coaching_services')
-      .select('id, title, slug, price_cents, cover_image_path, user_id')
-      .eq('status', 'published')
-      .eq('listed_in_marketplace', true)
-      .ilike('title', '%' + query + '%')
-      .order('created_at', { ascending: false })
-      .limit(10);
-
-    if (cErr) throw cErr;
-    if (coErr) throw coErr;
-
-    var items = [];
-    (courses || []).forEach(function(c) { items.push(Object.assign({}, c, { _type: 'course' })); });
-    (coaching || []).forEach(function(c) { items.push(Object.assign({}, c, { _type: 'coaching' })); });
-
-    if (items.length === 0) {
-      results.innerHTML = '<div class="mp-empty">No results found for "' + escapeHtml(query) + '"</div>';
-      return;
-    }
-
-    // Fetch usernames
-    var userIds = [...new Set(items.map(function(c) { return c.user_id; }))];
-    var usernameMap = {};
-    if (userIds.length > 0) {
-      var { data: profiles } = await sb.from('profiles').select('user_id, username').in('user_id', userIds);
-      if (profiles) profiles.forEach(function(p) { usernameMap[p.user_id] = p.username; });
-    }
-
-    var html = '';
-    items.forEach(function(c) {
-      var username = usernameMap[c.user_id] || 'creator';
-      var price = c.price_cents > 0 ? '$' + (c.price_cents / 100).toFixed(0) : 'Free';
-      var bucket = c._type === 'course' ? 'course-covers' : 'coaching-covers';
-      var coverUrl = c.cover_image_path
-        ? 'https://kjytapcgxukalwsyputk.supabase.co/storage/v1/object/public/' + bucket + '/' + c.cover_image_path
-        : '';
-      var pageUrl = c._type === 'course' ? '/course/' + encodeURIComponent(c.slug) : '/booking/' + encodeURIComponent(c.slug);
-      var typeLabel = c._type === 'course' ? 'Course' : '1:1 Booking';
-      var typeClass = c._type;
-
-      html += '<a href="' + pageUrl + '" class="mp-item">';
-      if (coverUrl) {
-        html += '<img src="' + escapeHtml(coverUrl) + '" class="mp-item-cover" alt="Course cover">';
-      } else {
-        html += '<div class="mp-item-cover" style="display:flex;align-items:center;justify-content:center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>';
-      }
-      html += '<div class="mp-item-info">';
-      html += '<div class="mp-item-title">' + escapeHtml(c.title) + '</div>';
-      html += '<div class="mp-item-creator">by @' + escapeHtml(username) + '</div>';
-      html += '</div>';
-      html += '<span class="mp-item-type ' + typeClass + '">' + typeLabel + '</span>';
-      html += '<div class="mp-item-price">' + price + '</div>';
-      html += '</a>';
-    });
-
-    results.innerHTML = html;
-  } catch (err) {
-    console.error('Marketplace search error:', err);
-    results.innerHTML = '<div class="mp-empty" style="color:#f87171;">Something went wrong. Try again.</div>';
-  }
-}
-
-init();
+initAuth();
 </script>
+<script src="/cookie-banner.js"></script>
+<script src="/site-nav.js"></script>
 </body>
 </html>
