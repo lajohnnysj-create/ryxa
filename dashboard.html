@@ -13685,6 +13685,15 @@ async function clearGrid() {
 }
 
 // ======== RENDER ========
+// Retry handler for grid thumbnail load failures — appends a cache-busting
+// query param and tries once more. Avoids infinite loops via a data attribute.
+function gridImgRetry(img) {
+  if (img.dataset.retried) return;
+  img.dataset.retried = '1';
+  var sep = img.src.indexOf('?') === -1 ? '?' : '&';
+  img.src = img.src + sep + 'r=' + Date.now();
+}
+
 function renderGrid() {
   const thumbsEl = document.getElementById('grid-thumbnails');
   const emptyHint = document.getElementById('grid-empty-hint');
@@ -13743,7 +13752,7 @@ function renderGrid() {
   thumbsEl.innerHTML = gridPhotos.map((p, i) => `
     <div class="grid-thumb" data-id="${p.id}">
       <div class="grid-thumb-order">${i + 1}</div>
-      <img src="${escapeHtml(p.url)}" alt="Photo ${i + 1}">
+      <img src="${escapeHtml(p.url)}" alt="Photo ${i + 1}" loading="lazy" onerror="gridImgRetry(this)">
       <button class="grid-thumb-remove" onclick="removeGridPhoto(${p.id})" aria-label="Remove photo">&#x2715;</button>
     </div>
   `).join('');
