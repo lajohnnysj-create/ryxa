@@ -8983,7 +8983,7 @@ async function loadUpcomingEvents() {
       if (e.event_type === 'coaching' || e.event_type === 'brand_deal') {
         stripeStyle = 'background:linear-gradient(180deg, #a78bfa, #e879f9);';
         typeBadgeStyle = 'background:linear-gradient(135deg,rgba(167,139,250,0.2),rgba(232,121,249,0.2));color:#fff;border:1px solid rgba(232,121,249,0.4);';
-        typeBadgeText = e.event_type === 'coaching' ? 'COACHING' : 'BRAND DEAL';
+        typeBadgeText = e.event_type === 'coaching' ? 'BOOKING' : 'BRAND DEAL';
       } else {
         stripeStyle = 'background:#c4b5fd;';
       }
@@ -8995,7 +8995,7 @@ async function loadUpcomingEvents() {
       return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);">'
         + '<div style="width:3px;height:20px;' + stripeStyle + 'border-radius:2px;flex-shrink:0;"></div>'
         + typeBadge
-        + '<div style="flex:1;min-width:0;font-size:13px;color:var(--text);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;">' + escapeHtml(e.title || 'Untitled') + '</div>'
+        + '<div style="flex:1;min-width:0;font-size:13px;color:var(--text);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;">' + escapeHtml((e.title || 'Untitled').replace(/^Coaching:\s*/i, '')) + '</div>'
         + '<div style="font-size:11px;color:var(--muted);flex-shrink:0;white-space:nowrap;">' + escapeHtml(dateStr) + ' · ' + escapeHtml(timeStr) + '</div>'
         + '</div>';
     }).join('');
@@ -24954,14 +24954,14 @@ function calRenderDayEvents() {
     var startTime = e.start_at ? new Date(e.start_at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) : '';
     var endTime = e.end_at ? new Date(e.end_at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) : '';
     var timeLabel = startTime + (endTime ? ' - ' + endTime : '');
-    var typeLabel = e.event_type === 'manual' ? '' : '<span style="display:inline-block;padding:2px 8px;background:rgba(124,58,237,0.15);border-radius:4px;font-size:10px;color:#c4b5fd;font-weight:600;letter-spacing:0.3px;text-transform:uppercase;margin-left:6px;">' + escapeHtml(e.event_type || '') + '</span>';
+    var typeLabel = e.event_type === 'manual' ? '' : '<span style="display:inline-block;padding:2px 8px;background:rgba(124,58,237,0.15);border-radius:4px;font-size:10px;color:#c4b5fd;font-weight:600;letter-spacing:0.3px;text-transform:uppercase;margin-left:6px;">' + escapeHtml(e.event_type === 'coaching' ? 'booking' : (e.event_type === 'brand_deal' ? 'brand deal' : (e.event_type || ''))) + '</span>';
     // Validate color is hex format only (no JS injection via style)
     var rawColor = e.color || '#7c3aed';
     var color = /^#[0-9a-fA-F]{3,8}$/.test(rawColor) ? rawColor : '#7c3aed';
     return '<div style="display:flex;align-items:flex-start;gap:12px;padding:14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;">'
       + '<div style="width:3px;align-self:stretch;background:' + color + ';border-radius:2px;flex-shrink:0;"></div>'
       + '<div style="flex:1;min-width:0;">'
-      + '<div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:4px;"><span style="font-weight:600;color:var(--text);font-size:14px;">' + escapeHtml(e.title || 'Untitled') + '</span>' + typeLabel + '</div>'
+      + '<div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:4px;"><span style="font-weight:600;color:var(--text);font-size:14px;">' + escapeHtml((e.title || 'Untitled').replace(/^Coaching:\s*/i, '')) + '</span>' + typeLabel + '</div>'
       + (timeLabel ? '<div style="font-size:12px;color:var(--muted);margin-bottom:6px;">' + escapeHtml(timeLabel) + '</div>' : '')
       + (e.notes ? '<div style="font-size:13px;color:#c8c6d8;line-height:1.5;">' + escapeHtml(e.notes) + '</div>' : '')
       + '</div>'
