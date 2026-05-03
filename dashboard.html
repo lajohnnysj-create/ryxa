@@ -24509,7 +24509,7 @@ function renderAnalyticsSalesPage() {
     var amount = formatMoney(s.amount, {alwaysShowCents:true});
     var pillStyle = '';
     if (s.type === 'Course') pillStyle = 'background:rgba(167,139,250,0.15);color:#c4b5fd;';
-    else if (s.type === 'Coaching') pillStyle = 'background:rgba(232,121,249,0.15);color:#e879f9;';
+    else if (s.type === 'Booking') pillStyle = 'background:rgba(232,121,249,0.15);color:#e879f9;';
     else pillStyle = 'background:rgba(124,58,237,0.15);color:#a78bfa;';
     return '<tr style="border-top:1px solid var(--border);">'
       + '<td style="padding:10px 16px;color:var(--muted);font-size:13px;white-space:nowrap;">' + date + '</td>'
@@ -24566,7 +24566,7 @@ async function loadAnalyticsSales(start, end) {
     if (bookings) {
       bookings.forEach(function(b) {
         if (!b.coaching_services || b.coaching_services.user_id !== currentUser.id) return;
-        sales.push({ date: b.booked_at, buyer: b.buyer_email || '—', product: b.coaching_services.title || '1:1 Booking', type: 'Coaching', amount: b.amount_paid_cents || 0 });
+        sales.push({ date: b.booked_at, buyer: b.buyer_email || '—', product: b.coaching_services.title || '1:1 Booking', type: 'Booking', amount: b.amount_paid_cents || 0 });
       });
     }
 
@@ -24704,7 +24704,7 @@ async function loadProductPerformance(start, end) {
           .lte('view_date', end);
         const views = viewRows ? viewRows.reduce(function(sum, r) { return sum + (r.view_count || 0); }, 0) : 0;
 
-        products.push({ title: svc.title || '1:1 Booking', type: 'Coaching', views: views, orders: orders, revenue: revenue });
+        products.push({ title: svc.title || '1:1 Booking', type: 'Booking', views: views, orders: orders, revenue: revenue });
       }
     }
 
@@ -24755,7 +24755,7 @@ async function loadProductPerformance(start, end) {
       var amount = formatMoney(p.revenue, {alwaysShowCents:true});
       var pillStyle;
       if (p.type === 'Course') pillStyle = 'background:rgba(167,139,250,0.15);color:#c4b5fd;';
-      else if (p.type === 'Coaching') pillStyle = 'background:rgba(232,121,249,0.15);color:#e879f9;';
+      else if (p.type === 'Booking') pillStyle = 'background:rgba(232,121,249,0.15);color:#e879f9;';
       else if (p.type === 'Digital') pillStyle = 'background:rgba(240,171,252,0.15);color:#f0abfc;';
       else pillStyle = 'background:rgba(124,58,237,0.15);color:#c4b5fd;';
       return '<tr style="border-top:1px solid var(--border);">'
