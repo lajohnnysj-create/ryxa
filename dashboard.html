@@ -8870,7 +8870,14 @@ async function handlePwaAuth() {
   btn.disabled = false;
   btn.textContent = pwaAuthMode === 'signin' ? 'Sign in' : 'Create account';
   resetPwaTurnstile();
-  if (result.error) { showPwaMsg('error', result.error.message); return; }
+  if (result.error) {
+    var msg = result.error.message;
+    if (msg.toLowerCase().indexOf('captcha') !== -1 || msg.toLowerCase().indexOf('invalid-input') !== -1) {
+      msg = 'Verification failed. Please disable your ad blocker for ryxa.io and try again.';
+    }
+    showPwaMsg('error', msg);
+    return;
+  }
   if (pwaAuthMode === 'signup') {
     var identities = result.data?.user?.identities;
     if (identities && identities.length === 0) {
@@ -8894,8 +8901,13 @@ async function handlePwaForgotPassword() {
   if (!captchaToken) { showPwaMsg('error', 'Please complete the verification check.'); return; }
   var { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: 'https://ryxa.io/reset-password.html', captchaToken: captchaToken });
   resetPwaTurnstile();
-  if (error) showPwaMsg('error', error.message);
-  else showPwaMsg('success', 'Password reset email sent! Check your inbox.');
+  if (error) {
+    var msg = error.message;
+    if (msg.toLowerCase().indexOf('captcha') !== -1 || msg.toLowerCase().indexOf('invalid-input') !== -1) {
+      msg = 'Verification failed. Please disable your ad blocker for ryxa.io and try again.';
+    }
+    showPwaMsg('error', msg);
+  } else showPwaMsg('success', 'Password reset email sent! Check your inbox.');
 }
 
 // Enter key submits PWA login
@@ -15449,7 +15461,11 @@ async function sendPasswordReset() {
     }, 30000);
   } catch (e) {
     console.error('Password reset error:', e);
-    msg.textContent = e.message || 'Something went wrong. Please try again.';
+    var emsg = e.message || 'Something went wrong. Please try again.';
+    if (emsg.toLowerCase().indexOf('captcha') !== -1 || emsg.toLowerCase().indexOf('invalid-input') !== -1) {
+      emsg = 'Verification failed. Please disable your ad blocker for ryxa.io and try again.';
+    }
+    msg.textContent = emsg;
     msg.style.background = 'rgba(239,68,68,0.08)';
     msg.style.border = '1px solid rgba(239,68,68,0.2)';
     msg.style.color = '#fca5a5';
