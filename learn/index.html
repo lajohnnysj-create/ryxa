@@ -350,7 +350,17 @@ async function handleLearnForgotPassword() {
   var captchaToken = getTurnstileToken();
   if (!captchaToken) { errEl.textContent = 'Please complete the verification check.'; errEl.style.display = 'block'; errEl.style.color = '#f87171'; return; }
   var { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: 'https://ryxa.io/reset-password.html', captchaToken: captchaToken });
-  if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; errEl.style.color = '#f87171'; resetTurnstile(); return; }
+  if (error) {
+    var msg = error.message;
+    if (msg.toLowerCase().indexOf('captcha') !== -1 || msg.toLowerCase().indexOf('invalid-input') !== -1) {
+      msg = 'Verification failed. Please disable your ad blocker for ryxa.io and try again.';
+    }
+    errEl.textContent = msg;
+    errEl.style.display = 'block';
+    errEl.style.color = '#f87171';
+    resetTurnstile();
+    return;
+  }
   errEl.textContent = 'Password reset link sent. Check your email.';
   errEl.style.display = 'block';
   errEl.style.color = 'var(--text)';
@@ -462,7 +472,12 @@ async function handleAuth() {
     currentUser = result.data.user;
     await onLoggedIn();
   } catch (err) {
-    errEl.textContent = err.message || 'Authentication failed.';
+    var msg = err.message || 'Authentication failed.';
+    // Detect captcha verification failures (often caused by ad blockers or strict privacy extensions)
+    if (msg.toLowerCase().indexOf('captcha') !== -1 || msg.toLowerCase().indexOf('invalid-input') !== -1) {
+      msg = 'Verification failed. Please disable your ad blocker for ryxa.io and try again.';
+    }
+    errEl.textContent = msg;
     errEl.style.display = 'block';
     errEl.style.color = '#f87171';
     resetTurnstile();
