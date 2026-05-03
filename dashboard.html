@@ -27862,7 +27862,7 @@ function dsSetZoom(newZoom) {
   var dispH = Math.round(dsProjectH * newZoom);
 
   // Save canvas state
-  var json = dsCanvas.toJSON();
+  var json = dsCanvas.toJSON(['_dsShape', '_dsShapeType']);
   var oldW = dsCanvas.width;
   var oldH = dsCanvas.height;
   var ratio = newZoom / (dsCanvas._projectScale || 1);
@@ -28949,14 +28949,14 @@ var dsUndoLock = false;
 
 function dsSaveState() {
   if (dsUndoLock || !dsCanvas) return;
-  dsUndoStack.push(JSON.stringify(dsCanvas.toJSON()));
+  dsUndoStack.push(JSON.stringify(dsCanvas.toJSON(['_dsShape', '_dsShapeType'])));
   if (dsUndoStack.length > 40) dsUndoStack.shift();
   dsRedoStack = [];
 }
 
 function dsUndo() {
   if (!dsCanvas || dsUndoStack.length === 0) return;
-  dsRedoStack.push(JSON.stringify(dsCanvas.toJSON()));
+  dsRedoStack.push(JSON.stringify(dsCanvas.toJSON(['_dsShape', '_dsShapeType'])));
   var state = dsUndoStack.pop();
   dsUndoLock = true;
   dsCanvas.loadFromJSON(state, function() {
@@ -28967,7 +28967,7 @@ function dsUndo() {
 
 function dsRedo() {
   if (!dsCanvas || dsRedoStack.length === 0) return;
-  dsUndoStack.push(JSON.stringify(dsCanvas.toJSON()));
+  dsUndoStack.push(JSON.stringify(dsCanvas.toJSON(['_dsShape', '_dsShapeType'])));
   var state = dsRedoStack.pop();
   dsUndoLock = true;
   dsCanvas.loadFromJSON(state, function() {
@@ -29672,7 +29672,7 @@ async function saveDesignProject() {
       dsCanvas._projectScale = 1;
     }
 
-    var canvasJSON = JSON.stringify(dsCanvas.toJSON());
+    var canvasJSON = JSON.stringify(dsCanvas.toJSON(['_dsShape', '_dsShapeType']));
 
     // Restore zoom after capturing JSON
     if (saveZoom !== 1) {
