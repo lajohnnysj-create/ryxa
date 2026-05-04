@@ -32,7 +32,7 @@ function notFoundResponse() {
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root { --bg:#0a0a14; --surface:#12121e; --surface2:#16162a; --border:rgba(255,255,255,0.06); --border-hover:rgba(255,255,255,0.12); --text:#eee; --muted:rgba(255,255,255,0.45); --accent:#7c3aed; --accent2:#a855f7; --accent-glow:rgba(124,58,237,0.35); }
+:root { --bg:#0a0a14; --surface:#12121e; --surface2:#16162a; --border:rgba(255,255,255,0.06); --border-hover:rgba(255,255,255,0.12); --text:#f0eef8; --muted:#b4b2c8; --accent:#7c3aed; --accent2:#a855f7; --accent-glow:rgba(124,58,237,0.35); }
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; text-align:center; }
 h1 { font-family:'Syne',sans-serif; font-size:32px; font-weight:800; margin-bottom:12px; letter-spacing:-1px; }
@@ -94,7 +94,7 @@ function renderPage(product, creator) {
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  :root { --bg:#0a0a14; --surface:#12121e; --surface2:#16162a; --border:rgba(255,255,255,0.06); --border-hover:rgba(255,255,255,0.12); --text:#eee; --muted:rgba(255,255,255,0.45); --accent:#7c3aed; --accent2:#a855f7; --accent-glow:rgba(124,58,237,0.35); }
+  :root { --bg:#0a0a14; --surface:#12121e; --surface2:#16162a; --border:rgba(255,255,255,0.06); --border-hover:rgba(255,255,255,0.12); --text:#f0eef8; --muted:#b4b2c8; --accent:#7c3aed; --accent2:#a855f7; --accent-glow:rgba(124,58,237,0.35); }
   *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
   body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; min-height:100vh; line-height:1.5; }
   a { color:inherit; text-decoration:none; }
