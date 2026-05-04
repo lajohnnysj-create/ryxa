@@ -1,11 +1,85 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://ryxa.io/</loc><priority>1.0</priority><changefreq>weekly</changefreq></url>
-  <url><loc>https://ryxa.io/pricing</loc><priority>0.9</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://ryxa.io/about</loc><priority>0.8</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://ryxa.io/tools</loc><priority>0.8</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://ryxa.io/faq</loc><priority>0.7</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://ryxa.io/blog</loc><priority>0.7</priority><changefreq>weekly</changefreq></url>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <url>
+    <loc>https://ryxa.io/</loc>
+    <priority>1.0</priority>
+    <changefreq>weekly</changefreq>
+    <image:image>
+      <image:loc>https://ryxa.io/phonelinkinbio.jpg</image:loc>
+      <image:title>Ryxa link in bio page on iPhone</image:title>
+      <image:caption>Example of a Ryxa link-in-bio page for a creator.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://ryxa.io/editor1.webp</image:loc>
+      <image:title>Ryxa Link in Bio editor</image:title>
+      <image:caption>The Ryxa Link in Bio editor where creators add and arrange their links.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://ryxa.io/editor2.webp</image:loc>
+      <image:title>Ryxa Link in Bio editor — theme customization</image:title>
+      <image:caption>Customizing colors, fonts, and themes for a Ryxa link-in-bio page.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://ryxa.io/editor3.webp</image:loc>
+      <image:title>Ryxa Link in Bio editor — adding links</image:title>
+      <image:caption>Adding and reordering links inside the Ryxa Link in Bio editor.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://ryxa.io/ryxamodel.webp</image:loc>
+      <image:title>Ryxa creator platform</image:title>
+      <image:caption>A creator using Ryxa, the all-in-one creator platform.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://ryxa.io/ryxamodel2.webp</image:loc>
+      <image:title>Ryxa creator platform</image:title>
+      <image:caption>Building a creator business with Ryxa.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://ryxa.io/pinsta.jpg</image:loc>
+      <image:title>Ryxa link in bio for Instagram creators</image:title>
+      <image:caption>A Ryxa link-in-bio page shown next to an Instagram profile.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://ryxa.io/pricing</loc>
+    <priority>0.9</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://ryxa.io/about</loc>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+    <image:image>
+      <image:loc>https://ryxa.io/johnny.jpg</image:loc>
+      <image:title>Johnny La, founder of Ryxa</image:title>
+      <image:caption>Johnny La, founder of Ryxa and MRLA Media LLC.</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://ryxa.io/tools</loc>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://ryxa.io/faq</loc>
+    <priority>0.7</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://ryxa.io/blog</loc>
+    <priority>0.7</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url><loc>https://ryxa.io/blog/how-to-write-an-instagram-bio-that-converts</loc><priority>0.7</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://ryxa.io/blog/how-to-add-a-link-to-instagram-bio</loc><priority>0.7</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://ryxa.io/blog/best-stan-store-alternatives</loc><priority>0.7</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://ryxa.io/blog/best-beacons-alternatives</loc><priority>0.7</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://ryxa.io/blog/best-carrd-alternatives</loc><priority>0.7</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://ryxa.io/blog/how-to-spot-fake-instagram-followers</loc><priority>0.7</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://ryxa.io/blog/how-do-i-get-10k-followers-on-instagram</loc><priority>0.7</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://ryxa.io/blog/ryxa-vs-stan-store</loc><priority>0.7</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://ryxa.io/blog/ryxa-vs-beacons</loc><priority>0.7</priority><changefreq>monthly</changefreq></url>
   <url><loc>https://ryxa.io/blog/ryxa-vs-linktree</loc><priority>0.7</priority><changefreq>monthly</changefreq></url>
   <url><loc>https://ryxa.io/blog/how-to-price-your-first-online-course</loc><priority>0.7</priority><changefreq>monthly</changefreq></url>
   <url><loc>https://ryxa.io/blog/why-you-should-not-tell-your-dreams-to-others</loc><priority>0.7</priority><changefreq>monthly</changefreq></url>
