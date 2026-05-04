@@ -5885,13 +5885,13 @@
     <div id="tool-image" style="display:none;">
       <div style="max-width:680px;">
         <h2 style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;margin-bottom:6px;letter-spacing:-0.5px;">Photo Editor</h2>
-        <p style="color:var(--muted);font-size:14px;margin-bottom:8px;">A lightweight editor for quick photo edits. Crop, adjust, convert, and remove backgrounds. Everything happens in your browser. Nothing is uploaded.</p>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:8px;">A lightweight editor for quick photo edits. Crop, adjust, remove backgrounds, and more.</p>
         <p id="img-limit-note" style="font-size:13px;color:#a78bfa;margin-bottom:24px;"></p>
 
         <!-- Drop Zone -->
         <div id="img-dropzone" style="border:2px dashed rgba(124,58,237,0.4);border-radius:16px;padding:48px 24px;text-align:center;cursor:pointer;transition:all 0.2s;background:rgba(124,58,237,0.03);margin-bottom:20px;position:relative;">
           <input type="file" id="img-input" accept="image/jpeg,image/png,image/webp,image/gif,image/bmp,image/tiff,image/avif,image/svg+xml,image/x-icon,image/*" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;" aria-label="Select image">
-          <div style="font-size:36px;margin-bottom:12px;">&#x1F5BC;</div>
+          <div style="margin-bottom:12px;display:flex;justify-content:center;"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg></div>
           <div style="font-size:16px;font-weight:500;margin-bottom:6px;">Drop your image here</div>
           <div style="font-size:13px;color:var(--muted);" id="img-size-note">or click to browse</div>
         </div>
@@ -15570,7 +15570,8 @@ function initImageConverter() {
     // (already correct — it uses .value lookup, no list dependency)
   })();
 
-  document.getElementById('img-limit-note').textContent = 'Unlimited edits. Everything happens in your browser.';
+  // img-limit-note removed per copy update; hide the element so it doesn't leave a gap
+  (function(){ var n = document.getElementById('img-limit-note'); if (n) { n.textContent = ''; n.style.display = 'none'; } })();
   // Build the supported-formats note dynamically based on the pruned dropdown
   const supportedNote = (function() {
     const sel = document.getElementById('img-format');
