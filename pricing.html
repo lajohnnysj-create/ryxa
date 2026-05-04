@@ -190,10 +190,103 @@
   </div>
 </div>
 
-<div style="text-align:center;padding:80px 32px;">
-  <h2 style="font-family:'Syne',sans-serif;font-size:clamp(28px,4vw,42px);font-weight:800;letter-spacing:-1px;margin-bottom:16px;">Powerful Tools. No Coding.</h2>
-  <p style="font-size:18px;color:var(--muted);line-height:1.6;max-width:520px;margin:0 auto;">Set up your entire creator business in minutes. No technical skills, no complicated setup. Just sign up and start building.</p>
-</div>
+<section class="pricing-divider">
+  <div class="pricing-divider-photo"></div>
+  <div class="pricing-divider-overlay"></div>
+  <div class="pricing-divider-content">
+    <div class="pricing-divider-eyebrow">Powerful Tools. No Coding.</div>
+    <h2 class="pricing-divider-headline">Set up your entire creator business in minutes.</h2>
+    <p class="pricing-divider-sub">No technical skills, no complicated setup. Just sign up and start building.</p>
+  </div>
+</section>
+<style>
+  .pricing-divider {
+    position: relative;
+    width: 100%;
+    height: 460px;
+    margin: 80px 0 16px;
+    overflow: hidden;
+    clip-path: polygon(0 12%, 100% 0, 100% 88%, 0 100%);
+  }
+  .pricing-divider-photo {
+    position: absolute;
+    inset: 0;
+    background-image: url("ryxamodel5.webp");
+    background-size: cover;
+    background-position: center 28%;
+    z-index: 0;
+  }
+  .pricing-divider-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(7,7,15,0.85) 0%, rgba(7,7,15,0.6) 35%, rgba(7,7,15,0.15) 65%, rgba(7,7,15,0) 100%);
+    z-index: 1;
+  }
+  .pricing-divider-content {
+    position: relative;
+    z-index: 2;
+    height: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 80px 60px 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+  }
+  .pricing-divider-eyebrow {
+    font-family: "DM Sans", sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.75);
+    letter-spacing: 0.02em;
+    margin-bottom: 16px;
+  }
+  .pricing-divider-headline {
+    font-family: "Syne", sans-serif;
+    font-size: clamp(32px, 5vw, 52px);
+    font-weight: 800;
+    letter-spacing: -1.5px;
+    line-height: 1.1;
+    color: #fff;
+    max-width: 620px;
+    margin: 0 0 18px 0;
+    text-shadow: 0 2px 16px rgba(0,0,0,0.4);
+  }
+  .pricing-divider-sub {
+    font-family: "DM Sans", sans-serif;
+    font-size: 17px;
+    line-height: 1.6;
+    color: rgba(255,255,255,0.85);
+    max-width: 540px;
+    margin: 0;
+    text-shadow: 0 1px 8px rgba(0,0,0,0.4);
+  }
+  @media (max-width: 768px) {
+    .pricing-divider {
+      height: 420px;
+      margin: 48px 0 12px;
+      clip-path: polygon(0 6%, 100% 0, 100% 94%, 0 100%);
+    }
+    .pricing-divider-overlay {
+      background: linear-gradient(180deg, rgba(7,7,15,0.5) 0%, rgba(7,7,15,0.85) 100%);
+    }
+    .pricing-divider-content {
+      padding: 0 24px;
+      align-items: center;
+      text-align: center;
+      justify-content: flex-end;
+      padding-bottom: 40px;
+    }
+    .pricing-divider-headline {
+      max-width: 100%;
+    }
+    .pricing-divider-sub {
+      max-width: 100%;
+      font-size: 15px;
+    }
+  }
+</style>
 
 <div id="site-footer"></div>
 
