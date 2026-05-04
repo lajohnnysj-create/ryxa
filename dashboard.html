@@ -7993,9 +7993,19 @@ async function initAuth() {
   await setUser(session.user);
   _authCompleted = true;
   try { sessionStorage.removeItem('_authRetry'); } catch(e) {}
-  sb.auth.onAuthStateChange((_event, session) => {
-    if (!session?.user) { showPwaLogin(); }
-    else window._supabaseAccessToken = session.access_token || '';
+  sb.auth.onAuthStateChange((event, session) => {
+    // Only show the login screen on actual sign-out. Other events
+    // (TOKEN_REFRESHED, USER_UPDATED, INITIAL_SESSION) can briefly arrive
+    // with a null/transitional session in some Supabase SDK versions, and
+    // showing the full-viewport login overlay on those flickers the UI —
+    // the most visible symptom is the sidebar logo "disappearing" briefly
+    // during normal use (especially when switching to data-heavy tools
+    // like Media Kit that fire lots of Supabase calls).
+    if (event === 'SIGNED_OUT') {
+      showPwaLogin();
+    } else if (session?.access_token) {
+      window._supabaseAccessToken = session.access_token;
+    }
   });
 }
 
