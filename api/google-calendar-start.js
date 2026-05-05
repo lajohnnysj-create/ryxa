@@ -33,14 +33,14 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'OAuth not configured' });
   }
 
-  // Pull access token from Authorization header (sent by dashboard)
-  const authHeader = req.headers.authorization || '';
-  const supabaseAccessToken = authHeader.startsWith('Bearer ')
-    ? authHeader.slice(7)
-    : null;
+  // Pull access token from query param. The dashboard navigates to this URL
+  // (rather than fetching), so we can't use Authorization headers. The token
+  // is short-lived (1h) and only sits in this URL for a single redirect hop
+  // before being exchanged for a CSRF cookie + handed off to Google.
+  const supabaseAccessToken = req.query && req.query.t ? String(req.query.t) : null;
 
   if (!supabaseAccessToken) {
-    return res.status(401).json({ error: 'Unauthorized' });
+    return res.status(401).send('Missing session token. Please return to the dashboard and try again.');
   }
 
   // Verify the user with Supabase
