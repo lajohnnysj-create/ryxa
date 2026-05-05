@@ -80,28 +80,38 @@ module.exports = async function handler(req, res) {
     console.error('Token lookup before revoke failed (non-fatal):', e);
   }
 
-  // Delete the row
+  // Update instead of delete: wipe tokens but preserve ryxa_calendar_id
+  // so reconnect doesn't create a duplicate calendar
   try {
-    const delUrl =
+    const updateUrl =
       SUPABASE_URL +
       '/rest/v1/google_calendar_connections?user_id=eq.' +
       encodeURIComponent(userId);
 
-    const delRes = await fetch(delUrl, {
-      method: 'DELETE',
+    const updateRes = await fetch(updateUrl, {
+      method: 'PATCH',
       headers: {
         apikey: SUPABASE_SERVICE_KEY,
-        Authorization: 'Bearer ' + SUPABASE_SERVICE_KEY
-      }
+        Authorization: 'Bearer ' + SUPABASE_SERVICE_KEY,
+        'Content-Type': 'application/json',
+        Prefer: 'return=minimal'
+      },
+      body: JSON.stringify({
+        access_token: '',
+        refresh_token: '',
+        expires_at: new Date(0).toISOString(),
+        disconnected_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
     });
 
-    if (!delRes.ok) {
-      const errText = await delRes.text();
-      console.error('Disconnect delete failed:', delRes.status, errText);
+    if (!updateRes.ok) {
+      const errText = await updateRes.text();
+      console.error('Disconnect update failed:', updateRes.status, errText);
       return res.status(500).json({ error: 'disconnect_failed' });
     }
   } catch (e) {
-    console.error('Delete error:', e);
+    console.error('Update error:', e);
     return res.status(500).json({ error: 'disconnect_failed' });
   }
 
