@@ -8089,8 +8089,19 @@ async function setUser(user) {
   // Handle Stripe Connect callback redirect
   handleStripeConnectRedirect();
 
+  // Handle Google Calendar OAuth callback — auto-navigate to Calendar tool
+  handleGcalRedirect();
+
   // Check if user has accepted terms
   checkTermsAcceptance();
+}
+
+function handleGcalRedirect() {
+  var params = new URLSearchParams(window.location.search);
+  if (!params.get('gcal')) return;
+  // Navigate to Calendar tool. initCalendarTool() will read the params
+  // and surface the success/error message via gcalHandleReturnParams().
+  showTool('calendar');
 }
 
 async function checkTermsAcceptance() {
