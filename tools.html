@@ -105,6 +105,9 @@
   .tool-card:hover .tool-card-icon { background: rgba(124,58,237,0.2); border-color: rgba(124,58,237,0.4); }
   .tool-card-icon svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   .tool-card-title { font-family: "Syne", sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .upgrade-hint { font-family: "DM Sans", sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.02em; padding: 2px 7px; border-radius: 4px; }
+  .upgrade-hint.pro { color: #c4b5fd; background: rgba(124,58,237,0.12); border: 1px solid rgba(124,58,237,0.25); }
+  .upgrade-hint.max { background: linear-gradient(135deg,#a78bfa,#e879f9); color: #fff; border: 1px solid transparent; }
   .tool-card-desc { font-size: 13px; color: var(--muted); line-height: 1.55; flex: 1; margin-bottom: 16px; }
   .tool-card-badge { font-size: 10px; padding: 4px 10px; border-radius: 999px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; display: inline-flex; align-items: center; gap: 5px; align-self: flex-start; }
   .tool-card-badge.free { background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.25); color: #4ade80; }
@@ -175,7 +178,7 @@
 
     <a href="/tools-link-in-bio.html" class="tool-card">
       <div class="tool-card-icon"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
-      <div class="tool-card-title">Link in Bio</div>
+      <div class="tool-card-title">Link in Bio <span class="upgrade-hint pro">+ Pro</span></div>
       <div class="tool-card-desc">A clean, customizable page for your link in bio. Share your content, social profiles, products, and more — all from one branded URL.</div>
       <div class="tool-card-badge popular">Popular</div>
       <div class="tool-card-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
@@ -183,22 +186,22 @@
 
     <a href="/tools-ai-design-studio.html" class="tool-card">
       <div class="tool-card-icon"><svg viewBox="0 0 24 24"><path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z"/></svg></div>
-      <div class="tool-card-title">AI Design Studio</div>
-      <div class="tool-card-desc">Create graphics with background removal, captions, upscaling, and more. Design for any platform with 21 fonts and layered editing. AI tools on Pro.</div>
+      <div class="tool-card-title">AI Design Studio <span class="upgrade-hint pro">+ Pro</span></div>
+      <div class="tool-card-desc">Create graphics with background removal, captions, upscaling, and more. Design for any platform with 21 fonts and layered editing.</div>
       <div class="tool-card-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
     </a>
 
     <a href="/tools-follower-audit.html" class="tool-card">
       <div class="tool-card-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></div>
-      <div class="tool-card-title">Follower Audit</div>
-      <div class="tool-card-desc">See how many people aren't following you back on Instagram. No password required — upload your own data and get the count instantly. Get the full list with Pro.</div>
+      <div class="tool-card-title">Follower Audit <span class="upgrade-hint pro">+ Pro</span></div>
+      <div class="tool-card-desc">See how many people aren't following you back on Instagram. No password required — upload your own data and get the count instantly.</div>
       <div class="tool-card-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
     </a>
 
     <a href="/pricing.html" class="tool-card">
       <div class="tool-card-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
-      <div class="tool-card-title">Subscribers</div>
-      <div class="tool-card-desc">Collect and manage emails from course and coaching purchases and your link in bio. Export your list anytime.</div>
+      <div class="tool-card-title">Subscribers <span class="upgrade-hint max">+ Max</span></div>
+      <div class="tool-card-desc">Collect and manage emails from your link in bio newsletter signups. Export your list anytime.</div>
       <div class="tool-card-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></div>
     </a>
 
