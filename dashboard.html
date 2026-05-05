@@ -24996,9 +24996,16 @@ async function gcalConnect() {
 
 async function gcalDisconnect() {
   if (!gcalState.connected) return;
-  var confirmed = await showModalConfirm('Disconnect Google Calendar?', 'Ryxa will stop syncing events to your Google Calendar. The Ryxa calendar in Google will not be deleted, but new events won\'t be added.');
-  if (!confirmed) return;
+  showModalConfirm(
+    'Disconnect Google Calendar?',
+    'Ryxa will stop syncing events to your Google Calendar. The Ryxa calendar in Google will not be deleted, but new events won\'t be added.',
+    gcalDoDisconnect,
+    'Disconnect',
+    'Cancel'
+  );
+}
 
+async function gcalDoDisconnect() {
   try {
     var { data: { session } } = await sb.auth.getSession();
     var token = session && session.access_token;
