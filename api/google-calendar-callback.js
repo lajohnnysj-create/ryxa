@@ -5,16 +5,11 @@
 // Flow:
 //   1. Verify the state cookie matches Google's state param (CSRF guard)
 //   2. Exchange the auth code for access_token + refresh_token
-//   3. Look up the connected Google account's email (using userinfo endpoint)
-//   4. Store tokens in google_calendar_connections (service role write)
+//   3. Look up the connected Google account's email (userinfo endpoint)
+//   4. Store tokens in google_calendar_connections via PostgREST + service role
 //   5. Redirect the user back to the dashboard with a success/error flag
-//
-// On error, redirects with ?gcal=error&reason=... so the dashboard can
-// surface a friendly message.
 
-import { createClient } from '@supabase/supabase-js';
-
-const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_OAUTH_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_OAUTH_CLIENT_SECRET;
@@ -26,21 +21,18 @@ function redirectWithFlag(res, flag, reason) {
   const url = new URL(DASHBOARD_URL);
   url.searchParams.set('gcal', flag);
   if (reason) url.searchParams.set('reason', reason);
-  // Tell dashboard to open Calendar Settings modal after load
   url.searchParams.set('view', 'calendar-settings');
-  // Clear the state cookie
   res.setHeader('Set-Cookie', 'ryxa_gcal_state=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0');
   return res.redirect(302, url.toString());
 }
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   const { code, state, error: googleError } = req.query;
 
-  // User clicked "Cancel" on Google's consent screen
   if (googleError) {
     return redirectWithFlag(res, 'cancelled', googleError);
   }
@@ -49,9 +41,10 @@ export default async function handler(req, res) {
     return redirectWithFlag(res, 'error', 'missing_params');
   }
 
-  // CSRF check: cookie nonce must match the nonce inside Google's state
+  // CSRF check: cookie nonce must match nonce in state
   const cookieHeader = req.headers.cookie || '';
-  const cookieNonce = (cookieHeader.match(/ryxa_gcal_state=([^;]+)/) || [])[1];
+  const cookieMatch = cookieHeader.match(/ryxa_gcal_state=([^;]+)/);
+  const cookieNonce = cookieMatch ? cookieMatch[1] : null;
   if (!cookieNonce) {
     return redirectWithFlag(res, 'error', 'state_missing');
   }
@@ -98,49 +91,62 @@ export default async function handler(req, res) {
   }
 
   if (!tokens.access_token || !tokens.refresh_token) {
-    // Sometimes refresh_token is missing if the user has previously authorized
-    // and we didn't force prompt=consent. We do force it, so this should be rare.
-    console.error('Missing tokens in Google response:', Object.keys(tokens));
+    console.error('Missing tokens in Google response. Got keys:', Object.keys(tokens));
     return redirectWithFlag(res, 'error', 'incomplete_tokens');
   }
 
-  // Get the email of the connected Google account
+  // Get the email of the connected Google account (best-effort, non-fatal)
   let googleEmail = null;
   try {
     const profileRes = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-      headers: { Authorization: `Bearer ${tokens.access_token}` },
+      headers: { Authorization: 'Bearer ' + tokens.access_token },
     });
     if (profileRes.ok) {
       const profile = await profileRes.json();
       googleEmail = profile.email || null;
     }
   } catch (e) {
-    // Non-fatal: we can still store the connection without the email
     console.error('Userinfo fetch failed:', e);
   }
 
-  // Store tokens in DB (service role bypasses RLS)
-  const sb = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+  // Upsert into google_calendar_connections via PostgREST + service role
   const expiresAt = new Date(Date.now() + (tokens.expires_in || 3600) * 1000).toISOString();
+  const nowIso = new Date().toISOString();
 
-  const { error: dbErr } = await sb
-    .from('google_calendar_connections')
-    .upsert({
-      user_id: userId,
-      google_email: googleEmail,
-      access_token: tokens.access_token,
-      refresh_token: tokens.refresh_token,
-      scope: tokens.scope || 'https://www.googleapis.com/auth/calendar.app.created',
-      expires_at: expiresAt,
-      ryxa_calendar_id: null,         // Phase 3 will create the Ryxa calendar
-      connected_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    }, { onConflict: 'user_id' });
+  try {
+    const upsertRes = await fetch(
+      SUPABASE_URL + '/rest/v1/google_calendar_connections?on_conflict=user_id',
+      {
+        method: 'POST',
+        headers: {
+          apikey: SUPABASE_SERVICE_KEY,
+          Authorization: 'Bearer ' + SUPABASE_SERVICE_KEY,
+          'Content-Type': 'application/json',
+          Prefer: 'resolution=merge-duplicates,return=minimal',
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          google_email: googleEmail,
+          access_token: tokens.access_token,
+          refresh_token: tokens.refresh_token,
+          scope: tokens.scope || 'https://www.googleapis.com/auth/calendar.app.created',
+          expires_at: expiresAt,
+          ryxa_calendar_id: null,
+          connected_at: nowIso,
+          updated_at: nowIso,
+        }),
+      }
+    );
 
-  if (dbErr) {
-    console.error('Supabase upsert failed:', dbErr);
+    if (!upsertRes.ok) {
+      const errText = await upsertRes.text();
+      console.error('Supabase upsert failed:', upsertRes.status, errText);
+      return redirectWithFlag(res, 'error', 'db_write_failed');
+    }
+  } catch (e) {
+    console.error('DB write error:', e);
     return redirectWithFlag(res, 'error', 'db_write_failed');
   }
 
   return redirectWithFlag(res, 'connected');
-}
+};

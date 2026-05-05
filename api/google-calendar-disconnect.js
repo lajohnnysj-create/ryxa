@@ -1,20 +1,32 @@
 // /api/google-calendar-disconnect.js
 //
 // Removes the user's Google Calendar connection from Ryxa.
-// Phase 1: just deletes the row. Phase 3+ should also call Google's
-// token revoke endpoint so the user's grant in their Google account
-// is cleaned up.
+// Best-effort revokes the token on Google's side too.
 //
 // Note: this does NOT delete the "Ryxa" calendar from the user's
-// Google account. The user can do that themselves in Google Calendar
-// if they want a fully clean disconnect.
+// Google account. The user can do that in Google Calendar themselves.
 
-import { createClient } from '@supabase/supabase-js';
-
-const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-export default async function handler(req, res) {
+async function verifySupabaseUser(accessToken) {
+  try {
+    const res = await fetch(SUPABASE_URL + '/auth/v1/user', {
+      headers: {
+        Authorization: 'Bearer ' + accessToken,
+        apikey: SUPABASE_SERVICE_KEY
+      }
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data && data.id ? data.id : null;
+  } catch (e) {
+    console.error('verifySupabaseUser failed:', e.message);
+    return null;
+  }
+}
+
+module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -28,30 +40,40 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
-  const sb = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
-  const { data: { user }, error: userErr } = await sb.auth.getUser(supabaseAccessToken);
-  if (userErr || !user) {
+  const userId = await verifySupabaseUser(supabaseAccessToken);
+  if (!userId) {
     return res.status(401).json({ error: 'Invalid session' });
   }
 
-  // Optional Phase 1.5: revoke the token with Google so they don't keep a
-  // dangling grant. We have to read the token first.
+  // Best-effort: read refresh token, revoke on Google's side
   try {
-    const { data: conn } = await sb
-      .from('google_calendar_connections')
-      .select('refresh_token')
-      .eq('user_id', user.id)
-      .maybeSingle();
+    const lookupUrl =
+      SUPABASE_URL +
+      '/rest/v1/google_calendar_connections?user_id=eq.' +
+      encodeURIComponent(userId) +
+      '&select=refresh_token&limit=1';
 
-    if (conn && conn.refresh_token) {
-      // Best-effort revoke — non-fatal if it fails
-      try {
-        await fetch('https://oauth2.googleapis.com/revoke?token=' + encodeURIComponent(conn.refresh_token), {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        });
-      } catch (e) {
-        console.error('Token revoke failed (non-fatal):', e);
+    const lookupRes = await fetch(lookupUrl, {
+      headers: {
+        apikey: SUPABASE_SERVICE_KEY,
+        Authorization: 'Bearer ' + SUPABASE_SERVICE_KEY
+      }
+    });
+
+    if (lookupRes.ok) {
+      const rows = await lookupRes.json();
+      if (rows && rows.length && rows[0].refresh_token) {
+        try {
+          await fetch(
+            'https://oauth2.googleapis.com/revoke?token=' + encodeURIComponent(rows[0].refresh_token),
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+            }
+          );
+        } catch (e) {
+          console.error('Google token revoke failed (non-fatal):', e);
+        }
       }
     }
   } catch (e) {
@@ -59,15 +81,29 @@ export default async function handler(req, res) {
   }
 
   // Delete the row
-  const { error: delErr } = await sb
-    .from('google_calendar_connections')
-    .delete()
-    .eq('user_id', user.id);
+  try {
+    const delUrl =
+      SUPABASE_URL +
+      '/rest/v1/google_calendar_connections?user_id=eq.' +
+      encodeURIComponent(userId);
 
-  if (delErr) {
-    console.error('Disconnect delete failed:', delErr);
+    const delRes = await fetch(delUrl, {
+      method: 'DELETE',
+      headers: {
+        apikey: SUPABASE_SERVICE_KEY,
+        Authorization: 'Bearer ' + SUPABASE_SERVICE_KEY
+      }
+    });
+
+    if (!delRes.ok) {
+      const errText = await delRes.text();
+      console.error('Disconnect delete failed:', delRes.status, errText);
+      return res.status(500).json({ error: 'disconnect_failed' });
+    }
+  } catch (e) {
+    console.error('Delete error:', e);
     return res.status(500).json({ error: 'disconnect_failed' });
   }
 
   return res.status(200).json({ ok: true });
-}
+};
