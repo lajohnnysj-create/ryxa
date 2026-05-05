@@ -5373,6 +5373,11 @@
           <p style="color:var(--muted);font-size:14px;line-height:1.6;">Plan your content, coaching sessions, and brand deals in one place. Events sync across your tools as we add integrations.</p>
         </div>
 
+        <!-- Google Calendar Connection -->
+        <div id="gcal-connect-row" style="margin-bottom:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          <!-- Populated by gcalRenderConnectionState() -->
+        </div>
+
         <!-- Calendar Header -->
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:12px;">
@@ -24895,6 +24900,161 @@ async function initCalendarTool() {
   }
 
   calRender();
+
+  // Load Google Calendar connection state (non-blocking)
+  gcalLoadConnectionState();
+
+  // Handle ?gcal=connected|error|cancelled flags from OAuth callback redirect
+  gcalHandleReturnParams();
+}
+
+// ============================================================
+// Google Calendar OAuth (Phase 1: connect/disconnect only)
+// ============================================================
+
+var gcalState = { connected: false, email: null, loading: true };
+
+async function gcalLoadConnectionState() {
+  var row = document.getElementById('gcal-connect-row');
+  if (!row || !currentUser) return;
+
+  gcalState.loading = true;
+  gcalRenderConnectionState();
+
+  try {
+    var { data, error } = await sb
+      .from('google_calendar_status')
+      .select('google_email, connected_at')
+      .maybeSingle();
+    if (error) throw error;
+
+    if (data) {
+      gcalState.connected = true;
+      gcalState.email = data.google_email || null;
+    } else {
+      gcalState.connected = false;
+      gcalState.email = null;
+    }
+  } catch (e) {
+    console.error('gcal status load failed:', e);
+    gcalState.connected = false;
+    gcalState.email = null;
+  } finally {
+    gcalState.loading = false;
+    gcalRenderConnectionState();
+  }
+}
+
+function gcalRenderConnectionState() {
+  var row = document.getElementById('gcal-connect-row');
+  if (!row) return;
+
+  if (gcalState.loading) {
+    row.innerHTML = '<div style="font-size:13px;color:var(--muted);">Checking calendar connection…</div>';
+    return;
+  }
+
+  if (gcalState.connected) {
+    var emailLabel = gcalState.email ? '<span style="color:var(--text);font-weight:500;">' + escapeHtmlSimple(gcalState.email) + '</span>' : '<span style="color:var(--text);">your Google account</span>';
+    row.innerHTML =
+      '<div style="display:inline-flex;align-items:center;gap:8px;padding:8px 14px;background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.25);border-radius:8px;font-size:13px;color:#86efac;">'
+      + '<span style="width:8px;height:8px;border-radius:50%;background:#4ade80;"></span>'
+      + 'Google Calendar connected as ' + emailLabel
+      + '</div>'
+      + '<button onclick="gcalDisconnect()" style="padding:8px 14px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:13px;font-weight:500;cursor:pointer;font-family:DM Sans,sans-serif;transition:all 0.15s;" onmouseover="this.style.borderColor=\'var(--border-hover)\';this.style.color=\'var(--text)\'" onmouseout="this.style.borderColor=\'var(--border)\';this.style.color=\'var(--muted)\'">Disconnect</button>';
+  } else {
+    row.innerHTML =
+      '<button onclick="gcalConnect()" style="display:inline-flex;align-items:center;gap:10px;padding:9px 16px;background:#fff;color:#1f1f1f;border:1px solid #dadce0;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:DM Sans,sans-serif;transition:all 0.15s;" onmouseover="this.style.boxShadow=\'0 1px 3px rgba(0,0,0,0.2)\'" onmouseout="this.style.boxShadow=\'none\'">'
+      + '<svg width="16" height="16" viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M45.12 24.5c0-1.56-.14-3.06-.4-4.5H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.64v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.17z"/><path fill="#34A853" d="M24 46c5.94 0 10.92-1.97 14.56-5.33l-7.11-5.52c-1.97 1.32-4.49 2.1-7.45 2.1-5.73 0-10.58-3.87-12.31-9.07H4.34v5.7C7.96 41.07 15.4 46 24 46z"/><path fill="#FBBC05" d="M11.69 28.18c-.44-1.32-.69-2.73-.69-4.18s.25-2.86.69-4.18v-5.7H4.34C2.85 17.09 2 20.45 2 24s.85 6.91 2.34 9.88l7.35-5.7z"/><path fill="#EA4335" d="M24 10.75c3.23 0 6.13 1.11 8.41 3.29l6.31-6.31C34.91 4.18 29.93 2 24 2 15.4 2 7.96 6.93 4.34 14.12l7.35 5.7c1.73-5.2 6.58-9.07 12.31-9.07z"/></svg>'
+      + 'Connect Google Calendar'
+      + '</button>'
+      + '<div style="font-size:12px;color:var(--muted);">Sync Ryxa events to your Google Calendar.</div>';
+  }
+}
+
+async function gcalConnect() {
+  if (!currentUser) {
+    showModalAlert('Not signed in', 'You need to be signed in to connect Google Calendar.');
+    return;
+  }
+  try {
+    var { data: { session } } = await sb.auth.getSession();
+    var token = session && session.access_token;
+    if (!token) {
+      showModalAlert('Session expired', 'Please refresh the page and try again.');
+      return;
+    }
+    // Navigate directly to the start endpoint. The endpoint reads `t` from
+    // query params, validates with Supabase, then 302-redirects to Google.
+    // Token is short-lived (1h) and lives only in the redirect URL briefly.
+    window.location.href = '/api/google-calendar-start?t=' + encodeURIComponent(token);
+  } catch (e) {
+    console.error('gcal connect failed:', e);
+    showModalAlert('Could not start connection', e.message || 'Please try again.');
+  }
+}
+
+async function gcalDisconnect() {
+  if (!gcalState.connected) return;
+  var confirmed = await showModalConfirm('Disconnect Google Calendar?', 'Ryxa will stop syncing events to your Google Calendar. The Ryxa calendar in Google will not be deleted, but new events won\'t be added.');
+  if (!confirmed) return;
+
+  try {
+    var { data: { session } } = await sb.auth.getSession();
+    var token = session && session.access_token;
+    if (!token) {
+      showModalAlert('Session expired', 'Please refresh the page and try again.');
+      return;
+    }
+    var res = await fetch('/api/google-calendar-disconnect', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + token },
+    });
+    if (!res.ok) {
+      var err = await res.json().catch(function() { return { error: 'unknown' }; });
+      throw new Error(err.error || 'Disconnect failed');
+    }
+    gcalState.connected = false;
+    gcalState.email = null;
+    gcalRenderConnectionState();
+  } catch (e) {
+    console.error('gcal disconnect failed:', e);
+    showModalAlert('Could not disconnect', e.message || 'Please try again.');
+  }
+}
+
+function gcalHandleReturnParams() {
+  var params = new URLSearchParams(window.location.search);
+  var flag = params.get('gcal');
+  if (!flag) return;
+
+  // Clean up URL so refresh doesn't replay
+  var url = new URL(window.location.href);
+  url.searchParams.delete('gcal');
+  url.searchParams.delete('reason');
+  url.searchParams.delete('view');
+  window.history.replaceState({}, '', url.toString());
+
+  if (flag === 'connected') {
+    gcalLoadConnectionState();
+    setTimeout(function() {
+      showModalAlert('Calendar connected', 'Your Google Calendar is now linked to Ryxa.');
+    }, 100);
+  } else if (flag === 'cancelled') {
+    // User clicked cancel on Google's screen — silent, no need to alert
+  } else if (flag === 'error') {
+    var reason = params.get('reason') || 'unknown';
+    setTimeout(function() {
+      showModalAlert('Could not connect', 'Something went wrong (' + reason + '). Please try again.');
+    }, 100);
+  }
+}
+
+// Tiny HTML escape helper for the email label
+function escapeHtmlSimple(s) {
+  return String(s).replace(/[&<>"']/g, function(c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
 }
 
 async function calLoadEvents() {
