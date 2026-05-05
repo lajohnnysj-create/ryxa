@@ -6,8 +6,13 @@
 //   1. Verify the state cookie matches Google's state param (CSRF guard)
 //   2. Exchange the auth code for access_token + refresh_token
 //   3. Look up the connected Google account's email (userinfo endpoint)
-//   4. Store tokens in google_calendar_connections via PostgREST + service role
+//   4. Upsert tokens in google_calendar_connections via PostgREST + service role
 //   5. Redirect the user back to the dashboard with a success/error flag
+//
+// On reconnect, we always start fresh — disconnect deletes the previous
+// calendar from Google and wipes the row, so this is always either a fresh
+// install or a clean reconnect. The edge function will lazily create a new
+// "Ryxa" calendar on the first sync.
 
 const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -41,7 +46,7 @@ module.exports = async function handler(req, res) {
     return redirectWithFlag(res, 'error', 'missing_params');
   }
 
-  // CSRF check: cookie nonce must match nonce in state
+  // CSRF check
   const cookieHeader = req.headers.cookie || '';
   const cookieMatch = cookieHeader.match(/ryxa_gcal_state=([^;]+)/);
   const cookieNonce = cookieMatch ? cookieMatch[1] : null;
@@ -95,7 +100,7 @@ module.exports = async function handler(req, res) {
     return redirectWithFlag(res, 'error', 'incomplete_tokens');
   }
 
-  // Get the email of the connected Google account (best-effort, non-fatal)
+  // Get the email of the connected Google account (best-effort)
   let googleEmail = null;
   try {
     const profileRes = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
@@ -109,125 +114,42 @@ module.exports = async function handler(req, res) {
     console.error('Userinfo fetch failed:', e);
   }
 
-  // On reconnect, we want to PRESERVE any saved ryxa_calendar_id from the
-  // previous connection so we reuse the existing "Ryxa" calendar in Google
-  // (rather than creating a duplicate). So we do a check-then-update instead
-  // of a blind upsert that would clobber the old row.
+  // Upsert into google_calendar_connections.
+  // On reconnect, the disconnect flow has already wiped the previous row,
+  // so this is always effectively a fresh insert. But we use upsert (merge)
+  // for safety in case of any half-failed disconnects.
   const expiresAt = new Date(Date.now() + (tokens.expires_in || 3600) * 1000).toISOString();
   const nowIso = new Date().toISOString();
 
   try {
-    // Look up any existing row for this user (active or disconnected)
-    const lookupUrl =
-      SUPABASE_URL +
-      '/rest/v1/google_calendar_connections?user_id=eq.' +
-      encodeURIComponent(userId) +
-      '&select=user_id,ryxa_calendar_id&limit=1';
-
-    const lookupRes = await fetch(lookupUrl, {
-      headers: {
-        apikey: SUPABASE_SERVICE_KEY,
-        Authorization: 'Bearer ' + SUPABASE_SERVICE_KEY
+    const upsertRes = await fetch(
+      SUPABASE_URL + '/rest/v1/google_calendar_connections?on_conflict=user_id',
+      {
+        method: 'POST',
+        headers: {
+          apikey: SUPABASE_SERVICE_KEY,
+          Authorization: 'Bearer ' + SUPABASE_SERVICE_KEY,
+          'Content-Type': 'application/json',
+          Prefer: 'resolution=merge-duplicates,return=minimal',
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          google_email: googleEmail,
+          access_token: tokens.access_token,
+          refresh_token: tokens.refresh_token,
+          scope: tokens.scope || 'https://www.googleapis.com/auth/calendar.app.created',
+          expires_at: expiresAt,
+          ryxa_calendar_id: null,
+          connected_at: nowIso,
+          updated_at: nowIso,
+        }),
       }
-    });
+    );
 
-    let existingRyxaCalId = null;
-    let rowExists = false;
-    if (lookupRes.ok) {
-      const rows = await lookupRes.json();
-      if (rows && rows.length) {
-        rowExists = true;
-        existingRyxaCalId = rows[0].ryxa_calendar_id || null;
-      }
-    }
-
-    if (rowExists) {
-      // Reconnect path: update the row, preserve ryxa_calendar_id, clear disconnected_at
-      const updateRes = await fetch(
-        SUPABASE_URL +
-          '/rest/v1/google_calendar_connections?user_id=eq.' +
-          encodeURIComponent(userId),
-        {
-          method: 'PATCH',
-          headers: {
-            apikey: SUPABASE_SERVICE_KEY,
-            Authorization: 'Bearer ' + SUPABASE_SERVICE_KEY,
-            'Content-Type': 'application/json',
-            Prefer: 'return=minimal',
-          },
-          body: JSON.stringify({
-            google_email: googleEmail,
-            access_token: tokens.access_token,
-            refresh_token: tokens.refresh_token,
-            scope: tokens.scope || 'https://www.googleapis.com/auth/calendar.app.created',
-            expires_at: expiresAt,
-            disconnected_at: null,
-            connected_at: nowIso,
-            updated_at: nowIso,
-            // ryxa_calendar_id is intentionally NOT included — we keep whatever was there.
-          }),
-        }
-      );
-
-      if (!updateRes.ok) {
-        const errText = await updateRes.text();
-        console.error('Reconnect update failed:', updateRes.status, errText);
-        return redirectWithFlag(res, 'error', 'db_write_failed');
-      }
-
-      // Backfill: any previously-synced events were marked synced. Reset them so
-      // they get re-synced into the (still-existing) Ryxa calendar. This handles
-      // the case where the user added/edited/deleted events while disconnected.
-      try {
-        await fetch(
-          SUPABASE_URL +
-            '/rest/v1/calendar_events?creator_id=eq.' +
-            encodeURIComponent(userId),
-          {
-            method: 'PATCH',
-            headers: {
-              apikey: SUPABASE_SERVICE_KEY,
-              Authorization: 'Bearer ' + SUPABASE_SERVICE_KEY,
-              'Content-Type': 'application/json',
-              Prefer: 'return=minimal',
-            },
-            body: JSON.stringify({ synced_to_google_at: null }),
-          }
-        );
-      } catch (e) {
-        console.error('Backfill mark failed (non-fatal):', e);
-      }
-    } else {
-      // Fresh install path: insert a new row
-      const insertRes = await fetch(
-        SUPABASE_URL + '/rest/v1/google_calendar_connections',
-        {
-          method: 'POST',
-          headers: {
-            apikey: SUPABASE_SERVICE_KEY,
-            Authorization: 'Bearer ' + SUPABASE_SERVICE_KEY,
-            'Content-Type': 'application/json',
-            Prefer: 'return=minimal',
-          },
-          body: JSON.stringify({
-            user_id: userId,
-            google_email: googleEmail,
-            access_token: tokens.access_token,
-            refresh_token: tokens.refresh_token,
-            scope: tokens.scope || 'https://www.googleapis.com/auth/calendar.app.created',
-            expires_at: expiresAt,
-            ryxa_calendar_id: null,
-            connected_at: nowIso,
-            updated_at: nowIso,
-          }),
-        }
-      );
-
-      if (!insertRes.ok) {
-        const errText = await insertRes.text();
-        console.error('Insert failed:', insertRes.status, errText);
-        return redirectWithFlag(res, 'error', 'db_write_failed');
-      }
+    if (!upsertRes.ok) {
+      const errText = await upsertRes.text();
+      console.error('Supabase upsert failed:', upsertRes.status, errText);
+      return redirectWithFlag(res, 'error', 'db_write_failed');
     }
   } catch (e) {
     console.error('DB write error:', e);
