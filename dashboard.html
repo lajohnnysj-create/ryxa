@@ -3576,12 +3576,6 @@
   #tool-follower .fa-result-item:hover { background: rgba(255,255,255,0.03); }
   #tool-follower .fa-result-item.blurred { filter: blur(5px); user-select: none; pointer-events: none; opacity: 0.6; }
   #tool-follower .fa-result-header-row { display: grid; grid-template-columns: 1fr 200px 90px 36px 36px; padding: 10px 20px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); border-bottom: 1px solid var(--border); background: var(--surface2); }
-  /* Center the icon-column headers so they align with the centered icon buttons below */
-  #tool-follower .fa-result-header-row > span:nth-child(4),
-  #tool-follower .fa-result-header-row > span:nth-child(5) { text-align: center; padding-left: 0 !important; justify-self: center; }
-  /* Center the icon-only cells in result rows */
-  #tool-follower .fa-result-item > div:nth-child(4),
-  #tool-follower .fa-result-item > div:nth-child(5) { display: flex; justify-content: center; align-items: center; }
   #tool-follower .fa-result-handle a { color: var(--text); text-decoration: none; }
   #tool-follower .fa-result-handle a:hover { color: var(--accent); }
   #tool-follower .fa-tag { display: inline-flex; align-items: center; gap: 5px; border-radius: 100px; padding: 3px 12px; font-size: 11px; font-weight: 500; letter-spacing: 0.03em; }
@@ -3616,7 +3610,7 @@
     display: inline-flex; align-items: center; gap: 5px;
     background: rgba(255,255,255,0.05); border: 1px solid var(--border-hover); cursor: pointer;
     color: var(--muted); font-size: 12px; font-weight: 500; font-family: 'DM Sans', sans-serif;
-    padding: 5px 10px; border-radius: 20px; transition: all 0.2s;
+    padding: 5px 10px; border-radius: 20px; transition: all 0.2s; margin-left: 8px;
   }
   #tool-follower .fa-whitelist-btn:hover { background: rgba(124,58,237,0.1); border-color: var(--accent); color: var(--accent); }
   #tool-follower .fa-whitelist-btn.whitelisted { background: rgba(74,222,128,0.1); border-color: rgba(74,222,128,0.4); color: #4ade80; }
