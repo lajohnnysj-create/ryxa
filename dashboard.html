@@ -9590,6 +9590,111 @@ async function resyncBioUsername() {
   }, 500);
 }
 
+// Resolve live cover/headshot URLs for bio links that reference a source
+// table (courses, coaching services, digital products, media kit). Mirrors
+// the public bio resolver in api/bio.js and bio.html — keeps the editor's
+// link thumbnails AND the iframe preview in sync with current images.
+// Mutates `links` in place; only overwrites photoUrl when a live value is
+// found, falling back to the stored snapshot otherwise.
+async function resolveBioLinkLiveCovers(creatorUserId, links) {
+  if (!Array.isArray(links) || links.length === 0) return;
+
+  var courseIds = [];
+  var coachingIds = [];
+  var productIds = [];
+  var needsMediaKit = false;
+
+  for (var i = 0; i < links.length; i++) {
+    var l = links[i];
+    if (!l) continue;
+    if (l.isCourse && l.courseId) courseIds.push(l.courseId);
+    if (l.isCoaching && l.coachingId) coachingIds.push(l.coachingId);
+    if (l.isProduct && l.productId) productIds.push(l.productId);
+    if (l.isMediaKit) needsMediaKit = true;
+  }
+
+  function buildPublicUrl(bucket, path) {
+    if (!path) return null;
+    return 'https://kjytapcgxukalwsyputk.supabase.co/storage/v1/object/public/' + bucket + '/' + path;
+  }
+
+  var promises = [];
+
+  if (courseIds.length > 0) {
+    promises.push(
+      sb.from('courses').select('id, cover_image_path').in('id', courseIds)
+        .then(function(r) {
+          var rows = r.data || [];
+          var map = {};
+          rows.forEach(function(row) { map[row.id] = buildPublicUrl('course-covers', row.cover_image_path); });
+          return { type: 'course', map: map };
+        })
+        .catch(function() { return { type: 'course', map: {} }; })
+    );
+  }
+
+  if (coachingIds.length > 0) {
+    promises.push(
+      sb.from('coaching_services').select('id, cover_image_path').in('id', coachingIds)
+        .then(function(r) {
+          var rows = r.data || [];
+          var map = {};
+          rows.forEach(function(row) { map[row.id] = buildPublicUrl('coaching-covers', row.cover_image_path); });
+          return { type: 'coaching', map: map };
+        })
+        .catch(function() { return { type: 'coaching', map: {} }; })
+    );
+  }
+
+  if (productIds.length > 0) {
+    promises.push(
+      sb.from('digital_products').select('id, cover_image_url').in('id', productIds)
+        .then(function(r) {
+          var rows = r.data || [];
+          var map = {};
+          rows.forEach(function(row) { map[row.id] = row.cover_image_url || null; });
+          return { type: 'product', map: map };
+        })
+        .catch(function() { return { type: 'product', map: {} }; })
+    );
+  }
+
+  if (needsMediaKit && creatorUserId) {
+    promises.push(
+      sb.from('media_kit').select('headshot_url').eq('user_id', creatorUserId).maybeSingle()
+        .then(function(r) {
+          return { type: 'mediakit', url: r.data ? (r.data.headshot_url || null) : null };
+        })
+        .catch(function() { return { type: 'mediakit', url: null }; })
+    );
+  }
+
+  if (promises.length === 0) return;
+
+  var results = await Promise.all(promises);
+  var courseMap = (results.find(function(r) { return r.type === 'course'; }) || {}).map;
+  var coachingMap = (results.find(function(r) { return r.type === 'coaching'; }) || {}).map;
+  var productMap = (results.find(function(r) { return r.type === 'product'; }) || {}).map;
+  var mediaKitUrl = (results.find(function(r) { return r.type === 'mediakit'; }) || {}).url;
+
+  for (var j = 0; j < links.length; j++) {
+    var link = links[j];
+    if (!link) continue;
+    if (link.isCourse && link.courseId && courseMap) {
+      var liveCourse = courseMap[link.courseId];
+      if (liveCourse) link.photoUrl = liveCourse;
+    } else if (link.isCoaching && link.coachingId && coachingMap) {
+      var liveCoaching = coachingMap[link.coachingId];
+      if (liveCoaching) link.photoUrl = liveCoaching;
+    } else if (link.isProduct && link.productId && productMap) {
+      var liveProduct = productMap[link.productId];
+      if (liveProduct) link.photoUrl = liveProduct;
+    } else if (link.isMediaKit && mediaKitUrl) {
+      link.photoUrl = mediaKitUrl;
+    }
+  }
+}
+
 async function loadBioData() {
   if (!currentUser) return;
   try {
@@ -9626,6 +9731,18 @@ async function loadBioData() {
       // Guard: if user selected custom but is no longer Pro, revert to purple
       if (bioState.theme === 'custom' && !isPro()) {
         bioState.theme = 'purple';
+      }
+
+      // Resolve live cover URLs for course/coaching/product/mediakit links.
+      // Bio links snapshot photoUrl at link-add time, so when the source
+      // image is updated the bio still shows the old one. Fetch fresh URLs
+      // from the canonical tables and overwrite. Same logic as the public
+      // bio render path. Wrapped in try/catch so a slow lookup never blocks
+      // the editor from loading.
+      try {
+        await resolveBioLinkLiveCovers(currentUser.id, bioState.links);
+      } catch (e) {
+        console.error('cover URL resolver failed in dashboard:', e);
       }
     }
   } catch (e) { console.error('loadBioData', e); }
