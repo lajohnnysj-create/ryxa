@@ -557,6 +557,7 @@ function buildCustomThemeStyle(ct) {
     --accent: ${accent};
     --accent2: ${accent};
     --accent-glow: ${hexAlpha(accent, 0.3)};
+    --avatar-border: linear-gradient(135deg, ${accent}, ${accent});
   }`;
 
   if (ct.bgUrl) {
@@ -614,6 +615,7 @@ function buildImageThemeStyle(themeKey) {
     --accent: ${accent};
     --accent2: ${accent};
     --accent-glow: ${hexAlpha(accent, 0.3)};
+    --avatar-border: linear-gradient(135deg, ${accent}, ${accent});
   }
   :root[data-theme="custom"] body::before {
     content: '';
