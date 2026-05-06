@@ -9963,14 +9963,17 @@ function renderBioThemes() {
     const lock = locked ? `<div class="bio-theme-lock" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>` : '';
     const maxBadge = t.max ? '<div class="bio-theme-max-badge">MAX</div>' : '';
 
-    let swatch, btnBg;
+    let swatch, btnBg, nameStyle = '';
     if (t.key === 'custom') {
       swatch = '<div class="bio-theme-swatch" style="background:conic-gradient(from 45deg,#a78bfa,#e879f9,#fb7185,#fbbf24,#34d399,#22d3ee,#a78bfa);"></div>';
       btnBg = `linear-gradient(135deg,${t.bg},${t.bg2})`;
     } else if (t.image && t.colors) {
-      // Image theme — show the bg image as both the swatch and button background
+      // Image theme — show the bg image as both the swatch and button background.
+      // Label gets a colored pill backdrop using the theme's bg color so it
+      // stays readable against the busy image, with the theme's own text color.
       swatch = `<div class="bio-theme-swatch" style="background:url('${t.image}') center/cover;border-color:${hexAlpha(t.colors.text,0.2)};"></div>`;
       btnBg = `url('${t.image}') center/cover`;
+      nameStyle = `color:${t.colors.text};background:${hexAlpha(t.colors.bg,0.85)};padding:2px 6px;border-radius:6px;display:inline-block;`;
     } else {
       swatch = `<div class="bio-theme-swatch" style="background:${t.grad};"></div>`;
       btnBg = `linear-gradient(135deg,${t.bg},${t.bg2})`;
@@ -9979,7 +9982,7 @@ function renderBioThemes() {
     return `<button type="button" class="bio-theme-btn ${selected} ${lockedClass}" data-theme="${t.key}" onclick="pickTheme('${t.key}')"
       style="background:${btnBg};">
       ${swatch}
-      <div class="bio-theme-name">${t.name}</div>
+      <div class="bio-theme-name" style="${nameStyle}">${t.name}</div>
       ${maxBadge}
       ${lock}
     </button>`;
@@ -12643,13 +12646,14 @@ function renderMKThemes() {
     const lock = locked ? `<div class="bio-theme-lock" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>` : '';
     const maxBadge = t.max ? '<div class="bio-theme-max-badge">MAX</div>' : '';
 
-    let swatch, btnBg;
+    let swatch, btnBg, nameStyle = '';
     if (t.key === 'custom') {
       swatch = '<div class="bio-theme-swatch" style="background:conic-gradient(from 45deg,#a78bfa,#e879f9,#fb7185,#fbbf24,#34d399,#22d3ee,#a78bfa);"></div>';
       btnBg = `linear-gradient(135deg,${t.bg},${t.bg2})`;
     } else if (t.image && t.colors) {
       swatch = `<div class="bio-theme-swatch" style="background:url('${t.image}') center/cover;border-color:${hexAlpha(t.colors.text,0.2)};"></div>`;
       btnBg = `url('${t.image}') center/cover`;
+      nameStyle = `color:${t.colors.text};background:${hexAlpha(t.colors.bg,0.85)};padding:2px 6px;border-radius:6px;display:inline-block;`;
     } else {
       swatch = `<div class="bio-theme-swatch" style="background:${t.grad};"></div>`;
       btnBg = `linear-gradient(135deg,${t.bg},${t.bg2})`;
@@ -12658,7 +12662,7 @@ function renderMKThemes() {
     return `<button type="button" class="bio-theme-btn ${selected} ${lockedClass}" data-theme="${t.key}" onclick="pickMKTheme('${t.key}')"
       style="background:${btnBg};">
       ${swatch}
-      <div class="bio-theme-name">${t.name}</div>
+      <div class="bio-theme-name" style="${nameStyle}">${t.name}</div>
       ${maxBadge}
       ${lock}
     </button>`;
