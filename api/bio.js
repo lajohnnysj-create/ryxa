@@ -629,7 +629,19 @@ async function resolveLiveCoverUrls(creatorUserId, links, fetchOpts) {
 
   if (fetches.length === 0) return;
 
-  const results = await Promise.all(fetches);
+  // 1.5-second timeout. If any source-table query hangs (Supabase outage,
+  // slow query, etc.), give up and let the bio render with snapshot URLs.
+  // Better to show a slightly stale photo than hang the entire page.
+  const TIMEOUT_SENTINEL = Symbol('resolver-timeout');
+  const timeoutPromise = new Promise(resolve => {
+    setTimeout(() => resolve(TIMEOUT_SENTINEL), 1500);
+  });
+  const settled = await Promise.race([Promise.all(fetches), timeoutPromise]);
+  if (settled === TIMEOUT_SENTINEL) {
+    console.warn('cover URL resolver timed out at 1.5s, using snapshots');
+    return;
+  }
+  const results = settled;
   const courseMap = results.find(r => r.type === 'course')?.map;
   const coachingMap = results.find(r => r.type === 'coaching')?.map;
   const productMap = results.find(r => r.type === 'product')?.map;
