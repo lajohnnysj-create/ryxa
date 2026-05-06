@@ -12716,10 +12716,8 @@ function pickMKTheme(t) {
   const theme = BIO_THEMES.find(x => x.key === t);
   if (!theme) return;
   if (theme.pro && !isPro()) {
-    showProUpsell({
-      feature: 'Custom Theme',
-      description: 'Build a fully custom theme with your own colors, background image, and avatar style. Available on Pro and Creator Max.'
-    });
+    showMKStatus('error', `${theme.name} is a Pro feature. Upgrade to unlock.`);
+    setTimeout(() => { try { openSettingsModal(); } catch(e){} }, 200);
     return;
   }
   if (theme.max && !isMax()) {
