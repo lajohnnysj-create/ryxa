@@ -774,9 +774,9 @@ async function showConfirmation(coachingId) {
       // Get creator contact info
       var { data: creatorProfile } = await sb.from('public_profiles').select('username').eq('user_id', coaching.user_id).maybeSingle();
       var creatorName = creatorProfile?.username || '';
-      var { data: creatorUser } = await sb.auth.admin?.getUserById?.(coaching.user_id) || {};
-      
-      // Try to get creator email from a different approach - load from profiles or use username bio link
+
+      // Build the "Having trouble booking?" contact card. We surface the
+      // creator's bio page link so the booker can reach out if needed.
       var contactHtml = '<div style="margin-top:20px;margin-bottom:24px;padding:14px 18px;background:var(--surface);border:1px solid var(--border);border-radius:10px;text-align:center;">'
         + '<p style="font-size:13px;color:var(--muted);margin-bottom:6px;">Having trouble booking?</p>';
       if (creatorName) {
@@ -794,7 +794,7 @@ async function showConfirmation(coachingId) {
               .select('slot_start, slot_end')
               .eq('coaching_id', coachingId)
               .eq('user_id', session.user.id)
-              .order('created_at', { ascending: false })
+              .order('booked_at', { ascending: false })
               .limit(1)
               .maybeSingle();
             if (booking && booking.slot_start) {
