@@ -11482,9 +11482,9 @@ async function confirmCrop() {
   if (!bioCropper || !currentUser) return;
   const isAvatar = bioCropTarget === 'avatar';
   const isHeadshot = bioCropTarget === 'headshot';
-  // Sizes: avatar 400x400, headshot 600x600, featured 800x450
-  const targetW = isAvatar ? 400 : isHeadshot ? 600 : 800;
-  const targetH = isAvatar ? 400 : isHeadshot ? 600 : 450;
+  // Sizes: avatar 800x800, headshot 600x600, featured 800x450
+  const targetW = isAvatar ? 800 : isHeadshot ? 600 : 800;
+  const targetH = isAvatar ? 800 : isHeadshot ? 600 : 450;
   const btn = document.getElementById('bio-cropper-confirm');
   btn.disabled = true;
   btn.textContent = 'Uploading…';
