@@ -1203,6 +1203,7 @@ function buildLink(link) {
         <input type="email" id="subscribe-email" placeholder="Your email" aria-label="Email address" required style="flex:1;padding:10px 14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;font-family:inherit;outline:none;min-width:0;">
         <button onclick="submitSubscribe()" style="padding:10px 18px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap;transition:opacity 0.15s;" id="subscribe-btn">Subscribe</button>
       </div>
+      <input type="text" id="subscribe-hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;">
       <div id="subscribe-msg" style="display:none;font-size:12px;margin-top:8px;"></div>
     </div>`;
   }
@@ -1753,22 +1754,34 @@ async function submitSubscribe() {
     var { data: profile } = await sb.from('public_profiles').select('user_id').eq('username', username).single();
     if (!profile) throw new Error('Creator not found');
 
-    var { error } = await sb.from('bio_email_signups').insert({
-      creator_id: profile.user_id,
-      email: email
+    var hpEl = document.getElementById('subscribe-hp');
+    var hp = hpEl ? hpEl.value : '';
+
+    var resp = await fetch('/api/bio-subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        creator_id: profile.user_id,
+        email: email,
+        hp: hp
+      })
     });
 
-    if (error) {
-      if (error.code === '23505') {
-        msg.textContent = "You're already subscribed!";
-        msg.style.color = 'var(--accent)';
-      } else {
-        throw error;
-      }
-    } else {
+    var payload = {};
+    try { payload = await resp.json(); } catch (e) { /* ignore */ }
+
+    if (resp.status === 429) {
+      msg.textContent = "Too many attempts. Please try again later.";
+      msg.style.color = '#fca5a5';
+    } else if (resp.ok && payload.already_subscribed) {
+      msg.textContent = "You're already subscribed!";
+      msg.style.color = 'var(--accent)';
+    } else if (resp.ok) {
       msg.textContent = 'Thanks for subscribing!';
       msg.style.color = '#4ade80';
       emailInput.value = '';
+    } else {
+      throw new Error(payload.error || 'Subscription failed');
     }
     msg.style.display = 'block';
   } catch (e) {
