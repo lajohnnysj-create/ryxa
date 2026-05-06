@@ -560,7 +560,7 @@ async function loadDashboard() {
     var e = enrollments[i];
     if (!e.courses) continue;
     // Get creator username
-    var { data: creatorProfile } = await sb.from('profiles').select('username').eq('user_id', e.courses.user_id).maybeSingle();
+    var { data: creatorProfile } = await sb.from('public_profiles').select('username').eq('user_id', e.courses.user_id).maybeSingle();
     e._creatorName = creatorProfile?.username || 'Creator';
     // Get total lessons
     var { count: totalLessons } = await sb.from('course_lessons').select('id', { count: 'exact', head: true }).eq('course_id', e.courses.id);
@@ -640,7 +640,7 @@ async function loadProducts() {
 
     // Load creator name
     var { data: creatorProfile } = await sb
-      .from('profiles')
+      .from('public_profiles')
       .select('username')
       .eq('user_id', p.digital_products.user_id)
       .maybeSingle();
@@ -795,7 +795,7 @@ async function loadBookings() {
   for (var i = 0; i < bookings.length; i++) {
     var b = bookings[i];
     if (!b.coaching_services) continue;
-    var { data: creatorProfile } = await sb.from('profiles').select('username').eq('user_id', b.coaching_services.user_id).maybeSingle();
+    var { data: creatorProfile } = await sb.from('public_profiles').select('username').eq('user_id', b.coaching_services.user_id).maybeSingle();
     b._creatorName = creatorProfile?.username || 'Creator';
   }
 
@@ -1328,7 +1328,7 @@ async function searchMarketplace(query) {
     var userIds = [...new Set(items.map(function(c) { return c.user_id; }))];
     var usernameMap = {};
     if (userIds.length > 0) {
-      var { data: profiles } = await sb.from('profiles').select('user_id, username').in('user_id', userIds);
+      var { data: profiles } = await sb.from('public_profiles').select('user_id, username').in('user_id', userIds);
       if (profiles) profiles.forEach(function(p) { usernameMap[p.user_id] = p.username; });
     }
 
