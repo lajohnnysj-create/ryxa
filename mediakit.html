@@ -1170,6 +1170,7 @@ function applyCustomTheme(ct) {
   root.style.setProperty('--accent', accent);
   root.style.setProperty('--accent2', accent);
   root.style.setProperty('--accent-glow', hexAlpha(accent, 0.3));
+  root.style.setProperty('--avatar-border', `linear-gradient(135deg, ${accent}, ${accent})`);
 
   if (ct.bgUrl) {
     const op = ct.bgOpacity != null ? ct.bgOpacity : 0.4;
