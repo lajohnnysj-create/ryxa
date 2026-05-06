@@ -17,8 +17,10 @@ const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_OAUTH_CLIENT_ID;
 const GOOGLE_REDIRECT_URI = process.env.GOOGLE_OAUTH_REDIRECT_URI;
 
-// Non-sensitive scope: only calendars Ryxa creates
-const SCOPE = 'https://www.googleapis.com/auth/calendar.app.created';
+// Non-sensitive scopes:
+//   - calendar.app.created: only calendars Ryxa creates
+//   - userinfo.email: so we can show "Connected as <email>" in the dashboard
+const SCOPE = 'https://www.googleapis.com/auth/calendar.app.created https://www.googleapis.com/auth/userinfo.email';
 
 async function verifySupabaseUser(accessToken) {
   try {
