@@ -1107,9 +1107,14 @@ function render(profile, kit) {
   });
 
   // Apply theme — custom theme only honored if user is Max tier
+  // Image themes (paperwhite, ember, sapphire, blossom, honey) are free for all.
   const isMaxTier = profile.tier === 'max';
   if (kit.theme === 'custom' && isMaxTier && kit.custom_theme) {
     applyCustomTheme(kit.custom_theme);
+    document.documentElement.setAttribute('data-theme', 'custom');
+  } else if (BUILTIN_IMAGE_THEMES[kit.theme]) {
+    // Builtin image theme — apply via the same pipeline as custom theme
+    applyImageTheme(kit.theme);
     document.documentElement.setAttribute('data-theme', 'custom');
   } else {
     const theme = (kit.theme === 'custom' && !isMaxTier) ? 'purple' : (kit.theme || 'purple');
@@ -1194,6 +1199,27 @@ function applyCustomTheme(ct) {
       }
     `;
   }
+}
+
+// Builtin image themes — free for all tiers.
+// Mirror of BUILTIN_IMAGE_THEMES in api/mediakit.js — keep in sync.
+const BUILTIN_IMAGE_THEMES = {
+  paperwhite: { image:'/bgtemplates/1.webp', colors:{bg:'#FFFFFF',card:'#F5F5F8',text:'#1A1A2E',accent:'#6366F1'} },
+  ember:      { image:'/bgtemplates/2.webp', colors:{bg:'#1A1A1C',card:'#262628',text:'#F5F2ED',accent:'#F97316'} },
+  sapphire:   { image:'/bgtemplates/3.webp', colors:{bg:'#1E3A8A',card:'#172554',text:'#F5EFE0',accent:'#D4AF37'} },
+  blossom:    { image:'/bgtemplates/4.webp', colors:{bg:'#FCE7EB',card:'#F8D7DD',text:'#5C2E3D',accent:'#C9A961'} },
+  honey:      { image:'/bgtemplates/5.webp', colors:{bg:'#FCEFC0',card:'#F8E48E',text:'#5C3F17',accent:'#B45309'} },
+};
+
+function applyImageTheme(themeKey) {
+  const theme = BUILTIN_IMAGE_THEMES[themeKey];
+  if (!theme) return false;
+  applyCustomTheme({
+    colors: theme.colors,
+    bgUrl: theme.image,
+    bgOpacity: 1, // 1 means no overlay darkening
+  });
+  return true;
 }
 
 async function load() {
