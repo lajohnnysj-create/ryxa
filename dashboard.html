@@ -3665,11 +3665,12 @@
   #tool-follower .fa-note-icon-btn.has-note { color: #f5c842; }
 
   /* Snake list */
-  #tool-follower .fa-snake-btn { background: none; border: none; cursor: pointer; font-size: 16px; padding: 4px 6px; border-radius: 6px; transition: all 0.2s; line-height: 1; position: relative; opacity: 0.3; }
-  #tool-follower .fa-snake-btn:hover { opacity: 1; transform: scale(1.2); }
-  #tool-follower .fa-snake-btn.in-snake-list { opacity: 1; }
-  #tool-follower .fa-snake-btn.locked-snake { opacity: 0.2; cursor: not-allowed; }
-  #tool-follower .fa-snake-btn.locked-snake:hover { transform: none; opacity: 0.2; }
+  #tool-follower .fa-snake-btn { background: none; border: none; cursor: pointer; padding: 4px 6px; border-radius: 6px; transition: all 0.2s; line-height: 1; position: relative; color: var(--muted); opacity: 0.7; display: inline-flex; align-items: center; justify-content: center; }
+  #tool-follower .fa-snake-btn:hover { color: var(--text); opacity: 1; transform: scale(1.15); background: rgba(255,255,255,0.05); }
+  #tool-follower .fa-snake-btn.in-snake-list { color: #f87171; opacity: 1; }
+  #tool-follower .fa-snake-btn.in-snake-list:hover { color: #ef4444; }
+  #tool-follower .fa-snake-btn.locked-snake { color: var(--muted); opacity: 0.4; cursor: not-allowed; }
+  #tool-follower .fa-snake-btn.locked-snake:hover { transform: none; opacity: 0.5; background: none; color: var(--muted); }
   #tool-follower .fa-snake-section { margin-top: 48px; }
   #tool-follower .fa-snake-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
   #tool-follower .fa-snake-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800; }
@@ -23938,7 +23939,7 @@ function faShowDashboard() {
   if (!faAllResults.length) {
     const scroll = document.getElementById('fa-results-list-scroll');
     if (scroll) scroll.innerHTML = `<div class="fa-no-analysis-msg">
-      <span class="emoji">📂</span>
+      <span class="emoji"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span>
       No analysis yet. Upload your Instagram JSON files above and click <strong>Analyze Now</strong> to see your results.<br><br>
       <a href="#" onclick="event.preventDefault();faOpenInstructions();">Need help getting your files? →</a>
     </div>`;
@@ -24124,7 +24125,7 @@ function faRenderUnfollowerLog() {
     const firstSeen = new Date(r.first_seen).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     const lastSeen = new Date(r.last_seen).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     const statusBadge = r.status === 'active' ? '<span style="display:inline-flex;align-items:center;gap:5px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.25);color:#ff7a8f;border-radius:100px;padding:2px 10px;font-size:11px;font-weight:500;">● Still not following</span>' : '<span style="display:inline-flex;align-items:center;gap:5px;background:rgba(74,222,128,0.1);border:1px solid rgba(74,222,128,0.3);color:#4ade80;border-radius:100px;padding:2px 10px;font-size:11px;font-weight:500;">✓ Now following</span>';
-    const note = faAccountNotes[r.handle] ? `<div style="font-size:11px;color:var(--muted);font-style:italic;margin-top:2px">📝 ${faAccountNotes[r.handle]}</div>` : '';
+    const note = faAccountNotes[r.handle] ? `<div style="font-size:11px;color:var(--muted);font-style:italic;margin-top:2px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-1px;margin-right:4px;opacity:0.8;"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>${faAccountNotes[r.handle]}</div>` : '';
     return `<div style="display:grid;grid-template-columns:1fr 140px 140px 100px;align-items:center;padding:12px 18px;border-bottom:1px solid var(--border);font-size:13px;"><div><a href="https://instagram.com/${r.handle}" target="_blank" rel="noopener" style="color:var(--text);text-decoration:none;">@${r.handle}</a>${note}</div><div style="font-size:12px;color:var(--muted);">${firstSeen}</div><div style="font-size:12px;color:var(--muted);">${lastSeen}</div><div>${statusBadge}</div></div>`;
   }).join('');
 }
@@ -24427,8 +24428,8 @@ function faRenderAnalytics() {
   const snakes = faAllResults.filter(r => !r.mutual && !r.followerOnly).length;
   const snakeFreePercent = totalAccounts > 0 ? Math.round(((totalAccounts - snakes) / totalAccounts) * 100) : 100;
   const cards = [
-    { icon: '🤝', label: 'Follow back rate', value: followBackRate + '%', valueClass: followBackRate >= 50 ? 'positive' : followBackRate >= 30 ? 'neutral' : 'negative', sub: `<strong>${mutuals.toLocaleString()}</strong> of ${totalFollowing.toLocaleString()} accounts you follow, follow you back` },
-    { icon: '🎯', label: 'Snake-free score', value: snakeFreePercent + '%', valueClass: snakeFreePercent >= 80 ? 'positive' : snakeFreePercent >= 60 ? 'neutral' : 'negative', sub: `Your feed is <strong>${snakeFreePercent}% snake-free</strong>. ${snakeFreePercent >= 80 ? 'Looking clean! 🐍' : 'Time to do some cleaning. 🐍'}` },
+    { icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`, label: 'Follow back rate', value: followBackRate + '%', valueClass: followBackRate >= 50 ? 'positive' : followBackRate >= 30 ? 'neutral' : 'negative', sub: `<strong>${mutuals.toLocaleString()}</strong> of ${totalFollowing.toLocaleString()} accounts you follow, follow you back` },
+    { icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>`, label: 'Snake-free score', value: snakeFreePercent + '%', valueClass: snakeFreePercent >= 80 ? 'positive' : snakeFreePercent >= 60 ? 'neutral' : 'negative', sub: `Your feed is <strong>${snakeFreePercent}% snake-free</strong>. ${snakeFreePercent >= 80 ? 'Looking clean!' : 'Time to do some cleaning.'}` },
   ];
   grid.innerHTML = cards.map(c => `<div class="fa-analytics-card"><div class="fa-analytics-card-icon">${c.icon}</div><div class="fa-analytics-card-label">${c.label}</div><div class="fa-analytics-card-value ${c.valueClass}">${c.value}</div><div class="fa-analytics-card-sub">${c.sub}</div></div>`).join('');
 }
@@ -24541,7 +24542,7 @@ function faBuildPaywall(hiddenCount, totalUnfollowers) {
 
 function faSetFilter(f, btn) {
   const isPaid = isPro();
-  if (f === 'analytics' && !isPro()) { faShowMiniToast('Analytics is available on the Pro plan 🐍'); return; }
+  if (f === 'analytics' && !isPro()) { faShowMiniToast('Analytics is available on the Pro plan'); return; }
   if (f === 'mutual' && !isPaid) { faShowMiniToast('Unlock to see your Mutual followers'); return; }
   if (f === 'whitelist' && !isPro()) { faShowMiniToast('Whitelist is available on the Pro plan'); return; }
   if (f === 'snakes' && !isPro()) { faShowMiniToast('Snake List is available on the Pro plan'); return; }
