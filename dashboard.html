@@ -9846,11 +9846,11 @@ async function copyBioLink(url, btn) {
 const BIO_THEMES = [
   { key:'custom',     name:'Custom',     bg:'#07070f', bg2:'#161625', grad:'linear-gradient(135deg,#a78bfa,#e879f9)', pro:true },
   // ----- Image themes (free for all) -----
-  { key:'paperwhite', name:'Paperwhite', image:'/bgtemplates/1.webp', colors:{bg:'#FFFFFF',card:'#F5F5F8',text:'#1A1A2E',accent:'#6366F1'}, pro:false },
-  { key:'ember',      name:'Ember',      image:'/bgtemplates/2.webp', colors:{bg:'#1A1A1C',card:'#262628',text:'#F5F2ED',accent:'#F97316'}, pro:false },
-  { key:'sapphire',   name:'Sapphire',   image:'/bgtemplates/3.webp', colors:{bg:'#1E3A8A',card:'#172554',text:'#F5EFE0',accent:'#D4AF37'}, pro:false },
-  { key:'blossom',    name:'Blossom',    image:'/bgtemplates/4.webp', colors:{bg:'#FCE7EB',card:'#F8D7DD',text:'#5C2E3D',accent:'#C9A961'}, pro:false },
-  { key:'honey',      name:'Honey',      image:'/bgtemplates/5.webp', colors:{bg:'#FCEFC0',card:'#F8E48E',text:'#5C3F17',accent:'#B45309'}, pro:false },
+  { key:'paperwhite', name:'Cloud',    image:'/bgtemplates/1.webp', colors:{bg:'#FFFFFF',card:'#F5F5F8',text:'#1A1A2E',accent:'#6366F1'}, pro:false },
+  { key:'ember',      name:'Onyx',     image:'/bgtemplates/2.webp', colors:{bg:'#1A1A1C',card:'#262628',text:'#F5F2ED',accent:'#F97316'}, pro:false },
+  { key:'sapphire',   name:'Riviera',  image:'/bgtemplates/3.webp', colors:{bg:'#1E3A8A',card:'#172554',text:'#F5EFE0',accent:'#D4AF37'}, pro:false },
+  { key:'blossom',    name:'Sakura',   image:'/bgtemplates/4.webp', colors:{bg:'#FCE7EB',card:'#F8D7DD',text:'#5C2E3D',accent:'#C9A961'}, pro:false },
+  { key:'honey',      name:'Sunbeam',  image:'/bgtemplates/5.webp', colors:{bg:'#FCEFC0',card:'#F8E48E',text:'#5C3F17',accent:'#B45309'}, pro:false },
   // ----- Color themes (free) -----
   { key:'purple',   name:'Purple',   bg:'#07070f', bg2:'#161625', grad:'linear-gradient(135deg,#a78bfa,#e879f9)', pro:false },
   { key:'midnight', name:'Midnight', bg:'#050508', bg2:'#13131b', grad:'linear-gradient(135deg,#9ca3af,#e5e7eb)', pro:false },
@@ -9971,7 +9971,7 @@ function renderBioThemes() {
       // Image theme — show the bg image as both the swatch and button background.
       // Label gets a colored pill backdrop using the theme's bg color so it
       // stays readable against the busy image, with the theme's own text color.
-      swatch = `<div class="bio-theme-swatch" style="background:url('${t.image}') center/cover;border-color:${hexAlpha(t.colors.text,0.2)};"></div>`;
+      swatch = `<div class="bio-theme-swatch" style="background:url('${t.image}') center/cover;border:1.5px solid rgba(0,0,0,0.4);box-shadow:0 1px 3px rgba(0,0,0,0.25);"></div>`;
       btnBg = `url('${t.image}') center/cover`;
       nameStyle = `color:${t.colors.text};background:${hexAlpha(t.colors.bg,0.85)};padding:2px 6px;border-radius:6px;display:inline-block;`;
     } else {
@@ -12651,7 +12651,7 @@ function renderMKThemes() {
       swatch = '<div class="bio-theme-swatch" style="background:conic-gradient(from 45deg,#a78bfa,#e879f9,#fb7185,#fbbf24,#34d399,#22d3ee,#a78bfa);"></div>';
       btnBg = `linear-gradient(135deg,${t.bg},${t.bg2})`;
     } else if (t.image && t.colors) {
-      swatch = `<div class="bio-theme-swatch" style="background:url('${t.image}') center/cover;border-color:${hexAlpha(t.colors.text,0.2)};"></div>`;
+      swatch = `<div class="bio-theme-swatch" style="background:url('${t.image}') center/cover;border:1.5px solid rgba(0,0,0,0.4);box-shadow:0 1px 3px rgba(0,0,0,0.25);"></div>`;
       btnBg = `url('${t.image}') center/cover`;
       nameStyle = `color:${t.colors.text};background:${hexAlpha(t.colors.bg,0.85)};padding:2px 6px;border-radius:6px;display:inline-block;`;
     } else {
