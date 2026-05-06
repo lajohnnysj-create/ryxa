@@ -5384,6 +5384,7 @@
         <div id="gcal-connect-row" style="margin-bottom:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
           <!-- Populated by gcalRenderConnectionState() -->
         </div>
+        <div id="gcal-connect-error" style="display:none;margin-bottom:16px;padding:10px 14px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:8px;font-size:13px;color:#fca5a5;line-height:1.5;"></div>
 
         <!-- Calendar grid + day events: side-by-side on desktop, stacked on mobile -->
         <div class="cal-layout" style="display:flex;gap:16px;align-items:flex-start;">
@@ -24997,14 +24998,15 @@ function gcalRenderConnectionState() {
 
 async function gcalConnect() {
   if (!currentUser) {
-    showModalAlert('Not signed in', 'You need to be signed in to connect Google Calendar.');
+    gcalShowError('You need to be signed in to connect Google Calendar.');
     return;
   }
+  gcalHideError();
   try {
     var { data: { session } } = await sb.auth.getSession();
     var token = session && session.access_token;
     if (!token) {
-      showModalAlert('Session expired', 'Please refresh the page and try again.');
+      gcalShowError('Your session has expired. Please refresh the page and try again.');
       return;
     }
     // Step 1: fetch a short-lived signed ticket via POST. The ticket contains
@@ -25026,7 +25028,7 @@ async function gcalConnect() {
     window.location.href = '/api/google-calendar-start?ticket=' + encodeURIComponent(ticketJson.ticket);
   } catch (e) {
     console.error('gcal connect failed:', e);
-    showModalAlert('Could not start connection', e.message || 'Please try again.');
+    gcalShowError('Could not start connection. Please try again.');
   }
 }
 
@@ -25079,18 +25081,30 @@ function gcalHandleReturnParams() {
   window.history.replaceState({}, '', url.toString());
 
   if (flag === 'connected') {
+    // No success modal — the green "connected" pill is the visual confirmation
     gcalLoadConnectionState();
-    setTimeout(function() {
-      showModalAlert('Calendar connected', 'Your Google Calendar is now linked to Ryxa.');
-    }, 100);
+    gcalHideError();
   } else if (flag === 'cancelled') {
-    // User clicked cancel on Google's screen — silent, no need to alert
+    // User clicked cancel on Google's screen — silent
+    gcalHideError();
   } else if (flag === 'error') {
     var reason = params.get('reason') || 'unknown';
-    setTimeout(function() {
-      showModalAlert('Could not connect', 'Something went wrong (' + reason + '). Please try again.');
-    }, 100);
+    gcalShowError('Could not connect Google Calendar (' + reason + '). Please try again.');
   }
+}
+
+function gcalShowError(message) {
+  var el = document.getElementById('gcal-connect-error');
+  if (!el) return;
+  el.textContent = message;
+  el.style.display = 'block';
+}
+
+function gcalHideError() {
+  var el = document.getElementById('gcal-connect-error');
+  if (!el) return;
+  el.style.display = 'none';
+  el.textContent = '';
 }
 
 // Tiny HTML escape helper for the email label
