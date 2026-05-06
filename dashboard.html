@@ -25007,10 +25007,23 @@ async function gcalConnect() {
       showModalAlert('Session expired', 'Please refresh the page and try again.');
       return;
     }
-    // Navigate directly to the start endpoint. The endpoint reads `t` from
-    // query params, validates with Supabase, then 302-redirects to Google.
-    // Token is short-lived (1h) and lives only in the redirect URL briefly.
-    window.location.href = '/api/google-calendar-start?t=' + encodeURIComponent(token);
+    // Step 1: fetch a short-lived signed ticket via POST. The ticket contains
+    // our user_id and expires in 5 minutes. Unlike a session token, it can't
+    // be used for anything except starting this OAuth flow.
+    var ticketRes = await fetch('/api/google-calendar-ticket', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + token }
+    });
+    if (!ticketRes.ok) {
+      var errBody = await ticketRes.json().catch(function() { return {}; });
+      throw new Error(errBody.error || 'ticket_failed');
+    }
+    var ticketJson = await ticketRes.json();
+    if (!ticketJson || !ticketJson.ticket) {
+      throw new Error('Empty ticket response');
+    }
+    // Step 2: navigate to the start endpoint with the signed ticket.
+    window.location.href = '/api/google-calendar-start?ticket=' + encodeURIComponent(ticketJson.ticket);
   } catch (e) {
     console.error('gcal connect failed:', e);
     showModalAlert('Could not start connection', e.message || 'Please try again.');
