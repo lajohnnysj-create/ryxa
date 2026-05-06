@@ -8741,6 +8741,45 @@ function closeTopbarUpgradeConfirm() {
   if (modal) modal.style.display = 'none';
 }
 
+// ========================================================================
+// PRO UPSELL MODAL — reusable for any Pro-locked feature.
+// Call: showProUpsell({ feature: 'Custom Theme', description: '...' })
+//   - feature: short name shown in title (e.g., "Custom Theme is a Pro feature")
+//   - description: optional 1-2 sentence pitch shown above the feature list
+//
+// If called without args, shows generic "Upgrade to Pro" copy.
+// ========================================================================
+function showProUpsell(opts) {
+  const modal = document.getElementById('pro-upsell-modal');
+  if (!modal) return;
+  const titleEl = document.getElementById('pro-upsell-title');
+  const descEl = document.getElementById('pro-upsell-description');
+  if (titleEl) {
+    titleEl.textContent = opts && opts.feature
+      ? `${opts.feature} is a Pro feature`
+      : 'Upgrade to Pro';
+  }
+  if (descEl) {
+    descEl.textContent = opts && opts.description
+      ? opts.description
+      : 'Unlock this feature and more by upgrading to Pro.';
+  }
+  modal.style.display = 'flex';
+}
+
+function closeProUpsell() {
+  const modal = document.getElementById('pro-upsell-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+async function confirmProUpsell(ev) {
+  const btn = ev && ev.currentTarget && ev.currentTarget.tagName === 'BUTTON' ? ev.currentTarget : null;
+  // Free → Pro goes through standard Stripe checkout (new card needed).
+  // The modal stays open while the redirect happens so the user sees the spinner.
+  await startCheckout('monthly', btn);
+  closeProUpsell();
+}
+
 async function confirmTopbarUpgradeToMax(ev) {
   const btn = ev && ev.currentTarget && ev.currentTarget.tagName === 'BUTTON' ? ev.currentTarget : null;
   // Modal stays open while loading so the spinner is visible. On success the page
@@ -9999,9 +10038,10 @@ function pickTheme(t) {
   const pro = isPro();
   const max = isMax();
   if (theme.pro && !pro) {
-    showBioStatus('error', `${theme.name} theme is a Pro feature. Upgrade to fully personalize your bio.`);
-    // Open Settings modal so user can explicitly upgrade — don't auto-trigger Stripe
-    setTimeout(() => { try { openSettingsModal(); } catch(e){} }, 200);
+    showProUpsell({
+      feature: 'Custom Theme',
+      description: 'Build a fully custom theme with your own colors, background image, and avatar style. Available on Pro and Creator Max.'
+    });
     return;
   }
   if (theme.max && !max) {
@@ -12676,8 +12716,10 @@ function pickMKTheme(t) {
   const theme = BIO_THEMES.find(x => x.key === t);
   if (!theme) return;
   if (theme.pro && !isPro()) {
-    showMKStatus('error', `${theme.name} is a Pro feature. Upgrade to unlock.`);
-    setTimeout(() => { try { openSettingsModal(); } catch(e){} }, 200);
+    showProUpsell({
+      feature: 'Custom Theme',
+      description: 'Build a fully custom theme with your own colors, background image, and avatar style. Available on Pro and Creator Max.'
+    });
     return;
   }
   if (theme.max && !isMax()) {
@@ -23696,6 +23738,62 @@ window.addEventListener('DOMContentLoaded', () => {
     <div style="display:flex;gap:10px;">
       <button onclick="confirmTopbarUpgradeToMax(event)" style="flex:1;padding:11px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 16px rgba(167,139,250,0.25);">Yes, upgrade</button>
       <button onclick="closeTopbarUpgradeConfirm()" style="padding:11px 18px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- PRO UPSELL MODAL — Reusable for any Pro-locked feature -->
+<!-- Triggered by: showProUpsell({feature, description})    -->
+<!-- ═══════════════════════════════════════════ -->
+<div id="pro-upsell-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.8);align-items:center;justify-content:center;pointer-events:all;" onclick="if(event.target===this)closeProUpsell()">
+  <div style="background:#0f0f1a;border:1px solid rgba(124,58,237,0.35);border-radius:16px;padding:28px;position:relative;width:100%;max-width:460px;pointer-events:all;margin:20px;max-height:90vh;overflow-y:auto;">
+    <button onclick="closeProUpsell()" aria-label="Close" style="position:absolute;top:14px;right:14px;background:transparent;border:none;color:var(--muted);cursor:pointer;padding:6px;display:flex;align-items:center;justify-content:center;border-radius:6px;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+      <div style="width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,rgba(124,58,237,0.18),rgba(232,121,249,0.12));border:1px solid rgba(167,139,250,0.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      </div>
+      <h3 id="pro-upsell-title" style="font-family:Syne,sans-serif;font-size:18px;font-weight:700;color:var(--text);margin:0;padding-right:30px;">Upgrade to Pro</h3>
+    </div>
+    <p id="pro-upsell-description" style="color:var(--muted);font-size:13px;margin-bottom:18px;line-height:1.6;">This is a Pro feature. Upgrade to unlock it.</p>
+
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:18px;">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);font-weight:600;margin-bottom:10px;">What you unlock with Pro</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;align-items:flex-start;gap:8px;font-size:13px;color:var(--text);line-height:1.5;">
+          <span style="color:#a78bfa;flex-shrink:0;font-weight:700;">✓</span>
+          <span><strong>Custom themes &amp; backgrounds</strong> — fully personalize bio and media kit</span>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:8px;font-size:13px;color:var(--text);line-height:1.5;">
+          <span style="color:#a78bfa;flex-shrink:0;font-weight:700;">✓</span>
+          <span><strong>All AI tools</strong> — Chatbox, Script Builder, Thumbnail Analyzer, Contract Analyzer</span>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:8px;font-size:13px;color:var(--text);line-height:1.5;">
+          <span style="color:#a78bfa;flex-shrink:0;font-weight:700;">✓</span>
+          <span><strong>Media Kit</strong> — pitch brands with a pro media kit and rate card</span>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:8px;font-size:13px;color:var(--text);line-height:1.5;">
+          <span style="color:#a78bfa;flex-shrink:0;font-weight:700;">✓</span>
+          <span><strong>Link in Bio upgrades</strong> — 200 links, 3 featured, hide Ryxa branding</span>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:8px;font-size:13px;color:var(--text);line-height:1.5;">
+          <span style="color:#a78bfa;flex-shrink:0;font-weight:700;">✓</span>
+          <span><strong>Follow-Back Audit</strong> — full results, Whitelist, Snake List</span>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:8px;font-size:13px;color:var(--text);line-height:1.5;">
+          <span style="color:#a78bfa;flex-shrink:0;font-weight:700;">✓</span>
+          <span><strong>Design Studio</strong> — 50 projects with transparent backgrounds</span>
+        </div>
+      </div>
+    </div>
+
+    <p style="color:var(--muted);font-size:13px;margin-bottom:18px;line-height:1.6;text-align:center;">Pro is <strong style="color:var(--text);">$10/month</strong>. Cancel anytime.</p>
+
+    <div style="display:flex;gap:10px;">
+      <button onclick="confirmProUpsell(event)" style="flex:1;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow);">Upgrade to Pro — $10/mo</button>
+      <button onclick="closeProUpsell()" style="padding:11px 18px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Maybe later</button>
     </div>
   </div>
 </div>
