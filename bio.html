@@ -1730,7 +1730,18 @@ async function resolveLiveCoverUrls(creatorUserId, links) {
 
   if (promises.length === 0) return;
 
-  var results = await Promise.all(promises);
+  // 1.5-second timeout. If any source-table query hangs, give up and let
+  // the bio render with snapshot URLs. Better stale photo than hung page.
+  var TIMEOUT_SENTINEL = {};
+  var timeoutPromise = new Promise(function(resolve) {
+    setTimeout(function() { resolve(TIMEOUT_SENTINEL); }, 1500);
+  });
+  var settled = await Promise.race([Promise.all(promises), timeoutPromise]);
+  if (settled === TIMEOUT_SENTINEL) {
+    console.warn('cover URL resolver timed out at 1.5s, using snapshots');
+    return;
+  }
+  var results = settled;
   var courseMap = (results.find(function(r) { return r.type === 'course'; }) || {}).map;
   var coachingMap = (results.find(function(r) { return r.type === 'coaching'; }) || {}).map;
   var productMap = (results.find(function(r) { return r.type === 'product'; }) || {}).map;
