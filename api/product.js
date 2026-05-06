@@ -388,7 +388,7 @@ module.exports = async (req, res) => {
     }
     var product = products[0];
 
-    var profRes = await fetch(SUPABASE_URL + '/rest/v1/profiles?user_id=eq.' + encodeURIComponent(product.user_id) + '&select=username&limit=1', {
+    var profRes = await fetch(SUPABASE_URL + '/rest/v1/public_profiles?user_id=eq.' + encodeURIComponent(product.user_id) + '&select=username&limit=1', {
       headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
     });
     var creator = null;
