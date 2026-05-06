@@ -200,7 +200,7 @@ async function init() {
 
   // Get creator info
   const { data: profile } = await sb
-    .from('profiles')
+    .from('public_profiles')
     .select('username, display_currency')
     .eq('user_id', course.user_id)
     .maybeSingle();
