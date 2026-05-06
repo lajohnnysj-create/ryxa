@@ -3852,6 +3852,13 @@
     #tool-follower .fa-print-btn { display: none !important; }
   }
 
+  /* Calendar tool: side-by-side on desktop, stacked on mobile/tablet */
+  @media (max-width: 900px) {
+    #tool-calendar .cal-layout { flex-direction: column !important; }
+    #tool-calendar .cal-grid-card,
+    #tool-calendar .cal-events-card { flex: none !important; width: 100%; }
+  }
+
 </style>
 <style>html{background:#07070f;}body{visibility:hidden;}body.ready{visibility:visible;}</style>
 
@@ -5367,7 +5374,7 @@
 
     <!-- CALENDAR -->
     <div id="tool-calendar" style="display:none;">
-      <div style="max-width:900px;">
+      <div style="max-width:1200px;">
         <div style="margin-bottom:24px;">
           <h2 style="font-family:Syne,sans-serif;font-size:28px;font-weight:800;letter-spacing:-0.5px;margin-bottom:8px;">Calendar</h2>
           <p style="color:var(--muted);font-size:14px;line-height:1.6;">Plan your content, coaching sessions, and brand deals in one place. Events sync across your tools as we add integrations.</p>
@@ -5378,8 +5385,11 @@
           <!-- Populated by gcalRenderConnectionState() -->
         </div>
 
+        <!-- Calendar grid + day events: side-by-side on desktop, stacked on mobile -->
+        <div class="cal-layout" style="display:flex;gap:16px;align-items:flex-start;">
+
         <!-- Calendar Header -->
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px;">
+        <div class="cal-grid-card" style="flex:1.5;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;min-width:0;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:12px;">
             <div style="display:flex;align-items:center;gap:8px;">
               <button onclick="calPrevMonth()" aria-label="Previous month" style="width:36px;height:36px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--border-hover)'" onmouseout="this.style.borderColor='var(--border)'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
@@ -5418,13 +5428,15 @@
         </div>
 
         <!-- Day Events Section -->
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;">
+        <div class="cal-events-card" id="cal-events-card" style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;min-width:0;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
             <h3 id="cal-day-label" style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;letter-spacing:-0.3px;">Today</h3>
             <button onclick="calOpenAddEvent()" style="padding:8px 14px;background:var(--accent);border:none;border-radius:8px;color:#fff;font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all 0.15s;" onmouseover="this.style.background='#a855f7'" onmouseout="this.style.background='var(--accent)'"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Event</button>
           </div>
           <div id="cal-day-events"></div>
         </div>
+
+        </div><!-- /cal-layout -->
 
       </div>
     </div>
@@ -25202,6 +25214,17 @@ function calRenderDayEvents() {
 function calSelectDate(ymd) {
   calState.selectedDate = ymd;
   calRender();
+  // On mobile/tablet (stacked layout), scroll the events card into view
+  // so users don't have to manually scroll after tapping a day.
+  if (window.innerWidth <= 900) {
+    var eventsCard = document.getElementById('cal-events-card');
+    if (eventsCard) {
+      // Slight delay so the render finishes first
+      setTimeout(function() {
+        eventsCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 50);
+    }
+  }
 }
 
 function calPrevMonth() {
