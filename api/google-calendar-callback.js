@@ -156,5 +156,42 @@ module.exports = async function handler(req, res) {
     return redirectWithFlag(res, 'error', 'db_write_failed');
   }
 
+  // Fire an immediate sync so the user sees their events on Google
+  // right after connecting (rather than waiting up to 15 min for the
+  // next sweep cron). Best-effort — if this fails, the cron still catches up.
+  try {
+    // Read function URL + auth from app_config so we don't duplicate secrets
+    const configRes = await fetch(
+      SUPABASE_URL +
+        '/rest/v1/app_config?key=in.(gcal_sync_function_url,gcal_sync_function_authorization)&select=key,value',
+      {
+        headers: {
+          apikey: SUPABASE_SERVICE_KEY,
+          Authorization: 'Bearer ' + SUPABASE_SERVICE_KEY,
+        },
+      }
+    );
+
+    if (configRes.ok) {
+      const rows = await configRes.json();
+      const cfg = {};
+      (rows || []).forEach((r) => { cfg[r.key] = r.value; });
+
+      if (cfg.gcal_sync_function_url && cfg.gcal_sync_function_authorization) {
+        // Fire-and-forget — don't await, don't let it slow down the redirect
+        fetch(cfg.gcal_sync_function_url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: cfg.gcal_sync_function_authorization,
+          },
+          body: JSON.stringify({ user_id: userId, trigger: 'connect' }),
+        }).catch((e) => console.error('Initial sync trigger failed (non-fatal):', e));
+      }
+    }
+  } catch (e) {
+    console.error('Initial sync setup failed (non-fatal):', e);
+  }
+
   return redirectWithFlag(res, 'connected');
 };
