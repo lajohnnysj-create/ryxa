@@ -242,7 +242,7 @@ async function init() {
   coachingData = coaching;
 
   // Load creator name and currency
-  const { data: profile } = await sb.from('profiles').select('username, display_currency, calendar_timezone').eq('user_id', coaching.user_id).maybeSingle();
+  const { data: profile } = await sb.from('public_profiles').select('username, display_currency, calendar_timezone').eq('user_id', coaching.user_id).maybeSingle();
   const creatorName = profile?.username || 'Creator';
   // Stash the creator's display currency for price formatting
   window._creatorCurrency = (profile && profile.display_currency) ? profile.display_currency : 'USD';
@@ -772,7 +772,7 @@ async function showConfirmation(coachingId) {
       document.getElementById('confirm-sub').textContent = 'Your payment for "' + coaching.title + '" was successful.';
 
       // Get creator contact info
-      var { data: creatorProfile } = await sb.from('profiles').select('username').eq('user_id', coaching.user_id).maybeSingle();
+      var { data: creatorProfile } = await sb.from('public_profiles').select('username').eq('user_id', coaching.user_id).maybeSingle();
       var creatorName = creatorProfile?.username || '';
       var { data: creatorUser } = await sb.auth.admin?.getUserById?.(coaching.user_id) || {};
       
