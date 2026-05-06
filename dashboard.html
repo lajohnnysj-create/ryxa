@@ -3576,6 +3576,12 @@
   #tool-follower .fa-result-item:hover { background: rgba(255,255,255,0.03); }
   #tool-follower .fa-result-item.blurred { filter: blur(5px); user-select: none; pointer-events: none; opacity: 0.6; }
   #tool-follower .fa-result-header-row { display: grid; grid-template-columns: 1fr 200px 90px 36px 36px; padding: 10px 20px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); border-bottom: 1px solid var(--border); background: var(--surface2); }
+  /* Center the icon-column headers so they align with the centered icon buttons below */
+  #tool-follower .fa-result-header-row > span:nth-child(4),
+  #tool-follower .fa-result-header-row > span:nth-child(5) { text-align: center; padding-left: 0 !important; justify-self: center; }
+  /* Center the icon-only cells in result rows */
+  #tool-follower .fa-result-item > div:nth-child(4),
+  #tool-follower .fa-result-item > div:nth-child(5) { display: flex; justify-content: center; align-items: center; }
   #tool-follower .fa-result-handle a { color: var(--text); text-decoration: none; }
   #tool-follower .fa-result-handle a:hover { color: var(--accent); }
   #tool-follower .fa-tag { display: inline-flex; align-items: center; gap: 5px; border-radius: 100px; padding: 3px 12px; font-size: 11px; font-weight: 500; letter-spacing: 0.03em; }
@@ -3610,7 +3616,7 @@
     display: inline-flex; align-items: center; gap: 5px;
     background: rgba(255,255,255,0.05); border: 1px solid var(--border-hover); cursor: pointer;
     color: var(--muted); font-size: 12px; font-weight: 500; font-family: 'DM Sans', sans-serif;
-    padding: 5px 10px; border-radius: 20px; transition: all 0.2s; margin-left: 8px;
+    padding: 5px 10px; border-radius: 20px; transition: all 0.2s;
   }
   #tool-follower .fa-whitelist-btn:hover { background: rgba(124,58,237,0.1); border-color: var(--accent); color: var(--accent); }
   #tool-follower .fa-whitelist-btn.whitelisted { background: rgba(74,222,128,0.1); border-color: rgba(74,222,128,0.4); color: #4ade80; }
@@ -3784,9 +3790,15 @@
     #tool-follower .fa-stat-card .num { font-size: 22px; }
     #tool-follower .fa-filter-tabs { flex-wrap: wrap; gap: 6px; }
     #tool-follower .fa-filter-tab { font-size: 12px; padding: 5px 10px; }
-    #tool-follower .fa-result-item { grid-template-columns: 1fr auto auto; padding: 10px 12px; gap: 8px; }
-    #tool-follower .fa-result-header-row { display: none; }
-    #tool-follower .fa-result-item .fa-whitelist-btn { display: none; }
+    /* Mobile: instead of compressing, allow the results table to scroll horizontally as one unit */
+    #tool-follower .fa-results-list { overflow-x: auto; overflow-y: visible; -webkit-overflow-scrolling: touch; }
+    #tool-follower .fa-results-list::-webkit-scrollbar { height: 6px; }
+    #tool-follower .fa-results-list::-webkit-scrollbar-thumb { background: var(--muted2); border-radius: 3px; }
+    #tool-follower .fa-result-header-row,
+    #tool-follower .fa-result-item { min-width: 560px; }
+    /* On mobile, drop the inner max-height so the whole list scrolls horizontally as one unit
+       and the page handles vertical scrolling instead */
+    #tool-follower #fa-results-list-scroll { min-width: 560px; max-height: none; overflow-y: visible; }
     #tool-follower .fa-results-header { flex-direction: column; align-items: flex-start; gap: 8px; }
     #tool-follower .fa-tool-btns { flex-wrap: wrap; }
     #tool-follower .fa-upgrade-banner { flex-direction: column; align-items: flex-start; padding: 16px; }
