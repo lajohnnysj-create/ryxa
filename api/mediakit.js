@@ -585,6 +585,54 @@ function buildCustomThemeStyle(ct) {
 }
 
 // ==========================================================================
+// BUILTIN IMAGE THEMES — free for all tiers
+// Mirror of BIO_THEMES image entries in dashboard.html — keep in sync.
+// ==========================================================================
+
+const BUILTIN_IMAGE_THEMES = {
+  paperwhite: { image:'/bgtemplates/1.webp', colors:{bg:'#FFFFFF',card:'#F5F5F8',text:'#1A1A2E',accent:'#6366F1'} },
+  ember:      { image:'/bgtemplates/2.webp', colors:{bg:'#1A1A1C',card:'#262628',text:'#F5F2ED',accent:'#F97316'} },
+  sapphire:   { image:'/bgtemplates/3.webp', colors:{bg:'#1E3A8A',card:'#172554',text:'#F5EFE0',accent:'#D4AF37'} },
+  blossom:    { image:'/bgtemplates/4.webp', colors:{bg:'#FCE7EB',card:'#F8D7DD',text:'#5C2E3D',accent:'#C9A961'} },
+  honey:      { image:'/bgtemplates/5.webp', colors:{bg:'#FCEFC0',card:'#F8E48E',text:'#5C3F17',accent:'#B45309'} },
+};
+
+function buildImageThemeStyle(themeKey) {
+  const theme = BUILTIN_IMAGE_THEMES[themeKey];
+  if (!theme) return '';
+  const { bg, card, text, accent } = theme.colors;
+  const safeBgUrl = String(theme.image).replace(/"/g, '&quot;');
+
+  const css = `:root[data-theme="custom"] {
+    --bg: ${bg};
+    --surface: ${card};
+    --surface2: ${card};
+    --text: ${text};
+    --muted: ${hexAlpha(text, 0.65)};
+    --muted2: ${hexAlpha(text, 0.8)};
+    --border: ${hexAlpha(text, 0.1)};
+    --accent: ${accent};
+    --accent2: ${accent};
+    --accent-glow: ${hexAlpha(accent, 0.3)};
+  }
+  :root[data-theme="custom"] body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("${safeBgUrl}");
+    background-size: cover;
+    background-position: center;
+    z-index: -2;
+  }`;
+
+  return `<style id="custom-bg-style">${css}</style>`;
+}
+
+function isBuiltinImageTheme(key) {
+  return !!BUILTIN_IMAGE_THEMES[key];
+}
+
+// ==========================================================================
 // MAIN RENDER — produces inner HTML for the #wrap div
 // ==========================================================================
 
@@ -800,6 +848,12 @@ module.exports = async (req, res) => {
       customThemeStyle = buildCustomThemeStyle(kit.custom_theme);
     } else if (kit.theme === 'custom' && !isPaidTier) {
       theme = 'purple';
+    } else if (isBuiltinImageTheme(kit.theme)) {
+      // Builtin image themes are free for all tiers. They use the same
+      // [data-theme="custom"] CSS selector as the Pro custom theme, but with
+      // hardcoded values from BUILTIN_IMAGE_THEMES.
+      theme = 'custom';
+      customThemeStyle = buildImageThemeStyle(kit.theme);
     } else {
       theme = kit.theme || 'purple';
     }
