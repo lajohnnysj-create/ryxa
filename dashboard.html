@@ -15295,8 +15295,23 @@ async function connectInstagramAccount() {
     if (!session || !session.access_token) {
       throw new Error('No session');
     }
-    // Redirect to OAuth start endpoint with the session token
-    window.location.href = '/api/instagram-oauth-start?token=' + encodeURIComponent(session.access_token);
+    // Step 1: fetch a short-lived signed ticket via POST. The ticket contains
+    // our user_id and expires in 5 minutes. Unlike a session token, it can't
+    // be used as session auth — only to start an Instagram OAuth flow.
+    const ticketRes = await fetch('/api/instagram-ticket', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + session.access_token }
+    });
+    if (!ticketRes.ok) {
+      const errBody = await ticketRes.json().catch(function() { return {}; });
+      throw new Error(errBody.error || 'ticket_failed');
+    }
+    const ticketJson = await ticketRes.json();
+    if (!ticketJson || !ticketJson.ticket) {
+      throw new Error('Empty ticket response');
+    }
+    // Step 2: navigate to the OAuth start endpoint with the signed ticket.
+    window.location.href = '/api/instagram-oauth-start?ticket=' + encodeURIComponent(ticketJson.ticket);
   } catch (err) {
     console.error('Failed to start Instagram OAuth:', err);
     showInstagramMsg('error', 'Failed to start connection. Please try again.');
