@@ -520,13 +520,13 @@ async function loadBookedSlots() {
       }));
     }
 
-    // Active reservations (not yet expired) — also check across all services
-    var nowIso = new Date().toISOString();
+    // Active reservations (not yet expired). Read through the
+    // `public_coaching_availability` view which exposes only slot
+    // timing columns (no booker_id) and pre-filters expired holds.
     if (serviceIds.length > 0) {
-      var { data: reservations } = await sb.from('coaching_slot_reservations')
+      var { data: reservations } = await sb.from('public_coaching_availability')
         .select('slot_start, slot_end')
-        .in('coaching_id', serviceIds)
-        .gt('expires_at', nowIso);
+        .in('coaching_id', serviceIds);
       if (reservations) {
         pickerState.reservedSlots = reservations.map(function(r) {
           return { start_at: r.slot_start, end_at: r.slot_end };
