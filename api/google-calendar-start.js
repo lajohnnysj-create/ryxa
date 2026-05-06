@@ -4,37 +4,71 @@
 // Called when a logged-in Ryxa user clicks "Connect Google Calendar".
 //
 // Flow:
-//   1. Verify the caller is an authenticated Ryxa user (via Supabase access token in ?t=)
-//   2. Generate a CSRF state token bound to the user_id, store nonce in httpOnly cookie
-//   3. Redirect the browser to Google's OAuth consent screen
+//   1. Dashboard fetches /api/google-calendar-ticket via POST (with auth header)
+//      to get a short-lived signed ticket containing their user_id.
+//   2. Dashboard navigates to /api/google-calendar-start?ticket=<signed_ticket>
+//   3. This endpoint verifies the ticket signature and extracts user_id.
+//   4. Generates a CSRF state token bound to the user_id, sets cookie.
+//   5. Redirects the browser to Google's OAuth consent screen.
 //
-// Phase 1 only: just establishes the connection. No event sync yet.
+// The ticket is signed with HMAC-SHA256 and expires in 5 minutes. It cannot
+// be forged without the signing secret, and it cannot be used as a session
+// token (it only proves "this user_id authorized starting an OAuth flow").
 
 const crypto = require('crypto');
 
-const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_OAUTH_CLIENT_ID;
 const GOOGLE_REDIRECT_URI = process.env.GOOGLE_OAUTH_REDIRECT_URI;
+const TICKET_SIGNING_SECRET = process.env.GCAL_TICKET_SIGNING_SECRET;
+
+const TICKET_TTL_MS = 5 * 60 * 1000; // must match google-calendar-ticket.js
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // Non-sensitive scopes:
 //   - calendar.app.created: only calendars Ryxa creates
 //   - userinfo.email: so we can show "Connected as <email>" in the dashboard
 const SCOPE = 'https://www.googleapis.com/auth/calendar.app.created https://www.googleapis.com/auth/userinfo.email';
 
-async function verifySupabaseUser(accessToken) {
+function getSigningKey() {
+  return crypto.createHash('sha256').update('ryxa_gcal_ticket_' + TICKET_SIGNING_SECRET).digest();
+}
+
+function verifyTicket(rawTicket) {
   try {
-    const res = await fetch(SUPABASE_URL + '/auth/v1/user', {
-      headers: {
-        Authorization: 'Bearer ' + accessToken,
-        apikey: SUPABASE_SERVICE_KEY
-      }
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data && data.id ? data.id : null;
+    const decoded = Buffer.from(rawTicket, 'base64url').toString('utf8');
+    const { p: payload, h: hmac } = JSON.parse(decoded);
+
+    if (!payload || !hmac) {
+      console.error('Ticket missing payload or hmac');
+      return null;
+    }
+
+    const expectedHmac = crypto.createHmac('sha256', getSigningKey()).update(payload).digest('hex');
+    if (hmac.length !== expectedHmac.length) {
+      console.error('Ticket HMAC length mismatch');
+      return null;
+    }
+    if (!crypto.timingSafeEqual(Buffer.from(hmac, 'hex'), Buffer.from(expectedHmac, 'hex'))) {
+      console.error('Ticket HMAC signature mismatch');
+      return null;
+    }
+
+    const { uid, ts } = JSON.parse(payload);
+
+    const age = Date.now() - ts;
+    if (isNaN(age) || age < 0 || age > TICKET_TTL_MS) {
+      console.error('Ticket expired, age:', age);
+      return null;
+    }
+
+    if (!UUID_REGEX.test(uid)) {
+      console.error('Invalid UUID in ticket:', uid);
+      return null;
+    }
+
+    return uid;
   } catch (e) {
-    console.error('verifySupabaseUser failed:', e.message);
+    console.error('verifyTicket failed:', e.message);
     return null;
   }
 }
@@ -44,23 +78,19 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  if (!GOOGLE_CLIENT_ID || !GOOGLE_REDIRECT_URI || !SUPABASE_SERVICE_KEY) {
-    console.error('Missing OAuth env vars');
+  if (!GOOGLE_CLIENT_ID || !GOOGLE_REDIRECT_URI || !TICKET_SIGNING_SECRET) {
+    console.error('Missing env vars');
     return res.status(500).send('OAuth not configured');
   }
 
-  // Pull access token from query param (dashboard navigates here directly,
-  // not via fetch — can't use Authorization headers across browser redirects).
-  // Token is short-lived (1h) and sits in this URL for one redirect hop only.
-  const supabaseAccessToken = req.query && req.query.t ? String(req.query.t) : null;
-
-  if (!supabaseAccessToken) {
-    return res.status(401).send('Missing session token. Please return to the dashboard and try again.');
+  const ticket = req.query && req.query.ticket ? String(req.query.ticket) : null;
+  if (!ticket) {
+    return res.status(401).send('Missing connect ticket. Please return to the dashboard and try again.');
   }
 
-  const userId = await verifySupabaseUser(supabaseAccessToken);
+  const userId = verifyTicket(ticket);
   if (!userId) {
-    return res.status(401).send('Invalid or expired session. Please refresh and try again.');
+    return res.status(401).send('Invalid or expired ticket. Please refresh and try again.');
   }
 
   // CSRF state: random nonce in httpOnly cookie + sent to Google in state param
@@ -78,8 +108,8 @@ module.exports = async function handler(req, res) {
     redirect_uri: GOOGLE_REDIRECT_URI,
     response_type: 'code',
     scope: SCOPE,
-    access_type: 'offline',     // request refresh token
-    prompt: 'consent',          // force consent so refresh_token always returned
+    access_type: 'offline',
+    prompt: 'consent',
     include_granted_scopes: 'true',
     state: stateB64,
   });
