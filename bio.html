@@ -1650,6 +1650,110 @@ function initVideoArrows() {
   });
 }
 
+// Resolve live cover/headshot URLs for bio links that reference a source
+// table (courses, coaching services, digital products, media kit).
+// Mirrors the server-side resolver in api/bio.js. Mutates `links` in place,
+// only overwriting `photoUrl` when a live value is found, falling back to
+// the stored snapshot otherwise.
+async function resolveLiveCoverUrls(creatorUserId, links) {
+  if (!Array.isArray(links) || links.length === 0) return;
+
+  var courseIds = [];
+  var coachingIds = [];
+  var productIds = [];
+  var needsMediaKit = false;
+
+  for (var i = 0; i < links.length; i++) {
+    var l = links[i];
+    if (!l) continue;
+    if (l.isCourse && l.courseId) courseIds.push(l.courseId);
+    if (l.isCoaching && l.coachingId) coachingIds.push(l.coachingId);
+    if (l.isProduct && l.productId) productIds.push(l.productId);
+    if (l.isMediaKit) needsMediaKit = true;
+  }
+
+  function buildPublicUrl(bucket, path) {
+    if (!path) return null;
+    return SUPABASE_URL + '/storage/v1/object/public/' + bucket + '/' + path;
+  }
+
+  var promises = [];
+
+  if (courseIds.length > 0) {
+    promises.push(
+      sb.from('courses').select('id, cover_image_path').in('id', courseIds)
+        .then(function(r) {
+          var rows = r.data || [];
+          var map = {};
+          rows.forEach(function(row) { map[row.id] = buildPublicUrl('course-covers', row.cover_image_path); });
+          return { type: 'course', map: map };
+        })
+        .catch(function() { return { type: 'course', map: {} }; })
+    );
+  }
+
+  if (coachingIds.length > 0) {
+    promises.push(
+      sb.from('coaching_services').select('id, cover_image_path').in('id', coachingIds)
+        .then(function(r) {
+          var rows = r.data || [];
+          var map = {};
+          rows.forEach(function(row) { map[row.id] = buildPublicUrl('coaching-covers', row.cover_image_path); });
+          return { type: 'coaching', map: map };
+        })
+        .catch(function() { return { type: 'coaching', map: {} }; })
+    );
+  }
+
+  if (productIds.length > 0) {
+    promises.push(
+      sb.from('digital_products').select('id, cover_image_url').in('id', productIds)
+        .then(function(r) {
+          var rows = r.data || [];
+          var map = {};
+          rows.forEach(function(row) { map[row.id] = row.cover_image_url || null; });
+          return { type: 'product', map: map };
+        })
+        .catch(function() { return { type: 'product', map: {} }; })
+    );
+  }
+
+  if (needsMediaKit && creatorUserId) {
+    promises.push(
+      sb.from('media_kit').select('headshot_url').eq('user_id', creatorUserId).maybeSingle()
+        .then(function(r) {
+          return { type: 'mediakit', url: r.data ? (r.data.headshot_url || null) : null };
+        })
+        .catch(function() { return { type: 'mediakit', url: null }; })
+    );
+  }
+
+  if (promises.length === 0) return;
+
+  var results = await Promise.all(promises);
+  var courseMap = (results.find(function(r) { return r.type === 'course'; }) || {}).map;
+  var coachingMap = (results.find(function(r) { return r.type === 'coaching'; }) || {}).map;
+  var productMap = (results.find(function(r) { return r.type === 'product'; }) || {}).map;
+  var mediaKitUrl = (results.find(function(r) { return r.type === 'mediakit'; }) || {}).url;
+
+  for (var j = 0; j < links.length; j++) {
+    var link = links[j];
+    if (!link) continue;
+    if (link.isCourse && link.courseId && courseMap) {
+      var liveCourse = courseMap[link.courseId];
+      if (liveCourse) link.photoUrl = liveCourse;
+    } else if (link.isCoaching && link.coachingId && coachingMap) {
+      var liveCoaching = coachingMap[link.coachingId];
+      if (liveCoaching) link.photoUrl = liveCoaching;
+    } else if (link.isProduct && link.productId && productMap) {
+      var liveProduct = productMap[link.productId];
+      if (liveProduct) link.photoUrl = liveProduct;
+    } else if (link.isMediaKit && mediaKitUrl) {
+      link.photoUrl = mediaKitUrl;
+    }
+  }
+}
+
 async function load() {
   const username = getUsername();
   if (!username) { renderNotFound(null); return; }
@@ -1688,6 +1792,15 @@ async function load() {
     .maybeSingle();
 
   if (bErr || !bio) { renderNotFound(username); return; }
+
+  // Resolve live cover URLs for course/coaching/product/mediakit links.
+  // Mirrors the server-side resolver in api/bio.js. Mutates bio.links in
+  // place so render() picks up live values instead of stored snapshots.
+  try {
+    await resolveLiveCoverUrls(profile.user_id, bio.links);
+  } catch (e) {
+    console.error('cover URL resolver failed, using snapshots:', e);
+  }
 
   render(profile, bio, profile.tier);
 
