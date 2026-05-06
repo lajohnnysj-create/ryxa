@@ -177,7 +177,7 @@
   <div style="margin-bottom:48px;">
     <span style="font-size:12px;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent2);font-weight:600;display:block;margin-bottom:12px;">Legal</span>
     <h1 style="font-family:'Syne',sans-serif;font-size:clamp(32px,5vw,48px);font-weight:800;letter-spacing:-2px;margin-bottom:12px;">Privacy Policy</h1>
-    <p style="color:var(--muted);font-size:14px;">Effective date: April 12, 2026 · Last updated: April 29, 2026</p>
+    <p style="color:var(--muted);font-size:14px;">Effective date: April 12, 2026 · Last updated: May 5, 2026</p>
   </div>
 
   <div style="display:flex;flex-direction:column;gap:40px;font-size:15px;line-height:1.8;color:var(--muted);">
@@ -284,6 +284,7 @@
         <li><strong style="color:var(--text);">Resend</strong> — transactional email delivery (password resets, receipts). <a href="https://resend.com/legal/privacy-policy" target="_blank" rel="noopener" style="color:var(--accent2);">Privacy policy</a></li>
         <li><strong style="color:var(--text);">Anthropic</strong> — AI provider for AI-powered features (Chatbox, Design Studio, Script Builder, Bio Writer, Caption Generator, Thumbnail Analyzer, Contract Analyzer, Alt-text Generator). Prompts and inputs you send to AI features are processed by Anthropic. Anthropic does not use API inputs or outputs to train their models. <a href="https://www.anthropic.com/legal/privacy" target="_blank" rel="noopener" style="color:var(--accent2);">Privacy policy</a></li>
         <li><strong style="color:var(--text);">Meta Platforms (Instagram)</strong> — social account integration via the official Instagram Graph API, only when you choose to connect your Instagram account. See Section 8 below for details. <a href="https://www.facebook.com/policy.php" target="_blank" rel="noopener" style="color:var(--accent2);">Privacy policy</a></li>
+        <li><strong style="color:var(--text);">Google LLC (Calendar)</strong> — calendar integration via the official Google Calendar API, only when you choose to connect your Google Calendar. See Section 9 below for details. <a href="https://policies.google.com/privacy" target="_blank" rel="noopener" style="color:var(--accent2);">Privacy policy</a></li>
       </ul>
     </div>
 
@@ -326,12 +327,48 @@
     </div>
 
     <div>
-      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">9. Where your data is stored</h2>
+      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">9. Connecting your Google Calendar</h2>
+      <p style="margin-bottom:12px;">Ryxa lets you connect your Google Calendar so that events you create in Ryxa (coaching bookings, brand deals, manually-added events, and other calendar entries) appear automatically in your Google Calendar. Connecting is always optional — Ryxa works fully without it.</p>
+
+      <p style="margin-bottom:12px;"><strong style="color:var(--text);">How the connection works.</strong> When you click "Connect Google Calendar," you're sent to Google's official OAuth authorization page. You log in to Google directly — Ryxa never sees your password. After you approve, Google sends Ryxa an access token and refresh token that let us add events to your calendar on your behalf. You can revoke this access at any time (see below).</p>
+
+      <p style="margin-bottom:12px;"><strong style="color:var(--text);">What permissions we request.</strong> Ryxa requests two non-sensitive Google scopes:</p>
+      <ul style="padding-left:22px;margin-bottom:12px;">
+        <li><code style="font-size:12px;color:var(--accent2);">calendar.app.created</code> — Lets Ryxa create and manage a single dedicated calendar in your Google account named "Ryxa." Ryxa can only see and modify events on this Ryxa-created calendar. We cannot read your other calendars, see your existing events, or access any calendar data Ryxa did not create.</li>
+        <li><code style="font-size:12px;color:var(--accent2);">userinfo.email</code> — Lets us display the email address of the connected Google account in your Ryxa dashboard so you can confirm you connected the right account.</li>
+      </ul>
+
+      <p style="margin-bottom:12px;"><strong style="color:var(--text);">What we receive from Google.</strong> The only data Google sends us is your email address (when you grant the userinfo scope) and confirmation that we successfully created an event on your Ryxa calendar. We do not receive your other calendar data, contacts, or any other personal information from Google.</p>
+
+      <p style="margin-bottom:12px;"><strong style="color:var(--text);">How we use this data.</strong> Your access tokens are used solely to push Ryxa events to your "Ryxa" calendar in Google. Specifically:</p>
+      <ul style="padding-left:22px;margin-bottom:12px;">
+        <li>When you create, edit, or delete an event in Ryxa, we update the corresponding event in your Google Calendar within seconds</li>
+        <li>Sync is one-way only: changes you make in Ryxa flow to Google, but changes made directly in Google Calendar do not affect your Ryxa events</li>
+        <li>Your email address (if granted) is shown in your dashboard so you know which Google account is connected</li>
+      </ul>
+      <p style="margin-bottom:12px;">We do NOT sell, rent, or share your Google Calendar data with third parties. We do NOT use it for advertising. We do NOT use it to train AI models. We do NOT read events from your other calendars.</p>
+
+      <p style="margin-bottom:12px;"><strong style="color:var(--text);">How we store this data.</strong> Your Google access token, refresh token, and email address are stored in our Supabase database, encrypted at rest. Access is restricted by row-level security policies so only you and our authenticated systems can read your data. Tokens are automatically refreshed in the background to keep the connection working without requiring you to re-authorize.</p>
+
+      <p style="margin-bottom:12px;"><strong style="color:var(--text);">How to disconnect or delete your Google Calendar data.</strong> You can disconnect Google Calendar from Ryxa at any time:</p>
+      <ul style="padding-left:22px;margin-bottom:12px;">
+        <li><strong style="color:var(--text);">Inside Ryxa:</strong> Go to Calendar tool → Disconnect. This deletes the "Ryxa" calendar (and all events on it) from your Google account, revokes our access tokens on Google's side, and removes all Google Calendar tokens from our database.</li>
+        <li><strong style="color:var(--text);">Inside Google:</strong> Go to <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener" style="color:var(--accent2);">myaccount.google.com/permissions</a> → find "Ryxa" → Remove access. This revokes Ryxa's access immediately. The Ryxa calendar may remain in your Google account until manually removed.</li>
+        <li><strong style="color:var(--text);">By request:</strong> Email <a href="mailto:hello@ryxa.io" style="color:var(--accent2);">hello@ryxa.io</a> and we will permanently delete all Google Calendar data associated with your account within 30 days.</li>
+      </ul>
+
+      <p style="margin-bottom:12px;"><strong style="color:var(--text);">Compliance with Google API Services User Data Policy.</strong> Ryxa's use and transfer to any other app of information received from Google APIs adheres to the <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noopener" style="color:var(--accent2);">Google API Services User Data Policy</a>, including the Limited Use requirements. We will not transfer Google-derived data to any ad network, data broker, or other advertising or monetization-related service.</p>
+
+      <p><strong style="color:var(--text);">Note on affiliation.</strong> Ryxa is an independent platform. We are not affiliated with, endorsed by, or sponsored by Google LLC or Alphabet Inc.</p>
+    </div>
+
+    <div>
+      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">10. Where your data is stored</h2>
       <p>Your data is stored primarily in the United States (AWS us-east-2, Ohio). If you are accessing the service from outside the US, by using Ryxa you consent to your data being transferred to and processed in the United States.</p>
     </div>
 
     <div>
-      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">10. Data retention</h2>
+      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">11. Data retention</h2>
       <p style="margin-bottom:12px;"><strong style="color:var(--text);">Active accounts:</strong> We retain your data as long as your account is active.</p>
       <p style="margin-bottom:12px;"><strong style="color:var(--text);">Cancelled Pro/Max subscriptions:</strong> When you cancel Pro or Max, your account downgrades to Free at the end of your billing period, but your feature data (grid plans, scripts, custom themes, media kit, audit history) is preserved. If you resubscribe later, your data will be right where you left it.</p>
       <p style="margin-bottom:12px;"><strong style="color:var(--text);">Chatbox conversations:</strong> Stored as long as your account is active. You can delete individual conversations at any time from the Chatbox sidebar — deletion is permanent and removes all messages in that conversation.</p>
@@ -339,7 +376,7 @@
     </div>
 
     <div>
-      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">11. Your rights</h2>
+      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">12. Your rights</h2>
       <p style="margin-bottom:12px;">Regardless of where you live, you have the right to:</p>
       <ul style="padding-left:22px;margin-bottom:12px;">
         <li><strong>Access</strong> your data — request a copy of what we store</li>
@@ -354,23 +391,23 @@
     </div>
 
     <div>
-      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">12. Security</h2>
+      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">13. Security</h2>
       <p>We take reasonable measures to protect your data, including encrypted connections (HTTPS everywhere), industry-standard authentication practices, row-level security policies on all database tables, and limited access to production data. No online service is 100% secure, but we work to minimize risk.</p>
       <p style="margin-top:12px;">In the event of a data breach affecting your personal information, we will notify you within 72 hours of discovery via email, in accordance with applicable laws (including CCPA in California and GDPR if applicable). The notification will include the nature of the breach, the data affected, and steps we are taking to address it.</p>
     </div>
 
     <div>
-      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">13. Children's privacy</h2>
+      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">14. Children's privacy</h2>
       <p>Ryxa is not directed at children under 13. We do not knowingly collect personal information from anyone under 13. If you are a parent and believe your child has signed up, please contact us at hello@ryxa.io and we will delete the account.</p>
     </div>
 
     <div>
-      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">14. Changes to this policy</h2>
+      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">15. Changes to this policy</h2>
       <p>We may update this policy as the service evolves. We will update the "Last updated" date at the top. For material changes, we will notify you by email or via an in-app notice. Continued use of the service after updates constitutes acceptance of the updated policy.</p>
     </div>
 
     <div>
-      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">15. Contact</h2>
+      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">16. Contact</h2>
       <p>Questions about privacy? Email hello@ryxa.io.</p>
       <p style="margin-top:12px;">MRLA Media LLC</p>
     </div>
