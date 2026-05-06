@@ -495,12 +495,14 @@ async function loadBookedSlots() {
       .eq('user_id', coachingData.user_id);
     var serviceIds = (services || []).map(function(s) { return s.id; });
 
-    // Existing confirmed bookings — across all of the creator's services
+    // Existing confirmed bookings across all of the creator's services.
+    // Read through `public_coaching_booked_slots` view which exposes only
+    // slot timing columns (no buyer_email, no payment data) and pre-filters
+    // bookings without a scheduled slot.
     if (serviceIds.length > 0) {
-      var { data: bookings } = await sb.from('coaching_bookings')
+      var { data: bookings } = await sb.from('public_coaching_booked_slots')
         .select('slot_start, slot_end')
-        .in('coaching_id', serviceIds)
-        .not('slot_start', 'is', null);
+        .in('coaching_id', serviceIds);
       if (bookings) {
         pickerState.bookedSlots = pickerState.bookedSlots.concat(bookings.map(function(b) {
           return { start_at: b.slot_start, end_at: b.slot_end };
