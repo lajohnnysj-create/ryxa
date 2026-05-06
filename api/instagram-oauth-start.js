@@ -1,20 +1,31 @@
 // Vercel serverless function — Instagram OAuth Start
 // ====================================================
-// Kicks off the Instagram OAuth flow. Authenticates the calling
-// Ryxa user, generates a signed state token, and redirects to
-// Meta's authorization page.
+// Kicks off the Instagram OAuth flow. Verifies a signed ticket
+// from the dashboard, generates a signed state token bound to the
+// Ryxa user_id, and redirects to Meta's authorization page.
 //
 // Deploy to: /api/instagram-oauth-start.js
 // Endpoint URL: https://ryxa.io/api/instagram-oauth-start
 // ====================================================
+//
+// Flow:
+//   1. Dashboard fetches /api/instagram-ticket via POST (with Authorization header)
+//      to get a short-lived signed ticket containing their user_id.
+//   2. Dashboard navigates to /api/instagram-oauth-start?ticket=<signed_ticket>
+//   3. This endpoint verifies the ticket signature and extracts user_id.
+//   4. Generates a signed state token (separate signature, used by callback for CSRF).
+//   5. Redirects the browser to Meta's OAuth consent screen.
 
 const crypto = require('crypto');
 
-const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
 const META_APP_ID = process.env.META_APP_ID;
 const META_APP_SECRET = process.env.META_APP_SECRET;
+const TICKET_SIGNING_SECRET = process.env.INSTAGRAM_TICKET_SIGNING_SECRET;
 const PUBLIC_BASE_URL = 'https://ryxa.io';
 const REDIRECT_URI = PUBLIC_BASE_URL + '/api/instagram-oauth-callback';
+
+const TICKET_TTL_MS = 5 * 60 * 1000; // must match instagram-ticket.js
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // Stage 1 scopes — basic profile + insights for media kit auto-fill
 // Stage 2 will add 'instagram_business_manage_messages' for Auto DM
@@ -23,39 +34,66 @@ const STAGE_1_SCOPES = [
   'instagram_business_manage_insights'
 ];
 
-// ----- helpers --------------------------------------------------
+// ----- Ticket verification (used to authenticate the connect-flow caller) -----
 
-function getSigningKey() {
-  // Distinct key from other HMAC uses to prevent cross-feature signature reuse
+function getTicketSigningKey() {
+  return crypto.createHash('sha256').update('ryxa_ig_ticket_' + TICKET_SIGNING_SECRET).digest();
+}
+
+function verifyTicket(rawTicket) {
+  try {
+    const decoded = Buffer.from(rawTicket, 'base64url').toString('utf8');
+    const { p: payload, h: hmac } = JSON.parse(decoded);
+
+    if (!payload || !hmac) {
+      console.error('Ticket missing payload or hmac');
+      return null;
+    }
+
+    const expectedHmac = crypto.createHmac('sha256', getTicketSigningKey()).update(payload).digest('hex');
+    if (hmac.length !== expectedHmac.length) {
+      console.error('Ticket HMAC length mismatch');
+      return null;
+    }
+    if (!crypto.timingSafeEqual(Buffer.from(hmac, 'hex'), Buffer.from(expectedHmac, 'hex'))) {
+      console.error('Ticket HMAC signature mismatch');
+      return null;
+    }
+
+    const { uid, ts } = JSON.parse(payload);
+
+    const age = Date.now() - ts;
+    if (isNaN(age) || age < 0 || age > TICKET_TTL_MS) {
+      console.error('Ticket expired, age:', age);
+      return null;
+    }
+
+    if (!UUID_REGEX.test(uid)) {
+      console.error('Invalid UUID in ticket:', uid);
+      return null;
+    }
+
+    return uid;
+  } catch (e) {
+    console.error('verifyTicket failed:', e.message);
+    return null;
+  }
+}
+
+// ----- State signing (used for CSRF on the OAuth callback) -----
+// Note: this uses a different key (derived from META_APP_SECRET) than the
+// ticket signing above. They serve different purposes and shouldn't share
+// signing keys.
+
+function getStateSigningKey() {
   return crypto.createHash('sha256').update('ryxa_ig_oauth_' + META_APP_SECRET).digest();
 }
 
-// Sign a state payload so the callback can verify it came from us.
-// Format: base64url(JSON({p: payload, h: hmac}))
 function signState(payload) {
   const payloadStr = JSON.stringify(payload);
-  const hmac = crypto.createHmac('sha256', getSigningKey()).update(payloadStr).digest('hex');
+  const hmac = crypto.createHmac('sha256', getStateSigningKey()).update(payloadStr).digest('hex');
   const wrapped = JSON.stringify({ p: payloadStr, h: hmac });
   return Buffer.from(wrapped, 'utf8').toString('base64url');
-}
-
-// Verify a Supabase access token and return the user_id, or null
-async function verifySupabaseUser(accessToken) {
-  if (!accessToken) return null;
-  try {
-    const res = await fetch(SUPABASE_URL + '/auth/v1/user', {
-      headers: {
-        Authorization: 'Bearer ' + accessToken,
-        apikey: process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-      }
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data && data.id ? data.id : null;
-  } catch (e) {
-    console.error('verifySupabaseUser failed:', e.message);
-    return null;
-  }
 }
 
 // ----- main handler --------------------------------------------
@@ -70,13 +108,20 @@ module.exports = async function handler(req, res) {
     return res.status(500).json({ error: 'Server not configured' });
   }
 
-  // Authenticate the calling user via their Supabase JWT
-  // Frontend should pass it as ?token=xxx in the redirect URL
-  const accessToken = (req.query && req.query.token) || '';
-  const userId = await verifySupabaseUser(accessToken);
+  if (!TICKET_SIGNING_SECRET) {
+    console.error('Missing INSTAGRAM_TICKET_SIGNING_SECRET');
+    return res.status(500).json({ error: 'Server not configured' });
+  }
 
+  // Verify the signed ticket
+  const ticket = req.query && req.query.ticket ? String(req.query.ticket) : null;
+  if (!ticket) {
+    return res.status(401).json({ error: 'Missing ticket' });
+  }
+
+  const userId = verifyTicket(ticket);
   if (!userId) {
-    return res.status(401).json({ error: 'Not authenticated' });
+    return res.status(401).json({ error: 'Invalid or expired ticket' });
   }
 
   // Generate state token: Ryxa user_id + random nonce + timestamp
@@ -87,7 +132,6 @@ module.exports = async function handler(req, res) {
   });
 
   // Build the Meta OAuth URL
-  // Reference: https://developers.facebook.com/docs/instagram-platform/instagram-api-with-instagram-login/business-login
   const params = new URLSearchParams({
     client_id: META_APP_ID,
     redirect_uri: REDIRECT_URI,
@@ -98,7 +142,6 @@ module.exports = async function handler(req, res) {
 
   const authUrl = 'https://api.instagram.com/oauth/authorize?' + params.toString();
 
-  // Redirect the user to Meta
   res.writeHead(302, { Location: authUrl });
   return res.end();
 };
