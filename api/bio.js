@@ -536,6 +536,125 @@ async function fetchBioData(username) {
 }
 
 // ==========================================================================
+// LIVE COVER URL RESOLVER
+// ==========================================================================
+// Bio links for courses, coaching services, digital products, and the media
+// kit used to snapshot the cover/headshot URL into `link.photoUrl` at the
+// moment the link was added. When the source updated its image, the bio
+// link kept pointing at the old (now possibly deleted) file.
+//
+// This resolver fetches the LIVE cover URL from each source table at render
+// time and mutates the bio links' photoUrl in place. If the source row no
+// longer exists, the existing snapshot value is left as a fallback.
+//
+// Strategy: one batched query per source type, only if at least one link
+// of that type is present. Up to 4 fetches per render, all in parallel.
+// ==========================================================================
+
+async function resolveLiveCoverUrls(creatorUserId, links, fetchOpts) {
+  if (!Array.isArray(links) || links.length === 0) return;
+
+  const courseIds = [];
+  const coachingIds = [];
+  const productIds = [];
+  let needsMediaKit = false;
+
+  for (const link of links) {
+    if (link && link.isCourse && link.courseId) courseIds.push(link.courseId);
+    if (link && link.isCoaching && link.coachingId) coachingIds.push(link.coachingId);
+    if (link && link.isProduct && link.productId) productIds.push(link.productId);
+    if (link && link.isMediaKit) needsMediaKit = true;
+  }
+
+  // Build storage public URL for path-based covers (course-covers, coaching-covers).
+  const buildPublicUrl = (bucket, path) => {
+    if (!path) return null;
+    return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${path}`;
+  };
+
+  // Batched fetches in parallel. Each promise resolves to a Map keyed by id.
+  const fetches = [];
+
+  if (courseIds.length > 0) {
+    const ids = courseIds.map(encodeURIComponent).join(',');
+    fetches.push(
+      fetch(`${SUPABASE_URL}/rest/v1/courses?id=in.(${ids})&select=id,cover_image_path`, fetchOpts())
+        .then(r => r.ok ? r.json() : [])
+        .then(rows => ({
+          type: 'course',
+          map: new Map(rows.map(r => [r.id, buildPublicUrl('course-covers', r.cover_image_path)]))
+        }))
+        .catch(() => ({ type: 'course', map: new Map() }))
+    );
+  }
+
+  if (coachingIds.length > 0) {
+    const ids = coachingIds.map(encodeURIComponent).join(',');
+    fetches.push(
+      fetch(`${SUPABASE_URL}/rest/v1/coaching_services?id=in.(${ids})&select=id,cover_image_path`, fetchOpts())
+        .then(r => r.ok ? r.json() : [])
+        .then(rows => ({
+          type: 'coaching',
+          map: new Map(rows.map(r => [r.id, buildPublicUrl('coaching-covers', r.cover_image_path)]))
+        }))
+        .catch(() => ({ type: 'coaching', map: new Map() }))
+    );
+  }
+
+  if (productIds.length > 0) {
+    // Digital products use cover_image_url (signed URL stored directly), not a path.
+    const ids = productIds.map(encodeURIComponent).join(',');
+    fetches.push(
+      fetch(`${SUPABASE_URL}/rest/v1/digital_products?id=in.(${ids})&select=id,cover_image_url`, fetchOpts())
+        .then(r => r.ok ? r.json() : [])
+        .then(rows => ({
+          type: 'product',
+          map: new Map(rows.map(r => [r.id, r.cover_image_url || null]))
+        }))
+        .catch(() => ({ type: 'product', map: new Map() }))
+    );
+  }
+
+  if (needsMediaKit && creatorUserId) {
+    fetches.push(
+      fetch(`${SUPABASE_URL}/rest/v1/media_kit?user_id=eq.${encodeURIComponent(creatorUserId)}&select=headshot_url&limit=1`, fetchOpts())
+        .then(r => r.ok ? r.json() : [])
+        .then(rows => ({
+          type: 'mediakit',
+          url: rows[0] ? (rows[0].headshot_url || null) : null
+        }))
+        .catch(() => ({ type: 'mediakit', url: null }))
+    );
+  }
+
+  if (fetches.length === 0) return;
+
+  const results = await Promise.all(fetches);
+  const courseMap = results.find(r => r.type === 'course')?.map;
+  const coachingMap = results.find(r => r.type === 'coaching')?.map;
+  const productMap = results.find(r => r.type === 'product')?.map;
+  const mediaKitUrl = results.find(r => r.type === 'mediakit')?.url;
+
+  // Mutate the links in place. Only overwrite photoUrl when we got a live
+  // value back; otherwise leave the existing snapshot as fallback.
+  for (const link of links) {
+    if (!link) continue;
+    if (link.isCourse && link.courseId && courseMap) {
+      const live = courseMap.get(link.courseId);
+      if (live) link.photoUrl = live;
+    } else if (link.isCoaching && link.coachingId && coachingMap) {
+      const live = coachingMap.get(link.coachingId);
+      if (live) link.photoUrl = live;
+    } else if (link.isProduct && link.productId && productMap) {
+      const live = productMap.get(link.productId);
+      if (live) link.photoUrl = live;
+    } else if (link.isMediaKit && mediaKitUrl) {
+      link.photoUrl = mediaKitUrl;
+    }
+  }
+}
+
+// ==========================================================================
 // HANDLER
 // ==========================================================================
 
@@ -616,6 +735,22 @@ module.exports = async (req, res) => {
       customThemeStyle = buildImageThemeStyle(bio.theme);
     } else {
       theme = bio.theme || 'purple';
+    }
+
+    // Resolve live cover URLs for course/coaching/product/mediakit links.
+    // This mutates bio.links in place so renderBioContent picks up the
+    // current values instead of the snapshot stored at link-add time.
+    // Wrapped in try/catch so a slow/failed lookup never breaks the bio.
+    try {
+      const resolverFetchOpts = () => ({
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        },
+      });
+      await resolveLiveCoverUrls(profile.user_id, bio.links, resolverFetchOpts);
+    } catch (e) {
+      console.error('cover URL resolver failed, falling back to snapshots:', e);
     }
 
     // Render the bio content server-side
