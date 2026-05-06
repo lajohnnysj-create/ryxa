@@ -111,6 +111,7 @@
   .sidebar-pill { font-size: 6px; padding: 1px 4px; border-radius: 3px; font-weight: 700; letter-spacing: 0.04em; vertical-align: middle; margin-left: 3px; line-height: 1; }
   .sidebar-pill.pro { background: rgba(124,58,237,0.15); border: 1px solid rgba(124,58,237,0.3); color: #c4b5fd; }
   .sidebar-pill.max { background: linear-gradient(135deg,#a78bfa,#e879f9); color: #fff; }
+  body.tier-loading .sidebar-pill { display: none; }
   body.pro-user .sidebar-pill.pro { display: none; }
   body.max-user .sidebar-pill.pro, body.max-user .sidebar-pill.max { display: none; }
   .sidebar-item-badge { font-size: 10px; background: rgba(124,58,237,0.2); color: #c4b5fd; border-radius: 100px; padding: 2px 7px; font-weight: 600; }
@@ -3863,7 +3864,7 @@
 <style>html{background:#07070f;}body{visibility:hidden;}body.ready{visibility:visible;}</style>
 
 </head>
-<body>
+<body class="tier-loading">
 
 
 <!-- PWA LOGIN SCREEN (shown instead of redirect when in standalone/app mode) -->
@@ -8331,15 +8332,24 @@ function showDashToast(type, message) {
 }
 
 async function fetchTier(userId) {
-  const { data } = await sb.from('subscriptions').select('tier, status').eq('user_id', userId).limit(1);
-  if (data && data.length > 0) {
-    userTier = data[0].tier || 'free';
-    userStatus = data[0].status || 'free';
+  // Safety net: if fetchTier hangs or errors, ensure tier-loading is removed
+  // after 5s so the UI doesn't get stuck with hidden pills forever.
+  const safety = setTimeout(function() {
+    document.body.classList.remove('tier-loading');
+  }, 5000);
+  try {
+    const { data } = await sb.from('subscriptions').select('tier, status').eq('user_id', userId).limit(1);
+    if (data && data.length > 0) {
+      userTier = data[0].tier || 'free';
+      userStatus = data[0].status || 'free';
+    }
+    updateTierUI();
+    // Pre-load AI usage so the sidebar menu opens instantly with no layout shift.
+    // Runs for ALL tiers — Free shows a locked state with upgrade CTA.
+    fetchAiUsage();
+  } finally {
+    clearTimeout(safety);
   }
-  updateTierUI();
-  // Pre-load AI usage so the sidebar menu opens instantly with no layout shift.
-  // Runs for ALL tiers — Free shows a locked state with upgrade CTA.
-  fetchAiUsage();
 }
 
 function updateTierUI() {
@@ -8415,6 +8425,11 @@ function updateTierUI() {
 
   // Update cancel button in settings modal if open
   updateSettingsCancelBtn();
+
+  // Tier is now resolved — reveal the appropriate pills.
+  // Until this point, body.tier-loading was hiding all pills to prevent
+  // a flash of incorrect pills (e.g., Max pills briefly showing for a Max user).
+  document.body.classList.remove('tier-loading');
 }
 
 function updateSettingsCancelBtn() {
