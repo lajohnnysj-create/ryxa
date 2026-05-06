@@ -1750,7 +1750,7 @@ async function submitSubscribe() {
 
   try {
     var username = getUsername();
-    var { data: profile } = await sb.from('profiles').select('user_id').eq('username', username).single();
+    var { data: profile } = await sb.from('public_profiles').select('user_id').eq('username', username).single();
     if (!profile) throw new Error('Creator not found');
 
     var { error } = await sb.from('bio_email_signups').insert({
