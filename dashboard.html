@@ -23488,36 +23488,50 @@ function toggleCineMusic() {
   }
 }
 
+// When stopping music, we can't dispose synths immediately because their
+// last-triggered notes may still be in their release tail (envelope, reverb).
+// PolySynth specifically queues its internal note-release events on the audio
+// context, and disposing a synth before those fire causes
+// "Synth was already disposed" errors. We defer disposal by ~5 seconds, which
+// covers the longest envelope release (peaceful pad: release=3s) plus the
+// longest sustained note (2n at 72 BPM = ~1.7s).
+const CINE_DISPOSE_DELAY_MS = 5000;
+
 function stopCineMusic() {
+  // Stop the Transport so no NEW Loop callbacks fire.
   try { Tone.Transport.stop(); } catch(e){}
   try { Tone.Transport.cancel(0); } catch(e){}
-  // Reset the Transport's playhead. Without this, switching between moods
-  // (peaceful, comedy, action) won't replay because the new Loops are
-  // scheduled at position 0 but Transport.start() resumes from wherever
-  // the previous stop happened — the scheduled events are in the past.
   try { Tone.Transport.position = 0; } catch(e){}
-  if (cineMusicNodes) {
-    // Dispose in two passes to prevent "Synth was already disposed" errors.
-    // Tone.Loop instances schedule callbacks on the Transport that hold
-    // closure references to the synths. If we dispose a synth before its
-    // loop is stopped, the loop's already-queued callback fires on a dead
-    // synth and throws. Stop+dispose all loops first, THEN dispose everything
-    // else, so no callbacks remain that could reference disposed synths.
-    cineMusicNodes.forEach(n => {
-      if (n instanceof Tone.Loop) {
-        try { n.stop(0); } catch(e){}
-        try { n.cancel(0); } catch(e){}
-        try { n.dispose(); } catch(e){}
-      }
-    });
-    cineMusicNodes.forEach(n => {
+
+  if (!cineMusicNodes) return;
+
+  // Snapshot the current nodes so a fast mood-switch doesn't leak the array.
+  const toDispose = cineMusicNodes;
+  cineMusicNodes = null;
+
+  // Dispose loops immediately — they're scheduled on the Transport which is
+  // already stopped, so cancelling them now is safe and prevents any future
+  // chord triggers from firing on synths that are about to be disposed.
+  toDispose.forEach(n => {
+    if (n instanceof Tone.Loop) {
+      try { n.stop(0); } catch(e){}
+      try { n.cancel(0); } catch(e){}
+      try { n.dispose(); } catch(e){}
+    }
+  });
+
+  // Defer synth/effect disposal so already-triggered notes can finish their
+  // release tails. Each call schedules its OWN timer for its OWN snapshot —
+  // rapid mood switches result in multiple pending timers, each disposing
+  // its own batch when it fires. This guarantees no synth leaks even under
+  // fast clicking.
+  setTimeout(() => {
+    toDispose.forEach(n => {
       if (!(n instanceof Tone.Loop)) {
-        try { if (n.stop) n.stop(0); } catch(e){}
         try { if (n.dispose) n.dispose(); } catch(e){}
       }
     });
-    cineMusicNodes = null;
-  }
+  }, CINE_DISPOSE_DELAY_MS);
 }
 
 async function startCineMusic(mood) {
