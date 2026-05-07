@@ -13826,6 +13826,7 @@ const GRID_TARGET_PX = 400;
 const GRID_QUALITY = 0.65;
 const GRID_MAX_FILE_SIZE = 100 * 1024; // 100KB (matches bucket limit)
 const GRID_UPLOAD_TIMEOUT = 20000; // 20 seconds per file
+const GRID_SIGNED_URL_TTL = 24 * 60 * 60; // 24 hours, in seconds. Long enough that a user keeping the dashboard tab open all day still sees images. Short enough that a leaked URL becomes useless within a day.
 
 let gridPhotos = []; // Array of {id, url, isSaved}, url is Supabase public URL for saved, or blob: URL for unsaved
 let gridInited = false;
@@ -14169,9 +14170,31 @@ async function loadSavedGrid() {
     const { data, error } = await sb.from('grid_plan').select('photo_urls').eq('user_id', currentUser.id).maybeSingle();
     if (error || !data) { gridLoaded = true; return; }
     const urls = Array.isArray(data.photo_urls) ? data.photo_urls : [];
-    // Validate URLs (only from grid-photos bucket)
+    // Validate URLs (only from grid-photos bucket).
     const valid = urls.filter(validGridPhotoUrl);
-    gridPhotos = valid.map(url => ({ id: gridIdSeq++, url, isSaved: true }));
+
+    // Bucket is private. Re-sign each stored URL to a fresh 24h signed URL.
+    // Stored values may be either old /public/ URLs or previously-signed
+    // URLs whose token has expired; both parse to the same path. Sign in
+    // parallel for speed. If a sign fails, drop that photo (the file may
+    // have been deleted from storage).
+    const signedPhotos = [];
+    if (valid.length > 0) {
+      const signResults = await Promise.all(valid.map(async (storedUrl) => {
+        const path = gridPhotoPath(storedUrl);
+        if (!path) return null;
+        try {
+          const { data: s, error: sErr } = await sb.storage
+            .from('grid-photos')
+            .createSignedUrl(path, GRID_SIGNED_URL_TTL);
+          if (sErr || !s?.signedUrl) return null;
+          return s.signedUrl;
+        } catch { return null; }
+      }));
+      signResults.forEach(u => { if (u) signedPhotos.push(u); });
+    }
+
+    gridPhotos = signedPhotos.map(url => ({ id: gridIdSeq++, url, isSaved: true }));
     gridDirty = false;
     gridLoaded = true;
     renderGrid();
@@ -14187,9 +14210,24 @@ function validGridPhotoUrl(u) {
     const url = new URL(u);
     if (url.protocol !== 'https:') return false;
     if (url.hostname !== 'kjytapcgxukalwsyputk.supabase.co') return false;
-    if (!url.pathname.includes('/storage/v1/object/public/grid-photos/')) return false;
+    // Accept both public and signed URL paths. The bucket is now private
+    // and we re-sign on load, but stored values may still contain old
+    // /public/ URLs from before the migration. Either format parses to
+    // the same path via gridPhotoPath() below.
+    if (!url.pathname.includes('/storage/v1/object/public/grid-photos/')
+        && !url.pathname.includes('/storage/v1/object/sign/grid-photos/')) return false;
     return true;
   } catch { return false; }
+}
+
+// Extract the storage path from any grid-photos URL (public OR signed).
+// Returns just the path part after `grid-photos/`, e.g. "abc123/photo-456.webp".
+// Returns null if the URL doesn't match.
+function gridPhotoPath(u) {
+  if (!u || typeof u !== 'string') return null;
+  // Signed URLs have ?token=... — match before the query string.
+  const m = u.match(/\/grid-photos\/([^?]+)/);
+  return m ? m[1] : null;
 }
 
 let gridLastSaveAt = 0;
@@ -14229,11 +14267,14 @@ async function saveGrid() {
         new Promise((_, reject) => setTimeout(() => reject(new Error('Upload timeout')), GRID_UPLOAD_TIMEOUT))
       ]);
       if (upErr) throw new Error(upErr.message || 'Upload failed');
-      const { data: urlData } = sb.storage.from('grid-photos').getPublicUrl(fileName);
-      if (!urlData?.publicUrl) throw new Error('Could not get photo URL');
-      // Replace blob URL with the public one; keep blob alive until after DB save succeeds
+      // Bucket is private; sign a 24h URL for immediate display.
+      const { data: signedData, error: signErr } = await sb.storage
+        .from('grid-photos')
+        .createSignedUrl(fileName, GRID_SIGNED_URL_TTL);
+      if (signErr || !signedData?.signedUrl) throw new Error('Could not sign photo URL');
+      // Replace blob URL with the signed one; keep blob alive until after DB save succeeds
       if (p.url.startsWith('blob:')) URL.revokeObjectURL(p.url);
-      p.url = urlData.publicUrl;
+      p.url = signedData.signedUrl;
       p.blob = null;
       p.isSaved = true;
     }
@@ -14268,8 +14309,9 @@ async function deleteStaleGridPhotos() {
   try {
     const inUse = new Set();
     gridPhotos.forEach(p => {
-      const m = p.url.match(/grid-photos\/(.+)$/);
-      if (m) inUse.add(m[1]);
+      // Use shared helper so it strips ?token=... from signed URLs too.
+      const path = gridPhotoPath(p.url);
+      if (path) inUse.add(path);
     });
 
     // Paginate through the user's folder in case of accumulated orphans
