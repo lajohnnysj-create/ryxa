@@ -33,6 +33,12 @@ function getSigningKey() {
   return crypto.createHash('sha256').update('ryxa_gcal_ticket_' + TICKET_SIGNING_SECRET).digest();
 }
 
+// Distinct prefix from getSigningKey() so a leaked ticket-signing key can't
+// forge state, and vice versa. Matches the Instagram OAuth pattern.
+function getStateSigningKey() {
+  return crypto.createHash('sha256').update('ryxa_gcal_state_' + TICKET_SIGNING_SECRET).digest();
+}
+
 function verifyTicket(rawTicket) {
   try {
     const decoded = Buffer.from(rawTicket, 'base64url').toString('utf8');
@@ -93,10 +99,19 @@ module.exports = async function handler(req, res) {
     return res.status(401).send('Invalid or expired ticket. Please refresh and try again.');
   }
 
-  // CSRF state: random nonce in httpOnly cookie + sent to Google in state param
+  // CSRF state: random nonce in httpOnly cookie + HMAC-signed state in OAuth.
+  // Belt and suspenders:
+  //   - Cookie binding: proves it's the same browser that initiated the flow
+  //   - HMAC signature: proves Ryxa generated the state (state.uid can't be tampered)
+  // Either failure causes the callback to reject. Pattern matches the
+  // Instagram and Stripe Connect callbacks.
   const stateNonce = crypto.randomBytes(24).toString('base64url');
-  const statePayload = JSON.stringify({ uid: userId, n: stateNonce });
-  const stateB64 = Buffer.from(statePayload).toString('base64url');
+  const statePayload = JSON.stringify({ uid: userId, n: stateNonce, ts: Date.now() });
+  const stateHmac = crypto
+    .createHmac('sha256', getStateSigningKey())
+    .update(statePayload)
+    .digest('hex');
+  const stateB64 = Buffer.from(JSON.stringify({ p: statePayload, h: stateHmac })).toString('base64url');
 
   res.setHeader(
     'Set-Cookie',

@@ -19,8 +19,63 @@ const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_OAUTH_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_OAUTH_CLIENT_SECRET;
 const GOOGLE_REDIRECT_URI = process.env.GOOGLE_OAUTH_REDIRECT_URI;
+const TICKET_SIGNING_SECRET = process.env.GCAL_TICKET_SIGNING_SECRET;
+
+const crypto = require('crypto');
 
 const DASHBOARD_URL = 'https://ryxa.io/dashboard.html';
+
+// State token TTL — reject states older than 10 minutes.
+const STATE_MAX_AGE_MS = 10 * 60 * 1000;
+
+// Must match the prefix in google-calendar-start.js getStateSigningKey()
+function getStateSigningKey() {
+  return crypto.createHash('sha256').update('ryxa_gcal_state_' + TICKET_SIGNING_SECRET).digest();
+}
+
+// Verify HMAC-signed state and return parsed payload, or null on any failure.
+// Returns { uid, n, ts } on success.
+function verifyState(stateRaw) {
+  if (!stateRaw) return null;
+  try {
+    const decoded = Buffer.from(String(stateRaw), 'base64url').toString('utf8');
+    const wrapper = JSON.parse(decoded);
+    if (!wrapper || !wrapper.p || !wrapper.h) return null;
+
+    const payloadStr = wrapper.p;
+    const receivedHmac = wrapper.h;
+    const expectedHmac = crypto
+      .createHmac('sha256', getStateSigningKey())
+      .update(payloadStr)
+      .digest('hex');
+
+    if (
+      receivedHmac.length !== expectedHmac.length ||
+      !crypto.timingSafeEqual(
+        Buffer.from(receivedHmac, 'hex'),
+        Buffer.from(expectedHmac, 'hex')
+      )
+    ) {
+      console.error('Calendar state HMAC mismatch');
+      return null;
+    }
+
+    const payload = JSON.parse(payloadStr);
+    if (!payload || !payload.uid || !payload.n || !payload.ts) return null;
+
+    // Expiry check
+    const age = Date.now() - Number(payload.ts);
+    if (!isFinite(age) || age < 0 || age > STATE_MAX_AGE_MS) {
+      console.error('Calendar state expired, age:', age);
+      return null;
+    }
+
+    return payload;
+  } catch (e) {
+    console.error('Calendar verifyState failed:', e.message);
+    return null;
+  }
+}
 
 function redirectWithFlag(res, flag, reason) {
   const url = new URL(DASHBOARD_URL);
@@ -54,15 +109,16 @@ module.exports = async function handler(req, res) {
     return redirectWithFlag(res, 'error', 'state_missing');
   }
 
-  let stateData;
-  try {
-    const decoded = Buffer.from(String(state), 'base64url').toString('utf8');
-    stateData = JSON.parse(decoded);
-  } catch (e) {
+  // HMAC-verify state. Defense in depth: cookie binding alone proves the
+  // browser session, but HMAC additionally proves Ryxa generated the state
+  // (no tampering of state.uid possible). Both checks must pass.
+  const stateData = verifyState(state);
+  if (!stateData) {
     return redirectWithFlag(res, 'error', 'state_invalid');
   }
 
-  if (!stateData || stateData.n !== cookieNonce || !stateData.uid) {
+  // Cookie nonce must match what we embedded in the signed state.
+  if (stateData.n !== cookieNonce) {
     return redirectWithFlag(res, 'error', 'state_mismatch');
   }
 
