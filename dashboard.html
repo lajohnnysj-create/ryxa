@@ -23497,9 +23497,24 @@ function stopCineMusic() {
   // the previous stop happened — the scheduled events are in the past.
   try { Tone.Transport.position = 0; } catch(e){}
   if (cineMusicNodes) {
+    // Dispose in two passes to prevent "Synth was already disposed" errors.
+    // Tone.Loop instances schedule callbacks on the Transport that hold
+    // closure references to the synths. If we dispose a synth before its
+    // loop is stopped, the loop's already-queued callback fires on a dead
+    // synth and throws. Stop+dispose all loops first, THEN dispose everything
+    // else, so no callbacks remain that could reference disposed synths.
     cineMusicNodes.forEach(n => {
-      try { if (n.stop) n.stop(0); } catch(e){}
-      try { if (n.dispose) n.dispose(); } catch(e){}
+      if (n instanceof Tone.Loop) {
+        try { n.stop(0); } catch(e){}
+        try { n.cancel(0); } catch(e){}
+        try { n.dispose(); } catch(e){}
+      }
+    });
+    cineMusicNodes.forEach(n => {
+      if (!(n instanceof Tone.Loop)) {
+        try { if (n.stop) n.stop(0); } catch(e){}
+        try { if (n.dispose) n.dispose(); } catch(e){}
+      }
     });
     cineMusicNodes = null;
   }
