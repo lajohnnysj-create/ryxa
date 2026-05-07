@@ -15486,11 +15486,22 @@ async function connectStripeAccount() {
   }
 
   try {
-    // Request a signed OAuth URL from our secure backend
+    // Request a signed OAuth URL from our secure backend.
+    // Send the Supabase access token in the Authorization header so the
+    // server can verify the session and extract user_id from it. The
+    // server intentionally ignores any user_id in the body to prevent
+    // an attacker from generating a state token signed with someone
+    // else's user_id and hijacking their Stripe Connect binding.
+    const accessToken = window._supabaseAccessToken;
+    if (!accessToken) {
+      throw new Error('Not signed in');
+    }
     const resp = await fetch('/api/stripe-connect-start', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: currentUser.id }),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + accessToken,
+      },
     });
 
     const data = await resp.json();
