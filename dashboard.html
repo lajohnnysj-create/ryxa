@@ -7950,11 +7950,36 @@ const STRIPE_PRICE_MAX = 'price_1TLQdmFQ1L0aeJrZxntN3EhI';
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// Auth module: closure-scoped access token holder. Replaces the previous
+// window._supabaseAccessToken global, which was readable by any script
+// running in this page (extensions, supply-chain XSS, etc.).
+//
+// The token is still fundamentally accessible via sb.auth.getSession() or
+// localStorage to any code in this origin — that's an unavoidable property
+// of a JS-SDK auth model. But removing the named global eliminates the
+// most common opportunistic exfiltration pattern (scripts that grep window
+// for token-shaped values).
+//
+// Usage:
+//   Auth.getToken()                  // current access token, or '' if not signed in
+//   Auth.setToken(token)             // explicit set (used by initAuth)
+//   Auth.headers()                   // {Content-Type, Authorization} for fetch
+const Auth = (function() {
+  var _token = '';
+  return {
+    getToken: function() { return _token; },
+    setToken: function(t) { _token = t || ''; },
+    headers: function() {
+      var h = { 'Content-Type': 'application/json' };
+      if (_token) h['Authorization'] = 'Bearer ' + _token;
+      return h;
+    }
+  };
+})();
+
 // Helper: get auth headers for AI API calls
 function getAIHeaders() {
-  var headers = { 'Content-Type': 'application/json' };
-  if (window._supabaseAccessToken) headers['Authorization'] = 'Bearer ' + window._supabaseAccessToken;
-  return headers;
+  return Auth.headers();
 }
 
 // Wrap window.fetch to auto-refresh AI usage after any /api/ai- or /api/alt-text call.
@@ -8032,13 +8057,13 @@ var isPwaMode = window.matchMedia('(display-mode: standalone)').matches
 async function initAuth() {
   const { data: { session } } = await sb.auth.getSession();
   if (!session?.user) { _authCompleted = true; showPwaLogin(); return; }
-  window._supabaseAccessToken = session.access_token || '';
+  Auth.setToken(session.access_token);
   await setUser(session.user);
   _authCompleted = true;
   try { sessionStorage.removeItem('_authRetry'); } catch(e) {}
   sb.auth.onAuthStateChange((_event, session) => {
-    if (!session?.user) { showPwaLogin(); }
-    else window._supabaseAccessToken = session.access_token || '';
+    if (!session?.user) { Auth.setToken(''); showPwaLogin(); }
+    else Auth.setToken(session.access_token);
   });
 }
 
@@ -15455,7 +15480,7 @@ async function loadStripeConnectStatus() {
 
   try {
     const stripeStatusRes = await fetch('/api/stripe-status', {
-      headers: { Authorization: 'Bearer ' + (window._supabaseAccessToken || '') }
+      headers: { Authorization: 'Bearer ' + Auth.getToken() }
     });
     const status = stripeStatusRes.ok ? await stripeStatusRes.json() : { connected: false };
 
@@ -15492,7 +15517,7 @@ async function connectStripeAccount() {
     // server intentionally ignores any user_id in the body to prevent
     // an attacker from generating a state token signed with someone
     // else's user_id and hijacking their Stripe Connect binding.
-    const accessToken = window._supabaseAccessToken;
+    const accessToken = Auth.getToken();
     if (!accessToken) {
       throw new Error('Not signed in');
     }
@@ -17860,7 +17885,7 @@ async function toggleCoachingPublish() {
     }
 
     var stripeStatusRes = await fetch('/api/stripe-status', {
-      headers: { Authorization: 'Bearer ' + (window._supabaseAccessToken || '') }
+      headers: { Authorization: 'Bearer ' + Auth.getToken() }
     });
     var stripeStatus = stripeStatusRes.ok ? await stripeStatusRes.json() : { connected: false };
     if (!stripeStatus.connected) {
@@ -18261,7 +18286,7 @@ async function toggleCoursePublish() {
 
     // Check Stripe is connected
     var stripeStatusRes = await fetch('/api/stripe-status', {
-      headers: { Authorization: 'Bearer ' + (window._supabaseAccessToken || '') }
+      headers: { Authorization: 'Bearer ' + Auth.getToken() }
     });
     var stripeStatus = stripeStatusRes.ok ? await stripeStatusRes.json() : { connected: false };
     if (!stripeStatus.connected) {
@@ -27592,7 +27617,7 @@ async function toggleProductPublish() {
   // If publishing, check Stripe is connected (matches courses + coaching publish gate)
   if (goingLive) {
     var stripeStatusRes = await fetch('/api/stripe-status', {
-      headers: { Authorization: 'Bearer ' + (window._supabaseAccessToken || '') }
+      headers: { Authorization: 'Bearer ' + Auth.getToken() }
     });
     var stripeStatus = stripeStatusRes.ok ? await stripeStatusRes.json() : { connected: false };
     if (!stripeStatus.connected) {
