@@ -153,14 +153,30 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'This product has no files yet' });
     }
 
-    // 5. Check for an existing free purchase by this buyer (idempotency)
+    // 5. Rate limit: max 10 claims per buyer per hour. Re-uses the existing
+    // digital_product_purchases table — counts the buyer's recent rows
+    // instead of maintaining a separate rate-limit table. The idempotency
+    // check below caps repeated claims of the SAME product to one row total,
+    // so this rate limit primarily targets attackers enumerating distinct
+    // free products to spam Resend emails or pollute purchase data.
+    var oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    var recent = await sbSelect(
+      'digital_product_purchases?buyer_user_id=eq.' + encodeURIComponent(buyer.id) +
+      '&purchased_at=gte.' + encodeURIComponent(oneHourAgo) +
+      '&select=id'
+    );
+    if (recent && recent.length >= 10) {
+      return res.status(429).json({ error: 'Too many claims. Please try again later.' });
+    }
+
+    // 6. Check for an existing free purchase by this buyer (idempotency)
     var existing = await sbSelect('digital_product_purchases?product_id=eq.' + encodeURIComponent(productId) + '&buyer_user_id=eq.' + encodeURIComponent(buyer.id) + '&select=id&limit=1');
     if (existing && existing.length > 0) {
       // Already claimed — that's fine, return success
       return res.status(200).json({ ok: true, already_claimed: true });
     }
 
-    // 6. Create purchase row
+    // 7. Create purchase row
     try {
       await sbInsert('digital_product_purchases', {
         product_id: productId,
@@ -180,14 +196,14 @@ module.exports = async (req, res) => {
       throw insErr;
     }
 
-    // 7. Look up creator name (for email)
+    // 8. Look up creator name (for email)
     var profiles = await sbSelect('profiles?user_id=eq.' + encodeURIComponent(product.user_id) + '&select=username&limit=1');
     var creatorName = '';
     if (profiles && profiles.length > 0) {
       creatorName = profiles[0].username || '';
     }
 
-    // 8. Send confirmation email (best-effort — don't fail the request)
+    // 9. Send confirmation email (best-effort — don't fail the request)
     try {
       var html = buildBuyerEmailHtml(product.title, creatorName);
       await sendEmail(buyer.email, 'Your download — ' + product.title, html);
