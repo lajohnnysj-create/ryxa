@@ -23491,6 +23491,11 @@ function toggleCineMusic() {
 function stopCineMusic() {
   try { Tone.Transport.stop(); } catch(e){}
   try { Tone.Transport.cancel(0); } catch(e){}
+  // Reset the Transport's playhead. Without this, switching between moods
+  // (peaceful, comedy, action) won't replay because the new Loops are
+  // scheduled at position 0 but Transport.start() resumes from wherever
+  // the previous stop happened — the scheduled events are in the past.
+  try { Tone.Transport.position = 0; } catch(e){}
   if (cineMusicNodes) {
     cineMusicNodes.forEach(n => {
       try { if (n.stop) n.stop(0); } catch(e){}
