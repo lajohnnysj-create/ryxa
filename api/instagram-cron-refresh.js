@@ -14,6 +14,7 @@
 // =====================================================================
 
 const { refreshInstagramData } = require('./_instagram-fetch-helper.js');
+const crypto = require('crypto');
 
 const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -38,7 +39,18 @@ module.exports = async function handler(req, res) {
     return res.status(500).json({ ok: false, error: 'Cron secret not configured' });
   }
   const provided = req.headers['x-cron-secret'] || req.headers['X-Cron-Secret'] || '';
-  if (provided !== CRON_SECRET) {
+  // Use timingSafeEqual to prevent timing-attack inference of the secret.
+  // Length-mismatch returns early (constant time), then byte-compare runs in
+  // constant time regardless of where the mismatch is.
+  let validSecret = false;
+  try {
+    const a = Buffer.from(provided);
+    const b = Buffer.from(CRON_SECRET);
+    if (a.length === b.length) {
+      validSecret = crypto.timingSafeEqual(a, b);
+    }
+  } catch (e) { /* validSecret stays false */ }
+  if (!validSecret) {
     return res.status(401).json({ ok: false, error: 'Invalid cron secret' });
   }
 
