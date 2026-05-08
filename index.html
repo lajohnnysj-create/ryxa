@@ -157,7 +157,7 @@
   .modal-msg { padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 12px; display: none; }
   .modal-msg.error { background: rgba(239,68,68,0.1); color: #fca5a5; border: 1px solid rgba(239,68,68,0.2); }
   .modal-msg.success { background: rgba(74,222,128,0.1); color: #86efac; border: 1px solid rgba(74,222,128,0.2); }
-  .forgot-link { text-align: right; font-size: 12px; color: var(--muted); cursor: pointer; margin-top: -6px; margin-bottom: 12px; display: block; }
+  .forgot-link { background: none; border: none; padding: 0; font: inherit; width: 100%; text-align: right; font-size: 12px; color: var(--muted); cursor: pointer; margin-top: -6px; margin-bottom: 12px; display: block; }
   .forgot-link:hover { color: var(--accent2); }
   @keyframes spin { to { transform: rotate(360deg); } }
   .auth-spinner { display: inline-block; width: 15px; height: 15px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 8px; }
@@ -605,14 +605,14 @@
     <div class="auth-divider"><span>or</span></div>
     <input class="modal-input" id="auth-email" type="email" aria-label="Email address" placeholder="Email address" autocomplete="email">
     <input class="modal-input" id="auth-password" type="password" aria-label="Password" placeholder="Password" autocomplete="current-password">
-    <a class="forgot-link" id="forgot-password-link" onclick="handleForgotPassword()">Forgot password?</a>
+    <button type="button" class="forgot-link" id="forgot-password-link" onclick="handleForgotPassword()">Forgot password?</button>
     <div id="auth-turnstile" style="margin-bottom:12px;"></div>
     <button class="modal-btn" id="auth-submit-btn" onclick="handleAuth()">Sign in</button>
   </div>
 </div>
 
 
-<main id="main-content" tabindex="-1">
+<main>
 
 <section class="hero">
   <div class="hero-bg"></div>
@@ -621,7 +621,7 @@
     <div class="hero-split">
       <div class="hero-left">
         <div class="hero-eyebrow">All-in-one platform for creators</div>
-        <h1>Build a <span class="gradient-text">creator business</span> that's actually yours.</h1>
+        <h1 id="main-content" tabindex="-1">Build a <span class="gradient-text">creator business</span> that's actually yours.</h1>
         <p class="hero-sub">Ryxa helps creators monetize their audience and build a professional brand. Link in bio, courses, and digital products in one AI dashboard.</p>
         <div class="hero-actions" data-nosnippet>
           <button class="btn-primary" onclick="openSignupModal()">Get started free &#x2192;</button>
@@ -1886,7 +1886,7 @@
     <h2>Ready to grow smarter?</h2>
     <p>Join creators who own what they build.</p>
     <button class="btn-primary" onclick="openSignupModal()" data-nosnippet style="font-size:17px;padding:17px 44px;">Get started free &#x2192;</button>
-    <div style="margin-top:20px;font-size:14px;color:var(--muted);">Already have an account? <a onclick="openAuthModal()" style="color:var(--accent2);cursor:pointer;text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='#e879f9'" onmouseout="this.style.color='var(--accent2)'">Sign in</a> &nbsp;·&nbsp; <a href="pricing.html" style="color:var(--accent2);text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='#e879f9'" onmouseout="this.style.color='var(--accent2)'">View plans</a></div>
+    <div style="margin-top:20px;font-size:14px;color:var(--muted);">Already have an account? <button type="button" onclick="openAuthModal()" style="background:none;border:none;padding:0;font:inherit;color:var(--accent2);cursor:pointer;text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='#e879f9'" onmouseout="this.style.color='var(--accent2)'">Sign in</button> &nbsp;·&nbsp; <a href="pricing.html" style="color:var(--accent2);text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='#e879f9'" onmouseout="this.style.color='var(--accent2)'">View plans</a></div>
   </div>
 </section>
 
