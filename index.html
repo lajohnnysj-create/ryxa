@@ -582,11 +582,11 @@
 
 <div id="site-header"></div>
 
-<div class="modal-backdrop" id="auth-modal">
+<div class="modal-backdrop" id="auth-modal" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
   <div class="modal">
     <button class="modal-close" onclick="closeAuthModal()" aria-label="Close">&#x2715;</button>
     <img src="/logo.png" alt="Ryxa" style="width:40px;height:40px;display:block;margin:0 auto 10px;object-fit:contain;">
-    <h2 style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;text-align:center;margin-bottom:4px;letter-spacing:-0.3px;">Welcome to Ryxa</h2>
+    <h2 id="auth-modal-title" style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;text-align:center;margin-bottom:4px;letter-spacing:-0.3px;">Welcome to Ryxa</h2>
     <p style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:14px;">Sign in to access your dashboard</p>
     <div class="auth-tabs">
       <button type="button" class="auth-tab" id="auth-tab-signin" onclick="setAuthMode('signin')">Sign in</button>
@@ -1959,17 +1959,65 @@ async function initAuth() {
 
 function requireAuth(e) { if (!currentUser) { e.preventDefault(); openAuthModal(); } }
 
+// =====================
+// AUTH MODAL: focus trap, inert background, focus return (WAI-ARIA Dialog pattern)
+// =====================
+let _authModalLastFocus = null;
+
+function _authModalGetFocusable() {
+  const modal = document.querySelector('#auth-modal .modal');
+  if (!modal) return [];
+  return Array.from(modal.querySelectorAll(
+    'button:not([disabled]), [href], input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+  )).filter(el => el.offsetParent !== null || el === document.activeElement);
+}
+
+function _authModalTrapFocus(e) {
+  if (e.key !== 'Tab') return;
+  const focusable = _authModalGetFocusable();
+  if (!focusable.length) return;
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  if (e.shiftKey && document.activeElement === first) {
+    e.preventDefault();
+    last.focus();
+  } else if (!e.shiftKey && document.activeElement === last) {
+    e.preventDefault();
+    first.focus();
+  }
+}
+
+function _authModalSetBackgroundInert(on) {
+  // Make everything outside the modal unreachable to keyboard / screen readers
+  document.querySelectorAll('body > *').forEach(el => {
+    if (el.id === 'auth-modal' || el.tagName === 'SCRIPT' || el.tagName === 'STYLE') return;
+    if (on) {
+      el.setAttribute('inert', '');
+      el.setAttribute('aria-hidden', 'true');
+    } else {
+      el.removeAttribute('inert');
+      el.removeAttribute('aria-hidden');
+    }
+  });
+}
+
 function openAuthModal() {
+  _authModalLastFocus = document.activeElement;
   authMode = 'signin'; syncAuthModal();
   document.getElementById('auth-modal').classList.add('open');
+  _authModalSetBackgroundInert(true);
   setTimeout(() => document.getElementById('auth-email')?.focus(), 100);
+  document.addEventListener('keydown', _authModalTrapFocus);
   renderTurnstileWidget();
 }
 
 function openSignupModal() {
+  _authModalLastFocus = document.activeElement;
   authMode = 'signup'; syncAuthModal();
   document.getElementById('auth-modal').classList.add('open');
+  _authModalSetBackgroundInert(true);
   setTimeout(() => document.getElementById('auth-email')?.focus(), 100);
+  document.addEventListener('keydown', _authModalTrapFocus);
   renderTurnstileWidget();
 }
 
@@ -1988,8 +2036,15 @@ window.addEventListener('load', () => {
 
 function closeAuthModal() {
   document.getElementById('auth-modal').classList.remove('open');
+  _authModalSetBackgroundInert(false);
+  document.removeEventListener('keydown', _authModalTrapFocus);
   const el = document.getElementById('auth-msg'); if (el) el.style.display = 'none';
   const btn = document.getElementById('auth-submit-btn'); if (btn) { btn.disabled = false; btn.textContent = 'Sign in'; }
+  // Return focus to whatever opened the modal
+  if (_authModalLastFocus && typeof _authModalLastFocus.focus === 'function') {
+    try { _authModalLastFocus.focus(); } catch (e) {}
+  }
+  _authModalLastFocus = null;
 }
 
 function syncAuthModal() {
