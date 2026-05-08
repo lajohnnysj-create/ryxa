@@ -51,11 +51,11 @@ style.textContent = ''
   // Tools dropdown
   + '.nav-tools-wrap{position:relative;display:flex;align-items:center;}'
   + '.nav-tools-trigger{display:inline-flex;align-items:center;gap:5px;color:var(--muted);font-size:14px;cursor:pointer;background:none;border:none;font-family:"DM Sans",sans-serif;padding:10px 12px;margin:-10px -12px;transition:color 0.2s;}'
-  + '.nav-tools-trigger:hover,.nav-tools-wrap:hover .nav-tools-trigger,.nav-tools-wrap:focus-within .nav-tools-trigger{color:var(--text);}'
+  + '.nav-tools-trigger:hover,.nav-tools-wrap:hover .nav-tools-trigger,.nav-tools-wrap.nav-open .nav-tools-trigger{color:var(--text);}'
   + '.nav-tools-trigger svg{transition:transform 0.2s;}'
-  + '.nav-tools-wrap:hover .nav-tools-trigger svg,.nav-tools-wrap:focus-within .nav-tools-trigger svg{transform:rotate(180deg);}'
+  + '.nav-tools-wrap:hover .nav-tools-trigger svg,.nav-tools-wrap.nav-open .nav-tools-trigger svg{transform:rotate(180deg);}'
   + '.nav-tools-menu{position:absolute;top:100%;left:-12px;transform:translateY(0);width:720px;max-width:calc(100vw - 32px);background:rgba(15,15,26,0.98);backdrop-filter:blur(20px);border:1px solid var(--border-hover);border-radius:16px;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,0.5);opacity:0;pointer-events:none;transition:opacity 0.18s,transform 0.18s;z-index:250;}'
-  + '.nav-tools-wrap:hover .nav-tools-menu,.nav-tools-wrap:focus-within .nav-tools-menu{opacity:1;pointer-events:all;transform:translateY(0);}'
+  + '.nav-tools-wrap:hover .nav-tools-menu,.nav-tools-wrap.nav-open .nav-tools-menu{opacity:1;pointer-events:all;transform:translateY(0);}'
   + '.nav-tools-wrap::before{content:"";position:absolute;top:100%;left:-30px;right:-30px;height:24px;}'
   + '.nav-tools-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;}'
   + '.nav-tools-item{display:flex;align-items:flex-start;gap:12px;padding:12px;border-radius:10px;text-decoration:none;transition:background 0.15s;color:inherit;}'
@@ -337,6 +337,111 @@ function siteNavCheckAuth() {
 // =====================
 renderHeader();
 renderFooter();
+
+// =====================
+// DROPDOWN KEYBOARD HANDLERS (APG Disclosure / Menu Button pattern)
+// - Tab through triggers does NOT auto-open menus
+// - Enter/Space/ArrowDown on trigger opens menu and focuses first item
+// - Escape closes menu and returns focus to trigger
+// - Tab from open menu closes it and continues normal tab order
+// - Items get tabindex="-1" while closed so Tab skips over them
+// =====================
+(function setupNavDropdowns() {
+  var wraps = document.querySelectorAll('.nav-tools-wrap');
+  if (!wraps.length) return;
+
+  function getItems(wrap) {
+    return wrap.querySelectorAll('.nav-tools-menu a');
+  }
+
+  function closeMenu(wrap, returnFocus) {
+    wrap.classList.remove('nav-open');
+    var trigger = wrap.querySelector('.nav-tools-trigger');
+    if (trigger) trigger.setAttribute('aria-expanded', 'false');
+    getItems(wrap).forEach(function(a) { a.setAttribute('tabindex', '-1'); });
+    if (returnFocus && trigger) trigger.focus();
+  }
+
+  function openMenu(wrap, focusFirst) {
+    // Close any other open menus first
+    document.querySelectorAll('.nav-tools-wrap.nav-open').forEach(function(other) {
+      if (other !== wrap) closeMenu(other, false);
+    });
+    wrap.classList.add('nav-open');
+    var trigger = wrap.querySelector('.nav-tools-trigger');
+    if (trigger) trigger.setAttribute('aria-expanded', 'true');
+    var items = getItems(wrap);
+    items.forEach(function(a) { a.setAttribute('tabindex', '0'); });
+    if (focusFirst && items.length) items[0].focus();
+  }
+
+  wraps.forEach(function(wrap) {
+    var trigger = wrap.querySelector('.nav-tools-trigger');
+    if (!trigger) return;
+
+    // ARIA wiring
+    trigger.setAttribute('aria-expanded', 'false');
+    trigger.setAttribute('aria-haspopup', 'true');
+
+    // Items start out of tab order
+    getItems(wrap).forEach(function(a) { a.setAttribute('tabindex', '-1'); });
+
+    // Trigger keyboard: Enter / Space / ArrowDown opens
+    trigger.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
+        // The Hub trigger has its own onclick that navigates — let it through on Enter only if menu is empty
+        if (getItems(wrap).length === 0) return;
+        e.preventDefault();
+        openMenu(wrap, true);
+      } else if (e.key === 'Escape') {
+        closeMenu(wrap, true);
+      }
+    });
+
+    // Trigger click: toggle (mouse + touch). Don't prevent default for the Hub
+    // trigger (it has an onclick that navigates) — only handle when there are items.
+    trigger.addEventListener('click', function(e) {
+      if (getItems(wrap).length === 0) return;
+      e.preventDefault();
+      if (wrap.classList.contains('nav-open')) {
+        closeMenu(wrap, false);
+      } else {
+        openMenu(wrap, false);
+      }
+    });
+
+    // Menu items: Escape closes, Tab from last item closes (so focus continues naturally)
+    getItems(wrap).forEach(function(item, idx, all) {
+      item.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          closeMenu(wrap, true);
+        } else if (e.key === 'Tab' && !e.shiftKey && idx === all.length - 1) {
+          // Tabbing forward off last item — close menu, let browser do natural tab
+          closeMenu(wrap, false);
+        } else if (e.key === 'Tab' && e.shiftKey && idx === 0) {
+          // Shift+Tab off first item — close menu, let browser tab back to trigger
+          closeMenu(wrap, false);
+        }
+      });
+    });
+
+    // Click outside closes
+    document.addEventListener('click', function(e) {
+      if (wrap.classList.contains('nav-open') && !wrap.contains(e.target)) {
+        closeMenu(wrap, false);
+      }
+    });
+
+    // Focus moving outside the wrap closes (covers tab-through edge cases)
+    wrap.addEventListener('focusout', function(e) {
+      // relatedTarget is the element receiving focus; if it's outside this wrap, close
+      if (e.relatedTarget && !wrap.contains(e.relatedTarget)) {
+        closeMenu(wrap, false);
+      }
+    });
+  });
+})();
 
 // Auto-tag first content element with id="main-content" for skip link
 if (!document.getElementById('main-content')) {
