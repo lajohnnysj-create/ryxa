@@ -95,6 +95,11 @@ const BIO_FONTS_SSR = {
 // the default DM Sans declaration in mediakit.html's stylesheet on body, .name,
 // .bio, etc. — anything that should pick up the creator's chosen font.
 function buildFontInjection(fontKey) {
+  // When the chosen font is the default ('DM Sans' or null/unknown), inject
+  // nothing. The static mediakit.html stylesheet already paints DM Sans on
+  // the body and 'Syne' on headings (.hero-name, .hero-handle, etc) for
+  // Ryxa's signature visual hierarchy. Skipping the override preserves that look.
+  if (!fontKey || fontKey === 'DM Sans') return '';
   const font = BIO_FONTS_SSR[fontKey] || BIO_FONTS_SSR['DM Sans'];
   const link = `<link href="https://fonts.googleapis.com/css2?family=${font.gfont}:wght@${font.weights}&display=swap" rel="stylesheet">`;
   // Wildcard `body *` ensures every element picks up the creator's chosen

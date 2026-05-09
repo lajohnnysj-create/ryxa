@@ -105,6 +105,11 @@ const BIO_FONTS_SSR = {
 
 // Returns { link, style } strings to inject into <head>. Falls back to default if key invalid.
 function buildFontInjection(fontKey) {
+  // When the chosen font is the default ('DM Sans' or null/unknown), inject
+  // nothing. The static bio.html stylesheet already paints DM Sans on the body
+  // and 'Syne' on headings (.name, .hero-name, .hero-handle) for Ryxa's
+  // signature visual hierarchy. Skipping the override preserves that look.
+  if (!fontKey || fontKey === 'DM Sans') return '';
   const font = BIO_FONTS_SSR[fontKey] || BIO_FONTS_SSR['DM Sans'];
   const link = `<link href="https://fonts.googleapis.com/css2?family=${font.gfont}:wght@${font.weights}&display=swap" rel="stylesheet">`;
   // Body font is overridden via inline <style> with high specificity
