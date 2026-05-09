@@ -10977,7 +10977,7 @@ async function openCoursePickerModal() {
   const { data: courses } = await sb.from('courses').select('id, title, slug, price_cents, cover_image_path').eq('user_id', currentUser.id).eq('status', 'published').order('created_at', { ascending: false });
 
   if (!courses || courses.length === 0) {
-    showBioStatus('error', 'No published courses found. Create and publish a course first.');
+    showModalAlert('No courses yet', 'You need to create and publish a course before you can add it to your bio. Head to the Course Builder tool to get started.');
     return;
   }
 
@@ -11070,7 +11070,7 @@ async function openCoachingPickerModal() {
   const { data: services } = await sb.from('coaching_services').select('id, title, slug, price_cents, cover_image_path, duration_minutes').eq('user_id', currentUser.id).eq('status', 'published').order('created_at', { ascending: false });
 
   if (!services || services.length === 0) {
-    showBioStatus('error', 'No published bookings found. Create and publish one first.');
+    showModalAlert('No bookings yet', 'You need to create and publish a 1:1 booking before you can add it to your bio. Head to the 1:1 Booking tool to get started.');
     return;
   }
 
@@ -11160,7 +11160,7 @@ async function openProductPickerModal() {
   const { data: products } = await sb.from('digital_products').select('id, title, slug, price_cents, cover_image_url').eq('user_id', currentUser.id).eq('is_active', true).order('updated_at', { ascending: false });
 
   if (!products || products.length === 0) {
-    showBioStatus('error', 'No published digital products found. Create and publish one first.');
+    showModalAlert('No digital products yet', 'You need to create and publish a digital product before you can add it to your bio. Head to the Digital Products tool to get started.');
     return;
   }
 
