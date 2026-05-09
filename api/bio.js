@@ -93,6 +93,12 @@ const BIO_FONTS_SSR = {
   'Lora':                { gfont:'Lora',                weights:'400;500;600;700', stack:"'Lora', serif" },
   'Cormorant':           { gfont:'Cormorant',           weights:'400;500;600;700', stack:"'Cormorant', serif" },
   'JetBrains Mono':      { gfont:'JetBrains+Mono',      weights:'300;400;500;600;700', stack:"'JetBrains Mono', monospace" },
+  'Bebas Neue':          { gfont:'Bebas+Neue',          weights:'400', stack:"'Bebas Neue', sans-serif" },
+  'Anton':               { gfont:'Anton',               weights:'400', stack:"'Anton', sans-serif" },
+  'Archivo Black':       { gfont:'Archivo+Black',       weights:'400', stack:"'Archivo Black', sans-serif" },
+  'Abril Fatface':       { gfont:'Abril+Fatface',       weights:'400', stack:"'Abril Fatface', serif" },
+  'Pacifico':            { gfont:'Pacifico',            weights:'400', stack:"'Pacifico', cursive" },
+  'Caveat':              { gfont:'Caveat',              weights:'400;500;600;700', stack:"'Caveat', cursive" },
 };
 
 // Returns { link, style } strings to inject into <head>. Falls back to default if key invalid.
@@ -101,7 +107,11 @@ function buildFontInjection(fontKey) {
   const link = `<link href="https://fonts.googleapis.com/css2?family=${font.gfont}:wght@${font.weights}&display=swap" rel="stylesheet">`;
   // Body font is overridden via inline <style> with high specificity
   // so it wins against the default DM Sans declaration in bio.html's stylesheet.
-  const style = `<style id="bio-font-override">body, .name, .bio, .link, .header, .videos-title, .video-title { font-family: ${font.stack} !important; }</style>`;
+  // The wildcard `body *` ensures every element on the page picks up the
+  // creator's chosen font, including Syne-styled headings (.name, .hero-name,
+  // section labels, etc). The .brand-banner Ryxa logo banner is excluded so
+  // it stays in DM Sans for cross-site consistency.
+  const style = `<style id="bio-font-override">body, body * { font-family: ${font.stack} !important; } .brand-banner, .brand-banner * { font-family: 'DM Sans', sans-serif !important; }</style>`;
   return link + style;
 }
 

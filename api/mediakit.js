@@ -80,6 +80,12 @@ const BIO_FONTS_SSR = {
   'Lora':                { gfont:'Lora',                weights:'400;500;600;700', stack:"'Lora', serif" },
   'Cormorant':           { gfont:'Cormorant',           weights:'400;500;600;700', stack:"'Cormorant', serif" },
   'JetBrains Mono':      { gfont:'JetBrains+Mono',      weights:'300;400;500;600;700', stack:"'JetBrains Mono', monospace" },
+  'Bebas Neue':          { gfont:'Bebas+Neue',          weights:'400', stack:"'Bebas Neue', sans-serif" },
+  'Anton':               { gfont:'Anton',               weights:'400', stack:"'Anton', sans-serif" },
+  'Archivo Black':       { gfont:'Archivo+Black',       weights:'400', stack:"'Archivo Black', sans-serif" },
+  'Abril Fatface':       { gfont:'Abril+Fatface',       weights:'400', stack:"'Abril Fatface', serif" },
+  'Pacifico':            { gfont:'Pacifico',            weights:'400', stack:"'Pacifico', cursive" },
+  'Caveat':              { gfont:'Caveat',              weights:'400;500;600;700', stack:"'Caveat', cursive" },
 };
 
 // Returns a string of <link> + <style> tags to inject into the <head>.
@@ -89,7 +95,10 @@ const BIO_FONTS_SSR = {
 function buildFontInjection(fontKey) {
   const font = BIO_FONTS_SSR[fontKey] || BIO_FONTS_SSR['DM Sans'];
   const link = `<link href="https://fonts.googleapis.com/css2?family=${font.gfont}:wght@${font.weights}&display=swap" rel="stylesheet">`;
-  const style = `<style id="mk-font-override">body, .h-name, .h-cat, .bio, .sec-content, .stat-l, .stat-n, .rate-l, .rate-p, .contact-box, .contact-n { font-family: ${font.stack} !important; }</style>`;
+  // Wildcard `body *` ensures every element picks up the creator's chosen
+  // font (including Syne-styled headings, stat values, rate labels, etc).
+  // .brand-banner stays DM Sans for Ryxa branding consistency.
+  const style = `<style id="mk-font-override">body, body * { font-family: ${font.stack} !important; } .brand-banner, .brand-banner * { font-family: 'DM Sans', sans-serif !important; }</style>`;
   return link + style;
 }
 
