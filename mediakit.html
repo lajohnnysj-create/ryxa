@@ -1255,6 +1255,9 @@ const BIO_FONTS_CLIENT = {
 // Falls back to default DM Sans if key invalid or not provided.
 function applyMKFont(fontKey) {
   if (document.getElementById('mk-font-override')) return;
+  // Default ('DM Sans' or null/unknown): no override. The static stylesheet
+  // already paints DM Sans on body + Syne on headings for Ryxa's signature look.
+  if (!fontKey || fontKey === 'DM Sans') return;
   const font = BIO_FONTS_CLIENT[fontKey] || BIO_FONTS_CLIENT['DM Sans'];
   const link = document.createElement('link');
   link.rel = 'stylesheet';

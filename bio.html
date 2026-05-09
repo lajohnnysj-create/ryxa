@@ -1528,6 +1528,9 @@ const BIO_FONTS_CLIENT = {
 function applyBioFont(fontKey) {
   // If SSR already injected the override style, do nothing
   if (document.getElementById('bio-font-override')) return;
+  // Default ('DM Sans' or null/unknown): no override. The static stylesheet
+  // already paints DM Sans on body + Syne on headings for Ryxa's signature look.
+  if (!fontKey || fontKey === 'DM Sans') return;
   const font = BIO_FONTS_CLIENT[fontKey] || BIO_FONTS_CLIENT['DM Sans'];
   // Load the Google Font
   const link = document.createElement('link');
