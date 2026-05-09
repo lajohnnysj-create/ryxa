@@ -1703,14 +1703,11 @@
   /* Dashboard Stats Boxes */
   .dash-stats-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: 720px; width: 100%; margin-bottom: 32px; }
   .dash-stat-box { position: relative; background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; padding: 22px; padding-left: 24px; text-align: left; overflow: visible; transition: border-color 0.2s; }
-  .dash-stat-box::before { content: ''; position: absolute; left: 0; top: 14px; bottom: 14px; width: 3px; border-radius: 0 3px 3px 0; background: var(--dash-stat-accent, #a78bfa); }
+  .dash-stat-box::before { content: ''; position: absolute; left: 0; top: 14px; bottom: 14px; width: 3px; border-radius: 0 3px 3px 0; background: linear-gradient(180deg, #a78bfa, #e879f9); }
   .dash-stat-box:hover { border-color: var(--border-hover); }
-  .dash-stat-box.stat-visits { --dash-stat-accent: #60a5fa; }
-  .dash-stat-box.stat-revenue { --dash-stat-accent: #4ade80; }
-  .dash-stat-box.stat-events { --dash-stat-accent: #e879f9; }
   .dash-stat-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; position: relative; }
-  .dash-stat-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: color-mix(in srgb, var(--dash-stat-accent, #a78bfa) 12%, transparent); border: 1px solid color-mix(in srgb, var(--dash-stat-accent, #a78bfa) 25%, transparent); }
-  .dash-stat-icon svg { width: 16px; height: 16px; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; stroke: var(--dash-stat-accent, #c4b5fd); }
+  .dash-stat-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: linear-gradient(135deg, rgba(124,58,237,0.18), rgba(232,121,249,0.12)); border: 1px solid rgba(167,139,250,0.3); }
+  .dash-stat-icon svg { width: 16px; height: 16px; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; stroke: #fff; }
   .dash-stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
   .dash-stat-info {
     position: relative;
@@ -4187,7 +4184,7 @@
       </div>
       <style>@keyframes dash-spin { to { transform: rotate(360deg); } }</style>
       <div class="welcome-screen" style="display:none;" id="welcome-content">
-        <h1>Welcome back, <span id="welcome-name">creator</span>.</h1>
+        <h1 id="welcome-greeting"><span id="welcome-name">creator</span></h1>
 
         <!-- Time Range Controls -->
         <div class="dash-range-bar" id="dash-range-bar">
@@ -4205,7 +4202,7 @@
         <!-- Stats Boxes -->
         <div class="dash-stats-wrap" id="dash-stats-wrap">
           <!-- Page Visits -->
-          <div class="dash-stat-box stat-visits">
+          <div class="dash-stat-box">
             <div class="dash-stat-header">
               <div class="dash-stat-icon">
                 <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -4223,7 +4220,7 @@
           </div>
 
           <!-- Total Revenue -->
-          <div class="dash-stat-box stat-revenue">
+          <div class="dash-stat-box">
             <div class="dash-stat-header">
               <div class="dash-stat-icon">
                 <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
@@ -4242,15 +4239,15 @@
         </div>
 
         <!-- Upcoming Events -->
-        <div id="dash-upcoming-wrap" class="dash-stat-box stat-events" style="max-width:720px;width:100%;margin-bottom:32px;padding:22px 22px 22px 24px;text-align:left;">
+        <div id="dash-upcoming-wrap" class="dash-stat-box" style="max-width:720px;width:100%;margin-bottom:32px;padding:22px 22px 22px 24px;text-align:left;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;position:relative;">
             <div style="display:flex;align-items:center;gap:10px;">
               <div class="dash-stat-icon">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
               </div>
               <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);font-weight:600;">Upcoming Events</div>
             </div>
-            <button onclick="showTool('calendar')" style="padding:5px 10px;background:transparent;border:1px solid var(--border-hover);border-radius:6px;color:var(--muted);font-size:11px;font-weight:500;cursor:pointer;font-family:DM Sans,sans-serif;transition:all 0.15s;position:relative;" onmouseover="this.style.borderColor='#e879f9';this.style.color='#fff'" onmouseout="this.style.borderColor='var(--border-hover)';this.style.color='var(--muted)'">View Calendar →</button>
+            <button onclick="showTool('calendar')" style="padding:5px 10px;background:transparent;border:1px solid rgba(124,58,237,0.3);border-radius:6px;color:#c4b5fd;font-size:11px;font-weight:500;cursor:pointer;font-family:DM Sans,sans-serif;transition:all 0.15s;position:relative;" onmouseover="this.style.borderColor='rgba(124,58,237,0.6)';this.style.color='#fff'" onmouseout="this.style.borderColor='rgba(124,58,237,0.3)';this.style.color='#c4b5fd'">View Calendar →</button>
           </div>
           <div id="dash-upcoming-list" class="scroll-on-hover" style="max-height:300px;overflow-y:auto;position:relative;"></div>
         </div>
@@ -8069,12 +8066,86 @@ async function initAuth() {
   });
 }
 
+// Rotating welcome greetings. {name} gets replaced with @username (or "creator" if no username yet).
+// Tone: warm, brief, work-focused — never effusive. Mix of creator-context and neutral lines.
+const DASH_GREETINGS = [
+  "Welcome back, {name}.",
+  "Hey {name}.",
+  "Let's get to work, {name}.",
+  "Good to see you, {name}.",
+  "What's on your mind, {name}?",
+  "Ready when you are, {name}.",
+  "Back at it, {name}.",
+  "Where we left off, {name}.",
+  "One thing at a time, {name}.",
+  "Make something today, {name}.",
+  "Pick up where you left off, {name}.",
+  "Good to have you back, {name}.",
+  "Let's build, {name}.",
+  "Hi {name}.",
+  "{name}, let's go.",
+  "Take it slow, {name}.",
+  "Quiet focus today, {name}.",
+  "Small wins add up, {name}.",
+  "Plot twist: another productive day, {name}.",
+  "Showing up is half of it, {name}.",
+  "What's the move, {name}?",
+  "What are we shipping, {name}?",
+  "Welcome in, {name}.",
+  "Glad you're here, {name}.",
+  "Let's make it count, {name}.",
+  "Take your time, {name}.",
+  "One step at a time, {name}.",
+  "Good morning to you, {name}.",
+  "Coffee's still hot, {name}.",
+  "Here goes nothing, {name}.",
+  "What did you create today, {name}?",
+  "Your audience is waiting, {name}.",
+  "First task, then second, {name}.",
+  "Build quietly, {name}.",
+  "Do less, but better, {name}.",
+  "Today's a good day to start, {name}.",
+  "Easy does it, {name}.",
+  "Dust off the to-do list, {name}.",
+  "Eyes up, {name}.",
+  "Block out the noise, {name}.",
+  "Make it real, {name}.",
+  "Just one thing today, {name}.",
+  "Keep it simple, {name}.",
+  "Trust the process, {name}.",
+  "What's the smallest next step, {name}?",
+  "Don't overthink it, {name}.",
+  "Whenever you're ready, {name}.",
+  "The world can wait, {name}.",
+  "Pace yourself, {name}.",
+  "Your work matters, {name}."
+];
+
+function pickDashGreeting(name) {
+  try {
+    var template = DASH_GREETINGS[Math.floor(Math.random() * DASH_GREETINGS.length)];
+    return template.replace('{name}', name || 'creator');
+  } catch(e) {
+    return 'Welcome back, ' + (name || 'creator') + '.';
+  }
+}
+
+function applyDashGreeting(name) {
+  var el = document.getElementById('welcome-greeting');
+  if (!el) return;
+  var line = pickDashGreeting(name);
+  // Wrap the {name} portion in a span styled bolder so the username still pops
+  var safeName = name || 'creator';
+  // Escape minimal HTML in the line to be safe (greetings are static so this is belt-and-suspenders)
+  var html = line.replace(safeName, '<span id="welcome-name">' + safeName + '</span>');
+  el.innerHTML = html;
+}
+
 async function setUser(user) {
   currentUser = user;
   // Update sidebar user info
   const email = document.getElementById('sidebar-email');
   const avatar = document.getElementById('sidebar-avatar');
-  const welcomeName = document.getElementById('welcome-name');
   if (email) email.textContent = user.email;
   if (avatar) avatar.textContent = user.email[0].toUpperCase();
   // Also set menu popup elements
@@ -8097,12 +8168,12 @@ async function setUser(user) {
     const { data: profile } = await sb.from('profiles').select('username, display_currency').eq('user_id', user.id).maybeSingle();
     if (profile?.username) {
       window._ryx_username = profile.username;
-      if (welcomeName) welcomeName.textContent = '@' + profile.username;
+      applyDashGreeting('@' + profile.username);
       var bioLinkText = document.getElementById('sidebar-menu-biolink-text');
       if (bioLinkText) bioLinkText.textContent = 'ryxa.io/' + profile.username;
       showBioLinkButtons();
     } else {
-      if (welcomeName) welcomeName.textContent = 'creator';
+      applyDashGreeting('creator');
     }
     // Load display currency (defaults to USD if not set)
     if (profile?.display_currency && SUPPORTED_CURRENCIES[profile.display_currency]) {
@@ -8874,8 +8945,7 @@ async function confirmSignOut() {
   if (bioInput) bioInput.value = '';
   var mkInput = document.getElementById('mk-username');
   if (mkInput) mkInput.value = '';
-  var welcomeName = document.getElementById('welcome-name');
-  if (welcomeName) welcomeName.textContent = 'creator';
+  if (typeof applyDashGreeting === 'function') applyDashGreeting('creator');
   showPwaLogin();
 }
 
