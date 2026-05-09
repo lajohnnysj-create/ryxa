@@ -2458,14 +2458,12 @@
   @media (max-width: 360px) {
     .bio-themes-grid { grid-template-columns: repeat(2, 1fr); }
   }
-  /* Font picker — list-style tiles, each rendered in its own font so users see what they're picking. */
-  .bio-fonts-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-  @media (max-width: 600px) { .bio-fonts-grid { grid-template-columns: 1fr; } }
-  .bio-font-btn { position: relative; padding: 12px 14px; background: var(--surface); border: 1px solid var(--border-hover); border-radius: 10px; cursor: pointer; color: var(--text); text-align: left; transition: border-color 0.2s, transform 0.15s; display: flex; flex-direction: column; gap: 4px; overflow: hidden; }
-  .bio-font-btn:hover { transform: translateY(-1px); border-color: var(--border-hover); }
-  .bio-font-btn.selected { border-color: var(--accent) !important; box-shadow: 0 0 0 2px var(--accent) !important; background: rgba(124,58,237,0.08); }
-  .bio-font-btn .bio-font-name { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 600; font-family: 'DM Sans', sans-serif; }
-  .bio-font-btn .bio-font-sample { font-size: 17px; font-weight: 500; color: var(--text); line-height: 1.2; letter-spacing: -0.2px; }
+  /* Font picker — dropdown + live sample. Dropdown is full-width; sample
+     renders in the currently selected font so users see what they picked. */
+  .bio-font-select { width: 100%; padding: 10px 12px; background: var(--surface); border: 1px solid var(--border-hover); border-radius: 8px; font-size: 13px; color: var(--text); font-family: 'DM Sans', sans-serif; outline: none; cursor: pointer; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.55)' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; }
+  .bio-font-select:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(124,58,237,0.2); }
+  .bio-font-select option { background: var(--surface); color: var(--text); }
+  .bio-font-preview { margin-top: 12px; padding: 14px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; font-size: 18px; color: var(--text); line-height: 1.4; min-height: 50px; word-break: break-word; }
   .bio-social-row { display: flex; gap: 10px; align-items: center; }
   .bio-social-row .bio-social-icon { width: 32px; height: 32px; border-radius: 8px; background: var(--surface); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--muted); }
   .bio-social-row .bio-social-icon svg { width: 16px; height: 16px; fill: currentColor; }
@@ -4690,7 +4688,8 @@
                 <svg class="bio-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
               </button>
               <div class="bio-section-body" id="bio-body-font">
-                <div id="bio-fonts" class="bio-fonts-grid"></div>
+                <select id="bio-font-select" class="bio-font-select" aria-label="Choose font" onchange="pickBioFont(this.value)"></select>
+                <div class="bio-font-preview" id="bio-font-preview" aria-hidden="true">The quick brown fox jumps over the lazy dog</div>
               </div>
             </div>
 
@@ -5700,7 +5699,8 @@
                 <svg class="mk-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
               </button>
               <div class="mk-section-body" id="mk-body-font" style="display:block;">
-                <div id="mk-fonts" class="bio-fonts-grid"></div>
+                <select id="mk-font-select" class="bio-font-select" aria-label="Choose font" onchange="pickMKFont(this.value)"></select>
+                <div class="bio-font-preview" id="mk-font-preview" aria-hidden="true">The quick brown fox jumps over the lazy dog</div>
               </div>
             </div>
 
@@ -10302,6 +10302,13 @@ const BIO_FONTS = [
   { key:'Lora',                name:'Lora',                gfont:'Lora',                weights:'400;500;600;700', stack:"'Lora', serif" },
   { key:'Cormorant',           name:'Cormorant',           gfont:'Cormorant',           weights:'400;500;600;700', stack:"'Cormorant', serif" },
   { key:'JetBrains Mono',      name:'JetBrains Mono',      gfont:'JetBrains+Mono',      weights:'300;400;500;600;700', stack:"'JetBrains Mono', monospace" },
+  // Display + script fonts (louder, more personality)
+  { key:'Bebas Neue',          name:'Bebas Neue',          gfont:'Bebas+Neue',          weights:'400', stack:"'Bebas Neue', sans-serif" },
+  { key:'Anton',               name:'Anton',               gfont:'Anton',               weights:'400', stack:"'Anton', sans-serif" },
+  { key:'Archivo Black',       name:'Archivo Black',       gfont:'Archivo+Black',       weights:'400', stack:"'Archivo Black', sans-serif" },
+  { key:'Abril Fatface',       name:'Abril Fatface',       gfont:'Abril+Fatface',       weights:'400', stack:"'Abril Fatface', serif" },
+  { key:'Pacifico',            name:'Pacifico (script)',   gfont:'Pacifico',            weights:'400', stack:"'Pacifico', cursive" },
+  { key:'Caveat',              name:'Caveat (handwritten)',gfont:'Caveat',              weights:'400;500;600;700', stack:"'Caveat', cursive" },
 ];
 
 // Helper: Look up a font by key. Falls back to default ('DM Sans').
@@ -10478,26 +10485,35 @@ function pickTheme(t) {
 }
 
 // =====================================================================
-// Font picker (bio) — same pattern as themes, but no tier locks (all free).
-// Each tile shows the font name as a sample rendered in that font.
+// Font picker (bio) — dropdown that lists the 12+6 fonts, with a live
+// sample below rendered in the selected font.
+//
+// Each <option> is styled with its own font-family so the user can scan
+// the list and read each name in its own face. A separate sample div
+// shows the current pick at a larger size for clearer feedback.
 // =====================================================================
 function renderBioFonts() {
-  const container = document.getElementById('bio-fonts');
-  if (!container) return;
-  container.innerHTML = BIO_FONTS.map(f => {
-    const selected = bioState.font_family === f.key ? 'selected' : '';
-    return `<button type="button" class="bio-font-btn ${selected}" data-font="${escapeHtml(f.key)}" onclick="pickBioFont('${escapeHtml(f.key).replace(/'/g, "\\'")}')">
-      <span class="bio-font-name">${escapeHtml(f.name)}</span>
-      <span class="bio-font-sample" style="font-family:${f.stack};">The quick brown fox</span>
-    </button>`;
+  const select = document.getElementById('bio-font-select');
+  const preview = document.getElementById('bio-font-preview');
+  if (!select) return;
+  select.innerHTML = BIO_FONTS.map(f => {
+    const sel = bioState.font_family === f.key ? ' selected' : '';
+    // option font-family is honored on most browsers (not IE; not relevant here)
+    return `<option value="${escapeHtml(f.key)}" style="font-family:${f.stack};"${sel}>${escapeHtml(f.name)}</option>`;
   }).join('');
+  // Update the preview area
+  if (preview) {
+    const font = getBioFont(bioState.font_family);
+    preview.style.fontFamily = font.stack;
+  }
   // Lazily inject Google Fonts <link>s for each picker font into the dashboard <head>
-  // so the samples render in the actual fonts. Cached after first load.
+  // so the option labels and preview render in the actual fonts. Cached after first load.
   injectBioPickerFonts();
 }
 
 // One-time loader: inject all picker fonts into the parent dashboard so the
-// sample text in each tile shows the real face. Only runs once per page load.
+// option text and preview area render in their real face. Only runs once per
+// page load.
 let _bioPickerFontsInjected = false;
 function injectBioPickerFonts() {
   if (_bioPickerFontsInjected) return;
@@ -10513,7 +10529,9 @@ function pickBioFont(key) {
   const font = BIO_FONTS.find(f => f.key === key);
   if (!font) return;
   bioState.font_family = font.key;
-  renderBioFonts();
+  // Update only the preview — no need to re-render the whole dropdown
+  const preview = document.getElementById('bio-font-preview');
+  if (preview) preview.style.fontFamily = font.stack;
   schedulePreviewUpdate();
 }
 
@@ -12411,6 +12429,10 @@ function buildPreviewHTML() {
   ::-webkit-scrollbar-thumb{background:rgba(124,58,237,0.3);border-radius:3px;}
   ::-webkit-scrollbar-thumb:hover{background:rgba(124,58,237,0.5);}
   body{margin:0;padding:${(bioState.avatar_display === 'hero' && bioState.avatar_url) ? '0 0' : '40px 18px'} ${bioState.show_branding ? '80px' : '24px'};font-family:${_bioFont.stack};background:${t.bg};color:${t.text};min-height:100vh;}
+  /* Universal override: force every element to inherit the chosen font.
+     Matches the public bio page behavior where the whole page changes font. */
+  body, body * { font-family: ${_bioFont.stack} !important; }
+  .brand-banner, .brand-banner * { font-family: 'DM Sans', sans-serif !important; }
   ${bgImageCSS}
   ${bgOverlayCSS || glowCSS}
   .w{position:relative;z-index:1;max-width:480px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:14px;}
@@ -13207,18 +13229,20 @@ function pickMKTheme(t) {
 }
 
 // =====================================================================
-// Font picker (media kit) — same pattern as bio. All free.
+// Font picker (media kit) — same dropdown pattern as bio. All free.
 // =====================================================================
 function renderMKFonts() {
-  const container = document.getElementById('mk-fonts');
-  if (!container) return;
-  container.innerHTML = BIO_FONTS.map(f => {
-    const selected = mkState.font_family === f.key ? 'selected' : '';
-    return `<button type="button" class="bio-font-btn ${selected}" data-font="${escapeHtml(f.key)}" onclick="pickMKFont('${escapeHtml(f.key).replace(/'/g, "\\'")}')">
-      <span class="bio-font-name">${escapeHtml(f.name)}</span>
-      <span class="bio-font-sample" style="font-family:${f.stack};">The quick brown fox</span>
-    </button>`;
+  const select = document.getElementById('mk-font-select');
+  const preview = document.getElementById('mk-font-preview');
+  if (!select) return;
+  select.innerHTML = BIO_FONTS.map(f => {
+    const sel = mkState.font_family === f.key ? ' selected' : '';
+    return `<option value="${escapeHtml(f.key)}" style="font-family:${f.stack};"${sel}>${escapeHtml(f.name)}</option>`;
   }).join('');
+  if (preview) {
+    const font = getBioFont(mkState.font_family);
+    preview.style.fontFamily = font.stack;
+  }
   injectBioPickerFonts(); // shared loader, no-op after first call
 }
 
@@ -13226,7 +13250,8 @@ function pickMKFont(key) {
   const font = BIO_FONTS.find(f => f.key === key);
   if (!font) return;
   mkState.font_family = font.key;
-  renderMKFonts();
+  const preview = document.getElementById('mk-font-preview');
+  if (preview) preview.style.fontFamily = font.stack;
   scheduleMKPreview();
 }
 
@@ -14128,6 +14153,10 @@ function buildMKPreviewHTML() {
   ::-webkit-scrollbar-thumb{background:rgba(124,58,237,0.3);border-radius:3px;}
   ::-webkit-scrollbar-thumb:hover{background:rgba(124,58,237,0.5);}
   body{font-family:${_mkFont.stack};background:${t.bg};color:${t.text};min-height:100vh;padding:24px 14px;overflow-x:hidden;}
+  /* Universal override: force every element to inherit the chosen font.
+     Matches the public media kit page behavior where the whole page changes font. */
+  body, body * { font-family: ${_mkFont.stack} !important; }
+  .brand-banner, .brand-banner * { font-family: 'DM Sans', sans-serif !important; }
   ${bgImageCSS}
   ${bgOverlayCSS || `body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 50% 0%,${t.glow} 0%,transparent 60%);pointer-events:none;z-index:0;}`}
   .w{position:relative;z-index:1;max-width:100%;}

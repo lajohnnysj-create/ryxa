@@ -1240,6 +1240,12 @@ const BIO_FONTS_CLIENT = {
   'Lora':                { gfont:'Lora',                weights:'400;500;600;700', stack:"'Lora', serif" },
   'Cormorant':           { gfont:'Cormorant',           weights:'400;500;600;700', stack:"'Cormorant', serif" },
   'JetBrains Mono':      { gfont:'JetBrains+Mono',      weights:'300;400;500;600;700', stack:"'JetBrains Mono', monospace" },
+  'Bebas Neue':          { gfont:'Bebas+Neue',          weights:'400', stack:"'Bebas Neue', sans-serif" },
+  'Anton':               { gfont:'Anton',               weights:'400', stack:"'Anton', sans-serif" },
+  'Archivo Black':       { gfont:'Archivo+Black',       weights:'400', stack:"'Archivo Black', sans-serif" },
+  'Abril Fatface':       { gfont:'Abril+Fatface',       weights:'400', stack:"'Abril Fatface', serif" },
+  'Pacifico':            { gfont:'Pacifico',            weights:'400', stack:"'Pacifico', cursive" },
+  'Caveat':              { gfont:'Caveat',              weights:'400;500;600;700', stack:"'Caveat', cursive" },
 };
 
 // Apply creator's chosen font (client-side fallback path). When SSR runs,
@@ -1254,7 +1260,7 @@ function applyMKFont(fontKey) {
   document.head.appendChild(link);
   const style = document.createElement('style');
   style.id = 'mk-font-override';
-  style.textContent = `body, .h-name, .h-cat, .bio, .sec-content, .stat-l, .stat-n, .rate-l, .rate-p, .contact-box, .contact-n { font-family: ${font.stack} !important; }`;
+  style.textContent = `body, body * { font-family: ${font.stack} !important; } .brand-banner, .brand-banner * { font-family: 'DM Sans', sans-serif !important; }`;
   document.head.appendChild(style);
 }
 
