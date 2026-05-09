@@ -77,6 +77,35 @@ function hexAlpha(hex, alpha) {
 }
 
 // ==========================================================================
+// FONTS — must mirror BIO_FONTS in dashboard.html. Keep in sync when adding new fonts.
+// Each entry maps a key (saved in DB) to a Google Fonts family + weights + CSS stack.
+// ==========================================================================
+const BIO_FONTS_SSR = {
+  'DM Sans':             { gfont:'DM+Sans',             weights:'300;400;500;600;700', stack:"'DM Sans', sans-serif" },
+  'Inter':               { gfont:'Inter',               weights:'300;400;500;600;700', stack:"'Inter', sans-serif" },
+  'Plus Jakarta Sans':   { gfont:'Plus+Jakarta+Sans',   weights:'300;400;500;600;700;800', stack:"'Plus Jakarta Sans', sans-serif" },
+  'Space Grotesk':       { gfont:'Space+Grotesk',       weights:'300;400;500;600;700', stack:"'Space Grotesk', sans-serif" },
+  'Outfit':              { gfont:'Outfit',              weights:'300;400;500;600;700;800', stack:"'Outfit', sans-serif" },
+  'Nunito':              { gfont:'Nunito',              weights:'300;400;600;700;800', stack:"'Nunito', sans-serif" },
+  'Bricolage Grotesque': { gfont:'Bricolage+Grotesque', weights:'400;500;600;700;800', stack:"'Bricolage Grotesque', sans-serif" },
+  'Fraunces':            { gfont:'Fraunces',            weights:'300;400;500;600;700', stack:"'Fraunces', serif" },
+  'Playfair Display':    { gfont:'Playfair+Display',    weights:'400;500;600;700;800', stack:"'Playfair Display', serif" },
+  'Lora':                { gfont:'Lora',                weights:'400;500;600;700', stack:"'Lora', serif" },
+  'Cormorant':           { gfont:'Cormorant',           weights:'400;500;600;700', stack:"'Cormorant', serif" },
+  'JetBrains Mono':      { gfont:'JetBrains+Mono',      weights:'300;400;500;600;700', stack:"'JetBrains Mono', monospace" },
+};
+
+// Returns { link, style } strings to inject into <head>. Falls back to default if key invalid.
+function buildFontInjection(fontKey) {
+  const font = BIO_FONTS_SSR[fontKey] || BIO_FONTS_SSR['DM Sans'];
+  const link = `<link href="https://fonts.googleapis.com/css2?family=${font.gfont}:wght@${font.weights}&display=swap" rel="stylesheet">`;
+  // Body font is overridden via inline <style> with high specificity
+  // so it wins against the default DM Sans declaration in bio.html's stylesheet.
+  const style = `<style id="bio-font-override">body, .name, .bio, .link, .header, .videos-title, .video-title { font-family: ${font.stack} !important; }</style>`;
+  return link + style;
+}
+
+// ==========================================================================
 // SOCIAL ICONS — copied verbatim from bio.html so server output matches client
 // ==========================================================================
 
@@ -521,7 +550,7 @@ async function fetchBioData(username) {
 
     // Step 2: bio data for that user, only if published
     const bioRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/link_in_bio?user_id=eq.${profile.user_id}&published=eq.true&select=display_name,bio,avatar_url,avatar_display,theme,links,videos,socials,show_branding,published,custom_theme`,
+      `${SUPABASE_URL}/rest/v1/link_in_bio?user_id=eq.${profile.user_id}&published=eq.true&select=display_name,bio,avatar_url,avatar_display,theme,font_family,links,videos,socials,show_branding,published,custom_theme`,
       fetchOpts(controller.signal)
     );
     clearTimeout(timeout);
@@ -777,7 +806,11 @@ module.exports = async (req, res) => {
       window._ssrHydrated = true;
     </script>`;
 
-    customThemeStyle = customThemeStyle + bootstrap;
+    // Inject creator's chosen font (link + override style). Falls back to default
+    // if font_family is null or unknown — buildFontInjection handles validation.
+    const fontInjection = buildFontInjection(bio.font_family);
+
+    customThemeStyle = fontInjection + customThemeStyle + bootstrap;
   }
 
   // ============================================================

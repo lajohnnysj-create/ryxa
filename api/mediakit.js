@@ -62,6 +62,37 @@ function formatNumber(n) {
   return String(num);
 }
 
+// ==========================================================================
+// FONTS — must mirror BIO_FONTS in dashboard.html. Keep in sync when adding new fonts.
+// Same shape as bio.js's BIO_FONTS_SSR — both files share the same font list since
+// bio + media kit pages should let creators pick from the same set.
+// ==========================================================================
+const BIO_FONTS_SSR = {
+  'DM Sans':             { gfont:'DM+Sans',             weights:'300;400;500;600;700', stack:"'DM Sans', sans-serif" },
+  'Inter':               { gfont:'Inter',               weights:'300;400;500;600;700', stack:"'Inter', sans-serif" },
+  'Plus Jakarta Sans':   { gfont:'Plus+Jakarta+Sans',   weights:'300;400;500;600;700;800', stack:"'Plus Jakarta Sans', sans-serif" },
+  'Space Grotesk':       { gfont:'Space+Grotesk',       weights:'300;400;500;600;700', stack:"'Space Grotesk', sans-serif" },
+  'Outfit':              { gfont:'Outfit',              weights:'300;400;500;600;700;800', stack:"'Outfit', sans-serif" },
+  'Nunito':              { gfont:'Nunito',              weights:'300;400;600;700;800', stack:"'Nunito', sans-serif" },
+  'Bricolage Grotesque': { gfont:'Bricolage+Grotesque', weights:'400;500;600;700;800', stack:"'Bricolage Grotesque', sans-serif" },
+  'Fraunces':            { gfont:'Fraunces',            weights:'300;400;500;600;700', stack:"'Fraunces', serif" },
+  'Playfair Display':    { gfont:'Playfair+Display',    weights:'400;500;600;700;800', stack:"'Playfair Display', serif" },
+  'Lora':                { gfont:'Lora',                weights:'400;500;600;700', stack:"'Lora', serif" },
+  'Cormorant':           { gfont:'Cormorant',           weights:'400;500;600;700', stack:"'Cormorant', serif" },
+  'JetBrains Mono':      { gfont:'JetBrains+Mono',      weights:'300;400;500;600;700', stack:"'JetBrains Mono', monospace" },
+};
+
+// Returns a string of <link> + <style> tags to inject into the <head>.
+// Falls back to default if key invalid. Style uses !important so it overrides
+// the default DM Sans declaration in mediakit.html's stylesheet on body, .name,
+// .bio, etc. — anything that should pick up the creator's chosen font.
+function buildFontInjection(fontKey) {
+  const font = BIO_FONTS_SSR[fontKey] || BIO_FONTS_SSR['DM Sans'];
+  const link = `<link href="https://fonts.googleapis.com/css2?family=${font.gfont}:wght@${font.weights}&display=swap" rel="stylesheet">`;
+  const style = `<style id="mk-font-override">body, .h-name, .h-cat, .bio, .sec-content, .stat-l, .stat-n, .rate-l, .rate-p, .contact-box, .contact-n { font-family: ${font.stack} !important; }</style>`;
+  return link + style;
+}
+
 function formatPrice(p, currency) {
   const num = parseFloat(p);
   if (!isFinite(num) || num < 0) return '';
@@ -755,7 +786,7 @@ async function fetchMediaKitData(username) {
 
     // Step 2: media_kit data, only if published. audience_mode added.
     const kitRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/media_kit?user_id=eq.${profile.user_id}&published=eq.true&select=headshot_url,display_name,handle,bio,category,socials,engagement_rate,rate_card,contact_email,contact_note,theme,show_branding,published,custom_theme,audience_mode`,
+      `${SUPABASE_URL}/rest/v1/media_kit?user_id=eq.${profile.user_id}&published=eq.true&select=headshot_url,display_name,handle,bio,category,socials,engagement_rate,rate_card,contact_email,contact_note,theme,font_family,show_branding,published,custom_theme,audience_mode`,
       fetchOpts(controller.signal)
     );
     if (!kitRes.ok) { clearTimeout(timeout); return { profile, kit: null, ig: null }; }
@@ -872,7 +903,11 @@ module.exports = async (req, res) => {
       window._ssrHydrated = true;
     </script>`;
 
-    customThemeStyle = customThemeStyle + bootstrap;
+    // Inject creator's chosen font (link + override style). Falls back to default
+    // if font_family is null or unknown — buildFontInjection handles validation.
+    const fontInjection = buildFontInjection(kit.font_family);
+
+    customThemeStyle = fontInjection + customThemeStyle + bootstrap;
   }
 
   // ============================================================
