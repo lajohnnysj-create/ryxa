@@ -10290,25 +10290,26 @@ const BIO_THEMES = [
 // in preview. No DB change required — font_family is plain TEXT.
 // =====================================================================
 const BIO_FONTS = [
+  // Default first — most users will land here.
   { key:'DM Sans',             name:'DM Sans (default)',   gfont:'DM+Sans',             weights:'300;400;500;600;700', stack:"'DM Sans', sans-serif" },
-  { key:'Inter',               name:'Inter',               gfont:'Inter',               weights:'300;400;500;600;700', stack:"'Inter', sans-serif" },
-  { key:'Plus Jakarta Sans',   name:'Plus Jakarta Sans',   gfont:'Plus+Jakarta+Sans',   weights:'300;400;500;600;700;800', stack:"'Plus Jakarta Sans', sans-serif" },
-  { key:'Space Grotesk',       name:'Space Grotesk',       gfont:'Space+Grotesk',       weights:'300;400;500;600;700', stack:"'Space Grotesk', sans-serif" },
-  { key:'Outfit',              name:'Outfit',              gfont:'Outfit',              weights:'300;400;500;600;700;800', stack:"'Outfit', sans-serif" },
-  { key:'Nunito',              name:'Nunito',              gfont:'Nunito',              weights:'300;400;600;700;800', stack:"'Nunito', sans-serif" },
-  { key:'Bricolage Grotesque', name:'Bricolage Grotesque', gfont:'Bricolage+Grotesque', weights:'400;500;600;700;800', stack:"'Bricolage Grotesque', sans-serif" },
-  { key:'Fraunces',            name:'Fraunces',            gfont:'Fraunces',            weights:'300;400;500;600;700', stack:"'Fraunces', serif" },
-  { key:'Playfair Display',    name:'Playfair Display',    gfont:'Playfair+Display',    weights:'400;500;600;700;800', stack:"'Playfair Display', serif" },
-  { key:'Lora',                name:'Lora',                gfont:'Lora',                weights:'400;500;600;700', stack:"'Lora', serif" },
-  { key:'Cormorant',           name:'Cormorant',           gfont:'Cormorant',           weights:'400;500;600;700', stack:"'Cormorant', serif" },
-  { key:'JetBrains Mono',      name:'JetBrains Mono',      gfont:'JetBrains+Mono',      weights:'300;400;500;600;700', stack:"'JetBrains Mono', monospace" },
-  // Display + script fonts (louder, more personality)
-  { key:'Bebas Neue',          name:'Bebas Neue',          gfont:'Bebas+Neue',          weights:'400', stack:"'Bebas Neue', sans-serif" },
+  // The rest alphabetical.
+  { key:'Abril Fatface',       name:'Abril Fatface',       gfont:'Abril+Fatface',       weights:'400', stack:"'Abril Fatface', serif" },
   { key:'Anton',               name:'Anton',               gfont:'Anton',               weights:'400', stack:"'Anton', sans-serif" },
   { key:'Archivo Black',       name:'Archivo Black',       gfont:'Archivo+Black',       weights:'400', stack:"'Archivo Black', sans-serif" },
-  { key:'Abril Fatface',       name:'Abril Fatface',       gfont:'Abril+Fatface',       weights:'400', stack:"'Abril Fatface', serif" },
-  { key:'Pacifico',            name:'Pacifico (script)',   gfont:'Pacifico',            weights:'400', stack:"'Pacifico', cursive" },
+  { key:'Bebas Neue',          name:'Bebas Neue',          gfont:'Bebas+Neue',          weights:'400', stack:"'Bebas Neue', sans-serif" },
+  { key:'Bricolage Grotesque', name:'Bricolage Grotesque', gfont:'Bricolage+Grotesque', weights:'400;500;600;700;800', stack:"'Bricolage Grotesque', sans-serif" },
   { key:'Caveat',              name:'Caveat (handwritten)',gfont:'Caveat',              weights:'400;500;600;700', stack:"'Caveat', cursive" },
+  { key:'Cormorant',           name:'Cormorant',           gfont:'Cormorant',           weights:'400;500;600;700', stack:"'Cormorant', serif" },
+  { key:'Fraunces',            name:'Fraunces',            gfont:'Fraunces',            weights:'300;400;500;600;700', stack:"'Fraunces', serif" },
+  { key:'Inter',               name:'Inter',               gfont:'Inter',               weights:'300;400;500;600;700', stack:"'Inter', sans-serif" },
+  { key:'JetBrains Mono',      name:'JetBrains Mono',      gfont:'JetBrains+Mono',      weights:'300;400;500;600;700', stack:"'JetBrains Mono', monospace" },
+  { key:'Lora',                name:'Lora',                gfont:'Lora',                weights:'400;500;600;700', stack:"'Lora', serif" },
+  { key:'Nunito',              name:'Nunito',              gfont:'Nunito',              weights:'300;400;600;700;800', stack:"'Nunito', sans-serif" },
+  { key:'Outfit',              name:'Outfit',              gfont:'Outfit',              weights:'300;400;500;600;700;800', stack:"'Outfit', sans-serif" },
+  { key:'Pacifico',            name:'Pacifico (script)',   gfont:'Pacifico',            weights:'400', stack:"'Pacifico', cursive" },
+  { key:'Playfair Display',    name:'Playfair Display',    gfont:'Playfair+Display',    weights:'400;500;600;700;800', stack:"'Playfair Display', serif" },
+  { key:'Plus Jakarta Sans',   name:'Plus Jakarta Sans',   gfont:'Plus+Jakarta+Sans',   weights:'300;400;500;600;700;800', stack:"'Plus Jakarta Sans', sans-serif" },
+  { key:'Space Grotesk',       name:'Space Grotesk',       gfont:'Space+Grotesk',       weights:'300;400;500;600;700', stack:"'Space Grotesk', sans-serif" },
 ];
 
 // Helper: Look up a font by key. Falls back to default ('DM Sans').
