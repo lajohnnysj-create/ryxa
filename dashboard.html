@@ -12430,7 +12430,7 @@ function buildPreviewHTML() {
   /* When user picks a non-default font, force it on every element. With the
      DM Sans default, skip this so the name stays in Syne (matching the public
      bio page's signature heading style). */
-  ${(bioState.font_family && bioState.font_family !== 'DM Sans') ? `body, body * { font-family: ${_bioFont.stack} !important; } .brand-banner, .brand-banner * { font-family: 'DM Sans', sans-serif !important; }` : ''}
+  ${(bioState.font_family && bioState.font_family !== 'DM Sans') ? `body, body * { font-family: ${_bioFont.stack} !important; } .banner, .banner *, .brand-banner, .brand-banner * { font-family: 'DM Sans', sans-serif !important; }` : ''}
   ${bgImageCSS}
   ${bgOverlayCSS || glowCSS}
   .w{position:relative;z-index:1;max-width:480px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:14px;}
@@ -14152,7 +14152,7 @@ function buildMKPreviewHTML() {
   /* When user picks a non-default font, force it on every element. With the
      DM Sans default, skip this so headings stay in Syne (matching the public
      media kit page's signature heading style). */
-  ${(mkState.font_family && mkState.font_family !== 'DM Sans') ? `body, body * { font-family: ${_mkFont.stack} !important; } .brand-banner, .brand-banner * { font-family: 'DM Sans', sans-serif !important; }` : ''}
+  ${(mkState.font_family && mkState.font_family !== 'DM Sans') ? `body, body * { font-family: ${_mkFont.stack} !important; } .banner, .banner *, .banner-wrap, .banner-wrap *, .brand-banner, .brand-banner * { font-family: 'DM Sans', sans-serif !important; }` : ''}
   ${bgImageCSS}
   ${bgOverlayCSS || `body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 50% 0%,${t.glow} 0%,transparent 60%);pointer-events:none;z-index:0;}`}
   .w{position:relative;z-index:1;max-width:100%;}
