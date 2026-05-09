@@ -2458,6 +2458,14 @@
   @media (max-width: 360px) {
     .bio-themes-grid { grid-template-columns: repeat(2, 1fr); }
   }
+  /* Font picker — list-style tiles, each rendered in its own font so users see what they're picking. */
+  .bio-fonts-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  @media (max-width: 600px) { .bio-fonts-grid { grid-template-columns: 1fr; } }
+  .bio-font-btn { position: relative; padding: 12px 14px; background: var(--surface); border: 1px solid var(--border-hover); border-radius: 10px; cursor: pointer; color: var(--text); text-align: left; transition: border-color 0.2s, transform 0.15s; display: flex; flex-direction: column; gap: 4px; overflow: hidden; }
+  .bio-font-btn:hover { transform: translateY(-1px); border-color: var(--border-hover); }
+  .bio-font-btn.selected { border-color: var(--accent) !important; box-shadow: 0 0 0 2px var(--accent) !important; background: rgba(124,58,237,0.08); }
+  .bio-font-btn .bio-font-name { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 600; font-family: 'DM Sans', sans-serif; }
+  .bio-font-btn .bio-font-sample { font-size: 17px; font-weight: 500; color: var(--text); line-height: 1.2; letter-spacing: -0.2px; }
   .bio-social-row { display: flex; gap: 10px; align-items: center; }
   .bio-social-row .bio-social-icon { width: 32px; height: 32px; border-radius: 8px; background: var(--surface); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--muted); }
   .bio-social-row .bio-social-icon svg { width: 16px; height: 16px; fill: currentColor; }
@@ -4675,6 +4683,17 @@
               </div>
             </div>
 
+            <!-- Font -->
+            <div class="bio-section">
+              <button type="button" class="bio-section-header bio-collapsible" onclick="toggleBioSection('font')" aria-expanded="true">
+                <div class="bio-section-label">Font</div>
+                <svg class="bio-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div class="bio-section-body" id="bio-body-font">
+                <div id="bio-fonts" class="bio-fonts-grid"></div>
+              </div>
+            </div>
+
             <!-- Socials -->
             <div class="bio-section">
               <button type="button" class="bio-section-header bio-collapsible" onclick="toggleBioSection('socials')" aria-expanded="true">
@@ -5671,6 +5690,17 @@
                   </div>
                   <button type="button" onclick="resetMKCustomColors()" style="width:100%;padding:8px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:6px;font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer;">Reset to defaults</button>
                 </div>
+              </div>
+            </div>
+
+            <!-- Font -->
+            <div class="mk-section">
+              <button type="button" class="mk-section-header mk-collapsible" onclick="toggleMKSection('font')" aria-expanded="true">
+                <div class="mk-section-label">Font</div>
+                <svg class="mk-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div class="mk-section-body" id="mk-body-font" style="display:block;">
+                <div id="mk-fonts" class="bio-fonts-grid"></div>
               </div>
             </div>
 
@@ -8630,7 +8660,7 @@ function updateTierUI() {
 
   // Refresh Brand Deal CRM if it's the active tool (Max gating may have changed)
   if (currentTool === 'deals') initDealsCrm();
-  if (currentTool === 'bio') { syncBrandingToggle(); renderBioThemes(); }
+  if (currentTool === 'bio') { syncBrandingToggle(); renderBioThemes(); renderBioFonts(); }
 
   // Update cancel button in settings modal if open
   updateSettingsCancelBtn();
@@ -9028,7 +9058,7 @@ async function confirmSignOut() {
   try { await sb.auth.signOut(); } catch(e) { console.error(e); }
   // Reset tool init flags so fresh data loads on next login
   bioInited = false;
-  bioState = { username: '', display_name: '', bio: '', avatar_url: '', avatar_display: 'default', theme: 'purple', socials: {}, links: [], videos: [], published: false, show_branding: true, custom_theme: null };
+  bioState = { username: '', display_name: '', bio: '', avatar_url: '', avatar_display: 'default', theme: 'purple', font_family: 'DM Sans', socials: {}, links: [], videos: [], published: false, show_branding: true, custom_theme: null };
   bioOriginalUsername = '';
   window._ryx_username = '';
   gridInited = false;
@@ -9589,6 +9619,7 @@ let bioState = {
   avatar_url: '',
   avatar_display: 'default',
   theme: 'purple',
+  font_family: 'DM Sans',
   socials: {},
   links: [],
   videos: [],
@@ -9718,6 +9749,7 @@ function initBioTool() {
   bioInited = true;
   restoreBioCollapsed();
   renderBioThemes();
+  renderBioFonts();
   renderBioSocials();
   renderBioLinks();
   loadBioData();
@@ -9927,6 +9959,7 @@ async function loadBioData() {
       bioState.avatar_url = bio.avatar_url || '';
       bioState.avatar_display = bio.avatar_display || 'default';
       bioState.theme = bio.theme || 'purple';
+      bioState.font_family = bio.font_family || 'DM Sans';
       bioState.socials = bio.socials || {};
       bioState.links = Array.isArray(bio.links) ? bio.links.map(l => ({ ...l, _id: linkIdSeq++ })) : [];
       // Old videos array is no longer used — YouTube embeds now live as
@@ -9958,6 +9991,7 @@ async function loadBioData() {
   var bioHint = document.getElementById('bio-username-hint');
   if (bioHint) { bioHint.textContent = 'Same username as your Media Kit. You can change it up to 2 times per week.'; bioHint.style.color = 'var(--muted)'; }
   renderBioThemes();
+  renderBioFonts();
   syncBioCustomEditorUI();
   renderBioSocials();
   renderBioLinks();
@@ -9975,6 +10009,7 @@ function syncBioForm() {
   renderAvatarPreview();
   updateAvatarDisplayUI();
   renderBioThemes();
+  renderBioFonts();
   // branding toggle — Free users: disabled/greyed + always checked; Pro users: interactive
   syncBrandingToggle();
 }
@@ -10236,6 +10271,58 @@ const BIO_THEMES = [
   { key:'graphite', name:'Graphite', bg:'#0a0a0a', bg2:'#1e1e1e', grad:'linear-gradient(135deg,#d1d5db,#f3f4f6)', pro:false },
 ];
 
+// =====================================================================
+// BIO_FONTS — curated Google Fonts list available to all tiers (Free, Pro, Max).
+// Used by Link in Bio AND Media Kit. Single source of truth.
+//
+// Each entry:
+//   key:    Stable identifier saved to DB (matches Google Fonts family name).
+//           When changing, update the migration backfill too.
+//   name:   Label shown in the picker.
+//   gfont:  Google Fonts family name as it appears in the URL parameter
+//           (e.g. "Plus Jakarta Sans" -> "Plus+Jakarta+Sans").
+//   weights: Comma-separated weights to load. Keep narrow to limit page weight.
+//   stack:  CSS font-family value applied to the body. Includes safe fallbacks.
+//   sample: Short string to render in the picker so users see the font.
+//
+// To add a font: append a new entry, list it on Google Fonts to confirm it's
+// available, pick the weights you actually use (300/400/500/600/700/800), test
+// in preview. No DB change required — font_family is plain TEXT.
+// =====================================================================
+const BIO_FONTS = [
+  { key:'DM Sans',             name:'DM Sans (default)',   gfont:'DM+Sans',             weights:'300;400;500;600;700', stack:"'DM Sans', sans-serif" },
+  { key:'Inter',               name:'Inter',               gfont:'Inter',               weights:'300;400;500;600;700', stack:"'Inter', sans-serif" },
+  { key:'Plus Jakarta Sans',   name:'Plus Jakarta Sans',   gfont:'Plus+Jakarta+Sans',   weights:'300;400;500;600;700;800', stack:"'Plus Jakarta Sans', sans-serif" },
+  { key:'Space Grotesk',       name:'Space Grotesk',       gfont:'Space+Grotesk',       weights:'300;400;500;600;700', stack:"'Space Grotesk', sans-serif" },
+  { key:'Outfit',              name:'Outfit',              gfont:'Outfit',              weights:'300;400;500;600;700;800', stack:"'Outfit', sans-serif" },
+  { key:'Nunito',              name:'Nunito',              gfont:'Nunito',              weights:'300;400;600;700;800', stack:"'Nunito', sans-serif" },
+  { key:'Bricolage Grotesque', name:'Bricolage Grotesque', gfont:'Bricolage+Grotesque', weights:'400;500;600;700;800', stack:"'Bricolage Grotesque', sans-serif" },
+  { key:'Fraunces',            name:'Fraunces',            gfont:'Fraunces',            weights:'300;400;500;600;700', stack:"'Fraunces', serif" },
+  { key:'Playfair Display',    name:'Playfair Display',    gfont:'Playfair+Display',    weights:'400;500;600;700;800', stack:"'Playfair Display', serif" },
+  { key:'Lora',                name:'Lora',                gfont:'Lora',                weights:'400;500;600;700', stack:"'Lora', serif" },
+  { key:'Cormorant',           name:'Cormorant',           gfont:'Cormorant',           weights:'400;500;600;700', stack:"'Cormorant', serif" },
+  { key:'JetBrains Mono',      name:'JetBrains Mono',      gfont:'JetBrains+Mono',      weights:'300;400;500;600;700', stack:"'JetBrains Mono', monospace" },
+];
+
+// Helper: Look up a font by key. Falls back to default ('DM Sans').
+function getBioFont(key) {
+  return BIO_FONTS.find(f => f.key === key) || BIO_FONTS[0];
+}
+
+// Helper: Build a Google Fonts <link> URL for a given font key.
+// Always also loads Syne (used for headings throughout bio + media kit) so
+// existing Syne-styled elements don't break when a different body font is picked.
+// Used by the preview iframes in dashboard. Public pages have their own loader
+// (see bio.html / mediakit.html / bio.js / mediakit.js).
+function buildBioFontLink(fontKey) {
+  const font = getBioFont(fontKey);
+  // Always include Syne (existing heading font). Skip duplicate if user picked Syne (not in list, but defense).
+  const families = [];
+  families.push('Syne:wght@400;500;600;700;800');
+  families.push(`${font.gfont}:wght@${font.weights}`);
+  return `https://fonts.googleapis.com/css2?${families.map(f => 'family=' + f).join('&')}&display=swap`;
+}
+
 // Helper: build the same theme vars used by `custom` for any image theme.
 // Returns the same shape as buildCustomThemeVars() so the rest of the code
 // can treat builtin image themes identically to a Pro user's custom theme.
@@ -10387,6 +10474,46 @@ function pickTheme(t) {
   }
   renderBioThemes();
   syncBioCustomEditorUI();
+  schedulePreviewUpdate();
+}
+
+// =====================================================================
+// Font picker (bio) — same pattern as themes, but no tier locks (all free).
+// Each tile shows the font name as a sample rendered in that font.
+// =====================================================================
+function renderBioFonts() {
+  const container = document.getElementById('bio-fonts');
+  if (!container) return;
+  container.innerHTML = BIO_FONTS.map(f => {
+    const selected = bioState.font_family === f.key ? 'selected' : '';
+    return `<button type="button" class="bio-font-btn ${selected}" data-font="${escapeHtml(f.key)}" onclick="pickBioFont('${escapeHtml(f.key).replace(/'/g, "\\'")}')">
+      <span class="bio-font-name">${escapeHtml(f.name)}</span>
+      <span class="bio-font-sample" style="font-family:${f.stack};">The quick brown fox</span>
+    </button>`;
+  }).join('');
+  // Lazily inject Google Fonts <link>s for each picker font into the dashboard <head>
+  // so the samples render in the actual fonts. Cached after first load.
+  injectBioPickerFonts();
+}
+
+// One-time loader: inject all picker fonts into the parent dashboard so the
+// sample text in each tile shows the real face. Only runs once per page load.
+let _bioPickerFontsInjected = false;
+function injectBioPickerFonts() {
+  if (_bioPickerFontsInjected) return;
+  _bioPickerFontsInjected = true;
+  const families = BIO_FONTS.map(f => `family=${f.gfont}:wght@${f.weights}`).join('&');
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = `https://fonts.googleapis.com/css2?${families}&display=swap`;
+  document.head.appendChild(link);
+}
+
+function pickBioFont(key) {
+  const font = BIO_FONTS.find(f => f.key === key);
+  if (!font) return;
+  bioState.font_family = font.key;
+  renderBioFonts();
   schedulePreviewUpdate();
 }
 
@@ -12077,6 +12204,11 @@ async function saveBio() {
         if (chosen.max && !isMax()) return 'purple';
         return bioState.theme;
       })(),
+      font_family: (() => {
+        // Validate against the allowed font list. Falls back to default if unknown.
+        const f = BIO_FONTS.find(x => x.key === bioState.font_family);
+        return f ? f.key : 'DM Sans';
+      })(),
       socials: bioState.socials,
       links: cleanLinks,
       videos: cleanVideos,
@@ -12265,16 +12397,20 @@ function buildPreviewHTML() {
     ? '' // no radial glow when bg image is set
     : `body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,${t.glow} 0%,transparent 60%);pointer-events:none;z-index:0;}`;
 
+  // Resolve selected font with safe fallback
+  const _bioFont = getBioFont(bioState.font_family);
+  const _bioFontHref = `https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=${_bioFont.gfont}:wght@${_bioFont.weights}&display=swap`;
+
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="${_bioFontHref}" rel="stylesheet">
   <style>
   html{scrollbar-width:thin;scrollbar-color:rgba(124,58,237,0.3) transparent;}
   ::-webkit-scrollbar{width:6px;}
   ::-webkit-scrollbar-track{background:transparent;}
   ::-webkit-scrollbar-thumb{background:rgba(124,58,237,0.3);border-radius:3px;}
   ::-webkit-scrollbar-thumb:hover{background:rgba(124,58,237,0.5);}
-  body{margin:0;padding:${(bioState.avatar_display === 'hero' && bioState.avatar_url) ? '0 0' : '40px 18px'} ${bioState.show_branding ? '80px' : '24px'};font-family:'DM Sans',sans-serif;background:${t.bg};color:${t.text};min-height:100vh;}
+  body{margin:0;padding:${(bioState.avatar_display === 'hero' && bioState.avatar_url) ? '0 0' : '40px 18px'} ${bioState.show_branding ? '80px' : '24px'};font-family:${_bioFont.stack};background:${t.bg};color:${t.text};min-height:100vh;}
   ${bgImageCSS}
   ${bgOverlayCSS || glowCSS}
   .w{position:relative;z-index:1;max-width:480px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:14px;}
@@ -12566,6 +12702,7 @@ let mkState = {
   contact_email: '',
   contact_note: '',
   theme: 'purple',
+  font_family: 'DM Sans',
   show_branding: false,
   published: false,
   custom_theme: null,
@@ -12591,6 +12728,7 @@ function initMediaKitTool() {
     renderMKSocials();
     renderMKRates();
     renderMKThemes();
+    renderMKFonts();
     // If the audience pane is in Automatic mode, refresh its connection status.
     // Catches the case where the creator disconnected/connected Instagram in
     // Settings between visits — the pane might otherwise show stale state.
@@ -12611,6 +12749,7 @@ function initMediaKitTool() {
   renderMKSocials();
   renderMKRates();
   renderMKThemes();
+  renderMKFonts();
   loadMediaKit();
 
   document.getElementById('mk-headshot-inner').addEventListener('click', () => {
@@ -12677,6 +12816,7 @@ async function loadMediaKit() {
       mkState.contact_email = kit.contact_email || '';
       mkState.contact_note = kit.contact_note || '';
       mkState.theme = kit.theme || 'purple';
+      mkState.font_family = kit.font_family || 'DM Sans';
       mkState.show_branding = !!kit.show_branding;
       mkState.published = !!kit.published;
       mkState.custom_theme = kit.custom_theme || null;
@@ -12700,6 +12840,7 @@ async function loadMediaKit() {
   renderMKSocials();
   renderMKRates();
   renderMKThemes();
+  renderMKFonts();
   syncMKCustomEditorUI();
   syncAudienceModeUI();
   updateMKPublishUI();
@@ -13065,6 +13206,30 @@ function pickMKTheme(t) {
   scheduleMKPreview();
 }
 
+// =====================================================================
+// Font picker (media kit) — same pattern as bio. All free.
+// =====================================================================
+function renderMKFonts() {
+  const container = document.getElementById('mk-fonts');
+  if (!container) return;
+  container.innerHTML = BIO_FONTS.map(f => {
+    const selected = mkState.font_family === f.key ? 'selected' : '';
+    return `<button type="button" class="bio-font-btn ${selected}" data-font="${escapeHtml(f.key)}" onclick="pickMKFont('${escapeHtml(f.key).replace(/'/g, "\\'")}')">
+      <span class="bio-font-name">${escapeHtml(f.name)}</span>
+      <span class="bio-font-sample" style="font-family:${f.stack};">The quick brown fox</span>
+    </button>`;
+  }).join('');
+  injectBioPickerFonts(); // shared loader, no-op after first call
+}
+
+function pickMKFont(key) {
+  const font = BIO_FONTS.find(f => f.key === key);
+  if (!font) return;
+  mkState.font_family = font.key;
+  renderMKFonts();
+  scheduleMKPreview();
+}
+
 function syncMKCustomEditorUI() {
   if (!mkState.custom_theme) return;
   const ct = mkState.custom_theme;
@@ -13251,6 +13416,10 @@ async function saveMediaKit() {
         if (chosen.pro && !isPro()) return 'purple';
         if (chosen.max && !isMax()) return 'purple';
         return mkState.theme;
+      })(),
+      font_family: (() => {
+        const f = BIO_FONTS.find(x => x.key === mkState.font_family);
+        return f ? f.key : 'DM Sans';
       })(),
       show_branding: !!mkState.show_branding,
       published: mkState.published,
@@ -13944,9 +14113,13 @@ function buildMKPreviewHTML() {
 
   const bannerHtml = mkState.show_branding ? `<div class="banner-wrap"><div class="banner"><img src="logo.png" alt="Ryxa" style="width:12px;height:12px;border-radius:3px;"><span>Media Kit powered by <strong>Ryxa</strong></span></div></div>` : '';
 
+  // Resolve selected font with safe fallback
+  const _mkFont = getBioFont(mkState.font_family);
+  const _mkFontHref = `https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=${_mkFont.gfont}:wght@${_mkFont.weights}&display=swap`;
+
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="${_mkFontHref}" rel="stylesheet">
   <style>
   *{box-sizing:border-box;margin:0;padding:0;}
   html{scrollbar-width:thin;scrollbar-color:rgba(124,58,237,0.3) transparent;}
@@ -13954,7 +14127,7 @@ function buildMKPreviewHTML() {
   ::-webkit-scrollbar-track{background:transparent;}
   ::-webkit-scrollbar-thumb{background:rgba(124,58,237,0.3);border-radius:3px;}
   ::-webkit-scrollbar-thumb:hover{background:rgba(124,58,237,0.5);}
-  body{font-family:'DM Sans',sans-serif;background:${t.bg};color:${t.text};min-height:100vh;padding:24px 14px;overflow-x:hidden;}
+  body{font-family:${_mkFont.stack};background:${t.bg};color:${t.text};min-height:100vh;padding:24px 14px;overflow-x:hidden;}
   ${bgImageCSS}
   ${bgOverlayCSS || `body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 50% 0%,${t.glow} 0%,transparent 60%);pointer-events:none;z-index:0;}`}
   .w{position:relative;z-index:1;max-width:100%;}

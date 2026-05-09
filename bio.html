@@ -1498,6 +1498,41 @@ function applyImageTheme(themeKey) {
   return true;
 }
 
+// Mirrors BIO_FONTS_SSR in bio.js. Keep in sync when adding new fonts.
+const BIO_FONTS_CLIENT = {
+  'DM Sans':             { gfont:'DM+Sans',             weights:'300;400;500;600;700', stack:"'DM Sans', sans-serif" },
+  'Inter':               { gfont:'Inter',               weights:'300;400;500;600;700', stack:"'Inter', sans-serif" },
+  'Plus Jakarta Sans':   { gfont:'Plus+Jakarta+Sans',   weights:'300;400;500;600;700;800', stack:"'Plus Jakarta Sans', sans-serif" },
+  'Space Grotesk':       { gfont:'Space+Grotesk',       weights:'300;400;500;600;700', stack:"'Space Grotesk', sans-serif" },
+  'Outfit':              { gfont:'Outfit',              weights:'300;400;500;600;700;800', stack:"'Outfit', sans-serif" },
+  'Nunito':              { gfont:'Nunito',              weights:'300;400;600;700;800', stack:"'Nunito', sans-serif" },
+  'Bricolage Grotesque': { gfont:'Bricolage+Grotesque', weights:'400;500;600;700;800', stack:"'Bricolage Grotesque', sans-serif" },
+  'Fraunces':            { gfont:'Fraunces',            weights:'300;400;500;600;700', stack:"'Fraunces', serif" },
+  'Playfair Display':    { gfont:'Playfair+Display',    weights:'400;500;600;700;800', stack:"'Playfair Display', serif" },
+  'Lora':                { gfont:'Lora',                weights:'400;500;600;700', stack:"'Lora', serif" },
+  'Cormorant':           { gfont:'Cormorant',           weights:'400;500;600;700', stack:"'Cormorant', serif" },
+  'JetBrains Mono':      { gfont:'JetBrains+Mono',      weights:'300;400;500;600;700', stack:"'JetBrains Mono', monospace" },
+};
+
+// Apply creator's chosen font (client-side fallback path). When SSR runs,
+// the font is already injected — this function checks for that and skips.
+// Falls back to default DM Sans if key invalid or not provided.
+function applyBioFont(fontKey) {
+  // If SSR already injected the override style, do nothing
+  if (document.getElementById('bio-font-override')) return;
+  const font = BIO_FONTS_CLIENT[fontKey] || BIO_FONTS_CLIENT['DM Sans'];
+  // Load the Google Font
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = `https://fonts.googleapis.com/css2?family=${font.gfont}:wght@${font.weights}&display=swap`;
+  document.head.appendChild(link);
+  // Override the body font with high specificity
+  const style = document.createElement('style');
+  style.id = 'bio-font-override';
+  style.textContent = `body, .name, .bio, .link, .header, .videos-title, .video-title { font-family: ${font.stack} !important; }`;
+  document.head.appendChild(style);
+}
+
 function updateOgTags({ title, description, image, url }) {
   const setMeta = (property, content) => {
     if (!content) return;
@@ -1565,6 +1600,9 @@ function render(profile, bio, userTier) {
     const theme = (bio.theme === 'custom' && !isMaxTier) ? 'purple' : (bio.theme || 'purple');
     document.documentElement.setAttribute('data-theme', theme);
   }
+
+  // Apply font — no-op if SSR already injected. Falls back to default if invalid.
+  applyBioFont(bio.font_family);
 
   // Meta tags
   const ogTitle = document.querySelector('meta[property="og:title"]');

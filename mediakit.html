@@ -1121,6 +1121,9 @@ function render(profile, kit) {
     document.documentElement.setAttribute('data-theme', theme);
   }
 
+  // Apply font — no-op if SSR already injected. Falls back to default if invalid.
+  applyMKFont(kit.font_family);
+
   // Banner rule: always on for non-Pro. Pro/Max can opt out via show_branding=false.
   const isPaid = profile.tier === 'monthly' || profile.tier === 'max';
   const showBanner = !isPaid || kit.show_branding === true;
@@ -1221,6 +1224,38 @@ function applyImageTheme(themeKey) {
     bgOpacity: 1, // 1 means no overlay darkening
   });
   return true;
+}
+
+// Mirrors BIO_FONTS_SSR in mediakit.js. Keep in sync when adding new fonts.
+const BIO_FONTS_CLIENT = {
+  'DM Sans':             { gfont:'DM+Sans',             weights:'300;400;500;600;700', stack:"'DM Sans', sans-serif" },
+  'Inter':               { gfont:'Inter',               weights:'300;400;500;600;700', stack:"'Inter', sans-serif" },
+  'Plus Jakarta Sans':   { gfont:'Plus+Jakarta+Sans',   weights:'300;400;500;600;700;800', stack:"'Plus Jakarta Sans', sans-serif" },
+  'Space Grotesk':       { gfont:'Space+Grotesk',       weights:'300;400;500;600;700', stack:"'Space Grotesk', sans-serif" },
+  'Outfit':              { gfont:'Outfit',              weights:'300;400;500;600;700;800', stack:"'Outfit', sans-serif" },
+  'Nunito':              { gfont:'Nunito',              weights:'300;400;600;700;800', stack:"'Nunito', sans-serif" },
+  'Bricolage Grotesque': { gfont:'Bricolage+Grotesque', weights:'400;500;600;700;800', stack:"'Bricolage Grotesque', sans-serif" },
+  'Fraunces':            { gfont:'Fraunces',            weights:'300;400;500;600;700', stack:"'Fraunces', serif" },
+  'Playfair Display':    { gfont:'Playfair+Display',    weights:'400;500;600;700;800', stack:"'Playfair Display', serif" },
+  'Lora':                { gfont:'Lora',                weights:'400;500;600;700', stack:"'Lora', serif" },
+  'Cormorant':           { gfont:'Cormorant',           weights:'400;500;600;700', stack:"'Cormorant', serif" },
+  'JetBrains Mono':      { gfont:'JetBrains+Mono',      weights:'300;400;500;600;700', stack:"'JetBrains Mono', monospace" },
+};
+
+// Apply creator's chosen font (client-side fallback path). When SSR runs,
+// the font is already injected — this function checks for that and skips.
+// Falls back to default DM Sans if key invalid or not provided.
+function applyMKFont(fontKey) {
+  if (document.getElementById('mk-font-override')) return;
+  const font = BIO_FONTS_CLIENT[fontKey] || BIO_FONTS_CLIENT['DM Sans'];
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = `https://fonts.googleapis.com/css2?family=${font.gfont}:wght@${font.weights}&display=swap`;
+  document.head.appendChild(link);
+  const style = document.createElement('style');
+  style.id = 'mk-font-override';
+  style.textContent = `body, .h-name, .h-cat, .bio, .sec-content, .stat-l, .stat-n, .rate-l, .rate-p, .contact-box, .contact-n { font-family: ${font.stack} !important; }`;
+  document.head.appendChild(style);
 }
 
 async function load() {
