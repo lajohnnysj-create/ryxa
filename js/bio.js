@@ -54,20 +54,31 @@ function bioRegisterAction(action, handler) {
 }
 
 /**
- * Find the closest ancestor element with a data-bio-action matching the given
- * event type. Returns the element, or null if not found / wrong event type.
+ * Find the closest ancestor element with a bio action matching the given
+ * event type. Returns { element, action } or null if none.
  *
- * data-bio-action defaults to firing on click. To bind to other events, the
- * element should also have data-bio-event="input" (or change/focus/blur/etc).
+ * Supports two attribute styles on the same element:
+ *   1. Per-event:  data-bio-action-input="username-input"
+ *                  data-bio-action-focus="remove-readonly"
+ *   2. Generic:    data-bio-action="save"  (defaults to click)
+ *                  data-bio-action="username-input" data-bio-event="input"
+ *
+ * Style 1 lets a single element have different handlers for different events
+ * (e.g. an <input> with both an input handler and a focus handler).
+ * Style 2 is the common case for buttons / single-event elements.
  */
 function bioFindActionElement(target, eventType) {
   let el = target;
   while (el && el !== document.body) {
-    if (el.dataset && el.dataset.bioAction) {
-      const wantEvent = el.dataset.bioEvent || 'click';
-      if (wantEvent === eventType) return el;
-      // wrong event type for this element; keep climbing in case an ancestor
-      // matches (rare, but possible with nested data-bio-action elements).
+    if (el.dataset) {
+      // Style 1: per-event attribute (data-bio-action-input, etc.)
+      const perEvent = el.dataset['bioAction' + eventType.charAt(0).toUpperCase() + eventType.slice(1)];
+      if (perEvent) return { element: el, action: perEvent };
+      // Style 2: generic data-bio-action with optional data-bio-event
+      if (el.dataset.bioAction) {
+        const wantEvent = el.dataset.bioEvent || 'click';
+        if (wantEvent === eventType) return { element: el, action: el.dataset.bioAction };
+      }
     }
     el = el.parentElement;
   }
@@ -78,15 +89,14 @@ function bioFindActionElement(target, eventType) {
  * Generic event dispatcher. Wired up below to multiple event types.
  */
 function bioDispatchEvent(event) {
-  const el = bioFindActionElement(event.target, event.type);
-  if (!el) return;
-  const action = el.dataset.bioAction;
-  const handler = bioActions[action];
+  const found = bioFindActionElement(event.target, event.type);
+  if (!found) return;
+  const handler = bioActions[found.action];
   if (!handler) {
-    console.warn('[bio] No handler registered for action:', action);
+    console.warn('[bio] No handler registered for action:', found.action);
     return;
   }
-  handler(event, el);
+  handler(event, found.element);
 }
 
 // Wire up document-level delegation. Using document (not #tool-bio) because
