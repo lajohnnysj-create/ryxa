@@ -1361,9 +1361,25 @@ function tpTick() {
 
 function tpAdjustSpeed(delta) {
   if (!tpState) return;
-  tpState.speed = Math.max(1, Math.min(10, tpState.speed + delta));
+  // Adaptive step: below 1, step by 0.25 (0.25, 0.5, 0.75, 1).
+  // At 1 and above, step by 1 (1, 2, ..., 10).
+  // The button still passes ±1 as delta — we reinterpret it here.
+  var direction = delta > 0 ? 1 : -1;
+  var current = tpState.speed;
+  var next;
+  if (direction > 0) {
+    // Speeding up
+    next = current < 1 ? current + 0.25 : current + 1;
+  } else {
+    // Slowing down
+    next = current <= 1 ? current - 0.25 : current - 1;
+  }
+  // Clamp and round to avoid floating-point creep (e.g. 0.7500000001)
+  next = Math.max(0.25, Math.min(10, Math.round(next * 100) / 100));
+  tpState.speed = next;
   const el = document.getElementById('tp-speed-val');
-  if (el) el.textContent = tpState.speed;
+  // Show "0.25"/"0.5"/"0.75" as-is, but show integers without trailing ".0"
+  if (el) el.textContent = Number.isInteger(next) ? String(next) : String(next);
 }
 
 function tpAdjustFontSize(delta) {
