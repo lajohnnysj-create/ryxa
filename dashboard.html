@@ -4269,11 +4269,9 @@
      Manually-authored classes for dynamic state-based styling
      in coaching list cards and availability rows.
      ============================================================ */
-  /* Coaching list card — fixed-height cover area; bg supplied via data-coach-bg
-     (gradient case) or data-coach-bg-image (image case). background-size and
-     position are set in CSS so a JS-set background-image just works. */
-  .coach-card-cover { display: block; width: 100%; height: 140px; background-size: cover; background-position: center; align-self: stretch; flex-shrink: 0; }
-  .coach-card-cover svg { display: block; margin: auto; }
+  /* Coaching list card cover area — identical pattern to course-s-cover.
+     Background supplied via data-coach-bg (full `background` shorthand). */
+  .coach-card-cover { height: 140px; display: flex; align-items: center; justify-content: center; }
   /* Coaching list card status badge — color supplied via data-coach-color */
   .coach-card-status { font-size: 12px; font-weight: 600; }
   /* Coaching list card click hover (mirrors course card pattern) */
