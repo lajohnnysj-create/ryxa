@@ -15,7 +15,7 @@
 // showModalAlert, showModalConfirm, etc).
 //
 // Future phases (NOT YET DONE):
-//   • Phase 3: replace inline style="..." with CSS classes
+//   • Phase 3: replace inline style attributes with CSS classes
 //   • Phase 4: ship strict CSP header for the bio tool
 //
 // Order of code below matches original line order in dashboard.html so diffs
@@ -111,6 +111,57 @@ function bioDispatchEvent(event) {
 
 // =============================================================================
 // END EVENT DELEGATION INFRASTRUCTURE
+// =============================================================================
+
+// =============================================================================
+// CSP-STRICT STYLE APPLICATION (Phase 3)
+// -----------------------------------------------------------------------------
+// Some elements need styles that depend on dynamic data (theme colors, image
+// URLs, etc.). With strict CSP (`style-src 'self'`), inline `style="..."`
+// attributes are blocked. So we render with `data-bio-*` attributes and apply
+// them programmatically after insertion. JS property assignments are NOT
+// blocked by CSP.
+//
+// Map: data-bio-{name} → CSS property to set
+// =============================================================================
+const BIO_DATA_STYLE_MAP = {
+  bg:          'background',
+  color:       'color',
+  border:      'border',
+  shadow:      'box-shadow',
+  padding:     'padding',
+  radius:      'border-radius',
+  display:     'display',
+  fontFamily:  'font-family',
+  // Add more as needed when extending dynamic styles
+};
+
+/**
+ * Walk all descendants of `root` (or `document` if omitted) and apply any
+ * `data-bio-{name}` attributes from BIO_DATA_STYLE_MAP as inline style
+ * properties via JS (CSP-safe).
+ *
+ * Idempotent — calling repeatedly is fine. Only sets properties that have
+ * a data-bio-* attribute on the element.
+ */
+function bioApplyDataStyles(root) {
+  root = root || document;
+  // Collect all elements that have at least one mapped data-bio-* attr
+  const selectors = Object.keys(BIO_DATA_STYLE_MAP)
+    .map(k => `[data-bio-${k.replace(/[A-Z]/g, m => '-' + m.toLowerCase())}]`)
+    .join(',');
+  const els = root.querySelectorAll(selectors);
+  els.forEach(el => {
+    Object.entries(BIO_DATA_STYLE_MAP).forEach(([camelName, cssProp]) => {
+      const dashName = camelName.replace(/[A-Z]/g, m => '-' + m.toLowerCase());
+      const val = el.dataset['bio' + camelName.charAt(0).toUpperCase() + camelName.slice(1)];
+      if (val) el.style.setProperty(cssProp, val);
+    });
+  });
+}
+
+// =============================================================================
+// END CSP-STRICT STYLE APPLICATION
 // =============================================================================
 
 // ---------- From dashboard.html lines 8415-8466 ----------
@@ -614,7 +665,7 @@ function renderAvatarPreview() {
   const inner = document.getElementById('bio-avatar-inner');
   const removeBtn = document.getElementById('bio-avatar-remove');
   if (bioState.avatar_url) {
-    inner.innerHTML = `<img alt="Profile photo" src="${escapeHtml(bioState.avatar_url)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+    inner.innerHTML = `<img alt="Profile photo" src="${escapeHtml(bioState.avatar_url)}" class="bio-s-0c9434">`;
     removeBtn.style.display = 'inline-block';
   } else {
     const name = bioState.display_name || bioState.username || '?';
@@ -707,7 +758,7 @@ function onUsernameInput() {
     renderUsernameAvailable(cleaned);
   } else {
     // Show "Checking..." state, then query Supabase after a 500ms pause
-    hint.innerHTML = `<span style="color:var(--muted);">Checking <strong>ryxa.io/${cleaned}</strong>…</span>`;
+    hint.innerHTML = `<span class="bio-s-e3f916">Checking <strong>ryxa.io/${cleaned}</strong>…</span>`;
     hint.style.color = 'var(--muted)';
     const myToken = bioUsernameCheckToken;
     bioUsernameCheckTimer = setTimeout(() => checkUsernameAvailability(cleaned, myToken), 500);
@@ -728,7 +779,7 @@ async function checkUsernameAvailability(username, token) {
     // Ignore if the user kept typing after this request fired
     if (token !== bioUsernameCheckToken) return;
     if (error) {
-      hint.innerHTML = `<span style="color:var(--muted);">Couldn't check availability. Will verify on save.</span>`;
+      hint.innerHTML = `<span class="bio-s-e3f916">Couldn't check availability. Will verify on save.</span>`;
       return;
     }
     if (!data || data.user_id === currentUser?.id) {
@@ -737,7 +788,7 @@ async function checkUsernameAvailability(username, token) {
       if (token !== bioUsernameCheckToken) return;
       if (!allowed) {
         const nextDate = formatNextChangeDate(changes);
-        hint.innerHTML = `<span style="color:#fca5a5;">You've reached the max username changes. Try again on ${nextDate}.</span>`;
+        hint.innerHTML = `<span class="bio-s-dbc3a0">You've reached the max username changes. Try again on ${nextDate}.</span>`;
         // Revert input to current username so save still works for other changes
         document.getElementById('bio-username').value = bioOriginalUsername;
         bioState.username = bioOriginalUsername;
@@ -747,11 +798,11 @@ async function checkUsernameAvailability(username, token) {
       }
       renderUsernameAvailable(username);
     } else {
-      hint.innerHTML = `<span style="color:#fca5a5;">✕ <strong>${username}</strong> is already taken, try another.</span>`;
+      hint.innerHTML = `<span class="bio-s-dbc3a0">✕ <strong>${username}</strong> is already taken, try another.</span>`;
     }
   } catch (e) {
     if (token !== bioUsernameCheckToken) return;
-    hint.innerHTML = `<span style="color:var(--muted);">Couldn't check availability. Will verify on save.</span>`;
+    hint.innerHTML = `<span class="bio-s-e3f916">Couldn't check availability. Will verify on save.</span>`;
   }
 }
 
@@ -760,14 +811,14 @@ function renderUsernameAvailable(cleaned) {
   const fullUrl = `https://www.ryxa.io/${cleaned}`;
   const isChanged = cleaned !== bioOriginalUsername;
   hint.innerHTML = `
-    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-      <span style="color:#4ade80;">✓</span>
-      <span>Your page will be at <strong style="color:var(--accent2)">ryxa.io/${cleaned}</strong></span>
+    <div class="bio-s-6b6f9f">
+      <span class="bio-s-f4cfc5">✓</span>
+      <span>Your page will be at <strong class="bio-s-313aee">ryxa.io/${cleaned}</strong></span>
       <button type="button" data-bio-action="copy-bio-link" data-bio-url="${fullUrl}"
-        style="padding:4px 10px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:6px;font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;font-weight:500;">
+        class="bio-s-8911f1">
         Copy link
       </button>
-    </div>${isChanged ? '<div style="margin-top:6px;font-size:12px;color:#fbbf24;">Press save to change username</div>' : ''}`;
+    </div>${isChanged ? '<div class="bio-s-19cf92">Press save to change username</div>' : ''}`;
   hint.style.color = 'var(--muted)';
 }
 
@@ -988,28 +1039,35 @@ function renderBioThemes() {
 
     let swatch, btnBg, nameStyle = '';
     if (t.key === 'custom') {
-      swatch = '<div class="bio-theme-swatch" style="background:conic-gradient(from 45deg,#a78bfa,#e879f9,#fb7185,#fbbf24,#34d399,#22d3ee,#a78bfa);"></div>';
+      swatch = '<div class="bio-theme-swatch bio-s-74a83e" ></div>';
       btnBg = `linear-gradient(135deg,${t.bg},${t.bg2})`;
     } else if (t.image && t.colors) {
       // Image theme — show the bg image as both the swatch and button background.
       // Label gets a colored pill backdrop using the theme's bg color so it
       // stays readable against the busy image, with the theme's own text color.
-      swatch = `<div class="bio-theme-swatch" style="background:url('${t.image}') center/cover;border:1.5px solid rgba(0,0,0,0.4);box-shadow:0 1px 3px rgba(0,0,0,0.25);"></div>`;
+      swatch = `<div class="bio-theme-swatch" data-bio-bg="url('${t.image}') center/cover" data-bio-border="1.5px solid rgba(0,0,0,0.4)" data-bio-shadow="0 1px 3px rgba(0,0,0,0.25)"></div>`;
       btnBg = `url('${t.image}') center/cover`;
-      nameStyle = `color:${t.colors.text};background:${hexAlpha(t.colors.bg,0.85)};padding:2px 6px;border-radius:6px;display:inline-block;`;
+      // Encode the multi-property nameStyle as multiple data-bio-* attrs that
+      // will be applied via JS. CSP-safe; no inline style attribute.
+      nameStyle = `data-bio-color="${t.colors.text}" data-bio-bg="${hexAlpha(t.colors.bg,0.85)}" data-bio-padding="2px 6px" data-bio-radius="6px" data-bio-display="inline-block"`;
     } else {
-      swatch = `<div class="bio-theme-swatch" style="background:${t.grad};"></div>`;
+      swatch = `<div class="bio-theme-swatch" data-bio-bg="${t.grad}"></div>`;
       btnBg = `linear-gradient(135deg,${t.bg},${t.bg2})`;
+      nameStyle = '';
     }
 
     return `<button type="button" class="bio-theme-btn ${selected} ${lockedClass}" data-theme="${t.key}" data-bio-action="pick-theme" data-bio-theme="${t.key}"
-      style="background:${btnBg};">
+      data-bio-bg="${btnBg}">
       ${swatch}
-      <div class="bio-theme-name" style="${nameStyle}">${t.name}</div>
+      <div class="bio-theme-name" ${nameStyle}>${t.name}</div>
       ${maxBadge}
       ${lock}
     </button>`;
   }).join('');
+
+  // Apply data-bio-* style attributes to their elements after rendering.
+  // This replaces the inline style="..." attributes that strict CSP blocks.
+  bioApplyDataStyles(container);
 
   // Show/hide custom editor panel based on selected theme + tier
   const editor = document.getElementById('bio-custom-editor');
@@ -1054,9 +1112,14 @@ function renderBioFonts() {
   if (!select) return;
   select.innerHTML = BIO_FONTS.map(f => {
     const sel = bioState.font_family === f.key ? ' selected' : '';
-    // option font-family is honored on most browsers (not IE; not relevant here)
-    return `<option value="${escapeHtml(f.key)}" style="font-family:${f.stack};"${sel}>${escapeHtml(f.name)}</option>`;
+    // option font-family applied programmatically after innerHTML to keep CSP-strict
+    return `<option value="${escapeHtml(f.key)}" data-bio-font-family="${f.stack}"${sel}>${escapeHtml(f.name)}</option>`;
   }).join('');
+  // Apply the option font-family attributes programmatically (CSP-strict; can't use inline style)
+  Array.from(select.options).forEach(opt => {
+    const ff = opt.dataset.bioFontFamily;
+    if (ff) opt.style.fontFamily = ff;
+  });
   // Set the select element's own font-family so the resting state shows
   // the currently chosen font, not just the option label.
   const font = getBioFont(bioState.font_family);
@@ -1541,26 +1604,26 @@ async function openCoursePickerModal() {
   // Check which courses are already added
   const addedCourseIds = bioState.links.filter(l => l.isCourse).map(l => l.courseId);
 
-  let modalHtml = '<div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.3px;margin-bottom:16px;">Add Course to Bio</div>';
-  modalHtml += '<div style="display:flex;flex-direction:column;gap:10px;">';
+  let modalHtml = '<div class="bio-s-9998de">Add Course to Bio</div>';
+  modalHtml += '<div class="bio-s-b32a60">';
 
   courses.forEach(function(c) {
     const isAdded = addedCourseIds.indexOf(c.id) !== -1;
     const coverUrl = c.cover_image_path ? sb.storage.from('course-covers').getPublicUrl(c.cover_image_path).data.publicUrl : '';
     const coverHtml = coverUrl
-      ? '<img src="' + escapeHtml(coverUrl) + '" alt="Course thumbnail" style="width:60px;height:40px;object-fit:cover;border-radius:6px;flex-shrink:0;">'
-      : '<div style="width:60px;height:40px;border-radius:6px;background:var(--surface);border:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>';
+      ? '<img src="' + escapeHtml(coverUrl) + '" alt="Course thumbnail" class="bio-s-f28e64">'
+      : '<div class="bio-s-fd8ea7"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>';
     const priceText = c.price_cents > 0 ? formatMoney(c.price_cents, {alwaysShowCents:true}) : 'Free';
 
-    modalHtml += '<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;">'
+    modalHtml += '<div class="bio-s-dd07a9">'
       + coverHtml
-      + '<div style="flex:1;min-width:0;">'
-      + '<div style="font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escapeHtml(c.title) + '</div>'
-      + '<div style="font-size:12px;color:var(--muted);">' + priceText + '</div>'
+      + '<div class="bio-s-a07604">'
+      + '<div class="bio-s-3fe262">' + escapeHtml(c.title) + '</div>'
+      + '<div class="bio-s-e769ff">' + priceText + '</div>'
       + '</div>';
 
     if (isAdded) {
-      modalHtml += '<span style="font-size:11px;color:var(--muted);padding:5px 12px;border:1px solid var(--border);border-radius:6px;">Added</span>';
+      modalHtml += '<span class="bio-s-da6517">Added</span>';
     } else {
       // Stash all course params on data-bio-* attributes; handler reads them on click.
       // escapeHtml ensures titles with quotes / HTML special chars don't break the attribute.
@@ -1570,14 +1633,14 @@ async function openCoursePickerModal() {
         + ' data-bio-price="' + c.price_cents + '"'
         + ' data-bio-slug="' + escapeHtml(c.slug) + '"'
         + ' data-bio-cover="' + escapeHtml(coverUrl) + '"'
-        + ' style="padding:5px 12px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Add</button>';
+        + ' class="bio-s-a788c4">Add</button>';
     }
 
     modalHtml += '</div>';
   });
 
   modalHtml += '</div>';
-  modalHtml += '<button data-bio-action="close-course-picker" style="width:100%;margin-top:16px;padding:10px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;">Close</button>';
+  modalHtml += '<button data-bio-action="close-course-picker" class="bio-s-6b029c">Close</button>';
 
   // Show modal
   let overlay = document.getElementById('course-picker-overlay');
@@ -1588,7 +1651,7 @@ async function openCoursePickerModal() {
     overlay.onclick = function(e) { if (e.target === overlay) closeCoursePickerModal(); };
     document.body.appendChild(overlay);
   }
-  overlay.innerHTML = '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:24px;max-width:480px;width:100%;max-height:80vh;overflow-y:auto;">' + modalHtml + '</div>';
+  overlay.innerHTML = '<div class="bio-s-78ed66">' + modalHtml + '</div>';
   overlay.style.display = 'flex';
 }
 
@@ -1641,26 +1704,26 @@ async function openCoachingPickerModal() {
 
   const addedIds = bioState.links.filter(l => l.isCoaching).map(l => l.coachingId);
 
-  let modalHtml = '<div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.3px;margin-bottom:16px;">Add Booking to Bio</div>';
-  modalHtml += '<div style="display:flex;flex-direction:column;gap:10px;">';
+  let modalHtml = '<div class="bio-s-9998de">Add Booking to Bio</div>';
+  modalHtml += '<div class="bio-s-b32a60">';
 
   services.forEach(function(c) {
     const isAdded = addedIds.indexOf(c.id) !== -1;
     const coverUrl = c.cover_image_path ? sb.storage.from('coaching-covers').getPublicUrl(c.cover_image_path).data.publicUrl : '';
     const coverHtml = coverUrl
-      ? '<img src="' + escapeHtml(coverUrl) + '" alt="Booking thumbnail" style="width:60px;height:40px;object-fit:cover;border-radius:6px;flex-shrink:0;">'
-      : '<div style="width:60px;height:40px;border-radius:6px;background:var(--surface);border:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>';
+      ? '<img src="' + escapeHtml(coverUrl) + '" alt="Booking thumbnail" class="bio-s-f28e64">'
+      : '<div class="bio-s-fd8ea7"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>';
     const priceText = c.price_cents > 0 ? formatMoney(c.price_cents, {alwaysShowCents:true}) : 'Free';
 
-    modalHtml += '<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;">'
+    modalHtml += '<div class="bio-s-dd07a9">'
       + coverHtml
-      + '<div style="flex:1;min-width:0;">'
-      + '<div style="font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escapeHtml(c.title) + '</div>'
-      + '<div style="font-size:12px;color:var(--muted);">' + priceText + '</div>'
+      + '<div class="bio-s-a07604">'
+      + '<div class="bio-s-3fe262">' + escapeHtml(c.title) + '</div>'
+      + '<div class="bio-s-e769ff">' + priceText + '</div>'
       + '</div>';
 
     if (isAdded) {
-      modalHtml += '<span style="font-size:11px;color:var(--muted);padding:5px 12px;border:1px solid var(--border);border-radius:6px;">Added</span>';
+      modalHtml += '<span class="bio-s-da6517">Added</span>';
     } else {
       modalHtml += '<button data-bio-action="add-coaching-to-links"'
         + ' data-bio-coaching-id="' + escapeHtml(c.id) + '"'
@@ -1668,14 +1731,14 @@ async function openCoachingPickerModal() {
         + ' data-bio-price="' + c.price_cents + '"'
         + ' data-bio-slug="' + escapeHtml(c.slug) + '"'
         + ' data-bio-cover="' + escapeHtml(coverUrl) + '"'
-        + ' style="padding:5px 12px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Add</button>';
+        + ' class="bio-s-a788c4">Add</button>';
     }
 
     modalHtml += '</div>';
   });
 
   modalHtml += '</div>';
-  modalHtml += '<button data-bio-action="close-coaching-picker" style="width:100%;margin-top:16px;padding:10px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;">Close</button>';
+  modalHtml += '<button data-bio-action="close-coaching-picker" class="bio-s-6b029c">Close</button>';
 
   let overlay = document.getElementById('coaching-picker-overlay');
   if (!overlay) {
@@ -1685,7 +1748,7 @@ async function openCoachingPickerModal() {
     overlay.onclick = function(e) { if (e.target === overlay) closeCoachingPickerModal(); };
     document.body.appendChild(overlay);
   }
-  overlay.innerHTML = '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:24px;max-width:480px;width:100%;max-height:80vh;overflow-y:auto;">' + modalHtml + '</div>';
+  overlay.innerHTML = '<div class="bio-s-78ed66">' + modalHtml + '</div>';
   overlay.style.display = 'flex';
 }
 
@@ -1737,26 +1800,26 @@ async function openProductPickerModal() {
 
   const addedProductIds = bioState.links.filter(l => l.isProduct).map(l => l.productId);
 
-  let modalHtml = '<div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.3px;margin-bottom:16px;">Add Digital Product to Bio</div>';
-  modalHtml += '<div style="display:flex;flex-direction:column;gap:10px;">';
+  let modalHtml = '<div class="bio-s-9998de">Add Digital Product to Bio</div>';
+  modalHtml += '<div class="bio-s-b32a60">';
 
   products.forEach(function(p) {
     const isAdded = addedProductIds.indexOf(p.id) !== -1;
     const coverUrl = p.cover_image_url || '';
     const coverHtml = coverUrl
-      ? '<img src="' + escapeHtml(coverUrl) + '" alt="Product thumbnail" style="width:60px;height:40px;object-fit:cover;border-radius:6px;flex-shrink:0;">'
-      : '<div style="width:60px;height:40px;border-radius:6px;background:var(--surface);border:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>';
+      ? '<img src="' + escapeHtml(coverUrl) + '" alt="Product thumbnail" class="bio-s-f28e64">'
+      : '<div class="bio-s-fd8ea7"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>';
     const priceText = p.price_cents > 0 ? formatMoney(p.price_cents, {alwaysShowCents:true}) : 'Free';
 
-    modalHtml += '<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;">'
+    modalHtml += '<div class="bio-s-dd07a9">'
       + coverHtml
-      + '<div style="flex:1;min-width:0;">'
-      + '<div style="font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escapeHtml(p.title) + '</div>'
-      + '<div style="font-size:12px;color:var(--muted);">' + priceText + '</div>'
+      + '<div class="bio-s-a07604">'
+      + '<div class="bio-s-3fe262">' + escapeHtml(p.title) + '</div>'
+      + '<div class="bio-s-e769ff">' + priceText + '</div>'
       + '</div>';
 
     if (isAdded) {
-      modalHtml += '<span style="font-size:11px;color:var(--muted);padding:5px 12px;border:1px solid var(--border);border-radius:6px;">Added</span>';
+      modalHtml += '<span class="bio-s-da6517">Added</span>';
     } else {
       modalHtml += '<button data-bio-action="add-product-to-links"'
         + ' data-bio-product-id="' + escapeHtml(p.id) + '"'
@@ -1764,14 +1827,14 @@ async function openProductPickerModal() {
         + ' data-bio-price="' + p.price_cents + '"'
         + ' data-bio-slug="' + escapeHtml(p.slug) + '"'
         + ' data-bio-cover="' + escapeHtml(coverUrl) + '"'
-        + ' style="padding:5px 12px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Add</button>';
+        + ' class="bio-s-a788c4">Add</button>';
     }
 
     modalHtml += '</div>';
   });
 
   modalHtml += '</div>';
-  modalHtml += '<button data-bio-action="close-product-picker" style="width:100%;margin-top:16px;padding:10px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;">Close</button>';
+  modalHtml += '<button data-bio-action="close-product-picker" class="bio-s-6b029c">Close</button>';
 
   let overlay = document.getElementById('product-picker-overlay');
   if (!overlay) {
@@ -1781,7 +1844,7 @@ async function openProductPickerModal() {
     overlay.onclick = function(e) { if (e.target === overlay) closeProductPickerModal(); };
     document.body.appendChild(overlay);
   }
-  overlay.innerHTML = '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:24px;max-width:480px;width:100%;max-height:80vh;overflow-y:auto;">' + modalHtml + '</div>';
+  overlay.innerHTML = '<div class="bio-s-78ed66">' + modalHtml + '</div>';
   overlay.style.display = 'flex';
 }
 
@@ -1951,15 +2014,15 @@ const BIO_TRASH_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="non
 // side-by-side; a half next to a full-width link is half with empty space.
 function bioHalfWidthToggle(link) {
   const isOn = !!link.halfWidth;
-  return `<label class="bio-half-toggle" style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;background:var(--surface);border:1px solid var(--border-hover);border-radius:6px;margin-bottom:6px;cursor:pointer;font-size:13px;color:var(--text);">
-    <span style="display:flex;align-items:center;gap:8px;">
+  return `<label class="bio-half-toggle bio-s-1adb5f" >
+    <span class="bio-s-e3f610">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="8" height="12" rx="1.5"/><rect x="13" y="6" width="8" height="12" rx="1.5"/></svg>
       Half width
     </span>
-    <span class="bio-half-switch ${isOn ? 'on' : ''}" aria-hidden="true" style="position:relative;width:34px;height:20px;background:${isOn ? 'var(--accent)' : 'var(--bg)'};border:1px solid ${isOn ? 'var(--accent)' : 'var(--border-hover)'};border-radius:11px;transition:background 0.15s,border-color 0.15s;flex-shrink:0;">
-      <span style="position:absolute;top:2px;left:${isOn ? '16px' : '2px'};width:14px;height:14px;background:#fff;border-radius:50%;transition:left 0.15s;"></span>
+    <span class="bio-half-switch bio-half-track ${isOn ? 'on' : ''}" aria-hidden="true">
+      <span class="bio-half-thumb ${isOn ? 'on' : ''}"></span>
     </span>
-    <input type="checkbox" ${isOn ? 'checked' : ''} data-bio-action="toggle-link-half-width" data-bio-event="change" data-bio-id="${link._id}" aria-label="Half width" style="position:absolute;opacity:0;pointer-events:none;width:0;height:0;">
+    <input type="checkbox" ${isOn ? 'checked' : ''} data-bio-action="toggle-link-half-width" data-bio-event="change" data-bio-id="${link._id}" aria-label="Half width" class="bio-s-12c53e">
   </label>`;
 }
 
@@ -1984,9 +2047,11 @@ function renderBioLinks() {
   }
 
   if (bioState.links.length === 0) {
-    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px;">No links yet. Click below to add one.</div>';
+    el.innerHTML = '<div class="bio-s-bc2256">No links yet. Click below to add one.</div>';
   } else {
     el.innerHTML = bioState.links.map(l => renderLinkRow(l)).join('');
+    // Apply any data-bio-color / data-bio-bg / etc on the just-rendered rows
+    bioApplyDataStyles(el);
   }
   // Toggle add buttons
   document.getElementById('bio-add-link-btn').disabled = regularCount >= maxLinks;
@@ -2065,7 +2130,7 @@ function renderLinkCollapsed(link, dragSvg, editSvg) {
       return null;
     })();
     thumb = firstId
-      ? `<img alt="YouTube preview" src="https://i.ytimg.com/vi/${firstId}/default.jpg" style="width:48px;height:32px;object-fit:cover;border-radius:6px;flex-shrink:0;" data-bio-onerror="hide-thumb-bg">`
+      ? `<img alt="YouTube preview" src="https://i.ytimg.com/vi/${firstId}/default.jpg" class="bio-s-11a000" data-bio-onerror="hide-thumb-bg">`
       : '';
     title = 'YouTube videos';
     subline = filledCount === 0 ? 'No videos yet' : (filledCount === 1 ? '1 video' : filledCount + ' videos');
@@ -2073,38 +2138,38 @@ function renderLinkCollapsed(link, dragSvg, editSvg) {
     title = escapeHtml(link.title || 'Subscribe to my newsletter');
   } else if (link.isHero) {
     if (link.photoUrl) {
-      thumb = `<img alt="Hero thumbnail" src="${escapeHtml(link.photoUrl)}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;flex-shrink:0;">`;
+      thumb = `<img alt="Hero thumbnail" src="${escapeHtml(link.photoUrl)}" class="bio-s-3323bf">`;
     }
     const url = (link.url || '').trim();
     subline = url
       ? escapeHtml(url.length > 50 ? url.slice(0, 47) + '…' : url)
-      : '<span style="color:#fca5a5;">No URL set</span>';
+      : '<span class="bio-s-dbc3a0">No URL set</span>';
   } else if (link.isCourse) {
     if (link.photoUrl) {
-      thumb = `<img alt="Course thumbnail" src="${escapeHtml(link.photoUrl)}" style="width:48px;height:32px;object-fit:cover;border-radius:6px;flex-shrink:0;">`;
+      thumb = `<img alt="Course thumbnail" src="${escapeHtml(link.photoUrl)}" class="bio-s-11a000">`;
     }
     const priceText = link.coursePrice > 0 ? formatMoney(link.coursePrice, {alwaysShowCents:true}) : 'Free';
-    const crossoutText = link.courseCrossoutPrice > 0 ? '<span style="text-decoration:line-through;color:var(--muted);font-size:10px;margin-left:4px;">$' + (link.courseCrossoutPrice / 100).toFixed(2) + '</span>' : '';
+    const crossoutText = link.courseCrossoutPrice > 0 ? '<span class="bio-s-3c891d">$' + (link.courseCrossoutPrice / 100).toFixed(2) + '</span>' : '';
     subline = priceText + crossoutText;
   } else if (link.isCoaching) {
     if (link.photoUrl) {
-      thumb = `<img alt="Booking thumbnail" src="${escapeHtml(link.photoUrl)}" style="width:48px;height:32px;object-fit:cover;border-radius:6px;flex-shrink:0;">`;
+      thumb = `<img alt="Booking thumbnail" src="${escapeHtml(link.photoUrl)}" class="bio-s-11a000">`;
     }
     subline = link.coachingPrice > 0 ? formatMoney(link.coachingPrice, {alwaysShowCents:true}) : 'Free';
   } else if (link.isProduct) {
     if (link.photoUrl) {
-      thumb = `<img alt="Product thumbnail" src="${escapeHtml(link.photoUrl)}" style="width:48px;height:32px;object-fit:cover;border-radius:6px;flex-shrink:0;">`;
+      thumb = `<img alt="Product thumbnail" src="${escapeHtml(link.photoUrl)}" class="bio-s-11a000">`;
     }
     subline = link.productPrice > 0 ? formatMoney(link.productPrice, {alwaysShowCents:true}) : 'Free';
   } else {
     // Regular link / featured / mediakit
     if (!link.isMediaKit && link.photoUrl) {
-      thumb = `<img alt="" src="${escapeHtml(link.photoUrl)}" loading="lazy" data-bio-onerror="hide" style="width:36px;height:36px;object-fit:cover;border-radius:6px;flex-shrink:0;border:1px solid var(--border);">`;
+      thumb = `<img alt="" src="${escapeHtml(link.photoUrl)}" loading="lazy" data-bio-onerror="hide" class="bio-s-fc4450">`;
     }
     const url = (link.url || '').trim();
     subline = url
       ? escapeHtml(url.length > 50 ? url.slice(0, 47) + '…' : url)
-      : '<span style="color:#fca5a5;">No URL set</span>';
+      : '<span class="bio-s-dbc3a0">No URL set</span>';
   }
 
   // Type icon — shown if there's no thumbnail (otherwise thumbnail carries the visual weight)
@@ -2120,7 +2185,7 @@ function renderLinkCollapsed(link, dragSvg, editSvg) {
     <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
     ${typeIconHtml}
     <div class="bio-row-body">
-      <div class="bio-row-title" style="color:${titleColor};">${title}</div>
+      <div class="bio-row-title" data-bio-color="${titleColor}">${title}</div>
       ${sublineHtml}
     </div>
     ${bioHalfBadge(link)}
@@ -2209,17 +2274,17 @@ async function onHeroPhotoSelected(input, linkId) {
 function renderLinkExpanded(link, dragSvg) {
   // Header — single text input, no URL/photo/description
   if (link.isHeader) {
-    return `<div class="bio-link-row bio-link-header-row" data-id="${link._id}" style="background:linear-gradient(135deg,rgba(124,58,237,0.04),rgba(232,121,249,0.02));border:1px dashed rgba(124,58,237,0.25);">
+    return `<div class="bio-link-row bio-link-header-row" data-id="${link._id}" class="bio-s-44d745">
       <div class="bio-link-header">
         <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
-        <span class="bio-featured-badge" style="background:rgba(124,58,237,0.15);color:#c4b5fd;border:1px solid rgba(124,58,237,0.3);">Header</span>
-        <div style="flex:1;"></div>
+        <span class="bio-featured-badge bio-s-3a0b91" >Header</span>
+        <div class="bio-s-7623f0"></div>
         <button class="bio-link-remove" data-bio-action="remove-link" data-bio-id="${link._id}">Remove</button>
       </div>
       <input type="text" placeholder="Section header (e.g. My Socials)" maxlength="60" value="${escapeHtml(link.title || '')}"
-        data-bio-action="update-link-field" data-bio-event="input" data-bio-id="${link._id}" data-bio-field="title" aria-label="Header text" style="margin-bottom:6px;">
+        data-bio-action="update-link-field" data-bio-event="input" data-bio-id="${link._id}" data-bio-field="title" aria-label="Header text" class="bio-s-6c002e">
       <button type="button" data-bio-action="save-link-row" data-bio-id="${link._id}"
-        style="width:100%;padding:9px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">
+        class="bio-s-c7cf47">
         Save header
       </button>
     </div>`;
@@ -2227,18 +2292,18 @@ function renderLinkExpanded(link, dragSvg) {
 
   // Subscribe block — just a title/label field
   if (link.isSubscribe) {
-    return `<div class="bio-link-row" data-id="${link._id}" style="background:linear-gradient(135deg,rgba(124,58,237,0.04),rgba(232,121,249,0.02));border:1px solid rgba(124,58,237,0.25);">
+    return `<div class="bio-link-row" data-id="${link._id}" class="bio-s-dc2eb3">
       <div class="bio-link-header">
         <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
-        <span class="bio-featured-badge" style="background:rgba(124,58,237,0.15);color:#c4b5fd;border:1px solid rgba(124,58,237,0.3);">Subscribe</span>
-        <div style="flex:1;"></div>
+        <span class="bio-featured-badge bio-s-3a0b91" >Subscribe</span>
+        <div class="bio-s-7623f0"></div>
         <button class="bio-link-remove" data-bio-action="remove-link" data-bio-id="${link._id}">Remove</button>
       </div>
       <input type="text" placeholder="Subscribe heading (e.g. Join my newsletter)" maxlength="80" value="${escapeHtml(link.title || '')}"
-        data-bio-action="update-link-field" data-bio-event="input" data-bio-id="${link._id}" data-bio-field="title" aria-label="Subscribe heading" style="margin-bottom:6px;">
-      <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">Visitors will see an email input and subscribe button styled to your theme.</div>
+        data-bio-action="update-link-field" data-bio-event="input" data-bio-id="${link._id}" data-bio-field="title" aria-label="Subscribe heading" class="bio-s-6c002e">
+      <div class="bio-s-7728fb">Visitors will see an email input and subscribe button styled to your theme.</div>
       <button type="button" data-bio-action="save-link-row" data-bio-id="${link._id}"
-        style="width:100%;padding:9px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">
+        class="bio-s-c7cf47">
         Save
       </button>
     </div>`;
@@ -2252,30 +2317,30 @@ function renderLinkExpanded(link, dragSvg) {
     const atMax = videos.length >= 10;
     const inputsHtml = videos.map((v, idx) => {
       const value = escapeHtml(v && v.url ? v.url : '');
-      return `<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;">
+      return `<div class="bio-s-302bc1">
         <input type="url" placeholder="https://youtube.com/watch?v=..." value="${value}"
           data-bio-action="update-video-url" data-bio-event="input" data-bio-id="${link._id}" data-bio-idx="${idx}"
           aria-label="YouTube URL ${idx + 1}"
-          style="flex:1;margin:0;">
+          class="bio-s-d3db56">
         <button type="button" aria-label="Remove this video" data-bio-action="remove-video" data-bio-id="${link._id}" data-bio-idx="${idx}"
-          style="flex-shrink:0;width:34px;height:34px;background:transparent;border:1px solid rgba(239,68,68,0.3);color:#ef4444;border-radius:6px;font-size:14px;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;">×</button>
+          class="bio-s-09aacd">×</button>
       </div>`;
     }).join('');
     return `<div class="bio-link-row" data-id="${link._id}">
       <div class="bio-link-header">
         <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
-        <span class="bio-featured-badge" style="background:rgba(239,68,68,0.12);color:#fca5a5;border:1px solid rgba(239,68,68,0.25);">YouTube</span>
-        <div style="flex:1;"></div>
+        <span class="bio-featured-badge bio-s-04da54" >YouTube</span>
+        <div class="bio-s-7623f0"></div>
         <button class="bio-link-remove" data-bio-action="remove-link" data-bio-id="${link._id}">Remove</button>
       </div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Add up to 10 YouTube videos. They'll appear as a horizontal carousel on your bio.</div>
+      <div class="bio-s-e289c0">Add up to 10 YouTube videos. They'll appear as a horizontal carousel on your bio.</div>
       ${inputsHtml}
       <button type="button" data-bio-action="add-video-to-block" data-bio-id="${link._id}" ${atMax ? 'disabled' : ''}
-        style="width:100%;padding:8px;background:transparent;border:1px dashed rgba(124,58,237,0.4);color:${atMax ? 'var(--muted)' : 'var(--accent2)'};border-radius:6px;font-size:12px;font-family:'DM Sans',sans-serif;cursor:${atMax ? 'default' : 'pointer'};margin-bottom:6px;opacity:${atMax ? 0.5 : 1};">
+        class="bio-add-video-btn ${atMax ? 'is-disabled' : ''}">
         ${atMax ? '10 video limit reached' : '+ Add another video'}
       </button>
       <button type="button" data-bio-action="save-link-row" data-bio-id="${link._id}"
-        style="width:100%;padding:9px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">
+        class="bio-s-c7cf47">
         Save
       </button>
     </div>`;
@@ -2286,84 +2351,84 @@ function renderLinkExpanded(link, dragSvg) {
 
     // Course link — show cover, locked title/URL, crossout price option
     const coverHtml = link.photoUrl
-      ? `<img alt="Link cover" src="${escapeHtml(link.photoUrl)}" style="width:100%;height:120px;object-fit:cover;border-radius:8px;margin-bottom:10px;">`
+      ? `<img alt="Link cover" src="${escapeHtml(link.photoUrl)}" class="bio-s-f31042">`
       : '';
     const priceDisplay = link.coursePrice > 0 ? formatMoney(link.coursePrice, {alwaysShowCents:true}) : 'Free';
     const crossoutVal = link.courseCrossoutPrice > 0 ? (link.courseCrossoutPrice / 100).toFixed(2) : '';
     return `<div class="bio-link-row" data-id="${link._id}">
       <div class="bio-link-header">
         <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
-        <span class="bio-featured-badge" style="background:rgba(124,58,237,0.15);color:#c4b5fd;border:1px solid rgba(124,58,237,0.3);">Course</span>${bioHalfBadge(link)}
-        <div style="flex:1;"></div>
+        <span class="bio-featured-badge bio-s-3a0b91" >Course</span>${bioHalfBadge(link)}
+        <div class="bio-s-7623f0"></div>
         <button class="bio-link-remove" data-bio-action="remove-link" data-bio-id="${link._id}">Remove</button>
       </div>
       ${coverHtml}
-      <input type="text" value="${escapeHtml(link.title || '')}" readonly style="opacity:0.6;cursor:default;" aria-label="Course title">
-      <div style="display:flex;gap:8px;margin-bottom:6px;">
-        <div style="flex:1;display:flex;align-items:center;gap:0;background:var(--surface);border:1px solid var(--border-hover);border-radius:6px;overflow:hidden;">
-          <span style="padding:10px 0 10px 12px;font-size:13px;color:var(--muted);white-space:nowrap;">Price:</span>
-          <span style="padding:10px 12px 10px 4px;font-size:13px;color:var(--text);">${priceDisplay}</span>
+      <input type="text" value="${escapeHtml(link.title || '')}" readonly class="bio-s-5973a5" aria-label="Course title">
+      <div class="bio-s-57a11c">
+        <div class="bio-s-598868">
+          <span class="bio-s-dc6286">Price:</span>
+          <span class="bio-s-b80e2b">${priceDisplay}</span>
         </div>
-        <div style="flex:1;display:flex;align-items:center;gap:0;background:var(--surface);border:1px solid var(--border-hover);border-radius:6px;overflow:hidden;">
-          <span style="padding:10px 0 10px 12px;font-size:13px;color:var(--muted);white-space:nowrap;">Crossout $</span>
+        <div class="bio-s-598868">
+          <span class="bio-s-dc6286">Crossout $</span>
           <input type="text" inputmode="decimal" value="${crossoutVal}" placeholder="99.99"
             data-bio-action="update-link-crossout-price" data-bio-event="input" data-bio-id="${link._id}"
-            aria-label="Crossout price" style="flex:1;background:transparent;border:none;padding:10px 12px 10px 0;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;min-width:0;margin:0;">
+            aria-label="Crossout price" class="bio-s-09cb7b">
         </div>
       </div>
       ${bioHalfWidthToggle(link)}
       <button type="button" data-bio-action="save-link-row" data-bio-id="${link._id}"
-        style="width:100%;padding:9px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">
+        class="bio-s-c7cf47">
         Save link
       </button>
     </div>`;
   }
   if (link.isCoaching) {
     const coverHtml = link.photoUrl
-      ? `<img alt="Link cover" src="${escapeHtml(link.photoUrl)}" style="width:100%;height:120px;object-fit:cover;border-radius:8px;margin-bottom:10px;">`
+      ? `<img alt="Link cover" src="${escapeHtml(link.photoUrl)}" class="bio-s-f31042">`
       : '';
     const priceDisplay = link.coachingPrice > 0 ? formatMoney(link.coachingPrice, {alwaysShowCents:true}) : 'Free';
     return `<div class="bio-link-row" data-id="${link._id}">
       <div class="bio-link-header">
         <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
-        <span class="bio-featured-badge" style="background:rgba(124,58,237,0.15);color:#c4b5fd;border:1px solid rgba(124,58,237,0.3);">Booking</span>${bioHalfBadge(link)}
-        <div style="flex:1;"></div>
+        <span class="bio-featured-badge bio-s-3a0b91" >Booking</span>${bioHalfBadge(link)}
+        <div class="bio-s-7623f0"></div>
         <button class="bio-link-remove" data-bio-action="remove-link" data-bio-id="${link._id}">Remove</button>
       </div>
       ${coverHtml}
-      <input type="text" value="${escapeHtml(link.title || '')}" readonly style="opacity:0.6;cursor:default;" aria-label="Coaching title">
-      <div style="display:flex;align-items:center;gap:0;background:var(--surface);border:1px solid var(--border-hover);border-radius:6px;overflow:hidden;margin-bottom:6px;">
-        <span style="padding:10px 0 10px 12px;font-size:13px;color:var(--muted);white-space:nowrap;">Price:</span>
-        <span style="padding:10px 12px 10px 4px;font-size:13px;color:var(--text);">${priceDisplay}</span>
+      <input type="text" value="${escapeHtml(link.title || '')}" readonly class="bio-s-5973a5" aria-label="Coaching title">
+      <div class="bio-s-d2b7d2">
+        <span class="bio-s-dc6286">Price:</span>
+        <span class="bio-s-b80e2b">${priceDisplay}</span>
       </div>
       ${bioHalfWidthToggle(link)}
       <button type="button" data-bio-action="save-link-row" data-bio-id="${link._id}"
-        style="width:100%;padding:9px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">
+        class="bio-s-c7cf47">
         Save link
       </button>
     </div>`;
   }
   if (link.isProduct) {
     const coverHtml = link.photoUrl
-      ? `<img alt="Link cover" src="${escapeHtml(link.photoUrl)}" style="width:100%;height:120px;object-fit:cover;border-radius:8px;margin-bottom:10px;">`
+      ? `<img alt="Link cover" src="${escapeHtml(link.photoUrl)}" class="bio-s-f31042">`
       : '';
     const priceDisplay = link.productPrice > 0 ? formatMoney(link.productPrice, {alwaysShowCents:true}) : 'Free';
     return `<div class="bio-link-row" data-id="${link._id}">
       <div class="bio-link-header">
         <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
-        <span class="bio-featured-badge" style="background:rgba(124,58,237,0.15);color:#c4b5fd;border:1px solid rgba(124,58,237,0.3);">Product</span>${bioHalfBadge(link)}
-        <div style="flex:1;"></div>
+        <span class="bio-featured-badge bio-s-3a0b91" >Product</span>${bioHalfBadge(link)}
+        <div class="bio-s-7623f0"></div>
         <button class="bio-link-remove" data-bio-action="remove-link" data-bio-id="${link._id}">Remove</button>
       </div>
       ${coverHtml}
-      <input type="text" value="${escapeHtml(link.title || '')}" readonly style="opacity:0.6;cursor:default;" aria-label="Product title">
-      <div style="display:flex;align-items:center;gap:0;background:var(--surface);border:1px solid var(--border-hover);border-radius:6px;overflow:hidden;margin-bottom:6px;">
-        <span style="padding:10px 0 10px 12px;font-size:13px;color:var(--muted);white-space:nowrap;">Price:</span>
-        <span style="padding:10px 12px 10px 4px;font-size:13px;color:var(--text);">${priceDisplay}</span>
+      <input type="text" value="${escapeHtml(link.title || '')}" readonly class="bio-s-5973a5" aria-label="Product title">
+      <div class="bio-s-d2b7d2">
+        <span class="bio-s-dc6286">Price:</span>
+        <span class="bio-s-b80e2b">${priceDisplay}</span>
       </div>
       ${bioHalfWidthToggle(link)}
       <button type="button" data-bio-action="save-link-row" data-bio-id="${link._id}"
-        style="width:100%;padding:9px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">
+        class="bio-s-c7cf47">
         Save link
       </button>
     </div>`;
@@ -2390,18 +2455,18 @@ function renderLinkExpanded(link, dragSvg) {
       <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
       ${link.featured ? '<span class="bio-featured-badge">Featured</span>' : ''}
       ${link.isHero ? '<span class="bio-hero-badge">Hero</span>' : ''}
-      <div style="flex:1;"></div>
+      <div class="bio-s-7623f0"></div>
       <button class="bio-link-remove" data-bio-action="remove-link" data-bio-id="${link._id}">Remove</button>
     </div>
     ${photoSlot}
-    ${!link.featured && !link.isHero ? `<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+    ${!link.featured && !link.isHero ? `<div class="bio-s-41ec1b">
       ${link.photoUrl
-        ? `<img alt="Link thumbnail" src="${escapeHtml(link.photoUrl)}" style="width:40px;height:40px;object-fit:cover;border-radius:8px;border:1px solid var(--border);">
-           <button type="button" data-bio-action="remove-link-thumb" data-bio-id="${link._id}" style="padding:4px 10px;background:transparent;border:1px solid rgba(239,68,68,0.3);color:#ef4444;border-radius:6px;font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer;">Remove</button>`
-        : `<label class="bio-thumb-upload-label" style="display:inline-flex;align-items:center;gap:5px;padding:5px 10px;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.2);color:#c4b5fd;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;transition:all 0.15s;">
+        ? `<img alt="Link thumbnail" src="${escapeHtml(link.photoUrl)}" class="bio-s-19345c">
+           <button type="button" data-bio-action="remove-link-thumb" data-bio-id="${link._id}" class="bio-s-851be4">Remove</button>`
+        : `<label class="bio-thumb-upload-label bio-s-d914e0" >
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
             Add Thumbnail
-            <input type="file" accept="image/*" data-bio-action="link-thumb-selected" data-bio-event="change" data-bio-id="${link._id}" style="display:none;">
+            <input type="file" accept="image/*" data-bio-action="link-thumb-selected" data-bio-event="change" data-bio-id="${link._id}" class="bio-s-c8be1c">
           </label>`}
     </div>` : ''}
     <input type="text" placeholder="Title" maxlength="80" value="${escapeHtml(link.title || '')}"
@@ -2409,11 +2474,11 @@ function renderLinkExpanded(link, dragSvg) {
     <input type="text" placeholder="Description (optional)" maxlength="120" value="${escapeHtml(link.description || '')}"
       data-bio-action="update-link-field" data-bio-event="input" data-bio-id="${link._id}" data-bio-field="description" aria-label="Link description">
     <input type="url" placeholder="https://..." value="${escapeHtml(link.url || '')}"
-      data-bio-action="update-link-field" data-bio-event="input" data-bio-id="${link._id}" data-bio-field="url" aria-label="Link URL" style="margin-bottom:6px;">
+      data-bio-action="update-link-field" data-bio-event="input" data-bio-id="${link._id}" data-bio-field="url" aria-label="Link URL" class="bio-s-6c002e">
     ${(!link.featured && !link.isHero && !link.isMediaKit) ? bioHalfWidthToggle(link) : ''}
-    <div id="bio-link-err-${link._id}" style="display:none;color:#fca5a5;font-size:12px;margin-bottom:6px;"></div>
+    <div id="bio-link-err-${link._id}" class="bio-s-f62f0b"></div>
     <button type="button" data-bio-action="save-link-row" data-bio-id="${link._id}"
-      style="width:100%;padding:9px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">
+      class="bio-s-c7cf47">
       Save link
     </button>
   </div>`;
@@ -2882,7 +2947,7 @@ function updatePublishUI() {
     dot.style.background = '#4ade80';
     label.textContent = 'Published';
     sub.innerHTML = bioState.username
-      ? 'Live at <strong style="color:var(--accent2)">ryxa.io/' + bioState.username + '</strong> <button type="button" data-bio-action="copy-bio-link" data-bio-url="https://ryxa.io/' + bioState.username + '" style="padding:3px 8px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:5px;font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer;margin-left:4px;vertical-align:middle;">Copy</button>'
+      ? 'Live at <strong class="bio-s-313aee">ryxa.io/' + bioState.username + '</strong> <button type="button" data-bio-action="copy-bio-link" data-bio-url="https://ryxa.io/' + bioState.username + '" class="bio-s-eaca75">Copy</button>'
       : 'Your page is live.';
     btn.textContent = 'Unpublish';
     btn.style.background = 'transparent';
@@ -2980,7 +3045,7 @@ function buildPreviewHTML() {
   const name = bioState.display_name || bioState.username || 'Your name';
   const initial = (name[0] || '?').toUpperCase();
   const avatarHtml = bioState.avatar_url
-    ? `<img src="${escapeHtml(bioState.avatar_url)}" alt="Profile photo" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;">`
+    ? `<img src="${escapeHtml(bioState.avatar_url)}" alt="Profile photo" class="bio-s-361f33">`
     : `<div style="width:100%;height:100%;border-radius:50%;background:${t.surface2};display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;font-size:36px;font-weight:800;color:${t.text};">${escapeHtml(initial)}</div>`;
   const socialsHtml = buildPreviewSocials(t);
   const linksHtml = bioState.links.filter(l => l.isHeader || l.isSubscribe || l.isVideoBlock || (l.url || '').trim()).map(l => buildPreviewLink(l, t)).join('');
@@ -3146,7 +3211,7 @@ function buildPreviewLink(l, t) {
   if (l.isSubscribe) {
     return `<div style="background:${t.surface};border:1px solid ${t.border};border-radius:10px;padding:14px;text-align:center;margin-bottom:8px;">
       <div style="font-size:11px;font-weight:600;color:${t.text};margin-bottom:8px;">${escapeHtml(l.title || 'Subscribe to my newsletter')}</div>
-      <div style="display:flex;gap:4px;">
+      <div class="bio-s-597636">
         <div style="flex:1;padding:6px 8px;border-radius:6px;border:1px solid ${t.border};background:${t.bg};color:${t.muted};font-size:9px;text-align:left;">Your email</div>
         <div style="padding:6px 10px;background:${t.accent};color:#fff;border-radius:6px;font-size:9px;font-weight:600;">Subscribe</div>
       </div>
@@ -3187,11 +3252,11 @@ function buildPreviewLink(l, t) {
   if (l.isCourse) {
     const priceDisplay = l.coursePrice > 0 ? formatMoney(l.coursePrice, {alwaysShowCents:true}) : 'Free';
     const crossoutHtml = l.courseCrossoutPrice > 0 ? `<span style="text-decoration:line-through;color:${t.muted};font-size:11px;margin-right:4px;">${formatMoney(l.courseCrossoutPrice, {alwaysShowCents:true})}</span>` : '';
-    const coverHtml = l.photoUrl ? `<img src="${escapeHtml(l.photoUrl)}" alt="Link cover" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px 8px 0 0;">` : '';
+    const coverHtml = l.photoUrl ? `<img src="${escapeHtml(l.photoUrl)}" alt="Link cover" class="bio-s-2aa324">` : '';
     return `<div class="pcc ${halfClass}" style="background:${t.surface};border:1px solid ${t.border};border-radius:10px;overflow:hidden;">
       ${coverHtml}
-      <div class="pcc-body" style="padding:10px 12px;display:flex;align-items:center;justify-content:space-between;">
-        <div style="min-width:0;flex:1;">
+      <div class="pcc-body bio-s-4cda54" >
+        <div class="bio-s-ec9235">
           <div class="pcc-title" style="font-size:12px;font-weight:600;color:${t.text};">${escapeHtml(l.title || 'Untitled')}</div>
         </div>
         <div class="pcc-price" style="font-size:12px;font-weight:600;color:${t.text};flex-shrink:0;margin-left:8px;">${crossoutHtml}${priceDisplay}</div>
@@ -3200,11 +3265,11 @@ function buildPreviewLink(l, t) {
   }
   if (l.isCoaching) {
     const priceDisplay = l.coachingPrice > 0 ? formatMoney(l.coachingPrice, {alwaysShowCents:true}) : 'Free';
-    const coverHtml = l.photoUrl ? `<img src="${escapeHtml(l.photoUrl)}" alt="Link cover" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px 8px 0 0;">` : '';
+    const coverHtml = l.photoUrl ? `<img src="${escapeHtml(l.photoUrl)}" alt="Link cover" class="bio-s-2aa324">` : '';
     return `<div class="pcc ${halfClass}" style="background:${t.surface};border:1px solid ${t.border};border-radius:10px;overflow:hidden;">
       ${coverHtml}
-      <div class="pcc-body" style="padding:10px 12px;display:flex;align-items:center;justify-content:space-between;">
-        <div style="min-width:0;flex:1;">
+      <div class="pcc-body bio-s-4cda54" >
+        <div class="bio-s-ec9235">
           <div class="pcc-title" style="font-size:12px;font-weight:600;color:${t.text};">${escapeHtml(l.title || 'Untitled')}</div>
         </div>
         <div class="pcc-price" style="font-size:12px;font-weight:600;color:${t.text};flex-shrink:0;margin-left:8px;">${priceDisplay}</div>
@@ -3213,11 +3278,11 @@ function buildPreviewLink(l, t) {
   }
   if (l.isProduct) {
     const priceDisplay = l.productPrice > 0 ? formatMoney(l.productPrice, {alwaysShowCents:true}) : 'Free';
-    const coverHtml = l.photoUrl ? `<img src="${escapeHtml(l.photoUrl)}" alt="Link cover" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px 8px 0 0;">` : '';
+    const coverHtml = l.photoUrl ? `<img src="${escapeHtml(l.photoUrl)}" alt="Link cover" class="bio-s-2aa324">` : '';
     return `<div class="pcc ${halfClass}" style="background:${t.surface};border:1px solid ${t.border};border-radius:10px;overflow:hidden;">
       ${coverHtml}
-      <div class="pcc-body" style="padding:10px 12px;display:flex;align-items:center;justify-content:space-between;">
-        <div style="min-width:0;flex:1;">
+      <div class="pcc-body bio-s-4cda54" >
+        <div class="bio-s-ec9235">
           <div class="pcc-title" style="font-size:12px;font-weight:600;color:${t.text};">${escapeHtml(l.title || 'Untitled')}</div>
         </div>
         <div class="pcc-price" style="font-size:12px;font-weight:600;color:${t.text};flex-shrink:0;margin-left:8px;">${priceDisplay}</div>
@@ -3372,9 +3437,9 @@ function aiBioAssist(textareaId, maxLen) {
   var overlay = document.createElement('div');
   overlay.id = 'ai-bio-modal';
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;';
-  overlay.innerHTML = '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:28px;max-width:440px;width:100%;max-height:calc(100vh - 80px);overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(124,58,237,0.4) transparent;text-align:center;">'
-    + '<svg width="24" height="24" viewBox="0 0 24 24" style="animation:btn-spin 0.6s linear infinite;margin-bottom:12px;" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>'
-    + '<div style="font-size:14px;color:var(--text);">' + (mode === 'generate' ? 'Generating bio ideas...' : 'Rewriting your bio...') + '</div>'
+  overlay.innerHTML = '<div class="bio-s-30c61a">'
+    + '<svg width="24" height="24" viewBox="0 0 24 24" class="bio-s-9547f9" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>'
+    + '<div class="bio-s-57de93">' + (mode === 'generate' ? 'Generating bio ideas...' : 'Rewriting your bio...') + '</div>'
     + '</div>';
   overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
   document.body.appendChild(overlay);
@@ -3393,21 +3458,21 @@ function aiBioAssist(textareaId, maxLen) {
       var bio = s.trim();
       var charCount = bio.length;
       var overLimit = charCount > maxLen;
-      return '<div style="padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;text-align:left;">'
-        + '<div style="font-size:13px;color:var(--text);line-height:1.6;" id="ai-bio-option-' + i + '">' + escapeHtml(bio) + '</div>'
-        + '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;">'
+      return '<div class="bio-s-c9ab35">'
+        + '<div class="bio-s-f0cb5a" id="ai-bio-option-' + i + '">' + escapeHtml(bio) + '</div>'
+        + '<div class="bio-s-5205a2">'
         + '<span style="font-size:11px;color:' + (overLimit ? '#f87171' : 'var(--muted)') + ';">' + charCount + '/' + maxLen + '</span>'
-        + '<button data-bio-action="apply-ai-bio" data-bio-textarea-id="' + escapeHtml(textareaId) + '" data-bio-option-idx="' + i + '" style="padding:5px 12px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:6px;font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer;">Use this</button>'
+        + '<button data-bio-action="apply-ai-bio" data-bio-textarea-id="' + escapeHtml(textareaId) + '" data-bio-option-idx="' + i + '" class="bio-s-c43b40">Use this</button>'
         + '</div>'
         + '</div>';
     }).join('');
 
     var inner = overlay.querySelector('div');
     inner.style.textAlign = 'left';
-    inner.innerHTML = '<div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.3px;margin-bottom:6px;">AI Bio Suggestions</div>'
-      + (currentText ? '<div style="font-size:12px;color:var(--muted);margin-bottom:16px;">Based on: "' + escapeHtml(currentText.substring(0, 50)) + (currentText.length > 50 ? '...' : '') + '"</div>' : '<div style="font-size:12px;color:var(--muted);margin-bottom:16px;">Here are some ideas to get you started.</div>')
+    inner.innerHTML = '<div class="bio-s-b3617b">AI Bio Suggestions</div>'
+      + (currentText ? '<div class="bio-s-c2bb16">Based on: "' + escapeHtml(currentText.substring(0, 50)) + (currentText.length > 50 ? '...' : '') + '"</div>' : '<div class="bio-s-c2bb16">Here are some ideas to get you started.</div>')
       + cards
-      + '<button data-bio-action="close-ai-bio-modal" style="width:100%;padding:10px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;margin-top:4px;">Cancel</button>';
+      + '<button data-bio-action="close-ai-bio-modal" class="bio-s-ff18d0">Cancel</button>';
   })
   .catch(function() {
     overlay.remove();
