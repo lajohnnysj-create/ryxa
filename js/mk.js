@@ -512,11 +512,11 @@ function renderMKRates() {
       </div>`;
     } else {
       headerHtml = `<div class="mk-rate-top">
-        <input type="text" class="mk-rate-label-input" placeholder="Rate label (e.g. Podcast Integration)" maxlength="60"
+        <input type="text" class="mk-rate-label-input mk-s-301af4" placeholder="Rate label (e.g. Podcast Integration)" maxlength="60"
           value="${escapeHtml(r.label || '')}"
           data-mk-action="rate-field" data-mk-event="input" data-mk-id="${r._id}" data-mk-field="label"
           aria-label="Rate label"
-          class="mk-s-301af4">
+          >
         <button class="mk-rate-remove" data-mk-action="remove-rate" data-mk-id="${r._id}" aria-label="Delete this custom rate">Delete</button>
       </div>`;
     }

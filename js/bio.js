@@ -2274,7 +2274,7 @@ async function onHeroPhotoSelected(input, linkId) {
 function renderLinkExpanded(link, dragSvg) {
   // Header — single text input, no URL/photo/description
   if (link.isHeader) {
-    return `<div class="bio-link-row bio-link-header-row" data-id="${link._id}" class="bio-s-44d745">
+    return `<div class="bio-link-row bio-link-header-row bio-s-44d745" data-id="${link._id}" >
       <div class="bio-link-header">
         <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
         <span class="bio-featured-badge bio-s-3a0b91" >Header</span>
@@ -2292,7 +2292,7 @@ function renderLinkExpanded(link, dragSvg) {
 
   // Subscribe block — just a title/label field
   if (link.isSubscribe) {
-    return `<div class="bio-link-row" data-id="${link._id}" class="bio-s-dc2eb3">
+    return `<div class="bio-link-row bio-s-dc2eb3" data-id="${link._id}" >
       <div class="bio-link-header">
         <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
         <span class="bio-featured-badge bio-s-3a0b91" >Subscribe</span>
