@@ -3244,6 +3244,15 @@ dsRegisterAction('rewrite-copy', (e, el) => dsRewriteCopy(parseInt(el.dataset.ds
 dsRegisterAction('ca-reset', () => caReset());
 dsRegisterAction('ta-reset', () => taReset());
 
+// Thumbnail Analyzer markup actions (markup lives in dashboard.html)
+dsRegisterAction('ta-start-checkout', (e, el) => startCheckout(el.dataset.dsPlan || 'monthly', el));
+dsRegisterAction('ta-trigger-upload', () => {
+  var input = document.getElementById('ta-file-input');
+  if (input) input.click();
+});
+dsRegisterAction('ta-handle-upload', (e, el) => taHandleUpload(el));
+dsRegisterAction('ta-analyze', () => taAnalyze());
+
 // Misc
 dsRegisterAction('window-print', () => window.print());
 dsRegisterAction('select-all', (e, el) => el.select());
