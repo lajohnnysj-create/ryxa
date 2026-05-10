@@ -1,0 +1,620 @@
+// =============================================================================
+// /js/grid.js — Grid Planner (extracted from dashboard.html, 2026-05-10)
+// -----------------------------------------------------------------------------
+// All JavaScript for the Grid Planner tool. Lets users arrange and preview
+// their Instagram feed (up to 18 photos). Pro tier can save grids to DB.
+// Extracted from dashboard.html for stricter CSP.
+//
+// REFACTOR SCOPE:
+//   • Phase 1: code relocation to /js/grid.js
+//   • Phase 2: inline onclick/onchange/onerror → data-grid-action attributes
+//   • Phase 3: static inline class="bio-s-6eae3a" → hash-named CSS classes
+//
+// INTENTIONALLY KEPT INLINE:
+//   • ondrop / ondragover / ondragleave — file drop zone. Same reasoning as
+//     Brand Deals kanban and Design Studio Layers panel: timing-sensitive
+//     event.preventDefault() and dispatch order would risk breakage.
+//
+// External dependencies on window: sb, Auth, currentUser, isPro, escapeHtml,
+// showModalAlert, showModalConfirm, startCheckout, plus the global Sortable
+// from SortableJS (loaded at top of dashboard.html with defer).
+// =============================================================================
+
+// =============================================================================
+// EVENT DELEGATION INFRASTRUCTURE
+// =============================================================================
+
+const gridActions = {};
+
+function gridRegisterAction(action, handler) {
+  gridActions[action] = handler;
+}
+
+function gridFindActionElement(target, eventType) {
+  let el = target;
+  while (el && el !== document.body) {
+    if (el.dataset) {
+      const perEvent = el.dataset['gridAction' + eventType.charAt(0).toUpperCase() + eventType.slice(1)];
+      if (perEvent) return { element: el, action: perEvent };
+      if (el.dataset.gridAction) {
+        const wantEvent = el.dataset.gridEvent || 'click';
+        if (wantEvent === eventType) return { element: el, action: el.dataset.gridAction };
+      }
+    }
+    el = el.parentElement;
+  }
+  return null;
+}
+
+function gridDispatchEvent(event) {
+  const found = gridFindActionElement(event.target, event.type);
+  if (!found) return;
+  const handler = gridActions[found.action];
+  if (!handler) {
+    console.warn('[grid] No handler registered for action:', found.action);
+    return;
+  }
+  handler(event, found.element);
+}
+
+// Note: 'error' must use capture phase because img onerror does not bubble.
+['click', 'input', 'change', 'focus', 'blur'].forEach(evt => {
+  const useCapture = (evt === 'focus' || evt === 'blur');
+  document.addEventListener(evt, gridDispatchEvent, useCapture);
+});
+document.addEventListener('error', gridDispatchEvent, true);
+
+// =============================================================================
+// END INFRASTRUCTURE
+// =============================================================================
+
+// ---------- From dashboard.html lines 10631-11152 (Grid Planner) ----------
+// =====================================================
+// GRID PLANNER
+// =====================================================
+const GRID_MAX_PHOTOS = 18;
+const GRID_TARGET_PX = 400;
+const GRID_QUALITY = 0.65;
+const GRID_MAX_FILE_SIZE = 100 * 1024; // 100KB (matches bucket limit)
+const GRID_UPLOAD_TIMEOUT = 20000; // 20 seconds per file
+const GRID_SIGNED_URL_TTL = 24 * 60 * 60; // 24 hours, in seconds. Long enough that a user keeping the dashboard tab open all day still sees images. Short enough that a leaked URL becomes useless within a day.
+
+let gridPhotos = []; // Array of {id, url, isSaved}, url is Supabase public URL for saved, or blob: URL for unsaved
+let gridInited = false;
+let gridIdSeq = 1;
+let gridSortable = null;
+let gridDirty = false; // true if there are unsaved changes (for Pro users)
+let gridLoaded = false; // has data been loaded from DB yet
+
+function initGridTool() {
+  const pro = isPro();
+  document.getElementById('grid-free-banner').style.display = pro ? 'none' : 'flex';
+  document.getElementById('grid-save-btn').style.display = pro ? 'inline-block' : 'none';
+  updateGridHandle();
+  if (gridInited) { renderGrid(); return; }
+  gridInited = true;
+  if (pro) loadSavedGrid();
+  renderGrid();
+}
+
+function updateGridHandle() {
+  const el = document.getElementById('grid-phone-username');
+  if (!el) return;
+  // Use Link in Bio username if available, else fallback
+  const uname = (typeof bioState !== 'undefined' && bioState.username)
+    ? bioState.username
+    : (typeof bioOriginalUsername !== 'undefined' ? bioOriginalUsername : 'yourhandle');
+  el.textContent = uname || 'yourhandle';
+}
+
+// ======== FILE UPLOAD + COMPRESSION ========
+function onGridDragOver(e) {
+  e.preventDefault();
+  document.getElementById('grid-drop-zone').classList.add('drag-over');
+}
+function onGridDragLeave(e) {
+  document.getElementById('grid-drop-zone').classList.remove('drag-over');
+}
+function onGridDrop(e) {
+  e.preventDefault();
+  document.getElementById('grid-drop-zone').classList.remove('drag-over');
+  const files = Array.from(e.dataTransfer.files || []).filter(f => f.type.startsWith('image/'));
+  onGridFiles(files);
+}
+
+async function onGridFiles(files) {
+  const list = Array.from(files);
+  if (!list.length) return;
+
+  const isFull = gridPhotos.length >= GRID_MAX_PHOTOS;
+  let toProcess;
+  let skipped = 0;
+
+  if (isFull) {
+    // Grid is full — accept only 1 photo, remove the last, prepend the new one
+    toProcess = [list[0]];
+    if (list.length > 1) skipped = list.length - 1;
+  } else {
+    const remainingSlots = GRID_MAX_PHOTOS - gridPhotos.length;
+    toProcess = list.slice(0, remainingSlots);
+    skipped = list.length - toProcess.length;
+  }
+
+  const empty = document.getElementById('grid-drop-empty');
+  const proc = document.getElementById('grid-processing');
+  const bar = document.getElementById('grid-progress-bar');
+  const txt = document.getElementById('grid-processing-text');
+  empty.style.display = 'none';
+  proc.style.display = 'block';
+
+  for (let i = 0; i < toProcess.length; i++) {
+    txt.textContent = `Processing ${i + 1}/${toProcess.length}…`;
+    bar.style.width = `${((i) / toProcess.length) * 100}%`;
+    try {
+      const blob = await compressGridImage(toProcess[i]);
+      if (!blob) throw new Error('Could not compress');
+      const url = URL.createObjectURL(blob);
+      if (isFull) {
+        // Remove last photo and prepend new one
+        const removed = gridPhotos.pop();
+        if (removed && removed.url && removed.url.startsWith('blob:')) URL.revokeObjectURL(removed.url);
+        gridPhotos.unshift({ id: gridIdSeq++, url, blob, isSaved: false });
+      } else {
+        gridPhotos.push({ id: gridIdSeq++, url, blob, isSaved: false });
+      }
+      gridDirty = true;
+    } catch (e) {
+      console.error('Grid compression failed for file', i, e);
+    }
+  }
+  bar.style.width = '100%';
+  setTimeout(() => {
+    proc.style.display = 'none';
+    empty.style.display = 'block';
+    bar.style.width = '0';
+  }, 300);
+
+  if (skipped > 0 && !isFull) {
+    showGridStatus('error', `${skipped} photo${skipped > 1 ? 's' : ''} skipped, grid is limited to ${GRID_MAX_PHOTOS}.`);
+  }
+  renderGrid();
+}
+
+async function compressGridImage(file) {
+  // Load image
+  const imgUrl = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((resolve, reject) => {
+      const image = new Image();
+      image.onload = () => resolve(image);
+      image.onerror = () => reject(new Error('Could not load image'));
+      image.src = imgUrl;
+    });
+
+    // Resize maintaining aspect ratio, max 400px on the longest side
+    const scale = Math.min(1, GRID_TARGET_PX / Math.max(img.naturalWidth, img.naturalHeight));
+    const w = Math.round(img.naturalWidth * scale);
+    const h = Math.round(img.naturalHeight * scale);
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(img, 0, 0, w, h);
+
+    const blob = await Promise.race([
+      new Promise((resolve, reject) => {
+        canvas.toBlob(b => {
+          if (b) resolve(b);
+          else reject(new Error('Encode failed'));
+        }, 'image/webp', GRID_QUALITY);
+      }),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Compression timeout')), 10000))
+    ]);
+    if (!blob) throw new Error('No blob');
+
+    // Safety net: if still over 100KB, recompress at lower quality
+    if (blob.size > GRID_MAX_FILE_SIZE) {
+      const smaller = await new Promise((resolve, reject) => {
+        canvas.toBlob(b => b ? resolve(b) : reject(new Error('Encode failed')), 'image/webp', 0.5);
+      });
+      return smaller;
+    }
+    return blob;
+  } finally {
+    URL.revokeObjectURL(imgUrl);
+  }
+}
+
+// ======== REMOVE / CLEAR ========
+function removeGridPhoto(id) {
+  const photo = gridPhotos.find(p => p.id === id);
+  if (!photo) return;
+  if (photo.url.startsWith('blob:')) URL.revokeObjectURL(photo.url);
+  gridPhotos = gridPhotos.filter(p => p.id !== id);
+  gridDirty = true;
+  renderGrid();
+}
+
+async function clearGrid() {
+  if (gridPhotos.length === 0) return;
+  if (!confirm('Remove all photos from the grid?')) return;
+
+  // Revoke any blob URLs
+  gridPhotos.forEach(p => {
+    if (p.url.startsWith('blob:')) URL.revokeObjectURL(p.url);
+  });
+  gridPhotos = [];
+  gridDirty = true;
+  renderGrid();
+
+  // If Pro + user has a saved grid, delete it from Supabase
+  if (isPro() && currentUser) {
+    const btn = document.getElementById('grid-clear-btn');
+    if (btn) { btn.disabled = true; }
+    try {
+      // Delete DB row
+      const { error: dbErr } = await sb.from('grid_plan').delete().eq('user_id', currentUser.id);
+      if (dbErr) throw dbErr;
+      // Delete all files in user's grid-photos folder
+      await deleteStaleGridPhotos();
+      gridDirty = false;
+      gridLoaded = true;
+      showGridStatus('success', 'Grid cleared ✓');
+      renderGrid();
+    } catch (e) {
+      console.error('clearGrid', e);
+      showGridStatus('error', 'Failed to clear saved grid. Try again.');
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  }
+}
+
+// ======== RENDER ========
+// Retry handler for grid thumbnail load failures — appends a cache-busting
+// query param and tries once more. Avoids infinite loops via a data attribute.
+function gridImgRetry(img) {
+  if (img.dataset.retried) return;
+  img.dataset.retried = '1';
+  var sep = img.src.indexOf('?') === -1 ? '?' : '&';
+  img.src = img.src + sep + 'r=' + Date.now();
+}
+
+function renderGrid() {
+  const thumbsEl = document.getElementById('grid-thumbnails');
+  const emptyHint = document.getElementById('grid-empty-hint');
+  const countEl = document.getElementById('grid-count');
+  const clearBtn = document.getElementById('grid-clear-btn');
+  const emptyDrop = document.getElementById('grid-drop-empty');
+  const saveBtn = document.getElementById('grid-save-btn');
+  if (!thumbsEl) return;
+
+  // Counter
+  countEl.textContent = gridPhotos.length > 0
+    ? `(${gridPhotos.length}/${GRID_MAX_PHOTOS})`
+    : '';
+  clearBtn.style.display = gridPhotos.length > 0 ? 'inline-block' : 'none';
+  emptyHint.style.display = gridPhotos.length === 0 ? 'block' : 'none';
+
+  // Swap drop zone text when photos exist
+  if (gridPhotos.length > 0) {
+    const remaining = GRID_MAX_PHOTOS - gridPhotos.length;
+    if (remaining > 0) {
+      emptyDrop.innerHTML = `<div class="grid-s-d717a9">
+        <div class="bio-s-e769ff">Drop more photos · ${remaining} slot${remaining > 1 ? 's' : ''} left</div>
+        <label class="grid-s-8ead71">
+          Browse
+          <input type="file" accept="image/*" multiple data-grid-action="handle-files" data-grid-event="change" aria-label="Upload more photos" class="bio-s-c8be1c">
+        </label>
+      </div>`;
+    } else {
+      emptyDrop.innerHTML = `<div class="grid-s-d717a9">
+        <div class="bio-s-e769ff">Upload your next post to update grid. (Last photo will be removed)</div>
+        <label class="grid-s-8ead71">
+          Browse
+          <input type="file" accept="image/*" data-grid-action="handle-files" data-grid-event="change" aria-label="Upload next post" class="bio-s-c8be1c">
+        </label>
+      </div>`;
+    }
+  } else {
+    // Restore original empty state (compact inline)
+    emptyDrop.innerHTML = `
+      <div class="grid-s-3b3f68">
+        <div class="grid-s-5ff865">
+          <div class="grid-s-fbda79">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+          <div class="grid-s-c28bd9">
+            <div class="grid-s-469ab5">Drop photos here or
+              <label class="grid-s-8f8dfb">browse<input type="file" accept="image/*" multiple data-grid-action="handle-files" data-grid-event="change" aria-label="Upload photos" class="bio-s-c8be1c"></label>
+            </div>
+            <div class="bio-s-5f3468">Up to ${GRID_MAX_PHOTOS} photos · JPG, PNG, WebP, HEIC</div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  // Thumbnails (draggable)
+  thumbsEl.innerHTML = gridPhotos.map((p, i) => `
+    <div class="grid-thumb" data-id="${p.id}">
+      <div class="grid-thumb-order">${i + 1}</div>
+      <img src="${escapeHtml(p.url)}" alt="Photo ${i + 1}" loading="lazy" data-grid-action="img-retry" data-grid-event="error">
+      <button class="grid-thumb-remove" data-grid-action="remove-photo" data-grid-photo-id="${p.id}" aria-label="Remove photo">&#x2715;</button>
+    </div>
+  `).join('');
+
+  // Init SortableJS (once)
+  if (typeof Sortable !== 'undefined') {
+    if (gridSortable) gridSortable.destroy();
+    gridSortable = new Sortable(thumbsEl, {
+      animation: 150,
+      delay: 50,
+      delayOnTouchOnly: true,
+      onEnd: () => {
+        const order = Array.from(thumbsEl.children).map(el => parseInt(el.dataset.id));
+        gridPhotos = order.map(id => gridPhotos.find(p => p.id === id)).filter(Boolean);
+        gridDirty = true;
+        renderPhonePreview();
+        updateGridSaveButton();
+      }
+    });
+  }
+
+  updateGridSaveButton();
+  renderPhonePreview();
+}
+
+function updateGridSaveButton() {
+  const saveBtn = document.getElementById('grid-save-btn');
+  if (!saveBtn) return;
+  if (gridDirty && gridPhotos.length > 0) {
+    saveBtn.textContent = 'Save';
+    saveBtn.disabled = false;
+    saveBtn.style.opacity = '1';
+  } else if (gridLoaded && !gridDirty) {
+    saveBtn.textContent = 'Saved ✓';
+    saveBtn.disabled = true;
+    saveBtn.style.opacity = '0.6';
+  } else {
+    saveBtn.textContent = 'Save';
+    saveBtn.disabled = gridPhotos.length === 0;
+    saveBtn.style.opacity = gridPhotos.length === 0 ? '0.5' : '1';
+  }
+}
+
+function renderPhonePreview() {
+  const grid = document.getElementById('grid-phone-grid');
+  const countEl = document.getElementById('grid-phone-post-count');
+  if (!grid) return;
+  countEl.textContent = gridPhotos.length;
+
+  // Show all uploaded + empty placeholders to fill out the 3-column pattern
+  const cells = [];
+  gridPhotos.forEach(p => {
+    cells.push(`<div class="grid-phone-cell"><img src="${escapeHtml(p.url)}" alt="Grid post"></div>`);
+  });
+  // Pad to a multiple of 3 with empty cells (at least 3 rows visible)
+  const minRows = 3;
+  const targetCount = Math.max(gridPhotos.length, minRows * 3);
+  const padToMultiple = Math.ceil(targetCount / 3) * 3;
+  while (cells.length < padToMultiple) {
+    cells.push(`<div class="grid-phone-cell empty"></div>`);
+  }
+  grid.innerHTML = cells.join('');
+}
+
+function showGridStatus(kind, msg) {
+  const el = document.getElementById('grid-save-status');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.display = 'block';
+  el.style.color = kind === 'error' ? '#fca5a5' : kind === 'success' ? '#4ade80' : 'var(--muted)';
+  if (kind !== 'error') setTimeout(() => { if (el.textContent === msg) { el.textContent = ''; el.style.display = 'none'; } }, 3000);
+  if (kind === 'error') setTimeout(() => { if (el.textContent === msg) { el.textContent = ''; el.style.display = 'none'; } }, 5000);
+}
+
+// ======== SAVE / LOAD (Pro only) ========
+async function loadSavedGrid() {
+  if (!currentUser) return;
+  try {
+    const { data, error } = await sb.from('grid_plan').select('photo_urls').eq('user_id', currentUser.id).maybeSingle();
+    if (error || !data) { gridLoaded = true; return; }
+    const urls = Array.isArray(data.photo_urls) ? data.photo_urls : [];
+    // Validate URLs (only from grid-photos bucket).
+    const valid = urls.filter(validGridPhotoUrl);
+
+    // Bucket is private. Re-sign each stored URL to a fresh 24h signed URL.
+    // Stored values may be either old /public/ URLs or previously-signed
+    // URLs whose token has expired; both parse to the same path. Sign in
+    // parallel for speed. If a sign fails, drop that photo (the file may
+    // have been deleted from storage).
+    const signedPhotos = [];
+    if (valid.length > 0) {
+      const signResults = await Promise.all(valid.map(async (storedUrl) => {
+        const path = gridPhotoPath(storedUrl);
+        if (!path) return null;
+        try {
+          const { data: s, error: sErr } = await sb.storage
+            .from('grid-photos')
+            .createSignedUrl(path, GRID_SIGNED_URL_TTL);
+          if (sErr || !s?.signedUrl) return null;
+          return s.signedUrl;
+        } catch { return null; }
+      }));
+      signResults.forEach(u => { if (u) signedPhotos.push(u); });
+    }
+
+    gridPhotos = signedPhotos.map(url => ({ id: gridIdSeq++, url, isSaved: true }));
+    gridDirty = false;
+    gridLoaded = true;
+    renderGrid();
+  } catch (e) {
+    console.warn('loadSavedGrid', e);
+    gridLoaded = true;
+  }
+}
+
+function validGridPhotoUrl(u) {
+  if (!u || typeof u !== 'string') return false;
+  try {
+    const url = new URL(u);
+    if (url.protocol !== 'https:') return false;
+    if (url.hostname !== 'kjytapcgxukalwsyputk.supabase.co') return false;
+    // Accept both public and signed URL paths. The bucket is now private
+    // and we re-sign on load, but stored values may still contain old
+    // /public/ URLs from before the migration. Either format parses to
+    // the same path via gridPhotoPath() below.
+    if (!url.pathname.includes('/storage/v1/object/public/grid-photos/')
+        && !url.pathname.includes('/storage/v1/object/sign/grid-photos/')) return false;
+    return true;
+  } catch { return false; }
+}
+
+// Extract the storage path from any grid-photos URL (public OR signed).
+// Returns just the path part after `grid-photos/`, e.g. "abc123/photo-456.webp".
+// Returns null if the URL doesn't match.
+function gridPhotoPath(u) {
+  if (!u || typeof u !== 'string') return null;
+  // Signed URLs have ?token=... — match before the query string.
+  const m = u.match(/\/grid-photos\/([^?]+)/);
+  return m ? m[1] : null;
+}
+
+let gridLastSaveAt = 0;
+const GRID_SAVE_COOLDOWN_MS = 3000; // min 3s between saves
+
+async function saveGrid() {
+  if (!isPro()) { showGridStatus('error', 'Upgrade to Pro to save your grid.'); return; }
+  if (!currentUser) return;
+  if (gridPhotos.length === 0) { showGridStatus('error', 'Add at least one photo first.'); return; }
+
+  const now = Date.now();
+  const timeSinceLast = now - gridLastSaveAt;
+  if (timeSinceLast < GRID_SAVE_COOLDOWN_MS) {
+    const wait = Math.ceil((GRID_SAVE_COOLDOWN_MS - timeSinceLast) / 1000);
+    showGridStatus('error', `Please wait ${wait}s before saving again.`);
+    return;
+  }
+  gridLastSaveAt = now;
+
+  const btn = document.getElementById('grid-save-btn');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+
+  try {
+    // 1. Upload any new (unsaved) photos
+    for (let i = 0; i < gridPhotos.length; i++) {
+      const p = gridPhotos[i];
+      if (p.isSaved) continue;
+      btn.textContent = `Uploading ${i + 1}/${gridPhotos.length}…`;
+      const fileName = `${currentUser.id}/photo-${Date.now()}-${Math.random().toString(36).slice(2,8)}.webp`;
+      const uploadPromise = sb.storage.from('grid-photos').upload(fileName, p.blob, {
+        contentType: 'image/webp',
+        upsert: false
+      });
+      const { error: upErr } = await Promise.race([
+        uploadPromise,
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Upload timeout')), GRID_UPLOAD_TIMEOUT))
+      ]);
+      if (upErr) throw new Error(upErr.message || 'Upload failed');
+      // Bucket is private; sign a 24h URL for immediate display.
+      const { data: signedData, error: signErr } = await sb.storage
+        .from('grid-photos')
+        .createSignedUrl(fileName, GRID_SIGNED_URL_TTL);
+      if (signErr || !signedData?.signedUrl) throw new Error('Could not sign photo URL');
+      // Replace blob URL with the signed one; keep blob alive until after DB save succeeds
+      if (p.url.startsWith('blob:')) URL.revokeObjectURL(p.url);
+      p.url = signedData.signedUrl;
+      p.blob = null;
+      p.isSaved = true;
+    }
+
+    btn.textContent = 'Saving…';
+
+    // 2. Upsert DB row with the new URL list
+    const payload = {
+      user_id: currentUser.id,
+      photo_urls: gridPhotos.map(p => p.url)
+    };
+    const { error: dbErr } = await sb.from('grid_plan').upsert(payload, { onConflict: 'user_id' });
+    if (dbErr) throw dbErr;
+
+    // 3. Clean up any photos in the user's folder that aren't referenced anymore
+    await deleteStaleGridPhotos();
+
+    gridDirty = false;
+    gridLoaded = true;
+    showGridStatus('success', 'Grid saved ✓');
+    renderGrid();
+  } catch (e) {
+    console.error('saveGrid', e);
+    showGridStatus('error', e.message || 'Save failed.');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function deleteStaleGridPhotos() {
+  if (!currentUser) return;
+  try {
+    const inUse = new Set();
+    gridPhotos.forEach(p => {
+      // Use shared helper so it strips ?token=... from signed URLs too.
+      const path = gridPhotoPath(p.url);
+      if (path) inUse.add(path);
+    });
+
+    // Paginate through the user's folder in case of accumulated orphans
+    let offset = 0;
+    const pageSize = 100;
+    const toDelete = [];
+    while (true) {
+      const { data: files, error: listErr } = await sb.storage
+        .from('grid-photos')
+        .list(currentUser.id, { limit: pageSize, offset });
+      if (listErr || !Array.isArray(files) || files.length === 0) break;
+      for (const f of files) {
+        const path = `${currentUser.id}/${f.name}`;
+        if (!inUse.has(path)) toDelete.push(path);
+      }
+      if (files.length < pageSize) break;
+      offset += pageSize;
+      // Safety cap — don't loop forever if something goes wrong
+      if (offset > 500) break;
+    }
+    if (toDelete.length > 0) {
+      // Delete in batches of 100 (Supabase remove() has a practical limit)
+      for (let i = 0; i < toDelete.length; i += 100) {
+        await sb.storage.from('grid-photos').remove(toDelete.slice(i, i + 100));
+      }
+    }
+  } catch (e) { console.warn('deleteStaleGridPhotos', e); }
+}
+
+// =============================================================================
+// ACTION REGISTRATIONS — wired up below as part of Phase 2
+// =============================================================================
+
+// Toolbar actions
+gridRegisterAction('clear', () => clearGrid());
+gridRegisterAction('save', () => saveGrid());
+
+// Paywall — uses startCheckout fallback (passing nothing lets it pick up
+// localStorage intent or default to monthly Pro)
+gridRegisterAction('start-checkout', (e, el) => startCheckout(undefined, el));
+
+// File input change handlers (multiple file inputs in different render states)
+gridRegisterAction('handle-files', (e, el) => {
+  onGridFiles(el.files);
+  el.value = '';
+});
+
+// Per-thumbnail remove (template literal)
+gridRegisterAction('remove-photo', (e, el) => {
+  removeGridPhoto(parseInt(el.dataset.gridPhotoId, 10));
+});
+
+// Image onerror handler — signed URL refresh
+gridRegisterAction('img-retry', (e, el) => gridImgRetry(el));
+
