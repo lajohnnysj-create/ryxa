@@ -4612,6 +4612,26 @@
   .cal-s-cf0ab7 { background:#0f0f1a;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:20px 18px;max-width:420px;width:100%;max-height:90vh;overflow-y:auto; }
   .cal-s-cc94e5 { width:100%;padding:12px;background:var(--accent);border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer; }
 
+
+  /* ============================================================
+     PHASE 3 — Subscribers (Clients) style extraction
+     ============================================================ */
+  /* Phase 3 — Subscribers markup style extraction */
+  .clients-s-b14783 { display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:24px; }
+  .clients-s-88cf18 { font-family:Syne,sans-serif;font-size:24px;font-weight:800;margin-bottom:6px;letter-spacing:-0.5px; }
+  .clients-s-e81ef5 { font-size:14px;color:var(--muted); }
+  .clients-s-25b2fe { padding:8px 16px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.25);color:#c4b5fd;border-radius:8px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all 0.15s;white-space:nowrap; }
+  .clients-s-830409 { display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;align-items:center; }
+  .clients-s-01993b { flex:1;min-width:200px;max-width:320px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box; }
+  .clients-s-9317b3 { display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap; }
+  .clients-s-800f2b { accent-color:#7c3aed;cursor:pointer; }
+  .clients-s-cec69f { display:none;border-top:1px solid var(--border);padding:10px 16px;align-items:center;justify-content:space-between; }
+
+  /* Phase 3b — clients.js template literal extraction */
+  .clients-s-becac0 { color:#4ade80;font-size:11px;font-weight:600; }
+  .clients-s-949353 { padding:10px 16px;color:var(--text);font-size:13px;max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+  .clients-s-e6b633 { padding:10px 16px; }
+
 </style>
 <style>html{background:#07070f;}body{visibility:hidden;}body.ready{visibility:visible;}</style>
 
@@ -6206,49 +6226,49 @@
     </div>
 
     <!-- CLIENTS -->
-    <div id="tool-clients" style="display:none;">
-      <div style="max-width:900px;">
+    <div id="tool-clients" class="bio-s-c8be1c">
+      <div class="course-s-8e1a99">
 
         <!-- Max upsell (non-Max users) -->
         <!-- Subscribers content -->
-        <div id="clients-content" style="display:none;">
-          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:24px;">
+        <div id="clients-content" class="bio-s-c8be1c">
+          <div class="clients-s-b14783">
             <div>
-              <h2 style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;margin-bottom:6px;letter-spacing:-0.5px;">Subscribers</h2>
-              <p style="font-size:14px;color:var(--muted);" id="clients-count">Your email subscribers and customers from courses and coaching.</p>
+              <h2 class="clients-s-88cf18">Subscribers</h2>
+              <p class="clients-s-e81ef5" id="clients-count">Your email subscribers and customers from courses and coaching.</p>
             </div>
-            <button onclick="exportSubscribers()" style="padding:8px 16px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.25);color:#c4b5fd;border-radius:8px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all 0.15s;white-space:nowrap;" onmouseover="this.style.background='rgba(124,58,237,0.2)'" onmouseout="this.style.background='rgba(124,58,237,0.1)'">
+            <button data-clients-action="export" class="clients-s-25b2fe" onmouseover="this.style.background='rgba(124,58,237,0.2)'" onmouseout="this.style.background='rgba(124,58,237,0.1)'">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               Export Emails
             </button>
           </div>
 
           <!-- Search and filter -->
-          <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;align-items:center;">
-            <input type="text" id="clients-search" placeholder="Search subscribers..." aria-label="Search subscribers" oninput="filterSubscribers()" readonly onfocus="this.removeAttribute('readonly')" autocomplete="off" data-1p-ignore="true" data-lpignore="true" style="flex:1;min-width:200px;max-width:320px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
-            <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap;"><input type="checkbox" id="clients-optin-filter" onchange="filterSubscribers()" style="accent-color:#7c3aed;cursor:pointer;"> Opted in only</label>
+          <div class="clients-s-830409">
+            <input type="text" id="clients-search" placeholder="Search subscribers..." aria-label="Search subscribers" data-clients-action="filter" data-clients-event="input" readonly data-clients-action="remove-readonly" data-clients-event="focus" autocomplete="off" data-1p-ignore="true" data-lpignore="true" class="clients-s-01993b">
+            <label class="clients-s-9317b3"><input type="checkbox" id="clients-optin-filter" data-clients-action="filter" data-clients-event="change" class="clients-s-800f2b"> Opted in only</label>
           </div>
 
           <!-- Subscribers table -->
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;">
-            <div style="overflow-x:auto;">
-              <table style="width:100%;border-collapse:collapse;font-size:13px;">
+          <div class="ana-s-c87556">
+            <div class="ana-s-d0698c">
+              <table class="ana-s-5dd2f7">
                 <thead>
-                  <tr style="border-bottom:1px solid var(--border);">
-                    <th style="text-align:left;padding:12px 16px;color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;">Email</th>
-                    <th style="text-align:left;padding:12px 16px;color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;">Opt In</th>
-                    <th style="text-align:left;padding:12px 16px;color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;">Date Joined</th>
+                  <tr class="ana-s-f5538f">
+                    <th class="ana-s-656e15">Email</th>
+                    <th class="ana-s-656e15">Opt In</th>
+                    <th class="ana-s-656e15">Date Joined</th>
                   </tr>
                 </thead>
                 <tbody id="clients-tbody">
-                  <tr><td colspan="3" style="text-align:center;padding:32px 16px;color:var(--muted);font-size:13px;">No subscribers yet</td></tr>
+                  <tr><td colspan="3" class="ana-s-cd4491">No subscribers yet</td></tr>
                 </tbody>
               </table>
             </div>
-            <div id="clients-pagination" style="display:none;border-top:1px solid var(--border);padding:10px 16px;align-items:center;justify-content:space-between;">
-              <button id="clients-prev" onclick="clientsPage(-1)" style="padding:6px 14px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.25);color:#c4b5fd;border-radius:6px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.background='rgba(124,58,237,0.2)'" onmouseout="this.style.background='rgba(124,58,237,0.1)'">← Back</button>
-              <span id="clients-page-info" style="font-size:12px;color:var(--muted);"></span>
-              <button id="clients-next" onclick="clientsPage(1)" style="padding:6px 14px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.25);color:#c4b5fd;border-radius:6px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.background='rgba(124,58,237,0.2)'" onmouseout="this.style.background='rgba(124,58,237,0.1)'">Next →</button>
+            <div id="clients-pagination" class="clients-s-cec69f">
+              <button id="clients-prev" data-clients-action="page" data-clients-dir="-1" class="ana-s-7f388f" onmouseover="this.style.background='rgba(124,58,237,0.2)'" onmouseout="this.style.background='rgba(124,58,237,0.1)'">← Back</button>
+              <span id="clients-page-info" class="bio-s-e769ff"></span>
+              <button id="clients-next" data-clients-action="page" data-clients-dir="1" class="ana-s-7f388f" onmouseover="this.style.background='rgba(124,58,237,0.2)'" onmouseout="this.style.background='rgba(124,58,237,0.1)'">Next →</button>
             </div>
           </div>
         </div>
@@ -17119,193 +17139,6 @@ function faShowError(msg) { const el = document.getElementById('fa-error-box'); 
 function faHideError() { const el = document.getElementById('fa-error-box'); if (el) el.style.display = 'none'; }
 
 
-function initClientsTool() {
-  document.getElementById('clients-content').style.display = 'block';
-  loadClients();
-}
-
-
-var clientsData = [];
-var clientsFiltered = [];
-var clientsCurrentPage = 0;
-var CLIENTS_PER_PAGE = 50;
-
-function filterSubscribers() {
-  var query = (document.getElementById('clients-search')?.value || '').toLowerCase().trim();
-  var optinOnly = document.getElementById('clients-optin-filter')?.checked || false;
-  clientsFiltered = clientsData.filter(function(c) {
-    if (query && !c.email.toLowerCase().includes(query)) return false;
-    if (optinOnly && !c.optin) return false;
-    return true;
-  });
-  clientsCurrentPage = 0;
-  renderSubscribersPage();
-}
-
-function clientsPage(dir) {
-  var maxPage = Math.max(0, Math.floor((clientsFiltered.length - 1) / CLIENTS_PER_PAGE));
-  clientsCurrentPage = Math.max(0, Math.min(maxPage, clientsCurrentPage + dir));
-  renderSubscribersPage();
-}
-
-function renderSubscribersPage() {
-  var tbody = document.getElementById('clients-tbody');
-  if (!tbody) return;
-  var start = clientsCurrentPage * CLIENTS_PER_PAGE;
-  var page = clientsFiltered.slice(start, start + CLIENTS_PER_PAGE);
-  var maxPage = Math.max(0, Math.floor((clientsFiltered.length - 1) / CLIENTS_PER_PAGE));
-
-  if (page.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:32px 16px;color:var(--muted);font-size:13px;">' + (clientsData.length > 0 ? 'No results found' : 'No subscribers yet') + '</td></tr>';
-  } else {
-    tbody.innerHTML = page.map(function(c) {
-      var d = new Date(c.date);
-      var date = (d.getMonth()+1) + '/' + d.getDate() + '/' + d.getFullYear();
-      var optinBadge = c.optin
-        ? '<span style="color:#4ade80;font-size:11px;font-weight:600;">Yes</span>'
-        : '<span style="color:var(--muted);font-size:11px;">No</span>';
-      return '<tr style="border-top:1px solid var(--border);">'
-        + '<td style="padding:10px 16px;color:var(--text);font-size:13px;max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + c.email + '</td>'
-        + '<td style="padding:10px 16px;">' + optinBadge + '</td>'
-        + '<td style="padding:10px 16px;color:var(--muted);font-size:13px;white-space:nowrap;">' + date + '</td>'
-        + '</tr>';
-    }).join('');
-  }
-
-  var pagination = document.getElementById('clients-pagination');
-  if (clientsFiltered.length > CLIENTS_PER_PAGE) {
-    pagination.style.display = 'flex';
-    document.getElementById('clients-prev').style.visibility = clientsCurrentPage > 0 ? 'visible' : 'hidden';
-    document.getElementById('clients-next').style.visibility = clientsCurrentPage < maxPage ? 'visible' : 'hidden';
-    document.getElementById('clients-page-info').textContent = (start + 1) + '–' + Math.min(start + CLIENTS_PER_PAGE, clientsFiltered.length) + ' of ' + clientsFiltered.length;
-  } else {
-    pagination.style.display = 'none';
-  }
-}
-
-async function loadClients() {
-  const tbody = document.getElementById('clients-tbody');
-  if (!tbody || !currentUser) return;
-  tbody.innerHTML = '<tr><td colspan="2" style="text-align:center;padding:32px 16px;color:var(--muted);font-size:13px;">Loading...</td></tr>';
-  try {
-    const clientMap = {};
-
-    const { data: enrollments } = await sb
-      .from('course_enrollments')
-      .select('user_id, buyer_email, enrolled_at, marketing_consent, courses(user_id)')
-      .eq('courses.user_id', currentUser.id)
-      .order('enrolled_at', { ascending: false });
-    if (enrollments) {
-      enrollments.forEach(function(e) {
-        if (!e.courses || e.courses.user_id !== currentUser.id) return;
-        var email = e.buyer_email || '';
-        var key = email || e.user_id;
-        if (!clientMap[key]) {
-          clientMap[key] = { email: email, date: e.enrolled_at, optin: !!e.marketing_consent };
-        } else if (e.marketing_consent) {
-          clientMap[key].optin = true;
-        }
-      });
-    }
-
-    const { data: bookings } = await sb
-      .from('coaching_bookings')
-      .select('user_id, buyer_email, booked_at, marketing_consent, coaching_services(user_id)')
-      .eq('coaching_services.user_id', currentUser.id)
-      .order('booked_at', { ascending: false });
-    if (bookings) {
-      bookings.forEach(function(b) {
-        if (!b.coaching_services || b.coaching_services.user_id !== currentUser.id) return;
-        var email = b.buyer_email || '';
-        var key = email || b.user_id;
-        if (!clientMap[key]) {
-          clientMap[key] = { email: email, date: b.booked_at, optin: !!b.marketing_consent };
-        } else {
-          if (b.marketing_consent) clientMap[key].optin = true;
-          if (new Date(b.booked_at) < new Date(clientMap[key].date)) clientMap[key].date = b.booked_at;
-        }
-      });
-    }
-
-    // Digital product purchases — same opt-in pattern as courses/bookings
-    const { data: dpPurchases } = await sb
-      .from('digital_product_purchases')
-      .select('buyer_user_id, buyer_email, purchased_at, marketing_consent, digital_products(user_id)')
-      .eq('digital_products.user_id', currentUser.id)
-      .order('purchased_at', { ascending: false });
-    if (dpPurchases) {
-      dpPurchases.forEach(function(p) {
-        if (!p.digital_products || p.digital_products.user_id !== currentUser.id) return;
-        var email = p.buyer_email || '';
-        var key = email || p.buyer_user_id;
-        if (!clientMap[key]) {
-          clientMap[key] = { email: email, date: p.purchased_at, optin: !!p.marketing_consent };
-        } else {
-          if (p.marketing_consent) clientMap[key].optin = true;
-          if (new Date(p.purchased_at) < new Date(clientMap[key].date)) clientMap[key].date = p.purchased_at;
-        }
-      });
-    }
-
-    // Fetch bio email signups (always opted in)
-    const { data: signups } = await sb
-      .from('bio_email_signups')
-      .select('email, created_at')
-      .eq('creator_id', currentUser.id)
-      .order('created_at', { ascending: false });
-    if (signups) {
-      signups.forEach(function(s) {
-        var email = s.email || '';
-        if (!email) return;
-        if (!clientMap[email]) {
-          clientMap[email] = { email: email, date: s.created_at, optin: true };
-        } else {
-          clientMap[email].optin = true;
-          if (new Date(s.created_at) < new Date(clientMap[email].date)) clientMap[email].date = s.created_at;
-        }
-      });
-    }
-
-    var clients = Object.values(clientMap).filter(function(c) { return c.email; });
-    clients.sort(function(a, b) { return new Date(b.date) - new Date(a.date); });
-    clientsData = clients;
-    clientsFiltered = clients.slice();
-    clientsCurrentPage = 0;
-
-    var countEl = document.getElementById('clients-count');
-    if (countEl) countEl.textContent = clients.length + ' subscriber' + (clients.length !== 1 ? 's' : '');
-
-    // Clear search on reload
-    var searchEl = document.getElementById('clients-search');
-    if (searchEl) searchEl.value = '';
-
-    renderSubscribersPage();
-  } catch (e) {
-    console.error('Subscribers load error:', e);
-    tbody.innerHTML = '<tr><td colspan="2" style="text-align:center;padding:32px 16px;color:var(--muted);font-size:13px;">Could not load subscribers</td></tr>';
-  }
-}
-
-function exportSubscribers() {
-  var exportData = clientsFiltered.length > 0 ? clientsFiltered : clientsData;
-  if (!exportData || exportData.length === 0) {
-    showModalAlert('No Data', 'No subscribers to export.');
-    return;
-  }
-  var csv = 'Email,Opt In,Date Joined\n';
-  exportData.forEach(function(c) {
-    var d = new Date(c.date);
-    var date = (d.getMonth()+1) + '/' + d.getDate() + '/' + d.getFullYear();
-    csv += '"' + c.email.replace(/"/g, '""') + '",' + (c.optin ? 'Yes' : 'No') + ',' + date + '\n';
-  });
-  var blob = new Blob([csv], { type: 'text/csv' });
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement('a');
-  a.href = url;
-  a.download = 'ryxa-subscribers.csv';
-  a.click();
-  URL.revokeObjectURL(url);
-}
 
 function renderAnaLineChart(canvasId, viewsDaily, revDaily, dayCount) {
   const canvas = document.getElementById(canvasId);
@@ -20986,5 +20819,9 @@ function dsRemoveBg() {
 <!-- Analytics tool extracted to its own file (refactored 2026-05-10).
      Uses sb, Auth, currentUser, isMax, formatMoney, etc. -->
 <script src="/js/analytics.js"></script>
+<!-- Subscribers/Clients tool extracted to its own file (refactored 2026-05-10).
+     Internally still called "clients" for code consistency; user-facing
+     name is "Subscribers". -->
+<script src="/js/clients.js"></script>
 </body>
 </html>
