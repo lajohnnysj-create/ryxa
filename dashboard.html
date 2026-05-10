@@ -4893,6 +4893,59 @@
   .ds-s-5c219d { background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;padding:4px; }
   .ds-s-bcabe4 { background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:32px; }
 
+
+  /* ============================================================
+     PHASE 3 — Photo Editor style extraction
+     ============================================================ */
+  /* Phase 3 — Photo Editor markup style extraction */
+  .image-s-5a9322 { max-width:680px; }
+  .image-s-77d040 { color:var(--muted);font-size:14px;margin-bottom:8px; }
+  .image-s-8fd488 { font-size:13px;color:#a78bfa;margin-bottom:24px; }
+  .image-s-8e5a68 { border:2px dashed rgba(124,58,237,0.4);border-radius:16px;padding:48px 24px;text-align:center;cursor:pointer;transition:all 0.2s;background:rgba(124,58,237,0.03);margin-bottom:20px;position:relative; }
+  .image-s-d1e3ea { margin-bottom:12px;display:flex;justify-content:center; }
+  .image-s-54f2df { font-size:16px;font-weight:500;margin-bottom:6px; }
+  .image-s-b8fb0e { display:none;margin-bottom:12px; }
+  .image-s-0f0e22 { background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:12px; }
+  .image-s-db2dd5 { width:40px;height:40px;object-fit:cover;border-radius:6px;border:1px solid var(--border); }
+  .image-s-00f3f6 { font-size:13px;font-weight:500;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+  .image-s-aa5311 { background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:4px 8px; }
+  .image-s-d6803b { display:none;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:16px; }
+  .image-s-b71e62 { position:relative;width:100%;background:#000;border-radius:8px;overflow:hidden;user-select:none;touch-action:none;min-height:240px;max-height:540px;display:flex;align-items:center;justify-content:center; }
+  .image-s-f8aa48 { position:relative;display:inline-block;transform-origin:center center;transform:translate(0px,0px) scale(1);will-change:transform; }
+  .image-s-49ab98 { display:block;max-width:100%;max-height:540px;pointer-events:none; }
+  .image-s-647dfb { position:absolute;border:2px solid #fff;box-shadow:0 0 0 9999px rgba(0,0,0,0.55);cursor:move;display:none; }
+  .image-s-bd17b8 { position:absolute;top:-8px;left:-8px;width:16px;height:16px;background:#fff;border:2px solid #7c3aed;border-radius:50%;cursor:nwse-resize; }
+  .image-s-953f42 { position:absolute;top:-8px;right:-8px;width:16px;height:16px;background:#fff;border:2px solid #7c3aed;border-radius:50%;cursor:nesw-resize; }
+  .image-s-3e351f { position:absolute;bottom:-8px;left:-8px;width:16px;height:16px;background:#fff;border:2px solid #7c3aed;border-radius:50%;cursor:nesw-resize; }
+  .image-s-b256e3 { position:absolute;bottom:-8px;right:-8px;width:16px;height:16px;background:#fff;border:2px solid #7c3aed;border-radius:50%;cursor:nwse-resize; }
+  .image-s-009954 { display:flex;align-items:center;gap:10px;margin-top:10px;font-size:12px;color:var(--muted);flex-wrap:wrap; }
+  .image-s-a92c8a { flex:1;min-width:120px;accent-color:var(--accent); }
+  .image-s-d5b47a { flex-shrink:0;min-width:44px;text-align:right; }
+  .image-s-9e0fd4 { background:none;border:1px solid var(--border-hover);color:var(--muted);font-size:11px;padding:5px 10px;border-radius:6px;cursor:pointer;font-family:DM Sans,sans-serif;flex-shrink:0; }
+  .image-s-9277af { display:flex;gap:6px;margin-top:14px;padding:5px;background:var(--surface);border:1px solid var(--border);border-radius:10px; }
+  .image-s-b269d0 { flex:1;background:var(--accent);border:none;color:#fff;font-size:13px;font-weight:600;font-family:DM Sans,sans-serif;padding:10px 8px;cursor:pointer;border-radius:7px;transition:all 0.15s;box-shadow:0 2px 8px rgba(124,58,237,0.3);display:flex;align-items:center;justify-content:center;gap:6px; }
+  .image-s-dc8ff2 { flex:1;background:transparent;border:none;color:var(--muted);font-size:13px;font-weight:600;font-family:DM Sans,sans-serif;padding:10px 8px;cursor:pointer;border-radius:7px;transition:all 0.15s;display:flex;align-items:center;justify-content:center;gap:6px; }
+  .image-s-be5e01 { padding-top:14px;min-height:160px; }
+  .image-s-157bac { display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px; }
+  .image-s-542e5d { background:var(--accent);color:#fff;border:1px solid var(--accent);font-size:12px;padding:7px 12px;border-radius:7px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:500;transition:all 0.15s; }
+  .image-s-46eb49 { background:var(--surface);color:var(--muted);border:1px solid var(--border-hover);font-size:12px;padding:7px 12px;border-radius:7px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:500;transition:all 0.15s; }
+  .image-s-b9669a { display:flex;justify-content:flex-end;gap:8px;align-items:center; }
+  .image-s-d604e3 { background:var(--surface);border:1px solid var(--border-hover);color:var(--text);font-size:12px;padding:7px 14px;border-radius:7px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:500;transition:all 0.15s;display:inline-flex;align-items:center;gap:6px; }
+  .image-s-5e3795 { background:var(--surface);border:1px solid var(--border-hover);color:var(--text);font-size:12px;padding:7px 14px;border-radius:7px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:500;transition:all 0.15s; }
+  .image-s-d48d1d { display:grid;grid-template-columns:1fr;gap:12px; }
+  .image-s-23172b { width:100%;accent-color:var(--accent); }
+  .image-s-16a0ed { display:flex;gap:8px;margin-top:14px;flex-wrap:wrap; }
+  .image-s-2d195c { flex:1;min-width:90px;background:var(--surface);border:1px solid var(--border-hover);color:var(--text);font-size:12px;padding:9px 12px;border-radius:7px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:500;display:flex;align-items:center;justify-content:center;gap:6px; }
+  .image-s-3c051f { transform:rotate(90deg); }
+  .image-s-e6b2f8 { margin-top:12px;display:flex;justify-content:flex-end; }
+  .image-s-91c07f { background:none;border:1px solid var(--border-hover);color:var(--muted);font-size:11px;padding:5px 10px;border-radius:6px;cursor:pointer;font-family:DM Sans,sans-serif; }
+  .image-s-001013 { display:grid;grid-template-columns:1fr 1fr;gap:16px; }
+  .image-s-d6c4c8 { font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;font-weight:600; }
+  .image-s-3ab98f { width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none; }
+  .image-s-d284f6 { display:none;width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.2s;box-shadow:0 0 20px var(--accent-glow); }
+  .image-s-544a05 { display:none;margin-top:16px; }
+  .image-s-7d9ade { margin-top:16px;font-size:13px;color:var(--muted);text-align:center; }
+
 </style>
 <style>html{background:#07070f;}body{visibility:hidden;}body.ready{visibility:visible;}</style>
 
@@ -6955,147 +7008,147 @@
     </div>
 
     <!-- IMAGE STUDIO -->
-    <div id="tool-image" style="display:none;">
-      <div style="max-width:680px;">
-        <h2 style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;margin-bottom:6px;letter-spacing:-0.5px;">Photo Editor</h2>
-        <p style="color:var(--muted);font-size:14px;margin-bottom:8px;">A lightweight editor for quick photo edits. Crop, adjust, remove backgrounds, and more.</p>
-        <p id="img-limit-note" style="font-size:13px;color:#a78bfa;margin-bottom:24px;"></p>
+    <div id="tool-image" class="bio-s-c8be1c">
+      <div class="image-s-5a9322">
+        <h2 class="clients-s-88cf18">Photo Editor</h2>
+        <p class="image-s-77d040">A lightweight editor for quick photo edits. Crop, adjust, remove backgrounds, and more.</p>
+        <p id="img-limit-note" class="image-s-8fd488"></p>
 
         <!-- Drop Zone -->
-        <div id="img-dropzone" style="border:2px dashed rgba(124,58,237,0.4);border-radius:16px;padding:48px 24px;text-align:center;cursor:pointer;transition:all 0.2s;background:rgba(124,58,237,0.03);margin-bottom:20px;position:relative;">
-          <input type="file" id="img-input" accept="image/jpeg,image/png,image/webp,image/gif,image/bmp,image/tiff,image/avif,image/svg+xml,image/x-icon,image/*" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;" aria-label="Select image">
-          <div style="margin-bottom:12px;display:flex;justify-content:center;"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg></div>
-          <div style="font-size:16px;font-weight:500;margin-bottom:6px;">Drop your image here</div>
-          <div style="font-size:13px;color:var(--muted);" id="img-size-note">or click to browse</div>
+        <div id="img-dropzone" class="image-s-8e5a68">
+          <input type="file" id="img-input" accept="image/jpeg,image/png,image/webp,image/gif,image/bmp,image/tiff,image/avif,image/svg+xml,image/x-icon,image/*" class="bio-s-1d4b3b" aria-label="Select image">
+          <div class="image-s-d1e3ea"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg></div>
+          <div class="image-s-54f2df">Drop your image here</div>
+          <div class="cal-s-56e6ba" id="img-size-note">or click to browse</div>
         </div>
 
         <!-- File Info (compact strip above preview) -->
-        <div id="img-preview-area" style="display:none;margin-bottom:12px;">
-          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:12px;">
-            <img id="img-preview" alt="Image thumbnail" style="width:40px;height:40px;object-fit:cover;border-radius:6px;border:1px solid var(--border);">
-            <div style="flex:1;min-width:0;">
-              <div id="img-filename" style="font-size:13px;font-weight:500;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
-              <div id="img-filesize" style="font-size:11px;color:var(--muted);"></div>
+        <div id="img-preview-area" class="image-s-b8fb0e">
+          <div class="image-s-0f0e22">
+            <img id="img-preview" alt="Image thumbnail" class="image-s-db2dd5">
+            <div class="bio-s-a07604">
+              <div id="img-filename" class="image-s-00f3f6"></div>
+              <div id="img-filesize" class="bio-s-5f3468"></div>
             </div>
-            <button onclick="clearImage()" aria-label="Remove image" style="background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:4px 8px;">&#x2715;</button>
+            <button data-image-action="clear" aria-label="Remove image" class="image-s-aa5311">&#x2715;</button>
           </div>
         </div>
 
         <!-- Main editor (preview + tabs + controls) -->
-        <div id="img-editor" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:16px;">
+        <div id="img-editor" class="image-s-d6803b">
 
           <!-- Preview Stage -->
-          <div id="img-crop-stage" style="position:relative;width:100%;background:#000;border-radius:8px;overflow:hidden;user-select:none;touch-action:none;min-height:240px;max-height:540px;display:flex;align-items:center;justify-content:center;">
-            <div id="img-crop-inner" style="position:relative;display:inline-block;transform-origin:center center;transform:translate(0px,0px) scale(1);will-change:transform;">
-              <img id="img-crop-src" alt="Image to crop" style="display:block;max-width:100%;max-height:540px;pointer-events:none;">
+          <div id="img-crop-stage" class="image-s-b71e62">
+            <div id="img-crop-inner" class="image-s-f8aa48">
+              <img id="img-crop-src" alt="Image to crop" class="image-s-49ab98">
             </div>
-            <div id="img-crop-box" style="position:absolute;border:2px solid #fff;box-shadow:0 0 0 9999px rgba(0,0,0,0.55);cursor:move;display:none;">
-              <div class="img-crop-handle" data-handle="nw" style="position:absolute;top:-8px;left:-8px;width:16px;height:16px;background:#fff;border:2px solid #7c3aed;border-radius:50%;cursor:nwse-resize;"></div>
-              <div class="img-crop-handle" data-handle="ne" style="position:absolute;top:-8px;right:-8px;width:16px;height:16px;background:#fff;border:2px solid #7c3aed;border-radius:50%;cursor:nesw-resize;"></div>
-              <div class="img-crop-handle" data-handle="sw" style="position:absolute;bottom:-8px;left:-8px;width:16px;height:16px;background:#fff;border:2px solid #7c3aed;border-radius:50%;cursor:nesw-resize;"></div>
-              <div class="img-crop-handle" data-handle="se" style="position:absolute;bottom:-8px;right:-8px;width:16px;height:16px;background:#fff;border:2px solid #7c3aed;border-radius:50%;cursor:nwse-resize;"></div>
+            <div id="img-crop-box" class="image-s-647dfb">
+              <div class="img-crop-handle image-s-bd17b8" data-handle="nw"></div>
+              <div class="img-crop-handle image-s-953f42" data-handle="ne"></div>
+              <div class="img-crop-handle image-s-3e351f" data-handle="sw"></div>
+              <div class="img-crop-handle image-s-b256e3" data-handle="se"></div>
             </div>
           </div>
 
           <!-- Always-visible: Zoom + Dimensions readout -->
-          <div style="display:flex;align-items:center;gap:10px;margin-top:10px;font-size:12px;color:var(--muted);flex-wrap:wrap;">
-            <span style="flex-shrink:0;">&#x1F50D;</span>
-            <input type="range" id="img-crop-zoom" min="100" max="400" value="100" step="10" aria-label="Zoom image" style="flex:1;min-width:120px;accent-color:var(--accent);">
-            <span id="img-crop-zoom-val" style="flex-shrink:0;min-width:44px;text-align:right;">100%</span>
-            <button type="button" onclick="resetCropZoom()" style="background:none;border:1px solid var(--border-hover);color:var(--muted);font-size:11px;padding:5px 10px;border-radius:6px;cursor:pointer;font-family:DM Sans,sans-serif;flex-shrink:0;">Reset zoom</button>
+          <div class="image-s-009954">
+            <span class="bio-s-f38a95">&#x1F50D;</span>
+            <input type="range" id="img-crop-zoom" min="100" max="400" value="100" step="10" aria-label="Zoom image" class="image-s-a92c8a">
+            <span id="img-crop-zoom-val" class="image-s-d5b47a">100%</span>
+            <button type="button" data-image-action="reset-zoom" class="image-s-9e0fd4">Reset zoom</button>
           </div>
-          <div style="font-size:11px;color:var(--muted);margin-top:6px;">
+          <div class="prod-s-69a65b">
             <span id="img-crop-dims">&mdash;</span>
           </div>
 
           <!-- Tab Bar -->
-          <div id="img-tabs" style="display:flex;gap:6px;margin-top:14px;padding:5px;background:var(--surface);border:1px solid var(--border);border-radius:10px;">
-            <button type="button" data-tab="crop" onclick="switchImgTab(&apos;crop&apos;)" class="img-tab img-tab-active" style="flex:1;background:var(--accent);border:none;color:#fff;font-size:13px;font-weight:600;font-family:DM Sans,sans-serif;padding:10px 8px;cursor:pointer;border-radius:7px;transition:all 0.15s;box-shadow:0 2px 8px rgba(124,58,237,0.3);display:flex;align-items:center;justify-content:center;gap:6px;">
+          <div id="img-tabs" class="image-s-9277af">
+            <button type="button" data-tab="crop" data-image-action="switch-tab" data-image-tab="crop" class="img-tab img-tab-active image-s-b269d0" >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M18 22V8a2 2 0 0 0-2-2H2"/></svg>
               Crop
             </button>
-            <button type="button" data-tab="adjust" onclick="switchImgTab(&apos;adjust&apos;)" class="img-tab" style="flex:1;background:transparent;border:none;color:var(--muted);font-size:13px;font-weight:600;font-family:DM Sans,sans-serif;padding:10px 8px;cursor:pointer;border-radius:7px;transition:all 0.15s;display:flex;align-items:center;justify-content:center;gap:6px;">
+            <button type="button" data-tab="adjust" data-image-action="switch-tab" data-image-tab="adjust" class="img-tab image-s-dc8ff2" >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
               Adjust
             </button>
-            <button type="button" data-tab="output" onclick="switchImgTab(&apos;output&apos;)" class="img-tab" style="flex:1;background:transparent;border:none;color:var(--muted);font-size:13px;font-weight:600;font-family:DM Sans,sans-serif;padding:10px 8px;cursor:pointer;border-radius:7px;transition:all 0.15s;display:flex;align-items:center;justify-content:center;gap:6px;">
+            <button type="button" data-tab="output" data-image-action="switch-tab" data-image-tab="output" class="img-tab image-s-dc8ff2" >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               Output
             </button>
           </div>
 
           <!-- Tab Panels -->
-          <div style="padding-top:14px;min-height:160px;">
+          <div class="image-s-be5e01">
             <!-- CROP TAB -->
             <div id="img-tab-crop" class="img-tab-panel">
-              <div id="img-aspect-buttons" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;">
-                <button type="button" data-aspect="original" onclick="applyAspectPreset(&apos;original&apos;)" class="img-aspect-btn img-aspect-active" style="background:var(--accent);color:#fff;border:1px solid var(--accent);font-size:12px;padding:7px 12px;border-radius:7px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:500;transition:all 0.15s;">Original</button>
-                <button type="button" data-aspect="free" onclick="applyAspectPreset(&apos;free&apos;)" class="img-aspect-btn" style="background:var(--surface);color:var(--muted);border:1px solid var(--border-hover);font-size:12px;padding:7px 12px;border-radius:7px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:500;transition:all 0.15s;">Free</button>
-                <button type="button" data-aspect="1:1" onclick="applyAspectPreset(&apos;1:1&apos;)" class="img-aspect-btn" style="background:var(--surface);color:var(--muted);border:1px solid var(--border-hover);font-size:12px;padding:7px 12px;border-radius:7px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:500;transition:all 0.15s;">Square 1:1</button>
-                <button type="button" data-aspect="4:5" onclick="applyAspectPreset(&apos;4:5&apos;)" class="img-aspect-btn" style="background:var(--surface);color:var(--muted);border:1px solid var(--border-hover);font-size:12px;padding:7px 12px;border-radius:7px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:500;transition:all 0.15s;">Portrait 4:5</button>
-                <button type="button" data-aspect="9:16" onclick="applyAspectPreset(&apos;9:16&apos;)" class="img-aspect-btn" style="background:var(--surface);color:var(--muted);border:1px solid var(--border-hover);font-size:12px;padding:7px 12px;border-radius:7px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:500;transition:all 0.15s;">Reel/Story 9:16</button>
-                <button type="button" data-aspect="16:9" onclick="applyAspectPreset(&apos;16:9&apos;)" class="img-aspect-btn" style="background:var(--surface);color:var(--muted);border:1px solid var(--border-hover);font-size:12px;padding:7px 12px;border-radius:7px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:500;transition:all 0.15s;">YouTube/Landscape 16:9</button>
-                <button type="button" data-aspect="3:1" onclick="applyAspectPreset(&apos;3:1&apos;)" class="img-aspect-btn" style="background:var(--surface);color:var(--muted);border:1px solid var(--border-hover);font-size:12px;padding:7px 12px;border-radius:7px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:500;transition:all 0.15s;">Wide 3:1</button>
+              <div id="img-aspect-buttons" class="image-s-157bac">
+                <button type="button" data-aspect="original" data-image-action="aspect-preset" data-image-aspect="original" class="img-aspect-btn img-aspect-active image-s-542e5d" >Original</button>
+                <button type="button" data-aspect="free" data-image-action="aspect-preset" data-image-aspect="free" class="img-aspect-btn image-s-46eb49" >Free</button>
+                <button type="button" data-aspect="1:1" data-image-action="aspect-preset" data-image-aspect="1:1" class="img-aspect-btn image-s-46eb49" >Square 1:1</button>
+                <button type="button" data-aspect="4:5" data-image-action="aspect-preset" data-image-aspect="4:5" class="img-aspect-btn image-s-46eb49" >Portrait 4:5</button>
+                <button type="button" data-aspect="9:16" data-image-action="aspect-preset" data-image-aspect="9:16" class="img-aspect-btn image-s-46eb49" >Reel/Story 9:16</button>
+                <button type="button" data-aspect="16:9" data-image-action="aspect-preset" data-image-aspect="16:9" class="img-aspect-btn image-s-46eb49" >YouTube/Landscape 16:9</button>
+                <button type="button" data-aspect="3:1" data-image-action="aspect-preset" data-image-aspect="3:1" class="img-aspect-btn image-s-46eb49" >Wide 3:1</button>
               </div>
-              <div style="display:flex;justify-content:flex-end;gap:8px;align-items:center;">
-                <button type="button" id="img-removebg-btn" onclick="imgRemoveBg()" style="background:var(--surface);border:1px solid var(--border-hover);color:var(--text);font-size:12px;padding:7px 14px;border-radius:7px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:500;transition:all 0.15s;display:inline-flex;align-items:center;gap:6px;">
+              <div class="image-s-b9669a">
+                <button type="button" id="img-removebg-btn" data-image-action="remove-bg" class="image-s-d604e3">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5l14 14M2 12a10 10 0 0 1 10-10M22 12a10 10 0 0 1-10 10"/></svg>
                   <span id="img-removebg-label">Remove Background</span>
                 </button>
-                <button type="button" id="img-crop-lock-btn" onclick="toggleCropLock()" style="background:var(--surface);border:1px solid var(--border-hover);color:var(--text);font-size:12px;padding:7px 14px;border-radius:7px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:500;transition:all 0.15s;">Lock crop</button>
+                <button type="button" id="img-crop-lock-btn" data-image-action="toggle-crop-lock" class="image-s-5e3795">Lock crop</button>
               </div>
             </div>
 
             <!-- ADJUST TAB -->
-            <div id="img-tab-adjust" class="img-tab-panel" style="display:none;">
-              <div style="display:grid;grid-template-columns:1fr;gap:12px;">
+            <div id="img-tab-adjust" class="img-tab-panel bio-s-c8be1c" >
+              <div class="image-s-d48d1d">
                 <div>
-                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-                    <label for="img-brightness" style="font-size:12px;color:var(--muted);">Brightness</label>
-                    <span id="img-brightness-val" style="font-size:11px;color:var(--muted);">0</span>
+                  <div class="deal-s-5f0e18">
+                    <label for="img-brightness" class="bio-s-e769ff">Brightness</label>
+                    <span id="img-brightness-val" class="bio-s-5f3468">0</span>
                   </div>
-                  <input type="range" id="img-brightness" min="-100" max="100" value="0" step="1" style="width:100%;accent-color:var(--accent);" aria-label="Brightness">
+                  <input type="range" id="img-brightness" min="-100" max="100" value="0" step="1" class="image-s-23172b" aria-label="Brightness">
                 </div>
                 <div>
-                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-                    <label for="img-contrast" style="font-size:12px;color:var(--muted);">Contrast</label>
-                    <span id="img-contrast-val" style="font-size:11px;color:var(--muted);">0</span>
+                  <div class="deal-s-5f0e18">
+                    <label for="img-contrast" class="bio-s-e769ff">Contrast</label>
+                    <span id="img-contrast-val" class="bio-s-5f3468">0</span>
                   </div>
-                  <input type="range" id="img-contrast" min="-100" max="100" value="0" step="1" style="width:100%;accent-color:var(--accent);" aria-label="Contrast">
+                  <input type="range" id="img-contrast" min="-100" max="100" value="0" step="1" class="image-s-23172b" aria-label="Contrast">
                 </div>
                 <div>
-                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-                    <label for="img-saturation" style="font-size:12px;color:var(--muted);">Saturation</label>
-                    <span id="img-saturation-val" style="font-size:11px;color:var(--muted);">0</span>
+                  <div class="deal-s-5f0e18">
+                    <label for="img-saturation" class="bio-s-e769ff">Saturation</label>
+                    <span id="img-saturation-val" class="bio-s-5f3468">0</span>
                   </div>
-                  <input type="range" id="img-saturation" min="-100" max="100" value="0" step="1" style="width:100%;accent-color:var(--accent);" aria-label="Saturation">
+                  <input type="range" id="img-saturation" min="-100" max="100" value="0" step="1" class="image-s-23172b" aria-label="Saturation">
                 </div>
               </div>
-              <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">
-                <button type="button" onclick="rotateImage90()" style="flex:1;min-width:90px;background:var(--surface);border:1px solid var(--border-hover);color:var(--text);font-size:12px;padding:9px 12px;border-radius:7px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:500;display:flex;align-items:center;justify-content:center;gap:6px;">
+              <div class="image-s-16a0ed">
+                <button type="button" data-image-action="rotate-90" class="image-s-2d195c">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
                   Rotate 90&deg;
                 </button>
-                <button type="button" onclick="flipImageH()" style="flex:1;min-width:90px;background:var(--surface);border:1px solid var(--border-hover);color:var(--text);font-size:12px;padding:9px 12px;border-radius:7px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:500;display:flex;align-items:center;justify-content:center;gap:6px;">
+                <button type="button" data-image-action="flip-h" class="image-s-2d195c">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
                   Flip H
                 </button>
-                <button type="button" onclick="flipImageV()" style="flex:1;min-width:90px;background:var(--surface);border:1px solid var(--border-hover);color:var(--text);font-size:12px;padding:9px 12px;border-radius:7px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:500;display:flex;align-items:center;justify-content:center;gap:6px;">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="transform:rotate(90deg);"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+                <button type="button" data-image-action="flip-v" class="image-s-2d195c">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="image-s-3c051f"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
                   Flip V
                 </button>
               </div>
-              <div style="margin-top:12px;display:flex;justify-content:flex-end;">
-                <button type="button" onclick="resetAllAdjustments()" style="background:none;border:1px solid var(--border-hover);color:var(--muted);font-size:11px;padding:5px 10px;border-radius:6px;cursor:pointer;font-family:DM Sans,sans-serif;">Reset adjustments</button>
+              <div class="image-s-e6b2f8">
+                <button type="button" data-image-action="reset-adjustments" class="image-s-91c07f">Reset adjustments</button>
               </div>
             </div>
 
             <!-- OUTPUT TAB -->
-            <div id="img-tab-output" class="img-tab-panel" style="display:none;">
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div id="img-tab-output" class="img-tab-panel bio-s-c8be1c" >
+              <div class="image-s-001013">
                 <div>
-                  <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;">Format</label>
-                  <select id="img-format" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;" aria-label="Output format">
+                  <label class="image-s-d6c4c8">Format</label>
+                  <select id="img-format" class="image-s-3ab98f" aria-label="Output format">
                     <option value="image/jpeg" selected>JPEG</option>
                     <option value="image/png">PNG</option>
                     <option value="image/webp">WebP</option>
@@ -7107,27 +7160,27 @@
                   </select>
                 </div>
                 <div id="quality-group">
-                  <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;">Quality <span id="quality-val">90</span>%</label>
-                  <input type="range" id="img-quality" min="10" max="100" value="90" style="width:100%;accent-color:var(--accent);" oninput="document.getElementById(&apos;quality-val&apos;).textContent=this.value" aria-label="Compression quality">
+                  <label class="image-s-d6c4c8">Quality <span id="quality-val">90</span>%</label>
+                  <input type="range" id="img-quality" min="10" max="100" value="90" class="image-s-23172b" data-image-action="quality-display" data-image-event="input" aria-label="Compression quality">
                 </div>
               </div>
               <!-- Hidden legacy inputs (JS compat) -->
               <input type="hidden" id="img-width" value="">
               <input type="hidden" id="img-height" value="">
-              <input type="checkbox" id="img-resize-lock" aria-label="Lock aspect ratio" checked style="display:none;">
-              <div id="pro-resize" style="display:none;"></div>
+              <input type="checkbox" id="img-resize-lock" aria-label="Lock aspect ratio" checked class="bio-s-c8be1c">
+              <div id="pro-resize" class="bio-s-c8be1c"></div>
             </div>
           </div>
         </div>
 
         <!-- Hidden legacy containers (kept for JS compatibility) -->
-        <div id="img-crop-area" style="display:none;"></div>
-        <div id="img-adjust-area" style="display:none;"></div>
-        <div id="img-options" style="display:none;"></div>
+        <div id="img-crop-area" class="bio-s-c8be1c"></div>
+        <div id="img-adjust-area" class="bio-s-c8be1c"></div>
+        <div id="img-options" class="bio-s-c8be1c"></div>
 
-        <button id="img-convert-btn" onclick="convertImage()" style="display:none;width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.2s;box-shadow:0 0 20px var(--accent-glow);">Download Image</button>
-        <div id="img-result" style="display:none;margin-top:16px;"></div>
-        <div id="img-usage" style="margin-top:16px;font-size:13px;color:var(--muted);text-align:center;"></div>
+        <button id="img-convert-btn" data-image-action="convert" class="image-s-d284f6">Download Image</button>
+        <div id="img-result" class="image-s-544a05"></div>
+        <div id="img-usage" class="image-s-7d9ade"></div>
       </div>
     </div>
 
@@ -12684,885 +12737,6 @@ async function confirmSettingsCancel() {
 
 
 // ════════════════════════════════════════════
-// IMAGE CONVERTER
-// ════════════════════════════════════════════
-let imgFile = null;
-
-function initImageConverter() {
-  // Detect which output formats this browser actually supports via canvas.toDataURL
-  // and remove unsupported options from the dropdown so users only see what works.
-  (function pruneUnsupportedFormats() {
-    const formatSelect = document.getElementById('img-format');
-    if (!formatSelect || formatSelect.__pdfsignFormatsPruned) return;
-    formatSelect.__pdfsignFormatsPruned = true;
-    const testCanvas = document.createElement('canvas');
-    testCanvas.width = testCanvas.height = 2;
-    // JPEG and PNG are universally supported — never remove them.
-    const skip = new Set(['image/jpeg', 'image/png']);
-    Array.from(formatSelect.options).forEach(opt => {
-      const mime = opt.value;
-      if (skip.has(mime)) return;
-      let supported = false;
-      try {
-        const dataUrl = testCanvas.toDataURL(mime);
-        // If browser doesn't support it, toDataURL silently returns a PNG instead.
-        supported = dataUrl.startsWith(`data:${mime}`);
-      } catch (_) { supported = false; }
-      if (!supported) opt.remove();
-    });
-    // Update the format-change handler to handle remaining options correctly
-    // (already correct — it uses .value lookup, no list dependency)
-  })();
-
-  // img-limit-note removed per copy update; hide the element so it doesn't leave a gap
-  (function(){ var n = document.getElementById('img-limit-note'); if (n) { n.textContent = ''; n.style.display = 'none'; } })();
-  // Build the supported-formats note dynamically based on the pruned dropdown
-  const supportedNote = (function() {
-    const sel = document.getElementById('img-format');
-    if (!sel) return 'JPEG, PNG, WebP';
-    const labels = Array.from(sel.options).map(o => o.textContent.replace(/\s*\(.*\)/, '').trim());
-    return labels.join(', ');
-  })();
-  const sizeNote = document.getElementById('img-size-note');
-  if (sizeNote) sizeNote.textContent = `Supports ${supportedNote}`;
-  document.getElementById('img-usage').textContent = '';
-  document.getElementById('img-format').addEventListener('change', function() {
-    const noQuality = ['image/png','image/gif','image/bmp','image/x-icon','image/tiff']; document.getElementById('quality-group').style.display = noQuality.includes(this.value) ? 'none' : 'block';
-  });
-
-  // Aspect ratio buttons use inline onclick handlers (no listener needed here).
-
-  // Zoom slider
-  const zoomSlider = document.getElementById('img-crop-zoom');
-  if (zoomSlider && !zoomSlider.__wired) {
-    zoomSlider.__wired = true;
-    zoomSlider.addEventListener('input', function() {
-      applyCropZoom(parseInt(this.value));
-      // Update stage cursor based on zoom level
-      const stage = document.getElementById('img-crop-stage');
-      if (stage) stage.style.cursor = imgCropZoom > 1 ? 'grab' : 'default';
-    });
-  }
-
-  // Stage pan (click anywhere outside crop box to drag image around when zoomed in)
-  const stage = document.getElementById('img-crop-stage');
-  if (stage && !stage.__panWired) {
-    stage.__panWired = true;
-    stage.addEventListener('mousedown', startStagePan);
-    stage.addEventListener('touchstart', startStagePan, { passive: false });
-  }
-
-  // Adjust sliders (brightness / contrast / saturation)
-  ['brightness', 'contrast', 'saturation'].forEach(kind => {
-    const el = document.getElementById('img-' + kind);
-    if (!el || el.__wired) return;
-    el.__wired = true;
-    el.addEventListener('input', function() {
-      const v = parseInt(this.value) || 0;
-      if (kind === 'brightness') imgBrightness = v;
-      if (kind === 'contrast')   imgContrast   = v;
-      if (kind === 'saturation') imgSaturation = v;
-      updateAdjustLabels();
-      applyImageVisualEffects();
-    });
-  });
-
-  // Crop box drag (move + resize handles)
-  const cropBoxEl = document.getElementById('img-crop-box');
-  if (cropBoxEl && !cropBoxEl.__wired) {
-    cropBoxEl.__wired = true;
-    cropBoxEl.addEventListener('mousedown', function(e) {
-      if (e.target.classList.contains('img-crop-handle')) {
-        startCropInteraction(e, 'resize', e.target.getAttribute('data-handle'));
-      } else {
-        startCropInteraction(e, 'move');
-      }
-    });
-    cropBoxEl.addEventListener('touchstart', function(e) {
-      if (e.target.classList.contains('img-crop-handle')) {
-        startCropInteraction(e, 'resize', e.target.getAttribute('data-handle'));
-      } else {
-        startCropInteraction(e, 'move');
-      }
-    }, { passive: false });
-  }
-
-  // Re-render crop box on window resize (layout could change)
-  if (!window.__imgStudioResize) {
-    window.__imgStudioResize = true;
-    window.addEventListener('resize', () => { if (imgCropBox) renderCropBox(); });
-  }
-  document.getElementById('img-input').addEventListener('change', function(e) {
-    if (e.target.files[0]) handleImageFile(e.target.files[0]);
-  });
-  const dz = document.getElementById('img-dropzone');
-  dz.addEventListener('dragover', e => { e.preventDefault(); dz.style.borderColor = 'var(--accent)'; });
-  dz.addEventListener('dragleave', () => { dz.style.borderColor = 'rgba(124,58,237,0.4)'; });
-  dz.addEventListener('drop', e => { e.preventDefault(); dz.style.borderColor = 'rgba(124,58,237,0.4)'; if (e.dataTransfer.files[0]) handleImageFile(e.dataTransfer.files[0]); });
-}
-
-function handleImageFile(file) {
-  imgFile = file;
-  const reader = new FileReader();
-  reader.onload = e => {
-    document.getElementById('img-preview').src = e.target.result;
-    document.getElementById('img-preview-area').style.display = 'block';
-    document.getElementById('img-editor').style.display = 'block';
-    document.getElementById('img-convert-btn').style.display = 'block';
-    document.getElementById('img-result').style.display = 'none';
-    document.getElementById('img-filename').textContent = file.name;
-    document.getElementById('img-filesize').textContent = (file.size / 1024 / 1024).toFixed(2) + ' MB';
-    // Always default to Crop tab on new image load
-    switchImgTab('crop');
-    // Set up crop stage with full-size image
-    setupCropStage(e.target.result);
-  };
-  reader.readAsDataURL(file);
-}
-
-function clearImage() {
-  imgFile = null;
-  document.getElementById('img-preview-area').style.display = 'none';
-  const editor = document.getElementById('img-editor');
-  if (editor) editor.style.display = 'none';
-  document.getElementById('img-convert-btn').style.display = 'none';
-  document.getElementById('img-result').style.display = 'none';
-  document.getElementById('img-input').value = '';
-  document.getElementById('img-width').value = '';
-  document.getElementById('img-height').value = '';
-  imgNatural = { w: 0, h: 0 };
-  // Reset zoom state
-  const zoomSlider = document.getElementById('img-crop-zoom');
-  if (zoomSlider) zoomSlider.value = '100';
-  const inner = document.getElementById('img-crop-inner');
-  if (inner) inner.style.transform = 'translate(0px,0px) scale(1)';
-  imgCropZoom = 1;
-  imgCropPan = { x: 0, y: 0 };
-  // Reset adjustments
-  imgBrightness = 0; imgContrast = 0; imgSaturation = 0;
-  imgRotation = 0; imgFlipH = false; imgFlipV = false;
-  const imgEl = document.getElementById('img-crop-src');
-  if (imgEl) { imgEl.style.filter = ''; imgEl.style.transform = ''; }
-}
-
-// ───── Crop box state ─────
-let imgNatural = { w: 0, h: 0 };    // Original image dimensions
-let imgCropBox = null;              // { x, y, w, h } in pixels relative to the DISPLAYED (scaled) image
-let imgDisplaySize = { w: 0, h: 0 };// Displayed image size in CSS pixels
-let imgAspectLock = null;           // e.g. 1 for 1:1, 9/16 for 9:16, null for free
-let imgCropMode = 'original';       // 'free' | '1:1' | '4:5' | '9:16' | '16:9' | '3:1' | 'original'
-let imgCropLocked = false;          // true = crop committed; box can't move or resize
-let imgCropZoom = 1;                // 1 = 100%, scales the image + crop box together
-let imgCropPan = { x: 0, y: 0 };    // Translation offset in CSS pixels (screen space)
-let imgBrightness = 0;              // -100 to +100
-let imgContrast = 0;                // -100 to +100
-let imgSaturation = 0;              // -100 to +100
-let imgRotation = 0;                // 0, 90, 180, 270 degrees
-let imgFlipH = false;
-let imgFlipV = false;
-
-function switchImgTab(tabName) {
-  const panels = ['crop', 'adjust', 'output'];
-  panels.forEach(name => {
-    const panel = document.getElementById('img-tab-' + name);
-    if (panel) panel.style.display = (name === tabName) ? 'block' : 'none';
-  });
-  document.querySelectorAll('.img-tab').forEach(btn => {
-    const isActive = btn.getAttribute('data-tab') === tabName;
-    if (isActive) {
-      btn.classList.add('img-tab-active');
-      btn.style.background = 'var(--accent)';
-      btn.style.color = '#fff';
-      btn.style.boxShadow = '0 2px 8px rgba(124,58,237,0.3)';
-    } else {
-      btn.classList.remove('img-tab-active');
-      btn.style.background = 'transparent';
-      btn.style.color = 'var(--muted)';
-      btn.style.boxShadow = 'none';
-    }
-  });
-}
-
-function setupCropStage(dataUrl) {
-  const stageImg = document.getElementById('img-crop-src');
-  const stage = document.getElementById('img-crop-stage');
-
-  stageImg.onload = () => {
-    imgNatural = { w: stageImg.naturalWidth, h: stageImg.naturalHeight };
-    // Wait one frame for layout to settle, THEN measure displayed size
-    requestAnimationFrame(() => {
-      imgDisplaySize = { w: stageImg.clientWidth, h: stageImg.clientHeight };
-      // Fallback: if still zero (edge case), derive from natural + container bounds
-      if (!imgDisplaySize.w || !imgDisplaySize.h) {
-        const maxH = 540;
-        const containerW = stage.clientWidth || 640;
-        const scale = Math.min(containerW / imgNatural.w, maxH / imgNatural.h, 1);
-        imgDisplaySize = {
-          w: Math.round(imgNatural.w * scale),
-          h: Math.round(imgNatural.h * scale)
-        };
-      }
-      // Initialize crop box (will be overwritten by applyAspectPreset below)
-      imgCropBox = { x: 0, y: 0, w: imgDisplaySize.w, h: imgDisplaySize.h };
-      // Reset all adjustments for new image
-      resetAllAdjustments();
-      // Reset zoom to 100% for new image
-      resetCropZoom();
-      // Default new images to "Original" (full image, no crop applied by default)
-      applyAspectPreset('original');
-    });
-  };
-  stageImg.src = dataUrl;
-}
-
-function resetCropBox() {
-  const stage = document.getElementById('img-crop-stage');
-  if (!stage) return;
-  imgAspectLock = null;
-  imgCropMode = 'free';
-  imgCropLocked = false;
-  updateAspectButtonsUI();
-  updateLockButtonUI();
-  const stageW = stage.clientWidth;
-  const stageH = stage.clientHeight;
-  // Default: a centered 80% box sized to the stage (where the image sits)
-  const w = stageW * 0.7;
-  const h = stageH * 0.7;
-  imgCropBox = {
-    x: (stageW - w) / 2,
-    y: (stageH - h) / 2,
-    w, h
-  };
-  renderCropBox();
-}
-
-function applyAspectPreset(preset) {
-  const stage = document.getElementById('img-crop-stage');
-  if (!stage || !imgDisplaySize.w) return;
-  // Selecting a preset always unlocks (user is picking a new ratio)
-  imgCropLocked = false;
-  imgCropMode = preset;
-  updateAspectButtonsUI();
-  updateLockButtonUI();
-
-  const stageW = stage.clientWidth;
-  const stageH = stage.clientHeight;
-
-  if (preset === 'free') {
-    imgAspectLock = null;
-    // Keep current box if one exists
-    if (!imgCropBox) {
-      const w = stageW * 0.7;
-      const h = stageH * 0.7;
-      imgCropBox = { x: (stageW - w) / 2, y: (stageH - h) / 2, w, h };
-    }
-    renderCropBox();
-    return;
-  }
-  if (preset === 'original') {
-    imgAspectLock = null;
-    // Fit the crop box to exactly cover the displayed image
-    imgCropBox = {
-      x: (stageW - imgDisplaySize.w) / 2,
-      y: (stageH - imgDisplaySize.h) / 2,
-      w: imgDisplaySize.w,
-      h: imgDisplaySize.h
-    };
-    renderCropBox();
-    return;
-  }
-  const [a, b] = preset.split(':').map(Number);
-  imgAspectLock = a / b;
-  // Center an aspect-ratio box of up to 80% of the stage (not the image)
-  let cw = stageW * 0.85;
-  let ch = cw / imgAspectLock;
-  if (ch > stageH * 0.85) {
-    ch = stageH * 0.85;
-    cw = ch * imgAspectLock;
-  }
-  imgCropBox = {
-    x: (stageW - cw) / 2,
-    y: (stageH - ch) / 2,
-    w: cw, h: ch
-  };
-  renderCropBox();
-}
-
-function updateAspectButtonsUI() {
-  const btns = document.querySelectorAll('.img-aspect-btn');
-  btns.forEach(btn => {
-    const isActive = btn.getAttribute('data-aspect') === imgCropMode;
-    if (isActive) {
-      btn.classList.add('img-aspect-active');
-      btn.style.background = 'var(--accent)';
-      btn.style.color = '#fff';
-      btn.style.borderColor = 'var(--accent)';
-    } else {
-      btn.classList.remove('img-aspect-active');
-      btn.style.background = 'var(--surface)';
-      btn.style.color = 'var(--muted)';
-      btn.style.borderColor = 'var(--border-hover)';
-    }
-  });
-}
-
-function updateLockButtonUI() {
-  const btn = document.getElementById('img-crop-lock-btn');
-  if (!btn) return;
-  if (imgCropLocked) {
-    btn.textContent = 'Unlock crop';
-    btn.style.background = 'rgba(124,58,237,0.12)';
-    btn.style.color = 'var(--accent2)';
-    btn.style.borderColor = 'rgba(124,58,237,0.4)';
-  } else {
-    btn.textContent = 'Lock crop';
-    btn.style.background = 'var(--surface)';
-    btn.style.color = 'var(--text)';
-    btn.style.borderColor = 'var(--border-hover)';
-  }
-}
-
-function toggleCropLock() {
-  // Simply toggle — preserve the current crop box either way.
-  // User can keep refining the crop after unlocking without losing position.
-  imgCropLocked = !imgCropLocked;
-  updateLockButtonUI();
-  renderCropBox();
-}
-
-function renderCropBox() {
-  if (!imgCropBox) return;
-  const stage = document.getElementById('img-crop-stage');
-  const stageImg = document.getElementById('img-crop-src');
-  const box = document.getElementById('img-crop-box');
-  // Refresh display size each render in case of layout changes
-  if (stageImg.clientWidth && stageImg.clientHeight) {
-    imgDisplaySize = { w: stageImg.clientWidth, h: stageImg.clientHeight };
-  }
-  if (!imgDisplaySize.w || !imgDisplaySize.h) return;
-  const stageW = stage.clientWidth;
-  const stageH = stage.clientHeight;
-  // Clamp box size to not exceed the stage
-  imgCropBox.w = Math.min(imgCropBox.w, stageW);
-  imgCropBox.h = Math.min(imgCropBox.h, stageH);
-  // Clamp box position to stay within stage
-  imgCropBox.x = Math.max(0, Math.min(stageW - imgCropBox.w, imgCropBox.x));
-  imgCropBox.y = Math.max(0, Math.min(stageH - imgCropBox.h, imgCropBox.y));
-  box.style.display = 'block';
-  box.style.left = imgCropBox.x + 'px';
-  box.style.top = imgCropBox.y + 'px';
-  box.style.width = imgCropBox.w + 'px';
-  box.style.height = imgCropBox.h + 'px';
-  // Visual state: dashed/purple when locked, solid white when active
-  if (imgCropLocked) {
-    box.style.cursor = 'default';
-    box.style.borderColor = '#a78bfa';
-    box.style.borderStyle = 'dashed';
-  } else {
-    box.style.cursor = 'move';
-    box.style.borderColor = '#fff';
-    box.style.borderStyle = 'solid';
-  }
-  // Show resize handles ONLY when in Free mode and not locked
-  const handlesVisible = (imgCropMode === 'free' && !imgCropLocked);
-  document.querySelectorAll('.img-crop-handle').forEach(h => {
-    h.style.display = handlesVisible ? 'block' : 'none';
-  });
-  // Update dimensions readout — calculated from crop region in natural-pixel space
-  const region = computeCropRegionInNaturalPixels();
-  const dims = document.getElementById('img-crop-dims');
-  if (dims) dims.textContent = `Crop: ${region.w} × ${region.h} px`;
-}
-
-// Compute what region of the ORIGINAL image lies inside the stage-fixed crop box,
-// accounting for current zoom and pan of the image (and rotation).
-// Returns {x, y, w, h} in natural-pixel coordinates of the original image AFTER rotation/flip.
-function computeCropRegionInNaturalPixels() {
-  const stage = document.getElementById('img-crop-stage');
-  const stageW = stage.clientWidth;
-  const stageH = stage.clientHeight;
-  const effDisp = getEffectiveImageDisplaySize();
-  const effNat = getEffectiveNaturalSize();
-  // Image center in stage CSS pixels (image is flex-centered, then translated)
-  const imgCenterX = stageW / 2 + imgCropPan.x;
-  const imgCenterY = stageH / 2 + imgCropPan.y;
-  // Scaled image dimensions in stage space (using effective dims due to rotation)
-  const scaledImgW = effDisp.w * imgCropZoom;
-  const scaledImgH = effDisp.h * imgCropZoom;
-  // Top-left of image in stage space
-  const imgLeft = imgCenterX - scaledImgW / 2;
-  const imgTop  = imgCenterY - scaledImgH / 2;
-  // Crop box corners in stage space
-  const cropLeft = imgCropBox.x;
-  const cropTop  = imgCropBox.y;
-  const cropRight = imgCropBox.x + imgCropBox.w;
-  const cropBottom = imgCropBox.y + imgCropBox.h;
-  // Convert to EFFECTIVE displayed-image space
-  const dispX1 = (cropLeft   - imgLeft) / imgCropZoom;
-  const dispY1 = (cropTop    - imgTop)  / imgCropZoom;
-  const dispX2 = (cropRight  - imgLeft) / imgCropZoom;
-  const dispY2 = (cropBottom - imgTop)  / imgCropZoom;
-  // Clip to effective displayed image bounds
-  const clipX1 = Math.max(0, Math.min(effDisp.w, dispX1));
-  const clipY1 = Math.max(0, Math.min(effDisp.h, dispY1));
-  const clipX2 = Math.max(0, Math.min(effDisp.w, dispX2));
-  const clipY2 = Math.max(0, Math.min(effDisp.h, dispY2));
-  // Map to effective natural image pixels (post-rotation)
-  const scale = effNat.w / effDisp.w;
-  return {
-    x: Math.round(clipX1 * scale),
-    y: Math.round(clipY1 * scale),
-    w: Math.round((clipX2 - clipX1) * scale),
-    h: Math.round((clipY2 - clipY1) * scale),
-  };
-}
-
-// Returns the effective on-screen dimensions of the image, accounting for rotation.
-// When rotated 90° or 270°, width and height are visually swapped.
-function getEffectiveImageDisplaySize() {
-  if (imgRotation === 90 || imgRotation === 270) {
-    return { w: imgDisplaySize.h, h: imgDisplaySize.w };
-  }
-  return { w: imgDisplaySize.w, h: imgDisplaySize.h };
-}
-
-// Returns effective natural dimensions after rotation
-function getEffectiveNaturalSize() {
-  if (imgRotation === 90 || imgRotation === 270) {
-    return { w: imgNatural.h, h: imgNatural.w };
-  }
-  return { w: imgNatural.w, h: imgNatural.h };
-}
-
-function applyInnerTransform() {
-  const inner = document.getElementById('img-crop-inner');
-  if (!inner) return;
-  // Translate + zoom
-  inner.style.transform = `translate(${imgCropPan.x}px, ${imgCropPan.y}px) scale(${imgCropZoom})`;
-  // Re-render crop box so dimensions readout reflects current image position
-  if (imgCropBox) renderCropBox();
-  // Apply image-level transforms (rotation, flip) and filters (brightness/contrast/saturation)
-  applyImageVisualEffects();
-}
-
-// Build a CSS filter string from current brightness/contrast/saturation values
-function buildImageFilterString() {
-  // Slider range -100..+100 maps to CSS:
-  //   brightness: 0..2 (1 = unchanged)
-  //   contrast:   0..2 (1 = unchanged)
-  //   saturate:   0..2 (1 = unchanged)
-  const b = 1 + (imgBrightness / 100);
-  const c = 1 + (imgContrast / 100);
-  const s = 1 + (imgSaturation / 100);
-  return `brightness(${b}) contrast(${c}) saturate(${s})`;
-}
-
-// Apply filter + rotation/flip to the image element for live preview
-function applyImageVisualEffects() {
-  const imgEl = document.getElementById('img-crop-src');
-  if (!imgEl) return;
-  imgEl.style.filter = buildImageFilterString();
-  // Apply rotation/flip via a separate transform on the IMAGE itself.
-  // Zoom/pan lives on #img-crop-inner; this keeps them independent.
-  const sx = imgFlipH ? -1 : 1;
-  const sy = imgFlipV ? -1 : 1;
-  imgEl.style.transform = `rotate(${imgRotation}deg) scale(${sx}, ${sy})`;
-  imgEl.style.transformOrigin = 'center center';
-}
-
-function updateAdjustLabels() {
-  const b = document.getElementById('img-brightness-val');
-  const c = document.getElementById('img-contrast-val');
-  const s = document.getElementById('img-saturation-val');
-  if (b) b.textContent = imgBrightness > 0 ? `+${imgBrightness}` : `${imgBrightness}`;
-  if (c) c.textContent = imgContrast > 0 ? `+${imgContrast}` : `${imgContrast}`;
-  if (s) s.textContent = imgSaturation > 0 ? `+${imgSaturation}` : `${imgSaturation}`;
-}
-
-function resetAllAdjustments() {
-  imgBrightness = 0;
-  imgContrast = 0;
-  imgSaturation = 0;
-  imgRotation = 0;
-  imgFlipH = false;
-  imgFlipV = false;
-  const b = document.getElementById('img-brightness');
-  const c = document.getElementById('img-contrast');
-  const s = document.getElementById('img-saturation');
-  if (b) b.value = '0';
-  if (c) c.value = '0';
-  if (s) s.value = '0';
-  updateAdjustLabels();
-  applyImageVisualEffects();
-  // Rotation changed the effective image dimensions, so re-center the crop
-  if (imgCropBox) applyAspectPreset(imgCropMode);
-}
-
-function rotateImage90() {
-  imgRotation = (imgRotation + 90) % 360;
-  applyImageVisualEffects();
-  // Rotating 90° swaps width and height effectively. Reset crop to fit new orientation.
-  if (imgCropBox) applyAspectPreset(imgCropMode);
-}
-
-function flipImageH() {
-  imgFlipH = !imgFlipH;
-  applyImageVisualEffects();
-}
-
-function flipImageV() {
-  imgFlipV = !imgFlipV;
-  applyImageVisualEffects();
-}
-
-function clampPan() {
-  // Allow the image to be panned but keep at least some portion visible
-  const stage = document.getElementById('img-crop-stage');
-  const inner = document.getElementById('img-crop-inner');
-  if (!stage || !inner) return;
-  const stageW = stage.clientWidth;
-  const stageH = stage.clientHeight;
-  const scaledW = imgDisplaySize.w * imgCropZoom;
-  const scaledH = imgDisplaySize.h * imgCropZoom;
-  // When not zoomed (image fits in stage), no panning allowed
-  if (scaledW <= stageW) imgCropPan.x = 0;
-  else {
-    const maxX = (scaledW - stageW) / 2;
-    imgCropPan.x = Math.max(-maxX, Math.min(maxX, imgCropPan.x));
-  }
-  if (scaledH <= stageH) imgCropPan.y = 0;
-  else {
-    const maxY = (scaledH - stageH) / 2;
-    imgCropPan.y = Math.max(-maxY, Math.min(maxY, imgCropPan.y));
-  }
-}
-
-function applyCropZoom(zoomPct) {
-  const prevZoom = imgCropZoom;
-  imgCropZoom = zoomPct / 100;
-  // When zooming out to 100%, reset pan (no panning needed)
-  if (imgCropZoom <= 1) imgCropPan = { x: 0, y: 0 };
-  else {
-    // Scale existing pan proportionally so view stays roughly centered on the same spot
-    if (prevZoom > 0) {
-      const ratio = imgCropZoom / prevZoom;
-      imgCropPan.x *= ratio;
-      imgCropPan.y *= ratio;
-    }
-    clampPan();
-  }
-  applyInnerTransform();
-  const valEl = document.getElementById('img-crop-zoom-val');
-  if (valEl) valEl.textContent = `${zoomPct}%`;
-}
-
-function resetCropZoom() {
-  const slider = document.getElementById('img-crop-zoom');
-  if (slider) slider.value = '100';
-  imgCropPan = { x: 0, y: 0 };
-  applyCropZoom(100);
-}
-
-function startStagePan(e) {
-  // Only pan if clicking inside the stage but NOT on the crop box or its handles
-  if (e.target.closest('#img-crop-box')) return;
-  // Don't pan if zoomed out fully (nothing to pan)
-  if (imgCropZoom <= 1) return;
-  e.preventDefault();
-  const stage = document.getElementById('img-crop-stage');
-  const startX = e.touches ? e.touches[0].clientX : e.clientX;
-  const startY = e.touches ? e.touches[0].clientY : e.clientY;
-  const origPan = { ...imgCropPan };
-  stage.style.cursor = 'grabbing';
-
-  function onMove(ev) {
-    const cx = ev.touches ? ev.touches[0].clientX : ev.clientX;
-    const cy = ev.touches ? ev.touches[0].clientY : ev.clientY;
-    imgCropPan.x = origPan.x + (cx - startX);
-    imgCropPan.y = origPan.y + (cy - startY);
-    clampPan();
-    applyInnerTransform();
-    ev.preventDefault();
-  }
-  function onEnd() {
-    stage.style.cursor = 'grab';
-    document.removeEventListener('mousemove', onMove);
-    document.removeEventListener('mouseup', onEnd);
-    document.removeEventListener('touchmove', onMove);
-    document.removeEventListener('touchend', onEnd);
-  }
-  document.addEventListener('mousemove', onMove);
-  document.addEventListener('mouseup', onEnd);
-  document.addEventListener('touchmove', onMove, { passive: false });
-  document.addEventListener('touchend', onEnd);
-}
-
-function startCropInteraction(e, mode, handle) {
-  // When locked, no interaction allowed
-  if (imgCropLocked) { e.preventDefault(); return; }
-  // Resize only allowed in free mode; preset crops can only be moved
-  if (mode === 'resize' && imgCropMode !== 'free') { e.preventDefault(); return; }
-  e.preventDefault();
-  e.stopPropagation();
-  if (!imgCropBox) return;
-  const startX = e.touches ? e.touches[0].clientX : e.clientX;
-  const startY = e.touches ? e.touches[0].clientY : e.clientY;
-  const origBox = { ...imgCropBox };
-
-  function onMove(ev) {
-    const cx = ev.touches ? ev.touches[0].clientX : ev.clientX;
-    const cy = ev.touches ? ev.touches[0].clientY : ev.clientY;
-    // Crop box lives in stage space; mouse deltas translate 1:1
-    const dx = cx - startX;
-    const dy = cy - startY;
-
-    if (mode === 'move') {
-      imgCropBox.x = origBox.x + dx;
-      imgCropBox.y = origBox.y + dy;
-    } else if (mode === 'resize') {
-      let newX = origBox.x, newY = origBox.y, newW = origBox.w, newH = origBox.h;
-      if (handle.includes('e')) newW = Math.max(20, origBox.w + dx);
-      if (handle.includes('w')) { newW = Math.max(20, origBox.w - dx); newX = origBox.x + (origBox.w - newW); }
-      if (handle.includes('s')) newH = Math.max(20, origBox.h + dy);
-      if (handle.includes('n')) { newH = Math.max(20, origBox.h - dy); newY = origBox.y + (origBox.h - newH); }
-
-      // If aspect locked, adjust H from W (or W from H based on which edge was primary)
-      if (imgAspectLock) {
-        if (handle === 'e' || handle === 'w' || handle === 'ne' || handle === 'se' || handle === 'nw' || handle === 'sw') {
-          newH = newW / imgAspectLock;
-          if (handle.includes('n')) newY = origBox.y + (origBox.h - newH);
-        }
-      }
-      imgCropBox = { x: newX, y: newY, w: newW, h: newH };
-    }
-    renderCropBox();
-    ev.preventDefault();
-  }
-  function onEnd() {
-    document.removeEventListener('mousemove', onMove);
-    document.removeEventListener('mouseup', onEnd);
-    document.removeEventListener('touchmove', onMove);
-    document.removeEventListener('touchend', onEnd);
-  }
-  document.addEventListener('mousemove', onMove);
-  document.addEventListener('mouseup', onEnd);
-  document.addEventListener('touchmove', onMove, { passive: false });
-  document.addEventListener('touchend', onEnd);
-}
-
-function setResizePreset(pixels) {
-  const wInput = document.getElementById('img-width');
-  const hInput = document.getElementById('img-height');
-  const lock = document.getElementById('img-resize-lock').checked;
-  wInput.value = pixels;
-  if (lock && imgNatural.w && imgCropBox) {
-    const region = computeCropRegionInNaturalPixels();
-    if (region.w > 0 && region.h > 0) {
-      hInput.value = Math.round(pixels * (region.h / region.w));
-      return;
-    }
-  }
-  if (lock && imgNatural.w) {
-    hInput.value = Math.round(pixels * (imgNatural.h / imgNatural.w));
-  }
-}
-function clearResize() {
-  document.getElementById('img-width').value = '';
-  document.getElementById('img-height').value = '';
-}
-
-async function imgRemoveBg() {
-  if (!imgFile) return;
-  var btn = document.getElementById('img-removebg-btn');
-
-  function resetBtn() {
-    btn.disabled = false;
-    btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5l14 14M2 12a10 10 0 0 1 10-10M22 12a10 10 0 0 1-10 10"/></svg> <span id="img-removebg-label">Remove Background</span>';
-  }
-
-  function doRemoval() {
-    btn.disabled = true;
-    btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" style="animation:btn-spin 0.6s linear infinite;" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Processing...';
-
-    window._dsBgRemoveFunc(imgFile).then(function(resultBlob) {
-      var newName = imgFile.name.replace(/\.[^/.]+$/, '') + '_no-bg.png';
-      var newFile = new File([resultBlob], newName, { type: 'image/png' });
-      imgFile = newFile;
-
-      var reader = new FileReader();
-      reader.onload = function(e) {
-        document.getElementById('img-preview').src = e.target.result;
-        document.getElementById('img-filename').textContent = newName;
-        document.getElementById('img-filesize').textContent = (newFile.size / 1024 / 1024).toFixed(2) + ' MB';
-        var formatSel = document.getElementById('img-format');
-        if (formatSel) formatSel.value = 'image/png';
-        setupCropStage(e.target.result);
-        resetBtn();
-        var usageEl = document.getElementById('img-usage');
-        if (usageEl) {
-          usageEl.textContent = 'Background removed.';
-          usageEl.style.color = '#4ade80';
-          setTimeout(function() {
-            if (usageEl) { usageEl.textContent = ''; usageEl.style.color = ''; }
-          }, 3000);
-        }
-      };
-      reader.readAsDataURL(newFile);
-    }).catch(function(err) {
-      console.error('BG removal error:', err);
-      resetBtn();
-      var usageEl = document.getElementById('img-usage');
-      if (usageEl) {
-        usageEl.textContent = 'Background removal failed. Try a different image.';
-        usageEl.style.color = '#f87171';
-        setTimeout(function() {
-          if (usageEl) { usageEl.textContent = ''; usageEl.style.color = ''; }
-        }, 4000);
-      }
-    });
-  }
-
-  if (_dsBgRemovalReady && window._dsBgRemoveFunc) {
-    doRemoval();
-    return;
-  }
-
-  if (_dsBgRemovalLoading) {
-    var usageEl = document.getElementById('img-usage');
-    if (usageEl) usageEl.textContent = 'Still loading. Please wait...';
-    return;
-  }
-
-  _dsBgRemovalLoading = true;
-  btn.disabled = true;
-  btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" style="animation:btn-spin 0.6s linear infinite;" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Loading...';
-
-  var moduleScript = document.createElement('script');
-  moduleScript.type = 'module';
-  moduleScript.textContent = `
-    import { removeBackground } from 'https://esm.sh/@imgly/background-removal@1.4.5';
-    window._dsBgRemoveFunc = removeBackground;
-    window.dispatchEvent(new Event('ds-bg-ready'));
-  `;
-
-  function onReady() {
-    window.removeEventListener('ds-bg-ready', onReady);
-    _dsBgRemoveFunc = window._dsBgRemoveFunc;
-    _dsBgRemovalReady = true;
-    _dsBgRemovalLoading = false;
-    doRemoval();
-  }
-
-  window.addEventListener('ds-bg-ready', onReady);
-  document.head.appendChild(moduleScript);
-}
-
-async function convertImage() {
-  if (!imgFile) return;
-  const btn = document.getElementById('img-convert-btn');
-  btn.textContent = 'Processing...'; btn.disabled = true;
-  const format = document.getElementById('img-format').value;
-  const quality = parseInt(document.getElementById('img-quality').value) / 100;
-  const img = new Image();
-  img.onload = () => {
-    // Pre-stage: if rotation or flip is applied, render them to an intermediate canvas first.
-    // This gives us a "transformed source" that the crop math can work from normally.
-    let sourceCanvas;
-    if (imgRotation !== 0 || imgFlipH || imgFlipV) {
-      sourceCanvas = document.createElement('canvas');
-      // Rotated canvas dimensions
-      const isSideways = (imgRotation === 90 || imgRotation === 270);
-      sourceCanvas.width  = isSideways ? img.height : img.width;
-      sourceCanvas.height = isSideways ? img.width  : img.height;
-      const srcCtx = sourceCanvas.getContext('2d');
-      srcCtx.imageSmoothingEnabled = true;
-      srcCtx.imageSmoothingQuality = 'high';
-      // Move to center of output canvas, rotate, flip, draw
-      srcCtx.translate(sourceCanvas.width / 2, sourceCanvas.height / 2);
-      srcCtx.rotate((imgRotation * Math.PI) / 180);
-      srcCtx.scale(imgFlipH ? -1 : 1, imgFlipV ? -1 : 1);
-      srcCtx.drawImage(img, -img.width / 2, -img.height / 2);
-    } else {
-      sourceCanvas = img; // Use original image directly
-    }
-    const sourceW = sourceCanvas.width;
-    const sourceH = sourceCanvas.height;
-
-    // Step 1: Figure out crop rect in NATURAL (post-transform) pixel coordinates
-    let cropX = 0, cropY = 0, cropW = sourceW, cropH = sourceH;
-    if (imgCropBox && imgDisplaySize.w > 0) {
-      const region = computeCropRegionInNaturalPixels();
-      if (region.w > 0 && region.h > 0) {
-        cropX = region.x;
-        cropY = region.y;
-        cropW = region.w;
-        cropH = region.h;
-      }
-    }
-
-    // Step 2: Figure out final output size (resize)
-    let outW = cropW, outH = cropH;
-    const wInput = document.getElementById('img-width').value;
-    const hInput = document.getElementById('img-height').value;
-    const lock = document.getElementById('img-resize-lock').checked;
-    if (wInput && hInput) {
-      outW = parseInt(wInput); outH = parseInt(hInput);
-    } else if (wInput) {
-      outW = parseInt(wInput);
-      outH = lock ? Math.round(cropH * (outW / cropW)) : cropH;
-    } else if (hInput) {
-      outH = parseInt(hInput);
-      outW = lock ? Math.round(cropW * (outH / cropH)) : cropW;
-    }
-    outW = Math.max(1, outW); outH = Math.max(1, outH);
-
-    // Step 3: Draw cropped-and-resized image onto final canvas WITH filters applied
-    const canvas = document.createElement('canvas');
-    canvas.width = outW; canvas.height = outH;
-    const ctx = canvas.getContext('2d');
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
-    // Fill white background for formats that don't support transparency
-    if (['image/jpeg', 'image/bmp', 'image/tiff', 'image/x-icon'].includes(format)) {
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, outW, outH);
-    }
-    // Apply brightness/contrast/saturation filter during drawImage
-    if (imgBrightness !== 0 || imgContrast !== 0 || imgSaturation !== 0) {
-      ctx.filter = buildImageFilterString();
-    }
-    ctx.drawImage(sourceCanvas, cropX, cropY, cropW, cropH, 0, 0, outW, outH);
-    ctx.filter = 'none';
-
-    // Step 4: Export
-    const extMap = {
-      'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp',
-      'image/gif': 'gif', 'image/bmp': 'bmp', 'image/tiff': 'tiff',
-      'image/avif': 'avif', 'image/x-icon': 'ico'
-    };
-    const ext = extMap[format] || 'jpg';
-    let dataUrl;
-    try {
-      dataUrl = canvas.toDataURL(format, quality);
-      if (dataUrl === 'data:,' || (dataUrl.startsWith('data:image/png') && format !== 'image/png')) {
-        throw new Error('Format not supported');
-      }
-    } catch(e) {
-      alert(`Unable to convert to ${ext.toUpperCase()} on this device. Try JPEG, PNG, or WebP.`);
-      btn.textContent = 'Download Image'; btn.disabled = false;
-      return;
-    }
-    const a = document.createElement('a');
-    a.href = dataUrl;
-    a.download = imgFile.name.replace(/\.[^/.]+$/, '') + '_edited.' + ext;
-    a.click();
-    document.getElementById('img-usage').textContent = '';
-    btn.textContent = 'Download Image'; btn.disabled = false;
-  };
-  img.src = URL.createObjectURL(imgFile);
-}
-
-// ════════════════════════════════════════════
 // QR CODE GENERATOR
 // ════════════════════════════════════════════
 let qrMonthCount = 0;
@@ -15497,6 +14671,12 @@ function renderAnaMiniChart(canvasId, dailyData, valKey, color) {
 <!-- Thumbnail Analyzer (extracted from design.js, 2026-05-10).
      Same story as contract.js. -->
 <script src="/js/thumbnail.js"></script>
+<!-- Photo Editor extracted to its own file (refactored 2026-05-10).
+     Self-contained — uses only browser APIs (Image, FileReader, Canvas, etc).
+     Markup id is "tool-image", internal naming uses imgXxx() / img-* prefix
+     (the original section comment called it "IMAGE CONVERTER"). User-facing
+     name is "Photo Editor". -->
+<script src="/js/image.js"></script>
 <!-- Script Builder extracted to its own file (refactored 2026-05-10).
      Loaded AFTER design.js because Scripts AI tools call showDsMsg (defined
      in design.js). Also depends on Tone.js (loaded at top of dashboard.html)
