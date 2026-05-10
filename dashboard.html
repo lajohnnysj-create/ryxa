@@ -4784,6 +4784,48 @@
   .ds-s-0ff9ff { display:flex;gap:6px;margin-top:10px; }
   .ds-s-3e947b { padding:5px 12px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer; }
 
+
+  /* ============================================================
+     PHASE 3 — Chatbox / AI Chat style extraction
+     ============================================================ */
+  /* Phase 3 — Chatbox markup style extraction */
+  .chat-s-43c698 { padding:12px 28px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow); }
+  .chat-s-38bd0d { display:none;height:calc(100vh - 120px);min-height:560px;display:flex;gap:0;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--surface);position:relative; }
+  .chat-s-5dad98 { width:240px;flex-shrink:0;border-right:1px solid var(--border);background:var(--surface2);display:flex;flex-direction:column; }
+  .chat-s-58cc6f { padding:14px 14px 10px 14px;border-bottom:1px solid var(--border); }
+  .chat-s-8037c6 { width:100%;padding:9px 12px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:9px;color:#fff;font-size:13px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:opacity 0.15s; }
+  .chat-s-2968fc { flex:1;overflow-y:auto;padding:8px; }
+  .chat-s-3ad1d5 { color:var(--muted);font-size:12px;text-align:center;padding:20px 0; }
+  .chat-s-d9f697 { flex:1;display:flex;flex-direction:column;min-width:0; }
+  .chat-s-67a615 { flex:1;font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+  .chat-s-52d25c { flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;overflow-y:auto; }
+  .chat-s-423c35 { width:60px;height:60px;background:linear-gradient(135deg,rgba(167,139,250,0.18),rgba(232,121,249,0.14));border:1px solid rgba(232,121,249,0.3);border-radius:16px;display:flex;align-items:center;justify-content:center;margin-bottom:18px; }
+  .chat-s-2f3ad0 { font-family:Syne,sans-serif;font-size:24px;font-weight:800;margin-bottom:6px;letter-spacing:-0.5px;text-align:center; }
+  .chat-s-d2b0d5 { color:var(--muted);font-size:14px;margin-bottom:28px;text-align:center;max-width:420px;line-height:1.55; }
+  .chat-s-5fa28f { width:100%;max-width:560px;display:grid;grid-template-columns:repeat(2,1fr);gap:10px; }
+  .chat-s-e1d91f { display:none;flex:1;overflow-y:auto;padding:24px; }
+  .chat-s-fe3d36 { padding:12px 16px 16px 16px;border-top:1px solid var(--border);background:var(--surface); }
+  .chat-s-5300cf { display:flex;gap:8px;align-items:flex-end;max-width:760px;margin:0 auto; }
+  .chat-s-3ff1da { flex:1;min-height:42px;max-height:160px;padding:11px 14px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:14px;font-family:DM Sans,sans-serif;outline:none;resize:none;line-height:1.4; }
+  .chat-s-5cb1cd { padding:11px 16px;background:var(--accent);border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;flex-shrink:0;height:42px;display:flex;align-items:center;gap:6px;transition:opacity 0.15s; }
+  .chat-s-b298f5 { text-align:center;font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5; }
+
+  /* Phase 3b — chat.js template literal extraction */
+  .chat-s-615a28 { background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:28px;max-width:480px;width:100%;max-height:calc(100vh - 80px);overflow-y:auto; }
+  .chat-s-c0bd7f { display:flex;align-items:center;gap:10px;margin-bottom:14px; }
+  .chat-s-fcd3fe { width:32px;height:32px;background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.25);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+  .chat-s-bf3ed3 { font-size:13px;color:var(--muted);line-height:1.65;margin-bottom:18px; }
+  .chat-s-5f795c { margin:0 0 12px 20px;padding:0; }
+  .chat-s-d98293 { margin-bottom:4px; }
+  .chat-s-c3e278 { width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer; }
+  .chat-s-5fa9fd { color:var(--muted);font-size:12px;text-align:center;padding:20px 8px; }
+  .chat-s-3f41bf { color:var(--muted);font-size:12px;text-align:center;padding:20px 8px;line-height:1.5; }
+  .chat-s-c27877 { color:var(--muted);font-size:13px;text-align:center;padding:40px 0; }
+  .chat-s-4651a1 { color:#f87171;font-size:13px;text-align:center;padding:40px 0; }
+  .chat-s-f3a426 { overflow:hidden; }
+  .chat-s-35147d { background:#f87171; }
+  .chat-s-9c5c75 { color:#f87171; }
+
 </style>
 <style>html{background:#07070f;}body{visibility:hidden;}body.ready{visibility:visible;}</style>
 
@@ -8112,68 +8154,68 @@
     </div>
 
     <!-- AI CHAT (Pro+) -->
-    <div id="tool-aichat" style="display:none;">
+    <div id="tool-aichat" class="bio-s-c8be1c">
       <!-- Paywall for Free users -->
-      <div id="aichat-paywall" style="display:none;max-width:560px;margin:40px auto;background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:40px;text-align:center;">
-        <div style="width:56px;height:56px;margin:0 auto 16px;background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.25);border-radius:14px;display:flex;align-items:center;justify-content:center;">
+      <div id="aichat-paywall" class="mk-s-79362c">
+        <div class="mk-s-ad83c6">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         </div>
-        <h2 style="font-family:Syne,sans-serif;font-size:28px;font-weight:800;margin-bottom:8px;letter-spacing:-0.5px;">AI Chat</h2>
-        <p style="color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:24px;max-width:440px;margin-left:auto;margin-right:auto;">Ask anything about your creator business. Get help with rates, scripts, contracts, content ideas, and more. Available on Pro.</p>
-        <button onclick="startCheckout('monthly', this)" style="padding:12px 28px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow);">Upgrade to Pro</button>
+        <h2 class="course-s-6422e6">AI Chat</h2>
+        <p class="course-s-31073b">Ask anything about your creator business. Get help with rates, scripts, contracts, content ideas, and more. Available on Pro.</p>
+        <button data-chat-action="start-checkout" data-chat-plan="monthly" class="chat-s-43c698">Upgrade to Pro</button>
       </div>
 
       <!-- Main chat UI (Pro+ only) -->
-      <div id="aichat-content" style="display:none;height:calc(100vh - 120px);min-height:560px;display:flex;gap:0;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--surface);position:relative;">
+      <div id="aichat-content" class="chat-s-38bd0d">
         <!-- Mobile backdrop (only visible when sidebar is open on mobile) -->
-        <div id="aichat-side-backdrop" onclick="aichatToggleSide(false)"></div>
+        <div id="aichat-side-backdrop" data-chat-action="toggle-side-close"></div>
         <!-- Conversations sidebar -->
-        <div id="aichat-side" style="width:240px;flex-shrink:0;border-right:1px solid var(--border);background:var(--surface2);display:flex;flex-direction:column;">
-          <div style="padding:14px 14px 10px 14px;border-bottom:1px solid var(--border);">
-            <button id="aichat-new-btn" onclick="aichatNewConversation()" style="width:100%;padding:9px 12px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:9px;color:#fff;font-size:13px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:opacity 0.15s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+        <div id="aichat-side" class="chat-s-5dad98">
+          <div class="chat-s-58cc6f">
+            <button id="aichat-new-btn" data-chat-action="new-conversation" class="chat-s-8037c6" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               New Chat
             </button>
           </div>
-          <div id="aichat-conv-list" style="flex:1;overflow-y:auto;padding:8px;">
-            <div style="color:var(--muted);font-size:12px;text-align:center;padding:20px 0;">Loading...</div>
+          <div id="aichat-conv-list" class="chat-s-2968fc">
+            <div class="chat-s-3ad1d5">Loading...</div>
           </div>
         </div>
 
         <!-- Chat area -->
-        <div id="aichat-main" style="flex:1;display:flex;flex-direction:column;min-width:0;">
+        <div id="aichat-main" class="chat-s-d9f697">
           <!-- Mobile header (only shown on small screens via CSS) -->
           <div id="aichat-mobile-header">
-            <button class="aichat-mobile-toggle" onclick="aichatToggleSide(true)" aria-label="Open conversations">
+            <button class="aichat-mobile-toggle" data-chat-action="toggle-side-open" aria-label="Open conversations">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </button>
-            <div style="flex:1;font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="aichat-mobile-title">Ryxa AI</div>
+            <div class="chat-s-67a615" id="aichat-mobile-title">Ryxa AI</div>
           </div>
           <!-- Empty state with example prompts -->
-          <div id="aichat-empty" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;overflow-y:auto;">
-            <div style="width:60px;height:60px;background:linear-gradient(135deg,rgba(167,139,250,0.18),rgba(232,121,249,0.14));border:1px solid rgba(232,121,249,0.3);border-radius:16px;display:flex;align-items:center;justify-content:center;margin-bottom:18px;">
+          <div id="aichat-empty" class="chat-s-52d25c">
+            <div class="chat-s-423c35">
               <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             </div>
-            <h2 style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;margin-bottom:6px;letter-spacing:-0.5px;text-align:center;">Hi, I'm Ryxa AI</h2>
-            <p style="color:var(--muted);font-size:14px;margin-bottom:28px;text-align:center;max-width:420px;line-height:1.55;">I'm specifically trained to handle creator-related questions. Ask me about brand deals, content ideas, pricing, scripts, or anything else about growing your audience.</p>
+            <h2 class="chat-s-2f3ad0">Hi, I'm Ryxa AI</h2>
+            <p class="chat-s-d2b0d5">I'm specifically trained to handle creator-related questions. Ask me about brand deals, content ideas, pricing, scripts, or anything else about growing your audience.</p>
 
-            <div style="width:100%;max-width:560px;display:grid;grid-template-columns:repeat(2,1fr);gap:10px;">
-              <button class="aichat-example" onclick="aichatUseExample(this)" data-prompt="How much should I charge for a 30-second Instagram Reel on a 10K-follower account?">
+            <div class="chat-s-5fa28f">
+              <button class="aichat-example" data-chat-action="use-example" data-prompt="How much should I charge for a 30-second Instagram Reel on a 10K-follower account?">
                 <div class="aichat-example-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
                 <div class="aichat-example-title">Reel pricing</div>
                 <div class="aichat-example-sub">Rate for a 30-sec Reel on 10K</div>
               </button>
-              <button class="aichat-example" onclick="aichatUseExample(this)" data-prompt="Help me write a 30-second Instagram Reel script about morning routines for busy moms. Hook should be strong.">
+              <button class="aichat-example" data-chat-action="use-example" data-prompt="Help me write a 30-second Instagram Reel script about morning routines for busy moms. Hook should be strong.">
                 <div class="aichat-example-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></div>
                 <div class="aichat-example-title">Write a Reel script</div>
                 <div class="aichat-example-sub">Get a script for your next video</div>
               </button>
-              <button class="aichat-example" onclick="aichatUseExample(this)" data-prompt="Give me 10 hook ideas for a YouTube video about productivity. Make them punchy.">
+              <button class="aichat-example" data-chat-action="use-example" data-prompt="Give me 10 hook ideas for a YouTube video about productivity. Make them punchy.">
                 <div class="aichat-example-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
                 <div class="aichat-example-title">Brainstorm hooks</div>
                 <div class="aichat-example-sub">10 punchy hooks for any video</div>
               </button>
-              <button class="aichat-example" onclick="aichatUseExample(this)" data-prompt="A brand reached out wanting to work with me but their offer is way below my rate. How should I respond without burning the bridge?">
+              <button class="aichat-example" data-chat-action="use-example" data-prompt="A brand reached out wanting to work with me but their offer is way below my rate. How should I respond without burning the bridge?">
                 <div class="aichat-example-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
                 <div class="aichat-example-title">Reply to a brand</div>
                 <div class="aichat-example-sub">Negotiate without burning bridges</div>
@@ -8182,18 +8224,18 @@
           </div>
 
           <!-- Conversation messages -->
-          <div id="aichat-messages" style="display:none;flex:1;overflow-y:auto;padding:24px;"></div>
+          <div id="aichat-messages" class="chat-s-e1d91f"></div>
 
           <!-- Input bar -->
-          <div style="padding:12px 16px 16px 16px;border-top:1px solid var(--border);background:var(--surface);">
-            <div style="display:flex;gap:8px;align-items:flex-end;max-width:760px;margin:0 auto;">
-              <textarea id="aichat-input" aria-label="Message Ryxa AI" rows="1" placeholder="Ask anything..." style="flex:1;min-height:42px;max-height:160px;padding:11px 14px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:14px;font-family:DM Sans,sans-serif;outline:none;resize:none;line-height:1.4;" oninput="aichatAutosizeInput(this)" onkeydown="aichatHandleKey(event)"></textarea>
-              <button id="aichat-send-btn" onclick="aichatSend()" style="padding:11px 16px;background:var(--accent);border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;flex-shrink:0;height:42px;display:flex;align-items:center;gap:6px;transition:opacity 0.15s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+          <div class="chat-s-fe3d36">
+            <div class="chat-s-5300cf">
+              <textarea id="aichat-input" aria-label="Message Ryxa AI" rows="1" placeholder="Ask anything..." class="chat-s-3ff1da" data-chat-action="autosize-input" data-chat-event="input" data-chat-action="handle-key" data-chat-event="keydown"></textarea>
+              <button id="aichat-send-btn" data-chat-action="send" class="chat-s-5cb1cd" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                 Send
               </button>
             </div>
-            <div id="aichat-hint" style="text-align:center;font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;">Ryxa AI can make mistakes. Not medical, legal, or financial advice — always verify important information. Each message uses 1 AI slot.</div>
+            <div id="aichat-hint" class="chat-s-b298f5">Ryxa AI can make mistakes. Not medical, legal, or financial advice — always verify important information. Each message uses 1 AI slot.</div>
           </div>
         </div>
       </div>
@@ -17502,428 +17544,6 @@ function renderAnaMiniChart(canvasId, dailyData, valKey, color) {
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Poppins:wght@400;700&family=Montserrat:wght@400;700&family=Bebas+Neue&family=Oswald:wght@400;700&family=Caveat:wght@400;700&family=Dancing+Script:wght@400;700&family=Playfair+Display:wght@400;700&family=Lora:wght@400;700&family=Roboto:wght@400;700&family=Open+Sans:wght@400;700&family=Raleway:wght@400;700&family=Nunito:wght@400;700&family=Quicksand:wght@400;700&family=Pacifico&family=Lobster&family=Permanent+Marker&family=Righteous&family=Abril+Fatface&family=Comfortaa:wght@400;700&display=swap" rel="stylesheet">
 
 
-<script>
-// =====================================================
-// AI CHAT
-// =====================================================
-var aichatState = {
-  inited: false,
-  conversationId: null,
-  conversations: [],
-  isLoading: false,
-};
-
-function initAiChat() {
-  if (!isPro() && !isMax()) {
-    document.getElementById('aichat-paywall').style.display = 'block';
-    document.getElementById('aichat-content').style.display = 'none';
-    return;
-  }
-  document.getElementById('aichat-paywall').style.display = 'none';
-  document.getElementById('aichat-content').style.display = 'flex';
-  if (!aichatState.inited) {
-    aichatState.inited = true;
-    aichatLoadConversations();
-  }
-  // Show one-time disclaimer the first time this user opens Chatbox.
-  // Stored in localStorage keyed to user id so it shows once per account.
-  try {
-    var key = 'aichat_disclaimer_v1_' + (currentUser?.id || 'anon');
-    if (!localStorage.getItem(key)) {
-      showAichatDisclaimer(function() {
-        try { localStorage.setItem(key, '1'); } catch (e) {}
-      });
-    }
-  } catch (e) { /* localStorage may be disabled — non-fatal */ }
-}
-
-// First-time disclaimer modal shown before a user can use Chatbox.
-// They must click "I understand" to dismiss; we record their acknowledgment.
-function showAichatDisclaimer(onAccept) {
-  var overlay = document.createElement('div');
-  overlay.id = 'aichat-disclaimer-overlay';
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;';
-  overlay.innerHTML = '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:28px;max-width:480px;width:100%;max-height:calc(100vh - 80px);overflow-y:auto;">'
-    + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">'
-    + '<div style="width:32px;height:32px;background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.25);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'
-    + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
-    + '</div>'
-    + '<div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.3px;">Before you use Ryxa AI</div>'
-    + '</div>'
-    + '<div style="font-size:13px;color:var(--muted);line-height:1.65;margin-bottom:18px;">'
-    + '<p style="margin-bottom:12px;">Ryxa AI is an AI-powered assistant designed to help with creator-related questions like content ideas, pricing, scripts, and brand outreach.</p>'
-    + '<p style="margin-bottom:12px;"><strong style="color:var(--text);">It is not a substitute for professional advice.</strong> Ryxa AI does not provide:</p>'
-    + '<ul style="margin:0 0 12px 20px;padding:0;">'
-    + '<li style="margin-bottom:4px;">Medical, mental health, or therapeutic advice</li>'
-    + '<li style="margin-bottom:4px;">Legal advice or contract interpretation</li>'
-    + '<li style="margin-bottom:4px;">Financial, tax, or investment advice</li>'
-    + '</ul>'
-    + '<p style="margin-bottom:0;">For those topics, please consult a qualified professional. AI responses can also be inaccurate — always verify important information independently.</p>'
-    + '</div>'
-    + '<button id="aichat-disclaimer-accept" style="width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;">I understand</button>'
-    + '</div>';
-  document.body.appendChild(overlay);
-  document.getElementById('aichat-disclaimer-accept').onclick = function() {
-    overlay.remove();
-    if (onAccept) onAccept();
-  };
-}
-
-async function aichatLoadConversations() {
-  var listEl = document.getElementById('aichat-conv-list');
-  try {
-    var { data, error } = await sb
-      .from('ai_chat_conversations')
-      .select('id, title, updated_at')
-      .order('updated_at', { ascending: false })
-      .limit(50);
-    if (error) throw error;
-    aichatState.conversations = data || [];
-    aichatRenderConversationList();
-  } catch (e) {
-    console.error('Failed to load conversations:', e);
-    listEl.innerHTML = '<div style="color:var(--muted);font-size:12px;text-align:center;padding:20px 8px;">Could not load conversations</div>';
-  }
-}
-
-function aichatRenderConversationList() {
-  var listEl = document.getElementById('aichat-conv-list');
-  if (!aichatState.conversations.length) {
-    listEl.innerHTML = '<div style="color:var(--muted);font-size:12px;text-align:center;padding:20px 8px;line-height:1.5;">No chats yet.<br>Start a new one!</div>';
-    return;
-  }
-  var html = '';
-  aichatState.conversations.forEach(function(c) {
-    var active = c.id === aichatState.conversationId ? ' active' : '';
-    html += '<div class="aichat-conv-item' + active + '" onclick="aichatLoadConversation(\'' + c.id + '\')" title="' + escapeHtml(c.title) + '">'
-      + escapeHtml(c.title)
-      + '<button class="aichat-conv-delete" onclick="event.stopPropagation();aichatDeleteConversation(\'' + c.id + '\')" title="Delete chat" aria-label="Delete chat">'
-      + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>'
-      + '</button>'
-      + '</div>';
-  });
-  listEl.innerHTML = html;
-}
-
-function aichatNewConversation() {
-  aichatState.conversationId = null;
-  document.getElementById('aichat-empty').style.display = 'flex';
-  document.getElementById('aichat-messages').style.display = 'none';
-  document.getElementById('aichat-messages').innerHTML = '';
-  aichatRenderConversationList();
-  aichatToggleSide(false);
-  var titleEl = document.getElementById('aichat-mobile-title');
-  if (titleEl) titleEl.textContent = 'Ryxa AI';
-  var inp = document.getElementById('aichat-input');
-  if (inp) inp.focus();
-}
-
-// Mobile sidebar toggle
-function aichatToggleSide(forceState) {
-  var side = document.getElementById('aichat-side');
-  var backdrop = document.getElementById('aichat-side-backdrop');
-  if (!side || !backdrop) return;
-  var open = (forceState === undefined)
-    ? !side.classList.contains('aichat-side-open')
-    : !!forceState;
-  if (open) {
-    side.classList.add('aichat-side-open');
-    backdrop.classList.add('aichat-side-open');
-  } else {
-    side.classList.remove('aichat-side-open');
-    backdrop.classList.remove('aichat-side-open');
-  }
-}
-
-async function aichatLoadConversation(convId) {
-  aichatState.conversationId = convId;
-  aichatRenderConversationList();
-  aichatToggleSide(false);
-  // Set the mobile header title from the conversation list
-  var convInList = (aichatState.conversations || []).find(function(c) { return c.id === convId; });
-  var titleEl = document.getElementById('aichat-mobile-title');
-  if (titleEl) titleEl.textContent = (convInList && convInList.title) ? convInList.title : 'Ryxa AI';
-  var messagesEl = document.getElementById('aichat-messages');
-  document.getElementById('aichat-empty').style.display = 'none';
-  messagesEl.style.display = 'block';
-  messagesEl.innerHTML = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:40px 0;">Loading...</div>';
-  try {
-    var { data, error } = await sb
-      .from('ai_chat_messages')
-      .select('id, role, content, created_at')
-      .eq('conversation_id', convId)
-      .order('created_at', { ascending: true });
-    if (error) throw error;
-    var html = '';
-    (data || []).forEach(function(m) {
-      html += aichatRenderMessage(m.role, m.content);
-    });
-    messagesEl.innerHTML = html;
-    messagesEl.scrollTop = messagesEl.scrollHeight;
-  } catch (e) {
-    console.error('Failed to load messages:', e);
-    messagesEl.innerHTML = '<div style="color:#f87171;font-size:13px;text-align:center;padding:40px 0;">Could not load this chat</div>';
-  }
-}
-
-async function aichatDeleteConversation(convId) {
-  showModalConfirm('Delete this chat?', 'This conversation and all its messages will be permanently deleted.', async function() {
-    try {
-      var { error } = await sb.from('ai_chat_conversations').delete().eq('id', convId);
-      if (error) throw error;
-      aichatState.conversations = aichatState.conversations.filter(function(c) { return c.id !== convId; });
-      if (aichatState.conversationId === convId) {
-        aichatNewConversation();
-      } else {
-        aichatRenderConversationList();
-      }
-    } catch (e) {
-      console.error('Delete failed:', e);
-      showModalAlert('Error', 'Could not delete this chat. Please try again.');
-    }
-  });
-}
-
-function aichatRenderMessage(role, content) {
-  var avatarHtml;
-  if (role === 'user') {
-    var userAvatarUrl = (typeof dashboardAvatarUrl === 'string' && dashboardAvatarUrl) ? dashboardAvatarUrl : '';
-    if (userAvatarUrl) {
-      avatarHtml = '<div class="aichat-msg-avatar" style="overflow:hidden;"><img src="' + escapeHtml(userAvatarUrl) + '" alt="Your profile photo" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"></div>';
-    } else {
-      var avatarLetter = currentUser?.email?.[0]?.toUpperCase() || 'U';
-      avatarHtml = '<div class="aichat-msg-avatar">' + escapeHtml(avatarLetter) + '</div>';
-    }
-  } else {
-    avatarHtml = '<div class="aichat-msg-avatar" style="overflow:hidden;"><img src="/logo-spaced.jpg" alt="Ryxa" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"></div>';
-  }
-  var bodyHtml = role === 'assistant' ? aichatMarkdownToHtml(content) : '<p>' + escapeHtml(content).replace(/\n/g, '<br>') + '</p>';
-  return '<div class="aichat-msg ' + role + '">'
-    + avatarHtml
-    + '<div class="aichat-msg-body">' + bodyHtml + '</div>'
-    + '</div>';
-}
-
-// Progressively reveal an assistant message word-by-word.
-// Total reveal time scales with response length: ~0.6s for short, ~1.5s max for long.
-function aichatRevealMessage(bodyEl, fullText) {
-  var text = String(fullText || '');
-  if (!text) return;
-  // Split into word+whitespace tokens to preserve spacing
-  var tokens = text.split(/(\s+)/);
-  var wordCount = tokens.filter(function(t) { return t.trim().length > 0; }).length;
-  if (wordCount === 0) {
-    bodyEl.innerHTML = aichatMarkdownToHtml(text);
-    return;
-  }
-  // Animate over 600-1500ms. ~25-50 tokens/sec feels smooth without dragging.
-  var totalDuration = Math.min(1500, Math.max(600, wordCount * 25));
-  // Reveal in chunks proportional to length so total stays in budget
-  var ticksPerSec = 30; // updates per second
-  var totalTicks = Math.max(1, Math.round(totalDuration / 1000 * ticksPerSec));
-  var tokensPerTick = Math.max(1, Math.ceil(tokens.length / totalTicks));
-  var tickDelay = totalDuration / totalTicks;
-
-  var i = 0;
-  var messagesEl = document.getElementById('aichat-messages');
-  function tick() {
-    i = Math.min(tokens.length, i + tokensPerTick);
-    var partial = tokens.slice(0, i).join('');
-    bodyEl.innerHTML = aichatMarkdownToHtml(partial);
-    if (messagesEl) messagesEl.scrollTop = messagesEl.scrollHeight;
-    if (i < tokens.length) {
-      setTimeout(tick, tickDelay);
-    } else {
-      // Ensure final render is the full text (in case partial markdown was malformed)
-      bodyEl.innerHTML = aichatMarkdownToHtml(text);
-    }
-  }
-  setTimeout(tick, tickDelay);
-}
-
-// Minimal markdown renderer — handles paragraphs, bold, italic, code, lists, links
-function aichatMarkdownToHtml(md) {
-  var s = String(md || '');
-  // Escape HTML first
-  s = s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  // Code blocks (```)
-  s = s.replace(/```([\s\S]*?)```/g, function(_, code) {
-    return '<pre><code>' + code.replace(/\n$/, '') + '</code></pre>';
-  });
-  // Inline code (`...`)
-  s = s.replace(/`([^`\n]+)`/g, '<code>$1</code>');
-  // Bold (**...**)
-  s = s.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
-  // Italic (*...*) — non-greedy, single-line
-  s = s.replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<em>$2</em>');
-  // Links [text](url)
-  s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, function(_, text, url) {
-    var safe = url.replace(/"/g, '&quot;');
-    return '<a href="' + safe + '" target="_blank" rel="noopener nofollow">' + text + '</a>';
-  });
-  // Split into lines, group lists, paragraphs
-  var lines = s.split(/\n/);
-  var out = [];
-  var inList = null; // 'ul' or 'ol'
-  var paragraph = [];
-  function flushPara() {
-    if (paragraph.length) { out.push('<p>' + paragraph.join('<br>') + '</p>'); paragraph = []; }
-  }
-  function closeList() {
-    if (inList) { out.push('</' + inList + '>'); inList = null; }
-  }
-  lines.forEach(function(line) {
-    var ulMatch = line.match(/^\s*[-*]\s+(.+)$/);
-    var olMatch = line.match(/^\s*\d+\.\s+(.+)$/);
-    if (ulMatch) {
-      flushPara();
-      if (inList !== 'ul') { closeList(); out.push('<ul>'); inList = 'ul'; }
-      out.push('<li>' + ulMatch[1] + '</li>');
-    } else if (olMatch) {
-      flushPara();
-      if (inList !== 'ol') { closeList(); out.push('<ol>'); inList = 'ol'; }
-      out.push('<li>' + olMatch[1] + '</li>');
-    } else if (line.trim() === '') {
-      flushPara();
-      closeList();
-    } else {
-      closeList();
-      paragraph.push(line);
-    }
-  });
-  flushPara();
-  closeList();
-  return out.join('\n');
-}
-
-function aichatUseExample(btn) {
-  var prompt = btn.getAttribute('data-prompt') || '';
-  var inp = document.getElementById('aichat-input');
-  inp.value = prompt;
-  aichatAutosizeInput(inp);
-  inp.focus();
-}
-
-function aichatAutosizeInput(el) {
-  el.style.height = 'auto';
-  el.style.height = Math.min(160, el.scrollHeight) + 'px';
-}
-
-function aichatHandleKey(e) {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    aichatSend();
-  }
-}
-
-async function aichatSend() {
-  if (aichatState.isLoading) return;
-  var inp = document.getElementById('aichat-input');
-  var text = (inp.value || '').trim();
-  if (!text) return;
-  if (text.length > 4000) {
-    showModalAlert('Message too long', 'Keep messages under 4000 characters.');
-    return;
-  }
-
-  aichatState.isLoading = true;
-  inp.disabled = true;
-  document.getElementById('aichat-send-btn').disabled = true;
-  document.getElementById('aichat-send-btn').style.opacity = '0.6';
-
-  // Show conversation view if not already
-  document.getElementById('aichat-empty').style.display = 'none';
-  var messagesEl = document.getElementById('aichat-messages');
-  messagesEl.style.display = 'block';
-
-  // Append user message immediately
-  messagesEl.insertAdjacentHTML('beforeend', aichatRenderMessage('user', text));
-  // Append typing indicator
-  var typingHtml = '<div class="aichat-msg assistant" id="aichat-typing">'
-    + '<div class="aichat-msg-avatar" style="overflow:hidden;"><img src="/logo-spaced.jpg" alt="Ryxa" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"></div>'
-    + '<div class="aichat-msg-body"><div class="aichat-typing"><span></span><span></span><span></span></div></div>'
-    + '</div>';
-  messagesEl.insertAdjacentHTML('beforeend', typingHtml);
-  messagesEl.scrollTop = messagesEl.scrollHeight;
-
-  inp.value = '';
-  aichatAutosizeInput(inp);
-
-  try {
-    var resp = await fetch('/api/ai-chat', {
-      method: 'POST',
-      headers: getAIHeaders(),
-      body: JSON.stringify({
-        conversation_id: aichatState.conversationId,
-        message: text,
-      }),
-    });
-    var data = await resp.json();
-
-    // Remove typing indicator
-    var typingEl = document.getElementById('aichat-typing');
-    if (typingEl) typingEl.remove();
-
-    if (!resp.ok || data.error) {
-      var errMsg = data.error || 'Something went wrong.';
-      // Append error inline as an assistant-style message
-      messagesEl.insertAdjacentHTML('beforeend',
-        '<div class="aichat-msg assistant"><div class="aichat-msg-avatar" style="background:#f87171;">!</div><div class="aichat-msg-body" style="color:#f87171;">' + escapeHtml(errMsg) + '</div></div>'
-      );
-      messagesEl.scrollTop = messagesEl.scrollHeight;
-
-      // If rate-limited, also surface the helpful info via the usage bar refresh
-      if (resp.status === 429 && data.next_reset_at) {
-        // Already wrapped fetch refreshes usage bar
-      }
-      return;
-    }
-
-    // Insert assistant bubble with empty body, then animate text in
-    var emptyBubble = '<div class="aichat-msg assistant">'
-      + '<div class="aichat-msg-avatar" style="overflow:hidden;"><img src="/logo-spaced.jpg" alt="Ryxa" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"></div>'
-      + '<div class="aichat-msg-body"></div>'
-      + '</div>';
-    messagesEl.insertAdjacentHTML('beforeend', emptyBubble);
-    var allBubbles = messagesEl.querySelectorAll('.aichat-msg.assistant .aichat-msg-body');
-    var lastBody = allBubbles[allBubbles.length - 1];
-    if (lastBody) {
-      aichatRevealMessage(lastBody, data.response);
-    }
-    messagesEl.scrollTop = messagesEl.scrollHeight;
-
-    // If new conversation, set state and refresh sidebar
-    if (data.is_new && data.conversation_id) {
-      aichatState.conversationId = data.conversation_id;
-      // Reload conversations to pick up the new one
-      aichatLoadConversations();
-    } else {
-      // Move this conversation to the top of the list (it just got an update)
-      var idx = aichatState.conversations.findIndex(function(c) { return c.id === aichatState.conversationId; });
-      if (idx >= 0) {
-        var c = aichatState.conversations[idx];
-        c.updated_at = new Date().toISOString();
-        aichatState.conversations.splice(idx, 1);
-        aichatState.conversations.unshift(c);
-        aichatRenderConversationList();
-      }
-    }
-  } catch (e) {
-    console.error('aichat send error:', e);
-    var typingEl2 = document.getElementById('aichat-typing');
-    if (typingEl2) typingEl2.remove();
-    messagesEl.insertAdjacentHTML('beforeend',
-      '<div class="aichat-msg assistant"><div class="aichat-msg-avatar" style="background:#f87171;">!</div><div class="aichat-msg-body" style="color:#f87171;">Network error. Please try again.</div></div>'
-    );
-  } finally {
-    aichatState.isLoading = false;
-    inp.disabled = false;
-    document.getElementById('aichat-send-btn').disabled = false;
-    document.getElementById('aichat-send-btn').style.opacity = '1';
-    inp.focus();
-  }
-}
-</script>
 
 <!-- Bio editor extracted to its own file (Phase 1 refactor, 2026-05-10).
      Loaded after the main script so it can use globals defined there
@@ -17964,5 +17584,9 @@ async function aichatSend() {
      Largest tool yet. Depends on Fabric.js (loaded earlier from cdnjs).
      Uses sb, Auth, currentUser, isMax, isPro, escapeHtml, getAIHeaders, etc. -->
 <script src="/js/design.js"></script>
+<!-- Chatbox / AI Chat extracted to its own file (refactored 2026-05-10).
+     Uses sb, Auth, currentUser, isPro, isMax, escapeHtml, getAIHeaders,
+     startCheckout, all defined in dashboard.html. -->
+<script src="/js/chat.js"></script>
 </body>
 </html>
