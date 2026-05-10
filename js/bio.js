@@ -6,20 +6,101 @@
 // dashboard refactor to reduce single-file size and prepare for stricter CSP.
 //
 // Phase 1 SCOPE: code relocation only — no behavioral changes.
-//   • All inline event handlers in dashboard.html still call functions defined
-//     here. Those functions are exposed as globals on `window` (see bottom).
-//   • Bio CSS lives in /css/bio.css.
-//   • External dependencies remain on `window` (sb, Auth, currentUser,
-//     escapeHtml, isPro, isMax, currentTier, BIO_THEMES, BIO_FONTS,
-//     showModalAlert, showModalConfirm, etc).
+// Phase 2 SCOPE (2026-05-10): replaced inline onclick/oninput/etc with
+//   delegated event handling so the bio tool is compatible with strict CSP
+//   (no `unsafe-inline` for script-src). See "EVENT DELEGATION" section below.
+//
+// External dependencies remain on `window` (sb, Auth, currentUser,
+// escapeHtml, isPro, isMax, currentTier, BIO_THEMES, BIO_FONTS,
+// showModalAlert, showModalConfirm, etc).
 //
 // Future phases (NOT YET DONE):
-//   • Phase 2: replace inline onclick/oninput/etc with event delegation
 //   • Phase 3: replace inline style="..." with CSS classes
-//   • Phase 4: ship strict CSP for the bio tool
+//   • Phase 4: ship strict CSP header for the bio tool
 //
 // Order of code below matches original line order in dashboard.html so diffs
 // stay minimal and review is easy.
+// =============================================================================
+
+// =============================================================================
+// EVENT DELEGATION INFRASTRUCTURE
+// -----------------------------------------------------------------------------
+// All bio-tool buttons, inputs, and other interactive elements use
+// `data-bio-action="..."` attributes instead of inline onclick/oninput/etc.
+//
+// Single document-level listener per event type dispatches to a handler
+// function registered in `bioActions`. Parameters are read from `data-bio-*`
+// attributes on the target element.
+//
+// Why this matters: Inline handlers like onclick="foo()" require CSP
+// `script-src 'unsafe-inline'`. Delegated handlers run from this file
+// (a `'self'`-sourced script), so CSP can be locked down to script-src 'self'
+// for the bio tool surface.
+// =============================================================================
+
+// Registry of action handlers. Each function receives (event, element).
+// `element` is the element with the data-bio-action attribute (may differ
+// from event.target if the user clicked a child element, e.g., an SVG icon
+// inside a button).
+const bioActions = {};
+
+/**
+ * Register a handler for a data-bio-action value.
+ * @param {string} action - The data-bio-action string (e.g., "save").
+ * @param {function(Event, Element): void} handler
+ */
+function bioRegisterAction(action, handler) {
+  bioActions[action] = handler;
+}
+
+/**
+ * Find the closest ancestor element with a data-bio-action matching the given
+ * event type. Returns the element, or null if not found / wrong event type.
+ *
+ * data-bio-action defaults to firing on click. To bind to other events, the
+ * element should also have data-bio-event="input" (or change/focus/blur/etc).
+ */
+function bioFindActionElement(target, eventType) {
+  let el = target;
+  while (el && el !== document.body) {
+    if (el.dataset && el.dataset.bioAction) {
+      const wantEvent = el.dataset.bioEvent || 'click';
+      if (wantEvent === eventType) return el;
+      // wrong event type for this element; keep climbing in case an ancestor
+      // matches (rare, but possible with nested data-bio-action elements).
+    }
+    el = el.parentElement;
+  }
+  return null;
+}
+
+/**
+ * Generic event dispatcher. Wired up below to multiple event types.
+ */
+function bioDispatchEvent(event) {
+  const el = bioFindActionElement(event.target, event.type);
+  if (!el) return;
+  const action = el.dataset.bioAction;
+  const handler = bioActions[action];
+  if (!handler) {
+    console.warn('[bio] No handler registered for action:', action);
+    return;
+  }
+  handler(event, el);
+}
+
+// Wire up document-level delegation. Using document (not #tool-bio) because
+// bio modals are inserted into document.body, not into the bio tool root.
+// Capture: false — we want bubbling so child elements get to handle their
+// own events first if needed.
+['click', 'input', 'change', 'focus', 'blur', 'keydown', 'mouseover', 'mouseout'].forEach(evt => {
+  // 'focus' and 'blur' don't bubble; use capture phase for those.
+  const useCapture = (evt === 'focus' || evt === 'blur');
+  document.addEventListener(evt, bioDispatchEvent, useCapture);
+});
+
+// =============================================================================
+// END EVENT DELEGATION INFRASTRUCTURE
 // =============================================================================
 
 // ---------- From dashboard.html lines 8415-8466 ----------
@@ -3316,14 +3397,62 @@ function applyAIBio(textareaId, idx) {
 
 
 // =============================================================================
+// ACTION REGISTRATIONS (Phase 2)
+// -----------------------------------------------------------------------------
+// Each registered handler corresponds to a data-bio-action="..." in markup.
+// Handler signature: (event, element) — element is the one with data-bio-action.
+// Read parameters from element.dataset.* attributes.
+// =============================================================================
+
+bioRegisterAction('save', () => saveBio());
+bioRegisterAction('toggle-publish', () => togglePublish());
+bioRegisterAction('remove-readonly', (e, el) => el.removeAttribute('readonly'));
+bioRegisterAction('username-input', () => onUsernameInput());
+bioRegisterAction('toggle-section', (e, el) => toggleBioSection(el.dataset.bioSection));
+bioRegisterAction('open-cropper-avatar', (e, el) => openCropper(el, 'avatar'));
+bioRegisterAction('remove-avatar', () => removeAvatar());
+bioRegisterAction('set-avatar-display', (e, el) => setAvatarDisplay(el.dataset.bioMode));
+bioRegisterAction('field-change', () => onBioFieldChange());
+bioRegisterAction('ai-bio-assist', () => aiBioAssist('bio-bio', 60));
+bioRegisterAction('custom-bg-selected', (e, el) => onBioCustomBgSelected(el));
+bioRegisterAction('remove-custom-bg', () => removeBioCustomBg());
+bioRegisterAction('custom-opacity', (e, el) => onBioCustomOpacityChange(el.value));
+bioRegisterAction('custom-color', (e, el) => onBioColorChange(el.dataset.bioSlot, el.value));
+bioRegisterAction('reset-custom-colors', () => resetBioCustomColors());
+bioRegisterAction('pick-font', (e, el) => pickBioFont(el.value));
+bioRegisterAction('add-link', (e, el) => {
+  const featured = el.dataset.bioFeatured === 'true';
+  const hero = el.dataset.bioHero === 'true';
+  if (hero) addLink(featured, true);
+  else addLink(featured);
+});
+bioRegisterAction('add-header', () => addHeader());
+bioRegisterAction('add-video-block', () => addVideoBlock());
+bioRegisterAction('add-subscribe-block', () => addSubscribeBlock());
+bioRegisterAction('open-course-picker', () => openCoursePickerModal());
+bioRegisterAction('open-coaching-picker', () => openCoachingPickerModal());
+bioRegisterAction('open-product-picker', () => openProductPickerModal());
+bioRegisterAction('add-mediakit-link', () => addMediaKitLink());
+bioRegisterAction('branding-toggle', () => onBrandingToggle());
+
+// =============================================================================
+// END ACTION REGISTRATIONS
+// =============================================================================
+
+
+// =============================================================================
 // GLOBAL EXPOSURE — preserve inline onclick handlers in dashboard.html
 // -----------------------------------------------------------------------------
-// Until Phase 2 converts inline handlers to addEventListener, the markup in
-// dashboard.html still uses onclick="bioFunc()" etc. Those handlers run in
-// the global scope. Because /js/bio.js is loaded as a regular <script>
-// (not type="module"), all top-level function declarations are already on
-// window automatically. This block is a paranoia-check + explicit list so
-// future-Claude knows exactly which symbols are part of the public API.
+// Phase 2 converted bio markup in dashboard.html to use data-bio-action.
+// HOWEVER, bio.js itself still emits inline handlers in template literals
+// (e.g., renderBioLinks builds HTML strings with onclick="..."). Those are
+// converted in Phase 2b. Until then, those template-literal inline handlers
+// still need top-level functions to be globals.
+//
+// Because /js/bio.js is loaded as a regular <script> (not type="module"),
+// all top-level function declarations are already on window automatically.
+// This block is a paranoia-check + explicit list so future-Claude knows
+// exactly which symbols are part of the public API.
 // =============================================================================
 // Functions (no-op assignments — declarations are already global):
 //   copySidebarBioLink, showBioLinkButtons, getBioCollapsed, saveBioCollapsed,
