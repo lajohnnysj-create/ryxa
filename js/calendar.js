@@ -404,7 +404,7 @@ function calRenderCell(year, month, day, isOtherMonth, todayYmd) {
   var isToday = ymd === todayYmd;
   var isSelected = ymd === calState.selectedDate;
   var dayEvents = calState.events.filter(function(e) {
-    var startDate = e.start_at ? e.start_at.slice(0, 10) : null;
+    var startDate = e.start_at ? calToYmd(new Date(e.start_at)) : null;
     return startDate === ymd;
   });
   var hasEvents = dayEvents.length > 0;
@@ -423,7 +423,7 @@ function calRenderDayEvents() {
   document.getElementById('cal-day-label').textContent = calFormatDayLabel(calState.selectedDate);
   var container = document.getElementById('cal-day-events');
   var dayEvents = calState.events.filter(function(e) {
-    var startDate = e.start_at ? e.start_at.slice(0, 10) : null;
+    var startDate = e.start_at ? calToYmd(new Date(e.start_at)) : null;
     return startDate === calState.selectedDate;
   }).sort(function(a, b) {
     return (a.start_at || '').localeCompare(b.start_at || '');
