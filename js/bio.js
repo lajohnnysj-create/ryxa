@@ -3045,7 +3045,7 @@ function buildPreviewHTML() {
   const name = bioState.display_name || bioState.username || 'Your name';
   const initial = (name[0] || '?').toUpperCase();
   const avatarHtml = bioState.avatar_url
-    ? `<img src="${escapeHtml(bioState.avatar_url)}" alt="Profile photo" class="bio-s-361f33">`
+    ? `<img src="${escapeHtml(bioState.avatar_url)}" alt="Profile photo" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;">`
     : `<div style="width:100%;height:100%;border-radius:50%;background:${t.surface2};display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;font-size:36px;font-weight:800;color:${t.text};">${escapeHtml(initial)}</div>`;
   const socialsHtml = buildPreviewSocials(t);
   const linksHtml = bioState.links.filter(l => l.isHeader || l.isSubscribe || l.isVideoBlock || (l.url || '').trim()).map(l => buildPreviewLink(l, t)).join('');
@@ -3211,7 +3211,7 @@ function buildPreviewLink(l, t) {
   if (l.isSubscribe) {
     return `<div style="background:${t.surface};border:1px solid ${t.border};border-radius:10px;padding:14px;text-align:center;margin-bottom:8px;">
       <div style="font-size:11px;font-weight:600;color:${t.text};margin-bottom:8px;">${escapeHtml(l.title || 'Subscribe to my newsletter')}</div>
-      <div class="bio-s-597636">
+      <div style="display:flex;gap:4px;">
         <div style="flex:1;padding:6px 8px;border-radius:6px;border:1px solid ${t.border};background:${t.bg};color:${t.muted};font-size:9px;text-align:left;">Your email</div>
         <div style="padding:6px 10px;background:${t.accent};color:#fff;border-radius:6px;font-size:9px;font-weight:600;">Subscribe</div>
       </div>
@@ -3252,11 +3252,11 @@ function buildPreviewLink(l, t) {
   if (l.isCourse) {
     const priceDisplay = l.coursePrice > 0 ? formatMoney(l.coursePrice, {alwaysShowCents:true}) : 'Free';
     const crossoutHtml = l.courseCrossoutPrice > 0 ? `<span style="text-decoration:line-through;color:${t.muted};font-size:11px;margin-right:4px;">${formatMoney(l.courseCrossoutPrice, {alwaysShowCents:true})}</span>` : '';
-    const coverHtml = l.photoUrl ? `<img src="${escapeHtml(l.photoUrl)}" alt="Link cover" class="bio-s-2aa324">` : '';
+    const coverHtml = l.photoUrl ? `<img src="${escapeHtml(l.photoUrl)}" alt="Link cover" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px 8px 0 0;">` : '';
     return `<div class="pcc ${halfClass}" style="background:${t.surface};border:1px solid ${t.border};border-radius:10px;overflow:hidden;">
       ${coverHtml}
-      <div class="pcc-body bio-s-4cda54" >
-        <div class="bio-s-ec9235">
+      <div class="pcc-body" style="padding:10px 12px;display:flex;align-items:center;justify-content:space-between;" >
+        <div style="min-width:0;flex:1;">
           <div class="pcc-title" style="font-size:12px;font-weight:600;color:${t.text};">${escapeHtml(l.title || 'Untitled')}</div>
         </div>
         <div class="pcc-price" style="font-size:12px;font-weight:600;color:${t.text};flex-shrink:0;margin-left:8px;">${crossoutHtml}${priceDisplay}</div>
@@ -3265,11 +3265,11 @@ function buildPreviewLink(l, t) {
   }
   if (l.isCoaching) {
     const priceDisplay = l.coachingPrice > 0 ? formatMoney(l.coachingPrice, {alwaysShowCents:true}) : 'Free';
-    const coverHtml = l.photoUrl ? `<img src="${escapeHtml(l.photoUrl)}" alt="Link cover" class="bio-s-2aa324">` : '';
+    const coverHtml = l.photoUrl ? `<img src="${escapeHtml(l.photoUrl)}" alt="Link cover" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px 8px 0 0;">` : '';
     return `<div class="pcc ${halfClass}" style="background:${t.surface};border:1px solid ${t.border};border-radius:10px;overflow:hidden;">
       ${coverHtml}
-      <div class="pcc-body bio-s-4cda54" >
-        <div class="bio-s-ec9235">
+      <div class="pcc-body" style="padding:10px 12px;display:flex;align-items:center;justify-content:space-between;" >
+        <div style="min-width:0;flex:1;">
           <div class="pcc-title" style="font-size:12px;font-weight:600;color:${t.text};">${escapeHtml(l.title || 'Untitled')}</div>
         </div>
         <div class="pcc-price" style="font-size:12px;font-weight:600;color:${t.text};flex-shrink:0;margin-left:8px;">${priceDisplay}</div>
@@ -3278,11 +3278,11 @@ function buildPreviewLink(l, t) {
   }
   if (l.isProduct) {
     const priceDisplay = l.productPrice > 0 ? formatMoney(l.productPrice, {alwaysShowCents:true}) : 'Free';
-    const coverHtml = l.photoUrl ? `<img src="${escapeHtml(l.photoUrl)}" alt="Link cover" class="bio-s-2aa324">` : '';
+    const coverHtml = l.photoUrl ? `<img src="${escapeHtml(l.photoUrl)}" alt="Link cover" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px 8px 0 0;">` : '';
     return `<div class="pcc ${halfClass}" style="background:${t.surface};border:1px solid ${t.border};border-radius:10px;overflow:hidden;">
       ${coverHtml}
-      <div class="pcc-body bio-s-4cda54" >
-        <div class="bio-s-ec9235">
+      <div class="pcc-body" style="padding:10px 12px;display:flex;align-items:center;justify-content:space-between;" >
+        <div style="min-width:0;flex:1;">
           <div class="pcc-title" style="font-size:12px;font-weight:600;color:${t.text};">${escapeHtml(l.title || 'Untitled')}</div>
         </div>
         <div class="pcc-price" style="font-size:12px;font-weight:600;color:${t.text};flex-shrink:0;margin-left:8px;">${priceDisplay}</div>
@@ -3437,9 +3437,9 @@ function aiBioAssist(textareaId, maxLen) {
   var overlay = document.createElement('div');
   overlay.id = 'ai-bio-modal';
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;';
-  overlay.innerHTML = '<div class="bio-s-30c61a">'
-    + '<svg width="24" height="24" viewBox="0 0 24 24" class="bio-s-9547f9" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>'
-    + '<div class="bio-s-57de93">' + (mode === 'generate' ? 'Generating bio ideas...' : 'Rewriting your bio...') + '</div>'
+  overlay.innerHTML = '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:28px;max-width:440px;width:100%;max-height:calc(100vh - 80px);overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(124,58,237,0.4) transparent;text-align:center;">'
+    + '<svg width="24" height="24" viewBox="0 0 24 24" style="animation:btn-spin 0.6s linear infinite;margin-bottom:12px;" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>'
+    + '<div style="font-size:14px;color:var(--text);">' + (mode === 'generate' ? 'Generating bio ideas...' : 'Rewriting your bio...') + '</div>'
     + '</div>';
   overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
   document.body.appendChild(overlay);
@@ -3458,21 +3458,21 @@ function aiBioAssist(textareaId, maxLen) {
       var bio = s.trim();
       var charCount = bio.length;
       var overLimit = charCount > maxLen;
-      return '<div class="bio-s-c9ab35">'
-        + '<div class="bio-s-f0cb5a" id="ai-bio-option-' + i + '">' + escapeHtml(bio) + '</div>'
-        + '<div class="bio-s-5205a2">'
+      return '<div style="padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;text-align:left;">'
+        + '<div style="font-size:13px;color:var(--text);line-height:1.6;" id="ai-bio-option-' + i + '">' + escapeHtml(bio) + '</div>'
+        + '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;">'
         + '<span style="font-size:11px;color:' + (overLimit ? '#f87171' : 'var(--muted)') + ';">' + charCount + '/' + maxLen + '</span>'
-        + '<button data-bio-action="apply-ai-bio" data-bio-textarea-id="' + escapeHtml(textareaId) + '" data-bio-option-idx="' + i + '" class="bio-s-c43b40">Use this</button>'
+        + '<button data-bio-action="apply-ai-bio" data-bio-textarea-id="' + escapeHtml(textareaId) + '" data-bio-option-idx="' + i + '" style="padding:5px 12px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:6px;font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer;">Use this</button>'
         + '</div>'
         + '</div>';
     }).join('');
 
     var inner = overlay.querySelector('div');
     inner.style.textAlign = 'left';
-    inner.innerHTML = '<div class="bio-s-b3617b">AI Bio Suggestions</div>'
-      + (currentText ? '<div class="bio-s-c2bb16">Based on: "' + escapeHtml(currentText.substring(0, 50)) + (currentText.length > 50 ? '...' : '') + '"</div>' : '<div class="bio-s-c2bb16">Here are some ideas to get you started.</div>')
+    inner.innerHTML = '<div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.3px;margin-bottom:6px;">AI Bio Suggestions</div>'
+      + (currentText ? '<div style="font-size:12px;color:var(--muted);margin-bottom:16px;">Based on: "' + escapeHtml(currentText.substring(0, 50)) + (currentText.length > 50 ? '...' : '') + '"</div>' : '<div style="font-size:12px;color:var(--muted);margin-bottom:16px;">Here are some ideas to get you started.</div>')
       + cards
-      + '<button data-bio-action="close-ai-bio-modal" class="bio-s-ff18d0">Cancel</button>';
+      + '<button data-bio-action="close-ai-bio-modal" style="width:100%;padding:10px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;margin-top:4px;">Cancel</button>';
   })
   .catch(function() {
     overlay.remove();
