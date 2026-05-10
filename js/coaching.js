@@ -65,7 +65,7 @@ function coachDispatchEvent(event) {
 // CSP-STRICT STYLE APPLICATION (Phase 3)
 // =============================================================================
 const COACH_DATA_STYLE_MAP = {
-  bg: 'background', bgImage: 'background-image', color: 'color', border: 'border', shadow: 'box-shadow',
+  bg: 'background', color: 'color', border: 'border', shadow: 'box-shadow',
   padding: 'padding', radius: 'border-radius', display: 'display', fontFamily: 'font-family',
 };
 
@@ -132,18 +132,13 @@ function renderCoachingList() {
     const statusLabel = c.status.charAt(0).toUpperCase() + c.status.slice(1);
     const price = c.price_cents === 0 ? 'Free' : formatMoney(c.price_cents, {alwaysShowCents:true});
     const bookingLabel = c.booking_type === 'ryxa_calendar' ? 'Ryxa Calendar' : (c.booking_type === 'calendly' ? 'Scheduling Link' : 'Manual');
-    // Cover area: either an image (set as background-image with size/position) or
-    // a gradient (set as background). Encoded as data-coach-* attrs; applied via
-    // coachApplyDataStyles() to remain CSP-strict.
-    let coverAttrs;
-    if (c.cover_image_path) {
-      const imgUrl = sb.storage.from("coaching-covers").getPublicUrl(c.cover_image_path).data.publicUrl;
-      coverAttrs = 'data-coach-bg-image="url(' + escapeHtml(imgUrl) + ')"';
-    } else {
-      coverAttrs = 'data-coach-bg="linear-gradient(135deg,rgba(124,58,237,0.15),rgba(232,121,249,0.1))"';
-    }
+    // Cover background: matches the approach used in course.js — single
+    // data-coach-bg attribute holds the full `background` shorthand value.
+    const coverBg = c.cover_image_path
+      ? 'url(' + sb.storage.from("coaching-covers").getPublicUrl(c.cover_image_path).data.publicUrl + ') center/cover'
+      : 'linear-gradient(135deg,rgba(124,58,237,0.15),rgba(232,121,249,0.1))';
     return '<div data-coach-action="open-editor" data-coach-id="' + escapeHtml(c.id) + '" class="coach-card-clickable course-s-259ee6">'
-      + '<div class="coach-card-cover" ' + coverAttrs + '>' + (c.cover_image_path ? '' : '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(167,139,250,0.5)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>') + '</div>'
+      + '<div class="coach-card-cover" data-coach-bg="' + escapeHtml(coverBg) + '">' + (c.cover_image_path ? '' : '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(167,139,250,0.5)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>') + '</div>'
       + '<div class="course-s-4680c6">'
       + '<div class="course-s-c420c8">' + escapeHtml(c.title || 'Untitled Service') + '</div>'
       + '<div class="course-s-3522d7">'
