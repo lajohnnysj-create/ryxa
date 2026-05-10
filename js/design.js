@@ -2418,8 +2418,10 @@ async function saveDesignProject() {
     if (saveZoom !== 1) {
       dsSetZoom(saveZoom);
     }
-    // Reject if project data is too large (5MB)
-    if (canvasJSON.length > 5 * 1024 * 1024) {
+    // Reject if project data is too large (10MB).
+    // 10MB is plenty for ~10-15 images at WebP 0.85 quality. Postgres rows can
+    // hold far more, but capping here keeps saves fast and bandwidth reasonable.
+    if (canvasJSON.length > 10 * 1024 * 1024) {
       throw new Error('Project is too large to save. Try removing some images.');
     }
     // Generate thumbnail
@@ -2967,8 +2969,10 @@ function dsUpscaleImage() {
       }
       ctx1.putImageData(imageData, 0, 0);
 
-      // Replace on canvas
-      var dataUrl = c1.toDataURL('image/png');
+      // Replace on canvas. WebP at 0.85 matches dsCompressImage's pipeline and
+      // produces visually identical output at ~20% of the bytes vs lossless PNG.
+      // A 4000×4000 PNG can hit 10MB+; the WebP equivalent is ~1-3MB.
+      var dataUrl = c1.toDataURL('image/webp', 0.85);
       fabric.Image.fromURL(dataUrl, function(newImg) {
         // Scale down to fit the same visual size on canvas
         var newScaleX = (obj.scaleX * srcW) / outW;
