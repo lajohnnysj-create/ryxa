@@ -3253,6 +3253,15 @@ dsRegisterAction('ta-trigger-upload', () => {
 dsRegisterAction('ta-handle-upload', (e, el) => taHandleUpload(el));
 dsRegisterAction('ta-analyze', () => taAnalyze());
 
+// Contract Analyzer markup actions (markup lives in dashboard.html)
+dsRegisterAction('ca-start-checkout', (e, el) => startCheckout(el.dataset.dsPlan || 'monthly', el));
+dsRegisterAction('ca-trigger-upload', () => {
+  var input = document.getElementById('ca-file-input');
+  if (input) input.click();
+});
+dsRegisterAction('ca-handle-upload', (e, el) => caHandleUpload(el));
+dsRegisterAction('ca-analyze', () => caAnalyze());
+
 // Misc
 dsRegisterAction('window-print', () => window.print());
 dsRegisterAction('select-all', (e, el) => el.select());
