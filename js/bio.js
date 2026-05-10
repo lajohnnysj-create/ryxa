@@ -763,7 +763,7 @@ function renderUsernameAvailable(cleaned) {
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
       <span style="color:#4ade80;">✓</span>
       <span>Your page will be at <strong style="color:var(--accent2)">ryxa.io/${cleaned}</strong></span>
-      <button type="button" onclick="copyBioLink('${fullUrl}', this)"
+      <button type="button" data-bio-action="copy-bio-link" data-bio-url="${fullUrl}"
         style="padding:4px 10px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:6px;font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;font-weight:500;">
         Copy link
       </button>
@@ -1002,7 +1002,7 @@ function renderBioThemes() {
       btnBg = `linear-gradient(135deg,${t.bg},${t.bg2})`;
     }
 
-    return `<button type="button" class="bio-theme-btn ${selected} ${lockedClass}" data-theme="${t.key}" onclick="pickTheme('${t.key}')"
+    return `<button type="button" class="bio-theme-btn ${selected} ${lockedClass}" data-theme="${t.key}" data-bio-action="pick-theme" data-bio-theme="${t.key}"
       style="background:${btnBg};">
       ${swatch}
       <div class="bio-theme-name" style="${nameStyle}">${t.name}</div>
@@ -1238,7 +1238,7 @@ function renderBioSocials() {
       <div class="bio-social-icon">${f.svg}</div>
       <input type="text" aria-label="${f.label}" placeholder="${f.label} — ${f.placeholder}"
         value="${escapeHtml(bioState.socials[f.key] || '')}"
-        oninput="onSocialChange('${f.key}', this.value)">
+        data-bio-action="social-change" data-bio-event="input" data-bio-social="${f.key}">
     </div>
   `).join('');
 }
@@ -1562,14 +1562,22 @@ async function openCoursePickerModal() {
     if (isAdded) {
       modalHtml += '<span style="font-size:11px;color:var(--muted);padding:5px 12px;border:1px solid var(--border);border-radius:6px;">Added</span>';
     } else {
-      modalHtml += '<button onclick="addCourseToLinks(\'' + c.id + '\',\'' + escapeHtml(c.title.replace(/'/g, "\\'")) + '\',' + c.price_cents + ',\'' + escapeHtml(c.slug) + '\',\'' + escapeHtml(coverUrl) + '\')" style="padding:5px 12px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Add</button>';
+      // Stash all course params on data-bio-* attributes; handler reads them on click.
+      // escapeHtml ensures titles with quotes / HTML special chars don't break the attribute.
+      modalHtml += '<button data-bio-action="add-course-to-links"'
+        + ' data-bio-course-id="' + escapeHtml(c.id) + '"'
+        + ' data-bio-title="' + escapeHtml(c.title) + '"'
+        + ' data-bio-price="' + c.price_cents + '"'
+        + ' data-bio-slug="' + escapeHtml(c.slug) + '"'
+        + ' data-bio-cover="' + escapeHtml(coverUrl) + '"'
+        + ' style="padding:5px 12px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Add</button>';
     }
 
     modalHtml += '</div>';
   });
 
   modalHtml += '</div>';
-  modalHtml += '<button onclick="closeCoursePickerModal()" style="width:100%;margin-top:16px;padding:10px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;">Close</button>';
+  modalHtml += '<button data-bio-action="close-course-picker" style="width:100%;margin-top:16px;padding:10px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;">Close</button>';
 
   // Show modal
   let overlay = document.getElementById('course-picker-overlay');
@@ -1654,14 +1662,20 @@ async function openCoachingPickerModal() {
     if (isAdded) {
       modalHtml += '<span style="font-size:11px;color:var(--muted);padding:5px 12px;border:1px solid var(--border);border-radius:6px;">Added</span>';
     } else {
-      modalHtml += '<button onclick="addCoachingToLinks(\'' + c.id + '\',\'' + escapeHtml(c.title.replace(/'/g, "\\'")) + '\',' + c.price_cents + ',\'' + escapeHtml(c.slug) + '\',\'' + escapeHtml(coverUrl) + '\')" style="padding:5px 12px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Add</button>';
+      modalHtml += '<button data-bio-action="add-coaching-to-links"'
+        + ' data-bio-coaching-id="' + escapeHtml(c.id) + '"'
+        + ' data-bio-title="' + escapeHtml(c.title) + '"'
+        + ' data-bio-price="' + c.price_cents + '"'
+        + ' data-bio-slug="' + escapeHtml(c.slug) + '"'
+        + ' data-bio-cover="' + escapeHtml(coverUrl) + '"'
+        + ' style="padding:5px 12px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Add</button>';
     }
 
     modalHtml += '</div>';
   });
 
   modalHtml += '</div>';
-  modalHtml += '<button onclick="closeCoachingPickerModal()" style="width:100%;margin-top:16px;padding:10px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;">Close</button>';
+  modalHtml += '<button data-bio-action="close-coaching-picker" style="width:100%;margin-top:16px;padding:10px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;">Close</button>';
 
   let overlay = document.getElementById('coaching-picker-overlay');
   if (!overlay) {
@@ -1744,14 +1758,20 @@ async function openProductPickerModal() {
     if (isAdded) {
       modalHtml += '<span style="font-size:11px;color:var(--muted);padding:5px 12px;border:1px solid var(--border);border-radius:6px;">Added</span>';
     } else {
-      modalHtml += '<button onclick="addProductToLinks(\'' + p.id + '\',\'' + escapeHtml(p.title.replace(/'/g, "\\'")) + '\',' + p.price_cents + ',\'' + escapeHtml(p.slug) + '\',\'' + escapeHtml(coverUrl) + '\')" style="padding:5px 12px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Add</button>';
+      modalHtml += '<button data-bio-action="add-product-to-links"'
+        + ' data-bio-product-id="' + escapeHtml(p.id) + '"'
+        + ' data-bio-title="' + escapeHtml(p.title) + '"'
+        + ' data-bio-price="' + p.price_cents + '"'
+        + ' data-bio-slug="' + escapeHtml(p.slug) + '"'
+        + ' data-bio-cover="' + escapeHtml(coverUrl) + '"'
+        + ' style="padding:5px 12px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Add</button>';
     }
 
     modalHtml += '</div>';
   });
 
   modalHtml += '</div>';
-  modalHtml += '<button onclick="closeProductPickerModal()" style="width:100%;margin-top:16px;padding:10px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;">Close</button>';
+  modalHtml += '<button data-bio-action="close-product-picker" style="width:100%;margin-top:16px;padding:10px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;">Close</button>';
 
   let overlay = document.getElementById('product-picker-overlay');
   if (!overlay) {
@@ -1939,7 +1959,7 @@ function bioHalfWidthToggle(link) {
     <span class="bio-half-switch ${isOn ? 'on' : ''}" aria-hidden="true" style="position:relative;width:34px;height:20px;background:${isOn ? 'var(--accent)' : 'var(--bg)'};border:1px solid ${isOn ? 'var(--accent)' : 'var(--border-hover)'};border-radius:11px;transition:background 0.15s,border-color 0.15s;flex-shrink:0;">
       <span style="position:absolute;top:2px;left:${isOn ? '16px' : '2px'};width:14px;height:14px;background:#fff;border-radius:50%;transition:left 0.15s;"></span>
     </span>
-    <input type="checkbox" ${isOn ? 'checked' : ''} onchange="toggleLinkHalfWidth(${link._id}, this.checked)" aria-label="Half width" style="position:absolute;opacity:0;pointer-events:none;width:0;height:0;">
+    <input type="checkbox" ${isOn ? 'checked' : ''} data-bio-action="toggle-link-half-width" data-bio-event="change" data-bio-id="${link._id}" aria-label="Half width" style="position:absolute;opacity:0;pointer-events:none;width:0;height:0;">
   </label>`;
 }
 
@@ -2045,7 +2065,7 @@ function renderLinkCollapsed(link, dragSvg, editSvg) {
       return null;
     })();
     thumb = firstId
-      ? `<img alt="YouTube preview" src="https://i.ytimg.com/vi/${firstId}/default.jpg" style="width:48px;height:32px;object-fit:cover;border-radius:6px;flex-shrink:0;" onerror="this.style.background='var(--surface2)';this.removeAttribute('src');">`
+      ? `<img alt="YouTube preview" src="https://i.ytimg.com/vi/${firstId}/default.jpg" style="width:48px;height:32px;object-fit:cover;border-radius:6px;flex-shrink:0;" data-bio-onerror="hide-thumb-bg">`
       : '';
     title = 'YouTube videos';
     subline = filledCount === 0 ? 'No videos yet' : (filledCount === 1 ? '1 video' : filledCount + ' videos');
@@ -2079,7 +2099,7 @@ function renderLinkCollapsed(link, dragSvg, editSvg) {
   } else {
     // Regular link / featured / mediakit
     if (!link.isMediaKit && link.photoUrl) {
-      thumb = `<img alt="" src="${escapeHtml(link.photoUrl)}" loading="lazy" onerror="this.style.display='none'" style="width:36px;height:36px;object-fit:cover;border-radius:6px;flex-shrink:0;border:1px solid var(--border);">`;
+      thumb = `<img alt="" src="${escapeHtml(link.photoUrl)}" loading="lazy" data-bio-onerror="hide" style="width:36px;height:36px;object-fit:cover;border-radius:6px;flex-shrink:0;border:1px solid var(--border);">`;
     }
     const url = (link.url || '').trim();
     subline = url
@@ -2096,16 +2116,16 @@ function renderLinkCollapsed(link, dragSvg, editSvg) {
     ? `<div class="bio-row-subline">${subline}</div>`
     : '';
 
-  return `<div class="bio-link-row bio-link-collapsed bio-row-typed" data-id="${link._id}" data-type="${meta.key}" onclick="expandLink(${link._id})">
-    <div class="bio-link-drag" aria-label="Drag to reorder" onclick="event.stopPropagation();">${dragSvg}</div>
+  return `<div class="bio-link-row bio-link-collapsed bio-row-typed" data-id="${link._id}" data-type="${meta.key}" data-bio-action="expand-link" data-bio-id="${link._id}">
+    <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
     ${typeIconHtml}
     <div class="bio-row-body">
       <div class="bio-row-title" style="color:${titleColor};">${title}</div>
       ${sublineHtml}
     </div>
     ${bioHalfBadge(link)}
-    <button type="button" class="bio-row-edit" aria-label="Edit" onclick="event.stopPropagation();expandLink(${link._id})">${editSvg}</button>
-    <button type="button" class="bio-row-trash" aria-label="Remove" title="Remove" onclick="event.stopPropagation();removeLink(${link._id})">${BIO_TRASH_SVG}</button>
+    <button type="button" class="bio-row-edit" aria-label="Edit" data-bio-action="expand-link" data-bio-id="${link._id}">${editSvg}</button>
+    <button type="button" class="bio-row-trash" aria-label="Remove" title="Remove" data-bio-action="remove-link" data-bio-id="${link._id}">${BIO_TRASH_SVG}</button>
   </div>`;
 }
 
@@ -2194,11 +2214,11 @@ function renderLinkExpanded(link, dragSvg) {
         <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
         <span class="bio-featured-badge" style="background:rgba(124,58,237,0.15);color:#c4b5fd;border:1px solid rgba(124,58,237,0.3);">Header</span>
         <div style="flex:1;"></div>
-        <button class="bio-link-remove" onclick="removeLink(${link._id})">Remove</button>
+        <button class="bio-link-remove" data-bio-action="remove-link" data-bio-id="${link._id}">Remove</button>
       </div>
       <input type="text" placeholder="Section header (e.g. My Socials)" maxlength="60" value="${escapeHtml(link.title || '')}"
-        oninput="updateLinkField(${link._id},'title',this.value)" aria-label="Header text" style="margin-bottom:6px;">
-      <button type="button" onclick="saveLinkRow(${link._id})"
+        data-bio-action="update-link-field" data-bio-event="input" data-bio-id="${link._id}" data-bio-field="title" aria-label="Header text" style="margin-bottom:6px;">
+      <button type="button" data-bio-action="save-link-row" data-bio-id="${link._id}"
         style="width:100%;padding:9px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">
         Save header
       </button>
@@ -2212,12 +2232,12 @@ function renderLinkExpanded(link, dragSvg) {
         <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
         <span class="bio-featured-badge" style="background:rgba(124,58,237,0.15);color:#c4b5fd;border:1px solid rgba(124,58,237,0.3);">Subscribe</span>
         <div style="flex:1;"></div>
-        <button class="bio-link-remove" onclick="removeLink(${link._id})">Remove</button>
+        <button class="bio-link-remove" data-bio-action="remove-link" data-bio-id="${link._id}">Remove</button>
       </div>
       <input type="text" placeholder="Subscribe heading (e.g. Join my newsletter)" maxlength="80" value="${escapeHtml(link.title || '')}"
-        oninput="updateLinkField(${link._id},'title',this.value)" aria-label="Subscribe heading" style="margin-bottom:6px;">
+        data-bio-action="update-link-field" data-bio-event="input" data-bio-id="${link._id}" data-bio-field="title" aria-label="Subscribe heading" style="margin-bottom:6px;">
       <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">Visitors will see an email input and subscribe button styled to your theme.</div>
-      <button type="button" onclick="saveLinkRow(${link._id})"
+      <button type="button" data-bio-action="save-link-row" data-bio-id="${link._id}"
         style="width:100%;padding:9px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">
         Save
       </button>
@@ -2234,10 +2254,10 @@ function renderLinkExpanded(link, dragSvg) {
       const value = escapeHtml(v && v.url ? v.url : '');
       return `<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;">
         <input type="url" placeholder="https://youtube.com/watch?v=..." value="${value}"
-          oninput="updateVideoBlockUrl(${link._id}, ${idx}, this.value)"
+          data-bio-action="update-video-url" data-bio-event="input" data-bio-id="${link._id}" data-bio-idx="${idx}"
           aria-label="YouTube URL ${idx + 1}"
           style="flex:1;margin:0;">
-        <button type="button" aria-label="Remove this video" onclick="removeVideoFromBlock(${link._id}, ${idx})"
+        <button type="button" aria-label="Remove this video" data-bio-action="remove-video" data-bio-id="${link._id}" data-bio-idx="${idx}"
           style="flex-shrink:0;width:34px;height:34px;background:transparent;border:1px solid rgba(239,68,68,0.3);color:#ef4444;border-radius:6px;font-size:14px;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;">×</button>
       </div>`;
     }).join('');
@@ -2246,15 +2266,15 @@ function renderLinkExpanded(link, dragSvg) {
         <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
         <span class="bio-featured-badge" style="background:rgba(239,68,68,0.12);color:#fca5a5;border:1px solid rgba(239,68,68,0.25);">YouTube</span>
         <div style="flex:1;"></div>
-        <button class="bio-link-remove" onclick="removeLink(${link._id})">Remove</button>
+        <button class="bio-link-remove" data-bio-action="remove-link" data-bio-id="${link._id}">Remove</button>
       </div>
       <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Add up to 10 YouTube videos. They'll appear as a horizontal carousel on your bio.</div>
       ${inputsHtml}
-      <button type="button" onclick="addVideoToBlock(${link._id})" ${atMax ? 'disabled' : ''}
+      <button type="button" data-bio-action="add-video-to-block" data-bio-id="${link._id}" ${atMax ? 'disabled' : ''}
         style="width:100%;padding:8px;background:transparent;border:1px dashed rgba(124,58,237,0.4);color:${atMax ? 'var(--muted)' : 'var(--accent2)'};border-radius:6px;font-size:12px;font-family:'DM Sans',sans-serif;cursor:${atMax ? 'default' : 'pointer'};margin-bottom:6px;opacity:${atMax ? 0.5 : 1};">
         ${atMax ? '10 video limit reached' : '+ Add another video'}
       </button>
-      <button type="button" onclick="saveLinkRow(${link._id})"
+      <button type="button" data-bio-action="save-link-row" data-bio-id="${link._id}"
         style="width:100%;padding:9px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">
         Save
       </button>
@@ -2275,7 +2295,7 @@ function renderLinkExpanded(link, dragSvg) {
         <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
         <span class="bio-featured-badge" style="background:rgba(124,58,237,0.15);color:#c4b5fd;border:1px solid rgba(124,58,237,0.3);">Course</span>${bioHalfBadge(link)}
         <div style="flex:1;"></div>
-        <button class="bio-link-remove" onclick="removeLink(${link._id})">Remove</button>
+        <button class="bio-link-remove" data-bio-action="remove-link" data-bio-id="${link._id}">Remove</button>
       </div>
       ${coverHtml}
       <input type="text" value="${escapeHtml(link.title || '')}" readonly style="opacity:0.6;cursor:default;" aria-label="Course title">
@@ -2287,12 +2307,12 @@ function renderLinkExpanded(link, dragSvg) {
         <div style="flex:1;display:flex;align-items:center;gap:0;background:var(--surface);border:1px solid var(--border-hover);border-radius:6px;overflow:hidden;">
           <span style="padding:10px 0 10px 12px;font-size:13px;color:var(--muted);white-space:nowrap;">Crossout $</span>
           <input type="text" inputmode="decimal" value="${crossoutVal}" placeholder="99.99"
-            oninput="updateLinkField(${link._id},'courseCrossoutPrice',Math.round(parseFloat(this.value||0)*100))"
+            data-bio-action="update-link-crossout-price" data-bio-event="input" data-bio-id="${link._id}"
             aria-label="Crossout price" style="flex:1;background:transparent;border:none;padding:10px 12px 10px 0;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;min-width:0;margin:0;">
         </div>
       </div>
       ${bioHalfWidthToggle(link)}
-      <button type="button" onclick="saveLinkRow(${link._id})"
+      <button type="button" data-bio-action="save-link-row" data-bio-id="${link._id}"
         style="width:100%;padding:9px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">
         Save link
       </button>
@@ -2308,7 +2328,7 @@ function renderLinkExpanded(link, dragSvg) {
         <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
         <span class="bio-featured-badge" style="background:rgba(124,58,237,0.15);color:#c4b5fd;border:1px solid rgba(124,58,237,0.3);">Booking</span>${bioHalfBadge(link)}
         <div style="flex:1;"></div>
-        <button class="bio-link-remove" onclick="removeLink(${link._id})">Remove</button>
+        <button class="bio-link-remove" data-bio-action="remove-link" data-bio-id="${link._id}">Remove</button>
       </div>
       ${coverHtml}
       <input type="text" value="${escapeHtml(link.title || '')}" readonly style="opacity:0.6;cursor:default;" aria-label="Coaching title">
@@ -2317,7 +2337,7 @@ function renderLinkExpanded(link, dragSvg) {
         <span style="padding:10px 12px 10px 4px;font-size:13px;color:var(--text);">${priceDisplay}</span>
       </div>
       ${bioHalfWidthToggle(link)}
-      <button type="button" onclick="saveLinkRow(${link._id})"
+      <button type="button" data-bio-action="save-link-row" data-bio-id="${link._id}"
         style="width:100%;padding:9px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">
         Save link
       </button>
@@ -2333,7 +2353,7 @@ function renderLinkExpanded(link, dragSvg) {
         <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
         <span class="bio-featured-badge" style="background:rgba(124,58,237,0.15);color:#c4b5fd;border:1px solid rgba(124,58,237,0.3);">Product</span>${bioHalfBadge(link)}
         <div style="flex:1;"></div>
-        <button class="bio-link-remove" onclick="removeLink(${link._id})">Remove</button>
+        <button class="bio-link-remove" data-bio-action="remove-link" data-bio-id="${link._id}">Remove</button>
       </div>
       ${coverHtml}
       <input type="text" value="${escapeHtml(link.title || '')}" readonly style="opacity:0.6;cursor:default;" aria-label="Product title">
@@ -2342,7 +2362,7 @@ function renderLinkExpanded(link, dragSvg) {
         <span style="padding:10px 12px 10px 4px;font-size:13px;color:var(--text);">${priceDisplay}</span>
       </div>
       ${bioHalfWidthToggle(link)}
-      <button type="button" onclick="saveLinkRow(${link._id})"
+      <button type="button" data-bio-action="save-link-row" data-bio-id="${link._id}"
         style="width:100%;padding:9px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">
         Save link
       </button>
@@ -2354,7 +2374,7 @@ function renderLinkExpanded(link, dragSvg) {
       ${link.photoUrl
         ? `<img alt="Link thumbnail" src="${escapeHtml(link.photoUrl)}">`
         : '<span>+ Upload 16:9 photo</span>'}
-      <input type="file" accept="image/*" aria-label="Upload featured photo" onchange="openCropper(this,'featured',${link._id})">
+      <input type="file" accept="image/*" aria-label="Upload featured photo" data-bio-action="open-cropper-featured" data-bio-event="change" data-bio-id="${link._id}">
     </div>`;
   } else if (link.isHero) {
     photoSlot = `
@@ -2362,7 +2382,7 @@ function renderLinkExpanded(link, dragSvg) {
       ${link.photoUrl
         ? `<img alt="Link thumbnail" src="${escapeHtml(link.photoUrl)}">`
         : '<span>+ Upload hero image</span>'}
-      <input type="file" accept="image/*" aria-label="Upload hero photo" onchange="onHeroPhotoSelected(this,${link._id})">
+      <input type="file" accept="image/*" aria-label="Upload hero photo" data-bio-action="hero-photo-selected" data-bio-event="change" data-bio-id="${link._id}">
     </div>`;
   }
   return `<div class="bio-link-row${link.isHero ? ' bio-link-hero' : ''}" data-id="${link._id}">
@@ -2371,28 +2391,28 @@ function renderLinkExpanded(link, dragSvg) {
       ${link.featured ? '<span class="bio-featured-badge">Featured</span>' : ''}
       ${link.isHero ? '<span class="bio-hero-badge">Hero</span>' : ''}
       <div style="flex:1;"></div>
-      <button class="bio-link-remove" onclick="removeLink(${link._id})">Remove</button>
+      <button class="bio-link-remove" data-bio-action="remove-link" data-bio-id="${link._id}">Remove</button>
     </div>
     ${photoSlot}
     ${!link.featured && !link.isHero ? `<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
       ${link.photoUrl
         ? `<img alt="Link thumbnail" src="${escapeHtml(link.photoUrl)}" style="width:40px;height:40px;object-fit:cover;border-radius:8px;border:1px solid var(--border);">
-           <button type="button" onclick="removeLinkThumb(${link._id})" style="padding:4px 10px;background:transparent;border:1px solid rgba(239,68,68,0.3);color:#ef4444;border-radius:6px;font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer;">Remove</button>`
-        : `<label style="display:inline-flex;align-items:center;gap:5px;padding:5px 10px;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.2);color:#c4b5fd;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.background='rgba(124,58,237,0.15)'" onmouseout="this.style.background='rgba(124,58,237,0.08)'">
+           <button type="button" data-bio-action="remove-link-thumb" data-bio-id="${link._id}" style="padding:4px 10px;background:transparent;border:1px solid rgba(239,68,68,0.3);color:#ef4444;border-radius:6px;font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer;">Remove</button>`
+        : `<label class="bio-thumb-upload-label" style="display:inline-flex;align-items:center;gap:5px;padding:5px 10px;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.2);color:#c4b5fd;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;transition:all 0.15s;">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
             Add Thumbnail
-            <input type="file" accept="image/*" onchange="onLinkThumbSelected(this,${link._id})" style="display:none;">
+            <input type="file" accept="image/*" data-bio-action="link-thumb-selected" data-bio-event="change" data-bio-id="${link._id}" style="display:none;">
           </label>`}
     </div>` : ''}
     <input type="text" placeholder="Title" maxlength="80" value="${escapeHtml(link.title || '')}"
-      oninput="updateLinkField(${link._id},'title',this.value)" aria-label="Link title">
+      data-bio-action="update-link-field" data-bio-event="input" data-bio-id="${link._id}" data-bio-field="title" aria-label="Link title">
     <input type="text" placeholder="Description (optional)" maxlength="120" value="${escapeHtml(link.description || '')}"
-      oninput="updateLinkField(${link._id},'description',this.value)" aria-label="Link description">
+      data-bio-action="update-link-field" data-bio-event="input" data-bio-id="${link._id}" data-bio-field="description" aria-label="Link description">
     <input type="url" placeholder="https://..." value="${escapeHtml(link.url || '')}"
-      oninput="updateLinkField(${link._id},'url',this.value)" aria-label="Link URL" style="margin-bottom:6px;">
+      data-bio-action="update-link-field" data-bio-event="input" data-bio-id="${link._id}" data-bio-field="url" aria-label="Link URL" style="margin-bottom:6px;">
     ${(!link.featured && !link.isHero && !link.isMediaKit) ? bioHalfWidthToggle(link) : ''}
     <div id="bio-link-err-${link._id}" style="display:none;color:#fca5a5;font-size:12px;margin-bottom:6px;"></div>
-    <button type="button" onclick="saveLinkRow(${link._id})"
+    <button type="button" data-bio-action="save-link-row" data-bio-id="${link._id}"
       style="width:100%;padding:9px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">
       Save link
     </button>
@@ -2862,7 +2882,7 @@ function updatePublishUI() {
     dot.style.background = '#4ade80';
     label.textContent = 'Published';
     sub.innerHTML = bioState.username
-      ? 'Live at <strong style="color:var(--accent2)">ryxa.io/' + bioState.username + '</strong> <button type="button" onclick="copyBioLink(\'https://ryxa.io/' + bioState.username + '\', this)" style="padding:3px 8px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:5px;font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer;margin-left:4px;vertical-align:middle;">Copy</button>'
+      ? 'Live at <strong style="color:var(--accent2)">ryxa.io/' + bioState.username + '</strong> <button type="button" data-bio-action="copy-bio-link" data-bio-url="https://ryxa.io/' + bioState.username + '" style="padding:3px 8px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:5px;font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer;margin-left:4px;vertical-align:middle;">Copy</button>'
       : 'Your page is live.';
     btn.textContent = 'Unpublish';
     btn.style.background = 'transparent';
@@ -3377,7 +3397,7 @@ function aiBioAssist(textareaId, maxLen) {
         + '<div style="font-size:13px;color:var(--text);line-height:1.6;" id="ai-bio-option-' + i + '">' + escapeHtml(bio) + '</div>'
         + '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;">'
         + '<span style="font-size:11px;color:' + (overLimit ? '#f87171' : 'var(--muted)') + ';">' + charCount + '/' + maxLen + '</span>'
-        + '<button onclick="applyAIBio(\'' + textareaId + '\', ' + i + ')" style="padding:5px 12px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:6px;font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer;">Use this</button>'
+        + '<button data-bio-action="apply-ai-bio" data-bio-textarea-id="' + escapeHtml(textareaId) + '" data-bio-option-idx="' + i + '" style="padding:5px 12px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:6px;font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer;">Use this</button>'
         + '</div>'
         + '</div>';
     }).join('');
@@ -3387,7 +3407,7 @@ function aiBioAssist(textareaId, maxLen) {
     inner.innerHTML = '<div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.3px;margin-bottom:6px;">AI Bio Suggestions</div>'
       + (currentText ? '<div style="font-size:12px;color:var(--muted);margin-bottom:16px;">Based on: "' + escapeHtml(currentText.substring(0, 50)) + (currentText.length > 50 ? '...' : '') + '"</div>' : '<div style="font-size:12px;color:var(--muted);margin-bottom:16px;">Here are some ideas to get you started.</div>')
       + cards
-      + '<button onclick="document.getElementById(\'ai-bio-modal\').remove()" style="width:100%;padding:10px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;margin-top:4px;">Cancel</button>';
+      + '<button data-bio-action="close-ai-bio-modal" style="width:100%;padding:10px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;margin-top:4px;">Cancel</button>';
   })
   .catch(function() {
     overlay.remove();
@@ -3444,6 +3464,102 @@ bioRegisterAction('open-coaching-picker', () => openCoachingPickerModal());
 bioRegisterAction('open-product-picker', () => openProductPickerModal());
 bioRegisterAction('add-mediakit-link', () => addMediaKitLink());
 bioRegisterAction('branding-toggle', () => onBrandingToggle());
+
+// ----- Phase 2b: actions for dynamically rendered link rows + modals -----
+
+// Link row interactions
+bioRegisterAction('expand-link', (e, el) => expandLink(parseInt(el.dataset.bioId, 10)));
+bioRegisterAction('remove-link', (e, el) => removeLink(parseInt(el.dataset.bioId, 10)));
+bioRegisterAction('save-link-row', (e, el) => saveLinkRow(parseInt(el.dataset.bioId, 10)));
+bioRegisterAction('update-link-field', (e, el) => {
+  updateLinkField(parseInt(el.dataset.bioId, 10), el.dataset.bioField, el.value);
+});
+bioRegisterAction('update-link-crossout-price', (e, el) => {
+  const cents = Math.round(parseFloat(el.value || 0) * 100);
+  updateLinkField(parseInt(el.dataset.bioId, 10), 'courseCrossoutPrice', cents);
+});
+bioRegisterAction('toggle-link-half-width', (e, el) => {
+  toggleLinkHalfWidth(parseInt(el.dataset.bioId, 10), el.checked);
+});
+bioRegisterAction('open-cropper-featured', (e, el) => openCropper(el, 'featured', parseInt(el.dataset.bioId, 10)));
+bioRegisterAction('hero-photo-selected', (e, el) => onHeroPhotoSelected(el, parseInt(el.dataset.bioId, 10)));
+bioRegisterAction('link-thumb-selected', (e, el) => onLinkThumbSelected(el, parseInt(el.dataset.bioId, 10)));
+bioRegisterAction('remove-link-thumb', (e, el) => removeLinkThumb(parseInt(el.dataset.bioId, 10)));
+
+// Video block actions
+bioRegisterAction('update-video-url', (e, el) => {
+  updateVideoBlockUrl(parseInt(el.dataset.bioId, 10), parseInt(el.dataset.bioIdx, 10), el.value);
+});
+bioRegisterAction('remove-video', (e, el) => {
+  removeVideoFromBlock(parseInt(el.dataset.bioId, 10), parseInt(el.dataset.bioIdx, 10));
+});
+bioRegisterAction('add-video-to-block', (e, el) => addVideoToBlock(parseInt(el.dataset.bioId, 10)));
+
+// Theme + socials
+bioRegisterAction('pick-theme', (e, el) => pickTheme(el.dataset.bioTheme));
+bioRegisterAction('social-change', (e, el) => onSocialChange(el.dataset.bioSocial, el.value));
+
+// Picker modal close buttons
+bioRegisterAction('close-course-picker', () => closeCoursePickerModal());
+bioRegisterAction('close-coaching-picker', () => closeCoachingPickerModal());
+bioRegisterAction('close-product-picker', () => closeProductPickerModal());
+
+// ----- Picker "Add" buttons (course/coaching/product) -----
+// Each reads its data-bio-* attributes and calls the appropriate adder.
+bioRegisterAction('add-course-to-links', (e, el) => {
+  addCourseToLinks(
+    el.dataset.bioCourseId,
+    el.dataset.bioTitle,
+    parseInt(el.dataset.bioPrice, 10),
+    el.dataset.bioSlug,
+    el.dataset.bioCover
+  );
+});
+bioRegisterAction('add-coaching-to-links', (e, el) => {
+  addCoachingToLinks(
+    el.dataset.bioCoachingId,
+    el.dataset.bioTitle,
+    parseInt(el.dataset.bioPrice, 10),
+    el.dataset.bioSlug,
+    el.dataset.bioCover
+  );
+});
+bioRegisterAction('add-product-to-links', (e, el) => {
+  addProductToLinks(
+    el.dataset.bioProductId,
+    el.dataset.bioTitle,
+    parseInt(el.dataset.bioPrice, 10),
+    el.dataset.bioSlug,
+    el.dataset.bioCover
+  );
+});
+
+// ----- Copy bio link button (used in username hint + publish UI) -----
+bioRegisterAction('copy-bio-link', (e, el) => copyBioLink(el.dataset.bioUrl, el));
+
+// ----- AI Bio modal -----
+bioRegisterAction('apply-ai-bio', (e, el) => {
+  applyAIBio(el.dataset.bioTextareaId, parseInt(el.dataset.bioOptionIdx, 10));
+});
+bioRegisterAction('close-ai-bio-modal', () => {
+  document.getElementById('ai-bio-modal')?.remove();
+});
+
+// ----- Image error fallbacks (replaces inline onerror=) -----
+// Image error events do NOT bubble, so we need a capture-phase listener.
+// Elements opt-in by setting data-bio-onerror="hide" or "hide-thumb-bg".
+document.addEventListener('error', function(e) {
+  const target = e.target;
+  if (!(target instanceof HTMLImageElement)) return;
+  const mode = target.dataset && target.dataset.bioOnerror;
+  if (!mode) return;
+  if (mode === 'hide') {
+    target.style.display = 'none';
+  } else if (mode === 'hide-thumb-bg') {
+    target.style.background = 'var(--surface2)';
+    target.removeAttribute('src');
+  }
+}, true); // capture phase
 
 // =============================================================================
 // END ACTION REGISTRATIONS
