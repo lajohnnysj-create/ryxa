@@ -416,7 +416,7 @@ function calRenderCell(year, month, day, isOtherMonth, todayYmd) {
   var dotColor = isSelected ? '#fff' : 'var(--accent2)';
   var dot = hasEvents ? '<div style="position:absolute;bottom:4px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:' + dotColor + ';"></div>' : '';
 
-  return '<button data-cal-action="select-date" data-cal-ymd="\' + ymd + \'" style="position:relative;aspect-ratio:1;background:' + bg + ';border:' + border + ';border-radius:8px;color:' + color + ';font-size:13px;font-weight:500;cursor:pointer;font-family:DM Sans,sans-serif;padding:0;display:flex;align-items:center;justify-content:center;opacity:' + opacity + ';transition:all 0.15s;" onmouseover="if(!this.dataset.selected)this.style.borderColor=\'var(--border-hover)\'" onmouseout="if(!this.dataset.selected)this.style.borderColor=\'' + (isToday ? 'rgba(124,58,237,0.4)' : 'var(--border)') + '\'">' + day + dot + '</button>';
+  return '<button data-cal-action="select-date" data-cal-ymd="' + ymd + '" style="position:relative;aspect-ratio:1;background:' + bg + ';border:' + border + ';border-radius:8px;color:' + color + ';font-size:13px;font-weight:500;cursor:pointer;font-family:DM Sans,sans-serif;padding:0;display:flex;align-items:center;justify-content:center;opacity:' + opacity + ';transition:all 0.15s;" onmouseover="if(!this.dataset.selected)this.style.borderColor=\'var(--border-hover)\'" onmouseout="if(!this.dataset.selected)this.style.borderColor=\'' + (isToday ? 'rgba(124,58,237,0.4)' : 'var(--border)') + '\'">' + day + dot + '</button>';
 }
 
 function calRenderDayEvents() {
@@ -457,9 +457,9 @@ function calRenderDayEvents() {
             ? '<button data-cal-action="open-send-message" data-cal-booking-id="' + escapeHtml(e.source_id) + '" data-cal-event-title="' + escapeHtml(e.title || '') + '" aria-label="Send meeting details to booker" title="Send meeting details" class="cal-s-2bcfbe"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>Send Details</button>'
             : '';
           var editBtn = canEdit
-            ? '<button data-cal-action="open-edit-event" data-cal-event-id="\' + e.id + \'" aria-label="Edit event" title="Edit event" class="cal-s-c3ca24"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'
+            ? '<button data-cal-action="open-edit-event" data-cal-event-id="' + e.id + '" aria-label="Edit event" title="Edit event" class="cal-s-c3ca24"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'
             : '';
-          var deleteBtn = '<button data-cal-action="delete-event" data-cal-event-id="\' + e.id + \'" data-cal-event-type="\' + e.event_type + \'" aria-label="' + deleteLabel + '" title="' + deleteLabel + '" class="cal-s-85a1b8"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg></button>';
+          var deleteBtn = '<button data-cal-action="delete-event" data-cal-event-id="' + e.id + '" data-cal-event-type="' + e.event_type + '" aria-label="' + deleteLabel + '" title="' + deleteLabel + '" class="cal-s-85a1b8"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg></button>';
           return '<div class="cal-s-70662e">' + sendMsgBtn + editBtn + deleteBtn + '</div>';
         })()
       + '</div>';
@@ -521,7 +521,7 @@ function calRenderMonthPicker() {
     var bg = isCurrent ? 'var(--accent)' : 'transparent';
     var color = isCurrent ? '#fff' : 'var(--text)';
     var border = isCurrent ? '1px solid var(--accent)' : '1px solid var(--border)';
-    return '<button data-cal-action="pick-month" data-cal-month="\' + i + \'" style="padding:10px;background:' + bg + ';border:' + border + ';border-radius:6px;color:' + color + ';font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">' + m + '</button>';
+    return '<button data-cal-action="pick-month" data-cal-month="' + i + '" style="padding:10px;background:' + bg + ';border:' + border + ';border-radius:6px;color:' + color + ';font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">' + m + '</button>';
   }).join('');
 }
 
@@ -715,7 +715,7 @@ function calOpenEventModal(existingEvent) {
   if (isEdit && colors.indexOf(defaultColor) === -1) colors.unshift(defaultColor);
   document.getElementById('cal-modal-colors').innerHTML = colors.map(function(c) {
     var selected = c === defaultColor;
-    return '<button data-cal-action="select-color" data-cal-color="\' + c + \'" data-color="\' + c + \'" class="cal-color-btn" style="width:32px;height:32px;border-radius:50%;background:' + c + ';border:' + (selected ? '3px solid #fff' : '2px solid var(--border)') + ';cursor:pointer;"></button>';
+    return '<button data-cal-action="select-color" data-cal-color="' + c + '" data-color="' + c + '" class="cal-color-btn" style="width:32px;height:32px;border-radius:50%;background:' + c + ';border:' + (selected ? '3px solid #fff' : '2px solid var(--border)') + ';cursor:pointer;"></button>';
   }).join('');
   window._calSelectedColor = defaultColor;
 
@@ -913,7 +913,7 @@ function calOpenSendMessage(bookingId, eventTitle) {
     + '<div id="cal-send-msg-success" class="cal-s-fb4f75">Sent! The booker has been notified.</div>'
     + '<div class="course-s-b9bbe5">'
     + '<button data-cal-action="close-send-msg-modal" class="cal-s-1a0819">Cancel</button>'
-    + '<button id="cal-send-msg-btn" data-cal-action="send-message-now" data-cal-booking-id="\' + bookingId + \'" class="cal-s-b8601a">Send Email</button>'
+    + '<button id="cal-send-msg-btn" data-cal-action="send-message-now" data-cal-booking-id="' + bookingId + '" class="cal-s-b8601a">Send Email</button>'
     + '</div>'
     + '</div>';
 
