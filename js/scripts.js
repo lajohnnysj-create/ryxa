@@ -1351,7 +1351,15 @@ function tpTick() {
   if (tpState.voiceOn) return;
   const area = document.getElementById('tp-scroll-area');
   if (!area) return;
-  area.scrollTop += tpState.speed * 0.5;
+  // Accumulate fractional scroll. scrollTop is integer-pixel rounded by the
+  // browser, so adding e.g. 0.125 per frame (speed 0.25) gets truncated to 0.
+  // We accumulate the fraction here and only apply the whole-pixel portion.
+  tpState.scrollAccumulator = (tpState.scrollAccumulator || 0) + tpState.speed * 0.5;
+  if (tpState.scrollAccumulator >= 1) {
+    var whole = Math.floor(tpState.scrollAccumulator);
+    area.scrollTop += whole;
+    tpState.scrollAccumulator -= whole;
+  }
   if (area.scrollTop + area.clientHeight >= area.scrollHeight - 1) {
     tpTogglePlay();
     return;
@@ -1398,6 +1406,7 @@ function tpRestart() {
   if (area) area.scrollTop = 0;
   if (tpState) {
     tpState.voiceChunkIndex = 0;
+    tpState.scrollAccumulator = 0;
     // If voice is playing, stop and rebuild from beginning
     if (tpState.voiceOn && tpState.playing) {
       tpStopVoice();
