@@ -1,9 +1,13 @@
 // =============================================================================
 // /js/follower.js — Follow-Back Audit (extracted from dashboard.html, 2026-05-10)
 // -----------------------------------------------------------------------------
-// All JavaScript for the Follow-Back Audit tool. Was previously inside its own
-// <script> block at dashboard.html lines 13110-13923 (originally ported inline
-// from a separate file/iframe). Now extracted to its own module file.
+// All JavaScript for the Follow-Back Audit tool.
+//
+// History: this tool started life as its own standalone follower-audit.html
+// page, was inlined into dashboard.html (single-page experience), and is now
+// extracted back out to its own JS module. The markup still lives in
+// dashboard.html for now (in two pieces: the main tool block and the
+// instructions modal at body level).
 //
 // Behavior preserved:
 //   • The audit code's native ZIP drag-and-drop listeners use
@@ -79,12 +83,8 @@ function followerDispatchEvent(event) {
 // END INFRASTRUCTURE
 // =============================================================================
 
-// ---------- From dashboard.html lines 13111-13926 (Follower Audit module) ----------
-// ═══════════════════════════════════════════════════════
-// FOLLOWER-AUDIT MODULE (ported inline into dashboard)
-// All IDs prefixed with fa- to avoid conflicts.
-// Uses the dashboard's sb, currentUser, userTier, etc.
-// ═══════════════════════════════════════════════════════
+// ---------- Follower Audit code begins here ----------
+// All DOM IDs are prefixed `fa-` to avoid collisions with other tools.
 
 // Instructions modal
 function faOpenInstructions() {
