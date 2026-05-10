@@ -4528,7 +4528,7 @@
           </div>
           <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
             <a id="bio-view-live" href="#" target="_blank" rel="noopener" style="display:none;padding:9px 14px;background:transparent;color:var(--accent2);border:1px solid rgba(124,58,237,0.4);border-radius:10px;font-size:13px;font-weight:500;text-decoration:none;">View live page ↗</a>
-            <button id="bio-save-btn" onclick="saveBio()" style="padding:10px 18px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow);">Save</button>
+            <button id="bio-save-btn" data-bio-action="save" style="padding:10px 18px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow);">Save</button>
           </div>
         </div>
 
@@ -4541,7 +4541,7 @@
               <div id="bio-status-sub" style="font-size:12px;color:var(--muted);">Your page isn't live yet. Publish to share it.</div>
             </div>
           </div>
-          <button id="bio-publish-btn" onclick="togglePublish()" style="padding:9px 16px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Publish</button>
+          <button id="bio-publish-btn" data-bio-action="toggle-publish" style="padding:9px 16px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Publish</button>
         </div>
 
         <!-- TOP SECTION: URL + Profile alongside Live Preview -->
@@ -4556,7 +4556,7 @@
               <div style="display:flex;gap:8px;align-items:stretch;flex-wrap:wrap;">
                 <div class="bio-username-prefix-wrap" style="display:flex;align-items:center;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding-left:12px;font-size:13px;color:var(--muted);flex:1;min-width:0;">
                   <span class="bio-username-prefix">ryxa.io/</span>
-                  <input type="text" id="bio-username" aria-label="Username" placeholder="yourname" maxlength="30" readonly onfocus="this.removeAttribute('readonly')" autocomplete="off" data-1p-ignore="true" data-lpignore="true" oninput="onUsernameInput()" style="background:transparent;border:none;padding:10px 10px 10px 2px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;flex:1;min-width:0;">
+                  <input type="text" id="bio-username" aria-label="Username" placeholder="yourname" maxlength="30" readonly data-bio-action="remove-readonly" data-bio-event="focus" autocomplete="off" data-1p-ignore="true" data-lpignore="true" data-bio-action="username-input" data-bio-event="input" style="background:transparent;border:none;padding:10px 10px 10px 2px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;flex:1;min-width:0;">
                 </div>
               </div>
               <div id="bio-username-hint" style="font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5;">Same username as your Media Kit. You can change it up to 2 times per week.</div>
@@ -4564,7 +4564,7 @@
 
             <!-- Avatar + identity -->
             <div class="bio-section" id="bio-section-profile">
-              <button type="button" class="bio-section-header bio-collapsible" onclick="toggleBioSection('profile')" aria-expanded="true">
+              <button type="button" class="bio-section-header bio-collapsible" data-bio-action="toggle-section" data-bio-section="profile" aria-expanded="true">
                 <div class="bio-section-label">Profile</div>
                 <svg class="bio-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
               </button>
@@ -4577,30 +4577,30 @@
                   <div style="display:flex;gap:6px;margin-top:8px;">
                     <label style="padding:6px 10px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:6px;font-size:11px;cursor:pointer;position:relative;flex:1;text-align:center;">
                       Upload
-                      <input type="file" id="bio-avatar-input" accept="image/*" aria-label="Upload profile photo" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;" onchange="openCropper(this,'avatar')">
+                      <input type="file" id="bio-avatar-input" accept="image/*" aria-label="Upload profile photo" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;" data-bio-action="open-cropper-avatar" data-bio-event="change">
                     </label>
-                    <button id="bio-avatar-remove" onclick="removeAvatar()" style="padding:6px 10px;background:transparent;border:1px solid rgba(239,68,68,0.3);color:#fca5a5;border-radius:6px;font-size:11px;cursor:pointer;font-family:DM Sans,sans-serif;display:none;">Remove</button>
+                    <button id="bio-avatar-remove" data-bio-action="remove-avatar" style="padding:6px 10px;background:transparent;border:1px solid rgba(239,68,68,0.3);color:#fca5a5;border-radius:6px;font-size:11px;cursor:pointer;font-family:DM Sans,sans-serif;display:none;">Remove</button>
                   </div>
                   <!-- Avatar display mode: Default / Hero (Max only) -->
                   <div id="bio-avatar-display-wrap" style="display:none;margin-top:6px;">
                     <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);margin-bottom:5px;">Display style</div>
                     <div style="display:flex;gap:4px;">
-                      <button id="bio-avatar-mode-default" onclick="setAvatarDisplay('default')" style="flex:1;padding:6px 8px;border-radius:6px;font-size:11px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.15s;background:var(--accent);color:#fff;border:1px solid var(--accent);">Default</button>
-                      <button id="bio-avatar-mode-hero" onclick="setAvatarDisplay('hero')" style="flex:1;padding:6px 8px;border-radius:6px;font-size:11px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.15s;background:transparent;color:#f0abfc;border:1px solid rgba(232,121,249,0.4);">Hero</button>
+                      <button id="bio-avatar-mode-default" data-bio-action="set-avatar-display" data-bio-mode="default" style="flex:1;padding:6px 8px;border-radius:6px;font-size:11px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.15s;background:var(--accent);color:#fff;border:1px solid var(--accent);">Default</button>
+                      <button id="bio-avatar-mode-hero" data-bio-action="set-avatar-display" data-bio-mode="hero" style="flex:1;padding:6px 8px;border-radius:6px;font-size:11px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.15s;background:transparent;color:#f0abfc;border:1px solid rgba(232,121,249,0.4);">Hero</button>
                     </div>
                   </div>
                 </div>
                 <div style="flex:1;min-width:200px;display:flex;flex-direction:column;gap:10px;">
                   <div>
                     <label for="bio-display-name" style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);display:block;margin-bottom:5px;">Display name</label>
-                    <input type="text" id="bio-display-name" maxlength="40" aria-label="Display name" oninput="onBioFieldChange()" placeholder="Your name" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+                    <input type="text" id="bio-display-name" maxlength="40" aria-label="Display name" data-bio-action="field-change" data-bio-event="input" placeholder="Your name" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
                     <div style="text-align:right;font-size:11px;color:var(--muted);margin-top:3px;"><span id="bio-name-count">0</span>/40</div>
                   </div>
                   <div>
                     <label for="bio-bio" style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);display:block;margin-bottom:5px;">Bio</label>
-                    <textarea id="bio-bio" maxlength="60" rows="2" aria-label="Bio text" oninput="onBioFieldChange()" placeholder="A short line about you" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;resize:none;line-height:1.5;"></textarea>
+                    <textarea id="bio-bio" maxlength="60" rows="2" aria-label="Bio text" data-bio-action="field-change" data-bio-event="input" placeholder="A short line about you" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;resize:none;line-height:1.5;"></textarea>
                     <div style="display:flex;align-items:center;justify-content:space-between;margin-top:3px;">
-                      <button onclick="aiBioAssist('bio-bio', 60)" class="ds-tool-btn" title="AI Bio Assist" style="width:auto;padding:0 8px;gap:4px;font-size:10px;height:22px;">
+                      <button data-bio-action="ai-bio-assist" class="ds-tool-btn" title="AI Bio Assist" style="width:auto;padding:0 8px;gap:4px;font-size:10px;height:22px;">
                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
                         AI
                       </button>
@@ -4614,7 +4614,7 @@
 
             <!-- Theme -->
             <div class="bio-section">
-              <button type="button" class="bio-section-header bio-collapsible" onclick="toggleBioSection('theme')" aria-expanded="true">
+              <button type="button" class="bio-section-header bio-collapsible" data-bio-action="toggle-section" data-bio-section="theme" aria-expanded="true">
                 <div class="bio-section-label">Theme</div>
                 <svg class="bio-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
               </button>
@@ -4639,16 +4639,16 @@
                   <div class="custom-bg-actions">
                     <label class="custom-bg-btn primary">
                       Upload
-                      <input type="file" accept="image/*" aria-label="Upload background" onchange="onBioCustomBgSelected(this)">
+                      <input type="file" accept="image/*" aria-label="Upload background" data-bio-action="custom-bg-selected" data-bio-event="change">
                     </label>
-                    <button type="button" id="bio-custom-bg-remove" class="custom-bg-btn danger" onclick="removeBioCustomBg()" style="display:none;">Remove</button>
+                    <button type="button" id="bio-custom-bg-remove" class="custom-bg-btn danger" data-bio-action="remove-custom-bg" style="display:none;">Remove</button>
                   </div>
                 </div>
 
                 <!-- Opacity -->
                 <div class="custom-opacity-row">
                   <label for="bio-custom-bg-opacity">Background opacity</label>
-                  <input type="range" id="bio-custom-bg-opacity" aria-label="Background opacity" min="0" max="1" step="0.05" value="0.4" oninput="onBioCustomOpacityChange(this.value)">
+                  <input type="range" id="bio-custom-bg-opacity" aria-label="Background opacity" min="0" max="1" step="0.05" value="0.4" data-bio-action="custom-opacity" data-bio-event="input">
                   <span id="bio-custom-bg-opacity-val" class="custom-opacity-val">40%</span>
                 </div>
 
@@ -4657,45 +4657,45 @@
                 <div class="custom-color-grid">
                   <div class="custom-color-item">
                     <label for="bio-color-bg">Page BG</label>
-                    <input type="color" id="bio-color-bg" class="custom-color-input" aria-label="Page background color" value="#07070f" oninput="onBioColorChange('bg', this.value)">
+                    <input type="color" id="bio-color-bg" class="custom-color-input" aria-label="Page background color" value="#07070f" data-bio-action="custom-color" data-bio-event="input" data-bio-slot="bg">
                     <div id="bio-color-bg-hex" class="custom-color-hex">#07070f</div>
                   </div>
                   <div class="custom-color-item">
                     <label for="bio-color-card">Card</label>
-                    <input type="color" id="bio-color-card" class="custom-color-input" aria-label="Card color" value="#161625" oninput="onBioColorChange('card', this.value)">
+                    <input type="color" id="bio-color-card" class="custom-color-input" aria-label="Card color" value="#161625" data-bio-action="custom-color" data-bio-event="input" data-bio-slot="card">
                     <div id="bio-color-card-hex" class="custom-color-hex">#161625</div>
                   </div>
                   <div class="custom-color-item">
                     <label for="bio-color-text">Text</label>
-                    <input type="color" id="bio-color-text" class="custom-color-input" aria-label="Text color" value="#ffffff" oninput="onBioColorChange('text', this.value)">
+                    <input type="color" id="bio-color-text" class="custom-color-input" aria-label="Text color" value="#ffffff" data-bio-action="custom-color" data-bio-event="input" data-bio-slot="text">
                     <div id="bio-color-text-hex" class="custom-color-hex">#ffffff</div>
                   </div>
                   <div class="custom-color-item">
                     <label for="bio-color-accent">Accent</label>
-                    <input type="color" id="bio-color-accent" class="custom-color-input" aria-label="Accent color" value="#a78bfa" oninput="onBioColorChange('accent', this.value)">
+                    <input type="color" id="bio-color-accent" class="custom-color-input" aria-label="Accent color" value="#a78bfa" data-bio-action="custom-color" data-bio-event="input" data-bio-slot="accent">
                     <div id="bio-color-accent-hex" class="custom-color-hex">#a78bfa</div>
                   </div>
                 </div>
 
-                <button type="button" onclick="resetBioCustomColors()" style="width:100%;padding:8px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:6px;font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer;">Reset to defaults</button>
+                <button type="button" data-bio-action="reset-custom-colors" style="width:100%;padding:8px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:6px;font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer;">Reset to defaults</button>
               </div>
               </div>
             </div>
 
             <!-- Font -->
             <div class="bio-section">
-              <button type="button" class="bio-section-header bio-collapsible" onclick="toggleBioSection('font')" aria-expanded="true">
+              <button type="button" class="bio-section-header bio-collapsible" data-bio-action="toggle-section" data-bio-section="font" aria-expanded="true">
                 <div class="bio-section-label">Font</div>
                 <svg class="bio-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
               </button>
               <div class="bio-section-body" id="bio-body-font">
-                <select id="bio-font-select" class="bio-font-select" aria-label="Choose font" onchange="pickBioFont(this.value)"></select>
+                <select id="bio-font-select" class="bio-font-select" aria-label="Choose font" data-bio-action="pick-font" data-bio-event="change"></select>
               </div>
             </div>
 
             <!-- Socials -->
             <div class="bio-section">
-              <button type="button" class="bio-section-header bio-collapsible" onclick="toggleBioSection('socials')" aria-expanded="true">
+              <button type="button" class="bio-section-header bio-collapsible" data-bio-action="toggle-section" data-bio-section="socials" aria-expanded="true">
                 <div class="bio-section-label">Social icons</div>
                 <svg class="bio-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
               </button>
@@ -4706,7 +4706,7 @@
 
             <!-- Links -->
             <div class="bio-section">
-              <button type="button" class="bio-section-header bio-collapsible" onclick="toggleBioSection('links')" aria-expanded="true">
+              <button type="button" class="bio-section-header bio-collapsible" data-bio-action="toggle-section" data-bio-section="links" aria-expanded="true">
                 <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
                   <div class="bio-section-label">Links</div>
                   <div id="bio-links-counts" style="font-size:11px;color:var(--muted);"></div>
@@ -4719,27 +4719,27 @@
               <!-- Group 1: Content blocks (structural pieces creators arrange in their bio) -->
               <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;padding-left:2px;">Content</div>
               <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:6px;margin-bottom:14px;">
-                <button type="button" id="bio-add-link-btn" onclick="addLink(false)" class="bio-add-btn bio-add-btn-content">
+                <button type="button" id="bio-add-link-btn" data-bio-action="add-link" data-bio-featured="false" class="bio-add-btn bio-add-btn-content">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
                   Link
                 </button>
-                <button type="button" id="bio-add-featured-btn" onclick="addLink(true)" class="bio-add-btn bio-add-btn-content">
+                <button type="button" id="bio-add-featured-btn" data-bio-action="add-link" data-bio-featured="true" class="bio-add-btn bio-add-btn-content">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
                   Featured
                 </button>
-                <button type="button" id="bio-add-header-btn" onclick="addHeader()" class="bio-add-btn bio-add-btn-content">
+                <button type="button" id="bio-add-header-btn" data-bio-action="add-header" class="bio-add-btn bio-add-btn-content">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4v16"/><path d="M18 4v16"/><path d="M6 12h12"/></svg>
                   Header
                 </button>
-                <button type="button" id="bio-add-hero-btn" onclick="addLink(false, true)" class="bio-add-btn bio-add-btn-content bio-add-btn-hero" style="display:none;">
+                <button type="button" id="bio-add-hero-btn" data-bio-action="add-link" data-bio-featured="false" data-bio-hero="true" class="bio-add-btn bio-add-btn-content bio-add-btn-hero" style="display:none;">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
                   Hero
                 </button>
-                <button type="button" id="bio-add-video-link" onclick="addVideoBlock()" class="bio-add-btn bio-add-btn-content">
+                <button type="button" id="bio-add-video-link" data-bio-action="add-video-block" class="bio-add-btn bio-add-btn-content">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m23 7-9 6 9 6V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
                   YouTube
                 </button>
-                <button type="button" id="bio-add-subscribe-btn" onclick="addSubscribeBlock()" class="bio-add-btn bio-add-btn-content">
+                <button type="button" id="bio-add-subscribe-btn" data-bio-action="add-subscribe-block" class="bio-add-btn bio-add-btn-content">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                   Subscribe
                 </button>
@@ -4749,19 +4749,19 @@
               <div id="bio-tools-group-wrap" style="display:none;">
                 <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;padding-left:2px;">Tools</div>
                 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:6px;">
-                  <button type="button" id="bio-add-course-link" onclick="openCoursePickerModal()" class="bio-add-btn bio-add-btn-tool" style="display:none;">
+                  <button type="button" id="bio-add-course-link" data-bio-action="open-course-picker" class="bio-add-btn bio-add-btn-tool" style="display:none;">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
                     Course
                   </button>
-                  <button type="button" id="bio-add-coaching-link" onclick="openCoachingPickerModal()" class="bio-add-btn bio-add-btn-tool" style="display:none;">
+                  <button type="button" id="bio-add-coaching-link" data-bio-action="open-coaching-picker" class="bio-add-btn bio-add-btn-tool" style="display:none;">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
                     Booking
                   </button>
-                  <button type="button" id="bio-add-product-link" onclick="openProductPickerModal()" class="bio-add-btn bio-add-btn-tool" style="display:none;">
+                  <button type="button" id="bio-add-product-link" data-bio-action="open-product-picker" class="bio-add-btn bio-add-btn-tool" style="display:none;">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
                     Digital
                   </button>
-                  <button type="button" id="bio-add-mediakit-link" onclick="addMediaKitLink()" class="bio-add-btn bio-add-btn-tool" style="display:none;">
+                  <button type="button" id="bio-add-mediakit-link" data-bio-action="add-mediakit-link" class="bio-add-btn bio-add-btn-tool" style="display:none;">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="17" x2="8" y2="13"/><line x1="12" y1="17" x2="12" y2="11"/><line x1="16" y1="17" x2="16" y2="15"/></svg>
                     Media Kit
                   </button>
@@ -4772,13 +4772,13 @@
 
             <!-- Settings -->
             <div class="bio-section">
-              <button type="button" class="bio-section-header bio-collapsible" onclick="toggleBioSection('branding')" aria-expanded="true">
+              <button type="button" class="bio-section-header bio-collapsible" data-bio-action="toggle-section" data-bio-section="branding" aria-expanded="true">
                 <div class="bio-section-label">Settings</div>
                 <svg class="bio-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
               </button>
               <div class="bio-section-body" id="bio-body-branding">
               <label id="bio-branding-label" for="bio-show-branding" style="display:flex;align-items:flex-start;gap:12px;cursor:pointer;user-select:none;">
-                <input type="checkbox" id="bio-show-branding" checked onchange="onBrandingToggle()"
+                <input type="checkbox" id="bio-show-branding" checked data-bio-action="branding-toggle" data-bio-event="change"
                   style="margin-top:3px;width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0;">
                 <div style="flex:1;">
                   <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
