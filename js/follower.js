@@ -572,16 +572,126 @@ function faExportCSV() {
 
 // ── PRINT ──
 function faPrintReport() {
-  const isMonthly = isPro();
-  const date = new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
-  const unfollowers = faAllResults.filter(r => !r.mutual && !r.followerOnly);
-  const mutuals = faAllResults.filter(r => r.mutual);
-  const followerOnly = faAllResults.filter(r => r.followerOnly);
-  let summaryParts = [`Not following back: <strong>${unfollowers.length}</strong>`, `Mutual: <strong>${mutuals.length}</strong>`, `Follows you only: <strong>${followerOnly.length}</strong>`];
-  if (isMonthly) { summaryParts.push(`Whitelisted: <strong>${faUserWhitelist.size}</strong>`); summaryParts.push(`Snake List: <strong>${faUserSnakeList.size}</strong>`); summaryParts.push(`Notes: <strong>${Object.keys(faAccountNotes).length}</strong>`); }
-  const printDateEl = document.getElementById('fa-print-date');
-  if (printDateEl) printDateEl.innerHTML = `Generated on ${date}<br><span class="follower-s-1f858a">${summaryParts.join(' &nbsp;·&nbsp; ')}</span>`;
-  window.print();
+  // Build a clean print-ready HTML doc in a hidden iframe and trigger print.
+  // Same pattern as Contract Analyzer's caPrintReport — avoids the dashboard's
+  // dark theme bleeding into the print output. All black text, white background.
+  var iframe = document.createElement('iframe');
+  iframe.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;';
+  document.body.appendChild(iframe);
+
+  var doc = iframe.contentDocument || iframe.contentWindow.document;
+  var html = buildFaPrintHTML();
+  doc.open();
+  doc.write(html);
+  doc.close();
+
+  iframe.onload = function() {
+    try {
+      iframe.contentWindow.focus();
+      iframe.contentWindow.print();
+    } catch (e) {
+      console.error('print', e);
+    }
+    setTimeout(function() {
+      try { document.body.removeChild(iframe); } catch (e) {}
+    }, 1000);
+  };
+}
+
+function buildFaPrintHTML() {
+  function esc(v) {
+    if (v == null) return '';
+    return String(v)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  var pro = isPro();
+  var date = new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+  var unfollowers = faAllResults.filter(function(r) { return !r.mutual && !r.followerOnly; });
+  var mutuals = faAllResults.filter(function(r) { return r.mutual; });
+  var followerOnly = faAllResults.filter(function(r) { return r.followerOnly; });
+
+  function rowSection(title, rows, opts) {
+    if (rows.length === 0) {
+      return '<section><h2>' + esc(title) + '</h2><p class="muted">None.</p></section>';
+    }
+    var head = '<tr><th>Username</th><th>Instagram URL</th>';
+    if (opts && opts.showWhitelist) head += '<th>Whitelisted</th>';
+    if (opts && opts.showSnake) head += '<th>Snake List</th>';
+    if (opts && opts.showNote) head += '<th>Note</th>';
+    head += '</tr>';
+    var body = rows.map(function(r) {
+      var h = (r.handle || '').toLowerCase();
+      var url = 'https://instagram.com/' + esc(r.handle);
+      var cells = '<td>@' + esc(r.handle) + '</td><td>' + esc(url) + '</td>';
+      if (opts && opts.showWhitelist) cells += '<td>' + (faUserWhitelist.has(h) ? 'Yes' : '') + '</td>';
+      if (opts && opts.showSnake) cells += '<td>' + (faUserSnakeList.has(h) ? 'Yes' : '') + '</td>';
+      if (opts && opts.showNote) cells += '<td>' + esc(faAccountNotes[h] || '') + '</td>';
+      return '<tr>' + cells + '</tr>';
+    }).join('');
+    return '<section><h2>' + esc(title) + ' <span class="count">(' + rows.length + ')</span></h2>'
+      + '<table><thead>' + head + '</thead><tbody>' + body + '</tbody></table></section>';
+  }
+
+  var summaryHtml = '<div class="summary"><div><strong>Not following back:</strong> ' + unfollowers.length + '</div>'
+    + '<div><strong>Mutual:</strong> ' + mutuals.length + '</div>'
+    + '<div><strong>Follows you only:</strong> ' + followerOnly.length + '</div>';
+  if (pro) {
+    summaryHtml += '<div><strong>Whitelisted:</strong> ' + faUserWhitelist.size + '</div>'
+      + '<div><strong>Snake List:</strong> ' + faUserSnakeList.size + '</div>'
+      + '<div><strong>Notes:</strong> ' + Object.keys(faAccountNotes).length + '</div>';
+  }
+  summaryHtml += '</div>';
+
+  // For Pro users: include extra sections (Whitelist, Snake List, Notes)
+  var extraSections = '';
+  if (pro) {
+    if (faUserWhitelist.size > 0) {
+      var wlRows = Array.from(faUserWhitelist).map(function(h) { return { handle: h }; });
+      extraSections += rowSection('Whitelist', wlRows, { showNote: true });
+    }
+    if (faUserSnakeList.size > 0) {
+      var snRows = Array.from(faUserSnakeList).map(function(h) { return { handle: h }; });
+      extraSections += rowSection('Snake List', snRows, { showNote: true });
+    }
+    var noteEntries = Object.entries(faAccountNotes);
+    if (noteEntries.length > 0) {
+      var notesRows = noteEntries.map(function(entry) { return { handle: entry[0] }; });
+      extraSections += rowSection('Account Notes', notesRows, { showNote: true });
+    }
+  }
+
+  return '<!doctype html><html><head><meta charset="utf-8">'
+    + '<title>Follow-Back Audit Report</title>'
+    + '<style>'
+    + '* { box-sizing: border-box; }'
+    + 'html, body { margin: 0; padding: 0; background: #fff; color: #000; }'
+    + 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; font-size: 11pt; line-height: 1.5; padding: 32px 40px; }'
+    + 'h1 { font-size: 22pt; margin: 0 0 4px 0; font-weight: 700; }'
+    + 'h2 { font-size: 13pt; margin: 22px 0 8px 0; padding-bottom: 4px; border-bottom: 1px solid #000; font-weight: 700; }'
+    + 'h2 .count { font-weight: 400; font-size: 11pt; }'
+    + '.meta { font-size: 10pt; margin-bottom: 12px; }'
+    + '.summary { display: flex; flex-wrap: wrap; gap: 16px 24px; padding: 12px 0; border-top: 2px solid #000; border-bottom: 1px solid #000; margin-bottom: 8px; font-size: 10.5pt; }'
+    + '.summary > div { white-space: nowrap; }'
+    + 'section { margin-bottom: 8px; page-break-inside: auto; }'
+    + 'table { width: 100%; border-collapse: collapse; font-size: 10pt; }'
+    + 'thead { display: table-header-group; }'
+    + 'tr { page-break-inside: avoid; }'
+    + 'th, td { text-align: left; padding: 5px 8px; border-bottom: 1px solid #ccc; vertical-align: top; word-break: break-word; }'
+    + 'th { font-weight: 700; background: #f3f3f3; }'
+    + 'tr:last-child td { border-bottom: none; }'
+    + '.muted { font-size: 10pt; font-style: italic; margin: 4px 0 8px 0; }'
+    + '@page { margin: 0.5in; }'
+    + '@media print { body { padding: 0; } }'
+    + '</style></head><body>'
+    + '<h1>Follow-Back Audit Report</h1>'
+    + '<div class="meta">Generated on ' + esc(date) + '</div>'
+    + summaryHtml
+    + rowSection('Not Following Back', unfollowers, { showWhitelist: pro, showSnake: pro, showNote: pro })
+    + rowSection('Mutuals', mutuals, { showNote: pro })
+    + rowSection('Follows You Only', followerOnly)
+    + extraSections
+    + '</body></html>';
 }
 
 // ── FILE HANDLING ──
