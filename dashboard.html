@@ -4882,6 +4882,17 @@
   .ds-s-ce2cb2 { display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;opacity:0.4;transition:all 0.4s; }
   .ds-s-3d1a54 { width:24px;height:24px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.3s; }
 
+
+  /* ============================================================
+     PHASE 3 — Contract Analyzer style extraction
+     ============================================================ */
+  .ds-s-391757 { font-size:14px;color:var(--muted);margin-bottom:6px; }
+  .ds-s-56d6f8 { font-size:11px;color:var(--muted);font-style:italic;margin-bottom:24px; }
+  .ds-s-3cd26d { display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;margin-bottom:16px; }
+  .ds-s-0c7735 { font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+  .ds-s-5c219d { background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;padding:4px; }
+  .ds-s-bcabe4 { background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:32px; }
+
 </style>
 <style>html{background:#07070f;}body{visibility:hidden;}body.ready{visibility:visible;}</style>
 
@@ -7557,86 +7568,86 @@
         .tool-area { margin-left: 0 !important; padding: 20px !important; }
       }
     </style>
-    <div id="tool-contractanalyzer" style="display:none;">
-      <div style="max-width:720px;">
+    <div id="tool-contractanalyzer" class="bio-s-c8be1c">
+      <div class="ds-s-ace910">
 
         <!-- Pro upsell (non-Pro users) -->
-        <div id="contractanalyzer-upsell" style="display:none;text-align:center;padding:60px 24px;">
-          <div style="width:56px;height:56px;margin:0 auto 16px;background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.25);border-radius:14px;display:flex;align-items:center;justify-content:center;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 15l2 2 4-4"/></svg></div>
-          <h2 style="font-family:Syne,sans-serif;font-size:28px;font-weight:800;margin-bottom:8px;letter-spacing:-0.5px;">Contract Analyzer</h2>
-          <p style="color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:24px;max-width:440px;margin-left:auto;margin-right:auto;">Upload a brand deal contract and get an instant AI-generated report with key terms, deliverables, and red flags. Available on Pro.</p>
-          <button onclick="startCheckout(&apos;monthly&apos;, this)" style="padding:12px 28px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow);">Upgrade to Pro</button>
+        <div id="contractanalyzer-upsell" class="course-s-d72aad">
+          <div class="mk-s-ad83c6"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 15l2 2 4-4"/></svg></div>
+          <h2 class="course-s-6422e6">Contract Analyzer</h2>
+          <p class="course-s-31073b">Upload a brand deal contract and get an instant AI-generated report with key terms, deliverables, and red flags. Available on Pro.</p>
+          <button data-ds-action="ca-start-checkout" data-ds-plan="monthly" class="chat-s-43c698">Upgrade to Pro</button>
         </div>
 
         <!-- Tool content (Pro+ users) -->
-        <div id="contractanalyzer-content" style="display:none;">
-        <h2 style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;margin-bottom:6px;letter-spacing:-0.5px;">AI Contract Analyzer</h2>
-        <p style="font-size:14px;color:var(--muted);margin-bottom:6px;">Upload a brand deal contract and get an instant AI-generated report with key terms, deliverables, and red flags.</p>
-        <p style="font-size:11px;color:var(--muted);font-style:italic;margin-bottom:24px;">This is not legal advice. Always consult a lawyer before signing binding agreements.</p>
+        <div id="contractanalyzer-content" class="bio-s-c8be1c">
+        <h2 class="clients-s-88cf18">AI Contract Analyzer</h2>
+        <p class="ds-s-391757">Upload a brand deal contract and get an instant AI-generated report with key terms, deliverables, and red flags.</p>
+        <p class="ds-s-56d6f8">This is not legal advice. Always consult a lawyer before signing binding agreements.</p>
 
         <!-- Upload area -->
-        <div id="ca-upload-area" style="border:2px dashed var(--border-hover);border-radius:16px;padding:48px 24px;text-align:center;cursor:pointer;transition:all 0.2s;margin-bottom:24px;" onclick="document.getElementById('ca-file-input').click()" onmouseover="this.style.borderColor='rgba(124,58,237,0.4)';this.style.background='rgba(124,58,237,0.03)'" onmouseout="this.style.borderColor='var(--border-hover)';this.style.background='transparent'">
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:12px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
-          <div style="font-size:15px;font-weight:500;margin-bottom:6px;">Drop your contract here or click to upload</div>
-          <div style="font-size:12px;color:var(--muted);">PDF files only — up to 20 pages</div>
+        <div id="ca-upload-area" class="ds-s-86e1d9" data-ds-action="ca-trigger-upload" onmouseover="this.style.borderColor='rgba(124,58,237,0.4)';this.style.background='rgba(124,58,237,0.03)'" onmouseout="this.style.borderColor='var(--border-hover)';this.style.background='transparent'">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="deal-s-3ef1fa"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
+          <div class="ds-s-781483">Drop your contract here or click to upload</div>
+          <div class="bio-s-e769ff">PDF files only — up to 20 pages</div>
         </div>
-        <input type="file" id="ca-file-input" accept=".pdf,application/pdf" style="display:none;" onchange="caHandleUpload(this)" aria-label="Upload contract PDF">
+        <input type="file" id="ca-file-input" accept=".pdf,application/pdf" class="bio-s-c8be1c" data-ds-action="ca-handle-upload" data-ds-event="change" aria-label="Upload contract PDF">
 
         <!-- File preview -->
-        <div id="ca-preview-area" style="display:none;margin-bottom:24px;">
-          <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;margin-bottom:16px;">
+        <div id="ca-preview-area" class="deal-s-30ded2">
+          <div class="ds-s-3cd26d">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e879f9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-            <div style="flex:1;min-width:0;">
-              <div id="ca-filename" style="font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
-              <div id="ca-filesize" style="font-size:11px;color:var(--muted);"></div>
+            <div class="bio-s-a07604">
+              <div id="ca-filename" class="ds-s-0c7735"></div>
+              <div id="ca-filesize" class="bio-s-5f3468"></div>
             </div>
-            <button onclick="caReset()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;padding:4px;">×</button>
+            <button data-ds-action="ca-reset" class="ds-s-5c219d">×</button>
           </div>
-          <button onclick="caAnalyze()" id="ca-analyze-btn" style="width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.2s;box-shadow:0 0 20px rgba(124,58,237,0.3);" onmouseover="this.style.background='var(--accent2)'" onmouseout="this.style.background='var(--accent)'">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:8px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M9 15l2 2 4-4"/></svg>Analyze Contract
+          <button data-ds-action="ca-analyze" id="ca-analyze-btn" class="ds-s-55f458" onmouseover="this.style.background='var(--accent2)'" onmouseout="this.style.background='var(--accent)'">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ds-s-468663"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M9 15l2 2 4-4"/></svg>Analyze Contract
           </button>
         </div>
 
         <!-- Loading animation -->
-        <div id="ca-loading" style="display:none;">
-          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:32px;">
-            <div id="ca-steps" style="display:flex;flex-direction:column;gap:12px;">
-              <div class="ta-step" id="ca-step-0" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;opacity:0.4;transition:all 0.4s;">
-                <div class="ta-step-icon" style="width:24px;height:24px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.3s;">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><polyline points="20 6 9 17 4 12"/></svg>
+        <div id="ca-loading" class="bio-s-c8be1c">
+          <div class="ds-s-bcabe4">
+            <div id="ca-steps" class="mk-s-2e1ca3">
+              <div class="ta-step ds-s-ce2cb2" id="ca-step-0">
+                <div class="ta-step-icon ds-s-3d1a54" >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="bio-s-c8be1c"><polyline points="20 6 9 17 4 12"/></svg>
                 <span class="ta-loading-dots"><span></span><span></span><span></span></span></div>
-                <span style="font-size:13px;color:var(--muted);">Extracting contract text...</span>
+                <span class="cal-s-56e6ba">Extracting contract text...</span>
               </div>
-              <div class="ta-step" id="ca-step-1" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;opacity:0.4;transition:all 0.4s;">
-                <div class="ta-step-icon" style="width:24px;height:24px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.3s;">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><polyline points="20 6 9 17 4 12"/></svg>
+              <div class="ta-step ds-s-ce2cb2" id="ca-step-1">
+                <div class="ta-step-icon ds-s-3d1a54" >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="bio-s-c8be1c"><polyline points="20 6 9 17 4 12"/></svg>
                 <span class="ta-loading-dots"><span></span><span></span><span></span></span></div>
-                <span style="font-size:13px;color:var(--muted);">Identifying parties and payment terms...</span>
+                <span class="cal-s-56e6ba">Identifying parties and payment terms...</span>
               </div>
-              <div class="ta-step" id="ca-step-2" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;opacity:0.4;transition:all 0.4s;">
-                <div class="ta-step-icon" style="width:24px;height:24px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.3s;">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><polyline points="20 6 9 17 4 12"/></svg>
+              <div class="ta-step ds-s-ce2cb2" id="ca-step-2">
+                <div class="ta-step-icon ds-s-3d1a54" >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="bio-s-c8be1c"><polyline points="20 6 9 17 4 12"/></svg>
                 <span class="ta-loading-dots"><span></span><span></span><span></span></span></div>
-                <span style="font-size:13px;color:var(--muted);">Reviewing deliverables and usage rights...</span>
+                <span class="cal-s-56e6ba">Reviewing deliverables and usage rights...</span>
               </div>
-              <div class="ta-step" id="ca-step-3" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;opacity:0.4;transition:all 0.4s;">
-                <div class="ta-step-icon" style="width:24px;height:24px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.3s;">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><polyline points="20 6 9 17 4 12"/></svg>
+              <div class="ta-step ds-s-ce2cb2" id="ca-step-3">
+                <div class="ta-step-icon ds-s-3d1a54" >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="bio-s-c8be1c"><polyline points="20 6 9 17 4 12"/></svg>
                 <span class="ta-loading-dots"><span></span><span></span><span></span></span></div>
-                <span style="font-size:13px;color:var(--muted);">Scanning for red flags and exclusivity clauses...</span>
+                <span class="cal-s-56e6ba">Scanning for red flags and exclusivity clauses...</span>
               </div>
-              <div class="ta-step" id="ca-step-4" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;opacity:0.4;transition:all 0.4s;">
-                <div class="ta-step-icon" style="width:24px;height:24px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.3s;">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><polyline points="20 6 9 17 4 12"/></svg>
+              <div class="ta-step ds-s-ce2cb2" id="ca-step-4">
+                <div class="ta-step-icon ds-s-3d1a54" >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="bio-s-c8be1c"><polyline points="20 6 9 17 4 12"/></svg>
                 <span class="ta-loading-dots"><span></span><span></span><span></span></span></div>
-                <span style="font-size:13px;color:var(--muted);">Generating report...</span>
+                <span class="cal-s-56e6ba">Generating report...</span>
               </div>
             </div>
           </div>
         </div>
 
         <!-- Results -->
-        <div id="ca-results" style="display:none;"></div>
+        <div id="ca-results" class="bio-s-c8be1c"></div>
         </div><!-- /contractanalyzer-content -->
       </div>
     </div>
