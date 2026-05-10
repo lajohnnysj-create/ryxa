@@ -131,25 +131,21 @@ function renderCoachingList() {
     const statusColor = c.status === 'published' ? '#4ade80' : '#fbbf24';
     const statusLabel = c.status.charAt(0).toUpperCase() + c.status.slice(1);
     const price = c.price_cents === 0 ? 'Free' : formatMoney(c.price_cents, {alwaysShowCents:true});
-    const bookingLabel = c.booking_type === 'ryxa_calendar' ? 'Ryxa Calendar' : (c.booking_type === 'calendly' ? 'Scheduling Link' : 'Manual');
-    // Cover background: matches the approach used in course.js — single
-    // data-coach-bg attribute holds the full `background` shorthand value.
     const coverBg = c.cover_image_path
-      ? 'url(' + sb.storage.from("coaching-covers").getPublicUrl(c.cover_image_path).data.publicUrl + ') center/cover'
-      : 'linear-gradient(135deg,rgba(124,58,237,0.15),rgba(232,121,249,0.1))';
+      ? 'background-image:url(' + sb.storage.from("coaching-covers").getPublicUrl(c.cover_image_path).data.publicUrl + ');background-size:cover;background-position:center;'
+      : 'background:linear-gradient(135deg,rgba(124,58,237,0.15),rgba(232,121,249,0.1));display:flex;align-items:center;justify-content:center;';
+    const bookingLabel = c.booking_type === 'ryxa_calendar' ? 'Ryxa Calendar' : (c.booking_type === 'calendly' ? 'Scheduling Link' : 'Manual');
     return '<div data-coach-action="open-editor" data-coach-id="' + escapeHtml(c.id) + '" class="coach-card-clickable course-s-259ee6">'
-      + '<div class="coach-card-cover" data-coach-bg="' + escapeHtml(coverBg) + '">' + (c.cover_image_path ? '' : '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(167,139,250,0.5)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>') + '</div>'
+      + '<div style="height:140px;' + coverBg + '">' + (c.cover_image_path ? '' : '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(167,139,250,0.5)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>') + '</div>'
       + '<div class="course-s-4680c6">'
       + '<div class="course-s-c420c8">' + escapeHtml(c.title || 'Untitled Service') + '</div>'
       + '<div class="course-s-3522d7">'
-      + '<span class="coach-card-status" data-coach-color="' + escapeHtml(statusColor) + '">' + statusLabel + '</span>'
+      + '<span style="font-size:12px;color:' + statusColor + ';font-weight:600;">' + statusLabel + '</span>'
       + '<span class="course-s-b78524">' + price + '</span>'
       + '</div>'
       + '<div class="bio-s-5f3468">Total Bookings: ' + (c._bookings || 0) + ' · ' + bookingLabel + '</div>'
       + '</div></div>';
   }).join('');
-  // Apply data-coach-* styles to the just-rendered cards
-  coachApplyDataStyles(grid);
 }
 
 function openCoachingEditor(coachingId) {
