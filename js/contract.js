@@ -64,6 +64,8 @@ function contractDispatchEvent(event) {
 // CONTRACT ANALYZER
 // =====================================================
 var caFileData = null;
+var caLastResult = null;
+var caLastFileName = null;
 
 function caHandleUpload(input) {
   var file = input.files[0];
@@ -82,6 +84,8 @@ function caHandleUpload(input) {
 
 function caReset() {
   caFileData = null;
+  caLastResult = null;
+  caLastFileName = null;
   document.getElementById('ca-file-input').value = '';
   document.getElementById('ca-upload-area').style.display = 'block';
   document.getElementById('ca-preview-area').style.display = 'none';
@@ -140,6 +144,8 @@ async function caAnalyze() {
         document.getElementById('ca-preview-area').style.display = 'block';
         return;
       }
+      caLastResult = data.result;
+      caLastFileName = caFileData ? caFileData.name : '';
       caRenderResults(data.result);
     }, 600);
 
@@ -263,13 +269,128 @@ function caRenderResults(r) {
     // Disclaimer + actions
     + '<div class="ds-s-288a4b">This analysis is AI-generated and is not legal advice. Always consult a qualified lawyer before signing contracts.</div>'
     + '<div class="ds-s-6b00e7">'
-    + '<button data-ds-action="window-print" class="ds-s-4ff341">Print Report</button>'
+    + '<button data-contract-action="print" class="ds-s-4ff341">Print Report</button>'
     + '<button data-contract-action="reset" class="ds-s-35389e">Analyze another</button>'
     + '</div>';
 
   var resultsEl = document.getElementById('ca-results');
   resultsEl.innerHTML = html;
   resultsEl.style.display = 'block';
+}
+
+function caPrintReport() {
+  if (!caLastResult) return;
+
+  // Build a clean print-ready HTML doc in a hidden iframe and trigger print.
+  // Same pattern as scripts.js exportScriptPDF — avoids the live dark theme
+  // bleeding into the print output.
+  var iframe = document.createElement('iframe');
+  iframe.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;';
+  document.body.appendChild(iframe);
+
+  var doc = iframe.contentDocument || iframe.contentWindow.document;
+  var html = buildCaPrintHTML(caLastResult, caLastFileName);
+  doc.open();
+  doc.write(html);
+  doc.close();
+
+  iframe.onload = function() {
+    try {
+      iframe.contentWindow.focus();
+      iframe.contentWindow.print();
+    } catch (e) {
+      console.error('print', e);
+    }
+    setTimeout(function() {
+      try { document.body.removeChild(iframe); } catch (e) {}
+    }, 1000);
+  };
+}
+
+function buildCaPrintHTML(r, fileName) {
+  // Clean, print-only HTML. All black text on white. No backgrounds.
+  // Uses system fonts and basic structure — no dependency on dashboard CSS.
+  function esc(v) {
+    if (v == null) return '';
+    return String(v)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  function field(label, value) {
+    return '<div class="field"><div class="label">' + esc(label) + '</div>'
+      + '<div class="value">' + esc(value || 'Not specified') + '</div></div>';
+  }
+  function section(title, content) {
+    return '<section><h2>' + esc(title) + '</h2>' + content + '</section>';
+  }
+
+  var partiesHtml = field('Brand', r.parties?.brand) + field('Creator', r.parties?.creator);
+  var paymentHtml = field('Amount', r.payment?.amount) + field('Schedule', r.payment?.schedule) + field('Kill Fee', r.payment?.kill_fee);
+  var deliverablesHtml = (r.deliverables || []).length > 0
+    ? '<ol class="list">' + (r.deliverables || []).map(function(d) {
+        return '<li>' + esc(d) + '</li>';
+      }).join('') + '</ol>'
+    : '<p class="muted">No deliverables listed.</p>';
+  var timelineHtml = field('Start Date', r.timeline?.start_date) + field('End Date', r.timeline?.end_date) + field('Content Deadline', r.timeline?.content_deadline) + field('Review Period', r.timeline?.review_period);
+  var usageHtml = field('Summary', r.usage_rights?.summary) + field('Duration', r.usage_rights?.duration) + field('Platforms', r.usage_rights?.platforms);
+  var exclHtml = '<div class="field"><div class="label">Status</div>'
+    + '<div class="value">' + (r.exclusivity?.has_exclusivity ? 'Exclusivity clause found' : 'No exclusivity') + '</div></div>'
+    + field('Details', r.exclusivity?.details)
+    + field('Duration', r.exclusivity?.duration);
+  var otherHtml = field('Content Ownership', r.content_ownership) + field('Termination', r.termination);
+  var redFlagsHtml = (r.red_flags || []).length > 0
+    ? '<ul class="list">' + (r.red_flags || []).map(function(f) { return '<li>' + esc(f) + '</li>'; }).join('') + '</ul>'
+    : '<p class="muted">No major red flags detected.</p>';
+  var miscHtml = (r.misc_details || []).length > 0
+    ? '<ul class="list">' + (r.misc_details || []).map(function(d) { return '<li>' + esc(d) + '</li>'; }).join('') + '</ul>'
+    : '<p class="muted">No additional details noted.</p>';
+
+  var dateStr = new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+
+  return '<!doctype html><html><head><meta charset="utf-8">'
+    + '<title>Contract Analysis Report</title>'
+    + '<style>'
+    + '* { box-sizing: border-box; }'
+    + 'html, body { margin: 0; padding: 0; background: #fff; color: #000; }'
+    + 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; font-size: 12pt; line-height: 1.5; padding: 36px 48px; }'
+    + 'h1 { font-size: 22pt; margin: 0 0 4px 0; font-weight: 700; }'
+    + 'h2 { font-size: 14pt; margin: 24px 0 8px 0; padding-bottom: 4px; border-bottom: 1px solid #000; font-weight: 700; }'
+    + '.meta { font-size: 10pt; color: #000; margin-bottom: 16px; }'
+    + '.meta strong { font-weight: 600; }'
+    + '.assessment { padding: 12px 0; border-top: 2px solid #000; border-bottom: 1px solid #000; margin-bottom: 8px; }'
+    + '.assessment .label { font-size: 10pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }'
+    + '.assessment .value { font-size: 12pt; line-height: 1.5; }'
+    + 'section { margin-bottom: 8px; page-break-inside: avoid; }'
+    + '.field { margin: 6px 0; }'
+    + '.field .label { font-size: 10pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }'
+    + '.field .value { font-size: 12pt; }'
+    + '.list { margin: 4px 0 4px 20px; padding: 0; }'
+    + '.list li { margin: 4px 0; }'
+    + '.muted { font-size: 11pt; font-style: italic; margin: 4px 0; }'
+    + '.disclaimer { margin-top: 28px; padding-top: 12px; border-top: 1px solid #000; font-size: 10pt; line-height: 1.5; }'
+    + '@page { margin: 0.6in; }'
+    + '@media print { body { padding: 0; } }'
+    + '</style></head><body>'
+    + '<h1>Contract Analysis Report</h1>'
+    + '<div class="meta">'
+    +   (fileName ? '<div><strong>File:</strong> ' + esc(fileName) + '</div>' : '')
+    +   '<div><strong>Generated:</strong> ' + esc(dateStr) + '</div>'
+    + '</div>'
+    + '<div class="assessment">'
+    +   '<div class="label">Overall Assessment</div>'
+    +   '<div class="value">' + esc(r.overall_assessment || '') + '</div>'
+    + '</div>'
+    + section('Parties', partiesHtml)
+    + section('Payment', paymentHtml)
+    + section('Deliverables', deliverablesHtml)
+    + section('Timeline', timelineHtml)
+    + section('Usage Rights', usageHtml)
+    + section('Exclusivity', exclHtml)
+    + section('Ownership & Termination', otherHtml)
+    + section('Red Flags', redFlagsHtml)
+    + section('Other Details', miscHtml)
+    + '<div class="disclaimer">This analysis is AI-generated and is not legal advice. Always consult a qualified lawyer before signing contracts.</div>'
+    + '</body></html>';
 }
 
 
@@ -285,3 +406,4 @@ contractRegisterAction('trigger-upload', () => {
 contractRegisterAction('handle-upload', (e, el) => caHandleUpload(el));
 contractRegisterAction('analyze', () => caAnalyze());
 contractRegisterAction('reset', () => caReset());
+contractRegisterAction('print', () => caPrintReport());
