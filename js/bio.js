@@ -3226,7 +3226,7 @@ function buildPreviewLink(l, t) {
     const cards = videos.map(v => {
       const id = extractYouTubeIdDash(v && v.url);
       if (!id) return '';
-      return `<div class="vc"><img src="https://i.ytimg.com/vi/${id}/hqdefault.jpg" alt="YouTube video thumbnail" onerror="this.src='https://i.ytimg.com/vi/${id}/default.jpg'"></div>`;
+      return `<div class="vc"><img src="https://i.ytimg.com/vi/${id}/hqdefault.jpg" alt="YouTube video thumbnail" data-bio-onerror="fallback-src" data-bio-fallback-src="https://i.ytimg.com/vi/${id}/default.jpg"></div>`;
     }).filter(Boolean).join('');
     if (!cards) {
       // Empty placeholder — only shown in editor preview when a block was just
@@ -3549,7 +3549,11 @@ bioRegisterAction('confirm-crop', () => confirmCrop());
 
 // ----- Image error fallbacks (replaces inline onerror=) -----
 // Image error events do NOT bubble, so we need a capture-phase listener.
-// Elements opt-in by setting data-bio-onerror="hide" or "hide-thumb-bg".
+// Elements opt-in via data-bio-onerror with one of these modes:
+//   "hide"           — set display:none on the img
+//   "hide-thumb-bg"  — clear src, paint a placeholder background
+//   "fallback-src"   — swap to data-bio-fallback-src then clear the attribute
+//                      (so a second failure doesn't loop)
 document.addEventListener('error', function(e) {
   const target = e.target;
   if (!(target instanceof HTMLImageElement)) return;
@@ -3560,6 +3564,15 @@ document.addEventListener('error', function(e) {
   } else if (mode === 'hide-thumb-bg') {
     target.style.background = 'var(--surface2)';
     target.removeAttribute('src');
+  } else if (mode === 'fallback-src') {
+    const fallback = target.dataset.bioFallbackSrc;
+    if (fallback) {
+      // Clear the data attr first so a second error (on the fallback URL)
+      // doesn't loop indefinitely.
+      target.removeAttribute('data-bio-fallback-src');
+      target.removeAttribute('data-bio-onerror');
+      target.src = fallback;
+    }
   }
 }, true); // capture phase
 

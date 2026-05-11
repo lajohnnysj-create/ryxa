@@ -300,10 +300,7 @@ function renderPipeline() {
         </div>
         <span class="pipeline-col-count">${deals.length}</span>
       </div>
-      <div class="pipeline-col-body"
-        ondragover="onPipelineDragOver(event)"
-        ondragleave="onPipelineDragLeave(event)"
-        ondrop="onPipelineDrop(event, '${col.key}')">
+      <div class="pipeline-col-body" data-deal-drop-col="${col.key}">
         ${cards}
       </div>
     </div>`;
@@ -329,9 +326,8 @@ function buildPipelineCard(d) {
 
   return `<div class="pipeline-card" draggable="true"
     data-deal-id="${d.id}"
-    ondragstart="onPipelineDragStart(event, '${d.id}')"
-    ondragend="onPipelineDragEnd(event)"
-    data-deal-action="show-detail" data-deal-id="${d.id}">
+    data-deal-drag-card
+    data-deal-action="show-detail">
     <div class="pipeline-card-title">${escapeHtml(d.deal_title || 'Untitled')}</div>
     <div class="pipeline-card-brand">${escapeHtml(d.brand_name || '')}</div>
     <div class="pipeline-card-footer">
@@ -815,7 +811,7 @@ function renderUpcomingEnds() {
     else { urgencyText = formatDateShort(d.campaign_end_date); }
 
     return `
-      <div data-deal-action="show-detail" data-deal-id="${d.id}" class="deal-s-1d6b3c" onmouseover="this.style.borderColor=\'var(--border-hover)\'" onmouseout="this.style.borderColor=\'var(--border)\'">
+      <div data-deal-action="show-detail" data-deal-id="${d.id}" class="deal-s-1d6b3c deal-h-card">
         <div class="bio-s-ec9235">
           <div class="deal-s-b2ab5d">${escapeHtml(d.deal_title)}</div>
           <div class="deal-s-eca745">${escapeHtml(d.brand_name)}</div>
@@ -2848,4 +2844,36 @@ dealRegisterAction('close-share-confirm', () => closeShareConfirmModal());
 dealRegisterAction('update-delete-button', () => updateDealDeleteButton());
 dealRegisterAction('confirm-delete-deal', () => confirmDeleteDeal());
 dealRegisterAction('close-delete-modal', () => closeDealDeleteModal());
+
+// =============================================================================
+// PIPELINE (KANBAN) DRAG-AND-DROP
+// -----------------------------------------------------------------------------
+// Pipeline cards have data-deal-drag-card; column bodies have data-deal-drop-col
+// with the column key as the value. We delegate from document so dynamically-
+// rendered cards/columns (re-rendered on every pipeline change) work without
+// per-element rewiring.
+// =============================================================================
+document.addEventListener('dragstart', function(e) {
+  const card = e.target.closest('[data-deal-drag-card]');
+  if (!card) return;
+  onPipelineDragStart(e, card.dataset.dealId);
+});
+document.addEventListener('dragend', function(e) {
+  const card = e.target.closest('[data-deal-drag-card]');
+  if (!card) return;
+  onPipelineDragEnd(e);
+});
+document.addEventListener('dragover', function(e) {
+  if (!e.target.closest('[data-deal-drop-col]')) return;
+  onPipelineDragOver(e);
+});
+document.addEventListener('dragleave', function(e) {
+  if (!e.target.closest('[data-deal-drop-col]')) return;
+  onPipelineDragLeave(e);
+});
+document.addEventListener('drop', function(e) {
+  const col = e.target.closest('[data-deal-drop-col]');
+  if (!col) return;
+  onPipelineDrop(e, col.dataset.dealDropCol);
+});
 

@@ -213,10 +213,10 @@ function gcalRenderConnectionState() {
       + '<span class="cal-s-d8b3b8"></span>'
       + 'Google Calendar connected as ' + emailLabel
       + '</div>'
-      + '<button data-cal-action="gcal-disconnect" class="cal-s-2b653b" onmouseover="this.style.borderColor=\'var(--border-hover)\';this.style.color=\'var(--text)\'" onmouseout="this.style.borderColor=\'var(--border)\';this.style.color=\'var(--muted)\'">Disconnect</button>';
+      + '<button data-cal-action="gcal-disconnect" class="cal-s-2b653b cal-h-e4ed29">Disconnect</button>';
   } else {
     row.innerHTML =
-      '<button data-cal-action="gcal-connect" class="cal-s-7c77c8" onmouseover="this.style.boxShadow=\'0 1px 3px rgba(0,0,0,0.2)\'" onmouseout="this.style.boxShadow=\'none\'">'
+      '<button data-cal-action="gcal-connect" class="cal-s-7c77c8 cal-h-4290e9">'
       + '<svg width="16" height="16" viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M45.12 24.5c0-1.56-.14-3.06-.4-4.5H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.64v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.17z"/><path fill="#34A853" d="M24 46c5.94 0 10.92-1.97 14.56-5.33l-7.11-5.52c-1.97 1.32-4.49 2.1-7.45 2.1-5.73 0-10.58-3.87-12.31-9.07H4.34v5.7C7.96 41.07 15.4 46 24 46z"/><path fill="#FBBC05" d="M11.69 28.18c-.44-1.32-.69-2.73-.69-4.18s.25-2.86.69-4.18v-5.7H4.34C2.85 17.09 2 20.45 2 24s.85 6.91 2.34 9.88l7.35-5.7z"/><path fill="#EA4335" d="M24 10.75c3.23 0 6.13 1.11 8.41 3.29l6.31-6.31C34.91 4.18 29.93 2 24 2 15.4 2 7.96 6.93 4.34 14.12l7.35 5.7c1.73-5.2 6.58-9.07 12.31-9.07z"/></svg>'
       + 'Connect Google Calendar'
       + '</button>'
@@ -416,7 +416,7 @@ function calRenderCell(year, month, day, isOtherMonth, todayYmd) {
   var dotColor = isSelected ? '#fff' : 'var(--accent2)';
   var dot = hasEvents ? '<div style="position:absolute;bottom:4px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:' + dotColor + ';"></div>' : '';
 
-  return '<button data-cal-action="select-date" data-cal-ymd="' + ymd + '" style="position:relative;aspect-ratio:1;background:' + bg + ';border:' + border + ';border-radius:8px;color:' + color + ';font-size:13px;font-weight:500;cursor:pointer;font-family:DM Sans,sans-serif;padding:0;display:flex;align-items:center;justify-content:center;opacity:' + opacity + ';transition:all 0.15s;" onmouseover="if(!this.dataset.selected)this.style.borderColor=\'var(--border-hover)\'" onmouseout="if(!this.dataset.selected)this.style.borderColor=\'' + (isToday ? 'rgba(124,58,237,0.4)' : 'var(--border)') + '\'">' + day + dot + '</button>';
+  return '<button data-cal-action="select-date" data-cal-ymd="' + ymd + '" class="cal-h-755342" style="position:relative;aspect-ratio:1;background:' + bg + ';border:' + border + ';border-radius:8px;color:' + color + ';font-size:13px;font-weight:500;cursor:pointer;font-family:DM Sans,sans-serif;padding:0;display:flex;align-items:center;justify-content:center;opacity:' + opacity + ';transition:all 0.15s;">' + day + dot + '</button>';
 }
 
 function calRenderDayEvents() {
@@ -704,7 +704,7 @@ function calOpenEventModal(existingEvent) {
     + '<div class="deal-s-5b6aad"><label for="cal-modal-notes" class="cal-s-0d9ec6">Notes (optional)</label>'
     + '<textarea id="cal-modal-notes" placeholder="Add notes..." rows="3" class="cal-s-e8f0a9">' + escapeHtml(defaultNotes) + '</textarea></div>'
     + (isCoachingEvent ? '' : '<div class="cal-s-77e2bc"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="cal-s-be496e"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg><span>Adding an event will also block out time slots for your 1:1 booking services. Bookers will see fewer available slots, but never see what you have scheduled.</span></div>')
-    + '<button data-cal-action="save-event" class="cal-s-249433" onmouseover="this.style.background=\'#a855f7\'" onmouseout="this.style.background=\'var(--accent)\'">' + (isEdit ? 'Save Changes' : 'Save Event') + '</button>'
+    + '<button data-cal-action="save-event" class="cal-s-249433 cal-h-6ebecd">' + (isEdit ? 'Save Changes' : 'Save Event') + '</button>'
     + '<div id="cal-modal-error" class="cal-s-5b5ea7"></div>'
     + '</div>';
   document.body.appendChild(modal);

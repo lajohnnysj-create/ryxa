@@ -1197,7 +1197,7 @@ function dsRenderLayers() {
     var icon = dsGetLayerIcon(obj);
     html += '<div class="ds-layer-item' + (isActive ? ' active' : '') + '" data-layer-idx="' + i + '"' + (isBg ? '' : ' draggable="true"')
       + (isBg ? '' : ' data-ds-action="select-layer" data-ds-layer-idx="' + i + '"')
-      + (isBg ? '' : ' ondragstart="dsLayerDragStart(event,' + i + ')" ondragover="dsLayerDragOver(event)" ondragleave="dsLayerDragLeave(event)" ondrop="dsLayerDrop(event,' + i + ')"')
+      + (isBg ? '' : ' data-ds-layer-drag="' + i + '"')
       + '>'
       + (isBg ? '<div class="ds-layer-grip ds-s-ba9903" ><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><circle cx="8" cy="6" r="2"/><circle cx="16" cy="6" r="2"/><circle cx="8" cy="12" r="2"/><circle cx="16" cy="12" r="2"/><circle cx="8" cy="18" r="2"/><circle cx="16" cy="18" r="2"/></svg></div>'
         : '<div class="ds-layer-grip" title="Drag to reorder"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><circle cx="8" cy="6" r="2"/><circle cx="16" cy="6" r="2"/><circle cx="8" cy="12" r="2"/><circle cx="16" cy="12" r="2"/><circle cx="8" cy="18" r="2"/><circle cx="16" cy="18" r="2"/></svg></div>')
@@ -2861,4 +2861,37 @@ document.addEventListener('touchstart', function(e) {
   dsDragStart(e, el.dataset.dsDrag);
 }, { passive: false });
 dsRegisterAction('select-all', (e, el) => el.select());
+
+// =============================================================================
+// LAYER PANEL DRAG-AND-DROP (reorder layers via dragging in the Layers list)
+// -----------------------------------------------------------------------------
+// Each draggable layer has data-ds-layer-drag="<idx>" where <idx> is the layer
+// index. We delegate from document so dynamically-rendered layer items work
+// without per-element rewiring.
+//
+// dsLayerDragStart(event, idx), dsLayerDragOver(event), dsLayerDragLeave(event),
+// dsLayerDrop(event, idx) are all defined in this file. The drag-over/leave
+// handlers take only the event; the drag-start/drop handlers also need the
+// target layer index, which we read from the data attribute.
+// =============================================================================
+document.addEventListener('dragstart', function(e) {
+  const el = e.target.closest('[data-ds-layer-drag]');
+  if (!el) return;
+  dsLayerDragStart(e, parseInt(el.dataset.dsLayerDrag, 10));
+});
+document.addEventListener('dragover', function(e) {
+  const el = e.target.closest('[data-ds-layer-drag]');
+  if (!el) return;
+  dsLayerDragOver(e);
+});
+document.addEventListener('dragleave', function(e) {
+  const el = e.target.closest('[data-ds-layer-drag]');
+  if (!el) return;
+  dsLayerDragLeave(e);
+});
+document.addEventListener('drop', function(e) {
+  const el = e.target.closest('[data-ds-layer-drag]');
+  if (!el) return;
+  dsLayerDrop(e, parseInt(el.dataset.dsLayerDrag, 10));
+});
 

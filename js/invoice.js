@@ -355,16 +355,22 @@ ${notes ? `<div class="notes"><strong>Notes:</strong><br>${notes.replace(/\n/g,'
   // Combine html head + body content
   const fullHtml = html + htmlBody;
 
-  // Add print CSS and save button to the invoice HTML before opening
+  // Add print CSS and save button to the invoice HTML before opening.
+  // The print button uses addEventListener (wired by an inline script inside
+  // the generated HTML) rather than inline onclick — that way if/when blob
+  // URLs inherit the parent page's strict CSP, this still works.
   const printHtml = fullHtml.replace('</body></html>', `
 <div id="save-bar" style="position:fixed;top:0;left:0;right:0;background:#7c3aed;color:#fff;padding:10px 16px;display:flex;align-items:flex-start;flex-wrap:wrap;gap:8px;z-index:9999;font-family:Arial,sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.2);">
   <span style="font-size:13px;font-weight:500;flex:1;min-width:200px;line-height:1.5;">&#x1F4BE; <strong>Desktop:</strong> Press Ctrl+P (or Cmd+P) &rarr; Save as PDF. &nbsp;&#x1F4F1; <strong>Mobile:</strong> Tap the Share button and choose Save to Files.</span>
-  <button onclick="window.print()" style="background:#fff;color:#7c3aed;border:none;border-radius:6px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">Print / Save PDF</button>
+  <button id="ryxa-print-btn" style="background:#fff;color:#7c3aed;border:none;border-radius:6px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">Print / Save PDF</button>
 </div>
 <style id="print-styles">
   body { padding-top: 80px !important; }
   @media print { #save-bar { display:none !important; } body { padding-top: 0 !important; } }
 </style>
+<script>
+  document.getElementById('ryxa-print-btn').addEventListener('click', function() { window.print(); });
+</script>
 </body></html>`);
 
   const blob = new Blob([printHtml], { type: 'text/html' });

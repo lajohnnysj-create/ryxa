@@ -197,7 +197,7 @@ function renderProductsList() {
       ? 'background-image:url(' + dpEscapeHtml(p.cover_image_url) + ');background-size:cover;background-position:center;'
       : 'background:linear-gradient(135deg,rgba(124,58,237,0.18),rgba(232,121,249,0.14));display:flex;align-items:center;justify-content:center;';
     var coverInner = p.cover_image_url ? '' : '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>';
-    return '<div data-prod-action="open-editor" data-prod-id="' + dpEscapeHtml(p.id) + '" class="prod-s-783a04" onmouseover="this.style.borderColor=\'rgba(124,58,237,0.4)\'" onmouseout="this.style.borderColor=\'var(--border)\'">'
+    return '<div data-prod-action="open-editor" data-prod-id="' + dpEscapeHtml(p.id) + '" class="prod-s-783a04 prod-h-card">'
       + '<div style="width:100%;aspect-ratio:16/9;' + coverStyle + '">' + coverInner + '</div>'
       + '<div class="prod-s-67ae14">'
       + '<div class="prod-s-518da5">'
