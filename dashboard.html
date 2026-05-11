@@ -2112,9 +2112,12 @@
       overflow-x: auto;
       overflow-y: hidden;
       -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;  /* Firefox */
+      /* Default: hide scrollbar (sane on touch devices, the majority of users
+         at this viewport width). Mouse-on-narrow-window users get a visible
+         scrollbar via the sibling @media block below. */
+      scrollbar-width: none;
     }
-    #ds-context-bar::-webkit-scrollbar { display: none; }  /* Chrome/Safari */
+    #ds-context-bar::-webkit-scrollbar { display: none; }
 
     /* The inner control groups (text / image / shape) also need nowrap so the
        parent scroller can scroll them as a single row instead of wrapping. */
@@ -2150,6 +2153,16 @@
 
     #ds-shape-menu, #ds-layers-panel { position:fixed !important; left:50% !important; top:50% !important; transform:translate(-50%,-50%) !important; max-height:70vh !important; }
     #ds-export-menu { position:fixed !important; left:50% !important; top:50% !important; transform:translate(-50%,-50%) !important; right:auto !important; }
+  }
+  /* Narrow-window desktop (mouse user): the context bar overflows horizontally
+     just like mobile, but a touch swipe isn't available — give them a visible
+     thin scrollbar so they can drag it or know to scroll-wheel sideways. */
+  @media (max-width: 768px) and (hover: hover) and (pointer: fine) {
+    #ds-context-bar { scrollbar-width: thin; scrollbar-color: rgba(124,58,237,0.4) transparent; }
+    #ds-context-bar::-webkit-scrollbar { display: block; height: 6px; }
+    #ds-context-bar::-webkit-scrollbar-track { background: transparent; }
+    #ds-context-bar::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.4); border-radius: 3px; }
+    #ds-context-bar::-webkit-scrollbar-thumb:hover { background: rgba(124,58,237,0.6); }
   }
   .dash-range-custom { display: flex; align-items: center; gap: 6px; padding: 5px 10px; background: transparent; border: 1px solid var(--border); border-radius: 8px; transition: all 0.15s; cursor: pointer; }
   .dash-range-custom:hover { border-color: rgba(124,58,237,0.4); }
