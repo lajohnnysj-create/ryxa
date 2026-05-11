@@ -113,7 +113,7 @@
       "source": "/course/(.*)",
       "headers": [
         {
-          "key": "Content-Security-Policy-Report-Only",
+          "key": "Content-Security-Policy",
           "value": "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https://www.ryxa.io https://kjytapcgxukalwsyputk.supabase.co; connect-src 'self' https://kjytapcgxukalwsyputk.supabase.co https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
         }
       ]
@@ -122,7 +122,7 @@
       "source": "/course",
       "headers": [
         {
-          "key": "Content-Security-Policy-Report-Only",
+          "key": "Content-Security-Policy",
           "value": "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https://www.ryxa.io https://kjytapcgxukalwsyputk.supabase.co; connect-src 'self' https://kjytapcgxukalwsyputk.supabase.co https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
         }
       ]
@@ -131,7 +131,7 @@
       "source": "/booking/(.*)",
       "headers": [
         {
-          "key": "Content-Security-Policy-Report-Only",
+          "key": "Content-Security-Policy",
           "value": "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https://www.ryxa.io https://kjytapcgxukalwsyputk.supabase.co; connect-src 'self' https://kjytapcgxukalwsyputk.supabase.co https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
         }
       ]
@@ -140,7 +140,7 @@
       "source": "/booking",
       "headers": [
         {
-          "key": "Content-Security-Policy-Report-Only",
+          "key": "Content-Security-Policy",
           "value": "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https://www.ryxa.io https://kjytapcgxukalwsyputk.supabase.co; connect-src 'self' https://kjytapcgxukalwsyputk.supabase.co https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
         }
       ]
@@ -149,7 +149,7 @@
       "source": "/learn/(.*)",
       "headers": [
         {
-          "key": "Content-Security-Policy-Report-Only",
+          "key": "Content-Security-Policy",
           "value": "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https://www.ryxa.io https://kjytapcgxukalwsyputk.supabase.co https://i.ytimg.com https://i.vimeocdn.com; connect-src 'self' https://kjytapcgxukalwsyputk.supabase.co https://cdn.jsdelivr.net https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com https://www.loom.com; media-src 'self' blob: https://kjytapcgxukalwsyputk.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
         }
       ]
@@ -158,7 +158,7 @@
       "source": "/learn",
       "headers": [
         {
-          "key": "Content-Security-Policy-Report-Only",
+          "key": "Content-Security-Policy",
           "value": "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https://www.ryxa.io https://kjytapcgxukalwsyputk.supabase.co https://i.ytimg.com https://i.vimeocdn.com; connect-src 'self' https://kjytapcgxukalwsyputk.supabase.co https://cdn.jsdelivr.net https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com https://www.loom.com; media-src 'self' blob: https://kjytapcgxukalwsyputk.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
         }
       ]
