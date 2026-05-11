@@ -475,4 +475,23 @@ if (typeof window.openSignupModal === 'undefined') {
   window.openSignupModal = function() { window.location.href = '/index.html?action=signup'; };
 }
 
+// =====================
+// COOKIE BANNER
+// =====================
+// Auto-load /cookie-banner.js so every page using site-nav.js shows the cookie
+// banner. This avoids the missing-banner bug on the 18 tool pages that include
+// site-nav.js but had previously not included cookie-banner.js directly.
+// Guard against double-loading: pages that already include cookie-banner.js
+// directly (bio, mediakit, dashboard, reset-password) won't re-inject because
+// the banner script self-guards on localStorage consent. But we also check for
+// an existing <script src> match before injecting, to keep network use minimal.
+(function loadCookieBanner() {
+  var alreadyLoaded = !!document.querySelector('script[src="/cookie-banner.js"], script[src="cookie-banner.js"]');
+  if (alreadyLoaded) return;
+  var s = document.createElement('script');
+  s.src = '/cookie-banner.js';
+  s.async = true;
+  document.head.appendChild(s);
+})();
+
 })();
