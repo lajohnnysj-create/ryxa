@@ -8614,12 +8614,27 @@
 
         <!-- EDITOR VIEW -->
         <div id="products-editor-view" class="bio-s-c8be1c">
-          <div class="prod-s-ea4df7">
-            <button data-prod-action="close-editor" class="prod-s-56075a">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          <div class="course-s-904b37">
+            <button data-prod-action="close-editor" class="course-s-ad9602">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
               Back
             </button>
-            <h2 id="products-editor-title" class="prod-s-d0a7e9">New Product</h2>
+            <h2 id="products-editor-title" class="course-s-906b1b">New Product</h2>
+            <div class="course-s-8a2215">
+              <button id="products-save-btn" data-prod-action="save" class="course-s-540779">Save</button>
+              <button id="products-publish-btn" data-prod-action="toggle-publish" class="course-s-e360f3">Publish</button>
+            </div>
+          </div>
+          <div id="products-marketplace-toggle" class="course-s-60589e">
+            <div class="course-s-e02c6d">
+              <div>
+                <div class="course-s-3e22f6">List in Marketplace</div>
+                <div class="course-s-5ae0d7">Make this product discoverable in the Ryxa Hub. <span id="products-marketplace-count" class="course-s-701ab3"></span></div>
+              </div>
+              <button id="products-marketplace-btn" data-prod-action="toggle-marketplace" aria-label="Toggle product marketplace listing" class="course-s-eda469">
+                <div id="products-marketplace-thumb" class="course-s-4adf70"></div>
+              </button>
+            </div>
           </div>
 
           <div class="prod-s-843b62">
@@ -8694,26 +8709,9 @@
               <div class="prod-s-69a65b">Shown on the buyer's download page after purchase.</div>
             </div>
 
-            <!-- Marketplace toggle (matches Course/Coaching pattern; only shown when published) -->
-            <div id="products-marketplace-toggle" class="course-s-60589e">
-              <div class="course-s-e02c6d">
-                <div>
-                  <div class="course-s-3e22f6">List in Marketplace</div>
-                  <div class="course-s-5ae0d7">Make this product discoverable in the Ryxa Hub. <span id="products-marketplace-count" class="course-s-701ab3"></span></div>
-                </div>
-                <button id="products-marketplace-btn" data-prod-action="toggle-marketplace" aria-label="Toggle product marketplace listing" class="course-s-eda469">
-                  <div id="products-marketplace-thumb" class="course-s-4adf70"></div>
-                </button>
-              </div>
-            </div>
-
-            <!-- Action buttons (matches Coaching pattern: Save always, Publish toggle once saved) -->
-            <div class="prod-s-fb1a61">
-              <button id="products-delete-btn" data-prod-action="delete" class="prod-s-8d8b60">Delete product</button>
-              <div class="prod-s-c9f480">
-                <button id="products-save-btn" data-prod-action="save" class="prod-s-e0e5f4">Save</button>
-                <button id="products-publish-btn" data-prod-action="toggle-publish" class="prod-s-f8e822">Publish</button>
-              </div>
+            <!-- Danger zone (Save/Publish moved to top header; Marketplace moved to top) -->
+            <div class="course-s-a988f6">
+              <button id="products-delete-btn" data-prod-action="delete" class="course-s-980a3b">Delete Product</button>
             </div>
           </div>
         </div>
