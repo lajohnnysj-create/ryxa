@@ -5068,6 +5068,53 @@
   .qr-s-57c915 { padding:12px 32px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.2s;box-shadow:0 0 20px var(--accent-glow); }
   .qr-s-2a1632 { padding:12px 20px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.15s; }
 
+
+  /* ============================================================
+     PHASE 3 — Invoice Generator style extraction
+     ============================================================ */
+  /* Phase 3 — Invoice Generator markup style extraction */
+  .invoice-s-f40043 { max-width:800px; }
+  .invoice-s-44aa9d { display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px; }
+  .invoice-s-8c48da { background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:20px; }
+  .invoice-s-1d6580 { font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:12px; }
+  .invoice-s-75f542 { width:80px;height:80px;border:2px dashed rgba(124,58,237,0.3);border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;background:var(--surface);transition:all 0.2s;overflow:hidden; }
+  .invoice-s-578e41 { position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;z-index:2; }
+  .invoice-s-db097d { display:flex;flex-direction:column;align-items:center;gap:4px;pointer-events:none; }
+  .invoice-s-f5742a { width:28px;height:28px;border-radius:50%;background:rgba(124,58,237,0.15);display:flex;align-items:center;justify-content:center;font-size:18px;color:#a78bfa; }
+  .invoice-s-cc36e9 { font-size:9px;color:var(--muted);text-align:center;line-height:1.3;padding:0 4px; }
+  .invoice-s-ebbcdd { display:none;width:100%;height:100%;object-fit:contain;padding:6px;pointer-events:none; }
+  .invoice-s-84b158 { display:none;gap:6px;margin-top:8px;flex-wrap:wrap; }
+  .invoice-s-0eeb51 { font-size:11px;color:#4ade80;width:100%; }
+  .invoice-s-f401fb { padding:4px 10px;background:rgba(74,222,128,0.1);border:1px solid rgba(74,222,128,0.3);color:#4ade80;border-radius:6px;font-size:11px;cursor:pointer;position:relative; }
+  .invoice-s-5a2633 { padding:4px 10px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:#fca5a5;border-radius:6px;font-size:11px;cursor:pointer;font-family:DM Sans,sans-serif; }
+  .invoice-s-0fb30d { width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;margin-bottom:8px; }
+  .invoice-s-b7b8cd { width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;resize:none; }
+  .invoice-s-f2f20c { background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:20px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px; }
+  .invoice-s-da37dc { width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:8px 8px;font-size:12px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;min-width:0; }
+  .invoice-s-9c7475 { width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:8px 8px;font-size:12px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;min-width:0;box-sizing:border-box;appearance:none;-webkit-appearance:none; }
+  .invoice-s-d0005d { background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:20px; }
+  .invoice-s-ac5c62 { font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:16px; }
+  .invoice-s-39fb52 { display:grid;grid-template-columns:1fr 60px 90px 28px;gap:6px;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:8px;padding:0 4px; }
+  .invoice-s-dac4fe { text-align:center; }
+  .invoice-s-a527ba { text-align:right; }
+  .invoice-s-f832f1 { width:100%;padding:10px;background:transparent;border:1px dashed rgba(124,58,237,0.3);color:var(--accent2);border-radius:8px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;margin-top:8px;transition:all 0.2s; }
+  .invoice-s-bebbec { display:flex;justify-content:space-between;align-items:center;margin-bottom:12px; }
+  .invoice-s-28d2d7 { font-size:14px;font-weight:500; }
+  .invoice-s-bcbb84 { display:flex;justify-content:space-between;align-items:center;margin-bottom:16px; }
+  .invoice-s-ce9b86 { width:60px;background:var(--surface);border:1px solid var(--border-hover);border-radius:6px;padding:4px 8px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;text-align:center; }
+  .invoice-s-fee1e8 { height:1px;background:var(--border);margin-bottom:16px; }
+  .invoice-s-812972 { display:flex;justify-content:space-between;align-items:center; }
+  .invoice-s-f492da { font-family:Syne,sans-serif;font-size:18px;font-weight:800; }
+  .invoice-s-7c2654 { font-family:Syne,sans-serif;font-size:24px;font-weight:800;color:#a78bfa; }
+  .invoice-s-91144e { width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:12px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;resize:none;line-height:1.6; }
+
+  /* Phase 3b — invoice.js template literal extraction */
+  .invoice-s-f31aea { display:grid;grid-template-columns:1fr 60px 90px 28px;gap:6px;margin-bottom:8px;align-items:center; }
+  .invoice-s-9fd163 { background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;width:100%; }
+  .invoice-s-8e4206 { background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:9px 8px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;width:100%;text-align:center; }
+  .invoice-s-f56476 { background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;width:100%;text-align:right; }
+  .invoice-s-5de598 { background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;padding:4px;border-radius:6px; }
+
 </style>
 <style>html{background:#07070f;}body{visibility:hidden;}body.ready{visibility:visible;}</style>
 
@@ -7969,108 +8016,108 @@
     </div>
 
     <!-- INVOICE GENERATOR -->
-    <div id="tool-invoice" style="display:none;">
-      <div style="max-width:800px;">
-        <div class="inv-download-row" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+    <div id="tool-invoice" class="bio-s-c8be1c">
+      <div class="invoice-s-f40043">
+        <div class="inv-download-row course-s-79fe89" >
           <div>
-            <h2 style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;margin-bottom:4px;letter-spacing:-0.5px;">Invoice Generator</h2>
-            <p style="color:var(--muted);font-size:14px;">Create professional invoices for your brand deals. Download as PDF.</p>
+            <h2 class="bio-s-b9b38d">Invoice Generator</h2>
+            <p class="bio-s-9e2e36">Create professional invoices for your brand deals. Download as PDF.</p>
           </div>
-          <button onclick="downloadInvoicePDF()" style="padding:12px 24px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow);">&#x2B07; Download PDF</button>
+          <button data-invoice-action="download-pdf" class="deal-s-2601f0">&#x2B07; Download PDF</button>
         </div>
 
-        <div class="inv-grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+        <div class="inv-grid-2 invoice-s-44aa9d" >
           <!-- FROM -->
-          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:20px;">
-            <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:12px;">From</div>
+          <div class="invoice-s-8c48da">
+            <div class="invoice-s-1d6580">From</div>
             <div id="logo-section">
-              <div style="margin-bottom:12px;">
+              <div class="deal-s-3ef1fa">
                 <!-- Logo display area -->
-                <div id="logo-upload-area" style="width:80px;height:80px;border:2px dashed rgba(124,58,237,0.3);border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;background:var(--surface);transition:all 0.2s;overflow:hidden;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='rgba(124,58,237,0.3)'">
-                  <input type="file" id="inv-logo" accept="image/*" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;z-index:2;" onchange="uploadLogo(this)" aria-label="Upload invoice logo">
-                  <div id="logo-placeholder" style="display:flex;flex-direction:column;align-items:center;gap:4px;pointer-events:none;">
-                    <div style="width:28px;height:28px;border-radius:50%;background:rgba(124,58,237,0.15);display:flex;align-items:center;justify-content:center;font-size:18px;color:#a78bfa;">+</div>
-                    <span id="logo-placeholder-text" style="font-size:9px;color:var(--muted);text-align:center;line-height:1.3;padding:0 4px;">Logo</span>
+                <div id="logo-upload-area" class="invoice-s-75f542" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='rgba(124,58,237,0.3)'">
+                  <input type="file" id="inv-logo" accept="image/*" class="invoice-s-578e41" data-invoice-action="upload-logo" data-invoice-event="change" aria-label="Upload invoice logo">
+                  <div id="logo-placeholder" class="invoice-s-db097d">
+                    <div class="invoice-s-f5742a">+</div>
+                    <span id="logo-placeholder-text" class="invoice-s-cc36e9">Logo</span>
                   </div>
-                  <img id="logo-preview" alt="Your invoice logo" style="display:none;width:100%;height:100%;object-fit:contain;padding:6px;pointer-events:none;">
+                  <img id="logo-preview" alt="Your invoice logo" class="invoice-s-ebbcdd">
                 </div>
-                <div id="logo-actions" style="display:none;gap:6px;margin-top:8px;flex-wrap:wrap;">
-                  <span id="logo-status" style="font-size:11px;color:#4ade80;width:100%;"></span>
-                  <label style="padding:4px 10px;background:rgba(74,222,128,0.1);border:1px solid rgba(74,222,128,0.3);color:#4ade80;border-radius:6px;font-size:11px;cursor:pointer;position:relative;">
+                <div id="logo-actions" class="invoice-s-84b158">
+                  <span id="logo-status" class="invoice-s-0eeb51"></span>
+                  <label class="invoice-s-f401fb">
                     Change
-                    <input type="file" accept="image/*" aria-label="Change invoice logo" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;" onchange="uploadLogo(this)">
+                    <input type="file" accept="image/*" aria-label="Change invoice logo" class="bio-s-1d4b3b" data-invoice-action="upload-logo" data-invoice-event="change">
                   </label>
-                  <button onclick="deleteLogo()" style="padding:4px 10px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:#fca5a5;border-radius:6px;font-size:11px;cursor:pointer;font-family:DM Sans,sans-serif;">Delete</button>
+                  <button data-invoice-action="delete-logo" class="invoice-s-5a2633">Delete</button>
                 </div>
               </div>
             </div>
-            <input type="text" id="inv-from-name" placeholder="Your Name / Business" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;margin-bottom:8px;" aria-label="Your name or business">
-            <input type="email" id="inv-from-email" placeholder="your@email.com" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;margin-bottom:8px;" aria-label="Your email">
-            <textarea id="inv-from-address" placeholder="Address (optional)" rows="2" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;resize:none;" aria-label="Your address (optional)"></textarea>
+            <input type="text" id="inv-from-name" placeholder="Your Name / Business" class="invoice-s-0fb30d" aria-label="Your name or business">
+            <input type="email" id="inv-from-email" placeholder="your@email.com" class="invoice-s-0fb30d" aria-label="Your email">
+            <textarea id="inv-from-address" placeholder="Address (optional)" rows="2" class="invoice-s-b7b8cd" aria-label="Your address (optional)"></textarea>
           </div>
           <!-- TO -->
-          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:20px;">
-            <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:12px;">Bill To</div>
-            <input type="text" id="inv-to-name" placeholder="Client Name / Brand" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;margin-bottom:8px;" aria-label="Client name or brand">
-            <input type="email" id="inv-to-email" placeholder="client@brand.com" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;margin-bottom:8px;" aria-label="Client email">
-            <textarea id="inv-to-address" placeholder="Client address (optional)" rows="2" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;resize:none;" aria-label="Client address (optional)"></textarea>
+          <div class="invoice-s-8c48da">
+            <div class="invoice-s-1d6580">Bill To</div>
+            <input type="text" id="inv-to-name" placeholder="Client Name / Brand" class="invoice-s-0fb30d" aria-label="Client name or brand">
+            <input type="email" id="inv-to-email" placeholder="client@brand.com" class="invoice-s-0fb30d" aria-label="Client email">
+            <textarea id="inv-to-address" placeholder="Client address (optional)" rows="2" class="invoice-s-b7b8cd" aria-label="Client address (optional)"></textarea>
           </div>
         </div>
 
         <!-- INVOICE META -->
-        <div class="inv-meta-grid" style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:20px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+        <div class="inv-meta-grid invoice-s-f2f20c" >
           <div>
-            <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Invoice #</label>
-            <input type="text" id="inv-number" placeholder="INV-001" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:8px 8px;font-size:12px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;min-width:0;" aria-label="Invoice number">
+            <label class="course-s-60c543">Invoice #</label>
+            <input type="text" id="inv-number" placeholder="INV-001" class="invoice-s-da37dc" aria-label="Invoice number">
           </div>
           <div>
-            <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Issue Date</label>
-            <input type="date" id="inv-date" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:8px 8px;font-size:12px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;min-width:0;box-sizing:border-box;appearance:none;-webkit-appearance:none;" aria-label="Issue date">
+            <label class="course-s-60c543">Issue Date</label>
+            <input type="date" id="inv-date" class="invoice-s-9c7475" aria-label="Issue date">
           </div>
           <div>
-            <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Due Date</label>
-            <input type="date" id="inv-due" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:8px 8px;font-size:12px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;min-width:0;box-sizing:border-box;appearance:none;-webkit-appearance:none;" aria-label="Due date">
+            <label class="course-s-60c543">Due Date</label>
+            <input type="date" id="inv-due" class="invoice-s-9c7475" aria-label="Due date">
           </div>
         </div>
 
         <!-- LINE ITEMS -->
-        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:20px;">
-          <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:16px;">Services</div>
-          <div style="display:grid;grid-template-columns:1fr 60px 90px 28px;gap:6px;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:8px;padding:0 4px;">
-            <span>Description</span><span style="text-align:center;">Qty</span><span style="text-align:right;">Amount</span><span></span>
+        <div class="invoice-s-d0005d">
+          <div class="invoice-s-ac5c62">Services</div>
+          <div class="invoice-s-39fb52">
+            <span>Description</span><span class="invoice-s-dac4fe">Qty</span><span class="invoice-s-a527ba">Amount</span><span></span>
           </div>
           <div id="inv-items"></div>
-          <button onclick="addInvoiceItem()" style="width:100%;padding:10px;background:transparent;border:1px dashed rgba(124,58,237,0.3);color:var(--accent2);border-radius:8px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;margin-top:8px;transition:all 0.2s;">+ Add line item</button>
+          <button data-invoice-action="add-item" class="invoice-s-f832f1">+ Add line item</button>
         </div>
 
         <!-- TOTALS -->
-        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:20px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-            <span style="font-size:14px;color:var(--muted);">Subtotal</span>
-            <span id="inv-subtotal" style="font-size:14px;font-weight:500;">$0.00</span>
+        <div class="invoice-s-d0005d">
+          <div class="invoice-s-bebbec">
+            <span class="clients-s-e81ef5">Subtotal</span>
+            <span id="inv-subtotal" class="invoice-s-28d2d7">$0.00</span>
           </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-            <div style="display:flex;align-items:center;gap:8px;">
-              <span style="font-size:14px;color:var(--muted);">Tax</span>
-              <input type="number" id="inv-tax" value="0" min="0" max="100" oninput="calcTotals()" style="width:60px;background:var(--surface);border:1px solid var(--border-hover);border-radius:6px;padding:4px 8px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;text-align:center;" aria-label="Tax percentage">
-              <span style="font-size:13px;color:var(--muted);">%</span>
+          <div class="invoice-s-bcbb84">
+            <div class="bio-s-e3f610">
+              <span class="clients-s-e81ef5">Tax</span>
+              <input type="number" id="inv-tax" value="0" min="0" max="100" data-invoice-action="calc-totals" data-invoice-event="input" class="invoice-s-ce9b86" aria-label="Tax percentage">
+              <span class="cal-s-56e6ba">%</span>
             </div>
-            <span id="inv-tax-amount" style="font-size:14px;font-weight:500;">$0.00</span>
+            <span id="inv-tax-amount" class="invoice-s-28d2d7">$0.00</span>
           </div>
-          <div style="height:1px;background:var(--border);margin-bottom:16px;"></div>
-          <div style="display:flex;justify-content:space-between;align-items:center;">
-            <span style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;">Total</span>
-            <span id="inv-total" style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;color:#a78bfa;">$0.00</span>
+          <div class="invoice-s-fee1e8"></div>
+          <div class="invoice-s-812972">
+            <span class="invoice-s-f492da">Total</span>
+            <span id="inv-total" class="invoice-s-7c2654">$0.00</span>
           </div>
         </div>
 
         <!-- NOTES -->
-        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:20px;">
-          <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:12px;">Notes (optional)</div>
-          <textarea id="inv-notes" placeholder="Payment terms, thank you note, bank details..." rows="3" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:12px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;resize:none;line-height:1.6;" aria-label="Invoice notes (optional)"></textarea>
+        <div class="invoice-s-8c48da">
+          <div class="invoice-s-1d6580">Notes (optional)</div>
+          <textarea id="inv-notes" placeholder="Payment terms, thank you note, bank details..." rows="3" class="invoice-s-91144e" aria-label="Invoice notes (optional)"></textarea>
         </div>
 
-        <div id="inv-usage" style="margin-top:16px;font-size:13px;color:var(--muted);text-align:center;"></div>
+        <div id="inv-usage" class="image-s-7d9ade"></div>
       </div>
     </div>
 
@@ -12337,305 +12384,6 @@ async function confirmSettingsCancel() {
 
 
 
-// ════════════════════════════════════════════
-// INVOICE GENERATOR
-// ════════════════════════════════════════════
-let invItems = [];
-let invLogoDataUrl = null;
-let invDailyCount = 0;
-const INV_LIMIT_FREE = 3;
-
-function initInvoiceGenerator() {
-  const pro = isPro();
-  const key = 'fts_inv_' + new Date().toDateString();
-  invDailyCount = parseInt(localStorage.getItem(key) || '0');
-
-  // Show logo section for everyone, lock it for free users
-  const logoSection = document.getElementById('logo-section');
-  if (logoSection) logoSection.style.display = 'block';
-
-  const logoUploadArea = document.getElementById('logo-upload-area');
-  const logoPlaceholderText = document.getElementById('logo-placeholder-text');
-  const fileInput = document.getElementById('inv-logo');
-
-  if (pro) {
-    // Pro: fully enabled
-    if (logoUploadArea) { logoUploadArea.style.cursor = 'pointer'; logoUploadArea.style.opacity = '1'; }
-    if (fileInput) fileInput.style.pointerEvents = 'auto';
-    if (logoPlaceholderText) logoPlaceholderText.textContent = 'Logo';
-  } else {
-    // Free: locked
-    if (logoUploadArea) { logoUploadArea.style.cursor = 'not-allowed'; logoUploadArea.style.opacity = '0.6'; }
-    if (fileInput) fileInput.style.pointerEvents = 'none';
-    if (logoPlaceholderText) logoPlaceholderText.textContent = 'Upgrade to Pro to add logo';
-    const remaining = Math.max(0, INV_LIMIT_FREE - invDailyCount);
-    document.getElementById('inv-usage').textContent = `Free: ${remaining} of ${INV_LIMIT_FREE} invoices remaining today. Upgrade to Pro for unlimited.`;
-  }
-
-  // Set default dates
-  const today = new Date().toISOString().slice(0,10);
-  const due = new Date(Date.now() + 30*24*60*60*1000).toISOString().slice(0,10);
-  document.getElementById('inv-date').value = today;
-  document.getElementById('inv-due').value = due;
-  document.getElementById('inv-number').value = 'INV-' + String(Math.floor(Math.random()*900)+100);
-  // Add first item
-  if (invItems.length === 0) addInvoiceItem();
-  calcTotals();
-}
-
-function previewLogo(input) {
-  if (!input.files[0]) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    invLogoDataUrl = e.target.result;
-    document.getElementById('logo-placeholder').style.display = 'none';
-    const img = document.getElementById('logo-preview');
-    img.src = invLogoDataUrl; img.style.display = 'block';
-  };
-  reader.readAsDataURL(input.files[0]);
-}
-
-async function uploadLogo(input) {
-  if (!input.files[0] || !currentUser) return;
-  const file = input.files[0];
-
-  // Check size — 200KB max
-  if (file.size > 200 * 1024) {
-    alert('Logo must be under 200KB. Please resize your image and try again.');
-    return;
-  }
-
-  const logoStatus = document.getElementById('logo-status');
-  const logoActions = document.getElementById('logo-actions');
-  if (logoStatus) logoStatus.textContent = 'Uploading...';
-  if (logoActions) logoActions.style.display = 'flex';
-
-  try {
-    const path = `${currentUser.id}/logo`;
-    // Upload to Supabase storage
-    const { error } = await sb.storage.from('logos').upload(path, file, { upsert: true, contentType: file.type });
-    if (error) throw error;
-
-    // Get public URL and show preview
-    const { data } = sb.storage.from('logos').getPublicUrl(path);
-    // Use signed URL for private bucket
-    const { data: signedData } = await sb.storage.from('logos').createSignedUrl(path, 3600);
-    if (signedData?.signedUrl) {
-      invLogoDataUrl = signedData.signedUrl;
-      showLogoPreview(invLogoDataUrl);
-      if (logoStatus) logoStatus.textContent = 'Logo saved';
-    }
-  } catch (err) {
-    console.error('Logo upload error:', err);
-    // Fallback to local preview
-    const reader = new FileReader();
-    reader.onload = e => { invLogoDataUrl = e.target.result; showLogoPreview(invLogoDataUrl); };
-    reader.readAsDataURL(file);
-    if (logoStatus) logoStatus.textContent = 'Saved locally';
-  }
-}
-
-async function loadSavedLogo() {
-  if (!currentUser || !isPro()) return;
-  try {
-    const path = `${currentUser.id}/logo`;
-    // Check if file exists first to avoid 400 noise in console
-    const { data: list } = await sb.storage.from('logos').list(currentUser.id, { limit: 1, search: 'logo' });
-    if (!list || list.length === 0) return; // no logo uploaded yet — silent exit
-
-    const { data, error } = await sb.storage.from('logos').createSignedUrl(path, 3600);
-    if (data?.signedUrl) {
-      invLogoDataUrl = data.signedUrl;
-      showLogoPreview(invLogoDataUrl);
-      const logoStatus = document.getElementById('logo-status');
-      if (logoStatus) logoStatus.textContent = 'Logo loaded';
-    }
-  } catch (err) {
-    // No logo saved yet — that's fine
-  }
-}
-
-function showLogoPreview(url) {
-  document.getElementById('logo-placeholder').style.display = 'none';
-  const img = document.getElementById('logo-preview');
-  img.src = url; img.style.display = 'block';
-  const logoActions = document.getElementById('logo-actions');
-  if (logoActions) logoActions.style.display = 'flex';
-}
-
-async function deleteLogo() {
-  if (!currentUser) return;
-  if (!confirm('Delete your saved logo?')) return;
-  try {
-    await sb.storage.from('logos').remove([`${currentUser.id}/logo`]);
-  } catch (err) {
-    console.error('Delete error:', err);
-  }
-  invLogoDataUrl = null;
-  // Reset back to plus icon
-  document.getElementById('logo-placeholder').style.display = 'flex';
-  const img = document.getElementById('logo-preview');
-  img.src = ''; img.style.display = 'none';
-  const logoActions = document.getElementById('logo-actions');
-  if (logoActions) logoActions.style.display = 'none';
-}
-
-function addInvoiceItem() {
-  const id = Date.now();
-  invItems.push({ id, desc: '', qty: 1, rate: 0 });
-  renderInvoiceItems();
-}
-
-function removeInvoiceItem(id) {
-  invItems = invItems.filter(i => i.id !== id);
-  renderInvoiceItems();
-  calcTotals();
-}
-
-function renderInvoiceItems() {
-  const container = document.getElementById('inv-items');
-  container.innerHTML = invItems.map(item => `
-    <div style="display:grid;grid-template-columns:1fr 60px 90px 28px;gap:6px;margin-bottom:8px;align-items:center;">
-      <input type="text" aria-label="Service description" value="${item.desc}" placeholder="Service description" oninput="updateItem(${item.id},'desc',this.value)"
-        style="background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;width:100%;">
-      <input type="number" aria-label="Quantity" value="${item.qty}" min="1" oninput="updateItem(${item.id},'qty',this.value)"
-        style="background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:9px 8px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;width:100%;text-align:center;">
-      <input type="number" aria-label="Rate" value="${item.rate}" min="0" step="0.01" placeholder="0.00" oninput="updateItem(${item.id},'rate',this.value)"
-        style="background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;width:100%;text-align:right;">
-      <button onclick="removeInvoiceItem(${item.id})" style="background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;padding:4px;border-radius:6px;">&#x2715;</button>
-    </div>
-  `).join('');
-}
-
-function updateItem(id, field, value) {
-  const item = invItems.find(i => i.id === id);
-  if (!item) return;
-  item[field] = field === 'desc' ? value : parseFloat(value) || 0;
-  calcTotals();
-}
-
-function calcTotals() {
-  const subtotal = invItems.reduce((sum, i) => sum + (i.qty * i.rate), 0);
-  const taxPct = parseFloat(document.getElementById('inv-tax')?.value || 0);
-  const taxAmt = subtotal * taxPct / 100;
-  const total = subtotal + taxAmt;
-  const fmt = n => formatMoney(Math.round(n * 100), {alwaysShowCents:true});
-  if (document.getElementById('inv-subtotal')) document.getElementById('inv-subtotal').textContent = fmt(subtotal);
-  if (document.getElementById('inv-tax-amount')) document.getElementById('inv-tax-amount').textContent = fmt(taxAmt);
-  if (document.getElementById('inv-total')) document.getElementById('inv-total').textContent = fmt(total);
-}
-
-function downloadInvoicePDF() {
-  const pro = isPro();
-  const key = 'fts_inv_' + new Date().toDateString();
-  invDailyCount = parseInt(localStorage.getItem(key) || '0');
-  if (!pro && invDailyCount >= INV_LIMIT_FREE) {
-    alert(`You have used all ${INV_LIMIT_FREE} free invoices for today. Upgrade to Pro for unlimited.`);
-    return;
-  }
-  const fromName = document.getElementById('inv-from-name').value || 'Your Name';
-  const fromEmail = document.getElementById('inv-from-email').value || '';
-  const fromAddr = document.getElementById('inv-from-address').value || '';
-  const toName = document.getElementById('inv-to-name').value || 'Client Name';
-  const toEmail = document.getElementById('inv-to-email').value || '';
-  const toAddr = document.getElementById('inv-to-address').value || '';
-  const invNum = document.getElementById('inv-number').value || 'INV-001';
-  const invDate = document.getElementById('inv-date').value || '';
-  const invDue = document.getElementById('inv-due').value || '';
-  const notes = document.getElementById('inv-notes').value || '';
-  const taxPct = parseFloat(document.getElementById('inv-tax').value || 0);
-  const subtotal = invItems.reduce((sum, i) => sum + (i.qty * i.rate), 0);
-  const taxAmt = subtotal * taxPct / 100;
-  const total = subtotal + taxAmt;
-  const fmt = n => formatMoney(Math.round(n * 100), {alwaysShowCents:true});
-
-  const logoHtml = (pro && invLogoDataUrl)
-    ? `<img src="${invLogoDataUrl}" alt="Invoice logo" style="max-height:60px;max-width:160px;object-fit:contain;display:block;margin-bottom:8px;">`
-    : '';
-
-  const invoiceCSS = [
-    'body{font-family:Arial,sans-serif;background:#fff;color:#111;margin:0;padding:40px;}',
-    '.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:48px;}',
-    '.invoice-title{font-size:36px;font-weight:900;color:#111;letter-spacing:-1px;}',
-    '.invoice-num{font-size:14px;color:#666;margin-top:4px;}',
-    '.parties{display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-bottom:40px;}',
-    '.party-label{font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:#555;font-weight:700;margin-bottom:8px;}',
-    '.party-name{font-size:16px;font-weight:700;margin-bottom:4px;}',
-    '.party-detail{font-size:13px;color:#555;line-height:1.5;}',
-    'table{width:100%;border-collapse:collapse;margin-bottom:24px;}',
-    'th{text-align:left;padding:10px 12px;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:#666;border-bottom:2px solid #f0f0f0;}',
-    'td{padding:12px;font-size:14px;border-bottom:1px solid #f5f5f5;}',
-    '.text-right{text-align:right;} .text-center{text-align:center;}',
-    '.totals{max-width:300px;margin-left:auto;}',
-    '.total-row{display:flex;justify-content:space-between;padding:8px 0;font-size:14px;border-bottom:1px solid #f0f0f0;}',
-    '.total-final{display:flex;justify-content:space-between;padding:12px 0;font-size:20px;font-weight:900;color:#111;}',
-    '.notes{margin-top:32px;padding:16px;background:#f9f9f9;border-radius:8px;font-size:13px;color:#555;line-height:1.7;}',
-    '.footer{margin-top:48px;text-align:center;font-size:11px;color:#aaa;}'
-  ].join(' ');
-
-  const html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Invoice ' + invNum + '</title><style>' + invoiceCSS + '</style></head><body>';
-  const htmlBody = `
-<div class="header">
-  <div>
-    ${logoHtml}
-    <div class="party-name" style="font-size:20px;">${fromName}</div>
-    <div class="party-detail">${fromEmail}<br>${fromAddr.replace(/\n/g,'<br>')}</div>
-  </div>
-  <div style="text-align:right;">
-    <div class="invoice-title">INVOICE</div>
-    <div class="invoice-num">${invNum}</div>
-    <div style="font-size:13px;color:#666;margin-top:8px;">Issued: ${invDate}<br>Due: ${invDue}</div>
-  </div>
-</div>
-<div class="parties">
-  <div>
-    <div class="party-label">Bill To</div>
-    <div class="party-name">${toName}</div>
-    <div class="party-detail">${toEmail}<br>${toAddr.replace(/\n/g,'<br>')}</div>
-  </div>
-</div>
-<table>
-  <thead><tr><th>Description</th><th class="text-center">Qty</th><th class="text-right">Rate</th><th class="text-right">Amount</th></tr></thead>
-  <tbody>
-    ${invItems.map(i => `<tr><td>${i.desc || '-'}</td><td class="text-center">${i.qty}</td><td class="text-right">${fmt(i.rate)}</td><td class="text-right">${fmt(i.qty*i.rate)}</td></tr>`).join('')}
-  </tbody>
-</table>
-<div class="totals">
-  <div class="total-row"><span>Subtotal</span><span>${fmt(subtotal)}</span></div>
-  ${taxPct > 0 ? `<div class="total-row"><span>Tax (${taxPct}%)</span><span>${fmt(taxAmt)}</span></div>` : ''}
-  <div class="total-final"><span>Total</span><span>${fmt(total)}</span></div>
-</div>
-${notes ? `<div class="notes"><strong>Notes:</strong><br>${notes.replace(/\n/g,'<br>')}</div>` : ''}
-<div class="footer">Generated with Ryxa Creator Tools &bull; ryxa.io</div>
-` + '</body></html>';
-
-  // Combine html head + body content
-  const fullHtml = html + htmlBody;
-
-  // Add print CSS and save button to the invoice HTML before opening
-  const printHtml = fullHtml.replace('</body></html>', `
-<div id="save-bar" style="position:fixed;top:0;left:0;right:0;background:#7c3aed;color:#fff;padding:10px 16px;display:flex;align-items:flex-start;flex-wrap:wrap;gap:8px;z-index:9999;font-family:Arial,sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.2);">
-  <span style="font-size:13px;font-weight:500;flex:1;min-width:200px;line-height:1.5;">&#x1F4BE; <strong>Desktop:</strong> Press Ctrl+P (or Cmd+P) &rarr; Save as PDF. &nbsp;&#x1F4F1; <strong>Mobile:</strong> Tap the Share button and choose Save to Files.</span>
-  <button onclick="window.print()" style="background:#fff;color:#7c3aed;border:none;border-radius:6px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">Print / Save PDF</button>
-</div>
-<style id="print-styles">
-  body { padding-top: 80px !important; }
-  @media print { #save-bar { display:none !important; } body { padding-top: 0 !important; } }
-</style>
-</body></html>`);
-
-  const blob = new Blob([printHtml], { type: 'text/html' });
-  const url = URL.createObjectURL(blob);
-  window.open(url, '_blank');
-  setTimeout(() => URL.revokeObjectURL(url), 10000);
-
-  if (!pro) {
-    invDailyCount++;
-    localStorage.setItem(key, invDailyCount.toString());
-    const remaining = Math.max(0, INV_LIMIT_FREE - invDailyCount);
-    document.getElementById('inv-usage').textContent = `Free: ${remaining} of ${INV_LIMIT_FREE} invoices remaining today.`;
-  }
-}
 
 // ════════════════════════════════════════════
 // TOOL INIT ON SWITCH
@@ -13282,6 +13030,10 @@ function renderAnaMiniChart(canvasId, dailyData, valKey, color) {
 <!-- QR Code Generator extracted to its own file (refactored 2026-05-10).
      Loads QRious lib on-demand from cdnjs (deferred until tool is used). -->
 <script src="/js/qr.js"></script>
+<!-- Invoice Generator extracted to its own file (refactored 2026-05-10).
+     Generates HTML invoice in a new tab where user can Save as PDF.
+     Uses sb (Supabase Storage for logo upload), currentUser, isPro, formatMoney. -->
+<script src="/js/invoice.js"></script>
 <!-- Script Builder extracted to its own file (refactored 2026-05-10).
      Loaded AFTER design.js because Scripts AI tools call showDsMsg (defined
      in design.js). Also depends on Tone.js (loaded at top of dashboard.html)
