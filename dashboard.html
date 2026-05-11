@@ -10145,7 +10145,14 @@ async function startCheckout(plan, triggerBtn) {
       if (data.upgraded || data.alreadyOnPlan) {
         // Tier updated in-place — refresh user tier and show status inline
         await fetchTier(currentUser.id);
-        const msg = data.alreadyOnPlan ? "You're already on this plan." : "Plan updated successfully.";
+        let msg;
+        if (data.alreadyOnPlan) {
+          msg = "You're already on this plan.";
+        } else if (data.trialApplied) {
+          msg = "Upgraded to Creator Max. Enjoy 7 days free, then your existing billing cycle continues at the Max rate.";
+        } else {
+          msg = "Plan updated successfully.";
+        }
         // Show in settings modal if open, otherwise a subtle toast
         if (typeof showSettingsResult === 'function' && document.getElementById('tool-settings')?.style.display !== 'none') {
           showSettingsResult('success', msg);
