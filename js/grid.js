@@ -113,7 +113,11 @@ function onGridDragOver(e) {
   document.getElementById('grid-drop-zone').classList.add('drag-over');
 }
 function onGridDragLeave(e) {
-  document.getElementById('grid-drop-zone').classList.remove('drag-over');
+  // Ignore dragleave when moving onto a child element. Otherwise the
+  // drag-over class flickers on/off as the cursor crosses children.
+  var dz = document.getElementById('grid-drop-zone');
+  if (e.relatedTarget && dz && dz.contains(e.relatedTarget)) return;
+  if (dz) dz.classList.remove('drag-over');
 }
 function onGridDrop(e) {
   e.preventDefault();

@@ -130,8 +130,20 @@ function faSetupListeners() {
   const zipInput = document.getElementById('fa-zip-input');
   const zipZone = document.getElementById('fa-zip-zone');
   if (zipZone) {
-    zipZone.addEventListener('dragover', e => { e.preventDefault(); e.stopPropagation(); zipZone.classList.add('drag-over'); });
-    zipZone.addEventListener('dragleave', e => { e.preventDefault(); e.stopPropagation(); zipZone.classList.remove('drag-over'); });
+    zipZone.addEventListener('dragover', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      zipZone.classList.add('drag-over');
+    });
+    zipZone.addEventListener('dragleave', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      // Ignore dragleave when moving onto a child element. Without this,
+      // the class flickers on/off as the cursor crosses children (icon,
+      // label, sublabel, the invisible file input that overlays everything).
+      if (e.relatedTarget && zipZone.contains(e.relatedTarget)) return;
+      zipZone.classList.remove('drag-over');
+    });
     zipZone.addEventListener('drop', e => {
       e.preventDefault();
       e.stopPropagation();

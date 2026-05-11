@@ -420,6 +420,11 @@ contractRegisterAction('print', () => caPrintReport());
 // -----------------------------------------------------------------------------
 // The upload area has data-contract-drop-zone. Wired at DOMContentLoaded.
 // preventDefault on dragover is required for the drop event to fire.
+//
+// dragleave fires when moving over a CHILD element (the icon, the text divs).
+// We check relatedTarget — if the next element under cursor is still inside
+// the drop zone, we ignore the leave and keep the class. This prevents the
+// drag-over class from flickering on/off as the cursor moves across children.
 // =============================================================================
 document.addEventListener('DOMContentLoaded', function() {
   var dz = document.querySelector('[data-contract-drop-zone]');
@@ -429,7 +434,8 @@ document.addEventListener('DOMContentLoaded', function() {
     dz.classList.add('drag-over');
   });
   dz.addEventListener('dragleave', function(e) {
-    if (e.target === dz) dz.classList.remove('drag-over');
+    if (e.relatedTarget && dz.contains(e.relatedTarget)) return;
+    dz.classList.remove('drag-over');
   });
   dz.addEventListener('drop', function(e) {
     e.preventDefault();

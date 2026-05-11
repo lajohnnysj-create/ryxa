@@ -130,7 +130,11 @@ function onPdfDragOver(e) {
   document.getElementById('pdfsign-dropzone').classList.add('drag-over');
 }
 function onPdfDragLeave(e) {
-  document.getElementById('pdfsign-dropzone').classList.remove('drag-over');
+  // Ignore dragleave when moving onto a child element. Otherwise the
+  // drag-over class flickers on/off as the cursor crosses children.
+  var dz = document.getElementById('pdfsign-dropzone');
+  if (e.relatedTarget && dz && dz.contains(e.relatedTarget)) return;
+  if (dz) dz.classList.remove('drag-over');
 }
 function onPdfDrop(e) {
   e.preventDefault();
