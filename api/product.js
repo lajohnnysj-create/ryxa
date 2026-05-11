@@ -222,12 +222,13 @@ function renderPage(product, creator) {
 }
 
 module.exports = async (req, res) => {
-  // Content Security Policy — Report-Only mode for now. Product landing pages
-  // are PUBLIC and render seller-supplied content (title, description, images).
-  // Strict CSP defends against XSS via injected <script> in product fields.
-  // After 24-48h clean console reports, flip to enforce by changing the header
-  // name below from 'Content-Security-Policy-Report-Only' to 'Content-Security-Policy'.
-  res.setHeader('Content-Security-Policy-Report-Only', [
+  // Content Security Policy — ENFORCED. Product landing pages are PUBLIC and
+  // render seller-supplied content (title, description, images). Strict CSP
+  // defends against XSS via injected <script> in product fields.
+  // To roll back to Report-Only mode (if breakage is reported), change the
+  // header name below from 'Content-Security-Policy' to
+  // 'Content-Security-Policy-Report-Only'.
+  res.setHeader('Content-Security-Policy', [
     "default-src 'self'",
     "script-src 'self' https://cdn.jsdelivr.net",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
