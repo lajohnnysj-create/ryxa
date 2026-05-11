@@ -1963,7 +1963,7 @@ async function sendContractToBrand() {
 
   try {
     const { data, error } = await sb.functions.invoke('send-deal-notification', {
-      body: { type: 'contract_for_signing', deal_id: currentDealId }
+      body: { type: 'contract_creator_signed', deal_id: currentDealId }
     });
     if (error) throw new Error(error.message || 'Failed to send');
     if (data && data.error) throw new Error(data.error);
