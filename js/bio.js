@@ -457,11 +457,17 @@ async function resolveBioLinkLiveCovers(creatorUserId, links) {
 
   if (courseIds.length > 0) {
     promises.push(
-      sb.from('courses').select('id, cover_image_path').in('id', courseIds)
+      sb.from('courses').select('id, title, price_cents, cover_image_path').in('id', courseIds)
         .then(function(r) {
           var rows = r.data || [];
           var map = {};
-          rows.forEach(function(row) { map[row.id] = buildPublicUrl('course-covers', row.cover_image_path); });
+          rows.forEach(function(row) {
+            map[row.id] = {
+              title: row.title,
+              price: row.price_cents,
+              photo: buildPublicUrl('course-covers', row.cover_image_path),
+            };
+          });
           return { type: 'course', map: map };
         })
         .catch(function() { return { type: 'course', map: {} }; })
@@ -470,11 +476,17 @@ async function resolveBioLinkLiveCovers(creatorUserId, links) {
 
   if (coachingIds.length > 0) {
     promises.push(
-      sb.from('coaching_services').select('id, cover_image_path').in('id', coachingIds)
+      sb.from('coaching_services').select('id, title, price_cents, cover_image_path').in('id', coachingIds)
         .then(function(r) {
           var rows = r.data || [];
           var map = {};
-          rows.forEach(function(row) { map[row.id] = buildPublicUrl('coaching-covers', row.cover_image_path); });
+          rows.forEach(function(row) {
+            map[row.id] = {
+              title: row.title,
+              price: row.price_cents,
+              photo: buildPublicUrl('coaching-covers', row.cover_image_path),
+            };
+          });
           return { type: 'coaching', map: map };
         })
         .catch(function() { return { type: 'coaching', map: {} }; })
@@ -483,11 +495,17 @@ async function resolveBioLinkLiveCovers(creatorUserId, links) {
 
   if (productIds.length > 0) {
     promises.push(
-      sb.from('digital_products').select('id, cover_image_url').in('id', productIds)
+      sb.from('digital_products').select('id, title, price_cents, cover_image_url').in('id', productIds)
         .then(function(r) {
           var rows = r.data || [];
           var map = {};
-          rows.forEach(function(row) { map[row.id] = row.cover_image_url || null; });
+          rows.forEach(function(row) {
+            map[row.id] = {
+              title: row.title,
+              price: row.price_cents,
+              photo: row.cover_image_url || null,
+            };
+          });
           return { type: 'product', map: map };
         })
         .catch(function() { return { type: 'product', map: {} }; })
@@ -528,13 +546,25 @@ async function resolveBioLinkLiveCovers(creatorUserId, links) {
     if (!link) continue;
     if (link.isCourse && link.courseId && courseMap) {
       var liveCourse = courseMap[link.courseId];
-      if (liveCourse) link.photoUrl = liveCourse;
+      if (liveCourse) {
+        if (typeof liveCourse.title === 'string' && liveCourse.title.length > 0) link.title = liveCourse.title;
+        if (typeof liveCourse.price === 'number') link.coursePrice = liveCourse.price;
+        if (liveCourse.photo) link.photoUrl = liveCourse.photo;
+      }
     } else if (link.isCoaching && link.coachingId && coachingMap) {
       var liveCoaching = coachingMap[link.coachingId];
-      if (liveCoaching) link.photoUrl = liveCoaching;
+      if (liveCoaching) {
+        if (typeof liveCoaching.title === 'string' && liveCoaching.title.length > 0) link.title = liveCoaching.title;
+        if (typeof liveCoaching.price === 'number') link.coachingPrice = liveCoaching.price;
+        if (liveCoaching.photo) link.photoUrl = liveCoaching.photo;
+      }
     } else if (link.isProduct && link.productId && productMap) {
       var liveProduct = productMap[link.productId];
-      if (liveProduct) link.photoUrl = liveProduct;
+      if (liveProduct) {
+        if (typeof liveProduct.title === 'string' && liveProduct.title.length > 0) link.title = liveProduct.title;
+        if (typeof liveProduct.price === 'number') link.productPrice = liveProduct.price;
+        if (liveProduct.photo) link.photoUrl = liveProduct.photo;
+      }
     } else if (link.isMediaKit && mediaKitUrl) {
       link.photoUrl = mediaKitUrl;
     }
