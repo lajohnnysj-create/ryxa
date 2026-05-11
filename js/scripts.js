@@ -1543,11 +1543,16 @@ function tpStartVoice() {
     if (preferred) utterance.voice = preferred;
 
     utterance.onend = function() {
+      // tpState may be null if the user exited the teleprompter while this
+      // utterance was still in progress — cancel() fires both onend and
+      // onerror on the cancelled utterance, but by then tpState is gone.
+      if (!tpState) return;
       chunkIndex++;
       tpState.voiceChunkIndex = chunkIndex;
       speakNext();
     };
     utterance.onerror = function() {
+      if (!tpState) return;
       chunkIndex++;
       tpState.voiceChunkIndex = chunkIndex;
       speakNext();
