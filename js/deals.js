@@ -1835,7 +1835,7 @@ function removeContractSaveButton() {
 
 async function saveSignedContractBack() {
   const ctx = window._contractSignContext;
-  if (!ctx) { alert('No contract context. Please try signing again from the deal.'); return; }
+  if (!ctx) { showModalAlert('Sign contract', 'No contract context. Please try signing again from the deal.'); return; }
 
   const btn = document.getElementById('pdfsign-contract-save-btn');
   if (!btn) return;
@@ -1894,7 +1894,7 @@ async function saveSignedContractBack() {
     }, 300);
 
   } catch (err) {
-    alert('Failed to save: ' + err.message);
+    showModalAlert('Save failed', 'Failed to save: ' + err.message);
   } finally {
     if (btn) { btn.disabled = false; btn.innerHTML = origHtml; }
   }
@@ -2129,7 +2129,7 @@ async function removeInvoice() {
   const deal = dealsList.find(d => d.id === currentDealId);
   if (!deal || !deal.invoice_file_path) return;
 
-  if (!confirm('Remove the uploaded invoice? This cannot be undone.')) return;
+  if (!(await dashConfirm('Remove the uploaded invoice? This cannot be undone.'))) return;
 
   const path = deal.invoice_file_path;
   const { error: storageErr } = await sb.storage.from('deal-contracts').remove([path]);
@@ -2183,7 +2183,7 @@ async function sendInvoiceToBrand() {
   const confirmMsg = isResend
     ? `Resend the invoice email to ${deal.brand_contact_email}?`
     : `Send the invoice to ${deal.brand_contact_email}?`;
-  if (!confirm(confirmMsg)) return;
+  if (!(await dashConfirm(confirmMsg))) return;
 
   const btn = document.getElementById('deal-invoice-send-btn');
   const origText = btn.textContent;
@@ -2470,20 +2470,50 @@ async function syncDealCalendarEvents(dealId, brandName, status, campaignStart, 
 }
 
 function showDealModalMsg(type, text) {
-  const el = document.getElementById('deal-detail-msg');
-  el.style.display = 'block';
-  if (type === 'error') {
-    el.style.background = 'rgba(239,68,68,0.1)';
-    el.style.border = '1px solid rgba(239,68,68,0.2)';
-    el.style.color = '#fca5a5';
-  } else {
-    el.style.background = 'rgba(74,222,128,0.1)';
-    el.style.border = '1px solid rgba(74,222,128,0.2)';
-    el.style.color = '#86efac';
-  }
-  el.textContent = text;
-  // Scroll into view
-  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  // Render as a floating top-right toast instead of an inline banner. This
+  // avoids the prior behavior where the banner sat far below the contract
+  // uploader and triggered a smooth scroll to it on every success/error,
+  // yanking the user away from what they were doing (e.g. signing a contract).
+  // The inline banner element (#deal-detail-msg) is intentionally left in
+  // place to keep the existing markup stable, but is no longer used here.
+  var existing = document.getElementById('deal-toast');
+  if (existing) existing.remove();
+  var toast = document.createElement('div');
+  toast.id = 'deal-toast';
+  var isError = type === 'error';
+  toast.style.cssText = [
+    'position:fixed',
+    'top:20px',
+    'right:20px',
+    'z-index:10000',
+    'max-width:380px',
+    'padding:12px 16px',
+    'border-radius:10px',
+    'font-size:13px',
+    'font-family:DM Sans,sans-serif',
+    'line-height:1.4',
+    'box-shadow:0 8px 24px rgba(0,0,0,0.3)',
+    'backdrop-filter:blur(10px)',
+    'opacity:0',
+    'transform:translateY(-10px)',
+    'transition:opacity 0.2s ease,transform 0.2s ease',
+    isError
+      ? 'background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.4);color:#fca5a5'
+      : 'background:rgba(74,222,128,0.12);border:1px solid rgba(74,222,128,0.4);color:#86efac'
+  ].join(';');
+  toast.textContent = text;
+  document.body.appendChild(toast);
+  // Force a reflow so the transition runs from the initial opacity:0
+  void toast.offsetWidth;
+  toast.style.opacity = '1';
+  toast.style.transform = 'translateY(0)';
+  // Auto-dismiss after 3.5s (errors get a bit longer so users can read them)
+  var dismissMs = isError ? 5000 : 3500;
+  setTimeout(function() {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(-10px)';
+    setTimeout(function() { if (toast.parentNode) toast.remove(); }, 250);
+  }, dismissMs);
 }
 
 // =====================================================
@@ -2541,7 +2571,7 @@ async function confirmDeleteDeal() {
   const { error } = await sb.from('brand_deals').delete().eq('id', currentDealId);
   btn.textContent = 'Delete forever';
   if (error) {
-    alert('Failed to delete: ' + error.message);
+    showModalAlert('Delete failed', 'Failed to delete: ' + error.message);
     return;
   }
 
@@ -2743,7 +2773,7 @@ function copyShareMessage() {
 
 async function revokeShareAccess() {
   if (!currentDealId) return;
-  if (!confirm('Revoke access to this deal? The brand will no longer be able to view it. You can share again later by clicking "Share with brand" again.')) return;
+  if (!(await dashConfirm('Revoke access to this deal? The brand will no longer be able to view it. You can share again later by clicking "Share with brand" again.'))) return;
 
   const { data, error } = await sb.rpc('revoke_deal_share_token', { p_deal_id: currentDealId });
   if (error || (data && data.error)) {
