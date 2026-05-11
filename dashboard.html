@@ -9905,9 +9905,35 @@ function updateTierUI() {
   const upgradeBtn = document.getElementById('topbar-upgrade-btn');
   const upgradeBanner = document.getElementById('upgrade-banner');
 
-  const badgeText = isCancelling
-    ? (max ? 'Creator Max (Cancelling)' : 'Pro (Cancelling)')
-    : max ? 'Creator Max' : pro ? 'Pro' : 'Free';
+  // Trial countdown for the topbar pill. Same logic as updateSettingsCancelBtn:
+  // trial_end in the future means we're in a trial; round days UP.
+  let trialDaysLeft = null;
+  if (userTrialEnd) {
+    const endMs = new Date(userTrialEnd).getTime();
+    const nowMs = Date.now();
+    if (endMs > nowMs) {
+      trialDaysLeft = Math.ceil((endMs - nowMs) / (24 * 60 * 60 * 1000));
+    }
+  }
+  const isTrialing = max && trialDaysLeft !== null;
+
+  // Topbar pill (upper-right). Cancelling takes precedence over Trial:
+  // once a trialing user cancels, the trial countdown is implicit (the
+  // subscription ends with the trial anyway), and Cancelling is the more
+  // urgent state to communicate.
+  let badgeText;
+  if (isCancelling) {
+    badgeText = max ? 'Creator Max (Cancelling)' : 'Pro (Cancelling)';
+  } else if (isTrialing) {
+    const dayWord = trialDaysLeft === 1 ? 'day' : 'days';
+    badgeText = 'Creator Max (Trial, ' + trialDaysLeft + ' ' + dayWord + ' left)';
+  } else {
+    badgeText = max ? 'Creator Max' : pro ? 'Pro' : 'Free';
+  }
+
+  // Sidebar / account menu label — intentionally NOT showing trial state.
+  // Keeps the sidebar text short; trial info is surfaced in the topbar pill
+  // and the Settings panel.
   const planText = isCancelling
     ? (max ? 'Max (Cancelling)' : 'Pro (Cancelling)')
     : max ? 'Creator Max' : pro ? 'Pro Plan' : 'Free Plan';
