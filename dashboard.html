@@ -5327,6 +5327,22 @@
   .settings-s-d74c8c { display:none;margin-top:10px;padding:10px 12px;border-radius:8px;font-size:12px;line-height:1.5; }
   .settings-s-783791 { display:flex;align-items:center;justify-content:space-between;cursor:pointer; }
   .settings-s-983334 { accent-color:#7c3aed;width:18px;height:18px;cursor:pointer; }
+  /* Toggle switch (replaces legacy checkbox for stateful preferences like email opt-in) */
+  .settings-s-tg42a1 { position:relative;display:inline-flex;align-items:center;flex-shrink:0;width:44px;height:24px; }
+  .settings-s-tg42a1 input { position:absolute;opacity:0;width:0;height:0;margin:0; }
+  .settings-s-tg42a1 .settings-s-tg42a1-track { position:absolute;inset:0;background:rgba(255,255,255,0.12);border-radius:999px;transition:background 0.2s ease;cursor:pointer; }
+  .settings-s-tg42a1 .settings-s-tg42a1-thumb { position:absolute;top:2px;left:2px;width:20px;height:20px;background:#fff;border-radius:50%;transition:transform 0.2s ease;box-shadow:0 1px 3px rgba(0,0,0,0.3);pointer-events:none; }
+  .settings-s-tg42a1 input:checked ~ .settings-s-tg42a1-track { background:#7c3aed; }
+  .settings-s-tg42a1 input:checked ~ .settings-s-tg42a1-thumb { transform:translateX(20px); }
+  .settings-s-tg42a1 input:focus-visible ~ .settings-s-tg42a1-track { outline:2px solid #c4b5fd;outline-offset:2px; }
+  .settings-s-tg42a1 input:disabled ~ .settings-s-tg42a1-track { opacity:0.5;cursor:not-allowed; }
+  /* Inline save-status indicator next to a toggle */
+  .settings-s-st9b2c { display:inline-block;font-size:12px;font-weight:500;margin-right:10px;opacity:0;transition:opacity 0.25s ease;min-width:54px;text-align:right; }
+  .settings-s-st9b2c.is-visible { opacity:1; }
+  .settings-s-st9b2c.is-saving { color:var(--muted); }
+  .settings-s-st9b2c.is-saved { color:#86efac; }
+  .settings-s-st9b2c.is-error { color:#fca5a5; }
+  .settings-s-tgwrap { display:inline-flex;align-items:center; }
   .settings-s-992ab4 { margin-top:12px;font-size:12px;color:var(--muted);text-align:center; }
 
 
@@ -9453,7 +9469,14 @@
       <div class="settings-s-9c422a">Email Preferences</div>
       <label class="settings-s-783791">
         <span class="deal-s-8cb67d">Receive product updates and news from Ryxa</span>
-        <input type="checkbox" id="settings-marketing-emails" data-settings-action="toggle-marketing" data-settings-event="change" class="settings-s-983334">
+        <span class="settings-s-tgwrap">
+          <span id="settings-marketing-status" class="settings-s-st9b2c" aria-live="polite"></span>
+          <span class="settings-s-tg42a1">
+            <input type="checkbox" id="settings-marketing-emails" data-settings-action="toggle-marketing" data-settings-event="change" role="switch" aria-label="Receive product updates and news from Ryxa">
+            <span class="settings-s-tg42a1-track"></span>
+            <span class="settings-s-tg42a1-thumb"></span>
+          </span>
+        </span>
       </label>
     </div>
 
