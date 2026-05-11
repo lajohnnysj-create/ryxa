@@ -9413,6 +9413,10 @@ function tierLabel(t) {
   return 'Free';
 }
 let userStatus = 'free';
+// ISO timestamp when the trial ends, or null when not in a trial. Source of
+// truth for "is the user currently in a trial" — checked at render time
+// because trials expire silently and we don't always get a webhook on tick.
+let userTrialEnd = null;
 let currentTool = 'welcome';
 
 const toolTitles = {
@@ -9844,10 +9848,11 @@ async function fetchTier(userId) {
     document.body.classList.remove('tier-loading');
   }, 5000);
   try {
-    const { data } = await sb.from('subscriptions').select('tier, status').eq('user_id', userId).limit(1);
+    const { data } = await sb.from('subscriptions').select('tier, status, trial_end').eq('user_id', userId).limit(1);
     if (data && data.length > 0) {
       userTier = data[0].tier || 'free';
       userStatus = data[0].status || 'free';
+      userTrialEnd = data[0].trial_end || null;
     }
     updateTierUI();
     // Pre-load AI usage so the sidebar menu opens instantly with no layout shift.
