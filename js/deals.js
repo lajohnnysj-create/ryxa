@@ -1953,7 +1953,7 @@ async function sendContractToBrand() {
     return;
   }
 
-  const confirmed3 = await dashConfirm('Send the contract to ' + deal.brand_contact_email + ' for signing?');
+  const confirmed3 = await dashConfirm('Resend the contract signing email to ' + deal.brand_contact_email + '?');
   if (!confirmed3) return;
 
   const btn = document.getElementById('deal-contract-send-btn');
@@ -1968,7 +1968,7 @@ async function sendContractToBrand() {
     if (error) throw new Error(error.message || 'Failed to send');
     if (data && data.error) throw new Error(data.error);
 
-    showDealModalMsg('success', 'Contract sent to ' + deal.brand_contact_email + '.');
+    showDealModalMsg('success', 'Brand has been notified via email at ' + deal.brand_contact_email + '.');
     setTimeout(() => { const msg = document.getElementById('deal-detail-msg'); if (msg) msg.style.display = 'none'; }, 4000);
   } catch (err) {
     showDealModalMsg('error', 'Failed to send: ' + err.message);
