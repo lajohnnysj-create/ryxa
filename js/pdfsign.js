@@ -265,11 +265,63 @@ function onPaletteClick(e, fieldType, el) {
   pdfsignTouchPending = fieldType;
   clearPaletteSelection();
   if (el && el.classList) el.classList.add('selected');
+  enterPdfSignPlacingMode(fieldType);
   showPdfSignStatus(`Drag or tap on the PDF where you want the ${fieldType}. Tap this message to cancel.`);
 }
 
 function clearPaletteSelection() {
   document.querySelectorAll('.pdfsign-palette-item.selected').forEach(el => el.classList.remove('selected'));
+  exitPdfSignPlacingMode();
+}
+
+// ======== PLACEMENT-MODE CURSOR BADGE ========
+// When the user taps a palette item, they enter "placement mode" — they're
+// expected to click on the PDF page to drop a field there. To make this
+// discoverable, we:
+//   1. Add `pdfsign-placing` class to <body>, which switches the PDF overlay
+//      cursor to crosshair (CSS in dashboard.html).
+//   2. Show a small floating badge near the cursor labeling what's being
+//      placed ("Signature", "Text", etc.).
+// Both are cleared when the field is placed, the user cancels, or the
+// user clicks the cancel toast.
+
+const PDFSIGN_FIELD_LABELS = {
+  signature: 'Signature',
+  text: 'Text',
+  date: 'Date',
+  checkbox: 'Checkbox',
+  crossout: 'Cross-out',
+};
+
+let pdfsignBadgeMoveHandler = null;
+
+function enterPdfSignPlacingMode(fieldType) {
+  document.body.classList.add('pdfsign-placing');
+  // Create the badge element once and reuse it.
+  let badge = document.getElementById('pdfsign-cursor-badge');
+  if (!badge) {
+    badge = document.createElement('div');
+    badge.id = 'pdfsign-cursor-badge';
+    document.body.appendChild(badge);
+  }
+  badge.textContent = PDFSIGN_FIELD_LABELS[fieldType] || fieldType;
+  // Track mouse so the badge follows the cursor. Only one listener at a time.
+  if (pdfsignBadgeMoveHandler) {
+    document.removeEventListener('mousemove', pdfsignBadgeMoveHandler);
+  }
+  pdfsignBadgeMoveHandler = function(e) {
+    badge.style.left = e.clientX + 'px';
+    badge.style.top = e.clientY + 'px';
+  };
+  document.addEventListener('mousemove', pdfsignBadgeMoveHandler);
+}
+
+function exitPdfSignPlacingMode() {
+  document.body.classList.remove('pdfsign-placing');
+  if (pdfsignBadgeMoveHandler) {
+    document.removeEventListener('mousemove', pdfsignBadgeMoveHandler);
+    pdfsignBadgeMoveHandler = null;
+  }
 }
 
 function showPdfSignStatus(msg) {
