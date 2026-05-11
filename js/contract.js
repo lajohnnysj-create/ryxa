@@ -67,8 +67,15 @@ var caFileData = null;
 var caLastResult = null;
 var caLastFileName = null;
 
-function caHandleUpload(input) {
-  var file = input.files[0];
+// Accepts either an HTMLInputElement (from file picker change) or a File
+// (from drag-and-drop). Returns early if no file or wrong type/size.
+function caHandleUpload(inputOrFile) {
+  var file;
+  if (inputOrFile instanceof File) {
+    file = inputOrFile;
+  } else if (inputOrFile && inputOrFile.files) {
+    file = inputOrFile.files[0];
+  }
   if (!file) return;
   if (file.type !== 'application/pdf') { showModalAlert('Invalid File', 'Please upload a PDF file.'); return; }
   if (file.size > 15 * 1024 * 1024) { showModalAlert('Too Large', 'PDF must be under 15MB.'); return; }
@@ -407,3 +414,27 @@ contractRegisterAction('handle-upload', (e, el) => caHandleUpload(el));
 contractRegisterAction('analyze', () => caAnalyze());
 contractRegisterAction('reset', () => caReset());
 contractRegisterAction('print', () => caPrintReport());
+
+// =============================================================================
+// DRAG-AND-DROP UPLOAD
+// -----------------------------------------------------------------------------
+// The upload area has data-contract-drop-zone. Wired at DOMContentLoaded.
+// preventDefault on dragover is required for the drop event to fire.
+// =============================================================================
+document.addEventListener('DOMContentLoaded', function() {
+  var dz = document.querySelector('[data-contract-drop-zone]');
+  if (!dz) return;
+  dz.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    dz.classList.add('drag-over');
+  });
+  dz.addEventListener('dragleave', function(e) {
+    if (e.target === dz) dz.classList.remove('drag-over');
+  });
+  dz.addEventListener('drop', function(e) {
+    e.preventDefault();
+    dz.classList.remove('drag-over');
+    var file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    if (file) caHandleUpload(file);
+  });
+});

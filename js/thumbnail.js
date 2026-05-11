@@ -64,8 +64,15 @@ function thumbDispatchEvent(event) {
 // =====================================================
 var taImageData = null;
 
-function taHandleUpload(input) {
-  var file = input.files[0];
+// Accepts either an HTMLInputElement (from file picker change) or a File
+// (from drag-and-drop). Returns early if no file or wrong type/size.
+function taHandleUpload(inputOrFile) {
+  var file;
+  if (inputOrFile instanceof File) {
+    file = inputOrFile;
+  } else if (inputOrFile && inputOrFile.files) {
+    file = inputOrFile.files[0];
+  }
   if (!file) return;
   if (!file.type.startsWith('image/')) { showModalAlert('Invalid File', 'Please select an image file.'); return; }
   if (file.size > 10 * 1024 * 1024) { showModalAlert('Too Large', 'Image must be under 10MB.'); return; }
@@ -276,3 +283,28 @@ thumbRegisterAction('trigger-upload', () => {
 thumbRegisterAction('handle-upload', (e, el) => taHandleUpload(el));
 thumbRegisterAction('analyze', () => taAnalyze());
 thumbRegisterAction('reset', () => taReset());
+
+// =============================================================================
+// DRAG-AND-DROP UPLOAD
+// -----------------------------------------------------------------------------
+// The upload area has data-thumb-drop-zone. Wired at DOMContentLoaded.
+// preventDefault on dragover is required for the drop event to fire.
+// =============================================================================
+document.addEventListener('DOMContentLoaded', function() {
+  var dz = document.querySelector('[data-thumb-drop-zone]');
+  if (!dz) return;
+  dz.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    dz.classList.add('drag-over');
+  });
+  dz.addEventListener('dragleave', function(e) {
+    // Only remove when leaving the drop zone itself, not its children
+    if (e.target === dz) dz.classList.remove('drag-over');
+  });
+  dz.addEventListener('drop', function(e) {
+    e.preventDefault();
+    dz.classList.remove('drag-over');
+    var file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    if (file) taHandleUpload(file);
+  });
+});
