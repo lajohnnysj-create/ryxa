@@ -2650,35 +2650,60 @@ function dsRemoveBg() {
     ctx.drawImage(imgEl, 0, 0);
     c.toBlob(function(blob) {
       _dsBgRemoveFunc(blob).then(function(resultBlob) {
-        // Convert the result blob to a data URL before loading into fabric.
-        // We previously used URL.createObjectURL(resultBlob) here, but that
-        // returns a transient blob: URL that only lives as long as the tab.
-        // fabric.toJSON serializes the image's src into the saved project,
-        // so a blob: URL would be saved and then 404 on next page load.
-        // Data URLs are inlined as base64 in the JSON — heavier on storage
-        // but actually persistable.
-        var reader = new FileReader();
-        reader.onload = function(e) {
-          var dataUrl = e.target.result;
-          fabric.Image.fromURL(dataUrl, function(newImg) {
-            newImg.set({
-              left: obj.left, top: obj.top,
-              scaleX: obj.scaleX, scaleY: obj.scaleY,
-              angle: obj.angle
-            });
-            dsCanvas.remove(obj);
-            dsCanvas.add(newImg);
-            dsCanvas.setActiveObject(newImg);
-            dsCanvas.renderAll();
-            dsResetBgBtn(btn);
-            showDsMsg('success', 'Background removed.');
-          });
+        // The model returns a PNG blob with alpha. PNG of a transparent
+        // photographic subject is large (often 2-5 MB), and that blob ends up
+        // as a base64 data URL inside the project JSON via fabric.toJSON, so
+        // every save uploads and every load downloads that full payload to
+        // Supabase. Re-encode as WebP with alpha at 0.9 quality before
+        // serializing — visually indistinguishable from PNG for creator content,
+        // but typically 70–90% smaller. Drops egress proportionally.
+        var pngImg = new Image();
+        pngImg.onload = function() {
+          var c2 = document.createElement('canvas');
+          c2.width = pngImg.naturalWidth;
+          c2.height = pngImg.naturalHeight;
+          c2.getContext('2d').drawImage(pngImg, 0, 0);
+          c2.toBlob(function(webpBlob) {
+            // The PNG resultBlob object URL is no longer needed once we've
+            // decoded it; revoke to free memory.
+            URL.revokeObjectURL(pngImg.src);
+            // If WebP encoding ever fails on a niche browser (very unlikely in
+            // 2026 — universal canvas WebP support), webpBlob will be null.
+            // Bail with a clear error rather than silently storing a broken src.
+            if (!webpBlob) {
+              dsResetBgBtn(btn);
+              showDsMsg('error', 'Background removal failed (could not encode result). Try again.');
+              return;
+            }
+            var reader = new FileReader();
+            reader.onload = function(e) {
+              var dataUrl = e.target.result;
+              fabric.Image.fromURL(dataUrl, function(newImg) {
+                newImg.set({
+                  left: obj.left, top: obj.top,
+                  scaleX: obj.scaleX, scaleY: obj.scaleY,
+                  angle: obj.angle
+                });
+                dsCanvas.remove(obj);
+                dsCanvas.add(newImg);
+                dsCanvas.setActiveObject(newImg);
+                dsCanvas.renderAll();
+                dsResetBgBtn(btn);
+                showDsMsg('success', 'Background removed.');
+              });
+            };
+            reader.onerror = function() {
+              dsResetBgBtn(btn);
+              showDsMsg('error', 'Background removal failed. Try a different image.');
+            };
+            reader.readAsDataURL(webpBlob);
+          }, 'image/webp', 0.9);
         };
-        reader.onerror = function() {
+        pngImg.onerror = function() {
           dsResetBgBtn(btn);
           showDsMsg('error', 'Background removal failed. Try a different image.');
         };
-        reader.readAsDataURL(resultBlob);
+        pngImg.src = URL.createObjectURL(resultBlob);
       }).catch(function(err) {
         console.error('BG removal error:', err);
         dsResetBgBtn(btn);
