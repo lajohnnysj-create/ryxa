@@ -599,6 +599,11 @@ function faPrintReport() {
 }
 
 function buildFaPrintHTML() {
+  // Cap each list section to this many rows. The print engine struggles to
+  // paginate huge tables (thousands of rows = browser freeze). The full list
+  // is always available via CSV Export.
+  var PRINT_MAX_ROWS_PER_SECTION = 100;
+
   function esc(v) {
     if (v == null) return '';
     return String(v)
@@ -615,22 +620,35 @@ function buildFaPrintHTML() {
     if (rows.length === 0) {
       return '<section><h2>' + esc(title) + '</h2><p class="muted">None.</p></section>';
     }
-    var head = '<tr><th>Username</th><th>Instagram URL</th>';
-    if (opts && opts.showWhitelist) head += '<th>Whitelisted</th>';
-    if (opts && opts.showSnake) head += '<th>Snake List</th>';
+    var totalRows = rows.length;
+    var displayRows = rows.slice(0, PRINT_MAX_ROWS_PER_SECTION);
+    var truncated = totalRows > PRINT_MAX_ROWS_PER_SECTION;
+
+    var head = '<tr><th>Username</th>';
+    if (opts && opts.showWhitelist) head += '<th>Whitelist</th>';
+    if (opts && opts.showSnake) head += '<th>Snake</th>';
     if (opts && opts.showNote) head += '<th>Note</th>';
     head += '</tr>';
-    var body = rows.map(function(r) {
+
+    var body = displayRows.map(function(r) {
       var h = (r.handle || '').toLowerCase();
-      var url = 'https://instagram.com/' + esc(r.handle);
-      var cells = '<td>@' + esc(r.handle) + '</td><td>' + esc(url) + '</td>';
+      var cells = '<td>@' + esc(r.handle) + '</td>';
       if (opts && opts.showWhitelist) cells += '<td>' + (faUserWhitelist.has(h) ? 'Yes' : '') + '</td>';
       if (opts && opts.showSnake) cells += '<td>' + (faUserSnakeList.has(h) ? 'Yes' : '') + '</td>';
       if (opts && opts.showNote) cells += '<td>' + esc(faAccountNotes[h] || '') + '</td>';
       return '<tr>' + cells + '</tr>';
     }).join('');
-    return '<section><h2>' + esc(title) + ' <span class="count">(' + rows.length + ')</span></h2>'
-      + '<table><thead>' + head + '</thead><tbody>' + body + '</tbody></table></section>';
+
+    var footer = '';
+    if (truncated) {
+      var more = totalRows - PRINT_MAX_ROWS_PER_SECTION;
+      footer = '<p class="truncation">Showing first ' + PRINT_MAX_ROWS_PER_SECTION
+        + ' of ' + totalRows + '. ' + more + ' more not shown — use CSV Export for the full list.</p>';
+    }
+
+    return '<section><h2>' + esc(title) + ' <span class="count">(' + totalRows + ')</span></h2>'
+      + '<table><thead>' + head + '</thead><tbody>' + body + '</tbody></table>'
+      + footer + '</section>';
   }
 
   var summaryHtml = '<div class="summary"><div><strong>Not following back:</strong> ' + unfollowers.length + '</div>'
@@ -666,21 +684,22 @@ function buildFaPrintHTML() {
     + '<style>'
     + '* { box-sizing: border-box; }'
     + 'html, body { margin: 0; padding: 0; background: #fff; color: #000; }'
-    + 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; font-size: 11pt; line-height: 1.5; padding: 32px 40px; }'
-    + 'h1 { font-size: 22pt; margin: 0 0 4px 0; font-weight: 700; }'
-    + 'h2 { font-size: 13pt; margin: 22px 0 8px 0; padding-bottom: 4px; border-bottom: 1px solid #000; font-weight: 700; }'
-    + 'h2 .count { font-weight: 400; font-size: 11pt; }'
+    + 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; font-size: 11pt; line-height: 1.45; padding: 28px 36px; }'
+    + 'h1 { font-size: 20pt; margin: 0 0 4px 0; font-weight: 700; }'
+    + 'h2 { font-size: 13pt; margin: 20px 0 6px 0; padding-bottom: 4px; border-bottom: 1px solid #000; font-weight: 700; }'
+    + 'h2 .count { font-weight: 400; font-size: 10pt; }'
     + '.meta { font-size: 10pt; margin-bottom: 12px; }'
-    + '.summary { display: flex; flex-wrap: wrap; gap: 16px 24px; padding: 12px 0; border-top: 2px solid #000; border-bottom: 1px solid #000; margin-bottom: 8px; font-size: 10.5pt; }'
+    + '.summary { display: flex; flex-wrap: wrap; gap: 12px 24px; padding: 10px 0; border-top: 2px solid #000; border-bottom: 1px solid #000; margin-bottom: 4px; font-size: 10.5pt; }'
     + '.summary > div { white-space: nowrap; }'
-    + 'section { margin-bottom: 8px; page-break-inside: auto; }'
+    + 'section { margin-bottom: 4px; }'
     + 'table { width: 100%; border-collapse: collapse; font-size: 10pt; }'
     + 'thead { display: table-header-group; }'
     + 'tr { page-break-inside: avoid; }'
-    + 'th, td { text-align: left; padding: 5px 8px; border-bottom: 1px solid #ccc; vertical-align: top; word-break: break-word; }'
+    + 'th, td { text-align: left; padding: 3px 8px; border-bottom: 1px solid #ddd; vertical-align: top; word-break: break-word; }'
     + 'th { font-weight: 700; background: #f3f3f3; }'
     + 'tr:last-child td { border-bottom: none; }'
     + '.muted { font-size: 10pt; font-style: italic; margin: 4px 0 8px 0; }'
+    + '.truncation { font-size: 9pt; font-style: italic; color: #444; margin: 6px 0 4px 0; }'
     + '@page { margin: 0.5in; }'
     + '@media print { body { padding: 0; } }'
     + '</style></head><body>'
