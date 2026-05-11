@@ -2680,13 +2680,18 @@ function dsRemoveBg() {
   // object. The dynamic-import URL must be a string literal or template
   // literal — we hard-code it here. Pinned version so we don't break on
   // upstream changes.
+  //
+  // 60-second timeout: covers slow mobile connections downloading the ~60MB
+  // ONNX model on first run. Subsequent runs hit the browser cache and finish
+  // in milliseconds. Desktop typically completes in 5-15s on fiber, but mobile
+  // on 4G can take 30-50s legitimately — 30s was tripping false negatives.
   var timedOut = false;
   var timeoutId = setTimeout(function() {
     timedOut = true;
     _dsBgRemovalLoading = false;
     dsResetBgBtn(btn);
     showDsMsg('error', 'Failed to load background removal. Try again.');
-  }, 30000);
+  }, 60000);
 
   import('https://esm.sh/@imgly/background-removal@1.4.5')
     .then(function(mod) {
