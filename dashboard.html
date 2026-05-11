@@ -5218,6 +5218,28 @@
   .settings-s-983334 { accent-color:#7c3aed;width:18px;height:18px;cursor:pointer; }
   .settings-s-992ab4 { margin-top:12px;font-size:12px;color:var(--muted);text-align:center; }
 
+
+  /* ============================================================
+     PHASE 3 — Welcome screen style extraction
+     ============================================================ */
+  /* Phase 3 — Welcome screen markup style extraction */
+  .welcome-s-0511aa { display:flex;align-items:center;justify-content:center;padding:120px 0; }
+  .welcome-s-2ad59f { width:28px;height:28px;border:2px solid rgba(124,58,237,0.2);border-top-color:#a78bfa;border-radius:50%;animation:dash-spin 0.8s linear infinite; }
+  .welcome-s-327638 { max-width:720px;width:100%;margin-bottom:32px;padding:22px 22px 22px 24px;text-align:left; }
+  .welcome-s-554ba3 { display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;position:relative; }
+  .welcome-s-89990c { padding:5px 10px;background:transparent;border:1px solid rgba(124,58,237,0.3);border-radius:6px;color:#c4b5fd;font-size:11px;font-weight:500;cursor:pointer;font-family:DM Sans,sans-serif;transition:all 0.15s;position:relative; }
+  .welcome-s-b85373 { max-height:300px;overflow-y:auto;position:relative; }
+  .welcome-s-cf95f2 { font-size:9px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;padding:2px 6px;border-radius:4px;margin-left:4px;vertical-align:middle;font-weight:700;letter-spacing:0.03em; }
+  .welcome-s-9d93bf { font-size:9px;background:rgba(74,222,128,0.12);border:1px solid rgba(74,222,128,0.3);color:#4ade80;padding:2px 6px;border-radius:4px;margin-left:4px;vertical-align:middle; }
+  .welcome-s-aaf10c { font-size:9px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;padding:2px 6px;border-radius:4px;margin-left:4px;vertical-align:middle; }
+
+  /* Phase 3b — welcome.js template literal extraction */
+  .welcome-s-077293 { text-align:center;padding:24px 12px;color:var(--muted);font-size:12px; }
+  .welcome-s-00699a { color:var(--accent2);text-decoration:none; }
+  .welcome-s-e49100 { display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border); }
+  .welcome-s-825ae1 { flex:1;min-width:0;font-size:13px;color:var(--text);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left; }
+  .welcome-s-a0676c { font-size:11px;color:var(--muted);flex-shrink:0;white-space:nowrap; }
+
 </style>
 <style>html{background:#07070f;}body{visibility:hidden;}body.ready{visibility:visible;}</style>
 
@@ -5524,25 +5546,25 @@
     </div>
 
     <!-- WELCOME SCREEN -->
-    <div id="tool-welcome" style="display:block;">
+    <div id="tool-welcome" class="mk-s-21d91b">
       <!-- Loading spinner — shown until data loads -->
-      <div id="dash-loading" style="display:flex;align-items:center;justify-content:center;padding:120px 0;">
-        <div style="width:28px;height:28px;border:2px solid rgba(124,58,237,0.2);border-top-color:#a78bfa;border-radius:50%;animation:dash-spin 0.8s linear infinite;"></div>
+      <div id="dash-loading" class="welcome-s-0511aa">
+        <div class="welcome-s-2ad59f"></div>
       </div>
       <style>@keyframes dash-spin { to { transform: rotate(360deg); } }</style>
-      <div class="welcome-screen" style="display:none;" id="welcome-content">
+      <div class="welcome-screen bio-s-c8be1c"  id="welcome-content">
         <h1 id="welcome-greeting"><span id="welcome-name">creator</span></h1>
 
         <!-- Time Range Controls -->
         <div class="dash-range-bar" id="dash-range-bar">
-          <button class="dash-range-btn" onclick="setDashRange(7)" id="dash-range-7">7d</button>
-          <button class="dash-range-btn active" onclick="setDashRange(14)" id="dash-range-14">14d</button>
-          <button class="dash-range-btn" onclick="setDashRange(30)" id="dash-range-30">30d</button>
+          <button class="dash-range-btn" data-welcome-action="set-range" data-welcome-days="7" id="dash-range-7">7d</button>
+          <button class="dash-range-btn active" data-welcome-action="set-range" data-welcome-days="14" id="dash-range-14">14d</button>
+          <button class="dash-range-btn" data-welcome-action="set-range" data-welcome-days="30" id="dash-range-30">30d</button>
           <div class="dash-range-custom" id="dash-range-custom">
             <span class="dash-range-custom-label">Custom:</span>
-            <input type="date" class="dash-range-date" id="dash-range-start" aria-label="Custom range start date" onchange="setDashCustomRange()" onclick="event.stopPropagation()">
-            <span style="font-size:11px;color:var(--muted);">→</span>
-            <input type="date" class="dash-range-date" id="dash-range-end" aria-label="Custom range end date" onchange="setDashCustomRange()" onclick="event.stopPropagation()">
+            <input type="date" class="dash-range-date" id="dash-range-start" aria-label="Custom range start date" data-welcome-action="set-custom-range" data-welcome-event="change" data-welcome-action="stop-propagation">
+            <span class="bio-s-5f3468">→</span>
+            <input type="date" class="dash-range-date" id="dash-range-end" aria-label="Custom range end date" data-welcome-action="set-custom-range" data-welcome-event="change" data-welcome-action="stop-propagation">
           </div>
         </div>
 
@@ -5586,147 +5608,147 @@
         </div>
 
         <!-- Upcoming Events -->
-        <div id="dash-upcoming-wrap" class="dash-stat-box" style="max-width:720px;width:100%;margin-bottom:32px;padding:22px 22px 22px 24px;text-align:left;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;position:relative;">
-            <div style="display:flex;align-items:center;gap:10px;">
+        <div id="dash-upcoming-wrap" class="dash-stat-box welcome-s-327638" >
+          <div class="welcome-s-554ba3">
+            <div class="bio-s-7e30d2">
               <div class="dash-stat-icon">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
               </div>
-              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);font-weight:600;">Upcoming Events</div>
+              <div class="ana-s-f77a0c">Upcoming Events</div>
             </div>
-            <button onclick="showTool('calendar')" style="padding:5px 10px;background:transparent;border:1px solid rgba(124,58,237,0.3);border-radius:6px;color:#c4b5fd;font-size:11px;font-weight:500;cursor:pointer;font-family:DM Sans,sans-serif;transition:all 0.15s;position:relative;" onmouseover="this.style.borderColor='rgba(124,58,237,0.6)';this.style.color='#fff'" onmouseout="this.style.borderColor='rgba(124,58,237,0.3)';this.style.color='#c4b5fd'">View Calendar →</button>
+            <button data-welcome-action="show-tool" data-welcome-tool="calendar" class="welcome-s-89990c" onmouseover="this.style.borderColor='rgba(124,58,237,0.6)';this.style.color='#fff'" onmouseout="this.style.borderColor='rgba(124,58,237,0.3)';this.style.color='#c4b5fd'">View Calendar →</button>
           </div>
-          <div id="dash-upcoming-list" class="scroll-on-hover" style="max-height:300px;overflow-y:auto;position:relative;"></div>
+          <div id="dash-upcoming-list" class="scroll-on-hover welcome-s-b85373" ></div>
         </div>
 
         <div class="welcome-tools-grid">
-          <div class="welcome-tool-card" onclick="showTool('bio')">
+          <div class="welcome-tool-card" data-welcome-action="show-tool" data-welcome-tool="bio">
             <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
             <div>
               <div class="welcome-tool-name">Link in Bio</div>
               <div class="welcome-tool-desc">Share your content, links, and more with your audience from one clean page</div>
             </div>
           </div>
-          <div class="welcome-tool-card" onclick="showTool('deals')">
+          <div class="welcome-tool-card" data-welcome-action="show-tool" data-welcome-tool="deals">
             <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 12h18"/></svg></div>
             <div>
-              <div class="welcome-tool-name">Brand Deal CRM <span style="font-size:9px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;padding:2px 6px;border-radius:4px;margin-left:4px;vertical-align:middle;font-weight:700;letter-spacing:0.03em;">MAX</span></div>
+              <div class="welcome-tool-name">Brand Deal CRM <span class="welcome-s-cf95f2">MAX</span></div>
               <div class="welcome-tool-desc">Manage brand partnerships, contracts, deliverables, and revenue</div>
             </div>
           </div>
-          <div class="welcome-tool-card" onclick="showTool('courses')">
+          <div class="welcome-tool-card" data-welcome-action="show-tool" data-welcome-tool="courses">
             <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M8 7h8M8 11h6"/></svg></div>
             <div>
-              <div class="welcome-tool-name">Course Builder <span style="font-size:9px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;padding:2px 6px;border-radius:4px;margin-left:4px;vertical-align:middle;font-weight:700;letter-spacing:0.03em;">MAX</span></div>
+              <div class="welcome-tool-name">Course Builder <span class="welcome-s-cf95f2">MAX</span></div>
               <div class="welcome-tool-desc">Build and sell courses to your audience with Stripe payments</div>
             </div>
           </div>
-          <div class="welcome-tool-card" onclick="showTool('coaching')">
+          <div class="welcome-tool-card" data-welcome-action="show-tool" data-welcome-tool="coaching">
             <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
             <div>
-              <div class="welcome-tool-name">1:1 Booking <span style="font-size:9px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;padding:2px 6px;border-radius:4px;margin-left:4px;vertical-align:middle;font-weight:700;letter-spacing:0.03em;">MAX</span></div>
+              <div class="welcome-tool-name">1:1 Booking <span class="welcome-s-cf95f2">MAX</span></div>
               <div class="welcome-tool-desc">Sell private coaching sessions and consultations</div>
             </div>
           </div>
-          <div class="welcome-tool-card" onclick="showTool('products')">
+          <div class="welcome-tool-card" data-welcome-action="show-tool" data-welcome-tool="products">
             <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>
             <div>
-              <div class="welcome-tool-name">Digital Products <span style="font-size:9px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;padding:2px 6px;border-radius:4px;margin-left:4px;vertical-align:middle;font-weight:700;letter-spacing:0.03em;">MAX</span></div>
+              <div class="welcome-tool-name">Digital Products <span class="welcome-s-cf95f2">MAX</span></div>
               <div class="welcome-tool-desc">Sell ebooks, presets, templates, and downloadable files</div>
             </div>
           </div>
-          <div class="welcome-tool-card" onclick="showTool('analytics')">
+          <div class="welcome-tool-card" data-welcome-action="show-tool" data-welcome-tool="analytics">
             <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 20V10M12 20V4M6 20v-6"/></svg></div>
             <div>
-              <div class="welcome-tool-name">Analytics <span style="font-size:9px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;padding:2px 6px;border-radius:4px;margin-left:4px;vertical-align:middle;font-weight:700;letter-spacing:0.03em;">MAX</span></div>
+              <div class="welcome-tool-name">Analytics <span class="welcome-s-cf95f2">MAX</span></div>
               <div class="welcome-tool-desc">Track page views, revenue trends, and sales breakdown</div>
             </div>
           </div>
-          <div class="welcome-tool-card" onclick="showTool('clients')">
+          <div class="welcome-tool-card" data-welcome-action="show-tool" data-welcome-tool="clients">
             <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
             <div>
               <div class="welcome-tool-name">Subscribers</div>
               <div class="welcome-tool-desc">View and export your email list from purchases and signups</div>
             </div>
           </div>
-          <div class="welcome-tool-card" onclick="showTool('calendar')">
+          <div class="welcome-tool-card" data-welcome-action="show-tool" data-welcome-tool="calendar">
             <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
             <div>
               <div class="welcome-tool-name">Calendar</div>
               <div class="welcome-tool-desc">Plan your content, coaching sessions, and brand deals all in one place</div>
             </div>
           </div>
-          <div class="welcome-tool-card" onclick="showTool('design')">
+          <div class="welcome-tool-card" data-welcome-action="show-tool" data-welcome-tool="design">
             <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="12" rx="10" ry="4.5"/><ellipse cx="12" cy="12" rx="10" ry="4.5" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="10" ry="4.5" transform="rotate(120 12 12)"/><circle cx="12" cy="12" r="2"/></svg></div>
             <div>
-              <div class="welcome-tool-name">Design Studio <span style="font-size:9px;background:rgba(74,222,128,0.12);border:1px solid rgba(74,222,128,0.3);color:#4ade80;padding:2px 6px;border-radius:4px;margin-left:4px;vertical-align:middle;">FREE</span></div>
+              <div class="welcome-tool-name">Design Studio <span class="welcome-s-9d93bf">FREE</span></div>
               <div class="welcome-tool-desc">Create graphics with AI tools — free to start</div>
             </div>
           </div>
-          <div class="welcome-tool-card" onclick="showTool('mediakit')">
+          <div class="welcome-tool-card" data-welcome-action="show-tool" data-welcome-tool="mediakit">
             <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="17" x2="8" y2="13"/><line x1="12" y1="17" x2="12" y2="11"/><line x1="16" y1="17" x2="16" y2="15"/></svg></div>
             <div>
-              <div class="welcome-tool-name">Media Kit <span style="font-size:9px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;padding:2px 6px;border-radius:4px;margin-left:4px;vertical-align:middle;">PRO</span></div>
+              <div class="welcome-tool-name">Media Kit <span class="welcome-s-aaf10c">PRO</span></div>
               <div class="welcome-tool-desc">Pitch brands with a professional media kit and rate card</div>
             </div>
           </div>
-          <div class="welcome-tool-card" onclick="showTool('scripts')">
+          <div class="welcome-tool-card" data-welcome-action="show-tool" data-welcome-tool="scripts">
             <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/><path d="M6 21l-2-2 2-2M18 21l2-2-2-2"/></svg></div>
             <div>
-              <div class="welcome-tool-name">Script Builder <span style="font-size:9px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;padding:2px 6px;border-radius:4px;margin-left:4px;vertical-align:middle;">PRO</span></div>
+              <div class="welcome-tool-name">Script Builder <span class="welcome-s-aaf10c">PRO</span></div>
               <div class="welcome-tool-desc">Write your next reel, video, podcast, or story in blocks</div>
             </div>
           </div>
-          <div class="welcome-tool-card" onclick="showTool('thumbanalyzer')">
+          <div class="welcome-tool-card" data-welcome-action="show-tool" data-welcome-tool="thumbanalyzer">
             <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/><path d="M11 8v6M8 11h6"/></svg></div>
             <div>
-              <div class="welcome-tool-name">Thumbnails <span style="font-size:9px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;padding:2px 6px;border-radius:4px;margin-left:4px;vertical-align:middle;">PRO</span></div>
+              <div class="welcome-tool-name">Thumbnails <span class="welcome-s-aaf10c">PRO</span></div>
               <div class="welcome-tool-desc">Analyze your thumbnails with AI for clickability, composition, and text</div>
             </div>
           </div>
-          <div class="welcome-tool-card" onclick="showTool('contractanalyzer')">
+          <div class="welcome-tool-card" data-welcome-action="show-tool" data-welcome-tool="contractanalyzer">
             <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 15l2 2 4-4"/></svg></div>
             <div>
-              <div class="welcome-tool-name">Contract Analyzer <span style="font-size:9px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;padding:2px 6px;border-radius:4px;margin-left:4px;vertical-align:middle;">PRO</span></div>
+              <div class="welcome-tool-name">Contract Analyzer <span class="welcome-s-aaf10c">PRO</span></div>
               <div class="welcome-tool-desc">Upload a brand deal contract and get an instant AI report</div>
             </div>
           </div>
-          <div class="welcome-tool-card" onclick="showTool('grid')">
+          <div class="welcome-tool-card" data-welcome-action="show-tool" data-welcome-tool="grid">
             <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
             <div>
               <div class="welcome-tool-name">Grid Planner</div>
               <div class="welcome-tool-desc">Plan your social media grid, drop photos, drag to reorder</div>
             </div>
           </div>
-          <div class="welcome-tool-card" onclick="showFollowerTool()">
+          <div class="welcome-tool-card" data-welcome-action="show-follower">
             <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></div>
             <div>
               <div class="welcome-tool-name">Follow-Back Audit</div>
               <div class="welcome-tool-desc">Find out who stopped following you back on Instagram</div>
             </div>
           </div>
-          <div class="welcome-tool-card" onclick="showTool('image')">
+          <div class="welcome-tool-card" data-welcome-action="show-tool" data-welcome-tool="image">
             <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg></div>
             <div>
               <div class="welcome-tool-name">Photo Editor</div>
               <div class="welcome-tool-desc">Crop, adjust, and convert images with creator-ready aspect ratios</div>
             </div>
           </div>
-          <div class="welcome-tool-card" onclick="showTool('qr')">
+          <div class="welcome-tool-card" data-welcome-action="show-tool" data-welcome-tool="qr">
             <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20v1"/></svg></div>
             <div>
               <div class="welcome-tool-name">QR Generator</div>
               <div class="welcome-tool-desc">Create QR codes for your links and profiles</div>
             </div>
           </div>
-          <div class="welcome-tool-card" onclick="showTool('invoice')">
+          <div class="welcome-tool-card" data-welcome-action="show-tool" data-welcome-tool="invoice">
             <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/></svg></div>
             <div>
               <div class="welcome-tool-name">Invoice Generator</div>
               <div class="welcome-tool-desc">Create professional invoices for brand deals, collaborations, and more</div>
             </div>
           </div>
-          <div class="welcome-tool-card" onclick="showTool('pdfsign')">
+          <div class="welcome-tool-card" data-welcome-action="show-tool" data-welcome-tool="pdfsign">
             <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M3 17l3-3 2 2 5-5 3 3"/></svg></div>
             <div>
               <div class="welcome-tool-name">Sign PDF</div>
@@ -9590,25 +9612,6 @@ const DASH_GREETINGS = [
   "Today's enough, {name}."
 ];
 
-function pickDashGreeting(name) {
-  try {
-    var template = DASH_GREETINGS[Math.floor(Math.random() * DASH_GREETINGS.length)];
-    return template.replace('{name}', name || 'creator');
-  } catch(e) {
-    return 'Welcome back, ' + (name || 'creator') + '.';
-  }
-}
-
-function applyDashGreeting(name) {
-  var el = document.getElementById('welcome-greeting');
-  if (!el) return;
-  var line = pickDashGreeting(name);
-  // Wrap the {name} portion in a span styled bolder so the username still pops
-  var safeName = name || 'creator';
-  // Escape minimal HTML in the line to be safe (greetings are static so this is belt-and-suspenders)
-  var html = line.replace(safeName, '<span id="welcome-name">' + safeName + '</span>');
-  el.innerHTML = html;
-}
 
 async function setUser(user) {
   currentUser = user;
@@ -10457,124 +10460,6 @@ document.addEventListener('keydown', function(e) {
   if (e.key === 'Enter' && document.getElementById('pwa-login-screen').style.display === 'flex') handlePwaAuth();
 });
 
-// =====================================================
-// =====================================================
-// DASHBOARD HOME — Stats (Page Views + Revenue)
-// =====================================================
-let dashRangeDays = 14;
-let dashCustomStart = null;
-let dashCustomEnd = null;
-
-function getDashDateRange() {
-  if (dashCustomStart && dashCustomEnd) {
-    return { start: dashCustomStart, end: dashCustomEnd };
-  }
-  const end = new Date();
-  const start = new Date();
-  start.setDate(start.getDate() - dashRangeDays + 1);
-  return {
-    start: start.toISOString().slice(0, 10),
-    end: end.toISOString().slice(0, 10)
-  };
-}
-
-async function loadUpcomingEvents() {
-  if (!currentUser) return;
-  var listEl = document.getElementById('dash-upcoming-list');
-  if (!listEl) return;
-
-  // Determine forward window (matches selected range, but forward-looking)
-  var days = dashCustomStart && dashCustomEnd
-    ? Math.ceil((new Date(dashCustomEnd) - new Date(dashCustomStart)) / 86400000) + 1
-    : dashRangeDays;
-
-  var now = new Date();
-  var futureEnd = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
-
-  try {
-    var { data: events, error } = await sb.from('calendar_events')
-      .select('id, title, start_at, end_at, event_type, color, notes')
-      .eq('creator_id', currentUser.id)
-      .gte('start_at', now.toISOString())
-      .lte('start_at', futureEnd.toISOString())
-      .order('start_at', { ascending: true });
-
-    if (error) {
-      listEl.innerHTML = '<div style="text-align:center;padding:24px 12px;color:var(--muted);font-size:12px;">Could not load events</div>';
-      return;
-    }
-
-    if (!events || events.length === 0) {
-      listEl.innerHTML = '<div style="text-align:center;padding:24px 12px;color:var(--muted);font-size:12px;">No events in the next ' + days + ' days. <a href="#" onclick="showTool(\'calendar\');return false;" style="color:var(--accent2);text-decoration:none;">Add one →</a></div>';
-      return;
-    }
-
-    listEl.innerHTML = events.map(function(e) {
-      var startDate = new Date(e.start_at);
-      var endDate = new Date(e.end_at);
-      var dateStr = startDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-      var timeStr = startDate.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
-
-      // Tier-based color stripe based on event type
-      // Max features: coaching, brand_deal (gradient pink/purple)
-      // Pro features: future
-      // Free/manual: lavender purple
-      var stripeStyle;
-      var typeBadgeStyle = '';
-      var typeBadgeText = '';
-      if (e.event_type === 'coaching' || e.event_type === 'brand_deal') {
-        stripeStyle = 'background:linear-gradient(180deg, #a78bfa, #e879f9);';
-        typeBadgeStyle = 'background:linear-gradient(135deg,rgba(167,139,250,0.2),rgba(232,121,249,0.2));color:#fff;border:1px solid rgba(232,121,249,0.4);';
-        typeBadgeText = e.event_type === 'coaching' ? 'BOOKING' : 'BRAND DEAL';
-      } else {
-        stripeStyle = 'background:#c4b5fd;';
-      }
-
-      var typeBadge = typeBadgeText
-        ? '<span style="' + typeBadgeStyle + 'display:inline-block;padding:1px 6px;border-radius:4px;font-size:9px;font-weight:600;letter-spacing:0.3px;margin-right:8px;flex-shrink:0;">' + typeBadgeText + '</span>'
-        : '';
-
-      return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);">'
-        + '<div style="width:3px;height:20px;' + stripeStyle + 'border-radius:2px;flex-shrink:0;"></div>'
-        + typeBadge
-        + '<div style="flex:1;min-width:0;font-size:13px;color:var(--text);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;">' + escapeHtml((e.title || 'Untitled').replace(/^Coaching:\s*/i, '')) + '</div>'
-        + '<div style="font-size:11px;color:var(--muted);flex-shrink:0;white-space:nowrap;">' + escapeHtml(dateStr) + ' · ' + escapeHtml(timeStr) + '</div>'
-        + '</div>';
-    }).join('');
-
-    // Remove last border for cleaner look
-    var rows = listEl.querySelectorAll('div[style*="border-bottom"]');
-    if (rows.length > 0) rows[rows.length - 1].style.borderBottom = 'none';
-  } catch (e) {
-    console.error('loadUpcomingEvents:', e);
-    listEl.innerHTML = '<div style="text-align:center;padding:24px 12px;color:var(--muted);font-size:12px;">Could not load events</div>';
-  }
-}
-
-function setDashRange(days) {
-  dashRangeDays = days;
-  dashCustomStart = null;
-  dashCustomEnd = null;
-  document.getElementById('dash-range-start').value = '';
-  document.getElementById('dash-range-end').value = '';
-  document.querySelectorAll('.dash-range-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('dash-range-custom').classList.remove('active');
-  const btn = document.getElementById('dash-range-' + days);
-  if (btn) btn.classList.add('active');
-  loadDashStats();
-}
-
-function setDashCustomRange() {
-  const s = document.getElementById('dash-range-start').value;
-  const e = document.getElementById('dash-range-end').value;
-  if (!s || !e) return;
-  if (s > e) return;
-  dashCustomStart = s;
-  dashCustomEnd = e;
-  document.querySelectorAll('.dash-range-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('dash-range-custom').classList.add('active');
-  loadDashStats();
-}
 
 // =====================================================
 // CURRENCY SYSTEM (global)
@@ -10664,96 +10549,6 @@ function applyCurrencySymbols() {
 
 // Called when user picks a new currency from the Settings dropdown
 
-function renderSparkline(containerId, data, maxKey) {
-  const el = document.getElementById(containerId);
-  if (!el) return;
-  if (!data || data.length === 0) { el.innerHTML = ''; return; }
-  const vals = data.map(d => d[maxKey] || 0);
-  const maxVal = Math.max(...vals, 1);
-  el.innerHTML = vals.map(v => {
-    const pct = Math.max(2, (v / maxVal) * 100);
-    return `<div class="dash-sparkline-bar" style="height:${pct}%;" title="${v}"></div>`;
-  }).join('');
-}
-
-async function loadDashStats() {
-  if (!currentUser) return;
-  const { start, end } = getDashDateRange();
-
-  // Load upcoming events (independent of stats)
-  loadUpcomingEvents();
-
-  // Load page views (always)
-  const viewsRes = await sb.rpc('get_page_view_stats', { p_start_date: start, p_end_date: end });
-
-  // --- Page Views ---
-  const vEl = document.getElementById('dash-views-total');
-  const vSub = document.getElementById('dash-views-sub');
-  const vBreak = document.getElementById('dash-views-breakdown');
-  if (viewsRes.error || !viewsRes.data) {
-    vEl.textContent = '—';
-    vSub.textContent = 'Could not load';
-  } else {
-    const v = viewsRes.data;
-    vEl.textContent = (v.total || 0).toLocaleString();
-    const dayCount = dashCustomStart ? Math.ceil((new Date(end) - new Date(start)) / 86400000) + 1 : dashRangeDays;
-    const avg = v.total > 0 ? Math.round(v.total / dayCount) : 0;
-    vSub.textContent = `~${avg}/day avg over ${dayCount} days`;
-    const bp = v.by_page || {};
-    const pills = [];
-    if (bp.bio) pills.push(`<span class="dash-stat-pill">Bio: ${Number(bp.bio).toLocaleString()}</span>`);
-    if (bp.mediakit) pills.push(`<span class="dash-stat-pill">Media Kit: ${Number(bp.mediakit).toLocaleString()}</span>`);
-    if (bp.course) pills.push(`<span class="dash-stat-pill">Course: ${Number(bp.course).toLocaleString()}</span>`);
-    if (bp.coaching) pills.push(`<span class="dash-stat-pill">1:1 Bookings: ${Number(bp.coaching).toLocaleString()}</span>`);
-    if (bp.digital_product) pills.push(`<span class="dash-stat-pill">Digital Products: ${Number(bp.digital_product).toLocaleString()}</span>`);
-    vBreak.innerHTML = pills.join('');
-    renderSparkline('dash-views-sparkline', v.daily, 'count');
-  }
-
-  // --- Revenue (Max only) ---
-  const rEl = document.getElementById('dash-revenue-total');
-  const rSub = document.getElementById('dash-revenue-sub');
-  const rBreak = document.getElementById('dash-revenue-breakdown');
-  const rSpark = document.getElementById('dash-revenue-sparkline');
-  const isMax = (typeof userTier !== 'undefined') && userTier === 'max';
-
-  if (!isMax) {
-    // Locked state for Free/Pro
-    rEl.textContent = '$0';
-    rSub.innerHTML = `<span class="dash-stat-locked">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-      Revenue tracking available with Creator Max
-    </span>`;
-    rBreak.innerHTML = '';
-    rSpark.innerHTML = '';
-    return;
-  }
-
-  // Max user — load revenue
-  const revenueRes = await sb.rpc('get_revenue_stats', { p_start_date: start, p_end_date: end });
-  if (revenueRes.error || !revenueRes.data) {
-    rEl.textContent = '—';
-    rSub.textContent = 'Could not load';
-  } else {
-    const r = revenueRes.data;
-    rEl.textContent = formatDashUSD(r.total_cents || 0);
-    const bs = r.by_source || {};
-    const dayCount = dashCustomStart ? Math.ceil((new Date(end) - new Date(start)) / 86400000) + 1 : dashRangeDays;
-    const sources = [];
-    if (bs.brand_deal) sources.push(`<span class="dash-stat-pill">Brand Deals: ${formatDashUSD(bs.brand_deal)}</span>`);
-    if (bs.course) sources.push(`<span class="dash-stat-pill">Courses: ${formatDashUSD(bs.course)}</span>`);
-    if (bs.coaching) sources.push(`<span class="dash-stat-pill">1:1 Bookings: ${formatDashUSD(bs.coaching)}</span>`);
-    if (bs.digital_product) sources.push(`<span class="dash-stat-pill">Digital Products: ${formatDashUSD(bs.digital_product)}</span>`);
-    if (bs.other) sources.push(`<span class="dash-stat-pill">Other: ${formatDashUSD(bs.other)}</span>`);
-    rBreak.innerHTML = sources.join('');
-    if (r.total_cents > 0) {
-      rSub.textContent = `${Object.keys(bs).length} source${Object.keys(bs).length !== 1 ? 's' : ''} over ${dayCount} days`;
-    } else {
-      rSub.textContent = `No revenue recorded over ${dayCount} days`;
-    }
-    renderSparkline('dash-revenue-sparkline', r.daily, 'cents');
-  }
-}
 
 
 // LINK IN BIO
@@ -11644,6 +11439,12 @@ function renderAnaMiniChart(canvasId, dailyData, valKey, color) {
      Uses sb, Auth, currentUser, isPro, isMax, escapeHtml, getAIHeaders,
      startCheckout, all defined in dashboard.html. -->
 <script src="/js/chat.js"></script>
+<!-- Welcome screen / Dashboard Home extracted to its own file (refactored 2026-05-11).
+     Greeting, stats sparklines, upcoming events.
+     Reads sb, currentUser, currentCurrency, formatMoney, showTool, etc from dashboard.html.
+     Functions exposed: applyDashGreeting (called from setUser), loadDashStats (called
+     from showTool('welcome')). Load order doesn't matter — calls happen at runtime. -->
+<script src="/js/welcome.js"></script>
 <!-- Settings tool extracted to its own file (refactored 2026-05-11).
      Subscription management, Stripe Connect, Instagram OAuth, currency,
      password reset, marketing emails, Turnstile.
