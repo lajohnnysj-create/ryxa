@@ -37,7 +37,7 @@
     '  box-shadow: 0 12px 40px rgba(0,0,0,0.5);',
     '  backdrop-filter: blur(16px);',
     '  -webkit-backdrop-filter: blur(16px);',
-    '  z-index: 2147483646;',
+    '  z-index: 1000;',
     '  animation: fts-cookie-up 280ms cubic-bezier(0.22,1,0.36,1);',
     '  box-sizing: border-box;',
     '}',
