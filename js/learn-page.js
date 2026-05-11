@@ -97,8 +97,18 @@ async function handleLearnForgotPassword() {
   var email = document.getElementById('auth-email').value.trim();
   var errEl = document.getElementById('auth-error');
   if (!email) { errEl.textContent = 'Enter your email address first.'; errEl.style.display = 'block'; errEl.style.color = '#f87171'; return; }
-  var captchaToken = getTurnstileToken();
-  if (!captchaToken) { errEl.textContent = 'Please complete the verification check.'; errEl.style.display = 'block'; errEl.style.color = '#f87171'; return; }
+  errEl.textContent = 'Sending...';
+  errEl.style.display = 'block';
+  errEl.style.color = 'var(--muted)';
+  var captchaToken;
+  try {
+    captchaToken = await getTurnstileToken();
+  } catch (err) {
+    errEl.textContent = err.message || 'Verification failed. Please try again.';
+    errEl.style.color = '#f87171';
+    resetTurnstile();
+    return;
+  }
   var { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: 'https://ryxa.io/reset-password.html', captchaToken: captchaToken });
   if (error) {
     var msg = error.message;
@@ -135,22 +145,64 @@ async function handleLearnGoogleAuth() {
 }
 const TURNSTILE_SITE_KEY = '0x4AAAAAAC9W8avdI3sdVEcc';
 let turnstileWidgetId = null;
+let _turnstilePendingResolve = null;
+let _turnstilePendingReject = null;
 
 function renderTurnstileWidget() {
   if (typeof turnstile === 'undefined') { setTimeout(renderTurnstileWidget, 200); return; }
   var container = document.getElementById('auth-turnstile');
   if (!container) return;
   if (turnstileWidgetId !== null) { try { turnstile.reset(turnstileWidgetId); } catch(e) {} return; }
-  turnstileWidgetId = turnstile.render('#auth-turnstile', { sitekey: TURNSTILE_SITE_KEY, theme: 'dark', size: 'flexible' });
+  turnstileWidgetId = turnstile.render('#auth-turnstile', {
+    sitekey: TURNSTILE_SITE_KEY,
+    execution: 'execute',
+    callback: function(token) {
+      if (_turnstilePendingResolve) {
+        var resolve = _turnstilePendingResolve;
+        _turnstilePendingResolve = null;
+        _turnstilePendingReject = null;
+        resolve(token);
+      }
+    },
+    'error-callback': function() {
+      if (_turnstilePendingReject) {
+        var reject = _turnstilePendingReject;
+        _turnstilePendingResolve = null;
+        _turnstilePendingReject = null;
+        reject(new Error('Verification failed. Please try again.'));
+      }
+    },
+  });
 }
 
+// Returns a Promise<string> that resolves with a Turnstile token. Callers must
+// already be in a loading state when awaiting because the PoW runs inside this.
 function getTurnstileToken() {
-  if (typeof turnstile === 'undefined' || turnstileWidgetId === null) return null;
-  try { return turnstile.getResponse(turnstileWidgetId); } catch(e) { return null; }
+  return new Promise(function(resolve, reject) {
+    if (typeof turnstile === 'undefined' || turnstileWidgetId === null) {
+      reject(new Error('Verification not ready. Please try again.'));
+      return;
+    }
+    try {
+      var existing = turnstile.getResponse(turnstileWidgetId);
+      if (existing) { resolve(existing); return; }
+    } catch(e) {}
+    _turnstilePendingResolve = resolve;
+    _turnstilePendingReject = reject;
+    try {
+      turnstile.execute(turnstileWidgetId);
+    } catch(e) {
+      _turnstilePendingResolve = null;
+      _turnstilePendingReject = null;
+      reject(e);
+    }
+  });
 }
 
 function resetTurnstile() {
   if (typeof turnstile !== 'undefined' && turnstileWidgetId !== null) { try { turnstile.reset(turnstileWidgetId); } catch(e) {} }
+  _turnstilePendingResolve = null;
+  _turnstilePendingReject = null;
 }
 
 async function init() {
@@ -190,11 +242,21 @@ async function handleAuth() {
   if (!email || !password) { errEl.textContent = 'Please enter email and password.'; errEl.style.display = 'block'; return; }
   if (password.length < 6) { errEl.textContent = 'Password must be at least 6 characters.'; errEl.style.display = 'block'; return; }
 
-  var captchaToken = getTurnstileToken();
-  if (!captchaToken) { errEl.textContent = 'Please complete the verification check.'; errEl.style.display = 'block'; errEl.style.color = '#f87171'; return; }
-
   const btn = document.getElementById('auth-btn');
   btn.disabled = true; btn.textContent = 'Loading...';
+
+  var captchaToken;
+  try {
+    captchaToken = await getTurnstileToken();
+  } catch (err) {
+    btn.disabled = false;
+    btn.textContent = authMode === 'signin' ? 'Sign In' : 'Create Account';
+    errEl.textContent = err.message || 'Verification failed. Please try again.';
+    errEl.style.display = 'block';
+    errEl.style.color = '#f87171';
+    resetTurnstile();
+    return;
+  }
 
   try {
     var result;

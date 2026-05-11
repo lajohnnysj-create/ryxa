@@ -1275,16 +1275,59 @@ function renderPwaTurnstile() {
   var container = document.getElementById('pwa-turnstile');
   if (!container) return;
   if (pwaTurnstileWidgetId !== null) { try { turnstile.reset(pwaTurnstileWidgetId); } catch(e) {} return; }
-  pwaTurnstileWidgetId = turnstile.render('#pwa-turnstile', { sitekey: '0x4AAAAAAC9W8avdI3sdVEcc', theme: 'dark', size: 'flexible' });
+  pwaTurnstileWidgetId = turnstile.render('#pwa-turnstile', {
+    sitekey: '0x4AAAAAAC9W8avdI3sdVEcc',
+    execution: 'execute',
+    callback: function(token) {
+      if (_pwaTurnstilePendingResolve) {
+        var resolve = _pwaTurnstilePendingResolve;
+        _pwaTurnstilePendingResolve = null;
+        _pwaTurnstilePendingReject = null;
+        resolve(token);
+      }
+    },
+    'error-callback': function() {
+      if (_pwaTurnstilePendingReject) {
+        var reject = _pwaTurnstilePendingReject;
+        _pwaTurnstilePendingResolve = null;
+        _pwaTurnstilePendingReject = null;
+        reject(new Error('Verification failed. Please try again.'));
+      }
+    },
+  });
 }
 
+var _pwaTurnstilePendingResolve = null;
+var _pwaTurnstilePendingReject = null;
+
+// Returns a Promise<string> that resolves with a Turnstile token. Callers must
+// already be in a loading state when awaiting because the PoW runs inside this.
 function getPwaTurnstileToken() {
-  if (typeof turnstile === 'undefined' || pwaTurnstileWidgetId === null) return null;
-  try { return turnstile.getResponse(pwaTurnstileWidgetId); } catch(e) { return null; }
+  return new Promise(function(resolve, reject) {
+    if (typeof turnstile === 'undefined' || pwaTurnstileWidgetId === null) {
+      reject(new Error('Verification not ready. Please try again.'));
+      return;
+    }
+    try {
+      var existing = turnstile.getResponse(pwaTurnstileWidgetId);
+      if (existing) { resolve(existing); return; }
+    } catch(e) {}
+    _pwaTurnstilePendingResolve = resolve;
+    _pwaTurnstilePendingReject = reject;
+    try {
+      turnstile.execute(pwaTurnstileWidgetId);
+    } catch(e) {
+      _pwaTurnstilePendingResolve = null;
+      _pwaTurnstilePendingReject = null;
+      reject(e);
+    }
+  });
 }
 
 function resetPwaTurnstile() {
   if (typeof turnstile !== 'undefined' && pwaTurnstileWidgetId !== null) { try { turnstile.reset(pwaTurnstileWidgetId); } catch(e) {} }
+  _pwaTurnstilePendingResolve = null;
+  _pwaTurnstilePendingReject = null;
 }
 
 async function handlePwaGoogleAuth() {
@@ -1303,10 +1346,18 @@ async function handlePwaAuth() {
   var password = document.getElementById('pwa-password').value;
   var btn = document.getElementById('pwa-submit-btn');
   if (!email || !password) { showPwaMsg('error', 'Please enter your email and password.'); return; }
-  var captchaToken = getPwaTurnstileToken();
-  if (!captchaToken) { showPwaMsg('error', 'Please complete the verification check.'); return; }
   btn.disabled = true;
   btn.innerHTML = '<span class="auth-spinner"></span>' + (pwaAuthMode === 'signin' ? 'Signing in...' : 'Creating account...');
+  var captchaToken;
+  try {
+    captchaToken = await getPwaTurnstileToken();
+  } catch (err) {
+    btn.disabled = false;
+    btn.textContent = pwaAuthMode === 'signin' ? 'Sign in' : 'Create account';
+    showPwaMsg('error', err.message || 'Verification failed. Please try again.');
+    resetPwaTurnstile();
+    return;
+  }
   var result = pwaAuthMode === 'signin'
     ? await sb.auth.signInWithPassword({ email: email, password: password, options: { captchaToken: captchaToken } })
     : await sb.auth.signUp({ email: email, password: password, options: { captchaToken: captchaToken, emailRedirectTo: 'https://ryxa.io/dashboard.html' } });
@@ -1340,8 +1391,15 @@ async function handlePwaAuth() {
 async function handlePwaForgotPassword() {
   var email = document.getElementById('pwa-email').value.trim();
   if (!email) { showPwaMsg('error', 'Enter your email address above first.'); return; }
-  var captchaToken = getPwaTurnstileToken();
-  if (!captchaToken) { showPwaMsg('error', 'Please complete the verification check.'); return; }
+  showPwaMsg('success', 'Sending...');
+  var captchaToken;
+  try {
+    captchaToken = await getPwaTurnstileToken();
+  } catch (err) {
+    showPwaMsg('error', err.message || 'Verification failed. Please try again.');
+    resetPwaTurnstile();
+    return;
+  }
   var { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: 'https://ryxa.io/reset-password.html', captchaToken: captchaToken });
   resetPwaTurnstile();
   if (error) {

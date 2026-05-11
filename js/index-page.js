@@ -234,9 +234,17 @@ function showAuthMsg(type, msg) {
   el.style.display = 'block'; el.className = 'modal-msg ' + type; el.textContent = msg;
 }
 
-// Cloudflare Turnstile (CAPTCHA) configuration
+// Cloudflare Turnstile (invisible + execute mode)
+// Mode is set to "Invisible" on the Cloudflare dashboard for this sitekey, and
+// execution:'execute' here means the proof-of-work challenge only runs when we
+// explicitly call turnstile.execute() — not at widget render time. This avoids
+// the multi-second mobile main-thread freeze that the visible/managed mode
+// caused when the modal opened. The PoW now runs inside the submit spinner,
+// which the user already perceives as normal auth latency.
 const TURNSTILE_SITE_KEY = '0x4AAAAAAC9W8avdI3sdVEcc';
 let turnstileWidgetId = null;
+let _turnstilePendingResolve = null;
+let _turnstilePendingReject = null;
 
 function renderTurnstileWidget() {
   if (typeof turnstile === 'undefined') {
@@ -253,20 +261,58 @@ function renderTurnstileWidget() {
   }
   turnstileWidgetId = turnstile.render('#auth-turnstile', {
     sitekey: TURNSTILE_SITE_KEY,
-    theme: 'dark',
-    size: 'flexible',
+    execution: 'execute',
+    callback: function(token) {
+      if (_turnstilePendingResolve) {
+        const resolve = _turnstilePendingResolve;
+        _turnstilePendingResolve = null;
+        _turnstilePendingReject = null;
+        resolve(token);
+      }
+    },
+    'error-callback': function() {
+      if (_turnstilePendingReject) {
+        const reject = _turnstilePendingReject;
+        _turnstilePendingResolve = null;
+        _turnstilePendingReject = null;
+        reject(new Error('Verification failed. Please try again.'));
+      }
+    },
   });
 }
 
+// Returns a Promise<string> that resolves with a Turnstile token. The PoW runs
+// inside this call, so callers must already be in a loading state when awaiting.
 function getTurnstileToken() {
-  if (typeof turnstile === 'undefined' || turnstileWidgetId === null) return null;
-  try { return turnstile.getResponse(turnstileWidgetId); } catch (e) { return null; }
+  return new Promise(function(resolve, reject) {
+    if (typeof turnstile === 'undefined' || turnstileWidgetId === null) {
+      reject(new Error('Verification not ready. Please try again.'));
+      return;
+    }
+    // If a token is already available (e.g. cached from a recent execute), use it
+    try {
+      const existing = turnstile.getResponse(turnstileWidgetId);
+      if (existing) { resolve(existing); return; }
+    } catch (e) {}
+    // Otherwise execute the challenge — token arrives via callback
+    _turnstilePendingResolve = resolve;
+    _turnstilePendingReject = reject;
+    try {
+      turnstile.execute(turnstileWidgetId);
+    } catch (e) {
+      _turnstilePendingResolve = null;
+      _turnstilePendingReject = null;
+      reject(e);
+    }
+  });
 }
 
 function resetTurnstile() {
   if (typeof turnstile !== 'undefined' && turnstileWidgetId !== null) {
     try { turnstile.reset(turnstileWidgetId); } catch (e) {}
   }
+  _turnstilePendingResolve = null;
+  _turnstilePendingReject = null;
 }
 
 async function handleGoogleAuth() {
@@ -284,10 +330,17 @@ async function handleAuth() {
   const password = document.getElementById('auth-password').value;
   const btn = document.getElementById('auth-submit-btn');
   if (!email || !password) { showAuthMsg('error', 'Please enter your email and password.'); return; }
-  const captchaToken = getTurnstileToken();
-  if (!captchaToken) { showAuthMsg('error', 'Please complete the verification check.'); return; }
   btn.disabled = true;
   btn.innerHTML = '<span class="auth-spinner"></span>' + (authMode === 'signin' ? 'Signing in...' : 'Creating account...');
+  let captchaToken;
+  try {
+    captchaToken = await getTurnstileToken();
+  } catch (err) {
+    btn.disabled = false; btn.textContent = authMode === 'signin' ? 'Sign in' : 'Create account';
+    showAuthMsg('error', err.message || 'Verification failed. Please try again.');
+    resetTurnstile();
+    return;
+  }
   const result = authMode === 'signin'
     ? await sb.auth.signInWithPassword({ email, password, options: { captchaToken } })
     : await sb.auth.signUp({ email, password, options: { captchaToken } });
@@ -319,9 +372,20 @@ async function handleAuth() {
 async function handleForgotPassword() {
   const email = document.getElementById('auth-email').value.trim();
   if (!email) { showAuthMsg('error', 'Enter your email address above first.'); return; }
-  const captchaToken = getTurnstileToken();
-  if (!captchaToken) { showAuthMsg('error', 'Please complete the verification check.'); return; }
+  const link = document.getElementById('forgot-password-link');
+  const originalText = link ? link.textContent : '';
+  if (link) { link.disabled = true; link.textContent = 'Sending...'; }
+  let captchaToken;
+  try {
+    captchaToken = await getTurnstileToken();
+  } catch (err) {
+    if (link) { link.disabled = false; link.textContent = originalText || 'Forgot password?'; }
+    showAuthMsg('error', err.message || 'Verification failed. Please try again.');
+    resetTurnstile();
+    return;
+  }
   const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: 'https://ryxa.io/reset-password.html', captchaToken });
+  if (link) { link.disabled = false; link.textContent = originalText || 'Forgot password?'; }
   resetTurnstile();
   if (error) showAuthMsg('error', error.message);
   else showAuthMsg('success', 'Password reset email sent! Check your inbox.');
