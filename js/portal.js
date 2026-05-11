@@ -697,12 +697,15 @@ function psmDragStart(e, fieldType) {
   e.dataTransfer.effectAllowed = 'copy';
 }
 
-function psmPaletteClick(e, fieldType) {
-  const item = e.currentTarget;
-  const wasSelected = item.classList.contains('selected');
+function psmPaletteClick(e, fieldType, el) {
+  // `el` is the palette item element (passed by the action dispatcher).
+  // `e.currentTarget` would be `document` (the dispatcher's listener target),
+  // not the palette item, so we cannot use it to find which item was clicked.
+  if (!el) return;
+  const wasSelected = el.classList.contains('selected');
   psmClearPaletteSelection();
   if (!wasSelected) {
-    item.classList.add('selected');
+    el.classList.add('selected');
     psmTouchPending = fieldType;
     psmShowStatus('Tap on the document to place the ' + fieldType + ' field.');
   } else {
@@ -1293,7 +1296,7 @@ portalRegisterAction('close-sign-modal',   () => closePortalSignModal());
 portalRegisterAction('save-signature',     () => savePortalSignature());
 
 // Palette items — click to enter placement mode, drag to drop on PDF
-portalRegisterAction('palette-click',     (e, el) => psmPaletteClick(e, el.dataset.portalFtype));
+portalRegisterAction('palette-click',     (e, el) => psmPaletteClick(e, el.dataset.portalFtype, el));
 portalRegisterDragstart('palette-drag',   (e, el) => psmDragStart(e, el.dataset.portalFtype));
 
 // Signature sub-modal (draw/type/upload signature)
