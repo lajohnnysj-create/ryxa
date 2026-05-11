@@ -261,6 +261,9 @@ function loadQRLibrary(callback) {
   if (typeof QRious !== 'undefined') { if (callback) callback(); return; }
   const script = document.createElement('script');
   script.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js';
+  // TODO: add integrity hash per memory rule #19. Fetch from srihash.org:
+  //   https://www.srihash.org/?url=https%3A%2F%2Fcdnjs.cloudflare.com%2Fajax%2Flibs%2Fqrious%2F4.0.2%2Fqrious.min.js
+  // Then set: script.integrity = 'sha384-...'; script.crossOrigin = 'anonymous';
   script.onload = () => { if (callback) callback(); };
   script.onerror = () => console.error('Failed to load QR library');
   document.head.appendChild(script);

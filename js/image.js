@@ -815,24 +815,45 @@ async function imgRemoveBg() {
   btn.disabled = true;
   btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" class="ds-s-f33c30" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Loading...';
 
-  var moduleScript = document.createElement('script');
-  moduleScript.type = 'module';
-  moduleScript.textContent = `
-    import { removeBackground } from 'https://esm.sh/@imgly/background-removal@1.4.5';
-    window._dsBgRemoveFunc = removeBackground;
-    window.dispatchEvent(new Event('ds-bg-ready'));
-  `;
-
-  function onReady() {
-    window.removeEventListener('ds-bg-ready', onReady);
-    _dsBgRemoveFunc = window._dsBgRemoveFunc;
-    _dsBgRemovalReady = true;
+  // Dynamic import() of the ESM module. Works under strict CSP (no inline
+  // <script> needed), as long as 'https://esm.sh' is in script-src. The
+  // module is cached on first import, so subsequent calls are instant.
+  // 30s timeout matches the design.js behavior for the same library.
+  var timedOut = false;
+  var timeoutId = setTimeout(function() {
+    timedOut = true;
     _dsBgRemovalLoading = false;
-    doRemoval();
-  }
+    btn.disabled = false;
+    var usageEl = document.getElementById('img-usage');
+    if (usageEl) {
+      usageEl.textContent = 'Failed to load. Try again.';
+      usageEl.style.color = '#f87171';
+      setTimeout(function() { if (usageEl) { usageEl.textContent = ''; usageEl.style.color = ''; } }, 4000);
+    }
+  }, 30000);
 
-  window.addEventListener('ds-bg-ready', onReady);
-  document.head.appendChild(moduleScript);
+  import('https://esm.sh/@imgly/background-removal@1.4.5')
+    .then(function(mod) {
+      if (timedOut) return;
+      clearTimeout(timeoutId);
+      _dsBgRemoveFunc = mod.removeBackground;
+      _dsBgRemovalReady = true;
+      _dsBgRemovalLoading = false;
+      doRemoval();
+    })
+    .catch(function(err) {
+      if (timedOut) return;
+      clearTimeout(timeoutId);
+      _dsBgRemovalLoading = false;
+      btn.disabled = false;
+      var usageEl = document.getElementById('img-usage');
+      if (usageEl) {
+        usageEl.textContent = 'Failed to load. Try again.';
+        usageEl.style.color = '#f87171';
+        setTimeout(function() { if (usageEl) { usageEl.textContent = ''; usageEl.style.color = ''; } }, 4000);
+      }
+      console.error('[image] background-removal import failed:', err);
+    });
 }
 
 async function convertImage() {

@@ -165,16 +165,16 @@ async function caAnalyze() {
 }
 
 async function caExtractPdfText(file) {
-  // Load pdf.js if not already loaded
+  // PDF.js v4 is loaded globally by /js/pdfjs-loader.js. It exposes a
+  // window.__pdfjsReady Promise that resolves to the pdfjsLib namespace
+  // once the module finishes importing. We await that here to make sure
+  // we don't try to use pdfjsLib before it's loaded.
   if (!window.pdfjsLib) {
-    await new Promise(function(resolve, reject) {
-      var script = document.createElement('script');
-      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js';
-      script.onload = resolve;
-      script.onerror = reject;
-      document.head.appendChild(script);
-    });
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+    if (window.__pdfjsReady && typeof window.__pdfjsReady.then === 'function') {
+      await window.__pdfjsReady;
+    } else {
+      throw new Error('PDF.js library not available');
+    }
   }
 
   var arrayBuffer = await file.arrayBuffer();
