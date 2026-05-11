@@ -245,10 +245,13 @@ function onPaletteDragStart(e, fieldType) {
   e.dataTransfer.effectAllowed = 'copy';
 }
 
-// Universal click handler — works for both mouse and touch
+// Universal click handler — works for both mouse and touch.
+// `el` is the palette item element (passed by pdfsignDispatchEvent);
+// `e.currentTarget` is the document (where the dispatcher listener lives),
+// so we can NOT use it to find the palette item to highlight.
 let pdfsignTouchPending = null;
 let pdfsignJustDragged = false;
-function onPaletteClick(e, fieldType) {
+function onPaletteClick(e, fieldType, el) {
   // Ignore clicks synthesized after a drag-drop operation
   if (pdfsignJustDragged) { pdfsignJustDragged = false; return; }
   e.stopPropagation();
@@ -261,8 +264,7 @@ function onPaletteClick(e, fieldType) {
   }
   pdfsignTouchPending = fieldType;
   clearPaletteSelection();
-  const item = e.currentTarget;
-  if (item) item.classList.add('selected');
+  if (el && el.classList) el.classList.add('selected');
   showPdfSignStatus(`Drag or tap on the PDF where you want the ${fieldType}. Tap this message to cancel.`);
 }
 
@@ -1035,7 +1037,7 @@ pdfsignRegisterAction('reset', () => resetPdfSign());
 // Palette items — click to add to center of current page
 // (ondragstart for HTML5 drag is kept inline; data-pdfsign-field-type carries
 // the field type for both this action and any future tooling)
-pdfsignRegisterAction('palette-click', (e, el) => onPaletteClick(e, el.dataset.pdfsignFieldType));
+pdfsignRegisterAction('palette-click', (e, el) => onPaletteClick(e, el.dataset.pdfsignFieldType, el));
 
 // Toolbar (Print / Download)
 pdfsignRegisterAction('print', () => printSignedPdf());
