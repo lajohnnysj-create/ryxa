@@ -311,26 +311,34 @@ window.toggleMobileSubmenu = function(id) {
 // =====================
 // AUTH STATE CHECK
 // =====================
+// Reads the Supabase session directly from localStorage instead of creating
+// our own Supabase client. Why: pages that load site-nav.js often ALREADY
+// create a client (index.html, pricing.html, every /tools-*.html page).
+// Creating a second client triggers Supabase's "Multiple GoTrueClient
+// instances" warning and can cause race conditions on token refresh.
+//
+// The session is stored at sb-<project-ref>-auth-token. We just need to know
+// if a non-expired session exists to flip the "Sign in" button to "Dashboard"
+// — we don't need full auth APIs.
 function siteNavCheckAuth() {
   try {
-    var sb = window.supabase ? window.supabase.createClient(
-      'https://kjytapcgxukalwsyputk.supabase.co',
-      'sb_publishable_PLU28Un_GfsUXeUsK3zB9Q_hvNM7aeG'
-    ) : null;
-    if (sb) {
-      sb.auth.getSession().then(function(res) {
-        if (res.data.session) {
-          var dashLink = document.getElementById('dashboard-link');
-          var signinBtn = document.getElementById('nav-signin-btn');
-          var mobileDash = document.getElementById('mobile-dashboard-link');
-          var mobileSignup = document.getElementById('mobile-signup-btn');
-          if (dashLink) dashLink.style.display = 'inline';
-          if (signinBtn) signinBtn.style.display = 'none';
-          if (mobileDash) mobileDash.style.display = 'block';
-          if (mobileSignup) mobileSignup.style.display = 'none';
-        }
-      });
-    }
+    var key = 'sb-kjytapcgxukalwsyputk-auth-token';
+    var raw = localStorage.getItem(key);
+    if (!raw) return;
+    var session = JSON.parse(raw);
+    // Supabase v2 stores the session object directly. Check for an access
+    // token and verify it hasn't expired (expires_at is seconds-since-epoch).
+    if (!session || !session.access_token) return;
+    if (session.expires_at && session.expires_at * 1000 < Date.now()) return;
+
+    var dashLink = document.getElementById('dashboard-link');
+    var signinBtn = document.getElementById('nav-signin-btn');
+    var mobileDash = document.getElementById('mobile-dashboard-link');
+    var mobileSignup = document.getElementById('mobile-signup-btn');
+    if (dashLink) dashLink.style.display = 'inline';
+    if (signinBtn) signinBtn.style.display = 'none';
+    if (mobileDash) mobileDash.style.display = 'block';
+    if (mobileSignup) mobileSignup.style.display = 'none';
   } catch(e) {}
 }
 
