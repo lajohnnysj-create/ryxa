@@ -95,11 +95,38 @@ function settingsDispatchEvent(event) {
 
 
 // ---------- From dashboard.html L9662-9667: toggleMarketingEmails ----------
+// Provides inline Saving/Saved/Error feedback. On failure, reverts the toggle
+// to its previous state so the UI never lies about persistence.
+var _marketingStatusTimer = null;
+function _setMarketingStatus(state, text) {
+  var el = document.getElementById('settings-marketing-status');
+  if (!el) return;
+  if (_marketingStatusTimer) { clearTimeout(_marketingStatusTimer); _marketingStatusTimer = null; }
+  el.classList.remove('is-saving', 'is-saved', 'is-error', 'is-visible');
+  if (!state) { el.textContent = ''; return; }
+  el.textContent = text;
+  el.classList.add('is-' + state, 'is-visible');
+}
 async function toggleMarketingEmails(checked) {
   if (!currentUser) return;
+  var input = document.getElementById('settings-marketing-emails');
+  var previous = !checked; // state before this toggle
+  if (input) input.disabled = true;
+  _setMarketingStatus('saving', 'Saving…');
   try {
-    await sb.from('profiles').update({ marketing_emails: checked }).eq('user_id', currentUser.id);
-  } catch (e) { console.error('Marketing toggle error:', e); }
+    var { error } = await sb.from('profiles').update({ marketing_emails: checked }).eq('user_id', currentUser.id);
+    if (error) throw error;
+    _setMarketingStatus('saved', 'Saved');
+    _marketingStatusTimer = setTimeout(function() { _setMarketingStatus(null); }, 1800);
+  } catch (e) {
+    console.error('Marketing toggle error:', e);
+    // Revert toggle so UI matches actual DB state
+    if (input) input.checked = previous;
+    _setMarketingStatus('error', 'Error');
+    _marketingStatusTimer = setTimeout(function() { _setMarketingStatus(null); }, 3000);
+  } finally {
+    if (input) input.disabled = false;
+  }
 }
 
 // ---------- From dashboard.html L9750-9766: handleStripeConnectRedirect ----------
