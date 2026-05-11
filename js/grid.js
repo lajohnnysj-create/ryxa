@@ -618,3 +618,13 @@ gridRegisterAction('remove-photo', (e, el) => {
 // Image onerror handler — signed URL refresh
 gridRegisterAction('img-retry', (e, el) => gridImgRetry(el));
 
+// Drop zone for uploading photos. The element has data-grid-drop-zone (no value)
+// and we wire native HTML5 drag-and-drop events via addEventListener.
+// Done at DOMContentLoaded because the element exists in initial markup.
+document.addEventListener('DOMContentLoaded', function() {
+  const dz = document.querySelector('[data-grid-drop-zone]');
+  if (!dz) return;
+  dz.addEventListener('drop', onGridDrop);
+  dz.addEventListener('dragover', onGridDragOver);
+  dz.addEventListener('dragleave', onGridDragLeave);
+});

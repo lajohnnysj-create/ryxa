@@ -1054,3 +1054,20 @@ pdfsignRegisterAction('enter-apply-text', (e) => {
     applyTextToField();
   }
 });
+
+// Drop zone for uploading PDFs and palette drag-start handlers. We wire these
+// at DOMContentLoaded because both element sets exist in initial markup.
+document.addEventListener('DOMContentLoaded', function() {
+  const dz = document.querySelector('[data-pdfsign-drop-zone]');
+  if (dz) {
+    dz.addEventListener('drop', onPdfDrop);
+    dz.addEventListener('dragover', onPdfDragOver);
+    dz.addEventListener('dragleave', onPdfDragLeave);
+  }
+  // Palette items have data-pdfsign-dragstart="signature|text|date|checkbox|crossout"
+  document.querySelectorAll('[data-pdfsign-dragstart]').forEach(function(item) {
+    item.addEventListener('dragstart', function(e) {
+      onPaletteDragStart(e, item.dataset.pdfsignDragstart);
+    });
+  });
+});

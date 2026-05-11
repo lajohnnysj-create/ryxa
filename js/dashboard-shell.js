@@ -65,6 +65,15 @@ const STRIPE_PRICE_MAX = 'price_1TLQdmFQ1L0aeJrZxntN3EhI';
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// Font preload: the stylesheet link at the top of dashboard.html has
+// media="print" so it doesn't block initial render. Flip to "all" once this
+// shell script runs (which happens after critical render). CSP-safe
+// alternative to the old inline onload="this.media='all'" attribute.
+(function() {
+  var link = document.getElementById('font-preload');
+  if (link) link.media = 'all';
+})();
+
 // Auth module: closure-scoped access token holder. Replaces the previous
 // window._supabaseAccessToken global, which was readable by any script
 // running in this page (extensions, supply-chain XSS, etc.).

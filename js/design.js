@@ -1349,8 +1349,11 @@ function dsSearchIcons() {
       }
       var grid = '<div class="ds-s-3b466c">';
       data.icons.forEach(function(iconName) {
-        grid += '<button class="ds-icon-item" onmousedown="dsDragStart(event,\'icon:' + iconName.replace(/'/g, "\\'") + '\')" ontouchstart="dsDragStart(event,\'icon:' + iconName.replace(/'/g, "\\'") + '\')" title="' + iconName.split(':')[1] + '">'
-          + '<img src="https://api.iconify.design/' + iconName + '.svg?color=%23f0eef8" alt="' + iconName + ' icon" class="ds-s-9294d4" loading="lazy">'
+        // Escape both the data attribute value (for HTML) and the title.
+        // We use escapeHtml here because iconName comes from the Iconify API.
+        var safeName = escapeHtml(iconName);
+        grid += '<button class="ds-icon-item" data-ds-drag="icon:' + safeName + '" title="' + escapeHtml(iconName.split(':')[1] || iconName) + '">'
+          + '<img src="https://api.iconify.design/' + safeName + '.svg?color=%23f0eef8" alt="' + safeName + ' icon" class="ds-s-9294d4" loading="lazy">'
           + '</button>';
       });
       grid += '</div>';
@@ -2838,5 +2841,24 @@ dsRegisterAction('rewrite-copy', (e, el) => dsRewriteCopy(parseInt(el.dataset.ds
 
 // Misc
 dsRegisterAction('window-print', () => window.print());
+
+// Drag-to-canvas for shapes/text/icons. The drag source can be either a static
+// button in the shape palette (data-ds-drag="rect", "text", etc.) or a
+// dynamically-rendered icon search result (data-ds-drag="icon:..."). We
+// delegate from document so dynamic elements work without per-element wiring.
+//
+// dsDragStart() does its own e.preventDefault() handling for both mousedown
+// and touchstart and reads the shape type from the second argument, so we
+// just pass the type from the dataset.
+document.addEventListener('mousedown', function(e) {
+  const el = e.target.closest('[data-ds-drag]');
+  if (!el) return;
+  dsDragStart(e, el.dataset.dsDrag);
+});
+document.addEventListener('touchstart', function(e) {
+  const el = e.target.closest('[data-ds-drag]');
+  if (!el) return;
+  dsDragStart(e, el.dataset.dsDrag);
+}, { passive: false });
 dsRegisterAction('select-all', (e, el) => el.select());
 
