@@ -688,7 +688,6 @@ function updateTierUI() {
   const tierBadge = document.getElementById('topbar-tier-badge');
   const sidebarTier = document.getElementById('sidebar-tier');
   const upgradeBtn = document.getElementById('topbar-upgrade-btn');
-  const upgradeBanner = document.getElementById('upgrade-banner');
 
   // Trial countdown for the topbar pill. Same logic as updateSettingsCancelBtn:
   // trial_end in the future means we're in a trial; round days UP.
@@ -773,9 +772,6 @@ function updateTierUI() {
       if (maxBtn) maxBtn.style.display = 'block';
     }
   }
-  // Banner only shows for Free users
-  if (upgradeBanner) upgradeBanner.style.display = pro ? 'none' : 'flex';
-
   // Refresh Brand Deal CRM if it's the active tool (Max gating may have changed)
   if (currentTool === 'deals') initDealsCrm();
   if (currentTool === 'bio') { syncBrandingToggle(); renderBioThemes(); renderBioFonts(); }
