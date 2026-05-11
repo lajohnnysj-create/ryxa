@@ -30,11 +30,7 @@
 // External dependencies on window:
 //   • sb, currentUser, userTier, isPro, escapeHtml, startCheckout
 //   • JSZip (CDN, loaded at top of dashboard.html with defer)
-//
-// PRE-EXISTING DEBT (not addressed by this refactor — flagged for later):
-//   • Two uses of native confirm() at faDeleteAudit and faClearSnakeList.
-//     Should be showModalConfirm per memory rule #6. Left as-is to keep
-//     refactor scope clean.
+//   • showModalConfirm (defined in js/design.js)
 // =============================================================================
 
 // =============================================================================
@@ -253,10 +249,18 @@ async function faToggleWhitelist(handle) {
 }
 async function faClearWhitelist() {
   if (!currentUser || !isPro()) return;
-  sb.functions.invoke('manage-whitelist', { body: { userId: currentUser.id, action: 'clear' } });
-  faUserWhitelist.clear();
-  faShowMiniToast('Whitelist cleared');
-  faFilterResults();
+  showModalConfirm(
+    'Clear whitelist?',
+    'This will remove every account from your whitelist. Hidden accounts will reappear in your audit results. This cannot be undone.',
+    function() {
+      sb.functions.invoke('manage-whitelist', { body: { userId: currentUser.id, action: 'clear' } });
+      faUserWhitelist.clear();
+      faShowMiniToast('Whitelist cleared');
+      faFilterResults();
+    },
+    'Clear whitelist',
+    'Cancel'
+  );
 }
 function faShowMiniToast(msg) {
   document.querySelectorAll('.fa-whitelist-toast').forEach(t => t.remove());
@@ -318,10 +322,17 @@ function faRenderAuditHistory() {
 }
 async function faDeleteAudit(id, e) {
   e.stopPropagation();
-  if (!confirm('Delete this audit?')) return;
-  await sb.from('audits').delete().eq('id', id).eq('user_id', currentUser.id);
-  faAuditHistory = faAuditHistory.filter(a => a.id !== id);
-  faRenderAuditHistory();
+  showModalConfirm(
+    'Delete this audit?',
+    'This audit will be permanently removed from your history. This cannot be undone.',
+    async function() {
+      await sb.from('audits').delete().eq('id', id).eq('user_id', currentUser.id);
+      faAuditHistory = faAuditHistory.filter(a => a.id !== id);
+      faRenderAuditHistory();
+    },
+    'Delete',
+    'Cancel'
+  );
 }
 
 // ── NOTES ──
@@ -460,11 +471,18 @@ function faRenderSnakeList() {
     }).join('')}</div>`;
 }
 async function faClearSnakeList() {
-  if (!confirm('Clear your entire Snake List?')) return;
-  faUserSnakeList.clear(); faSnakeListDates = {};
-  faUpdateSnakeTabCount(); faRenderSnakeList();
-  faShowMiniToast('Snake List cleared');
-  sb.functions.invoke('manage-snake-list', { body: { userId: currentUser.id, action: 'clear' } });
+  showModalConfirm(
+    'Clear Snake List?',
+    'This will remove every account from your Snake List. This cannot be undone.',
+    function() {
+      faUserSnakeList.clear(); faSnakeListDates = {};
+      faUpdateSnakeTabCount(); faRenderSnakeList();
+      faShowMiniToast('Snake List cleared');
+      sb.functions.invoke('manage-snake-list', { body: { userId: currentUser.id, action: 'clear' } });
+    },
+    'Clear Snake List',
+    'Cancel'
+  );
 }
 
 // ── START OVER ──
