@@ -93,7 +93,7 @@ function renderPage(product, creator) {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.105.4" integrity="sha384-4eCDoMN/7A46qQ5Tj0rZ/D2VEolFGNIINDTLAcWZcvhkRSsvTfqNfaBMlRRoGEZ5" crossorigin="anonymous"></script>
 <style>
   :root { --bg:#0a0a14; --surface:#12121e; --surface2:#16162a; --border:rgba(255,255,255,0.06); --border-hover:rgba(255,255,255,0.12); --text:#f0eef8; --muted:#b4b2c8; --accent:#7c3aed; --accent2:#a855f7; --accent-glow:rgba(124,58,237,0.35); }
   *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
@@ -165,7 +165,7 @@ function renderPage(product, creator) {
 <nav class="nav">
   <a href="/" class="nav-logo"><img src="/logo.png" alt="Ryxa"> Ryxa</a>
   <div class="nav-right">
-    <button id="signin-chip" class="signin-chip" type="button" onclick="toggleSigninPopover(event)">
+    <button id="signin-chip" class="signin-chip" type="button" data-product-action="toggle-signin-popover">
       <span class="signin-chip-avatar" id="signin-chip-avatar">U</span>
       <span class="signin-chip-email" id="signin-chip-email"></span>
     </button>
@@ -179,7 +179,7 @@ function renderPage(product, creator) {
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
       Ryxa Hub
     </a>
-    <button class="signin-popover-btn danger" onclick="signOutAndReload()">
+    <button class="signin-popover-btn danger" data-product-action="signout">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
       Sign out
     </button>
@@ -195,7 +195,7 @@ function renderPage(product, creator) {
   <div class="dp-buy-card">
     <div class="dp-price">${isFree ? '<span class="dp-price-free">Free</span>' : esc(price)}</div>
     <div id="dp-buy-area">
-      <button id="buy-btn" class="dp-buy-btn" onclick="handleBuyClick()">${isFree ? 'Get for free' : 'Buy now'}</button>
+      <button id="buy-btn" class="dp-buy-btn" data-product-action="buy">${isFree ? 'Get for free' : 'Buy now'}</button>
     </div>
   </div>
   <label class="dp-consent" id="consent-row" style="display:none;">
@@ -210,161 +210,11 @@ function renderPage(product, creator) {
 
 <div id="toast" class="toast"></div>
 
-<script>
-const PRODUCT_ID = '${esc(product.id)}';
-const PRODUCT_SLUG = '${esc(product.slug)}';
-const IS_FREE = ${isFree ? 'true' : 'false'};
-const SUPABASE_URL = '${SUPABASE_URL}';
-const SUPABASE_ANON_KEY = '${SUPABASE_ANON_KEY}';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-function showToast(msg, type) {
-  var el = document.getElementById('toast');
-  el.textContent = msg;
-  el.className = 'toast ' + (type || '');
-  el.style.display = 'block';
-  setTimeout(function() { el.style.display = 'none'; }, 5000);
-}
-
-// Signed-in indicator
-function toggleSigninPopover(evt) {
-  if (evt) evt.stopPropagation();
-  var pop = document.getElementById('signin-popover');
-  pop.style.display = pop.style.display === 'block' ? 'none' : 'block';
-}
-document.addEventListener('click', function(e) {
-  var pop = document.getElementById('signin-popover');
-  var chip = document.getElementById('signin-chip');
-  if (pop.style.display === 'block' && !pop.contains(e.target) && !chip.contains(e.target)) {
-    pop.style.display = 'none';
-  }
-});
-
-async function signOutAndReload() {
-  await sb.auth.signOut();
-  window.location.reload();
-}
-
-// On load: detect existing session, update UI
-async function init() {
-  try {
-    var { data: { session } } = await sb.auth.getSession();
-    if (session?.user) {
-      var email = session.user.email || '';
-      document.getElementById('signin-chip-email').textContent = email;
-      document.getElementById('signin-chip-avatar').textContent = (email[0] || 'U').toUpperCase();
-      document.getElementById('signin-chip').style.display = 'inline-flex';
-      document.getElementById('signin-popover-email').textContent = email;
-      document.getElementById('consent-row').style.display = 'flex';
-
-      // If already purchased, swap button for "Go to Ryxa Hub" link
-      try {
-        var { data: existing } = await sb.from('digital_product_purchases')
-          .select('id')
-          .eq('product_id', PRODUCT_ID)
-          .eq('buyer_user_id', session.user.id)
-          .limit(1);
-        if (existing && existing.length > 0) {
-          document.getElementById('dp-buy-area').innerHTML = '<a href="/learn/?dp=' + PRODUCT_ID + '" class="dp-purchased-badge"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Go to your download</a>';
-          document.getElementById('consent-row').style.display = 'none';
-        }
-      } catch (e) { /* non-fatal */ }
-    }
-  } catch (e) {
-    console.error('Session check failed:', e);
-  }
-}
-init();
-
-// Page view tracking (fire-and-forget, same visitor dedup pattern as course/booking)
-async function trackPageView() {
-  try {
-    var visitorHash;
-    try {
-      var raw = [
-        navigator.userAgent || '',
-        navigator.language || '',
-        screen.width + 'x' + screen.height,
-        new Date().getTimezoneOffset().toString()
-      ].join('|');
-      var msgBuf = new TextEncoder().encode(raw);
-      var hashBuf = await crypto.subtle.digest('SHA-256', msgBuf);
-      var hashArr = Array.from(new Uint8Array(hashBuf));
-      visitorHash = hashArr.map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
-    } catch (hashErr) {
-      visitorHash = 'fb-' + btoa(navigator.userAgent + screen.width + screen.height).slice(0, 32);
-    }
-    await sb.rpc('record_page_view', {
-      p_username: '${esc(creatorName)}',
-      p_page_type: 'digital_product',
-      p_visitor_hash: visitorHash,
-      p_product_id: PRODUCT_ID
-    });
-  } catch (e) {
-    console.error('trackPageView failed:', e);
-  }
-}
-trackPageView();
-
-async function handleBuyClick() {
-  var { data: { session } } = await sb.auth.getSession();
-  if (!session?.user) {
-    window.location.href = '/learn/?redirect=' + encodeURIComponent(window.location.pathname);
-    return;
-  }
-
-  var consentEl = document.getElementById('marketing-consent');
-  var consent = consentEl ? consentEl.checked : false;
-  var btn = document.getElementById('buy-btn');
-  btn.disabled = true;
-  btn.textContent = IS_FREE ? 'Processing...' : 'Loading checkout...';
-
-  try {
-    if (IS_FREE) {
-      var resp = await fetch('/api/claim-free-product', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + session.access_token
-        },
-        body: JSON.stringify({
-          product_id: PRODUCT_ID,
-          marketing_consent: consent
-        })
-      });
-      var data = await resp.json();
-      if (!resp.ok || data.error) {
-        throw new Error(data.error || 'Could not process request');
-      }
-      window.location.href = '/learn/?dp=' + PRODUCT_ID + '&purchased=1';
-      return;
-    }
-
-    var resp = await fetch('/api/digital-product-checkout', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + session.access_token
-      },
-      body: JSON.stringify({
-        product_id: PRODUCT_ID,
-        marketing_consent: consent,
-        success_url: window.location.origin + '/learn/?dp=' + PRODUCT_ID + '&purchased=1',
-        cancel_url: window.location.href
-      })
-    });
-    var data = await resp.json();
-    if (!resp.ok || data.error) {
-      throw new Error(data.error || 'Could not start checkout');
-    }
-    window.location.href = data.checkout_url;
-  } catch (err) {
-    btn.disabled = false;
-    btn.textContent = IS_FREE ? 'Get for free' : 'Buy now';
-    showToast(err.message || 'Something went wrong', 'error');
-  }
-}
-</script>
+<meta name="ryxa-product-id" content="${esc(product.id)}">
+<meta name="ryxa-product-slug" content="${esc(product.slug)}">
+<meta name="ryxa-product-is-free" content="${isFree ? 'true' : 'false'}">
+<meta name="ryxa-product-creator-name" content="${esc(creatorName)}">
+<script src="/js/product-page.js" defer></script>
 <script src="/cookie-banner.js"></script>
 
 </body>
@@ -372,6 +222,24 @@ async function handleBuyClick() {
 }
 
 module.exports = async (req, res) => {
+  // Content Security Policy — Report-Only mode for now. Product landing pages
+  // are PUBLIC and render seller-supplied content (title, description, images).
+  // Strict CSP defends against XSS via injected <script> in product fields.
+  // After 24-48h clean console reports, flip to enforce by changing the header
+  // name below from 'Content-Security-Policy-Report-Only' to 'Content-Security-Policy'.
+  res.setHeader('Content-Security-Policy-Report-Only', [
+    "default-src 'self'",
+    "script-src 'self' https://cdn.jsdelivr.net",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src 'self' https://fonts.gstatic.com data:",
+    "img-src 'self' data: blob: https://www.ryxa.io https://kjytapcgxukalwsyputk.supabase.co",
+    "connect-src 'self' https://kjytapcgxukalwsyputk.supabase.co https://cdn.jsdelivr.net",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+  ].join('; '));
+
   var slug = (req.query?.slug || '').trim().toLowerCase();
   if (!slug || !/^[a-z0-9-]+$/.test(slug)) {
     res.status(404).setHeader('Content-Type', 'text/html; charset=utf-8');
