@@ -14,7 +14,7 @@
 <link rel="canonical" href="https://www.ryxa.io/pricing.html">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.105.4" integrity="sha384-4eCDoMN/7A46qQ5Tj0rZ/D2VEolFGNIINDTLAcWZcvhkRSsvTfqNfaBMlRRoGEZ5" crossorigin="anonymous"></script>
 <style>
   :root { --bg:#07070f;--surface:#0f0f1a;--surface2:#161625;--border:rgba(255,255,255,0.07);--border-hover:rgba(255,255,255,0.14);--accent:#7c3aed;--accent2:#a855f7;--accent-glow:rgba(124,58,237,0.3);--text:#f0eef8;--muted:#b4b2c8;--muted2:#c9c7dc; }
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -112,7 +112,7 @@
       <div class="plan-name">Free</div>
       <div class="plan-price">$0 <span>/ forever</span></div>
       <div class="plan-desc">The essentials to get started. No credit card required.</div>
-      <button class="plan-btn free" onclick="window.location.href='index.html?action=signup'">Get started free</button>
+      <button class="plan-btn free" data-pricing-action="signup">Get started free</button>
       <div class="plan-features">
         <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span><strong>Link in Bio</strong> — 50 links, 1 featured, 12 themes</span></div>
         <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span><strong>Design Studio</strong> — canvas editor, 10 saved projects</span></div>
@@ -142,7 +142,7 @@
       <div class="plan-name">Pro</div>
       <div class="plan-price">$10 <span>/ month</span></div>
       <div class="plan-desc">Everything in Free, plus access to AI tools and more.</div>
-      <button class="plan-btn pro" onclick="window.location.href='index.html?action=signup'">Get started with Pro</button>
+      <button class="plan-btn pro" data-pricing-action="signup">Get started with Pro</button>
       <div class="plan-features">
         <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span><strong>Everything in Free</strong></span></div>
         <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span><strong>AI tools</strong> — smart upscale, rewrite, captions, bio assist, thumbnail analyzer, contract analyzer</span></div>
@@ -170,7 +170,7 @@
       <div class="plan-name">Creator Max</div>
       <div class="plan-price">$20 <span>/ month</span></div>
       <div class="plan-desc">Everything in Pro, plus revenue tools and full branding control.</div>
-      <button class="plan-btn max" onclick="window.location.href='index.html?action=signup'">Try Free — 7 Days</button>
+      <button class="plan-btn max" data-pricing-action="signup">Try Free — 7 Days</button>
       <div class="plan-features">
         <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span><strong>Everything in Pro</strong></span></div>
         <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span><strong>Course Builder</strong> — sell courses, 0% transaction fees from Ryxa</span></div>
@@ -290,26 +290,7 @@
 
 <div id="site-footer"></div>
 
-<script>
-const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_PLU28Un_GfsUXeUsK3zB9Q_hvNM7aeG';
-const { createClient } = supabase;
-const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-
-// If user is already logged in, send them to the dashboard
-sb.auth.getSession().then(({ data: { session } }) => {
-  if (session?.user) {
-    window.location.href = 'dashboard.html';
-  }
-});
-
-// Mobile menu handled by site-nav.js
-
-// Auth modal fallbacks — redirect to homepage
-function openSignupModal() { window.location.href = 'index.html?action=signup'; }
-function openAuthModal() { window.location.href = 'index.html?action=signin'; }
-</script>
+<script src="/js/pricing-page.js" defer></script>
 <script src="/cookie-banner.js"></script>
 <script src="/site-nav.js"></script>
 </body>
