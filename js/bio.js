@@ -3169,25 +3169,7 @@ function buildPreviewHTML() {
     ${linksHtml ? `<div class="links">${linksHtml}</div>` : ''}
     ${bioState.show_branding ? '<div class="banner"><img src="logo.png" alt="Ryxa"><span>Get your free link-in-bio at <strong>Ryxa</strong></span></div>' : ''}
   </div>
-  <\u0073cript>
-    // Wire desktop arrow buttons on every YouTube preview carousel inside the iframe.
-    document.querySelectorAll('.vids').forEach(function(block) {
-      var scroller = block.querySelector('.vids-r');
-      var left = block.querySelector('.vids-arrow-l');
-      var right = block.querySelector('.vids-arrow-r');
-      if (!scroller || !left || !right) return;
-      var cardWidth = 230; // 220px card + 10px gap
-      function updateState() {
-        var max = scroller.scrollWidth - scroller.clientWidth;
-        left.disabled = scroller.scrollLeft <= 1;
-        right.disabled = scroller.scrollLeft >= max - 1;
-      }
-      left.addEventListener('click', function(e) { e.preventDefault(); scroller.scrollBy({ left: -cardWidth, behavior: 'smooth' }); });
-      right.addEventListener('click', function(e) { e.preventDefault(); scroller.scrollBy({ left: cardWidth, behavior: 'smooth' }); });
-      scroller.addEventListener('scroll', updateState, { passive: true });
-      updateState();
-    });
-  <\/script>
+  <\u0073cript src="/js/bio-preview-runtime.js"></\u0073cript>
 </body></html>`;
 }
 
