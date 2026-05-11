@@ -780,8 +780,11 @@ function updateTierUI() {
   if (currentTool === 'deals') initDealsCrm();
   if (currentTool === 'bio') { syncBrandingToggle(); renderBioThemes(); renderBioFonts(); }
 
-  // Update cancel button in settings modal if open
-  updateSettingsCancelBtn();
+  // Update cancel button in settings modal if open.
+  // Guarded because settings.js loads after dashboard-shell.js in script
+  // order, and fetchTier() can resolve before all <script> tags have
+  // finished parsing (especially with a cached Supabase session).
+  if (typeof updateSettingsCancelBtn === 'function') updateSettingsCancelBtn();
 
   // Sync Max upgrade CTA labels (trial vs no-trial) based on userMaxTrialUsed
   applyMaxTrialButtonLabels();
@@ -860,7 +863,7 @@ function showTool(tool) {
     }
     document.getElementById('settings-sub-free').style.display = pro ? 'none' : 'block';
     document.getElementById('settings-sub-pro').style.display = pro ? 'block' : 'none';
-    updateSettingsCancelBtn();
+    if (typeof updateSettingsCancelBtn === 'function') updateSettingsCancelBtn();
     const pwBtn = document.getElementById('settings-reset-password-btn');
     const pwMsg = document.getElementById('settings-password-msg');
     const pwTurnstile = document.getElementById('settings-password-turnstile');
