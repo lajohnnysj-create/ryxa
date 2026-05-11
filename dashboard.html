@@ -17,7 +17,7 @@
 <meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<link id="font-preload" href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" media="print">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js" integrity="sha384-OIQZlttB2MRaZyoi526rVHiNUGYEq4MAMxDbTkwghmmqxs556T5g5LY926GH7NYM" crossorigin="anonymous"></script>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
@@ -26,18 +26,9 @@
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js" integrity="sha384-BSxuMLxX+FCbTdYec3TbXlnMGEEM2QXTFdtDaveen71o+jswm2J36+xFqp8k4VHM" crossorigin="anonymous" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" integrity="sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG" crossorigin="anonymous" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.mjs" integrity="sha384-uwJM5C0hGZH5Ed/vHx4Ht1PUd8ABIDVIcLbHydZOdFL5eTUG8Jdr32xNVIyn0kYH" crossorigin="anonymous" type="module"></script>
-<script>
-  // Load PDF.js worker when needed
-  window.__pdfjsReady = new Promise((resolve) => {
-    window.__resolvePdfjs = resolve;
-  });
-</script>
-<script type="module">
-  import * as pdfjsLib from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.mjs';
-  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.mjs';
-  window.pdfjsLib = pdfjsLib;
-  window.__resolvePdfjs(pdfjsLib);
-</script>
+<!-- PDF.js loader (extracted from two inline blocks, 2026-05-11).
+     Creates window.__pdfjsReady promise + imports pdfjsLib + resolves promise. -->
+<script type="module" src="/js/pdfjs-loader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js" integrity="sha384-weMABwrltA6jWR8DDe9Jp5blk+tZQh7ugpCsF3JwSA53WZM9/14PjS5LAJNHNjAI" crossorigin="anonymous" defer></script>
 <style>
   :root {
@@ -7289,7 +7280,7 @@
 
           <!-- RIGHT: Upload + thumbnails (compact) -->
           <div>
-            <div id="grid-drop-zone" ondrop="onGridDrop(event)" ondragover="onGridDragOver(event)" ondragleave="onGridDragLeave(event)" class="grid-drop-zone">
+            <div id="grid-drop-zone" data-grid-drop-zone class="grid-drop-zone">
               <div id="grid-drop-empty" class="grid-s-cbd295">
                 <div class="grid-s-5ff865">
                   <div class="grid-s-fbda79">
@@ -7726,7 +7717,7 @@
         <div class="ds-editor-body ds-s-07700c" >
           <!-- Left tool sidebar -->
           <div class="ds-left-sidebar ds-s-6b9f7c" >
-            <button onmousedown="dsDragStart(event,'text')" ontouchstart="dsDragStart(event,'text')" class="ds-tool-btn" title="Add Text" aria-label="Add Text">
+            <button data-ds-drag="text" class="ds-tool-btn" title="Add Text" aria-label="Add Text">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
             </button>
             <button data-ds-action="add-image" class="ds-tool-btn" title="Add Image" aria-label="Add Image">
@@ -7739,12 +7730,12 @@
               <!-- Shapes row -->
               <div class="ds-s-d30d4a">Shapes</div>
               <div class="ds-s-c55d56">
-                <button onmousedown="dsDragStart(event,'rect')" ontouchstart="dsDragStart(event,'rect')" class="ds-element-shape" title="Rectangle" aria-label="Rectangle"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg></button>
-                <button onmousedown="dsDragStart(event,'circle')" ontouchstart="dsDragStart(event,'circle')" class="ds-element-shape" title="Circle" aria-label="Circle"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg></button>
-                <button onmousedown="dsDragStart(event,'triangle')" ontouchstart="dsDragStart(event,'triangle')" class="ds-element-shape" title="Triangle" aria-label="Triangle"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 22h20z"/></svg></button>
-                <button onmousedown="dsDragStart(event,'line')" ontouchstart="dsDragStart(event,'line')" class="ds-element-shape" title="Line" aria-label="Line"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="19" x2="19" y2="5"/></svg></button>
-                <button onmousedown="dsDragStart(event,'arrow')" ontouchstart="dsDragStart(event,'arrow')" class="ds-element-shape" title="Arrow" aria-label="Arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
-                <button onmousedown="dsDragStart(event,'star')" ontouchstart="dsDragStart(event,'star')" class="ds-element-shape" title="Star" aria-label="Star"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+                <button data-ds-drag="rect" class="ds-element-shape" title="Rectangle" aria-label="Rectangle"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg></button>
+                <button data-ds-drag="circle" class="ds-element-shape" title="Circle" aria-label="Circle"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg></button>
+                <button data-ds-drag="triangle" class="ds-element-shape" title="Triangle" aria-label="Triangle"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 22h20z"/></svg></button>
+                <button data-ds-drag="line" class="ds-element-shape" title="Line" aria-label="Line"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="19" x2="19" y2="5"/></svg></button>
+                <button data-ds-drag="arrow" class="ds-element-shape" title="Arrow" aria-label="Arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
+                <button data-ds-drag="star" class="ds-element-shape" title="Star" aria-label="Star"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
               </div>
               <!-- Icon search -->
               <div class="ds-s-d30d4a">Icons</div>
@@ -8286,7 +8277,7 @@
             </div>
           </div>
 
-          <div id="pdfsign-dropzone" class="pdfsign-dropzone" ondrop="onPdfDrop(event)" ondragover="onPdfDragOver(event)" ondragleave="onPdfDragLeave(event)">
+          <div id="pdfsign-dropzone" class="pdfsign-dropzone" data-pdfsign-drop-zone>
             <div class="pdfsign-s-7a0d31">
               <div class="mk-s-ad83c6">
                 <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M3 17l3-3 2 2 5-5 3 3"/></svg>
@@ -8329,31 +8320,31 @@
           <div class="pdfsign-palette">
             <div class="pdfsign-palette-header">
               <div class="pdfsign-palette-items">
-                <div class="pdfsign-palette-item" data-ftype="signature" draggable="true" ondragstart="onPaletteDragStart(event,'signature')" data-pdfsign-action="palette-click" data-pdfsign-field-type="signature">
+                <div class="pdfsign-palette-item" data-ftype="signature" draggable="true" data-pdfsign-dragstart="signature" data-pdfsign-action="palette-click" data-pdfsign-field-type="signature">
                   <div class="pdfsign-palette-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 19H4"/><path d="M4 15.5s2.5-6 6-6 2.5 4.5 6 4.5 4-3 4-3"/></svg>
                   </div>
                   <div class="pdfsign-palette-name">Signature</div>
                 </div>
-                <div class="pdfsign-palette-item" data-ftype="text" draggable="true" ondragstart="onPaletteDragStart(event,'text')" data-pdfsign-action="palette-click" data-pdfsign-field-type="text">
+                <div class="pdfsign-palette-item" data-ftype="text" draggable="true" data-pdfsign-dragstart="text" data-pdfsign-action="palette-click" data-pdfsign-field-type="text">
                   <div class="pdfsign-palette-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7V4h16v3M9 20h6M12 4v16"/></svg>
                   </div>
                   <div class="pdfsign-palette-name">Text</div>
                 </div>
-                <div class="pdfsign-palette-item" data-ftype="date" draggable="true" ondragstart="onPaletteDragStart(event,'date')" data-pdfsign-action="palette-click" data-pdfsign-field-type="date">
+                <div class="pdfsign-palette-item" data-ftype="date" draggable="true" data-pdfsign-dragstart="date" data-pdfsign-action="palette-click" data-pdfsign-field-type="date">
                   <div class="pdfsign-palette-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
                   </div>
                   <div class="pdfsign-palette-name">Date</div>
                 </div>
-                <div class="pdfsign-palette-item" data-ftype="checkbox" draggable="true" ondragstart="onPaletteDragStart(event,'checkbox')" data-pdfsign-action="palette-click" data-pdfsign-field-type="checkbox">
+                <div class="pdfsign-palette-item" data-ftype="checkbox" draggable="true" data-pdfsign-dragstart="checkbox" data-pdfsign-action="palette-click" data-pdfsign-field-type="checkbox">
                   <div class="pdfsign-palette-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><polyline points="8 12 11 15 16 10"/></svg>
                   </div>
                   <div class="pdfsign-palette-name">Checkbox</div>
                 </div>
-                <div class="pdfsign-palette-item" data-ftype="crossout" draggable="true" ondragstart="onPaletteDragStart(event,'crossout')" data-pdfsign-action="palette-click" data-pdfsign-field-type="crossout">
+                <div class="pdfsign-palette-item" data-ftype="crossout" draggable="true" data-pdfsign-dragstart="crossout" data-pdfsign-action="palette-click" data-pdfsign-field-type="crossout">
                   <div class="pdfsign-palette-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="12" x2="20" y2="12"/></svg>
                   </div>
