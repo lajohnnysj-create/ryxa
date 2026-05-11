@@ -10217,6 +10217,19 @@ async function startCheckout(plan, triggerBtn) {
         let msg;
         if (data.alreadyOnPlan) {
           msg = "You're already on this plan.";
+        } else if (data.scheduledDowngradeCancelled) {
+          msg = "Your scheduled downgrade has been cancelled. You'll stay on Creator Max.";
+        } else if (data.scheduledDowngrade) {
+          // Trialing user downgraded — Pro takes effect when their Max trial ends
+          var downgradeDate = '';
+          if (data.downgradeAt) {
+            try {
+              downgradeDate = new Date(data.downgradeAt).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
+            } catch (e) {}
+          }
+          msg = downgradeDate
+            ? "Got it. You'll keep Creator Max access through your free trial, then automatically switch to Pro on " + downgradeDate + "."
+            : "Got it. You'll keep Creator Max access through your free trial, then automatically switch to Pro.";
         } else if (data.trialApplied) {
           msg = data.reactivated
             ? "Upgraded to Creator Max and your cancellation was reversed. Enjoy 7 days free, then your existing billing cycle continues at the Max rate."
