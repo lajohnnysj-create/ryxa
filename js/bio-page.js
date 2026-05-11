@@ -723,7 +723,7 @@ function initVideoArrows() {
 // Mirrors the server-side resolver in api/bio.js. Mutates `links` in place,
 // only overwriting `photoUrl` when a live value is found, falling back to
 // the stored snapshot otherwise.
-async function resolveLiveCoverUrls(creatorUserId, links) {
+async function resolveLiveCoverUrls(creatorUserId, links, creatorUsername) {
   if (!Array.isArray(links) || links.length === 0) return;
 
   var courseIds = [];
@@ -857,8 +857,13 @@ async function resolveLiveCoverUrls(creatorUserId, links) {
         if (typeof liveProduct.price === 'number') link.productPrice = liveProduct.price;
         if (liveProduct.photo) link.photoUrl = liveProduct.photo;
       }
-    } else if (link.isMediaKit && mediaKitUrl) {
-      link.photoUrl = mediaKitUrl;
+    } else if (link.isMediaKit) {
+      if (mediaKitUrl) link.photoUrl = mediaKitUrl;
+      // Rebuild URL from the live username so a creator-renamed bio link still
+      // points at the right /mediakit/<username> page (the old username 404s).
+      if (typeof creatorUsername === 'string' && creatorUsername.length > 0) {
+        link.url = 'https://www.ryxa.io/mediakit/' + creatorUsername;
+      }
     }
   }
 }
@@ -906,7 +911,7 @@ async function load() {
   // Mirrors the server-side resolver in api/bio.js. Mutates bio.links in
   // place so render() picks up live values instead of stored snapshots.
   try {
-    await resolveLiveCoverUrls(profile.user_id, bio.links);
+    await resolveLiveCoverUrls(profile.user_id, bio.links, profile.username);
   } catch (e) {
     console.error('cover URL resolver failed, using snapshots:', e);
   }

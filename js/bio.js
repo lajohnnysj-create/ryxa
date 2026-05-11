@@ -431,7 +431,7 @@ async function resyncBioUsername() {
 // link thumbnails AND the iframe preview in sync with current images.
 // Mutates `links` in place; only overwrites photoUrl when a live value is
 // found, falling back to the stored snapshot otherwise.
-async function resolveBioLinkLiveCovers(creatorUserId, links) {
+async function resolveBioLinkLiveCovers(creatorUserId, links, creatorUsername) {
   if (!Array.isArray(links) || links.length === 0) return;
 
   var courseIds = [];
@@ -565,8 +565,13 @@ async function resolveBioLinkLiveCovers(creatorUserId, links) {
         if (typeof liveProduct.price === 'number') link.productPrice = liveProduct.price;
         if (liveProduct.photo) link.photoUrl = liveProduct.photo;
       }
-    } else if (link.isMediaKit && mediaKitUrl) {
-      link.photoUrl = mediaKitUrl;
+    } else if (link.isMediaKit) {
+      if (mediaKitUrl) link.photoUrl = mediaKitUrl;
+      // Rebuild URL from the live username so a creator-renamed bio link still
+      // points at the right /mediakit/<username> page (the old username 404s).
+      if (typeof creatorUsername === 'string' && creatorUsername.length > 0) {
+        link.url = 'https://www.ryxa.io/mediakit/' + creatorUsername;
+      }
     }
   }
 }
@@ -617,7 +622,7 @@ async function loadBioData() {
       // bio render path. Wrapped in try/catch so a slow lookup never blocks
       // the editor from loading.
       try {
-        await resolveBioLinkLiveCovers(currentUser.id, bioState.links);
+        await resolveBioLinkLiveCovers(currentUser.id, bioState.links, bioState.username);
       } catch (e) {
         console.error('cover URL resolver failed in dashboard:', e);
       }
