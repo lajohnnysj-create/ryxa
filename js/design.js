@@ -156,12 +156,12 @@ function confirmCustomSize() {
   startDesignProject(w, h, w + ' × ' + h);
 }
 
-function initDesignCanvas() {
+function initDesignCanvas(onReady) {
   initDesignFontSelect();
   // Delay so layout has rendered and flex container has width
   setTimeout(function() {
     dsResizeCanvas();
-    if (!dsCanvas) return;
+    if (!dsCanvas) { if (onReady) onReady(); return; }
 
     dsCanvas.on('selection:created', function() { dsOnSelect(); dsRefreshLayersIfOpen(); });
     dsCanvas.on('selection:updated', function() { dsOnSelect(); dsRefreshLayersIfOpen(); });
@@ -315,7 +315,13 @@ function initDesignCanvas() {
         });
       }
       dsCanvas.renderAll();
+      // Fire the ready callback AFTER everything is on-screen. This is what
+      // hides the loading overlay so the user only ever sees the finished canvas.
+      if (onReady) onReady();
     });
+  } else {
+    // No pending JSON (new project) — canvas is already ready.
+    if (onReady) onReady();
   }
   }, 50); // end setTimeout
 }
@@ -1871,6 +1877,9 @@ function closeDesignEditor() {
   document.getElementById('design-editor').style.display = 'none';
   document.getElementById('design-start').style.display = 'block';
   document.getElementById('ds-canvas-wrap').style.backgroundImage = 'none';
+  // Reset loading overlay so it doesn't appear when entering a fresh project next time.
+  var overlay = document.getElementById('ds-loading-overlay');
+  if (overlay) overlay.classList.remove('active');
   dsTransparentBg = false;
   var tbtn = document.getElementById('ds-transparent-btn');
   if (tbtn) tbtn.classList.remove('active');
@@ -2090,23 +2099,24 @@ async function loadDesignProjects() {
 }
 
 async function openDesignProject(id) {
-  // Optimistic UI: show the editor shell immediately so the user knows their
+  // Show the editor shell with a loading overlay so the user knows their
   // click registered. Large projects with embedded base64 images can take
-  // 1-3 seconds to fetch over the network; staring at the project list during
-  // that wait feels broken even when nothing's wrong.
+  // 1-3 seconds to fetch and deserialize; the overlay covers the canvas area
+  // until everything is ready so users never see a half-rendered state.
   var startEl = document.getElementById('design-start');
   var editorEl = document.getElementById('design-editor');
   var nameEl = document.getElementById('ds-project-name');
+  var overlay = document.getElementById('ds-loading-overlay');
+
   startEl.style.display = 'none';
   editorEl.style.display = 'block';
-  nameEl.textContent = 'Loading...';
-
-  // Show a loading message in the editor message area while data is fetched.
-  showDsMsg('success', 'Loading project...');
+  nameEl.textContent = '';
+  if (overlay) overlay.classList.add('active');
 
   var { data, error } = await sb.from('design_projects').select('*').eq('id', id).eq('user_id', currentUser.id).single();
   if (error || !data) {
     // Revert the optimistic UI and show the error
+    if (overlay) overlay.classList.remove('active');
     editorEl.style.display = 'none';
     startEl.style.display = 'block';
     showModalAlert('Error', 'Could not load project. Please try again.');
@@ -2119,16 +2129,12 @@ async function openDesignProject(id) {
   dsCurrentProjectId = data.id;
   dsPendingJSON = data.canvas_json;
   nameEl.textContent = data.name;
-  initDesignCanvas();
 
-  // Hide the loading message after a brief tick — by the time the user sees
-  // the canvas, the message has served its purpose.
-  setTimeout(function() {
-    var msgEl = document.getElementById('ds-editor-msg');
-    if (msgEl && msgEl.textContent === 'Loading project...') {
-      msgEl.style.display = 'none';
-    }
-  }, 200);
+  // Pass a ready callback so we only hide the overlay once the canvas is
+  // fully populated (post loadFromJSON + final renderAll).
+  initDesignCanvas(function() {
+    if (overlay) overlay.classList.remove('active');
+  });
 }
 
 async function deleteDesignProject(id) {
