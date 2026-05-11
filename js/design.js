@@ -2617,20 +2617,35 @@ function dsRemoveBg() {
     ctx.drawImage(imgEl, 0, 0);
     c.toBlob(function(blob) {
       _dsBgRemoveFunc(blob).then(function(resultBlob) {
-        var url = URL.createObjectURL(resultBlob);
-        fabric.Image.fromURL(url, function(newImg) {
-          newImg.set({
-            left: obj.left, top: obj.top,
-            scaleX: obj.scaleX, scaleY: obj.scaleY,
-            angle: obj.angle
+        // Convert the result blob to a data URL before loading into fabric.
+        // We previously used URL.createObjectURL(resultBlob) here, but that
+        // returns a transient blob: URL that only lives as long as the tab.
+        // fabric.toJSON serializes the image's src into the saved project,
+        // so a blob: URL would be saved and then 404 on next page load.
+        // Data URLs are inlined as base64 in the JSON — heavier on storage
+        // but actually persistable.
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          var dataUrl = e.target.result;
+          fabric.Image.fromURL(dataUrl, function(newImg) {
+            newImg.set({
+              left: obj.left, top: obj.top,
+              scaleX: obj.scaleX, scaleY: obj.scaleY,
+              angle: obj.angle
+            });
+            dsCanvas.remove(obj);
+            dsCanvas.add(newImg);
+            dsCanvas.setActiveObject(newImg);
+            dsCanvas.renderAll();
+            dsResetBgBtn(btn);
+            showDsMsg('success', 'Background removed.');
           });
-          dsCanvas.remove(obj);
-          dsCanvas.add(newImg);
-          dsCanvas.setActiveObject(newImg);
-          dsCanvas.renderAll();
+        };
+        reader.onerror = function() {
           dsResetBgBtn(btn);
-          showDsMsg('success', 'Background removed.');
-        });
+          showDsMsg('error', 'Background removal failed. Try a different image.');
+        };
+        reader.readAsDataURL(resultBlob);
       }).catch(function(err) {
         console.error('BG removal error:', err);
         dsResetBgBtn(btn);
