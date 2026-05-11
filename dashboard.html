@@ -5240,6 +5240,34 @@
   .welcome-s-825ae1 { flex:1;min-width:0;font-size:13px;color:var(--text);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left; }
   .welcome-s-a0676c { font-size:11px;color:var(--muted);flex-shrink:0;white-space:nowrap; }
 
+
+  /* ============================================================
+     Dashboard-shell hover behaviors (CSS :hover, no JS)
+     ============================================================ */
+  /* Hover behaviors — converted from inline onmouseover/onmouseout attributes.
+     CSS :hover is GPU-accelerated and works without JS. */
+  .dash-h-e4995c:hover { opacity: 0.9; }
+  .dash-h-427938:hover { border-color: rgba(124,58,237,0.4); }
+  .dash-h-8e2751:hover { background: var(--surface); }
+  .dash-h-2e752f:hover { background: rgba(239,68,68,0.06); }
+  .dash-h-521946:hover { border-color: rgba(124,58,237,0.6); color: #fff; }
+  .dash-h-d08873:hover { background: rgba(124,58,237,0.15); }
+  .dash-h-186bb3:hover { background: rgba(124,58,237,0.2); }
+  .dash-h-8caae0:hover { border-color: var(--border-hover); }
+  .dash-h-64372a:hover { border-color: var(--border-hover); color: var(--text); }
+  .dash-h-fd9d1b:hover { background: #a855f7; }
+  .dash-h-342810:hover { border-color: rgba(124,58,237,0.4); }
+  .dash-h-6ac854:hover { border-color: rgba(124,58,237,0.5); background: rgba(124,58,237,0.2); }
+  .dash-h-47f5fa:hover { border-color: rgba(124,58,237,0.4); background: rgba(124,58,237,0.03); }
+  .dash-h-d21ae3:hover { background: var(--accent2); }
+  .dash-h-24099f:hover { border-color: var(--accent); }
+  .dash-h-4ce2ad:hover { filter: brightness(1.15); }
+  .dash-h-6da74c:hover { background: #7A73FF; transform: translateY(-1px); }
+  .dash-h-80742c:hover { background: rgba(239,68,68,0.06); }
+  .dash-h-476242:hover { transform: translateY(-1px); }
+  .dash-h-dde34c:hover { background: rgba(239,68,68,0.08); }
+  .dash-h-82aea2:hover { border-color: rgba(124,58,237,0.4); color: #c4b5fd; }
+
 </style>
 <style>html{background:#07070f;}body{visibility:hidden;}body.ready{visibility:visible;}</style>
 
@@ -5487,30 +5515,30 @@
           <div id="sidebar-ai-count" style="font-size:11px;color:var(--muted2);">0 / 0 calls</div>
           <div id="sidebar-ai-reset" style="font-size:10px;color:var(--muted);"></div>
         </div>
-        <button id="sidebar-ai-upgrade" data-dash-action="sidebar-upgrade-pro" style="display:none;width:100%;margin-top:10px;padding:8px 12px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:8px;color:#fff;font-size:12px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;transition:opacity 0.15s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+        <button class="dash-h-e4995c" id="sidebar-ai-upgrade" data-dash-action="sidebar-upgrade-pro" style="display:none;width:100%;margin-top:10px;padding:8px 12px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:8px;color:#fff;font-size:12px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;transition:opacity 0.15s;">
           Unlock AI features &rarr;
         </button>
       </div>
       <!-- Bio link -->
       <div id="sidebar-menu-biolink" style="display:none;margin-bottom:8px;">
-        <button data-dash-action="copy-sidebar-bio-link" style="width:100%;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;display:flex;align-items:center;gap:8px;color:var(--text);transition:all 0.15s;" onmouseover="this.style.borderColor='rgba(124,58,237,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
+        <button class="dash-h-427938" data-dash-action="copy-sidebar-bio-link" style="width:100%;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;display:flex;align-items:center;gap:8px;color:var(--text);transition:all 0.15s;">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
           <span id="sidebar-menu-biolink-text" style="flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">ryxa.io/...</span>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
         </button>
       </div>
       <!-- Install App (Chrome: deferred prompt, iOS: instruction modal, hidden if already standalone) -->
-      <button id="sidebar-install-btn" data-dash-action="sidebar-install-pwa" style="display:none;width:100%;padding:10px 12px;background:none;border:none;border-radius:10px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;align-items:center;gap:8px;color:var(--text);transition:background 0.12s;margin-bottom:4px;" onmouseover="this.style.background='var(--surface)'" onmouseout="this.style.background='none'">
+      <button class="dash-h-8e2751" id="sidebar-install-btn" data-dash-action="sidebar-install-pwa" style="display:none;width:100%;padding:10px 12px;background:none;border:none;border-radius:10px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;align-items:center;gap:8px;color:var(--text);transition:background 0.12s;margin-bottom:4px;">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Install App
       </button>
       <!-- Ryxa Hub -->
-      <a href="/learn/" data-dash-action="close-sidebar-menu" style="width:100%;padding:10px 12px;background:none;border:none;border-radius:10px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;display:flex;align-items:center;gap:8px;color:var(--text);transition:background 0.12s;margin-bottom:4px;text-decoration:none;box-sizing:border-box;" onmouseover="this.style.background='var(--surface)'" onmouseout="this.style.background='none'">
+      <a class="dash-h-8e2751" href="/learn/" data-dash-action="close-sidebar-menu" style="width:100%;padding:10px 12px;background:none;border:none;border-radius:10px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;display:flex;align-items:center;gap:8px;color:var(--text);transition:background 0.12s;margin-bottom:4px;text-decoration:none;box-sizing:border-box;">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
         Ryxa Hub
       </a>
       <!-- Sign Out -->
-      <button data-dash-action="sidebar-open-signout" style="width:100%;padding:10px 12px;background:none;border:none;border-radius:10px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;display:flex;align-items:center;gap:8px;color:#f87171;transition:background 0.12s;" onmouseover="this.style.background='rgba(239,68,68,0.06)'" onmouseout="this.style.background='none'">
+      <button class="dash-h-2e752f" data-dash-action="sidebar-open-signout" style="width:100%;padding:10px 12px;background:none;border:none;border-radius:10px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;display:flex;align-items:center;gap:8px;color:#f87171;transition:background 0.12s;">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         Sign Out
       </button>
@@ -5616,7 +5644,7 @@
               </div>
               <div class="ana-s-f77a0c">Upcoming Events</div>
             </div>
-            <button data-welcome-action="show-tool" data-welcome-tool="calendar" class="welcome-s-89990c" onmouseover="this.style.borderColor='rgba(124,58,237,0.6)';this.style.color='#fff'" onmouseout="this.style.borderColor='rgba(124,58,237,0.3)';this.style.color='#c4b5fd'">View Calendar →</button>
+            <button data-welcome-action="show-tool" data-welcome-tool="calendar" class="welcome-s-89990c dash-h-521946">View Calendar →</button>
           </div>
           <div id="dash-upcoming-list" class="scroll-on-hover welcome-s-b85373" ></div>
         </div>
@@ -5767,7 +5795,7 @@
         <div class="follower-s-938972">
           <h2 class="follower-s-8bcb27">Analyze your followers</h2>
           <p class="follower-s-665ec6">Download your data from Instagram's Account Center, then upload the ZIP here to instantly see who doesn't follow you back.</p>
-          <a href="#" data-follower-action="open-instructions" class="follower-s-6c6687" onmouseover="this.style.background='rgba(124,58,237,0.15)'" onmouseout="this.style.background='rgba(124,58,237,0.08)'">
+          <a href="#" data-follower-action="open-instructions" class="follower-s-6c6687 dash-h-d08873">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="bio-s-f38a95"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg> <span>Need help getting your files? Follow our step-by-step instructions →</span>
           </a>
         </div>
@@ -6731,9 +6759,9 @@
               </table>
             </div>
             <div id="ana-sales-pagination" class="ana-s-8c8231">
-              <button id="ana-sales-prev" data-ana-action="sales-page" data-ana-dir="-1" class="ana-s-7f388f" onmouseover="this.style.background='rgba(124,58,237,0.2)'" onmouseout="this.style.background='rgba(124,58,237,0.1)'">← Back</button>
+              <button id="ana-sales-prev" data-ana-action="sales-page" data-ana-dir="-1" class="ana-s-7f388f dash-h-186bb3">← Back</button>
               <span id="ana-sales-page-info" class="bio-s-e769ff"></span>
-              <button id="ana-sales-next" data-ana-action="sales-page" data-ana-dir="1" class="ana-s-7f388f" onmouseover="this.style.background='rgba(124,58,237,0.2)'" onmouseout="this.style.background='rgba(124,58,237,0.1)'">Next →</button>
+              <button id="ana-sales-next" data-ana-action="sales-page" data-ana-dir="1" class="ana-s-7f388f dash-h-186bb3">Next →</button>
             </div>
           </div>
 
@@ -6784,13 +6812,13 @@
         <div class="cal-grid-card cal-s-600d9b" >
           <div class="cal-s-400603">
             <div class="bio-s-e3f610">
-              <button data-cal-action="prev-month" aria-label="Previous month" class="cal-s-691d58" onmouseover="this.style.borderColor='var(--border-hover)'" onmouseout="this.style.borderColor='var(--border)'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
-              <button data-cal-action="toggle-month-picker" id="cal-month-label" class="cal-s-5c4456" onmouseover="this.style.borderColor='var(--border-hover)'" onmouseout="this.style.borderColor='var(--border)'">Month Year</button>
-              <button data-cal-action="next-month" aria-label="Next month" class="cal-s-691d58" onmouseover="this.style.borderColor='var(--border-hover)'" onmouseout="this.style.borderColor='var(--border)'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+              <button data-cal-action="prev-month" aria-label="Previous month" class="cal-s-691d58 dash-h-8caae0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+              <button data-cal-action="toggle-month-picker" id="cal-month-label" class="cal-s-5c4456 dash-h-8caae0">Month Year</button>
+              <button data-cal-action="next-month" aria-label="Next month" class="cal-s-691d58 dash-h-8caae0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
             </div>
             <div class="bio-s-e3f610">
-              <button data-cal-action="today" class="cal-s-4ad1a5" onmouseover="this.style.borderColor='var(--border-hover)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">Today</button>
-              <button data-cal-action="open-settings" aria-label="Settings" class="cal-s-8ad4a7" onmouseover="this.style.borderColor='var(--border-hover)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+              <button data-cal-action="today" class="cal-s-4ad1a5 dash-h-64372a">Today</button>
+              <button data-cal-action="open-settings" aria-label="Settings" class="cal-s-8ad4a7 dash-h-64372a"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
             </div>
           </div>
 
@@ -6823,7 +6851,7 @@
         <div class="cal-events-card cal-s-391458" id="cal-events-card">
           <div class="cal-s-828ffd">
             <h3 id="cal-day-label" class="cal-s-c0b004">Today</h3>
-            <button data-cal-action="open-add-event" class="cal-s-d63a18" onmouseover="this.style.background='#a855f7'" onmouseout="this.style.background='var(--accent)'"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Event</button>
+            <button data-cal-action="open-add-event" class="cal-s-d63a18 dash-h-fd9d1b"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Event</button>
           </div>
           <div id="cal-day-events"></div>
         </div>
@@ -6845,7 +6873,7 @@
               <h2 class="clients-s-88cf18">Subscribers</h2>
               <p class="clients-s-e81ef5" id="clients-count">Your email subscribers and customers from courses and coaching.</p>
             </div>
-            <button data-clients-action="export" class="clients-s-25b2fe" onmouseover="this.style.background='rgba(124,58,237,0.2)'" onmouseout="this.style.background='rgba(124,58,237,0.1)'">
+            <button data-clients-action="export" class="clients-s-25b2fe dash-h-186bb3">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               Export Emails
             </button>
@@ -6874,9 +6902,9 @@
               </table>
             </div>
             <div id="clients-pagination" class="clients-s-cec69f">
-              <button id="clients-prev" data-clients-action="page" data-clients-dir="-1" class="ana-s-7f388f" onmouseover="this.style.background='rgba(124,58,237,0.2)'" onmouseout="this.style.background='rgba(124,58,237,0.1)'">← Back</button>
+              <button id="clients-prev" data-clients-action="page" data-clients-dir="-1" class="ana-s-7f388f dash-h-186bb3">← Back</button>
               <span id="clients-page-info" class="bio-s-e769ff"></span>
-              <button id="clients-next" data-clients-action="page" data-clients-dir="1" class="ana-s-7f388f" onmouseover="this.style.background='rgba(124,58,237,0.2)'" onmouseout="this.style.background='rgba(124,58,237,0.1)'">Next →</button>
+              <button id="clients-next" data-clients-action="page" data-clients-dir="1" class="ana-s-7f388f dash-h-186bb3">Next →</button>
             </div>
           </div>
         </div>
@@ -7537,11 +7565,11 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
             Back
           </button>
-          <h2 id="ds-project-name" data-ds-action="edit-project-name" class="ds-s-5a3f8c" onmouseover="this.style.borderColor='rgba(124,58,237,0.4)'" onmouseout="this.style.borderColor='transparent'" title="Click to rename">Untitled</h2>
+          <h2 id="ds-project-name" data-ds-action="edit-project-name" class="ds-s-5a3f8c dash-h-342810" title="Click to rename">Untitled</h2>
           <div class="course-s-b9bbe5">
             <button data-ds-action="save-project" id="ds-save-btn" class="ds-s-d54950">Save</button>
             <div class="ana-s-87db22">
-              <button data-ds-action="toggle-export-menu" id="ds-export-btn" class="ds-s-38021d" onmouseover="this.style.borderColor='rgba(124,58,237,0.5)';this.style.background='rgba(124,58,237,0.2)'" onmouseout="this.style.borderColor='rgba(124,58,237,0.3)';this.style.background='linear-gradient(135deg,rgba(124,58,237,0.15),rgba(232,121,249,0.1))'">
+              <button data-ds-action="toggle-export-menu" id="ds-export-btn" class="ds-s-38021d dash-h-6ac854">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 Export
               </button>
@@ -7811,7 +7839,7 @@
         <p class="ds-s-1f7c43">Upload a thumbnail and get AI-powered feedback on clickability, composition, and text readability.</p>
 
         <!-- Upload area -->
-        <div id="ta-upload-area" class="ds-s-86e1d9" data-thumb-action="trigger-upload" onmouseover="this.style.borderColor='rgba(124,58,237,0.4)';this.style.background='rgba(124,58,237,0.03)'" onmouseout="this.style.borderColor='var(--border-hover)';this.style.background='transparent'">
+        <div id="ta-upload-area" class="ds-s-86e1d9 dash-h-47f5fa" data-thumb-action="trigger-upload">
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="deal-s-3ef1fa"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
           <div class="ds-s-781483">Drop your thumbnail here or click to upload</div>
           <div class="bio-s-e769ff">PNG, JPG, or WebP — recommended 1280×720 for YouTube</div>
@@ -7824,7 +7852,7 @@
             <img id="ta-preview-img" alt="Thumbnail preview" class="ds-s-3d7e0b">
             <button data-thumb-action="reset" class="ds-s-1b29b5">×</button>
           </div>
-          <button data-thumb-action="analyze" id="ta-analyze-btn" class="ds-s-55f458" onmouseover="this.style.background='var(--accent2)'" onmouseout="this.style.background='var(--accent)'">
+          <button data-thumb-action="analyze" id="ta-analyze-btn" class="ds-s-55f458 dash-h-d21ae3">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ds-s-468663"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>Analyze Thumbnail
           </button>
         </div>
@@ -7933,7 +7961,7 @@
         <p class="ds-s-56d6f8">This is not legal advice. Always consult a lawyer before signing binding agreements.</p>
 
         <!-- Upload area -->
-        <div id="ca-upload-area" class="ds-s-86e1d9" data-contract-action="trigger-upload" onmouseover="this.style.borderColor='rgba(124,58,237,0.4)';this.style.background='rgba(124,58,237,0.03)'" onmouseout="this.style.borderColor='var(--border-hover)';this.style.background='transparent'">
+        <div id="ca-upload-area" class="ds-s-86e1d9 dash-h-47f5fa" data-contract-action="trigger-upload">
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="deal-s-3ef1fa"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
           <div class="ds-s-781483">Drop your contract here or click to upload</div>
           <div class="bio-s-e769ff">PDF files only — up to 20 pages</div>
@@ -7950,7 +7978,7 @@
             </div>
             <button data-contract-action="reset" class="ds-s-5c219d">×</button>
           </div>
-          <button data-contract-action="analyze" id="ca-analyze-btn" class="ds-s-55f458" onmouseover="this.style.background='var(--accent2)'" onmouseout="this.style.background='var(--accent)'">
+          <button data-contract-action="analyze" id="ca-analyze-btn" class="ds-s-55f458 dash-h-d21ae3">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ds-s-468663"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M9 15l2 2 4-4"/></svg>Analyze Contract
           </button>
         </div>
@@ -8158,7 +8186,7 @@
             <div id="logo-section">
               <div class="deal-s-3ef1fa">
                 <!-- Logo display area -->
-                <div id="logo-upload-area" class="invoice-s-75f542" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='rgba(124,58,237,0.3)'">
+                <div id="logo-upload-area" class="invoice-s-75f542 dash-h-24099f">
                   <input type="file" id="inv-logo" accept="image/*" class="invoice-s-578e41" data-invoice-action="upload-logo" data-invoice-event="change" aria-label="Upload invoice logo">
                   <div id="logo-placeholder" class="invoice-s-db097d">
                     <div class="invoice-s-f5742a">+</div>
@@ -8586,7 +8614,7 @@
         <!-- Conversations sidebar -->
         <div id="aichat-side" class="chat-s-5dad98">
           <div class="chat-s-58cc6f">
-            <button id="aichat-new-btn" data-chat-action="new-conversation" class="chat-s-8037c6" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+            <button id="aichat-new-btn" data-chat-action="new-conversation" class="chat-s-8037c6 dash-h-e4995c">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               New Chat
             </button>
@@ -8644,7 +8672,7 @@
           <div class="chat-s-fe3d36">
             <div class="chat-s-5300cf">
               <textarea id="aichat-input" aria-label="Message Ryxa AI" rows="1" placeholder="Ask anything..." class="chat-s-3ff1da" data-chat-action="autosize-input" data-chat-event="input" data-chat-action="handle-key" data-chat-event="keydown"></textarea>
-              <button id="aichat-send-btn" data-chat-action="send" class="chat-s-5cb1cd" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+              <button id="aichat-send-btn" data-chat-action="send" class="chat-s-5cb1cd dash-h-e4995c">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                 Send
               </button>
@@ -8730,7 +8758,7 @@
                 <p class="bio-s-9e2e36">Track your brand partnerships, deliverables, contracts, and revenue.</p>
               </div>
               <div class="deal-s-1e9093">
-                <button id="deals-pipeline-toggle" data-deal-action="toggle-pipeline-view" class="deal-s-0d2b57" onmouseover="this.style.filter='brightness(1.15)'" onmouseout="this.style.filter=''">View Pipeline</button>
+                <button id="deals-pipeline-toggle" data-deal-action="toggle-pipeline-view" class="deal-s-0d2b57 dash-h-4ce2ad">View Pipeline</button>
                 <button id="deals-new-btn" data-deal-action="new-deal" class="deal-s-226058">+ New deal</button>
               </div>
             </div>
@@ -9159,7 +9187,7 @@
 
       <!-- Not connected state -->
       <div id="settings-stripe-disconnected">
-        <button id="settings-stripe-connect-btn" data-settings-action="connect-stripe" class="settings-s-28947f" onmouseover="this.style.background='#7A73FF';this.style.transform='translateY(-1px)'" onmouseout="this.style.background='#635BFF';this.style.transform='none'">
+        <button id="settings-stripe-connect-btn" data-settings-action="connect-stripe" class="settings-s-28947f dash-h-6da74c">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>
           Connect Stripe Account
         </button>
@@ -9176,7 +9204,7 @@
             <div id="settings-stripe-acct-id" class="settings-s-a9a8d3">acct_•••</div>
           </div>
         </div>
-        <button id="stripe-disconnect-btn" data-settings-action="show-stripe-disconnect" class="settings-s-18bcb9" onmouseover="this.style.background='rgba(239,68,68,0.06)'" onmouseout="this.style.background='transparent'">Disconnect Stripe</button>
+        <button id="stripe-disconnect-btn" data-settings-action="show-stripe-disconnect" class="settings-s-18bcb9 dash-h-80742c">Disconnect Stripe</button>
         <div id="stripe-disconnect-confirm" class="settings-s-ed8a71">
           <p class="settings-s-57abe2">Disconnect Stripe?</p>
           <p class="settings-s-c06372">You won't receive payouts until you reconnect. Your Stripe account itself is not affected.</p>
@@ -9201,7 +9229,7 @@
 
       <!-- Not connected state -->
       <div id="settings-instagram-disconnected">
-        <button id="settings-instagram-connect-btn" data-settings-action="connect-instagram" class="settings-s-266a6c" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='none'">
+        <button id="settings-instagram-connect-btn" data-settings-action="connect-instagram" class="settings-s-266a6c dash-h-476242">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
           Connect Instagram
         </button>
@@ -9218,7 +9246,7 @@
             <div id="settings-instagram-username" class="settings-s-a34021">@username</div>
           </div>
         </div>
-        <button id="instagram-disconnect-btn" data-settings-action="show-instagram-disconnect" class="settings-s-18bcb9" onmouseover="this.style.background='rgba(239,68,68,0.06)'" onmouseout="this.style.background='transparent'">Disconnect Instagram</button>
+        <button id="instagram-disconnect-btn" data-settings-action="show-instagram-disconnect" class="settings-s-18bcb9 dash-h-80742c">Disconnect Instagram</button>
         <div id="instagram-disconnect-confirm" class="settings-s-ed8a71">
           <p class="settings-s-57abe2">Disconnect Instagram?</p>
           <p class="settings-s-c06372">Ryxa will stop syncing your Instagram data and your stored insights will be removed.</p>
@@ -9285,7 +9313,7 @@
             <button data-settings-action="dismiss-msg" class="settings-s-2cfa5f">Keep Max</button>
           </div>
         </div>
-        <button id="settings-cancel-btn" data-settings-action="handle-cancel" class="settings-s-6692e6" onmouseover="this.style.background='rgba(239,68,68,0.08)'" onmouseout="this.style.background='transparent'">Cancel subscription</button>
+        <button id="settings-cancel-btn" data-settings-action="handle-cancel" class="settings-s-6692e6 dash-h-dde34c">Cancel subscription</button>
         <div id="settings-cancel-confirm" class="settings-s-46deec">
           <p class="settings-s-d0c547">Are you sure? You'll keep your plan until the end of your billing period.</p>
           <p class="settings-s-c06372">Your data stays saved — if you ever come back, everything will be right where you left it.</p>
@@ -9309,7 +9337,7 @@
       <div class="settings-s-9c422a">Password</div>
       <p class="settings-s-4fba18">We'll email you a secure link to change your password.</p>
       <div id="settings-password-turnstile" class="settings-s-19e9ac"></div>
-      <button id="settings-reset-password-btn" data-settings-action="send-password-reset" class="settings-s-de12aa" onmouseover="this.style.borderColor='rgba(124,58,237,0.4)';this.style.color='#c4b5fd'" onmouseout="this.style.borderColor='var(--border-hover)';this.style.color='var(--text)'">Send password reset email</button>
+      <button id="settings-reset-password-btn" data-settings-action="send-password-reset" class="settings-s-de12aa dash-h-82aea2">Send password reset email</button>
       <div id="settings-password-msg" class="settings-s-d74c8c"></div>
     </div>
 
@@ -9815,7 +9843,7 @@ function openSupportModal() {
     + '<div style="width:48px;height:48px;margin:0 auto 16px;background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.25);border-radius:12px;display:flex;align-items:center;justify-content:center;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>'
     + '<div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.3px;margin-bottom:8px;">Get Support</div>'
     + '<p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:20px;">Have a question or need help? Reach out to us and we\'ll get back to you as soon as possible.</p>'
-    + '<div data-dash-action="copy-support-email" style="padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;font-size:14px;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px;transition:border-color 0.15s;" onmouseover="this.style.borderColor=\'rgba(124,58,237,0.4)\'" onmouseout="this.style.borderColor=\'var(--border)\'">'
+    + '<div class="dash-h-53f7b1" data-dash-action="copy-support-email" style="padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;font-size:14px;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px;transition:border-color 0.15s;">'
     + '<span>hello@ryxa.io</span>'
     + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>'
     + '</div>'
