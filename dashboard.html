@@ -10172,6 +10172,21 @@ async function startCheckout(plan, triggerBtn) {
   targetPlan = targetPlan === 'max' ? 'max' : 'monthly';
   const priceId = targetPlan === 'max' ? STRIPE_PRICE_MAX : STRIPE_PRICE_MONTHLY;
 
+  // Extract a user-readable error message from the Edge Function response.
+  // Supabase JS SDK wraps non-2xx responses in a FunctionsHttpError where the
+  // body lives at err.context (a Response). We try to JSON-parse it for the
+  // "error" field — that's what our Edge Function returns. Fallback to the
+  // generic message if parsing fails.
+  async function extractEdgeFunctionError(err) {
+    try {
+      if (err && err.context && typeof err.context.json === 'function') {
+        const body = await err.context.json();
+        if (body && body.error) return body.error;
+      }
+    } catch (_) {}
+    return null;
+  }
+
   try {
     const { data, error } = await sb.functions.invoke('create-checkout-session', {
       body: {
@@ -10181,7 +10196,18 @@ async function startCheckout(plan, triggerBtn) {
         cancelUrl: window.location.origin + '/dashboard.html?payment=cancelled',
       }
     });
-    if (error) throw error;
+    if (error) {
+      // Try to surface the specific error from the Edge Function (e.g. the
+      // trial-downgrade block). Throw the specific message if we got one,
+      // otherwise re-throw the original.
+      const specificMsg = await extractEdgeFunctionError(error);
+      if (specificMsg) {
+        const e = new Error(specificMsg);
+        e.userFacing = true;
+        throw e;
+      }
+      throw error;
+    }
     // Clear localStorage intent after successful initiation
     try { localStorage.removeItem('fts_intended_plan'); } catch (e) {}
     if (data?.url) {
@@ -10192,7 +10218,11 @@ async function startCheckout(plan, triggerBtn) {
         if (data.alreadyOnPlan) {
           msg = "You're already on this plan.";
         } else if (data.trialApplied) {
-          msg = "Upgraded to Creator Max. Enjoy 7 days free, then your existing billing cycle continues at the Max rate.";
+          msg = data.reactivated
+            ? "Upgraded to Creator Max and your cancellation was reversed. Enjoy 7 days free, then your existing billing cycle continues at the Max rate."
+            : "Upgraded to Creator Max. Enjoy 7 days free, then your existing billing cycle continues at the Max rate.";
+        } else if (data.reactivated) {
+          msg = "Plan updated and your cancellation was reversed. You'll continue to be billed on your existing cycle.";
         } else {
           msg = "Plan updated successfully.";
         }
@@ -10217,11 +10247,18 @@ async function startCheckout(plan, triggerBtn) {
   } catch (err) {
     console.error('Checkout error:', err);
     clearBtnLoading(btn);
+    // Prefer the specific Edge Function error message if we extracted one,
+    // otherwise show the generic fallback.
+    const message = err && err.userFacing
+      ? err.message
+      : 'Something went wrong. Please try again.';
     // Show inline error instead of browser alert
     if (typeof showSettingsResult === 'function' && document.getElementById('tool-settings')?.style.display !== 'none') {
-      showSettingsResult('error', 'Something went wrong. Please try again.');
+      showSettingsResult('error', message);
+    } else if (typeof showDashToast === 'function') {
+      showDashToast('error', message);
     } else {
-      alert('Something went wrong. Please try again.');
+      alert(message);
     }
   }
 }
