@@ -249,7 +249,7 @@ async function openProductEditor(productId) {
   if (productId) {
     productsState.editingId = productId;
     document.getElementById('products-editor-title').textContent = 'Edit Product';
-    document.getElementById('products-delete-btn').style.display = 'inline-block';
+    document.getElementById('products-danger-zone').style.display = 'block';
     try {
       var { data: prod, error: e1 } = await sb.from('digital_products').select('*').eq('id', productId).eq('user_id', currentUser.id).single();
       if (e1) throw e1;
@@ -269,7 +269,7 @@ async function openProductEditor(productId) {
     productsState.editingId = null;
     productsState.editing = null;
     document.getElementById('products-editor-title').textContent = 'New Product';
-    document.getElementById('products-delete-btn').style.display = 'none';
+    document.getElementById('products-danger-zone').style.display = 'none';
     hydrateProductEditor(null);
   }
   renderProductFiles();
@@ -766,7 +766,7 @@ async function saveProductDraftSilently() {
     productsState.editing = data;
     document.getElementById('products-slug').value = slug;
     document.getElementById('products-editor-title').textContent = 'Edit Product';
-    document.getElementById('products-delete-btn').style.display = 'inline-block';
+    document.getElementById('products-danger-zone').style.display = 'block';
     dpUpdateLinkButtons();
     return true;
   } catch (e) {
@@ -934,7 +934,7 @@ async function saveProduct() {
 
     // Show Publish button + Delete button now that we have a saved row
     document.getElementById('products-editor-title').textContent = 'Edit Product';
-    document.getElementById('products-delete-btn').style.display = 'inline-block';
+    document.getElementById('products-danger-zone').style.display = 'block';
     updateProductPublishButton();
     dpUpdateLinkButtons();
 
