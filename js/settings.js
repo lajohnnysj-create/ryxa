@@ -700,21 +700,40 @@ function showSettingsResult(type, msg) {
 }
 
 async function confirmSettingsCancel() {
-  const isCancelling = userStatus === 'cancelling';
+  const wasCancelling = userStatus === 'cancelling';
+  // Snapshot tier/trial state BEFORE the function call so the success
+  // message reflects what they had, not what the post-call refresh might
+  // look like (especially relevant for reactivating, where the state stays
+  // the same but the labels are clearer to be specific).
+  const wasMax = isMax();
+  const wasTrialing = wasMax && userTrialEnd && new Date(userTrialEnd).getTime() > Date.now();
+
   const btn = document.getElementById('settings-cancel-btn');
-  btn.textContent = isCancelling ? 'Reactivating...' : 'Cancelling...';
+  btn.textContent = wasCancelling ? 'Reactivating...' : 'Cancelling...';
   btn.disabled = true;
   dismissSettingsMsg();
   try {
-    const fn = isCancelling ? 'reactivate-subscription' : 'cancel-subscription';
+    const fn = wasCancelling ? 'reactivate-subscription' : 'cancel-subscription';
     const { error } = await sb.functions.invoke(fn, { body: { userId: currentUser.id } });
     if (error) throw error;
     await fetchTier(currentUser.id);
     updateSettingsCancelBtn();
-    showSettingsResult('success', isCancelling
-      ? 'Your Pro plan has been reactivated!'
-      : 'Cancelled. You keep Pro access until the end of your billing period.'
-    );
+
+    let msg;
+    if (wasCancelling) {
+      msg = wasMax
+        ? 'Your Creator Max plan has been reactivated!'
+        : 'Your Pro plan has been reactivated!';
+    } else if (wasTrialing) {
+      // Cancelling during the Max trial: they keep access through trial end,
+      // then the subscription is deleted without ever billing them.
+      msg = 'Cancelled. You keep Creator Max access through the end of your free trial, then no charges will be made.';
+    } else if (wasMax) {
+      msg = 'Cancelled. You keep Creator Max access until the end of your billing period.';
+    } else {
+      msg = 'Cancelled. You keep Pro access until the end of your billing period.';
+    }
+    showSettingsResult('success', msg);
   } catch(err) {
     console.error('Subscription error:', err);
     showSettingsResult('error', 'Something went wrong. Please email hello@ryxa.io for help.');
