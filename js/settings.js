@@ -176,11 +176,14 @@ function updateSettingsCancelBtn() {
   if (subProLabel) subProLabel.textContent = max ? 'Creator Max plan' : 'Pro plan';
 
   // Update upgrade/downgrade button visibility
-  // Hide tier-change buttons while cancelling — user is about to lose subscription anyway
+  // Hide tier-change buttons while cancelling — user is about to lose subscription anyway.
+  // Hide "Downgrade to Pro" during a Max trial — the cancel-subscription button
+  // is the right tool to leave Max early during a trial (they keep access through
+  // trial_end then drop to Free, can resubscribe to Pro afterward).
   const upgradeToMaxBtn = document.getElementById('settings-upgrade-max');
   const downgradeToProBtn = document.getElementById('settings-downgrade-pro');
   if (upgradeToMaxBtn) upgradeToMaxBtn.style.display = (pro && !max && !isCancelling) ? 'block' : 'none';
-  if (downgradeToProBtn) downgradeToProBtn.style.display = (max && !isCancelling) ? 'block' : 'none';
+  if (downgradeToProBtn) downgradeToProBtn.style.display = (max && !isCancelling && !isTrialing) ? 'block' : 'none';
 }
 
 // ---------- From dashboard.html L10177-10188: confirmUpgradeToMax + confirmUpgradeToMaxFinal ----------
