@@ -76,6 +76,26 @@ function hexAlpha(hex, alpha) {
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
+// Strict hex color validator. Returns the input if it matches #RRGGBB / #RGB / #RRGGBBAA / #RGBA,
+// otherwise returns the fallback. Prevents CSS injection via user-supplied color values
+// (e.g. `red; } body { background: url(...) } /*` breaking out of the property).
+function safeHexColor(value, fallback) {
+  if (typeof value !== 'string') return fallback;
+  if (/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(value)) {
+    return value;
+  }
+  return fallback;
+}
+
+// Strict opacity validator. Returns a number in [0, 1] or the fallback.
+// Rejects null/undefined explicitly (they should mean "use default" rather than 0).
+function safeOpacity(value, fallback) {
+  if (value == null) return fallback;
+  const n = Number(value);
+  if (Number.isFinite(n) && n >= 0 && n <= 1) return n;
+  return fallback;
+}
+
 // ==========================================================================
 // FONTS — must mirror BIO_FONTS in dashboard.html. Keep in sync when adding new fonts.
 // Each entry maps a key (saved in DB) to a Google Fonts family + weights + CSS stack.
@@ -391,10 +411,13 @@ function buildLink(link, currency) {
 
 function buildCustomThemeStyle(ct) {
   const colors = ct?.colors || {};
-  const bg = colors.bg || '#07070f';
-  const card = colors.card || '#161625';
-  const text = colors.text || '#ffffff';
-  const accent = colors.accent || '#a78bfa';
+  // Validate every color input strictly. Anything that isn't #RRGGBB/#RGB
+  // falls back to the default. Prevents CSS injection like
+  //   accent: "red; } body { background: url(evil) } /*"
+  const bg = safeHexColor(colors.bg, '#07070f');
+  const card = safeHexColor(colors.card, '#161625');
+  const text = safeHexColor(colors.text, '#ffffff');
+  const accent = safeHexColor(colors.accent, '#a78bfa');
 
   let css = `:root[data-theme="custom"] {
     --bg: ${bg};
@@ -411,10 +434,14 @@ function buildCustomThemeStyle(ct) {
   }`;
 
   if (ct.bgUrl) {
-    const op = ct.bgOpacity != null ? ct.bgOpacity : 0.4;
-    const darkness = 1 - op;
-    const safeBgUrl = String(ct.bgUrl).replace(/"/g, '&quot;');
-    css += `
+    // bgUrl must pass our strict validator (https + our own Supabase bucket).
+    // If it doesn't, we just omit the bg image rather than risk CSS injection
+    // via a URL containing `)` or `}`.
+    const safeBgUrl = validImageUrl(ct.bgUrl);
+    if (safeBgUrl) {
+      const op = safeOpacity(ct.bgOpacity, 0.4);
+      const darkness = 1 - op;
+      css += `
     :root[data-theme="custom"] body::before {
       content: '';
       position: fixed;
@@ -432,6 +459,7 @@ function buildCustomThemeStyle(ct) {
       background: rgba(0,0,0,${darkness.toFixed(2)});
       z-index: -1;
     }`;
+    }
   }
 
   return `<style id="custom-bg-style">${css}</style>`;
@@ -816,12 +844,14 @@ module.exports = async (req, res) => {
     renderedInner = rendered.inner;
 
     // Stash currency + tier for client JS so trackPageView/subscribe still work
-    // and so any client-side post-hydration logic has access to it.
-    const bootstrap = `<script>
-      window._creatorCurrency = ${JSON.stringify(profile.display_currency || 'USD')};
-      window._ssrUsername = ${JSON.stringify(profile.username)};
-      window._ssrHydrated = true;
-    </script>`;
+    // and so any client-side post-hydration logic has access to it. Previously
+    // this was an inline <script>, but strict CSP forbids inline scripts. Now
+    // these values flow into the page as <meta> tags; js/bio-page.js reads
+    // them at load time and populates window._creatorCurrency etc.
+    const bootstrap = `
+      <meta name="ryxa-creator-currency" content="${esc(profile.display_currency || 'USD')}">
+      <meta name="ryxa-ssr-username" content="${esc(profile.username)}">
+      <meta name="ryxa-ssr-hydrated" content="true">`;
 
     // Inject creator's chosen font (link + override style). Falls back to default
     // if font_family is null or unknown — buildFontInjection handles validation.
@@ -870,9 +900,15 @@ ${customThemeStyle}
     const showsBanner = renderedInner.includes('brand-banner');
     const bodyStyle = showsBanner ? ' style="padding-bottom:80px;"' : '';
 
+    // Match: <body> ... <div class="wrap" id="wrap"> ...loading state... </div>
+    // and replace with: <body...> <div class="wrapClass" id="wrap">renderedInner</div>
+    // Does NOT touch anything after the closing </div> (script tags etc.). Previously
+    // the regex anchored on the following inline <script>, but that script is now
+    // an external <script src="/js/bio-page.js">, so we anchor on the wrap structure
+    // alone. The replacement only includes the wrap so trailing markup is preserved.
     html = html.replace(
-      /<body>\s*<div class="wrap" id="wrap">[\s\S]*?<\/div>\s*<script>/m,
-      `<body${bodyStyle}>\n<div class="${wrapClass}" id="wrap">${renderedInner}</div>\n<script>`
+      /<body>\s*<div class="wrap" id="wrap">[\s\S]*?<\/div>\s*<\/div>/m,
+      `<body${bodyStyle}>\n<div class="${wrapClass}" id="wrap">${renderedInner}</div>`
     );
   }
   // If no renderedInner, leave the loading placeholder — client JS will fetch + render.
@@ -880,5 +916,39 @@ ${customThemeStyle}
   // 4. Cache headers — fresh for 60s, serve stale up to 5 more minutes while revalidating
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+
+  // 5. Content Security Policy — Report-Only mode for now.
+  // Bio pages are PUBLIC and render user-supplied content (links, names, descriptions,
+  // custom colors, custom backgrounds). Strict CSP is the primary defense against XSS
+  // via injected <script> tags in user content.
+  // After 24-48 hours of clean console reports from real bio traffic, this should be
+  // flipped from Content-Security-Policy-Report-Only to Content-Security-Policy.
+  //
+  // Allowed origins explanation:
+  //   script-src — Supabase SDK (cdn.jsdelivr.net) + own /js/ + cookie-banner.js
+  //   style-src 'unsafe-inline' — required because user color values are inlined
+  //     into a <style> tag generated server-side (already hardened via safeHexColor)
+  //   font-src — Google Fonts (creator can pick a custom font)
+  //   img-src — Supabase Storage (user avatars, backgrounds), i.ytimg.com (YouTube thumbnails)
+  //   frame-src — YouTube embeds for video links
+  //   connect-src — Supabase API for analytics, subscribe, fetching bio data
+  res.setHeader(
+    'Content-Security-Policy-Report-Only',
+    [
+      "default-src 'self'",
+      "script-src 'self' https://cdn.jsdelivr.net",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "font-src 'self' https://fonts.gstatic.com data:",
+      "img-src 'self' data: blob: https://www.ryxa.io https://kjytapcgxukalwsyputk.supabase.co https://i.ytimg.com",
+      "connect-src 'self' https://kjytapcgxukalwsyputk.supabase.co",
+      "frame-src https://www.youtube.com https://www.youtube-nocookie.com",
+      "media-src 'self' blob: https://kjytapcgxukalwsyputk.supabase.co",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "frame-ancestors 'none'",
+    ].join('; ')
+  );
+
   res.status(200).send(html);
 };
