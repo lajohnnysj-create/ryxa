@@ -227,7 +227,8 @@ const toolTitles = {
     clients: 'Subscribers',
     settings: 'Settings',
     design: 'AI Design Studio',
-    aichat: 'Chatbox'
+    aichat: 'Chatbox',
+    calendar: 'Calendar'
 };
 
 // Detect PWA / standalone mode
