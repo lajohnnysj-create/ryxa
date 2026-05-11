@@ -171,9 +171,15 @@ function updateSettingsCancelBtn() {
     }
   }
 
-  // Update the "You are on..." label
+  // Update the "You are on..." label and trailing sentence
   const subProLabel = document.getElementById('settings-sub-pro-label');
   if (subProLabel) subProLabel.textContent = max ? 'Creator Max plan' : 'Pro plan';
+  const subProFeatures = document.getElementById('settings-sub-pro-features');
+  if (subProFeatures) {
+    subProFeatures.textContent = max
+      ? 'You have access to all tools and features.'
+      : 'You have access to Pro tools and features.';
+  }
 
   // Update upgrade/downgrade button visibility
   // Hide tier-change buttons while cancelling — user is about to lose subscription anyway.
