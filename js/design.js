@@ -2090,18 +2090,45 @@ async function loadDesignProjects() {
 }
 
 async function openDesignProject(id) {
+  // Optimistic UI: show the editor shell immediately so the user knows their
+  // click registered. Large projects with embedded base64 images can take
+  // 1-3 seconds to fetch over the network; staring at the project list during
+  // that wait feels broken even when nothing's wrong.
+  var startEl = document.getElementById('design-start');
+  var editorEl = document.getElementById('design-editor');
+  var nameEl = document.getElementById('ds-project-name');
+  startEl.style.display = 'none';
+  editorEl.style.display = 'block';
+  nameEl.textContent = 'Loading...';
+
+  // Show a loading message in the editor message area while data is fetched.
+  showDsMsg('success', 'Loading project...');
+
   var { data, error } = await sb.from('design_projects').select('*').eq('id', id).eq('user_id', currentUser.id).single();
-  if (error || !data) { showModalAlert('Error', 'Could not load project. Please try again.'); return; }
+  if (error || !data) {
+    // Revert the optimistic UI and show the error
+    editorEl.style.display = 'none';
+    startEl.style.display = 'block';
+    showModalAlert('Error', 'Could not load project. Please try again.');
+    return;
+  }
 
   dsProjectW = data.canvas_width || 1080;
   dsProjectH = data.canvas_height || 1350;
   dsProjectName = data.name;
   dsCurrentProjectId = data.id;
   dsPendingJSON = data.canvas_json;
-  document.getElementById('ds-project-name').textContent = data.name;
-  document.getElementById('design-start').style.display = 'none';
-  document.getElementById('design-editor').style.display = 'block';
+  nameEl.textContent = data.name;
   initDesignCanvas();
+
+  // Hide the loading message after a brief tick — by the time the user sees
+  // the canvas, the message has served its purpose.
+  setTimeout(function() {
+    var msgEl = document.getElementById('ds-editor-msg');
+    if (msgEl && msgEl.textContent === 'Loading project...') {
+      msgEl.style.display = 'none';
+    }
+  }, 200);
 }
 
 async function deleteDesignProject(id) {
