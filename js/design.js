@@ -92,6 +92,12 @@ var dsCurrentProjectId = null;
 var dsProjectName = 'Untitled';
 var dsSaveLimit = { free: 10, pro: 50, max: 100 };
 var dsPendingJSON = null;
+// Save deduplication. Flipped to true by canvas mutations, false after a
+// successful save (or on fresh load of an existing project). saveDesignProject
+// short-circuits when this is false and a project_id already exists, so users
+// who click Save repeatedly without making changes don't re-upload the same
+// project JSON to Supabase. Egress savings are real at scale.
+var _dsDirty = false;
 
 var DS_FONTS = [
   'DM Sans','Inter','Poppins','Montserrat','Bebas Neue','Oswald','Caveat','Dancing Script',
@@ -118,6 +124,8 @@ function startDesignProject(w, h, name) {
   dsUndoStack = [];
   dsRedoStack = [];
   dsPendingJSON = null;
+  // Fresh canvas — nothing on it yet, so nothing to save.
+  _dsDirty = false;
   document.getElementById('ds-project-name').textContent = name;
   document.getElementById('design-start').style.display = 'none';
   document.getElementById('design-editor').style.display = 'block';
@@ -166,11 +174,14 @@ function initDesignCanvas(onReady) {
     dsCanvas.on('selection:created', function() { dsOnSelect(); dsRefreshLayersIfOpen(); });
     dsCanvas.on('selection:updated', function() { dsOnSelect(); dsRefreshLayersIfOpen(); });
     dsCanvas.on('selection:cleared', function() { dsOnDeselect(); dsRefreshLayersIfOpen(); });
-    dsCanvas.on('object:modified', function() { dsCanvas.renderAll(); dsSaveState(); });
+    dsCanvas.on('object:modified', function() { _dsDirty = true; dsCanvas.renderAll(); dsSaveState(); });
 
-  // Save state on add/remove
-  dsCanvas.on('object:added', function(e) { if (!e.target._isGuideLine) { dsSaveState(); dsRefreshLayersIfOpen(); } });
-  dsCanvas.on('object:removed', function(e) { if (!e.target._isGuideLine) { dsSaveState(); dsRefreshLayersIfOpen(); } });
+  // Save state on add/remove. Mark project dirty so the next save click
+  // actually persists; if nothing changed since the last save, the save
+  // button short-circuits to avoid wasted egress (Supabase egress was the
+  // main motivator).
+  dsCanvas.on('object:added', function(e) { if (!e.target._isGuideLine) { _dsDirty = true; dsSaveState(); dsRefreshLayersIfOpen(); } });
+  dsCanvas.on('object:removed', function(e) { if (!e.target._isGuideLine) { _dsDirty = true; dsSaveState(); dsRefreshLayersIfOpen(); } });
 
   // Snap guidelines
   dsInitGuidelines();
@@ -315,6 +326,10 @@ function initDesignCanvas(onReady) {
         });
       }
       dsCanvas.renderAll();
+      // loadFromJSON fires object:added for each deserialized object, which
+      // sets _dsDirty=true via our listener. Reset here so a freshly-loaded
+      // project is correctly treated as unchanged until the user edits it.
+      _dsDirty = false;
       // Fire the ready callback AFTER everything is on-screen. This is what
       // hides the loading overlay so the user only ever sees the finished canvas.
       if (onReady) onReady();
@@ -1577,7 +1592,11 @@ function dsCountImages() {
 
 function dsCompressImage(file, callback) {
   var img = new Image();
+  var objectUrl = URL.createObjectURL(file);
   img.onload = function() {
+    // Release the object URL as soon as the image is decoded. Without this,
+    // each upload leaks a blob reference for the life of the tab.
+    URL.revokeObjectURL(objectUrl);
     var w = img.width, h = img.height;
     if (w > DS_MAX_IMG_PX || h > DS_MAX_IMG_PX) {
       var ratio = Math.min(DS_MAX_IMG_PX / w, DS_MAX_IMG_PX / h);
@@ -1591,7 +1610,12 @@ function dsCompressImage(file, callback) {
     var dataUrl = c.toDataURL('image/webp', 0.8);
     callback(dataUrl);
   };
-  img.src = URL.createObjectURL(file);
+  img.onerror = function() {
+    // Still revoke on error so we don't leak even when decode fails.
+    URL.revokeObjectURL(objectUrl);
+    showDsMsg('error', 'Could not load that image. Try a different file.');
+  };
+  img.src = objectUrl;
 }
 
 function dsAddImage() {
@@ -1986,6 +2010,15 @@ function getDsSaveMax() {
 
 async function saveDesignProject() {
   if (!dsCanvas || !currentUser) return;
+  // Short-circuit: if the project is already saved (has an id) AND nothing
+  // has been modified since the last successful save, skip the network
+  // round-trip entirely. Stops anxious-clicker scenarios from racking up
+  // egress on identical content. The dirty flag is set true by any canvas
+  // mutation (object:added/removed/modified).
+  if (!_dsDirty && dsCurrentProjectId) {
+    showDsMsg('success', 'Already saved.');
+    return;
+  }
   var btn = document.getElementById('ds-save-btn');
   btn.disabled = true; btn.textContent = 'Saving...';
 
@@ -2052,6 +2085,8 @@ async function saveDesignProject() {
     }
 
     showDsMsg('success', 'Project saved!');
+    // Mark clean so subsequent identical save clicks short-circuit.
+    _dsDirty = false;
   } catch (e) {
     showDsMsg('error', e.message || 'Save failed.');
   } finally {
@@ -2538,95 +2573,6 @@ function dsAutoCrop() {
   }, 50);
 }
 
-function dsUpscaleImage() {
-  if (!dsCanvas) return;
-  var obj = dsCanvas.getActiveObject();
-  if (!obj || obj.type !== 'image') { showDsMsg('error', 'Select an image first.'); return; }
-
-  // Pro/Max gate
-  if (typeof isPro === 'function' && !isPro()) {
-    showDsMsg('error', 'AI Upscale is a Pro feature. Upgrade to use it.');
-    return;
-  }
-
-  var btn = document.getElementById('ds-upscale-btn');
-  btn.disabled = true;
-  btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" class="ds-s-f33c30" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Upscaling...';
-
-  setTimeout(function() {
-    try {
-      var imgEl = obj.getElement();
-      var srcW = imgEl.naturalWidth || imgEl.width;
-      var srcH = imgEl.naturalHeight || imgEl.height;
-      var scale = 2;
-      var outW = srcW * scale;
-      var outH = srcH * scale;
-
-      // Cap at 4000px to avoid memory issues
-      if (outW > 4000 || outH > 4000) {
-        var capScale = Math.min(4000 / outW, 4000 / outH);
-        outW = Math.round(outW * capScale);
-        outH = Math.round(outH * capScale);
-      }
-
-      // Step 1: High-quality upscale using multi-step bilinear
-      var c1 = document.createElement('canvas');
-      c1.width = outW; c1.height = outH;
-      var ctx1 = c1.getContext('2d');
-      ctx1.imageSmoothingEnabled = true;
-      ctx1.imageSmoothingQuality = 'high';
-      ctx1.drawImage(imgEl, 0, 0, outW, outH);
-
-      // Step 2: Apply unsharp mask for clarity
-      var imageData = ctx1.getImageData(0, 0, outW, outH);
-      var data = imageData.data;
-
-      // Create a blurred copy for unsharp mask
-      var c2 = document.createElement('canvas');
-      c2.width = outW; c2.height = outH;
-      var ctx2 = c2.getContext('2d');
-      ctx2.filter = 'blur(1px)';
-      ctx2.drawImage(c1, 0, 0);
-      var blurData = ctx2.getImageData(0, 0, outW, outH).data;
-
-      // Unsharp mask: original + (original - blur) * amount
-      var amount = 0.6;
-      for (var i = 0; i < data.length; i += 4) {
-        data[i] = Math.min(255, Math.max(0, data[i] + (data[i] - blurData[i]) * amount));
-        data[i+1] = Math.min(255, Math.max(0, data[i+1] + (data[i+1] - blurData[i+1]) * amount));
-        data[i+2] = Math.min(255, Math.max(0, data[i+2] + (data[i+2] - blurData[i+2]) * amount));
-      }
-      ctx1.putImageData(imageData, 0, 0);
-
-      // Replace on canvas. WebP at 0.85 matches dsCompressImage's pipeline and
-      // produces visually identical output at ~20% of the bytes vs lossless PNG.
-      // A 4000×4000 PNG can hit 10MB+; the WebP equivalent is ~1-3MB.
-      var dataUrl = c1.toDataURL('image/webp', 0.85);
-      fabric.Image.fromURL(dataUrl, function(newImg) {
-        // Scale down to fit the same visual size on canvas
-        var newScaleX = (obj.scaleX * srcW) / outW;
-        var newScaleY = (obj.scaleY * srcH) / outH;
-        newImg.set({
-          left: obj.left, top: obj.top,
-          scaleX: newScaleX, scaleY: newScaleY,
-          angle: obj.angle
-        });
-        dsCanvas.remove(obj);
-        dsCanvas.add(newImg);
-        dsCanvas.setActiveObject(newImg);
-        dsCanvas.renderAll();
-        btn.disabled = false;
-        btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg> Smart Upscale 2x';
-        showDsMsg('success', 'Image upscaled to ' + outW + ' × ' + outH + 'px!');
-      });
-    } catch(err) {
-      console.error('Upscale error:', err);
-      btn.disabled = false;
-      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg> Smart Upscale 2x';
-      showDsMsg('error', 'Upscale failed. Try a smaller image.');
-    }
-  }, 50);
-}
 var _dsBgRemovalReady = false;
 var _dsBgRemovalLoading = false;
 var _dsBgRemoveFunc = null;
@@ -2821,7 +2767,6 @@ dsRegisterAction('apply-effect', (e, el) => dsApplyEffect(el.dataset.dsEffect));
 // AI tools
 dsRegisterAction('rewrite-text', () => dsRewriteText());
 dsRegisterAction('remove-bg', () => dsRemoveBg());
-dsRegisterAction('upscale-image', () => dsUpscaleImage());
 dsRegisterAction('auto-crop', () => dsAutoCrop());
 dsRegisterAction('alt-text', () => dsAltText());
 dsRegisterAction('caption', () => dsCaption());
