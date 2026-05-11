@@ -67,6 +67,20 @@ function prodDispatchEvent(event) {
 // END INFRASTRUCTURE
 // =============================================================================
 
+// Inline editor message banner (matches showCourseMsg/showCoachingMsg pattern).
+// Used by toggleProductMarketplace and any other in-editor success/error feedback
+// where a modal would be overkill. Auto-hides after 5s.
+function showProductsMsg(type, msg, isHtml) {
+  var el = document.getElementById('products-editor-msg');
+  if (!el) return;
+  el.style.display = 'block';
+  el.style.background = type === 'error' ? 'rgba(239,68,68,0.1)' : 'rgba(74,222,128,0.1)';
+  el.style.color = type === 'error' ? '#f87171' : '#4ade80';
+  el.style.border = '1px solid ' + (type === 'error' ? 'rgba(239,68,68,0.3)' : 'rgba(74,222,128,0.3)');
+  if (isHtml) { el.innerHTML = msg; } else { el.textContent = msg; }
+  setTimeout(function() { el.style.display = 'none'; }, 5000);
+}
+
 // ---------- From dashboard.html lines 21282-22313 (Digital Products) ----------
 // =====================================================
 // DIGITAL PRODUCTS

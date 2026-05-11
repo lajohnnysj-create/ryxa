@@ -557,16 +557,17 @@ async function toggleProductMarketplace() {
   if (newVal) {
     const count = await getMarketplaceCount();
     if (count >= MARKETPLACE_MAX) {
-      showModalAlert('Marketplace limit reached', 'You\'ve reached the maximum of ' + MARKETPLACE_MAX + ' marketplace listings. Unlist another course, booking, or product first.');
+      showProductsMsg('error', 'You\'ve reached the maximum of ' + MARKETPLACE_MAX + ' marketplace listings. Unlist another course, booking, or product first.');
       return;
     }
   }
 
   const { error } = await sb.from('digital_products').update({ listed_in_marketplace: newVal }).eq('id', productsState.editingId);
-  if (error) { showModalAlert('Could not update', 'Failed: ' + error.message); return; }
+  if (error) { showProductsMsg('error', 'Failed: ' + error.message); return; }
   productsState.editing.listed_in_marketplace = newVal;
   updateMarketplaceToggleUI('products', newVal);
   updateMarketplaceCountDisplay();
+  showProductsMsg('success', newVal ? 'Product listed in marketplace.' : 'Product removed from marketplace.');
 }
 
 async function deleteCourse() {
