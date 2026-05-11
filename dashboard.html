@@ -2101,9 +2101,53 @@
     .ds-left-sidebar { flex-direction:row !important; flex-wrap:wrap; justify-content:center; position:static !important; }
     .ds-left-sidebar::-webkit-scrollbar { display:none; }
     .ds-sidebar-divider { width:1px !important; height:24px !important; margin:0 4px !important; }
-    #ds-context-bar { font-size:11px; padding:8px 10px; }
-    #ds-context-bar .ds-tool-btn { width:28px; height:28px; font-size:11px; }
+
+    /* Context bar: switch from wrap-to-multi-row to horizontal scroll.
+       Keeps AI button labels visible (better than cramped icons-only) while
+       avoiding the squished two-row layout when many AI buttons are shown. */
+    #ds-context-bar {
+      font-size: 11px;
+      padding: 8px 10px;
+      flex-wrap: nowrap !important;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;  /* Firefox */
+    }
+    #ds-context-bar::-webkit-scrollbar { display: none; }  /* Chrome/Safari */
+
+    /* The inner control groups (text / image / shape) also need nowrap so the
+       parent scroller can scroll them as a single row instead of wrapping. */
+    #ds-text-controls, #ds-image-controls, #ds-shape-controls {
+      flex-wrap: nowrap !important;
+      flex-shrink: 0;
+    }
+    /* Shared controls (opacity + lock): drop margin-left:auto on mobile so
+       they flow inline with the rest of the scrollable row instead of trying
+       to push to the far right (which breaks inside a horizontal scroller). */
+    #ds-shared-controls {
+      margin-left: 0 !important;
+      flex-shrink: 0;
+    }
+
+    /* Stop child elements from shrinking inside the scroller so labels stay
+       readable instead of getting truncated to fit. */
+    #ds-context-bar > *,
+    #ds-context-bar .ds-tool-btn,
+    #ds-context-bar select,
+    #ds-context-bar input {
+      flex-shrink: 0;
+    }
+    #ds-context-bar .ds-tool-btn { height:30px; font-size:11px; }
+    /* AI buttons keep their label-with-icon style (.ds-s-e30b03) so the user
+       always knows what they're tapping. Auto-width remains so labels fit. */
     #ds-context-bar select, #ds-context-bar input[type="number"] { font-size:11px; }
+    /* Round icon-only buttons (no label) stay square on mobile. The variant
+       classes that have width:auto override this naturally via specificity. */
+    #ds-context-bar .ds-tool-btn:not(.ds-s-e30b03):not(.ds-s-f295ec):not(.ds-s-b377d7):not(.ds-s-b12ed7) {
+      width: 30px;
+    }
+
     #ds-shape-menu, #ds-layers-panel { position:fixed !important; left:50% !important; top:50% !important; transform:translate(-50%,-50%) !important; max-height:70vh !important; }
     #ds-export-menu { position:fixed !important; left:50% !important; top:50% !important; transform:translate(-50%,-50%) !important; right:auto !important; }
   }
