@@ -710,6 +710,10 @@ async function confirmSettingsCancel() {
   // the same but the labels are clearer to be specific).
   const wasMax = isMax();
   const wasTrialing = wasMax && userTrialEnd && new Date(userTrialEnd).getTime() > Date.now();
+  // Was the user on Pro right before upgrading to Max? If so, the cancel
+  // message should acknowledge they don't auto-return to Pro — they drop
+  // to Free and need to resubscribe to Pro if that's what they want.
+  const wasFromPro = userPreMaxTier === 'monthly';
 
   const btn = document.getElementById('settings-cancel-btn');
   btn.textContent = wasCancelling ? 'Reactivating...' : 'Cancelling...';
@@ -727,9 +731,12 @@ async function confirmSettingsCancel() {
       msg = wasMax
         ? 'Your Creator Max plan has been reactivated!'
         : 'Your Pro plan has been reactivated!';
+    } else if (wasTrialing && wasFromPro) {
+      // Pro→Max trial user cancels: keep Max through trial, then drop to Free.
+      // Be explicit that they don't auto-return to Pro.
+      msg = "Cancelled. You'll keep Creator Max access through the end of your free trial. After that, you'll be on the Free plan. You can resubscribe to Pro anytime from Settings.";
     } else if (wasTrialing) {
-      // Cancelling during the Max trial: they keep access through trial end,
-      // then the subscription is deleted without ever billing them.
+      // Free→Max trial user cancels: keep Max through trial, then drop to Free.
       msg = 'Cancelled. You keep Creator Max access through the end of your free trial, then no charges will be made.';
     } else if (wasMax) {
       msg = 'Cancelled. You keep Creator Max access until the end of your billing period.';
