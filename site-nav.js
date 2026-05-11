@@ -111,41 +111,41 @@ function renderHeader() {
   + '<a class="skip-link" href="#main-content">Skip to content</a>'
   // Mobile menu
   + '<div class="mobile-menu" id="mobile-menu">'
-  +   '<button onclick="closeMobileMenu()" aria-label="Close menu" style="position:absolute;top:20px;right:20px;background:none;border:none;color:var(--muted);font-size:24px;cursor:pointer;line-height:1;padding:8px;">&#x2715;</button>'
+  +   '<button data-nav-action="close-menu" aria-label="Close menu" style="position:absolute;top:20px;right:20px;background:none;border:none;color:var(--muted);font-size:24px;cursor:pointer;line-height:1;padding:8px;">&#x2715;</button>'
   +   '<div class="mobile-menu-links">'
-  +     '<a href="#" onclick="event.preventDefault();toggleMobileSubmenu(\'mobile-tools-sub\')">Tools <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle;margin-left:6px;"><polyline points="6 9 12 15 18 9"/></svg></a>'
+  +     '<a href="#" data-nav-action="toggle-submenu" data-nav-target="mobile-tools-sub">Tools <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle;margin-left:6px;"><polyline points="6 9 12 15 18 9"/></svg></a>'
   +     '<div id="mobile-tools-sub" class="mobile-submenu" style="display:none;">'
-  +       '<a href="/tools-link-in-bio.html" onclick="closeMobileMenu()">Link in Bio</a>'
-  +       '<a href="/tools-course-builder.html" onclick="closeMobileMenu()">Course Builder</a>'
-  +       '<a href="/tools-coaching.html" onclick="closeMobileMenu()">1:1 Booking</a>'
-  +       '<a href="/tools-digital-products.html" onclick="closeMobileMenu()">Digital Products</a>'
-  +       '<a href="/tools-brand-deal-crm.html" onclick="closeMobileMenu()">Brand Deal CRM</a>'
-  +       '<a href="/tools-media-kit.html" onclick="closeMobileMenu()">Media Kit</a>'
-  +       '<a href="/tools-grid-planner.html" onclick="closeMobileMenu()">Grid Planner</a>'
-  +       '<a href="/tools-follower-audit.html" onclick="closeMobileMenu()">Follow-Back Audit</a>'
-  +       '<a href="/tools-photo-editor.html" onclick="closeMobileMenu()">Photo Editor</a>'
-  +       '<a href="/tools-qr-generator.html" onclick="closeMobileMenu()">QR Generator</a>'
-  +       '<a href="/tools-invoice-generator.html" onclick="closeMobileMenu()">Invoice Generator</a>'
-  +       '<a href="/tools-sign-pdf.html" onclick="closeMobileMenu()">Sign PDF</a>'
-  +       '<a href="/tools.html" onclick="closeMobileMenu()" style="color:var(--accent2) !important;">View All Tools</a>'
+  +       '<a href="/tools-link-in-bio.html" data-nav-action="close-menu">Link in Bio</a>'
+  +       '<a href="/tools-course-builder.html" data-nav-action="close-menu">Course Builder</a>'
+  +       '<a href="/tools-coaching.html" data-nav-action="close-menu">1:1 Booking</a>'
+  +       '<a href="/tools-digital-products.html" data-nav-action="close-menu">Digital Products</a>'
+  +       '<a href="/tools-brand-deal-crm.html" data-nav-action="close-menu">Brand Deal CRM</a>'
+  +       '<a href="/tools-media-kit.html" data-nav-action="close-menu">Media Kit</a>'
+  +       '<a href="/tools-grid-planner.html" data-nav-action="close-menu">Grid Planner</a>'
+  +       '<a href="/tools-follower-audit.html" data-nav-action="close-menu">Follow-Back Audit</a>'
+  +       '<a href="/tools-photo-editor.html" data-nav-action="close-menu">Photo Editor</a>'
+  +       '<a href="/tools-qr-generator.html" data-nav-action="close-menu">QR Generator</a>'
+  +       '<a href="/tools-invoice-generator.html" data-nav-action="close-menu">Invoice Generator</a>'
+  +       '<a href="/tools-sign-pdf.html" data-nav-action="close-menu">Sign PDF</a>'
+  +       '<a href="/tools.html" data-nav-action="close-menu" style="color:var(--accent2) !important;">View All Tools</a>'
   +     '</div>'
-  +     '<a href="#" onclick="event.preventDefault();toggleMobileSubmenu(\'mobile-ai-sub\')">AI <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle;margin-left:6px;"><polyline points="6 9 12 15 18 9"/></svg></a>'
+  +     '<a href="#" data-nav-action="toggle-submenu" data-nav-target="mobile-ai-sub">AI <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle;margin-left:6px;"><polyline points="6 9 12 15 18 9"/></svg></a>'
   +     '<div id="mobile-ai-sub" class="mobile-submenu" style="display:none;">'
-  +       '<a href="/tools-ai-design-studio.html" onclick="closeMobileMenu()">AI Design Studio</a>'
-  +       '<a href="/tools-script-builder.html" onclick="closeMobileMenu()">AI Script Builder</a>'
-  +       '<a href="/tools-thumbnail-analyzer.html" onclick="closeMobileMenu()">AI Thumbnail Analyzer</a>'
-  +       '<a href="/tools-contract-analyzer.html" onclick="closeMobileMenu()">AI Contract Analyzer</a>'
-  +       '<a href="/pricing.html" onclick="closeMobileMenu()">Chatbox</a>'
+  +       '<a href="/tools-ai-design-studio.html" data-nav-action="close-menu">AI Design Studio</a>'
+  +       '<a href="/tools-script-builder.html" data-nav-action="close-menu">AI Script Builder</a>'
+  +       '<a href="/tools-thumbnail-analyzer.html" data-nav-action="close-menu">AI Thumbnail Analyzer</a>'
+  +       '<a href="/tools-contract-analyzer.html" data-nav-action="close-menu">AI Contract Analyzer</a>'
+  +       '<a href="/pricing.html" data-nav-action="close-menu">Chatbox</a>'
   +     '</div>'
-  +     '<a href="/pricing.html" onclick="closeMobileMenu()">Pricing</a>'
-  +     '<a href="/about.html" onclick="closeMobileMenu()">About</a>'
-  +     '<a href="/learn/" onclick="closeMobileMenu()">Hub</a>'
-  +     '<a href="/blog.html" onclick="closeMobileMenu()">Blog</a>'
+  +     '<a href="/pricing.html" data-nav-action="close-menu">Pricing</a>'
+  +     '<a href="/about.html" data-nav-action="close-menu">About</a>'
+  +     '<a href="/learn/" data-nav-action="close-menu">Hub</a>'
+  +     '<a href="/blog.html" data-nav-action="close-menu">Blog</a>'
   +   '</div>'
   +   '<div class="mobile-menu-bottom">'
   +     '<a class="mobile-cta" href="/dashboard.html" id="mobile-dashboard-link" style="display:none;">Go to Dashboard</a>'
-  +     '<button class="mobile-cta" onclick="openSignupModal()" id="mobile-signup-btn">Get started free</button>'
-  +     '<button class="mobile-signin" onclick="openAuthModal()">Sign in</button>'
+  +     '<button class="mobile-cta" data-nav-action="open-signup" id="mobile-signup-btn">Get started free</button>'
+  +     '<button class="mobile-signin" data-nav-action="open-signin">Sign in</button>'
   +   '</div>'
   + '</div>'
 
@@ -193,7 +193,7 @@ function renderHeader() {
 
   // Hub dropdown
   +     '<div class="nav-tools-wrap">'
-  +       '<button class="nav-tools-trigger" type="button" onclick="window.location.href=\'/learn/\'">Hub <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>'
+  +       '<button class="nav-tools-trigger" type="button" data-nav-action="hub-trigger">Hub <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>'
   +       '<div class="nav-tools-menu" style="width:300px;">'
   +         '<a href="/learn/" class="nav-tools-item"><div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M8 7h8M8 11h6"/></svg></div><div class="nav-tools-item-content"><div class="nav-tools-item-title">Dashboard Login</div><div class="nav-tools-item-desc">Access courses, digital products, and bookings you\'ve purchased</div></div></a>'
   +         '<a href="/blog.html" class="nav-tools-item"><div class="nav-tools-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg></div><div class="nav-tools-item-content"><div class="nav-tools-item-title">Blog</div><div class="nav-tools-item-desc">Guides, comparisons, and strategy for creators</div></div></a>'
@@ -204,10 +204,10 @@ function renderHeader() {
 
   // Right side buttons
   +   '<div class="nav-right">'
-  +     '<button class="btn-ghost" onclick="openAuthModal()" id="nav-signin-btn">Sign in</button>'
-  +     '<button class="btn-nav-cta" onclick="openSignupModal()">Get started free</button>'
+  +     '<button class="btn-ghost" data-nav-action="open-signin" id="nav-signin-btn">Sign in</button>'
+  +     '<button class="btn-nav-cta" data-nav-action="open-signup">Get started free</button>'
   +   '</div>'
-  +   '<button class="hamburger" id="hamburger-btn" onclick="toggleMobileMenu()" aria-label="Menu"><span></span><span></span><span></span></button>'
+  +   '<button class="hamburger" id="hamburger-btn" data-nav-action="toggle-menu" aria-label="Menu"><span></span><span></span><span></span></button>'
   + '</nav>';
 
   // Check logged-in state
@@ -399,7 +399,7 @@ renderFooter();
     // Trigger keyboard: Enter / Space / ArrowDown opens
     trigger.addEventListener('keydown', function(e) {
       if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
-        // The Hub trigger has its own onclick that navigates — let it through on Enter only if menu is empty
+        // The Hub trigger navigates via data-nav-action delegation when menu is empty
         if (getItems(wrap).length === 0) return;
         e.preventDefault();
         openMenu(wrap, true);
@@ -408,8 +408,8 @@ renderFooter();
       }
     });
 
-    // Trigger click: toggle (mouse + touch). Don't prevent default for the Hub
-    // trigger (it has an onclick that navigates) — only handle when there are items.
+    // Trigger click: toggle (mouse + touch). Hub trigger has data-nav-action
+    // delegation that navigates when there are no dropdown items.
     trigger.addEventListener('click', function(e) {
       if (getItems(wrap).length === 0) return;
       e.preventDefault();
@@ -450,6 +450,47 @@ renderFooter();
         closeMenu(wrap, false);
       }
     });
+  });
+})();
+
+// =====================
+// SITE-NAV ACTION DELEGATION (CSP-compatible)
+// =====================
+// Replaces the previous inline onclick="..." attributes on nav buttons and
+// mobile menu links. All interactive elements use data-nav-action="..." and
+// are routed through this single document-level click listener.
+//
+// Actions:
+//   toggle-menu      → open/close mobile hamburger menu
+//   close-menu       → close mobile menu (used by close button and every link)
+//   toggle-submenu   → expand/collapse mobile Tools or AI submenu (uses data-nav-target)
+//   open-signin      → call window.openAuthModal() (modal or redirect fallback)
+//   open-signup      → call window.openSignupModal() (modal or redirect fallback)
+//   hub-trigger      → navigate to /learn/ (preserves previous Hub button behavior)
+(function setupNavActionDelegation() {
+  var handlers = {
+    'toggle-menu': function() { if (typeof window.toggleMobileMenu === 'function') window.toggleMobileMenu(); },
+    'close-menu': function() { if (typeof window.closeMobileMenu === 'function') window.closeMobileMenu(); },
+    'toggle-submenu': function(e, el) {
+      var target = el.getAttribute('data-nav-target');
+      if (target && typeof window.toggleMobileSubmenu === 'function') window.toggleMobileSubmenu(target);
+    },
+    'open-signin': function() { if (typeof window.openAuthModal === 'function') window.openAuthModal(); },
+    'open-signup': function() { if (typeof window.openSignupModal === 'function') window.openSignupModal(); },
+    'hub-trigger': function() { window.location.href = '/learn/'; }
+  };
+
+  document.addEventListener('click', function(e) {
+    var el = e.target && e.target.closest ? e.target.closest('[data-nav-action]') : null;
+    if (!el) return;
+    var action = el.getAttribute('data-nav-action');
+    var fn = handlers[action];
+    if (!fn) return;
+    // For anchors, preventDefault so href="#" submenu toggles don't scroll to top
+    if (el.tagName === 'A' && (el.getAttribute('href') === '#' || action === 'toggle-submenu')) {
+      e.preventDefault();
+    }
+    fn(e, el);
   });
 })();
 
