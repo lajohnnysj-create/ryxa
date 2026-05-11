@@ -46,6 +46,7 @@ a.btn { display:inline-block; padding:12px 26px; background:var(--accent); color
 <p>This product doesn't exist or has been taken down by the creator.</p>
 <a href="https://ryxa.io" class="btn">Back to Ryxa</a>
 </div>
+<script src="/cookie-banner.js"></script>
 </body>
 </html>`;
 }
@@ -364,6 +365,7 @@ async function handleBuyClick() {
   }
 }
 </script>
+<script src="/cookie-banner.js"></script>
 
 </body>
 </html>`;
