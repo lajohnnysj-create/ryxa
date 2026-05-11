@@ -3543,6 +3543,10 @@ bioRegisterAction('close-ai-bio-modal', () => {
   document.getElementById('ai-bio-modal')?.remove();
 });
 
+// ----- Photo cropper modal (lives in dashboard.html outside tool-bio) -----
+bioRegisterAction('close-cropper', () => closeCropper());
+bioRegisterAction('confirm-crop', () => confirmCrop());
+
 // ----- Image error fallbacks (replaces inline onerror=) -----
 // Image error events do NOT bubble, so we need a capture-phase listener.
 // Elements opt-in by setting data-bio-onerror="hide" or "hide-thumb-bg".

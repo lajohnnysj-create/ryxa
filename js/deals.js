@@ -2832,3 +2832,20 @@ dealRegisterAction('refresh-messages', (e, el) => refreshMessagesWithFeedback(el
 dealRegisterAction('message-char-count', () => updateMessageCharCount());
 dealRegisterAction('post-message', () => postCreatorMessage());
 
+// Share modal (lives outside tool-deals in the markup, but is owned by the deals tool)
+dealRegisterAction('close-share-modal', () => closeShareModal());
+dealRegisterAction('select-input', (e, el) => el.select());
+dealRegisterAction('copy-share-link', () => copyShareLink());
+dealRegisterAction('copy-share-pin', () => copySharePin());
+dealRegisterAction('copy-share-message', () => copyShareMessage());
+dealRegisterAction('revoke-share-access', () => revokeShareAccess());
+
+// Share confirm modal
+dealRegisterAction('confirm-share-generate', () => confirmShareGenerate());
+dealRegisterAction('close-share-confirm', () => closeShareConfirmModal());
+
+// Delete deal modal
+dealRegisterAction('update-delete-button', () => updateDealDeleteButton());
+dealRegisterAction('confirm-delete-deal', () => confirmDeleteDeal());
+dealRegisterAction('close-delete-modal', () => closeDealDeleteModal());
+
