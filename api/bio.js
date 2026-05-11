@@ -625,6 +625,15 @@ async function fetchBioData(username) {
 // of that type is present. Up to 4 fetches per render, all in parallel.
 // ==========================================================================
 
+// Resolve live data for course/coaching/product/mediakit links by fetching the
+// authoritative source tables. Mutates `links` in place. Updates title, price,
+// and photo from the source tables — these were previously snapshots taken
+// at link-add time, so editing the source row (e.g. renaming a course) didn't
+// propagate to the bio page until the user deleted and re-added the link.
+//
+// IMPORTANT: link-specific fields like `courseCrossoutPrice` are NOT overwritten.
+// Those are intentional bio-level overrides set by the creator when adding the
+// link, separate from anything in the source table.
 async function resolveLiveCoverUrls(creatorUserId, links, fetchOpts) {
   if (!Array.isArray(links) || links.length === 0) return;
 
@@ -652,11 +661,15 @@ async function resolveLiveCoverUrls(creatorUserId, links, fetchOpts) {
   if (courseIds.length > 0) {
     const ids = courseIds.map(encodeURIComponent).join(',');
     fetches.push(
-      fetch(`${SUPABASE_URL}/rest/v1/courses?id=in.(${ids})&select=id,cover_image_path`, fetchOpts())
+      fetch(`${SUPABASE_URL}/rest/v1/courses?id=in.(${ids})&select=id,title,price_cents,cover_image_path`, fetchOpts())
         .then(r => r.ok ? r.json() : [])
         .then(rows => ({
           type: 'course',
-          map: new Map(rows.map(r => [r.id, buildPublicUrl('course-covers', r.cover_image_path)]))
+          map: new Map(rows.map(r => [r.id, {
+            title: r.title,
+            price: r.price_cents,
+            photo: buildPublicUrl('course-covers', r.cover_image_path),
+          }]))
         }))
         .catch(() => ({ type: 'course', map: new Map() }))
     );
@@ -665,11 +678,15 @@ async function resolveLiveCoverUrls(creatorUserId, links, fetchOpts) {
   if (coachingIds.length > 0) {
     const ids = coachingIds.map(encodeURIComponent).join(',');
     fetches.push(
-      fetch(`${SUPABASE_URL}/rest/v1/coaching_services?id=in.(${ids})&select=id,cover_image_path`, fetchOpts())
+      fetch(`${SUPABASE_URL}/rest/v1/coaching_services?id=in.(${ids})&select=id,title,price_cents,cover_image_path`, fetchOpts())
         .then(r => r.ok ? r.json() : [])
         .then(rows => ({
           type: 'coaching',
-          map: new Map(rows.map(r => [r.id, buildPublicUrl('coaching-covers', r.cover_image_path)]))
+          map: new Map(rows.map(r => [r.id, {
+            title: r.title,
+            price: r.price_cents,
+            photo: buildPublicUrl('coaching-covers', r.cover_image_path),
+          }]))
         }))
         .catch(() => ({ type: 'coaching', map: new Map() }))
     );
@@ -679,11 +696,15 @@ async function resolveLiveCoverUrls(creatorUserId, links, fetchOpts) {
     // Digital products use cover_image_url (signed URL stored directly), not a path.
     const ids = productIds.map(encodeURIComponent).join(',');
     fetches.push(
-      fetch(`${SUPABASE_URL}/rest/v1/digital_products?id=in.(${ids})&select=id,cover_image_url`, fetchOpts())
+      fetch(`${SUPABASE_URL}/rest/v1/digital_products?id=in.(${ids})&select=id,title,price_cents,cover_image_url`, fetchOpts())
         .then(r => r.ok ? r.json() : [])
         .then(rows => ({
           type: 'product',
-          map: new Map(rows.map(r => [r.id, r.cover_image_url || null]))
+          map: new Map(rows.map(r => [r.id, {
+            title: r.title,
+            price: r.price_cents,
+            photo: r.cover_image_url || null,
+          }]))
         }))
         .catch(() => ({ type: 'product', map: new Map() }))
     );
@@ -721,19 +742,33 @@ async function resolveLiveCoverUrls(creatorUserId, links, fetchOpts) {
   const productMap = results.find(r => r.type === 'product')?.map;
   const mediaKitUrl = results.find(r => r.type === 'mediakit')?.url;
 
-  // Mutate the links in place. Only overwrite photoUrl when we got a live
-  // value back; otherwise leave the existing snapshot as fallback.
+  // Mutate the links in place. For each field, only overwrite when we got a
+  // live value back. If a course/coaching/product was deleted from the source
+  // table, the map.get() returns undefined and we keep the snapshot as fallback
+  // so the bio renders something rather than going blank.
   for (const link of links) {
     if (!link) continue;
     if (link.isCourse && link.courseId && courseMap) {
       const live = courseMap.get(link.courseId);
-      if (live) link.photoUrl = live;
+      if (live) {
+        if (typeof live.title === 'string' && live.title.length > 0) link.title = live.title;
+        if (typeof live.price === 'number') link.coursePrice = live.price;
+        if (live.photo) link.photoUrl = live.photo;
+      }
     } else if (link.isCoaching && link.coachingId && coachingMap) {
       const live = coachingMap.get(link.coachingId);
-      if (live) link.photoUrl = live;
+      if (live) {
+        if (typeof live.title === 'string' && live.title.length > 0) link.title = live.title;
+        if (typeof live.price === 'number') link.coachingPrice = live.price;
+        if (live.photo) link.photoUrl = live.photo;
+      }
     } else if (link.isProduct && link.productId && productMap) {
       const live = productMap.get(link.productId);
-      if (live) link.photoUrl = live;
+      if (live) {
+        if (typeof live.title === 'string' && live.title.length > 0) link.title = live.title;
+        if (typeof live.price === 'number') link.productPrice = live.price;
+        if (live.photo) link.photoUrl = live.photo;
+      }
     } else if (link.isMediaKit && mediaKitUrl) {
       link.photoUrl = mediaKitUrl;
     }
