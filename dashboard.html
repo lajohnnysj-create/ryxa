@@ -9420,6 +9420,10 @@ let userTrialEnd = null;
 // Has this user EVER used the Creator Max free trial? Sticky once true.
 // Drives whether Max upgrade buttons say "Try free" or "Upgrade".
 let userMaxTrialUsed = false;
+// Tier the user had BEFORE upgrading into Max (null = never had a prior tier).
+// Used to give Pro→Max-trial users an honest cancel message — cancel drops
+// them to Free, not back to Pro, so they know to resubscribe if they want Pro.
+let userPreMaxTier = null;
 let currentTool = 'welcome';
 
 const toolTitles = {
@@ -9851,12 +9855,13 @@ async function fetchTier(userId) {
     document.body.classList.remove('tier-loading');
   }, 5000);
   try {
-    const { data } = await sb.from('subscriptions').select('tier, status, trial_end, max_trial_used').eq('user_id', userId).limit(1);
+    const { data } = await sb.from('subscriptions').select('tier, status, trial_end, max_trial_used, pre_max_tier').eq('user_id', userId).limit(1);
     if (data && data.length > 0) {
       userTier = data[0].tier || 'free';
       userStatus = data[0].status || 'free';
       userTrialEnd = data[0].trial_end || null;
       userMaxTrialUsed = data[0].max_trial_used === true;
+      userPreMaxTier = data[0].pre_max_tier || null;
     }
     updateTierUI();
     // Pre-load AI usage so the sidebar menu opens instantly with no layout shift.
