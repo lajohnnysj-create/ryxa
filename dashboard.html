@@ -5277,13 +5277,13 @@
 <!-- SIGN OUT MODAL -->
 <div id="signout-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;pointer-events:all;">
   <div style="background:#0f0f1a;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:32px 36px;text-align:center;position:relative;min-width:280px;max-width:400px;pointer-events:all;">
-    <button onclick="closeSignoutModal()" style="position:absolute;top:12px;right:14px;background:none;border:none;color:#7a788f;font-size:18px;cursor:pointer;pointer-events:all;" aria-label="Close">&#x2715;</button>
+    <button data-dash-action="close-signout" style="position:absolute;top:12px;right:14px;background:none;border:none;color:#7a788f;font-size:18px;cursor:pointer;pointer-events:all;" aria-label="Close">&#x2715;</button>
     <img src="/logo.png" alt="Ryxa" style="width:56px;height:56px;margin:0 auto 12px;display:block;">
     <h2 style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;margin-bottom:8px;">Sign out?</h2>
     <p style="color:#7a788f;font-size:14px;margin-bottom:24px;line-height:1.6;">You will need to sign back in to access your dashboard and tools.</p>
     <div style="display:flex;flex-direction:column;gap:10px;">
-      <button onclick="confirmSignOut()" id="signout-confirm-btn" style="padding:12px;background:#7c3aed;border:none;color:#fff;border-radius:10px;font-size:15px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;pointer-events:all;">Yes, sign me out</button>
-      <button onclick="closeSignoutModal()" style="padding:12px;background:transparent;border:1px solid rgba(255,255,255,0.1);color:#7a788f;border-radius:10px;font-size:15px;font-family:DM Sans,sans-serif;cursor:pointer;pointer-events:all;">Cancel</button>
+      <button data-dash-action="confirm-signout" id="signout-confirm-btn" style="padding:12px;background:#7c3aed;border:none;color:#fff;border-radius:10px;font-size:15px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;pointer-events:all;">Yes, sign me out</button>
+      <button data-dash-action="close-signout" style="padding:12px;background:transparent;border:1px solid rgba(255,255,255,0.1);color:#7a788f;border-radius:10px;font-size:15px;font-family:DM Sans,sans-serif;cursor:pointer;pointer-events:all;">Cancel</button>
     </div>
   </div>
 </div>
@@ -5304,7 +5304,7 @@
         Send me product updates and news from Ryxa. (Optional)
       </label>
     </div>
-    <button onclick="acceptTerms()" id="terms-accept-btn" style="width:100%;padding:12px;background:#7c3aed;border:none;color:#fff;border-radius:10px;font-size:15px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;opacity:0.5;pointer-events:none;" disabled>Continue</button>
+    <button data-dash-action="accept-terms" id="terms-accept-btn" style="width:100%;padding:12px;background:#7c3aed;border:none;color:#fff;border-radius:10px;font-size:15px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;opacity:0.5;pointer-events:none;" disabled>Continue</button>
     <div id="terms-error" style="display:none;color:#fca5a5;font-size:12px;margin-top:8px;"></div>
   </div>
 </div>
@@ -5312,7 +5312,7 @@
 <!-- INSTALL APP MODAL (iOS instructions) -->
 <div id="install-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:24px;">
   <div style="background:var(--surface);border:1px solid var(--border-hover);border-radius:20px;padding:28px 28px 24px;width:100%;max-width:380px;position:relative;">
-    <button onclick="closeInstallModal()" style="position:absolute;top:12px;right:14px;background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;line-height:1;" aria-label="Close">&#x2715;</button>
+    <button data-dash-action="close-install" style="position:absolute;top:12px;right:14px;background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;line-height:1;" aria-label="Close">&#x2715;</button>
     <div style="text-align:center;margin-bottom:20px;">
       <img src="/logo.png" alt="Ryxa" style="width:48px;height:48px;margin:0 auto 12px;display:block;">
       <h2 style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;letter-spacing:-0.5px;margin-bottom:6px;">Install Ryxa</h2>
@@ -5341,12 +5341,12 @@
         </div>
       </div>
     </div>
-    <button onclick="closeInstallModal()" style="width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;margin-top:16px;">Got it</button>
+    <button data-dash-action="close-install" style="width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;margin-top:16px;">Got it</button>
   </div>
 </div>
 
 <!-- MOBILE OVERLAY -->
-<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+<div class="sidebar-overlay" id="sidebar-overlay" data-dash-action="close-sidebar"></div>
 
 <!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar">
@@ -9412,6 +9412,52 @@ function tierLabel(t) {
   if (t === 'monthly') return 'Pro';
   return 'Free';
 }
+
+// =============================================================================
+// DASHBOARD-LEVEL EVENT DELEGATION
+// -----------------------------------------------------------------------------
+// For modals and UI elements that live in dashboard.html outside of any tool
+// (sign-out modal, terms modal, generic confirm modal, support modal, etc).
+// Tool-specific modals (deals, bio cropper, etc) use their own per-tool
+// delegation systems. This is only for the dashboard SHELL.
+//
+// Markup opts in with `data-dash-action="action-name"` and optional
+// `data-dash-event="change|input|focus|blur"` (defaults to click).
+// =============================================================================
+const dashActions = {};
+function dashRegisterAction(action, handler) {
+  dashActions[action] = handler;
+}
+function dashFindActionElement(target, eventType) {
+  let el = target;
+  while (el && el !== document.body) {
+    if (el.dataset) {
+      const perEvent = el.dataset['dashAction' + eventType.charAt(0).toUpperCase() + eventType.slice(1)];
+      if (perEvent) return { element: el, action: perEvent };
+      if (el.dataset.dashAction) {
+        const wantEvent = el.dataset.dashEvent || 'click';
+        if (wantEvent === eventType) return { element: el, action: el.dataset.dashAction };
+      }
+    }
+    el = el.parentElement;
+  }
+  return null;
+}
+function dashDispatchEvent(event) {
+  const found = dashFindActionElement(event.target, event.type);
+  if (!found) return;
+  const handler = dashActions[found.action];
+  if (!handler) {
+    console.warn('[dash] No handler registered for action:', found.action);
+    return;
+  }
+  handler(event, found.element);
+}
+['click', 'change', 'input', 'focus', 'blur'].forEach(evt => {
+  const useCapture = (evt === 'focus' || evt === 'blur');
+  document.addEventListener(evt, dashDispatchEvent, useCapture);
+});
+
 let userStatus = 'free';
 // ISO timestamp when the trial ends, or null when not in a trial. Source of
 // truth for "is the user currently in a trial" — checked at render time
@@ -9769,11 +9815,11 @@ function openSupportModal() {
     + '<div style="width:48px;height:48px;margin:0 auto 16px;background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.25);border-radius:12px;display:flex;align-items:center;justify-content:center;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>'
     + '<div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.3px;margin-bottom:8px;">Get Support</div>'
     + '<p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:20px;">Have a question or need help? Reach out to us and we\'ll get back to you as soon as possible.</p>'
-    + '<div onclick="copyEmail(this)" style="padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;font-size:14px;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px;transition:border-color 0.15s;" onmouseover="this.style.borderColor=\'rgba(124,58,237,0.4)\'" onmouseout="this.style.borderColor=\'var(--border)\'">'
+    + '<div data-dash-action="copy-support-email" style="padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;font-size:14px;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px;transition:border-color 0.15s;" onmouseover="this.style.borderColor=\'rgba(124,58,237,0.4)\'" onmouseout="this.style.borderColor=\'var(--border)\'">'
     + '<span>hello@ryxa.io</span>'
     + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>'
     + '</div>'
-    + '<button onclick="closeSupportModal()" style="width:100%;padding:10px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:10px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;">Close</button>'
+    + '<button data-dash-action="close-support" style="width:100%;padding:10px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:10px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;">Close</button>'
     + '</div>';
   overlay.onclick = function(e) { if (e.target === overlay) closeSupportModal(); };
   document.body.appendChild(overlay);
@@ -10855,7 +10901,7 @@ setTimeout(function() {
       } else {
         sessionStorage.removeItem('_authRetry');
         var dl = document.getElementById('dash-loading');
-        if (dl) dl.innerHTML = '<div style="text-align:center;"><div style="font-size:14px;color:var(--muted);margin-bottom:12px;">Something went wrong. Please try again.</div><button onclick="window.location.reload()" style="padding:10px 24px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;">Retry</button></div>';
+        if (dl) dl.innerHTML = '<div style="text-align:center;"><div style="font-size:14px;color:var(--muted);margin-bottom:12px;">Something went wrong. Please try again.</div><button data-dash-action="reload" style="padding:10px 24px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;">Retry</button></div>';
       }
     } catch(e) {}
   }
@@ -10950,8 +10996,8 @@ function aiCleanUp(textareaId) {
       + '<div style="font-size:13px;color:var(--text);line-height:1.6;white-space:pre-wrap;" id="ai-cleanup-result">' + escapeHtml(data.result) + '</div>'
       + '</div>'
       + '<div style="display:flex;gap:8px;">'
-      + '<button onclick="applyCleanUp(\'' + textareaId + '\')" style="flex:1;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Apply</button>'
-      + '<button onclick="document.getElementById(\'ai-cleanup-modal\').remove()" style="flex:1;padding:11px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:14px;font-family:DM Sans,sans-serif;cursor:pointer;">Keep original</button>'
+      + '<button data-dash-action="apply-cleanup" data-ai-textarea-id="' + textareaId + '" style="flex:1;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Apply</button>'
+      + '<button data-dash-action="discard-cleanup" style="flex:1;padding:11px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:14px;font-family:DM Sans,sans-serif;cursor:pointer;">Keep original</button>'
       + '</div>';
   })
   .catch(function() {
@@ -11032,6 +11078,58 @@ window.addEventListener('DOMContentLoaded', () => {
   const dsm = document.getElementById('deal-share-modal');
   if (dsm) dsm.addEventListener('click', function(e) { if (e.target === this) closeShareModal(); });
 });
+
+// =============================================================================
+// DASHBOARD-SHELL ACTION REGISTRATIONS
+// -----------------------------------------------------------------------------
+// Handlers for modals and UI elements that live in dashboard.html outside any
+// tool. Tool-specific actions live in each tool's own JS file.
+// =============================================================================
+
+// Sign-out modal
+dashRegisterAction('close-signout', () => closeSignoutModal());
+dashRegisterAction('confirm-signout', () => confirmSignOut());
+
+// Terms-of-service acceptance modal
+dashRegisterAction('accept-terms', () => acceptTerms());
+
+// PWA install instructions modal (iOS)
+dashRegisterAction('close-install', () => closeInstallModal());
+
+// Mobile sidebar overlay (click outside sidebar to close it)
+dashRegisterAction('close-sidebar', () => closeSidebar());
+
+// Generic confirm modal (resolveDashConfirm lives in js/deals.js for historical
+// reasons but is used across tools via dashConfirm()).
+dashRegisterAction('resolve-confirm-false', () => resolveDashConfirm(false));
+dashRegisterAction('resolve-confirm-true', () => resolveDashConfirm(true));
+
+// Error-state retry button (used inside an inline-generated error message in
+// the dashboard loading flow)
+dashRegisterAction('reload', () => window.location.reload());
+
+// Support modal (dynamically generated by openSupportModal)
+dashRegisterAction('copy-support-email', (e, el) => copyEmail(el));
+dashRegisterAction('close-support', () => closeSupportModal());
+
+// AI Cleanup modal (dynamically generated by aiCleanUp)
+dashRegisterAction('apply-cleanup', (e, el) => applyCleanUp(el.dataset.aiTextareaId));
+dashRegisterAction('discard-cleanup', () => {
+  document.getElementById('ai-cleanup-modal')?.remove();
+});
+
+// Topbar upgrade-to-Max confirmation modal
+dashRegisterAction('confirm-topbar-upgrade-max', (e) => confirmTopbarUpgradeToMax(e));
+dashRegisterAction('close-topbar-upgrade-confirm', () => closeTopbarUpgradeConfirm());
+
+// Pro upsell modal — triggered by showProUpsell() for Pro-locked features
+dashRegisterAction('confirm-pro-upsell', (e) => confirmProUpsell(e));
+dashRegisterAction('close-pro-upsell', () => closeProUpsell());
+// Only close if the click target IS the backdrop element itself (not a child).
+// Mirrors the original inline `if(event.target===this)closeProUpsell()`.
+dashRegisterAction('close-pro-upsell-if-backdrop', (e, el) => {
+  if (e.target === el) closeProUpsell();
+});
 </script>
 
 <!-- BIO CROPPER MODAL -->
@@ -11039,15 +11137,15 @@ window.addEventListener('DOMContentLoaded', () => {
   <div style="background:#0f0f1a;border:1px solid rgba(255,255,255,0.1);border-radius:18px;padding:20px;width:100%;max-width:540px;margin:20px;pointer-events:all;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
       <h3 style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;">Crop your photo</h3>
-      <button onclick="closeCropper()" aria-label="Cancel" style="background:none;border:none;color:#c9c7dc;font-size:20px;cursor:pointer;line-height:1;">&#x2715;</button>
+      <button data-bio-action="close-cropper" aria-label="Cancel" style="background:none;border:none;color:#c9c7dc;font-size:20px;cursor:pointer;line-height:1;">&#x2715;</button>
     </div>
     <div style="background:#000;border-radius:10px;overflow:hidden;max-height:60vh;">
       <img id="bio-cropper-img" alt="Photo to crop" style="display:block;max-width:100%;">
     </div>
     <div id="bio-cropper-error" style="display:none;margin-top:10px;font-size:12px;color:#fca5a5;"></div>
     <div style="display:flex;gap:10px;margin-top:14px;">
-      <button onclick="closeCropper()" style="flex:1;padding:11px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:10px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;">Cancel</button>
-      <button id="bio-cropper-confirm" onclick="confirmCrop()" style="flex:2;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow);">Use photo</button>
+      <button data-bio-action="close-cropper" style="flex:1;padding:11px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:10px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;">Cancel</button>
+      <button id="bio-cropper-confirm" data-bio-action="confirm-crop" style="flex:2;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow);">Use photo</button>
     </div>
   </div>
 </div>
@@ -11059,7 +11157,7 @@ window.addEventListener('DOMContentLoaded', () => {
 <!-- =============================================== -->
 <div id="deal-share-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.8);align-items:center;justify-content:center;pointer-events:all;">
   <div style="background:#0f0f1a;border:1px solid rgba(124,58,237,0.35);border-radius:16px;padding:28px;position:relative;width:100%;max-width:520px;pointer-events:all;margin:20px;max-height:92vh;overflow-y:auto;">
-    <button onclick="closeShareModal()" style="position:absolute;top:14px;right:14px;background:none;border:none;color:#7a788f;font-size:18px;cursor:pointer;" aria-label="Close">&#x2715;</button>
+    <button data-deal-action="close-share-modal" style="position:absolute;top:14px;right:14px;background:none;border:none;color:#7a788f;font-size:18px;cursor:pointer;" aria-label="Close">&#x2715;</button>
     <h3 style="font-family:Syne,sans-serif;font-size:18px;font-weight:700;margin-bottom:4px;color:var(--text);">Share deal with <span id="deal-share-brand-name">the brand</span></h3>
     <p style="color:var(--muted);font-size:13px;margin-bottom:20px;line-height:1.5;">Send this link and PIN to your brand contact. They'll see deal details, contracts, and can message you through a secure portal.</p>
 
@@ -11070,16 +11168,16 @@ window.addEventListener('DOMContentLoaded', () => {
       <div style="margin-bottom:14px;">
         <label class="deal-label" for="deal-share-link">Portal Link</label>
         <div style="display:flex;gap:8px;align-items:center;">
-          <input type="text" id="deal-share-link" readonly class="deal-input" style="flex:1;font-size:12px;" onclick="this.select()">
-          <button onclick="copyShareLink()" id="deal-share-link-copy" style="padding:10px 14px;background:transparent;border:1px solid var(--border-hover);color:var(--text);border-radius:8px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;white-space:nowrap;">Copy</button>
+          <input type="text" id="deal-share-link" readonly class="deal-input" style="flex:1;font-size:12px;" data-deal-action="select-input">
+          <button data-deal-action="copy-share-link" id="deal-share-link-copy" style="padding:10px 14px;background:transparent;border:1px solid var(--border-hover);color:var(--text);border-radius:8px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;white-space:nowrap;">Copy</button>
         </div>
       </div>
       <!-- PIN -->
       <div style="margin-bottom:18px;">
         <label class="deal-label" for="deal-share-pin">PIN</label>
         <div style="display:flex;gap:8px;align-items:center;">
-          <input type="text" id="deal-share-pin" readonly class="deal-input" style="flex:1;font-family:monospace;font-size:16px;letter-spacing:0.2em;" onclick="this.select()">
-          <button onclick="copySharePin()" id="deal-share-pin-copy" style="padding:10px 14px;background:transparent;border:1px solid var(--border-hover);color:var(--text);border-radius:8px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;white-space:nowrap;">Copy</button>
+          <input type="text" id="deal-share-pin" readonly class="deal-input" style="flex:1;font-family:monospace;font-size:16px;letter-spacing:0.2em;" data-deal-action="select-input">
+          <button data-deal-action="copy-share-pin" id="deal-share-pin-copy" style="padding:10px 14px;background:transparent;border:1px solid var(--border-hover);color:var(--text);border-radius:8px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;white-space:nowrap;">Copy</button>
         </div>
       </div>
 
@@ -11090,12 +11188,12 @@ window.addEventListener('DOMContentLoaded', () => {
       </div>
 
       <!-- Copy-all button -->
-      <button onclick="copyShareMessage()" id="deal-share-copy-all-btn" style="width:100%;padding:12px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 4px 16px rgba(167,139,250,0.2);margin-bottom:14px;">Copy link + message</button>
+      <button data-deal-action="copy-share-message" id="deal-share-copy-all-btn" style="width:100%;padding:12px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 4px 16px rgba(167,139,250,0.2);margin-bottom:14px;">Copy link + message</button>
 
       <!-- Revoke -->
       <div style="padding-top:14px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
         <div style="font-size:12px;color:var(--muted);flex:1;min-width:180px;">Accidentally shared? You can revoke access at any time.</div>
-        <button onclick="revokeShareAccess()" id="deal-share-revoke-btn" style="padding:8px 14px;background:transparent;border:1px solid rgba(239,68,68,0.3);color:#fca5a5;border-radius:8px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Revoke access</button>
+        <button data-deal-action="revoke-share-access" id="deal-share-revoke-btn" style="padding:8px 14px;background:transparent;border:1px solid rgba(239,68,68,0.3);color:#fca5a5;border-radius:8px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Revoke access</button>
       </div>
     </div>
 
@@ -11112,10 +11210,10 @@ window.addEventListener('DOMContentLoaded', () => {
     <h3 style="font-family:Syne,sans-serif;font-size:18px;font-weight:700;margin-bottom:6px;color:#fca5a5;">Delete this deal?</h3>
     <p style="color:var(--muted);font-size:13px;margin-bottom:8px;line-height:1.5;">This permanently removes the deal, all deliverables, messages, and the uploaded contract. This cannot be undone.</p>
     <p style="color:var(--muted);font-size:13px;margin-bottom:16px;line-height:1.5;">Type <strong style="color:#fca5a5;">DELETE</strong> to confirm.</p>
-    <input type="text" id="deal-delete-confirm-input" aria-label="Type DELETE to confirm" placeholder="DELETE" class="deal-input" style="margin-bottom:14px;" oninput="updateDealDeleteButton()">
+    <input type="text" id="deal-delete-confirm-input" aria-label="Type DELETE to confirm" placeholder="DELETE" class="deal-input" style="margin-bottom:14px;" data-deal-action="update-delete-button" data-deal-event="input">
     <div style="display:flex;gap:10px;">
-      <button id="deal-delete-confirm-btn" onclick="confirmDeleteDeal()" disabled style="flex:1;padding:11px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:rgba(252,165,165,0.5);border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:not-allowed;">Delete forever</button>
-      <button onclick="closeDealDeleteModal()" style="padding:11px 18px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Cancel</button>
+      <button id="deal-delete-confirm-btn" data-deal-action="confirm-delete-deal" disabled style="flex:1;padding:11px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:rgba(252,165,165,0.5);border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:not-allowed;">Delete forever</button>
+      <button data-deal-action="close-delete-modal" style="padding:11px 18px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Cancel</button>
     </div>
   </div>
 </div>
@@ -11126,8 +11224,8 @@ window.addEventListener('DOMContentLoaded', () => {
     <h3 style="font-family:Syne,sans-serif;font-size:17px;font-weight:800;margin-bottom:8px;letter-spacing:-0.3px;color:var(--text);">Confirm</h3>
     <p id="dash-confirm-msg" style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:20px;"></p>
     <div style="display:flex;gap:10px;justify-content:center;">
-      <button onclick="resolveDashConfirm(false)" style="padding:10px 20px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;">Cancel</button>
-      <button onclick="resolveDashConfirm(true)" style="padding:10px 20px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Confirm</button>
+      <button data-dash-action="resolve-confirm-false" style="padding:10px 20px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;">Cancel</button>
+      <button data-dash-action="resolve-confirm-true" style="padding:10px 20px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Confirm</button>
     </div>
   </div>
 </div>
@@ -11144,8 +11242,8 @@ window.addEventListener('DOMContentLoaded', () => {
     <div id="deal-share-confirm-email" style="padding:10px 14px;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.25);border-radius:8px;font-size:13px;color:#c4b5fd;font-family:monospace;margin-bottom:14px;word-break:break-all;"></div>
     <p style="color:var(--muted);font-size:12px;margin-bottom:20px;line-height:1.6;">If you need to change it later, you'll have to revoke sharing first or create a new deal.</p>
     <div style="display:flex;gap:10px;">
-      <button onclick="confirmShareGenerate()" style="flex:1;padding:11px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Continue and generate link</button>
-      <button onclick="closeShareConfirmModal()" style="padding:11px 18px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Cancel</button>
+      <button data-deal-action="confirm-share-generate" style="flex:1;padding:11px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Continue and generate link</button>
+      <button data-deal-action="close-share-confirm" style="padding:11px 18px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Cancel</button>
     </div>
   </div>
 </div>
@@ -11162,8 +11260,8 @@ window.addEventListener('DOMContentLoaded', () => {
     <p style="color:var(--muted);font-size:13px;margin-bottom:14px;line-height:1.6;">Your current Pro plan will be upgraded immediately. Stripe will charge a prorated amount for the difference and your billing date stays the same.</p>
     <p style="color:var(--muted);font-size:13px;margin-bottom:20px;line-height:1.6;">Creator Max is <strong style="color:var(--text);">$20/month</strong>.</p>
     <div style="display:flex;gap:10px;">
-      <button onclick="confirmTopbarUpgradeToMax(event)" style="flex:1;padding:11px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 16px rgba(167,139,250,0.25);">Yes, upgrade</button>
-      <button onclick="closeTopbarUpgradeConfirm()" style="padding:11px 18px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Cancel</button>
+      <button data-dash-action="confirm-topbar-upgrade-max" style="flex:1;padding:11px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 16px rgba(167,139,250,0.25);">Yes, upgrade</button>
+      <button data-dash-action="close-topbar-upgrade-confirm" style="padding:11px 18px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Cancel</button>
     </div>
   </div>
 </div>
@@ -11172,9 +11270,9 @@ window.addEventListener('DOMContentLoaded', () => {
 <!-- PRO UPSELL MODAL — Reusable for any Pro-locked feature -->
 <!-- Triggered by: showProUpsell({feature, description})    -->
 <!-- ═══════════════════════════════════════════ -->
-<div id="pro-upsell-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.8);align-items:center;justify-content:center;pointer-events:all;" onclick="if(event.target===this)closeProUpsell()">
+<div id="pro-upsell-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.8);align-items:center;justify-content:center;pointer-events:all;" data-dash-action="close-pro-upsell-if-backdrop">
   <div style="background:#0f0f1a;border:1px solid rgba(124,58,237,0.35);border-radius:16px;padding:28px;position:relative;width:100%;max-width:460px;pointer-events:all;margin:20px;max-height:90vh;overflow-y:auto;">
-    <button onclick="closeProUpsell()" aria-label="Close" style="position:absolute;top:14px;right:14px;background:transparent;border:none;color:var(--muted);cursor:pointer;padding:6px;display:flex;align-items:center;justify-content:center;border-radius:6px;">
+    <button data-dash-action="close-pro-upsell" aria-label="Close" style="position:absolute;top:14px;right:14px;background:transparent;border:none;color:var(--muted);cursor:pointer;padding:6px;display:flex;align-items:center;justify-content:center;border-radius:6px;">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
     </button>
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
@@ -11218,8 +11316,8 @@ window.addEventListener('DOMContentLoaded', () => {
     <p style="color:var(--muted);font-size:13px;margin-bottom:18px;line-height:1.6;text-align:center;">Pro is <strong style="color:var(--text);">$10/month</strong>. Cancel anytime.</p>
 
     <div style="display:flex;gap:10px;">
-      <button onclick="confirmProUpsell(event)" style="flex:1;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow);">Upgrade to Pro — $10/mo</button>
-      <button onclick="closeProUpsell()" style="padding:11px 18px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Maybe later</button>
+      <button data-dash-action="confirm-pro-upsell" style="flex:1;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow);">Upgrade to Pro — $10/mo</button>
+      <button data-dash-action="close-pro-upsell" style="padding:11px 18px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Maybe later</button>
     </div>
   </div>
 </div>
