@@ -126,6 +126,23 @@ function updateSettingsCancelBtn() {
   const pro = isPro();
   const max = isMax();
   const isCancelling = pro && userStatus === 'cancelling';
+
+  // Trial detection: trial_end is in the future. Computed at render time
+  // because trials expire silently (Stripe webhooks fire on transition, but
+  // we want the label to update if the user sits on the page across the
+  // boundary too).
+  let trialDaysLeft = null;
+  if (typeof userTrialEnd !== 'undefined' && userTrialEnd) {
+    const endMs = new Date(userTrialEnd).getTime();
+    const nowMs = Date.now();
+    if (endMs > nowMs) {
+      // Round UP so a trial with 4.2 days remaining shows "5 days left"
+      // (matches what users expect — "left" implies remaining whole days).
+      trialDaysLeft = Math.ceil((endMs - nowMs) / (24 * 60 * 60 * 1000));
+    }
+  }
+  const isTrialing = max && trialDaysLeft !== null;
+
   const cancelBtn = document.getElementById('settings-cancel-btn');
   const settingsTier = document.getElementById('settings-tier');
   if (cancelBtn) {
@@ -143,9 +160,16 @@ function updateSettingsCancelBtn() {
       cancelBtn.onmouseout = () => cancelBtn.style.background = 'transparent';
     }
   }
-  if (settingsTier) settingsTier.textContent = isCancelling
-    ? (max ? 'Max (Cancelling)' : 'Pro (Cancelling)')
-    : max ? 'Creator Max' : pro ? 'Pro Plan' : 'Free Plan';
+  if (settingsTier) {
+    if (isCancelling) {
+      settingsTier.textContent = max ? 'Max (Cancelling)' : 'Pro (Cancelling)';
+    } else if (isTrialing) {
+      const dayWord = trialDaysLeft === 1 ? 'day' : 'days';
+      settingsTier.textContent = 'Max (Trial, ' + trialDaysLeft + ' ' + dayWord + ' left)';
+    } else {
+      settingsTier.textContent = max ? 'Creator Max' : pro ? 'Pro Plan' : 'Free Plan';
+    }
+  }
 
   // Update the "You are on..." label
   const subProLabel = document.getElementById('settings-sub-pro-label');
