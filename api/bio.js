@@ -633,7 +633,7 @@ async function fetchBioData(username) {
 // IMPORTANT: link-specific fields like `courseCrossoutPrice` are NOT overwritten.
 // Those are intentional bio-level overrides set by the creator when adding the
 // link, separate from anything in the source table.
-async function resolveLiveCoverUrls(creatorUserId, links, fetchOpts) {
+async function resolveLiveCoverUrls(creatorUserId, links, fetchOpts, creatorUsername) {
   if (!Array.isArray(links) || links.length === 0) return;
 
   const courseIds = [];
@@ -768,8 +768,13 @@ async function resolveLiveCoverUrls(creatorUserId, links, fetchOpts) {
         if (typeof live.price === 'number') link.productPrice = live.price;
         if (live.photo) link.photoUrl = live.photo;
       }
-    } else if (link.isMediaKit && mediaKitUrl) {
-      link.photoUrl = mediaKitUrl;
+    } else if (link.isMediaKit) {
+      if (mediaKitUrl) link.photoUrl = mediaKitUrl;
+      // Rebuild URL from the live username so a creator-renamed bio link still
+      // points at the right /mediakit/<username> page (the old username 404s).
+      if (typeof creatorUsername === 'string' && creatorUsername.length > 0) {
+        link.url = 'https://www.ryxa.io/mediakit/' + creatorUsername;
+      }
     }
   }
 }
@@ -868,7 +873,7 @@ module.exports = async (req, res) => {
           Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
         },
       });
-      await resolveLiveCoverUrls(profile.user_id, bio.links, resolverFetchOpts);
+      await resolveLiveCoverUrls(profile.user_id, bio.links, resolverFetchOpts, profile.username);
     } catch (e) {
       console.error('cover URL resolver failed, falling back to snapshots:', e);
     }
