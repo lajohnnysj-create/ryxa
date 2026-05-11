@@ -3393,6 +3393,32 @@
     inset: 0;
     pointer-events: auto;
   }
+  /* Placement mode: user has tapped a palette item and is waiting to drop a
+     field on the PDF. Body class is set/cleared by pdfsign.js. */
+  body.pdfsign-placing .pdfsign-field-overlay {
+    cursor: crosshair;
+  }
+  /* Floating cursor badge that follows the mouse during placement mode.
+     Shows the label of the field being placed (Signature / Text / Date /
+     Checkbox / Cross-out). Positioned via inline-style updates from JS. */
+  #pdfsign-cursor-badge {
+    position: fixed;
+    pointer-events: none;
+    background: rgba(124,58,237,0.95);
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    z-index: 9998;
+    transform: translate(12px, 12px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    display: none;
+  }
+  body.pdfsign-placing #pdfsign-cursor-badge {
+    display: block;
+  }
   .pdfsign-field {
     position: absolute;
     border: 2px dashed rgba(124,58,237,0.6);
