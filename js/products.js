@@ -49,6 +49,12 @@ function prodDispatchEvent(event) {
     console.warn('[prod] No handler registered for action:', found.action);
     return;
   }
+  // Auto-preventDefault on <a> click events so handlers using data-prod-action
+  // can use href="#" without scrolling to top, and CSP doesn't have to allow
+  // javascript: URIs. Replaces the old href="javascript:void(0)" pattern.
+  if (event.type === 'click' && found.element.tagName === 'A') {
+    event.preventDefault();
+  }
   handler(event, found.element);
 }
 
