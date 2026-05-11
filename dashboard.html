@@ -5259,6 +5259,23 @@
   .dash-h-dde34c:hover { background: rgba(239,68,68,0.08); }
   .dash-h-82aea2:hover { border-color: rgba(124,58,237,0.4); color: #c4b5fd; }
 
+  /* ============================================================
+     Tool-specific hover behaviors for elements rendered dynamically
+     from JS template strings. Each tool prefixes with its own
+     hash-namespace so collisions are impossible.
+     ============================================================ */
+  /* Calendar tool */
+  .cal-h-e4ed29:hover { border-color: var(--border-hover); color: var(--text); }
+  .cal-h-4290e9:hover { box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+  .cal-h-755342:hover { border-color: var(--border-hover); }
+  .cal-h-6ebecd:hover { background: #a855f7; }
+  /* Brand Deals tool */
+  .deal-h-card:hover { border-color: var(--border-hover); }
+  /* Digital Products tool */
+  .prod-h-card:hover { border-color: rgba(124,58,237,0.4); }
+  /* Script Builder tool */
+  .scripts-h-card:hover { border-color: rgba(124,58,237,0.4); }
+
 </style>
 <style>html{background:#07070f;}body{visibility:hidden;}body.ready{visibility:visible;}</style>
 
