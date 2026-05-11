@@ -1009,16 +1009,15 @@ ${customThemeStyle}
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
 
-  // 5. Content Security Policy — Report-Only mode for now.
+  // 5. Content Security Policy — ENFORCED.
   // Media kit pages are PUBLIC and render user-supplied content (display name,
   // bio, handle, category, contact note, rate descriptions, custom colors,
   // custom backgrounds). Strict CSP is the primary defense against XSS via
   // injected <script> tags in user content.
   //
-  // After 24-48 hours of clean console reports from real mediakit traffic,
-  // this should be flipped from Content-Security-Policy-Report-Only to
-  // Content-Security-Policy. To roll back to Report-Only mode after enforce,
-  // change the header name below.
+  // To roll back to Report-Only mode (if breakage is reported), change the
+  // header name below from 'Content-Security-Policy' to
+  // 'Content-Security-Policy-Report-Only'.
   //
   // Allowed origins explanation:
   //   script-src — Supabase SDK (cdn.jsdelivr.net) + own /js/ + cookie-banner.js
@@ -1031,7 +1030,7 @@ ${customThemeStyle}
   //   No frame-src: media kit pages don't embed any external iframes (unlike bio
   //     which embeds YouTube videos for link cards).
   res.setHeader(
-    'Content-Security-Policy-Report-Only',
+    'Content-Security-Policy',
     [
       "default-src 'self'",
       "script-src 'self' https://cdn.jsdelivr.net",
