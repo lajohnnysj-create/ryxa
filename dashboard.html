@@ -5043,6 +5043,31 @@
   .follower-s-6c0a2a { margin-top:20px;font-size:13px;color:var(--muted) }
   .follower-s-a80552 { color:var(--accent) }
 
+
+  /* ============================================================
+     PHASE 3 — QR Generator style extraction
+     ============================================================ */
+  /* Phase 3 — QR Generator markup style extraction */
+  .qr-s-b796f4 { display:flex;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:4px;margin-bottom:20px; }
+  .qr-s-600dc6 { flex:1;padding:9px 16px;border:none;border-radius:7px;font-size:13px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.15s;background:var(--accent);color:#fff; }
+  .qr-s-af1e6a { flex:1;padding:9px 16px;border:none;border-radius:7px;font-size:13px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.15s;background:transparent;color:var(--muted); }
+  .qr-s-a11d74 { background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:20px; }
+  .qr-s-b90042 { width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:12px 16px;font-size:15px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;transition:border-color 0.2s;box-sizing:border-box; }
+  .qr-s-e2a448 { margin-top:12px;width:100%;padding:13px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.2s;box-shadow:0 0 20px var(--accent-glow); }
+  .qr-s-b5adc9 { display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px; }
+  .qr-s-30174e { width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 14px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box; }
+  .qr-s-741311 { margin:20px 0 12px;padding-top:16px;border-top:1px solid var(--border); }
+  .qr-s-685f49 { font-size:11px;color:var(--accent2);text-transform:uppercase;letter-spacing:0.08em;font-weight:600; }
+  .qr-s-886a85 { width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 14px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;resize:vertical; }
+  .qr-s-fe697c { width:100%;padding:13px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.2s;box-shadow:0 0 20px var(--accent-glow); }
+  .qr-s-ad585d { display:none;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px; }
+  .qr-s-6b75c3 { width:40px;height:36px;border:1px solid var(--border-hover);border-radius:6px;cursor:pointer;background:none;padding:2px; }
+  .qr-s-23cb63 { display:none;text-align:center;margin-bottom:20px; }
+  .qr-s-988f0c { background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:32px;display:inline-flex;flex-direction:column;align-items:center;gap:16px; }
+  .qr-s-996781 { border-radius:8px; }
+  .qr-s-57c915 { padding:12px 32px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.2s;box-shadow:0 0 20px var(--accent-glow); }
+  .qr-s-2a1632 { padding:12px 20px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.15s; }
+
 </style>
 <style>html{background:#07070f;}body{visibility:hidden;}body.ready{visibility:visible;}</style>
 
@@ -7803,143 +7828,143 @@
     </div>
 
     <!-- QR GENERATOR -->
-    <div id="tool-qr" style="display:none;">
-      <div style="max-width:680px;">
-        <h2 style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;margin-bottom:6px;letter-spacing:-0.5px;">QR Code Generator</h2>
-        <p style="color:var(--muted);font-size:14px;margin-bottom:8px;">Generate QR codes for your links, profiles, and campaigns.</p>
-        <p id="qr-limit-note" style="font-size:13px;color:#a78bfa;margin-bottom:24px;"></p>
+    <div id="tool-qr" class="bio-s-c8be1c">
+      <div class="image-s-5a9322">
+        <h2 class="clients-s-88cf18">QR Code Generator</h2>
+        <p class="image-s-77d040">Generate QR codes for your links, profiles, and campaigns.</p>
+        <p id="qr-limit-note" class="image-s-8fd488"></p>
 
         <!-- Tabs -->
-        <div style="display:flex;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:4px;margin-bottom:20px;">
-          <button id="qr-tab-link" onclick="switchQRTab('link')" style="flex:1;padding:9px 16px;border:none;border-radius:7px;font-size:13px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.15s;background:var(--accent);color:#fff;">Link</button>
-          <button id="qr-tab-vcard" onclick="switchQRTab('vcard')" style="flex:1;padding:9px 16px;border:none;border-radius:7px;font-size:13px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.15s;background:transparent;color:var(--muted);">Contact Card</button>
+        <div class="qr-s-b796f4">
+          <button id="qr-tab-link" data-qr-action="switch-tab" data-qr-tab="link" class="qr-s-600dc6">Link</button>
+          <button id="qr-tab-vcard" data-qr-action="switch-tab" data-qr-tab="vcard" class="qr-s-af1e6a">Contact Card</button>
         </div>
 
-        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:20px;">
+        <div class="qr-s-a11d74">
 
           <!-- Link mode -->
           <div id="qr-mode-link">
-            <div style="margin-bottom:16px;">
-              <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">URL or Text</label>
-              <input type="text" id="qr-text" placeholder="https://yourwebsite.com" onkeydown="if(event.key==='Enter') generateQR()" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:12px 16px;font-size:15px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;transition:border-color 0.2s;box-sizing:border-box;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border-hover)'" aria-label="URL or text to encode">
-              <button onclick="generateQR()" style="margin-top:12px;width:100%;padding:13px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.2s;box-shadow:0 0 20px var(--accent-glow);">Generate QR Code</button>
+            <div class="course-s-79a1c5">
+              <label class="course-s-60c543">URL or Text</label>
+              <input type="text" id="qr-text" placeholder="https://yourwebsite.com" data-qr-action-keydown="enter-generate" class="qr-s-b90042" data-qr-action-focus="focus-border" data-qr-action-blur="blur-border" aria-label="URL or text to encode">
+              <button data-qr-action="generate" class="qr-s-e2a448">Generate QR Code</button>
             </div>
           </div>
 
           <!-- Contact Card mode -->
-          <div id="qr-mode-vcard" style="display:none;">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+          <div id="qr-mode-vcard" class="bio-s-c8be1c">
+            <div class="qr-s-b5adc9">
               <div>
-                <label for="qr-vc-first" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">First Name</label>
-                <input type="text" id="qr-vc-first" placeholder="John" aria-label="First name" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 14px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+                <label for="qr-vc-first" class="course-s-60c543">First Name</label>
+                <input type="text" id="qr-vc-first" placeholder="John" aria-label="First name" class="qr-s-30174e">
               </div>
               <div>
-                <label for="qr-vc-last" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Last Name</label>
-                <input type="text" id="qr-vc-last" placeholder="Doe" aria-label="Last name" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 14px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+                <label for="qr-vc-last" class="course-s-60c543">Last Name</label>
+                <input type="text" id="qr-vc-last" placeholder="Doe" aria-label="Last name" class="qr-s-30174e">
               </div>
             </div>
-            <div style="margin-bottom:12px;">
-              <label for="qr-vc-phone" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Phone</label>
-              <input type="tel" id="qr-vc-phone" placeholder="+1 (555) 123-4567" aria-label="Phone number" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 14px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+            <div class="deal-s-3ef1fa">
+              <label for="qr-vc-phone" class="course-s-60c543">Phone</label>
+              <input type="tel" id="qr-vc-phone" placeholder="+1 (555) 123-4567" aria-label="Phone number" class="qr-s-30174e">
             </div>
-            <div style="margin-bottom:12px;">
-              <label for="qr-vc-email" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Email</label>
-              <input type="email" id="qr-vc-email" placeholder="john@example.com" aria-label="Email address" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 14px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+            <div class="deal-s-3ef1fa">
+              <label for="qr-vc-email" class="course-s-60c543">Email</label>
+              <input type="email" id="qr-vc-email" placeholder="john@example.com" aria-label="Email address" class="qr-s-30174e">
             </div>
-            <div style="margin-bottom:12px;">
-              <label for="qr-vc-website" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Website</label>
-              <input type="url" id="qr-vc-website" placeholder="https://yourwebsite.com" aria-label="Website URL" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 14px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+            <div class="deal-s-3ef1fa">
+              <label for="qr-vc-website" class="course-s-60c543">Website</label>
+              <input type="url" id="qr-vc-website" placeholder="https://yourwebsite.com" aria-label="Website URL" class="qr-s-30174e">
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+            <div class="qr-s-b5adc9">
               <div>
-                <label for="qr-vc-company" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Company</label>
-                <input type="text" id="qr-vc-company" placeholder="Company name" aria-label="Company name" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 14px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+                <label for="qr-vc-company" class="course-s-60c543">Company</label>
+                <input type="text" id="qr-vc-company" placeholder="Company name" aria-label="Company name" class="qr-s-30174e">
               </div>
               <div>
-                <label for="qr-vc-title" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Title / Role</label>
-                <input type="text" id="qr-vc-title" placeholder="Content Creator" aria-label="Title or role" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 14px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+                <label for="qr-vc-title" class="course-s-60c543">Title / Role</label>
+                <input type="text" id="qr-vc-title" placeholder="Content Creator" aria-label="Title or role" class="qr-s-30174e">
               </div>
             </div>
-            <div style="margin-bottom:12px;">
-              <label for="qr-vc-address" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Address</label>
-              <input type="text" id="qr-vc-address" placeholder="123 Main St, Los Angeles, CA 90001" aria-label="Address" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 14px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+            <div class="deal-s-3ef1fa">
+              <label for="qr-vc-address" class="course-s-60c543">Address</label>
+              <input type="text" id="qr-vc-address" placeholder="123 Main St, Los Angeles, CA 90001" aria-label="Address" class="qr-s-30174e">
             </div>
 
-            <div style="margin:20px 0 12px;padding-top:16px;border-top:1px solid var(--border);">
-              <span style="font-size:11px;color:var(--accent2);text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Social Profiles</span>
+            <div class="qr-s-741311">
+              <span class="qr-s-685f49">Social Profiles</span>
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+            <div class="qr-s-b5adc9">
               <div>
-                <label for="qr-vc-instagram" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Instagram URL</label>
-                <input type="url" id="qr-vc-instagram" placeholder="https://instagram.com/yourname" aria-label="Instagram URL" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 14px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+                <label for="qr-vc-instagram" class="course-s-60c543">Instagram URL</label>
+                <input type="url" id="qr-vc-instagram" placeholder="https://instagram.com/yourname" aria-label="Instagram URL" class="qr-s-30174e">
               </div>
               <div>
-                <label for="qr-vc-tiktok" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">TikTok URL</label>
-                <input type="url" id="qr-vc-tiktok" placeholder="https://tiktok.com/@yourname" aria-label="TikTok URL" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 14px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
-              </div>
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
-              <div>
-                <label for="qr-vc-youtube" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">YouTube URL</label>
-                <input type="url" id="qr-vc-youtube" placeholder="https://youtube.com/@yourchannel" aria-label="YouTube URL" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 14px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
-              </div>
-              <div>
-                <label for="qr-vc-linkedin" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">LinkedIn URL</label>
-                <input type="url" id="qr-vc-linkedin" placeholder="https://linkedin.com/in/yourname" aria-label="LinkedIn URL" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 14px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+                <label for="qr-vc-tiktok" class="course-s-60c543">TikTok URL</label>
+                <input type="url" id="qr-vc-tiktok" placeholder="https://tiktok.com/@yourname" aria-label="TikTok URL" class="qr-s-30174e">
               </div>
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+            <div class="qr-s-b5adc9">
               <div>
-                <label for="qr-vc-twitter" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">X / Twitter URL</label>
-                <input type="url" id="qr-vc-twitter" placeholder="https://x.com/yourhandle" aria-label="X or Twitter URL" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 14px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+                <label for="qr-vc-youtube" class="course-s-60c543">YouTube URL</label>
+                <input type="url" id="qr-vc-youtube" placeholder="https://youtube.com/@yourchannel" aria-label="YouTube URL" class="qr-s-30174e">
               </div>
               <div>
-                <label for="qr-vc-facebook" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Facebook URL</label>
-                <input type="url" id="qr-vc-facebook" placeholder="https://facebook.com/yourpage" aria-label="Facebook URL" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 14px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;">
+                <label for="qr-vc-linkedin" class="course-s-60c543">LinkedIn URL</label>
+                <input type="url" id="qr-vc-linkedin" placeholder="https://linkedin.com/in/yourname" aria-label="LinkedIn URL" class="qr-s-30174e">
+              </div>
+            </div>
+            <div class="qr-s-b5adc9">
+              <div>
+                <label for="qr-vc-twitter" class="course-s-60c543">X / Twitter URL</label>
+                <input type="url" id="qr-vc-twitter" placeholder="https://x.com/yourhandle" aria-label="X or Twitter URL" class="qr-s-30174e">
+              </div>
+              <div>
+                <label for="qr-vc-facebook" class="course-s-60c543">Facebook URL</label>
+                <input type="url" id="qr-vc-facebook" placeholder="https://facebook.com/yourpage" aria-label="Facebook URL" class="qr-s-30174e">
               </div>
             </div>
 
-            <div style="margin:20px 0 12px;padding-top:16px;border-top:1px solid var(--border);">
-              <span style="font-size:11px;color:var(--accent2);text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Additional</span>
+            <div class="qr-s-741311">
+              <span class="qr-s-685f49">Additional</span>
             </div>
-            <div style="margin-bottom:16px;">
-              <label for="qr-vc-note" style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Note / Bio</label>
-              <textarea id="qr-vc-note" placeholder="A short bio or note about yourself" aria-label="Note or bio" rows="3" maxlength="300" style="width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 14px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;resize:vertical;"></textarea>
+            <div class="course-s-79a1c5">
+              <label for="qr-vc-note" class="course-s-60c543">Note / Bio</label>
+              <textarea id="qr-vc-note" placeholder="A short bio or note about yourself" aria-label="Note or bio" rows="3" maxlength="300" class="qr-s-886a85"></textarea>
             </div>
-            <button onclick="generateVCardQR()" style="width:100%;padding:13px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.2s;box-shadow:0 0 20px var(--accent-glow);">Generate Contact Card QR</button>
+            <button data-qr-action="generate-vcard" class="qr-s-fe697c">Generate Contact Card QR</button>
           </div>
 
-          <div id="qr-pro-options" style="display:none;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;">
+          <div id="qr-pro-options" class="qr-s-ad585d">
             <div>
-              <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Foreground color</label>
-              <div style="display:flex;align-items:center;gap:10px;">
-                <input type="color" id="qr-fg-color" value="#000000" oninput="generateQR()" style="width:40px;height:36px;border:1px solid var(--border-hover);border-radius:6px;cursor:pointer;background:none;padding:2px;" aria-label="QR foreground color">
-                <span id="qr-fg-hex" style="font-size:13px;color:var(--muted);">#000000</span>
+              <label class="course-s-60c543">Foreground color</label>
+              <div class="bio-s-7e30d2">
+                <input type="color" id="qr-fg-color" value="#000000" data-qr-action-input="generate" class="qr-s-6b75c3" aria-label="QR foreground color">
+                <span id="qr-fg-hex" class="cal-s-56e6ba">#000000</span>
               </div>
             </div>
             <div>
-              <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Background color</label>
-              <div style="display:flex;align-items:center;gap:10px;">
-                <input type="color" id="qr-bg-color" value="#ffffff" oninput="generateQR()" style="width:40px;height:36px;border:1px solid var(--border-hover);border-radius:6px;cursor:pointer;background:none;padding:2px;" aria-label="QR background color">
-                <span id="qr-bg-hex" style="font-size:13px;color:var(--muted);">#ffffff</span>
+              <label class="course-s-60c543">Background color</label>
+              <div class="bio-s-7e30d2">
+                <input type="color" id="qr-bg-color" value="#ffffff" data-qr-action-input="generate" class="qr-s-6b75c3" aria-label="QR background color">
+                <span id="qr-bg-hex" class="cal-s-56e6ba">#ffffff</span>
               </div>
             </div>
           </div>
         </div>
 
         <!-- QR Preview -->
-        <div id="qr-preview-area" style="display:none;text-align:center;margin-bottom:20px;">
-          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:32px;display:inline-flex;flex-direction:column;align-items:center;gap:16px;">
-            <canvas id="qr-canvas" style="border-radius:8px;"></canvas>
-            <div style="display:flex;gap:10px;">
-              <button id="qr-download-btn" onclick="downloadQR()" style="padding:12px 32px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.2s;box-shadow:0 0 20px var(--accent-glow);">Download QR Code</button>
-              <button onclick="clearQR()" style="padding:12px 20px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.15s;">Clear</button>
+        <div id="qr-preview-area" class="qr-s-23cb63">
+          <div class="qr-s-988f0c">
+            <canvas id="qr-canvas" class="qr-s-996781"></canvas>
+            <div class="ds-s-6b00e7">
+              <button id="qr-download-btn" data-qr-action="download" class="qr-s-57c915">Download QR Code</button>
+              <button data-qr-action="clear" class="qr-s-2a1632">Clear</button>
             </div>
           </div>
         </div>
 
-        <div id="qr-empty" style="text-align:center;padding:48px 24px;color:var(--muted);font-size:14px;">Type a URL above to generate your QR code</div>
-        <div id="qr-usage" style="margin-top:16px;font-size:13px;color:var(--muted);text-align:center;"></div>
+        <div id="qr-empty" class="follower-s-e3378c">Type a URL above to generate your QR code</div>
+        <div id="qr-usage" class="image-s-7d9ade"></div>
       </div>
     </div>
 
@@ -12311,195 +12336,6 @@ async function confirmSettingsCancel() {
 }
 
 
-// ════════════════════════════════════════════
-// QR CODE GENERATOR
-// ════════════════════════════════════════════
-let qrMonthCount = 0;
-const QR_LIMIT_FREE = 3;
-const QR_LIMIT_FREE_DAY = true; // per day for free
-const QR_LIMIT_PRO = 9999; // unlimited
-
-let qrCurrentTab = 'link';
-
-function switchQRTab(tab) {
-  qrCurrentTab = tab;
-  document.getElementById('qr-mode-link').style.display = tab === 'link' ? 'block' : 'none';
-  document.getElementById('qr-mode-vcard').style.display = tab === 'vcard' ? 'block' : 'none';
-  const linkBtn = document.getElementById('qr-tab-link');
-  const vcardBtn = document.getElementById('qr-tab-vcard');
-  if (tab === 'link') {
-    linkBtn.style.background = 'var(--accent)'; linkBtn.style.color = '#fff';
-    vcardBtn.style.background = 'transparent'; vcardBtn.style.color = 'var(--muted)';
-  } else {
-    vcardBtn.style.background = 'var(--accent)'; vcardBtn.style.color = '#fff';
-    linkBtn.style.background = 'transparent'; linkBtn.style.color = 'var(--muted)';
-  }
-  // Reset preview
-  document.getElementById('qr-preview-area').style.display = 'none';
-  document.getElementById('qr-empty').style.display = 'block';
-  document.getElementById('qr-empty').textContent = tab === 'link' ? 'Type a URL above to generate your QR code' : 'Fill in the fields above to generate a contact card QR';
-}
-
-function buildVCardString() {
-  const first = (document.getElementById('qr-vc-first').value || '').trim();
-  const last = (document.getElementById('qr-vc-last').value || '').trim();
-  const phone = (document.getElementById('qr-vc-phone').value || '').trim();
-  const email = (document.getElementById('qr-vc-email').value || '').trim();
-  const website = (document.getElementById('qr-vc-website').value || '').trim();
-  const company = (document.getElementById('qr-vc-company').value || '').trim();
-  const title = (document.getElementById('qr-vc-title').value || '').trim();
-  const address = (document.getElementById('qr-vc-address').value || '').trim();
-  const instagram = (document.getElementById('qr-vc-instagram').value || '').trim();
-  const tiktok = (document.getElementById('qr-vc-tiktok').value || '').trim();
-  const youtube = (document.getElementById('qr-vc-youtube').value || '').trim();
-  const linkedin = (document.getElementById('qr-vc-linkedin').value || '').trim();
-  const twitter = (document.getElementById('qr-vc-twitter').value || '').trim();
-  const facebook = (document.getElementById('qr-vc-facebook').value || '').trim();
-  const note = (document.getElementById('qr-vc-note').value || '').trim();
-  if (!first && !last) return null;
-  let vcard = 'BEGIN:VCARD\nVERSION:3.0\n';
-  vcard += 'N:' + last + ';' + first + ';;;\n';
-  vcard += 'FN:' + (first + ' ' + last).trim() + '\n';
-  if (company) vcard += 'ORG:' + company + '\n';
-  if (title) vcard += 'TITLE:' + title + '\n';
-  if (phone) vcard += 'TEL;TYPE=CELL:' + phone + '\n';
-  if (email) vcard += 'EMAIL:' + email + '\n';
-  if (website) vcard += 'URL:' + website + '\n';
-  if (address) vcard += 'ADR;TYPE=HOME:;;' + address + ';;;;\n';
-  if (instagram) vcard += 'URL;TYPE=Instagram:' + instagram + '\n';
-  if (tiktok) vcard += 'URL;TYPE=TikTok:' + tiktok + '\n';
-  if (youtube) vcard += 'URL;TYPE=YouTube:' + youtube + '\n';
-  if (linkedin) vcard += 'URL;TYPE=LinkedIn:' + linkedin + '\n';
-  if (twitter) vcard += 'URL;TYPE=X:' + twitter + '\n';
-  if (facebook) vcard += 'URL;TYPE=Facebook:' + facebook + '\n';
-  if (note) vcard += 'NOTE:' + note.replace(/\n/g, ' ') + '\n';
-  vcard += 'END:VCARD';
-  return vcard;
-}
-
-function generateVCardQR() {
-  const vcard = buildVCardString();
-  if (!vcard) {
-    showDashToast('error', 'Please enter at least a first or last name.');
-    return;
-  }
-  if (typeof QRious === 'undefined') {
-    loadQRLibrary(() => renderQRCanvas(vcard));
-  } else {
-    renderQRCanvas(vcard);
-  }
-}
-
-function initQRGenerator() {
-  const pro = isPro();
-  // Free: per day, Pro: per month
-  const key = pro ? 'fts_qr_pro_' + new Date().toISOString().slice(0,7) : 'fts_qr_' + new Date().toDateString();
-  qrMonthCount = parseInt(localStorage.getItem(key) || '0');
-  const limit = pro ? QR_LIMIT_PRO : QR_LIMIT_FREE;
-  const period = pro ? 'this month' : 'today';
-  const remaining = Math.max(0, limit - qrMonthCount);
-  document.getElementById('qr-limit-note').textContent = pro
-    ? `Pro: ${remaining} of ${limit} QR codes remaining this month`
-    : `Free: ${remaining} of ${limit} QR codes remaining today. Upgrade to Pro for 10/month with custom colors.`;
-  if (pro) document.getElementById('qr-pro-options').style.display = 'grid';
-  document.getElementById('qr-fg-color')?.addEventListener('input', function() {
-    document.getElementById('qr-fg-hex').textContent = this.value.toUpperCase();
-    previewQR();
-  });
-  document.getElementById('qr-bg-color')?.addEventListener('input', function() {
-    document.getElementById('qr-bg-hex').textContent = this.value.toUpperCase();
-    previewQR();
-  });
-}
-
-function generateQR() {
-  let text;
-  if (qrCurrentTab === 'vcard') {
-    text = buildVCardString();
-    if (!text) {
-      document.getElementById('qr-preview-area').style.display = 'none';
-      document.getElementById('qr-empty').style.display = 'block';
-      return;
-    }
-  } else {
-    text = document.getElementById('qr-text').value.trim();
-    if (!text) {
-      document.getElementById('qr-preview-area').style.display = 'none';
-      document.getElementById('qr-empty').style.display = 'block';
-      return;
-    }
-  }
-  // Load library if not loaded yet
-  if (typeof QRious === 'undefined') {
-    loadQRLibrary(() => renderQRCanvas(text));
-  } else {
-    renderQRCanvas(text);
-  }
-}
-
-function renderQRCanvas(text) {
-  const pro = isPro();
-  const fg = pro ? (document.getElementById('qr-fg-color')?.value || '#000000') : '#000000';
-  const bg = pro ? (document.getElementById('qr-bg-color')?.value || '#ffffff') : '#ffffff';
-  const canvas = document.getElementById('qr-canvas');
-  try {
-    new QRious({
-      element: canvas,
-      value: text,
-      size: 256,
-      foreground: fg,
-      background: bg,
-      level: 'H'
-    });
-    document.getElementById('qr-empty').style.display = 'none';
-    document.getElementById('qr-preview-area').style.display = 'block';
-  } catch(e) {
-    console.error('QR error:', e);
-  }
-}
-
-function downloadQR() {
-  var hasContent = false;
-  if (qrCurrentTab === 'vcard') {
-    hasContent = !!buildVCardString();
-  } else {
-    hasContent = !!document.getElementById('qr-text').value.trim();
-  }
-  if (!hasContent) return;
-  const pro = isPro();
-  const key = pro ? 'fts_qr_pro_' + new Date().toISOString().slice(0,7) : 'fts_qr_' + new Date().toDateString();
-  qrMonthCount = parseInt(localStorage.getItem(key) || '0');
-  const limit = pro ? QR_LIMIT_PRO : QR_LIMIT_FREE;
-  if (qrMonthCount >= limit) {
-    alert(pro ? 'Unexpected error.' : `You have used all ${QR_LIMIT_FREE} free QR codes for today. Upgrade to Pro for unlimited.`);
-    return;
-  }
-  const canvas = document.getElementById('qr-canvas');
-  const a = document.createElement('a');
-  a.href = canvas.toDataURL('image/png');
-  a.download = 'qrcode.png';
-  a.click();
-  qrMonthCount++;
-  localStorage.setItem(key, qrMonthCount.toString());
-  const remaining = Math.max(0, limit - qrMonthCount);
-  document.getElementById('qr-usage').textContent = pro ? 'Unlimited QR codes' : `${remaining} QR code${remaining !== 1 ? 's' : ''} remaining today`;
-  document.getElementById('qr-limit-note').textContent = pro ? 'Pro: Unlimited QR codes' : `Free: ${remaining} of ${limit} QR code remaining today`;
-}
-
-function clearQR() {
-  // Clear link input
-  document.getElementById('qr-text').value = '';
-  // Clear all vCard fields
-  ['qr-vc-first','qr-vc-last','qr-vc-phone','qr-vc-email','qr-vc-website','qr-vc-company','qr-vc-title','qr-vc-address','qr-vc-instagram','qr-vc-tiktok','qr-vc-youtube','qr-vc-linkedin','qr-vc-twitter','qr-vc-facebook'].forEach(function(id) {
-    var el = document.getElementById(id);
-    if (el) el.value = '';
-  });
-  var noteEl = document.getElementById('qr-vc-note');
-  if (noteEl) noteEl.value = '';
-  // Hide preview, show empty message
-  document.getElementById('qr-preview-area').style.display = 'none';
-  document.getElementById('qr-empty').style.display = 'block';
-}
 
 // ════════════════════════════════════════════
 // INVOICE GENERATOR
@@ -12806,14 +12642,6 @@ ${notes ? `<div class="notes"><strong>Notes:</strong><br>${notes.replace(/\n/g,'
 // ════════════════════════════════════════════
 
 
-function loadQRLibrary(callback) {
-  if (typeof QRious !== 'undefined') { if (callback) callback(); return; }
-  const script = document.createElement('script');
-  script.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js';
-  script.onload = () => { if (callback) callback(); };
-  script.onerror = () => console.error('Failed to load QR library');
-  document.head.appendChild(script);
-}
 
 // ===== AI BIO ASSIST =====
 
@@ -13451,6 +13279,9 @@ function renderAnaMiniChart(canvasId, dailyData, valKey, color) {
      Uses sb, currentUser, userTier, isPro, escapeHtml, startCheckout.
      JSZip loaded at top of dashboard.html with defer. -->
 <script src="/js/follower.js"></script>
+<!-- QR Code Generator extracted to its own file (refactored 2026-05-10).
+     Loads QRious lib on-demand from cdnjs (deferred until tool is used). -->
+<script src="/js/qr.js"></script>
 <!-- Script Builder extracted to its own file (refactored 2026-05-10).
      Loaded AFTER design.js because Scripts AI tools call showDsMsg (defined
      in design.js). Also depends on Tone.js (loaded at top of dashboard.html)
