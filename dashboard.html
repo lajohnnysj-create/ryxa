@@ -3026,6 +3026,11 @@
        unaffected. */
     .grid-phone-profile { gap: 10px; padding-left: 10px; padding-right: 10px; }
     .grid-phone-avatar { width: 44px; height: 44px; }
+    /* Explicit gap between the three stats. space-around alone wasn't
+       producing visible spacing on iOS Safari — labels run together as
+       "postsfollowersfollowing". Forcing a hard gap guarantees minimum
+       breathing room regardless of how the browser distributes flex space. */
+    .grid-phone-stats { gap: 12px; justify-content: space-between; }
   }
   .grid-phone-header {
     display: flex;
