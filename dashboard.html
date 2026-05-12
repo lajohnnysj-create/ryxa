@@ -4269,9 +4269,9 @@
   .course-s-quill-host .ql-container.ql-snow { border-color:var(--border);border-radius:0 0 8px 8px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);min-height:180px; }
   .course-s-quill-host .ql-editor { min-height:180px;color:var(--text); }
   .course-s-quill-host .ql-editor.ql-blank::before { color:var(--muted);font-style:normal;font-size:13px; }
-  .course-s-quill-host .ql-toolbar.ql-snow .ql-stroke { stroke:var(--muted); }
-  .course-s-quill-host .ql-toolbar.ql-snow .ql-fill { fill:var(--muted); }
-  .course-s-quill-host .ql-toolbar.ql-snow .ql-picker-label { color:var(--muted); }
+  .course-s-quill-host .ql-toolbar.ql-snow .ql-stroke { stroke:#fff; }
+  .course-s-quill-host .ql-toolbar.ql-snow .ql-fill { fill:#fff; }
+  .course-s-quill-host .ql-toolbar.ql-snow .ql-picker-label { color:#fff; }
   .course-s-quill-host .ql-toolbar.ql-snow button:hover .ql-stroke,
   .course-s-quill-host .ql-toolbar.ql-snow button.ql-active .ql-stroke { stroke:var(--accent); }
   .course-s-quill-host .ql-toolbar.ql-snow button:hover .ql-fill,
@@ -4287,6 +4287,17 @@
   .course-s-quill-host .ql-editor h2 { font-family:'Syne',sans-serif;font-weight:700;font-size:20px; }
   .course-s-quill-host .ql-editor h3 { font-family:'Syne',sans-serif;font-weight:700;font-size:16px; }
   .course-s-quill-host .ql-snow .ql-picker-options { background:var(--surface);border-color:var(--border);color:var(--text); }
+  /* Image size classes — editor preview. Same percentage values used in
+     viewer (learn/index.html) so creators see exactly what students see. */
+  .course-s-quill-host .ql-editor img.lesson-img-size-small { max-width:30%;width:30%; }
+  .course-s-quill-host .ql-editor img.lesson-img-size-medium { max-width:60%;width:60%; }
+  .course-s-quill-host .ql-editor img.lesson-img-size-large { max-width:100%;width:100%; }
+  .course-s-quill-host .ql-editor img.lesson-img-selected { outline:2px solid var(--accent);outline-offset:2px; }
+  /* S/M/L toolbar buttons (custom-injected by setupImageSizing) */
+  .course-s-quill-host .lesson-img-size-toolbar button { width:auto;padding:0 8px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;color:#fff;background:transparent;border:none;cursor:pointer;height:24px;line-height:24px;border-radius:4px; }
+  .course-s-quill-host .lesson-img-size-toolbar button:hover:not(:disabled) { color:var(--accent);background:rgba(124,58,237,0.08); }
+  .course-s-quill-host .lesson-img-size-toolbar button:disabled { opacity:0.35;cursor:not-allowed; }
+  .course-s-quill-host .lesson-img-size-toolbar button.lesson-img-size-active { color:var(--accent);background:rgba(124,58,237,0.15); }
   /* Video URL validation indicator (live feedback as creator pastes a link).
      Three states via modifier classes: empty (hidden), .valid (green w/ platform
      name), .invalid (red w/ helpful message). See detectVideoPlatform() and the
