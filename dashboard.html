@@ -4269,17 +4269,6 @@
   .course-s-quill-host .ql-container.ql-snow { border-color:var(--border);border-radius:0 0 8px 8px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);min-height:180px; }
   .course-s-quill-host .ql-editor { min-height:180px;color:var(--text); }
   .course-s-quill-host .ql-editor.ql-blank::before { color:var(--muted);font-style:normal;font-size:13px; }
-  .course-s-quill-host .ql-toolbar.ql-snow .ql-stroke { stroke:#fff; }
-  .course-s-quill-host .ql-toolbar.ql-snow .ql-fill { fill:#fff; }
-  .course-s-quill-host .ql-toolbar.ql-snow .ql-picker-label { color:#fff; }
-  .course-s-quill-host .ql-toolbar.ql-snow button:hover .ql-stroke,
-  .course-s-quill-host .ql-toolbar.ql-snow button.ql-active .ql-stroke { stroke:var(--accent); }
-  .course-s-quill-host .ql-toolbar.ql-snow button:hover .ql-fill,
-  .course-s-quill-host .ql-toolbar.ql-snow button.ql-active .ql-fill { fill:var(--accent); }
-  .course-s-quill-host .ql-toolbar.ql-snow .ql-picker-label:hover,
-  .course-s-quill-host .ql-toolbar.ql-snow .ql-picker-label.ql-active,
-  .course-s-quill-host .ql-toolbar.ql-snow .ql-picker-item:hover,
-  .course-s-quill-host .ql-toolbar.ql-snow .ql-picker-item.ql-selected { color:var(--accent); }
   .course-s-quill-host .ql-snow .ql-picker.ql-header .ql-picker-label::before,
   .course-s-quill-host .ql-snow .ql-picker.ql-header .ql-picker-item::before { color:inherit; }
   .course-s-quill-host .ql-editor img { max-width:100%;height:auto;border-radius:6px;margin:8px 0; }
@@ -4287,17 +4276,42 @@
   .course-s-quill-host .ql-editor h2 { font-family:'Syne',sans-serif;font-weight:700;font-size:20px; }
   .course-s-quill-host .ql-editor h3 { font-family:'Syne',sans-serif;font-weight:700;font-size:16px; }
   .course-s-quill-host .ql-snow .ql-picker-options { background:var(--surface);border-color:var(--border);color:var(--text); }
-  /* Image size classes — editor preview. Same percentage values used in
-     viewer (learn/index.html) so creators see exactly what students see. */
-  .course-s-quill-host .ql-editor img.lesson-img-size-small { max-width:30%;width:30%; }
-  .course-s-quill-host .ql-editor img.lesson-img-size-medium { max-width:60%;width:60%; }
-  .course-s-quill-host .ql-editor img.lesson-img-size-large { max-width:100%;width:100%; }
-  .course-s-quill-host .ql-editor img.lesson-img-selected { outline:2px solid var(--accent);outline-offset:2px; }
-  /* S/M/L toolbar buttons (custom-injected by setupImageSizing) */
-  .course-s-quill-host .lesson-img-size-toolbar button { width:auto;padding:0 8px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;color:#fff;background:transparent;border:none;cursor:pointer;height:24px;line-height:24px;border-radius:4px; }
-  .course-s-quill-host .lesson-img-size-toolbar button:hover:not(:disabled) { color:var(--accent);background:rgba(124,58,237,0.08); }
-  .course-s-quill-host .lesson-img-size-toolbar button:disabled { opacity:0.35;cursor:not-allowed; }
-  .course-s-quill-host .lesson-img-size-toolbar button.lesson-img-size-active { color:var(--accent);background:rgba(124,58,237,0.15); }
+  /* Quill toolbar icon coloring. Quill's snow theme defines .ql-stroke and
+     .ql-fill rules at the same specificity as our .course-s-quill-host
+     wrapper selectors, and the toolbar is rendered as a sibling of our host
+     (not a descendant) — so our wrapper-prefixed rules never matched. We
+     scope by ql-toolbar.ql-snow directly (which is unique to the editor
+     anyway) with !important to win over Quill's deep defaults. */
+  .ql-toolbar.ql-snow .ql-stroke { stroke:#fff !important; }
+  .ql-toolbar.ql-snow .ql-fill { fill:#fff !important; }
+  .ql-toolbar.ql-snow .ql-picker-label { color:#fff !important; }
+  .ql-toolbar.ql-snow button:hover .ql-stroke,
+  .ql-toolbar.ql-snow button.ql-active .ql-stroke { stroke:var(--accent) !important; }
+  .ql-toolbar.ql-snow button:hover .ql-fill,
+  .ql-toolbar.ql-snow button.ql-active .ql-fill { fill:var(--accent) !important; }
+  .ql-toolbar.ql-snow .ql-picker-label:hover,
+  .ql-toolbar.ql-snow .ql-picker-label.ql-active,
+  .ql-toolbar.ql-snow .ql-picker-item:hover,
+  .ql-toolbar.ql-snow .ql-picker-item.ql-selected { color:var(--accent) !important; }
+  /* Image size classes — editor preview. */
+  .ql-editor img.lesson-img-size-small { max-width:30%;width:30%; }
+  .ql-editor img.lesson-img-size-medium { max-width:60%;width:60%; }
+  .ql-editor img.lesson-img-size-large { max-width:100%;width:100%; }
+  .ql-editor img.lesson-img-selected { outline:2px solid var(--accent);outline-offset:2px; }
+  /* S/M/L toolbar buttons (custom-injected by setupImageSizing). Two visual
+     states matter here:
+       - DORMANT (no image selected): low-key gray text, signal that they
+         exist but are not actionable.
+       - ALIVE (image selected): solid purple pill, white text, subtle glow.
+         The active size for the selected image shows even more prominent.
+     This pattern makes it obvious where to resize once an image is clicked. */
+  .lesson-img-size-toolbar button { padding:0 10px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;color:#666;background:transparent;border:1px solid transparent;cursor:pointer;height:24px;line-height:22px;border-radius:5px;transition:all 0.15s; }
+  .lesson-img-size-toolbar button:disabled { cursor:not-allowed;color:#555;opacity:0.6; }
+  /* When the toolbar group has any non-disabled button, the whole group is
+     "live" — we use a parent state class set by JS to drive the alive look. */
+  .lesson-img-size-toolbar.has-selection button { color:#fff;background:rgba(124,58,237,0.25);border-color:rgba(124,58,237,0.45); }
+  .lesson-img-size-toolbar.has-selection button:hover { background:rgba(124,58,237,0.4);border-color:rgba(124,58,237,0.7); }
+  .lesson-img-size-toolbar.has-selection button.lesson-img-size-active { background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 0 8px rgba(124,58,237,0.45); }
   /* Video URL validation indicator (live feedback as creator pastes a link).
      Three states via modifier classes: empty (hidden), .valid (green w/ platform
      name), .invalid (red w/ helpful message). See detectVideoPlatform() and the
