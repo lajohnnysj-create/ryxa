@@ -2181,7 +2181,17 @@
   .dash-range-date::-webkit-calendar-picker-indicator:hover { opacity: 1; }
   .dash-range-date:focus { border-color: var(--accent); outline: none; }
   .dash-sparkline { display: flex; align-items: flex-end; gap: 2px; height: 32px; margin-top: 12px; position: relative; }
-  .dash-sparkline-bar { flex: 1; background: linear-gradient(180deg, rgba(232,121,249,0.5), rgba(124,58,237,0.3)); border-radius: 2px 2px 0 0; min-height: 2px; transition: height 0.3s; }
+  .dash-sparkline-bar { flex: 1; background: linear-gradient(180deg, rgba(232,121,249,0.5), rgba(124,58,237,0.3)); border-radius: 2px 2px 0 0; min-height: 2px; transition: height 0.3s, background 0.15s; cursor: default; }
+  /* Subtle highlight on the hovered bar so the user gets visual feedback
+     that this thing is interactive. Brighter version of the same gradient. */
+  .dash-sparkline-bar:hover { background: linear-gradient(180deg, rgba(232,121,249,0.95), rgba(124,58,237,0.7)); }
+  /* Hover tooltip — absolutely positioned inside the sparkline container.
+     Sits above the bars with a translateY offset, pointer-events:none so the
+     tip itself doesn't intercept the mouse and cause flicker. The container
+     has overflow:visible so the tip can sit above its top edge. */
+  .dash-spark-tip { position: absolute; transform: translate(-50%, calc(-100% - 6px)); background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; font-size: 11px; line-height: 1.35; color: var(--text); white-space: nowrap; pointer-events: none; z-index: 5; box-shadow: 0 4px 12px rgba(0,0,0,0.25); }
+  .dash-spark-tip-val { font-weight: 700; color: #fff; }
+  .dash-spark-tip-date { color: var(--muted); font-size: 10px; margin-top: 2px; }
 
   @media (max-width: 640px) {
     .dash-stats-wrap { grid-template-columns: 1fr; }
