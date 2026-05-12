@@ -1094,7 +1094,36 @@ function mountLessonEditor(mi, li) {
   if (initial && !/<[a-z]/i.test(initial)) {
     initial = '<p>' + initial.replace(/\n/g, '<br>') + '</p>';
   }
-  quill.clipboard.dangerouslyPasteHTML(0, sanitizeLessonHtml(initial), 'silent');
+  var sanitizedInitial = sanitizeLessonHtml(initial);
+  quill.clipboard.dangerouslyPasteHTML(0, sanitizedInitial, 'silent');
+
+  // Belt-and-suspenders: re-apply image size classes after the seed. Quill 1.x
+  // treats images as Embed blots which don't preserve custom classes through
+  // dangerouslyPasteHTML — the Parchment attributor we registered helps for
+  // copy/paste WITHIN the editor but is unreliable for the initial seed. We
+  // re-parse our saved HTML, extract the size class for each image by index,
+  // and apply it directly to Quill's rendered DOM.
+  if (sanitizedInitial && /<img/i.test(sanitizedInitial)) {
+    try {
+      var parser = new DOMParser();
+      var parsedDoc = parser.parseFromString('<div>' + sanitizedInitial + '</div>', 'text/html');
+      var savedImgs = parsedDoc.querySelectorAll('img');
+      var quillImgs = quill.root.querySelectorAll('img');
+      // Match by position. Order is stable because dangerouslyPasteHTML
+      // preserves the document order of embeds.
+      for (var i = 0; i < quillImgs.length && i < savedImgs.length; i++) {
+        var savedCls = savedImgs[i].className || '';
+        var sizeMatch = savedCls.match(/\blesson-img-size-(small|medium|large)\b/);
+        if (sizeMatch) {
+          // Strip any leftover size classes first, then apply the saved one.
+          quillImgs[i].classList.remove('lesson-img-size-small', 'lesson-img-size-medium', 'lesson-img-size-large');
+          quillImgs[i].classList.add('lesson-img-size-' + sizeMatch[1]);
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to re-apply image size classes after seed:', e);
+    }
+  }
 
   // Save on every edit. We sanitize on the way IN to the data model so the
   // stored value is already clean. learn-page.js sanitizes again on render
