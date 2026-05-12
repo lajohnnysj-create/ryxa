@@ -1035,8 +1035,9 @@ function backToDash() {
 
 function getEmbedUrl(url) {
   if (!url) return null;
-  // YouTube
-  var ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/);
+  // YouTube — includes Shorts. The /embed/ URL works for both regular videos
+  // and shorts; YouTube auto-handles vertical aspect when rendering.
+  var ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/);
   if (ytMatch) return 'https://www.youtube.com/embed/' + ytMatch[1];
   // Vimeo
   var vmMatch = url.match(/vimeo\.com\/(\d+)/);
