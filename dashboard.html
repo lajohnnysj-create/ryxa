@@ -4711,7 +4711,17 @@
      compact form (e.g. "Los Angeles" not "America/Los_Angeles"). */
   .cal-s-tz-inline { padding:8px 28px 8px 12px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;outline:none;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%237c7c8d' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");background-repeat:no-repeat;background-position:right 10px center;transition:all 0.15s;max-width:200px;text-overflow:ellipsis; }
   .cal-s-tz-inline:hover { border-color:var(--border-hover);color:var(--text); }
-  .cal-s-tz-inline option { background:var(--surface);color:var(--text); }
+  /* Dropdown panel styling. <option> handles the row text/bg; <optgroup>
+     handles the group label rows (e.g. "Your timezone", "Common timezones").
+     Without an explicit optgroup rule, Chrome renders the label text in a
+     near-white color against the panel's near-white bg — looks broken on
+     the dashboard's dark theme. Both inherit nothing useful from the
+     closed-state select styling, so we set background-color and color
+     directly. background-color (not shorthand) is needed because some
+     Chromium versions ignore `background` on these elements. */
+  .cal-s-tz-inline option { background-color:var(--surface2);color:var(--text);padding:6px 8px; }
+  .cal-s-tz-inline optgroup { background-color:var(--surface3);color:var(--muted);font-weight:600;font-style:normal;font-size:11px;text-transform:uppercase;letter-spacing:0.04em; }
+  .cal-s-tz-inline optgroup option { background-color:var(--surface2);color:var(--text);font-weight:400;font-size:13px;text-transform:none;letter-spacing:normal; }
   .cal-s-907d36 { display:none;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px; }
   .cal-s-359c20 { display:flex;align-items:center;justify-content:space-between;margin-bottom:12px; }
   .cal-s-fce6be { width:28px;height:28px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center; }
