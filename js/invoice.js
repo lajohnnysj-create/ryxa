@@ -5,7 +5,8 @@
 // document and opens it in a new tab where the user can Cmd+P / Ctrl+P to save
 // as PDF. Logo is stored in Supabase Storage under user-specific path.
 //
-// Daily limit of 3 invoices for free users; unlimited for Pro.
+// Unlimited for all users. Pro still gets logo upload; Free invoices generate
+// without a logo. Previously had a daily cap of 3 for free; removed pre-launch.
 //
 // IMPORTANT: downloadInvoicePDF() constructs an HTML document that gets written
 // to a Blob and opened in a NEW BROWSER TAB. Inline event handlers and inline
@@ -79,15 +80,12 @@ function invoiceDispatchEvent(event) {
 // ════════════════════════════════════════════
 let invItems = [];
 let invLogoDataUrl = null;
-let invDailyCount = 0;
-const INV_LIMIT_FREE = 3;
 
 function initInvoiceGenerator() {
   const pro = isPro();
-  const key = 'fts_inv_' + new Date().toDateString();
-  invDailyCount = parseInt(localStorage.getItem(key) || '0');
 
-  // Show logo section for everyone, lock it for free users
+  // Show logo section for everyone, lock it for free users.
+  // Logo upload remains the Pro differentiator; count cap was removed.
   const logoSection = document.getElementById('logo-section');
   if (logoSection) logoSection.style.display = 'block';
 
@@ -101,12 +99,10 @@ function initInvoiceGenerator() {
     if (fileInput) fileInput.style.pointerEvents = 'auto';
     if (logoPlaceholderText) logoPlaceholderText.textContent = 'Logo';
   } else {
-    // Free: locked
+    // Free: logo locked
     if (logoUploadArea) { logoUploadArea.style.cursor = 'not-allowed'; logoUploadArea.style.opacity = '0.6'; }
     if (fileInput) fileInput.style.pointerEvents = 'none';
     if (logoPlaceholderText) logoPlaceholderText.textContent = 'Upgrade to Pro to add logo';
-    const remaining = Math.max(0, INV_LIMIT_FREE - invDailyCount);
-    document.getElementById('inv-usage').textContent = `Free: ${remaining} of ${INV_LIMIT_FREE} invoices remaining today. Upgrade to Pro for unlimited.`;
   }
 
   // Set default dates
@@ -264,12 +260,6 @@ function calcTotals() {
 
 function downloadInvoicePDF() {
   const pro = isPro();
-  const key = 'fts_inv_' + new Date().toDateString();
-  invDailyCount = parseInt(localStorage.getItem(key) || '0');
-  if (!pro && invDailyCount >= INV_LIMIT_FREE) {
-    alert(`You have used all ${INV_LIMIT_FREE} free invoices for today. Upgrade to Pro for unlimited.`);
-    return;
-  }
   const fromName = document.getElementById('inv-from-name').value || 'Your Name';
   const fromEmail = document.getElementById('inv-from-email').value || '';
   const fromAddr = document.getElementById('inv-from-address').value || '';
@@ -380,13 +370,6 @@ ${notes ? `<div class="notes"><strong>Notes:</strong><br>${notes.replace(/\n/g,'
   // ╔══════════════════════════════════════════════════════════════════════╗
   // ║ END BLOB HTML ZONE                                                   ║
   // ╚══════════════════════════════════════════════════════════════════════╝
-
-  if (!pro) {
-    invDailyCount++;
-    localStorage.setItem(key, invDailyCount.toString());
-    const remaining = Math.max(0, INV_LIMIT_FREE - invDailyCount);
-    document.getElementById('inv-usage').textContent = `Free: ${remaining} of ${INV_LIMIT_FREE} invoices remaining today.`;
-  }
 }
 
 // =============================================================================

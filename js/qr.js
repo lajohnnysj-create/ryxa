@@ -3,7 +3,8 @@
 // -----------------------------------------------------------------------------
 // All JavaScript for the QR Code Generator tool. Two modes: a Link mode (any
 // URL becomes a QR code) and a vCard mode (contact card QR with name/phone/
-// email/etc). Daily limit of 3 codes for free users; unlimited for Pro.
+// email/etc). Unlimited for all users. Pro gets custom foreground/background
+// colors; Free is locked to the default black-on-white.
 //
 // Uses the QRious library, loaded on-demand from cdnjs the first time the
 // user opens the tool or generates a QR (loadQRLibrary defers the script
@@ -69,10 +70,11 @@ function qrDispatchEvent(event) {
 // ════════════════════════════════════════════
 // QR CODE GENERATOR
 // ════════════════════════════════════════════
-let qrMonthCount = 0;
-const QR_LIMIT_FREE = 3;
-const QR_LIMIT_FREE_DAY = true; // per day for free
-const QR_LIMIT_PRO = 9999; // unlimited
+// Unlimited for all users. Pro still gets custom foreground/background
+// colors; Free is locked to black-on-white. Previously had a daily cap
+// of 3 for free; that's been removed pre-launch — count-based gating
+// added friction without driving conversions in proportion. Color
+// customization remains the Pro differentiator.
 
 let qrCurrentTab = 'link';
 
@@ -147,15 +149,8 @@ function generateVCardQR() {
 
 function initQRGenerator() {
   const pro = isPro();
-  // Free: per day, Pro: per month
-  const key = pro ? 'fts_qr_pro_' + new Date().toISOString().slice(0,7) : 'fts_qr_' + new Date().toDateString();
-  qrMonthCount = parseInt(localStorage.getItem(key) || '0');
-  const limit = pro ? QR_LIMIT_PRO : QR_LIMIT_FREE;
-  const period = pro ? 'this month' : 'today';
-  const remaining = Math.max(0, limit - qrMonthCount);
-  document.getElementById('qr-limit-note').textContent = pro
-    ? `Pro: ${remaining} of ${limit} QR codes remaining this month`
-    : `Free: ${remaining} of ${limit} QR codes remaining today. Upgrade to Pro for 10/month with custom colors.`;
+  // Pro gets foreground/background color pickers. Free is locked to the
+  // default black-on-white but otherwise has no usage cap.
   if (pro) document.getElementById('qr-pro-options').style.display = 'grid';
   document.getElementById('qr-fg-color')?.addEventListener('input', function() {
     document.getElementById('qr-fg-hex').textContent = this.value.toUpperCase();
@@ -221,24 +216,11 @@ function downloadQR() {
     hasContent = !!document.getElementById('qr-text').value.trim();
   }
   if (!hasContent) return;
-  const pro = isPro();
-  const key = pro ? 'fts_qr_pro_' + new Date().toISOString().slice(0,7) : 'fts_qr_' + new Date().toDateString();
-  qrMonthCount = parseInt(localStorage.getItem(key) || '0');
-  const limit = pro ? QR_LIMIT_PRO : QR_LIMIT_FREE;
-  if (qrMonthCount >= limit) {
-    alert(pro ? 'Unexpected error.' : `You have used all ${QR_LIMIT_FREE} free QR codes for today. Upgrade to Pro for unlimited.`);
-    return;
-  }
   const canvas = document.getElementById('qr-canvas');
   const a = document.createElement('a');
   a.href = canvas.toDataURL('image/png');
   a.download = 'qrcode.png';
   a.click();
-  qrMonthCount++;
-  localStorage.setItem(key, qrMonthCount.toString());
-  const remaining = Math.max(0, limit - qrMonthCount);
-  document.getElementById('qr-usage').textContent = pro ? 'Unlimited QR codes' : `${remaining} QR code${remaining !== 1 ? 's' : ''} remaining today`;
-  document.getElementById('qr-limit-note').textContent = pro ? 'Pro: Unlimited QR codes' : `Free: ${remaining} of ${limit} QR code remaining today`;
 }
 
 function clearQR() {
