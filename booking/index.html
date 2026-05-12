@@ -91,7 +91,15 @@
   .picker-time-btn:hover { border-color: var(--accent); }
   .picker-time-btn.selected { background: var(--accent); border-color: var(--accent); color: #fff; }
   .picker-empty { padding: 24px; text-align: center; color: var(--muted); font-size: 13px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 28px; }
-  .picker-tz-info { font-size: 12px; color: var(--muted); margin-bottom: 16px; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; display: inline-block; }
+  .picker-tz-info { font-size: 12px; color: var(--muted); margin-bottom: 16px; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; display: inline-flex; align-items: center; gap: 8px; }
+  /* Inline timezone dropdown sitting inside the pill. Visually integrated:
+     no border of its own, transparent background, just the chevron to
+     signal it's clickable. Native <select> for accessibility + mobile-
+     friendly behavior. */
+  .picker-tz-label { font-size: 12px; color: var(--muted); }
+  .picker-tz-select { font-size: 12px; color: var(--text, #111); font-weight: 500; font-family: inherit; background: transparent; border: none; padding: 0 20px 0 0; cursor: pointer; outline: none; -webkit-appearance: none; appearance: none; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%237c7c8d' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>"); background-repeat: no-repeat; background-position: right 2px center; max-width: 200px; text-overflow: ellipsis; }
+  .picker-tz-select:hover { color: var(--accent, #7c3aed); }
+  .picker-tz-select option { color: #111; background: #fff; }
   .picker-summary { padding: 14px 18px; background: rgba(124,58,237,0.08); border: 1px solid rgba(124,58,237,0.25); border-radius: 12px; margin-bottom: 16px; }
   .picker-summary-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
   .picker-summary-value { font-size: 15px; color: var(--text); font-weight: 600; }
@@ -177,7 +185,10 @@
     <h1 class="picker-h1">Pick a date and time</h1>
     <p class="picker-sub" id="picker-sub">Choose when you'd like your session.</p>
 
-    <div class="picker-tz-info" id="picker-tz">Your timezone: <span id="picker-tz-name"></span></div>
+    <div class="picker-tz-info" id="picker-tz">
+      <label for="picker-tz-select" class="picker-tz-label">Your timezone:</label>
+      <select id="picker-tz-select" class="picker-tz-select" aria-label="Your timezone" data-booking-change="change-booker-timezone"></select>
+    </div>
 
     <span class="picker-section-label">Select a date</span>
     <div class="picker-date-grid" id="picker-dates"></div>
