@@ -1305,6 +1305,36 @@ function setupImageSizing(quill, mi, li, container) {
     if (!sel.hasAttribute('aria-label')) sel.setAttribute('aria-label', 'Heading level');
   });
 
+  // Quill's link/video/formula tooltip — a hidden popover that appears when
+  // the user clicks the link button or an existing link in the editor.
+  // It contains an unlabeled <input> for the URL and an empty <a> preview.
+  // Both are flagged by WAVE even when display:none, because WAVE scans the
+  // DOM not the visual state. We label the input + give the empty preview
+  // anchor a fallback name. Tooltip placement varies by Quill version —
+  // check toolbar's parent, container's parent, and finally container itself.
+  var tooltip = null;
+  var searchRoots = [toolbar.parentElement, container.parentElement, container];
+  for (var i = 0; i < searchRoots.length && !tooltip; i++) {
+    if (searchRoots[i]) tooltip = searchRoots[i].querySelector('.ql-tooltip');
+  }
+  if (tooltip) {
+    var input = tooltip.querySelector('input[type="text"]');
+    if (input && !input.hasAttribute('aria-label')) {
+      // The placeholder shifts (Enter link URL / Embed URL / formula) as
+      // Quill switches modes — "Enter URL" is a reasonable umbrella label.
+      input.setAttribute('aria-label', 'Enter URL');
+    }
+    // The preview anchor is empty until a link is entered. Give it an
+    // accessible name so WAVE stops flagging it; the visible <a class=
+    // "ql-action"> next to it is the actual interactive element. We pick
+    // aria-label because the preview becomes meaningful when populated
+    // (it shows the current URL).
+    var preview = tooltip.querySelector('a.ql-preview');
+    if (preview && !preview.hasAttribute('aria-label')) {
+      preview.setAttribute('aria-label', 'Current link URL');
+    }
+  }
+
   // Inject S/M/L button group right before the "clean" button (last group).
   var group = document.createElement('span');
   group.className = 'ql-formats lesson-img-size-toolbar';
