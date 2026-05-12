@@ -369,6 +369,9 @@ function populateBookerTimezoneSelect() {
   var detected = '';
   try { detected = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) {}
 
+  // Although TZ values on this page come from Intl (browser-controlled,
+  // safe) and not from user input or DB, we escape on principle —
+  // consistent with calendar.js and the Ryxa "security from day one" rule.
   var shown = {};
   var html = '';
 
@@ -376,7 +379,7 @@ function populateBookerTimezoneSelect() {
   if (detected) {
     var detectedSelected = detected === current ? ' selected' : '';
     html += '<optgroup label="Your timezone">'
-      + '<option value="' + detected + '"' + detectedSelected + '>' + formatBookerTzLabel(detected) + '</option>'
+      + '<option value="' + escapeHtml(detected) + '"' + detectedSelected + '>' + escapeHtml(formatBookerTzLabel(detected)) + '</option>'
       + '</optgroup>';
     shown[detected] = true;
   }
@@ -385,7 +388,7 @@ function populateBookerTimezoneSelect() {
   // isn't in the common list.
   if (current && !shown[current] && BOOKER_COMMON_TZS.indexOf(current) === -1) {
     html += '<optgroup label="Currently selected">'
-      + '<option value="' + current + '" selected>' + formatBookerTzLabel(current) + '</option>'
+      + '<option value="' + escapeHtml(current) + '" selected>' + escapeHtml(formatBookerTzLabel(current)) + '</option>'
       + '</optgroup>';
     shown[current] = true;
   }
@@ -396,7 +399,7 @@ function populateBookerTimezoneSelect() {
     html += '<optgroup label="Common timezones">'
       + commonOpts.map(function(tz) {
           var selected = tz === current ? ' selected' : '';
-          return '<option value="' + tz + '"' + selected + '>' + formatBookerTzLabel(tz) + '</option>';
+          return '<option value="' + escapeHtml(tz) + '"' + selected + '>' + escapeHtml(formatBookerTzLabel(tz)) + '</option>';
         }).join('')
       + '</optgroup>';
   }

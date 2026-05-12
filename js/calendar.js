@@ -1139,7 +1139,10 @@ function calPopulateInlineTimezone() {
   try { detected = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) {}
 
   // Build the option lists for each group. Track everything shown so far
-  // so we don't duplicate entries between groups.
+  // so we don't duplicate entries between groups. Although the only path
+  // for these strings to be malicious is self-XSS (user editing their own
+  // profiles.calendar_timezone), we escape on principle — defense in depth
+  // per the Ryxa security rules.
   var shown = {};
   var html = '';
 
@@ -1147,7 +1150,7 @@ function calPopulateInlineTimezone() {
   if (detected) {
     var detectedSelected = detected === saved ? ' selected' : '';
     html += '<optgroup label="Your timezone">'
-      + '<option value="' + detected + '"' + detectedSelected + '>' + calFormatTzLabel(detected) + '</option>'
+      + '<option value="' + escapeHtmlSimple(detected) + '"' + detectedSelected + '>' + escapeHtmlSimple(calFormatTzLabel(detected)) + '</option>'
       + '</optgroup>';
     shown[detected] = true;
   }
@@ -1157,19 +1160,19 @@ function calPopulateInlineTimezone() {
   // group will show it). Handles travelers and edge-case manual picks.
   if (saved && !shown[saved] && CAL_COMMON_TZS.indexOf(saved) === -1) {
     html += '<optgroup label="Currently selected">'
-      + '<option value="' + saved + '" selected>' + calFormatTzLabel(saved) + '</option>'
+      + '<option value="' + escapeHtmlSimple(saved) + '" selected>' + escapeHtmlSimple(calFormatTzLabel(saved)) + '</option>'
       + '</optgroup>';
     shown[saved] = true;
   }
 
-  // Group 3: "Common timezones" — curated list, minus anything already
-  // shown above to avoid duplicates.
+  // Group 3: "Common timezones" — curated list (hardcoded constants, safe
+  // by construction) minus anything already shown above.
   var commonOpts = CAL_COMMON_TZS.filter(function(tz) { return !shown[tz]; });
   if (commonOpts.length) {
     html += '<optgroup label="Common timezones">'
       + commonOpts.map(function(tz) {
           var selected = tz === saved ? ' selected' : '';
-          return '<option value="' + tz + '"' + selected + '>' + calFormatTzLabel(tz) + '</option>';
+          return '<option value="' + escapeHtmlSimple(tz) + '"' + selected + '>' + escapeHtmlSimple(calFormatTzLabel(tz)) + '</option>';
         }).join('')
       + '</optgroup>';
   }

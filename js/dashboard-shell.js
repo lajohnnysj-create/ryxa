@@ -1960,6 +1960,11 @@ dashRegisterAction('close-pro-upsell-if-backdrop', (e, el) => {
 // Used by every sidebar tool button. Follower has its own wrapper that does
 // extra setup (showFollowerTool) so it's a separate action.
 dashRegisterAction('show-tool', (e, el) => {
+  // preventDefault so anchor-tag triggers (e.g. the "Change in Calendar →"
+  // link inside the coaching tz hint) don't navigate to #. Buttons ignore
+  // this no-op call. Without it, clicking the tz hint link would change
+  // the URL from /dashboard to /dashboard# on every click.
+  if (e && e.preventDefault) e.preventDefault();
   if (typeof showTool === 'function') showTool(el.dataset.dashTool);
 });
 dashRegisterAction('show-follower', () => {

@@ -321,7 +321,9 @@ function setCoachingTzHint() {
   // The body of the hint explains what bookers see + offers a way to change
   // the timezone if the creator picked the wrong one. Link uses the dash
   // tool router (show-tool action) so it switches to Calendar without a
-  // page reload.
+  // page reload. href="#" keeps native <a> keyboard semantics (Enter fires
+  // a click event); the show-tool handler in dashboard-shell.js calls
+  // preventDefault to stop the hash from being appended.
   el.innerHTML = (tz
     ? 'Times shown in <strong>' + escapeHtml(label) + '</strong>. '
     : '')
