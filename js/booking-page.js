@@ -764,7 +764,7 @@ async function showConfirmation(coachingId) {
           var { data: { session } } = await sb.auth.getSession();
           if (session?.user) {
             var { data: booking } = await sb.from('coaching_bookings')
-              .select('slot_start, slot_end')
+              .select('slot_start, slot_end, slot_timezone')
               .eq('coaching_id', coachingId)
               .eq('user_id', session.user.id)
               .order('booked_at', { ascending: false })
@@ -773,8 +773,17 @@ async function showConfirmation(coachingId) {
             if (booking && booking.slot_start) {
               var startDate = new Date(booking.slot_start);
               var endDate = new Date(booking.slot_end);
-              var dateStr = startDate.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
-              var timeStr = startDate.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) + ' - ' + endDate.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+              // Format in the booker's chosen timezone (slot_timezone from
+              // the booking row). Defaulting to browser-local (via `undefined`)
+              // was wrong: if the booker picked a different tz via the picker
+              // dropdown — or if the browser tz changed since booking (VPN,
+              // travel) — they'd see the wrong clock here. The DB has the
+              // ground truth; use it.
+              var bookerTz = booking.slot_timezone || undefined;
+              var dateStr = startDate.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', timeZone: bookerTz });
+              var timeStr = startDate.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', timeZone: bookerTz })
+                + ' - '
+                + endDate.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', timeZoneName: 'short', timeZone: bookerTz });
               bodyEl.innerHTML = '<div class="confirm-manual">'
                 + '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:10px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>'
                 + '<p style="font-size:15px;color:var(--text);margin-bottom:8px;font-weight:600;">' + escapeHtml(dateStr) + '</p>'
