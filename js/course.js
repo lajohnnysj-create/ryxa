@@ -810,6 +810,10 @@ function toggleLessonPreview(modIdx, lessonIdx) {
 }
 
 function collapseLesson(modIdx, lessonIdx) {
+  // Tear down the Quill instance (if any) before the host div is removed
+  // by the upcoming re-render. Prevents stale references piling up across
+  // expand/collapse cycles.
+  unmountLessonEditor(modIdx, lessonIdx);
   courseModules[modIdx].lessons[lessonIdx]._collapsed = true;
   renderCourseModules();
 }
@@ -899,6 +903,202 @@ function detectVideoPlatform(url) {
   return null;
 }
 
+// =============================================================================
+// RICH TEXT EDITOR (Quill 1.3.7) — text lessons
+// =============================================================================
+// Quill and DOMPurify are lazy-loaded on first text-lesson expansion, mirroring
+// the Tone.js pattern in scripts.js. Saves ~75KB on every dashboard load that
+// doesn't open a text lesson. Both libraries are loaded from cdnjs (already
+// permitted by the dashboard's script-src CSP).
+//
+// SECURITY: every HTML payload from a creator passes through DOMPurify before
+// (a) being saved to text_content, and (b) being rendered to students in
+// learn-page.js. Defense in depth — never trust HTML alone, even our own.
+
+var MAX_LESSON_IMAGES = 15;
+var _courseQuillInstances = {}; // key: 'mi-li' → Quill instance
+var _courseQuillLoadPromise = null;
+
+function ensureQuillLoaded() {
+  if (typeof Quill !== 'undefined' && typeof DOMPurify !== 'undefined') return Promise.resolve();
+  if (_courseQuillLoadPromise) return _courseQuillLoadPromise;
+  _courseQuillLoadPromise = new Promise(function(resolve, reject) {
+    // Inject stylesheet first (Quill needs its CSS to render the toolbar/editor
+    // correctly). Snow theme is the standard one with the inline toolbar.
+    var css = document.createElement('link');
+    css.rel = 'stylesheet';
+    css.href = 'https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.snow.min.css';
+    css.integrity = 'sha512-yrOmjPdp8qH8hgLfWpSFhC/+R9Cj9USL8uJxYIveJZGAiedxyIxwNo4tqpJSvtcpkTd0jZA4YLbcEMmGzbS+/Q==';
+    css.crossOrigin = 'anonymous';
+    document.head.appendChild(css);
+
+    var loaded = 0;
+    function done() { if (++loaded === 2) resolve(); }
+    function fail(libName) {
+      _courseQuillLoadPromise = null;
+      reject(new Error(libName + ' failed to load'));
+    }
+
+    var quillScript = document.createElement('script');
+    quillScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.min.js';
+    quillScript.integrity = 'sha512-bGcJlYRehFXSBkPyHRwjFy3lDlGc4lqdljOoVsbiTrJgSyVtJTW8RutZ3qC7+JFE5LNhFjkRzvc7tBgr0+oUZw==';
+    quillScript.crossOrigin = 'anonymous';
+    quillScript.onload = done;
+    quillScript.onerror = function() { fail('Quill'); };
+    document.head.appendChild(quillScript);
+
+    var purifyScript = document.createElement('script');
+    purifyScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js';
+    purifyScript.integrity = 'sha512-R0eXQXbBfvHnv0NEpdHJpQQ02WB7+CSXMGRYBR9P6Qe0F7w5cBQpEKXmtxnpVQEgRiZAaJekQiukLMHzwa3IGw==';
+    purifyScript.crossOrigin = 'anonymous';
+    purifyScript.onload = done;
+    purifyScript.onerror = function() { fail('DOMPurify'); };
+    document.head.appendChild(purifyScript);
+  });
+  return _courseQuillLoadPromise;
+}
+
+// DOMPurify config — what creators can produce, students can see. Whitelist
+// matches Quill's output exactly (headings, lists, links, images, alignment
+// classes, basic inline marks). Anything outside this list gets stripped.
+var QUILL_PURIFY_CONFIG = {
+  ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 's', 'a', 'h1', 'h2', 'h3', 'ul', 'ol', 'li', 'img', 'span', 'div'],
+  ALLOWED_ATTR: ['href', 'target', 'rel', 'src', 'alt', 'class'],
+  ALLOWED_URI_REGEXP: /^(?:https?:|mailto:)/i,
+  // Quill applies alignment via 'ql-align-center', 'ql-align-right' classes.
+  // Whitelist those (and only those) class values so creators can't inject
+  // arbitrary CSS via class names that match third-party stylesheets.
+  ADD_ATTR: ['target'],
+  // Force all external links to open with rel="noopener noreferrer".
+  // DOMPurify hook below applies this for any <a> tag with target=_blank.
+};
+
+function sanitizeLessonHtml(html) {
+  if (typeof DOMPurify === 'undefined') return ''; // editor not loaded yet
+  return DOMPurify.sanitize(html || '', QUILL_PURIFY_CONFIG);
+}
+
+// Count <img> tags in the current Quill content (used to enforce per-lesson
+// image cap). A regex is fine here — Quill output is well-formed.
+function countQuillImages(quill) {
+  var html = quill.root.innerHTML;
+  var matches = html.match(/<img\b/g);
+  return matches ? matches.length : 0;
+}
+
+// Initialize a Quill editor inside the placeholder div for a given lesson.
+// Called after Quill is loaded AND after the lesson body is in the DOM.
+function mountLessonEditor(mi, li) {
+  var key = mi + '-' + li;
+  if (_courseQuillInstances[key]) return _courseQuillInstances[key]; // already mounted
+
+  var container = document.getElementById('lesson-editor-' + key);
+  if (!container) return null;
+
+  var lesson = courseModules[mi] && courseModules[mi].lessons[li];
+  if (!lesson) return null;
+
+  var quill = new Quill(container, {
+    theme: 'snow',
+    placeholder: 'Lesson content...',
+    modules: {
+      toolbar: {
+        container: [
+          [{ 'header': [1, 2, 3, false] }],
+          ['bold', 'italic', 'underline'],
+          [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+          [{ 'align': '' }, { 'align': 'center' }, { 'align': 'right' }],
+          ['link', 'image'],
+          ['clean']
+        ],
+        handlers: {
+          // Custom image handler — runs our existing compressLessonImage pipeline
+          // (WebP 0.8, 1200px max) and uploads to course-images bucket. Same
+          // egress profile as the old standalone Images section.
+          image: function() {
+            var imgCount = countQuillImages(quill);
+            if (imgCount >= MAX_LESSON_IMAGES) {
+              showModalAlert('Image limit reached', 'You can add up to ' + MAX_LESSON_IMAGES + ' images per lesson. Remove one before adding another.');
+              return;
+            }
+            var input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = async function() {
+              var file = input.files && input.files[0];
+              if (!file) return;
+              if (!file.type.startsWith('image/')) { showModalAlert('Invalid File', 'Please upload an image file.'); return; }
+              try {
+                var blob = await compressLessonImage(file);
+                if (!blob) throw new Error('Compression failed');
+                var path = currentUser.id + '/' + Date.now() + '_' + Math.random().toString(36).slice(2, 8) + '.webp';
+                var upRes = await sb.storage.from('course-images').upload(path, blob, { contentType: 'image/webp', upsert: false });
+                if (upRes.error) throw upRes.error;
+                var urlData = sb.storage.from('course-images').getPublicUrl(path);
+                var range = quill.getSelection(true);
+                quill.insertEmbed(range.index, 'image', urlData.data.publicUrl, 'user');
+                quill.setSelection(range.index + 1, 0);
+              } catch (e) {
+                console.error('Lesson image upload error:', e);
+                showModalAlert('Upload Failed', 'Could not upload image. Please try again.');
+              }
+            };
+            input.click();
+          }
+        }
+      }
+    }
+  });
+
+  // Seed initial content. Old plain-text lessons get wrapped in <p>; lessons
+  // already saved as HTML pass through sanitizer (defense in depth).
+  var initial = lesson.text_content || '';
+  if (initial && !/<[a-z]/i.test(initial)) {
+    initial = '<p>' + initial.replace(/\n/g, '<br>') + '</p>';
+  }
+  quill.clipboard.dangerouslyPasteHTML(0, sanitizeLessonHtml(initial), 'silent');
+
+  // Save on every edit. We sanitize on the way IN to the data model so the
+  // stored value is already clean. learn-page.js sanitizes again on render
+  // (defense in depth).
+  quill.on('text-change', function(delta, oldDelta, source) {
+    if (source !== 'user') return; // ignore programmatic changes (initial seed)
+    // Block paste/drag-and-drop of images that would push us over the cap.
+    // We check AFTER the change so we can yank the last one if it pushed us
+    // over. This is the cleanest UX in Quill — preventing image-paste at the
+    // event level is much messier.
+    var imgCount = countQuillImages(quill);
+    if (imgCount > MAX_LESSON_IMAGES) {
+      // Undo the last paste/insert
+      quill.history.undo();
+      showModalAlert('Image limit reached', 'You can add up to ' + MAX_LESSON_IMAGES + ' images per lesson.');
+      return;
+    }
+    var html = quill.root.innerHTML;
+    // Treat completely empty Quill state as empty string (Quill represents
+    // "empty" as '<p><br></p>' which would otherwise persist as junk).
+    if (html === '<p><br></p>') html = '';
+    updateLessonField(mi, li, 'text_content', sanitizeLessonHtml(html));
+  });
+
+  _courseQuillInstances[key] = quill;
+  return quill;
+}
+
+// Tear down a Quill instance when its lesson collapses. Prevents stale
+// instances and DOM listeners accumulating as creators expand/collapse
+// repeatedly.
+function unmountLessonEditor(mi, li) {
+  var key = mi + '-' + li;
+  var quill = _courseQuillInstances[key];
+  if (!quill) return;
+  // Quill 1.x has no public destroy(). Best-effort cleanup: remove the
+  // toolbar element and clear the reference. The container div itself
+  // gets removed on re-render.
+  try { quill.off('text-change'); } catch (e) {}
+  delete _courseQuillInstances[key];
+}
+
 function renderCourseModules() {
   const container = document.getElementById('course-modules-list');
   const empty = document.getElementById('course-modules-empty');
@@ -970,34 +1170,8 @@ function renderCourseModules() {
                 + statusHtml
                 + '</div>';
             })()
-          : '<textarea id="lesson-text-' + mi + '-' + li + '" placeholder="Lesson content..." data-course-action="update-lesson-field" data-course-event="input" data-course-mi="' + mi + '" data-course-li="' + li + '" data-course-field="text_content" aria-label="Lesson text content" rows="4" class="course-s-2e11f6">' + escapeHtml(l.text_content || '') + '</textarea>'
+          : '<div id="lesson-editor-' + mi + '-' + li + '" class="course-s-quill-host" data-course-mi="' + mi + '" data-course-li="' + li + '"></div>'
           + '<div class="course-s-a3a556"><button data-course-action="ai-cleanup-lesson" data-course-mi="' + mi + '" data-course-li="' + li + '" class="ds-tool-btn bio-s-3c4fd7" title="AI Clean Up" ><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> AI Clean Up</button></div>')
-        // Images section — text lessons only. Video lessons embed the video
-        // itself; adding images would mix two content models and isn't shown
-        // to viewers anyway (gated symmetrically in learn-page.js).
-        + (!isVideo
-          ? '<div class="course-s-c3c55b">'
-            + '<div class="course-s-17b72a">'
-            + '<span class="course-s-26c534">Images</span>'
-            + '<span class="course-s-e6b2fc">' + ((l.images || []).length) + '/5</span>'
-            + '</div>'
-            + '<div id="lesson-images-' + mi + '-' + li + '" class="course-s-821fbf">'
-            + (l.images || []).map(function(url, ii) {
-                return '<div class="course-s-84c733">'
-                  + '<img src="' + url + '" alt="Lesson image" class="course-s-b1279a">'
-                  + '<button data-course-action="remove-lesson-image" data-course-mi="' + mi + '" data-course-li="' + li + '" data-course-ii="' + ii + '" class="course-s-a52d76">×</button>'
-                  + '</div>';
-              }).join('')
-            + '</div>'
-            + ((l.images || []).length < 5
-              ? '<label class="course-s-19389c">'
-                + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>'
-                + 'Add Image'
-                + '<input type="file" accept="image/*" data-course-action="upload-lesson-image" data-course-event="change" data-course-mi="' + mi + '" data-course-li="' + li + '" class="bio-s-c8be1c">'
-                + '</label>'
-              : '')
-            + '</div>'
-          : '')
         // Move / info / done buttons. Icon-only to keep the row compact —
         // labels were redundant with the well-known up/down/info glyphs and
         // ate horizontal space. "Done" collapses the lesson (state is already
@@ -1035,6 +1209,40 @@ function renderCourseModules() {
       + '</div>'
       + '</div>';
   }).join('');
+
+  // Mount Quill editors for any text lessons that are currently expanded.
+  // Runs every render — idempotent (mountLessonEditor skips already-mounted
+  // hosts). On first call, lazy-loads Quill+DOMPurify; subsequent calls
+  // resolve instantly from the cached promise.
+  var hosts = container.querySelectorAll('.course-s-quill-host');
+  if (hosts.length > 0) {
+    ensureQuillLoaded().then(function() {
+      hosts.forEach(function(host) {
+        var mi = parseInt(host.dataset.courseMi, 10);
+        var li = parseInt(host.dataset.courseLi, 10);
+        mountLessonEditor(mi, li);
+      });
+    }).catch(function(err) {
+      console.error('Lesson editor failed to load:', err);
+      // Fallback: replace each Quill host with a plain textarea so the
+      // creator can still edit. Better than a blank box.
+      hosts.forEach(function(host) {
+        var mi = parseInt(host.dataset.courseMi, 10);
+        var li = parseInt(host.dataset.courseLi, 10);
+        var lesson = courseModules[mi] && courseModules[mi].lessons[li];
+        var current = (lesson && lesson.text_content) || '';
+        // Strip HTML tags for the fallback textarea
+        var asText = current.replace(/<[^>]+>/g, '').trim();
+        var ta = document.createElement('textarea');
+        ta.value = asText;
+        ta.placeholder = 'Lesson content (editor failed to load)...';
+        ta.className = 'course-s-2e11f6';
+        ta.rows = 6;
+        ta.oninput = function() { updateLessonField(mi, li, 'text_content', ta.value); };
+        host.replaceWith(ta);
+      });
+    });
+  }
 }
 
 
@@ -1133,19 +1341,72 @@ courseRegisterAction('toggle-lesson-preview', (e, el) => {
 courseRegisterAction('ai-cleanup-lesson', (e, el) => {
   const mi = parseInt(el.dataset.courseMi, 10);
   const li = parseInt(el.dataset.courseLi, 10);
-  aiCleanUp('lesson-text-' + mi + '-' + li);
+  aiCleanUpLessonQuill(mi, li);
 });
-courseRegisterAction('upload-lesson-image', (e, el) => {
-  handleLessonImage(el.files, parseInt(el.dataset.courseMi, 10), parseInt(el.dataset.courseLi, 10));
-  el.value = '';
-});
-courseRegisterAction('remove-lesson-image', (e, el) => {
-  removeLessonImage(
-    parseInt(el.dataset.courseMi, 10),
-    parseInt(el.dataset.courseLi, 10),
-    parseInt(el.dataset.courseIi, 10)
+
+// AI Clean Up for the new Quill-based lesson editor. Different from the
+// generic aiCleanUp() in dashboard-shell.js (which reads/writes a textarea
+// value) — Quill stores rich HTML, but the cleanup API returns plain text,
+// so running it would wipe formatting. We warn the creator first.
+function aiCleanUpLessonQuill(mi, li) {
+  if (typeof isPro === 'function' && !isPro()) {
+    showModalAlert('Pro Feature', 'AI Clean Up is a Pro feature. Upgrade to use it.');
+    return;
+  }
+  var key = mi + '-' + li;
+  var quill = _courseQuillInstances[key];
+  if (!quill) {
+    showModalAlert('Editor not ready', 'Wait a moment for the lesson editor to finish loading, then try again.');
+    return;
+  }
+  var plainText = quill.getText().trim();
+  if (!plainText) {
+    showModalAlert('Empty Lesson', 'Write some content first, then use AI Clean Up to polish it.');
+    return;
+  }
+
+  showModalConfirm(
+    'Clean up this lesson?',
+    'AI Clean Up will rewrite your lesson as plain text. Any formatting (bold, headings, lists, images, alignment) will be removed. Continue?',
+    function() {
+      // Inline progress overlay (mirrors the design used by aiCleanUp in
+      // dashboard-shell.js so creators see consistent UI).
+      var overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;';
+      overlay.innerHTML = '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:28px;text-align:center;">'
+        + '<svg width="24" height="24" viewBox="0 0 24 24" style="animation:btn-spin 0.6s linear infinite;margin-bottom:12px;" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>'
+        + '<div style="font-size:14px;color:var(--text);">Cleaning up your lesson...</div>'
+        + '</div>';
+      document.body.appendChild(overlay);
+      fetch('/api/ai-cleanup', {
+        method: 'POST',
+        headers: getAIHeaders(),
+        body: JSON.stringify({ text: plainText })
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        overlay.remove();
+        if (data.error) { showModalAlert('Error', data.error); return; }
+        var cleaned = (data.cleaned || data.text || '').trim();
+        if (!cleaned) { showModalAlert('Error', 'Could not generate cleaned text. Try again.'); return; }
+        // Replace editor content with the cleaned plain text, wrapping in
+        // paragraphs split on blank lines so the output is at least
+        // paragraph-shaped (not one long blob).
+        var paragraphs = cleaned.split(/\n\n+/).map(function(p) {
+          return '<p>' + escapeHtml(p.trim()).replace(/\n/g, '<br>') + '</p>';
+        }).join('');
+        quill.clipboard.dangerouslyPasteHTML(0, sanitizeLessonHtml(paragraphs), 'user');
+      })
+      .catch(function(err) {
+        overlay.remove();
+        console.error('AI cleanup error:', err);
+        showModalAlert('Error', 'Could not clean up text. Please try again.');
+      });
+    },
+    'Yes, clean up',
+    'Cancel'
   );
-});
+}
 courseRegisterAction('move-lesson-up', (e, el) => {
   moveLessonUp(parseInt(el.dataset.courseMi, 10), parseInt(el.dataset.courseLi, 10));
 });

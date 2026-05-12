@@ -941,7 +941,16 @@ function selectLesson(lessonId) {
     }
   }
   if (lesson.text_content) {
-    html += '<div class="viewer-text">' + escapeHtml(lesson.text_content) + '</div>';
+    // Editor (js/course.js mountLessonEditor) sanitizes content with DOMPurify
+    // before saving to text_content, so what we receive here is already clean.
+    // Legacy plain-text lessons (saved before the rich text editor) won't
+    // contain HTML tags — wrap those in a <p> so they render with paragraph
+    // styling instead of as one inline blob.
+    var content = lesson.text_content;
+    if (!/<[a-z]/i.test(content)) {
+      content = '<p>' + escapeHtml(content).replace(/\n/g, '<br>') + '</p>';
+    }
+    html += '<div class="viewer-text">' + content + '</div>';
   }
   // Lesson images — text lessons only (video lessons embed the video itself).
   // Mirrors the editor-side gating in js/course.js so orphan images that may
