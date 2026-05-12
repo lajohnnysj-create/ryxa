@@ -4321,27 +4321,6 @@
   .lesson-img-size-toolbar.has-selection button { color:#fff;background:rgba(124,58,237,0.25);border-color:rgba(124,58,237,0.45); }
   .lesson-img-size-toolbar.has-selection button:hover { background:rgba(124,58,237,0.4);border-color:rgba(124,58,237,0.7); }
   .lesson-img-size-toolbar.has-selection button.lesson-img-size-active { background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 0 8px rgba(124,58,237,0.45); }
-  /* Mobile polish for the Quill toolbar. Default Snow theme spacing assumes
-     desktop width: 8px toolbar padding, 15px between format groups, generous
-     button padding. On narrow screens that combination wraps the 14+ buttons
-     across 3 awkward rows with lots of empty space at the line-breaks.
-     This block tightens spacing only, no DOM/order changes. */
-  @media (max-width: 600px) {
-    .course-s-quill-host .ql-toolbar.ql-snow { padding: 6px 4px; }
-    /* Quill puts ~15px right-margin on each .ql-formats group. That's the
-       single biggest source of wasted whitespace when groups wrap. Cut to
-       6px — still visually groups the buttons, no longer fragments rows. */
-    .course-s-quill-host .ql-toolbar.ql-snow .ql-formats { margin-right: 6px; }
-    .course-s-quill-host .ql-toolbar.ql-snow .ql-formats:last-child { margin-right: 0; }
-    /* Trim per-button padding. Default is 5px left/right + 28px width — that's
-       wider than touch targets need on phones where users tap directly. */
-    .course-s-quill-host .ql-toolbar.ql-snow button { width: 26px; padding: 3px 4px; }
-    /* Header dropdown — the widest single element. Shrink slightly so the
-       first row fits more siblings beside it. */
-    .course-s-quill-host .ql-toolbar.ql-snow .ql-picker.ql-header { width: 84px; }
-    /* S/M/L injected group — match the tighter rhythm of the standard groups. */
-    .lesson-img-size-toolbar button { padding: 0 7px; height: 26px; line-height: 24px; }
-  }
   /* Video URL validation indicator (live feedback as creator pastes a link).
      Three states via modifier classes: empty (hidden), .valid (green w/ platform
      name), .invalid (red w/ helpful message). See detectVideoPlatform() and the
