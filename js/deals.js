@@ -83,7 +83,20 @@ function initDealsCrm() {
   }
   if (upsell) upsell.style.display = 'none';
   if (main) main.style.display = 'block';
-  // Always show list when entering the tool
+  // Always show list when entering the tool. Reset pipelineViewActive
+  // (which persists across tool navigations since the JS module isn't
+  // reloaded) and also reset the pipeline toggle button styling so it
+  // matches the list view state.
+  pipelineViewActive = false;
+  const btn = document.getElementById('deals-pipeline-toggle');
+  if (btn) {
+    btn.textContent = 'View Pipeline';
+    btn.classList.remove('active');
+    btn.style.background = 'linear-gradient(135deg,#a78bfa,#e879f9)';
+    btn.style.border = 'none';
+    btn.style.color = '#fff';
+    btn.style.boxShadow = '0 0 20px rgba(232,121,249,0.25)';
+  }
   showDealsList();
   loadDealsList();
 }
