@@ -943,15 +943,21 @@ function selectLesson(lessonId) {
   if (lesson.text_content) {
     html += '<div class="viewer-text">' + escapeHtml(lesson.text_content) + '</div>';
   }
-  // Lesson images
-  if (lesson.images && lesson.images.length > 0) {
+  // Lesson images — text lessons only (video lessons embed the video itself).
+  // Mirrors the editor-side gating in js/course.js so orphan images that may
+  // exist on legacy video lessons don't leak into the viewer.
+  var isVideoLesson = lesson.lesson_type === 'video';
+  if (!isVideoLesson && lesson.images && lesson.images.length > 0) {
     html += '<div style="margin-top:20px;display:flex;flex-direction:column;gap:16px;">';
     lesson.images.forEach(function(url) {
       html += '<img src="' + escapeHtml(url) + '" alt="Lesson image" style="width:100%;max-width:800px;border-radius:12px;border:1px solid rgba(255,255,255,0.08);">';
     });
     html += '</div>';
   }
-  if (!lesson.video_url && !lesson.text_content && (!lesson.images || lesson.images.length === 0)) {
+  // Empty-state fallback. For text lessons, count images as content; for video
+  // lessons, ignore them (images don't render in viewer for video lessons).
+  var hasImages = !isVideoLesson && lesson.images && lesson.images.length > 0;
+  if (!lesson.video_url && !lesson.text_content && !hasImages) {
     html += '<p style="color:var(--muted);font-size:14px;">This lesson has no content yet.</p>';
   }
 

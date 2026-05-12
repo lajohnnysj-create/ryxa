@@ -939,28 +939,32 @@ function renderCourseModules() {
           ? '<input type="url" value="' + escapeHtml(l.video_url || '') + '" placeholder="Video URL (YouTube, Vimeo, etc.)" data-course-action="update-lesson-field" data-course-event="input" data-course-mi="' + mi + '" data-course-li="' + li + '" data-course-field="video_url" aria-label="Video URL" class="course-s-59ebc5">'
           : '<textarea id="lesson-text-' + mi + '-' + li + '" placeholder="Lesson content..." data-course-action="update-lesson-field" data-course-event="input" data-course-mi="' + mi + '" data-course-li="' + li + '" data-course-field="text_content" aria-label="Lesson text content" rows="4" class="course-s-2e11f6">' + escapeHtml(l.text_content || '') + '</textarea>'
           + '<div class="course-s-a3a556"><button data-course-action="ai-cleanup-lesson" data-course-mi="' + mi + '" data-course-li="' + li + '" class="ds-tool-btn bio-s-3c4fd7" title="AI Clean Up" ><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> AI Clean Up</button></div>')
-        // Images section (both video and text lessons)
-        + '<div class="course-s-c3c55b">'
-        + '<div class="course-s-17b72a">'
-        + '<span class="course-s-26c534">Images</span>'
-        + '<span class="course-s-e6b2fc">' + ((l.images || []).length) + '/5</span>'
-        + '</div>'
-        + '<div id="lesson-images-' + mi + '-' + li + '" class="course-s-821fbf">'
-        + (l.images || []).map(function(url, ii) {
-            return '<div class="course-s-84c733">'
-              + '<img src="' + url + '" alt="Lesson image" class="course-s-b1279a">'
-              + '<button data-course-action="remove-lesson-image" data-course-mi="' + mi + '" data-course-li="' + li + '" data-course-ii="' + ii + '" class="course-s-a52d76">×</button>'
-              + '</div>';
-          }).join('')
-        + '</div>'
-        + ((l.images || []).length < 5
-          ? '<label class="course-s-19389c">'
-            + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>'
-            + 'Add Image'
-            + '<input type="file" accept="image/*" data-course-action="upload-lesson-image" data-course-event="change" data-course-mi="' + mi + '" data-course-li="' + li + '" class="bio-s-c8be1c">'
-            + '</label>'
+        // Images section — text lessons only. Video lessons embed the video
+        // itself; adding images would mix two content models and isn't shown
+        // to viewers anyway (gated symmetrically in learn-page.js).
+        + (!isVideo
+          ? '<div class="course-s-c3c55b">'
+            + '<div class="course-s-17b72a">'
+            + '<span class="course-s-26c534">Images</span>'
+            + '<span class="course-s-e6b2fc">' + ((l.images || []).length) + '/5</span>'
+            + '</div>'
+            + '<div id="lesson-images-' + mi + '-' + li + '" class="course-s-821fbf">'
+            + (l.images || []).map(function(url, ii) {
+                return '<div class="course-s-84c733">'
+                  + '<img src="' + url + '" alt="Lesson image" class="course-s-b1279a">'
+                  + '<button data-course-action="remove-lesson-image" data-course-mi="' + mi + '" data-course-li="' + li + '" data-course-ii="' + ii + '" class="course-s-a52d76">×</button>'
+                  + '</div>';
+              }).join('')
+            + '</div>'
+            + ((l.images || []).length < 5
+              ? '<label class="course-s-19389c">'
+                + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>'
+                + 'Add Image'
+                + '<input type="file" accept="image/*" data-course-action="upload-lesson-image" data-course-event="change" data-course-mi="' + mi + '" data-course-li="' + li + '" class="bio-s-c8be1c">'
+                + '</label>'
+              : '')
+            + '</div>'
           : '')
-        + '</div>'
         // Move / info / done buttons. Icon-only to keep the row compact —
         // labels were redundant with the well-known up/down/info glyphs and
         // ate horizontal space. "Done" collapses the lesson (state is already
