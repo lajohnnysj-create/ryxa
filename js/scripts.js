@@ -22,7 +22,8 @@
 //   • sb, Auth, currentUser, isPro, isMax, escapeHtml, getAIHeaders
 //   • dashConfirm, showModalAlert
 //   • showDsMsg (from js/design.js) — only called at click time
-//   • Tone (from Tone.js loaded at top of dashboard.html)
+//   • Tone (Tone.js — lazy-loaded by ensureToneLoaded() only when the user
+//     opts into Cinematic Music, NOT eager in dashboard.html)
 // =============================================================================
 
 // =============================================================================
@@ -1956,6 +1957,34 @@ function cineOnKey(e) {
 // ========== CINEMATIC MUSIC (Tone.js) ==========
 let cineMusicNodes = null;
 
+// Tone.js is ~150KB and was previously loaded eagerly in dashboard.html, which
+// caused two real problems:
+//  1) Every dashboard visit fired Chrome AudioContext autoplay warnings because
+//     Tone.Transport gets constructed on first access (before any user gesture).
+//  2) Wasted bandwidth and parse time for the ~99% of sessions that never use
+//     Cinematic Music.
+// This loader injects the script tag on demand the first time the user picks
+// a mood. The SRI hash matches the previous eager-loaded tag.
+let _toneLoadPromise = null;
+function ensureToneLoaded() {
+  if (typeof Tone !== 'undefined') return Promise.resolve();
+  if (_toneLoadPromise) return _toneLoadPromise;
+  _toneLoadPromise = new Promise(function(resolve, reject) {
+    var s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js';
+    s.integrity = 'sha384-OIQZlttB2MRaZyoi526rVHiNUGYEq4MAMxDbTkwghmmqxs556T5g5LY926GH7NYM';
+    s.crossOrigin = 'anonymous';
+    s.onload = function() { resolve(); };
+    s.onerror = function() {
+      // Allow a future click to retry — clear the cached failed promise.
+      _toneLoadPromise = null;
+      reject(new Error('Failed to load Tone.js'));
+    };
+    document.head.appendChild(s);
+  });
+  return _toneLoadPromise;
+}
+
 function setCineMood(mood) {
   if (!cineState) return;
   // Update button states
@@ -2048,8 +2077,23 @@ function stopCineMusic() {
 }
 
 async function startCineMusic(mood) {
-  if (typeof Tone === 'undefined') return;
   stopCineMusic();
+
+  // Lazy-load Tone.js on first use. The previous eager load fired Chrome
+  // AudioContext autoplay warnings on every dashboard visit.
+  try {
+    await ensureToneLoaded();
+  } catch (e) {
+    console.error('Cinematic music unavailable: Tone.js failed to load.', e);
+    return;
+  }
+
+  // Race-safety: while Tone was loading, the user may have switched moods or
+  // cancelled. cineState reflects the latest mood selection; if it no longer
+  // matches what we were asked to start, bail out so a stale request doesn't
+  // step on a fresher one (which will have triggered its own ensureToneLoaded
+  // call — already resolved since the promise is cached).
+  if (!cineState || cineState.musicMood !== mood) return;
 
   // Ensure audio context is started (browsers require user interaction)
   try { await Tone.start(); } catch(e){ return; }
