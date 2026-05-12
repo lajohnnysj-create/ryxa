@@ -2543,7 +2543,11 @@ function dsAutoCrop() {
       var cropCtx = cropCanvas.getContext('2d');
       cropCtx.drawImage(imgEl, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
 
-      var dataUrl = cropCanvas.toDataURL('image/png');
+      // WebP 0.85 matches the encoding pipeline used elsewhere in Design Studio
+      // (image upload, background removal). Storing PNG here would re-inflate
+      // a WebP-compressed source into a large data URL on every save/load —
+      // same bloat pattern that previously hit background removal.
+      var dataUrl = cropCanvas.toDataURL('image/webp', 0.85);
       fabric.Image.fromURL(dataUrl, function(newImg) {
         var fitScale = Math.min(
           (dsCanvas.width * 0.8) / cropW,
