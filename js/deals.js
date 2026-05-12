@@ -426,19 +426,32 @@ function stopPipelineAutoScroll() {
   document.removeEventListener('dragover', _onPipelineDragOverGlobal);
 }
 
-function onPipelineDragOver(e) {
+// Drag handlers — called from document-level delegated listeners below.
+// We pass the column element explicitly because event delegation means
+// e.currentTarget is `document` (where the listener was attached), not the
+// column. The old code that used e.currentTarget.classList.add('drag-over')
+// threw "Cannot read properties of undefined" because document.classList is
+// undefined. The delegated dispatcher does the closest() lookup once and
+// passes the result here.
+function onPipelineDragOver(e, col) {
   e.preventDefault();
-  e.dataTransfer.dropEffect = 'move';
-  e.currentTarget.classList.add('drag-over');
+  if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+  if (col) col.classList.add('drag-over');
 }
 
-function onPipelineDragLeave(e) {
-  e.currentTarget.classList.remove('drag-over');
+function onPipelineDragLeave(e, col) {
+  // dragleave fires when crossing between child elements inside the column,
+  // not only when leaving the column entirely. Without this guard the
+  // .drag-over highlight flickers on/off as the user drags over cards.
+  // relatedTarget is the element the mouse is moving INTO — if it's still
+  // inside the same column, we're not actually leaving, so do nothing.
+  if (col && e.relatedTarget && col.contains(e.relatedTarget)) return;
+  if (col) col.classList.remove('drag-over');
 }
 
-async function onPipelineDrop(e, newStatus) {
+async function onPipelineDrop(e, newStatus, col) {
   e.preventDefault();
-  e.currentTarget.classList.remove('drag-over');
+  if (col) col.classList.remove('drag-over');
 
   const dealId = pipelineDragId || e.dataTransfer.getData('text/plain');
   if (!dealId) return;
@@ -570,7 +583,7 @@ async function onPipelineDrop(e, newStatus) {
         const col = currentDropTarget.closest('.pipeline-col');
         const newStatus = col?.dataset.status;
         if (newStatus) {
-          onPipelineDrop({ preventDefault(){}, currentTarget: currentDropTarget, dataTransfer: { getData: () => pipelineDragId } }, newStatus);
+          onPipelineDrop({ preventDefault(){}, currentTarget: currentDropTarget, dataTransfer: { getData: () => pipelineDragId } }, newStatus, col);
         }
         currentDropTarget.classList.remove('drag-over');
       }
@@ -2894,16 +2907,18 @@ document.addEventListener('dragend', function(e) {
   onPipelineDragEnd(e);
 });
 document.addEventListener('dragover', function(e) {
-  if (!e.target.closest('[data-deal-drop-col]')) return;
-  onPipelineDragOver(e);
+  const col = e.target.closest('[data-deal-drop-col]');
+  if (!col) return;
+  onPipelineDragOver(e, col);
 });
 document.addEventListener('dragleave', function(e) {
-  if (!e.target.closest('[data-deal-drop-col]')) return;
-  onPipelineDragLeave(e);
+  const col = e.target.closest('[data-deal-drop-col]');
+  if (!col) return;
+  onPipelineDragLeave(e, col);
 });
 document.addEventListener('drop', function(e) {
   const col = e.target.closest('[data-deal-drop-col]');
   if (!col) return;
-  onPipelineDrop(e, col.dataset.dealDropCol);
+  onPipelineDrop(e, col.dataset.dealDropCol, col);
 });
 
