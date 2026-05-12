@@ -946,11 +946,15 @@ function selectLesson(lessonId) {
     // Legacy plain-text lessons (saved before the rich text editor) won't
     // contain HTML tags — wrap those in a <p> so they render with paragraph
     // styling instead of as one inline blob.
-    var content = lesson.text_content;
-    if (!/<[a-z]/i.test(content)) {
-      content = '<p>' + escapeHtml(content).replace(/\n/g, '<br>') + '</p>';
+    // NOTE: variable name is `richHtml`, NOT `content`, because the outer
+    // function uses `content` for the DOM container at line 922. Reusing the
+    // name shadowed the DOM ref and made content.innerHTML = html a silent
+    // no-op for any lesson with text content.
+    var richHtml = lesson.text_content;
+    if (!/<[a-z]/i.test(richHtml)) {
+      richHtml = '<p>' + escapeHtml(richHtml).replace(/\n/g, '<br>') + '</p>';
     }
-    html += '<div class="viewer-text">' + content + '</div>';
+    html += '<div class="viewer-text">' + richHtml + '</div>';
   }
   // Lesson images — text lessons only (video lessons embed the video itself).
   // Mirrors the editor-side gating in js/course.js so orphan images that may
