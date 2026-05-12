@@ -1012,48 +1012,138 @@ async function calDeleteEvent(eventId, eventType) {
   });
 }
 
-// Common timezones for the inline picker. Covers ~95% of creators across all
-// major business regions. Anyone outside this list will still have their
-// auto-detected tz prepended (see calPopulateInlineTimezone). Maintenance
-// note: keep this list to ~25 entries — adding more turns a quick scan into
-// a scroll fest. If we ever need the full IANA list (~600), add a "Show all"
-// toggle separately.
+// Common timezones for the inline picker. Curated to cover the major
+// business regions worldwide without dumping the full 600-entry IANA list
+// on users. Anyone whose IANA tz isn't here will still see their detected
+// or saved tz pinned in its own group (see calPopulateInlineTimezone).
+//
+// Maintenance: if a creator reports their tz is missing, add it here.
+// Order within each region roughly west-to-east; cross-region is rough
+// geographic order (Americas → Europe → Africa → Asia → Oceania).
 var CAL_COMMON_TZS = [
-  'America/Los_Angeles', 'America/Denver', 'America/Phoenix',
-  'America/Chicago', 'America/Mexico_City',
-  'America/New_York', 'America/Toronto', 'America/Sao_Paulo',
-  'Europe/London', 'Europe/Paris', 'Europe/Berlin', 'Europe/Madrid',
-  'Europe/Rome', 'Europe/Athens', 'Europe/Moscow',
-  'Africa/Cairo', 'Africa/Johannesburg',
-  'Asia/Dubai', 'Asia/Kolkata', 'Asia/Bangkok',
-  'Asia/Singapore', 'Asia/Shanghai', 'Asia/Tokyo', 'Asia/Seoul',
-  'Australia/Perth', 'Australia/Sydney', 'Pacific/Auckland'
+  // North America
+  'America/Anchorage', 'America/Los_Angeles', 'America/Vancouver',
+  'America/Denver', 'America/Phoenix', 'America/Edmonton',
+  'America/Chicago', 'America/Mexico_City', 'America/Winnipeg',
+  'America/New_York', 'America/Toronto', 'America/Detroit',
+  'America/Halifax',
+  // Central / South America
+  'America/Bogota', 'America/Lima', 'America/Caracas',
+  'America/Santiago', 'America/Buenos_Aires', 'America/Sao_Paulo',
+  // Atlantic / Europe
+  'Atlantic/Azores', 'Atlantic/Reykjavik',
+  'Europe/London', 'Europe/Dublin', 'Europe/Lisbon',
+  'Europe/Paris', 'Europe/Madrid', 'Europe/Brussels',
+  'Europe/Berlin', 'Europe/Rome', 'Europe/Amsterdam',
+  'Europe/Zurich', 'Europe/Vienna', 'Europe/Stockholm',
+  'Europe/Warsaw', 'Europe/Athens', 'Europe/Helsinki',
+  'Europe/Bucharest', 'Europe/Istanbul', 'Europe/Moscow',
+  // Africa
+  'Africa/Casablanca', 'Africa/Lagos', 'Africa/Cairo',
+  'Africa/Nairobi', 'Africa/Johannesburg',
+  // Middle East / Asia
+  'Asia/Jerusalem', 'Asia/Riyadh', 'Asia/Tehran',
+  'Asia/Dubai', 'Asia/Karachi', 'Asia/Kolkata',
+  'Asia/Dhaka', 'Asia/Bangkok', 'Asia/Jakarta',
+  'Asia/Manila', 'Asia/Singapore', 'Asia/Hong_Kong',
+  'Asia/Shanghai', 'Asia/Taipei', 'Asia/Seoul', 'Asia/Tokyo',
+  // Oceania
+  'Australia/Perth', 'Australia/Adelaide', 'Australia/Brisbane',
+  'Australia/Sydney', 'Australia/Melbourne',
+  'Pacific/Auckland', 'Pacific/Fiji', 'Pacific/Honolulu'
 ];
 
-// Render the timezone as a compact label for the inline dropdown. We drop
-// the IANA continent prefix and replace underscores with spaces. Example:
-// 'America/Los_Angeles' → 'Los Angeles'. Bare IANA strings like 'UTC' or
-// values without a slash pass through unchanged.
+// Get the current UTC offset for an IANA timezone, formatted as 'UTC−7'
+// or 'UTC+5:30'. Uses Intl shortOffset which respects DST automatically —
+// e.g. America/Los_Angeles returns 'UTC−8' in winter, 'UTC−7' in summer.
+// Returns empty string if the browser can't compute it (Safari < 14.1).
+function calGetTzOffsetLabel(tz) {
+  try {
+    var parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: tz, timeZoneName: 'shortOffset'
+    }).formatToParts(new Date());
+    var tzPart = parts.find(function(p) { return p.type === 'timeZoneName'; });
+    if (!tzPart) return '';
+    // Browsers return 'GMT-7', 'GMT-07:30', 'UTC', etc. Normalize to 'UTC'
+    // prefix and replace the ASCII hyphen with a Unicode minus for the
+    // typographic minus that's visually distinct from the offset separator.
+    var raw = tzPart.value.replace(/^GMT/, 'UTC');
+    if (raw === 'UTC') return 'UTC'; // exactly UTC, no sign
+    return raw.replace('-', '\u2212'); // U+2212 minus sign
+  } catch (e) {
+    return '';
+  }
+}
+
+// Render the timezone as a compact label for the inline dropdown. Drops
+// the IANA continent prefix and appends the current UTC offset. Example:
+// 'America/Los_Angeles' → 'Los Angeles (UTC−7)'. Falls back to plain city
+// name if offset can't be computed.
 function calFormatTzLabel(tz) {
   if (!tz) return '';
   var idx = tz.lastIndexOf('/');
-  return (idx >= 0 ? tz.slice(idx + 1) : tz).replace(/_/g, ' ');
+  var city = (idx >= 0 ? tz.slice(idx + 1) : tz).replace(/_/g, ' ');
+  var offset = calGetTzOffsetLabel(tz);
+  return offset ? city + ' (' + offset + ')' : city;
 }
 
-// Populate the inline timezone dropdown in the calendar toolbar. Called on
-// init (after calState.timezone is loaded from DB/localStorage/auto-detect)
-// and any time the list might need to refresh.
+// Populate the inline timezone dropdown in the calendar toolbar. Structure:
+//
+//   [Your timezone]        ← optgroup, contains auto-detected tz
+//     Los Angeles (UTC−7)
+//   [Currently selected]   ← only if saved tz differs from detected AND
+//     Tahiti (UTC−10)        isn't in the common list
+//   [Common timezones]     ← curated list, minus any tz already shown above
+//     Anchorage (UTC−9)
+//     ...
+//
+// The "Your timezone" anchor at the top is always the browser-detected tz.
+// Users can always get back to it without searching, even after they've
+// manually picked a different one and reloaded.
 function calPopulateInlineTimezone() {
   var sel = document.getElementById('cal-tz-inline');
   if (!sel) return;
-  var current = calState.timezone || 'UTC';
-  // Build the option list — current TZ first if not already in the common list
-  var options = CAL_COMMON_TZS.slice();
-  if (options.indexOf(current) === -1) options.unshift(current);
-  sel.innerHTML = options.map(function(tz) {
-    var selected = tz === current ? ' selected' : '';
-    return '<option value="' + tz + '"' + selected + '>' + calFormatTzLabel(tz) + '</option>';
-  }).join('');
+  var saved = calState.timezone || 'UTC';
+  var detected = '';
+  try { detected = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) {}
+
+  // Build the option lists for each group. Track everything shown so far
+  // so we don't duplicate entries between groups.
+  var shown = {};
+  var html = '';
+
+  // Group 1: "Your timezone" — the auto-detected tz, always at top.
+  if (detected) {
+    var detectedSelected = detected === saved ? ' selected' : '';
+    html += '<optgroup label="Your timezone">'
+      + '<option value="' + detected + '"' + detectedSelected + '>' + calFormatTzLabel(detected) + '</option>'
+      + '</optgroup>';
+    shown[detected] = true;
+  }
+
+  // Group 2: "Currently selected" — only when the saved tz isn't already
+  // shown (detected) and isn't in the common list (otherwise the common
+  // group will show it). Handles travelers and edge-case manual picks.
+  if (saved && !shown[saved] && CAL_COMMON_TZS.indexOf(saved) === -1) {
+    html += '<optgroup label="Currently selected">'
+      + '<option value="' + saved + '" selected>' + calFormatTzLabel(saved) + '</option>'
+      + '</optgroup>';
+    shown[saved] = true;
+  }
+
+  // Group 3: "Common timezones" — curated list, minus anything already
+  // shown above to avoid duplicates.
+  var commonOpts = CAL_COMMON_TZS.filter(function(tz) { return !shown[tz]; });
+  if (commonOpts.length) {
+    html += '<optgroup label="Common timezones">'
+      + commonOpts.map(function(tz) {
+          var selected = tz === saved ? ' selected' : '';
+          return '<option value="' + tz + '"' + selected + '>' + calFormatTzLabel(tz) + '</option>';
+        }).join('')
+      + '</optgroup>';
+  }
+
+  sel.innerHTML = html;
 }
 
 // Save the selected timezone to DB + localStorage and re-render the calendar

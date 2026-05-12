@@ -297,13 +297,26 @@ function setCoachingTzHint() {
   if (!tz) {
     try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) {}
   }
-  // Display label: drop the IANA continent prefix for compactness.
-  // 'America/Los_Angeles' → 'Los Angeles'. Mirrors calFormatTzLabel in
-  // calendar.js — kept inline to avoid cross-file dependencies.
+  // Display label: drop the IANA continent prefix and append the current
+  // UTC offset for confirmation (handles DST automatically via Intl).
+  // Example: 'America/Los_Angeles' → 'Los Angeles (UTC−7)'. Mirrors
+  // calFormatTzLabel in calendar.js — kept inline to avoid cross-file deps.
   var label = tz;
   if (tz) {
     var idx = tz.lastIndexOf('/');
-    if (idx >= 0) label = tz.slice(idx + 1).replace(/_/g, ' ');
+    var city = (idx >= 0 ? tz.slice(idx + 1) : tz).replace(/_/g, ' ');
+    var offset = '';
+    try {
+      var parts = new Intl.DateTimeFormat('en-US', {
+        timeZone: tz, timeZoneName: 'shortOffset'
+      }).formatToParts(new Date());
+      var tzPart = parts.find(function(p) { return p.type === 'timeZoneName'; });
+      if (tzPart) {
+        var raw = tzPart.value.replace(/^GMT/, 'UTC');
+        offset = (raw === 'UTC') ? 'UTC' : raw.replace('-', '\u2212');
+      }
+    } catch (e) {}
+    label = offset ? (city + ' (' + offset + ')') : city;
   }
   // The body of the hint explains what bookers see + offers a way to change
   // the timezone if the creator picked the wrong one. Link uses the dash

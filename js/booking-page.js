@@ -282,43 +282,126 @@ var pickerState = {
   bookerTz: Intl.DateTimeFormat().resolvedOptions().timeZone
 };
 
-// Common timezones for the booker-side picker dropdown. Mirrors the list
-// in calendar.js (CAL_COMMON_TZS) so creator and booker see the same
-// curated set. Kept inline here to avoid cross-bundle dependencies — the
-// booker page doesn't load calendar.js.
+// Common timezones for the booker-side picker. Mirrors CAL_COMMON_TZS in
+// calendar.js — keep both in sync if you add cities. Kept inline here to
+// avoid cross-bundle dependencies (booking-page.js doesn't load calendar.js).
+//
+// Order within each region roughly west-to-east; cross-region is rough
+// geographic order (Americas → Europe → Africa → Asia → Oceania).
 var BOOKER_COMMON_TZS = [
-  'America/Los_Angeles', 'America/Denver', 'America/Phoenix',
-  'America/Chicago', 'America/Mexico_City',
-  'America/New_York', 'America/Toronto', 'America/Sao_Paulo',
-  'Europe/London', 'Europe/Paris', 'Europe/Berlin', 'Europe/Madrid',
-  'Europe/Rome', 'Europe/Athens', 'Europe/Moscow',
-  'Africa/Cairo', 'Africa/Johannesburg',
-  'Asia/Dubai', 'Asia/Kolkata', 'Asia/Bangkok',
-  'Asia/Singapore', 'Asia/Shanghai', 'Asia/Tokyo', 'Asia/Seoul',
-  'Australia/Perth', 'Australia/Sydney', 'Pacific/Auckland'
+  // North America
+  'America/Anchorage', 'America/Los_Angeles', 'America/Vancouver',
+  'America/Denver', 'America/Phoenix', 'America/Edmonton',
+  'America/Chicago', 'America/Mexico_City', 'America/Winnipeg',
+  'America/New_York', 'America/Toronto', 'America/Detroit',
+  'America/Halifax',
+  // Central / South America
+  'America/Bogota', 'America/Lima', 'America/Caracas',
+  'America/Santiago', 'America/Buenos_Aires', 'America/Sao_Paulo',
+  // Atlantic / Europe
+  'Atlantic/Azores', 'Atlantic/Reykjavik',
+  'Europe/London', 'Europe/Dublin', 'Europe/Lisbon',
+  'Europe/Paris', 'Europe/Madrid', 'Europe/Brussels',
+  'Europe/Berlin', 'Europe/Rome', 'Europe/Amsterdam',
+  'Europe/Zurich', 'Europe/Vienna', 'Europe/Stockholm',
+  'Europe/Warsaw', 'Europe/Athens', 'Europe/Helsinki',
+  'Europe/Bucharest', 'Europe/Istanbul', 'Europe/Moscow',
+  // Africa
+  'Africa/Casablanca', 'Africa/Lagos', 'Africa/Cairo',
+  'Africa/Nairobi', 'Africa/Johannesburg',
+  // Middle East / Asia
+  'Asia/Jerusalem', 'Asia/Riyadh', 'Asia/Tehran',
+  'Asia/Dubai', 'Asia/Karachi', 'Asia/Kolkata',
+  'Asia/Dhaka', 'Asia/Bangkok', 'Asia/Jakarta',
+  'Asia/Manila', 'Asia/Singapore', 'Asia/Hong_Kong',
+  'Asia/Shanghai', 'Asia/Taipei', 'Asia/Seoul', 'Asia/Tokyo',
+  // Oceania
+  'Australia/Perth', 'Australia/Adelaide', 'Australia/Brisbane',
+  'Australia/Sydney', 'Australia/Melbourne',
+  'Pacific/Auckland', 'Pacific/Fiji', 'Pacific/Honolulu'
 ];
 
-// Compact display label — 'America/Los_Angeles' → 'Los Angeles'. IANA
-// strings without a slash (e.g. 'UTC') pass through unchanged.
+// Get the current UTC offset for an IANA timezone, formatted as 'UTC−7'
+// or 'UTC+5:30'. Uses Intl shortOffset which respects DST automatically.
+// Returns empty string if the browser can't compute it (Safari < 14.1).
+function getBookerTzOffsetLabel(tz) {
+  try {
+    var parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: tz, timeZoneName: 'shortOffset'
+    }).formatToParts(new Date());
+    var tzPart = parts.find(function(p) { return p.type === 'timeZoneName'; });
+    if (!tzPart) return '';
+    var raw = tzPart.value.replace(/^GMT/, 'UTC');
+    if (raw === 'UTC') return 'UTC';
+    return raw.replace('-', '\u2212'); // U+2212 minus sign
+  } catch (e) {
+    return '';
+  }
+}
+
+// Compact display label: 'America/Los_Angeles' → 'Los Angeles (UTC−7)'.
+// Falls back to plain city name if offset can't be computed.
 function formatBookerTzLabel(tz) {
   if (!tz) return '';
   var idx = tz.lastIndexOf('/');
-  return (idx >= 0 ? tz.slice(idx + 1) : tz).replace(/_/g, ' ');
+  var city = (idx >= 0 ? tz.slice(idx + 1) : tz).replace(/_/g, ' ');
+  var offset = getBookerTzOffsetLabel(tz);
+  return offset ? city + ' (' + offset + ')' : city;
 }
 
-// Build the option list for the booker timezone select. If the booker's
-// auto-detected tz isn't already in the common list (e.g. Tehran, Lagos),
-// it gets pinned to the top so they can find it immediately.
+// Populate the booker timezone select. Structure:
+//
+//   [Your timezone]        ← optgroup, contains auto-detected tz
+//     New York (UTC−4)
+//   [Currently selected]   ← only if bookerTz differs from detected AND
+//     Tahiti (UTC−10)        isn't in the common list (rare)
+//   [Common timezones]     ← curated list, minus any tz already shown
+//     Anchorage (UTC−9)
+//     ...
+//
+// On a booker's first visit, detected == bookerTz so only the top group +
+// common group appear. If they manually pick a different tz, the top
+// group still shows their detected ("home") tz so they can always return.
 function populateBookerTimezoneSelect() {
   var sel = document.getElementById('picker-tz-select');
   if (!sel) return;
   var current = pickerState.bookerTz || 'UTC';
-  var options = BOOKER_COMMON_TZS.slice();
-  if (options.indexOf(current) === -1) options.unshift(current);
-  sel.innerHTML = options.map(function(tz) {
-    var selected = tz === current ? ' selected' : '';
-    return '<option value="' + tz + '"' + selected + '>' + formatBookerTzLabel(tz) + '</option>';
-  }).join('');
+  var detected = '';
+  try { detected = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) {}
+
+  var shown = {};
+  var html = '';
+
+  // Group 1: "Your timezone" — auto-detected, always at top.
+  if (detected) {
+    var detectedSelected = detected === current ? ' selected' : '';
+    html += '<optgroup label="Your timezone">'
+      + '<option value="' + detected + '"' + detectedSelected + '>' + formatBookerTzLabel(detected) + '</option>'
+      + '</optgroup>';
+    shown[detected] = true;
+  }
+
+  // Group 2: "Currently selected" — only when current isn't detected AND
+  // isn't in the common list.
+  if (current && !shown[current] && BOOKER_COMMON_TZS.indexOf(current) === -1) {
+    html += '<optgroup label="Currently selected">'
+      + '<option value="' + current + '" selected>' + formatBookerTzLabel(current) + '</option>'
+      + '</optgroup>';
+    shown[current] = true;
+  }
+
+  // Group 3: "Common timezones" — curated list, deduplicated.
+  var commonOpts = BOOKER_COMMON_TZS.filter(function(tz) { return !shown[tz]; });
+  if (commonOpts.length) {
+    html += '<optgroup label="Common timezones">'
+      + commonOpts.map(function(tz) {
+          var selected = tz === current ? ' selected' : '';
+          return '<option value="' + tz + '"' + selected + '>' + formatBookerTzLabel(tz) + '</option>';
+        }).join('')
+      + '</optgroup>';
+  }
+
+  sel.innerHTML = html;
 }
 
 // Handle a booker switching their viewing timezone. Re-renders the slot
