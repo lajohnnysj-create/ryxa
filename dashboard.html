@@ -3705,6 +3705,15 @@
   #tool-follower .fa-whitelist-btn.locked-wl:hover { background: rgba(255,255,255,0.05); border-color: var(--border-hover); color: var(--muted); opacity: 0.3; }
   .fa-whitelist-toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); background: var(--surface2); border: 1px solid var(--border-hover); color: var(--text); padding: 12px 20px; border-radius: 10px; font-size: 13px; z-index: 999; animation: faToastIn 0.25s ease; white-space: nowrap; pointer-events: none; }
   @keyframes faToastIn { from{opacity:0;transform:translateX(-50%) translateY(8px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
+  /* Generic dashboard toast — used by dashShowToast() in dashboard-shell.js.
+     Sits above any modal (z-index 10001 vs modal's 10000) so error toasts
+     can appear over a confirmation dialog if needed. Pointer-events:none
+     so it never blocks clicks underneath. */
+  .dash-toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); background: var(--surface2); border: 1px solid var(--border-hover); color: var(--text); padding: 12px 20px; border-radius: 10px; font-size: 13px; z-index: 10001; animation: dashToastIn 0.25s ease; max-width: 90vw; pointer-events: none; opacity: 1; transition: opacity 0.25s ease, transform 0.25s ease; }
+  .dash-toast-success { border-left: 3px solid #4ade80; }
+  .dash-toast-error { border-left: 3px solid #f87171; }
+  .dash-toast-leaving { opacity: 0; transform: translateX(-50%) translateY(8px); }
+  @keyframes dashToastIn { from{opacity:0;transform:translateX(-50%) translateY(8px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
   #tool-follower .fa-wl-banner {
     display: flex; align-items: center; justify-content: space-between;
     background: rgba(74,222,128,0.06); border: 1px solid rgba(74,222,128,0.2);
