@@ -958,6 +958,13 @@ function ensureViewerPurifyLoaded() {
         if (node.tagName === 'A' && node.getAttribute('target') === '_blank') {
           node.setAttribute('rel', 'noopener noreferrer');
         }
+        // WCAG: ensure every <img> has an alt attribute. Mirrors the
+        // editor-side hook in course.js. Existing images without alt get
+        // an empty alt (decorative) on first view, regardless of when
+        // they were originally inserted.
+        if (node.tagName === 'IMG' && !node.hasAttribute('alt')) {
+          node.setAttribute('alt', '');
+        }
       });
       resolve();
     };

@@ -1052,6 +1052,15 @@ function installDomPurifyHooks() {
     if (node.tagName === 'A' && node.getAttribute('target') === '_blank') {
       node.setAttribute('rel', 'noopener noreferrer');
     }
+    // WCAG: every <img> needs an alt attribute. We can't infer descriptive
+    // alt text after the fact, so we default missing alts to empty string
+    // (= "decorative, screen readers should skip"). This is the right
+    // default since creators don't currently have a way to enter alt text
+    // when inserting images. Existing images without alt get fixed on
+    // first save after this hook is installed.
+    if (node.tagName === 'IMG' && !node.hasAttribute('alt')) {
+      node.setAttribute('alt', '');
+    }
   });
 }
 
@@ -1143,9 +1152,20 @@ function mountLessonEditor(mi, li) {
                 setTimeout(function() {
                   var imgs = quill.root.querySelectorAll('img');
                   var lastImg = imgs[imgs.length - 1];
-                  if (lastImg && !lastImg.classList.contains('lesson-img-size-small') && !lastImg.classList.contains('lesson-img-size-medium') && !lastImg.classList.contains('lesson-img-size-large')) {
-                    lastImg.classList.add('lesson-img-size-small');
-                    // Trigger save so the class persists
+                  if (lastImg) {
+                    // Default newly-inserted images to "small". Creator can click
+                    // the image and use the S/M/L toolbar to resize.
+                    if (!lastImg.classList.contains('lesson-img-size-small') && !lastImg.classList.contains('lesson-img-size-medium') && !lastImg.classList.contains('lesson-img-size-large')) {
+                      lastImg.classList.add('lesson-img-size-small');
+                    }
+                    // WCAG: every <img> needs an alt attribute. We don't have
+                    // a way for the creator to enter alt text during insert,
+                    // so we default to empty string (alt="" marks the image
+                    // as decorative — screen readers will skip it). The
+                    // afterSanitizeAttributes DOMPurify hook also enforces
+                    // this on read, so the rule survives any HTML round-trip.
+                    if (!lastImg.hasAttribute('alt')) lastImg.setAttribute('alt', '');
+                    // Trigger save so the class + alt persist
                     var html = quill.root.innerHTML;
                     if (html === '<p><br></p>') html = '';
                     updateLessonField(mi, li, 'text_content', sanitizeLessonHtml(html));
@@ -1241,12 +1261,56 @@ function setupImageSizing(quill, mi, li, container) {
     if (!toolbar) return;
   }
 
+  // WCAG: Quill builds its toolbar with icon-only <button>s that have no
+  // accessible name. Screen readers announce them as "button" with no
+  // function, and WAVE flags them as "empty button". We add aria-label on
+  // each known button class after Quill builds the toolbar. Same for the
+  // header <select> which lacks a label. List is hardcoded against Quill
+  // Snow theme defaults — keep in sync with the toolbar config above.
+  var ariaLabels = {
+    'ql-bold': 'Bold',
+    'ql-italic': 'Italic',
+    'ql-underline': 'Underline',
+    'ql-strike': 'Strikethrough',
+    'ql-link': 'Insert link',
+    'ql-image': 'Insert image',
+    'ql-clean': 'Remove formatting',
+    'ql-blockquote': 'Blockquote',
+    'ql-code-block': 'Code block'
+  };
+  Object.keys(ariaLabels).forEach(function(cls) {
+    toolbar.querySelectorAll('button.' + cls).forEach(function(btn) {
+      if (!btn.hasAttribute('aria-label')) btn.setAttribute('aria-label', ariaLabels[cls]);
+    });
+  });
+  // List buttons disambiguate via value attribute
+  toolbar.querySelectorAll('button.ql-list[value="ordered"]').forEach(function(btn) {
+    if (!btn.hasAttribute('aria-label')) btn.setAttribute('aria-label', 'Ordered list');
+  });
+  toolbar.querySelectorAll('button.ql-list[value="bullet"]').forEach(function(btn) {
+    if (!btn.hasAttribute('aria-label')) btn.setAttribute('aria-label', 'Bullet list');
+  });
+  // Align buttons disambiguate via value attribute (default '' = left)
+  toolbar.querySelectorAll('button.ql-align').forEach(function(btn) {
+    if (btn.hasAttribute('aria-label')) return;
+    var val = btn.getAttribute('value') || '';
+    var label = val === 'center' ? 'Align center'
+              : val === 'right' ? 'Align right'
+              : val === 'justify' ? 'Justify'
+              : 'Align left';
+    btn.setAttribute('aria-label', label);
+  });
+  // Header dropdown — a <select>, not a button. Needs its own label.
+  toolbar.querySelectorAll('select.ql-header').forEach(function(sel) {
+    if (!sel.hasAttribute('aria-label')) sel.setAttribute('aria-label', 'Heading level');
+  });
+
   // Inject S/M/L button group right before the "clean" button (last group).
   var group = document.createElement('span');
   group.className = 'ql-formats lesson-img-size-toolbar';
-  group.innerHTML = '<button type="button" data-img-size="small" title="Small image">S</button>'
-    + '<button type="button" data-img-size="medium" title="Medium image">M</button>'
-    + '<button type="button" data-img-size="large" title="Large image">L</button>';
+  group.innerHTML = '<button type="button" data-img-size="small" title="Small image" aria-label="Small image size">S</button>'
+    + '<button type="button" data-img-size="medium" title="Medium image" aria-label="Medium image size">M</button>'
+    + '<button type="button" data-img-size="large" title="Large image" aria-label="Large image size">L</button>';
   // Insert before the last .ql-formats group (which is "clean")
   var groups = toolbar.querySelectorAll('.ql-formats');
   var cleanGroup = groups[groups.length - 1];
@@ -1361,7 +1425,7 @@ function renderCourseModules() {
         + '<span class="course-s-229509">' + (li + 1) + '.</span>'
         + '<span class="course-s-d63d24">' + escapeHtml(l.title || (isVideo ? 'Untitled Video' : 'Untitled Lesson')) + '</span>'
         + typeLabel + ' ' + previewBadge
-        + '<span><button data-course-action="remove-lesson" data-course-mi="' + mi + '" data-course-li="' + li + '" class="course-s-f3bc45" title="Delete lesson"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></span>'
+        + '<span><button data-course-action="remove-lesson" data-course-mi="' + mi + '" data-course-li="' + li + '" class="course-s-f3bc45" title="Delete lesson" aria-label="Delete lesson"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></span>'
         + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="bio-s-f38a95"><polyline points="18 15 12 9 6 15"/></svg>'
         + '</div>'
         + '<div class="course-s-c42e2a">'
@@ -1413,8 +1477,8 @@ function renderCourseModules() {
     return '<div class="course-s-be7f41">'
       + '<div class="course-s-4368db">'
       + '<div class="course-s-d97d4b">'
-      + (mi > 0 ? '<button data-course-action="move-module-up" data-course-mi="' + mi + '" class="course-s-f1cd5a" title="Move module up"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg></button>' : '<div class="course-s-0a4e53"></div>')
-      + (mi < (courseModules.length - 1) ? '<button data-course-action="move-module-down" data-course-mi="' + mi + '" class="course-s-f1cd5a" title="Move module down"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>' : '<div class="course-s-0a4e53"></div>')
+      + (mi > 0 ? '<button data-course-action="move-module-up" data-course-mi="' + mi + '" class="course-s-f1cd5a" title="Move module up" aria-label="Move module up"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg></button>' : '<div class="course-s-0a4e53"></div>')
+      + (mi < (courseModules.length - 1) ? '<button data-course-action="move-module-down" data-course-mi="' + mi + '" class="course-s-f1cd5a" title="Move module down" aria-label="Move module down"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>' : '<div class="course-s-0a4e53"></div>')
       + '</div>'
       + '<span class="course-s-2653e1">Module ' + (mi + 1) + '</span>'
       + '<input type="text" value="' + escapeHtml(mod.title) + '" placeholder="Module title (e.g., Getting Started)" data-course-action="update-module-title" data-course-event="input" data-course-mi="' + mi + '" aria-label="Module title" class="course-s-ced5e0">'
