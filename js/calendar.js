@@ -1182,20 +1182,39 @@ function calPopulateInlineTimezone() {
 
 // Save the selected timezone to DB + localStorage and re-render the calendar
 // so events display at the right times. No "Save" button — change is the
-// commit. Errors are non-fatal: we still apply locally so the UI feels
-// responsive even if the DB write times out.
+// commit. We update local state and re-render immediately for responsive
+// UX, then the DB write happens in the background. A toast confirms the
+// save (or surfaces an error — previously errors were console-only and
+// invisible to the user, leaving stale DB state that the booker page
+// would silently use).
 async function calChangeTimezoneInline(newTz) {
   if (!newTz || newTz === calState.timezone) return;
   calState.timezone = newTz;
   try { localStorage.setItem('ryxa_cal_tz', newTz); } catch (e) {}
+  calRender();
   if (currentUser) {
     try {
-      await sb.from('profiles').update({ calendar_timezone: newTz }).eq('user_id', currentUser.id);
+      // Supabase .update() returns { data, error } — it does NOT throw on
+      // RLS rejection or no-matching-row. Must check error explicitly.
+      var res = await sb.from('profiles').update({ calendar_timezone: newTz }).eq('user_id', currentUser.id);
+      if (res && res.error) {
+        console.error('Failed to save calendar_timezone:', res.error);
+        if (typeof dashShowToast === 'function') {
+          dashShowToast('Couldn\'t save timezone. Please try again.', 'error');
+        }
+        return;
+      }
+      if (typeof dashShowToast === 'function') {
+        dashShowToast('Timezone updated');
+      }
     } catch (e) {
+      // Network/unexpected error path — also worth surfacing.
       console.error('Failed to save calendar_timezone:', e);
+      if (typeof dashShowToast === 'function') {
+        dashShowToast('Couldn\'t save timezone. Please try again.', 'error');
+      }
     }
   }
-  calRender();
 }
 
 function calOpenSettings() {

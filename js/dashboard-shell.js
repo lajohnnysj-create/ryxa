@@ -138,6 +138,36 @@ function escapeHtml(str) {
     .replace(/'/g, '&#39;');
 }
 
+// Generic dashboard toast — brief notification at the bottom of the screen.
+// Use for success confirmations after auto-save actions where the visual
+// re-render alone isn't enough confirmation (e.g. timezone change saves to
+// DB and re-renders, but the user can't tell the DB write actually landed).
+//
+// Types:
+//   'success' (default) — green accent, auto-dismisses after 2.5s
+//   'error'             — red accent, auto-dismisses after 5s (longer for
+//                         readability; errors are rare and worth showing)
+//
+// Multiple calls in quick succession replace the previous toast rather
+// than stacking — avoids the "10 toasts on top of each other" mess.
+function dashShowToast(message, type) {
+  type = type || 'success';
+  document.querySelectorAll('.dash-toast').forEach(function(t) { t.remove(); });
+  var t = document.createElement('div');
+  t.className = 'dash-toast dash-toast-' + type;
+  // role="status" for success (polite live region), "alert" for errors
+  // (assertive live region — screen readers interrupt to announce).
+  t.setAttribute('role', type === 'error' ? 'alert' : 'status');
+  t.textContent = message;
+  document.body.appendChild(t);
+  var duration = type === 'error' ? 5000 : 2500;
+  setTimeout(function() {
+    // Fade out via class, then remove. CSS handles the transition.
+    t.classList.add('dash-toast-leaving');
+    setTimeout(function() { if (t.parentNode) t.remove(); }, 250);
+  }, duration);
+}
+
 // Tier helpers — use these everywhere instead of raw string comparison
 function isPro() { return userTier === 'monthly' || userTier === 'max'; }
 function isMax() { return userTier === 'max'; }
