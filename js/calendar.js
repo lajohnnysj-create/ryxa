@@ -152,6 +152,7 @@ async function initCalendarTool() {
   }
 
   calRender();
+  calPopulateInlineTimezone();
 
   // Load Google Calendar connection state (non-blocking)
   gcalLoadConnectionState();
@@ -1011,49 +1012,73 @@ async function calDeleteEvent(eventId, eventType) {
   });
 }
 
-function calOpenSettings() {
-  var existing = document.getElementById('cal-settings-modal');
-  if (existing) existing.remove();
+// Common timezones for the inline picker. Covers ~95% of creators across all
+// major business regions. Anyone outside this list will still have their
+// auto-detected tz prepended (see calPopulateInlineTimezone). Maintenance
+// note: keep this list to ~25 entries — adding more turns a quick scan into
+// a scroll fest. If we ever need the full IANA list (~600), add a "Show all"
+// toggle separately.
+var CAL_COMMON_TZS = [
+  'America/Los_Angeles', 'America/Denver', 'America/Phoenix',
+  'America/Chicago', 'America/Mexico_City',
+  'America/New_York', 'America/Toronto', 'America/Sao_Paulo',
+  'Europe/London', 'Europe/Paris', 'Europe/Berlin', 'Europe/Madrid',
+  'Europe/Rome', 'Europe/Athens', 'Europe/Moscow',
+  'Africa/Cairo', 'Africa/Johannesburg',
+  'Asia/Dubai', 'Asia/Kolkata', 'Asia/Bangkok',
+  'Asia/Singapore', 'Asia/Shanghai', 'Asia/Tokyo', 'Asia/Seoul',
+  'Australia/Perth', 'Australia/Sydney', 'Pacific/Auckland'
+];
 
-  var modal = document.createElement('div');
-  modal.id = 'cal-settings-modal';
-  modal.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;padding:12px;';
-  modal.onclick = function(e) { if (e.target === modal) modal.remove(); };
-  modal.innerHTML = '<div class="cal-s-cf0ab7">'
-    + '<div class="cal-s-0a679d">'
-    + '<h3 class="course-s-09f83d">Calendar Settings</h3>'
-    + '<button data-cal-action="close-settings-modal" class="course-s-a2c730">✕</button>'
-    + '</div>'
-    + '<div class="deal-s-5b6aad"><label for="cal-tz-select" class="cal-s-0d9ec6">Time Zone</label>'
-    + '<select id="cal-tz-select" class="cal-s-367b98"></select>'
-    + '<p class="prod-s-69a65b">Used for displaying event times. Stored locally.</p></div>'
-    + '<button data-cal-action="save-settings" class="cal-s-cc94e5">Save</button>'
-    + '</div>';
-  document.body.appendChild(modal);
+// Render the timezone as a compact label for the inline dropdown. We drop
+// the IANA continent prefix and replace underscores with spaces. Example:
+// 'America/Los_Angeles' → 'Los Angeles'. Bare IANA strings like 'UTC' or
+// values without a slash pass through unchanged.
+function calFormatTzLabel(tz) {
+  if (!tz) return '';
+  var idx = tz.lastIndexOf('/');
+  return (idx >= 0 ? tz.slice(idx + 1) : tz).replace(/_/g, ' ');
+}
 
-  // Populate timezones
-  var commonTzs = ['America/Los_Angeles','America/Denver','America/Chicago','America/New_York','America/Toronto','America/Mexico_City','America/Sao_Paulo','Europe/London','Europe/Berlin','Europe/Paris','Europe/Madrid','Europe/Moscow','Africa/Cairo','Africa/Johannesburg','Asia/Dubai','Asia/Kolkata','Asia/Bangkok','Asia/Shanghai','Asia/Tokyo','Asia/Singapore','Australia/Sydney','Pacific/Auckland'];
-  var sel = document.getElementById('cal-tz-select');
-  // Add user's detected tz if not in list
-  if (commonTzs.indexOf(calState.timezone) === -1) commonTzs.unshift(calState.timezone);
-  sel.innerHTML = commonTzs.map(function(tz) {
-    return '<option value="' + tz + '"' + (tz === calState.timezone ? ' selected' : '') + '>' + tz.replace(/_/g, ' ') + '</option>';
+// Populate the inline timezone dropdown in the calendar toolbar. Called on
+// init (after calState.timezone is loaded from DB/localStorage/auto-detect)
+// and any time the list might need to refresh.
+function calPopulateInlineTimezone() {
+  var sel = document.getElementById('cal-tz-inline');
+  if (!sel) return;
+  var current = calState.timezone || 'UTC';
+  // Build the option list — current TZ first if not already in the common list
+  var options = CAL_COMMON_TZS.slice();
+  if (options.indexOf(current) === -1) options.unshift(current);
+  sel.innerHTML = options.map(function(tz) {
+    var selected = tz === current ? ' selected' : '';
+    return '<option value="' + tz + '"' + selected + '>' + calFormatTzLabel(tz) + '</option>';
   }).join('');
 }
 
-async function calSaveSettings() {
-  var tz = document.getElementById('cal-tz-select').value;
-  calState.timezone = tz;
-  // Save to localStorage as a quick cache, but also persist to DB so the public
-  // coaching page can know the creator's timezone for proper slot generation
-  try { localStorage.setItem('ryxa_cal_tz', tz); } catch (e) {}
+// Save the selected timezone to DB + localStorage and re-render the calendar
+// so events display at the right times. No "Save" button — change is the
+// commit. Errors are non-fatal: we still apply locally so the UI feels
+// responsive even if the DB write times out.
+async function calChangeTimezoneInline(newTz) {
+  if (!newTz || newTz === calState.timezone) return;
+  calState.timezone = newTz;
+  try { localStorage.setItem('ryxa_cal_tz', newTz); } catch (e) {}
   if (currentUser) {
     try {
-      await sb.from('profiles').update({ calendar_timezone: tz }).eq('user_id', currentUser.id);
-    } catch (e) { console.error('Failed to save calendar_timezone:', e); }
+      await sb.from('profiles').update({ calendar_timezone: newTz }).eq('user_id', currentUser.id);
+    } catch (e) {
+      console.error('Failed to save calendar_timezone:', e);
+    }
   }
-  document.getElementById('cal-settings-modal').remove();
   calRender();
+}
+
+function calOpenSettings() {
+  // Deprecated. The gear-icon settings modal was replaced by an inline
+  // timezone dropdown in the calendar toolbar (calPopulateInlineTimezone +
+  // calChangeTimezoneInline). Kept as a stub in case some old code path
+  // still references it; no-op.
 }
 
 
@@ -1066,7 +1091,7 @@ calRegisterAction('prev-month', () => calPrevMonth());
 calRegisterAction('next-month', () => calNextMonth());
 calRegisterAction('today', () => calToday());
 calRegisterAction('toggle-month-picker', () => calToggleMonthPicker());
-calRegisterAction('open-settings', () => calOpenSettings());
+calRegisterAction('change-timezone', (e, el) => calChangeTimezoneInline(el.value));
 calRegisterAction('open-add-event', () => calOpenAddEvent());
 calRegisterAction('picker-prev-year', () => calPickerPrevYear());
 calRegisterAction('picker-next-year', () => calPickerNextYear());
@@ -1090,12 +1115,7 @@ calRegisterAction('close-send-msg-modal', () => {
   var m = document.getElementById('cal-send-msg-modal');
   if (m) m.remove();
 });
-calRegisterAction('close-settings-modal', () => {
-  var m = document.getElementById('cal-settings-modal');
-  if (m) m.remove();
-});
 calRegisterAction('save-event', () => calSaveEvent());
-calRegisterAction('save-settings', () => calSaveSettings());
 calRegisterAction('select-color', (e, el) => calSelectColor(el.dataset.calColor));
 
 // Google Calendar OAuth — buttons rendered by gcalRenderConnectionState
