@@ -933,7 +933,27 @@ function ensureQuillLoaded() {
     document.head.appendChild(css);
 
     var loaded = 0;
-    function done() { if (++loaded === 2) resolve(); }
+    function done() {
+      if (++loaded === 2) {
+        // Both Quill and DOMPurify are now on window. Before resolving, teach
+        // Quill about our custom image-size class so it preserves the
+        // lesson-img-size-* class on images during paste/parse. Without this,
+        // Quill's parchment strips unknown classes from <img> elements and
+        // images reload as full-width because their saved size class is lost.
+        try {
+          var Parchment = Quill.import('parchment');
+          var ImgSizeAttr = new Parchment.Attributor.Class('imgSize', 'lesson-img-size', {
+            scope: Parchment.Scope.INLINE,
+            whitelist: ['small', 'medium', 'large']
+          });
+          Quill.register(ImgSizeAttr, true);
+        } catch (e) {
+          // Non-fatal — editor still works, images just won't remember size.
+          console.warn('Failed to register Quill image-size attributor:', e);
+        }
+        resolve();
+      }
+    }
     function fail(libName) {
       _courseQuillLoadPromise = null;
       reject(new Error(libName + ' failed to load'));
