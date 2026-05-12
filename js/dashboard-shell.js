@@ -429,7 +429,7 @@ async function setUser(user) {
 
   // Set welcome name from profile
   try {
-    const { data: profile } = await sb.from('profiles').select('username, display_currency').eq('user_id', user.id).maybeSingle();
+    const { data: profile } = await sb.from('profiles').select('username, display_currency, calendar_timezone').eq('user_id', user.id).maybeSingle();
     if (profile?.username) {
       window._ryx_username = profile.username;
       applyDashGreeting('@' + profile.username);
@@ -442,6 +442,33 @@ async function setUser(user) {
     // Load display currency (defaults to USD if not set)
     if (profile?.display_currency && SUPPORTED_CURRENCIES[profile.display_currency]) {
       currentCurrency = profile.display_currency;
+    }
+    // Auto-detect calendar timezone for first-time users. We only write if
+    // calendar_timezone is missing — never overwrite. This means:
+    //   - New accounts: get a sensible default based on browser locale.
+    //   - Existing accounts with a NULL value (created before this field):
+    //     backfilled on next login.
+    //   - Existing accounts with a value already: untouched, preserves
+    //     manual choice and prevents travel-based silent overrides.
+    // Fire-and-forget; the calendar tool will use whatever's there when
+    // the creator opens it.
+    if (!profile?.calendar_timezone) {
+      try {
+        var detectedTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        if (detectedTz) {
+          // Upsert with conflict-on-user_id. Works whether or not a profile
+          // row exists. If it does, only calendar_timezone is set (other
+          // columns untouched). If it doesn't, a new row is created with
+          // just user_id + calendar_timezone — username/etc filled in
+          // later by their normal flow.
+          sb.from('profiles').upsert(
+            { user_id: user.id, calendar_timezone: detectedTz },
+            { onConflict: 'user_id' }
+          ).then(function(res) {
+            if (res.error) console.error('Auto-detect timezone save failed:', res.error);
+          });
+        }
+      } catch (e) { console.error('Timezone auto-detect failed:', e); }
     }
   } catch (e) { /* keep default */ }
 
