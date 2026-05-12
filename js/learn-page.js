@@ -629,13 +629,18 @@ function renderBookings(bookings) {
     var date = new Date(b.booked_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     var priceText = b.amount_paid_cents > 0 ? '$' + (b.amount_paid_cents / 100).toFixed(2) : 'Free';
 
-    // Format the actual session date/time (if booked through Ryxa Calendar)
+    // Format the actual session date/time (if booked through Ryxa Calendar).
+    // Use the booker's saved timezone from slot_timezone — this is what they
+    // picked when they booked. Browser-local was wrong when the booker
+    // switched tz during booking (e.g. travel scenario) or has since
+    // moved devices.
     var slotInfo = '';
     if (b.slot_start && b.slot_end) {
       var slotStart = new Date(b.slot_start);
       var slotEnd = new Date(b.slot_end);
-      var slotDate = slotStart.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
-      var slotTime = slotStart.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) + ' – ' + slotEnd.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+      var slotTz = b.slot_timezone || undefined;
+      var slotDate = slotStart.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', timeZone: slotTz });
+      var slotTime = slotStart.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: slotTz }) + ' – ' + slotEnd.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZoneName: 'short', timeZone: slotTz });
       slotInfo = slotDate + ' at ' + slotTime;
     }
 

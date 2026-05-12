@@ -1190,8 +1190,16 @@ function calPopulateInlineTimezone() {
 async function calChangeTimezoneInline(newTz) {
   if (!newTz || newTz === calState.timezone) return;
   calState.timezone = newTz;
+  // Keep the dashboard-shell global in sync so other tools (Welcome's
+  // upcoming events, coaching settings hint) display in the new tz
+  // immediately, without needing their own listeners.
+  try { window._ryx_creator_tz = newTz; } catch (e) {}
   try { localStorage.setItem('ryxa_cal_tz', newTz); } catch (e) {}
   calRender();
+  // Note: we don't manually re-render Welcome's upcoming events here.
+  // showTool('welcome') already calls loadDashStats() → loadUpcomingEvents()
+  // every time the user navigates back to Welcome, so the new tz is picked
+  // up naturally on that re-render.
   if (currentUser) {
     try {
       // Supabase .update() returns { data, error } — it does NOT throw on

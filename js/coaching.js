@@ -292,8 +292,15 @@ var coachingAvailability = {
 function setCoachingTzHint() {
   var el = document.getElementById('coaching-tz-hint');
   if (!el) return;
+  // Read tz in order of preference: dashboard-shell global (set by setUser
+  // and kept in sync by calChangeTimezoneInline) → localStorage (calendar.js
+  // cache) → browser detection. The global is always fresh; the others
+  // are safety nets.
   var tz = '';
-  try { tz = localStorage.getItem('ryxa_cal_tz') || ''; } catch (e) {}
+  try { tz = window._ryx_creator_tz || ''; } catch (e) {}
+  if (!tz) {
+    try { tz = localStorage.getItem('ryxa_cal_tz') || ''; } catch (e) {}
+  }
   if (!tz) {
     try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) {}
   }

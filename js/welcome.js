@@ -148,8 +148,13 @@ async function loadUpcomingEvents() {
     listEl.innerHTML = events.map(function(e) {
       var startDate = new Date(e.start_at);
       var endDate = new Date(e.end_at);
-      var dateStr = startDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-      var timeStr = startDate.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+      // Format in the creator's saved calendar timezone, not browser-local.
+      // The global _ryx_creator_tz is set by dashboard-shell.setUser and
+      // kept in sync by calChangeTimezoneInline. Falls back to browser
+      // detection if for some reason the global isn't set yet.
+      var tz = window._ryx_creator_tz || Intl.DateTimeFormat().resolvedOptions().timeZone || undefined;
+      var dateStr = startDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric', timeZone: tz });
+      var timeStr = startDate.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', timeZone: tz });
 
       // Tier-based color stripe based on event type
       // Max features: coaching, brand_deal (gradient pink/purple)

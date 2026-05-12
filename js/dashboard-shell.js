@@ -473,6 +473,19 @@ async function setUser(user) {
     if (profile?.display_currency && SUPPORTED_CURRENCIES[profile.display_currency]) {
       currentCurrency = profile.display_currency;
     }
+    // Stash creator's calendar timezone globally so any tool can read it
+    // without its own DB call. Welcome's upcoming events list and the
+    // coaching tz hint both consume this. Falls back to browser-detected
+    // tz if profile row doesn't have one yet (will get backfilled by the
+    // auto-detect block below).
+    try {
+      window._ryx_creator_tz = (profile && profile.calendar_timezone)
+        ? profile.calendar_timezone
+        : (Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC');
+      // Also keep localStorage in sync so calendar.js' fallback path works
+      // even before the user opens the Calendar tool.
+      try { localStorage.setItem('ryxa_cal_tz', window._ryx_creator_tz); } catch (e) {}
+    } catch (e) { window._ryx_creator_tz = 'UTC'; }
     // Auto-detect calendar timezone for first-time users. We only write if
     // calendar_timezone is missing — never overwrite. This means:
     //   - New accounts: get a sensible default based on browser locale.
