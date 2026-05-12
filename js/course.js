@@ -975,7 +975,12 @@ var QUILL_PURIFY_CONFIG = {
 
 function sanitizeLessonHtml(html) {
   if (typeof DOMPurify === 'undefined') return ''; // editor not loaded yet
-  return DOMPurify.sanitize(html || '', QUILL_PURIFY_CONFIG);
+  // Strip the editor-only 'lesson-img-selected' class so it never persists
+  // to the DB. The class is used only by the editor to outline a selected
+  // image; viewers never need it. Removing as a string before sanitize is
+  // simpler than configuring DOMPurify to strip a single class value.
+  var cleaned = (html || '').replace(/\blesson-img-selected\b/g, '').replace(/class="\s*"/g, '');
+  return DOMPurify.sanitize(cleaned, QUILL_PURIFY_CONFIG);
 }
 
 // Count <img> tags in the current Quill content (used to enforce per-lesson
@@ -1038,6 +1043,19 @@ function mountLessonEditor(mi, li) {
                 var range = quill.getSelection(true);
                 quill.insertEmbed(range.index, 'image', urlData.data.publicUrl, 'user');
                 quill.setSelection(range.index + 1, 0);
+                // Default newly-inserted images to "small". Creator can click
+                // the image and use the S/M/L toolbar to resize.
+                setTimeout(function() {
+                  var imgs = quill.root.querySelectorAll('img');
+                  var lastImg = imgs[imgs.length - 1];
+                  if (lastImg && !lastImg.classList.contains('lesson-img-size-small') && !lastImg.classList.contains('lesson-img-size-medium') && !lastImg.classList.contains('lesson-img-size-large')) {
+                    lastImg.classList.add('lesson-img-size-small');
+                    // Trigger save so the class persists
+                    var html = quill.root.innerHTML;
+                    if (html === '<p><br></p>') html = '';
+                    updateLessonField(mi, li, 'text_content', sanitizeLessonHtml(html));
+                  }
+                }, 50);
               } catch (e) {
                 console.error('Lesson image upload error:', e);
                 showModalAlert('Upload Failed', 'Could not upload image. Please try again.');
@@ -1081,8 +1099,80 @@ function mountLessonEditor(mi, li) {
     updateLessonField(mi, li, 'text_content', sanitizeLessonHtml(html));
   });
 
+  // Wire up image sizing. Adds S/M/L buttons to the toolbar (after Quill has
+  // built it) and listens for clicks on images inside the editor so creators
+  // can resize them. The selected image gets an outline; clicking S/M/L
+  // applies the corresponding size class.
+  setupImageSizing(quill, mi, li, container);
+
   _courseQuillInstances[key] = quill;
   return quill;
+}
+
+function setupImageSizing(quill, mi, li, container) {
+  var toolbar = container.previousElementSibling; // .ql-toolbar sits just before .ql-container
+  if (!toolbar || !toolbar.classList.contains('ql-toolbar')) {
+    // Fallback: find by query (Quill always places toolbar adjacent to container)
+    toolbar = container.parentElement && container.parentElement.querySelector('.ql-toolbar');
+    if (!toolbar) return;
+  }
+
+  // Inject S/M/L button group right before the "clean" button (last group).
+  var group = document.createElement('span');
+  group.className = 'ql-formats lesson-img-size-toolbar';
+  group.innerHTML = '<button type="button" data-img-size="small" title="Small image">S</button>'
+    + '<button type="button" data-img-size="medium" title="Medium image">M</button>'
+    + '<button type="button" data-img-size="large" title="Large image">L</button>';
+  // Insert before the last .ql-formats group (which is "clean")
+  var groups = toolbar.querySelectorAll('.ql-formats');
+  var cleanGroup = groups[groups.length - 1];
+  if (cleanGroup) {
+    toolbar.insertBefore(group, cleanGroup);
+  } else {
+    toolbar.appendChild(group);
+  }
+
+  // Track the currently-selected image. Click on an image to select it.
+  // Clicking elsewhere deselects.
+  var selectedImg = null;
+  function selectImage(img) {
+    if (selectedImg) selectedImg.classList.remove('lesson-img-selected');
+    selectedImg = img;
+    if (selectedImg) selectedImg.classList.add('lesson-img-selected');
+    // Enable/disable the S/M/L buttons based on whether we have a selection
+    group.querySelectorAll('button').forEach(function(btn) {
+      btn.disabled = !selectedImg;
+      btn.classList.toggle('lesson-img-size-active', !!selectedImg && selectedImg.classList.contains('lesson-img-size-' + btn.dataset.imgSize));
+    });
+  }
+
+  quill.root.addEventListener('click', function(e) {
+    if (e.target.tagName === 'IMG') {
+      selectImage(e.target);
+    } else {
+      selectImage(null);
+    }
+  });
+
+  // S/M/L button handlers
+  group.addEventListener('click', function(e) {
+    var btn = e.target.closest('button[data-img-size]');
+    if (!btn || !selectedImg) return;
+    var size = btn.dataset.imgSize;
+    selectedImg.classList.remove('lesson-img-size-small', 'lesson-img-size-medium', 'lesson-img-size-large');
+    selectedImg.classList.add('lesson-img-size-' + size);
+    // Refresh active button state
+    group.querySelectorAll('button').forEach(function(b) {
+      b.classList.toggle('lesson-img-size-active', b.dataset.imgSize === size);
+    });
+    // Trigger save (manually since text-change won't fire for class changes)
+    var html = quill.root.innerHTML;
+    if (html === '<p><br></p>') html = '';
+    updateLessonField(mi, li, 'text_content', sanitizeLessonHtml(html));
+  });
+
+  // Initialize buttons disabled (no image selected yet)
+  group.querySelectorAll('button').forEach(function(btn) { btn.disabled = true; });
 }
 
 // Tear down a Quill instance when its lesson collapses. Prevents stale
