@@ -1204,7 +1204,7 @@ function renderCourseModules() {
     const lessonsHtml = (mod.lessons || []).map((l, li) => {
       const isVideo = l.lesson_type === 'video';
       const previewBadge = l.is_preview ? '<span class="course-s-6862c6">PREVIEW</span>' : '';
-      const typeLabel = isVideo ? '<span class="course-s-955d08">VIDEO</span>' : '<span class="course-s-e89353">TEXT</span>';
+      const typeLabel = isVideo ? '<span class="course-s-955d08">VIDEO</span>' : '<span class="course-s-e89353">LESSON</span>';
       const isCollapsed = l._collapsed;
       const hasContent = isVideo ? !!(l.video_url) : !!(l.text_content);
       const preview = isVideo ? (l.video_url || '').slice(0, 40) : (l.text_content || '').slice(0, 50).replace(/\n/g, ' ');
@@ -1260,8 +1260,7 @@ function renderCourseModules() {
                 + statusHtml
                 + '</div>';
             })()
-          : '<div id="lesson-editor-' + mi + '-' + li + '" class="course-s-quill-host" data-course-mi="' + mi + '" data-course-li="' + li + '"></div>'
-          + '<div class="course-s-a3a556"><button data-course-action="ai-cleanup-lesson" data-course-mi="' + mi + '" data-course-li="' + li + '" class="ds-tool-btn bio-s-3c4fd7" title="AI Clean Up" ><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> AI Clean Up</button></div>')
+          : '<div id="lesson-editor-' + mi + '-' + li + '" class="course-s-quill-host" data-course-mi="' + mi + '" data-course-li="' + li + '"></div>')
         // Move / info / done buttons. Icon-only to keep the row compact —
         // labels were redundant with the well-known up/down/info glyphs and
         // ate horizontal space. "Done" collapses the lesson (state is already
@@ -1428,75 +1427,6 @@ courseRegisterAction('validate-video-url-blur', (e, el) => {
 courseRegisterAction('toggle-lesson-preview', (e, el) => {
   toggleLessonPreview(parseInt(el.dataset.courseMi, 10), parseInt(el.dataset.courseLi, 10));
 });
-courseRegisterAction('ai-cleanup-lesson', (e, el) => {
-  const mi = parseInt(el.dataset.courseMi, 10);
-  const li = parseInt(el.dataset.courseLi, 10);
-  aiCleanUpLessonQuill(mi, li);
-});
-
-// AI Clean Up for the new Quill-based lesson editor. Different from the
-// generic aiCleanUp() in dashboard-shell.js (which reads/writes a textarea
-// value) — Quill stores rich HTML, but the cleanup API returns plain text,
-// so running it would wipe formatting. We warn the creator first.
-function aiCleanUpLessonQuill(mi, li) {
-  if (typeof isPro === 'function' && !isPro()) {
-    showModalAlert('Pro Feature', 'AI Clean Up is a Pro feature. Upgrade to use it.');
-    return;
-  }
-  var key = mi + '-' + li;
-  var quill = _courseQuillInstances[key];
-  if (!quill) {
-    showModalAlert('Editor not ready', 'Wait a moment for the lesson editor to finish loading, then try again.');
-    return;
-  }
-  var plainText = quill.getText().trim();
-  if (!plainText) {
-    showModalAlert('Empty Lesson', 'Write some content first, then use AI Clean Up to polish it.');
-    return;
-  }
-
-  showModalConfirm(
-    'Clean up this lesson?',
-    'AI Clean Up will rewrite your lesson as plain text. Any formatting (bold, headings, lists, images, alignment) will be removed. Continue?',
-    function() {
-      // Inline progress overlay (mirrors the design used by aiCleanUp in
-      // dashboard-shell.js so creators see consistent UI).
-      var overlay = document.createElement('div');
-      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;';
-      overlay.innerHTML = '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:28px;text-align:center;">'
-        + '<svg width="24" height="24" viewBox="0 0 24 24" style="animation:btn-spin 0.6s linear infinite;margin-bottom:12px;" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>'
-        + '<div style="font-size:14px;color:var(--text);">Cleaning up your lesson...</div>'
-        + '</div>';
-      document.body.appendChild(overlay);
-      fetch('/api/ai-cleanup', {
-        method: 'POST',
-        headers: getAIHeaders(),
-        body: JSON.stringify({ text: plainText })
-      })
-      .then(function(r) { return r.json(); })
-      .then(function(data) {
-        overlay.remove();
-        if (data.error) { showModalAlert('Error', data.error); return; }
-        var cleaned = (data.cleaned || data.text || '').trim();
-        if (!cleaned) { showModalAlert('Error', 'Could not generate cleaned text. Try again.'); return; }
-        // Replace editor content with the cleaned plain text, wrapping in
-        // paragraphs split on blank lines so the output is at least
-        // paragraph-shaped (not one long blob).
-        var paragraphs = cleaned.split(/\n\n+/).map(function(p) {
-          return '<p>' + escapeHtml(p.trim()).replace(/\n/g, '<br>') + '</p>';
-        }).join('');
-        quill.clipboard.dangerouslyPasteHTML(0, sanitizeLessonHtml(paragraphs), 'user');
-      })
-      .catch(function(err) {
-        overlay.remove();
-        console.error('AI cleanup error:', err);
-        showModalAlert('Error', 'Could not clean up text. Please try again.');
-      });
-    },
-    'Yes, clean up',
-    'Cancel'
-  );
-}
 courseRegisterAction('move-lesson-up', (e, el) => {
   moveLessonUp(parseInt(el.dataset.courseMi, 10), parseInt(el.dataset.courseLi, 10));
 });
