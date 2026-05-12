@@ -20,6 +20,17 @@ document.addEventListener('click', function(e) {
   if (h) h(e, el);
 });
 
+// Parallel dispatcher for change events. Used by the timezone select and any
+// future inputs. Looks for data-booking-change="action" so a single element
+// can have separate click/change handlers without ambiguity.
+document.addEventListener('change', function(e) {
+  var el = e.target && e.target.closest ? e.target.closest('[data-booking-change]') : null;
+  if (!el) return;
+  var action = el.getAttribute('data-booking-change');
+  var h = bookingActionHandlers[action];
+  if (h) h(e, el);
+});
+
 // =================================================================
 // ORIGINAL BOOKING LANDING CODE (extracted from booking/index.html)
 // =================================================================
@@ -271,10 +282,70 @@ var pickerState = {
   bookerTz: Intl.DateTimeFormat().resolvedOptions().timeZone
 };
 
+// Common timezones for the booker-side picker dropdown. Mirrors the list
+// in calendar.js (CAL_COMMON_TZS) so creator and booker see the same
+// curated set. Kept inline here to avoid cross-bundle dependencies — the
+// booker page doesn't load calendar.js.
+var BOOKER_COMMON_TZS = [
+  'America/Los_Angeles', 'America/Denver', 'America/Phoenix',
+  'America/Chicago', 'America/Mexico_City',
+  'America/New_York', 'America/Toronto', 'America/Sao_Paulo',
+  'Europe/London', 'Europe/Paris', 'Europe/Berlin', 'Europe/Madrid',
+  'Europe/Rome', 'Europe/Athens', 'Europe/Moscow',
+  'Africa/Cairo', 'Africa/Johannesburg',
+  'Asia/Dubai', 'Asia/Kolkata', 'Asia/Bangkok',
+  'Asia/Singapore', 'Asia/Shanghai', 'Asia/Tokyo', 'Asia/Seoul',
+  'Australia/Perth', 'Australia/Sydney', 'Pacific/Auckland'
+];
+
+// Compact display label — 'America/Los_Angeles' → 'Los Angeles'. IANA
+// strings without a slash (e.g. 'UTC') pass through unchanged.
+function formatBookerTzLabel(tz) {
+  if (!tz) return '';
+  var idx = tz.lastIndexOf('/');
+  return (idx >= 0 ? tz.slice(idx + 1) : tz).replace(/_/g, ' ');
+}
+
+// Build the option list for the booker timezone select. If the booker's
+// auto-detected tz isn't already in the common list (e.g. Tehran, Lagos),
+// it gets pinned to the top so they can find it immediately.
+function populateBookerTimezoneSelect() {
+  var sel = document.getElementById('picker-tz-select');
+  if (!sel) return;
+  var current = pickerState.bookerTz || 'UTC';
+  var options = BOOKER_COMMON_TZS.slice();
+  if (options.indexOf(current) === -1) options.unshift(current);
+  sel.innerHTML = options.map(function(tz) {
+    var selected = tz === current ? ' selected' : '';
+    return '<option value="' + tz + '"' + selected + '>' + formatBookerTzLabel(tz) + '</option>';
+  }).join('');
+}
+
+// Handle a booker switching their viewing timezone. Re-renders the slot
+// grid in the new timezone. If they had a slot selected, we clear it —
+// it was selected in the OLD timezone's clock and showing it now would
+// be confusing. They can re-pick with the new clock in view.
+function onBookerTimezoneChange(newTz) {
+  if (!newTz || newTz === pickerState.bookerTz) return;
+  pickerState.bookerTz = newTz;
+  // Clear any selected slot so the booker re-confirms in the new tz.
+  // The underlying UTC moment is unchanged, but showing "your session is
+  // at 4 PM PDT" after they explicitly switched to NY time would be more
+  // confusing than helpful.
+  pickerState.selectedTime = null;
+  pickerState.selectedSlot = null;
+  var summaryWrap = document.getElementById('picker-summary-wrap');
+  if (summaryWrap) summaryWrap.style.display = 'none';
+  // Re-render the times grid if a date is selected.
+  if (pickerState.selectedDate) {
+    renderPickerTimes();
+  }
+}
+
 async function showPicker() {
   document.getElementById('coaching-page').style.display = 'none';
   document.getElementById('picker-page').style.display = 'block';
-  document.getElementById('picker-tz-name').textContent = pickerState.bookerTz.replace(/_/g, ' ');
+  populateBookerTimezoneSelect();
 
   // Get marketing consent before navigating away
   var consentCheck = document.getElementById('marketing-consent');
@@ -511,8 +582,10 @@ function renderPickerTimes() {
 
   var html = '<div class="picker-time-grid">';
   slots.forEach(function(s) {
-    // Display in the BOOKER's local timezone (toLocaleTimeString defaults to local)
-    var label = s.start.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+    // Display in the booker's chosen tz. Defaulting to browser-local (via
+    // `undefined`) was fine when bookerTz was always auto-detected, but
+    // breaks when they manually switch via the tz dropdown.
+    var label = s.start.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', timeZone: pickerState.bookerTz });
     var iso = s.start.toISOString();
     var endIso = s.end.toISOString();
     var selectedClass = pickerState.selectedTime === iso ? ' selected' : '';
@@ -527,11 +600,12 @@ function selectPickerTime(startIso, endIso) {
   pickerState.selectedSlot = { start_at: startIso, end_at: endIso, timezone: pickerState.bookerTz };
   renderPickerTimes();
 
-  // Show summary
+  // Show summary in the booker's chosen tz (same reason as above — tz
+  // dropdown can drift away from browser-local).
   var startDate = new Date(startIso);
   var endDate = new Date(endIso);
-  var dateStr = startDate.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
-  var timeStr = startDate.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) + ' - ' + endDate.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+  var dateStr = startDate.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', timeZone: pickerState.bookerTz });
+  var timeStr = startDate.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', timeZone: pickerState.bookerTz }) + ' - ' + endDate.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', timeZone: pickerState.bookerTz });
   document.getElementById('picker-summary-text').textContent = dateStr + ' at ' + timeStr;
   document.getElementById('picker-summary-wrap').style.display = 'block';
 }
@@ -686,4 +760,11 @@ bookingRegisterAction('pick-time', function(e, el) {
   var iso = el.getAttribute('data-booking-iso');
   var endIso = el.getAttribute('data-booking-end-iso');
   if (iso && endIso) selectPickerTime(iso, endIso);
+});
+
+// Booker chose a different viewing timezone from the picker dropdown. Updates
+// pickerState.bookerTz and re-renders. Wired via data-booking-change because
+// the booking dispatcher handles click events only; change is a separate path.
+bookingRegisterAction('change-booker-timezone', function(e, el) {
+  onBookerTimezoneChange(el.value);
 });
