@@ -784,7 +784,7 @@ function showCourseOverview() {
       var icon = l.lesson_type === 'video' ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>' : '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>';
       var check = isCompleted ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' : '<span style="width:14px;height:14px;display:inline-block;border:1.5px solid var(--muted);border-radius:50%;"></span>';
       html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:13px;color:var(--text);">'
-        + check + ' ' + icon + ' ' + escapeHtml(l.title || 'Untitled')
+        + check + ' ' + icon + ' ' + escapeHtml(l.title || (l.lesson_type === 'video' ? 'Untitled Video' : 'Untitled Lesson'))
         + '</div>';
     });
     html += '</div>';
@@ -808,7 +808,7 @@ function showCourseOverview() {
     nav.innerHTML = '<div class="viewer-nav-btn viewer-nav-prev disabled"><span class="viewer-nav-label">← Previous</span><span class="viewer-nav-title"></span></div>'
       + '<a href="#" data-learn-action="select-lesson" data-learn-lesson-id="' + all[0].id + '" class="viewer-nav-btn viewer-nav-next">'
       + '<span class="viewer-nav-label">Next →</span>'
-      + '<span class="viewer-nav-title">' + escapeHtml(all[0].title || 'Untitled') + '</span></a>';
+      + '<span class="viewer-nav-title">' + escapeHtml(all[0].title || (all[0].lesson_type === 'video' ? 'Untitled Video' : 'Untitled Lesson')) + '</span></a>';
   } else {
     nav.innerHTML = '';
   }
@@ -846,7 +846,7 @@ function showCourseCompletion() {
     var last = all[all.length - 1];
     nav.innerHTML = '<a href="#" data-learn-action="select-lesson" data-learn-lesson-id="' + last.id + '" class="viewer-nav-btn viewer-nav-prev">'
       + '<span class="viewer-nav-label">← Previous</span>'
-      + '<span class="viewer-nav-title">' + escapeHtml(last.title || 'Untitled') + '</span></a>'
+      + '<span class="viewer-nav-title">' + escapeHtml(last.title || (last.lesson_type === 'video' ? 'Untitled Video' : 'Untitled Lesson')) + '</span></a>'
       + '<div class="viewer-nav-btn viewer-nav-next disabled"><span class="viewer-nav-label">Next →</span><span class="viewer-nav-title"></span></div>';
   } else {
     nav.innerHTML = '';
@@ -902,7 +902,7 @@ function renderViewer() {
         var check = isCompleted ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' : '';
         return '<button class="viewer-lesson-btn' + (isActive ? ' active' : '') + (isCompleted ? ' completed' : '') + '" data-learn-action="select-lesson" data-learn-lesson-id="' + l.id + '">'
           + '<span class="viewer-check">' + check + '</span>'
-          + '<span>' + icon + ' ' + escapeHtml(l.title || 'Untitled') + '</span>'
+          + '<span>' + icon + ' ' + escapeHtml(l.title || (l.lesson_type === 'video' ? 'Untitled Video' : 'Untitled Lesson')) + '</span>'
           + '</button>';
       }).join('');
   }).join('');
@@ -929,7 +929,7 @@ function selectLesson(lessonId) {
   if (mod) {
     html += '<div class="viewer-lesson-header">Module ' + (modIndex + 1) + ': ' + escapeHtml(mod.title) + '</div>';
   }
-  html += '<div class="viewer-lesson-title">' + escapeHtml(lesson.title || 'Untitled Lesson') + '</div>';
+  html += '<div class="viewer-lesson-title">' + escapeHtml(lesson.title || (lesson.lesson_type === 'video' ? 'Untitled Video' : 'Untitled Lesson')) + '</div>';
 
   // Content
   if (lesson.lesson_type === 'video' && lesson.video_url) {
@@ -989,7 +989,7 @@ function renderLessonNav() {
     var prev = all[idx - 1];
     prevHtml = '<a href="#" data-learn-action="select-lesson" data-learn-lesson-id="' + prev.id + '" class="viewer-nav-btn viewer-nav-prev">'
       + '<span class="viewer-nav-label">← Previous</span>'
-      + '<span class="viewer-nav-title">' + escapeHtml(prev.title || 'Untitled') + '</span>'
+      + '<span class="viewer-nav-title">' + escapeHtml(prev.title || (prev.lesson_type === 'video' ? 'Untitled Video' : 'Untitled Lesson')) + '</span>'
       + '</a>';
   } else {
     prevHtml = '<a href="#" data-learn-action="show-course-overview" class="viewer-nav-btn viewer-nav-prev">'
@@ -1002,7 +1002,7 @@ function renderLessonNav() {
     var next = all[idx + 1];
     nextHtml = '<a href="#" data-learn-action="select-lesson" data-learn-lesson-id="' + next.id + '" class="viewer-nav-btn viewer-nav-next">'
       + '<span class="viewer-nav-label">Next →</span>'
-      + '<span class="viewer-nav-title">' + escapeHtml(next.title || 'Untitled') + '</span>'
+      + '<span class="viewer-nav-title">' + escapeHtml(next.title || (next.lesson_type === 'video' ? 'Untitled Video' : 'Untitled Lesson')) + '</span>'
       + '</a>';
   } else {
     nextHtml = '<a href="#" data-learn-action="show-course-completion" class="viewer-nav-btn viewer-nav-next">'

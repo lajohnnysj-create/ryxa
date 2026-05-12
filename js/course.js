@@ -682,7 +682,7 @@ async function saveCourseModules(courseId) {
       await sb.from('course_lessons').insert({
         course_id: courseId,
         module_id: savedMod.id,
-        title: lesson.title || 'Untitled Lesson',
+        title: lesson.title || (lesson.lesson_type === 'video' ? 'Untitled Video' : 'Untitled Lesson'),
         lesson_type: lesson.lesson_type || 'video',
         video_url: lesson.video_url || null,
         text_content: lesson.text_content || '',
@@ -911,7 +911,7 @@ function renderCourseModules() {
         return '<div data-course-action="expand-lesson" data-course-mi="' + mi + '" data-course-li="' + li + '" class="course-s-fce34d">'
           + '<div class="bio-s-e3f610">'
           + '<span class="course-s-229509">' + (li + 1) + '.</span>'
-          + '<span class="course-s-d63d24">' + escapeHtml(l.title || 'Untitled') + '</span>'
+          + '<span class="course-s-d63d24">' + escapeHtml(l.title || (isVideo ? 'Untitled Video' : 'Untitled Lesson')) + '</span>'
           + typeLabel + ' ' + previewBadge
           + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="bio-s-f38a95"><polyline points="6 9 12 15 18 9"/></svg>'
           + '</div>'
@@ -923,7 +923,7 @@ function renderCourseModules() {
       return '<div class="course-s-8ed674">'
         + '<div data-course-action="collapse-lesson" data-course-mi="' + mi + '" data-course-li="' + li + '" class="course-s-60e468">'
         + '<span class="course-s-229509">' + (li + 1) + '.</span>'
-        + '<span class="course-s-d63d24">' + escapeHtml(l.title || 'Untitled') + '</span>'
+        + '<span class="course-s-d63d24">' + escapeHtml(l.title || (isVideo ? 'Untitled Video' : 'Untitled Lesson')) + '</span>'
         + typeLabel + ' ' + previewBadge
         + '<span><button data-course-action="remove-lesson" data-course-mi="' + mi + '" data-course-li="' + li + '" class="course-s-f3bc45" title="Delete lesson"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></span>'
         + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="bio-s-f38a95"><polyline points="18 15 12 9 6 15"/></svg>'
@@ -995,7 +995,7 @@ function renderCourseModules() {
       + '<div class="course-s-3fed56">'
       + '<button data-course-action="add-lesson" data-course-mi="' + mi + '" data-course-lesson-type="video" class="course-s-be13d8">'
       + '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>'
-      + 'Embed Video</button>'
+      + 'Add Video</button>'
       + '<button data-course-action="add-lesson" data-course-mi="' + mi + '" data-course-lesson-type="text" class="course-s-be13d8">'
       + '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>'
       + 'Add Lesson</button>'
