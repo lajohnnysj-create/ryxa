@@ -1139,6 +1139,9 @@ function setupImageSizing(quill, mi, li, container) {
     if (selectedImg) selectedImg.classList.remove('lesson-img-selected');
     selectedImg = img;
     if (selectedImg) selectedImg.classList.add('lesson-img-selected');
+    // Toggle the "alive" group state — drives the CSS that lights up the
+    // S/M/L buttons in solid purple so creators see where to click.
+    group.classList.toggle('has-selection', !!selectedImg);
     // Enable/disable the S/M/L buttons based on whether we have a selection
     group.querySelectorAll('button').forEach(function(btn) {
       btn.disabled = !selectedImg;
