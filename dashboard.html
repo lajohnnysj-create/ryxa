@@ -3114,17 +3114,29 @@
   .grid-phone-grid::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
   .grid-phone-cell {
     width: 33.3333%;
-    aspect-ratio: 4 / 5;
+    /* iOS PWA Safari has timing issues with aspect-ratio inside flex-wrap
+       containers — cells render as squares on first paint until a reflow
+       trigger (like drag) forces recomputation. The padding-bottom hack is
+       the bulletproof fallback: it works the same in every browser because
+       percentage padding always resolves against the element's width.
+       4:5 ratio = height / width = 5/4 = 125%. */
+    padding-bottom: calc(33.3333% * 5 / 4);
+    height: 0;
+    position: relative;
     background: #111;
     overflow: hidden;
     display: block;
     margin: 0;
-    padding: 0;
+    padding-top: 0;
+    padding-left: 0;
+    padding-right: 0;
     border: 0;
     line-height: 0;
     vertical-align: top;
   }
   .grid-phone-cell img {
+    position: absolute;
+    inset: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
