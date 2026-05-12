@@ -4396,12 +4396,13 @@
      and the day rows). Tight top margin since the label already has 8px
      below it; generous bottom margin to give the days list breathing room. */
   .coach-s-46ad08 { font-size:11px;color:var(--muted);line-height:1.5;margin-top:0;margin-bottom:14px; }
-  /* "Change in Calendar →" link inside the tz hint. Subtle by default,
-     underline on hover to make it discoverable as a real link. Inline link
-     in muted text needs slightly higher contrast than the surrounding text
-     to be findable. */
-  .coach-s-tz-link { color:var(--accent2);text-decoration:none;font-weight:500;white-space:nowrap; }
+  /* "Change in Calendar →" link inside the tz hint. The <a> has no href
+     (it'd navigate to # and pollute history); cursor:pointer + role/tabindex
+     keep it visually and keyboard-accessible as a link. Subtle by default,
+     underline on hover to make it discoverable as a real link. */
+  .coach-s-tz-link { color:var(--accent2);text-decoration:none;font-weight:500;white-space:nowrap;cursor:pointer; }
   .coach-s-tz-link:hover { text-decoration:underline; }
+  .coach-s-tz-link:focus-visible { outline:2px solid var(--accent2);outline-offset:2px;border-radius:2px; }
   .coach-s-663063 { display:none;margin-bottom:16px; }
   .coach-s-99fc1d { width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:12px 16px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box; }
   .coach-s-db8753 { padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:8px;font-size:13px;color:var(--muted);line-height:1.6; }
