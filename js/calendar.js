@@ -799,13 +799,38 @@ async function calSaveEvent() {
   if (!date) { showError('Please select a date.'); return; }
   if (!startTime || !endTime) { showError('Please set start and end times.'); return; }
 
-  // Build ISO timestamps using LOCAL timezone, not naive strings.
-  // Naive strings like "2026-04-28T14:00:00" get interpreted as UTC by Postgres,
-  // which causes events to display at wrong times in the user's timezone.
+  // Build ISO timestamps treating the entered Y-M-D and H:M as a wall-clock
+  // time IN THE CREATOR'S SELECTED CALENDAR TIMEZONE (calState.timezone).
+  // The old implementation used `new Date(y, m, d, h, m)` which interprets
+  // the fields as browser-local time — wrong when the creator is traveling
+  // or otherwise has browser-local != calState.timezone. With this fix:
+  //   - Creator in NY (browser), saved tz LA, enters 2 PM → stored as 22:00Z
+  //     (= 2 PM PT). Displays back as "2 PM" when viewing in LA, "5 PM" in NY.
+  //   - Creator at home in LA (browser = saved), enters 2 PM → stored as
+  //     22:00Z. Identical to old behavior. No regression.
   function localToIso(ymd, hhmm) {
     var dParts = ymd.split('-').map(Number);
     var tParts = hhmm.split(':').map(Number);
-    return new Date(dParts[0], dParts[1] - 1, dParts[2], tParts[0], tParts[1], 0, 0).toISOString();
+    var tz = calState.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+    // Build a candidate UTC moment treating the local wall-clock fields
+    // naively, then compute the offset between that and the same UTC
+    // moment formatted in the target tz. The corrected UTC = naive + offset.
+    var naiveUtc = Date.UTC(dParts[0], dParts[1] - 1, dParts[2], tParts[0], tParts[1], 0, 0);
+    var dtf = new Intl.DateTimeFormat('en-US', {
+      timeZone: tz, hour12: false,
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', second: '2-digit'
+    });
+    var fParts = {};
+    dtf.formatToParts(new Date(naiveUtc)).forEach(function(p) {
+      if (p.type !== 'literal') fParts[p.type] = parseInt(p.value, 10);
+    });
+    var asUtc = Date.UTC(
+      fParts.year, fParts.month - 1, fParts.day,
+      fParts.hour === 24 ? 0 : fParts.hour, fParts.minute, fParts.second
+    );
+    var offset = naiveUtc - asUtc;
+    return new Date(naiveUtc + offset).toISOString();
   }
   var startAt = localToIso(date, startTime);
   var endAt = localToIso(date, endTime);
