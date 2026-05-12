@@ -3019,6 +3019,13 @@
      to surrounding UI. Desktop stays at 620px. */
   @media (max-width: 900px) {
     .grid-phone-screen { height: 500px; }
+    /* On mobile the stats (posts / followers / following) bunch up against
+       each other because the avatar + default 16px gap leaves too little
+       horizontal room. Shrink the avatar slightly and tighten the row's
+       internal spacing to give the stats more breathing room. Desktop is
+       unaffected. */
+    .grid-phone-profile { gap: 10px; padding-left: 10px; padding-right: 10px; }
+    .grid-phone-avatar { width: 44px; height: 44px; }
   }
   .grid-phone-header {
     display: flex;
