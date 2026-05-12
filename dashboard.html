@@ -3014,6 +3014,12 @@
     display: flex;
     flex-direction: column;
   }
+  /* Phone preview is too tall on mobile (shows ~4.8 rows). Shorten so the
+     mockup shows ~3.5 rows, matching the proportions on desktop relative
+     to surrounding UI. Desktop stays at 620px. */
+  @media (max-width: 900px) {
+    .grid-phone-screen { height: 500px; }
+  }
   .grid-phone-header {
     display: flex;
     align-items: center;
