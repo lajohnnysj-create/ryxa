@@ -961,12 +961,17 @@ function renderCourseModules() {
             + '</label>'
           : '')
         + '</div>'
-        // Move buttons
+        // Move / info / done buttons. Icon-only to keep the row compact —
+        // labels were redundant with the well-known up/down/info glyphs and
+        // ate horizontal space. "Done" collapses the lesson (state is already
+        // saved on every keystroke via update-lesson-field; this is a UX cue
+        // for the user, not a real persistence step).
         + '<div class="course-s-f5e487">'
-        + (li > 0 ? '<button data-course-action="move-lesson-up" data-course-mi="' + mi + '" data-course-li="' + li + '" class="course-s-1de440"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg> Move Up</button>' : '')
-        + (li < (mod.lessons.length - 1) ? '<button data-course-action="move-lesson-down" data-course-mi="' + mi + '" data-course-li="' + li + '" class="course-s-1de440"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg> Move Down</button>' : '')
+        + (li > 0 ? '<button data-course-action="move-lesson-up" data-course-mi="' + mi + '" data-course-li="' + li + '" class="course-s-1de440" title="Move lesson up" aria-label="Move lesson up"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg></button>' : '')
+        + (li < (mod.lessons.length - 1) ? '<button data-course-action="move-lesson-down" data-course-mi="' + mi + '" data-course-li="' + li + '" class="course-s-1de440" title="Move lesson down" aria-label="Move lesson down"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>' : '')
         + '<div class="bio-s-7623f0"></div>'
-        + '<button data-course-action="show-embed-info" class="course-s-1de440"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg> Embed Info</button>'
+        + '<button data-course-action="show-embed-info" class="course-s-1de440" title="Embed info" aria-label="Embed info"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></button>'
+        + '<button data-course-action="collapse-lesson" data-course-mi="' + mi + '" data-course-li="' + li + '" class="course-s-eb7439" title="Done editing">Done</button>'
         + '</div>'
         + '</div>'
         + '</div>';
