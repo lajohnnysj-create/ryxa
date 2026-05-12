@@ -4260,6 +4260,14 @@
   .course-s-88348d { display:flex;align-items:center;gap:8px;margin-bottom:8px; }
   .course-s-82a6e1 { padding:3px 6px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:5px;font-size:10px;font-family:DM Sans,sans-serif;cursor:pointer; }
   .course-s-59ebc5 { width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-size:12px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box; }
+  /* Video URL validation indicator (live feedback as creator pastes a link).
+     Three states via modifier classes: empty (hidden), .valid (green w/ platform
+     name), .invalid (red w/ helpful message). See detectVideoPlatform() and the
+     validate-video-url action handler in js/course.js. */
+  .course-s-vurl-wrap { display:flex;flex-direction:column;gap:6px; }
+  .course-s-vurl-status { display:none;align-items:center;gap:5px;font-size:11px;font-weight:500;padding:3px 8px;border-radius:5px;width:fit-content; }
+  .course-s-vurl-status.valid { display:inline-flex;background:rgba(74,222,128,0.1);color:#4ade80;border:1px solid rgba(74,222,128,0.3); }
+  .course-s-vurl-status.invalid { display:inline-flex;background:rgba(239,68,68,0.1);color:#f87171;border:1px solid rgba(239,68,68,0.3); }
   .course-s-2e11f6 { width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-size:12px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;resize:vertical; }
   .course-s-a3a556 { margin-top:4px; }
   .course-s-c3c55b { margin-top:12px;border-top:1px solid var(--border);padding-top:12px; }
