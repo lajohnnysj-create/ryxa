@@ -294,35 +294,63 @@ function attachSparklineTooltip(container) {
   }
 
   container.addEventListener('mousemove', function(e) {
-    var bar = e.target;
-    if (!bar || !bar.classList || !bar.classList.contains('dash-sparkline-bar')) {
+    // Find which COLUMN the cursor is over by X position, rather than which
+    // bar the cursor is directly on. Previously we required hovering on the
+    // bar itself, which made low-value days (tiny bars) hard to hit — a $1
+    // day next to a $40 day rendered at ~2.5% height was almost untargetable.
+    // Now hovering anywhere in the column's vertical strip selects that day.
+    var bars = container.querySelectorAll('.dash-sparkline-bar');
+    if (bars.length === 0) {
       tip.style.display = 'none';
       return;
     }
+    var contRect = container.getBoundingClientRect();
+    var relX = e.clientX - contRect.left;
+    // Clamp to container so edge moves don't go out of range
+    relX = Math.max(0, Math.min(contRect.width - 1, relX));
+    // Bars are equal-width via flex:1 with gap:2px. Computing the index from
+    // proportional X position is robust — works regardless of the exact gap
+    // because the column "claim" includes half of each adjacent gap.
+    var idx = Math.floor((relX / contRect.width) * bars.length);
+    if (idx < 0) idx = 0;
+    if (idx >= bars.length) idx = bars.length - 1;
+    var bar = bars[idx];
+    if (!bar) {
+      tip.style.display = 'none';
+      return;
+    }
+
+    // Highlight the active column so the user has a visual anchor — without
+    // this, hovering over a small bar from above shows the tip but it's
+    // unclear WHICH bar you're reading. The .dash-sparkline-bar-active class
+    // brightens the matched bar.
+    var prevActive = container.querySelector('.dash-sparkline-bar.dash-sparkline-bar-active');
+    if (prevActive && prevActive !== bar) prevActive.classList.remove('dash-sparkline-bar-active');
+    bar.classList.add('dash-sparkline-bar-active');
+
     var v = bar.getAttribute('data-spark-value');
     var date = bar.getAttribute('data-spark-date');
     var kind = bar.getAttribute('data-spark-kind') || 'count';
     tip.innerHTML = '<div class="dash-spark-tip-val">' + formatTipValue(v, kind) + '</div>'
       + '<div class="dash-spark-tip-date">' + formatTipDate(date) + '</div>';
     tip.style.display = 'block';
-    // Position the tip above the hovered bar. We position relative to the
-    // container (sparkline parent), using the bar's offsetLeft+width/2 to
-    // center it, and clamp to container bounds so the tip never overflows
-    // the stat box.
+    // Position the tip above the matched bar (not the cursor), so visual
+    // association stays clear when the cursor is in empty space above a
+    // small bar. Clamp to container bounds.
     var barRect = bar.getBoundingClientRect();
-    var contRect = container.getBoundingClientRect();
     var centerX = barRect.left + barRect.width / 2 - contRect.left;
-    // Clamp: estimate tip width at 120px to keep it inside the box.
     var tipHalf = 60;
     var clampedX = Math.max(tipHalf, Math.min(contRect.width - tipHalf, centerX));
     tip.style.left = clampedX + 'px';
-    // Position above the bar with a small gap. The container is 32px tall;
-    // the tip sits above it (negative top, translateY in CSS).
     tip.style.top = '0px';
   });
 
   container.addEventListener('mouseleave', function() {
     tip.style.display = 'none';
+    // Clean up the active-bar highlight so the chart doesn't keep a stale
+    // "selected" bar after the user moves away.
+    var active = container.querySelector('.dash-sparkline-bar.dash-sparkline-bar-active');
+    if (active) active.classList.remove('dash-sparkline-bar-active');
   });
 }
 
