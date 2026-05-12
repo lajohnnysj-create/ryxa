@@ -4392,7 +4392,10 @@
   .coach-s-1672d5 { width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 10px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box; }
   .coach-s-a82d70 { margin-bottom:14px; }
   .coach-s-41f229 { font-size:11px;color:var(--muted);display:block;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.04em;font-weight:600; }
-  .coach-s-46ad08 { font-size:11px;color:var(--muted);line-height:1.5;margin-top:10px; }
+  /* Tz hint shown inside the Weekly Availability block (between the label
+     and the day rows). Tight top margin since the label already has 8px
+     below it; generous bottom margin to give the days list breathing room. */
+  .coach-s-46ad08 { font-size:11px;color:var(--muted);line-height:1.5;margin-top:0;margin-bottom:14px; }
   /* "Change in Calendar →" link inside the tz hint. Subtle by default,
      underline on hover to make it discoverable as a real link. Inline link
      in muted text needs slightly higher contrast than the surrounding text
@@ -6776,13 +6779,15 @@
 
               <div class="mk-s-e4ad4a">
                 <label class="coach-s-41f229">Weekly Availability</label>
+                <div id="coaching-tz-hint" class="coach-s-46ad08">
+                  <!-- Populated by setCoachingTzHint() in coaching.js — shows
+                       current creator timezone with a deep link to Calendar
+                       settings so they can change it. Placed at the top of
+                       the Weekly Availability section so creators see the
+                       "these times are in YOUR timezone" framing BEFORE they
+                       configure hours, not after. -->
+                </div>
                 <div id="coaching-avail-days"></div>
-              </div>
-
-              <div id="coaching-tz-hint" class="coach-s-46ad08">
-                <!-- Populated by setCoachingTzHint() in coaching.js — shows
-                     current creator timezone with a deep link to Calendar
-                     settings so they can change it. -->
               </div>
             </div>
           </div>
