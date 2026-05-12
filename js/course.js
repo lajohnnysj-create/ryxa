@@ -805,6 +805,11 @@ function updateLessonField(modIdx, lessonIdx, field, val) {
 }
 
 function toggleLessonPreview(modIdx, lessonIdx) {
+  // Tear down the Quill instance (if any) before the re-render replaces the
+  // host div. Without this, the cached instance points to a detached DOM and
+  // the new host div renders empty. The defensive isConnected check in
+  // mountLessonEditor catches this too, but doing it here is cleaner.
+  unmountLessonEditor(modIdx, lessonIdx);
   courseModules[modIdx].lessons[lessonIdx].is_preview = !courseModules[modIdx].lessons[lessonIdx].is_preview;
   renderCourseModules();
 }
@@ -1015,7 +1020,19 @@ function countQuillImages(quill) {
 // Called after Quill is loaded AND after the lesson body is in the DOM.
 function mountLessonEditor(mi, li) {
   var key = mi + '-' + li;
-  if (_courseQuillInstances[key]) return _courseQuillInstances[key]; // already mounted
+  var existing = _courseQuillInstances[key];
+  if (existing) {
+    // Defensive check: if a re-render replaced the host div without going
+    // through collapseLesson (which unmounts), the cached instance is now
+    // attached to a detached DOM node. We detect that via isConnected and
+    // drop the stale reference so the mount proceeds against the live host.
+    // Without this, toggleLessonPreview (Free/Paid button) would leave an
+    // empty box where the editor should be.
+    if (existing.root && existing.root.isConnected) {
+      return existing; // still live, real idempotency
+    }
+    delete _courseQuillInstances[key];
+  }
 
   var container = document.getElementById('lesson-editor-' + key);
   if (!container) return null;
@@ -1259,7 +1276,13 @@ function renderCourseModules() {
       const typeLabel = isVideo ? '<span class="course-s-955d08">VIDEO</span>' : '<span class="course-s-e89353">LESSON</span>';
       const isCollapsed = l._collapsed;
       const hasContent = isVideo ? !!(l.video_url) : !!(l.text_content);
-      const preview = isVideo ? (l.video_url || '').slice(0, 40) : (l.text_content || '').slice(0, 50).replace(/\n/g, ' ');
+      // For text lessons, strip HTML tags before slicing for the preview.
+      // text_content is now rich HTML; without stripping, the preview shows
+      // literal `<p>` / `<br>` markup which is ugly and confusing.
+      var previewSource = isVideo
+        ? (l.video_url || '')
+        : (l.text_content || '').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
+      const preview = previewSource.slice(0, isVideo ? 40 : 50);
 
       if (isCollapsed && (l.title || hasContent)) {
         // Collapsed view
@@ -1270,7 +1293,7 @@ function renderCourseModules() {
           + typeLabel + ' ' + previewBadge
           + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="bio-s-f38a95"><polyline points="6 9 12 15 18 9"/></svg>'
           + '</div>'
-          + (preview ? '<div class="course-s-bd2dcd">' + escapeHtml(preview) + (preview.length >= 40 ? '...' : '') + '</div>' : '')
+          + (preview ? '<div class="course-s-bd2dcd">' + escapeHtml(preview) + (previewSource.length > preview.length ? '...' : '') + '</div>' : '')
           + '</div>';
       }
 
