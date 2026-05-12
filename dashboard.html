@@ -3097,16 +3097,10 @@
     height: 1px;
     background: #fff;
   }
-  /* The scrollable grid inside the phone. Uses CSS Grid (not flex-wrap)
-     for the cell layout because iOS Safari has a known bug where flex
-     children with `aspect-ratio` don't resolve their height correctly on
-     first paint — cells render as squares until a layout-triggering event
-     (like a drag interaction) forces reflow. CSS Grid computes child
-     dimensions deterministically up front, sidestepping the issue. */
+  /* The scrollable grid inside the phone */
   .grid-phone-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    align-content: start;
+    display: flex;
+    flex-wrap: wrap;
     overflow-y: auto;
     flex: 1;
     background: #000;
@@ -3119,7 +3113,7 @@
   .grid-phone-grid::-webkit-scrollbar-track { background: transparent; }
   .grid-phone-grid::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
   .grid-phone-cell {
-    width: 100%;
+    width: 33.3333%;
     aspect-ratio: 4 / 5;
     background: #111;
     overflow: hidden;
