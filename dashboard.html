@@ -4698,6 +4698,14 @@
   .cal-s-5c4456 { padding:8px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Syne',sans-serif;font-size:16px;font-weight:700;cursor:pointer;letter-spacing:-0.3px;transition:all 0.15s;min-width:160px; }
   .cal-s-4ad1a5 { padding:8px 14px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:13px;font-weight:500;cursor:pointer;transition:all 0.15s; }
   .cal-s-8ad4a7 { width:36px;height:36px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s; }
+  /* Inline timezone dropdown in the calendar toolbar (replaces the old gear/
+     settings modal). Visually matches the Today button next to it but uses
+     a native <select> so the browser handles the option list — mobile-
+     friendly and accessible by default. Current timezone is shown in a
+     compact form (e.g. "Los Angeles" not "America/Los_Angeles"). */
+  .cal-s-tz-inline { padding:8px 28px 8px 12px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;outline:none;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%237c7c8d' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");background-repeat:no-repeat;background-position:right 10px center;transition:all 0.15s;max-width:200px;text-overflow:ellipsis; }
+  .cal-s-tz-inline:hover { border-color:var(--border-hover);color:var(--text); }
+  .cal-s-tz-inline option { background:var(--surface);color:var(--text); }
   .cal-s-907d36 { display:none;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px; }
   .cal-s-359c20 { display:flex;align-items:center;justify-content:space-between;margin-bottom:12px; }
   .cal-s-fce6be { width:28px;height:28px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center; }
@@ -7008,7 +7016,7 @@
             </div>
             <div class="bio-s-e3f610">
               <button data-cal-action="today" class="cal-s-4ad1a5 dash-h-64372a">Today</button>
-              <button data-cal-action="open-settings" aria-label="Settings" class="cal-s-8ad4a7 dash-h-64372a"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+              <select id="cal-tz-inline" data-cal-action="change-timezone" data-cal-event="change" aria-label="Time zone" class="cal-s-tz-inline"></select>
             </div>
           </div>
 
