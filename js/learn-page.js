@@ -910,6 +910,71 @@ function renderViewer() {
   updateProgressBar();
 }
 
+// =============================================================================
+// VIEWER-SIDE SANITIZATION (defense in depth)
+// =============================================================================
+// The editor (js/course.js) sanitizes lesson HTML before saving to the DB, so
+// stored text_content is normally already clean. But trusting the stored
+// content alone is a single layer — if anything ever bypasses the editor
+// (devtools, future bug, admin compromise, direct Supabase JS client write),
+// the viewer would render unfiltered HTML to students. We sanitize on read
+// too. ~25 KB loaded lazily on first text lesson view.
+
+var ALLOWED_LESSON_CLASSES = new Set([
+  'ql-align-center', 'ql-align-right',
+  'lesson-img-size-small', 'lesson-img-size-medium', 'lesson-img-size-large'
+]);
+
+var VIEWER_PURIFY_CONFIG = {
+  ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 's', 'a', 'h1', 'h2', 'h3', 'ul', 'ol', 'li', 'img', 'span', 'div'],
+  ALLOWED_ATTR: ['href', 'target', 'rel', 'src', 'alt', 'class'],
+  ALLOWED_URI_REGEXP: /^(?:https?:|mailto:)/i,
+  ADD_ATTR: ['target']
+};
+
+var _viewerPurifyLoadPromise = null;
+function ensureViewerPurifyLoaded() {
+  if (typeof DOMPurify !== 'undefined') return Promise.resolve();
+  if (_viewerPurifyLoadPromise) return _viewerPurifyLoadPromise;
+  _viewerPurifyLoadPromise = new Promise(function(resolve, reject) {
+    var s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js';
+    s.integrity = 'sha512-H+rglffZ6f5gF7UJgvH4Naa+fGCgjrHKMgoFOGmcPTRwR6oILo5R+gtzNrpDp7iMV3udbymBVjkeZGNz1Em4rQ==';
+    s.crossOrigin = 'anonymous';
+    s.onload = function() {
+      // Install the same hook set the editor uses: filter class values to
+      // a whitelist + force rel="noopener noreferrer" on target=_blank links.
+      DOMPurify.addHook('afterSanitizeAttributes', function(node) {
+        if (node.hasAttribute && node.hasAttribute('class')) {
+          var classes = (node.getAttribute('class') || '').split(/\s+/).filter(function(c) {
+            return c && ALLOWED_LESSON_CLASSES.has(c);
+          });
+          if (classes.length) {
+            node.setAttribute('class', classes.join(' '));
+          } else {
+            node.removeAttribute('class');
+          }
+        }
+        if (node.tagName === 'A' && node.getAttribute('target') === '_blank') {
+          node.setAttribute('rel', 'noopener noreferrer');
+        }
+      });
+      resolve();
+    };
+    s.onerror = function() {
+      _viewerPurifyLoadPromise = null;
+      reject(new Error('Failed to load DOMPurify'));
+    };
+    document.head.appendChild(s);
+  });
+  return _viewerPurifyLoadPromise;
+}
+
+function sanitizeLessonHtmlForView(html) {
+  if (typeof DOMPurify === 'undefined') return ''; // shouldn't happen — caller awaits loader
+  return DOMPurify.sanitize(html || '', VIEWER_PURIFY_CONFIG);
+}
+
 function selectLesson(lessonId) {
   currentLessonId = lessonId;
   renderViewer();
@@ -942,19 +1007,27 @@ function selectLesson(lessonId) {
   }
   if (lesson.text_content) {
     // Editor (js/course.js mountLessonEditor) sanitizes content with DOMPurify
-    // before saving to text_content, so what we receive here is already clean.
+    // before saving to text_content. We sanitize AGAIN on read here as
+    // defense in depth. If anything ever puts unsanitized HTML in the DB
+    // (devtools bypass, future bug, admin compromise), the viewer still
+    // refuses to render it.
     // Legacy plain-text lessons (saved before the rich text editor) won't
-    // contain HTML tags — wrap those in a <p> so they render with paragraph
-    // styling instead of as one inline blob.
+    // contain HTML tags — wrap those in a <p> with escaped contents so they
+    // render with paragraph styling instead of as one inline blob. Plain
+    // text doesn't need DOMPurify (escapeHtml already neutralizes it).
     // NOTE: variable name is `richHtml`, NOT `content`, because the outer
-    // function uses `content` for the DOM container at line 922. Reusing the
-    // name shadowed the DOM ref and made content.innerHTML = html a silent
-    // no-op for any lesson with text content.
+    // function uses `content` for the DOM container — see selectLesson body.
     var richHtml = lesson.text_content;
-    if (!/<[a-z]/i.test(richHtml)) {
+    var isHtmlContent = /<[a-z]/i.test(richHtml);
+    if (!isHtmlContent) {
       richHtml = '<p>' + escapeHtml(richHtml).replace(/\n/g, '<br>') + '</p>';
+      html += '<div class="viewer-text">' + richHtml + '</div>';
+    } else {
+      // HTML content path. Emit a placeholder slot the async renderer will
+      // populate AFTER DOMPurify loads + sanitizes. The slot has a stable id
+      // so we can target it without rebuilding the whole viewer-content.
+      html += '<div class="viewer-text" id="viewer-text-pending"></div>';
     }
-    html += '<div class="viewer-text">' + richHtml + '</div>';
   }
   // Lesson images — text lessons only (video lessons embed the video itself).
   // Mirrors the editor-side gating in js/course.js so orphan images that may
@@ -982,6 +1055,37 @@ function selectLesson(lessonId) {
   }
 
   content.innerHTML = html;
+
+  // If the lesson has HTML text content, load DOMPurify (if not loaded yet)
+  // and fill the placeholder with the sanitized HTML. The placeholder
+  // approach means the empty slot briefly exists before content appears on
+  // first ever view — typically <300ms. Subsequent views are instant since
+  // DOMPurify is cached. The slot is empty rather than showing raw HTML, so
+  // we never render unfiltered content even for a frame.
+  var pendingSlot = document.getElementById('viewer-text-pending');
+  if (pendingSlot && lesson.text_content) {
+    var lessonIdAtRender = lessonId;
+    ensureViewerPurifyLoaded().then(function() {
+      // Race-safety: user may have navigated to a different lesson while
+      // DOMPurify was loading. Only fill if we're still on the same lesson.
+      if (currentLessonId !== lessonIdAtRender) return;
+      var stillThere = document.getElementById('viewer-text-pending');
+      if (!stillThere) return;
+      stillThere.innerHTML = sanitizeLessonHtmlForView(lesson.text_content);
+      stillThere.removeAttribute('id'); // become a normal viewer-text div
+    }).catch(function(err) {
+      console.error('Lesson sanitizer failed to load — refusing to render rich content:', err);
+      // Graceful degradation: show a message rather than risking unsanitized
+      // render. Better to fail closed than fail open.
+      var stillThere = document.getElementById('viewer-text-pending');
+      if (stillThere && currentLessonId === lessonIdAtRender) {
+        stillThere.textContent = 'Lesson content could not be loaded. Please refresh the page.';
+        stillThere.style.color = 'var(--muted)';
+        stillThere.style.fontSize = '14px';
+        stillThere.removeAttribute('id');
+      }
+    });
+  }
 
   // Render prev/next navigation
   renderLessonNav();

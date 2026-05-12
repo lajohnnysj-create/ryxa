@@ -662,7 +662,31 @@ async function loadCourseModules(courseId) {
   renderCourseModules();
 }
 
+// Per-lesson text_content size cap (1 MB of sanitized HTML). This is a DoS
+// safety net — no realistic lesson approaches this size (1 MB of clean HTML
+// is roughly 100k words plus dozens of images). If we ever hit it, something
+// is wrong (pathological paste, bug, abuse). Backed up by a Postgres CHECK
+// constraint on the column for defense in depth.
+var MAX_LESSON_TEXT_BYTES = 1024 * 1024;
+
 async function saveCourseModules(courseId) {
+  // Pre-flight: validate every lesson's text_content size before we start
+  // deleting/re-inserting. Catches oversize content with a clear error and
+  // leaves the existing DB rows intact.
+  for (let mi = 0; mi < courseModules.length; mi++) {
+    const mod = courseModules[mi];
+    for (let li = 0; li < (mod.lessons || []).length; li++) {
+      const lesson = mod.lessons[li];
+      if (lesson.text_content && lesson.text_content.length > MAX_LESSON_TEXT_BYTES) {
+        showModalAlert(
+          'Lesson too large',
+          'Lesson ' + (li + 1) + ' in module ' + (mi + 1) + ' is over the 1 MB content limit. Remove some images or trim the text and try again.'
+        );
+        throw new Error('Lesson exceeds size cap');
+      }
+    }
+  }
+
   // Delete existing and re-insert (simplest approach for MVP)
   await sb.from('course_lessons').delete().eq('course_id', courseId);
   await sb.from('course_modules').delete().eq('course_id', courseId);
@@ -983,23 +1007,57 @@ function ensureQuillLoaded() {
   return _courseQuillLoadPromise;
 }
 
-// DOMPurify config — what creators can produce, students can see. Whitelist
-// matches Quill's output exactly (headings, lists, links, images, alignment
-// classes, basic inline marks). Anything outside this list gets stripped.
+// DOMPurify config — what creators can produce, students can see. The class
+// attribute is allowed but VALUES are filtered by the hook below — only the
+// specific Quill alignment classes and our lesson-img-size classes are kept.
+// Anything outside this list gets stripped.
 var QUILL_PURIFY_CONFIG = {
   ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 's', 'a', 'h1', 'h2', 'h3', 'ul', 'ol', 'li', 'img', 'span', 'div'],
   ALLOWED_ATTR: ['href', 'target', 'rel', 'src', 'alt', 'class'],
   ALLOWED_URI_REGEXP: /^(?:https?:|mailto:)/i,
-  // Quill applies alignment via 'ql-align-center', 'ql-align-right' classes.
-  // Whitelist those (and only those) class values so creators can't inject
-  // arbitrary CSS via class names that match third-party stylesheets.
   ADD_ATTR: ['target'],
-  // Force all external links to open with rel="noopener noreferrer".
-  // DOMPurify hook below applies this for any <a> tag with target=_blank.
 };
+
+// Hard whitelist of class values that creator content may carry. Any other
+// class value (including ones that match unrelated stylesheet rules) is
+// stripped. Future-proofs against accidental "global stylesheet leverage"
+// attacks where a creator picks a class that triggers dangerous layout.
+var ALLOWED_LESSON_CLASSES = new Set([
+  'ql-align-center', 'ql-align-right',
+  'lesson-img-size-small', 'lesson-img-size-medium', 'lesson-img-size-large'
+]);
+
+// Install DOMPurify hooks ONCE per page load. The hook runs on every
+// sanitize() call to filter class values and enforce safe link attrs.
+var _dompurifyHooksInstalled = false;
+function installDomPurifyHooks() {
+  if (_dompurifyHooksInstalled || typeof DOMPurify === 'undefined') return;
+  _dompurifyHooksInstalled = true;
+  DOMPurify.addHook('afterSanitizeAttributes', function(node) {
+    // Filter class values down to the whitelist. Removes the attribute if no
+    // allowed classes remain.
+    if (node.hasAttribute && node.hasAttribute('class')) {
+      var classes = (node.getAttribute('class') || '').split(/\s+/).filter(function(c) {
+        return c && ALLOWED_LESSON_CLASSES.has(c);
+      });
+      if (classes.length) {
+        node.setAttribute('class', classes.join(' '));
+      } else {
+        node.removeAttribute('class');
+      }
+    }
+    // Enforce safe rel on every target=_blank link. Prevents reverse
+    // tabnabbing (where the linked site uses window.opener to redirect the
+    // original tab to a phishing page).
+    if (node.tagName === 'A' && node.getAttribute('target') === '_blank') {
+      node.setAttribute('rel', 'noopener noreferrer');
+    }
+  });
+}
 
 function sanitizeLessonHtml(html) {
   if (typeof DOMPurify === 'undefined') return ''; // editor not loaded yet
+  installDomPurifyHooks();
   // Strip the editor-only 'lesson-img-selected' class so it never persists
   // to the DB. The class is used only by the editor to outline a selected
   // image; viewers never need it. Removing as a string before sanitize is
