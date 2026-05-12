@@ -928,7 +928,7 @@ function ensureQuillLoaded() {
     var css = document.createElement('link');
     css.rel = 'stylesheet';
     css.href = 'https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.snow.min.css';
-    css.integrity = 'sha512-yrOmjPdp8qH8hgLfWpSFhC/+R9Cj9USL8uJxYIveJZGAiedxyIxwNo4tqpJSvtcpkTd0jZA4YLbcEMmGzbS+/Q==';
+    css.integrity = 'sha512-/FHUK/LsH78K9XTqsR9hbzr21J8B8RwHR/r8Jv9fzry6NVAOVIGFKQCNINsbhK7a1xubVu2r5QZcz2T9cKpubw==';
     css.crossOrigin = 'anonymous';
     document.head.appendChild(css);
 
@@ -941,7 +941,7 @@ function ensureQuillLoaded() {
 
     var quillScript = document.createElement('script');
     quillScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.min.js';
-    quillScript.integrity = 'sha512-bGcJlYRehFXSBkPyHRwjFy3lDlGc4lqdljOoVsbiTrJgSyVtJTW8RutZ3qC7+JFE5LNhFjkRzvc7tBgr0+oUZw==';
+    quillScript.integrity = 'sha512-P2W2rr8ikUPfa31PLBo5bcBQrsa+TNj8jiKadtaIrHQGMo6hQM6RdPjQYxlNguwHz8AwSQ28VkBK6kHBLgd/8g==';
     quillScript.crossOrigin = 'anonymous';
     quillScript.onload = done;
     quillScript.onerror = function() { fail('Quill'); };
@@ -949,7 +949,7 @@ function ensureQuillLoaded() {
 
     var purifyScript = document.createElement('script');
     purifyScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js';
-    purifyScript.integrity = 'sha512-R0eXQXbBfvHnv0NEpdHJpQQ02WB7+CSXMGRYBR9P6Qe0F7w5cBQpEKXmtxnpVQEgRiZAaJekQiukLMHzwa3IGw==';
+    purifyScript.integrity = 'sha512-H+rglffZ6f5gF7UJgvH4Naa+fGCgjrHKMgoFOGmcPTRwR6oILo5R+gtzNrpDp7iMV3udbymBVjkeZGNz1Em4rQ==';
     purifyScript.crossOrigin = 'anonymous';
     purifyScript.onload = done;
     purifyScript.onerror = function() { fail('DOMPurify'); };
