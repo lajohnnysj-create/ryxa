@@ -436,8 +436,14 @@ function calRenderDayEvents() {
   }
 
   container.innerHTML = dayEvents.map(function(e) {
-    var startTime = e.start_at ? new Date(e.start_at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) : '';
-    var endTime = e.end_at ? new Date(e.end_at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) : '';
+    // Format event times in the creator's selected calendar timezone, not
+    // browser-local. Matters when the creator is traveling: their saved tz
+    // (e.g. LA) shouldn't display as Tokyo (browser-local) while their
+    // dropdown still says LA. calState.timezone is the source of truth —
+    // it matches the inline dropdown.
+    var tz = calState.timezone || undefined;
+    var startTime = e.start_at ? new Date(e.start_at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', timeZone: tz }) : '';
+    var endTime = e.end_at ? new Date(e.end_at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', timeZone: tz }) : '';
     var timeLabel = startTime + (endTime ? ' - ' + endTime : '');
     var typeLabel = e.event_type === 'manual' ? '' : '<span class="cal-s-530832">' + escapeHtml(e.event_type === 'coaching' ? 'booking' : (e.event_type === 'brand_deal' ? 'brand deal' : (e.event_type || ''))) + '</span>';
     // Validate color is hex format only (no JS injection via style)
