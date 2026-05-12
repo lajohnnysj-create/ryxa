@@ -217,17 +217,113 @@ function setDashCustomRange() {
   loadDashStats();
 }
 
-// ---------- From dashboard.html L10667-10756: renderSparkline + loadDashStats ----------
-function renderSparkline(containerId, data, maxKey) {
+// Sparkline renderer for dashboard stat boxes. Produces div-based bars
+// (cheaper than canvas, sufficient for this small ambient chart) and
+// attaches data-* attributes that the hover tooltip layer below reads.
+// kind: 'count' for view bars, 'cents' for revenue bars (drives formatting).
+function renderSparkline(containerId, data, kind) {
   const el = document.getElementById(containerId);
   if (!el) return;
   if (!data || data.length === 0) { el.innerHTML = ''; return; }
-  const vals = data.map(d => d[maxKey] || 0);
+  const vals = data.map(d => d[kind] || 0);
   const maxVal = Math.max(...vals, 1);
-  el.innerHTML = vals.map(v => {
+  el.innerHTML = data.map((d, i) => {
+    const v = d[kind] || 0;
     const pct = Math.max(2, (v / maxVal) * 100);
-    return `<div class="dash-sparkline-bar" style="height:${pct}%;" title="${v}"></div>`;
+    // data-* values escape via attribute-value normalization; numeric values
+    // and ISO date strings are safe. No user-supplied content goes here.
+    return `<div class="dash-sparkline-bar" style="height:${pct}%;" data-spark-value="${v}" data-spark-date="${d.date || ''}" data-spark-kind="${kind}"></div>`;
   }).join('');
+  // Hook up the hover tooltip once per container. Idempotent — re-renders
+  // wipe innerHTML but the parent listener stays attached.
+  attachSparklineTooltip(el);
+}
+
+// One tooltip div per sparkline container, lazily created on first hover.
+// Uses event delegation on the container so we don't have to wire up N
+// individual bar listeners on every re-render. Hidden by default, shown on
+// bar enter/move, hidden on container leave.
+//
+// Important: the bar render path does `el.innerHTML = ...` which wipes any
+// previously-created tip child. We track the tip per container and re-append
+// it on every call (cheap) so re-renders (date range change) don't break the
+// tooltip on subsequent hovers.
+function attachSparklineTooltip(container) {
+  // Create the tip once and keep a reference on the container. On subsequent
+  // calls we just re-append (since innerHTML wiped it out from the DOM).
+  var tip = container._dashSparkTip;
+  if (!tip) {
+    tip = document.createElement('div');
+    tip.className = 'dash-spark-tip';
+    tip.setAttribute('role', 'tooltip');
+    tip.style.display = 'none';
+    container._dashSparkTip = tip;
+  } else {
+    tip.style.display = 'none'; // hide if it was visible during the re-render
+  }
+  container.appendChild(tip);
+
+  // Bind listeners only once per container. Subsequent calls to this function
+  // (on re-render) skip the listener-attach but still re-append the tip above.
+  if (container._dashSparkBound) return;
+  container._dashSparkBound = true;
+
+  function formatTipDate(iso) {
+    if (!iso) return '';
+    // Parse YYYY-MM-DD as local-time midnight to avoid the classic
+    // "shows yesterday" UTC-shift bug. We're displaying dates in the
+    // creator's tz; the input is a calendar date, not an instant.
+    var parts = String(iso).split('-');
+    if (parts.length !== 3) return iso;
+    var d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+    try {
+      return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    } catch (e) { return iso; }
+  }
+
+  function formatTipValue(v, kind) {
+    var n = Number(v) || 0;
+    if (kind === 'cents') {
+      // Reuse the dashboard's USD formatter for consistency with the
+      // breakdown pills below the sparkline.
+      try { return formatDashUSD(n); } catch (e) {
+        return '$' + (n / 100).toFixed(2);
+      }
+    }
+    return n.toLocaleString() + ' view' + (n === 1 ? '' : 's');
+  }
+
+  container.addEventListener('mousemove', function(e) {
+    var bar = e.target;
+    if (!bar || !bar.classList || !bar.classList.contains('dash-sparkline-bar')) {
+      tip.style.display = 'none';
+      return;
+    }
+    var v = bar.getAttribute('data-spark-value');
+    var date = bar.getAttribute('data-spark-date');
+    var kind = bar.getAttribute('data-spark-kind') || 'count';
+    tip.innerHTML = '<div class="dash-spark-tip-val">' + formatTipValue(v, kind) + '</div>'
+      + '<div class="dash-spark-tip-date">' + formatTipDate(date) + '</div>';
+    tip.style.display = 'block';
+    // Position the tip above the hovered bar. We position relative to the
+    // container (sparkline parent), using the bar's offsetLeft+width/2 to
+    // center it, and clamp to container bounds so the tip never overflows
+    // the stat box.
+    var barRect = bar.getBoundingClientRect();
+    var contRect = container.getBoundingClientRect();
+    var centerX = barRect.left + barRect.width / 2 - contRect.left;
+    // Clamp: estimate tip width at 120px to keep it inside the box.
+    var tipHalf = 60;
+    var clampedX = Math.max(tipHalf, Math.min(contRect.width - tipHalf, centerX));
+    tip.style.left = clampedX + 'px';
+    // Position above the bar with a small gap. The container is 32px tall;
+    // the tip sits above it (negative top, translateY in CSS).
+    tip.style.top = '0px';
+  });
+
+  container.addEventListener('mouseleave', function() {
+    tip.style.display = 'none';
+  });
 }
 
 async function loadDashStats() {
