@@ -148,7 +148,21 @@
   .viewer-lesson-header { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
   .viewer-lesson-title { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; letter-spacing: -0.4px; margin-bottom: 20px; }
   .viewer-video { width: 100%; aspect-ratio: 16/9; border-radius: 12px; border: none; margin-bottom: 16px; }
-  .viewer-text { font-size: 15px; line-height: 1.75; color: var(--text); white-space: pre-wrap; }
+  .viewer-text { font-size: 15px; line-height: 1.75; color: var(--text); }
+  .viewer-text p { margin: 0 0 14px 0; }
+  .viewer-text p:last-child { margin-bottom: 0; }
+  .viewer-text h1 { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; letter-spacing: -0.4px; margin: 24px 0 12px 0; }
+  .viewer-text h2 { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; letter-spacing: -0.3px; margin: 20px 0 10px 0; }
+  .viewer-text h3 { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; margin: 18px 0 8px 0; }
+  .viewer-text ul, .viewer-text ol { margin: 0 0 14px 0; padding-left: 24px; }
+  .viewer-text li { margin-bottom: 4px; }
+  .viewer-text a { color: var(--btn-outline-text); text-decoration: underline; }
+  .viewer-text img { max-width: 100%; height: auto; border-radius: 10px; margin: 12px 0; border: 1px solid rgba(255,255,255,0.08); }
+  .viewer-text strong { font-weight: 700; }
+  .viewer-text em { font-style: italic; }
+  /* Quill alignment classes (preserved through sanitization) */
+  .viewer-text .ql-align-center { text-align: center; }
+  .viewer-text .ql-align-right { text-align: right; }
   .viewer-complete-btn { margin-top: 24px; padding: 10px 20px; background: var(--btn-bg); color: var(--btn-text); border: none; border-radius: 8px; font-size: 13px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; }
   .viewer-completed-msg { margin-top: 24px; padding: 10px 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; font-size: 13px; color: var(--check-color); display: inline-flex; align-items: center; gap: 6px; }
   .viewer-nav { display: flex; justify-content: space-between; align-items: stretch; gap: 12px; margin-top: 24px; }
