@@ -887,6 +887,18 @@ function toggleLessonType(modIdx, lessonIdx) {
   renderCourseModules();
 }
 
+// Returns the platform name ('YouTube', 'Vimeo', 'Loom') if the URL is
+// recognized as embeddable, otherwise null. Mirrors getEmbedUrl() in
+// js/learn-page.js — keep the two in sync if either is updated, since the
+// editor's validation indicator must match what the viewer can actually embed.
+function detectVideoPlatform(url) {
+  if (!url) return null;
+  if (/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/.test(url)) return 'YouTube';
+  if (/vimeo\.com\/(\d+)/.test(url)) return 'Vimeo';
+  if (/loom\.com\/share\/([a-zA-Z0-9]+)/.test(url)) return 'Loom';
+  return null;
+}
+
 function renderCourseModules() {
   const container = document.getElementById('course-modules-list');
   const empty = document.getElementById('course-modules-empty');
@@ -937,7 +949,27 @@ function renderCourseModules() {
         + '<button data-course-action="toggle-lesson-preview" data-course-mi="' + mi + '" data-course-li="' + li + '" title="' + (l.is_preview ? 'Remove preview' : 'Mark as free preview') + '" class="course-s-82a6e1">' + (l.is_preview ? 'Paid' : 'Free') + '</button>'
         + '</div>'
         + (isVideo
-          ? '<input type="url" value="' + escapeHtml(l.video_url || '') + '" placeholder="Video URL (YouTube, Vimeo, or Loom)" data-course-action="update-lesson-field" data-course-event="input" data-course-mi="' + mi + '" data-course-li="' + li + '" data-course-field="video_url" aria-label="Video URL" class="course-s-59ebc5">'
+          ? (function() {
+              // Compute initial validation state so saved URLs show their status
+              // immediately on render (no flash). Updates live via the
+              // validate-video-url action on each keystroke (green appears
+              // instantly when valid) and on blur (red appears for invalid
+              // URLs once the user has stopped typing).
+              var platform = detectVideoPlatform(l.video_url || '');
+              var hasContent = !!(l.video_url || '').trim();
+              var statusHtml = '';
+              if (platform) {
+                statusHtml = '<div class="course-s-vurl-status valid" id="vurl-status-' + mi + '-' + li + '"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' + platform + '</div>';
+              } else if (hasContent) {
+                statusHtml = '<div class="course-s-vurl-status invalid" id="vurl-status-' + mi + '-' + li + '"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Paste a YouTube, Vimeo, or Loom link</div>';
+              } else {
+                statusHtml = '<div class="course-s-vurl-status" id="vurl-status-' + mi + '-' + li + '"></div>';
+              }
+              return '<div class="course-s-vurl-wrap">'
+                + '<input type="url" value="' + escapeHtml(l.video_url || '') + '" placeholder="Video URL (YouTube, Vimeo, or Loom)" data-course-action="validate-video-url" data-course-event="input" data-course-action-blur="validate-video-url-blur" data-course-mi="' + mi + '" data-course-li="' + li + '" data-course-field="video_url" aria-label="Video URL" class="course-s-59ebc5">'
+                + statusHtml
+                + '</div>';
+            })()
           : '<textarea id="lesson-text-' + mi + '-' + li + '" placeholder="Lesson content..." data-course-action="update-lesson-field" data-course-event="input" data-course-mi="' + mi + '" data-course-li="' + li + '" data-course-field="text_content" aria-label="Lesson text content" rows="4" class="course-s-2e11f6">' + escapeHtml(l.text_content || '') + '</textarea>'
           + '<div class="course-s-a3a556"><button data-course-action="ai-cleanup-lesson" data-course-mi="' + mi + '" data-course-li="' + li + '" class="ds-tool-btn bio-s-3c4fd7" title="AI Clean Up" ><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> AI Clean Up</button></div>')
         // Images section — text lessons only. Video lessons embed the video
@@ -1056,6 +1088,44 @@ courseRegisterAction('update-lesson-field', (e, el) => {
     el.dataset.courseField,
     el.value
   );
+});
+// Video URL input: on every keystroke, save the value AND show a green check
+// + platform name when the URL matches a supported platform. We don't show
+// red mid-type — that would flash a "wrong" state at every character. The
+// blur-time handler below covers the post-typing red state.
+courseRegisterAction('validate-video-url', (e, el) => {
+  var mi = parseInt(el.dataset.courseMi, 10);
+  var li = parseInt(el.dataset.courseLi, 10);
+  updateLessonField(mi, li, 'video_url', el.value);
+  var status = document.getElementById('vurl-status-' + mi + '-' + li);
+  if (!status) return;
+  var platform = detectVideoPlatform(el.value);
+  if (platform) {
+    status.className = 'course-s-vurl-status valid';
+    status.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' + platform;
+  } else {
+    // Stay neutral while the user is still typing — blur-time will set red.
+    status.className = 'course-s-vurl-status';
+    status.innerHTML = '';
+  }
+});
+// Blur-time check: if the field has content but doesn't match any platform,
+// surface the helpful warning. Cleared fields stay neutral.
+courseRegisterAction('validate-video-url-blur', (e, el) => {
+  var mi = parseInt(el.dataset.courseMi, 10);
+  var li = parseInt(el.dataset.courseLi, 10);
+  var status = document.getElementById('vurl-status-' + mi + '-' + li);
+  if (!status) return;
+  var val = (el.value || '').trim();
+  var platform = detectVideoPlatform(val);
+  if (platform) return; // valid state already shown by input handler
+  if (val) {
+    status.className = 'course-s-vurl-status invalid';
+    status.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Paste a YouTube, Vimeo, or Loom link';
+  } else {
+    status.className = 'course-s-vurl-status';
+    status.innerHTML = '';
+  }
 });
 courseRegisterAction('toggle-lesson-preview', (e, el) => {
   toggleLessonPreview(parseInt(el.dataset.courseMi, 10), parseInt(el.dataset.courseLi, 10));

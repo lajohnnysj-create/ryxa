@@ -1034,6 +1034,10 @@ function backToDash() {
 }
 
 function getEmbedUrl(url) {
+  // NOTE: detectVideoPlatform() in js/course.js mirrors the regex patterns
+  // below for the editor's validation indicator. If you add or modify a
+  // platform here, update both functions or the editor will get out of sync
+  // with what actually embeds.
   if (!url) return null;
   // YouTube — includes Shorts. The /embed/ URL works for both regular videos
   // and shorts; YouTube auto-handles vertical aspect when rendering.
