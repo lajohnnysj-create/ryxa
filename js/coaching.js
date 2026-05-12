@@ -284,7 +284,42 @@ var coachingAvailability = {
   }
 };
 
+// Populate the timezone hint shown above the Weekly Availability section.
+// Reads the current timezone from (in order): localStorage cache (set by
+// calendar.js when the creator changes it there), browser auto-detect as
+// fallback. Includes a link to switch to the Calendar tool where the
+// timezone selector lives. Single source of truth: the Calendar tool.
+function setCoachingTzHint() {
+  var el = document.getElementById('coaching-tz-hint');
+  if (!el) return;
+  var tz = '';
+  try { tz = localStorage.getItem('ryxa_cal_tz') || ''; } catch (e) {}
+  if (!tz) {
+    try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) {}
+  }
+  // Display label: drop the IANA continent prefix for compactness.
+  // 'America/Los_Angeles' → 'Los Angeles'. Mirrors calFormatTzLabel in
+  // calendar.js — kept inline to avoid cross-file dependencies.
+  var label = tz;
+  if (tz) {
+    var idx = tz.lastIndexOf('/');
+    if (idx >= 0) label = tz.slice(idx + 1).replace(/_/g, ' ');
+  }
+  // The body of the hint explains what bookers see + offers a way to change
+  // the timezone if the creator picked the wrong one. Link uses the dash
+  // tool router (show-tool action) so it switches to Calendar without a
+  // page reload.
+  el.innerHTML = (tz
+    ? 'Times shown in <strong>' + escapeHtml(label) + '</strong>. '
+    : '')
+    + 'Clients book in their own timezone, Ryxa converts automatically. '
+    + '<a href="#" data-dash-action="show-tool" data-dash-tool="calendar" class="coach-s-tz-link">Change in Calendar →</a>';
+}
+
 function renderAvailabilityDays() {
+  // Keep the timezone hint in sync with each render — covers fresh open,
+  // toggling availability days, and any other re-render path.
+  setCoachingTzHint();
   var container = document.getElementById('coaching-avail-days');
   if (!container) return;
   var dayKeys = ['sun','mon','tue','wed','thu','fri','sat'];
