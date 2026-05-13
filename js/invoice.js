@@ -339,7 +339,7 @@ function downloadInvoicePDF() {
   <div class="total-final"><span>Total</span><span>${fmt(total)}</span></div>
 </div>
 ${notes ? `<div class="notes"><strong>Notes:</strong><br>${notes.replace(/\n/g,'<br>')}</div>` : ''}
-<div class="footer">Generated with Ryxa Creator Tools &bull; ryxa.io</div>
+${pro ? '' : '<div class="footer">Generated with Ryxa Creator Tools &bull; ryxa.io</div>'}
 ` + '</body></html>';
 
   // Combine html head + body content
