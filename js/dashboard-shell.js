@@ -267,7 +267,21 @@ var isPwaMode = window.matchMedia('(display-mode: standalone)').matches
   || document.referrer.includes('android-app://');
 
 async function initAuth() {
-  const { data: { session } } = await sb.auth.getSession();
+  let { data: { session } } = await sb.auth.getSession();
+  // If no session, try one explicit refresh before showing login.
+  // iOS PWAs frequently resume from suspend with an expired access token;
+  // getSession() can return null on transient refresh failure even when the
+  // refresh token is still valid. An explicit refreshSession() gives the
+  // resumed PWA a second chance before we kick the user to the login screen.
+  if (!session?.user) {
+    try {
+      const { data: refreshed } = await sb.auth.refreshSession();
+      session = refreshed?.session || null;
+    } catch (e) {
+      // Refresh threw (refresh token genuinely expired/revoked, or network gone).
+      // Fall through to login screen.
+    }
+  }
   if (!session?.user) { _authCompleted = true; showPwaLogin(); return; }
   Auth.setToken(session.access_token);
   await setUser(session.user);
