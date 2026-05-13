@@ -83,16 +83,29 @@ async function sbRpc(fnName, args) {
 }
 
 async function verifyViewerJWT(authHeader) {
-  if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    console.warn('[bunny-video-token] No Bearer header. authHeader present:', !!authHeader, 'starts with Bearer:', authHeader ? authHeader.startsWith('Bearer ') : false);
+    return null;
+  }
   var token = authHeader.split(' ')[1];
+  console.log('[bunny-video-token] Verifying token, length:', token ? token.length : 0, 'prefix:', token ? token.slice(0, 20) : '');
   try {
     var res = await fetch(SUPABASE_URL + '/auth/v1/user', {
       headers: { Authorization: 'Bearer ' + token, apikey: SUPABASE_ANON_KEY }
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      var errBody = await res.text().catch(function() { return '(could not read body)'; });
+      console.warn('[bunny-video-token] Supabase /auth/v1/user rejected token:', res.status, errBody.slice(0, 200));
+      return null;
+    }
     var data = await res.json();
-    return data && data.id ? { id: data.id, email: data.email } : null;
+    if (!data || !data.id) {
+      console.warn('[bunny-video-token] Supabase returned ok but no user id. Keys:', data ? Object.keys(data).join(',') : 'null');
+      return null;
+    }
+    return { id: data.id, email: data.email, token: token };
   } catch (e) {
+    console.error('[bunny-video-token] verifyViewerJWT threw:', e && e.message ? e.message : e);
     return null;
   }
 }
