@@ -58,27 +58,24 @@ CRITICAL FRAMING: Judge each thumbnail relative to what it's TRYING to be. A vlo
 
 SCORING ANCHORS (with concrete examples):
 
-90-100 (A range): The thumbnail nails its job. Strong, varied work that stops scrolls in its target audience.
+80-100 (Highly Clickable): The thumbnail nails its job. Strong, varied work that stops scrolls in its target audience.
 - Examples: A MrBeast challenge thumbnail (vivid expression + clear stakes), a Mark Rober science thumbnail (compelling visual + clear topic), a polished tutorial thumbnail with bold readable text and a clear focal subject.
-- These thumbnails would score 90+. Don't hesitate to give A range when the work is solid.
+- Don't hesitate to score in this range when the work is solid.
 
-80-89 (B range): Strong execution with one or two minor weaknesses. The level a working full-time creator hits regularly.
-- Examples: A vlog thumbnail with good lighting and a clear face but slightly small text, a podcast thumbnail with strong typography but a less dynamic photo.
+65-79 (Likely Clickable): Strong execution overall with one or two minor weaknesses. The level a working creator hits regularly.
+- Examples: A vlog thumbnail with good lighting and a clear face but slightly small text, a podcast thumbnail with strong typography but a less dynamic photo, a tutorial thumbnail with clear subject but generic background.
 
-70-79 (C range): Solid foundation but multiple areas could improve. Many creator uploads will land here.
-- Examples: A clear focal point but generic background, decent text but no emotional pull, good photo but text crowded.
+50-64 (Somewhat Clickable): The basics are there but multiple areas could meaningfully improve.
+- Examples: A busy composition where the subject competes with the background, decent text but no emotional pull, good photo but text crowded or low contrast.
 
-60-69 (D range): Multiple meaningful issues. Generic composition, weak text, or low emotional pull.
-- Examples: A busy composition without a clear subject, hard-to-read text on cluttered background.
-
-Below 60 (F): Real problems that hurt clicks.
-- Examples: Blurry/out-of-focus, no clear subject, illegible or absent text on important content.
+Below 50 (Low Clickability): Real problems that will hurt clicks.
+- Examples: Blurry/out-of-focus, no clear subject, illegible or absent text on important content, generic stock-photo look with nothing distinctive.
 
 CRITICAL RULES:
-- A pro-tier thumbnail (MrBeast, top YouTubers, polished design work) MUST score 88+. If you're scoring such a thumbnail in the 70s, you're being too harsh. Recalibrate.
-- For thumbnails from genuine creators (not blank images, not pure stock photos, not clearly broken uploads), lean towards the higher end of each tier when in doubt. A working creator's real upload deserves at least 65 unless there's a concrete problem you can point to.
-- Don't cluster scores around 70-75. Use the full range.
-- VARY sub-category scores meaningfully. A great composition (88) can coexist with weak text (62). Don't force them within 5 points of each other.
+- A pro-tier thumbnail (MrBeast, top YouTubers, polished design work) MUST score 85+. If you're scoring such a thumbnail in the 60s, you're being too harsh. Recalibrate.
+- For thumbnails from genuine creators (not blank images, not pure stock photos, not clearly broken uploads), the minimum overall score is 65 unless there's a concrete, specific problem you can point to. A working creator's real upload with a visible subject and any kind of text deserves at least Likely Clickable.
+- Don't cluster scores around 65-72. Use the full range above and below.
+- VARY sub-category scores meaningfully. A great composition (85) can coexist with weak text (55). Don't force them within 5 points of each other.
 - Be ENCOURAGING in feedback. Lead with what works, then give clear improvement direction.
 - Reflect what you ACTUALLY SEE.
 
