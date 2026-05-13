@@ -31,6 +31,10 @@ function getServiceKey() {
   return k;
 }
 function getBunnyWebhookSecret() {
+  // Per Bunny's current docs (https://docs.bunny.net/stream/webhooks):
+  // the webhook signing secret IS the library's Read-Only API Key.
+  // There is no separate "webhook secret"; paste the library's
+  // Read-Only API Key into BUNNY_STREAM_WEBHOOK_SECRET in Vercel.
   var v = process.env.BUNNY_STREAM_WEBHOOK_SECRET;
   if (!v) throw new Error('BUNNY_STREAM_WEBHOOK_SECRET not configured');
   return v;
@@ -66,21 +70,30 @@ async function sbUpdate(table, idCol, idVal, row) {
 }
 
 // ---------- Webhook signature verification ----------
-// Bunny signs webhook payloads using the library's webhook signing key.
-// The signature header is 'bunny-signature' (or sometimes 'X-Bunny-Signature').
-// Algorithm: HMAC-SHA256 of the raw request body, hex-encoded.
-function verifyWebhookSignature(rawBody, providedSignature, signingSecret) {
-  if (!providedSignature) return false;
+// Bunny Stream signs every webhook payload with HMAC-SHA256 using the
+// library's Read-Only API Key as the signing secret. The signature is
+// hex-encoded (lowercase) and arrives in the x-bunnystream-signature header,
+// along with x-bunnystream-signature-version (must be "v1") and
+// x-bunnystream-signature-algorithm (must be "hmac-sha256").
+// Reference: https://docs.bunny.net/stream/webhooks
+function verifyWebhookSignature(rawBody, signatureHeader, versionHeader, algorithmHeader, signingSecret) {
+  if (versionHeader !== 'v1') return false;
+  if (algorithmHeader !== 'hmac-sha256') return false;
+  if (typeof signatureHeader !== 'string') return false;
+  if (!/^[0-9a-f]+$/.test(signatureHeader)) return false;
+
   var crypto = require('crypto');
-  var expected = crypto.createHmac('sha256', signingSecret)
-    .update(rawBody)
+  var expectedHex = crypto.createHmac('sha256', signingSecret)
+    .update(rawBody, 'utf8')
     .digest('hex');
-  // Timing-safe comparison
+
+  if (signatureHeader.length !== expectedHex.length) return false;
+
   try {
-    var a = Buffer.from(expected, 'hex');
-    var b = Buffer.from(providedSignature, 'hex');
-    if (a.length !== b.length) return false;
-    return crypto.timingSafeEqual(a, b);
+    return crypto.timingSafeEqual(
+      Buffer.from(expectedHex, 'utf8'),
+      Buffer.from(signatureHeader, 'utf8')
+    );
   } catch (e) {
     return false;
   }
@@ -136,13 +149,17 @@ module.exports = async (req, res) => {
   try {
     // 1. Read raw body and verify signature
     var rawBody = await readRawBody(req);
-    var sig = req.headers['bunny-signature'] ||
-              req.headers['x-bunny-signature'] ||
-              req.headers['signature'];
+    var sig = req.headers['x-bunnystream-signature'];
+    var sigVersion = req.headers['x-bunnystream-signature-version'];
+    var sigAlgorithm = req.headers['x-bunnystream-signature-algorithm'];
     var secret = getBunnyWebhookSecret();
 
-    if (!verifyWebhookSignature(rawBody, sig, secret)) {
-      console.warn('bunny-webhook: signature verification failed');
+    if (!verifyWebhookSignature(rawBody, sig, sigVersion, sigAlgorithm, secret)) {
+      console.warn('bunny-webhook: signature verification failed', {
+        hasSig: !!sig,
+        version: sigVersion,
+        algorithm: sigAlgorithm
+      });
       return res.status(401).json({ error: 'Invalid signature' });
     }
 
