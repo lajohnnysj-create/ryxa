@@ -9,7 +9,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="shortcut icon" href="/favicon.ico">
 <title>Simple, Transparent Pricing for Creators | Ryxa</title>
-<meta name="description" content="Run your entire creator business in one place. Link in bio, media kit, course builder, AI tools, brand deal CRM — start free, upgrade when you're ready.">
+<meta name="description" content="Run your entire creator business in one place. Link in bio, media kit, course builder, AI tools, brand deal CRM. Start free, upgrade when you're ready.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://www.ryxa.io/pricing.html">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -47,12 +47,13 @@
   .plan-badge.max-badge{background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;}
   .plan-features{display:flex;flex-direction:column;gap:12px;}
   .plan-feature{display:flex;align-items:flex-start;gap:10px;font-size:14px;color:var(--muted);}
-  .plan-feature-check{color:#4ade80;flex-shrink:0;font-size:14px;margin-top:1px;}
+  .plan-feature-check{color:var(--text);flex-shrink:0;font-size:14px;margin-top:1px;}
   .plan-feature-x{color:var(--muted2);flex-shrink:0;font-size:14px;margin-top:1px;}
   .plan-feature.locked { opacity: 0.5; }
   .plan-feature.locked span:last-child { color: var(--muted); }
   .plan-feature strong{color:var(--text);font-weight:500;}
   .plan-divider{height:1px;background:var(--border);margin:20px 0;}
+  .plan-subhead{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:0.04em;text-transform:uppercase;margin:4px 0 8px;}
   .modal-backdrop{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.75);backdrop-filter:blur(4px);align-items:center;justify-content:center;}
   .modal-backdrop.open{display:flex;}
   .modal{background:var(--surface);border:1px solid var(--border-hover);border-radius:20px;padding:40px 36px;width:100%;max-width:420px;position:relative;}
@@ -114,25 +115,16 @@
       <div class="plan-desc">The essentials to get started. No credit card required.</div>
       <button class="plan-btn free" data-pricing-action="signup">Get started free</button>
       <div class="plan-features">
-        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span><strong>Link in Bio</strong> — 50 links, 1 featured, 12 themes</span></div>
-        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span><strong>Design Studio</strong> — canvas editor, 10 saved projects</span></div>
-        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span><strong>Photo Editor</strong> — unlimited, runs in your browser</span></div>
-        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span><strong>Grid Planner</strong> — plan your feed</span></div>
-        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span><strong>Follow-Back Audit</strong> — first 10 results</span></div>
-        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span><strong>QR Generator, Invoice Generator, Sign PDF</strong> — unlimited</span></div>
-        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span><strong>Subscribers</strong> — collect emails from your link in bio</span></div>
-        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span><strong>Calendar</strong> — schedule and track everything</span></div>
-        <div class="plan-divider"></div>
-        <div class="plan-feature locked"><span class="plan-feature-x">&#x2715;</span><span>AI tools (rewrite, captions, thumbnail analyzer, contract analyzer)</span></div>
-        <div class="plan-feature locked"><span class="plan-feature-x">&#x2715;</span><span>AI Script Builder</span></div>
-        <div class="plan-feature locked"><span class="plan-feature-x">&#x2715;</span><span>Chatbox — creator-trained AI assistant</span></div>
-        <div class="plan-feature locked"><span class="plan-feature-x">&#x2715;</span><span>Media Kit</span></div>
-        <div class="plan-feature locked"><span class="plan-feature-x">&#x2715;</span><span>Course Builder</span></div>
-        <div class="plan-feature locked"><span class="plan-feature-x">&#x2715;</span><span>1:1 Booking</span></div>
-        <div class="plan-feature locked"><span class="plan-feature-x">&#x2715;</span><span>Digital Products</span></div>
-        <div class="plan-feature locked"><span class="plan-feature-x">&#x2715;</span><span>Brand Deal CRM</span></div>
-        <div class="plan-feature locked"><span class="plan-feature-x">&#x2715;</span><span>Analytics</span></div>
-        <div class="plan-feature locked"><span class="plan-feature-x">&#x2715;</span><span>Custom themes, backgrounds, hero avatar (Pro)</span></div>
+        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span>Link in Bio (Basic)</span></div>
+        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span>Follow-Back Audit (Basic)</span></div>
+        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span>Design Studio</span></div>
+        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span>Photo Editor</span></div>
+        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span>Subscribers</span></div>
+        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span>Calendar</span></div>
+        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span>Grid Planner</span></div>
+        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span>QR Generator</span></div>
+        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span>Invoice Generator</span></div>
+        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span>Sign PDF</span></div>
       </div>
     </div>
 
@@ -141,26 +133,20 @@
       <div class="plan-badge">Most popular</div>
       <div class="plan-name">Pro</div>
       <div class="plan-price">$10 <span>/ month</span></div>
-      <div class="plan-desc">Everything in Free, plus access to AI tools and more.</div>
+      <div class="plan-desc">For creators ready to take control of their branding.</div>
       <button class="plan-btn pro" data-pricing-action="signup">Get started with Pro</button>
       <div class="plan-features">
         <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span><strong>Everything in Free</strong></span></div>
-        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span><strong>AI tools</strong> — rewrite, captions, bio assist, thumbnail analyzer, contract analyzer</span></div>
-        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span><strong>AI Script Builder</strong> — hook generator, script assist, teleprompter</span></div>
-        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span><strong>Chatbox</strong> — creator-trained AI for rates, scripts, and strategy</span></div>
-        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span><strong>Design Studio</strong> — 50 projects, transparent BG</span></div>
-        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span><strong>Media Kit</strong> — pitch page with rate card</span></div>
-        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span><strong>Link in Bio</strong> — 200 links, 3 featured, remove branding</span></div>
-        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span><strong>Custom themes, backgrounds, hero avatar</strong> — fully personalize your bio and media kit</span></div>
-        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span><strong>Follow-Back Audit</strong> — full results, Whitelist, Snake List</span></div>
-        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span><strong>QR custom colors + Invoice logo</strong> — branded outputs in QR and Invoice</span></div>
-        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span>Cancel anytime</span></div>
+        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span>Media Kit</span></div>
+        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span>Chatbox</span></div>
+        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span>AI Script Builder</span></div>
+        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span>AI Thumbnail Analyzer</span></div>
+        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span>AI Contract Analyzer</span></div>
         <div class="plan-divider"></div>
-        <div class="plan-feature locked"><span class="plan-feature-x">&#x2715;</span><span>Course Builder (Creator Max)</span></div>
-        <div class="plan-feature locked"><span class="plan-feature-x">&#x2715;</span><span>1:1 Booking (Creator Max)</span></div>
-        <div class="plan-feature locked"><span class="plan-feature-x">&#x2715;</span><span>Digital Products (Creator Max)</span></div>
-        <div class="plan-feature locked"><span class="plan-feature-x">&#x2715;</span><span>Brand Deal CRM (Creator Max)</span></div>
-        <div class="plan-feature locked"><span class="plan-feature-x">&#x2715;</span><span>Analytics (Creator Max)</span></div>
+        <div class="plan-subhead">Plus upgrades</div>
+        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span>Custom themes for Link in Bio</span></div>
+        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span>Full Follow-Back Audit</span></div>
+        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span>Invoice logo + QR custom colors</span></div>
       </div>
     </div>
 
@@ -169,21 +155,15 @@
       <div class="plan-badge max-badge">Earn and Take Control</div>
       <div class="plan-name">Creator Max</div>
       <div class="plan-price">$20 <span>/ month</span></div>
-      <div class="plan-desc">Everything in Pro, plus revenue tools and full branding control.</div>
-      <button class="plan-btn max" data-pricing-action="signup">Try Free — 7 Days</button>
+      <div class="plan-desc">For creators ready to monetize.</div>
+      <button class="plan-btn max" data-pricing-action="signup">Try Free for 7 Days</button>
       <div class="plan-features">
         <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span><strong>Everything in Pro</strong></span></div>
-        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span><strong>Course Builder</strong> — sell courses, 0% transaction fees from Ryxa</span></div>
-        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span><strong>1:1 Booking</strong> — sell sessions, 0% transaction fees from Ryxa</span></div>
-        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span><strong>Digital Products</strong> — sell ebooks, templates, presets, 0% transaction fees from Ryxa</span></div>
-        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span><strong>Brand Deal CRM</strong> — track partnerships and revenue</span></div>
-        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span><strong>Analytics</strong> — page views, revenue trends, sales breakdown</span></div>
-        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span><strong>Subscribers</strong> — collect emails from bio + purchases, export</span></div>
-        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span><strong>Design Studio</strong> — 100 projects</span></div>
-        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span><strong>Link in Bio</strong> — 1,000 links, 10 featured, hero links</span></div>
-        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span><strong>AI Clean Up</strong> — polish course and coaching content</span></div>
-        <div class="plan-divider"></div>
-        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span>Cancel or downgrade anytime</span></div>
+        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span>Course Builder</span></div>
+        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span>1:1 Booking</span></div>
+        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span>Digital Products</span></div>
+        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span>Brand Deal CRM</span></div>
+        <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span>Analytics</span></div>
       </div>
     </div>
 
