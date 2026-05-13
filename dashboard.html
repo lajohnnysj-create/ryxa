@@ -5229,6 +5229,15 @@
   .image-s-b256e3 { position:absolute;bottom:-8px;right:-8px;width:16px;height:16px;background:#fff;border:2px solid #7c3aed;border-radius:50%;cursor:nwse-resize; }
   .image-s-009954 { display:flex;align-items:center;gap:10px;margin-top:10px;font-size:12px;color:var(--muted);flex-wrap:wrap; }
   .image-s-a92c8a { flex:1;min-width:120px;accent-color:var(--accent); }
+  /* On mobile, the zoom row gets tight — Remove BG + magnifier emoji + slider
+     + readout + reset icon competing for ~350px viewport. Drop the decorative
+     magnifier emoji (% readout already signals "zoom"), tighten the gap, and
+     shrink the slider's min-width so the row stays on one line. */
+  @media (max-width: 600px) {
+    .image-s-009954 { gap:6px; }
+    .image-s-009954 > .bio-s-f38a95 { display:none; }
+    .image-s-a92c8a { min-width:60px; }
+  }
   .image-s-d5b47a { flex-shrink:0;min-width:44px;text-align:right; }
   .image-s-9e0fd4 { background:none;border:1px solid var(--border-hover);color:var(--muted);font-size:11px;padding:5px 10px;border-radius:6px;cursor:pointer;font-family:DM Sans,sans-serif;flex-shrink:0; }
   .image-s-zoom-reset { display:inline-flex;align-items:center;justify-content:center;background:none;border:1px solid var(--border-hover);color:var(--muted);width:28px;height:28px;border-radius:6px;cursor:pointer;flex-shrink:0;padding:0;transition:all 0.15s; }
