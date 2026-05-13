@@ -5231,6 +5231,9 @@
   .image-s-a92c8a { flex:1;min-width:120px;accent-color:var(--accent); }
   .image-s-d5b47a { flex-shrink:0;min-width:44px;text-align:right; }
   .image-s-9e0fd4 { background:none;border:1px solid var(--border-hover);color:var(--muted);font-size:11px;padding:5px 10px;border-radius:6px;cursor:pointer;font-family:DM Sans,sans-serif;flex-shrink:0; }
+  .image-s-removebg-row { display:inline-flex;align-items:center;gap:5px;background:none;border:1px solid var(--accent2);color:var(--accent2);font-size:11px;padding:5px 10px;border-radius:6px;cursor:pointer;font-family:DM Sans,sans-serif;font-weight:600;flex-shrink:0;transition:all 0.15s; }
+  .image-s-removebg-row:hover { background:rgba(124,58,237,0.1);color:#fff; }
+  .image-s-removebg-row:disabled { opacity:0.5;cursor:not-allowed; }
   .image-s-9277af { display:flex;gap:6px;margin-top:14px;padding:5px;background:var(--surface);border:1px solid var(--border);border-radius:10px; }
   .image-s-b269d0 { flex:1;background:var(--accent);border:none;color:#fff;font-size:13px;font-weight:600;font-family:DM Sans,sans-serif;padding:10px 8px;cursor:pointer;border-radius:7px;transition:all 0.15s;box-shadow:0 2px 8px rgba(124,58,237,0.3);display:flex;align-items:center;justify-content:center;gap:6px; }
   .image-s-dc8ff2 { flex:1;background:transparent;border:none;color:var(--muted);font-size:13px;font-weight:600;font-family:DM Sans,sans-serif;padding:10px 8px;cursor:pointer;border-radius:7px;transition:all 0.15s;display:flex;align-items:center;justify-content:center;gap:6px; }
@@ -7698,8 +7701,12 @@
             </div>
           </div>
 
-          <!-- Always-visible: Zoom + Dimensions readout -->
+          <!-- Always-visible: Zoom + Dimensions readout + Background removal -->
           <div class="image-s-009954">
+            <button type="button" id="img-removebg-btn" data-image-action="remove-bg" class="image-s-removebg-row">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5l14 14M2 12a10 10 0 0 1 10-10M22 12a10 10 0 0 1-10 10"/></svg>
+              <span id="img-removebg-label">Remove BG</span>
+            </button>
             <span class="bio-s-f38a95">&#x1F50D;</span>
             <input type="range" id="img-crop-zoom" min="100" max="400" value="100" step="10" aria-label="Zoom image" class="image-s-a92c8a">
             <span id="img-crop-zoom-val" class="image-s-d5b47a">100%</span>
@@ -7740,10 +7747,6 @@
               </div>
               <div id="img-aspect-caption" class="image-s-aspect-caption">Crop the image at its native aspect ratio</div>
               <div class="image-s-b9669a">
-                <button type="button" id="img-removebg-btn" data-image-action="remove-bg" class="image-s-d604e3">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5l14 14M2 12a10 10 0 0 1 10-10M22 12a10 10 0 0 1-10 10"/></svg>
-                  <span id="img-removebg-label">Remove Background</span>
-                </button>
                 <button type="button" id="img-crop-lock-btn" data-image-action="toggle-crop-lock" aria-pressed="false" class="image-s-5e3795">
                   <svg id="img-crop-lock-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
                   <span id="img-crop-lock-label">Lock proportions</span>
