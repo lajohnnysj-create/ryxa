@@ -2117,11 +2117,10 @@ function renderBioLinks() {
   if (window.Sortable) {
     const prev = el._sortable;
     if (prev) prev.destroy();
-    // Touch detection drives auto-scroll behavior: desktop only. SortableJS's
-    // auto-scroll on iOS Safari fights with native touch scrolling and feels
-    // broken, so on touch devices we disable it entirely. The fallback*
-    // and touchStartThreshold options below stabilize touch drag without
-    // forcing the full polyfilled drag implementation.
+    // Auto-scroll is desktop-only. SortableJS's auto-scroll on iOS Safari
+    // fights with native touch scrolling and feels broken, so on touch devices
+    // we disable it entirely. Mobile users scroll manually mid-drag (release,
+    // scroll, re-grab) — same pattern as Instagram, Notion, LinkedIn mobile.
     const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     el._sortable = Sortable.create(el, {
       handle: '.bio-link-drag',
@@ -2130,9 +2129,6 @@ function renderBioLinks() {
       scrollSensitivity: 80,
       scrollSpeed: 16,
       forceAutoScrollFallback: !isTouchDevice,
-      fallbackOnBody: true,
-      fallbackTolerance: 3,
-      touchStartThreshold: 5,
       onEnd: () => {
         const order = [...el.children].map(c => parseInt(c.dataset.id));
         bioState.links.sort((a, b) => order.indexOf(a._id) - order.indexOf(b._id));
