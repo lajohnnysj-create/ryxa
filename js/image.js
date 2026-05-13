@@ -366,6 +366,18 @@ function applyAspectPreset(preset) {
   renderCropBox();
 }
 
+// Captions shown below the aspect button row. Updates dynamically based on
+// which preset is active so the user understands what the ratio is good for.
+const IMG_ASPECT_CAPTIONS = {
+  'original': 'Crop the image at its native aspect ratio',
+  'free':     'Crop to any custom dimensions',
+  '1:1':      'Square — Instagram posts, profile pictures, album covers',
+  '4:5':      'Portrait — Instagram feed posts (max vertical size)',
+  '9:16':     'Vertical — Reels, Stories, TikTok, YouTube Shorts',
+  '16:9':     'Landscape — YouTube videos, presentations, desktop wallpapers',
+  '3:1':      'Wide banner — LinkedIn cover, Twitter/X header, email headers'
+};
+
 function updateAspectButtonsUI() {
   const btns = document.querySelectorAll('.img-aspect-btn');
   btns.forEach(btn => {
@@ -382,21 +394,28 @@ function updateAspectButtonsUI() {
       btn.style.borderColor = 'var(--border-hover)';
     }
   });
+  // Dynamic caption — explains what the selected ratio is good for.
+  const caption = document.getElementById('img-aspect-caption');
+  if (caption) {
+    caption.textContent = IMG_ASPECT_CAPTIONS[imgCropMode] || '';
+  }
 }
 
 function updateLockButtonUI() {
   const btn = document.getElementById('img-crop-lock-btn');
   if (!btn) return;
-  if (imgCropLocked) {
-    btn.textContent = 'Unlock crop';
-    btn.style.background = 'rgba(124,58,237,0.12)';
-    btn.style.color = 'var(--accent2)';
-    btn.style.borderColor = 'rgba(124,58,237,0.4)';
-  } else {
-    btn.textContent = 'Lock crop';
-    btn.style.background = 'var(--surface)';
-    btn.style.color = 'var(--text)';
-    btn.style.borderColor = 'var(--border-hover)';
+  const label = document.getElementById('img-crop-lock-label');
+  const icon = document.getElementById('img-crop-lock-icon');
+  // aria-pressed drives the CSS toggle (purple fill when locked) — see
+  // .image-s-5e3795[aria-pressed="true"] in dashboard.html stylesheet.
+  btn.setAttribute('aria-pressed', imgCropLocked ? 'true' : 'false');
+  if (label) label.textContent = imgCropLocked ? 'Unlock proportions' : 'Lock proportions';
+  // Swap the lock icon path between closed (locked) and open (unlocked).
+  // Closed lock: shackle curves down to the body. Open lock: shackle to the side.
+  if (icon) {
+    icon.innerHTML = imgCropLocked
+      ? '<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>'
+      : '<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/>';
   }
 }
 
