@@ -703,7 +703,13 @@ async function saveCourseModules(courseId) {
 
     for (let li = 0; li < (mod.lessons || []).length; li++) {
       const lesson = mod.lessons[li];
-      await sb.from('course_lessons').insert({
+      // Capture the new DB id back into working state. Without this, the
+      // local lesson object continues to use its temporary "new_TIMESTAMP"
+      // id, which breaks anything that needs to query the lesson by id
+      // immediately after save (e.g., starting a Bunny upload right after
+      // adding a new video lesson). Mirrors the pattern used for modules
+      // above (mod.id = savedMod.id).
+      const { data: savedLesson, error: lessonErr } = await sb.from('course_lessons').insert({
         course_id: courseId,
         module_id: savedMod.id,
         title: lesson.title || (lesson.lesson_type === 'video' ? 'Untitled Video' : 'Untitled Lesson'),
@@ -722,7 +728,10 @@ async function saveCourseModules(courseId) {
         bunny_video_duration_seconds: lesson.bunny_video_duration_seconds || null,
         bunny_thumbnail_url: lesson.bunny_thumbnail_url || null,
         bunny_uploaded_at: lesson.bunny_uploaded_at || null
-      });
+      }).select('id').single();
+      if (savedLesson && savedLesson.id) {
+        lesson.id = savedLesson.id;
+      }
     }
   }
 }
@@ -877,34 +886,6 @@ function moveLessonDown(modIdx, lessonIdx) {
   lessons[lessonIdx] = lessons[lessonIdx + 1];
   lessons[lessonIdx + 1] = temp;
   renderCourseModules();
-}
-
-function showEmbedInfo() {
-  var overlay = document.createElement('div');
-  overlay.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;padding:24px;';
-  overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
-  overlay.innerHTML = '<div class="course-s-df9ce6">'
-    + '<div class="course-s-4aaba5">'
-    + '<h3 class="course-s-09f83d">Video Embedding</h3>'
-    + '<button data-course-action="close-fixed-modal" class="course-s-a2c730">✕</button>'
-    + '</div>'
-    + '<div class="course-s-5423bf">'
-    + '<p class="course-s-6da853">Ryxa embeds videos from YouTube, Vimeo, and Loom to keep hosting costs low for creators. You host your videos on those platforms and paste the link into your lesson. The video plays directly inside your course.</p>'
-    + '<p class="course-s-6da853"><strong class="course-s-9d9c33"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg> YouTube</strong>Upload your video as "Unlisted." It won\'t appear in search results. Only people viewing it embedded in your course can watch it. YouTube Shorts URLs also work.</p>'
-    + '<p class="course-s-6da853"><strong class="course-s-9d9c33"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="#fff"/></svg> Loom</strong>Great for quick walkthroughs and screen recordings. Paste any Loom share link (loom.com/share/...) and it embeds directly. Note: Loom share links are publicly viewable by default, so for premium course content where leak prevention matters, prefer Vimeo with domain restriction.</p>'
-    + '<p class="course-s-6da853"><strong class="course-s-9d9c33"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/><line x1="17" y1="17" x2="22" y2="17"/></svg> Vimeo (recommended for extra security)</strong>Vimeo offers domain-level privacy, which restricts where your video can be embedded. This prevents anyone from copying your embed link and playing it on their own site.</p>'
-    + '<p class="course-s-e9cdf8">Vimeo Domain Restriction Setup:</p>'
-    + '<div class="course-s-72a4a4">'
-    + '1. Go to your video\'s settings on Vimeo<br>'
-    + '2. Click the <strong class="mk-s-e0b980">Share</strong> button at the top<br>'
-    + '3. Under "Where can this be embedded?" select <strong class="mk-s-e0b980">Specific domains</strong><br>'
-    + '4. Add <strong class="course-s-701ab3">ryxa.io</strong> as an allowed domain<br>'
-    + '5. Save, your video now only plays on your course page'
-    + '</div>'
-    + '<p class="course-s-5d130a">Domain-level privacy requires a paid Vimeo plan. YouTube\'s Unlisted setting is free and works well for most creators.</p>'
-    + '</div>'
-    + '</div>';
-  document.body.appendChild(overlay);
 }
 
 function moveModuleUp(modIdx) {
@@ -1551,7 +1532,7 @@ function renderCourseModules() {
 
               return '<div data-course-vid-host="' + mi + '-' + li + '" data-course-mi="' + mi + '" data-course-li="' + li + '">'
                 + '<div class="course-vid-tabs" role="tablist">'
-                + '<button type="button" role="tab" aria-selected="' + (defaultTab === 'upload' ? 'true' : 'false') + '" data-course-action="switch-vid-tab" data-vid-tab="upload" data-course-mi="' + mi + '" data-course-li="' + li + '" class="course-vid-tab">Upload to Ryxa <span class="course-vid-tab-badge">New</span></button>'
+                + '<button type="button" role="tab" aria-selected="' + (defaultTab === 'upload' ? 'true' : 'false') + '" data-course-action="switch-vid-tab" data-vid-tab="upload" data-course-mi="' + mi + '" data-course-li="' + li + '" class="course-vid-tab">Upload to Ryxa</button>'
                 + '<button type="button" role="tab" aria-selected="' + (defaultTab === 'paste' ? 'true' : 'false') + '" data-course-action="switch-vid-tab" data-vid-tab="paste" data-course-mi="' + mi + '" data-course-li="' + li + '" class="course-vid-tab">Paste URL</button>'
                 + '</div>'
                 + uploadPanel
@@ -1568,7 +1549,6 @@ function renderCourseModules() {
         + (li > 0 ? '<button data-course-action="move-lesson-up" data-course-mi="' + mi + '" data-course-li="' + li + '" class="course-s-1de440" title="Move lesson up" aria-label="Move lesson up"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg></button>' : '')
         + (li < (mod.lessons.length - 1) ? '<button data-course-action="move-lesson-down" data-course-mi="' + mi + '" data-course-li="' + li + '" class="course-s-1de440" title="Move lesson down" aria-label="Move lesson down"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>' : '')
         + '<div class="bio-s-7623f0"></div>'
-        + '<button data-course-action="show-embed-info" class="course-s-1de440" title="Embed info" aria-label="Embed info"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></button>'
         + '<button data-course-action="collapse-lesson" data-course-mi="' + mi + '" data-course-li="' + li + '" class="course-s-eb7439" title="Done editing">Done</button>'
         + '</div>'
         + '</div>'
@@ -1780,7 +1760,7 @@ async function startBunnyUpload(mi, li, file) {
     return;
   }
 
-  // The lesson must be saved (have an id) before we can upload to it.
+  // The lesson must be saved (have a real UUID) before we can upload to it.
   // If the lesson is unsaved (new and never persisted), save the course
   // first so the lesson gets a real DB id.
   if (!lesson.id || String(lesson.id).indexOf('new_') === 0) {
@@ -1793,10 +1773,12 @@ async function startBunnyUpload(mi, li, file) {
       renderUploadIdle(mi, li);
       return;
     }
-    // saveCourse re-renders, so re-fetch lesson and host
+    // saveCourse re-renders. Re-fetch the lesson from working state and
+    // verify it now has a real UUID (saveCourse should have populated it).
     lesson = courseModules[mi] && courseModules[mi].lessons[li];
-    if (!lesson || !lesson.id) {
-      showModalAlert('Could not save lesson', 'Please try again.');
+    if (!lesson || !lesson.id || String(lesson.id).indexOf('new_') === 0) {
+      showModalAlert('Could not save lesson', 'The lesson did not save correctly. Please save your course manually, then try uploading again.');
+      renderUploadIdle(mi, li);
       return;
     }
   }
@@ -2121,7 +2103,7 @@ courseRegisterAction('cover-selected', (e, el) => onCourseCoverSelect(el.files[0
 courseRegisterAction('add-module', () => addCourseModule());
 courseRegisterAction('delete', () => deleteCourse());
 
-// Modal close (Embed Info modal)
+// Generic modal close (used by various dynamically-created modals)
 courseRegisterAction('close-modal', (e, el) => {
   const modal = el.closest('div[style*=fixed]');
   if (modal) modal.remove();
@@ -2202,7 +2184,6 @@ courseRegisterAction('move-lesson-down', (e, el) => {
 courseRegisterAction('add-lesson', (e, el) => {
   addCourseLesson(parseInt(el.dataset.courseMi, 10), el.dataset.courseLessonType);
 });
-courseRegisterAction('show-embed-info', () => showEmbedInfo());
 
 // Module interactions
 courseRegisterAction('move-module-up', (e, el) => moveModuleUp(parseInt(el.dataset.courseMi, 10)));
