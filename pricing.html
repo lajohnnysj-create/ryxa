@@ -46,6 +46,16 @@
   .plan.max-plan{background:linear-gradient(180deg,rgba(124,58,237,0.04),transparent);border-color:rgba(232,121,249,0.25);}
   .plan-badge.max-badge{background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;}
   .plan-features{display:flex;flex-direction:column;gap:12px;}
+  .plan-credits{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:10px;margin-bottom:18px;font-size:13px;font-weight:500;font-family:"DM Sans",sans-serif;letter-spacing:-0.1px;}
+  .plan-credits-icon{flex-shrink:0;font-size:14px;line-height:1;}
+  .plan-credits-amount{font-family:"Syne",sans-serif;font-weight:800;font-size:15px;letter-spacing:-0.3px;}
+  .plan-credits-label{color:var(--muted);font-weight:400;}
+  .plan-credits.free{background:var(--surface2);border:1px solid var(--border);color:var(--muted);}
+  .plan-credits.free .plan-credits-amount{color:var(--muted2);}
+  .plan-credits.pro{background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.35);color:#c4b5fd;}
+  .plan-credits.pro .plan-credits-amount{color:#fff;}
+  .plan-credits.max{background:linear-gradient(135deg,rgba(167,139,250,0.15),rgba(232,121,249,0.12));border:1px solid rgba(232,121,249,0.4);color:#f5d0fe;}
+  .plan-credits.max .plan-credits-amount{color:#fff;}
   .plan-feature{display:flex;align-items:flex-start;gap:10px;font-size:14px;color:var(--muted);}
   .plan-feature-check{color:var(--text);flex-shrink:0;font-size:14px;margin-top:1px;}
   .plan-feature-x{color:var(--muted2);flex-shrink:0;font-size:14px;margin-top:1px;}
@@ -113,6 +123,11 @@
       <div class="plan-price">$0 <span>/ forever</span></div>
       <div class="plan-desc">The essentials to get started. No credit card required.</div>
       <button class="plan-btn free" data-pricing-action="signup">Get started free</button>
+      <div class="plan-credits free">
+        <span class="plan-credits-icon">&#x2728;</span>
+        <span class="plan-credits-amount">No</span>
+        <span class="plan-credits-label">daily AI credits</span>
+      </div>
       <div class="plan-features">
         <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span>Link in Bio (Basic)</span></div>
         <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span>Follow-Back Audit (Basic)</span></div>
@@ -134,6 +149,11 @@
       <div class="plan-price">$10 <span>/ month</span></div>
       <div class="plan-desc">For creators ready to take control of their branding.</div>
       <button class="plan-btn pro" data-pricing-action="signup">Get started with Pro</button>
+      <div class="plan-credits pro">
+        <span class="plan-credits-icon">&#x2728;</span>
+        <span class="plan-credits-amount">40</span>
+        <span class="plan-credits-label">daily AI credits</span>
+      </div>
       <div class="plan-features">
         <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span><strong>Everything in Free</strong></span></div>
         <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span>Media Kit</span></div>
@@ -158,6 +178,11 @@
       <div class="plan-price">$20 <span>/ month</span></div>
       <div class="plan-desc">Sell courses, sessions, and products directly to your audience.</div>
       <button class="plan-btn max" data-pricing-action="signup">Try Free for 7 Days</button>
+      <div class="plan-credits max">
+        <span class="plan-credits-icon">&#x2728;</span>
+        <span class="plan-credits-amount">85</span>
+        <span class="plan-credits-label">daily AI credits</span>
+      </div>
       <div class="plan-features">
         <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span><strong>Everything in Pro</strong></span></div>
         <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span>Course Builder</span></div>
