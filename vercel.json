@@ -3,6 +3,16 @@
   "trailingSlash": false,
   "redirects": [
     {
+      "source": "/tools-ai-design-studio",
+      "destination": "/tools-design-studio",
+      "statusCode": 301
+    },
+    {
+      "source": "/tools-ai-design-studio.html",
+      "destination": "/tools-design-studio.html",
+      "statusCode": 301
+    },
+    {
       "source": "/blog-best-linktree-alternatives",
       "destination": "/blog/best-linktree-alternatives",
       "statusCode": 301
