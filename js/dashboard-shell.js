@@ -964,7 +964,6 @@ function showTool(tool) {
   }
   // Init Design Studio
   if (tool === 'design') {
-    if (!_dsLoadedOnce) { _dsLoadedOnce = true; }
     loadDesignProjects();
   }
   // Init AI Chat
