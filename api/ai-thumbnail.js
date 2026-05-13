@@ -76,6 +76,7 @@ Below 60 (F): Real problems that hurt clicks.
 
 CRITICAL RULES:
 - A pro-tier thumbnail (MrBeast, top YouTubers, polished design work) MUST score 88+. If you're scoring such a thumbnail in the 70s, you're being too harsh. Recalibrate.
+- For thumbnails from genuine creators (not blank images, not pure stock photos, not clearly broken uploads), lean towards the higher end of each tier when in doubt. A working creator's real upload deserves at least 65 unless there's a concrete problem you can point to.
 - Don't cluster scores around 70-75. Use the full range.
 - VARY sub-category scores meaningfully. A great composition (88) can coexist with weak text (62). Don't force them within 5 points of each other.
 - Be ENCOURAGING in feedback. Lead with what works, then give clear improvement direction.
