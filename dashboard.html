@@ -2546,17 +2546,25 @@
     color: var(--muted);
     flex-shrink: 0;
     padding: 4px;
-    /* Prevent iOS/Android text-select callout from interfering with drag.
-       Long-press on touch devices normally triggers a text selection or the
-       "Copy/Share/Define" callout, which fights with SortableJS's drag start
-       and feels broken in PWAs. Disabling these specifically on the drag
-       handle leaves form inputs and link titles fully selectable. */
+  }
+  .bio-link-row .bio-link-drag:active { cursor: grabbing; }
+  /* Disable text selection across the entire links list so iOS/Android long-
+     press anywhere — drag handle, row body, or background gaps between rows —
+     never triggers the "Copy/Share/Define" callout that fights with drag.
+     Form inputs and textareas re-enable selection so users can still edit. */
+  #bio-links-list,
+  #bio-links-list * {
     user-select: none;
     -webkit-user-select: none;
     -webkit-touch-callout: none;
     -webkit-tap-highlight-color: transparent;
   }
-  .bio-link-row .bio-link-drag:active { cursor: grabbing; }
+  #bio-links-list input,
+  #bio-links-list textarea {
+    user-select: text;
+    -webkit-user-select: text;
+    -webkit-touch-callout: default;
+  }
   /* SortableJS drag states — without these, the original element stays at full
      opacity while dragging, causing a "ghost link stays in place" glitch. */
   /* The placeholder where the dragged item WAS — fade out to mark drop target */
