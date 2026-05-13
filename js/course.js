@@ -1878,6 +1878,18 @@ async function startBunnyUpload(mi, li, file) {
         }
       }
       startBunnyStatusPoll(mi, li, lesson.id);
+
+      // Auto-save the course so the upload result is persisted even if the
+      // creator forgets to click Save. Prevents losing other in-memory edits
+      // (title changes, preview toggles, etc.) made before the upload, and
+      // gives the creator confidence that the video is "saved" without them
+      // having to do anything else. Failures here are non-fatal: the Bunny
+      // side is already persisted (webhook wrote bunny_video_id to the DB);
+      // a failed autosave just means the creator's OTHER in-memory edits
+      // would need a manual save to persist.
+      saveCourse().catch(function(err) {
+        console.warn('Post-upload autosave failed (non-fatal):', err);
+      });
     }
   });
   _bunnyUploadsByLesson[lessonKey(mi, li)] = { tusUpload: upload };
