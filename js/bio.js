@@ -2120,6 +2120,14 @@ function renderBioLinks() {
     el._sortable = Sortable.create(el, {
       handle: '.bio-link-drag',
       animation: 180,
+      // Auto-scroll the page when dragging near top/bottom edges of viewport
+      // or the immediate scroll parent. Sensitivity = pixel distance from edge
+      // that triggers scroll. bubbleScroll = escalate to window/document if
+      // immediate scrollable can't scroll further.
+      scroll: true,
+      scrollSensitivity: 60,
+      scrollSpeed: 12,
+      bubbleScroll: true,
       onEnd: () => {
         const order = [...el.children].map(c => parseInt(c.dataset.id));
         bioState.links.sort((a, b) => order.indexOf(a._id) - order.indexOf(b._id));
