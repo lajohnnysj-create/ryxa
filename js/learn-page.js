@@ -1067,8 +1067,10 @@ function selectLesson(lessonId) {
   }
   // Empty-state fallback. For text lessons, count images as content; for video
   // lessons, ignore them (images don't render in viewer for video lessons).
+  // A Bunny-uploaded video counts as content even when video_url is null.
   var hasImages = !isVideoLesson && lesson.images && lesson.images.length > 0;
-  if (!lesson.video_url && !lesson.text_content && !hasImages) {
+  var hasVideo = isVideoLesson && (lesson.video_url || lesson.bunny_video_id);
+  if (!hasVideo && !lesson.text_content && !hasImages) {
     html += '<p style="color:var(--muted);font-size:14px;">This lesson has no content yet.</p>';
   }
 
@@ -1216,8 +1218,18 @@ async function fetchBunnyPlaybackUrl(lessonId, lessonIdAtRender) {
   // If the viewer is signed in, include the bearer token so non-preview
   // lessons can be authorized. Anonymous viewers can still get tokens for
   // free preview lessons (server checks lesson.is_preview).
-  var token = (typeof Auth !== 'undefined' && Auth.getToken) ? Auth.getToken() : '';
-  if (token) headers.Authorization = 'Bearer ' + token;
+  // NOTE: the learn page does NOT load dashboard-shell.js, so the global
+  // `Auth` object is absent here. Use the Supabase session pattern that the
+  // rest of learn-page.js uses for authed requests.
+  try {
+    var sessionResp = await sb.auth.getSession();
+    var token = sessionResp && sessionResp.data && sessionResp.data.session
+      ? sessionResp.data.session.access_token : '';
+    if (token) headers.Authorization = 'Bearer ' + token;
+  } catch (e) {
+    // No session - we'll send the request without an Authorization header.
+    // Free-preview lessons will still work; non-preview lessons will get 401.
+  }
   try {
     var resp = await fetch('/api/bunny-video-token', {
       method: 'POST',
