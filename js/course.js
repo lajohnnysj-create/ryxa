@@ -1417,12 +1417,15 @@ function renderCourseModules() {
       const previewBadge = l.is_preview ? '<span class="course-s-6862c6">PREVIEW</span>' : '';
       const typeLabel = isVideo ? '<span class="course-s-955d08">VIDEO</span>' : '<span class="course-s-e89353">LESSON</span>';
       const isCollapsed = l._collapsed;
-      const hasContent = isVideo ? !!(l.video_url) : !!(l.text_content);
+      // For video lessons, "has content" means either a pasted URL or an uploaded
+      // (Bunny) video. Without the bunny_video_id check, lessons that only have
+      // an uploaded video would fail the collapse condition and never collapse.
+      const hasContent = isVideo ? !!(l.video_url || l.bunny_video_id) : !!(l.text_content);
       // For text lessons, strip HTML tags before slicing for the preview.
       // text_content is now rich HTML; without stripping, the preview shows
       // literal `<p>` / `<br>` markup which is ugly and confusing.
       var previewSource = isVideo
-        ? (l.video_url || '')
+        ? (l.video_url || (l.bunny_video_id ? 'Hosted on Ryxa' : ''))
         : (l.text_content || '').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
       const preview = previewSource.slice(0, isVideo ? 40 : 50);
 
@@ -1523,6 +1526,7 @@ function renderCourseModules() {
                   + '<svg class="course-vid-drop-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>'
                   + '<div class="course-vid-drop-title">Drop a video here or click to upload</div>'
                   + '<div class="course-vid-drop-hint">MP4, MOV, or WebM. <strong>Up to 5 GB.</strong> We compress and stream automatically.</div>'
+                  + '<div class="course-vid-drop-hint" style="margin-top:4px;">After upload, videos take a few minutes to process before they\'re ready to play.</div>'
                   + '</div>';
               }
 
@@ -1907,6 +1911,7 @@ function renderUploadIdle(mi, li) {
     + '<svg class="course-vid-drop-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>'
     + '<div class="course-vid-drop-title">Drop a video here or click to upload</div>'
     + '<div class="course-vid-drop-hint">MP4, MOV, or WebM. <strong>Up to 5 GB.</strong> We compress and stream automatically.</div>'
+    + '<div class="course-vid-drop-hint" style="margin-top:4px;">After upload, videos take a few minutes to process before they\'re ready to play.</div>'
     + '</div>';
   wireBunnyDropZones(host);
 }
