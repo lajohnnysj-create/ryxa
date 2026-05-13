@@ -76,6 +76,158 @@ let viewerEnrollmentId = null;
 let currentLessonId = null;
 let authMode = 'signin';
 
+// =============================================================================
+// HUB SESSION ENFORCEMENT
+// =============================================================================
+// Prevents one buyer from broadcasting their login credentials so 100 people
+// can watch a course simultaneously. On every Hub login, we generate a fresh
+// session_id and call claim_hub_session to make it the active one for this
+// user, overwriting any previously-stored session_id. Older clients still
+// holding the OLD session_id will be told they're no longer active on their
+// next check and forced to sign out.
+//
+// HUB-ONLY by design. The dashboard does NOT participate in this scheme.
+// A creator can be logged into the dashboard on one device and the Hub
+// on a different one with no conflict.
+
+var HUB_SESSION_KEY = 'ryxa_hub_session_id';
+var HUB_SESSION_CHECK_INTERVAL_MS = 60 * 1000; // 60s
+var _hubSessionCheckTimer = null;
+var _hubSessionEnforcementBusy = false; // prevents double-sign-out reentry
+
+function generateHubSessionId() {
+  // Use crypto.randomUUID where available (all modern browsers), fall back
+  // to a Math.random-based UUID-ish string. session_id is opaque to the
+  // server - only equality matters - so any sufficiently random 16+ char
+  // string works. Server enforces 16-128 char + no-whitespace.
+  if (window.crypto && window.crypto.randomUUID) {
+    return window.crypto.randomUUID();
+  }
+  return 'sid-' + Math.random().toString(36).slice(2) + Date.now().toString(36) +
+    Math.random().toString(36).slice(2);
+}
+
+async function claimHubSession() {
+  // Called after a successful Hub login (password or OAuth). Generates a
+  // new session_id, stores it in localStorage, and writes it to the
+  // hub_active_sessions table via the claim_hub_session RPC. Any previous
+  // session for this user is overwritten.
+  try {
+    var sessionId = generateHubSessionId();
+    var sessionResp = await sb.auth.getSession();
+    var token = sessionResp && sessionResp.data && sessionResp.data.session
+      ? sessionResp.data.session.access_token : '';
+    if (!token) {
+      console.warn('[hub-session] No auth token at claim time; skipping');
+      return;
+    }
+    var userAgent = (navigator.userAgent || '').slice(0, 500);
+    var resp = await fetch(SUPABASE_URL + '/rest/v1/rpc/claim_hub_session', {
+      method: 'POST',
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: 'Bearer ' + token,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ p_session_id: sessionId, p_user_agent: userAgent })
+    });
+    if (!resp.ok) {
+      var errBody = await resp.text().catch(function() { return ''; });
+      console.warn('[hub-session] claim failed:', resp.status, errBody.slice(0, 200));
+      return;
+    }
+    // Success - persist the session_id locally so checks can compare.
+    try { localStorage.setItem(HUB_SESSION_KEY, sessionId); } catch (e) {}
+  } catch (e) {
+    console.warn('[hub-session] claim threw:', e && e.message ? e.message : e);
+  }
+}
+
+async function checkHubSession() {
+  // Returns true if the locally-stored session_id is still the active one
+  // for this user. False otherwise. Called on page load and on a 60s timer.
+  var stored = '';
+  try { stored = localStorage.getItem(HUB_SESSION_KEY) || ''; } catch (e) {}
+  if (!stored) {
+    // No local session_id. We never claimed (or it was cleared). Treat as
+    // not-active so the periodic-check loop forces a sign-out, which sends
+    // the user back to login where they'll re-claim.
+    return false;
+  }
+  try {
+    var sessionResp = await sb.auth.getSession();
+    var token = sessionResp && sessionResp.data && sessionResp.data.session
+      ? sessionResp.data.session.access_token : '';
+    if (!token) return false;
+    var resp = await fetch('/api/session-check', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer ' + token
+      },
+      body: JSON.stringify({ session_id: stored })
+    });
+    if (!resp.ok) {
+      // Server error checking. Don't aggressively log out on infra issues -
+      // wait for the next poll. (Hub server-side fails-closed on real errors;
+      // a non-200 here would be unusual.)
+      return true;
+    }
+    var data = await resp.json();
+    return data && data.active === true;
+  } catch (e) {
+    // Network failure - keep the user logged in this round, try again next.
+    return true;
+  }
+}
+
+async function enforceHubSessionOrSignOut() {
+  if (_hubSessionEnforcementBusy) return;
+  _hubSessionEnforcementBusy = true;
+  try {
+    var active = await checkHubSession();
+    if (active) return;
+    // Not active. Sign the user out and show a clear message at the auth
+    // screen so they understand why they were kicked.
+    try { localStorage.removeItem(HUB_SESSION_KEY); } catch (e) {}
+    try { await sb.auth.signOut(); } catch (e) {}
+    currentUser = null;
+    // Surface the reason via a banner on the auth screen.
+    showAuth();
+    try {
+      var errEl = document.getElementById('auth-error');
+      if (errEl) {
+        errEl.textContent = 'You have been signed out because this account signed in on another device.';
+        errEl.style.display = 'block';
+      }
+    } catch (e) {}
+  } finally {
+    _hubSessionEnforcementBusy = false;
+  }
+}
+
+function startHubSessionPolling() {
+  stopHubSessionPolling();
+  _hubSessionCheckTimer = setInterval(enforceHubSessionOrSignOut, HUB_SESSION_CHECK_INTERVAL_MS);
+}
+
+function stopHubSessionPolling() {
+  if (_hubSessionCheckTimer) {
+    clearInterval(_hubSessionCheckTimer);
+    _hubSessionCheckTimer = null;
+  }
+}
+
+// Cross-tab notification: if another tab in the same browser claims a new
+// session_id, this tab's localStorage `ryxa_hub_session_id` value will
+// change. Listen for that and immediately re-check (instead of waiting up
+// to 60s for the next poll).
+window.addEventListener('storage', function(ev) {
+  if (ev.key === HUB_SESSION_KEY) {
+    enforceHubSessionOrSignOut();
+  }
+});
+
 function setLearnAuthMode(mode) {
   authMode = mode;
   var signinTab = document.getElementById('learn-tab-signin');
@@ -209,16 +361,45 @@ async function init() {
   const { data: { session } } = await sb.auth.getSession();
   if (session?.user) {
     currentUser = session.user;
+    // Existing session on page load: verify it's still the active one for
+    // this user. If not (someone logged in elsewhere meanwhile), sign out
+    // and show the auth screen with an explanatory message.
+    var stillActive = await checkHubSession();
+    if (!stillActive) {
+      try { localStorage.removeItem(HUB_SESSION_KEY); } catch (e) {}
+      try { await sb.auth.signOut(); } catch (e) {}
+      currentUser = null;
+      showAuth();
+      try {
+        var errEl = document.getElementById('auth-error');
+        if (errEl) {
+          errEl.textContent = 'You have been signed out because this account signed in on another device.';
+          errEl.style.display = 'block';
+        }
+      } catch (e) {}
+      return;
+    }
+    startHubSessionPolling();
     await onLoggedIn();
   } else {
     showAuth();
   }
 
-  sb.auth.onAuthStateChange(function(_event, session) {
+  sb.auth.onAuthStateChange(async function(event, session) {
     if (session?.user && !currentUser) {
       currentUser = session.user;
+      // Only claim a fresh session on actual new logins (SIGNED_IN event,
+      // fires after signInWithPassword or OAuth callback). TOKEN_REFRESHED
+      // and INITIAL_SESSION fire on every page load with an existing session
+      // and must NOT claim a new id - that would cause two tabs to ping-pong
+      // each other out of existence.
+      if (event === 'SIGNED_IN') {
+        await claimHubSession();
+      }
+      startHubSessionPolling();
       onLoggedIn();
     } else if (!session?.user) {
+      stopHubSessionPolling();
       currentUser = null;
       showAuth();
     }
@@ -282,6 +463,13 @@ async function handleAuth() {
       if (result.error) throw result.error;
     }
     currentUser = result.data.user;
+    // Hub session enforcement: claim a fresh session_id now, before any
+    // protected content loads. This invalidates any previously-stored
+    // session for this user (e.g., one being shared with friends).
+    // onAuthStateChange will fire SIGNED_IN too but its guard
+    // (!currentUser) means it won't double-claim from there.
+    await claimHubSession();
+    startHubSessionPolling();
     await onLoggedIn();
   } catch (err) {
     var msg = err.message || 'Authentication failed.';
@@ -350,6 +538,8 @@ async function onLoggedIn() {
 }
 
 async function signOut() {
+  stopHubSessionPolling();
+  try { localStorage.removeItem(HUB_SESSION_KEY); } catch (e) {}
   await sb.auth.signOut();
   window.location.href = '/learn/';
 }
