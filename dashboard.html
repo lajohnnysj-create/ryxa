@@ -2543,6 +2543,19 @@
   .bio-link-row .bio-link-header:hover { background: var(--surface2); }
   .bio-link-row .bio-link-drag { cursor: grab; color: var(--muted); flex-shrink: 0; padding: 4px; }
   .bio-link-row .bio-link-drag:active { cursor: grabbing; }
+  /* SortableJS drag states — without these, the original element stays at full
+     opacity while dragging, causing a "ghost link stays in place" glitch. */
+  /* The placeholder where the dragged item WAS — fade out to mark drop target */
+  .bio-link-row.sortable-ghost { opacity: 0.3; }
+  /* The element being dragged + its floating clone — purple glow + border to
+     signal active drag state. Both classes get the same styling so the visual
+     stays consistent whether SortableJS is using the original or a clone. */
+  .bio-link-row.sortable-chosen,
+  .bio-link-row.sortable-drag {
+    background: rgba(124,58,237,0.12) !important;
+    border-color: var(--accent2) !important;
+    box-shadow: 0 8px 24px rgba(124,58,237,0.35), 0 0 0 2px rgba(124,58,237,0.4);
+  }
   .bio-link-row .bio-featured-badge { font-size: 10px; background: rgba(124,58,237,0.2); color: #c4b5fd; border-radius: 100px; padding: 2px 8px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
   .bio-link-row input, .bio-link-row textarea { width: 100%; background: var(--surface2); border: 1px solid var(--border-hover); border-radius: 6px; padding: 8px 10px; font-size: 13px; color: var(--text); font-family: 'DM Sans', sans-serif; outline: none; box-sizing: border-box; margin-bottom: 6px; }
   .bio-link-row textarea { resize: none; }
