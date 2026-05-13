@@ -249,7 +249,7 @@ const toolTitles = {
   qr: 'QR Generator',
   invoice: 'Invoice Generator',
   pdfsign: 'Sign PDF',
-  scripts: 'AI Script Builder',
+  scripts: 'Script Builder',
   thumbanalyzer: 'AI Thumbnail Analyzer',
   contractanalyzer: 'AI Contract Analyzer',
   deals: 'Brand Deal CRM',
