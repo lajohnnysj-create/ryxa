@@ -256,7 +256,7 @@ const toolTitles = {
   analytics: 'Analytics',
     clients: 'Subscribers',
     settings: 'Settings',
-    design: 'AI Design Studio',
+    design: 'Design Studio',
     aichat: 'Chatbox',
     calendar: 'Calendar'
 };
@@ -949,7 +949,7 @@ function showTool(tool) {
       });
     } catch(e) {}
   }
-  // Init AI Design Studio
+  // Init Design Studio
   if (tool === 'design') {
     if (!_dsLoadedOnce) { _dsLoadedOnce = true; }
     loadDesignProjects();
