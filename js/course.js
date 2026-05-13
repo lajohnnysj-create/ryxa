@@ -1892,7 +1892,7 @@ function renderUploadProgress(host, uploaded, total, customLabel) {
     + '</div>'
     + '<div class="course-vid-progress-bar"><div class="course-vid-progress-fill" style="width:' + pct + '%"></div></div>'
     + '<div class="course-vid-progress-foot">'
-    + '<span>' + (customLabel ? '' : 'Direct upload to Bunny Stream') + '</span>'
+    + '<span>' + (customLabel ? '' : 'Uploading to Ryxa') + '</span>'
     + '<button type="button" data-course-action="cancel-bunny-upload" data-course-mi="' + host.dataset.courseMi + '" data-course-li="' + host.dataset.courseLi + '" class="course-vid-progress-cancel">Cancel</button>'
     + '</div>'
     + '</div>';
@@ -1981,11 +1981,14 @@ function startBunnyStatusPoll(mi, li, lessonId) {
   var key = lessonKey(mi, li);
   stopBunnyStatusPoll(mi, li);  // safety: kill any prior poll
   var startedAt = Date.now();
+  var consecutiveFailures = 0;
+  var MAX_CONSECUTIVE_FAILURES = 3;
   var tick = async function() {
     if (Date.now() - startedAt > BUNNY_POLL_MAX_DURATION_MS) {
       stopBunnyStatusPoll(mi, li);
       return;
     }
+    var success = false;
     try {
       var resp = await fetch('/api/bunny-lesson-status', {
         method: 'POST',
@@ -1996,6 +1999,8 @@ function startBunnyStatusPoll(mi, li, lessonId) {
         body: JSON.stringify({ lesson_id: lessonId })
       });
       if (resp.ok) {
+        success = true;
+        consecutiveFailures = 0;
         var data = await resp.json();
         var lesson = courseModules[mi] && courseModules[mi].lessons[li];
         if (lesson) {
@@ -2010,7 +2015,31 @@ function startBunnyStatusPoll(mi, li, lessonId) {
         }
       }
     } catch (e) {
-      // transient network blip; just try again next interval
+      // transient network blip; counted as failure below
+    }
+    if (!success) {
+      consecutiveFailures++;
+      if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
+        // Give up. Likely the status endpoint isn't deployed or the lesson
+        // doesn't exist anymore. Stop polling and show a friendly message
+        // so the creator can refresh or contact support.
+        console.warn('Bunny status polling stopped after ' + consecutiveFailures + ' consecutive failures for lesson ' + lessonId);
+        stopBunnyStatusPoll(mi, li);
+        var host = document.querySelector('[data-course-vid-host="' + lessonKey(mi, li) + '"]');
+        if (host) {
+          var panel = host.querySelector('[data-vid-panel="upload"]');
+          if (panel) {
+            panel.innerHTML = '<div class="course-vid-processing">'
+              + '<div class="course-vid-processing-spin"></div>'
+              + '<div class="course-vid-processing-text">'
+              + '<span>Still processing</span>'
+              + '<span class="course-vid-processing-sub">Refresh the page in a few minutes to see the latest status.</span>'
+              + '</div>'
+              + '</div>';
+          }
+        }
+        return;
+      }
     }
     _bunnyPollsByLesson[key] = {
       timerId: setTimeout(tick, BUNNY_POLL_INTERVAL_MS),
