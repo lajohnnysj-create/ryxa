@@ -2117,10 +2117,16 @@ function renderBioLinks() {
   if (window.Sortable) {
     const prev = el._sortable;
     if (prev) prev.destroy();
-    // Auto-scroll is desktop-only. SortableJS's auto-scroll on iOS Safari
-    // fights with native touch scrolling and feels broken, so on touch devices
-    // we disable it entirely. Mobile users scroll manually mid-drag (release,
-    // scroll, re-grab) — same pattern as Instagram, Notion, LinkedIn mobile.
+    // Touch detection drives two different behaviors:
+    // 1. Auto-scroll: desktop only — see comment below
+    // 2. forceFallback: touch only — without it, iOS Safari has no native
+    //    HTML5 drag API support, so SortableJS doesn't create the floating
+    //    clone that follows the user's finger. The list reorders correctly
+    //    via touch position tracking, but visually nothing moves under the
+    //    finger, which feels broken. forceFallback uses SortableJS's
+    //    polyfilled drag that manually positions a clone under each
+    //    touchmove. fallbackOnBody attaches that clone to <body> so it
+    //    isn't clipped by overflow:hidden ancestors in the dashboard.
     const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     el._sortable = Sortable.create(el, {
       handle: '.bio-link-drag',
@@ -2129,6 +2135,10 @@ function renderBioLinks() {
       scrollSensitivity: 80,
       scrollSpeed: 16,
       forceAutoScrollFallback: !isTouchDevice,
+      forceFallback: isTouchDevice,
+      fallbackOnBody: true,
+      fallbackTolerance: 3,
+      touchStartThreshold: 5,
       onEnd: () => {
         const order = [...el.children].map(c => parseInt(c.dataset.id));
         bioState.links.sort((a, b) => order.indexOf(a._id) - order.indexOf(b._id));
