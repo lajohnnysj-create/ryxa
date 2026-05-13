@@ -273,9 +273,22 @@ async function initAuth() {
   await setUser(session.user);
   _authCompleted = true;
   try { sessionStorage.removeItem('_authRetry'); } catch(e) {}
-  sb.auth.onAuthStateChange((_event, session) => {
-    if (!session?.user) { Auth.setToken(''); showPwaLogin(); }
-    else Auth.setToken(session.access_token);
+  // Auth state change handler. The earlier version called showPwaLogin() on
+  // ANY event with a null session, which caused premature logouts: TOKEN_REFRESHED
+  // can briefly fire with session=null on transient refresh failure (network blip,
+  // rate limit), and Supabase auto-retries. The old handler kicked the user out
+  // to the login screen during these transient states. New behavior: only logout
+  // the UI on an actual SIGNED_OUT event. INITIAL_SESSION with null is already
+  // handled by initAuth() above before this listener attaches.
+  sb.auth.onAuthStateChange((event, session) => {
+    if (session?.user) {
+      Auth.setToken(session.access_token);
+      return;
+    }
+    if (event === 'SIGNED_OUT') {
+      Auth.setToken('');
+      showPwaLogin();
+    }
   });
 }
 
