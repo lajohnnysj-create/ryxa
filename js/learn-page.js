@@ -1087,8 +1087,11 @@ function selectLesson(lessonId) {
   // and inject it into the placeholder iframe element. The /api/bunny-video-token
   // endpoint verifies enrollment (or free-preview status) before returning
   // a signed URL. Without a successful token call, the iframe stays blank.
+  // We pass lessonId (the function parameter, captured at call time) so the
+  // race-guard inside fetchBunnyPlaybackUrl can compare against the current
+  // currentLessonId and drop the result if the viewer navigated away.
   if (lesson.lesson_type === 'video' && lesson.bunny_video_id && lesson.bunny_video_status === 'ready') {
-    fetchBunnyPlaybackUrl(lesson.id, lessonIdAtRender);
+    fetchBunnyPlaybackUrl(lesson.id, lessonId);
   }
 
   // If the lesson has HTML text content, load DOMPurify (if not loaded yet)
