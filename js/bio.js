@@ -2117,27 +2117,95 @@ function renderBioLinks() {
   if (window.Sortable) {
     const prev = el._sortable;
     if (prev) prev.destroy();
+    // Touch devices use a custom edge-scroll handler (see bioInitTouchScroll
+    // below) because SortableJS's built-in auto-scroll on iOS Safari fights
+    // with native touch scrolling and feels broken. Desktop gets SortableJS's
+    // auto-scroll because it's reliable there.
+    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     el._sortable = Sortable.create(el, {
       handle: '.bio-link-drag',
       animation: 180,
-      // Auto-scroll the document (not intermediate containers) when dragging
-      // near top/bottom edges of viewport. Pointing `scroll` at the document
-      // scrolling element directly bypasses SortableJS's ancestor-walk, which
-      // can get trapped on shallow overflow:auto containers that don't have
-      // meaningful scroll room. forceAutoScrollFallback uses a setInterval-
-      // driven scroller that works reliably across touch + mouse and ignores
-      // CSS-transform parents that confuse the default scroll detection.
-      scroll: document.scrollingElement || document.documentElement,
+      scroll: isTouchDevice ? false : (document.scrollingElement || document.documentElement),
       scrollSensitivity: 80,
       scrollSpeed: 16,
-      forceAutoScrollFallback: true,
+      forceAutoScrollFallback: !isTouchDevice,
       onEnd: () => {
         const order = [...el.children].map(c => parseInt(c.dataset.id));
         bioState.links.sort((a, b) => order.indexOf(a._id) - order.indexOf(b._id));
         schedulePreviewUpdate();
       }
     });
+    bioInitTouchScroll();
   }
+}
+
+// =============================================================================
+// TOUCH EDGE-SCROLL during sortable drag
+// =============================================================================
+// SortableJS's built-in auto-scroll is unreliable on iOS Safari (fights native
+// touch scrolling, ignores programmatic scrolls during touchmove). We replace
+// it with a touch-only handler that watches finger Y position and scrolls the
+// window when within EDGE_PX of the viewport edge. Only active while a
+// SortableJS drag is in progress (detected via Sortable.active).
+//
+// rAF-driven for smoothness. Listener is wired once via the __wired flag.
+// =============================================================================
+function bioInitTouchScroll() {
+  if (window.__bioTouchScrollWired) return;
+  window.__bioTouchScrollWired = true;
+
+  const EDGE_PX = 80;        // distance from viewport edge that triggers scroll
+  const MAX_SPEED = 14;      // max pixels per frame at the very edge
+  let lastY = 0;
+  let scrolling = false;
+  let rafId = null;
+
+  function tick() {
+    if (!scrolling || !window.Sortable || !window.Sortable.active) {
+      rafId = null;
+      scrolling = false;
+      return;
+    }
+    const vh = window.innerHeight;
+    let delta = 0;
+    if (lastY < EDGE_PX) {
+      // Closer to top edge = faster scroll up
+      const intensity = (EDGE_PX - lastY) / EDGE_PX; // 0..1
+      delta = -Math.ceil(intensity * MAX_SPEED);
+    } else if (lastY > vh - EDGE_PX) {
+      // Closer to bottom edge = faster scroll down
+      const intensity = (lastY - (vh - EDGE_PX)) / EDGE_PX;
+      delta = Math.ceil(intensity * MAX_SPEED);
+    }
+    if (delta !== 0) {
+      window.scrollBy(0, delta);
+    }
+    rafId = requestAnimationFrame(tick);
+  }
+
+  document.addEventListener('touchmove', function(e) {
+    // Only fire while a Sortable drag is active. Sortable.active is the
+    // instance currently being dragged. Without this guard we'd handle every
+    // touchmove on the document, which is wasteful.
+    if (!window.Sortable || !window.Sortable.active) return;
+    const t = e.touches && e.touches[0];
+    if (!t) return;
+    lastY = t.clientY;
+    if (!scrolling) {
+      scrolling = true;
+      rafId = requestAnimationFrame(tick);
+    }
+  }, { passive: true });
+
+  document.addEventListener('touchend', function() {
+    scrolling = false;
+    if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+  }, { passive: true });
+
+  document.addEventListener('touchcancel', function() {
+    scrolling = false;
+    if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+  }, { passive: true });
 }
 
 function renderLinkRow(link) {
