@@ -1,5 +1,5 @@
 // =============================================================================
-// /js/course.js — Course Builder (extracted from dashboard.html, 2026-05-10)
+// /js/course.js, Course Builder (extracted from dashboard.html, 2026-05-10)
 // -----------------------------------------------------------------------------
 // All JavaScript for the Course Builder tool (Max tier). Extracted from
 // dashboard.html for stricter CSP and easier maintenance.
@@ -81,12 +81,12 @@ function courseApplyDataStyles(root) {
 }
 
 // =============================================================================
-// END INFRASTRUCTURE — Course state + functions follow
+// END INFRASTRUCTURE, Course state + functions follow
 // =============================================================================
 
 // ---------- From dashboard.html lines 13313-13320 (Course state) ----------
 // =====================================================
-// COURSES — Creator Course Builder (Max only)
+// COURSES, Creator Course Builder (Max only)
 // =====================================================
 let coursesList = [];
 let currentCourseId = null;
@@ -143,7 +143,7 @@ function renderCoursesList() {
     const statusLabel = c.status.charAt(0).toUpperCase() + c.status.slice(1);
     const price = c.price_cents === 0 ? 'Free' : formatMoney(c.price_cents, {alwaysShowCents:true});
     // Cover background: either an image URL or a gradient. Encoded as data-course-bg
-    // (applied via JS post-render — CSP-strict, no inline style attribute).
+    // (applied via JS post-render, CSP-strict, no inline style attribute).
     const coverBg = c.cover_image_path
       ? 'url(' + sb.storage.from("course-covers").getPublicUrl(c.cover_image_path).data.publicUrl + ') center/cover'
       : 'linear-gradient(135deg,rgba(124,58,237,0.15),rgba(232,121,249,0.1))';
@@ -283,7 +283,7 @@ function generateSlug(text) {
   return base ? (base + '-' + rand).slice(0, 80) : '';
 }
 
-// Auto-generate slug from title (only for new courses — slug is locked once saved)
+// Auto-generate slug from title (only for new courses, slug is locked once saved)
 document.addEventListener('input', function(e) {
   if (e.target.id === 'course-title-input' && !currentCourseId) {
     document.getElementById('course-slug-input').value = generateSlug(e.target.value);
@@ -367,7 +367,7 @@ async function saveCourse() {
       const { error } = await sb.from('courses').update(payload).eq('id', courseId);
       if (error) throw new Error(error.message);
     } else {
-      // Insert — slug is set once and locked permanently
+      // Insert, slug is set once and locked permanently
       payload.user_id = currentUser.id;
       payload.status = 'draft';
       payload.slug = slug;
@@ -663,7 +663,7 @@ async function loadCourseModules(courseId) {
 }
 
 // Per-lesson text_content size cap (1 MB of sanitized HTML). This is a DoS
-// safety net — no realistic lesson approaches this size (1 MB of clean HTML
+// safety net, no realistic lesson approaches this size (1 MB of clean HTML
 // is roughly 100k words plus dozens of images). If we ever hit it, something
 // is wrong (pathological paste, bug, abuse). Backed up by a Postgres CHECK
 // constraint on the column for defense in depth.
@@ -899,7 +899,7 @@ function showEmbedInfo() {
     + '2. Click the <strong class="mk-s-e0b980">Share</strong> button at the top<br>'
     + '3. Under "Where can this be embedded?" select <strong class="mk-s-e0b980">Specific domains</strong><br>'
     + '4. Add <strong class="course-s-701ab3">ryxa.io</strong> as an allowed domain<br>'
-    + '5. Save — your video now only plays on your course page'
+    + '5. Save, your video now only plays on your course page'
     + '</div>'
     + '<p class="course-s-5d130a">Domain-level privacy requires a paid Vimeo plan. YouTube\'s Unlisted setting is free and works well for most creators.</p>'
     + '</div>'
@@ -931,7 +931,7 @@ function toggleLessonType(modIdx, lessonIdx) {
 
 // Returns the platform name ('YouTube', 'Vimeo', 'Loom') if the URL is
 // recognized as embeddable, otherwise null. Mirrors getEmbedUrl() in
-// js/learn-page.js — keep the two in sync if either is updated, since the
+// js/learn-page.js, keep the two in sync if either is updated, since the
 // editor's validation indicator must match what the viewer can actually embed.
 function detectVideoPlatform(url) {
   if (!url) return null;
@@ -942,7 +942,7 @@ function detectVideoPlatform(url) {
 }
 
 // =============================================================================
-// RICH TEXT EDITOR (Quill 1.3.7) — text lessons
+// RICH TEXT EDITOR (Quill 1.3.7), text lessons
 // =============================================================================
 // Quill and DOMPurify are lazy-loaded on first text-lesson expansion, mirroring
 // the Tone.js pattern in scripts.js. Saves ~75KB on every dashboard load that
@@ -951,7 +951,7 @@ function detectVideoPlatform(url) {
 //
 // SECURITY: every HTML payload from a creator passes through DOMPurify before
 // (a) being saved to text_content, and (b) being rendered to students in
-// learn-page.js. Defense in depth — never trust HTML alone, even our own.
+// learn-page.js. Defense in depth, never trust HTML alone, even our own.
 
 var MAX_LESSON_IMAGES = 15;
 var _courseQuillInstances = {}; // key: 'mi-li' → Quill instance
@@ -986,7 +986,7 @@ function ensureQuillLoaded() {
           });
           Quill.register(ImgSizeAttr, true);
         } catch (e) {
-          // Non-fatal — editor still works, images just won't remember size.
+          // Non-fatal, editor still works, images just won't remember size.
           console.warn('Failed to register Quill image-size attributor:', e);
         }
         resolve();
@@ -1016,8 +1016,8 @@ function ensureQuillLoaded() {
   return _courseQuillLoadPromise;
 }
 
-// DOMPurify config — what creators can produce, students can see. The class
-// attribute is allowed but VALUES are filtered by the hook below — only the
+// DOMPurify config, what creators can produce, students can see. The class
+// attribute is allowed but VALUES are filtered by the hook below, only the
 // specific Quill alignment classes and our lesson-img-size classes are kept.
 // Anything outside this list gets stripped.
 var QUILL_PURIFY_CONFIG = {
@@ -1085,7 +1085,7 @@ function sanitizeLessonHtml(html) {
 }
 
 // Count <img> tags in the current Quill content (used to enforce per-lesson
-// image cap). A regex is fine here — Quill output is well-formed.
+// image cap). A regex is fine here, Quill output is well-formed.
 function countQuillImages(quill) {
   var html = quill.root.innerHTML;
   var matches = html.match(/<img\b/g);
@@ -1130,7 +1130,7 @@ function mountLessonEditor(mi, li) {
           ['clean']
         ],
         handlers: {
-          // Custom image handler — runs our existing compressLessonImage pipeline
+          // Custom image handler, runs our existing compressLessonImage pipeline
           // (WebP 0.8, 1200px max) and uploads to course-images bucket. Same
           // egress profile as the old standalone Images section.
           image: function() {
@@ -1170,7 +1170,7 @@ function mountLessonEditor(mi, li) {
                     // WCAG: every <img> needs an alt attribute. We don't have
                     // a way for the creator to enter alt text during insert,
                     // so we default to empty string (alt="" marks the image
-                    // as decorative — screen readers will skip it). The
+                    // as decorative, screen readers will skip it). The
                     // afterSanitizeAttributes DOMPurify hook also enforces
                     // this on read, so the rule survives any HTML round-trip.
                     if (!lastImg.hasAttribute('alt')) lastImg.setAttribute('alt', '');
@@ -1203,7 +1203,7 @@ function mountLessonEditor(mi, li) {
 
   // Belt-and-suspenders: re-apply image size classes after the seed. Quill 1.x
   // treats images as Embed blots which don't preserve custom classes through
-  // dangerouslyPasteHTML — the Parchment attributor we registered helps for
+  // dangerouslyPasteHTML, the Parchment attributor we registered helps for
   // copy/paste WITHIN the editor but is unreliable for the initial seed. We
   // re-parse our saved HTML, extract the size class for each image by index,
   // and apply it directly to Quill's rendered DOM.
@@ -1236,7 +1236,7 @@ function mountLessonEditor(mi, li) {
     if (source !== 'user') return; // ignore programmatic changes (initial seed)
     // Block paste/drag-and-drop of images that would push us over the cap.
     // We check AFTER the change so we can yank the last one if it pushed us
-    // over. This is the cleanest UX in Quill — preventing image-paste at the
+    // over. This is the cleanest UX in Quill, preventing image-paste at the
     // event level is much messier.
     var imgCount = countQuillImages(quill);
     if (imgCount > MAX_LESSON_IMAGES) {
@@ -1275,7 +1275,7 @@ function setupImageSizing(quill, mi, li, container) {
   // function, and WAVE flags them as "empty button". We add aria-label on
   // each known button class after Quill builds the toolbar. Same for the
   // header <select> which lacks a label. List is hardcoded against Quill
-  // Snow theme defaults — keep in sync with the toolbar config above.
+  // Snow theme defaults, keep in sync with the toolbar config above.
   var ariaLabels = {
     'ql-bold': 'Bold',
     'ql-italic': 'Italic',
@@ -1309,17 +1309,17 @@ function setupImageSizing(quill, mi, li, container) {
               : 'Align left';
     btn.setAttribute('aria-label', label);
   });
-  // Header dropdown — a <select>, not a button. Needs its own label.
+  // Header dropdown, a <select>, not a button. Needs its own label.
   toolbar.querySelectorAll('select.ql-header').forEach(function(sel) {
     if (!sel.hasAttribute('aria-label')) sel.setAttribute('aria-label', 'Heading level');
   });
 
-  // Quill's link/video/formula tooltip — a hidden popover that appears when
+  // Quill's link/video/formula tooltip, a hidden popover that appears when
   // the user clicks the link button or an existing link in the editor.
   // It contains an unlabeled <input> for the URL and an empty <a> preview.
   // Both are flagged by WAVE even when display:none, because WAVE scans the
   // DOM not the visual state. We label the input + give the empty preview
-  // anchor a fallback name. Tooltip placement varies by Quill version —
+  // anchor a fallback name. Tooltip placement varies by Quill version -
   // check toolbar's parent, container's parent, and finally container itself.
   var tooltip = null;
   var searchRoots = [toolbar.parentElement, container.parentElement, container];
@@ -1330,7 +1330,7 @@ function setupImageSizing(quill, mi, li, container) {
     var input = tooltip.querySelector('input[type="text"]');
     if (input && !input.hasAttribute('aria-label')) {
       // The placeholder shifts (Enter link URL / Embed URL / formula) as
-      // Quill switches modes — "Enter URL" is a reasonable umbrella label.
+      // Quill switches modes, "Enter URL" is a reasonable umbrella label.
       input.setAttribute('aria-label', 'Enter URL');
     }
     // The preview anchor is empty until a link is entered. Give it an
@@ -1366,7 +1366,7 @@ function setupImageSizing(quill, mi, li, container) {
     if (selectedImg) selectedImg.classList.remove('lesson-img-selected');
     selectedImg = img;
     if (selectedImg) selectedImg.classList.add('lesson-img-selected');
-    // Toggle the "alive" group state — drives the CSS that lights up the
+    // Toggle the "alive" group state, drives the CSS that lights up the
     // S/M/L buttons in solid purple so creators see where to click.
     group.classList.toggle('has-selection', !!selectedImg);
     // Enable/disable the S/M/L buttons based on whether we have a selection
@@ -1476,28 +1476,90 @@ function renderCourseModules() {
         + '</div>'
         + (isVideo
           ? (function() {
-              // Compute initial validation state so saved URLs show their status
-              // immediately on render (no flash). Updates live via the
-              // validate-video-url action on each keystroke (green appears
-              // instantly when valid) and on blur (red appears for invalid
-              // URLs once the user has stopped typing).
+              // Two-tab video UI: "Upload to Ryxa" (primary) | "Paste URL" (secondary).
+              // Upload tab states: idle (drop zone) -> uploading (progress) ->
+              // processing (Bunny encoding) -> ready (thumbnail + replace button).
+              // Paste URL tab keeps the legacy YouTube/Vimeo/Loom paste flow intact.
+              // Default-active tab: "Upload" unless the lesson already has a paste-URL
+              // and no Bunny video (creator returning to existing work shouldn't be
+              // jolted away from where their content already lives).
+              var hasBunny = !!l.bunny_video_id;
+              var hasPasteUrl = !!(l.video_url || '').trim();
+              var defaultTab = (hasPasteUrl && !hasBunny) ? 'paste' : 'upload';
+              var lessonId = l.id || '';
+
+              // Paste-URL panel (unchanged from legacy flow)
               var platform = detectVideoPlatform(l.video_url || '');
-              var hasContent = !!(l.video_url || '').trim();
-              var statusHtml = '';
+              var pasteStatusHtml = '';
               if (platform) {
-                statusHtml = '<div class="course-s-vurl-status valid" id="vurl-status-' + mi + '-' + li + '"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' + platform + '</div>';
-              } else if (hasContent) {
-                statusHtml = '<div class="course-s-vurl-status invalid" id="vurl-status-' + mi + '-' + li + '"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Paste a YouTube, Vimeo, or Loom link</div>';
+                pasteStatusHtml = '<div class="course-s-vurl-status valid" id="vurl-status-' + mi + '-' + li + '"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' + platform + '</div>';
+              } else if (hasPasteUrl) {
+                pasteStatusHtml = '<div class="course-s-vurl-status invalid" id="vurl-status-' + mi + '-' + li + '"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Paste a YouTube, Vimeo, or Loom link</div>';
               } else {
-                statusHtml = '<div class="course-s-vurl-status" id="vurl-status-' + mi + '-' + li + '"></div>';
+                pasteStatusHtml = '<div class="course-s-vurl-status" id="vurl-status-' + mi + '-' + li + '"></div>';
               }
-              return '<div class="course-s-vurl-wrap">'
+              var pastePanel = '<div class="course-vid-panel" data-vid-panel="paste" aria-hidden="' + (defaultTab === 'paste' ? 'false' : 'true') + '">'
+                + '<div class="course-s-vurl-wrap">'
                 + '<input type="url" value="' + escapeHtml(l.video_url || '') + '" placeholder="Video URL (YouTube, Vimeo, or Loom)" data-course-action="validate-video-url" data-course-event="input" data-course-action-blur="validate-video-url-blur" data-course-mi="' + mi + '" data-course-li="' + li + '" data-course-field="video_url" aria-label="Video URL" class="course-s-59ebc5">'
-                + statusHtml
+                + pasteStatusHtml
+                + '</div>'
+                + '</div>';
+
+              // Upload panel state
+              var uploadContent = '';
+              if (l.bunny_video_status === 'ready' && l.bunny_video_id) {
+                // Ready: show thumbnail + duration + replace button
+                var dur = l.bunny_video_duration_seconds ? formatVideoDuration(l.bunny_video_duration_seconds) : '';
+                var thumbStyle = l.bunny_thumbnail_url ? ('background-image:url(' + escapeHtml(l.bunny_thumbnail_url) + ');') : '';
+                var thumbInner = l.bunny_thumbnail_url ? '' :
+                  '<div class="course-vid-ready-thumb-fallback"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>';
+                uploadContent = '<div class="course-vid-ready" id="vid-ready-' + mi + '-' + li + '">'
+                  + '<div class="course-vid-ready-thumb" style="' + thumbStyle + '">' + thumbInner + '</div>'
+                  + '<div class="course-vid-ready-meta">'
+                  + '<div class="course-vid-ready-title"><svg class="course-vid-ready-title-check" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Video ready</div>'
+                  + '<div class="course-vid-ready-sub">' + escapeHtml(dur || 'Hosted on Ryxa') + '</div>'
+                  + '</div>'
+                  + '<button type="button" data-course-action="replace-bunny-video" data-course-mi="' + mi + '" data-course-li="' + li + '" class="course-vid-ready-replace">Replace</button>'
+                  + '</div>';
+              } else if (l.bunny_video_status === 'processing' || l.bunny_video_status === 'uploading') {
+                // Processing on Bunny side (encoding), set up a polling indicator
+                uploadContent = '<div class="course-vid-processing" id="vid-processing-' + mi + '-' + li + '" data-lesson-id="' + escapeHtml(lessonId) + '">'
+                  + '<div class="course-vid-processing-spin"></div>'
+                  + '<div class="course-vid-processing-text">'
+                  + '<span>Processing video</span>'
+                  + '<span class="course-vid-processing-sub">This usually takes 1-3 minutes. You can keep editing.</span>'
+                  + '</div>'
+                  + '</div>';
+              } else if (l.bunny_video_status === 'failed') {
+                uploadContent = '<div class="course-vid-failed">'
+                  + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
+                  + '<span>Video processing failed. Try uploading again.</span>'
+                  + '<button type="button" data-course-action="reset-bunny-video" data-course-mi="' + mi + '" data-course-li="' + li + '" class="course-vid-failed-retry">Reset</button>'
+                  + '</div>';
+              } else {
+                // Idle: drop zone
+                uploadContent = '<div class="course-vid-drop" data-course-action="open-bunny-picker" data-course-mi="' + mi + '" data-course-li="' + li + '" role="button" tabindex="0" aria-label="Upload video">'
+                  + '<svg class="course-vid-drop-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>'
+                  + '<div class="course-vid-drop-title">Drop a video here or click to upload</div>'
+                  + '<div class="course-vid-drop-hint">MP4, MOV, or WebM. <strong>Up to 5 GB.</strong> We compress and stream automatically.</div>'
+                  + '</div>';
+              }
+
+              var uploadPanel = '<div class="course-vid-panel" data-vid-panel="upload" aria-hidden="' + (defaultTab === 'upload' ? 'false' : 'true') + '">'
+                + uploadContent
+                + '</div>';
+
+              return '<div data-course-vid-host="' + mi + '-' + li + '" data-course-mi="' + mi + '" data-course-li="' + li + '">'
+                + '<div class="course-vid-tabs" role="tablist">'
+                + '<button type="button" role="tab" aria-selected="' + (defaultTab === 'upload' ? 'true' : 'false') + '" data-course-action="switch-vid-tab" data-vid-tab="upload" data-course-mi="' + mi + '" data-course-li="' + li + '" class="course-vid-tab">Upload to Ryxa <span class="course-vid-tab-badge">New</span></button>'
+                + '<button type="button" role="tab" aria-selected="' + (defaultTab === 'paste' ? 'true' : 'false') + '" data-course-action="switch-vid-tab" data-vid-tab="paste" data-course-mi="' + mi + '" data-course-li="' + li + '" class="course-vid-tab">Paste URL</button>'
+                + '</div>'
+                + uploadPanel
+                + pastePanel
                 + '</div>';
             })()
           : '<div id="lesson-editor-' + mi + '-' + li + '" class="course-s-quill-host" data-course-mi="' + mi + '" data-course-li="' + li + '"></div>')
-        // Move / info / done buttons. Icon-only to keep the row compact —
+        // Move / info / done buttons. Icon-only to keep the row compact -
         // labels were redundant with the well-known up/down/info glyphs and
         // ate horizontal space. "Done" collapses the lesson (state is already
         // saved on every keystroke via update-lesson-field; this is a UX cue
@@ -1536,7 +1598,7 @@ function renderCourseModules() {
   }).join('');
 
   // Mount Quill editors for any text lessons that are currently expanded.
-  // Runs every render — idempotent (mountLessonEditor skips already-mounted
+  // Runs every render, idempotent (mountLessonEditor skips already-mounted
   // hosts). On first call, lazy-loads Quill+DOMPurify; subsequent calls
   // resolve instantly from the cached promise.
   var hosts = container.querySelectorAll('.course-s-quill-host');
@@ -1568,12 +1630,480 @@ function renderCourseModules() {
       });
     });
   }
+
+  // Wire Bunny drop zones and resume any in-flight encoding polls.
+  // Safe to call on every render: wireBunnyDropZones is idempotent
+  // (skips elements already wired), and poll-resumption checks for
+  // existing polls before starting new ones.
+  bunnyPostRenderSetup(container);
 }
 
 
 // =============================================================================
-// ACTION REGISTRATIONS — wired up below as part of Phase 2
+// BUNNY STREAM UPLOAD MODULE
 // =============================================================================
+// Creator-side upload flow for course video lessons. Tab UI (Upload to Ryxa |
+// Paste URL), drag-and-drop, TUS chunked uploads direct to Bunny, progress
+// bar, post-upload status polling, replace flow.
+//
+// Server endpoints used:
+//   POST /api/bunny-create-video    - get TUS upload credentials
+//   POST /api/bunny-lesson-status   - poll encoding status
+//   POST /api/bunny-delete-video    - remove existing video before re-upload
+//
+// Security: all server endpoints verify auth + ownership. Per-video size
+// cap (5 GB) and per-creator quota (20 hours) enforced server-side. Client
+// caps are UX hints only.
+// =============================================================================
+
+var BUNNY_MAX_VIDEO_BYTES = 5 * 1024 * 1024 * 1024; // 5 GB
+var BUNNY_ALLOWED_MIME_PREFIXES = ['video/'];
+var BUNNY_POLL_INTERVAL_MS = 5000;  // 5s between status polls
+var BUNNY_POLL_MAX_DURATION_MS = 20 * 60 * 1000;  // give up polling after 20 min
+var _bunnyUploadsByLesson = {};  // lessonKey -> {tusUpload, controller, hostEl}
+var _bunnyPollsByLesson = {};    // lessonKey -> {timerId, startedAt}
+
+function lessonKey(mi, li) { return mi + '-' + li; }
+
+function formatVideoDuration(totalSeconds) {
+  totalSeconds = Math.max(0, parseInt(totalSeconds, 10) || 0);
+  var h = Math.floor(totalSeconds / 3600);
+  var m = Math.floor((totalSeconds % 3600) / 60);
+  var s = totalSeconds % 60;
+  if (h > 0) {
+    return h + 'h ' + (m < 10 ? '0' + m : m) + 'm';
+  }
+  return m + ':' + (s < 10 ? '0' + s : s);
+}
+
+function formatBytes(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+}
+
+// Switch between the Upload tab and Paste URL tab inside a lesson card
+courseRegisterAction('switch-vid-tab', (e, el) => {
+  var mi = parseInt(el.dataset.courseMi, 10);
+  var li = parseInt(el.dataset.courseLi, 10);
+  var tab = el.dataset.vidTab; // 'upload' or 'paste'
+  var host = document.querySelector('[data-course-vid-host="' + lessonKey(mi, li) + '"]');
+  if (!host) return;
+  var tabs = host.querySelectorAll('.course-vid-tab');
+  tabs.forEach(function(t) {
+    t.setAttribute('aria-selected', t.dataset.vidTab === tab ? 'true' : 'false');
+  });
+  var panels = host.querySelectorAll('.course-vid-panel');
+  panels.forEach(function(p) {
+    p.setAttribute('aria-hidden', p.dataset.vidPanel === tab ? 'false' : 'true');
+  });
+});
+
+// Open the native file picker for the drop zone
+courseRegisterAction('open-bunny-picker', (e, el) => {
+  var mi = parseInt(el.dataset.courseMi, 10);
+  var li = parseInt(el.dataset.courseLi, 10);
+  openBunnyFilePicker(mi, li);
+});
+
+function openBunnyFilePicker(mi, li) {
+  // Reuse a hidden file input so we don't pile up DOM nodes across opens
+  var input = document.getElementById('bunny-file-picker');
+  if (!input) {
+    input = document.createElement('input');
+    input.type = 'file';
+    input.id = 'bunny-file-picker';
+    input.accept = 'video/*';
+    input.style.display = 'none';
+    document.body.appendChild(input);
+  }
+  // Replace the change handler each open so it targets the right lesson
+  input.onchange = function() {
+    var file = input.files && input.files[0];
+    input.value = '';  // allow re-selecting the same file
+    if (!file) return;
+    startBunnyUpload(mi, li, file);
+  };
+  input.click();
+}
+
+// Drag-and-drop wiring: attach listeners to the drop zone after every render
+function wireBunnyDropZones(container) {
+  if (!container) return;
+  var zones = container.querySelectorAll('.course-vid-drop');
+  zones.forEach(function(zone) {
+    if (zone._bunnyWired) return;
+    zone._bunnyWired = true;
+    zone.addEventListener('dragover', function(ev) {
+      ev.preventDefault();
+      zone.classList.add('is-drag');
+    });
+    zone.addEventListener('dragleave', function() {
+      zone.classList.remove('is-drag');
+    });
+    zone.addEventListener('drop', function(ev) {
+      ev.preventDefault();
+      zone.classList.remove('is-drag');
+      var file = ev.dataTransfer && ev.dataTransfer.files && ev.dataTransfer.files[0];
+      if (!file) return;
+      var mi = parseInt(zone.dataset.courseMi, 10);
+      var li = parseInt(zone.dataset.courseLi, 10);
+      startBunnyUpload(mi, li, file);
+    });
+    // Keyboard: Space or Enter on the focused drop zone opens the picker
+    zone.addEventListener('keydown', function(ev) {
+      if (ev.key === ' ' || ev.key === 'Enter') {
+        ev.preventDefault();
+        var mi = parseInt(zone.dataset.courseMi, 10);
+        var li = parseInt(zone.dataset.courseLi, 10);
+        openBunnyFilePicker(mi, li);
+      }
+    });
+  });
+}
+
+async function startBunnyUpload(mi, li, file) {
+  var lesson = courseModules[mi] && courseModules[mi].lessons[li];
+  if (!lesson) {
+    showModalAlert('Upload failed', 'Could not find the lesson. Try refreshing the page.');
+    return;
+  }
+
+  // Client-side guards (server enforces too; these are UX hints)
+  if (!file.type || !BUNNY_ALLOWED_MIME_PREFIXES.some(function(p) { return file.type.indexOf(p) === 0; })) {
+    showModalAlert('Unsupported file', 'Please choose a video file (MP4, MOV, WebM, or similar).');
+    return;
+  }
+  if (file.size > BUNNY_MAX_VIDEO_BYTES) {
+    showModalAlert('Video is too large', 'Maximum is 5 GB per video. Your file is ' + formatBytes(file.size) + '. Try compressing the video before uploading.');
+    return;
+  }
+
+  // The lesson must be saved (have an id) before we can upload to it.
+  // If the lesson is unsaved (new and never persisted), save the course
+  // first so the lesson gets a real DB id.
+  if (!lesson.id || String(lesson.id).indexOf('new_') === 0) {
+    var hostBeforeSave = document.querySelector('[data-course-vid-host="' + lessonKey(mi, li) + '"]');
+    if (hostBeforeSave) renderUploadProgress(hostBeforeSave, 0, file.size, 'Saving lesson...');
+    try {
+      await saveCourse();
+    } catch (e) {
+      showModalAlert('Could not save lesson', 'Save your course first, then try the upload again.');
+      renderUploadIdle(mi, li);
+      return;
+    }
+    // saveCourse re-renders, so re-fetch lesson and host
+    lesson = courseModules[mi] && courseModules[mi].lessons[li];
+    if (!lesson || !lesson.id) {
+      showModalAlert('Could not save lesson', 'Please try again.');
+      return;
+    }
+  }
+
+  var host = document.querySelector('[data-course-vid-host="' + lessonKey(mi, li) + '"]');
+  if (!host) return;
+  renderUploadProgress(host, 0, file.size, 'Preparing upload...');
+
+  // Step 1: ask server for TUS credentials
+  var token = Auth.getToken();
+  var createRes;
+  try {
+    var resp = await fetch('/api/bunny-create-video', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer ' + token
+      },
+      body: JSON.stringify({
+        lesson_id: lesson.id,
+        title: lesson.title || 'Untitled Video',
+        expected_size_bytes: file.size
+      })
+    });
+    createRes = await resp.json();
+    if (!resp.ok) {
+      showModalAlert('Upload failed', createRes.error || 'Could not start upload. Try again.');
+      renderUploadIdle(mi, li);
+      return;
+    }
+  } catch (e) {
+    showModalAlert('Upload failed', 'Network error. Check your connection and try again.');
+    renderUploadIdle(mi, li);
+    return;
+  }
+
+  // Step 2: locally update lesson state so the bunny_video_id is in working
+  // memory immediately. The DB row was already updated by the API on success.
+  lesson.bunny_video_id = createRes.video_id;
+  lesson.bunny_video_status = 'uploading';
+  lesson.bunny_uploaded_at = new Date().toISOString();
+
+  // Step 3: kick off the TUS upload
+  if (typeof tus === 'undefined' || !tus.Upload) {
+    showModalAlert('Upload failed', 'Upload library failed to load. Refresh the page and try again.');
+    renderUploadIdle(mi, li);
+    return;
+  }
+
+  var upload = new tus.Upload(file, {
+    endpoint: createRes.upload_url,
+    headers: createRes.upload_headers,
+    chunkSize: 50 * 1024 * 1024,  // 50 MB chunks (Bunny's recommended size)
+    retryDelays: [0, 3000, 5000, 10000, 20000],
+    metadata: {
+      filetype: file.type,
+      title: lesson.title || 'Untitled Video'
+    },
+    onError: function(err) {
+      console.error('Bunny TUS upload error:', err);
+      var hostNow = document.querySelector('[data-course-vid-host="' + lessonKey(mi, li) + '"]');
+      if (hostNow) {
+        var panel = hostNow.querySelector('[data-vid-panel="upload"]');
+        if (panel) {
+          panel.innerHTML = '<div class="course-vid-failed">'
+            + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
+            + '<span>Upload failed. ' + escapeHtml((err && err.message) ? err.message.slice(0, 100) : 'Try again.') + '</span>'
+            + '<button type="button" data-course-action="reset-bunny-video" data-course-mi="' + mi + '" data-course-li="' + li + '" class="course-vid-failed-retry">Try again</button>'
+            + '</div>';
+        }
+      }
+      delete _bunnyUploadsByLesson[lessonKey(mi, li)];
+    },
+    onProgress: function(uploaded, total) {
+      var hostNow = document.querySelector('[data-course-vid-host="' + lessonKey(mi, li) + '"]');
+      if (hostNow) renderUploadProgress(hostNow, uploaded, total, null);
+    },
+    onSuccess: function() {
+      delete _bunnyUploadsByLesson[lessonKey(mi, li)];
+      // Switch UI to "processing" and start polling for encode completion
+      lesson.bunny_video_status = 'processing';
+      var hostNow = document.querySelector('[data-course-vid-host="' + lessonKey(mi, li) + '"]');
+      if (hostNow) {
+        var panel = hostNow.querySelector('[data-vid-panel="upload"]');
+        if (panel) {
+          panel.innerHTML = '<div class="course-vid-processing">'
+            + '<div class="course-vid-processing-spin"></div>'
+            + '<div class="course-vid-processing-text">'
+            + '<span>Processing video</span>'
+            + '<span class="course-vid-processing-sub">This usually takes 1-3 minutes. You can keep editing.</span>'
+            + '</div>'
+            + '</div>';
+        }
+      }
+      startBunnyStatusPoll(mi, li, lesson.id);
+    }
+  });
+  _bunnyUploadsByLesson[lessonKey(mi, li)] = { tusUpload: upload };
+  upload.start();
+}
+
+function renderUploadProgress(host, uploaded, total, customLabel) {
+  var panel = host.querySelector('[data-vid-panel="upload"]');
+  if (!panel) return;
+  var pct = total > 0 ? Math.min(100, Math.round((uploaded / total) * 100)) : 0;
+  var label = customLabel || ('Uploading ' + formatBytes(uploaded) + ' / ' + formatBytes(total));
+  panel.innerHTML = '<div class="course-vid-progress-wrap">'
+    + '<div class="course-vid-progress-head">'
+    + '<span>' + escapeHtml(label) + '</span>'
+    + '<span class="course-vid-progress-pct">' + pct + '%</span>'
+    + '</div>'
+    + '<div class="course-vid-progress-bar"><div class="course-vid-progress-fill" style="width:' + pct + '%"></div></div>'
+    + '<div class="course-vid-progress-foot">'
+    + '<span>' + (customLabel ? '' : 'Direct upload to Bunny Stream') + '</span>'
+    + '<button type="button" data-course-action="cancel-bunny-upload" data-course-mi="' + host.dataset.courseMi + '" data-course-li="' + host.dataset.courseLi + '" class="course-vid-progress-cancel">Cancel</button>'
+    + '</div>'
+    + '</div>';
+}
+
+function renderUploadIdle(mi, li) {
+  var host = document.querySelector('[data-course-vid-host="' + lessonKey(mi, li) + '"]');
+  if (!host) return;
+  var panel = host.querySelector('[data-vid-panel="upload"]');
+  if (!panel) return;
+  panel.innerHTML = '<div class="course-vid-drop" data-course-action="open-bunny-picker" data-course-mi="' + mi + '" data-course-li="' + li + '" role="button" tabindex="0" aria-label="Upload video">'
+    + '<svg class="course-vid-drop-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>'
+    + '<div class="course-vid-drop-title">Drop a video here or click to upload</div>'
+    + '<div class="course-vid-drop-hint">MP4, MOV, or WebM. <strong>Up to 5 GB.</strong> We compress and stream automatically.</div>'
+    + '</div>';
+  wireBunnyDropZones(host);
+}
+
+courseRegisterAction('cancel-bunny-upload', (e, el) => {
+  var mi = parseInt(el.dataset.courseMi, 10);
+  var li = parseInt(el.dataset.courseLi, 10);
+  var key = lessonKey(mi, li);
+  var entry = _bunnyUploadsByLesson[key];
+  if (entry && entry.tusUpload) {
+    try { entry.tusUpload.abort(true); } catch (e2) {}
+  }
+  delete _bunnyUploadsByLesson[key];
+  // The DB row still has bunny_video_id pointing at an incomplete Bunny video.
+  // Trigger an immediate cleanup via the delete-video API so we don't leak.
+  cleanupOrphanedBunnyVideo(mi, li);
+});
+
+courseRegisterAction('reset-bunny-video', (e, el) => {
+  var mi = parseInt(el.dataset.courseMi, 10);
+  var li = parseInt(el.dataset.courseLi, 10);
+  cleanupOrphanedBunnyVideo(mi, li);
+});
+
+courseRegisterAction('replace-bunny-video', (e, el) => {
+  var mi = parseInt(el.dataset.courseMi, 10);
+  var li = parseInt(el.dataset.courseLi, 10);
+  showModalConfirm(
+    'Replace video?',
+    'This will delete the current video. Anyone watching this lesson will lose access until you upload a new one. Continue?',
+    function() {
+      cleanupOrphanedBunnyVideo(mi, li, function() {
+        openBunnyFilePicker(mi, li);
+      });
+    }
+  );
+});
+
+async function cleanupOrphanedBunnyVideo(mi, li, onDone) {
+  var lesson = courseModules[mi] && courseModules[mi].lessons[li];
+  if (!lesson || !lesson.id) {
+    renderUploadIdle(mi, li);
+    if (onDone) onDone();
+    return;
+  }
+  // Stop any in-flight poll
+  stopBunnyStatusPoll(mi, li);
+  // Clear local lesson state immediately for UI snappiness
+  lesson.bunny_video_id = null;
+  lesson.bunny_video_status = null;
+  lesson.bunny_video_duration_seconds = null;
+  lesson.bunny_thumbnail_url = null;
+  lesson.bunny_uploaded_at = null;
+  renderUploadIdle(mi, li);
+  // Fire-and-forget the server-side cleanup
+  try {
+    await fetch('/api/bunny-delete-video', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer ' + Auth.getToken()
+      },
+      body: JSON.stringify({ lesson_id: lesson.id })
+    });
+  } catch (e) {
+    console.warn('bunny-delete-video call failed (non-fatal, cron will retry):', e);
+  }
+  if (onDone) onDone();
+}
+
+function startBunnyStatusPoll(mi, li, lessonId) {
+  var key = lessonKey(mi, li);
+  stopBunnyStatusPoll(mi, li);  // safety: kill any prior poll
+  var startedAt = Date.now();
+  var tick = async function() {
+    if (Date.now() - startedAt > BUNNY_POLL_MAX_DURATION_MS) {
+      stopBunnyStatusPoll(mi, li);
+      return;
+    }
+    try {
+      var resp = await fetch('/api/bunny-lesson-status', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + Auth.getToken()
+        },
+        body: JSON.stringify({ lesson_id: lessonId })
+      });
+      if (resp.ok) {
+        var data = await resp.json();
+        var lesson = courseModules[mi] && courseModules[mi].lessons[li];
+        if (lesson) {
+          lesson.bunny_video_status = data.bunny_video_status;
+          lesson.bunny_video_duration_seconds = data.bunny_video_duration_seconds;
+          lesson.bunny_thumbnail_url = data.bunny_thumbnail_url;
+        }
+        if (data.bunny_video_status === 'ready' || data.bunny_video_status === 'failed') {
+          stopBunnyStatusPoll(mi, li);
+          renderBunnyFinalState(mi, li);
+          return;
+        }
+      }
+    } catch (e) {
+      // transient network blip; just try again next interval
+    }
+    _bunnyPollsByLesson[key] = {
+      timerId: setTimeout(tick, BUNNY_POLL_INTERVAL_MS),
+      startedAt: startedAt
+    };
+  };
+  _bunnyPollsByLesson[key] = {
+    timerId: setTimeout(tick, BUNNY_POLL_INTERVAL_MS),
+    startedAt: startedAt
+  };
+}
+
+function stopBunnyStatusPoll(mi, li) {
+  var key = lessonKey(mi, li);
+  var entry = _bunnyPollsByLesson[key];
+  if (entry && entry.timerId) clearTimeout(entry.timerId);
+  delete _bunnyPollsByLesson[key];
+}
+
+function renderBunnyFinalState(mi, li) {
+  var lesson = courseModules[mi] && courseModules[mi].lessons[li];
+  if (!lesson) return;
+  var host = document.querySelector('[data-course-vid-host="' + lessonKey(mi, li) + '"]');
+  if (!host) return;
+  var panel = host.querySelector('[data-vid-panel="upload"]');
+  if (!panel) return;
+  if (lesson.bunny_video_status === 'ready') {
+    var dur = lesson.bunny_video_duration_seconds ? formatVideoDuration(lesson.bunny_video_duration_seconds) : '';
+    var thumbStyle = lesson.bunny_thumbnail_url ? ('background-image:url(' + escapeHtml(lesson.bunny_thumbnail_url) + ');') : '';
+    var thumbInner = lesson.bunny_thumbnail_url ? '' :
+      '<div class="course-vid-ready-thumb-fallback"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>';
+    panel.innerHTML = '<div class="course-vid-ready">'
+      + '<div class="course-vid-ready-thumb" style="' + thumbStyle + '">' + thumbInner + '</div>'
+      + '<div class="course-vid-ready-meta">'
+      + '<div class="course-vid-ready-title"><svg class="course-vid-ready-title-check" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Video ready</div>'
+      + '<div class="course-vid-ready-sub">' + escapeHtml(dur || 'Hosted on Ryxa') + '</div>'
+      + '</div>'
+      + '<button type="button" data-course-action="replace-bunny-video" data-course-mi="' + mi + '" data-course-li="' + li + '" class="course-vid-ready-replace">Replace</button>'
+      + '</div>';
+  } else if (lesson.bunny_video_status === 'failed') {
+    panel.innerHTML = '<div class="course-vid-failed">'
+      + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
+      + '<span>Video processing failed. Try uploading again.</span>'
+      + '<button type="button" data-course-action="reset-bunny-video" data-course-mi="' + mi + '" data-course-li="' + li + '" class="course-vid-failed-retry">Reset</button>'
+      + '</div>';
+  }
+}
+
+// After every render, wire up drop zones and (re-)start polls for any lessons
+// that are currently in 'uploading' or 'processing' state. This handles the
+// case where the creator reloads the page mid-encode.
+function bunnyPostRenderSetup(container) {
+  wireBunnyDropZones(container);
+  // Look for processing indicators and (re-)attach polls
+  var processingEls = container.querySelectorAll('.course-vid-processing[data-lesson-id]');
+  processingEls.forEach(function(el) {
+    var lessonId = el.dataset.lessonId;
+    if (!lessonId) return;
+    // Find which mi/li this lesson belongs to in current working state
+    for (var mi = 0; mi < courseModules.length; mi++) {
+      var mod = courseModules[mi];
+      for (var li = 0; li < (mod.lessons || []).length; li++) {
+        if (mod.lessons[li].id === lessonId) {
+          // Only start poll if not already polling
+          if (!_bunnyPollsByLesson[lessonKey(mi, li)]) {
+            startBunnyStatusPoll(mi, li, lessonId);
+          }
+          return;
+        }
+      }
+    }
+  });
+}
+
+
 
 // Markup buttons
 courseRegisterAction('max-upgrade', (e) => handleMaxUpgradeClick(e));
@@ -1624,7 +2154,7 @@ courseRegisterAction('update-lesson-field', (e, el) => {
 });
 // Video URL input: on every keystroke, save the value AND show a green check
 // + platform name when the URL matches a supported platform. We don't show
-// red mid-type — that would flash a "wrong" state at every character. The
+// red mid-type, that would flash a "wrong" state at every character. The
 // blur-time handler below covers the post-typing red state.
 courseRegisterAction('validate-video-url', (e, el) => {
   var mi = parseInt(el.dataset.courseMi, 10);
@@ -1637,7 +2167,7 @@ courseRegisterAction('validate-video-url', (e, el) => {
     status.className = 'course-s-vurl-status valid';
     status.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' + platform;
   } else {
-    // Stay neutral while the user is still typing — blur-time will set red.
+    // Stay neutral while the user is still typing, blur-time will set red.
     status.className = 'course-s-vurl-status';
     status.innerHTML = '';
   }

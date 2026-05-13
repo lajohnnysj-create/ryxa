@@ -387,11 +387,11 @@ async function loadDashboard() {
 }
 
 // =====================================================
-// DIGITAL PRODUCTS — buyer side
+// DIGITAL PRODUCTS, buyer side
 // =====================================================
 
 // On every dashboard load, retroactively link any orphan email-only purchases
-// to the buyer's user_id. (Defensive — our flow always sets buyer_user_id at
+// to the buyer's user_id. (Defensive, our flow always sets buyer_user_id at
 // purchase time, but this catches edge cases like email-mismatch recovery.)
 async function linkOrphanDigitalPurchases() {
   try {
@@ -426,7 +426,7 @@ async function loadProducts() {
     return;
   }
 
-  // Load files for each purchase's product (via server-side endpoint —
+  // Load files for each purchase's product (via server-side endpoint -
   // direct DB access is RLS-blocked since buyers aren't the file owners)
   var { data: { session } } = await sb.auth.getSession();
   for (var i = 0; i < purchases.length; i++) {
@@ -460,7 +460,7 @@ async function loadProducts() {
 
   renderProducts(purchases);
 
-  // Honor ?dp=<id>&purchased=1 deep link — scroll to the matching product
+  // Honor ?dp=<id>&purchased=1 deep link, scroll to the matching product
   try {
     var params = new URLSearchParams(window.location.search);
     var dpId = params.get('dp');
@@ -630,7 +630,7 @@ function renderBookings(bookings) {
     var priceText = b.amount_paid_cents > 0 ? '$' + (b.amount_paid_cents / 100).toFixed(2) : 'Free';
 
     // Format the actual session date/time (if booked through Ryxa Calendar).
-    // Use the booker's saved timezone from slot_timezone — this is what they
+    // Use the booker's saved timezone from slot_timezone, this is what they
     // picked when they booked. Browser-local was wrong when the booker
     // switched tz during booking (e.g. travel scenario) or has since
     // moved devices.
@@ -659,7 +659,7 @@ function renderBookings(bookings) {
       coverHtml = '<div style="width:56px;height:38px;border-radius:6px;background:var(--surface);border:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>';
     }
 
-    // Meeting details block — only render if the creator set details on the service.
+    // Meeting details block, only render if the creator set details on the service.
     // Uses pure monochrome contrast (white-on-black in dark mode, black-on-white in light mode).
     // Auto-link URLs and respect line breaks.
     var meetingDetailsHtml = '';
@@ -721,7 +721,7 @@ function renderDashboard() {
       + '<div class="course-card-body">'
       + '<div class="course-card-title">' + escapeHtml(c.title) + '</div>'
       + '<div style="font-size:12px;color:var(--muted);margin-bottom:6px;">by ' + escapeHtml(e._creatorName) + '</div>'
-      + (progressLabel ? '<div style="font-size:11px;color:var(--muted);margin-bottom:6px;">' + progressLabel + (pct === 100 ? ' — Complete' : '') + '</div>' : '')
+      + (progressLabel ? '<div style="font-size:11px;color:var(--muted);margin-bottom:6px;">' + progressLabel + (pct === 100 ? ', Complete' : '') + '</div>' : '')
       + '<div class="course-card-progress"><div class="course-card-progress-bar" style="width:' + pct + '%"></div></div>'
       + '</div></a>';
   }).join('');
@@ -920,7 +920,7 @@ function renderViewer() {
 // =============================================================================
 // The editor (js/course.js) sanitizes lesson HTML before saving to the DB, so
 // stored text_content is normally already clean. But trusting the stored
-// content alone is a single layer — if anything ever bypasses the editor
+// content alone is a single layer, if anything ever bypasses the editor
 // (devtools, future bug, admin compromise, direct Supabase JS client write),
 // the viewer would render unfiltered HTML to students. We sanitize on read
 // too. ~25 KB loaded lazily on first text lesson view.
@@ -983,7 +983,7 @@ function ensureViewerPurifyLoaded() {
 }
 
 function sanitizeLessonHtmlForView(html) {
-  if (typeof DOMPurify === 'undefined') return ''; // shouldn't happen — caller awaits loader
+  if (typeof DOMPurify === 'undefined') return ''; // shouldn't happen, caller awaits loader
   return DOMPurify.sanitize(html || '', VIEWER_PURIFY_CONFIG);
 }
 
@@ -1009,12 +1009,25 @@ function selectLesson(lessonId) {
   html += '<div class="viewer-lesson-title">' + escapeHtml(lesson.title || (lesson.lesson_type === 'video' ? 'Untitled Video' : 'Untitled Lesson')) + '</div>';
 
   // Content
-  if (lesson.lesson_type === 'video' && lesson.video_url) {
-    var embedUrl = getEmbedUrl(lesson.video_url);
-    if (embedUrl) {
-      html += '<iframe class="viewer-video" src="' + embedUrl + '" allowfullscreen></iframe>';
-    } else {
-      html += '<p style="color:var(--muted);font-size:14px;margin-bottom:16px;">Video: <a href="' + escapeHtml(lesson.video_url) + '" target="_blank" style="color:var(--text);text-decoration:underline;">' + escapeHtml(lesson.video_url) + '</a></p>';
+  if (lesson.lesson_type === 'video') {
+    if (lesson.bunny_video_id && lesson.bunny_video_status === 'ready') {
+      // Bunny-hosted video. Insert a placeholder iframe; fetchBunnyPlayback
+      // will populate src with a signed URL after verifying enrollment.
+      html += '<iframe class="viewer-video" id="bunny-player-' + escapeHtml(lesson.id) + '" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="background:#000;"></iframe>';
+    } else if (lesson.bunny_video_id && lesson.bunny_video_status && lesson.bunny_video_status !== 'ready') {
+      // Bunny video exists but is still processing or failed
+      var statusMsg = lesson.bunny_video_status === 'failed'
+        ? 'This video failed to process. The creator has been notified.'
+        : 'This video is still being processed. Check back in a few minutes.';
+      html += '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:24px;text-align:center;color:var(--muted);font-size:14px;margin-bottom:16px;">' + escapeHtml(statusMsg) + '</div>';
+    } else if (lesson.video_url) {
+      // Legacy paste-URL path (YouTube/Vimeo/Loom)
+      var embedUrl = getEmbedUrl(lesson.video_url);
+      if (embedUrl) {
+        html += '<iframe class="viewer-video" src="' + embedUrl + '" allowfullscreen></iframe>';
+      } else {
+        html += '<p style="color:var(--muted);font-size:14px;margin-bottom:16px;">Video: <a href="' + escapeHtml(lesson.video_url) + '" target="_blank" style="color:var(--text);text-decoration:underline;">' + escapeHtml(lesson.video_url) + '</a></p>';
+      }
     }
   }
   if (lesson.text_content) {
@@ -1024,11 +1037,11 @@ function selectLesson(lessonId) {
     // (devtools bypass, future bug, admin compromise), the viewer still
     // refuses to render it.
     // Legacy plain-text lessons (saved before the rich text editor) won't
-    // contain HTML tags — wrap those in a <p> with escaped contents so they
+    // contain HTML tags, wrap those in a <p> with escaped contents so they
     // render with paragraph styling instead of as one inline blob. Plain
     // text doesn't need DOMPurify (escapeHtml already neutralizes it).
     // NOTE: variable name is `richHtml`, NOT `content`, because the outer
-    // function uses `content` for the DOM container — see selectLesson body.
+    // function uses `content` for the DOM container, see selectLesson body.
     var richHtml = lesson.text_content;
     var isHtmlContent = /<[a-z]/i.test(richHtml);
     if (!isHtmlContent) {
@@ -1041,7 +1054,7 @@ function selectLesson(lessonId) {
       html += '<div class="viewer-text" id="viewer-text-pending"></div>';
     }
   }
-  // Lesson images — text lessons only (video lessons embed the video itself).
+  // Lesson images, text lessons only (video lessons embed the video itself).
   // Mirrors the editor-side gating in js/course.js so orphan images that may
   // exist on legacy video lessons don't leak into the viewer.
   var isVideoLesson = lesson.lesson_type === 'video';
@@ -1068,10 +1081,18 @@ function selectLesson(lessonId) {
 
   content.innerHTML = html;
 
+  // If this lesson is a Bunny-hosted video, fetch the signed iframe URL
+  // and inject it into the placeholder iframe element. The /api/bunny-video-token
+  // endpoint verifies enrollment (or free-preview status) before returning
+  // a signed URL. Without a successful token call, the iframe stays blank.
+  if (lesson.lesson_type === 'video' && lesson.bunny_video_id && lesson.bunny_video_status === 'ready') {
+    fetchBunnyPlaybackUrl(lesson.id, lessonIdAtRender);
+  }
+
   // If the lesson has HTML text content, load DOMPurify (if not loaded yet)
   // and fill the placeholder with the sanitized HTML. The placeholder
   // approach means the empty slot briefly exists before content appears on
-  // first ever view — typically <300ms. Subsequent views are instant since
+  // first ever view, typically <300ms. Subsequent views are instant since
   // DOMPurify is cached. The slot is empty rather than showing raw HTML, so
   // we never render unfiltered content even for a frame.
   var pendingSlot = document.getElementById('viewer-text-pending');
@@ -1086,7 +1107,7 @@ function selectLesson(lessonId) {
       stillThere.innerHTML = sanitizeLessonHtmlForView(lesson.text_content);
       stillThere.removeAttribute('id'); // become a normal viewer-text div
     }).catch(function(err) {
-      console.error('Lesson sanitizer failed to load — refusing to render rich content:', err);
+      console.error('Lesson sanitizer failed to load, refusing to render rich content:', err);
       // Graceful degradation: show a message rather than risking unsanitized
       // render. Better to fail closed than fail open.
       var stillThere = document.getElementById('viewer-text-pending');
@@ -1168,7 +1189,7 @@ function getEmbedUrl(url) {
   // platform here, update both functions or the editor will get out of sync
   // with what actually embeds.
   if (!url) return null;
-  // YouTube — includes Shorts. The /embed/ URL works for both regular videos
+  // YouTube. Includes Shorts. The /embed/ URL works for both regular videos
   // and shorts; YouTube auto-handles vertical aspect when rendering.
   var ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/);
   if (ytMatch) return 'https://www.youtube.com/embed/' + ytMatch[1];
@@ -1179,6 +1200,54 @@ function getEmbedUrl(url) {
   var loomMatch = url.match(/loom\.com\/share\/([a-zA-Z0-9]+)/);
   if (loomMatch) return 'https://www.loom.com/embed/' + loomMatch[1];
   return null;
+}
+
+// Fetch a signed Bunny iframe playback URL for a lesson the viewer is
+// enrolled in (or that's marked as a free preview). The token API verifies
+// enrollment server-side; if the viewer isn't enrolled they get a 403 and
+// the iframe stays blank with a friendly fallback message.
+//
+// lessonIdAtRender: captured at call-time so a stale fetch arriving after
+// the user navigated to another lesson doesn't overwrite the new iframe.
+async function fetchBunnyPlaybackUrl(lessonId, lessonIdAtRender) {
+  var iframe = document.getElementById('bunny-player-' + lessonId);
+  if (!iframe) return;
+  var headers = { 'Content-Type': 'application/json' };
+  // If the viewer is signed in, include the bearer token so non-preview
+  // lessons can be authorized. Anonymous viewers can still get tokens for
+  // free preview lessons (server checks lesson.is_preview).
+  var token = (typeof Auth !== 'undefined' && Auth.getToken) ? Auth.getToken() : '';
+  if (token) headers.Authorization = 'Bearer ' + token;
+  try {
+    var resp = await fetch('/api/bunny-video-token', {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify({ lesson_id: lessonId })
+    });
+    var data = await resp.json();
+    // Race-guard: if the viewer navigated to a different lesson while this
+    // request was in flight, drop the result rather than poking at the wrong
+    // iframe. currentLessonId is the canonical "what lesson is showing now."
+    if (typeof currentLessonId !== 'undefined' && currentLessonId !== lessonIdAtRender) return;
+    if (!resp.ok) {
+      // Replace iframe with a friendly message rather than leaving it blank
+      var msg = (data && data.error) || 'Video could not be loaded.';
+      var div = document.createElement('div');
+      div.style.cssText = 'background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:24px;text-align:center;color:var(--muted);font-size:14px;margin-bottom:16px;';
+      div.textContent = msg;
+      if (iframe.parentNode) iframe.parentNode.replaceChild(div, iframe);
+      return;
+    }
+    if (data.iframe_url) iframe.src = data.iframe_url;
+  } catch (e) {
+    console.error('Bunny token fetch failed:', e);
+    if (iframe && iframe.parentNode) {
+      var fallback = document.createElement('div');
+      fallback.style.cssText = 'background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:24px;text-align:center;color:var(--muted);font-size:14px;margin-bottom:16px;';
+      fallback.textContent = 'Video could not be loaded. Check your connection and try again.';
+      iframe.parentNode.replaceChild(fallback, iframe);
+    }
+  }
 }
 
 function escapeHtml(s) {
@@ -1288,7 +1357,7 @@ async function searchMarketplace(query) {
       var username = usernameMap[c.user_id] || 'creator';
       var price = c.price_cents > 0 ? '$' + (c.price_cents / 100).toFixed(0) : 'Free';
 
-      // Cover URL — courses/coaching use cover_image_path inside storage buckets;
+      // Cover URL, courses/coaching use cover_image_path inside storage buckets;
       // digital_products stores cover_image_url as a full URL.
       var coverUrl = '';
       if (c._type === 'product') {
