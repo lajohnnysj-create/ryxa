@@ -184,8 +184,6 @@ function taScoreToTier(score) {
 function taRenderResults(r) {
   var overallTier = taScoreToTier(r.overall_score);
   var scoreColor = overallTier.color;
-  var circumference = 2 * Math.PI * 36;
-  var offset = circumference - (r.overall_score / 100) * circumference;
 
   var categories = [
     { key: 'composition', label: 'Composition', icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="3" x2="9" y2="21"/></svg>' },
@@ -227,8 +225,10 @@ function taRenderResults(r) {
     + '<div class="ds-s-9026ab">'
     + '<div class="ds-s-715ac4"><img src="' + taImageData + '" alt="Thumbnail analysis result" class="ds-s-2c7b03"></div>'
     + '<div class="ds-s-25bba7">'
-    + '<div class="ta-score-ring"><svg width="80" height="80" viewBox="0 0 80 80"><circle cx="40" cy="40" r="36" fill="none" stroke="var(--surface)" stroke-width="6"/><circle cx="40" cy="40" r="36" fill="none" stroke="' + scoreColor + '" stroke-width="6" stroke-dasharray="' + circumference + '" stroke-dashoffset="' + offset + '" stroke-linecap="round" class="ds-s-f4705b"/></svg><div class="ta-score-num" style="color:' + scoreColor + ';display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;"><span style="font-family:Syne,sans-serif;font-size:22px;font-weight:800;">' + r.overall_score + '</span><span style="font-size:9px;color:var(--muted);font-weight:500;margin-top:2px;">out of 100</span></div></div>'
-    + '<div><div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;line-height:1.25;color:' + scoreColor + ';">' + overallTier.label + '</div></div>'
+    + '<div style="display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:999px;background:' + scoreColor + '22;border:1px solid ' + scoreColor + '66;color:' + scoreColor + ';font-family:Syne,sans-serif;font-size:18px;font-weight:800;line-height:1;letter-spacing:-0.3px;">'
+    + '<span style="width:8px;height:8px;border-radius:50%;background:' + scoreColor + ';display:inline-block;"></span>'
+    + overallTier.label
+    + '</div>'
     + '</div>'
     + '</div>'
     + '</div>'
