@@ -173,25 +173,17 @@ function taAnalyze() {
   });
 }
 
-function taScoreToGrade(score) {
-  // Returns { letter, color }
-  if (score >= 97) return { letter: 'A+', color: '#4ade80' };
-  if (score >= 93) return { letter: 'A',  color: '#4ade80' };
-  if (score >= 90) return { letter: 'A-', color: '#4ade80' };
-  if (score >= 87) return { letter: 'B+', color: '#84cc16' };
-  if (score >= 83) return { letter: 'B',  color: '#84cc16' };
-  if (score >= 80) return { letter: 'B-', color: '#84cc16' };
-  if (score >= 77) return { letter: 'C+', color: '#fbbf24' };
-  if (score >= 73) return { letter: 'C',  color: '#fbbf24' };
-  if (score >= 70) return { letter: 'C-', color: '#fbbf24' };
-  if (score >= 67) return { letter: 'D+', color: '#fb923c' };
-  if (score >= 60) return { letter: 'D',  color: '#fb923c' };
-  return { letter: 'F', color: '#f87171' };
+function taScoreToTier(score) {
+  // Returns { label, color }
+  if (score >= 80) return { label: 'Highly Clickable',    color: '#4ade80' };
+  if (score >= 65) return { label: 'Likely Clickable',    color: '#84cc16' };
+  if (score >= 50) return { label: 'Somewhat Clickable',  color: '#fbbf24' };
+  return                    { label: 'Low Clickability',    color: '#f87171' };
 }
 
 function taRenderResults(r) {
-  var overallGrade = taScoreToGrade(r.overall_score);
-  var scoreColor = overallGrade.color;
+  var overallTier = taScoreToTier(r.overall_score);
+  var scoreColor = overallTier.color;
   var circumference = 2 * Math.PI * 36;
   var offset = circumference - (r.overall_score / 100) * circumference;
 
@@ -205,13 +197,12 @@ function taRenderResults(r) {
 
   var categoryCards = categories.map(function(cat) {
     var d = r[cat.key] || { score: 0, feedback: '' };
-    var catGrade = taScoreToGrade(d.score);
-    var catColor = catGrade.color;
+    var catTier = taScoreToTier(d.score);
+    var catColor = catTier.color;
     return '<div class="ds-s-4ddc27">'
       + '<div class="course-s-17b72a">'
       + '<div class="bio-s-e3f610">' + cat.icon + '<span class="ds-s-e37879">' + cat.label + '</span></div>'
       + '<div class="ds-s-498438">'
-      + '<span style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;color:' + catColor + ';">' + catGrade.letter + '</span>'
       + '<span class="ds-s-4dc889">' + d.score + '</span>'
       + '</div>'
       + '</div>'
@@ -230,19 +221,14 @@ function taRenderResults(r) {
     return '<div class="ds-s-eaec37"><span class="ds-s-25077b">→</span><span class="bio-s-e3f916">' + escapeHtml(s) + '</span></div>';
   }).join('');
 
-  var verdictText = r.overall_score >= 80 ? 'Strong thumbnail. Ready to publish.'
-                  : r.overall_score >= 70 ? 'Solid foundation. A few tweaks could boost clicks.'
-                  : r.overall_score >= 60 ? 'Good start. The suggestions below will sharpen it.'
-                  : 'A few changes will make this much stronger. Try the suggestions below.';
-
   var html = ''
     // Score header with ring
     + '<div class="ds-s-17a51c">'
     + '<div class="ds-s-9026ab">'
     + '<div class="ds-s-715ac4"><img src="' + taImageData + '" alt="Thumbnail analysis result" class="ds-s-2c7b03"></div>'
     + '<div class="ds-s-25bba7">'
-    + '<div class="ta-score-ring"><svg width="80" height="80" viewBox="0 0 80 80"><circle cx="40" cy="40" r="36" fill="none" stroke="var(--surface)" stroke-width="6"/><circle cx="40" cy="40" r="36" fill="none" stroke="' + scoreColor + '" stroke-width="6" stroke-dasharray="' + circumference + '" stroke-dashoffset="' + offset + '" stroke-linecap="round" class="ds-s-f4705b"/></svg><div class="ta-score-num" style="color:' + scoreColor + ';display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;"><span class="ds-s-6b46de">' + overallGrade.letter + '</span><span class="ds-s-49d5ef">' + r.overall_score + '/100</span></div></div>'
-    + '<div><div style="font-family:Syne,sans-serif;font-size:16px;font-weight:700;line-height:1.35;">' + verdictText + '</div></div>'
+    + '<div class="ta-score-ring"><svg width="80" height="80" viewBox="0 0 80 80"><circle cx="40" cy="40" r="36" fill="none" stroke="var(--surface)" stroke-width="6"/><circle cx="40" cy="40" r="36" fill="none" stroke="' + scoreColor + '" stroke-width="6" stroke-dasharray="' + circumference + '" stroke-dashoffset="' + offset + '" stroke-linecap="round" class="ds-s-f4705b"/></svg><div class="ta-score-num" style="color:' + scoreColor + ';display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;"><span style="font-family:Syne,sans-serif;font-size:22px;font-weight:800;">' + r.overall_score + '</span><span style="font-size:9px;color:var(--muted);font-weight:500;margin-top:2px;">out of 100</span></div></div>'
+    + '<div><div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;line-height:1.25;color:' + scoreColor + ';">' + overallTier.label + '</div></div>'
     + '</div>'
     + '</div>'
     + '</div>'
