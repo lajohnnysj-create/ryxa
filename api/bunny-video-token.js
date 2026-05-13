@@ -111,18 +111,39 @@ async function verifyViewerJWT(authHeader) {
 }
 
 // ---------- Bunny URL signing ----------
-// Bunny's URL token-auth signature is hex SHA256 of:
-//   signing_key + signed_url_path + expiration_unix [+ user_ip]
-// The signature and expiration are appended as query params: ?token=...&expires=...
-function signBunnyPath(signingKey, urlPath, expirationUnix, userIp) {
+// Bunny has TWO different signing schemes depending on what you're protecting:
+//
+// 1. CDN URL Token Authentication (for HLS .m3u8 / .ts segments):
+//    SHA256(token_auth_key + url_path + expiration_unix [+ user_ip])
+//    Encoded as base64url (no padding, - and _ replacements).
+//    Query params: ?token=...&expires=...&token_path=...
+//
+// 2. Embed View Token Authentication (for iframe.mediadelivery.net/embed/...):
+//    SHA256(token_auth_key + video_id + expiration_unix)
+//    Encoded as plain HEX (lowercase).
+//    Query params: ?token=...&expires=...
+//    NOTE: no IP, no path. video_id is the bare GUID.
+//
+// These are two separate signature outputs even though both protect the same
+// video. Bunny's docs cover them as separate features under "Stream security".
+
+function signBunnyCdnUrl(signingKey, urlPath, expirationUnix, userIp) {
   var crypto = require('crypto');
   var hashableBase = signingKey + urlPath + expirationUnix + (userIp || '');
   var hash = crypto.createHash('sha256').update(hashableBase).digest();
-  // Bunny expects base64url (no padding, - and _ instead of + and /)
+  // base64url encoding for CDN tokens
   return hash.toString('base64')
     .replace(/\+/g, '-')
     .replace(/\//g, '_')
     .replace(/=+$/, '');
+}
+
+function signBunnyEmbedIframe(signingKey, videoGuid, expirationUnix) {
+  var crypto = require('crypto');
+  // Hex SHA256 of (key + video_id + expires). No IP. No path.
+  return crypto.createHash('sha256')
+    .update(signingKey + videoGuid + expirationUnix)
+    .digest('hex');
 }
 
 function getClientIp(req) {
@@ -187,8 +208,9 @@ module.exports = async (req, res) => {
       }
     }
 
-    // 4. Build the signed playback URL
+    // 4. Build the signed playback URL (HLS direct stream).
     //    Bunny Stream HLS path: /{video_guid}/playlist.m3u8
+    //    Uses CDN Token Authentication (base64url, includes path + IP).
     var videoGuid = lesson.bunny_video_id;
     var cdnHost = getBunnyCdnHostname();
     var path = '/' + videoGuid + '/playlist.m3u8';
@@ -196,21 +218,22 @@ module.exports = async (req, res) => {
     var clientIp = getClientIp(req);
 
     var signingKey = getBunnyTokenAuthKey();
-    var token = signBunnyPath(signingKey, path, expirationUnix, clientIp);
+    var cdnToken = signBunnyCdnUrl(signingKey, path, expirationUnix, clientIp);
 
     var playbackUrl =
       'https://' + cdnHost + path +
-      '?token=' + token +
+      '?token=' + cdnToken +
       '&expires=' + expirationUnix +
       (clientIp ? '&token_path=' + encodeURIComponent(path) : '');
 
-    // 5. Also build the iframe embed URL (signed the same way, different path)
-    //    Iframe path is /embed/{library_id}/{video_guid}
+    // 5. Also build the iframe embed URL.
+    //    Iframe URL: iframe.mediadelivery.net/embed/{library_id}/{video_guid}
+    //    Uses Embed View Token Authentication: hex SHA256(key + video_id + expires).
+    //    Separate scheme from CDN tokens - no path, no IP, no base64url.
     var libraryId = getBunnyLibraryId();
-    var iframePath = '/embed/' + libraryId + '/' + videoGuid;
-    var iframeToken = signBunnyPath(signingKey, iframePath, expirationUnix, clientIp);
+    var iframeToken = signBunnyEmbedIframe(signingKey, videoGuid, expirationUnix);
     var iframeUrl =
-      'https://iframe.mediadelivery.net' + iframePath +
+      'https://iframe.mediadelivery.net/embed/' + libraryId + '/' + videoGuid +
       '?token=' + iframeToken +
       '&expires=' + expirationUnix;
 
