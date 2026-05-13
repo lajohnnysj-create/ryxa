@@ -2552,20 +2552,20 @@
   }
   .bio-link-row .bio-link-drag:hover { background: var(--surface2); color: var(--text); }
   .bio-link-row .bio-link-drag:active { cursor: grabbing; background: rgba(124,58,237,0.2); color: var(--text); }
-  /* Disable text selection across the entire bio editor (Profile, Theme,
-     Font, Socials, Links, Settings sections) so iOS/Android long-press never
-     triggers the "Copy/Share/Define" callout that fights with drag-to-reorder
-     OR snap-selects text in adjacent sections. Form inputs and textareas
+  /* Disable text selection across the entire bio editor (every section's
+     header AND body) so iOS/Android long-press never triggers the "Copy/Share/
+     Define" callout that fights with drag-to-reorder OR snap-selects label
+     text like "Settings" in adjacent sections. Form inputs and textareas
      re-enable selection so users can still edit. */
-  .bio-section-body,
-  .bio-section-body * {
+  .bio-section,
+  .bio-section * {
     user-select: none;
     -webkit-user-select: none;
     -webkit-touch-callout: none;
     -webkit-tap-highlight-color: transparent;
   }
-  .bio-section-body input,
-  .bio-section-body textarea {
+  .bio-section input,
+  .bio-section textarea {
     user-select: text;
     -webkit-user-select: text;
     -webkit-touch-callout: default;
