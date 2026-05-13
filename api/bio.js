@@ -1,569 +1,772 @@
-// =============================================================================
-// /js/bio.js — Link in Bio editor (extracted from dashboard.html, 2026-05-10)
-// -----------------------------------------------------------------------------
-// This file contains all JavaScript for the Link in Bio editor inside the
-// Ryxa dashboard. It was extracted from dashboard.html as part of the Phase 1
-// dashboard refactor to reduce single-file size and prepare for stricter CSP.
-//
-// Phase 1 SCOPE: code relocation only — no behavioral changes.
-// Phase 2 SCOPE (2026-05-10): replaced inline onclick/oninput/etc with
-//   delegated event handling so the bio tool is compatible with strict CSP
-//   (no `unsafe-inline` for script-src). See "EVENT DELEGATION" section below.
-//
-// External dependencies remain on `window` (sb, Auth, currentUser,
-// escapeHtml, isPro, isMax, currentTier, BIO_THEMES, BIO_FONTS,
-// showModalAlert, showModalConfirm, etc).
-//
-// Future phases (NOT YET DONE):
-//   • Phase 3: replace inline style attributes with CSS classes
-//   • Phase 4: ship strict CSP header for the bio tool
-//
-// Order of code below matches original line order in dashboard.html so diffs
-// stay minimal and review is easy.
-// =============================================================================
+// Vercel serverless function — server-side rendered link-in-bio page
+// Renders the full creator bio HTML at the edge so visitors get content on first paint.
+// Cached at the Vercel CDN per-URL: s-maxage=60, stale-while-revalidate=300
+// Routed via vercel.json rewrite: /:username -> /api/bio?u=:username
 
-// =============================================================================
-// EVENT DELEGATION INFRASTRUCTURE
-// -----------------------------------------------------------------------------
-// All bio-tool buttons, inputs, and other interactive elements use
-// `data-bio-action="..."` attributes instead of inline onclick/oninput/etc.
-//
-// Single document-level listener per event type dispatches to a handler
-// function registered in `bioActions`. Parameters are read from `data-bio-*`
-// attributes on the target element.
-//
-// Why this matters: Inline handlers like onclick="foo()" require CSP
-// `script-src 'unsafe-inline'`. Delegated handlers run from this file
-// (a `'self'`-sourced script), so CSP can be locked down to script-src 'self'
-// for the bio tool surface.
-// =============================================================================
+const fs = require('fs');
+const path = require('path');
 
-// Registry of action handlers. Each function receives (event, element).
-// `element` is the element with the data-bio-action attribute (may differ
-// from event.target if the user clicked a child element, e.g., an SVG icon
-// inside a button).
-const bioActions = {};
+const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_PLU28Un_GfsUXeUsK3zB9Q_hvNM7aeG';
 
-/**
- * Register a handler for a data-bio-action value.
- * @param {string} action - The data-bio-action string (e.g., "save").
- * @param {function(Event, Element): void} handler
- */
-function bioRegisterAction(action, handler) {
-  bioActions[action] = handler;
+// ==========================================================================
+// HELPERS — mirror the client-side helpers in bio.html so the server renders
+// byte-identical HTML to what the client would render.
+// ==========================================================================
+
+function esc(s) {
+  if (s == null) return '';
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
 }
 
-/**
- * Find the closest ancestor element with a bio action matching the given
- * event type. Returns { element, action } or null if none.
- *
- * Supports two attribute styles on the same element:
- *   1. Per-event:  data-bio-action-input="username-input"
- *                  data-bio-action-focus="remove-readonly"
- *   2. Generic:    data-bio-action="save"  (defaults to click)
- *                  data-bio-action="username-input" data-bio-event="input"
- *
- * Style 1 lets a single element have different handlers for different events
- * (e.g. an <input> with both an input handler and a focus handler).
- * Style 2 is the common case for buttons / single-event elements.
- */
-function bioFindActionElement(target, eventType) {
-  let el = target;
-  while (el && el !== document.body) {
-    if (el.dataset) {
-      // Style 1: per-event attribute (data-bio-action-input, etc.)
-      const perEvent = el.dataset['bioAction' + eventType.charAt(0).toUpperCase() + eventType.slice(1)];
-      if (perEvent) return { element: el, action: perEvent };
-      // Style 2: generic data-bio-action with optional data-bio-event
-      if (el.dataset.bioAction) {
-        const wantEvent = el.dataset.bioEvent || 'click';
-        if (wantEvent === eventType) return { element: el, action: el.dataset.bioAction };
-      }
-    }
-    el = el.parentElement;
+function validUrl(u) {
+  if (!u) return null;
+  try {
+    const url = new URL(u);
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') return null;
+    return url.toString();
+  } catch { return null; }
+}
+
+// Image URLs are restricted to our own Supabase Storage buckets.
+function validImageUrl(u) {
+  if (!u) return null;
+  try {
+    const url = new URL(u);
+    if (url.protocol !== 'https:') return null;
+    const expectedHost = 'kjytapcgxukalwsyputk.supabase.co';
+    if (url.hostname !== expectedHost) return null;
+    const allowedBuckets = [
+      '/storage/v1/object/public/bio-photos/',
+      '/storage/v1/object/public/media-kit-photos/',
+      '/storage/v1/object/public/bio-backgrounds/',
+      '/storage/v1/object/public/course-covers/',
+      '/storage/v1/object/public/coaching-covers/',
+      '/storage/v1/object/sign/digital-products/',
+    ];
+    if (!allowedBuckets.some(b => url.pathname.includes(b))) return null;
+    return url.toString();
+  } catch { return null; }
+}
+
+function extractYouTubeId(url) {
+  if (!url) return null;
+  const m = String(url).match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
+
+function fmtPrice(cents, currency) {
+  const code = currency || 'USD';
+  const localeMap = { USD:'en-US', EUR:'en-IE', GBP:'en-GB', CAD:'en-CA', AUD:'en-AU', JPY:'ja-JP', INR:'en-IN', BRL:'pt-BR', MXN:'es-MX', CHF:'de-CH', SGD:'en-SG', SEK:'sv-SE', NOK:'nb-NO', NZD:'en-NZ', ZAR:'en-ZA' };
+  const locale = localeMap[code] || 'en-US';
+  const fractionDigits = (code === 'JPY') ? 0 : 2;
+  try {
+    return new Intl.NumberFormat(locale, { style: 'currency', currency: code, minimumFractionDigits: fractionDigits, maximumFractionDigits: fractionDigits }).format(cents / 100);
+  } catch (e) {
+    return '$' + (cents / 100).toFixed(fractionDigits);
   }
-  return null;
 }
 
-/**
- * Generic event dispatcher. Wired up below to multiple event types.
- */
-function bioDispatchEvent(event) {
-  const found = bioFindActionElement(event.target, event.type);
-  if (!found) return;
-  const handler = bioActions[found.action];
-  if (!handler) {
-    console.warn('[bio] No handler registered for action:', found.action);
-    return;
+function hexAlpha(hex, alpha) {
+  const h = (hex || '#ffffff').replace('#', '');
+  const bigint = parseInt(h.length === 3 ? h.split('').map(c => c + c).join('') : h, 16);
+  const r = (bigint >> 16) & 255, g = (bigint >> 8) & 255, b = bigint & 255;
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+// Strict hex color validator. Returns the input if it matches #RRGGBB / #RGB / #RRGGBBAA / #RGBA,
+// otherwise returns the fallback. Prevents CSS injection via user-supplied color values
+// (e.g. `red; } body { background: url(...) } /*` breaking out of the property).
+function safeHexColor(value, fallback) {
+  if (typeof value !== 'string') return fallback;
+  if (/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(value)) {
+    return value;
   }
-  handler(event, found.element);
+  return fallback;
 }
 
-// Wire up document-level delegation. Using document (not #tool-bio) because
-// bio modals are inserted into document.body, not into the bio tool root.
-// Capture: false — we want bubbling so child elements get to handle their
-// own events first if needed.
-['click', 'input', 'change', 'focus', 'blur', 'keydown', 'mouseover', 'mouseout'].forEach(evt => {
-  // 'focus' and 'blur' don't bubble; use capture phase for those.
-  const useCapture = (evt === 'focus' || evt === 'blur');
-  document.addEventListener(evt, bioDispatchEvent, useCapture);
-});
+// Strict opacity validator. Returns a number in [0, 1] or the fallback.
+// Rejects null/undefined explicitly (they should mean "use default" rather than 0).
+function safeOpacity(value, fallback) {
+  if (value == null) return fallback;
+  const n = Number(value);
+  if (Number.isFinite(n) && n >= 0 && n <= 1) return n;
+  return fallback;
+}
 
-// =============================================================================
-// END EVENT DELEGATION INFRASTRUCTURE
-// =============================================================================
-
-// =============================================================================
-// CSP-STRICT STYLE APPLICATION (Phase 3)
-// -----------------------------------------------------------------------------
-// Some elements need styles that depend on dynamic data (theme colors, image
-// URLs, etc.). With strict CSP (`style-src 'self'`), inline `style="..."`
-// attributes are blocked. So we render with `data-bio-*` attributes and apply
-// them programmatically after insertion. JS property assignments are NOT
-// blocked by CSP.
-//
-// Map: data-bio-{name} → CSS property to set
-// =============================================================================
-const BIO_DATA_STYLE_MAP = {
-  bg:          'background',
-  color:       'color',
-  border:      'border',
-  shadow:      'box-shadow',
-  padding:     'padding',
-  radius:      'border-radius',
-  display:     'display',
-  fontFamily:  'font-family',
-  // Add more as needed when extending dynamic styles
+// ==========================================================================
+// FONTS — must mirror BIO_FONTS in dashboard.html. Keep in sync when adding new fonts.
+// Each entry maps a key (saved in DB) to a Google Fonts family + weights + CSS stack.
+// ==========================================================================
+const BIO_FONTS_SSR = {
+  'DM Sans':             { gfont:'DM+Sans',             weights:'300;400;500;600;700', stack:"'DM Sans', sans-serif" },
+  'Abril Fatface':       { gfont:'Abril+Fatface',       weights:'400', stack:"'Abril Fatface', serif" },
+  'Anton':               { gfont:'Anton',               weights:'400', stack:"'Anton', sans-serif" },
+  'Archivo Black':       { gfont:'Archivo+Black',       weights:'400', stack:"'Archivo Black', sans-serif" },
+  'Bebas Neue':          { gfont:'Bebas+Neue',          weights:'400', stack:"'Bebas Neue', sans-serif" },
+  'Bricolage Grotesque': { gfont:'Bricolage+Grotesque', weights:'400;500;600;700;800', stack:"'Bricolage Grotesque', sans-serif" },
+  'Caveat':              { gfont:'Caveat',              weights:'400;500;600;700', stack:"'Caveat', cursive" },
+  'Cormorant':           { gfont:'Cormorant',           weights:'400;500;600;700', stack:"'Cormorant', serif" },
+  'Fraunces':            { gfont:'Fraunces',            weights:'300;400;500;600;700', stack:"'Fraunces', serif" },
+  'Inter':               { gfont:'Inter',               weights:'300;400;500;600;700', stack:"'Inter', sans-serif" },
+  'JetBrains Mono':      { gfont:'JetBrains+Mono',      weights:'300;400;500;600;700', stack:"'JetBrains Mono', monospace" },
+  'Lora':                { gfont:'Lora',                weights:'400;500;600;700', stack:"'Lora', serif" },
+  'Monoton':             { gfont:'Monoton',             weights:'400', stack:"'Monoton', sans-serif" },
+  'Nunito':              { gfont:'Nunito',              weights:'300;400;600;700;800', stack:"'Nunito', sans-serif" },
+  'Outfit':              { gfont:'Outfit',              weights:'300;400;500;600;700;800', stack:"'Outfit', sans-serif" },
+  'Pacifico':            { gfont:'Pacifico',            weights:'400', stack:"'Pacifico', cursive" },
+  'Playfair Display':    { gfont:'Playfair+Display',    weights:'400;500;600;700;800', stack:"'Playfair Display', serif" },
+  'Plus Jakarta Sans':   { gfont:'Plus+Jakarta+Sans',   weights:'300;400;500;600;700;800', stack:"'Plus Jakarta Sans', sans-serif" },
+  'Rubik Mono One':      { gfont:'Rubik+Mono+One',      weights:'400', stack:"'Rubik Mono One', sans-serif" },
+  'Space Grotesk':       { gfont:'Space+Grotesk',       weights:'300;400;500;600;700', stack:"'Space Grotesk', sans-serif" },
 };
 
-/**
- * Walk all descendants of `root` (or `document` if omitted) and apply any
- * `data-bio-{name}` attributes from BIO_DATA_STYLE_MAP as inline style
- * properties via JS (CSP-safe).
- *
- * Idempotent — calling repeatedly is fine. Only sets properties that have
- * a data-bio-* attribute on the element.
- */
-function bioApplyDataStyles(root) {
-  root = root || document;
-  // Collect all elements that have at least one mapped data-bio-* attr
-  const selectors = Object.keys(BIO_DATA_STYLE_MAP)
-    .map(k => `[data-bio-${k.replace(/[A-Z]/g, m => '-' + m.toLowerCase())}]`)
-    .join(',');
-  const els = root.querySelectorAll(selectors);
-  els.forEach(el => {
-    Object.entries(BIO_DATA_STYLE_MAP).forEach(([camelName, cssProp]) => {
-      const dashName = camelName.replace(/[A-Z]/g, m => '-' + m.toLowerCase());
-      const val = el.dataset['bio' + camelName.charAt(0).toUpperCase() + camelName.slice(1)];
-      if (val) el.style.setProperty(cssProp, val);
-    });
-  });
+// Returns { link, style } strings to inject into <head>. Falls back to default if key invalid.
+function buildFontInjection(fontKey) {
+  // When the chosen font is the default ('DM Sans' or null/unknown), inject
+  // nothing. The static bio.html stylesheet already paints DM Sans on the body
+  // and 'Syne' on headings (.name, .hero-name, .hero-handle) for Ryxa's
+  // signature visual hierarchy. Skipping the override preserves that look.
+  if (!fontKey || fontKey === 'DM Sans') return '';
+  const font = BIO_FONTS_SSR[fontKey] || BIO_FONTS_SSR['DM Sans'];
+  const link = `<link href="https://fonts.googleapis.com/css2?family=${font.gfont}:wght@${font.weights}&display=swap" rel="stylesheet">`;
+  // Body font is overridden via inline <style> with high specificity
+  // so it wins against the default DM Sans declaration in bio.html's stylesheet.
+  // The wildcard `body *` ensures every element on the page picks up the
+  // creator's chosen font, including Syne-styled headings (.name, .hero-name,
+  // section labels, etc). The .brand-banner Ryxa logo banner is excluded so
+  // it stays in DM Sans for cross-site consistency.
+  const style = `<style id="bio-font-override">body, body * { font-family: ${font.stack} !important; } .brand-banner, .brand-banner * { font-family: 'DM Sans', sans-serif !important; }</style>`;
+  return link + style;
 }
 
-// =============================================================================
-// END CSP-STRICT STYLE APPLICATION
-// =============================================================================
+// ==========================================================================
+// SOCIAL ICONS — copied verbatim from bio.html so server output matches client
+// ==========================================================================
 
-// ---------- From dashboard.html lines 8415-8466 ----------
-function copySidebarBioLink() {
-  var textEl = document.getElementById('sidebar-menu-biolink-text');
-  if (!textEl) return;
-  var linkText = textEl.textContent;
-  if (!linkText || linkText === 'ryxa.io/...') return;
-  var fullUrl = 'https://' + linkText;
-
-  function showCopied() {
-    var orig = linkText;
-    textEl.textContent = 'Copied!';
-    textEl.style.color = '#4ade80';
-    setTimeout(function() { textEl.textContent = orig; textEl.style.color = ''; }, 1500);
-  }
-
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(fullUrl).then(showCopied).catch(function() {
-      fallbackCopy(fullUrl);
-      showCopied();
-    });
-  } else {
-    fallbackCopy(fullUrl);
-    showCopied();
-  }
-}
-
-function fallbackCopy(text) {
-  var ta = document.createElement('textarea');
-  ta.value = text;
-  ta.style.cssText = 'position:fixed;opacity:0;left:-9999px;';
-  document.body.appendChild(ta);
-  ta.select();
-  document.execCommand('copy');
-  document.body.removeChild(ta);
-}
-
-function copyPublishUrl(url, btn) {
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(url).then(function() {
-      btn.textContent = 'Copied!';
-      setTimeout(function() { btn.textContent = 'Copy'; }, 1500);
-    }).catch(function() { fallbackCopy(url); btn.textContent = 'Copied!'; setTimeout(function() { btn.textContent = 'Copy'; }, 1500); });
-  } else {
-    fallbackCopy(url);
-    btn.textContent = 'Copied!';
-    setTimeout(function() { btn.textContent = 'Copy'; }, 1500);
-  }
-}
-
-function showBioLinkButtons() {
-  var el = document.getElementById('sidebar-menu-biolink');
-  if (el) el.style.display = 'block';
-}
-
-// ---------- From dashboard.html lines 9614-12781 ----------
-let bioState = {
-  username: '',
-  display_name: '',
-  bio: '',
-  avatar_url: '',
-  avatar_display: 'default',
-  theme: 'purple',
-  font_family: 'DM Sans',
-  socials: {},
-  links: [],
-  videos: [],
-  published: false,
-  show_branding: true,
-  custom_theme: null, // { bgUrl, bgOpacity, colors: {bg, card, text, accent}, applied: bool }
+const SOCIAL_ICONS = {
+  instagram: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.2c3.2 0 3.6 0 4.85.07 1.17.05 1.8.25 2.22.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.05.41 2.22.06 1.26.07 1.64.07 4.82s-.01 3.57-.07 4.82c-.05 1.17-.25 1.8-.41 2.22a3.72 3.72 0 0 1-.9 1.38c-.42.42-.82.68-1.38.9-.42.16-1.05.36-2.22.41-1.26.06-1.64.07-4.82.07s-3.57-.01-4.82-.07c-1.17-.05-1.8-.25-2.22-.41a3.72 3.72 0 0 1-1.38-.9 3.72 3.72 0 0 1-.9-1.38c-.16-.42-.36-1.05-.41-2.22C2.21 15.57 2.2 15.19 2.2 12s.01-3.57.07-4.82c.05-1.17.25-1.8.41-2.22.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.05-.36 2.22-.41C8.43 2.21 8.81 2.2 12 2.2M12 0C8.74 0 8.33.01 7.05.07 5.78.13 4.9.33 4.14.63a5.92 5.92 0 0 0-2.13 1.39A5.92 5.92 0 0 0 .62 4.14C.33 4.9.13 5.78.07 7.05.01 8.33 0 8.74 0 12c0 3.26.01 3.67.07 4.95.06 1.27.26 2.15.56 2.91a5.92 5.92 0 0 0 1.39 2.13c.66.66 1.32 1.06 2.13 1.39.76.3 1.64.5 2.91.56C8.33 23.99 8.74 24 12 24c3.26 0 3.67-.01 4.95-.07 1.27-.06 2.15-.26 2.91-.56a5.92 5.92 0 0 0 2.13-1.39c.66-.66 1.06-1.32 1.39-2.13.3-.76.5-1.64.56-2.91.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.06-1.27-.26-2.15-.56-2.91a5.92 5.92 0 0 0-1.39-2.13A5.92 5.92 0 0 0 19.86.62c-.76-.3-1.64-.5-2.91-.56C15.67.01 15.26 0 12 0Zm0 5.84a6.16 6.16 0 1 0 0 12.32 6.16 6.16 0 0 0 0-12.32Zm0 10.16a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm6.41-11.88a1.44 1.44 0 1 0 0 2.88 1.44 1.44 0 0 0 0-2.88Z"/></svg>',
+  tiktok: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5.8 20.1a6.34 6.34 0 0 0 10.86-4.43V8.83a8.16 8.16 0 0 0 4.77 1.52V6.9a4.85 4.85 0 0 1-1.84-.21Z"/></svg>',
+  youtube: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.12C19.54 3.58 12 3.58 12 3.58s-7.54 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.07 0 12 0 12s0 3.93.5 5.8a3 3 0 0 0 2.1 2.12c1.86.5 9.4.5 9.4.5s7.54 0 9.4-.5a3 3 0 0 0 2.1-2.12C24 15.93 24 12 24 12s0-3.93-.5-5.8ZM9.55 15.57V8.43L15.82 12l-6.27 3.57Z"/></svg>',
+  facebook: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.68.23 2.68.23v2.97h-1.51c-1.49 0-1.95.93-1.95 1.89v2.26h3.32l-.53 3.49h-2.79V24C19.61 23.1 24 18.1 24 12.07Z"/></svg>',
+  snapchat: '<svg viewBox="-4.4 -2.25 24 24" aria-hidden="true"><path d="M12.02 0C5.44 0 4.73 5.08 4.86 7.15c.03.5.05 1.01.06 1.52-.3.16-.79.38-1.29.38-.38 0-.75-.14-1.08-.41-.06-.05-.17-.14-.35-.14-.3 0-.65.17-.92.47-.3.34-.3.78.02 1.08.27.26.7.48 1.2.62.68.19 1.56.49 1.79 1.04.13.3-.01.69-.41 1.17a.35.35 0 0 1-.03.03c-.01.02-1.28 2.08-4.21 2.56-.22.04-.38.24-.36.46 0 .05.02.1.04.15.13.3.56.52 1.32.68.08.02.14.11.17.3.03.18.07.4.17.63.1.23.29.35.55.35.14 0 .3-.03.48-.06.25-.05.57-.11.96-.11.22 0 .44.02.68.06.45.07.83.34 1.27.65.63.45 1.35.96 2.43.96.08 0 .17 0 .26-.02.08.01.2.02.33.02 1.08 0 1.8-.51 2.43-.96.44-.31.82-.58 1.27-.65.24-.04.46-.06.68-.06.38 0 .68.05.96.11.2.04.36.06.48.06h.02c.19 0 .41-.08.53-.35.1-.22.14-.43.17-.62.02-.17.09-.28.17-.3.76-.16 1.19-.38 1.32-.68a.43.43 0 0 0 .04-.15c.02-.22-.14-.42-.36-.46-2.93-.48-4.2-2.54-4.21-2.56a.57.57 0 0 1-.03-.03c-.4-.48-.54-.87-.41-1.17.23-.55 1.11-.85 1.79-1.04.5-.14.93-.36 1.2-.62.33-.32.33-.76.03-1.08-.28-.3-.63-.47-.92-.47-.19 0-.3.08-.35.14-.32.26-.69.41-1.08.41-.5 0-.99-.22-1.29-.38.01-.51.03-1.02.06-1.52.13-2.07-.58-7.15-7.16-7.15Z"/></svg>',
+  linkedin: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.95v5.66H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.26 2.37 4.26 5.45v6.29ZM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12ZM7.12 20.45H3.56V9h3.56v11.45ZM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0Z"/></svg>',
+  website: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm7.93 9h-3.47a15.6 15.6 0 0 0-1.4-5.33A8 8 0 0 1 19.93 11ZM12 4a13.7 13.7 0 0 1 2.46 7h-4.92A13.7 13.7 0 0 1 12 4ZM4.26 13h3.47a15.6 15.6 0 0 0 1.4 5.33A8 8 0 0 1 4.26 13Zm0-2a8 8 0 0 1 4.87-6.33A15.6 15.6 0 0 0 7.73 11H4.26ZM12 20a13.7 13.7 0 0 1-2.46-7h4.92A13.7 13.7 0 0 1 12 20Zm2.87-1.67A15.6 15.6 0 0 0 16.27 13h3.47a8 8 0 0 1-4.87 5.33Z"/></svg>',
+  email: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 4h20a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm10 9.44L3.3 6H20.7L12 13.44ZM2 7.6v10.02L8.35 12 2 7.6Zm8.18 5.93L2.74 19h18.52l-7.44-5.48L12 15.14l-1.82-1.61Zm5.47-1.53L22 17.62V7.6l-6.35 4.4Z"/></svg>',
+  phone: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.98.98 0 0 0-1.01.24l-1.57 1.97a15.1 15.1 0 0 1-6.92-6.92l1.97-1.57c.27-.27.35-.66.24-1.02A11.2 11.2 0 0 1 8.62 4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1 0 9.39 7.61 17 17 17 .55 0 1-.45 1-1v-3.62c0-.55-.45-1-1-1ZM19 12h2a9 9 0 0 0-9-9v2c3.87 0 7 3.13 7 7Zm-4 0h2c0-2.76-2.24-5-5-5v2c1.66 0 3 1.34 3 3Z"/></svg>'
 };
-let bioStaleBgs = []; // queue old bg urls to delete on save
-let bioInited = false;
-let bioCropper = null;
-let bioCropTarget = null;  // 'avatar' or {type:'featured', linkId}
-let bioCropSource = null;  // original File object
-let bioOriginalUsername = ''; // for rename detection
-let bioDraggingLink = false;
-let bioPreviewTimer = null;
-let linkIdSeq = 1;
 
-// =====================================================
-// LINK IN BIO — Collapsible Sections
-// =====================================================
-const BIO_COLLAPSE_KEY = 'ryxa_bio_collapsed';
-
-function getBioCollapsed() {
-  try {
-    return JSON.parse(localStorage.getItem(BIO_COLLAPSE_KEY)) || [];
-  } catch { return []; }
+function buildSocialHref(key, val) {
+  const clean = val.replace(/^@/, '').trim();
+  switch (key) {
+    case 'instagram': return 'https://instagram.com/' + encodeURIComponent(clean);
+    case 'tiktok':    return 'https://tiktok.com/@' + encodeURIComponent(clean);
+    case 'snapchat':  return 'https://snapchat.com/add/' + encodeURIComponent(clean);
+    case 'youtube':
+    case 'facebook':
+    case 'linkedin':
+    case 'website': {
+      return validUrl(clean) || validUrl('https://' + clean);
+    }
+    case 'email': {
+      if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean)) return 'mailto:' + clean;
+      return null;
+    }
+    case 'phone': {
+      const digits = clean.replace(/[^\d+]/g, '');
+      if (!digits) return null;
+      return 'tel:' + digits;
+    }
+    default: return null;
+  }
 }
 
-function saveBioCollapsed(list) {
-  try { localStorage.setItem(BIO_COLLAPSE_KEY, JSON.stringify(list)); } catch {}
+function buildSocials(socials) {
+  if (!socials || typeof socials !== 'object') return '';
+  const order = ['instagram','tiktok','youtube','facebook','snapchat','linkedin','website','email','phone'];
+  const items = [];
+  for (const key of order) {
+    const val = socials[key];
+    if (!val || typeof val !== 'string' || !val.trim()) continue;
+    const href = buildSocialHref(key, val.trim());
+    if (!href) continue;
+    const target = (key === 'email' || key === 'phone') ? '' : ' target="_blank" rel="noopener nofollow"';
+    items.push(`<a class="social-btn" href="${esc(href)}" aria-label="${key}"${target}>${SOCIAL_ICONS[key]}</a>`);
+  }
+  if (!items.length) return '';
+  return `<div class="socials">${items.join('')}</div>`;
 }
 
-function toggleBioSection(name) {
-  const body = document.getElementById('bio-body-' + name);
-  if (!body) return;
-  const btn = body.previousElementSibling;
-  const isOpen = body.style.display !== 'none';
-  body.style.display = isOpen ? 'none' : 'block';
-  if (btn) btn.setAttribute('aria-expanded', !isOpen);
+// ==========================================================================
+// AVATAR + HERO HEADER
+// ==========================================================================
 
-  // Save to localStorage
-  let collapsed = getBioCollapsed();
-  if (isOpen) {
-    if (!collapsed.includes(name)) collapsed.push(name);
+function buildAvatar(profile, bio) {
+  const name = bio.display_name || profile.username || '';
+  const initial = (name[0] || profile.username[0] || '?').toUpperCase();
+  const safeAvatar = validImageUrl(bio.avatar_url);
+  const isPaidTier = profile.tier === 'monthly' || profile.tier === 'max';
+  const isHero = bio.avatar_display === 'hero' && safeAvatar && isPaidTier;
+
+  if (isHero) return ''; // hero is rendered separately
+  if (safeAvatar) {
+    return `<div class="avatar-frame">
+      <img class="avatar" src="${esc(safeAvatar)}" alt="${esc(name)}">
+    </div>`;
+  }
+  return `<div class="avatar-frame"><div class="avatar-fallback">${esc(initial)}</div></div>`;
+}
+
+function buildHeroHeader(profile, bio) {
+  const safeAvatar = validImageUrl(bio.avatar_url);
+  const name = bio.display_name || profile.username || '';
+  if (!safeAvatar) return '';
+  return `<div class="hero-header">
+    <img class="hero-header-img" src="${esc(safeAvatar)}" alt="${esc(name)}">
+    <div class="hero-header-fade"></div>
+  </div>`;
+}
+
+// ==========================================================================
+// LINK BUILDERS — every link variant (header, subscribe, hero, featured,
+// course, coaching, mediakit, regular w/ thumb, regular w/o thumb)
+// ==========================================================================
+
+function buildLink(link, currency) {
+  // Half-width modifier — only used by the four eligible link types: regular
+  // links, course cards, booking cards, and digital product cards. Hero,
+  // featured, mediakit, subscribe, and headers are full-width only.
+  const halfClass = link.halfWidth ? ' link-half' : '';
+  // Header — text divider, no link
+  if (link.isHeader) {
+    if (!link.title) return '';
+    return `<div class="link-header">${esc(link.title)}</div>`;
+  }
+
+  // Subscribe block — email signup form
+  if (link.isSubscribe) {
+    const heading = esc(link.title || 'Subscribe to my newsletter');
+    return `<div class="subscribe-block" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;text-align:center;">
+      <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:12px;">${heading}</div>
+      <div style="display:flex;gap:8px;max-width:360px;margin:0 auto;" id="subscribe-form">
+        <input type="email" id="subscribe-email" placeholder="Your email" aria-label="Email address" required style="flex:1;padding:10px 14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;font-family:inherit;outline:none;min-width:0;">
+        <button data-bio-action="subscribe-submit" style="padding:10px 18px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap;transition:opacity 0.15s;" id="subscribe-btn">Subscribe</button>
+      </div>
+      <input type="text" id="subscribe-hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;">
+      <div id="subscribe-msg" style="display:none;font-size:12px;margin-top:8px;"></div>
+    </div>`;
+  }
+
+  // Video block — horizontal-scrollable carousel of up to 5 YouTube videos.
+  // Sits inline inside the .links container so reordering moves the whole
+  // block. Renders nothing (filtered out) when there are no valid videos.
+  if (link.isVideoBlock) {
+    const videos = Array.isArray(link.videos) ? link.videos : [];
+    const cards = videos.map(v => {
+      const id = extractYouTubeId(v && (v.url || v.videoId));
+      if (!id) return '';
+      const thumb = `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+      return `<div class="video-card" tabindex="0" role="button" aria-label="Play video"
+                data-bio-action="play-video" data-bio-video-id="${id}">
+        <div class="video-thumb-wrap">
+          <img class="video-thumb" src="${thumb}" alt="YouTube video thumbnail" loading="lazy" data-bio-onerror="thumb-fallback" data-bio-video-id="${id}">
+          <div class="video-play"><div class="video-play-icon"></div></div>
+        </div>
+      </div>`;
+    }).filter(Boolean).join('');
+    if (!cards) return '';
+    return `<div class="videos">
+      <button type="button" class="videos-arrow videos-arrow-l" aria-label="Scroll left" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <button type="button" class="videos-arrow videos-arrow-r" aria-label="Scroll right" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button>
+      <div class="videos-scroll">${cards}</div>
+    </div>`;
+  }
+
+  const url = validUrl(link.url);
+  if (!url) return '';
+  const title = esc(link.title || '');
+  const desc = link.description ? `<div class="link-desc">${esc(link.description)}</div>` : '';
+
+  // Hero link — full-image background, no icon
+  if (link.isHero) {
+    const safePhoto = validImageUrl(link.photoUrl);
+    if (safePhoto) {
+      return `<a class="link-btn hero-link" href="${esc(url)}" target="_blank" rel="noopener nofollow">
+        <img class="hero-bg" src="${esc(safePhoto)}" alt="Link background" loading="lazy">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+          <div class="link-title">${title}</div>
+          ${desc}
+        </div>
+      </a>`;
+    }
+  }
+
+  // Featured — large card with thumbnail
+  if (link.featured) {
+    const safePhoto = validImageUrl(link.photoUrl);
+    if (safePhoto) {
+      return `<a class="featured-link" href="${esc(url)}" target="_blank" rel="noopener nofollow">
+        <img class="featured-photo" src="${esc(safePhoto)}" alt="Featured link" loading="lazy">
+        <div class="featured-body">
+          <div class="featured-title">${title}</div>
+          ${link.description ? `<div class="featured-desc">${esc(link.description)}</div>` : ''}
+        </div>
+      </a>`;
+    }
+  }
+
+  // Course link — cover image card with price
+  if (link.isCourse) {
+    const safePhoto = validImageUrl(link.photoUrl);
+    const priceDisplay = link.coursePrice > 0 ? fmtPrice(link.coursePrice, currency) : 'Free';
+    const crossoutHtml = link.courseCrossoutPrice > 0 ? '<span style="text-decoration:line-through;opacity:0.5;font-size:12px;margin-right:4px;">' + fmtPrice(link.courseCrossoutPrice, currency) + '</span>' : '';
+    const coverHtml = safePhoto ? '<img src="' + esc(safePhoto) + '" alt="Link cover" loading="lazy" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px 10px 0 0;display:block;">' : '';
+    return '<a class="course-link-card' + halfClass + '" href="' + esc(url) + '" target="_blank" rel="noopener nofollow" style="display:block;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;text-decoration:none;color:var(--text);transition:transform 0.15s,border-color 0.15s;">'
+      + coverHtml
+      + '<div class="clc-body" style="padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">'
+      + '<div class="clc-title" style="font-size:13px;font-weight:600;flex:1;min-width:0;">' + title + '</div>'
+      + '<div class="clc-price" style="font-size:13px;font-weight:600;flex-shrink:0;margin-left:8px;">' + crossoutHtml + priceDisplay + '</div>'
+      + '</div></a>';
+  }
+
+  // Coaching link — same card style as courses
+  if (link.isCoaching) {
+    const safePhoto = validImageUrl(link.photoUrl);
+    const priceDisplay = link.coachingPrice > 0 ? fmtPrice(link.coachingPrice, currency) : 'Free';
+    const coverHtml = safePhoto ? '<img src="' + esc(safePhoto) + '" alt="Link cover" loading="lazy" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px 10px 0 0;display:block;">' : '';
+    return '<a class="course-link-card' + halfClass + '" href="' + esc(url) + '" target="_blank" rel="noopener nofollow" style="display:block;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;text-decoration:none;color:var(--text);transition:transform 0.15s,border-color 0.15s;">'
+      + coverHtml
+      + '<div class="clc-body" style="padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">'
+      + '<div class="clc-title" style="font-size:13px;font-weight:600;flex:1;min-width:0;">' + title + '</div>'
+      + '<div class="clc-price" style="font-size:13px;font-weight:600;flex-shrink:0;margin-left:8px;">' + priceDisplay + '</div>'
+      + '</div></a>';
+  }
+
+  // Digital Product link — same card style as courses/coaching
+  if (link.isProduct) {
+    const safePhoto = validImageUrl(link.photoUrl);
+    const priceDisplay = link.productPrice > 0 ? fmtPrice(link.productPrice, currency) : 'Free';
+    const coverHtml = safePhoto ? '<img src="' + esc(safePhoto) + '" alt="Link cover" loading="lazy" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px 10px 0 0;display:block;">' : '';
+    return '<a class="course-link-card' + halfClass + '" href="' + esc(url) + '" target="_blank" rel="noopener nofollow" style="display:block;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;text-decoration:none;color:var(--text);transition:transform 0.15s,border-color 0.15s;">'
+      + coverHtml
+      + '<div class="clc-body" style="padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">'
+      + '<div class="clc-title" style="font-size:13px;font-weight:600;flex:1;min-width:0;">' + title + '</div>'
+      + '<div class="clc-price" style="font-size:13px;font-weight:600;flex-shrink:0;margin-left:8px;">' + priceDisplay + '</div>'
+      + '</div></a>';
+  }
+
+  // Media Kit link — distinct style
+  if (link.isMediaKit) {
+    const mkIconSvg = '<svg class="mediakit-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="17" x2="8" y2="13"/><line x1="12" y1="17" x2="12" y2="11"/><line x1="16" y1="17" x2="16" y2="15"/></svg>';
+    const safePhoto = validImageUrl(link.photoUrl);
+    if (safePhoto) {
+      return `<a class="link-btn mediakit-link mediakit-hero" href="${esc(url)}" target="_blank" rel="noopener nofollow" aria-label="View Media Kit">
+        <img class="mediakit-hero-bg" src="${esc(safePhoto)}" alt="Link background" loading="lazy">
+        <div class="mediakit-hero-overlay"></div>
+        <div class="mediakit-hero-content">
+          ${mkIconSvg}
+          <div class="mediakit-body">
+            <div class="link-title">${title}</div>
+            ${desc}
+          </div>
+        </div>
+      </a>`;
+    }
+    return `<a class="link-btn mediakit-link" href="${esc(url)}" target="_blank" rel="noopener nofollow">
+      ${mkIconSvg}
+      <div class="mediakit-body">
+        <div class="link-title">${title}</div>
+        ${desc}
+      </div>
+    </a>`;
+  }
+
+  // Regular link — with or without thumbnail
+  const thumbUrl = validImageUrl(link.photoUrl);
+  if (thumbUrl) {
+    // Image on the left (square, flush to box edge, shares rounded corners with the box).
+    // Title/desc fill the rest of the row, padding restored, text centered. CSS lives in bio.html.
+    return `<a class="link-btn link-btn-thumb${halfClass}" href="${esc(url)}" target="_blank" rel="noopener nofollow">
+      <img class="link-thumb-img" src="${esc(thumbUrl)}" alt="" loading="lazy">
+      <div class="link-thumb-body">
+        <div class="link-title">${title}</div>
+        ${desc}
+      </div>
+    </a>`;
+  }
+  return `<a class="link-btn${halfClass}" href="${esc(url)}" target="_blank" rel="noopener nofollow">
+    <div class="link-title">${title}</div>
+    ${desc}
+  </a>`;
+}
+
+// ==========================================================================
+// CUSTOM THEME (Max tier only) — emit a <style> block with theme overrides
+// so colors are correct on first paint, before client JS runs.
+// ==========================================================================
+
+function buildCustomThemeStyle(ct) {
+  const colors = ct?.colors || {};
+  // Validate every color input strictly. Anything that isn't #RRGGBB/#RGB
+  // falls back to the default. Prevents CSS injection like
+  //   accent: "red; } body { background: url(evil) } /*"
+  const bg = safeHexColor(colors.bg, '#07070f');
+  const card = safeHexColor(colors.card, '#161625');
+  const text = safeHexColor(colors.text, '#ffffff');
+  const accent = safeHexColor(colors.accent, '#a78bfa');
+
+  let css = `:root[data-theme="custom"] {
+    --bg: ${bg};
+    --surface: ${card};
+    --surface2: ${card};
+    --text: ${text};
+    --muted: ${hexAlpha(text, 0.65)};
+    --muted2: ${hexAlpha(text, 0.8)};
+    --border: ${hexAlpha(text, 0.1)};
+    --accent: ${accent};
+    --accent2: ${accent};
+    --accent-glow: ${hexAlpha(accent, 0.3)};
+    --avatar-border: linear-gradient(135deg, ${accent}, ${accent});
+  }`;
+
+  if (ct.bgUrl) {
+    // bgUrl must pass our strict validator (https + our own Supabase bucket).
+    // If it doesn't, we just omit the bg image rather than risk CSS injection
+    // via a URL containing `)` or `}`.
+    const safeBgUrl = validImageUrl(ct.bgUrl);
+    if (safeBgUrl) {
+      const op = safeOpacity(ct.bgOpacity, 0.4);
+      const darkness = 1 - op;
+      css += `
+    :root[data-theme="custom"] body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("${safeBgUrl}");
+      background-size: cover;
+      background-position: center;
+      background-color: transparent;
+      z-index: -2;
+    }
+    :root[data-theme="custom"] body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,${darkness.toFixed(2)});
+      z-index: -1;
+    }`;
+    }
+  }
+
+  return `<style id="custom-bg-style">${css}</style>`;
+}
+
+// ==========================================================================
+// BUILTIN IMAGE THEMES — free for all tiers
+// Each theme has a fixed set of 4 colors (bg, card, text, accent) + an image.
+// Renders the same CSS pipeline as the custom theme, but for free users and
+// keyed by theme.key (paperwhite, ember, sapphire, blossom, honey).
+// Mirror of BIO_THEMES in dashboard.html — keep in sync.
+// ==========================================================================
+
+const BUILTIN_IMAGE_THEMES = {
+  paperwhite: { image:'/bgtemplates/1.webp', colors:{bg:'#FFFFFF',card:'#F5F5F8',text:'#1A1A2E',accent:'#6366F1'} },
+  ember:      { image:'/bgtemplates/2.webp', colors:{bg:'#1A1A1C',card:'#262628',text:'#F5F2ED',accent:'#F97316'} },
+  sapphire:   { image:'/bgtemplates/3.webp', colors:{bg:'#1E3A8A',card:'#172554',text:'#F5EFE0',accent:'#D4AF37'} },
+  blossom:    { image:'/bgtemplates/4.webp', colors:{bg:'#FCE7EB',card:'#F8D7DD',text:'#5C2E3D',accent:'#C9A961'} },
+  honey:      { image:'/bgtemplates/5.webp', colors:{bg:'#FCEFC0',card:'#F8E48E',text:'#5C3F17',accent:'#B45309'} },
+};
+
+function buildImageThemeStyle(themeKey) {
+  const theme = BUILTIN_IMAGE_THEMES[themeKey];
+  if (!theme) return '';
+  const { bg, card, text, accent } = theme.colors;
+  const safeBgUrl = String(theme.image).replace(/"/g, '&quot;');
+
+  // Image themes use the same selector as custom (data-theme="custom")
+  // so the same downstream CSS rules pick them up.
+  const css = `:root[data-theme="custom"] {
+    --bg: ${bg};
+    --surface: ${card};
+    --surface2: ${card};
+    --text: ${text};
+    --muted: ${hexAlpha(text, 0.65)};
+    --muted2: ${hexAlpha(text, 0.8)};
+    --border: ${hexAlpha(text, 0.1)};
+    --accent: ${accent};
+    --accent2: ${accent};
+    --accent-glow: ${hexAlpha(accent, 0.3)};
+    --avatar-border: linear-gradient(135deg, ${accent}, ${accent});
+  }
+  :root[data-theme="custom"] body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("${safeBgUrl}");
+    background-size: cover;
+    background-position: center;
+    background-color: transparent;
+    z-index: -2;
+  }`;
+
+  return `<style id="custom-bg-style">${css}</style>`;
+}
+
+function isBuiltinImageTheme(key) {
+  return !!BUILTIN_IMAGE_THEMES[key];
+}
+
+// ==========================================================================
+// MAIN RENDER — produces the full inner HTML for the #wrap div
+// ==========================================================================
+
+function renderBioContent(profile, bio) {
+  const name = bio.display_name || profile.username || '';
+  const currency = profile.display_currency || 'USD';
+
+  const isPaidTier = profile.tier === 'monthly' || profile.tier === 'max';
+  const isHeroMode = bio.avatar_display === 'hero' && validImageUrl(bio.avatar_url) && isPaidTier;
+
+  const links = Array.isArray(bio.links) ? bio.links : [];
+  const socialsHtml = buildSocials(bio.socials);
+  const linksHtml = links.map(l => buildLink(l, currency)).filter(Boolean).join('');
+
+  // Branding banner: free users always show it; Pro/Max can opt out
+  const isPaid = profile.tier === 'monthly' || profile.tier === 'max';
+  const showBanner = !isPaid || bio.show_branding !== false;
+  const banner = showBanner
+    ? `<a class="brand-banner" href="https://www.ryxa.io"><img src="https://www.ryxa.io/logo.png" alt="Ryxa" class="brand-banner-logo"><span>Get your free link-in-bio at <strong>Ryxa</strong></span></a>`
+    : '';
+
+  let inner;
+  if (isHeroMode) {
+    inner = `${buildHeroHeader(profile, bio)}
+      <div class="hero-content-below">
+        <div class="name">${esc(name)}</div>
+        ${socialsHtml}
+        ${bio.bio ? `<div class="bio">${esc(bio.bio)}</div>` : ''}
+        ${linksHtml ? `<div class="links">${linksHtml}</div>` : ''}
+        ${banner}
+      </div>`;
   } else {
-    collapsed = collapsed.filter(s => s !== name);
+    inner = `${buildAvatar(profile, bio)}
+      <div class="name">${esc(name)}</div>
+      ${socialsHtml}
+      ${bio.bio ? `<div class="bio">${esc(bio.bio)}</div>` : ''}
+      ${linksHtml ? `<div class="links">${linksHtml}</div>` : ''}
+      ${banner}`;
   }
-  saveBioCollapsed(collapsed);
+
+  return { inner, isHeroMode, showBanner };
 }
 
-function restoreBioCollapsed() {
-  const collapsed = getBioCollapsed();
-  collapsed.forEach(name => {
-    const body = document.getElementById('bio-body-' + name);
-    if (!body) return;
-    body.style.display = 'none';
-    const btn = body.previousElementSibling;
-    if (btn) btn.setAttribute('aria-expanded', 'false');
-  });
-}
+// ==========================================================================
+// SUPABASE FETCH — load profile (via public_profile_tiers view) + bio in parallel.
+// Uses anon key so it's safe; the view itself filters out private columns.
+// Single 3-second timeout for the whole operation.
+// ==========================================================================
 
-// =====================================================
-// Mobile Preview Relocation
-// Moves preview to sit right after Profile on narrow screens
-// =====================================================
-let bioPreviewRelocated = false;
-let mkPreviewRelocated = false;
-
-function relocatePreviewForMobile() {
-  const isMobile = window.innerWidth <= 1100;
-
-  // Bio preview
-  const bioPreview = document.getElementById('bio-preview-col');
-  const bioProfile = document.getElementById('bio-section-profile');
-  const bioFormCol = bioProfile?.parentElement;
-  if (bioPreview && bioProfile && bioFormCol) {
-    if (isMobile && !bioPreviewRelocated) {
-      // Insert preview right after Profile section
-      bioProfile.insertAdjacentElement('afterend', bioPreview);
-      bioPreview.style.position = 'static';
-      bioPreviewRelocated = true;
-    } else if (!isMobile && bioPreviewRelocated) {
-      // Move back to grid as second column
-      const bioGrid = bioFormCol.parentElement;
-      if (bioGrid) {
-        bioGrid.appendChild(bioPreview);
-        bioPreview.style.position = 'sticky';
-      }
-      bioPreviewRelocated = false;
-    }
-  }
-
-  // MK preview
-  const mkPreview = document.getElementById('mk-preview-col');
-  const mkProfile = document.getElementById('mk-section-profile');
-  const mkFormCol = mkProfile?.parentElement;
-  if (mkPreview && mkProfile && mkFormCol) {
-    if (isMobile && !mkPreviewRelocated) {
-      mkProfile.insertAdjacentElement('afterend', mkPreview);
-      mkPreview.style.position = 'static';
-      mkPreviewRelocated = true;
-    } else if (!isMobile && mkPreviewRelocated) {
-      const mkGrid = mkFormCol.parentElement;
-      if (mkGrid) {
-        mkGrid.appendChild(mkPreview);
-        mkPreview.style.position = 'sticky';
-      }
-      mkPreviewRelocated = false;
-    }
-  }
-}
-
-// Run on load and resize
-window.addEventListener('resize', relocatePreviewForMobile);
-document.addEventListener('DOMContentLoaded', () => setTimeout(relocatePreviewForMobile, 100));
-
-function initBioTool() {
-  if (bioInited) {
-    // Re-sync username from profiles in case it was changed in the Media Kit tool
-    resyncBioUsername();
-    // Reset username hint to default
-    var bioHint = document.getElementById('bio-username-hint');
-    if (bioHint) { bioHint.textContent = 'Same username as your Media Kit. You can change it up to 2 times per week.'; bioHint.style.color = 'var(--muted)'; }
-    updateBioPreview();
-    return;
-  }
-  bioInited = true;
-  restoreBioCollapsed();
-  renderBioThemes();
-  renderBioFonts();
-  renderBioSocials();
-  renderBioLinks();
-  loadBioData();
-  document.getElementById('bio-avatar-inner').addEventListener('click', () => {
-    document.getElementById('bio-avatar-input').click();
+async function fetchBioData(username) {
+  const fetchOpts = (signal) => ({
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+    },
+    signal,
   });
 
-  // Delegated click handler: clicking the header bar of an expanded link
-  // row collapses it (with save). Lets users dismiss the editor without
-  // hunting for the Save button. Inputs, buttons, and the drag handle
-  // intercept their own clicks via stopPropagation in their markup.
-  const linksList = document.getElementById('bio-links-list');
-  if (linksList) {
-    linksList.addEventListener('click', function(e) {
-      // Find the closest .bio-link-header that we clicked inside
-      const header = e.target.closest('.bio-link-header');
-      if (!header) return;
-      // Skip if click came from a button or input inside the header
-      if (e.target.closest('button, input, .bio-link-drag, a')) return;
-      // Find the row id from the parent .bio-link-row
-      const row = header.closest('.bio-link-row');
-      if (!row) return;
-      const idAttr = row.getAttribute('data-id');
-      const id = parseInt(idAttr, 10);
-      if (!isFinite(id)) return;
-      // Only collapse if this row is currently expanded (i.e., not a collapsed view header)
-      if (!bioExpandedLinks.has(id)) return;
-      // Use saveLinkRow — handles validation + save + collapse + preview update
-      if (typeof saveLinkRow === 'function') saveLinkRow(id);
-    });
-  }
-}
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 3000);
 
-// Pulls the latest username from the Media Kit input (if present) or profiles table,
-// then refreshes the publish UI. Called every time the Link in Bio tool is reopened.
-async function resyncBioUsername() {
-  const input = document.getElementById('bio-username');
-  if (!input || !currentUser) return;
-  // Priority 1: use the Media Kit input's current value (covers unsaved edits)
-  const mkInput = document.getElementById('mk-username');
-  if (mkInput && mkInput.value) {
-    input.value = mkInput.value;
-    bioState.username = mkInput.value;
-    updatePublishUI();
-    updateMediaKitLinkButton();
-    return;
-  }
-  // Fallback: query profiles table
   try {
-    const { data: profile } = await sb.from('profiles').select('username').eq('user_id', currentUser.id).maybeSingle();
-    if (profile?.username) {
-      input.value = profile.username;
-      bioState.username = profile.username;
-      bioOriginalUsername = profile.username;
-    }
-  } catch (e) { console.warn('resyncBioUsername', e); }
-  updatePublishUI();
-  updateMediaKitLinkButton();
-  // Override browser autofill
-  setTimeout(function() {
-    var el = document.getElementById('bio-username');
-    if (el && bioState.username && el.value !== bioState.username) {
-      el.value = bioState.username;
-      updatePublishUI();
-    }
-  }, 500);
+    // Step 1: profile lookup via public view
+    const profileRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/public_profile_tiers?username=eq.${encodeURIComponent(username)}&select=user_id,username,tier,display_currency`,
+      fetchOpts(controller.signal)
+    );
+    if (!profileRes.ok) { clearTimeout(timeout); return null; }
+    const profiles = await profileRes.json();
+    if (!profiles || profiles.length === 0) { clearTimeout(timeout); return null; }
+    const profile = profiles[0];
+
+    // Step 2: bio data for that user, only if published
+    const bioRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/link_in_bio?user_id=eq.${profile.user_id}&published=eq.true&select=display_name,bio,avatar_url,avatar_display,theme,font_family,links,videos,socials,show_branding,published,custom_theme`,
+      fetchOpts(controller.signal)
+    );
+    clearTimeout(timeout);
+    if (!bioRes.ok) return { profile, bio: null };
+    const bios = await bioRes.json();
+    return { profile, bio: bios[0] || null };
+  } catch (e) {
+    clearTimeout(timeout);
+    console.error('bio fetch error', e);
+    return null;
+  }
 }
 
-// Resolve live cover/headshot URLs for bio links that reference a source
-// table (courses, coaching services, digital products, media kit). Mirrors
-// the public bio resolver in api/bio.js and bio.html — keeps the editor's
-// link thumbnails AND the iframe preview in sync with current images.
-// Mutates `links` in place; only overwrites photoUrl when a live value is
-// found, falling back to the stored snapshot otherwise.
-async function resolveBioLinkLiveCovers(creatorUserId, links, creatorUsername) {
+// ==========================================================================
+// LIVE COVER URL RESOLVER
+// ==========================================================================
+// Bio links for courses, coaching services, digital products, and the media
+// kit used to snapshot the cover/headshot URL into `link.photoUrl` at the
+// moment the link was added. When the source updated its image, the bio
+// link kept pointing at the old (now possibly deleted) file.
+//
+// This resolver fetches the LIVE cover URL from each source table at render
+// time and mutates the bio links' photoUrl in place. If the source row no
+// longer exists, the existing snapshot value is left as a fallback.
+//
+// Strategy: one batched query per source type, only if at least one link
+// of that type is present. Up to 4 fetches per render, all in parallel.
+// ==========================================================================
+
+// Resolve live data for course/coaching/product/mediakit links by fetching the
+// authoritative source tables. Mutates `links` in place. Updates title, price,
+// and photo from the source tables — these were previously snapshots taken
+// at link-add time, so editing the source row (e.g. renaming a course) didn't
+// propagate to the bio page until the user deleted and re-added the link.
+//
+// IMPORTANT: link-specific fields like `courseCrossoutPrice` are NOT overwritten.
+// Those are intentional bio-level overrides set by the creator when adding the
+// link, separate from anything in the source table.
+async function resolveLiveCoverUrls(creatorUserId, links, fetchOpts, creatorUsername) {
   if (!Array.isArray(links) || links.length === 0) return;
 
-  var courseIds = [];
-  var coachingIds = [];
-  var productIds = [];
-  var needsMediaKit = false;
+  const courseIds = [];
+  const coachingIds = [];
+  const productIds = [];
+  let needsMediaKit = false;
 
-  for (var i = 0; i < links.length; i++) {
-    var l = links[i];
-    if (!l) continue;
-    if (l.isCourse && l.courseId) courseIds.push(l.courseId);
-    if (l.isCoaching && l.coachingId) coachingIds.push(l.coachingId);
-    if (l.isProduct && l.productId) productIds.push(l.productId);
-    if (l.isMediaKit) needsMediaKit = true;
+  for (const link of links) {
+    if (link && link.isCourse && link.courseId) courseIds.push(link.courseId);
+    if (link && link.isCoaching && link.coachingId) coachingIds.push(link.coachingId);
+    if (link && link.isProduct && link.productId) productIds.push(link.productId);
+    if (link && link.isMediaKit) needsMediaKit = true;
   }
 
-  function buildPublicUrl(bucket, path) {
+  // Build storage public URL for path-based covers (course-covers, coaching-covers).
+  const buildPublicUrl = (bucket, path) => {
     if (!path) return null;
-    return 'https://kjytapcgxukalwsyputk.supabase.co/storage/v1/object/public/' + bucket + '/' + path;
-  }
+    return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${path}`;
+  };
 
-  var promises = [];
+  // Batched fetches in parallel. Each promise resolves to a Map keyed by id.
+  const fetches = [];
 
   if (courseIds.length > 0) {
-    promises.push(
-      sb.from('courses').select('id, title, price_cents, cover_image_path').in('id', courseIds)
-        .then(function(r) {
-          var rows = r.data || [];
-          var map = {};
-          rows.forEach(function(row) {
-            map[row.id] = {
-              title: row.title,
-              price: row.price_cents,
-              photo: buildPublicUrl('course-covers', row.cover_image_path),
-            };
-          });
-          return { type: 'course', map: map };
-        })
-        .catch(function() { return { type: 'course', map: {} }; })
+    const ids = courseIds.map(encodeURIComponent).join(',');
+    fetches.push(
+      fetch(`${SUPABASE_URL}/rest/v1/courses?id=in.(${ids})&select=id,title,price_cents,cover_image_path`, fetchOpts())
+        .then(r => r.ok ? r.json() : [])
+        .then(rows => ({
+          type: 'course',
+          map: new Map(rows.map(r => [r.id, {
+            title: r.title,
+            price: r.price_cents,
+            photo: buildPublicUrl('course-covers', r.cover_image_path),
+          }]))
+        }))
+        .catch(() => ({ type: 'course', map: new Map() }))
     );
   }
 
   if (coachingIds.length > 0) {
-    promises.push(
-      sb.from('coaching_services').select('id, title, price_cents, cover_image_path').in('id', coachingIds)
-        .then(function(r) {
-          var rows = r.data || [];
-          var map = {};
-          rows.forEach(function(row) {
-            map[row.id] = {
-              title: row.title,
-              price: row.price_cents,
-              photo: buildPublicUrl('coaching-covers', row.cover_image_path),
-            };
-          });
-          return { type: 'coaching', map: map };
-        })
-        .catch(function() { return { type: 'coaching', map: {} }; })
+    const ids = coachingIds.map(encodeURIComponent).join(',');
+    fetches.push(
+      fetch(`${SUPABASE_URL}/rest/v1/coaching_services?id=in.(${ids})&select=id,title,price_cents,cover_image_path`, fetchOpts())
+        .then(r => r.ok ? r.json() : [])
+        .then(rows => ({
+          type: 'coaching',
+          map: new Map(rows.map(r => [r.id, {
+            title: r.title,
+            price: r.price_cents,
+            photo: buildPublicUrl('coaching-covers', r.cover_image_path),
+          }]))
+        }))
+        .catch(() => ({ type: 'coaching', map: new Map() }))
     );
   }
 
   if (productIds.length > 0) {
-    promises.push(
-      sb.from('digital_products').select('id, title, price_cents, cover_image_url').in('id', productIds)
-        .then(function(r) {
-          var rows = r.data || [];
-          var map = {};
-          rows.forEach(function(row) {
-            map[row.id] = {
-              title: row.title,
-              price: row.price_cents,
-              photo: row.cover_image_url || null,
-            };
-          });
-          return { type: 'product', map: map };
-        })
-        .catch(function() { return { type: 'product', map: {} }; })
+    // Digital products use cover_image_url (signed URL stored directly), not a path.
+    const ids = productIds.map(encodeURIComponent).join(',');
+    fetches.push(
+      fetch(`${SUPABASE_URL}/rest/v1/digital_products?id=in.(${ids})&select=id,title,price_cents,cover_image_url`, fetchOpts())
+        .then(r => r.ok ? r.json() : [])
+        .then(rows => ({
+          type: 'product',
+          map: new Map(rows.map(r => [r.id, {
+            title: r.title,
+            price: r.price_cents,
+            photo: r.cover_image_url || null,
+          }]))
+        }))
+        .catch(() => ({ type: 'product', map: new Map() }))
     );
   }
 
   if (needsMediaKit && creatorUserId) {
-    promises.push(
-      sb.from('media_kit').select('headshot_url').eq('user_id', creatorUserId).maybeSingle()
-        .then(function(r) {
-          return { type: 'mediakit', url: r.data ? (r.data.headshot_url || null) : null };
-        })
-        .catch(function() { return { type: 'mediakit', url: null }; })
+    fetches.push(
+      fetch(`${SUPABASE_URL}/rest/v1/media_kit?user_id=eq.${encodeURIComponent(creatorUserId)}&select=headshot_url&limit=1`, fetchOpts())
+        .then(r => r.ok ? r.json() : [])
+        .then(rows => ({
+          type: 'mediakit',
+          url: rows[0] ? (rows[0].headshot_url || null) : null
+        }))
+        .catch(() => ({ type: 'mediakit', url: null }))
     );
   }
 
-  if (promises.length === 0) return;
+  if (fetches.length === 0) return;
 
-  // 1.5-second timeout. If any source-table query hangs, give up and let
-  // the editor render with snapshot URLs. Better stale photo than hung page.
-  var TIMEOUT_SENTINEL = {};
-  var timeoutPromise = new Promise(function(resolve) {
-    setTimeout(function() { resolve(TIMEOUT_SENTINEL); }, 1500);
+  // 1.5-second timeout. If any source-table query hangs (Supabase outage,
+  // slow query, etc.), give up and let the bio render with snapshot URLs.
+  // Better to show a slightly stale photo than hang the entire page.
+  const TIMEOUT_SENTINEL = Symbol('resolver-timeout');
+  const timeoutPromise = new Promise(resolve => {
+    setTimeout(() => resolve(TIMEOUT_SENTINEL), 1500);
   });
-  var settled = await Promise.race([Promise.all(promises), timeoutPromise]);
+  const settled = await Promise.race([Promise.all(fetches), timeoutPromise]);
   if (settled === TIMEOUT_SENTINEL) {
     console.warn('cover URL resolver timed out at 1.5s, using snapshots');
     return;
   }
-  var results = settled;
-  var courseMap = (results.find(function(r) { return r.type === 'course'; }) || {}).map;
-  var coachingMap = (results.find(function(r) { return r.type === 'coaching'; }) || {}).map;
-  var productMap = (results.find(function(r) { return r.type === 'product'; }) || {}).map;
-  var mediaKitUrl = (results.find(function(r) { return r.type === 'mediakit'; }) || {}).url;
+  const results = settled;
+  const courseMap = results.find(r => r.type === 'course')?.map;
+  const coachingMap = results.find(r => r.type === 'coaching')?.map;
+  const productMap = results.find(r => r.type === 'product')?.map;
+  const mediaKitUrl = results.find(r => r.type === 'mediakit')?.url;
 
-  for (var j = 0; j < links.length; j++) {
-    var link = links[j];
+  // Mutate the links in place. For each field, only overwrite when we got a
+  // live value back. If a course/coaching/product was deleted from the source
+  // table, the map.get() returns undefined and we keep the snapshot as fallback
+  // so the bio renders something rather than going blank.
+  for (const link of links) {
     if (!link) continue;
     if (link.isCourse && link.courseId && courseMap) {
-      var liveCourse = courseMap[link.courseId];
-      if (liveCourse) {
-        if (typeof liveCourse.title === 'string' && liveCourse.title.length > 0) link.title = liveCourse.title;
-        if (typeof liveCourse.price === 'number') link.coursePrice = liveCourse.price;
-        if (liveCourse.photo) link.photoUrl = liveCourse.photo;
+      const live = courseMap.get(link.courseId);
+      if (live) {
+        if (typeof live.title === 'string' && live.title.length > 0) link.title = live.title;
+        if (typeof live.price === 'number') link.coursePrice = live.price;
+        if (live.photo) link.photoUrl = live.photo;
       }
     } else if (link.isCoaching && link.coachingId && coachingMap) {
-      var liveCoaching = coachingMap[link.coachingId];
-      if (liveCoaching) {
-        if (typeof liveCoaching.title === 'string' && liveCoaching.title.length > 0) link.title = liveCoaching.title;
-        if (typeof liveCoaching.price === 'number') link.coachingPrice = liveCoaching.price;
-        if (liveCoaching.photo) link.photoUrl = liveCoaching.photo;
+      const live = coachingMap.get(link.coachingId);
+      if (live) {
+        if (typeof live.title === 'string' && live.title.length > 0) link.title = live.title;
+        if (typeof live.price === 'number') link.coachingPrice = live.price;
+        if (live.photo) link.photoUrl = live.photo;
       }
     } else if (link.isProduct && link.productId && productMap) {
-      var liveProduct = productMap[link.productId];
-      if (liveProduct) {
-        if (typeof liveProduct.title === 'string' && liveProduct.title.length > 0) link.title = liveProduct.title;
-        if (typeof liveProduct.price === 'number') link.productPrice = liveProduct.price;
-        if (liveProduct.photo) link.photoUrl = liveProduct.photo;
+      const live = productMap.get(link.productId);
+      if (live) {
+        if (typeof live.title === 'string' && live.title.length > 0) link.title = live.title;
+        if (typeof live.price === 'number') link.productPrice = live.price;
+        if (live.photo) link.photoUrl = live.photo;
       }
     } else if (link.isMediaKit) {
       if (mediaKitUrl) link.photoUrl = mediaKitUrl;
@@ -576,3067 +779,216 @@ async function resolveBioLinkLiveCovers(creatorUserId, links, creatorUsername) {
   }
 }
 
-async function loadBioData() {
-  if (!currentUser) return;
-  try {
-    const { data: profile } = await sb.from('profiles').select('username').eq('user_id', currentUser.id).maybeSingle();
-    if (profile?.username) {
-      bioState.username = profile.username;
-      bioOriginalUsername = profile.username;
-      document.getElementById('bio-username').value = profile.username;
-      // Override browser autofill which may fire after our set
-      setTimeout(function() {
-        var el = document.getElementById('bio-username');
-        if (el && el.value !== bioState.username) el.value = bioState.username;
-      }, 500);
-      setTimeout(function() {
-        var el = document.getElementById('bio-username');
-        if (el && el.value !== bioState.username) el.value = bioState.username;
-      }, 1500);
-    }
-    const { data: bio } = await sb.from('link_in_bio').select('*').eq('user_id', currentUser.id).maybeSingle();
-    if (bio) {
-      bioState.display_name = bio.display_name || '';
-      bioState.bio = bio.bio || '';
-      bioState.avatar_url = bio.avatar_url || '';
-      bioState.avatar_display = bio.avatar_display || 'default';
-      bioState.theme = bio.theme || 'purple';
-      bioState.font_family = bio.font_family || 'DM Sans';
-      bioState.socials = bio.socials || {};
-      bioState.links = Array.isArray(bio.links) ? bio.links.map(l => ({ ...l, _id: linkIdSeq++ })) : [];
-      // Old videos array is no longer used — YouTube embeds now live as
-      // isVideoBlock entries inside bioState.links. Wipe any legacy data.
-      bioState.videos = [];
-      bioState.published = !!bio.published;
-      bioState.show_branding = bio.show_branding !== false;
-      bioState.custom_theme = bio.custom_theme || null;
-      // Guard: if user selected custom but is no longer Pro, revert to purple
-      if (bioState.theme === 'custom' && !isPro()) {
-        bioState.theme = 'purple';
-      }
+// ==========================================================================
+// HANDLER
+// ==========================================================================
 
-      // Resolve live cover URLs for course/coaching/product/mediakit links.
-      // Bio links snapshot photoUrl at link-add time, so when the source
-      // image is updated the bio still shows the old one. Fetch fresh URLs
-      // from the canonical tables and overwrite. Same logic as the public
-      // bio render path. Wrapped in try/catch so a slow lookup never blocks
-      // the editor from loading.
-      try {
-        await resolveBioLinkLiveCovers(currentUser.id, bioState.links, bioState.username);
-      } catch (e) {
-        console.error('cover URL resolver failed in dashboard:', e);
-      }
-    }
-  } catch (e) { console.error('loadBioData', e); }
-  syncBioForm();
-  // Reset username hint to default message
-  var bioHint = document.getElementById('bio-username-hint');
-  if (bioHint) { bioHint.textContent = 'Same username as your Media Kit. You can change it up to 2 times per week.'; bioHint.style.color = 'var(--muted)'; }
-  renderBioThemes();
-  renderBioFonts();
-  syncBioCustomEditorUI();
-  renderBioSocials();
-  renderBioLinks();
-  updatePublishUI();
-  updateBioPreview();
-  updateMediaKitLinkButton();
-  updateSubscribeBtn();
-}
-
-function syncBioForm() {
-  document.getElementById('bio-display-name').value = bioState.display_name;
-  document.getElementById('bio-bio').value = bioState.bio;
-  document.getElementById('bio-name-count').textContent = bioState.display_name.length;
-  document.getElementById('bio-bio-count').textContent = bioState.bio.length;
-  renderAvatarPreview();
-  updateAvatarDisplayUI();
-  renderBioThemes();
-  renderBioFonts();
-  // branding toggle — Free users: disabled/greyed + always checked; Pro users: interactive
-  syncBrandingToggle();
-}
-
-function syncBrandingToggle() {
-  const pro = isPro();
-  const cb = document.getElementById('bio-show-branding');
-  const label = document.getElementById('bio-branding-label');
-  const pill = document.getElementById('bio-branding-pro-pill');
-  const hint = document.getElementById('bio-branding-hint');
-  if (!cb) return;
-
-  if (pro) {
-    cb.disabled = false;
-    cb.checked = bioState.show_branding;
-    label.style.opacity = '1';
-    label.style.cursor = 'pointer';
-    if (pill) pill.style.display = 'none';
-    if (hint) hint.textContent = "Uncheck to hide the \"Get your free link-in-bio\" footer on your public page.";
-  } else {
-    // Free: force checked on, disabled
-    cb.checked = true;
-    cb.disabled = true;
-    label.style.opacity = '0.65';
-    label.style.cursor = 'not-allowed';
-    if (pill) pill.style.display = 'inline-flex';
-    if (hint) hint.textContent = "The footer link helps other creators find Ryxa. Upgrade to Pro to remove it.";
-    // Ensure state matches the forced-on checkbox
-    bioState.show_branding = true;
+module.exports = async (req, res) => {
+  const username = (req.query.u || '').trim();
+  if (!username) {
+    res.writeHead(301, { Location: 'https://www.ryxa.io/' });
+    return res.end();
   }
-}
 
-function onBrandingToggle() {
-  const pro = isPro();
-  if (!pro) {
-    // Shouldn't be able to toggle, but force it back on if it somehow fires
-    document.getElementById('bio-show-branding').checked = true;
-    bioState.show_branding = true;
+  // Reject anything that doesn't look like a valid username
+  if (!/^[a-zA-Z0-9._-]{1,30}$/.test(username)) {
+    res.writeHead(301, { Location: 'https://www.ryxa.io/' });
+    return res.end();
+  }
+
+  // Reject reserved paths that may have leaked through cleanUrls normalization
+  const RESERVED = new Set([
+    'brand-portal', 'deal', 'about', 'blog', 'dashboard', 'faq', 'follower-audit',
+    'index', 'instructions', 'pricing', 'privacy', 'reset-password', 'terms',
+    'mediakit', 'bio', 'brand-deal-crm', 'api', 'admin', 'support', 'help', 'login', 'signin', 'signup',
+    'tools', 'tools-link-in-bio', 'tools-course-builder', 'tools-coaching', 'tools-brand-deal-crm',
+    'tools-media-kit', 'tools-script-builder', 'tools-ai-design-studio', 'tools-grid-planner',
+    'tools-follower-audit', 'tools-photo-editor', 'tools-qr-generator',
+    'tools-invoice-generator', 'tools-sign-pdf', 'tools-thumbnail-analyzer', 'tools-contract-analyzer',
+    'tools-digital-products', 'tools-image-studio', 'data-deletion-status', 'testimonials',
+    'blog-best-linktree-alternatives', 'blog-why-did-my-friends-unfollow-me',
+    'learn', 'cookie-banner', 'site-nav', 'booking', 'course', 'portal'
+  ]);
+  if (username.includes('.') || username.includes('/') || RESERVED.has(username.toLowerCase())) {
+    res.writeHead(301, { Location: 'https://www.ryxa.io/' + username });
+    return res.end();
+  }
+
+  // Read the source HTML template
+  const htmlPath = path.join(process.cwd(), 'bio.html');
+  let html;
+  try {
+    html = fs.readFileSync(htmlPath, 'utf8');
+  } catch (e) {
+    res.status(500).send('Template not found');
     return;
   }
-  bioState.show_branding = document.getElementById('bio-show-branding').checked;
-  schedulePreviewUpdate();
-}
 
-function renderAvatarPreview() {
-  const inner = document.getElementById('bio-avatar-inner');
-  const removeBtn = document.getElementById('bio-avatar-remove');
-  if (bioState.avatar_url) {
-    inner.innerHTML = `<img alt="Profile photo" src="${escapeHtml(bioState.avatar_url)}" class="bio-s-0c9434">`;
-    removeBtn.style.display = 'inline-block';
-  } else {
-    const name = bioState.display_name || bioState.username || '?';
-    inner.textContent = (name[0] || '?').toUpperCase();
-    removeBtn.style.display = 'none';
-  }
-}
+  // Default OG values (used if user not found OR fetch fails)
+  let title = `@${username} | Ryxa`;
+  let description = `A creator's link-in-bio page on Ryxa.`;
+  let image = 'https://www.ryxa.io/og-image.png';
+  const url = `https://www.ryxa.io/${encodeURIComponent(username)}`;
 
-function onBioFieldChange() {
-  bioState.display_name = document.getElementById('bio-display-name').value;
-  bioState.bio = document.getElementById('bio-bio').value;
-  document.getElementById('bio-name-count').textContent = bioState.display_name.length;
-  document.getElementById('bio-bio-count').textContent = bioState.bio.length;
-  if (!bioState.avatar_url) renderAvatarPreview(); // update fallback initial
-  schedulePreviewUpdate();
-}
+  // Fetch the data
+  const result = await fetchBioData(username);
 
-// Username change rate limiting: 2 changes per 7 days
-const USERNAME_CHANGE_LIMIT = 2;
-const USERNAME_CHANGE_WINDOW_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+  let renderedInner = null;
+  let theme = 'purple';
+  let customThemeStyle = '';
 
-async function checkUsernameChangeLimit() {
-  const { data: profile } = await sb.from('profiles').select('username_changes').eq('user_id', currentUser.id).maybeSingle();
-  const changes = (profile?.username_changes || []).filter(ts => {
-    return (Date.now() - new Date(ts).getTime()) < USERNAME_CHANGE_WINDOW_MS;
-  });
-  return { allowed: changes.length < USERNAME_CHANGE_LIMIT, remaining: USERNAME_CHANGE_LIMIT - changes.length, changes };
-}
+  if (result && result.bio && result.bio.published !== false) {
+    const { profile, bio } = result;
 
-async function recordUsernameChange() {
-  const { data: profile } = await sb.from('profiles').select('username_changes').eq('user_id', currentUser.id).maybeSingle();
-  const now = new Date().toISOString();
-  // Keep only changes within the window, then add the new one
-  const changes = (profile?.username_changes || []).filter(ts => {
-    return (Date.now() - new Date(ts).getTime()) < USERNAME_CHANGE_WINDOW_MS;
-  });
-  changes.push(now);
-  await sb.from('profiles').update({ username_changes: changes }).eq('user_id', currentUser.id);
-}
+    // Update OG metadata for social previews
+    title = `all of @${profile.username}'s links`;
+    description = bio.bio || `Find all of @${profile.username}'s links in one place on Ryxa.`;
+    if (bio.avatar_url) image = bio.avatar_url;
 
-function formatNextChangeTime(changes) {
-  // Find the oldest change in the window — that's the one that will expire first
-  const sorted = changes.map(ts => new Date(ts).getTime()).sort((a, b) => a - b);
-  const earliest = sorted[0];
-  const availableAt = new Date(earliest + USERNAME_CHANGE_WINDOW_MS);
-  const diff = availableAt - Date.now();
-  const days = Math.ceil(diff / (24 * 60 * 60 * 1000));
-  if (days <= 1) {
-    const hours = Math.ceil(diff / (60 * 60 * 1000));
-    return hours <= 1 ? 'in about an hour' : `in about ${hours} hours`;
-  }
-  return `in ${days} day${days > 1 ? 's' : ''}`;
-}
-
-function formatNextChangeDate(changes) {
-  const sorted = changes.map(ts => new Date(ts).getTime()).sort((a, b) => a - b);
-  const earliest = sorted[0];
-  const availableAt = new Date(earliest + USERNAME_CHANGE_WINDOW_MS);
-  return availableAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-}
-
-let bioUsernameCheckTimer = null;
-let bioUsernameCheckToken = 0; // handles out-of-order async responses
-
-function onUsernameInput() {
-  const raw = document.getElementById('bio-username').value;
-  const cleaned = raw.toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 30);
-  if (cleaned !== raw) document.getElementById('bio-username').value = cleaned;
-  bioState.username = cleaned;
-  // Keep the Media Kit input in sync if it's been initialized
-  const mkInput = document.getElementById('mk-username');
-  if (mkInput && mkInput.value !== cleaned) mkInput.value = cleaned;
-  const hint = document.getElementById('bio-username-hint');
-
-  // Cancel any pending availability check
-  clearTimeout(bioUsernameCheckTimer);
-  bioUsernameCheckToken++;
-
-  if (!cleaned) {
-    hint.textContent = 'Same username as your Media Kit. Changing it here updates both.';
-    hint.style.color = 'var(--muted)';
-  } else if (cleaned.length < 3) {
-    hint.textContent = 'Too short, minimum 3 characters';
-    hint.style.color = '#fca5a5';
-  } else if (BIO_RESERVED.has(cleaned)) {
-    hint.textContent = 'That username is reserved. Pick another.';
-    hint.style.color = '#fca5a5';
-  } else if (cleaned === bioOriginalUsername) {
-    // User's own current username — no need to check
-    renderUsernameAvailable(cleaned);
-  } else {
-    // Show "Checking..." state, then query Supabase after a 500ms pause
-    hint.innerHTML = `<span class="bio-s-e3f916">Checking <strong>ryxa.io/${cleaned}</strong>…</span>`;
-    hint.style.color = 'var(--muted)';
-    const myToken = bioUsernameCheckToken;
-    bioUsernameCheckTimer = setTimeout(() => checkUsernameAvailability(cleaned, myToken), 500);
-  }
-  // If the user's page is currently published, re-render the "Live at" text + View Live link
-  if (bioState.published) updatePublishUI();
-  schedulePreviewUpdate();
-}
-
-async function checkUsernameAvailability(username, token) {
-  const hint = document.getElementById('bio-username-hint');
-  try {
-    const { data, error } = await sb
-      .from('public_profiles')
-      .select('user_id')
-      .eq('username', username)
-      .maybeSingle();
-    // Ignore if the user kept typing after this request fired
-    if (token !== bioUsernameCheckToken) return;
-    if (error) {
-      hint.innerHTML = `<span class="bio-s-e3f916">Couldn't check availability. Will verify on save.</span>`;
-      return;
-    }
-    if (!data || data.user_id === currentUser?.id) {
-      // Name is available — but check rate limit before showing green
-      const { allowed, changes } = await checkUsernameChangeLimit();
-      if (token !== bioUsernameCheckToken) return;
-      if (!allowed) {
-        const nextDate = formatNextChangeDate(changes);
-        hint.innerHTML = `<span class="bio-s-dbc3a0">You've reached the max username changes. Try again on ${nextDate}.</span>`;
-        // Revert input to current username so save still works for other changes
-        document.getElementById('bio-username').value = bioOriginalUsername;
-        bioState.username = bioOriginalUsername;
-        const mkInput = document.getElementById('mk-username');
-        if (mkInput) mkInput.value = bioOriginalUsername;
-        return;
-      }
-      renderUsernameAvailable(username);
+    // Pick theme: custom theme honored for Pro and Max tiers
+    const isPaidTier = profile.tier === 'monthly' || profile.tier === 'max';
+    if (bio.theme === 'custom' && isPaidTier && bio.custom_theme) {
+      theme = 'custom';
+      customThemeStyle = buildCustomThemeStyle(bio.custom_theme);
+    } else if (bio.theme === 'custom' && !isPaidTier) {
+      theme = 'purple';
+    } else if (isBuiltinImageTheme(bio.theme)) {
+      // Builtin image themes are free for all tiers. They use the same
+      // [data-theme="custom"] CSS selector as the Pro custom theme, but with
+      // hardcoded values from BUILTIN_IMAGE_THEMES.
+      theme = 'custom';
+      customThemeStyle = buildImageThemeStyle(bio.theme);
     } else {
-      hint.innerHTML = `<span class="bio-s-dbc3a0">✕ <strong>${username}</strong> is already taken, try another.</span>`;
-    }
-  } catch (e) {
-    if (token !== bioUsernameCheckToken) return;
-    hint.innerHTML = `<span class="bio-s-e3f916">Couldn't check availability. Will verify on save.</span>`;
-  }
-}
-
-function renderUsernameAvailable(cleaned) {
-  const hint = document.getElementById('bio-username-hint');
-  const fullUrl = `https://www.ryxa.io/${cleaned}`;
-  const isChanged = cleaned !== bioOriginalUsername;
-  hint.innerHTML = `
-    <div class="bio-s-6b6f9f">
-      <span class="bio-s-f4cfc5">✓</span>
-      <span>Your page will be at <strong class="bio-s-313aee">ryxa.io/${cleaned}</strong></span>
-      <button type="button" data-bio-action="copy-bio-link" data-bio-url="${fullUrl}"
-        class="bio-s-8911f1">
-        Copy link
-      </button>
-    </div>${isChanged ? '<div class="bio-s-19cf92">Press save to change username</div>' : ''}`;
-  hint.style.color = 'var(--muted)';
-}
-
-async function copyBioLink(url, btn) {
-  try {
-    await navigator.clipboard.writeText(url);
-    const original = btn.textContent;
-    btn.textContent = 'Copied ✓';
-    btn.style.background = 'rgba(74,222,128,0.15)';
-    btn.style.borderColor = 'rgba(74,222,128,0.4)';
-    btn.style.color = '#4ade80';
-    setTimeout(() => {
-      btn.textContent = original;
-      btn.style.background = 'rgba(124,58,237,0.1)';
-      btn.style.borderColor = 'rgba(124,58,237,0.3)';
-      btn.style.color = '#c4b5fd';
-    }, 1500);
-  } catch (e) {
-    // Fallback for browsers without clipboard API
-    const ta = document.createElement('textarea');
-    ta.value = url;
-    ta.style.position = 'fixed';
-    ta.style.opacity = '0';
-    document.body.appendChild(ta);
-    ta.select();
-    try { document.execCommand('copy'); btn.textContent = 'Copied ✓'; }
-    catch { btn.textContent = 'Copy failed'; }
-    document.body.removeChild(ta);
-    setTimeout(() => { btn.textContent = 'Copy link'; }, 1500);
-  }
-}
-
-// All themes — color presets are Free, image themes are Free, Custom is Pro
-// Image themes use the same 4-color schema (bg, card, text, accent) as Custom,
-// plus an `image` field pointing to the background image. Server-side rendering
-// recognizes these by `key` and applies the right CSS.
-const BIO_THEMES = [
-  { key:'custom',     name:'Custom',     bg:'#07070f', bg2:'#161625', grad:'linear-gradient(135deg,#a78bfa,#e879f9)', pro:true },
-  // ----- Image themes (free for all) -----
-  { key:'paperwhite', name:'Cloud',    image:'/bgtemplates/1.webp', colors:{bg:'#FFFFFF',card:'#F5F5F8',text:'#1A1A2E',accent:'#6366F1'}, pro:false },
-  { key:'ember',      name:'Onyx',     image:'/bgtemplates/2.webp', colors:{bg:'#1A1A1C',card:'#262628',text:'#F5F2ED',accent:'#F97316'}, pro:false },
-  { key:'sapphire',   name:'Riviera',  image:'/bgtemplates/3.webp', colors:{bg:'#1E3A8A',card:'#172554',text:'#F5EFE0',accent:'#D4AF37'}, pro:false },
-  { key:'blossom',    name:'Sakura',   image:'/bgtemplates/4.webp', colors:{bg:'#FCE7EB',card:'#F8D7DD',text:'#5C2E3D',accent:'#C9A961'}, pro:false },
-  { key:'honey',      name:'Sunbeam',  image:'/bgtemplates/5.webp', colors:{bg:'#FCEFC0',card:'#F8E48E',text:'#5C3F17',accent:'#B45309'}, pro:false },
-  // ----- Color themes (free) -----
-  { key:'purple',   name:'Purple',   bg:'#07070f', bg2:'#161625', grad:'linear-gradient(135deg,#a78bfa,#e879f9)', pro:false },
-  { key:'midnight', name:'Midnight', bg:'#050508', bg2:'#13131b', grad:'linear-gradient(135deg,#9ca3af,#e5e7eb)', pro:false },
-  { key:'sunset',   name:'Sunset',   bg:'#120808', bg2:'#251414', grad:'linear-gradient(135deg,#fb923c,#f472b6)', pro:false },
-  { key:'ocean',    name:'Ocean',    bg:'#040a14', bg2:'#111d33', grad:'linear-gradient(135deg,#22d3ee,#60a5fa)', pro:false },
-  { key:'forest',   name:'Forest',   bg:'#040a06', bg2:'#11211a', grad:'linear-gradient(135deg,#34d399,#a7f3d0)', pro:false },
-  { key:'rose',     name:'Rose',     bg:'#140710', bg2:'#2a1624', grad:'linear-gradient(135deg,#fb7185,#fda4af)', pro:false },
-  { key:'amber',    name:'Amber',    bg:'#0f0a04', bg2:'#251b0e', grad:'linear-gradient(135deg,#fbbf24,#fde68a)', pro:false },
-  { key:'crimson',  name:'Crimson',  bg:'#0f0405', bg2:'#260c10', grad:'linear-gradient(135deg,#ef4444,#fca5a5)', pro:false },
-  { key:'electric', name:'Electric', bg:'#050814', bg2:'#111a38', grad:'linear-gradient(135deg,#60a5fa,#a5b4fc)', pro:false },
-  { key:'mint',     name:'Mint',     bg:'#030e0c', bg2:'#102623', grad:'linear-gradient(135deg,#2dd4bf,#a7f3d0)', pro:false },
-  { key:'violet',   name:'Violet',   bg:'#0c0418', bg2:'#220f37', grad:'linear-gradient(135deg,#c084fc,#e9d5ff)', pro:false },
-  { key:'graphite', name:'Graphite', bg:'#0a0a0a', bg2:'#1e1e1e', grad:'linear-gradient(135deg,#d1d5db,#f3f4f6)', pro:false },
-];
-
-// =====================================================================
-// BIO_FONTS — curated Google Fonts list available to all tiers (Free, Pro, Max).
-// Used by Link in Bio AND Media Kit. Single source of truth.
-//
-// Each entry:
-//   key:    Stable identifier saved to DB (matches Google Fonts family name).
-//           When changing, update the migration backfill too.
-//   name:   Label shown in the picker.
-//   gfont:  Google Fonts family name as it appears in the URL parameter
-//           (e.g. "Plus Jakarta Sans" -> "Plus+Jakarta+Sans").
-//   weights: Comma-separated weights to load. Keep narrow to limit page weight.
-//   stack:  CSS font-family value applied to the body. Includes safe fallbacks.
-//   sample: Short string to render in the picker so users see the font.
-//
-// To add a font: append a new entry, list it on Google Fonts to confirm it's
-// available, pick the weights you actually use (300/400/500/600/700/800), test
-// in preview. No DB change required — font_family is plain TEXT.
-// =====================================================================
-const BIO_FONTS = [
-  // Default first — most users will land here.
-  { key:'DM Sans',             name:'Ryxa default (Syne + DM Sans)', gfont:'DM+Sans',             weights:'300;400;500;600;700', stack:"'DM Sans', sans-serif" },
-  // The rest alphabetical.
-  { key:'Abril Fatface',       name:'Abril Fatface',       gfont:'Abril+Fatface',       weights:'400', stack:"'Abril Fatface', serif" },
-  { key:'Anton',               name:'Anton',               gfont:'Anton',               weights:'400', stack:"'Anton', sans-serif" },
-  { key:'Archivo Black',       name:'Archivo Black',       gfont:'Archivo+Black',       weights:'400', stack:"'Archivo Black', sans-serif" },
-  { key:'Bebas Neue',          name:'Bebas Neue',          gfont:'Bebas+Neue',          weights:'400', stack:"'Bebas Neue', sans-serif" },
-  { key:'Bricolage Grotesque', name:'Bricolage Grotesque', gfont:'Bricolage+Grotesque', weights:'400;500;600;700;800', stack:"'Bricolage Grotesque', sans-serif" },
-  { key:'Caveat',              name:'Caveat (handwritten)',gfont:'Caveat',              weights:'400;500;600;700', stack:"'Caveat', cursive" },
-  { key:'Cormorant',           name:'Cormorant',           gfont:'Cormorant',           weights:'400;500;600;700', stack:"'Cormorant', serif" },
-  { key:'Fraunces',            name:'Fraunces',            gfont:'Fraunces',            weights:'300;400;500;600;700', stack:"'Fraunces', serif" },
-  { key:'Inter',               name:'Inter',               gfont:'Inter',               weights:'300;400;500;600;700', stack:"'Inter', sans-serif" },
-  { key:'JetBrains Mono',      name:'JetBrains Mono',      gfont:'JetBrains+Mono',      weights:'300;400;500;600;700', stack:"'JetBrains Mono', monospace" },
-  { key:'Lora',                name:'Lora',                gfont:'Lora',                weights:'400;500;600;700', stack:"'Lora', serif" },
-  { key:'Monoton',             name:'Monoton (retro)',     gfont:'Monoton',             weights:'400', stack:"'Monoton', sans-serif" },
-  { key:'Nunito',              name:'Nunito',              gfont:'Nunito',              weights:'300;400;600;700;800', stack:"'Nunito', sans-serif" },
-  { key:'Outfit',              name:'Outfit',              gfont:'Outfit',              weights:'300;400;500;600;700;800', stack:"'Outfit', sans-serif" },
-  { key:'Pacifico',            name:'Pacifico (script)',   gfont:'Pacifico',            weights:'400', stack:"'Pacifico', cursive" },
-  { key:'Playfair Display',    name:'Playfair Display',    gfont:'Playfair+Display',    weights:'400;500;600;700;800', stack:"'Playfair Display', serif" },
-  { key:'Plus Jakarta Sans',   name:'Plus Jakarta Sans',   gfont:'Plus+Jakarta+Sans',   weights:'300;400;500;600;700;800', stack:"'Plus Jakarta Sans', sans-serif" },
-  { key:'Rubik Mono One',      name:'Rubik Mono One (Y2K)',gfont:'Rubik+Mono+One',      weights:'400', stack:"'Rubik Mono One', sans-serif" },
-  { key:'Space Grotesk',       name:'Space Grotesk',       gfont:'Space+Grotesk',       weights:'300;400;500;600;700', stack:"'Space Grotesk', sans-serif" },
-];
-
-// Helper: Look up a font by key. Falls back to default ('DM Sans').
-function getBioFont(key) {
-  return BIO_FONTS.find(f => f.key === key) || BIO_FONTS[0];
-}
-
-// Helper: Build a Google Fonts <link> URL for a given font key.
-// Always also loads Syne (used for headings throughout bio + media kit) so
-// existing Syne-styled elements don't break when a different body font is picked.
-// Used by the preview iframes in dashboard. Public pages have their own loader
-// (see bio.html / mediakit.html / bio.js / mediakit.js).
-function buildBioFontLink(fontKey) {
-  const font = getBioFont(fontKey);
-  // Always include Syne (existing heading font). Skip duplicate if user picked Syne (not in list, but defense).
-  const families = [];
-  families.push('Syne:wght@400;500;600;700;800');
-  families.push(`${font.gfont}:wght@${font.weights}`);
-  return `https://fonts.googleapis.com/css2?${families.map(f => 'family=' + f).join('&')}&display=swap`;
-}
-
-// Helper: build the same theme vars used by `custom` for any image theme.
-// Returns the same shape as buildCustomThemeVars() so the rest of the code
-// can treat builtin image themes identically to a Pro user's custom theme.
-function buildImageThemeVars(themeKey) {
-  const theme = BIO_THEMES.find(x => x.key === themeKey);
-  if (!theme || !theme.colors) return null;
-  const c = theme.colors;
-  return {
-    bg: c.bg,
-    surface: c.card,
-    surface2: c.card,
-    text: c.text,
-    muted: hexAlpha(c.text, 0.65),
-    muted2: hexAlpha(c.text, 0.8),
-    accent: c.accent,
-    accent2: c.accent,
-    glow: hexAlpha(c.accent, 0.3),
-    border: hexAlpha(c.text, 0.1),
-    avatarBorder: `linear-gradient(135deg, ${c.accent}, ${c.accent})`,
-    bgUrl: theme.image,
-    _customColors: c,
-  };
-}
-
-// Returns true if this theme key is one of the builtin image themes
-function isImageTheme(themeKey) {
-  const theme = BIO_THEMES.find(x => x.key === themeKey);
-  return !!(theme && theme.image && theme.colors);
-}
-
-// Default colors for custom theme
-const CUSTOM_THEME_DEFAULTS = {
-  bg:     '#07070f',  // page background
-  card:   '#161625',  // card/surface background
-  text:   '#ffffff',  // primary text
-  accent: '#a78bfa',  // accent/button color
-};
-
-// Given the 4 user-picked colors, derive the full theme object
-function deriveThemeFromCustom(colors) {
-  const c = { ...CUSTOM_THEME_DEFAULTS, ...(colors || {}) };
-  return {
-    bg: c.bg,
-    bg2: c.card,
-    surface: c.card,
-    surface2: c.card,
-    border: hexAlpha(c.text, 0.1),
-    muted: hexAlpha(c.text, 0.6),
-    text: c.text,
-    accent: c.accent,
-    accent2: c.accent,
-    grad: `linear-gradient(135deg, ${c.accent}, ${c.accent})`,
-    _colors: c,
-  };
-}
-
-function hexAlpha(hex, alpha) {
-  // Convert #RRGGBB to rgba(r,g,b,a)
-  const h = (hex || '#ffffff').replace('#', '');
-  const bigint = parseInt(h.length === 3 ? h.split('').map(c => c + c).join('') : h, 16);
-  const r = (bigint >> 16) & 255, g = (bigint >> 8) & 255, b = bigint & 255;
-  return `rgba(${r},${g},${b},${alpha})`;
-}
-
-// Build the full theme var object used by preview/public pages from the 4 user-picked colors
-function buildCustomThemeVars(customTheme) {
-  const colors = customTheme?.colors || CUSTOM_THEME_DEFAULTS;
-  const c = { ...CUSTOM_THEME_DEFAULTS, ...colors };
-  return {
-    bg: c.bg,
-    surface: c.card,
-    surface2: c.card,
-    text: c.text,
-    muted: hexAlpha(c.text, 0.65),
-    muted2: hexAlpha(c.text, 0.8),
-    accent: c.accent,
-    accent2: c.accent,
-    glow: hexAlpha(c.accent, 0.3),
-    border: hexAlpha(c.text, 0.1),
-    avatarBorder: `linear-gradient(135deg, ${c.accent}, ${c.accent})`,
-    _customColors: c,
-  };
-}
-
-function renderBioThemes() {
-  const container = document.getElementById('bio-themes');
-  if (!container) return;
-  const pro = isPro();
-  const max = isMax();
-  container.innerHTML = BIO_THEMES.map(t => {
-    // Free-locked OR Max-locked
-    const locked = (t.pro && !pro) || (t.max && !max);
-    const selected = bioState.theme === t.key ? 'selected' : '';
-    const lockedClass = locked ? 'locked' : '';
-    const lock = locked ? `<div class="bio-theme-lock" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>` : '';
-    const maxBadge = t.max ? '<div class="bio-theme-max-badge">MAX</div>' : '';
-
-    let swatch, btnBg, nameStyle = '';
-    if (t.key === 'custom') {
-      swatch = '<div class="bio-theme-swatch bio-s-74a83e" ></div>';
-      btnBg = `linear-gradient(135deg,${t.bg},${t.bg2})`;
-    } else if (t.image && t.colors) {
-      // Image theme — show the bg image as both the swatch and button background.
-      // Label gets a colored pill backdrop using the theme's bg color so it
-      // stays readable against the busy image, with the theme's own text color.
-      swatch = `<div class="bio-theme-swatch" data-bio-bg="url('${t.image}') center/cover" data-bio-border="1.5px solid rgba(0,0,0,0.4)" data-bio-shadow="0 1px 3px rgba(0,0,0,0.25)"></div>`;
-      btnBg = `url('${t.image}') center/cover`;
-      // Encode the multi-property nameStyle as multiple data-bio-* attrs that
-      // will be applied via JS. CSP-safe; no inline style attribute.
-      nameStyle = `data-bio-color="${t.colors.text}" data-bio-bg="${hexAlpha(t.colors.bg,0.85)}" data-bio-padding="2px 6px" data-bio-radius="6px" data-bio-display="inline-block"`;
-    } else {
-      swatch = `<div class="bio-theme-swatch" data-bio-bg="${t.grad}"></div>`;
-      btnBg = `linear-gradient(135deg,${t.bg},${t.bg2})`;
-      nameStyle = '';
+      theme = bio.theme || 'purple';
     }
 
-    return `<button type="button" class="bio-theme-btn ${selected} ${lockedClass}" data-theme="${t.key}" data-bio-action="pick-theme" data-bio-theme="${t.key}"
-      data-bio-bg="${btnBg}">
-      ${swatch}
-      <div class="bio-theme-name" ${nameStyle}>${t.name}</div>
-      ${maxBadge}
-      ${lock}
-    </button>`;
-  }).join('');
-
-  // Apply data-bio-* style attributes to their elements after rendering.
-  // This replaces the inline style="..." attributes that strict CSP blocks.
-  bioApplyDataStyles(container);
-
-  // Show/hide custom editor panel based on selected theme + tier
-  const editor = document.getElementById('bio-custom-editor');
-  if (editor) editor.style.display = (bioState.theme === 'custom' && pro) ? 'block' : 'none';
-}
-
-function pickTheme(t) {
-  const theme = BIO_THEMES.find(x => x.key === t);
-  if (!theme) return;
-  const pro = isPro();
-  const max = isMax();
-  if (theme.pro && !pro) {
-    showProUpsell({
-      feature: 'Custom Theme',
-      description: 'Build a fully custom theme with your own colors, background image, and avatar style. Available on Pro and Creator Max.'
-    });
-    return;
-  }
-  if (theme.max && !max) {
-    showBioStatus('error', 'Custom theme is a Creator Max feature. Upgrade to unlock full branding control.');
-    setTimeout(() => { try { openSettingsModal(); } catch(e){} }, 200);
-    return;
-  }
-  bioState.theme = t;
-  // If picking custom for the first time, init state with defaults
-  if (t === 'custom' && !bioState.custom_theme) {
-    bioState.custom_theme = { bgUrl: '', bgOpacity: 0.4, colors: { ...CUSTOM_THEME_DEFAULTS }, applied: true };
-  }
-  renderBioThemes();
-  syncBioCustomEditorUI();
-  schedulePreviewUpdate();
-}
-
-// =====================================================================
-// Font picker (bio) — dropdown that lists all fonts. When closed, the
-// select itself shows the currently chosen font (matches what's saved).
-// When opened, each <option> renders in its own font for browsing.
-// Live preview iframe shows the actual page font in real time.
-// =====================================================================
-function renderBioFonts() {
-  const select = document.getElementById('bio-font-select');
-  if (!select) return;
-  select.innerHTML = BIO_FONTS.map(f => {
-    const sel = bioState.font_family === f.key ? ' selected' : '';
-    // option font-family applied programmatically after innerHTML to keep CSP-strict
-    return `<option value="${escapeHtml(f.key)}" data-bio-font-family="${f.stack}"${sel}>${escapeHtml(f.name)}</option>`;
-  }).join('');
-  // Apply the option font-family attributes programmatically (CSP-strict; can't use inline style)
-  Array.from(select.options).forEach(opt => {
-    const ff = opt.dataset.bioFontFamily;
-    if (ff) opt.style.fontFamily = ff;
-  });
-  // Set the select element's own font-family so the resting state shows
-  // the currently chosen font, not just the option label.
-  const font = getBioFont(bioState.font_family);
-  select.style.fontFamily = font.stack;
-  // Lazily inject Google Fonts <link>s for each picker font into the dashboard <head>
-  // so the option labels and the resting select render in the actual fonts.
-  injectBioPickerFonts();
-}
-
-// One-time loader: inject all picker fonts into the parent dashboard so the
-// option text and the resting select render in their real face. Only runs once
-// per page load.
-let _bioPickerFontsInjected = false;
-function injectBioPickerFonts() {
-  if (_bioPickerFontsInjected) return;
-  _bioPickerFontsInjected = true;
-  const families = BIO_FONTS.map(f => `family=${f.gfont}:wght@${f.weights}`).join('&');
-  const link = document.createElement('link');
-  link.rel = 'stylesheet';
-  link.href = `https://fonts.googleapis.com/css2?${families}&display=swap`;
-  document.head.appendChild(link);
-}
-
-function pickBioFont(key) {
-  const font = BIO_FONTS.find(f => f.key === key);
-  if (!font) return;
-  bioState.font_family = font.key;
-  // Update the dropdown's own font-family so the resting state reflects the new pick
-  const select = document.getElementById('bio-font-select');
-  if (select) select.style.fontFamily = font.stack;
-  schedulePreviewUpdate();
-}
-
-// Populate the custom editor inputs from bioState.custom_theme
-function syncBioCustomEditorUI() {
-  if (!bioState.custom_theme) return;
-  const ct = bioState.custom_theme;
-  const colors = ct.colors || CUSTOM_THEME_DEFAULTS;
-  ['bg','card','text','accent'].forEach(k => {
-    const input = document.getElementById(`bio-color-${k}`);
-    const hex = document.getElementById(`bio-color-${k}-hex`);
-    if (input) input.value = colors[k] || CUSTOM_THEME_DEFAULTS[k];
-    if (hex) hex.textContent = (colors[k] || CUSTOM_THEME_DEFAULTS[k]).toLowerCase();
-  });
-  const bgThumb = document.getElementById('bio-custom-bg-thumb');
-  const bgStatus = document.getElementById('bio-custom-bg-status');
-  const bgRemove = document.getElementById('bio-custom-bg-remove');
-  if (ct.bgUrl) {
-    if (bgThumb) bgThumb.style.backgroundImage = `url("${ct.bgUrl}")`;
-    if (bgStatus) bgStatus.textContent = 'Background uploaded';
-    if (bgRemove) bgRemove.style.display = 'inline-block';
-  } else {
-    if (bgThumb) bgThumb.style.backgroundImage = '';
-    if (bgStatus) bgStatus.textContent = 'No background uploaded';
-    if (bgRemove) bgRemove.style.display = 'none';
-  }
-  const opIn = document.getElementById('bio-custom-bg-opacity');
-  const opVal = document.getElementById('bio-custom-bg-opacity-val');
-  const op = ct.bgOpacity != null ? ct.bgOpacity : 0.4;
-  if (opIn) opIn.value = op;
-  if (opVal) opVal.textContent = Math.round(op * 100) + '%';
-}
-
-function onBioColorChange(slot, value) {
-  if (!bioState.custom_theme) bioState.custom_theme = { bgUrl: '', bgOpacity: 0.4, colors: { ...CUSTOM_THEME_DEFAULTS }, applied: true };
-  if (!bioState.custom_theme.colors) bioState.custom_theme.colors = { ...CUSTOM_THEME_DEFAULTS };
-  bioState.custom_theme.colors[slot] = value;
-  const hex = document.getElementById(`bio-color-${slot}-hex`);
-  if (hex) hex.textContent = value.toLowerCase();
-  schedulePreviewUpdate();
-}
-
-function resetBioCustomColors() {
-  if (!bioState.custom_theme) bioState.custom_theme = { bgUrl: '', bgOpacity: 0.4, colors: { ...CUSTOM_THEME_DEFAULTS }, applied: true };
-  bioState.custom_theme.colors = { ...CUSTOM_THEME_DEFAULTS };
-  syncBioCustomEditorUI();
-  schedulePreviewUpdate();
-}
-
-function onBioCustomOpacityChange(val) {
-  if (!bioState.custom_theme) return;
-  bioState.custom_theme.bgOpacity = parseFloat(val);
-  const opVal = document.getElementById('bio-custom-bg-opacity-val');
-  if (opVal) opVal.textContent = Math.round(bioState.custom_theme.bgOpacity * 100) + '%';
-  schedulePreviewUpdate();
-}
-
-// Compress image to very small WebP and upload to bio-backgrounds bucket
-async function onBioCustomBgSelected(input) {
-  const file = input.files[0];
-  input.value = '';
-  if (!file) return;
-  if (!isPro()) { showBioStatus('error', 'Custom background is a Pro feature.'); return; }
-  if (!file.type.startsWith('image/')) { showBioStatus('error', 'Please upload an image file.'); return; }
-  if (file.size > 15 * 1024 * 1024) { showBioStatus('error', 'Image is too large (15MB max).'); return; }
-
-  const btnLabel = document.querySelector('.custom-bg-btn.primary');
-  const origText = btnLabel ? btnLabel.firstChild.textContent : '';
-  if (btnLabel) btnLabel.firstChild.textContent = 'Uploading...';
-
-  try {
-    // Compress to ~250KB WebP, max 1600x900
-    const blob = await compressBgImage(file, 1600, 900, 250 * 1024);
-    // Upload
-    const fileName = `bg-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.webp`;
-    const path = `${currentUser.id}/${fileName}`;
-    const { error: upErr } = await sb.storage.from('bio-backgrounds').upload(path, blob, {
-      contentType: 'image/webp', upsert: false,
-    });
-    if (upErr) throw upErr;
-    const { data: { publicUrl } } = sb.storage.from('bio-backgrounds').getPublicUrl(path);
-
-    // Queue old bg for cleanup on save
-    if (bioState.custom_theme?.bgUrl) bioStaleBgs.push(bioState.custom_theme.bgUrl);
-    if (!bioState.custom_theme) bioState.custom_theme = { bgUrl: '', bgOpacity: 0.4, colors: { ...CUSTOM_THEME_DEFAULTS }, applied: true };
-    bioState.custom_theme.bgUrl = publicUrl;
-    syncBioCustomEditorUI();
-    schedulePreviewUpdate();
-    showBioStatus('success', 'Background uploaded. Remember to save.');
-  } catch (e) {
-    console.error(e);
-    showBioStatus('error', `Upload failed: ${e.message || 'unknown'}`);
-  } finally {
-    if (btnLabel) btnLabel.firstChild.textContent = origText || 'Upload';
-  }
-}
-
-function removeBioCustomBg() {
-  if (!bioState.custom_theme) return;
-  if (bioState.custom_theme.bgUrl) bioStaleBgs.push(bioState.custom_theme.bgUrl);
-  bioState.custom_theme.bgUrl = '';
-  syncBioCustomEditorUI();
-  schedulePreviewUpdate();
-}
-
-// Shared image compressor — scales down and outputs WebP targeting a size
-async function compressBgImage(file, maxW, maxH, targetBytes) {
-  const imgUrl = URL.createObjectURL(file);
-  try {
-    const img = await new Promise((resolve, reject) => {
-      const i = new Image();
-      i.onload = () => resolve(i);
-      i.onerror = () => reject(new Error('Could not read image'));
-      i.src = imgUrl;
-    });
-    // Fit within box while preserving aspect
-    let w = img.width, h = img.height;
-    const scale = Math.min(maxW / w, maxH / h, 1);
-    w = Math.round(w * scale);
-    h = Math.round(h * scale);
-    const canvas = document.createElement('canvas');
-    canvas.width = w; canvas.height = h;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0, w, h);
-
-    // Binary-search quality until under target size
-    let q = 0.82, lo = 0.3, hi = 0.95;
-    let blob = await new Promise(res => canvas.toBlob(res, 'image/webp', q));
-    for (let i = 0; i < 6 && blob; i++) {
-      if (blob.size > targetBytes) {
-        hi = q; q = (lo + q) / 2;
-      } else if (blob.size < targetBytes * 0.75) {
-        lo = q; q = (q + hi) / 2;
-      } else break;
-      blob = await new Promise(res => canvas.toBlob(res, 'image/webp', q));
-    }
-    if (!blob) throw new Error('Could not compress image');
-    return blob;
-  } finally {
-    URL.revokeObjectURL(imgUrl);
-  }
-}
-
-function renderBioSocials() {
-  const container = document.getElementById('bio-socials-form');
-  if (!container) return;
-  container.innerHTML = BIO_SOCIAL_FIELDS.map(f => `
-    <div class="bio-social-row">
-      <div class="bio-social-icon">${f.svg}</div>
-      <input type="text" aria-label="${f.label}" placeholder="${f.label} — ${f.placeholder}"
-        value="${escapeHtml(bioState.socials[f.key] || '')}"
-        data-bio-action="social-change" data-bio-event="input" data-bio-social="${f.key}">
-    </div>
-  `).join('');
-}
-
-function onSocialChange(key, val) {
-  if (val && val.trim()) bioState.socials[key] = val.trim();
-  else delete bioState.socials[key];
-  schedulePreviewUpdate();
-}
-
-// ====== LINKS ======
-function bioLimits() {
-  const pro = isPro();
-  const max = isMax();
-  return {
-    maxLinks: max ? 1000 : (pro ? 200 : 50),
-    maxFeatured: max ? 10 : (pro ? 3 : 1),
-    maxHero: max ? 10 : 0,
-    maxVideos: pro ? 20 : 5,
-    pro: pro,
-    isMax: max,
-  };
-}
-
-function addHeader() {
-  // Headers are unlimited but capped at 10 to prevent abuse
-  const headerCount = bioState.links.filter(l => l.isHeader).length;
-  if (headerCount >= 10) {
-    showBioStatus('error', 'Header limit reached (10).');
-    return;
-  }
-  const newId = linkIdSeq++;
-  bioState.links.push({
-    _id: newId,
-    title: '',
-    isHeader: true,
-  });
-  bioExpandedLinks.add(newId);
-  renderBioLinks();
-  schedulePreviewUpdate();
-}
-
-function addLink(isFeatured, isHero) {
-  const { maxLinks, maxFeatured, maxHero } = bioLimits();
-  const regularCount = bioState.links.filter(l => !l.featured && !l.isHero).length;
-  const featuredCount = bioState.links.filter(l => l.featured).length;
-  const heroCount = bioState.links.filter(l => l.isHero).length;
-
-  if (isHero) {
-    if (!isMax()) {
-      showBioStatus('error', 'Hero links are a Creator Max feature.');
-      setTimeout(() => { try { openSettingsModal(); } catch(e){} }, 200);
-      return;
-    }
-    if (heroCount >= maxHero) {
-      showBioStatus('error', `Hero link limit reached (${maxHero}).`);
-      return;
-    }
-  } else if (isFeatured) {
-    if (featuredCount >= maxFeatured) {
-      showBioStatus('error', `Featured link limit reached (${maxFeatured}). ${!isPro() ? 'Upgrade to Pro for 3.' : ''}`);
-      return;
-    }
-  } else {
-    if (regularCount >= maxLinks) {
-      showBioStatus('error', `Link limit reached (${maxLinks}). ${!isPro() ? 'Upgrade to Pro for 200.' : ''}`);
-      return;
-    }
-  }
-  const newId = linkIdSeq++;
-  bioState.links.push({
-    _id: newId,
-    title: '',
-    description: '',
-    url: '',
-    featured: !!isFeatured,
-    isHero: !!isHero,
-    photoUrl: '',
-  });
-  bioExpandedLinks.add(newId);
-  renderBioLinks();
-  schedulePreviewUpdate();
-}
-
-// If user has a published Media Kit, add a pre-filled link to it
-function addSubscribeBlock() {
-  if (bioState.links.some(l => l.isSubscribe)) return;
-  bioState.links.push({
-    _id: linkIdSeq++,
-    isSubscribe: true,
-    title: 'Subscribe to my newsletter',
-    url: ''
-  });
-  updateSubscribeBtn();
-  renderBioLinks();
-  schedulePreviewUpdate();
-  showBioStatus('saved', 'Subscribe block added');
-}
-
-function updateSubscribeBtn() {
-  var btn = document.getElementById('bio-add-subscribe-btn');
-  if (!btn) return;
-  var hasSubscribe = bioState.links.some(l => l.isSubscribe);
-  btn.disabled = hasSubscribe;
-  btn.style.opacity = hasSubscribe ? '0.4' : '1';
-  btn.style.cursor = hasSubscribe ? 'default' : 'pointer';
-}
-
-// ---- Video Block (YouTube carousel inside the link list) ----
-// Each block holds up to 10 YouTube URLs. Free creators get 1 block max;
-// Pro/Max creators get up to 5 blocks. The block count is also constrained
-// naturally by maxLinks.
-function addVideoBlock() {
-  const { maxLinks } = bioLimits();
-  const totalLinkCount = bioState.links.length;
-  if (totalLinkCount >= maxLinks) {
-    showBioStatus('error', `Link limit reached (${maxLinks}).`);
-    return;
-  }
-  const existingBlocks = bioState.links.filter(l => l.isVideoBlock).length;
-  if (!isPro()) {
-    if (existingBlocks >= 1) {
-      showBioStatus('error', 'Free plan supports one YouTube block. Upgrade to Pro for up to 5.');
-      return;
-    }
-  } else {
-    if (existingBlocks >= 5) {
-      showBioStatus('error', 'YouTube block limit reached (5).');
-      return;
-    }
-  }
-  const newId = linkIdSeq++;
-  bioState.links.push({
-    _id: newId,
-    isVideoBlock: true,
-    videos: [{ url: '' }]  // start with one empty input
-  });
-  bioExpandedLinks.add(newId);
-  renderBioLinks();
-  schedulePreviewUpdate();
-  showBioStatus('saved', 'YouTube block added');
-}
-
-// Update the URL of a video at a given index inside a video block link.
-function updateVideoBlockUrl(linkId, idx, url) {
-  const link = bioState.links.find(l => l._id === linkId);
-  if (!link || !link.isVideoBlock || !Array.isArray(link.videos)) return;
-  if (idx < 0 || idx >= link.videos.length) return;
-  link.videos[idx].url = url;
-  schedulePreviewUpdate();
-}
-
-// Add another empty URL slot to a video block (max 10).
-function addVideoToBlock(linkId) {
-  const link = bioState.links.find(l => l._id === linkId);
-  if (!link || !link.isVideoBlock) return;
-  if (!Array.isArray(link.videos)) link.videos = [];
-  if (link.videos.length >= 10) return;
-  link.videos.push({ url: '' });
-  renderBioLinks();
-  schedulePreviewUpdate();
-}
-
-// Remove a single video URL from a video block. If it was the last one, leave
-// one empty slot so the block stays editable (creator can also delete the
-// whole block via the row's Remove button).
-function removeVideoFromBlock(linkId, idx) {
-  const link = bioState.links.find(l => l._id === linkId);
-  if (!link || !link.isVideoBlock || !Array.isArray(link.videos)) return;
-  link.videos.splice(idx, 1);
-  if (link.videos.length === 0) link.videos.push({ url: '' });
-  renderBioLinks();
-  schedulePreviewUpdate();
-}
-
-async function addMediaKitLink() {
-  if (!isPro()) {
-    showBioStatus('error', 'Media Kit is a Pro feature.');
-    return;
-  }
-  if (!currentUser) return;
-  // Already added? ignore (button should be disabled but defensive check)
-  if (bioState.links.some(l => l.isMediaKit)) return;
-
-  const { maxLinks } = bioLimits();
-  const regularCount = bioState.links.filter(l => !l.featured).length;
-  if (regularCount >= maxLinks) {
-    showBioStatus('error', `Link limit reached (${maxLinks}).`);
-    return;
-  }
-
-  // Get username (prefer Link in Bio's input, fallback to profile)
-  let uname = document.getElementById('bio-username').value.trim();
-  if (!uname) {
+    // Resolve live cover URLs for course/coaching/product/mediakit links.
+    // This mutates bio.links in place so renderBioContent picks up the
+    // current values instead of the snapshot stored at link-add time.
+    // Wrapped in try/catch so a slow/failed lookup never breaks the bio.
     try {
-      const { data: profile } = await sb.from('profiles').select('username').eq('user_id', currentUser.id).maybeSingle();
-      uname = profile?.username || '';
-    } catch (e) {}
-  }
-  if (!uname) {
-    showBioStatus('error', 'Set your username first.');
-    return;
-  }
-
-  // Check if media kit is published + get headshot
-  let headshotUrl = '';
-  try {
-    const { data: kit } = await sb.from('media_kit').select('published, headshot_url').eq('user_id', currentUser.id).maybeSingle();
-    if (!kit || !kit.published) {
-      showBioStatus('error', 'Publish your Media Kit first.');
-      return;
-    }
-    headshotUrl = kit.headshot_url || '';
-  } catch (e) {
-    showBioStatus('error', 'Could not check Media Kit. Try again.');
-    return;
-  }
-
-  // Don't add duplicate
-  const mediaKitUrl = `https://www.ryxa.io/mediakit/${uname}`;
-  const existing = bioState.links.find(l => l.isMediaKit);
-  if (existing) {
-    showBioStatus('error', 'Media Kit link already added.');
-    return;
-  }
-
-  const newId = linkIdSeq++;
-  bioState.links.push({
-    _id: newId,
-    title: 'My Media Kit',
-    description: 'Audience stats, rate card, contact info',
-    url: mediaKitUrl,
-    featured: false,
-    photoUrl: headshotUrl,
-    isMediaKit: true,
-  });
-  renderBioLinks();
-  schedulePreviewUpdate();
-  updateMediaKitLinkButton();
-  showBioStatus('success', 'Media Kit link added, remember to save.');
-}
-
-// Toggle Media Kit link button visibility based on tier + media kit status
-async function updateMediaKitLinkButton() {
-  const btn = document.getElementById('bio-add-mediakit-link');
-  if (!btn) return;
-  const pro = isPro();
-  if (!pro || !currentUser) {
-    btn.style.display = 'none';
-    return;
-  }
-  // Check published status first — if no MK, hide entirely
-  let published = false;
-  try {
-    const { data: kit } = await sb.from('media_kit').select('published').eq('user_id', currentUser.id).maybeSingle();
-    published = !!(kit && kit.published);
-  } catch (e) {
-    btn.style.display = 'none';
-    return;
-  }
-  if (!published) {
-    btn.style.display = 'none';
-    return;
-  }
-  // Pro + published MK: always show. Grey out if already added.
-  btn.style.display = 'flex';
-  const alreadyAdded = bioState.links.some(l => l.isMediaKit);
-  if (alreadyAdded) {
-    btn.disabled = true;
-    btn.style.opacity = '0.5';
-    btn.style.cursor = 'not-allowed';
-    btn.setAttribute('aria-disabled', 'true');
-    // Update text to show status
-    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Media Kit link added';
-  } else {
-    btn.disabled = false;
-    btn.style.opacity = '';
-    btn.style.cursor = 'pointer';
-    btn.removeAttribute('aria-disabled');
-    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="17" x2="8" y2="13"/><line x1="12" y1="17" x2="12" y2="11"/><line x1="16" y1="17" x2="16" y2="15"/></svg> Add Media Kit';
-  }
-}
-
-// Course picker modal for adding course links to bio
-async function openCoursePickerModal() {
-  if (!isMax()) {
-    showBioStatus('error', 'Course links are a Creator Max feature.');
-    return;
-  }
-  if (!currentUser) return;
-
-  // Load published courses
-  const { data: courses } = await sb.from('courses').select('id, title, slug, price_cents, cover_image_path').eq('user_id', currentUser.id).eq('status', 'published').order('created_at', { ascending: false });
-
-  if (!courses || courses.length === 0) {
-    showModalAlert('No courses yet', 'You need to create and publish a course before you can add it to your bio. Head to the Course Builder tool to get started.');
-    return;
-  }
-
-  // Check which courses are already added
-  const addedCourseIds = bioState.links.filter(l => l.isCourse).map(l => l.courseId);
-
-  let modalHtml = '<div class="bio-s-9998de">Add Course to Bio</div>';
-  modalHtml += '<div class="bio-s-b32a60">';
-
-  courses.forEach(function(c) {
-    const isAdded = addedCourseIds.indexOf(c.id) !== -1;
-    const coverUrl = c.cover_image_path ? sb.storage.from('course-covers').getPublicUrl(c.cover_image_path).data.publicUrl : '';
-    const coverHtml = coverUrl
-      ? '<img src="' + escapeHtml(coverUrl) + '" alt="Course thumbnail" class="bio-s-f28e64">'
-      : '<div class="bio-s-fd8ea7"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>';
-    const priceText = c.price_cents > 0 ? formatMoney(c.price_cents, {alwaysShowCents:true}) : 'Free';
-
-    modalHtml += '<div class="bio-s-dd07a9">'
-      + coverHtml
-      + '<div class="bio-s-a07604">'
-      + '<div class="bio-s-3fe262">' + escapeHtml(c.title) + '</div>'
-      + '<div class="bio-s-e769ff">' + priceText + '</div>'
-      + '</div>';
-
-    if (isAdded) {
-      modalHtml += '<span class="bio-s-da6517">Added</span>';
-    } else {
-      // Stash all course params on data-bio-* attributes; handler reads them on click.
-      // escapeHtml ensures titles with quotes / HTML special chars don't break the attribute.
-      modalHtml += '<button data-bio-action="add-course-to-links"'
-        + ' data-bio-course-id="' + escapeHtml(c.id) + '"'
-        + ' data-bio-title="' + escapeHtml(c.title) + '"'
-        + ' data-bio-price="' + c.price_cents + '"'
-        + ' data-bio-slug="' + escapeHtml(c.slug) + '"'
-        + ' data-bio-cover="' + escapeHtml(coverUrl) + '"'
-        + ' class="bio-s-a788c4">Add</button>';
-    }
-
-    modalHtml += '</div>';
-  });
-
-  modalHtml += '</div>';
-  modalHtml += '<button data-bio-action="close-course-picker" class="bio-s-6b029c">Close</button>';
-
-  // Show modal
-  let overlay = document.getElementById('course-picker-overlay');
-  if (!overlay) {
-    overlay = document.createElement('div');
-    overlay.id = 'course-picker-overlay';
-    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;';
-    overlay.onclick = function(e) { if (e.target === overlay) closeCoursePickerModal(); };
-    document.body.appendChild(overlay);
-  }
-  overlay.innerHTML = '<div class="bio-s-78ed66">' + modalHtml + '</div>';
-  overlay.style.display = 'flex';
-}
-
-function closeCoursePickerModal() {
-  const overlay = document.getElementById('course-picker-overlay');
-  if (overlay) overlay.style.display = 'none';
-}
-
-function addCourseToLinks(courseId, title, priceCents, slug, coverUrl) {
-  // Check not already added
-  if (bioState.links.some(l => l.isCourse && l.courseId === courseId)) {
-    showBioStatus('error', 'This course is already in your links.');
-    return;
-  }
-
-  const newId = linkIdSeq++;
-  const priceDisplay = priceCents > 0 ? formatMoney(priceCents, {alwaysShowCents:true}) : 'Free';
-  bioState.links.push({
-    _id: newId,
-    title: title,
-    description: priceDisplay,
-    url: 'https://www.ryxa.io/course/' + slug,
-    featured: false,
-    photoUrl: coverUrl || '',
-    isCourse: true,
-    courseId: courseId,
-    coursePrice: priceCents,
-    courseCrossoutPrice: 0,
-  });
-  bioExpandedLinks.add(newId);
-  renderBioLinks();
-  schedulePreviewUpdate();
-  closeCoursePickerModal();
-  showBioStatus('success', 'Course added to your links. Remember to save.');
-}
-
-async function openCoachingPickerModal() {
-  if (!isMax()) {
-    handleMaxUpgradeClick(event);
-    return;
-  }
-  if (!currentUser) return;
-
-  const { data: services } = await sb.from('coaching_services').select('id, title, slug, price_cents, cover_image_path, duration_minutes').eq('user_id', currentUser.id).eq('status', 'published').order('created_at', { ascending: false });
-
-  if (!services || services.length === 0) {
-    showModalAlert('No bookings yet', 'You need to create and publish a 1:1 booking before you can add it to your bio. Head to the 1:1 Booking tool to get started.');
-    return;
-  }
-
-  const addedIds = bioState.links.filter(l => l.isCoaching).map(l => l.coachingId);
-
-  let modalHtml = '<div class="bio-s-9998de">Add Booking to Bio</div>';
-  modalHtml += '<div class="bio-s-b32a60">';
-
-  services.forEach(function(c) {
-    const isAdded = addedIds.indexOf(c.id) !== -1;
-    const coverUrl = c.cover_image_path ? sb.storage.from('coaching-covers').getPublicUrl(c.cover_image_path).data.publicUrl : '';
-    const coverHtml = coverUrl
-      ? '<img src="' + escapeHtml(coverUrl) + '" alt="Booking thumbnail" class="bio-s-f28e64">'
-      : '<div class="bio-s-fd8ea7"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>';
-    const priceText = c.price_cents > 0 ? formatMoney(c.price_cents, {alwaysShowCents:true}) : 'Free';
-
-    modalHtml += '<div class="bio-s-dd07a9">'
-      + coverHtml
-      + '<div class="bio-s-a07604">'
-      + '<div class="bio-s-3fe262">' + escapeHtml(c.title) + '</div>'
-      + '<div class="bio-s-e769ff">' + priceText + '</div>'
-      + '</div>';
-
-    if (isAdded) {
-      modalHtml += '<span class="bio-s-da6517">Added</span>';
-    } else {
-      modalHtml += '<button data-bio-action="add-coaching-to-links"'
-        + ' data-bio-coaching-id="' + escapeHtml(c.id) + '"'
-        + ' data-bio-title="' + escapeHtml(c.title) + '"'
-        + ' data-bio-price="' + c.price_cents + '"'
-        + ' data-bio-slug="' + escapeHtml(c.slug) + '"'
-        + ' data-bio-cover="' + escapeHtml(coverUrl) + '"'
-        + ' class="bio-s-a788c4">Add</button>';
-    }
-
-    modalHtml += '</div>';
-  });
-
-  modalHtml += '</div>';
-  modalHtml += '<button data-bio-action="close-coaching-picker" class="bio-s-6b029c">Close</button>';
-
-  let overlay = document.getElementById('coaching-picker-overlay');
-  if (!overlay) {
-    overlay = document.createElement('div');
-    overlay.id = 'coaching-picker-overlay';
-    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;';
-    overlay.onclick = function(e) { if (e.target === overlay) closeCoachingPickerModal(); };
-    document.body.appendChild(overlay);
-  }
-  overlay.innerHTML = '<div class="bio-s-78ed66">' + modalHtml + '</div>';
-  overlay.style.display = 'flex';
-}
-
-function closeCoachingPickerModal() {
-  const overlay = document.getElementById('coaching-picker-overlay');
-  if (overlay) overlay.style.display = 'none';
-}
-
-function addCoachingToLinks(coachingId, title, priceCents, slug, coverUrl) {
-  if (bioState.links.some(l => l.isCoaching && l.coachingId === coachingId)) {
-    showBioStatus('error', 'This booking is already in your links.');
-    return;
-  }
-
-  const newId = linkIdSeq++;
-  const priceDisplay = priceCents > 0 ? formatMoney(priceCents, {alwaysShowCents:true}) : 'Free';
-  bioState.links.push({
-    _id: newId,
-    title: title,
-    description: priceDisplay,
-    url: 'https://www.ryxa.io/booking/' + slug,
-    featured: false,
-    photoUrl: coverUrl || '',
-    isCoaching: true,
-    coachingId: coachingId,
-    coachingPrice: priceCents,
-  });
-  bioExpandedLinks.add(newId);
-  renderBioLinks();
-  schedulePreviewUpdate();
-  closeCoachingPickerModal();
-  showBioStatus('success', 'Booking added to your links. Remember to save.');
-}
-
-async function openProductPickerModal() {
-  if (!isMax()) {
-    handleMaxUpgradeClick(event);
-    return;
-  }
-  if (!currentUser) return;
-
-  // Load active digital products
-  const { data: products } = await sb.from('digital_products').select('id, title, slug, price_cents, cover_image_url').eq('user_id', currentUser.id).eq('is_active', true).order('updated_at', { ascending: false });
-
-  if (!products || products.length === 0) {
-    showModalAlert('No digital products yet', 'You need to create and publish a digital product before you can add it to your bio. Head to the Digital Products tool to get started.');
-    return;
-  }
-
-  const addedProductIds = bioState.links.filter(l => l.isProduct).map(l => l.productId);
-
-  let modalHtml = '<div class="bio-s-9998de">Add Digital Product to Bio</div>';
-  modalHtml += '<div class="bio-s-b32a60">';
-
-  products.forEach(function(p) {
-    const isAdded = addedProductIds.indexOf(p.id) !== -1;
-    const coverUrl = p.cover_image_url || '';
-    const coverHtml = coverUrl
-      ? '<img src="' + escapeHtml(coverUrl) + '" alt="Product thumbnail" class="bio-s-f28e64">'
-      : '<div class="bio-s-fd8ea7"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>';
-    const priceText = p.price_cents > 0 ? formatMoney(p.price_cents, {alwaysShowCents:true}) : 'Free';
-
-    modalHtml += '<div class="bio-s-dd07a9">'
-      + coverHtml
-      + '<div class="bio-s-a07604">'
-      + '<div class="bio-s-3fe262">' + escapeHtml(p.title) + '</div>'
-      + '<div class="bio-s-e769ff">' + priceText + '</div>'
-      + '</div>';
-
-    if (isAdded) {
-      modalHtml += '<span class="bio-s-da6517">Added</span>';
-    } else {
-      modalHtml += '<button data-bio-action="add-product-to-links"'
-        + ' data-bio-product-id="' + escapeHtml(p.id) + '"'
-        + ' data-bio-title="' + escapeHtml(p.title) + '"'
-        + ' data-bio-price="' + p.price_cents + '"'
-        + ' data-bio-slug="' + escapeHtml(p.slug) + '"'
-        + ' data-bio-cover="' + escapeHtml(coverUrl) + '"'
-        + ' class="bio-s-a788c4">Add</button>';
-    }
-
-    modalHtml += '</div>';
-  });
-
-  modalHtml += '</div>';
-  modalHtml += '<button data-bio-action="close-product-picker" class="bio-s-6b029c">Close</button>';
-
-  let overlay = document.getElementById('product-picker-overlay');
-  if (!overlay) {
-    overlay = document.createElement('div');
-    overlay.id = 'product-picker-overlay';
-    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;';
-    overlay.onclick = function(e) { if (e.target === overlay) closeProductPickerModal(); };
-    document.body.appendChild(overlay);
-  }
-  overlay.innerHTML = '<div class="bio-s-78ed66">' + modalHtml + '</div>';
-  overlay.style.display = 'flex';
-}
-
-function closeProductPickerModal() {
-  const overlay = document.getElementById('product-picker-overlay');
-  if (overlay) overlay.style.display = 'none';
-}
-
-function addProductToLinks(productId, title, priceCents, slug, coverUrl) {
-  if (bioState.links.some(l => l.isProduct && l.productId === productId)) {
-    showBioStatus('error', 'This product is already in your links.');
-    return;
-  }
-
-  const newId = linkIdSeq++;
-  const priceDisplay = priceCents > 0 ? formatMoney(priceCents, {alwaysShowCents:true}) : 'Free';
-  bioState.links.push({
-    _id: newId,
-    title: title,
-    description: priceDisplay,
-    url: 'https://www.ryxa.io/product/' + slug,
-    featured: false,
-    photoUrl: coverUrl || '',
-    isProduct: true,
-    productId: productId,
-    productPrice: priceCents,
-  });
-  bioExpandedLinks.add(newId);
-  renderBioLinks();
-  schedulePreviewUpdate();
-  closeProductPickerModal();
-  showBioStatus('success', 'Digital product added to your links. Remember to save.');
-}
-
-function removeLink(id) {
-  const link = bioState.links.find(l => l._id === id);
-  if (link?.photoUrl) {
-    bioStalePhotos.push(link.photoUrl);
-  }
-  bioState.links = bioState.links.filter(l => l._id !== id);
-  renderBioLinks();
-  schedulePreviewUpdate();
-  updateMediaKitLinkButton();
-  updateSubscribeBtn();
-}
-
-function updateLinkField(id, field, val) {
-  const link = bioState.links.find(l => l._id === id);
-  if (!link) return;
-  link[field] = val;
-  schedulePreviewUpdate();
-}
-
-// Toggle half-width on a link. Re-renders the editor and the live preview.
-function toggleLinkHalfWidth(id, checked) {
-  const link = bioState.links.find(l => l._id === id);
-  if (!link) return;
-  if (checked) link.halfWidth = true;
-  else delete link.halfWidth;
-  // Re-render so the badge in the row header updates immediately
-  renderBioLinks();
-  schedulePreviewUpdate();
-}
-
-// Small "½" indicator for the collapsed link row when half-width is enabled.
-// Renders as a tiny inline tag at the row's right edge — not a chunky pill.
-// Skipped entirely on row types that don't support half-width (Media Kit,
-// Hero, Header, Subscribe, Featured, Videos) to prevent stale flags from
-// rendering UI for a feature their expanded view doesn't expose.
-function bioHalfBadge(link) {
-  if (!link.halfWidth) return '';
-  if (link.isMediaKit || link.isHero || link.isHeader || link.isSubscribe ||
-      link.isVideoBlock || link.featured) {
-    return '';
-  }
-  return '<span class="bio-row-half" title="Half width" aria-label="Half width">&frac12;</span>';
-}
-
-// Resolve the type metadata for a link row. Single source of truth for the
-// type label and the icon SVG used in the collapsed view.
-//
-// All icons are stroke-based, monochrome, ~14px, matching the rest of the
-// dashboard's icon language. The row's left-border accent is a single
-// brand color (var(--accent2)) applied uniformly across all types — it's
-// decorative, not a type signal. Type is conveyed through the icon + title.
-function bioRowTypeMeta(link) {
-  // Order matters — first match wins. Featured is a flag that can apply to
-  // a regular link, so it's checked late.
-  if (link.isHeader) {
-    return {
-      key: 'header',
-      label: 'Header',
-      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="18" x2="14" y2="18"/></svg>'
-    };
-  }
-  if (link.isVideoBlock) {
-    return {
-      key: 'video',
-      label: 'Videos',
-      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>'
-    };
-  }
-  if (link.isSubscribe) {
-    return {
-      key: 'subscribe',
-      label: 'Subscribe',
-      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>'
-    };
-  }
-  if (link.isHero) {
-    return {
-      key: 'hero',
-      label: 'Hero',
-      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>'
-    };
-  }
-  if (link.isCourse) {
-    return {
-      key: 'course',
-      label: 'Course',
-      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>'
-    };
-  }
-  if (link.isCoaching) {
-    return {
-      key: 'coaching',
-      label: 'Booking',
-      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>'
-    };
-  }
-  if (link.isProduct) {
-    return {
-      key: 'product',
-      label: 'Product',
-      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>'
-    };
-  }
-  if (link.isMediaKit) {
-    return {
-      key: 'mediakit',
-      label: 'Media Kit',
-      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="17" x2="8" y2="13"/><line x1="12" y1="17" x2="12" y2="11"/><line x1="16" y1="17" x2="16" y2="15"/></svg>'
-    };
-  }
-  if (link.featured) {
-    return {
-      key: 'featured',
-      label: 'Featured',
-      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>'
-    };
-  }
-  // Default: regular link
-  return {
-    key: 'link',
-    label: 'Link',
-    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>'
-  };
-}
-
-// Trash-can SVG used as the row "remove" affordance. Replaces the prior
-// pill-style "Remove" button. Inline-styled so it renders correctly even
-// when the surrounding row CSS gets overridden.
-const BIO_TRASH_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/></svg>';
-
-// Returns the HTML for a half-width toggle row (used inside the expanded
-// editor for links/courses/bookings/products). Two consecutive halves end up
-// side-by-side; a half next to a full-width link is half with empty space.
-function bioHalfWidthToggle(link) {
-  const isOn = !!link.halfWidth;
-  return `<label class="bio-half-toggle bio-s-1adb5f" >
-    <span class="bio-s-e3f610">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="8" height="12" rx="1.5"/><rect x="13" y="6" width="8" height="12" rx="1.5"/></svg>
-      Half width
-    </span>
-    <span class="bio-half-switch bio-half-track ${isOn ? 'on' : ''}" aria-hidden="true">
-      <span class="bio-half-thumb ${isOn ? 'on' : ''}"></span>
-    </span>
-    <input type="checkbox" ${isOn ? 'checked' : ''} data-bio-action="toggle-link-half-width" data-bio-event="change" data-bio-id="${link._id}" aria-label="Half width" class="bio-s-12c53e">
-  </label>`;
-}
-
-let bioStalePhotos = []; // photos to delete on next save
-let bioExpandedLinks = new Set(); // _ids of links currently expanded for editing
-
-function renderBioLinks() {
-  const el = document.getElementById('bio-links-list');
-  if (!el) return;
-  const counts = document.getElementById('bio-links-counts');
-  const { maxLinks, maxFeatured, maxHero, pro, isMax: max } = bioLimits();
-  const regularCount = bioState.links.filter(l => !l.featured && !l.isHero).length;
-  const featuredCount = bioState.links.filter(l => l.featured).length;
-  const heroCount = bioState.links.filter(l => l.isHero).length;
-  if (counts) {
-    const videoBlockCount = bioState.links.filter(l => l.isVideoBlock).length;
-    const maxVideoBlocks = pro ? 5 : 1;
-    const parts = [`${regularCount}/${maxLinks} links`, `${featuredCount}/${maxFeatured} featured`];
-    if (max) parts.push(`${heroCount}/${maxHero} hero`);
-    parts.push(`${videoBlockCount}/${maxVideoBlocks} YouTube`);
-    counts.textContent = parts.join(' · ');
-  }
-
-  if (bioState.links.length === 0) {
-    el.innerHTML = '<div class="bio-s-bc2256">No links yet. Click below to add one.</div>';
-  } else {
-    el.innerHTML = bioState.links.map(l => renderLinkRow(l)).join('');
-    // Apply any data-bio-color / data-bio-bg / etc on the just-rendered rows
-    bioApplyDataStyles(el);
-  }
-  // Toggle add buttons
-  document.getElementById('bio-add-link-btn').disabled = regularCount >= maxLinks;
-  document.getElementById('bio-add-link-btn').style.opacity = regularCount >= maxLinks ? 0.5 : 1;
-  document.getElementById('bio-add-featured-btn').disabled = featuredCount >= maxFeatured;
-  document.getElementById('bio-add-featured-btn').style.opacity = featuredCount >= maxFeatured ? 0.5 : 1;
-  // Hero button: visible only for Max users
-  const heroBtn = document.getElementById('bio-add-hero-btn');
-  if (heroBtn) {
-    heroBtn.style.display = max ? 'flex' : 'none';
-    heroBtn.disabled = heroCount >= maxHero;
-    heroBtn.style.opacity = heroCount >= maxHero ? 0.5 : 1;
-  }
-  // Media Kit button
-  const mkBtn = document.getElementById('bio-add-mediakit-link');
-  if (mkBtn) mkBtn.style.display = pro || max ? 'flex' : 'none';
-  // Course button: visible for Max users
-  const courseBtn = document.getElementById('bio-add-course-link');
-  if (courseBtn) courseBtn.style.display = max ? 'flex' : 'none';
-  const coachingBtn = document.getElementById('bio-add-coaching-link');
-  if (coachingBtn) coachingBtn.style.display = max ? 'flex' : 'none';
-  const productBtn = document.getElementById('bio-add-product-link');
-  if (productBtn) productBtn.style.display = max ? 'flex' : 'none';
-  // Show the Tools group wrapper if any tool button is visible (Pro or Max).
-  const toolsWrap = document.getElementById('bio-tools-group-wrap');
-  if (toolsWrap) toolsWrap.style.display = (pro || max) ? 'block' : 'none';
-  // Enable Sortable (reinit)
-  if (window.Sortable) {
-    const prev = el._sortable;
-    if (prev) prev.destroy();
-    el._sortable = Sortable.create(el, {
-      handle: '.bio-link-drag',
-      animation: 180,
-      // Auto-scroll the page when dragging near top/bottom edges of viewport
-      // or the immediate scroll parent. Sensitivity = pixel distance from edge
-      // that triggers scroll. bubbleScroll = escalate to window/document if
-      // immediate scrollable can't scroll further.
-      scroll: true,
-      scrollSensitivity: 60,
-      scrollSpeed: 12,
-      bubbleScroll: true,
-      onEnd: () => {
-        const order = [...el.children].map(c => parseInt(c.dataset.id));
-        bioState.links.sort((a, b) => order.indexOf(a._id) - order.indexOf(b._id));
-        schedulePreviewUpdate();
-      }
-    });
-  }
-}
-
-function renderLinkRow(link) {
-  const dragSvg = '<svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="19" r="1.5"/></svg>';
-  const editSvg = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
-  const isExpanded = bioExpandedLinks.has(link._id);
-
-  if (isExpanded) {
-    return renderLinkExpanded(link, dragSvg);
-  }
-  return renderLinkCollapsed(link, dragSvg, editSvg);
-}
-
-function renderLinkCollapsed(link, dragSvg, editSvg) {
-  const meta = bioRowTypeMeta(link);
-
-  // Per-type subline: what's shown under the title. Each branch here
-  // computes the secondary text (URL, video count, price, etc.) and the
-  // optional thumbnail. Everything else is shared by all row types.
-  let subline = '';
-  let thumb = '';
-  let title = escapeHtml(link.title || 'Untitled');
-  let titleColor = 'var(--text)';
-
-  if (link.isHeader) {
-    if (!link.title) { title = 'Empty header'; titleColor = '#fca5a5'; }
-    title = escapeHtml(link.title || 'Empty header');
-  } else if (link.isVideoBlock) {
-    const videos = Array.isArray(link.videos) ? link.videos : [];
-    const filledCount = videos.filter(v => v && v.url && v.url.trim()).length;
-    const firstId = (() => {
-      for (const v of videos) {
-        const id = extractYouTubeIdDash(v && v.url);
-        if (id) return id;
-      }
-      return null;
-    })();
-    thumb = firstId
-      ? `<img alt="YouTube preview" src="https://i.ytimg.com/vi/${firstId}/default.jpg" class="bio-s-11a000" data-bio-onerror="hide-thumb-bg">`
-      : '';
-    title = 'YouTube videos';
-    subline = filledCount === 0 ? 'No videos yet' : (filledCount === 1 ? '1 video' : filledCount + ' videos');
-  } else if (link.isSubscribe) {
-    title = escapeHtml(link.title || 'Subscribe to my newsletter');
-  } else if (link.isHero) {
-    if (link.photoUrl) {
-      thumb = `<img alt="Hero thumbnail" src="${escapeHtml(link.photoUrl)}" class="bio-s-3323bf">`;
-    }
-    const url = (link.url || '').trim();
-    subline = url
-      ? escapeHtml(url.length > 50 ? url.slice(0, 47) + '…' : url)
-      : '<span class="bio-s-dbc3a0">No URL set</span>';
-  } else if (link.isCourse) {
-    if (link.photoUrl) {
-      thumb = `<img alt="Course thumbnail" src="${escapeHtml(link.photoUrl)}" class="bio-s-11a000">`;
-    }
-    const priceText = link.coursePrice > 0 ? formatMoney(link.coursePrice, {alwaysShowCents:true}) : 'Free';
-    const crossoutText = link.courseCrossoutPrice > 0 ? '<span class="bio-s-3c891d">$' + (link.courseCrossoutPrice / 100).toFixed(2) + '</span>' : '';
-    subline = priceText + crossoutText;
-  } else if (link.isCoaching) {
-    if (link.photoUrl) {
-      thumb = `<img alt="Booking thumbnail" src="${escapeHtml(link.photoUrl)}" class="bio-s-11a000">`;
-    }
-    subline = link.coachingPrice > 0 ? formatMoney(link.coachingPrice, {alwaysShowCents:true}) : 'Free';
-  } else if (link.isProduct) {
-    if (link.photoUrl) {
-      thumb = `<img alt="Product thumbnail" src="${escapeHtml(link.photoUrl)}" class="bio-s-11a000">`;
-    }
-    subline = link.productPrice > 0 ? formatMoney(link.productPrice, {alwaysShowCents:true}) : 'Free';
-  } else {
-    // Regular link / featured / mediakit
-    if (!link.isMediaKit && link.photoUrl) {
-      thumb = `<img alt="" src="${escapeHtml(link.photoUrl)}" loading="lazy" data-bio-onerror="hide" class="bio-s-fc4450">`;
-    }
-    const url = (link.url || '').trim();
-    subline = url
-      ? escapeHtml(url.length > 50 ? url.slice(0, 47) + '…' : url)
-      : '<span class="bio-s-dbc3a0">No URL set</span>';
-  }
-
-  // Type icon — shown if there's no thumbnail (otherwise thumbnail carries the visual weight)
-  const typeIconHtml = thumb
-    ? thumb
-    : `<div class="bio-row-typeicon">${meta.icon}</div>`;
-
-  const sublineHtml = subline
-    ? `<div class="bio-row-subline">${subline}</div>`
-    : '';
-
-  return `<div class="bio-link-row bio-link-collapsed bio-row-typed" data-id="${link._id}" data-type="${meta.key}" data-bio-action="expand-link" data-bio-id="${link._id}">
-    <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
-    ${typeIconHtml}
-    <div class="bio-row-body">
-      <div class="bio-row-title" data-bio-color="${titleColor}">${title}</div>
-      ${sublineHtml}
-    </div>
-    ${bioHalfBadge(link)}
-    <button type="button" class="bio-row-edit" aria-label="Edit" data-bio-action="expand-link" data-bio-id="${link._id}">${editSvg}</button>
-    <button type="button" class="bio-row-trash" aria-label="Remove" title="Remove" data-bio-action="remove-link" data-bio-id="${link._id}">${BIO_TRASH_SVG}</button>
-  </div>`;
-}
-
-async function onLinkThumbSelected(input, linkId) {
-  const file = input.files[0];
-  input.value = '';
-  if (!file) return;
-  if (!file.type.startsWith('image/')) { showBioStatus('error', 'Please upload an image.'); return; }
-  if (file.size > 10 * 1024 * 1024) { showBioStatus('error', 'Image is too large (10MB max).'); return; }
-
-  // Check 10 link photo limit
-  var photoCount = bioState.links.filter(function(l) { return l.photoUrl && !l.featured && !l.isHero && !l.isCourse && !l.isCoaching && !l.isProduct; }).length;
-  if (photoCount >= 20) { showBioStatus('error', 'Thumbnail limit reached (20 links).'); return; }
-
-  var link = bioState.links.find(function(l) { return l._id === linkId; });
-  if (!link) return;
-
-  try {
-    showBioStatus('info', 'Uploading…');
-    var blob = await compressBgImage(file, 200, 200, 30 * 1024);
-    var fileName = 'thumb-' + linkId + '-' + Date.now() + '-' + Math.random().toString(36).slice(2,8) + '.webp';
-    var path = currentUser.id + '/' + fileName;
-    var { error: upErr } = await sb.storage.from('bio-photos').upload(path, blob, { contentType: 'image/webp', upsert: false });
-    if (upErr) throw upErr;
-    var { data: { publicUrl } } = sb.storage.from('bio-photos').getPublicUrl(path);
-
-    if (link.photoUrl) bioStalePhotos.push(link.photoUrl);
-    link.photoUrl = publicUrl;
-    renderBioLinks();
-    schedulePreviewUpdate();
-    showBioStatus('success', 'Thumbnail added. Remember to save.');
-  } catch (e) {
-    console.error(e);
-    showBioStatus('error', 'Upload failed: ' + (e.message || 'unknown'));
-  }
-}
-
-function removeLinkThumb(linkId) {
-  var link = bioState.links.find(function(l) { return l._id === linkId; });
-  if (!link || !link.photoUrl) return;
-  bioStalePhotos.push(link.photoUrl);
-  link.photoUrl = '';
-  renderBioLinks();
-  schedulePreviewUpdate();
-  showBioStatus('info', 'Thumbnail removed. Remember to save.');
-}
-
-async function onHeroPhotoSelected(input, linkId) {
-  const file = input.files[0];
-  input.value = '';
-  if (!file) return;
-  if (!isMax()) { showBioStatus('error', 'Hero links are a Creator Max feature.'); return; }
-  if (!file.type.startsWith('image/')) { showBioStatus('error', 'Please upload an image.'); return; }
-  if (file.size > 15 * 1024 * 1024) { showBioStatus('error', 'Image is too large (15MB max).'); return; }
-
-  const link = bioState.links.find(l => l._id === linkId);
-  if (!link) return;
-
-  try {
-    showBioStatus('info', 'Uploading…');
-    // Compress aggressively since we may have up to 10 hero photos
-    const blob = await compressBgImage(file, 1200, 1200, 180 * 1024);
-    const fileName = `hero-${linkId}-${Date.now()}-${Math.random().toString(36).slice(2,8)}.webp`;
-    const path = `${currentUser.id}/${fileName}`;
-    const { error: upErr } = await sb.storage.from('bio-photos').upload(path, blob, { contentType: 'image/webp', upsert: false });
-    if (upErr) throw upErr;
-    const { data: { publicUrl } } = sb.storage.from('bio-photos').getPublicUrl(path);
-
-    // Queue old photo for cleanup if replacing
-    if (link.photoUrl) bioStalePhotos.push(link.photoUrl);
-    link.photoUrl = publicUrl;
-    renderBioLinks();
-    schedulePreviewUpdate();
-    showBioStatus('success', 'Hero photo uploaded. Remember to save.');
-  } catch (e) {
-    console.error(e);
-    showBioStatus('error', `Upload failed: ${e.message || 'unknown'}`);
-  }
-}
-
-function renderLinkExpanded(link, dragSvg) {
-  // Header — single text input, no URL/photo/description
-  if (link.isHeader) {
-    return `<div class="bio-link-row bio-link-header-row bio-s-44d745" data-id="${link._id}" >
-      <div class="bio-link-header">
-        <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
-        <span class="bio-featured-badge bio-s-3a0b91" >Header</span>
-        <div class="bio-s-7623f0"></div>
-        <button class="bio-link-remove" data-bio-action="remove-link" data-bio-id="${link._id}">Remove</button>
-      </div>
-      <input type="text" placeholder="Section header (e.g. My Socials)" maxlength="60" value="${escapeHtml(link.title || '')}"
-        data-bio-action="update-link-field" data-bio-event="input" data-bio-id="${link._id}" data-bio-field="title" aria-label="Header text" class="bio-s-6c002e">
-      <button type="button" data-bio-action="save-link-row" data-bio-id="${link._id}"
-        class="bio-s-c7cf47">
-        Save header
-      </button>
-    </div>`;
-  }
-
-  // Subscribe block — just a title/label field
-  if (link.isSubscribe) {
-    return `<div class="bio-link-row bio-s-dc2eb3" data-id="${link._id}" >
-      <div class="bio-link-header">
-        <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
-        <span class="bio-featured-badge bio-s-3a0b91" >Subscribe</span>
-        <div class="bio-s-7623f0"></div>
-        <button class="bio-link-remove" data-bio-action="remove-link" data-bio-id="${link._id}">Remove</button>
-      </div>
-      <input type="text" placeholder="Subscribe heading (e.g. Join my newsletter)" maxlength="80" value="${escapeHtml(link.title || '')}"
-        data-bio-action="update-link-field" data-bio-event="input" data-bio-id="${link._id}" data-bio-field="title" aria-label="Subscribe heading" class="bio-s-6c002e">
-      <div class="bio-s-7728fb">Visitors will see an email input and subscribe button styled to your theme.</div>
-      <button type="button" data-bio-action="save-link-row" data-bio-id="${link._id}"
-        class="bio-s-c7cf47">
-        Save
-      </button>
-    </div>`;
-  }
-
-  // Video block — list of up to 10 YouTube URL inputs, each removable. An
-  // "Add another video" button appears at the bottom when fewer than 10 are
-  // present. The whole block can be removed via the row's Remove button.
-  if (link.isVideoBlock) {
-    const videos = Array.isArray(link.videos) && link.videos.length ? link.videos : [{ url: '' }];
-    const atMax = videos.length >= 10;
-    const inputsHtml = videos.map((v, idx) => {
-      const value = escapeHtml(v && v.url ? v.url : '');
-      return `<div class="bio-s-302bc1">
-        <input type="url" placeholder="https://youtube.com/watch?v=..." value="${value}"
-          data-bio-action="update-video-url" data-bio-event="input" data-bio-id="${link._id}" data-bio-idx="${idx}"
-          aria-label="YouTube URL ${idx + 1}"
-          class="bio-s-d3db56">
-        <button type="button" aria-label="Remove this video" data-bio-action="remove-video" data-bio-id="${link._id}" data-bio-idx="${idx}"
-          class="bio-s-09aacd">×</button>
-      </div>`;
-    }).join('');
-    return `<div class="bio-link-row" data-id="${link._id}">
-      <div class="bio-link-header">
-        <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
-        <span class="bio-featured-badge bio-s-04da54" >YouTube</span>
-        <div class="bio-s-7623f0"></div>
-        <button class="bio-link-remove" data-bio-action="remove-link" data-bio-id="${link._id}">Remove</button>
-      </div>
-      <div class="bio-s-e289c0">Add up to 10 YouTube videos. They'll appear as a horizontal carousel on your bio.</div>
-      ${inputsHtml}
-      <button type="button" data-bio-action="add-video-to-block" data-bio-id="${link._id}" ${atMax ? 'disabled' : ''}
-        class="bio-add-video-btn ${atMax ? 'is-disabled' : ''}">
-        ${atMax ? '10 video limit reached' : '+ Add another video'}
-      </button>
-      <button type="button" data-bio-action="save-link-row" data-bio-id="${link._id}"
-        class="bio-s-c7cf47">
-        Save
-      </button>
-    </div>`;
-  }
-
-  let photoSlot = '';
-  if (link.isCourse) {
-
-    // Course link — show cover, locked title/URL, crossout price option
-    const coverHtml = link.photoUrl
-      ? `<img alt="Link cover" src="${escapeHtml(link.photoUrl)}" class="bio-s-f31042">`
-      : '';
-    const priceDisplay = link.coursePrice > 0 ? formatMoney(link.coursePrice, {alwaysShowCents:true}) : 'Free';
-    const crossoutVal = link.courseCrossoutPrice > 0 ? (link.courseCrossoutPrice / 100).toFixed(2) : '';
-    return `<div class="bio-link-row" data-id="${link._id}">
-      <div class="bio-link-header">
-        <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
-        <span class="bio-featured-badge bio-s-3a0b91" >Course</span>${bioHalfBadge(link)}
-        <div class="bio-s-7623f0"></div>
-        <button class="bio-link-remove" data-bio-action="remove-link" data-bio-id="${link._id}">Remove</button>
-      </div>
-      ${coverHtml}
-      <input type="text" value="${escapeHtml(link.title || '')}" readonly class="bio-s-5973a5" aria-label="Course title">
-      <div class="bio-s-57a11c">
-        <div class="bio-s-598868">
-          <span class="bio-s-dc6286">Price:</span>
-          <span class="bio-s-b80e2b">${priceDisplay}</span>
-        </div>
-        <div class="bio-s-598868">
-          <span class="bio-s-dc6286">Crossout $</span>
-          <input type="text" inputmode="decimal" value="${crossoutVal}" placeholder="99.99"
-            data-bio-action="update-link-crossout-price" data-bio-event="input" data-bio-id="${link._id}"
-            aria-label="Crossout price" class="bio-s-09cb7b">
-        </div>
-      </div>
-      ${bioHalfWidthToggle(link)}
-      <button type="button" data-bio-action="save-link-row" data-bio-id="${link._id}"
-        class="bio-s-c7cf47">
-        Save link
-      </button>
-    </div>`;
-  }
-  if (link.isCoaching) {
-    const coverHtml = link.photoUrl
-      ? `<img alt="Link cover" src="${escapeHtml(link.photoUrl)}" class="bio-s-f31042">`
-      : '';
-    const priceDisplay = link.coachingPrice > 0 ? formatMoney(link.coachingPrice, {alwaysShowCents:true}) : 'Free';
-    return `<div class="bio-link-row" data-id="${link._id}">
-      <div class="bio-link-header">
-        <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
-        <span class="bio-featured-badge bio-s-3a0b91" >Booking</span>${bioHalfBadge(link)}
-        <div class="bio-s-7623f0"></div>
-        <button class="bio-link-remove" data-bio-action="remove-link" data-bio-id="${link._id}">Remove</button>
-      </div>
-      ${coverHtml}
-      <input type="text" value="${escapeHtml(link.title || '')}" readonly class="bio-s-5973a5" aria-label="Coaching title">
-      <div class="bio-s-d2b7d2">
-        <span class="bio-s-dc6286">Price:</span>
-        <span class="bio-s-b80e2b">${priceDisplay}</span>
-      </div>
-      ${bioHalfWidthToggle(link)}
-      <button type="button" data-bio-action="save-link-row" data-bio-id="${link._id}"
-        class="bio-s-c7cf47">
-        Save link
-      </button>
-    </div>`;
-  }
-  if (link.isProduct) {
-    const coverHtml = link.photoUrl
-      ? `<img alt="Link cover" src="${escapeHtml(link.photoUrl)}" class="bio-s-f31042">`
-      : '';
-    const priceDisplay = link.productPrice > 0 ? formatMoney(link.productPrice, {alwaysShowCents:true}) : 'Free';
-    return `<div class="bio-link-row" data-id="${link._id}">
-      <div class="bio-link-header">
-        <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
-        <span class="bio-featured-badge bio-s-3a0b91" >Product</span>${bioHalfBadge(link)}
-        <div class="bio-s-7623f0"></div>
-        <button class="bio-link-remove" data-bio-action="remove-link" data-bio-id="${link._id}">Remove</button>
-      </div>
-      ${coverHtml}
-      <input type="text" value="${escapeHtml(link.title || '')}" readonly class="bio-s-5973a5" aria-label="Product title">
-      <div class="bio-s-d2b7d2">
-        <span class="bio-s-dc6286">Price:</span>
-        <span class="bio-s-b80e2b">${priceDisplay}</span>
-      </div>
-      ${bioHalfWidthToggle(link)}
-      <button type="button" data-bio-action="save-link-row" data-bio-id="${link._id}"
-        class="bio-s-c7cf47">
-        Save link
-      </button>
-    </div>`;
-  }
-  if (link.featured) {
-    photoSlot = `
-    <div class="bio-featured-photo-slot">
-      ${link.photoUrl
-        ? `<img alt="Link thumbnail" src="${escapeHtml(link.photoUrl)}">`
-        : '<span>+ Upload 16:9 photo</span>'}
-      <input type="file" accept="image/*" aria-label="Upload featured photo" data-bio-action="open-cropper-featured" data-bio-event="change" data-bio-id="${link._id}">
-    </div>`;
-  } else if (link.isHero) {
-    photoSlot = `
-    <div class="bio-hero-photo-slot">
-      ${link.photoUrl
-        ? `<img alt="Link thumbnail" src="${escapeHtml(link.photoUrl)}">`
-        : '<span>+ Upload hero image</span>'}
-      <input type="file" accept="image/*" aria-label="Upload hero photo" data-bio-action="hero-photo-selected" data-bio-event="change" data-bio-id="${link._id}">
-    </div>`;
-  }
-  return `<div class="bio-link-row${link.isHero ? ' bio-link-hero' : ''}" data-id="${link._id}">
-    <div class="bio-link-header">
-      <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
-      ${link.featured ? '<span class="bio-featured-badge">Featured</span>' : ''}
-      ${link.isHero ? '<span class="bio-hero-badge">Hero</span>' : ''}
-      <div class="bio-s-7623f0"></div>
-      <button class="bio-link-remove" data-bio-action="remove-link" data-bio-id="${link._id}">Remove</button>
-    </div>
-    ${photoSlot}
-    ${!link.featured && !link.isHero ? `<div class="bio-s-41ec1b">
-      ${link.photoUrl
-        ? `<img alt="Link thumbnail" src="${escapeHtml(link.photoUrl)}" class="bio-s-19345c">
-           <button type="button" data-bio-action="remove-link-thumb" data-bio-id="${link._id}" class="bio-s-851be4">Remove</button>`
-        : `<label class="bio-thumb-upload-label bio-s-d914e0" >
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-            Add Thumbnail
-            <input type="file" accept="image/*" data-bio-action="link-thumb-selected" data-bio-event="change" data-bio-id="${link._id}" class="bio-s-c8be1c">
-          </label>`}
-    </div>` : ''}
-    <input type="text" placeholder="Title" maxlength="80" value="${escapeHtml(link.title || '')}"
-      data-bio-action="update-link-field" data-bio-event="input" data-bio-id="${link._id}" data-bio-field="title" aria-label="Link title">
-    <input type="text" placeholder="Description (optional)" maxlength="120" value="${escapeHtml(link.description || '')}"
-      data-bio-action="update-link-field" data-bio-event="input" data-bio-id="${link._id}" data-bio-field="description" aria-label="Link description">
-    <input type="url" placeholder="https://..." value="${escapeHtml(link.url || '')}"
-      data-bio-action="update-link-field" data-bio-event="input" data-bio-id="${link._id}" data-bio-field="url" aria-label="Link URL" class="bio-s-6c002e">
-    ${(!link.featured && !link.isHero && !link.isMediaKit) ? bioHalfWidthToggle(link) : ''}
-    <div id="bio-link-err-${link._id}" class="bio-s-f62f0b"></div>
-    <button type="button" data-bio-action="save-link-row" data-bio-id="${link._id}"
-      class="bio-s-c7cf47">
-      Save link
-    </button>
-  </div>`;
-}
-
-function expandLink(id) {
-  bioExpandedLinks.add(id);
-  renderBioLinks();
-}
-
-function saveLinkRow(id) {
-  const link = bioState.links.find(l => l._id === id);
-  if (!link) return;
-
-  // Headers, subscribe blocks, and video blocks don't require a URL
-  if (link.isHeader || link.isSubscribe || link.isVideoBlock) {
-    bioExpandedLinks.delete(id);
-    renderBioLinks();
-    schedulePreviewUpdate();
-    return;
-  }
-
-  const url = (link.url || '').trim();
-  if (!url) {
-    const err = document.getElementById('bio-link-err-' + id);
-    if (err) {
-      err.textContent = 'URL is required to save this link.';
-      err.style.display = 'block';
-    }
-    return;
-  }
-  bioExpandedLinks.delete(id);
-  renderBioLinks();
-  schedulePreviewUpdate();
-}
-
-// ====== VIDEOS ======
-// Helper for extracting a YouTube ID — used by video block renderers in
-// both the editor (collapsed thumb) and the live preview.
-function extractYouTubeIdDash(url) {
-  if (!url) return null;
-  const m = String(url).match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
-  return m ? m[1] : null;
-}
-
-function setAvatarDisplay(mode) {
-  if (mode === 'hero' && !isPro()) {
-    showBioStatus('error', 'Hero display is a Pro feature.');
-    return;
-  }
-  bioState.avatar_display = mode;
-  updateAvatarDisplayUI();
-  schedulePreviewUpdate();
-}
-
-function updateAvatarDisplayUI() {
-  const wrap = document.getElementById('bio-avatar-display-wrap');
-  const btnDefault = document.getElementById('bio-avatar-mode-default');
-  const btnHero = document.getElementById('bio-avatar-mode-hero');
-  if (!wrap) return;
-  // Only show if Pro and has an avatar
-  wrap.style.display = (isPro() && bioState.avatar_url) ? 'block' : 'none';
-  if (btnDefault && btnHero) {
-    const isHero = bioState.avatar_display === 'hero';
-    btnDefault.style.background = isHero ? 'transparent' : 'var(--accent)';
-    btnDefault.style.color = isHero ? 'var(--muted)' : '#fff';
-    btnDefault.style.borderColor = isHero ? 'var(--border-hover)' : 'var(--accent)';
-    // Hero button: Creator Max gradient when selected, purple border when not
-    btnHero.style.background = isHero ? 'linear-gradient(135deg, #a78bfa, #e879f9)' : 'transparent';
-    btnHero.style.color = isHero ? '#fff' : '#f0abfc';
-    btnHero.style.borderColor = isHero ? 'transparent' : 'rgba(232,121,249,0.4)';
-    btnHero.style.boxShadow = isHero ? '0 0 14px rgba(232,121,249,0.3)' : 'none';
-  }
-}
-
-function removeAvatar() {
-  if (bioState.avatar_url) bioStalePhotos.push(bioState.avatar_url);
-  bioState.avatar_url = '';
-  bioState.avatar_display = 'default';
-  renderAvatarPreview();
-  updateAvatarDisplayUI();
-  updateDashboardAvatar(null);
-  schedulePreviewUpdate();
-}
-
-// ====== CROPPER ======
-function resetCropperButton() {
-  const btn = document.getElementById('bio-cropper-confirm');
-  if (btn) {
-    btn.disabled = false;
-    btn.textContent = 'Use photo';
-  }
-  const err = document.getElementById('bio-cropper-error');
-  if (err) {
-    err.style.display = 'none';
-    err.textContent = '';
-  }
-}
-
-function openCropper(input, target, linkId) {
-  if (!input.files || !input.files[0]) return;
-  const file = input.files[0];
-  if (file.size > 10 * 1024 * 1024) {
-    alert('Image too large (max 10MB). Please pick a smaller file.');
-    input.value = '';
-    return;
-  }
-  if (!file.type.startsWith('image/')) {
-    alert('Please select an image file.');
-    input.value = '';
-    return;
-  }
-  // Always reset the confirm button + error in case previous upload failed or hung
-  resetCropperButton();
-  bioCropSource = file;
-  // Targets: 'avatar' (1:1), 'headshot' (1:1), or featured {type, linkId} (16:9)
-  if (target === 'avatar' || target === 'headshot') {
-    bioCropTarget = target;
-  } else {
-    bioCropTarget = { type: 'featured', linkId };
-  }
-  const reader = new FileReader();
-  reader.onload = e => {
-    const modal = document.getElementById('bio-cropper-modal');
-    modal.style.display = 'flex';
-    const img = document.getElementById('bio-cropper-img');
-    img.src = e.target.result;
-    if (bioCropper) { bioCropper.destroy(); bioCropper = null; }
-    // Wait for image to load before initializing cropper
-    img.onload = () => {
-      const is1to1 = (target === 'avatar' || target === 'headshot');
-      bioCropper = new Cropper(img, {
-        aspectRatio: is1to1 ? 1 : 16/9,
-        viewMode: 1,
-        background: false,
-        autoCropArea: 1,
-        movable: true,
-        zoomable: true,
-        scalable: false,
-        rotatable: false,
+      const resolverFetchOpts = () => ({
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        },
       });
-    };
-  };
-  reader.readAsDataURL(file);
-  input.value = '';
-}
-
-function closeCropper() {
-  if (bioCropper) { bioCropper.destroy(); bioCropper = null; }
-  document.getElementById('bio-cropper-modal').style.display = 'none';
-  resetCropperButton();
-  bioCropSource = null;
-  bioCropTarget = null;
-}
-
-async function confirmCrop() {
-  if (!bioCropper || !currentUser) return;
-  const isAvatar = bioCropTarget === 'avatar';
-  const isHeadshot = bioCropTarget === 'headshot';
-  // Sizes: avatar 800x800, headshot 600x600, featured 800x450
-  const targetW = isAvatar ? 800 : isHeadshot ? 600 : 800;
-  const targetH = isAvatar ? 800 : isHeadshot ? 600 : 450;
-  const btn = document.getElementById('bio-cropper-confirm');
-  btn.disabled = true;
-  btn.textContent = 'Uploading…';
-
-  const err = document.getElementById('bio-cropper-error');
-  err.style.display = 'none';
-
-  try {
-    const canvas = bioCropper.getCroppedCanvas({ width: targetW, height: targetH, imageSmoothingQuality: 'high' });
-    if (!canvas) throw new Error('Could not read cropped image. Try a different photo.');
-
-    // Convert canvas to WebP blob, with a 15-second safety timeout
-    const blob = await Promise.race([
-      new Promise((resolve, reject) => {
-        canvas.toBlob(b => {
-          if (b) resolve(b);
-          else reject(new Error('Browser could not encode image. Try a PNG or JPEG.'));
-        }, 'image/webp', 0.85);
-      }),
-      new Promise((_, reject) => setTimeout(() => reject(new Error('Image processing timed out.')), 15000))
-    ]);
-
-    if (!blob) throw new Error('Could not process image.');
-
-    // Choose bucket + filename based on target
-    const bucket = isHeadshot ? 'media-kit-photos' : 'bio-photos';
-    const kind = isAvatar ? 'avatar' : isHeadshot ? 'headshot' : 'featured';
-    const fileName = `${currentUser.id}/${kind}-${Date.now()}-${Math.random().toString(36).slice(2,8)}.webp`;
-
-    const { error: upErr } = await sb.storage.from(bucket).upload(fileName, blob, {
-      contentType: 'image/webp',
-      upsert: false
-    });
-    if (upErr) throw new Error(upErr.message || 'Upload rejected. Please try again.');
-
-    const { data: urlData } = sb.storage.from(bucket).getPublicUrl(fileName);
-    const publicUrl = urlData?.publicUrl;
-    if (!publicUrl) throw new Error('Could not get photo URL.');
-
-    if (isAvatar) {
-      if (bioState.avatar_url) bioStalePhotos.push(bioState.avatar_url);
-      bioState.avatar_url = publicUrl;
-      renderAvatarPreview();
-      updateAvatarDisplayUI();
-      updateDashboardAvatar(publicUrl);
-      schedulePreviewUpdate();
-    } else if (isHeadshot) {
-      if (mkState.headshot_url) mkStalePhotos.push(mkState.headshot_url);
-      mkState.headshot_url = publicUrl;
-      renderMKHeadshotPreview();
-      scheduleMKPreview();
-    } else {
-      const link = bioState.links.find(l => l._id === bioCropTarget.linkId);
-      if (link) {
-        if (link.photoUrl) bioStalePhotos.push(link.photoUrl);
-        link.photoUrl = publicUrl;
-      }
-      renderBioLinks();
-      schedulePreviewUpdate();
-    }
-    closeCropper();
-  } catch (e) {
-    console.error('Upload error:', e);
-    err.textContent = e.message || 'Upload failed. Please try again.';
-    err.style.display = 'block';
-    btn.disabled = false;
-    btn.textContent = 'Use photo';
-  }
-}
-
-// Delete stale photos from Supabase Storage (old avatars, removed featured photos)
-// Delete any photos in the user's bio-photos folder that are NOT currently
-// referenced in bioState (avatar + any featured link photos).
-// This handles both "replaced photo" and "abandoned upload" orphan cases.
-async function deleteStalePhotos() {
-  if (!currentUser) return;
-  try {
-    // List all files in the user's bio-photos folder
-    const { data: files, error: listErr } = await sb.storage.from('bio-photos').list(currentUser.id, { limit: 100 });
-    if (listErr || !Array.isArray(files)) {
-      bioStalePhotos = [];
-      return;
-    }
-    // Build the set of photos currently in use
-    const inUse = new Set();
-    const extractPath = (url) => {
-      if (!url) return null;
-      const m = url.match(/bio-photos\/(.+)$/);
-      return m ? m[1] : null;
-    };
-    const addInUse = (url) => {
-      const p = extractPath(url);
-      if (p) inUse.add(p);
-    };
-    addInUse(bioState.avatar_url);
-    // Include featured, hero, AND regular link photos as in-use
-    bioState.links.forEach(l => {
-      if (l.photoUrl) addInUse(l.photoUrl);
-    });
-
-    // Any file not in the in-use set is stale and safe to delete
-    const toDelete = files
-      .map(f => `${currentUser.id}/${f.name}`)
-      .filter(path => !inUse.has(path));
-
-    if (toDelete.length > 0) {
-      await sb.storage.from('bio-photos').remove(toDelete);
-    }
-  } catch (e) {
-    console.warn('Failed to cleanup stale photos', e);
-  }
-  bioStalePhotos = [];
-}
-
-// ====== SAVE / PUBLISH ======
-function showBioStatus(kind, msg) {
-  const el = document.getElementById('bio-save-status');
-  if (!el) return;
-  el.textContent = msg;
-  el.style.color = kind === 'error' ? '#fca5a5' : kind === 'success' ? '#4ade80' : 'var(--muted)';
-  if (kind !== 'error') setTimeout(() => { if (el.textContent === msg) el.textContent = ''; }, 3000);
-}
-
-async function saveBio() {
-  if (!currentUser) return;
-  const btn = document.getElementById('bio-save-btn');
-  btn.disabled = true;
-  btn.textContent = 'Saving…';
-  try {
-    // Validate username if one is entered (required if they want to publish, optional as draft)
-    const uname = bioState.username.trim();
-    if (!uname && bioOriginalUsername) {
-      throw new Error('Username cannot be removed once set.');
-    }
-    if (uname) {
-      if (uname.length < 3) throw new Error('Username must be at least 3 characters.');
-      if (!/^[a-z0-9_]+$/.test(uname)) throw new Error('Username: lowercase letters, numbers, underscore only.');
-      if (BIO_RESERVED.has(uname)) throw new Error('That username is reserved.');
+      await resolveLiveCoverUrls(profile.user_id, bio.links, resolverFetchOpts, profile.username);
+    } catch (e) {
+      console.error('cover URL resolver failed, falling back to snapshots:', e);
     }
 
-    // Username upsert (if changed or not set)
-    if (uname && uname !== bioOriginalUsername) {
-      // Rate limit: 2 changes per 7 days
-      const { allowed, remaining, changes } = await checkUsernameChangeLimit();
-      if (!allowed) {
-        const nextDate = formatNextChangeDate(changes);
-        throw new Error(`You've reached the max username changes. Try again on ${nextDate}.`);
-      }
-      // Check availability
-      const { data: existing } = await sb.from('public_profiles').select('user_id').eq('username', uname).maybeSingle();
-      if (existing && existing.user_id !== currentUser.id) {
-        throw new Error('That username is already taken.');
-      }
-      const { error: upErr } = await sb.from('profiles').upsert({
-        user_id: currentUser.id, username: uname
-      }, { onConflict: 'user_id' });
-      if (upErr) throw upErr;
-      await recordUsernameChange();
-      bioOriginalUsername = uname;
-      // Update topbar bio link
-      window._ryx_username = uname;
-      var bioLinkEl = document.getElementById('topbar-bio-link');
-      if (bioLinkEl) bioLinkEl.textContent = 'ryxa.io/' + uname;
-      var bioLinkMobile = document.getElementById('ana-bio-link');
-      if (bioLinkMobile) bioLinkMobile.textContent = 'ryxa.io/' + uname;
-      showBioLinkButtons();
-    }
+    // Render the bio content server-side
+    const rendered = renderBioContent(profile, bio);
+    renderedInner = rendered.inner;
 
-    // Clean links/videos before save: strip internal _id, require URL for links
-    const normalizeUrl = (u) => {
-      const s = (u || '').trim();
-      if (!s) return '';
-      // If already has a scheme, leave as-is; otherwise prepend https://
-      if (/^[a-z][a-z0-9+.-]*:/i.test(s)) return s;
-      return 'https://' + s;
-    };
-    const cleanLinks = bioState.links
-      .filter(l => (l.title || '').trim() || (l.url || '').trim() || l.isVideoBlock || l.isHeader || l.isSubscribe || l.isMediaKit)
-      .map(l => ({
-        title: (l.title || '').slice(0, 80),
-        description: (l.description || '').slice(0, 120),
-        url: normalizeUrl(l.url),
-        featured: !!l.featured,
-        photoUrl: l.photoUrl || '',
-        ...(l.isMediaKit ? { isMediaKit: true } : {}),
-        ...(l.isHero ? { isHero: true } : {}),
-        ...(l.isHeader ? { isHeader: true } : {}),
-        ...(l.isCourse ? { isCourse: true, courseId: l.courseId, coursePrice: l.coursePrice || 0, courseCrossoutPrice: l.courseCrossoutPrice || 0 } : {}),
-        ...(l.isCoaching ? { isCoaching: true, coachingId: l.coachingId, coachingPrice: l.coachingPrice || 0 } : {}),
-        ...(l.isProduct ? { isProduct: true, productId: l.productId, productPrice: l.productPrice || 0 } : {}),
-        ...(l.halfWidth ? { halfWidth: true } : {}),
-        ...(l.isSubscribe ? { isSubscribe: true } : {}),
-        // Video block — array of YouTube URLs (capped at 5 by the editor).
-        // Filter out empty/blank URL slots so the saved payload never carries
-        // partially-filled rows.
-        ...(l.isVideoBlock ? {
-          isVideoBlock: true,
-          videos: (Array.isArray(l.videos) ? l.videos : [])
-            .map(v => ({ url: (v && v.url ? v.url : '').trim() }))
-            .filter(v => v.url)
-            .slice(0, 10)
-        } : {}),
-      }));
-    // Old top-level videos array is no longer used — videos now live inside
-    // isVideoBlock entries in `links`. Always write empty so legacy data clears.
-    const cleanVideos = [];
+    // Stash currency + tier for client JS so trackPageView/subscribe still work
+    // and so any client-side post-hydration logic has access to it. Previously
+    // this was an inline <script>, but strict CSP forbids inline scripts. Now
+    // these values flow into the page as <meta> tags; js/bio-page.js reads
+    // them at load time and populates window._creatorCurrency etc.
+    const bootstrap = `
+      <meta name="ryxa-creator-currency" content="${esc(profile.display_currency || 'USD')}">
+      <meta name="ryxa-ssr-username" content="${esc(profile.username)}">
+      <meta name="ryxa-ssr-hydrated" content="true">`;
 
-    const payload = {
-      user_id: currentUser.id,
-      display_name: bioState.display_name || null,
-      bio: bioState.bio || null,
-      avatar_url: bioState.avatar_url || null,
-      avatar_display: isPro() ? (bioState.avatar_display || 'default') : 'default',
-      theme: (() => {
-        // Defense-in-depth: Free users cannot save a Pro theme
-        const chosen = BIO_THEMES.find(x => x.key === bioState.theme);
-        if (!chosen) return 'purple';
-        if (chosen.pro && !isPro()) return 'purple';
-        if (chosen.max && !isMax()) return 'purple';
-        return bioState.theme;
-      })(),
-      font_family: (() => {
-        // Validate against the allowed font list. Falls back to default if unknown.
-        const f = BIO_FONTS.find(x => x.key === bioState.font_family);
-        return f ? f.key : 'DM Sans';
-      })(),
-      socials: bioState.socials,
-      links: cleanLinks,
-      videos: cleanVideos,
-      published: bioState.published,
-      // Free users cannot hide branding — force true regardless of client state
-      show_branding: isPro() ? !!bioState.show_branding : true,
-      // Pro users can save custom_theme. Preserve for downgraded users but blank-out on write for non-Pro to avoid RLS overreach
-      custom_theme: isPro() ? (bioState.custom_theme || null) : (bioState.custom_theme || null),
-    };
-    const { error } = await sb.from('link_in_bio').upsert(payload, { onConflict: 'user_id' });
-    if (error) throw error;
+    // Inject creator's chosen font (link + override style). Falls back to default
+    // if font_family is null or unknown — buildFontInjection handles validation.
+    const fontInjection = buildFontInjection(bio.font_family);
 
-    await deleteStalePhotos();
-    await deleteStaleBios();
-
-    updatePublishUI();
-    showBioStatus('success', 'Saved ✓');
-    showDashToast('success', 'Link in Bio changes saved.');
-    // Re-render username hint so "Press save to change username" disappears
-    if (bioState.username) renderUsernameAvailable(bioState.username);
-  } catch (e) {
-    console.error(e);
-    showBioStatus('error', e.message || 'Save failed.');
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Save';
-  }
-}
-
-// Delete queued stale background URLs from storage
-async function deleteStaleBios() {
-  if (!bioStaleBgs.length) return;
-  const paths = bioStaleBgs
-    .map(url => {
-      // Extract storage path from public URL
-      const m = url.match(/\/bio-backgrounds\/(.+)$/);
-      return m ? m[1] : null;
-    })
-    .filter(Boolean);
-  if (paths.length) {
-    try { await sb.storage.from('bio-backgrounds').remove(paths); } catch (e) { console.warn('bg cleanup', e); }
-  }
-  bioStaleBgs = [];
-}
-
-async function togglePublish() {
-  if (!currentUser) return;
-  const wantPublish = !bioState.published;
-  if (wantPublish) {
-    if (!bioState.username) { showBioStatus('error', 'Pick a username first.'); return; }
-    if (bioState.username.length < 3) { showBioStatus('error', 'Username must be at least 3 characters.'); return; }
-    if (BIO_RESERVED.has(bioState.username)) { showBioStatus('error', 'That username is reserved.'); return; }
-  }
-  const btn = document.getElementById('bio-publish-btn');
-  btn.disabled = true;
-  btn.textContent = wantPublish ? 'Publishing…' : 'Unpublishing…';
-  try {
-    bioState.published = wantPublish;
-    await saveBio();
-    updatePublishUI();
-    showBioStatus('success', wantPublish ? 'Your page is live 🎉' : 'Page unpublished.');
-  } catch (e) {
-    bioState.published = !wantPublish;
-    showBioStatus('error', 'Failed to ' + (wantPublish ? 'publish' : 'unpublish'));
-  } finally {
-    btn.disabled = false;
-    updatePublishUI();
-  }
-}
-
-function updatePublishUI() {
-  const dot = document.getElementById('bio-status-dot');
-  const label = document.getElementById('bio-status-label');
-  const sub = document.getElementById('bio-status-sub');
-  const btn = document.getElementById('bio-publish-btn');
-  const viewLink = document.getElementById('bio-view-live');
-  if (bioState.published) {
-    dot.style.background = '#4ade80';
-    label.textContent = 'Published';
-    sub.innerHTML = bioState.username
-      ? 'Live at <strong class="bio-s-313aee">ryxa.io/' + bioState.username + '</strong> <button type="button" data-bio-action="copy-bio-link" data-bio-url="https://ryxa.io/' + bioState.username + '" class="bio-s-eaca75">Copy</button>'
-      : 'Your page is live.';
-    btn.textContent = 'Unpublish';
-    btn.style.background = 'transparent';
-    btn.style.border = '1px solid var(--border-hover)';
-    btn.style.color = 'var(--muted)';
-    if (viewLink && bioState.username) {
-      var bioFullUrl = 'https://www.ryxa.io/' + bioState.username;
-      if (isPwaMode) {
-        viewLink.href = '#';
-        viewLink.removeAttribute('target');
-        viewLink.textContent = 'Copy link';
-        viewLink.onclick = function(e) {
-          e.preventDefault();
-          if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(bioFullUrl).then(function() {
-              viewLink.textContent = 'Copied!';
-              setTimeout(function() { viewLink.textContent = 'Copy link'; }, 1500);
-            }).catch(function() { fallbackCopy(bioFullUrl); viewLink.textContent = 'Copied!'; setTimeout(function() { viewLink.textContent = 'Copy link'; }, 1500); });
-          } else {
-            fallbackCopy(bioFullUrl);
-            viewLink.textContent = 'Copied!';
-            setTimeout(function() { viewLink.textContent = 'Copy link'; }, 1500);
-          }
-        };
-      } else {
-        viewLink.href = '/' + bioState.username;
-        viewLink.setAttribute('target', '_blank');
-        viewLink.textContent = 'View live page \u2197';
-        viewLink.onclick = null;
-      }
-      viewLink.style.display = 'inline-flex';
-    }
-  } else {
-    dot.style.background = 'var(--muted2)';
-    label.textContent = 'Not published';
-    sub.textContent = "Your page isn't live yet. Publish to share it.";
-    btn.textContent = 'Publish';
-    btn.style.background = 'var(--accent)';
-    btn.style.border = 'none';
-    btn.style.color = '#fff';
-    if (viewLink) viewLink.style.display = 'none';
-  }
-}
-
-// ====== LIVE PREVIEW ======
-function schedulePreviewUpdate() {
-  clearTimeout(bioPreviewTimer);
-  bioPreviewTimer = setTimeout(updateBioPreview, 200);
-}
-
-function updateBioPreview() {
-  const iframe = document.getElementById('bio-preview-iframe');
-  if (!iframe) return;
-  iframe.srcdoc = buildPreviewHTML();
-}
-
-function buildPreviewHTML() {
-  const themes = {
-    purple:   { bg:'#07070f', surface:'#0f0f1a', surface2:'#161625', text:'#f0eef8', muted:'#b4b2c8', muted2:'#c9c7dc', accent:'#7c3aed', accent2:'#a855f7', glow:'rgba(124,58,237,0.3)', border:'rgba(255,255,255,0.1)', avatarBorder:'linear-gradient(135deg,#a78bfa,#e879f9)' },
-    midnight: { bg:'#050508', surface:'#0c0c12', surface2:'#13131b', text:'#f3f4f6', muted:'#c9ccd4', muted2:'#dde0e6', accent:'#4b5563', accent2:'#9ca3af', glow:'rgba(156,163,175,0.25)', border:'rgba(255,255,255,0.09)', avatarBorder:'linear-gradient(135deg,#9ca3af,#e5e7eb)' },
-    sunset:   { bg:'#120808', surface:'#1c0e0e', surface2:'#251414', text:'#fff6f0', muted:'#f3c8b2', muted2:'#f7dcca', accent:'#f97316', accent2:'#ec4899', glow:'rgba(249,115,22,0.3)', border:'rgba(255,180,150,0.12)', avatarBorder:'linear-gradient(135deg,#fb923c,#f472b6)' },
-    ocean:    { bg:'#040a14', surface:'#0b1424', surface2:'#111d33', text:'#eaf6ff', muted:'#a5c8e0', muted2:'#c3dcf0', accent:'#0891b2', accent2:'#22d3ee', glow:'rgba(34,211,238,0.3)',  border:'rgba(150,200,255,0.12)', avatarBorder:'linear-gradient(135deg,#22d3ee,#60a5fa)' },
-    forest:   { bg:'#040a06', surface:'#0b1610', surface2:'#11211a', text:'#eefaf2', muted:'#a8ccb7', muted2:'#c5dfd0', accent:'#10b981', accent2:'#34d399', glow:'rgba(52,211,153,0.3)',  border:'rgba(150,255,180,0.1)',  avatarBorder:'linear-gradient(135deg,#34d399,#a7f3d0)' },
-    rose:     { bg:'#140710', surface:'#1e0f1a', surface2:'#2a1624', text:'#fff0f5', muted:'#f0bfd1', muted2:'#f7d5e0', accent:'#e11d48', accent2:'#fb7185', glow:'rgba(251,113,133,0.3)', border:'rgba(255,180,210,0.12)', avatarBorder:'linear-gradient(135deg,#fb7185,#fda4af)' },
-    amber:    { bg:'#0f0a04', surface:'#1a1208', surface2:'#251b0e', text:'#fff8ec', muted:'#e7c9a1', muted2:'#f1dcc0', accent:'#d97706', accent2:'#fbbf24', glow:'rgba(251,191,36,0.3)',  border:'rgba(255,210,150,0.12)', avatarBorder:'linear-gradient(135deg,#fbbf24,#fde68a)' },
-    crimson:  { bg:'#0f0405', surface:'#1a080a', surface2:'#260c10', text:'#fff0f0', muted:'#ecb9b9', muted2:'#f5d0d0', accent:'#b91c1c', accent2:'#ef4444', glow:'rgba(239,68,68,0.3)',   border:'rgba(255,160,160,0.12)', avatarBorder:'linear-gradient(135deg,#ef4444,#fca5a5)' },
-    electric: { bg:'#050814', surface:'#0b1124', surface2:'#111a38', text:'#eaf0ff', muted:'#a8bce0', muted2:'#c5d4ee', accent:'#2563eb', accent2:'#60a5fa', glow:'rgba(96,165,250,0.35)', border:'rgba(150,180,255,0.14)', avatarBorder:'linear-gradient(135deg,#60a5fa,#a5b4fc)' },
-    mint:     { bg:'#030e0c', surface:'#0a1a18', surface2:'#102623', text:'#ecfefa', muted:'#a4d6cd', muted2:'#c3e4de', accent:'#0d9488', accent2:'#2dd4bf', glow:'rgba(45,212,191,0.3)',  border:'rgba(150,255,230,0.12)', avatarBorder:'linear-gradient(135deg,#2dd4bf,#a7f3d0)' },
-    violet:   { bg:'#0c0418', surface:'#170a26', surface2:'#220f37', text:'#f5ecff', muted:'#c9b8e6', muted2:'#dccdf0', accent:'#6d28d9', accent2:'#c084fc', glow:'rgba(192,132,252,0.3)', border:'rgba(200,170,255,0.12)', avatarBorder:'linear-gradient(135deg,#c084fc,#e9d5ff)' },
-    graphite: { bg:'#0a0a0a', surface:'#141414', surface2:'#1e1e1e', text:'#f5f5f5', muted:'#b3b3b3', muted2:'#d1d1d1', accent:'#6b7280', accent2:'#d1d5db', glow:'rgba(209,213,219,0.2)', border:'rgba(255,255,255,0.08)', avatarBorder:'linear-gradient(135deg,#d1d5db,#f3f4f6)' },
-  };
-  // Build custom theme from bioState.custom_theme if tier allows
-  let t;
-  let bgImageCSS = '';
-  let bgOverlayCSS = '';
-  if (bioState.theme === 'custom' && isPro() && bioState.custom_theme) {
-    t = buildCustomThemeVars(bioState.custom_theme);
-    if (bioState.custom_theme.bgUrl) {
-      bgImageCSS = `body::after{content:'';position:fixed;inset:0;background-image:url("${escapeHtml(bioState.custom_theme.bgUrl)}");background-size:cover;background-position:center;z-index:-2;}`;
-      const darkness = 1 - (bioState.custom_theme.bgOpacity || 0.4);
-      bgOverlayCSS = `body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,${darkness.toFixed(2)});z-index:-1;}`;
-    }
-  } else if (isImageTheme(bioState.theme)) {
-    // Builtin image theme — same pipeline as custom, but with hardcoded
-    // colors and image. Free for all users.
-    t = buildImageThemeVars(bioState.theme);
-    if (t && t.bgUrl) {
-      bgImageCSS = `body::after{content:'';position:fixed;inset:0;background-image:url("${escapeHtml(t.bgUrl)}");background-size:cover;background-position:center;z-index:-2;}`;
-      // No overlay — image themes are pre-tuned for legibility without darkening
-      bgOverlayCSS = '';
-    }
-  } else {
-    t = themes[bioState.theme] || themes.purple;
-  }
-  const name = bioState.display_name || bioState.username || 'Your name';
-  const initial = (name[0] || '?').toUpperCase();
-  const avatarHtml = bioState.avatar_url
-    ? `<img src="${escapeHtml(bioState.avatar_url)}" alt="Profile photo" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;">`
-    : `<div style="width:100%;height:100%;border-radius:50%;background:${t.surface2};display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;font-size:36px;font-weight:800;color:${t.text};">${escapeHtml(initial)}</div>`;
-  const socialsHtml = buildPreviewSocials(t);
-  const linksHtml = bioState.links.filter(l => l.isHeader || l.isSubscribe || l.isVideoBlock || (l.url || '').trim()).map(l => buildPreviewLink(l, t)).join('');
-
-  // For custom themes with a bg image, we dim the radial glow (since bg image is already bg)
-  const glowCSS = ((bioState.theme === 'custom' && isPro() && bioState.custom_theme?.bgUrl) || isImageTheme(bioState.theme))
-    ? '' // no radial glow when bg image is set
-    : `body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,${t.glow} 0%,transparent 60%);pointer-events:none;z-index:0;}`;
-
-  // Resolve selected font with safe fallback
-  const _bioFont = getBioFont(bioState.font_family);
-  const _bioFontHref = `https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=${_bioFont.gfont}:wght@${_bioFont.weights}&display=swap`;
-
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="${_bioFontHref}" rel="stylesheet">
-  <style>
-  html{scrollbar-width:thin;scrollbar-color:rgba(124,58,237,0.3) transparent;}
-  ::-webkit-scrollbar{width:6px;}
-  ::-webkit-scrollbar-track{background:transparent;}
-  ::-webkit-scrollbar-thumb{background:rgba(124,58,237,0.3);border-radius:3px;}
-  ::-webkit-scrollbar-thumb:hover{background:rgba(124,58,237,0.5);}
-  body{margin:0;padding:${(bioState.avatar_display === 'hero' && bioState.avatar_url) ? '0 0' : '40px 18px'} ${bioState.show_branding ? '80px' : '24px'};font-family:'DM Sans',sans-serif;background:${t.bg};color:${t.text};min-height:100vh;}
-  /* When user picks a non-default font, force it on every element. With the
-     DM Sans default, skip this so the name stays in Syne (matching the public
-     bio page's signature heading style). */
-  ${(bioState.font_family && bioState.font_family !== 'DM Sans') ? `body, body * { font-family: ${_bioFont.stack} !important; } .banner, .banner *, .brand-banner, .brand-banner * { font-family: 'DM Sans', sans-serif !important; }` : ''}
-  ${bgImageCSS}
-  ${bgOverlayCSS || glowCSS}
-  .w{position:relative;z-index:1;max-width:480px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:14px;}
-  .hero-wrap{position:relative;overflow:hidden;${(bioState.avatar_display === 'hero' && bioState.avatar_url) ? 'width:100vw;max-width:100vw;margin-left:0;' : ''}}
-  .avfr{width:100px;height:100px;border-radius:50%;padding:3px;background:${t.avatarBorder};margin-bottom:6px;}
-  .nm{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;letter-spacing:-0.4px;text-align:center;word-break:break-word;}
-  .bio-line{font-size:13px;color:${t.muted2};text-align:center;line-height:1.4;max-width:340px;word-break:break-word;}
-  .socials{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:2px 0 4px;}
-  .sb{width:34px;height:34px;border-radius:50%;background:${t.surface};border:1px solid ${t.border};display:flex;align-items:center;justify-content:center;color:${t.text};}
-  .sb svg{width:16px;height:16px;fill:currentColor;}
-  .links{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:4px;max-width:480px;padding:0 18px;box-sizing:border-box;align-self:center;}
-  .links > *{grid-column:span 2;}
-  .links > .link-half{grid-column:span 1;}
-  /* Half-width thumb-variant: image-on-top + text-below, matches courses/products */
-  .lk.lk-thumb.link-half{flex-direction:column;align-items:stretch;min-height:120px;}
-  .lk.lk-thumb.link-half .lk-thumb-img{width:100%;height:auto;aspect-ratio:16/9;border-top-left-radius:13px;border-top-right-radius:13px;border-bottom-left-radius:0;}
-  .lk.lk-thumb.link-half .lk-thumb-body{flex:1;padding:8px 12px;justify-content:center;}
-  /* Half-width text-only link gets a min-height for row alignment */
-  .lk.link-half:not(.lk-thumb){min-height:56px;display:flex;flex-direction:column;justify-content:center;}
-  /* Half-width preview course/coaching/product cards — column layout matches halves */
-  .pcc.link-half{min-height:120px;display:flex;flex-direction:column;}
-  .pcc.link-half > div{flex:1;}
-  .pcc .pcc-title{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .pcc.link-half .pcc-body{flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:8px 10px;}
-  .pcc.link-half .pcc-title{white-space:normal;text-align:center;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-overflow:clip;flex:none;}
-  .pcc.link-half .pcc-price{margin-left:0;}
-  .hdr{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:${t.text};text-transform:uppercase;letter-spacing:0.1em;text-align:center;padding:14px 8px 6px;opacity:0.85;word-break:break-word;}
-  .lk{background:${t.surface};border:1px solid ${t.border};border-radius:13px;padding:14px 18px;color:${t.text};text-align:center;}
-  .lk-t{font-size:14px;font-weight:600;}
-  .lk-d{font-size:12px;color:${t.muted};line-height:1.4;margin-top:2px;word-break:break-word;}
-  .lk.lk-thumb{display:flex;flex-direction:row;align-items:stretch;padding:0;overflow:hidden;min-height:46px;}
-  .lk-thumb-img{align-self:stretch;width:46px;height:auto;object-fit:cover;flex-shrink:0;display:block;border-top-left-radius:13px;border-bottom-left-radius:13px;}
-  .lk-thumb-body{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:8px 18px;gap:2px;}
-  .fl{background:${t.surface};border:1px solid ${t.border};border-radius:16px;overflow:hidden;}
-  .fl img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:${t.surface2};}
-  .fl-b{padding:14px 18px 16px;text-align:center;}
-  .fl-t{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;letter-spacing:-0.2px;word-break:break-word;}
-  .fl-d{font-size:12px;color:${t.muted};line-height:1.4;margin-top:3px;word-break:break-word;}
-  .mkh{position:relative;border-radius:14px;overflow:hidden;min-height:90px;background:#000;border:1px solid ${t.accent};box-shadow:0 0 20px ${t.glow};}
-  .mkh-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;display:block;}
-  .mkh-ov{position:absolute;inset:0;z-index:1;background:linear-gradient(135deg,rgba(0,0,0,0.65) 0%,rgba(0,0,0,0.55) 50%,rgba(124,58,237,0.45) 100%);}
-  .mkh-c{position:relative;z-index:2;display:flex;align-items:center;gap:12px;padding:18px 18px;}
-  .mkh-i{width:20px;height:20px;color:#fff;flex-shrink:0;filter:drop-shadow(0 1px 3px rgba(0,0,0,0.5));}
-  .mkh-b{flex:1;min-width:0;}
-  .mkh-t{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,0.4);letter-spacing:-0.2px;}
-  .mkh-d{font-size:12px;color:rgba(255,255,255,0.85);text-shadow:0 1px 3px rgba(0,0,0,0.4);line-height:1.4;margin-top:3px;word-break:break-word;}
-  .hl{position:relative;border-radius:14px;overflow:hidden;min-height:110px;background:#000;border:1px solid ${t.border};}
-  .hl-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;display:block;}
-  .hl-ov{position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(0,0,0,0.15) 0%,rgba(0,0,0,0.65) 100%);}
-  .hl-c{position:relative;z-index:2;display:flex;flex-direction:column;padding:20px;min-height:110px;justify-content:flex-end;}
-  .hl-t{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,0.5);letter-spacing:-0.3px;}
-  .hl-d{font-size:13px;color:rgba(255,255,255,0.9);text-shadow:0 1px 4px rgba(0,0,0,0.5);line-height:1.35;margin-top:4px;word-break:break-word;}
-  .vids{width:100%;position:relative;}
-  .vids-r{display:flex;gap:10px;padding:2px 0;overflow-x:auto;scrollbar-width:none;}
-  .vids-r::-webkit-scrollbar{display:none;}
-  .vc{flex:0 0 220px;background:${t.surface};border:1px solid ${t.border};border-radius:12px;overflow:hidden;}
-  .vc img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:${t.surface2};}
-  /* Preview arrow buttons — small since the preview is itself small */
-  .vids-arrow{position:absolute;top:50%;transform:translateY(-50%);width:28px;height:28px;border-radius:50%;border:1px solid ${t.border};background:${t.surface};color:${t.text};cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2;box-shadow:0 2px 6px rgba(0,0,0,0.2);padding:0;transition:opacity 0.15s,background 0.15s;}
-  .vids-arrow:hover{background:${t.surface2};}
-  .vids-arrow:disabled{opacity:0.35;cursor:default;}
-  .vids-arrow:disabled:hover{background:${t.surface};}
-  .vids-arrow-l{left:2px;}
-  .vids-arrow-r{right:2px;}
-  .banner{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);padding:12px 24px;background:#0a0a14;border:1px solid ${t.border};border-radius:100px;font-size:13px;color:rgba(255,255,255,0.7);text-decoration:none;display:inline-flex;align-items:center;gap:10px;z-index:100;box-shadow:0 4px 20px rgba(0,0,0,0.3);white-space:nowrap;}
-  .banner strong{color:#fff;font-weight:600;}
-  .banner img{width:18px;height:18px;border-radius:4px;}
-  /* Hero avatar display */
-  .hero-wrap{position:relative;width:100%;margin-bottom:0;border-radius:0;overflow:hidden;}
-  .hero-img{width:100%;aspect-ratio:1/1;object-fit:cover;object-position:center top;display:block;-webkit-mask-image:linear-gradient(to bottom,black 0%,black 55%,transparent 100%);mask-image:linear-gradient(to bottom,black 0%,black 55%,transparent 100%);}
-  .hero-fade{display:none;}
-  .hero-info{position:absolute;bottom:-30px;left:0;right:0;display:flex;flex-direction:column;align-items:center;gap:6px;z-index:2;padding:0 20px 0;}
-  .hero-info .nm{text-shadow:0 2px 10px rgba(0,0,0,0.6);}
-  .hero-info .bio-line{text-shadow:0 1px 6px rgba(0,0,0,0.5);}
-  .hero-info .sb{background:rgba(0,0,0,0.35);border-color:rgba(255,255,255,0.2);backdrop-filter:blur(6px);}
-  .hero-info{display:none;}
-  .hero-below{margin-top:-60px;position:relative;z-index:3;display:flex;flex-direction:column;align-items:center;gap:3px;padding:0 18px;width:100%;box-sizing:border-box;}
-  </style></head><body>
-  <div class="w">
-    ${(bioState.avatar_display === 'hero' && bioState.avatar_url) ? `
-    <div class="hero-wrap">
-      <img class="hero-img" src="${escapeHtml(bioState.avatar_url)}" alt="Profile photo">
-      <div class="hero-fade"></div>
-    </div>
-    <div class="hero-below">
-      <div class="nm">${escapeHtml(name)}</div>
-      ${socialsHtml}
-      ${bioState.bio ? `<div class="bio-line">${escapeHtml(bioState.bio)}</div>` : ''}
-    </div>` : `
-    <div class="avfr">${avatarHtml}</div>
-    <div class="nm">${escapeHtml(name)}</div>
-    ${socialsHtml}
-    ${bioState.bio ? `<div class="bio-line">${escapeHtml(bioState.bio)}</div>` : ''}`}
-    ${linksHtml ? `<div class="links">${linksHtml}</div>` : ''}
-    ${bioState.show_branding ? '<div class="banner"><img src="logo.png" alt="Ryxa"><span>Get your free link-in-bio at <strong>Ryxa</strong></span></div>' : ''}
-  </div>
-  <\u0073cript src="/js/bio-preview-runtime.js"></\u0073cript>
-</body></html>`;
-}
-
-function buildPreviewSocials(t) {
-  const items = BIO_SOCIAL_FIELDS
-    .filter(f => (bioState.socials[f.key] || '').trim())
-    .map(f => `<div class="sb">${f.svg}</div>`);
-  return items.length ? `<div class="socials">${items.join('')}</div>` : '';
-}
-
-function buildPreviewLink(l, t) {
-  // Half-width modifier — applies the .link-half class on the four eligible
-  // link types so the preview matches the public bio's grid layout.
-  const halfClass = l.halfWidth ? 'link-half' : '';
-  // Header — text divider, no link, no clickable target
-  if (l.isHeader) {
-    if (!l.title) return '';
-    return `<div class="hdr">${escapeHtml(l.title)}</div>`;
-  }
-  // Subscribe block
-  if (l.isSubscribe) {
-    return `<div style="background:${t.surface};border:1px solid ${t.border};border-radius:10px;padding:14px;text-align:center;margin-bottom:8px;">
-      <div style="font-size:11px;font-weight:600;color:${t.text};margin-bottom:8px;">${escapeHtml(l.title || 'Subscribe to my newsletter')}</div>
-      <div style="display:flex;gap:4px;">
-        <div style="flex:1;padding:6px 8px;border-radius:6px;border:1px solid ${t.border};background:${t.bg};color:${t.muted};font-size:9px;text-align:left;">Your email</div>
-        <div style="padding:6px 10px;background:${t.accent};color:#fff;border-radius:6px;font-size:9px;font-weight:600;">Subscribe</div>
-      </div>
-    </div>`;
+    customThemeStyle = fontInjection + customThemeStyle + bootstrap;
   }
 
-  // Video block — horizontal-scrollable carousel of up to 5 YouTube thumbnails.
-  // Renders as a child of .links and respects the link's drag order, so when
-  // the creator reorders, the entire carousel moves with it.
-  if (l.isVideoBlock) {
-    const videos = Array.isArray(l.videos) ? l.videos : [];
-    const cards = videos.map(v => {
-      const id = extractYouTubeIdDash(v && v.url);
-      if (!id) return '';
-      return `<div class="vc"><img src="https://i.ytimg.com/vi/${id}/hqdefault.jpg" alt="YouTube video thumbnail" data-bio-onerror="fallback-src" data-bio-fallback-src="https://i.ytimg.com/vi/${id}/default.jpg"></div>`;
-    }).filter(Boolean).join('');
-    if (!cards) {
-      // Empty placeholder — only shown in editor preview when a block was just
-      // added with no URLs yet
-      return `<div style="background:${t.surface};border:1px dashed ${t.border};border-radius:10px;padding:14px;text-align:center;color:${t.muted};font-size:11px;">YouTube videos will appear here</div>`;
-    }
-    return `<div class="vids">
-      <button type="button" class="vids-arrow vids-arrow-l" aria-label="Scroll left" tabindex="-1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg></button>
-      <button type="button" class="vids-arrow vids-arrow-r" aria-label="Scroll right" tabindex="-1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button>
-      <div class="vids-r">${cards}</div>
-    </div>`;
+  // ============================================================
+  // Inject everything into the HTML template
+  // ============================================================
+
+  // 1. Replace existing <title>, <meta name="description">, OG tags, twitter tags
+  html = html
+    .replace(/<title>[^<]*<\/title>/i, '')
+    .replace(/<meta\s+name="description"[^>]*>/gi, '')
+    .replace(/<meta\s+property="og:[^"]*"[^>]*>/gi, '')
+    .replace(/<meta\s+name="twitter:[^"]*"[^>]*>/gi, '');
+
+  const ogBlock = `
+<title>${esc(title)}</title>
+<meta name="description" content="${esc(description)}">
+<meta property="og:type" content="profile">
+<meta property="og:title" content="${esc(title)}">
+<meta property="og:description" content="${esc(description)}">
+<meta property="og:url" content="${esc(url)}">
+<meta property="og:image" content="${esc(image)}">
+<meta property="og:image:width" content="800">
+<meta property="og:image:height" content="800">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${esc(title)}">
+<meta name="twitter:description" content="${esc(description)}">
+<meta name="twitter:image" content="${esc(image)}">
+${customThemeStyle}
+`;
+
+  html = html.replace(/<head>/i, `<head>${ogBlock}`);
+
+  // 2. Set data-theme on <html>
+  html = html.replace(/<html\s+lang="en">/i, `<html lang="en" data-theme="${esc(theme)}">`);
+
+  // 3. Replace the loading placeholder inside <div id="wrap"> with rendered content
+  if (renderedInner) {
+    // If hero mode, the wrap needs a class — handle by reading from the rendered output
+    const wrapClass = renderedInner.includes('hero-header') ? 'wrap hero-mode' : 'wrap';
+    const showsBanner = renderedInner.includes('brand-banner');
+    const bodyStyle = showsBanner ? ' style="padding-bottom:80px;"' : '';
+
+    // Match: <body> ... <div class="wrap" id="wrap"> ...loading state... </div>
+    // and replace with: <body...> <div class="wrapClass" id="wrap">renderedInner</div>
+    // Does NOT touch anything after the closing </div> (script tags etc.). Previously
+    // the regex anchored on the following inline <script>, but that script is now
+    // an external <script src="/js/bio-page.js">, so we anchor on the wrap structure
+    // alone. The replacement only includes the wrap so trailing markup is preserved.
+    html = html.replace(
+      /<body>\s*<div class="wrap" id="wrap">[\s\S]*?<\/div>\s*<\/div>/m,
+      `<body${bodyStyle}>\n<div class="${wrapClass}" id="wrap">${renderedInner}</div>`
+    );
   }
-  if (l.isHero && l.photoUrl) {
-    return `<div class="hl">
-      <img class="hl-bg" src="${escapeHtml(l.photoUrl)}" alt="Link background">
-      <div class="hl-ov"></div>
-      <div class="hl-c">
-        <div class="hl-t">${escapeHtml(l.title || 'Untitled')}</div>
-        ${l.description ? `<div class="hl-d">${escapeHtml(l.description)}</div>` : ''}
-      </div>
-    </div>`;
-  }
-  if (l.isCourse) {
-    const priceDisplay = l.coursePrice > 0 ? formatMoney(l.coursePrice, {alwaysShowCents:true}) : 'Free';
-    const crossoutHtml = l.courseCrossoutPrice > 0 ? `<span style="text-decoration:line-through;color:${t.muted};font-size:11px;margin-right:4px;">${formatMoney(l.courseCrossoutPrice, {alwaysShowCents:true})}</span>` : '';
-    const coverHtml = l.photoUrl ? `<img src="${escapeHtml(l.photoUrl)}" alt="Link cover" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px 8px 0 0;">` : '';
-    return `<div class="pcc ${halfClass}" style="background:${t.surface};border:1px solid ${t.border};border-radius:10px;overflow:hidden;">
-      ${coverHtml}
-      <div class="pcc-body" style="padding:10px 12px;display:flex;align-items:center;justify-content:space-between;" >
-        <div style="min-width:0;flex:1;">
-          <div class="pcc-title" style="font-size:12px;font-weight:600;color:${t.text};">${escapeHtml(l.title || 'Untitled')}</div>
-        </div>
-        <div class="pcc-price" style="font-size:12px;font-weight:600;color:${t.text};flex-shrink:0;margin-left:8px;">${crossoutHtml}${priceDisplay}</div>
-      </div>
-    </div>`;
-  }
-  if (l.isCoaching) {
-    const priceDisplay = l.coachingPrice > 0 ? formatMoney(l.coachingPrice, {alwaysShowCents:true}) : 'Free';
-    const coverHtml = l.photoUrl ? `<img src="${escapeHtml(l.photoUrl)}" alt="Link cover" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px 8px 0 0;">` : '';
-    return `<div class="pcc ${halfClass}" style="background:${t.surface};border:1px solid ${t.border};border-radius:10px;overflow:hidden;">
-      ${coverHtml}
-      <div class="pcc-body" style="padding:10px 12px;display:flex;align-items:center;justify-content:space-between;" >
-        <div style="min-width:0;flex:1;">
-          <div class="pcc-title" style="font-size:12px;font-weight:600;color:${t.text};">${escapeHtml(l.title || 'Untitled')}</div>
-        </div>
-        <div class="pcc-price" style="font-size:12px;font-weight:600;color:${t.text};flex-shrink:0;margin-left:8px;">${priceDisplay}</div>
-      </div>
-    </div>`;
-  }
-  if (l.isProduct) {
-    const priceDisplay = l.productPrice > 0 ? formatMoney(l.productPrice, {alwaysShowCents:true}) : 'Free';
-    const coverHtml = l.photoUrl ? `<img src="${escapeHtml(l.photoUrl)}" alt="Link cover" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px 8px 0 0;">` : '';
-    return `<div class="pcc ${halfClass}" style="background:${t.surface};border:1px solid ${t.border};border-radius:10px;overflow:hidden;">
-      ${coverHtml}
-      <div class="pcc-body" style="padding:10px 12px;display:flex;align-items:center;justify-content:space-between;" >
-        <div style="min-width:0;flex:1;">
-          <div class="pcc-title" style="font-size:12px;font-weight:600;color:${t.text};">${escapeHtml(l.title || 'Untitled')}</div>
-        </div>
-        <div class="pcc-price" style="font-size:12px;font-weight:600;color:${t.text};flex-shrink:0;margin-left:8px;">${priceDisplay}</div>
-      </div>
-    </div>`;
-  }
-  if (l.featured && l.photoUrl) {
-    return `<div class="fl">
-      <img src="${escapeHtml(l.photoUrl)}" alt="Link thumbnail">
-      <div class="fl-b">
-        <div class="fl-t">${escapeHtml(l.title || 'Untitled')}</div>
-        ${l.description ? `<div class="fl-d">${escapeHtml(l.description)}</div>` : ''}
-      </div>
-    </div>`;
-  }
-  if (l.isMediaKit && l.photoUrl) {
-    return `<div class="mkh">
-      <img class="mkh-bg" src="${escapeHtml(l.photoUrl)}" alt="Link background">
-      <div class="mkh-ov"></div>
-      <div class="mkh-c">
-        <svg class="mkh-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="17" x2="8" y2="13"/><line x1="12" y1="17" x2="12" y2="11"/><line x1="16" y1="17" x2="16" y2="15"/></svg>
-        <div class="mkh-b">
-          <div class="mkh-t">${escapeHtml(l.title || 'Untitled')}</div>
-          ${l.description ? `<div class="mkh-d">${escapeHtml(l.description)}</div>` : ''}
-        </div>
-      </div>
-    </div>`;
-  }
-  if (l.photoUrl && !l.featured && !l.isHero && !l.isCourse && !l.isCoaching && !l.isProduct && !l.isMediaKit) {
-    // Seamless thumb-variant: square image flush-left, content centered to the right
-    return `<div class="lk lk-thumb ${halfClass}">
-      <img src="${escapeHtml(l.photoUrl)}" alt="" class="lk-thumb-img">
-      <div class="lk-thumb-body">
-        <div class="lk-t">${escapeHtml(l.title || 'Untitled')}</div>
-        ${l.description ? `<div class="lk-d">${escapeHtml(l.description)}</div>` : ''}
-      </div>
-    </div>`;
-  }
-  return `<div class="lk ${halfClass}">
-    <div class="lk-t">${escapeHtml(l.title || 'Untitled')}</div>
-    ${l.description ? `<div class="lk-d">${escapeHtml(l.description)}</div>` : ''}
-  </div>`;
-}
+  // If no renderedInner, leave the loading placeholder — client JS will fetch + render.
 
-// =====================================================
-// MEDIA KIT
-// =====================================================
-const MK_SOCIAL_PLATFORMS = [
-  { key:'instagram', label:'Instagram', urlPrefix:'https://instagram.com/', svg:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.2c3.2 0 3.6 0 4.85.07 1.17.05 1.8.25 2.22.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.05.41 2.22.06 1.26.07 1.64.07 4.82s-.01 3.57-.07 4.82c-.05 1.17-.25 1.8-.41 2.22a3.72 3.72 0 0 1-.9 1.38c-.42.42-.82.68-1.38.9-.42.16-1.05.36-2.22.41-1.26.06-1.64.07-4.82.07s-3.57-.01-4.82-.07c-1.17-.05-1.8-.25-2.22-.41a3.72 3.72 0 0 1-1.38-.9 3.72 3.72 0 0 1-.9-1.38c-.16-.42-.36-1.05-.41-2.22C2.21 15.57 2.2 15.19 2.2 12s.01-3.57.07-4.82c.05-1.17.25-1.8.41-2.22.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.05-.36 2.22-.41C8.43 2.21 8.81 2.2 12 2.2M12 0C8.74 0 8.33.01 7.05.07 5.78.13 4.9.33 4.14.63a5.92 5.92 0 0 0-2.13 1.39A5.92 5.92 0 0 0 .62 4.14C.33 4.9.13 5.78.07 7.05.01 8.33 0 8.74 0 12c0 3.26.01 3.67.07 4.95.06 1.27.26 2.15.56 2.91a5.92 5.92 0 0 0 1.39 2.13c.66.66 1.32 1.06 2.13 1.39.76.3 1.64.5 2.91.56C8.33 23.99 8.74 24 12 24c3.26 0 3.67-.01 4.95-.07 1.27-.06 2.15-.26 2.91-.56a5.92 5.92 0 0 0 2.13-1.39c.66-.66 1.06-1.32 1.39-2.13.3-.76.5-1.64.56-2.91.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.06-1.27-.26-2.15-.56-2.91a5.92 5.92 0 0 0-1.39-2.13A5.92 5.92 0 0 0 19.86.62c-.76-.3-1.64-.5-2.91-.56C15.67.01 15.26 0 12 0Zm0 5.84a6.16 6.16 0 1 0 0 12.32 6.16 6.16 0 0 0 0-12.32Zm0 10.16a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm6.41-11.88a1.44 1.44 0 1 0 0 2.88 1.44 1.44 0 0 0 0-2.88Z"/></svg>' },
-  { key:'tiktok', label:'TikTok', urlPrefix:'https://tiktok.com/@', svg:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5.8 20.1a6.34 6.34 0 0 0 10.86-4.43V8.83a8.16 8.16 0 0 0 4.77 1.52V6.9a4.85 4.85 0 0 1-1.84-.21Z"/></svg>' },
-  { key:'youtube', label:'YouTube', urlPrefix:'', svg:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.12C19.54 3.58 12 3.58 12 3.58s-7.54 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.07 0 12 0 12s0 3.93.5 5.8a3 3 0 0 0 2.1 2.12c1.86.5 9.4.5 9.4.5s7.54 0 9.4-.5a3 3 0 0 0 2.1-2.12C24 15.93 24 12 24 12s0-3.93-.5-5.8ZM9.55 15.57V8.43L15.82 12l-6.27 3.57Z"/></svg>' },
-  { key:'twitter', label:'Twitter/X', urlPrefix:'https://x.com/', svg:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>' },
-  { key:'facebook', label:'Facebook', urlPrefix:'https://facebook.com/', svg:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.68.23 2.68.23v2.97h-1.51c-1.49 0-1.95.93-1.95 1.89v2.26h3.32l-.53 3.49h-2.79V24C19.61 23.1 24 18.1 24 12.07Z"/></svg>' },
-  { key:'threads', label:'Threads', urlPrefix:'https://threads.net/@', svg:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.472 12.01v-.017c.03-3.579.879-6.43 2.525-8.482C5.845 1.205 8.6.024 12.18 0h.014c2.746.02 5.043.725 6.826 2.098 1.677 1.29 2.858 3.13 3.509 5.467l-2.04.569c-1.104-3.96-3.898-5.984-8.304-6.015-2.91.022-5.11.936-6.54 2.717C4.307 6.504 3.616 8.914 3.589 12c.027 3.086.718 5.496 2.057 7.164 1.43 1.783 3.631 2.698 6.54 2.717 2.623-.02 4.358-.631 5.8-2.045 1.647-1.613 1.618-3.593 1.09-4.798-.31-.71-.873-1.3-1.634-1.75-.192 1.352-.622 2.446-1.284 3.272-.886 1.102-2.14 1.704-3.73 1.79-1.202.065-2.361-.218-3.259-.801-1.063-.689-1.685-1.74-1.752-2.964-.065-1.19.408-2.285 1.33-3.082.88-.76 2.119-1.207 3.583-1.291 1.034-.06 1.995 0 2.917.175-.084-.689-.302-1.235-.646-1.62-.523-.584-1.252-.823-2.196-.734a3.62 3.62 0 0 0-1.907.795l-1.078-1.66c.845-.621 2.027-.964 3.158-.988 1.692-.035 2.979.492 3.853 1.575.781.968 1.147 2.329 1.09 4.039 1.32.639 2.316 1.674 2.854 2.972.768 1.855.82 4.84-1.639 7.245-1.876 1.834-4.215 2.658-7.39 2.678z"/></svg>' },
-  { key:'snapchat', label:'Snapchat', urlPrefix:'https://snapchat.com/add/', svg:'<svg viewBox="-4.4 -2.25 24 24" aria-hidden="true"><path d="M12.02 0C5.44 0 4.73 5.08 4.86 7.15c.03.5.05 1.01.06 1.52-.3.16-.79.38-1.29.38-.38 0-.75-.14-1.08-.41-.06-.05-.17-.14-.35-.14-.3 0-.65.17-.92.47-.3.34-.3.78.02 1.08.27.26.7.48 1.2.62.68.19 1.56.49 1.79 1.04.13.3-.01.69-.41 1.17a.35.35 0 0 1-.03.03c-.01.02-1.28 2.08-4.21 2.56-.22.04-.38.24-.36.46 0 .05.02.1.04.15.13.3.56.52 1.32.68.08.02.14.11.17.3.03.18.07.4.17.63.1.23.29.35.55.35.14 0 .3-.03.48-.06.25-.05.57-.11.96-.11.22 0 .44.02.68.06.45.07.83.34 1.27.65.63.45 1.35.96 2.43.96.08 0 .17 0 .26-.02.08.01.2.02.33.02 1.08 0 1.8-.51 2.43-.96.44-.31.82-.58 1.27-.65.24-.04.46-.06.68-.06.38 0 .68.05.96.11.2.04.36.06.48.06h.02c.19 0 .41-.08.53-.35.1-.22.14-.43.17-.62.02-.17.09-.28.17-.3.76-.16 1.19-.38 1.32-.68a.43.43 0 0 0 .04-.15c.02-.22-.14-.42-.36-.46-2.93-.48-4.2-2.54-4.21-2.56a.57.57 0 0 1-.03-.03c-.4-.48-.54-.87-.41-1.17.23-.55 1.11-.85 1.79-1.04.5-.14.93-.36 1.2-.62.33-.32.33-.76.03-1.08-.28-.3-.63-.47-.92-.47-.19 0-.3.08-.35.14-.32.26-.69.41-1.08.41-.5 0-.99-.22-1.29-.38.01-.51.03-1.02.06-1.52.13-2.07-.58-7.15-7.16-7.15Z"/></svg>' },
-  { key:'pinterest', label:'Pinterest', urlPrefix:'https://pinterest.com/', svg:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 0C5.373 0 0 5.372 0 12c0 5.084 3.163 9.426 7.627 11.174-.105-.949-.2-2.405.042-3.441.218-.937 1.407-5.965 1.407-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738.098.119.112.224.083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.889-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.359-.631-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/></svg>' },
-  { key:'linkedin', label:'LinkedIn', urlPrefix:'', svg:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.95v5.66H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.26 2.37 4.26 5.45v6.29ZM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12ZM7.12 20.45H3.56V9h3.56v11.45ZM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0Z"/></svg>' },
-  { key:'twitch', label:'Twitch', urlPrefix:'https://twitch.tv/', svg:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>' },
-];
+  // 4. Cache headers — fresh for 60s, serve stale up to 5 more minutes while revalidating
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
 
-const MK_PREDEFINED_RATES = [
-  { id:'ig_reel',  label:'Instagram Reel' },
-  { id:'ig_post',  label:'Instagram Post' },
-  { id:'ig_story', label:'Instagram Story' },
-  { id:'tiktok',   label:'TikTok Video' },
-  { id:'youtube',  label:'YouTube Video' },
-];
-
-
-// Pulls the latest username from the Link in Bio input (if present) or profiles table,
-// then refreshes the publish UI. Called every time the Media Kit tool is reopened.
-
-// ---------- From dashboard.html lines 22618-22683 ----------
-function aiBioAssist(textareaId, maxLen) {
-  if (typeof isPro === 'function' && !isPro()) {
-    showModalAlert('Pro Feature', 'AI Bio Assist is a Pro feature. Upgrade to use it.');
-    return;
-  }
-
-  var textarea = document.getElementById(textareaId);
-  if (!textarea) return;
-  var currentText = textarea.value.trim();
-  var mode = currentText ? 'improve' : 'generate';
-
-  var overlay = document.createElement('div');
-  overlay.id = 'ai-bio-modal';
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;';
-  overlay.innerHTML = '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:28px;max-width:440px;width:100%;max-height:calc(100vh - 80px);overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(124,58,237,0.4) transparent;text-align:center;">'
-    + '<svg width="24" height="24" viewBox="0 0 24 24" style="animation:btn-spin 0.6s linear infinite;margin-bottom:12px;" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>'
-    + '<div style="font-size:14px;color:var(--text);">' + (mode === 'generate' ? 'Generating bio ideas...' : 'Rewriting your bio...') + '</div>'
-    + '</div>';
-  overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
-  document.body.appendChild(overlay);
-
-  fetch('/api/ai-bio', {
-    method: 'POST',
-    headers: getAIHeaders(),
-    body: JSON.stringify({ text: currentText, maxLength: maxLen, mode: mode })
-  })
-  .then(function(r) { return r.json(); })
-  .then(function(data) {
-    if (data.error) { overlay.remove(); showModalAlert('Error', data.error); return; }
-
-    var sections = data.result.split(/BIO \d+:\n?/i).filter(function(s) { return s.trim(); });
-    var cards = sections.map(function(s, i) {
-      var bio = s.trim();
-      var charCount = bio.length;
-      var overLimit = charCount > maxLen;
-      return '<div style="padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;text-align:left;">'
-        + '<div style="font-size:13px;color:var(--text);line-height:1.6;" id="ai-bio-option-' + i + '">' + escapeHtml(bio) + '</div>'
-        + '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;">'
-        + '<span style="font-size:11px;color:' + (overLimit ? '#f87171' : 'var(--muted)') + ';">' + charCount + '/' + maxLen + '</span>'
-        + '<button data-bio-action="apply-ai-bio" data-bio-textarea-id="' + escapeHtml(textareaId) + '" data-bio-option-idx="' + i + '" style="padding:5px 12px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:6px;font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer;">Use this</button>'
-        + '</div>'
-        + '</div>';
-    }).join('');
-
-    var inner = overlay.querySelector('div');
-    inner.style.textAlign = 'left';
-    inner.innerHTML = '<div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.3px;margin-bottom:6px;">AI Bio Suggestions</div>'
-      + (currentText ? '<div style="font-size:12px;color:var(--muted);margin-bottom:16px;">Based on: "' + escapeHtml(currentText.substring(0, 50)) + (currentText.length > 50 ? '...' : '') + '"</div>' : '<div style="font-size:12px;color:var(--muted);margin-bottom:16px;">Here are some ideas to get you started.</div>')
-      + cards
-      + '<button data-bio-action="close-ai-bio-modal" style="width:100%;padding:10px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;margin-top:4px;">Cancel</button>';
-  })
-  .catch(function() {
-    overlay.remove();
-    showModalAlert('Error', 'Failed to generate bio suggestions. Try again.');
-  });
-}
-
-function applyAIBio(textareaId, idx) {
-  var text = document.getElementById('ai-bio-option-' + idx)?.textContent;
-  if (!text) return;
-  var textarea = document.getElementById(textareaId);
-  if (!textarea) return;
-  textarea.value = text;
-  textarea.dispatchEvent(new Event('input', { bubbles: true }));
-  document.getElementById('ai-bio-modal')?.remove();
-}
-
-
-// =============================================================================
-// ACTION REGISTRATIONS (Phase 2)
-// -----------------------------------------------------------------------------
-// Each registered handler corresponds to a data-bio-action="..." in markup.
-// Handler signature: (event, element) — element is the one with data-bio-action.
-// Read parameters from element.dataset.* attributes.
-// =============================================================================
-
-bioRegisterAction('save', () => saveBio());
-bioRegisterAction('toggle-publish', () => togglePublish());
-bioRegisterAction('remove-readonly', (e, el) => el.removeAttribute('readonly'));
-bioRegisterAction('username-input', () => onUsernameInput());
-bioRegisterAction('toggle-section', (e, el) => toggleBioSection(el.dataset.bioSection));
-bioRegisterAction('open-cropper-avatar', (e, el) => openCropper(el, 'avatar'));
-bioRegisterAction('remove-avatar', () => removeAvatar());
-bioRegisterAction('set-avatar-display', (e, el) => setAvatarDisplay(el.dataset.bioMode));
-bioRegisterAction('field-change', () => onBioFieldChange());
-bioRegisterAction('ai-bio-assist', () => aiBioAssist('bio-bio', 60));
-bioRegisterAction('custom-bg-selected', (e, el) => onBioCustomBgSelected(el));
-bioRegisterAction('remove-custom-bg', () => removeBioCustomBg());
-bioRegisterAction('custom-opacity', (e, el) => onBioCustomOpacityChange(el.value));
-bioRegisterAction('custom-color', (e, el) => onBioColorChange(el.dataset.bioSlot, el.value));
-bioRegisterAction('reset-custom-colors', () => resetBioCustomColors());
-bioRegisterAction('pick-font', (e, el) => pickBioFont(el.value));
-bioRegisterAction('add-link', (e, el) => {
-  const featured = el.dataset.bioFeatured === 'true';
-  const hero = el.dataset.bioHero === 'true';
-  if (hero) addLink(featured, true);
-  else addLink(featured);
-});
-bioRegisterAction('add-header', () => addHeader());
-bioRegisterAction('add-video-block', () => addVideoBlock());
-bioRegisterAction('add-subscribe-block', () => addSubscribeBlock());
-bioRegisterAction('open-course-picker', () => openCoursePickerModal());
-bioRegisterAction('open-coaching-picker', () => openCoachingPickerModal());
-bioRegisterAction('open-product-picker', () => openProductPickerModal());
-bioRegisterAction('add-mediakit-link', () => addMediaKitLink());
-bioRegisterAction('branding-toggle', () => onBrandingToggle());
-
-// ----- Phase 2b: actions for dynamically rendered link rows + modals -----
-
-// Link row interactions
-bioRegisterAction('expand-link', (e, el) => expandLink(parseInt(el.dataset.bioId, 10)));
-bioRegisterAction('remove-link', (e, el) => removeLink(parseInt(el.dataset.bioId, 10)));
-bioRegisterAction('save-link-row', (e, el) => saveLinkRow(parseInt(el.dataset.bioId, 10)));
-bioRegisterAction('update-link-field', (e, el) => {
-  updateLinkField(parseInt(el.dataset.bioId, 10), el.dataset.bioField, el.value);
-});
-bioRegisterAction('update-link-crossout-price', (e, el) => {
-  const cents = Math.round(parseFloat(el.value || 0) * 100);
-  updateLinkField(parseInt(el.dataset.bioId, 10), 'courseCrossoutPrice', cents);
-});
-bioRegisterAction('toggle-link-half-width', (e, el) => {
-  toggleLinkHalfWidth(parseInt(el.dataset.bioId, 10), el.checked);
-});
-bioRegisterAction('open-cropper-featured', (e, el) => openCropper(el, 'featured', parseInt(el.dataset.bioId, 10)));
-bioRegisterAction('hero-photo-selected', (e, el) => onHeroPhotoSelected(el, parseInt(el.dataset.bioId, 10)));
-bioRegisterAction('link-thumb-selected', (e, el) => onLinkThumbSelected(el, parseInt(el.dataset.bioId, 10)));
-bioRegisterAction('remove-link-thumb', (e, el) => removeLinkThumb(parseInt(el.dataset.bioId, 10)));
-
-// Video block actions
-bioRegisterAction('update-video-url', (e, el) => {
-  updateVideoBlockUrl(parseInt(el.dataset.bioId, 10), parseInt(el.dataset.bioIdx, 10), el.value);
-});
-bioRegisterAction('remove-video', (e, el) => {
-  removeVideoFromBlock(parseInt(el.dataset.bioId, 10), parseInt(el.dataset.bioIdx, 10));
-});
-bioRegisterAction('add-video-to-block', (e, el) => addVideoToBlock(parseInt(el.dataset.bioId, 10)));
-
-// Theme + socials
-bioRegisterAction('pick-theme', (e, el) => pickTheme(el.dataset.bioTheme));
-bioRegisterAction('social-change', (e, el) => onSocialChange(el.dataset.bioSocial, el.value));
-
-// Picker modal close buttons
-bioRegisterAction('close-course-picker', () => closeCoursePickerModal());
-bioRegisterAction('close-coaching-picker', () => closeCoachingPickerModal());
-bioRegisterAction('close-product-picker', () => closeProductPickerModal());
-
-// ----- Picker "Add" buttons (course/coaching/product) -----
-// Each reads its data-bio-* attributes and calls the appropriate adder.
-bioRegisterAction('add-course-to-links', (e, el) => {
-  addCourseToLinks(
-    el.dataset.bioCourseId,
-    el.dataset.bioTitle,
-    parseInt(el.dataset.bioPrice, 10),
-    el.dataset.bioSlug,
-    el.dataset.bioCover
+  // 5. Content Security Policy — ENFORCED.
+  // Bio pages are PUBLIC and render user-supplied content (links, names, descriptions,
+  // custom colors, custom backgrounds). Strict CSP is the primary defense against XSS
+  // via injected <script> tags in user content.
+  //
+  // To roll back to Report-Only mode (if breakage is reported), change the header
+  // name below from 'Content-Security-Policy' to 'Content-Security-Policy-Report-Only'.
+  //
+  // Allowed origins explanation:
+  //   script-src — Supabase SDK (cdn.jsdelivr.net) + own /js/ + cookie-banner.js
+  //   style-src 'unsafe-inline' — required because user color values are inlined
+  //     into a <style> tag generated server-side (already hardened via safeHexColor)
+  //   font-src — Google Fonts (creator can pick a custom font)
+  //   img-src — Supabase Storage (user avatars, backgrounds), i.ytimg.com (YouTube thumbnails)
+  //   frame-src — YouTube embeds for video links
+  //   connect-src — Supabase API for analytics, subscribe, fetching bio data
+  res.setHeader(
+    'Content-Security-Policy',
+    [
+      "default-src 'self'",
+      "script-src 'self' https://cdn.jsdelivr.net",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "font-src 'self' https://fonts.gstatic.com data:",
+      "img-src 'self' data: blob: https://www.ryxa.io https://kjytapcgxukalwsyputk.supabase.co https://i.ytimg.com",
+      "connect-src 'self' https://kjytapcgxukalwsyputk.supabase.co https://cdn.jsdelivr.net",
+      "frame-src https://www.youtube.com https://www.youtube-nocookie.com",
+      "media-src 'self' blob: https://kjytapcgxukalwsyputk.supabase.co",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "frame-ancestors 'none'",
+    ].join('; ')
   );
-});
-bioRegisterAction('add-coaching-to-links', (e, el) => {
-  addCoachingToLinks(
-    el.dataset.bioCoachingId,
-    el.dataset.bioTitle,
-    parseInt(el.dataset.bioPrice, 10),
-    el.dataset.bioSlug,
-    el.dataset.bioCover
-  );
-});
-bioRegisterAction('add-product-to-links', (e, el) => {
-  addProductToLinks(
-    el.dataset.bioProductId,
-    el.dataset.bioTitle,
-    parseInt(el.dataset.bioPrice, 10),
-    el.dataset.bioSlug,
-    el.dataset.bioCover
-  );
-});
 
-// ----- Copy bio link button (used in username hint + publish UI) -----
-bioRegisterAction('copy-bio-link', (e, el) => copyBioLink(el.dataset.bioUrl, el));
-
-// ----- AI Bio modal -----
-bioRegisterAction('apply-ai-bio', (e, el) => {
-  applyAIBio(el.dataset.bioTextareaId, parseInt(el.dataset.bioOptionIdx, 10));
-});
-bioRegisterAction('close-ai-bio-modal', () => {
-  document.getElementById('ai-bio-modal')?.remove();
-});
-
-// ----- Photo cropper modal (lives in dashboard.html outside tool-bio) -----
-bioRegisterAction('close-cropper', () => closeCropper());
-bioRegisterAction('confirm-crop', () => confirmCrop());
-
-// ----- Image error fallbacks (replaces inline onerror=) -----
-// Image error events do NOT bubble, so we need a capture-phase listener.
-// Elements opt-in via data-bio-onerror with one of these modes:
-//   "hide"           — set display:none on the img
-//   "hide-thumb-bg"  — clear src, paint a placeholder background
-//   "fallback-src"   — swap to data-bio-fallback-src then clear the attribute
-//                      (so a second failure doesn't loop)
-document.addEventListener('error', function(e) {
-  const target = e.target;
-  if (!(target instanceof HTMLImageElement)) return;
-  const mode = target.dataset && target.dataset.bioOnerror;
-  if (!mode) return;
-  if (mode === 'hide') {
-    target.style.display = 'none';
-  } else if (mode === 'hide-thumb-bg') {
-    target.style.background = 'var(--surface2)';
-    target.removeAttribute('src');
-  } else if (mode === 'fallback-src') {
-    const fallback = target.dataset.bioFallbackSrc;
-    if (fallback) {
-      // Clear the data attr first so a second error (on the fallback URL)
-      // doesn't loop indefinitely.
-      target.removeAttribute('data-bio-fallback-src');
-      target.removeAttribute('data-bio-onerror');
-      target.src = fallback;
-    }
-  }
-}, true); // capture phase
-
-// =============================================================================
-// END ACTION REGISTRATIONS
-// =============================================================================
-
-
-// =============================================================================
-// GLOBAL EXPOSURE — preserve inline onclick handlers in dashboard.html
-// -----------------------------------------------------------------------------
-// Phase 2 converted bio markup in dashboard.html to use data-bio-action.
-// HOWEVER, bio.js itself still emits inline handlers in template literals
-// (e.g., renderBioLinks builds HTML strings with onclick="..."). Those are
-// converted in Phase 2b. Until then, those template-literal inline handlers
-// still need top-level functions to be globals.
-//
-// Because /js/bio.js is loaded as a regular <script> (not type="module"),
-// all top-level function declarations are already on window automatically.
-// This block is a paranoia-check + explicit list so future-Claude knows
-// exactly which symbols are part of the public API.
-// =============================================================================
-// Functions (no-op assignments — declarations are already global):
-//   copySidebarBioLink, showBioLinkButtons, getBioCollapsed, saveBioCollapsed,
-//   toggleBioSection, restoreBioCollapsed, initBioTool, resyncBioUsername,
-//   resolveBioLinkLiveCovers, loadBioData, syncBioForm, syncBrandingToggle,
-//   onBrandingToggle, renderAvatarPreview, onBioFieldChange, copyBioLink,
-//   getBioFont, buildBioFontLink, renderBioThemes, renderBioFonts,
-//   injectBioPickerFonts, pickBioFont, syncBioCustomEditorUI, onBioColorChange,
-//   resetBioCustomColors, onBioCustomOpacityChange, onBioCustomBgSelected,
-//   removeBioCustomBg, renderBioSocials, bioLimits, bioHalfBadge,
-//   bioRowTypeMeta, bioHalfWidthToggle, renderBioLinks, showBioStatus, saveBio,
-//   deleteStaleBios, updateBioPreview, buildPreviewHTML, buildPreviewSocials,
-//   buildPreviewLink, schedulePreviewUpdate, addLink, addHeader,
-//   addMediaKitLink, addVideoBlock, addSubscribeBlock, removeAvatar,
-//   setAvatarDisplay, togglePublish, aiBioAssist, applyAIBio, etc.
-// State (also already global):
-//   bioState, bioStaleBgs, bioInited, bioCropper, bioCropTarget,
-//   bioCropSource, bioOriginalUsername, bioDraggingLink, bioPreviewTimer,
-//   bioPreviewRelocated, bioUsernameCheckTimer, bioUsernameCheckToken,
-//   bioStalePhotos, bioExpandedLinks
-// =============================================================================
+  res.status(200).send(html);
+};
