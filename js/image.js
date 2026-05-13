@@ -784,7 +784,7 @@ async function imgRemoveBg() {
 
   function resetBtn() {
     btn.disabled = false;
-    btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5l14 14M2 12a10 10 0 0 1 10-10M22 12a10 10 0 0 1-10 10"/></svg> <span id="img-removebg-label">Remove Background</span>';
+    btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5l14 14M2 12a10 10 0 0 1 10-10M22 12a10 10 0 0 1-10 10"/></svg> <span id="img-removebg-label">Remove BG</span>';
   }
 
   function doRemoval() {
