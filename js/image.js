@@ -76,7 +76,15 @@ function initImageConverter() {
     const testCanvas = document.createElement('canvas');
     testCanvas.width = testCanvas.height = 2;
     // JPEG and PNG are universally supported — never remove them.
-    const skip = new Set(['image/jpeg', 'image/png']);
+    // PNG (Transparent) is just PNG with our internal flag, so always keep it.
+    const skip = new Set(['image/jpeg', 'image/png', 'image/png+transparent']);
+    // Check WebP support once; if WebP works, also keep WebP (Transparent).
+    let webpSupported = false;
+    try {
+      const dataUrl = testCanvas.toDataURL('image/webp');
+      webpSupported = dataUrl.startsWith('data:image/webp');
+    } catch (_) { webpSupported = false; }
+    if (webpSupported) skip.add('image/webp+transparent');
     Array.from(formatSelect.options).forEach(opt => {
       const mime = opt.value;
       if (skip.has(mime)) return;
@@ -105,7 +113,7 @@ function initImageConverter() {
   if (sizeNote) sizeNote.textContent = `Supports ${supportedNote}`;
   document.getElementById('img-usage').textContent = '';
   document.getElementById('img-format').addEventListener('change', function() {
-    const noQuality = ['image/png','image/gif','image/bmp','image/x-icon','image/tiff']; document.getElementById('quality-group').style.display = noQuality.includes(this.value) ? 'none' : 'block';
+    const noQuality = ['image/png','image/png+transparent','image/gif','image/bmp','image/x-icon','image/tiff']; document.getElementById('quality-group').style.display = noQuality.includes(this.value) ? 'none' : 'block';
   });
 
   // Aspect ratio buttons use inline onclick handlers (no listener needed here).
@@ -869,17 +877,24 @@ async function imgRemoveBg() {
 async function convertImage() {
   if (!imgFile) return;
   const btn = document.getElementById('img-convert-btn');
-  const format = document.getElementById('img-format').value;
+  let format = document.getElementById('img-format').value;
   const quality = parseInt(document.getElementById('img-quality').value) / 100;
 
-  // PNG and WebP preserve transparency — gate to Pro
-  if ((format === 'image/png' || format === 'image/webp') && typeof isPro === 'function' && !isPro()) {
-    if (typeof showModalAlert === 'function') {
-      showModalAlert('PNG and WebP export are Pro features (they preserve transparency). Free users can export as JPG.');
-    } else {
-      alert('PNG and WebP export are Pro features. Free users can export as JPG.');
+  // Detect transparent variants. The dropdown uses pseudo-MIMEs like
+  // "image/png+transparent" and "image/webp+transparent" to distinguish from
+  // the solid-bg versions. Strip the suffix to get the real MIME type.
+  const wantsTransparent = format.endsWith('+transparent');
+  if (wantsTransparent) {
+    format = format.replace('+transparent', '');
+    // Transparent PNG/WebP is a Pro feature
+    if (typeof isPro === 'function' && !isPro()) {
+      if (typeof showModalAlert === 'function') {
+        showModalAlert('Transparent PNG and WebP exports are Pro features. Free users can export PNG or WebP with a solid white background, or JPG.');
+      } else {
+        alert('Transparent PNG and WebP exports are Pro features.');
+      }
+      return;
     }
-    return;
   }
 
   btn.textContent = 'Processing...'; btn.disabled = true;
@@ -942,8 +957,13 @@ async function convertImage() {
     const ctx = canvas.getContext('2d');
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
-    // Fill white background for formats that don't support transparency
-    if (['image/jpeg', 'image/bmp', 'image/tiff', 'image/x-icon'].includes(format)) {
+    // Fill white background for formats that don't support transparency,
+    // and for PNG/WebP when the user picked the non-transparent variant.
+    // (PNG and WebP CAN preserve transparency, but we only do that if the
+    // user explicitly picked the +transparent dropdown option.)
+    const fillsWhite = ['image/jpeg', 'image/bmp', 'image/tiff', 'image/x-icon'].includes(format)
+      || ((format === 'image/png' || format === 'image/webp') && !wantsTransparent);
+    if (fillsWhite) {
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, outW, outH);
     }
