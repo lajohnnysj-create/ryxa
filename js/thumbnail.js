@@ -232,8 +232,8 @@ function taRenderResults(r) {
 
   var verdictText = r.overall_score >= 80 ? 'Strong thumbnail. Ready to publish.'
                   : r.overall_score >= 70 ? 'Solid foundation. A few tweaks could boost clicks.'
-                  : r.overall_score >= 60 ? 'Decent start. See the suggestions below.'
-                  : 'Needs work. Check the suggestions below.';
+                  : r.overall_score >= 60 ? 'Good start. The suggestions below will sharpen it.'
+                  : 'A few changes will make this much stronger. Try the suggestions below.';
 
   var html = ''
     // Score header with ring
@@ -242,7 +242,7 @@ function taRenderResults(r) {
     + '<div class="ds-s-715ac4"><img src="' + taImageData + '" alt="Thumbnail analysis result" class="ds-s-2c7b03"></div>'
     + '<div class="ds-s-25bba7">'
     + '<div class="ta-score-ring"><svg width="80" height="80" viewBox="0 0 80 80"><circle cx="40" cy="40" r="36" fill="none" stroke="var(--surface)" stroke-width="6"/><circle cx="40" cy="40" r="36" fill="none" stroke="' + scoreColor + '" stroke-width="6" stroke-dasharray="' + circumference + '" stroke-dashoffset="' + offset + '" stroke-linecap="round" class="ds-s-f4705b"/></svg><div class="ta-score-num" style="color:' + scoreColor + ';display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;"><span class="ds-s-6b46de">' + overallGrade.letter + '</span><span class="ds-s-49d5ef">' + r.overall_score + '/100</span></div></div>'
-    + '<div><div class="ds-s-434a82">Overall Grade</div><div class="cal-s-56e6ba">' + verdictText + '</div></div>'
+    + '<div><div style="font-family:Syne,sans-serif;font-size:16px;font-weight:700;line-height:1.35;">' + verdictText + '</div></div>'
     + '</div>'
     + '</div>'
     + '</div>'
