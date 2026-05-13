@@ -712,7 +712,16 @@ async function saveCourseModules(courseId) {
         text_content: lesson.text_content || '',
         sort_order: li,
         is_preview: !!lesson.is_preview,
-        images: lesson.images || []
+        images: lesson.images || [],
+        // Preserve Bunny Stream fields across save (DELETE-then-INSERT pattern).
+        // Without this, every course save orphans the Bunny video. The
+        // cleanup cron has a reclaim pass that handles transient orphaning
+        // during a save, but the INSERT must restore the bunny_video_id.
+        bunny_video_id: lesson.bunny_video_id || null,
+        bunny_video_status: lesson.bunny_video_status || null,
+        bunny_video_duration_seconds: lesson.bunny_video_duration_seconds || null,
+        bunny_thumbnail_url: lesson.bunny_thumbnail_url || null,
+        bunny_uploaded_at: lesson.bunny_uploaded_at || null
       });
     }
   }
