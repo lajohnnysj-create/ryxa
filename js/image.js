@@ -751,6 +751,16 @@ function clearResize() {
 
 async function imgRemoveBg() {
   if (!imgFile) return;
+
+  if (typeof isPro === 'function' && !isPro()) {
+    if (typeof showModalAlert === 'function') {
+      showModalAlert('Background removal is a Pro feature. Upgrade to use it.');
+    } else {
+      alert('Background removal is a Pro feature. Upgrade to use it.');
+    }
+    return;
+  }
+
   var btn = document.getElementById('img-removebg-btn');
 
   function resetBtn() {
@@ -859,9 +869,20 @@ async function imgRemoveBg() {
 async function convertImage() {
   if (!imgFile) return;
   const btn = document.getElementById('img-convert-btn');
-  btn.textContent = 'Processing...'; btn.disabled = true;
   const format = document.getElementById('img-format').value;
   const quality = parseInt(document.getElementById('img-quality').value) / 100;
+
+  // PNG and WebP preserve transparency — gate to Pro
+  if ((format === 'image/png' || format === 'image/webp') && typeof isPro === 'function' && !isPro()) {
+    if (typeof showModalAlert === 'function') {
+      showModalAlert('PNG and WebP export are Pro features (they preserve transparency). Free users can export as JPG.');
+    } else {
+      alert('PNG and WebP export are Pro features. Free users can export as JPG.');
+    }
+    return;
+  }
+
+  btn.textContent = 'Processing...'; btn.disabled = true;
   const img = new Image();
   img.onload = () => {
     // Pre-stage: if rotation or flip is applied, render them to an intermediate canvas first.

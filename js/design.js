@@ -2189,6 +2189,11 @@ function dsRemoveBg() {
   var obj = dsCanvas.getActiveObject();
   if (!obj || obj.type !== 'image') { showDsMsg('error', 'Select an image first.'); return; }
 
+  if (typeof isPro === 'function' && !isPro()) {
+    showDsMsg('error', 'Background removal is a Pro feature. Upgrade to use it.');
+    return;
+  }
+
   var btn = document.getElementById('ds-removebg-btn');
   btn.disabled = true;
 
