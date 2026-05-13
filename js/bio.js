@@ -89,6 +89,15 @@ function bioFindActionElement(target, eventType) {
  * Generic event dispatcher. Wired up below to multiple event types.
  */
 function bioDispatchEvent(event) {
+  // Drag handle guard: the entire collapsed link row has
+  // data-bio-action="expand-link", which means a click on the drag handle
+  // (which is INSIDE the row) would expand the link. SortableJS's drag start
+  // also fires click events on touch devices, so without this guard the link
+  // would un-collapse every time the user tries to grab and drag. Skip
+  // dispatch when the click originated inside the drag handle.
+  if (event.type === 'click' && event.target.closest && event.target.closest('.bio-link-drag')) {
+    return;
+  }
   const found = bioFindActionElement(event.target, event.type);
   if (!found) return;
   const handler = bioActions[found.action];
