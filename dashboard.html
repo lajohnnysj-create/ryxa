@@ -2541,7 +2541,21 @@
   .bio-link-row.bio-link-collapsed:hover { border-color: var(--accent2); background: var(--surface2); }
   .bio-link-row .bio-link-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; cursor: pointer; padding: 2px 4px; border-radius: 6px; margin: -2px -4px 6px -4px; transition: background 0.12s; }
   .bio-link-row .bio-link-header:hover { background: var(--surface2); }
-  .bio-link-row .bio-link-drag { cursor: grab; color: var(--muted); flex-shrink: 0; padding: 4px; }
+  .bio-link-row .bio-link-drag {
+    cursor: grab;
+    color: var(--muted);
+    flex-shrink: 0;
+    padding: 4px;
+    /* Prevent iOS/Android text-select callout from interfering with drag.
+       Long-press on touch devices normally triggers a text selection or the
+       "Copy/Share/Define" callout, which fights with SortableJS's drag start
+       and feels broken in PWAs. Disabling these specifically on the drag
+       handle leaves form inputs and link titles fully selectable. */
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+  }
   .bio-link-row .bio-link-drag:active { cursor: grabbing; }
   /* SortableJS drag states — without these, the original element stays at full
      opacity while dragging, causing a "ghost link stays in place" glitch. */
