@@ -28,6 +28,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css" integrity="sha384-6LFfkTKLRlzFtgx8xsWyBdKGpcMMQTkv+dB7rAbugeJAu1Ym2q1Aji1cjHBG12Xh" crossorigin="anonymous">
 <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js" integrity="sha384-jrOgQzBlDeUNdmQn3rUt/PZD+pdcRBdWd/HWRqRo+n2OR2QtGyjSaJC0GiCeH+ir" crossorigin="anonymous" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js" integrity="sha384-BSxuMLxX+FCbTdYec3TbXlnMGEEM2QXTFdtDaveen71o+jswm2J36+xFqp8k4VHM" crossorigin="anonymous" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/tus-js-client@4.3.1/dist/tus.min.js" integrity="sha384-rRoXxn2yHlrZYB587Ki9RO1tONhLdM6XfORg7Rw4uwH4/Fh/5nP7IUX91bkaKUgs" crossorigin="anonymous" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" integrity="sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG" crossorigin="anonymous" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.mjs" integrity="sha384-uwJM5C0hGZH5Ed/vHx4Ht1PUd8ABIDVIcLbHydZOdFL5eTUG8Jdr32xNVIyn0kYH" crossorigin="anonymous" type="module"></script>
 <!-- PDF.js loader (extracted from two inline blocks, 2026-05-11).
@@ -885,7 +886,7 @@
     .scripts-remove-btn, .scripts-collapse-btn, .scripts-expand-btn { width: 24px; height: 24px; }
     .scripts-drag-handle { width: 22px; height: 22px; }
 
-    /* Kbd hint — hide on very small screens so meta row stays clean */
+    /* Kbd hint, hide on very small screens so meta row stays clean */
     .scripts-kbd-hint { font-size: 9px; }
     .scripts-kbd-hint kbd { font-size: 9px; min-width: 16px; padding: 1px 4px; }
 
@@ -1346,7 +1347,7 @@
   }
   .cine-hint.fade-out { opacity: 0; }
 
-  /* Bottom control bar — hidden by default, slides up on hover */
+  /* Bottom control bar, hidden by default, slides up on hover */
   .cine-bar {
     position: absolute;
     bottom: 0;
@@ -1434,7 +1435,7 @@
   .cine-music-btn:hover { border-color: rgba(255,255,255,0.25); color: rgba(255,255,255,0.8); }
   .cine-music-btn.active { background: rgba(124,58,237,0.2); border-color: rgba(124,58,237,0.5); color: #c4b5fd; }
   .cine-music-label { font-size: 10px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.08em; margin-right: 4px; }
-  /* Hover zone — invisible trigger area at bottom */
+  /* Hover zone, invisible trigger area at bottom */
   .cine-hover-zone {
     position: absolute;
     bottom: 0;
@@ -1529,7 +1530,7 @@
     color: #f0abfc;
     box-shadow: 0 0 20px rgba(232,121,249,0.15);
   }
-  /* Default card styling for Max users — subtly distinguished */
+  /* Default card styling for Max users, subtly distinguished */
   body.max-user .welcome-tool-card {
     border-color: rgba(232,121,249,0.15);
     background: linear-gradient(135deg, rgba(167,139,250,0.03), rgba(232,121,249,0.03));
@@ -1553,7 +1554,7 @@
     background-clip: border-box;
     -webkit-background-clip: border-box;
   }
-  /* Hover state — more pronounced for Max */
+  /* Hover state, more pronounced for Max */
   body.max-user .welcome-tool-card:hover {
     border-color: rgba(232,121,249,0.5);
     background: linear-gradient(135deg, rgba(167,139,250,0.1), rgba(232,121,249,0.1));
@@ -1668,7 +1669,7 @@
   .upgrade-btn { background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 7px 16px; font-size: 13px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.2s; box-shadow: 0 0 20px var(--accent-glow); }
   .upgrade-btn:hover { background: var(--accent2); }
   /* On narrow screens the topbar runs out of room. Hide both upgrade buttons
-     and the tier badge — Free users still see the upgrade banner below + per-tool
+     and the tier badge, Free users still see the upgrade banner below + per-tool
      upsells, and tier is always visible in the sidebar. */
   @media (max-width: 760px) {
     #topbar-upgrade-btn,
@@ -1859,7 +1860,7 @@
   .aichat-conv-item:hover .aichat-conv-delete {
     display: block;
   }
-  /* Touch devices have no hover — show delete button always */
+  /* Touch devices have no hover, show delete button always */
   @media (hover: none) and (pointer: coarse) {
     .aichat-conv-delete { display: block; }
     .aichat-conv-item { padding-right: 32px; }
@@ -2158,7 +2159,7 @@
     #ds-export-menu { position:fixed !important; left:50% !important; top:50% !important; transform:translate(-50%,-50%) !important; right:auto !important; }
   }
   /* Narrow-window desktop (mouse user): the context bar overflows horizontally
-     just like mobile, but a touch swipe isn't available — give them a visible
+     just like mobile, but a touch swipe isn't available, give them a visible
      thin scrollbar so they can drag it or know to scroll-wheel sideways. */
   @media (max-width: 768px) and (hover: hover) and (pointer: fine) {
     #ds-context-bar { scrollbar-width: thin; scrollbar-color: rgba(124,58,237,0.4) transparent; }
@@ -2185,13 +2186,13 @@
   /* Subtle highlight on the hovered bar so the user gets visual feedback
      that this thing is interactive. Brighter version of the same gradient.
      The .dash-sparkline-bar-active class is applied by the X-position
-     detection logic in attachSparklineTooltip — it allows highlighting a
+     detection logic in attachSparklineTooltip, it allows highlighting a
      bar even when the cursor is in empty space above a tiny bar. Both
      selectors share the same visual so the experience is consistent
      whether the cursor is directly on a bar or hovering above it. */
   .dash-sparkline-bar:hover,
   .dash-sparkline-bar-active { background: linear-gradient(180deg, rgba(232,121,249,0.95), rgba(124,58,237,0.7)); }
-  /* Hover tooltip — absolutely positioned inside the sparkline container.
+  /* Hover tooltip, absolutely positioned inside the sparkline container.
      Sits above the bars with a translateY offset, pointer-events:none so the
      tip itself doesn't intercept the mouse and cause flicker. The container
      has overflow:visible so the tip can sit above its top edge. */
@@ -2271,7 +2272,7 @@
     .deal-grid-2 > div { min-width: 0 !important; overflow: hidden; }
     input[type="date"].deal-input { width: 100% !important; box-sizing: border-box !important; appearance: none !important; -webkit-appearance: none !important; }
   }
-  /* Brand Deal CRM — Analytics */
+  /* Brand Deal CRM, Analytics */
   .deals-stat-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
   .deals-stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); font-weight: 500; margin-bottom: 6px; }
   .deals-stat-value { font-family: Syne, sans-serif; font-size: 22px; font-weight: 800; color: var(--text); letter-spacing: -0.3px; line-height: 1.1; margin-bottom: 2px; }
@@ -2283,7 +2284,7 @@
     .deals-stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
     .deals-charts-grid { grid-template-columns: 1fr !important; }
   }
-  /* Brand Deal CRM — shared styles */
+  /* Brand Deal CRM, shared styles */
   /* Custom scrollbar for messages thread (webkit browsers) */
   #deal-messages-thread::-webkit-scrollbar { width: 8px; }
   #deal-messages-thread::-webkit-scrollbar-track { background: transparent; }
@@ -2422,7 +2423,7 @@
     .bio-tool-wrap { max-width: 100%; overflow: hidden; padding: 0 !important; }
     .bio-tool-wrap h2 { font-size: 20px !important; }
     .bio-tool-wrap p { font-size: 13px !important; }
-    /* All bio form section cards — reduce padding so they don't overflow */
+    /* All bio form section cards, reduce padding so they don't overflow */
     .bio-tool-wrap .bio-grid > div > div[style*="background:var(--surface2)"] { padding: 14px !important; }
     .bio-link-row { padding: 10px !important; }
     .bio-link-row input, .bio-link-row textarea { font-size: 13px !important; }
@@ -2431,7 +2432,7 @@
     .bio-link-row > div { min-width: 0 !important; flex-wrap: wrap !important; }
     /* Avatar + name side-by-side becomes stacked */
     .bio-tool-wrap .bio-avatar-row { flex-direction: column !important; align-items: center !important; text-align: center; }
-    /* Username input — allow wrapping of the URL prefix */
+    /* Username input, allow wrapping of the URL prefix */
     #bio-username-row { flex-wrap: wrap; }
     /* Theme grid: smaller text on mobile (cols handled by responsive rules below) */
     .bio-theme-btn { font-size: 10px !important; padding: 8px 4px !important; }
@@ -2439,7 +2440,7 @@
     #bio-preview-frame { height: 500px !important; max-width: 100% !important; }
     /* Publish status bar stacks nicely */
     .bio-tool-wrap button { font-size: 12px !important; }
-    /* Input prefix "ryxa.io/" might overflow — allow wrap */
+    /* Input prefix "ryxa.io/" might overflow, allow wrap */
     .bio-username-prefix { font-size: 12px !important; }
     /* Ensure text inputs don't overflow (but NOT checkboxes/radios) */
     .bio-tool-wrap input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]):not([type="file"]),
@@ -2461,15 +2462,15 @@
     .mk-section-body { padding: 14px !important; }
     .mk-section-header { padding: 12px 14px !important; }
   }
-  /* Digital Products mobile fixes — force every descendant to respect viewport */
+  /* Digital Products mobile fixes, force every descendant to respect viewport */
   @media (max-width: 640px) {
     #tool-products, #tool-products *:not(input):not(button):not(svg):not(img) { min-width: 0 !important; }
     #tool-products { max-width: 100%; overflow: hidden; }
-    /* Editor cards — reduce padding so they don't push past the viewport */
+    /* Editor cards, reduce padding so they don't push past the viewport */
     #products-editor-view > div[style*="display:grid"] > div { padding: 14px !important; }
-    /* Slug row prefix — allow it to wrap on tiny screens */
+    /* Slug row prefix, allow it to wrap on tiny screens */
     #products-editor-view div[style*="ryxa.io/product"] { flex-wrap: wrap !important; }
-    /* List view product cards — single column on narrow screens */
+    /* List view product cards, single column on narrow screens */
     #products-list { grid-template-columns: 1fr !important; }
     /* File rows shouldn't overflow */
     #products-files-list > div { flex-wrap: wrap !important; }
@@ -2526,7 +2527,7 @@
   @media (max-width: 360px) {
     .bio-themes-grid { grid-template-columns: repeat(2, 1fr); }
   }
-  /* Font picker — dropdown only. The select itself shows the currently
+  /* Font picker, dropdown only. The select itself shows the currently
      chosen font at rest, so the user can see their pick without opening it.
      When opened, each <option> renders in its own font (most browsers honor
      option font-family). The live preview iframe updates in real time. */
@@ -2570,9 +2571,9 @@
     -webkit-user-select: text;
     -webkit-touch-callout: default;
   }
-  /* SortableJS drag states — without these, the original element stays at full
+  /* SortableJS drag states, without these, the original element stays at full
      opacity while dragging, causing a "ghost link stays in place" glitch. */
-  /* The element being dragged + its floating clone — purple glow + border to
+  /* The element being dragged + its floating clone, purple glow + border to
      signal active drag state. Both classes get the same styling so the visual
      stays consistent whether SortableJS is using the original or a clone. */
   .bio-link-row.sortable-chosen,
@@ -2597,13 +2598,13 @@
   .bio-link-row input, .bio-link-row textarea { width: 100%; background: var(--surface2); border: 1px solid var(--border-hover); border-radius: 6px; padding: 8px 10px; font-size: 13px; color: var(--text); font-family: 'DM Sans', sans-serif; outline: none; box-sizing: border-box; margin-bottom: 6px; }
   .bio-link-row textarea { resize: none; }
   .bio-link-row .bio-link-remove { padding: 4px 10px; background: transparent; border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; border-radius: 6px; font-size: 11px; cursor: pointer; font-family: 'DM Sans', sans-serif; }
-  /* Phase 2 — replaces inline onmouseover/onmouseout for the link thumbnail upload label */
+  /* Phase 2, replaces inline onmouseover/onmouseout for the link thumbnail upload label */
   .bio-thumb-upload-label:hover { background: rgba(124,58,237,0.15) !important; }
 
   /* ============================================================
-     Redesigned collapsed row — single accent-purple left edge for
+     Redesigned collapsed row, single accent-purple left edge for
      decorative consistency, monochrome icons, trash-icon remove.
-     The left border is decorative, not a type indicator — type is
+     The left border is decorative, not a type indicator, type is
      conveyed via the icon + title.
      ============================================================ */
   .bio-link-row.bio-row-typed {
@@ -2711,7 +2712,7 @@
     }
   }
 
-  /* Add buttons (Content + Tools groups) — shared base + group-specific styling.
+  /* Add buttons (Content + Tools groups), shared base + group-specific styling.
      Hover lifts the button slightly; active pushes it down (tactile feedback). */
   .bio-add-btn {
     padding: 9px 10px;
@@ -2753,7 +2754,7 @@
     box-shadow: none;
   }
 
-  /* Content variant — dashed border, transparent bg (lighter feel for structural blocks). */
+  /* Content variant, dashed border, transparent bg (lighter feel for structural blocks). */
   .bio-add-btn-content {
     background: transparent;
     border: 1px dashed rgba(124, 58, 237, 0.4);
@@ -2765,7 +2766,7 @@
     color: #d8b4fe;
   }
 
-  /* Tools variant — gradient bg, solid border (richer feel for product integrations). */
+  /* Tools variant, gradient bg, solid border (richer feel for product integrations). */
   .bio-add-btn-tool {
     background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(232, 121, 249, 0.06));
     border: 1px solid rgba(124, 58, 237, 0.3);
@@ -2777,7 +2778,7 @@
     color: #ddd6fe;
   }
 
-  /* Hero — premium tier accent, slightly different gradient. */
+  /* Hero, premium tier accent, slightly different gradient. */
   .bio-add-btn-hero {
     background: linear-gradient(135deg, rgba(167, 139, 250, 0.12), rgba(232, 121, 249, 0.08));
     border: 1px solid rgba(232, 121, 249, 0.35);
@@ -2854,7 +2855,7 @@
   .mk-section-header-static { cursor: default; }
   .mk-section-body { padding: 0 20px 20px; }
 
-  /* Media Kit Audience & Stats — Manual/Automatic tabs */
+  /* Media Kit Audience & Stats, Manual/Automatic tabs */
   .mk-aud-tabs { display: flex; gap: 4px; padding: 4px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 14px; }
   .mk-aud-tab { flex: 1; padding: 8px 12px; background: transparent; border: none; color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; cursor: pointer; border-radius: 7px; transition: background 0.15s, color 0.15s, box-shadow 0.15s; }
   .mk-aud-tab:hover { color: var(--text); }
@@ -2919,7 +2920,7 @@
   }
   .mk-aud-row-refresh svg { width: 11px; height: 11px; flex-shrink: 0; }
   .mk-aud-row-refresh-label { white-space: nowrap; }
-  /* Bio editor collapsible sections — reuses mk-section pattern */
+  /* Bio editor collapsible sections, reuses mk-section pattern */
   .bio-section { background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
   .bio-section-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 16px 20px; width: 100%; text-align: left; background: transparent; border: none; color: var(--text); font-family: 'DM Sans', sans-serif; }
   button.bio-collapsible { cursor: pointer; transition: background 0.15s; }
@@ -2950,7 +2951,7 @@
     .grid-phone-wrap { max-width: 320px; margin: 0 auto; order: -1; }
   }
 
-  /* Drop zone — compact when photos exist */
+  /* Drop zone, compact when photos exist */
   .grid-drop-zone {
     background: var(--surface2);
     border: 2px dashed var(--border-hover);
@@ -2966,7 +2967,7 @@
     background: rgba(124,58,237,0.08);
   }
 
-  /* Thumbnails — 6-column grid (3 rows of 6 = 18 max) */
+  /* Thumbnails, 6-column grid (3 rows of 6 = 18 max) */
   .grid-thumbnails {
     display: grid;
     grid-template-columns: repeat(6, 1fr);
@@ -3077,7 +3078,7 @@
     .grid-phone-profile { gap: 10px; padding-left: 10px; padding-right: 10px; }
     .grid-phone-avatar { width: 44px; height: 44px; }
     /* Explicit gap between the three stats. space-around alone wasn't
-       producing visible spacing on iOS Safari — labels run together as
+       producing visible spacing on iOS Safari, labels run together as
        "postsfollowersfollowing". Forcing a hard gap guarantees minimum
        breathing room regardless of how the browser distributes flex space. */
     .grid-phone-stats { gap: 12px; justify-content: space-between; }
@@ -3183,7 +3184,7 @@
   .grid-phone-cell {
     width: 33.3333%;
     /* iOS PWA Safari has timing issues with aspect-ratio inside flex-wrap
-       containers — cells render as squares on first paint until a reflow
+       containers, cells render as squares on first paint until a reflow
        trigger (like drag) forces recomputation. The padding-bottom hack is
        the bulletproof fallback: it works the same in every browser because
        percentage padding always resolves against the element's width.
@@ -3801,7 +3802,7 @@
   #tool-follower .fa-whitelist-btn.locked-wl:hover { background: rgba(255,255,255,0.05); border-color: var(--border-hover); color: var(--muted); opacity: 0.3; }
   .fa-whitelist-toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); background: var(--surface2); border: 1px solid var(--border-hover); color: var(--text); padding: 12px 20px; border-radius: 10px; font-size: 13px; z-index: 999; animation: faToastIn 0.25s ease; white-space: nowrap; pointer-events: none; }
   @keyframes faToastIn { from{opacity:0;transform:translateX(-50%) translateY(8px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
-  /* Generic dashboard toast — used by dashShowToast() in dashboard-shell.js.
+  /* Generic dashboard toast, used by dashShowToast() in dashboard-shell.js.
      Sits above any modal (z-index 10001 vs modal's 10000) so error toasts
      can appear over a confirmation dialog if needed. Pointer-events:none
      so it never blocks clicks underneath. */
@@ -4065,11 +4066,11 @@
 
 
   /* ============================================================
-     PHASE 3 — Bio markup style extraction (Phase 3a: dashboard.html)
+     PHASE 3, Bio markup style extraction (Phase 3a: dashboard.html)
      Auto-generated from inline style="..." attributes that were
      replaced with hash-named class references for strict CSP support.
      ============================================================ */
-  /* Phase 3 — extracted inline styles from bio markup (auto-generated) */
+  /* Phase 3, extracted inline styles from bio markup (auto-generated) */
   .bio-s-c8be1c { display:none; }
   .bio-s-6cffda { display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px; }
   .bio-s-b9b38d { font-family:Syne,sans-serif;font-size:24px;font-weight:800;margin-bottom:4px;letter-spacing:-0.5px; }
@@ -4134,7 +4135,7 @@
   .bio-s-f883c5 { background:var(--surface2);border:1px solid var(--border);border-radius:24px;padding:14px;height:640px;overflow:hidden; }
   .bio-s-63d1ae { width:100%;height:100%;border:none;border-radius:16px;background:var(--bg); }
   .bio-s-f01a62 { margin-top:16px;font-size:13px;color:var(--muted);text-align:center;min-height:20px; }
-/* Phase 3b — extracted inline styles from bio.js template literals */
+/* Phase 3b, extracted inline styles from bio.js template literals */
   .bio-s-0c9434 { width:100%;height:100%;object-fit:cover;border-radius:50%; }
   .bio-s-e3f916 { color:var(--muted); }
   .bio-s-dbc3a0 { color:#fca5a5; }
@@ -4200,7 +4201,7 @@
   .bio-s-c2bb16 { font-size:12px;color:var(--muted);margin-bottom:16px; }
   .bio-s-ff18d0 { width:100%;padding:10px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:8px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;margin-top:4px; }
 
-  /* Phase 3b — manually-authored classes for state-dependent dynamic elements */
+  /* Phase 3b, manually-authored classes for state-dependent dynamic elements */
   /* Half-width toggle: animated switch with on/off states. */
   .bio-half-track { position:relative; width:34px; height:20px; background:var(--bg); border:1px solid var(--border-hover); border-radius:11px; transition:background 0.15s,border-color 0.15s; flex-shrink:0; }
   .bio-half-track.on { background:var(--accent); border-color:var(--accent); }
@@ -4212,11 +4213,11 @@
 
 
   /* ============================================================
-     PHASE 3 — Media Kit style extraction
+     PHASE 3, Media Kit style extraction
      Auto-generated from inline style="..." attributes that were
      replaced with hash-named class references for strict CSP.
      ============================================================ */
-  /* Phase 3 — extracted inline styles from MK markup (auto-generated) */
+  /* Phase 3, extracted inline styles from MK markup (auto-generated) */
   .mk-s-79362c { display:none;max-width:560px;margin:40px auto;background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:40px;text-align:center; }
   .mk-s-ad83c6 { width:56px;height:56px;margin:0 auto 16px;background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.25);border-radius:14px;display:flex;align-items:center;justify-content:center; }
   .mk-s-1ed8af { font-family:Syne,sans-serif;font-size:22px;font-weight:800;margin-bottom:8px;letter-spacing:-0.3px; }
@@ -4246,7 +4247,7 @@
   .mk-s-0580dd { background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:12px;height:720px;overflow:hidden; }
   .mk-s-c52a20 { width:100%;height:100%;border:none;border-radius:12px;background:var(--bg); }
 
-  /* Phase 3b — extracted inline styles from mk.js template literals */
+  /* Phase 3b, extracted inline styles from mk.js template literals */
   .mk-s-5138f3 { width:100%;height:100%;object-fit:cover;border-radius:13px; }
   .mk-s-bbc25c { background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px; }
   .mk-s-2f0e33 { width:100%;background:var(--surface2);border:1px solid var(--border-hover);border-radius:6px;padding:7px 10px;font-size:12px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;box-sizing:border-box; }
@@ -4255,9 +4256,9 @@
 
 
   /* ============================================================
-     PHASE 3 — Course Builder style extraction
+     PHASE 3, Course Builder style extraction
      ============================================================ */
-  /* Phase 3 — extracted inline styles from Course markup (auto-generated) */
+  /* Phase 3, extracted inline styles from Course markup (auto-generated) */
   .course-s-8e1a99 { max-width:900px; }
   .course-s-d72aad { display:none;text-align:center;padding:60px 24px; }
   .course-s-6422e6 { font-family:Syne,sans-serif;font-size:28px;font-weight:800;margin-bottom:8px;letter-spacing:-0.5px; }
@@ -4319,7 +4320,7 @@
   .course-s-a988f6 { display:none;border-top:1px solid var(--border);padding-top:20px;margin-top:20px; }
   .course-s-980a3b { padding:8px 16px;background:transparent;border:1px solid rgba(239,68,68,0.4);color:#ef4444;border-radius:8px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer; }
 
-  /* Phase 3b — extracted inline styles from course.js template literals */
+  /* Phase 3b, extracted inline styles from course.js template literals */
   .course-s-259ee6 { background:var(--surface2);border:1px solid var(--border);border-radius:14px;overflow:hidden;cursor:pointer;transition:border-color 0.15s; }
   .course-s-4680c6 { padding:14px 16px; }
   .course-s-c420c8 { font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
@@ -4384,7 +4385,7 @@
   /* Quill toolbar icon coloring. Quill's snow theme defines .ql-stroke and
      .ql-fill rules at the same specificity as our .course-s-quill-host
      wrapper selectors, and the toolbar is rendered as a sibling of our host
-     (not a descendant) — so our wrapper-prefixed rules never matched. We
+     (not a descendant), so our wrapper-prefixed rules never matched. We
      scope by ql-toolbar.ql-snow directly (which is unique to the editor
      anyway) with !important to win over Quill's deep defaults. */
   .ql-toolbar.ql-snow .ql-stroke { stroke:#fff !important; }
@@ -4398,7 +4399,7 @@
   .ql-toolbar.ql-snow .ql-picker-label.ql-active,
   .ql-toolbar.ql-snow .ql-picker-item:hover,
   .ql-toolbar.ql-snow .ql-picker-item.ql-selected { color:var(--accent) !important; }
-  /* Image size classes — editor preview. */
+  /* Image size classes, editor preview. */
   .ql-editor img.lesson-img-size-small { max-width:30%;width:30%; }
   .ql-editor img.lesson-img-size-medium { max-width:60%;width:60%; }
   .ql-editor img.lesson-img-size-large { max-width:100%;width:100%; }
@@ -4413,7 +4414,7 @@
   .lesson-img-size-toolbar button { padding:0 10px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;color:#666;background:transparent;border:1px solid transparent;cursor:pointer;height:24px;line-height:22px;border-radius:5px;transition:all 0.15s; }
   .lesson-img-size-toolbar button:disabled { cursor:not-allowed;color:#555;opacity:0.6; }
   /* When the toolbar group has any non-disabled button, the whole group is
-     "live" — we use a parent state class set by JS to drive the alive look. */
+     "live", we use a parent state class set by JS to drive the alive look. */
   .lesson-img-size-toolbar.has-selection button { color:#fff;background:rgba(124,58,237,0.25);border-color:rgba(124,58,237,0.45); }
   .lesson-img-size-toolbar.has-selection button:hover { background:rgba(124,58,237,0.4);border-color:rgba(124,58,237,0.7); }
   .lesson-img-size-toolbar.has-selection button.lesson-img-size-active { background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 0 8px rgba(124,58,237,0.45); }
@@ -4425,6 +4426,60 @@
   .course-s-vurl-status { display:none;align-items:center;gap:5px;font-size:11px;font-weight:500;padding:3px 8px;border-radius:5px;width:fit-content; }
   .course-s-vurl-status.valid { display:inline-flex;background:rgba(74,222,128,0.1);color:#4ade80;border:1px solid rgba(74,222,128,0.3); }
   .course-s-vurl-status.invalid { display:inline-flex;background:rgba(239,68,68,0.1);color:#f87171;border:1px solid rgba(239,68,68,0.3); }
+
+  /* Bunny upload UI: tab switcher + upload zone + progress + ready state */
+  .course-vid-tabs { display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:14px; }
+  .course-vid-tab { background:none;border:none;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;padding:9px 14px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all 0.15s;display:inline-flex;align-items:center;gap:6px; }
+  .course-vid-tab:hover { color:var(--text); }
+  .course-vid-tab[aria-selected="true"] { color:var(--text);border-bottom-color:var(--accent); }
+  .course-vid-tab .course-vid-tab-badge { font-size:9px;background:var(--accent);color:#fff;padding:2px 6px;border-radius:8px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase; }
+  .course-vid-panel { display:none; }
+  .course-vid-panel[aria-hidden="false"] { display:block; }
+
+  .course-vid-drop { border:1.5px dashed rgba(124,58,237,0.4);border-radius:10px;padding:24px 16px;text-align:center;background:rgba(124,58,237,0.04);cursor:pointer;transition:all 0.15s;display:flex;flex-direction:column;align-items:center;gap:8px; }
+  .course-vid-drop:hover, .course-vid-drop.is-drag { background:rgba(124,58,237,0.1);border-color:var(--accent); }
+  .course-vid-drop:focus-visible { outline:2px solid var(--accent2);outline-offset:2px; }
+  .course-vid-drop-icon { color:var(--accent2); }
+  .course-vid-drop-title { font-size:13px;color:var(--text);font-weight:500; }
+  .course-vid-drop-hint { font-size:11px;color:var(--muted);line-height:1.5; }
+  .course-vid-drop-hint strong { color:var(--text);font-weight:500; }
+
+  .course-vid-progress-wrap { background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:10px; }
+  .course-vid-progress-head { display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12px;color:var(--text);font-weight:500; }
+  .course-vid-progress-head .course-vid-progress-pct { color:var(--accent2);font-family:'Syne',sans-serif;font-weight:700;font-size:13px;tabular-nums:1;font-variant-numeric:tabular-nums; }
+  .course-vid-progress-bar { height:6px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;position:relative; }
+  .course-vid-progress-fill { height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:3px;transition:width 0.2s ease-out;width:0%; }
+  .course-vid-progress-foot { display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--muted); }
+  .course-vid-progress-cancel { background:none;border:1px solid var(--border-hover);color:var(--muted);font-size:11px;padding:4px 10px;border-radius:5px;cursor:pointer;font-family:'DM Sans',sans-serif; }
+  .course-vid-progress-cancel:hover { color:#f87171;border-color:rgba(239,68,68,0.4); }
+
+  .course-vid-processing { background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:12px;font-size:12px;color:var(--text); }
+  .course-vid-processing-spin { width:16px;height:16px;border:2px solid rgba(124,58,237,0.2);border-top-color:var(--accent);border-radius:50%;animation:vid-spin 0.8s linear infinite;flex-shrink:0; }
+  @keyframes vid-spin { to { transform:rotate(360deg); } }
+  .course-vid-processing-text { display:flex;flex-direction:column;gap:2px; }
+  .course-vid-processing-sub { font-size:11px;color:var(--muted); }
+
+  .course-vid-ready { background:rgba(74,222,128,0.06);border:1px solid rgba(74,222,128,0.25);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:12px; }
+  .course-vid-ready-thumb { width:64px;height:36px;border-radius:5px;background:#000;background-size:cover;background-position:center;flex-shrink:0;position:relative;overflow:hidden; }
+  .course-vid-ready-thumb-fallback { width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,rgba(124,58,237,0.3),rgba(168,85,247,0.2));color:#fff; }
+  .course-vid-ready-meta { flex:1;display:flex;flex-direction:column;gap:2px;min-width:0; }
+  .course-vid-ready-title { font-size:12px;color:var(--text);font-weight:500;display:flex;align-items:center;gap:6px; }
+  .course-vid-ready-title-check { color:#4ade80;flex-shrink:0; }
+  .course-vid-ready-sub { font-size:11px;color:var(--muted); }
+  .course-vid-ready-replace { background:none;border:1px solid var(--border-hover);color:var(--muted);font-size:11px;padding:5px 10px;border-radius:5px;cursor:pointer;font-family:'DM Sans',sans-serif;flex-shrink:0; }
+  .course-vid-ready-replace:hover { color:var(--text);border-color:var(--accent2); }
+
+  .course-vid-failed { background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.25);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:10px;font-size:12px;color:#fca5a5; }
+  .course-vid-failed-retry { background:none;border:1px solid rgba(239,68,68,0.3);color:#fca5a5;font-size:11px;padding:5px 10px;border-radius:5px;cursor:pointer;font-family:'DM Sans',sans-serif;margin-left:auto; }
+  .course-vid-failed-retry:hover { background:rgba(239,68,68,0.1); }
+
+  .course-vid-error-msg { font-size:11px;color:#fca5a5;padding:6px 10px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:6px;margin-top:8px; }
+
+  @media (max-width: 600px) {
+    .course-vid-tab { padding:9px 10px;font-size:11px; }
+    .course-vid-drop { padding:18px 12px; }
+    .course-vid-ready-thumb { width:52px;height:30px; }
+  }
   .course-s-2e11f6 { width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-size:12px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;resize:vertical; }
   .course-s-a3a556 { margin-top:4px; }
   .course-s-c3c55b { margin-top:12px;border-top:1px solid var(--border);padding-top:12px; }
@@ -4451,13 +4506,13 @@
   .course-s-3fed56 { display:flex;gap:8px;margin-top:10px; }
   .course-s-be13d8 { flex:1;padding:8px 12px;background:transparent;border:1px dashed rgba(124,58,237,0.4);color:var(--accent2);border-radius:6px;font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:4px;transition:all 0.15s; }
 
-  /* Phase 3 — manually-authored support classes for Course tool */
+  /* Phase 3, manually-authored support classes for Course tool */
   /* Course card click hover (replaces inline onmouseover/out on the list card) */
   .course-card-clickable { transition: border-color 0.15s; cursor: pointer; }
   .course-card-clickable:hover { border-color: rgba(124,58,237,0.4) !important; }
-  /* Course card cover area — fixed height; bg supplied via data-course-bg */
+  /* Course card cover area, fixed height; bg supplied via data-course-bg */
   .course-s-cover { height: 140px; display: flex; align-items: center; justify-content: center; font-size: 32px; }
-  /* Course card status badge — color supplied via data-course-color */
+  /* Course card status badge, color supplied via data-course-color */
   .course-card-status { font-size: 12px; font-weight: 600; }
   /* Lesson collapsed view (replaces inline onmouseover/out on the collapsed lesson) */
   .course-s-fce34d:hover { border-color: rgba(124,58,237,0.3) !important; }
@@ -4477,12 +4532,12 @@
   /* ============================================================
 
   /* ============================================================
-     PHASE 3 — Coaching (1:1 Booking) hash class extraction
+     PHASE 3, Coaching (1:1 Booking) hash class extraction
      Auto-generated from inline style="..." attributes in coaching
      markup + coaching.js template literals. Recovered from prior
      session's working CSS file.
      ============================================================ */
-  /* Phase 3 — Coaching markup style extraction */
+  /* Phase 3, Coaching markup style extraction */
   .coach-s-6d33e6 { margin-bottom:16px;display:flex;gap:12px;align-items:flex-end; }
   .coach-s-519ddb { font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5; }
   .coach-s-3a6593 { width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:12px 16px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;cursor:pointer;-webkit-appearance:none;appearance:none;background-image:url('data:image/svg+xml;utf8,<svg width=&quot;12&quot; height=&quot;12&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;%23888&quot; stroke-width=&quot;2.5&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><polyline points=&quot;6 9 12 15 18 9&quot;/></svg>');background-repeat:no-repeat;background-position:right 16px center; }
@@ -4513,37 +4568,37 @@
   .coach-s-db8753 { padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:8px;font-size:13px;color:var(--muted);line-height:1.6; }
   .coach-s-112f7e { vertical-align:middle;margin-right:6px; }
 
-  /* Phase 3b — coaching.js template literal extraction */
+  /* Phase 3b, coaching.js template literal extraction */
   .coach-s-fd27c0 { display:flex;align-items:center;gap:8px;cursor:pointer;min-width:110px;flex-shrink:0; }
   .coach-s-d73cb1 { width:16px;height:16px;cursor:pointer;accent-color:var(--accent); }
   .coach-s-1bd029 { font-size:13px;color:var(--text);font-weight:500; }
   .coach-s-9b120d { display:flex;align-items:center;gap:8px;min-width:0; }
   .coach-s-a65625 { font-size:11px;color:var(--muted);font-weight:500;min-width:36px; }
 
-     PHASE 3 — Coaching (1:1 Booking) support classes
+     PHASE 3, Coaching (1:1 Booking) support classes
      Manually-authored classes for dynamic state-based styling
      in coaching list cards and availability rows.
      ============================================================ */
-  /* Coaching list card cover area — identical pattern to course-s-cover.
+  /* Coaching list card cover area, identical pattern to course-s-cover.
      Background supplied via data-coach-bg (full `background` shorthand). */
   .coach-card-cover { height: 140px; display: flex; align-items: center; justify-content: center; }
-  /* Coaching list card status badge — color supplied via data-coach-color */
+  /* Coaching list card status badge, color supplied via data-coach-color */
   .coach-card-status { font-size: 12px; font-weight: 600; }
   /* Coaching list card click hover (mirrors course card pattern) */
   .coach-card-clickable { transition: border-color 0.15s; cursor: pointer; }
   .coach-card-clickable:hover { border-color: rgba(124,58,237,0.4) !important; }
-  /* Availability day row — has enabled (default) and disabled visual states.
+  /* Availability day row, has enabled (default) and disabled visual states.
      Layout matches the previous inline-styled version exactly. */
   .coach-avail-row { display: flex; align-items: center; gap: 14px; padding: 12px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 6px; }
   .coach-avail-row.is-disabled { background: rgba(20,20,32,0.5); }
-  /* Right side of avail row (time pickers) — dimmed when row is disabled */
+  /* Right side of avail row (time pickers), dimmed when row is disabled */
   .coach-avail-row-pickers { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 0; }
   .coach-avail-row.is-disabled .coach-avail-row-pickers { opacity: 0.5; }
 
   /* ============================================================
-     PHASE 3 — Digital Products style extraction
+     PHASE 3, Digital Products style extraction
      ============================================================ */
-  /* Phase 3 — Products markup style extraction */
+  /* Phase 3, Products markup style extraction */
   .prod-s-d66fac { background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:20px; }
   .prod-s-5a9738 { display:flex;justify-content:space-between;align-items:center;margin-bottom:8px; }
   .prod-s-4f30fa { font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em; }
@@ -4587,7 +4642,7 @@
   .prod-s-e0e5f4 { padding:10px 18px;background:var(--accent);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 16px var(--accent-glow); }
   .prod-s-f8e822 { display:none;padding:10px 18px;background:transparent;border:1px solid rgba(74,222,128,0.4);color:#4ade80;border-radius:9px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer; }
 
-  /* Phase 3b — products.js template literal extraction */
+  /* Phase 3b, products.js template literal extraction */
   .prod-s-8e22b6 { grid-column:1/-1;color:var(--muted);font-size:13px;text-align:center;padding:30px 0; }
   .prod-s-988306 { grid-column:1/-1;color:#f87171;font-size:13px;text-align:center;padding:30px 0; }
   .prod-s-f11ff4 { font-size:10px;font-weight:600;color:#22c55e;background:rgba(34,197,94,0.12);padding:2px 7px;border-radius:5px; }
@@ -4605,9 +4660,9 @@
 
 
   /* ============================================================
-     PHASE 3 — Brand Deal CRM style extraction
+     PHASE 3, Brand Deal CRM style extraction
      ============================================================ */
-  /* Phase 3 — Brand Deals markup style extraction */
+  /* Phase 3, Brand Deals markup style extraction */
   .deal-s-a35af9 { max-width:1100px; }
   .deal-s-905707 { display:inline-flex;align-items:center;gap:8px;padding:6px 14px;background:linear-gradient(135deg,rgba(167,139,250,0.15),rgba(232,121,249,0.15));border:1px solid rgba(167,139,250,0.3);border-radius:999px;font-size:11px;font-weight:700;color:#e879f9;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:20px; }
   .deal-s-48ae92 { color:var(--muted);font-size:14px;max-width:480px;margin:0 auto 24px; }
@@ -4706,7 +4761,7 @@
   .deal-s-5f5a09 { padding:12px 20px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer; }
   .deal-s-5cd968 { display:none;padding:12px 16px;background:transparent;border:1px solid rgba(239,68,68,0.3);color:#fca5a5;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer; }
 
-  /* Phase 3b — deals.js template literal extraction */
+  /* Phase 3b, deals.js template literal extraction */
   .deal-s-a3165e { font-weight:500;color:var(--text);font-size:14px;margin-bottom:2px; }
   .deal-s-8cb67d { font-size:13px;color:var(--text); }
   .deal-s-b98ccd { background:var(--surface2);border:1px solid var(--border);border-radius:14px;overflow:hidden; }
@@ -4741,9 +4796,9 @@
 
 
   /* ============================================================
-     PHASE 3 — Analytics style extraction
+     PHASE 3, Analytics style extraction
      ============================================================ */
-  /* Phase 3 — Analytics markup style extraction */
+  /* Phase 3, Analytics markup style extraction */
   .ana-s-ff9127 { padding:12px 28px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px rgba(232,121,249,0.3); }
   .ana-s-7db597 { display:none;padding-bottom:60px; }
   .ana-s-f72fb3 { font-family:Syne,sans-serif;font-size:24px;font-weight:800;letter-spacing:-0.5px; }
@@ -4786,7 +4841,7 @@
   .ana-s-8c8231 { display:none;border-top:1px solid var(--border);padding:10px 16px;display:none;align-items:center;justify-content:space-between; }
   .ana-s-7f388f { padding:6px 14px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.25);color:#c4b5fd;border-radius:6px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.15s; }
 
-  /* Phase 3b — analytics.js template literal extraction */
+  /* Phase 3b, analytics.js template literal extraction */
   .ana-s-a56f95 { border-top:1px solid var(--border); }
   .ana-s-14ba36 { padding:10px 16px;color:var(--muted);font-size:13px;white-space:nowrap; }
   .ana-s-46cd6d { padding:10px 16px;color:var(--text);font-size:13px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
@@ -4798,9 +4853,9 @@
 
 
   /* ============================================================
-     PHASE 3 — Calendar style extraction
+     PHASE 3, Calendar style extraction
      ============================================================ */
-  /* Phase 3 — Calendar markup style extraction */
+  /* Phase 3, Calendar markup style extraction */
   .cal-s-76b393 { max-width:1200px; }
   .cal-s-42a5a7 { font-family:Syne,sans-serif;font-size:28px;font-weight:800;letter-spacing:-0.5px;margin-bottom:8px; }
   .cal-s-d84dd0 { color:var(--muted);font-size:14px;line-height:1.6; }
@@ -4815,7 +4870,7 @@
   .cal-s-8ad4a7 { width:36px;height:36px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s; }
   /* Inline timezone dropdown in the calendar toolbar (replaces the old gear/
      settings modal). Visually matches the Today button next to it but uses
-     a native <select> so the browser handles the option list — mobile-
+     a native <select> so the browser handles the option list, mobile-
      friendly and accessible by default. Current timezone is shown in a
      compact form (e.g. "Los Angeles" not "America/Los_Angeles"). */
   .cal-s-tz-inline { padding:8px 28px 8px 12px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;outline:none;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%237c7c8d' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");background-repeat:no-repeat;background-position:right 10px center;transition:all 0.15s;max-width:200px;text-overflow:ellipsis; }
@@ -4823,7 +4878,7 @@
   /* Dropdown panel styling. <option> handles the row text/bg; <optgroup>
      handles the group label rows (e.g. "Your timezone", "Common timezones").
      Without an explicit optgroup rule, Chrome renders the label text in a
-     near-white color against the panel's near-white bg — looks broken on
+     near-white color against the panel's near-white bg, looks broken on
      the dashboard's dark theme. Both inherit nothing useful from the
      closed-state select styling, so we set background-color and color
      directly. background-color (not shorthand) is needed because some
@@ -4844,7 +4899,7 @@
   .cal-s-c0b004 { font-family:'Syne',sans-serif;font-size:18px;font-weight:700;letter-spacing:-0.3px; }
   .cal-s-d63a18 { padding:8px 14px;background:var(--accent);border:none;border-radius:8px;color:#fff;font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all 0.15s; }
 
-  /* Phase 3b — calendar.js template literal extraction */
+  /* Phase 3b, calendar.js template literal extraction */
   .cal-s-56e6ba { font-size:13px;color:var(--muted); }
   .cal-s-3ce883 { color:var(--text);font-weight:500; }
   .cal-s-bd9395 { display:inline-flex;align-items:center;gap:8px;padding:8px 14px;background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.25);border-radius:8px;font-size:13px;color:#86efac; }
@@ -4887,9 +4942,9 @@
 
 
   /* ============================================================
-     PHASE 3 — Subscribers (Clients) style extraction
+     PHASE 3, Subscribers (Clients) style extraction
      ============================================================ */
-  /* Phase 3 — Subscribers markup style extraction */
+  /* Phase 3, Subscribers markup style extraction */
   .clients-s-b14783 { display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:24px; }
   .clients-s-88cf18 { font-family:Syne,sans-serif;font-size:24px;font-weight:800;margin-bottom:6px;letter-spacing:-0.5px; }
   .clients-s-e81ef5 { font-size:14px;color:var(--muted); }
@@ -4900,16 +4955,16 @@
   .clients-s-800f2b { accent-color:#7c3aed;cursor:pointer; }
   .clients-s-cec69f { display:none;border-top:1px solid var(--border);padding:10px 16px;align-items:center;justify-content:space-between; }
 
-  /* Phase 3b — clients.js template literal extraction */
+  /* Phase 3b, clients.js template literal extraction */
   .clients-s-becac0 { color:#4ade80;font-size:11px;font-weight:600; }
   .clients-s-949353 { padding:10px 16px;color:var(--text);font-size:13px;max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
   .clients-s-e6b633 { padding:10px 16px; }
 
 
   /* ============================================================
-     PHASE 3 — Design Studio style extraction
+     PHASE 3, Design Studio style extraction
      ============================================================ */
-  /* Phase 3 — Design Studio markup style extraction */
+  /* Phase 3, Design Studio markup style extraction */
   .ds-s-350984 { max-width:680px;margin:0 auto; }
   .ds-s-6d58af { color:var(--muted);font-size:14px;margin-bottom:24px; }
   .ds-s-3aaf4c { font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:14px; }
@@ -5009,7 +5064,7 @@
   .ds-s-f2a770 { flex:1;display:flex;justify-content:center;align-items:flex-start;width:100%;min-width:0;overflow:auto; }
   .ds-s-724e3a { background:#1a1a2e;border:1px solid var(--border);border-radius:8px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.3);position:relative; }
 
-  /* Phase 3b — design.js template literal extraction */
+  /* Phase 3b, design.js template literal extraction */
   .ds-s-4e2bac { background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:28px;max-width:340px;width:100%; }
   .ds-s-b0ef76 { font-family:Syne,sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.3px;margin-bottom:20px; }
   .ds-s-59bbd8 { display:flex;gap:12px;margin-bottom:20px; }
@@ -5092,9 +5147,9 @@
 
 
   /* ============================================================
-     PHASE 3 — Chatbox / AI Chat style extraction
+     PHASE 3, Chatbox / AI Chat style extraction
      ============================================================ */
-  /* Phase 3 — Chatbox markup style extraction */
+  /* Phase 3, Chatbox markup style extraction */
   .chat-s-43c698 { padding:12px 28px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow); }
   .chat-s-38bd0d { display:none;height:calc(100vh - 120px);min-height:560px;display:flex;gap:0;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--surface);position:relative; }
   .chat-s-5dad98 { width:240px;flex-shrink:0;border-right:1px solid var(--border);background:var(--surface2);display:flex;flex-direction:column; }
@@ -5116,7 +5171,7 @@
   .chat-s-5cb1cd { padding:11px 16px;background:var(--accent);border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;flex-shrink:0;height:42px;display:flex;align-items:center;gap:6px;transition:opacity 0.15s; }
   .chat-s-b298f5 { text-align:center;font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5; }
 
-  /* Phase 3b — chat.js template literal extraction */
+  /* Phase 3b, chat.js template literal extraction */
   .chat-s-615a28 { background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:28px;max-width:480px;width:100%;max-height:calc(100vh - 80px);overflow-y:auto; }
   .chat-s-c0bd7f { display:flex;align-items:center;gap:10px;margin-bottom:14px; }
   .chat-s-fcd3fe { width:32px;height:32px;background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.25);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
@@ -5134,9 +5189,9 @@
 
 
   /* ============================================================
-     PHASE 3 — Script Builder style extraction
+     PHASE 3, Script Builder style extraction
      ============================================================ */
-  /* Phase 3 — Scripts markup style extraction */
+  /* Phase 3, Scripts markup style extraction */
   .scripts-s-f077c4 { width:56px;height:56px;margin:0 auto 16px;background:linear-gradient(135deg,rgba(167,139,250,0.15),rgba(232,121,249,0.12));border:1px solid rgba(232,121,249,0.3);border-radius:14px;display:flex;align-items:center;justify-content:center; }
   .scripts-s-dad2a8 { font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent2);font-weight:700;margin-bottom:8px; }
   .scripts-s-dac4ee { padding:10px 18px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow);display:inline-flex;align-items:center;gap:6px; }
@@ -5146,7 +5201,7 @@
   .scripts-s-4d118a { font-size:14px;font-weight:500;color:var(--text);margin-bottom:6px; }
   .scripts-s-9e6595 { font-size:13px; }
 
-  /* Phase 3b — scripts.js template literal extraction */
+  /* Phase 3b, scripts.js template literal extraction */
   .scripts-s-aa6173 { width:auto;padding:0 8px;gap:4px;font-size:11px;margin-left:8px;height:24px; }
   .scripts-s-3bec16 { width:auto;padding:0 8px;gap:4px;font-size:11px;height:24px; }
   .scripts-s-08904b { background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:28px;max-width:440px;width:100%; }
@@ -5169,7 +5224,7 @@
 
 
   /* ============================================================
-     PHASE 3 — Thumbnail Analyzer style extraction
+     PHASE 3, Thumbnail Analyzer style extraction
      ============================================================ */
   .ds-s-ace910 { max-width:720px; }
   .ds-s-1f7c43 { font-size:14px;color:var(--muted);margin-bottom:24px; }
@@ -5193,7 +5248,7 @@
 
 
   /* ============================================================
-     PHASE 3 — Contract Analyzer style extraction
+     PHASE 3, Contract Analyzer style extraction
      ============================================================ */
   .ds-s-391757 { font-size:14px;color:var(--muted);margin-bottom:6px; }
   .ds-s-56d6f8 { font-size:11px;color:var(--muted);font-style:italic;margin-bottom:24px; }
@@ -5204,9 +5259,9 @@
 
 
   /* ============================================================
-     PHASE 3 — Photo Editor style extraction
+     PHASE 3, Photo Editor style extraction
      ============================================================ */
-  /* Phase 3 — Photo Editor markup style extraction */
+  /* Phase 3, Photo Editor markup style extraction */
   .image-s-5a9322 { max-width:680px; }
   .image-s-77d040 { color:var(--muted);font-size:14px;margin-bottom:8px; }
   .image-s-8fd488 { font-size:13px;color:#a78bfa;margin-bottom:24px; }
@@ -5229,7 +5284,7 @@
   .image-s-b256e3 { position:absolute;bottom:-8px;right:-8px;width:16px;height:16px;background:#fff;border:2px solid #7c3aed;border-radius:50%;cursor:nwse-resize; }
   .image-s-009954 { display:flex;align-items:center;gap:10px;margin-top:10px;font-size:12px;color:var(--muted);flex-wrap:wrap; }
   .image-s-a92c8a { flex:1;min-width:120px;accent-color:var(--accent); }
-  /* On mobile, the zoom row gets tight — Remove BG + magnifier emoji + slider
+  /* On mobile, the zoom row gets tight, Remove BG + magnifier emoji + slider
      + readout + reset icon competing for ~350px viewport. Drop the decorative
      magnifier emoji (% readout already signals "zoom"), tighten the gap, and
      shrink the slider's min-width so the row stays on one line. */
@@ -5280,9 +5335,9 @@
 
 
   /* ============================================================
-     PHASE 3 — Grid Planner style extraction
+     PHASE 3, Grid Planner style extraction
      ============================================================ */
-  /* Phase 3 — Grid Planner markup style extraction */
+  /* Phase 3, Grid Planner markup style extraction */
   .grid-s-bd1b06 { display:none;padding:9px 14px;background:transparent;color:var(--muted);border:1px solid var(--border-hover);border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer; }
   .grid-s-0fd52f { display:none;background:linear-gradient(135deg,rgba(124,58,237,0.08),rgba(232,121,249,0.05));border:1px solid rgba(124,58,237,0.25);border-radius:12px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap; }
   .grid-s-c063e4 { display:flex;align-items:center;gap:12px;flex:1;min-width:200px; }
@@ -5305,16 +5360,16 @@
   .grid-s-4b81bb { color:var(--muted);font-weight:500;margin-left:4px; }
   .grid-s-cc1406 { padding:16px;text-align:center;font-size:12px;color:var(--muted);background:var(--surface2);border:1px dashed var(--border);border-radius:10px; }
 
-  /* Phase 3b — grid.js template literal extraction */
+  /* Phase 3b, grid.js template literal extraction */
   .grid-s-d717a9 { padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%; }
   .grid-s-8ead71 { display:inline-block;padding:6px 12px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:7px;font-size:11px;cursor:pointer;font-weight:500;white-space:nowrap; }
   .grid-s-3b3f68 { padding:20px 16px; }
 
 
   /* ============================================================
-     PHASE 3 — Follow-Back Audit style extraction
+     PHASE 3, Follow-Back Audit style extraction
      ============================================================ */
-  /* Phase 3 — Follower Audit markup style extraction */
+  /* Phase 3, Follower Audit markup style extraction */
   .follower-s-938972 { margin-bottom:40px;text-align:center; }
   .follower-s-8bcb27 { font-family:Syne,sans-serif;font-size:24px;font-weight:800;letter-spacing:-0.5px;margin-bottom:8px; }
   .follower-s-665ec6 { color:var(--muted);font-size:14px;line-height:1.6;max-width:520px;margin:0 auto; }
@@ -5341,7 +5396,7 @@
   .follower-s-cd9784 { font-size:13.5px;color:var(--muted);margin-bottom:14px; }
   .follower-s-25776c { font-size:18px;flex-shrink:0; }
 
-  /* Phase 3b — follower.js template literal extraction */
+  /* Phase 3b, follower.js template literal extraction */
   .follower-s-f045bb { color:var(--text) }
   .follower-s-c1a430 { font-weight:400;color:var(--muted);font-size:13px }
   .follower-s-f62967 { display:flex;align-items:center;gap:16px; }
@@ -5377,9 +5432,9 @@
 
 
   /* ============================================================
-     PHASE 3 — QR Generator style extraction
+     PHASE 3, QR Generator style extraction
      ============================================================ */
-  /* Phase 3 — QR Generator markup style extraction */
+  /* Phase 3, QR Generator markup style extraction */
   .qr-s-b796f4 { display:flex;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:4px;margin-bottom:20px; }
   .qr-s-600dc6 { flex:1;padding:9px 16px;border:none;border-radius:7px;font-size:13px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.15s;background:var(--accent);color:#fff; }
   .qr-s-af1e6a { flex:1;padding:9px 16px;border:none;border-radius:7px;font-size:13px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.15s;background:transparent;color:var(--muted); }
@@ -5402,9 +5457,9 @@
 
 
   /* ============================================================
-     PHASE 3 — Invoice Generator style extraction
+     PHASE 3, Invoice Generator style extraction
      ============================================================ */
-  /* Phase 3 — Invoice Generator markup style extraction */
+  /* Phase 3, Invoice Generator markup style extraction */
   .invoice-s-f40043 { max-width:800px; }
   .invoice-s-44aa9d { display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px; }
   .invoice-s-8c48da { background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:20px; }
@@ -5440,7 +5495,7 @@
   .invoice-s-7c2654 { font-family:Syne,sans-serif;font-size:24px;font-weight:800;color:#a78bfa; }
   .invoice-s-91144e { width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:12px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;resize:none;line-height:1.6; }
 
-  /* Phase 3b — invoice.js template literal extraction */
+  /* Phase 3b, invoice.js template literal extraction */
   .invoice-s-f31aea { display:grid;grid-template-columns:1fr 60px 90px 28px;gap:6px;margin-bottom:8px;align-items:center; }
   .invoice-s-9fd163 { background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;width:100%; }
   .invoice-s-8e4206 { background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:9px 8px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;width:100%;text-align:center; }
@@ -5449,9 +5504,9 @@
 
 
   /* ============================================================
-     PHASE 3 — PDF Sign style extraction
+     PHASE 3, PDF Sign style extraction
      ============================================================ */
-  /* Phase 3 — PDF Sign markup style extraction */
+  /* Phase 3, PDF Sign markup style extraction */
   .pdfsign-s-494e7e { max-width:700px;margin:0 auto; }
   .pdfsign-s-7a0d31 { text-align:center;padding:48px 24px; }
   .pdfsign-s-07e0c6 { font-size:16px;font-weight:600;color:var(--text);margin-bottom:6px; }
@@ -5488,9 +5543,9 @@
 
 
   /* ============================================================
-     PHASE 3 — Settings tool style extraction
+     PHASE 3, Settings tool style extraction
      ============================================================ */
-  /* Phase 3 — Settings markup style extraction */
+  /* Phase 3, Settings markup style extraction */
   .settings-s-6add97 { max-width:480px; }
   .settings-s-bd4102 { font-family:Syne,sans-serif;font-size:20px;font-weight:800;margin-bottom:4px;letter-spacing:-0.3px; }
   .settings-s-8ee06c { color:var(--muted);font-size:13px;margin-bottom:28px; }
@@ -5568,9 +5623,9 @@
 
 
   /* ============================================================
-     PHASE 3 — Welcome screen style extraction
+     PHASE 3, Welcome screen style extraction
      ============================================================ */
-  /* Phase 3 — Welcome screen markup style extraction */
+  /* Phase 3, Welcome screen markup style extraction */
   .welcome-s-0511aa { display:flex;align-items:center;justify-content:center;padding:120px 0; }
   .welcome-s-2ad59f { width:28px;height:28px;border:2px solid rgba(124,58,237,0.2);border-top-color:#a78bfa;border-radius:50%;animation:dash-spin 0.8s linear infinite; }
   .welcome-s-327638 { max-width:720px;width:100%;margin-bottom:32px;padding:22px 22px 22px 24px;text-align:left; }
@@ -5581,7 +5636,7 @@
   .welcome-s-9d93bf { font-size:9px;background:rgba(74,222,128,0.12);border:1px solid rgba(74,222,128,0.3);color:#4ade80;padding:2px 6px;border-radius:4px;margin-left:4px;vertical-align:middle; }
   .welcome-s-aaf10c { font-size:9px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;padding:2px 6px;border-radius:4px;margin-left:4px;vertical-align:middle; }
 
-  /* Phase 3b — welcome.js template literal extraction */
+  /* Phase 3b, welcome.js template literal extraction */
   .welcome-s-077293 { text-align:center;padding:24px 12px;color:var(--muted);font-size:12px; }
   .welcome-s-00699a { color:var(--accent2);text-decoration:none; }
   .welcome-s-e49100 { display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border); }
@@ -5592,7 +5647,7 @@
   /* ============================================================
      Dashboard-shell hover behaviors (CSS :hover, no JS)
      ============================================================ */
-  /* Hover behaviors — converted from inline onmouseover/onmouseout attributes.
+  /* Hover behaviors, converted from inline onmouseover/onmouseout attributes.
      CSS :hover is GPU-accelerated and works without JS. */
   .dash-h-e4995c:hover { opacity: 0.9; }
   .dash-h-427938:hover { border-color: rgba(124,58,237,0.4); }
@@ -5869,7 +5924,7 @@
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
           <div style="display:flex;align-items:center;gap:6px;">
             <svg id="sidebar-ai-lock" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:none;flex-shrink:0;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;display:inline-flex;align-items:center;">AI Usage (last 24h)<span class="dash-stat-info" style="position:relative;cursor:help;display:inline-flex;background:none;border:none;padding:0;margin-left:5px;width:13px;height:13px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg><span class="dash-stat-info-tip" style="width:200px;white-space:normal;text-transform:none;letter-spacing:0;font-weight:400;line-height:1.5;left:0;transform:none;">Each call you make counts for 24 hours, then drops off. So your usage shifts throughout the day as old calls expire — not a single daily reset.</span></span></div>
+            <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;display:inline-flex;align-items:center;">AI Usage (last 24h)<span class="dash-stat-info" style="position:relative;cursor:help;display:inline-flex;background:none;border:none;padding:0;margin-left:5px;width:13px;height:13px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg><span class="dash-stat-info-tip" style="width:200px;white-space:normal;text-transform:none;letter-spacing:0;font-weight:400;line-height:1.5;left:0;transform:none;">Each call you make counts for 24 hours, then drops off. So your usage shifts throughout the day as old calls expire, not a single daily reset.</span></span></div>
           </div>
           <div id="sidebar-ai-pct" style="font-size:11px;font-weight:600;color:var(--muted);">0%</div>
         </div>
@@ -5931,7 +5986,7 @@
 
     <!-- WELCOME SCREEN -->
     <div id="tool-welcome" class="mk-s-21d91b">
-      <!-- Loading spinner — shown until data loads -->
+      <!-- Loading spinner, shown until data loads -->
       <div id="dash-loading" class="welcome-s-0511aa">
         <div class="welcome-s-2ad59f"></div>
       </div>
@@ -5966,7 +6021,7 @@
                 </span>
               </div>
             </div>
-            <div class="dash-stat-value" id="dash-views-total">—</div>
+            <div class="dash-stat-value" id="dash-views-total">-</div>
             <div class="dash-stat-sub" id="dash-views-sub">Loading...</div>
             <div class="dash-stat-breakdown" id="dash-views-breakdown"></div>
             <div class="dash-sparkline" id="dash-views-sparkline"></div>
@@ -5984,7 +6039,7 @@
                 </span>
               </div>
             </div>
-            <div class="dash-stat-value" id="dash-revenue-total">—</div>
+            <div class="dash-stat-value" id="dash-revenue-total">-</div>
             <div class="dash-stat-sub" id="dash-revenue-sub">Loading...</div>
             <div class="dash-stat-breakdown" id="dash-revenue-breakdown"></div>
             <div class="dash-sparkline" id="dash-revenue-sparkline"></div>
@@ -6066,7 +6121,7 @@
             <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="12" rx="10" ry="4.5"/><ellipse cx="12" cy="12" rx="10" ry="4.5" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="10" ry="4.5" transform="rotate(120 12 12)"/><circle cx="12" cy="12" r="2"/></svg></div>
             <div>
               <div class="welcome-tool-name">Design Studio <span class="welcome-s-9d93bf">FREE</span></div>
-              <div class="welcome-tool-desc">Create graphics with AI tools — free to start</div>
+              <div class="welcome-tool-desc">Create graphics with AI tools, free to start</div>
             </div>
           </div>
           <div class="welcome-tool-card" data-welcome-action="show-tool" data-welcome-tool="mediakit">
@@ -6143,7 +6198,7 @@
       </div>
     </div>
 
-    <!-- FOLLOWER AUDIT TOOL — markup. JS lives in /js/follower.js. -->
+    <!-- FOLLOWER AUDIT TOOL, markup. JS lives in /js/follower.js. -->
     <div id="tool-follower" class="bio-s-c8be1c">
       <div class="fa-inner">
 
@@ -6563,7 +6618,7 @@
           <div class="mk-s-ad83c6"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M8 7h8M8 11h6"/></svg></div>
           <h2 class="course-s-6422e6">Courses</h2>
           <p class="course-s-31073b">Build and sell your own courses directly to your audience. Create modules, add video lessons, set your price, and share your course landing page. Available on Creator Max.</p>
-          <button data-course-action="max-upgrade" class="course-s-b51de0" data-max-trial-cta>Try Creator Max Free — 7 Days</button>
+          <button data-course-action="max-upgrade" class="course-s-b51de0" data-max-trial-cta>Try Creator Max Free, 7 Days</button>
         </div>
 
         <!-- Course list view (Max users) -->
@@ -6720,8 +6775,8 @@
         <div id="coaching-upsell" class="course-s-d72aad">
           <div class="mk-s-ad83c6"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
           <h2 class="course-s-6422e6">1:1 Booking</h2>
-          <p class="course-s-31073b">Sell private sessions of any kind — coaching, consultations, photography shoots, training, tutoring, in-person bookings. Set your price, connect your calendar, and start booking. Available on Creator Max.</p>
-          <button data-coach-action="max-upgrade" class="course-s-b51de0" data-max-trial-cta>Try Creator Max Free — 7 Days</button>
+          <p class="course-s-31073b">Sell private sessions of any kind, coaching, consultations, photography shoots, training, tutoring, in-person bookings. Set your price, connect your calendar, and start booking. Available on Creator Max.</p>
+          <button data-coach-action="max-upgrade" class="course-s-b51de0" data-max-trial-cta>Try Creator Max Free, 7 Days</button>
         </div>
 
         <!-- Coaching list view (Max users) -->
@@ -6909,7 +6964,7 @@
               <div class="mk-s-e4ad4a">
                 <label class="coach-s-41f229">Weekly Availability</label>
                 <div id="coaching-tz-hint" class="coach-s-46ad08">
-                  <!-- Populated by setCoachingTzHint() in coaching.js — shows
+                  <!-- Populated by setCoachingTzHint() in coaching.js, shows
                        current creator timezone with a deep link to Calendar
                        settings so they can change it. Placed at the top of
                        the Weekly Availability section so creators see the
@@ -6926,7 +6981,7 @@
             <label for="coaching-calendly-input" class="course-s-60c543">Scheduling Link</label>
             <input type="url" id="coaching-calendly-input" placeholder="https://calendly.com/yourname/30min or https://cal.com/yourname/30min" aria-label="Scheduling URL" class="coach-s-99fc1d">
             <div class="coach-s-519ddb">
-              Paste your booking page URL from <a href="https://calendly.com" target="_blank" class="course-s-701ab3">Calendly</a>, <a href="https://cal.com" target="_blank" class="course-s-701ab3">Cal.com</a> (free), or any scheduling tool. Don't add payment on your scheduling tool — Ryxa handles that.
+              Paste your booking page URL from <a href="https://calendly.com" target="_blank" class="course-s-701ab3">Calendly</a>, <a href="https://cal.com" target="_blank" class="course-s-701ab3">Cal.com</a> (free), or any scheduling tool. Don't add payment on your scheduling tool, Ryxa handles that.
             </div>
           </div>
 
@@ -6955,7 +7010,7 @@
           <div class="mk-s-ad83c6"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg></div>
           <h2 class="course-s-6422e6">Analytics</h2>
           <p class="course-s-31073b">See your page views, revenue trends, and sales breakdown across courses, coaching, digital products, and brand deals. Available on Creator Max.</p>
-          <button data-ana-action="max-upgrade" class="ana-s-ff9127" data-max-trial-cta>Try Creator Max Free — 7 Days</button>
+          <button data-ana-action="max-upgrade" class="ana-s-ff9127" data-max-trial-cta>Try Creator Max Free, 7 Days</button>
         </div>
 
         <!-- Analytics content (Max only) -->
@@ -6982,7 +7037,7 @@
                 <div class="ana-s-d7b794"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#e879f9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
                 <span class="ana-s-f77a0c">Page Views</span>
               </div>
-              <div id="ana-views-total" class="ana-s-d0bda8">—</div>
+              <div id="ana-views-total" class="ana-s-d0bda8">-</div>
               <div id="ana-views-sub" class="deal-s-44d600">Loading...</div>
             </div>
             <div class="ana-s-a436d5">
@@ -6990,7 +7045,7 @@
                 <div class="ana-s-e15886"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
                 <span class="ana-s-f77a0c">Revenue</span>
               </div>
-              <div id="ana-revenue-total" class="ana-s-2f9321">—</div>
+              <div id="ana-revenue-total" class="ana-s-2f9321">-</div>
               <div id="ana-revenue-sub" class="deal-s-44d600">Loading...</div>
             </div>
           </div>
@@ -7441,7 +7496,7 @@
               </div>
             </div>
 
-            <!-- Audience (always expanded — not collapsible) -->
+            <!-- Audience (always expanded, not collapsible) -->
             <div class="mk-section">
               <div class="mk-section-header mk-section-header-static">
                 <div class="mk-section-label">Audience & Stats</div>
@@ -7579,7 +7634,7 @@
               <div class="course-s-5ae0d7">Free users can plan in this session, upgrade to Pro to save and return later.</div>
             </div>
           </div>
-          <button data-grid-action="start-checkout" class="grid-s-5cda7a">Upgrade — $10/mo</button>
+          <button data-grid-action="start-checkout" class="grid-s-5cda7a">Upgrade, $10/mo</button>
         </div>
 
         <!-- Save status for Pro -->
@@ -8177,7 +8232,7 @@
         <div id="ta-upload-area" data-thumb-drop-zone class="ds-s-86e1d9 dash-h-47f5fa" data-thumb-action="trigger-upload">
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="deal-s-3ef1fa"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
           <div class="ds-s-781483">Drop your thumbnail here or click to upload</div>
-          <div class="bio-s-e769ff">PNG, JPG, or WebP — recommended 1280×720 for YouTube</div>
+          <div class="bio-s-e769ff">PNG, JPG, or WebP, recommended 1280×720 for YouTube</div>
         </div>
         <input type="file" id="ta-file-input" accept="image/*" class="bio-s-c8be1c" data-thumb-action="handle-upload" data-thumb-event="change" aria-label="Upload thumbnail image">
 
@@ -8298,7 +8353,7 @@
         <div id="ca-upload-area" data-contract-drop-zone class="ds-s-86e1d9 dash-h-47f5fa" data-contract-action="trigger-upload">
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="deal-s-3ef1fa"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
           <div class="ds-s-781483">Drop your contract here or click to upload</div>
-          <div class="bio-s-e769ff">PDF files only — up to 20 pages</div>
+          <div class="bio-s-e769ff">PDF files only, up to 20 pages</div>
         </div>
         <input type="file" id="ca-file-input" accept=".pdf,application/pdf" class="bio-s-c8be1c" data-contract-action="handle-upload" data-contract-event="change" aria-label="Upload contract PDF">
 
@@ -8774,7 +8829,7 @@
           <div class="mk-s-ad83c6"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>
           <h2 class="course-s-6422e6">Digital Products</h2>
           <p class="course-s-31073b">Sell ebooks, templates, presets, and design files. Upload your files, set a price, and share your product link. Buyers download from their Ryxa Hub. Available on Creator Max.</p>
-          <button data-prod-action="max-upgrade" class="course-s-b51de0" data-max-trial-cta>Try Creator Max Free — 7 Days</button>
+          <button data-prod-action="max-upgrade" class="course-s-b51de0" data-max-trial-cta>Try Creator Max Free, 7 Days</button>
         </div>
 
         <!-- LIST VIEW (Max users) -->
@@ -9002,7 +9057,7 @@
                 Send
               </button>
             </div>
-            <div id="aichat-hint" class="chat-s-b298f5">Ryxa AI can make mistakes. Not medical, legal, or financial advice — always verify important information. Each message uses 1 AI slot.</div>
+            <div id="aichat-hint" class="chat-s-b298f5">Ryxa AI can make mistakes. Not medical, legal, or financial advice, always verify important information. Each message uses 1 AI slot.</div>
           </div>
         </div>
       </div>
@@ -9036,7 +9091,7 @@
           </div>
 
           <div class="scripts-s-4d0e0a">
-            <div id="scripts-count" class="cal-s-56e6ba">—</div>
+            <div id="scripts-count" class="cal-s-56e6ba">-</div>
             <div class="bio-s-5f3468">100 max per account</div>
           </div>
 
@@ -9067,8 +9122,8 @@
         <div id="deals-max-upsell" class="course-s-d72aad">
           <div class="deal-s-905707">MAX Feature</div>
           <h2 class="mk-s-1ed8af">Brand Deal CRM is a Creator Max feature</h2>
-          <p class="deal-s-48ae92">Manage your brand deals, track deliverables, securely share details with brands, and see your revenue analytics — all in one place.</p>
-          <button data-deal-action="max-upgrade" class="deal-s-cde583" data-max-trial-cta>Try Creator Max Free — 7 Days</button>
+          <p class="deal-s-48ae92">Manage your brand deals, track deliverables, securely share details with brands, and see your revenue analytics, all in one place.</p>
+          <button data-deal-action="max-upgrade" class="deal-s-cde583" data-max-trial-cta>Try Creator Max Free, 7 Days</button>
         </div>
 
         <!-- Main CRM (for Max users) -->
@@ -9238,7 +9293,7 @@
                     <input type="email" id="deal-brand-contact-email" placeholder="contact@brand.com" maxlength="240" class="deal-input">
                     <div id="deal-brand-email-hint" class="deal-s-bca38e">
                       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="deal-s-fa7767"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                      Locked — deal is shared. Revoke sharing to change the contact email.
+                      Locked, deal is shared. Revoke sharing to change the contact email.
                     </div>
                   </div>
                   <div>
@@ -9371,7 +9426,7 @@
                   </div>
                   <div id="deal-contract-locked-msg" class="deal-s-00b4b7">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="deal-s-e33b56"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                    Fully executed — contract is locked
+                    Fully executed, contract is locked
                   </div>
                 </div>
               </div>
@@ -9585,24 +9640,24 @@
     <!-- Display Currency -->
     <div class="settings-s-3b6d93">
       <div class="settings-s-501c37">Display Currency</div>
-      <p class="settings-s-4fba18">Used to display prices, revenue, and analytics throughout your dashboard. Stripe payouts always happen in your Stripe account's currency — this only changes how amounts are shown to you.</p>
+      <p class="settings-s-4fba18">Used to display prices, revenue, and analytics throughout your dashboard. Stripe payouts always happen in your Stripe account's currency, this only changes how amounts are shown to you.</p>
       <label for="settings-currency-select" class="visually-hidden settings-s-98265b" >Display currency</label>
       <select id="settings-currency-select" data-settings-action="change-currency" data-settings-event="change" class="settings-s-8e0e33">
-        <option value="USD">US Dollar (USD) — $</option>
-        <option value="EUR">Euro (EUR) — €</option>
-        <option value="GBP">British Pound (GBP) — £</option>
-        <option value="CAD">Canadian Dollar (CAD) — CA$</option>
-        <option value="AUD">Australian Dollar (AUD) — A$</option>
-        <option value="JPY">Japanese Yen (JPY) — ¥</option>
-        <option value="INR">Indian Rupee (INR) — ₹</option>
-        <option value="BRL">Brazilian Real (BRL) — R$</option>
-        <option value="MXN">Mexican Peso (MXN) — MX$</option>
+        <option value="USD">US Dollar (USD), $</option>
+        <option value="EUR">Euro (EUR), €</option>
+        <option value="GBP">British Pound (GBP), £</option>
+        <option value="CAD">Canadian Dollar (CAD), CA$</option>
+        <option value="AUD">Australian Dollar (AUD), A$</option>
+        <option value="JPY">Japanese Yen (JPY), ¥</option>
+        <option value="INR">Indian Rupee (INR), ₹</option>
+        <option value="BRL">Brazilian Real (BRL), R$</option>
+        <option value="MXN">Mexican Peso (MXN), MX$</option>
         <option value="CHF">Swiss Franc (CHF)</option>
-        <option value="SGD">Singapore Dollar (SGD) — S$</option>
-        <option value="SEK">Swedish Krona (SEK) — kr</option>
-        <option value="NOK">Norwegian Krone (NOK) — kr</option>
-        <option value="NZD">New Zealand Dollar (NZD) — NZ$</option>
-        <option value="ZAR">South African Rand (ZAR) — R</option>
+        <option value="SGD">Singapore Dollar (SGD), S$</option>
+        <option value="SEK">Swedish Krona (SEK), kr</option>
+        <option value="NOK">Norwegian Krone (NOK), kr</option>
+        <option value="NZD">New Zealand Dollar (NZD), NZ$</option>
+        <option value="ZAR">South African Rand (ZAR), R</option>
       </select>
       <div id="settings-currency-msg" class="settings-s-e244cd">Saved.</div>
     </div>
@@ -9612,12 +9667,12 @@
       <div class="settings-s-9c422a">Subscription</div>
       <div id="settings-sub-free" class="bio-s-c8be1c">
         <p class="settings-s-a74d40">You are on the Free plan. Upgrade to unlock full access.</p>
-        <button data-settings-action="checkout-monthly" class="settings-s-3b4132">Upgrade to Pro — $10/mo</button>
-        <button data-settings-action="checkout-max" class="settings-s-85b199" data-max-trial-cta>Try Creator Max Free — 7 Days</button>
+        <button data-settings-action="checkout-monthly" class="settings-s-3b4132">Upgrade to Pro, $10/mo</button>
+        <button data-settings-action="checkout-max" class="settings-s-85b199" data-max-trial-cta>Try Creator Max Free, 7 Days</button>
       </div>
       <div id="settings-sub-pro" class="bio-s-c8be1c">
         <p id="settings-sub-pro-msg" class="scripts-s-773e26">You are on the <strong id="settings-sub-pro-label" class="settings-s-056182">Pro plan</strong>. <span id="settings-sub-pro-features">You have access to Pro tools and features.</span></p>
-        <button id="settings-upgrade-max" data-settings-action="confirm-upgrade-max" class="settings-s-8a528c" data-max-trial-cta>Try Creator Max Free — 7 Days</button>
+        <button id="settings-upgrade-max" data-settings-action="confirm-upgrade-max" class="settings-s-8a528c" data-max-trial-cta>Try Creator Max Free, 7 Days</button>
         <div id="settings-upgrade-confirm" class="settings-s-3e3b95">
           <p class="settings-s-97b759">Upgrade to Creator Max?</p>
           <p id="settings-upgrade-max-copy" class="settings-s-c06372">Takes effect immediately. You'll be charged a prorated amount today, then $20/month going forward. Unlocks custom themes, hero links, and full branding control.</p>
@@ -9626,7 +9681,7 @@
             <button data-settings-action="dismiss-msg" class="settings-s-2cfa5f">Stay on Pro</button>
           </div>
         </div>
-        <button id="settings-downgrade-pro" data-settings-action="handle-downgrade-pro" class="settings-s-e1893d">Downgrade to Pro — $10/mo</button>
+        <button id="settings-downgrade-pro" data-settings-action="handle-downgrade-pro" class="settings-s-e1893d">Downgrade to Pro, $10/mo</button>
         <div id="settings-downgrade-confirm" class="settings-s-828432">
           <p class="settings-s-1b849a">Downgrade to Pro?</p>
           <p class="settings-s-c06372">Takes effect immediately with prorated credit for your unused Creator Max time. Your custom theme and hero links will remain saved but won't display until you upgrade again.</p>
@@ -9638,7 +9693,7 @@
         <button id="settings-cancel-btn" data-settings-action="handle-cancel" class="settings-s-6692e6 dash-h-dde34c">Cancel subscription</button>
         <div id="settings-cancel-confirm" class="settings-s-46deec">
           <p class="settings-s-d0c547">Are you sure? You'll keep your plan until the end of your billing period.</p>
-          <p class="settings-s-c06372">Your data stays saved — if you ever come back, everything will be right where you left it.</p>
+          <p class="settings-s-c06372">Your data stays saved, if you ever come back, everything will be right where you left it.</p>
           <div class="course-s-b9bbe5">
             <button data-settings-action="confirm-cancel" class="settings-s-e3a3f9">Yes, cancel</button>
             <button data-settings-action="dismiss-msg" class="settings-s-b2ca91">Keep my plan</button>
@@ -9718,7 +9773,7 @@
 
 
 <!-- =============================================== -->
-<!-- BRAND DEAL CRM — Share with Brand Modal         -->
+<!-- BRAND DEAL CRM, Share with Brand Modal         -->
 <!-- =============================================== -->
 <div id="deal-share-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.8);align-items:center;justify-content:center;pointer-events:all;">
   <div style="background:#0f0f1a;border:1px solid rgba(124,58,237,0.35);border-radius:16px;padding:28px;position:relative;width:100%;max-width:520px;pointer-events:all;margin:20px;max-height:92vh;overflow-y:auto;">
@@ -9768,7 +9823,7 @@
 
 
 <!-- =============================================== -->
-<!-- BRAND DEAL CRM — Delete Confirmation Modal      -->
+<!-- BRAND DEAL CRM, Delete Confirmation Modal      -->
 <!-- =============================================== -->
 <div id="deal-delete-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.8);align-items:center;justify-content:center;pointer-events:all;">
   <div style="background:#0f0f1a;border:1px solid rgba(239,68,68,0.3);border-radius:16px;padding:28px;position:relative;width:100%;max-width:420px;pointer-events:all;margin:20px;">
@@ -9832,7 +9887,7 @@
 </div>
 
 <!-- ═══════════════════════════════════════════ -->
-<!-- PRO UPSELL MODAL — Reusable for any Pro-locked feature -->
+<!-- PRO UPSELL MODAL, Reusable for any Pro-locked feature -->
 <!-- Triggered by: showProUpsell({feature, description})    -->
 <!-- ═══════════════════════════════════════════ -->
 <div id="pro-upsell-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.8);align-items:center;justify-content:center;pointer-events:all;" data-dash-action="close-pro-upsell-if-backdrop">
@@ -9853,27 +9908,27 @@
       <div style="display:flex;flex-direction:column;gap:8px;">
         <div style="display:flex;align-items:flex-start;gap:8px;font-size:13px;color:var(--text);line-height:1.5;">
           <span style="color:#a78bfa;flex-shrink:0;font-weight:700;">✓</span>
-          <span><strong>Custom themes &amp; backgrounds</strong> — fully personalize bio and media kit</span>
+          <span><strong>Custom themes &amp; backgrounds</strong>, fully personalize bio and media kit</span>
         </div>
         <div style="display:flex;align-items:flex-start;gap:8px;font-size:13px;color:var(--text);line-height:1.5;">
           <span style="color:#a78bfa;flex-shrink:0;font-weight:700;">✓</span>
-          <span><strong>All AI tools</strong> — Chatbox, Script Builder, Thumbnail Analyzer, Contract Analyzer</span>
+          <span><strong>All AI tools</strong>, Chatbox, Script Builder, Thumbnail Analyzer, Contract Analyzer</span>
         </div>
         <div style="display:flex;align-items:flex-start;gap:8px;font-size:13px;color:var(--text);line-height:1.5;">
           <span style="color:#a78bfa;flex-shrink:0;font-weight:700;">✓</span>
-          <span><strong>Media Kit</strong> — pitch brands with a pro media kit and rate card</span>
+          <span><strong>Media Kit</strong>, pitch brands with a pro media kit and rate card</span>
         </div>
         <div style="display:flex;align-items:flex-start;gap:8px;font-size:13px;color:var(--text);line-height:1.5;">
           <span style="color:#a78bfa;flex-shrink:0;font-weight:700;">✓</span>
-          <span><strong>Link in Bio upgrades</strong> — 200 links, 3 featured, hide Ryxa branding</span>
+          <span><strong>Link in Bio upgrades</strong>, 200 links, 3 featured, hide Ryxa branding</span>
         </div>
         <div style="display:flex;align-items:flex-start;gap:8px;font-size:13px;color:var(--text);line-height:1.5;">
           <span style="color:#a78bfa;flex-shrink:0;font-weight:700;">✓</span>
-          <span><strong>Follow-Back Audit</strong> — full results, Whitelist, Snake List</span>
+          <span><strong>Follow-Back Audit</strong>, full results, Whitelist, Snake List</span>
         </div>
         <div style="display:flex;align-items:flex-start;gap:8px;font-size:13px;color:var(--text);line-height:1.5;">
           <span style="color:#a78bfa;flex-shrink:0;font-weight:700;">✓</span>
-          <span><strong>Design Studio</strong> — 50 projects with transparent backgrounds</span>
+          <span><strong>Design Studio</strong>, 50 projects with transparent backgrounds</span>
         </div>
       </div>
     </div>
@@ -9881,7 +9936,7 @@
     <p style="color:var(--muted);font-size:13px;margin-bottom:18px;line-height:1.6;text-align:center;">Pro is <strong style="color:var(--text);">$10/month</strong>. Cancel anytime.</p>
 
     <div style="display:flex;gap:10px;">
-      <button data-dash-action="confirm-pro-upsell" style="flex:1;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow);">Upgrade to Pro — $10/mo</button>
+      <button data-dash-action="confirm-pro-upsell" style="flex:1;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow);">Upgrade to Pro, $10/mo</button>
       <button data-dash-action="close-pro-upsell" style="padding:11px 18px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Maybe later</button>
     </div>
   </div>
@@ -9889,7 +9944,7 @@
 
 
 <!-- ═══════════════════════════════════════════ -->
-<!-- FOLLOWER AUDIT — Instructions Modal        -->
+<!-- FOLLOWER AUDIT, Instructions Modal        -->
 <!-- ═══════════════════════════════════════════ -->
 <div class="fa-instr-modal-backdrop" id="fa-instr-modal" data-follower-action="close-instructions-backdrop" role="dialog" aria-modal="true" aria-labelledby="fa-instr-m-title">
   <div class="fa-instr-modal-inner">
@@ -9932,10 +9987,10 @@
 <script src="/js/bio.js"></script>
 <!-- Media Kit editor extracted to its own file (refactored 2026-05-10).
      Loaded after bio.js because both share BIO_SOCIAL_FIELDS, BIO_THEMES,
-     BIO_FONTS, getBioFont — all of which live in dashboard.html's main script. -->
+     BIO_FONTS, getBioFont, all of which live in dashboard.html's main script. -->
 <script src="/js/mk.js"></script>
 <!-- Course Builder extracted to its own file (refactored 2026-05-10).
-     Loaded after main script — uses sb, Auth, currentUser, isMax, escapeHtml,
+     Loaded after main script, uses sb, Auth, currentUser, isMax, escapeHtml,
      showModalAlert/Confirm, formatMoney, all defined in dashboard.html. -->
 <script src="/js/course.js"></script>
 <!-- Calendar tool + Google Calendar OAuth (refactored 2026-05-10).
@@ -9953,7 +10008,7 @@
 <script src="/js/products.js"></script>
 <!-- PDF Sign extracted to its own file (refactored 2026-05-10).
      Uses pdfjsLib + PDFLib (both loaded at top with defer).
-     IMPORTANT: must load BEFORE deals.js — Brand Deal CRM reuses pdfsign
+     IMPORTANT: must load BEFORE deals.js, Brand Deal CRM reuses pdfsign
      globals (pdfsignDoc, pdfsignFields, renderAllPages, etc.) for its
      "sign contract" flow. -->
 <script src="/js/pdfsign.js"></script>
@@ -9979,7 +10034,7 @@
      Same story as contract.js. -->
 <script src="/js/thumbnail.js"></script>
 <!-- Photo Editor extracted to its own file (refactored 2026-05-10).
-     Self-contained — uses only browser APIs (Image, FileReader, Canvas, etc).
+     Self-contained, uses only browser APIs (Image, FileReader, Canvas, etc).
      Markup id is "tool-image", internal naming uses imgXxx() / img-* prefix
      (the original section comment called it "IMAGE CONVERTER"). User-facing
      name is "Photo Editor". -->
@@ -10013,12 +10068,12 @@
      Greeting, stats sparklines, upcoming events.
      Reads sb, currentUser, currentCurrency, formatMoney, showTool, etc from dashboard.html.
      Functions exposed: applyDashGreeting (called from setUser), loadDashStats (called
-     from showTool('welcome')). Load order doesn't matter — calls happen at runtime. -->
+     from showTool('welcome')). Load order doesn't matter, calls happen at runtime. -->
 <script src="/js/welcome.js"></script>
 <!-- Settings tool extracted to its own file (refactored 2026-05-11).
      Subscription management, Stripe Connect, Instagram OAuth, currency,
      password reset, marketing emails, Turnstile.
-     Reads many globals from dashboard.html — load order doesn't matter
+     Reads many globals from dashboard.html, load order doesn't matter
      because all reads happen at user-action time, not script-parse time.
      The handleInstagramReturn IIFE retries via setTimeout until showDashToast
      is defined. -->
