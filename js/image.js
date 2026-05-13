@@ -368,14 +368,16 @@ function applyAspectPreset(preset) {
 
 // Captions shown below the aspect button row. Updates dynamically based on
 // which preset is active so the user understands what the ratio is good for.
+// Original and Free are self-explanatory from their button labels and don't
+// need a caption.
 const IMG_ASPECT_CAPTIONS = {
-  'original': 'Crop the image at its native aspect ratio',
-  'free':     'Crop to any custom dimensions',
-  '1:1':      'Square — Instagram posts, profile pictures, album covers',
-  '4:5':      'Portrait — Instagram feed posts (max vertical size)',
-  '9:16':     'Vertical — Reels, Stories, TikTok, YouTube Shorts',
-  '16:9':     'Landscape — YouTube videos, presentations, desktop wallpapers',
-  '3:1':      'Wide banner — LinkedIn cover, Twitter/X header, email headers'
+  'original': '',
+  'free':     '',
+  '1:1':      'Square. Instagram posts, profile pictures, album covers',
+  '4:5':      'Portrait. Instagram feed posts (max vertical size)',
+  '9:16':     'Vertical. Reels, Stories, TikTok, YouTube Shorts',
+  '16:9':     'Landscape. YouTube videos, presentations, desktop wallpapers',
+  '3:1':      'Wide banner. LinkedIn cover, Twitter/X header, email headers'
 };
 
 function updateAspectButtonsUI() {
