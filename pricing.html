@@ -34,10 +34,14 @@
   .plan-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;font-size:11px;font-weight:600;padding:5px 16px;border-radius:100px;letter-spacing:0.03em;white-space:nowrap;z-index:1;}
   .plan-name{font-family:"Syne",sans-serif;font-size:20px;font-weight:800;margin-bottom:8px;}
   /* Fixed-height price block: keeps desc/button/features aligned across all
-     three cards whether or not an annual sub-line is present. Big price is
-     48px line-height 1, sub-line is ~18px - 78px comfortably fits both. */
-  .plan-price{font-family:"Syne",sans-serif;font-size:48px;font-weight:800;letter-spacing:-2px;line-height:1;white-space:nowrap;min-height:78px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:2px;}
-  .plan-price span{font-size:18px;color:var(--muted);font-weight:400;letter-spacing:0;white-space:nowrap;}
+     three cards whether or not an annual sub-line is present. */
+  .plan-price{font-family:"Syne",sans-serif;line-height:1;white-space:nowrap;min-height:84px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:3px;}
+  /* The big price line. .price-when-monthly / .price-when-annual / .price-always
+     are the direct-child spans holding the headline number. They MUST stay big
+     and heavy - this rule must come before the generic suffix rule below. */
+  .plan-price > span{font-size:62px;font-weight:800;letter-spacing:-2.5px;color:var(--text);}
+  /* The "/ month" suffix is an inner span nested inside the big-price span. */
+  .plan-price > span > span{font-size:20px;color:var(--muted);font-weight:500;letter-spacing:0;}
   .plan-desc{font-size:14px;color:var(--muted);margin-bottom:28px;line-height:1.6;}
   .plan-btn{width:100%;padding:14px;border-radius:10px;font-size:15px;font-weight:500;font-family:"DM Sans",sans-serif;cursor:pointer;transition:all 0.2s;margin-bottom:28px;}
   .plan-btn.free{background:var(--surface2);color:var(--text);border:1px solid var(--border-hover);}
@@ -72,12 +76,10 @@
   .price-always{display:block;}
   body.cycle-monthly .price-when-monthly{display:block;}
   body.cycle-annual  .price-when-annual{display:block;}
-  /* The annual sub-line is itself a price-when-annual element; when annual is
-     active it shows. It must NOT inherit the 48px - it's the small line. */
-  .plan-price-sub{font-size:13px;color:var(--muted);font-family:"DM Sans",sans-serif;font-weight:400;letter-spacing:0;line-height:1.3;}
-  /* Higher-specificity override: .plan-price span sets 18px for the "/ month"
-     suffix, but the sub-line is also a direct span child and must stay 13px. */
-  .plan-price span.plan-price-sub{font-size:13px;}
+  /* The annual sub-line ("$100 billed annually") is a direct-child span of
+     .plan-price, so .plan-price > span would make it 62px. Override here:
+     it's the small secondary line. Higher specificity wins. */
+  .plan-price > span.plan-price-sub{font-size:15px;color:var(--muted);font-family:"DM Sans",sans-serif;font-weight:500;letter-spacing:0;line-height:1.3;}
   body.cycle-monthly .plan-price-sub{display:none;}
 
   /* Center plan names + prices in every card */
