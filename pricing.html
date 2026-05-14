@@ -28,23 +28,31 @@
   .gradient-text{background:linear-gradient(135deg,#a78bfa,#e879f9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
   .page-header p{color:var(--muted);font-size:17px;line-height:1.7;}
   .pricing-section{max-width:900px;margin:0 auto;padding:0 48px 100px;}
-  .pricing-grid{display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:20px;}
-  .plan{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:36px 28px;position:relative;overflow:visible;}
+  .pricing-grid{display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:20px;align-items:stretch;}
+  /* Each card is a flex column. Fixed-height regions for price + desc mean the
+     button always lands at the exact same vertical position across all three
+     cards, regardless of cycle or how many lines the content takes. */
+  .plan{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:36px 28px;position:relative;overflow:visible;display:flex;flex-direction:column;}
   .plan.featured{border-color:rgba(124,58,237,0.5);background:linear-gradient(160deg,rgba(124,58,237,0.07) 0%,var(--surface) 60%);}
   .plan-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;font-size:11px;font-weight:600;padding:5px 16px;border-radius:100px;letter-spacing:0.03em;white-space:nowrap;z-index:1;}
-  .plan-name{font-family:"Syne",sans-serif;font-size:20px;font-weight:800;margin-bottom:8px;}
-  /* Fixed-height price block: keeps desc/button/features aligned across all
-     three cards whether or not an annual sub-line is present. */
-  .plan-price{font-family:"Syne",sans-serif;line-height:1;white-space:nowrap;min-height:96px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:0;}
-  /* The big price line. .price-when-monthly / .price-when-annual / .price-always
-     are the direct-child spans holding the headline number. They MUST stay big
-     and heavy - this rule must come before the generic suffix rule below. */
-  .plan-price > span{font-size:48px;font-weight:800;letter-spacing:-2px;color:var(--text);}
-  /* The "/ month" suffix sits on its own line below the big number. This keeps
-     the headline number alone on its line so a wider value like "$8.33" can't
-     get cramped against the suffix within a fixed-width grid column. */
-  .plan-price > span > span{display:block;font-size:15px;color:var(--muted);font-weight:500;letter-spacing:0;margin-top:4px;}
-  .plan-desc{font-size:14px;color:var(--muted);margin-bottom:28px;line-height:1.6;}
+  .plan-name{font-family:"Syne",sans-serif;font-size:20px;font-weight:800;margin-bottom:10px;text-align:center;}
+
+  /* PRICE BLOCK - fixed height (worst case: annual = number line + sub-line).
+     Content is centered vertically so monthly (1 line) and annual (2 lines)
+     both sit balanced within the same box. */
+  .plan-price{height:74px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;margin-bottom:18px;}
+  /* The headline number line. 36px keeps "$8.33 / month" on a single line
+     within the fixed-width grid column. */
+  .plan-price > span{font-family:"Syne",sans-serif;font-size:36px;font-weight:800;letter-spacing:-1.5px;color:var(--text);line-height:1;white-space:nowrap;}
+  /* The "/ month" suffix - inline, right after the number, on the same line. */
+  .plan-price > span > span{font-size:15px;color:var(--muted);font-weight:500;letter-spacing:0;}
+  /* The annual sub-line ("$100 billed annually") - its own line below. Higher
+     specificity than .plan-price > span so it stays small. */
+  .plan-price > span.plan-price-sub{font-family:"DM Sans",sans-serif;font-size:13px;font-weight:500;color:var(--muted);letter-spacing:0;line-height:1.3;white-space:nowrap;}
+
+  /* DESC BLOCK - fixed height (worst case: 2 lines, e.g. Creator Max). */
+  .plan-desc{font-size:14px;color:var(--muted);line-height:1.5;text-align:center;height:42px;display:flex;align-items:center;justify-content:center;margin-bottom:24px;}
+
   .plan-btn{width:100%;padding:14px;border-radius:10px;font-size:15px;font-weight:500;font-family:"DM Sans",sans-serif;cursor:pointer;transition:all 0.2s;margin-bottom:28px;}
   .plan-btn.free{background:var(--surface2);color:var(--text);border:1px solid var(--border-hover);}
   .plan-btn.free:hover{border-color:rgba(124,58,237,0.4);color:var(--accent2);}
@@ -70,23 +78,16 @@
   .billing-toggle-btn.is-active .billing-toggle-badge{background:rgba(255,255,255,0.22);color:#fff;}
 
   /* Price show/hide based on cycle (body class set by pricing-page.js).
-     Each plan has a "price-when-monthly" and "price-when-annual" big-price
-     span, plus an optional "price-when-annual" sub-line - all inside the
-     flex-column .plan-price block so the fixed min-height keeps every card
-     aligned. Only the spans matching the active cycle show. */
+     Each plan card has a "price-when-monthly" and "price-when-annual" big-price
+     span, plus an optional "price-when-annual" sub-line. Only the spans
+     matching the active cycle are shown. Sizing/layout for these is defined
+     up in the .plan-price block above. */
   .price-when-monthly,.price-when-annual{display:none;}
   .price-always{display:block;}
   body.cycle-monthly .price-when-monthly{display:block;}
   body.cycle-annual  .price-when-annual{display:block;}
-  /* The annual sub-line ("$100 billed annually") is a direct-child span of
-     .plan-price, so .plan-price > span would make it 62px. Override here:
-     it's the small secondary line. Higher specificity wins. */
-  .plan-price > span.plan-price-sub{font-size:15px;color:var(--muted);font-family:"DM Sans",sans-serif;font-weight:500;letter-spacing:0;line-height:1.3;margin-top:6px;}
-  body.cycle-monthly .plan-price-sub{display:none;}
-
-  /* Center plan names + prices in every card */
-  .plan-name{text-align:center;}
-  .plan-desc{text-align:center;}
+  /* The annual sub-line is itself a .price-when-annual element, so it shows in
+     annual mode and hides in monthly. Nothing extra needed here. */
 
   @media (max-width: 600px) {
     .billing-toggle-btn{padding:8px 14px;font-size:12px;}
