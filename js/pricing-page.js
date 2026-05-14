@@ -43,6 +43,20 @@ var PRICE_IDS = {
   }
 };
 
+// Display prices for each plan + cycle, used by the plan-change confirmation
+// modal. These mirror the fixed prices behind the PRICE_IDS above. amount is
+// the plain dollar figure; per is the billing period label.
+var PLAN_PRICES = {
+  pro: {
+    monthly: { amount: '$10', per: 'month' },
+    annual:  { amount: '$100', per: 'year' }
+  },
+  max: {
+    monthly: { amount: '$24', per: 'month' },
+    annual:  { amount: '$240', per: 'year' }
+  }
+};
+
 // Current authenticated user + their subscription state. Resolved on load.
 //   currentUser: the auth user object, or null
 //   currentTier: 'free' | 'monthly' (= Pro) | 'max'
@@ -102,6 +116,11 @@ function showPricingConfirm(opts, onConfirm) {
 
   var title = opts.title || 'Confirm';
   var message = opts.message || '';
+  // messageHtml: optional. When provided, it is used as the body instead of
+  // the plain-text message. IMPORTANT: only ever pass HTML built from values
+  // this code controls (plan names, fixed prices) - never user input - since
+  // this is assigned via innerHTML.
+  var messageHtml = opts.messageHtml || '';
   var confirmLabel = opts.confirmLabel || 'Confirm';
   var cancelLabel = opts.cancelLabel || 'Cancel';
 
@@ -129,8 +148,15 @@ function showPricingConfirm(opts, onConfirm) {
     'font-family:"Syne",sans-serif;font-size:19px;font-weight:800;color:#f0eef8;' +
     'margin:0 0 10px;letter-spacing:-0.4px;';
 
-  var p = document.createElement('p');
-  p.textContent = message;
+  var p = document.createElement('div');
+  // messageHtml is built only from code-controlled values (plan names, fixed
+  // prices), never user input - safe to assign as innerHTML. Falls back to
+  // textContent for the plain-text message path.
+  if (messageHtml) {
+    p.innerHTML = messageHtml;
+  } else {
+    p.textContent = message;
+  }
   p.style.cssText =
     'font-size:14px;line-height:1.6;color:#c8c6d8;margin:0 0 22px;';
 
@@ -356,14 +382,38 @@ pricingRegisterAction('select-plan', function(_e, el) {
                      (currentStatus === 'active' || currentStatus === 'cancelling');
 
   if (hasActiveSub) {
-    var planLabel = (plan === 'max' ? 'Creator Max' : 'Pro') +
-                    (cycle === 'annual' ? ' (Annual)' : ' (Monthly)');
+    var planName = (plan === 'max' ? 'Creator Max' : 'Pro');
+    var planLabel = planName + (cycle === 'annual' ? ' (Annual)' : ' (Monthly)');
+    var price = PLAN_PRICES[plan][cycle];
+
+    // Invoice-style confirmation. We show the FULL plan price as the anchor
+    // figure (bolded), and are explicit that a credit for unused time on the
+    // current plan is applied, so the actual charge is lower. We deliberately
+    // do NOT state an exact prorated total or a new billing date: pricing-page
+    // does not have that data (the proration math happens server-side at
+    // Stripe). Stating the full price plus the credit caveat is honest and
+    // gives the user a real number to expect, without claiming precision we
+    // do not have.
+    var messageHtml =
+      '<div style="background:#161625;border:1px solid rgba(255,255,255,0.08);' +
+      'border-radius:10px;padding:14px 16px;margin-bottom:14px;">' +
+        '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;">' +
+          '<span style="color:#c8c6d8;">' + planName +
+          ' <span style="color:#9b99ad;">(' + (cycle === 'annual' ? 'billed yearly' : 'billed monthly') + ')</span></span>' +
+          '<strong style="color:#f0eef8;font-size:16px;white-space:nowrap;">' +
+          price.amount + ' / ' + price.per + '</strong>' +
+        '</div>' +
+      '</div>' +
+      '<p style="margin:0 0 8px;">You are switching to <strong style="color:#f0eef8;">' +
+      planLabel + '</strong>. You will be charged <strong style="color:#f0eef8;">today</strong>, ' +
+      'and a credit for the unused time on your current plan is applied, so the ' +
+      'amount due is less than <strong style="color:#f0eef8;">' + price.amount + '</strong>.</p>' +
+      '<p style="margin:0;color:#9b99ad;font-size:13px;">This change takes effect ' +
+      'immediately. It is not a free trial or preview.</p>';
+
     showPricingConfirm({
       title: 'Switch to ' + planLabel + '?',
-      message: 'Your plan will change right away. Stripe will charge a ' +
-               'prorated amount today for the new plan, with a credit applied ' +
-               'for the unused time on your current plan. This is not a free ' +
-               'preview - the charge happens immediately.',
+      messageHtml: messageHtml,
       confirmLabel: 'Confirm and pay',
       cancelLabel: 'Cancel'
     }, function() {
