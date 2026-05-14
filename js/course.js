@@ -857,39 +857,11 @@ function toggleLessonPreview(modIdx, lessonIdx) {
 }
 
 function collapseLesson(modIdx, lessonIdx) {
-  var lesson = courseModules[modIdx].lessons[lessonIdx];
-
-  // Don't allow collapsing a lesson that has nothing in it - an empty lesson
-  // would render as a blank/untitled row and is almost always a mistake.
-  // Require either a title or actual content (text for text lessons, a video
-  // for video lessons). Tell the creator clearly instead of silently no-oping.
-  var isVideo = lesson.lesson_type === 'video';
-  var hasContent = isVideo
-    ? !!(lesson.video_url || lesson.bunny_video_id)
-    : !!(lesson.text_content);
-  var hasTitle = !!(lesson.title && lesson.title.trim());
-
-  if (!hasTitle && !hasContent) {
-    var emptyMsg = isVideo
-      ? 'Please enter a title or upload a video before closing this lesson.'
-      : 'Please enter a title or add content before closing this lesson.';
-    // Use the viewport-fixed dashboard toast (not showCourseMsg, which renders
-    // at the top of the editor and would be scrolled out of view - the Done
-    // button is down in the expanded lesson). Falls back to showCourseMsg if
-    // the shared toast helper isn't available for any reason.
-    if (typeof showDashToast === 'function') {
-      showDashToast('error', emptyMsg);
-    } else {
-      showCourseMsg('error', emptyMsg);
-    }
-    return;
-  }
-
   // Tear down the Quill instance (if any) before the host div is removed
   // by the upcoming re-render. Prevents stale references piling up across
   // expand/collapse cycles.
   unmountLessonEditor(modIdx, lessonIdx);
-  lesson._collapsed = true;
+  courseModules[modIdx].lessons[lessonIdx]._collapsed = true;
   renderCourseModules();
 }
 
@@ -1445,10 +1417,6 @@ function renderCourseModules() {
       const previewBadge = l.is_preview ? '<span class="course-s-6862c6">PREVIEW</span>' : '';
       const typeLabel = isVideo ? '<span class="course-s-955d08">VIDEO</span>' : '<span class="course-s-e89353">LESSON</span>';
       const isCollapsed = l._collapsed;
-      // For video lessons, "has content" means either a pasted URL or an uploaded
-      // (Bunny) video. Without the bunny_video_id check, lessons that only have
-      // an uploaded video would fail the collapse condition and never collapse.
-      const hasContent = isVideo ? !!(l.video_url || l.bunny_video_id) : !!(l.text_content);
       // For text lessons, strip HTML tags before slicing for the preview.
       // text_content is now rich HTML; without stripping, the preview shows
       // literal `<p>` / `<br>` markup which is ugly and confusing.
@@ -1457,8 +1425,10 @@ function renderCourseModules() {
         : (l.text_content || '').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
       const preview = previewSource.slice(0, isVideo ? 40 : 50);
 
-      if (isCollapsed && (l.title || hasContent)) {
-        // Collapsed view
+      if (isCollapsed) {
+        // Collapsed view. Works for empty lessons too - the title span below
+        // falls back to "Untitled Video" / "Untitled Lesson" when l.title is
+        // blank, so an empty collapsed lesson still renders sensibly.
         return '<div data-course-action="expand-lesson" data-course-mi="' + mi + '" data-course-li="' + li + '" class="course-s-fce34d">'
           + '<div class="bio-s-e3f610">'
           + '<span class="course-s-229509">' + (li + 1) + '.</span>'
