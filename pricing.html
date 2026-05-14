@@ -33,7 +33,10 @@
   .plan.featured{border-color:rgba(124,58,237,0.5);background:linear-gradient(160deg,rgba(124,58,237,0.07) 0%,var(--surface) 60%);}
   .plan-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;font-size:11px;font-weight:600;padding:5px 16px;border-radius:100px;letter-spacing:0.03em;white-space:nowrap;z-index:1;}
   .plan-name{font-family:"Syne",sans-serif;font-size:20px;font-weight:800;margin-bottom:8px;}
-  .plan-price{font-family:"Syne",sans-serif;font-size:48px;font-weight:800;letter-spacing:-2px;margin-bottom:4px;line-height:1;white-space:nowrap;}
+  /* Fixed-height price block: keeps desc/button/features aligned across all
+     three cards whether or not an annual sub-line is present. Big price is
+     48px line-height 1, sub-line is ~18px - 78px comfortably fits both. */
+  .plan-price{font-family:"Syne",sans-serif;font-size:48px;font-weight:800;letter-spacing:-2px;line-height:1;white-space:nowrap;min-height:78px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:2px;}
   .plan-price span{font-size:18px;color:var(--muted);font-weight:400;letter-spacing:0;white-space:nowrap;}
   .plan-desc{font-size:14px;color:var(--muted);margin-bottom:28px;line-height:1.6;}
   .plan-btn{width:100%;padding:14px;border-radius:10px;font-size:15px;font-weight:500;font-family:"DM Sans",sans-serif;cursor:pointer;transition:all 0.2s;margin-bottom:28px;}
@@ -46,7 +49,10 @@
   .plan.max-plan{background:linear-gradient(180deg,rgba(124,58,237,0.04),transparent);border-color:rgba(232,121,249,0.25);}
   .plan-badge.max-badge{background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;}
   .plan-features{display:flex;flex-direction:column;gap:12px;}
-  .plan-credits{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:10px;margin-bottom:18px;font-size:13px;font-weight:500;font-family:"DM Sans",sans-serif;letter-spacing:-0.1px;}
+
+  /* AI credits as the first feature row (replaces the old pill design) */
+  .plan-feature.plan-feature-credits{font-weight:600;color:var(--text);}
+  .plan-feature-credits .plan-feature-credits-icon{font-size:15px;line-height:1;flex-shrink:0;margin-top:0;}
 
   /* Billing cycle toggle */
   .billing-toggle-wrap{display:inline-flex;align-items:center;gap:0;background:var(--surface2);border:1px solid var(--border);border-radius:999px;padding:4px;margin:0 auto 36px;position:relative;left:50%;transform:translateX(-50%);}
@@ -59,19 +65,23 @@
 
   /* Price show/hide based on cycle (body class set by pricing-page.js).
      Each plan has a "price-when-monthly" and "price-when-annual" big-price
-     span, plus an optional "price-when-annual" sub-line. The big-price spans
-     inherit .plan-price sizing (48px); only one shows at a time. */
+     span, plus an optional "price-when-annual" sub-line - all inside the
+     flex-column .plan-price block so the fixed min-height keeps every card
+     aligned. Only the spans matching the active cycle show. */
   .price-when-monthly,.price-when-annual{display:none;}
-  body.cycle-monthly .price-when-monthly{display:inline;}
-  body.cycle-annual  .price-when-annual{display:inline;}
-  /* Sub-line is a block element; show only the annual one, only in annual mode */
-  .plan-price-sub.price-when-monthly,.plan-price-sub.price-when-annual{display:none;}
-  body.cycle-annual .plan-price-sub.price-when-annual{display:block;}
-  .plan-price-sub{font-size:13px;color:var(--muted);margin-top:2px;margin-bottom:14px;font-family:"DM Sans",sans-serif;font-weight:400;letter-spacing:0;}
+  .price-always{display:block;}
+  body.cycle-monthly .price-when-monthly{display:block;}
+  body.cycle-annual  .price-when-annual{display:block;}
+  /* The annual sub-line is itself a price-when-annual element; when annual is
+     active it shows. It must NOT inherit the 48px - it's the small line. */
+  .plan-price-sub{font-size:13px;color:var(--muted);font-family:"DM Sans",sans-serif;font-weight:400;letter-spacing:0;line-height:1.3;}
+  /* Higher-specificity override: .plan-price span sets 18px for the "/ month"
+     suffix, but the sub-line is also a direct span child and must stay 13px. */
+  .plan-price span.plan-price-sub{font-size:13px;}
+  body.cycle-monthly .plan-price-sub{display:none;}
 
   /* Center plan names + prices in every card */
   .plan-name{text-align:center;}
-  .plan-price{text-align:center;}
   .plan-desc{text-align:center;}
 
   @media (max-width: 600px) {
@@ -85,15 +95,6 @@
   .plan-btn:disabled{opacity:0.55;cursor:default;}
   .plan-btn:disabled:hover{transform:none;filter:none;}
 
-  .plan-credits-icon{flex-shrink:0;font-size:14px;line-height:1;}
-  .plan-credits-amount{font-family:"Syne",sans-serif;font-weight:800;font-size:15px;letter-spacing:-0.3px;}
-  .plan-credits-label{color:var(--muted);font-weight:400;}
-  .plan-credits.free{background:var(--surface2);border:1px solid var(--border);color:var(--muted);}
-  .plan-credits.free .plan-credits-amount{color:var(--muted2);}
-  .plan-credits.pro{background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.35);color:#c4b5fd;}
-  .plan-credits.pro .plan-credits-amount{color:#fff;}
-  .plan-credits.max{background:linear-gradient(135deg,rgba(167,139,250,0.15),rgba(232,121,249,0.12));border:1px solid rgba(232,121,249,0.4);color:#f5d0fe;}
-  .plan-credits.max .plan-credits-amount{color:#fff;}
   .plan-feature{display:flex;align-items:flex-start;gap:10px;font-size:14px;color:var(--muted);}
   .plan-feature-check{color:var(--text);flex-shrink:0;font-size:14px;margin-top:1px;}
   .plan-feature-x{color:var(--muted2);flex-shrink:0;font-size:14px;margin-top:1px;}
@@ -166,15 +167,13 @@
     <!-- FREE -->
     <div class="plan">
       <div class="plan-name">Free</div>
-      <div class="plan-price">$0 <span>/ forever</span></div>
+      <div class="plan-price">
+        <span class="price-always">$0 <span>/ forever</span></span>
+      </div>
       <div class="plan-desc">The essentials to get started. No credit card required.</div>
       <button class="plan-btn free" data-pricing-action="signup">Get started free</button>
-      <div class="plan-credits free">
-        <span class="plan-credits-icon">&#x2728;</span>
-        <span class="plan-credits-amount">No</span>
-        <span class="plan-credits-label">daily AI credits</span>
-      </div>
       <div class="plan-features">
+        <div class="plan-feature plan-feature-credits"><span class="plan-feature-credits-icon">&#x2728;</span><span>No daily AI credits</span></div>
         <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span>Link in Bio (Basic)</span></div>
         <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span>Follow-Back Audit (Basic)</span></div>
         <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span>Design Studio</span></div>
@@ -195,16 +194,12 @@
       <div class="plan-price">
         <span class="price-when-monthly">$10 <span>/ month</span></span>
         <span class="price-when-annual">$8.33 <span>/ month</span></span>
+        <span class="plan-price-sub price-when-annual">$100 billed annually</span>
       </div>
-      <div class="plan-price-sub price-when-annual">$100 billed annually</div>
       <div class="plan-desc">For creators ready to take control of their branding.</div>
       <button class="plan-btn pro" data-pricing-action="select-plan" data-plan="pro">Get started with Pro</button>
-      <div class="plan-credits pro">
-        <span class="plan-credits-icon">&#x2728;</span>
-        <span class="plan-credits-amount">40</span>
-        <span class="plan-credits-label">daily AI credits</span>
-      </div>
       <div class="plan-features">
+        <div class="plan-feature plan-feature-credits"><span class="plan-feature-credits-icon">&#x2728;</span><span>40 daily AI credits</span></div>
         <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span><strong>Everything in Free</strong></span></div>
         <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span>Media Kit</span></div>
         <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span>Chatbox</span></div>
@@ -228,16 +223,12 @@
       <div class="plan-price">
         <span class="price-when-monthly">$24 <span>/ month</span></span>
         <span class="price-when-annual">$20 <span>/ month</span></span>
+        <span class="plan-price-sub price-when-annual">$240 billed annually</span>
       </div>
-      <div class="plan-price-sub price-when-annual">$240 billed annually</div>
       <div class="plan-desc">Sell courses, sessions, and products directly to your audience.</div>
       <button class="plan-btn max" data-pricing-action="select-plan" data-plan="max">Try Free for 7 Days</button>
-      <div class="plan-credits max">
-        <span class="plan-credits-icon">&#x2728;</span>
-        <span class="plan-credits-amount">85</span>
-        <span class="plan-credits-label">daily AI credits</span>
-      </div>
       <div class="plan-features">
+        <div class="plan-feature plan-feature-credits"><span class="plan-feature-credits-icon">&#x2728;</span><span>85 daily AI credits</span></div>
         <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span><strong>Everything in Pro</strong></span></div>
         <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span>Course Builder</span></div>
         <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span>1:1 Booking</span></div>
