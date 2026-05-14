@@ -445,3 +445,26 @@ async function startCheckoutFromPricing(plan, cycle, btn) {
 // =================================================================
 
 loadUserState();
+
+// Reset any stuck "Opening checkout..." button when the page is restored from
+// the browser's back-forward cache (bfcache). When a user clicks a plan, the
+// button is disabled + relabeled, then we navigate to Stripe. If they press
+// the BROWSER back button, the browser may restore this page frozen exactly as
+// it was left - button still disabled, still saying "Opening checkout...",
+// because no JS re-ran. (Stripe's own "back" link does a real navigation, so
+// pricing-page.js reloads fresh and this isn't an issue there.)
+//
+// pageshow fires on every show, including bfcache restores; event.persisted is
+// true specifically for a bfcache restore. On that, we clear the loading state
+// off every plan button so they're usable again.
+window.addEventListener('pageshow', function(e) {
+  if (!e.persisted) return;  // only act on bfcache restores, not normal loads
+  var btns = document.querySelectorAll('.plan-btn');
+  for (var i = 0; i < btns.length; i++) {
+    clearBtnLoading(btns[i]);
+  }
+  // decoratePlanCards re-applies the correct labels / "Current plan" state /
+  // disabled state for the logged-in user, so a genuinely-disabled "Current
+  // plan" button is not wrongly re-enabled by the clearBtnLoading pass above.
+  decoratePlanCards();
+});
