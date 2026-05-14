@@ -287,6 +287,29 @@ async function openProductEditor(productId) {
   renderProductFiles();
 }
 
+// Set (or clear) the cover preview in the editor. Drives a real <img> element
+// + a placeholder <span> - NOT a CSS background-image. Using object-fit:cover
+// on a real <img> (same approach as the Course/Booking cover) avoids the
+// sub-pixel background-image bleed that the old div-background approach had.
+//   url = a string URL  -> show the image, hide the placeholder, show Remove btn
+//   url = null/falsy     -> clear the image, show the placeholder, hide Remove btn
+function setProductCoverPreview(url) {
+  var img = document.getElementById('products-cover-img');
+  var placeholder = document.getElementById('products-cover-placeholder');
+  var removeBtn = document.getElementById('products-cover-remove');
+  if (url) {
+    img.src = url;
+    img.classList.add('is-shown');
+    // placeholder hides via the CSS sibling rule (.is-shown ~ .prod-s-cover-ph)
+    if (removeBtn) removeBtn.style.display = 'inline-block';
+  } else {
+    img.removeAttribute('src');
+    img.classList.remove('is-shown');
+    if (placeholder) placeholder.style.display = '';
+    if (removeBtn) removeBtn.style.display = 'none';
+  }
+}
+
 function hydrateProductEditor(prod) {
   document.getElementById('products-title').value = prod ? (prod.title || '') : '';
   document.getElementById('products-slug').value = prod ? (prod.slug || '') : '';
@@ -294,17 +317,7 @@ function hydrateProductEditor(prod) {
   document.getElementById('products-price').value = prod ? (prod.price_cents > 0 ? (prod.price_cents / 100).toFixed(2) : '') : '';
   document.getElementById('products-delivery-message').value = prod ? (prod.delivery_message || '') : '';
 
-  var coverEl = document.getElementById('products-cover-preview');
-  var removeBtn = document.getElementById('products-cover-remove');
-  if (prod && prod.cover_image_url) {
-    coverEl.style.backgroundImage = 'url(' + prod.cover_image_url + ')';
-    coverEl.textContent = '';
-    removeBtn.style.display = 'inline-block';
-  } else {
-    coverEl.style.backgroundImage = '';
-    coverEl.textContent = 'Click to upload (1280\u00d7720 recommended)';
-    removeBtn.style.display = 'none';
-  }
+  setProductCoverPreview(prod && prod.cover_image_url ? prod.cover_image_url : null);
 
   dpUpdateLinkButtons();
   updateProductPublishButton();
@@ -729,10 +742,7 @@ async function onProductCoverSelect(input) {
     productsState.coverPreviewUrl = URL.createObjectURL(compressed);
     productsState.coverRemoved = false;  // user picked a new cover, override any pending remove
 
-    var coverEl = document.getElementById('products-cover-preview');
-    coverEl.style.backgroundImage = 'url(' + productsState.coverPreviewUrl + ')';
-    coverEl.textContent = '';
-    document.getElementById('products-cover-remove').style.display = 'inline-block';
+    setProductCoverPreview(productsState.coverPreviewUrl);
   } catch (e) {
     console.error('Cover select failed:', e);
     showModalAlert('Image error', 'Could not process this image: ' + (e.message || 'Unknown error'));
@@ -752,10 +762,7 @@ function removeProductCover() {
     if (productsState.editing && productsState.editing.cover_image_url) {
       productsState.coverRemoved = true;
     }
-    var coverEl = document.getElementById('products-cover-preview');
-    coverEl.style.backgroundImage = '';
-    coverEl.textContent = 'Click to upload (1280\u00d7720 recommended)';
-    document.getElementById('products-cover-remove').style.display = 'none';
+    setProductCoverPreview(null);
   });
 }
 
@@ -933,16 +940,7 @@ async function saveProduct() {
     productsState.coverRemoved = false;
 
     // Update the editor UI to reflect saved state
-    var coverEl = document.getElementById('products-cover-preview');
-    if (productsState.editing.cover_image_url) {
-      coverEl.style.backgroundImage = 'url(' + productsState.editing.cover_image_url + ')';
-      coverEl.textContent = '';
-      document.getElementById('products-cover-remove').style.display = 'inline-block';
-    } else {
-      coverEl.style.backgroundImage = '';
-      coverEl.textContent = 'Click to upload (1280\u00d7720 recommended)';
-      document.getElementById('products-cover-remove').style.display = 'none';
-    }
+    setProductCoverPreview(productsState.editing.cover_image_url || null);
 
     // Show Publish button + Delete button now that we have a saved row
     document.getElementById('products-editor-title').textContent = 'Edit Product';
