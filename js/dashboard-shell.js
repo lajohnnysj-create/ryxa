@@ -560,8 +560,8 @@ async function setUser(user) {
 
   // Post-signup checkout: if user arrived with a plan intent from pricing page
   try {
-    const intent = localStorage.getItem('fts_intended_plan');
-    if (intent) {
+    const intentRaw = localStorage.getItem('fts_intended_plan');
+    if (intentRaw) {
       // ALWAYS clear the intent — we don't want it to persist across sessions
       localStorage.removeItem('fts_intended_plan');
       // Only auto-fire checkout if user is on Free tier AND has no active subscription.
@@ -569,7 +569,28 @@ async function setUser(user) {
       // pricing page button while already logged in.
       const hasActiveSub = userStatus === 'active' || userStatus === 'cancelling';
       if (userTier === 'free' && !hasActiveSub) {
-        setTimeout(() => startCheckout(intent), 500);
+        // Parse the intent. New shape is JSON {plan, cycle}; legacy shape is a
+        // bare string ('max' / 'monthly'). startCheckout accepts an intent
+        // object directly, so normalize to that. Passing the raw JSON STRING
+        // would not work — startCheckout only JSON-parses when reading from
+        // localStorage itself, and we've already cleared it above.
+        let intentObj = null;
+        try {
+          const parsed = JSON.parse(intentRaw);
+          if (parsed && parsed.plan) {
+            intentObj = {
+              plan: parsed.plan === 'max' ? 'max' : 'pro',
+              cycle: parsed.cycle === 'annual' ? 'annual' : 'monthly'
+            };
+          }
+        } catch (_) {
+          // Legacy bare-string shape
+          if (intentRaw === 'max') intentObj = { plan: 'max', cycle: 'monthly' };
+          else if (intentRaw === 'monthly' || intentRaw === 'pro') intentObj = { plan: 'pro', cycle: 'monthly' };
+        }
+        if (intentObj) {
+          setTimeout(() => startCheckout(intentObj), 500);
+        }
       }
     }
   } catch (e) { console.warn('intent check', e); }
