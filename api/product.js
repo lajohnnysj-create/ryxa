@@ -32,11 +32,11 @@ function notFoundResponse() {
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root { --bg:#0a0a14; --surface:#12121e; --surface2:#16162a; --border:rgba(255,255,255,0.06); --border-hover:rgba(255,255,255,0.12); --text:#f0eef8; --muted:#b4b2c8; --accent:#7c3aed; --accent2:#a855f7; --accent-glow:rgba(124,58,237,0.35); }
+:root { --bg:#0a0a14; --surface:#12121e; --surface2:#16162a; --border:rgba(255,255,255,0.06); --border-hover:rgba(255,255,255,0.12); --text:#f0eef8; --text-secondary:#fff; --muted:#b4b2c8; --accent:#7c3aed; --accent2:#a855f7; --accent-glow:rgba(124,58,237,0.35); }
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; text-align:center; }
 h1 { font-family:'Syne',sans-serif; font-size:32px; font-weight:800; margin-bottom:12px; letter-spacing:-1px; }
-p { color:var(--muted); font-size:15px; line-height:1.6; max-width:420px; margin:0 auto 24px; }
+p { color:var(--text-secondary); font-size:15px; line-height:1.6; max-width:420px; margin:0 auto 24px; }
 a.btn { display:inline-block; padding:12px 26px; background:var(--accent); color:#fff; border-radius:10px; text-decoration:none; font-weight:600; font-size:14px; box-shadow:0 0 16px var(--accent-glow); }
 </style>
 </head>
@@ -95,7 +95,7 @@ function renderPage(product, creator) {
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.105.4" integrity="sha384-4eCDoMN/7A46qQ5Tj0rZ/D2VEolFGNIINDTLAcWZcvhkRSsvTfqNfaBMlRRoGEZ5" crossorigin="anonymous"></script>
 <style>
-  :root { --bg:#0a0a14; --surface:#12121e; --surface2:#16162a; --border:rgba(255,255,255,0.06); --border-hover:rgba(255,255,255,0.12); --text:#f0eef8; --muted:#b4b2c8; --accent:#7c3aed; --accent2:#a855f7; --accent-glow:rgba(124,58,237,0.35); }
+  :root { --bg:#0a0a14; --surface:#12121e; --surface2:#16162a; --border:rgba(255,255,255,0.06); --border-hover:rgba(255,255,255,0.12); --text:#f0eef8; --text-secondary:#fff; --muted:#b4b2c8; --accent:#7c3aed; --accent2:#a855f7; --accent-glow:rgba(124,58,237,0.35); }
   *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
   body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; min-height:100vh; line-height:1.5; }
   a { color:inherit; text-decoration:none; }
@@ -124,9 +124,9 @@ function renderPage(product, creator) {
   .dp-cover { width:100%; max-height:400px; object-fit:cover; border-radius:16px; margin-bottom:32px; border:1px solid var(--border); display:block; }
   .dp-cover-placeholder { width:100%; height:240px; background:linear-gradient(135deg,rgba(124,58,237,0.15),rgba(232,121,249,0.1)); border-radius:16px; margin-bottom:32px; display:flex; align-items:center; justify-content:center; border:1px solid var(--border); }
   .dp-title { font-family:'Syne',sans-serif; font-size:clamp(28px,5vw,44px); font-weight:800; letter-spacing:-1.5px; line-height:1.1; margin-bottom:16px; }
-  .dp-creator { font-size:14px; color:var(--muted); margin-bottom:24px; }
+  .dp-creator { font-size:14px; color:var(--text-secondary); margin-bottom:24px; }
   .dp-creator strong { color:var(--accent2); font-weight:600; }
-  .dp-desc { font-size:16px; line-height:1.75; color:var(--muted); margin-bottom:32px; max-width:700px; white-space:pre-wrap; word-wrap:break-word; }
+  .dp-desc { font-size:16px; line-height:1.75; color:var(--text-secondary); margin-bottom:32px; max-width:700px; white-space:pre-wrap; word-wrap:break-word; }
 
   /* Buy card — matches course page */
   .dp-buy-card { background:var(--surface2); border:1px solid var(--border); border-radius:16px; padding:28px; margin-bottom:24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; }
@@ -138,7 +138,7 @@ function renderPage(product, creator) {
   .dp-purchased-badge { padding:12px 24px; background:rgba(74,222,128,0.1); border:1px solid rgba(74,222,128,0.3); border-radius:10px; color:#4ade80; font-size:14px; font-weight:600; display:inline-flex; align-items:center; gap:8px; text-decoration:none; }
 
   /* Consent */
-  .dp-consent { display:flex; align-items:center; gap:8px; margin-top:8px; cursor:pointer; font-size:13px; color:var(--muted); }
+  .dp-consent { display:flex; align-items:center; gap:8px; margin-top:8px; cursor:pointer; font-size:13px; color:var(--text-secondary); }
   .dp-consent input { accent-color:var(--accent); width:16px; height:16px; cursor:pointer; }
 
   /* Footer */
