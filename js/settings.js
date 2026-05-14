@@ -188,13 +188,20 @@ function updateSettingsCancelBtn() {
     }
   }
   if (settingsTier) {
+    // Cadence suffix: shown for active paid plans (not Free, not while
+    // cancelling or trialing - those states have their own labels).
+    var cadence = '';
+    if ((max || pro) && !isCancelling && !isTrialing) {
+      var cyc = (typeof userBillingCycle !== 'undefined' ? userBillingCycle : 'monthly');
+      cadence = cyc === 'annual' ? ' (Annual)' : ' (Monthly)';
+    }
     if (isCancelling) {
       settingsTier.textContent = max ? 'Max (Cancelling)' : 'Pro (Cancelling)';
     } else if (isTrialing) {
       const dayWord = trialDaysLeft === 1 ? 'day' : 'days';
       settingsTier.textContent = 'Max (Trial, ' + trialDaysLeft + ' ' + dayWord + ' left)';
     } else {
-      settingsTier.textContent = max ? 'Creator Max' : pro ? 'Pro Plan' : 'Free Plan';
+      settingsTier.textContent = (max ? 'Creator Max' : pro ? 'Pro Plan' : 'Free Plan') + cadence;
     }
   }
 
@@ -203,9 +210,17 @@ function updateSettingsCancelBtn() {
   if (subProLabel) subProLabel.textContent = max ? 'Creator Max plan' : 'Pro plan';
   const subProFeatures = document.getElementById('settings-sub-pro-features');
   if (subProFeatures) {
-    subProFeatures.textContent = max
+    // Append a renewal-cadence sentence for active paid subscriptions.
+    var renewalNote = '';
+    if ((max || pro) && !isCancelling) {
+      var cyc2 = (typeof userBillingCycle !== 'undefined' ? userBillingCycle : 'monthly');
+      renewalNote = cyc2 === 'annual'
+        ? ' Renews annually.'
+        : ' Renews monthly.';
+    }
+    subProFeatures.textContent = (max
       ? 'You have access to all tools and features.'
-      : 'You have access to Pro tools and features.';
+      : 'You have access to Pro tools and features.') + renewalNote;
   }
 
   // Update upgrade/downgrade button visibility

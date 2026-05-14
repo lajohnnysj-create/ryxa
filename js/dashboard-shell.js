@@ -240,6 +240,7 @@ let userStatus = 'free';
 // truth for "is the user currently in a trial" — checked at render time
 // because trials expire silently and we don't always get a webhook on tick.
 let userTrialEnd = null;
+let userBillingCycle = 'monthly';
 // Has this user EVER used the Creator Max free trial? Sticky once true.
 // Drives whether Max upgrade buttons say "Try free" or "Upgrade".
 let userMaxTrialUsed = false;
@@ -767,13 +768,14 @@ async function fetchTier(userId) {
     document.body.classList.remove('tier-loading');
   }, 5000);
   try {
-    const { data } = await sb.from('subscriptions').select('tier, status, trial_end, max_trial_used, pre_max_tier').eq('user_id', userId).limit(1);
+    const { data } = await sb.from('subscriptions').select('tier, status, trial_end, max_trial_used, pre_max_tier, billing_cycle').eq('user_id', userId).limit(1);
     if (data && data.length > 0) {
       userTier = data[0].tier || 'free';
       userStatus = data[0].status || 'free';
       userTrialEnd = data[0].trial_end || null;
       userMaxTrialUsed = data[0].max_trial_used === true;
       userPreMaxTier = data[0].pre_max_tier || null;
+      userBillingCycle = data[0].billing_cycle || 'monthly';
     }
     updateTierUI();
     // Pre-load AI usage so the sidebar menu opens instantly with no layout shift.
