@@ -60,8 +60,21 @@
 
 const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_PLU28Un_GfsUXeUsK3zB9Q_hvNM7aeG';
-const STRIPE_PRICE_MONTHLY = 'price_1TIZ8pFQ1L0aeJrZEX1bQnUI';
-const STRIPE_PRICE_MAX = 'price_1TLQdmFQ1L0aeJrZxntN3EhI';
+
+// Stripe price IDs for the 4 subscription options. Source of truth for prices
+// is the create-checkout-session edge function; this client map exists so we
+// can route the user's plan+cycle selection to the right Stripe price.
+const PRICE_IDS = {
+  pro: {
+    monthly: 'price_1TIZ8pFQ1L0aeJrZEX1bQnUI',  // $10/mo
+    annual:  'price_1TWqaNFQ1L0aeJrZvUOPWHUy'   // $100/yr
+  },
+  max: {
+    monthly: 'price_1TWqbvFQ1L0aeJrZB9ffRvyC',  // $24/mo
+    annual:  'price_1TWqctFQ1L0aeJrZJ3QdI3y5'   // $240/yr
+  }
+};
+
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -1066,18 +1079,90 @@ window.addEventListener('pageshow', function(e) {
   });
 });
 
-async function startCheckout(plan, triggerBtn) {
+async function startCheckout(planOrIntent, cycleOrBtn, maybeBtn) {
   if (!currentUser) { window.location.href = 'index.html'; return; }
-  // Try to find the button that triggered this call so we can show a loading state.
-  const btn = triggerBtn || (typeof event !== 'undefined' && event && event.currentTarget && event.currentTarget.tagName === 'BUTTON' ? event.currentTarget : null);
-  if (btn) setBtnLoading(btn, 'Opening checkout…');
-  // Resolve plan: explicit arg → localStorage intent → default Pro
-  let targetPlan = plan;
-  if (!targetPlan) {
-    try { targetPlan = localStorage.getItem('fts_intended_plan'); } catch (e) {}
+
+  // Resolve arguments. This function has been called from many callers across
+  // the codebase with varying signatures over time. Support all of them:
+  //
+  //   startCheckout()                          - read intent from localStorage
+  //   startCheckout('max')                     - legacy: plan only
+  //   startCheckout('monthly')                 - legacy: 'monthly' means Pro
+  //   startCheckout(undefined, btnEl)          - legacy with explicit btn
+  //   startCheckout('max', btnEl)              - legacy plan + btn
+  //   startCheckout('max', 'monthly', btnEl)   - new: plan, cycle, btn
+  //   startCheckout('max', 'annual', btnEl)    - new: plan, cycle, btn
+  //   startCheckout({plan, cycle}, btnEl)      - new: full intent object
+  //
+  // Returns resolved {plan, cycle, btn}.
+  function resolveArgs(a, b, c) {
+    var resolved = { plan: null, cycle: 'monthly', btn: null };
+
+    // Determine if first arg is an intent object
+    if (a && typeof a === 'object' && a.plan) {
+      resolved.plan = (a.plan === 'max') ? 'max' : 'pro';
+      resolved.cycle = (a.cycle === 'annual') ? 'annual' : 'monthly';
+      // Second arg is the button if present
+      if (b && b.tagName === 'BUTTON') resolved.btn = b;
+      return resolved;
+    }
+
+    // First arg is a plan string (or undefined)
+    var planArg = a;
+    // Legacy: 'monthly' means Pro tier on monthly cycle
+    if (planArg === 'monthly') { resolved.plan = 'pro'; resolved.cycle = 'monthly'; }
+    else if (planArg === 'max') { resolved.plan = 'max'; }
+    else if (planArg === 'pro') { resolved.plan = 'pro'; }
+    // else planArg is null/undefined — will be resolved from localStorage below
+
+    // Second arg: cycle ('monthly'/'annual') or button element
+    if (b === 'monthly' || b === 'annual') {
+      resolved.cycle = b;
+      if (c && c.tagName === 'BUTTON') resolved.btn = c;
+    } else if (b && b.tagName === 'BUTTON') {
+      resolved.btn = b;
+    }
+
+    return resolved;
   }
-  targetPlan = targetPlan === 'max' ? 'max' : 'monthly';
-  const priceId = targetPlan === 'max' ? STRIPE_PRICE_MAX : STRIPE_PRICE_MONTHLY;
+
+  var resolved = resolveArgs(planOrIntent, cycleOrBtn, maybeBtn);
+
+  // If plan still unresolved, read localStorage intent. Supports both the new
+  // JSON shape ({plan, cycle}) and the legacy string shape ('max'/'monthly').
+  if (!resolved.plan) {
+    try {
+      var raw = localStorage.getItem('fts_intended_plan');
+      if (raw) {
+        // Try JSON parse first (new shape)
+        var parsed = null;
+        try { parsed = JSON.parse(raw); } catch (_) {}
+        if (parsed && parsed.plan) {
+          resolved.plan = (parsed.plan === 'max') ? 'max' : 'pro';
+          resolved.cycle = (parsed.cycle === 'annual') ? 'annual' : 'monthly';
+        } else {
+          // Legacy string shape
+          if (raw === 'max') { resolved.plan = 'max'; }
+          else if (raw === 'monthly' || raw === 'pro') { resolved.plan = 'pro'; }
+        }
+      }
+    } catch (e) {}
+  }
+
+  // Final default if still unresolved
+  if (!resolved.plan) resolved.plan = 'pro';
+
+  // Try to find the button that triggered this call so we can show a loading state.
+  const btn = resolved.btn || (typeof event !== 'undefined' && event && event.currentTarget && event.currentTarget.tagName === 'BUTTON' ? event.currentTarget : null);
+  if (btn) setBtnLoading(btn, 'Opening checkout…');
+
+  // Resolve to a Stripe price ID via the 4-price map
+  const priceId = PRICE_IDS[resolved.plan] && PRICE_IDS[resolved.plan][resolved.cycle];
+  if (!priceId) {
+    console.error('No Stripe price found for', resolved.plan, resolved.cycle);
+    try { clearBtnLoading(btn); } catch (_) {}
+    return;
+  }
 
   // Extract a user-readable error message from the Edge Function response.
   // Supabase JS SDK wraps non-2xx responses in a FunctionsHttpError where the
