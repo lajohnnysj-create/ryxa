@@ -35,7 +35,10 @@
   .plan{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:36px 28px;position:relative;overflow:visible;display:flex;flex-direction:column;}
   .plan.featured{border-color:rgba(124,58,237,0.5);background:linear-gradient(160deg,rgba(124,58,237,0.07) 0%,var(--surface) 60%);}
   .plan-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;font-size:11px;font-weight:600;padding:5px 16px;border-radius:100px;letter-spacing:0.03em;white-space:nowrap;z-index:1;}
-  .plan-name{font-family:"Syne",sans-serif;font-size:20px;font-weight:800;margin-bottom:10px;text-align:center;}
+  /* PLAN NAME - forced to a single line. "Creator Max" is the longest name and
+     fits comfortably on one line; nowrap guarantees all three names occupy the
+     same single-line height so the cards below them stay aligned. */
+  .plan-name{font-family:"Syne",sans-serif;font-size:20px;font-weight:800;line-height:1.2;text-align:center;white-space:nowrap;margin-bottom:10px;}
 
   /* PRICE BLOCK - fixed height (worst case: annual = number line + sub-line).
      Content is centered vertically so monthly (1 line) and annual (2 lines)
