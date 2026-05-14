@@ -52,20 +52,27 @@
   .billing-toggle-wrap{display:inline-flex;align-items:center;gap:0;background:var(--surface2);border:1px solid var(--border);border-radius:999px;padding:4px;margin:0 auto 36px;position:relative;left:50%;transform:translateX(-50%);}
   .billing-toggle-btn{background:transparent;border:none;color:var(--muted);font-family:"DM Sans",sans-serif;font-size:13px;font-weight:500;padding:9px 18px;border-radius:999px;cursor:pointer;transition:all 0.2s;display:inline-flex;align-items:center;gap:8px;}
   .billing-toggle-btn:hover{color:var(--text);}
-  .billing-toggle-btn.is-active{background:var(--text);color:var(--bg);}
+  .billing-toggle-btn.is-active{background:var(--accent);color:#fff;}
   .billing-toggle-btn:focus-visible{outline:2px solid var(--accent2);outline-offset:2px;}
   .billing-toggle-badge{font-size:10px;padding:2px 8px;border-radius:6px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;}
-  .billing-toggle-btn.is-active .billing-toggle-badge{background:rgba(255,255,255,0.18);color:#fff;}
+  .billing-toggle-btn.is-active .billing-toggle-badge{background:rgba(255,255,255,0.22);color:#fff;}
 
-  /* Price element show/hide based on cycle (controlled by body class) */
-  .plan-price-monthly,.plan-price-annual{display:none;}
-  .plan-price-sub.plan-price-monthly,.plan-price-sub.plan-price-annual{display:none;}
-  body.cycle-monthly .plan-price-monthly{display:inline;}
-  body.cycle-monthly .plan-price-sub.plan-price-monthly{display:block;}
-  body.cycle-annual .plan-price-annual{display:inline;}
-  body.cycle-annual .plan-price-sub.plan-price-annual{display:block;}
-  .plan-price-sub{font-size:12px;color:var(--muted);margin-top:-12px;margin-bottom:14px;}
-  .plan-price-amount{font-family:inherit;}
+  /* Price show/hide based on cycle (body class set by pricing-page.js).
+     Each plan has a "price-when-monthly" and "price-when-annual" big-price
+     span, plus an optional "price-when-annual" sub-line. The big-price spans
+     inherit .plan-price sizing (48px); only one shows at a time. */
+  .price-when-monthly,.price-when-annual{display:none;}
+  body.cycle-monthly .price-when-monthly{display:inline;}
+  body.cycle-annual  .price-when-annual{display:inline;}
+  /* Sub-line is a block element; show only the annual one, only in annual mode */
+  .plan-price-sub.price-when-monthly,.plan-price-sub.price-when-annual{display:none;}
+  body.cycle-annual .plan-price-sub.price-when-annual{display:block;}
+  .plan-price-sub{font-size:13px;color:var(--muted);margin-top:2px;margin-bottom:14px;font-family:"DM Sans",sans-serif;font-weight:400;letter-spacing:0;}
+
+  /* Center plan names + prices in every card */
+  .plan-name{text-align:center;}
+  .plan-price{text-align:center;}
+  .plan-desc{text-align:center;}
 
   @media (max-width: 600px) {
     .billing-toggle-btn{padding:8px 14px;font-size:12px;}
@@ -74,7 +81,7 @@
 
   /* Current-plan awareness (logged-in users) */
   .plan.is-current-plan{border-color:var(--accent2);}
-  .plan-current-badge{display:inline-block;background:var(--accent);color:#fff;font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;padding:4px 10px;border-radius:6px;margin-bottom:12px;font-family:"DM Sans",sans-serif;}
+  .plan-current-badge{display:block;width:fit-content;margin:0 auto 12px;background:var(--accent);color:#fff;font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;padding:4px 10px;border-radius:6px;font-family:"DM Sans",sans-serif;}
   .plan-btn:disabled{opacity:0.55;cursor:default;}
   .plan-btn:disabled:hover{transform:none;filter:none;}
 
@@ -136,7 +143,7 @@
 </style>
 <style>body{opacity:0;transition:opacity 0.2s ease;}body.site-ready{opacity:1;}</style>
 </head>
-<body class="cycle-monthly">
+<body class="cycle-annual">
 
 <div id="site-header" data-page="pricing"></div>
 
@@ -146,8 +153,8 @@
 </div>
 
 <div class="billing-toggle-wrap" role="group" aria-label="Billing cycle">
-  <button class="billing-toggle-btn is-active" data-pricing-action="set-cycle" data-cycle="monthly" aria-pressed="true">Monthly</button>
-  <button class="billing-toggle-btn" data-pricing-action="set-cycle" data-cycle="annual" aria-pressed="false">
+  <button class="billing-toggle-btn" data-pricing-action="set-cycle" data-cycle="monthly" aria-pressed="false">Monthly</button>
+  <button class="billing-toggle-btn is-active" data-pricing-action="set-cycle" data-cycle="annual" aria-pressed="true">
     Annual
     <span class="billing-toggle-badge">2 months free</span>
   </button>
@@ -186,10 +193,10 @@
       <div class="plan-badge">Most popular</div>
       <div class="plan-name">Pro</div>
       <div class="plan-price">
-        <span class="plan-price-monthly"><span class="plan-price-amount">$10</span> <span>/ month</span></span>
-        <span class="plan-price-annual"><span class="plan-price-amount">$100</span> <span>/ year</span></span>
+        <span class="price-when-monthly">$10 <span>/ month</span></span>
+        <span class="price-when-annual">$8.33 <span>/ month</span></span>
       </div>
-      <div class="plan-price-sub plan-price-annual">$8.33/month, billed annually</div>
+      <div class="plan-price-sub price-when-annual">$100 billed annually</div>
       <div class="plan-desc">For creators ready to take control of their branding.</div>
       <button class="plan-btn pro" data-pricing-action="select-plan" data-plan="pro">Get started with Pro</button>
       <div class="plan-credits pro">
@@ -219,10 +226,10 @@
       <div class="plan-badge max-badge">Start Earning</div>
       <div class="plan-name">Creator Max</div>
       <div class="plan-price">
-        <span class="plan-price-monthly"><span class="plan-price-amount">$24</span> <span>/ month</span></span>
-        <span class="plan-price-annual"><span class="plan-price-amount">$240</span> <span>/ year</span></span>
+        <span class="price-when-monthly">$24 <span>/ month</span></span>
+        <span class="price-when-annual">$20 <span>/ month</span></span>
       </div>
-      <div class="plan-price-sub plan-price-annual">$20/month, billed annually</div>
+      <div class="plan-price-sub price-when-annual">$240 billed annually</div>
       <div class="plan-desc">Sell courses, sessions, and products directly to your audience.</div>
       <button class="plan-btn max" data-pricing-action="select-plan" data-plan="max">Try Free for 7 Days</button>
       <div class="plan-credits max">
