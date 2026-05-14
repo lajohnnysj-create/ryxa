@@ -386,17 +386,26 @@ pricingRegisterAction('select-plan', function(_e, el) {
     var planLabel = planName + (cycle === 'annual' ? ' (Annual)' : ' (Monthly)');
     var price = PLAN_PRICES[plan][cycle];
 
-    // Invoice-style confirmation. We show the FULL plan price as the anchor
-    // figure (bolded), and are explicit that a credit for unused time on the
-    // current plan is applied, so the actual charge is lower. We deliberately
-    // do NOT state an exact prorated total or a new billing date: pricing-page
-    // does not have that data (the proration math happens server-side at
-    // Stripe). Stating the full price plus the credit caveat is honest and
-    // gives the user a real number to expect, without claiming precision we
-    // do not have.
+    // Plan-change confirmation. The wording is deliberately CONDITIONAL so a
+    // single message is accurate across every plan-change path this app
+    // supports, without pricing-page needing to know which case it is:
+    //   - Upgrades (e.g. Pro -> Max, Monthly -> Annual): charged today, with
+    //     a proration credit applied.
+    //   - Downgrades / longer-to-shorter interval: per the Stripe Customer
+    //     Portal config these WAIT until end of billing period, so the user
+    //     is NOT charged today and the change is NOT immediate.
+    //   - Trial-eligible Pro -> Max: a 7-day trial starts, so the user is NOT
+    //     charged today.
+    // Because the message hedges ("if a payment is due", "you may not be
+    // charged today") it never asserts something false. The tradeoff is it is
+    // vaguer than a precise figure - the exact amount/date live on the Stripe
+    // receipt. The price box is framed as the PLAN'S RATE, not "today's
+    // charge", so it does not contradict the hedged prose.
     var messageHtml =
       '<div style="background:#161625;border:1px solid rgba(255,255,255,0.08);' +
       'border-radius:10px;padding:14px 16px;margin-bottom:14px;">' +
+        '<div style="font-size:11px;letter-spacing:0.04em;text-transform:uppercase;' +
+        'color:#9b99ad;margin-bottom:6px;">Plan rate</div>' +
         '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;">' +
           '<span style="color:#c8c6d8;">' + planName +
           ' <span style="color:#9b99ad;">(' + (cycle === 'annual' ? 'billed yearly' : 'billed monthly') + ')</span></span>' +
@@ -405,16 +414,18 @@ pricingRegisterAction('select-plan', function(_e, el) {
         '</div>' +
       '</div>' +
       '<p style="margin:0 0 8px;">You are switching to <strong style="color:#f0eef8;">' +
-      planLabel + '</strong>. You will be charged <strong style="color:#f0eef8;">today</strong>, ' +
-      'and a credit for the unused time on your current plan is applied, so the ' +
-      'amount due is less than <strong style="color:#f0eef8;">' + price.amount + '</strong>.</p>' +
-      '<p style="margin:0;color:#9b99ad;font-size:13px;">This change takes effect ' +
-      'immediately. It is not a free trial or preview.</p>';
+      planLabel + '</strong>. If a payment is due, it will be charged to your card ' +
+      'on file, with any credit for unused time on your current plan applied ' +
+      'automatically. If you are eligible for a trial, or your change takes effect ' +
+      'at your next renewal, you may not be charged today.</p>' +
+      '<p style="margin:0;color:#9b99ad;font-size:13px;">Your plan and billing will ' +
+      'update to reflect this change. You can review the exact amount and date on ' +
+      'your receipt from Stripe.</p>';
 
     showPricingConfirm({
       title: 'Switch to ' + planLabel + '?',
       messageHtml: messageHtml,
-      confirmLabel: 'Confirm and pay',
+      confirmLabel: 'Confirm switch',
       cancelLabel: 'Cancel'
     }, function() {
       startCheckoutFromPricing(plan, cycle, el);
