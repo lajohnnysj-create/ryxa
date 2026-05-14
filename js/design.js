@@ -1953,7 +1953,6 @@ function showCompatibleFilesModal() {
     ['Photoshop assets', 'Actions (ATN), Brushes (ABR), Layer Styles (ASL), Templates (TPL)'],
     ['DaVinci Resolve', 'DRP presets'],
     ['Audio', 'MP3, WAV, AIFF, M4A, FLAC'],
-    ['Video', 'MP4, MOV, WEBM (up to 100 MB per file)'],
     ['Fonts', 'OTF, TTF, WOFF, WOFF2'],
     ['Procreate', 'Brushes (BRUSH), Brush Sets (BRUSHSET), Procreate files (PROCREATE)'],
     ['3D models', 'BLEND, OBJ, FBX, STL, GLB, GLTF'],

@@ -87,11 +87,15 @@ function showProductsMsg(type, msg, isHtml) {
 // =====================================================
 
 // Hard limits — must match SQL bucket config and migration
-var DP_MAX_FILE_BYTES    = 100 * 1024 * 1024;   // 100 MB
+var DP_MAX_FILE_BYTES    = 50 * 1024 * 1024;    // 50 MB
 var DP_MAX_PRODUCT_BYTES = 300 * 1024 * 1024;   // 300 MB
 var DP_MAX_ACCOUNT_BYTES = 500 * 1024 * 1024;  // 500 MB
 
 // Allowed file extensions (lowercase). MUST match docs in marketing copy.
+// NOTE: video formats (mp4/mov/webm) are intentionally NOT allowed here.
+// Video content belongs in Course Builder, which uses Bunny Stream for
+// transcoding + adaptive playback. Digital Products is for documents,
+// presets, templates, audio, design assets, and similar files.
 var DP_ALLOWED_EXTS = [
   'pdf','epub','mobi','txt','md','docx','pages',
   'csv','xlsx','numbers',
@@ -102,7 +106,6 @@ var DP_ALLOWED_EXTS = [
   'atn','abr','asl','tpl',
   'drp',
   'mp3','wav','aiff','m4a','flac',
-  'mp4','mov','webm',
   'otf','ttf','woff','woff2',
   'brush','brushset','procreate',
   'blend','obj','fbx','stl','glb','gltf',
@@ -130,11 +133,6 @@ var DP_MAGIC_BYTES = {
   aiff: ['464F524D'],
   flac: ['664C6143'],
   m4a:  ['00000020667479704D344120', '0000001C667479704D344120'],
-  // Video files — ftyp box at offset 4 means we check bytes 4-11 (skip first 4 size bytes)
-  // mp4: various ftyp brands
-  mp4:  ['000000186674797069736F6D', '0000001C6674797069736F6D', '00000020667479706D703432', '0000001C667479706D703432'],
-  mov:  ['0000001466747970717420', '0000001466747970717420', '00000020667479707174'],
-  webm: ['1A45DFA3'],
   otf:  ['4F54544F'],
   ttf:  ['00010000', '74727565'],
   woff: ['774F4646'],
@@ -465,7 +463,7 @@ async function uploadProductFiles(input) {
 
 async function uploadSingleFile(file) {
   if (file.size > DP_MAX_FILE_BYTES) {
-    showModalAlert('File too large', '"' + file.name + '" is ' + dpFormatBytes(file.size) + '. Max file size is 100 MB.');
+    showModalAlert('File too large', '"' + file.name + '" is ' + dpFormatBytes(file.size) + '. Max file size is 50 MB.');
     return;
   }
   if (productsState.editingProductBytes + file.size > DP_MAX_PRODUCT_BYTES) {
