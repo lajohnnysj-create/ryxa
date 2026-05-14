@@ -805,14 +805,9 @@ function applyMaxTrialButtonLabels() {
   document.querySelectorAll('[data-max-trial-cta]').forEach(function(btn) {
     btn.textContent = label;
   });
-
-  // Settings upgrade confirmation copy
-  const confirmCopy = document.getElementById('settings-upgrade-max-copy');
-  if (confirmCopy) {
-    confirmCopy.textContent = userMaxTrialUsed
-      ? "Takes effect immediately. You'll be charged a prorated amount today, then $20/month going forward. Unlocks custom themes, hero links, and full branding control."
-      : "Start your 7-day free trial of Creator Max. No charge during the trial. After 7 days, your existing billing cycle continues at the $20/month Max rate. Unlocks custom themes, hero links, and full branding control.";
-  }
+  // Note: the old Settings "upgrade confirmation copy" element was removed
+  // when Settings moved to a single "Change Plan" button that routes to the
+  // pricing page. No per-state copy to update here anymore.
 }
 
 function updateTierUI() {

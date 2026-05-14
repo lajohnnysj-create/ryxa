@@ -225,41 +225,20 @@ function updateSettingsCancelBtn() {
 
   // Update upgrade/downgrade button visibility
   // Hide tier-change buttons while cancelling — user is about to lose subscription anyway.
-  // Hide "Downgrade to Pro" during a Max trial — the cancel-subscription button
-  // is the right tool to leave Max early during a trial (they keep access through
-  // trial_end then drop to Free, can resubscribe to Pro afterward).
-  const upgradeToMaxBtn = document.getElementById('settings-upgrade-max');
-  const downgradeToProBtn = document.getElementById('settings-downgrade-pro');
-  if (upgradeToMaxBtn) upgradeToMaxBtn.style.display = (pro && !max && !isCancelling) ? 'block' : 'none';
-  if (downgradeToProBtn) downgradeToProBtn.style.display = (max && !isCancelling && !isTrialing) ? 'block' : 'none';
+  // Subscription change is now a single "Change Plan" button (data-settings-action
+  // "open-pricing") that routes to the pricing page. The pricing page is
+  // current-plan aware and handles upgrade, downgrade, and cycle switches.
+  // No per-tier button visibility logic needed here anymore - the single
+  // button shows for all paid tiers and is only hidden while cancelling
+  // (handled by the markup container, not here).
 }
 
-// ---------- From dashboard.html L10177-10188: confirmUpgradeToMax + confirmUpgradeToMaxFinal ----------
-function confirmUpgradeToMax() {
-  dismissSettingsMsg();
-  const el = document.getElementById('settings-upgrade-confirm');
-  if (el) el.style.display = 'block';
-}
-
-// Step 2: user clicked "Yes, upgrade" — route to pricing page where they
-// pick plan + billing cycle. (Previously fired Stripe checkout directly.)
-async function confirmUpgradeToMaxFinal(ev) {
-  dismissSettingsMsg();
-  goToPricing('max');
-}
-
-// ---------- From dashboard.html L10262-10273: handleDowngradeToPro + confirmDowngradeToPro ----------
-function handleDowngradeToPro() {
-  dismissSettingsMsg();
-  const el = document.getElementById('settings-downgrade-confirm');
-  if (el) el.style.display = 'block';
-}
-
-// Step 2: user clicked "Yes, downgrade" — route to pricing page. The pricing
-// page is current-plan aware and will show "Switch to Pro" for a Max user.
-async function confirmDowngradeToPro(ev) {
-  dismissSettingsMsg();
-  goToPricing('pro');
+// ---------- Subscription management ----------
+// "Upgrade Now" (free users) and "Change Plan" (paid users) both route to
+// the pricing page. The pricing page handles every transition: free->paid,
+// Pro<->Max, and monthly<->annual cycle switches.
+function openPricingPage() {
+  goToPricing();
 }
 
 // ---------- From dashboard.html L10685-10714: changeDisplayCurrency ----------
@@ -729,8 +708,6 @@ function dismissSettingsMsg() {
   const els = [
     'settings-cancel-confirm',
     'settings-renew-confirm',
-    'settings-downgrade-confirm',
-    'settings-upgrade-confirm',
     'settings-result-msg',
   ];
   els.forEach(id => {
@@ -820,12 +797,8 @@ settingsRegisterAction('confirm-disconnect-instagram', () => confirmDisconnectIn
 settingsRegisterAction('change-currency', (e, el) => changeDisplayCurrency(el.value));
 
 // Subscription / Upgrade flows
-settingsRegisterAction('checkout-monthly', () => goToPricing('pro'));
-settingsRegisterAction('checkout-max', () => goToPricing('max'));
-settingsRegisterAction('confirm-upgrade-max', () => confirmUpgradeToMax());
-settingsRegisterAction('confirm-upgrade-max-final', (e) => confirmUpgradeToMaxFinal(e));
-settingsRegisterAction('handle-downgrade-pro', () => handleDowngradeToPro());
-settingsRegisterAction('confirm-downgrade-pro', (e) => confirmDowngradeToPro(e));
+// "Upgrade Now" (free) and "Change Plan" (paid) both route to the pricing page.
+settingsRegisterAction('open-pricing', () => openPricingPage());
 settingsRegisterAction('handle-cancel', () => handleSettingsCancel());
 settingsRegisterAction('confirm-cancel', () => confirmSettingsCancel());
 
