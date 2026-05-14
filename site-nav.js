@@ -153,7 +153,6 @@ function renderHeader() {
   + '<nav>'
   +   '<a class="logo" href="/index.html"><img src="/logo-black.png" alt="Ryxa"> Ryxa</a>'
   +   '<div class="nav-links" id="nav-links">'
-  +     '<a href="/dashboard.html" id="dashboard-link" style="display:none;color:#c4b5fd;font-weight:500;">Dashboard</a>'
 
   // Tools dropdown
   +     '<div class="nav-tools-wrap">'
@@ -205,7 +204,7 @@ function renderHeader() {
   // Right side buttons
   +   '<div class="nav-right">'
   +     '<button class="btn-ghost" data-nav-action="open-signin" id="nav-signin-btn">Sign in</button>'
-  +     '<button class="btn-nav-cta" data-nav-action="open-signup">Get started free</button>'
+  +     '<button class="btn-nav-cta" data-nav-action="open-signup" id="nav-cta-btn">Get started free</button>'
   +   '</div>'
   +   '<button class="hamburger" id="hamburger-btn" data-nav-action="toggle-menu" aria-label="Menu"><span></span><span></span><span></span></button>'
   + '</nav>';
@@ -331,11 +330,22 @@ function siteNavCheckAuth() {
     if (!session || !session.access_token) return;
     if (session.expires_at && session.expires_at * 1000 < Date.now()) return;
 
-    var dashLink = document.getElementById('dashboard-link');
+    // Logged in. On desktop, the prominent CTA button becomes "Dashboard"
+    // (text + action swapped) and the "Sign in" ghost button is hidden.
+    // On mobile, the dedicated dashboard link shows and the signup button
+    // hides. NOTE: this is purely cosmetic - it only decides which label /
+    // action the button carries. It is NOT an auth gate. dashboard.html does
+    // its own real getSession()/refreshSession() check and shows a login
+    // screen if there is no valid session, so a faked localStorage value at
+    // worst sends someone to that real gate. Nothing here is protected.
+    var ctaBtn = document.getElementById('nav-cta-btn');
     var signinBtn = document.getElementById('nav-signin-btn');
     var mobileDash = document.getElementById('mobile-dashboard-link');
     var mobileSignup = document.getElementById('mobile-signup-btn');
-    if (dashLink) dashLink.style.display = 'inline';
+    if (ctaBtn) {
+      ctaBtn.textContent = 'Dashboard';
+      ctaBtn.setAttribute('data-nav-action', 'go-dashboard');
+    }
     if (signinBtn) signinBtn.style.display = 'none';
     if (mobileDash) mobileDash.style.display = 'block';
     if (mobileSignup) mobileSignup.style.display = 'none';
@@ -466,6 +476,7 @@ renderFooter();
 //   toggle-submenu   → expand/collapse mobile Tools or AI submenu (uses data-nav-target)
 //   open-signin      → call window.openAuthModal() (modal or redirect fallback)
 //   open-signup      → call window.openSignupModal() (modal or redirect fallback)
+//   go-dashboard     → navigate to /dashboard.html (CTA button when logged in)
 //   hub-trigger      → navigate to /learn/ (preserves previous Hub button behavior)
 (function setupNavActionDelegation() {
   var handlers = {
@@ -477,6 +488,7 @@ renderFooter();
     },
     'open-signin': function() { if (typeof window.openAuthModal === 'function') window.openAuthModal(); },
     'open-signup': function() { if (typeof window.openSignupModal === 'function') window.openSignupModal(); },
+    'go-dashboard': function() { window.location.href = '/dashboard.html'; },
     'hub-trigger': function() { window.location.href = '/learn/'; }
   };
 
