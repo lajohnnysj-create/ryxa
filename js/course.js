@@ -857,11 +857,30 @@ function toggleLessonPreview(modIdx, lessonIdx) {
 }
 
 function collapseLesson(modIdx, lessonIdx) {
+  var lesson = courseModules[modIdx].lessons[lessonIdx];
+
+  // Don't allow collapsing a lesson that has nothing in it - an empty lesson
+  // would render as a blank/untitled row and is almost always a mistake.
+  // Require either a title or actual content (text for text lessons, a video
+  // for video lessons). Tell the creator clearly instead of silently no-oping.
+  var isVideo = lesson.lesson_type === 'video';
+  var hasContent = isVideo
+    ? !!(lesson.video_url || lesson.bunny_video_id)
+    : !!(lesson.text_content);
+  var hasTitle = !!(lesson.title && lesson.title.trim());
+
+  if (!hasTitle && !hasContent) {
+    showCourseMsg('error', isVideo
+      ? 'Please enter a title or upload a video before closing this lesson.'
+      : 'Please enter a title or add content before closing this lesson.');
+    return;
+  }
+
   // Tear down the Quill instance (if any) before the host div is removed
   // by the upcoming re-render. Prevents stale references piling up across
   // expand/collapse cycles.
   unmountLessonEditor(modIdx, lessonIdx);
-  courseModules[modIdx].lessons[lessonIdx]._collapsed = true;
+  lesson._collapsed = true;
   renderCourseModules();
 }
 
