@@ -90,6 +90,105 @@ function showPricingToast(message, type) {
   }, 5000);
 }
 
+// Self-contained confirm modal. The shared showModalConfirm helper lives in the
+// dashboard bundle and is NOT available on pricing.html (which only loads
+// pricing-page.js / cookie-banner.js / site-nav.js), and project rules forbid
+// native confirm(). So this is a small, CSP-safe modal built here: no inline
+// handlers, listeners attached in JS. Calls onConfirm() if the user proceeds;
+// does nothing if they cancel or dismiss.
+function showPricingConfirm(opts, onConfirm) {
+  var existing = document.getElementById('pricing-confirm-overlay');
+  if (existing) existing.remove();
+
+  var title = opts.title || 'Confirm';
+  var message = opts.message || '';
+  var confirmLabel = opts.confirmLabel || 'Confirm';
+  var cancelLabel = opts.cancelLabel || 'Cancel';
+
+  var overlay = document.createElement('div');
+  overlay.id = 'pricing-confirm-overlay';
+  overlay.setAttribute('role', 'dialog');
+  overlay.setAttribute('aria-modal', 'true');
+  overlay.setAttribute('aria-labelledby', 'pricing-confirm-title');
+  overlay.style.cssText =
+    'position:fixed;inset:0;background:rgba(7,7,15,0.8);z-index:99998;' +
+    'display:flex;align-items:center;justify-content:center;padding:24px;' +
+    'opacity:0;transition:opacity 0.2s ease;';
+
+  var box = document.createElement('div');
+  box.style.cssText =
+    'background:#0f0f1a;border:1px solid rgba(255,255,255,0.1);border-radius:16px;' +
+    'max-width:420px;width:100%;padding:28px;font-family:"DM Sans",sans-serif;' +
+    'box-shadow:0 20px 70px rgba(0,0,0,0.5);transform:translateY(10px);' +
+    'transition:transform 0.2s ease;';
+
+  var h = document.createElement('h3');
+  h.id = 'pricing-confirm-title';
+  h.textContent = title;
+  h.style.cssText =
+    'font-family:"Syne",sans-serif;font-size:19px;font-weight:800;color:#f0eef8;' +
+    'margin:0 0 10px;letter-spacing:-0.4px;';
+
+  var p = document.createElement('p');
+  p.textContent = message;
+  p.style.cssText =
+    'font-size:14px;line-height:1.6;color:#c8c6d8;margin:0 0 22px;';
+
+  var btnRow = document.createElement('div');
+  btnRow.style.cssText = 'display:flex;gap:10px;justify-content:flex-end;';
+
+  var cancelBtn = document.createElement('button');
+  cancelBtn.type = 'button';
+  cancelBtn.textContent = cancelLabel;
+  cancelBtn.style.cssText =
+    'padding:10px 18px;border-radius:9px;font-size:14px;font-weight:500;' +
+    'font-family:"DM Sans",sans-serif;cursor:pointer;background:#161625;' +
+    'color:#f0eef8;border:1px solid rgba(255,255,255,0.12);';
+
+  var confirmBtn = document.createElement('button');
+  confirmBtn.type = 'button';
+  confirmBtn.textContent = confirmLabel;
+  confirmBtn.style.cssText =
+    'padding:10px 18px;border-radius:9px;font-size:14px;font-weight:500;' +
+    'font-family:"DM Sans",sans-serif;cursor:pointer;background:#7c3aed;' +
+    'color:#fff;border:none;';
+
+  function close() {
+    overlay.style.opacity = '0';
+    box.style.transform = 'translateY(10px)';
+    setTimeout(function() { if (overlay.parentNode) overlay.remove(); }, 200);
+    document.removeEventListener('keydown', onKey);
+  }
+  function onKey(e) {
+    if (e.key === 'Escape') close();
+  }
+
+  cancelBtn.addEventListener('click', close);
+  overlay.addEventListener('click', function(e) {
+    if (e.target === overlay) close();  // click outside the box dismisses
+  });
+  confirmBtn.addEventListener('click', function() {
+    close();
+    if (typeof onConfirm === 'function') onConfirm();
+  });
+  document.addEventListener('keydown', onKey);
+
+  btnRow.appendChild(cancelBtn);
+  btnRow.appendChild(confirmBtn);
+  box.appendChild(h);
+  box.appendChild(p);
+  box.appendChild(btnRow);
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+
+  requestAnimationFrame(function() {
+    overlay.style.opacity = '1';
+    box.style.transform = 'translateY(0)';
+  });
+  // Focus the confirm button so keyboard users can act immediately.
+  confirmBtn.focus();
+}
+
 // =================================================================
 // SESSION + SUBSCRIPTION STATE
 // =================================================================
@@ -243,6 +342,33 @@ pricingRegisterAction('select-plan', function(_e, el) {
       localStorage.setItem('fts_intended_plan', JSON.stringify({ plan: plan, cycle: cycle }));
     } catch (e) {}
     window.location.href = 'index.html?action=signup';
+    return;
+  }
+
+  // Existing active subscribers do NOT go through a Stripe Checkout page when
+  // changing plans - create-checkout-session.ts modifies their subscription
+  // directly and the prorated charge happens immediately. That can feel like a
+  // surprise ("I just clicked a button and got charged"). So for these users
+  // we show a clear confirmation first, spelling out that the charge is
+  // immediate. New / Free-tier users skip this: they go through a real Stripe
+  // Checkout page, which already has its own review-and-pay step.
+  var hasActiveSub = (currentTier === 'monthly' || currentTier === 'max') &&
+                     (currentStatus === 'active' || currentStatus === 'cancelling');
+
+  if (hasActiveSub) {
+    var planLabel = (plan === 'max' ? 'Creator Max' : 'Pro') +
+                    (cycle === 'annual' ? ' (Annual)' : ' (Monthly)');
+    showPricingConfirm({
+      title: 'Switch to ' + planLabel + '?',
+      message: 'Your plan will change right away. Stripe will charge a ' +
+               'prorated amount today for the new plan, with a credit applied ' +
+               'for the unused time on your current plan. This is not a free ' +
+               'preview - the charge happens immediately.',
+      confirmLabel: 'Confirm and pay',
+      cancelLabel: 'Cancel'
+    }, function() {
+      startCheckoutFromPricing(plan, cycle, el);
+    });
     return;
   }
 
