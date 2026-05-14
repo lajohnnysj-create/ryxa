@@ -47,6 +47,31 @@
   .plan-badge.max-badge{background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;}
   .plan-features{display:flex;flex-direction:column;gap:12px;}
   .plan-credits{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:10px;margin-bottom:18px;font-size:13px;font-weight:500;font-family:"DM Sans",sans-serif;letter-spacing:-0.1px;}
+
+  /* Billing cycle toggle */
+  .billing-toggle-wrap{display:inline-flex;align-items:center;gap:0;background:var(--surface2);border:1px solid var(--border);border-radius:999px;padding:4px;margin:0 auto 36px;position:relative;left:50%;transform:translateX(-50%);}
+  .billing-toggle-btn{background:transparent;border:none;color:var(--muted);font-family:"DM Sans",sans-serif;font-size:13px;font-weight:500;padding:9px 18px;border-radius:999px;cursor:pointer;transition:all 0.2s;display:inline-flex;align-items:center;gap:8px;}
+  .billing-toggle-btn:hover{color:var(--text);}
+  .billing-toggle-btn.is-active{background:var(--text);color:var(--bg);}
+  .billing-toggle-btn:focus-visible{outline:2px solid var(--accent2);outline-offset:2px;}
+  .billing-toggle-badge{font-size:10px;padding:2px 8px;border-radius:6px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;}
+  .billing-toggle-btn.is-active .billing-toggle-badge{background:rgba(255,255,255,0.18);color:#fff;}
+
+  /* Price element show/hide based on cycle (controlled by body class) */
+  .plan-price-monthly,.plan-price-annual{display:none;}
+  .plan-price-sub.plan-price-monthly,.plan-price-sub.plan-price-annual{display:none;}
+  body.cycle-monthly .plan-price-monthly{display:inline;}
+  body.cycle-monthly .plan-price-sub.plan-price-monthly{display:block;}
+  body.cycle-annual .plan-price-annual{display:inline;}
+  body.cycle-annual .plan-price-sub.plan-price-annual{display:block;}
+  .plan-price-sub{font-size:12px;color:var(--muted);margin-top:-12px;margin-bottom:14px;}
+  .plan-price-amount{font-family:inherit;}
+
+  @media (max-width: 600px) {
+    .billing-toggle-btn{padding:8px 14px;font-size:12px;}
+    .billing-toggle-badge{font-size:9px;padding:2px 6px;}
+  }
+
   .plan-credits-icon{flex-shrink:0;font-size:14px;line-height:1;}
   .plan-credits-amount{font-family:"Syne",sans-serif;font-weight:800;font-size:15px;letter-spacing:-0.3px;}
   .plan-credits-label{color:var(--muted);font-weight:400;}
@@ -105,13 +130,21 @@
 </style>
 <style>body{opacity:0;transition:opacity 0.2s ease;}body.site-ready{opacity:1;}</style>
 </head>
-<body>
+<body class="cycle-monthly">
 
 <div id="site-header" data-page="pricing"></div>
 
 <div class="page-header">
   <span class="section-label">Pricing</span>
   <h1>All your creator tools. <span class="gradient-text">One dashboard.</span></h1>
+</div>
+
+<div class="billing-toggle-wrap" role="group" aria-label="Billing cycle">
+  <button class="billing-toggle-btn is-active" data-pricing-action="set-cycle" data-cycle="monthly" aria-pressed="true">Monthly</button>
+  <button class="billing-toggle-btn" data-pricing-action="set-cycle" data-cycle="annual" aria-pressed="false">
+    Annual
+    <span class="billing-toggle-badge">2 months free</span>
+  </button>
 </div>
 
 <div class="pricing-section">
@@ -146,9 +179,13 @@
     <div class="plan featured">
       <div class="plan-badge">Most popular</div>
       <div class="plan-name">Pro</div>
-      <div class="plan-price">$10 <span>/ month</span></div>
+      <div class="plan-price">
+        <span class="plan-price-monthly"><span class="plan-price-amount">$10</span> <span>/ month</span></span>
+        <span class="plan-price-annual"><span class="plan-price-amount">$100</span> <span>/ year</span></span>
+      </div>
+      <div class="plan-price-sub plan-price-annual">$8.33/month, billed annually</div>
       <div class="plan-desc">For creators ready to take control of their branding.</div>
-      <button class="plan-btn pro" data-pricing-action="signup">Get started with Pro</button>
+      <button class="plan-btn pro" data-pricing-action="select-plan" data-plan="pro">Get started with Pro</button>
       <div class="plan-credits pro">
         <span class="plan-credits-icon">&#x2728;</span>
         <span class="plan-credits-amount">40</span>
@@ -175,9 +212,13 @@
     <div class="plan max-plan">
       <div class="plan-badge max-badge">Start Earning</div>
       <div class="plan-name">Creator Max</div>
-      <div class="plan-price">$20 <span>/ month</span></div>
+      <div class="plan-price">
+        <span class="plan-price-monthly"><span class="plan-price-amount">$24</span> <span>/ month</span></span>
+        <span class="plan-price-annual"><span class="plan-price-amount">$240</span> <span>/ year</span></span>
+      </div>
+      <div class="plan-price-sub plan-price-annual">$20/month, billed annually</div>
       <div class="plan-desc">Sell courses, sessions, and products directly to your audience.</div>
-      <button class="plan-btn max" data-pricing-action="signup">Try Free for 7 Days</button>
+      <button class="plan-btn max" data-pricing-action="select-plan" data-plan="max">Try Free for 7 Days</button>
       <div class="plan-credits max">
         <span class="plan-credits-icon">&#x2728;</span>
         <span class="plan-credits-amount">85</span>
