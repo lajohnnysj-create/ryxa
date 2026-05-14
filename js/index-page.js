@@ -341,9 +341,31 @@ async function handleAuth() {
     resetTurnstile();
     return;
   }
+  // For signup, build an emailRedirectTo that carries the plan-checkout intent
+  // (if any) as URL params. This makes the post-signup checkout flow survive a
+  // device switch: if the user signs up on a laptop but opens the confirmation
+  // email on their phone, the intent travels inside the confirmation link
+  // itself rather than relying on the laptop's localStorage. dashboard.html
+  // reads these params (and still falls back to localStorage for same-device).
+  let signUpOptions = { captchaToken };
+  if (authMode === 'signup') {
+    let emailRedirectTo = 'https://ryxa.io/dashboard.html';
+    try {
+      const intentRaw = localStorage.getItem('fts_intended_plan');
+      if (intentRaw) {
+        const parsed = JSON.parse(intentRaw);
+        if (parsed && parsed.plan) {
+          const plan = parsed.plan === 'max' ? 'max' : 'pro';
+          const cycle = parsed.cycle === 'annual' ? 'annual' : 'monthly';
+          emailRedirectTo += '?plan=' + encodeURIComponent(plan) + '&cycle=' + encodeURIComponent(cycle);
+        }
+      }
+    } catch (_) { /* no intent or bad JSON - just use the bare dashboard URL */ }
+    signUpOptions.emailRedirectTo = emailRedirectTo;
+  }
   const result = authMode === 'signin'
     ? await sb.auth.signInWithPassword({ email, password, options: { captchaToken } })
-    : await sb.auth.signUp({ email, password, options: { captchaToken } });
+    : await sb.auth.signUp({ email, password, options: signUpOptions });
   btn.disabled = false; btn.textContent = authMode === 'signin' ? 'Sign in' : 'Create account';
   // CAPTCHA token is single-use — always reset for next attempt
   resetTurnstile();

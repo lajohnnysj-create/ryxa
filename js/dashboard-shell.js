@@ -559,23 +559,43 @@ async function setUser(user) {
   // Apply currency symbol to all prefix elements throughout the dashboard
   applyCurrencySymbols();
 
-  // Post-signup checkout: if user arrived with a plan intent from pricing page
+  // Post-signup checkout: if user arrived with a plan intent from pricing page.
+  // Two sources, in priority order:
+  //   1. URL params (?plan=max&cycle=annual) - set by index-page.js as the
+  //      signup emailRedirectTo. These survive a device switch because they
+  //      travel inside the email confirmation link itself.
+  //   2. localStorage fts_intended_plan - the same-device path. Still works
+  //      when the user confirms email in the same browser they signed up in.
   try {
+    let intentObj = null;
+
+    // Source 1: URL params
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlPlan = urlParams.get('plan');
+      const urlCycle = urlParams.get('cycle');
+      if (urlPlan === 'max' || urlPlan === 'pro') {
+        intentObj = {
+          plan: urlPlan,
+          cycle: urlCycle === 'annual' ? 'annual' : 'monthly'
+        };
+        // Strip the params from the URL so a refresh doesn't re-trigger checkout.
+        try {
+          const cleanUrl = window.location.pathname + window.location.hash;
+          window.history.replaceState({}, document.title, cleanUrl);
+        } catch (_) {}
+      }
+    } catch (_) {}
+
+    // Source 2: localStorage (fallback, same-device path)
     const intentRaw = localStorage.getItem('fts_intended_plan');
     if (intentRaw) {
       // ALWAYS clear the intent — we don't want it to persist across sessions
       localStorage.removeItem('fts_intended_plan');
-      // Only auto-fire checkout if user is on Free tier AND has no active subscription.
-      // This prevents accidental upgrades for Pro/Max users who happened to click a
-      // pricing page button while already logged in.
-      const hasActiveSub = userStatus === 'active' || userStatus === 'cancelling';
-      if (userTier === 'free' && !hasActiveSub) {
+      // Only use localStorage if URL params didn't already give us an intent.
+      if (!intentObj) {
         // Parse the intent. New shape is JSON {plan, cycle}; legacy shape is a
-        // bare string ('max' / 'monthly'). startCheckout accepts an intent
-        // object directly, so normalize to that. Passing the raw JSON STRING
-        // would not work — startCheckout only JSON-parses when reading from
-        // localStorage itself, and we've already cleared it above.
-        let intentObj = null;
+        // bare string ('max' / 'monthly').
         try {
           const parsed = JSON.parse(intentRaw);
           if (parsed && parsed.plan) {
@@ -589,9 +609,16 @@ async function setUser(user) {
           if (intentRaw === 'max') intentObj = { plan: 'max', cycle: 'monthly' };
           else if (intentRaw === 'monthly' || intentRaw === 'pro') intentObj = { plan: 'pro', cycle: 'monthly' };
         }
-        if (intentObj) {
-          setTimeout(() => startCheckout(intentObj), 500);
-        }
+      }
+    }
+
+    if (intentObj) {
+      // Only auto-fire checkout if user is on Free tier AND has no active
+      // subscription. Prevents accidental upgrades for Pro/Max users who
+      // happened to arrive with a stale intent.
+      const hasActiveSub = userStatus === 'active' || userStatus === 'cancelling';
+      if (userTier === 'free' && !hasActiveSub) {
+        setTimeout(() => startCheckout(intentObj), 500);
       }
     }
   } catch (e) { console.warn('intent check', e); }
