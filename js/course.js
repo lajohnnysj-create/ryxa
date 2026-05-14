@@ -870,9 +870,18 @@ function collapseLesson(modIdx, lessonIdx) {
   var hasTitle = !!(lesson.title && lesson.title.trim());
 
   if (!hasTitle && !hasContent) {
-    showCourseMsg('error', isVideo
+    var emptyMsg = isVideo
       ? 'Please enter a title or upload a video before closing this lesson.'
-      : 'Please enter a title or add content before closing this lesson.');
+      : 'Please enter a title or add content before closing this lesson.';
+    // Use the viewport-fixed dashboard toast (not showCourseMsg, which renders
+    // at the top of the editor and would be scrolled out of view - the Done
+    // button is down in the expanded lesson). Falls back to showCourseMsg if
+    // the shared toast helper isn't available for any reason.
+    if (typeof showDashToast === 'function') {
+      showDashToast('error', emptyMsg);
+    } else {
+      showCourseMsg('error', emptyMsg);
+    }
     return;
   }
 
