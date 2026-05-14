@@ -898,7 +898,7 @@ function updateTierUI() {
       // Free user: show Pro upgrade with default styling, plus the secondary Max button.
       upgradeBtn.style.display = 'block';
       upgradeBtn.textContent = 'Upgrade to Pro';
-      upgradeBtn.onclick = function() { startCheckout(undefined, this); };
+      upgradeBtn.onclick = function() { goToPricing('pro'); };
       upgradeBtn.style.background = '';
       upgradeBtn.style.boxShadow = '';
       if (maxBtn) maxBtn.style.display = 'block';
@@ -1099,6 +1099,25 @@ window.addEventListener('pageshow', function(e) {
     try { clearBtnLoading(btn); } catch (_) {}
   });
 });
+
+// =============================================================================
+// goToPricing - the new SaaS-standard upgrade entry point.
+//
+// Instead of upsell buttons triggering Stripe Checkout directly, they now
+// send the user to /pricing.html where they pick plan + billing cycle. The
+// pricing page handles the rest (logged-in users get in-place updates or
+// fresh checkout; logged-out users go through signup with stored intent).
+//
+// Optional highlightPlan ('pro' | 'max') adds a query param the pricing
+// page could use to visually emphasize a plan. Harmless if unused.
+// =============================================================================
+function goToPricing(highlightPlan) {
+  var url = '/pricing.html';
+  if (highlightPlan === 'pro' || highlightPlan === 'max') {
+    url += '?highlight=' + highlightPlan;
+  }
+  window.location.href = url;
+}
 
 async function startCheckout(planOrIntent, cycleOrBtn, maybeBtn) {
   if (!currentUser) { window.location.href = 'index.html'; return; }
@@ -1326,32 +1345,23 @@ function closeProUpsell() {
 }
 
 async function confirmProUpsell(ev) {
-  const btn = ev && ev.currentTarget && ev.currentTarget.tagName === 'BUTTON' ? ev.currentTarget : null;
-  // Free → Pro goes through standard Stripe checkout (new card needed).
-  // The modal stays open while the redirect happens so the user sees the spinner.
-  await startCheckout('monthly', btn);
+  // New flow: all upgrades route through the pricing page where the user
+  // picks plan + billing cycle. (Previously this fired Stripe checkout
+  // directly for Pro Monthly.)
   closeProUpsell();
+  goToPricing('pro');
 }
 
 async function confirmTopbarUpgradeToMax(ev) {
-  const btn = ev && ev.currentTarget && ev.currentTarget.tagName === 'BUTTON' ? ev.currentTarget : null;
-  // Modal stays open while loading so the spinner is visible. On success the page
-  // navigates to Stripe (or in-place upgrade opens settings) — close the confirm
-  // modal afterward in either case so it doesn't sit on top.
-  await startCheckout('max', btn);
+  // New flow: route to pricing page instead of firing checkout directly.
   closeTopbarUpgradeConfirm();
+  goToPricing('max');
 }
 
 // Unified handler for any "Upgrade to Creator Max" button outside the topbar.
-// Free users go straight to Stripe checkout (need to enter card).
-// Pro users see the confirmation modal first (avoid accidental in-place upgrade).
+// New flow: everyone goes to the pricing page to pick plan + billing cycle.
 function handleMaxUpgradeClick(ev) {
-  if (isPro() && !isMax()) {
-    promptUpgradeToMax();
-  } else {
-    const btn = ev && ev.currentTarget && ev.currentTarget.tagName === 'BUTTON' ? ev.currentTarget : null;
-    startCheckout('max', btn);
-  }
+  goToPricing('max');
 }
 
 // Step 1: user clicked "Downgrade to Pro" — show inline confirmation
@@ -2157,7 +2167,7 @@ dashRegisterAction('copy-sidebar-bio-link', () => copySidebarBioLink());
 // closes when navigating away (mimics the original inline `a();b();` pattern).
 dashRegisterAction('sidebar-upgrade-pro', (e, el) => {
   closeSidebarMenu();
-  startCheckout('monthly', el);
+  goToPricing('pro');
 });
 dashRegisterAction('sidebar-install-pwa', () => {
   handleInstallClick();
@@ -2174,10 +2184,10 @@ dashRegisterAction('sidebar-open-signout', () => {
 // Mobile hamburger menu open, upgrade banner buttons.
 // =============================================================================
 dashRegisterAction('open-sidebar', () => openSidebar());
-// Upgrade banner buttons (above the tool area). The Pro button passes undefined
-// to let startCheckout fall back to default Pro pricing.
-dashRegisterAction('checkout-pro', (e, el) => startCheckout(undefined, el));
-dashRegisterAction('checkout-max', (e, el) => startCheckout('max', el));
+// Upgrade banner buttons (above the tool area). Both route to the pricing
+// page where the user picks plan + billing cycle.
+dashRegisterAction('checkout-pro', () => goToPricing('pro'));
+dashRegisterAction('checkout-max', () => goToPricing('max'));
 
 // =============================================================================
 // PWA LOGIN SCREEN ACTIONS

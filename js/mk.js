@@ -1626,7 +1626,7 @@ function buildMKPreviewHTML() {
 // =============================================================================
 
 // Top-of-tool buttons
-mkRegisterAction('start-checkout', (e, el) => startCheckout(undefined, el));
+mkRegisterAction('start-checkout', (e, el) => goToPricing('pro'));
 mkRegisterAction('save', () => saveMediaKit());
 mkRegisterAction('toggle-publish', () => toggleMediaKitPublish());
 

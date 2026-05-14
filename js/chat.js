@@ -487,7 +487,7 @@ async function aichatSend() {
 // =============================================================================
 
 // Paywall — external startCheckout function (defined in dashboard.html)
-chatRegisterAction('start-checkout', (e, el) => startCheckout(el.dataset.chatPlan || 'monthly', el));
+chatRegisterAction('start-checkout', (e, el) => goToPricing(el.dataset.chatPlan === 'max' ? 'max' : 'pro'));
 
 // Sidebar toggle
 chatRegisterAction('toggle-side-open', () => aichatToggleSide(true));

@@ -606,7 +606,7 @@ gridRegisterAction('save', () => saveGrid());
 
 // Paywall — uses startCheckout fallback (passing nothing lets it pick up
 // localStorage intent or default to monthly Pro)
-gridRegisterAction('start-checkout', (e, el) => startCheckout(undefined, el));
+gridRegisterAction('start-checkout', (e, el) => goToPricing('pro'));
 
 // File input change handlers (multiple file inputs in different render states)
 gridRegisterAction('handle-files', (e, el) => {

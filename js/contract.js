@@ -405,7 +405,7 @@ function buildCaPrintHTML(r, fileName) {
 // ACTION REGISTRATIONS
 // =============================================================================
 
-contractRegisterAction('start-checkout', (e, el) => startCheckout(el.dataset.contractPlan || 'monthly', el));
+contractRegisterAction('start-checkout', (e, el) => goToPricing(el.dataset.contractPlan === 'max' ? 'max' : 'pro'));
 contractRegisterAction('trigger-upload', () => {
   var input = document.getElementById('ca-file-input');
   if (input) input.click();

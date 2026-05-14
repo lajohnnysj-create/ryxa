@@ -226,11 +226,11 @@ function confirmUpgradeToMax() {
   if (el) el.style.display = 'block';
 }
 
-// Step 2: user clicked "Yes, upgrade" — actually trigger Stripe
+// Step 2: user clicked "Yes, upgrade" — route to pricing page where they
+// pick plan + billing cycle. (Previously fired Stripe checkout directly.)
 async function confirmUpgradeToMaxFinal(ev) {
   dismissSettingsMsg();
-  const btn = ev && ev.currentTarget && ev.currentTarget.tagName === 'BUTTON' ? ev.currentTarget : null;
-  await startCheckout('max', btn);
+  goToPricing('max');
 }
 
 // ---------- From dashboard.html L10262-10273: handleDowngradeToPro + confirmDowngradeToPro ----------
@@ -240,11 +240,11 @@ function handleDowngradeToPro() {
   if (el) el.style.display = 'block';
 }
 
-// Step 2: user clicked "Yes, downgrade" — actually trigger Stripe
+// Step 2: user clicked "Yes, downgrade" — route to pricing page. The pricing
+// page is current-plan aware and will show "Switch to Pro" for a Max user.
 async function confirmDowngradeToPro(ev) {
   dismissSettingsMsg();
-  const btn = ev && ev.currentTarget && ev.currentTarget.tagName === 'BUTTON' ? ev.currentTarget : null;
-  await startCheckout('monthly', btn);
+  goToPricing('pro');
 }
 
 // ---------- From dashboard.html L10685-10714: changeDisplayCurrency ----------
@@ -805,8 +805,8 @@ settingsRegisterAction('confirm-disconnect-instagram', () => confirmDisconnectIn
 settingsRegisterAction('change-currency', (e, el) => changeDisplayCurrency(el.value));
 
 // Subscription / Upgrade flows
-settingsRegisterAction('checkout-monthly', (e, el) => startCheckout('monthly', el));
-settingsRegisterAction('checkout-max', (e, el) => startCheckout('max', el));
+settingsRegisterAction('checkout-monthly', () => goToPricing('pro'));
+settingsRegisterAction('checkout-max', () => goToPricing('max'));
 settingsRegisterAction('confirm-upgrade-max', () => confirmUpgradeToMax());
 settingsRegisterAction('confirm-upgrade-max-final', (e) => confirmUpgradeToMaxFinal(e));
 settingsRegisterAction('handle-downgrade-pro', () => handleDowngradeToPro());

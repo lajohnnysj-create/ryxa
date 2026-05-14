@@ -261,7 +261,7 @@ function taRenderResults(r) {
 // ACTION REGISTRATIONS
 // =============================================================================
 
-thumbRegisterAction('start-checkout', (e, el) => startCheckout(el.dataset.thumbPlan || 'monthly', el));
+thumbRegisterAction('start-checkout', (e, el) => goToPricing(el.dataset.thumbPlan === 'max' ? 'max' : 'pro'));
 thumbRegisterAction('trigger-upload', () => {
   var input = document.getElementById('ta-file-input');
   if (input) input.click();

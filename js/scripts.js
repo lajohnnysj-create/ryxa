@@ -2316,7 +2316,7 @@ function copyToClipboard(text) {
 // =============================================================================
 
 // Paywall (markup) — startCheckout defined in dashboard.html
-scriptsRegisterAction('start-checkout', (e, el) => startCheckout(el.dataset.scriptsPlan || 'monthly', el));
+scriptsRegisterAction('start-checkout', (e, el) => goToPricing(el.dataset.scriptsPlan === 'max' ? 'max' : 'pro'));
 
 // Scripts list (markup)
 scriptsRegisterAction('create-new', () => createNewScript());
