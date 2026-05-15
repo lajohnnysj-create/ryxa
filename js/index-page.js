@@ -316,10 +316,21 @@ function resetTurnstile() {
 }
 
 async function handleGoogleAuth() {
+  // Carry a hero-claimed username through OAuth the same way the email
+  // signup carries it - as a URL param on the redirect target, so the
+  // dashboard first-run flow can pre-fill it. localStorage also still works
+  // for the same-device case; the param covers everything else.
+  let redirectTo = 'https://ryxa.io/dashboard.html';
+  try {
+    const intendedUsername = localStorage.getItem('ryx_intended_username');
+    if (intendedUsername) {
+      redirectTo += '?username=' + encodeURIComponent(intendedUsername);
+    }
+  } catch (_) { /* storage unavailable - bare redirect */ }
   const { error } = await sb.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: 'https://ryxa.io/dashboard.html',
+      redirectTo: redirectTo,
     },
   });
   if (error) showAuthMsg('error', error.message);
@@ -350,6 +361,7 @@ async function handleAuth() {
   let signUpOptions = { captchaToken };
   if (authMode === 'signup') {
     let emailRedirectTo = 'https://ryxa.io/dashboard.html';
+    const redirectParams = new URLSearchParams();
     try {
       const intentRaw = localStorage.getItem('fts_intended_plan');
       if (intentRaw) {
@@ -357,10 +369,19 @@ async function handleAuth() {
         if (parsed && parsed.plan) {
           const plan = parsed.plan === 'max' ? 'max' : 'pro';
           const cycle = parsed.cycle === 'annual' ? 'annual' : 'monthly';
-          emailRedirectTo += '?plan=' + encodeURIComponent(plan) + '&cycle=' + encodeURIComponent(cycle);
+          redirectParams.set('plan', plan);
+          redirectParams.set('cycle', cycle);
         }
       }
-    } catch (_) { /* no intent or bad JSON - just use the bare dashboard URL */ }
+    } catch (_) { /* no plan intent or bad JSON - skip */ }
+    try {
+      // Carry the hero-claimed username so the dashboard first-run flow can
+      // pre-fill it. Survives a device switch because it rides in the link.
+      const intendedUsername = localStorage.getItem('ryx_intended_username');
+      if (intendedUsername) redirectParams.set('username', intendedUsername);
+    } catch (_) { /* no username intent - skip */ }
+    const qs = redirectParams.toString();
+    if (qs) emailRedirectTo += '?' + qs;
     signUpOptions.emailRedirectTo = emailRedirectTo;
   }
   const result = authMode === 'signin'
@@ -437,6 +458,150 @@ homeRegisterAction('open-signup', function() { openSignupModal(); });
 homeRegisterAction('open-signin', function() { openAuthModal(); });
 homeRegisterAction('scroll-testimonials-left', function() { scrollTestimonials(-1); });
 homeRegisterAction('scroll-testimonials-right', function() { scrollTestimonials(1); });
+
+// =================================================================
+// HERO USERNAME CLAIM
+// The hero has a "ryxa.io/" field where a visitor can type a desired
+// username and see if it is available. On "Get started free" the chosen
+// username is carried into signup: stored in localStorage (same-device)
+// AND appended to emailRedirectTo as a URL param (survives a device
+// switch / email confirmation / Google OAuth). The dashboard's first-run
+// terms modal then reads it, pre-fills it, and the actual save happens
+// there using the dashboard's existing username system.
+//
+// This is a soft pre-fill, not a hard reservation: the dashboard re-checks
+// availability when the user confirms, so a username taken in the gap is
+// handled gracefully by the existing dashboard checker.
+// =================================================================
+
+// Reserved usernames - mirrors BIO_RESERVED in dashboard-shell.js. Kept in
+// sync manually; both lists must agree.
+var HERO_RESERVED = new Set([
+  'admin','about','api','blog','contact','dashboard','deal','brand-portal','faq','findthesnakes','ryxa',
+  'follower-audit','help','home','index','instructions','login','mail',
+  'pricing','privacy','reset-password','root','settings','signin','signup',
+  'support','terms','user','username','www',
+  'youtube','instagram','tiktok','twitter','facebook','google','snake','snakes'
+]);
+
+var heroUsernameCheckTimer = null;
+var heroUsernameCheckToken = 0;
+var heroUsernameState = 'empty';  // 'empty' | 'invalid' | 'checking' | 'available' | 'taken' | 'error'
+
+// Strip to the same character set the dashboard allows: lowercase a-z, 0-9,
+// underscore. Mirrors the dashboard's cleaning so what a visitor types here
+// matches what the dashboard will accept.
+function heroCleanUsername(raw) {
+  return (raw || '').toLowerCase().replace(/[^a-z0-9_]/g, '');
+}
+
+function heroSetUsernameHint(text, stateClass) {
+  var hint = document.getElementById('hero-username-hint');
+  var field = document.querySelector('.hero-claim-field');
+  if (hint) {
+    hint.textContent = text || '';
+    hint.classList.remove('is-available', 'is-taken');
+    if (stateClass) hint.classList.add(stateClass);
+  }
+  if (field) {
+    field.classList.remove('is-available', 'is-taken');
+    if (stateClass) field.classList.add(stateClass);
+  }
+}
+
+function heroOnUsernameInput() {
+  var input = document.getElementById('hero-username');
+  if (!input) return;
+  var cleaned = heroCleanUsername(input.value);
+  // Reflect the cleaned value back so the user sees exactly what is valid.
+  if (cleaned !== input.value) input.value = cleaned;
+
+  clearTimeout(heroUsernameCheckTimer);
+  heroUsernameCheckToken++;
+
+  if (!cleaned) {
+    heroUsernameState = 'empty';
+    heroSetUsernameHint('', null);
+    return;
+  }
+  if (cleaned.length < 3) {
+    heroUsernameState = 'invalid';
+    heroSetUsernameHint('Too short, minimum 3 characters.', 'is-taken');
+    return;
+  }
+  if (HERO_RESERVED.has(cleaned)) {
+    heroUsernameState = 'invalid';
+    heroSetUsernameHint('That username is reserved. Pick another.', 'is-taken');
+    return;
+  }
+  heroUsernameState = 'checking';
+  heroSetUsernameHint('Checking availability...', null);
+  var myToken = heroUsernameCheckToken;
+  heroUsernameCheckTimer = setTimeout(function() {
+    heroCheckUsernameAvailability(cleaned, myToken);
+  }, 500);
+}
+
+async function heroCheckUsernameAvailability(username, token) {
+  try {
+    var res = await sb
+      .from('public_profiles')
+      .select('user_id')
+      .eq('username', username)
+      .maybeSingle();
+    // Ignore if the user kept typing after this request fired.
+    if (token !== heroUsernameCheckToken) return;
+    if (res.error) {
+      heroUsernameState = 'error';
+      heroSetUsernameHint('Could not check right now. You can still continue.', null);
+      return;
+    }
+    if (!res.data) {
+      heroUsernameState = 'available';
+      heroSetUsernameHint('ryxa.io/' + username + ' is available.', 'is-available');
+    } else {
+      heroUsernameState = 'taken';
+      heroSetUsernameHint('That username is taken, try another.', 'is-taken');
+    }
+  } catch (e) {
+    if (token !== heroUsernameCheckToken) return;
+    heroUsernameState = 'error';
+    heroSetUsernameHint('Could not check right now. You can still continue.', null);
+  }
+}
+
+// "Get started free" from the hero. Persists the chosen username (if the
+// field has a usable value) so the dashboard first-run flow can pre-fill it,
+// then opens the signup modal. An empty or invalid field is allowed - the
+// user just signs up without a pre-filled username and picks one later.
+function heroClaimUsername() {
+  var input = document.getElementById('hero-username');
+  var cleaned = input ? heroCleanUsername(input.value) : '';
+  // Only carry forward a username that is at least plausibly valid. We do
+  // NOT block on 'taken' or 'checking' - the dashboard re-verifies anyway,
+  // and blocking signup over a username check would hurt conversion.
+  if (cleaned && cleaned.length >= 3 && !HERO_RESERVED.has(cleaned)) {
+    try {
+      localStorage.setItem('ryx_intended_username', cleaned);
+    } catch (e) { /* storage unavailable - URL param path still works */ }
+  } else {
+    try { localStorage.removeItem('ryx_intended_username'); } catch (e) {}
+  }
+  openSignupModal();
+}
+
+(function initHeroClaim() {
+  var input = document.getElementById('hero-username');
+  if (input) {
+    input.addEventListener('input', heroOnUsernameInput);
+    // Enter in the field acts as "Get started free".
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') { e.preventDefault(); heroClaimUsername(); }
+    });
+  }
+})();
+
+homeRegisterAction('claim-username', function() { heroClaimUsername(); });
 
 // =================================================================
 // BINARY RAIN ANIMATION (originally inline at L1226-1351)

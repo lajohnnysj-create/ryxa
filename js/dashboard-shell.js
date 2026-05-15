@@ -579,9 +579,17 @@ async function setUser(user) {
           plan: urlPlan,
           cycle: urlCycle === 'annual' ? 'annual' : 'monthly'
         };
-        // Strip the params from the URL so a refresh doesn't re-trigger checkout.
+        // Strip the plan params from the URL so a refresh doesn't re-trigger
+        // checkout - but PRESERVE ?username= if present, because the terms
+        // modal (checkTermsAcceptance) still needs to read it. Without this,
+        // a user who signed up with both a plan and a hero-claimed username
+        // would lose the username pre-fill.
         try {
-          const cleanUrl = window.location.pathname + window.location.hash;
+          var keptUsername = urlParams.get('username');
+          var cleanSearch = keptUsername
+            ? '?username=' + encodeURIComponent(keptUsername)
+            : '';
+          const cleanUrl = window.location.pathname + cleanSearch + window.location.hash;
           window.history.replaceState({}, document.title, cleanUrl);
         } catch (_) {}
       }
@@ -650,10 +658,118 @@ function handleGcalRedirect() {
   showTool('calendar');
 }
 
+// Username claim in the first-run terms modal. A username may have been
+// chosen on the homepage hero - it arrives as ?username= on the URL (works
+// across device / email confirmation / OAuth) or in localStorage (same
+// device). We pre-fill it, run the same availability check the dashboard
+// already uses elsewhere, and the actual save happens in acceptTerms().
+var termsUsernameCheckTimer = null;
+var termsUsernameCheckToken = 0;
+var termsUsernameState = 'empty';  // 'empty'|'invalid'|'checking'|'available'|'taken'|'error'
+
+function termsCleanUsername(raw) {
+  return (raw || '').toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 30);
+}
+
+function termsSetUsernameHint(text, kind) {
+  var hint = document.getElementById('terms-username-hint');
+  var field = document.getElementById('terms-username-field');
+  if (hint) {
+    hint.textContent = text || '';
+    hint.style.color = kind === 'ok' ? '#4ade80'
+      : kind === 'bad' ? '#fca5a5'
+      : 'var(--muted)';
+  }
+  if (field) {
+    field.style.borderColor = kind === 'ok' ? '#4ade80'
+      : kind === 'bad' ? '#f87171'
+      : 'rgba(255,255,255,0.14)';
+  }
+}
+
+// Enable the Continue button only when terms are checked AND the username
+// is not in a blocking state. An empty username is allowed (optional);
+// 'checking', 'invalid', and 'taken' block; 'error' is allowed through
+// because acceptTerms re-validates server-side anyway.
+function termsSyncContinueButton() {
+  var check = document.getElementById('terms-accept-check');
+  var btn = document.getElementById('terms-accept-btn');
+  if (!check || !btn) return;
+  var usernameBlocks = (termsUsernameState === 'checking'
+    || termsUsernameState === 'invalid'
+    || termsUsernameState === 'taken');
+  var ok = check.checked && !usernameBlocks;
+  btn.disabled = !ok;
+  btn.style.opacity = ok ? '1' : '0.5';
+  btn.style.pointerEvents = ok ? 'auto' : 'none';
+}
+
+function termsOnUsernameInput() {
+  var input = document.getElementById('terms-username');
+  if (!input) return;
+  var cleaned = termsCleanUsername(input.value);
+  if (cleaned !== input.value) input.value = cleaned;
+
+  clearTimeout(termsUsernameCheckTimer);
+  termsUsernameCheckToken++;
+
+  if (!cleaned) {
+    termsUsernameState = 'empty';
+    termsSetUsernameHint('Optional. You can set this later in your Link in Bio.', null);
+    termsSyncContinueButton();
+    return;
+  }
+  if (cleaned.length < 3) {
+    termsUsernameState = 'invalid';
+    termsSetUsernameHint('Too short, minimum 3 characters.', 'bad');
+    termsSyncContinueButton();
+    return;
+  }
+  if (typeof BIO_RESERVED !== 'undefined' && BIO_RESERVED.has(cleaned)) {
+    termsUsernameState = 'invalid';
+    termsSetUsernameHint('That username is reserved. Pick another.', 'bad');
+    termsSyncContinueButton();
+    return;
+  }
+  termsUsernameState = 'checking';
+  termsSetUsernameHint('Checking availability...', null);
+  termsSyncContinueButton();
+  var myToken = termsUsernameCheckToken;
+  termsUsernameCheckTimer = setTimeout(function() {
+    termsCheckUsernameAvailability(cleaned, myToken);
+  }, 500);
+}
+
+async function termsCheckUsernameAvailability(username, token) {
+  try {
+    var res = await sb.from('public_profiles').select('user_id').eq('username', username).maybeSingle();
+    if (token !== termsUsernameCheckToken) return;
+    if (res.error) {
+      termsUsernameState = 'error';
+      termsSetUsernameHint('Could not check right now. We will verify when you continue.', null);
+      termsSyncContinueButton();
+      return;
+    }
+    if (!res.data || res.data.user_id === currentUser?.id) {
+      termsUsernameState = 'available';
+      termsSetUsernameHint('ryxa.io/' + username + ' is available.', 'ok');
+    } else {
+      termsUsernameState = 'taken';
+      termsSetUsernameHint('That username is taken, try another.', 'bad');
+    }
+    termsSyncContinueButton();
+  } catch (e) {
+    if (token !== termsUsernameCheckToken) return;
+    termsUsernameState = 'error';
+    termsSetUsernameHint('Could not check right now. We will verify when you continue.', null);
+    termsSyncContinueButton();
+  }
+}
+
 async function checkTermsAcceptance() {
   if (!currentUser) return;
   try {
-    var { data } = await sb.from('profiles').select('accepted_terms, marketing_emails').eq('user_id', currentUser.id).single();
+    var { data } = await sb.from('profiles').select('accepted_terms, marketing_emails, username').eq('user_id', currentUser.id).single();
     if (data && data.accepted_terms) {
       // Load marketing preference into settings
       var toggle = document.getElementById('settings-marketing-emails');
@@ -665,15 +781,35 @@ async function checkTermsAcceptance() {
     if (modal) modal.style.display = 'flex';
     var marketingCheck = document.getElementById('terms-marketing-check');
     if (marketingCheck) marketingCheck.checked = !!data?.marketing_emails;
+
+    // Pre-fill the username field. Priority: a username already on the
+    // profile (rare at first-run, but respect it) > ?username= URL param >
+    // localStorage. The URL param and localStorage carry the hero-claimed
+    // username across signup / email confirmation / OAuth.
+    var input = document.getElementById('terms-username');
+    if (input) {
+      var prefill = '';
+      if (data && data.username) {
+        prefill = data.username;
+      } else {
+        try {
+          var fromUrl = new URLSearchParams(window.location.search).get('username');
+          var fromStore = localStorage.getItem('ryx_intended_username');
+          prefill = fromUrl || fromStore || '';
+        } catch (e) { /* storage/URL unavailable */ }
+      }
+      input.value = termsCleanUsername(prefill);
+      input.addEventListener('input', termsOnUsernameInput);
+      // Run an initial check so a pre-filled username shows its state.
+      termsOnUsernameInput();
+    }
+
     var check = document.getElementById('terms-accept-check');
     var btn = document.getElementById('terms-accept-btn');
     if (check && btn) {
-      check.addEventListener('change', function() {
-        btn.disabled = !check.checked;
-        btn.style.opacity = check.checked ? '1' : '0.5';
-        btn.style.pointerEvents = check.checked ? 'auto' : 'none';
-      });
+      check.addEventListener('change', termsSyncContinueButton);
     }
+    termsSyncContinueButton();
   } catch (e) { console.error('Terms check error:', e); }
 }
 
@@ -682,21 +818,65 @@ async function acceptTerms() {
   var check = document.getElementById('terms-accept-check');
   if (!check || !check.checked) return;
   var btn = document.getElementById('terms-accept-btn');
+  var errEl = document.getElementById('terms-error');
+  if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
   if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
   try {
     var marketingCheck = document.getElementById('terms-marketing-check');
-    var { error } = await sb.from('profiles').update({
+    var input = document.getElementById('terms-username');
+    var uname = input ? termsCleanUsername(input.value) : '';
+
+    // Build the profile update. accepted_terms + marketing_emails always.
+    var updatePayload = {
       accepted_terms: true,
       marketing_emails: marketingCheck ? marketingCheck.checked : false
-    }).eq('user_id', currentUser.id);
+    };
+
+    // If a username was entered, validate and re-check availability now
+    // (the homepage check could be minutes or hours stale). If it fails,
+    // we surface the error and do NOT proceed - the user fixes it and
+    // retries. An empty username is fine; it stays unset for now.
+    if (uname) {
+      if (uname.length < 3) {
+        throw new Error('Username is too short. Use at least 3 characters, or clear it to set one later.');
+      }
+      if (typeof BIO_RESERVED !== 'undefined' && BIO_RESERVED.has(uname)) {
+        throw new Error('That username is reserved. Pick another, or clear it to set one later.');
+      }
+      var avail = await sb.from('public_profiles').select('user_id').eq('username', uname).maybeSingle();
+      if (avail.error) {
+        throw new Error('Could not verify that username right now. Please try again.');
+      }
+      if (avail.data && avail.data.user_id !== currentUser.id) {
+        throw new Error('That username was just taken. Please choose another.');
+      }
+      updatePayload.username = uname;
+    }
+
+    var { error } = await sb.from('profiles').update(updatePayload).eq('user_id', currentUser.id);
     if (error) throw error;
+
+    // Clean up the carried-forward username now that it is saved (or the
+    // user chose not to use it).
+    try { localStorage.removeItem('ryx_intended_username'); } catch (e) {}
+
+    // Keep the in-memory username + greeting in sync if one was set.
+    if (uname) {
+      window._ryx_username = uname;
+      var bioLinkText = document.getElementById('bio-link-text');
+      if (bioLinkText) bioLinkText.textContent = 'ryxa.io/' + uname;
+    }
+
     var modal = document.getElementById('terms-modal');
     if (modal) modal.style.display = 'none';
   } catch (e) {
     console.error('Accept terms error:', e);
-    var errEl = document.getElementById('terms-error');
-    if (errEl) { errEl.textContent = 'Something went wrong. Please try again.'; errEl.style.display = 'block'; }
+    if (errEl) {
+      errEl.textContent = e.message || 'Something went wrong. Please try again.';
+      errEl.style.display = 'block';
+    }
     if (btn) { btn.disabled = false; btn.textContent = 'Continue'; }
+    return;
   }
 }
 
