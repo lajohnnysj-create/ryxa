@@ -179,7 +179,12 @@
   .hero-claim-field.is-available { border-color: #4ade80; }
   .hero-claim-field.is-taken { border-color: #f87171; }
   .hero-claim-prefix { color: var(--muted); font-size: 15px; font-family: "DM Sans", sans-serif; white-space: nowrap; user-select: none; }
-  .hero-claim-input { flex: 1; min-width: 0; background: transparent; border: none; outline: none; color: var(--text); font-size: 15px; font-family: "DM Sans", sans-serif; padding: 14px 8px; }
+  .hero-claim-input { flex: 1; min-width: 0; background: transparent; border: none; outline: none; color: var(--text); font-size: 15px; font-family: "DM Sans", sans-serif; padding: 14px 8px; -webkit-appearance: none; appearance: none; }
+  /* type=search is used (not text) because iOS Safari does not fire its
+     password-autofill heuristic on search inputs. Strip the native search
+     chrome so it looks identical to a normal text field. */
+  .hero-claim-input::-webkit-search-cancel-button,
+  .hero-claim-input::-webkit-search-decoration { -webkit-appearance: none; appearance: none; display: none; }
   /* Suppress the global *:focus-visible outline on the input itself - it
      would box just the typing area, visually detached from the ryxa.io/
      prefix. Accessibility is preserved: the wrapper's :focus-within
@@ -658,8 +663,8 @@
             <div class="hero-claim-row">
               <div class="hero-claim-field">
                 <span class="hero-claim-prefix">ryxa.io/</span>
-                <input type="text" id="hero-handle-field" name="ryxa-handle" class="hero-claim-input"
-                  placeholder="yourname" autocomplete="off" autocapitalize="off"
+                <input type="search" id="hero-handle-field" name="claim-handle-search" class="hero-claim-input"
+                  placeholder="yourhandle" autocomplete="off" autocapitalize="off"
                   autocorrect="off" spellcheck="false" maxlength="30" readonly
                   data-1p-ignore="true" data-lpignore="true"
                   aria-label="Choose your Ryxa username">
