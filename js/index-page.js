@@ -573,19 +573,32 @@ function heroOnUsernameInput(input) {
 
 async function heroCheckUsernameAvailability(input, username, token) {
   try {
-    var res = await sb
-      .from('public_profiles')
-      .select('user_id')
-      .eq('username', username)
-      .maybeSingle();
+    // Goes through /api/check-username (server-side, rate-limited) rather
+    // than querying public_profiles directly. The endpoint returns only a
+    // boolean - no profile data.
+    var resp = await fetch('/api/check-username', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: username }),
+    });
     // Ignore if the user kept typing after this request fired.
     if (token !== heroUsernameCheckToken) return;
-    if (res.error) {
+
+    if (resp.status === 429) {
+      // Rate limited. Treat as a soft error - the user is not blocked from
+      // signing up, the check just goes quiet.
+      heroUsernameState = 'error';
+      heroSetUsernameHint(input, 'Too many checks. You can still continue.', null);
+      return;
+    }
+    if (!resp.ok) {
       heroUsernameState = 'error';
       heroSetUsernameHint(input, 'Could not check right now. You can still continue.', null);
       return;
     }
-    if (!res.data) {
+    var data = await resp.json();
+    if (token !== heroUsernameCheckToken) return;
+    if (data && data.available) {
       heroUsernameState = 'available';
       heroSetUsernameHint(input, 'ryxa.io/' + username + ' is available.', 'is-available');
     } else {
