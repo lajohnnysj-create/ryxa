@@ -164,12 +164,31 @@ function _authModalDetachListeners() {
   document.removeEventListener('focusin', _authModalEnforceFocus, true);
 }
 
+// Initial focus when the auth modal opens. On touch devices, focusing an
+// input immediately summons the on-screen keyboard, which shoves the whole
+// modal upward before the user has even read it. So on touch devices we
+// focus the modal heading instead - this keeps focus correctly inside the
+// modal (needed for screen-reader / keyboard accessibility) without popping
+// the keyboard. On mouse devices, focusing the email field is a genuine
+// convenience (type immediately), so we keep that behavior there.
+function _authModalInitialFocus() {
+  var isTouch = false;
+  try {
+    isTouch = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+  } catch (e) { /* matchMedia unavailable - treat as non-touch */ }
+  if (isTouch) {
+    document.getElementById('auth-modal-title')?.focus();
+  } else {
+    document.getElementById('auth-email')?.focus();
+  }
+}
+
 function openAuthModal() {
   _authModalLastFocus = document.activeElement;
   authMode = 'signin'; syncAuthModal();
   document.getElementById('auth-modal').classList.add('open');
   _authModalSetBackgroundInert(true);
-  setTimeout(() => document.getElementById('auth-email')?.focus(), 100);
+  setTimeout(_authModalInitialFocus, 100);
   _authModalAttachListeners();
   renderTurnstileWidget();
 }
@@ -179,7 +198,7 @@ function openSignupModal() {
   authMode = 'signup'; syncAuthModal();
   document.getElementById('auth-modal').classList.add('open');
   _authModalSetBackgroundInert(true);
-  setTimeout(() => document.getElementById('auth-email')?.focus(), 100);
+  setTimeout(_authModalInitialFocus, 100);
   _authModalAttachListeners();
   renderTurnstileWidget();
 }
