@@ -822,8 +822,24 @@ async function checkTermsAcceptance() {
 }
 
 
-async function acceptTerms() {
-  var check = document.getElementById('terms-accept-check');
+// Escape hatch for the first-run terms modal. The modal is a hard gate -
+// a user who does not want to accept (or wants to switch accounts) would
+// otherwise be stuck seeing it on every visit. This signs them out and
+// sends them back to the homepage, cleanly ending the session.
+async function termsLogout() {
+  var btn = document.getElementById('terms-logout-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Logging out...'; }
+  try {
+    await sb.auth.signOut();
+  } catch (e) {
+    console.error('Terms-modal logout error:', e);
+  }
+  // Leave the dashboard entirely. A full navigation avoids any stuck
+  // modal / stale in-memory state - the homepage loads fresh.
+  window.location.href = '/index.html';
+}
+
+async function acceptTerms() {  var check = document.getElementById('terms-accept-check');
   if (!check || !check.checked) return;
   var btn = document.getElementById('terms-accept-btn');
   var errEl = document.getElementById('terms-error');
@@ -2309,6 +2325,7 @@ dashRegisterAction('confirm-signout', () => confirmSignOut());
 
 // Terms-of-service acceptance modal
 dashRegisterAction('accept-terms', () => acceptTerms());
+dashRegisterAction('terms-logout', () => termsLogout());
 
 // PWA install instructions modal (iOS)
 dashRegisterAction('close-install', () => closeInstallModal());
