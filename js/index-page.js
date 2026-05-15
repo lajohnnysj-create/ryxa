@@ -510,7 +510,7 @@ function heroSetUsernameHint(text, stateClass) {
 }
 
 function heroOnUsernameInput() {
-  var input = document.getElementById('hero-username');
+  var input = document.getElementById('hero-handle-field');
   if (!input) return;
   var cleaned = heroCleanUsername(input.value);
   // Reflect the cleaned value back so the user sees exactly what is valid.
@@ -575,7 +575,7 @@ async function heroCheckUsernameAvailability(username, token) {
 // then opens the signup modal. An empty or invalid field is allowed - the
 // user just signs up without a pre-filled username and picks one later.
 function heroClaimUsername() {
-  var input = document.getElementById('hero-username');
+  var input = document.getElementById('hero-handle-field');
   var cleaned = input ? heroCleanUsername(input.value) : '';
   // Only carry forward a username that is at least plausibly valid. We do
   // NOT block on 'taken' or 'checking' - the dashboard re-verifies anyway,
@@ -591,7 +591,7 @@ function heroClaimUsername() {
 }
 
 (function initHeroClaim() {
-  var input = document.getElementById('hero-username');
+  var input = document.getElementById('hero-handle-field');
   if (input) {
     // The input starts readonly to block browser / password-manager autofill
     // (Chrome autofills despite autocomplete=off; it will not autofill a
