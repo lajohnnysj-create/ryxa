@@ -495,22 +495,32 @@ function heroCleanUsername(raw) {
   return (raw || '').toLowerCase().replace(/[^a-z0-9_]/g, '');
 }
 
-function heroSetUsernameHint(text, stateClass) {
-  var hint = document.getElementById('hero-username-hint');
-  var field = document.querySelector('.hero-claim-field');
-  if (hint) {
-    hint.textContent = text || '';
-    hint.classList.remove('is-available', 'is-taken');
-    if (stateClass) hint.classList.add(stateClass);
+// The page can have more than one claim field (hero + bottom CTA). Each
+// function below operates on a specific input element rather than a fixed
+// id, so both fields work independently. The hint element for a field is
+// the .hero-claim-hint inside the same .hero-claim wrapper.
+function heroFieldParts(input) {
+  var wrap = input ? input.closest('.hero-claim') : null;
+  return {
+    field: input ? input.closest('.hero-claim-field') : null,
+    hint: wrap ? wrap.querySelector('.hero-claim-hint') : null
+  };
+}
+
+function heroSetUsernameHint(input, text, stateClass) {
+  var parts = heroFieldParts(input);
+  if (parts.hint) {
+    parts.hint.textContent = text || '';
+    parts.hint.classList.remove('is-available', 'is-taken');
+    if (stateClass) parts.hint.classList.add(stateClass);
   }
-  if (field) {
-    field.classList.remove('is-available', 'is-taken');
-    if (stateClass) field.classList.add(stateClass);
+  if (parts.field) {
+    parts.field.classList.remove('is-available', 'is-taken');
+    if (stateClass) parts.field.classList.add(stateClass);
   }
 }
 
-function heroOnUsernameInput() {
-  var input = document.getElementById('hero-handle-field');
+function heroOnUsernameInput(input) {
   if (!input) return;
   var cleaned = heroCleanUsername(input.value);
   // Reflect the cleaned value back so the user sees exactly what is valid.
@@ -521,28 +531,28 @@ function heroOnUsernameInput() {
 
   if (!cleaned) {
     heroUsernameState = 'empty';
-    heroSetUsernameHint('', null);
+    heroSetUsernameHint(input, '', null);
     return;
   }
   if (cleaned.length < 3) {
     heroUsernameState = 'invalid';
-    heroSetUsernameHint('Too short, minimum 3 characters.', 'is-taken');
+    heroSetUsernameHint(input, 'Too short, minimum 3 characters.', 'is-taken');
     return;
   }
   if (HERO_RESERVED.has(cleaned)) {
     heroUsernameState = 'invalid';
-    heroSetUsernameHint('That username is reserved. Pick another.', 'is-taken');
+    heroSetUsernameHint(input, 'That username is reserved. Pick another.', 'is-taken');
     return;
   }
   heroUsernameState = 'checking';
-  heroSetUsernameHint('Checking availability...', null);
+  heroSetUsernameHint(input, 'Checking availability...', null);
   var myToken = heroUsernameCheckToken;
   heroUsernameCheckTimer = setTimeout(function() {
-    heroCheckUsernameAvailability(cleaned, myToken);
+    heroCheckUsernameAvailability(input, cleaned, myToken);
   }, 500);
 }
 
-async function heroCheckUsernameAvailability(username, token) {
+async function heroCheckUsernameAvailability(input, username, token) {
   try {
     var res = await sb
       .from('public_profiles')
@@ -553,29 +563,28 @@ async function heroCheckUsernameAvailability(username, token) {
     if (token !== heroUsernameCheckToken) return;
     if (res.error) {
       heroUsernameState = 'error';
-      heroSetUsernameHint('Could not check right now. You can still continue.', null);
+      heroSetUsernameHint(input, 'Could not check right now. You can still continue.', null);
       return;
     }
     if (!res.data) {
       heroUsernameState = 'available';
-      heroSetUsernameHint('ryxa.io/' + username + ' is available.', 'is-available');
+      heroSetUsernameHint(input, 'ryxa.io/' + username + ' is available.', 'is-available');
     } else {
       heroUsernameState = 'taken';
-      heroSetUsernameHint('That username is taken, try another.', 'is-taken');
+      heroSetUsernameHint(input, 'That username is taken, try another.', 'is-taken');
     }
   } catch (e) {
     if (token !== heroUsernameCheckToken) return;
     heroUsernameState = 'error';
-    heroSetUsernameHint('Could not check right now. You can still continue.', null);
+    heroSetUsernameHint(input, 'Could not check right now. You can still continue.', null);
   }
 }
 
-// "Get started free" from the hero. Persists the chosen username (if the
+// "Claim it free" from a claim field. Persists the chosen username (if the
 // field has a usable value) so the dashboard first-run flow can pre-fill it,
 // then opens the signup modal. An empty or invalid field is allowed - the
 // user just signs up without a pre-filled username and picks one later.
-function heroClaimUsername() {
-  var input = document.getElementById('hero-handle-field');
+function heroClaimUsername(input) {
   var cleaned = input ? heroCleanUsername(input.value) : '';
   // Only carry forward a username that is at least plausibly valid. We do
   // NOT block on 'taken' or 'checking' - the dashboard re-verifies anyway,
@@ -591,25 +600,35 @@ function heroClaimUsername() {
 }
 
 (function initHeroClaim() {
-  var input = document.getElementById('hero-handle-field');
-  if (input) {
-    // The input starts readonly to block browser / password-manager autofill
-    // (Chrome autofills despite autocomplete=off; it will not autofill a
-    // readonly field). Remove readonly the moment the user focuses it so
-    // they can type normally. Same pattern as the dashboard bio-username
-    // field.
-    input.addEventListener('focus', function() {
-      input.removeAttribute('readonly');
-    });
-    input.addEventListener('input', heroOnUsernameInput);
-    // Enter in the field acts as "Get started free".
-    input.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') { e.preventDefault(); heroClaimUsername(); }
-    });
+  // Wire every claim field on the page (hero + bottom CTA). querySelectorAll
+  // returns all of them; each gets its own listeners but they share the
+  // claim logic above.
+  var inputs = document.querySelectorAll('.hero-claim-input');
+  for (var i = 0; i < inputs.length; i++) {
+    (function(input) {
+      // The input starts readonly to block browser / password-manager
+      // autofill (Chrome autofills despite autocomplete=off; it will not
+      // autofill a readonly field). Remove readonly on focus so the user
+      // can type. Same pattern as the dashboard bio-username field.
+      input.addEventListener('focus', function() {
+        input.removeAttribute('readonly');
+      });
+      input.addEventListener('input', function() { heroOnUsernameInput(input); });
+      // Enter in the field acts as "Claim it free".
+      input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') { e.preventDefault(); heroClaimUsername(input); }
+      });
+    })(inputs[i]);
   }
 })();
 
-homeRegisterAction('claim-username', function() { heroClaimUsername(); });
+// The claim button sits next to its field inside the same .hero-claim
+// wrapper - find that field from the clicked button.
+homeRegisterAction('claim-username', function(e, el) {
+  var wrap = el ? el.closest('.hero-claim') : null;
+  var input = wrap ? wrap.querySelector('.hero-claim-input') : null;
+  heroClaimUsername(input);
+});
 
 // =================================================================
 // BINARY RAIN ANIMATION (originally inline at L1226-1351)
