@@ -585,10 +585,10 @@ async function heroCheckUsernameAvailability(input, username, token) {
     if (token !== heroUsernameCheckToken) return;
 
     if (resp.status === 429) {
-      // Rate limited. Treat as a soft error - the user is not blocked from
-      // signing up, the check just goes quiet.
+      // Rate limited. The user is not blocked from signing up - the check
+      // just goes quiet.
       heroUsernameState = 'error';
-      heroSetUsernameHint(input, 'Too many checks. You can still continue.', null);
+      heroSetUsernameHint(input, 'Too many checks. Try again later.', null);
       return;
     }
     if (!resp.ok) {
