@@ -200,10 +200,10 @@
   @media (max-width: 560px) {
     .hero-claim-row { flex-direction: column; }
     .hero-claim-btn { width: 100%; }
-    /* Stop the stacked field + button from stretching the full viewport
-       width on phones - cap it and center it so it stays proportionate.
-       Applies to both the hero and the bottom CTA claim blocks. */
-    .hero-claim { max-width: 360px; margin-left: auto; margin-right: auto; }
+    /* Bottom CTA only: stop the stacked field + button from stretching too
+       wide under the short centered CTA text. Scoped to .cta-inner so the
+       hero claim block is left exactly as it was. */
+    .cta-inner .hero-claim { max-width: 360px; margin-left: auto; margin-right: auto; }
   }
   .hero-trust { margin-top: 16px; font-size: 13px; color: rgba(255,255,255,0.55); font-weight: 400; letter-spacing: 0.01em; }
   @media (max-width: 600px) {
