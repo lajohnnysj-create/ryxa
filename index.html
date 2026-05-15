@@ -178,8 +178,8 @@
   .hero-claim-field:focus-within { border-color: var(--accent2); }
   .hero-claim-field.is-available { border-color: #4ade80; }
   .hero-claim-field.is-taken { border-color: #f87171; }
-  .hero-claim-prefix { color: var(--muted); font-size: 15px; font-family: "DM Sans", sans-serif; white-space: nowrap; user-select: none; }
-  .hero-claim-input { flex: 1; min-width: 0; background: transparent; border: none; outline: none; color: var(--text); font-size: 15px; font-family: "DM Sans", sans-serif; padding: 14px 8px; -webkit-appearance: none; appearance: none; }
+  .hero-claim-prefix { color: var(--muted); font-size: 16px; font-family: "DM Sans", sans-serif; white-space: nowrap; user-select: none; }
+  .hero-claim-input { flex: 1; min-width: 0; background: transparent; border: none; outline: none; color: var(--text); font-size: 16px; font-family: "DM Sans", sans-serif; padding: 14px 8px; -webkit-appearance: none; appearance: none; }
   /* type=search is used (not text) because iOS Safari does not fire its
      password-autofill heuristic on search inputs. Strip the native search
      chrome so it looks identical to a normal text field. */
@@ -1281,7 +1281,7 @@
 </section>
 
 <div style="text-align:center;padding:0 32px 60px;">
-  <a href="index.html?action=signup" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;box-shadow:0 0 30px rgba(232,121,249,0.3);text-decoration:none;transition:all 0.2s;">Try Creator Max Free for 7 Days</a>
+  <button type="button" class="btn-primary" data-home-action="open-signup">Start for free &#x2192;</button>
 </div>
 
 <section class="features-section">
@@ -1483,7 +1483,7 @@
     </div>
 
     <!-- CTA below receipt -->
-    <a href="index.html?action=signup" class="receipt-cta">Try Free for 7 Days</a>
+    <button type="button" class="btn-primary" data-home-action="open-signup">Start for free &#x2192;</button>
     <div class="receipt-disclaimer">Pricing reflects comparable plans from each provider. Plans, features and prices vary by tool.</div>
   </div>
 </section>
@@ -1808,7 +1808,22 @@
   <div class="cta-inner">
     <h2>Ready to grow smarter?</h2>
     <p>Join creators who own what they build.</p>
-    <button type="button" class="btn-primary" data-home-action="open-signup" data-nosnippet style="font-size:17px;padding:17px 44px;">Get started free &#x2192;</button>
+    <div class="hero-actions" data-nosnippet style="align-items:center;">
+      <div class="hero-claim">
+        <div class="hero-claim-row">
+          <div class="hero-claim-field">
+            <span class="hero-claim-prefix">ryxa.io/</span>
+            <input type="search" id="cta-handle-field" name="claim-handle-search" class="hero-claim-input"
+              placeholder="yourhandle" autocomplete="off" autocapitalize="off"
+              autocorrect="off" spellcheck="false" maxlength="30" readonly
+              data-1p-ignore="true" data-lpignore="true"
+              aria-label="Choose your Ryxa username">
+          </div>
+          <button type="button" class="btn-primary hero-claim-btn" data-home-action="claim-username">Claim it free &#x2192;</button>
+        </div>
+        <div class="hero-claim-hint" aria-live="polite"></div>
+      </div>
+    </div>
     <div style="margin-top:20px;font-size:14px;color:var(--muted);">Already have an account? <button type="button" data-home-action="open-signin" style="background:none;border:none;padding:0;font:inherit;color:var(--accent2);cursor:pointer;text-decoration:none;transition:color 0.2s;">Sign in</button> &nbsp;·&nbsp; <a href="pricing.html" style="color:var(--accent2);text-decoration:none;transition:color 0.2s;">View plans</a></div>
   </div>
 </section>
