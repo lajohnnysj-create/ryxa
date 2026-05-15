@@ -314,6 +314,58 @@ function decoratePlanCards() {
       btn.disabled = false;
     }
   });
+
+  decorateFreeCard();
+}
+
+// The Free card is handled separately from the pro/max loop above because its
+// button has no data-plan attribute (it is a signup CTA, class .plan-btn.free)
+// and it needs different treatment: a paid subscriber cannot "select" Free
+// from the pricing page - moving to Free means cancelling their subscription
+// in Settings. So for paid subscribers we disable the Free button, relabel it,
+// and show a small helper line explaining the real path. Free-tier and
+// logged-out users see the Free card unchanged.
+//
+// This function is idempotent - decoratePlanCards() runs more than once (cycle
+// toggle, bfcache restore), so the helper line is always removed first and
+// only re-added when applicable, never stacked.
+function decorateFreeCard() {
+  var btn = document.querySelector('.plan-btn.free');
+  if (!btn) return;
+
+  if (btn._defaultLabel === undefined) btn._defaultLabel = btn.textContent;
+
+  var card = btn.closest('.plan');
+
+  // Always clear any previously-added helper line first (idempotency).
+  if (card) {
+    var priorNote = card.querySelector('.plan-free-note');
+    if (priorNote) priorNote.remove();
+  }
+
+  var isPaidSubscriber = (currentTier === 'monthly' || currentTier === 'max');
+
+  if (currentUser && isPaidSubscriber) {
+    // Paid subscriber: Free is not a selectable action for them.
+    btn.textContent = 'Included in your plan';
+    btn.disabled = true;
+    if (card) {
+      var note = document.createElement('div');
+      note.className = 'plan-free-note';
+      note.textContent =
+        'You are on a paid plan. To move to Free, cancel your subscription in Settings.';
+      // Place the note directly after the button.
+      if (btn.nextSibling) {
+        card.insertBefore(note, btn.nextSibling);
+      } else {
+        card.appendChild(note);
+      }
+    }
+  } else {
+    // Free tier or logged-out: default CTA, enabled, no note.
+    btn.textContent = btn._defaultLabel;
+    btn.disabled = false;
+  }
 }
 
 // =================================================================
