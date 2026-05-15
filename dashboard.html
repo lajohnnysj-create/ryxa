@@ -3682,6 +3682,11 @@
     outline-offset: 2px;
     border-radius: 4px;
   }
+  /* Terms modal username field: suppress the global focus outline on the
+     inner input (it would box just the typing area, detached from the
+     ryxa.io/ prefix). Focus stays visible via the wrapper border below. */
+  #terms-username:focus, #terms-username:focus-visible { outline: none; }
+  #terms-username-field:focus-within { border-color: var(--accent2) !important; }
   /* === A11Y: respect reduced-motion preferences === */
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {

@@ -180,6 +180,11 @@
   .hero-claim-field.is-taken { border-color: #f87171; }
   .hero-claim-prefix { color: var(--muted); font-size: 15px; font-family: "DM Sans", sans-serif; white-space: nowrap; user-select: none; }
   .hero-claim-input { flex: 1; min-width: 0; background: transparent; border: none; outline: none; color: var(--text); font-size: 15px; font-family: "DM Sans", sans-serif; padding: 14px 8px; }
+  /* Suppress the global *:focus-visible outline on the input itself - it
+     would box just the typing area, visually detached from the ryxa.io/
+     prefix. Accessibility is preserved: the wrapper's :focus-within
+     border-color change above is the visible focus indicator. */
+  .hero-claim-input:focus, .hero-claim-input:focus-visible { outline: none; }
   .hero-claim-input::placeholder { color: rgba(255,255,255,0.35); }
   .hero-claim-btn { white-space: nowrap; flex-shrink: 0; }
   .hero-claim-hint { font-size: 13px; margin-top: 8px; min-height: 18px; color: var(--muted); font-family: "DM Sans", sans-serif; }
