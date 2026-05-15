@@ -171,12 +171,30 @@
   .gradient-text { background: linear-gradient(135deg, #a78bfa, #e879f9, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
   .hero-sub { font-size: clamp(15px, 2vw, 17px); color: var(--muted); line-height: 1.7; max-width: 480px; margin: 0 0 32px; font-weight: 400; }
   .hero-eyebrow { font-family: "DM Sans", sans-serif; font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.6); letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 18px; }
-  .hero-actions { display: flex; gap: 14px; flex-wrap: nowrap; }
+  .hero-actions { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; }
+  .hero-claim { width: 100%; max-width: 480px; }
+  .hero-claim-row { display: flex; gap: 10px; align-items: stretch; }
+  .hero-claim-field { display: flex; align-items: center; flex: 1; min-width: 0; background: var(--surface); border: 1px solid var(--border-hover); border-radius: 10px; padding: 0 4px 0 14px; transition: border-color 0.2s; }
+  .hero-claim-field:focus-within { border-color: var(--accent2); }
+  .hero-claim-field.is-available { border-color: #4ade80; }
+  .hero-claim-field.is-taken { border-color: #f87171; }
+  .hero-claim-prefix { color: var(--muted); font-size: 15px; font-family: "DM Sans", sans-serif; white-space: nowrap; user-select: none; }
+  .hero-claim-input { flex: 1; min-width: 0; background: transparent; border: none; outline: none; color: var(--text); font-size: 15px; font-family: "DM Sans", sans-serif; padding: 14px 8px; }
+  .hero-claim-input::placeholder { color: rgba(255,255,255,0.35); }
+  .hero-claim-btn { white-space: nowrap; flex-shrink: 0; }
+  .hero-claim-hint { font-size: 13px; margin-top: 8px; min-height: 18px; color: var(--muted); font-family: "DM Sans", sans-serif; }
+  .hero-claim-hint.is-available { color: #4ade80; }
+  .hero-claim-hint.is-taken { color: #f87171; }
+  .hero-pricing-link { font-size: 14px; color: var(--muted); text-decoration: none; font-family: "DM Sans", sans-serif; border-bottom: 1px solid transparent; transition: color 0.2s, border-color 0.2s; }
+  .hero-pricing-link:hover { color: var(--accent2); border-bottom-color: var(--accent2); }
+  @media (max-width: 560px) {
+    .hero-claim-row { flex-direction: column; }
+    .hero-claim-btn { width: 100%; }
+  }
   .hero-trust { margin-top: 16px; font-size: 13px; color: rgba(255,255,255,0.55); font-weight: 400; letter-spacing: 0.01em; }
   @media (max-width: 600px) {
     .hero-actions { gap: 10px; }
-    .hero-actions .btn-primary,
-    .hero-actions .btn-secondary { padding: 13px 20px; font-size: 14px; }
+    .hero-actions .btn-primary { padding: 13px 20px; font-size: 14px; }
   }
   /* Screen mockup for hero */
   .hero-phone { position: relative; display: flex; justify-content: center; padding: 20px 60px 20px 20px; }
@@ -268,7 +286,7 @@
     .hero-split { grid-template-columns: 1fr; gap: 40px; text-align: center; }
     .hero-left { align-items: center; padding-left: 0; padding-top: 0; }
     .hero-sub { margin: 0 auto 32px; }
-    .hero-actions { justify-content: center; }
+    .hero-actions { align-items: center; }
     .hero-phone-device { width: 120px; transform: perspective(600px) rotateY(-20deg) rotateX(6deg) translateY(-15px); border-radius: 10px; }
     .hero-phone-device:hover { transform: perspective(600px) rotateY(-20deg) rotateX(6deg) translateY(-15px); }
     .hero-phone { padding: 10px 15px 10px 20px; justify-content: center; margin-left: 40px; }
@@ -631,10 +649,21 @@
         <h1 id="main-content" tabindex="-1">Build a <span class="gradient-text">creator business</span> that's actually yours.</h1>
         <p class="hero-sub">Ryxa helps creators monetize their audience and build a professional brand. Link in bio, courses, and digital products in one AI dashboard.</p>
         <div class="hero-actions" data-nosnippet>
-          <button type="button" class="btn-primary" data-home-action="open-signup">Get started free &#x2192;</button>
-          <a class="btn-secondary" href="pricing.html">See pricing</a>
+          <div class="hero-claim">
+            <div class="hero-claim-row">
+              <div class="hero-claim-field">
+                <span class="hero-claim-prefix">ryxa.io/</span>
+                <input type="text" id="hero-username" class="hero-claim-input"
+                  placeholder="yourname" autocomplete="off" autocapitalize="off"
+                  spellcheck="false" maxlength="30" aria-label="Choose your Ryxa username">
+              </div>
+              <button type="button" class="btn-primary hero-claim-btn" data-home-action="claim-username">Get started free &#x2192;</button>
+            </div>
+            <div class="hero-claim-hint" id="hero-username-hint" aria-live="polite"></div>
+          </div>
+          <a class="hero-pricing-link" href="pricing.html">See pricing</a>
         </div>
-        <div class="hero-trust" data-nosnippet>Free forever · No credit card · Cancel anytime</div>
+        <div class="hero-trust" data-nosnippet>Free forever &middot; No credit card &middot; Cancel anytime</div>
       </div>
       <div class="hero-phone">
         <div class="hero-phone-ghost-6"></div>

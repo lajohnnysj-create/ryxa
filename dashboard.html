@@ -5748,7 +5748,15 @@
   <div style="background:#0f0f1a;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:32px 36px;text-align:center;position:relative;min-width:280px;max-width:440px;width:100%;pointer-events:all;">
     <img src="/logo.png" alt="Ryxa" style="width:48px;height:48px;margin:0 auto 16px;display:block;">
     <h2 style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;margin-bottom:8px;">Welcome to Ryxa</h2>
-    <p style="color:var(--muted);font-size:13px;margin-bottom:20px;line-height:1.6;">Before you get started, please review and accept our terms.</p>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:20px;line-height:1.6;">Pick your username and accept our terms to get started.</p>
+    <div style="text-align:left;margin-bottom:18px;">
+      <label for="terms-username" style="display:block;font-size:12px;font-weight:600;color:var(--text);margin-bottom:6px;">Your Ryxa username</label>
+      <div id="terms-username-field" style="display:flex;align-items:center;background:#161625;border:1px solid rgba(255,255,255,0.14);border-radius:9px;padding:0 4px 0 12px;transition:border-color 0.2s;">
+        <span style="color:var(--muted);font-size:14px;white-space:nowrap;user-select:none;">ryxa.io/</span>
+        <input type="text" id="terms-username" placeholder="yourname" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="30" style="flex:1;min-width:0;background:transparent;border:none;outline:none;color:var(--text);font-size:14px;font-family:DM Sans,sans-serif;padding:11px 6px;">
+      </div>
+      <div id="terms-username-hint" aria-live="polite" style="font-size:12px;margin-top:6px;min-height:16px;color:var(--muted);"></div>
+    </div>
     <div style="text-align:left;margin-bottom:20px;">
       <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:13px;color:var(--text);line-height:1.5;margin-bottom:12px;">
         <input type="checkbox" id="terms-accept-check" style="accent-color:#7c3aed;width:16px;height:16px;cursor:pointer;margin-top:2px;flex-shrink:0;">
