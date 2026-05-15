@@ -807,6 +807,12 @@ async function checkTermsAcceptance() {
         } catch (e) { /* storage/URL unavailable */ }
       }
       input.value = termsCleanUsername(prefill);
+      // The input starts readonly to block browser / password-manager
+      // autofill (Chrome ignores autocomplete=off but will not autofill a
+      // readonly field). Remove readonly on focus so the user can edit it.
+      input.addEventListener('focus', function() {
+        input.removeAttribute('readonly');
+      });
       input.addEventListener('input', termsOnUsernameInput);
       // Run an initial check so a pre-filled username shows its state.
       termsOnUsernameInput();

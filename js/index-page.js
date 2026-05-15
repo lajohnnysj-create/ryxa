@@ -593,6 +593,14 @@ function heroClaimUsername() {
 (function initHeroClaim() {
   var input = document.getElementById('hero-username');
   if (input) {
+    // The input starts readonly to block browser / password-manager autofill
+    // (Chrome autofills despite autocomplete=off; it will not autofill a
+    // readonly field). Remove readonly the moment the user focuses it so
+    // they can type normally. Same pattern as the dashboard bio-username
+    // field.
+    input.addEventListener('focus', function() {
+      input.removeAttribute('readonly');
+    });
     input.addEventListener('input', heroOnUsernameInput);
     // Enter in the field acts as "Get started free".
     input.addEventListener('keydown', function(e) {
