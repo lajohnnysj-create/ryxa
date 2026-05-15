@@ -540,17 +540,19 @@ async function setUser(user) {
       try {
         var detectedTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
         if (detectedTz) {
-          // Upsert with conflict-on-user_id. Works whether or not a profile
-          // row exists. If it does, only calendar_timezone is set (other
-          // columns untouched). If it doesn't, a new row is created with
-          // just user_id + calendar_timezone — username/etc filled in
-          // later by their normal flow.
-          sb.from('profiles').upsert(
-            { user_id: user.id, calendar_timezone: detectedTz },
-            { onConflict: 'user_id' }
-          ).then(function(res) {
-            if (res.error) console.error('Auto-detect timezone save failed:', res.error);
-          });
+          // profiles.username is NOT NULL, so a profiles row cannot be
+          // created without a username. A first-run user has no row yet
+          // (their row is created when they complete the terms modal).
+          // So we can only UPDATE an existing row here, never insert one -
+          // an upsert that tried to insert would fail the NOT NULL
+          // constraint. If there is no row yet, we skip; the timezone gets
+          // saved on a later load once onboarding created the row.
+          sb.from('profiles')
+            .update({ calendar_timezone: detectedTz })
+            .eq('user_id', user.id)
+            .then(function(res) {
+              if (res.error) console.error('Auto-detect timezone save failed:', res.error);
+            });
         }
       } catch (e) { console.error('Timezone auto-detect failed:', e); }
     }
@@ -688,15 +690,16 @@ function termsSetUsernameHint(text, kind) {
 }
 
 // Enable the Continue button only when terms are checked AND the username
-// is not in a blocking state. An empty username is allowed (optional);
-// 'checking', 'invalid', and 'taken' block; 'error' is allowed through
-// because acceptTerms re-validates server-side anyway.
+// is in a passable state. Username is mandatory (profiles.username is NOT
+// NULL), so 'empty'/'invalid'/'taken'/'checking' all block; only
+// 'available' (or 'error', which acceptTerms re-validates) lets it through.
 function termsSyncContinueButton() {
   var check = document.getElementById('terms-accept-check');
   var btn = document.getElementById('terms-accept-btn');
   if (!check || !btn) return;
   var usernameBlocks = (termsUsernameState === 'checking'
     || termsUsernameState === 'invalid'
+    || termsUsernameState === 'empty'
     || termsUsernameState === 'taken');
   var ok = check.checked && !usernameBlocks;
   btn.disabled = !ok;
@@ -714,8 +717,10 @@ function termsOnUsernameInput() {
   termsUsernameCheckToken++;
 
   if (!cleaned) {
-    termsUsernameState = 'empty';
-    termsSetUsernameHint('Optional. You can set this later in your Link in Bio.', null);
+    // Username is mandatory: profiles.username is NOT NULL, so the row
+    // cannot be created (and terms cannot be saved) without one.
+    termsUsernameState = 'invalid';
+    termsSetUsernameHint('Choose a username to continue.', null);
     termsSyncContinueButton();
     return;
   }
@@ -769,7 +774,10 @@ async function termsCheckUsernameAvailability(username, token) {
 async function checkTermsAcceptance() {
   if (!currentUser) return;
   try {
-    var { data } = await sb.from('profiles').select('accepted_terms, marketing_emails, username').eq('user_id', currentUser.id).single();
+    // maybeSingle (not single): a first-run user has NO profiles row yet -
+    // the row is created by acceptTerms below. single() would 406 on zero
+    // rows; maybeSingle returns null cleanly.
+    var { data } = await sb.from('profiles').select('accepted_terms, marketing_emails, username').eq('user_id', currentUser.id).maybeSingle();
     if (data && data.accepted_terms) {
       // Load marketing preference into settings
       var toggle = document.getElementById('settings-marketing-emails');
@@ -826,46 +834,47 @@ async function acceptTerms() {
     var input = document.getElementById('terms-username');
     var uname = input ? termsCleanUsername(input.value) : '';
 
-    // Build the profile update. accepted_terms + marketing_emails always.
-    var updatePayload = {
+    // Username is MANDATORY here. profiles.username is NOT NULL, so the
+    // profiles row literally cannot be created without one - and a
+    // first-run user has no row yet, so we must create it. Validate hard.
+    if (!uname) {
+      throw new Error('Please choose a username to continue.');
+    }
+    if (uname.length < 3) {
+      throw new Error('Username is too short. Use at least 3 characters.');
+    }
+    if (typeof BIO_RESERVED !== 'undefined' && BIO_RESERVED.has(uname)) {
+      throw new Error('That username is reserved. Please pick another.');
+    }
+    // Re-check availability now - the homepage/pre-fill check may be stale.
+    var avail = await sb.from('public_profiles').select('user_id').eq('username', uname).maybeSingle();
+    if (avail.error) {
+      throw new Error('Could not verify that username right now. Please try again.');
+    }
+    if (avail.data && avail.data.user_id !== currentUser.id) {
+      throw new Error('That username was just taken. Please choose another.');
+    }
+
+    // upsert (NOT update): a first-run user has no profiles row, so update()
+    // would silently match zero rows and save nothing. upsert creates the
+    // row if missing, updates it if present. user_id is the conflict key.
+    var { error } = await sb.from('profiles').upsert({
+      user_id: currentUser.id,
+      username: uname,
       accepted_terms: true,
       marketing_emails: marketingCheck ? marketingCheck.checked : false
-    };
-
-    // If a username was entered, validate and re-check availability now
-    // (the homepage check could be minutes or hours stale). If it fails,
-    // we surface the error and do NOT proceed - the user fixes it and
-    // retries. An empty username is fine; it stays unset for now.
-    if (uname) {
-      if (uname.length < 3) {
-        throw new Error('Username is too short. Use at least 3 characters, or clear it to set one later.');
-      }
-      if (typeof BIO_RESERVED !== 'undefined' && BIO_RESERVED.has(uname)) {
-        throw new Error('That username is reserved. Pick another, or clear it to set one later.');
-      }
-      var avail = await sb.from('public_profiles').select('user_id').eq('username', uname).maybeSingle();
-      if (avail.error) {
-        throw new Error('Could not verify that username right now. Please try again.');
-      }
-      if (avail.data && avail.data.user_id !== currentUser.id) {
-        throw new Error('That username was just taken. Please choose another.');
-      }
-      updatePayload.username = uname;
-    }
-
-    var { error } = await sb.from('profiles').update(updatePayload).eq('user_id', currentUser.id);
+    }, { onConflict: 'user_id' });
     if (error) throw error;
 
-    // Clean up the carried-forward username now that it is saved (or the
-    // user chose not to use it).
+    // Clear the carried-forward username now that it is saved.
     try { localStorage.removeItem('ryx_intended_username'); } catch (e) {}
 
-    // Keep the in-memory username + greeting in sync if one was set.
-    if (uname) {
-      window._ryx_username = uname;
-      var bioLinkText = document.getElementById('bio-link-text');
-      if (bioLinkText) bioLinkText.textContent = 'ryxa.io/' + uname;
-    }
+    // Keep in-memory username + topbar link in sync.
+    window._ryx_username = uname;
+    var bioLinkEl = document.getElementById('topbar-bio-link');
+    if (bioLinkEl) bioLinkEl.textContent = 'ryxa.io/' + uname;
+    var bioLinkMobile = document.getElementById('ana-bio-link');
+    if (bioLinkMobile) bioLinkMobile.textContent = 'ryxa.io/' + uname;
 
     var modal = document.getElementById('terms-modal');
     if (modal) modal.style.display = 'none';
