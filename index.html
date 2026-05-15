@@ -161,25 +161,25 @@
   .forgot-link:hover { color: var(--accent2); }
   @keyframes spin { to { transform: rotate(360deg); } }
   .auth-spinner { display: inline-block; width: 15px; height: 15px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 8px; }
-  .hero { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 120px 24px 60px; text-align: left; position: relative; overflow-x: clip; background: #b9158d; }
-  .hero-bg { position: absolute; inset: 0; pointer-events: none; z-index: 0; background: radial-gradient(ellipse 55% 50% at 18% 22%, rgba(255,255,255,0.16) 0%, transparent 65%), radial-gradient(ellipse 60% 55% at 88% 92%, rgba(74,8,56,0.45) 0%, transparent 60%); }
+  .hero { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 120px 24px 60px; text-align: left; position: relative; overflow-x: clip; }
+  .hero-bg { position: absolute; inset: 0; pointer-events: none; z-index: 0; background: radial-gradient(ellipse 60% 50% at 20% 30%, rgba(124,58,237,0.08) 0%, transparent 70%); }
   .grid-lines { position: absolute; inset: 0; pointer-events: none; z-index: 0; background-image: linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px); background-size: 60px 60px; mask-image: radial-gradient(ellipse at 50% 30%, black 0%, transparent 70%); }
   .hero-content { position: relative; z-index: 1; max-width: 1100px; width: 100%; }
   .hero-split { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
   .hero-left { display: flex; flex-direction: column; align-items: flex-start; padding-left: 40px; padding-top: 30px; }
   .hero h1 { font-family: "Syne", sans-serif; font-size: clamp(30px, 4vw, 42px); font-weight: 800; letter-spacing: -1.5px; line-height: 1.15; margin-bottom: 20px; color: #fff; }
   .gradient-text { background: linear-gradient(135deg, #a78bfa, #e879f9, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-  .hero-sub { font-size: clamp(15px, 2vw, 17px); color: #fff; line-height: 1.7; max-width: 480px; margin: 0 0 32px; font-weight: 400; }
-  .hero-eyebrow { font-family: "DM Sans", sans-serif; font-size: 13px; font-weight: 500; color: #fff; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 18px; }
+  .hero-sub { font-size: clamp(15px, 2vw, 17px); color: var(--muted); line-height: 1.7; max-width: 480px; margin: 0 0 32px; font-weight: 400; }
+  .hero-eyebrow { font-family: "DM Sans", sans-serif; font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.6); letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 18px; }
   .hero-actions { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; }
   .hero-claim { width: 100%; max-width: 480px; }
   .hero-claim-row { display: flex; gap: 10px; align-items: stretch; }
-  .hero-claim-field { display: flex; align-items: center; flex: 1; min-width: 0; background: #fff; border: 1px solid rgba(0,0,0,0.12); border-radius: 10px; padding: 0 4px 0 14px; transition: border-color 0.2s; }
+  .hero-claim-field { display: flex; align-items: center; flex: 1; min-width: 0; background: var(--surface); border: 1px solid var(--border-hover); border-radius: 10px; padding: 0 4px 0 14px; transition: border-color 0.2s; }
   .hero-claim-field:focus-within { border-color: var(--accent2); }
   .hero-claim-field.is-available { border-color: #4ade80; }
   .hero-claim-field.is-taken { border-color: #f87171; }
-  .hero-claim-prefix { color: #8a3d72; font-size: 16px; font-family: "DM Sans", sans-serif; white-space: nowrap; user-select: none; }
-  .hero-claim-input { flex: 1; min-width: 0; background: transparent; border: none; outline: none; color: #1a1018; font-size: 16px; font-family: "DM Sans", sans-serif; padding: 14px 8px; -webkit-appearance: none; appearance: none; }
+  .hero-claim-prefix { color: var(--muted); font-size: 16px; font-family: "DM Sans", sans-serif; white-space: nowrap; user-select: none; }
+  .hero-claim-input { flex: 1; min-width: 0; background: transparent; border: none; outline: none; color: var(--text); font-size: 16px; font-family: "DM Sans", sans-serif; padding: 14px 8px; -webkit-appearance: none; appearance: none; }
   /* type=search is used (not text) because iOS Safari does not fire its
      password-autofill heuristic on search inputs. Strip the native search
      chrome so it looks identical to a normal text field. */
@@ -190,11 +190,9 @@
      prefix. Accessibility is preserved: the wrapper's :focus-within
      border-color change above is the visible focus indicator. */
   .hero-claim-input:focus, .hero-claim-input:focus-visible { outline: none; }
-  .hero-claim-input::placeholder { color: #b09aa6; }
+  .hero-claim-input::placeholder { color: rgba(255,255,255,0.35); }
   .hero-claim-btn { white-space: nowrap; flex-shrink: 0; }
-  .hero .hero-claim-btn { background: #14111c; box-shadow: none; }
-  .hero .hero-claim-btn:hover { background: #221c30; }
-  .hero-claim-hint { font-size: 13px; margin-top: 8px; min-height: 18px; color: #fff; font-family: "DM Sans", sans-serif; }
+  .hero-claim-hint { font-size: 13px; margin-top: 8px; min-height: 18px; color: var(--muted); font-family: "DM Sans", sans-serif; }
   .hero-claim-hint.is-available { color: #4ade80; }
   .hero-claim-hint.is-taken { color: #f87171; }
   @media (max-width: 560px) {
@@ -206,7 +204,7 @@
        Scoped to .cta-inner so the hero block is untouched. */
     .cta-inner .hero-claim { max-width: 340px; margin-left: auto; margin-right: auto; }
   }
-  .hero-trust { margin-top: 16px; font-size: 13px; color: #fff; font-weight: 400; letter-spacing: 0.01em; }
+  .hero-trust { margin-top: 16px; font-size: 13px; color: rgba(255,255,255,0.55); font-weight: 400; letter-spacing: 0.01em; }
   @media (max-width: 600px) {
     .hero-actions { gap: 10px; }
     .hero-actions .btn-primary { padding: 13px 20px; font-size: 14px; }
