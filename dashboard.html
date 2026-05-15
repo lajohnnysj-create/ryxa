@@ -4099,7 +4099,8 @@
   .bio-s-990d95 { font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:10px; }
   .bio-s-c481fc { display:flex;gap:8px;align-items:stretch;flex-wrap:wrap; }
   .bio-s-1e7cd4 { display:flex;align-items:center;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding-left:12px;font-size:13px;color:var(--muted);flex:1;min-width:0; }
-  .bio-s-81be0c { background:transparent;border:none;padding:10px 10px 10px 2px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;flex:1;min-width:0; }
+  .bio-s-81be0c { background:transparent;border:none;padding:10px 10px 10px 2px;font-size:16px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;flex:1;min-width:0;-webkit-appearance:none;appearance:none; }
+  .bio-s-81be0c::-webkit-search-cancel-button, .bio-s-81be0c::-webkit-search-decoration { -webkit-appearance:none;appearance:none;display:none; }
   .bio-s-ddc897 { font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5; }
   .bio-s-595d2a { display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap; }
   .bio-s-f38a95 { flex-shrink:0; }
@@ -6381,7 +6382,7 @@
               <div class="bio-s-c481fc">
                 <div class="bio-username-prefix-wrap bio-s-1e7cd4">
                   <span class="bio-username-prefix">ryxa.io/</span>
-                  <input type="text" id="bio-username" aria-label="Username" placeholder="yourname" maxlength="30" readonly data-bio-action-focus="remove-readonly" data-bio-action-input="username-input" autocomplete="off" data-1p-ignore="true" data-lpignore="true" class="bio-s-81be0c">
+                  <input type="search" id="bio-username" name="claim-handle-search" aria-label="Username" placeholder="yourname" maxlength="30" readonly data-bio-action-focus="remove-readonly" data-bio-action-input="username-input" autocomplete="off" autocorrect="off" data-1p-ignore="true" data-lpignore="true" class="bio-s-81be0c">
                 </div>
               </div>
               <div id="bio-username-hint" class="bio-s-ddc897">Same username as your Media Kit. You can change it up to 2 times per week.</div>
@@ -7390,7 +7391,7 @@
                 <div class="bio-s-c481fc">
                   <div class="bio-username-prefix-wrap bio-s-1e7cd4" >
                     <span class="bio-username-prefix">ryxa.io/mediakit/</span>
-                    <input type="text" id="mk-username" aria-label="Username" placeholder="yourname" maxlength="30" readonly data-mk-action-focus="remove-readonly" autocomplete="off" data-1p-ignore="true" data-lpignore="true" data-mk-action-input="username-input" class="bio-s-81be0c">
+                    <input type="search" id="mk-username" name="claim-handle-search" aria-label="Username" placeholder="yourname" maxlength="30" readonly data-mk-action-focus="remove-readonly" autocomplete="off" autocorrect="off" data-1p-ignore="true" data-lpignore="true" data-mk-action-input="username-input" class="bio-s-81be0c">
                   </div>
                 </div>
                 <div id="mk-username-hint" class="bio-s-ddc897">Same username as your Link in Bio. You can change it up to 2 times per week.</div>

@@ -147,7 +147,7 @@
   .auth-divider { display: flex; align-items: center; gap: 12px; margin: 10px 0 12px 0; }
   .auth-divider::before, .auth-divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }
   .auth-divider span { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
-  .modal-input { width: 100%; background: var(--surface2); border: 1px solid var(--border-hover); border-radius: 10px; padding: 11px 14px; font-size: 14px; color: var(--text); font-family: "DM Sans", sans-serif; margin-bottom: 10px; outline: none; transition: border-color 0.2s; }
+  .modal-input { width: 100%; background: var(--surface2); border: 1px solid var(--border-hover); border-radius: 10px; padding: 11px 14px; font-size: 16px; color: var(--text); font-family: "DM Sans", sans-serif; margin-bottom: 10px; outline: none; transition: border-color 0.2s; }
   .modal-input:focus { border-color: var(--accent); }
   .modal-btn { width: 100%; padding: 12px; background: var(--accent); color: #fff; border: none; border-radius: 10px; font-size: 14px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.2s; margin-top: 4px; box-shadow: 0 0 30px var(--accent-glow); }
   .modal-btn:hover { background: var(--accent2); }
@@ -195,8 +195,6 @@
   .hero-claim-hint { font-size: 13px; margin-top: 8px; min-height: 18px; color: var(--muted); font-family: "DM Sans", sans-serif; }
   .hero-claim-hint.is-available { color: #4ade80; }
   .hero-claim-hint.is-taken { color: #f87171; }
-  .hero-pricing-link { font-size: 14px; color: var(--muted); text-decoration: none; font-family: "DM Sans", sans-serif; border-bottom: 1px solid transparent; transition: color 0.2s, border-color 0.2s; }
-  .hero-pricing-link:hover { color: var(--accent2); border-bottom-color: var(--accent2); }
   @media (max-width: 560px) {
     .hero-claim-row { flex-direction: column; }
     .hero-claim-btn { width: 100%; }
@@ -678,9 +676,8 @@
             </div>
             <div class="hero-claim-hint" id="hero-username-hint" aria-live="polite"></div>
           </div>
-          <a class="hero-pricing-link" href="pricing.html">See pricing</a>
         </div>
-        <div class="hero-trust" data-nosnippet>Free forever &middot; No credit card &middot; Cancel anytime</div>
+        <div class="hero-trust" data-nosnippet>Free forever &middot; No credit card</div>
       </div>
       <div class="hero-phone">
         <div class="hero-phone-ghost-6"></div>
