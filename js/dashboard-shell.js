@@ -628,7 +628,13 @@ async function setUser(user) {
       // happened to arrive with a stale intent.
       const hasActiveSub = userStatus === 'active' || userStatus === 'cancelling';
       if (userTier === 'free' && !hasActiveSub) {
-        setTimeout(() => startCheckout(intentObj), 500);
+        // Do NOT fire checkout here directly. A brand-new user also has the
+        // first-run terms modal about to appear, and the Terms of Service
+        // must be accepted BEFORE the user is sent to pay. So we stash the
+        // intent as a one-shot token; it is consumed (and the redirect
+        // fired) by maybeRunPendingCheckout() - called either right after
+        // terms are accepted, or immediately if terms were already accepted.
+        window._ryx_pendingCheckoutIntent = intentObj;
       }
     }
   } catch (e) { console.warn('intent check', e); }
@@ -771,6 +777,27 @@ async function termsCheckUsernameAvailability(username, token) {
   }
 }
 
+// Consume the deferred post-signup checkout intent, if any, and start
+// checkout. The intent is a ONE-SHOT token: it is cleared here BEFORE the
+// redirect fires, so abandoning Stripe checkout leaves nothing behind to
+// re-trigger on the next login (no infinite redirect loop). If the user
+// bails, they simply remain a free user and can choose a plan again
+// deliberately from the pricing page.
+//
+// Called from two places:
+//   - checkTermsAcceptance(): if the user had ALREADY accepted terms (a
+//     returning user), fire immediately - there is no terms gate for them.
+//   - acceptTerms(): right after a brand-new user accepts terms, so the
+//     Terms of Service are always accepted BEFORE the user is sent to pay.
+function maybeRunPendingCheckout() {
+  var intent = window._ryx_pendingCheckoutIntent;
+  if (!intent) return;
+  // Consume the token NOW, before redirecting. This is the line that
+  // prevents the infinite loop.
+  window._ryx_pendingCheckoutIntent = null;
+  setTimeout(function() { startCheckout(intent); }, 400);
+}
+
 async function checkTermsAcceptance() {
   if (!currentUser) return;
   try {
@@ -782,6 +809,9 @@ async function checkTermsAcceptance() {
       // Load marketing preference into settings
       var toggle = document.getElementById('settings-marketing-emails');
       if (toggle) toggle.checked = !!data.marketing_emails;
+      // Terms already accepted (returning user, no terms gate for them) -
+      // if a post-signup checkout intent is pending, fire it now.
+      maybeRunPendingCheckout();
       return;
     }
     // Show terms modal with existing marketing preference
@@ -900,6 +930,11 @@ async function acceptTerms() {  var check = document.getElementById('terms-accep
 
     var modal = document.getElementById('terms-modal');
     if (modal) modal.style.display = 'none';
+
+    // Terms are now accepted. If the user came from the pricing page with a
+    // plan intent, NOW is the correct moment to send them to checkout -
+    // after the Terms of Service have been accepted, never before.
+    maybeRunPendingCheckout();
   } catch (e) {
     console.error('Accept terms error:', e);
     if (errEl) {
