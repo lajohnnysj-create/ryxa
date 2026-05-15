@@ -200,6 +200,11 @@
   @media (max-width: 560px) {
     .hero-claim-row { flex-direction: column; }
     .hero-claim-btn { width: 100%; }
+    /* Bottom CTA only: the shared max-width:480px never engages on a ~390px
+       phone, so the block goes full-width and looks oversized under the
+       short CTA text. Cap it at a width that actually constrains on mobile.
+       Scoped to .cta-inner so the hero block is untouched. */
+    .cta-inner .hero-claim { max-width: 340px; margin-left: auto; margin-right: auto; }
   }
   .hero-trust { margin-top: 16px; font-size: 13px; color: rgba(255,255,255,0.55); font-weight: 400; letter-spacing: 0.01em; }
   @media (max-width: 600px) {
