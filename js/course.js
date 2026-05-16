@@ -2007,6 +2007,13 @@ function startBunnyStatusPoll(mi, li, lessonId) {
       stopBunnyStatusPoll(mi, li);
       return;
     }
+    // Re-resolve the lesson id every tick. The course save uses a
+    // DELETE-then-INSERT pattern, so each save (including the auto-save that
+    // runs right after an upload) gives the lesson a brand-new DB id. The id
+    // captured when the poll started goes stale and 404s. Reading the current
+    // id from working state keeps the poll pointed at the live row.
+    var currentLesson = courseModules[mi] && courseModules[mi].lessons[li];
+    var activeLessonId = (currentLesson && currentLesson.id) ? currentLesson.id : lessonId;
     var success = false;
     try {
       var resp = await fetch('/api/bunny-lesson-status', {
@@ -2015,7 +2022,7 @@ function startBunnyStatusPoll(mi, li, lessonId) {
           'Content-Type': 'application/json',
           Authorization: 'Bearer ' + Auth.getToken()
         },
-        body: JSON.stringify({ lesson_id: lessonId })
+        body: JSON.stringify({ lesson_id: activeLessonId })
       });
       if (resp.ok) {
         success = true;
