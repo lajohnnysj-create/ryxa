@@ -2105,6 +2105,14 @@ function renderBunnyFinalState(mi, li) {
       + '</div>'
       + '<button type="button" data-course-action="replace-bunny-video" data-course-mi="' + mi + '" data-course-li="' + li + '" class="course-vid-ready-replace">Replace</button>'
       + '</div>';
+    // Persist the finished state. Without this, if the creator does not press
+    // Save after the video finishes, the DB row stays 'processing' and buyers
+    // see a stale "still being processed" message. Auto-saving here keeps the
+    // published course in sync. Non-blocking and non-fatal - a failure just
+    // means the creator still needs to Save manually, as before.
+    if (typeof saveCourse === 'function') {
+      try { saveCourse(); } catch (e) { /* non-fatal */ }
+    }
   } else if (lesson.bunny_video_status === 'failed') {
     panel.innerHTML = '<div class="course-vid-failed">'
       + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'

@@ -1010,16 +1010,17 @@ function selectLesson(lessonId) {
 
   // Content
   if (lesson.lesson_type === 'video') {
-    if (lesson.bunny_video_id && lesson.bunny_video_status === 'ready') {
-      // Bunny-hosted video. Insert a placeholder iframe; fetchBunnyPlayback
-      // will populate src with a signed URL after verifying enrollment.
+    if (lesson.bunny_video_id && lesson.bunny_video_status === 'failed') {
+      // Genuinely failed - nothing to play.
+      html += '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:24px;text-align:center;color:var(--muted);font-size:14px;margin-bottom:16px;">' + escapeHtml('This video failed to process. The creator has been notified.') + '</div>';
+    } else if (lesson.bunny_video_id) {
+      // Has a Bunny video. Render the player and let fetchBunnyPlaybackUrl
+      // request a signed URL. Note: we do this even when the DB status is
+      // still 'processing'/'uploading' - the token endpoint self-heals by
+      // checking Bunny directly, so a stale 'processing' row that Bunny has
+      // actually finished will still play. If it is genuinely not ready, the
+      // token call returns 425 and fetchBunnyPlaybackUrl shows a message.
       html += '<iframe class="viewer-video" id="bunny-player-' + escapeHtml(lesson.id) + '" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="background:#000;"></iframe>';
-    } else if (lesson.bunny_video_id && lesson.bunny_video_status && lesson.bunny_video_status !== 'ready') {
-      // Bunny video exists but is still processing or failed
-      var statusMsg = lesson.bunny_video_status === 'failed'
-        ? 'This video failed to process. The creator has been notified.'
-        : 'This video is still being processed. Check back in a few minutes.';
-      html += '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:24px;text-align:center;color:var(--muted);font-size:14px;margin-bottom:16px;">' + escapeHtml(statusMsg) + '</div>';
     } else if (lesson.video_url) {
       // Legacy paste-URL path (YouTube/Vimeo/Loom)
       var embedUrl = getEmbedUrl(lesson.video_url);
@@ -1090,7 +1091,11 @@ function selectLesson(lessonId) {
   // We pass lessonId (the function parameter, captured at call time) so the
   // race-guard inside fetchBunnyPlaybackUrl can compare against the current
   // currentLessonId and drop the result if the viewer navigated away.
-  if (lesson.lesson_type === 'video' && lesson.bunny_video_id && lesson.bunny_video_status === 'ready') {
+  // Fetch the signed iframe URL for any Bunny video that isn't a hard
+  // 'failed'. The /api/bunny-video-token endpoint verifies enrollment and
+  // self-heals a stale 'processing' status by checking Bunny directly, so
+  // a video Bunny has finished will play even if the DB row lagged behind.
+  if (lesson.lesson_type === 'video' && lesson.bunny_video_id && lesson.bunny_video_status !== 'failed') {
     fetchBunnyPlaybackUrl(lesson.id, lessonId);
   }
 
