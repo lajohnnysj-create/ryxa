@@ -82,6 +82,71 @@ async function sbRpc(fnName, args) {
   return await res.json();
 }
 
+// ---------- Self-healing: ask Bunny directly when the DB looks stale ----------
+// Mirrors bunny-lesson-status.js. The buyer's viewer can land on a lesson whose
+// DB row still says 'processing' even though Bunny finished encoding (a missed
+// encode-complete webhook, or the creator never re-saved). Rather than show the
+// buyer a dead "still processing" message, check Bunny and correct the row.
+function mapBunnyStatus(code) {
+  switch (Number(code)) {
+    case 0: return 'uploading';
+    case 1: return 'processing';
+    case 2: return 'processing';
+    case 3: return 'processing';
+    case 4: return 'ready';
+    case 5: return 'failed';
+    case 6: return 'failed';
+    default: return null;
+  }
+}
+
+async function fetchBunnyStatus(videoGuid) {
+  var libraryId = process.env.BUNNY_STREAM_LIBRARY_ID;
+  var apiKey = process.env.BUNNY_STREAM_API_KEY;
+  if (!libraryId || !apiKey) return null;
+  try {
+    var res = await fetch('https://video.bunnycdn.com/library/' + libraryId + '/videos/' + videoGuid, {
+      headers: { AccessKey: apiKey, Accept: 'application/json' }
+    });
+    if (!res.ok) return null;
+    var meta = await res.json();
+    var status = mapBunnyStatus(meta.status);
+    if (!status) return null;
+    var out = { bunny_video_status: status };
+    if (status === 'ready') {
+      if (typeof meta.length === 'number') {
+        out.bunny_video_duration_seconds = Math.round(meta.length);
+      }
+      var cdnHost = process.env.BUNNY_STREAM_CDN_HOSTNAME;
+      if (cdnHost) {
+        out.bunny_thumbnail_url = 'https://' + cdnHost + '/' + videoGuid + '/thumbnail.jpg';
+      }
+    }
+    return out;
+  } catch (e) {
+    return null;
+  }
+}
+
+async function patchLessonByVideoId(videoGuid, update) {
+  var key = getServiceKey();
+  try {
+    await fetch(SUPABASE_URL + '/rest/v1/course_lessons?bunny_video_id=eq.' + encodeURIComponent(videoGuid), {
+      method: 'PATCH',
+      headers: {
+        apikey: key,
+        Authorization: 'Bearer ' + key,
+        'Content-Type': 'application/json',
+        Prefer: 'return=minimal'
+      },
+      body: JSON.stringify(update)
+    });
+  } catch (e) {
+    // Non-fatal: the playback request can still proceed on the healed value
+    // held in memory; the row just won't be persisted this round.
+  }
+}
+
 async function verifyViewerJWT(authHeader) {
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     console.warn('[bunny-video-token] No Bearer header. authHeader present:', !!authHeader, 'starts with Bearer:', authHeader ? authHeader.startsWith('Bearer ') : false);
@@ -180,10 +245,21 @@ module.exports = async (req, res) => {
       return res.status(404).json({ error: 'This lesson has no video' });
     }
     if (lesson.bunny_video_status !== 'ready') {
-      return res.status(425).json({
-        error: 'Video is still processing. Try again in a moment.',
-        status: lesson.bunny_video_status
-      });
+      // The DB says not-ready, but it may be stale (missed encode-complete
+      // webhook, or the creator never re-saved after upload). Ask Bunny
+      // directly before turning the viewer away.
+      var live = await fetchBunnyStatus(lesson.bunny_video_id);
+      if (live && live.bunny_video_status === 'ready') {
+        // Bunny confirms it's done - correct the row and let playback proceed.
+        await patchLessonByVideoId(lesson.bunny_video_id, live);
+        lesson.bunny_video_status = 'ready';
+        if (live.bunny_thumbnail_url) lesson.bunny_thumbnail_url = live.bunny_thumbnail_url;
+      } else {
+        return res.status(425).json({
+          error: 'Video is still processing. Try again in a moment.',
+          status: (live && live.bunny_video_status) || lesson.bunny_video_status
+        });
+      }
     }
 
     // 3. Authorize the viewer
