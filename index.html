@@ -361,10 +361,10 @@
   .testimonials-track::-webkit-scrollbar { display: none; }
   .testimonial-arrow { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: all 0.2s; z-index: 2; }
   .testimonial-arrow:hover { color: var(--text); border-color: var(--accent); background: rgba(124,58,237,0.1); }
-  .testimonial-card { position: relative; width: 380px; min-width: 380px; height: 440px; border-radius: 20px; overflow: hidden; flex-shrink: 0; scroll-snap-align: center; scroll-snap-stop: always; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(20,17,28,0.12); }
-  .testimonial-photo { height: 58%; background-size: cover; background-position: center top; flex-shrink: 0; transition: transform 0.5s ease; }
+  .testimonial-card { position: relative; width: 380px; min-width: 380px; border-radius: 20px; overflow: hidden; flex-shrink: 0; scroll-snap-align: center; scroll-snap-stop: always; display: flex; flex-direction: column; align-self: flex-start; }
+  .testimonial-photo { height: 260px; background-size: cover; background-position: center top; flex-shrink: 0; transition: transform 0.5s ease; }
   .testimonial-card:hover .testimonial-photo { transform: scale(1.05); }
-  .testimonial-panel { flex: 1; padding: 22px 24px; display: flex; flex-direction: column; text-align: left; }
+  .testimonial-panel { flex: 1; padding: 24px 24px 26px; display: flex; flex-direction: column; text-align: left; }
   .testimonial-stars { font-size: 15px; letter-spacing: 2px; margin-bottom: 10px; }
   .testimonial-quote { font-size: 14px; line-height: 1.6; margin: 0 0 14px; font-style: italic; }
   .testimonial-meta { margin-top: auto; }
@@ -381,8 +381,9 @@
   .testimonial-panel.c-amber .testimonial-stars { color: #1a1308; }
   @media (max-width: 600px) {
     .testimonials-heading { font-size: 13px; letter-spacing: -0.2px; margin-bottom: 20px; }
-    .testimonial-card { width: 300px; min-width: 300px; height: 400px; }
-    .testimonial-panel { padding: 18px 18px; }
+    .testimonial-card { width: 300px; min-width: 300px; }
+    .testimonial-photo { height: 210px; }
+    .testimonial-panel { padding: 20px 20px 22px; }
     .testimonials-track { gap: 16px; }
     .testimonial-arrow { width: 34px; height: 34px; }
     .testimonials-track-wrap { padding: 0 12px; gap: 8px; }
