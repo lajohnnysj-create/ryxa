@@ -19,7 +19,9 @@ style.textContent = ''
   + '#site-footer{min-height:200px;}#site-footer p a{transition:color 0.2s;}#site-footer p a:hover{color:var(--text) !important;}'
   // Nav - single centered floating pill. The <nav> is a transparent fixed
   // wrapper that centers one pill containing logo, links, and buttons.
-  + 'nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:center;justify-content:center;padding:14px 24px;background:transparent;pointer-events:none;}'
+  + 'nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:center;justify-content:center;padding:14px 24px;background:transparent;pointer-events:none;transition:transform 0.32s ease;}'
+  + 'nav.nav-hidden{transform:translateY(-130%);}'
+  + '@media(prefers-reduced-motion:reduce){nav{transition:none;}}'
   + '.nav-pill{pointer-events:auto;background:rgba(15,15,26,0.82);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.10);border-radius:100px;box-shadow:0 8px 32px rgba(0,0,0,0.35);display:flex;align-items:center;gap:30px;padding:8px 8px 8px 22px;}'
   + '.logo img{width:30px;height:30px;object-fit:contain;}'
   + '.logo{font-family:"Syne",sans-serif;font-weight:800;font-size:21px;letter-spacing:-0.5px;display:flex;align-items:center;gap:9px;text-decoration:none;color:var(--text);}'
@@ -549,6 +551,64 @@ if (typeof window.openSignupModal === 'undefined') {
   s.src = '/cookie-banner.js';
   s.async = true;
   document.head.appendChild(s);
+})();
+
+// =====================
+// SCROLL-HIDE NAV
+// =====================
+// The floating nav hides when the user scrolls down and reappears when they
+// scroll up - the standard modern "always one flick away" behavior. It is
+// always visible near the top of the page. Scroll handling is rAF-throttled
+// so it stays cheap. The CSS transition respects prefers-reduced-motion.
+(function initScrollHideNav() {
+  var navEl = document.querySelector('nav');
+  if (!navEl) return;
+
+  var lastY = window.pageYOffset || 0;
+  var ticking = false;
+
+  // Near the top: always visible, regardless of scroll direction.
+  var TOP_ZONE = 80;
+  // Ignore scroll movements smaller than this so tiny twitches do not
+  // toggle the nav.
+  var DELTA = 6;
+
+  function update() {
+    ticking = false;
+    var y = window.pageYOffset || 0;
+
+    // Near the top: always visible.
+    if (y < TOP_ZONE) {
+      navEl.classList.remove('nav-hidden');
+      lastY = y;
+      return;
+    }
+
+    // If the mobile menu is open, keep the nav visible.
+    var menu = document.getElementById('mobile-menu');
+    if (menu && menu.classList.contains('open')) {
+      navEl.classList.remove('nav-hidden');
+      lastY = y;
+      return;
+    }
+
+    var diff = y - lastY;
+    if (Math.abs(diff) < DELTA) return;  // too small to act on
+
+    if (diff > 0) {
+      navEl.classList.add('nav-hidden');     // scrolling down - hide
+    } else {
+      navEl.classList.remove('nav-hidden');  // scrolling up - show
+    }
+    lastY = y;
+  }
+
+  window.addEventListener('scroll', function() {
+    if (!ticking) {
+      window.requestAnimationFrame(update);
+      ticking = true;
+    }
+  }, { passive: true });
 })();
 
 })();
