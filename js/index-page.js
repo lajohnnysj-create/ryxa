@@ -790,3 +790,19 @@ homeRegisterAction('claim-username', function(e, el) {
 
     setTimeout(runCycle, 1500);
   })();
+
+// Tools section: stagger-animate the tool chips when the section scrolls into view
+(function () {
+  var section = document.querySelector('.tools-section');
+  if (!section) return;
+  if (!('IntersectionObserver' in window)) { section.classList.add('in-view'); return; }
+  var obs = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (entry.isIntersecting) {
+        section.classList.add('in-view');
+        obs.disconnect();
+      }
+    });
+  }, { threshold: 0.2 });
+  obs.observe(section);
+})();
