@@ -391,6 +391,8 @@
   }
   .btn-primary { background: var(--accent); color: #fff; border: none; border-radius: 10px; padding: 15px 36px; font-size: 16px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.25s; box-shadow: 0 0 40px var(--accent-glow); text-decoration: none; display: inline-block; }
   .btn-primary:hover { background: var(--accent2); transform: translateY(-2px); }
+  .btn-on-purple { background: #fff; color: #14111c; border: none; border-radius: 10px; padding: 15px 36px; font-size: 16px; font-weight: 700; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.25s; text-decoration: none; display: inline-block; box-shadow: 0 8px 24px rgba(0,0,0,0.25); }
+  .btn-on-purple:hover { background: #f0eef8; transform: translateY(-2px); }
   .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border-hover); border-radius: 10px; padding: 15px 36px; font-size: 16px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.25s; text-decoration: none; display: inline-block; }
   .btn-secondary:hover { border-color: var(--accent2); color: var(--accent2); transform: translateY(-1px); }
   .hero-mockup { position: relative; display: inline-block; perspective: 1200px; margin-bottom: 80px; }
@@ -1135,7 +1137,8 @@
   }
 </style>
 
-<section style="text-align:center;padding:120px 32px 40px;background:#5b21b6;margin-top:-60px;">
+<div style="background:#5b21b6;margin-top:-60px;padding-top:60px;">
+<section style="text-align:center;padding:60px 32px 40px;">
   <h2 class="section-title" style="max-width:600px;margin:0 auto 16px;color:#fff;">Powerful Tools. No Coding.</h2>
   <p style="font-size:18px;color:#fff;line-height:1.6;max-width:520px;margin:0 auto;">Start building your creator business in minutes. No technical skills, no complicated setup. Just sign up and go.</p>
 </section>
@@ -1189,8 +1192,9 @@
   </style>
 </section>
 
-<div style="text-align:center;padding:0 32px 60px;">
-  <button type="button" class="btn-primary" data-home-action="open-signup">Start for free &#x2192;</button>
+<div style="text-align:center;padding:0 32px 72px;">
+  <button type="button" class="btn-on-purple" data-home-action="open-signup">Start for free &#x2192;</button>
+</div>
 </div>
 
 <section class="features-section">
