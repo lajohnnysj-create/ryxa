@@ -177,7 +177,7 @@
   .hero-claim-field:focus-within { border-color: var(--accent2); }
   .hero-claim-field.is-available { border-color: #4ade80; }
   .hero-claim-field.is-taken { border-color: #f87171; }
-  .hero-claim-prefix { color: #8b8b95; font-size: 16px; font-family: "DM Sans", sans-serif; white-space: nowrap; user-select: none; }
+  .hero-claim-prefix { color: #5a5a63; font-size: 16px; font-family: "DM Sans", sans-serif; white-space: nowrap; user-select: none; }
   .hero-claim-input { flex: 1; min-width: 0; background: transparent; border: none; outline: none; color: #1a1018; font-size: 16px; font-family: "DM Sans", sans-serif; padding: 14px 8px; -webkit-appearance: none; appearance: none; }
   /* type=search is used (not text) because iOS Safari does not fire its
      password-autofill heuristic on search inputs. Strip the native search
@@ -370,7 +370,7 @@
   .testimonial-quote { font-size: 14px; line-height: 1.6; margin: 0 0 14px; font-style: italic; }
   .testimonial-meta { margin-top: auto; }
   .testimonial-name { font-size: 14px; font-weight: 700; }
-  .testimonial-handle { font-size: 12px; opacity: 0.7; }
+  .testimonial-handle { font-size: 12px; font-weight: 600; }
   /* Per-card panel colors */
   .testimonial-panel.c-magenta { background: #b9158d; color: #fff; }
   .testimonial-panel.c-magenta .testimonial-stars { color: #ffd84d; }
@@ -535,9 +535,9 @@
   .tools-slash { height: 90px; background: #2f6fe0; clip-path: polygon(0 0, 100% 0, 100% 0, 0 100%); }
   .tools-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1.05fr; gap: 60px; align-items: center; }
   .tools-copy { max-width: 440px; }
-  .tools-eyebrow { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.7); font-weight: 600; margin-bottom: 16px; display: block; }
+  .tools-eyebrow { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: #fff; font-weight: 600; margin-bottom: 16px; display: block; }
   .tools-headline { font-family: "Plus Jakarta Sans", sans-serif; font-size: clamp(28px, 4vw, 44px); font-weight: 800; letter-spacing: -1.5px; line-height: 1.12; margin-bottom: 18px; color: #facc15; }
-  .tools-sub { color: rgba(255,255,255,0.92); font-size: 16px; line-height: 1.7; margin-bottom: 28px; }
+  .tools-sub { color: #fff; font-size: 16px; line-height: 1.7; margin-bottom: 28px; }
   .tools-cta { display: inline-block; background: #facc15; color: #1a1505; font-family: "DM Sans", sans-serif; font-size: 15px; font-weight: 700; padding: 14px 28px; border-radius: 10px; text-decoration: none; transition: transform 0.2s, background 0.2s; }
   .tools-cta:hover { background: #eab308; transform: translateY(-2px); }
   .tools-chips { display: flex; flex-wrap: wrap; gap: 12px 10px; }
@@ -1733,7 +1733,7 @@
         <div class="hero-claim-hint" aria-live="polite"></div>
       </div>
     </div>
-    <div style="margin-top:20px;font-size:14px;color:var(--muted);">Already have an account? <button type="button" data-home-action="open-signin" style="background:none;border:none;padding:0;font:inherit;color:#b9158d;cursor:pointer;text-decoration:none;transition:color 0.2s;">Sign in</button> &nbsp;·&nbsp; <a href="pricing.html" style="color:#b9158d;text-decoration:none;transition:color 0.2s;">View plans</a></div>
+    <div style="margin-top:20px;font-size:14px;color:var(--muted);">Already have an account? <button type="button" data-home-action="open-signin" style="background:none;border:none;padding:0;font:inherit;color:#fff;cursor:pointer;text-decoration:underline;transition:color 0.2s;">Sign in</button> &nbsp;·&nbsp; <a href="pricing.html" style="color:#fff;text-decoration:underline;transition:color 0.2s;">View plans</a></div>
   </div>
 </section>
 
