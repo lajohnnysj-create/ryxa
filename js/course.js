@@ -2122,8 +2122,14 @@ function bunnyPostRenderSetup(container) {
       var mod = courseModules[mi];
       for (var li = 0; li < (mod.lessons || []).length; li++) {
         if (mod.lessons[li].id === lessonId) {
-          // Only start poll if not already polling
-          if (!_bunnyPollsByLesson[lessonKey(mi, li)]) {
+          // Only start a poll if the lesson genuinely has a video that is
+          // still encoding. Restarting purely off the DOM element caused a
+          // poll (and a 404 against bunny-lesson-status) on lessons with no
+          // video at all. Check the data, not just the rendered element.
+          var lsn = mod.lessons[li];
+          var stillEncoding = lsn.bunny_video_id
+            && (lsn.bunny_video_status === 'processing' || lsn.bunny_video_status === 'uploading');
+          if (stillEncoding && !_bunnyPollsByLesson[lessonKey(mi, li)]) {
             startBunnyStatusPoll(mi, li, lessonId);
           }
           return;
