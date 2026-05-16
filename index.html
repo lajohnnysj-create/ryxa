@@ -572,14 +572,21 @@
     .tool-chip { opacity: 1 !important; }
     .tools-section.in-view .tool-chip { animation: none; }
   }
-  .features-section { padding: 80px 48px; background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-  .features-inner { max-width: 1100px; margin: 0 auto; }
-  .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; margin-top: 56px; }
-  .feat { display: flex; flex-direction: column; gap: 12px; }
-  .feat-icon { width: 44px; height: 44px; background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #c4b5fd; }
-  .feat-icon svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-  .feat-title { font-family: "Plus Jakarta Sans", sans-serif; font-size: 16px; font-weight: 700; }
-  .feat-desc { font-size: 14px; color: var(--muted); line-height: 1.65; }
+  .features-section { padding: 90px 48px; background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .features-inner { max-width: 1080px; margin: 0 auto; }
+  .features-list { margin-top: 56px; display: flex; flex-direction: column; }
+  .feat-row { display: grid; grid-template-columns: 130px 1fr; gap: 28px; padding: 32px 0; border-top: 1px solid rgba(255,255,255,0.08); align-items: start; }
+  .feat-row:first-child { border-top: none; }
+  .feat-num { font-family: "Plus Jakarta Sans", sans-serif; font-size: clamp(48px, 7vw, 76px); font-weight: 800; line-height: 0.9; letter-spacing: -2px; }
+  .feat-row:nth-child(1) .feat-num { color: #b9158d; }
+  .feat-row:nth-child(2) .feat-num { color: #7c3aed; }
+  .feat-row:nth-child(3) .feat-num { color: #2f6fe0; }
+  .feat-row:nth-child(4) .feat-num { color: #d97706; }
+  .feat-row:nth-child(5) .feat-num { color: #d4e157; }
+  .feat-row:nth-child(6) .feat-num { color: #b9158d; }
+  .feat-body { padding-top: 6px; }
+  .feat-title { font-family: "Plus Jakarta Sans", sans-serif; font-size: clamp(20px, 2.4vw, 26px); font-weight: 800; letter-spacing: -0.5px; margin-bottom: 8px; color: #fff; }
+  .feat-desc { font-size: 15px; color: #fff; line-height: 1.7; max-width: 600px; }
   .cta-section { padding: 100px 48px; text-align: center; position: relative; overflow: hidden; }
   .cta-bg {
     position: absolute;
@@ -604,7 +611,8 @@
   .footer-links { display: flex; gap: 24px; flex-wrap: wrap; }
   .footer-links a { color: var(--muted); font-size: 13px; text-decoration: none; transition: color 0.2s; }
   .footer-links a:hover { color: var(--text); }
-  @media (max-width: 900px) { .features-grid { grid-template-columns: 1fr; } .tools-inner { grid-template-columns: 1fr; gap: 36px; } .tools-copy { max-width: 100%; } }
+  @media (max-width: 900px) { .tools-inner { grid-template-columns: 1fr; gap: 36px; } .tools-copy { max-width: 100%; } }
+  @media (max-width: 600px) { .feat-row { grid-template-columns: 1fr; gap: 8px; padding: 26px 0; } .feat-num { font-size: 44px; } }
   @media (max-width: 768px) {
     nav { padding: 0 20px; }
     .nav-links, .nav-right { display: none; }
@@ -1203,13 +1211,49 @@
   <div class="features-inner">
     <span class="section-label">Why Ryxa</span>
     <h2 class="section-title">Built by a creator. For creators.</h2>
-    <div class="features-grid">
-      <div class="feat"><div class="feat-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M5.5 21a7.5 7.5 0 0 1 13 0"/></svg></div><div class="feat-title">Built by a creator</div><div class="feat-desc">Built by a creator who got tired of paying $400 a month for tools that didn't talk to each other. If you've been in the trenches, you'll recognize the pain.</div></div>
-      <div class="feat"><div class="feat-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></div><div class="feat-title">Find people who unfollowed you</div><div class="feat-desc">Know who actually supports you. Find your real fans, and stop pouring energy into people who'll never pour it back.</div></div>
-      <div class="feat"><div class="feat-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div><div class="feat-title">Free to start</div><div class="feat-desc">We offer plenty of tools on the free-plan. Enjoy it on us!</div></div>
-      <div class="feat"><div class="feat-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="feat-title">Affordable by design</div><div class="feat-desc">Pro is $10 a month. Less than lunch. Upgrade to Creator Max when you're ready for the next level. Cancel any time you want.</div></div>
-      <div class="feat"><div class="feat-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div><div class="feat-title">One clean dashboard</div><div class="feat-desc">Your link-in-bio, courses, coaching, invoices, brand deals, all in one place. Stop paying five different services to run one creator business.</div></div>
-      <div class="feat"><div class="feat-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22c5.5 0 10-4.5 10-10S17.5 2 12 2 2 6.5 2 12s4.5 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg></div><div class="feat-title">Focused, not bloated</div><div class="feat-desc">Every tool earns its place. No menus stuffed with features you'll never use. Just what you actually need, nothing you don't.</div></div>
+    <div class="features-list">
+      <div class="feat-row">
+        <div class="feat-num">01</div>
+        <div class="feat-body">
+          <div class="feat-title">Built by a creator</div>
+          <div class="feat-desc">Built by a creator who got tired of paying $400 a month for tools that didn't talk to each other. If you've been in the trenches, you'll recognize the pain.</div>
+        </div>
+      </div>
+      <div class="feat-row">
+        <div class="feat-num">02</div>
+        <div class="feat-body">
+          <div class="feat-title">Find people who unfollowed you</div>
+          <div class="feat-desc">Know who actually supports you. Find your real fans, and stop pouring energy into people who'll never pour it back.</div>
+        </div>
+      </div>
+      <div class="feat-row">
+        <div class="feat-num">03</div>
+        <div class="feat-body">
+          <div class="feat-title">Free to start</div>
+          <div class="feat-desc">We offer plenty of tools on the free-plan. Enjoy it on us!</div>
+        </div>
+      </div>
+      <div class="feat-row">
+        <div class="feat-num">04</div>
+        <div class="feat-body">
+          <div class="feat-title">Affordable by design</div>
+          <div class="feat-desc">Pro is $10 a month. Less than lunch. Upgrade to Creator Max when you're ready for the next level. Cancel any time you want.</div>
+        </div>
+      </div>
+      <div class="feat-row">
+        <div class="feat-num">05</div>
+        <div class="feat-body">
+          <div class="feat-title">One clean dashboard</div>
+          <div class="feat-desc">Your link-in-bio, courses, coaching, invoices, brand deals, all in one place. Stop paying five different services to run one creator business.</div>
+        </div>
+      </div>
+      <div class="feat-row">
+        <div class="feat-num">06</div>
+        <div class="feat-body">
+          <div class="feat-title">Focused, not bloated</div>
+          <div class="feat-desc">Every tool earns its place. No menus stuffed with features you'll never use. Just what you actually need, nothing you don't.</div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
