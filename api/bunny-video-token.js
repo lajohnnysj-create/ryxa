@@ -244,27 +244,13 @@ module.exports = async (req, res) => {
     if (!lesson.bunny_video_id) {
       return res.status(404).json({ error: 'This lesson has no video' });
     }
-    if (lesson.bunny_video_status !== 'ready') {
-      // The DB says not-ready, but it may be stale (missed encode-complete
-      // webhook, or the creator never re-saved after upload). Ask Bunny
-      // directly before turning the viewer away.
-      var live = await fetchBunnyStatus(lesson.bunny_video_id);
-      if (live && live.bunny_video_status === 'ready') {
-        // Bunny confirms it's done - correct the row and let playback proceed.
-        await patchLessonByVideoId(lesson.bunny_video_id, live);
-        lesson.bunny_video_status = 'ready';
-        if (live.bunny_thumbnail_url) lesson.bunny_thumbnail_url = live.bunny_thumbnail_url;
-      } else {
-        return res.status(425).json({
-          error: 'Video is still processing. Try again in a moment.',
-          status: (live && live.bunny_video_status) || lesson.bunny_video_status
-        });
-      }
-    }
 
-    // 3. Authorize the viewer
+    // 3. Authorize the viewer FIRST - before any Bunny call or DB write.
     //    - If lesson.is_preview = TRUE, anyone can watch (no auth required)
     //    - Otherwise, the viewer must be enrolled in the course
+    //    Doing this before the self-heal below ensures an unauthorized request
+    //    cannot trigger Bunny API calls or a course_lessons write for a lesson
+    //    the requester isn't allowed to view.
     var viewer = await verifyViewerJWT(req.headers.authorization || '');
     var grantedViaPreview = false;
 
@@ -281,6 +267,25 @@ module.exports = async (req, res) => {
       });
       if (canView !== true) {
         return res.status(403).json({ error: 'You are not enrolled in this course' });
+      }
+    }
+
+    // 4. Check the video is ready. Only reached by an authorized viewer.
+    if (lesson.bunny_video_status !== 'ready') {
+      // The DB says not-ready, but it may be stale (missed encode-complete
+      // webhook, or the creator never re-saved after upload). Ask Bunny
+      // directly before turning the viewer away.
+      var live = await fetchBunnyStatus(lesson.bunny_video_id);
+      if (live && live.bunny_video_status === 'ready') {
+        // Bunny confirms it's done - correct the row and let playback proceed.
+        await patchLessonByVideoId(lesson.bunny_video_id, live);
+        lesson.bunny_video_status = 'ready';
+        if (live.bunny_thumbnail_url) lesson.bunny_thumbnail_url = live.bunny_thumbnail_url;
+      } else {
+        return res.status(425).json({
+          error: 'Video is still processing. Try again in a moment.',
+          status: (live && live.bunny_video_status) || lesson.bunny_video_status
+        });
       }
     }
 
