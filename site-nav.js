@@ -17,12 +17,10 @@ style.textContent = ''
   // Anti-flash: reserve space
   + '#site-header{min-height:80px;}'
   + '#site-footer{min-height:200px;}#site-footer p a{transition:color 0.2s;}#site-footer p a:hover{color:var(--text) !important;}'
-  // Nav - split two-pill floating nav. The <nav> is a transparent fixed
-  // wrapper with a margin; inside it sit two pills with a gap between.
-  + 'nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:14px 24px;background:transparent;pointer-events:none;}'
-  + '.nav-pill{pointer-events:auto;background:rgba(15,15,26,0.82);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.10);border-radius:100px;box-shadow:0 8px 32px rgba(0,0,0,0.35);display:flex;align-items:center;}'
-  + '.nav-pill-logo{padding:8px 22px 8px 16px;}'
-  + '.nav-pill-actions{padding:7px 8px 7px 24px;gap:26px;}'
+  // Nav - single centered floating pill. The <nav> is a transparent fixed
+  // wrapper that centers one pill containing logo, links, and buttons.
+  + 'nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:center;justify-content:center;padding:14px 24px;background:transparent;pointer-events:none;}'
+  + '.nav-pill{pointer-events:auto;background:rgba(15,15,26,0.82);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.10);border-radius:100px;box-shadow:0 8px 32px rgba(0,0,0,0.35);display:flex;align-items:center;gap:30px;padding:8px 8px 8px 22px;}'
   + '.logo img{width:30px;height:30px;object-fit:contain;}'
   + '.logo{font-family:"Syne",sans-serif;font-weight:800;font-size:21px;letter-spacing:-0.5px;display:flex;align-items:center;gap:9px;text-decoration:none;color:var(--text);}'
   + '.nav-links{display:flex;align-items:center;gap:26px;}'
@@ -58,7 +56,7 @@ style.textContent = ''
   + '.nav-tools-trigger:hover,.nav-tools-wrap:hover .nav-tools-trigger,.nav-tools-wrap.nav-open .nav-tools-trigger{color:var(--text);}'
   + '.nav-tools-trigger svg{transition:transform 0.2s;}'
   + '.nav-tools-wrap:hover .nav-tools-trigger svg,.nav-tools-wrap.nav-open .nav-tools-trigger svg{transform:rotate(180deg);}'
-  + '.nav-tools-menu{position:absolute;top:100%;right:-12px;transform:translateY(0);width:720px;max-width:calc(100vw - 32px);background:rgba(15,15,26,0.98);backdrop-filter:blur(20px);border:1px solid var(--border-hover);border-radius:16px;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,0.5);opacity:0;pointer-events:none;transition:opacity 0.18s,transform 0.18s;z-index:250;}'
+  + '.nav-tools-menu{position:absolute;top:100%;left:-12px;transform:translateY(0);width:720px;max-width:calc(100vw - 32px);background:rgba(15,15,26,0.98);backdrop-filter:blur(20px);border:1px solid var(--border-hover);border-radius:16px;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,0.5);opacity:0;pointer-events:none;transition:opacity 0.18s,transform 0.18s;z-index:250;}'
   + '.nav-tools-wrap:hover .nav-tools-menu,.nav-tools-wrap.nav-open .nav-tools-menu{opacity:1;pointer-events:all;transform:translateY(0);}'
   + '.nav-tools-wrap::before{content:"";position:absolute;top:100%;left:-30px;right:-30px;height:24px;}'
   + '.nav-tools-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;}'
@@ -80,7 +78,7 @@ style.textContent = ''
   + '.footer-grid a:hover{color:var(--text) !important;}'
   + '.footer-grid a{text-decoration:none;}'
   // Responsive
-  + '@media(max-width:768px){nav{padding:12px 16px;}.nav-links,.nav-right{display:none;}.hamburger{display:flex;}.nav-pill-actions{padding:7px 10px;}footer{flex-direction:column;text-align:center;padding:40px 20px 24px !important;}.footer-grid{grid-template-columns:1fr 1fr !important;gap:24px !important;}.footer-grid>div:first-child{grid-column:1/-1;}.footer-grid>div:first-child p{margin-left:auto;margin-right:auto;}}'
+  + '@media(max-width:768px){nav{padding:12px 16px;}.nav-links,.nav-right{display:none;}.hamburger{display:flex;}.nav-pill{gap:18px;padding:8px 14px 8px 18px;}footer{flex-direction:column;text-align:center;padding:40px 20px 24px !important;}.footer-grid{grid-template-columns:1fr 1fr !important;gap:24px !important;}.footer-grid>div:first-child{grid-column:1/-1;}.footer-grid>div:first-child p{margin-left:auto;margin-right:auto;}}'
   + '@media(max-width:480px){.footer-grid{grid-template-columns:1fr !important;}}';
 
 document.head.appendChild(style);
@@ -153,12 +151,10 @@ function renderHeader() {
   +   '</div>'
   + '</div>'
 
-  // Nav bar - split two-pill layout
+  // Nav bar - single centered pill
   + '<nav>'
-  +   '<div class="nav-pill nav-pill-logo">'
+  +   '<div class="nav-pill">'
   +     '<a class="logo" href="/index.html"><img src="/logo-black.png" alt="Ryxa"> Ryxa</a>'
-  +   '</div>'
-  +   '<div class="nav-pill nav-pill-actions">'
   +   '<div class="nav-links" id="nav-links">'
 
   // Tools dropdown
