@@ -20,7 +20,7 @@
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
   html{scrollbar-width:thin;scrollbar-color:rgba(168,85,247,0.4) #0a0a14;}::-webkit-scrollbar{width:8px;}::-webkit-scrollbar-track{background:#0a0a14;}::-webkit-scrollbar-thumb{background:rgba(168,85,247,0.4);border-radius:4px;}::-webkit-scrollbar-thumb:hover{background:rgba(168,85,247,0.6);}
   html{scroll-behavior:smooth;}
-  body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+  body{font-family:"DM Sans",sans-serif;background:#f5f5f7;color:var(--text);min-height:100vh;overflow-x:hidden;}
 
   /* ===== Light theme scoped to the pricing content (header + cards) only ===== */
   /* Redefining the theme variables on these two containers flips every var()
@@ -45,6 +45,15 @@
   /* Free button on white */
   .pricing-section .plan-btn.free { background:#f0f0f3; color:#14111c; border:1px solid rgba(0,0,0,0.12); }
   .pricing-section .plan-btn.free:hover { border-color:rgba(124,58,237,0.4); color:var(--accent); }
+  /* Explicit dark text - these elements inherit from body (outside the scope)
+     so they need the color set directly, not via the scoped variable. */
+  .page-header h1 { color:#14111c; }
+  .page-header p { color:#6b6b73; }
+  .pricing-section .plan-name { color:#14111c; }
+  .pricing-section .plan-price > span { color:#14111c; }
+  .pricing-section .plan-price > span > span,
+  .pricing-section .plan-price > span.plan-price-sub,
+  .pricing-section .plan-desc { color:#6b6b73; }
   /* ===== end pricing light theme ===== */
 
   .page-header{max-width:900px;margin:0 auto;padding:80px 48px 56px;text-align:center;}
