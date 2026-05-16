@@ -361,23 +361,28 @@
   .testimonials-track::-webkit-scrollbar { display: none; }
   .testimonial-arrow { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: all 0.2s; z-index: 2; }
   .testimonial-arrow:hover { color: var(--text); border-color: var(--accent); background: rgba(124,58,237,0.1); }
-  .testimonial-card { position: relative; width: 380px; min-width: 380px; height: 440px; border-radius: 20px; overflow: hidden; flex-shrink: 0; scroll-snap-align: center; scroll-snap-stop: always; }
-  .testimonial-card-inner { position: relative; border-radius: 20px; overflow: hidden; height: 100%; isolation: isolate; display: flex; flex-direction: column; }
-  .testimonial-bg { position: absolute; inset: 0; background-size: cover; background-position: center top; filter: brightness(0.92); z-index: 0; transition: transform 0.5s ease; }
-  .testimonial-bg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.18) 100%); }
-  .testimonial-card:hover .testimonial-bg { transform: scale(1.08); }
-  .testimonial-card.testimonial-active .testimonial-bg { transform: scale(1.12); transition: transform 2.5s ease-out; }
-  .testimonial-content { position: relative; z-index: 1; margin: auto 16px 16px; padding: 22px 20px; display: flex; flex-direction: column; text-align: left; background: rgba(20,17,28,0.42); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; }
-  .testimonial-stars { color: #facc15; font-size: 18px; letter-spacing: 2px; margin-bottom: 16px; }
-  .testimonial-quote { font-size: 15px; line-height: 1.65; color: #f0eef8; margin-bottom: 20px; font-style: italic; }
-  .testimonial-author { display: flex; align-items: center; gap: 12px; }
-  .testimonial-avatar { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(124,58,237,0.5); flex-shrink: 0; }
-  .testimonial-name { font-size: 14px; font-weight: 600; color: #fff; }
-  .testimonial-handle { font-size: 12px; color: var(--accent2); }
+  .testimonial-card { position: relative; width: 380px; min-width: 380px; height: 440px; border-radius: 20px; overflow: hidden; flex-shrink: 0; scroll-snap-align: center; scroll-snap-stop: always; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(20,17,28,0.12); }
+  .testimonial-photo { height: 58%; background-size: cover; background-position: center top; flex-shrink: 0; transition: transform 0.5s ease; }
+  .testimonial-card:hover .testimonial-photo { transform: scale(1.05); }
+  .testimonial-panel { flex: 1; padding: 22px 24px; display: flex; flex-direction: column; text-align: left; }
+  .testimonial-stars { font-size: 15px; letter-spacing: 2px; margin-bottom: 10px; }
+  .testimonial-quote { font-size: 14px; line-height: 1.6; margin: 0 0 14px; font-style: italic; }
+  .testimonial-meta { margin-top: auto; }
+  .testimonial-name { font-size: 14px; font-weight: 700; }
+  .testimonial-handle { font-size: 12px; opacity: 0.7; }
+  /* Per-card panel colors */
+  .testimonial-panel.c-magenta { background: #b9158d; color: #fff; }
+  .testimonial-panel.c-magenta .testimonial-stars { color: #ffd84d; }
+  .testimonial-panel.c-purple { background: #5b21b6; color: #fff; }
+  .testimonial-panel.c-purple .testimonial-stars { color: #ffd84d; }
+  .testimonial-panel.c-lime { background: #d4e157; color: #1a1a14; }
+  .testimonial-panel.c-lime .testimonial-stars { color: #1a1a14; }
+  .testimonial-panel.c-amber { background: #f59e0b; color: #1a1308; }
+  .testimonial-panel.c-amber .testimonial-stars { color: #1a1308; }
   @media (max-width: 600px) {
     .testimonials-heading { font-size: 13px; letter-spacing: -0.2px; margin-bottom: 20px; }
     .testimonial-card { width: 300px; min-width: 300px; height: 400px; }
-    .testimonial-content { margin: auto 12px 12px; padding: 18px 16px; }
+    .testimonial-panel { padding: 18px 18px; }
     .testimonials-track { gap: 16px; }
     .testimonial-arrow { width: 34px; height: 34px; }
     .testimonials-track-wrap { padding: 0 12px; gap: 8px; }
@@ -707,36 +712,26 @@
 
       <!-- Testimonial 1 -->
       <div class="testimonial-card">
-        <div class="testimonial-card-inner">
-          <div class="testimonial-bg" style="background-image:url('testimonials/pinsta.jpg');"></div>
-          <div class="testimonial-content">
-            <p class="testimonial-quote">"I was able to grow my audience as a content creator with Ryxa! The tools that they offer are unbeatable. It has certainly helped make things easier for me!"</p>
-            <div class="testimonial-stars">★★★★★</div>
-            <div class="testimonial-author">
-              <img src="testimonials/pinsta.jpg" alt="Pinhwa Su" class="testimonial-avatar">
-              <div>
-                <div class="testimonial-name">Pinhwa Su</div>
-                <div class="testimonial-handle">@xo.pinsta</div>
-              </div>
-            </div>
+        <div class="testimonial-photo" style="background-image:url('testimonials/pinsta.jpg');"></div>
+        <div class="testimonial-panel c-magenta">
+          <div class="testimonial-stars">★★★★★</div>
+          <p class="testimonial-quote">"I was able to grow my audience as a content creator with Ryxa! The tools that they offer are unbeatable. It has certainly helped make things easier for me!"</p>
+          <div class="testimonial-meta">
+            <div class="testimonial-name">Pinhwa Su</div>
+            <div class="testimonial-handle">@xo.pinsta</div>
           </div>
         </div>
       </div>
 
       <!-- Testimonial 2 -->
       <div class="testimonial-card">
-        <div class="testimonial-card-inner">
-          <div class="testimonial-bg" style="background-image:url('testimonials/jaed.jpg');"></div>
-          <div class="testimonial-content">
-            <p class="testimonial-quote">"Being a content creator is more than just posting... it's a business. Ryxa helps simplify that side of things and makes it easier to grow with purpose. I'd recommend it to anyone serious about leveling up!"</p>
-            <div class="testimonial-stars">★★★★★</div>
-            <div class="testimonial-author">
-              <img src="testimonials/jaed.jpg" alt="Jaed" class="testimonial-avatar">
-              <div>
-                <div class="testimonial-name">Jaed</div>
-                <div class="testimonial-handle">@jaed.official</div>
-              </div>
-            </div>
+        <div class="testimonial-photo" style="background-image:url('testimonials/jaed.jpg');"></div>
+        <div class="testimonial-panel c-lime">
+          <div class="testimonial-stars">★★★★★</div>
+          <p class="testimonial-quote">"Being a content creator is more than just posting... it's a business. Ryxa helps simplify that side of things and makes it easier to grow with purpose. I'd recommend it to anyone serious about leveling up!"</p>
+          <div class="testimonial-meta">
+            <div class="testimonial-name">Jaed</div>
+            <div class="testimonial-handle">@jaed.official</div>
           </div>
         </div>
       </div>
