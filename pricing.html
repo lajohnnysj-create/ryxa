@@ -22,6 +22,31 @@
   html{scroll-behavior:smooth;}
   body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
 
+  /* ===== Light theme scoped to the pricing content (header + cards) only ===== */
+  /* Redefining the theme variables on these two containers flips every var()
+     inside them to light values; nav, footer and the photo divider keep the
+     site's dark theme untouched. */
+  .page-header, .pricing-section {
+    --surface:#ffffff;
+    --surface2:#f0f0f3;
+    --border:rgba(0,0,0,0.08);
+    --border-hover:rgba(0,0,0,0.14);
+    --text:#14111c;
+    --muted:#6b6b73;
+    --muted2:#4a4754;
+  }
+  .page-header { background:#f5f5f7; }
+  .pricing-section { background:#f5f5f7; }
+  /* Cards: solid white, soft neutral border, no colored borders */
+  .pricing-section .plan { background:#ffffff; border:1px solid rgba(0,0,0,0.08); }
+  /* Featured + Max: just a hint of the brand tint, no colored border */
+  .pricing-section .plan.featured { background:#ffffff; border:1px solid rgba(124,58,237,0.18); }
+  .pricing-section .plan.max-plan { background:#ffffff; border:1px solid rgba(232,121,249,0.18); }
+  /* Free button on white */
+  .pricing-section .plan-btn.free { background:#f0f0f3; color:#14111c; border:1px solid rgba(0,0,0,0.12); }
+  .pricing-section .plan-btn.free:hover { border-color:rgba(124,58,237,0.4); color:var(--accent); }
+  /* ===== end pricing light theme ===== */
+
   .page-header{max-width:900px;margin:0 auto;padding:80px 48px 56px;text-align:center;}
   .section-label{font-size:12px;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent2);font-weight:600;margin-bottom:16px;display:block;}
   .page-header h1{font-family:"Syne",sans-serif;font-size:clamp(28px,4.5vw,44px);font-weight:800;letter-spacing:-1.5px;line-height:1.1;margin-bottom:16px;}
@@ -159,8 +184,7 @@
 <div id="site-header" data-page="pricing"></div>
 
 <div class="page-header">
-  <span class="section-label">Pricing</span>
-  <h1>All your creator tools. <span class="gradient-text">One dashboard.</span></h1>
+  <h1>All your creator tools. One dashboard.</h1>
 </div>
 
 <div class="billing-toggle-wrap" role="group" aria-label="Billing cycle">
