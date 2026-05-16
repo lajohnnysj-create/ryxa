@@ -15,20 +15,24 @@ style.textContent = ''
   + '.skip-link{position:absolute;top:-100%;left:16px;z-index:9999;background:var(--accent);color:#fff;padding:10px 20px;border-radius:8px;font-size:14px;font-weight:600;font-family:"DM Sans",sans-serif;text-decoration:none;transition:top 0.2s ease;box-shadow:0 4px 12px rgba(0,0,0,0.4);}'
   + '.skip-link:focus{top:12px;outline:2px solid #c4b5fd;outline-offset:2px;}'
   // Anti-flash: reserve space
-  + '#site-header{min-height:68px;}'
+  + '#site-header{min-height:80px;}'
   + '#site-footer{min-height:200px;}#site-footer p a{transition:color 0.2s;}#site-footer p a:hover{color:var(--text) !important;}'
-  // Nav
-  + 'nav{position:sticky;top:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:0 48px;height:68px;background:rgba(7,7,15,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}'
-  + '.logo img{width:38px;height:38px;object-fit:contain;}'
-  + '.logo{font-family:"Syne",sans-serif;font-weight:800;font-size:22px;letter-spacing:-0.5px;display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text);}'
-  + '.nav-links{display:flex;align-items:center;gap:32px;}'
-  + '.nav-links a{color:var(--muted);font-size:15px;font-weight:500;font-family:"DM Sans",sans-serif;letter-spacing:0.01em;text-decoration:none;transition:color 0.2s;}'
+  // Nav - split two-pill floating nav. The <nav> is a transparent fixed
+  // wrapper with a margin; inside it sit two pills with a gap between.
+  + 'nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:14px 24px;background:transparent;pointer-events:none;}'
+  + '.nav-pill{pointer-events:auto;background:rgba(15,15,26,0.82);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.10);border-radius:100px;box-shadow:0 8px 32px rgba(0,0,0,0.35);display:flex;align-items:center;}'
+  + '.nav-pill-logo{padding:8px 22px 8px 16px;}'
+  + '.nav-pill-actions{padding:7px 8px 7px 24px;gap:26px;}'
+  + '.logo img{width:30px;height:30px;object-fit:contain;}'
+  + '.logo{font-family:"Syne",sans-serif;font-weight:800;font-size:21px;letter-spacing:-0.5px;display:flex;align-items:center;gap:9px;text-decoration:none;color:var(--text);}'
+  + '.nav-links{display:flex;align-items:center;gap:26px;}'
+  + '.nav-links a{color:rgba(255,255,255,0.72);font-size:15px;font-weight:500;font-family:"DM Sans",sans-serif;letter-spacing:0.01em;text-decoration:none;transition:color 0.2s;}'
   + '.nav-links a:hover{color:var(--text);}'
-  + '.nav-right{display:flex;align-items:center;gap:12px;}'
-  + '.btn-ghost{background:transparent;border:1px solid var(--border-hover);color:var(--text);border-radius:8px;padding:8px 20px;font-size:14px;font-weight:500;font-family:"DM Sans",sans-serif;cursor:pointer;transition:all 0.2s;}'
-  + '.btn-ghost:hover{border-color:var(--accent2);color:var(--accent2);}'
-  + '.btn-nav-cta{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:9px 22px;font-size:14px;font-weight:500;font-family:"DM Sans",sans-serif;cursor:pointer;transition:all 0.2s;box-shadow:0 0 20px var(--accent-glow);}'
-  + '.btn-nav-cta:hover{background:var(--accent2);transform:translateY(-1px);}'
+  + '.nav-right{display:flex;align-items:center;gap:10px;}'
+  + '.btn-ghost{background:transparent;border:none;color:rgba(255,255,255,0.72);border-radius:100px;padding:9px 14px;font-size:14px;font-weight:500;font-family:"DM Sans",sans-serif;cursor:pointer;transition:color 0.2s;}'
+  + '.btn-ghost:hover{color:var(--text);}'
+  + '.btn-nav-cta{background:#fff;color:#14111c;border:none;border-radius:100px;padding:10px 22px;font-size:14px;font-weight:600;font-family:"DM Sans",sans-serif;cursor:pointer;transition:transform 0.2s;}'
+  + '.btn-nav-cta:hover{transform:translateY(-1px);}'
   // Hamburger
   + '.hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;background:none;border:none;cursor:pointer;padding:6px;}'
   + '.hamburger span{display:block;width:22px;height:2px;background:var(--text);border-radius:2px;transition:all 0.25s;}'
@@ -76,7 +80,7 @@ style.textContent = ''
   + '.footer-grid a:hover{color:var(--text) !important;}'
   + '.footer-grid a{text-decoration:none;}'
   // Responsive
-  + '@media(max-width:768px){nav{padding:0 20px;}.nav-links,.nav-right{display:none;}.hamburger{display:flex;}footer{flex-direction:column;text-align:center;padding:40px 20px 24px !important;}.footer-grid{grid-template-columns:1fr 1fr !important;gap:24px !important;}.footer-grid>div:first-child{grid-column:1/-1;}.footer-grid>div:first-child p{margin-left:auto;margin-right:auto;}}'
+  + '@media(max-width:768px){nav{padding:12px 16px;}.nav-links,.nav-right{display:none;}.hamburger{display:flex;}.nav-pill-actions{padding:7px 10px;}footer{flex-direction:column;text-align:center;padding:40px 20px 24px !important;}.footer-grid{grid-template-columns:1fr 1fr !important;gap:24px !important;}.footer-grid>div:first-child{grid-column:1/-1;}.footer-grid>div:first-child p{margin-left:auto;margin-right:auto;}}'
   + '@media(max-width:480px){.footer-grid{grid-template-columns:1fr !important;}}';
 
 document.head.appendChild(style);
@@ -149,9 +153,12 @@ function renderHeader() {
   +   '</div>'
   + '</div>'
 
-  // Nav bar
+  // Nav bar - split two-pill layout
   + '<nav>'
-  +   '<a class="logo" href="/index.html"><img src="/logo-black.png" alt="Ryxa"> Ryxa</a>'
+  +   '<div class="nav-pill nav-pill-logo">'
+  +     '<a class="logo" href="/index.html"><img src="/logo-black.png" alt="Ryxa"> Ryxa</a>'
+  +   '</div>'
+  +   '<div class="nav-pill nav-pill-actions">'
   +   '<div class="nav-links" id="nav-links">'
 
   // Tools dropdown
@@ -207,6 +214,7 @@ function renderHeader() {
   +     '<button class="btn-nav-cta" data-nav-action="open-signup" id="nav-cta-btn">Get started free</button>'
   +   '</div>'
   +   '<button class="hamburger" id="hamburger-btn" data-nav-action="toggle-menu" aria-label="Menu"><span></span><span></span><span></span></button>'
+  +   '</div>'
   + '</nav>';
 
   // Check logged-in state
