@@ -853,7 +853,11 @@ function toggleLessonPreview(modIdx, lessonIdx) {
   // mountLessonEditor catches this too, but doing it here is cleaner.
   unmountLessonEditor(modIdx, lessonIdx);
   courseModules[modIdx].lessons[lessonIdx].is_preview = !courseModules[modIdx].lessons[lessonIdx].is_preview;
+  // renderCourseModules() rebuilds the whole list, which resets scroll to the
+  // top. Capture and restore the scroll position so the toggle stays in place.
+  const scrollY = window.scrollY;
   renderCourseModules();
+  window.scrollTo(0, scrollY);
 }
 
 function collapseLesson(modIdx, lessonIdx) {
@@ -1454,7 +1458,7 @@ function renderCourseModules() {
         + '<input type="text" value="' + escapeHtml(l.title) + '" placeholder="Lesson title" data-course-action="update-lesson-field" data-course-event="input" data-course-mi="' + mi + '" data-course-li="' + li + '" data-course-field="title" aria-label="Lesson title" class="course-s-9fc438">'
         + '</div>'
         + '<div class="course-s-88348d">'
-        + '<button data-course-action="toggle-lesson-preview" data-course-mi="' + mi + '" data-course-li="' + li + '" title="' + (l.is_preview ? 'Remove preview' : 'Mark as free preview') + '" class="course-s-82a6e1">' + (l.is_preview ? 'Paid' : 'Free') + '</button>'
+        + '<button data-course-action="toggle-lesson-preview" data-course-mi="' + mi + '" data-course-li="' + li + '" title="' + (l.is_preview ? 'Remove preview' : 'Mark as free preview') + '" class="course-s-82a6e1">' + (l.is_preview ? 'Make Paid' : 'Make Free') + '</button>'
         + '</div>'
         + (isVideo
           ? (function() {
