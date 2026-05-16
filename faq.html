@@ -92,8 +92,8 @@
   .nav-cta:hover { background: #a855f7; transform: translateY(-1px); }
 
   /* PAGE HEADER */
-  .page-header { padding: 80px 48px 60px; text-align: center; position: relative; overflow: hidden; }
-  .page-header::before { content: ''; position: absolute; top: -20%; left: 50%; transform: translateX(-50%); width: 600px; height: 600px; background: radial-gradient(ellipse, rgba(124,58,237,0.1) 0%, transparent 70%); border-radius: 50%; pointer-events: none; }
+  .page-header { padding: 60px 48px 60px; text-align: center; position: relative; overflow: hidden; }
+  .page-header::before { display: none; }
   .badge { display: inline-flex; align-items: center; gap: 8px; border: 1px solid rgba(124,58,237,0.4); background: rgba(124,58,237,0.08); border-radius: 100px; padding: 6px 16px; font-size: 12px; color: #c4b5fd; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 24px; }
   .page-header h1 { font-family: 'Syne', sans-serif; font-size: clamp(32px, 5vw, 58px); font-weight: 800; letter-spacing: -2px; line-height: 1.05; margin-bottom: 16px; }
   .page-header h1 em { font-style: normal; color: var(--accent2); }
@@ -210,7 +210,6 @@
 
 <!-- PAGE HEADER -->
 <div class="page-header">
-  <div class="badge">❓ Got questions?</div>
   <h1>Frequently Asked <em>Questions</em></h1>
   <p>Everything you need to know about Ryxa. Can't find your answer? Email us at hello@ryxa.io</p>
 </div>
