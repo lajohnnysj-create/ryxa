@@ -608,6 +608,7 @@ function showInstagramMsg(type, text) {
 // ---------- From dashboard.html L11347-11348: Settings Turnstile constants ----------
 const SETTINGS_TURNSTILE_SITE_KEY = '0x4AAAAAAC9W8avdI3sdVEcc';
 let settingsTurnstileWidgetId = null;
+let settingsResetArmed = false; // true only between a user click and the callback that sends the email
 
 // ---------- From dashboard.html L11350-11491: Settings Turnstile + cancel/result/confirm helpers ----------
 // Turnstile runs in INVISIBLE mode: there is no checkbox for the user to tick.
@@ -637,12 +638,18 @@ function ensureSettingsTurnstile() {
 }
 
 // Called by Turnstile when the silent challenge succeeds.
+// Turnstile fires this callback on automatic token refresh too, not only
+// after a user click - so it only proceeds when a send was actually armed
+// by the user. Without this guard, token refreshes send duplicate emails.
 function onSettingsTurnstileToken(token) {
+  if (!settingsResetArmed) return;
+  settingsResetArmed = false;
   finishPasswordReset(token);
 }
 
 // Called by Turnstile if the silent challenge fails.
 function onSettingsTurnstileError() {
+  settingsResetArmed = false;
   const btn = document.getElementById('settings-reset-password-btn');
   const msg = document.getElementById('settings-password-msg');
   if (msg) {
@@ -664,6 +671,9 @@ async function sendPasswordReset() {
   const btn = document.getElementById('settings-reset-password-btn');
   const msg = document.getElementById('settings-password-msg');
 
+  // Guard against repeat clicks while a verification is already in flight.
+  if (settingsResetArmed) return;
+
   // Single click: kick off the invisible challenge. The callback (above)
   // continues to finishPasswordReset once the token arrives.
   if (!ensureSettingsTurnstile()) {
@@ -675,6 +685,9 @@ async function sendPasswordReset() {
     return;
   }
 
+  // Arm the send. Only an armed callback will actually email; automatic
+  // Turnstile token refreshes fire the callback but find it disarmed.
+  settingsResetArmed = true;
   btn.disabled = true;
   btn.textContent = 'Verifying…';
   msg.style.display = 'none';
