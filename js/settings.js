@@ -610,10 +610,10 @@ const SETTINGS_TURNSTILE_SITE_KEY = '0x4AAAAAAC9W8avdI3sdVEcc';
 let settingsTurnstileWidgetId = null;
 
 // ---------- From dashboard.html L11350-11491: Settings Turnstile + cancel/result/confirm helpers ----------
-function getSettingsTurnstileToken() {
-  if (typeof turnstile === 'undefined' || settingsTurnstileWidgetId === null) return null;
-  try { return turnstile.getResponse(settingsTurnstileWidgetId); } catch (e) { return null; }
-}
+// Turnstile runs in INVISIBLE mode: there is no checkbox for the user to tick.
+// The widget is rendered once with a callback, then turnstile.execute() runs
+// the silent challenge. When it resolves, the callback fires the actual
+// password-reset send. The flow is a single click - no "verify above" step.
 
 function resetSettingsTurnstile() {
   if (typeof turnstile !== 'undefined' && settingsTurnstileWidgetId !== null) {
@@ -621,22 +621,42 @@ function resetSettingsTurnstile() {
   }
 }
 
-function showSettingsTurnstile() {
+// Render the invisible widget once. Returns true if Turnstile is available.
+function ensureSettingsTurnstile() {
+  if (typeof turnstile === 'undefined') return false;
+  if (settingsTurnstileWidgetId !== null) return true;
   const container = document.getElementById('settings-password-turnstile');
-  if (!container) return;
-  container.style.display = 'flex';
-  if (typeof turnstile === 'undefined') {
-    container.textContent = 'Loading verification...';
-    return;
-  }
-  if (settingsTurnstileWidgetId !== null) {
-    try { turnstile.reset(settingsTurnstileWidgetId); } catch (e) {}
-    return;
-  }
+  if (!container) return false;
   settingsTurnstileWidgetId = turnstile.render('#settings-password-turnstile', {
     sitekey: SETTINGS_TURNSTILE_SITE_KEY,
-    theme: 'dark'
+    size: 'invisible',
+    callback: function(token) { onSettingsTurnstileToken(token); },
+    'error-callback': function() { onSettingsTurnstileError(); }
   });
+  return true;
+}
+
+// Called by Turnstile when the silent challenge succeeds.
+function onSettingsTurnstileToken(token) {
+  finishPasswordReset(token);
+}
+
+// Called by Turnstile if the silent challenge fails.
+function onSettingsTurnstileError() {
+  const btn = document.getElementById('settings-reset-password-btn');
+  const msg = document.getElementById('settings-password-msg');
+  if (msg) {
+    msg.textContent = 'Verification failed. Please disable your ad blocker for ryxa.io and try again.';
+    msg.style.background = 'rgba(239,68,68,0.08)';
+    msg.style.border = '1px solid rgba(239,68,68,0.2)';
+    msg.style.color = '#fca5a5';
+    msg.style.display = 'block';
+  }
+  if (btn) {
+    btn.disabled = false;
+    btn.textContent = 'Send password reset email';
+  }
+  resetSettingsTurnstile();
 }
 
 async function sendPasswordReset() {
@@ -644,21 +664,34 @@ async function sendPasswordReset() {
   const btn = document.getElementById('settings-reset-password-btn');
   const msg = document.getElementById('settings-password-msg');
 
-  // Step 1: if Turnstile widget isn't shown yet, render it and prompt user to verify
-  const captchaToken = getSettingsTurnstileToken();
-  if (!captchaToken) {
-    showSettingsTurnstile();
-    msg.textContent = 'Please complete the verification check above, then click again.';
-    msg.style.background = 'rgba(124,58,237,0.08)';
-    msg.style.border = '1px solid rgba(124,58,237,0.25)';
-    msg.style.color = '#c4b5fd';
+  // Single click: kick off the invisible challenge. The callback (above)
+  // continues to finishPasswordReset once the token arrives.
+  if (!ensureSettingsTurnstile()) {
+    msg.textContent = 'Verification could not load. Refresh the page and try again.';
+    msg.style.background = 'rgba(239,68,68,0.08)';
+    msg.style.border = '1px solid rgba(239,68,68,0.2)';
+    msg.style.color = '#fca5a5';
     msg.style.display = 'block';
     return;
   }
 
   btn.disabled = true;
-  btn.textContent = 'Sending…';
+  btn.textContent = 'Verifying…';
   msg.style.display = 'none';
+  try {
+    turnstile.execute(settingsTurnstileWidgetId);
+  } catch (e) {
+    onSettingsTurnstileError();
+  }
+}
+
+// Sends the reset email once the invisible challenge has produced a token.
+async function finishPasswordReset(captchaToken) {
+  if (!currentUser?.email) return;
+  const btn = document.getElementById('settings-reset-password-btn');
+  const msg = document.getElementById('settings-password-msg');
+
+  if (btn) btn.textContent = 'Sending…';
   try {
     const { error } = await sb.auth.resetPasswordForEmail(currentUser.email, {
       redirectTo: window.location.origin + '/reset-password.html',
@@ -671,7 +704,7 @@ async function sendPasswordReset() {
     msg.style.color = '#4ade80';
     msg.style.display = 'block';
     btn.textContent = 'Email sent ✓';
-    // Reset captcha — single-use
+    // Reset captcha — tokens are single-use.
     resetSettingsTurnstile();
     // Re-enable after 30s so they can resend if email didn't arrive
     setTimeout(() => {
@@ -691,6 +724,8 @@ async function sendPasswordReset() {
     msg.style.display = 'block';
     btn.disabled = false;
     btn.textContent = 'Send password reset email';
+    // Token is spent on a failed attempt too — reset so a retry gets a fresh one.
+    resetSettingsTurnstile();
   }
 }
 
