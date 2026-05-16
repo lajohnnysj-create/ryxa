@@ -45,6 +45,15 @@
   /* Free button on white */
   .pricing-section .plan-btn.free { background:#f0f0f3; color:#14111c; border:1px solid rgba(0,0,0,0.12); }
   .pricing-section .plan-btn.free:hover { border-color:rgba(124,58,237,0.4); color:var(--accent); }
+  /* Pro button: same look as the free button */
+  .pricing-section .plan-btn.pro { background:#f0f0f3; color:#14111c; border:1px solid rgba(0,0,0,0.12); box-shadow:none; }
+  .pricing-section .plan-btn.pro:hover { background:#f0f0f3; border-color:rgba(124,58,237,0.4); color:var(--accent); transform:none; }
+  /* Max button: solid purple - the one bold button on the page */
+  .pricing-section .plan-btn.max { background:#7c3aed; color:#fff; border:none; box-shadow:none; }
+  .pricing-section .plan-btn.max:hover { background:#6d28d9; filter:none; transform:translateY(-1px); }
+  /* Badges: subtle tinted pills instead of solid saturated fills */
+  .pricing-section .plan-badge { background:rgba(124,58,237,0.12); color:#7c3aed; }
+  .pricing-section .plan-badge.max-badge { background:rgba(232,121,249,0.14); color:#c026a8; }
   /* Explicit dark text - these elements inherit from body (outside the scope)
      so they need the color set directly, not via the scoped variable. */
   .page-header h1 { color:#14111c; }
@@ -55,6 +64,8 @@
   .pricing-section .plan-price > span.plan-price-sub,
   .pricing-section .plan-desc { color:#6b6b73; }
   /* ===== end pricing light theme ===== */
+  /* Footer stays dark - the white body must not show through it */
+  #site-footer { background:#07070f; }
 
   .page-header{max-width:900px;margin:0 auto;padding:80px 48px 56px;text-align:center;}
   .section-label{font-size:12px;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent2);font-weight:600;margin-bottom:16px;display:block;}
