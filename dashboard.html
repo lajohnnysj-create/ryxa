@@ -2266,8 +2266,14 @@
     #deal-locked-banner button { width: 100%; text-align: center; }
     #deal-contract-existing > div,
     #deal-invoice-existing > div { gap: 10px; }
-    #deal-contract-existing .deal-btn-row,
-    #deal-invoice-existing .deal-btn-row { width: 100%; }
+    /* On mobile, drop the View/Replace/Remove button group onto its own
+       full-width line below the filename, instead of crowding the same row.
+       The button group class is deal-s-2a4fbf (an earlier rule targeted a
+       non-existent .deal-btn-row class, so it never applied). */
+    #deal-contract-existing .deal-s-2a4fbf,
+    #deal-invoice-existing .deal-s-2a4fbf { width: 100%; flex-basis: 100%; }
+    #deal-contract-existing .deal-s-2a4fbf button,
+    #deal-invoice-existing .deal-s-2a4fbf button { flex: 1; }
     .deal-input { max-width: 100% !important; min-width: 0 !important; font-size: 16px !important; }
     .deal-grid-2 > div { min-width: 0 !important; overflow: hidden; }
     input[type="date"].deal-input { width: 100% !important; box-sizing: border-box !important; appearance: none !important; -webkit-appearance: none !important; }
