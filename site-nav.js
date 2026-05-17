@@ -338,6 +338,25 @@ window.toggleMobileSubmenu = function(id) {
 // The session is stored at sb-<project-ref>-auth-token. We just need to know
 // if a non-expired session exists to flip the "Sign in" button to "Dashboard"
 // — we don't need full auth APIs.
+// Lightweight logged-in check. Reads the Supabase auth token straight from
+// localStorage (no SDK needed) and verifies it has a non-expired access token.
+// This is cosmetic-grade only, same as siteNavCheckAuth: it decides which page
+// to route to, never gates anything. dashboard.html runs its own real session
+// check, so a stale token at worst sends someone to that gate.
+function siteNavIsLoggedIn() {
+  try {
+    var raw = localStorage.getItem('sb-kjytapcgxukalwsyputk-auth-token');
+    if (!raw) return false;
+    var session = JSON.parse(raw);
+    if (!session || !session.access_token) return false;
+    if (session.expires_at && session.expires_at * 1000 < Date.now()) return false;
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+window.siteNavIsLoggedIn = siteNavIsLoggedIn;
+
 function siteNavCheckAuth() {
   try {
     var key = 'sb-kjytapcgxukalwsyputk-auth-token';
@@ -497,6 +516,8 @@ renderFooter();
 //   open-signup      → call window.openSignupModal() (modal or redirect fallback)
 //   go-dashboard     → navigate to /dashboard.html (CTA button when logged in)
 //   hub-trigger      → navigate to /learn/ (preserves previous Hub button behavior)
+//   try-tool         → "Try this tool" CTA: dashboard if logged in, else signup
+//   toggle-faq       → expand/collapse a tool-page FAQ item (toggles .open on parent)
 (function setupNavActionDelegation() {
   var handlers = {
     'toggle-menu': function() { if (typeof window.toggleMobileMenu === 'function') window.toggleMobileMenu(); },
@@ -508,7 +529,15 @@ renderFooter();
     'open-signin': function() { if (typeof window.openAuthModal === 'function') window.openAuthModal(); },
     'open-signup': function() { if (typeof window.openSignupModal === 'function') window.openSignupModal(); },
     'go-dashboard': function() { window.location.href = '/dashboard.html'; },
-    'hub-trigger': function() { window.location.href = '/learn/'; }
+    'hub-trigger': function() { window.location.href = '/learn/'; },
+    'try-tool': function(e) {
+      // The element keeps an href as a no-JS fallback, so cancel it here.
+      if (e) e.preventDefault();
+      window.location.href = siteNavIsLoggedIn() ? '/dashboard.html' : '/index.html?action=signup';
+    },
+    'toggle-faq': function(e, el) {
+      if (el && el.parentElement) el.parentElement.classList.toggle('open');
+    }
   };
 
   document.addEventListener('click', function(e) {
