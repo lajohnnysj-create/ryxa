@@ -2271,9 +2271,11 @@
        The button group class is deal-s-2a4fbf (an earlier rule targeted a
        non-existent .deal-btn-row class, so it never applied). */
     #deal-contract-existing .deal-s-2a4fbf,
-    #deal-invoice-existing .deal-s-2a4fbf { width: 100%; flex-basis: 100%; box-sizing: border-box; }
+    #deal-invoice-existing .deal-s-2a4fbf { width: 100%; max-width: 100%; flex-basis: 100%; box-sizing: border-box; margin: 0; }
+    #deal-contract-existing .deal-s-f2f0b3,
+    #deal-invoice-existing .deal-s-f2f0b3 { max-width: 100%; box-sizing: border-box; }
     #deal-contract-existing .deal-s-2a4fbf button,
-    #deal-invoice-existing .deal-s-2a4fbf button { flex: 1; min-width: 0; box-sizing: border-box; }
+    #deal-invoice-existing .deal-s-2a4fbf button { flex: 1 1 0; min-width: 0; box-sizing: border-box; overflow: hidden; }
     .deal-input { max-width: 100% !important; min-width: 0 !important; font-size: 16px !important; }
     .deal-grid-2 > div { min-width: 0 !important; overflow: hidden; }
     input[type="date"].deal-input { width: 100% !important; box-sizing: border-box !important; appearance: none !important; -webkit-appearance: none !important; }
