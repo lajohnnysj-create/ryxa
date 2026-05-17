@@ -397,6 +397,35 @@ renderHeader();
 renderFooter();
 
 // =====================
+// BLOG AUTHOR BYLINE
+// Injects the author name + photo into a blog post's byline.
+// A post opts in with: <div class="blog-meta" data-author="KEY" data-read="X min read"></div>
+// To change an author's name/photo, edit BLOG_AUTHORS below (updates every post by them).
+// To add a new author, add one entry. Non-blog pages have no .blog-meta[data-author],
+// so this is a single no-op querySelector there.
+// =====================
+var BLOG_AUTHORS = {
+  johnny: { name: 'Johnny La', photo: '/blog/johnny-ryxablog.webp' }
+};
+
+(function injectBlogByline() {
+  var meta = document.querySelector('.blog-meta[data-author]');
+  if (!meta) return;  // not a blog post, do nothing
+
+  var author = BLOG_AUTHORS[meta.getAttribute('data-author')];
+  if (!author) return;  // unknown author key, leave byline empty rather than guess
+
+  var read = meta.getAttribute('data-read');
+
+  var html = '<span><img src="' + author.photo + '" alt="' + author.name
+           + '" class="blog-author-img"> ' + author.name + '</span>';
+  if (read) {
+    html += '<span>\u2022</span><span>' + read + '</span>';
+  }
+  meta.innerHTML = html;
+})();
+
+// =====================
 // DROPDOWN KEYBOARD HANDLERS (APG Disclosure / Menu Button pattern)
 // - Tab through triggers does NOT auto-open menus
 // - Enter/Space/ArrowDown on trigger opens menu and focuses first item
