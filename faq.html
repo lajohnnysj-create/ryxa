@@ -209,11 +209,11 @@
 
 <!-- CATEGORY TABS -->
 <div class="category-tabs">
-  <button class="cat-tab active" onclick="showCategory('all', this)">All</button>
-  <button class="cat-tab" onclick="showCategory('general', this)">General</button>
-  <button class="cat-tab" onclick="showCategory('privacy', this)">Privacy & Safety</button>
-  <button class="cat-tab" onclick="showCategory('billing', this)">Billing</button>
-  <button class="cat-tab" onclick="showCategory('tools', this)">Selling & Payments</button>
+  <button class="cat-tab active" data-action="show-category" data-category="all">All</button>
+  <button class="cat-tab" data-action="show-category" data-category="general">General</button>
+  <button class="cat-tab" data-action="show-category" data-category="privacy">Privacy & Safety</button>
+  <button class="cat-tab" data-action="show-category" data-category="billing">Billing</button>
+  <button class="cat-tab" data-action="show-category" data-category="tools">Selling & Payments</button>
 </div>
 
 <!-- FAQ CONTENT -->
@@ -224,7 +224,7 @@
     <div class="faq-category-title">General</div>
 
     <div class="faq-item">
-      <div class="faq-question" onclick="toggleFaq(this)">
+      <div class="faq-question" data-action="toggle-faq">
         <span class="faq-question-text">What is Ryxa?</span>
         <span class="faq-chevron">▼</span>
       </div>
@@ -235,7 +235,7 @@
     </div>
 
     <div class="faq-item">
-      <div class="faq-question" onclick="toggleFaq(this)">
+      <div class="faq-question" data-action="toggle-faq">
         <span class="faq-question-text">Do I need an account to use Ryxa?</span>
         <span class="faq-chevron">▼</span>
       </div>
@@ -246,7 +246,7 @@
     </div>
 
     <div class="faq-item">
-      <div class="faq-question" onclick="toggleFaq(this)">
+      <div class="faq-question" data-action="toggle-faq">
         <span class="faq-question-text">What is the difference between Free, Pro, and Creator Max?</span>
         <span class="faq-chevron">▼</span>
       </div>
@@ -259,7 +259,7 @@
     </div>
 
     <div class="faq-item">
-      <div class="faq-question" onclick="toggleFaq(this)">
+      <div class="faq-question" data-action="toggle-faq">
         <span class="faq-question-text">Is Ryxa affiliated with Instagram or Meta?</span>
         <span class="faq-chevron">▼</span>
       </div>
@@ -275,7 +275,7 @@
     <div class="faq-category-title">Privacy &amp; Safety</div>
 
     <div class="faq-item">
-      <div class="faq-question" onclick="toggleFaq(this)">
+      <div class="faq-question" data-action="toggle-faq">
         <span class="faq-question-text">Is my data safe with Ryxa?</span>
         <span class="faq-chevron">▼</span>
       </div>
@@ -286,7 +286,7 @@
     </div>
 
     <div class="faq-item">
-      <div class="faq-question" onclick="toggleFaq(this)">
+      <div class="faq-question" data-action="toggle-faq">
         <span class="faq-question-text">Do you need my Instagram password?</span>
         <span class="faq-chevron">▼</span>
       </div>
@@ -296,7 +296,7 @@
     </div>
 
     <div class="faq-item">
-      <div class="faq-question" onclick="toggleFaq(this)">
+      <div class="faq-question" data-action="toggle-faq">
         <span class="faq-question-text">Will using Ryxa get my Instagram account banned?</span>
         <span class="faq-chevron">▼</span>
       </div>
@@ -307,7 +307,7 @@
     </div>
 
     <div class="faq-item">
-      <div class="faq-question" onclick="toggleFaq(this)">
+      <div class="faq-question" data-action="toggle-faq">
         <span class="faq-question-text">Can I delete my account and data?</span>
         <span class="faq-chevron">▼</span>
       </div>
@@ -323,7 +323,7 @@
     <div class="faq-category-title">Billing</div>
 
     <div class="faq-item">
-      <div class="faq-question" onclick="toggleFaq(this)">
+      <div class="faq-question" data-action="toggle-faq">
         <span class="faq-question-text">Can I cancel my subscription anytime?</span>
         <span class="faq-chevron">▼</span>
       </div>
@@ -334,7 +334,7 @@
     </div>
 
     <div class="faq-item">
-      <div class="faq-question" onclick="toggleFaq(this)">
+      <div class="faq-question" data-action="toggle-faq">
         <span class="faq-question-text">Do you offer refunds?</span>
         <span class="faq-chevron">▼</span>
       </div>
@@ -344,7 +344,7 @@
     </div>
 
     <div class="faq-item">
-      <div class="faq-question" onclick="toggleFaq(this)">
+      <div class="faq-question" data-action="toggle-faq">
         <span class="faq-question-text">Is my payment information secure?</span>
         <span class="faq-chevron">▼</span>
       </div>
@@ -354,7 +354,7 @@
     </div>
 
     <div class="faq-item">
-      <div class="faq-question" onclick="toggleFaq(this)">
+      <div class="faq-question" data-action="toggle-faq">
         <span class="faq-question-text">What happens to my data if I cancel?</span>
         <span class="faq-chevron">▼</span>
       </div>
@@ -365,7 +365,7 @@
     </div>
 
     <div class="faq-item">
-      <div class="faq-question" onclick="toggleFaq(this)">
+      <div class="faq-question" data-action="toggle-faq">
         <span class="faq-question-text">How do I upgrade to Pro or Creator Max?</span>
         <span class="faq-chevron">▼</span>
       </div>
@@ -381,7 +381,7 @@
     <div class="faq-category-title">Selling & Payments</div>
 
     <div class="faq-item">
-      <div class="faq-question" onclick="toggleFaq(this)">
+      <div class="faq-question" data-action="toggle-faq">
         <span class="faq-question-text">What can I sell on Ryxa?</span>
         <span class="faq-chevron">▼</span>
       </div>
@@ -392,7 +392,7 @@
     </div>
 
     <div class="faq-item">
-      <div class="faq-question" onclick="toggleFaq(this)">
+      <div class="faq-question" data-action="toggle-faq">
         <span class="faq-question-text">How do I sell digital products?</span>
         <span class="faq-chevron">▼</span>
       </div>
@@ -403,7 +403,7 @@
     </div>
 
     <div class="faq-item">
-      <div class="faq-question" onclick="toggleFaq(this)">
+      <div class="faq-question" data-action="toggle-faq">
         <span class="faq-question-text">What fees does Ryxa take on sales?</span>
         <span class="faq-chevron">▼</span>
       </div>
@@ -415,7 +415,7 @@
     </div>
 
     <div class="faq-item">
-      <div class="faq-question" onclick="toggleFaq(this)">
+      <div class="faq-question" data-action="toggle-faq">
         <span class="faq-question-text">Can I connect my existing Stripe account?</span>
         <span class="faq-chevron">▼</span>
       </div>
@@ -426,7 +426,7 @@
     </div>
 
     <div class="faq-item">
-      <div class="faq-question" onclick="toggleFaq(this)">
+      <div class="faq-question" data-action="toggle-faq">
         <span class="faq-question-text">What is Ryxa Hub?</span>
         <span class="faq-chevron">▼</span>
       </div>
@@ -447,28 +447,8 @@
 </div>
 
 <div id="site-footer"></div>
-<script>
-
-function toggleFaq(questionEl) {
-  const item = questionEl.closest('.faq-item');
-  const isOpen = item.classList.contains('open');
-  document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
-  if (!isOpen) item.classList.add('open');
-}
-
-function showCategory(cat, btn) {
-  document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
-  btn.classList.add('active');
-  document.querySelectorAll('.faq-category').forEach(c => {
-    c.style.display = (cat === 'all' || c.dataset.category === cat) ? 'block' : 'none';
-  });
-}
-</script>
+<script src="/js/faq-page.js" defer></script>
 <script src="/cookie-banner.js"></script>
-<script>
-function openSignupModal(){window.location.href="index.html?action=signup";}
-function openAuthModal(){window.location.href="index.html?action=signin";}
-</script>
 <script src="/site-nav.js"></script>
 </body>
 </html>
