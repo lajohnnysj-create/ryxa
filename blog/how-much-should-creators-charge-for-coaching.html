@@ -48,71 +48,8 @@
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg: #07070f; --surface: #0f0f1a; --surface2: #161625;
-    --border: rgba(255,255,255,0.07); --border-hover: rgba(255,255,255,0.14);
-    --accent: #7c3aed; --accent2: #a855f7; --accent-glow: rgba(124,58,237,0.3);
-    --text: #f0eef8; --muted: #b4b2c8; --muted2: #c9c7dc;
-  }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scrollbar-width: thin; scrollbar-color: rgba(168,85,247,0.4) #0a0a14; scroll-behavior: smooth; }
-  ::-webkit-scrollbar { width: 8px; }
-  ::-webkit-scrollbar-track { background: #0a0a14; }
-  ::-webkit-scrollbar-thumb { background: rgba(168,85,247,0.4); border-radius: 4px; }
-  ::-webkit-scrollbar-thumb:hover { background: rgba(168,85,247,0.6); }
-  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
-
-  .blog-hero { max-width: 780px; margin: 0 auto; padding: 72px 48px 40px; }
-  .blog-tag { display: inline-flex; align-items: center; gap: 8px; border: 1px solid rgba(124,58,237,0.4); background: rgba(124,58,237,0.08); border-radius: 100px; padding: 6px 16px; font-size: 12px; color: #c4b5fd; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 24px; }
-  .blog-title { font-family: 'Syne', sans-serif; font-size: clamp(32px, 5vw, 54px); font-weight: 800; letter-spacing: -1.5px; line-height: 1.1; margin-bottom: 20px; }
-  .blog-title em { font-style: normal; color: var(--accent2); }
-  .blog-meta { display: flex; align-items: center; gap: 16px; font-size: 13px; color: var(--muted); margin-bottom: 48px; padding-bottom: 32px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
-  .blog-meta span { display: flex; align-items: center; gap: 6px; }
-
-  .blog-body { max-width: 780px; margin: 0 auto; padding: 0 48px 80px; }
-  .blog-body h2 { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; margin: 48px 0 16px; letter-spacing: -0.5px; }
-  .blog-body h3 { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; margin: 32px 0 12px; color: var(--text); }
-  .blog-body p { font-size: 17px; line-height: 1.85; color: #c8c6d8; font-weight: 300; margin-bottom: 20px; }
-  .blog-body p strong { color: var(--text); font-weight: 500; }
-  .blog-body ul { margin: 0 0 20px 0; padding-left: 24px; }
-  .blog-body ul li { font-size: 17px; line-height: 1.85; color: #c8c6d8; font-weight: 300; margin-bottom: 10px; }
-  .blog-body ul li strong { color: var(--text); font-weight: 500; }
-  .blog-body a { color: var(--accent2); } .blog-body .btn-primary { color: #fff; }
-
-  .pull-quote { border-left: 3px solid var(--accent); padding: 20px 28px; margin: 40px 0; background: rgba(124,58,237,0.04); border-radius: 0 12px 12px 0; }
-  .pull-quote p { font-family: 'Syne', sans-serif; font-size: clamp(18px, 2.5vw, 22px) !important; font-weight: 700 !important; letter-spacing: -0.3px; color: var(--text) !important; line-height: 1.4 !important; margin: 0 !important; }
-
-  .blog-cta { background: linear-gradient(135deg, rgba(124,58,237,0.08) 0%, var(--surface) 60%); border: 1px solid rgba(124,58,237,0.25); border-radius: 20px; padding: 48px 40px; text-align: center; margin: 56px 0; }
-  .blog-cta h3 { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800; margin-bottom: 12px; letter-spacing: -0.5px; }
-  .blog-cta p { color: var(--muted); font-size: 15px; margin-bottom: 28px; line-height: 1.6; }
-  .btn-primary { display: inline-block; background: var(--accent); color: #fff; border: none; border-radius: 10px; padding: 14px 32px; font-size: 15px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.25s; box-shadow: 0 0 40px rgba(124,58,237,0.25); text-decoration: none; }
-  .btn-primary:hover { background: #a855f7; transform: translateY(-2px); }
-
-  .note-box { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid #c4b5fd; border-radius: 0 12px 12px 0; padding: 20px 24px; margin: 32px 0; }
-  .note-box p { font-size: 14px !important; color: var(--muted2) !important; margin: 0 !important; line-height: 1.6 !important; }
-
-  .price-tier { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 24px 28px; margin: 24px 0; }
-  .price-tier h3 { margin-top: 0 !important; margin-bottom: 8px !important; color: var(--accent2) !important; }
-  .price-tier .tier-range { display: inline-block; font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; color: var(--text); letter-spacing: -0.5px; margin-bottom: 12px; }
-  .price-tier p { margin-bottom: 12px; }
-  .price-tier p:last-child { margin-bottom: 0; }
-
-  @media (max-width: 768px) {
-    .blog-hero { padding: 48px 24px 32px; }
-    .blog-body { padding: 0 24px 60px; }
-    .blog-body p, .blog-body ul li { font-size: 16px; }
-    .blog-cta { padding: 32px 24px; }
-    .price-tier { padding: 20px 22px; }
-    .price-tier .tier-range { font-size: 24px; }
-  }
-
-  *:focus-visible { outline: 2px solid #c4b5fd; outline-offset: 2px; border-radius: 4px; }
-  @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
-  }
-</style>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/blog-style.css">
 </head>
 <body>
 
@@ -120,12 +57,11 @@
 
 <!-- BLOG HERO -->
 <div class="blog-hero">
-  <div class="blog-tag">💰 Creator Pricing</div>
+  <div class="blog-tag">Creator Pricing</div>
   <h1 class="blog-title">How Much Should Creators Charge for <em>1:1 Coaching?</em></h1>
   <div class="blog-meta">
-    <span><img src="/all white logo.png" alt="Ryxa" style="width:28px;height:28px;vertical-align:middle;margin-right:4px;"> Ryxa</span>
-    <span>📅 May 2026</span>
-    <span>⏱ 10 min read</span>
+    <span><img src="/johnny2.jpg" alt="Johnny L" class="blog-author-img"> Johnny L</span>
+    <span>10 min read</span>
   </div>
 </div>
 
