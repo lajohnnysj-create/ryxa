@@ -1634,18 +1634,24 @@ async function handleContractFileSelected(event) {
   event.target.value = '';
 }
 
-// Open an external URL reliably, including from an installed PWA.
-// window.open(..., '_blank') is unreliable in PWA standalone mode (no tab
-// strip to open into) and can silently fail. A programmatic anchor click is
-// treated as a genuine navigation and is handed off to the system browser.
-function openUrlExternally(url) {
+// Download a file from a URL as a blob. Used for contracts and invoices.
+// The Ryxa PWA deliberately blocks external navigation (to avoid stranding
+// the user with no back button), so window.open / anchor-to-URL does not
+// work in the installed app. Fetching the file as a blob and downloading
+// THAT is not a navigation - it works identically in a browser and a PWA.
+async function downloadFileFromUrl(url, filename) {
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error('Download failed (' + resp.status + ')');
+  const blob = await resp.blob();
+  const objectUrl = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url;
-  a.target = '_blank';
-  a.rel = 'noopener noreferrer';
+  a.href = objectUrl;
+  a.download = filename || 'document.pdf';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
+  // Release the object URL after a tick so the download has started.
+  setTimeout(function() { URL.revokeObjectURL(objectUrl); }, 1000);
 }
 
 async function viewContract() {
@@ -1659,10 +1665,14 @@ async function viewContract() {
     .createSignedUrl(deal.contract_file_path, 3600);
 
   if (error || !data?.signedUrl) {
-    showDealModalMsg('error', 'Failed to open contract: ' + (error?.message || 'unknown error'));
+    showDealModalMsg('error', 'Failed to download contract: ' + (error?.message || 'unknown error'));
     return;
   }
-  openUrlExternally(data.signedUrl);
+  try {
+    await downloadFileFromUrl(data.signedUrl, deal.contract_file_name || 'contract.pdf');
+  } catch (e) {
+    showDealModalMsg('error', 'Failed to download contract: ' + (e.message || 'unknown error'));
+  }
 }
 
 async function removeContract() {
@@ -2158,10 +2168,14 @@ async function viewInvoice() {
 
   const { data, error } = await sb.storage.from('deal-contracts').createSignedUrl(deal.invoice_file_path, 3600);
   if (error || !data?.signedUrl) {
-    showDealModalMsg('error', 'Could not generate view link: ' + (error?.message || 'unknown error'));
+    showDealModalMsg('error', 'Could not download invoice: ' + (error?.message || 'unknown error'));
     return;
   }
-  openUrlExternally(data.signedUrl);
+  try {
+    await downloadFileFromUrl(data.signedUrl, deal.invoice_file_name || 'invoice.pdf');
+  } catch (e) {
+    showDealModalMsg('error', 'Could not download invoice: ' + (e.message || 'unknown error'));
+  }
 }
 
 async function removeInvoice() {
