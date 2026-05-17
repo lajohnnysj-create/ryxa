@@ -19,7 +19,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
     --bg: #07070f;
@@ -261,7 +260,7 @@
     <h1>Crop, resize, convert.<br><span class="gradient-text">All in your browser.</span></h1>
     <p class="hero-tagline">A lightweight editor for quick photo edits. Crop and resize with one-click aspect ratio presets and convert between formats. All processed in your browser. Pro unlocks background removal.</p>
     <div class="hero-cta-row">
-      <a href="dashboard.html" onclick="return tryThisTool(event)" class="btn-primary">Open Photo Editor</a>
+      <a href="dashboard.html" data-nav-action="try-tool" class="btn-primary">Open Photo Editor</a>
       <a href="pricing.html" class="btn-secondary">See pricing</a>
     </div>
   </div>
@@ -481,35 +480,35 @@
   <h2 class="section-title">Common questions about Photo Editor.</h2>
   <div class="faq-list">
     <div class="faq-item">
-      <div class="faq-q" onclick="toggleFaq(this)">
+      <div class="faq-q" data-nav-action="toggle-faq">
         <div class="faq-q-text">Are my images uploaded anywhere?</div>
         <div class="faq-toggle">+</div>
       </div>
       <div class="faq-a">No. Photo Editor runs entirely in your browser using HTML5 canvas. Your image never gets uploaded to our servers or any third party. Close the tab and it's gone.</div>
     </div>
     <div class="faq-item">
-      <div class="faq-q" onclick="toggleFaq(this)">
+      <div class="faq-q" data-nav-action="toggle-faq">
         <div class="faq-q-text">What file formats are supported?</div>
         <div class="faq-toggle">+</div>
       </div>
       <div class="faq-a">Input: most common image formats (JPEG, PNG, WebP, and more. Anything your browser can read). Output: JPEG, PNG, and WebP.</div>
     </div>
     <div class="faq-item">
-      <div class="faq-q" onclick="toggleFaq(this)">
+      <div class="faq-q" data-nav-action="toggle-faq">
         <div class="faq-q-text">Is there a file size limit?</div>
         <div class="faq-toggle">+</div>
       </div>
       <div class="faq-a">No. Photo Editor has no file size limit and no daily conversion cap. Edits run entirely in your browser, so we don't need to throttle anything.</div>
     </div>
     <div class="faq-item">
-      <div class="faq-q" onclick="toggleFaq(this)">
+      <div class="faq-q" data-nav-action="toggle-faq">
         <div class="faq-q-text">Can I batch-process multiple images?</div>
         <div class="faq-toggle">+</div>
       </div>
       <div class="faq-a">Single-image at a time for now.</div>
     </div>
     <div class="faq-item">
-      <div class="faq-q" onclick="toggleFaq(this)">
+      <div class="faq-q" data-nav-action="toggle-faq">
         <div class="faq-q-text">What if I need to remove backgrounds?</div>
         <div class="faq-toggle">+</div>
       </div>
@@ -523,39 +522,14 @@
   <h2>Ready to start with Photo Editor?</h2>
   <p>One-click aspect ratio presets for the most common social formats. Convert between JPEG, PNG, and WebP. Adjust quality. All processed in your browser.</p>
   <div class="hero-cta-row">
-    <a href="dashboard.html" onclick="return tryThisTool(event)" class="btn-primary">Open Photo Editor</a>
+    <a href="dashboard.html" data-nav-action="try-tool" class="btn-primary">Open Photo Editor</a>
     <a href="pricing.html" class="btn-secondary">See pricing</a>
   </div>
 </section>
 
 <!-- ============ FOOTER ============ -->
 <div id="site-footer"></div>
-<script>
-const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_PLU28Un_GfsUXeUsK3zB9Q_hvNM7aeG';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Smart Try button: opens signup modal if logged out, sends to dashboard if logged in.
-async function tryThisTool(e) {
-  if (e) e.preventDefault();
-  try {
-    const { data: sessionData } = await sb.auth.getSession();
-    if (sessionData && sessionData.session) {
-      window.location.href = 'dashboard.html';
-      return false;
-    }
-  } catch (err) { /* fall through to signup */ }
-  window.location.href = 'index.html?action=signup';
-  return false;
-}
-
-function toggleFaq(el) { el.parentElement.classList.toggle('open'); }
-</script>
-
-<script>
-function openSignupModal(){window.location.href="index.html?action=signup";}
-function openAuthModal(){window.location.href="index.html?action=signin";}
-</script>
 <script src="/site-nav.js"></script>
 </body>
 </html>

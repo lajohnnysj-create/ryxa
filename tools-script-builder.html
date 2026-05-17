@@ -19,7 +19,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
     --bg: #07070f;
@@ -261,7 +260,7 @@
     <h1>Write your next reel,<br><span class="gradient-text">video, podcast, or story</span></h1>
     <p class="hero-tagline">The all-in-one workspace for creators who write before they record. Plan in modular blocks, then play it back in storyboard, teleprompter, or cinematic mode.</p>
     <div class="hero-cta-row">
-      <a href="dashboard.html" onclick="return tryThisTool(event)" class="btn-primary">Try Script Builder</a>
+      <a href="dashboard.html" data-nav-action="try-tool" class="btn-primary">Try Script Builder</a>
       <a href="pricing.html" class="btn-secondary">See pricing</a>
     </div>
   </div>
@@ -490,28 +489,28 @@
   <h2 class="section-title">Common questions about Script Builder.</h2>
   <div class="faq-list">
     <div class="faq-item">
-      <div class="faq-q" onclick="toggleFaq(this)">
+      <div class="faq-q" data-nav-action="toggle-faq">
         <div class="faq-q-text">Can I use this for any video format?</div>
         <div class="faq-toggle">+</div>
       </div>
       <div class="faq-a">Yes. Script Builder works for short-form (Reels, TikTok, YouTube Shorts), long-form YouTube, and podcasts. Tag the platform on each script for organization across your library.</div>
     </div>
     <div class="faq-item">
-      <div class="faq-q" onclick="toggleFaq(this)">
+      <div class="faq-q" data-nav-action="toggle-faq">
         <div class="faq-q-text">What's the difference between this and Notion or Google Docs?</div>
         <div class="faq-toggle">+</div>
       </div>
       <div class="faq-a">Script Builder is built specifically for spoken content. Block-based structure forces clean script architecture (hook → setup → payoff → CTA), and the playback modes (teleprompter, storyboard, cinematic) replace the workflow of copy-pasting your script into a separate prompter app.</div>
     </div>
     <div class="faq-item">
-      <div class="faq-q" onclick="toggleFaq(this)">
+      <div class="faq-q" data-nav-action="toggle-faq">
         <div class="faq-q-text">Can I export my scripts?</div>
         <div class="faq-toggle">+</div>
       </div>
       <div class="faq-a">Yes. Copy all the text, copy spoken lines only, download as a .txt file, or save as a PDF.</div>
     </div>
     <div class="faq-item">
-      <div class="faq-q" onclick="toggleFaq(this)">
+      <div class="faq-q" data-nav-action="toggle-faq">
         <div class="faq-q-text">Is there a limit to how many scripts I can save?</div>
         <div class="faq-toggle">+</div>
       </div>
@@ -525,39 +524,14 @@
   <h2>Ready to start with Script Builder?</h2>
   <p>The all-in-one workspace for creators who write before they record. Plan in modular blocks, then play it back in storyboard, teleprompter, or cinematic mode.</p>
   <div class="hero-cta-row">
-    <a href="dashboard.html" onclick="return tryThisTool(event)" class="btn-primary">Try Script Builder</a>
+    <a href="dashboard.html" data-nav-action="try-tool" class="btn-primary">Try Script Builder</a>
     <a href="pricing.html" class="btn-secondary">See pricing</a>
   </div>
 </section>
 
 <!-- ============ FOOTER ============ -->
 <div id="site-footer"></div>
-<script>
-const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_PLU28Un_GfsUXeUsK3zB9Q_hvNM7aeG';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Smart Try button: opens signup modal if logged out, sends to dashboard if logged in.
-async function tryThisTool(e) {
-  if (e) e.preventDefault();
-  try {
-    const { data: sessionData } = await sb.auth.getSession();
-    if (sessionData && sessionData.session) {
-      window.location.href = 'dashboard.html';
-      return false;
-    }
-  } catch (err) { /* fall through to signup */ }
-  window.location.href = 'index.html?action=signup';
-  return false;
-}
-
-function toggleFaq(el) { el.parentElement.classList.toggle('open'); }
-</script>
-
-<script>
-function openSignupModal(){window.location.href="index.html?action=signup";}
-function openAuthModal(){window.location.href="index.html?action=signin";}
-</script>
 <script src="/site-nav.js"></script>
 </body>
 </html>

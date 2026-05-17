@@ -19,7 +19,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root { --bg:#07070f;--surface:#11111b;--surface2:#181822;--border:rgba(255,255,255,0.08);--border-hover:rgba(255,255,255,0.18);--accent:#7c3aed;--accent2:#a855f7;--accent-glow:rgba(124,58,237,0.3);--text:#f0eef8;--muted:#b4b2c8; }
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -58,7 +57,7 @@
     <h1>Score your thumbnail's<br><span class="gradient-text">clickability.</span></h1>
     <p class="hero-tagline">Upload any thumbnail and get instant AI-powered feedback. Scores for clickability, composition, text readability, color contrast, and emotional impact, with actionable suggestions to improve.</p>
     <div class="hero-cta-row">
-      <a href="dashboard.html" onclick="return tryThisTool(event)" class="btn-primary">Try Thumbnail Analyzer</a>
+      <a href="dashboard.html" data-nav-action="try-tool" class="btn-primary">Try Thumbnail Analyzer</a>
       <a href="pricing.html" class="btn-secondary">See pricing</a>
     </div>
   </div>
@@ -127,26 +126,11 @@
   <div style="text-align:center;padding:40px 0 20px;">
     <h2 style="font-family:Syne,sans-serif;font-size:clamp(24px,3.5vw,36px);font-weight:800;letter-spacing:-0.5px;margin-bottom:12px;">Stop guessing. Start testing.</h2>
     <p style="color:var(--muted);font-size:15px;margin-bottom:28px;max-width:480px;margin-left:auto;margin-right:auto;">Get AI feedback on your thumbnails before you publish. Available on Pro.</p>
-    <a href="dashboard.html" onclick="return tryThisTool(event)" class="btn-primary" style="padding:14px 36px;font-size:16px;">Try Thumbnail Analyzer</a>
+    <a href="dashboard.html" data-nav-action="try-tool" class="btn-primary" style="padding:14px 36px;font-size:16px;">Try Thumbnail Analyzer</a>
   </div>
 </section>
 
 <div id="site-footer"></div>
-<script>
-const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_PLU28Un_GfsUXeUsK3zB9Q_hvNM7aeG';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-async function tryThisTool(e) {
-  if (e) e.preventDefault();
-  try { const { data } = await sb.auth.getSession(); if (data?.session) { window.location.href = 'dashboard.html'; return false; } } catch (err) {}
-  window.location.href = 'index.html?action=signup';
-  return false;
-}
-</script>
-<script>
-function openSignupModal(){window.location.href="index.html?action=signup";}
-function openAuthModal(){window.location.href="index.html?action=signin";}
-</script>
 <script src="/site-nav.js"></script>
 </body>
 </html>

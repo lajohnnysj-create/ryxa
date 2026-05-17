@@ -19,7 +19,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
     --bg: #07070f;
@@ -261,7 +260,7 @@
     <h1>Sell courses to<br><span class="gradient-text">your audience</span></h1>
     <p class="hero-tagline">Build online courses with modules, lessons, and video embeds. Buyers get their own dashboard to track progress. Payments go directly to your Stripe. Ryxa takes 0%.</p>
     <div class="hero-cta-row">
-      <a href="dashboard.html" onclick="return tryThisTool(event)" class="btn-primary">Try Course Builder</a>
+      <a href="dashboard.html" data-nav-action="try-tool" class="btn-primary">Try Course Builder</a>
       <a href="pricing.html" class="btn-secondary">See pricing</a>
     </div>
   </div>
@@ -294,10 +293,10 @@
   <div class="section-label">FAQ</div>
   <h2 class="section-title">Common questions about Course Builder.</h2>
   <div class="faq-list">
-    <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)"><div class="faq-q-text">Does Ryxa take a percentage of my sales?</div><div class="faq-toggle">+</div></div><div class="faq-a">No. Ryxa takes 0% of your course revenue. Payments go directly to your Stripe account. The only fees are Stripe's standard processing fees (2.9% + $0.30).</div></div>
-    <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)"><div class="faq-q-text">Can I create free courses?</div><div class="faq-toggle">+</div></div><div class="faq-a">Yes. Set the price to $0 and anyone can enroll without payment. Great for lead magnets or building your audience.</div></div>
-    <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)"><div class="faq-q-text">Where do buyers access the course after purchasing?</div><div class="faq-toggle">+</div></div><div class="faq-a">Buyers access courses through the Learning Hub at ryxa.io/learn. They sign in, see all their purchased courses, and can track their progress lesson by lesson.</div></div>
-    <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)"><div class="faq-q-text">Where do I host my course videos?</div><div class="faq-toggle">+</div></div><div class="faq-a">Host your videos on YouTube or Vimeo (unlisted if you want them private), then paste the video link into your lesson. The video embeds directly into the course. Your students watch it without leaving the page.</div></div>
+    <div class="faq-item"><div class="faq-q" data-nav-action="toggle-faq"><div class="faq-q-text">Does Ryxa take a percentage of my sales?</div><div class="faq-toggle">+</div></div><div class="faq-a">No. Ryxa takes 0% of your course revenue. Payments go directly to your Stripe account. The only fees are Stripe's standard processing fees (2.9% + $0.30).</div></div>
+    <div class="faq-item"><div class="faq-q" data-nav-action="toggle-faq"><div class="faq-q-text">Can I create free courses?</div><div class="faq-toggle">+</div></div><div class="faq-a">Yes. Set the price to $0 and anyone can enroll without payment. Great for lead magnets or building your audience.</div></div>
+    <div class="faq-item"><div class="faq-q" data-nav-action="toggle-faq"><div class="faq-q-text">Where do buyers access the course after purchasing?</div><div class="faq-toggle">+</div></div><div class="faq-a">Buyers access courses through the Learning Hub at ryxa.io/learn. They sign in, see all their purchased courses, and can track their progress lesson by lesson.</div></div>
+    <div class="faq-item"><div class="faq-q" data-nav-action="toggle-faq"><div class="faq-q-text">Where do I host my course videos?</div><div class="faq-toggle">+</div></div><div class="faq-a">Host your videos on YouTube or Vimeo (unlisted if you want them private), then paste the video link into your lesson. The video embeds directly into the course. Your students watch it without leaving the page.</div></div>
   </div>
 </section>
 
@@ -305,39 +304,14 @@
   <h2>Start selling courses today.</h2>
   <p>No complicated setup. No monthly course platform fees. Build your course and keep 100% of your revenue.</p>
   <div class="hero-cta-row">
-    <a href="dashboard.html" onclick="return tryThisTool(event)" class="btn-primary">Try Course Builder</a>
+    <a href="dashboard.html" data-nav-action="try-tool" class="btn-primary">Try Course Builder</a>
     <a href="pricing.html" class="btn-secondary">See pricing</a>
   </div>
 </section>
 
 <!-- ============ FOOTER ============ -->
 <div id="site-footer"></div>
-<script>
-const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_PLU28Un_GfsUXeUsK3zB9Q_hvNM7aeG';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Smart Try button: opens signup modal if logged out, sends to dashboard if logged in.
-async function tryThisTool(e) {
-  if (e) e.preventDefault();
-  try {
-    const { data: sessionData } = await sb.auth.getSession();
-    if (sessionData && sessionData.session) {
-      window.location.href = 'dashboard.html';
-      return false;
-    }
-  } catch (err) { /* fall through to signup */ }
-  window.location.href = 'index.html?action=signup';
-  return false;
-}
-
-function toggleFaq(el) { el.parentElement.classList.toggle('open'); }
-</script>
-
-<script>
-function openSignupModal(){window.location.href="index.html?action=signup";}
-function openAuthModal(){window.location.href="index.html?action=signin";}
-</script>
 <script src="/site-nav.js"></script>
 </body>
 </html>

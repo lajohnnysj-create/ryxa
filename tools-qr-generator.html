@@ -19,7 +19,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
     --bg: #07070f;
@@ -261,7 +260,7 @@
     <h1>Clean QR codes<br><span class="gradient-text">for every campaign</span></h1>
     <p class="hero-tagline">Generate QR codes for your links, social profiles, and campaigns. Download as PNG, ready to share or print.</p>
     <div class="hero-cta-row">
-      <a href="dashboard.html" onclick="return tryThisTool(event)" class="btn-primary">Generate a QR code</a>
+      <a href="dashboard.html" data-nav-action="try-tool" class="btn-primary">Generate a QR code</a>
       <a href="pricing.html" class="btn-secondary">See pricing</a>
     </div>
   </div>
@@ -482,35 +481,35 @@
   <h2 class="section-title">Common questions about QR Generator.</h2>
   <div class="faq-list">
     <div class="faq-item">
-      <div class="faq-q" onclick="toggleFaq(this)">
+      <div class="faq-q" data-nav-action="toggle-faq">
         <div class="faq-q-text">Is my QR data sent to any tracking service?</div>
         <div class="faq-toggle">+</div>
       </div>
       <div class="faq-a">No. The QR code is generated in your browser. We never see your URL or any data about who scans it. The QR is yours, free and clear.</div>
     </div>
     <div class="faq-item">
-      <div class="faq-q" onclick="toggleFaq(this)">
+      <div class="faq-q" data-nav-action="toggle-faq">
         <div class="faq-q-text">Can the QR redirect through your domain?</div>
         <div class="faq-toggle">+</div>
       </div>
       <div class="faq-a">We don't redirect. Your QR encodes the URL directly, which means: faster scans, no dependency on us, and your QRs keep working forever even if Ryxa goes away.</div>
     </div>
     <div class="faq-item">
-      <div class="faq-q" onclick="toggleFaq(this)">
+      <div class="faq-q" data-nav-action="toggle-faq">
         <div class="faq-q-text">What's the maximum URL length?</div>
         <div class="faq-toggle">+</div>
       </div>
       <div class="faq-a">Technically QR codes support up to ~2,953 characters, but for reliable scanning we recommend under 200. For long URLs, use a URL shortener first.</div>
     </div>
     <div class="faq-item">
-      <div class="faq-q" onclick="toggleFaq(this)">
+      <div class="faq-q" data-nav-action="toggle-faq">
         <div class="faq-q-text">Do I need to sign up?</div>
         <div class="faq-toggle">+</div>
       </div>
       <div class="faq-a">Yes. The QR Generator is part of the Ryxa dashboard, so you'll need a free account to access it.</div>
     </div>
     <div class="faq-item">
-      <div class="faq-q" onclick="toggleFaq(this)">
+      <div class="faq-q" data-nav-action="toggle-faq">
         <div class="faq-q-text">Will the QR break if I lose the original file?</div>
         <div class="faq-toggle">+</div>
       </div>
@@ -524,39 +523,14 @@
   <h2>Ready to start with QR Generator?</h2>
   <p>Generate QR codes for your links, social profiles, and campaigns. Download as PNG, ready to share or print.</p>
   <div class="hero-cta-row">
-    <a href="dashboard.html" onclick="return tryThisTool(event)" class="btn-primary">Generate a QR code</a>
+    <a href="dashboard.html" data-nav-action="try-tool" class="btn-primary">Generate a QR code</a>
     <a href="pricing.html" class="btn-secondary">See pricing</a>
   </div>
 </section>
 
 <!-- ============ FOOTER ============ -->
 <div id="site-footer"></div>
-<script>
-const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_PLU28Un_GfsUXeUsK3zB9Q_hvNM7aeG';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Smart Try button: opens signup modal if logged out, sends to dashboard if logged in.
-async function tryThisTool(e) {
-  if (e) e.preventDefault();
-  try {
-    const { data: sessionData } = await sb.auth.getSession();
-    if (sessionData && sessionData.session) {
-      window.location.href = 'dashboard.html';
-      return false;
-    }
-  } catch (err) { /* fall through to signup */ }
-  window.location.href = 'index.html?action=signup';
-  return false;
-}
-
-function toggleFaq(el) { el.parentElement.classList.toggle('open'); }
-</script>
-
-<script>
-function openSignupModal(){window.location.href="index.html?action=signup";}
-function openAuthModal(){window.location.href="index.html?action=signin";}
-</script>
 <script src="/site-nav.js"></script>
 </body>
 </html>

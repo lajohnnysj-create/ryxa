@@ -19,7 +19,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
     --bg: #07070f;
@@ -261,7 +260,7 @@
     <h1>See who you follow that<br><span class="gradient-text">doesn't follow you back</span></h1>
     <p class="hero-tagline">Upload your own Instagram data export and see exactly who you follow that doesn't follow you back. No password required, no third-party login risk.</p>
     <div class="hero-cta-row">
-      <a href="dashboard.html" onclick="return tryThisTool(event)" class="btn-primary">Run a follower audit</a>
+      <a href="dashboard.html" data-nav-action="try-tool" class="btn-primary">Run a follower audit</a>
       <a href="pricing.html" class="btn-secondary">See pricing</a>
     </div>
   </div>
@@ -480,35 +479,35 @@
   <h2 class="section-title">Common questions about Follow-Back Audit.</h2>
   <div class="faq-list">
     <div class="faq-item">
-      <div class="faq-q" onclick="toggleFaq(this)">
+      <div class="faq-q" data-nav-action="toggle-faq">
         <div class="faq-q-text">Why don't you just connect to Instagram directly?</div>
         <div class="faq-toggle">+</div>
       </div>
       <div class="faq-a">Because Instagram bans accounts that use third-party follower-checking apps. Other tools risk your account. By having you upload your own data export, we keep your account safe and avoid Meta's ToS issues entirely.</div>
     </div>
     <div class="faq-item">
-      <div class="faq-q" onclick="toggleFaq(this)">
+      <div class="faq-q" data-nav-action="toggle-faq">
         <div class="faq-q-text">How do I get my Instagram data export?</div>
         <div class="faq-toggle">+</div>
       </div>
       <div class="faq-a">Open Instagram → Settings → Accounts Center → Your Information & Permissions → Download your information. Choose 'Followers and following' and submit. Instagram emails you a download link within 24 hours (usually faster).</div>
     </div>
     <div class="faq-item">
-      <div class="faq-q" onclick="toggleFaq(this)">
+      <div class="faq-q" data-nav-action="toggle-faq">
         <div class="faq-q-text">Is my follower data stored on your servers?</div>
         <div class="faq-toggle">+</div>
       </div>
       <div class="faq-a">No. The audit runs entirely in your browser using JavaScript. Your data never leaves your device. Close the tab and it's gone.</div>
     </div>
     <div class="faq-item">
-      <div class="faq-q" onclick="toggleFaq(this)">
+      <div class="faq-q" data-nav-action="toggle-faq">
         <div class="faq-q-text">Will running this get my account banned?</div>
         <div class="faq-toggle">+</div>
       </div>
       <div class="faq-a">No. You're just downloading your own data and analyzing it. Instagram allows this. It's a privacy right. We never access your account or interact with Instagram in any way.</div>
     </div>
     <div class="faq-item">
-      <div class="faq-q" onclick="toggleFaq(this)">
+      <div class="faq-q" data-nav-action="toggle-faq">
         <div class="faq-q-text">Does this work for TikTok or Twitter?</div>
         <div class="faq-toggle">+</div>
       </div>
@@ -522,39 +521,14 @@
   <h2>Ready to start with Follow-Back Audit?</h2>
   <p>Upload your own Instagram data export and see exactly who you follow that doesn't follow you back. No password required, no third-party login risk.</p>
   <div class="hero-cta-row">
-    <a href="dashboard.html" onclick="return tryThisTool(event)" class="btn-primary">Run a follower audit</a>
+    <a href="dashboard.html" data-nav-action="try-tool" class="btn-primary">Run a follower audit</a>
     <a href="pricing.html" class="btn-secondary">See pricing</a>
   </div>
 </section>
 
 <!-- ============ FOOTER ============ -->
 <div id="site-footer"></div>
-<script>
-const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_PLU28Un_GfsUXeUsK3zB9Q_hvNM7aeG';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Smart Try button: opens signup modal if logged out, sends to dashboard if logged in.
-async function tryThisTool(e) {
-  if (e) e.preventDefault();
-  try {
-    const { data: sessionData } = await sb.auth.getSession();
-    if (sessionData && sessionData.session) {
-      window.location.href = 'dashboard.html';
-      return false;
-    }
-  } catch (err) { /* fall through to signup */ }
-  window.location.href = 'index.html?action=signup';
-  return false;
-}
-
-function toggleFaq(el) { el.parentElement.classList.toggle('open'); }
-</script>
-
-<script>
-function openSignupModal(){window.location.href="index.html?action=signup";}
-function openAuthModal(){window.location.href="index.html?action=signin";}
-</script>
 <script src="/site-nav.js"></script>
 </body>
 </html>

@@ -19,7 +19,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
     --bg: #07070f;
@@ -261,7 +260,7 @@
     <h1>Sign any PDF<br><span class="gradient-text">in your browser</span></h1>
     <p class="hero-tagline">Fill out and sign PDFs without printing or scanning. Drag-and-drop signature, text fields, checkboxes. Files stay on your device. Never uploaded.</p>
     <div class="hero-cta-row">
-      <a href="dashboard.html" onclick="return tryThisTool(event)" class="btn-primary">Sign a PDF</a>
+      <a href="dashboard.html" data-nav-action="try-tool" class="btn-primary">Sign a PDF</a>
       <a href="pricing.html" class="btn-secondary">See pricing</a>
     </div>
   </div>
@@ -482,35 +481,35 @@
   <h2 class="section-title">Common questions about Sign PDF.</h2>
   <div class="faq-list">
     <div class="faq-item">
-      <div class="faq-q" onclick="toggleFaq(this)">
+      <div class="faq-q" data-nav-action="toggle-faq">
         <div class="faq-q-text">Is the signature legally binding?</div>
         <div class="faq-toggle">+</div>
       </div>
       <div class="faq-a">An electronic signature is legally binding in most jurisdictions for most agreements (e-Sign Act in the US, eIDAS in the EU). For contracts requiring qualified electronic signatures or specific compliance certifications, you may need a service like DocuSign. For everyday creator contracts, brand deal addendums, NDAs, etc., this works fine.</div>
     </div>
     <div class="faq-item">
-      <div class="faq-q" onclick="toggleFaq(this)">
+      <div class="faq-q" data-nav-action="toggle-faq">
         <div class="faq-q-text">Are my PDFs uploaded to your servers?</div>
         <div class="faq-toggle">+</div>
       </div>
       <div class="faq-a">No. Files are processed entirely client-side using JavaScript. Your PDF, your contract, your signature. All stay on your device. We never see them.</div>
     </div>
     <div class="faq-item">
-      <div class="faq-q" onclick="toggleFaq(this)">
+      <div class="faq-q" data-nav-action="toggle-faq">
         <div class="faq-q-text">Can I send the signed PDF to someone for them to sign?</div>
         <div class="faq-toggle">+</div>
       </div>
       <div class="faq-a">Currently this is a one-person signing tool. After you sign and download the PDF, you can email it to the other party for them to sign separately with their own tool.</div>
     </div>
     <div class="faq-item">
-      <div class="faq-q" onclick="toggleFaq(this)">
+      <div class="faq-q" data-nav-action="toggle-faq">
         <div class="faq-q-text">What's the file size limit?</div>
         <div class="faq-toggle">+</div>
       </div>
       <div class="faq-a">There's no hard cap, but very large PDFs (50MB+) can slow things down depending on your browser and device. For typical contracts and agreements, performance is instant.</div>
     </div>
     <div class="faq-item">
-      <div class="faq-q" onclick="toggleFaq(this)">
+      <div class="faq-q" data-nav-action="toggle-faq">
         <div class="faq-q-text">Can I edit the PDF text itself?</div>
         <div class="faq-toggle">+</div>
       </div>
@@ -524,39 +523,14 @@
   <h2>Ready to start with Sign PDF?</h2>
   <p>Fill out and sign PDFs without printing or scanning. Drag-and-drop signature, text fields, checkboxes. Files stay on your device. Never uploaded.</p>
   <div class="hero-cta-row">
-    <a href="dashboard.html" onclick="return tryThisTool(event)" class="btn-primary">Sign a PDF</a>
+    <a href="dashboard.html" data-nav-action="try-tool" class="btn-primary">Sign a PDF</a>
     <a href="pricing.html" class="btn-secondary">See pricing</a>
   </div>
 </section>
 
 <!-- ============ FOOTER ============ -->
 <div id="site-footer"></div>
-<script>
-const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_PLU28Un_GfsUXeUsK3zB9Q_hvNM7aeG';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Smart Try button: opens signup modal if logged out, sends to dashboard if logged in.
-async function tryThisTool(e) {
-  if (e) e.preventDefault();
-  try {
-    const { data: sessionData } = await sb.auth.getSession();
-    if (sessionData && sessionData.session) {
-      window.location.href = 'dashboard.html';
-      return false;
-    }
-  } catch (err) { /* fall through to signup */ }
-  window.location.href = 'index.html?action=signup';
-  return false;
-}
-
-function toggleFaq(el) { el.parentElement.classList.toggle('open'); }
-</script>
-
-<script>
-function openSignupModal(){window.location.href="index.html?action=signup";}
-function openAuthModal(){window.location.href="index.html?action=signin";}
-</script>
 <script src="/site-nav.js"></script>
 </body>
 </html>

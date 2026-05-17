@@ -19,7 +19,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
     --bg: #07070f;
@@ -261,7 +260,7 @@
     <h1>Plan your feed<br><span class="gradient-text">before you post</span></h1>
     <p class="hero-tagline">Drop in your photos, drag to reorder, and preview exactly how your Instagram grid will look. No more wishing you could undo a post.</p>
     <div class="hero-cta-row">
-      <a href="dashboard.html" onclick="return tryThisTool(event)" class="btn-primary">Plan your grid</a>
+      <a href="dashboard.html" data-nav-action="try-tool" class="btn-primary">Plan your grid</a>
       <a href="pricing.html" class="btn-secondary">See pricing</a>
     </div>
   </div>
@@ -467,35 +466,35 @@
   <h2 class="section-title">Common questions about Grid Planner.</h2>
   <div class="faq-list">
     <div class="faq-item">
-      <div class="faq-q" onclick="toggleFaq(this)">
+      <div class="faq-q" data-nav-action="toggle-faq">
         <div class="faq-q-text">Does this post for me?</div>
         <div class="faq-toggle">+</div>
       </div>
       <div class="faq-a">No. Grid Planner is a planning tool. You screenshot your plan or just remember the order, then post manually on Instagram in the right sequence. Auto-posting requires Instagram API access that we'd rather not have.</div>
     </div>
     <div class="faq-item">
-      <div class="faq-q" onclick="toggleFaq(this)">
+      <div class="faq-q" data-nav-action="toggle-faq">
         <div class="faq-q-text">Can I import my existing Instagram grid?</div>
         <div class="faq-toggle">+</div>
       </div>
       <div class="faq-a">Not directly. You'd need to download your photos from Instagram and upload them.</div>
     </div>
     <div class="faq-item">
-      <div class="faq-q" onclick="toggleFaq(this)">
+      <div class="faq-q" data-nav-action="toggle-faq">
         <div class="faq-q-text">How many photos can I plan?</div>
         <div class="faq-toggle">+</div>
       </div>
       <div class="faq-a">Up to 18 photos at a time. Perfect for planning your next 6 rows of posts. Once you're done, post the photos in order and start a fresh planning session.</div>
     </div>
     <div class="faq-item">
-      <div class="faq-q" onclick="toggleFaq(this)">
+      <div class="faq-q" data-nav-action="toggle-faq">
         <div class="faq-q-text">Are my photos uploaded to your servers?</div>
         <div class="faq-toggle">+</div>
       </div>
       <div class="faq-a">Only when you save (Pro feature). Free users plan in-session. Photos stay in your browser and are never uploaded. Pro users save their grid to access it from any device. Saved files are private and only visible to you. Delete anytime.</div>
     </div>
     <div class="faq-item">
-      <div class="faq-q" onclick="toggleFaq(this)">
+      <div class="faq-q" data-nav-action="toggle-faq">
         <div class="faq-q-text">Can I use this for TikTok or other platforms?</div>
         <div class="faq-toggle">+</div>
       </div>
@@ -509,39 +508,14 @@
   <h2>Ready to start with Grid Planner?</h2>
   <p>Drop in your photos, drag to reorder, and preview exactly how your Instagram grid will look. No more wishing you could undo a post.</p>
   <div class="hero-cta-row">
-    <a href="dashboard.html" onclick="return tryThisTool(event)" class="btn-primary">Plan your grid</a>
+    <a href="dashboard.html" data-nav-action="try-tool" class="btn-primary">Plan your grid</a>
     <a href="pricing.html" class="btn-secondary">See pricing</a>
   </div>
 </section>
 
 <!-- ============ FOOTER ============ -->
 <div id="site-footer"></div>
-<script>
-const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_PLU28Un_GfsUXeUsK3zB9Q_hvNM7aeG';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Smart Try button: opens signup modal if logged out, sends to dashboard if logged in.
-async function tryThisTool(e) {
-  if (e) e.preventDefault();
-  try {
-    const { data: sessionData } = await sb.auth.getSession();
-    if (sessionData && sessionData.session) {
-      window.location.href = 'dashboard.html';
-      return false;
-    }
-  } catch (err) { /* fall through to signup */ }
-  window.location.href = 'index.html?action=signup';
-  return false;
-}
-
-function toggleFaq(el) { el.parentElement.classList.toggle('open'); }
-</script>
-
-<script>
-function openSignupModal(){window.location.href="index.html?action=signup";}
-function openAuthModal(){window.location.href="index.html?action=signin";}
-</script>
 <script src="/site-nav.js"></script>
 </body>
 </html>

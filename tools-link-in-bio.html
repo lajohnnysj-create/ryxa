@@ -19,7 +19,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
     --bg: #07070f;
@@ -201,7 +200,7 @@
     <h1>One link.<br><span class="gradient-text">All your everything.</span></h1>
     <p class="hero-tagline">A clean, customizable page for your link in bio. Share your content, social profiles, products, and more, all from one branded URL on ryxa.io.</p>
     <div class="hero-cta-row">
-      <a href="dashboard.html" onclick="return tryThisTool(event)" class="btn-primary">Build your bio page</a>
+      <a href="dashboard.html" data-nav-action="try-tool" class="btn-primary">Build your bio page</a>
       <a href="pricing.html" class="btn-secondary">See pricing</a>
     </div>
   </div>
@@ -316,35 +315,35 @@
   <h2 class="section-title">Common questions about Link in Bio.</h2>
   <div class="faq-list">
     <div class="faq-item">
-      <div class="faq-q" onclick="toggleFaq(this)">
+      <div class="faq-q" data-nav-action="toggle-faq">
         <div class="faq-q-text">Is it really free?</div>
         <div class="faq-toggle">+</div>
       </div>
       <div class="faq-a">Yes. The Free plan gets you a custom URL, profile photo, bio, social icons, 50 links, 1 featured link, and all 12 preset themes. Pro ($10/mo) unlocks 200 links, 3 featured, full theme customization with custom backgrounds and fonts, hero avatar display, and removes Ryxa branding from your page. Creator Max ($24/mo) extends that to 1,000 links, 10 featured, hero links, and lets you sell courses, coaching, and digital products directly from your bio.</div>
     </div>
     <div class="faq-item">
-      <div class="faq-q" onclick="toggleFaq(this)">
+      <div class="faq-q" data-nav-action="toggle-faq">
         <div class="faq-q-text">Can I use my own domain?</div>
         <div class="faq-toggle">+</div>
       </div>
       <div class="faq-a">Not yet, but you can still use your own domain. Most domain registrars (GoDaddy, Namecheap, Google Domains, Squarespace) let you set up domain forwarding for free, which sends visitors of yourdomain.com to ryxa.io/yourname automatically. Native custom domain support is on our roadmap for a future Pro/Max feature.</div>
     </div>
     <div class="faq-item">
-      <div class="faq-q" onclick="toggleFaq(this)">
+      <div class="faq-q" data-nav-action="toggle-faq">
         <div class="faq-q-text">How is this different from Linktree or Beacons?</div>
         <div class="faq-toggle">+</div>
       </div>
       <div class="faq-a">Honestly, the base feature set is similar. The difference is Ryxa bundles 9 other creator tools alongside it (Brand Deal CRM, Script Builder, Media Kit, etc.) at the same price point Linktree charges just for their Pro tier.</div>
     </div>
     <div class="faq-item">
-      <div class="faq-q" onclick="toggleFaq(this)">
+      <div class="faq-q" data-nav-action="toggle-faq">
         <div class="faq-q-text">Can I see how many people visit my bio?</div>
         <div class="faq-toggle">+</div>
       </div>
       <div class="faq-a">Yes. Your dashboard shows total page views over any date range you pick. Last 7, 14, 30 days, or custom. Per-link click tracking is on the roadmap.</div>
     </div>
     <div class="faq-item">
-      <div class="faq-q" onclick="toggleFaq(this)">
+      <div class="faq-q" data-nav-action="toggle-faq">
         <div class="faq-q-text">What if I want to take my page down?</div>
         <div class="faq-toggle">+</div>
       </div>
@@ -358,39 +357,14 @@
   <h2>Ready to start with Link in Bio?</h2>
   <p>A clean, customizable page for your link in bio. Share your content, social profiles, products, and more, all from one branded URL on ryxa.io.</p>
   <div class="hero-cta-row">
-    <a href="dashboard.html" onclick="return tryThisTool(event)" class="btn-primary">Build your bio page</a>
+    <a href="dashboard.html" data-nav-action="try-tool" class="btn-primary">Build your bio page</a>
     <a href="pricing.html" class="btn-secondary">See pricing</a>
   </div>
 </section>
 
 <!-- ============ FOOTER ============ -->
 <div id="site-footer"></div>
-<script>
-const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_PLU28Un_GfsUXeUsK3zB9Q_hvNM7aeG';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Smart Try button: opens signup modal if logged out, sends to dashboard if logged in.
-async function tryThisTool(e) {
-  if (e) e.preventDefault();
-  try {
-    const { data: sessionData } = await sb.auth.getSession();
-    if (sessionData && sessionData.session) {
-      window.location.href = 'dashboard.html';
-      return false;
-    }
-  } catch (err) { /* fall through to signup */ }
-  window.location.href = 'index.html?action=signup';
-  return false;
-}
-
-function toggleFaq(el) { el.parentElement.classList.toggle('open'); }
-</script>
-
-<script>
-function openSignupModal(){window.location.href="index.html?action=signup";}
-function openAuthModal(){window.location.href="index.html?action=signin";}
-</script>
 <script src="/site-nav.js"></script>
 </body>
 </html>

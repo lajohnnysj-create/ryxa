@@ -19,7 +19,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
     --bg: #07070f;
@@ -261,7 +260,7 @@
     <h1>Run your brand deals like<br><span class="gradient-text">a real business</span></h1>
     <p class="hero-tagline">Track every partnership in one place. Store signed contracts, manage deliverables, share a secure portal with the brand, and watch your revenue grow, all without spreadsheets.</p>
     <div class="hero-cta-row">
-      <a href="dashboard.html" onclick="return tryThisTool(event)" class="btn-primary">Try Brand Deal CRM</a>
+      <a href="dashboard.html" data-nav-action="try-tool" class="btn-primary">Try Brand Deal CRM</a>
       <a href="pricing.html" class="btn-secondary">See pricing</a>
     </div>
   </div>
@@ -536,35 +535,35 @@
   <h2 class="section-title">Common questions about Brand Deal CRM.</h2>
   <div class="faq-list">
     <div class="faq-item">
-      <div class="faq-q" onclick="toggleFaq(this)">
+      <div class="faq-q" data-nav-action="toggle-faq">
         <div class="faq-q-text">Does the brand need a Ryxa account to use the portal?</div>
         <div class="faq-toggle">+</div>
       </div>
       <div class="faq-a">No. The brand portal is completely standalone. They get a private link plus a 6-digit PIN, and they can view deal details, download files, and message you, all without signing up. The portal is locked to that one deal, so they can't see anything else.</div>
     </div>
     <div class="faq-item">
-      <div class="faq-q" onclick="toggleFaq(this)">
+      <div class="faq-q" data-nav-action="toggle-faq">
         <div class="faq-q-text">How are contracts and invoices stored?</div>
         <div class="faq-toggle">+</div>
       </div>
       <div class="faq-a">Securely in our cloud storage with strict access controls. Only you (the creator) and the brand contact you've shared the portal with can access the files. PDFs up to 10MB. Files persist as long as your account is active and are removed when you delete the deal.</div>
     </div>
     <div class="faq-item">
-      <div class="faq-q" onclick="toggleFaq(this)">
+      <div class="faq-q" data-nav-action="toggle-faq">
         <div class="faq-q-text">Can I revoke the brand's portal access later?</div>
         <div class="faq-toggle">+</div>
       </div>
       <div class="faq-a">Yes. One click revokes the link and PIN, locking the brand out immediately. You can also generate a fresh link anytime. Cancelled deals automatically have their share access revoked.</div>
     </div>
     <div class="faq-item">
-      <div class="faq-q" onclick="toggleFaq(this)">
+      <div class="faq-q" data-nav-action="toggle-faq">
         <div class="faq-q-text">Does this connect to my bank or payment processor?</div>
         <div class="faq-toggle">+</div>
       </div>
       <div class="faq-a">Not yet. Right now you mark deals as paid manually after the brand sends payment. We send invoices to the brand by email, but the actual payment happens through your usual channels (bank transfer, Stripe, PayPal, etc.). Direct payment integration is on the roadmap.</div>
     </div>
     <div class="faq-item">
-      <div class="faq-q" onclick="toggleFaq(this)">
+      <div class="faq-q" data-nav-action="toggle-faq">
         <div class="faq-q-text">Is there a limit on how many deals I can track?</div>
         <div class="faq-toggle">+</div>
       </div>
@@ -578,39 +577,14 @@
   <h2>Run brand deals like a pro.</h2>
   <p>Stop juggling spreadsheets, emails, and Notion docs. Ryxa's Brand Deal CRM brings everything into one workspace.</p>
   <div class="hero-cta-row">
-    <a href="dashboard.html" onclick="return tryThisTool(event)" class="btn-primary">Try Brand Deal CRM</a>
+    <a href="dashboard.html" data-nav-action="try-tool" class="btn-primary">Try Brand Deal CRM</a>
     <a href="pricing.html" class="btn-secondary">See pricing</a>
   </div>
 </section>
 
 <!-- ============ FOOTER ============ -->
 <div id="site-footer"></div>
-<script>
-const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_PLU28Un_GfsUXeUsK3zB9Q_hvNM7aeG';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Smart Try button: opens signup modal if logged out, sends to dashboard if logged in.
-async function tryThisTool(e) {
-  if (e) e.preventDefault();
-  try {
-    const { data: sessionData } = await sb.auth.getSession();
-    if (sessionData && sessionData.session) {
-      window.location.href = 'dashboard.html';
-      return false;
-    }
-  } catch (err) { /* fall through to signup */ }
-  window.location.href = 'index.html?action=signup';
-  return false;
-}
-
-function toggleFaq(el) { el.parentElement.classList.toggle('open'); }
-</script>
-
-<script>
-function openSignupModal(){window.location.href="index.html?action=signup";}
-function openAuthModal(){window.location.href="index.html?action=signin";}
-</script>
 <script src="/site-nav.js"></script>
 </body>
 </html>

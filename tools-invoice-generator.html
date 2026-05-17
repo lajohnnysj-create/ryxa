@@ -19,7 +19,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
     --bg: #07070f;
@@ -261,7 +260,7 @@
     <h1>Pro invoices.<br><span class="gradient-text">Created in seconds.</span></h1>
     <p class="hero-tagline">Build clean, professional invoices for brand deals, collaborations, and freelance work. Download as PDF, ready to send. No subscription required.</p>
     <div class="hero-cta-row">
-      <a href="dashboard.html" onclick="return tryThisTool(event)" class="btn-primary">Create an invoice</a>
+      <a href="dashboard.html" data-nav-action="try-tool" class="btn-primary">Create an invoice</a>
       <a href="pricing.html" class="btn-secondary">See pricing</a>
     </div>
   </div>
@@ -483,35 +482,35 @@
   <h2 class="section-title">Common questions about Invoice Generator.</h2>
   <div class="faq-list">
     <div class="faq-item">
-      <div class="faq-q" onclick="toggleFaq(this)">
+      <div class="faq-q" data-nav-action="toggle-faq">
         <div class="faq-q-text">Is the invoice generator really free?</div>
         <div class="faq-toggle">+</div>
       </div>
       <div class="faq-a">Yes, and it's unlimited. Generate as many invoices as you need on any plan. Pro adds your logo for branded invoices; Free invoices include the clean template, line items, tax, and PDF export.</div>
     </div>
     <div class="faq-item">
-      <div class="faq-q" onclick="toggleFaq(this)">
+      <div class="faq-q" data-nav-action="toggle-faq">
         <div class="faq-q-text">Does this integrate with the Brand Deal CRM?</div>
         <div class="faq-toggle">+</div>
       </div>
       <div class="faq-a">Not directly. Save your invoice as a PDF, then upload it to a deal in the Brand Deal CRM as an attachment. Native integration is on our roadmap.</div>
     </div>
     <div class="faq-item">
-      <div class="faq-q" onclick="toggleFaq(this)">
+      <div class="faq-q" data-nav-action="toggle-faq">
         <div class="faq-q-text">Are my invoices saved?</div>
         <div class="faq-toggle">+</div>
       </div>
       <div class="faq-a">The standalone Invoice Generator doesn't store invoices. You fill in the form and download the PDF. If you upload an invoice into the Brand Deal CRM (Creator Max), that PDF is attached to the deal record and accessible from the dashboard.</div>
     </div>
     <div class="faq-item">
-      <div class="faq-q" onclick="toggleFaq(this)">
+      <div class="faq-q" data-nav-action="toggle-faq">
         <div class="faq-q-text">What about VAT / sales tax?</div>
         <div class="faq-toggle">+</div>
       </div>
       <div class="faq-a">Set a tax percentage on the totals row and the math handles the rest. We don't auto-calculate region-specific rates. Enter whatever rate applies to you.</div>
     </div>
     <div class="faq-item">
-      <div class="faq-q" onclick="toggleFaq(this)">
+      <div class="faq-q" data-nav-action="toggle-faq">
         <div class="faq-q-text">Can I send the invoice directly from Ryxa?</div>
         <div class="faq-toggle">+</div>
       </div>
@@ -525,39 +524,14 @@
   <h2>Ready to start with Invoice Generator?</h2>
   <p>Build clean, professional invoices for brand deals, collaborations, and freelance work. Download as PDF, ready to send. No subscription required.</p>
   <div class="hero-cta-row">
-    <a href="dashboard.html" onclick="return tryThisTool(event)" class="btn-primary">Create an invoice</a>
+    <a href="dashboard.html" data-nav-action="try-tool" class="btn-primary">Create an invoice</a>
     <a href="pricing.html" class="btn-secondary">See pricing</a>
   </div>
 </section>
 
 <!-- ============ FOOTER ============ -->
 <div id="site-footer"></div>
-<script>
-const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_PLU28Un_GfsUXeUsK3zB9Q_hvNM7aeG';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Smart Try button: opens signup modal if logged out, sends to dashboard if logged in.
-async function tryThisTool(e) {
-  if (e) e.preventDefault();
-  try {
-    const { data: sessionData } = await sb.auth.getSession();
-    if (sessionData && sessionData.session) {
-      window.location.href = 'dashboard.html';
-      return false;
-    }
-  } catch (err) { /* fall through to signup */ }
-  window.location.href = 'index.html?action=signup';
-  return false;
-}
-
-function toggleFaq(el) { el.parentElement.classList.toggle('open'); }
-</script>
-
-<script>
-function openSignupModal(){window.location.href="index.html?action=signup";}
-function openAuthModal(){window.location.href="index.html?action=signin";}
-</script>
 <script src="/site-nav.js"></script>
 </body>
 </html>

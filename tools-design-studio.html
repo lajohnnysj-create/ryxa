@@ -19,7 +19,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
     --bg: #07070f;
@@ -261,7 +260,7 @@
     <h1>Design graphics<br><span class="gradient-text">that look like you.</span></h1>
     <p class="hero-tagline">A free design studio with text, layers, 21 fonts, and one-click social media presets.</p>
     <div class="hero-cta-row">
-      <a href="dashboard.html" onclick="return tryThisTool(event)" class="btn-primary">Open Design Studio</a>
+      <a href="dashboard.html" data-nav-action="try-tool" class="btn-primary">Open Design Studio</a>
       <a href="pricing.html" class="btn-secondary">See pricing</a>
     </div>
   </div>
@@ -350,37 +349,12 @@
   <div style="text-align:center;padding:40px 0 20px;">
     <h2 style="font-family:Syne,sans-serif;font-size:clamp(24px,3.5vw,36px);font-weight:800;letter-spacing:-0.5px;margin-bottom:12px;">Start designing for free</h2>
     <p style="color:var(--muted);font-size:15px;margin-bottom:28px;max-width:480px;margin-left:auto;margin-right:auto;">No credit card. No watermarks. Just open and create.</p>
-    <a href="dashboard.html" onclick="return tryThisTool(event)" class="btn-primary" style="padding:14px 36px;font-size:16px;">Open Design Studio</a>
+    <a href="dashboard.html" data-nav-action="try-tool" class="btn-primary" style="padding:14px 36px;font-size:16px;">Open Design Studio</a>
   </div>
 </section>
 
 <div id="site-footer"></div>
-<script>
-const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_PLU28Un_GfsUXeUsK3zB9Q_hvNM7aeG';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Smart Try button: opens signup modal if logged out, sends to dashboard if logged in.
-async function tryThisTool(e) {
-  if (e) e.preventDefault();
-  try {
-    const { data: sessionData } = await sb.auth.getSession();
-    if (sessionData && sessionData.session) {
-      window.location.href = 'dashboard.html';
-      return false;
-    }
-  } catch (err) { /* fall through to signup */ }
-  window.location.href = 'index.html?action=signup';
-  return false;
-}
-
-function toggleFaq(el) { el.parentElement.classList.toggle('open'); }
-</script>
-
-<script>
-function openSignupModal(){window.location.href="index.html?action=signup";}
-function openAuthModal(){window.location.href="index.html?action=signin";}
-</script>
 <script src="/site-nav.js"></script>
 </body>
 </html>

@@ -19,7 +19,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
     --bg: #07070f;
@@ -261,7 +260,7 @@
     <h1>Sell private sessions<br><span class="gradient-text">on your terms</span></h1>
     <p class="hero-tagline">Offer coaching, consulting, photography shoots, training, tutoring, in-person bookings, or anything else. Set your price, connect your calendar, and let clients book directly from your landing page. Ryxa takes 0%.</p>
     <div class="hero-cta-row">
-      <a href="dashboard.html" onclick="return tryThisTool(event)" class="btn-primary">Try 1:1 Booking</a>
+      <a href="dashboard.html" data-nav-action="try-tool" class="btn-primary">Try 1:1 Booking</a>
       <a href="pricing.html" class="btn-secondary">See pricing</a>
     </div>
   </div>
@@ -305,11 +304,11 @@
 <section>
   <h2 class="section-title">Common questions about 1:1 Booking.</h2>
   <div class="faq-list">
-    <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)"><div class="faq-q-text">Do I need a Calendly account?</div><div class="faq-toggle">+</div></div><div class="faq-a">No. Ryxa has a built-in calendar. Set your weekly availability and clients can pick a time after payment, all within Ryxa. If you prefer, you can also connect Calendly or Cal.com, or pick manual booking and handle scheduling yourself via email.</div></div>
-    <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)"><div class="faq-q-text">Does Ryxa take a percentage of my booking revenue?</div><div class="faq-toggle">+</div></div><div class="faq-a">No. Ryxa takes 0%. Payments go directly to your connected Stripe account. The only fees are Stripe's standard processing fees.</div></div>
-    <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)"><div class="faq-q-text">Can I offer free sessions?</div><div class="faq-toggle">+</div></div><div class="faq-a">Yes. Set the price to $0 and clients can book for free. You'll still get an email notification with their contact info.</div></div>
-    <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)"><div class="faq-q-text">How do clients book after paying?</div><div class="faq-toggle">+</div></div><div class="faq-a">If you're using Ryxa Calendar, clients see your available slots and pick a time right on the confirmation page after payment. Same for Calendly or Cal.com integrations. For manual bookings, you'll receive an email with the buyer's info and reach out to schedule.</div></div>
-    <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)"><div class="faq-q-text">Can I create multiple services?</div><div class="faq-toggle">+</div></div><div class="faq-a">Yes. Create as many services as you want. Each gets its own landing page, price, and booking method.</div></div>
+    <div class="faq-item"><div class="faq-q" data-nav-action="toggle-faq"><div class="faq-q-text">Do I need a Calendly account?</div><div class="faq-toggle">+</div></div><div class="faq-a">No. Ryxa has a built-in calendar. Set your weekly availability and clients can pick a time after payment, all within Ryxa. If you prefer, you can also connect Calendly or Cal.com, or pick manual booking and handle scheduling yourself via email.</div></div>
+    <div class="faq-item"><div class="faq-q" data-nav-action="toggle-faq"><div class="faq-q-text">Does Ryxa take a percentage of my booking revenue?</div><div class="faq-toggle">+</div></div><div class="faq-a">No. Ryxa takes 0%. Payments go directly to your connected Stripe account. The only fees are Stripe's standard processing fees.</div></div>
+    <div class="faq-item"><div class="faq-q" data-nav-action="toggle-faq"><div class="faq-q-text">Can I offer free sessions?</div><div class="faq-toggle">+</div></div><div class="faq-a">Yes. Set the price to $0 and clients can book for free. You'll still get an email notification with their contact info.</div></div>
+    <div class="faq-item"><div class="faq-q" data-nav-action="toggle-faq"><div class="faq-q-text">How do clients book after paying?</div><div class="faq-toggle">+</div></div><div class="faq-a">If you're using Ryxa Calendar, clients see your available slots and pick a time right on the confirmation page after payment. Same for Calendly or Cal.com integrations. For manual bookings, you'll receive an email with the buyer's info and reach out to schedule.</div></div>
+    <div class="faq-item"><div class="faq-q" data-nav-action="toggle-faq"><div class="faq-q-text">Can I create multiple services?</div><div class="faq-toggle">+</div></div><div class="faq-a">Yes. Create as many services as you want. Each gets its own landing page, price, and booking method.</div></div>
   </div>
 </section>
 
@@ -317,39 +316,14 @@
   <h2>Start booking clients today.</h2>
   <p>Set your price, connect your calendar, and let your audience book private sessions. No middleman, 0% transaction fees from Ryxa.</p>
   <div class="hero-cta-row">
-    <a href="dashboard.html" onclick="return tryThisTool(event)" class="btn-primary">Try 1:1 Booking</a>
+    <a href="dashboard.html" data-nav-action="try-tool" class="btn-primary">Try 1:1 Booking</a>
     <a href="pricing.html" class="btn-secondary">See pricing</a>
   </div>
 </section>
 
 <!-- ============ FOOTER ============ -->
 <div id="site-footer"></div>
-<script>
-const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_PLU28Un_GfsUXeUsK3zB9Q_hvNM7aeG';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Smart Try button: opens signup modal if logged out, sends to dashboard if logged in.
-async function tryThisTool(e) {
-  if (e) e.preventDefault();
-  try {
-    const { data: sessionData } = await sb.auth.getSession();
-    if (sessionData && sessionData.session) {
-      window.location.href = 'dashboard.html';
-      return false;
-    }
-  } catch (err) { /* fall through to signup */ }
-  window.location.href = 'index.html?action=signup';
-  return false;
-}
-
-function toggleFaq(el) { el.parentElement.classList.toggle('open'); }
-</script>
-
-<script>
-function openSignupModal(){window.location.href="index.html?action=signup";}
-function openAuthModal(){window.location.href="index.html?action=signin";}
-</script>
 <script src="/site-nav.js"></script>
 </body>
 </html>
