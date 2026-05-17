@@ -2271,9 +2271,9 @@
        The button group class is deal-s-2a4fbf (an earlier rule targeted a
        non-existent .deal-btn-row class, so it never applied). */
     #deal-contract-existing .deal-s-2a4fbf,
-    #deal-invoice-existing .deal-s-2a4fbf { width: 100%; flex-basis: 100%; }
+    #deal-invoice-existing .deal-s-2a4fbf { width: 100%; flex-basis: 100%; box-sizing: border-box; }
     #deal-contract-existing .deal-s-2a4fbf button,
-    #deal-invoice-existing .deal-s-2a4fbf button { flex: 1; }
+    #deal-invoice-existing .deal-s-2a4fbf button { flex: 1; min-width: 0; box-sizing: border-box; }
     .deal-input { max-width: 100% !important; min-width: 0 !important; font-size: 16px !important; }
     .deal-grid-2 > div { min-width: 0 !important; overflow: hidden; }
     input[type="date"].deal-input { width: 100% !important; box-sizing: border-box !important; appearance: none !important; -webkit-appearance: none !important; }
@@ -9429,7 +9429,7 @@
                       <div class="bio-s-5f3468">PDF uploaded</div>
                     </div>
                     <div class="deal-s-2a4fbf">
-                      <button type="button" id="deal-contract-view-btn" data-deal-action="view-contract" class="deal-s-3336e3">View</button>
+                      <button type="button" id="deal-contract-view-btn" data-deal-action="view-contract" class="deal-s-3336e3" aria-label="Download contract" title="Download"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
                       <button type="button" id="deal-contract-replace-btn" data-deal-action="trigger-contract-upload" class="deal-s-3336e3">Replace</button>
                       <button type="button" id="deal-contract-remove-btn" data-deal-action="remove-contract" class="deal-s-3e27d5">Remove</button>
                     </div>
@@ -9485,7 +9485,7 @@
                       <div id="deal-invoice-status" class="bio-s-5f3468">Invoice uploaded</div>
                     </div>
                     <div class="deal-s-2a4fbf">
-                      <button type="button" id="deal-invoice-view-btn" data-deal-action="view-invoice" class="deal-s-3336e3">View</button>
+                      <button type="button" id="deal-invoice-view-btn" data-deal-action="view-invoice" class="deal-s-3336e3" aria-label="Download invoice" title="Download"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
                       <button type="button" id="deal-invoice-replace-btn" data-deal-action="trigger-invoice-upload" class="deal-s-3336e3">Replace</button>
                       <button type="button" id="deal-invoice-remove-btn" data-deal-action="remove-invoice" class="deal-s-3e27d5">Remove</button>
                     </div>
