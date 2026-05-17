@@ -420,6 +420,61 @@ body {
 }
 .bio-example .bio-line:last-child { margin-bottom: 0; }
 
+/* Author bio box (end-of-post authority block) */
+.blog-author-box {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px 32px;
+  margin: 56px 0;
+}
+.blog-author-box .author-box-img {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.blog-author-box .author-box-body { flex: 1; min-width: 0; }
+.blog-author-box .author-box-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.blog-author-box .author-box-name {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+.blog-author-box .author-box-bio {
+  font-size: 15px;
+  line-height: 1.7;
+  color: #c8c6d8;
+  font-weight: 300;
+  margin-bottom: 14px;
+}
+.blog-author-box .author-box-links {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.blog-author-box .author-box-links a {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--accent2);
+  text-decoration: none;
+}
+.blog-author-box .author-box-links a:hover { text-decoration: underline; }
+
 /* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
   .blog-hero { padding: 48px 24px 32px; }
@@ -437,6 +492,7 @@ body {
   .math-card .math-line.big { font-size: 24px; }
   .price-tier .tier-range { font-size: 24px; }
   .compare-grid { grid-template-columns: 1fr; }
+  .blog-author-box { flex-direction: column; gap: 16px; padding: 24px 22px; }
 }
 
 /* ===== ACCESSIBILITY ===== */

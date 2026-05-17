@@ -405,8 +405,23 @@ renderFooter();
 // so this is a single no-op querySelector there.
 // =====================
 var BLOG_AUTHORS = {
-  johnny: { name: 'Johnny La', photo: '/blog/johnny-ryxablog.webp' }
+  johnny: {
+    name: 'Johnny La',
+    photo: '/blog/johnny-ryxablog.webp',
+    jobTitle: 'Actor, Creator, and Entrepreneur',
+    bio: 'Johnny La is an actor, creator, and entrepreneur who has been active since 2003. Over his career he has built an audience of more than 250,000 followers across multiple platforms. Today he is the founder of Ryxa and has grown a strong creator community in Los Angeles, where he continues to share what he has learned and guide others through their own creator journey.',
+    links: [
+      { label: 'Instagram', url: 'https://www.instagram.com/thejohnnyla' },
+      { label: 'IMDb', url: 'https://www.imdb.com/name/nm4478211' }
+    ]
+  }
 };
+
+function siteNavEscapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
 
 (function injectBlogByline() {
   var meta = document.querySelector('.blog-meta[data-author]');
@@ -417,12 +432,38 @@ var BLOG_AUTHORS = {
 
   var read = meta.getAttribute('data-read');
 
-  var html = '<span><img src="' + author.photo + '" alt="' + author.name
-           + '" class="blog-author-img"> ' + author.name + '</span>';
+  var html = '<span><img src="' + author.photo + '" alt="' + siteNavEscapeHtml(author.name)
+           + '" class="blog-author-img"> ' + siteNavEscapeHtml(author.name) + '</span>';
   if (read) {
-    html += '<span>\u2022</span><span>' + read + '</span>';
+    html += '<span>\u2022</span><span>' + siteNavEscapeHtml(read) + '</span>';
   }
   meta.innerHTML = html;
+})();
+
+(function injectBlogAuthorBox() {
+  var box = document.querySelector('.blog-author-box[data-author]');
+  if (!box) return;  // post has no author box, do nothing
+
+  var author = BLOG_AUTHORS[box.getAttribute('data-author')];
+  if (!author) return;
+
+  var links = '';
+  if (author.links && author.links.length) {
+    var parts = author.links.map(function (l) {
+      return '<a href="' + l.url + '" target="_blank" rel="noopener">'
+           + siteNavEscapeHtml(l.label) + '</a>';
+    });
+    links = '<div class="author-box-links">' + parts.join('') + '</div>';
+  }
+
+  box.innerHTML =
+    '<img src="' + author.photo + '" alt="' + siteNavEscapeHtml(author.name) + '" class="author-box-img">'
+    + '<div class="author-box-body">'
+    + '<div class="author-box-label">About the author</div>'
+    + '<div class="author-box-name">' + siteNavEscapeHtml(author.name) + '</div>'
+    + '<div class="author-box-bio">' + siteNavEscapeHtml(author.bio) + '</div>'
+    + links
+    + '</div>';
 })();
 
 // =====================
