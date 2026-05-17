@@ -16,7 +16,7 @@ style.textContent = ''
   + '.skip-link:focus{top:12px;outline:2px solid #c4b5fd;outline-offset:2px;}'
   // Anti-flash: reserve space
   + '#site-header{min-height:80px;}'
-  + '#site-footer{min-height:200px;background:#07070f;color:#f0eef8;box-shadow:0 600px 0 600px #07070f;}#site-footer p a{transition:color 0.2s;}#site-footer p a:hover{color:#f0eef8 !important;}'
+  + '#site-footer{min-height:200px;background:#07070f;color:#f0eef8;}#site-footer p a{transition:color 0.2s;}#site-footer p a:hover{color:#f0eef8 !important;}'
   // Nav - single centered floating pill. The <nav> is a transparent fixed
   // wrapper that centers one pill containing logo, links, and buttons.
   + 'nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:center;justify-content:center;padding:20px 24px 14px;background:transparent;pointer-events:none;transition:transform 0.32s ease;}'
