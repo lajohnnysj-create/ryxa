@@ -20,7 +20,7 @@
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
   html{scrollbar-width:thin;scrollbar-color:rgba(168,85,247,0.4) #0a0a14;}::-webkit-scrollbar{width:8px;}::-webkit-scrollbar-track{background:#0a0a14;}::-webkit-scrollbar-thumb{background:rgba(168,85,247,0.4);border-radius:4px;}::-webkit-scrollbar-thumb:hover{background:rgba(168,85,247,0.6);}
   html{scroll-behavior:smooth;}
-  body{font-family:"DM Sans",sans-serif;background:#f5f5f7;color:var(--text);min-height:100vh;overflow-x:hidden;}
+  body{font-family:"DM Sans",sans-serif;background:transparent;color:var(--text);min-height:100vh;overflow-x:hidden;}
 
   /* ===== Light theme scoped to the pricing content (header + cards) only ===== */
   /* Redefining the theme variables on these two containers flips every var()
@@ -200,6 +200,7 @@
 <style>body{opacity:0;transition:opacity 0.2s ease;}body.site-ready{opacity:1;}</style>
 </head>
 <body class="cycle-annual">
+<div aria-hidden="true" style="position:fixed;inset:0;z-index:-1;background:#07070f;"></div>
 
 <div id="site-header" data-page="pricing"></div>
 
