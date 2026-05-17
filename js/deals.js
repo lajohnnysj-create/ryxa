@@ -1634,6 +1634,20 @@ async function handleContractFileSelected(event) {
   event.target.value = '';
 }
 
+// Open an external URL reliably, including from an installed PWA.
+// window.open(..., '_blank') is unreliable in PWA standalone mode (no tab
+// strip to open into) and can silently fail. A programmatic anchor click is
+// treated as a genuine navigation and is handed off to the system browser.
+function openUrlExternally(url) {
+  const a = document.createElement('a');
+  a.href = url;
+  a.target = '_blank';
+  a.rel = 'noopener noreferrer';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
 async function viewContract() {
   if (!currentDealId) return;
   const deal = dealsList.find(d => d.id === currentDealId);
@@ -1648,7 +1662,7 @@ async function viewContract() {
     showDealModalMsg('error', 'Failed to open contract: ' + (error?.message || 'unknown error'));
     return;
   }
-  window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
+  openUrlExternally(data.signedUrl);
 }
 
 async function removeContract() {
@@ -2147,7 +2161,7 @@ async function viewInvoice() {
     showDealModalMsg('error', 'Could not generate view link: ' + (error?.message || 'unknown error'));
     return;
   }
-  window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
+  openUrlExternally(data.signedUrl);
 }
 
 async function removeInvoice() {
