@@ -900,7 +900,7 @@ async function load() {
   // 2) Fetch their published link-in-bio page
   const { data: bio, error: bErr } = await sb
     .from('link_in_bio')
-    .select('display_name, bio, avatar_url, avatar_display, theme, links, videos, socials, show_branding, published, custom_theme')
+    .select('display_name, bio, avatar_url, avatar_display, theme, links, videos, socials, show_branding, published, custom_theme, sensitive_content')
     .eq('user_id', profile.user_id)
     .eq('published', true)
     .maybeSingle();
@@ -917,6 +917,10 @@ async function load() {
   }
 
   render(profile, bio, profile.tier);
+
+  // Sensitive content gate, fallback render path. On the SSR path this is
+  // handled from the <meta> tag; here the value arrives with the bio fetch.
+  if (bio.sensitive_content === true) showSensitiveGate();
 
   // Track page view (fire-and-forget, non-blocking)
   trackPageView(username, 'bio');
@@ -1043,3 +1047,53 @@ bioRegisterOnError('thumb-fallback', function(e, el) {
   if (el.src !== fallback) el.src = fallback;
   else el.removeAttribute('data-bio-onerror');
 });
+
+
+// =================================================================
+// SENSITIVE CONTENT GATE
+// Shown on every visit when the creator enabled sensitive_content.
+// No memory of a prior answer, by design. It appears each load.
+//   - "Yes, 18+"  → hide the gate, reveal the page for this pageview
+//   - "No"        → leave ryxa.io
+// While visible, page scroll is locked so the content behind stays
+// unreadable. There is intentionally no close (X) and no click-out.
+// =================================================================
+function showSensitiveGate() {
+  var gate = document.getElementById('sensitive-gate');
+  if (!gate || gate.classList.contains('is-visible')) return;
+  gate.classList.add('is-visible');
+  // Lock scroll on the page behind the gate.
+  document.documentElement.style.overflow = 'hidden';
+  document.body.style.overflow = 'hidden';
+  // Move focus into the gate for keyboard + screen-reader users.
+  var confirmBtn = gate.querySelector('.sg-confirm');
+  if (confirmBtn) { try { confirmBtn.focus(); } catch (e) {} }
+}
+
+function hideSensitiveGate() {
+  var gate = document.getElementById('sensitive-gate');
+  if (gate) gate.classList.remove('is-visible');
+  document.documentElement.style.overflow = '';
+  document.body.style.overflow = '';
+}
+
+bioRegisterAction('sensitive-confirm', function() {
+  hideSensitiveGate();
+});
+
+bioRegisterAction('sensitive-deny', function() {
+  window.location.href = 'https://www.ryxa.io';
+});
+
+// Trigger for the SSR path: the value is in a <meta> tag written by
+// api/bio.js and is available the moment this script runs.
+(function sensitiveGateFromMeta() {
+  var el = document.querySelector('meta[name="ryxa-sensitive"]');
+  if (el && el.getAttribute('content') === 'true') {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', showSensitiveGate);
+    } else {
+      showSensitiveGate();
+    }
+  }
+})();

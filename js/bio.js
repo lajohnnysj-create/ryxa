@@ -241,6 +241,7 @@ let bioState = {
   videos: [],
   published: false,
   show_branding: true,
+  sensitive_content: false,
   custom_theme: null, // { bgUrl, bgOpacity, colors: {bg, card, text, accent}, applied: bool }
 };
 let bioStaleBgs = []; // queue old bg urls to delete on save
@@ -618,6 +619,7 @@ async function loadBioData() {
       bioState.videos = [];
       bioState.published = !!bio.published;
       bioState.show_branding = bio.show_branding !== false;
+      bioState.sensitive_content = bio.sensitive_content === true;
       bioState.custom_theme = bio.custom_theme || null;
       // Guard: if user selected custom but is no longer Pro, revert to purple
       if (bioState.theme === 'custom' && !isPro()) {
@@ -663,6 +665,8 @@ function syncBioForm() {
   renderBioFonts();
   // branding toggle — Free users: disabled/greyed + always checked; Pro users: interactive
   syncBrandingToggle();
+  // sensitive content toggle — available to all tiers
+  syncSensitiveToggle();
 }
 
 function syncBrandingToggle() {
@@ -703,6 +707,19 @@ function onBrandingToggle() {
   }
   bioState.show_branding = document.getElementById('bio-show-branding').checked;
   schedulePreviewUpdate();
+}
+
+// Sensitive content toggle — available to all tiers, no gating.
+function syncSensitiveToggle() {
+  const cb = document.getElementById('bio-sensitive-content');
+  if (!cb) return;
+  cb.checked = !!bioState.sensitive_content;
+}
+
+function onSensitiveToggle() {
+  const cb = document.getElementById('bio-sensitive-content');
+  if (!cb) return;
+  bioState.sensitive_content = cb.checked;
 }
 
 function renderAvatarPreview() {
@@ -2926,6 +2943,8 @@ async function saveBio() {
       published: bioState.published,
       // Free users cannot hide branding — force true regardless of client state
       show_branding: isPro() ? !!bioState.show_branding : true,
+      // Sensitive content flag — available to all tiers (safety feature, not gated)
+      sensitive_content: !!bioState.sensitive_content,
       // Pro users can save custom_theme. Preserve for downgraded users but blank-out on write for non-Pro to avoid RLS overreach
       custom_theme: isPro() ? (bioState.custom_theme || null) : (bioState.custom_theme || null),
     };
@@ -3497,6 +3516,7 @@ bioRegisterAction('open-coaching-picker', () => openCoachingPickerModal());
 bioRegisterAction('open-product-picker', () => openProductPickerModal());
 bioRegisterAction('add-mediakit-link', () => addMediaKitLink());
 bioRegisterAction('branding-toggle', () => onBrandingToggle());
+bioRegisterAction('sensitive-toggle', () => onSensitiveToggle());
 
 // ----- Phase 2b: actions for dynamically rendered link rows + modals -----
 
