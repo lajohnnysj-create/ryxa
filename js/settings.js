@@ -616,6 +616,62 @@ let settingsResetArmed = false; // true only between a user click and the callba
 // the silent challenge. When it resolves, the callback fires the actual
 // password-reset send. The flow is a single click - no "verify above" step.
 
+// =============================================================================
+// GOOGLE-ACCOUNT PASSWORD SECTION
+// Accounts created with "Sign in with Google" have no Ryxa password. Sending a
+// reset email to such an account silently CREATES a password, which is
+// confusing and unexpected. So for Google accounts we replace the password
+// reset controls with a short explanatory note instead.
+//
+// NOTE: currentUser comes from getSession(), whose user object does NOT
+// reliably include the identities[] array. We therefore call getUser()
+// here, which returns a complete user object with identities populated.
+// =============================================================================
+async function applyGoogleAccountPasswordUI() {
+  var section = document.getElementById('settings-password-section');
+  if (!section) return;
+
+  // Fetch a complete user object. getSession()'s cached user often lacks
+  // identities[]; getUser() makes a fresh call that includes it.
+  var user = null;
+  try {
+    var res = await sb.auth.getUser();
+    user = res && res.data ? res.data.user : null;
+  } catch (e) {
+    return; // on failure, leave the normal reset controls in place
+  }
+  if (!user) return;
+
+  // Determine the providers linked to this account. Check identities[] first,
+  // then fall back to app_metadata (provider / providers) which Supabase also
+  // populates with the sign-up provider.
+  var providers = [];
+  if (Array.isArray(user.identities)) {
+    for (var i = 0; i < user.identities.length; i++) {
+      var p = user.identities[i] && user.identities[i].provider;
+      if (p) providers.push(p);
+    }
+  }
+  var meta = user.app_metadata || {};
+  if (meta.provider) providers.push(meta.provider);
+  if (Array.isArray(meta.providers)) providers = providers.concat(meta.providers);
+
+  var hasGoogle = providers.indexOf('google') !== -1;
+  var hasEmail = providers.indexOf('email') !== -1;
+
+  // Only treat as a Google-managed account when Google is present and there
+  // is no email/password identity. If an email provider also exists, the
+  // account has a real password and the normal reset controls should stay.
+  if (!hasGoogle || hasEmail) return;
+
+  // Replace the reset controls with an explanatory note.
+  section.innerHTML =
+    '<div class="settings-s-9c422a">Password</div>'
+    + '<p class="settings-s-4fba18">You sign in to Ryxa with Google, so your '
+    + 'account does not use a Ryxa password. To change the password you use, '
+    + 'update it in your Google account settings.</p>';
+}
+
 function resetSettingsTurnstile() {
   if (typeof turnstile !== 'undefined' && settingsTurnstileWidgetId !== null) {
     try { turnstile.reset(settingsTurnstileWidgetId); } catch (e) {}
