@@ -716,7 +716,7 @@ async function onMKCustomBgSelected(input) {
   if (!file) return;
   if (!isPro()) { showMKStatus('error', 'Custom background is a Pro feature.'); return; }
   if (!file.type.startsWith('image/')) { showMKStatus('error', 'Please upload an image file.'); return; }
-  if (file.size > 15 * 1024 * 1024) { showMKStatus('error', 'Image is too large (15MB max).'); return; }
+  if (file.size > 25 * 1024 * 1024) { showMKStatus('error', 'Image is too large (25MB max).'); return; }
 
   try {
     showMKStatus('info', 'Uploading…');

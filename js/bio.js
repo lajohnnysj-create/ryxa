@@ -1275,7 +1275,7 @@ async function onBioCustomBgSelected(input) {
   if (!file) return;
   if (!isPro()) { showBioStatus('error', 'Custom background is a Pro feature.'); return; }
   if (!file.type.startsWith('image/')) { showBioStatus('error', 'Please upload an image file.'); return; }
-  if (file.size > 15 * 1024 * 1024) { showBioStatus('error', 'Image is too large (15MB max).'); return; }
+  if (file.size > 25 * 1024 * 1024) { showBioStatus('error', 'Image is too large (25MB max).'); return; }
 
   const btnLabel = document.querySelector('.custom-bg-btn.primary');
   const origText = btnLabel ? btnLabel.firstChild.textContent : '';
@@ -2269,7 +2269,7 @@ async function onLinkThumbSelected(input, linkId) {
   input.value = '';
   if (!file) return;
   if (!file.type.startsWith('image/')) { showBioStatus('error', 'Please upload an image.'); return; }
-  if (file.size > 10 * 1024 * 1024) { showBioStatus('error', 'Image is too large (10MB max).'); return; }
+  if (file.size > 25 * 1024 * 1024) { showBioStatus('error', 'Image is too large (25MB max).'); return; }
 
   // Check 10 link photo limit
   var photoCount = bioState.links.filter(function(l) { return l.photoUrl && !l.featured && !l.isHero && !l.isCourse && !l.isCoaching && !l.isProduct; }).length;
@@ -2314,7 +2314,7 @@ async function onHeroPhotoSelected(input, linkId) {
   if (!file) return;
   if (!isMax()) { showBioStatus('error', 'Hero links are a Creator Max feature.'); return; }
   if (!file.type.startsWith('image/')) { showBioStatus('error', 'Please upload an image.'); return; }
-  if (file.size > 15 * 1024 * 1024) { showBioStatus('error', 'Image is too large (15MB max).'); return; }
+  if (file.size > 25 * 1024 * 1024) { showBioStatus('error', 'Image is too large (25MB max).'); return; }
 
   const link = bioState.links.find(l => l._id === linkId);
   if (!link) return;
@@ -2651,8 +2651,8 @@ function resetCropperButton() {
 function openCropper(input, target, linkId) {
   if (!input.files || !input.files[0]) return;
   const file = input.files[0];
-  if (file.size > 10 * 1024 * 1024) {
-    alert('Image too large (max 10MB). Please pick a smaller file.');
+  if (file.size > 25 * 1024 * 1024) {
+    alert('Image too large (max 25MB). Please pick a smaller file.');
     input.value = '';
     return;
   }
