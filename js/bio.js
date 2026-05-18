@@ -814,6 +814,9 @@ function onUsernameInput() {
   } else if (BIO_RESERVED.has(cleaned)) {
     hint.textContent = 'That username is reserved. Pick another.';
     hint.style.color = '#fca5a5';
+  } else if (window.RyxaUsernameFilter && !window.RyxaUsernameFilter.isUsernameClean(cleaned)) {
+    hint.textContent = 'That username is not allowed. Pick another.';
+    hint.style.color = '#fca5a5';
   } else if (cleaned === bioOriginalUsername) {
     // User's own current username — no need to check
     renderUsernameAvailable(cleaned);
@@ -2849,6 +2852,9 @@ async function saveBio() {
       if (uname.length < 3) throw new Error('Username must be at least 3 characters.');
       if (!/^[a-z0-9_]+$/.test(uname)) throw new Error('Username: lowercase letters, numbers, underscore only.');
       if (BIO_RESERVED.has(uname)) throw new Error('That username is reserved.');
+      if (window.RyxaUsernameFilter && !window.RyxaUsernameFilter.isUsernameClean(uname)) {
+        throw new Error('That username is not allowed. Please pick another.');
+      }
     }
 
     // Username upsert (if changed or not set)
@@ -2991,6 +2997,7 @@ async function togglePublish() {
     if (!bioState.username) { showBioStatus('error', 'Pick a username first.'); return; }
     if (bioState.username.length < 3) { showBioStatus('error', 'Username must be at least 3 characters.'); return; }
     if (BIO_RESERVED.has(bioState.username)) { showBioStatus('error', 'That username is reserved.'); return; }
+    if (window.RyxaUsernameFilter && !window.RyxaUsernameFilter.isUsernameClean(bioState.username)) { showBioStatus('error', 'That username is not allowed. Please pick another.'); return; }
   }
   const btn = document.getElementById('bio-publish-btn');
   btn.disabled = true;

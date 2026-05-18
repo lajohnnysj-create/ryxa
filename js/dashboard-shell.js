@@ -742,6 +742,12 @@ function termsOnUsernameInput() {
     termsSyncContinueButton();
     return;
   }
+  if (window.RyxaUsernameFilter && !window.RyxaUsernameFilter.isUsernameClean(cleaned)) {
+    termsUsernameState = 'invalid';
+    termsSetUsernameHint('That username is not allowed. Pick another.', 'bad');
+    termsSyncContinueButton();
+    return;
+  }
   termsUsernameState = 'checking';
   termsSetUsernameHint('Checking availability...', null);
   termsSyncContinueButton();
@@ -897,6 +903,9 @@ async function acceptTerms() {  var check = document.getElementById('terms-accep
     }
     if (typeof BIO_RESERVED !== 'undefined' && BIO_RESERVED.has(uname)) {
       throw new Error('That username is reserved. Please pick another.');
+    }
+    if (window.RyxaUsernameFilter && !window.RyxaUsernameFilter.isUsernameClean(uname)) {
+      throw new Error('That username is not allowed. Please pick another.');
     }
     // Re-check availability now - the homepage/pre-fill check may be stale.
     var avail = await sb.from('public_profiles').select('user_id').eq('username', uname).maybeSingle();

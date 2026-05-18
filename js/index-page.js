@@ -563,6 +563,11 @@ function heroOnUsernameInput(input) {
     heroSetUsernameHint(input, 'That username is reserved. Pick another.', 'is-taken');
     return;
   }
+  if (window.RyxaUsernameFilter && !window.RyxaUsernameFilter.isUsernameClean(cleaned)) {
+    heroUsernameState = 'invalid';
+    heroSetUsernameHint(input, 'That username is not allowed. Pick another.', 'is-taken');
+    return;
+  }
   heroUsernameState = 'checking';
   heroSetUsernameHint(input, 'Checking availability...', null);
   var myToken = heroUsernameCheckToken;
