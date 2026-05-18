@@ -594,7 +594,7 @@ async function fetchBioData(username) {
 
     // Step 2: bio data for that user, only if published
     const bioRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/link_in_bio?user_id=eq.${profile.user_id}&published=eq.true&select=display_name,bio,avatar_url,avatar_display,theme,font_family,links,videos,socials,show_branding,published,custom_theme`,
+      `${SUPABASE_URL}/rest/v1/link_in_bio?user_id=eq.${profile.user_id}&published=eq.true&select=display_name,bio,avatar_url,avatar_display,theme,font_family,links,videos,socials,show_branding,published,custom_theme,sensitive_content`,
       fetchOpts(controller.signal)
     );
     clearTimeout(timeout);
@@ -890,6 +890,7 @@ module.exports = async (req, res) => {
     const bootstrap = `
       <meta name="ryxa-creator-currency" content="${esc(profile.display_currency || 'USD')}">
       <meta name="ryxa-ssr-username" content="${esc(profile.username)}">
+      <meta name="ryxa-sensitive" content="${bio.sensitive_content === true ? 'true' : 'false'}">
       <meta name="ryxa-ssr-hydrated" content="true">`;
 
     // Inject creator's chosen font (link + override style). Falls back to default
