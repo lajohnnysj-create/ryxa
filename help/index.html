@@ -1,1 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="shortcut icon" href="/favicon.ico">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Help Center. Ryxa</title>
+<meta name="description" content="The Ryxa Help Center. Find guides, answers, and platform policies to help you get the most out of Ryxa.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://www.ryxa.io/help">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.ryxa.io/help">
+<meta property="og:title" content="Help Center. Ryxa">
+<meta property="og:description" content="Find guides, answers, and platform policies for Ryxa.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #07070f; --surface: #0f0f1a; --surface2: #161625;
+    --border: rgba(255,255,255,0.07); --border-hover: rgba(255,255,255,0.14);
+    --accent: #7c3aed; --accent2: #a855f7; --accent-glow: rgba(124,58,237,0.3);
+    --text: #f0eef8; --muted: #b4b2c8; --muted2: #c9c7dc;
+    --page-bg: #f5f5f7; --doc-text: #1d1d29; --doc-muted: #5b5b6b;
+    --doc-border: #e3e3ea; --doc-surface: #ffffff;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scrollbar-width: thin; scrollbar-color: rgba(168,85,247,0.4) #e3e3ea; }
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: #e3e3ea; }
+  ::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.4); border-radius: 4px; }
+  body {
+    font-family: "DM Sans", sans-serif;
+    background: var(--page-bg);
+    color: var(--doc-text);
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+  #site-footer { background: #07070f; color: #f0eef8; }
 
+  .help-hero {
+    max-width: 820px; margin: 0 auto; padding: 72px 24px 36px;
+    text-align: center;
+  }
+  .help-hero .eyebrow {
+    display: inline-block;
+    font-size: 12px; font-weight: 700; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--accent);
+    margin-bottom: 14px;
+  }
+  .help-hero h1 {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-size: 44px; font-weight: 800; letter-spacing: -1.2px;
+    line-height: 1.1; color: var(--doc-text);
+    margin-bottom: 14px;
+  }
+  .help-hero p {
+    font-size: 17px; line-height: 1.6; color: var(--doc-muted);
+    max-width: 540px; margin: 0 auto;
+  }
+
+  .help-wrap { max-width: 980px; margin: 0 auto; padding: 16px 24px 96px; }
+
+  .help-category { margin-top: 48px; }
+  .help-category-head {
+    display: flex; align-items: baseline; gap: 12px;
+    margin-bottom: 18px;
+    padding-bottom: 12px; border-bottom: 2px solid var(--doc-border);
+  }
+  .help-category-head h2 {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-size: 22px; font-weight: 800; letter-spacing: -0.3px;
+    color: var(--doc-text);
+  }
+  .help-category-head .count {
+    font-size: 13px; font-weight: 500; color: var(--doc-muted);
+  }
+
+  .help-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+  }
+  .help-card {
+    display: block; text-decoration: none;
+    background: var(--doc-surface);
+    border: 1px solid var(--doc-border);
+    border-radius: 14px; padding: 22px 24px;
+    transition: border-color 0.16s ease, transform 0.16s ease;
+  }
+  .help-card:hover {
+    border-color: var(--accent2);
+    transform: translateY(-2px);
+  }
+  .help-card h3 {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-size: 16.5px; font-weight: 700; color: var(--doc-text);
+    margin-bottom: 7px;
+  }
+  .help-card p {
+    font-size: 14px; line-height: 1.6; color: var(--doc-muted);
+  }
+  .help-card .arrow {
+    margin-top: 12px; font-size: 14px; font-weight: 600; color: var(--accent);
+  }
+
+  .help-empty {
+    background: var(--doc-surface);
+    border: 1px dashed var(--doc-border);
+    border-radius: 14px; padding: 26px;
+    font-size: 14.5px; color: var(--doc-muted);
+  }
+
+  .help-contact {
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    border-radius: 16px; padding: 32px; margin-top: 56px;
+    text-align: center; color: #fff;
+  }
+  .help-contact h2 {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 8px;
+  }
+  .help-contact p {
+    font-size: 15px; line-height: 1.6; color: rgba(255,255,255,0.92);
+    margin-bottom: 16px;
+  }
+  .help-contact a {
+    display: inline-block;
+    background: #fff; color: #7c3aed;
+    font-weight: 700; font-size: 15px;
+    padding: 11px 24px; border-radius: 10px; text-decoration: none;
+  }
+  .help-contact a:hover { background: #f0eef8; }
+
+  @media (max-width: 640px) {
+    .help-hero { padding: 48px 18px 28px; }
+    .help-hero h1 { font-size: 33px; }
+    .help-wrap { padding: 8px 18px 72px; }
+    .help-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div id="site-header" data-page="help"></div>
+
+<header class="help-hero">
+  <span class="eyebrow">Help Center</span>
+  <h1>How can we help?</h1>
+  <p>Guides, answers, and platform policies to help you get the most out of Ryxa.</p>
+</header>
+
+<main class="help-wrap">
+
+  <section class="help-category">
+    <div class="help-category-head">
+      <h2>Policies</h2>
+      <span class="count">1 article</span>
+    </div>
+    <div class="help-grid">
+      <a class="help-card" href="/help/community-standards">
+        <h3>Community Standards</h3>
+        <p>What is and isn't allowed on Ryxa, so creators and their audiences stay safe.</p>
+        <div class="arrow">Read &rsaquo;</div>
+      </a>
+    </div>
+  </section>
+
+  <section class="help-category">
+    <div class="help-category-head">
+      <h2>Getting Started</h2>
+      <span class="count">Coming soon</span>
+    </div>
+    <div class="help-empty">
+      Guides for setting up your account, claiming your username, and building your first Link in Bio page are on the way.
+    </div>
+  </section>
+
+  <div class="help-contact">
+    <h2>Still need help?</h2>
+    <p>If you can't find what you're looking for, reach out and we'll get back to you.</p>
+    <a href="mailto:hello@ryxa.io?subject=Ryxa%20Help">Email hello@ryxa.io</a>
+  </div>
+
+</main>
+
+<div id="site-footer"></div>
+
+<script src="/cookie-banner.js"></script>
+<script src="/site-nav.js"></script>
+</body>
+</html>
