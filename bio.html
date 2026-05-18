@@ -15,7 +15,7 @@
 <meta property="og:title" content="Loading… | Ryxa">
 <meta property="og:description" content="A creator's link-in-bio page on Ryxa.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.105.4" integrity="sha384-4eCDoMN/7A46qQ5Tj0rZ/D2VEolFGNIINDTLAcWZcvhkRSsvTfqNfaBMlRRoGEZ5" crossorigin="anonymous"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1062,6 +1062,12 @@
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
+  /* Gate uses Plus Jakarta Sans. !important is required because api/bio.js
+     injects a creator-chosen font rule as `body, body * { font-family: ... !important }`,
+     which would otherwise override the gate. */
+  #sensitive-gate, #sensitive-gate * {
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+  }
   #sensitive-gate.is-visible { display: flex; }
   #sensitive-gate .sg-inner {
     margin: auto;
@@ -1070,10 +1076,10 @@
     text-align: center;
   }
   #sensitive-gate .sg-icon {
-    width: 56px;
-    height: 56px;
+    width: 52px;
+    height: 52px;
     margin: 0 auto 22px;
-    color: #f0c200;
+    color: #f0eef8;
   }
   #sensitive-gate h1 {
     font-size: 24px;
@@ -1109,25 +1115,36 @@
     width: 100%;
   }
   #sensitive-gate .sg-confirm {
-    background: #b9158d;
-    color: #fff;
+    background: #ffffff;
+    color: #07070f;
   }
-  #sensitive-gate .sg-confirm:hover { background: #a01179; }
+  #sensitive-gate .sg-confirm:hover { background: #e4e2ee; }
   #sensitive-gate .sg-deny {
     background: transparent;
-    color: #b4b2c8;
-    border-color: rgba(255,255,255,0.16);
+    color: #f0eef8;
+    border-color: rgba(255,255,255,0.28);
   }
   #sensitive-gate .sg-deny:hover {
-    background: rgba(255,255,255,0.05);
-    color: #f0eef8;
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(255,255,255,0.45);
   }
   #sensitive-gate .sg-fine {
     font-size: 12.5px;
     color: #6f6d82;
     margin-top: 20px;
-    margin-bottom: 0;
+    margin-bottom: 14px;
   }
+  #sensitive-gate .sg-standards {
+    display: inline-block;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #8f8da6;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(255,255,255,0.18);
+    padding-bottom: 1px;
+  }
+  #sensitive-gate .sg-standards:hover { color: #f0eef8; }
+
 </style>
 
 </head>
@@ -1159,6 +1176,7 @@
       <button type="button" class="sg-deny" data-bio-action="sensitive-deny">No, take me back</button>
     </div>
     <p class="sg-fine">By continuing you confirm you are of legal age to view this content in your location.</p>
+    <a class="sg-standards" href="/help/community-standards" target="_blank" rel="noopener">Ryxa Community Standards</a>
   </div>
 </div>
 
