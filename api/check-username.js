@@ -16,6 +16,7 @@
 // REST. NO @supabase/supabase-js.
 
 const crypto = require('crypto');
+const { isUsernameClean } = require('./_username-filter.js');
 
 const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
 
@@ -182,6 +183,9 @@ module.exports = async function handler(req, res) {
   }
   if (RESERVED.has(username)) {
     return res.status(200).json({ available: false, reason: 'reserved' });
+  }
+  if (!isUsernameClean(username)) {
+    return res.status(200).json({ available: false, reason: 'inappropriate' });
   }
 
   // Rate limit.
