@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="shortcut icon" href="/favicon.ico">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Community Standards. Ryxa</title>
+<meta name="description" content="The Ryxa Community Standards explain what is and isn't allowed on the platform, so creators and their audiences stay safe.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://www.ryxa.io/help/community-standards">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.ryxa.io/help/community-standards">
+<meta property="og:title" content="Community Standards. Ryxa">
+<meta property="og:description" content="The Ryxa Community Standards explain what is and isn't allowed on the platform.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #07070f; --surface: #0f0f1a; --surface2: #161625;
+    --border: rgba(255,255,255,0.07); --border-hover: rgba(255,255,255,0.14);
+    --accent: #7c3aed; --accent2: #a855f7; --accent-glow: rgba(124,58,237,0.3);
+    --text: #f0eef8; --muted: #b4b2c8; --muted2: #c9c7dc;
+    --page-bg: #f5f5f7; --doc-text: #1d1d29; --doc-muted: #5b5b6b;
+    --doc-border: #e3e3ea; --doc-surface: #ffffff;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scrollbar-width: thin; scrollbar-color: rgba(168,85,247,0.4) #e3e3ea; }
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: #e3e3ea; }
+  ::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.4); border-radius: 4px; }
+  body {
+    font-family: "DM Sans", sans-serif;
+    background: var(--page-bg);
+    color: var(--doc-text);
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+  #site-footer { background: #07070f; color: #f0eef8; }
+
+  .doc-wrap { max-width: 820px; margin: 0 auto; padding: 64px 24px 96px; }
+
+  .doc-breadcrumb {
+    font-size: 13px; font-weight: 500; color: var(--doc-muted);
+    margin-bottom: 28px;
+  }
+  .doc-breadcrumb a { color: var(--accent); text-decoration: none; }
+  .doc-breadcrumb a:hover { text-decoration: underline; }
+
+  .doc-eyebrow {
+    display: inline-block;
+    font-size: 12px; font-weight: 700; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--accent);
+    margin-bottom: 14px;
+  }
+  .doc-title {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-size: 40px; font-weight: 800; letter-spacing: -1px;
+    line-height: 1.15; color: var(--doc-text);
+    margin-bottom: 14px;
+  }
+  .doc-date { font-size: 14px; color: var(--doc-muted); margin-bottom: 32px; }
+
+  .doc-intro {
+    font-size: 16px; line-height: 1.7; color: var(--doc-text);
+    background: var(--doc-surface);
+    border: 1px solid var(--doc-border);
+    border-radius: 14px; padding: 24px 28px; margin-bottom: 16px;
+  }
+  .doc-intro p + p { margin-top: 12px; }
+
+  .doc-toc {
+    background: var(--doc-surface);
+    border: 1px solid var(--doc-border);
+    border-radius: 14px; padding: 22px 28px; margin-bottom: 40px;
+  }
+  .doc-toc h2 {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-size: 13px; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--doc-muted);
+    margin-bottom: 14px;
+  }
+  .doc-toc ul { list-style: none; columns: 2; column-gap: 32px; }
+  .doc-toc li { margin-bottom: 9px; break-inside: avoid; }
+  .doc-toc a {
+    font-size: 14.5px; color: var(--accent); text-decoration: none;
+  }
+  .doc-toc a:hover { text-decoration: underline; }
+
+  .doc-section { margin-bottom: 38px; scroll-margin-top: 90px; }
+  .doc-section h2 {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-size: 22px; font-weight: 800; letter-spacing: -0.3px;
+    color: var(--doc-text); margin-bottom: 12px;
+    padding-bottom: 10px; border-bottom: 2px solid var(--doc-border);
+  }
+  .doc-section p {
+    font-size: 15.5px; line-height: 1.72; color: var(--doc-text);
+    margin-bottom: 12px;
+  }
+  .doc-section p.lead { color: var(--doc-text); }
+  .doc-section ul { margin: 4px 0 14px; padding-left: 22px; }
+  .doc-section li {
+    font-size: 15.5px; line-height: 1.65; color: var(--doc-text);
+    margin-bottom: 7px;
+  }
+  .doc-label {
+    display: inline-block;
+    font-size: 12.5px; font-weight: 700;
+    padding: 3px 10px; border-radius: 6px; margin-bottom: 8px;
+  }
+  .doc-label.allow { background: #e7f6ec; color: #1b7a44; }
+  .doc-label.deny { background: #fdeaea; color: #b3261e; }
+
+  .doc-callout {
+    background: var(--doc-surface);
+    border: 1px solid var(--doc-border);
+    border-left: 3px solid var(--accent);
+    border-radius: 10px; padding: 18px 22px; margin: 16px 0;
+  }
+  .doc-callout p { margin-bottom: 8px; }
+  .doc-callout p:last-child { margin-bottom: 0; }
+  .doc-callout strong { color: var(--doc-text); }
+
+  .doc-section a { color: var(--accent); text-decoration: none; }
+  .doc-section a:hover { text-decoration: underline; }
+
+  .doc-report {
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    border-radius: 16px; padding: 30px 32px; margin-top: 48px;
+    color: #fff;
+  }
+  .doc-report h2 {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-size: 21px; font-weight: 800; color: #fff; margin-bottom: 10px;
+  }
+  .doc-report p { font-size: 15px; line-height: 1.65; color: rgba(255,255,255,0.92); margin-bottom: 14px; }
+  .doc-report a.report-btn {
+    display: inline-block;
+    background: #fff; color: #7c3aed;
+    font-weight: 700; font-size: 15px;
+    padding: 11px 22px; border-radius: 10px; text-decoration: none;
+  }
+  .doc-report a.report-btn:hover { background: #f0eef8; }
+
+  @media (max-width: 640px) {
+    .doc-wrap { padding: 40px 18px 72px; }
+    .doc-title { font-size: 30px; }
+    .doc-toc ul { columns: 1; }
+    .doc-section h2 { font-size: 19px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="site-header" data-page="help"></div>
+
+<main class="doc-wrap">
+
+  <nav class="doc-breadcrumb">
+    <a href="/help">Help Center</a> &rsaquo; Policies &rsaquo; Community Standards
+  </nav>
+
+  <span class="doc-eyebrow">Policies</span>
+  <h1 class="doc-title">Community Standards</h1>
+  <p class="doc-date">Effective date: May 18, 2026</p>
+
+  <div class="doc-intro">
+    <p>Ryxa is built to help creators grow and earn. For that to work, the platform has to stay safe for creators and for the people who visit their pages. These Community Standards explain what is and isn't allowed on Ryxa.</p>
+    <p>They work alongside our <a href="/terms">Terms of Service</a>. By using Ryxa, you agree to follow both. Where these standards and the Terms of Service overlap, the Terms of Service take precedence.</p>
+  </div>
+
+  <div class="doc-toc">
+    <h2>On this page</h2>
+    <ul>
+      <li><a href="#adult">Adult content</a></li>
+      <li><a href="#hate">Hateful content</a></li>
+      <li><a href="#illegal">Illegal goods and services</a></li>
+      <li><a href="#spam">Spam and fraud</a></li>
+      <li><a href="#harassment">Harassment and bullying</a></li>
+      <li><a href="#extremist">Extremist content</a></li>
+      <li><a href="#child">Child safety</a></li>
+      <li><a href="#self-harm">Self-harm</a></li>
+      <li><a href="#violence">Graphic and violent content</a></li>
+      <li><a href="#ip">Copyright and trademarks</a></li>
+      <li><a href="#privacy">Privacy and impersonation</a></li>
+      <li><a href="#misinfo">Harmful misinformation</a></li>
+      <li><a href="#enforcement">How we enforce these standards</a></li>
+    </ul>
+  </div>
+
+  <section class="doc-section" id="adult">
+    <h2>Adult content</h2>
+    <p class="lead">Ryxa lets creators link out to a wide range of content, but it is not a place to host or sell adult material. The line we draw is between linking and selling or hosting.</p>
+    <p><span class="doc-label allow">Allowed</span></p>
+    <ul>
+      <li>Linking from your Link in Bio page to legal adult content that is hosted on another platform, as long as your profile is marked as sensitive content using the setting Ryxa provides.</li>
+      <li>Promoting adult work you create and sell elsewhere, again as long as your profile is marked as sensitive content.</li>
+    </ul>
+    <p><span class="doc-label deny">Not allowed</span></p>
+    <ul>
+      <li>Uploading adult or sexually explicit media anywhere on Ryxa, including your avatar, link thumbnails, page background, uploaded PDFs, or product images.</li>
+      <li>Selling adult content, or collecting payments or donations for it, through Course Builder, Digital Products, 1:1 Booking, or any other Ryxa feature that processes payments.</li>
+      <li>Embedding feeds or media that would display adult content directly on your Ryxa page.</li>
+      <li>Advertising or facilitating full-service sex work.</li>
+      <li>Sharing adult content generated with AI that depicts a real person without their consent.</li>
+    </ul>
+    <div class="doc-callout">
+      <p><strong>Why selling adult content is not allowed.</strong> Ryxa's paid tools process payments through Stripe Connect. Stripe's own policies prohibit adult content on the accounts Ryxa relies on, so we cannot allow it through any paid feature. This is a requirement we pass through from our payment processor, not a judgment about the work itself.</p>
+      <p>You must also be at least 18 years old to use any monetization feature, and any adult content you link to must be legal where you and your audience are located.</p>
+    </div>
+  </section>
+
+  <section class="doc-section" id="hate">
+    <h2>Hateful content</h2>
+    <p>Creators are free to share their beliefs and ideas, but Ryxa is not a place for hate. Do not use Ryxa to attack, demean, or incite hatred or violence against people based on race, color, ethnicity, national origin, religion, sex, gender identity, sexual orientation, age, disability, medical condition, or veteran status. You also may not use Ryxa to celebrate or promote people or groups known for hateful or violent acts.</p>
+  </section>
+
+  <section class="doc-section" id="illegal">
+    <h2>Illegal goods and services</h2>
+    <p>Do not use Ryxa to advertise, link to, or facilitate the sale of regulated or illegal goods, services, or activities. This includes, but is not limited to:</p>
+    <ul>
+      <li>Controlled substances, alcohol, tobacco, and vaping products</li>
+      <li>Weapons, ammunition, explosives, fireworks, and weapon schematics</li>
+      <li>Counterfeit, stolen, recalled, or embargoed goods</li>
+      <li>Endangered species, protected wildlife, or parts of them</li>
+      <li>Human body parts, bodily fluids, or any offer involving the sale of a person</li>
+      <li>Gambling and betting services</li>
+      <li>Identity documents, personal data sets, or mailing lists</li>
+      <li>Products promoted through multi-level marketing schemes</li>
+      <li>Hazardous or toxic materials</li>
+    </ul>
+    <p>If a product or service is regulated where you or your audience live, it does not belong on Ryxa.</p>
+  </section>
+
+  <section class="doc-section" id="spam">
+    <h2>Spam and fraud</h2>
+    <p>Do not use Ryxa to deceive or take advantage of visitors. This includes linking to sites that collect personal or financial information under false pretenses, creating large numbers of accounts to push goods or links, and any scheme designed to generate fraudulent clicks or affiliate revenue. Pages should be a genuine reflection of the creator behind them.</p>
+  </section>
+
+  <section class="doc-section" id="harassment">
+    <h2>Harassment and bullying</h2>
+    <p>Do not use Ryxa to target anyone with content meant to intimidate, threaten, bully, or harass them. This applies whether the target is another creator, a public figure, or a private individual.</p>
+  </section>
+
+  <section class="doc-section" id="extremist">
+    <h2>Extremist content</h2>
+    <p>Do not use Ryxa to promote, praise, or raise funds for terrorist or extremist groups, or to spread their messaging. Pages connected to organized violence or extremism are removed.</p>
+  </section>
+
+  <section class="doc-section" id="child">
+    <h2>Child safety</h2>
+    <p>Ryxa has zero tolerance for content that endangers or exploits minors. Do not upload, link to, or facilitate access to child sexual abuse material, content that sexualizes minors, or any attempt to solicit or groom a minor. We report credible cases of child endangerment to the relevant authorities, including the National Center for Missing and Exploited Children. Accounts involved in this content are removed immediately.</p>
+  </section>
+
+  <section class="doc-section" id="self-harm">
+    <h2>Self-harm</h2>
+    <p>Creators are welcome to share recovery journeys and support others in healthy ways. What is not allowed is content that promotes, encourages, or glorifies suicide, self-injury, or disordered eating.</p>
+    <div class="doc-callout">
+      <p>If you or someone you know is struggling, support is available. In the US, you can call or text <strong>988</strong> to reach the Suicide and Crisis Lifeline. A directory of international helplines is available at <a href="https://findahelpline.com" target="_blank" rel="noopener">findahelpline.com</a>.</p>
+    </div>
+  </section>
+
+  <section class="doc-section" id="violence">
+    <h2>Graphic and violent content</h2>
+    <p>Do not use Ryxa to share content meant to shock or disturb, such as gore, mutilation, graphic violence, or depictions of physical abuse.</p>
+  </section>
+
+  <section class="doc-section" id="ip">
+    <h2>Copyright and trademarks</h2>
+    <p>Respect other people's intellectual property. Do not upload or link to content that infringes someone else's copyright, trademark, or other rights. If you believe content on Ryxa infringes your rights, our process for handling copyright complaints is described in the <a href="/terms">Terms of Service</a>, which explains how to send a takedown notice and how repeat infringement is handled.</p>
+  </section>
+
+  <section class="doc-section" id="privacy">
+    <h2>Privacy and impersonation</h2>
+    <p>Do not use Ryxa to expose other people's private or identifying information, such as billing details, identity documents, or contact information, without a proper legal basis. Do not share private or intimate media of someone without their consent, including synthetic or AI-generated images. Do not impersonate another person, brand, or organization.</p>
+    <p>If you collect personal information from visitors through your page, you are responsible for giving them a privacy notice that meets the privacy laws that apply to you.</p>
+  </section>
+
+  <section class="doc-section" id="misinfo">
+    <h2>Harmful misinformation</h2>
+    <p>Do not use Ryxa to spread false information that could put people's health or safety at risk. This includes content that promotes dangerous alternatives to proper medical care, or that misrepresents established medical treatments in ways likely to cause harm.</p>
+  </section>
+
+  <section class="doc-section" id="enforcement">
+    <h2>How we enforce these standards</h2>
+    <p>When content or an account breaks these standards, we may remove the content, limit certain features, or suspend or terminate the account. Serious violations, such as those involving child safety or credible threats of violence, can result in immediate removal without warning. Where appropriate, we will try to let you know before taking action, and we may report illegal activity to the authorities.</p>
+    <p>These standards may change as Ryxa grows. When we make meaningful changes, we will update the effective date at the top of this page.</p>
+  </section>
+
+  <div class="doc-report">
+    <h2>Reporting a violation</h2>
+    <p>If you come across a Ryxa page or piece of content that breaks these standards, let us know. Include the page link and a short description of the problem so we can look into it.</p>
+    <a class="report-btn" href="mailto:hello@ryxa.io?subject=Community%20Standards%20Report">Report to hello@ryxa.io</a>
+  </div>
+
+</main>
+
+<div id="site-footer"></div>
+
+<script src="/cookie-banner.js"></script>
+<script src="/site-nav.js"></script>
+</body>
+</html>
