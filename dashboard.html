@@ -9779,6 +9779,9 @@
      Loaded as a regular <script src> (not module, not deferred) so existing
      top-level const/let/function declarations are visible to all tool scripts
      loaded after this one. Must load AFTER the supabase SDK in <head>. -->
+<!-- Username content filter, must load before dashboard-shell.js and bio.js
+     which reference window.RyxaUsernameFilter for username validation. -->
+<script src="/js/username-filter.js"></script>
 <script src="/js/dashboard-shell.js"></script>
 
 <!-- BIO CROPPER MODAL -->
