@@ -2314,11 +2314,37 @@
   .deal-row:hover { background: var(--surface); }
   .deal-row-header { display: grid; grid-template-columns: 2fr 1.5fr 1fr 1fr 1.2fr; gap: 14px; padding: 10px 18px; border-bottom: 1px solid var(--border); font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); font-weight: 500; background: var(--surface); }
   @media (max-width: 720px) {
-    .deal-row, .deal-row-header { grid-template-columns: 1fr; gap: 4px; }
     .deal-row-header { display: none; }
-    .deal-row { padding: 16px; }
-    .deal-row-mobile-label { display: block !important; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 8px; }
-    .deal-row > div:first-child { margin-top: 0 !important; }
+    /* Compact card on mobile. Two visual rows:
+       Row 1: deal title (stretches) + amount (right).
+       Row 2: brand (stretches) + status badge + payment badge (right).
+       Markup child order: 1 title, 2 brand, 3 amount, 4 status, 5 payment.
+       A 3-column grid lets the two separate badge divs sit side by side
+       without needing a wrapper element in the JS. */
+    .deal-row {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      grid-template-areas:
+        "title  title   amount"
+        "brand  status  payment";
+      gap: 6px 8px;
+      align-items: center;
+      padding: 14px 16px;
+    }
+    .deal-row > div:nth-child(1) { grid-area: title;  min-width: 0; }
+    .deal-row > div:nth-child(3) { grid-area: amount; justify-self: end; text-align: right; font-weight: 600; white-space: nowrap; }
+    .deal-row > div:nth-child(2) { grid-area: brand;  min-width: 0; }
+    .deal-row > div:nth-child(4) { grid-area: status;  justify-self: end; }
+    .deal-row > div:nth-child(5) { grid-area: payment; justify-self: end; }
+    /* The card layout makes each field obvious; hide the uppercase labels. */
+    .deal-row-mobile-label { display: none !important; }
+    /* Long titles / brand names truncate instead of wrapping to many lines. */
+    .deal-row .deal-s-a3165e,
+    .deal-row > div:nth-child(2) {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
   }
 
   /* ── KANBAN PIPELINE VIEW ── */
