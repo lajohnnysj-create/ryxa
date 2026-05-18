@@ -1046,7 +1046,90 @@
       scroll-behavior: auto !important;
     }
   }
+
+  /* Sensitive content gate. Full-screen interstitial shown before the page.
+     Hidden by default; js/bio-page.js reveals it when the creator's
+     sensitive_content setting is on. Covers the whole viewport and cannot
+     be dismissed except by the two buttons. */
+  #sensitive-gate {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: #07070f;
+    color: #f0eef8;
+    padding: 24px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  #sensitive-gate.is-visible { display: flex; }
+  #sensitive-gate .sg-inner {
+    margin: auto;
+    max-width: 440px;
+    width: 100%;
+    text-align: center;
+  }
+  #sensitive-gate .sg-icon {
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 22px;
+    color: #f0c200;
+  }
+  #sensitive-gate h1 {
+    font-size: 24px;
+    font-weight: 800;
+    margin-bottom: 14px;
+    letter-spacing: -0.3px;
+  }
+  #sensitive-gate p {
+    font-size: 15px;
+    line-height: 1.65;
+    color: #b4b2c8;
+    margin-bottom: 12px;
+  }
+  #sensitive-gate .sg-question {
+    font-size: 15.5px;
+    font-weight: 600;
+    color: #f0eef8;
+    margin: 22px 0 18px;
+  }
+  #sensitive-gate .sg-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  #sensitive-gate button {
+    font: inherit;
+    font-size: 15px;
+    font-weight: 700;
+    padding: 14px 20px;
+    border-radius: 12px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    width: 100%;
+  }
+  #sensitive-gate .sg-confirm {
+    background: #b9158d;
+    color: #fff;
+  }
+  #sensitive-gate .sg-confirm:hover { background: #a01179; }
+  #sensitive-gate .sg-deny {
+    background: transparent;
+    color: #b4b2c8;
+    border-color: rgba(255,255,255,0.16);
+  }
+  #sensitive-gate .sg-deny:hover {
+    background: rgba(255,255,255,0.05);
+    color: #f0eef8;
+  }
+  #sensitive-gate .sg-fine {
+    font-size: 12.5px;
+    color: #6f6d82;
+    margin-top: 20px;
+    margin-bottom: 0;
+  }
 </style>
+
 </head>
 <body>
 
@@ -1054,6 +1137,28 @@
   <div class="state" id="loading-state">
     <h1>Loading…</h1>
     <p>One moment.</p>
+  </div>
+</div>
+
+<!-- Sensitive content gate. Hidden by default. js/bio-page.js adds
+     .is-visible when the creator has the sensitive_content setting on.
+     Placed after #wrap so the SSR regex in api/bio.js (which rewrites
+     only the wrap div) never touches it. -->
+<div id="sensitive-gate" role="dialog" aria-modal="true" aria-labelledby="sg-title">
+  <div class="sg-inner">
+    <svg class="sg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+      <line x1="12" y1="9" x2="12" y2="13"/>
+      <line x1="12" y1="17" x2="12.01" y2="17"/>
+    </svg>
+    <h1 id="sg-title">Sensitive content</h1>
+    <p>This page may contain content that is not suitable for all audiences.</p>
+    <p class="sg-question">Are you 18 years of age or older?</p>
+    <div class="sg-actions">
+      <button type="button" class="sg-confirm" data-bio-action="sensitive-confirm">Yes, I am 18 or older</button>
+      <button type="button" class="sg-deny" data-bio-action="sensitive-deny">No, take me back</button>
+    </div>
+    <p class="sg-fine">By continuing you confirm you are of legal age to view this content in your location.</p>
   </div>
 </div>
 
