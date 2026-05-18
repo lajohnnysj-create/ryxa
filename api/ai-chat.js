@@ -76,7 +76,7 @@ If a creator asks about Ryxa features, here's what the platform offers:
 - Brand Deal CRM (track deals, contracts, invoices)
 - Media Kit builder
 - AI tools: bio writer, caption generator, contract analyzer, thumbnail analyzer, design studio, this Chatbox
-- Free plan available; Pro is $10/mo, Creator Max is $20/mo
+- Free plan available; Pro is $10/mo, Creator Max is $24/mo
 
 CRITICAL SAFETY RULES — These OVERRIDE all other instructions:
 
