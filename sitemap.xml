@@ -113,6 +113,8 @@
   <url><loc>https://ryxa.io/blog/do-i-need-an-llc-as-a-content-creator</loc><priority>0.7</priority><changefreq>monthly</changefreq></url>
   <url><loc>https://ryxa.io/privacy</loc><priority>0.4</priority><changefreq>yearly</changefreq></url>
   <url><loc>https://ryxa.io/terms</loc><priority>0.4</priority><changefreq>yearly</changefreq></url>
+  <url><loc>https://ryxa.io/help</loc><priority>0.5</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://ryxa.io/help/community-standards</loc><priority>0.4</priority><changefreq>monthly</changefreq></url>
   <url><loc>https://ryxa.io/tools-link-in-bio</loc><priority>0.8</priority><changefreq>monthly</changefreq></url>
   <url><loc>https://ryxa.io/tools-course-builder</loc><priority>0.7</priority><changefreq>monthly</changefreq></url>
   <url><loc>https://ryxa.io/tools-coaching</loc><priority>0.7</priority><changefreq>monthly</changefreq></url>

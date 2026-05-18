@@ -286,6 +286,7 @@ function renderFooter() {
   +     '<div>'
   +       '<div style="font-family:\'Syne\',sans-serif;font-weight:700;font-size:13px;margin-bottom:14px;">Support</div>'
   +       '<div style="display:flex;flex-direction:column;gap:8px;">'
+  +         '<a href="/help" style="color:#b4b2c8;font-size:13px;text-decoration:none;">Help Center</a>'
   +         '<a href="mailto:hello@ryxa.io" style="color:#b4b2c8;font-size:13px;text-decoration:none;">hello@ryxa.io</a>'
   +       '</div>'
   +     '</div>'
