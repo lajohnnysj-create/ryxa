@@ -1281,6 +1281,8 @@ function showTool(tool) {
     // Load Stripe status with error handling
     try { loadStripeConnectStatus(); } catch(e) { console.error('Stripe status error:', e); }
     try { loadInstagramConnectionStatus(); } catch(e) { console.error('Instagram status error:', e); }
+    // Adjust the password section for Google-login accounts (no Ryxa password to reset)
+    try { applyGoogleAccountPasswordUI(); } catch(e) { console.error('Password UI error:', e); }
     // Load marketing email preference
     try {
       sb.from('profiles').select('marketing_emails').eq('user_id', currentUser.id).single().then(function(res) {
