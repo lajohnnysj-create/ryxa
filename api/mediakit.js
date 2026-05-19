@@ -191,17 +191,23 @@ function buildAudience(kit) {
     <div class="total-followers-label">Total Followers</div>
   </div>` : '';
 
-  const statsHtml = filled.length > 0 ? `<div class="stats-grid">
+  const statsHtml = filled.length > 0 ? `<div class="stats-list" style="display:flex;flex-direction:column;gap:8px;">
     ${filled.map(p => {
       const engNum = parseFloat(p.data.engagement);
-      const engLine = (isFinite(engNum) && engNum > 0)
-        ? `<div class="stat-engagement" style="font-size:11px;font-weight:600;opacity:0.75;margin-top:2px;">${engNum.toFixed(2)}% engagement</div>` : '';
-      const inner = `<div class="stat-icon">${p.svg}</div>
-      <div class="stat-text">
-        <div class="stat-num">${formatNumber(p.data.count)}</div>
-        <div class="stat-label">${esc(p.label)}</div>
-        ${engLine}
-      </div>`;
+      const engCell = (isFinite(engNum) && engNum > 0)
+        ? `<div style="text-align:right;flex-shrink:0;min-width:64px;">
+             <div style="font-weight:800;font-size:16px;line-height:1.1;">${(+engNum.toFixed(2))}%</div>
+             <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.05em;opacity:0.6;">engagement</div>
+           </div>`
+        : '';
+      const sizedSvg = (p.svg || '').replace('<svg ', '<svg width="16" height="16" ');
+      const inner = `<div class="stat-icon" style="flex-shrink:0;width:28px;height:28px;display:flex;align-items:center;justify-content:center;">${sizedSvg}</div>
+      <div class="stat-name" style="flex:1;min-width:0;font-weight:600;font-size:14px;">${esc(p.label)}</div>
+      <div style="text-align:right;flex-shrink:0;min-width:80px;">
+        <div style="font-weight:800;font-size:16px;line-height:1.1;">${formatNumber(p.data.count)}</div>
+        <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.05em;opacity:0.6;">followers</div>
+      </div>
+      ${engCell}`;
       // Handle-type platforms store a bare handle; build the full URL with the
       // platform's prefix. url-type platforms store a full URL already.
       let linkUrl = '';
@@ -214,11 +220,11 @@ function buildAudience(kit) {
           linkUrl = validExternalUrl(raw);
         }
       }
-      const safeUrl = linkUrl;
-      if (safeUrl) {
-        return `<a class="stat-card stat-link" href="${esc(safeUrl)}" target="_blank" rel="noopener nofollow" aria-label="${esc(p.label)} profile">${inner}</a>`;
+      const rowStyle = 'display:flex;align-items:center;gap:12px;padding:12px 14px;';
+      if (linkUrl) {
+        return `<a class="stat-row stat-link" href="${esc(linkUrl)}" target="_blank" rel="noopener nofollow" aria-label="${esc(p.label)} profile" style="${rowStyle}text-decoration:none;color:inherit;">${inner}</a>`;
       }
-      return `<div class="stat-card">${inner}</div>`;
+      return `<div class="stat-row" style="${rowStyle}">${inner}</div>`;
     }).join('')}
   </div>` : '';
 
