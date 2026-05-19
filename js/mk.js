@@ -109,8 +109,7 @@ let mkState = {
   handle: '',
   bio: '',
   category: '',
-  socials: {}, // { instagram: { count: N, url: "..." }, ... }
-  engagement_rate: '',
+  socials: {}, // { instagram: { count: N, url: "...", engagement: "..." }, ... }
   audience_mode: 'automatic', // 'manual' | 'automatic' — chosen tab in Audience & Stats. Defaults to 'automatic' to encourage Instagram connection.
   rate_card: [], // array of {id, label, price, note}
   contact_email: '',
@@ -220,11 +219,10 @@ async function loadMediaKit() {
       const socials = {};
       for (const key of Object.keys(rawSocials)) {
         const v = rawSocials[key];
-        if (typeof v === 'number') socials[key] = { count: v, url: '' };
-        else if (v && typeof v === 'object') socials[key] = { count: parseInt(v.count) || 0, url: v.url || '' };
+        if (typeof v === 'number') socials[key] = { count: v, url: '', engagement: '' };
+        else if (v && typeof v === 'object') socials[key] = { count: parseInt(v.count) || 0, url: v.url || '', engagement: (v.engagement != null ? String(v.engagement) : '') };
       }
       mkState.socials = socials;
-      mkState.engagement_rate = kit.engagement_rate || '';
       mkState.audience_mode = (kit.audience_mode === 'automatic') ? 'automatic' : 'manual';
       mkState.contact_email = kit.contact_email || '';
       mkState.contact_note = kit.contact_note || '';
@@ -267,7 +265,6 @@ function syncMKForm() {
   document.getElementById('mk-bio').value = mkState.bio;
   document.getElementById('mk-category-count').textContent = mkState.category.length;
   document.getElementById('mk-bio-count').textContent = mkState.bio.length;
-  document.getElementById('mk-engagement').value = mkState.engagement_rate;
   document.getElementById('mk-contact-email').value = mkState.contact_email;
   document.getElementById('mk-contact-note').value = mkState.contact_note;
   document.getElementById('mk-show-branding').checked = mkState.show_branding;
@@ -292,7 +289,6 @@ function onMKField() {
   mkState.handle = document.getElementById('mk-handle').value;
   mkState.category = document.getElementById('mk-category').value;
   mkState.bio = document.getElementById('mk-bio').value;
-  mkState.engagement_rate = document.getElementById('mk-engagement').value;
   mkState.contact_email = document.getElementById('mk-contact-email').value;
   mkState.contact_note = document.getElementById('mk-contact-note').value;
   mkState.show_branding = document.getElementById('mk-show-branding').checked;
@@ -411,7 +407,7 @@ function renderMKSocials() {
   const container = document.getElementById('mk-socials-form');
   if (!container) return;
   container.innerHTML = MK_SOCIAL_PLATFORMS.map(p => {
-    const data = mkState.socials[p.key] || { count: 0, url: '' };
+    const data = mkState.socials[p.key] || { count: 0, url: '', engagement: '' };
     // Handle-type platforms show a fixed URL prefix and take just the handle;
     // url-type (YouTube, Facebook) take a full pasted URL.
     let urlInput;
@@ -440,6 +436,11 @@ function renderMKSocials() {
           value="${data.count || ''}"
           data-mk-action="social-count" data-mk-event="input" data-mk-social="${p.key}"
           aria-label="${p.label} follower count">
+        <input type="number" min="0" max="100" step="0.01" placeholder="Engagement %"
+          value="${data.engagement || ''}"
+          data-mk-action="social-engagement" data-mk-event="input" data-mk-social="${p.key}"
+          aria-label="${p.label} engagement rate percentage"
+          class="mk-social-eng-input">
       </div>
       ${urlInput}
     </div>`;
@@ -449,16 +450,24 @@ function renderMKSocials() {
 
 function onMKSocialCount(key, val) {
   const n = parseInt(val);
-  if (!mkState.socials[key]) mkState.socials[key] = { count: 0, url: '' };
+  if (!mkState.socials[key]) mkState.socials[key] = { count: 0, url: '', engagement: '' };
   mkState.socials[key].count = isFinite(n) && n > 0 ? n : 0;
-  // If both fields empty, drop the whole entry
-  if (!mkState.socials[key].count && !mkState.socials[key].url) delete mkState.socials[key];
+  // If all fields empty, drop the whole entry
+  if (!mkState.socials[key].count && !mkState.socials[key].url && !mkState.socials[key].engagement) delete mkState.socials[key];
   updateMKTotalDisplay();
   scheduleMKPreview();
 }
 
+function onMKSocialEngagement(key, val) {
+  if (!mkState.socials[key]) mkState.socials[key] = { count: 0, url: '', engagement: '' };
+  const n = parseFloat(val);
+  mkState.socials[key].engagement = (isFinite(n) && n >= 0) ? String(val).trim() : '';
+  if (!mkState.socials[key].count && !mkState.socials[key].url && !mkState.socials[key].engagement) delete mkState.socials[key];
+  scheduleMKPreview();
+}
+
 function onMKSocialUrl(key, val) {
-  if (!mkState.socials[key]) mkState.socials[key] = { count: 0, url: '' };
+  if (!mkState.socials[key]) mkState.socials[key] = { count: 0, url: '', engagement: '' };
   let v = (val || '').trim();
   // For handle-type platforms, reduce a pasted full URL to just the handle
   // and strip a leading @. Tolerant of older data saved as full URLs.
@@ -472,7 +481,7 @@ function onMKSocialUrl(key, val) {
     v = v.replace(/^@/, '').replace(/[?#].*$/, '').trim();
   }
   mkState.socials[key].url = v;
-  if (!mkState.socials[key].count && !mkState.socials[key].url) delete mkState.socials[key];
+  if (!mkState.socials[key].count && !mkState.socials[key].url && !mkState.socials[key].engagement) delete mkState.socials[key];
   scheduleMKPreview();
 }
 
@@ -575,14 +584,6 @@ function clearRate(id) {
   r.note = '';
   renderMKRates();
   scheduleMKPreview();
-}
-
-function toggleEngagementHelp() {
-  const help = document.getElementById('mk-engagement-help');
-  const btn = document.getElementById('mk-engagement-help-btn');
-  const isOpen = help.style.display !== 'none';
-  help.style.display = isOpen ? 'none' : 'block';
-  if (btn) btn.setAttribute('aria-expanded', !isOpen);
 }
 
 // ==== Theme ====
@@ -851,10 +852,15 @@ async function saveMediaKit() {
           if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') url = '';
         } catch { url = ''; }
       }
-      if (count > 0 || url) cleanSocials[key] = { count, url };
+      // Per-platform engagement: keep a clean numeric value if valid.
+      let engagement = '';
+      if (platform) {
+        const eng = parseFloat(s.engagement);
+        if (isFinite(eng) && eng >= 0) engagement = eng;
+      }
+      if (count > 0 || url || engagement !== '') cleanSocials[key] = { count, url, engagement };
     }
 
-    const engagement = parseFloat(mkState.engagement_rate);
     const payload = {
       user_id: currentUser.id,
       headshot_url: mkState.headshot_url || null,
@@ -863,7 +869,7 @@ async function saveMediaKit() {
       bio: mkState.bio || null,
       category: mkState.category || null,
       socials: cleanSocials,
-      engagement_rate: isFinite(engagement) && engagement >= 0 ? engagement : null,
+      engagement_rate: null,
       audience_mode: mkState.audience_mode === 'automatic' ? 'automatic' : 'manual',
       rate_card: cleanRates,
       contact_email: mkState.contact_email || null,
@@ -1497,30 +1503,29 @@ function buildMKPreviewHTML() {
   } else {
     // Manual mode — original behavior
     const filledSocials = MK_SOCIAL_PLATFORMS
-      .map(p => ({ ...p, data: mkState.socials[p.key] || { count: 0, url: '' } }))
+      .map(p => ({ ...p, data: mkState.socials[p.key] || { count: 0, url: '', engagement: '' } }))
       .filter(p => (parseInt(p.data.count) || 0) > 0);
     const total = filledSocials.reduce((s, p) => s + (parseInt(p.data.count) || 0), 0);
-    if (total > 0 || (parseFloat(mkState.engagement_rate) > 0)) {
+    if (total > 0) {
       const totalHtml = total > 0 ? `<div class="total-block">
         <div class="total-num">${formatNumberShort(total)}</div>
         <div class="total-lbl">Total Followers</div>
       </div>` : '';
       const socialsHtml = filledSocials.length > 0 ? `<div class="stats-grid">
-        ${filledSocials.map(p => `<div class="stat-card">
+        ${filledSocials.map(p => {
+          const eng = parseFloat(p.data.engagement);
+          const engLine = (isFinite(eng) && eng > 0)
+            ? `<div class="stat-eng">${eng.toFixed(2)}% engagement</div>` : '';
+          return `<div class="stat-card">
           <div class="stat-icn">${p.svg}</div>
-          <div><div class="stat-n">${formatNumberShort(p.data.count)}</div><div class="stat-l">${p.label}</div></div>
-        </div>`).join('')}
-      </div>` : '';
-      const eng = parseFloat(mkState.engagement_rate);
-      const engagementHtml = (eng > 0) ? `<div class="eng-row">
-        <div class="eng-l">Engagement Rate</div>
-        <div class="eng-v">${eng.toFixed(2)}%</div>
+          <div><div class="stat-n">${formatNumberShort(p.data.count)}</div><div class="stat-l">${p.label}</div>${engLine}</div>
+        </div>`;
+        }).join('')}
       </div>` : '';
       audienceHtml = `<div class="sec">
         <div class="sec-t">Audience</div>
         ${totalHtml}
         ${socialsHtml}
-        ${engagementHtml}
       </div>`;
     }
   }
@@ -1618,9 +1623,7 @@ function buildMKPreviewHTML() {
   .stat-icn svg{width:11px;height:11px;fill:currentColor;}
   .stat-n{font-family:'Syne',sans-serif;font-size:12px;font-weight:800;color:${t.text};}
   .stat-l{font-size:9px;color:${t.muted};text-transform:uppercase;letter-spacing:0.04em;}
-  .eng-row{margin-top:8px;padding:10px 12px;background:${t.surface2};border:1px solid ${t.border};border-radius:8px;display:flex;align-items:center;justify-content:space-between;}
-  .eng-l{font-size:9px;color:${t.muted};text-transform:uppercase;letter-spacing:0.05em;font-weight:500;}
-  .eng-v{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:${t.accent2};}
+  .stat-eng{font-size:9px;color:${t.accent2};font-weight:600;margin-top:2px;}
   .rate-r{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start;padding:10px 0;border-bottom:1px solid ${t.border};}
   .rate-r:last-child{border-bottom:none;}
   .rate-lbl{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:${t.text};letter-spacing:-0.1px;word-break:break-word;}
@@ -1689,7 +1692,7 @@ mkRegisterAction('pick-theme', (e, el) => pickMKTheme(el.dataset.mkTheme));
 
 // Audience tabs
 mkRegisterAction('set-audience-mode', (e, el) => setAudienceMode(el.dataset.mkMode));
-mkRegisterAction('toggle-engagement-help', () => toggleEngagementHelp());
+mkRegisterAction('social-engagement', (e, el) => onMKSocialEngagement(el.dataset.mkSocial, el.value));
 
 // Social inputs (template literal)
 mkRegisterAction('social-count', (e, el) => onMKSocialCount(el.dataset.mkSocial, el.value));
