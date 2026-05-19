@@ -436,7 +436,7 @@ function renderMKSocials() {
           value="${data.count || ''}"
           data-mk-action="social-count" data-mk-event="input" data-mk-social="${p.key}"
           aria-label="${p.label} follower count">
-        <input type="number" min="0" max="100" step="0.01" placeholder="Engagement %"
+        <input type="number" min="0" max="100" step="0.01" placeholder="Rate %"
           value="${data.engagement || ''}"
           data-mk-action="social-engagement" data-mk-event="input" data-mk-social="${p.key}"
           aria-label="${p.label} engagement rate percentage"
@@ -461,7 +461,8 @@ function onMKSocialCount(key, val) {
 function onMKSocialEngagement(key, val) {
   if (!mkState.socials[key]) mkState.socials[key] = { count: 0, url: '', engagement: '' };
   const n = parseFloat(val);
-  mkState.socials[key].engagement = (isFinite(n) && n >= 0) ? String(val).trim() : '';
+  // Engagement rate is a percentage: only keep a valid 0-100 value.
+  mkState.socials[key].engagement = (isFinite(n) && n >= 0 && n <= 100) ? String(val).trim() : '';
   if (!mkState.socials[key].count && !mkState.socials[key].url && !mkState.socials[key].engagement) delete mkState.socials[key];
   scheduleMKPreview();
 }
@@ -1511,14 +1512,17 @@ function buildMKPreviewHTML() {
         <div class="total-num">${formatNumberShort(total)}</div>
         <div class="total-lbl">Total Followers</div>
       </div>` : '';
-      const socialsHtml = filledSocials.length > 0 ? `<div class="stats-grid">
+      const socialsHtml = filledSocials.length > 0 ? `<div class="stats-list">
         ${filledSocials.map(p => {
           const eng = parseFloat(p.data.engagement);
-          const engLine = (isFinite(eng) && eng > 0)
-            ? `<div class="stat-eng">${eng.toFixed(2)}% engagement</div>` : '';
-          return `<div class="stat-card">
+          const engCell = (isFinite(eng) && eng > 0)
+            ? `<div class="stat-eng"><span class="stat-eng-n">${(+eng.toFixed(2))}%</span><span class="stat-eng-l">eng</span></div>`
+            : '<div class="stat-eng"></div>';
+          return `<div class="stat-row">
           <div class="stat-icn">${p.svg}</div>
-          <div><div class="stat-n">${formatNumberShort(p.data.count)}</div><div class="stat-l">${p.label}</div>${engLine}</div>
+          <div class="stat-name">${p.label}</div>
+          <div class="stat-foll"><span class="stat-foll-n">${formatNumberShort(p.data.count)}</span><span class="stat-foll-l">followers</span></div>
+          ${engCell}
         </div>`;
         }).join('')}
       </div>` : '';
@@ -1617,13 +1621,17 @@ function buildMKPreviewHTML() {
   .total-block{padding:12px;background:${t.surface2};border:1px solid ${t.border};border-radius:10px;text-align:center;margin-bottom:8px;}
   .total-num{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;letter-spacing:-0.8px;background:${t.avatarBorder};-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;}
   .total-lbl{font-size:9px;color:${t.muted};text-transform:uppercase;letter-spacing:0.06em;margin-top:4px;}
-  .stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;}
-  .stat-card{background:${t.surface2};border:1px solid ${t.border};border-radius:8px;padding:8px 10px;display:flex;align-items:center;gap:8px;}
-  .stat-icn{width:22px;height:22px;border-radius:6px;background:${t.surface};border:1px solid ${t.border};display:flex;align-items:center;justify-content:center;color:${t.muted2};flex-shrink:0;}
-  .stat-icn svg{width:11px;height:11px;fill:currentColor;}
-  .stat-n{font-family:'Syne',sans-serif;font-size:12px;font-weight:800;color:${t.text};}
-  .stat-l{font-size:9px;color:${t.muted};text-transform:uppercase;letter-spacing:0.04em;}
-  .stat-eng{font-size:9px;color:${t.accent2};font-weight:600;margin-top:2px;}
+  .stats-list{display:flex;flex-direction:column;gap:6px;}
+  .stat-row{background:${t.surface2};border:1px solid ${t.border};border-radius:8px;padding:9px 12px;display:flex;align-items:center;gap:10px;}
+  .stat-icn{width:24px;height:24px;border-radius:6px;background:${t.surface};border:1px solid ${t.border};display:flex;align-items:center;justify-content:center;color:${t.muted2};flex-shrink:0;}
+  .stat-icn svg{width:12px;height:12px;fill:currentColor;}
+  .stat-name{font-size:11px;font-weight:600;color:${t.text};flex:1;min-width:0;}
+  .stat-foll{text-align:right;flex-shrink:0;}
+  .stat-foll-n{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:${t.text};display:block;line-height:1.1;}
+  .stat-foll-l{font-size:8px;color:${t.muted};text-transform:uppercase;letter-spacing:0.04em;}
+  .stat-eng{text-align:right;flex-shrink:0;min-width:48px;}
+  .stat-eng-n{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:${t.accent2};display:block;line-height:1.1;}
+  .stat-eng-l{font-size:8px;color:${t.muted};text-transform:uppercase;letter-spacing:0.04em;}
   .rate-r{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start;padding:10px 0;border-bottom:1px solid ${t.border};}
   .rate-r:last-child{border-bottom:none;}
   .rate-lbl{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:${t.text};letter-spacing:-0.1px;word-break:break-word;}
