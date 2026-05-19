@@ -24,51 +24,7 @@ document.addEventListener('click', function(e) {
 // AUTH MODAL + TESTIMONIALS (originally inline at L1898-2211)
 // =================================================================
 
-// Testimonials: scroll left/right
-function scrollTestimonials(dir) {
-  const track = document.getElementById('testimonials-track');
-  if (!track) return;
-  const card = track.querySelector('.testimonial-card');
-  const scrollAmount = card ? card.offsetWidth + 20 : 400;
-  const maxScroll = track.scrollWidth - track.clientWidth;
-  if (dir === -1 && track.scrollLeft <= 0) return;
-  if (dir === 1 && track.scrollLeft >= maxScroll - 1) return;
-  track.scrollBy({ left: dir * scrollAmount, behavior: 'smooth' });
-}
-
-// Desktop drag-to-scroll
-document.addEventListener('DOMContentLoaded', () => {
-  const track = document.getElementById('testimonials-track');
-  if (!track) return;
-  let isDown = false, startX, scrollStart;
-  track.addEventListener('mousedown', (e) => {
-    isDown = true;
-    track.style.cursor = 'grabbing';
-    startX = e.pageX - track.offsetLeft;
-    scrollStart = track.scrollLeft;
-    e.preventDefault();
-  });
-  track.addEventListener('mouseleave', () => { isDown = false; track.style.cursor = 'grab'; });
-  track.addEventListener('mouseup', () => { isDown = false; track.style.cursor = 'grab'; });
-  track.addEventListener('mousemove', (e) => {
-    if (!isDown) return;
-    const x = e.pageX - track.offsetLeft;
-    const walk = (x - startX) * 1.5;
-    track.scrollLeft = scrollStart - walk;
-  });
-  track.style.cursor = 'grab';
-
-  // Mobile only: zoom background on the most visible card
-  if (window.innerWidth <= 600) {
-    const cards = track.querySelectorAll('.testimonial-card');
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        entry.target.classList.toggle('testimonial-active', entry.isIntersecting);
-      });
-    }, { root: track, threshold: 0.6 });
-    cards.forEach(card => observer.observe(card));
-  }
-});
+// Testimonials carousel now lives in the shared module /js/testimonials.js
 
 const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_PLU28Un_GfsUXeUsK3zB9Q_hvNM7aeG';
@@ -475,8 +431,7 @@ homeRegisterAction('forgot-password', function() { handleForgotPassword(); });
 homeRegisterAction('auth', function() { handleAuth(); });
 homeRegisterAction('open-signup', function() { openSignupModal(); });
 homeRegisterAction('open-signin', function() { openAuthModal(); });
-homeRegisterAction('scroll-testimonials-left', function() { scrollTestimonials(-1); });
-homeRegisterAction('scroll-testimonials-right', function() { scrollTestimonials(1); });
+
 
 // =================================================================
 // HERO USERNAME CLAIM
