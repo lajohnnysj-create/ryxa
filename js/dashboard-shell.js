@@ -833,12 +833,18 @@ async function onboardingChoose(tool) {
   var modal = document.getElementById('onboarding-modal');
   if (modal) modal.style.display = 'none';
 
-  // Persist completion. Fire-and-forget: even if this write fails, the modal
-  // is already closed for this session; worst case it reappears next login.
+  // Persist completion. The Supabase query only sends its HTTP request when
+  // awaited - a bare un-awaited builder never executes. Await it and check
+  // the result so a real failure is visible instead of silent.
   if (currentUser) {
     try {
-      sb.from('profiles').update({ onboarding_completed: true }).eq('user_id', currentUser.id);
-    } catch (e) { console.warn('onboarding flag write failed', e); }
+      var { error } = await sb.from('profiles')
+        .update({ onboarding_completed: true })
+        .eq('user_id', currentUser.id);
+      if (error) console.error('onboarding flag write failed:', error);
+    } catch (e) {
+      console.error('onboarding flag write threw:', e);
+    }
   }
 
   // Deep-link to the chosen tool. Empty -> stay on the dashboard home.
