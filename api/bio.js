@@ -199,7 +199,7 @@ function buildSocialHref(key, val) {
 
 function buildSocials(socials) {
   if (!socials || typeof socials !== 'object') return '';
-  const order = ['instagram','tiktok','youtube','facebook','snapchat','linkedin','website','email','phone'];
+  const order = ['instagram','tiktok','x','threads','youtube','facebook','snapchat','linkedin','website','email','phone'];
   const items = [];
   for (const key of order) {
     const val = socials[key];
