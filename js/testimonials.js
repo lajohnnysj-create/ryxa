@@ -48,6 +48,14 @@
       quote: "Being a content creator is more than just posting... it's a business. Ryxa helps simplify that side of things and makes it easier to grow with purpose. I'd recommend it to anyone serious about leveling up!",
       name: 'Jaed',
       handle: '@jaed.official'
+    },
+    {
+      photo: 'testimonials/jennie.jpg',
+      color: 'c-blue',
+      stars: 5,
+      quote: 'Ryxa is jam-packed with the tools that I need for my creativity! Highly recommend!',
+      name: 'Jenny Jiang',
+      handle: '@imjennime'
     }
   ];
 
@@ -85,6 +93,8 @@
     + '.testimonial-panel.c-lime .testimonial-stars{color:#1a1a14;}'
     + '.testimonial-panel.c-amber{background:#f59e0b;color:#1a1308;}'
     + '.testimonial-panel.c-amber .testimonial-stars{color:#1a1308;}'
+    + '.testimonial-panel.c-blue{background:#1d4ed8;color:#fff;}'
+    + '.testimonial-panel.c-blue .testimonial-stars{color:#fff;}'
     + '@media (max-width:600px){'
     +   '.testimonials-heading{font-size:13px;letter-spacing:-0.2px;margin-bottom:20px;}'
     +   '.testimonial-card{width:300px;min-width:300px;}'
