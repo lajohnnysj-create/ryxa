@@ -3721,6 +3721,35 @@
      ryxa.io/ prefix). Focus stays visible via the wrapper border below. */
   #terms-username:focus, #terms-username:focus-visible { outline: none; }
   #terms-username-field:focus-within { border-color: var(--accent2) !important; }
+
+  /* Onboarding modal option buttons */
+  .onb-option {
+    display: flex; align-items: center; gap: 14px;
+    width: 100%; padding: 15px 18px;
+    background: #161625; border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 11px; cursor: pointer;
+    font-family: "DM Sans", sans-serif; text-align: left;
+    transition: border-color 0.15s, background 0.15s, transform 0.1s;
+  }
+  .onb-option:hover {
+    border-color: var(--accent2);
+    background: rgba(124,58,237,0.1);
+  }
+  .onb-option:active { transform: scale(0.99); }
+  .onb-option-icon {
+    width: 38px; height: 38px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 9px;
+    background: rgba(124,58,237,0.14); border: 1px solid rgba(124,58,237,0.28);
+  }
+  .onb-option-icon svg { width: 19px; height: 19px; stroke: #a78bfa; }
+  .onb-option-text { font-size: 14.5px; font-weight: 600; color: var(--text); }
+  .onb-option-quiet {
+    justify-content: center; padding: 13px 18px;
+    background: transparent; border-color: rgba(255,255,255,0.1);
+  }
+  .onb-option-quiet:hover { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.2); }
+  .onb-option-quiet .onb-option-text { color: var(--muted); font-weight: 500; }
   /* type=search (not text) so iOS Safari skips its password-autofill
      heuristic; strip the native search chrome so it looks like a text input. */
   #terms-username::-webkit-search-cancel-button,
@@ -5814,6 +5843,38 @@
     <button data-dash-action="accept-terms" id="terms-accept-btn" style="width:100%;padding:12px;background:#7c3aed;border:none;color:#fff;border-radius:10px;font-size:15px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;opacity:0.5;pointer-events:none;" disabled>Continue</button>
     <div id="terms-error" style="display:none;color:#fca5a5;font-size:12px;margin-top:8px;"></div>
     <button type="button" data-dash-action="terms-logout" id="terms-logout-btn" style="background:none;border:none;color:var(--muted);font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;margin-top:14px;text-decoration:underline;">Log out</button>
+  </div>
+</div>
+
+<!-- ONBOARDING MODAL (first-run only, after terms + any checkout) -->
+<div id="onboarding-modal" style="display:none;position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;pointer-events:all;padding:24px;">
+  <div style="background:#0f0f1a;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:32px 32px 28px;text-align:center;position:relative;min-width:280px;max-width:440px;width:100%;pointer-events:all;">
+    <img src="/logo.png" alt="Ryxa" style="width:44px;height:44px;margin:0 auto 14px;display:block;">
+    <h2 style="font-family:Syne,sans-serif;font-size:21px;font-weight:800;margin-bottom:6px;">What would you like to do first?</h2>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:22px;line-height:1.6;">Pick a starting point. You can explore everything else anytime.</p>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <button type="button" class="onb-option" data-dash-action="onboarding-choose" data-onb-tool="bio">
+        <span class="onb-option-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        </span>
+        <span class="onb-option-text">Build your link in bio</span>
+      </button>
+      <button type="button" class="onb-option" data-dash-action="onboarding-choose" data-onb-tool="design">
+        <span class="onb-option-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12.5" r="2.5"/><path d="M12 2a10 10 0 0 0 0 20 2.5 2.5 0 0 0 2.5-2.5c0-.61-.23-1.2-.64-1.67-.08-.09-.13-.21-.13-.33a.5.5 0 0 1 .5-.5H16a6 6 0 0 0 6-6c0-5.5-4.5-9-10-9z"/></svg>
+        </span>
+        <span class="onb-option-text">Design graphics</span>
+      </button>
+      <button type="button" class="onb-option" data-dash-action="onboarding-choose" data-onb-tool="follower">
+        <span class="onb-option-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        </span>
+        <span class="onb-option-text">Run a Follow-Back Audit</span>
+      </button>
+      <button type="button" class="onb-option onb-option-quiet" data-dash-action="onboarding-choose" data-onb-tool="">
+        <span class="onb-option-text">Explore all the tools</span>
+      </button>
+    </div>
   </div>
 </div>
 
