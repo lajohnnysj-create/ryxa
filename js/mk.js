@@ -1630,7 +1630,7 @@ function buildMKPreviewHTML() {
   .stat-foll-n{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:${t.text};display:block;line-height:1.1;}
   .stat-foll-l{font-size:8px;color:${t.muted};text-transform:uppercase;letter-spacing:0.04em;}
   .stat-eng{text-align:right;flex-shrink:0;min-width:48px;}
-  .stat-eng-n{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:${t.accent2};display:block;line-height:1.1;}
+  .stat-eng-n{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:${t.text};display:block;line-height:1.1;}
   .stat-eng-l{font-size:8px;color:${t.muted};text-transform:uppercase;letter-spacing:0.04em;}
   .rate-r{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start;padding:10px 0;border-bottom:1px solid ${t.border};}
   .rate-r:last-child{border-bottom:none;}
