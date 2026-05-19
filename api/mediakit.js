@@ -200,8 +200,8 @@ function buildAudience(kit) {
              <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.05em;opacity:0.6;">engagement</div>
            </div>`
         : '';
-      const sizedSvg = (p.svg || '').replace('<svg ', '<svg width="16" height="16" ');
-      const inner = `<div class="stat-icon" style="flex-shrink:0;width:28px;height:28px;display:flex;align-items:center;justify-content:center;">${sizedSvg}</div>
+      const sizedSvg = (p.svg || '').replace('<svg ', '<svg width="16" height="16" fill="currentColor" ');
+      const inner = `<div class="stat-icon" style="flex-shrink:0;width:28px;height:28px;display:flex;align-items:center;justify-content:center;color:var(--text);">${sizedSvg}</div>
       <div class="stat-name" style="flex:1;min-width:0;font-weight:600;font-size:14px;">${esc(p.label)}</div>
       <div style="text-align:right;flex-shrink:0;min-width:80px;">
         <div style="font-weight:800;font-size:16px;line-height:1.1;">${formatNumber(p.data.count)}</div>
