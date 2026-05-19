@@ -211,7 +211,11 @@ function buildSocials(socials) {
     const href = buildSocialHref(key, val.trim());
     if (!href) continue;
     const target = (key === 'email' || key === 'phone') ? '' : ' target="_blank" rel="noopener nofollow"';
-    items.push(`<a class="social-btn" href="${esc(href)}" aria-label="${key}"${target}>${SOCIAL_ICONS[key]}</a>`);
+    // Theme the icon: the <a> takes the theme text color, the svg fills with
+    // currentColor so it inherits it. Without this the svg paths default to
+    // black regardless of theme.
+    const icon = (SOCIAL_ICONS[key] || '').replace('<svg ', '<svg fill="currentColor" ');
+    items.push(`<a class="social-btn" href="${esc(href)}" aria-label="${key}" style="color:var(--text);"${target}>${icon}</a>`);
   }
   if (!items.length) return '';
   return `<div class="socials">${items.join('')}</div>`;
