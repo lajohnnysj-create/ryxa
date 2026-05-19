@@ -218,6 +218,63 @@
   .mock-results-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
   .mock-tab { font-size: 11px; padding: 7px 14px; border-radius: 8px; background: var(--mock-surface2); border: 1px solid rgba(255,255,255,0.07); color: var(--muted); }
   .mock-tab.active { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; border-color: transparent; font-weight: 600; }
+
+  /* ===========================================
+     PHOTO: "How it works" section background
+     Heavy dark overlay so step cards stay readable.
+     =========================================== */
+  .how-section { overflow: hidden; }
+  .how-photo-bg {
+    position: absolute; inset: 0; z-index: 0;
+    background-image: url("followback-photo1.webp");
+    background-size: cover; background-position: center 32%;
+  }
+  .how-photo-overlay {
+    position: absolute; inset: 0; z-index: 1;
+    background: linear-gradient(180deg, rgba(10,16,36,0.93) 0%, rgba(10,16,36,0.86) 50%, rgba(10,16,36,0.95) 100%);
+  }
+  .how-content { position: relative; z-index: 2; }
+
+  /* ===========================================
+     SLASH PHOTO QUOTE band (diagonal divider)
+     =========================================== */
+  .quote-divider {
+    position: relative; width: 100%; height: 380px;
+    max-width: none; margin: 0; padding: 0; overflow: hidden;
+    clip-path: polygon(0 12%, 100% 0, 100% 88%, 0 100%);
+  }
+  .quote-divider-photo {
+    position: absolute; inset: 0; z-index: 0;
+    background-image: url("followback-photo2.webp");
+    background-size: cover; background-position: center 30%;
+  }
+  .quote-divider-overlay {
+    position: absolute; inset: 0; z-index: 1;
+    background: linear-gradient(90deg, rgba(10,16,36,0.92) 0%, rgba(10,16,36,0.72) 40%, rgba(10,16,36,0.3) 75%, rgba(10,16,36,0.1) 100%);
+  }
+  .quote-divider-content {
+    position: relative; z-index: 2; height: 100%;
+    max-width: 1100px; margin: 0 auto; padding: 0 60px;
+    display: flex; flex-direction: column; justify-content: center; align-items: flex-start;
+  }
+  .quote-divider-mark {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-size: 80px; font-weight: 800; line-height: 0.5;
+    color: var(--accent2); margin-bottom: 18px;
+  }
+  .quote-divider-text {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-size: clamp(28px, 4.5vw, 46px); font-weight: 800;
+    letter-spacing: -1px; line-height: 1.12; color: #fff;
+    margin: 0; max-width: 560px;
+    text-shadow: 0 2px 16px rgba(0,0,0,0.5);
+  }
+  @media (max-width: 768px) {
+    .quote-divider { height: 340px; clip-path: polygon(0 6%, 100% 0, 100% 94%, 0 100%); }
+    .quote-divider-overlay { background: linear-gradient(180deg, rgba(10,16,36,0.55) 0%, rgba(10,16,36,0.9) 100%); }
+    .quote-divider-content { padding: 0 28px; align-items: center; text-align: center; }
+    .quote-divider-text { max-width: 100%; }
+  }
 </style>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <style>body{opacity:0;transition:opacity 0.2s ease;}body.site-ready{opacity:1;}</style>
@@ -285,7 +342,10 @@
 </section>
 
 <!-- ============ HOW IT WORKS ============ -->
-<section>
+<section class="how-section">
+  <div class="how-photo-bg" aria-hidden="true"></div>
+  <div class="how-photo-overlay" aria-hidden="true"></div>
+  <div class="how-content">
   <div class="section-label">How it works</div>
   <h2 class="section-title">From Instagram export to clear answers, in four steps.</h2>
   <p class="section-sub">No Instagram login. No third-party app risk. You upload your own data export and we process it locally in your browser.</p>
@@ -314,6 +374,7 @@
       <div class="step-title">Decide who to unfollow</div>
       <div class="step-desc">Use the list to decide who you want to unfollow on Instagram. We don't auto-unfollow. You stay in control and your account stays safe.</div>
     </div>
+  </div>
   </div>
 </section>
 
@@ -348,6 +409,16 @@
       <div class="feature-title">Fast</div>
       <div class="feature-desc">Audit runs in seconds. No spinning loaders, no waiting for server jobs to finish.</div>
     </div>
+  </div>
+</section>
+
+<!-- ============ SLASH PHOTO QUOTE ============ -->
+<section class="quote-divider">
+  <div class="quote-divider-photo" aria-hidden="true"></div>
+  <div class="quote-divider-overlay" aria-hidden="true"></div>
+  <div class="quote-divider-content">
+    <div class="quote-divider-mark">&ldquo;</div>
+    <h2 class="quote-divider-text">Know who's really<br>in your corner.</h2>
   </div>
 </section>
 
