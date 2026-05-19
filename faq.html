@@ -37,20 +37,21 @@
 }
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #07070f; --surface: #0f0f1a; --surface2: #161625;
-    --border: rgba(255,255,255,0.07); --border-hover: rgba(255,255,255,0.14);
-    --accent: #7c3aed; --accent2: #a855f7; --accent-glow: rgba(124,58,237,0.3);
-    --text: #f0eef8; --muted: #b4b2c8; --muted2: #c9c7dc;
+    /* Warm cream light theme */
+    --bg: #fdfcf7; --surface: #ffffff; --surface2: #f6f4ec;
+    --border: rgba(20,17,28,0.10); --border-hover: rgba(20,17,28,0.20);
+    --accent: #7c3aed; --accent2: #7c3aed; --accent-glow: rgba(124,58,237,0.18);
+    --text: #1a1726; --muted: #6b6577; --muted2: #837d90;
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scrollbar-width: thin; scrollbar-color: rgba(168,85,247,0.4) #0a0a14; }
+  html { scrollbar-width: thin; scrollbar-color: rgba(124,58,237,0.4) #e8e6dd; }
   ::-webkit-scrollbar { width: 8px; }
-  ::-webkit-scrollbar-track { background: #0a0a14; }
-  ::-webkit-scrollbar-thumb { background: rgba(168,85,247,0.4); border-radius: 4px; }
-  ::-webkit-scrollbar-thumb:hover { background: rgba(168,85,247,0.6); }
+  ::-webkit-scrollbar-track { background: #e8e6dd; }
+  ::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.4); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(124,58,237,0.6); }
   html { scroll-behavior: smooth; }
   body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
 
@@ -95,7 +96,7 @@
   .page-header { padding: 60px 48px 60px; text-align: center; position: relative; overflow: hidden; }
   .page-header::before { display: none; }
   .badge { display: inline-flex; align-items: center; gap: 8px; border: 1px solid rgba(124,58,237,0.4); background: rgba(124,58,237,0.08); border-radius: 100px; padding: 6px 16px; font-size: 12px; color: #c4b5fd; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 24px; }
-  .page-header h1 { font-family: 'Syne', sans-serif; font-size: clamp(32px, 5vw, 58px); font-weight: 800; letter-spacing: -2px; line-height: 1.05; margin-bottom: 16px; }
+  .page-header h1 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: clamp(32px, 5vw, 58px); font-weight: 800; letter-spacing: -2px; line-height: 1.05; margin-bottom: 16px; }
   .page-header h1 em { font-style: normal; color: var(--accent2); }
   .page-header p { font-size: 16px; color: var(--muted); max-width: 440px; margin: 0 auto; line-height: 1.65; font-weight: 300; }
 
@@ -109,7 +110,7 @@
   .faq-content { max-width: 760px; margin: 0 auto; padding: 0 24px 100px; }
 
   .faq-category { margin-bottom: 48px; }
-  .faq-category-title { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent2); margin-bottom: 16px; }
+  .faq-category-title { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent2); margin-bottom: 16px; }
 
   /* ACCORDION */
   .faq-item { border: 1px solid var(--border); border-radius: 12px; margin-bottom: 10px; overflow: hidden; transition: border-color 0.2s; }
@@ -118,7 +119,7 @@
   .faq-question { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; cursor: pointer; gap: 16px; background: var(--surface); transition: background 0.2s; user-select: none; }
   .faq-item.open .faq-question { background: var(--surface2); }
   .faq-question-text { font-size: 15px; font-weight: 500; line-height: 1.5; }
-  .faq-chevron { width: 20px; height: 20px; border-radius: 50%; background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; transition: all 0.25s; color: var(--muted); }
+  .faq-chevron { width: 20px; height: 20px; border-radius: 50%; background: rgba(20,17,28,0.06); display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; transition: all 0.25s; color: var(--muted); }
   .faq-item.open .faq-chevron { background: rgba(124,58,237,0.15); color: var(--accent2); transform: rotate(180deg); }
   .faq-answer { display: none; padding: 0 24px 20px; background: var(--surface2); }
   .faq-item.open .faq-answer { display: block; }
@@ -126,14 +127,14 @@
   .faq-answer p:last-child { margin-bottom: 0; }
   .faq-answer a { color: var(--accent2); text-decoration: none; }
   .faq-answer a:hover { text-decoration: underline; }
-  .faq-answer code { background: rgba(255,255,255,0.07); border: 1px solid var(--border-hover); border-radius: 5px; padding: 2px 7px; font-size: 13px; font-family: monospace; color: #c4b5fd; }
+  .faq-answer code { background: rgba(124,58,237,0.08); border: 1px solid rgba(124,58,237,0.2); border-radius: 5px; padding: 2px 7px; font-size: 13px; font-family: monospace; color: #6d28d9; }
   .faq-answer ul { list-style: none; display: flex; flex-direction: column; gap: 8px; margin: 10px 0; }
   .faq-answer ul li { display: flex; align-items: flex-start; gap: 8px; font-size: 14px; line-height: 1.6; color: var(--muted); font-weight: 300; }
   .faq-answer ul li::before { content: '→'; color: var(--accent2); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
 
   /* CTA BOX */
   .cta-box { background: linear-gradient(135deg, rgba(124,58,237,0.08) 0%, var(--surface) 60%); border: 1px solid rgba(124,58,237,0.3); border-radius: 16px; padding: 40px; text-align: center; margin-top: 48px; }
-  .cta-box h3 { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; margin-bottom: 10px; }
+  .cta-box h3 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 22px; font-weight: 800; margin-bottom: 10px; }
   .cta-box p { color: var(--muted); font-size: 15px; margin-bottom: 24px; }
   .btn-primary { display: inline-block; background: var(--accent); color: #fff; border: none; border-radius: 10px; padding: 14px 32px; font-size: 15px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.25s; box-shadow: 0 0 40px rgba(124,58,237,0.3); text-decoration: none; }
   .btn-primary:hover { background: #a855f7; transform: translateY(-2px); }
@@ -178,7 +179,7 @@
 
   /* === A11Y: visible focus ring for keyboard users === */
   *:focus-visible {
-    outline: 2px solid #c4b5fd;
+    outline: 2px solid #7c3aed;
     outline-offset: 2px;
     border-radius: 4px;
   }
@@ -350,7 +351,7 @@
         <span class="faq-chevron">▼</span>
       </div>
       <div class="faq-answer">
-        <p>We offer refunds within 7 days of purchase if you are not satisfied. Email us at hello@ryxa.io and we will take care of it promptly. No hassle, no hard feelings.</p>
+        <p>All sales are final. Because Ryxa subscriptions unlock digital tools right away, we do not offer refunds for change of mind. If something isn't working or you believe there's been a billing error, email us at hello@ryxa.io and we'll look into it. Refunds may also be provided where required by law.</p>
       </div>
     </div>
 
