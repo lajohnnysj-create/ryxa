@@ -18,12 +18,13 @@
 <link rel="shortcut icon" href="/favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #07070f;
-    --surface: #11111b;
-    --surface2: #181822;
+    /* Page chrome: deep midnight-blue theme for this landing page. */
+    --bg: #0a1024;
+    --surface: #111a36;
+    --surface2: #18213f;
     --border: rgba(255,255,255,0.08);
     --border-hover: rgba(255,255,255,0.18);
     --accent: #7c3aed;
@@ -33,6 +34,11 @@
     --text: #f0eef8;
     --muted: #b4b2c8;
     --muted2: #c9c7dc;
+    /* Dashboard mockup uses the REAL product colors (near-black + purple),
+       so it stays an accurate preview of the actual dashboard. */
+    --mock-bg: #07070f;
+    --mock-surface: #11111b;
+    --mock-surface2: #181822;
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   html { scroll-behavior: smooth; }
@@ -88,7 +94,7 @@
   .hero-content { position: relative; z-index: 1; max-width: 880px; margin: 0 auto; }
   .hero-tier-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; background: linear-gradient(135deg,rgba(167,139,250,0.15),rgba(232,121,249,0.15)); border: 1px solid rgba(167,139,250,0.35); border-radius: 999px; font-size: 12px; color: #e879f9; font-weight: 600; margin-bottom: 24px; letter-spacing: 0.05em; text-transform: uppercase; }
   .hero-tier-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #e879f9; box-shadow: 0 0 8px #e879f9; }
-  .hero h1 { font-family: "Syne", sans-serif; font-size: clamp(36px, 6vw, 64px); font-weight: 800; line-height: 1.1; letter-spacing: -1.5px; margin-bottom: 20px; }
+  .hero h1 { font-family: "Plus Jakarta Sans", sans-serif; font-size: clamp(36px, 6vw, 64px); font-weight: 800; line-height: 1.1; letter-spacing: -1.5px; margin-bottom: 20px; }
   .gradient-text { background: linear-gradient(135deg, var(--accent2), var(--accent3)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
   .hero-tagline { font-size: 18px; color: var(--muted); line-height: 1.6; margin-bottom: 32px; max-width: 640px; margin-left: auto; margin-right: auto; }
   .hero-cta-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
@@ -97,7 +103,7 @@
   .btn-secondary { background: transparent; border: 1px solid var(--border-hover); color: var(--text); border-radius: 12px; padding: 14px 28px; font-size: 15px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-block; }
   .btn-secondary:hover { border-color: var(--accent2); color: var(--accent2); }
 
-  /* MOCKUP — App preview window */
+  /* MOCKUP. App preview window */
   .mockup-section { padding: 0 32px 80px; max-width: 1200px; margin: 0 auto; }
   .app-window { background: var(--surface); border: 1px solid var(--border-hover); border-radius: 16px; overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(124,58,237,0.1); }
   .app-titlebar { background: rgba(20,20,30,0.9); padding: 12px 16px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border); }
@@ -111,16 +117,16 @@
   /* SECTIONS */
   section { padding: 80px 32px; max-width: 1200px; margin: 0 auto; position: relative; }
   .section-label { display: inline-block; padding: 5px 13px; background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.25); border-radius: 999px; font-size: 11px; color: #c4b5fd; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600; margin-bottom: 16px; }
-  .section-title { font-family: "Syne", sans-serif; font-size: clamp(28px, 4vw, 42px); font-weight: 800; line-height: 1.15; letter-spacing: -1px; margin-bottom: 14px; max-width: 700px; }
+  .section-title { font-family: "Plus Jakarta Sans", sans-serif; font-size: clamp(28px, 4vw, 42px); font-weight: 800; line-height: 1.15; letter-spacing: -1px; margin-bottom: 14px; max-width: 700px; }
   .section-sub { font-size: 16px; color: var(--muted); line-height: 1.6; max-width: 640px; margin-bottom: 50px; }
 
   /* HOW IT WORKS */
   .steps-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
   .step-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px 24px; position: relative; transition: all 0.3s; }
   .step-card:hover { border-color: rgba(124,58,237,0.4); transform: translateY(-4px); }
-  .step-num { font-family: "Syne", sans-serif; font-size: 14px; font-weight: 700; color: var(--accent2); margin-bottom: 14px; letter-spacing: 0.05em; }
+  .step-num { font-family: "Plus Jakarta Sans", sans-serif; font-size: 14px; font-weight: 700; color: var(--accent2); margin-bottom: 14px; letter-spacing: 0.05em; }
   .step-icon { width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, rgba(167,139,250,0.15), rgba(232,121,249,0.1)); border: 1px solid rgba(167,139,250,0.25); display: flex; align-items: center; justify-content: center; color: #c4b5fd; margin-bottom: 16px; }
-  .step-title { font-family: "Syne", sans-serif; font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+  .step-title { font-family: "Plus Jakarta Sans", sans-serif; font-size: 17px; font-weight: 700; margin-bottom: 8px; }
   .step-desc { font-size: 13px; color: var(--muted); line-height: 1.55; }
 
   /* FEATURE HIGHLIGHTS */
@@ -128,15 +134,15 @@
   .feature-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 28px 24px; transition: all 0.3s; }
   .feature-card:hover { border-color: rgba(124,58,237,0.3); background: rgba(124,58,237,0.04); }
   .feature-icon { width: 38px; height: 38px; border-radius: 10px; background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.2); display: flex; align-items: center; justify-content: center; color: #c4b5fd; margin-bottom: 16px; }
-  .feature-title { font-family: "Syne", sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+  .feature-title { font-family: "Plus Jakarta Sans", sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 8px; }
   .feature-desc { font-size: 13px; color: var(--muted); line-height: 1.55; }
 
   /* PRICING TIER CALLOUT */
   .pricing-callout { background: linear-gradient(135deg, rgba(167,139,250,0.08), rgba(232,121,249,0.05)); border: 1px solid rgba(167,139,250,0.25); border-radius: 20px; padding: 40px; text-align: center; max-width: 720px; margin: 0 auto; position: relative; overflow: hidden; }
   .pricing-callout::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(ellipse at center, rgba(232,121,249,0.08) 0%, transparent 50%); pointer-events: none; }
   .pricing-callout-content { position: relative; z-index: 1; }
-  .pricing-tier-name { font-family: "Syne", sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #e879f9; margin-bottom: 8px; }
-  .pricing-tier-price { font-family: "Syne", sans-serif; font-size: 48px; font-weight: 800; letter-spacing: -1.5px; margin-bottom: 6px; }
+  .pricing-tier-name { font-family: "Plus Jakarta Sans", sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #e879f9; margin-bottom: 8px; }
+  .pricing-tier-price { font-family: "Plus Jakarta Sans", sans-serif; font-size: 48px; font-weight: 800; letter-spacing: -1.5px; margin-bottom: 6px; }
   .pricing-tier-price-period { font-size: 16px; color: var(--muted); font-weight: 400; letter-spacing: 0; }
   .pricing-tier-desc { font-size: 14px; color: var(--muted); margin-bottom: 24px; }
   .pricing-tier-includes { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 26px; }
@@ -147,7 +153,7 @@
   .faq-item { border-bottom: 1px solid var(--border); padding: 22px 0; }
   .faq-item:first-child { border-top: 1px solid var(--border); }
   .faq-q { display: flex; align-items: center; justify-content: space-between; cursor: pointer; gap: 16px; }
-  .faq-q-text { font-family: "Syne", sans-serif; font-size: 17px; font-weight: 600; color: var(--text); flex: 1; }
+  .faq-q-text { font-family: "Plus Jakarta Sans", sans-serif; font-size: 17px; font-weight: 600; color: var(--text); flex: 1; }
   .faq-toggle { width: 28px; height: 28px; border-radius: 50%; background: var(--surface); border: 1px solid var(--border); color: var(--muted); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s; font-size: 18px; line-height: 1; }
   .faq-item.open .faq-toggle { background: var(--accent); color: #fff; border-color: var(--accent); transform: rotate(45deg); }
   .faq-a { max-height: 0; overflow: hidden; transition: max-height 0.3s ease, padding 0.3s; color: var(--muted); font-size: 14px; line-height: 1.65; }
@@ -155,7 +161,7 @@
 
   /* BOTTOM CTA */
   .bottom-cta { padding: 80px 32px 100px; text-align: center; max-width: 800px; margin: 0 auto; }
-  .bottom-cta h2 { font-family: "Syne", sans-serif; font-size: clamp(28px, 4vw, 40px); font-weight: 800; letter-spacing: -1px; margin-bottom: 14px; }
+  .bottom-cta h2 { font-family: "Plus Jakarta Sans", sans-serif; font-size: clamp(28px, 4vw, 40px); font-weight: 800; letter-spacing: -1px; margin-bottom: 14px; }
   .bottom-cta p { font-size: 16px; color: var(--muted); margin-bottom: 28px; }
 
   /* FOOTER */
@@ -184,65 +190,46 @@
   }
 
   /* ===========================================
-     APP MOCKUP STYLES (Brand Deal CRM screenshot)
+     APP MOCKUP STYLES (real Follow-Back Audit dashboard)
+     Uses --mock-* near-black colors so the preview stays
+     true to the actual product, even on the blue page.
      =========================================== */
-  .mock-app { display: flex; min-height: 480px; }
-  .mock-sidebar { width: 200px; background: rgba(15,15,26,0.6); border-right: 1px solid var(--border); padding: 16px 12px; flex-shrink: 0; }
+  .app-body { background: var(--mock-bg); }
+  .mock-app { display: flex; min-height: 520px; background: var(--mock-bg); color: var(--text); }
+  .mock-sidebar { width: 210px; background: #0b0b14; border-right: 1px solid rgba(255,255,255,0.06); padding: 16px 12px; flex-shrink: 0; display: flex; flex-direction: column; }
   .mock-sidebar-logo { display: flex; align-items: center; gap: 8px; padding: 6px 8px; margin-bottom: 16px; }
   .mock-sidebar-logo-img { width: 24px; height: 24px; background: linear-gradient(135deg, var(--accent2), var(--accent3)); border-radius: 6px; }
-  .mock-sidebar-logo-text { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 14px; }
-  .mock-nav-item { display: flex; align-items: center; gap: 8px; padding: 7px 9px; border-radius: 6px; font-size: 11px; color: var(--muted); margin-bottom: 2px; }
-  .mock-nav-item.active { background: rgba(124,58,237,0.15); color: #c4b5fd; border: 1px solid rgba(124,58,237,0.25); }
-  .mock-nav-item svg { width: 13px; height: 13px; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; }
-  .mock-nav-pill { font-size: 7px; padding: 1px 5px; border-radius: 3px; font-weight: 700; letter-spacing: 0.05em; margin-left: auto; }
-  .mock-nav-pill.max { background: linear-gradient(135deg,#a78bfa,#e879f9); color: #fff; }
-  .mock-nav-pill.pro { background: rgba(124,58,237,0.2); color: #c4b5fd; border: 1px solid rgba(124,58,237,0.3); }
+  .mock-sidebar-logo-text { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 15px; }
+  .mock-nav-group { font-size: 8px; text-transform: uppercase; letter-spacing: 0.12em; color: #6f6d82; font-weight: 700; padding: 12px 9px 5px; }
+  .mock-nav-item { display: flex; align-items: center; gap: 9px; padding: 8px 9px; border-radius: 7px; font-size: 11.5px; color: var(--muted); margin-bottom: 1px; }
+  .mock-nav-item.active { background: rgba(124,58,237,0.18); color: #d6c6ff; border: 1px solid rgba(124,58,237,0.3); font-weight: 600; }
+  .mock-nav-item svg { width: 14px; height: 14px; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .mock-user-card { margin-top: auto; display: flex; align-items: center; gap: 9px; padding: 9px; border-radius: 9px; background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.2); }
+  .mock-user-avatar { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #a78bfa, #e879f9); flex-shrink: 0; }
+  .mock-user-name { font-size: 11px; font-weight: 600; color: var(--text); }
+  .mock-user-tier { font-size: 9px; color: var(--accent2); }
 
-  .mock-main { flex: 1; padding: 20px 24px; min-width: 0; }
-  .mock-main-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
-  .mock-main-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800; }
-  .mock-main-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
-  .mock-cta-btn { padding: 7px 14px; background: var(--accent); color: #fff; border-radius: 7px; font-size: 11px; font-weight: 500; border: none; }
+  .mock-main { flex: 1; padding: 0; min-width: 0; display: flex; flex-direction: column; }
+  .mock-main-header { padding: 16px 24px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .mock-page-title { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+  .mock-page-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent2); box-shadow: 0 0 8px var(--accent2); }
 
-  /* Stats row */
-  .mock-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; }
-  .mock-stat { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
-  .mock-stat-label { font-size: 8px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 4px; }
-  .mock-stat-value { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 800; }
-  .mock-stat-value.amber { color: #fbbf24; }
-  .mock-stat-sub { font-size: 8px; color: var(--muted); margin-top: 2px; }
+  .mock-analyze { padding: 28px 24px 18px; text-align: center; }
+  .mock-analyze-title { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+  .mock-analyze-sub { font-size: 11.5px; color: var(--muted); line-height: 1.55; max-width: 380px; margin: 0 auto 16px; }
+  .mock-howto-pill { display: inline-block; font-size: 11px; color: var(--accent2); padding: 8px 16px; border-radius: 8px; background: rgba(124,58,237,0.12); border: 1px solid rgba(124,58,237,0.25); margin-bottom: 18px; }
+  .mock-dropzone { border: 1.5px dashed rgba(255,255,255,0.18); border-radius: 12px; padding: 26px 20px; max-width: 440px; margin: 0 auto 14px; }
+  .mock-dropzone-icon { width: 44px; height: 44px; border-radius: 10px; background: rgba(255,255,255,0.04); display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; }
+  .mock-dropzone-icon svg { width: 22px; height: 22px; stroke: var(--muted2); }
+  .mock-dropzone-title { font-weight: 700; font-size: 14px; margin-bottom: 5px; }
+  .mock-dropzone-sub { font-size: 10.5px; color: var(--muted); line-height: 1.5; }
+  .mock-dropzone-file { color: var(--accent2); }
+  .mock-analyze-btn { max-width: 440px; margin: 0 auto; padding: 13px; border-radius: 10px; background: rgba(124,58,237,0.16); border: 1px solid rgba(124,58,237,0.3); color: #d6c6ff; font-weight: 600; font-size: 12.5px; }
 
-  /* Charts row */
-  .mock-charts { display: grid; grid-template-columns: 1.4fr 1fr; gap: 8px; margin-bottom: 14px; }
-  .mock-chart-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
-  .mock-chart-title { font-size: 9px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 12px; font-weight: 600; }
-  .mock-bars { display: flex; align-items: flex-end; gap: 6px; height: 80px; margin-bottom: 6px; }
-  .mock-bar-wrap { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; height: 100%; }
-  .mock-bar { width: 100%; background: linear-gradient(180deg, #a78bfa 0%, #7c3aed 100%); border-radius: 3px 3px 0 0; }
-  .mock-bar-labels { display: flex; gap: 6px; }
-  .mock-bar-label { flex: 1; font-size: 8px; text-align: center; color: var(--muted); }
-  .mock-brand-row { margin-bottom: 8px; }
-  .mock-brand-row:last-child { margin-bottom: 0; }
-  .mock-brand-info { display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 3px; }
-  .mock-brand-name { color: var(--text); }
-  .mock-brand-amount { color: var(--text); font-weight: 600; }
-  .mock-brand-bar { height: 3px; background: var(--surface); border-radius: 2px; overflow: hidden; }
-  .mock-brand-bar-fill { height: 100%; border-radius: 2px; }
-
-  /* Deals table */
-  .mock-table { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
-  .mock-table-row { display: grid; grid-template-columns: 2.2fr 1.5fr 1fr 90px 80px; gap: 8px; padding: 10px 14px; align-items: center; font-size: 10px; border-bottom: 1px solid var(--border); }
-  .mock-table-row:last-child { border-bottom: none; }
-  .mock-table-row.header { background: rgba(255,255,255,0.02); font-size: 9px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 600; padding: 8px 14px; }
-  .mock-deal-title { color: var(--text); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .mock-deal-brand { color: var(--muted); }
-  .mock-deal-amount { font-family: 'Syne', sans-serif; font-weight: 700; color: var(--text); }
-  .mock-status-badge { font-size: 8px; padding: 2px 7px; border-radius: 999px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; text-align: center; display: inline-block; }
-  .mock-status-active { background: rgba(124,58,237,0.15); color: #c4b5fd; border: 1px solid rgba(124,58,237,0.3); }
-  .mock-status-completed { background: rgba(74,222,128,0.12); color: #4ade80; border: 1px solid rgba(74,222,128,0.3); }
-  .mock-status-pending { background: rgba(251,191,36,0.1); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
-  .mock-pay-paid { color: #4ade80; }
-  .mock-pay-waiting { color: #fbbf24; }
+  .mock-results-row { padding: 14px 24px 24px; border-top: 1px solid rgba(255,255,255,0.06); margin-top: 6px; }
+  .mock-results-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+  .mock-tab { font-size: 11px; padding: 7px 14px; border-radius: 8px; background: var(--mock-surface2); border: 1px solid rgba(255,255,255,0.07); color: var(--muted); }
+  .mock-tab.active { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; border-color: transparent; font-weight: 600; }
 </style>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <style>body{opacity:0;transition:opacity 0.2s ease;}body.site-ready{opacity:1;}</style>
@@ -284,27 +271,38 @@
             <div class="mock-sidebar-logo-text">Ryxa</div>
           </div>
           <div class="mock-nav-item">
-            <svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10"/></svg>
-            Home
-          </div>
-          <div class="mock-nav-item">
-            <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-            Link in Bio
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v6M12 17v6M4.2 4.2l4.3 4.3M15.5 15.5l4.3 4.3M1 12h6M17 12h6M4.2 19.8l4.3-4.3M15.5 8.5l4.3-4.3"/></svg>
+            Design Studio
           </div>
           <div class="mock-nav-item">
             <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-            Media Kit
-            <span class="mock-nav-pill pro">PRO</span>
-          </div>
-          <div class="mock-nav-item">
-            <svg viewBox="0 0 24 24"><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 12h18"/></svg>
-            Brand Deals
-            <span class="mock-nav-pill max">MAX</span>
-          </div>
-          <div class="mock-nav-item">
-            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
             Script Builder
-            <span class="mock-nav-pill max">MAX</span>
+          </div>
+          <div class="mock-nav-item">
+            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Calendar
+          </div>
+          <div class="mock-nav-item">
+            <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg>
+            Subscribers
+          </div>
+          <div class="mock-nav-group">AI</div>
+          <div class="mock-nav-item">
+            <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            Chatbox
+          </div>
+          <div class="mock-nav-item">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
+            Thumbnail
+          </div>
+          <div class="mock-nav-item">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Contract
+          </div>
+          <div class="mock-nav-group">TOOLS</div>
+          <div class="mock-nav-item">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
+            Photo Editor
           </div>
           <div class="mock-nav-item">
             <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
@@ -312,72 +310,51 @@
           </div>
           <div class="mock-nav-item active">
             <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-            Follow Audit
-          </div>
-          <div class="mock-nav-item">
-            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
-            Photo Editor
+            Follow-Back Audit
           </div>
           <div class="mock-nav-item">
             <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20v1"/></svg>
-            QR Codes
+            QR Generator
           </div>
           <div class="mock-nav-item">
             <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
-            Invoices
+            Invoice Generator
           </div>
-          <div class="mock-nav-item">
-            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M3 17l3-3 2 2 5-5 3 3"/></svg>
-            Sign PDF
+          <div class="mock-user-card">
+            <div class="mock-user-avatar"></div>
+            <div class="mock-user-info">
+              <div class="mock-user-name">hello@ryxa.io</div>
+              <div class="mock-user-tier">Creator Max</div>
+            </div>
           </div>
         </div>
 
         <!-- Main -->
         <div class="mock-main">
-        <div class="mock-main-header">
-          <div>
-            <div class="mock-main-title">Follow-Back Audit</div>
-            <div class="mock-main-sub">Audit complete · 2,450 follows analyzed</div>
+          <div class="mock-main-header">
+            <div class="mock-page-title"><span class="mock-page-dot"></span> Follow-Back Audit</div>
           </div>
-          <button class="mock-cta-btn">↻ Re-audit</button>
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;">
-          <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:8px;padding:12px;">
-            <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.05em;color:#fca5a5;margin-bottom:4px;">Don't follow you back</div>
-            <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#fca5a5;">347</div>
-          </div>
-          <div style="background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.25);border-radius:8px;padding:12px;">
-            <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.05em;color:#4ade80;margin-bottom:4px;">Mutuals</div>
-            <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#4ade80;">2,103</div>
-          </div>
-          <div style="background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.25);border-radius:8px;padding:12px;">
-            <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.05em;color:#c4b5fd;margin-bottom:4px;">Whitelist <span style="font-size:7px;background:rgba(124,58,237,0.2);color:#c4b5fd;padding:1px 4px;border-radius:3px;letter-spacing:0.04em;">PRO</span></div>
-            <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#c4b5fd;">12</div>
-          </div>
-        </div>
-        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-            <div style="font-size:11px;font-weight:600;">Don't follow you back (showing 3 of 347)</div>
-            <div style="font-size:10px;color:#c4b5fd;padding:4px 10px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.25);border-radius:6px;">Unlock all (Pro)</div>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:6px;">
-            <div style="display:flex;align-items:center;gap:10px;padding:8px;background:var(--surface);border-radius:6px;">
-              <div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#a78bfa,#e879f9);"></div>
-              <div style="flex:1;"><div style="font-size:11px;font-weight:500;">@brandstuff</div></div>
-              <div style="font-size:10px;color:#fca5a5;">Not following back</div>
+          <div class="mock-analyze">
+            <div class="mock-analyze-title">Analyze your followers</div>
+            <div class="mock-analyze-sub">Download your data from Instagram's Account Center, then upload the ZIP here to instantly see who doesn't follow you back.</div>
+            <div class="mock-howto-pill">&#128462; How to download your data &rarr;</div>
+            <div class="mock-dropzone">
+              <div class="mock-dropzone-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+              </div>
+              <div class="mock-dropzone-title">Upload Instagram ZIP</div>
+              <div class="mock-dropzone-sub">Drop your <span class="mock-dropzone-file">instagram-XXXXXX.zip</span> here<br>or click to browse, no unzipping needed</div>
             </div>
-            <div style="display:flex;align-items:center;gap:10px;padding:8px;background:var(--surface);border-radius:6px;">
-              <div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#60a5fa,#a78bfa);"></div>
-              <div style="flex:1;"><div style="font-size:11px;font-weight:500;">@oldfriend23</div></div>
-              <div style="font-size:10px;color:#fca5a5;">Not following back</div>
-            </div>
-            <div style="display:flex;align-items:center;gap:10px;padding:8px;background:var(--surface);border-radius:6px;">
-              <div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#34d399,#a78bfa);"></div>
-              <div style="flex:1;"><div style="font-size:11px;font-weight:500;">@studio.creative</div></div>
-              <div style="font-size:10px;color:#fca5a5;">Not following back</div>
+            <div class="mock-analyze-btn">&#10022; Analyze Now</div>
+          </div>
+          <div class="mock-results-row">
+            <div class="mock-results-tabs">
+              <span class="mock-tab active">Not following back</span>
+              <span class="mock-tab">Mutual</span>
+              <span class="mock-tab">Whitelist</span>
+              <span class="mock-tab">Snake List</span>
             </div>
           </div>
-        </div>
         </div>
       </div>
     </div>
@@ -400,13 +377,13 @@
       <div class="step-num">Step 2</div>
       <div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
       <div class="step-title">Upload the file</div>
-      <div class="step-desc">Drop in the followers/following ZIP from Instagram. We process it locally. Never stored on our servers.</div>
+      <div class="step-desc">Drop in the ZIP from Instagram. Ryxa reads it right in your browser, the raw export file is never uploaded to our servers.</div>
     </div>
     <div class="step-card">
       <div class="step-num">Step 3</div>
       <div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
       <div class="step-title">See the audit</div>
-      <div class="step-desc">Instant breakdown: who you follow that doesn't follow back, and mutual follows.</div>
+      <div class="step-desc">Get the total count of people who don't follow you back, plus mutual follows. The free version shows the first 10 names. Pro shows the full list.</div>
     </div>
     <div class="step-card">
       <div class="step-num">Step 4</div>
@@ -430,13 +407,13 @@
     </div>
     <div class="feature-card">
       <div class="feature-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="18" rx="2"/><line x1="2" y1="9" x2="22" y2="9"/><circle cx="6" cy="6" r="0.5" fill="currentColor"/></svg></div>
-      <div class="feature-title">Processed in your browser</div>
-      <div class="feature-desc">Your follower data never touches our servers. Everything happens locally. Your data is yours.</div>
+      <div class="feature-title">Your export stays on your device</div>
+      <div class="feature-desc">Ryxa reads your Instagram ZIP directly in your browser to run the audit. The raw export file is never uploaded to our servers.</div>
     </div>
     <div class="feature-card">
       <div class="feature-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3.5" cy="6" r="1"/><circle cx="3.5" cy="12" r="1"/><circle cx="3.5" cy="18" r="1"/></svg></div>
-      <div class="feature-title">Filter tabs</div>
-      <div class="feature-desc">Switch between "Not following back" and "Mutual" instantly. Pro adds a Whitelist (people you want to keep following, they're hidden from your next report) and a Snake List (your own private hall of shame list).</div>
+      <div class="feature-title">Filter your results</div>
+      <div class="feature-desc">Switch instantly between people who don't follow you back and your mutuals. Pro adds a Whitelist and a Snake List to keep track of who's who.</div>
     </div>
     <div class="feature-card">
       <div class="feature-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 13h6M9 17h6M9 21h2"/></svg></div>
@@ -463,10 +440,10 @@
       <div class="pricing-tier-price">$0<span class="pricing-tier-price-period">/forever</span></div>
       <div class="pricing-tier-desc">Run an audit for free and see the first 10 unfollowers. Unlock the full list, CSV export, whitelist, and snake list with any Pro subscription.</div>
       <div class="pricing-tier-includes">
-        <span class="pricing-tier-pill">Free preview (10 results)</span>
-        <span class="pricing-tier-pill">Full list (Pro)</span>
-        <span class="pricing-tier-pill">CSV export (Pro)</span>
-        <span class="pricing-tier-pill">Whitelist + Snake List (Pro)</span>
+        <span class="pricing-tier-pill">Preview with first 10 results</span>
+        <span class="pricing-tier-pill">Full list with Pro</span>
+        <span class="pricing-tier-pill">CSV export with Pro</span>
+        <span class="pricing-tier-pill">Whitelist and Snake List with Pro</span>
       </div>
       <a href="pricing.html" class="btn-primary">View pricing</a>
     </div>
@@ -497,7 +474,7 @@
         <div class="faq-q-text">Is my follower data stored on your servers?</div>
         <div class="faq-toggle">+</div>
       </div>
-      <div class="faq-a">No. The audit runs entirely in your browser using JavaScript. Your data never leaves your device. Close the tab and it's gone.</div>
+      <div class="faq-a">Your raw Instagram export is not. Ryxa reads the ZIP file directly in your browser to run the audit, the file itself is never uploaded. The lists you choose to save, like your Whitelist, your Snake List, and any audits you save, are stored securely in your Ryxa account so they're there when you come back.</div>
     </div>
     <div class="faq-item">
       <div class="faq-q" data-nav-action="toggle-faq">
