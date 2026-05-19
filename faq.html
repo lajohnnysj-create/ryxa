@@ -43,15 +43,15 @@
     /* Warm cream light theme, green accent */
     --bg: #fdfcf7; --surface: #ffffff; --surface2: #f6f4ec;
     --border: rgba(20,17,28,0.10); --border-hover: rgba(20,17,28,0.22);
-    --accent: #15803d; --accent2: #15803d; --accent-glow: rgba(21,128,61,0.18);
+    --accent: #b9158d; --accent2: #b9158d; --accent-glow: rgba(185,21,141,0.18);
     --text: #1a1726; --muted: #2e2a3a; --muted2: #2e2a3a;
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scrollbar-width: thin; scrollbar-color: #15803d #e8e6dd; }
+  html { scrollbar-width: thin; scrollbar-color: #b9158d #e8e6dd; }
   ::-webkit-scrollbar { width: 8px; }
   ::-webkit-scrollbar-track { background: #e8e6dd; }
-  ::-webkit-scrollbar-thumb { background: #15803d; border-radius: 4px; }
-  ::-webkit-scrollbar-thumb:hover { background: #166534; }
+  ::-webkit-scrollbar-thumb { background: #b9158d; border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: #8f1069; }
   html { scroll-behavior: smooth; }
   body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
 
@@ -115,29 +115,29 @@
   /* ACCORDION */
   .faq-item { border: 1px solid var(--border); border-radius: 12px; margin-bottom: 10px; overflow: hidden; transition: border-color 0.2s; }
   .faq-item:hover { border-color: var(--border-hover); }
-  .faq-item.open { border-color: rgba(21,128,61,0.35); }
+  .faq-item.open { border-color: rgba(185,21,141,0.35); }
   .faq-question { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; cursor: pointer; gap: 16px; background: var(--surface); transition: background 0.2s; user-select: none; }
   .faq-item.open .faq-question { background: var(--surface2); }
   .faq-question-text { font-size: 15px; font-weight: 500; line-height: 1.5; }
   .faq-chevron { width: 20px; height: 20px; border-radius: 50%; background: rgba(20,17,28,0.06); display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; transition: all 0.25s; color: var(--muted); }
-  .faq-item.open .faq-chevron { background: rgba(21,128,61,0.15); color: var(--accent2); transform: rotate(180deg); }
+  .faq-item.open .faq-chevron { background: rgba(185,21,141,0.15); color: var(--accent2); transform: rotate(180deg); }
   .faq-answer { display: none; padding: 0 24px 20px; background: var(--surface2); }
   .faq-item.open .faq-answer { display: block; }
   .faq-answer p { font-size: 14px; line-height: 1.75; color: var(--muted); margin-bottom: 10px; font-weight: 300; }
   .faq-answer p:last-child { margin-bottom: 0; }
   .faq-answer a { color: var(--accent2); text-decoration: none; }
   .faq-answer a:hover { text-decoration: underline; }
-  .faq-answer code { background: rgba(21,128,61,0.08); border: 1px solid rgba(21,128,61,0.2); border-radius: 5px; padding: 2px 7px; font-size: 13px; font-family: monospace; color: #15803d; }
+  .faq-answer code { background: rgba(185,21,141,0.08); border: 1px solid rgba(185,21,141,0.2); border-radius: 5px; padding: 2px 7px; font-size: 13px; font-family: monospace; color: #b9158d; }
   .faq-answer ul { list-style: none; display: flex; flex-direction: column; gap: 8px; margin: 10px 0; }
   .faq-answer ul li { display: flex; align-items: flex-start; gap: 8px; font-size: 14px; line-height: 1.6; color: var(--muted); font-weight: 300; }
   .faq-answer ul li::before { content: '→'; color: var(--accent2); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
 
   /* CTA BOX */
-  .cta-box { background: linear-gradient(135deg, rgba(21,128,61,0.08) 0%, var(--surface) 60%); border: 1px solid rgba(21,128,61,0.3); border-radius: 16px; padding: 40px; text-align: center; margin-top: 48px; }
+  .cta-box { background: linear-gradient(135deg, rgba(185,21,141,0.08) 0%, var(--surface) 60%); border: 1px solid rgba(185,21,141,0.3); border-radius: 16px; padding: 40px; text-align: center; margin-top: 48px; }
   .cta-box h3 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 22px; font-weight: 800; margin-bottom: 10px; }
   .cta-box p { color: var(--muted); font-size: 15px; margin-bottom: 24px; }
-  .btn-primary { display: inline-block; background: var(--accent); color: #fff; border: none; border-radius: 10px; padding: 14px 32px; font-size: 15px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.25s; box-shadow: 0 0 40px rgba(21,128,61,0.25); text-decoration: none; }
-  .btn-primary:hover { background: #166534; transform: translateY(-2px); }
+  .btn-primary { display: inline-block; background: var(--accent); color: #fff; border: none; border-radius: 10px; padding: 14px 32px; font-size: 15px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.25s; box-shadow: 0 0 40px rgba(185,21,141,0.25); text-decoration: none; }
+  .btn-primary:hover { background: #8f1069; transform: translateY(-2px); }
 
   /* FOOTER */
   footer { border-top: 1px solid var(--border); padding: 32px 48px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
@@ -179,7 +179,7 @@
 
   /* === A11Y: visible focus ring for keyboard users === */
   *:focus-visible {
-    outline: 2px solid #15803d;
+    outline: 2px solid #b9158d;
     outline-offset: 2px;
     border-radius: 4px;
   }
