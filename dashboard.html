@@ -3743,7 +3743,9 @@
     background: rgba(124,58,237,0.14); border: 1px solid rgba(124,58,237,0.28);
   }
   .onb-option-icon svg { width: 19px; height: 19px; stroke: #a78bfa; }
+  .onb-option-body { display: flex; flex-direction: column; gap: 2px; }
   .onb-option-text { font-size: 14.5px; font-weight: 600; color: var(--text); }
+  .onb-option-hint { font-size: 12px; color: var(--muted); line-height: 1.4; }
   .onb-option-quiet {
     justify-content: center; padding: 13px 18px;
     background: transparent; border-color: rgba(255,255,255,0.1);
@@ -5850,26 +5852,35 @@
 <div id="onboarding-modal" style="display:none;position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;pointer-events:all;padding:24px;">
   <div style="background:#0f0f1a;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:32px 32px 28px;text-align:center;position:relative;min-width:280px;max-width:440px;width:100%;pointer-events:all;">
     <img src="/logo.png" alt="Ryxa" style="width:44px;height:44px;margin:0 auto 14px;display:block;">
-    <h2 style="font-family:Syne,sans-serif;font-size:21px;font-weight:800;margin-bottom:6px;">What would you like to do first?</h2>
-    <p style="color:var(--muted);font-size:13px;margin-bottom:22px;line-height:1.6;">Pick a starting point. You can explore everything else anytime.</p>
+    <h2 style="font-family:Syne,sans-serif;font-size:21px;font-weight:800;margin-bottom:6px;">Welcome to Ryxa<span id="onboarding-greeting"></span></h2>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:22px;line-height:1.6;">What would you like to do first? You can explore everything else anytime.</p>
     <div style="display:flex;flex-direction:column;gap:10px;">
       <button type="button" class="onb-option" data-dash-action="onboarding-choose" data-onb-tool="bio">
         <span class="onb-option-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
         </span>
-        <span class="onb-option-text">Build your link in bio</span>
+        <span class="onb-option-body">
+          <span class="onb-option-text">Build your link in bio</span>
+          <span class="onb-option-hint">Your shareable profile page for all your links</span>
+        </span>
       </button>
       <button type="button" class="onb-option" data-dash-action="onboarding-choose" data-onb-tool="design">
         <span class="onb-option-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12.5" r="2.5"/><path d="M12 2a10 10 0 0 0 0 20 2.5 2.5 0 0 0 2.5-2.5c0-.61-.23-1.2-.64-1.67-.08-.09-.13-.21-.13-.33a.5.5 0 0 1 .5-.5H16a6 6 0 0 0 6-6c0-5.5-4.5-9-10-9z"/></svg>
         </span>
-        <span class="onb-option-text">Design graphics</span>
+        <span class="onb-option-body">
+          <span class="onb-option-text">Design graphics</span>
+          <span class="onb-option-hint">Make posts and visuals in the Design Studio</span>
+        </span>
       </button>
       <button type="button" class="onb-option" data-dash-action="onboarding-choose" data-onb-tool="follower">
         <span class="onb-option-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
         </span>
-        <span class="onb-option-text">Run a Follow-Back Audit</span>
+        <span class="onb-option-body">
+          <span class="onb-option-text">Run a Follow-Back Audit</span>
+          <span class="onb-option-hint">See who doesn't follow you back on Instagram</span>
+        </span>
       </button>
       <button type="button" class="onb-option onb-option-quiet" data-dash-action="onboarding-choose" data-onb-tool="">
         <span class="onb-option-text">Explore all the tools</span>
