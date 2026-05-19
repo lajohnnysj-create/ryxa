@@ -396,10 +396,7 @@ function buildSocials(socials) {
     const href = buildSocialHref(key, val.trim());
     if (!href) continue;
     const target = (key === 'email' || key === 'phone') ? '' : ' target="_blank" rel="noopener nofollow"';
-    // Theme the icon: <a> takes the theme text color, svg fills with
-    // currentColor so it inherits it (otherwise svg paths default to black).
-    const icon = (SOCIAL_ICONS[key] || '').replace('<svg ', '<svg fill="currentColor" ');
-    items.push(`<a class="social-btn" href="${esc(href)}" aria-label="${key}" style="color:var(--text);"${target}>${icon}</a>`);
+    items.push(`<a class="social-btn" href="${esc(href)}" aria-label="${key}"${target}>${SOCIAL_ICONS[key]}</a>`);
   }
   if (!items.length) return '';
   return `<div class="socials">${items.join('')}</div>`;
