@@ -823,7 +823,15 @@ function maybeShowOnboarding(onboardingDone) {
   if (window._ryx_pendingCheckoutIntent) return;
   if (window._ryx_checkoutRedirecting) return;
   var modal = document.getElementById('onboarding-modal');
-  if (modal) modal.style.display = 'flex';
+  if (modal) {
+    // Personalize the greeting with the username, if we have one.
+    var greetEl = document.getElementById('onboarding-greeting');
+    if (greetEl) {
+      var uname = window._ryx_username || '';
+      greetEl.textContent = uname ? (', ' + uname) : '';
+    }
+    modal.style.display = 'flex';
+  }
 }
 
 // Handles a choice from the onboarding modal. Marks onboarding complete so it
