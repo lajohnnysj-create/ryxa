@@ -412,6 +412,26 @@ function renderMKSocials() {
   if (!container) return;
   container.innerHTML = MK_SOCIAL_PLATFORMS.map(p => {
     const data = mkState.socials[p.key] || { count: 0, url: '' };
+    // Handle-type platforms show a fixed URL prefix and take just the handle;
+    // url-type (YouTube, Facebook) take a full pasted URL.
+    let urlInput;
+    if (p.type === 'username' && p.urlPrefix) {
+      // Display prefix without the protocol, e.g. "instagram.com/"
+      const shownPrefix = p.urlPrefix.replace(/^https?:\/\//i, '');
+      urlInput = `<div class="bio-social-prefixwrap">
+        <span class="bio-social-prefix">${escapeHtml(shownPrefix)}</span>
+        <input type="text" placeholder="yourhandle"
+          value="${escapeHtml(data.url || '')}"
+          data-mk-action="social-url" data-mk-event="input" data-mk-social="${p.key}"
+          aria-label="${p.label} handle">
+      </div>`;
+    } else {
+      urlInput = `<input type="url" placeholder="Paste your full ${escapeHtml(p.label)} URL"
+        value="${escapeHtml(data.url || '')}"
+        data-mk-action="social-url" data-mk-event="input" data-mk-social="${p.key}"
+        aria-label="${p.label} profile URL"
+        class="mk-s-2f0e33">`;
+    }
     return `<div class="mk-s-bbc25c">
       <div class="mk-social-row bio-s-6c002e" >
         <div class="mk-social-icon">${p.svg}</div>
@@ -421,11 +441,7 @@ function renderMKSocials() {
           data-mk-action="social-count" data-mk-event="input" data-mk-social="${p.key}"
           aria-label="${p.label} follower count">
       </div>
-      <input type="url" placeholder="Profile URL (optional, makes icon clickable)"
-        value="${escapeHtml(data.url || '')}"
-        data-mk-action="social-url" data-mk-event="input" data-mk-social="${p.key}"
-        aria-label="${p.label} profile URL"
-        class="mk-s-2f0e33">
+      ${urlInput}
     </div>`;
   }).join('');
   updateMKTotalDisplay();
@@ -443,7 +459,19 @@ function onMKSocialCount(key, val) {
 
 function onMKSocialUrl(key, val) {
   if (!mkState.socials[key]) mkState.socials[key] = { count: 0, url: '' };
-  mkState.socials[key].url = (val || '').trim();
+  let v = (val || '').trim();
+  // For handle-type platforms, reduce a pasted full URL to just the handle
+  // and strip a leading @. Tolerant of older data saved as full URLs.
+  const platform = MK_SOCIAL_PLATFORMS.find(p => p.key === key);
+  if (v && platform && platform.type === 'username') {
+    v = v.replace(/^https?:\/\//i, '').replace(/^www\./i, '');
+    if (v.indexOf('/') !== -1) {
+      const parts = v.split('/').filter(Boolean);
+      v = parts[parts.length - 1] || '';
+    }
+    v = v.replace(/^@/, '').replace(/[?#].*$/, '').trim();
+  }
+  mkState.socials[key].url = v;
   if (!mkState.socials[key].count && !mkState.socials[key].url) delete mkState.socials[key];
   scheduleMKPreview();
 }
@@ -811,7 +839,10 @@ async function saveMediaKit() {
       const s = mkState.socials[key];
       const count = parseInt(s.count) || 0;
       let url = (s.url || '').trim();
-      if (url) {
+      const platform = MK_SOCIAL_PLATFORMS.find(p => p.key === key);
+      // Handle-type platforms store a bare handle, not a URL - leave it as is.
+      // url-type platforms get protocol-prepended and URL-validated.
+      if (url && !(platform && platform.type === 'username')) {
         // If no protocol, try to prepend https://
         if (!/^[a-z][a-z0-9+.-]*:/i.test(url)) url = 'https://' + url;
         // Basic URL validation
