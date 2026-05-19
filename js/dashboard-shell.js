@@ -801,7 +801,53 @@ function maybeRunPendingCheckout() {
   // Consume the token NOW, before redirecting. This is the line that
   // prevents the infinite loop.
   window._ryx_pendingCheckoutIntent = null;
+  // Mark a redirect as in flight. There is a 400ms gap before startCheckout
+  // navigates away; maybeShowOnboarding() checks this flag so the onboarding
+  // modal never flashes for a split second before the user is sent to Stripe.
+  window._ryx_checkoutRedirecting = true;
   setTimeout(function() { startCheckout(intent); }, 400);
+}
+
+// =============================================================================
+// ONBOARDING MODAL (first-run only)
+// Fires the "What would you like to do first?" modal for brand-new users.
+// Shows ONLY when: onboarding not yet completed, no post-signup checkout is
+// pending, and no Stripe redirect is in flight. The persistent flag
+// profiles.onboarding_completed (not a timing trick) guarantees once-only.
+// =============================================================================
+function maybeShowOnboarding(onboardingDone) {
+  // Already completed -> never show again.
+  if (onboardingDone) return;
+  // A paid signup is mid-checkout: do not show. The modal will get its turn
+  // on the post-Stripe dashboard load, when no checkout is pending.
+  if (window._ryx_pendingCheckoutIntent) return;
+  if (window._ryx_checkoutRedirecting) return;
+  var modal = document.getElementById('onboarding-modal');
+  if (modal) modal.style.display = 'flex';
+}
+
+// Handles a choice from the onboarding modal. Marks onboarding complete so it
+// never shows again, closes the modal, then deep-links to the chosen tool.
+// An empty tool value ("Explore all the tools") just closes the modal.
+async function onboardingChoose(tool) {
+  var modal = document.getElementById('onboarding-modal');
+  if (modal) modal.style.display = 'none';
+
+  // Persist completion. Fire-and-forget: even if this write fails, the modal
+  // is already closed for this session; worst case it reappears next login.
+  if (currentUser) {
+    try {
+      sb.from('profiles').update({ onboarding_completed: true }).eq('user_id', currentUser.id);
+    } catch (e) { console.warn('onboarding flag write failed', e); }
+  }
+
+  // Deep-link to the chosen tool. Empty -> stay on the dashboard home.
+  // 'follower' needs showFollowerTool() (extra setup); others use showTool().
+  if (tool === 'follower') {
+    if (typeof showFollowerTool === 'function') showFollowerTool();
+  } else if (tool && typeof showTool === 'function') {
+    showTool(tool);
+  }
 }
 
 async function checkTermsAcceptance() {
@@ -810,7 +856,7 @@ async function checkTermsAcceptance() {
     // maybeSingle (not single): a first-run user has NO profiles row yet -
     // the row is created by acceptTerms below. single() would 406 on zero
     // rows; maybeSingle returns null cleanly.
-    var { data } = await sb.from('profiles').select('accepted_terms, marketing_emails, username').eq('user_id', currentUser.id).maybeSingle();
+    var { data } = await sb.from('profiles').select('accepted_terms, marketing_emails, username, onboarding_completed').eq('user_id', currentUser.id).maybeSingle();
     if (data && data.accepted_terms) {
       // Load marketing preference into settings
       var toggle = document.getElementById('settings-marketing-emails');
@@ -818,6 +864,10 @@ async function checkTermsAcceptance() {
       // Terms already accepted (returning user, no terms gate for them) -
       // if a post-signup checkout intent is pending, fire it now.
       maybeRunPendingCheckout();
+      // First-run onboarding modal. maybeShowOnboarding bails on its own if a
+      // checkout is pending / a redirect is in flight, so a paid user mid-
+      // checkout will not see it here - it shows on the post-Stripe load.
+      maybeShowOnboarding(data.onboarding_completed);
       return;
     }
     // Show terms modal with existing marketing preference
@@ -944,6 +994,11 @@ async function acceptTerms() {  var check = document.getElementById('terms-accep
     // plan intent, NOW is the correct moment to send them to checkout -
     // after the Terms of Service have been accepted, never before.
     maybeRunPendingCheckout();
+    // First-run onboarding modal. A brand-new user's profiles row was just
+    // created with onboarding_completed = false (column default), so pass
+    // false. If a paid checkout is now pending, maybeShowOnboarding bails and
+    // the modal shows instead on the post-Stripe dashboard load.
+    maybeShowOnboarding(false);
   } catch (e) {
     console.error('Accept terms error:', e);
     if (errEl) {
@@ -2436,6 +2491,11 @@ dashRegisterAction('show-tool', (e, el) => {
 });
 dashRegisterAction('show-follower', () => {
   if (typeof showFollowerTool === 'function') showFollowerTool();
+});
+
+dashRegisterAction('onboarding-choose', (e, el) => {
+  var tool = el && el.dataset ? (el.dataset.onbTool || '') : '';
+  onboardingChoose(tool);
 });
 
 // Sidebar account menu (the popup at bottom-left)
