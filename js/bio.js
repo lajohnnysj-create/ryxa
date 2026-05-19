@@ -1360,18 +1360,50 @@ async function compressBgImage(file, maxW, maxH, targetBytes) {
 function renderBioSocials() {
   const container = document.getElementById('bio-socials-form');
   if (!container) return;
-  container.innerHTML = BIO_SOCIAL_FIELDS.map(f => `
+  container.innerHTML = BIO_SOCIAL_FIELDS.map(f => {
+    const val = escapeHtml(bioState.socials[f.key] || '');
+    // Handle-type fields show a fixed URL prefix so it's clear the user
+    // only types their handle; url/email/phone fields are plain inputs.
+    if (f.type === 'username' && f.urlBase) {
+      return `
     <div class="bio-social-row">
       <div class="bio-social-icon">${f.svg}</div>
-      <input type="text" aria-label="${f.label}" placeholder="${f.label} — ${f.placeholder}"
-        value="${escapeHtml(bioState.socials[f.key] || '')}"
+      <div class="bio-social-prefixwrap">
+        <span class="bio-social-prefix">${escapeHtml(f.urlBase)}</span>
+        <input type="text" aria-label="${f.label}" placeholder="${escapeHtml(f.placeholder)}"
+          value="${val}"
+          data-bio-action="social-change" data-bio-event="input" data-bio-social="${f.key}">
+      </div>
+    </div>`;
+    }
+    return `
+    <div class="bio-social-row">
+      <div class="bio-social-icon">${f.svg}</div>
+      <input type="text" aria-label="${f.label}" placeholder="${f.label}: ${escapeHtml(f.placeholder)}"
+        value="${val}"
         data-bio-action="social-change" data-bio-event="input" data-bio-social="${f.key}">
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 }
 
 function onSocialChange(key, val) {
-  if (val && val.trim()) bioState.socials[key] = val.trim();
+  let v = (val || '').trim();
+  if (v) {
+    const field = BIO_SOCIAL_FIELDS.find(f => f.key === key);
+    // For handle-type fields: if the user pasted a full URL, reduce it to
+    // just the handle. Also strip a leading @. This keeps stored values as
+    // clean handles, and is tolerant of older data saved as full URLs.
+    if (field && field.type === 'username') {
+      // Strip protocol and any known domain path, keep the last path segment.
+      v = v.replace(/^https?:\/\//i, '').replace(/^www\./i, '');
+      if (v.indexOf('/') !== -1) {
+        const parts = v.split('/').filter(Boolean);
+        v = parts[parts.length - 1] || '';
+      }
+      v = v.replace(/^@/, '').replace(/[?#].*$/, '').trim();
+    }
+  }
+  if (v) bioState.socials[key] = v;
   else delete bioState.socials[key];
   schedulePreviewUpdate();
 }
