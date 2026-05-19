@@ -174,15 +174,15 @@ function buildAudience(kit) {
   const normalized = {};
   for (const key of Object.keys(rawSocials)) {
     const v = rawSocials[key];
-    if (typeof v === 'number') normalized[key] = { count: v, url: '' };
-    else if (v && typeof v === 'object') normalized[key] = { count: parseInt(v.count) || 0, url: v.url || '' };
+    if (typeof v === 'number') normalized[key] = { count: v, url: '', engagement: '' };
+    else if (v && typeof v === 'object') normalized[key] = { count: parseInt(v.count) || 0, url: v.url || '', engagement: (v.engagement != null ? v.engagement : '') };
   }
 
   const filled = SOCIAL_PLATFORMS
-    .map(p => ({ ...p, data: normalized[p.key] || { count: 0, url: '' } }))
+    .map(p => ({ ...p, data: normalized[p.key] || { count: 0, url: '', engagement: '' } }))
     .filter(p => p.data.count > 0);
 
-  if (filled.length === 0 && !kit.engagement_rate) return '';
+  if (filled.length === 0) return '';
 
   const total = filled.reduce((sum, p) => sum + p.data.count, 0);
 
@@ -193,10 +193,14 @@ function buildAudience(kit) {
 
   const statsHtml = filled.length > 0 ? `<div class="stats-grid">
     ${filled.map(p => {
+      const engNum = parseFloat(p.data.engagement);
+      const engLine = (isFinite(engNum) && engNum > 0)
+        ? `<div class="stat-engagement" style="font-size:11px;font-weight:600;opacity:0.75;margin-top:2px;">${engNum.toFixed(2)}% engagement</div>` : '';
       const inner = `<div class="stat-icon">${p.svg}</div>
       <div class="stat-text">
         <div class="stat-num">${formatNumber(p.data.count)}</div>
         <div class="stat-label">${esc(p.label)}</div>
+        ${engLine}
       </div>`;
       // Handle-type platforms store a bare handle; build the full URL with the
       // platform's prefix. url-type platforms store a full URL already.
@@ -218,16 +222,10 @@ function buildAudience(kit) {
     }).join('')}
   </div>` : '';
 
-  const engagementHtml = (kit.engagement_rate && parseFloat(kit.engagement_rate) > 0) ? `<div class="engagement-row">
-    <div class="engagement-label">Engagement Rate</div>
-    <div class="engagement-value">${parseFloat(kit.engagement_rate).toFixed(2)}%</div>
-  </div>` : '';
-
   return `<div class="section">
     <div class="section-title">Audience</div>
     ${totalHtml}
     ${statsHtml}
-    ${engagementHtml}
   </div>`;
 }
 
