@@ -211,11 +211,7 @@ function buildSocials(socials) {
     const href = buildSocialHref(key, val.trim());
     if (!href) continue;
     const target = (key === 'email' || key === 'phone') ? '' : ' target="_blank" rel="noopener nofollow"';
-    // Theme the icon: the <a> takes the theme text color, the svg fills with
-    // currentColor so it inherits it. Without this the svg paths default to
-    // black regardless of theme.
-    const icon = (SOCIAL_ICONS[key] || '').replace('<svg ', '<svg fill="currentColor" ');
-    items.push(`<a class="social-btn" href="${esc(href)}" aria-label="${key}" style="color:var(--text);"${target}>${icon}</a>`);
+    items.push(`<a class="social-btn" href="${esc(href)}" aria-label="${key}"${target}>${SOCIAL_ICONS[key]}</a>`);
   }
   if (!items.length) return '';
   return `<div class="socials">${items.join('')}</div>`;
@@ -273,8 +269,8 @@ function buildLink(link, currency) {
     return `<div class="subscribe-block" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;text-align:center;">
       <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:12px;">${heading}</div>
       <div style="display:flex;gap:8px;max-width:360px;margin:0 auto;" id="subscribe-form">
-        <input type="email" id="subscribe-email" placeholder="Your email" aria-label="Email address" required style="flex:1;padding:10px 14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;font-family:inherit;outline:none;min-width:0;">
-        <button data-bio-action="subscribe-submit" style="padding:10px 18px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap;transition:opacity 0.15s;" id="subscribe-btn">Subscribe</button>
+        <input type="email" id="subscribe-email" placeholder="Your email" aria-label="Email address" required style="flex:1;padding:10px 14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:16px;font-family:inherit;outline:none;min-width:0;">
+        <button data-bio-action="subscribe-submit" style="padding:10px 18px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:16px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap;transition:opacity 0.15s;" id="subscribe-btn">Subscribe</button>
       </div>
       <input type="text" id="subscribe-hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;">
       <div id="subscribe-msg" style="display:none;font-size:12px;margin-top:8px;"></div>
