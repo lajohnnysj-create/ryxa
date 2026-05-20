@@ -436,7 +436,7 @@ function renderMKSocials() {
           value="${data.count || ''}"
           data-mk-action="social-count" data-mk-event="input" data-mk-social="${p.key}"
           aria-label="${p.label} follower count">
-        <input type="number" min="0" max="100" step="0.01" placeholder="Rate %"
+        <input type="number" min="0" max="100" step="0.01" placeholder="Eng. %"
           value="${data.engagement || ''}"
           data-mk-action="social-engagement" data-mk-event="input" data-mk-social="${p.key}"
           aria-label="${p.label} engagement rate percentage"
@@ -460,6 +460,14 @@ function onMKSocialCount(key, val) {
 
 function onMKSocialEngagement(key, val) {
   if (!mkState.socials[key]) mkState.socials[key] = { count: 0, url: '', engagement: '' };
+  // Hard cap at 5 characters - covers values like "99.99" or "100.0".
+  // Reject anything longer so users can't type a 6+ digit rate.
+  if (typeof val === 'string' && val.length > 5) {
+    // Restore the displayed value to whatever's stored (rejects the extra char).
+    const el = document.querySelector('[data-mk-action="social-engagement"][data-mk-social="' + key + '"]');
+    if (el) el.value = mkState.socials[key].engagement || '';
+    return;
+  }
   const n = parseFloat(val);
   // Engagement rate is a percentage: only keep a valid 0-100 value.
   mkState.socials[key].engagement = (isFinite(n) && n >= 0 && n <= 100) ? String(val).trim() : '';
@@ -1622,8 +1630,8 @@ function buildMKPreviewHTML() {
   .total-num{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;letter-spacing:-0.8px;background:${t.avatarBorder};-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;}
   .total-lbl{font-size:9px;color:${t.muted};text-transform:uppercase;letter-spacing:0.06em;margin-top:4px;}
   .stats-list{display:flex;flex-direction:column;gap:6px;}
-  .stat-row{background:${t.surface2};border:1px solid ${t.border};border-radius:8px;padding:9px 12px;display:flex;align-items:center;gap:10px;}
-  .stat-icn{width:24px;height:24px;border-radius:6px;background:${t.surface};border:1px solid ${t.border};display:flex;align-items:center;justify-content:center;color:${t.muted2};flex-shrink:0;}
+  .stat-row{padding:9px 12px;display:flex;align-items:center;gap:10px;}
+  .stat-icn{width:24px;height:24px;display:flex;align-items:center;justify-content:center;color:${t.muted2};flex-shrink:0;}
   .stat-icn svg{width:12px;height:12px;fill:currentColor;}
   .stat-name{font-size:11px;font-weight:600;color:${t.text};flex:1;min-width:0;}
   .stat-foll{text-align:right;flex-shrink:0;}
