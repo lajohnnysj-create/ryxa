@@ -449,6 +449,13 @@ function renderMKSocials() {
 }
 
 function onMKSocialCount(key, val) {
+  // Hard cap at 9 digits - no real creator account exceeds this (largest in
+  // existence is ~660M followers). Reject anything longer.
+  if (typeof val === 'string' && val.length > 9) {
+    const el = document.querySelector('[data-mk-action="social-count"][data-mk-social="' + key + '"]');
+    if (el) el.value = (mkState.socials[key] && mkState.socials[key].count) ? mkState.socials[key].count : '';
+    return;
+  }
   const n = parseInt(val);
   if (!mkState.socials[key]) mkState.socials[key] = { count: 0, url: '', engagement: '' };
   mkState.socials[key].count = isFinite(n) && n > 0 ? n : 0;
