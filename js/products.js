@@ -231,7 +231,9 @@ function renderProductsList() {
 
 async function refreshProductsStorage() {
   try {
-    var { data, error } = await sb.rpc('get_digital_products_storage_used');
+    // Storage is shared with Courses (course lesson files). The new RPC sums
+    // both digital_product_files + course_lesson_files for the current user.
+    var { data, error } = await sb.rpc('get_creator_storage_used');
     if (error) throw error;
     productsState.storageBytes = Number(data || 0);
     var pct = Math.min(100, Math.round((productsState.storageBytes / DP_MAX_ACCOUNT_BYTES) * 100));
@@ -239,7 +241,7 @@ async function refreshProductsStorage() {
     var fill = document.getElementById('products-storage-fill');
     var txt = document.getElementById('products-storage-text');
     if (fill) { fill.style.width = pct + '%'; fill.style.background = color; }
-    if (txt) txt.textContent = dpFormatBytes(productsState.storageBytes) + ' / 500 MB';
+    if (txt) txt.textContent = dpFormatBytes(productsState.storageBytes) + ' / 500 MB (shared with Courses)';
   } catch (e) {
     console.error('refreshProductsStorage failed:', e);
   }
