@@ -671,8 +671,8 @@ var MAX_LESSON_TEXT_BYTES = 1024 * 1024;
 
 async function saveCourseModules(courseId) {
   // Pre-flight: validate every lesson's text_content size before we start
-  // deleting/re-inserting. Catches oversize content with a clear error and
-  // leaves the existing DB rows intact.
+  // any DB writes. Catches oversize content with a clear error and leaves
+  // the existing DB rows intact (because no writes have happened yet).
   for (let mi = 0; mi < courseModules.length; mi++) {
     const mod = courseModules[mi];
     for (let li = 0; li < (mod.lessons || []).length; li++) {
@@ -687,31 +687,110 @@ async function saveCourseModules(courseId) {
     }
   }
 
-  // Delete existing and re-insert (simplest approach for MVP)
-  await sb.from('course_lessons').delete().eq('course_id', courseId);
-  await sb.from('course_modules').delete().eq('course_id', courseId);
+  // Diff-and-sync approach. Previously this function wiped all modules and
+  // lessons and re-inserted them, which generated fresh UUIDs on every save.
+  // That made it impossible for any related table (like course_lesson_files)
+  // to hold a stable foreign key to a lesson - the IDs would change on every
+  // save and ON DELETE CASCADE would wipe related rows. Diffing preserves IDs
+  // for existing rows, only deleting what's been removed in local state and
+  // only inserting what's genuinely new.
 
+  // Step 1: load current DB state and build lookup maps by id
+  const { data: dbModules, error: dbModErr } = await sb
+    .from('course_modules')
+    .select('id, title, sort_order')
+    .eq('course_id', courseId);
+  if (dbModErr) throw dbModErr;
+  const dbModulesById = {};
+  (dbModules || []).forEach(function(m) { dbModulesById[m.id] = m; });
+
+  const { data: dbLessons, error: dbLessErr } = await sb
+    .from('course_lessons')
+    .select('id, module_id')
+    .eq('course_id', courseId);
+  if (dbLessErr) throw dbLessErr;
+  const dbLessonsById = {};
+  (dbLessons || []).forEach(function(l) { dbLessonsById[l.id] = l; });
+
+  // Step 2: classify local state. A "new_*" id means the row was added
+  // client-side and hasn't been persisted yet. A UUID means it's an existing
+  // DB row (possibly with edits we need to UPDATE).
+  function isNewId(id) {
+    return typeof id === 'string' && id.indexOf('new_') === 0;
+  }
+
+  // Step 3: figure out what needs to be deleted (in DB but not in local state).
+  // We do this BEFORE inserts/updates so that the cascade from course_lessons
+  // to course_lesson_files (which we'll add in a parallel migration) fires
+  // only for genuinely removed lessons - not for every lesson on every save.
+  const localModuleIds = new Set();
+  const localLessonIds = new Set();
   for (let mi = 0; mi < courseModules.length; mi++) {
     const mod = courseModules[mi];
-    const { data: savedMod, error: modErr } = await sb.from('course_modules').insert({
-      course_id: courseId,
-      title: mod.title || 'Untitled Module',
-      sort_order: mi
-    }).select().single();
-    if (modErr || !savedMod) continue;
-    mod.id = savedMod.id;
-
+    if (!isNewId(mod.id)) localModuleIds.add(mod.id);
     for (let li = 0; li < (mod.lessons || []).length; li++) {
       const lesson = mod.lessons[li];
-      // Capture the new DB id back into working state. Without this, the
-      // local lesson object continues to use its temporary "new_TIMESTAMP"
-      // id, which breaks anything that needs to query the lesson by id
-      // immediately after save (e.g., starting a Bunny upload right after
-      // adding a new video lesson). Mirrors the pattern used for modules
-      // above (mod.id = savedMod.id).
-      const { data: savedLesson, error: lessonErr } = await sb.from('course_lessons').insert({
+      if (!isNewId(lesson.id)) localLessonIds.add(lesson.id);
+    }
+  }
+
+  const lessonsToDelete = (dbLessons || [])
+    .map(function(l) { return l.id; })
+    .filter(function(id) { return !localLessonIds.has(id); });
+  if (lessonsToDelete.length > 0) {
+    const { error: delLErr } = await sb.from('course_lessons').delete().in('id', lessonsToDelete);
+    if (delLErr) throw delLErr;
+  }
+
+  const modulesToDelete = (dbModules || [])
+    .map(function(m) { return m.id; })
+    .filter(function(id) { return !localModuleIds.has(id); });
+  if (modulesToDelete.length > 0) {
+    const { error: delMErr } = await sb.from('course_modules').delete().in('id', modulesToDelete);
+    if (delMErr) throw delMErr;
+  }
+
+  // Step 4: insert new modules first (lessons need module_id, including for
+  // existing lessons that may have moved to a new module). Capture new ids
+  // back into local state.
+  for (let mi = 0; mi < courseModules.length; mi++) {
+    const mod = courseModules[mi];
+    if (isNewId(mod.id)) {
+      const { data: savedMod, error: insErr } = await sb.from('course_modules').insert({
         course_id: courseId,
-        module_id: savedMod.id,
+        title: mod.title || 'Untitled Module',
+        sort_order: mi
+      }).select('id').single();
+      if (insErr || !savedMod) throw (insErr || new Error('Module insert returned no row'));
+      mod.id = savedMod.id;
+    }
+  }
+
+  // Step 5: update existing modules (title or sort_order may have changed).
+  // Skip rows whose title and sort_order match the DB exactly - small optim,
+  // also avoids unnecessary updated_at churn.
+  for (let mi = 0; mi < courseModules.length; mi++) {
+    const mod = courseModules[mi];
+    if (isNewId(mod.id)) continue;  // already handled in step 4
+    const dbMod = dbModulesById[mod.id];
+    const newTitle = mod.title || 'Untitled Module';
+    if (!dbMod || dbMod.title !== newTitle || dbMod.sort_order !== mi) {
+      const { error: updErr } = await sb.from('course_modules')
+        .update({ title: newTitle, sort_order: mi })
+        .eq('id', mod.id);
+      if (updErr) throw updErr;
+    }
+  }
+
+  // Step 6: insert new lessons, then update existing lessons. Done module-
+  // by-module so module_id is always the freshly-persisted id from step 4.
+  for (let mi = 0; mi < courseModules.length; mi++) {
+    const mod = courseModules[mi];
+    for (let li = 0; li < (mod.lessons || []).length; li++) {
+      const lesson = mod.lessons[li];
+      const lessonPayload = {
+        course_id: courseId,
+        module_id: mod.id,
         title: lesson.title || (lesson.lesson_type === 'video' ? 'Untitled Video' : 'Untitled Lesson'),
         lesson_type: lesson.lesson_type || 'video',
         video_url: lesson.video_url || null,
@@ -719,18 +798,27 @@ async function saveCourseModules(courseId) {
         sort_order: li,
         is_preview: !!lesson.is_preview,
         images: lesson.images || [],
-        // Preserve Bunny Stream fields across save (DELETE-then-INSERT pattern).
-        // Without this, every course save orphans the Bunny video. The
-        // cleanup cron has a reclaim pass that handles transient orphaning
-        // during a save, but the INSERT must restore the bunny_video_id.
+        // Preserve Bunny Stream fields across save. Without this, every
+        // course save orphans the Bunny video.
         bunny_video_id: lesson.bunny_video_id || null,
         bunny_video_status: lesson.bunny_video_status || null,
         bunny_video_duration_seconds: lesson.bunny_video_duration_seconds || null,
         bunny_thumbnail_url: lesson.bunny_thumbnail_url || null,
         bunny_uploaded_at: lesson.bunny_uploaded_at || null
-      }).select('id').single();
-      if (savedLesson && savedLesson.id) {
+      };
+
+      if (isNewId(lesson.id)) {
+        const { data: savedLesson, error: insErr } = await sb.from('course_lessons')
+          .insert(lessonPayload)
+          .select('id')
+          .single();
+        if (insErr || !savedLesson) throw (insErr || new Error('Lesson insert returned no row'));
         lesson.id = savedLesson.id;
+      } else {
+        const { error: updErr } = await sb.from('course_lessons')
+          .update(lessonPayload)
+          .eq('id', lesson.id);
+        if (updErr) throw updErr;
       }
     }
   }
