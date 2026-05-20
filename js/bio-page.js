@@ -220,8 +220,8 @@ function buildLink(link) {
     return `<div class="subscribe-block" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;text-align:center;">
       <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:12px;">${heading}</div>
       <div style="display:flex;gap:8px;max-width:360px;margin:0 auto;" id="subscribe-form">
-        <input type="email" id="subscribe-email" placeholder="Your email" aria-label="Email address" required style="flex:1;padding:10px 14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;font-family:inherit;outline:none;min-width:0;">
-        <button data-bio-action="subscribe-submit" style="padding:10px 18px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap;transition:opacity 0.15s;" id="subscribe-btn">Subscribe</button>
+        <input type="email" id="subscribe-email" placeholder="Your email" aria-label="Email address" required style="flex:1;padding:10px 14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:16px;font-family:inherit;outline:none;min-width:0;">
+        <button data-bio-action="subscribe-submit" style="padding:10px 18px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:16px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap;transition:opacity 0.15s;" id="subscribe-btn">Subscribe</button>
       </div>
       <input type="text" id="subscribe-hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;">
       <div id="subscribe-msg" style="display:none;font-size:12px;margin-top:8px;"></div>
