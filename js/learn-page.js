@@ -896,6 +896,7 @@ function showCourseOverview() {
   html += '<h3 style="font-family:Syne,sans-serif;font-size:16px;font-weight:800;letter-spacing:-0.3px;margin-bottom:16px;">Curriculum</h3>';
   viewerModules.forEach(function(mod, mi) {
     var modLessons = viewerLessons.filter(function(l) { return l.module_id === mod.id; });
+    var modQuiz = viewerQuizzesByModule[mod.id] || null;
     html += '<div style="margin-bottom:16px;">';
     html += '<div style="font-size:12px;color:var(--text);font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Module ' + (mi + 1) + ': ' + escapeHtml(mod.title) + '</div>';
     modLessons.forEach(function(l, li) {
@@ -906,6 +907,19 @@ function showCourseOverview() {
         + check + ' ' + icon + ' ' + escapeHtml(l.title || (l.lesson_type === 'video' ? 'Untitled Video' : 'Untitled Lesson'))
         + '</div>';
     });
+    // Quiz row at end of module (if this module has a quiz). Same shape as
+    // the lesson rows: completion circle + icon + label. The completion
+    // circle is filled only for require_pass quizzes the student has passed.
+    if (modQuiz) {
+      var quizPassed = viewerPassedQuizIds.has(modQuiz.id);
+      var quizIcon = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+      var quizCheck = quizPassed ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' : '<span style="width:14px;height:14px;display:inline-block;border:1.5px solid var(--muted);border-radius:50%;"></span>';
+      var qCount = Array.isArray(modQuiz.questions) ? modQuiz.questions.length : 0;
+      var requiredBadge = modQuiz.require_pass ? '<span style="display:inline-block;margin-left:6px;padding:1px 6px;font-size:10px;font-weight:600;background:rgba(124,58,237,0.12);color:#c4b5fd;border:1px solid rgba(124,58,237,0.25);border-radius:4px;letter-spacing:0.04em;">Required</span>' : '';
+      html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:13px;color:var(--text);">'
+        + quizCheck + ' ' + quizIcon + ' Quiz &middot; ' + qCount + ' question' + (qCount === 1 ? '' : 's') + requiredBadge
+        + '</div>';
+    }
     html += '</div>';
   });
   html += '</div>';
