@@ -971,8 +971,73 @@ function addCourseModule() {
   renderCourseModules();
 }
 
+// Reusable typed-DELETE confirmation modal. Same UX as deleteCourse (input
+// field, must type DELETE to enable confirm button). Used for destructive
+// actions where showModalConfirm's single click would be too easy to
+// trigger accidentally - e.g., a missed double-click on the wrong button.
+//
+// title: modal heading (e.g., "Delete Module")
+// message: explanatory text about what will be lost
+// confirmLabel: button text (e.g., "Delete Module")
+// Returns a Promise that resolves to true if confirmed, false if canceled.
+function confirmTypedDelete(title, message, confirmLabel) {
+  return new Promise(function(resolve) {
+    var overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;';
+    var inputId = 'typed-delete-input-' + Date.now();
+    var confirmId = 'typed-delete-confirm-' + Date.now();
+    var cancelId = 'typed-delete-cancel-' + Date.now();
+    overlay.innerHTML = '<div class="course-s-a25ccd">'
+      + '<div class="course-s-bc1a76">' + escapeHtml(title) + '</div>'
+      + '<p class="course-s-1668a0">' + escapeHtml(message) + '</p>'
+      + '<p class="course-s-7a34e5">Type <strong class="course-s-9dd120">DELETE</strong> to confirm:</p>'
+      + '<input type="text" id="' + inputId + '" placeholder="DELETE" class="course-s-6048ce">'
+      + '<div class="course-s-b9bbe5">'
+      + '<button id="' + cancelId + '" class="course-s-d25d01">Cancel</button>'
+      + '<button id="' + confirmId + '" class="course-s-e05efc" disabled>' + escapeHtml(confirmLabel) + '</button>'
+      + '</div></div>';
+    document.body.appendChild(overlay);
+
+    var input = document.getElementById(inputId);
+    var confirmBtn = document.getElementById(confirmId);
+    var cancelBtn = document.getElementById(cancelId);
+
+    input.addEventListener('input', function() {
+      var match = input.value.trim() === 'DELETE';
+      confirmBtn.disabled = !match;
+      confirmBtn.style.opacity = match ? '1' : '0.4';
+      if (match) { confirmBtn.style.background = '#ef4444'; confirmBtn.style.color = '#fff'; confirmBtn.style.borderColor = '#ef4444'; }
+      else { confirmBtn.style.background = 'transparent'; confirmBtn.style.color = '#ef4444'; confirmBtn.style.borderColor = 'rgba(239,68,68,0.3)'; }
+    });
+
+    function close(result) {
+      if (overlay.parentNode) document.body.removeChild(overlay);
+      resolve(result);
+    }
+    cancelBtn.onclick = function() { close(false); };
+    overlay.onclick = function(e) { if (e.target === overlay) close(false); };
+    confirmBtn.onclick = function() {
+      if (confirmBtn.disabled) return;
+      close(true);
+    };
+
+    // Focus the input so the user can type immediately
+    setTimeout(function() { input.focus(); }, 50);
+  });
+}
+
 function removeCourseModule(idx) {
-  showModalConfirm('Delete Module', 'Are you sure you want to delete this module and all its lessons?', function() {
+  var mod = courseModules[idx];
+  if (!mod) return;
+  var lessonCount = (mod.lessons || []).length;
+  var hasQuiz = !!mod.quiz;
+  var modLabel = mod.title ? '"' + mod.title + '"' : 'this module';
+  var detail = 'This will permanently delete ' + modLabel
+    + ' and ' + lessonCount + ' lesson' + (lessonCount === 1 ? '' : 's')
+    + (hasQuiz ? ' plus the attached quiz' : '')
+    + '. This cannot be undone.';
+  confirmTypedDelete('Delete Module', detail, 'Delete Module').then(function(confirmed) {
+    if (!confirmed) return;
     courseModules.splice(idx, 1);
     renderCourseModules();
   });
@@ -997,11 +1062,15 @@ function removeCourseLesson(modIdx, lessonIdx) {
 }
 
 function confirmRemoveLesson(modIdx, lessonIdx) {
-  showModalConfirm('Delete Lesson', 'Are you sure you want to delete this lesson? Any attached download files will also be deleted.', async function() {
+  var lesson = courseModules[modIdx] && courseModules[modIdx].lessons[lessonIdx];
+  if (!lesson) return;
+  var lessonLabel = lesson.title ? '"' + lesson.title + '"' : 'this lesson';
+  var detail = 'This will permanently delete ' + lessonLabel + ' and any attached download files. This cannot be undone.';
+  confirmTypedDelete('Delete Lesson', detail, 'Delete Lesson').then(async function(confirmed) {
+    if (!confirmed) return;
     // Capture the lesson id BEFORE the splice, so we can clean up its files.
     // For new_* lessons this is a no-op inside deleteAllFilesForLesson.
-    var lesson = courseModules[modIdx] && courseModules[modIdx].lessons[lessonIdx];
-    var lessonId = lesson ? lesson.id : null;
+    var lessonId = lesson.id;
     if (lessonId) {
       await deleteAllFilesForLesson(lessonId);
       // refreshCourseStorage updates the indicator and the pre-flight cache
