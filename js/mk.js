@@ -1258,11 +1258,9 @@ async function toggleMediaKitPublish() {
     // guard in the live preview). But IF they did enter an email, validate
     // its format so we don't publish a typo like "john@gmail" (no TLD).
     if (mkState.contact_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mkState.contact_email)) {
-      const emailInput = document.getElementById('mk-contact-email');
-      if (emailInput) {
-        emailInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        emailInput.focus();
-      }
+      // Inline error renders right under the Publish button at the top of
+      // the form. Do NOT scroll/focus the email input - that would push the
+      // user past the error message they need to see.
       showMKStatus('error', 'Contact email looks invalid.');
       return;
     }
@@ -1575,9 +1573,15 @@ function buildMKPreviewHTML() {
 
   // Contact
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mkState.contact_email || '');
-  const contactHtml = emailValid ? `<div class="sec">
+  // Render the Contact section when EITHER a valid email OR a note is
+  // present. Previously the note was treated as a supplement to the email
+  // and never rendered alone. Now creators can use the note as a standalone
+  // "how to reach me" message (e.g., "DM me on Instagram") without needing
+  // to expose an email address.
+  const hasContent = emailValid || !!mkState.contact_note;
+  const contactHtml = hasContent ? `<div class="sec">
     <div class="sec-t">Contact</div>
-    <div class="contact-box">${escapeHtml(mkState.contact_email)}</div>
+    ${emailValid ? `<div class="contact-box">${escapeHtml(mkState.contact_email)}</div>` : ''}
     ${mkState.contact_note ? `<div class="contact-n">${escapeHtml(mkState.contact_note)}</div>` : ''}
   </div>` : '';
 
