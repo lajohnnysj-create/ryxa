@@ -798,9 +798,14 @@ function removeMKCustomBg() {
 function showMKStatus(kind, msg) {
   const el = document.getElementById('mk-save-status');
   if (!el) return;
+  el.style.display = 'block';
+  el.style.background = kind === 'error' ? 'rgba(239,68,68,0.1)' : 'rgba(74,222,128,0.1)';
+  el.style.color = kind === 'error' ? '#f87171' : '#4ade80';
+  el.style.border = '1px solid ' + (kind === 'error' ? 'rgba(239,68,68,0.3)' : 'rgba(74,222,128,0.3)');
   el.textContent = msg;
-  el.style.color = kind === 'error' ? '#fca5a5' : kind === 'success' ? '#4ade80' : 'var(--muted)';
-  if (kind !== 'error') setTimeout(() => { if (el.textContent === msg) el.textContent = ''; }, 3000);
+  setTimeout(() => {
+    if (el.textContent === msg) el.style.display = 'none';
+  }, 5000);
 }
 
 async function saveMediaKit() {
