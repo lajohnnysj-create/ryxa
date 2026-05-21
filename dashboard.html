@@ -4511,6 +4511,33 @@
   .course-s-vurl-status.valid { display:inline-flex;background:rgba(74,222,128,0.1);color:#4ade80;border:1px solid rgba(74,222,128,0.3); }
   .course-s-vurl-status.invalid { display:inline-flex;background:rgba(239,68,68,0.1);color:#f87171;border:1px solid rgba(239,68,68,0.3); }
 
+  /* Lesson files panel (downloadable attachments per lesson, max 5, 50 MB each).
+     Sits between the lesson content (video/text) and the move/info/done row.
+     Visually distinct but quiet, so it doesn't compete with the primary content. */
+  .course-s-files-panel { margin-top:14px;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px; }
+  .course-s-files-header { display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px; }
+  .course-s-files-title { font-size:12px;font-weight:600;color:var(--text);text-transform:uppercase;letter-spacing:0.04em; }
+  .course-s-files-hint { font-size:11px;color:var(--muted); }
+  .course-s-files-locked { font-size:11px;color:var(--muted);font-style:italic; }
+  .course-s-files-list { display:flex;flex-direction:column;gap:6px;margin-bottom:10px; }
+  .course-s-file-row { display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px; }
+  .course-s-file-icn { flex-shrink:0;color:var(--muted); }
+  .course-s-file-name { flex:1;font-size:12px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0; }
+  .course-s-file-size { font-size:11px;color:var(--muted);flex-shrink:0; }
+  .course-s-file-del { background:none;border:none;color:var(--muted);cursor:pointer;padding:4px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;transition:all 0.15s; }
+  .course-s-file-del:hover { color:#f87171;background:rgba(239,68,68,0.1); }
+  .course-s-files-actions { display:flex;align-items:center;gap:8px; }
+  .course-s-file-add { display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:var(--surface);border:1px dashed var(--border);border-radius:6px;font-size:12px;font-weight:500;color:var(--text);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s; }
+  .course-s-file-add:hover { border-color:var(--accent);color:var(--accent); }
+  .course-s-file-limit { font-size:11px;color:var(--muted);font-style:italic; }
+
+  /* Shared 500 MB storage indicator (Digital Products + course downloads) */
+  .course-s-storage { margin:8px 0 16px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px; }
+  .course-s-storage-bar { height:6px;background:var(--bg);border-radius:3px;overflow:hidden;margin-bottom:8px; }
+  .course-s-storage-fill { height:100%;background:#22c55e;width:0;transition:width 0.3s,background 0.3s; }
+  .course-s-storage-text { font-size:12px;color:var(--text);font-weight:500; }
+  .course-s-storage-hint { font-size:11px;color:var(--muted);margin-top:2px; }
+
   /* Bunny upload UI: tab switcher + upload zone + progress + ready state */
   .course-vid-tabs { display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:14px; }
   .course-vid-tab { background:none;border:none;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;padding:9px 14px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all 0.15s;display:inline-flex;align-items:center;gap:6px; }
@@ -6784,6 +6811,14 @@
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               New Course
             </button>
+          </div>
+          <!-- Storage indicator for course lesson files. The 500 MB account
+               quota is shared with Digital Products. Course videos go to
+               Bunny Stream separately and don't count against this. -->
+          <div class="course-s-storage">
+            <div class="course-s-storage-bar"><div id="course-storage-fill" class="course-s-storage-fill"></div></div>
+            <div id="course-storage-text" class="course-s-storage-text">0 MB / 500 MB for downloadable files (shared with Digital Products)</div>
+            <div class="course-s-storage-hint">Videos and images don't count toward this limit.</div>
           </div>
           <div id="courses-empty" class="course-s-e2a99a">
             <div class="course-s-ec7525"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M8 7h8M8 11h6"/></svg></div>
