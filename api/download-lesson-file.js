@@ -1,14 +1,15 @@
 // Vercel serverless function — generates a 5-minute signed download URL
 // for a course lesson file. Access rules:
-//   - File is on a free preview lesson (is_preview = true) -> anyone allowed,
-//     including unauthenticated visitors (matches preview-video behavior).
-//   - File is on a regular lesson -> caller must be authenticated AND either:
+//   Caller MUST be authenticated AND either:
 //       * the course owner, OR
 //       * an enrolled student in the parent course.
+//   Preview lessons let visitors WATCH for free but downloads are always
+//   gated. Rationale: a downloaded file is a permanent asset; if previews
+//   gave them away, creators are punished for putting their best work in
+//   the preview slot.
 //
 // POST /api/download-lesson-file
-// Headers: Authorization: Bearer <token>   (optional - only required for
-//                                            non-preview lessons)
+// Headers: Authorization: Bearer <token>   (required)
 // Body:    { file_id }
 //
 // Response: { url, expires_at, filename }
@@ -85,8 +86,15 @@ module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    // 1. Parse body
-    var body = req.body || {};
+    // 1. Parse body. Vercel auto-parses JSON bodies, but if the client sent
+    // malformed JSON, accessing req.body throws synchronously. Wrap in a
+    // try so we return a clean 400 instead of a confusing 500.
+    var body;
+    try {
+      body = req.body || {};
+    } catch (parseErr) {
+      return res.status(400).json({ error: 'Invalid JSON body' });
+    }
     var fileId = body.file_id;
     if (!fileId) {
       return res.status(400).json({ error: 'Missing file_id' });
@@ -105,17 +113,10 @@ module.exports = async (req, res) => {
     }
     var file = fileRows[0];
 
-    var lessonRows = await sbSelect(
-      'course_lessons?id=eq.' + encodeURIComponent(file.lesson_id) +
-      '&select=id,is_preview&limit=1'
-    );
-    if (!lessonRows || lessonRows.length === 0) {
-      // Lesson got deleted but the file row survived (shouldn't happen with
-      // ON DELETE CASCADE, but be defensive). Treat as not found.
-      return res.status(404).json({ error: 'File not found' });
-    }
-    var isPreview = lessonRows[0].is_preview === true;
-
+    // Load the parent course for the owner check. We no longer need the
+    // lesson row since preview lessons no longer bypass auth (decision:
+    // course downloads are an enrolled-students-only benefit, consistent
+    // with how Digital Products gate on purchase).
     var courseRows = await sbSelect(
       'courses?id=eq.' + encodeURIComponent(file.course_id) +
       '&select=id,user_id&limit=1'
@@ -125,36 +126,32 @@ module.exports = async (req, res) => {
     }
     var ownerId = courseRows[0].user_id;
 
-    // 3. Authorization decision tree.
-    //    (a) Preview lesson -> no auth needed, anyone allowed.
-    //    (b) Owner of the course -> always allowed (auth required).
-    //    (c) Enrolled student -> allowed (auth required).
-    //    Otherwise -> 403.
-    if (!isPreview) {
-      var user = await verifyJWT(req.headers.authorization || '');
-      if (!user) {
-        return res.status(401).json({ error: 'You must be signed in to download this file' });
-      }
-      var allowed = false;
+    // 3. Authorization. Every download requires auth + either course
+    // ownership or active enrollment. Preview lessons let visitors WATCH
+    // for free but downloads are always gated.
+    var user = await verifyJWT(req.headers.authorization || '');
+    if (!user) {
+      return res.status(401).json({ error: 'You must be signed in to download this file' });
+    }
+    var allowed = false;
 
-      // Owner check
-      if (ownerId && user.id === ownerId) {
-        allowed = true;
-      }
+    // Owner check
+    if (ownerId && user.id === ownerId) {
+      allowed = true;
+    }
 
-      // Enrollment check (only if not already allowed)
-      if (!allowed) {
-        var enrolls = await sbSelect(
-          'course_enrollments?course_id=eq.' + encodeURIComponent(file.course_id) +
-          '&user_id=eq.' + encodeURIComponent(user.id) +
-          '&select=id&limit=1'
-        );
-        if (enrolls && enrolls.length > 0) allowed = true;
-      }
+    // Enrollment check (only if not already allowed)
+    if (!allowed) {
+      var enrolls = await sbSelect(
+        'course_enrollments?course_id=eq.' + encodeURIComponent(file.course_id) +
+        '&user_id=eq.' + encodeURIComponent(user.id) +
+        '&select=id&limit=1'
+      );
+      if (enrolls && enrolls.length > 0) allowed = true;
+    }
 
-      if (!allowed) {
-        return res.status(403).json({ error: 'You are not enrolled in this course' });
-      }
+    if (!allowed) {
+      return res.status(403).json({ error: 'You are not enrolled in this course' });
     }
 
     // 4. Generate signed URL
@@ -168,13 +165,6 @@ module.exports = async (req, res) => {
     });
   } catch (e) {
     console.error('download-lesson-file error:', e);
-    // TEMPORARY: surface the actual error for debugging. Revert this to the
-    // generic message before considering this stable. Security smell to leak
-    // internals to public callers, but invaluable for one-time triage.
-    return res.status(500).json({
-      error: 'Could not generate download link',
-      _debug: (e && e.message) ? String(e.message).slice(0, 500) : String(e).slice(0, 500),
-      _debug_stack: (e && e.stack) ? String(e.stack).slice(0, 800) : null
-    });
+    return res.status(500).json({ error: 'Could not generate download link' });
   }
 };
