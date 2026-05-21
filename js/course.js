@@ -411,6 +411,12 @@ async function saveCourse() {
     // Save modules & lessons
     await saveCourseModules(courseId);
 
+    // Re-render so any lessons that were "new" before this save now reflect
+    // their real DB ids in the UI. Without this, an expanded just-saved
+    // lesson keeps showing the "Save first to attach files" message because
+    // its rendered HTML was built before the save completed.
+    renderCourseModules();
+
     showCourseMsg('success', 'Course saved!');
     courseCoverFile = null;
   } catch (err) {
