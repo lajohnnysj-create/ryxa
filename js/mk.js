@@ -917,7 +917,6 @@ async function saveMediaKit() {
     await deleteMKStaleBgs();
     updateMKPublishUI();
     showMKStatus('success', 'Saved ✓');
-    showDashToast('success', 'Media Kit changes saved.');
     // Re-render username hint so "Press save to change username" disappears
     const mkUname = document.getElementById('mk-username')?.value?.trim();
     if (mkUname) renderMKUsernameAvailable(mkUname);
@@ -1073,10 +1072,11 @@ async function manualRefreshIG() {
   const res = await refreshIGData();
   if (res && res.ok && res.data) {
     mkAudCache = { connected: true, data: res.data };
-    showDashToast('success', 'Instagram data refreshed.');
-  } else {
-    showDashToast('error', (res && res.error) || 'Could not refresh Instagram data.');
   }
+  // Result is communicated by the button state itself: success = data updates
+  // on screen + button enters its cooldown countdown; failure = data stays as
+  // it was + button just becomes clickable again. No toast needed (and toasts
+  // collide with the iOS non-safe zone on devices with a notch).
   // 5-minute cooldown regardless of success — protects rate limits
   mkAudRefreshLockUntil = Date.now() + 5 * 60 * 1000;
   renderAudienceAutomatic();
