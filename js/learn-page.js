@@ -935,13 +935,24 @@ function showCourseOverview() {
 
   content.innerHTML = html;
 
-  // Nav: no prev, next is first lesson
+  // Nav: no prev, next is first item (lesson OR quiz)
   var all = getAllLessonsOrdered();
   if (all.length > 0) {
+    var first = all[0];
+    var firstAction, firstIdAttr, firstTitle;
+    if (first.kind === 'quiz') {
+      firstAction = 'select-quiz';
+      firstIdAttr = 'data-learn-quiz-id="' + first.item.id + '"';
+      firstTitle = 'Quiz';
+    } else {
+      firstAction = 'select-lesson';
+      firstIdAttr = 'data-learn-lesson-id="' + first.item.id + '"';
+      firstTitle = first.item.title || (first.item.lesson_type === 'video' ? 'Untitled Video' : 'Untitled Lesson');
+    }
     nav.innerHTML = '<div class="viewer-nav-btn viewer-nav-prev disabled"><span class="viewer-nav-label">← Previous</span><span class="viewer-nav-title"></span></div>'
-      + '<a href="#" data-learn-action="select-lesson" data-learn-lesson-id="' + all[0].id + '" class="viewer-nav-btn viewer-nav-next">'
+      + '<a href="#" data-learn-action="' + firstAction + '" ' + firstIdAttr + ' class="viewer-nav-btn viewer-nav-next">'
       + '<span class="viewer-nav-label">Next →</span>'
-      + '<span class="viewer-nav-title">' + escapeHtml(all[0].title || (all[0].lesson_type === 'video' ? 'Untitled Video' : 'Untitled Lesson')) + '</span></a>';
+      + '<span class="viewer-nav-title">' + escapeHtml(firstTitle) + '</span></a>';
   } else {
     nav.innerHTML = '';
   }
@@ -973,32 +984,54 @@ function showCourseCompletion() {
 
   content.innerHTML = html;
 
-  // Nav: prev is last lesson, no next
+  // Nav: prev is last item (lesson OR quiz), no next
   var all = getAllLessonsOrdered();
   if (all.length > 0) {
     var last = all[all.length - 1];
-    nav.innerHTML = '<a href="#" data-learn-action="select-lesson" data-learn-lesson-id="' + last.id + '" class="viewer-nav-btn viewer-nav-prev">'
+    var lastAction, lastIdAttr, lastTitle;
+    if (last.kind === 'quiz') {
+      lastAction = 'select-quiz';
+      lastIdAttr = 'data-learn-quiz-id="' + last.item.id + '"';
+      lastTitle = 'Quiz';
+    } else {
+      lastAction = 'select-lesson';
+      lastIdAttr = 'data-learn-lesson-id="' + last.item.id + '"';
+      lastTitle = last.item.title || (last.item.lesson_type === 'video' ? 'Untitled Video' : 'Untitled Lesson');
+    }
+    nav.innerHTML = '<a href="#" data-learn-action="' + lastAction + '" ' + lastIdAttr + ' class="viewer-nav-btn viewer-nav-prev">'
       + '<span class="viewer-nav-label">← Previous</span>'
-      + '<span class="viewer-nav-title">' + escapeHtml(last.title || (last.lesson_type === 'video' ? 'Untitled Video' : 'Untitled Lesson')) + '</span></a>'
+      + '<span class="viewer-nav-title">' + escapeHtml(lastTitle) + '</span></a>'
       + '<div class="viewer-nav-btn viewer-nav-next disabled"><span class="viewer-nav-label">Next →</span><span class="viewer-nav-title"></span></div>';
   } else {
     nav.innerHTML = '';
   }
 }
 
+// Returns the curriculum sequence as an ordered array of mixed items:
+//   [{kind: 'lesson', item: <lesson>}, {kind: 'quiz', item: <quiz>}, ...]
+// Quizzes appear at the end of their module's lesson list, matching how
+// they render visually in the sidebar and course overview. Used by the
+// Prev/Next nav and by the Continue button on the quiz results screen.
 function getAllLessonsOrdered() {
   var ordered = [];
   viewerModules.forEach(function(mod) {
     var modLessons = viewerLessons.filter(function(l) { return l.module_id === mod.id; });
-    modLessons.forEach(function(l) { ordered.push(l); });
+    modLessons.forEach(function(l) { ordered.push({ kind: 'lesson', item: l }); });
+    var modQuiz = viewerQuizzesByModule[mod.id];
+    if (modQuiz) ordered.push({ kind: 'quiz', item: modQuiz });
   });
   return ordered;
 }
 
 function getCurrentLessonIndex() {
   var all = getAllLessonsOrdered();
+  // currentLessonId is either a raw lesson UUID OR 'quiz:<quizId>' for quiz
+  // items. Distinguish by prefix.
+  var isQuiz = typeof currentLessonId === 'string' && currentLessonId.indexOf('quiz:') === 0;
+  var lookupId = isQuiz ? currentLessonId.slice(5) : currentLessonId;
+  var lookupKind = isQuiz ? 'quiz' : 'lesson';
   for (var i = 0; i < all.length; i++) {
-    if (all[i].id === currentLessonId) return i;
+    if (all[i].kind === lookupKind && all[i].item.id === lookupId) return i;
   }
   return -1;
 }
@@ -1419,11 +1452,10 @@ function renderQuizTaking(quiz) {
   var content = document.getElementById('viewer-content');
   content.innerHTML = html;
 
-  // The lesson-nav (Prev/Next) at the bottom of the page doesn't apply to
-  // quiz screens until D2b wires it in. For now clear it to prevent the
-  // previous lesson's nav from looking stale.
-  var nav = document.getElementById('viewer-nav');
-  if (nav) nav.innerHTML = '';
+  // Render the standard Prev/Next nav. The gating logic in renderLessonNav
+  // disables Next when the user is on a require_pass quiz that hasn't been
+  // passed yet, so the student must submit and pass before advancing.
+  renderLessonNav();
 }
 
 // Recompute the disabled state of the Submit button whenever a radio is
@@ -1627,7 +1659,30 @@ function renderQuizResults(quiz, gradeData) {
 
   // Refresh sidebar so the quiz's passed-checkmark updates if applicable
   renderViewer();
+  // Render the Prev/Next nav. Gating logic in renderLessonNav reads
+  // viewerPassedQuizIds, which we just updated above for require_pass passes,
+  // so Next will now be enabled if the student just passed.
+  renderLessonNav();
   window.scrollTo(0, 0);
+}
+
+// Builds the action attributes + display title for a single nav button
+// pointing at the given curriculum item. Used by Prev and Next buttons
+// across the lesson player, course overview, and course completion screens.
+function buildNavButtonAttrs(navItem) {
+  if (navItem.kind === 'quiz') {
+    return {
+      action: 'select-quiz',
+      idAttr: 'data-learn-quiz-id="' + navItem.item.id + '"',
+      title: 'Quiz'
+    };
+  }
+  var l = navItem.item;
+  return {
+    action: 'select-lesson',
+    idAttr: 'data-learn-lesson-id="' + l.id + '"',
+    title: l.title || (l.lesson_type === 'video' ? 'Untitled Video' : 'Untitled Lesson')
+  };
 }
 
 function renderLessonNav() {
@@ -1639,10 +1694,10 @@ function renderLessonNav() {
   var nextHtml = '';
 
   if (idx > 0) {
-    var prev = all[idx - 1];
-    prevHtml = '<a href="#" data-learn-action="select-lesson" data-learn-lesson-id="' + prev.id + '" class="viewer-nav-btn viewer-nav-prev">'
+    var prev = buildNavButtonAttrs(all[idx - 1]);
+    prevHtml = '<a href="#" data-learn-action="' + prev.action + '" ' + prev.idAttr + ' class="viewer-nav-btn viewer-nav-prev">'
       + '<span class="viewer-nav-label">← Previous</span>'
-      + '<span class="viewer-nav-title">' + escapeHtml(prev.title || (prev.lesson_type === 'video' ? 'Untitled Video' : 'Untitled Lesson')) + '</span>'
+      + '<span class="viewer-nav-title">' + escapeHtml(prev.title) + '</span>'
       + '</a>';
   } else {
     prevHtml = '<a href="#" data-learn-action="show-course-overview" class="viewer-nav-btn viewer-nav-prev">'
@@ -1651,17 +1706,44 @@ function renderLessonNav() {
       + '</a>';
   }
 
+  // Next-button gating: when the current item is a require_pass quiz that
+  // hasn't been passed, Next is disabled. The student must pass before
+  // moving on. They can still click Previous or pick another sidebar item
+  // (the sidebar is the escape hatch for re-watching prior lessons), but
+  // forward motion via Next requires passing.
+  var current = idx >= 0 ? all[idx] : null;
+  var blockedByQuiz = current
+    && current.kind === 'quiz'
+    && current.item.require_pass === true
+    && !viewerPassedQuizIds.has(current.item.id);
+
   if (idx < all.length - 1) {
-    var next = all[idx + 1];
-    nextHtml = '<a href="#" data-learn-action="select-lesson" data-learn-lesson-id="' + next.id + '" class="viewer-nav-btn viewer-nav-next">'
-      + '<span class="viewer-nav-label">Next →</span>'
-      + '<span class="viewer-nav-title">' + escapeHtml(next.title || (next.lesson_type === 'video' ? 'Untitled Video' : 'Untitled Lesson')) + '</span>'
-      + '</a>';
+    if (blockedByQuiz) {
+      nextHtml = '<div class="viewer-nav-btn viewer-nav-next disabled" title="Pass this quiz to continue">'
+        + '<span class="viewer-nav-label">Next →</span>'
+        + '<span class="viewer-nav-title">Pass quiz to continue</span>'
+        + '</div>';
+    } else {
+      var next = buildNavButtonAttrs(all[idx + 1]);
+      nextHtml = '<a href="#" data-learn-action="' + next.action + '" ' + next.idAttr + ' class="viewer-nav-btn viewer-nav-next">'
+        + '<span class="viewer-nav-label">Next →</span>'
+        + '<span class="viewer-nav-title">' + escapeHtml(next.title) + '</span>'
+        + '</a>';
+    }
   } else {
-    nextHtml = '<a href="#" data-learn-action="show-course-completion" class="viewer-nav-btn viewer-nav-next">'
-      + '<span class="viewer-nav-label">Next →</span>'
-      + '<span class="viewer-nav-title">Course Complete</span>'
-      + '</a>';
+    // No next item - either course-complete CTA, or blocked if final item is
+    // a require_pass quiz that wasn't passed
+    if (blockedByQuiz) {
+      nextHtml = '<div class="viewer-nav-btn viewer-nav-next disabled" title="Pass this quiz to complete">'
+        + '<span class="viewer-nav-label">Next →</span>'
+        + '<span class="viewer-nav-title">Pass quiz to complete</span>'
+        + '</div>';
+    } else {
+      nextHtml = '<a href="#" data-learn-action="show-course-completion" class="viewer-nav-btn viewer-nav-next">'
+        + '<span class="viewer-nav-label">Next →</span>'
+        + '<span class="viewer-nav-title">Course Complete</span>'
+        + '</a>';
+    }
   }
 
   nav.innerHTML = prevHtml + nextHtml;
@@ -2021,10 +2103,20 @@ learnRegisterAction('quiz-retake', function(e, el) {
   if (id) selectQuiz(id);
 });
 learnRegisterAction('quiz-continue', function() {
-  // For now, Continue just returns to the course overview. In D2b this
-  // gets wired into the Next-button navigation flow so it advances to
-  // the next lesson/quiz in the curriculum sequence.
-  showCourseOverview();
+  // Advance to the next item in the curriculum sequence. If we're already
+  // at the last item, go to the course completion screen instead.
+  var all = getAllLessonsOrdered();
+  var idx = getCurrentLessonIndex();
+  if (idx >= 0 && idx < all.length - 1) {
+    var next = all[idx + 1];
+    if (next.kind === 'quiz') {
+      selectQuiz(next.item.id);
+    } else {
+      selectLesson(next.item.id);
+    }
+  } else {
+    showCourseCompletion();
+  }
 });
 learnRegisterAction('mark-complete', function(e, el) {
   var id = el.getAttribute('data-learn-lesson-id');
