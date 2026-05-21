@@ -1107,8 +1107,13 @@ async function uploadLessonFile(courseId, lessonId, file) {
 // an already-deleted file (the DB delete is a no-op).
 async function deleteLessonFile(lessonId, fileId) {
   var files = lessonFilesByLessonId[lessonId] || [];
+  console.log('[deleteLessonFile] cache has', files.length, 'files for lesson', lessonId);
   var file = files.find(function(f) { return f.id === fileId; });
-  if (!file) return false;
+  if (!file) {
+    console.warn('[deleteLessonFile] file not found in cache. Looking for fileId:', fileId, 'in cache:', files.map(function(f) { return f.id; }));
+    return false;
+  }
+  console.log('[deleteLessonFile] found file:', file.filename, 'path:', file.storage_path);
   try {
     var { error: delErr } = await sb.from('course_lesson_files').delete().eq('id', fileId);
     if (delErr) throw delErr;
@@ -2606,9 +2611,15 @@ courseRegisterAction('add-lesson-file', async (e, el) => {
 courseRegisterAction('delete-lesson-file', async (e, el) => {
   var lessonId = el.dataset.courseLessonId;
   var fileId = el.dataset.courseFileId;
-  if (!lessonId || !fileId) return;
+  console.log('[delete-lesson-file] handler fired:', { lessonId: lessonId, fileId: fileId });
+  if (!lessonId || !fileId) {
+    console.warn('[delete-lesson-file] missing lessonId or fileId, aborting');
+    return;
+  }
   showModalConfirm('Delete File', 'Are you sure you want to delete this file?', async function() {
+    console.log('[delete-lesson-file] modal confirmed, calling deleteLessonFile');
     var ok = await deleteLessonFile(lessonId, fileId);
+    console.log('[delete-lesson-file] deleteLessonFile returned:', ok);
     if (ok) {
       refreshCourseStorage();
       renderCourseModules();
