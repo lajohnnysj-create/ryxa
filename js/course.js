@@ -90,7 +90,7 @@ function courseApplyDataStyles(root) {
 // =====================================================
 let coursesList = [];
 let currentCourseId = null;
-let courseModules = []; // local working copy: [{id, title, sort_order, lessons: [{id, title, lesson_type, video_url, text_content, sort_order, is_preview}]}]
+let courseModules = []; // local working copy: [{id, title, sort_order, lessons: [...], quiz: null|{id, require_pass, questions: [...]}}]
 let courseCoverFile = null;
 let coursesInited = false;
 
@@ -676,11 +676,21 @@ async function deleteCourse() {
 async function loadCourseModules(courseId) {
   const { data: modules } = await sb.from('course_modules').select('*').eq('course_id', courseId).order('sort_order');
   const { data: lessons } = await sb.from('course_lessons').select('*').eq('course_id', courseId).order('sort_order');
+  // Load quizzes (creator view = raw table, includes is_correct flags so the
+  // creator can edit). One quiz per module max, enforced by UNIQUE constraint.
+  const { data: quizzes } = await sb.from('course_quizzes').select('*').eq('course_id', courseId);
 
-  courseModules = (modules || []).map(m => ({
-    ...m,
-    lessons: (lessons || []).filter(l => l.module_id === m.id).map(l => ({ ...l, _collapsed: true }))
-  }));
+  courseModules = (modules || []).map(m => {
+    const moduleQuiz = (quizzes || []).find(q => q.module_id === m.id) || null;
+    return {
+      ...m,
+      lessons: (lessons || []).filter(l => l.module_id === m.id).map(l => ({ ...l, _collapsed: true })),
+      // quiz is null when no quiz exists for this module. When present, the
+      // shape is { id, course_id, module_id, require_pass, questions, _collapsed }.
+      // _collapsed is local-only UI state, same pattern as lessons.
+      quiz: moduleQuiz ? { ...moduleQuiz, _collapsed: true } : null
+    };
+  });
   renderCourseModules();
 }
 
@@ -705,6 +715,34 @@ async function saveCourseModules(courseId) {
           'Lesson ' + (li + 1) + ' in module ' + (mi + 1) + ' is over the 1 MB content limit. Remove some images or trim the text and try again.'
         );
         throw new Error('Lesson exceeds size cap');
+      }
+    }
+    // Pre-flight: quiz structure validation. We skip empty questions
+    // (creator added a slot but typed nothing) at save time, but partially-
+    // filled questions must have exactly 4 answers and exactly one correct.
+    if (mod.quiz && Array.isArray(mod.quiz.questions)) {
+      const filled = mod.quiz.questions.filter(q => q && q.text && q.text.trim());
+      if (filled.length > 10) {
+        showModalAlert('Too many questions', 'Module ' + (mi + 1) + ' quiz has more than 10 questions. Remove some and try again.');
+        throw new Error('Quiz exceeds question cap');
+      }
+      for (let qi = 0; qi < filled.length; qi++) {
+        const question = filled[qi];
+        const answers = Array.isArray(question.answers) ? question.answers : [];
+        if (answers.length !== 4) {
+          showModalAlert('Incomplete quiz question', 'Module ' + (mi + 1) + ' quiz question ' + (qi + 1) + ' must have exactly 4 answers.');
+          throw new Error('Quiz question malformed');
+        }
+        const filledAnswers = answers.filter(a => a && a.text && a.text.trim());
+        if (filledAnswers.length !== 4) {
+          showModalAlert('Incomplete quiz question', 'Module ' + (mi + 1) + ' quiz question ' + (qi + 1) + ' has empty answer choices. Fill all 4 or remove the question.');
+          throw new Error('Quiz answer empty');
+        }
+        const correctCount = answers.filter(a => a && a.is_correct === true).length;
+        if (correctCount !== 1) {
+          showModalAlert('Mark a correct answer', 'Module ' + (mi + 1) + ' quiz question ' + (qi + 1) + ' needs exactly one answer marked correct.');
+          throw new Error('Quiz correct answer not marked');
+        }
       }
     }
   }
@@ -843,6 +881,72 @@ async function saveCourseModules(courseId) {
         if (updErr) throw updErr;
       }
     }
+  }
+
+  // Step 7: quiz diff-and-sync. Done AFTER lessons because the quiz's
+  // module_id might point at a module that was just inserted in step 4.
+  // Three cases per module:
+  //   (A) DB has quiz, local doesn't  -> DELETE
+  //   (B) DB has quiz, local has same -> UPDATE (always - small payload)
+  //   (C) DB has no quiz, local has   -> INSERT
+  //   (D) Neither                     -> noop
+  const { data: dbQuizzes, error: dbQuizErr } = await sb
+    .from('course_quizzes')
+    .select('id, module_id')
+    .eq('course_id', courseId);
+  if (dbQuizErr) throw dbQuizErr;
+  const dbQuizByModule = {};
+  (dbQuizzes || []).forEach(function(q) { dbQuizByModule[q.module_id] = q; });
+
+  for (let mi = 0; mi < courseModules.length; mi++) {
+    const mod = courseModules[mi];
+    const dbQuiz = dbQuizByModule[mod.id] || null;
+    const localQuiz = mod.quiz || null;
+
+    if (dbQuiz && !localQuiz) {
+      // Case A: deleted
+      const { error: delErr } = await sb.from('course_quizzes').delete().eq('id', dbQuiz.id);
+      if (delErr) throw delErr;
+    } else if (localQuiz) {
+      // Strip _collapsed and other UI-only fields before write. Also drop
+      // empty questions (creator added a slot but never typed) since
+      // pre-flight validation already passed everything that's non-empty.
+      const cleanQuestions = (Array.isArray(localQuiz.questions) ? localQuiz.questions : [])
+        .filter(q => q && q.text && q.text.trim())
+        .map(q => ({
+          id: q.id,
+          text: q.text.trim(),
+          answers: (q.answers || []).map(a => ({
+            id: a.id,
+            text: (a.text || '').trim(),
+            is_correct: a.is_correct === true
+          }))
+        }));
+
+      const quizPayload = {
+        course_id: courseId,
+        module_id: mod.id,
+        require_pass: !!localQuiz.require_pass,
+        questions: cleanQuestions
+      };
+
+      if (isNewId(localQuiz.id) || !dbQuiz) {
+        // Case C: insert
+        const { data: savedQuiz, error: insErr } = await sb.from('course_quizzes')
+          .insert(quizPayload)
+          .select('id')
+          .single();
+        if (insErr || !savedQuiz) throw (insErr || new Error('Quiz insert returned no row'));
+        localQuiz.id = savedQuiz.id;
+      } else {
+        // Case B: update existing
+        const { error: updErr } = await sb.from('course_quizzes')
+          .update(quizPayload)
+          .eq('id', localQuiz.id);
+        if (updErr) throw updErr;
+      }
+    }
+    // Case D: no-op
   }
 }
 
