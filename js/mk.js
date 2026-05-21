@@ -1252,31 +1252,12 @@ async function toggleMediaKitPublish() {
     const uname = document.getElementById('mk-username').value.trim();
     if (!uname) { showMKStatus('error', 'Pick a username first.'); return; }
     if (uname.length < 3) { showMKStatus('error', 'Username must be at least 3 characters.'); return; }
-    if (!mkState.contact_email) {
-      // Expand contact section, scroll to it, focus the email input, flash it
-      const header = document.querySelector('[onclick*="toggleMKSection(\'contact\')"]');
-      const body = document.getElementById('mk-body-contact');
-      if (body && body.style.display === 'none') {
-        toggleMKSection('contact');
-      }
-      const emailInput = document.getElementById('mk-contact-email');
-      if (emailInput) {
-        setTimeout(() => {
-          emailInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          emailInput.focus();
-          emailInput.style.transition = 'box-shadow 0.3s, border-color 0.3s';
-          emailInput.style.borderColor = '#ef4444';
-          emailInput.style.boxShadow = '0 0 0 3px rgba(239,68,68,0.2)';
-          setTimeout(() => {
-            emailInput.style.borderColor = '';
-            emailInput.style.boxShadow = '';
-          }, 2500);
-        }, 200);
-      }
-      showMKStatus('error', 'Add a contact email before publishing.');
-      return;
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mkState.contact_email)) {
+    // Contact email is OPTIONAL on publish. If creators leave it blank, the
+    // Contact section just doesn't render on the public media kit (handled
+    // by the buildContact helper in api/mediakit.js and the contactHtml
+    // guard in the live preview). But IF they did enter an email, validate
+    // its format so we don't publish a typo like "john@gmail" (no TLD).
+    if (mkState.contact_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mkState.contact_email)) {
       const emailInput = document.getElementById('mk-contact-email');
       if (emailInput) {
         emailInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
