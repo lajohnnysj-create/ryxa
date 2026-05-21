@@ -68,15 +68,18 @@ async function init() {
   // Stash creator currency for price formatting
   window._creatorCurrency = (profile && profile.display_currency) ? profile.display_currency : 'USD';
 
-  // Load modules & lessons
+  // Load modules & lessons via the public_* views. These views expose ONLY
+  // curriculum-display columns (no text_content, no video_url, no Bunny IDs)
+  // and only for published courses. The raw course_modules / course_lessons
+  // tables remain locked down to enrolled users + the owner.
   const { data: modules } = await sb
-    .from('course_modules')
+    .from('public_course_modules')
     .select('*')
     .eq('course_id', course.id)
     .order('sort_order');
 
   const { data: lessons } = await sb
-    .from('course_lessons')
+    .from('public_course_lessons')
     .select('id, module_id, title, lesson_type, sort_order')
     .eq('course_id', course.id)
     .order('sort_order');
