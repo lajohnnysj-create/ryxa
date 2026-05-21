@@ -94,6 +94,20 @@ let courseModules = []; // local working copy: [{id, title, sort_order, lessons:
 let courseCoverFile = null;
 let coursesInited = false;
 
+// ---------------------------------------------------------------------------
+// Lesson files state (downloadable attachments per lesson)
+// ---------------------------------------------------------------------------
+// In-memory cache: { lessonId -> [file row, ...] }. Populated when an editor
+// opens for an existing-DB lesson; never populated for new_* lessons (they
+// don't have a DB id to attach files to yet).
+//
+// Account storage usage in bytes (sum of all digital_product_files +
+// course_lesson_files for the current user, via get_creator_storage_used
+// RPC). Refreshed when the editor opens and after every upload/delete so the
+// storage indicator and pre-flight cap checks stay current.
+var lessonFilesByLessonId = {};
+var courseStorageUsedBytes = 0;
+
 // ---------- From dashboard.html lines 13880-14773 (Course functions) ----------
 function initCoursesTool() {
   const max = isMax();
@@ -103,8 +117,10 @@ function initCoursesTool() {
   if (max && !coursesInited) {
     coursesInited = true;
     loadCoursesList();
+    refreshCourseStorage();  // shared 500 MB indicator
   } else if (max) {
     renderCoursesList();
+    refreshCourseStorage();
   }
 }
 
@@ -855,7 +871,16 @@ function removeCourseLesson(modIdx, lessonIdx) {
 }
 
 function confirmRemoveLesson(modIdx, lessonIdx) {
-  showModalConfirm('Delete Lesson', 'Are you sure you want to delete this lesson?', function() {
+  showModalConfirm('Delete Lesson', 'Are you sure you want to delete this lesson? Any attached download files will also be deleted.', async function() {
+    // Capture the lesson id BEFORE the splice, so we can clean up its files.
+    // For new_* lessons this is a no-op inside deleteAllFilesForLesson.
+    var lesson = courseModules[modIdx] && courseModules[modIdx].lessons[lessonIdx];
+    var lessonId = lesson ? lesson.id : null;
+    if (lessonId) {
+      await deleteAllFilesForLesson(lessonId);
+      // refreshCourseStorage updates the indicator and the pre-flight cache
+      refreshCourseStorage();
+    }
     removeCourseLesson(modIdx, lessonIdx);
   });
 }
@@ -926,6 +951,224 @@ function removeLessonImage(modIdx, lessonIdx, imgIdx) {
   renderCourseModules();
 }
 
+// ---------------------------------------------------------------------------
+// Lesson files (downloadable attachments per lesson)
+// ---------------------------------------------------------------------------
+// Files live in the 'digital-products' Supabase bucket under path
+//   courses/{course_id}/lessons/{lesson_id}/{timestamp}-{slug}.{ext}
+// The bucket is shared with Digital Products for one consolidated 500 MB
+// per-account quota. The course_lesson_files DB table stores metadata
+// (filename, storage_path, size, etc.) and has cascade-delete from
+// course_lessons via the FK, so removing a lesson auto-cleans the DB rows
+// (storage cleanup is handled separately in confirmRemoveLesson).
+
+// Refresh the shared storage usage figure. Updates the courses-page storage
+// indicator (if present) and the in-memory pre-flight check value. Idempotent
+// and cheap (one RPC call).
+async function refreshCourseStorage() {
+  try {
+    var { data, error } = await sb.rpc('get_creator_storage_used');
+    if (error) throw error;
+    courseStorageUsedBytes = Number(data || 0);
+    var pct = Math.min(100, Math.round((courseStorageUsedBytes / window.FileValidation.MAX_ACCOUNT_BYTES) * 100));
+    var color = pct < 60 ? '#22c55e' : (pct < 85 ? '#eab308' : '#ef4444');
+    var fill = document.getElementById('course-storage-fill');
+    var txt = document.getElementById('course-storage-text');
+    if (fill) { fill.style.width = pct + '%'; fill.style.background = color; }
+    if (txt) txt.textContent = window.FileValidation.formatBytes(courseStorageUsedBytes) + ' / 500 MB for downloadable files (shared with Digital Products)';
+  } catch (e) {
+    console.error('refreshCourseStorage failed:', e);
+  }
+}
+
+// Load files for a given lesson into the in-memory cache. Called when a
+// lesson editor opens. Safe to call repeatedly - re-fetches fresh.
+// Lessons with new_* ids (not yet saved) return immediately with an empty
+// array since they have no DB id to query against.
+async function loadLessonFiles(lessonId) {
+  if (!lessonId || (typeof lessonId === 'string' && lessonId.indexOf('new_') === 0)) {
+    return [];
+  }
+  try {
+    var { data, error } = await sb
+      .from('course_lesson_files')
+      .select('id, filename, storage_path, file_size_bytes, mime_type, sort_order')
+      .eq('lesson_id', lessonId)
+      .order('sort_order', { ascending: true });
+    if (error) throw error;
+    lessonFilesByLessonId[lessonId] = data || [];
+    return lessonFilesByLessonId[lessonId];
+  } catch (e) {
+    console.error('loadLessonFiles failed:', e);
+    return [];
+  }
+}
+
+// Upload one file as a lesson attachment. Runs pre-flight checks (size cap,
+// account storage cap, per-lesson 5-file cap, type validation, ZIP inspection),
+// uploads to storage, then inserts the metadata row. On any failure after the
+// storage upload, the storage object is cleaned up so we don't orphan bytes.
+//
+// Returns true on success, false on any failure (the user has been alerted by
+// this point via showModalAlert, so the caller doesn't need to).
+async function uploadLessonFile(courseId, lessonId, file) {
+  // Pre-flight: file size
+  if (file.size > window.FileValidation.MAX_FILE_BYTES) {
+    showModalAlert('File too large',
+      '"' + file.name + '" is ' + window.FileValidation.formatBytes(file.size) + '. Max file size is 50 MB.');
+    return false;
+  }
+
+  // Pre-flight: account storage cap (uses the cached value, which was
+  // refreshed when the editor opened)
+  if (courseStorageUsedBytes + file.size > window.FileValidation.MAX_ACCOUNT_BYTES) {
+    showModalAlert('Storage full',
+      'Adding "' + file.name + '" would exceed your 500 MB account storage. Delete some files first.');
+    return false;
+  }
+
+  // Pre-flight: 5-file-per-lesson cap (UI gate, DB trigger is the backstop)
+  var current = lessonFilesByLessonId[lessonId] || [];
+  if (current.length >= 5) {
+    showModalAlert('Lesson is full',
+      'You have reached the 5-file limit for this lesson. Delete a file first if you need to add a new one.');
+    return false;
+  }
+
+  // Pre-flight: extension + magic-byte validation
+  var validation = await window.FileValidation.validateFileType(file);
+  if (!validation.ok) {
+    showModalAlert('File rejected', validation.error);
+    return false;
+  }
+
+  // Pre-flight: ZIP inspection for blocked content
+  var ext = file.name.toLowerCase().split('.').pop();
+  if (ext === 'zip') {
+    var zipCheck = await window.FileValidation.inspectZipContents(file);
+    if (!zipCheck.ok) {
+      showModalAlert('ZIP rejected', zipCheck.error);
+      return false;
+    }
+  }
+
+  // Build the storage path. Same convention as digital products: user-scoped
+  // root segment + a timestamp + slug to prevent collisions if a creator
+  // uploads two files with the same name.
+  var path = 'courses/' + courseId + '/lessons/' + lessonId + '/' +
+             Date.now() + '-' + window.FileValidation.slugify(file.name.replace(/\.[^.]+$/, '')) + '.' + ext;
+
+  try {
+    var { error: upErr } = await sb.storage.from('digital-products').upload(path, file, {
+      cacheControl: '0',
+      upsert: false,
+      contentType: file.type || 'application/octet-stream'
+    });
+    if (upErr) throw upErr;
+
+    var { data: row, error: insErr } = await sb.from('course_lesson_files').insert({
+      lesson_id: lessonId,
+      course_id: courseId,
+      filename: file.name,
+      storage_path: path,
+      file_size_bytes: file.size,
+      mime_type: file.type || null,
+      sort_order: current.length
+    }).select().single();
+
+    if (insErr) {
+      // Storage upload succeeded but DB row failed. Clean up the orphan.
+      await sb.storage.from('digital-products').remove([path]);
+      throw insErr;
+    }
+
+    // Update in-memory cache and storage usage
+    if (!lessonFilesByLessonId[lessonId]) lessonFilesByLessonId[lessonId] = [];
+    lessonFilesByLessonId[lessonId].push(row);
+    courseStorageUsedBytes += file.size;
+    return true;
+  } catch (e) {
+    console.error('uploadLessonFile failed:', e);
+    // Helpful error message for the common cases. The DB trigger that
+    // enforces the 5-file cap throws with error code 23514; surface that
+    // as a friendlier message than the raw error.
+    if (e && e.code === '23514' && e.message && e.message.indexOf('Lesson file limit') !== -1) {
+      showModalAlert('Lesson is full', 'You have reached the 5-file limit for this lesson.');
+    } else {
+      showModalAlert('Upload failed', 'Could not upload "' + file.name + '". Please try again.');
+    }
+    return false;
+  }
+}
+
+// Delete one lesson file. Removes from DB first (so RLS is the gate), then
+// cleans up storage. Updates in-memory cache. Idempotent - safe to call on
+// an already-deleted file (the DB delete is a no-op).
+async function deleteLessonFile(lessonId, fileId) {
+  var files = lessonFilesByLessonId[lessonId] || [];
+  var file = files.find(function(f) { return f.id === fileId; });
+  if (!file) return false;
+  try {
+    var { error: delErr } = await sb.from('course_lesson_files').delete().eq('id', fileId);
+    if (delErr) throw delErr;
+    // Best-effort storage cleanup
+    try {
+      await sb.storage.from('digital-products').remove([file.storage_path]);
+    } catch (storeErr) {
+      console.error('Storage cleanup failed (file row already deleted):', storeErr);
+    }
+    // Update cache + storage usage
+    lessonFilesByLessonId[lessonId] = files.filter(function(f) { return f.id !== fileId; });
+    courseStorageUsedBytes = Math.max(0, courseStorageUsedBytes - Number(file.file_size_bytes || 0));
+    return true;
+  } catch (e) {
+    console.error('deleteLessonFile failed:', e);
+    showModalAlert('Delete failed', 'Could not delete "' + file.filename + '". Please try again.');
+    return false;
+  }
+}
+
+// Delete every lesson-file row + storage object for the given lessonId.
+// Called from confirmRemoveLesson before splicing the lesson out of local
+// state, so a creator deleting a lesson doesn't orphan files in storage.
+// The DB has ON DELETE CASCADE on the FK from course_lesson_files to
+// course_lessons, so the rows would clean up on next course save anyway,
+// but storage objects don't cascade and have to be explicitly removed.
+async function deleteAllFilesForLesson(lessonId) {
+  if (!lessonId || (typeof lessonId === 'string' && lessonId.indexOf('new_') === 0)) {
+    return;  // unsaved lesson has no DB files
+  }
+  try {
+    var { data: files } = await sb
+      .from('course_lesson_files')
+      .select('id, storage_path, file_size_bytes')
+      .eq('lesson_id', lessonId);
+    if (!files || files.length === 0) return;
+
+    // Remove from storage in one batch call
+    var paths = files.map(function(f) { return f.storage_path; });
+    try {
+      await sb.storage.from('digital-products').remove(paths);
+    } catch (storeErr) {
+      console.error('Bulk storage cleanup failed:', storeErr);
+    }
+    // DB rows: cascade will handle them when the lesson row is deleted on
+    // next save. But delete explicitly too so storage usage updates now
+    // (don't wait for next save).
+    await sb.from('course_lesson_files').delete().eq('lesson_id', lessonId);
+
+    // Reduce cached storage usage figure
+    var freedBytes = files.reduce(function(s, f) { return s + Number(f.file_size_bytes || 0); }, 0);
+    courseStorageUsedBytes = Math.max(0, courseStorageUsedBytes - freedBytes);
+    delete lessonFilesByLessonId[lessonId];
+  } catch (e) {
+    console.error('deleteAllFilesForLesson failed:', e);
+    // Non-blocking: the lesson can still be removed from local state. Orphan
+    // storage files will eventually count against the creator's quota until
+    // they're manually cleaned up. Not ideal but not catastrophic.
+  }
+}
+
 function updateModuleTitle(modIdx, val) {
   courseModules[modIdx].title = val;
 }
@@ -960,6 +1203,18 @@ function collapseLesson(modIdx, lessonIdx) {
 function expandLesson(modIdx, lessonIdx) {
   courseModules[modIdx].lessons[lessonIdx]._collapsed = false;
   renderCourseModules();
+  // Load this lesson's downloadable files (if any) in the background. The
+  // editor markup already showed a "Loading..." or empty state by this point;
+  // when the fetch returns we re-render so the files appear. No-op for
+  // lessons with new_* ids (not yet saved to the DB).
+  var lesson = courseModules[modIdx].lessons[lessonIdx];
+  if (lesson && lesson.id && (typeof lesson.id !== 'string' || lesson.id.indexOf('new_') !== 0)) {
+    loadLessonFiles(lesson.id).then(function() {
+      // Re-render so the freshly-loaded files appear. Cheap (full-tree
+      // render but no DB writes).
+      renderCourseModules();
+    });
+  }
 }
 
 function moveLessonUp(modIdx, lessonIdx) {
@@ -1634,6 +1889,46 @@ function renderCourseModules() {
                 + '</div>';
             })()
           : '<div id="lesson-editor-' + mi + '-' + li + '" class="course-s-quill-host" data-course-mi="' + mi + '" data-course-li="' + li + '"></div>')
+        // Downloadable files (per lesson, max 5, 50 MB each, shared with
+        // Digital Products on the 500 MB account quota).
+        + (function() {
+            // Files only available for saved lessons (need a DB lesson id).
+            var isNew = typeof l.id === 'string' && l.id.indexOf('new_') === 0;
+            if (isNew) {
+              return '<div class="course-s-files-panel">'
+                + '<div class="course-s-files-header">'
+                + '<span class="course-s-files-title">Downloads</span>'
+                + '<span class="course-s-files-locked">Save the course first to attach files to this lesson</span>'
+                + '</div>'
+                + '</div>';
+            }
+            var files = lessonFilesByLessonId[l.id] || [];
+            var fileRows = files.map(function(f) {
+              return '<div class="course-s-file-row">'
+                + '<svg class="course-s-file-icn" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'
+                + '<span class="course-s-file-name">' + escapeHtml(f.filename) + '</span>'
+                + '<span class="course-s-file-size">' + window.FileValidation.formatBytes(f.file_size_bytes) + '</span>'
+                + '<button type="button" data-course-action="delete-lesson-file" data-course-lesson-id="' + f.lesson_id + '" data-course-file-id="' + f.id + '" class="course-s-file-del" title="Delete file" aria-label="Delete file">'
+                + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>'
+                + '</button>'
+                + '</div>';
+            }).join('');
+            var canAddMore = files.length < 5;
+            var addBtn = canAddMore
+              ? '<label class="course-s-file-add">'
+                + '<input type="file" data-course-action="add-lesson-file" data-course-event="change" data-course-mi="' + mi + '" data-course-li="' + li + '" hidden>'
+                + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'
+                + 'Add file</label>'
+              : '<span class="course-s-file-limit">5-file limit reached</span>';
+            return '<div class="course-s-files-panel">'
+              + '<div class="course-s-files-header">'
+              + '<span class="course-s-files-title">Downloads</span>'
+              + '<span class="course-s-files-hint">Max 5 files, 50 MB each. Students can download these from the lesson page.</span>'
+              + '</div>'
+              + (fileRows ? '<div class="course-s-files-list">' + fileRows + '</div>' : '')
+              + '<div class="course-s-files-actions">' + addBtn + '</div>'
+              + '</div>';
+          })()
         // Move / info / done buttons. Icon-only to keep the row compact -
         // labels were redundant with the well-known up/down/info glyphs and
         // ate horizontal space. "Done" collapses the lesson (state is already
@@ -2282,6 +2577,42 @@ courseRegisterAction('collapse-lesson', (e, el) => {
 });
 courseRegisterAction('remove-lesson', (e, el) => {
   confirmRemoveLesson(parseInt(el.dataset.courseMi, 10), parseInt(el.dataset.courseLi, 10));
+});
+courseRegisterAction('add-lesson-file', async (e, el) => {
+  // Triggered by the hidden <input type="file"> changing. Uploads the first
+  // selected file (we don't support multi-select for lesson files since the
+  // 5-file cap means batch upload is rarely useful). Clears input after.
+  var files = Array.from(el.files || []);
+  el.value = '';
+  if (!files.length) return;
+  var mi = parseInt(el.dataset.courseMi, 10);
+  var li = parseInt(el.dataset.courseLi, 10);
+  var lesson = courseModules[mi] && courseModules[mi].lessons[li];
+  if (!lesson || !lesson.id) return;
+  if (typeof lesson.id === 'string' && lesson.id.indexOf('new_') === 0) {
+    showModalAlert('Save first', 'Save the course first to attach files to this lesson.');
+    return;
+  }
+  // Refresh storage usage right before the cap check, so the pre-flight
+  // doesn't rely on stale data (e.g. if another tab uploaded something).
+  await refreshCourseStorage();
+  var ok = await uploadLessonFile(currentCourseId, lesson.id, files[0]);
+  if (ok) {
+    refreshCourseStorage();
+    renderCourseModules();
+  }
+});
+courseRegisterAction('delete-lesson-file', async (e, el) => {
+  var lessonId = el.dataset.courseLessonId;
+  var fileId = el.dataset.courseFileId;
+  if (!lessonId || !fileId) return;
+  showModalConfirm('Delete File', 'Are you sure you want to delete this file?', async function() {
+    var ok = await deleteLessonFile(lessonId, fileId);
+    if (ok) {
+      refreshCourseStorage();
+      renderCourseModules();
+    }
+  });
 });
 courseRegisterAction('update-lesson-field', (e, el) => {
   updateLessonField(
