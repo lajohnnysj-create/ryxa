@@ -143,6 +143,10 @@
   .viewer-lesson-btn:hover { background: var(--surface); color: var(--text); }
   .viewer-lesson-btn.active { border-color: var(--text); background: var(--surface); color: var(--text); }
   .viewer-lesson-btn.completed { color: var(--check-color); }
+  /* Locked sidebar item - rendered when an unpassed require_pass quiz
+     exists earlier in the curriculum. Plain div (no click handler) instead
+     of a button, plus muted color and cursor signal. */
+  .viewer-lesson-locked { opacity: 0.5; cursor: not-allowed; pointer-events: auto; }
   /* Quiz item in sidebar - inherits .viewer-lesson-btn, adds a Required pill */
   .viewer-quiz-required { display: inline-block; margin-left: 8px; padding: 1px 6px; font-size: 10px; font-weight: 600; background: rgba(124,58,237,0.15); color: var(--accent2, #c4b5fd); border: 1px solid rgba(124,58,237,0.3); border-radius: 4px; letter-spacing: 0.04em; }
 
