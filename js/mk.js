@@ -116,7 +116,7 @@ let mkState = {
   contact_note: '',
   theme: 'purple',
   font_family: 'DM Sans',
-  show_branding: false,
+  show_branding: true,
   published: false,
   custom_theme: null,
 };
