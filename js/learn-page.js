@@ -77,6 +77,16 @@ let viewerLessons = [];
 // through the /api/download-lesson-file endpoint (which enforces enrollment
 // or free-preview status before returning a signed URL).
 let viewerLessonFiles = {};
+// Map of moduleId -> quiz row { id, module_id, course_id, require_pass,
+// questions: [{id, text, answers: [{id, text}]}] }. is_correct is stripped
+// at the database view layer (public_course_quizzes), so the client cannot
+// know which answer is correct - that determination happens server-side in
+// /api/grade-quiz. Each module has at most one quiz.
+let viewerQuizzesByModule = {};
+// Set of quiz_ids the current student has passed. Populated from
+// course_quiz_passes for this enrollment. Used to gate the Next button
+// when a require_pass quiz hasn't been passed yet.
+let viewerPassedQuizIds = new Set();
 let viewerProgress = [];
 let viewerEnrollmentId = null;
 let currentLessonId = null;
@@ -829,6 +839,18 @@ async function openCourseViewer(courseId) {
     viewerLessonFiles[f.lesson_id].push(f);
   });
 
+  // Load quizzes via the public_course_quizzes view. The view strips
+  // is_correct flags from every answer - the client never sees correct
+  // answer data. Grading happens server-side in /api/grade-quiz.
+  viewerQuizzesByModule = {};
+  const { data: quizzes } = await sb
+    .from('public_course_quizzes')
+    .select('id, module_id, course_id, require_pass, questions')
+    .eq('course_id', courseId);
+  (quizzes || []).forEach(function(q) {
+    viewerQuizzesByModule[q.module_id] = q;
+  });
+
   // Load enrollment & progress
   const { data: enrollment } = await sb.from('course_enrollments').select('id').eq('course_id', courseId).eq('user_id', currentUser.id).single();
   viewerEnrollmentId = enrollment?.id || null;
@@ -836,8 +858,14 @@ async function openCourseViewer(courseId) {
   if (viewerEnrollmentId) {
     const { data: progress } = await sb.from('course_progress').select('lesson_id').eq('enrollment_id', viewerEnrollmentId);
     viewerProgress = (progress || []).map(function(p) { return p.lesson_id; });
+    // Quiz pass records for this enrollment. RLS scopes this to "rows where
+    // the parent enrollment.user_id matches the caller" so we just query
+    // by enrollment_id and trust the policy.
+    const { data: passes } = await sb.from('course_quiz_passes').select('quiz_id').eq('enrollment_id', viewerEnrollmentId);
+    viewerPassedQuizIds = new Set((passes || []).map(function(p) { return p.quiz_id; }));
   } else {
     viewerProgress = [];
+    viewerPassedQuizIds = new Set();
   }
 
   currentLessonId = null;
@@ -985,6 +1013,7 @@ function renderViewer() {
   var sidebar = document.getElementById('viewer-sidebar');
   sidebar.innerHTML = viewerModules.map(function(mod, mi) {
     var modLessons = viewerLessons.filter(function(l) { return l.module_id === mod.id; });
+    var modQuiz = viewerQuizzesByModule[mod.id] || null;
     return '<div class="viewer-module-title">Module ' + (mi + 1) + ': ' + escapeHtml(mod.title) + '</div>'
       + modLessons.map(function(l) {
         var isCompleted = viewerProgress.indexOf(l.id) !== -1;
@@ -995,7 +1024,25 @@ function renderViewer() {
           + '<span class="viewer-check">' + check + '</span>'
           + '<span>' + icon + ' ' + escapeHtml(l.title || (l.lesson_type === 'video' ? 'Untitled Video' : 'Untitled Lesson')) + '</span>'
           + '</button>';
-      }).join('');
+      }).join('')
+      // Quiz item, if this module has one. Always renders at the end of the
+      // module's lesson list. Marked completed when the student has passed
+      // (only meaningful for require_pass quizzes; for non-require-pass we
+      // mark completed once they've submitted at least once - which we'll
+      // track in D2 with a separate "viewed" mechanism since pass records
+      // only get written for require_pass).
+      + (modQuiz ? (function() {
+          var hasPassed = viewerPassedQuizIds.has(modQuiz.id);
+          var isActive = currentLessonId === ('quiz:' + modQuiz.id);
+          var qIcon = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+          var qCheck = hasPassed ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' : '';
+          var requiredBadge = modQuiz.require_pass ? '<span class="viewer-quiz-required">Required</span>' : '';
+          var qCount = Array.isArray(modQuiz.questions) ? modQuiz.questions.length : 0;
+          return '<button class="viewer-lesson-btn viewer-quiz-btn' + (isActive ? ' active' : '') + (hasPassed ? ' completed' : '') + '" data-learn-action="select-quiz" data-learn-quiz-id="' + modQuiz.id + '">'
+            + '<span class="viewer-check">' + qCheck + '</span>'
+            + '<span>' + qIcon + ' Quiz (' + qCount + ' question' + (qCount === 1 ? '' : 's') + ')' + requiredBadge + '</span>'
+            + '</button>';
+        })() : '');
   }).join('');
 
   updateProgressBar();
@@ -1256,6 +1303,43 @@ function selectLesson(lessonId) {
   renderLessonNav();
 
   // Scroll to top
+  window.scrollTo(0, 0);
+}
+
+// Placeholder quiz player. The full player UI, submit handler, results
+// screen, and progression gating are coming in the next deploy round (D2).
+// For D1 we just confirm the quiz item flow works end-to-end:
+//   - Sidebar renders the quiz item with the right metadata
+//   - Clicking it routes through select-quiz -> selectQuiz()
+//   - The right quiz data is available in viewerQuizzesByModule
+function selectQuiz(quizId) {
+  // Use a quiz: prefix on currentLessonId so the sidebar's active highlight
+  // logic can distinguish quiz items from lesson items without collisions.
+  currentLessonId = 'quiz:' + quizId;
+  renderViewer();
+  document.getElementById('viewer-toc').classList.remove('open');
+
+  // Find the quiz by ID across all module quizzes
+  var quiz = null;
+  var moduleIds = Object.keys(viewerQuizzesByModule);
+  for (var i = 0; i < moduleIds.length; i++) {
+    if (viewerQuizzesByModule[moduleIds[i]].id === quizId) {
+      quiz = viewerQuizzesByModule[moduleIds[i]];
+      break;
+    }
+  }
+  if (!quiz) return;
+
+  var qCount = Array.isArray(quiz.questions) ? quiz.questions.length : 0;
+  var content = document.getElementById('viewer-content');
+  // Placeholder rendering - the real quiz player UI lands in D2.
+  content.innerHTML = '<div class="viewer-lesson-header">Quiz</div>'
+    + '<div class="viewer-lesson-title">' + qCount + ' question' + (qCount === 1 ? '' : 's')
+    + (quiz.require_pass ? ' &middot; Required to pass' : '')
+    + '</div>'
+    + '<div style="margin-top:24px;padding:24px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--muted);text-align:center;">'
+    + 'Quiz player coming soon. The data is loading correctly - the next deploy will add the interactive quiz UI here.'
+    + '</div>';
   window.scrollTo(0, 0);
 }
 
@@ -1631,6 +1715,10 @@ learnRegisterAction('open-course', function(e, el) {
 learnRegisterAction('select-lesson', function(e, el) {
   var id = el.getAttribute('data-learn-lesson-id');
   if (id) selectLesson(id);
+});
+learnRegisterAction('select-quiz', function(e, el) {
+  var id = el.getAttribute('data-learn-quiz-id');
+  if (id) selectQuiz(id);
 });
 learnRegisterAction('mark-complete', function(e, el) {
   var id = el.getAttribute('data-learn-lesson-id');
