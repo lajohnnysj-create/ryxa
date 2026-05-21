@@ -258,7 +258,7 @@ module.exports = async (req, res) => {
       grantedViaPreview = true;
     } else {
       if (!viewer) {
-        return res.status(401).json({ error: 'You must be signed in to watch this lesson' });
+        return res.status(401).json({ error: 'Your session has expired. Please log off and back in.' });
       }
       // Use the SECURITY DEFINER RPC to check enrollment in one query
       var canView = await sbRpc('can_user_view_lesson', {
