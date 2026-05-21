@@ -168,6 +168,13 @@ module.exports = async (req, res) => {
     });
   } catch (e) {
     console.error('download-lesson-file error:', e);
-    return res.status(500).json({ error: 'Could not generate download link' });
+    // TEMPORARY: surface the actual error for debugging. Revert this to the
+    // generic message before considering this stable. Security smell to leak
+    // internals to public callers, but invaluable for one-time triage.
+    return res.status(500).json({
+      error: 'Could not generate download link',
+      _debug: (e && e.message) ? String(e.message).slice(0, 500) : String(e).slice(0, 500),
+      _debug_stack: (e && e.stack) ? String(e.stack).slice(0, 800) : null
+    });
   }
 };
