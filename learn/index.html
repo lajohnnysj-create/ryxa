@@ -143,6 +143,8 @@
   .viewer-lesson-btn:hover { background: var(--surface); color: var(--text); }
   .viewer-lesson-btn.active { border-color: var(--text); background: var(--surface); color: var(--text); }
   .viewer-lesson-btn.completed { color: var(--check-color); }
+  /* Quiz item in sidebar - inherits .viewer-lesson-btn, adds a Required pill */
+  .viewer-quiz-required { display: inline-block; margin-left: 8px; padding: 1px 6px; font-size: 10px; font-weight: 600; background: rgba(124,58,237,0.15); color: var(--accent2, #c4b5fd); border: 1px solid rgba(124,58,237,0.3); border-radius: 4px; letter-spacing: 0.04em; }
   .viewer-check { width: 18px; height: 18px; flex-shrink: 0; text-align: center; }
   .viewer-content { background: var(--surface2); border: 1px solid var(--border); border-radius: 16px; padding: 28px; min-height: 300px; }
   .viewer-lesson-header { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
