@@ -77,7 +77,7 @@ async function init() {
 
   const { data: lessons } = await sb
     .from('course_lessons')
-    .select('id, module_id, title, lesson_type, sort_order, is_preview')
+    .select('id, module_id, title, lesson_type, sort_order')
     .eq('course_id', course.id)
     .order('sort_order');
 
@@ -242,12 +242,10 @@ function renderCourse(course, creatorName, modules, lessons, session) {
       const icon = l.lesson_type === 'video'
         ? '<svg class="lesson-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>'
         : '<svg class="lesson-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>';
-      const previewBadge = l.is_preview ? '<span class="lesson-preview-badge">Preview</span>' : '';
-      const lockedClass = (!isEnrolled && !l.is_preview) ? ' lesson-locked' : '';
+      const lockedClass = !isEnrolled ? ' lesson-locked' : '';
       return '<div class="lesson-row' + lockedClass + '">'
         + icon
         + '<span class="lesson-title">' + escapeHtml(l.title || 'Untitled Lesson') + '</span>'
-        + previewBadge
         + '</div>';
     }).join('');
 
