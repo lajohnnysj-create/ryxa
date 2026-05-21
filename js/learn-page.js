@@ -894,6 +894,20 @@ function showCourseOverview() {
   // Curriculum list
   html += '<div style="margin-top:8px;">';
   html += '<h3 style="font-family:Syne,sans-serif;font-size:16px;font-weight:800;letter-spacing:-0.3px;margin-bottom:16px;">Curriculum</h3>';
+
+  // Same lock-set computation as renderViewer - items past the first
+  // unpassed require_pass quiz get a lock icon and muted text.
+  var overviewAll = getAllLessonsOrdered();
+  var overviewLockedIds = new Set();
+  var overviewBoundary = getLockBoundaryIndex();
+  if (overviewBoundary !== -1) {
+    for (var oi = overviewBoundary + 1; oi < overviewAll.length; oi++) {
+      var oEntry = overviewAll[oi];
+      overviewLockedIds.add(oEntry.kind === 'quiz' ? ('quiz:' + oEntry.item.id) : oEntry.item.id);
+    }
+  }
+  var overviewLockIcon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
+
   viewerModules.forEach(function(mod, mi) {
     var modLessons = viewerLessons.filter(function(l) { return l.module_id === mod.id; });
     var modQuiz = viewerQuizzesByModule[mod.id] || null;
@@ -901,9 +915,13 @@ function showCourseOverview() {
     html += '<div style="font-size:12px;color:var(--text);font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Module ' + (mi + 1) + ': ' + escapeHtml(mod.title) + '</div>';
     modLessons.forEach(function(l, li) {
       var isCompleted = viewerProgress.indexOf(l.id) !== -1;
+      var isLocked = overviewLockedIds.has(l.id);
       var icon = l.lesson_type === 'video' ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>' : '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>';
-      var check = isCompleted ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' : '<span style="width:14px;height:14px;display:inline-block;border:1.5px solid var(--muted);border-radius:50%;"></span>';
-      html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:13px;color:var(--text);">'
+      var check = isLocked
+        ? overviewLockIcon
+        : (isCompleted ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' : '<span style="width:14px;height:14px;display:inline-block;border:1.5px solid var(--muted);border-radius:50%;"></span>');
+      var rowColor = isLocked ? 'var(--muted)' : 'var(--text)';
+      html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:13px;color:' + rowColor + ';">'
         + check + ' ' + icon + ' ' + escapeHtml(l.title || (l.lesson_type === 'video' ? 'Untitled Video' : 'Untitled Lesson'))
         + '</div>';
     });
@@ -912,11 +930,15 @@ function showCourseOverview() {
     // circle is filled only for require_pass quizzes the student has passed.
     if (modQuiz) {
       var quizPassed = viewerPassedQuizIds.has(modQuiz.id);
+      var quizLocked = overviewLockedIds.has('quiz:' + modQuiz.id);
       var quizIcon = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
-      var quizCheck = quizPassed ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' : '<span style="width:14px;height:14px;display:inline-block;border:1.5px solid var(--muted);border-radius:50%;"></span>';
+      var quizCheck = quizLocked
+        ? overviewLockIcon
+        : (quizPassed ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' : '<span style="width:14px;height:14px;display:inline-block;border:1.5px solid var(--muted);border-radius:50%;"></span>');
       var qCount = Array.isArray(modQuiz.questions) ? modQuiz.questions.length : 0;
       var requiredBadge = modQuiz.require_pass ? '<span style="display:inline-block;margin-left:6px;padding:1px 6px;font-size:10px;font-weight:600;background:rgba(124,58,237,0.12);color:#c4b5fd;border:1px solid rgba(124,58,237,0.25);border-radius:4px;letter-spacing:0.04em;">Required</span>' : '';
-      html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:13px;color:var(--text);">'
+      var quizRowColor = quizLocked ? 'var(--muted)' : 'var(--text)';
+      html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:13px;color:' + quizRowColor + ';">'
         + quizCheck + ' ' + quizIcon + ' Quiz &middot; ' + qCount + ' question' + (qCount === 1 ? '' : 's') + requiredBadge
         + '</div>';
     }
@@ -1023,6 +1045,44 @@ function getAllLessonsOrdered() {
   return ordered;
 }
 
+// Compute the curriculum index AFTER which items are locked. Lock applies
+// when the student hits a require_pass quiz they haven't passed yet -
+// everything PAST that quiz is locked until they pass it.
+//
+// The quiz itself is NOT locked (they need to reach it to take it). Lessons
+// BEFORE the unpassed quiz are also not locked (re-watching prior material
+// should always work).
+//
+// Returns the index of the FIRST unpassed require_pass quiz in the sequence,
+// or -1 if no such quiz exists (everything unlocked).
+//
+// Multiple require_pass quizzes: each one creates a lock zone. We return the
+// FIRST one - everything after that index is locked until it's passed. Once
+// passed, the next render call will find the next unpassed quiz (if any) and
+// the lock progresses forward through the course. That's the intended UX:
+// pass module 1's quiz, unlock module 2; pass module 2's quiz, unlock module
+// 3; etc.
+function getLockBoundaryIndex() {
+  var all = getAllLessonsOrdered();
+  for (var i = 0; i < all.length; i++) {
+    var entry = all[i];
+    if (entry.kind === 'quiz'
+        && entry.item.require_pass === true
+        && !viewerPassedQuizIds.has(entry.item.id)) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+// Given an index into the curriculum sequence, returns true if that item is
+// locked due to an unpassed require_pass quiz earlier in the sequence.
+function isCurriculumItemLocked(idx) {
+  var boundary = getLockBoundaryIndex();
+  if (boundary === -1) return false; // no unpassed gates
+  return idx > boundary; // strictly after the gate
+}
+
 function getCurrentLessonIndex() {
   var all = getAllLessonsOrdered();
   // currentLessonId is either a raw lesson UUID OR 'quiz:<quizId>' for quiz
@@ -1058,6 +1118,25 @@ function toggleToc() {
 
 function renderViewer() {
   var sidebar = document.getElementById('viewer-sidebar');
+
+  // Precompute the set of locked item identifiers. An item is locked when
+  // there's an unpassed require_pass quiz earlier in the curriculum
+  // sequence. The quiz at the gate itself is NOT locked - the student needs
+  // to reach it to take it. Identifiers use the same shape as
+  // currentLessonId: raw UUID for lessons, 'quiz:<id>' for quizzes.
+  var all = getAllLessonsOrdered();
+  var lockedIds = new Set();
+  var boundary = getLockBoundaryIndex();
+  if (boundary !== -1) {
+    for (var li = boundary + 1; li < all.length; li++) {
+      var entry = all[li];
+      lockedIds.add(entry.kind === 'quiz' ? ('quiz:' + entry.item.id) : entry.item.id);
+    }
+  }
+
+  // Lock icon SVG - reused for both locked lessons and locked quizzes
+  var lockIconHtml = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
+
   sidebar.innerHTML = viewerModules.map(function(mod, mi) {
     var modLessons = viewerLessons.filter(function(l) { return l.module_id === mod.id; });
     var modQuiz = viewerQuizzesByModule[mod.id] || null;
@@ -1065,10 +1144,22 @@ function renderViewer() {
       + modLessons.map(function(l) {
         var isCompleted = viewerProgress.indexOf(l.id) !== -1;
         var isActive = l.id === currentLessonId;
+        var isLocked = lockedIds.has(l.id);
         var icon = l.lesson_type === 'video' ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>' : '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>';
-        var check = isCompleted ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' : '';
+        var leadingIcon = isLocked
+          ? lockIconHtml
+          : (isCompleted ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' : '');
+        // Locked items become a plain div (no click handler) with a tooltip
+        // explaining why. Sidebar's freedom-of-navigation intent stays - the
+        // student still SEES the locked item exists - but the click is gated.
+        if (isLocked) {
+          return '<div class="viewer-lesson-btn viewer-lesson-locked" title="Pass the required quiz to unlock">'
+            + '<span class="viewer-check">' + leadingIcon + '</span>'
+            + '<span>' + icon + ' ' + escapeHtml(l.title || (l.lesson_type === 'video' ? 'Untitled Video' : 'Untitled Lesson')) + '</span>'
+            + '</div>';
+        }
         return '<button class="viewer-lesson-btn' + (isActive ? ' active' : '') + (isCompleted ? ' completed' : '') + '" data-learn-action="select-lesson" data-learn-lesson-id="' + l.id + '">'
-          + '<span class="viewer-check">' + check + '</span>'
+          + '<span class="viewer-check">' + leadingIcon + '</span>'
           + '<span>' + icon + ' ' + escapeHtml(l.title || (l.lesson_type === 'video' ? 'Untitled Video' : 'Untitled Lesson')) + '</span>'
           + '</button>';
       }).join('')
@@ -1081,12 +1172,22 @@ function renderViewer() {
       + (modQuiz ? (function() {
           var hasPassed = viewerPassedQuizIds.has(modQuiz.id);
           var isActive = currentLessonId === ('quiz:' + modQuiz.id);
+          var quizSidebarId = 'quiz:' + modQuiz.id;
+          var isLocked = lockedIds.has(quizSidebarId);
           var qIcon = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
-          var qCheck = hasPassed ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' : '';
+          var leadingIcon = isLocked
+            ? lockIconHtml
+            : (hasPassed ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' : '');
           var requiredBadge = modQuiz.require_pass ? '<span class="viewer-quiz-required">Required</span>' : '';
           var qCount = Array.isArray(modQuiz.questions) ? modQuiz.questions.length : 0;
+          if (isLocked) {
+            return '<div class="viewer-lesson-btn viewer-quiz-btn viewer-lesson-locked" title="Pass the required quiz to unlock">'
+              + '<span class="viewer-check">' + leadingIcon + '</span>'
+              + '<span>' + qIcon + ' Quiz (' + qCount + ' question' + (qCount === 1 ? '' : 's') + ')' + requiredBadge + '</span>'
+              + '</div>';
+          }
           return '<button class="viewer-lesson-btn viewer-quiz-btn' + (isActive ? ' active' : '') + (hasPassed ? ' completed' : '') + '" data-learn-action="select-quiz" data-learn-quiz-id="' + modQuiz.id + '">'
-            + '<span class="viewer-check">' + qCheck + '</span>'
+            + '<span class="viewer-check">' + leadingIcon + '</span>'
             + '<span>' + qIcon + ' Quiz (' + qCount + ' question' + (qCount === 1 ? '' : 's') + ')' + requiredBadge + '</span>'
             + '</button>';
         })() : '');
@@ -1168,6 +1269,22 @@ function sanitizeLessonHtmlForView(html) {
 }
 
 function selectLesson(lessonId) {
+  // Lock check - if this lesson is past an unpassed require_pass quiz,
+  // bounce back to course overview rather than letting the student view
+  // the content. Defense for deep-linked URLs and stale navigation state
+  // (e.g., creator added a require_pass quiz after student already opened
+  // a deep-linked lesson).
+  var all = getAllLessonsOrdered();
+  var boundary = getLockBoundaryIndex();
+  if (boundary !== -1) {
+    for (var i = boundary + 1; i < all.length; i++) {
+      if (all[i].kind === 'lesson' && all[i].item.id === lessonId) {
+        showCourseOverview();
+        return;
+      }
+    }
+  }
+
   currentLessonId = lessonId;
   renderViewer();
   // Close TOC on mobile after selecting
@@ -1374,6 +1491,20 @@ function selectLesson(lessonId) {
 //   - Only available for non-require-pass quizzes (require-pass returns just
 //     pass/fail to prevent iterative brute-force learning of correct answers)
 function selectQuiz(quizId) {
+  // Lock check - same as selectLesson, but for quizzes. The quiz AT the
+  // boundary is reachable (the student needs to take it). Only quizzes
+  // strictly PAST the boundary are blocked.
+  var all = getAllLessonsOrdered();
+  var boundary = getLockBoundaryIndex();
+  if (boundary !== -1) {
+    for (var i = boundary + 1; i < all.length; i++) {
+      if (all[i].kind === 'quiz' && all[i].item.id === quizId) {
+        showCourseOverview();
+        return;
+      }
+    }
+  }
+
   // Use a quiz: prefix on currentLessonId so the sidebar's active highlight
   // logic can distinguish quiz items from lesson items without collisions.
   currentLessonId = 'quiz:' + quizId;
@@ -1383,9 +1514,9 @@ function selectQuiz(quizId) {
   // Find the quiz by ID across all module quizzes
   var quiz = null;
   var moduleIds = Object.keys(viewerQuizzesByModule);
-  for (var i = 0; i < moduleIds.length; i++) {
-    if (viewerQuizzesByModule[moduleIds[i]].id === quizId) {
-      quiz = viewerQuizzesByModule[moduleIds[i]];
+  for (var j = 0; j < moduleIds.length; j++) {
+    if (viewerQuizzesByModule[moduleIds[j]].id === quizId) {
+      quiz = viewerQuizzesByModule[moduleIds[j]];
       break;
     }
   }
