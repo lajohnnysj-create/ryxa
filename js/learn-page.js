@@ -1775,13 +1775,23 @@ function renderQuizResults(quiz, gradeData) {
     html += '</div>';
   }
 
-  // Action row. Failed require_pass quiz gets a Retake button. Passed or
-  // ungated quiz just gets a Continue button that closes back to overview
-  // (D2b will wire this into Next-button navigation).
+  // Action row. Three cases:
+  //   require_pass + failed   -> Retake only (must pass to continue)
+  //   require_pass + passed   -> Continue only (pass already recorded)
+  //   non-require_pass + any  -> Retake + Continue (practice freely; Retake
+  //                              is optional, doesn't block progression)
   html += '<div class="viewer-quiz-submit-row">';
-  if (!gradeData.passed && quiz.require_pass) {
-    html += '<button data-learn-action="quiz-retake" data-learn-quiz-id="' + escapeHtml(quiz.id) + '" class="viewer-quiz-submit-btn">Retake</button>';
+  if (quiz.require_pass) {
+    if (gradeData.passed) {
+      html += '<button data-learn-action="quiz-continue" class="viewer-quiz-submit-btn">Continue</button>';
+    } else {
+      html += '<button data-learn-action="quiz-retake" data-learn-quiz-id="' + escapeHtml(quiz.id) + '" class="viewer-quiz-submit-btn">Retake</button>';
+    }
   } else {
+    // Non-require_pass: both buttons. Retake is the secondary action (outline
+    // style), Continue is primary (filled). Continue always present so the
+    // student is never stuck on the results screen.
+    html += '<button data-learn-action="quiz-retake" data-learn-quiz-id="' + escapeHtml(quiz.id) + '" class="viewer-quiz-submit-btn viewer-quiz-submit-btn-secondary">Retake</button>';
     html += '<button data-learn-action="quiz-continue" class="viewer-quiz-submit-btn">Continue</button>';
   }
   html += '</div>';
