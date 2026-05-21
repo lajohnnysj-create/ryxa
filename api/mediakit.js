@@ -575,19 +575,22 @@ function buildRateCard(kit, currency) {
 }
 
 function buildContact(kit) {
-  if (!kit.contact_email) return '';
-  const safeEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(kit.contact_email) ? kit.contact_email : null;
-  if (!safeEmail) return '';
+  // Render the Contact section when EITHER a valid email OR a note is
+  // present. Creators can use the note as a standalone "how to reach me"
+  // message (e.g., "DM me on Instagram") without needing to expose an email.
+  const safeEmail = kit.contact_email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(kit.contact_email) ? kit.contact_email : null;
+  const note = kit.contact_note ? String(kit.contact_note).trim() : '';
+  if (!safeEmail && !note) return '';
 
   const mailIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 4h20a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm10 9.44L3.3 6H20.7L12 13.44Z"/></svg>';
 
   return `<div class="section">
     <div class="section-title">Contact</div>
-    <a class="contact-email" href="mailto:${esc(safeEmail)}">
+    ${safeEmail ? `<a class="contact-email" href="mailto:${esc(safeEmail)}">
       ${mailIcon}
       <span>${esc(safeEmail)}</span>
-    </a>
-    ${kit.contact_note ? `<div class="contact-note">${esc(kit.contact_note)}</div>` : ''}
+    </a>` : ''}
+    ${note ? `<div class="contact-note">${esc(note)}</div>` : ''}
   </div>`;
 }
 
