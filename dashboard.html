@@ -2973,10 +2973,10 @@
   .mk-social-row .mk-social-label { flex: 0 0 80px; font-size: 12px; color: var(--muted); }
   .mk-social-row input { flex: 1; min-width: 0; background: var(--surface); border: 1px solid var(--border-hover); border-radius: 8px; padding: 8px 10px; font-size: 13px; color: var(--text); font-family: 'DM Sans', sans-serif; outline: none; }
   .mk-social-row input.mk-social-eng-input { flex: 0 0 110px; }
-  /* Hide the browser-default number-input stepper arrows */
-  .mk-social-row input[type="number"]::-webkit-outer-spin-button,
-  .mk-social-row input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-  .mk-social-row input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
+  /* Hide the browser-default number-input stepper arrows across the dashboard */
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
   .mk-rate-row { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
   .mk-rate-row .mk-rate-top { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
   .mk-rate-row .mk-rate-label-text { flex: 1; font-size: 13px; font-weight: 500; color: var(--text); }
@@ -10102,6 +10102,10 @@
      Loaded after bio.js because both share BIO_SOCIAL_FIELDS, BIO_THEMES,
      BIO_FONTS, getBioFont, all of which live in dashboard.html's main script. -->
 <script src="/js/mk.js"></script>
+<!-- Shared file-validation module. Used by both products.js and course.js
+     for downloadable-file uploads. Must load BEFORE both. Exposes the
+     window.FileValidation global. -->
+<script src="/js/file-validation.js"></script>
 <!-- Course Builder extracted to its own file (refactored 2026-05-10).
      Loaded after main script, uses sb, Auth, currentUser, isMax, escapeHtml,
      showModalAlert/Confirm, formatMoney, all defined in dashboard.html. -->
