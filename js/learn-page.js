@@ -635,10 +635,27 @@ async function downloadLessonFile(fileId, btn) {
       throw new Error(data.error || 'Could not generate download link');
     }
 
-    // Open in a new tab. The signed URL points directly at Supabase storage;
-    // the browser decides whether to preview (PDF, image) or download (ZIP,
-    // most other types) based on Content-Type and Content-Disposition.
-    window.open(data.url, '_blank', 'noopener');
+    // Fetch the signed URL as a blob and trigger an anchor-click download.
+    // Using window.open + signed URL DOES NOT work in two scenarios:
+    //   (1) Ryxa PWA - external navigation is intentionally blocked.
+    //   (2) Mobile Safari - window.open after an `await` is treated as
+    //       non-user-initiated and silently popup-blocked.
+    // The blob approach sidesteps both: no popup, no navigation, just a
+    // native browser download via the `download` anchor attribute. Same
+    // pattern used by Brand Deals contract/invoice downloads.
+    var fileResp = await fetch(data.url);
+    if (!fileResp.ok) throw new Error('Download failed (' + fileResp.status + ')');
+    var blob = await fileResp.blob();
+    var objectUrl = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = objectUrl;
+    a.download = data.filename || 'download';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    // Release the object URL after a tick so the download has started.
+    setTimeout(function() { URL.revokeObjectURL(objectUrl); }, 1000);
+
     restore();
   } catch (err) {
     console.error('Lesson file download failed:', err);
