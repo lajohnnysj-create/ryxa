@@ -1934,7 +1934,7 @@ function renderQuizCard(quiz, mi) {
     + (qCount > 0 ? questionsHtml : '<div class="course-s-quiz-empty">No questions yet. Click Add Question below to create one.</div>')
     + '<div class="course-s-quiz-actions">'
     + addQuestionBtn
-    + '<button type="button" data-course-action="toggle-quiz-collapse" data-course-mi="' + mi + '" class="course-s-quiz-done">Done</button>'
+    + '<button type="button" data-course-action="toggle-quiz-collapse" data-course-mi="' + mi + '" class="course-s-eb7439">Done</button>'
     + '<button type="button" data-course-action="remove-quiz" data-course-mi="' + mi + '" class="course-s-quiz-remove">Remove Quiz</button>'
     + '</div>'
     + '</div>'
