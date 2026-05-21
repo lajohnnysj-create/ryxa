@@ -1184,20 +1184,6 @@ function updateLessonField(modIdx, lessonIdx, field, val) {
   courseModules[modIdx].lessons[lessonIdx][field] = val;
 }
 
-function toggleLessonPreview(modIdx, lessonIdx) {
-  // Tear down the Quill instance (if any) before the re-render replaces the
-  // host div. Without this, the cached instance points to a detached DOM and
-  // the new host div renders empty. The defensive isConnected check in
-  // mountLessonEditor catches this too, but doing it here is cleaner.
-  unmountLessonEditor(modIdx, lessonIdx);
-  courseModules[modIdx].lessons[lessonIdx].is_preview = !courseModules[modIdx].lessons[lessonIdx].is_preview;
-  // renderCourseModules() rebuilds the whole list, which resets scroll to the
-  // top. Capture and restore the scroll position so the toggle stays in place.
-  const scrollY = window.scrollY;
-  renderCourseModules();
-  window.scrollTo(0, scrollY);
-}
-
 function collapseLesson(modIdx, lessonIdx) {
   // Tear down the Quill instance (if any) before the host div is removed
   // by the upcoming re-render. Prevents stale references piling up across
@@ -1437,8 +1423,6 @@ function mountLessonEditor(mi, li) {
     // through collapseLesson (which unmounts), the cached instance is now
     // attached to a detached DOM node. We detect that via isConnected and
     // drop the stale reference so the mount proceeds against the live host.
-    // Without this, toggleLessonPreview (Free/Paid button) would leave an
-    // empty box where the editor should be.
     if (existing.root && existing.root.isConnected) {
       return existing; // still live, real idempotency
     }
@@ -1768,7 +1752,6 @@ function renderCourseModules() {
   container.innerHTML = courseModules.map((mod, mi) => {
     const lessonsHtml = (mod.lessons || []).map((l, li) => {
       const isVideo = l.lesson_type === 'video';
-      const previewBadge = l.is_preview ? '<span class="course-s-6862c6">PREVIEW</span>' : '';
       const typeLabel = isVideo ? '<span class="course-s-955d08">VIDEO</span>' : '<span class="course-s-e89353">LESSON</span>';
       const isCollapsed = l._collapsed;
       // For text lessons, strip HTML tags before slicing for the preview.
@@ -1787,7 +1770,7 @@ function renderCourseModules() {
           + '<div class="bio-s-e3f610">'
           + '<span class="course-s-229509">' + (li + 1) + '.</span>'
           + '<span class="course-s-d63d24">' + escapeHtml(l.title || (isVideo ? 'Untitled Video' : 'Untitled Lesson')) + '</span>'
-          + typeLabel + ' ' + previewBadge
+          + typeLabel 
           + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="bio-s-f38a95"><polyline points="6 9 12 15 18 9"/></svg>'
           + '</div>'
           + (preview ? '<div class="course-s-bd2dcd">' + escapeHtml(preview) + (previewSource.length > preview.length ? '...' : '') + '</div>' : '')
@@ -1799,16 +1782,13 @@ function renderCourseModules() {
         + '<div data-course-action="collapse-lesson" data-course-mi="' + mi + '" data-course-li="' + li + '" class="course-s-60e468">'
         + '<span class="course-s-229509">' + (li + 1) + '.</span>'
         + '<span class="course-s-d63d24">' + escapeHtml(l.title || (isVideo ? 'Untitled Video' : 'Untitled Lesson')) + '</span>'
-        + typeLabel + ' ' + previewBadge
+        + typeLabel 
         + '<span><button data-course-action="remove-lesson" data-course-mi="' + mi + '" data-course-li="' + li + '" class="course-s-f3bc45" title="Delete lesson" aria-label="Delete lesson"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></span>'
         + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="bio-s-f38a95"><polyline points="18 15 12 9 6 15"/></svg>'
         + '</div>'
         + '<div class="course-s-c42e2a">'
         + '<div class="mk-s-e4ad4a">'
         + '<input type="text" value="' + escapeHtml(l.title) + '" placeholder="Lesson title" data-course-action="update-lesson-field" data-course-event="input" data-course-mi="' + mi + '" data-course-li="' + li + '" data-course-field="title" aria-label="Lesson title" class="course-s-9fc438">'
-        + '</div>'
-        + '<div class="course-s-88348d">'
-        + '<button data-course-action="toggle-lesson-preview" data-course-mi="' + mi + '" data-course-li="' + li + '" title="' + (l.is_preview ? 'Remove preview' : 'Mark as free preview') + '" class="course-s-82a6e1">' + (l.is_preview ? 'Make Paid' : 'Make Free') + '</button>'
         + '</div>'
         + (isVideo
           ? (function() {
@@ -2666,9 +2646,6 @@ courseRegisterAction('validate-video-url-blur', (e, el) => {
     status.className = 'course-s-vurl-status';
     status.innerHTML = '';
   }
-});
-courseRegisterAction('toggle-lesson-preview', (e, el) => {
-  toggleLessonPreview(parseInt(el.dataset.courseMi, 10), parseInt(el.dataset.courseLi, 10));
 });
 courseRegisterAction('move-lesson-up', (e, el) => {
   moveLessonUp(parseInt(el.dataset.courseMi, 10), parseInt(el.dataset.courseLi, 10));
