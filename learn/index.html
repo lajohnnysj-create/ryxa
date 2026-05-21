@@ -169,10 +169,15 @@
   .viewer-quiz-a:has(input:checked) { background: rgba(124,58,237,0.1); border-color: rgba(124,58,237,0.5); }
 
   /* Submit / Retake / Continue button row */
-  .viewer-quiz-submit-row { margin-top: 24px; display: flex; justify-content: flex-end; }
+  .viewer-quiz-submit-row { margin-top: 24px; display: flex; justify-content: flex-end; gap: 10px; }
   .viewer-quiz-submit-btn { padding: 10px 24px; background: var(--accent, #7c3aed); border: 1px solid var(--accent, #7c3aed); color: #fff; border-radius: 8px; font-size: 14px; font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: filter 0.15s; }
   .viewer-quiz-submit-btn:hover:not(:disabled) { filter: brightness(1.1); }
   .viewer-quiz-submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  /* Secondary variant for the Retake button on non-require_pass results.
+     Outline rather than filled - signals it's the optional/alternate action
+     compared to the primary Continue button next to it. */
+  .viewer-quiz-submit-btn-secondary { background: transparent; color: var(--text); border-color: var(--border); }
+  .viewer-quiz-submit-btn-secondary:hover:not(:disabled) { background: rgba(124,58,237,0.08); border-color: rgba(124,58,237,0.4); filter: none; }
 
   /* Results screen - pass/fail banner */
   .viewer-quiz-banner { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-radius: 10px; margin-bottom: 24px; font-size: 14px; }
