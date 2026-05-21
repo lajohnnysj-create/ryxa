@@ -923,6 +923,22 @@ async function saveCourseModules(courseId) {
           }))
         }));
 
+      // Auto-delete quizzes that have zero filled questions. A quiz with no
+      // questions is functionally meaningless to students and creates
+      // confusing edge cases downstream. Treat "empty quiz" as "no quiz."
+      // If the creator wants to keep a quiz scaffold around to fill in
+      // later, they should add at least one question first.
+      if (cleanQuestions.length === 0) {
+        if (dbQuiz) {
+          // Was saved with content before; now empty - delete the row
+          const { error: delErr } = await sb.from('course_quizzes').delete().eq('id', dbQuiz.id);
+          if (delErr) throw delErr;
+        }
+        // Also clear local state so the UI reflects "no quiz" after save
+        mod.quiz = null;
+        continue;
+      }
+
       const quizPayload = {
         course_id: courseId,
         module_id: mod.id,
@@ -1858,10 +1874,12 @@ function renderQuizCard(quiz, mi) {
   // Header is identical between collapsed and expanded states. The whole
   // header is the click target for expand/collapse (matches lesson card
   // pattern). Caret rotates via CSS when expanded.
+  // Layout matches lesson cards: descriptive content on the left, type
+  // pill near the right, caret at the far right.
   var header = '<div class="course-s-quiz-header" data-course-action="toggle-quiz-collapse" data-course-mi="' + mi + '">'
-    + '<span class="course-s-quiz-pill">QUIZ</span>'
     + '<span class="course-s-quiz-count">' + qCount + ' question' + (qCount === 1 ? '' : 's') + '</span>'
     + requireBadge
+    + '<span class="course-s-quiz-pill">QUIZ</span>'
     + '<svg class="course-s-quiz-caret' + (collapsed ? '' : ' open') + '" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>'
     + '</div>';
 
@@ -1916,6 +1934,7 @@ function renderQuizCard(quiz, mi) {
     + (qCount > 0 ? questionsHtml : '<div class="course-s-quiz-empty">No questions yet. Click Add Question below to create one.</div>')
     + '<div class="course-s-quiz-actions">'
     + addQuestionBtn
+    + '<button type="button" data-course-action="toggle-quiz-collapse" data-course-mi="' + mi + '" class="course-s-quiz-done">Done</button>'
     + '<button type="button" data-course-action="remove-quiz" data-course-mi="' + mi + '" class="course-s-quiz-remove">Remove Quiz</button>'
     + '</div>'
     + '</div>'
