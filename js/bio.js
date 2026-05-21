@@ -2999,7 +2999,6 @@ async function saveBio() {
 
     updatePublishUI();
     showBioStatus('success', 'Saved ✓');
-    showDashToast('success', 'Link in Bio changes saved.');
     // Re-render username hint so "Press save to change username" disappears
     if (bioState.username) renderUsernameAvailable(bioState.username);
   } catch (e) {
