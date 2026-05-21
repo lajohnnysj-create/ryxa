@@ -1326,6 +1326,20 @@ function selectLesson(lessonId) {
 //   - Sidebar renders the quiz item with the right metadata
 //   - Clicking it routes through select-quiz -> selectQuiz()
 //   - The right quiz data is available in viewerQuizzesByModule
+// Quiz player. Renders an interactive quiz with radio-button answers,
+// validates that all questions are answered before allowing submit, POSTs
+// the submission to /api/grade-quiz, and renders a results screen.
+//
+// Local state lives in DOM attributes on the radio inputs - simpler than
+// maintaining a parallel state object. The submit handler harvests selections
+// by querying the rendered DOM at submit time.
+//
+// Results screen styling (per locked spec):
+//   - Question student got right: green check icon next to it, no bg tint
+//   - Question student got wrong: red bg tint on their pick + red X, green
+//     bg tint on correct answer + green check
+//   - Only available for non-require-pass quizzes (require-pass returns just
+//     pass/fail to prevent iterative brute-force learning of correct answers)
 function selectQuiz(quizId) {
   // Use a quiz: prefix on currentLessonId so the sidebar's active highlight
   // logic can distinguish quiz items from lesson items without collisions.
@@ -1343,17 +1357,272 @@ function selectQuiz(quizId) {
     }
   }
   if (!quiz) return;
+  renderQuizTaking(quiz);
+  window.scrollTo(0, 0);
+}
 
-  var qCount = Array.isArray(quiz.questions) ? quiz.questions.length : 0;
-  var content = document.getElementById('viewer-content');
-  // Placeholder rendering - the real quiz player UI lands in D2.
-  content.innerHTML = '<div class="viewer-lesson-header">Quiz</div>'
-    + '<div class="viewer-lesson-title">' + qCount + ' question' + (qCount === 1 ? '' : 's')
-    + (quiz.require_pass ? ' &middot; Required to pass' : '')
-    + '</div>'
-    + '<div style="margin-top:24px;padding:24px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--muted);text-align:center;">'
-    + 'Quiz player coming soon. The data is loading correctly - the next deploy will add the interactive quiz UI here.'
+// Render the take-the-quiz screen (questions + radios + submit button).
+// Separated from selectQuiz() so the retake flow can call it directly without
+// re-running the find-by-id loop.
+function renderQuizTaking(quiz) {
+  var questions = Array.isArray(quiz.questions) ? quiz.questions : [];
+  var qCount = questions.length;
+
+  // Find the module this quiz belongs to so the header can say "Module N"
+  var mod = null;
+  var modIndex = -1;
+  for (var i = 0; i < viewerModules.length; i++) {
+    if (viewerModules[i].id === quiz.module_id) {
+      mod = viewerModules[i];
+      modIndex = i;
+      break;
+    }
+  }
+
+  var html = '';
+  if (mod) {
+    html += '<div class="viewer-lesson-header">Module ' + (modIndex + 1) + ': ' + escapeHtml(mod.title) + '</div>';
+  }
+  html += '<div class="viewer-lesson-title">Quiz</div>';
+  html += '<div class="viewer-quiz-meta">'
+    + qCount + ' question' + (qCount === 1 ? '' : 's')
+    + (quiz.require_pass ? ' &middot; <strong>Must answer every question correctly to pass</strong>' : '')
     + '</div>';
+
+  // Question list. Each radio has data attributes that the submit handler
+  // reads to assemble the answers payload.
+  html += '<div class="viewer-quiz-questions" id="viewer-quiz-questions">';
+  questions.forEach(function(q, qi) {
+    var answers = Array.isArray(q.answers) ? q.answers : [];
+    html += '<div class="viewer-quiz-q" data-q-id="' + escapeHtml(q.id) + '">';
+    html += '<div class="viewer-quiz-q-text"><span class="viewer-quiz-qnum">Q' + (qi + 1) + '.</span> ' + escapeHtml(q.text) + '</div>';
+    html += '<div class="viewer-quiz-q-answers">';
+    answers.forEach(function(a, ai) {
+      // Radio group name uses the question id so radios within one question
+      // are mutually exclusive but radios across questions don't interfere.
+      var groupName = 'vq-' + q.id;
+      html += '<label class="viewer-quiz-a" data-learn-action="quiz-answer-pick">'
+        + '<input type="radio" name="' + escapeHtml(groupName) + '" value="' + escapeHtml(a.id) + '">'
+        + '<span class="viewer-quiz-a-text">' + escapeHtml(a.text) + '</span>'
+        + '</label>';
+    });
+    html += '</div></div>';
+  });
+  html += '</div>';
+
+  // Submit button starts disabled. Enabled by quiz-answer-pick handler once
+  // every question has a selection.
+  html += '<div class="viewer-quiz-submit-row">'
+    + '<button id="viewer-quiz-submit" data-learn-action="quiz-submit" data-learn-quiz-id="' + escapeHtml(quiz.id) + '" class="viewer-quiz-submit-btn" disabled>Submit</button>'
+    + '</div>';
+
+  var content = document.getElementById('viewer-content');
+  content.innerHTML = html;
+
+  // The lesson-nav (Prev/Next) at the bottom of the page doesn't apply to
+  // quiz screens until D2b wires it in. For now clear it to prevent the
+  // previous lesson's nav from looking stale.
+  var nav = document.getElementById('viewer-nav');
+  if (nav) nav.innerHTML = '';
+}
+
+// Recompute the disabled state of the Submit button whenever a radio is
+// picked. Submit is enabled only when every question has a selection.
+function recomputeQuizSubmitState() {
+  var wrap = document.getElementById('viewer-quiz-questions');
+  if (!wrap) return;
+  var questions = wrap.querySelectorAll('.viewer-quiz-q');
+  var allAnswered = true;
+  for (var i = 0; i < questions.length; i++) {
+    var hasPick = questions[i].querySelector('input[type="radio"]:checked');
+    if (!hasPick) { allAnswered = false; break; }
+  }
+  var btn = document.getElementById('viewer-quiz-submit');
+  if (btn) btn.disabled = !allAnswered;
+}
+
+// Submit the quiz. Harvests selected radios from the DOM, POSTs to
+// /api/grade-quiz, then renders the results screen.
+async function submitQuiz(quizId) {
+  var btn = document.getElementById('viewer-quiz-submit');
+  if (btn) { btn.disabled = true; btn.textContent = 'Grading...'; }
+
+  // Find the quiz in local state for the post-grade render
+  var quiz = null;
+  var moduleIds = Object.keys(viewerQuizzesByModule);
+  for (var i = 0; i < moduleIds.length; i++) {
+    if (viewerQuizzesByModule[moduleIds[i]].id === quizId) {
+      quiz = viewerQuizzesByModule[moduleIds[i]];
+      break;
+    }
+  }
+  if (!quiz) { return; }
+
+  // Harvest answers from DOM
+  var wrap = document.getElementById('viewer-quiz-questions');
+  var answers = [];
+  if (wrap) {
+    var qs = wrap.querySelectorAll('.viewer-quiz-q');
+    for (var j = 0; j < qs.length; j++) {
+      var qId = qs[j].getAttribute('data-q-id');
+      var picked = qs[j].querySelector('input[type="radio"]:checked');
+      if (qId && picked) {
+        answers.push({ question_id: qId, answer_id: picked.value });
+      }
+    }
+  }
+
+  try {
+    var sessionResp = await sb.auth.getSession();
+    var token = sessionResp && sessionResp.data && sessionResp.data.session
+      ? sessionResp.data.session.access_token : '';
+    if (!token) {
+      throw new Error('Your session has expired. Please log off and back in.');
+    }
+
+    var resp = await fetch('/api/grade-quiz', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify({ quiz_id: quizId, answers: answers })
+    });
+    var data = await resp.json();
+    if (!resp.ok) {
+      throw new Error((data && data.error) || 'Grading failed. Try again.');
+    }
+
+    // If passed AND require_pass, record the pass locally so the sidebar
+    // checkmark updates without needing to re-fetch.
+    if (data.passed && quiz.require_pass) {
+      viewerPassedQuizIds.add(quiz.id);
+    }
+
+    renderQuizResults(quiz, data);
+  } catch (e) {
+    console.error('Quiz submit failed:', e);
+    if (btn) { btn.disabled = false; btn.textContent = 'Submit'; }
+    showModalAlert('Quiz error', e.message || 'Could not grade the quiz. Try again.');
+  }
+}
+
+// Render the post-grade results screen. The shape depends on:
+//   - quiz.require_pass:
+//       true  -> only show pass/fail summary, no per-question detail
+//                (server doesn't return it in this mode)
+//       false -> show every question with student's pick + correct answer
+//                highlighted per the locked styling spec
+function renderQuizResults(quiz, gradeData) {
+  var content = document.getElementById('viewer-content');
+  if (!content) return;
+
+  // Find module for header
+  var mod = null;
+  var modIndex = -1;
+  for (var i = 0; i < viewerModules.length; i++) {
+    if (viewerModules[i].id === quiz.module_id) {
+      mod = viewerModules[i];
+      modIndex = i;
+      break;
+    }
+  }
+
+  var html = '';
+  if (mod) {
+    html += '<div class="viewer-lesson-header">Module ' + (modIndex + 1) + ': ' + escapeHtml(mod.title) + '</div>';
+  }
+  html += '<div class="viewer-lesson-title">Quiz Results</div>';
+
+  // Pass/fail banner
+  if (gradeData.passed) {
+    html += '<div class="viewer-quiz-banner viewer-quiz-banner-pass">'
+      + '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+      + '<div><strong>Passed!</strong> '
+      + gradeData.correct_count + ' of ' + gradeData.total_questions + ' correct.</div>'
+      + '</div>';
+  } else {
+    html += '<div class="viewer-quiz-banner viewer-quiz-banner-fail">'
+      + '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+      + '<div><strong>Not quite.</strong> '
+      + gradeData.correct_count + ' of ' + gradeData.total_questions + ' correct.'
+      + (quiz.require_pass ? ' Try again to pass this module.' : '')
+      + '</div>'
+      + '</div>';
+  }
+
+  // Per-question detail - only for non-require-pass quizzes. The server
+  // doesn't return the results array when require_pass=true, so even if we
+  // tried to render here, we'd have no data. Defense in depth.
+  if (!quiz.require_pass && Array.isArray(gradeData.results)) {
+    // Build a quick map of correct-answer-id and your-answer-id per question
+    var resultByQId = {};
+    gradeData.results.forEach(function(r) { resultByQId[r.question_id] = r; });
+
+    var questions = Array.isArray(quiz.questions) ? quiz.questions : [];
+    html += '<div class="viewer-quiz-questions">';
+    questions.forEach(function(q, qi) {
+      var result = resultByQId[q.id];
+      var wasCorrect = result && result.was_correct;
+      var correctId = result ? result.correct_answer_id : null;
+      var yourId = result ? result.your_answer_id : null;
+
+      html += '<div class="viewer-quiz-q">';
+      html += '<div class="viewer-quiz-q-text"><span class="viewer-quiz-qnum">Q' + (qi + 1) + '.</span> ' + escapeHtml(q.text) + '</div>';
+      html += '<div class="viewer-quiz-q-answers">';
+
+      var answers = Array.isArray(q.answers) ? q.answers : [];
+      answers.forEach(function(a) {
+        var isCorrect = (a.id === correctId);
+        var wasPicked = (a.id === yourId);
+        // Class assignment per the locked spec:
+        //   - On a right-answered question: only the correct answer gets the
+        //     ✓ icon, no bg highlight (don't dwell on success)
+        //   - On a wrong-answered question: student's pick gets red bg + ✕,
+        //     correct answer gets green bg + ✓
+        var cls = 'viewer-quiz-a-result';
+        var iconHtml = '';
+        if (wasCorrect && wasPicked) {
+          // Right answer (got it). Light green-check, no bg.
+          cls += ' viewer-quiz-a-right';
+          iconHtml = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+        } else if (wasCorrect && !wasPicked) {
+          // Correct answer, but student picked something else
+          cls += ' viewer-quiz-a-correct-reveal';
+          iconHtml = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+        } else if (!wasCorrect && wasPicked) {
+          // Student's wrong pick
+          cls += ' viewer-quiz-a-wrong';
+          iconHtml = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+        }
+        // else: neither correct nor picked - no styling, no icon
+
+        html += '<div class="' + cls + '">'
+          + '<span class="viewer-quiz-a-icon">' + iconHtml + '</span>'
+          + '<span class="viewer-quiz-a-text">' + escapeHtml(a.text) + '</span>'
+          + '</div>';
+      });
+
+      html += '</div></div>';
+    });
+    html += '</div>';
+  }
+
+  // Action row. Failed require_pass quiz gets a Retake button. Passed or
+  // ungated quiz just gets a Continue button that closes back to overview
+  // (D2b will wire this into Next-button navigation).
+  html += '<div class="viewer-quiz-submit-row">';
+  if (!gradeData.passed && quiz.require_pass) {
+    html += '<button data-learn-action="quiz-retake" data-learn-quiz-id="' + escapeHtml(quiz.id) + '" class="viewer-quiz-submit-btn">Retake</button>';
+  } else {
+    html += '<button data-learn-action="quiz-continue" class="viewer-quiz-submit-btn">Continue</button>';
+  }
+  html += '</div>';
+
+  content.innerHTML = html;
+
+  // Refresh sidebar so the quiz's passed-checkmark updates if applicable
+  renderViewer();
   window.scrollTo(0, 0);
 }
 
@@ -1733,6 +2002,25 @@ learnRegisterAction('select-lesson', function(e, el) {
 learnRegisterAction('select-quiz', function(e, el) {
   var id = el.getAttribute('data-learn-quiz-id');
   if (id) selectQuiz(id);
+});
+// Fires on every radio change inside the quiz - recomputes whether all
+// questions are answered and enables/disables the Submit button.
+learnRegisterAction('quiz-answer-pick', function(e, el) {
+  recomputeQuizSubmitState();
+});
+learnRegisterAction('quiz-submit', function(e, el) {
+  var id = el.getAttribute('data-learn-quiz-id');
+  if (id) submitQuiz(id);
+});
+learnRegisterAction('quiz-retake', function(e, el) {
+  var id = el.getAttribute('data-learn-quiz-id');
+  if (id) selectQuiz(id);
+});
+learnRegisterAction('quiz-continue', function() {
+  // For now, Continue just returns to the course overview. In D2b this
+  // gets wired into the Next-button navigation flow so it advances to
+  // the next lesson/quiz in the curriculum sequence.
+  showCourseOverview();
 });
 learnRegisterAction('mark-complete', function(e, el) {
   var id = el.getAttribute('data-learn-lesson-id');
