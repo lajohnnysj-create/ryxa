@@ -1053,9 +1053,10 @@ async function uploadLessonFile(courseId, lessonId, file) {
   }
 
   // Build the storage path. Same convention as digital products: user-scoped
-  // root segment + a timestamp + slug to prevent collisions if a creator
-  // uploads two files with the same name.
-  var path = 'courses/' + courseId + '/lessons/' + lessonId + '/' +
+  // root segment is REQUIRED by the digital-products bucket's storage RLS
+  // policy (writes must be under {auth.uid()}/...). Then a timestamp + slug
+  // to prevent collisions if a creator uploads two files with the same name.
+  var path = currentUser.id + '/courses/' + courseId + '/lessons/' + lessonId + '/' +
              Date.now() + '-' + window.FileValidation.slugify(file.name.replace(/\.[^.]+$/, '')) + '.' + ext;
 
   try {
