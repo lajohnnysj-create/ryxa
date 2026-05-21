@@ -821,6 +821,14 @@ async function saveMediaKit() {
     if (!uname && originalUname) {
       throw new Error('Username cannot be removed once set.');
     }
+    // Contact email is OPTIONAL. But IF entered, must look valid - otherwise
+    // it silently disappears from the published kit (buildContact rejects
+    // invalid format), which leaves the creator confused about why their
+    // email isn't showing. Block at save time to surface the typo
+    // immediately, matching the validation already on the publish flow.
+    if (mkState.contact_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mkState.contact_email)) {
+      throw new Error('Contact email looks invalid.');
+    }
     if (uname) {
       if (uname.length < 3) throw new Error('Username must be at least 3 characters.');
       if (!/^[a-z0-9_]+$/.test(uname)) throw new Error('Username: lowercase letters, numbers, underscore only.');
