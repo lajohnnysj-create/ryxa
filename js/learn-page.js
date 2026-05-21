@@ -1106,7 +1106,22 @@ function selectLesson(lessonId) {
       // checking Bunny directly, so a stale 'processing' row that Bunny has
       // actually finished will still play. If it is genuinely not ready, the
       // token call returns 425 and fetchBunnyPlaybackUrl shows a message.
-      html += '<iframe class="viewer-video" id="bunny-player-' + escapeHtml(lesson.id) + '" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="background:#000;"></iframe>';
+      //
+      // The wrap + overlay structure exists to show a "Loading video..."
+      // message while the iframe loads. Without this, the user sees a
+      // black box for a few seconds during fetch+iframe-load. The overlay
+      // is hidden when the iframe's load event fires (sub-second to ~3s
+      // on normal connections). If the load event doesn't fire within 10
+      // seconds, the message changes to a "taking longer than expected"
+      // hint with a refresh suggestion - rare, but better than silent
+      // abandonment.
+      html += '<div class="viewer-video-wrap" id="bunny-wrap-' + escapeHtml(lesson.id) + '">'
+        + '<div class="viewer-video-overlay" id="bunny-overlay-' + escapeHtml(lesson.id) + '">'
+        + '<div class="viewer-video-overlay-spinner"></div>'
+        + '<div class="viewer-video-overlay-text">Loading video...</div>'
+        + '</div>'
+        + '<iframe class="viewer-video" id="bunny-player-' + escapeHtml(lesson.id) + '" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>'
+        + '</div>';
     } else if (lesson.video_url) {
       // Legacy paste-URL path (YouTube/Vimeo/Loom)
       var embedUrl = getEmbedUrl(lesson.video_url);
@@ -1329,6 +1344,22 @@ function getEmbedUrl(url) {
 async function fetchBunnyPlaybackUrl(lessonId, lessonIdAtRender) {
   var iframe = document.getElementById('bunny-player-' + lessonId);
   if (!iframe) return;
+  // The wrap is the visual container - iframe + loading overlay live inside it.
+  // Failure paths replace THE WRAP, not the iframe directly, so the layout
+  // stays correct when we render an error message in its place.
+  var wrap = document.getElementById('bunny-wrap-' + lessonId);
+  var overlay = document.getElementById('bunny-overlay-' + lessonId);
+
+  // Helper: replace the entire video block (wrap + overlay + iframe) with
+  // an error message. Used by both 4xx/5xx and exception failure paths.
+  function showError(text) {
+    if (!wrap || !wrap.parentNode) return;
+    var div = document.createElement('div');
+    div.style.cssText = 'background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:24px;text-align:center;color:var(--muted);font-size:14px;margin-bottom:16px;';
+    div.textContent = text;
+    wrap.parentNode.replaceChild(div, wrap);
+  }
+
   var headers = { 'Content-Type': 'application/json' };
   // If the viewer is signed in, include the bearer token so non-preview
   // lessons can be authorized. Anonymous viewers can still get tokens for
@@ -1357,23 +1388,47 @@ async function fetchBunnyPlaybackUrl(lessonId, lessonIdAtRender) {
     // iframe. currentLessonId is the canonical "what lesson is showing now."
     if (typeof currentLessonId !== 'undefined' && currentLessonId !== lessonIdAtRender) return;
     if (!resp.ok) {
-      // Replace iframe with a friendly message rather than leaving it blank
-      var msg = (data && data.error) || 'Video could not be loaded.';
-      var div = document.createElement('div');
-      div.style.cssText = 'background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:24px;text-align:center;color:var(--muted);font-size:14px;margin-bottom:16px;';
-      div.textContent = msg;
-      if (iframe.parentNode) iframe.parentNode.replaceChild(div, iframe);
+      showError((data && data.error) || 'Video could not be loaded.');
       return;
     }
-    if (data.iframe_url) iframe.src = data.iframe_url;
+    if (data.iframe_url) {
+      // Wire up overlay management BEFORE setting src, so we don't miss a
+      // fast 'load' event on cached responses.
+      if (overlay) {
+        var overlayHidden = false;
+        var fallbackTimer = null;
+
+        var hideOverlay = function() {
+          if (overlayHidden) return;
+          overlayHidden = true;
+          if (fallbackTimer) { clearTimeout(fallbackTimer); fallbackTimer = null; }
+          // Fade out (CSS handles the transition) then remove from DOM
+          // so it's not over the video even with pointer-events:none on it.
+          overlay.style.opacity = '0';
+          setTimeout(function() {
+            if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
+          }, 250);
+        };
+
+        iframe.addEventListener('load', hideOverlay, { once: true });
+
+        // Failsafe: if the load event never fires within 10s, change the
+        // overlay message to something actionable. Common cause is a
+        // network or CDN hiccup. Better than silent abandonment.
+        fallbackTimer = setTimeout(function() {
+          if (overlayHidden) return;
+          var textEl = overlay.querySelector('.viewer-video-overlay-text');
+          if (textEl) textEl.textContent = 'Video taking longer than expected. Try refreshing if it doesn\'t appear.';
+          var spinner = overlay.querySelector('.viewer-video-overlay-spinner');
+          if (spinner) spinner.style.display = 'none';
+        }, 10000);
+      }
+
+      iframe.src = data.iframe_url;
+    }
   } catch (e) {
     console.error('Bunny token fetch failed:', e);
-    if (iframe && iframe.parentNode) {
-      var fallback = document.createElement('div');
-      fallback.style.cssText = 'background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:24px;text-align:center;color:var(--muted);font-size:14px;margin-bottom:16px;';
-      fallback.textContent = 'Video could not be loaded. Check your connection and try again.';
-      iframe.parentNode.replaceChild(fallback, iframe);
-    }
+    showError('Video could not be loaded. Check your connection and try again.');
   }
 }
 
