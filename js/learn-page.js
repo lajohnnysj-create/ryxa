@@ -1563,7 +1563,11 @@ function renderQuizResults(quiz, gradeData) {
     html += '<div class="viewer-quiz-questions">';
     questions.forEach(function(q, qi) {
       var result = resultByQId[q.id];
-      var wasCorrect = result && result.was_correct;
+      // Question-level result flag from the server. Currently unused in the
+      // render below (we use per-answer isCorrect/wasPicked for class
+      // assignment), but kept for potential future use - e.g., adding a
+      // "Q1 ✓" / "Q1 ✗" indicator next to the question text.
+      // var wasCorrect = result && result.was_correct;
       var correctId = result ? result.correct_answer_id : null;
       var yourId = result ? result.your_answer_id : null;
 
@@ -1582,15 +1586,15 @@ function renderQuizResults(quiz, gradeData) {
         //     correct answer gets green bg + ✓
         var cls = 'viewer-quiz-a-result';
         var iconHtml = '';
-        if (wasCorrect && wasPicked) {
+        if (isCorrect && wasPicked) {
           // Right answer (got it). Light green-check, no bg.
           cls += ' viewer-quiz-a-right';
           iconHtml = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
-        } else if (wasCorrect && !wasPicked) {
+        } else if (isCorrect && !wasPicked) {
           // Correct answer, but student picked something else
           cls += ' viewer-quiz-a-correct-reveal';
           iconHtml = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
-        } else if (!wasCorrect && wasPicked) {
+        } else if (!isCorrect && wasPicked) {
           // Student's wrong pick
           cls += ' viewer-quiz-a-wrong';
           iconHtml = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
