@@ -91,61 +91,8 @@ var DP_MAX_FILE_BYTES    = 50 * 1024 * 1024;    // 50 MB
 var DP_MAX_PRODUCT_BYTES = 300 * 1024 * 1024;   // 300 MB
 var DP_MAX_ACCOUNT_BYTES = 500 * 1024 * 1024;  // 500 MB
 
-// Allowed file extensions (lowercase). MUST match docs in marketing copy.
-// NOTE: video formats (mp4/mov/webm) are intentionally NOT allowed here.
-// Video content belongs in Course Builder, which uses Bunny Stream for
-// transcoding + adaptive playback. Digital Products is for documents,
-// presets, templates, audio, design assets, and similar files.
-var DP_ALLOWED_EXTS = [
-  'pdf','epub','mobi','txt','md','docx','pages',
-  'csv','xlsx','numbers',
-  'pptx','key',
-  'jpg','jpeg','png','gif','webp','svg',
-  'psd','ai','indd','sketch','fig','afphoto','afdesign',
-  'cube','3dl','lrtemplate','xmp','dng',
-  'atn','abr','asl','tpl',
-  'drp',
-  'mp3','wav','aiff','m4a','flac',
-  'otf','ttf','woff','woff2',
-  'brush','brushset','procreate',
-  'blend','obj','fbx','stl','glb','gltf',
-  'zip','rar','7z'
-];
-
-// Magic byte signatures for MIME validation
-var DP_MAGIC_BYTES = {
-  pdf:  ['25504446'],
-  zip:  ['504B0304', '504B0506', '504B0708'],
-  rar:  ['526172211A0700', '526172211A070100'],
-  '7z': ['377ABCAF271C'],
-  png:  ['89504E470D0A1A0A'],
-  gif:  ['474946383761', '474946383961'],
-  jpg:  ['FFD8FF'],
-  jpeg: ['FFD8FF'],
-  webp: ['52494646'],
-  docx: ['504B0304'],
-  xlsx: ['504B0304'],
-  pptx: ['504B0304'],
-  epub: ['504B0304'],
-  psd:  ['38425053'],
-  mp3:  ['494433', 'FFFB', 'FFF3', 'FFF2'],
-  wav:  ['52494646'],
-  aiff: ['464F524D'],
-  flac: ['664C6143'],
-  m4a:  ['00000020667479704D344120', '0000001C667479704D344120'],
-  otf:  ['4F54544F'],
-  ttf:  ['00010000', '74727565'],
-  woff: ['774F4646'],
-  woff2:['774F4632'],
-  // Procreate brushes/brushsets/files are zip-based
-  brush:    ['504B0304'],
-  brushset: ['504B0304'],
-  procreate:['504B0304'],
-  // 3D files: BLEND has magic bytes, others vary
-  blend:['424C454E444552'],
-  glb:  ['676C5446'],
-  // obj, fbx, stl, gltf, drp are text or proprietary binary; rely on extension only
-};
+// File-validation constants and allowlists live in js/file-validation.js
+// (shared with course.js).
 
 var productsState = {
   inited: false,
@@ -241,7 +188,7 @@ async function refreshProductsStorage() {
     var fill = document.getElementById('products-storage-fill');
     var txt = document.getElementById('products-storage-text');
     if (fill) { fill.style.width = pct + '%'; fill.style.background = color; }
-    if (txt) txt.textContent = dpFormatBytes(productsState.storageBytes) + ' / 500 MB (shared with Courses)';
+    if (txt) txt.textContent = dpFormatBytes(productsState.storageBytes) + ' / 500 MB for downloadable files (shared with course downloads)';
   } catch (e) {
     console.error('refreshProductsStorage failed:', e);
   }
@@ -387,73 +334,18 @@ document.addEventListener('input', function(e) {
   if (e.target && e.target.id === 'products-slug') _dpSlugManuallyEdited = true;
 });
 
-function dpSlugify(s) {
-  return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80);
-}
+// File-validation helpers moved to js/file-validation.js (shared with course.js).
+// The dp* functions below are thin shims delegating to that module so existing
+// callsites throughout this file keep working unchanged.
 
-function dpFormatBytes(bytes) {
-  bytes = Number(bytes || 0);
-  if (bytes === 0) return '0 MB';
-  if (bytes < 1024 * 1024) return Math.max(1, Math.round(bytes / 1024)) + ' KB';
-  if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-  return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
-}
+function dpSlugify(s) { return window.FileValidation.slugify(s); }
+function dpFormatBytes(bytes) { return window.FileValidation.formatBytes(bytes); }
+function dpValidateFileType(file) { return window.FileValidation.validateFileType(file); }
+function dpInspectZipContents(file) { return window.FileValidation.inspectZipContents(file); }
 
 function dpEscapeHtml(str) {
   if (str == null) return '';
   return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-}
-
-function dpReadMagicBytes(file) {
-  return new Promise(function(resolve, reject) {
-    var reader = new FileReader();
-    reader.onload = function(e) {
-      var bytes = new Uint8Array(e.target.result);
-      var hex = '';
-      for (var i = 0; i < bytes.length; i++) hex += bytes[i].toString(16).padStart(2, '0').toUpperCase();
-      resolve(hex);
-    };
-    reader.onerror = function() { reject(new Error('Could not read file')); };
-    reader.readAsArrayBuffer(file.slice(0, 16));
-  });
-}
-
-async function dpValidateFileType(file) {
-  var name = file.name.toLowerCase();
-  var ext = name.split('.').pop();
-  if (DP_ALLOWED_EXTS.indexOf(ext) === -1) {
-    return { ok: false, error: 'File type ".' + ext + '" not allowed. Only ebooks, templates, presets, and design files are accepted.' };
-  }
-  var sigList = DP_MAGIC_BYTES[ext];
-  if (sigList) {
-    try {
-      var hex = await dpReadMagicBytes(file);
-      var matches = sigList.some(function(sig) { return hex.startsWith(sig); });
-      if (!matches) return { ok: false, error: 'File "' + file.name + '" appears to be corrupt or its content does not match the .' + ext + ' extension.' };
-    } catch (e) {
-      return { ok: false, error: 'Could not verify file content. Please try again.' };
-    }
-  }
-  return { ok: true };
-}
-
-async function dpInspectZipContents(file) {
-  var BLOCKED = ['exe','msi','bat','cmd','com','scr','cpl','ps1','vbs','wsf','app','dmg','pkg','sh','run','bin','jar','apk','ipa','iso','html','htm'];
-  try {
-    var size = file.size;
-    var readStart = Math.max(0, size - 65536);
-    var buf = await file.slice(readStart).arrayBuffer();
-    var text = new TextDecoder('utf-8', { fatal: false }).decode(buf);
-    var pattern = new RegExp('[a-zA-Z0-9_\\-\\. /\\\\]+\\.(' + BLOCKED.join('|') + ')(?=\\x00|\\x01|\\x02|\\x03|PK)', 'gi');
-    var matches = text.match(pattern);
-    if (matches && matches.length > 0) {
-      return { ok: false, error: 'ZIP file contains blocked file types (' + matches.slice(0, 3).join(', ') + '). Remove these and re-upload.' };
-    }
-    return { ok: true };
-  } catch (e) {
-    console.error('ZIP inspection failed:', e);
-    return { ok: false, error: 'Could not inspect ZIP contents. Please try again or use an uncompressed file.' };
-  }
 }
 
 async function uploadProductFiles(input) {
