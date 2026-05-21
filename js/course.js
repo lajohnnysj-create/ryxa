@@ -1842,6 +1842,86 @@ function unmountLessonEditor(mi, li) {
   delete _courseQuillInstances[key];
 }
 
+// Quiz card render helper. One quiz per module, always rendered after the
+// lessons list (above the Add Video / Add Lesson / Add Quiz button row).
+// Visually consistent with lesson cards but distinguished by a QUIZ pill
+// and question-count badge in the collapsed state.
+function renderQuizCard(quiz, mi) {
+  if (!quiz) return '';
+  var collapsed = quiz._collapsed !== false;
+  var questions = Array.isArray(quiz.questions) ? quiz.questions : [];
+  var qCount = questions.length;
+  var requireBadge = quiz.require_pass
+    ? '<span class="course-s-quiz-badge">Required to pass</span>'
+    : '';
+
+  // Header is identical between collapsed and expanded states. The whole
+  // header is the click target for expand/collapse (matches lesson card
+  // pattern). Caret rotates via CSS when expanded.
+  var header = '<div class="course-s-quiz-header" data-course-action="toggle-quiz-collapse" data-course-mi="' + mi + '">'
+    + '<span class="course-s-quiz-pill">QUIZ</span>'
+    + '<span class="course-s-quiz-count">' + qCount + ' question' + (qCount === 1 ? '' : 's') + '</span>'
+    + requireBadge
+    + '<svg class="course-s-quiz-caret' + (collapsed ? '' : ' open') + '" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>'
+    + '</div>';
+
+  if (collapsed) {
+    return '<div class="course-s-quiz-card">' + header + '</div>';
+  }
+
+  // Expanded view: require-pass toggle row, then each question with its 4
+  // answers, then Add Question (if room) + Remove Quiz buttons.
+  var requireToggle = '<label class="course-s-quiz-require">'
+    + '<input type="checkbox" data-course-action="toggle-require-pass" data-course-event="change" data-course-mi="' + mi + '"' + (quiz.require_pass ? ' checked' : '') + '>'
+    + '<span class="course-s-quiz-require-text">'
+    + '<strong>Require students to pass before continuing</strong>'
+    + '<small>If on, the student must get every answer right (unlimited retakes). If off, results show correct answers for any wrong picks then Next unlocks.</small>'
+    + '</span>'
+    + '</label>';
+
+  var questionsHtml = questions.map(function(q, qi) {
+    var answersHtml = (Array.isArray(q.answers) ? q.answers : []).map(function(a, ai) {
+      // Radio name is per-question (uses question index for uniqueness across
+      // the page). Marking one answer correct visually replaces all other
+      // is_correct flags in that question via the mark-answer-correct handler.
+      var radioName = 'q-correct-m' + mi + '-q' + qi;
+      return '<div class="course-s-quiz-answer-row">'
+        + '<input type="radio" name="' + escapeHtml(radioName) + '" data-course-action="mark-answer-correct" data-course-event="change" data-course-mi="' + mi + '" data-course-qi="' + qi + '" data-course-ai="' + ai + '"' + (a && a.is_correct ? ' checked' : '') + ' aria-label="Mark answer ' + (ai + 1) + ' as correct">'
+        + '<input type="text" value="' + escapeHtml((a && a.text) || '') + '" placeholder="Answer ' + (ai + 1) + '" data-course-action="update-answer-text" data-course-event="input" data-course-mi="' + mi + '" data-course-qi="' + qi + '" data-course-ai="' + ai + '" aria-label="Answer ' + (ai + 1) + ' text" class="course-s-quiz-answer-input">'
+        + '</div>';
+    }).join('');
+
+    return '<div class="course-s-quiz-question">'
+      + '<div class="course-s-quiz-question-head">'
+      + '<span class="course-s-quiz-qnum">Q' + (qi + 1) + '</span>'
+      + '<input type="text" value="' + escapeHtml(q.text || '') + '" placeholder="Question text" data-course-action="update-question-text" data-course-event="input" data-course-mi="' + mi + '" data-course-qi="' + qi + '" aria-label="Question ' + (qi + 1) + ' text" class="course-s-quiz-q-input">'
+      + '<button type="button" data-course-action="remove-question" data-course-mi="' + mi + '" data-course-qi="' + qi + '" class="course-s-quiz-q-remove" aria-label="Remove question ' + (qi + 1) + '">'
+      + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg>'
+      + '</button>'
+      + '</div>'
+      + '<div class="course-s-quiz-answers">' + answersHtml + '</div>'
+      + '</div>';
+  }).join('');
+
+  var addQuestionBtn = qCount < 10
+    ? '<button type="button" data-course-action="add-question" data-course-mi="' + mi + '" class="course-s-quiz-add-q">'
+      + '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'
+      + 'Add Question</button>'
+    : '<div class="course-s-quiz-q-cap">Maximum 10 questions reached</div>';
+
+  return '<div class="course-s-quiz-card expanded">'
+    + header
+    + '<div class="course-s-quiz-body">'
+    + requireToggle
+    + (qCount > 0 ? questionsHtml : '<div class="course-s-quiz-empty">No questions yet. Click Add Question below to create one.</div>')
+    + '<div class="course-s-quiz-actions">'
+    + addQuestionBtn
+    + '<button type="button" data-course-action="remove-quiz" data-course-mi="' + mi + '" class="course-s-quiz-remove">Remove Quiz</button>'
+    + '</div>'
+    + '</div>'
+    + '</div>';
+}
+
 function renderCourseModules() {
   const container = document.getElementById('course-modules-list');
   const empty = document.getElementById('course-modules-empty');
@@ -2046,6 +2126,7 @@ function renderCourseModules() {
       + '<button data-course-action="remove-module" data-course-mi="' + mi + '" class="course-s-02ecf5">Remove</button>'
       + '</div>'
       + lessonsHtml
+      + (mod.quiz ? renderQuizCard(mod.quiz, mi) : '')
       + '<div class="course-s-3fed56">'
       + '<button data-course-action="add-lesson" data-course-mi="' + mi + '" data-course-lesson-type="video" class="course-s-be13d8">'
       + '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>'
@@ -2053,6 +2134,11 @@ function renderCourseModules() {
       + '<button data-course-action="add-lesson" data-course-mi="' + mi + '" data-course-lesson-type="text" class="course-s-be13d8">'
       + '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>'
       + 'Add Lesson</button>'
+      // Add Quiz button - hidden when a quiz already exists for this module
+      // (UNIQUE constraint on module_id enforces 1 quiz per module).
+      + (!mod.quiz ? ('<button data-course-action="add-quiz" data-course-mi="' + mi + '" class="course-s-be13d8">'
+        + '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+        + 'Add Quiz</button>') : '')
       + '</div>'
       + '</div>';
   }).join('');
@@ -2766,4 +2852,129 @@ courseRegisterAction('move-module-up', (e, el) => moveModuleUp(parseInt(el.datas
 courseRegisterAction('move-module-down', (e, el) => moveModuleDown(parseInt(el.dataset.courseMi, 10)));
 courseRegisterAction('update-module-title', (e, el) => updateModuleTitle(parseInt(el.dataset.courseMi, 10), el.value));
 courseRegisterAction('remove-module', (e, el) => removeCourseModule(parseInt(el.dataset.courseMi, 10)));
+
+// ============================================================================
+// Quiz action handlers
+// ============================================================================
+// All quiz state changes mutate courseModules[mi].quiz and call
+// renderCourseModules() to re-render. Most are simple state mutations; the
+// only one that confirms before destruction is remove-quiz.
+
+courseRegisterAction('add-quiz', (e, el) => {
+  const mi = parseInt(el.dataset.courseMi, 10);
+  const mod = courseModules[mi];
+  if (!mod || mod.quiz) return; // UI should prevent this but defense in depth
+  mod.quiz = {
+    id: 'new_' + Date.now(),
+    require_pass: false,
+    questions: [],
+    _collapsed: false // open by default so creator can start adding questions
+  };
+  renderCourseModules();
+});
+
+courseRegisterAction('remove-quiz', (e, el) => {
+  const mi = parseInt(el.dataset.courseMi, 10);
+  const mod = courseModules[mi];
+  if (!mod || !mod.quiz) return;
+  showModalConfirm(
+    'Remove Quiz',
+    'Are you sure you want to remove this quiz? All questions and answers will be deleted.',
+    function() {
+      mod.quiz = null;
+      renderCourseModules();
+    }
+  );
+});
+
+courseRegisterAction('toggle-quiz-collapse', (e, el) => {
+  const mi = parseInt(el.dataset.courseMi, 10);
+  const mod = courseModules[mi];
+  if (!mod || !mod.quiz) return;
+  mod.quiz._collapsed = !mod.quiz._collapsed;
+  renderCourseModules();
+});
+
+courseRegisterAction('toggle-require-pass', (e, el) => {
+  const mi = parseInt(el.dataset.courseMi, 10);
+  const mod = courseModules[mi];
+  if (!mod || !mod.quiz) return;
+  mod.quiz.require_pass = !!el.checked;
+  // No re-render needed - the checkbox state is already correct in the DOM
+  // and the only visible change is the "Required to pass" badge in the
+  // collapsed header, which the user won't see while the card is open.
+  // Re-render anyway for the live badge update when they collapse.
+  renderCourseModules();
+});
+
+courseRegisterAction('add-question', (e, el) => {
+  const mi = parseInt(el.dataset.courseMi, 10);
+  const mod = courseModules[mi];
+  if (!mod || !mod.quiz) return;
+  if (!Array.isArray(mod.quiz.questions)) mod.quiz.questions = [];
+  if (mod.quiz.questions.length >= 10) return; // UI should prevent this
+  // Default new question: empty text, 4 empty answers, first one marked
+  // correct (creator can change). Pre-marking one satisfies the "exactly
+  // one correct" rule from the moment of creation, so the question is
+  // valid as soon as the creator types answer text.
+  mod.quiz.questions.push({
+    id: 'new_q_' + Date.now() + '_' + mod.quiz.questions.length,
+    text: '',
+    answers: [
+      { id: 'new_a_' + Date.now() + '_0', text: '', is_correct: true },
+      { id: 'new_a_' + Date.now() + '_1', text: '', is_correct: false },
+      { id: 'new_a_' + Date.now() + '_2', text: '', is_correct: false },
+      { id: 'new_a_' + Date.now() + '_3', text: '', is_correct: false }
+    ]
+  });
+  renderCourseModules();
+});
+
+courseRegisterAction('remove-question', (e, el) => {
+  const mi = parseInt(el.dataset.courseMi, 10);
+  const qi = parseInt(el.dataset.courseQi, 10);
+  const mod = courseModules[mi];
+  if (!mod || !mod.quiz || !Array.isArray(mod.quiz.questions)) return;
+  if (qi < 0 || qi >= mod.quiz.questions.length) return;
+  mod.quiz.questions.splice(qi, 1);
+  renderCourseModules();
+});
+
+courseRegisterAction('update-question-text', (e, el) => {
+  const mi = parseInt(el.dataset.courseMi, 10);
+  const qi = parseInt(el.dataset.courseQi, 10);
+  const mod = courseModules[mi];
+  if (!mod || !mod.quiz || !mod.quiz.questions[qi]) return;
+  // Mutate state but DON'T re-render. Re-rendering on every keystroke would
+  // blow away the input's cursor position. Save flow will read this value
+  // from state when the user clicks Save.
+  mod.quiz.questions[qi].text = el.value;
+});
+
+courseRegisterAction('update-answer-text', (e, el) => {
+  const mi = parseInt(el.dataset.courseMi, 10);
+  const qi = parseInt(el.dataset.courseQi, 10);
+  const ai = parseInt(el.dataset.courseAi, 10);
+  const mod = courseModules[mi];
+  if (!mod || !mod.quiz || !mod.quiz.questions[qi] || !mod.quiz.questions[qi].answers[ai]) return;
+  mod.quiz.questions[qi].answers[ai].text = el.value;
+  // Same as update-question-text: mutate-only, no re-render, preserve cursor.
+});
+
+courseRegisterAction('mark-answer-correct', (e, el) => {
+  const mi = parseInt(el.dataset.courseMi, 10);
+  const qi = parseInt(el.dataset.courseQi, 10);
+  const ai = parseInt(el.dataset.courseAi, 10);
+  const mod = courseModules[mi];
+  if (!mod || !mod.quiz || !mod.quiz.questions[qi]) return;
+  const answers = mod.quiz.questions[qi].answers || [];
+  // Walk all 4 answers, setting is_correct=true on the selected one and
+  // false on the rest. Enforces the "exactly one correct" rule.
+  for (let i = 0; i < answers.length; i++) {
+    answers[i].is_correct = (i === ai);
+  }
+  // No re-render - the radio's native :checked state already reflects the
+  // change in the DOM. Re-rendering would lose any in-progress text input
+  // (e.g., creator was typing in an answer field when they clicked the radio).
+});
 
