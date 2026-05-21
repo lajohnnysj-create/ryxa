@@ -71,6 +71,12 @@ let enrollments = [];
 let viewerCourse = null;
 let viewerModules = [];
 let viewerLessons = [];
+// Map of lessonId -> array of file rows { id, filename, file_size_bytes }.
+// Loaded alongside lessons when a course viewer opens. Used by selectLesson
+// to render a Downloads section per lesson, with download links that go
+// through the /api/download-lesson-file endpoint (which enforces enrollment
+// or free-preview status before returning a signed URL).
+let viewerLessonFiles = {};
 let viewerProgress = [];
 let viewerEnrollmentId = null;
 let currentLessonId = null;
@@ -593,6 +599,54 @@ async function downloadProductFile(fileId, btn) {
   }
 }
 
+// Download a lesson-attached file. Mirrors downloadProductFile but routes
+// through /api/download-lesson-file, which gates by enrollment OR free-
+// preview status. Auth header is sent if available - the server makes the
+// auth decision (preview lessons allow unauthenticated downloads).
+async function downloadLessonFile(fileId, btn) {
+  if (!btn) return;
+  var origIcon = btn.querySelector('.viewer-download-arr');
+  var origIconHtml = origIcon ? origIcon.outerHTML : '';
+  btn.disabled = true;
+  if (origIcon) {
+    origIcon.outerHTML = '<svg class="viewer-download-arr" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 0.8s linear infinite;"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M22 12a10 10 0 0 1-10 10"/></svg>';
+  }
+
+  function restore() {
+    btn.disabled = false;
+    var icn = btn.querySelector('.viewer-download-arr');
+    if (icn && origIconHtml) icn.outerHTML = origIconHtml;
+  }
+
+  try {
+    var { data: { session } } = await sb.auth.getSession();
+    var headers = { 'Content-Type': 'application/json' };
+    if (session && session.access_token) {
+      headers['Authorization'] = 'Bearer ' + session.access_token;
+    }
+
+    var resp = await fetch('/api/download-lesson-file', {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify({ file_id: fileId })
+    });
+    var data = await resp.json();
+    if (!resp.ok || data.error) {
+      throw new Error(data.error || 'Could not generate download link');
+    }
+
+    // Open in a new tab. The signed URL points directly at Supabase storage;
+    // the browser decides whether to preview (PDF, image) or download (ZIP,
+    // most other types) based on Content-Type and Content-Disposition.
+    window.open(data.url, '_blank', 'noopener');
+    restore();
+  } catch (err) {
+    console.error('Lesson file download failed:', err);
+    restore();
+    alert(err.message || 'Could not download this file');
+  }
+}
+
 async function loadBookings() {
   var { data: bookings } = await sb
     .from('coaching_bookings')
@@ -742,6 +796,21 @@ async function openCourseViewer(courseId) {
   const { data: lessons } = await sb.from('course_lessons').select('*').eq('course_id', courseId).order('sort_order');
   viewerModules = modules || [];
   viewerLessons = lessons || [];
+
+  // Load downloadable files for all lessons in this course (single query,
+  // grouped client-side by lesson_id). RLS gates this: enrolled students
+  // and the creator see all files; non-enrolled visitors see only files
+  // attached to preview lessons.
+  viewerLessonFiles = {};
+  const { data: files } = await sb
+    .from('course_lesson_files')
+    .select('id, lesson_id, filename, file_size_bytes, sort_order')
+    .eq('course_id', courseId)
+    .order('sort_order');
+  (files || []).forEach(function(f) {
+    if (!viewerLessonFiles[f.lesson_id]) viewerLessonFiles[f.lesson_id] = [];
+    viewerLessonFiles[f.lesson_id].push(f);
+  });
 
   // Load enrollment & progress
   const { data: enrollment } = await sb.from('course_enrollments').select('id').eq('course_id', courseId).eq('user_id', currentUser.id).single();
@@ -1075,6 +1144,27 @@ function selectLesson(lessonId) {
     html += '<p style="color:var(--muted);font-size:14px;">This lesson has no content yet.</p>';
   }
 
+  // Downloads section. Shown only if this lesson has attached files. The
+  // download action goes through /api/download-lesson-file which gates by
+  // enrollment (or free-preview status). Each file becomes a row with a
+  // download icon, filename, size, and a clickable download link.
+  var lessonFiles = viewerLessonFiles[lesson.id] || [];
+  if (lessonFiles.length > 0) {
+    html += '<div class="viewer-downloads">';
+    html += '<div class="viewer-downloads-title">Downloads</div>';
+    html += '<div class="viewer-downloads-list">';
+    lessonFiles.forEach(function(f) {
+      var sizeText = formatBytesSimple(f.file_size_bytes);
+      html += '<button type="button" class="viewer-download-row" data-learn-action="download-lesson-file" data-learn-file-id="' + escapeHtml(f.id) + '" aria-label="Download ' + escapeHtml(f.filename) + '">'
+        + '<svg class="viewer-download-icn" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'
+        + '<span class="viewer-download-name">' + escapeHtml(f.filename) + '</span>'
+        + '<span class="viewer-download-size">' + sizeText + '</span>'
+        + '<svg class="viewer-download-arr" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>'
+        + '</button>';
+    });
+    html += '</div></div>';
+  }
+
   // Complete button
   if (isCompleted) {
     html += '<div class="viewer-completed-msg"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Completed</div>';
@@ -1277,6 +1367,17 @@ function escapeHtml(s) {
   });
 }
 
+// Compact byte formatter for the Downloads UI. Mirrors the digital-products
+// version (FileValidation.formatBytes) but inlined here because learn-page.js
+// doesn't load file-validation.js - that module is dashboard-only.
+function formatBytesSimple(bytes) {
+  bytes = Number(bytes || 0);
+  if (bytes === 0) return '0 MB';
+  if (bytes < 1024 * 1024) return Math.max(1, Math.round(bytes / 1024)) + ' KB';
+  if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+}
+
 // Handle Enter key on auth inputs
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Enter' && (e.target.id === 'auth-email' || e.target.id === 'auth-password')) {
@@ -1470,4 +1571,10 @@ learnRegisterAction('show-course-completion', function() { showCourseCompletion(
 learnRegisterAction('download-product-file', function(e, el) {
   var id = el.getAttribute('data-learn-file-id');
   if (id) downloadProductFile(id, el);
+});
+
+// Course lesson file download
+learnRegisterAction('download-lesson-file', function(e, el) {
+  var id = el.getAttribute('data-learn-file-id');
+  if (id) downloadLessonFile(id, el);
 });
