@@ -84,6 +84,14 @@ async function init() {
     .eq('course_id', course.id)
     .order('sort_order');
 
+  // Quizzes - same public view used by the lesson player. Strips is_correct
+  // flags so the marketing curriculum can show "Quiz - 3 questions" without
+  // leaking which answers are correct.
+  const { data: quizzes } = await sb
+    .from('public_course_quizzes')
+    .select('id, module_id, require_pass, questions')
+    .eq('course_id', course.id);
+
   // Check enrollment
   const { data: { session } } = await sb.auth.getSession();
   if (session?.user) {
@@ -103,7 +111,7 @@ async function init() {
   if (metaDesc) metaDesc.content = (course.description || '').slice(0, 160);
 
   // Render
-  renderCourse(course, creatorName, modules || [], lessons || [], session);
+  renderCourse(course, creatorName, modules || [], lessons || [], quizzes || [], session);
 
   // Track page view (fire-and-forget)
   if (creatorName && creatorName !== 'Creator') {
@@ -179,7 +187,7 @@ async function signOutAndReload() {
   window.location.reload();
 }
 
-function renderCourse(course, creatorName, modules, lessons, session) {
+function renderCourse(course, creatorName, modules, lessons, quizzes, session) {
   document.getElementById('loading').style.display = 'none';
   document.getElementById('course-page').style.display = 'block';
 
@@ -241,6 +249,7 @@ function renderCourse(course, creatorName, modules, lessons, session) {
 
   curriculumEl.innerHTML = modules.map(function(mod, mi) {
     const modLessons = lessons.filter(function(l) { return l.module_id === mod.id; });
+    const modQuiz = quizzes.find(function(q) { return q.module_id === mod.id; }) || null;
     const lessonsHtml = modLessons.map(function(l) {
       const icon = l.lesson_type === 'video'
         ? '<svg class="lesson-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>'
@@ -252,9 +261,26 @@ function renderCourse(course, creatorName, modules, lessons, session) {
         + '</div>';
     }).join('');
 
+    // Quiz row, if present. Marketing-display only - no click handler, no
+    // completion state. Shows question count and Required pill (when set)
+    // as a signal of course structure.
+    let quizHtml = '';
+    if (modQuiz) {
+      const qCount = Array.isArray(modQuiz.questions) ? modQuiz.questions.length : 0;
+      const quizIcon = '<svg class="lesson-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+      const requiredBadge = modQuiz.require_pass ? '<span class="lesson-quiz-required">Required</span>' : '';
+      const lockedClass = !isEnrolled ? ' lesson-locked' : '';
+      quizHtml = '<div class="lesson-row' + lockedClass + '">'
+        + quizIcon
+        + '<span class="lesson-title">Quiz &middot; ' + qCount + ' question' + (qCount === 1 ? '' : 's') + '</span>'
+        + requiredBadge
+        + '</div>';
+    }
+
     return '<div class="module-card">'
       + '<div class="module-header"><span class="module-number">Module ' + (mi + 1) + '</span> ' + escapeHtml(mod.title || '') + '</div>'
       + lessonsHtml
+      + quizHtml
       + '</div>';
   }).join('');
 }
