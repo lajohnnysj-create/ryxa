@@ -992,7 +992,7 @@ async function loadLessonFiles(lessonId) {
   try {
     var { data, error } = await sb
       .from('course_lesson_files')
-      .select('id, filename, storage_path, file_size_bytes, mime_type, sort_order')
+      .select('id, lesson_id, filename, storage_path, file_size_bytes, mime_type, sort_order')
       .eq('lesson_id', lessonId)
       .order('sort_order', { ascending: true });
     if (error) throw error;
@@ -1107,13 +1107,8 @@ async function uploadLessonFile(courseId, lessonId, file) {
 // an already-deleted file (the DB delete is a no-op).
 async function deleteLessonFile(lessonId, fileId) {
   var files = lessonFilesByLessonId[lessonId] || [];
-  console.log('[deleteLessonFile] cache has', files.length, 'files for lesson', lessonId);
   var file = files.find(function(f) { return f.id === fileId; });
-  if (!file) {
-    console.warn('[deleteLessonFile] file not found in cache. Looking for fileId:', fileId, 'in cache:', files.map(function(f) { return f.id; }));
-    return false;
-  }
-  console.log('[deleteLessonFile] found file:', file.filename, 'path:', file.storage_path);
+  if (!file) return false;
   try {
     var { error: delErr } = await sb.from('course_lesson_files').delete().eq('id', fileId);
     if (delErr) throw delErr;
@@ -1914,7 +1909,7 @@ function renderCourseModules() {
                 + '<svg class="course-s-file-icn" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'
                 + '<span class="course-s-file-name">' + escapeHtml(f.filename) + '</span>'
                 + '<span class="course-s-file-size">' + window.FileValidation.formatBytes(f.file_size_bytes) + '</span>'
-                + '<button type="button" data-course-action="delete-lesson-file" data-course-lesson-id="' + f.lesson_id + '" data-course-file-id="' + f.id + '" class="course-s-file-del" title="Delete file" aria-label="Delete file">'
+                + '<button type="button" data-course-action="delete-lesson-file" data-course-lesson-id="' + l.id + '" data-course-file-id="' + f.id + '" class="course-s-file-del" title="Delete file" aria-label="Delete file">'
                 + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>'
                 + '</button>'
                 + '</div>';
@@ -2611,15 +2606,9 @@ courseRegisterAction('add-lesson-file', async (e, el) => {
 courseRegisterAction('delete-lesson-file', async (e, el) => {
   var lessonId = el.dataset.courseLessonId;
   var fileId = el.dataset.courseFileId;
-  console.log('[delete-lesson-file] handler fired:', { lessonId: lessonId, fileId: fileId });
-  if (!lessonId || !fileId) {
-    console.warn('[delete-lesson-file] missing lessonId or fileId, aborting');
-    return;
-  }
+  if (!lessonId || !fileId) return;
   showModalConfirm('Delete File', 'Are you sure you want to delete this file?', async function() {
-    console.log('[delete-lesson-file] modal confirmed, calling deleteLessonFile');
     var ok = await deleteLessonFile(lessonId, fileId);
-    console.log('[delete-lesson-file] deleteLessonFile returned:', ok);
     if (ok) {
       refreshCourseStorage();
       renderCourseModules();
