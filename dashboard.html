@@ -2973,6 +2973,14 @@
   .mk-social-row .mk-social-label { flex: 0 0 80px; font-size: 12px; color: var(--muted); }
   .mk-social-row input { flex: 1; min-width: 0; background: var(--surface); border: 1px solid var(--border-hover); border-radius: 8px; padding: 8px 10px; font-size: 13px; color: var(--text); font-family: 'DM Sans', sans-serif; outline: none; }
   .mk-social-row input.mk-social-eng-input { flex: 0 0 110px; }
+  /* On mobile, the row's fixed-width children (icon 32px, label 80px,
+     engagement 110px, plus 4 gaps of 10px) eat most of a ~375px viewport
+     and squeeze the follower count input down to ~68px. Shrink the
+     engagement field to ~60px - enough for "12.5%" but leaves the
+     follower count enough room to display its placeholder fully. */
+  @media (max-width: 640px) {
+    .mk-social-row input.mk-social-eng-input { flex: 0 0 60px; }
+  }
   /* Hide the browser-default number-input stepper arrows across the dashboard */
   input[type="number"]::-webkit-outer-spin-button,
   input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
