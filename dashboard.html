@@ -4673,6 +4673,16 @@
   .course-s-quiz-q-cap { flex:1;text-align:center;font-size:11px;color:var(--muted);padding:8px;font-family:DM Sans,sans-serif; }
   .course-s-quiz-remove { padding:8px 12px;background:transparent;border:1px solid rgba(239,68,68,0.3);color:#ef4444;border-radius:6px;font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.15s; }
   .course-s-quiz-remove:hover { background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.5); }
+
+  /* Mobile: stack the quiz action row.
+     Top row: Add Question + Remove Quiz (Add Question is flex:1, Remove Quiz auto-width).
+     Bottom row: Done (full-width). Order is forced because the DOM order is
+     Add Question, Done, Remove Quiz, and without order: 1 on Done it would sit
+     between the other two when wrapping. */
+  @media (max-width: 480px) {
+    .course-s-quiz-actions { flex-wrap: wrap; }
+    .course-s-quiz-actions > .course-s-eb7439 { order: 1; flex-basis: 100%; padding: 10px 12px; }
+  }
   .course-s-be13d8 { flex:1;padding:8px 12px;background:transparent;border:1px dashed rgba(124,58,237,0.4);color:var(--accent2);border-radius:6px;font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:4px;transition:all 0.15s; }
 
   /* Phase 3, manually-authored support classes for Course tool */
