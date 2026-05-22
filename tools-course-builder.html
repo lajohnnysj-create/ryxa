@@ -117,6 +117,44 @@
   .section-title { font-family: "Plus Jakarta Sans", sans-serif; font-size: clamp(28px, 4vw, 42px); font-weight: 800; line-height: 1.15; letter-spacing: -1px; margin-bottom: 14px; max-width: 700px; }
   .section-sub { font-size: 16px; color: var(--muted); line-height: 1.6; max-width: 640px; margin-bottom: 50px; }
 
+  /* FEATURE QUOTE CARD (contained, photo + quote side by side, no slash) */
+  .feature-quote {
+    max-width: 1200px; margin: 60px auto; padding: 0 32px;
+  }
+  .feature-quote-card {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+  }
+  .feature-quote-photo {
+    aspect-ratio: 16 / 11;
+    background-image: url("/photos/courses-photo3.webp");
+    background-size: cover; background-position: center;
+  }
+  .feature-quote-body {
+    padding: 56px 48px;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .feature-quote-mark {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-size: 72px; font-weight: 800; line-height: 0.5;
+    color: var(--accent-fill); margin-bottom: 20px;
+  }
+  .feature-quote-text {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-size: clamp(24px, 2.6vw, 32px);
+    font-weight: 700; line-height: 1.2; letter-spacing: -0.5px;
+    color: var(--text);
+  }
+  @media (max-width: 880px) {
+    .feature-quote-card { grid-template-columns: 1fr; }
+    .feature-quote-photo { aspect-ratio: 16 / 9; }
+    .feature-quote-body { padding: 36px 28px; }
+    .feature-quote-mark { font-size: 56px; margin-bottom: 14px; }
+  }
+
   /* GRID CARDS (used for both steps and features) */
   .steps-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
   .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
@@ -238,6 +276,17 @@
     <div class="hero-cta-row">
       <a href="dashboard.html" data-nav-action="try-tool" class="btn-primary">Try Course Builder</a>
       <a href="pricing.html" class="btn-secondary">See pricing</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FEATURE QUOTE CARD ============ -->
+<section class="feature-quote">
+  <div class="feature-quote-card">
+    <div class="feature-quote-photo" aria-hidden="true"></div>
+    <div class="feature-quote-body">
+      <div class="feature-quote-mark" aria-hidden="true">&ldquo;</div>
+      <h2 class="feature-quote-text">Your knowledge deserves a checkout button.</h2>
     </div>
   </div>
 </section>
