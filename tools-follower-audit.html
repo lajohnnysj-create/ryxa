@@ -92,10 +92,10 @@
   .hero { position: relative; padding: 60px 32px 60px; text-align: center; max-width: 1200px; margin: 0 auto; }
   .hero-bg { display: none; }
   .hero-content { position: relative; z-index: 1; max-width: 880px; margin: 0 auto; }
-  .hero-tier-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; background: linear-gradient(135deg,rgba(167,139,250,0.15),rgba(232,121,249,0.15)); border: 1px solid rgba(167,139,250,0.35); border-radius: 999px; font-size: 12px; color: #e879f9; font-weight: 600; margin-bottom: 24px; letter-spacing: 0.05em; text-transform: uppercase; }
-  .hero-tier-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #e879f9; box-shadow: 0 0 8px #e879f9; }
+  .hero-tier-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; background: rgba(167,139,250,0.15); border: 1px solid rgba(167,139,250,0.35); border-radius: 999px; font-size: 12px; color: var(--accent2); font-weight: 600; margin-bottom: 24px; letter-spacing: 0.05em; text-transform: uppercase; }
+  .hero-tier-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--accent2); box-shadow: 0 0 8px var(--accent2); }
   .hero h1 { font-family: "Plus Jakarta Sans", sans-serif; font-size: clamp(36px, 6vw, 64px); font-weight: 800; line-height: 1.1; letter-spacing: -1.5px; margin-bottom: 20px; }
-  .gradient-text { background: linear-gradient(135deg, var(--accent2), var(--accent3)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .accent-text { color: var(--accent2); }
   .hero-tagline { font-size: 18px; color: var(--muted); line-height: 1.6; margin-bottom: 32px; max-width: 640px; margin-left: auto; margin-right: auto; }
   .hero-cta-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
   .btn-primary { background: var(--accent); color: #fff; border: none; border-radius: 12px; padding: 14px 28px; font-size: 15px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 24px var(--accent-glow); text-decoration: none; display: inline-block; }
@@ -125,7 +125,7 @@
   .step-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px 24px; position: relative; transition: all 0.3s; }
   .step-card:hover { border-color: rgba(124,58,237,0.4); transform: translateY(-4px); }
   .step-num { font-family: "Plus Jakarta Sans", sans-serif; font-size: 14px; font-weight: 700; color: var(--accent2); margin-bottom: 14px; letter-spacing: 0.05em; }
-  .step-icon { width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, rgba(167,139,250,0.15), rgba(232,121,249,0.1)); border: 1px solid rgba(167,139,250,0.25); display: flex; align-items: center; justify-content: center; color: #c4b5fd; margin-bottom: 16px; }
+  .step-icon { width: 44px; height: 44px; border-radius: 12px; background: rgba(167,139,250,0.12); border: 1px solid rgba(167,139,250,0.25); display: flex; align-items: center; justify-content: center; color: var(--accent2); margin-bottom: 16px; }
   .step-title { font-family: "Plus Jakarta Sans", sans-serif; font-size: 17px; font-weight: 700; margin-bottom: 8px; }
   .step-desc { font-size: 13px; color: var(--muted); line-height: 1.55; }
 
@@ -138,8 +138,7 @@
   .feature-desc { font-size: 13px; color: var(--muted); line-height: 1.55; }
 
   /* PRICING TIER CALLOUT */
-  .pricing-callout { background: linear-gradient(135deg, rgba(167,139,250,0.08), rgba(232,121,249,0.05)); border: 1px solid rgba(167,139,250,0.25); border-radius: 20px; padding: 40px; text-align: center; max-width: 720px; margin: 0 auto; position: relative; overflow: hidden; }
-  .pricing-callout::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(ellipse at center, rgba(232,121,249,0.08) 0%, transparent 50%); pointer-events: none; }
+  .pricing-callout { background: rgba(167,139,250,0.06); border: 1px solid rgba(167,139,250,0.25); border-radius: 20px; padding: 40px; text-align: center; max-width: 720px; margin: 0 auto; position: relative; overflow: hidden; }
   .pricing-callout-content { position: relative; z-index: 1; }
   .pricing-tier-name { font-family: "Plus Jakarta Sans", sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #e879f9; margin-bottom: 8px; }
   .pricing-tier-price { font-family: "Plus Jakarta Sans", sans-serif; font-size: 48px; font-weight: 800; letter-spacing: -1.5px; margin-bottom: 6px; }
@@ -289,7 +288,7 @@
 <section class="hero">
   <div class="hero-bg"></div>
   <div class="hero-content">
-    <h1>See who you follow that<br><span class="gradient-text">doesn't follow you back</span></h1>
+    <h1>See who you follow that<br><span class="accent-text">doesn't follow you back</span></h1>
     <p class="hero-tagline">Upload your own Instagram data export and see exactly who you follow that doesn't follow you back. No password required, no third-party login risk.</p>
     <div class="hero-cta-row">
       <a href="dashboard.html" data-nav-action="try-tool" class="btn-primary">Run a follower audit</a>
