@@ -301,7 +301,14 @@ function onMKField() {
 function toggleMKSection(name) {
   const body = document.getElementById('mk-body-' + name);
   const btn = body.previousElementSibling;
-  const isOpen = body.style.display !== 'none';
+  // Check computed style, not inline style. Some sections start collapsed
+  // via a CSS class (e.g. bio-s-c8be1c { display:none; }) rather than an
+  // inline style. Reading body.style.display would return '' for those on
+  // fresh load, so the toggle would think they were open and "close" them
+  // again - leaving them hidden but with aria-expanded flipped to true.
+  // That manifests as "first click highlights but doesn't expand, second
+  // click expands." Computed style returns the actual rendered value.
+  const isOpen = window.getComputedStyle(body).display !== 'none';
   body.style.display = isOpen ? 'none' : 'block';
   btn.setAttribute('aria-expanded', !isOpen);
 }

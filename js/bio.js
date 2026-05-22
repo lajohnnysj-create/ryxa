@@ -273,7 +273,13 @@ function toggleBioSection(name) {
   const body = document.getElementById('bio-body-' + name);
   if (!body) return;
   const btn = body.previousElementSibling;
-  const isOpen = body.style.display !== 'none';
+  // Use computed style instead of inline style. Bio sections currently
+  // start expanded by default, but if any are ever hidden via a CSS class
+  // (rather than inline body.style.display = 'none'), reading the inline
+  // style would return '' on fresh load and the first toggle would be a
+  // no-op. Same bug as toggleMKSection had. Defensive fix to keep both
+  // tools robust.
+  const isOpen = window.getComputedStyle(body).display !== 'none';
   body.style.display = isOpen ? 'none' : 'block';
   if (btn) btn.setAttribute('aria-expanded', !isOpen);
 
