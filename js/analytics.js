@@ -295,7 +295,7 @@ async function loadAnalyticsSales(start, end) {
       .order('received_at', { ascending: false });
     if (deals) {
       deals.forEach(function(d) {
-        sales.push({ date: d.received_at, buyer: d.counterparty_name || '—', product: 'Brand Deal', type: 'Brand Deal', amount: d.amount_cents || 0 });
+        sales.push({ date: d.received_at, buyer: d.counterparty_name || '—', product: 'Brand Deal', type: 'Brand', amount: d.amount_cents || 0 });
       });
     }
 
