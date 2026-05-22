@@ -415,7 +415,22 @@ async function saveCourse() {
     // their real DB ids in the UI. Without this, an expanded just-saved
     // lesson keeps showing the "Save first to attach files" message because
     // its rendered HTML was built before the save completed.
+    //
+    // Scroll preservation: if a lesson is expanded, the re-render will remount
+    // Quill which focuses itself and scrolls the editor into view, jumping
+    // the page. We capture scrollY before the render and restore it on a
+    // delay long enough for Quill's mount sequence to complete. Only restore
+    // if scroll actually jumped upward by a meaningful amount - that's the
+    // signature of the focus-scroll, and the guard prevents fighting any
+    // legitimate scrolling the user does during the delay.
+    var preRenderScrollY = window.scrollY || window.pageYOffset || 0;
     renderCourseModules();
+    setTimeout(function() {
+      var afterScrollY = window.scrollY || window.pageYOffset || 0;
+      if (preRenderScrollY > 100 && afterScrollY < preRenderScrollY - 50) {
+        window.scrollTo(0, preRenderScrollY);
+      }
+    }, 200);
 
     showCourseMsg('success', 'Course saved!');
     courseCoverFile = null;
