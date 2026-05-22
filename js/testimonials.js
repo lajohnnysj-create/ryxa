@@ -50,6 +50,14 @@
       handle: '@jaed.official'
     },
     {
+      photo: 'testimonials/john-v.jpg',
+      color: 'c-amber',
+      stars: 5,
+      quote: 'Ryxa has a very intuitive UI and the UX is quite pleasant! Having a lot of fun using this platform to elevate my online presence!',
+      name: 'John Nepomuceno',
+      handle: '@jvbrwn'
+    },
+    {
       photo: 'testimonials/jennie.jpg',
       color: 'c-blue',
       stars: 5,
