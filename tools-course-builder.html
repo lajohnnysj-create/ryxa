@@ -21,23 +21,29 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <style>
   :root {
-    /* Page: electric blue bg, yellow CTAs, white text.
-       Surfaces RECEDE (darker than bg) so white/yellow text stays AA on cards. */
+    /* Page: electric blue bg, magenta CTAs (Ryxa brand), white text.
+       Surfaces RECEDE (darker than bg) so white/accent text stays AA on cards.
+       --accent (light pink) is for FOREGROUND text/borders that need contrast
+       on blue surfaces. --accent-fill (Ryxa magenta) is for button BACKGROUNDS
+       where white text sits on top. Two tokens because deep magenta itself has
+       insufficient contrast against the blue surfaces. */
     --bg: #1d4ed8;
     --surface: #1e40af;
     --surface2: #1e3a8a;
     --border: rgba(255,255,255,0.10);
     --border-hover: rgba(255,255,255,0.22);
-    --accent: #fde047;
-    --accent2: #facc15;
-    --accent-glow: rgba(253,224,71,0.30);
-    --accent-tint-12: rgba(253,224,71,0.12);
-    --accent-tint-08: rgba(253,224,71,0.08);
-    --accent-tint-04: rgba(253,224,71,0.04);
-    --accent-border-25: rgba(253,224,71,0.25);
-    --accent-border-30: rgba(253,224,71,0.35);
-    --accent-border-40: rgba(253,224,71,0.50);
-    --on-accent: #1a1308;
+    --accent: #fbcfe8;
+    --accent2: #f9a8d4;
+    --accent-fill: #b9158d;
+    --accent-fill-hover: #a3127c;
+    --accent-glow: rgba(185,21,141,0.35);
+    --accent-tint-12: rgba(185,21,141,0.18);
+    --accent-tint-08: rgba(185,21,141,0.12);
+    --accent-tint-04: rgba(185,21,141,0.06);
+    --accent-border-25: rgba(251,207,232,0.30);
+    --accent-border-30: rgba(251,207,232,0.40);
+    --accent-border-40: rgba(251,207,232,0.55);
+    --on-accent: #ffffff;
     --text: #ffffff;
     --muted: rgba(255,255,255,0.85);
     --muted2: rgba(255,255,255,0.80);
@@ -70,7 +76,7 @@
   .nav-tools-item-desc { font-size: 11px; color: var(--muted); line-height: 1.4; }
   .nav-tools-tier { font-size: 8px; padding: 2px 6px; border-radius: 4px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; vertical-align: middle; }
   .nav-tools-tier.pro { background: rgba(124,58,237,0.12); border: 1px solid rgba(124,58,237,0.3); color: #6d28d9; }
-  .nav-tools-tier.free { background: rgba(253,224,71,0.12); border: 1px solid rgba(253,224,71,0.35); color: var(--accent); }
+  .nav-tools-tier.free { background: rgba(185,21,141,0.18); border: 1px solid rgba(251,207,232,0.40); color: var(--accent); }
   .nav-tools-tier.max { background: #a78bfa; color: #fff; border: none; }
   .nav-tools-footer { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   .nav-tools-footer-link { font-size: 12px; color: var(--accent); text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
@@ -78,8 +84,8 @@
   .nav-right { display: flex; align-items: center; gap: 12px; }
   .btn-ghost { background: transparent; border: 1px solid var(--border-hover); color: var(--text); border-radius: 8px; padding: 8px 20px; font-size: 14px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.2s; }
   .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
-  .btn-nav-cta { background: var(--accent); color: var(--on-accent); border: none; border-radius: 8px; padding: 9px 22px; font-size: 14px; font-weight: 600; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.2s; box-shadow: 0 0 20px var(--accent-glow); }
-  .btn-nav-cta:hover { background: var(--accent2); transform: translateY(-1px); }
+  .btn-nav-cta { background: var(--accent-fill); color: var(--on-accent); border: none; border-radius: 8px; padding: 9px 22px; font-size: 14px; font-weight: 600; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.2s; box-shadow: 0 0 20px var(--accent-glow); }
+  .btn-nav-cta:hover { background: var(--accent-fill-hover); transform: translateY(-1px); }
   .hamburger { display: none; flex-direction: column; justify-content: center; gap: 5px; background: none; border: none; cursor: pointer; padding: 6px; }
   .hamburger span { display: block; width: 22px; height: 2px; background: var(--text); border-radius: 2px; }
   .mobile-menu { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 300; flex-direction: column; padding: 80px 32px 40px; }
@@ -87,7 +93,7 @@
   .mobile-menu-links { display: flex; flex-direction: column; gap: 4px; flex: 1; }
   .mobile-menu-links a { color: var(--text); font-size: 24px; font-family: "Plus Jakarta Sans", sans-serif; font-weight: 700; text-decoration: none; padding: 14px 0; border-bottom: 1px solid var(--border); }
   .mobile-menu-bottom { margin-top: 32px; display: flex; flex-direction: column; gap: 12px; }
-  .mobile-cta { width: 100%; padding: 16px; background: var(--accent); color: var(--on-accent); border: none; border-radius: 12px; font-size: 16px; font-weight: 600; font-family: "DM Sans", sans-serif; cursor: pointer; text-decoration: none; display: block; text-align: center; }
+  .mobile-cta { width: 100%; padding: 16px; background: var(--accent-fill); color: var(--on-accent); border: none; border-radius: 12px; font-size: 16px; font-weight: 600; font-family: "DM Sans", sans-serif; cursor: pointer; text-decoration: none; display: block; text-align: center; }
   .mobile-signin { width: 100%; padding: 16px; background: transparent; border: 1px solid var(--border-hover); color: var(--text); border-radius: 12px; font-size: 16px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; text-decoration: none; display: block; text-align: center; }
 
   /* HERO */
@@ -100,8 +106,8 @@
   .accent-text { color: var(--accent); }
   .hero-tagline { font-size: 18px; color: var(--muted); line-height: 1.6; margin-bottom: 32px; max-width: 640px; margin-left: auto; margin-right: auto; }
   .hero-cta-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-  .btn-primary { background: var(--accent); color: var(--on-accent); border: none; border-radius: 12px; padding: 14px 28px; font-size: 15px; font-weight: 600; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 24px var(--accent-glow); text-decoration: none; display: inline-block; }
-  .btn-primary:hover { background: var(--accent2); transform: translateY(-1px); box-shadow: 0 6px 28px var(--accent-glow); }
+  .btn-primary { background: var(--accent-fill); color: var(--on-accent); border: none; border-radius: 12px; padding: 14px 28px; font-size: 15px; font-weight: 600; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 24px var(--accent-glow); text-decoration: none; display: inline-block; }
+  .btn-primary:hover { background: var(--accent-fill-hover); transform: translateY(-1px); box-shadow: 0 6px 28px var(--accent-glow); }
   .btn-secondary { background: transparent; border: 1px solid var(--border-hover); color: var(--text); border-radius: 12px; padding: 14px 28px; font-size: 15px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-block; }
   .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
 
@@ -172,12 +178,12 @@
   .faq-q { display: flex; align-items: center; justify-content: space-between; cursor: pointer; gap: 16px; }
   .faq-q-text { font-family: "Plus Jakarta Sans", sans-serif; font-size: 17px; font-weight: 600; color: var(--text); flex: 1; }
   .faq-toggle { width: 28px; height: 28px; border-radius: 50%; background: var(--surface); border: 1px solid var(--border); color: var(--muted); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s; font-size: 18px; line-height: 1; }
-  .faq-item.open .faq-toggle { background: var(--accent); color: var(--on-accent); border-color: var(--accent); transform: rotate(45deg); }
+  .faq-item.open .faq-toggle { background: var(--accent-fill); color: var(--on-accent); border-color: var(--accent-fill); transform: rotate(45deg); }
   .faq-a { max-height: 0; overflow: hidden; transition: max-height 0.3s ease, padding 0.3s; color: var(--muted); font-size: 14px; line-height: 1.65; }
   .faq-item.open .faq-a { max-height: 500px; padding-top: 12px; }
 
   /* BOTTOM CTA */
-  .bottom-cta { position: relative; padding: 100px 32px 120px; text-align: center; max-width: none; margin: 0; overflow: hidden; background-color: #0f170b; }
+  .bottom-cta { position: relative; padding: 100px 32px 120px; text-align: center; max-width: none; margin: 0; overflow: hidden; background-color: #0a1024; }
   .bottom-cta-photo {
     position: absolute; inset: 0; z-index: 0;
     background-image: url("/photos/courses-photo2.webp");
@@ -185,7 +191,7 @@
   }
   .bottom-cta-overlay {
     position: absolute; inset: 0; z-index: 1;
-    background: linear-gradient(180deg, rgba(15,23,11,0.86) 0%, rgba(15,23,11,0.78) 45%, rgba(15,23,11,0.92) 100%);
+    background: linear-gradient(180deg, rgba(10,16,36,0.86) 0%, rgba(10,16,36,0.78) 45%, rgba(10,16,36,0.92) 100%);
   }
   .bottom-cta-content { position: relative; z-index: 2; max-width: 800px; margin: 0 auto; }
   .bottom-cta h2 { font-family: "Plus Jakarta Sans", sans-serif; font-size: clamp(28px, 4vw, 40px); font-weight: 800; letter-spacing: -1px; margin-bottom: 14px; color: #fff; }
