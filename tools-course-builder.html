@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Online Course Builder for Creators | Ryxa</title>
-<meta name="description" content="Sell your knowledge as a course. Build modules, set your price, accept Stripe payments, and keep more. Ryxa takes 0% transaction fees.">
+<meta name="description" content="Sell your knowledge as a course. Build modules with video hosting, downloadable files, and quizzes. Payments go directly to your Stripe. Ryxa takes 0% transaction fees.">
 <meta property="og:title" content="Online Course Builder for Creators | Ryxa">
-<meta property="og:description" content="Sell your knowledge as a course. Build modules, set your price, accept Stripe payments, and keep more. Ryxa takes 0% transaction fees.">
+<meta property="og:description" content="Sell your knowledge as a course. Video hosting, downloadable files, and module quizzes built in. Payments go directly to your Stripe. Ryxa takes 0% transaction fees.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://www.ryxa.io/tools-course-builder">
 <meta property="og:image" content="https://www.ryxa.io/og-image.png">
@@ -26,10 +26,16 @@
     --surface2: #181822;
     --border: rgba(255,255,255,0.08);
     --border-hover: rgba(255,255,255,0.18);
-    --accent: #7c3aed;
-    --accent2: #a78bfa;
-    --accent3: #e879f9;
-    --accent-glow: rgba(124,58,237,0.45);
+    --accent: #a3e635;
+    --accent2: #86efac;
+    --accent-glow: rgba(163,230,53,0.35);
+    --accent-tint-12: rgba(163,230,53,0.12);
+    --accent-tint-08: rgba(163,230,53,0.08);
+    --accent-tint-04: rgba(163,230,53,0.04);
+    --accent-border-25: rgba(163,230,53,0.25);
+    --accent-border-30: rgba(163,230,53,0.3);
+    --accent-border-40: rgba(163,230,53,0.4);
+    --on-accent: #07070f;
     --text: #f0eef8;
     --muted: #b4b2c8;
     --muted2: #c9c7dc;
@@ -54,8 +60,8 @@
   .nav-tools-wrap::before { content: ''; position: absolute; top: 100%; left: 0; right: 0; height: 12px; }
   .nav-tools-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
   .nav-tools-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px; border-radius: 10px; text-decoration: none; transition: background 0.15s; color: inherit; }
-  .nav-tools-item:hover { background: rgba(124,58,237,0.08); }
-  .nav-tools-item-icon { width: 36px; height: 36px; border-radius: 9px; background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #c4b5fd; }
+  .nav-tools-item:hover { background: var(--accent-tint-08); }
+  .nav-tools-item-icon { width: 36px; height: 36px; border-radius: 9px; background: var(--accent-tint-12); border: 1px solid var(--accent-border-25); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--accent); }
   .nav-tools-item-icon svg { width: 17px; height: 17px; }
   .nav-tools-item-content { flex: 1; min-width: 0; }
   .nav-tools-item-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; color: var(--text); margin-bottom: 2px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
@@ -63,14 +69,14 @@
   .nav-tools-tier { font-size: 8px; padding: 2px 6px; border-radius: 4px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; vertical-align: middle; }
   .nav-tools-tier.pro { background: rgba(124,58,237,0.15); border: 1px solid rgba(124,58,237,0.3); color: #c4b5fd; }
   .nav-tools-tier.free { background: rgba(74,222,128,0.12); border: 1px solid rgba(74,222,128,0.3); color: #4ade80; }
-  .nav-tools-tier.max { background: linear-gradient(135deg,#a78bfa,#e879f9); color: #fff; border: none; }
+  .nav-tools-tier.max { background: #a78bfa; color: #fff; border: none; }
   .nav-tools-footer { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-  .nav-tools-footer-link { font-size: 12px; color: var(--accent2); text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 4px; }
-  .nav-tools-footer-link:hover { color: #c4b5fd; }
+  .nav-tools-footer-link { font-size: 12px; color: var(--accent); text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 4px; }
+  .nav-tools-footer-link:hover { color: var(--accent2); }
   .nav-right { display: flex; align-items: center; gap: 12px; }
   .btn-ghost { background: transparent; border: 1px solid var(--border-hover); color: var(--text); border-radius: 8px; padding: 8px 20px; font-size: 14px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.2s; }
-  .btn-ghost:hover { border-color: var(--accent2); color: var(--accent2); }
-  .btn-nav-cta { background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 9px 22px; font-size: 14px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.2s; box-shadow: 0 0 20px var(--accent-glow); }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-nav-cta { background: var(--accent); color: var(--on-accent); border: none; border-radius: 8px; padding: 9px 22px; font-size: 14px; font-weight: 600; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.2s; box-shadow: 0 0 20px var(--accent-glow); }
   .btn-nav-cta:hover { background: var(--accent2); transform: translateY(-1px); }
   .hamburger { display: none; flex-direction: column; justify-content: center; gap: 5px; background: none; border: none; cursor: pointer; padding: 6px; }
   .hamburger span { display: block; width: 22px; height: 2px; background: var(--text); border-radius: 2px; }
@@ -79,68 +85,39 @@
   .mobile-menu-links { display: flex; flex-direction: column; gap: 4px; flex: 1; }
   .mobile-menu-links a { color: var(--text); font-size: 24px; font-family: "Syne", sans-serif; font-weight: 700; text-decoration: none; padding: 14px 0; border-bottom: 1px solid var(--border); }
   .mobile-menu-bottom { margin-top: 32px; display: flex; flex-direction: column; gap: 12px; }
-  .mobile-cta { width: 100%; padding: 16px; background: var(--accent); color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; text-decoration: none; display: block; text-align: center; }
+  .mobile-cta { width: 100%; padding: 16px; background: var(--accent); color: var(--on-accent); border: none; border-radius: 12px; font-size: 16px; font-weight: 600; font-family: "DM Sans", sans-serif; cursor: pointer; text-decoration: none; display: block; text-align: center; }
   .mobile-signin { width: 100%; padding: 16px; background: transparent; border: 1px solid var(--border-hover); color: var(--text); border-radius: 12px; font-size: 16px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; text-decoration: none; display: block; text-align: center; }
 
   /* HERO */
   .hero { position: relative; padding: 60px 32px 60px; text-align: center; max-width: 1200px; margin: 0 auto; }
   .hero-bg { display: none; }
   .hero-content { position: relative; z-index: 1; max-width: 880px; margin: 0 auto; }
-  .hero-tier-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; background: linear-gradient(135deg,rgba(167,139,250,0.15),rgba(232,121,249,0.15)); border: 1px solid rgba(167,139,250,0.35); border-radius: 999px; font-size: 12px; color: #e879f9; font-weight: 600; margin-bottom: 24px; letter-spacing: 0.05em; text-transform: uppercase; }
-  .hero-tier-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #e879f9; box-shadow: 0 0 8px #e879f9; }
+  .hero-tier-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; background: var(--accent-tint-12); border: 1px solid var(--accent-border-30); border-radius: 999px; font-size: 12px; color: var(--accent); font-weight: 600; margin-bottom: 24px; letter-spacing: 0.05em; text-transform: uppercase; }
+  .hero-tier-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
   .hero h1 { font-family: "Syne", sans-serif; font-size: clamp(36px, 6vw, 64px); font-weight: 800; line-height: 1.1; letter-spacing: -1.5px; margin-bottom: 20px; }
-  .gradient-text { background: linear-gradient(135deg, var(--accent2), var(--accent3)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .accent-text { color: var(--accent); }
   .hero-tagline { font-size: 18px; color: var(--muted); line-height: 1.6; margin-bottom: 32px; max-width: 640px; margin-left: auto; margin-right: auto; }
   .hero-cta-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-  .btn-primary { background: var(--accent); color: #fff; border: none; border-radius: 12px; padding: 14px 28px; font-size: 15px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 24px var(--accent-glow); text-decoration: none; display: inline-block; }
+  .btn-primary { background: var(--accent); color: var(--on-accent); border: none; border-radius: 12px; padding: 14px 28px; font-size: 15px; font-weight: 600; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 24px var(--accent-glow); text-decoration: none; display: inline-block; }
   .btn-primary:hover { background: var(--accent2); transform: translateY(-1px); box-shadow: 0 6px 28px var(--accent-glow); }
   .btn-secondary { background: transparent; border: 1px solid var(--border-hover); color: var(--text); border-radius: 12px; padding: 14px 28px; font-size: 15px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-block; }
-  .btn-secondary:hover { border-color: var(--accent2); color: var(--accent2); }
-
-  /* MOCKUP — App preview window */
-  .mockup-section { padding: 0 32px 80px; max-width: 1200px; margin: 0 auto; }
-  .app-window { background: var(--surface); border: 1px solid var(--border-hover); border-radius: 16px; overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(124,58,237,0.1); }
-  .app-titlebar { background: rgba(20,20,30,0.9); padding: 12px 16px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border); }
-  .app-dot { width: 11px; height: 11px; border-radius: 50%; }
-  .app-dot.red { background: #ff5f57; }
-  .app-dot.yellow { background: #ffbd2e; }
-  .app-dot.green { background: #28c840; }
-  .app-url-bar { flex: 1; max-width: 380px; margin: 0 auto; padding: 4px 12px; background: rgba(255,255,255,0.06); border-radius: 6px; font-size: 11px; color: var(--muted); text-align: center; font-family: monospace; }
-  .app-body { background: #0a0a14; min-height: 480px; }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
 
   /* SECTIONS */
   section { padding: 80px 32px; max-width: 1200px; margin: 0 auto; position: relative; }
-  .section-label { display: inline-block; padding: 5px 13px; background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.25); border-radius: 999px; font-size: 11px; color: #c4b5fd; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600; margin-bottom: 16px; }
+  .section-label { display: inline-block; padding: 5px 13px; background: var(--accent-tint-08); border: 1px solid var(--accent-border-25); border-radius: 999px; font-size: 11px; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600; margin-bottom: 16px; }
   .section-title { font-family: "Syne", sans-serif; font-size: clamp(28px, 4vw, 42px); font-weight: 800; line-height: 1.15; letter-spacing: -1px; margin-bottom: 14px; max-width: 700px; }
   .section-sub { font-size: 16px; color: var(--muted); line-height: 1.6; max-width: 640px; margin-bottom: 50px; }
 
-  /* HOW IT WORKS */
+  /* GRID CARDS (used for both steps and features) */
   .steps-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+  .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
   .step-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px 24px; position: relative; transition: all 0.3s; }
-  .step-card:hover { border-color: rgba(124,58,237,0.4); transform: translateY(-4px); }
-  .step-num { font-family: "Syne", sans-serif; font-size: 14px; font-weight: 700; color: var(--accent2); margin-bottom: 14px; letter-spacing: 0.05em; }
-  .step-icon { width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, rgba(167,139,250,0.15), rgba(232,121,249,0.1)); border: 1px solid rgba(167,139,250,0.25); display: flex; align-items: center; justify-content: center; color: #c4b5fd; margin-bottom: 16px; }
+  .step-card:hover { border-color: var(--accent-border-40); transform: translateY(-4px); }
+  .step-num { font-family: "Syne", sans-serif; font-size: 14px; font-weight: 700; color: var(--accent); margin-bottom: 14px; letter-spacing: 0.05em; }
+  .step-icon { width: 44px; height: 44px; border-radius: 12px; background: var(--accent-tint-12); border: 1px solid var(--accent-border-25); display: flex; align-items: center; justify-content: center; color: var(--accent); margin-bottom: 16px; }
   .step-title { font-family: "Syne", sans-serif; font-size: 17px; font-weight: 700; margin-bottom: 8px; }
   .step-desc { font-size: 13px; color: var(--muted); line-height: 1.55; }
-
-  /* FEATURE HIGHLIGHTS */
-  .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-  .feature-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 28px 24px; transition: all 0.3s; }
-  .feature-card:hover { border-color: rgba(124,58,237,0.3); background: rgba(124,58,237,0.04); }
-  .feature-icon { width: 38px; height: 38px; border-radius: 10px; background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.2); display: flex; align-items: center; justify-content: center; color: #c4b5fd; margin-bottom: 16px; }
-  .feature-title { font-family: "Syne", sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 8px; }
-  .feature-desc { font-size: 13px; color: var(--muted); line-height: 1.55; }
-
-  /* PRICING TIER CALLOUT */
-  .pricing-callout { background: linear-gradient(135deg, rgba(167,139,250,0.08), rgba(232,121,249,0.05)); border: 1px solid rgba(167,139,250,0.25); border-radius: 20px; padding: 40px; text-align: center; max-width: 720px; margin: 0 auto; position: relative; overflow: hidden; }
-  .pricing-callout::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(ellipse at center, rgba(232,121,249,0.08) 0%, transparent 50%); pointer-events: none; }
-  .pricing-callout-content { position: relative; z-index: 1; }
-  .pricing-tier-name { font-family: "Syne", sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #e879f9; margin-bottom: 8px; }
-  .pricing-tier-price { font-family: "Syne", sans-serif; font-size: 48px; font-weight: 800; letter-spacing: -1.5px; margin-bottom: 6px; }
-  .pricing-tier-price-period { font-size: 16px; color: var(--muted); font-weight: 400; letter-spacing: 0; }
-  .pricing-tier-desc { font-size: 14px; color: var(--muted); margin-bottom: 24px; }
-  .pricing-tier-includes { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 26px; }
-  .pricing-tier-pill { font-size: 12px; padding: 5px 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 999px; color: var(--muted); }
 
   /* FAQ */
   .faq-list { max-width: 720px; margin: 0 auto; }
@@ -149,7 +126,7 @@
   .faq-q { display: flex; align-items: center; justify-content: space-between; cursor: pointer; gap: 16px; }
   .faq-q-text { font-family: "Syne", sans-serif; font-size: 17px; font-weight: 600; color: var(--text); flex: 1; }
   .faq-toggle { width: 28px; height: 28px; border-radius: 50%; background: var(--surface); border: 1px solid var(--border); color: var(--muted); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s; font-size: 18px; line-height: 1; }
-  .faq-item.open .faq-toggle { background: var(--accent); color: #fff; border-color: var(--accent); transform: rotate(45deg); }
+  .faq-item.open .faq-toggle { background: var(--accent); color: var(--on-accent); border-color: var(--accent); transform: rotate(45deg); }
   .faq-a { max-height: 0; overflow: hidden; transition: max-height 0.3s ease, padding 0.3s; color: var(--muted); font-size: 14px; line-height: 1.65; }
   .faq-item.open .faq-a { max-height: 500px; padding-top: 12px; }
 
@@ -176,73 +153,9 @@
     .nav-links, .nav-right { display: none; }
     .hamburger { display: flex; }
     .hero { padding: 60px 20px 40px; }
-    .mockup-section { padding: 0 20px 60px; }
     section { padding: 60px 20px; }
     .steps-grid, .features-grid { grid-template-columns: 1fr; }
-    .pricing-callout { padding: 30px 20px; }
-    .pricing-tier-price { font-size: 36px; }
   }
-
-  /* ===========================================
-     APP MOCKUP STYLES (Brand Deal CRM screenshot)
-     =========================================== */
-  .mock-app { display: flex; min-height: 480px; }
-  .mock-sidebar { width: 200px; background: rgba(15,15,26,0.6); border-right: 1px solid var(--border); padding: 16px 12px; flex-shrink: 0; }
-  .mock-sidebar-logo { display: flex; align-items: center; gap: 8px; padding: 6px 8px; margin-bottom: 16px; }
-  .mock-sidebar-logo-img { width: 24px; height: 24px; background: linear-gradient(135deg, var(--accent2), var(--accent3)); border-radius: 6px; }
-  .mock-sidebar-logo-text { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 14px; }
-  .mock-nav-item { display: flex; align-items: center; gap: 8px; padding: 7px 9px; border-radius: 6px; font-size: 11px; color: var(--muted); margin-bottom: 2px; }
-  .mock-nav-item.active { background: rgba(124,58,237,0.15); color: #c4b5fd; border: 1px solid rgba(124,58,237,0.25); }
-  .mock-nav-item svg { width: 13px; height: 13px; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; }
-  .mock-nav-pill { font-size: 7px; padding: 1px 5px; border-radius: 3px; font-weight: 700; letter-spacing: 0.05em; margin-left: auto; }
-  .mock-nav-pill.max { background: linear-gradient(135deg,#a78bfa,#e879f9); color: #fff; }
-  .mock-nav-pill.pro { background: rgba(124,58,237,0.2); color: #c4b5fd; border: 1px solid rgba(124,58,237,0.3); }
-
-  .mock-main { flex: 1; padding: 20px 24px; min-width: 0; }
-  .mock-main-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
-  .mock-main-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800; }
-  .mock-main-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
-  .mock-cta-btn { padding: 7px 14px; background: var(--accent); color: #fff; border-radius: 7px; font-size: 11px; font-weight: 500; border: none; }
-
-  /* Stats row */
-  .mock-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; }
-  .mock-stat { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
-  .mock-stat-label { font-size: 8px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 4px; }
-  .mock-stat-value { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 800; }
-  .mock-stat-value.amber { color: #fbbf24; }
-  .mock-stat-sub { font-size: 8px; color: var(--muted); margin-top: 2px; }
-
-  /* Charts row */
-  .mock-charts { display: grid; grid-template-columns: 1.4fr 1fr; gap: 8px; margin-bottom: 14px; }
-  .mock-chart-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
-  .mock-chart-title { font-size: 9px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 12px; font-weight: 600; }
-  .mock-bars { display: flex; align-items: flex-end; gap: 6px; height: 80px; margin-bottom: 6px; }
-  .mock-bar-wrap { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; height: 100%; }
-  .mock-bar { width: 100%; background: linear-gradient(180deg, #a78bfa 0%, #7c3aed 100%); border-radius: 3px 3px 0 0; }
-  .mock-bar-labels { display: flex; gap: 6px; }
-  .mock-bar-label { flex: 1; font-size: 8px; text-align: center; color: var(--muted); }
-  .mock-brand-row { margin-bottom: 8px; }
-  .mock-brand-row:last-child { margin-bottom: 0; }
-  .mock-brand-info { display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 3px; }
-  .mock-brand-name { color: var(--text); }
-  .mock-brand-amount { color: var(--text); font-weight: 600; }
-  .mock-brand-bar { height: 3px; background: var(--surface); border-radius: 2px; overflow: hidden; }
-  .mock-brand-bar-fill { height: 100%; border-radius: 2px; }
-
-  /* Deals table */
-  .mock-table { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
-  .mock-table-row { display: grid; grid-template-columns: 2.2fr 1.5fr 1fr 90px 80px; gap: 8px; padding: 10px 14px; align-items: center; font-size: 10px; border-bottom: 1px solid var(--border); }
-  .mock-table-row:last-child { border-bottom: none; }
-  .mock-table-row.header { background: rgba(255,255,255,0.02); font-size: 9px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 600; padding: 8px 14px; }
-  .mock-deal-title { color: var(--text); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .mock-deal-brand { color: var(--muted); }
-  .mock-deal-amount { font-family: 'Syne', sans-serif; font-weight: 700; color: var(--text); }
-  .mock-status-badge { font-size: 8px; padding: 2px 7px; border-radius: 999px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; text-align: center; display: inline-block; }
-  .mock-status-active { background: rgba(124,58,237,0.15); color: #c4b5fd; border: 1px solid rgba(124,58,237,0.3); }
-  .mock-status-completed { background: rgba(74,222,128,0.12); color: #4ade80; border: 1px solid rgba(74,222,128,0.3); }
-  .mock-status-pending { background: rgba(251,191,36,0.1); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
-  .mock-pay-paid { color: #4ade80; }
-  .mock-pay-waiting { color: #fbbf24; }
 </style>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <style>body{opacity:0;transition:opacity 0.2s ease;}body.site-ready{opacity:1;}</style>
@@ -257,8 +170,8 @@
 <section class="hero">
   <div class="hero-bg"></div>
   <div class="hero-content">
-    <h1>Sell courses to<br><span class="gradient-text">your audience</span></h1>
-    <p class="hero-tagline">Build online courses with modules, lessons, and video embeds. Buyers get their own dashboard to track progress. Payments go directly to your Stripe. Ryxa takes 0%.</p>
+    <h1>Sell courses to<br><span class="accent-text">your audience</span></h1>
+    <p class="hero-tagline">Build online courses with modules, video and text lessons, downloadable files, and end-of-module quizzes. Buyers get their own dashboard to track progress. Payments go directly to your Stripe. Ryxa takes 0% transaction fees.</p>
     <div class="hero-cta-row">
       <a href="dashboard.html" data-nav-action="try-tool" class="btn-primary">Try Course Builder</a>
       <a href="pricing.html" class="btn-secondary">See pricing</a>
@@ -269,23 +182,25 @@
 <section>
   <div class="section-label">How it works</div>
   <h2 class="section-title">From idea to published course, in four steps.</h2>
-  <p class="section-sub">No complex setup. No monthly course platform fees. Just build, publish, and start earning.</p>
+  <p class="section-sub">No complex setup. No monthly course platform fees. Build, publish, and start earning.</p>
   <div class="steps-grid">
     <div class="step-card"><div class="step-num">Step 1</div><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></div><div class="step-title">Create your course</div><div class="step-desc">Add a title, description, cover image, and set your price. Free or paid, your choice.</div></div>
-    <div class="step-card"><div class="step-num">Step 2</div><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div><div class="step-title">Add modules & lessons</div><div class="step-desc">Organize content into modules. Host your videos on YouTube or Vimeo and embed them directly into lessons. Add text content or mark lessons as free preview.</div></div>
+    <div class="step-card"><div class="step-num">Step 2</div><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div><div class="step-title">Add modules &amp; lessons</div><div class="step-desc">Upload videos directly to Ryxa, write text lessons, attach downloadable files, and add a quiz at the end of each module to test understanding.</div></div>
     <div class="step-card"><div class="step-num">Step 3</div><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="step-title">Connect Stripe</div><div class="step-desc">Link your Stripe account in Settings. Payments go directly to you. Ryxa takes 0% transaction fees.</div></div>
-    <div class="step-card"><div class="step-num">Step 4</div><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><div class="step-title">Publish & share</div><div class="step-desc">Your course gets its own landing page. Add it to your Link in Bio and start selling.</div></div>
+    <div class="step-card"><div class="step-num">Step 4</div><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><div class="step-title">Publish &amp; share</div><div class="step-desc">Your course gets its own landing page. Add it to your Link in Bio and start selling.</div></div>
   </div>
 </section>
 
 <section>
   <div class="section-label">Features</div>
   <h2 class="section-title">Everything you need to sell a course.</h2>
-  <div class="steps-grid">
-    <div class="step-card"><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg></div><div class="step-title">Video & text lessons</div><div class="step-desc">Host your videos on YouTube or Vimeo, then paste the link to embed them into your lessons. Add text content alongside or on its own.</div></div>
-    <div class="step-card"><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/></svg></div><div class="step-title">Buyer dashboard</div><div class="step-desc">Students get their own Learning Hub with progress tracking, lesson navigation, and completion status.</div></div>
-    <div class="step-card"><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg></div><div class="step-title">Cover images</div><div class="step-desc">Upload a cover image that displays on your landing page, bio link, and the buyer's dashboard.</div></div>
-    <div class="step-card"><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="step-title">0% transaction fees</div><div class="step-desc">Keep every dollar. Ryxa doesn't take a cut. Standard Stripe processing fees apply.</div></div>
+  <div class="features-grid">
+    <div class="step-card"><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg></div><div class="step-title">Video hosting included</div><div class="step-desc">Upload videos directly to Ryxa. We host them, transcode them, and stream them to your students. No YouTube or Vimeo account needed.</div></div>
+    <div class="step-card"><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><div class="step-title">Text &amp; rich content lessons</div><div class="step-desc">Write text-based lessons with rich formatting. Mix video and text however you want within a module.</div></div>
+    <div class="step-card"><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></div><div class="step-title">Attach downloadable files</div><div class="step-desc">Attach worksheets, templates, PDFs, or any file to your lessons. Students download them straight from the lesson page.</div></div>
+    <div class="step-card"><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><div class="step-title">Module quizzes</div><div class="step-desc">Add a quiz at the end of each module. Set whether students must pass to continue or just take it for practice. Reinforces learning before they move on.</div></div>
+    <div class="step-card"><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/></svg></div><div class="step-title">Student dashboard</div><div class="step-desc">Students get their own Ryxa Hub with progress tracking, lesson navigation, and completion status across every course they buy from you.</div></div>
+    <div class="step-card"><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="step-title">Ryxa takes 0% transaction fees</div><div class="step-desc">Keep every dollar of your revenue. Standard Stripe processing fees apply (around 2.9% + 30 cents per transaction).</div></div>
   </div>
 </section>
 
@@ -293,16 +208,18 @@
   <div class="section-label">FAQ</div>
   <h2 class="section-title">Common questions about Course Builder.</h2>
   <div class="faq-list">
-    <div class="faq-item"><div class="faq-q" data-nav-action="toggle-faq"><div class="faq-q-text">Does Ryxa take a percentage of my sales?</div><div class="faq-toggle">+</div></div><div class="faq-a">No. Ryxa takes 0% of your course revenue. Payments go directly to your Stripe account. The only fees are Stripe's standard processing fees (2.9% + $0.30).</div></div>
+    <div class="faq-item"><div class="faq-q" data-nav-action="toggle-faq"><div class="faq-q-text">Does Ryxa take a percentage of my sales?</div><div class="faq-toggle">+</div></div><div class="faq-a">No. Ryxa takes 0% transaction fees on your course revenue. Payments go directly to your Stripe account. The only fees are Stripe's standard processing fees (around 2.9% + 30 cents per transaction).</div></div>
     <div class="faq-item"><div class="faq-q" data-nav-action="toggle-faq"><div class="faq-q-text">Can I create free courses?</div><div class="faq-toggle">+</div></div><div class="faq-a">Yes. Set the price to $0 and anyone can enroll without payment. Great for lead magnets or building your audience.</div></div>
-    <div class="faq-item"><div class="faq-q" data-nav-action="toggle-faq"><div class="faq-q-text">Where do buyers access the course after purchasing?</div><div class="faq-toggle">+</div></div><div class="faq-a">Buyers access courses through the Learning Hub at ryxa.io/learn. They sign in, see all their purchased courses, and can track their progress lesson by lesson.</div></div>
-    <div class="faq-item"><div class="faq-q" data-nav-action="toggle-faq"><div class="faq-q-text">Where do I host my course videos?</div><div class="faq-toggle">+</div></div><div class="faq-a">Host your videos on YouTube or Vimeo (unlisted if you want them private), then paste the video link into your lesson. The video embeds directly into the course. Your students watch it without leaving the page.</div></div>
+    <div class="faq-item"><div class="faq-q" data-nav-action="toggle-faq"><div class="faq-q-text">Where do buyers access the course after purchasing?</div><div class="faq-toggle">+</div></div><div class="faq-a">Buyers access courses through the Ryxa Hub at ryxa.io/learn. They sign in, see all their purchased courses, and can track their progress lesson by lesson.</div></div>
+    <div class="faq-item"><div class="faq-q" data-nav-action="toggle-faq"><div class="faq-q-text">Do I need a separate video host like YouTube or Vimeo?</div><div class="faq-toggle">+</div></div><div class="faq-a">No. Ryxa includes video hosting. Upload your video directly in the lesson editor and we handle the rest. Your students stream the video right inside the course player.</div></div>
+    <div class="faq-item"><div class="faq-q" data-nav-action="toggle-faq"><div class="faq-q-text">Can I attach files like PDFs or worksheets to lessons?</div><div class="faq-toggle">+</div></div><div class="faq-a">Yes. Each lesson can have downloadable files attached. Worksheets, templates, slides, ZIPs, anything that helps your students. They download the files right from the lesson page.</div></div>
+    <div class="faq-item"><div class="faq-q" data-nav-action="toggle-faq"><div class="faq-q-text">How do quizzes work?</div><div class="faq-toggle">+</div></div><div class="faq-a">You can add one quiz at the end of any module with up to 10 multiple-choice questions. Choose whether students must pass to unlock the next module, or whether the quiz is just for practice and they can move on regardless.</div></div>
   </div>
 </section>
 
 <section class="bottom-cta">
   <h2>Start selling courses today.</h2>
-  <p>No complicated setup. No monthly course platform fees. Build your course and keep 100% of your revenue.</p>
+  <p>No complicated setup. No monthly course platform fees. Build your course and keep every dollar of your revenue.</p>
   <div class="hero-cta-row">
     <a href="dashboard.html" data-nav-action="try-tool" class="btn-primary">Try Course Builder</a>
     <a href="pricing.html" class="btn-secondary">See pricing</a>
