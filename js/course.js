@@ -1383,6 +1383,32 @@ function collapseLesson(modIdx, lessonIdx) {
 }
 
 function expandLesson(modIdx, lessonIdx) {
+  // Accordion behavior: collapsing all other expanded lessons before
+  // expanding this one keeps the editing surface clean and (as a side
+  // effect) avoids the scroll-jump bug where a Quill editor on an
+  // expanded lesson far up the page would re-focus during the re-render
+  // and yank the page back to its position. Quiz cards are intentionally
+  // left alone - they don't host Quill and don't cause the bug, so the
+  // accordion rule applies to lessons only.
+  for (var mi = 0; mi < courseModules.length; mi++) {
+    var mod = courseModules[mi];
+    if (!mod.lessons) continue;
+    for (var li = 0; li < mod.lessons.length; li++) {
+      // Skip the target lesson - we're about to expand it, no need to
+      // bounce it through collapse first.
+      if (mi === modIdx && li === lessonIdx) continue;
+      var other = mod.lessons[li];
+      if (other && !other._collapsed) {
+        // Unmount Quill on this lesson if it has one - same teardown
+        // path collapseLesson uses. Skipping this would leave stale
+        // Quill instances pointing at detached DOM nodes after the
+        // upcoming re-render.
+        unmountLessonEditor(mi, li);
+        other._collapsed = true;
+      }
+    }
+  }
+
   courseModules[modIdx].lessons[lessonIdx]._collapsed = false;
   renderCourseModules();
   // Load this lesson's downloadable files (if any) in the background. The
@@ -2235,32 +2261,14 @@ function renderCourseModules() {
   // Runs every render, idempotent (mountLessonEditor skips already-mounted
   // hosts). On first call, lazy-loads Quill+DOMPurify; subsequent calls
   // resolve instantly from the cached promise.
-  //
-  // Scroll preservation: Quill's mount sequence focuses the editor, which
-  // triggers the browser's native scroll-into-view behavior. If the user
-  // had an expanded lesson at the top of the page and was scrolled down
-  // working on something below, that focus would yank the page back to
-  // the top. We capture scrollY just before the async mount and restore
-  // it right after, so any focus-induced scroll is reversed.
   var hosts = container.querySelectorAll('.course-s-quill-host');
   if (hosts.length > 0) {
-    var preMountScrollY = window.scrollY || window.pageYOffset || 0;
     ensureQuillLoaded().then(function() {
       hosts.forEach(function(host) {
         var mi = parseInt(host.dataset.courseMi, 10);
         var li = parseInt(host.dataset.courseLi, 10);
         mountLessonEditor(mi, li);
       });
-      // Restore scroll position after all mounts complete. Quill's focus
-      // (which it does internally on mount) would otherwise scroll the
-      // editor into view, jumping the page. We only restore if scroll
-      // actually moved upward by a meaningful amount - this avoids fighting
-      // legitimate user scrolling that might happen during a slow first-time
-      // Quill load.
-      var afterScrollY = window.scrollY || window.pageYOffset || 0;
-      if (preMountScrollY > 100 && afterScrollY < preMountScrollY - 50) {
-        window.scrollTo(0, preMountScrollY);
-      }
     }).catch(function(err) {
       console.error('Lesson editor failed to load:', err);
       // Fallback: replace each Quill host with a plain textarea so the
