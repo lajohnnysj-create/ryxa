@@ -2011,23 +2011,12 @@ function renderQuizCard(quiz, mi) {
 }
 
 function renderCourseModules() {
-  // Preserve scroll position across re-renders. The render replaces the
-  // entire module list via innerHTML, which destroys the DOM nodes the
-  // browser was anchored to and resets scroll to 0. Most action handlers
-  // re-render after a state mutation (expand/collapse a lesson, toggle a
-  // quiz, etc), so without this guard the page jumps to the top every
-  // time the creator clicks anything below the fold. Capture scrollY
-  // before the swap and restore after - synchronously, before paint, so
-  // the user never sees the jump.
-  var savedScrollY = window.scrollY || window.pageYOffset || 0;
-
   const container = document.getElementById('course-modules-list');
   const empty = document.getElementById('course-modules-empty');
 
   if (courseModules.length === 0) {
     container.innerHTML = '';
     empty.style.display = 'block';
-    if (savedScrollY) window.scrollTo(0, savedScrollY);
     return;
   }
   empty.style.display = 'none';
@@ -2246,14 +2235,32 @@ function renderCourseModules() {
   // Runs every render, idempotent (mountLessonEditor skips already-mounted
   // hosts). On first call, lazy-loads Quill+DOMPurify; subsequent calls
   // resolve instantly from the cached promise.
+  //
+  // Scroll preservation: Quill's mount sequence focuses the editor, which
+  // triggers the browser's native scroll-into-view behavior. If the user
+  // had an expanded lesson at the top of the page and was scrolled down
+  // working on something below, that focus would yank the page back to
+  // the top. We capture scrollY just before the async mount and restore
+  // it right after, so any focus-induced scroll is reversed.
   var hosts = container.querySelectorAll('.course-s-quill-host');
   if (hosts.length > 0) {
+    var preMountScrollY = window.scrollY || window.pageYOffset || 0;
     ensureQuillLoaded().then(function() {
       hosts.forEach(function(host) {
         var mi = parseInt(host.dataset.courseMi, 10);
         var li = parseInt(host.dataset.courseLi, 10);
         mountLessonEditor(mi, li);
       });
+      // Restore scroll position after all mounts complete. Quill's focus
+      // (which it does internally on mount) would otherwise scroll the
+      // editor into view, jumping the page. We only restore if scroll
+      // actually moved upward by a meaningful amount - this avoids fighting
+      // legitimate user scrolling that might happen during a slow first-time
+      // Quill load.
+      var afterScrollY = window.scrollY || window.pageYOffset || 0;
+      if (preMountScrollY > 100 && afterScrollY < preMountScrollY - 50) {
+        window.scrollTo(0, preMountScrollY);
+      }
     }).catch(function(err) {
       console.error('Lesson editor failed to load:', err);
       // Fallback: replace each Quill host with a plain textarea so the
@@ -2281,13 +2288,6 @@ function renderCourseModules() {
   // (skips elements already wired), and poll-resumption checks for
   // existing polls before starting new ones.
   bunnyPostRenderSetup(container);
-
-  // Restore scroll position captured at the top of the function. Done at
-  // the very end so any layout side-effects of the render (Quill mount,
-  // image loads) settle before the restore. If those keep shifting layout
-  // after this point, scroll will drift slightly - but in practice the
-  // module-list layout is stable by the time we get here.
-  if (savedScrollY) window.scrollTo(0, savedScrollY);
 }
 
 
