@@ -83,12 +83,6 @@ style.textContent = ''
   // Footer
   + '.footer-grid a:hover{color:#f0eef8 !important;}'
   + '.footer-grid a{text-decoration:none;}'
-  // Defensive scope: kill any text-decoration bleeding in from host page CSS
-  // (sup/sub generate their own line boxes, so a parent text-decoration:none
-  // does not always cover them; some marketing pages also style footer links
-  // with underline by default).
-  + '.ryxa-footer,.ryxa-footer a,.ryxa-footer sup,.ryxa-footer sub{text-decoration:none !important;}'
-  + '.ryxa-footer a:hover{text-decoration:none !important;}'
   // Responsive
   + '@media(max-width:768px){'
   +   'nav{padding:14px 16px;}'
@@ -250,7 +244,7 @@ function renderFooter() {
   if (!el) return;
 
   el.innerHTML = ''
-  + '<footer class="ryxa-footer" style="border-top:1px solid rgba(255,255,255,0.08);padding:60px 48px 32px;max-width:1200px;margin:0 auto;">'
+  + '<footer style="border-top:1px solid rgba(255,255,255,0.08);padding:60px 48px 32px;max-width:1200px;margin:0 auto;">'
   +   '<div class="footer-grid" style="display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr 1fr;gap:32px;margin-bottom:40px;">'
   +     '<div>'
   +       '<a href="/index.html" style="display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:#f0eef8;font-family:\'Syne\',sans-serif;font-weight:800;font-size:20px;margin-bottom:12px;"><img src="/logo-black.png" alt="Ryxa" style="width:32px;height:32px;object-fit:contain;"> Ryxa<span style="font-size:14px;font-weight:400;margin-left:-2px;vertical-align:super;font-family:Inter,system-ui,sans-serif;">&trade;</span></a>'
