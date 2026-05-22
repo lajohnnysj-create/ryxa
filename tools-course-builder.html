@@ -130,6 +130,7 @@
     position: relative; width: 100%; height: 380px;
     max-width: none; margin: 0; padding: 0; overflow: hidden;
     clip-path: polygon(0 12%, 100% 0, 100% 88%, 0 100%);
+    background-color: #0a1024;
   }
   .quote-divider-photo {
     position: absolute; inset: 0; z-index: 0;
@@ -144,11 +145,6 @@
     position: relative; z-index: 2; height: 100%;
     max-width: 1100px; margin: 0 auto; padding: 0 60px;
     display: flex; flex-direction: column; justify-content: center; align-items: flex-start;
-  }
-  .quote-divider-block {
-    background-color: #0a1024;
-    padding: 22px 28px;
-    border-radius: 14px;
   }
   .quote-divider-mark {
     font-family: "Plus Jakarta Sans", sans-serif;
@@ -181,7 +177,7 @@
   .faq-item.open .faq-a { max-height: 500px; padding-top: 12px; }
 
   /* BOTTOM CTA */
-  .bottom-cta { position: relative; padding: 100px 32px 120px; text-align: center; max-width: none; margin: 0; overflow: hidden; }
+  .bottom-cta { position: relative; padding: 100px 32px 120px; text-align: center; max-width: none; margin: 0; overflow: hidden; background-color: #0f170b; }
   .bottom-cta-photo {
     position: absolute; inset: 0; z-index: 0;
     background-image: url("/photos/courses-photo2.webp");
@@ -192,11 +188,6 @@
     background: linear-gradient(180deg, rgba(15,23,11,0.86) 0%, rgba(15,23,11,0.78) 45%, rgba(15,23,11,0.92) 100%);
   }
   .bottom-cta-content { position: relative; z-index: 2; max-width: 800px; margin: 0 auto; }
-  .bottom-cta-block {
-    background-color: #0f170b;
-    padding: 36px 32px;
-    border-radius: 18px;
-  }
   .bottom-cta h2 { font-family: "Plus Jakarta Sans", sans-serif; font-size: clamp(28px, 4vw, 40px); font-weight: 800; letter-spacing: -1px; margin-bottom: 14px; color: #fff; }
   .bottom-cta p { font-size: 16px; color: #d4d4d4; margin-bottom: 28px; }
   /* Secondary button inside the dark bottom CTA needs light text + light
@@ -271,10 +262,8 @@
   <div class="quote-divider-photo" aria-hidden="true"></div>
   <div class="quote-divider-overlay" aria-hidden="true"></div>
   <div class="quote-divider-content">
-    <div class="quote-divider-block">
-      <div class="quote-divider-mark">&ldquo;</div>
-      <h2 class="quote-divider-text">Teach once.<br>Earn forever.</h2>
-    </div>
+    <div class="quote-divider-mark">&ldquo;</div>
+    <h2 class="quote-divider-text">Teach once.<br>Earn forever.</h2>
   </div>
 </section>
 
@@ -311,13 +300,11 @@
   <div class="bottom-cta-photo" aria-hidden="true"></div>
   <div class="bottom-cta-overlay" aria-hidden="true"></div>
   <div class="bottom-cta-content">
-    <div class="bottom-cta-block">
-      <h2>Start selling courses today.</h2>
-      <p>No complicated setup. No monthly course platform fees. Build your course and keep every dollar of your revenue.</p>
-      <div class="hero-cta-row">
-        <a href="dashboard.html" data-nav-action="try-tool" class="btn-primary">Try Course Builder</a>
-        <a href="pricing.html" class="btn-secondary">See pricing</a>
-      </div>
+    <h2>Start selling courses today.</h2>
+    <p>No complicated setup. No monthly course platform fees. Build your course and keep every dollar of your revenue.</p>
+    <div class="hero-cta-row">
+      <a href="dashboard.html" data-nav-action="try-tool" class="btn-primary">Try Course Builder</a>
+      <a href="pricing.html" class="btn-secondary">See pricing</a>
     </div>
   </div>
 </section>
