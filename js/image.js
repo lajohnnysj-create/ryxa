@@ -174,9 +174,9 @@ function initImageConverter() {
     if (e.target.files[0]) handleImageFile(e.target.files[0]);
   });
   const dz = document.getElementById('img-dropzone');
-  dz.addEventListener('dragover', e => { e.preventDefault(); dz.style.borderColor = 'var(--accent)'; });
-  dz.addEventListener('dragleave', () => { dz.style.borderColor = 'var(--border-hover)'; });
-  dz.addEventListener('drop', e => { e.preventDefault(); dz.style.borderColor = 'var(--border-hover)'; if (e.dataTransfer.files[0]) handleImageFile(e.dataTransfer.files[0]); });
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
+  dz.addEventListener('dragleave', () => { dz.classList.remove('drag-over'); });
+  dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('drag-over'); if (e.dataTransfer.files[0]) handleImageFile(e.dataTransfer.files[0]); });
 }
 
 function handleImageFile(file) {
