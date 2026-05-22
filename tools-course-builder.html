@@ -21,25 +21,25 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <style>
   :root {
-    /* Page: soft mint bg, emerald accent (money-green), white cards. */
-    --bg: #ecfdf5;
-    --surface: #ffffff;
-    --surface2: #d1fae5;
-    --border: rgba(0,0,0,0.08);
-    --border-hover: rgba(0,0,0,0.18);
-    --accent: #047857;
-    --accent2: #059669;
-    --accent-glow: rgba(4,120,87,0.25);
-    --accent-tint-12: rgba(4,120,87,0.10);
-    --accent-tint-08: rgba(4,120,87,0.07);
-    --accent-tint-04: rgba(4,120,87,0.04);
-    --accent-border-25: rgba(4,120,87,0.22);
-    --accent-border-30: rgba(4,120,87,0.30);
-    --accent-border-40: rgba(4,120,87,0.40);
-    --on-accent: #ffffff;
-    --text: #1a1a1a;
-    --muted: #525252;
-    --muted2: #737373;
+    /* Page: deep burnt orange bg, warm cream accent (CTAs), white text. */
+    --bg: #9a3412;
+    --surface: #c2410c;
+    --surface2: #ea580c;
+    --border: rgba(255,255,255,0.10);
+    --border-hover: rgba(255,255,255,0.22);
+    --accent: #fef3c7;
+    --accent2: #fde68a;
+    --accent-glow: rgba(254,243,199,0.30);
+    --accent-tint-12: rgba(254,243,199,0.12);
+    --accent-tint-08: rgba(254,243,199,0.08);
+    --accent-tint-04: rgba(254,243,199,0.04);
+    --accent-border-25: rgba(254,243,199,0.25);
+    --accent-border-30: rgba(254,243,199,0.35);
+    --accent-border-40: rgba(254,243,199,0.50);
+    --on-accent: #1a1308;
+    --text: #ffffff;
+    --muted: rgba(255,255,255,0.70);
+    --muted2: rgba(255,255,255,0.55);
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   html { scroll-behavior: smooth; }
@@ -69,7 +69,7 @@
   .nav-tools-item-desc { font-size: 11px; color: var(--muted); line-height: 1.4; }
   .nav-tools-tier { font-size: 8px; padding: 2px 6px; border-radius: 4px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; vertical-align: middle; }
   .nav-tools-tier.pro { background: rgba(124,58,237,0.12); border: 1px solid rgba(124,58,237,0.3); color: #6d28d9; }
-  .nav-tools-tier.free { background: rgba(4,120,87,0.10); border: 1px solid rgba(4,120,87,0.30); color: var(--accent); }
+  .nav-tools-tier.free { background: rgba(254,243,199,0.12); border: 1px solid rgba(254,243,199,0.35); color: var(--accent); }
   .nav-tools-tier.max { background: #a78bfa; color: #fff; border: none; }
   .nav-tools-footer { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   .nav-tools-footer-link { font-size: 12px; color: var(--accent); text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
@@ -118,7 +118,7 @@
   .steps-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
   .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
   .step-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px 24px; position: relative; transition: all 0.3s; }
-  .step-card:hover { border-color: var(--accent-border-40); transform: translateY(-4px); box-shadow: 0 12px 32px rgba(4,120,87,0.10); }
+  .step-card:hover { border-color: var(--accent-border-40); transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.25); }
   .step-num { font-family: "Plus Jakarta Sans", sans-serif; font-size: 14px; font-weight: 700; color: var(--accent); margin-bottom: 14px; letter-spacing: 0.05em; }
   .step-icon { width: 44px; height: 44px; border-radius: 12px; background: var(--accent-tint-12); border: 1px solid var(--accent-border-25); display: flex; align-items: center; justify-content: center; color: var(--accent); margin-bottom: 16px; }
   .step-title { font-family: "Plus Jakarta Sans", sans-serif; font-size: 17px; font-weight: 700; margin-bottom: 8px; }
