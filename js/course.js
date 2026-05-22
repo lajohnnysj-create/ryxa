@@ -1382,21 +1382,22 @@ function collapseLesson(modIdx, lessonIdx) {
   renderCourseModules();
 }
 
-function expandLesson(modIdx, lessonIdx) {
-  // Accordion behavior: collapsing all other expanded lessons before
-  // expanding this one keeps the editing surface clean and (as a side
-  // effect) avoids the scroll-jump bug where a Quill editor on an
-  // expanded lesson far up the page would re-focus during the re-render
-  // and yank the page back to its position. Quiz cards are intentionally
-  // left alone - they don't host Quill and don't cause the bug, so the
-  // accordion rule applies to lessons only.
+// Collapse every expanded lesson EXCEPT the one identified by the
+// skip-target (mi/li). Used by the accordion behavior: when the user
+// expands any item (lesson, video, or quiz), all other expanded lessons
+// collapse first. Quiz cards are deliberately not collapsed by this -
+// the accordion rule applies to lessons only, since lessons are what
+// host Quill and the heavy editing surface.
+//
+// skipMi/skipLi can be null when no lesson is the target (e.g., a quiz
+// is being expanded). In that case every expanded lesson collapses.
+function collapseAllOtherLessons(skipMi, skipLi) {
   for (var mi = 0; mi < courseModules.length; mi++) {
     var mod = courseModules[mi];
     if (!mod.lessons) continue;
     for (var li = 0; li < mod.lessons.length; li++) {
-      // Skip the target lesson - we're about to expand it, no need to
-      // bounce it through collapse first.
-      if (mi === modIdx && li === lessonIdx) continue;
+      // Skip the target lesson (if any) - it's the one being expanded.
+      if (skipMi !== null && skipLi !== null && mi === skipMi && li === skipLi) continue;
       var other = mod.lessons[li];
       if (other && !other._collapsed) {
         // Unmount Quill on this lesson if it has one - same teardown
@@ -1408,9 +1409,37 @@ function expandLesson(modIdx, lessonIdx) {
       }
     }
   }
+}
+
+// Scrolls a card into view by its rendered ID. Used after expand actions
+// so the newly-expanded item lands in view from the top. Wrapped in a
+// short timeout to let the re-render commit before we try to find the
+// element - innerHTML replacements are synchronous, but browsers want a
+// frame to lay out before scrollIntoView gives accurate positions.
+function scrollItemIntoView(elementId) {
+  setTimeout(function() {
+    var el = document.getElementById(elementId);
+    if (el && el.scrollIntoView) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, 50);
+}
+
+function expandLesson(modIdx, lessonIdx) {
+  // Accordion: collapse all other expanded lessons before opening this one.
+  // Keeps the editing surface clean and (as a side effect) avoids the
+  // scroll-jump bug where a Quill editor on an expanded lesson far up the
+  // page would re-focus during the re-render and yank the page back to
+  // its position.
+  collapseAllOtherLessons(modIdx, lessonIdx);
 
   courseModules[modIdx].lessons[lessonIdx]._collapsed = false;
   renderCourseModules();
+  // Scroll the newly-expanded card into view from its top. This matches
+  // the behavior for videos that previously had no scroll (videos have no
+  // Quill, so they got no focus-induced scroll), and gives consistent UX
+  // across all item types - the thing you just opened lands at the top.
+  scrollItemIntoView('course-item-' + modIdx + '-' + lessonIdx);
   // Load this lesson's downloadable files (if any) in the background. The
   // editor markup already showed a "Loading..." or empty state by this point;
   // when the fetch returns we re-render so the files appear. No-op for
@@ -1979,7 +2008,7 @@ function renderQuizCard(quiz, mi) {
     + '</div>';
 
   if (collapsed) {
-    return '<div class="course-s-quiz-card">' + header + '</div>';
+    return '<div id="course-quiz-' + mi + '" class="course-s-quiz-card">' + header + '</div>';
   }
 
   // Expanded view: require-pass toggle row, then each question with its 4
@@ -2022,7 +2051,7 @@ function renderQuizCard(quiz, mi) {
       + 'Add Question</button>'
     : '<div class="course-s-quiz-q-cap">Maximum 10 questions reached</div>';
 
-  return '<div class="course-s-quiz-card expanded">'
+  return '<div id="course-quiz-' + mi + '" class="course-s-quiz-card expanded">'
     + header
     + '<div class="course-s-quiz-body">'
     + requireToggle
@@ -2064,7 +2093,7 @@ function renderCourseModules() {
         // Collapsed view. Works for empty lessons too - the title span below
         // falls back to "Untitled Video" / "Untitled Lesson" when l.title is
         // blank, so an empty collapsed lesson still renders sensibly.
-        return '<div data-course-action="expand-lesson" data-course-mi="' + mi + '" data-course-li="' + li + '" class="course-s-fce34d">'
+        return '<div id="course-item-' + mi + '-' + li + '" data-course-action="expand-lesson" data-course-mi="' + mi + '" data-course-li="' + li + '" class="course-s-fce34d">'
           + '<div class="bio-s-e3f610">'
           + '<span class="course-s-229509">' + (li + 1) + '.</span>'
           + '<span class="course-s-d63d24">' + escapeHtml(l.title || (isVideo ? 'Untitled Video' : 'Untitled Lesson')) + '</span>'
@@ -2076,7 +2105,7 @@ function renderCourseModules() {
       }
 
       // Expanded view
-      return '<div class="course-s-8ed674">'
+      return '<div id="course-item-' + mi + '-' + li + '" class="course-s-8ed674">'
         + '<div data-course-action="collapse-lesson" data-course-mi="' + mi + '" data-course-li="' + li + '" class="course-s-60e468">'
         + '<span class="course-s-229509">' + (li + 1) + '.</span>'
         + '<span class="course-s-d63d24">' + escapeHtml(l.title || (isVideo ? 'Untitled Video' : 'Untitled Lesson')) + '</span>'
@@ -2978,6 +3007,9 @@ courseRegisterAction('add-quiz', (e, el) => {
   const mi = parseInt(el.dataset.courseMi, 10);
   const mod = courseModules[mi];
   if (!mod || mod.quiz) return; // UI should prevent this but defense in depth
+  // New quiz starts expanded, so apply accordion (collapse all expanded
+  // lessons) and scroll to the new quiz card after render.
+  collapseAllOtherLessons(null, null);
   mod.quiz = {
     id: 'new_' + Date.now(),
     require_pass: false,
@@ -2985,6 +3017,7 @@ courseRegisterAction('add-quiz', (e, el) => {
     _collapsed: false // open by default so creator can start adding questions
   };
   renderCourseModules();
+  scrollItemIntoView('course-quiz-' + mi);
 });
 
 courseRegisterAction('remove-quiz', (e, el) => {
@@ -3005,8 +3038,18 @@ courseRegisterAction('toggle-quiz-collapse', (e, el) => {
   const mi = parseInt(el.dataset.courseMi, 10);
   const mod = courseModules[mi];
   if (!mod || !mod.quiz) return;
+  // Detect direction: was collapsed, now expanding. Only the expand
+  // direction triggers accordion + scroll. Collapsing a quiz shouldn't
+  // touch lessons or scroll the page.
+  var wasCollapsed = !!mod.quiz._collapsed;
+  if (wasCollapsed) {
+    collapseAllOtherLessons(null, null);
+  }
   mod.quiz._collapsed = !mod.quiz._collapsed;
   renderCourseModules();
+  if (wasCollapsed) {
+    scrollItemIntoView('course-quiz-' + mi);
+  }
 });
 
 courseRegisterAction('toggle-require-pass', (e, el) => {
