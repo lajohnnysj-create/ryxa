@@ -184,6 +184,11 @@
   .bottom-cta-content { position: relative; z-index: 2; max-width: 800px; margin: 0 auto; }
   .bottom-cta h2 { font-family: "Plus Jakarta Sans", sans-serif; font-size: clamp(28px, 4vw, 40px); font-weight: 800; letter-spacing: -1px; margin-bottom: 14px; color: #fff; }
   .bottom-cta p { font-size: 16px; color: #d4d4d4; margin-bottom: 28px; }
+  /* Secondary button inside the dark bottom CTA needs light text + light
+     border. The default .btn-secondary uses dark text on the light page bg,
+     which would be nearly invisible on the dark photo overlay here. */
+  .bottom-cta .btn-secondary { border-color: rgba(255,255,255,0.35); color: #fff; }
+  .bottom-cta .btn-secondary:hover { border-color: #fff; color: #fff; background: rgba(255,255,255,0.08); }
 
   /* FOOTER */
   footer { padding: 50px 32px 30px; max-width: 1200px; margin: 0 auto; border-top: 1px solid var(--border); }
