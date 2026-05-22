@@ -110,6 +110,10 @@
   .section-title { font-family: "Plus Jakarta Sans", sans-serif; font-size: clamp(28px, 4vw, 42px); font-weight: 800; line-height: 1.15; letter-spacing: -1px; margin-bottom: 14px; max-width: 700px; }
   .section-sub { font-size: 16px; color: var(--muted); line-height: 1.6; max-width: 640px; margin-bottom: 50px; }
 
+  /* FULL-BLEED BANNER (image carries its own content) */
+  .banner-section { max-width: none; padding: 0; margin: 0; }
+  .banner-section img { display: block; width: 100%; height: auto; max-width: 1600px; margin: 0 auto; }
+
   /* GRID CARDS (used for both steps and features) */
   .steps-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
   .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
@@ -242,6 +246,11 @@
       <a href="pricing.html" class="btn-secondary">See pricing</a>
     </div>
   </div>
+</section>
+
+<!-- ============ BANNER IMAGE ============ -->
+<section class="banner-section">
+  <img src="/photos/course-image1.webp" alt="Plan, create, and earn from your course. Your knowledge deserves a checkout button." width="1774" height="887" loading="lazy">
 </section>
 
 <section>
