@@ -320,6 +320,51 @@ async function initAuth() {
   });
 }
 
+// =============================================================================
+// PWA RESUME-FROM-SUSPEND PROACTIVE REFRESH
+//
+// initAuth() runs once on page load and refreshSession() once if the initial
+// getSession() came back null. That covers cold start. But iOS PWAs commonly
+// stay alive in memory while suspended for minutes or hours when the user
+// switches apps or locks the phone. When the user returns, the page does NOT
+// reload, so initAuth never runs again. If the JWT expired during suspend,
+// Supabase's internal refresh timer will try to refresh on the next API call
+// and may fail transiently (network races on resume, brief offline state).
+// After enough failed refreshes Supabase fires SIGNED_OUT, which kicks the
+// user to the login screen mid-session.
+//
+// Fix: when the tab becomes visible again after being hidden for more than
+// the threshold below, proactively call refreshSession() BEFORE the next API
+// call. Best-effort. If it fails, we do nothing extra; the existing
+// onAuthStateChange handler still owns the real-logout decision.
+//
+// Threshold is well under the default JWT expiry (1 hour) so we cover the
+// dangerous window without churning on quick app switches.
+// =============================================================================
+var _pwaHiddenAt = null;
+var _pwaRefreshThresholdMs = 5 * 60 * 1000; // 5 minutes
+
+document.addEventListener('visibilitychange', function() {
+  if (document.visibilityState === 'hidden') {
+    _pwaHiddenAt = Date.now();
+    return;
+  }
+  if (document.visibilityState !== 'visible') return;
+  if (!_authCompleted) return; // initAuth still owns the first session
+  if (!_pwaHiddenAt) return;   // never went hidden, nothing to recover from
+  var hiddenFor = Date.now() - _pwaHiddenAt;
+  _pwaHiddenAt = null;
+  if (hiddenFor < _pwaRefreshThresholdMs) return;
+  // Proactive refresh. We don't await; we don't react to failure here.
+  // onAuthStateChange remains the only thing that actually logs the user out.
+  try {
+    sb.auth.refreshSession().then(function(res) {
+      var s = res && res.data && res.data.session;
+      if (s && s.access_token) Auth.setToken(s.access_token);
+    }).catch(function() { /* best-effort */ });
+  } catch (e) { /* best-effort */ }
+});
+
 // Rotating welcome greetings. {name} gets replaced with @username (or "creator" if no username yet).
 // Tone: warm, brief, work-focused — never effusive. Mix of creator-context and neutral lines.
 const DASH_GREETINGS = [
