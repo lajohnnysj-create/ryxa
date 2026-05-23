@@ -242,19 +242,18 @@
       loopWidthPx = computeLoopWidth();
       currentTranslate = normalize(readCurrentTranslate());
       lastX = (e.touches ? e.touches[0].pageX : e.pageX);
-      // Pause the marquee and pin the track to its current visual position.
-      track.style.animationPlayState = 'paused';
+      // Kill the animation entirely (NOT just pause it). A paused animation
+      // still owns the transform property, and inline transform style is ignored
+      // until the animation is fully removed. Setting animation:none frees
+      // transform for direct manipulation during the drag.
+      track.style.animation = 'none';
       track.style.transform = 'translateX(' + currentTranslate + 'px)';
       // Always preventDefault on mousedown to stop text-selection and native
-      // drag behavior, both of which would suppress mousemove events during
-      // the drag and make the carousel appear frozen.
+      // drag behavior.
       if (e.preventDefault) e.preventDefault();
     }
 
-    // Block the browser's native drag operation entirely on the track. Without
-    // this, dragging on any text or image inside a card kicks the browser into
-    // native-drag mode, which swallows mousemove events and freezes our
-    // carousel until mouseup.
+    // Block the browser's native drag operation entirely on the track.
     track.addEventListener('dragstart', function (e) { e.preventDefault(); });
     track.addEventListener('selectstart', function (e) { e.preventDefault(); });
 
@@ -271,14 +270,17 @@
       if (!isDown) return;
       isDown = false;
       track.classList.remove('dragging');
-      // Resume the marquee from where the drag left off. We restart the
+      // Resume the marquee from where the drag left off. We re-attach the
       // animation with a negative delay so it picks up visually at the current
       // position instead of snapping back to its scheduled position.
       var pct = -currentTranslate / loopWidthPx; // 0..1 through the loop
       var durationSec = 50;
       var delay = -(pct * durationSec);
+      // Restore the animation by clearing our inline override. The CSS rule
+      // takes over again. The negative delay lands the animation visually at
+      // the dragged position.
       track.style.transform = '';
-      track.style.animationPlayState = '';
+      track.style.animation = '';
       track.style.animationDelay = delay + 's';
     }
 
