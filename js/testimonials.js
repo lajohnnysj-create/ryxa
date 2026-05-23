@@ -313,6 +313,10 @@
     track.addEventListener('touchstart', onDown, { passive: false });
     window.addEventListener('touchmove', onMove, { passive: true });
     window.addEventListener('touchend', onUp);
+    // iOS Safari can fire touchcancel instead of touchend when the OS claims
+    // the touch (interrupted by a gesture, scroll, or system event). Without
+    // listening for it, the marquee stays frozen until the next user input.
+    window.addEventListener('touchcancel', onUp);
 
     // ---- KEYBOARD + MANUAL PAUSE (WCAG 2.2.2 compliance) -------------------
     // Three pause sources: user clicks Pause button (sticky), keyboard focus on
