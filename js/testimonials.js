@@ -92,6 +92,13 @@
     + '@keyframes testimonials-marquee{from{transform:translateX(0);}to{transform:translateX(calc(-50% - 10px));}}'
     + '@media (prefers-reduced-motion: reduce){.testimonials-track{animation:none;}}'
     + '.testimonial-card{position:relative;width:380px;min-width:380px;min-height:500px;border-radius:20px;overflow:hidden;flex-shrink:0;display:flex;flex-direction:column;}'
+    + '.testimonial-card:focus-visible{outline:3px solid #b9158d;outline-offset:3px;}'
+    + '.testimonials-controls{display:flex;justify-content:center;margin-top:18px;}'
+    + '.testimonials-pause-btn{display:inline-flex;align-items:center;gap:8px;background:rgba(0,0,0,0.04);border:1px solid rgba(0,0,0,0.12);color:#5b5b6b;border-radius:999px;padding:8px 18px;font-size:13px;font-weight:600;font-family:"DM Sans",sans-serif;cursor:pointer;transition:all 0.2s;}'
+    + '.testimonials-pause-btn:hover{color:#14111c;border-color:#b9158d;background:rgba(185,21,141,0.08);}'
+    + '.testimonials-pause-btn:focus-visible{outline:2px solid #b9158d;outline-offset:2px;}'
+    + '.testimonials-section.t-dark .testimonials-pause-btn{background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.14);color:rgba(255,255,255,0.85);}'
+    + '.testimonials-section.t-dark .testimonials-pause-btn:hover{color:#fff;border-color:#a78bfa;background:rgba(124,58,237,0.18);}'
     + '.testimonial-photo{height:260px;background-size:cover;background-position:center top;flex-shrink:0;transition:transform 0.5s ease;}'
     + '.testimonial-card:hover .testimonial-photo{transform:scale(1.05);}'
     + '.testimonial-panel{flex:1;padding:24px 24px 26px;display:flex;flex-direction:column;text-align:left;}'
@@ -108,7 +115,7 @@
     + '.testimonial-panel.c-lime .testimonial-stars{color:#1a1a14;}'
     + '.testimonial-panel.c-amber{background:#f59e0b;color:#1a1308;}'
     + '.testimonial-panel.c-amber .testimonial-stars{color:#1a1308;}'
-    + '.testimonial-panel.c-blue{background:#1d4ed8;color:#fff;}'
+    + '.testimonial-panel.c-blue{background:#2563eb;color:#fff;}'
     + '.testimonial-panel.c-blue .testimonial-stars{color:#fff;}'
     + '@media (max-width:600px){'
     +   '.testimonials-heading{font-size:13px;letter-spacing:-0.2px;margin-bottom:20px;}'
@@ -138,11 +145,12 @@
   }
 
   function cardHtml(t) {
+    var label = (t.name || '') + ', ' + (t.stars || 0) + ' stars: ' + (t.quote || '');
     return ''
-      + '<div class="testimonial-card">'
-      +   '<div class="testimonial-photo" style="background-image:url(\'' + escapeHtml(t.photo) + '\');"></div>'
+      + '<div class="testimonial-card" role="listitem" tabindex="0" aria-label="' + escapeHtml(label) + '">'
+      +   '<div class="testimonial-photo" style="background-image:url(\'' + escapeHtml(t.photo) + '\');" aria-hidden="true"></div>'
       +   '<div class="testimonial-panel ' + escapeHtml(t.color || 'c-magenta') + '">'
-      +     '<div class="testimonial-stars">' + starString(t.stars) + '</div>'
+      +     '<div class="testimonial-stars" aria-hidden="true">' + starString(t.stars) + '</div>'
       +     '<p class="testimonial-quote">"' + escapeHtml(t.quote) + '"</p>'
       +     '<div class="testimonial-meta">'
       +       '<div class="testimonial-name">' + escapeHtml(t.name) + '</div>'
@@ -186,10 +194,16 @@
     var marqueeCards = cards + '<div aria-hidden="true" style="display:contents;">' + cards + '</div>';
 
     mount.innerHTML = ''
-      + '<section class="' + sectionClass + '">'
+      + '<section class="' + sectionClass + '" role="region" aria-roledescription="carousel" aria-label="' + escapeHtml(heading || 'Customer testimonials') + '">'
       +   '<h2 class="testimonials-heading">' + headingHtml + '</h2>'
       +   '<div class="testimonials-track-wrap">'
-      +     '<div class="testimonials-track" id="site-testimonials-track">' + marqueeCards + '</div>'
+      +     '<div class="testimonials-track" id="site-testimonials-track" role="list">' + marqueeCards + '</div>'
+      +   '</div>'
+      +   '<div class="testimonials-controls">'
+      +     '<button type="button" class="testimonials-pause-btn" id="site-testimonials-pause" aria-pressed="false">'
+      +       '<span class="testimonials-pause-icon" aria-hidden="true">&#9208;</span>'
+      +       '<span class="testimonials-pause-label">Pause</span>'
+      +     '</button>'
       +   '</div>'
       + '</section>';
 
@@ -270,6 +284,12 @@
       if (!isDown) return;
       isDown = false;
       track.classList.remove('dragging');
+      // If user has manually paused or focus-paused, keep the marquee frozen
+      // at the dragged position. Otherwise resume from here.
+      if (manualPaused || focusPaused) {
+        // Stay frozen at currentTranslate (already applied during drag).
+        return;
+      }
       // Resume the marquee from where the drag left off. We re-attach the
       // animation with a negative delay so it picks up visually at the current
       // position instead of snapping back to its scheduled position.
@@ -290,6 +310,68 @@
     track.addEventListener('touchstart', onDown, { passive: false });
     window.addEventListener('touchmove', onMove, { passive: true });
     window.addEventListener('touchend', onUp);
+
+    // ---- KEYBOARD + MANUAL PAUSE (WCAG 2.2.2 compliance) -------------------
+    // Three pause sources: user clicks Pause button (sticky), keyboard focus on
+    // a card (transient), drag (transient). Hover-pause is pure CSS and
+    // composes automatically. We track which sources currently want the
+    // marquee paused; resume only when ALL of them have released.
+    var manualPaused = false;
+    var focusPaused = false;
+
+    function freezeAtCurrent() {
+      if (loopWidthPx <= 0) loopWidthPx = computeLoopWidth();
+      currentTranslate = normalize(readCurrentTranslate());
+      track.style.animation = 'none';
+      track.style.transform = 'translateX(' + currentTranslate + 'px)';
+    }
+
+    function resumeAnim() {
+      // Only resume if no source still wants pause.
+      if (manualPaused || focusPaused || isDown) return;
+      var width = loopWidthPx > 0 ? loopWidthPx : computeLoopWidth();
+      var pct = -currentTranslate / width;
+      var delay = -(pct * 50);
+      track.style.transform = '';
+      track.style.animation = '';
+      track.style.animationDelay = delay + 's';
+    }
+
+    // Pause button: toggle manualPaused, update aria-pressed and label.
+    var pauseBtn = document.getElementById('site-testimonials-pause');
+    if (pauseBtn) {
+      var iconEl = pauseBtn.querySelector('.testimonials-pause-icon');
+      var labelEl = pauseBtn.querySelector('.testimonials-pause-label');
+      pauseBtn.addEventListener('click', function () {
+        manualPaused = !manualPaused;
+        pauseBtn.setAttribute('aria-pressed', manualPaused ? 'true' : 'false');
+        if (iconEl) iconEl.innerHTML = manualPaused ? '&#9654;' : '&#9208;';
+        if (labelEl) labelEl.textContent = manualPaused ? 'Play' : 'Pause';
+        if (manualPaused) {
+          freezeAtCurrent();
+        } else {
+          resumeAnim();
+        }
+      });
+    }
+
+    // Keyboard focus pause: when any card receives focus, pause; when focus
+    // leaves the carousel entirely, resume.
+    var wrap = track.parentNode;
+    if (wrap) {
+      wrap.addEventListener('focusin', function () {
+        if (focusPaused) return;
+        focusPaused = true;
+        freezeAtCurrent();
+      });
+      wrap.addEventListener('focusout', function (e) {
+        // relatedTarget is the element receiving focus next. If it is still
+        // inside the wrap, do not resume yet.
+        if (e.relatedTarget && wrap.contains(e.relatedTarget)) return;
+        focusPaused = false;
+        resumeAnim();
+      });
+    }
   }
 
   if (document.readyState === 'loading') {
