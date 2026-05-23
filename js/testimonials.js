@@ -86,7 +86,7 @@
     + '.testimonials-section.t-dark .testimonials-heading{color:#f0eef8;}'
     + '.testimonials-heading span{color:inherit;}'
     + '.testimonials-track-wrap{position:relative;max-width:1240px;margin:0 auto;overflow:hidden;}'
-    + '.testimonials-track{display:flex;gap:20px;padding:8px 0;width:max-content;animation:testimonials-marquee 50s linear infinite;cursor:grab;user-select:none;will-change:transform;touch-action:pan-y;}'
+    + '.testimonials-track{display:flex;gap:20px;padding:8px 0;width:max-content;animation:testimonials-marquee 50s linear infinite;cursor:grab;user-select:none;will-change:transform;}'
     + '.testimonials-track.dragging{cursor:grabbing;}'
     + '.testimonials-track-wrap:hover .testimonials-track{animation-play-state:paused;}'
     + '@keyframes testimonials-marquee{from{transform:translateX(0);}to{transform:translateX(calc(-50% - 10px));}}'
@@ -253,89 +253,13 @@
       return t;
     }
 
-    function onDown(e) {
-      // Only handle primary pointer (single-finger touch, left mouse button).
-      // Multi-finger touches and right-clicks should not start a drag.
-      if (e.button !== undefined && e.button !== 0) return;
-      isDown = true;
-      track.classList.add('dragging');
-      loopWidthPx = computeLoopWidth();
-      currentTranslate = normalize(readCurrentTranslate());
-      lastX = e.pageX;
-      // Capture the pointer so subsequent pointermove/pointerup events fire on
-      // the track even if the finger/cursor leaves it. Critical on iOS where
-      // touchend can otherwise fire on the wrong target and miss our handler.
-      if (e.pointerId !== undefined && track.setPointerCapture) {
-        try { track.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
-      }
-      // Kill the animation entirely (NOT just pause it). A paused animation
-      // still owns the transform property, and inline transform style is ignored
-      // until the animation is fully removed.
-      track.style.animation = 'none';
-      track.style.transform = 'translateX(' + currentTranslate + 'px)';
-      if (e.preventDefault) e.preventDefault();
-    }
-
-    // Block the browser's native drag operation entirely on the track.
-    track.addEventListener('dragstart', function (e) { e.preventDefault(); });
-    track.addEventListener('selectstart', function (e) { e.preventDefault(); });
-
-    function onMove(e) {
-      if (!isDown) return;
-      var dx = e.pageX - lastX;
-      lastX = e.pageX;
-      currentTranslate = normalize(currentTranslate + dx);
-      track.style.transform = 'translateX(' + currentTranslate + 'px)';
-    }
-
-    function onUp() {
-      if (!isDown) return;
-      isDown = false;
-      track.classList.remove('dragging');
-      // If user has manually paused or focus-paused, keep the marquee frozen
-      // at the dragged position. Otherwise resume from here.
-      if (manualPaused || focusPaused) {
-        // Stay frozen at currentTranslate (already applied during drag).
-        return;
-      }
-      // Resume the marquee from where the drag left off. We re-attach the
-      // animation with a negative delay so it picks up visually at the current
-      // position instead of snapping back to its scheduled position.
-      var pct = -currentTranslate / loopWidthPx; // 0..1 through the loop
-      var durationSec = 50;
-      var delay = -(pct * durationSec);
-      // Restore the animation by clearing our inline override. The CSS rule
-      // takes over again. The negative delay lands the animation visually at
-      // the dragged position.
-      track.style.transform = '';
-      track.style.animation = '';
-      track.style.animationDelay = delay + 's';
-    }
-
-    // Pointer Events unify mouse, touch, and pen into one API. On iOS this
-    // avoids the touchend-on-wrong-target and touch-passive-suppression bugs
-    // that plagued the separate touchstart/touchend handlers. Falls back to
-    // mouse events for browsers that do not support pointer events.
-    if (window.PointerEvent) {
-      track.addEventListener('pointerdown', onDown);
-      track.addEventListener('pointermove', onMove);
-      track.addEventListener('pointerup', onUp);
-      track.addEventListener('pointercancel', onUp);
-      // pointerleave on the track itself does NOT fire after setPointerCapture,
-      // so we do not need a fallback listener; capture guarantees pointerup
-      // fires here even if the finger leaves the track.
-    } else {
-      // Legacy fallback (very old browsers).
-      track.addEventListener('mousedown', onDown);
-      window.addEventListener('mousemove', onMove);
-      window.addEventListener('mouseup', onUp);
-    }
-
-    // ---- KEYBOARD + MANUAL PAUSE (WCAG 2.2.2 compliance) -------------------
-    // Three pause sources: user clicks Pause button (sticky), keyboard focus on
-    // a card (transient), drag (transient). Hover-pause is pure CSS and
-    // composes automatically. We track which sources currently want the
-    // marquee paused; resume only when ALL of them have released.
+    // ---- PAUSE STATE & PRIMITIVES ------------------------------------------
+    // Pause sources:
+    //   - manual (sticky): user clicks Pause button, OR user finishes a drag.
+    //     Stays paused until the user clicks Play.
+    //   - focus (transient): keyboard focus on a card; auto-resumes on blur.
+    //   - drag (transient, during the drag motion itself).
+    // Hover-pause is pure CSS and composes automatically.
     var manualPaused = false;
     var focusPaused = false;
 
@@ -357,28 +281,86 @@
       track.style.animationDelay = delay + 's';
     }
 
-    // Pause button: toggle manualPaused, swap SVG icon, update aria-pressed
-    // and aria-label so screen readers always announce the current action.
+    // Pause button setup (icons + click handler). updateButtonUi keeps the
+    // SVG icon, aria-pressed, and aria-label in sync with manualPaused.
     var pauseBtn = document.getElementById('site-testimonials-pause');
+    var iconEl = pauseBtn ? pauseBtn.querySelector('.testimonials-pause-icon') : null;
+    var PAUSE_SVG = '<rect x="6" y="5" width="4" height="14" rx="1"></rect><rect x="14" y="5" width="4" height="14" rx="1"></rect>';
+    var PLAY_SVG = '<path d="M8 5v14l11-7z"></path>';
+
+    function updateButtonUi() {
+      if (!pauseBtn) return;
+      pauseBtn.setAttribute('aria-pressed', manualPaused ? 'true' : 'false');
+      pauseBtn.setAttribute('aria-label', manualPaused ? 'Play testimonials' : 'Pause testimonials');
+      if (iconEl) iconEl.innerHTML = manualPaused ? PLAY_SVG : PAUSE_SVG;
+    }
+
+    // Shared setter so drag-end and button click both pause/resume the same
+    // way and keep the visible button UI in sync.
+    function setManualPaused(paused) {
+      manualPaused = paused;
+      updateButtonUi();
+      if (paused) {
+        freezeAtCurrent();
+      } else {
+        resumeAnim();
+      }
+    }
+
     if (pauseBtn) {
-      var iconEl = pauseBtn.querySelector('.testimonials-pause-icon');
-      var PAUSE_SVG = '<rect x="6" y="5" width="4" height="14" rx="1"></rect><rect x="14" y="5" width="4" height="14" rx="1"></rect>';
-      var PLAY_SVG = '<path d="M8 5v14l11-7z"></path>';
       pauseBtn.addEventListener('click', function () {
-        manualPaused = !manualPaused;
-        pauseBtn.setAttribute('aria-pressed', manualPaused ? 'true' : 'false');
-        pauseBtn.setAttribute('aria-label', manualPaused ? 'Play testimonials' : 'Pause testimonials');
-        if (iconEl) iconEl.innerHTML = manualPaused ? PLAY_SVG : PAUSE_SVG;
-        if (manualPaused) {
-          freezeAtCurrent();
-        } else {
-          resumeAnim();
-        }
+        setManualPaused(!manualPaused);
       });
     }
 
-    // Keyboard focus pause: when any card receives focus, pause; when focus
-    // leaves the carousel entirely, resume.
+    // ---- DRAG --------------------------------------------------------------
+    // Drag-end leaves the marquee in manual-pause state (button shows Play).
+    // The user resumes by clicking Play. This sidesteps iOS touchend quirks
+    // entirely: we never need to auto-resume after a touch.
+    function onDown(e) {
+      isDown = true;
+      track.classList.add('dragging');
+      loopWidthPx = computeLoopWidth();
+      currentTranslate = normalize(readCurrentTranslate());
+      lastX = (e.touches ? e.touches[0].pageX : e.pageX);
+      track.style.animation = 'none';
+      track.style.transform = 'translateX(' + currentTranslate + 'px)';
+      if (e.preventDefault) e.preventDefault();
+    }
+
+    // Block the browser's native drag operation entirely on the track.
+    track.addEventListener('dragstart', function (e) { e.preventDefault(); });
+    track.addEventListener('selectstart', function (e) { e.preventDefault(); });
+
+    function onMove(e) {
+      if (!isDown) return;
+      var x = (e.touches ? e.touches[0].pageX : e.pageX);
+      var dx = x - lastX;
+      lastX = x;
+      currentTranslate = normalize(currentTranslate + dx);
+      track.style.transform = 'translateX(' + currentTranslate + 'px)';
+    }
+
+    function onUp() {
+      if (!isDown) return;
+      isDown = false;
+      track.classList.remove('dragging');
+      // Drag-end always leaves the marquee in manual-pause state. The user
+      // can resume by clicking Play. This avoids needing to chase iOS
+      // touchend reliability issues across browser/OS versions.
+      setManualPaused(true);
+    }
+
+    track.addEventListener('mousedown', onDown);
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+    track.addEventListener('touchstart', onDown, { passive: false });
+    window.addEventListener('touchmove', onMove, { passive: true });
+    window.addEventListener('touchend', onUp);
+    window.addEventListener('touchcancel', onUp);
+
+    // ---- KEYBOARD FOCUS PAUSE (WCAG 2.2.2 compliance) ----------------------
+    // When any card receives focus, pause; resume on focus leaving the wrap.
     var wrap = track.parentNode;
     if (wrap) {
       wrap.addEventListener('focusin', function () {
@@ -387,8 +369,6 @@
         freezeAtCurrent();
       });
       wrap.addEventListener('focusout', function (e) {
-        // relatedTarget is the element receiving focus next. If it is still
-        // inside the wrap, do not resume yet.
         if (e.relatedTarget && wrap.contains(e.relatedTarget)) return;
         focusPaused = false;
         resumeAnim();
