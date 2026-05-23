@@ -276,6 +276,7 @@ function renderFooter() {
   +         '<a href="/pricing.html" style="color:#b4b2c8;font-size:13px;text-decoration:none;">Pricing</a>'
   +         '<a href="/learn/" style="color:#b4b2c8;font-size:13px;text-decoration:none;">Hub</a>'
   +         '<a href="/blog.html" style="color:#b4b2c8;font-size:13px;text-decoration:none;">Blog</a>'
+  +         '<a href="/how-much/" style="color:#b4b2c8;font-size:13px;text-decoration:none;">Creator Earnings</a>'
   +       '</div>'
   +     '</div>'
   +     '<div>'

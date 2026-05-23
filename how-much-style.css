@@ -368,7 +368,7 @@ a:hover { text-decoration: underline; }
 /* ====== REMOVAL REQUEST ====== */
 .profile-removal {
   max-width: 800px;
-  margin: 32px auto 0;
+  margin: 32px auto 80px;
   padding: 0 24px;
   text-align: center;
   font-size: 12px;
