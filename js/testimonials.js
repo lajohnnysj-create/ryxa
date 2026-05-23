@@ -86,7 +86,7 @@
     + '.testimonials-section.t-dark .testimonials-heading{color:#f0eef8;}'
     + '.testimonials-heading span{color:inherit;}'
     + '.testimonials-track-wrap{position:relative;max-width:1240px;margin:0 auto;overflow:hidden;}'
-    + '.testimonials-track{display:flex;gap:20px;padding:8px 0;width:max-content;animation:testimonials-marquee 50s linear infinite;cursor:grab;user-select:none;will-change:transform;}'
+    + '.testimonials-track{display:flex;gap:20px;padding:8px 0;width:max-content;animation:testimonials-marquee 50s linear infinite;cursor:grab;user-select:none;will-change:transform;touch-action:pan-y;}'
     + '.testimonials-track.dragging{cursor:grabbing;}'
     + '.testimonials-track-wrap:hover .testimonials-track{animation-play-state:paused;}'
     + '@keyframes testimonials-marquee{from{transform:translateX(0);}to{transform:translateX(calc(-50% - 10px));}}'
@@ -254,19 +254,25 @@
     }
 
     function onDown(e) {
+      // Only handle primary pointer (single-finger touch, left mouse button).
+      // Multi-finger touches and right-clicks should not start a drag.
+      if (e.button !== undefined && e.button !== 0) return;
       isDown = true;
       track.classList.add('dragging');
       loopWidthPx = computeLoopWidth();
       currentTranslate = normalize(readCurrentTranslate());
-      lastX = (e.touches ? e.touches[0].pageX : e.pageX);
+      lastX = e.pageX;
+      // Capture the pointer so subsequent pointermove/pointerup events fire on
+      // the track even if the finger/cursor leaves it. Critical on iOS where
+      // touchend can otherwise fire on the wrong target and miss our handler.
+      if (e.pointerId !== undefined && track.setPointerCapture) {
+        try { track.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+      }
       // Kill the animation entirely (NOT just pause it). A paused animation
       // still owns the transform property, and inline transform style is ignored
-      // until the animation is fully removed. Setting animation:none frees
-      // transform for direct manipulation during the drag.
+      // until the animation is fully removed.
       track.style.animation = 'none';
       track.style.transform = 'translateX(' + currentTranslate + 'px)';
-      // Always preventDefault on mousedown to stop text-selection and native
-      // drag behavior.
       if (e.preventDefault) e.preventDefault();
     }
 
@@ -276,9 +282,8 @@
 
     function onMove(e) {
       if (!isDown) return;
-      var x = (e.touches ? e.touches[0].pageX : e.pageX);
-      var dx = x - lastX;
-      lastX = x;
+      var dx = e.pageX - lastX;
+      lastX = e.pageX;
       currentTranslate = normalize(currentTranslate + dx);
       track.style.transform = 'translateX(' + currentTranslate + 'px)';
     }
@@ -307,16 +312,24 @@
       track.style.animationDelay = delay + 's';
     }
 
-    track.addEventListener('mousedown', onDown);
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onUp);
-    track.addEventListener('touchstart', onDown, { passive: false });
-    window.addEventListener('touchmove', onMove, { passive: true });
-    window.addEventListener('touchend', onUp);
-    // iOS Safari can fire touchcancel instead of touchend when the OS claims
-    // the touch (interrupted by a gesture, scroll, or system event). Without
-    // listening for it, the marquee stays frozen until the next user input.
-    window.addEventListener('touchcancel', onUp);
+    // Pointer Events unify mouse, touch, and pen into one API. On iOS this
+    // avoids the touchend-on-wrong-target and touch-passive-suppression bugs
+    // that plagued the separate touchstart/touchend handlers. Falls back to
+    // mouse events for browsers that do not support pointer events.
+    if (window.PointerEvent) {
+      track.addEventListener('pointerdown', onDown);
+      track.addEventListener('pointermove', onMove);
+      track.addEventListener('pointerup', onUp);
+      track.addEventListener('pointercancel', onUp);
+      // pointerleave on the track itself does NOT fire after setPointerCapture,
+      // so we do not need a fallback listener; capture guarantees pointerup
+      // fires here even if the finger leaves the track.
+    } else {
+      // Legacy fallback (very old browsers).
+      track.addEventListener('mousedown', onDown);
+      window.addEventListener('mousemove', onMove);
+      window.addEventListener('mouseup', onUp);
+    }
 
     // ---- KEYBOARD + MANUAL PAUSE (WCAG 2.2.2 compliance) -------------------
     // Three pause sources: user clicks Pause button (sticky), keyboard focus on
