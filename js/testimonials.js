@@ -93,8 +93,9 @@
     + '@media (prefers-reduced-motion: reduce){.testimonials-track{animation:none;}}'
     + '.testimonial-card{position:relative;width:380px;min-width:380px;min-height:500px;border-radius:20px;overflow:hidden;flex-shrink:0;display:flex;flex-direction:column;}'
     + '.testimonial-card:focus-visible{outline:3px solid #b9158d;outline-offset:3px;}'
-    + '.testimonials-controls{display:flex;justify-content:center;margin-top:18px;}'
-    + '.testimonials-pause-btn{display:inline-flex;align-items:center;gap:8px;background:rgba(0,0,0,0.04);border:1px solid rgba(0,0,0,0.12);color:#5b5b6b;border-radius:999px;padding:8px 18px;font-size:13px;font-weight:600;font-family:"DM Sans",sans-serif;cursor:pointer;transition:all 0.2s;}'
+    + '.testimonials-controls{display:flex;justify-content:flex-end;margin-top:14px;padding:0 20px;max-width:1240px;margin-left:auto;margin-right:auto;box-sizing:border-box;}'
+    + '.testimonials-pause-btn{display:inline-flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.04);border:1px solid rgba(0,0,0,0.12);color:#5b5b6b;border-radius:50%;width:40px;height:40px;padding:0;cursor:pointer;transition:all 0.2s;}'
+    + '.testimonials-pause-btn svg{width:16px;height:16px;display:block;}'
     + '.testimonials-pause-btn:hover{color:#14111c;border-color:#b9158d;background:rgba(185,21,141,0.08);}'
     + '.testimonials-pause-btn:focus-visible{outline:2px solid #b9158d;outline-offset:2px;}'
     + '.testimonials-section.t-dark .testimonials-pause-btn{background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.14);color:rgba(255,255,255,0.85);}'
@@ -200,9 +201,11 @@
       +     '<div class="testimonials-track" id="site-testimonials-track" role="list">' + marqueeCards + '</div>'
       +   '</div>'
       +   '<div class="testimonials-controls">'
-      +     '<button type="button" class="testimonials-pause-btn" id="site-testimonials-pause" aria-pressed="false">'
-      +       '<span class="testimonials-pause-icon" aria-hidden="true">&#9208;</span>'
-      +       '<span class="testimonials-pause-label">Pause</span>'
+      +     '<button type="button" class="testimonials-pause-btn" id="site-testimonials-pause" aria-pressed="false" aria-label="Pause testimonials">'
+      +       '<svg class="testimonials-pause-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">'
+      +         '<rect x="6" y="5" width="4" height="14" rx="1"></rect>'
+      +         '<rect x="14" y="5" width="4" height="14" rx="1"></rect>'
+      +       '</svg>'
       +     '</button>'
       +   '</div>'
       + '</section>';
@@ -337,16 +340,18 @@
       track.style.animationDelay = delay + 's';
     }
 
-    // Pause button: toggle manualPaused, update aria-pressed and label.
+    // Pause button: toggle manualPaused, swap SVG icon, update aria-pressed
+    // and aria-label so screen readers always announce the current action.
     var pauseBtn = document.getElementById('site-testimonials-pause');
     if (pauseBtn) {
       var iconEl = pauseBtn.querySelector('.testimonials-pause-icon');
-      var labelEl = pauseBtn.querySelector('.testimonials-pause-label');
+      var PAUSE_SVG = '<rect x="6" y="5" width="4" height="14" rx="1"></rect><rect x="14" y="5" width="4" height="14" rx="1"></rect>';
+      var PLAY_SVG = '<path d="M8 5v14l11-7z"></path>';
       pauseBtn.addEventListener('click', function () {
         manualPaused = !manualPaused;
         pauseBtn.setAttribute('aria-pressed', manualPaused ? 'true' : 'false');
-        if (iconEl) iconEl.innerHTML = manualPaused ? '&#9654;' : '&#9208;';
-        if (labelEl) labelEl.textContent = manualPaused ? 'Play' : 'Pause';
+        pauseBtn.setAttribute('aria-label', manualPaused ? 'Play testimonials' : 'Pause testimonials');
+        if (iconEl) iconEl.innerHTML = manualPaused ? PLAY_SVG : PAUSE_SVG;
         if (manualPaused) {
           freezeAtCurrent();
         } else {
