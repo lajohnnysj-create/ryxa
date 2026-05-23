@@ -17,7 +17,11 @@ body {
 }
 img { max-width: 100%; height: auto; display: block; }
 a { color: #a78bfa; text-decoration: none; }
-a:hover { text-decoration: underline; }
+.profile-body a:hover,
+.profile-figure-note a:hover,
+.profile-embed-attribution a:hover,
+.profile-removal a:hover,
+.directory-methodology a:hover { text-decoration: underline; }
 
 /* ====== SITE HEADER / FOOTER PLACEHOLDERS ====== */
 #site-header { min-height: 70px; }
