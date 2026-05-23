@@ -19,6 +19,16 @@
   // Style injection — scoped to banner elements
   var style = document.createElement('style');
   style.textContent = [
+    /* Defensive: some host pages (Link in Bio, Media Kit profiles) inject a
+       creator-chosen font as `body, body * { font-family: X !important }`,
+       which would otherwise override the banner's intended typography.
+       This rule scopes the banner's font-family explicitly. */
+    '#fts-cookie-banner, #fts-cookie-banner * {',
+    '  font-family: "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif !important;',
+    '}',
+    '#fts-cookie-banner .fts-cookie-title {',
+    '  font-family: "Syne", "DM Sans", sans-serif !important;',
+    '}',
     '#fts-cookie-banner {',
     '  position: fixed;',
     '  bottom: 16px;',
@@ -31,7 +41,6 @@
     '  border-radius: 14px;',
     '  padding: 18px 20px;',
     '  color: #f0eef8;',
-    '  font-family: "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif;',
     '  font-size: 13px;',
     '  line-height: 1.55;',
     '  box-shadow: 0 12px 40px rgba(0,0,0,0.5);',
@@ -51,7 +60,6 @@
     '  text-underline-offset: 2px;',
     '}',
     '#fts-cookie-banner .fts-cookie-title {',
-    '  font-family: "Syne", "DM Sans", sans-serif;',
     '  font-weight: 700;',
     '  color: #fff;',
     '  margin-bottom: 4px;',
@@ -65,7 +73,6 @@
     '  flex-wrap: wrap;',
     '}',
     '#fts-cookie-banner button {',
-    '  font-family: inherit;',
     '  font-size: 12px;',
     '  font-weight: 500;',
     '  padding: 8px 16px;',
