@@ -228,6 +228,84 @@
       });
       dragTrack.style.cursor = 'grab';
     }
+
+    // ---- AUTO-ADVANCE -------------------------------------------------------
+    // Auto-advances one card every 6 seconds. Pauses on any user interaction
+    // (drag, arrow click, hover) and resumes after 10s of inactivity. Also
+    // pauses when the section is scrolled out of view (IntersectionObserver)
+    // and disables entirely when the user has prefers-reduced-motion set.
+    var track = document.getElementById('site-testimonials-track');
+    if (!track) return;
+
+    var reducedMotion = false;
+    try {
+      reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    } catch (e) { /* matchMedia unavailable; treat as no preference */ }
+    if (reducedMotion) return; // honor accessibility, do not auto-advance
+
+    var ADVANCE_MS = 6000;
+    var RESUME_MS = 10000;
+    var autoTimer = null;
+    var resumeTimer = null;
+    var inView = true; // assume in view until observer says otherwise
+
+    function advanceOne() {
+      if (!track) return;
+      var card = track.querySelector('.testimonial-card');
+      var amount = card ? card.offsetWidth + 20 : 400;
+      // If we are at (or near) the end, loop back to the start instead.
+      var maxScroll = track.scrollWidth - track.clientWidth;
+      if (track.scrollLeft >= maxScroll - 8) {
+        track.scrollTo({ left: 0, behavior: 'smooth' });
+      } else {
+        track.scrollBy({ left: amount, behavior: 'smooth' });
+      }
+    }
+
+    function startAuto() {
+      if (autoTimer || !inView) return;
+      autoTimer = setInterval(advanceOne, ADVANCE_MS);
+    }
+    function stopAuto() {
+      if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+    }
+    function pauseAndScheduleResume() {
+      stopAuto();
+      if (resumeTimer) clearTimeout(resumeTimer);
+      resumeTimer = setTimeout(function () {
+        resumeTimer = null;
+        startAuto();
+      }, RESUME_MS);
+    }
+
+    // Pause on hover, drag, arrow click. Any of these = active interaction.
+    track.addEventListener('mouseenter', stopAuto);
+    track.addEventListener('mouseleave', pauseAndScheduleResume);
+    track.addEventListener('mousedown', pauseAndScheduleResume);
+    track.addEventListener('touchstart', pauseAndScheduleResume, { passive: true });
+    var arrowEls = mount.querySelectorAll('.testimonial-arrow');
+    for (var b = 0; b < arrowEls.length; b++) {
+      arrowEls[b].addEventListener('click', pauseAndScheduleResume);
+    }
+
+    // Pause when section is scrolled out of view, resume when back in view.
+    // Avoids running an interval that does nothing useful on a long page.
+    if (typeof IntersectionObserver === 'function') {
+      var io = new IntersectionObserver(function (entries) {
+        for (var k = 0; k < entries.length; k++) {
+          inView = entries[k].isIntersecting;
+          if (inView) {
+            startAuto();
+          } else {
+            stopAuto();
+          }
+        }
+      }, { threshold: 0.2 });
+      io.observe(track);
+    } else {
+      // No IO support: just start auto immediately.
+      startAuto();
+    }
   }
 
   if (document.readyState === 'loading') {
