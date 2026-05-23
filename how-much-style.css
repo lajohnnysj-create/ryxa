@@ -16,7 +16,7 @@ body {
   line-height: 1.6;
 }
 img { max-width: 100%; height: auto; display: block; }
-a { color: #b9158d; text-decoration: none; }
+a { color: #a78bfa; text-decoration: none; }
 a:hover { text-decoration: underline; }
 
 /* ====== SITE HEADER / FOOTER PLACEHOLDERS ====== */
@@ -33,11 +33,11 @@ a:hover { text-decoration: underline; }
 .profile-tag {
   display: inline-block;
   padding: 5px 13px;
-  background: rgba(185,21,141,0.10);
-  border: 1px solid rgba(185,21,141,0.30);
+  background: rgba(124,58,237,0.12);
+  border: 1px solid rgba(167,139,250,0.30);
   border-radius: 999px;
   font-size: 11px;
-  color: #f9a8d4;
+  color: #a78bfa;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   font-weight: 700;
@@ -54,7 +54,7 @@ a:hover { text-decoration: underline; }
 }
 .profile-title em {
   font-style: normal;
-  color: #f9a8d4;
+  color: #a78bfa;
 }
 .profile-subtitle {
   font-size: 17px;
@@ -71,8 +71,8 @@ a:hover { text-decoration: underline; }
   padding: 0 24px;
 }
 .profile-figure-card {
-  background: linear-gradient(135deg, rgba(185,21,141,0.16) 0%, rgba(124,58,237,0.12) 100%);
-  border: 1px solid rgba(185,21,141,0.30);
+  background: rgba(124,58,237,0.10);
+  border: 1px solid rgba(167,139,250,0.30);
   border-radius: 24px;
   padding: 36px 32px;
   text-align: center;
@@ -99,7 +99,7 @@ a:hover { text-decoration: underline; }
   color: rgba(255,255,255,0.78);
 }
 .profile-figure-note a {
-  color: #f9a8d4;
+  color: #a78bfa;
 }
 
 /* ====== EMBED ====== */
@@ -127,7 +127,7 @@ a:hover { text-decoration: underline; }
   margin-top: 10px;
 }
 .profile-embed-attribution a {
-  color: #f9a8d4;
+  color: #a78bfa;
 }
 
 /* ====== BODY SECTIONS ====== */
@@ -152,7 +152,7 @@ a:hover { text-decoration: underline; }
   margin: 0 0 16px;
 }
 .profile-body p a {
-  color: #f9a8d4;
+  color: #a78bfa;
   text-decoration: underline;
 }
 
@@ -212,7 +212,7 @@ a:hover { text-decoration: underline; }
   color: rgba(255,255,255,0.85);
 }
 .profile-citation-source a {
-  color: #f9a8d4;
+  color: #a78bfa;
   text-decoration: none;
   font-weight: 600;
 }
@@ -264,7 +264,7 @@ a:hover { text-decoration: underline; }
 .profile-methodology {
   background: rgba(255,255,255,0.03);
   border: 1px solid rgba(255,255,255,0.08);
-  border-left: 3px solid #f9a8d4;
+  border-left: 3px solid #a78bfa;
   border-radius: 8px;
   padding: 20px 24px;
   margin: 16px 0;
@@ -303,8 +303,8 @@ a:hover { text-decoration: underline; }
   display: block;
 }
 .profile-related-card:hover {
-  border-color: rgba(185,21,141,0.40);
-  background: rgba(185,21,141,0.06);
+  border-color: rgba(167,139,250,0.40);
+  background: rgba(124,58,237,0.10);
   text-decoration: none;
   transform: translateY(-2px);
 }
@@ -326,8 +326,8 @@ a:hover { text-decoration: underline; }
   max-width: 800px;
   margin: 48px auto 0;
   padding: 36px 28px;
-  background: linear-gradient(135deg, rgba(185,21,141,0.14) 0%, rgba(124,58,237,0.10) 100%);
-  border: 1px solid rgba(185,21,141,0.30);
+  background: rgba(124,58,237,0.10);
+  border: 1px solid rgba(167,139,250,0.30);
   border-radius: 20px;
   text-align: center;
 }
@@ -347,7 +347,7 @@ a:hover { text-decoration: underline; }
 }
 .profile-cta .btn-primary {
   display: inline-block;
-  background: #b9158d;
+  background: #7c3aed;
   color: #ffffff;
   border: none;
   border-radius: 10px;
@@ -360,7 +360,7 @@ a:hover { text-decoration: underline; }
   transition: all 0.2s;
 }
 .profile-cta .btn-primary:hover {
-  background: #a3127c;
+  background: #6d28d9;
   text-decoration: none;
   transform: translateY(-1px);
 }
@@ -400,7 +400,7 @@ a:hover { text-decoration: underline; }
 }
 .directory-title em {
   font-style: normal;
-  color: #f9a8d4;
+  color: #a78bfa;
 }
 .directory-subtitle {
   font-size: 17px;
@@ -428,22 +428,22 @@ a:hover { text-decoration: underline; }
   display: block;
 }
 .directory-card:hover {
-  border-color: rgba(185,21,141,0.40);
-  background: rgba(185,21,141,0.06);
+  border-color: rgba(167,139,250,0.40);
+  background: rgba(124,58,237,0.10);
   text-decoration: none;
   transform: translateY(-3px);
 }
 .directory-card-platform {
   display: inline-block;
   padding: 3px 9px;
-  background: rgba(185,21,141,0.16);
-  border: 1px solid rgba(185,21,141,0.30);
+  background: rgba(124,58,237,0.16);
+  border: 1px solid rgba(167,139,250,0.30);
   border-radius: 999px;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #f9a8d4;
+  color: #a78bfa;
   margin-bottom: 12px;
 }
 .directory-card-name {
@@ -458,7 +458,7 @@ a:hover { text-decoration: underline; }
   font-family: "Plus Jakarta Sans", sans-serif;
   font-size: 15px;
   font-weight: 700;
-  color: #f9a8d4;
+  color: #a78bfa;
   margin-bottom: 4px;
 }
 .directory-card-meta {
@@ -468,7 +468,7 @@ a:hover { text-decoration: underline; }
 
 .directory-methodology {
   max-width: 800px;
-  margin: 40px auto 0;
+  margin: 40px auto 80px;
   padding: 24px 28px;
   background: rgba(255,255,255,0.03);
   border: 1px solid rgba(255,255,255,0.08);
