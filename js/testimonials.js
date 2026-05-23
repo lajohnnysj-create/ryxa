@@ -342,7 +342,7 @@
       // imprecise. A small multiplier (1.3x) makes mobile swipes feel snappier
       // without overshooting. Desktop mouse stays at 1:1 since pointer accuracy
       // is already precise.
-      if (isTouch) dx *= 1.3;
+      if (isTouch) dx *= 1.4;
       currentTranslate = normalize(currentTranslate + dx);
       track.style.transform = 'translateX(' + currentTranslate + 'px)';
     }
