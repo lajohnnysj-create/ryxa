@@ -64,6 +64,14 @@
       quote: 'Ryxa is jam-packed with the tools that I need for my creativity! Highly recommend!',
       name: 'Jenny Jiang',
       handle: '@imjennime'
+    },
+    {
+      photo: 'testimonials/dylan.jpg',
+      color: 'c-purple',
+      stars: 5,
+      quote: "Ryxa is where it's at! The best and fastest way to elevate your branding.",
+      name: 'Dylan Vasquez',
+      handle: '@imdylanvasquez'
     }
   ];
 
