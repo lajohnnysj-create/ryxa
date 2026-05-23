@@ -85,8 +85,9 @@
     + '.testimonials-heading{font-family:"Plus Jakarta Sans",sans-serif;font-size:16px;font-weight:800;text-align:center;margin:0 auto 28px;color:#14111c;letter-spacing:-0.3px;padding:0 20px;width:100%;box-sizing:border-box;}'
     + '.testimonials-section.t-dark .testimonials-heading{color:#f0eef8;}'
     + '.testimonials-heading span{color:inherit;}'
-    + '.testimonials-track-wrap{position:relative;max-width:1240px;margin:0 auto;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 60px,#000 calc(100% - 60px),transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 60px,#000 calc(100% - 60px),transparent 100%);}'
-    + '.testimonials-track{display:flex;gap:20px;padding:8px 0;width:max-content;animation:testimonials-marquee 50s linear infinite;}'
+    + '.testimonials-track-wrap{position:relative;max-width:1240px;margin:0 auto;overflow:hidden;}'
+    + '.testimonials-track{display:flex;gap:20px;padding:8px 0;width:max-content;animation:testimonials-marquee 50s linear infinite;cursor:grab;user-select:none;}'
+    + '.testimonials-track.dragging{cursor:grabbing;}'
     + '.testimonials-track-wrap:hover .testimonials-track{animation-play-state:paused;}'
     + '@keyframes testimonials-marquee{from{transform:translateX(0);}to{transform:translateX(calc(-50% - 10px));}}'
     + '@media (prefers-reduced-motion: reduce){.testimonials-track{animation:none;}}'
@@ -191,6 +192,80 @@
       +     '<div class="testimonials-track" id="site-testimonials-track">' + marqueeCards + '</div>'
       +   '</div>'
       + '</section>';
+
+    // ---- DRAG-TO-SCROLL -----------------------------------------------------
+    // The marquee animates transform:translateX continuously. Drag manipulates
+    // the same property, so the two cannot coexist live: we pause the animation
+    // on drag-start, apply manual transform during drag, then resume the
+    // animation from the dragged position on drag-end.
+    var track = document.getElementById('site-testimonials-track');
+    if (!track) return;
+
+    var isDown = false;
+    var startX = 0;
+    var startTranslate = 0;
+    var currentTranslate = 0;
+
+    // Reads the current visual translateX off the animated element. Required
+    // because the animation runs in the compositor and the inline style is
+    // empty mid-animation; getComputedStyle returns the live matrix.
+    function readCurrentTranslate() {
+      var t = window.getComputedStyle(track).transform;
+      if (!t || t === 'none') return 0;
+      // matrix(a, b, c, d, tx, ty), where tx is index 4
+      var m = t.match(/matrix.*\((.+)\)/);
+      if (!m) return 0;
+      var parts = m[1].split(', ');
+      return parseFloat(parts[4]) || 0;
+    }
+
+    function onDown(e) {
+      isDown = true;
+      track.classList.add('dragging');
+      startTranslate = readCurrentTranslate();
+      currentTranslate = startTranslate;
+      startX = (e.touches ? e.touches[0].pageX : e.pageX);
+      // Pause the marquee and pin the track to its current visual position.
+      track.style.animationPlayState = 'paused';
+      track.style.transform = 'translateX(' + startTranslate + 'px)';
+      if (e.cancelable) e.preventDefault();
+    }
+
+    function onMove(e) {
+      if (!isDown) return;
+      var x = (e.touches ? e.touches[0].pageX : e.pageX);
+      var walk = x - startX;
+      currentTranslate = startTranslate + walk;
+      track.style.transform = 'translateX(' + currentTranslate + 'px)';
+    }
+
+    function onUp() {
+      if (!isDown) return;
+      isDown = false;
+      track.classList.remove('dragging');
+      // Resume the marquee from where the drag left off. We restart the
+      // animation with a negative delay equal to the elapsed time at the
+      // current position, so the animation picks up visually where the drag
+      // ended instead of snapping back to its scheduled position.
+      var loopWidthPx = track.scrollWidth / 2 + 10; // matches keyframes (-50% - 10px)
+      // Normalize translate into the (-loopWidthPx, 0] range so the percent maps cleanly.
+      var t = currentTranslate;
+      while (t > 0) t -= loopWidthPx;
+      while (t < -loopWidthPx) t += loopWidthPx;
+      var pct = -t / loopWidthPx; // 0..1 of the way through the loop
+      var durationSec = 50;
+      var delay = -(pct * durationSec);
+      track.style.transform = '';
+      track.style.animationPlayState = '';
+      track.style.animationDelay = delay + 's';
+    }
+
+    track.addEventListener('mousedown', onDown);
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+    track.addEventListener('touchstart', onDown, { passive: false });
+    window.addEventListener('touchmove', onMove, { passive: true });
+    window.addEventListener('touchend', onUp);
   }
 
   if (document.readyState === 'loading') {
