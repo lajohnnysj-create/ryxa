@@ -84,15 +84,13 @@
     + '.testimonials-section{padding:70px 0;overflow:hidden;}'
     + '.testimonials-heading{font-family:"Plus Jakarta Sans",sans-serif;font-size:16px;font-weight:800;text-align:center;margin:0 auto 28px;color:#14111c;letter-spacing:-0.3px;padding:0 20px;width:100%;box-sizing:border-box;}'
     + '.testimonials-section.t-dark .testimonials-heading{color:#f0eef8;}'
-    + '.testimonials-section.t-dark .testimonial-arrow{background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.14);color:rgba(255,255,255,0.7);}'
-    + '.testimonials-section.t-dark .testimonial-arrow:hover{color:#fff;border-color:#a78bfa;background:rgba(124,58,237,0.18);}'
     + '.testimonials-heading span{color:inherit;}'
-    + '.testimonials-track-wrap{position:relative;display:flex;align-items:center;gap:12px;padding:0 20px;max-width:1240px;margin:0 auto;}'
-    + '.testimonials-track{display:flex;gap:20px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;scrollbar-width:none;-ms-overflow-style:none;padding:8px 0;flex:1;min-width:0;-webkit-overflow-scrolling:touch;}'
-    + '.testimonials-track::-webkit-scrollbar{display:none;}'
-    + '.testimonial-arrow{background:rgba(0,0,0,0.04);border:1px solid rgba(0,0,0,0.12);color:#5b5b6b;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all 0.2s;z-index:2;}'
-    + '.testimonial-arrow:hover{color:#14111c;border-color:#b9158d;background:rgba(185,21,141,0.08);}'
-    + '.testimonial-card{position:relative;width:380px;min-width:380px;min-height:500px;border-radius:20px;overflow:hidden;flex-shrink:0;scroll-snap-align:center;scroll-snap-stop:always;display:flex;flex-direction:column;}'
+    + '.testimonials-track-wrap{position:relative;max-width:1240px;margin:0 auto;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 60px,#000 calc(100% - 60px),transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 60px,#000 calc(100% - 60px),transparent 100%);}'
+    + '.testimonials-track{display:flex;gap:20px;padding:8px 0;width:max-content;animation:testimonials-marquee 50s linear infinite;}'
+    + '.testimonials-track-wrap:hover .testimonials-track{animation-play-state:paused;}'
+    + '@keyframes testimonials-marquee{from{transform:translateX(0);}to{transform:translateX(calc(-50% - 10px));}}'
+    + '@media (prefers-reduced-motion: reduce){.testimonials-track{animation:none;}}'
+    + '.testimonial-card{position:relative;width:380px;min-width:380px;min-height:500px;border-radius:20px;overflow:hidden;flex-shrink:0;display:flex;flex-direction:column;}'
     + '.testimonial-photo{height:260px;background-size:cover;background-position:center top;flex-shrink:0;transition:transform 0.5s ease;}'
     + '.testimonial-card:hover .testimonial-photo{transform:scale(1.05);}'
     + '.testimonial-panel{flex:1;padding:24px 24px 26px;display:flex;flex-direction:column;text-align:left;}'
@@ -153,9 +151,6 @@
       + '</div>';
   }
 
-  var ARROW_LEFT = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>';
-  var ARROW_RIGHT = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>';
-
   // ---- RENDER ------------------------------------------------------------
   function render() {
     var mount = document.getElementById('site-testimonials');
@@ -183,129 +178,19 @@
     for (var i = 0; i < TESTIMONIALS.length; i++) {
       cards += cardHtml(TESTIMONIALS[i]);
     }
+    // Duplicate the set for a seamless marquee loop. The animation translates
+    // the track by -50%, which lands exactly on the start of the second copy,
+    // so the jump back to 0 is invisible. The second copy is aria-hidden so
+    // screen readers do not announce each testimonial twice.
+    var marqueeCards = cards + '<div aria-hidden="true" style="display:contents;">' + cards + '</div>';
 
     mount.innerHTML = ''
       + '<section class="' + sectionClass + '">'
       +   '<h2 class="testimonials-heading">' + headingHtml + '</h2>'
       +   '<div class="testimonials-track-wrap">'
-      +     '<button type="button" class="testimonial-arrow" data-testimonials-dir="-1" aria-label="Previous testimonial">' + ARROW_LEFT + '</button>'
-      +     '<div class="testimonials-track" id="site-testimonials-track">' + cards + '</div>'
-      +     '<button type="button" class="testimonial-arrow" data-testimonials-dir="1" aria-label="Next testimonial">' + ARROW_RIGHT + '</button>'
+      +     '<div class="testimonials-track" id="site-testimonials-track">' + marqueeCards + '</div>'
       +   '</div>'
       + '</section>';
-
-    // Wire up the arrows. Self-contained, no external delegation needed.
-    var arrows = mount.querySelectorAll('.testimonial-arrow');
-    for (var a = 0; a < arrows.length; a++) {
-      arrows[a].addEventListener('click', function () {
-        var dir = parseInt(this.getAttribute('data-testimonials-dir'), 10) || 1;
-        var track = document.getElementById('site-testimonials-track');
-        if (!track) return;
-        var card = track.querySelector('.testimonial-card');
-        var amount = card ? card.offsetWidth + 20 : 400;
-        track.scrollBy({ left: dir * amount, behavior: 'smooth' });
-      });
-    }
-
-    // Desktop click-and-drag to scroll the carousel.
-    var dragTrack = document.getElementById('site-testimonials-track');
-    if (dragTrack) {
-      var isDown = false, startX = 0, scrollStart = 0;
-      dragTrack.addEventListener('mousedown', function (e) {
-        isDown = true;
-        dragTrack.style.cursor = 'grabbing';
-        startX = e.pageX - dragTrack.offsetLeft;
-        scrollStart = dragTrack.scrollLeft;
-        e.preventDefault();
-      });
-      dragTrack.addEventListener('mouseleave', function () { isDown = false; dragTrack.style.cursor = 'grab'; });
-      dragTrack.addEventListener('mouseup', function () { isDown = false; dragTrack.style.cursor = 'grab'; });
-      dragTrack.addEventListener('mousemove', function (e) {
-        if (!isDown) return;
-        var x = e.pageX - dragTrack.offsetLeft;
-        var walk = (x - startX) * 1.5;
-        dragTrack.scrollLeft = scrollStart - walk;
-      });
-      dragTrack.style.cursor = 'grab';
-    }
-
-    // ---- AUTO-ADVANCE -------------------------------------------------------
-    // Auto-advances one card every 6 seconds. Pauses on any user interaction
-    // (drag, arrow click, hover) and resumes after 10s of inactivity. Also
-    // pauses when the section is scrolled out of view (IntersectionObserver)
-    // and disables entirely when the user has prefers-reduced-motion set.
-    var track = document.getElementById('site-testimonials-track');
-    if (!track) return;
-
-    var reducedMotion = false;
-    try {
-      reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    } catch (e) { /* matchMedia unavailable; treat as no preference */ }
-    if (reducedMotion) return; // honor accessibility, do not auto-advance
-
-    var ADVANCE_MS = 6000;
-    var RESUME_MS = 10000;
-    var autoTimer = null;
-    var resumeTimer = null;
-    var inView = true; // assume in view until observer says otherwise
-
-    function advanceOne() {
-      if (!track) return;
-      var card = track.querySelector('.testimonial-card');
-      var amount = card ? card.offsetWidth + 20 : 400;
-      // If we are at (or near) the end, loop back to the start instead.
-      var maxScroll = track.scrollWidth - track.clientWidth;
-      if (track.scrollLeft >= maxScroll - 8) {
-        track.scrollTo({ left: 0, behavior: 'smooth' });
-      } else {
-        track.scrollBy({ left: amount, behavior: 'smooth' });
-      }
-    }
-
-    function startAuto() {
-      if (autoTimer || !inView) return;
-      autoTimer = setInterval(advanceOne, ADVANCE_MS);
-    }
-    function stopAuto() {
-      if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
-    }
-    function pauseAndScheduleResume() {
-      stopAuto();
-      if (resumeTimer) clearTimeout(resumeTimer);
-      resumeTimer = setTimeout(function () {
-        resumeTimer = null;
-        startAuto();
-      }, RESUME_MS);
-    }
-
-    // Pause on hover, drag, arrow click. Any of these = active interaction.
-    track.addEventListener('mouseenter', stopAuto);
-    track.addEventListener('mouseleave', pauseAndScheduleResume);
-    track.addEventListener('mousedown', pauseAndScheduleResume);
-    track.addEventListener('touchstart', pauseAndScheduleResume, { passive: true });
-    var arrowEls = mount.querySelectorAll('.testimonial-arrow');
-    for (var b = 0; b < arrowEls.length; b++) {
-      arrowEls[b].addEventListener('click', pauseAndScheduleResume);
-    }
-
-    // Pause when section is scrolled out of view, resume when back in view.
-    // Avoids running an interval that does nothing useful on a long page.
-    if (typeof IntersectionObserver === 'function') {
-      var io = new IntersectionObserver(function (entries) {
-        for (var k = 0; k < entries.length; k++) {
-          inView = entries[k].isIntersecting;
-          if (inView) {
-            startAuto();
-          } else {
-            stopAuto();
-          }
-        }
-      }, { threshold: 0.2 });
-      io.observe(track);
-    } else {
-      // No IO support: just start auto immediately.
-      startAuto();
-    }
   }
 
   if (document.readyState === 'loading') {
