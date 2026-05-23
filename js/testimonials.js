@@ -334,9 +334,15 @@
 
     function onMove(e) {
       if (!isDown) return;
-      var x = (e.touches ? e.touches[0].pageX : e.pageX);
+      var isTouch = !!e.touches;
+      var x = (isTouch ? e.touches[0].pageX : e.pageX);
       var dx = x - lastX;
       lastX = x;
+      // Touch drag feels sluggish at 1:1 because finger contact patches are
+      // imprecise. A small multiplier (1.3x) makes mobile swipes feel snappier
+      // without overshooting. Desktop mouse stays at 1:1 since pointer accuracy
+      // is already precise.
+      if (isTouch) dx *= 1.3;
       currentTranslate = normalize(currentTranslate + dx);
       track.style.transform = 'translateX(' + currentTranslate + 'px)';
     }
