@@ -198,17 +198,27 @@
     // the same property, so the two cannot coexist live: we pause the animation
     // on drag-start, apply manual transform during drag, then resume the
     // animation from the dragged position on drag-end.
+    //
+    // Continuous wrapping: the marquee loops over a distance of `loopWidthPx`
+    // (one full set of cards plus one gap). During drag we keep the transform
+    // normalized into the range (-loopWidthPx, 0] by adding/subtracting
+    // loopWidthPx whenever we cross a boundary. That way the user can drag
+    // left or right indefinitely and the cards keep scrolling like a real
+    // conveyor belt instead of jumping when the transform goes out of range.
     var track = document.getElementById('site-testimonials-track');
     if (!track) return;
 
     var isDown = false;
-    var startX = 0;
-    var startTranslate = 0;
+    var lastX = 0;
     var currentTranslate = 0;
+    var loopWidthPx = 0;
 
-    // Reads the current visual translateX off the animated element. Required
-    // because the animation runs in the compositor and the inline style is
-    // empty mid-animation; getComputedStyle returns the live matrix.
+    function computeLoopWidth() {
+      // The track contains two identical sets of cards. Half the scrollWidth
+      // is one set, plus 10px (half a gap) to match the keyframes offset.
+      return track.scrollWidth / 2 + 10;
+    }
+
     function readCurrentTranslate() {
       var t = window.getComputedStyle(track).transform;
       if (!t || t === 'none') return 0;
@@ -219,23 +229,31 @@
       return parseFloat(parts[4]) || 0;
     }
 
+    function normalize(t) {
+      if (loopWidthPx <= 0) return t;
+      while (t > 0) t -= loopWidthPx;
+      while (t < -loopWidthPx) t += loopWidthPx;
+      return t;
+    }
+
     function onDown(e) {
       isDown = true;
       track.classList.add('dragging');
-      startTranslate = readCurrentTranslate();
-      currentTranslate = startTranslate;
-      startX = (e.touches ? e.touches[0].pageX : e.pageX);
+      loopWidthPx = computeLoopWidth();
+      currentTranslate = normalize(readCurrentTranslate());
+      lastX = (e.touches ? e.touches[0].pageX : e.pageX);
       // Pause the marquee and pin the track to its current visual position.
       track.style.animationPlayState = 'paused';
-      track.style.transform = 'translateX(' + startTranslate + 'px)';
+      track.style.transform = 'translateX(' + currentTranslate + 'px)';
       if (e.cancelable) e.preventDefault();
     }
 
     function onMove(e) {
       if (!isDown) return;
       var x = (e.touches ? e.touches[0].pageX : e.pageX);
-      var walk = x - startX;
-      currentTranslate = startTranslate + walk;
+      var dx = x - lastX;
+      lastX = x;
+      currentTranslate = normalize(currentTranslate + dx);
       track.style.transform = 'translateX(' + currentTranslate + 'px)';
     }
 
@@ -244,15 +262,9 @@
       isDown = false;
       track.classList.remove('dragging');
       // Resume the marquee from where the drag left off. We restart the
-      // animation with a negative delay equal to the elapsed time at the
-      // current position, so the animation picks up visually where the drag
-      // ended instead of snapping back to its scheduled position.
-      var loopWidthPx = track.scrollWidth / 2 + 10; // matches keyframes (-50% - 10px)
-      // Normalize translate into the (-loopWidthPx, 0] range so the percent maps cleanly.
-      var t = currentTranslate;
-      while (t > 0) t -= loopWidthPx;
-      while (t < -loopWidthPx) t += loopWidthPx;
-      var pct = -t / loopWidthPx; // 0..1 of the way through the loop
+      // animation with a negative delay so it picks up visually at the current
+      // position instead of snapping back to its scheduled position.
+      var pct = -currentTranslate / loopWidthPx; // 0..1 through the loop
       var durationSec = 50;
       var delay = -(pct * durationSec);
       track.style.transform = '';
