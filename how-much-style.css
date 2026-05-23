@@ -1,0 +1,497 @@
+/* ============================================================================
+   how-much-style.css
+   Stylesheet for /how-much/ creator income/profile pages.
+   Separate from blog-style.css so profile pages can evolve their own identity.
+   ============================================================================ */
+
+/* RESET */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: "DM Sans", sans-serif;
+  background: #07070f;
+  color: #f0eef8;
+  min-height: 100vh;
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+img { max-width: 100%; height: auto; display: block; }
+a { color: #b9158d; text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ====== SITE HEADER / FOOTER PLACEHOLDERS ====== */
+#site-header { min-height: 70px; }
+#site-footer { min-height: 200px; background: #07070f; }
+
+/* ====== PROFILE HERO ====== */
+.profile-hero {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 60px 24px 32px;
+  text-align: center;
+}
+.profile-tag {
+  display: inline-block;
+  padding: 5px 13px;
+  background: rgba(185,21,141,0.10);
+  border: 1px solid rgba(185,21,141,0.30);
+  border-radius: 999px;
+  font-size: 11px;
+  color: #f9a8d4;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+.profile-title {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: clamp(34px, 5vw, 52px);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -1.2px;
+  margin-bottom: 14px;
+  color: #ffffff;
+}
+.profile-title em {
+  font-style: normal;
+  color: #f9a8d4;
+}
+.profile-subtitle {
+  font-size: 17px;
+  color: rgba(255,255,255,0.78);
+  line-height: 1.5;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+/* ====== HEADLINE FIGURE ====== */
+.profile-headline-figure {
+  max-width: 980px;
+  margin: 36px auto 0;
+  padding: 0 24px;
+}
+.profile-figure-card {
+  background: linear-gradient(135deg, rgba(185,21,141,0.16) 0%, rgba(124,58,237,0.12) 100%);
+  border: 1px solid rgba(185,21,141,0.30);
+  border-radius: 24px;
+  padding: 36px 32px;
+  text-align: center;
+}
+.profile-figure-label {
+  font-size: 12px;
+  color: rgba(255,255,255,0.78);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+.profile-figure-value {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: clamp(40px, 7vw, 72px);
+  font-weight: 800;
+  letter-spacing: -2px;
+  line-height: 1;
+  margin-bottom: 8px;
+  color: #ffffff;
+}
+.profile-figure-note {
+  font-size: 13px;
+  color: rgba(255,255,255,0.78);
+}
+.profile-figure-note a {
+  color: #f9a8d4;
+}
+
+/* ====== EMBED ====== */
+.profile-embed-wrap {
+  max-width: 540px;
+  margin: 40px auto 0;
+  padding: 0 24px;
+}
+.profile-embed-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 20px;
+  padding: 16px;
+  text-align: center;
+}
+.profile-embed-fallback {
+  display: block;
+  padding: 14px 12px 8px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.78);
+}
+.profile-embed-attribution {
+  font-size: 12px;
+  color: rgba(255,255,255,0.78);
+  margin-top: 10px;
+}
+.profile-embed-attribution a {
+  color: #f9a8d4;
+}
+
+/* ====== BODY SECTIONS ====== */
+.profile-body {
+  max-width: 800px;
+  margin: 56px auto 0;
+  padding: 0 24px 80px;
+}
+.profile-body h2 {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: clamp(24px, 3vw, 32px);
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  margin: 48px 0 14px;
+  color: #ffffff;
+}
+.profile-body h2:first-child { margin-top: 0; }
+.profile-body p {
+  font-size: 16px;
+  line-height: 1.75;
+  color: rgba(255,255,255,0.85);
+  margin: 0 0 16px;
+}
+.profile-body p a {
+  color: #f9a8d4;
+  text-decoration: underline;
+}
+
+/* ====== STAT GRID (followers, key metrics) ====== */
+.profile-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin: 24px 0 8px;
+}
+.profile-stat {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 14px;
+  padding: 20px 18px;
+}
+.profile-stat-label {
+  font-size: 11px;
+  color: rgba(255,255,255,0.78);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.profile-stat-value {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: #ffffff;
+}
+.profile-stat-note {
+  font-size: 12px;
+  color: rgba(255,255,255,0.78);
+  margin-top: 6px;
+}
+
+/* ====== CITATION TABLE ====== */
+.profile-citations {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  overflow: hidden;
+  margin: 16px 0;
+}
+.profile-citation {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  padding: 18px 22px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  align-items: center;
+}
+.profile-citation:last-child { border-bottom: none; }
+.profile-citation-source {
+  font-size: 14px;
+  color: rgba(255,255,255,0.85);
+}
+.profile-citation-source a {
+  color: #f9a8d4;
+  text-decoration: none;
+  font-weight: 600;
+}
+.profile-citation-source a:hover { text-decoration: underline; }
+.profile-citation-figure {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.3px;
+  white-space: nowrap;
+}
+.profile-citation-year {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 11px;
+  color: rgba(255,255,255,0.78);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+/* ====== BUSINESS LIST ====== */
+.profile-businesses {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin: 16px 0;
+}
+.profile-business {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 14px;
+  padding: 18px;
+}
+.profile-business-name {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: #ffffff;
+}
+.profile-business-desc {
+  font-size: 13px;
+  color: rgba(255,255,255,0.78);
+  line-height: 1.5;
+}
+
+/* ====== METHODOLOGY BOX ====== */
+.profile-methodology {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-left: 3px solid #f9a8d4;
+  border-radius: 8px;
+  padding: 20px 24px;
+  margin: 16px 0;
+  font-size: 14px;
+  color: rgba(255,255,255,0.85);
+  line-height: 1.65;
+}
+.profile-methodology strong { color: #ffffff; }
+
+/* ====== COMPARABLE CREATORS ====== */
+.profile-related {
+  max-width: 980px;
+  margin: 32px auto 0;
+  padding: 0 24px;
+}
+.profile-related-title {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+  margin-bottom: 18px;
+  color: #ffffff;
+  letter-spacing: -0.3px;
+}
+.profile-related-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+.profile-related-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 14px;
+  padding: 20px 18px;
+  text-decoration: none;
+  transition: all 0.2s;
+  display: block;
+}
+.profile-related-card:hover {
+  border-color: rgba(185,21,141,0.40);
+  background: rgba(185,21,141,0.06);
+  text-decoration: none;
+  transform: translateY(-2px);
+}
+.profile-related-name {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 4px;
+  letter-spacing: -0.3px;
+}
+.profile-related-note {
+  font-size: 13px;
+  color: rgba(255,255,255,0.78);
+}
+
+/* ====== CTA ====== */
+.profile-cta {
+  max-width: 800px;
+  margin: 48px auto 0;
+  padding: 36px 28px;
+  background: linear-gradient(135deg, rgba(185,21,141,0.14) 0%, rgba(124,58,237,0.10) 100%);
+  border: 1px solid rgba(185,21,141,0.30);
+  border-radius: 20px;
+  text-align: center;
+}
+.profile-cta h3 {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+  margin-bottom: 10px;
+  color: #ffffff;
+  letter-spacing: -0.5px;
+}
+.profile-cta p {
+  font-size: 14px;
+  color: rgba(255,255,255,0.85);
+  margin-bottom: 18px;
+  line-height: 1.55;
+}
+.profile-cta .btn-primary {
+  display: inline-block;
+  background: #b9158d;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 26px;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: "DM Sans", sans-serif;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+.profile-cta .btn-primary:hover {
+  background: #a3127c;
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+/* ====== REMOVAL REQUEST ====== */
+.profile-removal {
+  max-width: 800px;
+  margin: 32px auto 0;
+  padding: 0 24px;
+  text-align: center;
+  font-size: 12px;
+  color: rgba(255,255,255,0.55);
+  line-height: 1.6;
+}
+.profile-removal a {
+  color: rgba(255,255,255,0.78);
+  text-decoration: underline;
+}
+
+/* ============================================================================
+   DIRECTORY PAGE (/how-much/index.html)
+   ============================================================================ */
+.directory-hero {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 60px 24px 32px;
+  text-align: center;
+}
+.directory-title {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: clamp(34px, 5vw, 52px);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -1.2px;
+  margin-bottom: 16px;
+  color: #ffffff;
+}
+.directory-title em {
+  font-style: normal;
+  color: #f9a8d4;
+}
+.directory-subtitle {
+  font-size: 17px;
+  color: rgba(255,255,255,0.78);
+  line-height: 1.55;
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.directory-grid {
+  max-width: 1100px;
+  margin: 40px auto 0;
+  padding: 0 24px 60px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+.directory-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 16px;
+  padding: 24px 22px;
+  text-decoration: none;
+  transition: all 0.2s;
+  display: block;
+}
+.directory-card:hover {
+  border-color: rgba(185,21,141,0.40);
+  background: rgba(185,21,141,0.06);
+  text-decoration: none;
+  transform: translateY(-3px);
+}
+.directory-card-platform {
+  display: inline-block;
+  padding: 3px 9px;
+  background: rgba(185,21,141,0.16);
+  border: 1px solid rgba(185,21,141,0.30);
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #f9a8d4;
+  margin-bottom: 12px;
+}
+.directory-card-name {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 6px;
+  letter-spacing: -0.4px;
+}
+.directory-card-range {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: #f9a8d4;
+  margin-bottom: 4px;
+}
+.directory-card-meta {
+  font-size: 12px;
+  color: rgba(255,255,255,0.78);
+}
+
+.directory-methodology {
+  max-width: 800px;
+  margin: 40px auto 0;
+  padding: 24px 28px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  font-size: 14px;
+  color: rgba(255,255,255,0.85);
+  line-height: 1.7;
+}
+.directory-methodology h3 {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 10px;
+  letter-spacing: -0.2px;
+}
+
+/* MOBILE */
+@media (max-width: 640px) {
+  .profile-citation { grid-template-columns: 1fr; gap: 6px; padding: 16px 18px; }
+  .profile-citation-figure { font-size: 17px; }
+  .profile-body { padding: 0 18px 60px; }
+  .profile-hero { padding: 40px 18px 24px; }
+  .profile-figure-card { padding: 28px 22px; border-radius: 18px; }
+  .profile-cta { padding: 28px 22px; }
+}
