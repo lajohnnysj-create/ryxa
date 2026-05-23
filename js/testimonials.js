@@ -107,7 +107,7 @@
     + '.testimonial-quote{font-size:14px;line-height:1.6;margin:0 0 14px;font-style:italic;}'
     + '.testimonial-meta{margin-top:auto;}'
     + '.testimonial-name{font-size:14px;font-weight:700;}'
-    + '.testimonial-handle{font-size:12px;font-weight:600;opacity:0.85;}'
+    + '.testimonial-handle{font-size:12px;font-weight:500;}'
     + '.testimonial-panel.c-magenta{background:#b9158d;color:#fff;}'
     + '.testimonial-panel.c-magenta .testimonial-stars{color:#fff;}'
     + '.testimonial-panel.c-purple{background:#5b21b6;color:#fff;}'
