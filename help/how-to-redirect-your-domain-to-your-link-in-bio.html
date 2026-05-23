@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="shortcut icon" href="/favicon.ico">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How to Redirect Your Domain to Your Link in Bio. Ryxa</title>
+<meta name="description" content="Step-by-step instructions for forwarding your custom domain to your Ryxa Link in Bio page using GoDaddy, Namecheap, Cloudflare, or Squarespace Domains.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://www.ryxa.io/help/how-to-redirect-your-domain-to-your-link-in-bio">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.ryxa.io/help/how-to-redirect-your-domain-to-your-link-in-bio">
+<meta property="og:title" content="How to Redirect Your Domain to Your Link in Bio. Ryxa">
+<meta property="og:description" content="Forward your custom domain to your Ryxa Link in Bio. Step-by-step instructions for the four most common domain providers.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #07070f; --surface: #0f0f1a; --surface2: #161625;
+    --border: rgba(255,255,255,0.07); --border-hover: rgba(255,255,255,0.14);
+    --accent: #7c3aed; --accent2: #a855f7; --accent-glow: rgba(124,58,237,0.3);
+    --text: #f0eef8; --muted: #b4b2c8; --muted2: #c9c7dc;
+    --page-bg: #f5f5f7; --doc-text: #1d1d29; --doc-muted: #5b5b6b;
+    --doc-border: #e3e3ea; --doc-surface: #ffffff;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scrollbar-width: thin; scrollbar-color: rgba(168,85,247,0.4) #e3e3ea; }
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: #e3e3ea; }
+  ::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.4); border-radius: 4px; }
+  body {
+    font-family: "DM Sans", sans-serif;
+    background: var(--page-bg);
+    color: var(--doc-text);
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+  #site-footer { background: #07070f; color: #f0eef8; }
+
+  .doc-wrap { max-width: 820px; margin: 0 auto; padding: 96px 24px 96px; }
+
+  .doc-breadcrumb {
+    font-size: 13px; font-weight: 500; color: var(--doc-muted);
+    margin-bottom: 28px;
+  }
+  .doc-breadcrumb a { color: var(--accent); text-decoration: none; }
+  .doc-breadcrumb a:hover { text-decoration: underline; }
+
+  .doc-eyebrow {
+    display: inline-block;
+    font-size: 12px; font-weight: 700; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--accent);
+    margin-bottom: 14px;
+  }
+  .doc-title {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-size: 40px; font-weight: 800; letter-spacing: -1px;
+    line-height: 1.15; color: var(--doc-text);
+    margin-bottom: 24px;
+  }
+
+  .doc-intro {
+    font-size: 16px; line-height: 1.7; color: var(--doc-text);
+    background: var(--doc-surface);
+    border: 1px solid var(--doc-border);
+    border-radius: 14px; padding: 24px 28px; margin-bottom: 32px;
+  }
+  .doc-intro p + p { margin-top: 12px; }
+
+  .doc-section { margin-bottom: 38px; }
+  .doc-section h2 {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-size: 22px; font-weight: 800; letter-spacing: -0.3px;
+    color: var(--doc-text); margin-bottom: 12px;
+    padding-bottom: 10px; border-bottom: 2px solid var(--doc-border);
+  }
+  .doc-section h3 {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-size: 17px; font-weight: 800; letter-spacing: -0.2px;
+    color: var(--doc-text); margin: 20px 0 8px;
+  }
+  .doc-section p {
+    font-size: 15.5px; line-height: 1.72; color: var(--doc-text);
+    margin-bottom: 12px;
+  }
+  .doc-section ol { margin: 8px 0 14px; padding-left: 22px; }
+  .doc-section ul { margin: 4px 0 14px; padding-left: 22px; }
+  .doc-section li {
+    font-size: 15.5px; line-height: 1.65; color: var(--doc-text);
+    margin-bottom: 9px;
+  }
+  .doc-section a { color: var(--accent); text-decoration: none; }
+  .doc-section a:hover { text-decoration: underline; }
+  .doc-section code {
+    background: #f0eef8;
+    color: var(--doc-text);
+    padding: 2px 7px;
+    border-radius: 5px;
+    font-family: "SF Mono", Menlo, Monaco, Consolas, "Courier New", monospace;
+    font-size: 14px;
+  }
+
+  .doc-callout {
+    background: var(--doc-surface);
+    border: 1px solid var(--doc-border);
+    border-left: 3px solid var(--accent);
+    border-radius: 10px; padding: 18px 22px; margin: 16px 0;
+  }
+  .doc-callout p { margin-bottom: 8px; }
+  .doc-callout p:last-child { margin-bottom: 0; }
+  .doc-callout strong { color: var(--doc-text); }
+
+  .doc-callout-warn {
+    border-left-color: #d97706;
+  }
+
+  .doc-help {
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    border-radius: 16px; padding: 30px 32px; margin-top: 48px;
+    color: #fff;
+  }
+  .doc-help h2 {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-size: 21px; font-weight: 800; color: #fff; margin-bottom: 10px;
+  }
+  .doc-help p { font-size: 15px; line-height: 1.65; color: rgba(255,255,255,0.92); margin-bottom: 14px; }
+  .doc-help a.help-btn {
+    display: inline-block;
+    background: #fff; color: #7c3aed;
+    font-weight: 700; font-size: 15px;
+    padding: 11px 22px; border-radius: 10px; text-decoration: none;
+  }
+  .doc-help a.help-btn:hover { background: #f0eef8; }
+
+  @media (max-width: 640px) {
+    .doc-wrap { padding: 84px 18px 72px; }
+    .doc-title { font-size: 30px; }
+    .doc-section h2 { font-size: 19px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="site-header" data-page="help"></div>
+
+<main class="doc-wrap">
+
+  <div class="doc-breadcrumb" role="navigation" aria-label="Breadcrumb">
+    <a href="/help">Help Center</a> &rsaquo; Link in Bio &rsaquo; How to Redirect Your Domain to Your Link in Bio
+  </div>
+
+  <span class="doc-eyebrow">Link in Bio</span>
+  <h1 class="doc-title">How to Redirect Your Domain to Your Link in Bio</h1>
+
+  <div class="doc-intro">
+    <p>If you own a domain like <code>yourname.com</code>, you can forward it to your Ryxa Link in Bio page. When someone visits your domain, their browser will be redirected to your Ryxa Link in Bio automatically.</p>
+    <p>This guide covers the four most common domain providers: GoDaddy, Namecheap, Cloudflare, and Squarespace Domains.</p>
+  </div>
+
+  <div class="doc-callout doc-callout-warn">
+    <p><strong>Important: This is a URL redirect, not a true custom domain.</strong></p>
+    <p>When someone visits <code>yourname.com</code>, they will be redirected to <code>ryxa.io/bio/yourusername</code>, and the URL in their browser bar will change to show the Ryxa URL. This is different from services that let your custom domain stay in the URL bar.</p>
+    <p>If keeping your domain in the URL bar matters to you, look into your provider's "forward with masking" or "URL frame" option (covered in each section below). Masking has tradeoffs around SEO and analytics, so most creators are better off with a standard redirect.</p>
+  </div>
+
+  <section class="doc-section">
+    <h2>Before you start: find your Link in Bio URL</h2>
+    <p>Open your Ryxa dashboard and copy your Link in Bio URL. It will look something like this:</p>
+    <p><code>https://ryxa.io/bio/yourusername</code></p>
+    <p>You will need this URL during setup, so keep it copied or written down.</p>
+  </section>
+
+  <section class="doc-section">
+    <h2>GoDaddy</h2>
+    <p>GoDaddy calls this feature "Forwarding," and it's free with any domain.</p>
+    <ol>
+      <li>Sign in to your <a href="https://www.godaddy.com" target="_blank" rel="noopener noreferrer">GoDaddy account</a>.</li>
+      <li>Open the <strong>My Products</strong> page and find the domain you want to forward.</li>
+      <li>Select the domain to open its Domain Settings page.</li>
+      <li>Click <strong>DNS</strong>, then click <strong>Forwarding</strong>.</li>
+      <li>Click <strong>Add Forwarding</strong>.</li>
+      <li>In the Forward To field, choose <strong>https://</strong> and paste your Ryxa Link in Bio URL (for example, <code>ryxa.io/bio/yourusername</code>).</li>
+      <li>For Forward Type, select <strong>Permanent (301)</strong>. This is the standard option that signals to search engines that the forwarding is permanent.</li>
+      <li>Optionally, toggle on <strong>Forward only</strong> to redirect just the domain itself (not subdomains).</li>
+      <li>Click <strong>Save</strong>.</li>
+    </ol>
+    <p>It can take up to 24-48 hours for the change to propagate across the internet, though it is usually much faster.</p>
+    <div class="doc-callout">
+      <p><strong>If you want your domain to stay in the URL bar:</strong> instead of Permanent (301), choose <strong>Forward with masking</strong>. Be aware that masking can cause issues with how your link is shared on social platforms.</p>
+    </div>
+  </section>
+
+  <section class="doc-section">
+    <h2>Namecheap</h2>
+    <p>Namecheap offers URL forwarding for free as long as your domain uses their default DNS settings.</p>
+    <ol>
+      <li>Sign in to your <a href="https://www.namecheap.com" target="_blank" rel="noopener noreferrer">Namecheap account</a>.</li>
+      <li>Open the <strong>Domain List</strong> page from the left sidebar.</li>
+      <li>Find your domain and click the <strong>Manage</strong> button next to it.</li>
+      <li>On the Domain tab, scroll down to the <strong>Redirect Domain</strong> section.</li>
+      <li>Click <strong>Add Redirect</strong>.</li>
+      <li>In the Source URL field, enter your domain (for example, <code>yourname.com</code>).</li>
+      <li>In the Destination URL field, paste your Ryxa Link in Bio URL (for example, <code>https://ryxa.io/bio/yourusername</code>).</li>
+      <li>Select <strong>Permanent (301)</strong> as the redirect type.</li>
+      <li>Click the green checkmark to save.</li>
+      <li>Repeat the same steps for <code>www.yourname.com</code> if you want the www version to also redirect.</li>
+    </ol>
+    <p>Namecheap redirects typically activate within 30 minutes but can take up to a few hours in some cases.</p>
+    <div class="doc-callout">
+      <p><strong>If your DNS uses a custom nameserver:</strong> the Redirect Domain section will not appear. You will need to either switch back to Namecheap's BasicDNS first, or set up the redirect through the Advanced DNS tab using a URL Redirect Record.</p>
+    </div>
+  </section>
+
+  <section class="doc-section">
+    <h2>Cloudflare</h2>
+    <p>Cloudflare offers redirect functionality through Redirect Rules. This works whether your domain is registered with Cloudflare or you have just added it to a Cloudflare account for DNS management.</p>
+    <ol>
+      <li>Sign in to your <a href="https://dash.cloudflare.com" target="_blank" rel="noopener noreferrer">Cloudflare dashboard</a>.</li>
+      <li>Select the domain you want to redirect from your account overview.</li>
+      <li>In the left sidebar, click <strong>Rules</strong>, then click <strong>Redirect Rules</strong>.</li>
+      <li>Click <strong>Create rule</strong>.</li>
+      <li>Give your rule a name (something like "Redirect to Link in Bio").</li>
+      <li>For the matching criteria, select <strong>Custom filter expression</strong>, choose Field as <strong>Hostname</strong>, Operator as <strong>equals</strong>, and Value as your domain (for example, <code>yourname.com</code>).</li>
+      <li>Under "Then", set Type to <strong>Static</strong>.</li>
+      <li>In the URL field, paste your full Ryxa Link in Bio URL (for example, <code>https://ryxa.io/bio/yourusername</code>).</li>
+      <li>Set Status code to <strong>301</strong>.</li>
+      <li>Toggle off "Preserve query string" since you do not need URL parameters to carry through.</li>
+      <li>Click <strong>Deploy</strong>.</li>
+    </ol>
+    <p>Cloudflare redirects activate almost immediately. You can verify the setup by visiting your domain in an incognito or private browsing window.</p>
+    <div class="doc-callout">
+      <p><strong>Cloudflare requires the domain to be using their nameservers.</strong> If you are using a different registrar but want to manage redirects through Cloudflare, you will need to add the site to Cloudflare first and update your nameservers at your registrar.</p>
+    </div>
+  </section>
+
+  <section class="doc-section">
+    <h2>Squarespace Domains (formerly Google Domains)</h2>
+    <p>If you bought your domain through Google Domains, it has since migrated to Squarespace Domains. These steps cover the current Squarespace Domains interface.</p>
+    <ol>
+      <li>Sign in to <a href="https://account.squarespace.com" target="_blank" rel="noopener noreferrer">your Squarespace account</a>.</li>
+      <li>Open the <strong>Domains</strong> page from your account dashboard.</li>
+      <li>Click the domain you want to forward.</li>
+      <li>In the domain settings, find the <strong>Forwarding</strong> section.</li>
+      <li>Click <strong>Add forwarding</strong>.</li>
+      <li>In the Forward to field, paste your Ryxa Link in Bio URL (for example, <code>https://ryxa.io/bio/yourusername</code>).</li>
+      <li>Select <strong>Permanent (301)</strong> as the redirect type.</li>
+      <li>Leave "Path forwarding" toggled off, since your Ryxa URL is the complete destination.</li>
+      <li>Click <strong>Save</strong>.</li>
+    </ol>
+    <p>Squarespace forwarding can take up to 48 hours to fully propagate but often activates within a few hours.</p>
+    <div class="doc-callout">
+      <p><strong>If your domain is connected to a Squarespace website:</strong> setting up forwarding will remove the Squarespace site connection. Make sure you actually want to redirect away from your Squarespace site before saving.</p>
+    </div>
+  </section>
+
+  <section class="doc-section">
+    <h2>Troubleshooting</h2>
+
+    <h3>The redirect isn't working yet</h3>
+    <p>DNS changes take time to propagate. Wait at least 30 minutes after saving, then test in an incognito or private browser window. If it still does not work after 24 hours, the most common issues are:</p>
+    <ul>
+      <li><strong>You entered the wrong destination URL.</strong> Double-check that the URL matches your Ryxa Link in Bio exactly, including <code>https://</code>.</li>
+      <li><strong>Your domain uses different nameservers than your registrar's default.</strong> Each provider's redirect feature only works if you are using their DNS. Check whose nameservers your domain points to.</li>
+      <li><strong>Browser cache.</strong> Try a different browser or device. Your browser may have cached the old DNS response.</li>
+    </ul>
+
+    <h3>The redirect goes to ryxa.io but shows an error</h3>
+    <p>This usually means the Ryxa username in your destination URL is wrong, or your Link in Bio is set to private. Open your Ryxa dashboard, copy the exact Link in Bio URL, and update your forwarding settings with the correct value.</p>
+
+    <h3>My domain shows "https" warning when I visit it</h3>
+    <p>Most domain providers automatically issue an SSL certificate for forwarded domains, but it can take a few hours after the initial setup. Wait at least 24 hours and try again. If the warning persists, contact your domain provider's support since this is something only they can resolve.</p>
+
+    <h3>I want both yourname.com and www.yourname.com to work</h3>
+    <p>You will need to set up the forwarding for both versions of the domain at your registrar. With most providers, this means adding two redirects: one for the root domain and one for the www subdomain.</p>
+  </section>
+
+  <section class="doc-section">
+    <h2>Using a different domain provider?</h2>
+    <p>The steps above cover the four most common providers, but the general process is the same with any registrar. Look in your domain settings for a feature called one of these names:</p>
+    <ul>
+      <li>Domain Forwarding</li>
+      <li>URL Forwarding</li>
+      <li>URL Redirect</li>
+      <li>Redirect Domain</li>
+    </ul>
+    <p>If your provider does not offer any forwarding feature, you can add your domain to a free Cloudflare account and follow the Cloudflare steps above. This is the most reliable cross-provider approach.</p>
+  </section>
+
+  <div class="doc-help">
+    <h2>Still stuck?</h2>
+    <p>If you have followed the steps above and your domain still isn't redirecting after 48 hours, contact us with your domain name and the steps you have already tried.</p>
+    <a class="help-btn" href="mailto:hello@ryxa.io?subject=Domain%20Redirect%20Help">Email hello@ryxa.io</a>
+  </div>
+
+</main>
+
+<div id="site-footer"></div>
+
+<script src="/cookie-banner.js"></script>
+<script src="/site-nav.js"></script>
+</body>
+</html>
