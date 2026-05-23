@@ -433,19 +433,6 @@ a:hover { text-decoration: underline; }
   text-decoration: none;
   transform: translateY(-3px);
 }
-.directory-card-platform {
-  display: inline-block;
-  padding: 3px 9px;
-  background: rgba(124,58,237,0.16);
-  border: 1px solid rgba(167,139,250,0.30);
-  border-radius: 999px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #a78bfa;
-  margin-bottom: 12px;
-}
 .directory-card-name {
   font-family: "Plus Jakarta Sans", sans-serif;
   font-size: 20px;
