@@ -245,8 +245,18 @@
       // Pause the marquee and pin the track to its current visual position.
       track.style.animationPlayState = 'paused';
       track.style.transform = 'translateX(' + currentTranslate + 'px)';
-      if (e.cancelable) e.preventDefault();
+      // Always preventDefault on mousedown to stop text-selection and native
+      // drag behavior, both of which would suppress mousemove events during
+      // the drag and make the carousel appear frozen.
+      if (e.preventDefault) e.preventDefault();
     }
+
+    // Block the browser's native drag operation entirely on the track. Without
+    // this, dragging on any text or image inside a card kicks the browser into
+    // native-drag mode, which swallows mousemove events and freezes our
+    // carousel until mouseup.
+    track.addEventListener('dragstart', function (e) { e.preventDefault(); });
+    track.addEventListener('selectstart', function (e) { e.preventDefault(); });
 
     function onMove(e) {
       if (!isDown) return;
