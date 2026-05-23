@@ -144,4 +144,8 @@
   <url><loc>https://ryxa.io/tools-sign-pdf</loc><priority>0.6</priority><changefreq>monthly</changefreq></url>
   <url><loc>https://ryxa.io/how-much/</loc><priority>0.7</priority><changefreq>weekly</changefreq></url>
   <url><loc>https://ryxa.io/how-much/mrbeast.html</loc><priority>0.6</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://ryxa.io/how-much/logan-paul.html</loc><priority>0.6</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://ryxa.io/how-much/jake-paul.html</loc><priority>0.6</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://ryxa.io/how-much/markiplier.html</loc><priority>0.6</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://ryxa.io/how-much/khaby-lame.html</loc><priority>0.6</priority><changefreq>monthly</changefreq></url>
 </urlset>
