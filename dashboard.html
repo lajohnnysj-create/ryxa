@@ -4629,6 +4629,19 @@
     .course-s-3fed56 { flex-direction: column; }
   }
 
+  /* Mobile: tighten outer module card padding and inner lesson/quiz card
+     padding so the actual content gets more horizontal room. On a 375px
+     screen, the original 16px module + 14px lesson padding ate ~60px of
+     horizontal width before we even rendered content. These tighter values
+     give back ~24px without losing the visual card boundaries. */
+  @media (max-width: 640px) {
+    .course-s-be7f41 { padding: 12px 10px; }
+    .course-s-fce34d { padding: 10px; }
+    .course-s-60e468 { padding: 10px; }
+    .course-s-quiz-header { padding: 10px; }
+    .course-s-quiz-body { padding: 0 10px 10px 10px; }
+  }
+
   /* ===== Quiz card ===== */
   .course-s-quiz-card { background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-top:8px;transition:border-color 0.15s; }
   .course-s-quiz-card:hover { border-color: rgba(124,58,237,0.3); }
