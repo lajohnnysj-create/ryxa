@@ -2002,16 +2002,18 @@ function renderQuizCard(quiz, mi) {
     ? '<span class="course-s-quiz-badge" title="Required to pass" aria-label="Required to pass"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"/><path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg></span>'
     : '';
 
-  // Header is identical between collapsed and expanded states. The whole
-  // header is the click target for expand/collapse (matches lesson card
-  // pattern). Caret rotates via CSS when expanded.
-  // Layout matches lesson cards: descriptive content on the left, type
-  // pill near the right, caret at the far right.
+  // Header. Trash button only appears when expanded (matches lesson card
+  // pattern - collapsed view stays clean). Caret rotates via CSS when
+  // expanded. Layout matches lesson cards: descriptive content on the
+  // left, type pill near the right, caret at the far right.
+  var trashBtn = collapsed
+    ? ''
+    : '<span><button data-course-action="remove-quiz" data-course-mi="' + mi + '" class="course-s-f3bc45" title="Delete quiz" aria-label="Delete quiz"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></span>';
   var header = '<div class="course-s-quiz-header" data-course-action="toggle-quiz-collapse" data-course-mi="' + mi + '">'
     + '<span class="course-s-quiz-count">' + qCount + ' question' + (qCount === 1 ? '' : 's') + '</span>'
     + requireBadge
     + '<span class="course-s-quiz-pill" title="Quiz" aria-label="Quiz"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></span>'
-    + '<span><button data-course-action="remove-quiz" data-course-mi="' + mi + '" class="course-s-f3bc45" title="Delete quiz" aria-label="Delete quiz"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></span>'
+    + trashBtn
     + '<svg class="course-s-quiz-caret' + (collapsed ? '' : ' open') + '" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>'
     + '</div>';
 
