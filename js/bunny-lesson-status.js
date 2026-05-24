@@ -73,8 +73,9 @@ function mapBunnyStatus(code) {
 }
 
 // Ask Bunny directly for a video's current state. Used as a self-healing
-// fallback when the DB still says 'processing' - covers the case where the
-// final encode-complete webhook never arrived or was missed.
+// fallback when the DB still says 'processing'/'uploading' but Bunny has
+// actually finished. Covers the case where the encode-complete webhook
+// never arrived or was silently dropped (which happens randomly).
 async function fetchBunnyStatus(videoGuid) {
   var libraryId = process.env.BUNNY_STREAM_LIBRARY_ID;
   var apiKey = process.env.BUNNY_STREAM_API_KEY;
@@ -104,7 +105,8 @@ async function fetchBunnyStatus(videoGuid) {
 }
 
 // Write the corrected status back to the lesson row using service_role, so a
-// stuck 'processing' row self-heals without waiting on the webhook.
+// stuck 'processing' row self-heals without waiting on the webhook. Scoped
+// by bunny_video_id since that's the immutable identifier Bunny gave us.
 async function patchLessonByVideoId(videoGuid, update) {
   var key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!key) return;
@@ -120,8 +122,9 @@ async function patchLessonByVideoId(videoGuid, update) {
       body: JSON.stringify(update)
     });
   } catch (e) {
-    // Non-fatal: the response to the client is still correct; the row just
-    // won't be persisted this round and will heal on the next poll.
+    // Non-fatal: the response to the client is still correct (we already
+    // mutated the in-memory `row`). The row just won't be persisted this
+    // round and will heal on the next poll.
   }
 }
 
@@ -149,15 +152,18 @@ module.exports = async (req, res) => {
     var row = rows[0];
 
     // Self-healing fallback. If the DB still says the video is in flight but
-    // Bunny has actually finished (the encode-complete webhook never arrived
-    // or was missed), ask Bunny directly and correct the row. Without this a
-    // video can stay 'processing' forever even though it's playable.
+    // Bunny has actually finished encoding (the webhook never arrived or was
+    // silently dropped, which happens randomly), ask Bunny directly and
+    // correct the row in-place. Without this a video can stay 'processing'
+    // in the editor forever even though it's already playable. Same pattern
+    // is already used by api/bunny-video-token.js on the student playback
+    // path; we keep them consistent so editor and playback never disagree.
     var dbStatus = row.bunny_video_status || null;
     if (row.bunny_video_id && (dbStatus === 'processing' || dbStatus === 'uploading')) {
       var live = await fetchBunnyStatus(row.bunny_video_id);
       if (live && live.bunny_video_status && live.bunny_video_status !== dbStatus) {
-        // Persist the correction so future polls (and the public course page)
-        // see the right status without re-hitting Bunny every time.
+        // Persist the correction so future polls (and the public course
+        // page) see the right status without re-hitting Bunny every time.
         await patchLessonByVideoId(row.bunny_video_id, live);
         row.bunny_video_status = live.bunny_video_status;
         if (live.bunny_video_duration_seconds != null) {
