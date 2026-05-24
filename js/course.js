@@ -1999,7 +1999,7 @@ function renderQuizCard(quiz, mi) {
   var questions = Array.isArray(quiz.questions) ? quiz.questions : [];
   var qCount = questions.length;
   var requireBadge = quiz.require_pass
-    ? '<span class="course-s-quiz-badge">Required to pass</span>'
+    ? '<span class="course-s-quiz-badge" title="Required to pass" aria-label="Required to pass"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"/><path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg></span>'
     : '';
 
   // Header is identical between collapsed and expanded states. The whole
@@ -2010,7 +2010,7 @@ function renderQuizCard(quiz, mi) {
   var header = '<div class="course-s-quiz-header" data-course-action="toggle-quiz-collapse" data-course-mi="' + mi + '">'
     + '<span class="course-s-quiz-count">' + qCount + ' question' + (qCount === 1 ? '' : 's') + '</span>'
     + requireBadge
-    + '<span class="course-s-quiz-pill">QUIZ</span>'
+    + '<span class="course-s-quiz-pill" title="Quiz" aria-label="Quiz"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 3v3h6V3"/><line x1="8" y1="11" x2="14" y2="11"/><line x1="8" y1="15" x2="12" y2="15"/><path d="M17.5 12.5l2 2-3 3h-2v-2l3-3z"/></svg></span>'
     + '<svg class="course-s-quiz-caret' + (collapsed ? '' : ' open') + '" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>'
     + '</div>';
 
@@ -2086,7 +2086,9 @@ function renderCourseModules() {
   container.innerHTML = courseModules.map((mod, mi) => {
     const lessonsHtml = (mod.lessons || []).map((l, li) => {
       const isVideo = l.lesson_type === 'video';
-      const typeLabel = isVideo ? '<span class="course-s-955d08">VIDEO</span>' : '<span class="course-s-e89353">LESSON</span>';
+      const typeLabel = isVideo
+        ? '<span class="course-s-955d08" title="Video lesson" aria-label="Video lesson"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg></span>'
+        : '<span class="course-s-e89353" title="Text lesson" aria-label="Text lesson"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg></span>';
       const isCollapsed = l._collapsed;
       // For text lessons, strip HTML tags before slicing for the preview.
       // text_content is now rich HTML; without stripping, the preview shows
@@ -2273,7 +2275,7 @@ function renderCourseModules() {
       + '</div>'
       + '<span class="course-s-2653e1">Module ' + (mi + 1) + '</span>'
       + '<input type="text" value="' + escapeHtml(mod.title) + '" placeholder="Module title (e.g., Getting Started)" data-course-action="update-module-title" data-course-event="input" data-course-mi="' + mi + '" aria-label="Module title" class="course-s-ced5e0">'
-      + '<button data-course-action="remove-module" data-course-mi="' + mi + '" class="course-s-02ecf5">Remove</button>'
+      + '<button data-course-action="remove-module" data-course-mi="' + mi + '" class="course-s-02ecf5" title="Remove module" aria-label="Remove module"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>'
       + '</div>'
       + lessonsHtml
       + (mod.quiz ? renderQuizCard(mod.quiz, mi) : '')
