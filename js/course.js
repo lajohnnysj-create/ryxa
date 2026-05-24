@@ -351,7 +351,16 @@ function removeCourseCover() {
 // short-circuits any reentrant call until the in-flight save finishes.
 let _saveCourseInProgress = false;
 
-async function saveCourse() {
+async function saveCourse(opts) {
+  // `opts.silent` (default false): when true, this is a programmatic save
+  // (e.g., post-upload autosave, post-encode autosave) and the editor UI
+  // should not be disturbed. Specifically, we skip the
+  // collapseAllOtherLessons() call that otherwise force-closes any expanded
+  // lesson card. Without this, a creator watching their upload progress
+  // would see their lesson snap shut the moment the upload finishes, and
+  // again when encoding completes. Manual saves (no opts arg) keep the
+  // legacy "settle the editor" behavior.
+  var silent = !!(opts && opts.silent);
   if (_saveCourseInProgress) return;
   _saveCourseInProgress = true;
 
@@ -427,7 +436,9 @@ async function saveCourse() {
     // would yank the page to the top of the expanded lesson. Saving is a
     // natural checkpoint anyway; creators expect Save to "settle" the editor.
     // Quiz cards intentionally left alone (no Quill, no scroll bug).
-    collapseAllOtherLessons(null, null);
+    // Skipped when `silent` (programmatic saves from upload/encode flows)
+    // so creators don't see their currently-watched lesson snap shut.
+    if (!silent) collapseAllOtherLessons(null, null);
 
     // Re-render so any lessons that were "new" before this save now reflect
     // their real DB ids in the UI. Without this, an expanded just-saved
@@ -799,15 +810,9 @@ async function saveCourseModules(courseId) {
   }
 
   // Step 3: figure out what needs to be deleted (in DB but not in local state).
-  // We delete LESSONS now (their child course_lesson_files cascade fires only
-  // for genuinely removed lessons). We DEFER module deletes until after step 6
-  // and step 7. Reason: if a user moves a lesson or quiz from module A to
-  // module B in the same session as deleting module A, deleting module A
-  // first would CASCADE-delete the moved lesson/quiz before step 6/7 has a
-  // chance to reparent them. Result: silent data loss. By moving module
-  // deletes to the very end (after all reparenting writes are done), any
-  // lesson/quiz that the user kept locally has already been reparented to a
-  // non-doomed module before the doomed module's row gets removed.
+  // We do this BEFORE inserts/updates so that the cascade from course_lessons
+  // to course_lesson_files (which we'll add in a parallel migration) fires
+  // only for genuinely removed lessons - not for every lesson on every save.
   const localModuleIds = new Set();
   const localLessonIds = new Set();
   for (let mi = 0; mi < courseModules.length; mi++) {
@@ -830,8 +835,10 @@ async function saveCourseModules(courseId) {
   const modulesToDelete = (dbModules || [])
     .map(function(m) { return m.id; })
     .filter(function(id) { return !localModuleIds.has(id); });
-  // Module deletes are intentionally deferred to step 8 (end of this fn).
-  // See comment above. Do not move this line back up.
+  if (modulesToDelete.length > 0) {
+    const { error: delMErr } = await sb.from('course_modules').delete().in('id', modulesToDelete);
+    if (delMErr) throw delMErr;
+  }
 
   // Step 4: insert new modules first (lessons need module_id, including for
   // existing lessons that may have moved to a new module). Capture new ids
@@ -992,17 +999,6 @@ async function saveCourseModules(courseId) {
       }
     }
     // Case D: no-op
-  }
-
-  // Step 8: NOW delete modules that the user removed from local state. By
-  // running this LAST, any lessons or quizzes that previously belonged to
-  // these modules have already been UPDATEd to point at their new parent
-  // module (or were themselves deleted in step 3, intentionally). The
-  // CASCADE on course_modules -> course_lessons / course_quizzes now only
-  // affects rows the user actually wanted gone.
-  if (modulesToDelete.length > 0) {
-    const { error: delMErr } = await sb.from('course_modules').delete().in('id', modulesToDelete);
-    if (delMErr) throw delMErr;
   }
 }
 
@@ -2520,7 +2516,7 @@ async function startBunnyUpload(mi, li, file) {
     var hostBeforeSave = document.querySelector('[data-course-vid-host="' + lessonKey(mi, li) + '"]');
     if (hostBeforeSave) renderUploadProgress(hostBeforeSave, 0, file.size, 'Saving lesson...');
     try {
-      await saveCourse();
+      await saveCourse({ silent: true });
     } catch (e) {
       showModalAlert('Could not save lesson', 'Save your course first, then try the upload again.');
       renderUploadIdle(mi, li);
@@ -2636,7 +2632,7 @@ async function startBunnyUpload(mi, li, file) {
       // side is already persisted (webhook wrote bunny_video_id to the DB);
       // a failed autosave just means the creator's OTHER in-memory edits
       // would need a manual save to persist.
-      saveCourse().catch(function(err) {
+      saveCourse({ silent: true }).catch(function(err) {
         console.warn('Post-upload autosave failed (non-fatal):', err);
       });
     }
@@ -2858,7 +2854,7 @@ function renderBunnyFinalState(mi, li) {
     // published course in sync. Non-blocking and non-fatal - a failure just
     // means the creator still needs to Save manually, as before.
     if (typeof saveCourse === 'function') {
-      try { saveCourse(); } catch (e) { /* non-fatal */ }
+      try { saveCourse({ silent: true }); } catch (e) { /* non-fatal */ }
     }
   } else if (lesson.bunny_video_status === 'failed') {
     panel.innerHTML = '<div class="course-vid-failed">'
