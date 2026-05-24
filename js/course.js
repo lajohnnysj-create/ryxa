@@ -343,7 +343,18 @@ function removeCourseCover() {
   if (uploadBtn) uploadBtn.style.display = 'flex';
 }
 
+// Re-entrance guard for saveCourse. Manual saves disable the Save button to
+// prevent double-clicks, but saveCourse() is also called programmatically by
+// auto-save flows (Bunny upload completion, course-active toggle, etc.). If
+// one of those auto-saves fires while a manual save is in progress, two
+// concurrent flows would race against the same DB rows. The flag below
+// short-circuits any reentrant call until the in-flight save finishes.
+let _saveCourseInProgress = false;
+
 async function saveCourse() {
+  if (_saveCourseInProgress) return;
+  _saveCourseInProgress = true;
+
   const title = document.getElementById('course-title-input').value.trim();
   const slug = document.getElementById('course-slug-input').value.trim();
   const description = document.getElementById('course-desc-input').value.trim();
@@ -351,8 +362,8 @@ async function saveCourse() {
   const priceStr = document.getElementById('course-price-input').value;
   const priceCents = Math.round(parseFloat(priceStr || '0') * 100);
 
-  if (!title) { showCourseMsg('error', 'Please enter a course title.'); return; }
-  if (!slug) { showCourseMsg('error', 'URL slug is empty. Please enter a title.'); return; }
+  if (!title) { _saveCourseInProgress = false; showCourseMsg('error', 'Please enter a course title.'); return; }
+  if (!slug) { _saveCourseInProgress = false; showCourseMsg('error', 'URL slug is empty. Please enter a title.'); return; }
 
   const btn = document.getElementById('course-save-btn');
   btn.disabled = true; btn.textContent = 'Saving...';
@@ -430,6 +441,7 @@ async function saveCourse() {
     showCourseMsg('error', 'Failed to save: ' + err.message);
   } finally {
     btn.disabled = false; btn.textContent = 'Save';
+    _saveCourseInProgress = false;
   }
 }
 
@@ -787,9 +799,15 @@ async function saveCourseModules(courseId) {
   }
 
   // Step 3: figure out what needs to be deleted (in DB but not in local state).
-  // We do this BEFORE inserts/updates so that the cascade from course_lessons
-  // to course_lesson_files (which we'll add in a parallel migration) fires
-  // only for genuinely removed lessons - not for every lesson on every save.
+  // We delete LESSONS now (their child course_lesson_files cascade fires only
+  // for genuinely removed lessons). We DEFER module deletes until after step 6
+  // and step 7. Reason: if a user moves a lesson or quiz from module A to
+  // module B in the same session as deleting module A, deleting module A
+  // first would CASCADE-delete the moved lesson/quiz before step 6/7 has a
+  // chance to reparent them. Result: silent data loss. By moving module
+  // deletes to the very end (after all reparenting writes are done), any
+  // lesson/quiz that the user kept locally has already been reparented to a
+  // non-doomed module before the doomed module's row gets removed.
   const localModuleIds = new Set();
   const localLessonIds = new Set();
   for (let mi = 0; mi < courseModules.length; mi++) {
@@ -812,10 +830,8 @@ async function saveCourseModules(courseId) {
   const modulesToDelete = (dbModules || [])
     .map(function(m) { return m.id; })
     .filter(function(id) { return !localModuleIds.has(id); });
-  if (modulesToDelete.length > 0) {
-    const { error: delMErr } = await sb.from('course_modules').delete().in('id', modulesToDelete);
-    if (delMErr) throw delMErr;
-  }
+  // Module deletes are intentionally deferred to step 8 (end of this fn).
+  // See comment above. Do not move this line back up.
 
   // Step 4: insert new modules first (lessons need module_id, including for
   // existing lessons that may have moved to a new module). Capture new ids
@@ -976,6 +992,17 @@ async function saveCourseModules(courseId) {
       }
     }
     // Case D: no-op
+  }
+
+  // Step 8: NOW delete modules that the user removed from local state. By
+  // running this LAST, any lessons or quizzes that previously belonged to
+  // these modules have already been UPDATEd to point at their new parent
+  // module (or were themselves deleted in step 3, intentionally). The
+  // CASCADE on course_modules -> course_lessons / course_quizzes now only
+  // affects rows the user actually wanted gone.
+  if (modulesToDelete.length > 0) {
+    const { error: delMErr } = await sb.from('course_modules').delete().in('id', modulesToDelete);
+    if (delMErr) throw delMErr;
   }
 }
 
