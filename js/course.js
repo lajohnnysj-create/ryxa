@@ -953,8 +953,8 @@ async function saveCourseModules(courseId) {
         questions: cleanQuestions
       };
 
-      if (isNewId(localQuiz.id) || !dbQuiz) {
-        // Case C: insert
+      if (!dbQuiz) {
+        // Case C: insert (no existing DB row for this module)
         const { data: savedQuiz, error: insErr } = await sb.from('course_quizzes')
           .insert(quizPayload)
           .select('id')
@@ -962,11 +962,17 @@ async function saveCourseModules(courseId) {
         if (insErr || !savedQuiz) throw (insErr || new Error('Quiz insert returned no row'));
         localQuiz.id = savedQuiz.id;
       } else {
-        // Case B: update existing
+        // Case B: update existing DB row. This path also covers the
+        // delete-then-recreate flow: if the user trashed a quiz and
+        // immediately created a new one before saving, the local quiz
+        // has a 'new_...' id but the DB row for this module_id still
+        // exists. The UNIQUE constraint on module_id means we MUST
+        // update in place rather than insert. Adopt the DB id.
         const { error: updErr } = await sb.from('course_quizzes')
           .update(quizPayload)
-          .eq('id', localQuiz.id);
+          .eq('id', dbQuiz.id);
         if (updErr) throw updErr;
+        localQuiz.id = dbQuiz.id;
       }
     }
     // Case D: no-op
