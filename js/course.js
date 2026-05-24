@@ -2011,6 +2011,7 @@ function renderQuizCard(quiz, mi) {
     + '<span class="course-s-quiz-count">' + qCount + ' question' + (qCount === 1 ? '' : 's') + '</span>'
     + requireBadge
     + '<span class="course-s-quiz-pill" title="Quiz" aria-label="Quiz"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></span>'
+    + '<span><button data-course-action="remove-quiz" data-course-mi="' + mi + '" class="course-s-f3bc45" title="Delete quiz" aria-label="Delete quiz"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></span>'
     + '<svg class="course-s-quiz-caret' + (collapsed ? '' : ' open') + '" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>'
     + '</div>';
 
@@ -2066,7 +2067,6 @@ function renderQuizCard(quiz, mi) {
     + '<div class="course-s-quiz-actions">'
     + addQuestionBtn
     + '<button type="button" data-course-action="toggle-quiz-collapse" data-course-mi="' + mi + '" class="course-s-eb7439">Done</button>'
-    + '<button type="button" data-course-action="remove-quiz" data-course-mi="' + mi + '" class="course-s-quiz-remove">Remove Quiz</button>'
     + '</div>'
     + '</div>'
     + '</div>';
@@ -2275,7 +2275,7 @@ function renderCourseModules() {
       + '</div>'
       + '<span class="course-s-2653e1">Module ' + (mi + 1) + '</span>'
       + '<input type="text" value="' + escapeHtml(mod.title) + '" placeholder="Module title (e.g., Getting Started)" data-course-action="update-module-title" data-course-event="input" data-course-mi="' + mi + '" aria-label="Module title" class="course-s-ced5e0">'
-      + '<button data-course-action="remove-module" data-course-mi="' + mi + '" class="course-s-02ecf5" title="Remove module" aria-label="Remove module"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>'
+      + '<button data-course-action="remove-module" data-course-mi="' + mi + '" class="course-s-02ecf5" title="Remove module" aria-label="Remove module"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>'
       + '</div>'
       + lessonsHtml
       + (mod.quiz ? renderQuizCard(mod.quiz, mi) : '')
