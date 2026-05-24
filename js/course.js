@@ -2010,7 +2010,7 @@ function renderQuizCard(quiz, mi) {
   var header = '<div class="course-s-quiz-header" data-course-action="toggle-quiz-collapse" data-course-mi="' + mi + '">'
     + '<span class="course-s-quiz-count">' + qCount + ' question' + (qCount === 1 ? '' : 's') + '</span>'
     + requireBadge
-    + '<span class="course-s-quiz-pill" title="Quiz" aria-label="Quiz"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 2h6a1 1 0 0 1 1 1v2h3a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h3V3a1 1 0 0 1 1-1z"/><line x1="8" y1="11" x2="16" y2="11"/><line x1="8" y1="15" x2="14" y2="15"/></svg></span>'
+    + '<span class="course-s-quiz-pill" title="Quiz" aria-label="Quiz"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></span>'
     + '<svg class="course-s-quiz-caret' + (collapsed ? '' : ' open') + '" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>'
     + '</div>';
 
