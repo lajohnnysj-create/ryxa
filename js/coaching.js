@@ -855,7 +855,15 @@ async function toggleCoachingPublish() {
 
 async function deleteCoaching() {
   if (!currentCoachingId) return;
-  var confirmed = await dashConfirm('Delete this coaching service permanently?');
+  // Typed-DELETE failsafe, same pattern courses uses for course/module/lesson
+  // deletes and products uses for product delete. confirmTypedDelete is
+  // defined in js/course.js (loads earlier on the dashboard) and returns a
+  // Promise that resolves true if the user typed DELETE and clicked confirm.
+  var confirmed = await confirmTypedDelete(
+    'Delete Service',
+    'This will permanently delete this booking service, all bookings, and associated data. Past buyers will lose access. This cannot be undone.',
+    'Delete Service'
+  );
   if (!confirmed) return;
 
   var coaching = coachingList.find(function(c) { return c.id === currentCoachingId; });
