@@ -218,6 +218,11 @@ function renderCourse(course, creatorName, modules, lessons, quizzes, session) {
   // Trim whitespace inside block tags.
   descRaw = descRaw.replace(/(\s+)<\/(p|h2|h3|li)>/g, '</$2>');
   descRaw = descRaw.replace(/<(p|h2|h3|li)([^>]*)>\s+/g, '<$1$2>');
+  // Strip empty paragraph spacers ('<p><br></p>' from Quill blank lines).
+  // These render as a full extra line gap between paragraphs that combines
+  // with paragraph margins to produce a visibly doubled space.
+  descRaw = descRaw.replace(/<p>\s*<br\s*\/?>\s*<\/p>/gi, '');
+  descRaw = descRaw.replace(/<p>\s*<\/p>/gi, '');
   // Unwrap broken <a> tags (no href or empty href).
   descRaw = descRaw.replace(/<a(?:\s+(?!href=)[^>]*)?>(.*?)<\/a>/gi, '$1');
   descRaw = descRaw.replace(/<a\s+href=["']?["']?\s*>(.*?)<\/a>/gi, '$1');
