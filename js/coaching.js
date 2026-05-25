@@ -745,7 +745,7 @@ async function saveCoaching() {
 
     const payload = {
       title,
-      description,
+      description: description || null,
       price_cents: priceCents,
       duration_minutes: durationMinutes,
       meeting_details: meetingDetails || null,

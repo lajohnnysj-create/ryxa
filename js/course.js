@@ -402,8 +402,8 @@ async function saveCourse(opts) {
 
     const payload = {
       title,
-      description,
-      completion_message: completionMessage,
+      description: description || null,
+      completion_message: completionMessage || null,
       price_cents: priceCents,
       updated_at: new Date().toISOString()
     };
