@@ -183,6 +183,8 @@ function openCoachingEditor(coachingId) {
     document.getElementById('coaching-id').value = coaching.id;
     document.getElementById('coaching-title-input').value = coaching.title || '';
     document.getElementById('coaching-slug-input').value = coaching.slug || '';
+    var slugNoticeEdit = document.getElementById('coaching-slug-notice');
+    if (slugNoticeEdit) slugNoticeEdit.textContent = 'This URL is permanently locked and cannot be changed.';
     document.getElementById('coaching-desc-input').value = coaching.description || '';
     document.getElementById('coaching-price-input').value = coaching.price_cents ? (coaching.price_cents / 100).toString() : '';
     document.getElementById('coaching-calendly-input').value = coaching.calendly_url || '';
@@ -217,6 +219,8 @@ function openCoachingEditor(coachingId) {
     document.getElementById('coaching-danger-zone').style.display = 'block';
   } else {
     document.getElementById('coaching-editor-title').textContent = 'New Service';
+    var slugNoticeNew = document.getElementById('coaching-slug-notice');
+    if (slugNoticeNew) slugNoticeNew.textContent = 'This URL is generated from your title and locked permanently once saved.';
   }
 
   // Auto-generate slug from title
@@ -768,6 +772,9 @@ async function saveCoaching() {
       document.getElementById('coaching-id').value = data.id;
       document.getElementById('coaching-editor-title').textContent = 'Edit Service';
       document.getElementById('coaching-danger-zone').style.display = 'block';
+      // Slug is now permanently locked. Update the notice to match courses.
+      var slugNoticeSaved = document.getElementById('coaching-slug-notice');
+      if (slugNoticeSaved) slugNoticeSaved.textContent = 'This URL is permanently locked and cannot be changed.';
       const pubBtn = document.getElementById('coaching-publish-btn');
       pubBtn.style.display = 'inline-block';
       pubBtn.textContent = 'Publish';
