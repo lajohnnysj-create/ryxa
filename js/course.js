@@ -1721,14 +1721,12 @@ function sanitizeDescriptionHtml(html) {
   cleaned = cleaned.replace(/(\s+)<\/(p|h2|h3|li)>/g, '</$2>');
   // Strip leading whitespace right after opening block tags as well.
   cleaned = cleaned.replace(/<(p|h2|h3|li)([^>]*)>\s+/g, '<$1$2>');
-  // Strip empty paragraph spacers Quill inserts when the user hits Enter on
-  // an empty line ('<p><br></p>'). On the landing page these collapse with
-  // the 14px paragraph margin to create a double-tall gap. The visible
-  // separation between paragraphs comes from the margin alone - we don't
-  // need the spacer paragraph.
-  cleaned = cleaned.replace(/<p>\s*<br\s*\/?>\s*<\/p>/gi, '');
-  // Also strip outright empty paragraphs.
-  cleaned = cleaned.replace(/<p>\s*<\/p>/gi, '');
+  // Note: we deliberately PRESERVE '<p><br></p>' empty paragraph spacers
+  // here. Quill uses them as visible blank lines while editing, and
+  // stripping them on save makes paragraphs visually stack on top of each
+  // other when the creator re-opens the editor. The landing-page renderers
+  // strip these spacers at render time instead, so the stored data keeps
+  // editor-friendly spacing while the public page shows tight spacing.
   // Convert <a> tags with no href (or empty href) into plain text. These
   // happen when the saved data predates the link-sanitize patch and creates
   // visually-styled "links" that don't navigate anywhere - confusing for
