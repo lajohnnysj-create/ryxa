@@ -4475,6 +4475,7 @@
   .course-s-quill-host .ql-tooltip a.ql-action::after,
   .course-s-quill-host .ql-tooltip a.ql-remove::before { color:var(--accent2); }
   .course-s-quill-host .ql-tooltip a.ql-preview { color:var(--accent2); }
+  .course-s-desc-counter { font-size:11px;color:var(--muted);text-align:right;margin-top:4px;font-variant-numeric:tabular-nums; }
   .course-s-quill-host .ql-editor { min-height:180px;color:var(--text); }
   .course-s-quill-host .ql-editor.ql-blank::before { color:var(--muted);font-style:normal;font-size:13px; }
   .course-s-quill-host .ql-snow .ql-picker.ql-header .ql-picker-label::before,
@@ -6991,6 +6992,7 @@
                    continue to read from it. This avoids changing saveCourse
                    or aiCleanUp. -->
               <textarea id="course-desc-input" placeholder="What will students learn? Why should they take this course?" maxlength="2000" rows="4" aria-label="Course description" class="course-s-d03940" style="display:none;"></textarea>
+              <div id="course-desc-counter" class="course-s-desc-counter">0 / 3000</div>
               <div class="course-s-b46d12">
                 <button data-course-action="ai-cleanup" data-course-target="course-desc-input" class="ds-tool-btn bio-s-3c4fd7" title="AI Clean Up" >
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
