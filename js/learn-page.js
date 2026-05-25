@@ -1304,7 +1304,24 @@ function ensureViewerPurifyLoaded() {
 
 function sanitizeLessonHtmlForView(html) {
   if (typeof DOMPurify === 'undefined') return ''; // shouldn't happen, caller awaits loader
-  return DOMPurify.sanitize(html || '', VIEWER_PURIFY_CONFIG);
+  // Apply the same render-time cleanups the description landing pages use,
+  // for the same reasons:
+  //   - Strip empty paragraph spacers ('<p><br></p>') that Quill inserts for
+  //     visible blank lines while editing. Stored content preserves them so
+  //     the editor round-trip looks right, but on render they combine with
+  //     paragraph margins to create a doubled visual gap between paragraphs.
+  //   - Trim whitespace at the boundaries of block tags. Quill can leave
+  //     stray spaces that render as inconsistent extra spacing.
+  //   - Unwrap href-less <a> tags (visually styled but unclickable, usually
+  //     from old data saved before the Quill link-sanitize patch).
+  var cleaned = String(html || '');
+  cleaned = cleaned.replace(/(\s+)<\/(p|h2|h3|li)>/g, '</$2>');
+  cleaned = cleaned.replace(/<(p|h2|h3|li)([^>]*)>\s+/g, '<$1$2>');
+  cleaned = cleaned.replace(/<p>\s*<br\s*\/?>\s*<\/p>/gi, '');
+  cleaned = cleaned.replace(/<p>\s*<\/p>/gi, '');
+  cleaned = cleaned.replace(/<a(?:\s+(?!href=)[^>]*)?>(.*?)<\/a>/gi, '$1');
+  cleaned = cleaned.replace(/<a\s+href=["']?["']?\s*>(.*?)<\/a>/gi, '$1');
+  return DOMPurify.sanitize(cleaned, VIEWER_PURIFY_CONFIG);
 }
 
 function selectLesson(lessonId) {
