@@ -416,6 +416,14 @@ async function saveCourse(opts) {
       }
       courseId = data.id;
       currentCourseId = courseId;
+      // Add the new course to the in-memory list so subsequent operations
+      // (publish toggle, marketplace toggle, etc.) can read its current
+      // status without a round-trip to the DB. Without this, clicking
+      // Publish immediately after Save would flip to 'published' correctly,
+      // but a subsequent Unpublish click would not know the course was
+      // already published (since coursesList.find returns undefined) and
+      // would re-run the publish branch.
+      coursesList.push(data);
       document.getElementById('course-id').value = courseId;
       document.getElementById('courses-editor-title').textContent = 'Edit Course';
       document.getElementById('course-danger-zone').style.display = 'block';
