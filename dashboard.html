@@ -9194,7 +9194,13 @@
             <!-- Description -->
             <div class="prod-s-389393">
               <label for="products-description" class="prod-s-fab4a2">Description</label>
-              <textarea id="products-description" maxlength="2000" rows="4" placeholder="What's included in your product? Who is it for?" class="prod-s-cd85b7"></textarea>
+              <!-- Rich text editor (Quill) mounts here on product editor open.
+                   Same pattern as the course description editor: visible Quill
+                   editor + hidden textarea acting as a shadow buffer that
+                   existing save logic reads from. -->
+              <div id="products-desc-editor" class="course-s-quill-host"></div>
+              <textarea id="products-description" maxlength="2000" rows="4" placeholder="What's included in your product? Who is it for?" class="prod-s-cd85b7" style="display:none;"></textarea>
+              <div id="products-desc-counter" class="course-s-desc-counter">0 / 3000</div>
             </div>
 
             <!-- Price -->
