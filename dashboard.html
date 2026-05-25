@@ -5169,6 +5169,33 @@
   .clients-s-949353 { padding:10px 16px;color:var(--text);font-size:13px;max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
   .clients-s-e6b633 { padding:10px 16px; }
 
+  /* Subscribers tool, phase 2 additions: stats, sort, bulk select, source badges, remove row btn */
+  .clients-s-stats { display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap; }
+  .clients-s-stat { flex:1;min-width:120px;padding:14px 18px;background:var(--surface2);border:1px solid var(--border);border-radius:12px; }
+  .clients-s-stat-label { font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:4px;font-weight:600; }
+  .clients-s-stat-value { font-size:22px;font-weight:700;color:var(--text);font-family:Plus Jakarta Sans,sans-serif; }
+  .clients-s-stat-green { color:#4ade80; }
+  .clients-s-stat-muted { color:var(--muted); }
+  .clients-s-select { padding:8px 28px 8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;font-family:DM Sans,sans-serif;outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center; }
+  .clients-s-bulk-bar { display:flex;align-items:center;gap:12px;margin-bottom:12px;padding:10px 14px;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.25);border-radius:8px; }
+  .clients-s-bulk-count { font-size:13px;color:#c4b5fd;font-weight:500; }
+  .clients-s-bulk-btn { padding:6px 14px;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.35);color:#fca5a5;border-radius:6px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.15s; }
+  .clients-s-bulk-btn:hover { background:rgba(239,68,68,0.2);border-color:rgba(239,68,68,0.55); }
+  .clients-s-bulk-cancel { padding:6px 14px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.15s; }
+  .clients-s-bulk-cancel:hover { color:var(--text);border-color:var(--border-hover); }
+  .clients-s-th-check { width:32px;padding-left:14px !important;padding-right:0 !important; }
+  .clients-s-checkbox { cursor:pointer;width:14px;height:14px;accent-color:#7c3aed; }
+  .clients-s-row-check-cell { padding:10px 0 10px 14px;width:32px; }
+  .clients-s-source-cell { padding:10px 16px; }
+  .clients-s-source-badge { display:inline-block;padding:2px 8px;font-size:11px;font-weight:600;border-radius:10px;text-transform:capitalize; }
+  .clients-s-source-course { background:rgba(124,58,237,0.15);color:#c4b5fd; }
+  .clients-s-source-booking { background:rgba(34,197,94,0.15);color:#86efac; }
+  .clients-s-source-product { background:rgba(251,191,36,0.15);color:#fcd34d; }
+  .clients-s-source-bio { background:rgba(56,189,248,0.15);color:#7dd3fc; }
+  .clients-s-row-remove-cell { padding:10px 14px 10px 0;width:36px;text-align:right; }
+  .clients-s-row-remove { width:24px;height:24px;background:transparent;border:none;border-radius:6px;color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all 0.15s; }
+  .clients-s-row-remove:hover { background:rgba(239,68,68,0.12);color:#fca5a5; }
+
 
   /* ============================================================
      PHASE 3, Design Studio style extraction
@@ -7571,7 +7598,7 @@
         <div id="clients-content" class="bio-s-c8be1c">
           <div class="clients-s-b14783">
             <div>
-              <p class="clients-s-e81ef5" id="clients-count">Your email subscribers and customers from courses and coaching.</p>
+              <p class="clients-s-e81ef5" id="clients-count">Your email subscribers and customers from courses, bookings, and digital products.</p>
             </div>
             <button data-clients-action="export" class="clients-s-25b2fe dash-h-186bb3">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -7579,10 +7606,46 @@
             </button>
           </div>
 
-          <!-- Search and filter -->
+          <!-- Stats bar: total / opted-in / opted-out at a glance. -->
+          <div id="clients-stats" class="clients-s-stats">
+            <div class="clients-s-stat">
+              <div class="clients-s-stat-label">Total</div>
+              <div class="clients-s-stat-value" id="clients-stat-total">0</div>
+            </div>
+            <div class="clients-s-stat">
+              <div class="clients-s-stat-label">Opted In</div>
+              <div class="clients-s-stat-value clients-s-stat-green" id="clients-stat-optin">0</div>
+            </div>
+            <div class="clients-s-stat">
+              <div class="clients-s-stat-label">Opted Out</div>
+              <div class="clients-s-stat-value clients-s-stat-muted" id="clients-stat-optout">0</div>
+            </div>
+          </div>
+
+          <!-- Search, filter, sort -->
           <div class="clients-s-830409">
             <input type="text" id="clients-search" placeholder="Search subscribers..." aria-label="Search subscribers" data-clients-action-input="filter" readonly data-clients-action-focus="remove-readonly" autocomplete="off" data-1p-ignore="true" data-lpignore="true" class="clients-s-01993b">
             <label class="clients-s-9317b3"><input type="checkbox" id="clients-optin-filter" data-clients-action="filter" data-clients-event="change" class="clients-s-800f2b"> Opted in only</label>
+            <select id="clients-range-filter" aria-label="Date range filter" data-clients-action="filter" data-clients-event="change" class="clients-s-select">
+              <option value="all">All time</option>
+              <option value="7">Last 7 days</option>
+              <option value="30">Last 30 days</option>
+              <option value="90">Last 90 days</option>
+            </select>
+            <select id="clients-sort" aria-label="Sort order" data-clients-action="sort-change" data-clients-event="change" class="clients-s-select">
+              <option value="date-desc">Newest first</option>
+              <option value="date-asc">Oldest first</option>
+              <option value="email-asc">Email A-Z</option>
+              <option value="email-desc">Email Z-A</option>
+              <option value="source-asc">Source A-Z</option>
+            </select>
+          </div>
+
+          <!-- Bulk action bar: shows when 1+ rows selected -->
+          <div id="clients-bulk-bar" class="clients-s-bulk-bar" style="display:none;">
+            <span id="clients-bulk-count" class="clients-s-bulk-count">0 selected</span>
+            <button data-clients-action="bulk-remove" class="clients-s-bulk-btn dash-h-186bb3">Remove from list</button>
+            <button data-clients-action="bulk-clear" class="clients-s-bulk-cancel dash-h-186bb3">Cancel</button>
           </div>
 
           <!-- Subscribers table -->
@@ -7591,13 +7654,18 @@
               <table class="ana-s-5dd2f7">
                 <thead>
                   <tr class="ana-s-f5538f">
+                    <th class="ana-s-656e15 clients-s-th-check">
+                      <input type="checkbox" id="clients-select-all" aria-label="Select all on this page" data-clients-action="toggle-all" data-clients-event="change" class="clients-s-checkbox">
+                    </th>
                     <th class="ana-s-656e15">Email</th>
+                    <th class="ana-s-656e15">Source</th>
                     <th class="ana-s-656e15">Opt In</th>
                     <th class="ana-s-656e15">Date Joined</th>
+                    <th class="ana-s-656e15"></th>
                   </tr>
                 </thead>
                 <tbody id="clients-tbody">
-                  <tr><td colspan="3" class="ana-s-cd4491">No subscribers yet</td></tr>
+                  <tr><td colspan="6" class="ana-s-cd4491">No subscribers yet</td></tr>
                 </tbody>
               </table>
             </div>
