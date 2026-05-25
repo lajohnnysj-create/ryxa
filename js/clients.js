@@ -82,6 +82,11 @@ var clientsSelected = new Set();
 // the subscriber_notes table. Used to (a) show the note indicator dot on
 // rows that have a note, and (b) prefill the modal when opened.
 var clientsNotes = {};
+// Map of email -> { first_name, last_name } for the current creator. Combines
+// data from subscriber_names (creator edits, wins) and manual_subscribers
+// (CSV import or manual add, fallback). Used to prefill the name fields in
+// the detail modal.
+var clientsNamesData = {};
 // Tracks which subscriber is currently open in the detail modal so the
 // note-blur handler knows what email to save under.
 var clientsCurrentDetailEmail = null;
@@ -89,6 +94,9 @@ var clientsCurrentDetailEmail = null;
 // nothing actually changed (avoids needless network noise and "Saved"
 // flashes when the creator just clicks away without typing).
 var clientsCurrentDetailNoteOriginal = '';
+// Same comparison-tracking for the name fields. Compared against on blur
+// to skip no-op saves.
+var clientsCurrentDetailNameOriginal = { first_name: '', last_name: '' };
 
 // Order matters: when the same email appears in multiple sources, the SOURCE
 // PRIORITY (lower number = earlier signup) wins for the "first source" badge.
@@ -288,6 +296,48 @@ async function loadClients() {
         });
       }
     } catch (noteErr) { console.warn('Could not load notes (table may not exist yet):', noteErr); }
+
+    // Pull names for subscribers. Two sources, merged with precedence:
+    //   1. subscriber_names (creator-edited, takes priority)
+    //   2. manual_subscribers (from CSV import or manual-add, fallback)
+    // Same email keyed by lowercase. Modal prefill uses this map.
+    clientsNamesData = {};
+    // Manual subscribers first so creator edits can overwrite them.
+    try {
+      const { data: ms } = await sb
+        .from('manual_subscribers')
+        .select('email, first_name, last_name')
+        .eq('creator_id', currentUser.id);
+      if (ms) {
+        ms.forEach(function(m) {
+          if (!m.email) return;
+          var key = m.email.toLowerCase();
+          if (m.first_name || m.last_name) {
+            clientsNamesData[key] = {
+              first_name: m.first_name || '',
+              last_name: m.last_name || ''
+            };
+          }
+        });
+      }
+    } catch (nameErr) { console.warn('Could not load manual subscriber names:', nameErr); }
+    // Creator-edited names overwrite.
+    try {
+      const { data: sn } = await sb
+        .from('subscriber_names')
+        .select('email, first_name, last_name')
+        .eq('creator_id', currentUser.id);
+      if (sn) {
+        sn.forEach(function(n) {
+          if (!n.email) return;
+          var key = n.email.toLowerCase();
+          clientsNamesData[key] = {
+            first_name: n.first_name || '',
+            last_name: n.last_name || ''
+          };
+        });
+      }
+    } catch (curErr) { console.warn('Could not load subscriber names (table may not exist yet):', curErr); }
 
     const { data: enrollments } = await sb
       .from('course_enrollments')
@@ -551,6 +601,22 @@ function clientsOpenDetail(email) {
 
   if (emailEl) emailEl.textContent = sub.email;
 
+  // Prefill name fields from clientsNamesData. Either or both can be empty.
+  var firstNameEl = document.getElementById('clients-detail-first-name');
+  var lastNameEl = document.getElementById('clients-detail-last-name');
+  var nameStatusEl = document.getElementById('clients-detail-name-status');
+  var existingName = clientsNamesData[sub.email.toLowerCase()] || { first_name: '', last_name: '' };
+  if (firstNameEl) firstNameEl.value = existingName.first_name || '';
+  if (lastNameEl) lastNameEl.value = existingName.last_name || '';
+  clientsCurrentDetailNameOriginal = {
+    first_name: existingName.first_name || '',
+    last_name: existingName.last_name || ''
+  };
+  if (nameStatusEl) {
+    nameStatusEl.textContent = '';
+    nameStatusEl.className = 'clients-s-note-status';
+  }
+
   // Re-use the source badge styling from the table for visual consistency.
   if (sourceEl) {
     var sourceClass = 'clients-s-source-' + (sub.source || 'bio');
@@ -587,6 +653,7 @@ function clientsCloseDetail() {
   if (modal) modal.style.display = 'none';
   clientsCurrentDetailEmail = null;
   clientsCurrentDetailNoteOriginal = '';
+  clientsCurrentDetailNameOriginal = { first_name: '', last_name: '' };
 }
 
 // Done button: explicit "I'm finished" action. Triggers the save (if the
@@ -597,13 +664,13 @@ function clientsCloseDetail() {
 async function clientsDoneDetail(e, el) {
   if (el) el.disabled = true;
   try {
-    // clientsSaveNote no-ops if nothing changed, so this is always safe.
+    // Save name first (small write), then note. Both no-op if unchanged.
+    await clientsSaveName();
     await clientsSaveNote();
   } catch (err) {
-    // Save errors are already surfaced inline by clientsSaveNote via the
-    // status indicator. Don't block the close on a save failure - the
-    // creator can re-open and try again.
-    console.error('Note save during Done failed:', err);
+    // Save errors are surfaced inline by their respective save functions.
+    // Don't block the close - creator can re-open and try again.
+    console.error('Save during Done failed:', err);
   } finally {
     if (el) el.disabled = false;
     clientsCloseDetail();
@@ -668,6 +735,80 @@ async function clientsSaveNote() {
     renderSubscribersPage();
   } catch (e) {
     console.error('Note save failed:', e);
+    if (statusEl) {
+      statusEl.textContent = 'Could not save';
+      statusEl.className = 'clients-s-note-status clients-s-note-status-error';
+    }
+  }
+}
+
+// Auto-save first/last name fields on blur. Saves BOTH fields as one row
+// in subscriber_names (single source of truth for creator-edited names).
+// Skips the network call if neither field changed. Treats both-empty as a
+// delete so the row doesn't linger as an empty placeholder.
+async function clientsSaveName() {
+  if (!clientsCurrentDetailEmail) return;
+  var firstEl = document.getElementById('clients-detail-first-name');
+  var lastEl = document.getElementById('clients-detail-last-name');
+  var statusEl = document.getElementById('clients-detail-name-status');
+  if (!firstEl || !lastEl) return;
+
+  var newFirst = (firstEl.value || '').trim();
+  var newLast = (lastEl.value || '').trim();
+
+  // No-op if nothing changed. Trim-compared so trailing-whitespace edits
+  // don't trigger a save.
+  var origFirst = (clientsCurrentDetailNameOriginal.first_name || '').trim();
+  var origLast = (clientsCurrentDetailNameOriginal.last_name || '').trim();
+  if (newFirst === origFirst && newLast === origLast) return;
+
+  if (statusEl) {
+    statusEl.textContent = 'Saving...';
+    statusEl.className = 'clients-s-note-status';
+  }
+
+  try {
+    var emailLc = clientsCurrentDetailEmail.toLowerCase();
+    if (newFirst === '' && newLast === '') {
+      // Both empty: delete the row. Same clean-state pattern the notes
+      // table uses. If the underlying subscriber came from manual_subscribers
+      // with names there, those names will reappear after reload (which is
+      // correct: clearing the creator override means "fall back to source").
+      var { error: delErr } = await sb
+        .from('subscriber_names')
+        .delete()
+        .eq('creator_id', currentUser.id)
+        .eq('email', clientsCurrentDetailEmail);
+      if (delErr) throw delErr;
+      delete clientsNamesData[emailLc];
+    } else {
+      var { error } = await sb.from('subscriber_names').upsert([{
+        creator_id: currentUser.id,
+        email: clientsCurrentDetailEmail,
+        first_name: newFirst || null,
+        last_name: newLast || null,
+        updated_at: new Date().toISOString()
+      }], { onConflict: 'creator_id,email' });
+      if (error) throw error;
+      clientsNamesData[emailLc] = {
+        first_name: newFirst,
+        last_name: newLast
+      };
+    }
+
+    clientsCurrentDetailNameOriginal = { first_name: newFirst, last_name: newLast };
+    if (statusEl) {
+      statusEl.textContent = 'Saved';
+      statusEl.className = 'clients-s-note-status clients-s-note-status-saved';
+      setTimeout(function() {
+        if (statusEl.textContent === 'Saved') {
+          statusEl.textContent = '';
+          statusEl.className = 'clients-s-note-status';
+        }
+      }, 2500);
+    }
+  } catch (e) {
+    console.error('Name save failed:', e);
     if (statusEl) {
       statusEl.textContent = 'Could not save';
       statusEl.className = 'clients-s-note-status clients-s-note-status-error';
@@ -1233,6 +1374,7 @@ clientsRegisterAction('close-detail', () => clientsCloseDetail());
 clientsRegisterAction('done-detail', (e, el) => clientsDoneDetail(e, el));
 clientsRegisterAction('modal-backdrop-click', (e, el) => clientsBackdropClick(e, el));
 clientsRegisterAction('note-blur', () => clientsSaveNote());
+clientsRegisterAction('name-blur', () => clientsSaveName());
 clientsRegisterAction('open-add', () => clientsOpenAdd());
 clientsRegisterAction('close-add', () => clientsCloseAdd());
 clientsRegisterAction('add-backdrop-click', (e, el) => clientsAddBackdropClick(e, el));
@@ -1260,8 +1402,12 @@ document.addEventListener('keydown', function(e) {
   var add = document.getElementById('clients-add-modal');
   var imp = document.getElementById('clients-import-modal');
   if (detail && detail.style.display !== 'none') {
-    var noteEl = document.getElementById('clients-detail-note');
-    if (noteEl && document.activeElement === noteEl) noteEl.blur();
+    // Give whatever field is focused (note textarea or name input) a chance
+    // to fire its blur handler and save before closing.
+    var active = document.activeElement;
+    if (active && active.id && (active.id === 'clients-detail-note' || active.id === 'clients-detail-first-name' || active.id === 'clients-detail-last-name')) {
+      active.blur();
+    }
     clientsCloseDetail();
   } else if (add && add.style.display !== 'none') {
     clientsCloseAdd();
