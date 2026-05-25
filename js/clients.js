@@ -566,6 +566,27 @@ function clientsCloseDetail() {
   clientsCurrentDetailNoteOriginal = '';
 }
 
+// Done button: explicit "I'm finished" action. Triggers the save (if the
+// note actually changed) and waits for it to complete before closing, so
+// the creator never closes the modal with an unsaved or in-flight note.
+// Without this, users have to guess that clicking outside the textarea or
+// closing the modal saves their note. The button makes the action explicit.
+async function clientsDoneDetail(e, el) {
+  if (el) el.disabled = true;
+  try {
+    // clientsSaveNote no-ops if nothing changed, so this is always safe.
+    await clientsSaveNote();
+  } catch (err) {
+    // Save errors are already surfaced inline by clientsSaveNote via the
+    // status indicator. Don't block the close on a save failure - the
+    // creator can re-open and try again.
+    console.error('Note save during Done failed:', err);
+  } finally {
+    if (el) el.disabled = false;
+    clientsCloseDetail();
+  }
+}
+
 // Auto-save the note on textarea blur. Skips the network call if nothing
 // changed since open. Uses upsert with the (creator_id, email) unique
 // constraint so the same email can be saved repeatedly without growing rows.
@@ -654,6 +675,7 @@ clientsRegisterAction('bulk-clear', () => clientsClearSelection());
 clientsRegisterAction('remove-one', (e, el) => clientsRemoveOne(el.dataset.clientsEmail));
 clientsRegisterAction('open-detail', (e, el) => clientsOpenDetail(el.dataset.clientsEmail));
 clientsRegisterAction('close-detail', () => clientsCloseDetail());
+clientsRegisterAction('done-detail', (e, el) => clientsDoneDetail(e, el));
 clientsRegisterAction('modal-backdrop-click', (e, el) => clientsBackdropClick(e, el));
 clientsRegisterAction('note-blur', () => clientsSaveNote());
 
