@@ -65,7 +65,18 @@
   .coaching-meta-item { display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--text-secondary); }
   .coaching-meta-item svg { flex-shrink: 0; }
   .coaching-price { font-size: 28px; font-weight: 700; color: var(--text); }
-  .coaching-desc { font-size: 15px; line-height: 1.8; color: var(--text-secondary); margin-bottom: 16px; white-space: pre-line; }
+  .coaching-desc { font-size: 15px; line-height: 1.8; color: var(--text-secondary); margin-bottom: 16px; word-wrap: break-word; }
+  /* Rich-text elements inside the description (set by the dashboard's Quill
+     editor). Mirrors course/product landing styling. */
+  .coaching-desc p { margin: 0 0 14px; }
+  .coaching-desc p:last-child { margin-bottom: 0; }
+  .coaching-desc h2 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 22px; font-weight: 700; letter-spacing: -0.3px; color: var(--text); margin: 24px 0 10px; }
+  .coaching-desc h3 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 18px; font-weight: 700; color: var(--text); margin: 20px 0 8px; }
+  .coaching-desc ul, .coaching-desc ol { margin: 0 0 14px; padding-left: 22px; }
+  .coaching-desc li { margin-bottom: 6px; }
+  .coaching-desc strong { color: var(--text); font-weight: 600; }
+  .coaching-desc a { color: var(--accent2); text-decoration: underline; }
+  .coaching-desc a:hover { color: var(--accent); }
 
   .coaching-buy-btn { width: 100%; padding: 16px; background: var(--accent); color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer; box-shadow: 0 0 30px var(--accent-glow); transition: all 0.15s; }
   .coaching-buy-btn:hover { transform: translateY(-1px); box-shadow: 0 0 40px var(--accent-glow); }
@@ -226,6 +237,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.105.4" integrity="sha384-4eCDoMN/7A46qQ5Tj0rZ/D2VEolFGNIINDTLAcWZcvhkRSsvTfqNfaBMlRRoGEZ5" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js" integrity="sha512-H+rglffZ6f5gF7UJgvH4Naa+fGCgjrHKMgoFOGmcPTRwR6oILo5R+gtzNrpDp7iMV3udbymBVjkeZGNz1Em4rQ==" crossorigin="anonymous"></script>
 <script src="/js/booking-page.js" defer></script>
 <script src="/cookie-banner.js"></script>
 </body>
