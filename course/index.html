@@ -7,7 +7,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-<title>Course — Ryxa</title>
+<title>Course - Ryxa</title>
 <meta name="description" content="Learn from creators on Ryxa.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -70,6 +70,17 @@
   .course-creator { font-size: 14px; color: var(--text-secondary); margin-bottom: 24px; }
   .course-creator strong { color: var(--accent2); font-weight: 600; }
   .course-desc { font-size: 16px; line-height: 1.75; color: var(--text-secondary); margin-bottom: 32px; max-width: 700px; }
+  /* Rich-text elements inside the description (set by the dashboard's Quill
+     editor). Spacing tuned for landing-page readability. */
+  .course-desc p { margin: 0 0 14px; }
+  .course-desc p:last-child { margin-bottom: 0; }
+  .course-desc h2 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 22px; font-weight: 700; letter-spacing: -0.3px; color: var(--text); margin: 24px 0 10px; }
+  .course-desc h3 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 18px; font-weight: 700; color: var(--text); margin: 20px 0 8px; }
+  .course-desc ul, .course-desc ol { margin: 0 0 14px; padding-left: 22px; }
+  .course-desc li { margin-bottom: 6px; }
+  .course-desc strong { color: var(--text); font-weight: 600; }
+  .course-desc a { color: var(--accent2); text-decoration: underline; }
+  .course-desc a:hover { color: var(--accent); }
 
   /* Buy section */
   .course-buy-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 16px; padding: 28px; margin-bottom: 40px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
@@ -166,6 +177,7 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.105.4" integrity="sha384-4eCDoMN/7A46qQ5Tj0rZ/D2VEolFGNIINDTLAcWZcvhkRSsvTfqNfaBMlRRoGEZ5" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js" integrity="sha512-H+rglffZ6f5gF7UJgvH4Naa+fGCgjrHKMgoFOGmcPTRwR6oILo5R+gtzNrpDp7iMV3udbymBVjkeZGNz1Em4rQ==" crossorigin="anonymous"></script>
 <script src="/js/course-page.js" defer></script>
 <script src="/cookie-banner.js"></script>
 </body>
