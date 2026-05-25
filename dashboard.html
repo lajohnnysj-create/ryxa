@@ -7146,7 +7146,13 @@
           <!-- Description -->
           <div class="course-s-79a1c5">
             <label for="coaching-desc-input" class="course-s-60c543">Description</label>
-            <textarea id="coaching-desc-input" placeholder="Describe what the buyer will get. What will you cover? What should they prepare?" maxlength="3000" rows="5" aria-label="Service description" class="course-s-d03940"></textarea>
+            <!-- Rich text editor (Quill) mounts here on coaching editor open.
+                 Mirrors course/product description editor: visible Quill host
+                 + hidden textarea shadow buffer. Save flow and AI Cleanup
+                 continue to read from the textarea unchanged. -->
+            <div id="coaching-desc-editor" class="course-s-quill-host"></div>
+            <textarea id="coaching-desc-input" placeholder="Describe what the buyer will get. What will you cover? What should they prepare?" maxlength="3000" rows="5" aria-label="Service description" class="course-s-d03940" style="display:none;"></textarea>
+            <div id="coaching-desc-counter" class="course-s-desc-counter">0 / 3000</div>
               <div class="course-s-b46d12">
                 <button data-coach-action="ai-cleanup-desc" class="ds-tool-btn bio-s-3c4fd7" title="AI Assist">
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
