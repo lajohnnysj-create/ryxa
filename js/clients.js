@@ -795,7 +795,7 @@ async function clientsSubmitAdd() {
 // CSV IMPORT
 // =============================================================================
 
-var CLIENTS_IMPORT_MAX_BYTES = 5 * 1024 * 1024;          // 5 MB
+var CLIENTS_IMPORT_MAX_BYTES = 25 * 1024 * 1024;         // 25 MB
 var CLIENTS_IMPORT_MAX_ROWS = 50000;                      // hard ceiling
 var CLIENTS_IMPORT_BATCH_SIZE = 500;                      // rows per Supabase upsert
 
@@ -834,6 +834,63 @@ function clientsOpenImport() {
   if (fileEl) fileEl.value = '';
   modal.style.display = 'flex';
   clientsImportUpdateActionBtn('Import', true);
+  clientsImportWireDropzone();
+}
+
+// Drag-and-drop is wired imperatively (rather than via data-action) because:
+//   - It needs preventDefault on dragover/drop to opt into file drop
+//   - It needs a counter for dragenter/leave so child elements don't break
+//     the visual state when crossing them
+//   - The handlers reference the SAME dropzone across re-opens, so we
+//     idempotency-check via a private flag and bind once.
+function clientsImportWireDropzone() {
+  var zone = document.getElementById('clients-import-dropzone');
+  if (!zone || zone._clientsDropWired) return;
+  zone._clientsDropWired = true;
+  // Counter prevents flicker when dragging over child elements (icon, text).
+  // Each dragenter into a descendant fires on the parent too, and dragleave
+  // fires when LEAVING any element. A simple toggle would flicker; a counter
+  // correctly tracks "the cursor is somewhere inside this dropzone".
+  zone._dragCounter = 0;
+
+  zone.addEventListener('dragenter', function(e) {
+    e.preventDefault();
+    zone._dragCounter++;
+    zone.classList.add('clients-s-dropzone-active');
+  });
+  zone.addEventListener('dragover', function(e) {
+    // Must preventDefault on dragover to enable the drop event.
+    e.preventDefault();
+    if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
+  });
+  zone.addEventListener('dragleave', function(e) {
+    e.preventDefault();
+    zone._dragCounter--;
+    if (zone._dragCounter <= 0) {
+      zone._dragCounter = 0;
+      zone.classList.remove('clients-s-dropzone-active');
+    }
+  });
+  zone.addEventListener('drop', function(e) {
+    e.preventDefault();
+    zone._dragCounter = 0;
+    zone.classList.remove('clients-s-dropzone-active');
+    var files = e.dataTransfer && e.dataTransfer.files;
+    if (!files || files.length === 0) return;
+    var file = files[0];
+    // Validate extension OR MIME type before going further. Some OSes don't
+    // set MIME on CSV files, so we accept either an extension match or the
+    // browser-provided MIME hint.
+    var nameLc = (file.name || '').toLowerCase();
+    var typeOk = (file.type === 'text/csv' || file.type === 'application/vnd.ms-excel' || file.type === '');
+    if (!nameLc.endsWith('.csv') && !typeOk) {
+      showModalAlert('Wrong file type', 'Please drop a .csv file.');
+      return;
+    }
+    // Re-use the same handler the file picker calls so validation + parsing
+    // logic stays in one place.
+    clientsImportFileSelected(null, { files: [file], value: '' });
+  });
 }
 
 function clientsCloseImport() {
@@ -866,7 +923,7 @@ function clientsImportFileSelected(event, el) {
   var file = el && el.files && el.files[0];
   if (!file) return;
   if (file.size > CLIENTS_IMPORT_MAX_BYTES) {
-    showModalAlert('File too large', 'CSV must be 5MB or smaller. Split your list into multiple files and import in pieces.');
+    showModalAlert('File too large', 'CSV must be 25MB or smaller. For very large lists (over 50,000 rows), split into multiple files and import them in pieces.');
     el.value = '';
     return;
   }
