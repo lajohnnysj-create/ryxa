@@ -78,6 +78,17 @@ var clientsSuppressed = new Set();
 // Set of selected emails for bulk actions. Persists across pagination within
 // a single session so creators can select across pages.
 var clientsSelected = new Set();
+// Map of email -> note text for the current creator. Populated on load from
+// the subscriber_notes table. Used to (a) show the note indicator dot on
+// rows that have a note, and (b) prefill the modal when opened.
+var clientsNotes = {};
+// Tracks which subscriber is currently open in the detail modal so the
+// note-blur handler knows what email to save under.
+var clientsCurrentDetailEmail = null;
+// Used to compare against the textarea value on blur and skip a save when
+// nothing actually changed (avoids needless network noise and "Saved"
+// flashes when the creator just clicks away without typing).
+var clientsCurrentDetailNoteOriginal = '';
 
 // Order matters: when the same email appears in multiple sources, the SOURCE
 // PRIORITY (lower number = earlier signup) wins for the "first source" badge.
@@ -133,7 +144,7 @@ function renderSubscribersPage() {
   var maxPage = Math.max(0, Math.floor((clientsFiltered.length - 1) / CLIENTS_PER_PAGE));
 
   if (page.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" class="ana-s-cd4491">' + (clientsData.length > 0 ? 'No results found' : 'No subscribers yet') + '</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="ana-s-cd4491">' + (clientsData.length > 0 ? 'No results found' : 'No subscribers yet') + '</td></tr>';
   } else {
     tbody.innerHTML = page.map(function(c) {
       var d = new Date(c.date);
@@ -145,6 +156,10 @@ function renderSubscribersPage() {
       var sourceLabel = CLIENT_SOURCE_LABEL[c.source] || 'Bio';
       var checked = clientsSelected.has(c.email) ? ' checked' : '';
       var escEmail = (typeof escapeHtml === 'function') ? escapeHtml(c.email) : c.email;
+      // Note indicator: filled-style icon with a small dot when a note exists.
+      var hasNote = !!(clientsNotes[c.email.toLowerCase()] || '').trim();
+      var noteBtnClass = 'clients-s-row-note' + (hasNote ? ' clients-s-row-note-has' : '');
+      var noteTitle = hasNote ? 'View note' : 'Add a note';
       return '<tr class="ana-s-a56f95">'
         + '<td class="clients-s-row-check-cell">'
         + '<input type="checkbox" class="clients-s-checkbox" data-clients-action="toggle-row" data-clients-event="change" data-clients-email="' + escEmail + '" aria-label="Select ' + escEmail + '"' + checked + '>'
@@ -153,6 +168,11 @@ function renderSubscribersPage() {
         + '<td class="clients-s-source-cell"><span class="clients-s-source-badge ' + sourceClass + '">' + sourceLabel + '</span></td>'
         + '<td class="clients-s-e6b633">' + optinBadge + '</td>'
         + '<td class="ana-s-14ba36">' + date + '</td>'
+        + '<td class="clients-s-row-note-cell">'
+        + '<button class="' + noteBtnClass + '" data-clients-action="open-detail" data-clients-email="' + escEmail + '" aria-label="' + noteTitle + ' for ' + escEmail + '" title="' + noteTitle + '">'
+        + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>'
+        + '</button>'
+        + '</td>'
         + '<td class="clients-s-row-remove-cell">'
         + '<button class="clients-s-row-remove" data-clients-action="remove-one" data-clients-email="' + escEmail + '" aria-label="Remove ' + escEmail + ' from list" title="Remove from list">'
         + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
@@ -234,7 +254,7 @@ function clientUpsert(clientMap, key, incoming) {
 async function loadClients() {
   const tbody = document.getElementById('clients-tbody');
   if (!tbody || !currentUser) return;
-  tbody.innerHTML = '<tr><td colspan="6" class="ana-s-cd4491">Loading...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="7" class="ana-s-cd4491">Loading...</td></tr>';
   try {
     const clientMap = {};
 
@@ -250,6 +270,24 @@ async function loadClients() {
         suppressions.forEach(function(s) { if (s.email) clientsSuppressed.add(s.email.toLowerCase()); });
       }
     } catch (suppErr) { console.warn('Could not load suppressions (table may not exist yet):', suppErr); }
+
+    // Pull the creator's notes for any subscribers they've annotated. Keyed
+    // by lowercased email to match the aggregation keys below. If the table
+    // doesn't exist yet (migration not run), the catch leaves clientsNotes
+    // as an empty object and the note column shows the "Add a note" icon
+    // for every row.
+    clientsNotes = {};
+    try {
+      const { data: notes } = await sb
+        .from('subscriber_notes')
+        .select('email, note')
+        .eq('creator_id', currentUser.id);
+      if (notes) {
+        notes.forEach(function(n) {
+          if (n.email) clientsNotes[n.email.toLowerCase()] = n.note || '';
+        });
+      }
+    } catch (noteErr) { console.warn('Could not load notes (table may not exist yet):', noteErr); }
 
     const { data: enrollments } = await sb
       .from('course_enrollments')
@@ -352,7 +390,7 @@ async function loadClients() {
     renderSubscribersPage();
   } catch (e) {
     console.error('Subscribers load error:', e);
-    tbody.innerHTML = '<tr><td colspan="6" class="ana-s-cd4491">Could not load subscribers</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="ana-s-cd4491">Could not load subscribers</td></tr>';
   }
 }
 
@@ -469,6 +507,136 @@ async function clientsRemoveOne(email) {
   }
 }
 
+// --- Subscriber Details modal: profile view + note editor ---
+// Opens the modal pre-filled with this subscriber's info and existing note.
+// Saves the note on textarea blur (auto-save) with an inline "Saved" indicator.
+function clientsOpenDetail(email) {
+  if (!email) return;
+  var sub = clientsData.find(function(c) { return c.email.toLowerCase() === email.toLowerCase(); });
+  if (!sub) return;
+
+  clientsCurrentDetailEmail = sub.email;
+
+  var emailEl = document.getElementById('clients-detail-email');
+  var sourceEl = document.getElementById('clients-detail-source');
+  var optinEl = document.getElementById('clients-detail-optin');
+  var dateEl = document.getElementById('clients-detail-date');
+  var noteEl = document.getElementById('clients-detail-note');
+  var statusEl = document.getElementById('clients-detail-note-status');
+  var modal = document.getElementById('clients-detail-modal');
+  if (!modal || !noteEl) return;
+
+  if (emailEl) emailEl.textContent = sub.email;
+
+  // Re-use the source badge styling from the table for visual consistency.
+  if (sourceEl) {
+    var sourceClass = 'clients-s-source-' + (sub.source || 'bio');
+    var sourceLabel = CLIENT_SOURCE_LABEL[sub.source] || 'Bio';
+    sourceEl.innerHTML = '<span class="clients-s-source-badge ' + sourceClass + '">' + sourceLabel + '</span>';
+  }
+  if (optinEl) {
+    optinEl.innerHTML = sub.optin
+      ? '<span class="clients-s-becac0">Yes</span>'
+      : '<span class="prod-s-6c6a73">No</span>';
+  }
+  if (dateEl) {
+    var d = new Date(sub.date);
+    dateEl.textContent = (d.getMonth()+1) + '/' + d.getDate() + '/' + d.getFullYear();
+  }
+
+  // Prefill the note from the in-memory map (already loaded with the table).
+  var existing = clientsNotes[sub.email.toLowerCase()] || '';
+  noteEl.value = existing;
+  clientsCurrentDetailNoteOriginal = existing;
+  if (statusEl) {
+    statusEl.textContent = '';
+    statusEl.className = 'clients-s-note-status';
+  }
+
+  modal.style.display = 'flex';
+  // Focus the textarea on next frame so the modal mounts first (avoids
+  // scroll jump on some browsers).
+  requestAnimationFrame(function() { try { noteEl.focus(); } catch (e) {} });
+}
+
+function clientsCloseDetail() {
+  var modal = document.getElementById('clients-detail-modal');
+  if (modal) modal.style.display = 'none';
+  clientsCurrentDetailEmail = null;
+  clientsCurrentDetailNoteOriginal = '';
+}
+
+// Auto-save the note on textarea blur. Skips the network call if nothing
+// changed since open. Uses upsert with the (creator_id, email) unique
+// constraint so the same email can be saved repeatedly without growing rows.
+async function clientsSaveNote() {
+  if (!clientsCurrentDetailEmail) return;
+  var noteEl = document.getElementById('clients-detail-note');
+  var statusEl = document.getElementById('clients-detail-note-status');
+  if (!noteEl) return;
+
+  var newNote = (noteEl.value || '').trim();
+  // No-op if the value didn't change. Trim-compared so trailing-whitespace
+  // edits don't trigger a save.
+  if (newNote === (clientsCurrentDetailNoteOriginal || '').trim()) return;
+
+  if (statusEl) {
+    statusEl.textContent = 'Saving...';
+    statusEl.className = 'clients-s-note-status';
+  }
+
+  try {
+    var emailLc = clientsCurrentDetailEmail.toLowerCase();
+    if (newNote === '') {
+      // Empty note: delete the row entirely so the row doesn't linger with
+      // an empty string. Keeps the indicator dot logic clean.
+      var { error: delErr } = await sb
+        .from('subscriber_notes')
+        .delete()
+        .eq('creator_id', currentUser.id)
+        .eq('email', clientsCurrentDetailEmail);
+      if (delErr) throw delErr;
+      delete clientsNotes[emailLc];
+    } else {
+      var { error } = await sb.from('subscriber_notes').upsert([{
+        creator_id: currentUser.id,
+        email: clientsCurrentDetailEmail,
+        note: newNote,
+        updated_at: new Date().toISOString()
+      }], { onConflict: 'creator_id,email' });
+      if (error) throw error;
+      clientsNotes[emailLc] = newNote;
+    }
+
+    clientsCurrentDetailNoteOriginal = newNote;
+    if (statusEl) {
+      statusEl.textContent = 'Saved';
+      statusEl.className = 'clients-s-note-status clients-s-note-status-saved';
+      // Fade out after a moment so the indicator doesn't linger forever.
+      setTimeout(function() {
+        if (statusEl.textContent === 'Saved') {
+          statusEl.textContent = '';
+          statusEl.className = 'clients-s-note-status';
+        }
+      }, 2500);
+    }
+    // Re-render the page so the note indicator dot appears/disappears.
+    renderSubscribersPage();
+  } catch (e) {
+    console.error('Note save failed:', e);
+    if (statusEl) {
+      statusEl.textContent = 'Could not save';
+      statusEl.className = 'clients-s-note-status clients-s-note-status-error';
+    }
+  }
+}
+
+// Close the modal when clicking the dark backdrop (but not when clicking
+// inside the modal itself). The button uses the same close handler.
+function clientsBackdropClick(event, el) {
+  if (event.target === el) clientsCloseDetail();
+}
+
 
 // =============================================================================
 // ACTION REGISTRATIONS — wired up below as part of Phase 2
@@ -484,4 +652,22 @@ clientsRegisterAction('toggle-all', (e, el) => clientsToggleAll(el.checked));
 clientsRegisterAction('bulk-remove', () => clientsBulkRemove());
 clientsRegisterAction('bulk-clear', () => clientsClearSelection());
 clientsRegisterAction('remove-one', (e, el) => clientsRemoveOne(el.dataset.clientsEmail));
+clientsRegisterAction('open-detail', (e, el) => clientsOpenDetail(el.dataset.clientsEmail));
+clientsRegisterAction('close-detail', () => clientsCloseDetail());
+clientsRegisterAction('modal-backdrop-click', (e, el) => clientsBackdropClick(e, el));
+clientsRegisterAction('note-blur', () => clientsSaveNote());
+
+// Escape key closes the detail modal. Doesn't capture-phase so other
+// modals with their own escape handlers aren't interfered with.
+document.addEventListener('keydown', function(e) {
+  if (e.key !== 'Escape') return;
+  var modal = document.getElementById('clients-detail-modal');
+  if (modal && modal.style.display !== 'none') {
+    // If a save is pending (focus is in the textarea), let the blur fire
+    // first by giving up focus before closing.
+    var noteEl = document.getElementById('clients-detail-note');
+    if (noteEl && document.activeElement === noteEl) noteEl.blur();
+    clientsCloseDetail();
+  }
+});
 
