@@ -358,6 +358,16 @@ async function mountProductDescEditor() {
   var textarea = document.getElementById('products-description');
   if (!host || !textarea) return null;
 
+  // Capture the current scroll position. Quill's clipboard.dangerouslyPasteHTML
+  // (called below to load existing content) moves the selection cursor into
+  // the editor, which can trigger the browser to auto-scroll the description
+  // section into view. For a fresh-loaded form, that scrolls past the title/
+  // slug fields the user was about to see. We restore scroll after content
+  // is loaded so the page stays at the top of the editor like the user expects.
+  var savedScrollY = window.scrollY || window.pageYOffset || 0;
+  var scrollContainer = document.getElementById('products-editor-view');
+  var savedContainerScroll = scrollContainer ? scrollContainer.scrollTop : 0;
+
   // ensureQuillLoaded is defined in course.js (loaded earlier on this page).
   if (typeof ensureQuillLoaded !== 'function') {
     console.warn('ensureQuillLoaded not available; course.js must load before products.js.');
@@ -422,6 +432,18 @@ async function mountProductDescEditor() {
       quill.setText(initialHtml);
     }
   }
+
+  // Restore scroll position from before the mount. dangerouslyPasteHTML
+  // moves Quill's selection cursor which can auto-scroll the description
+  // into view; we don't want that on initial editor open. Two restore
+  // points cover both window-level and container-level scroll, since
+  // either can be the scrolling context depending on browser/layout.
+  // Wrapped in requestAnimationFrame so the restore runs AFTER the
+  // browser has finished any layout-triggered scrolling.
+  requestAnimationFrame(function() {
+    window.scrollTo(0, savedScrollY);
+    if (scrollContainer) scrollContainer.scrollTop = savedContainerScroll;
+  });
 
   // Quill -> textarea sync on every edit. Enforces the char limit by
   // reverting via history.undo when the user exceeds 3000 chars.
@@ -1017,11 +1039,13 @@ async function saveProduct() {
     saveBtn.disabled = false;
     saveBtn.textContent = 'Saved!';
     setTimeout(function() { saveBtn.textContent = 'Save'; }, 1500);
+    // Inline success banner, matches the pattern courses + coaching use.
+    showProductsMsg('success', 'Saved!');
   } catch (e) {
     console.error('Save failed:', e);
     saveBtn.disabled = false;
     saveBtn.textContent = 'Save';
-    showModalAlert('Save failed', e.message || 'Could not save this product.');
+    showProductsMsg('error', 'Failed to save: ' + (e.message || 'Could not save this product.'));
   }
 }
 
