@@ -1,0 +1,9 @@
+{
+  "name": "ryxa",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Ryxa.io — creator monetization platform",
+  "dependencies": {
+    "isomorphic-dompurify": "2.16.0"
+  }
+}
