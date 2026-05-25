@@ -153,6 +153,13 @@ module.exports = async (req, res) => {
       mode: 'payment',
       payment_method_types: ['card'],
       customer_email: buyer.email,
+      // Optional individual name field. Adds ONE field to checkout (no address).
+      // Buyer's name comes back on session.customer_details.individual_name after
+      // checkout completes, captured by the course-webhook into buyer_first_name
+      // and buyer_last_name on digital_product_purchases.
+      name_collection: {
+        individual: { enabled: true, optional: true }
+      },
       line_items: [{
         price_data: {
           currency: (product.currency || 'usd').toLowerCase(),
