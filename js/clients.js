@@ -1241,6 +1241,14 @@ clientsRegisterAction('open-import', () => clientsOpenImport());
 clientsRegisterAction('close-import', () => clientsCloseImport());
 clientsRegisterAction('import-backdrop-click', (e, el) => clientsImportBackdropClick(e, el));
 clientsRegisterAction('csv-file-selected', (e, el) => clientsImportFileSelected(e, el));
+clientsRegisterAction('dropzone-click', () => {
+  // Programmatically trigger the hidden file input. Previously the dropzone
+  // was a <label> with for= pointing here, but labels interfere with native
+  // file-drop semantics so we use a <div role="button"> instead and forward
+  // clicks manually.
+  var input = document.getElementById('clients-import-file');
+  if (input) input.click();
+});
 clientsRegisterAction('email-col-change', (e, el) => clientsImportEmailColChange(e, el));
 clientsRegisterAction('import-action', () => clientsImportAction());
 
@@ -1274,5 +1282,34 @@ document.addEventListener('keydown', function(e) {
   if (!target || !target.id || !target.id.startsWith('clients-add-')) return;
   e.preventDefault();
   clientsSubmitAdd();
+});
+
+// Keyboard activation for the dropzone (now a div with role=button instead
+// of a label, so it doesn't get native button activation behavior).
+document.addEventListener('keydown', function(e) {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  var target = e.target;
+  if (!target || target.id !== 'clients-import-dropzone') return;
+  e.preventDefault();
+  var input = document.getElementById('clients-import-file');
+  if (input) input.click();
+});
+
+// Global drag-misfire guard: when the import modal is open, swallow any
+// drop event that wasn't on the dropzone so a near-miss doesn't navigate
+// the browser to the dropped file. Scoped to when the modal is open so it
+// doesn't interfere with other drop targets on the dashboard (Brand Deal
+// kanban, file uploaders, etc.) the rest of the time.
+['dragover', 'drop'].forEach(function(evt) {
+  window.addEventListener(evt, function(e) {
+    var modal = document.getElementById('clients-import-modal');
+    if (!modal || modal.style.display === 'none') return;
+    var zone = document.getElementById('clients-import-dropzone');
+    if (zone && (e.target === zone || zone.contains(e.target))) return;
+    // Outside the dropzone but modal is open: swallow to prevent browser
+    // file navigation. preventDefault is required on BOTH dragover and
+    // drop for the swallow to take effect.
+    e.preventDefault();
+  });
 });
 
