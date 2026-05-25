@@ -276,6 +276,16 @@ function hydrateProductEditor(prod) {
   document.getElementById('products-price').value = prod ? (prod.price_cents > 0 ? (prod.price_cents / 100).toFixed(2) : '') : '';
   document.getElementById('products-delivery-message').value = prod ? (prod.delivery_message || '') : '';
 
+  // Slug notice text matches the courses pattern:
+  //   - New product: explains slug is auto-generated and will lock on save
+  //   - Existing product: states slug is permanently locked
+  var slugNotice = document.getElementById('products-slug-status');
+  if (slugNotice) {
+    slugNotice.textContent = prod
+      ? 'This URL is permanently locked and cannot be changed.'
+      : 'This URL is generated from your title and locked permanently once saved.';
+  }
+
   setProductCoverPreview(prod && prod.cover_image_url ? prod.cover_image_url : null);
 
   dpUpdateLinkButtons();
@@ -294,12 +304,6 @@ function dpUpdateLinkButtons() {
     btn.style.display = 'none';
   }
 }
-
-// Hide the link button while the slug is being edited so there's no confusion
-// about which slug the link points to. Reappears after save.
-document.addEventListener('input', function(e) {
-  if (e.target && e.target.id === 'products-slug') dpUpdateLinkButtons();
-});
 
 function copyProductUrl() {
   var slug = (document.getElementById('products-slug').value || '').trim();
@@ -516,17 +520,28 @@ function unmountProductDescEditor() {
   _productDescQuill = null;
 }
 
-var _dpSlugManuallyEdited = false;
+// Generate a product slug matching the courses pattern:
+//   - Lowercase, hyphen-separated base from the title (first 68 chars)
+//   - 4-char random alphanumeric suffix appended
+//   - Total capped at 80 chars
+// The random suffix prevents collisions when two products share a title and
+// gives the URL a stable, unguessable component once locked. Matches
+// generateSlug() in js/course.js so users see consistent behavior.
+function generateProductSlug(text) {
+  var base = String(text || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 68);
+  var rand = Math.random().toString(36).slice(2, 6);
+  return base ? (base + '-' + rand).slice(0, 80) : '';
+}
+
 function autoUpdateProductSlug() {
+  // Only auto-generate for new products. Once saved, the slug is permanently
+  // locked - the input is readonly and we never touch its value again.
   if (productsState.editingId) return;
   var slugEl = document.getElementById('products-slug');
-  if (_dpSlugManuallyEdited && slugEl.value) return;
+  if (!slugEl) return;
   var title = document.getElementById('products-title').value;
-  slugEl.value = dpSlugify(title);
+  slugEl.value = generateProductSlug(title);
 }
-document.addEventListener('input', function(e) {
-  if (e.target && e.target.id === 'products-slug') _dpSlugManuallyEdited = true;
-});
 
 // File-validation helpers moved to js/file-validation.js (shared with course.js).
 // The dp* functions below are thin shims delegating to that module so existing
@@ -858,7 +873,10 @@ async function saveProductDraftSilently() {
   var title = (document.getElementById('products-title').value || '').trim();
   var slug = (document.getElementById('products-slug').value || '').trim();
   if (!title) return false;
-  if (!slug) slug = dpSlugify(title);
+  // Mirror the regular save: generate a slug with random suffix if the
+  // input is somehow empty (shouldn't happen since autoUpdateProductSlug
+  // runs on every title input, but defensive).
+  if (!slug) slug = generateProductSlug(title);
   slug = await ensureUniqueProductSlug(slug);
 
   try {
@@ -874,6 +892,9 @@ async function saveProductDraftSilently() {
     document.getElementById('products-slug').value = slug;
     document.getElementById('products-editor-title').textContent = 'Edit Product';
     document.getElementById('products-danger-zone').style.display = 'block';
+    // Slug is now permanently locked after this draft insert.
+    var slugNotice = document.getElementById('products-slug-status');
+    if (slugNotice) slugNotice.textContent = 'This URL is permanently locked and cannot be changed.';
     dpUpdateLinkButtons();
     return true;
   } catch (e) {
@@ -904,14 +925,19 @@ async function saveProduct() {
     return;
   }
   if (!slug || !/^[a-z0-9-]+$/.test(slug)) {
-    showModalAlert('Invalid URL slug', 'Slug must be lowercase letters, numbers, and hyphens only.');
+    showModalAlert('Invalid URL slug', 'Slug is empty or malformed. Please add a title to generate one.');
     return;
   }
 
-  var { data: slugOk } = await sb.rpc('is_digital_product_slug_available', { p_slug: slug, p_exclude_id: productsState.editingId || null });
-  if (!slugOk) {
-    showModalAlert('URL taken', 'This URL slug is already in use. Please choose a different one.');
-    return;
+  // Slug is readonly and auto-generated, so the user can't manually resolve
+  // collisions. If the slug happens to be taken (extremely rare given the
+  // 4-char random suffix), silently regenerate via the same helper the
+  // silent draft save uses. Update the input to reflect the new value so
+  // the user sees the locked URL.
+  var resolvedSlug = await ensureUniqueProductSlug(slug);
+  if (resolvedSlug !== slug) {
+    slug = resolvedSlug;
+    document.getElementById('products-slug').value = slug;
   }
 
   var priceCents = 0;
@@ -1033,6 +1059,9 @@ async function saveProduct() {
     // Show Publish button + Delete button now that we have a saved row
     document.getElementById('products-editor-title').textContent = 'Edit Product';
     document.getElementById('products-danger-zone').style.display = 'block';
+    // Slug is now permanently locked. Update the notice to match courses.
+    var slugNotice = document.getElementById('products-slug-status');
+    if (slugNotice) slugNotice.textContent = 'This URL is permanently locked and cannot be changed.';
     updateProductPublishButton();
     dpUpdateLinkButtons();
 
