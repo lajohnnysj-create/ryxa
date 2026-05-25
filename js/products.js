@@ -351,15 +351,7 @@ var _productDescSyncInProgress = false;
 var PRODUCT_DESC_MAX_HTML = 3000;
 
 async function mountProductDescEditor() {
-  // Always unmount any prior instance first. This handles:
-  // (1) Idempotent re-call within the same product editor session
-  // (2) Opening product B right after product A without an explicit close
-  //     (which the editor allows since switching between products in the
-  //     list reuses the same DOM)
-  // Without this, calling Quill twice on the same host appends a second
-  // toolbar + editor body inside, producing the "editor on top of editor"
-  // visual bug. Clear DOM + reset the module-level reference, then mount
-  // a fresh instance cleanly.
+  // Always unmount first so the host is guaranteed empty.
   unmountProductDescEditor();
 
   var host = document.getElementById('products-desc-editor');
@@ -373,6 +365,16 @@ async function mountProductDescEditor() {
   }
   await ensureQuillLoaded();
   if (typeof Quill === 'undefined') return null;
+
+  // After the await, the user may have closed/reopened. Wipe again to be safe.
+  host.innerHTML = '';
+  // Create a fresh inner div for Quill to mount into. Mirrors the lesson
+  // editor pattern (which creates a new container per lesson card render).
+  // Quill mounts into THIS, not the host. Unmount removes this child node,
+  // guaranteeing the host stays empty between mounts and Quill can never
+  // accidentally stack a second toolbar on top of an old one.
+  var mountTarget = document.createElement('div');
+  host.appendChild(mountTarget);
 
   // Patch Quill's Link sanitizer once to auto-prepend https:// when users
   // enter a URL without a scheme (e.g. "example.com"). Without this, the
@@ -396,7 +398,7 @@ async function mountProductDescEditor() {
   }
 
   // Same toolbar as courses: emphasis, lists, headings (H2/H3 only), links.
-  var quill = new Quill(host, {
+  var quill = new Quill(mountTarget, {
     theme: 'snow',
     placeholder: "What's included in your product? Who is it for?",
     modules: {

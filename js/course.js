@@ -1779,6 +1779,15 @@ async function mountCourseDescEditor() {
   await ensureQuillLoaded();
   if (typeof Quill === 'undefined') return null;
 
+  // After the await, the user may have closed/reopened. Wipe again to be safe.
+  host.innerHTML = '';
+  // Mirror the working lesson editor pattern: create a fresh child div and
+  // mount Quill into THAT, not directly into the host. Unmount removes the
+  // child entirely, guaranteeing the host is empty between mounts so Quill
+  // can never accidentally stack a second toolbar inside the first.
+  var mountTarget = document.createElement('div');
+  host.appendChild(mountTarget);
+
   // Override Quill's Link blot to auto-prepend https:// when a user enters a
   // URL without a scheme (e.g. "example.com" instead of "https://example.com").
   // Without this, the description sanitizer strips the href because its
@@ -1807,7 +1816,7 @@ async function mountCourseDescEditor() {
   // headings (H2/H3 only - no H1 since that's the course title), links.
   // Intentionally omitting align/image/clean: less clutter, no creators
   // making rainbow descriptions on the landing page.
-  var quill = new Quill(host, {
+  var quill = new Quill(mountTarget, {
     theme: 'snow',
     placeholder: 'What will students learn? Why should they take this course?',
     modules: {
