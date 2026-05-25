@@ -1263,8 +1263,8 @@ function ensureViewerPurifyLoaded() {
   if (_viewerPurifyLoadPromise) return _viewerPurifyLoadPromise;
   _viewerPurifyLoadPromise = new Promise(function(resolve, reject) {
     var s = document.createElement('script');
-    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js';
-    s.integrity = 'sha512-H+rglffZ6f5gF7UJgvH4Naa+fGCgjrHKMgoFOGmcPTRwR6oILo5R+gtzNrpDp7iMV3udbymBVjkeZGNz1Em4rQ==';
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.3/purify.min.js';
+    s.integrity = 'sha512-Ll+TuDvrWDNNRnFFIM8dOiw7Go7dsHyxRp4RutiIFW/wm3DgDmCnRZow6AqbXnCbpWu93yM1O34q+4ggzGeXVA==';
     s.crossOrigin = 'anonymous';
     s.onload = function() {
       // Install the same hook set the editor uses: filter class values to
