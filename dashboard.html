@@ -5220,6 +5220,12 @@
   .clients-s-detail-email-value { font-size:16px;color:var(--text);font-weight:500;word-break:break-all; }
   .clients-s-detail-value { font-size:13px;color:var(--text); }
   .clients-s-detail-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:14px;padding:14px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;margin-bottom:18px; }
+  .clients-s-detail-name-block { margin-bottom:16px; }
+  .clients-s-detail-name-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:6px; }
+  .clients-s-detail-name-grid { display:grid;grid-template-columns:1fr 1fr;gap:10px; }
+  @media (max-width: 500px) {
+    .clients-s-detail-name-grid { grid-template-columns:1fr; }
+  }
   .clients-s-detail-note-block { padding-top:4px; }
   .clients-s-detail-note-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:6px; }
   .clients-s-note-status { font-size:11px;color:var(--muted);transition:opacity 0.2s;min-height:14px; }
@@ -7804,6 +7810,16 @@
                 <div class="clients-s-detail-row">
                   <div class="clients-s-detail-label">Email</div>
                   <div id="clients-detail-email" class="clients-s-detail-email-value"></div>
+                </div>
+                <div class="clients-s-detail-name-block">
+                  <div class="clients-s-detail-name-header">
+                    <div class="clients-s-detail-label">Name</div>
+                    <span id="clients-detail-name-status" class="clients-s-note-status" aria-live="polite"></span>
+                  </div>
+                  <div class="clients-s-detail-name-grid">
+                    <input type="text" id="clients-detail-first-name" placeholder="First name" maxlength="120" autocomplete="off" data-clients-action="name-blur" data-clients-event="blur" class="clients-s-add-input">
+                    <input type="text" id="clients-detail-last-name" placeholder="Last name" maxlength="120" autocomplete="off" data-clients-action="name-blur" data-clients-event="blur" class="clients-s-add-input">
+                  </div>
                 </div>
                 <div class="clients-s-detail-grid">
                   <div class="clients-s-detail-row">
