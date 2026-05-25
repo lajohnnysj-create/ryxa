@@ -5196,6 +5196,40 @@
   .clients-s-row-remove { width:24px;height:24px;background:transparent;border:none;border-radius:6px;color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all 0.15s; }
   .clients-s-row-remove:hover { background:rgba(239,68,68,0.12);color:#fca5a5; }
 
+  /* Note column on each row + modal that opens when clicked */
+  .clients-s-row-note-cell { padding:10px 6px;width:32px;text-align:center; }
+  .clients-s-row-note { width:24px;height:24px;background:transparent;border:none;border-radius:6px;color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all 0.15s;position:relative; }
+  .clients-s-row-note:hover { background:rgba(124,58,237,0.12);color:#c4b5fd; }
+  .clients-s-row-note-has { color:#c4b5fd; }
+  .clients-s-row-note-has::after { content:"";position:absolute;top:3px;right:3px;width:6px;height:6px;background:#7c3aed;border-radius:50%;border:1px solid var(--surface2); }
+
+  /* Subscriber Details modal */
+  .clients-s-modal-backdrop { position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;animation:clients-fade-in 0.15s ease; }
+  @keyframes clients-fade-in { from { opacity:0; } to { opacity:1; } }
+  .clients-s-modal { background:var(--surface);border:1px solid var(--border);border-radius:16px;width:100%;max-width:560px;max-height:85vh;overflow-y:auto;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5); }
+  .clients-s-modal-header { display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border); }
+  .clients-s-modal-title { font-family:Plus Jakarta Sans,sans-serif;font-size:17px;font-weight:700;color:var(--text);margin:0;letter-spacing:-0.2px; }
+  .clients-s-modal-close { background:transparent;border:none;color:var(--muted);width:32px;height:32px;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all 0.15s; }
+  .clients-s-modal-close:hover { background:var(--surface2);color:var(--text); }
+  .clients-s-modal-body { padding:22px; }
+  .clients-s-detail-row { margin-bottom:14px; }
+  .clients-s-detail-row:last-child { margin-bottom:0; }
+  .clients-s-detail-label { font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:600;margin-bottom:6px;display:block; }
+  .clients-s-detail-email-value { font-size:16px;color:var(--text);font-weight:500;word-break:break-all; }
+  .clients-s-detail-value { font-size:13px;color:var(--text); }
+  .clients-s-detail-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:14px;padding:14px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;margin-bottom:18px; }
+  .clients-s-detail-note-block { padding-top:4px; }
+  .clients-s-detail-note-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:6px; }
+  .clients-s-note-status { font-size:11px;color:var(--muted);transition:opacity 0.2s;min-height:14px; }
+  .clients-s-note-status-saved { color:#4ade80; }
+  .clients-s-note-status-error { color:#fca5a5; }
+  .clients-s-note-textarea { width:100%;padding:12px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;line-height:1.6;font-family:DM Sans,sans-serif;outline:none;resize:vertical;min-height:120px;box-sizing:border-box; }
+  .clients-s-note-textarea:focus { border-color:var(--border-hover); }
+  .clients-s-note-hint { font-size:11px;color:var(--muted);margin-top:6px; }
+  @media (max-width: 500px) {
+    .clients-s-detail-grid { grid-template-columns:1fr;gap:10px;padding:12px 14px; }
+  }
+
 
   /* ============================================================
      PHASE 3, Design Studio style extraction
@@ -7662,10 +7696,11 @@
                     <th class="ana-s-656e15">Opt In</th>
                     <th class="ana-s-656e15">Date Joined</th>
                     <th class="ana-s-656e15"></th>
+                    <th class="ana-s-656e15"></th>
                   </tr>
                 </thead>
                 <tbody id="clients-tbody">
-                  <tr><td colspan="6" class="ana-s-cd4491">No subscribers yet</td></tr>
+                  <tr><td colspan="7" class="ana-s-cd4491">No subscribers yet</td></tr>
                 </tbody>
               </table>
             </div>
@@ -7673,6 +7708,48 @@
               <button id="clients-prev" data-clients-action="page" data-clients-dir="-1" class="ana-s-7f388f dash-h-186bb3">← Back</button>
               <span id="clients-page-info" class="bio-s-e769ff"></span>
               <button id="clients-next" data-clients-action="page" data-clients-dir="1" class="ana-s-7f388f dash-h-186bb3">Next →</button>
+            </div>
+          </div>
+
+          <!-- Subscriber Details modal: shows email, source, date joined, opt-in,
+               and a notes textarea with auto-save on blur. Designed to grow into
+               a richer subscriber profile later (purchase history, etc.). -->
+          <div id="clients-detail-modal" class="clients-s-modal-backdrop" style="display:none;" data-clients-action="modal-backdrop-click">
+            <div class="clients-s-modal" role="dialog" aria-modal="true" aria-labelledby="clients-detail-title">
+              <div class="clients-s-modal-header">
+                <h3 id="clients-detail-title" class="clients-s-modal-title">Subscriber Details</h3>
+                <button data-clients-action="close-detail" class="clients-s-modal-close" aria-label="Close">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+              </div>
+              <div class="clients-s-modal-body">
+                <div class="clients-s-detail-row">
+                  <div class="clients-s-detail-label">Email</div>
+                  <div id="clients-detail-email" class="clients-s-detail-email-value"></div>
+                </div>
+                <div class="clients-s-detail-grid">
+                  <div class="clients-s-detail-row">
+                    <div class="clients-s-detail-label">Source</div>
+                    <div id="clients-detail-source"></div>
+                  </div>
+                  <div class="clients-s-detail-row">
+                    <div class="clients-s-detail-label">Opt In</div>
+                    <div id="clients-detail-optin"></div>
+                  </div>
+                  <div class="clients-s-detail-row">
+                    <div class="clients-s-detail-label">Joined</div>
+                    <div id="clients-detail-date" class="clients-s-detail-value"></div>
+                  </div>
+                </div>
+                <div class="clients-s-detail-note-block">
+                  <div class="clients-s-detail-note-header">
+                    <label for="clients-detail-note" class="clients-s-detail-label">Note</label>
+                    <span id="clients-detail-note-status" class="clients-s-note-status" aria-live="polite"></span>
+                  </div>
+                  <textarea id="clients-detail-note" placeholder="Add a private note about this subscriber. Only you can see it." rows="6" maxlength="5000" data-clients-action="note-blur" data-clients-event="blur" class="clients-s-note-textarea"></textarea>
+                  <div class="clients-s-note-hint">Notes save automatically when you click out. Max 5,000 characters.</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
