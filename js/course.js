@@ -1704,6 +1704,32 @@ function sanitizeLessonHtml(html) {
   return DOMPurify.sanitize(cleaned, QUILL_PURIFY_CONFIG);
 }
 
+// Sanitizer for course/booking/product descriptions. Same security model as
+// sanitizeLessonHtml but additionally trims trailing whitespace inside
+// paragraphs and headings. Quill's editor often leaves a stray space at the
+// end of each block when the cursor sits at end-of-line during typing, and
+// that whitespace creates visible inconsistencies on the landing page (the
+// reported "one space renders as two" issue). Strips href-less <a> tags by
+// keeping their text content but unwrapping the empty anchor - prevents
+// "looks like a link but isn't clickable" rendering bugs from old data.
+function sanitizeDescriptionHtml(html) {
+  if (typeof DOMPurify === 'undefined') return '';
+  installDomPurifyHooks();
+  var cleaned = (html || '');
+  // Trim whitespace immediately before closing block tags. Targets <p>, <h2>,
+  // <h3>, <li> since those are the block-level tags creators write in.
+  cleaned = cleaned.replace(/(\s+)<\/(p|h2|h3|li)>/g, '</$2>');
+  // Strip leading whitespace right after opening block tags as well.
+  cleaned = cleaned.replace(/<(p|h2|h3|li)([^>]*)>\s+/g, '<$1$2>');
+  // Convert <a> tags with no href (or empty href) into plain text. These
+  // happen when the saved data predates the link-sanitize patch and creates
+  // visually-styled "links" that don't navigate anywhere - confusing for
+  // landing-page visitors who click expecting a real link.
+  cleaned = cleaned.replace(/<a(?:\s+(?!href=)[^>]*)?>(.*?)<\/a>/gi, '$1');
+  cleaned = cleaned.replace(/<a\s+href=["']?["']?\s*>(.*?)<\/a>/gi, '$1');
+  return DOMPurify.sanitize(cleaned, QUILL_PURIFY_CONFIG);
+}
+
 // Count <img> tags in the current Quill content (used to enforce per-lesson
 // image cap). A regex is fine here, Quill output is well-formed.
 function countQuillImages(quill) {
@@ -1725,6 +1751,11 @@ function countQuillImages(quill) {
 
 var _courseDescQuill = null;
 var _courseDescSyncInProgress = false;
+// Max stored HTML length for course descriptions. Bounded for performance
+// (every landing-page view loads this column) and UX (long descriptions
+// don't convert better). ~2000 visible chars after tags, generous enough
+// for thorough descriptions without inviting essays.
+var COURSE_DESC_MAX_HTML = 3000;
 
 async function mountCourseDescEditor() {
   // Idempotent: if already mounted to the live host, return existing instance.
@@ -1785,7 +1816,7 @@ async function mountCourseDescEditor() {
   // (set by openCourseEditor before this mounts).
   var initialHtml = textarea.value || '';
   if (initialHtml) {
-    var cleanInit = sanitizeLessonHtml(initialHtml);
+    var cleanInit = sanitizeDescriptionHtml(initialHtml);
     // If sanitization stripped everything (e.g., plain text saved from the
     // old textarea era), fall back to inserting it as a single paragraph.
     if (cleanInit && cleanInit.trim()) {
@@ -1797,15 +1828,39 @@ async function mountCourseDescEditor() {
 
   // Quill → textarea: every edit syncs sanitized HTML into the hidden
   // textarea so saveCourse and any other consumer reads the rich content.
+  // Also enforces the char limit by truncating in Quill if the user exceeds
+  // it (rare since the counter warns first). Updates the live counter UI.
   quill.on('text-change', function() {
     if (_courseDescSyncInProgress) return;
-    var html = sanitizeLessonHtml(quill.root.innerHTML);
+    var html = sanitizeDescriptionHtml(quill.root.innerHTML);
     // Quill's empty state is '<p><br></p>' - treat as empty so saved
     // descriptions don't carry that stub.
     if (html === '<p><br></p>') html = '';
+
+    // Enforce hard limit. If exceeded, undo the last edit in Quill - this
+    // is the cleanest way to "reject" input without leaving Quill and the
+    // textarea out of sync. The counter color (set below) already turned
+    // red before the user hit the cap, so this only fires for paste-large
+    // scenarios.
+    if (html.length > COURSE_DESC_MAX_HTML) {
+      _courseDescSyncInProgress = true;
+      try { quill.history.undo(); } catch (e) { /* no history yet */ }
+      _courseDescSyncInProgress = false;
+      // Use a soft alert rather than modalAlert to avoid interrupting flow.
+      var counter = document.getElementById('course-desc-counter');
+      if (counter) {
+        counter.textContent = 'Description must be ' + COURSE_DESC_MAX_HTML + ' characters or fewer.';
+        counter.style.color = '#ef4444';
+      }
+      return;
+    }
+
     _courseDescSyncInProgress = true;
     textarea.value = html;
     _courseDescSyncInProgress = false;
+
+    // Update the live counter.
+    updateCourseDescCounter(html.length);
   });
 
   // textarea → Quill: AI Cleanup writes cleaned text back to the textarea
@@ -1821,7 +1876,7 @@ async function mountCourseDescEditor() {
     // AI Cleanup output (plain prose) lands cleanly.
     if (/<[a-z][^>]*>/i.test(incoming)) {
       quill.setContents([]);
-      quill.clipboard.dangerouslyPasteHTML(sanitizeLessonHtml(incoming));
+      quill.clipboard.dangerouslyPasteHTML(sanitizeDescriptionHtml(incoming));
     } else {
       quill.setText(incoming);
     }
@@ -1829,7 +1884,26 @@ async function mountCourseDescEditor() {
   });
 
   _courseDescQuill = quill;
+  // Set initial counter value based on whatever's already in the textarea.
+  updateCourseDescCounter((textarea.value || '').length);
   return quill;
+}
+
+// Update the visible character counter for the description editor. Colors
+// shift from muted → amber → red as the user approaches the limit, giving a
+// soft warning before the hard cap kicks in. Called on every text-change.
+function updateCourseDescCounter(length) {
+  var el = document.getElementById('course-desc-counter');
+  if (!el) return;
+  var remaining = COURSE_DESC_MAX_HTML - length;
+  el.textContent = length + ' / ' + COURSE_DESC_MAX_HTML;
+  if (length >= COURSE_DESC_MAX_HTML) {
+    el.style.color = '#ef4444';
+  } else if (remaining < 300) {
+    el.style.color = '#fbbf24';
+  } else {
+    el.style.color = 'var(--muted)';
+  }
 }
 
 function unmountCourseDescEditor() {

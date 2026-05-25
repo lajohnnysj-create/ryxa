@@ -210,19 +210,32 @@ function renderCourse(course, creatorName, modules, lessons, quizzes, session) {
   document.getElementById('cp-creator').innerHTML = 'by <a href="/' + escapeHtml(creatorName) + '" style="color:inherit;text-decoration:none;"><strong>' + escapeHtml(creatorName) + '</strong></a>';
   // Description is rich-text HTML (sanitized when saved by the dashboard's
   // Quill editor). Sanitize again on render as defense in depth - never
-  // trust HTML alone, even our own. Falls back to plain text if DOMPurify
-  // isn't available yet (script load order or blocked).
+  // trust HTML alone, even our own. Also clean up two known issues from
+  // older saved data: trailing whitespace inside block tags (looks like
+  // double spaces on render), and href-less <a> tags (visible styled text
+  // that doesn't navigate).
   var descRaw = course.description || '';
+  // Trim whitespace inside block tags.
+  descRaw = descRaw.replace(/(\s+)<\/(p|h2|h3|li)>/g, '</$2>');
+  descRaw = descRaw.replace(/<(p|h2|h3|li)([^>]*)>\s+/g, '<$1$2>');
+  // Unwrap broken <a> tags (no href or empty href).
+  descRaw = descRaw.replace(/<a(?:\s+(?!href=)[^>]*)?>(.*?)<\/a>/gi, '$1');
+  descRaw = descRaw.replace(/<a\s+href=["']?["']?\s*>(.*?)<\/a>/gi, '$1');
   var descEl = document.getElementById('cp-desc');
   if (typeof DOMPurify !== 'undefined') {
     descEl.innerHTML = DOMPurify.sanitize(descRaw, {
       ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 's', 'a', 'h2', 'h3', 'ul', 'ol', 'li'],
       ALLOWED_ATTR: ['href', 'target', 'rel'],
-      ALLOWED_URI_REGEXP: /^(?:https?:|mailto:)/i
+      ALLOWED_URI_REGEXP: /^(?:https?:|mailto:|tel:)/i
     });
-    // Enforce noopener noreferrer on every target=_blank link.
-    descEl.querySelectorAll('a[target="_blank"]').forEach(function(a) {
-      a.setAttribute('rel', 'noopener noreferrer');
+    // Enforce noopener noreferrer on every target=_blank link, and force
+    // external links to open in a new tab.
+    descEl.querySelectorAll('a[href]').forEach(function(a) {
+      var href = a.getAttribute('href') || '';
+      if (/^https?:/i.test(href)) {
+        a.setAttribute('target', '_blank');
+        a.setAttribute('rel', 'noopener noreferrer');
+      }
     });
   } else {
     descEl.textContent = descRaw.replace(/<[^>]*>/g, '');
