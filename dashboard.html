@@ -4463,9 +4463,18 @@
      light-theme CSS by default; these overrides retheme it for our dark
      surface and keep the toolbar consistent with the rest of the dashboard.
      The editor lazy-loads (~75KB) only when a creator expands a text lesson. */
-  .course-s-quill-host { background:var(--surface2);border-radius:8px;min-height:200px; }
+  .course-s-quill-host { background:var(--surface2);border-radius:8px;min-height:200px;position:relative; }
   .course-s-quill-host .ql-toolbar.ql-snow { border-color:var(--border);border-radius:8px 8px 0 0;background:var(--surface);padding:8px; }
   .course-s-quill-host .ql-container.ql-snow { border-color:var(--border);border-radius:0 0 8px 8px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);min-height:180px; }
+  /* Link tooltip: by default it absolute-positions from the link's location
+     and can overflow the editor's right edge or get clipped by parent
+     containers. Pin it to the left of the editor and lift z-index so it
+     always shows. Also dark-themed to match the dashboard. */
+  .course-s-quill-host .ql-tooltip { left:8px !important; z-index:10; background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:6px;box-shadow:0 4px 14px rgba(0,0,0,0.3); }
+  .course-s-quill-host .ql-tooltip input[type=text] { background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:4px 8px; }
+  .course-s-quill-host .ql-tooltip a.ql-action::after,
+  .course-s-quill-host .ql-tooltip a.ql-remove::before { color:var(--accent2); }
+  .course-s-quill-host .ql-tooltip a.ql-preview { color:var(--accent2); }
   .course-s-quill-host .ql-editor { min-height:180px;color:var(--text); }
   .course-s-quill-host .ql-editor.ql-blank::before { color:var(--muted);font-style:normal;font-size:13px; }
   .course-s-quill-host .ql-snow .ql-picker.ql-header .ql-picker-label::before,
