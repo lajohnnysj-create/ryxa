@@ -4463,9 +4463,9 @@
      light-theme CSS by default; these overrides retheme it for our dark
      surface and keep the toolbar consistent with the rest of the dashboard.
      The editor lazy-loads (~75KB) only when a creator expands a text lesson. */
-  .course-s-quill-host { background:var(--surface2);border-radius:8px; }
+  .course-s-quill-host { background:transparent;border-radius:8px; }
   .course-s-quill-host .ql-toolbar.ql-snow { border-color:var(--border);border-radius:8px 8px 0 0;background:var(--surface);padding:8px; }
-  .course-s-quill-host .ql-container.ql-snow { border-color:var(--border);border-radius:0 0 8px 8px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);background:var(--surface2); }
+  .course-s-quill-host .ql-container.ql-snow { border-color:var(--border);border-radius:0 0 8px 8px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text); }
   /* Link tooltip: by default it absolute-positions from the link's location
      and can overflow the editor's right edge or get clipped by parent
      containers. Pin it to the left of the editor and lift z-index so it
@@ -9198,14 +9198,8 @@
             </div>
 
             <!-- Description -->
-            <!-- Container matches courses + bookings (course-s-79a1c5 with
-                 margin only) instead of the prod-s-389393 card other product
-                 sections use. The rich-text editor should feel consistent
-                 across all three editors; using the card wrapper here made
-                 the Quill background blend with the card and look different
-                 from courses/bookings. -->
-            <div class="course-s-79a1c5">
-              <label for="products-description" class="course-s-60c543">Description</label>
+            <div class="prod-s-389393">
+              <label for="products-description" class="prod-s-fab4a2">Description</label>
               <!-- Rich text editor (Quill) mounts here on product editor open.
                    Same pattern as the course description editor: visible Quill
                    editor + hidden textarea acting as a shadow buffer that
