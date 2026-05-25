@@ -1145,10 +1145,12 @@ async function toggleProductPublish() {
     productsState.editing.is_active = goingLive;
     if (!goingLive) productsState.editing.listed_in_marketplace = false;
     updateProductPublishButton();
+    // Inline success banner, matches the pattern courses + coaching use.
+    showProductsMsg('success', goingLive ? 'Product published!' : 'Product unpublished.');
   } catch (e) {
     console.error('Publish toggle failed:', e);
     btn.textContent = origText;
-    showModalAlert('Could not update', e.message || 'Failed to change publish status.');
+    showProductsMsg('error', 'Failed to change publish status: ' + (e.message || 'Unknown error.'));
   } finally {
     btn.disabled = false;
   }
