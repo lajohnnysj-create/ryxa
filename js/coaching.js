@@ -225,13 +225,170 @@ function openCoachingEditor(coachingId) {
       document.getElementById('coaching-slug-input').value = generateSlug(e.target.value);
     }
   };
+
+  // Mount the rich-text description editor. Reuses course.js's
+  // ensureQuillLoaded + sanitizeDescriptionHtml (course.js loads earlier
+  // in dashboard.html). The hidden textarea was already populated above
+  // and Quill picks up that content on mount.
+  mountCoachingDescEditor().catch(function(err) {
+    console.warn('Coaching description editor failed to mount:', err);
+  });
 }
 
 function closeCoachingEditor() {
+  unmountCoachingDescEditor();
   document.getElementById('coaching-editor-view').style.display = 'none';
   document.getElementById('coaching-list-view').style.display = 'block';
   currentCoachingId = null;
   renderCoachingList();
+}
+
+// =====================================================
+// COACHING DESCRIPTION RICH-TEXT EDITOR
+// =====================================================
+// Mirrors the course/product description editor pattern. Reuses course.js's
+// ensureQuillLoaded + sanitizeDescriptionHtml globals (course.js loads
+// before coaching.js on the dashboard). The Quill editor mounts into a
+// FRESH child div appended to the host on every mount, and unmount removes
+// that child entirely. This guarantees a clean DOM on every re-entry and
+// prevents the stacking-editor bug we hit with the persistent-host pattern.
+
+var _coachingDescQuill = null;
+var _coachingDescSyncInProgress = false;
+var COACHING_DESC_MAX_HTML = 3000;
+
+async function mountCoachingDescEditor() {
+  // Always unmount first so the host is guaranteed empty.
+  unmountCoachingDescEditor();
+
+  var host = document.getElementById('coaching-desc-editor');
+  var textarea = document.getElementById('coaching-desc-input');
+  if (!host || !textarea) return null;
+
+  if (typeof ensureQuillLoaded !== 'function') {
+    console.warn('ensureQuillLoaded not available; course.js must load before coaching.js.');
+    return null;
+  }
+  await ensureQuillLoaded();
+  if (typeof Quill === 'undefined') return null;
+
+  // After the await, user may have closed/reopened. Wipe again to be safe.
+  host.innerHTML = '';
+  // Create a fresh inner div and mount Quill into THAT, not the host
+  // directly. Mirrors the working lesson editor pattern. Unmount removes
+  // this child, guaranteeing the host stays empty between mounts.
+  var mountTarget = document.createElement('div');
+  host.appendChild(mountTarget);
+
+  // Patch Quill's Link sanitize to auto-prepend https:// for scheme-less
+  // URLs. Idempotency guard handles the case where course.js already patched.
+  try {
+    var Link = Quill.import('formats/link');
+    if (Link && !Link._ryxaSanitizePatched) {
+      var origSanitize = Link.sanitize;
+      Link.sanitize = function(url) {
+        var u = String(url || '').trim();
+        if (/^(https?:|mailto:|tel:|#)/i.test(u)) return origSanitize.call(this, u);
+        if (!u) return origSanitize.call(this, u);
+        return origSanitize.call(this, 'https://' + u);
+      };
+      Link._ryxaSanitizePatched = true;
+    }
+  } catch (e) {
+    console.warn('Could not patch Quill link sanitizer:', e);
+  }
+
+  // Same toolbar as courses/products: emphasis, lists, headings (H2/H3
+  // only), links. No image/align/clean - keeps descriptions consistent.
+  var quill = new Quill(mountTarget, {
+    theme: 'snow',
+    placeholder: 'Describe what the buyer will get. What will you cover? What should they prepare?',
+    modules: {
+      toolbar: [
+        [{ 'header': [2, 3, false] }],
+        ['bold', 'italic', 'underline'],
+        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+        ['link']
+      ]
+    }
+  });
+
+  // Initialize from the textarea content (already set by openCoachingEditor).
+  var initialHtml = textarea.value || '';
+  if (initialHtml) {
+    var cleanInit = sanitizeDescriptionHtml(initialHtml);
+    if (cleanInit && cleanInit.trim()) {
+      quill.clipboard.dangerouslyPasteHTML(cleanInit);
+    } else {
+      quill.setText(initialHtml);
+    }
+  }
+
+  // Quill -> textarea sync with char-limit enforcement.
+  quill.on('text-change', function() {
+    if (_coachingDescSyncInProgress) return;
+    var html = sanitizeDescriptionHtml(quill.root.innerHTML);
+    if (html === '<p><br></p>') html = '';
+
+    if (html.length > COACHING_DESC_MAX_HTML) {
+      _coachingDescSyncInProgress = true;
+      try { quill.history.undo(); } catch (e) { /* no history yet */ }
+      _coachingDescSyncInProgress = false;
+      var counter = document.getElementById('coaching-desc-counter');
+      if (counter) {
+        counter.textContent = 'Description must be ' + COACHING_DESC_MAX_HTML + ' characters or fewer.';
+        counter.style.color = '#ef4444';
+      }
+      return;
+    }
+
+    _coachingDescSyncInProgress = true;
+    textarea.value = html;
+    _coachingDescSyncInProgress = false;
+    updateCoachingDescCounter(html.length);
+  });
+
+  // textarea -> Quill sync (AI Cleanup writes back via textarea + input event).
+  textarea.addEventListener('input', function() {
+    if (_coachingDescSyncInProgress) return;
+    _coachingDescSyncInProgress = true;
+    var incoming = textarea.value || '';
+    if (/<[a-z][^>]*>/i.test(incoming)) {
+      quill.setContents([]);
+      quill.clipboard.dangerouslyPasteHTML(sanitizeDescriptionHtml(incoming));
+    } else {
+      quill.setText(incoming);
+    }
+    _coachingDescSyncInProgress = false;
+  });
+
+  _coachingDescQuill = quill;
+  updateCoachingDescCounter((textarea.value || '').length);
+  return quill;
+}
+
+function updateCoachingDescCounter(length) {
+  var el = document.getElementById('coaching-desc-counter');
+  if (!el) return;
+  var remaining = COACHING_DESC_MAX_HTML - length;
+  el.textContent = length + ' / ' + COACHING_DESC_MAX_HTML;
+  if (length >= COACHING_DESC_MAX_HTML) {
+    el.style.color = '#ef4444';
+  } else if (remaining < 300) {
+    el.style.color = '#fbbf24';
+  } else {
+    el.style.color = 'var(--muted)';
+  }
+}
+
+function unmountCoachingDescEditor() {
+  // Always clear the host DOM unconditionally. Defends against leftover
+  // Quill DOM from a previous mount whose reference was lost.
+  try {
+    var host = document.getElementById('coaching-desc-editor');
+    if (host) host.innerHTML = '';
+  } catch (e) { /* non-fatal */ }
+  _coachingDescQuill = null;
 }
 
 function setCoachingBookingType(type) {

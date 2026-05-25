@@ -78,7 +78,11 @@ async function init() {
 
   document.title = coaching.title + ' — Ryxa';
   const metaDesc = document.querySelector('meta[name="description"]');
-  if (metaDesc) metaDesc.content = (coaching.description || '').slice(0, 160);
+  if (metaDesc) {
+    // Strip HTML tags - meta description must be plain text.
+    var descPlain = (coaching.description || '').replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+    metaDesc.content = descPlain.slice(0, 160);
+  }
 
   // Check auth state for button text
   var { data: { session } } = await sb.auth.getSession();
@@ -194,8 +198,39 @@ function renderCoaching(coaching, creatorName, isLoggedIn) {
   metaHtml += '<div class="coaching-meta-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>' + bookingLabel + '</div>';
   document.getElementById('cp-meta').innerHTML = metaHtml;
 
-  // Description
-  document.getElementById('cp-desc').textContent = coaching.description || '';
+  // Description - rich-text HTML (sanitized when saved by the dashboard's
+  // Quill editor). Same render path as the course landing page:
+  //   - Trim trailing whitespace inside block tags
+  //   - Strip empty paragraph spacers ('<p><br></p>') that double the
+  //     visual gap between paragraphs
+  //   - Unwrap href-less <a> tags (styled-but-broken links from old data)
+  //   - DOMPurify sanitize on render (defense in depth)
+  //   - Force external links to open in a new tab with safe rel attrs
+  // Falls back to plain text if DOMPurify isn't loaded yet.
+  var descRaw = coaching.description || '';
+  descRaw = descRaw.replace(/(\s+)<\/(p|h2|h3|li)>/g, '</$2>');
+  descRaw = descRaw.replace(/<(p|h2|h3|li)([^>]*)>\s+/g, '<$1$2>');
+  descRaw = descRaw.replace(/<p>\s*<br\s*\/?>\s*<\/p>/gi, '');
+  descRaw = descRaw.replace(/<p>\s*<\/p>/gi, '');
+  descRaw = descRaw.replace(/<a(?:\s+(?!href=)[^>]*)?>(.*?)<\/a>/gi, '$1');
+  descRaw = descRaw.replace(/<a\s+href=["']?["']?\s*>(.*?)<\/a>/gi, '$1');
+  var descEl = document.getElementById('cp-desc');
+  if (typeof DOMPurify !== 'undefined') {
+    descEl.innerHTML = DOMPurify.sanitize(descRaw, {
+      ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 's', 'a', 'h2', 'h3', 'ul', 'ol', 'li'],
+      ALLOWED_ATTR: ['href', 'target', 'rel'],
+      ALLOWED_URI_REGEXP: /^(?:https?:|mailto:|tel:)/i
+    });
+    descEl.querySelectorAll('a[href]').forEach(function(a) {
+      var href = a.getAttribute('href') || '';
+      if (/^https?:/i.test(href)) {
+        a.setAttribute('target', '_blank');
+        a.setAttribute('rel', 'noopener noreferrer');
+      }
+    });
+  } else {
+    descEl.textContent = descRaw.replace(/<[^>]*>/g, '');
+  }
 
   // Buy button
   var buyArea = document.getElementById('cp-buy-area');
