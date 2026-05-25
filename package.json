@@ -5,5 +5,8 @@
   "description": "Ryxa.io - creator monetization platform",
   "dependencies": {
     "isomorphic-dompurify": "^3.13.0"
+  },
+  "overrides": {
+    "jsdom": "25.0.1"
   }
 }
