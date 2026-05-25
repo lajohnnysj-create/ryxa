@@ -1740,6 +1740,30 @@ async function mountCourseDescEditor() {
   await ensureQuillLoaded();
   if (typeof Quill === 'undefined') return null;
 
+  // Override Quill's Link blot to auto-prepend https:// when a user enters a
+  // URL without a scheme (e.g. "example.com" instead of "https://example.com").
+  // Without this, the description sanitizer strips the href because its
+  // allowlist regex requires http/https/mailto, and the link renders as
+  // unclickable text on the landing page. Safe to call multiple times;
+  // Quill.import returns the same class reference.
+  try {
+    var Link = Quill.import('formats/link');
+    if (Link && !Link._ryxaSanitizePatched) {
+      var origSanitize = Link.sanitize;
+      Link.sanitize = function(url) {
+        var u = String(url || '').trim();
+        // Allow mailto, tel, anchor, and already-schemed http/https.
+        if (/^(https?:|mailto:|tel:|#)/i.test(u)) return origSanitize.call(this, u);
+        // Empty or scheme-less: prepend https://. Skip pure "#" or empty.
+        if (!u) return origSanitize.call(this, u);
+        return origSanitize.call(this, 'https://' + u);
+      };
+      Link._ryxaSanitizePatched = true;
+    }
+  } catch (e) {
+    console.warn('Could not patch Quill link sanitizer:', e);
+  }
+
   // Toolbar matches what's useful for course descriptions: emphasis, lists,
   // headings (H2/H3 only - no H1 since that's the course title), links.
   // Intentionally omitting align/image/clean: less clutter, no creators
