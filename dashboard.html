@@ -9166,21 +9166,22 @@
 
           <div class="prod-s-843b62">
 
-            <!-- Title -->
+            <!-- Title & Price (side-by-side, matches courses layout) -->
             <div class="prod-s-389393">
-              <label for="products-title" class="prod-s-fab4a2">Title</label>
-              <input type="text" id="products-title" maxlength="120" placeholder="e.g. Lightroom Preset Pack" data-prod-action="auto-update-slug" data-prod-event="input" class="prod-s-86268f">
-            </div>
-
-            <!-- Cover -->
-            <div class="prod-s-389393">
-              <label class="prod-s-fab4a2">Cover Image</label>
-              <div id="products-cover-preview" class="prod-s-1c7360" data-prod-action="click-cover">
-                <img id="products-cover-img" alt="Product cover image" class="prod-s-cover-img">
-                <span id="products-cover-placeholder" class="prod-s-cover-ph">Click to upload (1280&#215;720 recommended)</span>
+              <div class="course-s-7738c1">
+                <div class="bio-s-a07604">
+                  <label for="products-title" class="prod-s-fab4a2">Title</label>
+                  <input type="text" id="products-title" maxlength="120" placeholder="e.g. Lightroom Preset Pack" data-prod-action="auto-update-slug" data-prod-event="input" class="prod-s-86268f">
+                </div>
+                <div class="course-s-f60548">
+                  <label for="products-price" class="prod-s-fab4a2">Price</label>
+                  <div class="prod-s-0fd68d">
+                    <span class="prod-s-6464e3">$</span>
+                    <input type="number" id="products-price" min="0" step="0.01" placeholder="9.99" class="prod-s-f08d47">
+                  </div>
+                </div>
               </div>
-              <input type="file" id="products-cover-input" aria-label="Upload product cover image" accept="image/jpeg,image/png,image/webp" class="bio-s-c8be1c" data-prod-action="cover-selected" data-prod-event="change">
-              <button id="products-cover-remove" data-prod-action="remove-cover" class="prod-s-1433a5">Remove cover</button>
+              <div class="prod-s-69a65b">Set to 0 for a free download (lead magnet).</div>
             </div>
 
             <!-- Slug -->
@@ -9209,14 +9210,15 @@
               <div id="products-desc-counter" class="course-s-desc-counter">0 / 3000</div>
             </div>
 
-            <!-- Price -->
+            <!-- Cover -->
             <div class="prod-s-389393">
-              <label for="products-price" class="prod-s-fab4a2">Price</label>
-              <div class="prod-s-0fd68d">
-                <span class="prod-s-6464e3">$</span>
-                <input type="number" id="products-price" min="0" step="0.01" placeholder="9.99" class="prod-s-f08d47">
+              <label class="prod-s-fab4a2">Cover Image</label>
+              <div id="products-cover-preview" class="prod-s-1c7360" data-prod-action="click-cover">
+                <img id="products-cover-img" alt="Product cover image" class="prod-s-cover-img">
+                <span id="products-cover-placeholder" class="prod-s-cover-ph">Click to upload (1280&#215;720 recommended)</span>
               </div>
-              <div class="prod-s-69a65b">Set to 0 for a free download (lead magnet).</div>
+              <input type="file" id="products-cover-input" aria-label="Upload product cover image" accept="image/jpeg,image/png,image/webp" class="bio-s-c8be1c" data-prod-action="cover-selected" data-prod-event="change">
+              <button id="products-cover-remove" data-prod-action="remove-cover" class="prod-s-1433a5">Remove cover</button>
             </div>
 
             <!-- Files -->
