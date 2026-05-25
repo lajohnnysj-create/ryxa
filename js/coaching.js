@@ -265,6 +265,16 @@ async function mountCoachingDescEditor() {
   var textarea = document.getElementById('coaching-desc-input');
   if (!host || !textarea) return null;
 
+  // Capture scroll position before mounting. Quill's clipboard.dangerouslyPasteHTML
+  // (called below to load existing content) moves the selection cursor into
+  // the editor, which can trigger the browser to auto-scroll the description
+  // into view. We restore scroll after content load so the user lands at the
+  // top of the form when opening the editor, not partway down at the
+  // description.
+  var savedScrollY = window.scrollY || window.pageYOffset || 0;
+  var scrollContainer = document.getElementById('coaching-editor-view');
+  var savedContainerScroll = scrollContainer ? scrollContainer.scrollTop : 0;
+
   if (typeof ensureQuillLoaded !== 'function') {
     console.warn('ensureQuillLoaded not available; course.js must load before coaching.js.');
     return null;
@@ -323,6 +333,14 @@ async function mountCoachingDescEditor() {
       quill.setText(initialHtml);
     }
   }
+
+  // Restore scroll position captured before mount. dangerouslyPasteHTML
+  // moves Quill's selection cursor which can auto-scroll the description
+  // into view; we don't want that on initial editor open.
+  requestAnimationFrame(function() {
+    window.scrollTo(0, savedScrollY);
+    if (scrollContainer) scrollContainer.scrollTop = savedContainerScroll;
+  });
 
   // Quill -> textarea sync with char-limit enforcement.
   quill.on('text-change', function() {
