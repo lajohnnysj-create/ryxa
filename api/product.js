@@ -9,9 +9,49 @@
 const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_PLU28Un_GfsUXeUsK3zB9Q_hvNM7aeG';
 
+// Server-side DOMPurify (runs in Node via JSDOM). Used to sanitize the
+// rich-text description before injecting into the HTML response. Same
+// security model as the courses/learn pages, applied at the SSR boundary.
+const DOMPurify = require('isomorphic-dompurify');
+
 function esc(s) {
   if (s == null) return '';
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// Sanitize rich-text product description. Same cleanups as courses + learn:
+// trim whitespace in block tags, drop empty paragraph spacers ('<p><br></p>'),
+// unwrap href-less <a> tags, force external links to open in a new tab with
+// rel=noopener noreferrer. Returns sanitized HTML safe to inject directly
+// into the SSR response. Returns empty string if input is empty/null.
+function sanitizeDescription(html) {
+  if (!html) return '';
+  var cleaned = String(html);
+  cleaned = cleaned.replace(/(\s+)<\/(p|h2|h3|li)>/g, '</$2>');
+  cleaned = cleaned.replace(/<(p|h2|h3|li)([^>]*)>\s+/g, '<$1$2>');
+  cleaned = cleaned.replace(/<p>\s*<br\s*\/?>\s*<\/p>/gi, '');
+  cleaned = cleaned.replace(/<p>\s*<\/p>/gi, '');
+  cleaned = cleaned.replace(/<a(?:\s+(?!href=)[^>]*)?>(.*?)<\/a>/gi, '$1');
+  cleaned = cleaned.replace(/<a\s+href=["']?["']?\s*>(.*?)<\/a>/gi, '$1');
+  var safe = DOMPurify.sanitize(cleaned, {
+    ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 's', 'a', 'h2', 'h3', 'ul', 'ol', 'li'],
+    ALLOWED_ATTR: ['href', 'target', 'rel'],
+    ALLOWED_URI_REGEXP: /^(?:https?:|mailto:|tel:)/i
+  });
+  // Force external links to open in a new tab with safe rel. The client-side
+  // sanitizers do this via DOM mutation; on the server we do it via string
+  // replace since we're emitting HTML directly.
+  safe = safe.replace(/<a\s+href="(https?:[^"]+)"([^>]*)>/gi, function(m, href, rest) {
+    if (/\btarget=/i.test(rest)) return m;
+    return '<a href="' + href + '" target="_blank" rel="noopener noreferrer"' + rest + '>';
+  });
+  return safe;
+}
+
+// Strip all HTML tags and collapse whitespace. Used for meta description
+// and OG tags where plain text is required.
+function stripTags(html) {
+  return String(html || '').replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
 }
 
 function fmtPrice(cents, currency) {
@@ -61,13 +101,16 @@ function renderPage(product, creator) {
     : `<div class="dp-cover-placeholder"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="rgba(167,139,250,0.5)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>`;
 
   var description = product.description
-    ? `<div class="dp-desc">${esc(product.description).replace(/\n/g, '<br>')}</div>`
+    ? `<div class="dp-desc">${sanitizeDescription(product.description)}</div>`
     : '';
 
   var ogImage = product.cover_image_url || 'https://ryxa.io/og-default.png';
-  var pageTitle = esc(product.title) + ' — Ryxa';
+  var pageTitle = esc(product.title) + ' - Ryxa';
+  // Meta description must be plain text (no HTML). Strip tags from the
+  // rich-text product description, then trim to 160 chars (standard SEO
+  // length). Falls back to a generic blurb if description is empty.
   var pageDesc = product.description
-    ? esc(String(product.description).slice(0, 160))
+    ? esc(stripTags(product.description).slice(0, 160))
     : 'A digital product on Ryxa.';
 
   return `<!DOCTYPE html>
@@ -126,7 +169,19 @@ function renderPage(product, creator) {
   .dp-title { font-family:'Syne',sans-serif; font-size:clamp(28px,5vw,44px); font-weight:800; letter-spacing:-1.5px; line-height:1.1; margin-bottom:16px; }
   .dp-creator { font-size:14px; color:var(--text-secondary); margin-bottom:24px; }
   .dp-creator strong { color:var(--accent2); font-weight:600; }
-  .dp-desc { font-size:16px; line-height:1.75; color:var(--text-secondary); margin-bottom:32px; max-width:700px; white-space:pre-wrap; word-wrap:break-word; }
+  .dp-desc { font-size:16px; line-height:1.75; color:var(--text-secondary); margin-bottom:32px; max-width:700px; word-wrap:break-word; }
+  /* Rich-text elements inside the description (set by the dashboard's Quill
+     editor). Spacing tuned for landing-page readability. Mirrors the same
+     pattern courses/index.html uses. */
+  .dp-desc p { margin:0 0 14px; }
+  .dp-desc p:last-child { margin-bottom:0; }
+  .dp-desc h2 { font-family:'Plus Jakarta Sans',sans-serif; font-size:22px; font-weight:700; letter-spacing:-0.3px; color:var(--text); margin:24px 0 10px; }
+  .dp-desc h3 { font-family:'Plus Jakarta Sans',sans-serif; font-size:18px; font-weight:700; color:var(--text); margin:20px 0 8px; }
+  .dp-desc ul, .dp-desc ol { margin:0 0 14px; padding-left:22px; }
+  .dp-desc li { margin-bottom:6px; }
+  .dp-desc strong { color:var(--text); font-weight:600; }
+  .dp-desc a { color:var(--accent2); text-decoration:underline; }
+  .dp-desc a:hover { color:var(--accent); }
 
   /* Buy card — matches course page */
   .dp-buy-card { background:var(--surface2); border:1px solid var(--border); border-radius:16px; padding:28px; margin-bottom:24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; }
