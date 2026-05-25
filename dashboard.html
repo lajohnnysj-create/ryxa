@@ -9198,8 +9198,14 @@
             </div>
 
             <!-- Description -->
-            <div class="prod-s-389393">
-              <label for="products-description" class="prod-s-fab4a2">Description</label>
+            <!-- Container matches courses + bookings (course-s-79a1c5 with
+                 margin only) instead of the prod-s-389393 card other product
+                 sections use. The rich-text editor should feel consistent
+                 across all three editors; using the card wrapper here made
+                 the Quill background blend with the card and look different
+                 from courses/bookings. -->
+            <div class="course-s-79a1c5">
+              <label for="products-description" class="course-s-60c543">Description</label>
               <!-- Rich text editor (Quill) mounts here on product editor open.
                    Same pattern as the course description editor: visible Quill
                    editor + hidden textarea acting as a shadow buffer that
