@@ -234,6 +234,16 @@ async function openProductEditor(productId) {
     hydrateProductEditor(null);
   }
   renderProductFiles();
+
+  // Mount the rich-text description editor. Reuses course.js's
+  // ensureQuillLoaded + sanitizeDescriptionHtml (course.js is loaded
+  // before products.js in dashboard.html, so both are globally available).
+  // Fire-and-forget: editor mount is async but we don't block the editor
+  // open on it. The hidden textarea was already populated by
+  // hydrateProductEditor and Quill picks that content up on mount.
+  mountProductDescEditor().catch(function(err) {
+    console.warn('Product description editor failed to mount:', err);
+  });
 }
 
 // Set (or clear) the cover preview in the editor. Drives a real <img> element
@@ -305,6 +315,7 @@ function copyProductUrl() {
 }
 
 function closeProductEditor() {
+  unmountProductDescEditor();
   document.getElementById('products-editor-view').style.display = 'none';
   document.getElementById('products-list-view').style.display = 'block';
   // Revoke the in-memory cover preview URL to free memory
@@ -320,6 +331,157 @@ function closeProductEditor() {
   productsState.coverRemoved = false;
   loadProductsList();
   refreshProductsStorage();
+}
+
+// =====================================================
+// DIGITAL PRODUCT DESCRIPTION RICH-TEXT EDITOR
+// =====================================================
+// Mirrors the course description editor pattern (mountCourseDescEditor in
+// course.js). Reuses course.js's ensureQuillLoaded + sanitizeDescriptionHtml
+// globals since course.js is loaded before products.js on the dashboard.
+// The visible Quill editor mounts INTO a div alongside a hidden textarea;
+// Quill sanitized HTML syncs into the textarea on every edit, and existing
+// save flow reads from the textarea unchanged.
+
+var _productDescQuill = null;
+var _productDescSyncInProgress = false;
+// Same 3000 char HTML cap as courses. Bounded for performance (every
+// landing-page view loads this) and UX (long descriptions don't convert
+// better).
+var PRODUCT_DESC_MAX_HTML = 3000;
+
+async function mountProductDescEditor() {
+  // Idempotent: reuse existing instance if still mounted to live DOM.
+  if (_productDescQuill && _productDescQuill.root && _productDescQuill.root.isConnected) {
+    return _productDescQuill;
+  }
+  _productDescQuill = null;
+
+  var host = document.getElementById('products-desc-editor');
+  var textarea = document.getElementById('products-description');
+  if (!host || !textarea) return null;
+
+  // ensureQuillLoaded is defined in course.js (loaded earlier on this page).
+  if (typeof ensureQuillLoaded !== 'function') {
+    console.warn('ensureQuillLoaded not available; course.js must load before products.js.');
+    return null;
+  }
+  await ensureQuillLoaded();
+  if (typeof Quill === 'undefined') return null;
+
+  // Patch Quill's Link sanitizer once to auto-prepend https:// when users
+  // enter a URL without a scheme (e.g. "example.com"). Without this, the
+  // sanitizer strips the href because its allowlist requires http/https/
+  // mailto, and the link renders as unclickable text on the landing page.
+  // course.js may have already patched this; the guard handles double-call.
+  try {
+    var Link = Quill.import('formats/link');
+    if (Link && !Link._ryxaSanitizePatched) {
+      var origSanitize = Link.sanitize;
+      Link.sanitize = function(url) {
+        var u = String(url || '').trim();
+        if (/^(https?:|mailto:|tel:|#)/i.test(u)) return origSanitize.call(this, u);
+        if (!u) return origSanitize.call(this, u);
+        return origSanitize.call(this, 'https://' + u);
+      };
+      Link._ryxaSanitizePatched = true;
+    }
+  } catch (e) {
+    console.warn('Could not patch Quill link sanitizer:', e);
+  }
+
+  // Same toolbar as courses: emphasis, lists, headings (H2/H3 only), links.
+  var quill = new Quill(host, {
+    theme: 'snow',
+    placeholder: "What's included in your product? Who is it for?",
+    modules: {
+      toolbar: [
+        [{ 'header': [2, 3, false] }],
+        ['bold', 'italic', 'underline'],
+        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+        ['link']
+      ]
+    }
+  });
+
+  // Initialize from whatever's currently in the textarea (set by
+  // hydrateProductEditor before this mounts).
+  var initialHtml = textarea.value || '';
+  if (initialHtml) {
+    var cleanInit = sanitizeDescriptionHtml(initialHtml);
+    if (cleanInit && cleanInit.trim()) {
+      quill.clipboard.dangerouslyPasteHTML(cleanInit);
+    } else {
+      quill.setText(initialHtml);
+    }
+  }
+
+  // Quill -> textarea sync on every edit. Enforces the char limit by
+  // reverting via history.undo when the user exceeds 3000 chars.
+  quill.on('text-change', function() {
+    if (_productDescSyncInProgress) return;
+    var html = sanitizeDescriptionHtml(quill.root.innerHTML);
+    if (html === '<p><br></p>') html = '';
+
+    if (html.length > PRODUCT_DESC_MAX_HTML) {
+      _productDescSyncInProgress = true;
+      try { quill.history.undo(); } catch (e) { /* no history yet */ }
+      _productDescSyncInProgress = false;
+      var counter = document.getElementById('products-desc-counter');
+      if (counter) {
+        counter.textContent = 'Description must be ' + PRODUCT_DESC_MAX_HTML + ' characters or fewer.';
+        counter.style.color = '#ef4444';
+      }
+      return;
+    }
+
+    _productDescSyncInProgress = true;
+    textarea.value = html;
+    _productDescSyncInProgress = false;
+    updateProductDescCounter(html.length);
+  });
+
+  // textarea -> Quill sync. Triggered if anything programmatically sets
+  // the textarea value and dispatches 'input' (matches course pattern).
+  textarea.addEventListener('input', function() {
+    if (_productDescSyncInProgress) return;
+    _productDescSyncInProgress = true;
+    var incoming = textarea.value || '';
+    if (/<[a-z][^>]*>/i.test(incoming)) {
+      quill.setContents([]);
+      quill.clipboard.dangerouslyPasteHTML(sanitizeDescriptionHtml(incoming));
+    } else {
+      quill.setText(incoming);
+    }
+    _productDescSyncInProgress = false;
+  });
+
+  _productDescQuill = quill;
+  updateProductDescCounter((textarea.value || '').length);
+  return quill;
+}
+
+function updateProductDescCounter(length) {
+  var el = document.getElementById('products-desc-counter');
+  if (!el) return;
+  var remaining = PRODUCT_DESC_MAX_HTML - length;
+  el.textContent = length + ' / ' + PRODUCT_DESC_MAX_HTML;
+  if (length >= PRODUCT_DESC_MAX_HTML) {
+    el.style.color = '#ef4444';
+  } else if (remaining < 300) {
+    el.style.color = '#fbbf24';
+  } else {
+    el.style.color = 'var(--muted)';
+  }
+}
+
+function unmountProductDescEditor() {
+  if (!_productDescQuill) return;
+  try {
+    var host = document.getElementById('products-desc-editor');
+    if (host) host.innerHTML = '';
+  } catch (e) { /* non-fatal */ }
+  _productDescQuill = null;
 }
 
 var _dpSlugManuallyEdited = false;
