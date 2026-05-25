@@ -71,17 +71,52 @@ var clientsData = [];
 var clientsFiltered = [];
 var clientsCurrentPage = 0;
 var CLIENTS_PER_PAGE = 50;
+// Set of emails the creator has marked "Remove from list". Populated from
+// the subscriber_suppressions table on load. Used to filter clientsData
+// AFTER aggregation so a suppressed buyer still keeps their purchase records.
+var clientsSuppressed = new Set();
+// Set of selected emails for bulk actions. Persists across pagination within
+// a single session so creators can select across pages.
+var clientsSelected = new Set();
+
+// Order matters: when the same email appears in multiple sources, the SOURCE
+// PRIORITY (lower number = earlier signup) wins for the "first source" badge.
+// Within each loop we also pick the OLDEST date for that source. Combining
+// these two rules gives us "first source they joined under".
+var CLIENT_SOURCE_PRIORITY = { course: 0, booking: 1, product: 2, bio: 3 };
+var CLIENT_SOURCE_LABEL = { course: 'Course', booking: 'Booking', product: 'Product', bio: 'Bio' };
 
 function filterSubscribers() {
   var query = (document.getElementById('clients-search')?.value || '').toLowerCase().trim();
   var optinOnly = document.getElementById('clients-optin-filter')?.checked || false;
+  var rangeDays = parseInt(document.getElementById('clients-range-filter')?.value || 'all', 10);
+  var cutoffMs = (!isNaN(rangeDays) && rangeDays > 0)
+    ? (Date.now() - rangeDays * 24 * 60 * 60 * 1000)
+    : null;
+
   clientsFiltered = clientsData.filter(function(c) {
     if (query && !c.email.toLowerCase().includes(query)) return false;
     if (optinOnly && !c.optin) return false;
+    if (cutoffMs !== null && new Date(c.date).getTime() < cutoffMs) return false;
     return true;
   });
+  applyClientsSort();
   clientsCurrentPage = 0;
   renderSubscribersPage();
+}
+
+function applyClientsSort() {
+  var sort = document.getElementById('clients-sort')?.value || 'date-desc';
+  clientsFiltered.sort(function(a, b) {
+    switch (sort) {
+      case 'date-asc': return new Date(a.date) - new Date(b.date);
+      case 'email-asc': return a.email.localeCompare(b.email);
+      case 'email-desc': return b.email.localeCompare(a.email);
+      case 'source-asc': return (CLIENT_SOURCE_LABEL[a.source] || 'Z').localeCompare(CLIENT_SOURCE_LABEL[b.source] || 'Z');
+      case 'date-desc':
+      default: return new Date(b.date) - new Date(a.date);
+    }
+  });
 }
 
 function clientsPage(dir) {
@@ -98,7 +133,7 @@ function renderSubscribersPage() {
   var maxPage = Math.max(0, Math.floor((clientsFiltered.length - 1) / CLIENTS_PER_PAGE));
 
   if (page.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="3" class="ana-s-cd4491">' + (clientsData.length > 0 ? 'No results found' : 'No subscribers yet') + '</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" class="ana-s-cd4491">' + (clientsData.length > 0 ? 'No results found' : 'No subscribers yet') + '</td></tr>';
   } else {
     tbody.innerHTML = page.map(function(c) {
       var d = new Date(c.date);
@@ -106,12 +141,32 @@ function renderSubscribersPage() {
       var optinBadge = c.optin
         ? '<span class="clients-s-becac0">Yes</span>'
         : '<span class="prod-s-6c6a73">No</span>';
+      var sourceClass = 'clients-s-source-' + (c.source || 'bio');
+      var sourceLabel = CLIENT_SOURCE_LABEL[c.source] || 'Bio';
+      var checked = clientsSelected.has(c.email) ? ' checked' : '';
+      var escEmail = (typeof escapeHtml === 'function') ? escapeHtml(c.email) : c.email;
       return '<tr class="ana-s-a56f95">'
-        + '<td class="clients-s-949353">' + c.email + '</td>'
+        + '<td class="clients-s-row-check-cell">'
+        + '<input type="checkbox" class="clients-s-checkbox" data-clients-action="toggle-row" data-clients-event="change" data-clients-email="' + escEmail + '" aria-label="Select ' + escEmail + '"' + checked + '>'
+        + '</td>'
+        + '<td class="clients-s-949353">' + escEmail + '</td>'
+        + '<td class="clients-s-source-cell"><span class="clients-s-source-badge ' + sourceClass + '">' + sourceLabel + '</span></td>'
         + '<td class="clients-s-e6b633">' + optinBadge + '</td>'
         + '<td class="ana-s-14ba36">' + date + '</td>'
+        + '<td class="clients-s-row-remove-cell">'
+        + '<button class="clients-s-row-remove" data-clients-action="remove-one" data-clients-email="' + escEmail + '" aria-label="Remove ' + escEmail + ' from list" title="Remove from list">'
+        + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+        + '</button>'
+        + '</td>'
         + '</tr>';
     }).join('');
+  }
+
+  // Sync "select all on this page" checkbox state: checked only when EVERY
+  // row on the current page is in the selected set.
+  var selectAllEl = document.getElementById('clients-select-all');
+  if (selectAllEl) {
+    selectAllEl.checked = page.length > 0 && page.every(function(c) { return clientsSelected.has(c.email); });
   }
 
   var pagination = document.getElementById('clients-pagination');
@@ -123,14 +178,78 @@ function renderSubscribersPage() {
   } else {
     pagination.style.display = 'none';
   }
+
+  renderBulkBar();
+}
+
+function renderBulkBar() {
+  var bar = document.getElementById('clients-bulk-bar');
+  if (!bar) return;
+  var count = clientsSelected.size;
+  if (count === 0) {
+    bar.style.display = 'none';
+  } else {
+    bar.style.display = 'flex';
+    var countEl = document.getElementById('clients-bulk-count');
+    if (countEl) countEl.textContent = count + ' selected';
+  }
+}
+
+function renderClientsStats() {
+  var total = clientsData.length;
+  var optin = clientsData.filter(function(c) { return c.optin; }).length;
+  var optout = total - optin;
+  var totalEl = document.getElementById('clients-stat-total');
+  var optinEl = document.getElementById('clients-stat-optin');
+  var optoutEl = document.getElementById('clients-stat-optout');
+  if (totalEl) totalEl.textContent = total.toLocaleString();
+  if (optinEl) optinEl.textContent = optin.toLocaleString();
+  if (optoutEl) optoutEl.textContent = optout.toLocaleString();
+}
+
+// Helper for merging sources. Picks the "first source" by oldest date when
+// a subscriber appears in multiple source tables, breaking ties by the
+// CLIENT_SOURCE_PRIORITY order (course before booking before product before bio).
+function clientUpsert(clientMap, key, incoming) {
+  if (!clientMap[key]) {
+    clientMap[key] = incoming;
+    return;
+  }
+  var existing = clientMap[key];
+  // Marketing consent is sticky: once true, stays true.
+  if (incoming.optin) existing.optin = true;
+  // Date: keep the OLDEST (when they first appeared on the list).
+  if (new Date(incoming.date) < new Date(existing.date)) {
+    existing.date = incoming.date;
+    // The new oldest record's source becomes the "first source".
+    existing.source = incoming.source;
+  } else if (new Date(incoming.date).getTime() === new Date(existing.date).getTime()) {
+    // Tie on date: lower priority value wins (course beats booking, etc.).
+    var oldPri = CLIENT_SOURCE_PRIORITY[existing.source] ?? 99;
+    var newPri = CLIENT_SOURCE_PRIORITY[incoming.source] ?? 99;
+    if (newPri < oldPri) existing.source = incoming.source;
+  }
 }
 
 async function loadClients() {
   const tbody = document.getElementById('clients-tbody');
   if (!tbody || !currentUser) return;
-  tbody.innerHTML = '<tr><td colspan="2" class="ana-s-cd4491">Loading...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="6" class="ana-s-cd4491">Loading...</td></tr>';
   try {
     const clientMap = {};
+
+    // Pull the creator's suppression list FIRST so we can filter the final
+    // aggregate cleanly. Tiny query usually; index lookup on (creator_id).
+    clientsSuppressed = new Set();
+    try {
+      const { data: suppressions } = await sb
+        .from('subscriber_suppressions')
+        .select('email')
+        .eq('creator_id', currentUser.id);
+      if (suppressions) {
+        suppressions.forEach(function(s) { if (s.email) clientsSuppressed.add(s.email.toLowerCase()); });
+      }
+    } catch (suppErr) { console.warn('Could not load suppressions (table may not exist yet):', suppErr); }
 
     const { data: enrollments } = await sb
       .from('course_enrollments')
@@ -141,12 +260,13 @@ async function loadClients() {
       enrollments.forEach(function(e) {
         if (!e.courses || e.courses.user_id !== currentUser.id) return;
         var email = e.buyer_email || '';
-        var key = email || e.user_id;
-        if (!clientMap[key]) {
-          clientMap[key] = { email: email, date: e.enrolled_at, optin: !!e.marketing_consent };
-        } else if (e.marketing_consent) {
-          clientMap[key].optin = true;
-        }
+        var key = (email || e.user_id).toLowerCase();
+        clientUpsert(clientMap, key, {
+          email: email,
+          date: e.enrolled_at,
+          optin: !!e.marketing_consent,
+          source: 'course'
+        });
       });
     }
 
@@ -159,17 +279,17 @@ async function loadClients() {
       bookings.forEach(function(b) {
         if (!b.coaching_services || b.coaching_services.user_id !== currentUser.id) return;
         var email = b.buyer_email || '';
-        var key = email || b.user_id;
-        if (!clientMap[key]) {
-          clientMap[key] = { email: email, date: b.booked_at, optin: !!b.marketing_consent };
-        } else {
-          if (b.marketing_consent) clientMap[key].optin = true;
-          if (new Date(b.booked_at) < new Date(clientMap[key].date)) clientMap[key].date = b.booked_at;
-        }
+        var key = (email || b.user_id).toLowerCase();
+        clientUpsert(clientMap, key, {
+          email: email,
+          date: b.booked_at,
+          optin: !!b.marketing_consent,
+          source: 'booking'
+        });
       });
     }
 
-    // Digital product purchases — same opt-in pattern as courses/bookings
+    // Digital product purchases, same opt-in pattern as courses/bookings.
     const { data: dpPurchases } = await sb
       .from('digital_product_purchases')
       .select('buyer_user_id, buyer_email, purchased_at, marketing_consent, digital_products(user_id)')
@@ -179,17 +299,17 @@ async function loadClients() {
       dpPurchases.forEach(function(p) {
         if (!p.digital_products || p.digital_products.user_id !== currentUser.id) return;
         var email = p.buyer_email || '';
-        var key = email || p.buyer_user_id;
-        if (!clientMap[key]) {
-          clientMap[key] = { email: email, date: p.purchased_at, optin: !!p.marketing_consent };
-        } else {
-          if (p.marketing_consent) clientMap[key].optin = true;
-          if (new Date(p.purchased_at) < new Date(clientMap[key].date)) clientMap[key].date = p.purchased_at;
-        }
+        var key = (email || p.buyer_user_id).toLowerCase();
+        clientUpsert(clientMap, key, {
+          email: email,
+          date: p.purchased_at,
+          optin: !!p.marketing_consent,
+          source: 'product'
+        });
       });
     }
 
-    // Fetch bio email signups (always opted in)
+    // Bio email signups (always opted in).
     const { data: signups } = await sb
       .from('bio_email_signups')
       .select('email, created_at')
@@ -199,32 +319,40 @@ async function loadClients() {
       signups.forEach(function(s) {
         var email = s.email || '';
         if (!email) return;
-        if (!clientMap[email]) {
-          clientMap[email] = { email: email, date: s.created_at, optin: true };
-        } else {
-          clientMap[email].optin = true;
-          if (new Date(s.created_at) < new Date(clientMap[email].date)) clientMap[email].date = s.created_at;
-        }
+        var key = email.toLowerCase();
+        clientUpsert(clientMap, key, {
+          email: email,
+          date: s.created_at,
+          optin: true,
+          source: 'bio'
+        });
       });
     }
 
-    var clients = Object.values(clientMap).filter(function(c) { return c.email; });
+    // Filter out suppressed emails AFTER aggregation so the underlying
+    // purchase records remain untouched in their source tables.
+    var clients = Object.values(clientMap).filter(function(c) {
+      return c.email && !clientsSuppressed.has(c.email.toLowerCase());
+    });
     clients.sort(function(a, b) { return new Date(b.date) - new Date(a.date); });
     clientsData = clients;
     clientsFiltered = clients.slice();
+    applyClientsSort();
     clientsCurrentPage = 0;
+    clientsSelected = new Set();
 
     var countEl = document.getElementById('clients-count');
     if (countEl) countEl.textContent = clients.length + ' subscriber' + (clients.length !== 1 ? 's' : '');
 
-    // Clear search on reload
+    // Clear search on reload.
     var searchEl = document.getElementById('clients-search');
     if (searchEl) searchEl.value = '';
 
+    renderClientsStats();
     renderSubscribersPage();
   } catch (e) {
     console.error('Subscribers load error:', e);
-    tbody.innerHTML = '<tr><td colspan="2" class="ana-s-cd4491">Could not load subscribers</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" class="ana-s-cd4491">Could not load subscribers</td></tr>';
   }
 }
 
@@ -234,11 +362,12 @@ function exportSubscribers() {
     showModalAlert('No Data', 'No subscribers to export.');
     return;
   }
-  var csv = 'Email,Opt In,Date Joined\n';
+  var csv = 'Email,Source,Opt In,Date Joined\n';
   exportData.forEach(function(c) {
     var d = new Date(c.date);
     var date = (d.getMonth()+1) + '/' + d.getDate() + '/' + d.getFullYear();
-    csv += '"' + c.email.replace(/"/g, '""') + '",' + (c.optin ? 'Yes' : 'No') + ',' + date + '\n';
+    var source = CLIENT_SOURCE_LABEL[c.source] || 'Bio';
+    csv += '"' + c.email.replace(/"/g, '""') + '",' + source + ',' + (c.optin ? 'Yes' : 'No') + ',' + date + '\n';
   });
   var blob = new Blob([csv], { type: 'text/csv' });
   var url = URL.createObjectURL(blob);
@@ -249,6 +378,97 @@ function exportSubscribers() {
   URL.revokeObjectURL(url);
 }
 
+// --- Bulk selection + remove ---
+
+function clientsToggleRow(email, checked) {
+  if (!email) return;
+  if (checked) clientsSelected.add(email);
+  else clientsSelected.delete(email);
+  // Sync "select all" checkbox state without re-rendering the whole table.
+  var selectAllEl = document.getElementById('clients-select-all');
+  if (selectAllEl) {
+    var start = clientsCurrentPage * CLIENTS_PER_PAGE;
+    var page = clientsFiltered.slice(start, start + CLIENTS_PER_PAGE);
+    selectAllEl.checked = page.length > 0 && page.every(function(c) { return clientsSelected.has(c.email); });
+  }
+  renderBulkBar();
+}
+
+function clientsToggleAll(checked) {
+  var start = clientsCurrentPage * CLIENTS_PER_PAGE;
+  var page = clientsFiltered.slice(start, start + CLIENTS_PER_PAGE);
+  page.forEach(function(c) {
+    if (checked) clientsSelected.add(c.email);
+    else clientsSelected.delete(c.email);
+  });
+  renderSubscribersPage();
+}
+
+function clientsClearSelection() {
+  clientsSelected = new Set();
+  renderSubscribersPage();
+}
+
+async function clientsBulkRemove() {
+  if (clientsSelected.size === 0) return;
+  var emails = Array.from(clientsSelected);
+  var confirmText = emails.length === 1
+    ? 'Remove this subscriber from your list? Their purchase records stay intact, but they will no longer appear in your subscribers list or exports.'
+    : 'Remove ' + emails.length + ' subscribers from your list? Their purchase records stay intact, but they will no longer appear in your subscribers list or exports.';
+  var confirmed = await confirmTypedDelete('Remove from List', confirmText, 'Remove');
+  if (!confirmed) return;
+
+  try {
+    var rows = emails.map(function(email) {
+      return { creator_id: currentUser.id, email: email };
+    });
+    // Upsert so re-removing an already-suppressed email is a no-op (the
+    // unique constraint on (creator_id, email) would otherwise throw).
+    var { error } = await sb.from('subscriber_suppressions').upsert(rows, {
+      onConflict: 'creator_id,email',
+      ignoreDuplicates: true
+    });
+    if (error) throw error;
+    emails.forEach(function(e) { clientsSuppressed.add(e.toLowerCase()); });
+    clientsData = clientsData.filter(function(c) { return !clientsSuppressed.has(c.email.toLowerCase()); });
+    clientsSelected = new Set();
+    filterSubscribers();
+    renderClientsStats();
+    var countEl = document.getElementById('clients-count');
+    if (countEl) countEl.textContent = clientsData.length + ' subscriber' + (clientsData.length !== 1 ? 's' : '');
+  } catch (e) {
+    console.error('Bulk remove failed:', e);
+    showModalAlert('Could not remove', e.message || 'Failed to remove subscribers.');
+  }
+}
+
+async function clientsRemoveOne(email) {
+  if (!email) return;
+  var confirmed = await confirmTypedDelete(
+    'Remove from List',
+    'Remove ' + email + ' from your subscribers list? Their purchase records stay intact, but they will no longer appear in your list or exports.',
+    'Remove'
+  );
+  if (!confirmed) return;
+
+  try {
+    var { error } = await sb.from('subscriber_suppressions').upsert([
+      { creator_id: currentUser.id, email: email }
+    ], { onConflict: 'creator_id,email', ignoreDuplicates: true });
+    if (error) throw error;
+    clientsSuppressed.add(email.toLowerCase());
+    clientsData = clientsData.filter(function(c) { return c.email.toLowerCase() !== email.toLowerCase(); });
+    clientsSelected.delete(email);
+    filterSubscribers();
+    renderClientsStats();
+    var countEl = document.getElementById('clients-count');
+    if (countEl) countEl.textContent = clientsData.length + ' subscriber' + (clientsData.length !== 1 ? 's' : '');
+  } catch (e) {
+    console.error('Remove failed:', e);
+    showModalAlert('Could not remove', e.message || 'Failed to remove subscriber.');
+  }
+}
+
 
 // =============================================================================
 // ACTION REGISTRATIONS — wired up below as part of Phase 2
@@ -256,6 +476,12 @@ function exportSubscribers() {
 
 clientsRegisterAction('export', () => exportSubscribers());
 clientsRegisterAction('filter', () => filterSubscribers());
+clientsRegisterAction('sort-change', () => { applyClientsSort(); clientsCurrentPage = 0; renderSubscribersPage(); });
 clientsRegisterAction('page', (e, el) => clientsPage(parseInt(el.dataset.clientsDir, 10)));
 clientsRegisterAction('remove-readonly', (e, el) => el.removeAttribute('readonly'));
+clientsRegisterAction('toggle-row', (e, el) => clientsToggleRow(el.dataset.clientsEmail, el.checked));
+clientsRegisterAction('toggle-all', (e, el) => clientsToggleAll(el.checked));
+clientsRegisterAction('bulk-remove', () => clientsBulkRemove());
+clientsRegisterAction('bulk-clear', () => clientsClearSelection());
+clientsRegisterAction('remove-one', (e, el) => clientsRemoveOne(el.dataset.clientsEmail));
 
