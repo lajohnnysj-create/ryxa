@@ -5226,6 +5226,10 @@
   .clients-s-note-textarea { width:100%;padding:12px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;line-height:1.6;font-family:DM Sans,sans-serif;outline:none;resize:vertical;min-height:120px;box-sizing:border-box; }
   .clients-s-note-textarea:focus { border-color:var(--border-hover); }
   .clients-s-note-hint { font-size:11px;color:var(--muted);margin-top:6px; }
+  .clients-s-modal-footer { display:flex;justify-content:flex-end;padding:14px 22px;border-top:1px solid var(--border);background:var(--surface); }
+  .clients-s-modal-done { padding:8px 22px;background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.35);color:#c4b5fd;border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.15s; }
+  .clients-s-modal-done:hover { background:rgba(124,58,237,0.22);border-color:rgba(124,58,237,0.55);color:#fff; }
+  .clients-s-modal-done:disabled { opacity:0.6;cursor:default; }
   @media (max-width: 500px) {
     .clients-s-detail-grid { grid-template-columns:1fr;gap:10px;padding:12px 14px; }
   }
@@ -7747,8 +7751,11 @@
                     <span id="clients-detail-note-status" class="clients-s-note-status" aria-live="polite"></span>
                   </div>
                   <textarea id="clients-detail-note" placeholder="Add a private note about this subscriber. Only you can see it." rows="6" maxlength="5000" data-clients-action="note-blur" data-clients-event="blur" class="clients-s-note-textarea"></textarea>
-                  <div class="clients-s-note-hint">Notes save automatically when you click out. Max 5,000 characters.</div>
+                  <div class="clients-s-note-hint">Notes save automatically. Max 5,000 characters.</div>
                 </div>
+              </div>
+              <div class="clients-s-modal-footer">
+                <button data-clients-action="done-detail" class="clients-s-modal-done dash-h-186bb3">Done</button>
               </div>
             </div>
           </div>
