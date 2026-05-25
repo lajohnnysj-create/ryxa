@@ -4463,9 +4463,9 @@
      light-theme CSS by default; these overrides retheme it for our dark
      surface and keep the toolbar consistent with the rest of the dashboard.
      The editor lazy-loads (~75KB) only when a creator expands a text lesson. */
-  .course-s-quill-host { background:transparent;border-radius:8px; }
+  .course-s-quill-host { background:var(--surface2);border-radius:8px; }
   .course-s-quill-host .ql-toolbar.ql-snow { border-color:var(--border);border-radius:8px 8px 0 0;background:var(--surface);padding:8px; }
-  .course-s-quill-host .ql-container.ql-snow { border-color:var(--border);border-radius:0 0 8px 8px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text); }
+  .course-s-quill-host .ql-container.ql-snow { border-color:var(--border);border-radius:0 0 8px 8px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);background:var(--surface2); }
   /* Link tooltip: by default it absolute-positions from the link's location
      and can overflow the editor's right edge or get clipped by parent
      containers. Pin it to the left of the editor and lift z-index so it
