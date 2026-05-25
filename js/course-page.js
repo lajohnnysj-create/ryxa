@@ -106,9 +106,14 @@ async function init() {
   }
 
   // Update page meta
-  document.title = course.title + ' — Ryxa';
+  document.title = course.title + ' - Ryxa';
   const metaDesc = document.querySelector('meta[name="description"]');
-  if (metaDesc) metaDesc.content = (course.description || '').slice(0, 160);
+  if (metaDesc) {
+    // Description may now contain HTML (from the rich-text editor). Strip
+    // tags for the meta description, which must be plain text.
+    var descPlain = (course.description || '').replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+    metaDesc.content = descPlain.slice(0, 160);
+  }
 
   // Render
   renderCourse(course, creatorName, modules || [], lessons || [], quizzes || [], session);
@@ -203,7 +208,25 @@ function renderCourse(course, creatorName, modules, lessons, quizzes, session) {
   // Title, creator, description
   document.getElementById('cp-title').textContent = course.title;
   document.getElementById('cp-creator').innerHTML = 'by <a href="/' + escapeHtml(creatorName) + '" style="color:inherit;text-decoration:none;"><strong>' + escapeHtml(creatorName) + '</strong></a>';
-  document.getElementById('cp-desc').textContent = course.description || '';
+  // Description is rich-text HTML (sanitized when saved by the dashboard's
+  // Quill editor). Sanitize again on render as defense in depth - never
+  // trust HTML alone, even our own. Falls back to plain text if DOMPurify
+  // isn't available yet (script load order or blocked).
+  var descRaw = course.description || '';
+  var descEl = document.getElementById('cp-desc');
+  if (typeof DOMPurify !== 'undefined') {
+    descEl.innerHTML = DOMPurify.sanitize(descRaw, {
+      ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 's', 'a', 'h2', 'h3', 'ul', 'ol', 'li'],
+      ALLOWED_ATTR: ['href', 'target', 'rel'],
+      ALLOWED_URI_REGEXP: /^(?:https?:|mailto:)/i
+    });
+    // Enforce noopener noreferrer on every target=_blank link.
+    descEl.querySelectorAll('a[target="_blank"]').forEach(function(a) {
+      a.setAttribute('rel', 'noopener noreferrer');
+    });
+  } else {
+    descEl.textContent = descRaw.replace(/<[^>]*>/g, '');
+  }
 
   // Price & buy
   const priceEl = document.getElementById('cp-price');

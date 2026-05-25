@@ -251,9 +251,20 @@ async function openCourseEditor(courseId) {
     document.getElementById('courses-editor-title').textContent = 'New Course';
     document.getElementById('course-slug-notice').textContent = 'This URL is generated from your title and locked permanently once saved.';
   }
+
+  // Mount the rich-text description editor. Runs for both new and existing
+  // courses. Fire-and-forget: editor mount is async (loads Quill on first
+  // call) but we don't want to block the editor open on it. If the user
+  // edits the title/slug before Quill finishes loading, that's fine - the
+  // description textarea is the only field that needs Quill, and it stays
+  // empty until Quill is ready.
+  mountCourseDescEditor().catch(function(err) {
+    console.warn('Description editor failed to mount:', err);
+  });
 }
 
 function closeCourseEditor() {
+  unmountCourseDescEditor();
   document.getElementById('courses-editor-view').style.display = 'none';
   document.getElementById('courses-list-view').style.display = 'block';
   currentCourseId = null;
@@ -1699,6 +1710,114 @@ function countQuillImages(quill) {
   var html = quill.root.innerHTML;
   var matches = html.match(/<img\b/g);
   return matches ? matches.length : 0;
+}
+
+// =============================================================================
+// COURSE DESCRIPTION RICH-TEXT EDITOR
+// =============================================================================
+// The course description field uses the same Quill setup as lessons (loaded
+// via ensureQuillLoaded). To keep the existing save flow and AI Cleanup
+// untouched, the editor mounts INTO a div alongside a hidden textarea: Quill
+// content is synced (sanitized) into the textarea's value on every change,
+// and the textarea's `input` event syncs back into Quill (so when AI Cleanup
+// writes the cleaned text back via textarea.value + dispatchEvent('input'),
+// the rich editor picks up the change).
+
+var _courseDescQuill = null;
+var _courseDescSyncInProgress = false;
+
+async function mountCourseDescEditor() {
+  // Idempotent: if already mounted to the live host, return existing instance.
+  if (_courseDescQuill && _courseDescQuill.root && _courseDescQuill.root.isConnected) {
+    return _courseDescQuill;
+  }
+  _courseDescQuill = null;
+
+  var host = document.getElementById('course-desc-editor');
+  var textarea = document.getElementById('course-desc-input');
+  if (!host || !textarea) return null;
+
+  await ensureQuillLoaded();
+  if (typeof Quill === 'undefined') return null;
+
+  // Toolbar matches what's useful for course descriptions: emphasis, lists,
+  // headings (H2/H3 only - no H1 since that's the course title), links.
+  // Intentionally omitting align/image/clean: less clutter, no creators
+  // making rainbow descriptions on the landing page.
+  var quill = new Quill(host, {
+    theme: 'snow',
+    placeholder: 'What will students learn? Why should they take this course?',
+    modules: {
+      toolbar: [
+        [{ 'header': [2, 3, false] }],
+        ['bold', 'italic', 'underline'],
+        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+        ['link']
+      ]
+    }
+  });
+
+  // Initialize Quill content from whatever's currently in the textarea
+  // (set by openCourseEditor before this mounts).
+  var initialHtml = textarea.value || '';
+  if (initialHtml) {
+    var cleanInit = sanitizeLessonHtml(initialHtml);
+    // If sanitization stripped everything (e.g., plain text saved from the
+    // old textarea era), fall back to inserting it as a single paragraph.
+    if (cleanInit && cleanInit.trim()) {
+      quill.clipboard.dangerouslyPasteHTML(cleanInit);
+    } else {
+      quill.setText(initialHtml);
+    }
+  }
+
+  // Quill → textarea: every edit syncs sanitized HTML into the hidden
+  // textarea so saveCourse and any other consumer reads the rich content.
+  quill.on('text-change', function() {
+    if (_courseDescSyncInProgress) return;
+    var html = sanitizeLessonHtml(quill.root.innerHTML);
+    // Quill's empty state is '<p><br></p>' - treat as empty so saved
+    // descriptions don't carry that stub.
+    if (html === '<p><br></p>') html = '';
+    _courseDescSyncInProgress = true;
+    textarea.value = html;
+    _courseDescSyncInProgress = false;
+  });
+
+  // textarea → Quill: AI Cleanup writes cleaned text back to the textarea
+  // and dispatches an 'input' event. Listen for that and re-import the new
+  // text into Quill. Wrapped in the sync guard so the resulting text-change
+  // from setText doesn't echo back and overwrite the textarea.
+  textarea.addEventListener('input', function() {
+    if (_courseDescSyncInProgress) return;
+    _courseDescSyncInProgress = true;
+    var incoming = textarea.value || '';
+    // If the incoming value looks like HTML (e.g., came back from a save
+    // round-trip), paste it as HTML. Otherwise treat as plain text so the
+    // AI Cleanup output (plain prose) lands cleanly.
+    if (/<[a-z][^>]*>/i.test(incoming)) {
+      quill.setContents([]);
+      quill.clipboard.dangerouslyPasteHTML(sanitizeLessonHtml(incoming));
+    } else {
+      quill.setText(incoming);
+    }
+    _courseDescSyncInProgress = false;
+  });
+
+  _courseDescQuill = quill;
+  return quill;
+}
+
+function unmountCourseDescEditor() {
+  if (!_courseDescQuill) return;
+  try {
+    // Clear the host so it's empty for the next mount. Quill doesn't have a
+    // proper destroy(), but discarding the reference + emptying the host is
+    // enough since the next mount creates a fresh instance.
+    var host = document.getElementById('course-desc-editor');
+    if (host) host.innerHTML = '';
+  } catch (e) { /* non-fatal */ }
+  _courseDescQuill = null;
 }
 
 // Initialize a Quill editor inside the placeholder div for a given lesson.
