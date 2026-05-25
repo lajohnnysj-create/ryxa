@@ -30,6 +30,7 @@
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js" integrity="sha384-BSxuMLxX+FCbTdYec3TbXlnMGEEM2QXTFdtDaveen71o+jswm2J36+xFqp8k4VHM" crossorigin="anonymous" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/tus-js-client@4.3.1/dist/tus.min.js" integrity="sha384-UlHjK3F7TCQCEUpnoa1ohMbP2oaWB3Aypv4gMo511vaZ86uUZ0Zv7UzZ0J1zRUT1" crossorigin="anonymous" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" integrity="sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG" crossorigin="anonymous" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js" integrity="sha512-dfX5uYVXzyU8+KHqj8bjo7UkOdg18PaOtpa48djpNbZHwExddghZ+ZmzWT06R5v6NSk3ZUfsH6FNEDepLx9hPQ==" crossorigin="anonymous" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.mjs" integrity="sha384-uwJM5C0hGZH5Ed/vHx4Ht1PUd8ABIDVIcLbHydZOdFL5eTUG8Jdr32xNVIyn0kYH" crossorigin="anonymous" type="module"></script>
 <!-- PDF.js loader (extracted from two inline blocks, 2026-05-11).
      Creates window.__pdfjsReady promise + imports pdfjsLib + resolves promise. -->
@@ -5192,6 +5193,7 @@
   .clients-s-source-booking { background:rgba(34,197,94,0.15);color:#86efac; }
   .clients-s-source-product { background:rgba(251,191,36,0.15);color:#fcd34d; }
   .clients-s-source-bio { background:rgba(56,189,248,0.15);color:#7dd3fc; }
+  .clients-s-source-manual { background:rgba(192,132,252,0.15);color:#d8b4fe; }
   .clients-s-row-remove-cell { padding:10px 14px 10px 0;width:36px;text-align:right; }
   .clients-s-row-remove { width:24px;height:24px;background:transparent;border:none;border-radius:6px;color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all 0.15s; }
   .clients-s-row-remove:hover { background:rgba(239,68,68,0.12);color:#fca5a5; }
@@ -5230,6 +5232,66 @@
   .clients-s-modal-done { padding:8px 22px;background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.35);color:#c4b5fd;border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.15s; }
   .clients-s-modal-done:hover { background:rgba(124,58,237,0.22);border-color:rgba(124,58,237,0.55);color:#fff; }
   .clients-s-modal-done:disabled { opacity:0.6;cursor:default; }
+  .clients-s-modal-cancel { padding:8px 16px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:8px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.15s;margin-right:8px; }
+  .clients-s-modal-cancel:hover { color:var(--text);border-color:var(--border-hover); }
+  .clients-s-modal-wide { max-width:720px; }
+
+  /* Header actions row: Add / Import / Export */
+  .clients-s-header-actions { display:flex;gap:8px;flex-wrap:wrap; }
+  .clients-s-action-btn { padding:8px 14px;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all 0.15s;white-space:nowrap; }
+  .clients-s-action-btn:hover { background:var(--surface);border-color:var(--border-hover); }
+
+  /* Manual Add modal */
+  .clients-s-add-field { margin-bottom:14px; }
+  .clients-s-add-field:last-of-type { margin-bottom:0; }
+  .clients-s-add-grid { display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px; }
+  .clients-s-add-input { width:100%;padding:11px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box; }
+  .clients-s-add-input:focus { border-color:var(--border-hover); }
+  .clients-s-req { color:#fca5a5; }
+  .clients-s-add-error { margin-top:14px;padding:10px 14px;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.35);color:#fca5a5;border-radius:8px;font-size:13px; }
+  @media (max-width: 500px) {
+    .clients-s-add-grid { grid-template-columns:1fr; }
+  }
+
+  /* Import CSV modal */
+  .clients-s-import-step { padding:6px 0; }
+  .clients-s-import-intro { font-size:13px;color:var(--muted);line-height:1.6;margin:0 0 18px 0; }
+  .clients-s-dropzone { display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:38px 24px;background:var(--surface2);border:2px dashed var(--border);border-radius:12px;color:var(--muted);cursor:pointer;transition:all 0.15s;text-align:center; }
+  .clients-s-dropzone:hover { border-color:rgba(124,58,237,0.4);color:#c4b5fd; }
+  .clients-s-dropzone-text { font-size:14px;color:var(--text);font-weight:500;margin-top:6px; }
+  .clients-s-dropzone-hint { font-size:11px;color:var(--muted); }
+  .clients-s-dropzone-input { display:none; }
+  .clients-s-import-summary { display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:12px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;margin-bottom:16px; }
+  .clients-s-import-file { font-size:13px;color:var(--text);font-weight:500;word-break:break-all; }
+  .clients-s-import-stats { font-size:12px;color:var(--muted); }
+  .clients-s-import-field-block { margin-bottom:16px; }
+  .clients-s-import-hint { font-size:11px;color:var(--muted);margin-top:6px; }
+  .clients-s-import-preview-block { margin-bottom:16px; }
+  .clients-s-import-preview-wrap { margin-top:6px;overflow-x:auto;border:1px solid var(--border);border-radius:8px;background:var(--surface2); }
+  .clients-s-import-preview-table { width:100%;border-collapse:collapse;font-size:12px; }
+  .clients-s-import-preview-table th { padding:8px 10px;text-align:left;font-weight:600;color:var(--muted);background:var(--surface);border-bottom:1px solid var(--border);white-space:nowrap;text-transform:uppercase;letter-spacing:0.04em;font-size:10px; }
+  .clients-s-import-preview-table td { padding:7px 10px;color:var(--text);border-bottom:1px solid var(--border);white-space:nowrap;max-width:180px;overflow:hidden;text-overflow:ellipsis; }
+  .clients-s-import-preview-table tr:last-child td { border-bottom:none; }
+  .clients-s-import-validation { padding:12px 14px;background:rgba(124,58,237,0.06);border:1px solid rgba(124,58,237,0.2);border-radius:8px;font-size:13px;color:#c8c6d8;line-height:1.6; }
+  .clients-s-import-validation-line { display:flex;justify-content:space-between;gap:14px;margin-bottom:4px; }
+  .clients-s-import-validation-line:last-child { margin-bottom:0; }
+  .clients-s-import-validation-num { font-weight:600;color:var(--text); }
+  .clients-s-import-validation-num-error { color:#fca5a5; }
+  .clients-s-import-validation-num-skip { color:#fbbf24; }
+  .clients-s-import-validation-num-add { color:#4ade80; }
+
+  /* Progress bar */
+  .clients-s-import-progress-label { font-size:13px;color:var(--text);margin-bottom:10px;text-align:center; }
+  .clients-s-import-progress-bar { width:100%;height:8px;background:var(--surface2);border-radius:4px;overflow:hidden;margin-bottom:8px; }
+  .clients-s-import-progress-fill { height:100%;background:linear-gradient(90deg,#7c3aed,#a78bfa);border-radius:4px;width:0%;transition:width 0.2s ease; }
+  .clients-s-import-progress-meta { font-size:11px;color:var(--muted);text-align:center; }
+
+  /* Result step */
+  .clients-s-import-result-icon { text-align:center;margin:14px 0 14px 0; }
+  .clients-s-import-result-title { font-size:18px;font-weight:700;color:var(--text);text-align:center;margin-bottom:16px;font-family:Plus Jakarta Sans,sans-serif; }
+  .clients-s-import-result-stats { padding:14px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;font-size:13px;line-height:1.8;color:var(--text); }
+  .clients-s-import-result-stats .clients-s-import-validation-line { margin-bottom:0; }
+
   @media (max-width: 500px) {
     .clients-s-detail-grid { grid-template-columns:1fr;gap:10px;padding:12px 14px; }
   }
@@ -7638,10 +7700,20 @@
             <div>
               <p class="clients-s-e81ef5" id="clients-count">Your email subscribers and customers from courses, bookings, and digital products.</p>
             </div>
-            <button data-clients-action="export" class="clients-s-25b2fe dash-h-186bb3">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              Export Emails
-            </button>
+            <div class="clients-s-header-actions">
+              <button data-clients-action="open-add" class="clients-s-action-btn dash-h-186bb3" title="Add a single subscriber">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Add Subscriber
+              </button>
+              <button data-clients-action="open-import" class="clients-s-action-btn dash-h-186bb3" title="Import subscribers from a CSV file">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Import CSV
+              </button>
+              <button data-clients-action="export" class="clients-s-25b2fe dash-h-186bb3">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Export Emails
+              </button>
+            </div>
           </div>
 
           <!-- Stats bar: total / opted-in / opted-out at a glance. -->
@@ -7756,6 +7828,119 @@
               </div>
               <div class="clients-s-modal-footer">
                 <button data-clients-action="done-detail" class="clients-s-modal-done dash-h-186bb3">Done</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Add Subscriber modal (single email add). Optional first/last name
+               + optional note. Saves to manual_subscribers + subscriber_notes
+               in one shot. -->
+          <div id="clients-add-modal" class="clients-s-modal-backdrop" style="display:none;" data-clients-action="add-backdrop-click">
+            <div class="clients-s-modal" role="dialog" aria-modal="true" aria-labelledby="clients-add-title">
+              <div class="clients-s-modal-header">
+                <h3 id="clients-add-title" class="clients-s-modal-title">Add Subscriber</h3>
+                <button data-clients-action="close-add" class="clients-s-modal-close" aria-label="Close">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+              </div>
+              <div class="clients-s-modal-body">
+                <div class="clients-s-add-field">
+                  <label for="clients-add-email" class="clients-s-detail-label">Email <span class="clients-s-req">*</span></label>
+                  <input type="email" id="clients-add-email" placeholder="subscriber@example.com" autocomplete="off" class="clients-s-add-input">
+                </div>
+                <div class="clients-s-add-grid">
+                  <div class="clients-s-add-field">
+                    <label for="clients-add-first-name" class="clients-s-detail-label">First Name</label>
+                    <input type="text" id="clients-add-first-name" placeholder="Optional" autocomplete="off" class="clients-s-add-input">
+                  </div>
+                  <div class="clients-s-add-field">
+                    <label for="clients-add-last-name" class="clients-s-detail-label">Last Name</label>
+                    <input type="text" id="clients-add-last-name" placeholder="Optional" autocomplete="off" class="clients-s-add-input">
+                  </div>
+                </div>
+                <div class="clients-s-add-field">
+                  <label for="clients-add-note" class="clients-s-detail-label">Note (optional)</label>
+                  <textarea id="clients-add-note" placeholder="A private note about this subscriber. Only you can see it." rows="4" maxlength="5000" class="clients-s-note-textarea"></textarea>
+                </div>
+                <div id="clients-add-error" class="clients-s-add-error" style="display:none;"></div>
+              </div>
+              <div class="clients-s-modal-footer">
+                <button data-clients-action="close-add" class="clients-s-modal-cancel dash-h-186bb3">Cancel</button>
+                <button data-clients-action="submit-add" id="clients-add-submit-btn" class="clients-s-modal-done dash-h-186bb3">Add Subscriber</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Import CSV modal: stepped flow (upload, preview/map, importing, result) -->
+          <div id="clients-import-modal" class="clients-s-modal-backdrop" style="display:none;" data-clients-action="import-backdrop-click">
+            <div class="clients-s-modal clients-s-modal-wide" role="dialog" aria-modal="true" aria-labelledby="clients-import-title">
+              <div class="clients-s-modal-header">
+                <h3 id="clients-import-title" class="clients-s-modal-title">Import Subscribers from CSV</h3>
+                <button data-clients-action="close-import" class="clients-s-modal-close" aria-label="Close">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+              </div>
+              <div class="clients-s-modal-body">
+
+                <!-- Step 1: Upload -->
+                <div id="clients-import-step-upload" class="clients-s-import-step">
+                  <p class="clients-s-import-intro">
+                    Upload a CSV file exported from your previous email tool (Kajabi, Mailchimp, ConvertKit, Substack, etc.).
+                    We will auto-detect the email column. If you have a "subscribed/unsubscribed" status column,
+                    only active subscribers will be imported.
+                  </p>
+                  <label for="clients-import-file" class="clients-s-dropzone" id="clients-import-dropzone">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    <div class="clients-s-dropzone-text">Click to choose a CSV file</div>
+                    <div class="clients-s-dropzone-hint">Max 5MB, .csv format</div>
+                    <input type="file" id="clients-import-file" accept=".csv,text/csv" data-clients-action="csv-file-selected" data-clients-event="change" class="clients-s-dropzone-input">
+                  </label>
+                </div>
+
+                <!-- Step 2: Preview + column mapping -->
+                <div id="clients-import-step-preview" class="clients-s-import-step" style="display:none;">
+                  <div class="clients-s-import-summary">
+                    <div class="clients-s-import-file" id="clients-import-filename"></div>
+                    <div class="clients-s-import-stats" id="clients-import-rowstats"></div>
+                  </div>
+
+                  <div class="clients-s-import-field-block">
+                    <label for="clients-import-email-col" class="clients-s-detail-label">Email Column</label>
+                    <select id="clients-import-email-col" data-clients-action="email-col-change" data-clients-event="change" class="clients-s-select"></select>
+                    <div class="clients-s-import-hint" id="clients-import-email-hint"></div>
+                  </div>
+
+                  <div class="clients-s-import-preview-block">
+                    <div class="clients-s-detail-label">Preview (first 5 rows)</div>
+                    <div class="clients-s-import-preview-wrap">
+                      <table class="clients-s-import-preview-table" id="clients-import-preview-table"></table>
+                    </div>
+                  </div>
+
+                  <div id="clients-import-validation" class="clients-s-import-validation"></div>
+                </div>
+
+                <!-- Step 3: Importing (progress) -->
+                <div id="clients-import-step-progress" class="clients-s-import-step" style="display:none;">
+                  <div class="clients-s-import-progress-label" id="clients-import-progress-label">Importing...</div>
+                  <div class="clients-s-import-progress-bar">
+                    <div class="clients-s-import-progress-fill" id="clients-import-progress-fill"></div>
+                  </div>
+                  <div class="clients-s-import-progress-meta" id="clients-import-progress-meta"></div>
+                </div>
+
+                <!-- Step 4: Result -->
+                <div id="clients-import-step-result" class="clients-s-import-step" style="display:none;">
+                  <div class="clients-s-import-result-icon">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                  </div>
+                  <div class="clients-s-import-result-title">Import Complete</div>
+                  <div class="clients-s-import-result-stats" id="clients-import-result-stats"></div>
+                </div>
+              </div>
+              <div class="clients-s-modal-footer">
+                <button data-clients-action="close-import" id="clients-import-cancel-btn" class="clients-s-modal-cancel dash-h-186bb3">Cancel</button>
+                <button data-clients-action="import-action" id="clients-import-action-btn" class="clients-s-modal-done dash-h-186bb3" disabled>Import</button>
               </div>
             </div>
           </div>
