@@ -1766,11 +1766,11 @@ var _courseDescSyncInProgress = false;
 var COURSE_DESC_MAX_HTML = 3000;
 
 async function mountCourseDescEditor() {
-  // Idempotent: if already mounted to the live host, return existing instance.
-  if (_courseDescQuill && _courseDescQuill.root && _courseDescQuill.root.isConnected) {
-    return _courseDescQuill;
-  }
-  _courseDescQuill = null;
+  // Always unmount any prior instance first. Handles re-entry from the
+  // courses list (opening course B after A reuses the same host) and stale
+  // state recovery. Calling Quill twice on the same host appends another
+  // toolbar + body inside, producing the "editor on top of editor" bug.
+  unmountCourseDescEditor();
 
   var host = document.getElementById('course-desc-editor');
   var textarea = document.getElementById('course-desc-input');
@@ -1915,11 +1915,10 @@ function updateCourseDescCounter(length) {
 }
 
 function unmountCourseDescEditor() {
-  if (!_courseDescQuill) return;
+  // Always clear the host DOM, even if _courseDescQuill is null. Defends
+  // against leftover Quill DOM from a previous mount whose reference was
+  // lost (page navigation, error during mount, etc).
   try {
-    // Clear the host so it's empty for the next mount. Quill doesn't have a
-    // proper destroy(), but discarding the reference + emptying the host is
-    // enough since the next mount creates a fresh instance.
     var host = document.getElementById('course-desc-editor');
     if (host) host.innerHTML = '';
   } catch (e) { /* non-fatal */ }

@@ -351,11 +351,16 @@ var _productDescSyncInProgress = false;
 var PRODUCT_DESC_MAX_HTML = 3000;
 
 async function mountProductDescEditor() {
-  // Idempotent: reuse existing instance if still mounted to live DOM.
-  if (_productDescQuill && _productDescQuill.root && _productDescQuill.root.isConnected) {
-    return _productDescQuill;
-  }
-  _productDescQuill = null;
+  // Always unmount any prior instance first. This handles:
+  // (1) Idempotent re-call within the same product editor session
+  // (2) Opening product B right after product A without an explicit close
+  //     (which the editor allows since switching between products in the
+  //     list reuses the same DOM)
+  // Without this, calling Quill twice on the same host appends a second
+  // toolbar + editor body inside, producing the "editor on top of editor"
+  // visual bug. Clear DOM + reset the module-level reference, then mount
+  // a fresh instance cleanly.
+  unmountProductDescEditor();
 
   var host = document.getElementById('products-desc-editor');
   var textarea = document.getElementById('products-description');
@@ -476,7 +481,10 @@ function updateProductDescCounter(length) {
 }
 
 function unmountProductDescEditor() {
-  if (!_productDescQuill) return;
+  // Clear the host DOM unconditionally. Even if _productDescQuill is null,
+  // there may be leftover Quill DOM in the host from a previous mount whose
+  // module-level reference was lost (e.g. hot-reload, error during mount).
+  // Idempotent and cheap: setting innerHTML on an already-empty div is a no-op.
   try {
     var host = document.getElementById('products-desc-editor');
     if (host) host.innerHTML = '';
