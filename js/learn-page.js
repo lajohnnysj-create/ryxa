@@ -888,7 +888,46 @@ function showCourseOverview() {
 
   html += '<div class="viewer-lesson-title">' + escapeHtml(viewerCourse.title) + '</div>';
   if (viewerCourse.description) {
-    html += '<div class="viewer-text" style="margin-bottom:28px;">' + escapeHtml(viewerCourse.description) + '</div>';
+    // Rich-text description (saved by the dashboard's Quill editor). Apply
+    // the same cleanups course-page.js uses: trim whitespace in block tags,
+    // strip empty paragraph spacers, unwrap href-less <a> tags. Sanitize
+    // via DOMPurify if loaded, otherwise fall back to escaped text. Trigger
+    // the lazy loader so subsequent renders use the full HTML path.
+    var descRaw = viewerCourse.description || '';
+    descRaw = descRaw.replace(/(\s+)<\/(p|h2|h3|li)>/g, '</$2>');
+    descRaw = descRaw.replace(/<(p|h2|h3|li)([^>]*)>\s+/g, '<$1$2>');
+    descRaw = descRaw.replace(/<p>\s*<br\s*\/?>\s*<\/p>/gi, '');
+    descRaw = descRaw.replace(/<p>\s*<\/p>/gi, '');
+    descRaw = descRaw.replace(/<a(?:\s+(?!href=)[^>]*)?>(.*?)<\/a>/gi, '$1');
+    descRaw = descRaw.replace(/<a\s+href=["']?["']?\s*>(.*?)<\/a>/gi, '$1');
+    if (typeof DOMPurify !== 'undefined') {
+      var descClean = DOMPurify.sanitize(descRaw, {
+        ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 's', 'a', 'h2', 'h3', 'ul', 'ol', 'li'],
+        ALLOWED_ATTR: ['href', 'target', 'rel'],
+        ALLOWED_URI_REGEXP: /^(?:https?:|mailto:|tel:)/i
+      });
+      // Force external links to open in a new tab with rel=noopener (the
+      // DOMPurify hook already enforces rel on target=_blank, but doesn't
+      // ADD target=_blank to plain hrefs). Done as a string replace because
+      // we're still assembling the HTML, not in the DOM yet.
+      descClean = descClean.replace(/<a\s+href="(https?:[^"]+)"([^>]*)>/gi, function(m, href, rest) {
+        // Skip if target is already set in `rest`.
+        if (/\btarget=/i.test(rest)) return m;
+        return '<a href="' + href + '" target="_blank" rel="noopener noreferrer"' + rest + '>';
+      });
+      html += '<div class="viewer-text" style="margin-bottom:28px;">' + descClean + '</div>';
+    } else {
+      // Fallback while DOMPurify lazy-loads on first viewer access. Strip
+      // tags entirely so HTML doesn't render as plain text noise.
+      var descPlain = descRaw.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+      html += '<div class="viewer-text" style="margin-bottom:28px;">' + escapeHtml(descPlain) + '</div>';
+      // Kick off the loader so next render gets the rich version.
+      ensureViewerPurifyLoaded().then(function() {
+        // Re-render the overview now that DOMPurify is available, but only
+        // if the user is still on the overview (didn't click into a lesson).
+        if (currentLessonId === null) showCourseOverview();
+      }).catch(function() { /* keep showing fallback */ });
+    }
   }
 
   // Curriculum list
