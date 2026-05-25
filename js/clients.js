@@ -297,12 +297,34 @@ async function loadClients() {
       }
     } catch (noteErr) { console.warn('Could not load notes (table may not exist yet):', noteErr); }
 
-    // Pull names for subscribers. Two sources, merged with precedence:
-    //   1. subscriber_names (creator-edited, takes priority)
-    //   2. manual_subscribers (from CSV import or manual-add, fallback)
+    // Pull names for subscribers. Three sources, merged with precedence:
+    //   1. subscriber_names (creator-edited in modal, takes priority)
+    //   2. Stripe-captured names from course_enrollments, coaching_bookings,
+    //      digital_product_purchases (extracted INLINE during the main
+    //      aggregation below to avoid double-fetching those tables)
+    //   3. manual_subscribers (from CSV import or manual-add, lowest fallback)
     // Same email keyed by lowercase. Modal prefill uses this map.
     clientsNamesData = {};
-    // Manual subscribers first so creator edits can overwrite them.
+    // Internal buffer holding the Stripe-captured names with their dates. We
+    // pick the OLDEST captured-name record per email so the result is stable:
+    // if a buyer enrolled as "Johnny La" then bought as "J. La", we show
+    // "Johnny La" (matches the source-priority semantics used elsewhere).
+    // Filled inside the aggregation loop below, then merged at the end.
+    var clientsStripeNames = {};
+    function clientsConsiderStripeName(email, first, last, dateStr) {
+      if (!email || (!first && !last)) return;
+      var key = email.toLowerCase();
+      var date = new Date(dateStr).getTime();
+      if (!clientsStripeNames[key] || date < clientsStripeNames[key].date) {
+        clientsStripeNames[key] = {
+          first_name: first || '',
+          last_name: last || '',
+          date: date
+        };
+      }
+    }
+    // Layer 3 (lowest priority): manual_subscribers first. Anything captured
+    // by Stripe or edited by the creator will overwrite below.
     try {
       const { data: ms } = await sb
         .from('manual_subscribers')
@@ -321,7 +343,9 @@ async function loadClients() {
         });
       }
     } catch (nameErr) { console.warn('Could not load manual subscriber names:', nameErr); }
-    // Creator-edited names overwrite.
+    // Layer 1 (highest priority): Creator edits always win. Pull these now and
+    // apply them at the END of name loading, after Stripe names overlay.
+    var creatorEditedNames = {};
     try {
       const { data: sn } = await sb
         .from('subscriber_names')
@@ -330,8 +354,7 @@ async function loadClients() {
       if (sn) {
         sn.forEach(function(n) {
           if (!n.email) return;
-          var key = n.email.toLowerCase();
-          clientsNamesData[key] = {
+          creatorEditedNames[n.email.toLowerCase()] = {
             first_name: n.first_name || '',
             last_name: n.last_name || ''
           };
@@ -341,7 +364,7 @@ async function loadClients() {
 
     const { data: enrollments } = await sb
       .from('course_enrollments')
-      .select('user_id, buyer_email, enrolled_at, marketing_consent, courses(user_id)')
+      .select('user_id, buyer_email, buyer_first_name, buyer_last_name, enrolled_at, marketing_consent, courses(user_id)')
       .eq('courses.user_id', currentUser.id)
       .order('enrolled_at', { ascending: false });
     if (enrollments) {
@@ -355,12 +378,13 @@ async function loadClients() {
           optin: !!e.marketing_consent,
           source: 'course'
         });
+        clientsConsiderStripeName(email, e.buyer_first_name, e.buyer_last_name, e.enrolled_at);
       });
     }
 
     const { data: bookings } = await sb
       .from('coaching_bookings')
-      .select('user_id, buyer_email, booked_at, marketing_consent, coaching_services(user_id)')
+      .select('user_id, buyer_email, buyer_first_name, buyer_last_name, booked_at, marketing_consent, coaching_services(user_id)')
       .eq('coaching_services.user_id', currentUser.id)
       .order('booked_at', { ascending: false });
     if (bookings) {
@@ -374,13 +398,14 @@ async function loadClients() {
           optin: !!b.marketing_consent,
           source: 'booking'
         });
+        clientsConsiderStripeName(email, b.buyer_first_name, b.buyer_last_name, b.booked_at);
       });
     }
 
     // Digital product purchases, same opt-in pattern as courses/bookings.
     const { data: dpPurchases } = await sb
       .from('digital_product_purchases')
-      .select('buyer_user_id, buyer_email, purchased_at, marketing_consent, digital_products(user_id)')
+      .select('buyer_user_id, buyer_email, buyer_first_name, buyer_last_name, purchased_at, marketing_consent, digital_products(user_id)')
       .eq('digital_products.user_id', currentUser.id)
       .order('purchased_at', { ascending: false });
     if (dpPurchases) {
@@ -394,8 +419,23 @@ async function loadClients() {
           optin: !!p.marketing_consent,
           source: 'product'
         });
+        clientsConsiderStripeName(email, p.buyer_first_name, p.buyer_last_name, p.purchased_at);
       });
     }
+
+    // Apply Stripe-captured names (layer 2): overwrites the manual-subscribers
+    // layer that was populated above.
+    Object.keys(clientsStripeNames).forEach(function(key) {
+      clientsNamesData[key] = {
+        first_name: clientsStripeNames[key].first_name,
+        last_name: clientsStripeNames[key].last_name
+      };
+    });
+    // Apply creator-edited names (layer 1): always wins. Done last so the
+    // creator's deliberate edits beat both manual_subscribers and Stripe.
+    Object.keys(creatorEditedNames).forEach(function(key) {
+      clientsNamesData[key] = creatorEditedNames[key];
+    });
 
     // Bio email signups (always opted in).
     const { data: signups } = await sb
