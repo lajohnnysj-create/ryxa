@@ -94,8 +94,8 @@ var clientsCurrentDetailNoteOriginal = '';
 // PRIORITY (lower number = earlier signup) wins for the "first source" badge.
 // Within each loop we also pick the OLDEST date for that source. Combining
 // these two rules gives us "first source they joined under".
-var CLIENT_SOURCE_PRIORITY = { course: 0, booking: 1, product: 2, bio: 3 };
-var CLIENT_SOURCE_LABEL = { course: 'Course', booking: 'Booking', product: 'Product', bio: 'Bio' };
+var CLIENT_SOURCE_PRIORITY = { course: 0, booking: 1, product: 2, manual: 3, bio: 4 };
+var CLIENT_SOURCE_LABEL = { course: 'Course', booking: 'Booking', product: 'Product', manual: 'Manual', bio: 'Bio' };
 
 function filterSubscribers() {
   var query = (document.getElementById('clients-search')?.value || '').toLowerCase().trim();
@@ -366,6 +366,29 @@ async function loadClients() {
         });
       });
     }
+
+    // Manually-added subscribers + CSV imports. Always opted in - the creator
+    // explicitly added them. The added_via column distinguishes 'manual' from
+    // 'csv_import' but for display purposes they share the 'Manual' badge.
+    try {
+      const { data: manual } = await sb
+        .from('manual_subscribers')
+        .select('email, added_at')
+        .eq('creator_id', currentUser.id);
+      if (manual) {
+        manual.forEach(function(m) {
+          var email = m.email || '';
+          if (!email) return;
+          var key = email.toLowerCase();
+          clientUpsert(clientMap, key, {
+            email: email,
+            date: m.added_at,
+            optin: true,
+            source: 'manual'
+          });
+        });
+      }
+    } catch (manErr) { console.warn('Could not load manual subscribers (table may not exist yet):', manErr); }
 
     // Filter out suppressed emails AFTER aggregation so the underlying
     // purchase records remain untouched in their source tables.
@@ -658,6 +681,481 @@ function clientsBackdropClick(event, el) {
   if (event.target === el) clientsCloseDetail();
 }
 
+// =============================================================================
+// MANUAL ADD: single subscriber
+// =============================================================================
+
+var CLIENTS_EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function clientsOpenAdd() {
+  var modal = document.getElementById('clients-add-modal');
+  if (!modal) return;
+  // Reset fields each time the modal opens.
+  ['clients-add-email', 'clients-add-first-name', 'clients-add-last-name', 'clients-add-note'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  var err = document.getElementById('clients-add-error');
+  if (err) { err.style.display = 'none'; err.textContent = ''; }
+  modal.style.display = 'flex';
+  requestAnimationFrame(function() {
+    try { document.getElementById('clients-add-email').focus(); } catch (e) {}
+  });
+}
+
+function clientsCloseAdd() {
+  var modal = document.getElementById('clients-add-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function clientsAddBackdropClick(event, el) {
+  if (event.target === el) clientsCloseAdd();
+}
+
+async function clientsSubmitAdd() {
+  var emailRaw = (document.getElementById('clients-add-email').value || '').trim();
+  var firstName = (document.getElementById('clients-add-first-name').value || '').trim();
+  var lastName = (document.getElementById('clients-add-last-name').value || '').trim();
+  var note = (document.getElementById('clients-add-note').value || '').trim();
+  var err = document.getElementById('clients-add-error');
+  var submitBtn = document.getElementById('clients-add-submit-btn');
+
+  function showErr(msg) {
+    if (err) { err.style.display = 'block'; err.textContent = msg; }
+  }
+
+  if (!emailRaw) return showErr('Email is required.');
+  if (!CLIENTS_EMAIL_RE.test(emailRaw)) return showErr("That doesn't look like a valid email address.");
+
+  var emailLc = emailRaw.toLowerCase();
+
+  // Block adding emails that are currently suppressed - the creator explicitly
+  // removed them before, so silently re-adding would defeat the opt-out.
+  if (clientsSuppressed.has(emailLc)) {
+    return showErr('This email was previously removed from your list. Restore it from the suppression list first or contact support.');
+  }
+  // Block exact duplicates of currently-shown subscribers.
+  if (clientsData.some(function(c) { return c.email.toLowerCase() === emailLc; })) {
+    return showErr('This email is already in your subscribers list.');
+  }
+
+  if (submitBtn) submitBtn.disabled = true;
+  if (err) { err.style.display = 'none'; err.textContent = ''; }
+
+  try {
+    var { error } = await sb.from('manual_subscribers').insert({
+      creator_id: currentUser.id,
+      email: emailRaw,
+      first_name: firstName || null,
+      last_name: lastName || null,
+      added_via: 'manual'
+    });
+    if (error) throw error;
+
+    // Save note if provided. Same upsert pattern as the detail modal.
+    if (note) {
+      try {
+        await sb.from('subscriber_notes').upsert([{
+          creator_id: currentUser.id,
+          email: emailRaw,
+          note: note,
+          updated_at: new Date().toISOString()
+        }], { onConflict: 'creator_id,email' });
+        clientsNotes[emailLc] = note;
+      } catch (noteErr) { console.warn('Note save failed (subscriber still added):', noteErr); }
+    }
+
+    // Add locally so the table updates without a full reload.
+    clientsData.unshift({
+      email: emailRaw,
+      date: new Date().toISOString(),
+      optin: true,
+      source: 'manual'
+    });
+    filterSubscribers();
+    renderClientsStats();
+    var countEl = document.getElementById('clients-count');
+    if (countEl) countEl.textContent = clientsData.length + ' subscriber' + (clientsData.length !== 1 ? 's' : '');
+    clientsCloseAdd();
+  } catch (e) {
+    console.error('Add subscriber failed:', e);
+    // 23505 is the Postgres unique-violation code. Means the email exists in
+    // manual_subscribers (possibly added in another tab). Friendly message.
+    if (e && (e.code === '23505' || /duplicate/i.test(e.message || ''))) {
+      showErr('This email is already in your subscribers list.');
+    } else {
+      showErr(e.message || 'Could not add subscriber.');
+    }
+  } finally {
+    if (submitBtn) submitBtn.disabled = false;
+  }
+}
+
+// =============================================================================
+// CSV IMPORT
+// =============================================================================
+
+var CLIENTS_IMPORT_MAX_BYTES = 5 * 1024 * 1024;          // 5 MB
+var CLIENTS_IMPORT_MAX_ROWS = 50000;                      // hard ceiling
+var CLIENTS_IMPORT_BATCH_SIZE = 500;                      // rows per Supabase upsert
+
+// Header name patterns. First match wins. We compare against the header text
+// lowercased + trimmed so 'Email Address' and 'email_address' both match.
+var CLIENTS_EMAIL_HEADER_PATTERNS = [
+  /^email$/, /^email_address$/, /^email address$/, /email/
+];
+var CLIENTS_STATUS_HEADER_PATTERNS = [
+  /^status$/, /^state$/, /^subscribed$/, /^subscription[ _]?status$/, /^active$/
+];
+var CLIENTS_STATUS_ACTIVE_VALUES = new Set(['subscribed', 'active', 'confirmed', 'true', 'yes', '1', '']);
+var CLIENTS_STATUS_INACTIVE_VALUES = new Set(['unsubscribed', 'cleaned', 'bounced', 'complained', 'pending', 'inactive', 'false', 'no', '0', 'unconfirmed', 'archived']);
+
+// Holds the parsed CSV between steps. Reset on modal open / close.
+var clientsImport = {
+  fileName: '',
+  rows: [],            // array of objects keyed by header
+  headers: [],         // ordered header list
+  emailColumn: null,   // currently-selected column name for email
+  statusColumn: null,  // auto-detected status column (null if none)
+  validation: null     // computed counts: total, valid, invalid, suppressed, duplicate, alreadyIn, skippedStatus, toAdd, toAddRows
+};
+
+function clientsOpenImport() {
+  var modal = document.getElementById('clients-import-modal');
+  if (!modal) return;
+  if (typeof Papa === 'undefined') {
+    showModalAlert('CSV parser not loaded', 'Please refresh the page and try again.');
+    return;
+  }
+  clientsImport = { fileName: '', rows: [], headers: [], emailColumn: null, statusColumn: null, validation: null };
+  clientsImportShowStep('upload');
+  // Reset the file input so re-uploading the same file fires change.
+  var fileEl = document.getElementById('clients-import-file');
+  if (fileEl) fileEl.value = '';
+  modal.style.display = 'flex';
+  clientsImportUpdateActionBtn('Import', true);
+}
+
+function clientsCloseImport() {
+  var modal = document.getElementById('clients-import-modal');
+  if (modal) modal.style.display = 'none';
+  clientsImport = { fileName: '', rows: [], headers: [], emailColumn: null, statusColumn: null, validation: null };
+}
+
+function clientsImportBackdropClick(event, el) {
+  if (event.target === el) clientsCloseImport();
+}
+
+function clientsImportShowStep(step) {
+  ['upload', 'preview', 'progress', 'result'].forEach(function(s) {
+    var el = document.getElementById('clients-import-step-' + s);
+    if (el) el.style.display = (s === step) ? 'block' : 'none';
+  });
+}
+
+function clientsImportUpdateActionBtn(label, disabled) {
+  var btn = document.getElementById('clients-import-action-btn');
+  if (!btn) return;
+  btn.textContent = label;
+  btn.disabled = !!disabled;
+}
+
+// File picker -> parse with PapaParse. We use header:true so each row is an
+// object keyed by column name. skipEmptyLines avoids blank rows polluting counts.
+function clientsImportFileSelected(event, el) {
+  var file = el && el.files && el.files[0];
+  if (!file) return;
+  if (file.size > CLIENTS_IMPORT_MAX_BYTES) {
+    showModalAlert('File too large', 'CSV must be 5MB or smaller. Split your list into multiple files and import in pieces.');
+    el.value = '';
+    return;
+  }
+  Papa.parse(file, {
+    header: true,
+    skipEmptyLines: true,
+    transformHeader: function(h) { return String(h || '').trim(); },
+    complete: function(results) {
+      var rows = results.data || [];
+      if (rows.length === 0) {
+        showModalAlert('Empty file', 'No rows found in this CSV.');
+        return;
+      }
+      if (rows.length > CLIENTS_IMPORT_MAX_ROWS) {
+        showModalAlert('Too many rows', 'Maximum ' + CLIENTS_IMPORT_MAX_ROWS.toLocaleString() + ' rows per import. Split your file and try again.');
+        return;
+      }
+      clientsImport.fileName = file.name;
+      clientsImport.rows = rows;
+      clientsImport.headers = (results.meta && results.meta.fields) ? results.meta.fields.slice() : Object.keys(rows[0]);
+      clientsImport.emailColumn = clientsImportDetectEmailColumn(clientsImport.headers);
+      clientsImport.statusColumn = clientsImportDetectStatusColumn(clientsImport.headers);
+      clientsImportRenderPreview();
+      clientsImportShowStep('preview');
+    },
+    error: function(err) {
+      console.error('CSV parse error:', err);
+      showModalAlert('Could not parse CSV', err.message || 'The file may be malformed.');
+    }
+  });
+}
+
+function clientsImportDetectEmailColumn(headers) {
+  for (var i = 0; i < CLIENTS_EMAIL_HEADER_PATTERNS.length; i++) {
+    var pattern = CLIENTS_EMAIL_HEADER_PATTERNS[i];
+    for (var j = 0; j < headers.length; j++) {
+      if (pattern.test(headers[j].toLowerCase())) return headers[j];
+    }
+  }
+  return null;
+}
+
+function clientsImportDetectStatusColumn(headers) {
+  for (var i = 0; i < CLIENTS_STATUS_HEADER_PATTERNS.length; i++) {
+    var pattern = CLIENTS_STATUS_HEADER_PATTERNS[i];
+    for (var j = 0; j < headers.length; j++) {
+      if (pattern.test(headers[j].toLowerCase())) return headers[j];
+    }
+  }
+  return null;
+}
+
+function clientsImportRenderPreview() {
+  var rows = clientsImport.rows;
+  var headers = clientsImport.headers;
+
+  document.getElementById('clients-import-filename').textContent = clientsImport.fileName;
+  document.getElementById('clients-import-rowstats').textContent = rows.length.toLocaleString() + ' row' + (rows.length !== 1 ? 's' : '') + ' detected';
+
+  // Email column picker
+  var emailSelect = document.getElementById('clients-import-email-col');
+  if (emailSelect) {
+    emailSelect.innerHTML = '';
+    headers.forEach(function(h) {
+      var opt = document.createElement('option');
+      opt.value = h;
+      opt.textContent = h;
+      if (h === clientsImport.emailColumn) opt.selected = true;
+      emailSelect.appendChild(opt);
+    });
+    if (!clientsImport.emailColumn && headers.length > 0) {
+      clientsImport.emailColumn = headers[0];
+      emailSelect.value = headers[0];
+    }
+  }
+  var hintEl = document.getElementById('clients-import-email-hint');
+  if (hintEl) {
+    hintEl.textContent = clientsImport.emailColumn
+      ? 'We auto-detected this column. Change it if needed.'
+      : "We couldn't auto-detect the email column. Please choose one.";
+  }
+
+  // Preview table (first 5 rows of CSV, no row count column)
+  var tbl = document.getElementById('clients-import-preview-table');
+  if (tbl) {
+    var thead = '<thead><tr>' + headers.map(function(h) {
+      return '<th>' + escapeHtml(h) + '</th>';
+    }).join('') + '</tr></thead>';
+    var previewRows = rows.slice(0, 5);
+    var tbody = '<tbody>' + previewRows.map(function(r) {
+      return '<tr>' + headers.map(function(h) {
+        var v = r[h];
+        return '<td>' + escapeHtml(v == null ? '' : String(v)) + '</td>';
+      }).join('') + '</tr>';
+    }).join('') + '</tbody>';
+    tbl.innerHTML = thead + tbody;
+  }
+
+  clientsImportComputeValidation();
+}
+
+function clientsImportEmailColChange(event, el) {
+  clientsImport.emailColumn = el.value;
+  clientsImportComputeValidation();
+}
+
+// Run through the parsed rows, classifying each one. Powers the preview
+// summary and the actual insert.
+function clientsImportComputeValidation() {
+  var rows = clientsImport.rows;
+  var emailCol = clientsImport.emailColumn;
+  var statusCol = clientsImport.statusColumn;
+  var existingEmails = new Set(clientsData.map(function(c) { return c.email.toLowerCase(); }));
+
+  var stats = {
+    total: rows.length,
+    valid: 0,
+    invalid: 0,
+    skippedStatus: 0,
+    alreadyIn: 0,
+    suppressed: 0,
+    duplicateInFile: 0,
+    toAdd: 0,
+    toAddRows: []
+  };
+
+  if (!emailCol) {
+    clientsImport.validation = stats;
+    clientsImportRenderValidation();
+    return;
+  }
+
+  var seenInFile = new Set();
+
+  rows.forEach(function(r) {
+    var email = String(r[emailCol] || '').trim();
+    if (!email || !CLIENTS_EMAIL_RE.test(email)) {
+      stats.invalid++;
+      return;
+    }
+    stats.valid++;
+    var emailLc = email.toLowerCase();
+
+    // Check status column if one was auto-detected.
+    if (statusCol) {
+      var status = String(r[statusCol] || '').trim().toLowerCase();
+      if (CLIENTS_STATUS_INACTIVE_VALUES.has(status)) {
+        stats.skippedStatus++;
+        return;
+      }
+    }
+
+    if (seenInFile.has(emailLc)) {
+      stats.duplicateInFile++;
+      return;
+    }
+    seenInFile.add(emailLc);
+
+    if (clientsSuppressed.has(emailLc)) {
+      stats.suppressed++;
+      return;
+    }
+    if (existingEmails.has(emailLc)) {
+      stats.alreadyIn++;
+      return;
+    }
+
+    // Extract optional first/last name if those columns happen to exist.
+    var firstName = null, lastName = null;
+    clientsImport.headers.forEach(function(h) {
+      var hLc = h.toLowerCase();
+      if (hLc === 'first name' || hLc === 'first_name' || hLc === 'firstname' || hLc === 'fname') {
+        firstName = String(r[h] || '').trim() || null;
+      } else if (hLc === 'last name' || hLc === 'last_name' || hLc === 'lastname' || hLc === 'lname') {
+        lastName = String(r[h] || '').trim() || null;
+      }
+    });
+
+    stats.toAdd++;
+    stats.toAddRows.push({
+      creator_id: currentUser.id,
+      email: email,
+      first_name: firstName,
+      last_name: lastName,
+      added_via: 'csv_import'
+    });
+  });
+
+  clientsImport.validation = stats;
+  clientsImportRenderValidation();
+}
+
+function clientsImportRenderValidation() {
+  var stats = clientsImport.validation;
+  var el = document.getElementById('clients-import-validation');
+  if (!el || !stats) return;
+  var lines = [];
+  lines.push('<div class="clients-s-import-validation-line"><span>Total rows</span><span class="clients-s-import-validation-num">' + stats.total.toLocaleString() + '</span></div>');
+  if (stats.invalid > 0) lines.push('<div class="clients-s-import-validation-line"><span>Invalid emails</span><span class="clients-s-import-validation-num clients-s-import-validation-num-error">' + stats.invalid.toLocaleString() + '</span></div>');
+  if (stats.skippedStatus > 0) lines.push('<div class="clients-s-import-validation-line"><span>Marked as unsubscribed in your CSV (skipped)</span><span class="clients-s-import-validation-num clients-s-import-validation-num-skip">' + stats.skippedStatus.toLocaleString() + '</span></div>');
+  if (stats.duplicateInFile > 0) lines.push('<div class="clients-s-import-validation-line"><span>Duplicate rows in this file</span><span class="clients-s-import-validation-num clients-s-import-validation-num-skip">' + stats.duplicateInFile.toLocaleString() + '</span></div>');
+  if (stats.alreadyIn > 0) lines.push('<div class="clients-s-import-validation-line"><span>Already in your list</span><span class="clients-s-import-validation-num clients-s-import-validation-num-skip">' + stats.alreadyIn.toLocaleString() + '</span></div>');
+  if (stats.suppressed > 0) lines.push('<div class="clients-s-import-validation-line"><span>Previously removed by you</span><span class="clients-s-import-validation-num clients-s-import-validation-num-skip">' + stats.suppressed.toLocaleString() + '</span></div>');
+  lines.push('<div class="clients-s-import-validation-line"><span><strong>Ready to add</strong></span><span class="clients-s-import-validation-num clients-s-import-validation-num-add">' + stats.toAdd.toLocaleString() + '</span></div>');
+  el.innerHTML = lines.join('');
+
+  // Update action button: only enable if there's at least 1 to add.
+  clientsImportUpdateActionBtn('Add ' + stats.toAdd.toLocaleString() + ' Subscriber' + (stats.toAdd !== 1 ? 's' : ''), stats.toAdd === 0);
+}
+
+// Action button click dispatcher: behavior depends on which step is visible.
+// On preview: kick off import. On result: close the modal.
+async function clientsImportAction() {
+  var resultStep = document.getElementById('clients-import-step-result');
+  var isResultStep = resultStep && resultStep.style.display !== 'none';
+  if (isResultStep) {
+    clientsCloseImport();
+    return;
+  }
+  await clientsImportRunImport();
+}
+
+async function clientsImportRunImport() {
+  var stats = clientsImport.validation;
+  if (!stats || stats.toAdd === 0) return;
+
+  clientsImportShowStep('progress');
+  clientsImportUpdateActionBtn('Importing...', true);
+  document.getElementById('clients-import-cancel-btn').disabled = true;
+
+  var rows = stats.toAddRows;
+  var total = rows.length;
+  var imported = 0;
+  var failed = 0;
+  var progressLabel = document.getElementById('clients-import-progress-label');
+  var progressFill = document.getElementById('clients-import-progress-fill');
+  var progressMeta = document.getElementById('clients-import-progress-meta');
+
+  function updateProgress() {
+    var pct = total === 0 ? 100 : Math.floor((imported + failed) / total * 100);
+    if (progressFill) progressFill.style.width = pct + '%';
+    if (progressMeta) progressMeta.textContent = (imported + failed).toLocaleString() + ' of ' + total.toLocaleString() + ' processed';
+  }
+
+  for (var i = 0; i < rows.length; i += CLIENTS_IMPORT_BATCH_SIZE) {
+    var batch = rows.slice(i, i + CLIENTS_IMPORT_BATCH_SIZE);
+    if (progressLabel) progressLabel.textContent = 'Importing... batch ' + (Math.floor(i / CLIENTS_IMPORT_BATCH_SIZE) + 1) + ' of ' + Math.ceil(rows.length / CLIENTS_IMPORT_BATCH_SIZE);
+    try {
+      // ignoreDuplicates handles the edge case where between validation and
+      // insert another tab added the same email. Won't surface as an error.
+      var { error } = await sb.from('manual_subscribers').upsert(batch, {
+        onConflict: 'creator_id,email',
+        ignoreDuplicates: true
+      });
+      if (error) {
+        console.error('Batch insert failed:', error);
+        failed += batch.length;
+      } else {
+        imported += batch.length;
+      }
+    } catch (e) {
+      console.error('Batch threw:', e);
+      failed += batch.length;
+    }
+    updateProgress();
+  }
+
+  // Show result step.
+  clientsImportShowStep('result');
+  var resultEl = document.getElementById('clients-import-result-stats');
+  if (resultEl) {
+    var lines = [];
+    lines.push('<div class="clients-s-import-validation-line"><span>Successfully imported</span><span class="clients-s-import-validation-num clients-s-import-validation-num-add">' + imported.toLocaleString() + '</span></div>');
+    if (failed > 0) {
+      lines.push('<div class="clients-s-import-validation-line"><span>Failed</span><span class="clients-s-import-validation-num clients-s-import-validation-num-error">' + failed.toLocaleString() + '</span></div>');
+    }
+    if (stats.invalid > 0) lines.push('<div class="clients-s-import-validation-line"><span>Invalid emails (skipped)</span><span class="clients-s-import-validation-num clients-s-import-validation-num-skip">' + stats.invalid.toLocaleString() + '</span></div>');
+    if (stats.skippedStatus > 0) lines.push('<div class="clients-s-import-validation-line"><span>Unsubscribed (skipped)</span><span class="clients-s-import-validation-num clients-s-import-validation-num-skip">' + stats.skippedStatus.toLocaleString() + '</span></div>');
+    if (stats.alreadyIn > 0) lines.push('<div class="clients-s-import-validation-line"><span>Already in your list</span><span class="clients-s-import-validation-num clients-s-import-validation-num-skip">' + stats.alreadyIn.toLocaleString() + '</span></div>');
+    if (stats.suppressed > 0) lines.push('<div class="clients-s-import-validation-line"><span>Previously removed by you</span><span class="clients-s-import-validation-num clients-s-import-validation-num-skip">' + stats.suppressed.toLocaleString() + '</span></div>');
+    resultEl.innerHTML = lines.join('');
+  }
+  clientsImportUpdateActionBtn('Close', false);
+  document.getElementById('clients-import-cancel-btn').style.display = 'none';
+
+  // Refresh the subscribers list to pick up the new rows.
+  await loadClients();
+}
+
 
 // =============================================================================
 // ACTION REGISTRATIONS — wired up below as part of Phase 2
@@ -678,18 +1176,46 @@ clientsRegisterAction('close-detail', () => clientsCloseDetail());
 clientsRegisterAction('done-detail', (e, el) => clientsDoneDetail(e, el));
 clientsRegisterAction('modal-backdrop-click', (e, el) => clientsBackdropClick(e, el));
 clientsRegisterAction('note-blur', () => clientsSaveNote());
+clientsRegisterAction('open-add', () => clientsOpenAdd());
+clientsRegisterAction('close-add', () => clientsCloseAdd());
+clientsRegisterAction('add-backdrop-click', (e, el) => clientsAddBackdropClick(e, el));
+clientsRegisterAction('submit-add', () => clientsSubmitAdd());
+clientsRegisterAction('open-import', () => clientsOpenImport());
+clientsRegisterAction('close-import', () => clientsCloseImport());
+clientsRegisterAction('import-backdrop-click', (e, el) => clientsImportBackdropClick(e, el));
+clientsRegisterAction('csv-file-selected', (e, el) => clientsImportFileSelected(e, el));
+clientsRegisterAction('email-col-change', (e, el) => clientsImportEmailColChange(e, el));
+clientsRegisterAction('import-action', () => clientsImportAction());
 
-// Escape key closes the detail modal. Doesn't capture-phase so other
-// modals with their own escape handlers aren't interfered with.
+// Escape key closes any open modal. Doesn't capture-phase so other modals
+// with their own escape handlers aren't interfered with.
 document.addEventListener('keydown', function(e) {
   if (e.key !== 'Escape') return;
-  var modal = document.getElementById('clients-detail-modal');
-  if (modal && modal.style.display !== 'none') {
-    // If a save is pending (focus is in the textarea), let the blur fire
-    // first by giving up focus before closing.
+  var detail = document.getElementById('clients-detail-modal');
+  var add = document.getElementById('clients-add-modal');
+  var imp = document.getElementById('clients-import-modal');
+  if (detail && detail.style.display !== 'none') {
     var noteEl = document.getElementById('clients-detail-note');
     if (noteEl && document.activeElement === noteEl) noteEl.blur();
     clientsCloseDetail();
+  } else if (add && add.style.display !== 'none') {
+    clientsCloseAdd();
+  } else if (imp && imp.style.display !== 'none') {
+    clientsCloseImport();
   }
+});
+
+// Enter in the Add Subscriber email field submits the form (small UX nicety).
+document.addEventListener('keydown', function(e) {
+  if (e.key !== 'Enter') return;
+  var addModal = document.getElementById('clients-add-modal');
+  if (!addModal || addModal.style.display === 'none') return;
+  var target = e.target;
+  // Don't submit if focus is in the note textarea (Enter should newline).
+  if (target && target.id === 'clients-add-note') return;
+  // Don't submit if focus isn't in one of the add modal's inputs.
+  if (!target || !target.id || !target.id.startsWith('clients-add-')) return;
+  e.preventDefault();
+  clientsSubmitAdd();
 });
 
