@@ -513,7 +513,7 @@ async function toggleCoursePublish() {
     pubBtn.style.color = '#ef4444';
     document.getElementById('course-marketplace-toggle').style.display = 'block';
     updateMarketplaceCountDisplay();
-    showCourseMsg('success', 'Course published! Landing page: ryxa.io/course/' + (course?.slug || '') + ' <button data-course-action="copy-publish-url" data-course-url="https://ryxa.io/course/' + (course?.slug || '') + '" class="course-s-e57ade">Copy</button>', true);
+    showCourseMsg('success', 'Course published!');
   } else {
     pubBtn.textContent = 'Publish';
     pubBtn.style.borderColor = 'rgba(74,222,128,0.4)';
@@ -2932,9 +2932,6 @@ courseRegisterAction('close-fixed-modal', (e, el) => {
   const modal = el.closest('div[style*=fixed]');
   if (modal) modal.remove();
 });
-
-// Copy publish URL (from publish success toast)
-courseRegisterAction('copy-publish-url', (e, el) => copyPublishUrl(el.dataset.courseUrl, el));
 
 // Lesson interactions (dynamically rendered)
 courseRegisterAction('expand-lesson', (e, el) => {
