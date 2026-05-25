@@ -1187,49 +1187,53 @@ async function toggleProductPublish() {
 
 async function deleteProduct() {
   if (!productsState.editingId) return;
-  showModalConfirm(
-    'Delete this product?',
+  // Typed-DELETE failsafe, same pattern courses uses for course/module/lesson
+  // deletes. confirmTypedDelete is defined in js/course.js (loads earlier on
+  // the dashboard) and returns a Promise that resolves true if the user
+  // typed DELETE and clicked confirm, false otherwise.
+  var confirmed = await confirmTypedDelete(
+    'Delete Product',
     'This will permanently delete the product and all its files. Buyers who already purchased will lose access. This cannot be undone.',
-    async function() {
-      try {
-        var paths = productsState.editingFiles.map(function(f) { return f.storage_path; }).filter(Boolean);
-        var deletedId = productsState.editingId;
-        var { error } = await sb.from('digital_products').delete().eq('id', deletedId);
-        if (error) throw error;
-        if (paths.length) {
-          await sb.storage.from('digital-products').remove(paths);
-        }
-        try {
-          var folder = currentUser.id + '/' + deletedId;
-          var { data: folderItems } = await sb.storage.from('digital-products').list(folder);
-          if (folderItems && folderItems.length) {
-            var leftover = folderItems.map(function(it) { return folder + '/' + it.name; });
-            await sb.storage.from('digital-products').remove(leftover);
-          }
-        } catch (cleanupErr) { }
-
-        // Remove from bio links if present (matches Course/Coaching cleanup pattern)
-        try {
-          var { data: bioData } = await sb.from('link_in_bio').select('links').eq('user_id', currentUser.id).maybeSingle();
-          if (bioData && Array.isArray(bioData.links)) {
-            var filtered = bioData.links.filter(function(l) { return !(l.isProduct && l.productId === deletedId); });
-            if (filtered.length !== bioData.links.length) {
-              await sb.from('link_in_bio').update({ links: filtered }).eq('user_id', currentUser.id);
-              if (typeof bioState !== 'undefined' && bioState.links) {
-                bioState.links = bioState.links.filter(function(l) { return !(l.isProduct && l.productId === deletedId); });
-              }
-            }
-          }
-        } catch (bioErr) { console.warn('Failed to clean bio link:', bioErr); }
-
-        closeProductEditor();
-      } catch (e) {
-        console.error('Delete failed:', e);
-        showModalAlert('Delete failed', e.message || 'Could not delete this product.');
-      }
-    },
-    'Delete'
+    'Delete Product'
   );
+  if (!confirmed) return;
+
+  try {
+    var paths = productsState.editingFiles.map(function(f) { return f.storage_path; }).filter(Boolean);
+    var deletedId = productsState.editingId;
+    var { error } = await sb.from('digital_products').delete().eq('id', deletedId);
+    if (error) throw error;
+    if (paths.length) {
+      await sb.storage.from('digital-products').remove(paths);
+    }
+    try {
+      var folder = currentUser.id + '/' + deletedId;
+      var { data: folderItems } = await sb.storage.from('digital-products').list(folder);
+      if (folderItems && folderItems.length) {
+        var leftover = folderItems.map(function(it) { return folder + '/' + it.name; });
+        await sb.storage.from('digital-products').remove(leftover);
+      }
+    } catch (cleanupErr) { }
+
+    // Remove from bio links if present (matches Course/Coaching cleanup pattern)
+    try {
+      var { data: bioData } = await sb.from('link_in_bio').select('links').eq('user_id', currentUser.id).maybeSingle();
+      if (bioData && Array.isArray(bioData.links)) {
+        var filtered = bioData.links.filter(function(l) { return !(l.isProduct && l.productId === deletedId); });
+        if (filtered.length !== bioData.links.length) {
+          await sb.from('link_in_bio').update({ links: filtered }).eq('user_id', currentUser.id);
+          if (typeof bioState !== 'undefined' && bioState.links) {
+            bioState.links = bioState.links.filter(function(l) { return !(l.isProduct && l.productId === deletedId); });
+          }
+        }
+      }
+    } catch (bioErr) { console.warn('Failed to clean bio link:', bioErr); }
+
+    closeProductEditor();
+  } catch (e) {
+    console.error('Delete failed:', e);
+    showModalAlert('Delete failed', e.message || 'Could not delete this product.');
+  }
 }
 
 
