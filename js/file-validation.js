@@ -1,11 +1,12 @@
 // Shared file-validation utilities.
 //
 // Both Digital Products (js/products.js) and Course lesson files (js/course.js)
-// upload user files to the same Supabase storage bucket ('digital-products')
-// with the same 500MB-per-account shared cap. They both need the same
-// validation: file extension allowlist, magic-byte content check, ZIP-bomb
-// inspection, byte formatting. This module is the single source of truth so
-// the two tools never drift out of sync.
+// upload user files to the same Cloudflare R2 bucket (configured via
+// R2_BUCKET_NAME in Vercel env, currently 'ryxa-digital-products') via the
+// /api/r2-upload-url presigned-URL flow, with the same 500MB-per-account
+// shared cap. They both need the same validation: file extension allowlist,
+// magic-byte content check, ZIP-bomb inspection, byte formatting. This
+// module is the single source of truth so the two tools never drift.
 //
 // Exposes one global: window.FileValidation. Use it as:
 //   var v = await FileValidation.validateFileType(file);

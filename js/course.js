@@ -1302,36 +1302,57 @@ async function uploadLessonFile(courseId, lessonId, file) {
     }
   }
 
-  // Build the storage path. Same convention as digital products: user-scoped
-  // root segment is REQUIRED by the digital-products bucket's storage RLS
-  // policy (writes must be under {auth.uid()}/...). Then a timestamp + slug
-  // to prevent collisions if a creator uploads two files with the same name.
-  var path = currentUser.id + '/courses/' + courseId + '/lessons/' + lessonId + '/' +
-             Date.now() + '-' + window.FileValidation.slugify(file.name.replace(/\.[^.]+$/, '')) + '.' + ext;
-
   try {
-    var { error: upErr } = await sb.storage.from('digital-products').upload(path, file, {
-      cacheControl: '0',
-      upsert: false,
-      contentType: file.type || 'application/octet-stream'
+    // Step 1: ask server for presigned R2 upload URL. Server validates
+    // ownership (creator owns course, lesson belongs to course), caps
+    // (account 500MB, lesson 5-file), and inserts the course_lesson_files
+    // row. Returns upload_url, file_id, storage_path.
+    var session = await sb.auth.getSession();
+    var token = session && session.data && session.data.session ? session.data.session.access_token : null;
+    if (!token) throw new Error('Not signed in');
+
+    var urlRes = await fetch('/api/r2-upload-url', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify({
+        type: 'lesson',
+        course_id: courseId,
+        lesson_id: lessonId,
+        filename: file.name,
+        file_size_bytes: file.size,
+        mime_type: file.type || 'application/octet-stream'
+      })
     });
-    if (upErr) throw upErr;
-
-    var { data: row, error: insErr } = await sb.from('course_lesson_files').insert({
-      lesson_id: lessonId,
-      course_id: courseId,
-      filename: file.name,
-      storage_path: path,
-      file_size_bytes: file.size,
-      mime_type: file.type || null,
-      sort_order: current.length
-    }).select().single();
-
-    if (insErr) {
-      // Storage upload succeeded but DB row failed. Clean up the orphan.
-      await sb.storage.from('digital-products').remove([path]);
-      throw insErr;
+    if (!urlRes.ok) {
+      var errBody = await urlRes.json().catch(function() { return {}; });
+      throw new Error(errBody.error || ('Upload URL request failed (' + urlRes.status + ')'));
     }
+    var urlData = await urlRes.json();
+
+    // Step 2: PUT directly to R2 (file does not pass through Vercel)
+    var putRes = await fetch(urlData.upload_url, {
+      method: 'PUT',
+      body: file,
+      headers: { 'Content-Type': file.type || 'application/octet-stream' }
+    });
+    if (!putRes.ok) {
+      // Clean up the orphan row so the lesson editor doesn't show a broken file
+      try {
+        await fetch('/api/r2-delete-file', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+          body: JSON.stringify({ type: 'lesson', file_id: urlData.file_id })
+        });
+      } catch (cleanupErr) { /* best-effort */ }
+      throw new Error('Upload to R2 failed (' + putRes.status + ')');
+    }
+
+    // Step 3: server already inserted the row. Fetch it for the UI cache.
+    var { data: row, error: rowErr } = await sb.from('course_lesson_files').select('*').eq('id', urlData.file_id).single();
+    if (rowErr || !row) throw rowErr || new Error('Could not load file row after upload');
 
     // Update in-memory cache and storage usage
     if (!lessonFilesByLessonId[lessonId]) lessonFilesByLessonId[lessonId] = [];
@@ -1340,11 +1361,12 @@ async function uploadLessonFile(courseId, lessonId, file) {
     return true;
   } catch (e) {
     console.error('uploadLessonFile failed:', e);
-    // Helpful error message for the common cases. The DB trigger that
-    // enforces the 5-file cap throws with error code 23514; surface that
-    // as a friendlier message than the raw error.
-    if (e && e.code === '23514' && e.message && e.message.indexOf('Lesson file limit') !== -1) {
-      showModalAlert('Lesson is full', 'You have reached the 5-file limit for this lesson.');
+    // Server enforces the 5-file cap and returns a friendly error message.
+    // Surface that to the user.
+    if (e && e.message && e.message.indexOf('maximum number of files') !== -1) {
+      showModalAlert('Lesson is full', e.message);
+    } else if (e && e.message && e.message.indexOf('500 MB') !== -1) {
+      showModalAlert('Storage full', e.message);
     } else {
       showModalAlert('Upload failed', 'Could not upload "' + file.name + '". Please try again.');
     }
@@ -1352,22 +1374,31 @@ async function uploadLessonFile(courseId, lessonId, file) {
   }
 }
 
-// Delete one lesson file. Removes from DB first (so RLS is the gate), then
-// cleans up storage. Updates in-memory cache. Idempotent - safe to call on
-// an already-deleted file (the DB delete is a no-op).
+// Delete one lesson file via the server-side R2 delete route. The route
+// validates ownership via JWT, deletes the DB row, and deletes the R2 object
+// in one call. Idempotent — safe to call on an already-deleted file.
 async function deleteLessonFile(lessonId, fileId) {
   var files = lessonFilesByLessonId[lessonId] || [];
   var file = files.find(function(f) { return f.id === fileId; });
   if (!file) return false;
   try {
-    var { error: delErr } = await sb.from('course_lesson_files').delete().eq('id', fileId);
-    if (delErr) throw delErr;
-    // Best-effort storage cleanup
-    try {
-      await sb.storage.from('digital-products').remove([file.storage_path]);
-    } catch (storeErr) {
-      console.error('Storage cleanup failed (file row already deleted):', storeErr);
+    var session = await sb.auth.getSession();
+    var token = session && session.data && session.data.session ? session.data.session.access_token : null;
+    if (!token) throw new Error('Not signed in');
+
+    var res = await fetch('/api/r2-delete-file', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify({ type: 'lesson', file_id: fileId })
+    });
+    if (!res.ok) {
+      var errBody = await res.json().catch(function() { return {}; });
+      throw new Error(errBody.error || ('Delete failed (' + res.status + ')'));
     }
+
     // Update cache + storage usage
     lessonFilesByLessonId[lessonId] = files.filter(function(f) { return f.id !== fileId; });
     courseStorageUsedBytes = Math.max(0, courseStorageUsedBytes - Number(file.file_size_bytes || 0));
@@ -1379,12 +1410,10 @@ async function deleteLessonFile(lessonId, fileId) {
   }
 }
 
-// Delete every lesson-file row + storage object for the given lessonId.
-// Called from confirmRemoveLesson before splicing the lesson out of local
-// state, so a creator deleting a lesson doesn't orphan files in storage.
-// The DB has ON DELETE CASCADE on the FK from course_lesson_files to
-// course_lessons, so the rows would clean up on next course save anyway,
-// but storage objects don't cascade and have to be explicitly removed.
+// Delete every lesson-file row + R2 object for the given lessonId. Called
+// from confirmRemoveLesson before splicing the lesson out of local state.
+// Each file goes through the r2-delete-file API (validates ownership,
+// deletes DB row, deletes R2 object). Deletes in parallel.
 async function deleteAllFilesForLesson(lessonId) {
   if (!lessonId || (typeof lessonId === 'string' && lessonId.indexOf('new_') === 0)) {
     return;  // unsaved lesson has no DB files
@@ -1396,17 +1425,20 @@ async function deleteAllFilesForLesson(lessonId) {
       .eq('lesson_id', lessonId);
     if (!files || files.length === 0) return;
 
-    // Remove from storage in one batch call
-    var paths = files.map(function(f) { return f.storage_path; });
-    try {
-      await sb.storage.from('digital-products').remove(paths);
-    } catch (storeErr) {
-      console.error('Bulk storage cleanup failed:', storeErr);
-    }
-    // DB rows: cascade will handle them when the lesson row is deleted on
-    // next save. But delete explicitly too so storage usage updates now
-    // (don't wait for next save).
-    await sb.from('course_lesson_files').delete().eq('lesson_id', lessonId);
+    var session = await sb.auth.getSession();
+    var token = session && session.data && session.data.session ? session.data.session.access_token : null;
+    if (!token) throw new Error('Not signed in');
+
+    // Delete in parallel. Each call handles both R2 + DB row.
+    await Promise.all(files.map(function(f) {
+      return fetch('/api/r2-delete-file', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ type: 'lesson', file_id: f.id })
+      }).catch(function(err) {
+        console.warn('Lesson file delete failed for ' + f.id + ':', err);
+      });
+    }));
 
     // Reduce cached storage usage figure
     var freedBytes = files.reduce(function(s, f) { return s + Number(f.file_size_bytes || 0); }, 0);
@@ -1414,9 +1446,8 @@ async function deleteAllFilesForLesson(lessonId) {
     delete lessonFilesByLessonId[lessonId];
   } catch (e) {
     console.error('deleteAllFilesForLesson failed:', e);
-    // Non-blocking: the lesson can still be removed from local state. Orphan
-    // storage files will eventually count against the creator's quota until
-    // they're manually cleaned up. Not ideal but not catastrophic.
+    // Non-blocking: orphan R2 objects will eventually be swept by a future
+    // cron. Not ideal but not catastrophic.
   }
 }
 
