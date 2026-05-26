@@ -1321,6 +1321,20 @@ async function uploadLessonFile(courseId, lessonId, file) {
     }
   }
 
+  // Optimistic UI: insert a placeholder row showing "Uploading..." and
+  // re-render immediately so the creator sees their file appear while the
+  // network round-trip happens. The temp row is swapped for the real row
+  // on success, or removed on failure. Matches the Digital Products pattern.
+  var tempId = 'temp-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
+  if (!lessonFilesByLessonId[lessonId]) lessonFilesByLessonId[lessonId] = [];
+  lessonFilesByLessonId[lessonId].push({
+    id: tempId,
+    filename: file.name,
+    file_size_bytes: file.size,
+    _uploading: true
+  });
+  renderCourseModules();
+
   try {
     // Step 1: ask server for presigned R2 upload URL. Server validates
     // ownership (creator owns course, lesson belongs to course) and account
@@ -1373,13 +1387,19 @@ async function uploadLessonFile(courseId, lessonId, file) {
     var { data: row, error: rowErr } = await sb.from('course_lesson_files').select('*').eq('id', urlData.file_id).single();
     if (rowErr || !row) throw rowErr || new Error('Could not load file row after upload');
 
-    // Update in-memory cache and storage usage
-    if (!lessonFilesByLessonId[lessonId]) lessonFilesByLessonId[lessonId] = [];
-    lessonFilesByLessonId[lessonId].push(row);
+    // Swap the temp placeholder for the real row in-place (preserves position)
+    var idx = lessonFilesByLessonId[lessonId].findIndex(function(f) { return f.id === tempId; });
+    if (idx >= 0) lessonFilesByLessonId[lessonId][idx] = row;
+    else lessonFilesByLessonId[lessonId].push(row); // fallback if temp got cleared
+
     courseStorageUsedBytes += file.size;
+    renderCourseModules();
     return true;
   } catch (e) {
     console.error('uploadLessonFile failed:', e);
+    // Remove the failed temp row so the UI doesn't show a stuck "Uploading..."
+    lessonFilesByLessonId[lessonId] = (lessonFilesByLessonId[lessonId] || []).filter(function(f) { return f.id !== tempId; });
+    renderCourseModules();
     // Surface friendly messages for known server-side validation errors.
     if (e && e.message && e.message.indexOf('10 GB') !== -1) {
       showModalAlert('Storage full', e.message);
@@ -2565,13 +2585,22 @@ function renderCourseModules() {
             }
             var files = lessonFilesByLessonId[l.id] || [];
             var fileRows = files.map(function(f) {
+              // When _uploading is true, show "Uploading..." instead of the size
+              // and hide the delete button. The temp row is swapped for the
+              // real row after the R2 PUT completes (see uploadLessonFile).
+              var sizeOrStatus = f._uploading
+                ? '<span class="course-s-file-size">Uploading...</span>'
+                : '<span class="course-s-file-size">' + window.FileValidation.formatBytes(f.file_size_bytes) + '</span>';
+              var deleteBtn = f._uploading
+                ? ''
+                : '<button type="button" data-course-action="delete-lesson-file" data-course-lesson-id="' + l.id + '" data-course-file-id="' + f.id + '" class="course-s-file-del" title="Delete file" aria-label="Delete file">'
+                  + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>'
+                  + '</button>';
               return '<div class="course-s-file-row">'
                 + '<svg class="course-s-file-icn" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'
                 + '<span class="course-s-file-name">' + escapeHtml(f.filename) + '</span>'
-                + '<span class="course-s-file-size">' + window.FileValidation.formatBytes(f.file_size_bytes) + '</span>'
-                + '<button type="button" data-course-action="delete-lesson-file" data-course-lesson-id="' + l.id + '" data-course-file-id="' + f.id + '" class="course-s-file-del" title="Delete file" aria-label="Delete file">'
-                + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>'
-                + '</button>'
+                + sizeOrStatus
+                + deleteBtn
                 + '</div>';
             }).join('');
             var addBtn = '<label class="course-s-file-add">'
@@ -3259,8 +3288,9 @@ courseRegisterAction('add-lesson-file', async (e, el) => {
   await refreshCourseStorage();
   var ok = await uploadLessonFile(currentCourseId, lesson.id, files[0]);
   if (ok) {
+    // uploadLessonFile already re-rendered with the real row. Just refresh
+    // the account storage indicator.
     refreshCourseStorage();
-    renderCourseModules();
   }
 });
 courseRegisterAction('delete-lesson-file', async (e, el) => {
