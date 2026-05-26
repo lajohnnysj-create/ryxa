@@ -424,6 +424,13 @@ async function mountProductDescEditor() {
     }
   });
 
+  // WCAG: label Quill's toolbar buttons + hidden header <select> + link
+  // tooltip input. Shared helper defined in course.js so behavior matches
+  // across all description editors.
+  if (typeof window.applyQuillA11yLabels === 'function') {
+    window.applyQuillA11yLabels(quill.root);
+  }
+
   // Initialize from whatever's currently in the textarea (set by
   // hydrateProductEditor before this mounts).
   var initialHtml = textarea.value || '';

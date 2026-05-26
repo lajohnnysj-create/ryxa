@@ -327,6 +327,13 @@ async function mountCoachingDescEditor() {
     }
   });
 
+  // WCAG: label Quill's toolbar buttons + hidden header <select> + link
+  // tooltip input. Shared helper defined in course.js so behavior matches
+  // across all description editors.
+  if (typeof window.applyQuillA11yLabels === 'function') {
+    window.applyQuillA11yLabels(quill.root);
+  }
+
   // Initialize from the textarea content (already set by openCoachingEditor).
   var initialHtml = textarea.value || '';
   if (initialHtml) {

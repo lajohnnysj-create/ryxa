@@ -1905,6 +1905,10 @@ async function mountCourseDescEditor() {
     }
   });
 
+  // WCAG: label Quill's toolbar buttons + hidden header <select> + link
+  // tooltip input. Same helper used by lesson editors so behavior matches.
+  applyQuillA11yLabels(quill.root);
+
   // Initialize Quill content from whatever's currently in the textarea
   // (set by openCourseEditor before this mounts).
   var initialHtml = textarea.value || '';
@@ -2188,20 +2192,23 @@ function mountLessonEditor(mi, li) {
   return quill;
 }
 
-function setupImageSizing(quill, mi, li, container) {
-  var toolbar = container.previousElementSibling; // .ql-toolbar sits just before .ql-container
+// Apply standard aria-labels to a Quill 1.x Snow toolbar + tooltip. Idempotent:
+// safe to call multiple times since each branch checks hasAttribute first.
+// Reads its target by finding the .ql-toolbar adjacent to the given .ql-editor
+// container, and finds .ql-tooltip up the tree. Used by lesson editors AND by
+// the standalone description editors (course/product/coaching descriptions),
+// which all share the same Quill Snow theme.
+function applyQuillA11yLabels(container) {
+  if (!container) return;
+  var toolbar = container.previousElementSibling;
   if (!toolbar || !toolbar.classList.contains('ql-toolbar')) {
-    // Fallback: find by query (Quill always places toolbar adjacent to container)
     toolbar = container.parentElement && container.parentElement.querySelector('.ql-toolbar');
-    if (!toolbar) return;
   }
+  if (!toolbar) return;
 
-  // WCAG: Quill builds its toolbar with icon-only <button>s that have no
-  // accessible name. Screen readers announce them as "button" with no
-  // function, and WAVE flags them as "empty button". We add aria-label on
-  // each known button class after Quill builds the toolbar. Same for the
-  // header <select> which lacks a label. List is hardcoded against Quill
-  // Snow theme defaults, keep in sync with the toolbar config above.
+  // Icon-only toolbar buttons. List is hardcoded against Quill Snow theme
+  // defaults; if new toolbar items are added in any editor config, add them
+  // here so screen readers and WAVE see accessible names.
   var ariaLabels = {
     'ql-bold': 'Bold',
     'ql-italic': 'Italic',
@@ -2235,18 +2242,17 @@ function setupImageSizing(quill, mi, li, container) {
               : 'Align left';
     btn.setAttribute('aria-label', label);
   });
-  // Header dropdown, a <select>, not a button. Needs its own label.
+  // Header dropdown is a <select>, not a button. WAVE flags it as missing
+  // form label otherwise.
   toolbar.querySelectorAll('select.ql-header').forEach(function(sel) {
     if (!sel.hasAttribute('aria-label')) sel.setAttribute('aria-label', 'Heading level');
   });
 
   // Quill's link/video/formula tooltip, a hidden popover that appears when
-  // the user clicks the link button or an existing link in the editor.
-  // It contains an unlabeled <input> for the URL and an empty <a> preview.
-  // Both are flagged by WAVE even when display:none, because WAVE scans the
-  // DOM not the visual state. We label the input + give the empty preview
-  // anchor a fallback name. Tooltip placement varies by Quill version -
-  // check toolbar's parent, container's parent, and finally container itself.
+  // the user clicks the link button or an existing link in the editor. It
+  // contains an unlabeled <input> for the URL and an empty <a> preview.
+  // Both are flagged by WAVE even when display:none, because WAVE scans
+  // the DOM not the visual state.
   var tooltip = null;
   var searchRoots = [toolbar.parentElement, container.parentElement, container];
   for (var i = 0; i < searchRoots.length && !tooltip; i++) {
@@ -2256,19 +2262,31 @@ function setupImageSizing(quill, mi, li, container) {
     var input = tooltip.querySelector('input[type="text"]');
     if (input && !input.hasAttribute('aria-label')) {
       // The placeholder shifts (Enter link URL / Embed URL / formula) as
-      // Quill switches modes, "Enter URL" is a reasonable umbrella label.
+      // Quill switches modes; "Enter URL" is a reasonable umbrella label.
       input.setAttribute('aria-label', 'Enter URL');
     }
-    // The preview anchor is empty until a link is entered. Give it an
-    // accessible name so WAVE stops flagging it; the visible <a class=
-    // "ql-action"> next to it is the actual interactive element. We pick
-    // aria-label because the preview becomes meaningful when populated
-    // (it shows the current URL).
     var preview = tooltip.querySelector('a.ql-preview');
     if (preview && !preview.hasAttribute('aria-label')) {
       preview.setAttribute('aria-label', 'Current link URL');
     }
   }
+}
+// Expose so other dashboard JS files (products.js, coaching.js) can call it
+// without re-declaring the labeling logic per-editor.
+window.applyQuillA11yLabels = applyQuillA11yLabels;
+
+function setupImageSizing(quill, mi, li, container) {
+  var toolbar = container.previousElementSibling; // .ql-toolbar sits just before .ql-container
+  if (!toolbar || !toolbar.classList.contains('ql-toolbar')) {
+    // Fallback: find by query (Quill always places toolbar adjacent to container)
+    toolbar = container.parentElement && container.parentElement.querySelector('.ql-toolbar');
+    if (!toolbar) return;
+  }
+
+  // Apply standard Quill aria-labels (toolbar buttons, header select, tooltip
+  // input + preview). Shared helper so course-description, product-description,
+  // and coaching-description editors also stay accessible.
+  applyQuillA11yLabels(container);
 
   // Inject S/M/L button group right before the "clean" button (last group).
   var group = document.createElement('span');
