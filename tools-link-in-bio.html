@@ -115,11 +115,17 @@
   .feature-quote { max-width: 1200px; margin: 60px auto; padding: 0 32px; }
   .feature-quote-card { display: grid; grid-template-columns: 1fr 1fr; gap: 0; background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; }
   .feature-quote-photo { aspect-ratio: 16 / 11; background-image: url("/photos/links-photo3.webp"); background-size: cover; background-position: center; background-color: var(--surface); }
+  .feature-quote-photo.dashboard-mockup { background-image: url("/linkinbiodesktop.jpg"); background-size: contain; background-repeat: no-repeat; background-color: #0e0a1c; }
   .feature-quote-body { padding: 56px 48px; display: flex; flex-direction: column; justify-content: center; }
   .feature-quote-mark { font-family: "Space Grotesk", sans-serif; font-size: 72px; font-weight: 700; line-height: 0.5; color: var(--accent-fill); margin-bottom: 20px; }
   .feature-quote-text { font-family: "Space Grotesk", sans-serif; font-size: clamp(24px, 2.6vw, 32px); font-weight: 700; line-height: 1.2; letter-spacing: -0.5px; color: var(--text); }
+  .feature-quote-card.reverse { grid-template-columns: 1fr 1fr; }
+  .feature-quote-card.reverse .feature-quote-body { order: 1; }
+  .feature-quote-card.reverse .feature-quote-photo { order: 2; }
   @media (max-width: 880px) {
     .feature-quote-card { grid-template-columns: 1fr; }
+    .feature-quote-card.reverse .feature-quote-body { order: 2; }
+    .feature-quote-card.reverse .feature-quote-photo { order: 1; }
     .feature-quote-photo { aspect-ratio: 16 / 9; }
     .feature-quote-body { padding: 36px 28px; }
     .feature-quote-mark { font-size: 56px; margin-bottom: 14px; }
@@ -274,10 +280,21 @@
       <span class="step-card-pro-badge">Pro</span>
       <div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
       <div class="step-title">Custom branding</div>
-      <div class="step-desc">Set your brand color, fonts, and background. Pick a theme that matches your aesthetic. Your followers see your page, not a Ryxa template.</div>
+      <div class="step-desc">Set your brand color, fonts, and background. Pick a theme that matches your aesthetic.</div>
     </div>
     <div class="step-card"><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><polyline points="17 8 21 12 17 16"/><line x1="3" y1="6" x2="3" y2="6.01"/><line x1="3" y1="18" x2="3" y2="18.01"/></svg></div><div class="step-title">Drag-to-reorder, sections</div><div class="step-desc">Group your links into collapsible sections. Featured products at the top, social profiles below, archive at the bottom. Your followers see what matters first.</div></div>
     <div class="step-card"><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"/><path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"/></svg></div><div class="step-title">Live price sync</div><div class="step-desc">Change a course or product price in your dashboard, your bio page updates automatically. Cover images, titles, and prices stay in sync with what you've actually published.</div></div>
+  </div>
+</section>
+
+<!-- ============ DASHBOARD MOCKUP FEATURE QUOTE ============ -->
+<section class="feature-quote">
+  <div class="feature-quote-card reverse">
+    <div class="feature-quote-body">
+      <div class="feature-quote-mark" aria-hidden="true">&ldquo;</div>
+      <h2 class="feature-quote-text">A link-in-bio editor anyone can pick up in minutes.</h2>
+    </div>
+    <div class="feature-quote-photo dashboard-mockup" aria-hidden="true"></div>
   </div>
 </section>
 
@@ -292,7 +309,6 @@
     <div class="faq-item"><div class="faq-q" data-nav-action="toggle-faq"><div class="faq-q-text">Can I sell products through my link in bio?</div><div class="faq-toggle">+</div></div><div class="faq-a">Yes, on the Max plan. Once you upgrade, you can add courses, digital products, and 1:1 booking pages to your bio as links. When a follower taps one, they land on that product's checkout page. Payments go directly to your Stripe account, and Ryxa takes 0% transaction fees on top of standard Stripe processing.</div></div>
     <div class="faq-item"><div class="faq-q" data-nav-action="toggle-faq"><div class="faq-q-text">Does Ryxa take a cut of my sales?</div><div class="faq-toggle">+</div></div><div class="faq-a">No. Ryxa takes 0% transaction fees on every sale through your link-in-bio page. The only fees are Stripe's standard processing fees (around 2.9% + 30 cents per transaction), which go to Stripe, not to Ryxa.</div></div>
     <div class="faq-item"><div class="faq-q" data-nav-action="toggle-faq"><div class="faq-q-text">What's my page URL?</div><div class="faq-toggle">+</div></div><div class="faq-a">Your page lives at ryxa.io/yourhandle. You pick the handle when you sign up. Use the same handle you use on Instagram or TikTok if it's available, so your audience finds you easily.</div></div>
-    <div class="faq-item"><div class="faq-q" data-nav-action="toggle-faq"><div class="faq-q-text">Can I use a custom domain?</div><div class="faq-toggle">+</div></div><div class="faq-a">Custom domain support is on the roadmap. Today, every link-in-bio page lives at ryxa.io/yourhandle, which is short, brandable, and easy to share. We'll announce custom domain support to existing creators when it ships.</div></div>
     <div class="faq-item"><div class="faq-q" data-nav-action="toggle-faq"><div class="faq-q-text">How is this different from Linktree or Beacons?</div><div class="faq-toggle">+</div></div><div class="faq-a">Linktree and Beacons are mostly link lists. Ryxa is a creator business in a single link. You can list your socials and content like you would on Linktree, but you can also actually sell your courses, digital products, and 1:1 sessions on the same page, with hosting, checkout, and delivery handled for you. One link, one business, no extra tools.</div></div>
   </div>
 </section>
