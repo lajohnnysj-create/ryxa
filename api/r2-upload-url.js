@@ -37,11 +37,12 @@ const SUPABASE_ANON_KEY = 'sb_publishable_PLU28Un_GfsUXeUsK3zB9Q_hvNM7aeG';
 const { r2SignedUploadUrl } = require('./lib/r2-storage');
 
 // Server-side caps. Client also enforces these (UX), server is the source of truth.
-const MAX_FILE_BYTES = 50 * 1024 * 1024;          // 50 MB per file
-const MAX_PRODUCT_BYTES = 300 * 1024 * 1024;      // 300 MB per product
-const MAX_ACCOUNT_BYTES = 500 * 1024 * 1024;      // 500 MB per creator (shared across products + courses)
-const MAX_FILES_PER_LESSON = 5;
-const UPLOAD_URL_EXPIRES_SECONDS = 600;           // 10 min to complete upload
+// Per-file: 1 GB technical ceiling for single-shot PUT reliability.
+// Per-account: 10 GB shared between Digital Products and Course Lesson Files.
+// No per-product or per-lesson caps. Account cap is the backstop.
+const MAX_FILE_BYTES = 1024 * 1024 * 1024;            // 1 GB per file
+const MAX_ACCOUNT_BYTES = 10 * 1024 * 1024 * 1024;    // 10 GB per creator (shared across products + courses)
+const UPLOAD_URL_EXPIRES_SECONDS = 600;               // 10 min to complete upload
 
 // MIME types that are allowed for digital product / lesson downloads.
 // Mirror of js/file-validation.js. Client validates first, server re-validates.
@@ -175,12 +176,6 @@ async function getCreatorStorageUsed(userId) {
   return productBytes + lessonBytes;
 }
 
-// Sum of bytes for a specific product (per-product cap)
-async function getProductBytes(productId) {
-  var files = await sbSelect('digital_product_files?product_id=eq.' + encodeURIComponent(productId) + '&select=file_size_bytes');
-  return (files || []).reduce(function (n, f) { return n + (f.file_size_bytes || 0); }, 0);
-}
-
 async function getLessonFileCount(lessonId) {
   var files = await sbSelect('course_lesson_files?lesson_id=eq.' + encodeURIComponent(lessonId) + '&select=id');
   return (files || []).length;
@@ -217,7 +212,7 @@ module.exports = async function (req, res) {
       return res.status(400).json({ error: 'Missing or invalid file_size_bytes' });
     }
     if (fileSizeBytes > MAX_FILE_BYTES) {
-      return res.status(413).json({ error: 'File exceeds 50 MB limit' });
+      return res.status(413).json({ error: 'File exceeds 1 GB limit' });
     }
     if (!isAllowedMimeType(mimeType)) {
       return res.status(415).json({ error: 'File type not allowed' });
@@ -226,7 +221,7 @@ module.exports = async function (req, res) {
     // Account-level cap (shared between products + lessons)
     var used = await getCreatorStorageUsed(creator.id);
     if (used + fileSizeBytes > MAX_ACCOUNT_BYTES) {
-      return res.status(413).json({ error: 'Adding this file would exceed your 500 MB account storage limit' });
+      return res.status(413).json({ error: 'Adding this file would exceed your 10 GB account storage limit' });
     }
 
     var storagePath;
@@ -246,12 +241,6 @@ module.exports = async function (req, res) {
       }
       if (products[0].user_id !== creator.id) {
         return res.status(403).json({ error: 'You do not own this product' });
-      }
-
-      // Per-product cap
-      var productBytes = await getProductBytes(productId);
-      if (productBytes + fileSizeBytes > MAX_PRODUCT_BYTES) {
-        return res.status(413).json({ error: 'Adding this file would exceed the 300 MB per-product limit' });
       }
 
       storagePath = 'products/' + creator.id + '/' + productId + '/' + stamp + '-' + slug + '.' + ext;
@@ -299,11 +288,8 @@ module.exports = async function (req, res) {
         return res.status(403).json({ error: 'Lesson does not belong to this course' });
       }
 
-      // Per-lesson file count cap
+      // Get current file count for sort_order (no cap, just ordering)
       var lessonFileCount = await getLessonFileCount(lessonId);
-      if (lessonFileCount >= MAX_FILES_PER_LESSON) {
-        return res.status(413).json({ error: 'This lesson already has the maximum number of files (' + MAX_FILES_PER_LESSON + ')' });
-      }
 
       storagePath = 'courses/' + creator.id + '/' + courseId + '/' + lessonId + '/' + stamp + '-' + slug + '.' + ext;
 
