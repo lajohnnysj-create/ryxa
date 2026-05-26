@@ -7773,15 +7773,15 @@
               <table class="ana-s-5dd2f7">
                 <thead>
                   <tr class="ana-s-f5538f">
-                    <th class="ana-s-656e15 clients-s-th-check">
+                    <th class="ana-s-656e15 clients-s-th-check" scope="col" aria-label="Select subscribers">
                       <input type="checkbox" id="clients-select-all" aria-label="Select all on this page" data-clients-action="toggle-all" data-clients-event="change" class="clients-s-checkbox">
                     </th>
-                    <th class="ana-s-656e15">Email</th>
-                    <th class="ana-s-656e15">Source</th>
-                    <th class="ana-s-656e15">Opt In</th>
-                    <th class="ana-s-656e15">Date Joined</th>
-                    <th class="ana-s-656e15"></th>
-                    <th class="ana-s-656e15"></th>
+                    <th class="ana-s-656e15" scope="col">Email</th>
+                    <th class="ana-s-656e15" scope="col">Source</th>
+                    <th class="ana-s-656e15" scope="col">Opt In</th>
+                    <th class="ana-s-656e15" scope="col">Date Joined</th>
+                    <th class="ana-s-656e15" scope="col" aria-label="Notes"></th>
+                    <th class="ana-s-656e15" scope="col" aria-label="Remove subscriber"></th>
                   </tr>
                 </thead>
                 <tbody id="clients-tbody">
@@ -7818,8 +7818,8 @@
                     <span id="clients-detail-name-status" class="clients-s-note-status" aria-live="polite"></span>
                   </div>
                   <div class="clients-s-detail-name-grid">
-                    <input type="text" id="clients-detail-first-name" placeholder="First name" maxlength="120" autocomplete="off" data-clients-action="name-blur" data-clients-event="blur" class="clients-s-add-input">
-                    <input type="text" id="clients-detail-last-name" placeholder="Last name" maxlength="120" autocomplete="off" data-clients-action="name-blur" data-clients-event="blur" class="clients-s-add-input">
+                    <input type="text" id="clients-detail-first-name" placeholder="First name" aria-label="First name" maxlength="120" autocomplete="off" data-clients-action="name-blur" data-clients-event="blur" class="clients-s-add-input">
+                    <input type="text" id="clients-detail-last-name" placeholder="Last name" aria-label="Last name" maxlength="120" autocomplete="off" data-clients-action="name-blur" data-clients-event="blur" class="clients-s-add-input">
                   </div>
                 </div>
                 <div class="clients-s-detail-grid">
@@ -7913,7 +7913,7 @@
                     <div class="clients-s-dropzone-text">Drag a CSV file here or click to choose</div>
                     <div class="clients-s-dropzone-hint">Max 25MB &middot; up to 50,000 rows &middot; .csv format</div>
                   </div>
-                  <input type="file" id="clients-import-file" accept=".csv,text/csv" data-clients-action="csv-file-selected" data-clients-event="change" class="clients-s-dropzone-input">
+                  <input type="file" id="clients-import-file" accept=".csv,text/csv" aria-label="Choose CSV file" data-clients-action="csv-file-selected" data-clients-event="change" class="clients-s-dropzone-input">
                 </div>
 
                 <!-- Step 2: Preview + column mapping -->
