@@ -22,6 +22,7 @@ const GOOGLE_REDIRECT_URI = process.env.GOOGLE_OAUTH_REDIRECT_URI;
 const TICKET_SIGNING_SECRET = process.env.GCAL_TICKET_SIGNING_SECRET;
 
 const crypto = require('crypto');
+const { encryptToken } = require('./lib/token-crypto');
 
 const DASHBOARD_URL = 'https://ryxa.io/dashboard.html';
 
@@ -191,8 +192,10 @@ module.exports = async function handler(req, res) {
         body: JSON.stringify({
           user_id: userId,
           google_email: googleEmail,
-          access_token: tokens.access_token,
-          refresh_token: tokens.refresh_token,
+          // Encrypted at rest; the Edge Function that syncs the calendar
+          // decrypts these in-memory before calling Google's API.
+          access_token: encryptToken(tokens.access_token),
+          refresh_token: encryptToken(tokens.refresh_token),
           scope: tokens.scope || 'https://www.googleapis.com/auth/calendar.app.created',
           expires_at: expiresAt,
           ryxa_calendar_id: null,

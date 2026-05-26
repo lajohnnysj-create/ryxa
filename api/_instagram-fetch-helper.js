@@ -18,6 +18,7 @@
 const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const GRAPH_API_BASE = 'https://graph.instagram.com/v22.0';
+const { decryptToken } = require('./lib/token-crypto');
 
 // ============================================================
 // HELPERS
@@ -178,7 +179,17 @@ async function refreshInstagramData(userId) {
   const conn = await loadConnection(userId);
   if (!conn) return { ok: false, error: 'Not connected to Instagram' };
 
-  const token = conn.access_token;
+  // Decrypt the at-rest-encrypted access token before using it with Graph API.
+  // Throws if the ciphertext is corrupt, tampered, or encrypted with a
+  // different key (catch surfaces a friendly error to the caller).
+  let token;
+  try {
+    token = decryptToken(conn.access_token);
+  } catch (e) {
+    console.error('Token decrypt failed for user', userId, ':', e.message);
+    return { ok: false, error: 'Token decryption failed; reconnect Instagram' };
+  }
+  if (!token) return { ok: false, error: 'No access token stored; reconnect Instagram' };
   const collected = {};
   const errors = [];
 

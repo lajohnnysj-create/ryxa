@@ -14,6 +14,7 @@
 
 const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const { decryptToken } = require('./lib/token-crypto');
 
 // ----- helpers --------------------------------------------------
 
@@ -142,8 +143,15 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({ ok: true, message: 'No connection to remove' });
   }
 
-  // Try to revoke on Meta's side (non-fatal if it fails)
-  const revoked = await revokeMetaToken(conn.access_token);
+  // Try to revoke on Meta's side (non-fatal if it fails). Decrypt first; if
+  // the ciphertext is corrupt we still proceed to delete the row locally.
+  let plainToken = null;
+  try {
+    plainToken = decryptToken(conn.access_token);
+  } catch (e) {
+    console.warn('Could not decrypt token for revoke; proceeding with local delete:', e.message);
+  }
+  const revoked = plainToken ? await revokeMetaToken(plainToken) : false;
 
   // Delete from our database (this is the part that MUST succeed)
   try {

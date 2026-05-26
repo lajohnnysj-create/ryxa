@@ -16,6 +16,7 @@ const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_OAUTH_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_OAUTH_CLIENT_SECRET;
+const { encryptToken, decryptToken } = require('./lib/token-crypto');
 
 async function verifySupabaseUser(accessToken) {
   try {
@@ -79,7 +80,7 @@ async function getFreshGoogleToken(userId, conn) {
         Prefer: 'return=minimal',
       },
       body: JSON.stringify({
-        access_token: tokens.access_token,
+        access_token: encryptToken(tokens.access_token),
         expires_at: newExpiresAt,
         updated_at: new Date().toISOString(),
       }),
@@ -133,6 +134,24 @@ module.exports = async function handler(req, res) {
 
   if (!conn) {
     return res.status(200).json({ ok: true, note: 'no_connection' });
+  }
+
+  // Decrypt the at-rest-encrypted tokens in memory. Replace the conn fields
+  // with plaintext so the rest of this function (refresh, revoke, etc.)
+  // can use them directly. If decryption fails, we still proceed - the
+  // remote-side revoke is best-effort anyway, and the local DB row will
+  // still be deleted.
+  try {
+    if (conn.access_token) conn.access_token = decryptToken(conn.access_token);
+  } catch (e) {
+    console.warn('Could not decrypt access_token:', e.message);
+    conn.access_token = null;
+  }
+  try {
+    if (conn.refresh_token) conn.refresh_token = decryptToken(conn.refresh_token);
+  } catch (e) {
+    console.warn('Could not decrypt refresh_token:', e.message);
+    conn.refresh_token = null;
   }
 
   // 2. Delete the Ryxa calendar from Google (best-effort)

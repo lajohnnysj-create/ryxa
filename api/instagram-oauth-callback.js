@@ -10,6 +10,7 @@
 // =======================================================
 
 const crypto = require('crypto');
+const { encryptToken } = require('./lib/token-crypto');
 
 const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -253,11 +254,13 @@ module.exports = async function handler(req, res) {
   }
 
   // ---- Save the connection ----
+  // Encrypt the long-lived access token before persisting. The token is the
+  // only sensitive value here (ig_user_id, username, scopes are not secrets).
   try {
     await saveConnection(userId, {
       ig_user_id: shortLived.user_id,
       ig_username: profile.username || null,
-      access_token: longLived.access_token,
+      access_token: encryptToken(longLived.access_token),
       scopes: shortLived.permissions || [],
       account_type: profile.account_type || null,
       profile_picture_url: profile.profile_picture_url || null,
