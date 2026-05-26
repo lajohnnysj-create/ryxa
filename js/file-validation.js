@@ -19,13 +19,12 @@
   'use strict';
 
   // ---------------------------------------------------------------------------
-  // Hard limits (must match DB CHECK constraints and Supabase bucket config)
+  // Hard limits (server-side caps in api/r2-upload-url.js are the source of truth)
   // ---------------------------------------------------------------------------
-  var MAX_FILE_BYTES    = 50 * 1024 * 1024;    // 50 MB
-  var MAX_ACCOUNT_BYTES = 500 * 1024 * 1024;   // 500 MB shared bucket
-  // Note: digital products also have a 300MB per-product cap. That's
-  // product-specific and stays in products.js since it doesn't apply to
-  // course lesson files (capped at 5 files per lesson instead).
+  var MAX_FILE_BYTES    = 1024 * 1024 * 1024;          // 1 GB
+  var MAX_ACCOUNT_BYTES = 10 * 1024 * 1024 * 1024;     // 10 GB shared between
+                                                       // Digital Products and Course Lesson Files
+  // No per-product or per-lesson caps. The 10 GB account cap is the backstop.
 
   // ---------------------------------------------------------------------------
   // Allowed file extensions (lowercase)

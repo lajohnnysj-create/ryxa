@@ -117,7 +117,7 @@ function initCoursesTool() {
   if (max && !coursesInited) {
     coursesInited = true;
     loadCoursesList();
-    refreshCourseStorage();  // shared 500 MB indicator
+    refreshCourseStorage();  // shared 10 GB indicator
   } else if (max) {
     renderCoursesList();
     refreshCourseStorage();
@@ -1231,7 +1231,7 @@ function removeLessonImage(modIdx, lessonIdx, imgIdx) {
 // ---------------------------------------------------------------------------
 // Files live in the 'digital-products' Supabase bucket under path
 //   courses/{course_id}/lessons/{lesson_id}/{timestamp}-{slug}.{ext}
-// The bucket is shared with Digital Products for one consolidated 500 MB
+// The bucket is shared with Digital Products for one consolidated 10 GB
 // per-account quota. The course_lesson_files DB table stores metadata
 // (filename, storage_path, size, etc.) and has cascade-delete from
 // course_lessons via the FK, so removing a lesson auto-cleans the DB rows
@@ -1250,7 +1250,7 @@ async function refreshCourseStorage() {
     var fill = document.getElementById('course-storage-fill');
     var txt = document.getElementById('course-storage-text');
     if (fill) { fill.style.width = pct + '%'; fill.style.background = color; }
-    if (txt) txt.textContent = window.FileValidation.formatBytes(courseStorageUsedBytes) + ' / 500 MB for downloadable files (shared with Digital Products)';
+    if (txt) txt.textContent = window.FileValidation.formatBytes(courseStorageUsedBytes) + ' / 10 GB for downloadable files (shared with Digital Products)';
   } catch (e) {
     console.error('refreshCourseStorage failed:', e);
   }
@@ -1280,9 +1280,8 @@ async function loadLessonFiles(lessonId) {
 }
 
 // Upload one file as a lesson attachment. Runs pre-flight checks (size cap,
-// account storage cap, per-lesson 5-file cap, type validation, ZIP inspection),
-// uploads to storage, then inserts the metadata row. On any failure after the
-// storage upload, the storage object is cleaned up so we don't orphan bytes.
+// account storage cap, type validation, ZIP inspection), gets a presigned R2
+// URL, then PUTs the file directly to R2. The server inserts the metadata row.
 //
 // Returns true on success, false on any failure (the user has been alerted by
 // this point via showModalAlert, so the caller doesn't need to).
@@ -1290,7 +1289,7 @@ async function uploadLessonFile(courseId, lessonId, file) {
   // Pre-flight: file size
   if (file.size > window.FileValidation.MAX_FILE_BYTES) {
     showModalAlert('File too large',
-      '"' + file.name + '" is ' + window.FileValidation.formatBytes(file.size) + '. Max file size is 50 MB.');
+      '"' + file.name + '" is ' + window.FileValidation.formatBytes(file.size) + '. Max file size is 1 GB.');
     return false;
   }
 
@@ -1298,17 +1297,12 @@ async function uploadLessonFile(courseId, lessonId, file) {
   // refreshed when the editor opened)
   if (courseStorageUsedBytes + file.size > window.FileValidation.MAX_ACCOUNT_BYTES) {
     showModalAlert('Storage full',
-      'Adding "' + file.name + '" would exceed your 500 MB account storage. Delete some files first.');
+      'Adding "' + file.name + '" would exceed your 10 GB account storage. Delete some files first.');
     return false;
   }
 
-  // Pre-flight: 5-file-per-lesson cap (UI gate, DB trigger is the backstop)
+  // No per-lesson file count cap. Account 10 GB cap is the backstop.
   var current = lessonFilesByLessonId[lessonId] || [];
-  if (current.length >= 5) {
-    showModalAlert('Lesson is full',
-      'You have reached the 5-file limit for this lesson. Delete a file first if you need to add a new one.');
-    return false;
-  }
 
   // Pre-flight: extension + magic-byte validation
   var validation = await window.FileValidation.validateFileType(file);
@@ -1329,9 +1323,9 @@ async function uploadLessonFile(courseId, lessonId, file) {
 
   try {
     // Step 1: ask server for presigned R2 upload URL. Server validates
-    // ownership (creator owns course, lesson belongs to course), caps
-    // (account 500MB, lesson 5-file), and inserts the course_lesson_files
-    // row. Returns upload_url, file_id, storage_path.
+    // ownership (creator owns course, lesson belongs to course) and account
+    // storage cap (10 GB), then inserts the course_lesson_files row.
+    // Returns upload_url, file_id, storage_path.
     var session = await sb.auth.getSession();
     var token = session && session.data && session.data.session ? session.data.session.access_token : null;
     if (!token) throw new Error('Not signed in');
@@ -1386,11 +1380,8 @@ async function uploadLessonFile(courseId, lessonId, file) {
     return true;
   } catch (e) {
     console.error('uploadLessonFile failed:', e);
-    // Server enforces the 5-file cap and returns a friendly error message.
-    // Surface that to the user.
-    if (e && e.message && e.message.indexOf('maximum number of files') !== -1) {
-      showModalAlert('Lesson is full', e.message);
-    } else if (e && e.message && e.message.indexOf('500 MB') !== -1) {
+    // Surface friendly messages for known server-side validation errors.
+    if (e && e.message && e.message.indexOf('10 GB') !== -1) {
       showModalAlert('Storage full', e.message);
     } else {
       showModalAlert('Upload failed', 'Could not upload "' + file.name + '". Please try again.');
@@ -2559,8 +2550,8 @@ function renderCourseModules() {
                 + '</div>';
             })()
           : '<div id="lesson-editor-' + mi + '-' + li + '" class="course-s-quill-host" data-course-mi="' + mi + '" data-course-li="' + li + '"></div>')
-        // Downloadable files (per lesson, max 5, 50 MB each, shared with
-        // Digital Products on the 500 MB account quota).
+        // Downloadable files (per lesson, up to 1 GB each, shared with
+        // Digital Products on the 10 GB account quota).
         + (function() {
             // Files only available for saved lessons (need a DB lesson id).
             var isNew = typeof l.id === 'string' && l.id.indexOf('new_') === 0;
@@ -2583,17 +2574,14 @@ function renderCourseModules() {
                 + '</button>'
                 + '</div>';
             }).join('');
-            var canAddMore = files.length < 5;
-            var addBtn = canAddMore
-              ? '<label class="course-s-file-add">'
-                + '<input type="file" data-course-action="add-lesson-file" data-course-event="change" data-course-mi="' + mi + '" data-course-li="' + li + '" hidden>'
-                + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'
-                + 'Add file</label>'
-              : '<span class="course-s-file-limit">5-file limit reached</span>';
+            var addBtn = '<label class="course-s-file-add">'
+              + '<input type="file" data-course-action="add-lesson-file" data-course-event="change" data-course-mi="' + mi + '" data-course-li="' + li + '" hidden>'
+              + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'
+              + 'Add file</label>';
             return '<div class="course-s-files-panel">'
               + '<div class="course-s-files-header">'
               + '<span class="course-s-files-title">Downloads</span>'
-              + '<span class="course-s-files-hint">Max 5 files, 50 MB each. Students can download these from the lesson page.</span>'
+              + '<span class="course-s-files-hint">Up to 1 GB per file. Students can download these from the lesson page.</span>'
               + '</div>'
               + (fileRows ? '<div class="course-s-files-list">' + fileRows + '</div>' : '')
               + '<div class="course-s-files-actions">' + addBtn + '</div>'
@@ -3253,8 +3241,8 @@ courseRegisterAction('remove-lesson', (e, el) => {
 });
 courseRegisterAction('add-lesson-file', async (e, el) => {
   // Triggered by the hidden <input type="file"> changing. Uploads the first
-  // selected file (we don't support multi-select for lesson files since the
-  // 5-file cap means batch upload is rarely useful). Clears input after.
+  // selected file (we don't support multi-select for lesson files; one file at
+  // a time keeps the upload UI simple). Clears input after.
   var files = Array.from(el.files || []);
   el.value = '';
   if (!files.length) return;

@@ -87,9 +87,8 @@ function showProductsMsg(type, msg, isHtml) {
 // =====================================================
 
 // Hard limits — must match SQL bucket config and migration
-var DP_MAX_FILE_BYTES    = 50 * 1024 * 1024;    // 50 MB
-var DP_MAX_PRODUCT_BYTES = 300 * 1024 * 1024;   // 300 MB
-var DP_MAX_ACCOUNT_BYTES = 500 * 1024 * 1024;  // 500 MB
+var DP_MAX_FILE_BYTES    = 1024 * 1024 * 1024;          // 1 GB
+var DP_MAX_ACCOUNT_BYTES = 10 * 1024 * 1024 * 1024;     // 10 GB shared cap with courses
 
 // File-validation constants and allowlists live in js/file-validation.js
 // (shared with course.js).
@@ -188,7 +187,7 @@ async function refreshProductsStorage() {
     var fill = document.getElementById('products-storage-fill');
     var txt = document.getElementById('products-storage-text');
     if (fill) { fill.style.width = pct + '%'; fill.style.background = color; }
-    if (txt) txt.textContent = dpFormatBytes(productsState.storageBytes) + ' / 500 MB for downloadable files (shared with course downloads)';
+    if (txt) txt.textContent = dpFormatBytes(productsState.storageBytes) + ' / 10 GB for downloadable files (shared with course downloads)';
   } catch (e) {
     console.error('refreshProductsStorage failed:', e);
   }
@@ -579,15 +578,11 @@ async function uploadProductFiles(input) {
 
 async function uploadSingleFile(file) {
   if (file.size > DP_MAX_FILE_BYTES) {
-    showModalAlert('File too large', '"' + file.name + '" is ' + dpFormatBytes(file.size) + '. Max file size is 50 MB.');
-    return;
-  }
-  if (productsState.editingProductBytes + file.size > DP_MAX_PRODUCT_BYTES) {
-    showModalAlert('Product is full', 'Adding "' + file.name + '" would exceed the 300 MB per-product limit. Remove a file first or split into a separate product.');
+    showModalAlert('File too large', '"' + file.name + '" is ' + dpFormatBytes(file.size) + '. Max file size is 1 GB.');
     return;
   }
   if (productsState.storageBytes + file.size > DP_MAX_ACCOUNT_BYTES) {
-    showModalAlert('Storage full', 'Adding "' + file.name + '" would exceed your 500 MB account storage. Delete some files first.');
+    showModalAlert('Storage full', 'Adding "' + file.name + '" would exceed your 10 GB account storage. Delete some files first.');
     return;
   }
   var validation = await dpValidateFileType(file);
@@ -687,7 +682,7 @@ function renderProductFiles() {
   if (!listEl) return;
 
   countEl.textContent = '(' + productsState.editingFiles.length + ')';
-  sizeEl.textContent = dpFormatBytes(productsState.editingProductBytes) + " used of this product's 300 MB";
+  sizeEl.textContent = dpFormatBytes(productsState.editingProductBytes) + ' in this product';
 
   if (!productsState.editingFiles.length) {
     listEl.innerHTML = '';
