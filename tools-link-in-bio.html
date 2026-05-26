@@ -181,9 +181,11 @@
   .feature-quote-body { padding: 56px 48px; display: flex; flex-direction: column; justify-content: center; }
   .feature-quote-mark { font-family: "Space Grotesk", sans-serif; font-size: 72px; font-weight: 700; line-height: 0.5; color: var(--accent-fill); margin-bottom: 20px; }
   .feature-quote-text { font-family: "Space Grotesk", sans-serif; font-size: clamp(24px, 2.6vw, 32px); font-weight: 700; line-height: 1.2; letter-spacing: -0.5px; color: var(--text); }
-  .feature-quote-card.reverse { grid-template-columns: 1fr 1fr; }
-  .feature-quote-card.reverse .feature-quote-body { order: 1; }
-  .feature-quote-card.reverse .feature-quote-photo { order: 2; }
+  @media (min-width: 881px) {
+    .feature-quote-card.reverse { grid-template-columns: 1fr 1fr; }
+    .feature-quote-card.reverse .feature-quote-body { order: 1; }
+    .feature-quote-card.reverse .feature-quote-photo { order: 2; }
+  }
   @media (max-width: 880px) {
     .feature-quote-card { grid-template-columns: 1fr; }
     .feature-quote-card .feature-quote-body { order: 2; }
