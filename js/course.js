@@ -2588,9 +2588,14 @@ function renderCourseModules() {
               // When _uploading is true, show "Uploading..." instead of the size
               // and hide the delete button. The temp row is swapped for the
               // real row after the R2 PUT completes (see uploadLessonFile).
+              // While uploading: show "Uploading..." in muted text, no delete button.
+              // When ready: show file size + green "✓ Ready" status. Matches the
+              // Digital Products UX so creators get the same at-a-glance feedback
+              // across both tools.
               var sizeOrStatus = f._uploading
                 ? '<span class="course-s-file-size">Uploading...</span>'
-                : '<span class="course-s-file-size">' + window.FileValidation.formatBytes(f.file_size_bytes) + '</span>';
+                : '<span class="course-s-file-size">' + window.FileValidation.formatBytes(f.file_size_bytes)
+                  + ' \u00b7 <span class="course-s-file-ready">\u2713 Ready</span></span>';
               var deleteBtn = f._uploading
                 ? ''
                 : '<button type="button" data-course-action="delete-lesson-file" data-course-lesson-id="' + l.id + '" data-course-file-id="' + f.id + '" class="course-s-file-del" title="Delete file" aria-label="Delete file">'
