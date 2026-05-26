@@ -4515,6 +4515,21 @@
      var(--accent2) for description links. */
   .ql-editor a, .ql-editor a:visited { color:var(--accent2) !important; }
   .ql-editor a:hover, .ql-editor a:focus { color:#c4b5fd !important; }
+  /* WCAG: Quill's link-edit tooltip ships with background:#fff and an inner
+     preview <a> styled with the editor link color. Without an override the
+     preview text (purple) on white only hits ~3.5:1, failing AA. The earlier
+     .course-s-quill-host .ql-tooltip rule above relies on the wrapper being
+     an ancestor of the tooltip; that's not always the case since Quill
+     sometimes places the tooltip outside the container. We add unscoped
+     tooltip overrides here so background + foreground stay paired correctly
+     for every Quill editor in the dashboard (description editors + lesson
+     editor). Scoped only to .ql-snow which is dashboard-only (no public
+     landing page renders the editor chrome). */
+  .ql-snow .ql-tooltip { background:var(--surface) !important; border:1px solid var(--border) !important; color:var(--text) !important; box-shadow:0 4px 14px rgba(0,0,0,0.3); }
+  .ql-snow .ql-tooltip input[type=text] { background:var(--surface2) !important; border:1px solid var(--border) !important; color:var(--text) !important; }
+  .ql-snow .ql-tooltip a.ql-preview { color:var(--accent2) !important; }
+  .ql-snow .ql-tooltip a.ql-action::after,
+  .ql-snow .ql-tooltip a.ql-remove::before { color:var(--accent2) !important; }
   /* S/M/L toolbar buttons (custom-injected by setupImageSizing). Two visual
      states matter here:
        - DORMANT (no image selected): low-key gray text, signal that they
