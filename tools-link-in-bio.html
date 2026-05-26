@@ -134,7 +134,8 @@
   .step-icon { width: 44px; height: 44px; border-radius: 12px; background: var(--accent-tint-12); border: 1px solid var(--accent-border-25); display: flex; align-items: center; justify-content: center; color: var(--accent); margin-bottom: 16px; }
   .step-title { font-family: "Space Grotesk", sans-serif; font-size: 17px; font-weight: 700; margin-bottom: 8px; color: var(--text); }
   .step-desc { font-size: 13px; color: var(--muted); line-height: 1.55; }
-  .step-card-max-badge { display: inline-block; padding: 3px 8px; background: #a78bfa; color: #fff; border: none; border-radius: 5px; font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 10px; }
+  .step-card-max-badge { display: inline-block; padding: 3px 8px; background: var(--accent-fill); color: var(--on-accent); border: none; border-radius: 5px; font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 10px; }
+  .step-card-pro-badge { display: inline-block; padding: 3px 8px; background: #fbbf24; color: #422006; border: none; border-radius: 5px; font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 10px; }
 
   /* QUOTE DIVIDER */
   .quote-divider { position: relative; width: 100%; height: 380px; max-width: none; margin: 0; padding: 0; overflow: hidden; clip-path: polygon(0 12%, 100% 0, 100% 88%, 0 100%); background-color: #1e1b4b; }
@@ -231,7 +232,7 @@
   <div class="steps-grid">
     <div class="step-card"><div class="step-num">Step 1</div><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 22v-2a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2"/></svg></div><div class="step-title">Claim your URL</div><div class="step-desc">Pick your handle. Your page lives at ryxa.io/yourname. Add a profile photo, bio, and brand color.</div></div>
     <div class="step-card"><div class="step-num">Step 2</div><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div><div class="step-title">Add your links</div><div class="step-desc">Socials, content, anything you want followers to find. Drag to reorder. Group into collapsible sections.</div></div>
-    <div class="step-card"><div class="step-num">Step 3</div><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="step-title">Add things to sell</div><div class="step-desc">Connect Stripe and surface your courses, digital products, and 1:1 sessions right on your page. Ryxa takes 0% transaction fees.</div></div>
+    <div class="step-card"><div class="step-num">Step 3</div><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="step-title">Add things to sell</div><div class="step-desc">On Max, drop your courses, digital products, and 1:1 booking pages into your bio as links. Followers tap, land on the product page, and check out. Ryxa takes 0% transaction fees.</div></div>
     <div class="step-card"><div class="step-num">Step 4</div><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><div class="step-title">Paste it in your bio</div><div class="step-desc">Copy your URL into your Instagram, TikTok, and YouTube bios. Every tap from your followers lands somewhere you control.</div></div>
   </div>
 </section>
@@ -254,24 +255,29 @@
     <div class="step-card">
       <span class="step-card-max-badge">Max</span>
       <div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
-      <div class="step-title">Sell your courses</div>
-      <div class="step-desc">Pin a course directly to your page. Followers can preview, enroll, and start watching without ever leaving your link. Hosting, video, and student dashboard included.</div>
+      <div class="step-title">Add your courses as links</div>
+      <div class="step-desc">Drop any course you've built into your bio page as a link. Followers tap it and land on your course page, where they can enroll. Cover image, title, and price pull in automatically.</div>
     </div>
     <div class="step-card">
       <span class="step-card-max-badge">Max</span>
       <div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>
-      <div class="step-title">Sell digital products</div>
-      <div class="step-desc">Templates, presets, ebooks, PDFs, design files, audio. Buyers download instantly after payment. Files hosted on Ryxa, delivery handled for you.</div>
+      <div class="step-title">Add digital products as links</div>
+      <div class="step-desc">Templates, presets, ebooks, PDFs, design files, audio. Add them to your bio page as links. Followers tap, land on the product page, buy, and download instantly.</div>
     </div>
     <div class="step-card">
       <span class="step-card-max-badge">Max</span>
       <div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
-      <div class="step-title">Book 1:1 sessions</div>
-      <div class="step-desc">Sell coaching, consulting, portfolio reviews, or feedback calls. Buyers pick a time, pay, and get a calendar invite. Connects to your Google Calendar.</div>
+      <div class="step-title">Add 1:1 sessions as links</div>
+      <div class="step-desc">Coaching, consulting, portfolio reviews, feedback calls. Add your booking page as a link. Followers tap, pick a time, pay, and get a calendar invite. Connects to your Google Calendar.</div>
     </div>
-    <div class="step-card"><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><div class="step-title">Custom branding</div><div class="step-desc">Set your brand color, fonts, and background. Pick a theme that matches your aesthetic. Your followers see your page, not a Ryxa template.</div></div>
+    <div class="step-card">
+      <span class="step-card-pro-badge">Pro</span>
+      <div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+      <div class="step-title">Custom branding</div>
+      <div class="step-desc">Set your brand color, fonts, and background. Pick a theme that matches your aesthetic. Your followers see your page, not a Ryxa template.</div>
+    </div>
     <div class="step-card"><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><polyline points="17 8 21 12 17 16"/><line x1="3" y1="6" x2="3" y2="6.01"/><line x1="3" y1="18" x2="3" y2="18.01"/></svg></div><div class="step-title">Drag-to-reorder, sections</div><div class="step-desc">Group your links into collapsible sections. Featured products at the top, social profiles below, archive at the bottom. Your followers see what matters first.</div></div>
-    <div class="step-card"><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg></div><div class="step-title">Built-in analytics</div><div class="step-desc">See which links your followers tap. Track which products convert. Know what's actually working without plugging in a third party.</div></div>
+    <div class="step-card"><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"/><path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"/></svg></div><div class="step-title">Live price sync</div><div class="step-desc">Change a course or product price in your dashboard, your bio page updates automatically. Cover images, titles, and prices stay in sync with what you've actually published.</div></div>
   </div>
 </section>
 
@@ -282,8 +288,8 @@
   <div class="section-label">FAQ</div>
   <h2 class="section-title">Common questions about Link in Bio.</h2>
   <div class="faq-list">
-    <div class="faq-item"><div class="faq-q" data-nav-action="toggle-faq"><div class="faq-q-text">Is Link in Bio actually free?</div><div class="faq-toggle">+</div></div><div class="faq-a">Yes. Building and publishing your link-in-bio page is free on Ryxa. Selling courses, digital products, and 1:1 sessions through your page requires a Max plan, but the page itself, your links, your branding, and basic analytics are all free forever.</div></div>
-    <div class="faq-item"><div class="faq-q" data-nav-action="toggle-faq"><div class="faq-q-text">Can I sell products through my link in bio?</div><div class="faq-toggle">+</div></div><div class="faq-a">Yes, on the Max plan. Once you upgrade, you can attach courses, digital products, and 1:1 booking slots directly to your page. Followers can buy without leaving your link. Payments go directly to your Stripe account, and Ryxa takes 0% transaction fees on top of standard Stripe processing.</div></div>
+    <div class="faq-item"><div class="faq-q" data-nav-action="toggle-faq"><div class="faq-q-text">Is Link in Bio actually free?</div><div class="faq-toggle">+</div></div><div class="faq-a">Yes. Building and publishing your link-in-bio page is free on Ryxa. The Free plan gets you your page, your links, sections, and drag-to-reorder. Custom branding (your own colors, fonts, and background) is on Pro. Selling courses, digital products, and 1:1 sessions through your page is on Max.</div></div>
+    <div class="faq-item"><div class="faq-q" data-nav-action="toggle-faq"><div class="faq-q-text">Can I sell products through my link in bio?</div><div class="faq-toggle">+</div></div><div class="faq-a">Yes, on the Max plan. Once you upgrade, you can add courses, digital products, and 1:1 booking pages to your bio as links. When a follower taps one, they land on that product's checkout page. Payments go directly to your Stripe account, and Ryxa takes 0% transaction fees on top of standard Stripe processing.</div></div>
     <div class="faq-item"><div class="faq-q" data-nav-action="toggle-faq"><div class="faq-q-text">Does Ryxa take a cut of my sales?</div><div class="faq-toggle">+</div></div><div class="faq-a">No. Ryxa takes 0% transaction fees on every sale through your link-in-bio page. The only fees are Stripe's standard processing fees (around 2.9% + 30 cents per transaction), which go to Stripe, not to Ryxa.</div></div>
     <div class="faq-item"><div class="faq-q" data-nav-action="toggle-faq"><div class="faq-q-text">What's my page URL?</div><div class="faq-toggle">+</div></div><div class="faq-a">Your page lives at ryxa.io/yourhandle. You pick the handle when you sign up. Use the same handle you use on Instagram or TikTok if it's available, so your audience finds you easily.</div></div>
     <div class="faq-item"><div class="faq-q" data-nav-action="toggle-faq"><div class="faq-q-text">Can I use a custom domain?</div><div class="faq-toggle">+</div></div><div class="faq-a">Custom domain support is on the roadmap. Today, every link-in-bio page lives at ryxa.io/yourhandle, which is short, brandable, and easy to share. We'll announce custom domain support to existing creators when it ships.</div></div>
