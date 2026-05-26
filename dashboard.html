@@ -4508,6 +4508,13 @@
   .ql-editor img.lesson-img-size-medium { max-width:60%;width:60%; }
   .ql-editor img.lesson-img-size-large { max-width:100%;width:100%; }
   .ql-editor img.lesson-img-selected { outline:2px solid var(--accent);outline-offset:2px; }
+  /* WCAG: Quill's default link color is #06c (rgb(0,102,204)) which only
+     reaches ~2.4:1 against our dark editor surfaces, failing AA. Override
+     with --accent2 (#a855f7) which clears AA at ~4.6:1 on --surface2 and
+     looks consistent with the buyer-facing landing pages that already use
+     var(--accent2) for description links. */
+  .ql-editor a, .ql-editor a:visited { color:var(--accent2) !important; }
+  .ql-editor a:hover, .ql-editor a:focus { color:#c4b5fd !important; }
   /* S/M/L toolbar buttons (custom-injected by setupImageSizing). Two visual
      states matter here:
        - DORMANT (no image selected): low-key gray text, signal that they
