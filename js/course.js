@@ -2194,15 +2194,30 @@ function mountLessonEditor(mi, li) {
 
 // Apply standard aria-labels to a Quill 1.x Snow toolbar + tooltip. Idempotent:
 // safe to call multiple times since each branch checks hasAttribute first.
-// Reads its target by finding the .ql-toolbar adjacent to the given .ql-editor
-// container, and finds .ql-tooltip up the tree. Used by lesson editors AND by
-// the standalone description editors (course/product/coaching descriptions),
-// which all share the same Quill Snow theme.
-function applyQuillA11yLabels(container) {
-  if (!container) return;
-  var toolbar = container.previousElementSibling;
-  if (!toolbar || !toolbar.classList.contains('ql-toolbar')) {
-    toolbar = container.parentElement && container.parentElement.querySelector('.ql-toolbar');
+// Accepts ANY element that lives inside the Quill widget — toolbar, container,
+// or .ql-editor (quill.root) — since the DOM hierarchy varies depending on how
+// Quill was mounted (mount target becomes .ql-container, with .ql-toolbar as
+// its previous sibling; .ql-editor is nested INSIDE .ql-container, so passing
+// quill.root requires walking up one level to find the toolbar).
+function applyQuillA11yLabels(anyEl) {
+  if (!anyEl) return;
+  // Find the .ql-container ancestor (or self), then look back to find the
+  // sibling .ql-toolbar. Quill always places these as adjacent siblings.
+  var qlContainer = anyEl.closest ? (anyEl.closest('.ql-container') || anyEl) : anyEl;
+  var toolbar = null;
+  // Case 1: passed in the original mount target (now classed .ql-container).
+  //         Its previousElementSibling is the toolbar.
+  if (qlContainer.previousElementSibling && qlContainer.previousElementSibling.classList.contains('ql-toolbar')) {
+    toolbar = qlContainer.previousElementSibling;
+  }
+  // Case 2: walk up looking for any sibling .ql-toolbar adjacent to a
+  //         .ql-container ancestor (covers passed-in toolbar OR editor).
+  if (!toolbar && anyEl.previousElementSibling && anyEl.previousElementSibling.classList && anyEl.previousElementSibling.classList.contains('ql-toolbar')) {
+    toolbar = anyEl.previousElementSibling;
+  }
+  // Case 3: query within the parent of the container as a fallback.
+  if (!toolbar && qlContainer.parentElement) {
+    toolbar = qlContainer.parentElement.querySelector('.ql-toolbar');
   }
   if (!toolbar) return;
 
@@ -2248,15 +2263,14 @@ function applyQuillA11yLabels(container) {
     if (!sel.hasAttribute('aria-label')) sel.setAttribute('aria-label', 'Heading level');
   });
 
-  // Quill's link/video/formula tooltip, a hidden popover that appears when
-  // the user clicks the link button or an existing link in the editor. It
-  // contains an unlabeled <input> for the URL and an empty <a> preview.
-  // Both are flagged by WAVE even when display:none, because WAVE scans
-  // the DOM not the visual state.
+  // Quill's link/video/formula tooltip. It can sit inside .ql-container OR as
+  // a sibling, depending on theme + version. Query everywhere reasonable.
   var tooltip = null;
-  var searchRoots = [toolbar.parentElement, container.parentElement, container];
+  var searchRoots = [qlContainer, qlContainer.parentElement, toolbar.parentElement];
   for (var i = 0; i < searchRoots.length && !tooltip; i++) {
-    if (searchRoots[i]) tooltip = searchRoots[i].querySelector('.ql-tooltip');
+    if (searchRoots[i] && searchRoots[i].querySelector) {
+      tooltip = searchRoots[i].querySelector('.ql-tooltip');
+    }
   }
   if (tooltip) {
     var input = tooltip.querySelector('input[type="text"]');
