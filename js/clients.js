@@ -68,7 +68,6 @@ function initClientsTool() {
 
 
 var clientsData = [];
-var clientsFiltered = [];
 var clientsCurrentPage = 0;
 var CLIENTS_PER_PAGE = 50;
 // Set of emails the creator has marked "Remove from list". Populated from
@@ -175,6 +174,22 @@ function clientsBuildQuery(filters) {
     // ILIKE on email. Match anywhere in the address.
     q = q.ilike('email', '%' + filters.query.replace(/[%_]/g, '\\$&') + '%');
   }
+  // Apply suppression filter server-side via NOT IN. This makes pagination
+  // math accurate (otherwise pages with many suppressed rows would show
+  // fewer items than CLIENTS_PER_PAGE, and the page count would be wrong).
+  // PostgREST serializes the IN list into the URL, so very large suppression
+  // sets would exceed URL length limits. Cap at SERVER_SUPPRESSION_LIMIT;
+  // beyond that, fall back to client-side filter (the comment above the
+  // fallback in clientsFetchPage explains the tradeoff).
+  if (clientsSuppressed.size > 0 && clientsSuppressed.size <= CLIENTS_SERVER_SUPPRESSION_LIMIT) {
+    // PostgREST .not('col', 'in', '(...)') wants parens-wrapped, comma-joined.
+    // Emails can't contain parens or commas in valid form, but escape just
+    // in case via a defensive replacement.
+    var suppressList = Array.from(clientsSuppressed).map(function(e) {
+      return String(e).replace(/[(),]/g, '');
+    });
+    q = q.not('email_lc', 'in', '(' + suppressList.join(',') + ')');
+  }
   // Sort. Default date-desc. Email A-Z uses email_lc for stable case-insensitive
   // ordering. Source A-Z sorts by the source label alphabetically.
   switch (filters.sort) {
@@ -188,52 +203,72 @@ function clientsBuildQuery(filters) {
   return q;
 }
 
-// Fetches one page of subscribers for the current filter state. Applies the
-// suppression filter client-side after the fetch (we over-fetch slightly and
-// trim). Returns { rows, total } where total is the server count BEFORE
-// suppression filtering.
+// Cap on how many suppressed emails we'll include in the server-side NOT IN
+// clause. PostgREST URL limit is ~8KB. Each email averages ~25 chars; at 500
+// items the URL fragment is ~12-15KB which is fine, at 2000 it's ~50KB which
+// would be rejected. Cap conservatively at 500 - way beyond what any real
+// creator suppression list would hit.
+var CLIENTS_SERVER_SUPPRESSION_LIMIT = 500;
+
+// Fetches one page of subscribers for the current filter state. Suppression
+// filter is applied server-side when feasible (size <= CLIENTS_SERVER_SUPPRESSION_LIMIT).
+// For pathologically large suppression sets, falls back to client-side filter
+// with a small over-fetch buffer; pagination math may be slightly off in that
+// rare case but it's a degenerate scenario unlikely to occur in practice.
+// Returns { rows, total } where total reflects the count after the
+// server-side suppression filter (so pagination math is correct).
 async function clientsFetchPage(pageIndex, filters) {
   var start = pageIndex * CLIENTS_PER_PAGE;
-  // Over-fetch a buffer so suppression-trimmed pages still hit CLIENTS_PER_PAGE.
-  // Worst case: every row on this page is suppressed and we get 0 results,
-  // but that's a degenerate scenario - we'd need over CLIENTS_PER_PAGE
-  // suppressed emails clustered exactly on this page. Acceptable.
   var pageEnd = start + CLIENTS_PER_PAGE - 1;
+  var serverHandlesSuppression = clientsSuppressed.size <= CLIENTS_SERVER_SUPPRESSION_LIMIT;
   var q = clientsBuildQuery(filters).range(start, pageEnd);
   var { data, count, error } = await q;
   if (error) throw error;
-  // Filter out suppressed emails. Note this means the rendered page may have
-  // FEWER than CLIENTS_PER_PAGE rows when suppressions exist - acceptable.
+  // If server handled suppression, server count is already correct (post-filter).
+  // If not, we need to filter client-side and the count is a slight over-estimate.
+  if (serverHandlesSuppression) {
+    return { rows: data || [], total: count || 0 };
+  }
+  // Fallback: large-suppression case. Client-side filter and approximate count.
   var rows = (data || []).filter(function(r) { return !clientsSuppressed.has(r.email_lc); });
-  return { rows: rows, total: count || 0 };
+  return { rows: rows, total: Math.max(0, (count || 0) - clientsSuppressed.size) };
 }
 
-// Stats: total, opted-in, opted-out counts for the current filter (but
-// IGNORING the search query - stats should show overall list health, not
-// filtered subset). Uses head-only queries which return only the count
-// header, no row data. Cheap.
+// Stats: total, opted-in, opted-out counts (filter-independent - shows overall
+// list health, not just current filter view). Uses head-only queries which
+// return only the count header, no row data. Cheap. Applies the same
+// server-side suppression filter as clientsFetchPage so counts are
+// consistent with the page-level rendering math.
 async function clientsFetchStats() {
-  // Total (no filters other than creator)
+  var serverHandlesSuppression = clientsSuppressed.size <= CLIENTS_SERVER_SUPPRESSION_LIMIT;
+  function applySuppression(q) {
+    if (clientsSuppressed.size > 0 && serverHandlesSuppression) {
+      var suppressList = Array.from(clientsSuppressed).map(function(e) {
+        return String(e).replace(/[(),]/g, '');
+      });
+      return q.not('email_lc', 'in', '(' + suppressList.join(',') + ')');
+    }
+    return q;
+  }
   var [totalRes, optinRes] = await Promise.all([
-    sb.from('subscribers_view')
+    applySuppression(sb.from('subscribers_view')
       .select('email_lc', { count: 'exact', head: true })
-      .eq('creator_id', currentUser.id),
-    sb.from('subscribers_view')
+      .eq('creator_id', currentUser.id)),
+    applySuppression(sb.from('subscribers_view')
       .select('email_lc', { count: 'exact', head: true })
       .eq('creator_id', currentUser.id)
-      .eq('optin', true)
+      .eq('optin', true))
   ]);
   var total = totalRes.count || 0;
   var optin = optinRes.count || 0;
-  // Subtract suppressed emails from total. Server doesn't know about
-  // suppressions in head-only mode, so we approximate by subtracting the
-  // suppression count. This is correct as long as every suppressed email
-  // actually exists in subscribers_view, which is true by construction
-  // (you can only suppress emails that are in your list).
-  total = Math.max(0, total - clientsSuppressed.size);
-  // optin count is harder to correct (we don't know how many suppressed
-  // emails were opt-in vs not). Conservatively cap optin <= total.
-  optin = Math.min(optin, total);
+  // Fallback path: suppression too large for server NOT IN. Approximate by
+  // subtracting suppression count from total. The optin count is harder to
+  // correct (we don't know how many suppressed emails were opt-in), so
+  // conservatively cap optin <= total.
+  if (!serverHandlesSuppression && clientsSuppressed.size > 0) {
+    total = Math.max(0, total - clientsSuppressed.size);
+    optin = Math.min(optin, total);
+  }
   return { total: total, optin: optin, optout: total - optin };
 }
 
@@ -320,14 +355,25 @@ async function clientsFetchNamesForPage(emails) {
   return nameMap;
 }
 
+// Monotonically-increasing sequence number to guard against out-of-order
+// reload completions. Each invocation of clientsReloadPage claims a token
+// before its first await; if a later invocation runs in the interim, this
+// older invocation's results are silently discarded when it resolves.
+// Without this guard, rapid filter or page changes can paint stale data.
+var clientsReloadSeq = 0;
+
 // Trigger a server reload of the current page based on filter state. Called
 // from filter change handlers, sort change, pagination, and refresh.
 async function clientsReloadPage() {
   var tbody = document.getElementById('clients-tbody');
   if (!tbody || !currentUser) return;
+  var mySeq = ++clientsReloadSeq;
   try {
     var filters = clientsReadFilterState();
     var { rows, total } = await clientsFetchPage(clientsCurrentPage, filters);
+    // If a newer reload has been issued while we were waiting, drop this
+    // result on the floor. The newer reload owns the UI.
+    if (mySeq !== clientsReloadSeq) return;
     // Map view rows -> the shape the rest of the file expects (clientsData[i])
     clientsData = rows.map(function(r) {
       return {
@@ -345,6 +391,9 @@ async function clientsReloadPage() {
       try {
         var pageEmails = clientsData.map(function(c) { return c.email; });
         var pageNames = await clientsFetchNamesForPage(pageEmails);
+        // Re-check sequence after this second await - even if the page data
+        // is current, a newer reload might have superseded us during names.
+        if (mySeq !== clientsReloadSeq) return;
         Object.keys(pageNames).forEach(function(key) {
           clientsNamesData[key] = pageNames[key];
         });
@@ -352,10 +401,11 @@ async function clientsReloadPage() {
     }
     var countEl = document.getElementById('clients-count');
     if (countEl) {
-      // Subtract suppression count for the visible total (matches what the
-      // user sees after suppression filtering happens client-side).
-      var displayTotal = Math.max(0, total - clientsSuppressed.size);
-      countEl.textContent = displayTotal + ' subscriber' + (displayTotal !== 1 ? 's' : '');
+      // With Bug 1 fix, total is already post-suppression (server filtered
+      // via NOT IN). No further client-side subtraction needed in the
+      // common case. The clientsFetchPage fallback path for huge suppression
+      // sets also returns post-filter total, so this is consistent.
+      countEl.textContent = total + ' subscriber' + (total !== 1 ? 's' : '');
     }
     renderSubscribersPage();
   } catch (e) {
@@ -395,7 +445,9 @@ function applyClientsSort() {
 }
 
 function clientsPage(dir) {
-  var maxPage = Math.max(0, Math.floor((Math.max(0, clientsTotalCount - clientsSuppressed.size) - 1) / CLIENTS_PER_PAGE));
+  // clientsTotalCount is already post-suppression-filter (Bug 1 fix moved
+  // suppression to server-side). No further subtraction needed.
+  var maxPage = Math.max(0, Math.floor((Math.max(0, clientsTotalCount) - 1) / CLIENTS_PER_PAGE));
   clientsCurrentPage = Math.max(0, Math.min(maxPage, clientsCurrentPage + dir));
   clientsReloadPage();
 }
@@ -404,7 +456,8 @@ function renderSubscribersPage() {
   var tbody = document.getElementById('clients-tbody');
   if (!tbody) return;
   var page = clientsData;
-  var displayTotal = Math.max(0, clientsTotalCount - clientsSuppressed.size);
+  // clientsTotalCount is already post-suppression (server filtered via NOT IN).
+  var displayTotal = clientsTotalCount;
   var maxPage = Math.max(0, Math.floor((displayTotal - 1) / CLIENTS_PER_PAGE));
   var start = clientsCurrentPage * CLIENTS_PER_PAGE;
 
@@ -1276,19 +1329,28 @@ async function clientsImportComputeValidation() {
   var existingEmails = new Set();
   try {
     // Paginate in chunks of 1000 to stay under Supabase's default range cap.
+    // maxIterations is a safety cap (effectively 1M subscribers) in case
+    // anything goes wrong with the loop conditions - prevents a runaway.
     var pageSize = 1000;
     var offset = 0;
-    while (true) {
+    var maxIterations = 1000;
+    var iterations = 0;
+    while (iterations < maxIterations) {
+      iterations++;
       var { data, error } = await sb
         .from('subscribers_view')
         .select('email_lc')
         .eq('creator_id', currentUser.id)
+        .order('email_lc', { ascending: true })
         .range(offset, offset + pageSize - 1);
       if (error) throw error;
       if (!data || data.length === 0) break;
       data.forEach(function(r) { existingEmails.add(r.email_lc); });
       if (data.length < pageSize) break;
       offset += pageSize;
+    }
+    if (iterations >= maxIterations) {
+      console.warn('Existing emails fetch hit iteration cap (' + maxIterations + ') - dedup count may be incomplete');
     }
   } catch (e) {
     console.warn('Existing emails fetch failed (dedup count may be inaccurate):', e);
