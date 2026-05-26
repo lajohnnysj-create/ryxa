@@ -127,31 +127,52 @@ function slugify(name) {
   return String(name).toLowerCase().replace(/[^a-z0-9._-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').slice(0, 80);
 }
 
-// Sum of bytes used across both tables (account-level cap)
+// Sum of bytes used across both tables (account-level cap). Two-step query
+// for each table to avoid fragile nested PostgREST filters.
 async function getCreatorStorageUsed(userId) {
-  // We use a Supabase RPC for this in production (get_creator_storage_used).
-  // Falling back to two SELECT sums here would risk under-counting; the RPC
-  // already exists and is the source of truth.
-  var key = getServiceKey();
-  var res = await fetch(SUPABASE_URL + '/rest/v1/rpc/get_creator_storage_used', {
-    method: 'POST',
-    headers: {
-      apikey: key,
-      Authorization: 'Bearer ' + key,
-      'Content-Type': 'application/json',
-      Accept: 'application/json'
-    },
-    body: JSON.stringify({ p_user_id: userId })
-  });
-  if (!res.ok) {
-    var body = await res.text().catch(function () { return ''; });
-    throw new Error('Storage RPC failed (' + res.status + '): ' + body);
+  // Digital products owned by this creator
+  var products = await sbSelect(
+    'digital_products?user_id=eq.' + encodeURIComponent(userId) + '&select=id'
+  );
+  var productIds = (products || []).map(function (p) { return p.id; });
+  var productBytes = 0;
+  if (productIds.length > 0) {
+    var productFiles = await sbSelect(
+      'digital_product_files?product_id=in.(' + productIds.join(',') + ')&select=file_size_bytes'
+    );
+    productBytes = (productFiles || []).reduce(function (n, f) {
+      return n + Number(f.file_size_bytes || 0);
+    }, 0);
   }
-  var data = await res.json();
-  // RPC returns a number directly or an object depending on definition; handle both.
-  if (typeof data === 'number') return data;
-  if (data && typeof data.bytes === 'number') return data.bytes;
-  return Number(data) || 0;
+
+  // Courses owned by this creator, then lessons in those courses, then files in those lessons
+  var courses = await sbSelect(
+    'courses?user_id=eq.' + encodeURIComponent(userId) + '&select=id'
+  );
+  var courseIds = (courses || []).map(function (c) { return c.id; });
+  var lessonBytes = 0;
+  if (courseIds.length > 0) {
+    var modules = await sbSelect(
+      'course_modules?course_id=in.(' + courseIds.join(',') + ')&select=id'
+    );
+    var moduleIds = (modules || []).map(function (m) { return m.id; });
+    if (moduleIds.length > 0) {
+      var lessons = await sbSelect(
+        'course_lessons?module_id=in.(' + moduleIds.join(',') + ')&select=id'
+      );
+      var lessonIds = (lessons || []).map(function (l) { return l.id; });
+      if (lessonIds.length > 0) {
+        var lessonFiles = await sbSelect(
+          'course_lesson_files?lesson_id=in.(' + lessonIds.join(',') + ')&select=file_size_bytes'
+        );
+        lessonBytes = (lessonFiles || []).reduce(function (n, f) {
+          return n + Number(f.file_size_bytes || 0);
+        }, 0);
+      }
+    }
+  }
+
+  return productBytes + lessonBytes;
 }
 
 // Sum of bytes for a specific product (per-product cap)
