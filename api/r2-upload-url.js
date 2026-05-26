@@ -219,11 +219,11 @@ module.exports = async function (req, res) {
       if (!productId) return res.status(400).json({ error: 'Missing product_id' });
 
       // Verify creator owns the product
-      var products = await sbSelect('digital_products?id=eq.' + encodeURIComponent(productId) + '&select=id,creator_id&limit=1');
+      var products = await sbSelect('digital_products?id=eq.' + encodeURIComponent(productId) + '&select=id,user_id&limit=1');
       if (!products || products.length === 0) {
         return res.status(404).json({ error: 'Product not found' });
       }
-      if (products[0].creator_id !== creator.id) {
+      if (products[0].user_id !== creator.id) {
         return res.status(403).json({ error: 'You do not own this product' });
       }
 
@@ -258,11 +258,11 @@ module.exports = async function (req, res) {
       if (!courseId || !lessonId) return res.status(400).json({ error: 'Missing course_id or lesson_id' });
 
       // Verify creator owns the course
-      var courses = await sbSelect('courses?id=eq.' + encodeURIComponent(courseId) + '&select=id,creator_id&limit=1');
+      var courses = await sbSelect('courses?id=eq.' + encodeURIComponent(courseId) + '&select=id,user_id&limit=1');
       if (!courses || courses.length === 0) {
         return res.status(404).json({ error: 'Course not found' });
       }
-      if (courses[0].creator_id !== creator.id) {
+      if (courses[0].user_id !== creator.id) {
         return res.status(403).json({ error: 'You do not own this course' });
       }
 

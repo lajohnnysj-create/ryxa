@@ -100,14 +100,14 @@ module.exports = async function (req, res) {
       // Verify ownership by joining file -> product -> creator
       var files = await sbSelect(
         'digital_product_files?id=eq.' + encodeURIComponent(fileId) +
-        '&select=id,storage_path,digital_products(creator_id)&limit=1'
+        '&select=id,storage_path,digital_products(user_id)&limit=1'
       );
       if (!files || files.length === 0) {
         return res.status(404).json({ error: 'File not found' });
       }
       var file = files[0];
       var product = file.digital_products;
-      var ownerId = product ? (Array.isArray(product) ? (product[0] && product[0].creator_id) : product.creator_id) : null;
+      var ownerId = product ? (Array.isArray(product) ? (product[0] && product[0].user_id) : product.user_id) : null;
       if (ownerId !== creator.id) {
         return res.status(403).json({ error: 'You do not own this file' });
       }
@@ -121,20 +121,20 @@ module.exports = async function (req, res) {
       // type === 'lesson'
       var lessonFiles = await sbSelect(
         'course_lesson_files?id=eq.' + encodeURIComponent(fileId) +
-        '&select=id,storage_path,course_lessons(course_modules(courses(creator_id)))&limit=1'
+        '&select=id,storage_path,course_lessons(course_modules(courses(user_id)))&limit=1'
       );
       if (!lessonFiles || lessonFiles.length === 0) {
         return res.status(404).json({ error: 'File not found' });
       }
       var lf = lessonFiles[0];
-      // Walk down the nested chain: lesson_files -> lessons -> modules -> courses.creator_id
+      // Walk down the nested chain: lesson_files -> lessons -> modules -> courses.user_id
       var lesson = lf.course_lessons;
       var lessonObj = Array.isArray(lesson) ? lesson[0] : lesson;
       var mod = lessonObj ? lessonObj.course_modules : null;
       var modObj = Array.isArray(mod) ? mod[0] : mod;
       var course = modObj ? modObj.courses : null;
       var courseObj = Array.isArray(course) ? course[0] : course;
-      var lessonOwnerId = courseObj ? courseObj.creator_id : null;
+      var lessonOwnerId = courseObj ? courseObj.user_id : null;
       if (lessonOwnerId !== creator.id) {
         return res.status(403).json({ error: 'You do not own this file' });
       }
