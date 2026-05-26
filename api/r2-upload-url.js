@@ -309,6 +309,7 @@ module.exports = async function (req, res) {
 
       var lessonRow = await sbInsertReturning('course_lesson_files', {
         lesson_id: lessonId,
+        course_id: courseId,
         filename: filename,
         storage_path: storagePath,
         file_size_bytes: fileSizeBytes,
