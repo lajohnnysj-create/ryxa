@@ -81,26 +81,14 @@ async function verifyBuyerJWT(authHeader) {
   }
 }
 
-// Create a signed URL via Supabase Storage REST API
-async function createSignedUrl(bucket, path, expiresIn) {
-  var key = getServiceKey();
-  var res = await fetch(SUPABASE_URL + '/storage/v1/object/sign/' + bucket + '/' + encodeURI(path), {
-    method: 'POST',
-    headers: {
-      apikey: key,
-      Authorization: 'Bearer ' + key,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ expiresIn: expiresIn })
-  });
-  if (!res.ok) {
-    var body = await res.text().catch(() => '');
-    throw new Error('Sign URL failed (' + res.status + '): ' + body);
-  }
-  var data = await res.json();
-  // Returns { signedURL: "/object/sign/..." } — prefix with SUPABASE_URL/storage/v1
-  if (!data?.signedURL) throw new Error('No signedURL in response');
-  return SUPABASE_URL + '/storage/v1' + data.signedURL;
+// Generate a presigned R2 download URL for the file.
+// Forces Content-Disposition: attachment with the buyer-facing filename so
+// browsers save rather than render the file (matches Supabase behavior pre-R2).
+const { r2SignedDownloadUrl } = require('./lib/r2-storage');
+function createSignedUrl(bucket, path, expiresIn, downloadFilename) {
+  // bucket arg ignored — R2 helper reads R2_BUCKET_NAME from env. Kept in the
+  // signature to minimize the diff to the caller.
+  return r2SignedDownloadUrl(path, expiresIn, downloadFilename);
 }
 
 module.exports = async (req, res) => {
@@ -148,8 +136,9 @@ module.exports = async (req, res) => {
     }
     var purchase = purchases[0];
 
-    // 6. Generate signed URL
-    var signedUrl = await createSignedUrl('digital-products', file.storage_path, SIGNED_URL_EXPIRES_SECONDS);
+    // 6. Generate signed URL (R2-backed). Pass filename so the URL includes
+    // a Content-Disposition that forces "Save As" with the buyer-facing name.
+    var signedUrl = createSignedUrl('digital-products', file.storage_path, SIGNED_URL_EXPIRES_SECONDS, file.filename);
     var expiresAt = new Date(Date.now() + SIGNED_URL_EXPIRES_SECONDS * 1000).toISOString();
 
     // 7. Log the download (best-effort — don't block on logging failures)
