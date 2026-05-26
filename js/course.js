@@ -681,6 +681,31 @@ async function deleteCourse() {
       // Find the course to get cover path before deleting
       var course = coursesList.find(function(c) { return c.id === currentCourseId; });
 
+      // Clean up R2 lesson-file objects FIRST, while the course + file rows
+      // still exist (the bulk delete route validates ownership against the
+      // courses table). Non-fatal if it fails; we still want the local DB
+      // delete to proceed.
+      try {
+        var session = await sb.auth.getSession();
+        var token = session && session.data && session.data.session ? session.data.session.access_token : null;
+        if (token) {
+          var r2Res = await fetch('/api/r2-bulk-delete', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify({ type: 'course', course_id: currentCourseId })
+          });
+          if (!r2Res.ok) {
+            var errBody = await r2Res.json().catch(function() { return {}; });
+            console.warn('R2 cleanup for course ' + currentCourseId + ' returned ' + r2Res.status + ':', errBody.error || '');
+          }
+        }
+      } catch (r2Err) {
+        console.warn('R2 cleanup request failed (non-fatal):', r2Err);
+      }
+
       // Delete cover image from storage
       if (course && course.cover_image_path) {
         await sb.storage.from('course-covers').remove([course.cover_image_path]);

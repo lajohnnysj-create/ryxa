@@ -1236,40 +1236,38 @@ async function deleteProduct() {
   if (!confirmed) return;
 
   try {
-    // Capture the file ids + paths BEFORE the DB delete so we have what we
-    // need to clean up storage on both backends. Buyer-download files live
-    // in R2 (deleted via the API route per-file). Cover image lives on
-    // Supabase Storage (cleaned via folder list below).
-    var fileIdsForR2 = productsState.editingFiles.map(function(f) { return f.id; }).filter(Boolean);
     var deletedId = productsState.editingId;
-
-    // Get a fresh JWT for the per-file R2 delete calls
     var session = await sb.auth.getSession();
     var token = session && session.data && session.data.session ? session.data.session.access_token : null;
+    if (!token) throw new Error('Not signed in');
 
+    // STEP 1: Delete the R2 objects FIRST, while the product + file rows
+    // still exist (the API route validates ownership against the products
+    // table, so we have to do this before the cascade-delete wipes the rows).
+    try {
+      var r2Res = await fetch('/api/r2-bulk-delete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify({ type: 'product', product_id: deletedId })
+      });
+      if (!r2Res.ok) {
+        // Non-fatal: log and continue with the DB delete. Storage charges
+        // for orphans are negligible; better to let the user complete the
+        // deletion than to block them.
+        var errBody = await r2Res.json().catch(function() { return {}; });
+        console.warn('R2 cleanup for product ' + deletedId + ' returned ' + r2Res.status + ':', errBody.error || '');
+      }
+    } catch (r2Err) {
+      console.warn('R2 cleanup request failed (non-fatal):', r2Err);
+    }
+
+    // STEP 2: Delete the product row. The FK cascade removes
+    // digital_product_files rows automatically.
     var { error } = await sb.from('digital_products').delete().eq('id', deletedId);
     if (error) throw error;
-
-    // Clean up the R2 objects in parallel. We do this AFTER the DB delete
-    // because the digital_product_files rows cascade-deleted with the
-    // product, so the API route's ownership check would fail. We use a
-    // separate cleanup path: hit the bulk delete-by-path endpoint? — we
-    // don't have one yet; instead we iterate and let some fail silently
-    // (they'll become orphans cleaned by a future cron). Acceptable for
-    // a deletion path where the user just wants the product gone.
-    //
-    // TODO: add an api/r2-bulk-delete route that accepts an array of
-    // storage_paths for a deleted product, validated by creator JWT +
-    // ownership-at-deletion-time check. For now, the orphan-cleanup cron
-    // (not yet built) will handle this. Storage charges for orphans are
-    // negligible at this scale.
-    if (token && fileIdsForR2.length) {
-      // The DB rows are already gone via cascade. We have no API route
-      // that can delete by storage_path without an ownership check. Leave
-      // the R2 objects as orphans; they'll be cleaned by the future
-      // orphan-cleanup cron job. Logged for visibility.
-      console.info('Product ' + deletedId + ' deleted; ' + fileIdsForR2.length + ' R2 objects are now orphans pending cron cleanup.');
-    }
 
     // Cover image cleanup stays on Supabase Storage (covers were never
     // migrated to R2 because they're small marketing images, not high-egress
