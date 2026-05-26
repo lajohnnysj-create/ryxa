@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Free Link in Bio Page for Creators | Ryxa</title>
-<meta name="description" content="Build a free link-in-bio page for Instagram, TikTok, or YouTube. One branded URL for all your content, socials, and products.">
+<meta name="description" content="One link that holds everything you sell. Build a free link-in-bio page for Instagram, TikTok, and YouTube. Sell courses, digital products, and 1:1 sessions in the same place. Ryxa takes 0% transaction fees.">
 <meta property="og:title" content="Free Link in Bio Page for Creators | Ryxa">
-<meta property="og:description" content="Build a free link-in-bio page for Instagram, TikTok, or YouTube. One branded URL for all your content, socials, and products.">
+<meta property="og:description" content="One link that holds everything you sell. Build a free link-in-bio page that doubles as your storefront. Sell courses, digital products, and 1:1 sessions in the same place.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://www.ryxa.io/tools-link-in-bio">
 <meta property="og:image" content="https://www.ryxa.io/og-image.png">
@@ -18,28 +18,36 @@
 <link rel="shortcut icon" href="/favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #07070f;
-    --surface: #11111b;
-    --surface2: #181822;
-    --border: rgba(255,255,255,0.08);
-    --border-hover: rgba(255,255,255,0.18);
-    --accent: #7c3aed;
-    --accent2: #a78bfa;
-    --accent3: #e879f9;
-    --accent-glow: rgba(124,58,237,0.45);
-    --text: #f0eef8;
-    --muted: #b4b2c8;
-    --muted2: #c9c7dc;
+    --bg: #7c3aed;
+    --surface: #6d28d9;
+    --surface2: #5b21b6;
+    --border: rgba(255,255,255,0.12);
+    --border-hover: rgba(255,255,255,0.22);
+    --accent: #d9f99d;
+    --accent2: #bef264;
+    --accent-fill: #a3e635;
+    --accent-fill-hover: #84cc16;
+    --accent-glow: rgba(163,230,53,0.40);
+    --accent-tint-12: rgba(217,249,157,0.16);
+    --accent-tint-08: rgba(217,249,157,0.10);
+    --accent-tint-04: rgba(217,249,157,0.05);
+    --accent-border-25: rgba(217,249,157,0.30);
+    --accent-border-30: rgba(217,249,157,0.40);
+    --accent-border-40: rgba(217,249,157,0.55);
+    --on-accent: #1a2e05;
+    --text: #ffffff;
+    --muted: rgba(255,255,255,0.85);
+    --muted2: rgba(255,255,255,0.78);
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   html { scroll-behavior: smooth; }
   body { font-family: "DM Sans", sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
 
   /* NAV */
-  .logo { font-family: "Syne", sans-serif; font-weight: 800; font-size: 22px; letter-spacing: -0.5px; display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); }
+  .logo { font-family: "Space Grotesk", sans-serif; font-weight: 700; font-size: 22px; letter-spacing: -0.5px; display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); }
   .logo img { width: 38px; height: 38px; object-fit: contain; }
   .nav-links { display: flex; align-items: center; gap: 32px; }
   .nav-links a { color: var(--muted); font-size: 14px; text-decoration: none; transition: color 0.2s; }
@@ -49,114 +57,119 @@
   .nav-tools-trigger:hover, .nav-tools-wrap:hover .nav-tools-trigger { color: var(--text); }
   .nav-tools-trigger svg { transition: transform 0.2s; }
   .nav-tools-wrap:hover .nav-tools-trigger svg { transform: rotate(180deg); }
-  .nav-tools-menu { position: absolute; top: 100%; left: 0; transform: translateY(8px); width: 720px; max-width: calc(100vw - 32px); background: rgba(15,15,26,0.98); backdrop-filter: blur(20px); border: 1px solid var(--border-hover); border-radius: 16px; padding: 18px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); opacity: 0; pointer-events: none; transition: opacity 0.18s, transform 0.18s; z-index: 250; }
+  .nav-tools-menu { position: absolute; top: 100%; left: 0; transform: translateY(8px); width: 720px; max-width: calc(100vw - 32px); background: #ffffff; border: 1px solid var(--border-hover); border-radius: 16px; padding: 18px; box-shadow: 0 20px 60px rgba(0,0,0,0.25); opacity: 0; pointer-events: none; transition: opacity 0.18s, transform 0.18s; z-index: 250; }
   .nav-tools-wrap:hover .nav-tools-menu { opacity: 1; pointer-events: all; transform: translateY(0); }
   .nav-tools-wrap::before { content: ''; position: absolute; top: 100%; left: 0; right: 0; height: 12px; }
   .nav-tools-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
   .nav-tools-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px; border-radius: 10px; text-decoration: none; transition: background 0.15s; color: inherit; }
   .nav-tools-item:hover { background: rgba(124,58,237,0.08); }
-  .nav-tools-item-icon { width: 36px; height: 36px; border-radius: 9px; background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #c4b5fd; }
+  .nav-tools-item-icon { width: 36px; height: 36px; border-radius: 9px; background: rgba(124,58,237,0.10); border: 1px solid rgba(124,58,237,0.22); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #6d28d9; }
   .nav-tools-item-icon svg { width: 17px; height: 17px; }
   .nav-tools-item-content { flex: 1; min-width: 0; }
-  .nav-tools-item-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; color: var(--text); margin-bottom: 2px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-  .nav-tools-item-desc { font-size: 11px; color: var(--muted); line-height: 1.4; }
+  .nav-tools-item-title { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 13px; color: #11111b; margin-bottom: 2px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .nav-tools-item-desc { font-size: 11px; color: #6b6b80; line-height: 1.4; }
   .nav-tools-tier { font-size: 8px; padding: 2px 6px; border-radius: 4px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; vertical-align: middle; }
-  .nav-tools-tier.pro { background: rgba(124,58,237,0.15); border: 1px solid rgba(124,58,237,0.3); color: #c4b5fd; }
-  .nav-tools-tier.free { background: rgba(74,222,128,0.12); border: 1px solid rgba(74,222,128,0.3); color: #4ade80; }
-  .nav-tools-tier.max { background: linear-gradient(135deg,#a78bfa,#e879f9); color: #fff; border: none; }
-  .nav-tools-footer { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-  .nav-tools-footer-link { font-size: 12px; color: var(--accent2); text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 4px; }
-  .nav-tools-footer-link:hover { color: #c4b5fd; }
+  .nav-tools-tier.pro { background: rgba(124,58,237,0.12); border: 1px solid rgba(124,58,237,0.3); color: #6d28d9; }
+  .nav-tools-tier.free { background: rgba(124,58,237,0.10); border: 1px solid rgba(124,58,237,0.30); color: #6d28d9; }
+  .nav-tools-tier.max { background: #a78bfa; color: #fff; border: none; }
+  .nav-tools-footer { margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(0,0,0,0.08); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .nav-tools-footer-link { font-size: 12px; color: #7c3aed; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+  .nav-tools-footer-link:hover { color: #5b21b6; }
   .nav-right { display: flex; align-items: center; gap: 12px; }
   .btn-ghost { background: transparent; border: 1px solid var(--border-hover); color: var(--text); border-radius: 8px; padding: 8px 20px; font-size: 14px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.2s; }
-  .btn-ghost:hover { border-color: var(--accent2); color: var(--accent2); }
-  .btn-nav-cta { background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 9px 22px; font-size: 14px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.2s; box-shadow: 0 0 20px var(--accent-glow); }
-  .btn-nav-cta:hover { background: var(--accent2); transform: translateY(-1px); }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-nav-cta { background: var(--accent-fill); color: var(--on-accent); border: none; border-radius: 8px; padding: 9px 22px; font-size: 14px; font-weight: 600; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.2s; box-shadow: 0 0 20px var(--accent-glow); }
+  .btn-nav-cta:hover { background: var(--accent-fill-hover); transform: translateY(-1px); }
   .hamburger { display: none; flex-direction: column; justify-content: center; gap: 5px; background: none; border: none; cursor: pointer; padding: 6px; }
   .hamburger span { display: block; width: 22px; height: 2px; background: var(--text); border-radius: 2px; }
   .mobile-menu { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 300; flex-direction: column; padding: 80px 32px 40px; }
   .mobile-menu.open { display: flex; }
   .mobile-menu-links { display: flex; flex-direction: column; gap: 4px; flex: 1; }
-  .mobile-menu-links a { color: var(--text); font-size: 24px; font-family: "Syne", sans-serif; font-weight: 700; text-decoration: none; padding: 14px 0; border-bottom: 1px solid var(--border); }
+  .mobile-menu-links a { color: var(--text); font-size: 24px; font-family: "Space Grotesk", sans-serif; font-weight: 700; text-decoration: none; padding: 14px 0; border-bottom: 1px solid var(--border); }
   .mobile-menu-bottom { margin-top: 32px; display: flex; flex-direction: column; gap: 12px; }
-  .mobile-cta { width: 100%; padding: 16px; background: var(--accent); color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; text-decoration: none; display: block; text-align: center; }
+  .mobile-cta { width: 100%; padding: 16px; background: var(--accent-fill); color: var(--on-accent); border: none; border-radius: 12px; font-size: 16px; font-weight: 600; font-family: "DM Sans", sans-serif; cursor: pointer; text-decoration: none; display: block; text-align: center; }
   .mobile-signin { width: 100%; padding: 16px; background: transparent; border: 1px solid var(--border-hover); color: var(--text); border-radius: 12px; font-size: 16px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; text-decoration: none; display: block; text-align: center; }
 
   /* HERO */
   .hero { position: relative; padding: 60px 32px 60px; text-align: center; max-width: 1200px; margin: 0 auto; }
   .hero-bg { display: none; }
   .hero-content { position: relative; z-index: 1; max-width: 880px; margin: 0 auto; }
-  .hero-tier-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; background: linear-gradient(135deg,rgba(167,139,250,0.15),rgba(232,121,249,0.15)); border: 1px solid rgba(167,139,250,0.35); border-radius: 999px; font-size: 12px; color: #e879f9; font-weight: 600; margin-bottom: 24px; letter-spacing: 0.05em; text-transform: uppercase; }
-  .hero-tier-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #e879f9; box-shadow: 0 0 8px #e879f9; }
-  .hero h1 { font-family: "Syne", sans-serif; font-size: clamp(36px, 6vw, 64px); font-weight: 800; line-height: 1.1; letter-spacing: -1.5px; margin-bottom: 20px; }
-  .gradient-text { background: linear-gradient(135deg, var(--accent2), var(--accent3)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .hero-tier-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; background: var(--accent-tint-12); border: 1px solid var(--accent-border-30); border-radius: 999px; font-size: 12px; color: var(--accent); font-weight: 600; margin-bottom: 24px; letter-spacing: 0.05em; text-transform: uppercase; }
+  .hero-tier-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+  .hero h1 { font-family: "Space Grotesk", sans-serif; font-size: clamp(36px, 6vw, 64px); font-weight: 700; line-height: 1.05; letter-spacing: -1.5px; margin-bottom: 20px; color: var(--text); }
+  .accent-text { color: var(--accent); }
   .hero-tagline { font-size: 18px; color: var(--muted); line-height: 1.6; margin-bottom: 32px; max-width: 640px; margin-left: auto; margin-right: auto; }
   .hero-cta-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-  .btn-primary { background: var(--accent); color: #fff; border: none; border-radius: 12px; padding: 14px 28px; font-size: 15px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 24px var(--accent-glow); text-decoration: none; display: inline-block; }
-  .btn-primary:hover { background: var(--accent2); transform: translateY(-1px); box-shadow: 0 6px 28px var(--accent-glow); }
+  .btn-primary { background: var(--accent-fill); color: var(--on-accent); border: none; border-radius: 12px; padding: 14px 28px; font-size: 15px; font-weight: 600; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 24px var(--accent-glow); text-decoration: none; display: inline-block; }
+  .btn-primary:hover { background: var(--accent-fill-hover); transform: translateY(-1px); box-shadow: 0 6px 28px var(--accent-glow); }
   .btn-secondary { background: transparent; border: 1px solid var(--border-hover); color: var(--text); border-radius: 12px; padding: 14px 28px; font-size: 15px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-block; }
-  .btn-secondary:hover { border-color: var(--accent2); color: var(--accent2); }
-
-  /* MOCKUP — App preview window */
-  .mockup-section { padding: 0 32px 80px; max-width: 1200px; margin: 0 auto; }
-  .app-window { background: var(--surface); border: 1px solid var(--border-hover); border-radius: 16px; overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(124,58,237,0.1); }
-  .app-titlebar { background: rgba(20,20,30,0.9); padding: 12px 16px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border); }
-  .app-dot { width: 11px; height: 11px; border-radius: 50%; }
-  .app-dot.red { background: #ff5f57; }
-  .app-dot.yellow { background: #ffbd2e; }
-  .app-dot.green { background: #28c840; }
-  .app-url-bar { flex: 1; max-width: 380px; margin: 0 auto; padding: 4px 12px; background: rgba(255,255,255,0.06); border-radius: 6px; font-size: 11px; color: var(--muted); text-align: center; font-family: monospace; }
-  .app-body { background: #0a0a14; min-height: 480px; }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
 
   /* SECTIONS */
   section { padding: 80px 32px; max-width: 1200px; margin: 0 auto; position: relative; }
-  .section-label { display: inline-block; padding: 5px 13px; background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.25); border-radius: 999px; font-size: 11px; color: #c4b5fd; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600; margin-bottom: 16px; }
-  .section-title { font-family: "Syne", sans-serif; font-size: clamp(28px, 4vw, 42px); font-weight: 800; line-height: 1.15; letter-spacing: -1px; margin-bottom: 14px; max-width: 700px; }
+  .section-label { display: inline-block; padding: 5px 13px; background: var(--accent-tint-08); border: 1px solid var(--accent-border-25); border-radius: 999px; font-size: 11px; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; font-weight: 700; margin-bottom: 16px; }
+  .section-title { font-family: "Space Grotesk", sans-serif; font-size: clamp(28px, 4vw, 42px); font-weight: 700; line-height: 1.15; letter-spacing: -1px; margin-bottom: 14px; max-width: 700px; color: var(--text); }
   .section-sub { font-size: 16px; color: var(--muted); line-height: 1.6; max-width: 640px; margin-bottom: 50px; }
 
-  /* HOW IT WORKS */
+  /* FEATURE QUOTE CARD */
+  .feature-quote { max-width: 1200px; margin: 60px auto; padding: 0 32px; }
+  .feature-quote-card { display: grid; grid-template-columns: 1fr 1fr; gap: 0; background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; }
+  .feature-quote-photo { aspect-ratio: 16 / 11; background-image: url("/photos/links-photo3.webp"); background-size: cover; background-position: center; background-color: var(--surface); }
+  .feature-quote-body { padding: 56px 48px; display: flex; flex-direction: column; justify-content: center; }
+  .feature-quote-mark { font-family: "Space Grotesk", sans-serif; font-size: 72px; font-weight: 700; line-height: 0.5; color: var(--accent-fill); margin-bottom: 20px; }
+  .feature-quote-text { font-family: "Space Grotesk", sans-serif; font-size: clamp(24px, 2.6vw, 32px); font-weight: 700; line-height: 1.2; letter-spacing: -0.5px; color: var(--text); }
+  @media (max-width: 880px) {
+    .feature-quote-card { grid-template-columns: 1fr; }
+    .feature-quote-photo { aspect-ratio: 16 / 9; }
+    .feature-quote-body { padding: 36px 28px; }
+    .feature-quote-mark { font-size: 56px; margin-bottom: 14px; }
+  }
+
+  /* GRID CARDS */
   .steps-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
-  .step-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px 24px; position: relative; transition: all 0.3s; }
-  .step-card:hover { border-color: rgba(124,58,237,0.4); transform: translateY(-4px); }
-  .step-num { font-family: "Syne", sans-serif; font-size: 14px; font-weight: 700; color: var(--accent2); margin-bottom: 14px; letter-spacing: 0.05em; }
-  .step-icon { width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, rgba(167,139,250,0.15), rgba(232,121,249,0.1)); border: 1px solid rgba(167,139,250,0.25); display: flex; align-items: center; justify-content: center; color: #c4b5fd; margin-bottom: 16px; }
-  .step-title { font-family: "Syne", sans-serif; font-size: 17px; font-weight: 700; margin-bottom: 8px; }
-  .step-desc { font-size: 13px; color: var(--muted); line-height: 1.55; }
-
-  /* FEATURE HIGHLIGHTS */
   .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-  .feature-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 28px 24px; transition: all 0.3s; }
-  .feature-card:hover { border-color: rgba(124,58,237,0.3); background: rgba(124,58,237,0.04); }
-  .feature-icon { width: 38px; height: 38px; border-radius: 10px; background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.2); display: flex; align-items: center; justify-content: center; color: #c4b5fd; margin-bottom: 16px; }
-  .feature-title { font-family: "Syne", sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 8px; }
-  .feature-desc { font-size: 13px; color: var(--muted); line-height: 1.55; }
+  .step-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px 24px; position: relative; transition: all 0.3s; }
+  .step-card:hover { border-color: var(--accent-border-40); transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.20); }
+  .step-num { font-family: "Space Grotesk", sans-serif; font-size: 14px; font-weight: 700; color: var(--accent); margin-bottom: 14px; letter-spacing: 0.05em; }
+  .step-icon { width: 44px; height: 44px; border-radius: 12px; background: var(--accent-tint-12); border: 1px solid var(--accent-border-25); display: flex; align-items: center; justify-content: center; color: var(--accent); margin-bottom: 16px; }
+  .step-title { font-family: "Space Grotesk", sans-serif; font-size: 17px; font-weight: 700; margin-bottom: 8px; color: var(--text); }
+  .step-desc { font-size: 13px; color: var(--muted); line-height: 1.55; }
+  .step-card-max-badge { display: inline-block; padding: 3px 8px; background: #a78bfa; color: #fff; border: none; border-radius: 5px; font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 10px; }
 
-  /* PRICING TIER CALLOUT */
-  .pricing-callout { background: linear-gradient(135deg, rgba(167,139,250,0.08), rgba(232,121,249,0.05)); border: 1px solid rgba(167,139,250,0.25); border-radius: 20px; padding: 40px; text-align: center; max-width: 720px; margin: 0 auto; position: relative; overflow: hidden; }
-  .pricing-callout::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(ellipse at center, rgba(232,121,249,0.08) 0%, transparent 50%); pointer-events: none; }
-  .pricing-callout-content { position: relative; z-index: 1; }
-  .pricing-tier-name { font-family: "Syne", sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #e879f9; margin-bottom: 8px; }
-  .pricing-tier-price { font-family: "Syne", sans-serif; font-size: 48px; font-weight: 800; letter-spacing: -1.5px; margin-bottom: 6px; }
-  .pricing-tier-price-period { font-size: 16px; color: var(--muted); font-weight: 400; letter-spacing: 0; }
-  .pricing-tier-desc { font-size: 14px; color: var(--muted); margin-bottom: 24px; }
-  .pricing-tier-includes { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 26px; }
-  .pricing-tier-pill { font-size: 12px; padding: 5px 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 999px; color: var(--muted); }
+  /* QUOTE DIVIDER */
+  .quote-divider { position: relative; width: 100%; height: 380px; max-width: none; margin: 0; padding: 0; overflow: hidden; clip-path: polygon(0 12%, 100% 0, 100% 88%, 0 100%); background-color: #1e1b4b; }
+  .quote-divider-photo { position: absolute; inset: 0; z-index: 0; background-image: url("/photos/links-photo1.webp"); background-size: cover; background-position: center 30%; }
+  .quote-divider-overlay { position: absolute; inset: 0; z-index: 1; background: linear-gradient(90deg, rgba(30,27,75,0.82) 0%, rgba(30,27,75,0.66) 40%, rgba(30,27,75,0.32) 75%, rgba(30,27,75,0.16) 100%); }
+  .quote-divider-content { position: relative; z-index: 2; height: 100%; max-width: 1100px; margin: 0 auto; padding: 0 60px; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; }
+  .quote-divider-mark { font-family: "Space Grotesk", sans-serif; font-size: 80px; font-weight: 700; line-height: 0.5; color: var(--accent); margin-bottom: 18px; }
+  .quote-divider-text { font-family: "Space Grotesk", sans-serif; font-size: clamp(28px, 4.5vw, 46px); font-weight: 700; letter-spacing: -1px; line-height: 1.12; color: #fff; margin: 0; max-width: 560px; text-shadow: 0 2px 16px rgba(0,0,0,0.5); }
+  @media (max-width: 768px) {
+    .quote-divider { height: 340px; clip-path: polygon(0 6%, 100% 0, 100% 94%, 0 100%); }
+    .quote-divider-overlay { background: linear-gradient(180deg, rgba(30,27,75,0.52) 0%, rgba(30,27,75,0.80) 100%); }
+    .quote-divider-content { padding: 0 28px; align-items: center; text-align: center; }
+    .quote-divider-text { max-width: 100%; }
+  }
 
   /* FAQ */
   .faq-list { max-width: 720px; margin: 0 auto; }
   .faq-item { border-bottom: 1px solid var(--border); padding: 22px 0; }
   .faq-item:first-child { border-top: 1px solid var(--border); }
   .faq-q { display: flex; align-items: center; justify-content: space-between; cursor: pointer; gap: 16px; }
-  .faq-q-text { font-family: "Syne", sans-serif; font-size: 17px; font-weight: 600; color: var(--text); flex: 1; }
+  .faq-q-text { font-family: "Space Grotesk", sans-serif; font-size: 17px; font-weight: 600; color: var(--text); flex: 1; }
   .faq-toggle { width: 28px; height: 28px; border-radius: 50%; background: var(--surface); border: 1px solid var(--border); color: var(--muted); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s; font-size: 18px; line-height: 1; }
-  .faq-item.open .faq-toggle { background: var(--accent); color: #fff; border-color: var(--accent); transform: rotate(45deg); }
+  .faq-item.open .faq-toggle { background: var(--accent-fill); color: var(--on-accent); border-color: var(--accent-fill); transform: rotate(45deg); }
   .faq-a { max-height: 0; overflow: hidden; transition: max-height 0.3s ease, padding 0.3s; color: var(--muted); font-size: 14px; line-height: 1.65; }
   .faq-item.open .faq-a { max-height: 500px; padding-top: 12px; }
 
   /* BOTTOM CTA */
-  .bottom-cta { padding: 80px 32px 100px; text-align: center; max-width: 800px; margin: 0 auto; }
-  .bottom-cta h2 { font-family: "Syne", sans-serif; font-size: clamp(28px, 4vw, 40px); font-weight: 800; letter-spacing: -1px; margin-bottom: 14px; }
-  .bottom-cta p { font-size: 16px; color: var(--muted); margin-bottom: 28px; }
+  .bottom-cta { position: relative; padding: 100px 32px 120px; text-align: center; max-width: none; margin: 0; overflow: hidden; background-color: #1e1b4b; }
+  .bottom-cta-photo { position: absolute; inset: 0; z-index: 0; background-image: url("/photos/links-photo2.webp"); background-size: cover; background-position: center 28%; }
+  .bottom-cta-overlay { position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, rgba(30,27,75,0.86) 0%, rgba(30,27,75,0.78) 45%, rgba(30,27,75,0.92) 100%); }
+  .bottom-cta-content { position: relative; z-index: 2; max-width: 800px; margin: 0 auto; }
+  .bottom-cta h2 { font-family: "Space Grotesk", sans-serif; font-size: clamp(28px, 4vw, 40px); font-weight: 700; letter-spacing: -1px; margin-bottom: 14px; color: #fff; }
+  .bottom-cta p { font-size: 16px; color: #d4d4d4; margin-bottom: 28px; }
+  .bottom-cta .btn-secondary { border-color: rgba(255,255,255,0.35); color: #fff; }
+  .bottom-cta .btn-secondary:hover { border-color: #fff; color: #fff; background: rgba(255,255,255,0.08); }
 
   /* FOOTER */
   footer { padding: 50px 32px 30px; max-width: 1200px; margin: 0 auto; border-top: 1px solid var(--border); }
@@ -176,13 +189,9 @@
     .nav-links, .nav-right { display: none; }
     .hamburger { display: flex; }
     .hero { padding: 60px 20px 40px; }
-    .mockup-section { padding: 0 20px 60px; }
     section { padding: 60px 20px; }
     .steps-grid, .features-grid { grid-template-columns: 1fr; }
-    .pricing-callout { padding: 30px 20px; }
-    .pricing-tier-price { font-size: 36px; }
   }
-
 </style>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <style>body{opacity:0;transition:opacity 0.2s ease;}body.site-ready{opacity:1;}</style>
@@ -191,180 +200,114 @@
 
 <div id="site-header"></div>
 
-
-
 <!-- ============ HERO ============ -->
 <section class="hero">
   <div class="hero-bg"></div>
   <div class="hero-content">
-    <h1>One link.<br><span class="gradient-text">All your everything.</span></h1>
-    <p class="hero-tagline">A clean, customizable page for your link in bio. Share your content, social profiles, products, and more, all from one branded URL on ryxa.io.</p>
+    <h1>One link.<br>Everything you <span class="accent-text">sell</span>.</h1>
+    <p class="hero-tagline">Build a free link-in-bio page that doubles as your storefront. Showcase your socials, your content, and (on Max) sell your courses, digital products, and 1:1 sessions in the same place buyers already tap. Payments go directly to your Stripe. Ryxa takes 0% transaction fees.</p>
     <div class="hero-cta-row">
-      <a href="dashboard.html" data-nav-action="try-tool" class="btn-primary">Build your bio page</a>
+      <a href="dashboard.html" data-nav-action="try-tool" class="btn-primary">Build your page</a>
       <a href="pricing.html" class="btn-secondary">See pricing</a>
     </div>
   </div>
 </section>
 
-<!-- ============ APP MOCKUP ============ -->
-<section class="mockup-section">
-  <div class="app-window">
-    <div class="app-titlebar">
-      <div class="app-dot red"></div>
-      <div class="app-dot yellow"></div>
-      <div class="app-dot green"></div>
-      <div class="app-url-bar">ryxa.io/dashboard.html</div>
-    </div>
-    <div class="app-body" style="min-height:auto;padding:0;">
-      <img src="/linkinbiodesktop.jpg" alt="Ryxa Link in Bio editor, building a custom bio page with theme picker, link blocks, and live preview." style="display:block;width:100%;height:auto;">
+<!-- ============ FEATURE QUOTE CARD ============ -->
+<section class="feature-quote">
+  <div class="feature-quote-card">
+    <div class="feature-quote-photo" aria-hidden="true"></div>
+    <div class="feature-quote-body">
+      <div class="feature-quote-mark" aria-hidden="true">&ldquo;</div>
+      <h2 class="feature-quote-text">Stop sending followers somewhere they can't buy from you.</h2>
     </div>
   </div>
 </section>
 
-<!-- ============ HOW IT WORKS ============ -->
 <section>
   <div class="section-label">How it works</div>
-  <h2 class="section-title">From signup to shareable URL, in four steps.</h2>
-  <p class="section-sub">No code, no design skills required. Pick a username, drop in your links, style it, and put it in your bios.</p>
+  <h2 class="section-title">From your bio to your first sale, in four steps.</h2>
+  <p class="section-sub">No code. No design degree. Just a real link your followers can actually buy from.</p>
   <div class="steps-grid">
-    <div class="step-card">
-      <div class="step-num">Step 1</div>
-      <div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></div>
-      <div class="step-title">Claim your handle</div>
-      <div class="step-desc">Pick your @username. Your bio page lives at ryxa.io/yourname, short, memorable, yours.</div>
-    </div>
-    <div class="step-card">
-      <div class="step-num">Step 2</div>
-      <div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
-      <div class="step-title">Add your links</div>
-      <div class="step-desc">Drop in your social profiles, latest content, products, anything. Drag to reorder.</div>
-    </div>
-    <div class="step-card">
-      <div class="step-num">Step 3</div>
-      <div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
-      <div class="step-title">Style it your way</div>
-      <div class="step-desc">Pick a theme, add your photo, set your bio text. Custom backgrounds with Pro.</div>
-    </div>
-    <div class="step-card">
-      <div class="step-num">Step 4</div>
-      <div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
-      <div class="step-title">Share the URL</div>
-      <div class="step-desc">Put ryxa.io/yourname in your Instagram bio, TikTok bio, Twitter, wherever your audience finds you.</div>
-    </div>
+    <div class="step-card"><div class="step-num">Step 1</div><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 22v-2a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2"/></svg></div><div class="step-title">Claim your URL</div><div class="step-desc">Pick your handle. Your page lives at ryxa.io/yourname. Add a profile photo, bio, and brand color.</div></div>
+    <div class="step-card"><div class="step-num">Step 2</div><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div><div class="step-title">Add your links</div><div class="step-desc">Socials, content, anything you want followers to find. Drag to reorder. Group into collapsible sections.</div></div>
+    <div class="step-card"><div class="step-num">Step 3</div><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="step-title">Add things to sell</div><div class="step-desc">Connect Stripe and surface your courses, digital products, and 1:1 sessions right on your page. Ryxa takes 0% transaction fees.</div></div>
+    <div class="step-card"><div class="step-num">Step 4</div><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><div class="step-title">Paste it in your bio</div><div class="step-desc">Copy your URL into your Instagram, TikTok, and YouTube bios. Every tap from your followers lands somewhere you control.</div></div>
   </div>
 </section>
 
-<!-- ============ FEATURES ============ -->
+<!-- ============ SLASH PHOTO QUOTE ============ -->
+<section class="quote-divider">
+  <div class="quote-divider-photo" aria-hidden="true"></div>
+  <div class="quote-divider-overlay" aria-hidden="true"></div>
+  <div class="quote-divider-content">
+    <div class="quote-divider-mark">&ldquo;</div>
+    <h2 class="quote-divider-text">Your bio is real estate.<br>Use it like one.</h2>
+  </div>
+</section>
+
 <section>
   <div class="section-label">Features</div>
-  <h2 class="section-title">Built for creators, not corporate marketers.</h2>
-  <p class="section-sub">A clean, fast, customizable bio page that actually represents you, not a generic corporate template with your face slapped on top.</p>
+  <h2 class="section-title">Built to convert, not just to look pretty.</h2>
+  <p class="section-sub">A link in bio that does more than list other people's apps. This one helps you make money.</p>
   <div class="features-grid">
-    <div class="feature-card">
-      <div class="feature-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125 0-.937.746-1.687 1.688-1.687h1.996c3.094 0 5.61-2.516 5.61-5.61C21.978 6.273 17.5 2 12 2z"/></svg></div>
-      <div class="feature-title">Themes that don't suck</div>
-      <div class="feature-desc">Hand-picked themes designed for creators. Light, dark, pastel, bold. Pick one and go, or customize on Pro.</div>
+    <div class="step-card">
+      <span class="step-card-max-badge">Max</span>
+      <div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
+      <div class="step-title">Sell your courses</div>
+      <div class="step-desc">Pin a course directly to your page. Followers can preview, enroll, and start watching without ever leaving your link. Hosting, video, and student dashboard included.</div>
     </div>
-    <div class="feature-card">
-      <div class="feature-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5h6M9 19h6M5 9h2M5 15h2M17 9h2M17 15h2M9 12h6"/></svg></div>
-      <div class="feature-title">Drag-to-reorder links</div>
-      <div class="feature-desc">No more wrestling with form fields. Drag links into the order you want. Pin important ones to the top.</div>
+    <div class="step-card">
+      <span class="step-card-max-badge">Max</span>
+      <div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>
+      <div class="step-title">Sell digital products</div>
+      <div class="step-desc">Templates, presets, ebooks, PDFs, design files, audio. Buyers download instantly after payment. Files hosted on Ryxa, delivery handled for you.</div>
     </div>
-    <div class="feature-card">
-      <div class="feature-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18.7 8L12 14.7l-3-3L7 14"/></svg></div>
-      <div class="feature-title">Page view analytics</div>
-      <div class="feature-desc">See how many people visit your bio page over time, with a date range picker on your dashboard. Spot when posts spike traffic.</div>
+    <div class="step-card">
+      <span class="step-card-max-badge">Max</span>
+      <div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+      <div class="step-title">Book 1:1 sessions</div>
+      <div class="step-desc">Sell coaching, consulting, portfolio reviews, or feedback calls. Buyers pick a time, pay, and get a calendar invite. Connects to your Google Calendar.</div>
     </div>
-    <div class="feature-card">
-      <div class="feature-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></div>
-      <div class="feature-title">Social profile icons</div>
-      <div class="feature-desc">Add Instagram, TikTok, YouTube, X, and more as a clean icon row at the top of your page.</div>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></div>
-      <div class="feature-title">Mobile-first design</div>
-      <div class="feature-desc">Built for the device your audience actually uses. Loads instantly, looks great on every screen.</div>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
-      <div class="feature-title">Branded URL</div>
-      <div class="feature-desc">ryxa.io/yourname, short, professional, easy to remember. No subdomains or weird paths.</div>
-    </div>
+    <div class="step-card"><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><div class="step-title">Custom branding</div><div class="step-desc">Set your brand color, fonts, and background. Pick a theme that matches your aesthetic. Your followers see your page, not a Ryxa template.</div></div>
+    <div class="step-card"><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><polyline points="17 8 21 12 17 16"/><line x1="3" y1="6" x2="3" y2="6.01"/><line x1="3" y1="18" x2="3" y2="18.01"/></svg></div><div class="step-title">Drag-to-reorder, sections</div><div class="step-desc">Group your links into collapsible sections. Featured products at the top, social profiles below, archive at the bottom. Your followers see what matters first.</div></div>
+    <div class="step-card"><div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg></div><div class="step-title">Built-in analytics</div><div class="step-desc">See which links your followers tap. Track which products convert. Know what's actually working without plugging in a third party.</div></div>
   </div>
 </section>
 
-<!-- ============ PRICING TIER ============ -->
-<section>
-  <div style="text-align:center;margin-bottom:36px;">
-    <div class="section-label">Pricing</div>
-    <h2 class="section-title" style="margin-left:auto;margin-right:auto;text-align:center;">Pricing for Link in Bio.</h2>
-  </div>
-  <div class="pricing-callout">
-    <div class="pricing-callout-content">
-      <div class="pricing-tier-name">Free</div>
-      <div class="pricing-tier-price">$0<span class="pricing-tier-price-period">/forever</span></div>
-      <div class="pricing-tier-desc">Link in Bio is free for everyone. Custom backgrounds and customizable themes are part of Pro and Creator Max.</div>
-      <a href="pricing.html" class="btn-primary">View pricing</a>
-    </div>
-  </div>
-</section>
+<!-- ============ TESTIMONIALS ============ -->
+<div id="site-testimonials" data-heading="Creators who trust Ryxa" data-theme="dark"></div>
 
-<!-- ============ FAQ ============ -->
 <section>
   <div class="section-label">FAQ</div>
   <h2 class="section-title">Common questions about Link in Bio.</h2>
   <div class="faq-list">
-    <div class="faq-item">
-      <div class="faq-q" data-nav-action="toggle-faq">
-        <div class="faq-q-text">Is it really free?</div>
-        <div class="faq-toggle">+</div>
-      </div>
-      <div class="faq-a">Yes. The Free plan gets you a custom URL, profile photo, bio, social icons, 50 links, 1 featured link, and all 12 preset themes. Pro ($10/mo) unlocks 200 links, 3 featured, full theme customization with custom backgrounds and fonts, hero avatar display, and removes Ryxa branding from your page. Creator Max ($24/mo) extends that to 1,000 links, 10 featured, hero links, and lets you sell courses, coaching, and digital products directly from your bio.</div>
-    </div>
-    <div class="faq-item">
-      <div class="faq-q" data-nav-action="toggle-faq">
-        <div class="faq-q-text">Can I use my own domain?</div>
-        <div class="faq-toggle">+</div>
-      </div>
-      <div class="faq-a">Not yet, but you can still use your own domain. Most domain registrars (GoDaddy, Namecheap, Google Domains, Squarespace) let you set up domain forwarding for free, which sends visitors of yourdomain.com to ryxa.io/yourname automatically. Native custom domain support is on our roadmap for a future Pro/Max feature.</div>
-    </div>
-    <div class="faq-item">
-      <div class="faq-q" data-nav-action="toggle-faq">
-        <div class="faq-q-text">How is this different from Linktree or Beacons?</div>
-        <div class="faq-toggle">+</div>
-      </div>
-      <div class="faq-a">Honestly, the base feature set is similar. The difference is Ryxa bundles 9 other creator tools alongside it (Brand Deal CRM, Script Builder, Media Kit, etc.) at the same price point Linktree charges just for their Pro tier.</div>
-    </div>
-    <div class="faq-item">
-      <div class="faq-q" data-nav-action="toggle-faq">
-        <div class="faq-q-text">Can I see how many people visit my bio?</div>
-        <div class="faq-toggle">+</div>
-      </div>
-      <div class="faq-a">Yes. Your dashboard shows total page views over any date range you pick. Last 7, 14, 30 days, or custom. Per-link click tracking is on the roadmap.</div>
-    </div>
-    <div class="faq-item">
-      <div class="faq-q" data-nav-action="toggle-faq">
-        <div class="faq-q-text">What if I want to take my page down?</div>
-        <div class="faq-toggle">+</div>
-      </div>
-      <div class="faq-a">Toggle 'unpublished' in the dashboard and your page returns a 404 immediately. Toggle back to publish whenever you want. Your data stays. We don't delete anything.</div>
-    </div>
+    <div class="faq-item"><div class="faq-q" data-nav-action="toggle-faq"><div class="faq-q-text">Is Link in Bio actually free?</div><div class="faq-toggle">+</div></div><div class="faq-a">Yes. Building and publishing your link-in-bio page is free on Ryxa. Selling courses, digital products, and 1:1 sessions through your page requires a Max plan, but the page itself, your links, your branding, and basic analytics are all free forever.</div></div>
+    <div class="faq-item"><div class="faq-q" data-nav-action="toggle-faq"><div class="faq-q-text">Can I sell products through my link in bio?</div><div class="faq-toggle">+</div></div><div class="faq-a">Yes, on the Max plan. Once you upgrade, you can attach courses, digital products, and 1:1 booking slots directly to your page. Followers can buy without leaving your link. Payments go directly to your Stripe account, and Ryxa takes 0% transaction fees on top of standard Stripe processing.</div></div>
+    <div class="faq-item"><div class="faq-q" data-nav-action="toggle-faq"><div class="faq-q-text">Does Ryxa take a cut of my sales?</div><div class="faq-toggle">+</div></div><div class="faq-a">No. Ryxa takes 0% transaction fees on every sale through your link-in-bio page. The only fees are Stripe's standard processing fees (around 2.9% + 30 cents per transaction), which go to Stripe, not to Ryxa.</div></div>
+    <div class="faq-item"><div class="faq-q" data-nav-action="toggle-faq"><div class="faq-q-text">What's my page URL?</div><div class="faq-toggle">+</div></div><div class="faq-a">Your page lives at ryxa.io/yourhandle. You pick the handle when you sign up. Use the same handle you use on Instagram or TikTok if it's available, so your audience finds you easily.</div></div>
+    <div class="faq-item"><div class="faq-q" data-nav-action="toggle-faq"><div class="faq-q-text">Can I use a custom domain?</div><div class="faq-toggle">+</div></div><div class="faq-a">Custom domain support is on the roadmap. Today, every link-in-bio page lives at ryxa.io/yourhandle, which is short, brandable, and easy to share. We'll announce custom domain support to existing creators when it ships.</div></div>
+    <div class="faq-item"><div class="faq-q" data-nav-action="toggle-faq"><div class="faq-q-text">How is this different from Linktree or Beacons?</div><div class="faq-toggle">+</div></div><div class="faq-a">Linktree and Beacons are mostly link lists. Ryxa is a creator business in a single link. You can list your socials and content like you would on Linktree, but you can also actually sell your courses, digital products, and 1:1 sessions on the same page, with hosting, checkout, and delivery handled for you. One link, one business, no extra tools.</div></div>
   </div>
 </section>
 
-<!-- ============ BOTTOM CTA ============ -->
 <section class="bottom-cta">
-  <h2>Ready to start with Link in Bio?</h2>
-  <p>A clean, customizable page for your link in bio. Share your content, social profiles, products, and more, all from one branded URL on ryxa.io.</p>
-  <div class="hero-cta-row">
-    <a href="dashboard.html" data-nav-action="try-tool" class="btn-primary">Build your bio page</a>
-    <a href="pricing.html" class="btn-secondary">See pricing</a>
+  <div class="bottom-cta-photo" aria-hidden="true"></div>
+  <div class="bottom-cta-overlay" aria-hidden="true"></div>
+  <div class="bottom-cta-content">
+    <h2>Turn your link in bio into a business.</h2>
+    <p>Free to build. Free to publish. Upgrade when you're ready to start selling. Ryxa takes 0% transaction fees on every sale.</p>
+    <div class="hero-cta-row">
+      <a href="dashboard.html" data-nav-action="try-tool" class="btn-primary">Build your page</a>
+      <a href="pricing.html" class="btn-secondary">See pricing</a>
+    </div>
   </div>
 </section>
 
 <!-- ============ FOOTER ============ -->
 <div id="site-footer"></div>
 
+<script src="/js/testimonials.js"></script>
 <script src="/site-nav.js"></script>
 </body>
 </html>
