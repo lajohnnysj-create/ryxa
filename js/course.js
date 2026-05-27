@@ -1975,6 +1975,12 @@ async function mountCourseDescEditor() {
   // tooltip input. Same helper used by lesson editors so behavior matches.
   applyQuillA11yLabels(quill.root);
 
+  // Block <img> embeds from paste/drop. Only the toolbar image button can
+  // add images, which routes through our compress + upload pipeline with
+  // a unique filename per upload. Prevents cross-content duplicate storage
+  // references, clipboard-image base64 bloat, and fragile external image URLs.
+  stripPastedImages(quill);
+
   // Initialize Quill content from whatever's currently in the textarea
   // (set by openCourseEditor before this mounts).
   var initialHtml = textarea.value || '';
@@ -2246,6 +2252,12 @@ function mountLessonEditor(mi, li) {
     }
   });
 
+  // Block <img> embeds from paste/drop. Only the toolbar image button can
+  // add images, which routes through our compress + upload pipeline with
+  // a unique filename per upload. Prevents cross-content duplicate storage
+  // references, clipboard-image base64 bloat, and fragile external image URLs.
+  stripPastedImages(quill);
+
   // Seed initial content. Old plain-text lessons get wrapped in <p>; lessons
   // already saved as HTML pass through sanitizer (defense in depth).
   var initial = lesson.text_content || '';
@@ -2415,6 +2427,35 @@ function applyQuillA11yLabels(anyEl) {
 // Expose so other dashboard JS files (products.js, coaching.js) can call it
 // without re-declaring the labeling logic per-editor.
 window.applyQuillA11yLabels = applyQuillA11yLabels;
+
+// Strip <img> embeds from anything pasted or dropped into the Quill editor.
+// All four image-paste mechanics (paste from another lesson, paste from
+// external page, paste clipboard image data, drag-drop file) hit Quill's
+// clipboard pipeline and produce <img> embeds. By dropping them at the
+// matcher layer, we guarantee that the ONLY way an image enters the editor
+// is via the toolbar image button, which routes through compressLessonImage
+// + a fresh upload to course-images with a unique filename. Three benefits:
+//   1. No collision risk on storage cleanup. Two visually-identical uploads
+//      produce two distinct storage paths, so deleting one never breaks the
+//      other's reference.
+//   2. No base64 bloat from clipboard image data, which would otherwise
+//      eat the text_content character budget and the DB row size.
+//   3. No fragile external image URLs that break when the source host
+//      changes; every image is on our CDN with WebP compression applied.
+// IMPORTANT: matchers only fire on user paste/drop, not on
+// quill.clipboard.dangerouslyPasteHTML (which is what we use to seed saved
+// content from the DB). So saved images render correctly on editor open.
+function stripPastedImages(quill) {
+  if (!quill || !quill.clipboard || typeof quill.clipboard.addMatcher !== 'function') return;
+  quill.clipboard.addMatcher('img', function(node, delta) {
+    // Return an empty Delta to drop the image entirely. Returning the delta
+    // arg with ops cleared works too, but creating a new empty Delta is the
+    // documented Quill 1.x pattern and avoids depending on the shape of the
+    // incoming delta object.
+    var Delta = Quill.import('delta');
+    return new Delta();
+  });
+}
 
 // Shared S/M/L image-sizing toolbar setup. Originally lesson-only, now reused
 // by the course description editor (and slated for product / booking
