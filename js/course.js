@@ -2480,14 +2480,18 @@ function withImagesAllowed(quill, fn) {
   }
 }
 
-// Shared S/M/L image-sizing toolbar setup. Originally lesson-only, now reused
-// by the course description editor (and slated for product / booking
-// descriptions in upcoming sessions). The function adds the S/M/L button
-// group to the toolbar, wires up click-to-select-image behavior in the editor,
-// and calls `saveCallback(html)` whenever the user resizes (since Quill's
-// text-change event doesn't fire for class-only attribute changes). The
-// callback receives the SANITIZED HTML; it owns deciding which sanitizer
-// to use and where to persist it (DB column vs textarea sync vs both).
+// Shared S/M/L image-sizing toolbar setup. Used by the lesson editor and the
+// course / booking / product description editors. The function adds the
+// S/M/L + Remove button group to the toolbar, wires up click-to-select-image
+// behavior in the editor, and calls `saveCallback(html)` whenever the user
+// resizes (since Quill's text-change event doesn't fire for class-only
+// attribute changes). The callback receives the SANITIZED HTML; it owns
+// deciding which sanitizer to use and where to persist it.
+//
+// Clicking an image also syncs Quill's selection to span the embed so
+// Delete/Backspace work on the visually-selected image — without this,
+// pressing Delete with an image visually selected does nothing because our
+// click handler never moved Quill's cursor.
 function setupImageSizing(quill, container, saveCallback) {
   var toolbar = container.previousElementSibling; // .ql-toolbar sits just before .ql-container
   if (!toolbar || !toolbar.classList.contains('ql-toolbar')) {
@@ -2501,14 +2505,21 @@ function setupImageSizing(quill, container, saveCallback) {
   // and coaching-description editors also stay accessible.
   applyQuillA11yLabels(container);
 
-  // Inject S/M/L button group right before the "clean" button (last group).
-  // For toolbars that omit the clean button (course/product/booking
-  // descriptions), the group simply appends at the end.
+  // Inject S/M/L + Remove button group right before the "clean" button (last
+  // group). For toolbars that omit the clean button (course/product/booking
+  // descriptions), the group simply appends at the end. The Remove button is
+  // visually separated from S/M/L (sits to the right after a divider) and
+  // styled with a red tint so it reads as destructive. Trash icon is the
+  // standard "delete" affordance and stays clear at small sizes.
   var group = document.createElement('span');
   group.className = 'ql-formats lesson-img-size-toolbar';
   group.innerHTML = '<button type="button" data-img-size="small" title="Small image" aria-label="Small image size">S</button>'
     + '<button type="button" data-img-size="medium" title="Medium image" aria-label="Medium image size">M</button>'
-    + '<button type="button" data-img-size="large" title="Large image" aria-label="Large image size">L</button>';
+    + '<button type="button" data-img-size="large" title="Large image" aria-label="Large image size">L</button>'
+    + '<span class="lesson-img-toolbar-sep" aria-hidden="true"></span>'
+    + '<button type="button" data-img-action="remove" title="Remove image" aria-label="Remove image" class="lesson-img-remove-btn">'
+    + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>'
+    + '</button>';
   // Insert before the last .ql-formats group (which is "clean" in the lesson
   // editor); if no "clean" exists (description editors), append at the end.
   var groups = toolbar.querySelectorAll('.ql-formats');
@@ -2523,20 +2534,44 @@ function setupImageSizing(quill, container, saveCallback) {
   }
 
   // Track the currently-selected image. Click on an image to select it.
-  // Clicking elsewhere deselects.
+  // Clicking elsewhere deselects. Selecting an image also moves Quill's
+  // cursor to span the embed so Delete/Backspace work as expected — without
+  // this, pressing Delete with an image visually selected does nothing
+  // because Quill's selection range never moved.
   var selectedImg = null;
   function selectImage(img) {
     if (selectedImg) selectedImg.classList.remove('lesson-img-selected');
     selectedImg = img;
     if (selectedImg) selectedImg.classList.add('lesson-img-selected');
     // Toggle the "alive" group state, drives the CSS that lights up the
-    // S/M/L buttons in solid purple so creators see where to click.
+    // S/M/L + Remove buttons so creators see where to click.
     group.classList.toggle('has-selection', !!selectedImg);
-    // Enable/disable the S/M/L buttons based on whether we have a selection
+    // Enable/disable buttons based on whether we have a selection. The
+    // Remove button (data-img-action) and S/M/L buttons (data-img-size) all
+    // share the same enabled state since they all require a selected image.
     group.querySelectorAll('button').forEach(function(btn) {
       btn.disabled = !selectedImg;
-      btn.classList.toggle('lesson-img-size-active', !!selectedImg && selectedImg.classList.contains('lesson-img-size-' + btn.dataset.imgSize));
+      if (btn.dataset.imgSize) {
+        btn.classList.toggle('lesson-img-size-active', !!selectedImg && selectedImg.classList.contains('lesson-img-size-' + btn.dataset.imgSize));
+      }
     });
+    // Sync Quill's selection range to span the image embed. This lets the
+    // browser's Delete/Backspace work on the visually-selected image. Wrap
+    // in a try/catch because Quill.find() returns null for nodes it doesn't
+    // recognize (shouldn't happen for properly-inserted images, but guard
+    // against weird HTML round-trips). 'silent' source avoids re-emitting
+    // selection-change events that could loop back into our handlers.
+    if (selectedImg) {
+      try {
+        var blot = Quill.find(selectedImg);
+        if (blot) {
+          var idx = quill.getIndex(blot);
+          if (typeof idx === 'number' && idx >= 0) {
+            quill.setSelection(idx, 1, 'silent');
+          }
+        }
+      } catch (e) { /* non-fatal: keyboard delete just won't work for this image */ }
+    }
   }
 
   quill.root.addEventListener('click', function(e) {
@@ -2547,23 +2582,65 @@ function setupImageSizing(quill, container, saveCallback) {
     }
   });
 
-  // S/M/L button handlers
+  // S/M/L + Remove button handlers. Same listener handles both because they
+  // share the same enabled-on-selection lifecycle.
   group.addEventListener('click', function(e) {
-    var btn = e.target.closest('button[data-img-size]');
-    if (!btn || !selectedImg) return;
-    var size = btn.dataset.imgSize;
-    selectedImg.classList.remove('lesson-img-size-small', 'lesson-img-size-medium', 'lesson-img-size-large');
-    selectedImg.classList.add('lesson-img-size-' + size);
-    // Refresh active button state
-    group.querySelectorAll('button').forEach(function(b) {
-      b.classList.toggle('lesson-img-size-active', b.dataset.imgSize === size);
-    });
-    // Trigger save (manually since text-change won't fire for class changes).
-    // The caller's saveCallback decides which sanitizer to use and where to
-    // persist. We hand it the raw editor HTML; caller sanitizes appropriately.
-    var html = quill.root.innerHTML;
-    if (html === '<p><br></p>') html = '';
-    if (typeof saveCallback === 'function') saveCallback(html);
+    var sizeBtn = e.target.closest('button[data-img-size]');
+    var actionBtn = e.target.closest('button[data-img-action]');
+    if (!selectedImg) return;
+
+    if (sizeBtn) {
+      var size = sizeBtn.dataset.imgSize;
+      selectedImg.classList.remove('lesson-img-size-small', 'lesson-img-size-medium', 'lesson-img-size-large');
+      selectedImg.classList.add('lesson-img-size-' + size);
+      // Refresh active button state
+      group.querySelectorAll('button[data-img-size]').forEach(function(b) {
+        b.classList.toggle('lesson-img-size-active', b.dataset.imgSize === size);
+      });
+      // Trigger save (manually since text-change won't fire for class changes).
+      // The caller's saveCallback decides which sanitizer to use and where to
+      // persist. We hand it the raw editor HTML; caller sanitizes appropriately.
+      var html = quill.root.innerHTML;
+      if (html === '<p><br></p>') html = '';
+      if (typeof saveCallback === 'function') saveCallback(html);
+      return;
+    }
+
+    if (actionBtn && actionBtn.dataset.imgAction === 'remove') {
+      // Delete via Quill's deleteText API so the operation goes through
+      // Quill's history stack (Ctrl+Z restores the image). source='user'
+      // makes text-change fire normally, which triggers the editor's
+      // sync-to-textarea logic on the description editors and the lesson
+      // editor's save callback. Find the blot's index right before delete
+      // (DOM might have shifted since we cached the selection earlier).
+      try {
+        var blot = Quill.find(selectedImg);
+        if (blot) {
+          var idx = quill.getIndex(blot);
+          if (typeof idx === 'number' && idx >= 0) {
+            quill.deleteText(idx, 1, 'user');
+          }
+        }
+      } catch (err) {
+        console.warn('Image removal failed:', err);
+      }
+      // Clear our selection state regardless of delete success: the image
+      // is either gone or the operation failed and the user can try again.
+      selectImage(null);
+      return;
+    }
+  });
+
+  // Clean up stale selectedImg pointer after any edit that may have removed
+  // the image (keyboard Delete/Backspace, undo, paste-replace, etc.). Without
+  // this, our closure still holds a reference to a detached DOM node and the
+  // S/M/L/Remove buttons stay visually enabled even though nothing's actually
+  // selected. Cheap check: isConnected returns false for nodes removed from
+  // the document.
+  quill.on('text-change', function() {
+    if (selectedImg && !selectedImg.isConnected) {
+      selectImage(null);
+    }
   });
 
   // Initialize buttons disabled (no image selected yet)
