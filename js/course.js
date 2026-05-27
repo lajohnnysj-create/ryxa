@@ -1829,6 +1829,11 @@ var _courseDescSyncInProgress = false;
 // don't convert better). ~2000 visible chars after tags, generous enough
 // for thorough descriptions without inviting essays.
 var COURSE_DESC_MAX_HTML = 3000;
+// Max <img> embeds in a single course description. Lower than the lesson cap
+// (15) because course descriptions are short marketing copy, not long-form
+// teaching content. Each image is a hosted WebP that loads on every landing
+// page view, so we cap the count to keep TTFB tight.
+var MAX_COURSE_DESC_IMAGES = 6;
 
 async function mountCourseDescEditor() {
   // Always unmount any prior instance first. Handles re-entry from the
@@ -1889,19 +1894,80 @@ async function mountCourseDescEditor() {
   }
 
   // Toolbar matches what's useful for course descriptions: emphasis, lists,
-  // headings (H2/H3 only - no H1 since that's the course title), links.
-  // Intentionally omitting align/image/clean: less clutter, no creators
-  // making rainbow descriptions on the landing page.
+  // headings (H2/H3 only - no H1 since that's the course title), links, and
+  // images (added later, mirrors the lesson editor's image-upload pipeline
+  // and S/M/L sizing). 'clean' stays omitted to keep the toolbar uncluttered.
   var quill = new Quill(mountTarget, {
     theme: 'snow',
     placeholder: 'What will students learn? Why should they take this course?',
     modules: {
-      toolbar: [
-        [{ 'header': [2, 3, false] }],
-        ['bold', 'italic', 'underline'],
-        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-        ['link']
-      ]
+      toolbar: {
+        container: [
+          [{ 'header': [2, 3, false] }],
+          ['bold', 'italic', 'underline'],
+          [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+          ['link', 'image']
+        ],
+        handlers: {
+          // Custom image handler. Reuses compressLessonImage (WebP 0.8,
+          // 1200px max) and the course-images bucket. Same egress and
+          // storage profile as lesson images. Enforces MAX_COURSE_DESC_IMAGES.
+          // New images default to "small" to match lesson behavior; creator
+          // clicks the image then uses S/M/L toolbar to resize.
+          image: function() {
+            var imgCount = countQuillImages(quill);
+            if (imgCount >= MAX_COURSE_DESC_IMAGES) {
+              showModalAlert('Image limit reached', 'You can add up to ' + MAX_COURSE_DESC_IMAGES + ' images per course description. Remove one before adding another.');
+              return;
+            }
+            var input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = async function() {
+              var file = input.files && input.files[0];
+              if (!file) return;
+              if (!file.type.startsWith('image/')) { showModalAlert('Invalid File', 'Please upload an image file.'); return; }
+              try {
+                var blob = await compressLessonImage(file);
+                if (!blob) throw new Error('Compression failed');
+                var path = currentUser.id + '/' + Date.now() + '_' + Math.random().toString(36).slice(2, 8) + '.webp';
+                var upRes = await sb.storage.from('course-images').upload(path, blob, { contentType: 'image/webp', upsert: false });
+                if (upRes.error) throw upRes.error;
+                var urlData = sb.storage.from('course-images').getPublicUrl(path);
+                var range = quill.getSelection(true);
+                quill.insertEmbed(range.index, 'image', urlData.data.publicUrl, 'user');
+                quill.setSelection(range.index + 1, 0);
+                // After insert: tag the new image with the default size class
+                // and an empty alt attribute. The DOMPurify hook will also
+                // backstop the alt on save, but we set it here so the editor
+                // DOM matches the persisted shape immediately.
+                setTimeout(function() {
+                  var imgs = quill.root.querySelectorAll('img');
+                  var lastImg = imgs[imgs.length - 1];
+                  if (lastImg) {
+                    if (!lastImg.classList.contains('lesson-img-size-small') && !lastImg.classList.contains('lesson-img-size-medium') && !lastImg.classList.contains('lesson-img-size-large')) {
+                      lastImg.classList.add('lesson-img-size-small');
+                    }
+                    if (!lastImg.hasAttribute('alt')) lastImg.setAttribute('alt', '');
+                    // Force a sync to textarea so the class/alt persist
+                    // (text-change already fired before we added the class).
+                    var html = sanitizeDescriptionHtml(quill.root.innerHTML);
+                    if (html === '<p><br></p>') html = '';
+                    _courseDescSyncInProgress = true;
+                    textarea.value = html;
+                    _courseDescSyncInProgress = false;
+                    updateCourseDescCounter(html.length);
+                  }
+                }, 50);
+              } catch (e) {
+                console.error('Course description image upload error:', e);
+                showModalAlert('Upload Failed', 'Could not upload image. Please try again.');
+              }
+            };
+            input.click();
+          }
+        }
+      }
     }
   });
 
@@ -1923,6 +1989,32 @@ async function mountCourseDescEditor() {
     }
   }
 
+  // Re-apply image size classes after the seed paste. Same defense as the
+  // lesson editor: Quill 1.x treats <img> as an Embed blot, and
+  // dangerouslyPasteHTML doesn't reliably preserve custom classes on embeds.
+  // We re-parse the saved HTML, extract the size class per image (matched
+  // by document order, which is stable through paste), and apply it back to
+  // Quill's rendered DOM so the editor preview matches what the landing page
+  // will show.
+  if (cleanInit && /<img/i.test(cleanInit)) {
+    try {
+      var parser = new DOMParser();
+      var parsedDoc = parser.parseFromString('<div>' + cleanInit + '</div>', 'text/html');
+      var savedImgs = parsedDoc.querySelectorAll('img');
+      var quillImgs = quill.root.querySelectorAll('img');
+      for (var i = 0; i < quillImgs.length && i < savedImgs.length; i++) {
+        var savedCls = savedImgs[i].className || '';
+        var sizeMatch = savedCls.match(/\blesson-img-size-(small|medium|large)\b/);
+        if (sizeMatch) {
+          quillImgs[i].classList.remove('lesson-img-size-small', 'lesson-img-size-medium', 'lesson-img-size-large');
+          quillImgs[i].classList.add('lesson-img-size-' + sizeMatch[1]);
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to re-apply description image size classes after seed:', e);
+    }
+  }
+
   // Restore scroll position captured before mount. dangerouslyPasteHTML
   // moves Quill's selection cursor which can auto-scroll the description
   // into view; we don't want that on initial editor open. Wrapped in
@@ -1935,10 +2027,27 @@ async function mountCourseDescEditor() {
 
   // Quill → textarea: every edit syncs sanitized HTML into the hidden
   // textarea so saveCourse and any other consumer reads the rich content.
-  // Also enforces the char limit by truncating in Quill if the user exceeds
-  // it (rare since the counter warns first). Updates the live counter UI.
-  quill.on('text-change', function() {
+  // Also enforces the char limit and image-count limit by undoing the last
+  // edit in Quill if either is exceeded. Updates the live counter UI.
+  quill.on('text-change', function(delta, oldDelta, source) {
     if (_courseDescSyncInProgress) return;
+
+    // Image-cap enforcement on user edits only. Programmatic changes (the
+    // initial seed paste, AI Cleanup, history.undo) carry source !== 'user'
+    // and never trip this. Mirrors the lesson editor's post-change check at
+    // line 2172. We check AFTER the change so paste-of-many-images undoes
+    // cleanly without us trying to intercept the clipboard event.
+    if (source === 'user') {
+      var imgCount = countQuillImages(quill);
+      if (imgCount > MAX_COURSE_DESC_IMAGES) {
+        _courseDescSyncInProgress = true;
+        try { quill.history.undo(); } catch (e) { /* no history yet */ }
+        _courseDescSyncInProgress = false;
+        showModalAlert('Image limit reached', 'You can add up to ' + MAX_COURSE_DESC_IMAGES + ' images per course description.');
+        return;
+      }
+    }
+
     var html = sanitizeDescriptionHtml(quill.root.innerHTML);
     // Quill's empty state is '<p><br></p>' - treat as empty so saved
     // descriptions don't carry that stub.
@@ -1988,6 +2097,21 @@ async function mountCourseDescEditor() {
       quill.setText(incoming);
     }
     _courseDescSyncInProgress = false;
+  });
+
+  // Wire up S/M/L image sizing. Same toolbar widget as the lesson editor.
+  // Save callback runs when the creator clicks S/M/L (Quill's text-change
+  // doesn't fire for class-only attribute changes), syncing the resized
+  // HTML through the sanitizer to the textarea so it persists on next save.
+  // mountTarget is the same element passed to `new Quill()`, so it's now
+  // classed as `.ql-container` and has the toolbar as its previousElementSibling.
+  setupImageSizing(quill, mountTarget, function(rawHtml) {
+    var html = sanitizeDescriptionHtml(rawHtml);
+    if (html === '<p><br></p>') html = '';
+    _courseDescSyncInProgress = true;
+    textarea.value = html;
+    _courseDescSyncInProgress = false;
+    updateCourseDescCounter(html.length);
   });
 
   _courseDescQuill = quill;
@@ -2185,8 +2309,11 @@ function mountLessonEditor(mi, li) {
   // Wire up image sizing. Adds S/M/L buttons to the toolbar (after Quill has
   // built it) and listens for clicks on images inside the editor so creators
   // can resize them. The selected image gets an outline; clicking S/M/L
-  // applies the corresponding size class.
-  setupImageSizing(quill, mi, li, container);
+  // applies the corresponding size class. The callback persists the resized
+  // HTML through the lesson-field save path so the size class survives.
+  setupImageSizing(quill, container, function(html) {
+    updateLessonField(mi, li, 'text_content', sanitizeLessonHtml(html));
+  });
 
   _courseQuillInstances[key] = quill;
   return quill;
@@ -2289,7 +2416,15 @@ function applyQuillA11yLabels(anyEl) {
 // without re-declaring the labeling logic per-editor.
 window.applyQuillA11yLabels = applyQuillA11yLabels;
 
-function setupImageSizing(quill, mi, li, container) {
+// Shared S/M/L image-sizing toolbar setup. Originally lesson-only, now reused
+// by the course description editor (and slated for product / booking
+// descriptions in upcoming sessions). The function adds the S/M/L button
+// group to the toolbar, wires up click-to-select-image behavior in the editor,
+// and calls `saveCallback(html)` whenever the user resizes (since Quill's
+// text-change event doesn't fire for class-only attribute changes). The
+// callback receives the SANITIZED HTML; it owns deciding which sanitizer
+// to use and where to persist it (DB column vs textarea sync vs both).
+function setupImageSizing(quill, container, saveCallback) {
   var toolbar = container.previousElementSibling; // .ql-toolbar sits just before .ql-container
   if (!toolbar || !toolbar.classList.contains('ql-toolbar')) {
     // Fallback: find by query (Quill always places toolbar adjacent to container)
@@ -2303,15 +2438,21 @@ function setupImageSizing(quill, mi, li, container) {
   applyQuillA11yLabels(container);
 
   // Inject S/M/L button group right before the "clean" button (last group).
+  // For toolbars that omit the clean button (course/product/booking
+  // descriptions), the group simply appends at the end.
   var group = document.createElement('span');
   group.className = 'ql-formats lesson-img-size-toolbar';
   group.innerHTML = '<button type="button" data-img-size="small" title="Small image" aria-label="Small image size">S</button>'
     + '<button type="button" data-img-size="medium" title="Medium image" aria-label="Medium image size">M</button>'
     + '<button type="button" data-img-size="large" title="Large image" aria-label="Large image size">L</button>';
-  // Insert before the last .ql-formats group (which is "clean")
+  // Insert before the last .ql-formats group (which is "clean" in the lesson
+  // editor); if no "clean" exists (description editors), append at the end.
   var groups = toolbar.querySelectorAll('.ql-formats');
   var cleanGroup = groups[groups.length - 1];
-  if (cleanGroup) {
+  // Only insert-before if the last group actually contains a clean button.
+  // Otherwise our S/M/L group is itself the last meaningful group and we
+  // want it to render after everything else.
+  if (cleanGroup && cleanGroup.querySelector('button.ql-clean')) {
     toolbar.insertBefore(group, cleanGroup);
   } else {
     toolbar.appendChild(group);
@@ -2353,10 +2494,12 @@ function setupImageSizing(quill, mi, li, container) {
     group.querySelectorAll('button').forEach(function(b) {
       b.classList.toggle('lesson-img-size-active', b.dataset.imgSize === size);
     });
-    // Trigger save (manually since text-change won't fire for class changes)
+    // Trigger save (manually since text-change won't fire for class changes).
+    // The caller's saveCallback decides which sanitizer to use and where to
+    // persist. We hand it the raw editor HTML; caller sanitizes appropriately.
     var html = quill.root.innerHTML;
     if (html === '<p><br></p>') html = '';
-    updateLessonField(mi, li, 'text_content', sanitizeLessonHtml(html));
+    if (typeof saveCallback === 'function') saveCallback(html);
   });
 
   // Initialize buttons disabled (no image selected yet)

@@ -901,9 +901,17 @@ function showCourseOverview() {
     descRaw = descRaw.replace(/<a(?:\s+(?!href=)[^>]*)?>(.*?)<\/a>/gi, '$1');
     descRaw = descRaw.replace(/<a\s+href=["']?["']?\s*>(.*?)<\/a>/gi, '$1');
     if (typeof DOMPurify !== 'undefined') {
+      // Make sure the class-whitelist hook is installed before sanitize runs.
+      // ensureViewerPurifyLoaded installs it on first DOMPurify load, but if
+      // some other code path loaded DOMPurify first, this idempotent install
+      // ensures the description path is safe too. The hook is the security
+      // boundary for the `class` attribute: without it, any class value would
+      // ride along on <img> and <span> and could be used to leverage existing
+      // stylesheet rules.
+      installLearnPageClassHook();
       var descClean = DOMPurify.sanitize(descRaw, {
-        ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 's', 'a', 'h2', 'h3', 'ul', 'ol', 'li'],
-        ALLOWED_ATTR: ['href', 'target', 'rel'],
+        ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 's', 'a', 'h2', 'h3', 'ul', 'ol', 'li', 'img', 'span'],
+        ALLOWED_ATTR: ['href', 'target', 'rel', 'src', 'alt', 'class'],
         ALLOWED_URI_REGEXP: /^(?:https?:|mailto:|tel:)/i
       });
       // Force external links to open in a new tab with rel=noopener (the
@@ -1257,9 +1265,47 @@ var VIEWER_PURIFY_CONFIG = {
   ADD_ATTR: ['target']
 };
 
+// Idempotent install of the DOMPurify class-whitelist + safe-link + alt-default
+// hook. Both ensureViewerPurifyLoaded (first DOMPurify load via the lesson
+// path) and the course-description sanitize path call this. The flag guards
+// against double-installation: each addHook call registers another listener
+// that runs on every sanitize, so we install at most one.
+var _learnPagePurifyHookInstalled = false;
+function installLearnPageClassHook() {
+  if (_learnPagePurifyHookInstalled || typeof DOMPurify === 'undefined') return;
+  _learnPagePurifyHookInstalled = true;
+  DOMPurify.addHook('afterSanitizeAttributes', function(node) {
+    if (node.hasAttribute && node.hasAttribute('class')) {
+      var classes = (node.getAttribute('class') || '').split(/\s+/).filter(function(c) {
+        return c && ALLOWED_LESSON_CLASSES.has(c);
+      });
+      if (classes.length) {
+        node.setAttribute('class', classes.join(' '));
+      } else {
+        node.removeAttribute('class');
+      }
+    }
+    if (node.tagName === 'A' && node.getAttribute('target') === '_blank') {
+      node.setAttribute('rel', 'noopener noreferrer');
+    }
+    // WCAG: ensure every <img> has an alt attribute. Mirrors the
+    // editor-side hook in course.js. Existing images without alt get
+    // an empty alt (decorative) on first view, regardless of when
+    // they were originally inserted.
+    if (node.tagName === 'IMG' && !node.hasAttribute('alt')) {
+      node.setAttribute('alt', '');
+    }
+  });
+}
+
 var _viewerPurifyLoadPromise = null;
 function ensureViewerPurifyLoaded() {
-  if (typeof DOMPurify !== 'undefined') return Promise.resolve();
+  if (typeof DOMPurify !== 'undefined') {
+    // DOMPurify already loaded by some other path. Still ensure the hook is
+    // installed before resolving so callers can rely on class filtering.
+    installLearnPageClassHook();
+    return Promise.resolve();
+  }
   if (_viewerPurifyLoadPromise) return _viewerPurifyLoadPromise;
   _viewerPurifyLoadPromise = new Promise(function(resolve, reject) {
     var s = document.createElement('script');
@@ -1267,30 +1313,7 @@ function ensureViewerPurifyLoaded() {
     s.integrity = 'sha512-Ll+TuDvrWDNNRnFFIM8dOiw7Go7dsHyxRp4RutiIFW/wm3DgDmCnRZow6AqbXnCbpWu93yM1O34q+4ggzGeXVA==';
     s.crossOrigin = 'anonymous';
     s.onload = function() {
-      // Install the same hook set the editor uses: filter class values to
-      // a whitelist + force rel="noopener noreferrer" on target=_blank links.
-      DOMPurify.addHook('afterSanitizeAttributes', function(node) {
-        if (node.hasAttribute && node.hasAttribute('class')) {
-          var classes = (node.getAttribute('class') || '').split(/\s+/).filter(function(c) {
-            return c && ALLOWED_LESSON_CLASSES.has(c);
-          });
-          if (classes.length) {
-            node.setAttribute('class', classes.join(' '));
-          } else {
-            node.removeAttribute('class');
-          }
-        }
-        if (node.tagName === 'A' && node.getAttribute('target') === '_blank') {
-          node.setAttribute('rel', 'noopener noreferrer');
-        }
-        // WCAG: ensure every <img> has an alt attribute. Mirrors the
-        // editor-side hook in course.js. Existing images without alt get
-        // an empty alt (decorative) on first view, regardless of when
-        // they were originally inserted.
-        if (node.tagName === 'IMG' && !node.hasAttribute('alt')) {
-          node.setAttribute('alt', '');
-        }
-      });
+      installLearnPageClassHook();
       resolve();
     };
     s.onerror = function() {
