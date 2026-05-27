@@ -14,6 +14,35 @@ const SUPABASE_ANON_KEY = 'sb_publishable_PLU28Un_GfsUXeUsK3zB9Q_hvNM7aeG';
 // security model as the courses/learn pages, applied at the SSR boundary.
 const DOMPurify = require('isomorphic-dompurify');
 
+// Class-whitelist hook for the rich-text description. Same defense-in-depth
+// pattern as the client side (course-page.js, booking-page.js, learn-page.js):
+// only the three lesson-img-size-* classes survive sanitization. Anything
+// else gets stripped. Also defaults missing alt attrs on <img> to empty
+// string for WCAG compliance.
+//
+// Module-scope idempotency: Vercel warm invocations reuse this module
+// instance, and DOMPurify.addHook stacks listeners. The _ryxaHookInstalled
+// guard ensures we install at most one hook per Node process lifetime.
+const ALLOWED_DESC_CLASSES = { 'lesson-img-size-small': 1, 'lesson-img-size-medium': 1, 'lesson-img-size-large': 1 };
+if (!DOMPurify._ryxaHookInstalled) {
+  DOMPurify._ryxaHookInstalled = true;
+  DOMPurify.addHook('afterSanitizeAttributes', function(node) {
+    if (node.hasAttribute && node.hasAttribute('class')) {
+      var classes = (node.getAttribute('class') || '').split(/\s+/).filter(function(c) {
+        return c && ALLOWED_DESC_CLASSES[c];
+      });
+      if (classes.length) {
+        node.setAttribute('class', classes.join(' '));
+      } else {
+        node.removeAttribute('class');
+      }
+    }
+    if (node.tagName === 'IMG' && !node.hasAttribute('alt')) {
+      node.setAttribute('alt', '');
+    }
+  });
+}
+
 function esc(s) {
   if (s == null) return '';
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
@@ -34,8 +63,8 @@ function sanitizeDescription(html) {
   cleaned = cleaned.replace(/<a(?:\s+(?!href=)[^>]*)?>(.*?)<\/a>/gi, '$1');
   cleaned = cleaned.replace(/<a\s+href=["']?["']?\s*>(.*?)<\/a>/gi, '$1');
   var safe = DOMPurify.sanitize(cleaned, {
-    ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 's', 'a', 'h2', 'h3', 'ul', 'ol', 'li'],
-    ALLOWED_ATTR: ['href', 'target', 'rel'],
+    ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 's', 'a', 'h2', 'h3', 'ul', 'ol', 'li', 'img', 'span'],
+    ALLOWED_ATTR: ['href', 'target', 'rel', 'src', 'alt', 'class'],
     ALLOWED_URI_REGEXP: /^(?:https?:|mailto:|tel:)/i
   });
   // Force external links to open in a new tab with safe rel. The client-side
@@ -182,6 +211,16 @@ function renderPage(product, creator) {
   .dp-desc strong { color:var(--text); font-weight:600; }
   .dp-desc a { color:var(--accent2); text-decoration:underline; }
   .dp-desc a:hover { color:var(--accent); }
+  /* Images inserted via the dashboard's Quill editor. The S/M/L size class
+     is set in the editor and mirrors the same selectors used by the course
+     landing page (course/index.html), the booking landing page
+     (booking/index.html), and the Hub lesson renderer (learn/index.html).
+     Baseline rules cap any untagged image to 100% so a missing class
+     doesn't blow out the column. */
+  .dp-desc img { max-width:100%; height:auto; display:block; margin:14px 0; border-radius:8px; }
+  .dp-desc img.lesson-img-size-small { max-width:30%; width:30%; }
+  .dp-desc img.lesson-img-size-medium { max-width:60%; width:60%; }
+  .dp-desc img.lesson-img-size-large { max-width:100%; width:100%; }
 
   /* Buy card — matches course page */
   .dp-buy-card { background:var(--surface2); border:1px solid var(--border); border-radius:16px; padding:28px; margin-bottom:24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; }
