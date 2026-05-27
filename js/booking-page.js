@@ -216,9 +216,37 @@ function renderCoaching(coaching, creatorName, isLoggedIn) {
   descRaw = descRaw.replace(/<a\s+href=["']?["']?\s*>(.*?)<\/a>/gi, '$1');
   var descEl = document.getElementById('cp-desc');
   if (typeof DOMPurify !== 'undefined') {
+    // Install a one-time hook that filters class values to a tight whitelist
+    // and ensures every <img> has an alt attribute. The hook is global to
+    // DOMPurify so we mark it via a window flag to keep it idempotent across
+    // re-renders of this page. Only the three image-size classes are kept;
+    // anything else is stripped. Mirrors the editor-side hook in coaching.js
+    // (sanitizeDescriptionHtml path) so creator output and viewer rendering
+    // share the same class-allowlist contract.
+    if (!window._bookingDescPurifyHookInstalled) {
+      window._bookingDescPurifyHookInstalled = true;
+      var ALLOWED_DESC_CLASSES = { 'lesson-img-size-small': 1, 'lesson-img-size-medium': 1, 'lesson-img-size-large': 1 };
+      DOMPurify.addHook('afterSanitizeAttributes', function(node) {
+        if (node.hasAttribute && node.hasAttribute('class')) {
+          var keep = (node.getAttribute('class') || '').split(/\s+/).filter(function(c) {
+            return c && ALLOWED_DESC_CLASSES[c];
+          });
+          if (keep.length) {
+            node.setAttribute('class', keep.join(' '));
+          } else {
+            node.removeAttribute('class');
+          }
+        }
+        // WCAG: every <img> must have an alt attribute. Default missing alts
+        // to empty string (= decorative; screen readers will skip).
+        if (node.tagName === 'IMG' && !node.hasAttribute('alt')) {
+          node.setAttribute('alt', '');
+        }
+      });
+    }
     descEl.innerHTML = DOMPurify.sanitize(descRaw, {
-      ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 's', 'a', 'h2', 'h3', 'ul', 'ol', 'li'],
-      ALLOWED_ATTR: ['href', 'target', 'rel'],
+      ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 's', 'a', 'h2', 'h3', 'ul', 'ol', 'li', 'img', 'span'],
+      ALLOWED_ATTR: ['href', 'target', 'rel', 'src', 'alt', 'class'],
       ALLOWED_URI_REGEXP: /^(?:https?:|mailto:|tel:)/i
     });
     descEl.querySelectorAll('a[href]').forEach(function(a) {

@@ -260,6 +260,10 @@ function closeCoachingEditor() {
 var _coachingDescQuill = null;
 var _coachingDescSyncInProgress = false;
 var COACHING_DESC_MAX_HTML = 3000;
+// Max <img> embeds in a single booking description. Same cap as course
+// descriptions; booking descriptions are short marketing copy, image-heavy
+// pages slow the public landing TTFB which directly affects conversion.
+var MAX_COACHING_DESC_IMAGES = 6;
 
 async function mountCoachingDescEditor() {
   // Always unmount first so the host is guaranteed empty.
@@ -313,17 +317,76 @@ async function mountCoachingDescEditor() {
   }
 
   // Same toolbar as courses/products: emphasis, lists, headings (H2/H3
-  // only), links. No image/align/clean - keeps descriptions consistent.
+  // only), links, and images. The image button routes through the same
+  // compressLessonImage + course-images bucket pipeline used by the
+  // course-description and lesson editors. Default image size is "small";
+  // creator clicks the image to use the S/M/L toolbar. Bucket is shared
+  // across courses, products, and booking descriptions for simplicity.
   var quill = new Quill(mountTarget, {
     theme: 'snow',
     placeholder: 'Describe what the buyer will get. What will you cover? What should they prepare?',
     modules: {
-      toolbar: [
-        [{ 'header': [2, 3, false] }],
-        ['bold', 'italic', 'underline'],
-        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-        ['link']
-      ]
+      toolbar: {
+        container: [
+          [{ 'header': [2, 3, false] }],
+          ['bold', 'italic', 'underline'],
+          [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+          ['link', 'image']
+        ],
+        handlers: {
+          image: function() {
+            var imgCount = (typeof countQuillImages === 'function') ? countQuillImages(quill) : 0;
+            if (imgCount >= MAX_COACHING_DESC_IMAGES) {
+              showModalAlert('Image limit reached', 'You can add up to ' + MAX_COACHING_DESC_IMAGES + ' images per booking description. Remove one before adding another.');
+              return;
+            }
+            var input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = async function() {
+              var file = input.files && input.files[0];
+              if (!file) return;
+              if (!file.type.startsWith('image/')) { showModalAlert('Invalid File', 'Please upload an image file.'); return; }
+              try {
+                var blob = await compressLessonImage(file);
+                if (!blob) throw new Error('Compression failed');
+                var path = currentUser.id + '/' + Date.now() + '_' + Math.random().toString(36).slice(2, 8) + '.webp';
+                var upRes = await sb.storage.from('course-images').upload(path, blob, { contentType: 'image/webp', upsert: false });
+                if (upRes.error) throw upRes.error;
+                var urlData = sb.storage.from('course-images').getPublicUrl(path);
+                var range = quill.getSelection(true);
+                quill.insertEmbed(range.index, 'image', urlData.data.publicUrl, 'user');
+                quill.setSelection(range.index + 1, 0);
+                // Tag the new image with the default size class and empty alt.
+                // The DOMPurify hook backstops the alt on save, but we set it
+                // here so the editor DOM matches the persisted shape immediately.
+                setTimeout(function() {
+                  var imgs = quill.root.querySelectorAll('img');
+                  var lastImg = imgs[imgs.length - 1];
+                  if (lastImg) {
+                    if (!lastImg.classList.contains('lesson-img-size-small') && !lastImg.classList.contains('lesson-img-size-medium') && !lastImg.classList.contains('lesson-img-size-large')) {
+                      lastImg.classList.add('lesson-img-size-small');
+                    }
+                    if (!lastImg.hasAttribute('alt')) lastImg.setAttribute('alt', '');
+                    // Force a sync to textarea so the class/alt persist
+                    // (text-change already fired before we added the class).
+                    var html = sanitizeDescriptionHtml(quill.root.innerHTML);
+                    if (html === '<p><br></p>') html = '';
+                    _coachingDescSyncInProgress = true;
+                    textarea.value = html;
+                    _coachingDescSyncInProgress = false;
+                    updateCoachingDescCounter(html.length);
+                  }
+                }, 50);
+              } catch (e) {
+                console.error('Booking description image upload error:', e);
+                showModalAlert('Upload Failed', 'Could not upload image. Please try again.');
+              }
+            };
+            input.click();
+          }
+        }
+      }
     }
   });
 
@@ -334,14 +397,51 @@ async function mountCoachingDescEditor() {
     window.applyQuillA11yLabels(quill.root);
   }
 
+  // Block <img> embeds from paste/drop. Only the toolbar image button can
+  // add images, which routes through our compress + upload pipeline with
+  // a unique filename per upload. Helper defined in course.js. Without this,
+  // pasted images would either land as fragile external URLs, base64 bloat,
+  // or duplicate references to existing storage objects.
+  if (typeof stripPastedImages === 'function') stripPastedImages(quill);
+
   // Initialize from the textarea content (already set by openCoachingEditor).
   var initialHtml = textarea.value || '';
   if (initialHtml) {
     var cleanInit = sanitizeDescriptionHtml(initialHtml);
     if (cleanInit && cleanInit.trim()) {
-      quill.clipboard.dangerouslyPasteHTML(cleanInit);
+      if (typeof withImagesAllowed === 'function') {
+        withImagesAllowed(quill, function() {
+          quill.clipboard.dangerouslyPasteHTML(cleanInit);
+        });
+      } else {
+        quill.clipboard.dangerouslyPasteHTML(cleanInit);
+      }
     } else {
       quill.setText(initialHtml);
+    }
+  }
+
+  // Re-apply image size classes after the seed paste. Quill 1.x treats <img>
+  // as an Embed blot, and dangerouslyPasteHTML doesn't reliably preserve
+  // custom classes on embeds. We re-parse the saved HTML and apply size
+  // classes back to Quill's rendered DOM so the editor preview matches what
+  // the landing page will show.
+  if (cleanInit && /<img/i.test(cleanInit)) {
+    try {
+      var parser = new DOMParser();
+      var parsedDoc = parser.parseFromString('<div>' + cleanInit + '</div>', 'text/html');
+      var savedImgs = parsedDoc.querySelectorAll('img');
+      var quillImgs = quill.root.querySelectorAll('img');
+      for (var i = 0; i < quillImgs.length && i < savedImgs.length; i++) {
+        var savedCls = savedImgs[i].className || '';
+        var sizeMatch = savedCls.match(/\blesson-img-size-(small|medium|large)\b/);
+        if (sizeMatch) {
+          quillImgs[i].classList.remove('lesson-img-size-small', 'lesson-img-size-medium', 'lesson-img-size-large');
+          quillImgs[i].classList.add('lesson-img-size-' + sizeMatch[1]);
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to re-apply booking description image size classes after seed:', e);
     }
   }
 
@@ -353,9 +453,24 @@ async function mountCoachingDescEditor() {
     if (scrollContainer) scrollContainer.scrollTop = savedContainerScroll;
   });
 
-  // Quill -> textarea sync with char-limit enforcement.
-  quill.on('text-change', function() {
+  // Quill -> textarea sync with char-limit + image-cap enforcement.
+  // Image-cap is gated on source === 'user' so the initial seed paste
+  // (programmatic, source !== 'user') doesn't trip the cap and undo its
+  // own work. Catches paste/drag-and-drop that adds images past the cap.
+  quill.on('text-change', function(delta, oldDelta, source) {
     if (_coachingDescSyncInProgress) return;
+
+    if (source === 'user') {
+      var imgCount = (typeof countQuillImages === 'function') ? countQuillImages(quill) : 0;
+      if (imgCount > MAX_COACHING_DESC_IMAGES) {
+        _coachingDescSyncInProgress = true;
+        try { quill.history.undo(); } catch (e) { /* no history yet */ }
+        _coachingDescSyncInProgress = false;
+        showModalAlert('Image limit reached', 'You can add up to ' + MAX_COACHING_DESC_IMAGES + ' images per booking description.');
+        return;
+      }
+    }
+
     var html = sanitizeDescriptionHtml(quill.root.innerHTML);
     if (html === '<p><br></p>') html = '';
 
@@ -384,12 +499,33 @@ async function mountCoachingDescEditor() {
     var incoming = textarea.value || '';
     if (/<[a-z][^>]*>/i.test(incoming)) {
       quill.setContents([]);
-      quill.clipboard.dangerouslyPasteHTML(sanitizeDescriptionHtml(incoming));
+      if (typeof withImagesAllowed === 'function') {
+        withImagesAllowed(quill, function() {
+          quill.clipboard.dangerouslyPasteHTML(sanitizeDescriptionHtml(incoming));
+        });
+      } else {
+        quill.clipboard.dangerouslyPasteHTML(sanitizeDescriptionHtml(incoming));
+      }
     } else {
       quill.setText(incoming);
     }
     _coachingDescSyncInProgress = false;
   });
+
+  // Wire up S/M/L image sizing. Same toolbar widget as the course-desc and
+  // lesson editors. Save callback runs when the creator clicks S/M/L (Quill's
+  // text-change doesn't fire for class-only attribute changes), syncing the
+  // resized HTML through the sanitizer to the textarea.
+  if (typeof setupImageSizing === 'function') {
+    setupImageSizing(quill, mountTarget, function(rawHtml) {
+      var html = sanitizeDescriptionHtml(rawHtml);
+      if (html === '<p><br></p>') html = '';
+      _coachingDescSyncInProgress = true;
+      textarea.value = html;
+      _coachingDescSyncInProgress = false;
+      updateCoachingDescCounter(html.length);
+    });
+  }
 
   _coachingDescQuill = quill;
   updateCoachingDescCounter((textarea.value || '').length);
