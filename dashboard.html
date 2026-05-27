@@ -4547,6 +4547,18 @@
   .lesson-img-size-toolbar.has-selection button { color:#fff;background:rgba(124,58,237,0.25);border-color:rgba(124,58,237,0.45); }
   .lesson-img-size-toolbar.has-selection button:hover { background:rgba(124,58,237,0.4);border-color:rgba(124,58,237,0.7); }
   .lesson-img-size-toolbar.has-selection button.lesson-img-size-active { background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 0 8px rgba(124,58,237,0.45); }
+  /* Vertical separator between the S/M/L size pickers and the Remove action.
+     Visually groups "pick a size" together and isolates the destructive
+     Remove action so creators don't fat-finger it while resizing. */
+  .lesson-img-toolbar-sep { display:inline-block;width:1px;height:14px;background:rgba(255,255,255,0.18);margin:0 4px;vertical-align:middle; }
+  /* Remove (trash) button. Icon-only, red-tinted, no purple pill so it reads
+     as destructive at a glance. Overrides the generic has-selection rule
+     because the Remove button uses a different color family. */
+  .lesson-img-size-toolbar .lesson-img-remove-btn { padding:0 8px;display:inline-flex;align-items:center;justify-content:center;color:#9ca3af; }
+  .lesson-img-size-toolbar .lesson-img-remove-btn svg { display:block; }
+  .lesson-img-size-toolbar.has-selection .lesson-img-remove-btn { color:#f87171;background:rgba(239,68,68,0.12);border-color:rgba(239,68,68,0.28); }
+  .lesson-img-size-toolbar.has-selection .lesson-img-remove-btn:hover { color:#fca5a5;background:rgba(239,68,68,0.22);border-color:rgba(239,68,68,0.5); }
+  .lesson-img-size-toolbar.has-selection .lesson-img-remove-btn:focus-visible { outline:2px solid #f87171;outline-offset:2px; }
   /* Video URL validation indicator (live feedback as creator pastes a link).
      Three states via modifier classes: empty (hidden), .valid (green w/ platform
      name), .invalid (red w/ helpful message). See detectVideoPlatform() and the
