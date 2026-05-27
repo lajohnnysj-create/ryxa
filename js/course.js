@@ -1989,7 +1989,9 @@ async function mountCourseDescEditor() {
     // If sanitization stripped everything (e.g., plain text saved from the
     // old textarea era), fall back to inserting it as a single paragraph.
     if (cleanInit && cleanInit.trim()) {
-      quill.clipboard.dangerouslyPasteHTML(cleanInit);
+      withImagesAllowed(quill, function() {
+        quill.clipboard.dangerouslyPasteHTML(cleanInit);
+      });
     } else {
       quill.setText(initialHtml);
     }
@@ -2098,7 +2100,9 @@ async function mountCourseDescEditor() {
     // AI Cleanup output (plain prose) lands cleanly.
     if (/<[a-z][^>]*>/i.test(incoming)) {
       quill.setContents([]);
-      quill.clipboard.dangerouslyPasteHTML(sanitizeDescriptionHtml(incoming));
+      withImagesAllowed(quill, function() {
+        quill.clipboard.dangerouslyPasteHTML(sanitizeDescriptionHtml(incoming));
+      });
     } else {
       quill.setText(incoming);
     }
@@ -2265,7 +2269,9 @@ function mountLessonEditor(mi, li) {
     initial = '<p>' + initial.replace(/\n/g, '<br>') + '</p>';
   }
   var sanitizedInitial = sanitizeLessonHtml(initial);
-  quill.clipboard.dangerouslyPasteHTML(0, sanitizedInitial, 'silent');
+  withImagesAllowed(quill, function() {
+    quill.clipboard.dangerouslyPasteHTML(0, sanitizedInitial, 'silent');
+  });
 
   // Belt-and-suspenders: re-apply image size classes after the seed. Quill 1.x
   // treats images as Embed blots which don't preserve custom classes through
@@ -2442,19 +2448,36 @@ window.applyQuillA11yLabels = applyQuillA11yLabels;
 //      eat the text_content character budget and the DB row size.
 //   3. No fragile external image URLs that break when the source host
 //      changes; every image is on our CDN with WebP compression applied.
-// IMPORTANT: matchers only fire on user paste/drop, not on
-// quill.clipboard.dangerouslyPasteHTML (which is what we use to seed saved
-// content from the DB). So saved images render correctly on editor open.
+// IMPORTANT: matchers run on every paste, INCLUDING quill.clipboard.dangerously-
+// PasteHTML (despite the misleading "dangerously" prefix referring to input
+// escaping, not matcher bypass). We use the _ryxaAllowImages flag to let our
+// own programmatic seed pastes (loading saved content from the DB) keep their
+// images. User-initiated paste/drop runs with the flag false and gets stripped.
 function stripPastedImages(quill) {
   if (!quill || !quill.clipboard || typeof quill.clipboard.addMatcher !== 'function') return;
   quill.clipboard.addMatcher('img', function(node, delta) {
-    // Return an empty Delta to drop the image entirely. Returning the delta
-    // arg with ops cleared works too, but creating a new empty Delta is the
-    // documented Quill 1.x pattern and avoids depending on the shape of the
-    // incoming delta object.
+    // If our own programmatic paste set this flag, keep the image: return the
+    // delta unchanged. Otherwise drop the image with an empty Delta.
+    if (quill._ryxaAllowImages) return delta;
     var Delta = Quill.import('delta');
     return new Delta();
   });
+}
+
+// Run a function (typically a quill.clipboard.dangerouslyPasteHTML call) with
+// the image-allow flag temporarily set, so our own programmatic seed pastes
+// of saved content keep their <img> embeds intact. try/finally guarantees the
+// flag goes back off even if the inner call throws, so user paste/drop after
+// a failed seed still gets images stripped.
+function withImagesAllowed(quill, fn) {
+  if (!quill) { fn(); return; }
+  var prev = quill._ryxaAllowImages;
+  quill._ryxaAllowImages = true;
+  try {
+    fn();
+  } finally {
+    quill._ryxaAllowImages = prev || false;
+  }
 }
 
 // Shared S/M/L image-sizing toolbar setup. Originally lesson-only, now reused
