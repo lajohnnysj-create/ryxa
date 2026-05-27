@@ -341,6 +341,12 @@ function decorateFreeCard() {
   if (card) {
     var priorNote = card.querySelector('.plan-free-note');
     if (priorNote) priorNote.remove();
+    // Also clear any prior "current plan" badge + class. This function may
+    // re-run on cycle toggle or bfcache restore, and we don't want to stack
+    // duplicate badges or leave a stale badge if the user's tier changed.
+    var priorFreeBadge = card.querySelector('.plan-current-badge');
+    if (priorFreeBadge) priorFreeBadge.remove();
+    card.classList.remove('is-current-plan');
   }
 
   var isPaidSubscriber = (currentTier === 'monthly' || currentTier === 'max');
@@ -361,8 +367,21 @@ function decorateFreeCard() {
         card.appendChild(note);
       }
     }
+  } else if (currentUser) {
+    // Logged-in user already on the Free tier. Mirror the Pro/Max "Current
+    // plan" treatment so the page reads consistently: disabled button +
+    // "Your plan" badge on the card.
+    btn.textContent = 'Current plan';
+    btn.disabled = true;
+    if (card) {
+      card.classList.add('is-current-plan');
+      var freeBadge = document.createElement('div');
+      freeBadge.className = 'plan-current-badge';
+      freeBadge.textContent = 'Your plan';
+      card.insertBefore(freeBadge, card.firstChild);
+    }
   } else {
-    // Free tier or logged-out: default CTA, enabled, no note.
+    // Logged-out: default CTA, enabled, no note.
     btn.textContent = btn._defaultLabel;
     btn.disabled = false;
   }
