@@ -4553,7 +4553,7 @@
   .course-s-vurl-status.valid { display:inline-flex;background:rgba(74,222,128,0.1);color:#4ade80;border:1px solid rgba(74,222,128,0.3); }
   .course-s-vurl-status.invalid { display:inline-flex;background:rgba(239,68,68,0.1);color:#f87171;border:1px solid rgba(239,68,68,0.3); }
 
-  /* Lesson files panel (downloadable attachments per lesson, max 5, 50 MB each).
+  /* Lesson files panel (downloadable attachments per lesson, up to 1 GB each, no count cap; account 10 GB total shared with Digital Products).
      Sits between the lesson content (video/text) and the move/info/done row.
      Visually distinct but quiet, so it doesn't compete with the primary content. */
   .course-s-files-panel { margin-top:14px;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px; }
@@ -4574,7 +4574,7 @@
   .course-s-file-add:hover { border-color:var(--accent);color:var(--accent); }
   .course-s-file-limit { font-size:11px;color:var(--muted);font-style:italic; }
 
-  /* Shared 500 MB storage indicator (Digital Products + course downloads) */
+  /* Shared 10 GB storage indicator (Digital Products + course downloads) */
   .course-s-storage { margin:8px 0 16px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px; }
   .course-s-storage-bar { height:6px;background:var(--bg);border-radius:3px;overflow:hidden;margin-bottom:8px; }
   .course-s-storage-fill { height:100%;background:#22c55e;width:0;transition:width 0.3s,background 0.3s; }
@@ -7064,12 +7064,12 @@
               New Course
             </button>
           </div>
-          <!-- Storage indicator for course lesson files. The 500 MB account
+          <!-- Storage indicator for course lesson files. The 10 GB account
                quota is shared with Digital Products. Course videos go to
                Bunny Stream separately and don't count against this. -->
           <div class="course-s-storage">
             <div class="course-s-storage-bar"><div id="course-storage-fill" class="course-s-storage-fill"></div></div>
-            <div id="course-storage-text" class="course-s-storage-text">0 MB / 500 MB for downloadable files (shared with Digital Products)</div>
+            <div id="course-storage-text" class="course-s-storage-text">0 MB / 10 GB for downloadable files (shared with Digital Products)</div>
             <div class="course-s-storage-hint">Videos and images don't count toward this limit.</div>
           </div>
           <div id="courses-empty" class="course-s-e2a99a">
@@ -9498,7 +9498,7 @@
           <div id="products-storage-bar" class="prod-s-d66fac">
             <div class="prod-s-5a9738">
               <div class="prod-s-4f30fa">Storage Used</div>
-              <div id="products-storage-text" class="prod-s-f4344e">0 MB / 500 MB</div>
+              <div id="products-storage-text" class="prod-s-f4344e">0 MB / 10 GB for downloadable files (shared with course downloads)</div>
             </div>
             <div class="prod-s-8bd6a7">
               <div id="products-storage-fill" class="prod-s-fa07f6"></div>
@@ -9604,16 +9604,16 @@
             <div class="prod-s-389393">
               <div class="prod-s-1eba81">
                 <label class="prod-s-4f30fa">Files <span id="products-files-count" class="prod-s-27bd4f">(0)</span></label>
-                <div id="products-files-size" class="bio-s-5f3468">0 MB used of this product's 300 MB</div>
+                <div id="products-files-size" class="bio-s-5f3468">0 MB in this product</div>
               </div>
               <div id="products-files-list" class="prod-s-af3fee"></div>
               <button data-prod-action="click-add-file" id="products-add-file-btn" class="prod-s-b109a7">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                Upload file (max 50 MB)
+                Upload file (max 1 GB)
               </button>
               <input type="file" id="products-file-input" aria-label="Upload product files" multiple class="bio-s-c8be1c" data-prod-action="upload-files" data-prod-event="change">
               <div class="prod-s-4cd556">
-                Documents, designs, presets, audio, fonts, and more. <a href="javascript:void(0)" data-prod-action="show-compatible-modal" class="prod-s-3e65b7">See compatible files</a>. Up to 50 MB per file. No executables.
+                Documents, designs, presets, audio, fonts, and more. <a href="javascript:void(0)" data-prod-action="show-compatible-modal" class="prod-s-3e65b7">See compatible files</a>. Up to 1 GB per file. No executables.
               </div>
             </div>
 
