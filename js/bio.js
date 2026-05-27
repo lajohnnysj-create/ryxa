@@ -2637,7 +2637,10 @@ function extractYouTubeIdDash(url) {
 
 function setAvatarDisplay(mode) {
   if (mode === 'hero' && !isPro()) {
-    showBioStatus('error', 'Hero display is a Pro feature.');
+    // Free user clicked Hero. Open the upsell modal (with sample image)
+    // instead of toasting an error. The Default/Hero buttons are visible
+    // for everyone now; the gate is here at click-time.
+    showHeroUpsell();
     return;
   }
   bioState.avatar_display = mode;
@@ -2645,14 +2648,30 @@ function setAvatarDisplay(mode) {
   schedulePreviewUpdate();
 }
 
+// Hero/themes upsell. Shown when a free user clicks the Hero avatar
+// display button. Markup lives in dashboard.html (#hero-upsell-modal).
+function showHeroUpsell() {
+  const modal = document.getElementById('hero-upsell-modal');
+  if (modal) modal.style.display = 'flex';
+}
+function closeHeroUpsell() {
+  const modal = document.getElementById('hero-upsell-modal');
+  if (modal) modal.style.display = 'none';
+}
+
 function updateAvatarDisplayUI() {
   const wrap = document.getElementById('bio-avatar-display-wrap');
   const btnDefault = document.getElementById('bio-avatar-mode-default');
   const btnHero = document.getElementById('bio-avatar-mode-hero');
   if (!wrap) return;
-  // Only show if Pro and has an avatar
-  wrap.style.display = (isPro() && bioState.avatar_url) ? 'block' : 'none';
+  // Display style controls are visible to ALL users with an avatar.
+  // The Hero button is shown but, for free users, clicking it opens the
+  // upsell modal instead of switching modes. See setAvatarDisplay().
+  wrap.style.display = bioState.avatar_url ? 'block' : 'none';
   if (btnDefault && btnHero) {
+    // Visual selected state mirrors actual saved state, which can only be
+    // 'hero' if the user is (or was) Pro. Free users will always show
+    // Default highlighted regardless of clicks.
     const isHero = bioState.avatar_display === 'hero';
     btnDefault.style.background = isHero ? 'transparent' : 'var(--accent)';
     btnDefault.style.color = isHero ? 'var(--muted)' : '#fff';
@@ -3543,6 +3562,8 @@ bioRegisterAction('toggle-section', (e, el) => toggleBioSection(el.dataset.bioSe
 bioRegisterAction('open-cropper-avatar', (e, el) => openCropper(el, 'avatar'));
 bioRegisterAction('remove-avatar', () => removeAvatar());
 bioRegisterAction('set-avatar-display', (e, el) => setAvatarDisplay(el.dataset.bioMode));
+bioRegisterAction('close-hero-upsell', () => closeHeroUpsell());
+bioRegisterAction('close-hero-upsell-if-backdrop', (e) => { if (e.target.id === 'hero-upsell-modal') closeHeroUpsell(); });
 bioRegisterAction('field-change', () => onBioFieldChange());
 bioRegisterAction('ai-bio-assist', () => aiBioAssist('bio-bio', 200));
 bioRegisterAction('custom-bg-selected', (e, el) => onBioCustomBgSelected(el));
