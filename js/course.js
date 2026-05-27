@@ -1946,7 +1946,7 @@ async function mountCourseDescEditor() {
                   var lastImg = imgs[imgs.length - 1];
                   if (lastImg) {
                     if (!lastImg.classList.contains('lesson-img-size-small') && !lastImg.classList.contains('lesson-img-size-medium') && !lastImg.classList.contains('lesson-img-size-large')) {
-                      lastImg.classList.add('lesson-img-size-small');
+                      lastImg.classList.add('lesson-img-size-large');
                     }
                     if (!lastImg.hasAttribute('alt')) lastImg.setAttribute('alt', '');
                     // Force a sync to textarea so the class/alt persist
@@ -3485,7 +3485,6 @@ courseRegisterAction('toggle-publish', () => toggleCoursePublish());
 courseRegisterAction('toggle-marketplace', () => toggleCourseMarketplace());
 courseRegisterAction('toggle-section', (e, el) => toggleCourseSection(el.dataset.courseSection));
 courseRegisterAction('copy-url', () => copyCourseUrl());
-courseRegisterAction('ai-cleanup', (e, el) => aiCleanUp(el.dataset.courseTarget));
 courseRegisterAction('remove-cover', () => removeCourseCover());
 courseRegisterAction('trigger-cover-upload', () => document.getElementById('course-cover-file').click());
 courseRegisterAction('cover-selected', (e, el) => onCourseCoverSelect(el.files[0]));
