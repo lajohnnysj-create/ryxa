@@ -30,9 +30,11 @@
   // Allowed file extensions (lowercase)
   // ---------------------------------------------------------------------------
   // Same allowlist for both digital products and course lesson files.
-  // Video formats (mp4/mov/webm) are intentionally NOT allowed - video
-  // belongs in Course Builder via Bunny Stream, not in the downloadable-
-  // files bucket.
+  // Video formats (mp4/mov/webm/m4v/avi/mkv) are allowed as downloadable
+  // files (e.g., raw footage sold as a product, behind-the-scenes cuts
+  // attached to a lesson). For STREAMING video inside the course player,
+  // Course Builder uses Bunny Stream via a separate upload pipeline; the
+  // R2 path here is for files buyers download to their own device.
   var ALLOWED_EXTS = [
     'pdf','epub','mobi','txt','md','docx','pages',
     'csv','xlsx','numbers',
@@ -43,6 +45,7 @@
     'atn','abr','asl','tpl',
     'drp',
     'mp3','wav','aiff','m4a','flac',
+    'mp4','mov','webm','m4v','avi','mkv',
     'otf','ttf','woff','woff2',
     'brush','brushset','procreate',
     'blend','obj','fbx','stl','glb','gltf',
@@ -84,7 +87,12 @@
     procreate:['504B0304'],
     blend:['424C454E444552'],
     glb:  ['676C5446']
-    // obj, fbx, stl, gltf, drp are text or proprietary binary; rely on extension only
+    // obj, fbx, stl, gltf, drp are text or proprietary binary; rely on extension only.
+    // Video formats (mp4, mov, webm, m4v, avi, mkv) also rely on extension only:
+    // ISO BMFF (mp4/mov/m4v) and EBML (webm/mkv) containers have variable-position
+    // signatures or shared first-4-bytes across formats, making a startsWith match
+    // unreliable. Server-side MIME check at api/r2-upload-url.js (video/ prefix)
+    // is the security backstop, and R2 doesn't execute uploaded files.
   };
 
   // ---------------------------------------------------------------------------
@@ -121,7 +129,7 @@
     var name = file.name.toLowerCase();
     var ext = name.split('.').pop();
     if (ALLOWED_EXTS.indexOf(ext) === -1) {
-      return { ok: false, error: 'File type ".' + ext + '" not allowed. Only ebooks, templates, presets, design files, and similar downloads are accepted.' };
+      return { ok: false, error: 'File type ".' + ext + '" not allowed. Only ebooks, templates, presets, design files, audio, video, and similar downloads are accepted.' };
     }
     var sigList = MAGIC_BYTES[ext];
     if (sigList) {
