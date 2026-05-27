@@ -10593,13 +10593,73 @@
 <!-- so the user SEES what Hero looks like before they decide.    -->
 <!-- Triggered by showHeroUpsell() in js/bio.js                   -->
 <!-- ═══════════════════════════════════════════ -->
+<style>
+  /* Animated glow behind the modal's hero photo. A blurred radial gradient
+     pulses opacity over 4s (subtle, not distracting). Sits BEHIND the photo
+     via z-index, extends past the photo edges via negative inset for the
+     halo effect. GPU-accelerated, will-change pinned to opacity only so it
+     doesn't promote the whole subtree to a layer. */
+  @keyframes heroUpsellGlow {
+    0%, 100% { opacity: 0.55; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.06); }
+  }
+  .hero-upsell-photo-wrap {
+    position: relative;
+    background: #1a1a2e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 24px 12px;
+    overflow: hidden;
+    border-radius: 16px 16px 0 0;
+  }
+  .hero-upsell-glow {
+    position: absolute;
+    inset: -40px;
+    background: radial-gradient(ellipse at center, rgba(232,121,249,0.55) 0%, rgba(168,139,250,0.4) 35%, rgba(124,58,237,0.15) 60%, transparent 75%);
+    filter: blur(40px);
+    z-index: 0;
+    pointer-events: none;
+    will-change: opacity, transform;
+    animation: heroUpsellGlow 4s ease-in-out infinite;
+  }
+  .hero-upsell-photo {
+    position: relative;
+    z-index: 1;
+    max-width: 100%;
+    max-height: 340px;
+    width: auto;
+    height: auto;
+    display: block;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.06);
+  }
+  .hero-upsell-pro-badge {
+    position: absolute;
+    top: 18px;
+    left: 18px;
+    z-index: 2;
+    padding: 5px 11px;
+    background: linear-gradient(135deg, #a78bfa, #e879f9);
+    color: #fff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    border-radius: 6px;
+    box-shadow: 0 4px 16px rgba(232,121,249,0.4);
+  }
+</style>
 <div id="hero-upsell-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.8);align-items:center;justify-content:center;pointer-events:all;" data-bio-action="close-hero-upsell-if-backdrop">
   <div style="background:#0f0f1a;border:1px solid rgba(124,58,237,0.35);border-radius:16px;padding:0;position:relative;width:100%;max-width:420px;pointer-events:all;margin:20px;max-height:90vh;overflow-y:auto;">
-    <button data-bio-action="close-hero-upsell" aria-label="Close" style="position:absolute;top:14px;right:14px;background:rgba(0,0,0,0.45);border:none;color:#fff;cursor:pointer;padding:6px;display:flex;align-items:center;justify-content:center;border-radius:6px;z-index:2;">
+    <button data-bio-action="close-hero-upsell" aria-label="Close" style="position:absolute;top:14px;right:14px;background:rgba(0,0,0,0.45);border:none;color:#fff;cursor:pointer;padding:6px;display:flex;align-items:center;justify-content:center;border-radius:6px;z-index:3;">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
     </button>
-    <div style="background:#1a1a2e;display:flex;align-items:center;justify-content:center;padding:24px 24px 0;">
-      <img src="/phonelinkinbio.jpg" alt="Sample Hero profile picture style in Link in Bio" style="max-width:100%;max-height:340px;width:auto;height:auto;display:block;border-radius:12px 12px 0 0;">
+    <div class="hero-upsell-photo-wrap">
+      <div class="hero-upsell-glow" aria-hidden="true"></div>
+      <span class="hero-upsell-pro-badge" aria-hidden="true">Pro</span>
+      <img src="/phonelinkinbio.jpg" alt="Sample Hero profile picture style in Link in Bio" class="hero-upsell-photo">
     </div>
     <div style="padding:22px 28px 26px;">
       <h3 style="font-family:Syne,sans-serif;font-size:18px;font-weight:700;color:var(--text);margin:0 0 8px;">Unlock Hero profile picture and custom themes with Pro!</h3>
