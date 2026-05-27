@@ -77,6 +77,15 @@
   .coaching-desc strong { color: var(--text); font-weight: 600; }
   .coaching-desc a { color: var(--accent2); text-decoration: underline; }
   .coaching-desc a:hover { color: var(--accent); }
+  /* Images inserted via the dashboard's Quill editor. The S/M/L size class
+     is set in the editor and mirrors the same selectors used by the course
+     landing page (course/index.html) and the Hub lesson renderer
+     (learn/index.html). Baseline rules cap any untagged image to 100% so
+     a missing class doesn't blow out the column. */
+  .coaching-desc img { max-width: 100%; height: auto; display: block; margin: 14px 0; border-radius: 8px; }
+  .coaching-desc img.lesson-img-size-small { max-width: 30%; width: 30%; }
+  .coaching-desc img.lesson-img-size-medium { max-width: 60%; width: 60%; }
+  .coaching-desc img.lesson-img-size-large { max-width: 100%; width: 100%; }
 
   .coaching-buy-btn { width: 100%; padding: 16px; background: var(--accent); color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer; box-shadow: 0 0 30px var(--accent-glow); transition: all 0.15s; }
   .coaching-buy-btn:hover { transform: translateY(-1px); box-shadow: 0 0 40px var(--accent-glow); }
