@@ -464,7 +464,7 @@ async function mountProductDescEditor() {
                   var lastImg = imgs[imgs.length - 1];
                   if (lastImg) {
                     if (!lastImg.classList.contains('lesson-img-size-small') && !lastImg.classList.contains('lesson-img-size-medium') && !lastImg.classList.contains('lesson-img-size-large')) {
-                      lastImg.classList.add('lesson-img-size-small');
+                      lastImg.classList.add('lesson-img-size-large');
                     }
                     if (!lastImg.hasAttribute('alt')) lastImg.setAttribute('alt', '');
                     // Force a sync to textarea so the class/alt persist
