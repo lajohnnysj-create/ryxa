@@ -81,6 +81,14 @@
   .course-desc strong { color: var(--text); font-weight: 600; }
   .course-desc a { color: var(--accent2); text-decoration: underline; }
   .course-desc a:hover { color: var(--accent); }
+  /* Images inserted via the dashboard's Quill editor. The S/M/L size class
+     is set in the editor and mirrors the same selectors used by the lesson
+     renderer (learn/index.html). Baseline rules cap any untagged image to
+     100% so a missing class doesn't blow out the column. */
+  .course-desc img { max-width: 100%; height: auto; display: block; margin: 14px 0; border-radius: 8px; }
+  .course-desc img.lesson-img-size-small { max-width: 30%; width: 30%; }
+  .course-desc img.lesson-img-size-medium { max-width: 60%; width: 60%; }
+  .course-desc img.lesson-img-size-large { max-width: 100%; width: 100%; }
 
   /* Buy section */
   .course-buy-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 16px; padding: 28px; margin-bottom: 40px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
