@@ -3,7 +3,7 @@
 // Both Digital Products (js/products.js) and Course lesson files (js/course.js)
 // upload user files to the same Cloudflare R2 bucket (configured via
 // R2_BUCKET_NAME in Vercel env, currently 'ryxa-digital-products') via the
-// /api/r2-upload-url presigned-URL flow, with the same 500MB-per-account
+// /api/r2-upload-url presigned-URL flow, with the same 10GB-per-account
 // shared cap. They both need the same validation: file extension allowlist,
 // magic-byte content check, ZIP-bomb inspection, byte formatting. This
 // module is the single source of truth so the two tools never drift.
