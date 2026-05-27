@@ -2269,6 +2269,7 @@ learnRegisterAction('open-marketplace-from-menu', function() { openMarketplace()
 learnRegisterAction('signout', function() { signOut(); });
 
 // Marketplace
+learnRegisterAction('open-marketplace', function() { openMarketplace(); });
 learnRegisterAction('close-marketplace', function() { closeMarketplace(); });
 
 // Course viewer
