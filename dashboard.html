@@ -4547,14 +4547,17 @@
   .lesson-img-size-toolbar.has-selection button { color:#fff;background:rgba(124,58,237,0.25);border-color:rgba(124,58,237,0.45); }
   .lesson-img-size-toolbar.has-selection button:hover { background:rgba(124,58,237,0.4);border-color:rgba(124,58,237,0.7); }
   .lesson-img-size-toolbar.has-selection button.lesson-img-size-active { background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 0 8px rgba(124,58,237,0.45); }
-  /* Vertical separator between the S/M/L size pickers and the Remove action.
-     Visually groups "pick a size" together and isolates the destructive
-     Remove action so creators don't fat-finger it while resizing. */
-  .lesson-img-toolbar-sep { display:inline-block;width:1px;height:14px;background:rgba(255,255,255,0.18);margin:0 4px;vertical-align:middle; }
-  /* Remove (trash) button. Icon-only, red-tinted, no purple pill so it reads
-     as destructive at a glance. Overrides the generic has-selection rule
-     because the Remove button uses a different color family. */
-  .lesson-img-size-toolbar .lesson-img-remove-btn { padding:0 8px;display:inline-flex;align-items:center;justify-content:center;color:#9ca3af; }
+  /* All buttons in the group sit on the same baseline. Without
+     vertical-align:middle the Remove button (which contains an SVG instead
+     of text) renders slightly offset from the text-bearing S/M/L buttons. */
+  .lesson-img-size-toolbar button { vertical-align:middle; }
+  /* Remove (trash) button. Same padding as S/M/L so widths feel consistent.
+     inline-flex centers the SVG inside the 24px-tall button; align-items
+     handles the vertical centering, justify-content the horizontal.
+     Red-tinted (not purple) so it reads as destructive at a glance.
+     Specificity (0,3,0) on the has-selection rule beats the generic
+     (0,2,1) purple-pill rule, so Remove stays red when active. */
+  .lesson-img-size-toolbar .lesson-img-remove-btn { padding:0 10px;display:inline-flex;align-items:center;justify-content:center;color:#9ca3af; }
   .lesson-img-size-toolbar .lesson-img-remove-btn svg { display:block; }
   .lesson-img-size-toolbar.has-selection .lesson-img-remove-btn { color:#f87171;background:rgba(239,68,68,0.12);border-color:rgba(239,68,68,0.28); }
   .lesson-img-size-toolbar.has-selection .lesson-img-remove-btn:hover { color:#fca5a5;background:rgba(239,68,68,0.22);border-color:rgba(239,68,68,0.5); }
