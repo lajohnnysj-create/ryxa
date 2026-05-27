@@ -41,9 +41,7 @@
 
   .hero { position: relative; padding: 80px 32px 60px; text-align: center; max-width: 1200px; margin: 0 auto; }
   .hero-content { position: relative; z-index: 1; max-width: 880px; margin: 0 auto; }
-  .hero-tier-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; background: linear-gradient(135deg,rgba(37,99,235,0.15),rgba(96,165,250,0.15)); border: 1px solid rgba(37,99,235,0.35); border-radius: 999px; font-size: 12px; color: var(--accent2); font-weight: 600; margin-bottom: 24px; letter-spacing: 0.05em; text-transform: uppercase; }
-  .hero-tier-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--accent2); box-shadow: 0 0 8px var(--accent2); }
-  .hero h1 { font-family: "Syne", sans-serif; font-size: clamp(36px, 6vw, 64px); font-weight: 800; line-height: 1.1; letter-spacing: -1.5px; margin-bottom: 20px; color: var(--text); }
+  .hero h1 { font-family: "Plus Jakarta Sans", sans-serif; font-size: clamp(36px, 6vw, 64px); font-weight: 800; line-height: 1.05; letter-spacing: -1.5px; margin-bottom: 20px; color: var(--text); }
   .gradient-text { background: linear-gradient(135deg, var(--accent), var(--accent2), var(--accent3)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
   .hero-tagline { font-size: 18px; color: var(--muted2); line-height: 1.6; margin-bottom: 32px; max-width: 640px; margin-left: auto; margin-right: auto; }
   .hero-cta-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
@@ -61,51 +59,54 @@
   .app-dot.green { background: #28c840; }
   .app-url-bar { flex: 1; max-width: 480px; margin: 0 auto; background: rgba(255,255,255,0.04); border-radius: 6px; padding: 5px 12px; font-size: 12px; color: var(--muted); text-align: center; }
   .app-body { padding: 0; }
-  .mock-app { display: grid; grid-template-columns: 200px 1fr; min-height: 540px; }
-  .mock-sidebar { background: rgba(11,15,20,0.5); border-right: 1px solid var(--border); padding: 16px 12px; }
-  .mock-sidebar-logo { display: flex; align-items: center; gap: 10px; padding: 4px 8px 16px; }
-  .mock-sidebar-logo-img { width: 26px; height: 26px; border-radius: 7px; background: linear-gradient(135deg, var(--accent), var(--accent2)); }
-  .mock-sidebar-logo-text { font-family: "Syne", sans-serif; font-weight: 800; font-size: 17px; letter-spacing: -0.5px; }
-  .mock-nav-item { display: flex; align-items: center; gap: 9px; padding: 7px 10px; font-size: 12px; color: var(--muted); border-radius: 6px; margin-bottom: 2px; cursor: default; position: relative; }
-  .mock-nav-item svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
-  .mock-nav-item.active { background: rgba(37,99,235,0.12); color: var(--accent2); border: 1px solid rgba(37,99,235,0.25); }
-  .mock-nav-pill { font-size: 8px; padding: 2px 5px; border-radius: 3px; font-weight: 700; letter-spacing: 0.04em; margin-left: auto; }
-  .mock-nav-pill.pro { background: rgba(96,165,250,0.18); color: var(--accent2); }
-  .mock-nav-pill.max { background: linear-gradient(135deg, var(--accent), var(--accent3)); color: #061325; }
+  .mock-app { min-height: 480px; }
 
-  .mock-main { padding: 20px 22px; overflow: hidden; }
-  .mock-main-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
-  .mock-main-title { font-family: "Syne", sans-serif; font-size: 19px; font-weight: 700; color: var(--text); margin-bottom: 4px; letter-spacing: -0.3px; }
-  .mock-main-sub { font-size: 12px; color: var(--muted); }
-  .mock-cta-btn { background: var(--accent); color: #fff; border: none; padding: 7px 13px; border-radius: 6px; font-size: 12px; font-weight: 600; font-family: inherit; cursor: default; }
+  .mock-main { padding: 20px 24px; overflow: hidden; }
+  .mock-main-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; gap: 16px; }
+  .mock-main-title { font-family: "Syne", sans-serif; font-size: 18px; font-weight: 800; color: var(--text); letter-spacing: -0.3px; }
+  .mock-main-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .mock-cta-btn { padding: 7px 14px; background: var(--accent); color: #fff; border-radius: 7px; font-size: 11px; font-weight: 500; border: none; font-family: inherit; cursor: default; }
 
-  .mock-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 18px; }
-  .mock-stat { background: rgba(31,36,44,0.7); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
-  .mock-stat-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
-  .mock-stat-value { font-family: "Syne", sans-serif; font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 2px; letter-spacing: -0.3px; }
+  /* Stats row */
+  .mock-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; }
+  .mock-stat { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
+  .mock-stat-label { font-size: 8px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 4px; }
+  .mock-stat-value { font-family: "Syne", sans-serif; font-size: 16px; font-weight: 800; color: var(--text); }
   .mock-stat-value.amber { color: #fbbf24; }
   .mock-stat-value.green { color: #4ade80; }
-  .mock-stat-sub { font-size: 10px; color: var(--muted); }
+  .mock-stat-sub { font-size: 8px; color: var(--muted); margin-top: 2px; }
 
-  .mock-kanban { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-  .kanban-col { background: rgba(11,15,20,0.5); border: 1px solid var(--border); border-radius: 8px; padding: 8px; min-height: 200px; }
-  .kanban-col-header { display: flex; align-items: center; justify-content: space-between; padding: 4px 6px 8px; margin-bottom: 6px; border-bottom: 1px solid var(--border); }
-  .kanban-col-title { font-size: 10px; font-weight: 600; color: var(--muted2); text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 6px; }
-  .kanban-col-dot { width: 6px; height: 6px; border-radius: 50%; }
-  .kanban-col-dot.draft { background: #6b7280; }
-  .kanban-col-dot.pending { background: #fbbf24; }
-  .kanban-col-dot.active { background: var(--accent2); }
-  .kanban-col-dot.completed { background: #4ade80; }
-  .kanban-col-count { font-size: 10px; color: var(--muted); background: rgba(255,255,255,0.05); padding: 1px 6px; border-radius: 4px; }
-  .kanban-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 8px 9px; margin-bottom: 6px; cursor: default; }
-  .kanban-card-brand { font-size: 10px; color: var(--muted); margin-bottom: 3px; }
-  .kanban-card-title { font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 5px; line-height: 1.3; }
-  .kanban-card-row { display: flex; align-items: center; justify-content: space-between; }
-  .kanban-card-amount { font-size: 11px; font-weight: 700; color: var(--text); font-family: "Syne", sans-serif; }
-  .kanban-card-pay { font-size: 9px; padding: 2px 6px; border-radius: 3px; font-weight: 600; }
-  .kanban-card-pay.paid { background: rgba(74,222,128,0.15); color: #4ade80; }
-  .kanban-card-pay.waiting { background: rgba(251,191,36,0.15); color: #fbbf24; }
-  .kanban-card-pay.unsent { background: rgba(255,255,255,0.05); color: var(--muted); }
+  /* Charts row */
+  .mock-charts { display: grid; grid-template-columns: 1.4fr 1fr; gap: 8px; margin-bottom: 14px; }
+  .mock-chart-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
+  .mock-chart-title { font-size: 9px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 12px; font-weight: 600; }
+  .mock-bars { display: flex; align-items: flex-end; gap: 6px; height: 80px; margin-bottom: 6px; }
+  .mock-bar-wrap { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; height: 100%; }
+  .mock-bar { width: 100%; background: linear-gradient(180deg, var(--accent2) 0%, var(--accent) 100%); border-radius: 3px 3px 0 0; }
+  .mock-bar-labels { display: flex; gap: 6px; }
+  .mock-bar-label { flex: 1; font-size: 8px; text-align: center; color: var(--muted); }
+  .mock-brand-row { margin-bottom: 8px; }
+  .mock-brand-row:last-child { margin-bottom: 0; }
+  .mock-brand-info { display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 3px; }
+  .mock-brand-name { color: var(--text); }
+  .mock-brand-amount { color: var(--text); font-weight: 600; }
+  .mock-brand-bar { height: 3px; background: var(--surface); border-radius: 2px; overflow: hidden; }
+  .mock-brand-bar-fill { height: 100%; border-radius: 2px; }
+
+  /* Deals table */
+  .mock-table { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .mock-table-row { display: grid; grid-template-columns: 2.2fr 1.5fr 1fr 90px 80px; gap: 8px; padding: 10px 14px; align-items: center; font-size: 10px; border-bottom: 1px solid var(--border); }
+  .mock-table-row:last-child { border-bottom: none; }
+  .mock-table-row.header { background: rgba(255,255,255,0.02); font-size: 9px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 600; padding: 8px 14px; }
+  .mock-deal-title { color: var(--text); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mock-deal-brand { color: var(--muted); }
+  .mock-deal-amount { font-family: "Syne", sans-serif; font-weight: 700; color: var(--text); }
+  .mock-status-badge { font-size: 8px; padding: 2px 7px; border-radius: 999px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; text-align: center; display: inline-block; }
+  .mock-status-active { background: rgba(37,99,235,0.15); color: var(--accent2); border: 1px solid rgba(37,99,235,0.3); }
+  .mock-status-completed { background: rgba(74,222,128,0.12); color: #4ade80; border: 1px solid rgba(74,222,128,0.3); }
+  .mock-status-pending { background: rgba(251,191,36,0.1); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
+  .mock-pay-paid { color: #4ade80; }
+  .mock-pay-waiting { color: #fbbf24; }
 
   .photo-break { max-width: 1200px; margin: 80px auto; padding: 0 32px; display: grid; grid-template-columns: 1.05fr 1fr; gap: 56px; align-items: center; }
   .photo-break.reverse { grid-template-columns: 1fr 1.05fr; }
@@ -144,7 +145,7 @@
   .pricing-tier-price-period { font-size: 18px; color: var(--muted); font-weight: 500; letter-spacing: 0; }
   .pricing-tier-desc { font-size: 16px; color: var(--muted2); max-width: 480px; margin: 0 auto 24px; line-height: 1.6; }
 
-  .faq-list { display: grid; gap: 10px; max-width: 820px; }
+  .faq-list { display: grid; gap: 10px; max-width: 820px; margin: 0 auto; }
   .faq-item { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
   .faq-q { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px; cursor: pointer; gap: 16px; }
   .faq-q-text { font-family: "Plus Jakarta Sans", sans-serif; font-size: 16px; font-weight: 600; color: var(--text); letter-spacing: -0.2px; }
@@ -160,11 +161,11 @@
   @media (max-width: 900px) {
     .hero { padding: 60px 20px 40px; }
     .mockup-section { padding: 0 16px 60px; }
-    .mock-app { grid-template-columns: 1fr; }
-    .mock-sidebar { display: none; }
     .mock-main { padding: 16px; }
     .mock-stats { grid-template-columns: repeat(2, 1fr); }
-    .mock-kanban { grid-template-columns: repeat(2, 1fr); }
+    .mock-charts { grid-template-columns: 1fr; }
+    .mock-table-row { grid-template-columns: 2fr 1fr 80px; gap: 6px; font-size: 9px; }
+    .mock-table-row > div:nth-child(2), .mock-table-row > div:nth-child(5) { display: none; }
     .photo-break { grid-template-columns: 1fr; gap: 32px; margin: 56px auto; padding: 0 20px; }
     .photo-break.reverse .photo-break-image { order: 0; }
     .photo-break-image { aspect-ratio: 4/3; max-width: 520px; margin: 0 auto; }
@@ -175,7 +176,6 @@
     .bottom-cta { padding: 60px 20px 80px; }
   }
   @media (max-width: 560px) {
-    .mock-kanban { grid-template-columns: 1fr; }
     .mock-stats { grid-template-columns: repeat(2, 1fr); }
     .steps-grid { grid-template-columns: 1fr; }
   }
@@ -187,7 +187,6 @@
 
 <section class="hero">
   <div class="hero-content">
-    <div class="hero-tier-badge">Creator Max</div>
     <h1>Run your brand deals like<br><span class="gradient-text">a real business</span></h1>
     <p class="hero-tagline">Track every partnership in one place. Store signed contracts, manage deliverables, share a secure portal with the brand, and watch your revenue grow, all without spreadsheets.</p>
     <div class="hero-cta-row">
@@ -207,65 +206,16 @@
     </div>
     <div class="app-body">
       <div class="mock-app">
-        <div class="mock-sidebar">
-          <div class="mock-sidebar-logo">
-            <div class="mock-sidebar-logo-img"></div>
-            <div class="mock-sidebar-logo-text">Ryxa</div>
-          </div>
-          <div class="mock-nav-item">
-            <svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10"/></svg>
-            Home
-          </div>
-          <div class="mock-nav-item">
-            <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-            Link in Bio
-          </div>
-          <div class="mock-nav-item">
-            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-            Media Kit
-            <span class="mock-nav-pill pro">PRO</span>
-          </div>
-          <div class="mock-nav-item active">
-            <svg viewBox="0 0 24 24"><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 12h18"/></svg>
-            Brand Deals
-            <span class="mock-nav-pill max">MAX</span>
-          </div>
-          <div class="mock-nav-item">
-            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
-            Script Builder
-            <span class="mock-nav-pill max">MAX</span>
-          </div>
-          <div class="mock-nav-item">
-            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-            Grid Planner
-          </div>
-          <div class="mock-nav-item">
-            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-            Follow Audit
-          </div>
-          <div class="mock-nav-item">
-            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
-            Photo Editor
-          </div>
-          <div class="mock-nav-item">
-            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
-            Invoices
-          </div>
-          <div class="mock-nav-item">
-            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M3 17l3-3 2 2 5-5 3 3"/></svg>
-            Sign PDF
-          </div>
-        </div>
-
         <div class="mock-main">
           <div class="mock-main-header">
             <div>
               <div class="mock-main-title">Brand Deal CRM</div>
-              <div class="mock-main-sub">Drag and drop to update deal status</div>
+              <div class="mock-main-sub">Track partnerships, contracts, deliverables, revenue</div>
             </div>
             <button class="mock-cta-btn">+ New deal</button>
           </div>
 
+          <!-- Stats -->
           <div class="mock-stats">
             <div class="mock-stat">
               <div class="mock-stat-label">This Month</div>
@@ -289,89 +239,73 @@
             </div>
           </div>
 
-          <div class="mock-kanban">
-            <div class="kanban-col">
-              <div class="kanban-col-header">
-                <div class="kanban-col-title"><span class="kanban-col-dot draft"></span>Draft</div>
-                <div class="kanban-col-count">2</div>
+          <!-- Charts row -->
+          <div class="mock-charts">
+            <div class="mock-chart-card">
+              <div class="mock-chart-title">Revenue, Last 6 Months</div>
+              <div class="mock-bars">
+                <div class="mock-bar-wrap"><div class="mock-bar" style="height:35%;"></div></div>
+                <div class="mock-bar-wrap"><div class="mock-bar" style="height:55%;"></div></div>
+                <div class="mock-bar-wrap"><div class="mock-bar" style="height:42%;"></div></div>
+                <div class="mock-bar-wrap"><div class="mock-bar" style="height:78%;"></div></div>
+                <div class="mock-bar-wrap"><div class="mock-bar" style="height:60%;"></div></div>
+                <div class="mock-bar-wrap"><div class="mock-bar" style="height:88%;"></div></div>
               </div>
-              <div class="kanban-card">
-                <div class="kanban-card-brand">Patagonia</div>
-                <div class="kanban-card-title">Sustainable Drop Q4</div>
-                <div class="kanban-card-row">
-                  <div class="kanban-card-amount">$3,500</div>
-                  <div class="kanban-card-pay unsent">Unsent</div>
-                </div>
-              </div>
-              <div class="kanban-card">
-                <div class="kanban-card-brand">Athletic Greens</div>
-                <div class="kanban-card-title">Morning Routine Reel</div>
-                <div class="kanban-card-row">
-                  <div class="kanban-card-amount">$2,400</div>
-                  <div class="kanban-card-pay unsent">Unsent</div>
-                </div>
+              <div class="mock-bar-labels">
+                <div class="mock-bar-label">Nov</div>
+                <div class="mock-bar-label">Dec</div>
+                <div class="mock-bar-label">Jan</div>
+                <div class="mock-bar-label">Feb</div>
+                <div class="mock-bar-label">Mar</div>
+                <div class="mock-bar-label">Apr</div>
               </div>
             </div>
-
-            <div class="kanban-col">
-              <div class="kanban-col-header">
-                <div class="kanban-col-title"><span class="kanban-col-dot pending"></span>Pending</div>
-                <div class="kanban-col-count">1</div>
+            <div class="mock-chart-card">
+              <div class="mock-chart-title">Top Brands</div>
+              <div class="mock-brand-row">
+                <div class="mock-brand-info"><span class="mock-brand-name">Glossier</span><span class="mock-brand-amount">$18.4k</span></div>
+                <div class="mock-brand-bar"><div class="mock-brand-bar-fill" style="width:100%;background:var(--accent2);"></div></div>
               </div>
-              <div class="kanban-card">
-                <div class="kanban-card-brand">Olipop</div>
-                <div class="kanban-card-title">Brand Story Series</div>
-                <div class="kanban-card-row">
-                  <div class="kanban-card-amount">$3,200</div>
-                  <div class="kanban-card-pay waiting">Waiting</div>
-                </div>
+              <div class="mock-brand-row">
+                <div class="mock-brand-info"><span class="mock-brand-name">Nike</span><span class="mock-brand-amount">$12.0k</span></div>
+                <div class="mock-brand-bar"><div class="mock-brand-bar-fill" style="width:65%;background:var(--accent);"></div></div>
               </div>
-            </div>
-
-            <div class="kanban-col">
-              <div class="kanban-col-header">
-                <div class="kanban-col-title"><span class="kanban-col-dot active"></span>Active</div>
-                <div class="kanban-col-count">2</div>
-              </div>
-              <div class="kanban-card">
-                <div class="kanban-card-brand">Glossier</div>
-                <div class="kanban-card-title">Spring Collection Reel</div>
-                <div class="kanban-card-row">
-                  <div class="kanban-card-amount">$4,500</div>
-                  <div class="kanban-card-pay waiting">Waiting</div>
-                </div>
-              </div>
-              <div class="kanban-card">
-                <div class="kanban-card-brand">Lululemon</div>
-                <div class="kanban-card-title">Studio Series Pt. 2</div>
-                <div class="kanban-card-row">
-                  <div class="kanban-card-amount">$5,200</div>
-                  <div class="kanban-card-pay waiting">Waiting</div>
-                </div>
+              <div class="mock-brand-row">
+                <div class="mock-brand-info"><span class="mock-brand-name">Olipop</span><span class="mock-brand-amount">$8.5k</span></div>
+                <div class="mock-brand-bar"><div class="mock-brand-bar-fill" style="width:46%;background:var(--accent3);"></div></div>
               </div>
             </div>
+          </div>
 
-            <div class="kanban-col">
-              <div class="kanban-col-header">
-                <div class="kanban-col-title"><span class="kanban-col-dot completed"></span>Completed</div>
-                <div class="kanban-col-count">2</div>
-              </div>
-              <div class="kanban-card">
-                <div class="kanban-card-brand">Nike</div>
-                <div class="kanban-card-title">Summer Tech Drop</div>
-                <div class="kanban-card-row">
-                  <div class="kanban-card-amount">$6,000</div>
-                  <div class="kanban-card-pay paid">Paid</div>
-                </div>
-              </div>
-              <div class="kanban-card">
-                <div class="kanban-card-brand">Sephora</div>
-                <div class="kanban-card-title">Holiday Edit</div>
-                <div class="kanban-card-row">
-                  <div class="kanban-card-amount">$4,800</div>
-                  <div class="kanban-card-pay paid">Paid</div>
-                </div>
-              </div>
+          <!-- Deals table -->
+          <div class="mock-table">
+            <div class="mock-table-row header">
+              <div>Deal</div>
+              <div>Brand</div>
+              <div>Amount</div>
+              <div>Status</div>
+              <div>Payment</div>
+            </div>
+            <div class="mock-table-row">
+              <div class="mock-deal-title">Spring Collection Reel</div>
+              <div class="mock-deal-brand">Glossier</div>
+              <div class="mock-deal-amount">$4,500</div>
+              <div><span class="mock-status-badge mock-status-active">Active</span></div>
+              <div class="mock-pay-waiting">Waiting</div>
+            </div>
+            <div class="mock-table-row">
+              <div class="mock-deal-title">Summer Tech Drop</div>
+              <div class="mock-deal-brand">Nike</div>
+              <div class="mock-deal-amount">$6,000</div>
+              <div><span class="mock-status-badge mock-status-completed">Completed</span></div>
+              <div class="mock-pay-paid">Paid</div>
+            </div>
+            <div class="mock-table-row">
+              <div class="mock-deal-title">Brand Story Series</div>
+              <div class="mock-deal-brand">Olipop</div>
+              <div class="mock-deal-amount">$3,200</div>
+              <div><span class="mock-status-badge mock-status-pending">Pending</span></div>
+              <div class="mock-pay-waiting">Waiting</div>
             </div>
           </div>
         </div>
