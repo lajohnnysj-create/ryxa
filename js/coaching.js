@@ -365,7 +365,7 @@ async function mountCoachingDescEditor() {
                   var lastImg = imgs[imgs.length - 1];
                   if (lastImg) {
                     if (!lastImg.classList.contains('lesson-img-size-small') && !lastImg.classList.contains('lesson-img-size-medium') && !lastImg.classList.contains('lesson-img-size-large')) {
-                      lastImg.classList.add('lesson-img-size-small');
+                      lastImg.classList.add('lesson-img-size-large');
                     }
                     if (!lastImg.hasAttribute('alt')) lastImg.setAttribute('alt', '');
                     // Force a sync to textarea so the class/alt persist
@@ -1049,7 +1049,6 @@ coachRegisterAction('save', () => saveCoaching());
 coachRegisterAction('toggle-publish', () => toggleCoachingPublish());
 coachRegisterAction('toggle-marketplace', () => toggleCoachingMarketplace());
 coachRegisterAction('copy-url', () => copyCoachingUrl());
-coachRegisterAction('ai-cleanup-desc', () => aiBioAssist('coaching-desc-input', 3000));
 coachRegisterAction('remove-cover', () => removeCoachingCover());
 coachRegisterAction('trigger-cover-upload', () => document.getElementById('coaching-cover-file').click());
 coachRegisterAction('cover-selected', (e, el) => onCoachingCoverSelect(el.files[0]));
