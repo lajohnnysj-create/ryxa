@@ -7,6 +7,36 @@
 (function() {
 
 // =====================
+// INJECT FONT
+// =====================
+// site-nav uses Syne for the nav logo + footer headings. Some host pages
+// (e.g. tools-link-in-bio.html) don't load Syne in their own font URL, so
+// the nav/footer would fall back to system sans on devices without Syne in
+// browser cache. Inject our own Syne link so we're self-sufficient and the
+// branding looks identical across every page that uses site-nav.
+// Idempotent: skipped if a Syne link is already present in <head>.
+if (!document.querySelector('link[href*="family=Syne"]')) {
+  // Preconnect helps the font request start as early as possible.
+  if (!document.querySelector('link[rel="preconnect"][href*="fonts.gstatic.com"]')) {
+    var pre1 = document.createElement('link');
+    pre1.rel = 'preconnect';
+    pre1.href = 'https://fonts.googleapis.com';
+    document.head.appendChild(pre1);
+    var pre2 = document.createElement('link');
+    pre2.rel = 'preconnect';
+    pre2.href = 'https://fonts.gstatic.com';
+    pre2.crossOrigin = 'anonymous';
+    document.head.appendChild(pre2);
+  }
+  var syneLink = document.createElement('link');
+  syneLink.rel = 'stylesheet';
+  // display=swap so the rest of the page renders immediately with a
+  // fallback font, then upgrades to Syne when it arrives. No blocking.
+  syneLink.href = 'https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&display=swap';
+  document.head.appendChild(syneLink);
+}
+
+// =====================
 // INJECT STYLES
 // =====================
 var style = document.createElement('style');
