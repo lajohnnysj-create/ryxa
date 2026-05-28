@@ -154,10 +154,38 @@
   .footer-links a:hover { color: var(--text); }
   .footer-copy { font-size: 12px; color: var(--muted); }
 
+  /* FEATURE QUOTE (photo + quote, right after hero) */
+  .feature-quote { max-width: 1100px; margin: 8px auto 0; padding: 0 32px; }
+  .feature-quote-card { display: grid; grid-template-columns: 1fr 1fr; gap: 0; background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; }
+  .feature-quote-photo { position: relative; min-height: 100%; }
+  .feature-quote-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .feature-quote-body { padding: 56px 48px; display: flex; flex-direction: column; justify-content: center; }
+  .feature-quote-mark { font-family: "Plus Jakarta Sans", sans-serif; font-size: 72px; font-weight: 800; line-height: 0.5; color: var(--accent2); margin-bottom: 20px; }
+  .feature-quote-text { font-family: "Plus Jakarta Sans", sans-serif; font-size: clamp(24px, 2.6vw, 32px); font-weight: 700; line-height: 1.2; letter-spacing: -0.5px; color: var(--text); }
+
+  /* PHOTO BREAK (two-column, copy + photo, alternating) */
+  .photo-break { max-width: 1200px; margin: 80px auto; padding: 0 32px; display: grid; grid-template-columns: 1.05fr 1fr; gap: 56px; align-items: center; }
+  .photo-break.reverse .photo-break-image { order: -1; }
+  .photo-break-content .pb-eyebrow { display: inline-block; font-family: "Plus Jakarta Sans", sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent2); margin-bottom: 14px; }
+  .photo-break-content h2 { font-family: "Plus Jakarta Sans", sans-serif; font-size: clamp(24px, 3.2vw, 34px); font-weight: 800; line-height: 1.18; letter-spacing: -0.5px; margin-bottom: 16px; }
+  .photo-break-content p { font-size: 15px; color: var(--muted); line-height: 1.65; margin-bottom: 14px; }
+  .photo-break-content p:last-child { margin-bottom: 0; }
+  .photo-break-image { aspect-ratio: 4/5; border-radius: 18px; overflow: hidden; background: var(--surface); border: 1px solid var(--border-hover); position: relative; }
+  .photo-break-image img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .photo-break-image::after { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(56,189,248,0.10), transparent 40%); pointer-events: none; }
+
   /* RESPONSIVE */
   @media (max-width: 900px) {
     .steps-grid { grid-template-columns: repeat(2, 1fr); }
     .features-grid { grid-template-columns: repeat(2, 1fr); }
+    .feature-quote { padding: 0 20px; }
+    .feature-quote-card { grid-template-columns: 1fr; }
+    .feature-quote-photo { aspect-ratio: 16 / 10; }
+    .feature-quote-body { padding: 36px 28px; }
+    .feature-quote-mark { font-size: 56px; margin-bottom: 14px; }
+    .photo-break, .photo-break.reverse { grid-template-columns: 1fr; gap: 32px; margin: 56px auto; padding: 0 20px; }
+    .photo-break.reverse .photo-break-image { order: 0; }
+    .photo-break-image { aspect-ratio: 4/3; max-width: 520px; margin: 0 auto; }
   }
   @media (max-width: 640px) {
     nav { padding: 0 20px; }
@@ -193,6 +221,19 @@
   </div>
 </section>
 
+<!-- ============ FEATURE QUOTE ============ -->
+<section class="feature-quote">
+  <div class="feature-quote-card">
+    <div class="feature-quote-photo">
+      <img src="photos/grid-photo3.webp" alt="Creator smiling at sunset on a tropical beach" loading="lazy">
+    </div>
+    <div class="feature-quote-body">
+      <div class="feature-quote-mark" aria-hidden="true">&ldquo;</div>
+      <h2 class="feature-quote-text">See your feed before you post.</h2>
+    </div>
+  </div>
+</section>
+
 <!-- ============ HOW IT WORKS ============ -->
 <section>
   <div class="section-label">How it works</div>
@@ -223,6 +264,19 @@
       <div class="step-title">Lock the order</div>
       <div class="step-desc">Once it looks right, screenshot or post in the order you've planned. Your grid stays cohesive.</div>
     </div>
+  </div>
+</section>
+
+<!-- ============ PHOTO BREAK ============ -->
+<section class="photo-break">
+  <div class="photo-break-content">
+    <span class="pb-eyebrow">Plan, don’t guess</span>
+    <h2>Stop posting and hoping it looks right.</h2>
+    <p>Drag posts into your grid and see exactly how your next nine, twelve, or thirty posts will sit together before a single one goes live. No more deleting and reposting because something clashed.</p>
+    <p>Move posts around, swap orders, and watch the whole grid update in real time. The kind of intentional feed your followers notice, without the math.</p>
+  </div>
+  <div class="photo-break-image">
+    <img src="photos/grid-photo2.webp" alt="Creator at a planning desk with gaming setup" loading="lazy">
   </div>
 </section>
 
@@ -262,6 +316,19 @@
       <div class="feature-title">Works on any device</div>
       <div class="feature-desc">Plan on desktop with the big drag-friendly canvas, or quick-edit on mobile when inspiration strikes.</div>
     </div>
+  </div>
+</section>
+
+<!-- ============ PHOTO BREAK 2 ============ -->
+<section class="photo-break reverse">
+  <div class="photo-break-content">
+    <span class="pb-eyebrow">Built for any niche</span>
+    <h2>From travel to gaming to fitness, your grid, your way.</h2>
+    <p>Grid Planner doesn’t care what you post about. Sunset selfies, gaming clips, convention day-in-the-life, product flatlays. If it lives on your feed, you can plan it here first.</p>
+    <p>Pull in your Instagram posts, mix them with drafts and upcoming ideas, and shape a feed that feels like you, not a content calendar template someone else designed.</p>
+  </div>
+  <div class="photo-break-image">
+    <img src="photos/grid-photo1.webp" alt="Creator at a gaming convention surrounded by neon displays" loading="lazy">
   </div>
 </section>
 
