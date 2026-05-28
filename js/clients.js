@@ -666,23 +666,76 @@ async function loadClients() {
 // filter state. Only returns the lightweight columns we export, so even at
 // 30k subscribers this is ~1-2MB - acceptable for an export action.
 async function exportSubscribers() {
+  // The Supabase REST default row limit is 1000. A single .select() against
+  // subscribers_view silently truncates to 1000 rows even for accounts with
+  // tens of thousands of subscribers. We fix this by paginating with .range()
+  // and concatenating until we hit an empty page.
+  var EXPORT_PAGE_SIZE = 1000;
+  var btn = document.querySelector('[data-clients-action="export"]');
+  var originalBtnHtml = btn ? btn.innerHTML : null;
+
+  function setBtnLabel(text, disabled) {
+    if (!btn) return;
+    btn.innerHTML = text;
+    btn.disabled = !!disabled;
+  }
+  function restoreBtn() {
+    if (btn && originalBtnHtml !== null) {
+      btn.innerHTML = originalBtnHtml;
+      btn.disabled = false;
+    }
+  }
+
   try {
     var filters = clientsReadFilterState();
-    // Build query without pagination - get everything matching current filter.
-    var q = sb.from('subscribers_view')
-      .select('email, source, optin, joined_at, email_lc')
-      .eq('creator_id', currentUser.id);
-    if (filters.optinOnly) q = q.eq('optin', true);
-    if (filters.cutoffMs !== null) q = q.gte('joined_at', new Date(filters.cutoffMs).toISOString());
-    if (filters.query) q = q.ilike('email', '%' + filters.query.replace(/[%_]/g, '\\$&') + '%');
-    q = q.order('joined_at', { ascending: false });
-    var { data, error } = await q;
-    if (error) throw error;
-    var rows = (data || []).filter(function(r) { return !clientsSuppressed.has(r.email_lc); });
+    setBtnLabel('Preparing export...', true);
+
+    // Build the base query function. Each call creates a fresh query so we
+    // can apply .range() per page.
+    function buildExportQuery(from, to) {
+      var q = sb.from('subscribers_view')
+        .select('email, source, optin, joined_at, email_lc')
+        .eq('creator_id', currentUser.id);
+      if (filters.optinOnly) q = q.eq('optin', true);
+      if (filters.cutoffMs !== null) q = q.gte('joined_at', new Date(filters.cutoffMs).toISOString());
+      if (filters.query) q = q.ilike('email', '%' + filters.query.replace(/[%_]/g, '\\$&') + '%');
+      q = q.order('joined_at', { ascending: false }).range(from, to);
+      return q;
+    }
+
+    // Fetch in chunks of EXPORT_PAGE_SIZE until a page returns fewer rows
+    // than requested (means we hit the end).
+    var allRows = [];
+    var pageIndex = 0;
+    while (true) {
+      var from = pageIndex * EXPORT_PAGE_SIZE;
+      var to = from + EXPORT_PAGE_SIZE - 1;
+      var { data, error } = await buildExportQuery(from, to);
+      if (error) throw error;
+      var chunk = data || [];
+      allRows = allRows.concat(chunk);
+      setBtnLabel('Exporting ' + allRows.length.toLocaleString() + '...', true);
+      if (chunk.length < EXPORT_PAGE_SIZE) break;
+      pageIndex++;
+      // Safety: bail at 10M rows to prevent runaway loops on schema bugs.
+      // No legitimate account will hit this; the 1M hard ceiling kicks first.
+      if (pageIndex > 10000) {
+        console.warn('Export bailed at 10M rows safety limit');
+        break;
+      }
+    }
+
+    // Apply the same client-side suppression filter that the page view uses
+    // (consistent with what the user sees in the dashboard).
+    var rows = allRows.filter(function(r) { return !clientsSuppressed.has(r.email_lc); });
+
     if (rows.length === 0) {
+      restoreBtn();
       showModalAlert('No Data', 'No subscribers to export.');
       return;
     }
+
+    setBtnLabel('Building file...', true);
     var csv = 'Email,Source,Opt In,Date Joined\n';
     rows.forEach(function(c) {
       var d = new Date(c.joined_at);
@@ -697,9 +750,11 @@ async function exportSubscribers() {
     a.download = 'ryxa-subscribers.csv';
     a.click();
     URL.revokeObjectURL(url);
+    restoreBtn();
   } catch (e) {
     console.error('Export failed:', e);
-    showModalAlert('Export failed', e.message || 'Could not export subscribers.');
+    restoreBtn();
+    showModalAlert('Export failed', e.message || 'Could not export subscribers. Please try again.');
   }
 }
 
