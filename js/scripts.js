@@ -76,7 +76,6 @@ function scriptsDispatchEvent(event) {
 // ======================================================================
 // SCRIPT BUILDER — Creator Max tool
 // ======================================================================
-const SCRIPTS_MAX = 100;
 const SCRIPT_BLOCKS_MAX = 50;
 const SCRIPT_WPM = 150;
 const SCRIPT_PLATFORMS = {
@@ -139,16 +138,10 @@ async function loadScriptsList() {
 }
 
 function renderScriptsList() {
-  const countEl = document.getElementById('scripts-count');
   const listEl = document.getElementById('scripts-list');
   const emptyEl = document.getElementById('scripts-empty');
   const newBtn = document.getElementById('scripts-new-btn');
   if (!listEl) return;
-  if (countEl) countEl.textContent = `${scriptsList.length}/${SCRIPTS_MAX} scripts`;
-  if (newBtn) {
-    newBtn.disabled = scriptsList.length >= SCRIPTS_MAX;
-    newBtn.style.opacity = scriptsList.length >= SCRIPTS_MAX ? 0.5 : 1;
-  }
   if (scriptsList.length === 0) {
     listEl.innerHTML = '';
     if (emptyEl) emptyEl.style.display = 'block';
@@ -201,10 +194,6 @@ function formatRelativeTime(iso) {
 
 async function createNewScript() {
   if (!isMax()) return;
-  if (scriptsList.length >= SCRIPTS_MAX) {
-    alert(`You've reached the ${SCRIPTS_MAX} script limit. Delete some to make more.`);
-    return;
-  }
   try {
     const { data, error } = await sb.from('scripts').insert({
       user_id: currentUser.id,
@@ -241,10 +230,6 @@ async function deleteScript(id) {
 async function duplicateScript(id) {
   const script = scriptsList.find(s => s.id === id);
   if (!script) return;
-  if (scriptsList.length >= SCRIPTS_MAX) {
-    alert(`You've reached the ${SCRIPTS_MAX} script limit.`);
-    return;
-  }
   try {
     const newItems = (script.items || []).map(i => ({ ...i, id: genScriptItemId(i.type) }));
     const { data, error } = await sb.from('scripts').insert({
