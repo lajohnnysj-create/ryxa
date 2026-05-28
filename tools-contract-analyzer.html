@@ -39,7 +39,14 @@
   .feature-icon{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,rgba(94,234,212,0.12),rgba(45,212,191,0.08));border:1px solid rgba(94,234,212,0.25);display:flex;align-items:center;justify-content:center;margin-bottom:16px;}
   .feature-card h3{font-family:"Plus Jakarta Sans",sans-serif;font-size:18px;font-weight:700;margin-bottom:8px;}
   .feature-card p{color:var(--muted);font-size:14px;line-height:1.6;}
-  @media(max-width:768px){.hero{padding:60px 20px 60px;}}
+  .feature-quote{max-width:1100px;margin:8px auto 0;padding:0 24px;}
+  .feature-quote-card{display:grid;grid-template-columns:1fr 1fr;gap:0;background:var(--surface2);border:1px solid var(--border);border-radius:20px;overflow:hidden;}
+  .feature-quote-photo{position:relative;min-height:100%;}
+  .feature-quote-photo img{width:100%;height:100%;object-fit:cover;display:block;}
+  .feature-quote-body{padding:56px 48px;display:flex;flex-direction:column;justify-content:center;}
+  .feature-quote-mark{font-family:"Plus Jakarta Sans",sans-serif;font-size:72px;font-weight:800;line-height:0.5;color:var(--accent2);margin-bottom:20px;}
+  .feature-quote-text{font-family:"Plus Jakarta Sans",sans-serif;font-size:clamp(24px,2.6vw,32px);font-weight:700;line-height:1.2;letter-spacing:-0.5px;color:var(--text);}
+  @media(max-width:768px){.hero{padding:60px 20px 60px;}.feature-quote{padding:0 20px;}.feature-quote-card{grid-template-columns:1fr;}.feature-quote-photo{aspect-ratio:16/10;}.feature-quote-body{padding:36px 28px;}.feature-quote-mark{font-size:56px;margin-bottom:14px;}}
   *:focus-visible{outline:2px solid #5eead4;outline-offset:2px;border-radius:4px;}
   @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:0.001ms !important;transition-duration:0.001ms !important;}}
 </style>
@@ -60,6 +67,19 @@
       <a href="pricing.html" class="btn-secondary">See pricing</a>
     </div>
     <p style="font-size:11px;color:var(--muted);font-style:italic;margin-top:16px;">This is not legal advice. Always consult a lawyer before signing binding agreements.</p>
+  </div>
+</section>
+
+<!-- ============ FEATURE QUOTE ============ -->
+<section class="feature-quote">
+  <div class="feature-quote-card">
+    <div class="feature-quote-photo">
+      <img src="photos/contract-photo1.webp" alt="Creator at home reading a paper contract with a concerned expression" loading="lazy">
+    </div>
+    <div class="feature-quote-body">
+      <div class="feature-quote-mark" aria-hidden="true">&ldquo;</div>
+      <h2 class="feature-quote-text">Find the clauses no one explained to you.</h2>
+    </div>
   </div>
 </section>
 
