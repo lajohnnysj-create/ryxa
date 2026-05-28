@@ -389,6 +389,49 @@ async function clientsFetchNamesForPage(emails) {
 // Without this guard, rapid filter or page changes can paint stale data.
 var clientsReloadSeq = 0;
 
+// Detects whether a thrown error from a Supabase query is plausibly transient
+// (worth retrying) vs a real logic error (just fail). Transient: HTTP 5xx,
+// network failure, generic fetch error with no status. Non-transient: 4xx,
+// PostgREST policy/permission errors, anything specific.
+function clientsIsTransientError(err) {
+  if (!err) return false;
+  // Supabase JS sometimes attaches HTTP status as .status, .statusCode, or
+  // inside .code. Pick whichever is set.
+  var status = err.status || err.statusCode || 0;
+  if (status >= 500 && status < 600) return true;
+  // Network failures (offline, DNS, fetch abort) typically throw TypeError
+  // with no status. Treat those as transient too.
+  if (status === 0 && (err.name === 'TypeError' || /fetch/i.test(err.message || ''))) return true;
+  return false;
+}
+
+// Wraps a fetcher in a sequence-aware retry. On transient failure, waits
+// briefly and retries up to maxRetries times. Aborts early if the sequence
+// number changes (meaning a newer reload has been issued, this one is stale).
+async function clientsFetchPageWithRetry(pageIndex, filters, mySeq, maxRetries) {
+  var attempt = 0;
+  var lastErr = null;
+  while (attempt <= maxRetries) {
+    if (mySeq !== clientsReloadSeq) {
+      // A newer reload is in flight, give up silently.
+      var abort = new Error('stale-reload');
+      abort.stale = true;
+      throw abort;
+    }
+    try {
+      return await clientsFetchPage(pageIndex, filters);
+    } catch (e) {
+      lastErr = e;
+      if (!clientsIsTransientError(e) || attempt === maxRetries) throw e;
+      attempt++;
+      // 400ms first retry, 800ms second retry. Gives the DB time to settle
+      // after a large insert without making the user wait long.
+      await new Promise(function(resolve) { setTimeout(resolve, 400 * attempt); });
+    }
+  }
+  throw lastErr;
+}
+
 // Trigger a server reload of the current page based on filter state. Called
 // from filter change handlers, sort change, pagination, and refresh.
 async function clientsReloadPage() {
@@ -397,7 +440,7 @@ async function clientsReloadPage() {
   var mySeq = ++clientsReloadSeq;
   try {
     var filters = clientsReadFilterState();
-    var { rows, total } = await clientsFetchPage(clientsCurrentPage, filters);
+    var { rows, total } = await clientsFetchPageWithRetry(clientsCurrentPage, filters, mySeq, 2);
     // If a newer reload has been issued while we were waiting, drop this
     // result on the floor. The newer reload owns the UI.
     if (mySeq !== clientsReloadSeq) return;
@@ -436,6 +479,8 @@ async function clientsReloadPage() {
     }
     renderSubscribersPage();
   } catch (e) {
+    // Stale-reload aborts are silent (a newer reload is taking over).
+    if (e && e.stale) return;
     console.error('Subscribers page reload failed:', e);
     tbody.innerHTML = '<tr><td colspan="7" class="ana-s-cd4491">Could not load subscribers</td></tr>';
   }
