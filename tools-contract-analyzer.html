@@ -46,6 +46,21 @@
   .feature-quote-body{padding:56px 48px;display:flex;flex-direction:column;justify-content:center;}
   .feature-quote-mark{font-family:"Plus Jakarta Sans",sans-serif;font-size:72px;font-weight:800;line-height:0.5;color:var(--accent2);margin-bottom:20px;}
   .feature-quote-text{font-family:"Plus Jakarta Sans",sans-serif;font-size:clamp(24px,2.6vw,32px);font-weight:700;line-height:1.2;letter-spacing:-0.5px;color:var(--text);}
+  .faq-section{max-width:720px;margin:0 auto;padding:80px 24px;}
+  .faq-section-label{font-size:12px;text-transform:uppercase;letter-spacing:0.15em;color:#2dd4bf;font-weight:600;margin-bottom:12px;text-align:center;}
+  .faq-section h2{font-family:"Plus Jakarta Sans",sans-serif;font-size:clamp(28px,4vw,42px);font-weight:800;letter-spacing:-0.5px;margin-bottom:40px;text-align:center;}
+  .faq-list{max-width:720px;margin:0 auto;}
+  .faq-item{border-bottom:1px solid var(--border);padding:22px 0;}
+  .faq-item:first-child{border-top:1px solid var(--border);}
+  .faq-q{display:flex;align-items:center;justify-content:space-between;cursor:pointer;gap:16px;}
+  .faq-q-text{font-family:"Plus Jakarta Sans",sans-serif;font-size:17px;font-weight:600;color:var(--text);flex:1;}
+  .faq-toggle{width:28px;height:28px;border-radius:50%;background:var(--surface);border:1px solid var(--border);color:var(--muted);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;font-size:18px;line-height:1;}
+  .faq-item.open .faq-toggle{background:var(--accent2);color:var(--bg);border-color:var(--accent2);transform:rotate(45deg);}
+  .faq-a{max-height:0;overflow:hidden;transition:max-height 0.3s ease,padding 0.3s;color:var(--muted);font-size:14px;line-height:1.65;}
+  .faq-item.open .faq-a{max-height:500px;padding-top:12px;}
+  .bottom-cta{padding:80px 24px 100px;text-align:center;max-width:800px;margin:0 auto;}
+  .bottom-cta h2{font-family:"Plus Jakarta Sans",sans-serif;font-size:clamp(28px,4vw,40px);font-weight:800;letter-spacing:-1px;margin-bottom:14px;}
+  .bottom-cta p{font-size:16px;color:var(--muted);margin-bottom:28px;}
   @media(max-width:768px){.hero{padding:60px 20px 60px;}.feature-quote{padding:0 20px;}.feature-quote-card{grid-template-columns:1fr;}.feature-quote-photo{aspect-ratio:16/10;}.feature-quote-body{padding:36px 28px;}.feature-quote-mark{font-size:56px;margin-bottom:14px;}}
   *:focus-visible{outline:2px solid #5eead4;outline-offset:2px;border-radius:4px;}
   @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:0.001ms !important;transition-duration:0.001ms !important;}}
@@ -169,16 +184,46 @@
     </div>
   </div>
 
-  <!-- CTA -->
-  <div style="text-align:center;padding:40px 0 20px;">
-    <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-size:clamp(24px,3.5vw,36px);font-weight:800;letter-spacing:-0.5px;margin-bottom:12px;">Understand your contracts<br>before you sign.</h2>
-    <p style="color:var(--muted);font-size:15px;margin-bottom:28px;max-width:480px;margin-left:auto;margin-right:auto;">Stop skimming and hoping for the best. Available on Pro.</p>
-    <a href="dashboard.html" data-nav-action="try-tool" class="btn-primary" style="padding:14px 36px;font-size:16px;">Try Contract Analyzer</a>
-  </div>
 </section>
 
 <!-- ============ TESTIMONIALS (shared module /js/testimonials.js) ============ -->
 <div id="site-testimonials" data-heading="Creators who trust Ryxa" data-theme="dark"></div>
+
+<!-- ============ FAQ ============ -->
+<section class="faq-section">
+  <div class="faq-section-label">FAQ</div>
+  <h2>Questions about Contract Analyzer</h2>
+  <div class="faq-list">
+    <div class="faq-item">
+      <div class="faq-q" data-nav-action="toggle-faq">
+        <div class="faq-q-text">Is Contract Analyzer free?</div>
+        <div class="faq-toggle">+</div>
+      </div>
+      <div class="faq-a">Contract Analyzer is part of Ryxa Pro.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" data-nav-action="toggle-faq">
+        <div class="faq-q-text">What types of contracts does it work for?</div>
+        <div class="faq-toggle">+</div>
+      </div>
+      <div class="faq-a">It is built for brand deal and influencer agreements. It can also read other creator contracts, like sponsorship deals, talent agency agreements, and usage rights licenses. It is not designed for employment contracts, real estate, or other non-creator legal documents.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" data-nav-action="toggle-faq">
+        <div class="faq-q-text">Will the AI catch every red flag a lawyer would?</div>
+        <div class="faq-toggle">+</div>
+      </div>
+      <div class="faq-a">No. The AI is built to surface common creator-specific issues like exclusivity, usage rights, and one-sided terms in plain language. For binding or high-value contracts, a lawyer is still the right call.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ BOTTOM CTA ============ -->
+<section class="bottom-cta">
+  <h2>Understand your contracts before you sign.</h2>
+  <p>Stop skimming and hoping for the best. Available on Pro.</p>
+  <a href="dashboard.html" data-nav-action="try-tool" class="btn-primary">Try Contract Analyzer</a>
+</section>
 
 <div id="site-footer"></div>
 
