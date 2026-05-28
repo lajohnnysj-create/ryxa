@@ -7908,6 +7908,10 @@
                   <label for="clients-add-note" class="clients-s-detail-label">Note (optional)</label>
                   <textarea id="clients-add-note" placeholder="A private note about this subscriber. Only you can see it." rows="4" maxlength="5000" class="clients-s-note-textarea"></textarea>
                 </div>
+                <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;padding:14px 16px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:10px;margin-top:4px;">
+                  <input type="checkbox" id="clients-add-attest" style="margin-top:2px;flex-shrink:0;width:16px;height:16px;cursor:pointer;">
+                  <span style="font-size:13px;line-height:1.5;color:rgba(255,255,255,0.85);">I confirm I have permission to add this contact to my Ryxa subscriber list.</span>
+                </label>
                 <div id="clients-add-error" class="clients-s-add-error" style="display:none;"></div>
               </div>
               <div class="clients-s-modal-footer">
@@ -7964,6 +7968,11 @@
                   </div>
 
                   <div id="clients-import-validation" class="clients-s-import-validation"></div>
+
+                  <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;padding:14px 16px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:10px;margin-top:16px;">
+                    <input type="checkbox" id="clients-import-attest" style="margin-top:2px;flex-shrink:0;width:16px;height:16px;cursor:pointer;">
+                    <span style="font-size:13px;line-height:1.5;color:rgba(255,255,255,0.85);">I confirm that the contacts in this list have opted in to receive emails from me, and I have the legal right to import them into Ryxa.</span>
+                  </label>
                 </div>
 
                 <!-- Step 3: Importing (progress) -->
