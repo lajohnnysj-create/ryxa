@@ -144,6 +144,36 @@
   .pricing-tier-includes { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 26px; }
   .pricing-tier-pill { font-size: 12px; padding: 5px 12px; background: rgba(255,255,255,0.08); border: 1px solid var(--border-hover); border-radius: 999px; color: var(--muted); }
 
+  /* PHOTO BREAK (two-column: copy beside an illustration) */
+  .photo-break { max-width: 1100px; margin: 20px auto; padding: 40px 32px; display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
+  .photo-break-content .pb-eyebrow { display: inline-block; font-family: "Plus Jakarta Sans", sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; }
+  .photo-break-content h2 { font-family: "Plus Jakarta Sans", sans-serif; font-size: clamp(24px, 3.2vw, 34px); font-weight: 800; line-height: 1.18; letter-spacing: -0.5px; margin-bottom: 16px; }
+  .photo-break-content p { font-size: 15px; color: var(--muted); line-height: 1.65; margin-bottom: 14px; }
+  .photo-break-content p:last-child { margin-bottom: 0; }
+  .photo-break-image { aspect-ratio: 4 / 5; border-radius: 20px; overflow: hidden; }
+
+  /* CSS mini-calendar illustration (swappable for a photo later) */
+  .cal-illu { width: 100%; height: 100%; background: var(--surface); border: 1px solid var(--accent-border-30); border-radius: 20px; padding: 22px; display: flex; flex-direction: column; }
+  .cal-illu-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .cal-illu-month { font-family: "Plus Jakarta Sans", sans-serif; font-weight: 800; font-size: 18px; color: #fff; }
+  .cal-illu-dots { display: flex; gap: 6px; }
+  .cal-illu-dots span { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.25); }
+  .cal-illu-dow { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 6px; }
+  .cal-illu-dow span { text-align: center; font-size: 10px; font-weight: 700; color: var(--muted2); }
+  .cal-illu-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; flex: 1; }
+  .cal-illu-cell { background: var(--surface2); border-radius: 8px; min-height: 38px; padding: 5px 6px; font-size: 10px; color: var(--muted2); position: relative; }
+  .cal-illu-cell.muted { opacity: 0.45; }
+  .cal-illu-chip { display: block; margin-top: 4px; border-radius: 4px; padding: 2px 4px; font-size: 8px; font-weight: 700; line-height: 1.3; color: #06323e; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .cal-illu-chip.booking { background: #5eead4; }
+  .cal-illu-chip.deal { background: #fcd34d; }
+  .cal-illu-chip.personal { background: #c4b5fd; }
+  .cal-illu-legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border); }
+  .cal-illu-legend span { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); }
+  .cal-illu-legend span::before { content: ""; width: 10px; height: 10px; border-radius: 3px; }
+  .cal-illu-legend .lg-booking::before { background: #5eead4; }
+  .cal-illu-legend .lg-deal::before { background: #fcd34d; }
+  .cal-illu-legend .lg-personal::before { background: #c4b5fd; }
+
   /* FAQ */
   .faq-list { max-width: 720px; margin: 0 auto; }
   .faq-item { border-bottom: 1px solid var(--border); padding: 22px 0; }
@@ -178,6 +208,8 @@
   @media (max-width: 900px) {
     .steps-grid { grid-template-columns: repeat(2, 1fr); }
     .features-grid { grid-template-columns: repeat(2, 1fr); }
+    .photo-break { grid-template-columns: 1fr; gap: 32px; }
+    .photo-break-image { max-width: 420px; }
   }
   @media (max-width: 640px) {
     nav { padding: 0 20px; }
@@ -238,6 +270,46 @@
       <div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
       <div class="step-title">Connect Google Calendar</div>
       <div class="step-desc">Link your Google account and your Ryxa events show up in Google Calendar too, next to the rest of your life.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PHOTO BREAK (separate creator schedule) ============ -->
+<section class="photo-break">
+  <div class="photo-break-content">
+    <span class="pb-eyebrow">Work and life, side by side</span>
+    <h2>Organize your creator schedule without mixing it into your personal life.</h2>
+    <p>Your sessions, shoots, and deadlines live on one calendar that is built for your business, not buried between dentist appointments and birthday reminders. See your creator week at a glance, color-coded by what it is.</p>
+    <p>Want it all in one place anyway? Connect Google Calendar and your Ryxa events show up there too, so you stay organized everywhere without ever losing the line between work and the rest of your life.</p>
+  </div>
+  <div class="photo-break-image">
+    <div class="cal-illu" role="img" aria-label="A creator calendar showing color-coded events: 1:1 bookings, brand deals, and personal events.">
+      <div class="cal-illu-head">
+        <div class="cal-illu-month">June</div>
+        <div class="cal-illu-dots"><span></span><span></span><span></span></div>
+      </div>
+      <div class="cal-illu-dow"><span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span></div>
+      <div class="cal-illu-grid">
+        <div class="cal-illu-cell muted">29</div>
+        <div class="cal-illu-cell">1</div>
+        <div class="cal-illu-cell">2<span class="cal-illu-chip booking">1:1 call</span></div>
+        <div class="cal-illu-cell">3</div>
+        <div class="cal-illu-cell">4<span class="cal-illu-chip deal">Deal due</span></div>
+        <div class="cal-illu-cell">5</div>
+        <div class="cal-illu-cell">6</div>
+        <div class="cal-illu-cell">7</div>
+        <div class="cal-illu-cell">8<span class="cal-illu-chip personal">Day off</span></div>
+        <div class="cal-illu-cell">9</div>
+        <div class="cal-illu-cell">10<span class="cal-illu-chip booking">1:1 call</span></div>
+        <div class="cal-illu-cell">11</div>
+        <div class="cal-illu-cell">12</div>
+        <div class="cal-illu-cell">13<span class="cal-illu-chip deal">Shoot</span></div>
+      </div>
+      <div class="cal-illu-legend">
+        <span class="lg-booking">1:1 bookings</span>
+        <span class="lg-deal">Brand deals</span>
+        <span class="lg-personal">Personal</span>
+      </div>
     </div>
   </div>
 </section>
