@@ -1,5 +1,5 @@
 // Vercel serverless function, records a soft-threshold crossing event and
-// sends a notification email to notifications@ryxa.io.
+// sends a notification email to hello@ryxa.io.
 //
 // POST /api/cross-manual-subscribers-threshold
 // Headers: Authorization: Bearer <user_access_token>
@@ -21,8 +21,8 @@
 
 const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_PLU28Un_GfsUXeUsK3zB9Q_hvNM7aeG';
-const NOTIFICATION_TO = 'notifications@ryxa.io';
-const NOTIFICATION_FROM = 'Ryxa <notifications@ryxa.io>';
+const NOTIFICATION_TO = 'hello@ryxa.io';
+const NOTIFICATION_FROM = 'Ryxa <no-reply@ryxa.io>';
 
 function getServiceKey() {
   var k = process.env.SUPABASE_SERVICE_ROLE_KEY;
