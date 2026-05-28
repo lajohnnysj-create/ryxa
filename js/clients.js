@@ -1903,8 +1903,8 @@ function clientsShowThresholdAttestation(subscriberCountWillBe) {
     var modal = document.createElement('div');
     modal.style.cssText = 'background:#15101f;color:#f2effb;border-radius:14px;max-width:520px;width:100%;padding:28px;border:1px solid rgba(255,255,255,0.08);box-shadow:0 30px 80px rgba(0,0,0,0.5);';
     modal.innerHTML = '<div style="font-size:12px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#facc15;margin-bottom:10px;">One quick confirmation</div>' +
-      '<h3 style="font-family:\'Plus Jakarta Sans\',sans-serif;font-size:22px;font-weight:800;margin:0 0 12px;line-height:1.25;">You are crossing 5,000 subscribers</h3>' +
-      '<p style="font-size:14px;line-height:1.6;color:rgba(255,255,255,0.75);margin:0 0 16px;">Because this is a large list, we ask power users to confirm a few things before continuing. You will only see this once.</p>' +
+      '<h3 style="font-family:\'Plus Jakarta Sans\',sans-serif;font-size:22px;font-weight:800;margin:0 0 12px;line-height:1.25;">You are crossing 5,000 manually added subscribers</h3>' +
+      '<p style="font-size:14px;line-height:1.6;color:rgba(255,255,255,0.75);margin:0 0 16px;">To prevent abuse and protect compliance with anti-spam regulations like the U.S. CAN-SPAM Act, we ask power users to confirm a few things before continuing. Ryxa will be notified, and you will only see this once.</p>' +
       '<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:16px;margin-bottom:18px;">' +
         '<div style="font-size:13px;line-height:1.65;color:rgba(255,255,255,0.85);font-style:italic;">"' +
           MANUAL_SUBS_ATTESTATION_THRESHOLD.replace(/"/g, '&quot;') +
