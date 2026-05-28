@@ -50,7 +50,9 @@
   .btn-secondary:hover { background: var(--surface2); border-color: var(--accent2); }
 
   .mockup-section { padding: 0 24px 80px; max-width: 1280px; margin: 0 auto; }
-  .app-window { background: var(--surface); border: 1px solid var(--border-hover); border-radius: 14px; overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,0.5), 0 0 60px rgba(37,99,235,0.08); }
+  .app-window { background: var(--surface); border: 1px solid var(--border-hover); border-radius: 14px; overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,0.5), 0 0 60px rgba(124,58,237,0.08); }
+  /* Mockup dashboard uses Ryxa's real product purple, not the page's blue accent */
+  .app-window { --accent: #7c3aed; --accent2: #a855f7; --accent3: #c084fc; --accent-glow: rgba(124,58,237,0.4); }
   .app-titlebar { display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: rgba(15,20,25,0.6); border-bottom: 1px solid var(--border); }
   .app-dot { width: 11px; height: 11px; border-radius: 50%; }
   .app-dot.red { background: #ff5f57; }
@@ -101,7 +103,7 @@
   .mock-deal-brand { color: var(--muted); }
   .mock-deal-amount { font-family: "Syne", sans-serif; font-weight: 700; color: var(--text); }
   .mock-status-badge { font-size: 8px; padding: 2px 7px; border-radius: 999px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; text-align: center; display: inline-block; }
-  .mock-status-active { background: rgba(37,99,235,0.15); color: var(--accent2); border: 1px solid rgba(37,99,235,0.3); }
+  .mock-status-active { background: rgba(124,58,237,0.15); color: var(--accent3); border: 1px solid rgba(124,58,237,0.3); }
   .mock-status-completed { background: rgba(74,222,128,0.12); color: #4ade80; border: 1px solid rgba(74,222,128,0.3); }
   .mock-status-pending { background: rgba(251,191,36,0.1); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
   .mock-pay-paid { color: #4ade80; }
