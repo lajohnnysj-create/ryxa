@@ -154,10 +154,25 @@
   .footer-links a:hover { color: var(--text); }
   .footer-copy { font-size: 12px; color: var(--muted); }
 
+  /* PHOTO BREAKS (two-column content + image) */
+  .photo-break { max-width: 1200px; margin: 80px auto; padding: 0 32px; display: grid; grid-template-columns: 1.05fr 1fr; gap: 56px; align-items: center; }
+  .photo-break.reverse { grid-template-columns: 1fr 1.05fr; }
+  .photo-break.reverse .photo-break-image { order: -1; }
+  .photo-break-content { padding: 16px 0; }
+  .photo-break-eyebrow { font-size: 12px; font-weight: 600; color: var(--accent2); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; }
+  .photo-break h2 { font-family: "Plus Jakarta Sans", sans-serif; font-size: clamp(28px, 4vw, 38px); font-weight: 800; line-height: 1.15; letter-spacing: -0.8px; margin-bottom: 16px; color: var(--text); }
+  .photo-break p { font-size: 16px; line-height: 1.7; color: var(--muted2); margin-bottom: 14px; }
+  .photo-break-image { aspect-ratio: 4/5; border-radius: 18px; overflow: hidden; background: var(--surface); border: 1px solid var(--border-hover); position: relative; }
+  .photo-break-image img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .photo-break-image::after { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(162,28,175,0.12), transparent 40%); pointer-events: none; }
+
   /* RESPONSIVE */
   @media (max-width: 900px) {
     .steps-grid { grid-template-columns: repeat(2, 1fr); }
     .features-grid { grid-template-columns: repeat(2, 1fr); }
+    .photo-break, .photo-break.reverse { grid-template-columns: 1fr; gap: 32px; margin: 56px auto; padding: 0 20px; }
+    .photo-break.reverse .photo-break-image { order: 0; }
+    .photo-break-image { aspect-ratio: 4/3; max-width: 520px; margin: 0 auto; }
   }
   @media (max-width: 640px) {
     nav { padding: 0 20px; }
@@ -193,11 +208,23 @@
   </div>
 </section>
 
+<section class="photo-break">
+  <div class="photo-break-content">
+    <div class="photo-break-eyebrow">Thumbnails that get clicked</div>
+    <h2>The thumbnail is the ad for your video.</h2>
+    <p>People decide whether to watch in the time it takes to scroll past. A flat, generic thumbnail gets skipped no matter how good the content behind it is.</p>
+    <p>Design Studio gives you the canvas, the fonts, and the presets to make a thumbnail that actually stops the scroll, then export it at the exact size YouTube wants. No Canva tab, no guesswork.</p>
+  </div>
+  <div class="photo-break-image">
+    <img src="photos/design-photo1.webp" alt="Creator holding up a phone showing a designed video thumbnail" loading="lazy">
+  </div>
+</section>
+
 <!-- ============ FEATURES ============ -->
 <section style="max-width:1000px;margin:0 auto;padding:80px 24px;">
   <div style="text-align:center;margin-bottom:60px;">
     <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.15em;color:#f0abfc;font-weight:600;margin-bottom:12px;">Built for creators</div>
-    <h2 style="font-family:"Plus Jakarta Sans",sans-serif;font-size:clamp(28px,4vw,42px);font-weight:800;letter-spacing:-0.5px;margin-bottom:16px;">Everything you need to design.</h2>
+    <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-size:clamp(28px,4vw,42px);font-weight:800;letter-spacing:-0.5px;margin-bottom:16px;">Everything you need to design.</h2>
     <p style="color:var(--muted);font-size:16px;max-width:560px;margin:0 auto;line-height:1.7;">A full canvas editor with text, layers, fonts, and social media presets. Pro adds background removal and transparent PNG exports.</p>
   </div>
 
@@ -207,7 +234,7 @@
       <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,rgba(162,28,175,0.12),rgba(232,121,249,0.08));border:1px solid rgba(162,28,175,0.25);display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f0abfc" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
       </div>
-      <h3 style="font-family:"Plus Jakarta Sans",sans-serif;font-size:18px;font-weight:700;margin-bottom:8px;">Full canvas editor</h3>
+      <h3 style="font-family:'Plus Jakarta Sans',sans-serif;font-size:18px;font-weight:700;margin-bottom:8px;">Full canvas editor</h3>
       <p style="color:var(--muted);font-size:14px;line-height:1.6;">Add text with 21 fonts, layer images, drag and resize everything. Preset sizes for Instagram, YouTube, Facebook, and X. Export as PNG.</p>
     </div>
 
@@ -216,7 +243,7 @@
       <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,rgba(162,28,175,0.12),rgba(232,121,249,0.08));border:1px solid rgba(162,28,175,0.25);display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f0abfc" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5l14 14M2 12a10 10 0 0 1 10-10M22 12a10 10 0 0 1-10 10"/></svg>
       </div>
-      <h3 style="font-family:"Plus Jakarta Sans",sans-serif;font-size:18px;font-weight:700;margin-bottom:8px;">Background removal <span style="font-size:9px;background:linear-gradient(135deg,#e879f9,#f0abfc);color:#fff;padding:2px 6px;border-radius:4px;letter-spacing:0.04em;font-weight:700;margin-left:4px;">PRO</span></h3>
+      <h3 style="font-family:'Plus Jakarta Sans',sans-serif;font-size:18px;font-weight:700;margin-bottom:8px;">Background removal <span style="font-size:9px;background:linear-gradient(135deg,#e879f9,#f0abfc);color:#fff;padding:2px 6px;border-radius:4px;letter-spacing:0.04em;font-weight:700;margin-left:4px;">PRO</span></h3>
       <p style="color:var(--muted);font-size:14px;line-height:1.6;">Drop in a photo, get a clean cutout in seconds. Useful for thumbnails, product shots, and bio page hero images.</p>
     </div>
 
@@ -225,27 +252,27 @@
       <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,rgba(162,28,175,0.12),rgba(232,121,249,0.08));border:1px solid rgba(162,28,175,0.25);display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f0abfc" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
       </div>
-      <h3 style="font-family:"Plus Jakarta Sans",sans-serif;font-size:18px;font-weight:700;margin-bottom:8px;">Social media presets</h3>
+      <h3 style="font-family:'Plus Jakarta Sans',sans-serif;font-size:18px;font-weight:700;margin-bottom:8px;">Social media presets</h3>
       <p style="color:var(--muted);font-size:14px;line-height:1.6;">Instagram post, story, reel, YouTube thumbnail, Facebook cover. Pick a canvas and start designing without the math.</p>
     </div>
   </div>
 
   <!-- How it works -->
   <div style="text-align:center;margin-bottom:60px;">
-    <h2 style="font-family:"Plus Jakarta Sans",sans-serif;font-size:clamp(24px,3.5vw,36px);font-weight:800;letter-spacing:-0.5px;margin-bottom:40px;">How it works</h2>
+    <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-size:clamp(24px,3.5vw,36px);font-weight:800;letter-spacing:-0.5px;margin-bottom:40px;">How it works</h2>
     <div style="display:flex;gap:32px;flex-wrap:wrap;justify-content:center;">
       <div style="flex:1;min-width:200px;max-width:280px;text-align:center;">
-        <div style="font-family:"Plus Jakarta Sans",sans-serif;font-size:36px;font-weight:800;color:rgba(162,28,175,0.3);margin-bottom:8px;">1</div>
+        <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:36px;font-weight:800;color:rgba(162,28,175,0.3);margin-bottom:8px;">1</div>
         <div style="font-size:15px;font-weight:600;margin-bottom:6px;">Pick a canvas size</div>
         <p style="font-size:13px;color:var(--muted);line-height:1.6;">Choose from Instagram, YouTube, Facebook presets or set custom dimensions.</p>
       </div>
       <div style="flex:1;min-width:200px;max-width:280px;text-align:center;">
-        <div style="font-family:"Plus Jakarta Sans",sans-serif;font-size:36px;font-weight:800;color:rgba(162,28,175,0.3);margin-bottom:8px;">2</div>
+        <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:36px;font-weight:800;color:rgba(162,28,175,0.3);margin-bottom:8px;">2</div>
         <div style="font-size:15px;font-weight:600;margin-bottom:6px;">Design your graphic</div>
         <p style="font-size:13px;color:var(--muted);line-height:1.6;">Add text, upload photos, layer elements, and remove backgrounds.</p>
       </div>
       <div style="flex:1;min-width:200px;max-width:280px;text-align:center;">
-        <div style="font-family:"Plus Jakarta Sans",sans-serif;font-size:36px;font-weight:800;color:rgba(162,28,175,0.3);margin-bottom:8px;">3</div>
+        <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:36px;font-weight:800;color:rgba(162,28,175,0.3);margin-bottom:8px;">3</div>
         <div style="font-size:15px;font-weight:600;margin-bottom:6px;">Export or save</div>
         <p style="font-size:13px;color:var(--muted);line-height:1.6;">Download your design as a high-res PNG, or save the project to pick up where you left off.</p>
       </div>
@@ -254,7 +281,7 @@
 
   <!-- Comparison -->
   <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:40px;text-align:center;margin-bottom:80px;">
-    <h2 style="font-family:"Plus Jakarta Sans",sans-serif;font-size:24px;font-weight:800;margin-bottom:8px;">Why not just use Canva?</h2>
+    <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-size:24px;font-weight:800;margin-bottom:8px;">Why not just use Canva?</h2>
     <p style="color:var(--muted);font-size:15px;margin-bottom:28px;">You can. But Canva charges $13/month for premium features. Ryxa's design studio is one of 12 creator tools in the dashboard.</p>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;text-align:left;">
       <div style="padding:18px;background:rgba(162,28,175,0.06);border:1px solid rgba(162,28,175,0.2);border-radius:12px;">
@@ -274,9 +301,21 @@
 
   <!-- CTA -->
   <div style="text-align:center;padding:40px 0 20px;">
-    <h2 style="font-family:"Plus Jakarta Sans",sans-serif;font-size:clamp(24px,3.5vw,36px);font-weight:800;letter-spacing:-0.5px;margin-bottom:12px;">Start designing for free</h2>
+    <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-size:clamp(24px,3.5vw,36px);font-weight:800;letter-spacing:-0.5px;margin-bottom:12px;">Start designing for free</h2>
     <p style="color:var(--muted);font-size:15px;margin-bottom:28px;max-width:480px;margin-left:auto;margin-right:auto;">No credit card. No watermarks. Just open and create.</p>
     <a href="dashboard.html" data-nav-action="try-tool" class="btn-primary" style="padding:14px 36px;font-size:16px;">Open Design Studio</a>
+  </div>
+</section>
+
+<section class="photo-break reverse">
+  <div class="photo-break-content">
+    <div class="photo-break-eyebrow">All in one place</div>
+    <h2>One less subscription, one less tab.</h2>
+    <p>Your link in bio, your media kit, your digital products, and now your graphics all live in the same place. No more bouncing between five tools to get one post out the door.</p>
+    <p>Design Studio is built right into Ryxa, so the thumbnail you make is one click from the content you publish. Less friction, more creating.</p>
+  </div>
+  <div class="photo-break-image">
+    <img src="photos/design-photo2.webp" alt="Creator enjoying a night at the fair" loading="lazy">
   </div>
 </section>
 
