@@ -139,6 +139,33 @@ function renderBulkBar() {
 
 var clientsTotalCount = 0;
 var clientsStatsData = { total: 0, optin: 0, optout: 0 };
+
+// =============================================================================
+// MANUAL SUBSCRIBER ATTESTATION / SAFEGUARDS
+// =============================================================================
+// Three layers:
+//   1. Per-row attestation on every single manual add (timestamp written to
+//      manual_subscribers.attestation_acknowledged_at).
+//   2. Per-import attestation on every CSV bulk import (logged to
+//      manual_subscriber_imports via /api/log-manual-subscribers-import).
+//   3. Soft threshold at 5k manual_subscribers (stricter attestation, logged
+//      to manual_subscriber_threshold_events, fires notification email to
+//      notifications@ryxa.io). Once cleared, user never sees it again.
+//
+// Hard ceiling at 1M is enforced by a DB trigger. The client just catches the
+// specific error message and shows a friendly modal.
+var MANUAL_SUBS_THRESHOLD = 5000;
+var MANUAL_SUBS_ATTESTATION_VERSION = 'v1';
+var MANUAL_SUBS_ATTESTATION_SINGLE = 'I confirm I have permission to add this contact to my Ryxa subscriber list.';
+var MANUAL_SUBS_ATTESTATION_IMPORT = 'I confirm that the contacts in this list have opted in to receive emails from me, and I have the legal right to import them into Ryxa.';
+var MANUAL_SUBS_ATTESTATION_THRESHOLD = 'I confirm that every email in this list was collected with active, voluntary opt-in consent from the contact. I have records of that consent and can produce them if requested. I understand that Ryxa may suspend or terminate my account if complaints, abuse reports, or legal issues arise from this list.';
+var MANUAL_SUBS_API_LOG_IMPORT = '/api/log-manual-subscribers-import';
+var MANUAL_SUBS_API_CROSS_THRESHOLD = '/api/cross-manual-subscribers-threshold';
+
+// Cache: whether this user has already cleared the 5k threshold attestation.
+// Loaded once on clients page init; updated locally after successful crossing.
+var clientsThresholdCleared = null;
+
 // Debounce timer for the search input. Each keystroke resets the timer; the
 // query only fires once the user pauses typing (200ms). Without this, every
 // letter would trigger a network call at 30k subscribers.
@@ -980,6 +1007,8 @@ function clientsOpenAdd() {
     var el = document.getElementById(id);
     if (el) el.value = '';
   });
+  var attestEl = document.getElementById('clients-add-attest');
+  if (attestEl) attestEl.checked = false;
   var err = document.getElementById('clients-add-error');
   if (err) { err.style.display = 'none'; err.textContent = ''; }
   modal.style.display = 'flex';
@@ -1004,6 +1033,7 @@ async function clientsSubmitAdd() {
   var note = (document.getElementById('clients-add-note').value || '').trim();
   var err = document.getElementById('clients-add-error');
   var submitBtn = document.getElementById('clients-add-submit-btn');
+  var attestCheckbox = document.getElementById('clients-add-attest');
 
   function showErr(msg) {
     if (err) { err.style.display = 'block'; err.textContent = msg; }
@@ -1011,6 +1041,11 @@ async function clientsSubmitAdd() {
 
   if (!emailRaw) return showErr('Email is required.');
   if (!CLIENTS_EMAIL_RE.test(emailRaw)) return showErr("That doesn't look like a valid email address.");
+
+  // Attestation required: user must confirm they have permission to add this contact.
+  if (!attestCheckbox || !attestCheckbox.checked) {
+    return showErr('Please confirm you have permission to add this contact.');
+  }
 
   var emailLc = emailRaw.toLowerCase();
 
@@ -1028,13 +1063,29 @@ async function clientsSubmitAdd() {
   if (submitBtn) submitBtn.disabled = true;
   if (err) { err.style.display = 'none'; err.textContent = ''; }
 
+  // Soft threshold check: count their CURRENT manual_subscribers and see if
+  // this add will push them to 5k. If yes and they have not cleared the flag,
+  // show the attestation modal first. They can cancel.
+  try {
+    var currentManualCount = await clientsCountManualSubscribers();
+    var willBe = currentManualCount + 1;
+    var thresholdResult = await clientsCheckThresholdBeforeAction(willBe);
+    if (thresholdResult === 'cancelled') {
+      if (submitBtn) submitBtn.disabled = false;
+      return;
+    }
+  } catch (e) {
+    console.warn('Threshold pre-check failed (proceeding):', e);
+  }
+
   try {
     var { error } = await sb.from('manual_subscribers').insert({
       creator_id: currentUser.id,
       email: emailRaw,
       first_name: firstName || null,
       last_name: lastName || null,
-      added_via: 'manual'
+      added_via: 'manual',
+      attestation_acknowledged_at: new Date().toISOString()
     });
     if (error) throw error;
 
@@ -1063,9 +1114,13 @@ async function clientsSubmitAdd() {
     clientsCloseAdd();
   } catch (e) {
     console.error('Add subscriber failed:', e);
-    // 23505 is the Postgres unique-violation code. Means the email exists in
-    // manual_subscribers (possibly added in another tab). Friendly message.
-    if (e && (e.code === '23505' || /duplicate/i.test(e.message || ''))) {
+    // Hard ceiling hit: trigger raised manual_subscriber_limit_exceeded.
+    var ceilingMsg = clientsParseCeilingError(e);
+    if (ceilingMsg) {
+      showModalAlert('Subscriber limit reached', ceilingMsg);
+    } else if (e && (e.code === '23505' || /duplicate/i.test(e.message || ''))) {
+      // 23505 is the Postgres unique-violation code. Means the email exists in
+      // manual_subscribers (possibly added in another tab). Friendly message.
       showErr('This email is already in your subscribers list.');
     } else {
       showErr(e.message || 'Could not add subscriber.');
@@ -1116,6 +1171,8 @@ function clientsOpenImport() {
   // Reset the file input so re-uploading the same file fires change.
   var fileEl = document.getElementById('clients-import-file');
   if (fileEl) fileEl.value = '';
+  var attestEl = document.getElementById('clients-import-attest');
+  if (attestEl) attestEl.checked = false;
   modal.style.display = 'flex';
   clientsImportUpdateActionBtn('Import', true);
   clientsImportWireDropzone();
@@ -1468,6 +1525,25 @@ async function clientsImportRunImport() {
   var stats = clientsImport.validation;
   if (!stats || stats.toAdd === 0) return;
 
+  // Attestation required: user must confirm before any rows are written.
+  var attestCheckbox = document.getElementById('clients-import-attest');
+  if (!attestCheckbox || !attestCheckbox.checked) {
+    showModalAlert('Confirmation required', 'Please confirm that the contacts in this list have opted in to receive emails from you before importing.');
+    return;
+  }
+
+  // Soft threshold check: count current manual_subscribers and see if this
+  // import will push the user across 5k for the first time. If yes and they
+  // have not cleared the flag, show the stricter attestation modal first.
+  try {
+    var currentManualCount = await clientsCountManualSubscribers();
+    var willBe = currentManualCount + stats.toAdd;
+    var thresholdResult = await clientsCheckThresholdBeforeAction(willBe);
+    if (thresholdResult === 'cancelled') return;
+  } catch (e) {
+    console.warn('Threshold pre-check failed (proceeding):', e);
+  }
+
   clientsImportShowStep('progress');
   clientsImportUpdateActionBtn('Importing...', true);
   document.getElementById('clients-import-cancel-btn').disabled = true;
@@ -1476,6 +1552,7 @@ async function clientsImportRunImport() {
   var total = rows.length;
   var imported = 0;
   var failed = 0;
+  var ceilingHit = null; // string error message if the 1M trigger fired
   var progressLabel = document.getElementById('clients-import-progress-label');
   var progressFill = document.getElementById('clients-import-progress-fill');
   var progressMeta = document.getElementById('clients-import-progress-meta');
@@ -1487,6 +1564,7 @@ async function clientsImportRunImport() {
   }
 
   for (var i = 0; i < rows.length; i += CLIENTS_IMPORT_BATCH_SIZE) {
+    if (ceilingHit) break; // Stop further batches once trigger has fired.
     var batch = rows.slice(i, i + CLIENTS_IMPORT_BATCH_SIZE);
     if (progressLabel) progressLabel.textContent = 'Importing... batch ' + (Math.floor(i / CLIENTS_IMPORT_BATCH_SIZE) + 1) + ' of ' + Math.ceil(rows.length / CLIENTS_IMPORT_BATCH_SIZE);
     try {
@@ -1497,16 +1575,38 @@ async function clientsImportRunImport() {
         ignoreDuplicates: true
       });
       if (error) {
-        console.error('Batch insert failed:', error);
-        failed += batch.length;
+        var ceilingMsg = clientsParseCeilingError(error);
+        if (ceilingMsg) {
+          ceilingHit = ceilingMsg;
+          failed += batch.length;
+        } else {
+          console.error('Batch insert failed:', error);
+          failed += batch.length;
+        }
       } else {
         imported += batch.length;
       }
     } catch (e) {
-      console.error('Batch threw:', e);
+      var ceilingMsg2 = clientsParseCeilingError(e);
+      if (ceilingMsg2) {
+        ceilingHit = ceilingMsg2;
+      } else {
+        console.error('Batch threw:', e);
+      }
       failed += batch.length;
     }
     updateProgress();
+  }
+
+  // If the ceiling fired, show a friendly modal explaining what happened.
+  if (ceilingHit) {
+    showModalAlert('Subscriber limit reached', ceilingHit);
+  }
+
+  // Log this import event to the audit table, best-effort. Skip if nothing
+  // was actually imported (ceiling hit on first batch with no successes).
+  if (imported > 0) {
+    clientsApiLogImport(imported); // fire-and-forget
   }
 
   // Show result step.
@@ -1636,3 +1736,189 @@ document.addEventListener('keydown', function(e) {
   });
 });
 
+
+// =============================================================================
+// MANUAL SUBSCRIBER THRESHOLD HELPERS
+// =============================================================================
+
+// Fetch the user's manual_subscribers count (NOT the combined view count).
+// This is the count that matters for the 5k threshold check.
+async function clientsCountManualSubscribers() {
+  try {
+    var res = await sb.from('manual_subscribers')
+      .select('email', { count: 'exact', head: true })
+      .eq('creator_id', currentUser.id);
+    return res.count || 0;
+  } catch (e) {
+    console.warn('clientsCountManualSubscribers failed:', e);
+    return 0;
+  }
+}
+
+// Load the user's threshold-cleared flag once. Cached in clientsThresholdCleared.
+// Called lazily; safe to call multiple times.
+async function clientsLoadThresholdCleared() {
+  if (clientsThresholdCleared !== null) return clientsThresholdCleared;
+  try {
+    var res = await sb.from('profiles')
+      .select('manual_subscribers_threshold_cleared_at')
+      .eq('user_id', currentUser.id)
+      .maybeSingle();
+    clientsThresholdCleared = !!(res.data && res.data.manual_subscribers_threshold_cleared_at);
+  } catch (e) {
+    console.warn('clientsLoadThresholdCleared failed:', e);
+    // Default to "not cleared" on error so we gate (safe default).
+    clientsThresholdCleared = false;
+  }
+  return clientsThresholdCleared;
+}
+
+// Detects the specific DB trigger error for hitting the 1M ceiling. Returns the
+// human-readable portion of the message if matched, else null.
+function clientsParseCeilingError(err) {
+  if (!err) return null;
+  var msg = err.message || (err.details ? err.details : '') || '';
+  // Trigger raises with prefix 'manual_subscriber_limit_exceeded:' before the message.
+  var match = /manual_subscriber_limit_exceeded:\s*(.+)/.exec(msg);
+  if (match) return match[1].trim();
+  return null;
+}
+
+// POST to /api/log-manual-subscribers-import. Best-effort; warns on failure
+// but does not block the user's flow.
+async function clientsApiLogImport(rowsImported) {
+  try {
+    var session = (await sb.auth.getSession()).data.session;
+    if (!session) return;
+    var res = await fetch(MANUAL_SUBS_API_LOG_IMPORT, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer ' + session.access_token
+      },
+      body: JSON.stringify({
+        rows_imported: rowsImported,
+        attestation_text: MANUAL_SUBS_ATTESTATION_IMPORT,
+        attestation_version: MANUAL_SUBS_ATTESTATION_VERSION
+      })
+    });
+    if (!res.ok) {
+      console.warn('clientsApiLogImport failed:', res.status, await res.text().catch(function() { return ''; }));
+    }
+  } catch (e) {
+    console.warn('clientsApiLogImport error:', e);
+  }
+}
+
+// POST to /api/cross-manual-subscribers-threshold after the user has attested.
+// Returns true on success, false on failure (so caller can decide whether to
+// proceed or roll back).
+async function clientsApiCrossThreshold(subscriberCount) {
+  try {
+    var session = (await sb.auth.getSession()).data.session;
+    if (!session) return false;
+    var res = await fetch(MANUAL_SUBS_API_CROSS_THRESHOLD, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer ' + session.access_token
+      },
+      body: JSON.stringify({
+        threshold_count: MANUAL_SUBS_THRESHOLD,
+        subscriber_count_at_crossing: subscriberCount,
+        attestation_text: MANUAL_SUBS_ATTESTATION_THRESHOLD,
+        attestation_version: MANUAL_SUBS_ATTESTATION_VERSION
+      })
+    });
+    if (!res.ok) {
+      console.warn('clientsApiCrossThreshold failed:', res.status);
+      return false;
+    }
+    // Cache locally so the modal does not re-show in this session.
+    clientsThresholdCleared = true;
+    return true;
+  } catch (e) {
+    console.warn('clientsApiCrossThreshold error:', e);
+    return false;
+  }
+}
+
+// Show the soft-threshold attestation modal. Returns a Promise that resolves
+// to true if the user attested and the API call succeeded, false if they
+// cancelled or the API call failed.
+//
+// Built on top of showModalConfirm, with the attestation text in a styled
+// callout box and the confirm button disabled until the checkbox is ticked.
+function clientsShowThresholdAttestation(subscriberCountWillBe) {
+  return new Promise(function(resolve) {
+    var backdrop = document.createElement('div');
+    backdrop.className = 'modal-backdrop';
+    backdrop.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;';
+
+    var modal = document.createElement('div');
+    modal.style.cssText = 'background:#15101f;color:#f2effb;border-radius:14px;max-width:520px;width:100%;padding:28px;border:1px solid rgba(255,255,255,0.08);box-shadow:0 30px 80px rgba(0,0,0,0.5);';
+    modal.innerHTML = '<div style="font-size:12px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#facc15;margin-bottom:10px;">One quick confirmation</div>' +
+      '<h3 style="font-family:\'Plus Jakarta Sans\',sans-serif;font-size:22px;font-weight:800;margin:0 0 12px;line-height:1.25;">You are crossing 5,000 subscribers</h3>' +
+      '<p style="font-size:14px;line-height:1.6;color:rgba(255,255,255,0.75);margin:0 0 16px;">Because this is a large list, we ask power users to confirm a few things before continuing. You will only see this once.</p>' +
+      '<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:16px;margin-bottom:18px;">' +
+        '<div style="font-size:13px;line-height:1.65;color:rgba(255,255,255,0.85);font-style:italic;">"' +
+          MANUAL_SUBS_ATTESTATION_THRESHOLD.replace(/"/g, '&quot;') +
+        '"</div>' +
+      '</div>' +
+      '<label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;margin-bottom:22px;">' +
+        '<input type="checkbox" id="ms-threshold-check" style="margin-top:2px;flex-shrink:0;width:18px;height:18px;cursor:pointer;accent-color:#facc15;">' +
+        '<span style="font-size:14px;line-height:1.5;color:rgba(255,255,255,0.85);">I have read and agree to the statement above.</span>' +
+      '</label>' +
+      '<div style="display:flex;gap:10px;justify-content:flex-end;">' +
+        '<button id="ms-threshold-cancel" style="background:transparent;border:1px solid rgba(255,255,255,0.18);color:rgba(255,255,255,0.85);padding:10px 20px;border-radius:8px;font-size:14px;font-weight:500;font-family:inherit;cursor:pointer;">Cancel</button>' +
+        '<button id="ms-threshold-confirm" disabled style="background:#facc15;border:none;color:#15101f;padding:10px 20px;border-radius:8px;font-size:14px;font-weight:600;font-family:inherit;cursor:not-allowed;opacity:0.5;">Continue</button>' +
+      '</div>';
+
+    backdrop.appendChild(modal);
+    document.body.appendChild(backdrop);
+
+    var checkbox = modal.querySelector('#ms-threshold-check');
+    var confirmBtn = modal.querySelector('#ms-threshold-confirm');
+    var cancelBtn = modal.querySelector('#ms-threshold-cancel');
+
+    checkbox.addEventListener('change', function() {
+      confirmBtn.disabled = !checkbox.checked;
+      confirmBtn.style.cursor = checkbox.checked ? 'pointer' : 'not-allowed';
+      confirmBtn.style.opacity = checkbox.checked ? '1' : '0.5';
+    });
+
+    function close(result) {
+      if (backdrop.parentNode) backdrop.parentNode.removeChild(backdrop);
+      resolve(result);
+    }
+
+    cancelBtn.addEventListener('click', function() { close(false); });
+    confirmBtn.addEventListener('click', async function() {
+      if (!checkbox.checked) return;
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = 'Saving...';
+      var ok = await clientsApiCrossThreshold(subscriberCountWillBe);
+      if (!ok) {
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = 'Continue';
+        showModalAlert('Could not save', 'We could not record your attestation right now. Please try again in a moment.');
+        return;
+      }
+      close(true);
+    });
+  });
+}
+
+// Wrapper for the threshold check used by both single-add and CSV import.
+// Given the count that the action would result in, returns:
+//   - 'cleared': user has already attested, proceed
+//   - 'attested': user just attested via the modal, proceed
+//   - 'cancelled': user cancelled the modal, abort the action
+//   - 'not-needed': would not cross 5k, proceed without prompting
+async function clientsCheckThresholdBeforeAction(countWillBe) {
+  if (countWillBe < MANUAL_SUBS_THRESHOLD) return 'not-needed';
+  var cleared = await clientsLoadThresholdCleared();
+  if (cleared) return 'cleared';
+  var attested = await clientsShowThresholdAttestation(countWillBe);
+  return attested ? 'attested' : 'cancelled';
+}
