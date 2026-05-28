@@ -161,6 +161,7 @@ var MANUAL_SUBS_ATTESTATION_IMPORT = 'I confirm that the contacts in this list h
 var MANUAL_SUBS_ATTESTATION_THRESHOLD = 'I confirm that every email in this list was collected with active, voluntary opt-in consent from the contact. I have records of that consent and can produce them if requested. I understand that Ryxa may suspend or terminate my account if complaints, abuse reports, or legal issues arise from this list.';
 var MANUAL_SUBS_API_LOG_IMPORT = '/api/log-manual-subscribers-import';
 var MANUAL_SUBS_API_CROSS_THRESHOLD = '/api/cross-manual-subscribers-threshold';
+var EXPORT_RATE_LIMIT_API = '/api/check-subscriber-export';
 
 // Cache: whether this user has already cleared the 5k threshold attestation.
 // Loaded once on clients page init; updated locally after successful crossing.
@@ -688,6 +689,42 @@ async function exportSubscribers() {
 
   try {
     var filters = clientsReadFilterState();
+
+    // Rate limit check: 3 exports per hour, 10 per day.
+    // We hit the server first so any limit-hit returns instantly without
+    // showing fake "preparing" UI. If allowed, the server records this
+    // export atomically so simultaneous attempts cannot both pass the gate.
+    try {
+      var session = (await sb.auth.getSession()).data.session;
+      if (!session) {
+        showModalAlert('Not signed in', 'Please sign in again to export.');
+        return;
+      }
+      var rateLimitRes = await fetch(EXPORT_RATE_LIMIT_API, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + session.access_token
+        },
+        body: JSON.stringify({ rows_estimate: 0 })
+      });
+      if (rateLimitRes.status === 429) {
+        var rlBody = await rateLimitRes.json().catch(function() { return {}; });
+        showModalAlert('Export limit reached', rlBody.message || 'You have reached the export rate limit. Please try again later.');
+        return;
+      }
+      if (!rateLimitRes.ok) {
+        // Fail open: log and proceed. Better UX than blocking on a transient
+        // 500 from the rate-limit endpoint. The hard ceiling and threshold
+        // attestation already protect against the most damaging abuse paths.
+        console.warn('Export rate-limit check returned', rateLimitRes.status, '- proceeding anyway');
+      }
+    } catch (rlErr) {
+      // Network failure on the rate-limit endpoint. Same reasoning as above:
+      // fail open, log, proceed.
+      console.warn('Export rate-limit check failed, proceeding:', rlErr);
+    }
+
     setBtnLabel('Preparing export...', true);
 
     // Build the base query function. Each call creates a fresh query so we
