@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Assistant for Creators | Ryxa</title>
+<meta name="description" content="A creator-trained AI assistant. Ask about brand deal rates, scripts, hooks, and outreach, and get specific, actionable answers in seconds.">
+<meta property="og:title" content="AI Assistant for Creators | Ryxa">
+<meta property="og:description" content="A creator-trained AI assistant. Ask about brand deal rates, scripts, hooks, and outreach, and get specific, actionable answers in seconds.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.ryxa.io/tools-chatbox">
+<meta property="og:image" content="https://www.ryxa.io/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="shortcut icon" href="/favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0816;
+    --surface: #15101f;
+    --surface2: #1d1729;
+    --border: rgba(255,255,255,0.08);
+    --border-hover: rgba(255,255,255,0.18);
+    --accent: #6d28d9;
+    --accent2: #22d3ee;
+    --accent3: #c4b5fd;
+    --accent-glow: rgba(109,40,217,0.45);
+    --text: #f2effb;
+    --muted: #c2b8d6;
+    --muted2: #cabfe0;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { font-family: "DM Sans", sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+
+  /* NAV */
+  .logo { font-family: "Syne", sans-serif; font-weight: 800; font-size: 22px; letter-spacing: -0.5px; display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); }
+  .logo img { width: 38px; height: 38px; object-fit: contain; }
+  .nav-links { display: flex; align-items: center; gap: 32px; }
+  .nav-links a { color: var(--muted); font-size: 14px; text-decoration: none; transition: color 0.2s; }
+  .nav-links a:hover { color: var(--text); }
+  .nav-tools-wrap { position: relative; display: flex; align-items: center; }
+  .nav-tools-trigger { display: inline-flex; align-items: center; gap: 5px; color: var(--muted); font-size: 14px; cursor: pointer; background: none; border: none; font-family: 'DM Sans', sans-serif; padding: 0; transition: color 0.2s; }
+  .nav-tools-trigger:hover, .nav-tools-wrap:hover .nav-tools-trigger { color: var(--text); }
+  .nav-tools-trigger svg { transition: transform 0.2s; }
+  .nav-tools-wrap:hover .nav-tools-trigger svg { transform: rotate(180deg); }
+  .nav-tools-menu { position: absolute; top: 100%; left: 0; transform: translateY(8px); width: 720px; max-width: calc(100vw - 32px); background: rgba(15,15,26,0.98); backdrop-filter: blur(20px); border: 1px solid var(--border-hover); border-radius: 16px; padding: 18px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); opacity: 0; pointer-events: none; transition: opacity 0.18s, transform 0.18s; z-index: 250; }
+  .nav-tools-wrap:hover .nav-tools-menu { opacity: 1; pointer-events: all; transform: translateY(0); }
+  .nav-tools-wrap::before { content: ''; position: absolute; top: 100%; left: 0; right: 0; height: 12px; }
+  .nav-tools-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+  .nav-tools-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px; border-radius: 10px; text-decoration: none; transition: background 0.15s; color: inherit; }
+  .nav-tools-item:hover { background: rgba(109,40,217,0.08); }
+  .nav-tools-item-icon { width: 36px; height: 36px; border-radius: 9px; background: rgba(109,40,217,0.1); border: 1px solid rgba(109,40,217,0.2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #c4b5fd; }
+  .nav-tools-item-icon svg { width: 17px; height: 17px; }
+  .nav-tools-item-content { flex: 1; min-width: 0; }
+  .nav-tools-item-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; color: var(--text); margin-bottom: 2px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .nav-tools-item-desc { font-size: 11px; color: var(--muted); line-height: 1.4; }
+  .nav-tools-tier { font-size: 8px; padding: 2px 6px; border-radius: 4px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; vertical-align: middle; }
+  .nav-tools-tier.pro { background: rgba(109,40,217,0.15); border: 1px solid rgba(109,40,217,0.3); color: #c4b5fd; }
+  .nav-tools-tier.free { background: rgba(74,222,128,0.12); border: 1px solid rgba(74,222,128,0.3); color: #4ade80; }
+  .nav-tools-tier.max { background: linear-gradient(135deg,#22d3ee,#c4b5fd); color: #0b0816; border: none; }
+  .nav-tools-footer { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .nav-tools-footer-link { font-size: 12px; color: #c4b5fd; text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 4px; }
+  .nav-tools-footer-link:hover { color: #c4b5fd; }
+  .nav-right { display: flex; align-items: center; gap: 12px; }
+  .btn-ghost { background: transparent; border: 1px solid var(--border-hover); color: var(--text); border-radius: 8px; padding: 8px 20px; font-size: 14px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.2s; }
+  .btn-ghost:hover { border-color: var(--accent2); color: #c4b5fd; }
+  .btn-nav-cta { background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 9px 22px; font-size: 14px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.2s; box-shadow: 0 0 20px var(--accent-glow); }
+  .btn-nav-cta:hover { background: #5b21b6; transform: translateY(-1px); }
+  .hamburger { display: none; flex-direction: column; justify-content: center; gap: 5px; background: none; border: none; cursor: pointer; padding: 6px; }
+  .hamburger span { display: block; width: 22px; height: 2px; background: var(--text); border-radius: 2px; }
+  .mobile-menu { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 300; flex-direction: column; padding: 80px 32px 40px; }
+  .mobile-menu.open { display: flex; }
+  .mobile-menu-links { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+  .mobile-menu-links a { color: var(--text); font-size: 24px; font-family: "Syne", sans-serif; font-weight: 700; text-decoration: none; padding: 14px 0; border-bottom: 1px solid var(--border); }
+  .mobile-menu-bottom { margin-top: 32px; display: flex; flex-direction: column; gap: 12px; }
+  .mobile-cta { width: 100%; padding: 16px; background: var(--accent); color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; text-decoration: none; display: block; text-align: center; }
+  .mobile-signin { width: 100%; padding: 16px; background: transparent; border: 1px solid var(--border-hover); color: var(--text); border-radius: 12px; font-size: 16px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; text-decoration: none; display: block; text-align: center; }
+
+  /* HERO */
+  .hero { position: relative; padding: 60px 32px 60px; text-align: center; max-width: 1200px; margin: 0 auto; }
+  .hero-bg { display: none; }
+  .hero-content { position: relative; z-index: 1; max-width: 880px; margin: 0 auto; }
+  .hero-tier-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; background: linear-gradient(135deg,rgba(34,211,238,0.15),rgba(196,181,253,0.15)); border: 1px solid rgba(34,211,238,0.35); border-radius: 999px; font-size: 12px; color: #c4b5fd; font-weight: 600; margin-bottom: 24px; letter-spacing: 0.05em; text-transform: uppercase; }
+  .hero-tier-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #c4b5fd; box-shadow: 0 0 8px #c4b5fd; }
+  .hero h1 { font-family: "Plus Jakarta Sans", sans-serif; font-size: clamp(36px, 6vw, 64px); font-weight: 800; line-height: 1.1; letter-spacing: -1.5px; margin-bottom: 20px; }
+  .hero-tagline { font-size: 18px; color: var(--muted); line-height: 1.6; margin-bottom: 32px; max-width: 640px; margin-left: auto; margin-right: auto; }
+  .hero-cta-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn-primary { background: var(--accent); color: #fff; border: none; border-radius: 12px; padding: 14px 28px; font-size: 15px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 24px var(--accent-glow); text-decoration: none; display: inline-block; }
+  .btn-primary:hover { background: #5b21b6; transform: translateY(-1px); box-shadow: 0 6px 28px var(--accent-glow); }
+  .btn-secondary { background: transparent; border: 1px solid var(--border-hover); color: var(--text); border-radius: 12px; padding: 14px 28px; font-size: 15px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-block; }
+  .btn-secondary:hover { border-color: var(--accent2); color: #c4b5fd; }
+
+  /* SECTIONS */
+  section { padding: 80px 32px; max-width: 1200px; margin: 0 auto; position: relative; }
+  .section-label { display: inline-block; padding: 5px 13px; background: rgba(109,40,217,0.1); border: 1px solid rgba(109,40,217,0.25); border-radius: 999px; font-size: 11px; color: #c4b5fd; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600; margin-bottom: 16px; }
+  .section-title { font-family: "Plus Jakarta Sans", sans-serif; font-size: clamp(28px, 4vw, 42px); font-weight: 800; line-height: 1.15; letter-spacing: -1px; margin-bottom: 14px; max-width: 700px; }
+  .section-sub { font-size: 16px; color: var(--muted); line-height: 1.6; max-width: 640px; margin-bottom: 50px; }
+
+  /* HOW IT WORKS */
+  .steps-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+  .step-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px 24px; position: relative; transition: all 0.3s; }
+  .step-card:hover { border-color: rgba(109,40,217,0.4); transform: translateY(-4px); }
+  .step-num { font-family: "Plus Jakarta Sans", sans-serif; font-size: 14px; font-weight: 700; color: #c4b5fd; margin-bottom: 14px; letter-spacing: 0.05em; }
+  .step-icon { width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, rgba(34,211,238,0.15), rgba(196,181,253,0.1)); border: 1px solid rgba(34,211,238,0.25); display: flex; align-items: center; justify-content: center; color: #c4b5fd; margin-bottom: 16px; }
+  .step-title { font-family: "Plus Jakarta Sans", sans-serif; font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+  .step-desc { font-size: 13px; color: var(--muted); line-height: 1.55; }
+
+  /* FEATURE HIGHLIGHTS */
+  .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .feature-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 28px 24px; transition: all 0.3s; }
+  .feature-card:hover { border-color: rgba(109,40,217,0.3); background: rgba(109,40,217,0.04); }
+  .feature-icon { width: 38px; height: 38px; border-radius: 10px; background: rgba(109,40,217,0.1); border: 1px solid rgba(109,40,217,0.2); display: flex; align-items: center; justify-content: center; color: #c4b5fd; margin-bottom: 16px; }
+  .feature-title { font-family: "Plus Jakarta Sans", sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+  .feature-desc { font-size: 13px; color: var(--muted); line-height: 1.55; }
+
+  /* PRICING TIER CALLOUT */
+  .pricing-callout { background: linear-gradient(135deg, rgba(34,211,238,0.08), rgba(196,181,253,0.05)); border: 1px solid rgba(34,211,238,0.25); border-radius: 20px; padding: 40px; text-align: center; max-width: 720px; margin: 0 auto; position: relative; overflow: hidden; }
+  .pricing-callout::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(ellipse at center, rgba(196,181,253,0.08) 0%, transparent 50%); pointer-events: none; }
+  .pricing-callout-content { position: relative; z-index: 1; }
+  .pricing-tier-name { font-family: "Plus Jakarta Sans", sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #c4b5fd; margin-bottom: 8px; }
+  .pricing-tier-price { font-family: "Plus Jakarta Sans", sans-serif; font-size: 48px; font-weight: 800; letter-spacing: -1.5px; margin-bottom: 6px; }
+  .pricing-tier-price-period { font-size: 16px; color: var(--muted); font-weight: 400; letter-spacing: 0; }
+  .pricing-tier-desc { font-size: 14px; color: var(--muted); margin-bottom: 24px; }
+  .pricing-tier-includes { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 26px; }
+  .pricing-tier-pill { font-size: 12px; padding: 5px 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 999px; color: var(--muted); }
+
+  /* FAQ */
+  .faq-list { max-width: 720px; margin: 0 auto; }
+  .faq-item { border-bottom: 1px solid var(--border); padding: 22px 0; }
+  .faq-item:first-child { border-top: 1px solid var(--border); }
+  .faq-q { display: flex; align-items: center; justify-content: space-between; cursor: pointer; gap: 16px; }
+  .faq-q-text { font-family: "Plus Jakarta Sans", sans-serif; font-size: 17px; font-weight: 600; color: var(--text); flex: 1; }
+  .faq-toggle { width: 28px; height: 28px; border-radius: 50%; background: var(--surface); border: 1px solid var(--border); color: var(--muted); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s; font-size: 18px; line-height: 1; }
+  .faq-item.open .faq-toggle { background: var(--accent); color: #fff; border-color: var(--accent); transform: rotate(45deg); }
+  .faq-a { max-height: 0; overflow: hidden; transition: max-height 0.3s ease, padding 0.3s; color: var(--muted); font-size: 14px; line-height: 1.65; }
+  .faq-item.open .faq-a { max-height: 500px; padding-top: 12px; }
+
+  /* BOTTOM CTA */
+  .bottom-cta { padding: 80px 32px 100px; text-align: center; max-width: 800px; margin: 0 auto; }
+  .bottom-cta h2 { font-family: "Plus Jakarta Sans", sans-serif; font-size: clamp(28px, 4vw, 40px); font-weight: 800; letter-spacing: -1px; margin-bottom: 14px; }
+  .bottom-cta p { font-size: 16px; color: var(--muted); margin-bottom: 28px; }
+
+  /* FOOTER */
+  footer { padding: 50px 32px 30px; max-width: 1200px; margin: 0 auto; border-top: 1px solid var(--border); }
+  .footer-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
+  .footer-links { display: flex; gap: 24px; flex-wrap: wrap; }
+  .footer-links a { color: var(--muted); font-size: 13px; text-decoration: none; transition: color 0.2s; }
+  .footer-links a:hover { color: var(--text); }
+  .footer-copy { font-size: 12px; color: var(--muted); }
+
+  /* RESPONSIVE */
+  @media (max-width: 900px) {
+    .steps-grid { grid-template-columns: repeat(2, 1fr); }
+    .features-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 640px) {
+    nav { padding: 0 20px; }
+    .nav-links, .nav-right { display: none; }
+    .hamburger { display: flex; }
+    .hero { padding: 60px 20px 40px; }
+    section { padding: 60px 20px; }
+    .steps-grid, .features-grid { grid-template-columns: 1fr; }
+    .pricing-callout { padding: 30px 20px; }
+    .pricing-tier-price { font-size: 36px; }
+  }
+
+</style>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<style>body{opacity:0;transition:opacity 0.2s ease;}body.site-ready{opacity:1;}</style>
+</head>
+<body>
+
+<div id="site-header"></div>
+
+
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <h1>Pricing, scripts, hooks.<br>Just ask.</h1>
+    <p class="hero-tagline">ChatBox is a creator-trained AI assistant built into Ryxa. Ask it what to charge for a brand deal, get a Reel script with a strong hook, brainstorm video ideas, or figure out how to reply to a lowball offer. Specific, creator-focused answers in seconds.</p>
+    <div class="hero-cta-row">
+      <a href="dashboard.html" data-nav-action="try-tool" class="btn-primary">Open ChatBox</a>
+      <a href="pricing.html" class="btn-secondary">See pricing</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ HOW IT WORKS ============ -->
+<section>
+  <div class="section-label">How it works</div>
+  <h2 class="section-title">Type a question, get a useful answer.</h2>
+  <div class="steps-grid">
+    <div class="step-card">
+      <div class="step-num">Step 1</div>
+      <div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+      <div class="step-title">Open ChatBox</div>
+      <div class="step-desc">Find ChatBox in your Ryxa dashboard. No setup, no prompts to learn. It is ready the moment you open it.</div>
+    </div>
+    <div class="step-card">
+      <div class="step-num">Step 2</div>
+      <div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></div>
+      <div class="step-title">Ask your question</div>
+      <div class="step-desc">Type it the way you would text a knowledgeable friend. Or tap one of the starter prompts to get going.</div>
+    </div>
+    <div class="step-card">
+      <div class="step-num">Step 3</div>
+      <div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div class="step-title">Get a specific answer</div>
+      <div class="step-desc">ChatBox responds with concrete numbers, scripts, or next steps, not vague filler. Keep the conversation going to refine it.</div>
+    </div>
+    <div class="step-card">
+      <div class="step-num">Step 4</div>
+      <div class="step-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/><path d="M16 3h5v5"/><path d="M10 14L21 3"/></svg></div>
+      <div class="step-title">Put it to work</div>
+      <div class="step-desc">Copy the script into the Script Builder, take the rate into your next brand email, or save the chat to pick up later.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FEATURES ============ -->
+<section>
+  <div class="section-label">What you can ask</div>
+  <h2 class="section-title">Trained on the questions creators actually have.</h2>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+      <div class="feature-title">Brand deal pricing</div>
+      <div class="feature-desc">"What should I charge for a 30-second Reel on a 10K account?" Get a rate range you can defend, with the factors that move the number.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></div>
+      <div class="feature-title">Scripts that hook</div>
+      <div class="feature-desc">"Write a 30-second Reel script about morning routines with a strong hook." Get a full script with an opening line built to stop the scroll.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/></svg></div>
+      <div class="feature-title">Endless ideas and hooks</div>
+      <div class="feature-desc">"Give me 10 punchy hooks for a video about productivity." Break a content block in seconds with ideas tailored to your niche.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+      <div class="feature-title">Outreach and negotiation</div>
+      <div class="feature-desc">"A brand offered way below my rate. How do I respond without burning the bridge?" Get wording that holds your value and keeps the door open.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/></svg></div>
+      <div class="feature-title">Grow your audience</div>
+      <div class="feature-desc">Ask about posting cadence, formats that travel, or how to turn a one-off viral moment into a following that sticks around.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></div>
+      <div class="feature-title">Saved conversations</div>
+      <div class="feature-desc">Every chat is saved so you can come back to that rate breakdown or script later. Delete any conversation whenever you want.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ HONESTY NOTE ============ -->
+<section>
+  <div class="section-label">Good to know</div>
+  <h2 class="section-title">A smart starting point, not a replacement for an expert.</h2>
+  <p class="section-sub">ChatBox is great for content, pricing, scripts, and outreach. It is not a substitute for professional advice and does not give legal, financial, tax, or medical guidance. For those, talk to a qualified professional. AI can also get things wrong, so verify anything important before you act on it.</p>
+</section>
+
+<!-- ============ PRICING TIER ============ -->
+<section>
+  <div style="text-align:center;margin-bottom:36px;">
+    <div class="section-label">Pricing</div>
+    <h2 class="section-title" style="margin-left:auto;margin-right:auto;text-align:center;">Included with Ryxa Pro.</h2>
+  </div>
+  <div class="pricing-callout">
+    <div class="pricing-callout-content">
+      <div class="pricing-tier-name">Pro</div>
+      <div class="pricing-tier-price">ChatBox</div>
+      <div class="pricing-tier-desc">ChatBox is part of Ryxa Pro, alongside the Media Kit, Script Builder, AI Thumbnail Analyzer, AI Contract Analyzer, and more. One subscription, the whole creator toolkit.</div>
+      <div class="pricing-tier-includes">
+        <span class="pricing-tier-pill">Creator-trained answers</span>
+        <span class="pricing-tier-pill">Saved chat history</span>
+        <span class="pricing-tier-pill">Pricing, scripts &amp; outreach</span>
+      </div>
+      <a href="pricing.html" class="btn-primary">See Ryxa Pro</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FAQ ============ -->
+<section>
+  <div class="section-label">FAQ</div>
+  <h2 class="section-title">Questions about ChatBox</h2>
+  <div class="faq-list">
+    <div class="faq-item">
+      <div class="faq-q" data-nav-action="toggle-faq">
+        <div class="faq-q-text">What makes ChatBox different from a regular AI chatbot?</div>
+        <div class="faq-toggle">+</div>
+      </div>
+      <div class="faq-a">ChatBox is tuned for creator questions. Instead of generic answers, it speaks the language of brand deals, rate cards, hooks, Reels, and audience growth, so the replies are specific to the work you actually do.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" data-nav-action="toggle-faq">
+        <div class="faq-q-text">What kinds of things can I ask?</div>
+        <div class="faq-toggle">+</div>
+      </div>
+      <div class="faq-a">Brand deal pricing, full video and Reel scripts, hook brainstorms, how to respond to a brand email, content ideas for your niche, and audience growth strategy. If it relates to running a creator business, it is fair game.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" data-nav-action="toggle-faq">
+        <div class="faq-q-text">Can ChatBox give me legal or financial advice?</div>
+        <div class="faq-toggle">+</div>
+      </div>
+      <div class="faq-a">No. ChatBox does not provide legal, financial, tax, or medical advice, and it is not a substitute for a professional. For contract interpretation or money decisions, consult a qualified expert. AI answers can also be wrong, so verify important details independently.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" data-nav-action="toggle-faq">
+        <div class="faq-q-text">Are my conversations saved?</div>
+        <div class="faq-toggle">+</div>
+      </div>
+      <div class="faq-a">Yes. Your chats are saved to your account so you can return to a rate breakdown or script later. You can delete any conversation at any time.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" data-nav-action="toggle-faq">
+        <div class="faq-q-text">Is ChatBox free?</div>
+        <div class="faq-toggle">+</div>
+      </div>
+      <div class="faq-a">ChatBox is a Ryxa Pro feature. It is included with a Pro subscription along with the rest of the Pro creator toolkit. See the pricing page for current plans.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ BOTTOM CTA ============ -->
+<section class="bottom-cta">
+  <h2>Stuck on what to charge or what to post?</h2>
+  <p>Open ChatBox and ask. Get a rate, a script, or a brand reply in seconds, all tuned for creators.</p>
+  <div class="hero-cta-row">
+    <a href="dashboard.html" data-nav-action="try-tool" class="btn-primary">Open ChatBox</a>
+    <a href="pricing.html" class="btn-secondary">See pricing</a>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<div id="site-footer"></div>
+
+<script src="/site-nav.js"></script>
+</body>
+</html>
