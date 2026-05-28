@@ -165,22 +165,25 @@
   .footer-links a:hover { color: var(--text); }
   .footer-copy { font-size: 12px; color: var(--muted); }
 
-  /* PHOTO BREAKS with quote overlay */
-  .photo-break { max-width: 1100px; margin: 90px auto; padding: 0 32px; }
-  .photo-break-image { position: relative; border-radius: 20px; overflow: hidden; aspect-ratio: 16/9; background: var(--surface); border: 1px solid var(--border-hover); }
+  /* PHOTO BREAKS (two-column content + image) */
+  .photo-break { max-width: 1200px; margin: 80px auto; padding: 0 32px; display: grid; grid-template-columns: 1.05fr 1fr; gap: 56px; align-items: center; }
+  .photo-break.reverse { grid-template-columns: 1fr 1.05fr; }
+  .photo-break.reverse .photo-break-image { order: -1; }
+  .photo-break-content { padding: 16px 0; }
+  .photo-break-eyebrow { font-size: 12px; font-weight: 600; color: var(--accent2); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; }
+  .photo-break h2 { font-family: "Plus Jakarta Sans", sans-serif; font-size: clamp(28px, 4vw, 38px); font-weight: 800; line-height: 1.15; letter-spacing: -0.8px; margin-bottom: 16px; color: var(--text); }
+  .photo-break p { font-size: 16px; line-height: 1.7; color: var(--muted2); margin-bottom: 14px; }
+  .photo-break-image { aspect-ratio: 4/5; border-radius: 18px; overflow: hidden; background: var(--surface); border: 1px solid var(--border-hover); position: relative; }
   .photo-break-image img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .photo-break-image::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10,13,28,0.05) 0%, rgba(10,13,28,0.35) 45%, rgba(10,13,28,0.85) 100%); pointer-events: none; }
-  .photo-break-quote { position: absolute; left: 0; right: 0; bottom: 0; padding: 40px; z-index: 1; }
-  .photo-break-quote blockquote { font-family: "Plus Jakarta Sans", sans-serif; font-size: clamp(20px, 3vw, 30px); font-weight: 700; line-height: 1.3; letter-spacing: -0.5px; color: #fff; margin: 0 0 14px; max-width: 760px; }
-  .photo-break-cite { display: flex; align-items: center; gap: 10px; font-size: 14px; color: rgba(255,255,255,0.85); }
-  .photo-break-cite .pb-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent3); flex-shrink: 0; }
+  .photo-break-image::after { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(67,56,202,0.12), transparent 40%); pointer-events: none; }
 
   /* RESPONSIVE */
   @media (max-width: 900px) {
     .steps-grid { grid-template-columns: repeat(2, 1fr); }
     .features-grid { grid-template-columns: repeat(2, 1fr); }
-    .photo-break { margin: 64px auto; padding: 0 20px; }
-    .photo-break-quote { padding: 28px; }
+    .photo-break, .photo-break.reverse { grid-template-columns: 1fr; gap: 32px; margin: 56px auto; padding: 0 20px; }
+    .photo-break.reverse .photo-break-image { order: 0; }
+    .photo-break-image { aspect-ratio: 4/3; max-width: 520px; margin: 0 auto; }
   }
   @media (max-width: 640px) {
     nav { padding: 0 20px; }
@@ -192,9 +195,6 @@
     .steps-grid, .features-grid { grid-template-columns: 1fr; }
     .pricing-callout { padding: 30px 20px; }
     .pricing-tier-price { font-size: 36px; }
-    .photo-break-image { aspect-ratio: 4/3; }
-    .photo-break-quote { padding: 22px; }
-    .photo-break-quote blockquote { font-size: 19px; }
   }
 
   /* ===========================================
@@ -292,15 +292,17 @@
   </div>
 </section>
 
-<div class="photo-break">
+<section class="photo-break">
+  <div class="photo-break-content">
+    <div class="photo-break-eyebrow">Sell your time</div>
+    <h2>Your time is worth paying for. Make it easy to book.</h2>
+    <p>Whether you coach, consult, shoot, train, or teach, the hardest part was never the work. It was the back-and-forth: the DMs to find a time, the awkward "how do I pay you" moment, the no-shows.</p>
+    <p>Ryxa's 1:1 Booking handles all of it. Clients see your service, pay upfront, and pick a time, in one flow. You just show up and do what you do best.</p>
+  </div>
   <div class="photo-break-image">
     <img src="photos/coaching-photo1.webp" alt="Creator filming content on a waterfront promenade" loading="lazy">
-    <div class="photo-break-quote">
-      <blockquote>"I turned my camera time into booked sessions. Clients pay upfront, and I just show up and do the work I love."</blockquote>
-      <div class="photo-break-cite"><span class="pb-dot"></span>Content creator, booking paid collabs on Ryxa</div>
-    </div>
   </div>
-</div>
+</section>
 
 <section>
   <div class="section-label">Features</div>
@@ -325,15 +327,17 @@
   </div>
 </section>
 
-<div class="photo-break">
+<section class="photo-break reverse">
+  <div class="photo-break-content">
+    <div class="photo-break-eyebrow">On your terms</div>
+    <h2>Set your hours. Get paid upfront. Keep your freedom.</h2>
+    <p>You decide what you offer, what it costs, and when you're available. Clients book around your schedule, not the other way around. Payment clears before the session, so there's no chasing invoices.</p>
+    <p>Ryxa takes 0% transaction fees. The money goes straight to your Stripe account. You keep building the life you actually want.</p>
+  </div>
   <div class="photo-break-image">
     <img src="photos/coaching-photo2.webp" alt="Creator enjoying a live concert with stage lights" loading="lazy">
-    <div class="photo-break-quote">
-      <blockquote>"Booking my time on my terms gave me the freedom to actually live my life. I set my hours, I get paid, and the rest is mine."</blockquote>
-      <div class="photo-break-cite"><span class="pb-dot"></span>Creator selling 1:1 sessions on Ryxa</div>
-    </div>
   </div>
-</div>
+</section>
 
 <section>
   <h2 class="section-title">Common questions about 1:1 Booking.</h2>
