@@ -203,7 +203,7 @@
         <li><strong>Chatbox (Pro/Max):</strong> Your AI chat conversations and messages, stored so you can return to them. You can delete any conversation at any time.</li>
       </ul>
 
-      <p><strong style="color:var(--text);">Usage limits:</strong> For free-tier tools, daily/monthly usage counts are stored in your browser's local storage, not on our servers.</p>
+      <p><strong style="color:var(--text);">Usage limits:</strong> For AI-powered features (Chatbox, Script Builder, Bio Writer, Thumbnail Analyzer, Contract Analyzer, and similar), we record each call you make in our database so we can enforce per-tier rate limits and prevent abuse. We log your user ID, which endpoint was called, and the timestamp. We do not log the prompts, inputs, or AI responses themselves in this rate-limit record. Records older than what we need for enforcement are periodically deleted.</p>
     </div>
 
     <div>
@@ -261,7 +261,7 @@
       <ul style="padding-left:22px;margin-bottom:12px;">
         <li><strong>Authentication cookies</strong> (Supabase), keep you signed in</li>
         <li><strong>Session cookies</strong>: remember your preferences during a visit</li>
-        <li><strong>Local storage</strong>: track daily/monthly tool usage limits for free users, and cache preferences</li>
+        <li><strong>Local storage</strong>: cache preferences (theme, recent selections), remember your cookie consent and Do Not Sell choices, and persist transient app state across page loads</li>
         <li><strong>Google Analytics 4</strong>: we use Google Analytics 4 (GA4) to understand how visitors use Ryxa marketing and tool pages. GA4 sets a cookie and may collect information including pages viewed, time on site, approximate location (city or region level), referring URLs, device and browser type, and a randomly assigned unique identifier. This data is sent to Google and helps us understand which tools and pages are useful so we can improve them. GA4 is not loaded on the signed-in dashboard.</li>
       </ul>
       <p style="margin-bottom:12px;">Google Analytics only loads after you affirmatively accept the cookie banner on your first visit. We also respect the <strong style="color:var(--text);">Global Privacy Control</strong> (GPC) browser signal: if your browser sends a GPC header, Google Analytics will not load, regardless of any other setting. You can opt out of analytics at any time on our <a href="/do-not-sell.html" style="color:var(--accent2);">Do Not Sell or Share My Personal Information</a> page.</p>
