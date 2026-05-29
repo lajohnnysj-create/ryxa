@@ -127,20 +127,25 @@
     banner.setAttribute('aria-label', 'Cookie notice');
     banner.innerHTML =
       '<div class="fts-cookie-title">Cookies &amp; your data</div>' +
-      '<div>We use essential cookies to keep you signed in and the service running, plus minimal analytics to understand how our tools are used. No advertising, no selling your data. <a href="/privacy.html">Privacy policy</a>.</div>' +
+      '<div>We use essential cookies to keep you signed in and the service running, plus Google Analytics to understand how our tools are used. No advertising, no selling your data. <a href="/privacy.html">Privacy policy</a> &middot; <a href="/do-not-sell.html">Do Not Sell or Share My Personal Information</a>.</div>' +
       '<div class="fts-cookie-actions">' +
-        '<button class="fts-cookie-accept" type="button">Got it</button>' +
-        '<button class="fts-cookie-decline" type="button">Learn more</button>' +
+        '<button class="fts-cookie-accept" type="button">Accept</button>' +
+        '<button class="fts-cookie-decline" type="button">Decline analytics</button>' +
       '</div>';
 
     document.body.appendChild(banner);
 
     banner.querySelector('.fts-cookie-accept').addEventListener('click', function() {
       saveConsent(true);
+      // Fire analytics immediately so the user is tracked from this point on
+      // without needing a page reload. The loader self-guards against double
+      // injection if already loaded.
+      try { if (typeof window.ryxaLoadAnalytics === 'function') window.ryxaLoadAnalytics(); } catch (e) {}
       banner.remove();
     });
     banner.querySelector('.fts-cookie-decline').addEventListener('click', function() {
-      window.location.href = '/privacy.html';
+      saveConsent(false);
+      banner.remove();
     });
   }
 

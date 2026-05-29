@@ -138,18 +138,53 @@ style.textContent = ''
 document.head.appendChild(style);
 
 // =====================
-// GOOGLE ANALYTICS
+// GOOGLE ANALYTICS (consent-gated, GPC-respecting)
 // =====================
-if (!window.gtag) {
+// GA only loads if ALL of the following are true:
+//   1. The browser is NOT sending a Global Privacy Control signal
+//   2. The user has not opted out via the Do Not Sell page (ryxa_dns flag)
+//   3. The user has affirmatively accepted the cookie banner
+//
+// This loader is callable. The cookie banner calls window.ryxaLoadAnalytics()
+// the moment the user clicks Accept, so they get tracked immediately without
+// a page reload. On subsequent page loads, the consent flag triggers load
+// automatically.
+window.ryxaLoadAnalytics = function() {
+  // Already loaded? do nothing.
+  if (window.gtag && window.dataLayer) return;
+
+  // Honor Global Privacy Control (CCPA/CPRA requirement).
+  if (navigator.globalPrivacyControl === true) return;
+
+  // Honor explicit Do Not Sell or Share opt-out.
+  try {
+    if (localStorage.getItem('ryxa_dns') === '1') return;
+  } catch (e) { /* localStorage unavailable, proceed cautiously */ }
+
+  // Honor cookie banner consent. Stored by /cookie-banner.js as JSON
+  // { v: '<version>', accepted: <bool>, ts: <ms> }.
+  try {
+    var raw = localStorage.getItem('fts_cookie_consent');
+    if (!raw) return; // no decision yet
+    var parsed = JSON.parse(raw);
+    if (!parsed || parsed.accepted !== true) return; // declined or invalid
+  } catch (e) { return; /* parse failure: do not load */ }
+
+  // All gates passed. Load GA4.
   var gs = document.createElement('script');
   gs.async = true;
   gs.src = 'https://www.googletagmanager.com/gtag/js?id=G-G7QJHCCX63';
   document.head.appendChild(gs);
   window.dataLayer = window.dataLayer || [];
-  window.gtag = function(){dataLayer.push(arguments);};
+  window.gtag = function(){ dataLayer.push(arguments); };
   gtag('js', new Date());
   gtag('config', 'G-G7QJHCCX63');
-}
+};
+
+// Try to load immediately on page-init. If consent has not yet been given,
+// this no-ops and the cookie banner will trigger the load when the user
+// clicks Accept.
+window.ryxaLoadAnalytics();
 
 // =====================
 // HEADER
@@ -324,6 +359,7 @@ function renderFooter() {
   +         '<a href="/about.html" style="color:#b4b2c8;font-size:13px;text-decoration:none;">About</a>'
   +         '<a href="/privacy.html" style="color:#b4b2c8;font-size:13px;text-decoration:none;">Privacy</a>'
   +         '<a href="/terms.html" style="color:#b4b2c8;font-size:13px;text-decoration:none;">Terms</a>'
+  +         '<a href="/do-not-sell.html" style="color:#b4b2c8;font-size:13px;text-decoration:none;">Do Not Sell or Share</a>'
   +       '</div>'
   +     '</div>'
   +     '<div>'
