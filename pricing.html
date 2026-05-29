@@ -111,7 +111,12 @@
   /* DESC BLOCK - fixed height (worst case: 2 lines, e.g. Creator Max). */
   .plan-desc{font-size:14px;color:var(--muted);line-height:1.5;text-align:center;height:42px;display:flex;align-items:center;justify-content:center;margin-bottom:24px;}
 
-  .plan-btn{width:100%;padding:14px;border-radius:10px;font-size:15px;font-weight:500;font-family:"DM Sans",sans-serif;cursor:pointer;transition:all 0.2s;margin-bottom:28px;}
+  .plan-btn{width:100%;padding:14px;border-radius:10px;font-size:15px;font-weight:500;font-family:"DM Sans",sans-serif;cursor:pointer;transition:all 0.2s;margin-bottom:12px;}
+  /* Auto-renewal disclosure under each plan button. Small, muted, but legible.
+     Sits in visual proximity to the consent button (per California ARL).
+     Uses .price-when-monthly / .price-when-annual on inner spans so the
+     disclosed price matches the cycle toggle, same as the price block. */
+  .plan-disclosure{font-size:12px;line-height:1.5;color:var(--muted);text-align:center;min-height:36px;margin-bottom:16px;padding:0 4px;}
   .plan-btn.free{background:var(--surface2);color:var(--text);border:1px solid var(--border-hover);}
   .plan-btn.free:hover{border-color:rgba(124,58,237,0.4);color:var(--accent2);}
   .plan-btn.free:disabled:hover{border-color:var(--border-hover);color:var(--text);}
@@ -236,6 +241,7 @@
       </div>
       <div class="plan-desc">The essentials to get started. No credit card required.</div>
       <button class="plan-btn free" data-pricing-action="signup">Get started free</button>
+      <div class="plan-disclosure">No credit card required.</div>
       <div class="plan-features">
         <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span>Link in Bio (Basic)</span></div>
         <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span>Follow-Back Audit with Preview</span></div>
@@ -261,6 +267,10 @@
       </div>
       <div class="plan-desc">For creators ready to take control of their branding.</div>
       <button class="plan-btn pro" data-pricing-action="select-plan" data-plan="pro">Get started with Pro</button>
+      <div class="plan-disclosure">
+        <span class="price-when-monthly">Billed $10/month. Cancel anytime in Settings.</span>
+        <span class="price-when-annual">Billed $100/year. Cancel anytime in Settings.</span>
+      </div>
       <div class="plan-features">
         <div class="plan-feature plan-feature-credits"><span class="plan-feature-credits-icon">&#x2728;</span><span>40 daily AI credits</span></div>
         <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span><strong>Everything in Free</strong></span></div>
@@ -291,6 +301,10 @@
       </div>
       <div class="plan-desc">Sell courses, sessions, and products directly to your audience.</div>
       <button class="plan-btn max" data-pricing-action="select-plan" data-plan="max">Try Free for 7 Days</button>
+      <div class="plan-disclosure">
+        <span class="price-when-monthly">7-day free trial, then $24/month. Cancel anytime in Settings.</span>
+        <span class="price-when-annual">7-day free trial, then $240/year. Cancel anytime in Settings.</span>
+      </div>
       <div class="plan-features">
         <div class="plan-feature plan-feature-credits"><span class="plan-feature-credits-icon">&#x2728;</span><span>85 daily AI credits</span></div>
         <div class="plan-feature"><span class="plan-feature-check">&#x2713;</span><span><strong>Everything in Pro</strong></span></div>
