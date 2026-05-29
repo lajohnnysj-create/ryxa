@@ -252,7 +252,7 @@ function aichatRenderMessage(role, content) {
       avatarHtml = '<div class="aichat-msg-avatar">' + escapeHtml(avatarLetter) + '</div>';
     }
   } else {
-    avatarHtml = '<div class="aichat-msg-avatar chat-s-f3a426" ><img src="/logo-spaced.jpg" alt="Ryxa" class="bio-s-0c9434"></div>';
+    avatarHtml = '<div class="aichat-msg-avatar chat-s-f3a426" ><img src="/chatbox-avatar.webp" alt="Ryxa AI" class="bio-s-0c9434"></div>';
   }
   var bodyHtml = role === 'assistant' ? aichatMarkdownToHtml(content) : '<p>' + escapeHtml(content).replace(/\n/g, '<br>') + '</p>';
   return '<div class="aichat-msg ' + role + '">'
@@ -397,7 +397,7 @@ async function aichatSend() {
   messagesEl.insertAdjacentHTML('beforeend', aichatRenderMessage('user', text));
   // Append typing indicator
   var typingHtml = '<div class="aichat-msg assistant" id="aichat-typing">'
-    + '<div class="aichat-msg-avatar chat-s-f3a426" ><img src="/logo-spaced.jpg" alt="Ryxa" class="bio-s-0c9434"></div>'
+    + '<div class="aichat-msg-avatar chat-s-f3a426" ><img src="/chatbox-avatar.webp" alt="Ryxa AI" class="bio-s-0c9434"></div>'
     + '<div class="aichat-msg-body"><div class="aichat-typing"><span></span><span></span><span></span></div></div>'
     + '</div>';
   messagesEl.insertAdjacentHTML('beforeend', typingHtml);
@@ -438,7 +438,7 @@ async function aichatSend() {
 
     // Insert assistant bubble with empty body, then animate text in
     var emptyBubble = '<div class="aichat-msg assistant">'
-      + '<div class="aichat-msg-avatar chat-s-f3a426" ><img src="/logo-spaced.jpg" alt="Ryxa" class="bio-s-0c9434"></div>'
+      + '<div class="aichat-msg-avatar chat-s-f3a426" ><img src="/chatbox-avatar.webp" alt="Ryxa AI" class="bio-s-0c9434"></div>'
       + '<div class="aichat-msg-body"></div>'
       + '</div>';
     messagesEl.insertAdjacentHTML('beforeend', emptyBubble);
