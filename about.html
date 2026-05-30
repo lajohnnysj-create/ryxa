@@ -282,6 +282,33 @@
     .about-hero-grid { grid-template-columns:1fr; gap:32px; }
     .about-hero-photo { aspect-ratio:16/10; }
   }
+
+  /* PHOTO BREAK SECTIONS (after What it is now, throughout positioning) */
+  .about-photo-break { max-width:1080px; margin:64px auto; padding:0 48px; display:grid; grid-template-columns:1.15fr 1fr; gap:56px; align-items:center; }
+  .about-photo-break.reverse { grid-template-columns:1fr 1.15fr; }
+  .about-photo-break.reverse .about-photo-break-photo { order:2; }
+  .about-photo-break.reverse .about-photo-break-quote { order:1; }
+  .about-photo-break-photo { border-radius:20px; overflow:hidden; aspect-ratio:4/3; box-shadow:0 20px 50px rgba(20,30,60,0.15); }
+  .about-photo-break-photo img { width:100%; height:100%; object-fit:cover; display:block; }
+  .about-photo-break-quote { padding:0 8px; }
+  .about-photo-break-mark { font-family:'Plus Jakarta Sans',sans-serif; font-size:72px; font-weight:800; line-height:0.5; color:#2f6fe0; margin-bottom:20px; display:block; }
+  .about-photo-break-text { font-family:'Plus Jakarta Sans',sans-serif; font-size:clamp(22px, 2.6vw, 30px); font-weight:700; line-height:1.25; letter-spacing:-0.5px; color:#14111c; }
+
+  /* PHOTO BREAK VERTICAL (Photo 3, the billboard shot) */
+  .about-photo-break-vertical { max-width:760px; margin:72px auto; padding:0 48px; text-align:center; }
+  .about-photo-break-vertical .about-photo-break-mark { margin:0 auto 16px; text-align:center; }
+  .about-photo-break-vertical .about-photo-break-text { font-size:clamp(22px, 2.6vw, 30px); max-width:620px; margin:0 auto 40px; text-align:center; }
+  .about-photo-break-vertical-photo { max-width:380px; margin:0 auto; border-radius:20px; overflow:hidden; aspect-ratio:2/3; box-shadow:0 24px 60px rgba(20,30,60,0.22); }
+  .about-photo-break-vertical-photo img { width:100%; height:100%; object-fit:cover; display:block; }
+
+  @media (max-width:820px) {
+    .about-photo-break, .about-photo-break.reverse { grid-template-columns:1fr; gap:32px; margin:48px auto; padding:0 24px; }
+    .about-photo-break.reverse .about-photo-break-photo { order:1; }
+    .about-photo-break.reverse .about-photo-break-quote { order:2; }
+    .about-photo-break-photo { aspect-ratio:16/10; }
+    .about-photo-break-vertical { padding:0 24px; margin:56px auto; }
+    .about-photo-break-vertical-photo { max-width:300px; }
+  }
 </style>
 
 <!-- STORY -->
@@ -307,6 +334,25 @@
       <p style="margin-top:16px;">This isn't built by some big company. It's built by one person who actually uses it, who knows what it feels like to be a creator trying to make things work without burning through money on tools.</p>
     </div>
 
+  </div>
+</section>
+
+<!-- PHOTO BREAK 1 -->
+<section class="about-photo-break">
+  <div class="about-photo-break-photo">
+    <img src="about-johnny-ryxa.jpg" alt="Johnny La on set with a film crew" loading="lazy">
+  </div>
+  <div class="about-photo-break-quote">
+    <span class="about-photo-break-mark">&ldquo;</span>
+    <p class="about-photo-break-text">You can't build for creators if you've never been one in the room.</p>
+  </div>
+</section>
+
+<!-- POSITIONING -->
+<section style="max-width:720px;margin:0 auto;padding:0 48px 80px;">
+
+  <div style="display:flex;flex-direction:column;gap:32px;font-size:16px;line-height:1.85;color:#3d3d47;">
+
     <div style="padding:36px;background:#fff;border:1px solid rgba(20,30,60,0.08);border-radius:20px;box-shadow:0 6px 20px rgba(20,30,60,0.06);">
       <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-size:22px;font-weight:800;color:#14111c;letter-spacing:-0.5px;margin-bottom:16px;">How is it so affordable</h2>
       <p>People ask me this all the time. The honest answer is simple: Ryxa has no investors. No VC funding rounds, no board to answer to, no growth team pushing for the next price hike to hit a quarterly number. It's bootstrapped, built piece by piece, and the only people I have to make happy are the creators using it.</p>
@@ -326,11 +372,47 @@
       <p style="margin-top:16px;">Independent platforms in any industry are what keep the bigger ones honest. Without something else to compare against, prices drift up and quality drifts down, because nothing's pulling in the other direction. Ryxa exists in part to be the something else. Not because the bigger platforms are villains, but because creators deserve to have a real choice, not just two flavors of the same playbook.</p>
     </div>
 
+  </div>
+</section>
+
+<!-- PHOTO BREAK 2 -->
+<section class="about-photo-break reverse">
+  <div class="about-photo-break-photo">
+    <img src="about-johnny-ryxa2.jpg" alt="Johnny La behind the scenes with other creators on a film set" loading="lazy">
+  </div>
+  <div class="about-photo-break-quote">
+    <span class="about-photo-break-mark">&ldquo;</span>
+    <p class="about-photo-break-text">Most of what I know about creators, I learned standing next to a camera.</p>
+  </div>
+</section>
+
+<!-- COMMUNITY -->
+<section style="max-width:720px;margin:0 auto;padding:0 48px 80px;">
+
+  <div style="display:flex;flex-direction:column;gap:32px;font-size:16px;line-height:1.85;color:#3d3d47;">
+
     <div style="padding:36px;background:#fff;border:1px solid rgba(20,30,60,0.08);border-radius:20px;box-shadow:0 6px 20px rgba(20,30,60,0.06);">
       <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-size:22px;font-weight:800;color:#14111c;letter-spacing:-0.5px;margin-bottom:16px;">Word travels fast in this community</h2>
       <p>Something quietly cool has been happening since Ryxa launched. Creators are finding out about it from other creators. A comment under a video. A reply to a "what do you use" thread. A DM that says "you should check this out." Screenshots in group chats. People are showing up because someone they trust told them to.</p>
       <p style="margin-top:16px;">That kind of word of mouth is the best signal there is. It means the tools are working well enough that creators want to recommend them, which is the bar I care about most. If you're one of the people telling other creators about Ryxa, thank you. Genuinely. You're how this thing grows, and I notice every time it happens.</p>
     </div>
+
+  </div>
+</section>
+
+<!-- PHOTO BREAK 3 (vertical) -->
+<section class="about-photo-break-vertical">
+  <span class="about-photo-break-mark">&ldquo;</span>
+  <p class="about-photo-break-text">Twenty years of putting yourself out there teaches you what tools you actually need.</p>
+  <div class="about-photo-break-vertical-photo">
+    <img src="about-johnny-ryxa3.jpg" alt="Johnny La featured on a Times Square billboard in New York" loading="lazy">
+  </div>
+</section>
+
+<!-- CLOSING -->
+<section style="max-width:720px;margin:0 auto;padding:0 48px 80px;">
+
+  <div style="display:flex;flex-direction:column;gap:32px;font-size:16px;line-height:1.85;color:#3d3d47;">
 
     <div style="padding:36px;background:#fff;border:1px solid rgba(47,111,224,0.25);border-radius:20px;box-shadow:0 6px 20px rgba(20,30,60,0.06);">
       <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-size:22px;font-weight:800;color:#14111c;letter-spacing:-0.5px;margin-bottom:16px;">Keep going</h2>
