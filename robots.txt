@@ -10,21 +10,44 @@ Disallow: /reset-password
 Disallow: /reset-password.html
 Disallow: /api/
 
-# Allow social media and search crawlers explicitly
+# Allow social media and search crawlers explicitly.
+# Each repeats the app-path disallows because a crawler obeys only its own
+# most-specific group and does not inherit the rules from User-agent: *.
 User-agent: facebookexternalhit
 Allow: /
-
-User-agent: *
-Disallow: /
+Disallow: /dashboard
+Disallow: /dashboard.html
+Disallow: /learn/
+Disallow: /reset-password
+Disallow: /reset-password.html
+Disallow: /api/
 
 User-agent: Twitterbot
 Allow: /
+Disallow: /dashboard
+Disallow: /dashboard.html
+Disallow: /learn/
+Disallow: /reset-password
+Disallow: /reset-password.html
+Disallow: /api/
 
 User-agent: Googlebot
 Allow: /
+Disallow: /dashboard
+Disallow: /dashboard.html
+Disallow: /learn/
+Disallow: /reset-password
+Disallow: /reset-password.html
+Disallow: /api/
 
 User-agent: Bingbot
 Allow: /
+Disallow: /dashboard
+Disallow: /dashboard.html
+Disallow: /learn/
+Disallow: /reset-password
+Disallow: /reset-password.html
+Disallow: /api/
 
 # Block AI training scrapers entirely
 User-agent: GPTBot
