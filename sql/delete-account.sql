@@ -103,6 +103,11 @@ begin
   delete from subscriber_exports                where user_id = p_uid;
   delete from whitelist                         where user_id = p_uid;
 
+  -- Moderation reports filed by this account (keyed by reporter_id). The email
+  -- copy sent to hello@ryxa.io at report time is the durable moderation record,
+  -- so removing the row here does not lose the report trail.
+  delete from content_reports where reporter_id = p_uid;
+
   -- ---------------------------------------------------------------------------
   -- 5. FLAT OWNER TABLES keyed by creator_id.
   -- ---------------------------------------------------------------------------
