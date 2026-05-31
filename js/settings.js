@@ -945,6 +945,58 @@ function _delSetOk(text) {
   else { el.textContent = ''; el.classList.remove('show'); }
 }
 
+// Invisible Turnstile for the password re-auth (this project enforces captcha on
+// password sign-in, so signInWithPassword needs a token). Mirrors the PWA helper.
+var _deleteTurnstileWidgetId = null;
+var _deleteTurnstilePendingResolve = null;
+var _deleteTurnstilePendingReject = null;
+
+function ensureDeleteTurnstile() {
+  if (typeof turnstile === 'undefined') return false;
+  if (_deleteTurnstileWidgetId !== null) return true;
+  var container = _delEl('settings-delete-turnstile');
+  if (!container) return false;
+  _deleteTurnstileWidgetId = turnstile.render('#settings-delete-turnstile', {
+    sitekey: SETTINGS_TURNSTILE_SITE_KEY,
+    size: 'invisible',
+    callback: function(token) {
+      if (_deleteTurnstilePendingResolve) {
+        var r = _deleteTurnstilePendingResolve;
+        _deleteTurnstilePendingResolve = null; _deleteTurnstilePendingReject = null;
+        r(token);
+      }
+    },
+    'error-callback': function() {
+      if (_deleteTurnstilePendingReject) {
+        var rj = _deleteTurnstilePendingReject;
+        _deleteTurnstilePendingResolve = null; _deleteTurnstilePendingReject = null;
+        rj(new Error('Verification failed.'));
+      }
+    }
+  });
+  return true;
+}
+
+function resetDeleteTurnstile() {
+  if (typeof turnstile !== 'undefined' && _deleteTurnstileWidgetId !== null) {
+    try { turnstile.reset(_deleteTurnstileWidgetId); } catch (e) {}
+  }
+}
+
+function getDeleteTurnstileToken() {
+  return new Promise(function(resolve, reject) {
+    if (!ensureDeleteTurnstile()) { reject(new Error('Verification not ready.')); return; }
+    try {
+      var existing = turnstile.getResponse(_deleteTurnstileWidgetId);
+      if (existing) { resolve(existing); return; }
+    } catch (e) {}
+    _deleteTurnstilePendingResolve = resolve;
+    _deleteTurnstilePendingReject = reject;
+    try { turnstile.execute(_deleteTurnstileWidgetId); }
+    catch (e) { _deleteTurnstilePendingResolve = null; _deleteTurnstilePendingReject = null; reject(e); }
+  });
+}
+
 async function openDeleteAccountModal(forcedMode) {
   var modal = _delEl('settings-delete-modal');
   if (!modal) return;
@@ -997,6 +1049,8 @@ async function openDeleteAccountModal(forcedMode) {
     } else {
       _deleteAccountMode = 'password';
       if (pwBlock) pwBlock.style.display = '';
+      ensureDeleteTurnstile();
+      resetDeleteTurnstile();
     }
   }
 
@@ -1048,7 +1102,7 @@ async function confirmDeleteAccount() {
     return;
   }
 
-  // Password account: verify the password before deleting.
+  // Password account: verify the password (with captcha) before deleting.
   var pwInput = _delEl('settings-delete-password');
   var password = pwInput ? pwInput.value : '';
   if (!password) { _delSetMsg('Please enter your password to confirm.'); return; }
@@ -1056,15 +1110,37 @@ async function confirmDeleteAccount() {
   var btn2 = _delEl('settings-delete-confirm-btn');
   if (btn2) { btn2.disabled = true; btn2.textContent = 'Verifying...'; }
 
+  // This project enforces captcha on password sign-in, so obtain a token first.
+  var captchaToken;
+  try {
+    captchaToken = await getDeleteTurnstileToken();
+  } catch (e) {
+    _delSetMsg('Verification failed. Please disable any ad blocker for ryxa.io and try again.');
+    resetDeleteTurnstile();
+    if (btn2) { btn2.disabled = false; btn2.textContent = 'Delete permanently'; }
+    return;
+  }
+
   try {
     var email = (currentUser && currentUser.email) || '';
-    var result = await sb.auth.signInWithPassword({ email: email, password: password });
+    var result = await sb.auth.signInWithPassword({
+      email: email,
+      password: password,
+      options: { captchaToken: captchaToken }
+    });
+    resetDeleteTurnstile(); // token is single-use
     if (result.error) {
-      _delSetMsg('That password is not correct. Please try again.');
+      var em = (result.error.message || '').toLowerCase();
+      if (em.indexOf('captcha') !== -1) {
+        _delSetMsg('Verification failed. Please disable any ad blocker for ryxa.io and try again.');
+      } else {
+        _delSetMsg('That password is not correct. Please try again.');
+      }
       if (btn2) { btn2.disabled = false; btn2.textContent = 'Delete permanently'; }
       return;
     }
   } catch (e) {
+    resetDeleteTurnstile();
     _delSetMsg('Could not verify your password. Please try again.');
     if (btn2) { btn2.disabled = false; btn2.textContent = 'Delete permanently'; }
     return;
