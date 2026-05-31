@@ -1,4 +1,4 @@
-// Vercel serverless function — Delete Account
+// Vercel serverless function: Delete Account
 // =============================================================================
 // Permanently deletes the authenticated user's account and all associated data.
 //
@@ -9,15 +9,15 @@
 //     (one transaction, every statement scoped to the uid). See sql/delete-account.sql.
 //
 // SEQUENCE (order matters):
-//   1. Cancel the Stripe subscription (hard prerequisite — abort if it fails, so
+//   1. Cancel the Stripe subscription (hard prerequisite, abort if it fails, so
 //      we never delete an account that keeps getting billed). Reuses the existing
 //      cancel-subscription edge function; no Stripe code duplicated here.
-//   2. Revoke OAuth (Instagram, Google Calendar) — best effort.
+//   2. Revoke OAuth (Instagram, Google Calendar), best effort.
 //   3. Gather + clear external storage WHILE the rows still exist:
 //        • Queue Bunny videos into bunny_pending_deletions (cron sweeps them).
 //        • Delete R2 objects for the user's product files and course lesson files.
-//      Best effort — orphans are swept by existing crons.
-//   4. delete_my_account(uid) RPC — transactional row deletion (must succeed).
+//      Best effort, orphans are swept by existing crons.
+//   4. delete_my_account(uid) RPC, transactional row deletion (must succeed).
 //   5. Delete the auth user (last).
 //
 // Idempotent: safe to re-call. Re-running hits zero rows on already-deleted
