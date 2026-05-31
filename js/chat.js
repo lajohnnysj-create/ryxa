@@ -255,9 +255,27 @@ function aichatRenderMessage(role, content) {
     avatarHtml = '<div class="aichat-msg-avatar chat-s-f3a426" ><img src="/chatbox-avatar.webp" alt="Ryxa AI" class="bio-s-0c9434"></div>';
   }
   var bodyHtml = role === 'assistant' ? aichatMarkdownToHtml(content) : '<p>' + escapeHtml(content).replace(/\n/g, '<br>') + '</p>';
+  if (role === 'assistant') {
+    return '<div class="aichat-msg assistant">'
+      + avatarHtml
+      + '<div class="aichat-msg-col">'
+      +   '<div class="aichat-msg-body">' + bodyHtml + '</div>'
+      +   aichatReportControlHtml()
+      + '</div>'
+      + '</div>';
+  }
   return '<div class="aichat-msg ' + role + '">'
     + avatarHtml
     + '<div class="aichat-msg-body">' + bodyHtml + '</div>'
+    + '</div>';
+}
+
+// Small "Report" control shown under each AI response (Apple Guideline 1.2
+// moderation path). Lives as a sibling of the body so the streaming reveal,
+// which rewrites the body's innerHTML, never clobbers it.
+function aichatReportControlHtml() {
+  return '<div class="aichat-msg-footer">'
+    + '<button type="button" class="aichat-report-btn" data-chat-action="report-message" title="Report this response" aria-label="Report this response">Report</button>'
     + '</div>';
 }
 
@@ -439,7 +457,10 @@ async function aichatSend() {
     // Insert assistant bubble with empty body, then animate text in
     var emptyBubble = '<div class="aichat-msg assistant">'
       + '<div class="aichat-msg-avatar chat-s-f3a426" ><img src="/chatbox-avatar.webp" alt="Ryxa AI" class="bio-s-0c9434"></div>'
-      + '<div class="aichat-msg-body"></div>'
+      + '<div class="aichat-msg-col">'
+      +   '<div class="aichat-msg-body"></div>'
+      +   aichatReportControlHtml()
+      + '</div>'
       + '</div>';
     messagesEl.insertAdjacentHTML('beforeend', emptyBubble);
     var allBubbles = messagesEl.querySelectorAll('.aichat-msg.assistant .aichat-msg-body');
@@ -507,4 +528,50 @@ chatRegisterAction('use-example', (e, el) => aichatUseExample(el));
 chatRegisterAction('autosize-input', (e, el) => aichatAutosizeInput(el));
 chatRegisterAction('handle-key', (e) => aichatHandleKey(e));
 chatRegisterAction('send', () => aichatSend());
+chatRegisterAction('report-message', (e, el) => aichatReportMessage(e, el));
+
+// Report an AI response for review. Reads the response text from the DOM,
+// confirms, then posts to /api/report-content (reporter derived from the token).
+function aichatReportMessage(e, el) {
+  var msgEl = el.closest('.aichat-msg');
+  if (!msgEl) return;
+  var bodyEl = msgEl.querySelector('.aichat-msg-body');
+  var contentText = bodyEl ? (bodyEl.innerText || bodyEl.textContent || '').trim() : '';
+  if (!contentText) return;
+
+  showModalConfirm(
+    'Report this response?',
+    'This sends the AI response to the Ryxa team for review. Use it if the response is harmful, offensive, or inappropriate.',
+    async function() {
+      el.disabled = true;
+      el.textContent = 'Reporting...';
+      try {
+        var resp = await fetch('/api/report-content', {
+          method: 'POST',
+          headers: getAIHeaders(),
+          body: JSON.stringify({
+            source: 'chatbox',
+            conversation_id: aichatState.conversationId || null,
+            reported_content: contentText.slice(0, 5000)
+          })
+        });
+        if (!resp.ok) {
+          var data = await resp.json().catch(function() { return {}; });
+          showModalAlert('Could not report', data.error || 'Please try again.');
+          el.disabled = false;
+          el.textContent = 'Report';
+          return;
+        }
+        el.textContent = 'Reported';
+        el.classList.add('reported');
+      } catch (err) {
+        showModalAlert('Could not report', 'Please try again.');
+        el.disabled = false;
+        el.textContent = 'Report';
+      }
+    },
+    'Report',
+    'Cancel'
+  );
+}
 
