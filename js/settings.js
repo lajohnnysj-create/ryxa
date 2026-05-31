@@ -910,3 +910,223 @@ settingsRegisterAction('confirm-cancel', () => confirmSettingsCancel());
 settingsRegisterAction('dismiss-msg', () => dismissSettingsMsg());
 settingsRegisterAction('send-password-reset', () => sendPasswordReset());
 settingsRegisterAction('toggle-marketing', (e, el) => toggleMarketingEmails(el.checked));
+
+// =============================================================================
+// DELETE ACCOUNT
+// =============================================================================
+// Small "Delete account" link at the bottom of Settings opens a modal that
+// requires the user to type the exact phrase AND re-authenticate (password, or
+// a fresh Google sign-in) before the irreversible deletion runs server-side.
+//
+// Flow:
+//   • Password account: type phrase + password -> signInWithPassword verifies
+//     identity -> POST /api/delete-account.
+//   • Google account: type phrase -> Confirm triggers signInWithOAuth (redirect
+//     to Google, back to dashboard.html?finish_delete=1). On return the modal
+//     reopens "confirmed"; type phrase again + Delete permanently -> POST.
+// =============================================================================
+
+const DELETE_ACCOUNT_PHRASE = 'DELETE MY ACCOUNT';
+var _deleteAccountMode = null; // 'password' | 'google' | 'confirmed'
+
+function _delEl(id) { return document.getElementById(id); }
+
+function _delSetMsg(text) {
+  var el = _delEl('settings-delete-msg');
+  if (!el) return;
+  if (text) { el.textContent = text; el.classList.add('show'); }
+  else { el.textContent = ''; el.classList.remove('show'); }
+}
+
+function _delSetOk(text) {
+  var el = _delEl('settings-delete-ok');
+  if (!el) return;
+  if (text) { el.textContent = text; el.classList.add('show'); }
+  else { el.textContent = ''; el.classList.remove('show'); }
+}
+
+async function openDeleteAccountModal(forcedMode) {
+  var modal = _delEl('settings-delete-modal');
+  if (!modal) return;
+
+  // Reset fields/state.
+  _delSetMsg('');
+  _delSetOk('');
+  var phraseInput = _delEl('settings-delete-input');
+  if (phraseInput) phraseInput.value = '';
+  var pwInput = _delEl('settings-delete-password');
+  if (pwInput) pwInput.value = '';
+  var confirmBtn = _delEl('settings-delete-confirm-btn');
+  if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = 'Delete permanently'; }
+
+  var pwBlock = _delEl('settings-delete-pw-block');
+  var googleBlock = _delEl('settings-delete-google-block');
+  var confirmedBlock = _delEl('settings-delete-confirmed-block');
+  if (pwBlock) pwBlock.style.display = 'none';
+  if (googleBlock) googleBlock.style.display = 'none';
+  if (confirmedBlock) confirmedBlock.style.display = 'none';
+
+  if (forcedMode === 'confirmed') {
+    // Returning from a fresh Google re-auth.
+    _deleteAccountMode = 'confirmed';
+    if (confirmedBlock) confirmedBlock.style.display = '';
+  } else {
+    // Detect whether this is a Google-managed account (no password) or a
+    // password account. Mirrors applyGoogleAccountPasswordUI's detection.
+    var hasGoogle = false, hasEmail = false;
+    try {
+      var res = await sb.auth.getUser();
+      var user = res && res.data ? res.data.user : null;
+      var providers = [];
+      if (user && Array.isArray(user.identities)) {
+        user.identities.forEach(function(idn) { if (idn && idn.provider) providers.push(idn.provider); });
+      }
+      var meta = (user && user.app_metadata) || {};
+      if (meta.provider) providers.push(meta.provider);
+      if (Array.isArray(meta.providers)) providers = providers.concat(meta.providers);
+      hasGoogle = providers.indexOf('google') !== -1;
+      hasEmail = providers.indexOf('email') !== -1;
+    } catch (e) {
+      // If detection fails, fall back to password mode (the safer prompt).
+      hasEmail = true;
+    }
+
+    if (hasGoogle && !hasEmail) {
+      _deleteAccountMode = 'google';
+      if (googleBlock) googleBlock.style.display = '';
+    } else {
+      _deleteAccountMode = 'password';
+      if (pwBlock) pwBlock.style.display = '';
+    }
+  }
+
+  modal.classList.add('open');
+  if (phraseInput) phraseInput.focus();
+}
+
+function closeDeleteAccountModal() {
+  var modal = _delEl('settings-delete-modal');
+  if (modal) modal.classList.remove('open');
+  _deleteAccountMode = null;
+}
+
+function deleteAccountInputCheck(e, el) {
+  var confirmBtn = _delEl('settings-delete-confirm-btn');
+  if (!confirmBtn) return;
+  confirmBtn.disabled = (el.value !== DELETE_ACCOUNT_PHRASE);
+}
+
+async function confirmDeleteAccount() {
+  var phraseInput = _delEl('settings-delete-input');
+  if (!phraseInput || phraseInput.value !== DELETE_ACCOUNT_PHRASE) {
+    _delSetMsg('Please type ' + DELETE_ACCOUNT_PHRASE + ' exactly.');
+    return;
+  }
+  _delSetMsg('');
+
+  // Already re-authenticated via Google on this return, proceed straight to deletion.
+  if (_deleteAccountMode === 'confirmed') {
+    await performAccountDeletion();
+    return;
+  }
+
+  // Google account: kick off a fresh Google sign-in. Deletion resumes on return.
+  if (_deleteAccountMode === 'google') {
+    var btn = _delEl('settings-delete-confirm-btn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Redirecting to Google...'; }
+    var oauth = await sb.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: 'https://ryxa.io/dashboard.html?finish_delete=1',
+        queryParams: { prompt: 'select_account' }
+      }
+    });
+    if (oauth && oauth.error) {
+      _delSetMsg(oauth.error.message || 'Could not start Google sign-in. Please try again.');
+      if (btn) { btn.disabled = false; btn.textContent = 'Delete permanently'; }
+    }
+    return;
+  }
+
+  // Password account: verify the password before deleting.
+  var pwInput = _delEl('settings-delete-password');
+  var password = pwInput ? pwInput.value : '';
+  if (!password) { _delSetMsg('Please enter your password to confirm.'); return; }
+
+  var btn2 = _delEl('settings-delete-confirm-btn');
+  if (btn2) { btn2.disabled = true; btn2.textContent = 'Verifying...'; }
+
+  try {
+    var email = (currentUser && currentUser.email) || '';
+    var result = await sb.auth.signInWithPassword({ email: email, password: password });
+    if (result.error) {
+      _delSetMsg('That password is not correct. Please try again.');
+      if (btn2) { btn2.disabled = false; btn2.textContent = 'Delete permanently'; }
+      return;
+    }
+  } catch (e) {
+    _delSetMsg('Could not verify your password. Please try again.');
+    if (btn2) { btn2.disabled = false; btn2.textContent = 'Delete permanently'; }
+    return;
+  }
+
+  await performAccountDeletion();
+}
+
+async function performAccountDeletion() {
+  var btn = _delEl('settings-delete-confirm-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Deleting...'; }
+  _delSetMsg('');
+
+  try {
+    var sessionRes = await sb.auth.getSession();
+    var session = sessionRes && sessionRes.data ? sessionRes.data.session : null;
+    if (!session || !session.access_token) {
+      _delSetMsg('Your session expired. Please sign in again and retry.');
+      if (btn) { btn.disabled = false; btn.textContent = 'Delete permanently'; }
+      return;
+    }
+
+    var res = await fetch('/api/delete-account', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + session.access_token,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!res.ok) {
+      var data = await res.json().catch(function() { return {}; });
+      _delSetMsg(data.error || 'Something went wrong. Please email hello@ryxa.io.');
+      if (btn) { btn.disabled = false; btn.textContent = 'Delete permanently'; }
+      return;
+    }
+
+    _delSetOk('Your account has been deleted. Signing you out...');
+    try { await sb.auth.signOut(); } catch (e) { /* token already invalid; ignore */ }
+    setTimeout(function() { window.location.href = '/'; }, 1400);
+  } catch (e) {
+    console.error('performAccountDeletion error:', e);
+    _delSetMsg('Something went wrong. Please email hello@ryxa.io.');
+    if (btn) { btn.disabled = false; btn.textContent = 'Delete permanently'; }
+  }
+}
+
+// Called from the dashboard init flow (dashboard-shell.js) on page load.
+function handleDeleteAccountReturn() {
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('finish_delete') !== '1') return;
+
+  // Strip the flag so a refresh doesn't reopen the modal.
+  var cleanUrl = window.location.pathname;
+  try { window.history.replaceState({}, document.title, cleanUrl); } catch (e) {}
+
+  // Re-authentication with Google just succeeded (we have a session here).
+  // Reopen the modal in "confirmed" mode for the final explicit confirmation.
+  openDeleteAccountModal('confirmed');
+}
+
+settingsRegisterAction('open-delete-account', () => openDeleteAccountModal());
+settingsRegisterAction('close-delete-account', () => closeDeleteAccountModal());
+settingsRegisterAction('delete-input-check', (e, el) => deleteAccountInputCheck(e, el));
+settingsRegisterAction('confirm-delete-account', () => confirmDeleteAccount());
