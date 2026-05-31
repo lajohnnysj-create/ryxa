@@ -696,6 +696,9 @@ async function setUser(user) {
   // Handle Stripe Connect callback redirect
   handleStripeConnectRedirect();
 
+  // Resume account deletion after a Google re-authentication redirect
+  if (typeof handleDeleteAccountReturn === 'function') handleDeleteAccountReturn();
+
   // Handle Google Calendar OAuth callback — auto-navigate to Calendar tool
   handleGcalRedirect();
 
