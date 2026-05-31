@@ -3517,7 +3517,10 @@ function aiBioAssist(textareaId, maxLen) {
         + '<div style="font-size:13px;color:var(--text);line-height:1.6;" id="ai-bio-option-' + i + '">' + escapeHtml(bio) + '</div>'
         + '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;">'
         + '<span style="font-size:11px;color:' + (overLimit ? '#f87171' : 'var(--muted)') + ';">' + charCount + '/' + maxLen + '</span>'
+        + '<span style="display:flex;gap:6px;">'
+        + '<button data-bio-action="report-ai-bio" data-bio-option-idx="' + i + '" style="padding:5px 12px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer;">Report</button>'
         + '<button data-bio-action="apply-ai-bio" data-bio-textarea-id="' + escapeHtml(textareaId) + '" data-bio-option-idx="' + i + '" style="padding:5px 12px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd;border-radius:6px;font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer;">Use this</button>'
+        + '</span>'
         + '</div>'
         + '</div>';
     }).join('');
@@ -3663,6 +3666,11 @@ bioRegisterAction('copy-bio-link', (e, el) => copyBioLink(el.dataset.bioUrl, el)
 // ----- AI Bio modal -----
 bioRegisterAction('apply-ai-bio', (e, el) => {
   applyAIBio(el.dataset.bioTextareaId, parseInt(el.dataset.bioOptionIdx, 10));
+});
+bioRegisterAction('report-ai-bio', (e, el) => {
+  var idx = parseInt(el.dataset.bioOptionIdx, 10);
+  var text = document.getElementById('ai-bio-option-' + idx)?.textContent;
+  ryxaReportAIOutput('bio-writer', text);
 });
 bioRegisterAction('close-ai-bio-modal', () => {
   document.getElementById('ai-bio-modal')?.remove();

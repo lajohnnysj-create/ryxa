@@ -699,6 +699,7 @@ function generateHooks() {
       return '<div class="scripts-s-74b3af">'
         + '<div class="bio-s-f0cb5a" id="script-hook-option-' + i + '">' + escapeHtml(s.trim()) + '</div>'
         + '<button data-scripts-action="apply-hook" data-scripts-idx="' + i + '" class="ds-s-a4361b">Use this hook</button>'
+        + '<button data-scripts-action="report-hook" data-scripts-idx="' + i + '" class="scripts-report-btn">Report</button>'
         + '</div>';
     }).join('');
   })
@@ -793,6 +794,7 @@ function runAIAssist(blockId, mode) {
       + '<div class="course-s-b9bbe5">'
       + '<button data-scripts-action="apply-ai-assist" data-scripts-block-id="' + blockId + '" class="ds-s-a51526">Apply</button>'
       + '<button data-scripts-action="close-assist-modal" class="ds-s-dea7b5">Keep original</button>'
+      + '<button data-scripts-action="report-ai-result" class="scripts-report-btn">Report</button>'
       + '</div>';
   })
   .catch(function() {
@@ -2373,6 +2375,11 @@ scriptsRegisterAction('select-all', (e, el) => el.select());
 scriptsRegisterAction('ai-hook', () => dsAIHook());
 scriptsRegisterAction('generate-hooks', () => generateHooks());
 scriptsRegisterAction('apply-hook', (e, el) => applyHook(parseInt(el.dataset.scriptsIdx, 10)));
+scriptsRegisterAction('report-hook', (e, el) => {
+  var idx = parseInt(el.dataset.scriptsIdx, 10);
+  var text = document.getElementById('script-hook-option-' + idx)?.textContent;
+  ryxaReportAIOutput('script-builder', text);
+});
 scriptsRegisterAction('close-hook-modal', () => {
   var m = document.getElementById('script-ai-hook-modal');
   if (m) m.remove();
@@ -2384,6 +2391,10 @@ scriptsRegisterAction('run-ai-assist', (e, el) => {
   runAIAssist(el.dataset.scriptsBlockId, el.dataset.scriptsMode);
 });
 scriptsRegisterAction('apply-ai-assist', (e, el) => applyAIAssist(el.dataset.scriptsBlockId));
+scriptsRegisterAction('report-ai-result', () => {
+  var text = document.getElementById('script-ai-result')?.textContent;
+  ryxaReportAIOutput('script-builder', text);
+});
 scriptsRegisterAction('close-assist-modal', () => {
   var m = document.getElementById('script-ai-assist-modal');
   if (m) m.remove();

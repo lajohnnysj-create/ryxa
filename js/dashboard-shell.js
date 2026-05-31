@@ -119,6 +119,38 @@ function getAIHeaders() {
   return Auth.headers();
 }
 
+// Shared "report this AI output" flow used by the generative tools (Bio writer,
+// Script Builder, etc.). Confirms, then posts to /api/report-content; the
+// reporter is derived server-side from the token. source is a short tag the
+// route allow-lists (e.g. 'bio-writer', 'script-builder').
+function ryxaReportAIOutput(source, contentText) {
+  var text = String(contentText || '').trim();
+  if (!text) return;
+  showModalConfirm(
+    'Report this response?',
+    'This sends the AI output to the Ryxa team for review. Use it if the output is harmful, offensive, or inappropriate.',
+    async function() {
+      try {
+        var resp = await fetch('/api/report-content', {
+          method: 'POST',
+          headers: getAIHeaders(),
+          body: JSON.stringify({ source: source, reported_content: text.slice(0, 5000) })
+        });
+        if (!resp.ok) {
+          var data = await resp.json().catch(function() { return {}; });
+          showModalAlert('Could not report', data.error || 'Please try again.');
+          return;
+        }
+        showModalAlert('Reported', 'Thanks. Our team will review this response.');
+      } catch (e) {
+        showModalAlert('Could not report', 'Please try again.');
+      }
+    },
+    'Report',
+    'Cancel'
+  );
+}
+
 // Wrap window.fetch to auto-refresh AI usage after any /api/ai- or /api/alt-text call.
 // This means any AI button (caption, bio, rewrite, etc.) keeps the usage bar fresh
 // without each call site needing to remember to update it.
