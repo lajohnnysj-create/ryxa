@@ -6008,6 +6008,31 @@
   .settings-s-st9b2c.is-error { color:#fca5a5; }
   .settings-s-tgwrap { display:inline-flex;align-items:center; }
   .settings-s-992ab4 { margin-top:12px;font-size:12px;color:var(--muted);text-align:center; }
+  .settings-s-delwrap { margin-top:28px;padding-top:18px;border-top:1px solid rgba(255,255,255,0.08);text-align:center; }
+  .settings-s-dellink { background:none;border:none;padding:6px 8px;font-size:12px;color:rgba(255,255,255,0.55);text-decoration:underline;text-underline-offset:2px;cursor:pointer;border-radius:6px; }
+  .settings-s-dellink:hover { color:#fca5a5; }
+  .settings-s-dellink:focus-visible { outline:2px solid var(--accent2);outline-offset:2px; }
+  /* Delete-account modal */
+  .settings-s-delmodal { position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,0.78);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:24px; }
+  .settings-s-delmodal.open { display:flex; }
+  .settings-s-delcard { background:#0f0f1a;border:1px solid rgba(239,68,68,0.28);border-radius:18px;padding:24px;width:100%;max-width:460px; }
+  .settings-s-deltitle { font-family:Syne,sans-serif;font-size:20px;font-weight:800;color:#fff;margin-bottom:10px; }
+  .settings-s-delbody { font-size:14px;line-height:1.5;color:rgba(255,255,255,0.78);margin-bottom:8px; }
+  .settings-s-dellist { font-size:13px;line-height:1.5;color:rgba(255,255,255,0.6);margin:0 0 14px 0;padding-left:18px; }
+  .settings-s-dellabel { display:block;font-size:12px;font-weight:600;color:rgba(255,255,255,0.7);margin:14px 0 6px; }
+  .settings-s-delinput { width:100%;box-sizing:border-box;background:#07070f;border:1px solid rgba(255,255,255,0.16);border-radius:10px;padding:11px 12px;color:#fff;font-size:14px; }
+  .settings-s-delinput:focus { outline:none;border-color:var(--accent2); }
+  .settings-s-delgoogle { font-size:13px;line-height:1.5;color:rgba(255,255,255,0.6);margin:14px 0 0; }
+  .settings-s-delmsg { display:none;margin-top:12px;font-size:13px;color:#fca5a5; }
+  .settings-s-delmsg.show { display:block; }
+  .settings-s-delok { margin-top:12px;font-size:13px;color:#4ade80;display:none; }
+  .settings-s-delok.show { display:block; }
+  .settings-s-delbtns { display:flex;gap:10px;margin-top:20px; }
+  .settings-s-deldanger { flex:1;background:#dc2626;border:none;border-radius:10px;padding:12px;color:#fff;font-size:14px;font-weight:700;cursor:pointer; }
+  .settings-s-deldanger:hover:not(:disabled) { background:#b91c1c; }
+  .settings-s-deldanger:disabled { opacity:0.45;cursor:not-allowed; }
+  .settings-s-delcancel { flex:1;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.16);border-radius:10px;padding:12px;color:#fff;font-size:14px;font-weight:600;cursor:pointer; }
+  .settings-s-delcancel:hover { background:rgba(255,255,255,0.1); }
 
 
   /* ============================================================
@@ -10387,6 +10412,11 @@
 
     <!-- Help -->
     <p class="settings-s-992ab4">Support: hello@ryxa.io</p>
+
+    <!-- Delete account (low-emphasis, very bottom) -->
+    <div class="settings-s-delwrap">
+      <button type="button" data-settings-action="open-delete-account" class="settings-s-dellink">Delete account</button>
+    </div>
   </div>
       </div>
     </div>
@@ -10405,6 +10435,47 @@
      which reference window.RyxaUsernameFilter for username validation. -->
 <script src="/js/username-filter.js"></script>
 <script src="/js/dashboard-shell.js"></script>
+
+<!-- DELETE ACCOUNT MODAL -->
+<div id="settings-delete-modal" class="settings-s-delmodal" role="dialog" aria-modal="true" aria-labelledby="settings-delete-title">
+  <div class="settings-s-delcard">
+    <div id="settings-delete-title" class="settings-s-deltitle">Delete your account</div>
+    <p class="settings-s-delbody">This permanently deletes your account and cannot be undone. We will remove:</p>
+    <ul class="settings-s-dellist">
+      <li>Your profile, link in bio, media kit, and all tools content</li>
+      <li>Your courses, products, brand deals, and uploaded files</li>
+      <li>Your subscribers and connected accounts</li>
+    </ul>
+    <p class="settings-s-delbody">Any active subscription is cancelled first so you are not billed again.</p>
+
+    <!-- Re-auth: password accounts -->
+    <div id="settings-delete-pw-block">
+      <label for="settings-delete-password" class="settings-s-dellabel">Confirm your password</label>
+      <input type="password" id="settings-delete-password" class="settings-s-delinput" autocomplete="current-password" placeholder="Your password">
+    </div>
+
+    <!-- Re-auth: Google accounts (no password) -->
+    <div id="settings-delete-google-block" style="display:none;">
+      <p class="settings-s-delgoogle">You sign in with Google. When you confirm, you will be asked to re-authenticate with Google before deletion proceeds.</p>
+    </div>
+
+    <!-- Identity-confirmed note (shown after Google re-auth return) -->
+    <div id="settings-delete-confirmed-block" style="display:none;">
+      <p class="settings-s-delgoogle">Your identity has been re-confirmed with Google. Click "Delete permanently" to finish.</p>
+    </div>
+
+    <label for="settings-delete-input" class="settings-s-dellabel">Type <strong>DELETE MY ACCOUNT</strong> to confirm</label>
+    <input type="text" id="settings-delete-input" class="settings-s-delinput" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="DELETE MY ACCOUNT" data-settings-action="delete-input-check" data-settings-event="input">
+
+    <div id="settings-delete-msg" class="settings-s-delmsg" role="alert"></div>
+    <div id="settings-delete-ok" class="settings-s-delok" role="status"></div>
+
+    <div class="settings-s-delbtns">
+      <button type="button" id="settings-delete-confirm-btn" class="settings-s-deldanger" data-settings-action="confirm-delete-account" disabled>Delete permanently</button>
+      <button type="button" class="settings-s-delcancel" data-settings-action="close-delete-account">Cancel</button>
+    </div>
+  </div>
+</div>
 
 <!-- BIO CROPPER MODAL -->
 <div id="bio-cropper-modal" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;pointer-events:all;">
