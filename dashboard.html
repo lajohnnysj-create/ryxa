@@ -1903,6 +1903,13 @@
     color: var(--text);
     word-wrap: break-word;
   }
+  .aichat-msg-col { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .aichat-msg-col .aichat-msg-body { flex: none; }
+  .aichat-msg-footer { margin-top: 6px; }
+  .aichat-report-btn { background: none; border: none; padding: 2px 0; font-size: 11px; color: rgba(255,255,255,0.6); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+  .aichat-report-btn:hover { color: rgba(255,255,255,0.9); }
+  .aichat-report-btn:focus-visible { outline: 2px solid var(--accent2); outline-offset: 2px; }
+  .aichat-report-btn.reported { color: #4ade80; text-decoration: none; cursor: default; }
   .aichat-msg-body p { margin: 0 0 12px 0; }
   .aichat-msg-body p:last-child { margin-bottom: 0; }
   .aichat-msg-body ul, .aichat-msg-body ol { margin: 0 0 12px 0; padding-left: 22px; }
