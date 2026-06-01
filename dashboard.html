@@ -3004,6 +3004,22 @@
   .bio-verify-submit:disabled { opacity:0.55; cursor:not-allowed; }
   .bio-verify-msg { margin-top:10px; font-size:13px; color:#fca5a5; display:none; }
   .bio-verify-msg.show { display:block; }
+  .bio-verify-open-btn { display:inline-block; padding:10px 16px; border:1px solid var(--accent2); background:rgba(124,58,237,0.12); color:var(--text); border-radius:10px; font-size:13px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; }
+  .bio-verify-open-btn:hover { background:rgba(124,58,237,0.20); }
+  .bio-verify-open-btn:focus-visible { outline:2px solid var(--accent2); outline-offset:2px; }
+
+  /* Verification modal */
+  .bio-verify-modal { position:fixed; inset:0; z-index:10002; background:rgba(0,0,0,0.78); backdrop-filter:blur(4px); display:none; align-items:center; justify-content:center; padding:24px; }
+  .bio-verify-modal.open { display:flex; }
+  .bio-verify-modal-card { position:relative; background:#0f0f1a; border:1px solid var(--border); border-radius:18px; padding:24px; width:100%; max-width:460px; max-height:calc(100vh - 48px); max-height:calc(100dvh - 48px); overflow-y:auto; overscroll-behavior:contain; }
+  .bio-verify-modal-close { position:absolute; top:12px; right:14px; background:none; border:none; color:var(--muted); font-size:26px; line-height:1; cursor:pointer; padding:4px 8px; }
+  .bio-verify-modal-close:hover { color:var(--text); }
+  .bio-verify-modal-close:focus-visible { outline:2px solid var(--accent2); outline-offset:2px; }
+  .bio-verify-modal-title { font-family:Syne,sans-serif; font-size:20px; font-weight:800; color:#fff; margin-bottom:8px; padding-right:28px; }
+  .bio-verify-modal-sub { font-size:13px; color:var(--muted); line-height:1.5; margin-bottom:18px; }
+  .bio-verify-modal input[type="text"], .bio-verify-modal input[type="url"] { width:100%; box-sizing:border-box; background:#07070f; border:1px solid rgba(255,255,255,0.16); border-radius:10px; padding:11px 12px; color:#fff; font-size:14px; font-family:'DM Sans',sans-serif; }
+  .bio-verify-modal input[type="text"]:focus, .bio-verify-modal input[type="url"]:focus { outline:none; border-color:var(--accent2); }
+  .bio-verify-modal .bio-verify-submit { margin-top:4px; }
   .mk-social-row { display: flex; gap: 10px; align-items: center; }
   .mk-social-row .mk-social-icon { width: 32px; height: 32px; border-radius: 8px; background: var(--surface); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--muted); }
   .mk-social-row .mk-social-icon svg { width: 15px; height: 15px; fill: currentColor; }
@@ -10524,6 +10540,16 @@
       <button type="button" id="settings-delete-confirm-btn" class="settings-s-deldanger" data-settings-action="confirm-delete-account" disabled>Delete permanently</button>
       <button type="button" class="settings-s-delcancel" data-settings-action="close-delete-account">Cancel</button>
     </div>
+  </div>
+</div>
+
+<!-- VERIFICATION MODAL -->
+<div class="bio-verify-modal" id="bio-verify-modal" role="dialog" aria-modal="true" aria-labelledby="bio-verify-modal-title">
+  <div class="bio-verify-modal-card">
+    <button type="button" class="bio-verify-modal-close" data-bio-action="close-verify-modal" aria-label="Close">&times;</button>
+    <div class="bio-verify-modal-title" id="bio-verify-modal-title">Get the blue check</div>
+    <p class="bio-verify-modal-sub">The blue check confirms your Link in Bio belongs to the real you. Choose how we can confirm it:</p>
+    <div id="bio-verify-modal-body"></div>
   </div>
 </div>
 
