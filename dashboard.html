@@ -6025,7 +6025,7 @@
   /* Delete-account modal */
   .settings-s-delmodal { position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,0.78);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:24px; }
   .settings-s-delmodal.open { display:flex; }
-  .settings-s-delcard { background:#0f0f1a;border:1px solid rgba(239,68,68,0.28);border-radius:18px;padding:24px;width:100%;max-width:460px; }
+  .settings-s-delcard { background:#0f0f1a;border:1px solid rgba(239,68,68,0.28);border-radius:18px;padding:24px;width:100%;max-width:460px;max-height:calc(100vh - 48px);max-height:calc(100dvh - 48px);overflow-y:auto;overscroll-behavior:contain; }
   .settings-s-deltitle { font-family:Syne,sans-serif;font-size:20px;font-weight:800;color:#fff;margin-bottom:10px; }
   .settings-s-delbody { font-size:14px;line-height:1.5;color:rgba(255,255,255,0.78);margin-bottom:8px; }
   .settings-s-dellist { font-size:13px;line-height:1.5;color:rgba(255,255,255,0.6);margin:0 0 14px 0;padding-left:18px; }
@@ -9718,7 +9718,7 @@
           <!-- Mobile header (only shown on small screens via CSS) -->
           <div id="aichat-mobile-header">
             <button class="aichat-mobile-toggle" data-chat-action="toggle-side-open" aria-label="Open conversations">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             </button>
             <div class="chat-s-67a615" id="aichat-mobile-title">Ryxa AI</div>
           </div>
