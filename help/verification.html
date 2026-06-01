@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="shortcut icon" href="/favicon.ico">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verification and the Blue Check. Ryxa</title>
+<meta name="description" content="How Ryxa verification works: what the blue check means, who can apply, the two ways to verify your identity, and how long review takes.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://www.ryxa.io/help/verification">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.ryxa.io/help/verification">
+<meta property="og:title" content="Verification and the Blue Check. Ryxa">
+<meta property="og:description" content="What the Ryxa blue check means, who can apply, and how to get verified.">
+<meta property="og:image" content="https://www.ryxa.io/og-image.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #07070f; --surface: #0f0f1a; --surface2: #161625;
+    --border: rgba(255,255,255,0.07); --border-hover: rgba(255,255,255,0.14);
+    --accent: #7c3aed; --accent2: #a855f7; --accent-glow: rgba(124,58,237,0.3);
+    --text: #f0eef8; --muted: #b4b2c8; --muted2: #c9c7dc;
+    --page-bg: #f5f5f7; --doc-text: #1d1d29; --doc-muted: #5b5b6b;
+    --doc-border: #e3e3ea; --doc-surface: #ffffff;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scrollbar-width: thin; scrollbar-color: rgba(168,85,247,0.4) #e3e3ea; }
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: #e3e3ea; }
+  ::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.4); border-radius: 4px; }
+  body {
+    font-family: "DM Sans", sans-serif;
+    background: var(--page-bg);
+    color: var(--doc-text);
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+  #site-footer { background: #07070f; color: #f0eef8; }
+
+  .doc-wrap { max-width: 820px; margin: 0 auto; padding: 96px 24px 96px; }
+
+  .doc-breadcrumb {
+    font-size: 13px; font-weight: 500; color: var(--doc-muted);
+    margin-bottom: 28px;
+  }
+  .doc-breadcrumb a { color: var(--accent); text-decoration: none; }
+  .doc-breadcrumb a:hover { text-decoration: underline; }
+
+  .doc-eyebrow {
+    display: inline-block;
+    font-size: 12px; font-weight: 700; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--accent);
+    margin-bottom: 14px;
+  }
+  .doc-title {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-size: 40px; font-weight: 800; letter-spacing: -1px;
+    line-height: 1.15; color: var(--doc-text);
+    margin-bottom: 14px;
+  }
+  .doc-date { font-size: 14px; color: var(--doc-muted); margin-bottom: 32px; }
+
+  .doc-intro {
+    font-size: 16px; line-height: 1.7; color: var(--doc-text);
+    background: var(--doc-surface);
+    border: 1px solid var(--doc-border);
+    border-radius: 14px; padding: 24px 28px; margin-bottom: 16px;
+  }
+  .doc-intro p + p { margin-top: 12px; }
+
+  .doc-toc {
+    background: var(--doc-surface);
+    border: 1px solid var(--doc-border);
+    border-radius: 14px; padding: 22px 28px; margin-bottom: 40px;
+  }
+  .doc-toc h2 {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-size: 13px; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--doc-muted);
+    margin-bottom: 14px;
+  }
+  .doc-toc ul { list-style: none; columns: 2; column-gap: 32px; }
+  .doc-toc li { margin-bottom: 9px; break-inside: avoid; }
+  .doc-toc a {
+    font-size: 14.5px; color: var(--accent); text-decoration: none;
+  }
+  .doc-toc a:hover { text-decoration: underline; }
+
+  .doc-section { margin-bottom: 38px; scroll-margin-top: 90px; }
+  .doc-section h2 {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-size: 22px; font-weight: 800; letter-spacing: -0.3px;
+    color: var(--doc-text); margin-bottom: 12px;
+    padding-bottom: 10px; border-bottom: 2px solid var(--doc-border);
+  }
+  .doc-section h3 {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-size: 16.5px; font-weight: 700; color: var(--doc-text);
+    margin: 18px 0 8px;
+  }
+  .doc-section p {
+    font-size: 15.5px; line-height: 1.72; color: var(--doc-text);
+    margin-bottom: 12px;
+  }
+  .doc-section p.lead { color: var(--doc-text); }
+  .doc-section ul, .doc-section ol { margin: 4px 0 14px; padding-left: 22px; }
+  .doc-section li {
+    font-size: 15.5px; line-height: 1.65; color: var(--doc-text);
+    margin-bottom: 7px;
+  }
+  .doc-label {
+    display: inline-block;
+    font-size: 12.5px; font-weight: 700;
+    padding: 3px 10px; border-radius: 6px; margin-bottom: 8px;
+  }
+  .doc-label.best { background: #e7f6ec; color: #1b7a44; }
+  .doc-label.alt { background: #eef0fb; color: #4338ca; }
+
+  .doc-callout {
+    background: var(--doc-surface);
+    border: 1px solid var(--doc-border);
+    border-left: 3px solid var(--accent);
+    border-radius: 10px; padding: 18px 22px; margin: 16px 0;
+  }
+  .doc-callout p { margin-bottom: 8px; }
+  .doc-callout p:last-child { margin-bottom: 0; }
+  .doc-callout strong { color: var(--doc-text); }
+
+  .doc-section a { color: var(--accent); text-decoration: none; }
+  .doc-section a:hover { text-decoration: underline; }
+
+  .doc-report {
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    border-radius: 16px; padding: 30px 32px; margin-top: 48px;
+    color: #fff;
+  }
+  .doc-report h2 {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-size: 21px; font-weight: 800; color: #fff; margin-bottom: 10px;
+  }
+  .doc-report p { font-size: 15px; line-height: 1.65; color: rgba(255,255,255,0.92); margin-bottom: 14px; }
+  .doc-report a.report-btn {
+    display: inline-block;
+    background: #fff; color: #7c3aed;
+    font-weight: 700; font-size: 15px;
+    padding: 11px 22px; border-radius: 10px; text-decoration: none;
+  }
+  .doc-report a.report-btn:hover { background: #f0eef8; }
+
+  @media (max-width: 640px) {
+    .doc-wrap { padding: 84px 18px 72px; }
+    .doc-title { font-size: 30px; }
+    .doc-toc ul { columns: 1; }
+    .doc-section h2 { font-size: 19px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="site-header" data-page="help"></div>
+
+<main class="doc-wrap">
+
+  <div class="doc-breadcrumb" role="navigation" aria-label="Breadcrumb">
+    <a href="/help">Help Center</a> &rsaquo; Account &rsaquo; Verification
+  </div>
+
+  <span class="doc-eyebrow">Account</span>
+  <h1 class="doc-title">Verification and the Blue Check</h1>
+  <p class="doc-date">Last updated: June 1, 2026</p>
+
+  <div class="doc-intro">
+    <p>The blue check on a Ryxa page shows that the page is run by the real creator behind a known social presence. It is about authenticity, confirming you are who you say you are, not about fame, follower count, or importance.</p>
+    <p>This guide explains what the check means, who can apply, the two ways to verify, and what to expect after you submit.</p>
+  </div>
+
+  <div class="doc-toc">
+    <h2>On this page</h2>
+    <ul>
+      <li><a href="#meaning">What the blue check means</a></li>
+      <li><a href="#eligibility">Who can apply</a></li>
+      <li><a href="#methods">The two ways to verify</a></li>
+      <li><a href="#apply">How to apply</a></li>
+      <li><a href="#review">Review and timing</a></li>
+      <li><a href="#keeping">Keeping your badge</a></li>
+      <li><a href="#not">What verification is not</a></li>
+      <li><a href="#impersonation">Impersonation</a></li>
+    </ul>
+  </div>
+
+  <section class="doc-section" id="meaning">
+    <h2>What the blue check means</h2>
+    <p class="lead">A verified Ryxa page is one we have confirmed belongs to the genuine creator. When a visitor sees the check next to your name, it tells them this is your real page and not someone pretending to be you.</p>
+    <p>Hovering over the check on a public page shows the message, "This profile is verified as belonging to the creator." That is the whole promise behind it: authenticity of ownership.</p>
+  </section>
+
+  <section class="doc-section" id="eligibility">
+    <h2>Who can apply</h2>
+    <p>Verification is available to creators on an active Pro or Max plan. If you are on the Free plan, you will be prompted to upgrade before you can submit a request. You can compare plans on the <a href="/pricing">pricing page</a>.</p>
+    <p>A paid plan lets you apply. It does not grant the badge automatically. Every request is reviewed by a person before a badge is added.</p>
+  </section>
+
+  <section class="doc-section" id="methods">
+    <h2>The two ways to verify</h2>
+    <p>You can prove the page is yours in one of two ways. Both confirm the same thing, that you control the social presence the page claims to represent.</p>
+
+    <h3>Connected account</h3>
+    <p><span class="doc-label best">Best method</span></p>
+    <p>Connect your Instagram account to Ryxa under Settings, then Connected Accounts. When you apply this way, we confirm your identity using that secure connection, so there is nothing to type and nothing to wait on for proof. This is the fastest and strongest method, because the link to your account is confirmed directly rather than claimed.</p>
+
+    <h3>Public profile link</h3>
+    <p><span class="doc-label alt">Tougher process</span></p>
+    <p>If you would rather not connect an account, you can add a link to your Ryxa page in your public social bio, then give us the URL of that profile. We check that the profile genuinely links back to your Ryxa page. This route is reviewed more strictly and can take longer, since the proof is manual.</p>
+  </section>
+
+  <section class="doc-section" id="apply">
+    <h2>How to apply</h2>
+    <ol>
+      <li>Open your dashboard and go to <strong>Link in Bio</strong>.</li>
+      <li>Find the <strong>Verification</strong> section in the editor settings.</li>
+      <li>Select <strong>Submit for verification</strong>. A short form opens.</li>
+      <li>Choose your method, enter your first and last name, and confirm the agreement.</li>
+      <li>Submit. Your status changes to pending while we review.</li>
+    </ol>
+    <p>If you chose the connected account method but no Instagram account is connected yet, connect it first under Settings, then Connected Accounts, and come back to apply.</p>
+  </section>
+
+  <section class="doc-section" id="review">
+    <h2>Review and timing</h2>
+    <p>Requests are reviewed by a person, typically within 3 to 5 business days. While your request is open, the Verification section shows a pending state. If your request is approved, the blue check appears on your public Link in Bio page. If we cannot approve it, you are free to submit a new request once any issue is resolved.</p>
+  </section>
+
+  <section class="doc-section" id="keeping">
+    <h2>Keeping your badge</h2>
+    <p>The blue check stays as long as your page remains eligible and in good standing. A few things to know:</p>
+    <ul>
+      <li>It requires an active Pro or Max plan. If your subscription ends and your account returns to Free, the badge is removed.</li>
+      <li>It can be removed if a page is found to break our policies, including impersonation.</li>
+      <li>If your badge is removed, your Verification section resets so you can apply again once you are eligible.</li>
+    </ul>
+  </section>
+
+  <section class="doc-section" id="not">
+    <h2>What verification is not</h2>
+    <p>To set expectations clearly:</p>
+    <ul>
+      <li>It is not a measure of fame, status, or follower count. A large following does not earn it, and a small one does not prevent it.</li>
+      <li>It is not a legal identity check. We confirm that you control the creator presence the page represents, not government identity documents.</li>
+      <li>It is not an endorsement of your content. It only speaks to who runs the page.</li>
+    </ul>
+  </section>
+
+  <section class="doc-section" id="impersonation">
+    <h2>Impersonation</h2>
+    <p>The blue check helps your audience tell your real page apart from fakes. Impersonation itself is handled separately and applies to every page on Ryxa, whether or not it is verified. If someone is pretending to be you, you do not need to be verified to report it. See our <a href="/help/impersonation-policy">Impersonation Policy</a> for how that works and how to report a page.</p>
+  </section>
+
+  <div class="doc-report">
+    <h2>Ready to get verified?</h2>
+    <p>Open your dashboard, head to Link in Bio, and look for the Verification section to submit your request. You will need an active Pro or Max plan.</p>
+    <a class="report-btn" href="/dashboard">Go to your dashboard</a>
+  </div>
+
+</main>
+
+<div id="site-footer"></div>
+
+<script src="/cookie-banner.js"></script>
+<script src="/site-nav.js"></script>
+</body>
+</html>
