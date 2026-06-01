@@ -708,7 +708,7 @@ function render(profile, bio, userTier) {
     document.getElementById('wrap').innerHTML = `
       ${buildHeroHeader(profile, bio, socialsHtml)}
       <div class="hero-content-below">
-        <div class="name">${esc(name)}${nameBadge}</div>
+        <div class="name"><span class="name-text">${esc(name)}</span>${nameBadge}</div>
         ${socialsHtml}
         ${bio.bio ? `<div class="bio">${esc(bio.bio)}</div>` : ''}
         ${linksHtml ? `<div class="links">${linksHtml}</div>` : ''}
@@ -718,7 +718,7 @@ function render(profile, bio, userTier) {
   } else {
     document.getElementById('wrap').innerHTML = `
       ${buildAvatar(profile, bio)}
-      <div class="name">${esc(name)}${nameBadge}</div>
+      <div class="name"><span class="name-text">${esc(name)}</span>${nameBadge}</div>
       ${socialsHtml}
       ${bio.bio ? `<div class="bio">${esc(bio.bio)}</div>` : ''}
       ${linksHtml ? `<div class="links">${linksHtml}</div>` : ''}
