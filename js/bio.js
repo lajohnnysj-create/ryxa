@@ -3750,9 +3750,8 @@ function renderBioVerification() {
   const rejected = bioVerifyState.status === 'rejected';
   c.innerHTML =
     (rejected ? '<div class="bio-verify-rejected-note">Your previous request was not approved. You can submit a new one.</div>' : '')
-    + '<div class="bio-verify-intro">The blue check confirms your Link in Bio belongs to the real you. Requires a Pro or Max plan.</div>'
-    + '<button type="button" class="bio-verify-open-btn" data-bio-action="open-verify-modal">Submit for verification</button>'
-    + '<a class="bio-verify-policy-link" href="/help/verification" target="_blank" rel="noopener">See verification policy</a>';
+    + '<div class="bio-verify-intro">The blue check confirms your Link in Bio belongs to the real you. Requires a Pro or Max plan. <a class="bio-verify-policy-link" href="/help/verification" target="_blank" rel="noopener">See verification policy</a></div>'
+    + '<button type="button" class="bio-verify-open-btn" data-bio-action="open-verify-modal">Submit for verification</button>';
 }
 
 function renderVerifyModalForm() {
