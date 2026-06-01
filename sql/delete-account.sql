@@ -108,6 +108,9 @@ begin
   -- so removing the row here does not lose the report trail.
   delete from content_reports where reporter_id = p_uid;
 
+  -- Verification applications submitted by this account.
+  delete from verification_requests where user_id = p_uid;
+
   -- ---------------------------------------------------------------------------
   -- 5. FLAT OWNER TABLES keyed by creator_id.
   -- ---------------------------------------------------------------------------
