@@ -3145,6 +3145,25 @@ function updateBioPreview() {
   iframe.srcdoc = buildPreviewHTML();
 }
 
+// Verified blue check for the editor preview (mirrors the public renderers).
+function bioPreviewVerifiedBadge() {
+  return ' <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Verified" width="0.9em" height="0.9em" style="display:inline-block;vertical-align:-0.1em;margin-left:5px;">' +
+    '<title>Verified</title>' +
+    '<g>' +
+    '<circle cx="24.00" cy="8.70" r="4.4" fill="#1d9bf0"/><circle cx="30.64" cy="10.22" r="4.4" fill="#1d9bf0"/>' +
+    '<circle cx="35.96" cy="14.46" r="4.4" fill="#1d9bf0"/><circle cx="38.92" cy="20.60" r="4.4" fill="#1d9bf0"/>' +
+    '<circle cx="38.92" cy="27.40" r="4.4" fill="#1d9bf0"/><circle cx="35.96" cy="33.54" r="4.4" fill="#1d9bf0"/>' +
+    '<circle cx="30.64" cy="37.78" r="4.4" fill="#1d9bf0"/><circle cx="24.00" cy="39.30" r="4.4" fill="#1d9bf0"/>' +
+    '<circle cx="17.36" cy="37.78" r="4.4" fill="#1d9bf0"/><circle cx="12.04" cy="33.54" r="4.4" fill="#1d9bf0"/>' +
+    '<circle cx="9.08" cy="27.40" r="4.4" fill="#1d9bf0"/><circle cx="9.08" cy="20.60" r="4.4" fill="#1d9bf0"/>' +
+    '<circle cx="12.04" cy="14.46" r="4.4" fill="#1d9bf0"/><circle cx="17.36" cy="10.22" r="4.4" fill="#1d9bf0"/>' +
+    '<circle cx="24" cy="24" r="15.4" fill="#1d9bf0"/>' +
+    '</g>' +
+    '<path d="M15 24.5 L21.2 31 L34 17.8" fill="none" stroke="#0b6db2" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round" transform="translate(0.8,1.4)" opacity="0.35"/>' +
+    '<path d="M15 24.5 L21.2 31 L34 17.8" fill="none" stroke="#ffffff" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"/>' +
+    '</svg>';
+}
+
 function buildPreviewHTML() {
   const themes = {
     purple:   { bg:'#07070f', surface:'#0f0f1a', surface2:'#161625', text:'#f0eef8', muted:'#b4b2c8', muted2:'#c9c7dc', accent:'#7c3aed', accent2:'#a855f7', glow:'rgba(124,58,237,0.3)', border:'rgba(255,255,255,0.1)', avatarBorder:'linear-gradient(135deg,#a78bfa,#e879f9)' },
@@ -3185,6 +3204,7 @@ function buildPreviewHTML() {
   }
   const name = bioState.display_name || bioState.username || 'Your name';
   const initial = (name[0] || '?').toUpperCase();
+  const vbadge = (bioVerifyState && bioVerifyState.verified && isPro()) ? bioPreviewVerifiedBadge() : '';
   const avatarHtml = bioState.avatar_url
     ? `<img src="${escapeHtml(bioState.avatar_url)}" alt="Profile photo" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;">`
     : `<div style="width:100%;height:100%;border-radius:50%;background:${t.surface2};display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;font-size:36px;font-weight:800;color:${t.text};">${escapeHtml(initial)}</div>`;
@@ -3299,12 +3319,12 @@ function buildPreviewHTML() {
       <div class="hero-fade"></div>
     </div>
     <div class="hero-below">
-      <div class="nm">${escapeHtml(name)}</div>
+      <div class="nm">${escapeHtml(name)}${vbadge}</div>
       ${socialsHtml}
       ${bioState.bio ? `<div class="bio-line">${escapeHtml(bioState.bio)}</div>` : ''}
     </div>` : `
     <div class="avfr">${avatarHtml}</div>
-    <div class="nm">${escapeHtml(name)}</div>
+    <div class="nm">${escapeHtml(name)}${vbadge}</div>
     ${socialsHtml}
     ${bioState.bio ? `<div class="bio-line">${escapeHtml(bioState.bio)}</div>` : ''}`}
     ${linksHtml ? `<div class="links">${linksHtml}</div>` : ''}
@@ -3694,6 +3714,8 @@ async function loadBioVerification() {
   }
   bioVerifyState.loaded = true;
   renderBioVerification();
+  // Reflect the badge in the live preview once verified status is known.
+  if (typeof updateBioPreview === 'function') updateBioPreview();
 }
 
 function renderBioVerification() {
