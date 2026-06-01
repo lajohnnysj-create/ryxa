@@ -62,6 +62,22 @@ async function getUserTier(uid) {
   }
 }
 
+// Resolve the user's OAuth-verified Instagram handle (the trustworthy value,
+// not a typed claim). Returns the ig_username or null if none connected.
+async function getInstagramHandle(uid) {
+  try {
+    const url = SUPABASE_URL + '/rest/v1/instagram_connections?user_id=eq.' +
+      encodeURIComponent(uid) + '&select=ig_username';
+    const res = await fetch(url, { headers: svcHeaders() });
+    if (!res.ok) return null;
+    const rows = await res.json();
+    return rows && rows[0] && rows[0].ig_username ? rows[0].ig_username : null;
+  } catch (e) {
+    console.error('getInstagramHandle failed:', e.message);
+    return null;
+  }
+}
+
 async function insertRequest(row) {
   const res = await fetch(SUPABASE_URL + '/rest/v1/verification_requests', {
     method: 'POST',
@@ -74,12 +90,13 @@ async function insertRequest(row) {
 async function sendNotificationEmail(row, email) {
   const key = process.env.RESEND_API_KEY;
   if (!key) { console.warn('RESEND_API_KEY not set, skipping verification email'); return; }
+  const isConnected = row.verification_method === 'connected_account';
   const html =
     '<h2>New verification request</h2>' +
     '<p><strong>Name:</strong> ' + escapeHtml(row.first_name) + ' ' + escapeHtml(row.last_name) + '</p>' +
     '<p><strong>Account:</strong> ' + escapeHtml(email || row.user_id) + ' (' + escapeHtml(row.user_id) + ')</p>' +
-    '<p><strong>Social handle:</strong> ' + escapeHtml(row.social_handle) + '</p>' +
-    '<p><strong>Method:</strong> ' + escapeHtml(row.verification_method) + '</p>' +
+    '<p><strong>Method:</strong> ' + (isConnected ? 'Connected account (OAuth-verified Instagram)' : 'Public profile link (manual, verify the URL links back to Ryxa)') + '</p>' +
+    '<p><strong>' + (isConnected ? 'Verified Instagram' : 'Social handle') + ':</strong> ' + escapeHtml(row.social_handle) + '</p>' +
     (row.profile_url ? '<p><strong>Profile URL:</strong> <a href="' + escapeHtml(row.profile_url) + '">' + escapeHtml(row.profile_url) + '</a></p>' : '') +
     '<p style="color:#666;font-size:13px;">Review, then in the SQL editor: <code>update profiles set verified=true where user_id=\'' + escapeHtml(row.user_id) + '\';</code> and set this request to approved.</p>';
   try {
@@ -119,23 +136,36 @@ module.exports = async function handler(req, res) {
   const body = req.body || {};
   const firstName = String(body.first_name || '').trim().slice(0, MAX_NAME);
   const lastName = String(body.last_name || '').trim().slice(0, MAX_NAME);
-  const socialHandle = String(body.social_handle || '').trim().slice(0, MAX_HANDLE);
   let method = String(body.verification_method || '');
-  if (ALLOWED_METHODS.indexOf(method) === -1) method = 'profile_link';
-  const profileUrl = method === 'profile_link'
-    ? String(body.profile_url || '').trim().slice(0, MAX_URL)
-    : null;
+  if (ALLOWED_METHODS.indexOf(method) === -1) method = 'connected_account';
   const agreed = body.agreed === true;
 
   if (!firstName || !lastName) return res.status(400).json({ error: 'Please enter your first and last name.' });
-  if (!socialHandle) return res.status(400).json({ error: 'Please enter your social handle.' });
-  if (method === 'profile_link' && !profileUrl) return res.status(400).json({ error: 'Please include the profile URL that links back to Ryxa.' });
   if (!agreed) return res.status(400).json({ error: 'Please confirm the agreement to continue.' });
 
   // Pro/Max requirement, enforced server-side.
   const tier = await getUserTier(user.id);
   if (tier !== 'monthly' && tier !== 'max') {
     return res.status(403).json({ error: 'Verification requires a Pro or Max plan.' });
+  }
+
+  // Resolve the proof depending on method.
+  let socialHandle;
+  let profileUrl;
+  if (method === 'connected_account') {
+    // Use the OAuth-verified Instagram handle, never a typed claim.
+    const igHandle = await getInstagramHandle(user.id);
+    if (!igHandle) {
+      return res.status(400).json({ error: 'No Instagram account is connected. Connect it under Connected Accounts in Settings, then try again.' });
+    }
+    socialHandle = '@' + igHandle;
+    profileUrl = 'https://www.instagram.com/' + igHandle + '/';
+  } else {
+    // profile_link: a typed handle plus the public URL that links back to Ryxa.
+    socialHandle = String(body.social_handle || '').trim().slice(0, MAX_HANDLE);
+    profileUrl = String(body.profile_url || '').trim().slice(0, MAX_URL);
+    if (!socialHandle) return res.status(400).json({ error: 'Please enter your social handle.' });
+    if (!profileUrl) return res.status(400).json({ error: 'Please include the profile URL that links back to Ryxa.' });
   }
 
   const row = {
