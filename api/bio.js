@@ -569,7 +569,7 @@ function renderBioContent(profile, bio) {
   if (isHeroMode) {
     inner = `${buildHeroHeader(profile, bio)}
       <div class="hero-content-below">
-        <div class="name"><span class="name-text">${esc(name)}</span>${nameBadge}</div>
+        <div class="name">${nameWithBadge(name, nameBadge)}</div>
         ${socialsHtml}
         ${bio.bio ? `<div class="bio">${esc(bio.bio)}</div>` : ''}
         ${linksHtml ? `<div class="links">${linksHtml}</div>` : ''}
@@ -577,7 +577,7 @@ function renderBioContent(profile, bio) {
       </div>`;
   } else {
     inner = `${buildAvatar(profile, bio)}
-      <div class="name"><span class="name-text">${esc(name)}</span>${nameBadge}</div>
+      <div class="name">${nameWithBadge(name, nameBadge)}</div>
       ${socialsHtml}
       ${bio.bio ? `<div class="bio">${esc(bio.bio)}</div>` : ''}
       ${linksHtml ? `<div class="links">${linksHtml}</div>` : ''}
@@ -585,6 +585,16 @@ function renderBioContent(profile, bio) {
   }
 
   return { inner, isHeroMode, showBanner };
+}
+
+// Weld the badge to the LAST word of the name so it never wraps onto its own
+// line. Earlier words wrap normally; the full name is always shown in full.
+function nameWithBadge(rawName, badge) {
+  const n = rawName || '';
+  if (!badge) return esc(n);
+  const i = n.lastIndexOf(' ');
+  if (i === -1) return `<span style="white-space:nowrap;">${esc(n)}${badge}</span>`;
+  return `${esc(n.slice(0, i + 1))}<span style="white-space:nowrap;">${esc(n.slice(i + 1))}${badge}</span>`;
 }
 
 // Verified blue check (SSR). Identical markup to the client renderer; inline
