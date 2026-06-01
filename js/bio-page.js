@@ -207,6 +207,14 @@ function buildHeroHeader(profile, bio, socialsHtml) {
 // plan (Pro or Max); the cancellation webhook flips verified off, but this is a
 // second guard so a stale flag can never show a badge on a downgraded account.
 // Scales with the surrounding name font via em sizing.
+function nameWithBadge(rawName, badge) {
+  const n = rawName || '';
+  if (!badge) return esc(n);
+  const i = n.lastIndexOf(' ');
+  if (i === -1) return `<span style="white-space:nowrap;">${esc(n)}${badge}</span>`;
+  return `${esc(n.slice(0, i + 1))}<span style="white-space:nowrap;">${esc(n.slice(i + 1))}${badge}</span>`;
+}
+
 function verifiedBadgeHtml() {
   return ' <svg class="verified-badge" viewBox="0 0 48 48" role="img" aria-label="Verified"' +
     ' width="0.92em" height="0.92em" style="display:inline-block;vertical-align:-0.1em;flex-shrink:0;">' +
@@ -708,7 +716,7 @@ function render(profile, bio, userTier) {
     document.getElementById('wrap').innerHTML = `
       ${buildHeroHeader(profile, bio, socialsHtml)}
       <div class="hero-content-below">
-        <div class="name"><span class="name-text">${esc(name)}</span>${nameBadge}</div>
+        <div class="name">${nameWithBadge(name, nameBadge)}</div>
         ${socialsHtml}
         ${bio.bio ? `<div class="bio">${esc(bio.bio)}</div>` : ''}
         ${linksHtml ? `<div class="links">${linksHtml}</div>` : ''}
@@ -718,7 +726,7 @@ function render(profile, bio, userTier) {
   } else {
     document.getElementById('wrap').innerHTML = `
       ${buildAvatar(profile, bio)}
-      <div class="name"><span class="name-text">${esc(name)}</span>${nameBadge}</div>
+      <div class="name">${nameWithBadge(name, nameBadge)}</div>
       ${socialsHtml}
       ${bio.bio ? `<div class="bio">${esc(bio.bio)}</div>` : ''}
       ${linksHtml ? `<div class="links">${linksHtml}</div>` : ''}

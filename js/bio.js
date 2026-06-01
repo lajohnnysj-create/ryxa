@@ -3146,6 +3146,14 @@ function updateBioPreview() {
 }
 
 // Verified blue check for the editor preview (mirrors the public renderers).
+function nameWithBadge(rawName, badge) {
+  const n = rawName || '';
+  if (!badge) return escapeHtml(n);
+  const i = n.lastIndexOf(' ');
+  if (i === -1) return `<span style="white-space:nowrap;">${escapeHtml(n)}${badge}</span>`;
+  return `${escapeHtml(n.slice(0, i + 1))}<span style="white-space:nowrap;">${escapeHtml(n.slice(i + 1))}${badge}</span>`;
+}
+
 function bioPreviewVerifiedBadge() {
   return ' <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Verified" width="0.9em" height="0.9em" style="display:inline-block;vertical-align:-0.1em;flex-shrink:0;">' +
     '<title>Verified</title>' +
@@ -3239,8 +3247,7 @@ function buildPreviewHTML() {
   .w{position:relative;z-index:1;max-width:480px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:14px;}
   .hero-wrap{position:relative;overflow:hidden;${(bioState.avatar_display === 'hero' && bioState.avatar_url) ? 'width:100vw;max-width:100vw;margin-left:0;' : ''}}
   .avfr{width:100px;height:100px;border-radius:50%;padding:3px;background:${t.avatarBorder};margin-bottom:6px;}
-  .nm{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;letter-spacing:-0.4px;display:flex;align-items:center;justify-content:center;gap:5px;max-width:100%;}
-  .nm-text{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
+  .nm{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;letter-spacing:-0.4px;text-align:center;word-break:break-word;}
   .bio-line{font-size:13px;color:${t.muted2};text-align:center;line-height:1.4;max-width:340px;word-break:break-word;}
   .socials{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:2px 0 4px;}
   .sb{width:34px;height:34px;border-radius:50%;background:${t.surface};border:1px solid ${t.border};display:flex;align-items:center;justify-content:center;color:${t.text};}
@@ -3320,12 +3327,12 @@ function buildPreviewHTML() {
       <div class="hero-fade"></div>
     </div>
     <div class="hero-below">
-      <div class="nm"><span class="nm-text">${escapeHtml(name)}</span>${vbadge}</div>
+      <div class="nm">${nameWithBadge(name, vbadge)}</div>
       ${socialsHtml}
       ${bioState.bio ? `<div class="bio-line">${escapeHtml(bioState.bio)}</div>` : ''}
     </div>` : `
     <div class="avfr">${avatarHtml}</div>
-    <div class="nm"><span class="nm-text">${escapeHtml(name)}</span>${vbadge}</div>
+    <div class="nm">${nameWithBadge(name, vbadge)}</div>
     ${socialsHtml}
     ${bioState.bio ? `<div class="bio-line">${escapeHtml(bioState.bio)}</div>` : ''}`}
     ${linksHtml ? `<div class="links">${linksHtml}</div>` : ''}
