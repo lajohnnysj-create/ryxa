@@ -3147,7 +3147,7 @@ function updateBioPreview() {
 
 // Verified blue check for the editor preview (mirrors the public renderers).
 function bioPreviewVerifiedBadge() {
-  return ' <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Verified" width="0.9em" height="0.9em" style="display:inline-block;vertical-align:-0.1em;margin-left:5px;">' +
+  return ' <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Verified" width="0.9em" height="0.9em" style="display:inline-block;vertical-align:-0.1em;">' +
     '<title>Verified</title>' +
     '<g>' +
     '<circle cx="24.00" cy="8.70" r="4.4" fill="#1d9bf0"/><circle cx="30.64" cy="10.22" r="4.4" fill="#1d9bf0"/>' +
