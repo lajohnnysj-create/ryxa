@@ -3677,7 +3677,7 @@ bioRegisterAction('report-ai-bio', (e, el) => {
 // ---------------------------------------------------------------------------
 // Verification (blue check) application
 // ---------------------------------------------------------------------------
-let bioVerifyState = { loaded: false, verified: false, status: null, method: 'profile_link' };
+let bioVerifyState = { loaded: false, verified: false, status: null, method: 'connected_account', igHandle: undefined };
 
 async function loadBioVerification() {
   if (!currentUser) return;
@@ -3728,34 +3728,51 @@ function renderVerifyModalForm() {
   const body = document.getElementById('bio-verify-modal-body');
   if (!body) return;
   const m = bioVerifyState.method;
+  const ig = bioVerifyState.igHandle;
+
+  let methodBlock;
+  if (m === 'connected_account') {
+    methodBlock = (ig
+      ? '<div class="bio-verify-method-help">We\'ll verify your identity using your connected Instagram: <strong>@' + escapeHtml(ig) + '</strong>.</div>'
+      : '<div class="bio-verify-method-help bio-verify-warn">No Instagram account is connected. Connect it under Connected Accounts in Settings, then come back.</div>');
+  } else {
+    methodBlock = '<div class="bio-verify-method-help">Add a link to your Ryxa page in your public social bio, then paste that profile\'s URL below. This route is reviewed more strictly.</div>';
+  }
 
   body.innerHTML =
     '<div class="bio-verify-methods">'
-    +   '<button type="button" class="bio-verify-method-btn ' + (m === 'profile_link' ? 'active' : '') + '" data-bio-action="verify-method" data-bio-method="profile_link">Public profile link</button>'
-    +   '<button type="button" class="bio-verify-method-btn ' + (m === 'connected_account' ? 'active' : '') + '" data-bio-action="verify-method" data-bio-method="connected_account">Connected account</button>'
+    +   '<button type="button" class="bio-verify-method-btn ' + (m === 'connected_account' ? 'active' : '') + '" data-bio-action="verify-method" data-bio-method="connected_account">Connected account<span class="bio-verify-method-sub">Best method</span></button>'
+    +   '<button type="button" class="bio-verify-method-btn ' + (m === 'profile_link' ? 'active' : '') + '" data-bio-action="verify-method" data-bio-method="profile_link">Profile link<span class="bio-verify-method-sub">Tougher process</span></button>'
     + '</div>'
-    + (m === 'profile_link'
-        ? '<div class="bio-verify-method-help">Add a link to your Ryxa page in your public social bio, then paste that profile\'s URL below.</div>'
-        : '<div class="bio-verify-method-help">Make sure the social account you\'re verifying is connected under Connected Accounts in Settings.</div>')
+    + methodBlock
     + '<div class="bio-verify-row">'
     +   '<div class="bio-verify-field"><label for="bio-verify-first">First name</label><input type="text" id="bio-verify-first" maxlength="60" autocomplete="given-name" placeholder="Jane"></div>'
     +   '<div class="bio-verify-field"><label for="bio-verify-last">Last name</label><input type="text" id="bio-verify-last" maxlength="60" autocomplete="family-name" placeholder="Doe"></div>'
     + '</div>'
-    + '<div class="bio-verify-field"><label for="bio-verify-handle">Social handle</label><input type="text" id="bio-verify-handle" maxlength="80" placeholder="@yourhandle"></div>'
     + (m === 'profile_link'
-        ? '<div class="bio-verify-field"><label for="bio-verify-url">Profile URL (links back to Ryxa)</label><input type="url" id="bio-verify-url" maxlength="300" placeholder="https://instagram.com/yourhandle"></div>'
+        ? '<div class="bio-verify-field"><label for="bio-verify-handle">Social handle</label><input type="text" id="bio-verify-handle" maxlength="80" placeholder="@yourhandle"></div>'
+          + '<div class="bio-verify-field"><label for="bio-verify-url">Profile URL (links back to Ryxa)</label><input type="url" id="bio-verify-url" maxlength="300" placeholder="https://instagram.com/yourhandle"></div>'
         : '')
     + '<label class="bio-verify-agree"><input type="checkbox" id="bio-verify-agree"><span>I confirm the information above is accurate, and I understand that impersonating another person can result in account termination.</span></label>'
     + '<button type="button" class="bio-verify-submit" data-bio-action="verify-submit">Submit for verification</button>'
     + '<div class="bio-verify-msg" id="bio-verify-msg"></div>';
 }
 
-function openVerifyModal() {
+async function openVerifyModal() {
   if (!isPro()) {
     showModalAlert('Pro or Max required', 'Verification requires a Pro or Max plan. Upgrade to request your blue check.');
     return;
   }
-  bioVerifyState.method = 'profile_link';
+  bioVerifyState.method = 'connected_account';
+  // Resolve the user's connected Instagram handle (if any) to show in the form.
+  if (bioVerifyState.igHandle === undefined) {
+    try {
+      const { data } = await sb.from('instagram_connections').select('ig_username').eq('user_id', currentUser.id).maybeSingle();
+      bioVerifyState.igHandle = data && data.ig_username ? data.ig_username : null;
+    } catch (e) {
+      bioVerifyState.igHandle = null;
+    }
+  }
   renderVerifyModalForm();
   const modal = document.getElementById('bio-verify-modal');
   if (modal) modal.classList.add('open');
@@ -3774,35 +3791,48 @@ function bioVerifyShowMsg(text) {
 async function submitBioVerification() {
   const first = (document.getElementById('bio-verify-first')?.value || '').trim();
   const last = (document.getElementById('bio-verify-last')?.value || '').trim();
-  const handle = (document.getElementById('bio-verify-handle')?.value || '').trim();
-  const url = (document.getElementById('bio-verify-url')?.value || '').trim();
   const agreed = !!document.getElementById('bio-verify-agree')?.checked;
   const method = bioVerifyState.method;
+  // These fields only exist on the profile_link form.
+  const handle = (document.getElementById('bio-verify-handle')?.value || '').trim();
+  const url = (document.getElementById('bio-verify-url')?.value || '').trim();
 
   const msg = document.getElementById('bio-verify-msg');
   if (msg) msg.classList.remove('show');
 
   if (!isPro()) { bioVerifyShowMsg('Verification requires a Pro or Max plan.'); return; }
   if (!first || !last) { bioVerifyShowMsg('Please enter your first and last name.'); return; }
-  if (!handle) { bioVerifyShowMsg('Please enter your social handle.'); return; }
-  if (method === 'profile_link' && !url) { bioVerifyShowMsg('Please paste the profile URL that links back to Ryxa.'); return; }
+
+  if (method === 'connected_account') {
+    if (!bioVerifyState.igHandle) {
+      bioVerifyShowMsg('Connect your Instagram account in Settings first, then come back.');
+      return;
+    }
+  } else {
+    if (!handle) { bioVerifyShowMsg('Please enter your social handle.'); return; }
+    if (!url) { bioVerifyShowMsg('Please paste the profile URL that links back to Ryxa.'); return; }
+  }
   if (!agreed) { bioVerifyShowMsg('Please confirm the agreement to continue.'); return; }
 
   const btn = document.querySelector('[data-bio-action="verify-submit"]');
   if (btn) { btn.disabled = true; btn.textContent = 'Submitting...'; }
 
+  const payload = {
+    first_name: first,
+    last_name: last,
+    verification_method: method,
+    agreed: true
+  };
+  if (method === 'profile_link') {
+    payload.social_handle = handle;
+    payload.profile_url = url;
+  }
+
   try {
     const resp = await fetch('/api/submit-verification', {
       method: 'POST',
       headers: getAIHeaders(),
-      body: JSON.stringify({
-        first_name: first,
-        last_name: last,
-        social_handle: handle,
-        verification_method: method,
-        profile_url: method === 'profile_link' ? url : null,
-        agreed: true
-      })
+      body: JSON.stringify(payload)
     });
     const data = await resp.json().catch(() => ({}));
     if (!resp.ok) {
