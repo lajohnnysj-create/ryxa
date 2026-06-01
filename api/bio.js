@@ -569,7 +569,7 @@ function renderBioContent(profile, bio) {
   if (isHeroMode) {
     inner = `${buildHeroHeader(profile, bio)}
       <div class="hero-content-below">
-        <div class="name">${esc(name)}${nameBadge}</div>
+        <div class="name"><span class="name-text">${esc(name)}</span>${nameBadge}</div>
         ${socialsHtml}
         ${bio.bio ? `<div class="bio">${esc(bio.bio)}</div>` : ''}
         ${linksHtml ? `<div class="links">${linksHtml}</div>` : ''}
@@ -577,7 +577,7 @@ function renderBioContent(profile, bio) {
       </div>`;
   } else {
     inner = `${buildAvatar(profile, bio)}
-      <div class="name">${esc(name)}${nameBadge}</div>
+      <div class="name"><span class="name-text">${esc(name)}</span>${nameBadge}</div>
       ${socialsHtml}
       ${bio.bio ? `<div class="bio">${esc(bio.bio)}</div>` : ''}
       ${linksHtml ? `<div class="links">${linksHtml}</div>` : ''}
