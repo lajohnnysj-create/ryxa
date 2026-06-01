@@ -2978,6 +2978,32 @@
   .bio-chevron { transition: transform 0.2s ease; color: var(--muted); flex-shrink: 0; }
   button.bio-collapsible[aria-expanded="true"] .bio-chevron { transform: rotate(180deg); }
   .bio-section-body { padding: 0 20px 20px; }
+
+  /* Verification section */
+  .bio-verify-status { display:flex; align-items:flex-start; gap:10px; padding:14px; border-radius:12px; font-size:14px; color:var(--text); }
+  .bio-verify-status svg { flex-shrink:0; margin-top:1px; }
+  .bio-verify-status strong { font-weight:700; }
+  .bio-verify-substatus { font-size:13px; color:var(--muted); margin-top:3px; line-height:1.45; }
+  .bio-verify-ok { background:rgba(29,155,240,0.10); border:1px solid rgba(29,155,240,0.35); }
+  .bio-verify-pending { background:rgba(217,119,6,0.10); border:1px solid rgba(217,119,6,0.35); }
+  .bio-verify-rejected-note { font-size:13px; color:rgba(255,255,255,0.7); margin-bottom:12px; }
+  .bio-verify-intro { font-size:13px; color:var(--muted); margin-bottom:14px; line-height:1.5; }
+  .bio-verify-methods { display:flex; gap:8px; margin-bottom:12px; }
+  .bio-verify-method-btn { flex:1; padding:10px; border-radius:10px; border:1px solid var(--border); background:var(--surface2); color:var(--muted); font-size:13px; cursor:pointer; font-family:'DM Sans',sans-serif; }
+  .bio-verify-method-btn.active { border-color:var(--accent2); color:var(--text); background:rgba(124,58,237,0.12); }
+  .bio-verify-method-btn:focus-visible { outline:2px solid var(--accent2); outline-offset:2px; }
+  .bio-verify-method-help { font-size:12px; color:var(--muted); margin-bottom:14px; line-height:1.45; }
+  .bio-verify-row { display:flex; gap:10px; }
+  .bio-verify-row .bio-verify-field { flex:1; }
+  .bio-verify-field { margin-bottom:12px; }
+  .bio-verify-field label { display:block; font-size:12px; font-weight:600; color:var(--text); margin-bottom:6px; }
+  .bio-verify-field input { width:100%; box-sizing:border-box; }
+  .bio-verify-agree { display:flex; align-items:flex-start; gap:8px; margin:6px 0 16px; font-size:13px; color:var(--muted); line-height:1.45; cursor:pointer; }
+  .bio-verify-agree input { margin-top:3px; flex-shrink:0; }
+  .bio-verify-submit { width:100%; padding:12px; border:none; border-radius:10px; background:var(--accent2); color:#fff; font-size:14px; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif; }
+  .bio-verify-submit:disabled { opacity:0.55; cursor:not-allowed; }
+  .bio-verify-msg { margin-top:10px; font-size:13px; color:#fca5a5; display:none; }
+  .bio-verify-msg.show { display:block; }
   .mk-social-row { display: flex; gap: 10px; align-items: center; }
   .mk-social-row .mk-social-icon { width: 32px; height: 32px; border-radius: 8px; background: var(--surface); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--muted); }
   .mk-social-row .mk-social-icon svg { width: 15px; height: 15px; fill: currentColor; }
@@ -6885,6 +6911,19 @@
                   </div>
                 </div>
               </div>
+              </div>
+            </div>
+
+            <!-- Verification -->
+            <div class="bio-section" id="bio-section-verification">
+              <button type="button" class="bio-section-header bio-collapsible" data-bio-action="toggle-section" data-bio-section="verification" aria-expanded="true">
+                <div class="bio-section-label">Verification</div>
+                <svg class="bio-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div class="bio-section-body" id="bio-body-verification">
+                <div id="bio-verify-container" class="bio-verify-container">
+                  <div class="bio-verify-intro">Loading&hellip;</div>
+                </div>
               </div>
             </div>
 
