@@ -376,6 +376,7 @@ function initBioTool() {
   renderBioSocials();
   renderBioLinks();
   loadBioData();
+  loadBioVerification();
   document.getElementById('bio-avatar-inner').addEventListener('click', () => {
     document.getElementById('bio-avatar-input').click();
   });
@@ -3672,6 +3673,138 @@ bioRegisterAction('report-ai-bio', (e, el) => {
   var text = document.getElementById('ai-bio-option-' + idx)?.textContent;
   ryxaReportAIOutput('bio-writer', text);
 });
+
+// ---------------------------------------------------------------------------
+// Verification (blue check) application
+// ---------------------------------------------------------------------------
+let bioVerifyState = { loaded: false, verified: false, status: null, method: 'profile_link' };
+
+async function loadBioVerification() {
+  if (!currentUser) return;
+  try {
+    const [profRes, reqRes] = await Promise.all([
+      sb.from('profiles').select('verified').eq('user_id', currentUser.id).maybeSingle(),
+      sb.from('verification_requests').select('status').eq('user_id', currentUser.id).order('created_at', { ascending: false }).limit(1).maybeSingle()
+    ]);
+    bioVerifyState.verified = !!(profRes.data && profRes.data.verified);
+    bioVerifyState.status = reqRes.data ? reqRes.data.status : null;
+  } catch (e) {
+    bioVerifyState.verified = false;
+    bioVerifyState.status = null;
+  }
+  bioVerifyState.loaded = true;
+  renderBioVerification();
+}
+
+function renderBioVerification() {
+  const c = document.getElementById('bio-verify-container');
+  if (!c) return;
+
+  if (bioVerifyState.verified) {
+    c.innerHTML = '<div class="bio-verify-status bio-verify-ok">'
+      + '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1d9bf0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>'
+      + '<div><strong>Profile is verified</strong><div class="bio-verify-substatus">Your blue check is live on your public page.</div></div>'
+      + '</div>';
+    return;
+  }
+
+  if (bioVerifyState.status === 'pending' || bioVerifyState.status === 'approved') {
+    c.innerHTML = '<div class="bio-verify-status bio-verify-pending">'
+      + '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>'
+      + '<div><strong>Verification pending review</strong><div class="bio-verify-substatus">We\'ll review your request and add your badge if approved.</div></div>'
+      + '</div>';
+    return;
+  }
+
+  renderBioVerifyForm();
+}
+
+function renderBioVerifyForm() {
+  const c = document.getElementById('bio-verify-container');
+  if (!c) return;
+  const m = bioVerifyState.method;
+  const rejected = bioVerifyState.status === 'rejected';
+
+  c.innerHTML =
+    (rejected ? '<div class="bio-verify-rejected-note">Your previous request was not approved. You can submit a new one.</div>' : '')
+    + '<div class="bio-verify-intro">The blue check confirms your Link in Bio belongs to the real you. Requires a Pro or Max plan. Choose how we can confirm it:</div>'
+    + '<div class="bio-verify-methods">'
+    +   '<button type="button" class="bio-verify-method-btn ' + (m === 'profile_link' ? 'active' : '') + '" data-bio-action="verify-method" data-bio-method="profile_link">Public profile link</button>'
+    +   '<button type="button" class="bio-verify-method-btn ' + (m === 'connected_account' ? 'active' : '') + '" data-bio-action="verify-method" data-bio-method="connected_account">Connected account</button>'
+    + '</div>'
+    + (m === 'profile_link'
+        ? '<div class="bio-verify-method-help">Add a link to your Ryxa page in your public social bio, then paste that profile\'s URL below.</div>'
+        : '<div class="bio-verify-method-help">Make sure the social account you\'re verifying is connected under Connected Accounts in Settings.</div>')
+    + '<div class="bio-verify-row">'
+    +   '<div class="bio-verify-field"><label for="bio-verify-first">First name</label><input type="text" id="bio-verify-first" maxlength="60" autocomplete="given-name"></div>'
+    +   '<div class="bio-verify-field"><label for="bio-verify-last">Last name</label><input type="text" id="bio-verify-last" maxlength="60" autocomplete="family-name"></div>'
+    + '</div>'
+    + '<div class="bio-verify-field"><label for="bio-verify-handle">Social handle</label><input type="text" id="bio-verify-handle" maxlength="80" placeholder="@yourhandle"></div>'
+    + (m === 'profile_link'
+        ? '<div class="bio-verify-field"><label for="bio-verify-url">Profile URL (links back to Ryxa)</label><input type="url" id="bio-verify-url" maxlength="300" placeholder="https://instagram.com/yourhandle"></div>'
+        : '')
+    + '<label class="bio-verify-agree"><input type="checkbox" id="bio-verify-agree"><span>I confirm the information above is accurate, and I understand that impersonating another person can result in account termination.</span></label>'
+    + '<button type="button" class="bio-verify-submit" data-bio-action="verify-submit">Submit for verification</button>'
+    + '<div class="bio-verify-msg" id="bio-verify-msg"></div>';
+}
+
+function bioVerifyShowMsg(text) {
+  const el = document.getElementById('bio-verify-msg');
+  if (el) { el.textContent = text; el.classList.add('show'); }
+}
+
+async function submitBioVerification() {
+  const first = (document.getElementById('bio-verify-first')?.value || '').trim();
+  const last = (document.getElementById('bio-verify-last')?.value || '').trim();
+  const handle = (document.getElementById('bio-verify-handle')?.value || '').trim();
+  const url = (document.getElementById('bio-verify-url')?.value || '').trim();
+  const agreed = !!document.getElementById('bio-verify-agree')?.checked;
+  const method = bioVerifyState.method;
+
+  const msg = document.getElementById('bio-verify-msg');
+  if (msg) msg.classList.remove('show');
+
+  if (!isPro()) { bioVerifyShowMsg('Verification requires a Pro or Max plan.'); return; }
+  if (!first || !last) { bioVerifyShowMsg('Please enter your first and last name.'); return; }
+  if (!handle) { bioVerifyShowMsg('Please enter your social handle.'); return; }
+  if (method === 'profile_link' && !url) { bioVerifyShowMsg('Please paste the profile URL that links back to Ryxa.'); return; }
+  if (!agreed) { bioVerifyShowMsg('Please confirm the agreement to continue.'); return; }
+
+  const btn = document.querySelector('[data-bio-action="verify-submit"]');
+  if (btn) { btn.disabled = true; btn.textContent = 'Submitting...'; }
+
+  const { error } = await sb.from('verification_requests').insert({
+    user_id: currentUser.id,
+    social_handle: handle,
+    first_name: first,
+    last_name: last,
+    verification_method: method,
+    profile_url: method === 'profile_link' ? url : null,
+    agreed: true,
+    status: 'pending'
+  });
+
+  if (error) {
+    // Unique-violation = an active request already exists; treat as pending.
+    if (error.code === '23505' || /duplicate|unique/i.test(error.message || '')) {
+      bioVerifyState.status = 'pending';
+      renderBioVerification();
+      return;
+    }
+    if (btn) { btn.disabled = false; btn.textContent = 'Submit for verification'; }
+    bioVerifyShowMsg('Could not submit your request. Please try again.');
+    return;
+  }
+
+  bioVerifyState.status = 'pending';
+  renderBioVerification();
+}
+
+bioRegisterAction('verify-method', (e, el) => {
+  bioVerifyState.method = el.dataset.bioMethod === 'connected_account' ? 'connected_account' : 'profile_link';
+  renderBioVerifyForm();
+});
+bioRegisterAction('verify-submit', () => submitBioVerification());
 bioRegisterAction('close-ai-bio-modal', () => {
   document.getElementById('ai-bio-modal')?.remove();
 });
