@@ -3773,31 +3773,32 @@ async function submitBioVerification() {
   const btn = document.querySelector('[data-bio-action="verify-submit"]');
   if (btn) { btn.disabled = true; btn.textContent = 'Submitting...'; }
 
-  const { error } = await sb.from('verification_requests').insert({
-    user_id: currentUser.id,
-    social_handle: handle,
-    first_name: first,
-    last_name: last,
-    verification_method: method,
-    profile_url: method === 'profile_link' ? url : null,
-    agreed: true,
-    status: 'pending'
-  });
-
-  if (error) {
-    // Unique-violation = an active request already exists; treat as pending.
-    if (error.code === '23505' || /duplicate|unique/i.test(error.message || '')) {
-      bioVerifyState.status = 'pending';
-      renderBioVerification();
+  try {
+    const resp = await fetch('/api/submit-verification', {
+      method: 'POST',
+      headers: getAIHeaders(),
+      body: JSON.stringify({
+        first_name: first,
+        last_name: last,
+        social_handle: handle,
+        verification_method: method,
+        profile_url: method === 'profile_link' ? url : null,
+        agreed: true
+      })
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok) {
+      if (btn) { btn.disabled = false; btn.textContent = 'Submit for verification'; }
+      bioVerifyShowMsg(data.error || 'Could not submit your request. Please try again.');
       return;
     }
+    // ok (including already_pending) -> show pending state.
+    bioVerifyState.status = 'pending';
+    renderBioVerification();
+  } catch (e) {
     if (btn) { btn.disabled = false; btn.textContent = 'Submit for verification'; }
     bioVerifyShowMsg('Could not submit your request. Please try again.');
-    return;
   }
-
-  bioVerifyState.status = 'pending';
-  renderBioVerification();
 }
 
 bioRegisterAction('verify-method', (e, el) => {
