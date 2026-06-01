@@ -2364,7 +2364,7 @@ async function onHeroPhotoSelected(input, linkId) {
   try {
     showBioStatus('info', 'Uploading…');
     // Compress aggressively since we may have up to 10 hero photos
-    const blob = await compressBgImage(file, 1200, 1200, 180 * 1024);
+    const blob = await compressBgImage(file, 800, 800, 180 * 1024);
     const fileName = `hero-${linkId}-${Date.now()}-${Math.random().toString(36).slice(2,8)}.webp`;
     const path = `${currentUser.id}/${fileName}`;
     const { error: upErr } = await sb.storage.from('bio-photos').upload(path, blob, { contentType: 'image/webp', upsert: false });
