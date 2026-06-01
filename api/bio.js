@@ -591,7 +591,7 @@ function renderBioContent(profile, bio) {
 // styles keep it self-contained in the server-generated HTML.
 function verifiedBadgeSvg() {
   return ' <svg class="verified-badge" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Verified"' +
-    ' width="0.92em" height="0.92em" style="display:inline-block;vertical-align:-0.1em;margin-left:5px;flex-shrink:0;">' +
+    ' width="0.92em" height="0.92em" style="display:inline-block;vertical-align:-0.1em;flex-shrink:0;">' +
     '<title>Verified</title>' +
     '<g>' +
     '<circle cx="24.00" cy="8.70" r="4.4" fill="#1d9bf0"/><circle cx="30.64" cy="10.22" r="4.4" fill="#1d9bf0"/>' +
