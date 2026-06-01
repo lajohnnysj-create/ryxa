@@ -3716,19 +3716,21 @@ function renderBioVerification() {
     return;
   }
 
-  renderBioVerifyForm();
-}
-
-function renderBioVerifyForm() {
-  const c = document.getElementById('bio-verify-container');
-  if (!c) return;
-  const m = bioVerifyState.method;
+  // Not verified, no active request: show a button that opens the modal form.
   const rejected = bioVerifyState.status === 'rejected';
-
   c.innerHTML =
     (rejected ? '<div class="bio-verify-rejected-note">Your previous request was not approved. You can submit a new one.</div>' : '')
-    + '<div class="bio-verify-intro">The blue check confirms your Link in Bio belongs to the real you. Requires a Pro or Max plan. Choose how we can confirm it:</div>'
-    + '<div class="bio-verify-methods">'
+    + '<div class="bio-verify-intro">The blue check confirms your Link in Bio belongs to the real you. Requires a Pro or Max plan.</div>'
+    + '<button type="button" class="bio-verify-open-btn" data-bio-action="open-verify-modal">Submit for verification</button>';
+}
+
+function renderVerifyModalForm() {
+  const body = document.getElementById('bio-verify-modal-body');
+  if (!body) return;
+  const m = bioVerifyState.method;
+
+  body.innerHTML =
+    '<div class="bio-verify-methods">'
     +   '<button type="button" class="bio-verify-method-btn ' + (m === 'profile_link' ? 'active' : '') + '" data-bio-action="verify-method" data-bio-method="profile_link">Public profile link</button>'
     +   '<button type="button" class="bio-verify-method-btn ' + (m === 'connected_account' ? 'active' : '') + '" data-bio-action="verify-method" data-bio-method="connected_account">Connected account</button>'
     + '</div>'
@@ -3736,8 +3738,8 @@ function renderBioVerifyForm() {
         ? '<div class="bio-verify-method-help">Add a link to your Ryxa page in your public social bio, then paste that profile\'s URL below.</div>'
         : '<div class="bio-verify-method-help">Make sure the social account you\'re verifying is connected under Connected Accounts in Settings.</div>')
     + '<div class="bio-verify-row">'
-    +   '<div class="bio-verify-field"><label for="bio-verify-first">First name</label><input type="text" id="bio-verify-first" maxlength="60" autocomplete="given-name"></div>'
-    +   '<div class="bio-verify-field"><label for="bio-verify-last">Last name</label><input type="text" id="bio-verify-last" maxlength="60" autocomplete="family-name"></div>'
+    +   '<div class="bio-verify-field"><label for="bio-verify-first">First name</label><input type="text" id="bio-verify-first" maxlength="60" autocomplete="given-name" placeholder="Jane"></div>'
+    +   '<div class="bio-verify-field"><label for="bio-verify-last">Last name</label><input type="text" id="bio-verify-last" maxlength="60" autocomplete="family-name" placeholder="Doe"></div>'
     + '</div>'
     + '<div class="bio-verify-field"><label for="bio-verify-handle">Social handle</label><input type="text" id="bio-verify-handle" maxlength="80" placeholder="@yourhandle"></div>'
     + (m === 'profile_link'
@@ -3746,6 +3748,22 @@ function renderBioVerifyForm() {
     + '<label class="bio-verify-agree"><input type="checkbox" id="bio-verify-agree"><span>I confirm the information above is accurate, and I understand that impersonating another person can result in account termination.</span></label>'
     + '<button type="button" class="bio-verify-submit" data-bio-action="verify-submit">Submit for verification</button>'
     + '<div class="bio-verify-msg" id="bio-verify-msg"></div>';
+}
+
+function openVerifyModal() {
+  if (!isPro()) {
+    showModalAlert('Pro or Max required', 'Verification requires a Pro or Max plan. Upgrade to request your blue check.');
+    return;
+  }
+  bioVerifyState.method = 'profile_link';
+  renderVerifyModalForm();
+  const modal = document.getElementById('bio-verify-modal');
+  if (modal) modal.classList.add('open');
+}
+
+function closeVerifyModal() {
+  const modal = document.getElementById('bio-verify-modal');
+  if (modal) modal.classList.remove('open');
 }
 
 function bioVerifyShowMsg(text) {
@@ -3792,7 +3810,8 @@ async function submitBioVerification() {
       bioVerifyShowMsg(data.error || 'Could not submit your request. Please try again.');
       return;
     }
-    // ok (including already_pending) -> show pending state.
+    // ok (including already_pending) -> close modal, show pending state.
+    closeVerifyModal();
     bioVerifyState.status = 'pending';
     renderBioVerification();
   } catch (e) {
@@ -3801,9 +3820,11 @@ async function submitBioVerification() {
   }
 }
 
+bioRegisterAction('open-verify-modal', () => openVerifyModal());
+bioRegisterAction('close-verify-modal', () => closeVerifyModal());
 bioRegisterAction('verify-method', (e, el) => {
   bioVerifyState.method = el.dataset.bioMethod === 'connected_account' ? 'connected_account' : 'profile_link';
-  renderBioVerifyForm();
+  renderVerifyModalForm();
 });
 bioRegisterAction('verify-submit', () => submitBioVerification());
 bioRegisterAction('close-ai-bio-modal', () => {
