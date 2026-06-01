@@ -3156,7 +3156,7 @@ function nameWithBadge(rawName, badge) {
 
 function bioPreviewVerifiedBadge() {
   return ' <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Verified" width="0.9em" height="0.9em" style="display:inline-block;vertical-align:-0.1em;flex-shrink:0;">' +
-    '<title>Verified</title>' +
+    '<title>This profile is verified as belonging to the creator</title>' +
     '<g>' +
     '<circle cx="24.00" cy="8.70" r="4.4" fill="#1d9bf0"/><circle cx="30.64" cy="10.22" r="4.4" fill="#1d9bf0"/>' +
     '<circle cx="35.96" cy="14.46" r="4.4" fill="#1d9bf0"/><circle cx="38.92" cy="20.60" r="4.4" fill="#1d9bf0"/>' +
@@ -3741,7 +3741,7 @@ function renderBioVerification() {
   if (bioVerifyState.status === 'pending' || bioVerifyState.status === 'approved') {
     c.innerHTML = '<div class="bio-verify-status bio-verify-pending">'
       + '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>'
-      + '<div><strong>Verification pending review</strong><div class="bio-verify-substatus">We\'ll review your request and add your badge if approved.</div></div>'
+      + '<div><strong>Verification pending review</strong><div class="bio-verify-substatus">We\'ll review your request within 3-5 business days and add your badge if approved.</div></div>'
       + '</div>';
     return;
   }
