@@ -548,6 +548,12 @@ function renderBioContent(profile, bio) {
   const isPaidTier = profile.tier === 'monthly' || profile.tier === 'max';
   const isHeroMode = bio.avatar_display === 'hero' && validImageUrl(bio.avatar_url) && isPaidTier;
 
+  // Verified badge: shown only when verified AND on a paid plan. Mirrors the
+  // client-side fallback renderer in js/bio-page.js. Inline styles so it needs
+  // no external CSS in the SSR output.
+  const showVerified = !!profile.verified && isPaidTier;
+  const nameBadge = showVerified ? verifiedBadgeSvg() : '';
+
   const links = Array.isArray(bio.links) ? bio.links : [];
   const socialsHtml = buildSocials(bio.socials);
   const linksHtml = links.map(l => buildLink(l, currency)).filter(Boolean).join('');
@@ -563,7 +569,7 @@ function renderBioContent(profile, bio) {
   if (isHeroMode) {
     inner = `${buildHeroHeader(profile, bio)}
       <div class="hero-content-below">
-        <div class="name">${esc(name)}</div>
+        <div class="name">${esc(name)}${nameBadge}</div>
         ${socialsHtml}
         ${bio.bio ? `<div class="bio">${esc(bio.bio)}</div>` : ''}
         ${linksHtml ? `<div class="links">${linksHtml}</div>` : ''}
@@ -571,7 +577,7 @@ function renderBioContent(profile, bio) {
       </div>`;
   } else {
     inner = `${buildAvatar(profile, bio)}
-      <div class="name">${esc(name)}</div>
+      <div class="name">${esc(name)}${nameBadge}</div>
       ${socialsHtml}
       ${bio.bio ? `<div class="bio">${esc(bio.bio)}</div>` : ''}
       ${linksHtml ? `<div class="links">${linksHtml}</div>` : ''}
@@ -579,6 +585,27 @@ function renderBioContent(profile, bio) {
   }
 
   return { inner, isHeroMode, showBanner };
+}
+
+// Verified blue check (SSR). Identical markup to the client renderer; inline
+// styles keep it self-contained in the server-generated HTML.
+function verifiedBadgeSvg() {
+  return ' <svg class="verified-badge" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Verified"' +
+    ' width="0.92em" height="0.92em" style="display:inline-block;vertical-align:-0.1em;margin-left:5px;flex-shrink:0;">' +
+    '<title>Verified</title>' +
+    '<g>' +
+    '<circle cx="24.00" cy="8.70" r="4.4" fill="#1d9bf0"/><circle cx="30.64" cy="10.22" r="4.4" fill="#1d9bf0"/>' +
+    '<circle cx="35.96" cy="14.46" r="4.4" fill="#1d9bf0"/><circle cx="38.92" cy="20.60" r="4.4" fill="#1d9bf0"/>' +
+    '<circle cx="38.92" cy="27.40" r="4.4" fill="#1d9bf0"/><circle cx="35.96" cy="33.54" r="4.4" fill="#1d9bf0"/>' +
+    '<circle cx="30.64" cy="37.78" r="4.4" fill="#1d9bf0"/><circle cx="24.00" cy="39.30" r="4.4" fill="#1d9bf0"/>' +
+    '<circle cx="17.36" cy="37.78" r="4.4" fill="#1d9bf0"/><circle cx="12.04" cy="33.54" r="4.4" fill="#1d9bf0"/>' +
+    '<circle cx="9.08" cy="27.40" r="4.4" fill="#1d9bf0"/><circle cx="9.08" cy="20.60" r="4.4" fill="#1d9bf0"/>' +
+    '<circle cx="12.04" cy="14.46" r="4.4" fill="#1d9bf0"/><circle cx="17.36" cy="10.22" r="4.4" fill="#1d9bf0"/>' +
+    '<circle cx="24" cy="24" r="15.4" fill="#1d9bf0"/>' +
+    '</g>' +
+    '<path d="M15 24.5 L21.2 31 L34 17.8" fill="none" stroke="#0b6db2" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round" transform="translate(0.8,1.4)" opacity="0.35"/>' +
+    '<path d="M15 24.5 L21.2 31 L34 17.8" fill="none" stroke="#ffffff" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"/>' +
+    '</svg>';
 }
 
 // ==========================================================================
@@ -602,7 +629,7 @@ async function fetchBioData(username) {
   try {
     // Step 1: profile lookup via public view
     const profileRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/public_profile_tiers?username=eq.${encodeURIComponent(username)}&select=user_id,username,tier,display_currency`,
+      `${SUPABASE_URL}/rest/v1/public_profile_tiers?username=eq.${encodeURIComponent(username)}&select=user_id,username,tier,display_currency,verified`,
       fetchOpts(controller.signal)
     );
     if (!profileRes.ok) { clearTimeout(timeout); return null; }
