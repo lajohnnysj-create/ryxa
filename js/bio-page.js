@@ -203,6 +203,29 @@ function buildHeroHeader(profile, bio, socialsHtml) {
   </div>`;
 }
 
+// Verified blue check. Shown only when the creator is verified AND on a paid
+// plan (Pro or Max); the cancellation webhook flips verified off, but this is a
+// second guard so a stale flag can never show a badge on a downgraded account.
+// Scales with the surrounding name font via em sizing.
+function verifiedBadgeHtml() {
+  return ' <svg class="verified-badge" viewBox="0 0 48 48" role="img" aria-label="Verified"' +
+    ' width="0.92em" height="0.92em" style="display:inline-block;vertical-align:-0.1em;margin-left:5px;flex-shrink:0;">' +
+    '<title>Verified</title>' +
+    '<g>' +
+    '<circle cx="24.00" cy="8.70" r="4.4" fill="#1d9bf0"/><circle cx="30.64" cy="10.22" r="4.4" fill="#1d9bf0"/>' +
+    '<circle cx="35.96" cy="14.46" r="4.4" fill="#1d9bf0"/><circle cx="38.92" cy="20.60" r="4.4" fill="#1d9bf0"/>' +
+    '<circle cx="38.92" cy="27.40" r="4.4" fill="#1d9bf0"/><circle cx="35.96" cy="33.54" r="4.4" fill="#1d9bf0"/>' +
+    '<circle cx="30.64" cy="37.78" r="4.4" fill="#1d9bf0"/><circle cx="24.00" cy="39.30" r="4.4" fill="#1d9bf0"/>' +
+    '<circle cx="17.36" cy="37.78" r="4.4" fill="#1d9bf0"/><circle cx="12.04" cy="33.54" r="4.4" fill="#1d9bf0"/>' +
+    '<circle cx="9.08" cy="27.40" r="4.4" fill="#1d9bf0"/><circle cx="9.08" cy="20.60" r="4.4" fill="#1d9bf0"/>' +
+    '<circle cx="12.04" cy="14.46" r="4.4" fill="#1d9bf0"/><circle cx="17.36" cy="10.22" r="4.4" fill="#1d9bf0"/>' +
+    '<circle cx="24" cy="24" r="15.4" fill="#1d9bf0"/>' +
+    '</g>' +
+    '<path d="M15 24.5 L21.2 31 L34 17.8" fill="none" stroke="#0b6db2" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round" transform="translate(0.8,1.4)" opacity="0.35"/>' +
+    '<path d="M15 24.5 L21.2 31 L34 17.8" fill="none" stroke="#ffffff" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"/>' +
+    '</svg>';
+}
+
 function buildLink(link) {
   // Half-width modifier — only used by the four eligible link types: regular
   // links, course cards, booking cards, and digital product cards. Hero,
@@ -676,12 +699,16 @@ function render(profile, bio, userTier) {
 
   const isHeroMode = bio.avatar_display === 'hero' && validImageUrl(bio.avatar_url) && isMaxTier;
 
+  // Verified badge: only when verified AND on a paid plan (Pro = 'monthly', Max = 'max').
+  const showVerified = !!profile.verified && (userTier === 'monthly' || userTier === 'max');
+  const nameBadge = showVerified ? verifiedBadgeHtml() : '';
+
   if (isHeroMode) {
     document.getElementById('wrap').classList.add('hero-mode');
     document.getElementById('wrap').innerHTML = `
       ${buildHeroHeader(profile, bio, socialsHtml)}
       <div class="hero-content-below">
-        <div class="name">${esc(name)}</div>
+        <div class="name">${esc(name)}${nameBadge}</div>
         ${socialsHtml}
         ${bio.bio ? `<div class="bio">${esc(bio.bio)}</div>` : ''}
         ${linksHtml ? `<div class="links">${linksHtml}</div>` : ''}
@@ -691,7 +718,7 @@ function render(profile, bio, userTier) {
   } else {
     document.getElementById('wrap').innerHTML = `
       ${buildAvatar(profile, bio)}
-      <div class="name">${esc(name)}</div>
+      <div class="name">${esc(name)}${nameBadge}</div>
       ${socialsHtml}
       ${bio.bio ? `<div class="bio">${esc(bio.bio)}</div>` : ''}
       ${linksHtml ? `<div class="links">${linksHtml}</div>` : ''}
@@ -906,7 +933,7 @@ async function load() {
   // 1) Look up the profile + tier via the public view (one query, no sensitive data exposed)
   const { data: profile, error: pErr } = await sb
     .from('public_profile_tiers')
-    .select('user_id, username, tier, display_currency')
+    .select('user_id, username, tier, display_currency, verified')
     .eq('username', username)
     .maybeSingle();
 
