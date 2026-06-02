@@ -198,6 +198,12 @@ function extractSoundCloud(url) {
   return { isSet, src };
 }
 
+function extractGoogleMap(input) {
+  if (!input) return null;
+  const m = String(input).match(/https:\/\/www\.google\.com\/maps\/embed\?pb=[^"'\s<>]+/i);
+  return m ? m[0] : null;
+}
+
 function extractTwitch(url) {
   if (!url) return null;
   const s = String(url);
@@ -441,6 +447,13 @@ function buildLink(link) {
     if (!link.photoUrl) return '';
     const dim = (link.imgW && link.imgH) ? ` width="${link.imgW}" height="${link.imgH}"` : '';
     return `<div class="bio-image"><img class="bio-image-img" src="${esc(link.photoUrl)}"${dim} loading="lazy" alt=""></div>`;
+  }
+
+  // Google Maps place embed — render only the whitelisted embed URL.
+  if (link.isGoogleMapBlock) {
+    const src = extractGoogleMap(link.url);
+    if (!src) return '';
+    return `<div class="gmap-embed"><iframe class="gmap-frame" src="${esc(src)}" loading="lazy" title="Google Maps location" allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe></div>`;
   }
 
   // Image carousel — up to 10 uploaded images, each at its natural aspect ratio
