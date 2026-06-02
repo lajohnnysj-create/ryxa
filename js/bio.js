@@ -1680,6 +1680,14 @@ function addImageBlock() {
     showBioStatus('error', `Link limit reached (${maxLinks}).`);
     return;
   }
+  // Hidden image cap. maxLinks (100/1000) is far too loose for images, which
+  // are storage-heavy and weigh down the page. Cap single images at 12; the
+  // number isn't shown anywhere, a message just appears once it's hit.
+  const IMAGE_CAP = 12;
+  if (bioState.links.filter(l => l.isImageBlock).length >= IMAGE_CAP) {
+    showBioStatus('error', "You've reached the maximum number of images.");
+    return;
+  }
   const newId = linkIdSeq++;
   bioState.links.push({
     _id: newId,
