@@ -947,22 +947,11 @@ async function dpCompressCoverImage(file) {
         var ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, w, h);
 
-        // Decide output format
-        var outputType, quality, outputExt;
-        if (file.type === 'image/png') {
-          outputType = 'image/png';
-          quality = undefined;  // PNG ignores quality
-          outputExt = 'png';
-        } else if (file.type === 'image/webp') {
-          outputType = 'image/webp';
-          quality = 0.85;
-          outputExt = 'webp';
-        } else {
-          // Default: JPEG (best compression for photos)
-          outputType = 'image/jpeg';
-          quality = 0.82;
-          outputExt = 'jpg';
-        }
+        // Always output WebP for small, consistent covers (keeps the
+        // digital-products bucket safely within its size limit).
+        var outputType = 'image/webp';
+        var quality = 0.85;
+        var outputExt = 'webp';
 
         canvas.toBlob(function(blob) {
           if (!blob) {
