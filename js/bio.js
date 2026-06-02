@@ -1429,7 +1429,7 @@ function bioLimits() {
   const pro = isPro();
   const max = isMax();
   return {
-    maxLinks: max ? 1000 : (pro ? 1000 : 50),
+    maxLinks: max ? 1000 : (pro ? 1000 : 100),
     maxFeatured: max ? 10 : (pro ? 3 : 1),
     maxHero: max ? 1 : 0,
     maxVideos: pro ? 20 : 5,
