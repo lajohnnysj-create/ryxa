@@ -117,6 +117,15 @@ function twitchEmbedSrc(t) {
   return `https://player.twitch.tv/?channel=${encodeURIComponent(t.id)}&${p}&autoplay=false`;
 }
 
+// Numeric status id from an X / Twitter post URL (twitter.com or x.com,
+// /status/ or legacy /statuses/). Used for the platform.twitter.com Tweet.html
+// iframe embed — the no-script endpoint X's own widget uses internally.
+function extractTweetId(url) {
+  if (!url) return null;
+  const m = String(url).match(/(?:twitter|x)\.com\/[A-Za-z0-9_]+\/status(?:es)?\/(\d+)/i);
+  return m ? m[1] : null;
+}
+
 function fmtPrice(cents, currency) {
   const code = currency || 'USD';
   const localeMap = { USD:'en-US', EUR:'en-IE', GBP:'en-GB', CAD:'en-CA', AUD:'en-AU', JPY:'ja-JP', INR:'en-IN', BRL:'pt-BR', MXN:'es-MX', CHF:'de-CH', SGD:'en-SG', SEK:'sv-SE', NOK:'nb-NO', NZD:'en-NZ', ZAR:'en-ZA' };
@@ -425,6 +434,18 @@ function buildLink(link, currency) {
     if (!tw) return '';
     return `<div class="twitch-embed">
       <iframe class="twitch-frame" src="${twitchEmbedSrc(tw)}" loading="lazy" title="Twitch player" allow="autoplay; fullscreen" allowfullscreen></iframe>
+    </div>`;
+  }
+
+  // X (Twitter) post — pure-iframe embed via platform.twitter.com/Tweet.html
+  // (no widgets.js, so no SRI conflict). The card starts as a branded skeleton;
+  // bio-page.js sizes and reveals it from the iframe's postMessage height.
+  if (link.isTweetBlock) {
+    const id = extractTweetId(link.url);
+    if (!id) return '';
+    return `<div class="tweet-embed">
+      <div class="tweet-embed-placeholder" aria-hidden="true"><svg class="tweet-embed-ph-glyph" width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><path fill="#0f1419" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></div>
+      <iframe class="tweet-frame" src="https://platform.twitter.com/embed/Tweet.html?id=${id}&dnt=true" loading="lazy" title="Post on X" scrolling="no"></iframe>
     </div>`;
   }
 
@@ -1163,7 +1184,7 @@ ${customThemeStyle}
       "font-src 'self' https://fonts.gstatic.com data:",
       "img-src 'self' data: blob: https://www.ryxa.io https://kjytapcgxukalwsyputk.supabase.co https://i.ytimg.com",
       "connect-src 'self' https://kjytapcgxukalwsyputk.supabase.co https://cdn.jsdelivr.net",
-      "frame-src https://www.youtube.com https://www.youtube-nocookie.com https://www.tiktok.com https://www.instagram.com https://open.spotify.com https://player.twitch.tv https://clips.twitch.tv",
+      "frame-src https://www.youtube.com https://www.youtube-nocookie.com https://www.tiktok.com https://www.instagram.com https://open.spotify.com https://player.twitch.tv https://clips.twitch.tv https://platform.twitter.com https://platform.x.com",
       "media-src 'self' blob: https://kjytapcgxukalwsyputk.supabase.co",
       "object-src 'none'",
       "base-uri 'self'",
