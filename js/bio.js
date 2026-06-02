@@ -1649,6 +1649,28 @@ function addAppleMusicBlock() {
   showBioStatus('saved', 'Apple Music added');
 }
 
+// SoundCloud embed — a single track/playlist/profile from one URL. One per
+// page (all plans); the modal item disables when one exists, this guard is the
+// backstop. Embed is w.soundcloud.com/player with the URL as a query param.
+function addSoundCloudBlock() {
+  const { maxLinks } = bioLimits();
+  if (bioState.links.length >= maxLinks) {
+    showBioStatus('error', `Link limit reached (${maxLinks}).`);
+    return;
+  }
+  if (bioState.links.some(l => l.isSoundCloudBlock)) return;
+  const newId = linkIdSeq++;
+  bioState.links.push({
+    _id: newId,
+    isSoundCloudBlock: true,
+    url: ''
+  });
+  bioExpandedLinks.add(newId);
+  renderBioLinks();
+  schedulePreviewUpdate();
+  showBioStatus('saved', 'SoundCloud added');
+}
+
 // Twitch embed — live channel, VOD, or clip from a single URL. One per page
 // (all plans); the modal item disables when one exists, this is the backstop.
 function addTwitchBlock() {
@@ -1708,6 +1730,12 @@ function openBioMoreModal() {
     const used = bioState.links.some(l => l.isAppleMusicBlock);
     appleMusicItem.disabled = used;
     appleMusicItem.classList.toggle('is-used', used);
+  }
+  const soundcloudItem = document.getElementById('bio-more-soundcloud');
+  if (soundcloudItem) {
+    const used = bioState.links.some(l => l.isSoundCloudBlock);
+    soundcloudItem.disabled = used;
+    soundcloudItem.classList.toggle('is-used', used);
   }
   const twitchItem = document.getElementById('bio-more-twitch');
   if (twitchItem) {
@@ -2200,7 +2228,7 @@ function toggleLinkHalfWidth(id, checked) {
 function bioHalfBadge(link) {
   if (!link.halfWidth) return '';
   if (link.isMediaKit || link.isHero || link.isHeader || link.isSubscribe ||
-      link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock || link.isSpotifyBlock || link.isAppleMusicBlock || link.isTwitchBlock || link.isTweetBlock || link.featured) {
+      link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock || link.isSpotifyBlock || link.isAppleMusicBlock || link.isSoundCloudBlock || link.isTwitchBlock || link.isTweetBlock || link.featured) {
     return '';
   }
   return '<span class="bio-row-half" title="Half width" aria-label="Half width">&frac12;</span>';
@@ -2257,6 +2285,13 @@ function bioRowTypeMeta(link) {
       key: 'apple-music',
       label: 'Apple Music',
       icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="5.5" fill="#FA233B"/><path fill="#fff" d="M16.8 5.2c.35-.06.65.2.65.56v7.49c0 1.02-.72 1.78-1.72 1.94-1.14.18-2-.52-2-1.54 0-.86.6-1.48 1.55-1.64l.62-.1c.3-.05.43-.2.43-.5V8.2l-5 .92v4.93c0 1.02-.72 1.78-1.72 1.94-1.14.18-2-.52-2-1.54 0-.86.6-1.48 1.55-1.64l.62-.1c.3-.05.43-.2.43-.5V7.1c0-.32.2-.53.53-.6z"/></svg>'
+    };
+  }
+  if (link.isSoundCloudBlock) {
+    return {
+      key: 'soundcloud',
+      label: 'SoundCloud',
+      icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="5.5" fill="#FF5500"/><g fill="#fff"><rect x="5" y="13" width="1.6" height="5" rx="0.8"/><rect x="8" y="10" width="1.6" height="8" rx="0.8"/><rect x="11" y="8" width="1.6" height="10" rx="0.8"/><rect x="14" y="11" width="1.6" height="7" rx="0.8"/><rect x="17" y="9" width="1.6" height="9" rx="0.8"/></g></svg>'
     };
   }
   if (link.isTwitchBlock) {
@@ -2488,6 +2523,10 @@ function renderLinkCollapsed(link, dragSvg, editSvg) {
     const am = extractAppleMusic(link.url);
     title = 'Apple Music';
     subline = am ? (am.type.charAt(0).toUpperCase() + am.type.slice(1)) : '<span class="bio-s-dbc3a0">No link yet</span>';
+  } else if (link.isSoundCloudBlock) {
+    const sc = extractSoundCloud(link.url);
+    title = 'SoundCloud';
+    subline = sc ? (sc.isSet ? 'Playlist' : 'Track') : '<span class="bio-s-dbc3a0">No link yet</span>';
   } else if (link.isTwitchBlock) {
     const videos = Array.isArray(link.videos) ? link.videos : [];
     const filledCount = videos.filter(v => v && v.url && v.url.trim() && extractTwitch(v.url)).length;
@@ -2778,6 +2817,25 @@ function renderLinkExpanded(link, dragSvg) {
     </div>`;
   }
 
+  if (link.isSoundCloudBlock) {
+    return `<div class="bio-link-row" data-id="${link._id}">
+      <div class="bio-link-header">
+        <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
+        <span class="bio-featured-badge bio-s-04da54" >SoundCloud</span>
+        <div class="bio-s-7623f0"></div>
+        <button class="bio-link-remove" data-bio-action="remove-link" data-bio-id="${link._id}">Remove</button>
+      </div>
+      <div class="bio-s-e289c0">Paste a SoundCloud share link, a track, playlist, or profile. Tracks show a compact player; playlists show a scrollable tracklist.</div>
+      <input type="url" placeholder="https://soundcloud.com/..." value="${escapeHtml(link.url || '')}"
+        data-bio-action="update-link-field" data-bio-event="input" data-bio-id="${link._id}" data-bio-field="url"
+        aria-label="SoundCloud link" class="bio-s-6c002e">
+      <button type="button" data-bio-action="save-link-row" data-bio-id="${link._id}"
+        class="bio-s-c7cf47">
+        Save
+      </button>
+    </div>`;
+  }
+
   if (link.isAppleMusicBlock) {
     return `<div class="bio-link-row" data-id="${link._id}">
       <div class="bio-link-header">
@@ -3032,7 +3090,7 @@ function saveLinkRow(id) {
   if (!link) return;
 
   // Headers, subscribe blocks, and video/TikTok blocks don't require a URL
-  if (link.isHeader || link.isSubscribe || link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock || link.isSpotifyBlock || link.isAppleMusicBlock || link.isTwitchBlock || link.isTweetBlock) {
+  if (link.isHeader || link.isSubscribe || link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock || link.isSpotifyBlock || link.isAppleMusicBlock || link.isSoundCloudBlock || link.isTwitchBlock || link.isTweetBlock) {
     bioExpandedLinks.delete(id);
     renderBioLinks();
     schedulePreviewUpdate();
@@ -3104,6 +3162,19 @@ function extractAppleMusic(url) {
   const iMatch = s.match(/[?&]i=(\d+)/);
   const src = `https://embed.music.apple.com/${m[1]}/${type}/${m[3]}/${m[4]}` + (iMatch ? `?i=${iMatch[1]}` : '');
   return { type, src, song: !!iMatch || type === 'song' };
+}
+
+// SoundCloud embed. Unlike Spotify/Apple, the widget takes the full track URL
+// as a query param on w.soundcloud.com/player. Accepts soundcloud.com track,
+// set (playlist), and profile links; sets get the taller tracklist player.
+function extractSoundCloud(url) {
+  if (!url) return null;
+  const m = String(url).trim().match(/^https?:\/\/(?:www\.)?soundcloud\.com\/[^?#\s]+/i);
+  if (!m) return null;
+  const clean = m[0];
+  const isSet = /\/sets\//i.test(clean);
+  const src = `https://w.soundcloud.com/player/?url=${encodeURIComponent(clean)}&color=%23ff5500&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false`;
+  return { isSet, src };
 }
 
 // Resolve a Twitch URL to an embed target: live channel, VOD, or clip. Clips
@@ -3494,7 +3565,7 @@ async function saveBio() {
       return 'https://' + s;
     };
     const cleanLinks = bioState.links
-      .filter(l => (l.title || '').trim() || (l.url || '').trim() || l.isVideoBlock || l.isTikTokBlock || l.isInstagramBlock || l.isSpotifyBlock || l.isAppleMusicBlock || l.isTwitchBlock || l.isTweetBlock || l.isHeader || l.isSubscribe || l.isMediaKit)
+      .filter(l => (l.title || '').trim() || (l.url || '').trim() || l.isVideoBlock || l.isTikTokBlock || l.isInstagramBlock || l.isSpotifyBlock || l.isAppleMusicBlock || l.isSoundCloudBlock || l.isTwitchBlock || l.isTweetBlock || l.isHeader || l.isSubscribe || l.isMediaKit)
       .map(l => ({
         title: (l.title || '').slice(0, 80),
         description: (l.description || '').slice(0, 120),
@@ -3535,6 +3606,7 @@ async function saveBio() {
         } : {}),
         ...(l.isSpotifyBlock ? { isSpotifyBlock: true } : {}),
         ...(l.isAppleMusicBlock ? { isAppleMusicBlock: true } : {}),
+        ...(l.isSoundCloudBlock ? { isSoundCloudBlock: true } : {}),
         ...(l.isTwitchBlock ? {
           isTwitchBlock: true,
           videos: (Array.isArray(l.videos) ? l.videos : [])
@@ -3784,7 +3856,7 @@ function buildPreviewHTML() {
     ? `<img src="${escapeHtml(bioState.avatar_url)}" alt="Profile photo" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;">`
     : `<div style="width:100%;height:100%;border-radius:50%;background:${t.surface2};display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;font-size:36px;font-weight:800;color:${t.text};">${escapeHtml(initial)}</div>`;
   const socialsHtml = buildPreviewSocials(t);
-  const linksHtml = bioState.links.filter(l => l.isHeader || l.isSubscribe || l.isVideoBlock || l.isTikTokBlock || l.isInstagramBlock || l.isSpotifyBlock || l.isAppleMusicBlock || l.isTwitchBlock || l.isTweetBlock || (l.url || '').trim()).map(l => buildPreviewLink(l, t)).join('');
+  const linksHtml = bioState.links.filter(l => l.isHeader || l.isSubscribe || l.isVideoBlock || l.isTikTokBlock || l.isInstagramBlock || l.isSpotifyBlock || l.isAppleMusicBlock || l.isSoundCloudBlock || l.isTwitchBlock || l.isTweetBlock || (l.url || '').trim()).map(l => buildPreviewLink(l, t)).join('');
 
   // For custom themes with a bg image, we dim the radial glow (since bg image is already bg)
   const glowCSS = ((bioState.theme === 'custom' && isPro() && bioState.custom_theme?.bgUrl) || isImageTheme(bioState.theme))
@@ -3991,6 +4063,20 @@ function buildPreviewLink(l, t) {
       <button type="button" class="vids-arrow vids-arrow-l" aria-label="Scroll left" tabindex="-1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg></button>
       <button type="button" class="vids-arrow vids-arrow-r" aria-label="Scroll right" tabindex="-1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button>
       <div class="vids-r">${cards}</div>
+    </div>`;
+  }
+  if (l.isSoundCloudBlock) {
+    const sc = extractSoundCloud(l.url);
+    if (!sc) {
+      // No valid link yet — branded placeholder so the slot is visible.
+      return `<div style="background:#FF5500;border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:10px;color:#fff;font-size:12px;">
+        <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="5.5" fill="#fff"/><g fill="#FF5500"><rect x="5" y="13" width="1.6" height="5" rx="0.8"/><rect x="8" y="10" width="1.6" height="8" rx="0.8"/><rect x="11" y="8" width="1.6" height="10" rx="0.8"/><rect x="14" y="11" width="1.6" height="7" rx="0.8"/><rect x="17" y="9" width="1.6" height="9" rx="0.8"/></g></svg>
+        <span>SoundCloud &middot; Add a SoundCloud link</span>
+      </div>`;
+    }
+    const h = sc.isSet ? 450 : 166;
+    return `<div style="width:100%;height:${h}px;border-radius:12px;overflow:hidden;">
+      <iframe src="${sc.src}" loading="lazy" title="SoundCloud player" allow="autoplay" style="width:100%;height:100%;border:0;display:block;"></iframe>
     </div>`;
   }
   if (l.isAppleMusicBlock) {
@@ -4311,6 +4397,7 @@ bioRegisterAction('add-tiktok-block', () => addTikTokBlock());
 bioRegisterAction('add-instagram-block', () => addInstagramBlock());
 bioRegisterAction('add-spotify-block', () => { closeBioMoreModal(); addSpotifyBlock(); });
 bioRegisterAction('add-apple-music-block', () => { closeBioMoreModal(); addAppleMusicBlock(); });
+bioRegisterAction('add-soundcloud-block', () => { closeBioMoreModal(); addSoundCloudBlock(); });
 bioRegisterAction('add-twitch-block', () => { closeBioMoreModal(); addTwitchBlock(); });
 bioRegisterAction('add-tweet-block', () => { closeBioMoreModal(); addTweetBlock(); });
 bioRegisterAction('open-more-modal', () => openBioMoreModal());
