@@ -2694,8 +2694,8 @@ function saveLinkRow(id) {
   const link = bioState.links.find(l => l._id === id);
   if (!link) return;
 
-  // Headers, subscribe blocks, and video blocks don't require a URL
-  if (link.isHeader || link.isSubscribe || link.isVideoBlock) {
+  // Headers, subscribe blocks, and video/TikTok blocks don't require a URL
+  if (link.isHeader || link.isSubscribe || link.isVideoBlock || link.isTikTokBlock) {
     bioExpandedLinks.delete(id);
     renderBioLinks();
     schedulePreviewUpdate();
