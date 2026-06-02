@@ -3032,6 +3032,7 @@
   .bio-more-modal-body { padding:18px 20px 22px; }
   .bio-more-cat { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted); margin-bottom:10px; }
   .bio-more-grid { display:grid; gap:10px; }
+  .bio-more-grid + .bio-more-cat { margin-top:18px; }
   .bio-more-item { font-family:'DM Sans',sans-serif; display:flex; align-items:center; gap:12px; width:100%; text-align:left; background:var(--surface2); border:1px solid var(--border); border-radius:12px; padding:12px 14px; cursor:pointer; transition:border-color 0.15s, background 0.15s; }
   .bio-more-item:hover { border-color:var(--accent2); }
   .bio-more-item:focus-visible { outline:2px solid var(--accent2); outline-offset:2px; }
@@ -10602,7 +10603,7 @@
       <button type="button" class="bio-more-modal-close" data-bio-action="close-more-modal" aria-label="Close">&times;</button>
     </div>
     <div class="bio-more-modal-body">
-      <div class="bio-more-cat">Social</div>
+      <div class="bio-more-cat">Music</div>
       <div class="bio-more-grid">
         <button type="button" id="bio-more-spotify" class="bio-more-item" data-bio-action="add-spotify-block">
           <span class="bio-more-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#1DB954"/><path d="M6.4 9.3c3.6-1.05 7.7-0.72 10.8 1.05" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round"/><path d="M7 12.6c3-0.85 6.2-0.5 8.7 1.0" stroke="#fff" stroke-width="1.35" fill="none" stroke-linecap="round"/><path d="M7.5 15.7c2.4-0.62 4.8-0.4 6.7 0.8" stroke="#fff" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg></span>
@@ -10625,6 +10626,9 @@
             <span class="bio-more-item-desc">Embed a track, playlist, or profile</span>
           </span>
         </button>
+      </div>
+      <div class="bio-more-cat">Social</div>
+      <div class="bio-more-grid">
         <button type="button" id="bio-more-twitch" class="bio-more-item" data-bio-action="add-twitch-block">
           <span class="bio-more-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#9146FF" d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg></span>
           <span class="bio-more-item-text">
