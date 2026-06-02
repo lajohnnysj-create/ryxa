@@ -70,6 +70,14 @@ function extractTikTokId(url) {
   return m ? m[1] : null;
 }
 
+// Pull the Instagram shortcode from a reel/post URL (/reel/CODE, /reels/CODE,
+// /p/CODE, /tv/CODE). The embed only works for public content.
+function extractInstagramId(url) {
+  if (!url) return null;
+  const m = String(url).match(/instagram\.com\/(?:reel|reels|p|tv)\/([A-Za-z0-9_-]+)/i);
+  return m ? m[1] : null;
+}
+
 function fmtPrice(cents, currency) {
   const code = currency || 'USD';
   const localeMap = { USD:'en-US', EUR:'en-IE', GBP:'en-GB', CAD:'en-CA', AUD:'en-AU', JPY:'ja-JP', INR:'en-IN', BRL:'pt-BR', MXN:'es-MX', CHF:'de-CH', SGD:'en-SG', SEK:'sv-SE', NOK:'nb-NO', NZD:'en-NZ', ZAR:'en-ZA' };
@@ -339,9 +347,26 @@ function buildLink(link, currency) {
     </div>`;
   }
 
-  const url = validUrl(link.url);
-  if (!url) return '';
-  const title = esc(link.title || '');
+  // Instagram block — official Instagram embed card per reel (lazy iframe).
+  // Not a clean 9:16 tile: Instagram only offers its full embed card (header,
+  // media, caption). Public reels only; private/blocked render empty.
+  if (link.isInstagramBlock) {
+    const videos = Array.isArray(link.videos) ? link.videos : [];
+    const cards = videos.map(v => {
+      const id = extractInstagramId(v && v.url);
+      if (!id) return '';
+      return `<div class="ig-embed-card">
+        <iframe class="ig-embed-frame" src="https://www.instagram.com/reel/${id}/embed/" loading="lazy"
+          title="Instagram reel" scrolling="no" allowtransparency="true" allow="encrypted-media; picture-in-picture; fullscreen"></iframe>
+      </div>`;
+    }).filter(Boolean).join('');
+    if (!cards) return '';
+    return `<div class="videos">
+      <button type="button" class="videos-arrow videos-arrow-l" aria-label="Scroll left" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <button type="button" class="videos-arrow videos-arrow-r" aria-label="Scroll right" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button>
+      <div class="videos-scroll">${cards}</div>
+    </div>`;
+  }
   const desc = link.description ? `<div class="link-desc">${esc(link.description)}</div>` : '';
 
   // Hero link — full-image background, no icon
@@ -1074,7 +1099,7 @@ ${customThemeStyle}
       "font-src 'self' https://fonts.gstatic.com data:",
       "img-src 'self' data: blob: https://www.ryxa.io https://kjytapcgxukalwsyputk.supabase.co https://i.ytimg.com",
       "connect-src 'self' https://kjytapcgxukalwsyputk.supabase.co https://cdn.jsdelivr.net",
-      "frame-src https://www.youtube.com https://www.youtube-nocookie.com https://www.tiktok.com",
+      "frame-src https://www.youtube.com https://www.youtube-nocookie.com https://www.tiktok.com https://www.instagram.com",
       "media-src 'self' blob: https://kjytapcgxukalwsyputk.supabase.co",
       "object-src 'none'",
       "base-uri 'self'",
