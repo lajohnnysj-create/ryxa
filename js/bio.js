@@ -744,12 +744,13 @@ function renderAvatarPreview() {
 
 function onBioFieldChange() {
   bioState.display_name = document.getElementById('bio-display-name').value;
-  // Bio supports up to 3 lines. Trim any extra line breaks the user adds.
   const bioEl = document.getElementById('bio-bio');
   let bioVal = bioEl.value;
-  const lines = bioVal.split('\n');
-  if (lines.length > 3) {
-    bioVal = lines.slice(0, 3).join('\n');
+  // Keep to 3 lines WITHOUT deleting text: extra line breaks (e.g. from a
+  // paste) fold into the third line as spaces instead of truncating content.
+  const parts = bioVal.split('\n');
+  if (parts.length > 3) {
+    bioVal = parts.slice(0, 2).join('\n') + '\n' + parts.slice(2).join(' ');
     bioEl.value = bioVal;
   }
   bioState.bio = bioVal;
@@ -3605,6 +3606,13 @@ bioRegisterAction('set-avatar-display', (e, el) => setAvatarDisplay(el.dataset.b
 bioRegisterAction('close-hero-upsell', () => closeHeroUpsell());
 bioRegisterAction('close-hero-upsell-if-backdrop', (e) => { if (e.target.id === 'hero-upsell-modal') closeHeroUpsell(); });
 bioRegisterAction('field-change', () => onBioFieldChange());
+// Block Enter once the bio already has 3 lines, so the line break simply
+// doesn't happen rather than truncating anything the user typed.
+bioRegisterAction('bio-line-guard', (e, el) => {
+  if (e.key === 'Enter' && el.value.split('\n').length >= 3) {
+    e.preventDefault();
+  }
+});
 bioRegisterAction('ai-bio-assist', () => aiBioAssist('bio-bio', 200));
 bioRegisterAction('custom-bg-selected', (e, el) => onBioCustomBgSelected(el));
 bioRegisterAction('remove-custom-bg', () => removeBioCustomBg());
