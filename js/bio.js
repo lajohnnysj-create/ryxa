@@ -2454,7 +2454,7 @@ function renderLinkExpanded(link, dragSvg) {
         <div class="bio-s-7623f0"></div>
         <button class="bio-link-remove" data-bio-action="remove-link" data-bio-id="${link._id}">Remove</button>
       </div>
-      <div class="bio-s-e289c0">Add up to 10 YouTube videos as a carousel. Shorts (youtube.com/shorts links) display vertically automatically.</div>
+      <div class="bio-s-e289c0">Add up to 10 YouTube videos or shorts as a carousel.</div>
       ${inputsHtml}
       <button type="button" data-bio-action="add-video-to-block" data-bio-id="${link._id}" ${atMax ? 'disabled' : ''}
         class="bio-add-video-btn ${atMax ? 'is-disabled' : ''}">
