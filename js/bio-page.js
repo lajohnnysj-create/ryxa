@@ -173,6 +173,18 @@ function extractSpotify(url) {
   return m ? { type: m[1].toLowerCase(), id: m[2] } : null;
 }
 
+// Apple Music type + embed src. Embed = same link on embed.music.apple.com.
+function extractAppleMusic(url) {
+  if (!url) return null;
+  const s = String(url);
+  const m = s.match(/music\.apple\.com\/([a-z]{2})\/(album|playlist|song|artist|music-video|station)\/([^/?#]+)\/([^/?#]+)/i);
+  if (!m) return null;
+  const type = m[2].toLowerCase();
+  const iMatch = s.match(/[?&]i=(\d+)/);
+  const src = `https://embed.music.apple.com/${m[1]}/${type}/${m[3]}/${m[4]}` + (iMatch ? `?i=${iMatch[1]}` : '');
+  return { type, src, song: !!iMatch || type === 'song' };
+}
+
 function extractTwitch(url) {
   if (!url) return null;
   const s = String(url);
@@ -387,6 +399,16 @@ function buildLink(link) {
     const tall = (sp.type === 'album' || sp.type === 'playlist' || sp.type === 'artist' || sp.type === 'show');
     return `<div class="spotify-embed${tall ? ' tall' : ''}">
       <iframe class="spotify-frame" src="https://open.spotify.com/embed/${sp.type}/${sp.id}" loading="lazy" title="Spotify player" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
+    </div>`;
+  }
+
+  // Apple Music embed — songs compact, albums/playlists taller.
+  if (link.isAppleMusicBlock) {
+    const am = extractAppleMusic(link.url);
+    if (!am) return '';
+    const tall = !am.song;
+    return `<div class="apple-music-embed${tall ? ' tall' : ''}">
+      <iframe class="apple-music-frame" src="${am.src}" loading="lazy" title="Apple Music player" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
     </div>`;
   }
 
