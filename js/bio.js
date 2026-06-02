@@ -1627,6 +1627,28 @@ function addSpotifyBlock() {
   showBioStatus('saved', 'Spotify added');
 }
 
+// Apple Music embed — a single song/album/playlist/artist from one URL, not a
+// list. One per page (all plans); the modal item disables when one exists,
+// this guard is the backstop. Embed host is embed.music.apple.com.
+function addAppleMusicBlock() {
+  const { maxLinks } = bioLimits();
+  if (bioState.links.length >= maxLinks) {
+    showBioStatus('error', `Link limit reached (${maxLinks}).`);
+    return;
+  }
+  if (bioState.links.some(l => l.isAppleMusicBlock)) return;
+  const newId = linkIdSeq++;
+  bioState.links.push({
+    _id: newId,
+    isAppleMusicBlock: true,
+    url: ''
+  });
+  bioExpandedLinks.add(newId);
+  renderBioLinks();
+  schedulePreviewUpdate();
+  showBioStatus('saved', 'Apple Music added');
+}
+
 // Twitch embed — live channel, VOD, or clip from a single URL. One per page
 // (all plans); the modal item disables when one exists, this is the backstop.
 function addTwitchBlock() {
@@ -1680,6 +1702,12 @@ function openBioMoreModal() {
     const used = bioState.links.some(l => l.isSpotifyBlock);
     spotifyItem.disabled = used;
     spotifyItem.classList.toggle('is-used', used);
+  }
+  const appleMusicItem = document.getElementById('bio-more-apple-music');
+  if (appleMusicItem) {
+    const used = bioState.links.some(l => l.isAppleMusicBlock);
+    appleMusicItem.disabled = used;
+    appleMusicItem.classList.toggle('is-used', used);
   }
   const twitchItem = document.getElementById('bio-more-twitch');
   if (twitchItem) {
@@ -2172,7 +2200,7 @@ function toggleLinkHalfWidth(id, checked) {
 function bioHalfBadge(link) {
   if (!link.halfWidth) return '';
   if (link.isMediaKit || link.isHero || link.isHeader || link.isSubscribe ||
-      link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock || link.isSpotifyBlock || link.isTwitchBlock || link.isTweetBlock || link.featured) {
+      link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock || link.isSpotifyBlock || link.isAppleMusicBlock || link.isTwitchBlock || link.isTweetBlock || link.featured) {
     return '';
   }
   return '<span class="bio-row-half" title="Half width" aria-label="Half width">&frac12;</span>';
@@ -2222,6 +2250,13 @@ function bioRowTypeMeta(link) {
       key: 'spotify',
       label: 'Spotify',
       icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#1DB954"/><path d="M6.4 9.3c3.6-1.05 7.7-0.72 10.8 1.05" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round"/><path d="M7 12.6c3-0.85 6.2-0.5 8.7 1.0" stroke="#fff" stroke-width="1.35" fill="none" stroke-linecap="round"/><path d="M7.5 15.7c2.4-0.62 4.8-0.4 6.7 0.8" stroke="#fff" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg>'
+    };
+  }
+  if (link.isAppleMusicBlock) {
+    return {
+      key: 'apple-music',
+      label: 'Apple Music',
+      icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="5.5" fill="#FA233B"/><path fill="#fff" d="M16.8 5.2c.35-.06.65.2.65.56v7.49c0 1.02-.72 1.78-1.72 1.94-1.14.18-2-.52-2-1.54 0-.86.6-1.48 1.55-1.64l.62-.1c.3-.05.43-.2.43-.5V8.2l-5 .92v4.93c0 1.02-.72 1.78-1.72 1.94-1.14.18-2-.52-2-1.54 0-.86.6-1.48 1.55-1.64l.62-.1c.3-.05.43-.2.43-.5V7.1c0-.32.2-.53.53-.6z"/></svg>'
     };
   }
   if (link.isTwitchBlock) {
@@ -2449,6 +2484,10 @@ function renderLinkCollapsed(link, dragSvg, editSvg) {
     const sp = extractSpotify(link.url);
     title = 'Spotify';
     subline = sp ? (sp.type.charAt(0).toUpperCase() + sp.type.slice(1)) : '<span class="bio-s-dbc3a0">No link yet</span>';
+  } else if (link.isAppleMusicBlock) {
+    const am = extractAppleMusic(link.url);
+    title = 'Apple Music';
+    subline = am ? (am.type.charAt(0).toUpperCase() + am.type.slice(1)) : '<span class="bio-s-dbc3a0">No link yet</span>';
   } else if (link.isTwitchBlock) {
     const videos = Array.isArray(link.videos) ? link.videos : [];
     const filledCount = videos.filter(v => v && v.url && v.url.trim() && extractTwitch(v.url)).length;
@@ -2739,6 +2778,25 @@ function renderLinkExpanded(link, dragSvg) {
     </div>`;
   }
 
+  if (link.isAppleMusicBlock) {
+    return `<div class="bio-link-row" data-id="${link._id}">
+      <div class="bio-link-header">
+        <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
+        <span class="bio-featured-badge bio-s-04da54" >Apple Music</span>
+        <div class="bio-s-7623f0"></div>
+        <button class="bio-link-remove" data-bio-action="remove-link" data-bio-id="${link._id}">Remove</button>
+      </div>
+      <div class="bio-s-e289c0">Paste an Apple Music share link, a song, album, playlist, or artist. Songs show a compact player; albums and playlists show a scrollable tracklist.</div>
+      <input type="url" placeholder="https://music.apple.com/..." value="${escapeHtml(link.url || '')}"
+        data-bio-action="update-link-field" data-bio-event="input" data-bio-id="${link._id}" data-bio-field="url"
+        aria-label="Apple Music link" class="bio-s-6c002e">
+      <button type="button" data-bio-action="save-link-row" data-bio-id="${link._id}"
+        class="bio-s-c7cf47">
+        Save
+      </button>
+    </div>`;
+  }
+
   if (link.isSpotifyBlock) {
     return `<div class="bio-link-row" data-id="${link._id}">
       <div class="bio-link-header">
@@ -2974,7 +3032,7 @@ function saveLinkRow(id) {
   if (!link) return;
 
   // Headers, subscribe blocks, and video/TikTok blocks don't require a URL
-  if (link.isHeader || link.isSubscribe || link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock || link.isSpotifyBlock || link.isTwitchBlock || link.isTweetBlock) {
+  if (link.isHeader || link.isSubscribe || link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock || link.isSpotifyBlock || link.isAppleMusicBlock || link.isTwitchBlock || link.isTweetBlock) {
     bioExpandedLinks.delete(id);
     renderBioLinks();
     schedulePreviewUpdate();
@@ -3032,6 +3090,20 @@ function extractSpotify(url) {
   if (!url) return null;
   const m = String(url).match(/open\.spotify\.com\/(?:intl-[a-z]{2}\/)?(track|album|playlist|artist|episode|show)\/([A-Za-z0-9]+)/i);
   return m ? { type: m[1].toLowerCase(), id: m[2] } : null;
+}
+
+// Apple Music type + embed src from a share URL. The embed is the same link on
+// the embed.music.apple.com host, preserving the storefront/type/slug/id path
+// plus the ?i= track selector when present. Single songs get the compact player.
+function extractAppleMusic(url) {
+  if (!url) return null;
+  const s = String(url);
+  const m = s.match(/music\.apple\.com\/([a-z]{2})\/(album|playlist|song|artist|music-video|station)\/([^/?#]+)\/([^/?#]+)/i);
+  if (!m) return null;
+  const type = m[2].toLowerCase();
+  const iMatch = s.match(/[?&]i=(\d+)/);
+  const src = `https://embed.music.apple.com/${m[1]}/${type}/${m[3]}/${m[4]}` + (iMatch ? `?i=${iMatch[1]}` : '');
+  return { type, src, song: !!iMatch || type === 'song' };
 }
 
 // Resolve a Twitch URL to an embed target: live channel, VOD, or clip. Clips
@@ -3422,7 +3494,7 @@ async function saveBio() {
       return 'https://' + s;
     };
     const cleanLinks = bioState.links
-      .filter(l => (l.title || '').trim() || (l.url || '').trim() || l.isVideoBlock || l.isTikTokBlock || l.isInstagramBlock || l.isSpotifyBlock || l.isTwitchBlock || l.isTweetBlock || l.isHeader || l.isSubscribe || l.isMediaKit)
+      .filter(l => (l.title || '').trim() || (l.url || '').trim() || l.isVideoBlock || l.isTikTokBlock || l.isInstagramBlock || l.isSpotifyBlock || l.isAppleMusicBlock || l.isTwitchBlock || l.isTweetBlock || l.isHeader || l.isSubscribe || l.isMediaKit)
       .map(l => ({
         title: (l.title || '').slice(0, 80),
         description: (l.description || '').slice(0, 120),
@@ -3462,6 +3534,7 @@ async function saveBio() {
             .slice(0, 10)
         } : {}),
         ...(l.isSpotifyBlock ? { isSpotifyBlock: true } : {}),
+        ...(l.isAppleMusicBlock ? { isAppleMusicBlock: true } : {}),
         ...(l.isTwitchBlock ? {
           isTwitchBlock: true,
           videos: (Array.isArray(l.videos) ? l.videos : [])
@@ -3711,7 +3784,7 @@ function buildPreviewHTML() {
     ? `<img src="${escapeHtml(bioState.avatar_url)}" alt="Profile photo" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;">`
     : `<div style="width:100%;height:100%;border-radius:50%;background:${t.surface2};display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;font-size:36px;font-weight:800;color:${t.text};">${escapeHtml(initial)}</div>`;
   const socialsHtml = buildPreviewSocials(t);
-  const linksHtml = bioState.links.filter(l => l.isHeader || l.isSubscribe || l.isVideoBlock || l.isTikTokBlock || l.isInstagramBlock || l.isSpotifyBlock || l.isTwitchBlock || l.isTweetBlock || (l.url || '').trim()).map(l => buildPreviewLink(l, t)).join('');
+  const linksHtml = bioState.links.filter(l => l.isHeader || l.isSubscribe || l.isVideoBlock || l.isTikTokBlock || l.isInstagramBlock || l.isSpotifyBlock || l.isAppleMusicBlock || l.isTwitchBlock || l.isTweetBlock || (l.url || '').trim()).map(l => buildPreviewLink(l, t)).join('');
 
   // For custom themes with a bg image, we dim the radial glow (since bg image is already bg)
   const glowCSS = ((bioState.theme === 'custom' && isPro() && bioState.custom_theme?.bgUrl) || isImageTheme(bioState.theme))
@@ -3917,6 +3990,20 @@ function buildPreviewLink(l, t) {
       <button type="button" class="vids-arrow vids-arrow-l" aria-label="Scroll left" tabindex="-1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg></button>
       <button type="button" class="vids-arrow vids-arrow-r" aria-label="Scroll right" tabindex="-1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button>
       <div class="vids-r">${cards}</div>
+    </div>`;
+  }
+  if (l.isAppleMusicBlock) {
+    const am = extractAppleMusic(l.url);
+    if (!am) {
+      // No valid link yet — branded placeholder so the slot is visible.
+      return `<div style="background:#FA233B;border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:10px;color:#fff;font-size:12px;">
+        <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="5.5" fill="#fff"/><path fill="#FA233B" d="M16.8 5.2c.35-.06.65.2.65.56v7.49c0 1.02-.72 1.78-1.72 1.94-1.14.18-2-.52-2-1.54 0-.86.6-1.48 1.55-1.64l.62-.1c.3-.05.43-.2.43-.5V8.2l-5 .92v4.93c0 1.02-.72 1.78-1.72 1.94-1.14.18-2-.52-2-1.54 0-.86.6-1.48 1.55-1.64l.62-.1c.3-.05.43-.2.43-.5V7.1c0-.32.2-.53.53-.6z"/></svg>
+        <span>Apple Music &middot; Add an Apple Music link</span>
+      </div>`;
+    }
+    const h = am.song ? 175 : 450;
+    return `<div style="width:100%;height:${h}px;border-radius:12px;overflow:hidden;">
+      <iframe src="${am.src}" loading="lazy" title="Apple Music player" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" style="width:100%;height:100%;border:0;display:block;"></iframe>
     </div>`;
   }
   if (l.isSpotifyBlock) {
@@ -4222,6 +4309,7 @@ bioRegisterAction('add-video-block', () => addVideoBlock());
 bioRegisterAction('add-tiktok-block', () => addTikTokBlock());
 bioRegisterAction('add-instagram-block', () => addInstagramBlock());
 bioRegisterAction('add-spotify-block', () => { closeBioMoreModal(); addSpotifyBlock(); });
+bioRegisterAction('add-apple-music-block', () => { closeBioMoreModal(); addAppleMusicBlock(); });
 bioRegisterAction('add-twitch-block', () => { closeBioMoreModal(); addTwitchBlock(); });
 bioRegisterAction('add-tweet-block', () => { closeBioMoreModal(); addTweetBlock(); });
 bioRegisterAction('open-more-modal', () => openBioMoreModal());
