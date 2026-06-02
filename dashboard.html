@@ -2878,6 +2878,9 @@
   }
   .bio-hero-photo-slot img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .bio-hero-photo-slot input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .bio-image-slot { position: relative; width: 100%; min-height: 80px; max-height: 320px; border: 1px dashed rgba(124,58,237,0.4); border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden; background: var(--surface2); color: var(--muted); font-size: 12px; margin-bottom: 8px; }
+  .bio-image-slot img { width: 100%; height: auto; max-height: 320px; object-fit: contain; display: block; }
+  .bio-image-slot input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
   .bio-mediakit-badge {
     font-size: 10px;
     background: linear-gradient(135deg, rgba(124,58,237,0.25), rgba(232,121,249,0.2));
@@ -10641,6 +10644,16 @@
           <span class="bio-more-item-text">
             <span class="bio-more-item-label">X (Twitter)</span>
             <span class="bio-more-item-desc">Embed up to 10 posts</span>
+          </span>
+        </button>
+      </div>
+      <div class="bio-more-cat">Images</div>
+      <div class="bio-more-grid">
+        <button type="button" id="bio-more-single-image" class="bio-more-item" data-bio-action="add-image-block">
+          <span class="bio-more-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="M21 15.5l-4.5-4.5L5 20"/></svg></span>
+          <span class="bio-more-item-text">
+            <span class="bio-more-item-label">Single Image</span>
+            <span class="bio-more-item-desc">Upload one photo, shown full width</span>
           </span>
         </button>
       </div>
