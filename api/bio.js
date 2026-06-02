@@ -428,24 +428,36 @@ function buildLink(link, currency) {
     </div>`;
   }
 
-  // Twitch embed — live channel, VOD, or clip. All render as a 16:9 player.
+  // Twitch embeds — up to 10 in a carousel (channels, VODs, clips). All 16:9.
   if (link.isTwitchBlock) {
-    const tw = extractTwitch(link.url);
-    if (!tw) return '';
-    return `<div class="twitch-embed">
-      <iframe class="twitch-frame" src="${twitchEmbedSrc(tw)}" loading="lazy" title="Twitch player" allow="autoplay; fullscreen" allowfullscreen></iframe>
+    const videos = Array.isArray(link.videos) ? link.videos : (link.url ? [{ url: link.url }] : []);
+    const cards = videos.map(v => {
+      const tw = extractTwitch(v && v.url);
+      if (!tw) return '';
+      return `<div class="twitch-card"><iframe class="twitch-frame" src="${twitchEmbedSrc(tw)}" loading="lazy" title="Twitch player" allow="autoplay; fullscreen" allowfullscreen></iframe></div>`;
+    }).filter(Boolean).join('');
+    if (!cards) return '';
+    return `<div class="videos">
+      <button type="button" class="videos-arrow videos-arrow-l" aria-label="Scroll left" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <button type="button" class="videos-arrow videos-arrow-r" aria-label="Scroll right" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button>
+      <div class="videos-scroll">${cards}</div>
     </div>`;
   }
 
-  // X (Twitter) post — pure-iframe embed via platform.twitter.com/Tweet.html
-  // (no widgets.js, so no SRI conflict). The card starts as a branded skeleton;
-  // bio-page.js sizes and reveals it from the iframe's postMessage height.
+  // X (Twitter) posts — up to 10 in a carousel. Pure-iframe Tweet.html embeds
+  // (no widgets.js → no SRI conflict); fixed-height cards so the row stays even.
   if (link.isTweetBlock) {
-    const id = extractTweetId(link.url);
-    if (!id) return '';
-    return `<div class="tweet-embed">
-      <div class="tweet-embed-placeholder" aria-hidden="true"><svg class="tweet-embed-ph-glyph" width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><path fill="#0f1419" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></div>
-      <iframe class="tweet-frame" src="https://platform.twitter.com/embed/Tweet.html?id=${id}&dnt=true" loading="lazy" title="Post on X" scrolling="no"></iframe>
+    const videos = Array.isArray(link.videos) ? link.videos : (link.url ? [{ url: link.url }] : []);
+    const cards = videos.map(v => {
+      const id = extractTweetId(v && v.url);
+      if (!id) return '';
+      return `<div class="tweet-card"><iframe class="tweet-frame" src="https://platform.twitter.com/embed/Tweet.html?id=${id}&dnt=true" loading="lazy" title="Post on X"></iframe></div>`;
+    }).filter(Boolean).join('');
+    if (!cards) return '';
+    return `<div class="videos">
+      <button type="button" class="videos-arrow videos-arrow-l" aria-label="Scroll left" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <button type="button" class="videos-arrow videos-arrow-r" aria-label="Scroll right" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button>
+      <div class="videos-scroll">${cards}</div>
     </div>`;
   }
 
