@@ -1591,10 +1591,43 @@ function addTikTokBlock() {
   showBioStatus('saved', 'TikTok block added');
 }
 
+// Instagram Reels block — parallel to the TikTok block, same gating and the
+// same videos[] shape, so it reuses the shared video-array helpers below.
+function addInstagramBlock() {
+  const { maxLinks } = bioLimits();
+  const totalLinkCount = bioState.links.length;
+  if (totalLinkCount >= maxLinks) {
+    showBioStatus('error', `Link limit reached (${maxLinks}).`);
+    return;
+  }
+  const existingBlocks = bioState.links.filter(l => l.isInstagramBlock).length;
+  if (!isPro()) {
+    if (existingBlocks >= 1) {
+      showBioStatus('error', 'Free plan supports one Instagram block. Upgrade to Pro for up to 5.');
+      return;
+    }
+  } else {
+    if (existingBlocks >= 5) {
+      showBioStatus('error', 'Instagram block limit reached (5).');
+      return;
+    }
+  }
+  const newId = linkIdSeq++;
+  bioState.links.push({
+    _id: newId,
+    isInstagramBlock: true,
+    videos: [{ url: '' }]
+  });
+  bioExpandedLinks.add(newId);
+  renderBioLinks();
+  schedulePreviewUpdate();
+  showBioStatus('saved', 'Instagram block added');
+}
+
 // Update the URL of a video at a given index inside a video block link.
 function updateVideoBlockUrl(linkId, idx, url) {
   const link = bioState.links.find(l => l._id === linkId);
-  if (!link || !(link.isVideoBlock || link.isTikTokBlock) || !Array.isArray(link.videos)) return;
+  if (!link || !(link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock) || !Array.isArray(link.videos)) return;
   if (idx < 0 || idx >= link.videos.length) return;
   link.videos[idx].url = url;
   schedulePreviewUpdate();
@@ -1603,7 +1636,7 @@ function updateVideoBlockUrl(linkId, idx, url) {
 // Add another empty URL slot to a video block (max 10).
 function addVideoToBlock(linkId) {
   const link = bioState.links.find(l => l._id === linkId);
-  if (!link || !(link.isVideoBlock || link.isTikTokBlock)) return;
+  if (!link || !(link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock)) return;
   if (!Array.isArray(link.videos)) link.videos = [];
   if (link.videos.length >= 10) return;
   link.videos.push({ url: '' });
@@ -1616,7 +1649,7 @@ function addVideoToBlock(linkId) {
 // whole block via the row's Remove button).
 function removeVideoFromBlock(linkId, idx) {
   const link = bioState.links.find(l => l._id === linkId);
-  if (!link || !(link.isVideoBlock || link.isTikTokBlock) || !Array.isArray(link.videos)) return;
+  if (!link || !(link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock) || !Array.isArray(link.videos)) return;
   link.videos.splice(idx, 1);
   if (link.videos.length === 0) link.videos.push({ url: '' });
   renderBioLinks();
@@ -2063,7 +2096,7 @@ function toggleLinkHalfWidth(id, checked) {
 function bioHalfBadge(link) {
   if (!link.halfWidth) return '';
   if (link.isMediaKit || link.isHero || link.isHeader || link.isSubscribe ||
-      link.isVideoBlock || link.isTikTokBlock || link.featured) {
+      link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock || link.featured) {
     return '';
   }
   return '<span class="bio-row-half" title="Half width" aria-label="Half width">&frac12;</span>';
@@ -2098,6 +2131,13 @@ function bioRowTypeMeta(link) {
       key: 'tiktok',
       label: 'TikTok',
       icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>'
+    };
+  }
+  if (link.isInstagramBlock) {
+    return {
+      key: 'instagram',
+      label: 'Instagram',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.6"/></svg>'
     };
   }
   if (link.isSubscribe) {
@@ -2301,6 +2341,11 @@ function renderLinkCollapsed(link, dragSvg, editSvg) {
     const filledCount = videos.filter(v => v && v.url && v.url.trim() && extractTikTokId(v.url)).length;
     title = 'TikTok videos';
     subline = filledCount === 0 ? 'No videos yet' : (filledCount === 1 ? '1 video' : filledCount + ' videos');
+  } else if (link.isInstagramBlock) {
+    const videos = Array.isArray(link.videos) ? link.videos : [];
+    const filledCount = videos.filter(v => v && v.url && v.url.trim() && extractInstagramId(v.url)).length;
+    title = 'Instagram reels';
+    subline = filledCount === 0 ? 'No reels yet' : (filledCount === 1 ? '1 reel' : filledCount + ' reels');
   } else if (link.isSubscribe) {
     title = escapeHtml(link.title || 'Subscribe to my newsletter');
   } else if (link.isHero) {
@@ -2547,6 +2592,40 @@ function renderLinkExpanded(link, dragSvg) {
     </div>`;
   }
 
+  if (link.isInstagramBlock) {
+    const videos = Array.isArray(link.videos) && link.videos.length ? link.videos : [{ url: '' }];
+    const atMax = videos.length >= 10;
+    const inputsHtml = videos.map((v, idx) => {
+      const value = escapeHtml(v && v.url ? v.url : '');
+      return `<div class="bio-s-302bc1">
+        <input type="url" placeholder="https://www.instagram.com/reel/..." value="${value}"
+          data-bio-action="update-video-url" data-bio-event="input" data-bio-id="${link._id}" data-bio-idx="${idx}"
+          aria-label="Instagram reel URL ${idx + 1}"
+          class="bio-s-d3db56">
+        <button type="button" aria-label="Remove this reel" data-bio-action="remove-video" data-bio-id="${link._id}" data-bio-idx="${idx}"
+          class="bio-s-09aacd">×</button>
+      </div>`;
+    }).join('');
+    return `<div class="bio-link-row" data-id="${link._id}">
+      <div class="bio-link-header">
+        <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
+        <span class="bio-featured-badge bio-s-04da54" >Instagram</span>
+        <div class="bio-s-7623f0"></div>
+        <button class="bio-link-remove" data-bio-action="remove-link" data-bio-id="${link._id}">Remove</button>
+      </div>
+      <div class="bio-s-e289c0">Add up to 10 Instagram reels as a carousel. Paste the full reel link (instagram.com/reel/...). The reel must be public.</div>
+      ${inputsHtml}
+      <button type="button" data-bio-action="add-video-to-block" data-bio-id="${link._id}" ${atMax ? 'disabled' : ''}
+        class="bio-add-video-btn ${atMax ? 'is-disabled' : ''}">
+        ${atMax ? '10 reel limit reached' : '+ Add another reel'}
+      </button>
+      <button type="button" data-bio-action="save-link-row" data-bio-id="${link._id}"
+        class="bio-s-c7cf47">
+        Save
+      </button>
+    </div>`;
+  }
+
   let photoSlot = '';
   if (link.isCourse) {
 
@@ -2695,7 +2774,7 @@ function saveLinkRow(id) {
   if (!link) return;
 
   // Headers, subscribe blocks, and video/TikTok blocks don't require a URL
-  if (link.isHeader || link.isSubscribe || link.isVideoBlock || link.isTikTokBlock) {
+  if (link.isHeader || link.isSubscribe || link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock) {
     bioExpandedLinks.delete(id);
     renderBioLinks();
     schedulePreviewUpdate();
@@ -2736,6 +2815,14 @@ function isShortsUrl(url) {
 function extractTikTokId(url) {
   if (!url) return null;
   const m = String(url).match(/tiktok\.com\/(?:.*\/video\/|embed\/(?:v2\/)?|v\/)(\d{6,})/i);
+  return m ? m[1] : null;
+}
+
+// Instagram shortcode from a reel/post URL (/reel/CODE, /reels/CODE, /p/CODE,
+// /tv/CODE). Embed works for public content only.
+function extractInstagramId(url) {
+  if (!url) return null;
+  const m = String(url).match(/instagram\.com\/(?:reel|reels|p|tv)\/([A-Za-z0-9_-]+)/i);
   return m ? m[1] : null;
 }
 
@@ -3079,7 +3166,7 @@ async function saveBio() {
       return 'https://' + s;
     };
     const cleanLinks = bioState.links
-      .filter(l => (l.title || '').trim() || (l.url || '').trim() || l.isVideoBlock || l.isTikTokBlock || l.isHeader || l.isSubscribe || l.isMediaKit)
+      .filter(l => (l.title || '').trim() || (l.url || '').trim() || l.isVideoBlock || l.isTikTokBlock || l.isInstagramBlock || l.isHeader || l.isSubscribe || l.isMediaKit)
       .map(l => ({
         title: (l.title || '').slice(0, 80),
         description: (l.description || '').slice(0, 120),
@@ -3106,6 +3193,13 @@ async function saveBio() {
         } : {}),
         ...(l.isTikTokBlock ? {
           isTikTokBlock: true,
+          videos: (Array.isArray(l.videos) ? l.videos : [])
+            .map(v => ({ url: (v && v.url ? v.url : '').trim() }))
+            .filter(v => v.url)
+            .slice(0, 10)
+        } : {}),
+        ...(l.isInstagramBlock ? {
+          isInstagramBlock: true,
           videos: (Array.isArray(l.videos) ? l.videos : [])
             .map(v => ({ url: (v && v.url ? v.url : '').trim() }))
             .filter(v => v.url)
@@ -3346,7 +3440,7 @@ function buildPreviewHTML() {
     ? `<img src="${escapeHtml(bioState.avatar_url)}" alt="Profile photo" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;">`
     : `<div style="width:100%;height:100%;border-radius:50%;background:${t.surface2};display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;font-size:36px;font-weight:800;color:${t.text};">${escapeHtml(initial)}</div>`;
   const socialsHtml = buildPreviewSocials(t);
-  const linksHtml = bioState.links.filter(l => l.isHeader || l.isSubscribe || l.isVideoBlock || l.isTikTokBlock || (l.url || '').trim()).map(l => buildPreviewLink(l, t)).join('');
+  const linksHtml = bioState.links.filter(l => l.isHeader || l.isSubscribe || l.isVideoBlock || l.isTikTokBlock || l.isInstagramBlock || (l.url || '').trim()).map(l => buildPreviewLink(l, t)).join('');
 
   // For custom themes with a bg image, we dim the radial glow (since bg image is already bg)
   const glowCSS = ((bioState.theme === 'custom' && isPro() && bioState.custom_theme?.bgUrl) || isImageTheme(bioState.theme))
@@ -3541,6 +3635,26 @@ function buildPreviewLink(l, t) {
     }).filter(Boolean).join('');
     if (!cards) {
       return `<div style="background:${t.surface};border:1px dashed ${t.border};border-radius:10px;padding:14px;text-align:center;color:${t.muted};font-size:11px;">TikTok videos will appear here</div>`;
+    }
+    return `<div class="vids">
+      <button type="button" class="vids-arrow vids-arrow-l" aria-label="Scroll left" tabindex="-1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <button type="button" class="vids-arrow vids-arrow-r" aria-label="Scroll right" tabindex="-1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button>
+      <div class="vids-r">${cards}</div>
+    </div>`;
+  }
+  if (l.isInstagramBlock) {
+    const videos = Array.isArray(l.videos) ? l.videos : [];
+    const cards = videos.map(v => {
+      const id = extractInstagramId(v && v.url);
+      if (!id) return '';
+      // Preview shows a branded placeholder; the live page embeds the real
+      // Instagram card (loading IG iframes in the editor is heavy + CSP-blocked).
+      return `<div class="vc vc-vertical"><div style="width:100%;aspect-ratio:3/5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:#1a1320;color:#fff;font-size:10px;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.6"/></svg>
+        Instagram</div></div>`;
+    }).filter(Boolean).join('');
+    if (!cards) {
+      return `<div style="background:${t.surface};border:1px dashed ${t.border};border-radius:10px;padding:14px;text-align:center;color:${t.muted};font-size:11px;">Instagram reels will appear here</div>`;
     }
     return `<div class="vids">
       <button type="button" class="vids-arrow vids-arrow-l" aria-label="Scroll left" tabindex="-1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg></button>
@@ -3778,6 +3892,7 @@ bioRegisterAction('add-link', (e, el) => {
 bioRegisterAction('add-header', () => addHeader());
 bioRegisterAction('add-video-block', () => addVideoBlock());
 bioRegisterAction('add-tiktok-block', () => addTikTokBlock());
+bioRegisterAction('add-instagram-block', () => addInstagramBlock());
 bioRegisterAction('add-subscribe-block', () => addSubscribeBlock());
 bioRegisterAction('open-course-picker', () => openCoursePickerModal());
 bioRegisterAction('open-coaching-picker', () => openCoachingPickerModal());
