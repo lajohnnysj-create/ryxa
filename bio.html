@@ -959,23 +959,56 @@
   .video-card.vertical { flex-basis: 240px; }
   .video-card.vertical .video-thumb-wrap { aspect-ratio: 9 / 16; }
   .video-card.tiktok-card { cursor: default; }
-  /* Instagram embed cards render Instagram's own card (header, media, caption).
-     bio-page.js auto-sizes each card to the exact height Instagram reports, so
-     this value is only the pre-resize fallback (and what stands if that message
-     never arrives). Sized to clear a typical reel card without clipping. */
+  /* Instagram embed cards: reveal-when-ready (see bio-page.js).
+     Each card starts as a clean branded loading tile at a 9:16 height with
+     the real iframe hidden underneath. When Instagram reports the card's true
+     height, the card animates to it and the reel fades in. Starting at the
+     tile height means cards grow into place rather than shrink, so there's no
+     "big then settles" flash. 583px = 328 * 16/9 (the tile height). */
   .ig-embed-card {
+    position: relative;
     flex: 0 0 328px;
-    height: 740px;
+    height: 583px;
     scroll-snap-align: start;
     border-radius: 14px;
     overflow: hidden;
     background: #fff;
+    transition: height 0.35s ease;
   }
   .ig-embed-frame {
     width: 100%;
     height: 100%;
     border: 0;
     display: block;
+    opacity: 0;
+    transition: opacity 0.3s ease 0.05s;
+  }
+  .ig-embed-card.ig-ready .ig-embed-frame { opacity: 1; }
+  .ig-embed-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fafafa;
+    opacity: 1;
+    transition: opacity 0.25s ease;
+    pointer-events: none;
+  }
+  .ig-embed-card.ig-ready .ig-embed-placeholder { opacity: 0; }
+  .ig-embed-ph-glyph {
+    color: #c7c7cf;
+    animation: igPhPulse 1.4s ease-in-out infinite;
+  }
+  @keyframes igPhPulse {
+    0%, 100% { opacity: 0.45; }
+    50% { opacity: 0.9; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ig-embed-card,
+    .ig-embed-frame,
+    .ig-embed-placeholder { transition: none; }
+    .ig-embed-ph-glyph { animation: none; }
   }
   .video-thumb {
     width: 100%;
@@ -1208,7 +1241,7 @@
   </div>
 </div>
 
-<script src="/js/bio-page.js?v=3" defer></script>
+<script src="/js/bio-page.js?v=4" defer></script>
 <script src="/cookie-banner.js"></script>
 </body>
 </html>
