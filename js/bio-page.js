@@ -443,6 +443,23 @@ function buildLink(link) {
     return `<div class="bio-image"><img class="bio-image-img" src="${esc(link.photoUrl)}"${dim} loading="lazy" alt=""></div>`;
   }
 
+  // Image carousel — up to 10 uploaded images, each at its natural aspect ratio
+  // (horizontal and vertical can differ in height). Reuses the shared .videos
+  // carousel (arrows + scroll-snap).
+  if (link.isImageCarouselBlock) {
+    const imgs = Array.isArray(link.images) ? link.images : [];
+    const cards = imgs.filter(im => im && im.photoUrl).map(im => {
+      const dim = (im.w && im.h) ? ` width="${im.w}" height="${im.h}"` : '';
+      return `<div class="img-card"><img class="img-card-img" src="${esc(im.photoUrl)}"${dim} loading="lazy" alt=""></div>`;
+    }).join('');
+    if (!cards) return '';
+    return `<div class="videos">
+      <button type="button" class="videos-arrow videos-arrow-l" aria-label="Scroll left" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <button type="button" class="videos-arrow videos-arrow-r" aria-label="Scroll right" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button>
+      <div class="videos-scroll">${cards}</div>
+    </div>`;
+  }
+
   // Twitch embeds — up to 10 in a carousel; all 16:9.
   if (link.isTwitchBlock) {
     const videos = Array.isArray(link.videos) ? link.videos : (link.url ? [{ url: link.url }] : []);
