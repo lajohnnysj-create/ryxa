@@ -3020,6 +3020,28 @@
   .bio-verify-modal-close { position:absolute; top:12px; right:14px; background:none; border:none; color:var(--muted); font-size:26px; line-height:1; cursor:pointer; padding:4px 8px; }
   .bio-verify-modal-close:hover { color:var(--text); }
   .bio-verify-modal-close:focus-visible { outline:2px solid var(--accent2); outline-offset:2px; }
+  /* "More" widget modal */
+  .bio-more-modal { position:fixed; inset:0; z-index:10002; background:rgba(0,0,0,0.7); backdrop-filter:blur(4px); display:none; align-items:center; justify-content:center; padding:24px; }
+  .bio-more-modal.is-open { display:flex; }
+  .bio-more-modal-card { background:var(--surface,#0f0f1a); border:1px solid var(--border); border-radius:18px; width:100%; max-width:460px; max-height:calc(100dvh - 48px); overflow-y:auto; overscroll-behavior:contain; }
+  .bio-more-modal-head { display:flex; align-items:center; justify-content:space-between; padding:18px 20px; border-bottom:1px solid var(--border); }
+  .bio-more-modal-title { font-family:Syne,sans-serif; font-size:18px; font-weight:800; color:var(--text); }
+  .bio-more-modal-close { background:none; border:none; color:var(--muted); font-size:24px; line-height:1; cursor:pointer; padding:0 4px; }
+  .bio-more-modal-close:hover { color:var(--text); }
+  .bio-more-modal-close:focus-visible { outline:2px solid var(--accent2); outline-offset:2px; }
+  .bio-more-modal-body { padding:18px 20px 22px; }
+  .bio-more-cat { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted); margin-bottom:10px; }
+  .bio-more-grid { display:grid; gap:10px; }
+  .bio-more-item { display:flex; align-items:center; gap:12px; width:100%; text-align:left; background:var(--surface2); border:1px solid var(--border); border-radius:12px; padding:12px 14px; cursor:pointer; transition:border-color 0.15s, background 0.15s; }
+  .bio-more-item:hover { border-color:var(--accent2); }
+  .bio-more-item:focus-visible { outline:2px solid var(--accent2); outline-offset:2px; }
+  .bio-more-item:disabled, .bio-more-item.is-used { opacity:0.5; cursor:default; }
+  .bio-more-item.is-used:hover { border-color:var(--border); }
+  .bio-more-item-icon { flex-shrink:0; width:34px; height:34px; display:flex; align-items:center; justify-content:center; }
+  .bio-more-item-icon svg { width:28px; height:28px; }
+  .bio-more-item-text { display:flex; flex-direction:column; gap:2px; min-width:0; }
+  .bio-more-item-label { font-size:14px; font-weight:700; color:var(--text); }
+  .bio-more-item-desc { font-size:12px; color:var(--muted); }
   .bio-verify-modal-title { font-family:Syne,sans-serif; font-size:20px; font-weight:800; color:#fff; margin-bottom:8px; padding-right:28px; }
   .bio-verify-modal-sub { font-size:13px; color:var(--muted); line-height:1.5; margin-bottom:18px; }
   .bio-verify-modal input[type="text"], .bio-verify-modal input[type="url"] { width:100%; box-sizing:border-box; background:#07070f; border:1px solid rgba(255,255,255,0.16); border-radius:10px; padding:11px 12px; color:#fff; font-size:14px; font-family:'DM Sans',sans-serif; }
@@ -7087,6 +7109,10 @@
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                   Subscribe
                 </button>
+                <button type="button" id="bio-add-more-btn" data-bio-action="open-more-modal" class="bio-add-btn bio-add-btn-content">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>
+                  More
+                </button>
               </div>
 
               <!-- Group 2: Tools (existing Ryxa products being attached to the bio) -->
@@ -10563,6 +10589,30 @@
     <div class="bio-verify-modal-title" id="bio-verify-modal-title">Get the blue check</div>
     <p class="bio-verify-modal-sub">The blue check confirms your Link in Bio belongs to the real you. Choose how we can confirm it:</p>
     <div id="bio-verify-modal-body"></div>
+  </div>
+</div>
+
+<!-- BIO "MORE" MODAL — extra widgets, grouped by category. Items use
+     data-bio-action; the dispatcher walks to the closest action, so item
+     clicks add the widget while a backdrop click closes. -->
+<div class="bio-more-modal" id="bio-more-modal" role="dialog" aria-modal="true" aria-labelledby="bio-more-modal-title" data-bio-action="close-more-if-backdrop">
+  <div class="bio-more-modal-card" role="document">
+    <div class="bio-more-modal-head">
+      <div class="bio-more-modal-title" id="bio-more-modal-title">Add to your bio</div>
+      <button type="button" class="bio-more-modal-close" data-bio-action="close-more-modal" aria-label="Close">&times;</button>
+    </div>
+    <div class="bio-more-modal-body">
+      <div class="bio-more-cat">Social</div>
+      <div class="bio-more-grid">
+        <button type="button" id="bio-more-spotify" class="bio-more-item" data-bio-action="add-spotify-block">
+          <span class="bio-more-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#1DB954"/><path d="M6.4 9.3c3.6-1.05 7.7-0.72 10.8 1.05" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round"/><path d="M7 12.6c3-0.85 6.2-0.5 8.7 1.0" stroke="#fff" stroke-width="1.35" fill="none" stroke-linecap="round"/><path d="M7.5 15.7c2.4-0.62 4.8-0.4 6.7 0.8" stroke="#fff" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg></span>
+          <span class="bio-more-item-text">
+            <span class="bio-more-item-label">Spotify</span>
+            <span class="bio-more-item-desc">Embed a track, album, or playlist</span>
+          </span>
+        </button>
+      </div>
+    </div>
   </div>
 </div>
 
