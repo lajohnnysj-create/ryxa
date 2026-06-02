@@ -1557,10 +1557,44 @@ function addVideoBlock() {
   showBioStatus('saved', 'YouTube block added');
 }
 
+// TikTok block — parallel to the YouTube block. Same gating (1 free, up to 5
+// Pro) and the same videos[] shape, so it reuses the shared video-array
+// helpers (update/add/remove) below.
+function addTikTokBlock() {
+  const { maxLinks } = bioLimits();
+  const totalLinkCount = bioState.links.length;
+  if (totalLinkCount >= maxLinks) {
+    showBioStatus('error', `Link limit reached (${maxLinks}).`);
+    return;
+  }
+  const existingBlocks = bioState.links.filter(l => l.isTikTokBlock).length;
+  if (!isPro()) {
+    if (existingBlocks >= 1) {
+      showBioStatus('error', 'Free plan supports one TikTok block. Upgrade to Pro for up to 5.');
+      return;
+    }
+  } else {
+    if (existingBlocks >= 5) {
+      showBioStatus('error', 'TikTok block limit reached (5).');
+      return;
+    }
+  }
+  const newId = linkIdSeq++;
+  bioState.links.push({
+    _id: newId,
+    isTikTokBlock: true,
+    videos: [{ url: '' }]
+  });
+  bioExpandedLinks.add(newId);
+  renderBioLinks();
+  schedulePreviewUpdate();
+  showBioStatus('saved', 'TikTok block added');
+}
+
 // Update the URL of a video at a given index inside a video block link.
 function updateVideoBlockUrl(linkId, idx, url) {
   const link = bioState.links.find(l => l._id === linkId);
-  if (!link || !link.isVideoBlock || !Array.isArray(link.videos)) return;
+  if (!link || !(link.isVideoBlock || link.isTikTokBlock) || !Array.isArray(link.videos)) return;
   if (idx < 0 || idx >= link.videos.length) return;
   link.videos[idx].url = url;
   schedulePreviewUpdate();
@@ -1569,7 +1603,7 @@ function updateVideoBlockUrl(linkId, idx, url) {
 // Add another empty URL slot to a video block (max 10).
 function addVideoToBlock(linkId) {
   const link = bioState.links.find(l => l._id === linkId);
-  if (!link || !link.isVideoBlock) return;
+  if (!link || !(link.isVideoBlock || link.isTikTokBlock)) return;
   if (!Array.isArray(link.videos)) link.videos = [];
   if (link.videos.length >= 10) return;
   link.videos.push({ url: '' });
@@ -1582,7 +1616,7 @@ function addVideoToBlock(linkId) {
 // whole block via the row's Remove button).
 function removeVideoFromBlock(linkId, idx) {
   const link = bioState.links.find(l => l._id === linkId);
-  if (!link || !link.isVideoBlock || !Array.isArray(link.videos)) return;
+  if (!link || !(link.isVideoBlock || link.isTikTokBlock) || !Array.isArray(link.videos)) return;
   link.videos.splice(idx, 1);
   if (link.videos.length === 0) link.videos.push({ url: '' });
   renderBioLinks();
@@ -2029,7 +2063,7 @@ function toggleLinkHalfWidth(id, checked) {
 function bioHalfBadge(link) {
   if (!link.halfWidth) return '';
   if (link.isMediaKit || link.isHero || link.isHeader || link.isSubscribe ||
-      link.isVideoBlock || link.featured) {
+      link.isVideoBlock || link.isTikTokBlock || link.featured) {
     return '';
   }
   return '<span class="bio-row-half" title="Half width" aria-label="Half width">&frac12;</span>';
@@ -2057,6 +2091,13 @@ function bioRowTypeMeta(link) {
       key: 'video',
       label: 'Videos',
       icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>'
+    };
+  }
+  if (link.isTikTokBlock) {
+    return {
+      key: 'tiktok',
+      label: 'TikTok',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>'
     };
   }
   if (link.isSubscribe) {
@@ -2254,6 +2295,11 @@ function renderLinkCollapsed(link, dragSvg, editSvg) {
       ? `<img alt="YouTube preview" src="https://i.ytimg.com/vi/${firstId}/default.jpg" class="bio-s-11a000" data-bio-onerror="hide-thumb-bg">`
       : '';
     title = 'YouTube videos';
+    subline = filledCount === 0 ? 'No videos yet' : (filledCount === 1 ? '1 video' : filledCount + ' videos');
+  } else if (link.isTikTokBlock) {
+    const videos = Array.isArray(link.videos) ? link.videos : [];
+    const filledCount = videos.filter(v => v && v.url && v.url.trim() && extractTikTokId(v.url)).length;
+    title = 'TikTok videos';
     subline = filledCount === 0 ? 'No videos yet' : (filledCount === 1 ? '1 video' : filledCount + ' videos');
   } else if (link.isSubscribe) {
     title = escapeHtml(link.title || 'Subscribe to my newsletter');
@@ -2467,6 +2513,40 @@ function renderLinkExpanded(link, dragSvg) {
     </div>`;
   }
 
+  if (link.isTikTokBlock) {
+    const videos = Array.isArray(link.videos) && link.videos.length ? link.videos : [{ url: '' }];
+    const atMax = videos.length >= 10;
+    const inputsHtml = videos.map((v, idx) => {
+      const value = escapeHtml(v && v.url ? v.url : '');
+      return `<div class="bio-s-302bc1">
+        <input type="url" placeholder="https://www.tiktok.com/@user/video/..." value="${value}"
+          data-bio-action="update-video-url" data-bio-event="input" data-bio-id="${link._id}" data-bio-idx="${idx}"
+          aria-label="TikTok URL ${idx + 1}"
+          class="bio-s-d3db56">
+        <button type="button" aria-label="Remove this video" data-bio-action="remove-video" data-bio-id="${link._id}" data-bio-idx="${idx}"
+          class="bio-s-09aacd">×</button>
+      </div>`;
+    }).join('');
+    return `<div class="bio-link-row" data-id="${link._id}">
+      <div class="bio-link-header">
+        <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
+        <span class="bio-featured-badge bio-s-04da54" >TikTok</span>
+        <div class="bio-s-7623f0"></div>
+        <button class="bio-link-remove" data-bio-action="remove-link" data-bio-id="${link._id}">Remove</button>
+      </div>
+      <div class="bio-s-e289c0">Add up to 10 TikTok videos as a carousel. Paste the full video link (www.tiktok.com/@user/video/...).</div>
+      ${inputsHtml}
+      <button type="button" data-bio-action="add-video-to-block" data-bio-id="${link._id}" ${atMax ? 'disabled' : ''}
+        class="bio-add-video-btn ${atMax ? 'is-disabled' : ''}">
+        ${atMax ? '10 video limit reached' : '+ Add another video'}
+      </button>
+      <button type="button" data-bio-action="save-link-row" data-bio-id="${link._id}"
+        class="bio-s-c7cf47">
+        Save
+      </button>
+    </div>`;
+  }
+
   let photoSlot = '';
   if (link.isCourse) {
 
@@ -2649,6 +2729,14 @@ function extractYouTubeIdDash(url) {
 // default the vertical (9:16) layout; the creator can still toggle it.
 function isShortsUrl(url) {
   return /youtube\.com\/shorts\//i.test(String(url || ''));
+}
+
+// Numeric TikTok post id from a full video URL (/@user/video/ID, /embed/ID,
+// /embed/v2/ID, /v/ID). Short share links can't be resolved client-side.
+function extractTikTokId(url) {
+  if (!url) return null;
+  const m = String(url).match(/tiktok\.com\/(?:.*\/video\/|embed\/(?:v2\/)?|v\/)(\d{6,})/i);
+  return m ? m[1] : null;
 }
 
 function setAvatarDisplay(mode) {
@@ -2972,7 +3060,7 @@ async function saveBio() {
       return 'https://' + s;
     };
     const cleanLinks = bioState.links
-      .filter(l => (l.title || '').trim() || (l.url || '').trim() || l.isVideoBlock || l.isHeader || l.isSubscribe || l.isMediaKit)
+      .filter(l => (l.title || '').trim() || (l.url || '').trim() || l.isVideoBlock || l.isTikTokBlock || l.isHeader || l.isSubscribe || l.isMediaKit)
       .map(l => ({
         title: (l.title || '').slice(0, 80),
         description: (l.description || '').slice(0, 120),
@@ -2992,6 +3080,13 @@ async function saveBio() {
         // partially-filled rows.
         ...(l.isVideoBlock ? {
           isVideoBlock: true,
+          videos: (Array.isArray(l.videos) ? l.videos : [])
+            .map(v => ({ url: (v && v.url ? v.url : '').trim() }))
+            .filter(v => v.url)
+            .slice(0, 10)
+        } : {}),
+        ...(l.isTikTokBlock ? {
+          isTikTokBlock: true,
           videos: (Array.isArray(l.videos) ? l.videos : [])
             .map(v => ({ url: (v && v.url ? v.url : '').trim() }))
             .filter(v => v.url)
@@ -3408,6 +3503,27 @@ function buildPreviewLink(l, t) {
       <div class="vids-r">${cards}</div>
     </div>`;
   }
+  if (l.isTikTokBlock) {
+    const videos = Array.isArray(l.videos) ? l.videos : [];
+    const cards = videos.map(v => {
+      const id = extractTikTokId(v && v.url);
+      if (!id) return '';
+      // Preview shows a lightweight branded placeholder (the live page embeds
+      // the real TikTok player; loading iframes in the editor preview is heavy
+      // and blocked by the dashboard CSP).
+      return `<div class="vc vc-vertical"><div style="width:100%;aspect-ratio:9/16;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:#111;color:#fff;font-size:10px;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>
+        TikTok</div></div>`;
+    }).filter(Boolean).join('');
+    if (!cards) {
+      return `<div style="background:${t.surface};border:1px dashed ${t.border};border-radius:10px;padding:14px;text-align:center;color:${t.muted};font-size:11px;">TikTok videos will appear here</div>`;
+    }
+    return `<div class="vids">
+      <button type="button" class="vids-arrow vids-arrow-l" aria-label="Scroll left" tabindex="-1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <button type="button" class="vids-arrow vids-arrow-r" aria-label="Scroll right" tabindex="-1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button>
+      <div class="vids-r">${cards}</div>
+    </div>`;
+  }
   if (l.isHero && l.photoUrl) {
     return `<div class="hl">
       <img class="hl-bg" src="${escapeHtml(l.photoUrl)}" alt="Link background">
@@ -3637,6 +3753,7 @@ bioRegisterAction('add-link', (e, el) => {
 });
 bioRegisterAction('add-header', () => addHeader());
 bioRegisterAction('add-video-block', () => addVideoBlock());
+bioRegisterAction('add-tiktok-block', () => addTikTokBlock());
 bioRegisterAction('add-subscribe-block', () => addSubscribeBlock());
 bioRegisterAction('open-course-picker', () => openCoursePickerModal());
 bioRegisterAction('open-coaching-picker', () => openCoachingPickerModal());
