@@ -3804,7 +3804,7 @@ function buildPreviewHTML() {
   ::-webkit-scrollbar-track{background:transparent;}
   ::-webkit-scrollbar-thumb{background:rgba(124,58,237,0.3);border-radius:3px;}
   ::-webkit-scrollbar-thumb:hover{background:rgba(124,58,237,0.5);}
-  body{margin:0;padding:${(bioState.avatar_display === 'hero' && bioState.avatar_url) ? '0 0' : '40px 18px'} ${bioState.show_branding ? '80px' : '24px'};font-family:'DM Sans',sans-serif;background:${t.bg};color:${t.text};min-height:100vh;}
+  body{margin:0;padding:${(bioState.avatar_display === 'hero' && bioState.avatar_url) ? '0 0' : '40px 0'} ${bioState.show_branding ? '80px' : '24px'};font-family:'DM Sans',sans-serif;background:${t.bg};color:${t.text};min-height:100vh;}
   /* When user picks a non-default font, force it on every element. With the
      DM Sans default, skip this so the name stays in Syne (matching the public
      bio page's signature heading style). */
