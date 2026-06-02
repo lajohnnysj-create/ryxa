@@ -10895,8 +10895,8 @@
   .hlu-hero-title { color: #fff; font-family: 'DM Sans', sans-serif; font-size: 19px; font-weight: 800; text-shadow: 0 2px 6px rgba(0,0,0,0.5); }
   .hlu-hero-desc { color: rgba(255,255,255,0.9); font-family: 'DM Sans', sans-serif; font-size: 13px; text-shadow: 0 1px 4px rgba(0,0,0,0.5); margin-top: 4px; }
   @keyframes hluGlow { 0%, 100% { box-shadow: 0 0 18px 1px var(--accent-glow); } 50% { box-shadow: 0 0 44px 5px var(--accent-glow); } }
-  @keyframes hluSheen { 0%, 55% { background-position: 150% 0; } 82%, 100% { background-position: -90% 0; } }
-  @keyframes hluNudge { 0%, 80%, 100% { transform: rotate(0deg); } 86% { transform: rotate(-2.5deg); } 92% { transform: rotate(1.6deg); } 97% { transform: rotate(-0.6deg); } }
+  @keyframes hluSheen { 0% { background-position: 150% 0; } 18% { background-position: -90% 0; } 100% { background-position: -90% 0; } }
+  @keyframes hluNudge { 0%, 20% { transform: rotate(0deg); } 24% { transform: rotate(-2.5deg); } 28% { transform: rotate(1.6deg); } 32% { transform: rotate(-0.6deg); } 36%, 100% { transform: rotate(0deg); } }
   @media (prefers-reduced-motion: reduce) { .hlu-hero { animation: none; } .hlu-hero::after { animation: none; opacity: 0; } }
 </style>
 <div id="hero-upsell-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.8);align-items:center;justify-content:center;pointer-events:all;" data-bio-action="close-hero-upsell-if-backdrop">
@@ -10933,7 +10933,7 @@
       </div>
     </div>
     <div style="padding:14px 28px 26px;">
-      <h3 style="font-family:Syne,sans-serif;font-size:18px;font-weight:700;color:var(--text);margin:0 0 8px;">Make one link impossible to miss</h3>
+      <h3 style="font-family:Syne,sans-serif;font-size:18px;font-weight:700;color:var(--text);margin:0 0 8px;">Make one link hard to miss</h3>
       <p style="color:var(--muted);font-size:13px;line-height:1.6;margin:0 0 18px;">A Hero link is a large, full-image feature at the top of your Link in Bio, with a glow and subtle motion that pulls every visitor's eye to your most important link. Available on Pro.</p>
       <div style="display:flex;gap:10px;">
         <a href="/pricing.html" data-bio-action="close-hero-link-upsell" style="flex:1;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow);text-decoration:none;text-align:center;">Upgrade Now</a>
