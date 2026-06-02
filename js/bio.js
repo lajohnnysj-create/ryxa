@@ -1440,7 +1440,7 @@ function bioLimits() {
   return {
     maxLinks: max ? 1000 : (pro ? 1000 : 100),
     maxFeatured: max ? 10 : (pro ? 3 : 1),
-    maxHero: max ? 1 : 0,
+    maxHero: pro ? 1 : 0,
     maxVideos: pro ? 20 : 5,
     pro: pro,
     isMax: max,
@@ -1472,9 +1472,8 @@ function addLink(isFeatured, isHero) {
   const heroCount = bioState.links.filter(l => l.isHero).length;
 
   if (isHero) {
-    if (!isMax()) {
-      showBioStatus('error', 'Hero links are a Creator Max feature.');
-      setTimeout(() => { try { openSettingsModal(); } catch(e){} }, 200);
+    if (!isPro()) {
+      showHeroLinkUpsell();
       return;
     }
     if (heroCount >= maxHero) {
@@ -2346,12 +2345,15 @@ function renderBioLinks() {
   document.getElementById('bio-add-link-btn').style.opacity = regularCount >= maxLinks ? 0.5 : 1;
   document.getElementById('bio-add-featured-btn').disabled = featuredCount >= maxFeatured;
   document.getElementById('bio-add-featured-btn').style.opacity = featuredCount >= maxFeatured ? 0.5 : 1;
-  // Hero button: visible only for Max users
+  // Hero button: visible to everyone. Pro/Max can add one; a Free click opens
+  // the upsell modal (gate enforced in addLink). Only disable once an eligible
+  // user is at their limit, so Free's button stays clickable for the upsell.
   const heroBtn = document.getElementById('bio-add-hero-btn');
   if (heroBtn) {
-    heroBtn.style.display = max ? 'flex' : 'none';
-    heroBtn.disabled = heroCount >= maxHero;
-    heroBtn.style.opacity = heroCount >= maxHero ? 0.5 : 1;
+    const heroAtLimit = pro && heroCount >= maxHero;
+    heroBtn.style.display = 'flex';
+    heroBtn.disabled = heroAtLimit;
+    heroBtn.style.opacity = heroAtLimit ? 0.5 : 1;
   }
   // YouTube / TikTok / Instagram: one block per platform (all plans). The add
   // button is disabled while a block of that type exists and re-enables when
@@ -2565,7 +2567,7 @@ async function onHeroPhotoSelected(input, linkId) {
   const file = input.files[0];
   input.value = '';
   if (!file) return;
-  if (!isMax()) { showBioStatus('error', 'Hero links are a Creator Max feature.'); return; }
+  if (!isPro()) { showHeroLinkUpsell(); return; }
   if (!file.type.startsWith('image/')) { showBioStatus('error', 'Please upload an image.'); return; }
   if (file.size > 25 * 1024 * 1024) { showBioStatus('error', 'Image is too large (25MB max).'); return; }
 
@@ -3108,6 +3110,18 @@ function showHeroUpsell() {
 }
 function closeHeroUpsell() {
   const modal = document.getElementById('hero-upsell-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+// Hero LINK upsell. Shown when a Free user clicks the Hero add button. Markup
+// lives in dashboard.html (#hero-link-upsell-modal) and shows a sample hero
+// link so they see exactly what they'd get.
+function showHeroLinkUpsell() {
+  const modal = document.getElementById('hero-link-upsell-modal');
+  if (modal) modal.style.display = 'flex';
+}
+function closeHeroLinkUpsell() {
+  const modal = document.getElementById('hero-link-upsell-modal');
   if (modal) modal.style.display = 'none';
 }
 
@@ -4180,6 +4194,8 @@ bioRegisterAction('remove-avatar', () => removeAvatar());
 bioRegisterAction('set-avatar-display', (e, el) => setAvatarDisplay(el.dataset.bioMode));
 bioRegisterAction('close-hero-upsell', () => closeHeroUpsell());
 bioRegisterAction('close-hero-upsell-if-backdrop', (e) => { if (e.target.id === 'hero-upsell-modal') closeHeroUpsell(); });
+bioRegisterAction('close-hero-link-upsell', () => closeHeroLinkUpsell());
+bioRegisterAction('close-hero-link-upsell-if-backdrop', (e) => { if (e.target.id === 'hero-link-upsell-modal') closeHeroLinkUpsell(); });
 bioRegisterAction('field-change', () => onBioFieldChange());
 // Block Enter once the bio already has 3 lines, so the line break simply
 // doesn't happen rather than truncating anything the user typed.
