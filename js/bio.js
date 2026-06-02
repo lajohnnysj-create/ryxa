@@ -2321,7 +2321,7 @@ function bioRowTypeMeta(link) {
     return {
       key: 'image',
       label: 'Image',
-      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="M21 15.5l-4.5-4.5L5 20"/></svg>'
+      icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="imgg2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#a78bfa"/><stop offset="1" stop-color="#e879f9"/></linearGradient></defs><rect width="24" height="24" rx="5.5" fill="url(#imgg2)"/><circle cx="8.3" cy="8.5" r="1.8" fill="#fff"/><path d="M4 18 L8.6 12.8 L11.6 16.1 L15.4 11.4 L20 18 Z" fill="#fff"/></svg>'
     };
   }
   if (link.isTwitchBlock) {
