@@ -78,6 +78,15 @@ function extractInstagramId(url) {
   return m ? m[1] : null;
 }
 
+// Pull the Spotify type + id from a share URL. Handles track/album/playlist/
+// artist/episode/show and an optional /intl-xx/ locale prefix. The embed URL
+// is open.spotify.com/embed/{type}/{id}.
+function extractSpotify(url) {
+  if (!url) return null;
+  const m = String(url).match(/open\.spotify\.com\/(?:intl-[a-z]{2}\/)?(track|album|playlist|artist|episode|show)\/([A-Za-z0-9]+)/i);
+  return m ? { type: m[1].toLowerCase(), id: m[2] } : null;
+}
+
 function fmtPrice(cents, currency) {
   const code = currency || 'USD';
   const localeMap = { USD:'en-US', EUR:'en-IE', GBP:'en-GB', CAD:'en-CA', AUD:'en-AU', JPY:'ja-JP', INR:'en-IN', BRL:'pt-BR', MXN:'es-MX', CHF:'de-CH', SGD:'en-SG', SEK:'sv-SE', NOK:'nb-NO', NZD:'en-NZ', ZAR:'en-ZA' };
@@ -366,6 +375,17 @@ function buildLink(link, currency) {
       <button type="button" class="videos-arrow videos-arrow-l" aria-label="Scroll left" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg></button>
       <button type="button" class="videos-arrow videos-arrow-r" aria-label="Scroll right" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button>
       <div class="videos-scroll">${cards}</div>
+    </div>`;
+  }
+
+  // Spotify embed — a single track/album/playlist/artist/episode/show. Tracks
+  // and episodes get a compact player; the rest get the taller tracklist player.
+  if (link.isSpotifyBlock) {
+    const sp = extractSpotify(link.url);
+    if (!sp) return '';
+    const tall = (sp.type === 'album' || sp.type === 'playlist' || sp.type === 'artist' || sp.type === 'show');
+    return `<div class="spotify-embed${tall ? ' tall' : ''}">
+      <iframe class="spotify-frame" src="https://open.spotify.com/embed/${sp.type}/${sp.id}" loading="lazy" title="Spotify player" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
     </div>`;
   }
 
@@ -1104,7 +1124,7 @@ ${customThemeStyle}
       "font-src 'self' https://fonts.gstatic.com data:",
       "img-src 'self' data: blob: https://www.ryxa.io https://kjytapcgxukalwsyputk.supabase.co https://i.ytimg.com",
       "connect-src 'self' https://kjytapcgxukalwsyputk.supabase.co https://cdn.jsdelivr.net",
-      "frame-src https://www.youtube.com https://www.youtube-nocookie.com https://www.tiktok.com https://www.instagram.com",
+      "frame-src https://www.youtube.com https://www.youtube-nocookie.com https://www.tiktok.com https://www.instagram.com https://open.spotify.com",
       "media-src 'self' blob: https://kjytapcgxukalwsyputk.supabase.co",
       "object-src 'none'",
       "base-uri 'self'",
