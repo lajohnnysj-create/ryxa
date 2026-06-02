@@ -1082,6 +1082,45 @@
     border: 0;
     display: block;
   }
+  /* X (Twitter) post embed: reveal-when-ready (see bio-page.js). The card
+     starts as a light skeleton with the iframe hidden; once the Tweet.html
+     iframe reports its height we set it and fade the post in. */
+  .tweet-embed {
+    position: relative;
+    width: 100%;
+    height: 200px;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #fff;
+    transition: height 0.3s ease;
+  }
+  .tweet-embed-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f7f9f9;
+    transition: opacity 0.3s ease;
+  }
+  .tweet-embed-ph-glyph { opacity: 0.5; animation: tweetPhPulse 1.4s ease-in-out infinite; }
+  @keyframes tweetPhPulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.6; } }
+  .tweet-frame {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  .tweet-embed.tweet-ready .tweet-frame { opacity: 1; }
+  .tweet-embed.tweet-ready .tweet-embed-placeholder { opacity: 0; }
+  @media (prefers-reduced-motion: reduce) {
+    .tweet-embed, .tweet-frame, .tweet-embed-placeholder { transition: none; }
+    .tweet-embed-ph-glyph { animation: none; }
+  }
   .video-thumb {
     width: 100%;
     height: 100%;
