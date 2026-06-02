@@ -796,10 +796,29 @@
     border-radius: 18px;
     background: #000;
     display: block;
+    box-shadow: 0 0 18px var(--accent-glow);
+    /* Idle state draws the eye: a breathing accent glow plus a periodic nudge.
+       Both stop on hover/focus (below) so they never fight the lift. */
+    animation: heroGlow 3.4s ease-in-out infinite, heroNudge 5s ease-in-out infinite;
+    will-change: transform;
   }
   .link-btn.hero-link:hover, .link-btn.hero-link:focus-visible {
+    animation: none;
     transform: translateY(-2px);
     border-color: var(--accent2);
+    box-shadow: 0 0 30px var(--accent-glow);
+  }
+  @keyframes heroGlow {
+    0%, 100% { box-shadow: 0 0 12px var(--accent-glow); }
+    50%      { box-shadow: 0 0 26px var(--accent-glow); }
+  }
+  @keyframes heroNudge {
+    0%, 84%, 100% { transform: translateY(0); }
+    89%           { transform: translateY(-4px); }
+    94%           { transform: translateY(-1px); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .link-btn.hero-link { animation: none; }
   }
   .hero-bg {
     position: absolute;
