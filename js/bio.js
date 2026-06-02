@@ -1640,6 +1640,27 @@ function addTwitchBlock() {
   showBioStatus('saved', 'Twitch added');
 }
 
+// X (Twitter) post embed from a single post URL. One per page (all plans); the
+// modal item disables when one exists, this is the backstop.
+function addTweetBlock() {
+  const { maxLinks } = bioLimits();
+  if (bioState.links.length >= maxLinks) {
+    showBioStatus('error', `Link limit reached (${maxLinks}).`);
+    return;
+  }
+  if (bioState.links.some(l => l.isTweetBlock)) return;
+  const newId = linkIdSeq++;
+  bioState.links.push({
+    _id: newId,
+    isTweetBlock: true,
+    url: ''
+  });
+  bioExpandedLinks.add(newId);
+  renderBioLinks();
+  schedulePreviewUpdate();
+  showBioStatus('saved', 'X post added');
+}
+
 // "More" modal — houses widgets beyond the core add row, grouped by category.
 // Items inside use data-bio-action like everything else; opening refreshes any
 // per-item disabled state (e.g. Spotify is one-per-page).
@@ -1657,6 +1678,12 @@ function openBioMoreModal() {
     const used = bioState.links.some(l => l.isTwitchBlock);
     twitchItem.disabled = used;
     twitchItem.classList.toggle('is-used', used);
+  }
+  const tweetItem = document.getElementById('bio-more-tweet');
+  if (tweetItem) {
+    const used = bioState.links.some(l => l.isTweetBlock);
+    tweetItem.disabled = used;
+    tweetItem.classList.toggle('is-used', used);
   }
   modal.classList.add('is-open');
 }
@@ -2137,7 +2164,7 @@ function toggleLinkHalfWidth(id, checked) {
 function bioHalfBadge(link) {
   if (!link.halfWidth) return '';
   if (link.isMediaKit || link.isHero || link.isHeader || link.isSubscribe ||
-      link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock || link.isSpotifyBlock || link.isTwitchBlock || link.featured) {
+      link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock || link.isSpotifyBlock || link.isTwitchBlock || link.isTweetBlock || link.featured) {
     return '';
   }
   return '<span class="bio-row-half" title="Half width" aria-label="Half width">&frac12;</span>';
@@ -2194,6 +2221,13 @@ function bioRowTypeMeta(link) {
       key: 'twitch',
       label: 'Twitch',
       icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#9146FF" d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>'
+    };
+  }
+  if (link.isTweetBlock) {
+    return {
+      key: 'tweet',
+      label: 'X',
+      icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="5" fill="#000"/><g transform="translate(4.5 4.5) scale(0.625)"><path fill="#fff" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></g></svg>'
     };
   }
   if (link.isSubscribe) {
@@ -2431,6 +2465,11 @@ function renderLinkCollapsed(link, dragSvg, editSvg) {
     const kindLabel = { channel: 'Live channel', video: 'Video', clip: 'Clip' };
     title = 'Twitch';
     subline = tw ? kindLabel[tw.kind] : '<span class="bio-s-dbc3a0">No link yet</span>';
+  } else if (link.isTweetBlock) {
+    const id = extractTweetId(link.url);
+    const hm = String(link.url || '').match(/(?:twitter|x)\.com\/([A-Za-z0-9_]+)\/status/i);
+    title = 'X';
+    subline = id ? (hm ? '@' + escapeHtml(hm[1]) : 'Post') : '<span class="bio-s-dbc3a0">No link yet</span>';
   } else if (link.isSubscribe) {
     title = escapeHtml(link.title || 'Subscribe to my newsletter');
   } else if (link.isHero) {
@@ -2749,6 +2788,25 @@ function renderLinkExpanded(link, dragSvg) {
     </div>`;
   }
 
+  if (link.isTweetBlock) {
+    return `<div class="bio-link-row" data-id="${link._id}">
+      <div class="bio-link-header">
+        <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
+        <span class="bio-featured-badge bio-s-04da54" >X</span>
+        <div class="bio-s-7623f0"></div>
+        <button class="bio-link-remove" data-bio-action="remove-link" data-bio-id="${link._id}">Remove</button>
+      </div>
+      <div class="bio-s-e289c0">Paste a link to a single X (Twitter) post, e.g. x.com/yourname/status/123... The post shows as a live card. Deleted or private posts will not appear.</div>
+      <input type="url" placeholder="https://x.com/.../status/..." value="${escapeHtml(link.url || '')}"
+        data-bio-action="update-link-field" data-bio-event="input" data-bio-id="${link._id}" data-bio-field="url"
+        aria-label="X post link" class="bio-s-6c002e">
+      <button type="button" data-bio-action="save-link-row" data-bio-id="${link._id}"
+        class="bio-s-c7cf47">
+        Save
+      </button>
+    </div>`;
+  }
+
   let photoSlot = '';
   if (link.isCourse) {
 
@@ -2897,7 +2955,7 @@ function saveLinkRow(id) {
   if (!link) return;
 
   // Headers, subscribe blocks, and video/TikTok blocks don't require a URL
-  if (link.isHeader || link.isSubscribe || link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock || link.isSpotifyBlock || link.isTwitchBlock) {
+  if (link.isHeader || link.isSubscribe || link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock || link.isSpotifyBlock || link.isTwitchBlock || link.isTweetBlock) {
     bioExpandedLinks.delete(id);
     renderBioLinks();
     schedulePreviewUpdate();
@@ -2984,6 +3042,13 @@ function twitchEmbedSrc(t) {
   if (t.kind === 'clip') return `https://clips.twitch.tv/embed?clip=${encodeURIComponent(t.id)}&${p}&autoplay=false`;
   if (t.kind === 'video') return `https://player.twitch.tv/?video=${encodeURIComponent(t.id)}&${p}&autoplay=false`;
   return `https://player.twitch.tv/?channel=${encodeURIComponent(t.id)}&${p}&autoplay=false`;
+}
+
+// Numeric status id from an X / Twitter post URL (twitter.com or x.com).
+function extractTweetId(url) {
+  if (!url) return null;
+  const m = String(url).match(/(?:twitter|x)\.com\/[A-Za-z0-9_]+\/status(?:es)?\/(\d+)/i);
+  return m ? m[1] : null;
 }
 
 // Editor-preview thumbnails for TikTok. The browser can't hit TikTok oEmbed
@@ -3326,7 +3391,7 @@ async function saveBio() {
       return 'https://' + s;
     };
     const cleanLinks = bioState.links
-      .filter(l => (l.title || '').trim() || (l.url || '').trim() || l.isVideoBlock || l.isTikTokBlock || l.isInstagramBlock || l.isSpotifyBlock || l.isTwitchBlock || l.isHeader || l.isSubscribe || l.isMediaKit)
+      .filter(l => (l.title || '').trim() || (l.url || '').trim() || l.isVideoBlock || l.isTikTokBlock || l.isInstagramBlock || l.isSpotifyBlock || l.isTwitchBlock || l.isTweetBlock || l.isHeader || l.isSubscribe || l.isMediaKit)
       .map(l => ({
         title: (l.title || '').slice(0, 80),
         description: (l.description || '').slice(0, 120),
@@ -3367,6 +3432,7 @@ async function saveBio() {
         } : {}),
         ...(l.isSpotifyBlock ? { isSpotifyBlock: true } : {}),
         ...(l.isTwitchBlock ? { isTwitchBlock: true } : {}),
+        ...(l.isTweetBlock ? { isTweetBlock: true } : {}),
       }));
     // Old top-level videos array is no longer used — videos now live inside
     // isVideoBlock entries in `links`. Always write empty so legacy data clears.
@@ -3602,7 +3668,7 @@ function buildPreviewHTML() {
     ? `<img src="${escapeHtml(bioState.avatar_url)}" alt="Profile photo" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;">`
     : `<div style="width:100%;height:100%;border-radius:50%;background:${t.surface2};display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;font-size:36px;font-weight:800;color:${t.text};">${escapeHtml(initial)}</div>`;
   const socialsHtml = buildPreviewSocials(t);
-  const linksHtml = bioState.links.filter(l => l.isHeader || l.isSubscribe || l.isVideoBlock || l.isTikTokBlock || l.isInstagramBlock || l.isSpotifyBlock || l.isTwitchBlock || (l.url || '').trim()).map(l => buildPreviewLink(l, t)).join('');
+  const linksHtml = bioState.links.filter(l => l.isHeader || l.isSubscribe || l.isVideoBlock || l.isTikTokBlock || l.isInstagramBlock || l.isSpotifyBlock || l.isTwitchBlock || l.isTweetBlock || (l.url || '').trim()).map(l => buildPreviewLink(l, t)).join('');
 
   // For custom themes with a bg image, we dim the radial glow (since bg image is already bg)
   const glowCSS = ((bioState.theme === 'custom' && isPro() && bioState.custom_theme?.bgUrl) || isImageTheme(bioState.theme))
@@ -3839,6 +3905,20 @@ function buildPreviewLink(l, t) {
     // dashboard frame-src. autoplay off so the preview never auto-plays a stream.
     return `<div style="width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#0e0e10;">
       <iframe src="${twitchEmbedSrc(tw)}" loading="lazy" title="Twitch player" allow="autoplay; fullscreen" allowfullscreen style="width:100%;height:100%;border:0;display:block;"></iframe>
+    </div>`;
+  }
+  if (l.isTweetBlock) {
+    const id = extractTweetId(l.url);
+    if (!id) {
+      return `<div style="background:#f7f9f9;border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:10px;color:#0f1419;font-size:12px;">
+        <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path fill="#0f1419" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+        <span>X &middot; Add a post link</span>
+      </div>`;
+    }
+    // Fixed height in the preview (the reveal-when-ready resize listener only
+    // runs on the live page, not in this srcdoc); the live page auto-sizes.
+    return `<div style="width:100%;height:420px;border-radius:12px;overflow:hidden;background:#fff;">
+      <iframe src="https://platform.twitter.com/embed/Tweet.html?id=${id}&dnt=true" loading="lazy" title="Post on X" style="width:100%;height:100%;border:0;display:block;"></iframe>
     </div>`;
   }
   if (l.isInstagramBlock) {
@@ -4094,6 +4174,7 @@ bioRegisterAction('add-tiktok-block', () => addTikTokBlock());
 bioRegisterAction('add-instagram-block', () => addInstagramBlock());
 bioRegisterAction('add-spotify-block', () => { closeBioMoreModal(); addSpotifyBlock(); });
 bioRegisterAction('add-twitch-block', () => { closeBioMoreModal(); addTwitchBlock(); });
+bioRegisterAction('add-tweet-block', () => { closeBioMoreModal(); addTweetBlock(); });
 bioRegisterAction('open-more-modal', () => openBioMoreModal());
 bioRegisterAction('close-more-modal', () => closeBioMoreModal());
 bioRegisterAction('close-more-if-backdrop', (e) => { if (e.target && e.target.id === 'bio-more-modal') closeBioMoreModal(); });
