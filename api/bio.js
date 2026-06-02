@@ -356,6 +356,7 @@ function buildLink(link, currency) {
       const id = extractInstagramId(v && v.url);
       if (!id) return '';
       return `<div class="ig-embed-card">
+        <div class="ig-embed-placeholder" aria-hidden="true"><svg class="ig-embed-ph-glyph" width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5.5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.6" cy="6.4" r="1.1" fill="currentColor" stroke="none"/></svg></div>
         <iframe class="ig-embed-frame" src="https://www.instagram.com/reel/${id}/embed/" loading="lazy"
           title="Instagram reel" scrolling="no" allowtransparency="true" allow="encrypted-media; picture-in-picture; fullscreen"></iframe>
       </div>`;
