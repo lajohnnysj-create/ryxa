@@ -3724,12 +3724,19 @@ function buildPreviewLink(l, t) {
   }
   if (l.isSpotifyBlock) {
     const sp = extractSpotify(l.url);
-    const label = sp ? (sp.type.charAt(0).toUpperCase() + sp.type.slice(1)) : 'Add a Spotify link';
-    // Preview shows a branded placeholder; the live page embeds the real player
-    // (loading Spotify iframes in the editor is heavy and re-renders per keystroke).
-    return `<div style="background:#191414;border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:10px;color:#fff;font-size:12px;">
-      <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#1DB954"/><path d="M6.4 9.3c3.6-1.05 7.7-0.72 10.8 1.05" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round"/><path d="M7 12.6c3-0.85 6.2-0.5 8.7 1.0" stroke="#fff" stroke-width="1.35" fill="none" stroke-linecap="round"/><path d="M7.5 15.7c2.4-0.62 4.8-0.4 6.7 0.8" stroke="#fff" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg>
-      <span>Spotify &middot; ${label}</span>
+    if (!sp) {
+      // No valid link yet — show a branded placeholder so the slot is visible.
+      return `<div style="background:#191414;border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:10px;color:#fff;font-size:12px;">
+        <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#1DB954"/><path d="M6.4 9.3c3.6-1.05 7.7-0.72 10.8 1.05" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round"/><path d="M7 12.6c3-0.85 6.2-0.5 8.7 1.0" stroke="#fff" stroke-width="1.35" fill="none" stroke-linecap="round"/><path d="M7.5 15.7c2.4-0.62 4.8-0.4 6.7 0.8" stroke="#fff" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg>
+        <span>Spotify &middot; Add a Spotify link</span>
+      </div>`;
+    }
+    // Real player. The preview rebuilds on edits so it reloads then; that's
+    // cosmetic. Allowed via open.spotify.com in the dashboard frame-src.
+    const tall = (sp.type === 'album' || sp.type === 'playlist' || sp.type === 'artist' || sp.type === 'show');
+    const h = tall ? 352 : 152;
+    return `<div style="width:100%;height:${h}px;border-radius:12px;overflow:hidden;">
+      <iframe src="https://open.spotify.com/embed/${sp.type}/${sp.id}" loading="lazy" title="Spotify player" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" style="width:100%;height:100%;border:0;display:block;"></iframe>
     </div>`;
   }
   if (l.isInstagramBlock) {
