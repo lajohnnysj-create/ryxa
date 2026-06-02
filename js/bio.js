@@ -1619,6 +1619,27 @@ function addSpotifyBlock() {
   showBioStatus('saved', 'Spotify added');
 }
 
+// Twitch embed — live channel, VOD, or clip from a single URL. One per page
+// (all plans); the modal item disables when one exists, this is the backstop.
+function addTwitchBlock() {
+  const { maxLinks } = bioLimits();
+  if (bioState.links.length >= maxLinks) {
+    showBioStatus('error', `Link limit reached (${maxLinks}).`);
+    return;
+  }
+  if (bioState.links.some(l => l.isTwitchBlock)) return;
+  const newId = linkIdSeq++;
+  bioState.links.push({
+    _id: newId,
+    isTwitchBlock: true,
+    url: ''
+  });
+  bioExpandedLinks.add(newId);
+  renderBioLinks();
+  schedulePreviewUpdate();
+  showBioStatus('saved', 'Twitch added');
+}
+
 // "More" modal — houses widgets beyond the core add row, grouped by category.
 // Items inside use data-bio-action like everything else; opening refreshes any
 // per-item disabled state (e.g. Spotify is one-per-page).
@@ -1630,6 +1651,12 @@ function openBioMoreModal() {
     const used = bioState.links.some(l => l.isSpotifyBlock);
     spotifyItem.disabled = used;
     spotifyItem.classList.toggle('is-used', used);
+  }
+  const twitchItem = document.getElementById('bio-more-twitch');
+  if (twitchItem) {
+    const used = bioState.links.some(l => l.isTwitchBlock);
+    twitchItem.disabled = used;
+    twitchItem.classList.toggle('is-used', used);
   }
   modal.classList.add('is-open');
 }
@@ -2110,7 +2137,7 @@ function toggleLinkHalfWidth(id, checked) {
 function bioHalfBadge(link) {
   if (!link.halfWidth) return '';
   if (link.isMediaKit || link.isHero || link.isHeader || link.isSubscribe ||
-      link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock || link.isSpotifyBlock || link.featured) {
+      link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock || link.isSpotifyBlock || link.isTwitchBlock || link.featured) {
     return '';
   }
   return '<span class="bio-row-half" title="Half width" aria-label="Half width">&frac12;</span>';
@@ -2160,6 +2187,13 @@ function bioRowTypeMeta(link) {
       key: 'spotify',
       label: 'Spotify',
       icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#1DB954"/><path d="M6.4 9.3c3.6-1.05 7.7-0.72 10.8 1.05" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round"/><path d="M7 12.6c3-0.85 6.2-0.5 8.7 1.0" stroke="#fff" stroke-width="1.35" fill="none" stroke-linecap="round"/><path d="M7.5 15.7c2.4-0.62 4.8-0.4 6.7 0.8" stroke="#fff" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg>'
+    };
+  }
+  if (link.isTwitchBlock) {
+    return {
+      key: 'twitch',
+      label: 'Twitch',
+      icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#9146FF" d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>'
     };
   }
   if (link.isSubscribe) {
@@ -2392,6 +2426,11 @@ function renderLinkCollapsed(link, dragSvg, editSvg) {
     const sp = extractSpotify(link.url);
     title = 'Spotify';
     subline = sp ? (sp.type.charAt(0).toUpperCase() + sp.type.slice(1)) : '<span class="bio-s-dbc3a0">No link yet</span>';
+  } else if (link.isTwitchBlock) {
+    const tw = extractTwitch(link.url);
+    const kindLabel = { channel: 'Live channel', video: 'Video', clip: 'Clip' };
+    title = 'Twitch';
+    subline = tw ? kindLabel[tw.kind] : '<span class="bio-s-dbc3a0">No link yet</span>';
   } else if (link.isSubscribe) {
     title = escapeHtml(link.title || 'Subscribe to my newsletter');
   } else if (link.isHero) {
@@ -2691,6 +2730,25 @@ function renderLinkExpanded(link, dragSvg) {
     </div>`;
   }
 
+  if (link.isTwitchBlock) {
+    return `<div class="bio-link-row" data-id="${link._id}">
+      <div class="bio-link-header">
+        <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
+        <span class="bio-featured-badge bio-s-04da54" >Twitch</span>
+        <div class="bio-s-7623f0"></div>
+        <button class="bio-link-remove" data-bio-action="remove-link" data-bio-id="${link._id}">Remove</button>
+      </div>
+      <div class="bio-s-e289c0">Paste a Twitch link: a channel (twitch.tv/yourname) for the live stream, a past broadcast (twitch.tv/videos/...), or a clip. A live channel shows offline until you go live.</div>
+      <input type="url" placeholder="https://twitch.tv/..." value="${escapeHtml(link.url || '')}"
+        data-bio-action="update-link-field" data-bio-event="input" data-bio-id="${link._id}" data-bio-field="url"
+        aria-label="Twitch link" class="bio-s-6c002e">
+      <button type="button" data-bio-action="save-link-row" data-bio-id="${link._id}"
+        class="bio-s-c7cf47">
+        Save
+      </button>
+    </div>`;
+  }
+
   let photoSlot = '';
   if (link.isCourse) {
 
@@ -2839,7 +2897,7 @@ function saveLinkRow(id) {
   if (!link) return;
 
   // Headers, subscribe blocks, and video/TikTok blocks don't require a URL
-  if (link.isHeader || link.isSubscribe || link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock || link.isSpotifyBlock) {
+  if (link.isHeader || link.isSubscribe || link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock || link.isSpotifyBlock || link.isTwitchBlock) {
     bioExpandedLinks.delete(id);
     renderBioLinks();
     schedulePreviewUpdate();
@@ -2897,6 +2955,35 @@ function extractSpotify(url) {
   if (!url) return null;
   const m = String(url).match(/open\.spotify\.com\/(?:intl-[a-z]{2}\/)?(track|album|playlist|artist|episode|show)\/([A-Za-z0-9]+)/i);
   return m ? { type: m[1].toLowerCase(), id: m[2] } : null;
+}
+
+// Resolve a Twitch URL to an embed target: live channel, VOD, or clip. Clips
+// and videos are checked before the bare-channel pattern; reserved path
+// segments are excluded so e.g. twitch.tv/videos/... isn't read as a channel.
+function extractTwitch(url) {
+  if (!url) return null;
+  const s = String(url);
+  let m = s.match(/clips\.twitch\.tv\/(?:embed\?clip=)?([A-Za-z0-9_-]+)/i);
+  if (m) return { kind: 'clip', id: m[1] };
+  m = s.match(/twitch\.tv\/[A-Za-z0-9_]+\/clip\/([A-Za-z0-9_-]+)/i);
+  if (m) return { kind: 'clip', id: m[1] };
+  m = s.match(/twitch\.tv\/videos\/(\d+)/i);
+  if (m) return { kind: 'video', id: m[1] };
+  m = s.match(/twitch\.tv\/([A-Za-z0-9_]{2,25})(?:[/?#]|$)/i);
+  if (m) {
+    const reserved = ['videos', 'directory', 'settings', 'subscriptions', 'clips', 'embed', 'p', 'u', 'collections', 'following', 'friends', 'downloads', 'jobs', 'turbo'];
+    if (!reserved.includes(m[1].toLowerCase())) return { kind: 'channel', id: m[1] };
+  }
+  return null;
+}
+
+// Twitch embed iframe src. parent must match the hosting domain (bios live on
+// www.ryxa.io). autoplay off so a live channel never auto-blasts.
+function twitchEmbedSrc(t) {
+  const p = 'parent=www.ryxa.io&parent=ryxa.io';
+  if (t.kind === 'clip') return `https://clips.twitch.tv/embed?clip=${encodeURIComponent(t.id)}&${p}&autoplay=false`;
+  if (t.kind === 'video') return `https://player.twitch.tv/?video=${encodeURIComponent(t.id)}&${p}&autoplay=false`;
+  return `https://player.twitch.tv/?channel=${encodeURIComponent(t.id)}&${p}&autoplay=false`;
 }
 
 // Editor-preview thumbnails for TikTok. The browser can't hit TikTok oEmbed
@@ -3239,7 +3326,7 @@ async function saveBio() {
       return 'https://' + s;
     };
     const cleanLinks = bioState.links
-      .filter(l => (l.title || '').trim() || (l.url || '').trim() || l.isVideoBlock || l.isTikTokBlock || l.isInstagramBlock || l.isSpotifyBlock || l.isHeader || l.isSubscribe || l.isMediaKit)
+      .filter(l => (l.title || '').trim() || (l.url || '').trim() || l.isVideoBlock || l.isTikTokBlock || l.isInstagramBlock || l.isSpotifyBlock || l.isTwitchBlock || l.isHeader || l.isSubscribe || l.isMediaKit)
       .map(l => ({
         title: (l.title || '').slice(0, 80),
         description: (l.description || '').slice(0, 120),
@@ -3279,6 +3366,7 @@ async function saveBio() {
             .slice(0, 10)
         } : {}),
         ...(l.isSpotifyBlock ? { isSpotifyBlock: true } : {}),
+        ...(l.isTwitchBlock ? { isTwitchBlock: true } : {}),
       }));
     // Old top-level videos array is no longer used — videos now live inside
     // isVideoBlock entries in `links`. Always write empty so legacy data clears.
@@ -3514,7 +3602,7 @@ function buildPreviewHTML() {
     ? `<img src="${escapeHtml(bioState.avatar_url)}" alt="Profile photo" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;">`
     : `<div style="width:100%;height:100%;border-radius:50%;background:${t.surface2};display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;font-size:36px;font-weight:800;color:${t.text};">${escapeHtml(initial)}</div>`;
   const socialsHtml = buildPreviewSocials(t);
-  const linksHtml = bioState.links.filter(l => l.isHeader || l.isSubscribe || l.isVideoBlock || l.isTikTokBlock || l.isInstagramBlock || l.isSpotifyBlock || (l.url || '').trim()).map(l => buildPreviewLink(l, t)).join('');
+  const linksHtml = bioState.links.filter(l => l.isHeader || l.isSubscribe || l.isVideoBlock || l.isTikTokBlock || l.isInstagramBlock || l.isSpotifyBlock || l.isTwitchBlock || (l.url || '').trim()).map(l => buildPreviewLink(l, t)).join('');
 
   // For custom themes with a bg image, we dim the radial glow (since bg image is already bg)
   const glowCSS = ((bioState.theme === 'custom' && isPro() && bioState.custom_theme?.bgUrl) || isImageTheme(bioState.theme))
@@ -3737,6 +3825,20 @@ function buildPreviewLink(l, t) {
     const h = tall ? 352 : 152;
     return `<div style="width:100%;height:${h}px;border-radius:12px;overflow:hidden;">
       <iframe src="https://open.spotify.com/embed/${sp.type}/${sp.id}" loading="lazy" title="Spotify player" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" style="width:100%;height:100%;border:0;display:block;"></iframe>
+    </div>`;
+  }
+  if (l.isTwitchBlock) {
+    const tw = extractTwitch(l.url);
+    if (!tw) {
+      return `<div style="background:#0e0e10;border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:10px;color:#fff;font-size:12px;">
+        <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path fill="#9146FF" d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>
+        <span>Twitch &middot; Add a Twitch link</span>
+      </div>`;
+    }
+    // Real player. parent is the dashboard host (www.ryxa.io); allowed via the
+    // dashboard frame-src. autoplay off so the preview never auto-plays a stream.
+    return `<div style="width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#0e0e10;">
+      <iframe src="${twitchEmbedSrc(tw)}" loading="lazy" title="Twitch player" allow="autoplay; fullscreen" allowfullscreen style="width:100%;height:100%;border:0;display:block;"></iframe>
     </div>`;
   }
   if (l.isInstagramBlock) {
@@ -3991,6 +4093,7 @@ bioRegisterAction('add-video-block', () => addVideoBlock());
 bioRegisterAction('add-tiktok-block', () => addTikTokBlock());
 bioRegisterAction('add-instagram-block', () => addInstagramBlock());
 bioRegisterAction('add-spotify-block', () => { closeBioMoreModal(); addSpotifyBlock(); });
+bioRegisterAction('add-twitch-block', () => { closeBioMoreModal(); addTwitchBlock(); });
 bioRegisterAction('open-more-modal', () => openBioMoreModal());
 bioRegisterAction('close-more-modal', () => closeBioMoreModal());
 bioRegisterAction('close-more-if-backdrop', (e) => { if (e.target && e.target.id === 'bio-more-modal') closeBioMoreModal(); });
