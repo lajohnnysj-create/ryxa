@@ -2431,33 +2431,11 @@ function renderLinkCollapsed(link, dragSvg, editSvg) {
   } else if (link.isVideoBlock) {
     const videos = Array.isArray(link.videos) ? link.videos : [];
     const filledCount = videos.filter(v => v && v.url && v.url.trim()).length;
-    const firstId = (() => {
-      for (const v of videos) {
-        const id = extractYouTubeIdDash(v && v.url);
-        if (id) return id;
-      }
-      return null;
-    })();
-    thumb = firstId
-      ? `<img alt="YouTube preview" src="https://i.ytimg.com/vi/${firstId}/default.jpg" class="bio-s-11a000" data-bio-onerror="hide-thumb-bg">`
-      : '';
     title = 'YouTube videos';
     subline = filledCount === 0 ? 'No videos yet' : (filledCount === 1 ? '1 video' : filledCount + ' videos');
   } else if (link.isTikTokBlock) {
     const videos = Array.isArray(link.videos) ? link.videos : [];
     const filledCount = videos.filter(v => v && v.url && v.url.trim() && extractTikTokId(v.url)).length;
-    // Show the first video's thumbnail, resolved via /api/tiktok-oembed (cached
-    // per session). Falls back to the TikTok type icon until it resolves or if
-    // it's unavailable; the row re-renders when the fetch lands.
-    const firstTikTokUrl = (() => {
-      for (const v of videos) { if (v && v.url && extractTikTokId(v.url)) return v.url; }
-      return null;
-    })();
-    if (firstTikTokUrl) {
-      ensureTikTokThumb(firstTikTokUrl);
-      const tt = tiktokThumbCache[firstTikTokUrl];
-      if (tt) thumb = `<img alt="TikTok preview" src="${escapeHtml(tt)}" class="bio-s-11a000" data-bio-onerror="hide-thumb-bg">`;
-    }
     title = 'TikTok videos';
     subline = filledCount === 0 ? 'No videos yet' : (filledCount === 1 ? '1 video' : filledCount + ' videos');
   } else if (link.isInstagramBlock) {
