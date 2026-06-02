@@ -185,6 +185,19 @@ function extractAppleMusic(url) {
   return { type, src, song: !!iMatch || type === 'song' };
 }
 
+// SoundCloud embed. The widget takes the full track URL as a query param on
+// w.soundcloud.com/player. Accepts track, set (playlist), and profile links;
+// sets get the taller tracklist player.
+function extractSoundCloud(url) {
+  if (!url) return null;
+  const m = String(url).trim().match(/^https?:\/\/(?:www\.)?soundcloud\.com\/[^?#\s]+/i);
+  if (!m) return null;
+  const clean = m[0];
+  const isSet = /\/sets\//i.test(clean);
+  const src = `https://w.soundcloud.com/player/?url=${encodeURIComponent(clean)}&color=%23ff5500&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false`;
+  return { isSet, src };
+}
+
 function extractTwitch(url) {
   if (!url) return null;
   const s = String(url);
@@ -409,6 +422,16 @@ function buildLink(link) {
     const tall = !am.song;
     return `<div class="apple-music-embed${tall ? ' tall' : ''}">
       <iframe class="apple-music-frame" src="${am.src}" loading="lazy" title="Apple Music player" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
+    </div>`;
+  }
+
+  // SoundCloud embed — track compact, set/playlist taller.
+  if (link.isSoundCloudBlock) {
+    const sc = extractSoundCloud(link.url);
+    if (!sc) return '';
+    const tall = sc.isSet;
+    return `<div class="soundcloud-embed${tall ? ' tall' : ''}">
+      <iframe class="soundcloud-frame" src="${sc.src}" loading="lazy" title="SoundCloud player" allow="autoplay"></iframe>
     </div>`;
   }
 
