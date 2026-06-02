@@ -2134,10 +2134,11 @@ function bioRowTypeMeta(link) {
     };
   }
   if (link.isInstagramBlock) {
+    const ig = 'igrow-' + String(link._id).replace(/[^a-zA-Z0-9_-]/g, '');
     return {
       key: 'instagram',
       label: 'Instagram',
-      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.6"/></svg>'
+      icon: `<svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="${ig}" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#FEDA75"/><stop offset=".25" stop-color="#FA7E1E"/><stop offset=".5" stop-color="#D62976"/><stop offset=".75" stop-color="#962FBF"/><stop offset="1" stop-color="#4F5BD5"/></linearGradient></defs><rect x="2" y="2" width="20" height="20" rx="6" fill="url(#${ig})"/><circle cx="12" cy="12" r="4.2" fill="none" stroke="#fff" stroke-width="2"/><circle cx="17.4" cy="6.6" r="1.3" fill="#fff"/></svg>`
     };
   }
   if (link.isSubscribe) {
@@ -2339,6 +2340,18 @@ function renderLinkCollapsed(link, dragSvg, editSvg) {
   } else if (link.isTikTokBlock) {
     const videos = Array.isArray(link.videos) ? link.videos : [];
     const filledCount = videos.filter(v => v && v.url && v.url.trim() && extractTikTokId(v.url)).length;
+    // Show the first video's thumbnail, resolved via /api/tiktok-oembed (cached
+    // per session). Falls back to the TikTok type icon until it resolves or if
+    // it's unavailable; the row re-renders when the fetch lands.
+    const firstTikTokUrl = (() => {
+      for (const v of videos) { if (v && v.url && extractTikTokId(v.url)) return v.url; }
+      return null;
+    })();
+    if (firstTikTokUrl) {
+      ensureTikTokThumb(firstTikTokUrl);
+      const tt = tiktokThumbCache[firstTikTokUrl];
+      if (tt) thumb = `<img alt="TikTok preview" src="${escapeHtml(tt)}" class="bio-s-11a000" data-bio-onerror="hide-thumb-bg">`;
+    }
     title = 'TikTok videos';
     subline = filledCount === 0 ? 'No videos yet' : (filledCount === 1 ? '1 video' : filledCount + ' videos');
   } else if (link.isInstagramBlock) {
@@ -2842,7 +2855,7 @@ function ensureTikTokThumb(url) {
     .then(r => (r.ok ? r.json() : null))
     .then(data => { tiktokThumbCache[url] = (data && data.thumbnail_url) ? data.thumbnail_url : null; })
     .catch(() => { tiktokThumbCache[url] = null; })
-    .finally(() => { delete tiktokThumbPending[url]; schedulePreviewUpdate(); });
+    .finally(() => { delete tiktokThumbPending[url]; renderBioLinks(); schedulePreviewUpdate(); });
 }
 
 function setAvatarDisplay(mode) {
