@@ -3870,6 +3870,7 @@ function buildPreviewHTML() {
   .vids{width:100%;position:relative;}
   .vids-r{display:flex;align-items:center;gap:10px;padding:2px 0;overflow-x:auto;scrollbar-width:none;}
   .vids-r::-webkit-scrollbar{display:none;}
+  .vids-r > :only-child{margin-left:auto;margin-right:auto;}
   .vc{flex:0 0 270px;background:${t.surface};border:1px solid ${t.border};border-radius:12px;overflow:hidden;}
   .vc.vc-vertical{flex-basis:200px;}
   .vc img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:${t.surface2};}
