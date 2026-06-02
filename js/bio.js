@@ -3212,7 +3212,7 @@ function buildPreviewHTML() {
   }
   const name = bioState.display_name || bioState.username || 'Your name';
   const initial = (name[0] || '?').toUpperCase();
-  const vbadge = (bioVerifyState && bioVerifyState.verified && isPro()) ? bioPreviewVerifiedBadge() : '';
+  const vbadge = (bioVerifyState && bioVerifyState.verified) ? bioPreviewVerifiedBadge() : '';
   const avatarHtml = bioState.avatar_url
     ? `<img src="${escapeHtml(bioState.avatar_url)}" alt="Profile photo" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;">`
     : `<div style="width:100%;height:100%;border-radius:50%;background:${t.surface2};display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;font-size:36px;font-weight:800;color:${t.text};">${escapeHtml(initial)}</div>`;

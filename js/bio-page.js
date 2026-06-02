@@ -708,7 +708,7 @@ function render(profile, bio, userTier) {
   const isHeroMode = bio.avatar_display === 'hero' && validImageUrl(bio.avatar_url) && isMaxTier;
 
   // Verified badge: only when verified AND on a paid plan (Pro = 'monthly', Max = 'max').
-  const showVerified = !!profile.verified && (userTier === 'monthly' || userTier === 'max');
+  const showVerified = !!profile.verified;
   const nameBadge = showVerified ? verifiedBadgeHtml() : '';
 
   if (isHeroMode) {
