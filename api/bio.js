@@ -114,6 +114,15 @@ function extractSoundCloud(url) {
   return { isSet, src };
 }
 
+// Google Maps place embed. Pulls the whitelisted google.com/maps/embed URL out
+// of the pasted embed code (or a bare embed URL). We never render the user's
+// raw HTML, only this URL, so pasting an <iframe> snippet is safe.
+function extractGoogleMap(input) {
+  if (!input) return null;
+  const m = String(input).match(/https:\/\/www\.google\.com\/maps\/embed\?pb=[^"'\s<>]+/i);
+  return m ? m[0] : null;
+}
+
 // Resolve a Twitch URL to an embed target: a live channel, a VOD (video), or
 // a clip. Order matters — clips/videos are checked before the bare-channel
 // pattern, and reserved path segments are excluded from channel matching.
@@ -482,6 +491,14 @@ function buildLink(link, currency) {
     if (!link.photoUrl) return '';
     const dim = (link.imgW && link.imgH) ? ` width="${link.imgW}" height="${link.imgH}"` : '';
     return `<div class="bio-image"><img class="bio-image-img" src="${esc(link.photoUrl)}"${dim} loading="lazy" alt=""></div>`;
+  }
+
+  // Google Maps place embed — shows the location and star rating; reviews open
+  // on Google. We render only the whitelisted embed URL, never the pasted HTML.
+  if (link.isGoogleMapBlock) {
+    const src = extractGoogleMap(link.url);
+    if (!src) return '';
+    return `<div class="gmap-embed"><iframe class="gmap-frame" src="${esc(src)}" loading="lazy" title="Google Maps location" allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe></div>`;
   }
 
   // Image carousel — up to 10 uploaded images, each at its natural aspect ratio
@@ -1269,7 +1286,7 @@ ${customThemeStyle}
       "font-src 'self' https://fonts.gstatic.com data:",
       "img-src 'self' data: blob: https://www.ryxa.io https://kjytapcgxukalwsyputk.supabase.co https://i.ytimg.com",
       "connect-src 'self' https://kjytapcgxukalwsyputk.supabase.co https://cdn.jsdelivr.net",
-      "frame-src https://www.youtube.com https://www.youtube-nocookie.com https://www.tiktok.com https://www.instagram.com https://open.spotify.com https://embed.music.apple.com https://w.soundcloud.com https://player.twitch.tv https://clips.twitch.tv https://platform.twitter.com https://platform.x.com",
+      "frame-src https://www.youtube.com https://www.youtube-nocookie.com https://www.tiktok.com https://www.instagram.com https://open.spotify.com https://embed.music.apple.com https://w.soundcloud.com https://player.twitch.tv https://clips.twitch.tv https://platform.twitter.com https://platform.x.com https://www.google.com",
       "media-src 'self' blob: https://kjytapcgxukalwsyputk.supabase.co",
       "object-src 'none'",
       "base-uri 'self'",
