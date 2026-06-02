@@ -1671,6 +1671,29 @@ function addSoundCloudBlock() {
   showBioStatus('saved', 'SoundCloud added');
 }
 
+// Single image — an uploaded photo (horizontal or vertical), shown at full
+// column width. Multiple allowed (not one-per-page). The photo lives in the
+// bio-photos bucket like hero/avatar; stored on link.photoUrl with imgW/imgH.
+function addImageBlock() {
+  const { maxLinks } = bioLimits();
+  if (bioState.links.length >= maxLinks) {
+    showBioStatus('error', `Link limit reached (${maxLinks}).`);
+    return;
+  }
+  const newId = linkIdSeq++;
+  bioState.links.push({
+    _id: newId,
+    isImageBlock: true,
+    photoUrl: '',
+    imgW: 0,
+    imgH: 0
+  });
+  bioExpandedLinks.add(newId);
+  renderBioLinks();
+  schedulePreviewUpdate();
+  showBioStatus('saved', 'Image added');
+}
+
 // Twitch embed — live channel, VOD, or clip from a single URL. One per page
 // (all plans); the modal item disables when one exists, this is the backstop.
 function addTwitchBlock() {
@@ -2228,7 +2251,7 @@ function toggleLinkHalfWidth(id, checked) {
 function bioHalfBadge(link) {
   if (!link.halfWidth) return '';
   if (link.isMediaKit || link.isHero || link.isHeader || link.isSubscribe ||
-      link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock || link.isSpotifyBlock || link.isAppleMusicBlock || link.isSoundCloudBlock || link.isTwitchBlock || link.isTweetBlock || link.featured) {
+      link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock || link.isSpotifyBlock || link.isAppleMusicBlock || link.isSoundCloudBlock || link.isImageBlock || link.isTwitchBlock || link.isTweetBlock || link.featured) {
     return '';
   }
   return '<span class="bio-row-half" title="Half width" aria-label="Half width">&frac12;</span>';
@@ -2292,6 +2315,13 @@ function bioRowTypeMeta(link) {
       key: 'soundcloud',
       label: 'SoundCloud',
       icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="5.5" fill="#FF5500"/><g fill="#fff"><rect x="5" y="13" width="1.6" height="5" rx="0.8"/><rect x="8" y="10" width="1.6" height="8" rx="0.8"/><rect x="11" y="8" width="1.6" height="10" rx="0.8"/><rect x="14" y="11" width="1.6" height="7" rx="0.8"/><rect x="17" y="9" width="1.6" height="9" rx="0.8"/></g></svg>'
+    };
+  }
+  if (link.isImageBlock) {
+    return {
+      key: 'image',
+      label: 'Image',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="M21 15.5l-4.5-4.5L5 20"/></svg>'
     };
   }
   if (link.isTwitchBlock) {
@@ -2537,6 +2567,12 @@ function renderLinkCollapsed(link, dragSvg, editSvg) {
     const filledCount = videos.filter(v => v && v.url && v.url.trim() && extractTweetId(v.url)).length;
     title = 'X';
     subline = filledCount === 0 ? 'No posts yet' : (filledCount === 1 ? '1 post' : filledCount + ' posts');
+  } else if (link.isImageBlock) {
+    if (link.photoUrl) {
+      thumb = `<img alt="Image thumbnail" src="${escapeHtml(link.photoUrl)}" class="bio-s-3323bf">`;
+    }
+    title = 'Image';
+    subline = link.photoUrl ? 'Uploaded' : '<span class="bio-s-dbc3a0">No image yet</span>';
   } else if (link.isSubscribe) {
     title = escapeHtml(link.title || 'Subscribe to my newsletter');
   } else if (link.isHero) {
@@ -2668,6 +2704,49 @@ async function onHeroPhotoSelected(input, linkId) {
     renderBioLinks();
     schedulePreviewUpdate();
     showBioStatus('success', 'Hero photo uploaded. Remember to save.');
+  } catch (e) {
+    console.error(e);
+    showBioStatus('error', `Upload failed: ${e.message || 'unknown'}`);
+  }
+}
+
+// Upload handler for a Single Image block. Compresses to WebP (max 1200px box,
+// ~160KB), then reads the output dimensions so the renderers can reserve the
+// aspect ratio (no layout shift). Available on all plans.
+async function onImagePhotoSelected(input, linkId) {
+  const file = input.files[0];
+  input.value = '';
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { showBioStatus('error', 'Please upload an image.'); return; }
+  if (file.size > 25 * 1024 * 1024) { showBioStatus('error', 'Image is too large (25MB max).'); return; }
+
+  const link = bioState.links.find(l => l._id === linkId);
+  if (!link) return;
+
+  try {
+    showBioStatus('info', 'Uploading…');
+    const blob = await compressBgImage(file, 1200, 1200, 160 * 1024);
+    // Read final dimensions from the compressed blob for the aspect ratio.
+    const dims = await new Promise((res) => {
+      const u = URL.createObjectURL(blob);
+      const im = new Image();
+      im.onload = () => { res({ w: im.naturalWidth, h: im.naturalHeight }); URL.revokeObjectURL(u); };
+      im.onerror = () => { res({ w: 0, h: 0 }); URL.revokeObjectURL(u); };
+      im.src = u;
+    });
+    const fileName = `image-${linkId}-${Date.now()}-${Math.random().toString(36).slice(2,8)}.webp`;
+    const path = `${currentUser.id}/${fileName}`;
+    const { error: upErr } = await sb.storage.from('bio-photos').upload(path, blob, { contentType: 'image/webp', upsert: false });
+    if (upErr) throw upErr;
+    const { data: { publicUrl } } = sb.storage.from('bio-photos').getPublicUrl(path);
+
+    if (link.photoUrl) bioStalePhotos.push(link.photoUrl);
+    link.photoUrl = publicUrl;
+    link.imgW = dims.w;
+    link.imgH = dims.h;
+    renderBioLinks();
+    schedulePreviewUpdate();
+    showBioStatus('success', 'Image uploaded. Remember to save.');
   } catch (e) {
     console.error(e);
     showBioStatus('error', `Upload failed: ${e.message || 'unknown'}`);
@@ -2810,6 +2889,26 @@ function renderLinkExpanded(link, dragSvg) {
         class="bio-add-video-btn ${atMax ? 'is-disabled' : ''}">
         ${atMax ? '10 reel limit reached' : '+ Add another reel'}
       </button>
+      <button type="button" data-bio-action="save-link-row" data-bio-id="${link._id}"
+        class="bio-s-c7cf47">
+        Save
+      </button>
+    </div>`;
+  }
+
+  if (link.isImageBlock) {
+    return `<div class="bio-link-row" data-id="${link._id}">
+      <div class="bio-link-header">
+        <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
+        <span class="bio-featured-badge bio-s-04da54" >Image</span>
+        <div class="bio-s-7623f0"></div>
+        <button class="bio-link-remove" data-bio-action="remove-link" data-bio-id="${link._id}">Remove</button>
+      </div>
+      <div class="bio-s-e289c0">Upload an image, horizontal or vertical. It's compressed automatically and shown at full width on your page. Tap the box to replace it.</div>
+      <div class="bio-image-slot">
+        ${link.photoUrl ? `<img alt="Image preview" src="${escapeHtml(link.photoUrl)}">` : '<span>+ Upload image</span>'}
+        <input type="file" accept="image/*" aria-label="Upload image" data-bio-action="image-photo-selected" data-bio-event="change" data-bio-id="${link._id}">
+      </div>
       <button type="button" data-bio-action="save-link-row" data-bio-id="${link._id}"
         class="bio-s-c7cf47">
         Save
@@ -3090,7 +3189,7 @@ function saveLinkRow(id) {
   if (!link) return;
 
   // Headers, subscribe blocks, and video/TikTok blocks don't require a URL
-  if (link.isHeader || link.isSubscribe || link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock || link.isSpotifyBlock || link.isAppleMusicBlock || link.isSoundCloudBlock || link.isTwitchBlock || link.isTweetBlock) {
+  if (link.isHeader || link.isSubscribe || link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock || link.isSpotifyBlock || link.isAppleMusicBlock || link.isSoundCloudBlock || link.isImageBlock || link.isTwitchBlock || link.isTweetBlock) {
     bioExpandedLinks.delete(id);
     renderBioLinks();
     schedulePreviewUpdate();
@@ -3565,7 +3664,7 @@ async function saveBio() {
       return 'https://' + s;
     };
     const cleanLinks = bioState.links
-      .filter(l => (l.title || '').trim() || (l.url || '').trim() || l.isVideoBlock || l.isTikTokBlock || l.isInstagramBlock || l.isSpotifyBlock || l.isAppleMusicBlock || l.isSoundCloudBlock || l.isTwitchBlock || l.isTweetBlock || l.isHeader || l.isSubscribe || l.isMediaKit)
+      .filter(l => (l.title || '').trim() || (l.url || '').trim() || l.isVideoBlock || l.isTikTokBlock || l.isInstagramBlock || l.isSpotifyBlock || l.isAppleMusicBlock || l.isSoundCloudBlock || l.isImageBlock || l.isTwitchBlock || l.isTweetBlock || l.isHeader || l.isSubscribe || l.isMediaKit)
       .map(l => ({
         title: (l.title || '').slice(0, 80),
         description: (l.description || '').slice(0, 120),
@@ -3607,6 +3706,7 @@ async function saveBio() {
         ...(l.isSpotifyBlock ? { isSpotifyBlock: true } : {}),
         ...(l.isAppleMusicBlock ? { isAppleMusicBlock: true } : {}),
         ...(l.isSoundCloudBlock ? { isSoundCloudBlock: true } : {}),
+        ...(l.isImageBlock ? { isImageBlock: true, imgW: l.imgW || 0, imgH: l.imgH || 0 } : {}),
         ...(l.isTwitchBlock ? {
           isTwitchBlock: true,
           videos: (Array.isArray(l.videos) ? l.videos : [])
@@ -3856,7 +3956,7 @@ function buildPreviewHTML() {
     ? `<img src="${escapeHtml(bioState.avatar_url)}" alt="Profile photo" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;">`
     : `<div style="width:100%;height:100%;border-radius:50%;background:${t.surface2};display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;font-size:36px;font-weight:800;color:${t.text};">${escapeHtml(initial)}</div>`;
   const socialsHtml = buildPreviewSocials(t);
-  const linksHtml = bioState.links.filter(l => l.isHeader || l.isSubscribe || l.isVideoBlock || l.isTikTokBlock || l.isInstagramBlock || l.isSpotifyBlock || l.isAppleMusicBlock || l.isSoundCloudBlock || l.isTwitchBlock || l.isTweetBlock || (l.url || '').trim()).map(l => buildPreviewLink(l, t)).join('');
+  const linksHtml = bioState.links.filter(l => l.isHeader || l.isSubscribe || l.isVideoBlock || l.isTikTokBlock || l.isInstagramBlock || l.isSpotifyBlock || l.isAppleMusicBlock || l.isSoundCloudBlock || l.isImageBlock || l.isTwitchBlock || l.isTweetBlock || (l.url || '').trim()).map(l => buildPreviewLink(l, t)).join('');
 
   // For custom themes with a bg image, we dim the radial glow (since bg image is already bg)
   const glowCSS = ((bioState.theme === 'custom' && isPro() && bioState.custom_theme?.bgUrl) || isImageTheme(bioState.theme))
@@ -4064,6 +4164,13 @@ function buildPreviewLink(l, t) {
       <button type="button" class="vids-arrow vids-arrow-r" aria-label="Scroll right" tabindex="-1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button>
       <div class="vids-r">${cards}</div>
     </div>`;
+  }
+  if (l.isImageBlock) {
+    if (!l.photoUrl) {
+      return `<div style="width:100%;aspect-ratio:16/10;border-radius:14px;background:${t.surface};border:1px dashed ${t.border};display:flex;align-items:center;justify-content:center;color:${t.muted};font-size:12px;">Image</div>`;
+    }
+    const dim = (l.imgW && l.imgH) ? ` width="${l.imgW}" height="${l.imgH}"` : '';
+    return `<div style="width:100%;border-radius:14px;overflow:hidden;"><img src="${escapeHtml(l.photoUrl)}"${dim} alt="" style="width:100%;height:auto;display:block;"></div>`;
   }
   if (l.isSoundCloudBlock) {
     const sc = extractSoundCloud(l.url);
@@ -4398,6 +4505,8 @@ bioRegisterAction('add-instagram-block', () => addInstagramBlock());
 bioRegisterAction('add-spotify-block', () => { closeBioMoreModal(); addSpotifyBlock(); });
 bioRegisterAction('add-apple-music-block', () => { closeBioMoreModal(); addAppleMusicBlock(); });
 bioRegisterAction('add-soundcloud-block', () => { closeBioMoreModal(); addSoundCloudBlock(); });
+bioRegisterAction('add-image-block', () => { closeBioMoreModal(); addImageBlock(); });
+bioRegisterAction('image-photo-selected', (e, el) => onImagePhotoSelected(el, parseInt(el.dataset.bioId, 10)));
 bioRegisterAction('add-twitch-block', () => { closeBioMoreModal(); addTwitchBlock(); });
 bioRegisterAction('add-tweet-block', () => { closeBioMoreModal(); addTweetBlock(); });
 bioRegisterAction('open-more-modal', () => openBioMoreModal());
