@@ -390,22 +390,35 @@ function buildLink(link) {
     </div>`;
   }
 
-  // Twitch embed — live channel, VOD, or clip; all render as a 16:9 player.
+  // Twitch embeds — up to 10 in a carousel; all 16:9.
   if (link.isTwitchBlock) {
-    const tw = extractTwitch(link.url);
-    if (!tw) return '';
-    return `<div class="twitch-embed">
-      <iframe class="twitch-frame" src="${twitchEmbedSrc(tw)}" loading="lazy" title="Twitch player" allow="autoplay; fullscreen" allowfullscreen></iframe>
+    const videos = Array.isArray(link.videos) ? link.videos : (link.url ? [{ url: link.url }] : []);
+    const cards = videos.map(v => {
+      const tw = extractTwitch(v && v.url);
+      if (!tw) return '';
+      return `<div class="twitch-card"><iframe class="twitch-frame" src="${twitchEmbedSrc(tw)}" loading="lazy" title="Twitch player" allow="autoplay; fullscreen" allowfullscreen></iframe></div>`;
+    }).filter(Boolean).join('');
+    if (!cards) return '';
+    return `<div class="videos">
+      <button type="button" class="videos-arrow videos-arrow-l" aria-label="Scroll left" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <button type="button" class="videos-arrow videos-arrow-r" aria-label="Scroll right" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button>
+      <div class="videos-scroll">${cards}</div>
     </div>`;
   }
 
-  // X (Twitter) post — pure-iframe Tweet.html embed; reveal-when-ready height.
+  // X (Twitter) posts — up to 10 in a carousel; fixed-height cards.
   if (link.isTweetBlock) {
-    const id = extractTweetId(link.url);
-    if (!id) return '';
-    return `<div class="tweet-embed">
-      <div class="tweet-embed-placeholder" aria-hidden="true"><svg class="tweet-embed-ph-glyph" width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><path fill="#0f1419" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></div>
-      <iframe class="tweet-frame" src="https://platform.twitter.com/embed/Tweet.html?id=${id}&dnt=true" loading="lazy" title="Post on X" scrolling="no"></iframe>
+    const videos = Array.isArray(link.videos) ? link.videos : (link.url ? [{ url: link.url }] : []);
+    const cards = videos.map(v => {
+      const id = extractTweetId(v && v.url);
+      if (!id) return '';
+      return `<div class="tweet-card"><iframe class="tweet-frame" src="https://platform.twitter.com/embed/Tweet.html?id=${id}&dnt=true" loading="lazy" title="Post on X"></iframe></div>`;
+    }).filter(Boolean).join('');
+    if (!cards) return '';
+    return `<div class="videos">
+      <button type="button" class="videos-arrow videos-arrow-l" aria-label="Scroll left" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <button type="button" class="videos-arrow videos-arrow-r" aria-label="Scroll right" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button>
+      <div class="videos-scroll">${cards}</div>
     </div>`;
   }
 
@@ -860,7 +873,6 @@ function render(profile, bio, userTier) {
   }
   initVideoArrows();
   if (window.ryxaInitIgEmbeds) window.ryxaInitIgEmbeds();
-  if (window.ryxaInitTweetEmbeds) window.ryxaInitTweetEmbeds();
 }
 
 // Wire up the desktop arrow buttons on every YouTube carousel. Each .videos
@@ -1060,7 +1072,6 @@ async function load() {
     trackPageView(window._ssrUsername, 'bio');
     initVideoArrows();
     if (window.ryxaInitIgEmbeds) window.ryxaInitIgEmbeds();
-  if (window.ryxaInitTweetEmbeds) window.ryxaInitTweetEmbeds();
     return;
   }
 
@@ -1361,85 +1372,6 @@ bioRegisterAction('sensitive-deny', function() {
     document.addEventListener('DOMContentLoaded', window.ryxaInitIgEmbeds);
   } else {
     window.ryxaInitIgEmbeds();
-  }
-})();
-
-// =================================================================
-// X (Twitter) embeds: reveal-when-ready.
-//
-// The platform.twitter.com Tweet.html iframe reports its rendered height to
-// the parent via postMessage using X's own embed protocol: a payload with a
-// "twttr.embed" object whose method is "twttr.private.resize" and whose
-// params[0].height is the pixel height. We size the .tweet-embed card to that
-// and reveal it (the iframe fades in, the skeleton fades out). Same structure
-// as the Instagram handler above.
-//
-// Safety: if no height ever arrives (blocked message / protocol change), the
-// card is revealed at a fallback height shortly after the iframe loads, so a
-// post is never stuck behind the skeleton. Wrong origin, unparseable payload,
-// wrong method, or out-of-range heights are ignored. Idempotent.
-// =================================================================
-(function () {
-  var FALLBACK_H = 520, MIN_H = 80, MAX_H = 3000, REVEAL_MS = 2500;
-  var listenerReady = false;
-
-  function isTwitterOrigin(origin) {
-    return origin === 'https://platform.twitter.com' || origin === 'https://platform.x.com';
-  }
-
-  function revealTweet(card, h) {
-    if (!card || card.classList.contains('tweet-ready')) return;
-    card.style.height = h + 'px';
-    card.classList.add('tweet-ready');
-  }
-
-  function onTweetMessage(e) {
-    if (!isTwitterOrigin(e.origin)) return;
-    var data = e.data;
-    if (typeof data === 'string') {
-      try { data = JSON.parse(data); } catch (err) { return; }
-    }
-    var embed = data && data['twttr.embed'];
-    if (!embed || embed.method !== 'twttr.private.resize') return;
-    var p = embed.params && embed.params[0];
-    var h = parseFloat(p && p.height);
-    if (!isFinite(h) || h < MIN_H || h > MAX_H) return;
-    var frames = document.querySelectorAll('.tweet-frame');
-    for (var i = 0; i < frames.length; i++) {
-      if (frames[i].contentWindow === e.source) {
-        revealTweet(frames[i].closest('.tweet-embed'), h);
-        break;
-      }
-    }
-  }
-
-  function armFallbacks() {
-    var frames = document.querySelectorAll('.tweet-frame');
-    for (var i = 0; i < frames.length; i++) {
-      var f = frames[i];
-      if (f.dataset.tweetArmed) continue;
-      f.dataset.tweetArmed = '1';
-      f.addEventListener('load', function () {
-        var frame = this;
-        setTimeout(function () {
-          revealTweet(frame.closest('.tweet-embed'), FALLBACK_H);
-        }, REVEAL_MS);
-      });
-    }
-  }
-
-  window.ryxaInitTweetEmbeds = function () {
-    if (!listenerReady) {
-      listenerReady = true;
-      window.addEventListener('message', onTweetMessage);
-    }
-    armFallbacks();
-  };
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', window.ryxaInitTweetEmbeds);
-  } else {
-    window.ryxaInitTweetEmbeds();
   }
 })();
 
