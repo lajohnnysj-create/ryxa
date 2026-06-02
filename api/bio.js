@@ -57,6 +57,10 @@ function extractYouTubeId(url) {
   return m ? m[1] : null;
 }
 
+function isShortsUrl(url) {
+  return /youtube\.com\/shorts\//i.test(String(url || ''));
+}
+
 function fmtPrice(cents, currency) {
   const code = currency || 'USD';
   const localeMap = { USD:'en-US', EUR:'en-IE', GBP:'en-GB', CAD:'en-CA', AUD:'en-AU', JPY:'ja-JP', INR:'en-IN', BRL:'pt-BR', MXN:'es-MX', CHF:'de-CH', SGD:'en-SG', SEK:'sv-SE', NOK:'nb-NO', NZD:'en-NZ', ZAR:'en-ZA' };
@@ -285,8 +289,9 @@ function buildLink(link, currency) {
     const cards = videos.map(v => {
       const id = extractYouTubeId(v && (v.url || v.videoId));
       if (!id) return '';
+      const vert = !!(v && (v.vertical === true || (v.vertical == null && isShortsUrl(v.url))));
       const thumb = `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
-      return `<div class="video-card" tabindex="0" role="button" aria-label="Play video"
+      return `<div class="video-card${vert ? ' vertical' : ''}" tabindex="0" role="button" aria-label="Play video"
                 data-bio-action="play-video" data-bio-video-id="${id}">
         <div class="video-thumb-wrap">
           <img class="video-thumb" src="${thumb}" alt="YouTube video thumbnail" loading="lazy" data-bio-onerror="thumb-fallback" data-bio-video-id="${id}">
