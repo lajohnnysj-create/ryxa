@@ -1208,3 +1208,46 @@ bioRegisterAction('sensitive-deny', function() {
     }
   }
 })();
+
+// =================================================================
+// Instagram embed auto-resize.
+//
+// Instagram's /reel/{id}/embed/ iframe reports its own card height to
+// the parent window, the same mechanism instagram.com/embed.js relies
+// on: a JSON string { type:'MEASURE', details:{ height } } posted from
+// an instagram.com origin once the card has laid out. We listen for it
+// and size each .ig-embed-card to match, so the card never clips the
+// caption/footer and never leaves dead whitespace below the reel.
+//
+// Fully defensive: messages from other origins, unparseable payloads,
+// the wrong type, or an out-of-range height are all ignored, in which
+// case the CSS fallback height stands. A change to Instagram's message
+// format can degrade the look but can never break the page.
+// =================================================================
+(function initInstagramAutoResize() {
+  var MIN_H = 200, MAX_H = 1600;
+  function isInstagramOrigin(origin) {
+    return typeof origin === 'string' &&
+      (origin === 'https://www.instagram.com' ||
+       /^https:\/\/([\w-]+\.)*instagram\.com$/.test(origin));
+  }
+  window.addEventListener('message', function (e) {
+    if (!isInstagramOrigin(e.origin)) return;
+    var data = e.data;
+    if (typeof data === 'string') {
+      try { data = JSON.parse(data); } catch (err) { return; }
+    }
+    if (!data || data.type !== 'MEASURE') return;
+    var h = parseFloat(data.details && data.details.height);
+    if (!isFinite(h) || h < MIN_H || h > MAX_H) return;
+    var frames = document.querySelectorAll('.ig-embed-frame');
+    for (var i = 0; i < frames.length; i++) {
+      if (frames[i].contentWindow === e.source) {
+        var card = frames[i].closest('.ig-embed-card');
+        if (card) card.style.height = h + 'px';
+        frames[i].style.height = h + 'px';
+        break;
+      }
+    }
+  });
+})();
