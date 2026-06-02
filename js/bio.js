@@ -1429,9 +1429,9 @@ function bioLimits() {
   const pro = isPro();
   const max = isMax();
   return {
-    maxLinks: max ? 1000 : (pro ? 200 : 50),
+    maxLinks: max ? 1000 : (pro ? 1000 : 50),
     maxFeatured: max ? 10 : (pro ? 3 : 1),
-    maxHero: max ? 10 : 0,
+    maxHero: max ? 1 : 0,
     maxVideos: pro ? 20 : 5,
     pro: pro,
     isMax: max,
@@ -1523,9 +1523,9 @@ function updateSubscribeBtn() {
 }
 
 // ---- Video Block (YouTube carousel inside the link list) ----
-// Each block holds up to 10 YouTube URLs. Free creators get 1 block max;
-// Pro/Max creators get up to 5 blocks. The block count is also constrained
-// naturally by maxLinks.
+// Each block holds up to 10 YouTube URLs. One block per page on all plans;
+// the add button is disabled while a block exists. The block count is also
+// constrained naturally by maxLinks.
 function addVideoBlock() {
   const { maxLinks } = bioLimits();
   const totalLinkCount = bioState.links.length;
@@ -1533,18 +1533,9 @@ function addVideoBlock() {
     showBioStatus('error', `Link limit reached (${maxLinks}).`);
     return;
   }
-  const existingBlocks = bioState.links.filter(l => l.isVideoBlock).length;
-  if (!isPro()) {
-    if (existingBlocks >= 1) {
-      showBioStatus('error', 'Free plan supports one YouTube block. Upgrade to Pro for up to 5.');
-      return;
-    }
-  } else {
-    if (existingBlocks >= 5) {
-      showBioStatus('error', 'YouTube block limit reached (5).');
-      return;
-    }
-  }
+  // One YouTube block per page (all plans). The add button is disabled when
+  // one exists; this guard is the backstop.
+  if (bioState.links.some(l => l.isVideoBlock)) return;
   const newId = linkIdSeq++;
   bioState.links.push({
     _id: newId,
@@ -1557,8 +1548,8 @@ function addVideoBlock() {
   showBioStatus('saved', 'YouTube block added');
 }
 
-// TikTok block — parallel to the YouTube block. Same gating (1 free, up to 5
-// Pro) and the same videos[] shape, so it reuses the shared video-array
+// TikTok block — parallel to the YouTube block. Same gating (one per page,
+// all plans) and the same videos[] shape, so it reuses the shared video-array
 // helpers (update/add/remove) below.
 function addTikTokBlock() {
   const { maxLinks } = bioLimits();
@@ -1567,18 +1558,9 @@ function addTikTokBlock() {
     showBioStatus('error', `Link limit reached (${maxLinks}).`);
     return;
   }
-  const existingBlocks = bioState.links.filter(l => l.isTikTokBlock).length;
-  if (!isPro()) {
-    if (existingBlocks >= 1) {
-      showBioStatus('error', 'Free plan supports one TikTok block. Upgrade to Pro for up to 5.');
-      return;
-    }
-  } else {
-    if (existingBlocks >= 5) {
-      showBioStatus('error', 'TikTok block limit reached (5).');
-      return;
-    }
-  }
+  // One TikTok block per page (all plans). The add button is disabled when
+  // one exists; this guard is the backstop.
+  if (bioState.links.some(l => l.isTikTokBlock)) return;
   const newId = linkIdSeq++;
   bioState.links.push({
     _id: newId,
@@ -1600,18 +1582,9 @@ function addInstagramBlock() {
     showBioStatus('error', `Link limit reached (${maxLinks}).`);
     return;
   }
-  const existingBlocks = bioState.links.filter(l => l.isInstagramBlock).length;
-  if (!isPro()) {
-    if (existingBlocks >= 1) {
-      showBioStatus('error', 'Free plan supports one Instagram block. Upgrade to Pro for up to 5.');
-      return;
-    }
-  } else {
-    if (existingBlocks >= 5) {
-      showBioStatus('error', 'Instagram block limit reached (5).');
-      return;
-    }
-  }
+  // One Instagram block per page (all plans). The add button is disabled when
+  // one exists; this guard is the backstop.
+  if (bioState.links.some(l => l.isInstagramBlock)) return;
   const newId = linkIdSeq++;
   bioState.links.push({
     _id: newId,
@@ -2232,11 +2205,7 @@ function renderBioLinks() {
   const featuredCount = bioState.links.filter(l => l.featured).length;
   const heroCount = bioState.links.filter(l => l.isHero).length;
   if (counts) {
-    const videoBlockCount = bioState.links.filter(l => l.isVideoBlock).length;
-    const maxVideoBlocks = pro ? 5 : 1;
     const parts = [`${regularCount}/${maxLinks} links`, `${featuredCount}/${maxFeatured} featured`];
-    if (max) parts.push(`${heroCount}/${maxHero} hero`);
-    parts.push(`${videoBlockCount}/${maxVideoBlocks} YouTube`);
     counts.textContent = parts.join(' · ');
   }
 
@@ -2259,6 +2228,18 @@ function renderBioLinks() {
     heroBtn.disabled = heroCount >= maxHero;
     heroBtn.style.opacity = heroCount >= maxHero ? 0.5 : 1;
   }
+  // YouTube / TikTok / Instagram: one block per platform (all plans). The add
+  // button is disabled while a block of that type exists and re-enables when
+  // it's removed.
+  const setBlockBtn = (id, exists) => {
+    const b = document.getElementById(id);
+    if (!b) return;
+    b.disabled = exists;
+    b.style.opacity = exists ? 0.5 : 1;
+  };
+  setBlockBtn('bio-add-video-link', bioState.links.some(l => l.isVideoBlock));
+  setBlockBtn('bio-add-tiktok-link', bioState.links.some(l => l.isTikTokBlock));
+  setBlockBtn('bio-add-instagram-link', bioState.links.some(l => l.isInstagramBlock));
   // Media Kit button
   const mkBtn = document.getElementById('bio-add-mediakit-link');
   if (mkBtn) mkBtn.style.display = pro || max ? 'flex' : 'none';
@@ -3607,7 +3588,7 @@ function buildPreviewLink(l, t) {
     </div>`;
   }
 
-  // Video block — horizontal-scrollable carousel of up to 5 YouTube thumbnails.
+  // Video block — horizontal-scrollable carousel of up to 10 YouTube thumbnails.
   // Renders as a child of .links and respects the link's drag order, so when
   // the creator reorders, the entire carousel moves with it.
   if (l.isVideoBlock) {
