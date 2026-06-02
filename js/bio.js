@@ -744,7 +744,15 @@ function renderAvatarPreview() {
 
 function onBioFieldChange() {
   bioState.display_name = document.getElementById('bio-display-name').value;
-  bioState.bio = document.getElementById('bio-bio').value;
+  // Bio supports up to 3 lines. Trim any extra line breaks the user adds.
+  const bioEl = document.getElementById('bio-bio');
+  let bioVal = bioEl.value;
+  const lines = bioVal.split('\n');
+  if (lines.length > 3) {
+    bioVal = lines.slice(0, 3).join('\n');
+    bioEl.value = bioVal;
+  }
+  bioState.bio = bioVal;
   document.getElementById('bio-name-count').textContent = bioState.display_name.length;
   document.getElementById('bio-bio-count').textContent = bioState.bio.length;
   if (!bioState.avatar_url) renderAvatarPreview(); // update fallback initial
@@ -3248,7 +3256,7 @@ function buildPreviewHTML() {
   .hero-wrap{position:relative;overflow:hidden;${(bioState.avatar_display === 'hero' && bioState.avatar_url) ? 'width:100vw;max-width:100vw;margin-left:0;' : ''}}
   .avfr{width:100px;height:100px;border-radius:50%;padding:3px;background:${t.avatarBorder};margin-bottom:6px;}
   .nm{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;letter-spacing:-0.4px;text-align:center;word-break:break-word;}
-  .bio-line{font-size:13px;color:${t.muted2};text-align:center;line-height:1.4;max-width:340px;word-break:break-word;}
+  .bio-line{font-size:13px;color:${t.muted2};text-align:center;line-height:1.4;max-width:340px;word-break:break-word;white-space:pre-line;}
   .socials{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:2px 0 4px;}
   .sb{width:34px;height:34px;border-radius:50%;background:${t.surface};border:1px solid ${t.border};display:flex;align-items:center;justify-content:center;color:${t.text};}
   .sb svg{width:16px;height:16px;fill:currentColor;}
