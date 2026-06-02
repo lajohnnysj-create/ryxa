@@ -973,6 +973,10 @@
     scrollbar-width: none;
   }
   .videos-scroll::-webkit-scrollbar { display: none; }
+  /* A lone embed has nothing to scroll to, so center it rather than leaving it
+     left-aligned with empty space beside it. With 2+ cards none of them is an
+     :only-child, so the carousel still starts at the first card and scrolls. */
+  .videos-scroll > :only-child { margin-left: auto; margin-right: auto; }
   .video-card {
     flex: 0 0 320px;
     scroll-snap-align: start;
