@@ -367,6 +367,10 @@ function buildLink(link, currency) {
       <div class="videos-scroll">${cards}</div>
     </div>`;
   }
+
+  const url = validUrl(link.url);
+  if (!url) return '';
+  const title = esc(link.title || '');
   const desc = link.description ? `<div class="link-desc">${esc(link.description)}</div>` : '';
 
   // Hero link — full-image background, no icon
