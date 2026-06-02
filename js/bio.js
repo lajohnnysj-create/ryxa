@@ -3337,10 +3337,10 @@ function buildPreviewHTML() {
   .hl-t{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,0.5);letter-spacing:-0.3px;}
   .hl-d{font-size:13px;color:rgba(255,255,255,0.9);text-shadow:0 1px 4px rgba(0,0,0,0.5);line-height:1.35;margin-top:4px;word-break:break-word;}
   .vids{width:100%;position:relative;}
-  .vids-r{display:flex;gap:10px;padding:2px 0;overflow-x:auto;scrollbar-width:none;}
+  .vids-r{display:flex;align-items:center;gap:10px;padding:2px 0;overflow-x:auto;scrollbar-width:none;}
   .vids-r::-webkit-scrollbar{display:none;}
   .vc{flex:0 0 270px;background:${t.surface};border:1px solid ${t.border};border-radius:12px;overflow:hidden;}
-  .vc.vc-vertical{flex-basis:85px;}
+  .vc.vc-vertical{flex-basis:200px;}
   .vc img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:${t.surface2};}
   .vc.vc-vertical img{aspect-ratio:9/16;}
   /* Preview arrow buttons — small since the preview is itself small */
