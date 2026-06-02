@@ -476,6 +476,14 @@ function buildLink(link, currency) {
     </div>`;
   }
 
+  // Single image — uploaded photo at full column width. width/height attrs
+  // reserve the aspect ratio so the page doesn't reflow as it loads.
+  if (link.isImageBlock) {
+    if (!link.photoUrl) return '';
+    const dim = (link.imgW && link.imgH) ? ` width="${link.imgW}" height="${link.imgH}"` : '';
+    return `<div class="bio-image"><img class="bio-image-img" src="${esc(link.photoUrl)}"${dim} loading="lazy" alt=""></div>`;
+  }
+
   // Twitch embeds — up to 10 in a carousel (channels, VODs, clips). All 16:9.
   if (link.isTwitchBlock) {
     const videos = Array.isArray(link.videos) ? link.videos : (link.url ? [{ url: link.url }] : []);
