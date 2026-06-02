@@ -959,12 +959,13 @@
   .video-card.vertical { flex-basis: 240px; }
   .video-card.vertical .video-thumb-wrap { aspect-ratio: 9 / 16; }
   .video-card.tiktok-card { cursor: default; }
-  /* Instagram embed cards render Instagram's own card (header, media, caption),
-     so they get their own width/height rather than the 9:16 tile sizing.
-     Height is a fixed viewport into the embed; tune if it clips or pads. */
+  /* Instagram embed cards render Instagram's own card (header, media, caption).
+     bio-page.js auto-sizes each card to the exact height Instagram reports, so
+     this value is only the pre-resize fallback (and what stands if that message
+     never arrives). Sized to clear a typical reel card without clipping. */
   .ig-embed-card {
     flex: 0 0 328px;
-    height: 560px;
+    height: 740px;
     scroll-snap-align: start;
     border-radius: 14px;
     overflow: hidden;
@@ -1207,7 +1208,7 @@
   </div>
 </div>
 
-<script src="/js/bio-page.js?v=2" defer></script>
+<script src="/js/bio-page.js?v=3" defer></script>
 <script src="/cookie-banner.js"></script>
 </body>
 </html>
