@@ -620,18 +620,7 @@ async function loadBioData() {
       bioState.theme = bio.theme || 'purple';
       bioState.font_family = bio.font_family || 'DM Sans';
       bioState.socials = bio.socials || {};
-      bioState.links = Array.isArray(bio.links) ? bio.links.map(l => {
-        const nl = { ...l, _id: linkIdSeq++ };
-        // Default each video's vertical layout from its URL when not yet set,
-        // so existing Shorts render vertically without needing a re-save.
-        if (nl.isVideoBlock && Array.isArray(nl.videos)) {
-          nl.videos = nl.videos.map(v => ({
-            ...v,
-            vertical: (v && v.vertical !== undefined) ? !!v.vertical : isShortsUrl(v && v.url)
-          }));
-        }
-        return nl;
-      }) : [];
+      bioState.links = Array.isArray(bio.links) ? bio.links.map(l => ({ ...l, _id: linkIdSeq++ })) : [];
       // Old videos array is no longer used — YouTube embeds now live as
       // isVideoBlock entries inside bioState.links. Wipe any legacy data.
       bioState.videos = [];
@@ -1574,18 +1563,6 @@ function updateVideoBlockUrl(linkId, idx, url) {
   if (!link || !link.isVideoBlock || !Array.isArray(link.videos)) return;
   if (idx < 0 || idx >= link.videos.length) return;
   link.videos[idx].url = url;
-  // Auto-default vertical from the URL until the creator manually toggles it.
-  if (!link.videos[idx]._vmanual) link.videos[idx].vertical = isShortsUrl(url);
-  schedulePreviewUpdate();
-}
-
-function toggleVideoVertical(linkId, idx) {
-  const link = bioState.links.find(l => l._id === linkId);
-  if (!link || !link.isVideoBlock || !Array.isArray(link.videos)) return;
-  if (idx < 0 || idx >= link.videos.length) return;
-  link.videos[idx].vertical = !link.videos[idx].vertical;
-  link.videos[idx]._vmanual = true; // session flag: stop auto-detect overriding
-  renderBioLinks();
   schedulePreviewUpdate();
 }
 
@@ -2461,15 +2438,11 @@ function renderLinkExpanded(link, dragSvg) {
     const atMax = videos.length >= 10;
     const inputsHtml = videos.map((v, idx) => {
       const value = escapeHtml(v && v.url ? v.url : '');
-      const isVert = !!(v && v.vertical);
       return `<div class="bio-s-302bc1">
         <input type="url" placeholder="https://youtube.com/watch?v=..." value="${value}"
           data-bio-action="update-video-url" data-bio-event="input" data-bio-id="${link._id}" data-bio-idx="${idx}"
           aria-label="YouTube URL ${idx + 1}"
           class="bio-s-d3db56">
-        <button type="button" class="bio-video-vert-btn${isVert ? ' is-vert' : ''}" aria-pressed="${isVert ? 'true' : 'false'}"
-          aria-label="Toggle vertical (Short) layout" title="Vertical (Short)"
-          data-bio-action="toggle-video-vertical" data-bio-id="${link._id}" data-bio-idx="${idx}">9:16</button>
         <button type="button" aria-label="Remove this video" data-bio-action="remove-video" data-bio-id="${link._id}" data-bio-idx="${idx}"
           class="bio-s-09aacd">×</button>
       </div>`;
@@ -2481,7 +2454,7 @@ function renderLinkExpanded(link, dragSvg) {
         <div class="bio-s-7623f0"></div>
         <button class="bio-link-remove" data-bio-action="remove-link" data-bio-id="${link._id}">Remove</button>
       </div>
-      <div class="bio-s-e289c0">Add up to 10 YouTube videos as a carousel. Tap 9:16 on any video to show it vertically (good for Shorts).</div>
+      <div class="bio-s-e289c0">Add up to 10 YouTube videos as a carousel. Shorts (youtube.com/shorts links) display vertically automatically.</div>
       ${inputsHtml}
       <button type="button" data-bio-action="add-video-to-block" data-bio-id="${link._id}" ${atMax ? 'disabled' : ''}
         class="bio-add-video-btn ${atMax ? 'is-disabled' : ''}">
@@ -3020,7 +2993,7 @@ async function saveBio() {
         ...(l.isVideoBlock ? {
           isVideoBlock: true,
           videos: (Array.isArray(l.videos) ? l.videos : [])
-            .map(v => ({ url: (v && v.url ? v.url : '').trim(), vertical: !!(v && v.vertical) }))
+            .map(v => ({ url: (v && v.url ? v.url : '').trim() }))
             .filter(v => v.url)
             .slice(0, 10)
         } : {}),
@@ -3421,7 +3394,7 @@ function buildPreviewLink(l, t) {
     const cards = videos.map(v => {
       const id = extractYouTubeIdDash(v && v.url);
       if (!id) return '';
-      const vert = !!(v && (v.vertical === true || (v.vertical == null && isShortsUrl(v.url))));
+      const vert = isShortsUrl(v && v.url);
       return `<div class="vc${vert ? ' vc-vertical' : ''}"><img src="https://i.ytimg.com/vi/${id}/hqdefault.jpg" alt="YouTube video thumbnail" data-bio-onerror="fallback-src" data-bio-fallback-src="https://i.ytimg.com/vi/${id}/default.jpg"></div>`;
     }).filter(Boolean).join('');
     if (!cards) {
@@ -3696,19 +3669,6 @@ bioRegisterAction('remove-link-thumb', (e, el) => removeLinkThumb(parseInt(el.da
 // Video block actions
 bioRegisterAction('update-video-url', (e, el) => {
   updateVideoBlockUrl(parseInt(el.dataset.bioId, 10), parseInt(el.dataset.bioIdx, 10), el.value);
-  // Reflect the auto-detected vertical state on the row's toggle without a
-  // full re-render (which would steal focus from the URL field).
-  const row = el.closest('.bio-s-302bc1');
-  const vbtn = row && row.querySelector('.bio-video-vert-btn');
-  if (vbtn && !vbtn.dataset.vmanual) {
-    const on = isShortsUrl(el.value);
-    vbtn.classList.toggle('is-vert', on);
-    vbtn.setAttribute('aria-pressed', on ? 'true' : 'false');
-  }
-});
-bioRegisterAction('toggle-video-vertical', (e, el) => {
-  el.dataset.vmanual = '1';
-  toggleVideoVertical(parseInt(el.dataset.bioId, 10), parseInt(el.dataset.bioIdx, 10));
 });
 bioRegisterAction('remove-video', (e, el) => {
   removeVideoFromBlock(parseInt(el.dataset.bioId, 10), parseInt(el.dataset.bioIdx, 10));
