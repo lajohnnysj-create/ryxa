@@ -10884,6 +10884,20 @@
     border-radius: 6px;
     box-shadow: 0 4px 16px rgba(232,121,249,0.4);
   }
+  /* Hero LINK upsell — sample card mirrors the live .link-btn.hero-link. */
+  .hlu-wrap { position: relative; padding: 24px 24px 6px; }
+  .hlu-pro-badge { position: absolute; top: 34px; right: 34px; z-index: 5; padding: 4px 10px; background: linear-gradient(135deg, #a78bfa, #e879f9); color: #fff; font-family: 'DM Sans', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; border-radius: 6px; box-shadow: 0 4px 16px rgba(232,121,249,0.4); }
+  .hlu-hero { position: relative; aspect-ratio: 3 / 2; overflow: hidden; border: 1px solid var(--accent); border-radius: 18px; background: #000; box-shadow: 0 0 26px 2px var(--accent-glow); animation: hluGlow 3s ease-in-out infinite, hluNudge 5s ease-in-out infinite; }
+  .hlu-hero::after { content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(115deg, transparent 35%, var(--accent2) 47%, rgba(255,255,255,0.4) 50%, var(--accent2) 53%, transparent 65%); background-size: 220% 100%; background-repeat: no-repeat; background-position: 150% 0; mix-blend-mode: screen; opacity: 0.6; animation: hluSheen 5s ease-in-out infinite; }
+  .hlu-hero-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; display: block; }
+  .hlu-hero-overlay { position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.7) 100%); pointer-events: none; }
+  .hlu-hero-content { position: absolute; inset: 0; z-index: 2; padding: 18px 20px; display: flex; flex-direction: column; justify-content: flex-end; text-align: left; }
+  .hlu-hero-title { color: #fff; font-family: 'DM Sans', sans-serif; font-size: 19px; font-weight: 800; text-shadow: 0 2px 6px rgba(0,0,0,0.5); }
+  .hlu-hero-desc { color: rgba(255,255,255,0.9); font-family: 'DM Sans', sans-serif; font-size: 13px; text-shadow: 0 1px 4px rgba(0,0,0,0.5); margin-top: 4px; }
+  @keyframes hluGlow { 0%, 100% { box-shadow: 0 0 18px 1px var(--accent-glow); } 50% { box-shadow: 0 0 44px 5px var(--accent-glow); } }
+  @keyframes hluSheen { 0%, 55% { background-position: 150% 0; } 82%, 100% { background-position: -90% 0; } }
+  @keyframes hluNudge { 0%, 80%, 100% { transform: rotate(0deg); } 86% { transform: rotate(-2.5deg); } 92% { transform: rotate(1.6deg); } 97% { transform: rotate(-0.6deg); } }
+  @media (prefers-reduced-motion: reduce) { .hlu-hero { animation: none; } .hlu-hero::after { animation: none; opacity: 0; } }
 </style>
 <div id="hero-upsell-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.8);align-items:center;justify-content:center;pointer-events:all;" data-bio-action="close-hero-upsell-if-backdrop">
   <div style="background:#0f0f1a;border:1px solid rgba(124,58,237,0.35);border-radius:16px;padding:0;position:relative;width:100%;max-width:420px;pointer-events:all;margin:20px;max-height:90vh;overflow-y:auto;">
@@ -10898,6 +10912,32 @@
       <div style="display:flex;gap:10px;">
         <a href="/pricing.html" data-bio-action="close-hero-upsell" style="flex:1;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow);text-decoration:none;text-align:center;">Upgrade Now</a>
         <button data-bio-action="close-hero-upsell" style="padding:11px 18px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Maybe later</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HERO LINK UPSELL — shown to Free users who click the Hero add button.
+     Shows a live sample hero link (mirrors .link-btn.hero-link on the live page). -->
+<div id="hero-link-upsell-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.8);align-items:center;justify-content:center;pointer-events:all;" data-bio-action="close-hero-link-upsell-if-backdrop">
+  <div style="background:#0f0f1a;border:1px solid rgba(124,58,237,0.35);border-radius:16px;padding:0;position:relative;width:100%;max-width:420px;pointer-events:all;margin:20px;max-height:90vh;overflow-y:auto;">
+    <div class="hlu-wrap">
+      <span class="hlu-pro-badge" aria-hidden="true">Pro</span>
+      <div class="hlu-hero">
+        <img src="/hero-link-upsell.jpg" alt="Example of a Hero link at the top of a Link in Bio page" class="hlu-hero-bg">
+        <div class="hlu-hero-overlay" aria-hidden="true"></div>
+        <div class="hlu-hero-content">
+          <div class="hlu-hero-title">My Latest Drop</div>
+          <div class="hlu-hero-desc">Tap to watch</div>
+        </div>
+      </div>
+    </div>
+    <div style="padding:14px 28px 26px;">
+      <h3 style="font-family:Syne,sans-serif;font-size:18px;font-weight:700;color:var(--text);margin:0 0 8px;">Make one link impossible to miss</h3>
+      <p style="color:var(--muted);font-size:13px;line-height:1.6;margin:0 0 18px;">A Hero link is a large, full-image feature at the top of your Link in Bio, with a glow and subtle motion that pulls every visitor's eye to your most important link. Available on Pro.</p>
+      <div style="display:flex;gap:10px;">
+        <a href="/pricing.html" data-bio-action="close-hero-link-upsell" style="flex:1;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow);text-decoration:none;text-align:center;">Upgrade Now</a>
+        <button data-bio-action="close-hero-link-upsell" style="padding:11px 18px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">Maybe later</button>
       </div>
     </div>
   </div>
