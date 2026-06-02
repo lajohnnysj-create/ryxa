@@ -620,7 +620,16 @@ async function loadBioData() {
       bioState.theme = bio.theme || 'purple';
       bioState.font_family = bio.font_family || 'DM Sans';
       bioState.socials = bio.socials || {};
-      bioState.links = Array.isArray(bio.links) ? bio.links.map(l => ({ ...l, _id: linkIdSeq++ })) : [];
+      bioState.links = Array.isArray(bio.links) ? bio.links.map(l => {
+        const link = { ...l, _id: linkIdSeq++ };
+        // Twitch/X moved from a single url to a videos[] carousel. Migrate any
+        // legacy single-url row so the editor and renderers see one shape.
+        if ((link.isTwitchBlock || link.isTweetBlock) && !Array.isArray(link.videos)) {
+          link.videos = link.url ? [{ url: link.url }] : [{ url: '' }];
+          delete link.url;
+        }
+        return link;
+      }) : [];
       // Old videos array is no longer used — YouTube embeds now live as
       // isVideoBlock entries inside bioState.links. Wipe any legacy data.
       bioState.videos = [];
@@ -1632,7 +1641,7 @@ function addTwitchBlock() {
   bioState.links.push({
     _id: newId,
     isTwitchBlock: true,
-    url: ''
+    videos: [{ url: '' }]
   });
   bioExpandedLinks.add(newId);
   renderBioLinks();
@@ -1653,7 +1662,7 @@ function addTweetBlock() {
   bioState.links.push({
     _id: newId,
     isTweetBlock: true,
-    url: ''
+    videos: [{ url: '' }]
   });
   bioExpandedLinks.add(newId);
   renderBioLinks();
@@ -1695,7 +1704,7 @@ function closeBioMoreModal() {
 // Update the URL of a video at a given index inside a video block link.
 function updateVideoBlockUrl(linkId, idx, url) {
   const link = bioState.links.find(l => l._id === linkId);
-  if (!link || !(link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock) || !Array.isArray(link.videos)) return;
+  if (!link || !(link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock || link.isTwitchBlock || link.isTweetBlock) || !Array.isArray(link.videos)) return;
   if (idx < 0 || idx >= link.videos.length) return;
   link.videos[idx].url = url;
   schedulePreviewUpdate();
@@ -1704,7 +1713,7 @@ function updateVideoBlockUrl(linkId, idx, url) {
 // Add another empty URL slot to a video block (max 10).
 function addVideoToBlock(linkId) {
   const link = bioState.links.find(l => l._id === linkId);
-  if (!link || !(link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock)) return;
+  if (!link || !(link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock || link.isTwitchBlock || link.isTweetBlock)) return;
   if (!Array.isArray(link.videos)) link.videos = [];
   if (link.videos.length >= 10) return;
   link.videos.push({ url: '' });
@@ -1717,7 +1726,7 @@ function addVideoToBlock(linkId) {
 // whole block via the row's Remove button).
 function removeVideoFromBlock(linkId, idx) {
   const link = bioState.links.find(l => l._id === linkId);
-  if (!link || !(link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock) || !Array.isArray(link.videos)) return;
+  if (!link || !(link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock || link.isTwitchBlock || link.isTweetBlock) || !Array.isArray(link.videos)) return;
   link.videos.splice(idx, 1);
   if (link.videos.length === 0) link.videos.push({ url: '' });
   renderBioLinks();
@@ -2461,15 +2470,15 @@ function renderLinkCollapsed(link, dragSvg, editSvg) {
     title = 'Spotify';
     subline = sp ? (sp.type.charAt(0).toUpperCase() + sp.type.slice(1)) : '<span class="bio-s-dbc3a0">No link yet</span>';
   } else if (link.isTwitchBlock) {
-    const tw = extractTwitch(link.url);
-    const kindLabel = { channel: 'Live channel', video: 'Video', clip: 'Clip' };
+    const videos = Array.isArray(link.videos) ? link.videos : [];
+    const filledCount = videos.filter(v => v && v.url && v.url.trim() && extractTwitch(v.url)).length;
     title = 'Twitch';
-    subline = tw ? kindLabel[tw.kind] : '<span class="bio-s-dbc3a0">No link yet</span>';
+    subline = filledCount === 0 ? 'No links yet' : (filledCount === 1 ? '1 video' : filledCount + ' videos');
   } else if (link.isTweetBlock) {
-    const id = extractTweetId(link.url);
-    const hm = String(link.url || '').match(/(?:twitter|x)\.com\/([A-Za-z0-9_]+)\/status/i);
+    const videos = Array.isArray(link.videos) ? link.videos : [];
+    const filledCount = videos.filter(v => v && v.url && v.url.trim() && extractTweetId(v.url)).length;
     title = 'X';
-    subline = id ? (hm ? '@' + escapeHtml(hm[1]) : 'Post') : '<span class="bio-s-dbc3a0">No link yet</span>';
+    subline = filledCount === 0 ? 'No posts yet' : (filledCount === 1 ? '1 post' : filledCount + ' posts');
   } else if (link.isSubscribe) {
     title = escapeHtml(link.title || 'Subscribe to my newsletter');
   } else if (link.isHero) {
@@ -2770,6 +2779,19 @@ function renderLinkExpanded(link, dragSvg) {
   }
 
   if (link.isTwitchBlock) {
+    const videos = Array.isArray(link.videos) && link.videos.length ? link.videos : [{ url: '' }];
+    const atMax = videos.length >= 10;
+    const inputsHtml = videos.map((v, idx) => {
+      const value = escapeHtml(v && v.url ? v.url : '');
+      return `<div class="bio-s-302bc1">
+        <input type="url" placeholder="https://twitch.tv/... or clips.twitch.tv/..." value="${value}"
+          data-bio-action="update-video-url" data-bio-event="input" data-bio-id="${link._id}" data-bio-idx="${idx}"
+          aria-label="Twitch URL ${idx + 1}"
+          class="bio-s-d3db56">
+        <button type="button" aria-label="Remove this Twitch link" data-bio-action="remove-video" data-bio-id="${link._id}" data-bio-idx="${idx}"
+          class="bio-s-09aacd">×</button>
+      </div>`;
+    }).join('');
     return `<div class="bio-link-row" data-id="${link._id}">
       <div class="bio-link-header">
         <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
@@ -2777,10 +2799,12 @@ function renderLinkExpanded(link, dragSvg) {
         <div class="bio-s-7623f0"></div>
         <button class="bio-link-remove" data-bio-action="remove-link" data-bio-id="${link._id}">Remove</button>
       </div>
-      <div class="bio-s-e289c0">Paste a Twitch link: a channel (twitch.tv/yourname) for the live stream, a past broadcast (twitch.tv/videos/...), or a clip. A live channel shows offline until you go live.</div>
-      <input type="url" placeholder="https://twitch.tv/..." value="${escapeHtml(link.url || '')}"
-        data-bio-action="update-link-field" data-bio-event="input" data-bio-id="${link._id}" data-bio-field="url"
-        aria-label="Twitch link" class="bio-s-6c002e">
+      <div class="bio-s-e289c0">Add up to 10 Twitch links as a carousel: channels (twitch.tv/yourname), past broadcasts (twitch.tv/videos/...), or clips. A live channel shows offline until you go live.</div>
+      ${inputsHtml}
+      <button type="button" data-bio-action="add-video-to-block" data-bio-id="${link._id}" ${atMax ? 'disabled' : ''}
+        class="bio-add-video-btn ${atMax ? 'is-disabled' : ''}">
+        ${atMax ? '10 limit reached' : '+ Add another'}
+      </button>
       <button type="button" data-bio-action="save-link-row" data-bio-id="${link._id}"
         class="bio-s-c7cf47">
         Save
@@ -2789,6 +2813,19 @@ function renderLinkExpanded(link, dragSvg) {
   }
 
   if (link.isTweetBlock) {
+    const videos = Array.isArray(link.videos) && link.videos.length ? link.videos : [{ url: '' }];
+    const atMax = videos.length >= 10;
+    const inputsHtml = videos.map((v, idx) => {
+      const value = escapeHtml(v && v.url ? v.url : '');
+      return `<div class="bio-s-302bc1">
+        <input type="url" placeholder="https://x.com/.../status/..." value="${value}"
+          data-bio-action="update-video-url" data-bio-event="input" data-bio-id="${link._id}" data-bio-idx="${idx}"
+          aria-label="X post URL ${idx + 1}"
+          class="bio-s-d3db56">
+        <button type="button" aria-label="Remove this post" data-bio-action="remove-video" data-bio-id="${link._id}" data-bio-idx="${idx}"
+          class="bio-s-09aacd">×</button>
+      </div>`;
+    }).join('');
     return `<div class="bio-link-row" data-id="${link._id}">
       <div class="bio-link-header">
         <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
@@ -2796,10 +2833,12 @@ function renderLinkExpanded(link, dragSvg) {
         <div class="bio-s-7623f0"></div>
         <button class="bio-link-remove" data-bio-action="remove-link" data-bio-id="${link._id}">Remove</button>
       </div>
-      <div class="bio-s-e289c0">Paste a link to a single X (Twitter) post, e.g. x.com/yourname/status/123... The post shows as a live card. Deleted or private posts will not appear.</div>
-      <input type="url" placeholder="https://x.com/.../status/..." value="${escapeHtml(link.url || '')}"
-        data-bio-action="update-link-field" data-bio-event="input" data-bio-id="${link._id}" data-bio-field="url"
-        aria-label="X post link" class="bio-s-6c002e">
+      <div class="bio-s-e289c0">Add up to 10 X (Twitter) posts as a carousel. Paste a link to each single post (x.com/yourname/status/...). Deleted or private posts will not appear.</div>
+      ${inputsHtml}
+      <button type="button" data-bio-action="add-video-to-block" data-bio-id="${link._id}" ${atMax ? 'disabled' : ''}
+        class="bio-add-video-btn ${atMax ? 'is-disabled' : ''}">
+        ${atMax ? '10 post limit reached' : '+ Add another post'}
+      </button>
       <button type="button" data-bio-action="save-link-row" data-bio-id="${link._id}"
         class="bio-s-c7cf47">
         Save
@@ -3431,8 +3470,20 @@ async function saveBio() {
             .slice(0, 10)
         } : {}),
         ...(l.isSpotifyBlock ? { isSpotifyBlock: true } : {}),
-        ...(l.isTwitchBlock ? { isTwitchBlock: true } : {}),
-        ...(l.isTweetBlock ? { isTweetBlock: true } : {}),
+        ...(l.isTwitchBlock ? {
+          isTwitchBlock: true,
+          videos: (Array.isArray(l.videos) ? l.videos : [])
+            .map(v => ({ url: (v && v.url ? v.url : '').trim() }))
+            .filter(v => v.url)
+            .slice(0, 10)
+        } : {}),
+        ...(l.isTweetBlock ? {
+          isTweetBlock: true,
+          videos: (Array.isArray(l.videos) ? l.videos : [])
+            .map(v => ({ url: (v && v.url ? v.url : '').trim() }))
+            .filter(v => v.url)
+            .slice(0, 10)
+        } : {}),
       }));
     // Old top-level videos array is no longer used — videos now live inside
     // isVideoBlock entries in `links`. Always write empty so legacy data clears.
@@ -3894,31 +3945,35 @@ function buildPreviewLink(l, t) {
     </div>`;
   }
   if (l.isTwitchBlock) {
-    const tw = extractTwitch(l.url);
-    if (!tw) {
-      return `<div style="background:#0e0e10;border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:10px;color:#fff;font-size:12px;">
-        <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path fill="#9146FF" d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>
-        <span>Twitch &middot; Add a Twitch link</span>
-      </div>`;
+    const videos = Array.isArray(l.videos) ? l.videos : [];
+    const cards = videos.map(v => {
+      const tw = extractTwitch(v && v.url);
+      if (!tw) return '';
+      return `<div class="vc"><div style="width:100%;aspect-ratio:16/9;background:#0e0e10;"><iframe src="${twitchEmbedSrc(tw)}" loading="lazy" title="Twitch player" allow="autoplay; fullscreen" allowfullscreen style="width:100%;height:100%;border:0;display:block;"></iframe></div></div>`;
+    }).filter(Boolean).join('');
+    if (!cards) {
+      return `<div style="background:${t.surface};border:1px dashed ${t.border};border-radius:10px;padding:14px;text-align:center;color:${t.muted};font-size:11px;">Twitch embeds will appear here</div>`;
     }
-    // Real player. parent is the dashboard host (www.ryxa.io); allowed via the
-    // dashboard frame-src. autoplay off so the preview never auto-plays a stream.
-    return `<div style="width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#0e0e10;">
-      <iframe src="${twitchEmbedSrc(tw)}" loading="lazy" title="Twitch player" allow="autoplay; fullscreen" allowfullscreen style="width:100%;height:100%;border:0;display:block;"></iframe>
+    return `<div class="vids">
+      <button type="button" class="vids-arrow vids-arrow-l" aria-label="Scroll left" tabindex="-1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <button type="button" class="vids-arrow vids-arrow-r" aria-label="Scroll right" tabindex="-1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button>
+      <div class="vids-r">${cards}</div>
     </div>`;
   }
   if (l.isTweetBlock) {
-    const id = extractTweetId(l.url);
-    if (!id) {
-      return `<div style="background:#f7f9f9;border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:10px;color:#0f1419;font-size:12px;">
-        <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path fill="#0f1419" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-        <span>X &middot; Add a post link</span>
-      </div>`;
+    const videos = Array.isArray(l.videos) ? l.videos : [];
+    const cards = videos.map(v => {
+      const id = extractTweetId(v && v.url);
+      if (!id) return '';
+      return `<div class="vc" style="flex-basis:300px;"><div style="width:100%;height:420px;background:#fff;"><iframe src="https://platform.twitter.com/embed/Tweet.html?id=${id}&dnt=true" loading="lazy" title="Post on X" style="width:100%;height:100%;border:0;display:block;"></iframe></div></div>`;
+    }).filter(Boolean).join('');
+    if (!cards) {
+      return `<div style="background:${t.surface};border:1px dashed ${t.border};border-radius:10px;padding:14px;text-align:center;color:${t.muted};font-size:11px;">X posts will appear here</div>`;
     }
-    // Fixed height in the preview (the reveal-when-ready resize listener only
-    // runs on the live page, not in this srcdoc); the live page auto-sizes.
-    return `<div style="width:100%;height:420px;border-radius:12px;overflow:hidden;background:#fff;">
-      <iframe src="https://platform.twitter.com/embed/Tweet.html?id=${id}&dnt=true" loading="lazy" title="Post on X" style="width:100%;height:100%;border:0;display:block;"></iframe>
+    return `<div class="vids">
+      <button type="button" class="vids-arrow vids-arrow-l" aria-label="Scroll left" tabindex="-1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <button type="button" class="vids-arrow vids-arrow-r" aria-label="Scroll right" tabindex="-1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button>
+      <div class="vids-r">${cards}</div>
     </div>`;
   }
   if (l.isInstagramBlock) {
