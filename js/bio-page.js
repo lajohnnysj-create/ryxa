@@ -155,6 +155,12 @@ function isShortsUrl(url) {
   return /youtube\.com\/shorts\//i.test(String(url || ''));
 }
 
+function extractTikTokId(url) {
+  if (!url) return null;
+  const m = String(url).match(/tiktok\.com\/(?:.*\/video\/|embed\/(?:v2\/)?|v\/)(\d{6,})/i);
+  return m ? m[1] : null;
+}
+
 function renderNotFound(username) {
   document.title = 'Page not found | Ryxa';
   document.getElementById('wrap').innerHTML = `
@@ -278,6 +284,28 @@ function buildLink(link) {
         <div class="video-thumb-wrap">
           <img class="video-thumb" src="${thumb}" alt="YouTube video thumbnail" loading="lazy" data-bio-onerror="thumb-fallback" data-bio-video-id="${id}">
           <div class="video-play"><div class="video-play-icon"></div></div>
+        </div>
+      </div>`;
+    }).filter(Boolean).join('');
+    if (!cards) return '';
+    return `<div class="videos">
+      <button type="button" class="videos-arrow videos-arrow-l" aria-label="Scroll left" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <button type="button" class="videos-arrow videos-arrow-r" aria-label="Scroll right" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button>
+      <div class="videos-scroll">${cards}</div>
+    </div>`;
+  }
+
+  // TikTok block — vertical carousel mirroring YouTube Shorts, embedding
+  // TikTok's official lazy-loaded player iframe per card.
+  if (link.isTikTokBlock) {
+    const videos = Array.isArray(link.videos) ? link.videos : [];
+    const cards = videos.map(v => {
+      const id = extractTikTokId(v && v.url);
+      if (!id) return '';
+      return `<div class="video-card vertical tiktok-card">
+        <div class="video-thumb-wrap">
+          <iframe class="video-iframe" src="https://www.tiktok.com/player/v1/${id}" loading="lazy"
+            title="TikTok video player" allow="fullscreen; encrypted-media; picture-in-picture" allowfullscreen></iframe>
         </div>
       </div>`;
     }).filter(Boolean).join('');
