@@ -173,6 +173,30 @@ function extractSpotify(url) {
   return m ? { type: m[1].toLowerCase(), id: m[2] } : null;
 }
 
+function extractTwitch(url) {
+  if (!url) return null;
+  const s = String(url);
+  let m = s.match(/clips\.twitch\.tv\/(?:embed\?clip=)?([A-Za-z0-9_-]+)/i);
+  if (m) return { kind: 'clip', id: m[1] };
+  m = s.match(/twitch\.tv\/[A-Za-z0-9_]+\/clip\/([A-Za-z0-9_-]+)/i);
+  if (m) return { kind: 'clip', id: m[1] };
+  m = s.match(/twitch\.tv\/videos\/(\d+)/i);
+  if (m) return { kind: 'video', id: m[1] };
+  m = s.match(/twitch\.tv\/([A-Za-z0-9_]{2,25})(?:[/?#]|$)/i);
+  if (m) {
+    const reserved = ['videos', 'directory', 'settings', 'subscriptions', 'clips', 'embed', 'p', 'u', 'collections', 'following', 'friends', 'downloads', 'jobs', 'turbo'];
+    if (!reserved.includes(m[1].toLowerCase())) return { kind: 'channel', id: m[1] };
+  }
+  return null;
+}
+
+function twitchEmbedSrc(t) {
+  const p = 'parent=www.ryxa.io&parent=ryxa.io';
+  if (t.kind === 'clip') return `https://clips.twitch.tv/embed?clip=${encodeURIComponent(t.id)}&${p}&autoplay=false`;
+  if (t.kind === 'video') return `https://player.twitch.tv/?video=${encodeURIComponent(t.id)}&${p}&autoplay=false`;
+  return `https://player.twitch.tv/?channel=${encodeURIComponent(t.id)}&${p}&autoplay=false`;
+}
+
 function renderNotFound(username) {
   document.title = 'Page not found | Ryxa';
   document.getElementById('wrap').innerHTML = `
@@ -357,6 +381,15 @@ function buildLink(link) {
     const tall = (sp.type === 'album' || sp.type === 'playlist' || sp.type === 'artist' || sp.type === 'show');
     return `<div class="spotify-embed${tall ? ' tall' : ''}">
       <iframe class="spotify-frame" src="https://open.spotify.com/embed/${sp.type}/${sp.id}" loading="lazy" title="Spotify player" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
+    </div>`;
+  }
+
+  // Twitch embed — live channel, VOD, or clip; all render as a 16:9 player.
+  if (link.isTwitchBlock) {
+    const tw = extractTwitch(link.url);
+    if (!tw) return '';
+    return `<div class="twitch-embed">
+      <iframe class="twitch-frame" src="${twitchEmbedSrc(tw)}" loading="lazy" title="Twitch player" allow="autoplay; fullscreen" allowfullscreen></iframe>
     </div>`;
   }
 
