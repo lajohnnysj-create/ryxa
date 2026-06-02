@@ -87,6 +87,20 @@ function extractSpotify(url) {
   return m ? { type: m[1].toLowerCase(), id: m[2] } : null;
 }
 
+// Apple Music type + embed src. Embed = same link on embed.music.apple.com,
+// keeping the storefront/type/slug/id path and ?i= track selector. Single
+// songs get the compact player.
+function extractAppleMusic(url) {
+  if (!url) return null;
+  const s = String(url);
+  const m = s.match(/music\.apple\.com\/([a-z]{2})\/(album|playlist|song|artist|music-video|station)\/([^/?#]+)\/([^/?#]+)/i);
+  if (!m) return null;
+  const type = m[2].toLowerCase();
+  const iMatch = s.match(/[?&]i=(\d+)/);
+  const src = `https://embed.music.apple.com/${m[1]}/${type}/${m[3]}/${m[4]}` + (iMatch ? `?i=${iMatch[1]}` : '');
+  return { type, src, song: !!iMatch || type === 'song' };
+}
+
 // Resolve a Twitch URL to an embed target: a live channel, a VOD (video), or
 // a clip. Order matters — clips/videos are checked before the bare-channel
 // pattern, and reserved path segments are excluded from channel matching.
@@ -425,6 +439,17 @@ function buildLink(link, currency) {
     const tall = (sp.type === 'album' || sp.type === 'playlist' || sp.type === 'artist' || sp.type === 'show');
     return `<div class="spotify-embed${tall ? ' tall' : ''}">
       <iframe class="spotify-frame" src="https://open.spotify.com/embed/${sp.type}/${sp.id}" loading="lazy" title="Spotify player" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
+    </div>`;
+  }
+
+  // Apple Music embed — a single song/album/playlist/artist. Songs get a
+  // compact player; albums and playlists get the taller tracklist player.
+  if (link.isAppleMusicBlock) {
+    const am = extractAppleMusic(link.url);
+    if (!am) return '';
+    const tall = !am.song;
+    return `<div class="apple-music-embed${tall ? ' tall' : ''}">
+      <iframe class="apple-music-frame" src="${am.src}" loading="lazy" title="Apple Music player" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
     </div>`;
   }
 
@@ -1196,7 +1221,7 @@ ${customThemeStyle}
       "font-src 'self' https://fonts.gstatic.com data:",
       "img-src 'self' data: blob: https://www.ryxa.io https://kjytapcgxukalwsyputk.supabase.co https://i.ytimg.com",
       "connect-src 'self' https://kjytapcgxukalwsyputk.supabase.co https://cdn.jsdelivr.net",
-      "frame-src https://www.youtube.com https://www.youtube-nocookie.com https://www.tiktok.com https://www.instagram.com https://open.spotify.com https://player.twitch.tv https://clips.twitch.tv https://platform.twitter.com https://platform.x.com",
+      "frame-src https://www.youtube.com https://www.youtube-nocookie.com https://www.tiktok.com https://www.instagram.com https://open.spotify.com https://embed.music.apple.com https://player.twitch.tv https://clips.twitch.tv https://platform.twitter.com https://platform.x.com",
       "media-src 'self' blob: https://kjytapcgxukalwsyputk.supabase.co",
       "object-src 'none'",
       "base-uri 'self'",
