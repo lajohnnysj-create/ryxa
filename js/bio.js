@@ -1724,6 +1724,21 @@ function addImageCarouselBlock() {
   showBioStatus('saved', 'Image carousel added');
 }
 
+function addGoogleMapBlock() {
+  const { maxLinks } = bioLimits();
+  if (bioState.links.length >= maxLinks) {
+    showBioStatus('error', `Link limit reached (${maxLinks}).`);
+    return;
+  }
+  if (bioState.links.some(l => l.isGoogleMapBlock)) return;
+  const newId = linkIdSeq++;
+  bioState.links.push({ _id: newId, isGoogleMapBlock: true, url: '' });
+  bioExpandedLinks.add(newId);
+  renderBioLinks();
+  schedulePreviewUpdate();
+  showBioStatus('saved', 'Google Reviews added');
+}
+
 // Twitch embed — live channel, VOD, or clip from a single URL. One per page
 // (all plans); the modal item disables when one exists, this is the backstop.
 function addTwitchBlock() {
@@ -1795,6 +1810,12 @@ function openBioMoreModal() {
     const used = bioState.links.some(l => l.isImageCarouselBlock);
     carouselItem.disabled = used;
     carouselItem.classList.toggle('is-used', used);
+  }
+  const googleMapItem = document.getElementById('bio-more-google-map');
+  if (googleMapItem) {
+    const used = bioState.links.some(l => l.isGoogleMapBlock);
+    googleMapItem.disabled = used;
+    googleMapItem.classList.toggle('is-used', used);
   }
   const twitchItem = document.getElementById('bio-more-twitch');
   if (twitchItem) {
@@ -2287,7 +2308,7 @@ function toggleLinkHalfWidth(id, checked) {
 function bioHalfBadge(link) {
   if (!link.halfWidth) return '';
   if (link.isMediaKit || link.isHero || link.isHeader || link.isSubscribe ||
-      link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock || link.isSpotifyBlock || link.isAppleMusicBlock || link.isSoundCloudBlock || link.isImageBlock || link.isImageCarouselBlock || link.isTwitchBlock || link.isTweetBlock || link.featured) {
+      link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock || link.isSpotifyBlock || link.isAppleMusicBlock || link.isSoundCloudBlock || link.isImageBlock || link.isImageCarouselBlock || link.isGoogleMapBlock || link.isTwitchBlock || link.isTweetBlock || link.featured) {
     return '';
   }
   return '<span class="bio-row-half" title="Half width" aria-label="Half width">&frac12;</span>';
@@ -2358,6 +2379,13 @@ function bioRowTypeMeta(link) {
       key: 'image',
       label: 'Image',
       icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="imgg2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#a78bfa"/><stop offset="1" stop-color="#e879f9"/></linearGradient></defs><rect width="24" height="24" rx="5.5" fill="url(#imgg2)"/><circle cx="8.3" cy="8.5" r="1.8" fill="#fff"/><path d="M4 18 L8.6 12.8 L11.6 16.1 L15.4 11.4 L20 18 Z" fill="#fff"/></svg>'
+    };
+  }
+  if (link.isGoogleMapBlock) {
+    return {
+      key: 'google-map',
+      label: 'Google Reviews',
+      icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="5.5" fill="#4285F4"/><path d="M12 5.4c-2.55 0-4.6 2-4.6 4.5 0 3.25 4.6 8.3 4.6 8.3s4.6-5.05 4.6-8.3c0-2.5-2.05-4.5-4.6-4.5z" fill="#fff"/><circle cx="12" cy="9.9" r="1.7" fill="#4285F4"/></svg>'
     };
   }
   if (link.isImageCarouselBlock) {
@@ -2623,6 +2651,9 @@ function renderLinkCollapsed(link, dragSvg, editSvg) {
     }
     title = 'Image carousel';
     subline = imgs.length === 0 ? '<span class="bio-s-dbc3a0">No images yet</span>' : (imgs.length === 1 ? '1 image' : imgs.length + ' images');
+  } else if (link.isGoogleMapBlock) {
+    title = 'Google Reviews';
+    subline = extractGoogleMap(link.url) ? 'Map added' : '<span class="bio-s-dbc3a0">No map yet</span>';
   } else if (link.isSubscribe) {
     title = escapeHtml(link.title || 'Subscribe to my newsletter');
   } else if (link.isHero) {
@@ -3010,6 +3041,23 @@ function renderLinkExpanded(link, dragSvg) {
     </div>`;
   }
 
+  if (link.isGoogleMapBlock) {
+    return `<div class="bio-link-row" data-id="${link._id}">
+      <div class="bio-link-header">
+        <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
+        <span class="bio-featured-badge bio-s-04da54" >Google Reviews</span>
+        <div class="bio-s-7623f0"></div>
+        <button class="bio-link-remove" data-bio-action="remove-link" data-bio-id="${link._id}">Remove</button>
+      </div>
+      <div class="bio-s-e289c0">On Google Maps, search your business, click Share, open the "Embed a map" tab, then copy and paste the HTML below. Your page shows the map with your star rating, and tapping it opens your full reviews on Google.</div>
+      <textarea rows="3" aria-label="Google Maps embed code" placeholder="Paste the embed code from Google Maps" data-bio-action="update-link-field" data-bio-event="input" data-bio-id="${link._id}" data-bio-field="url" class="bio-s-6c002e" style="min-height:70px;resize:vertical;font-family:inherit;line-height:1.4;">${escapeHtml(link.url || '')}</textarea>
+      <button type="button" data-bio-action="save-link-row" data-bio-id="${link._id}"
+        class="bio-s-c7cf47">
+        Save
+      </button>
+    </div>`;
+  }
+
   if (link.isImageCarouselBlock) {
     const images = Array.isArray(link.images) ? link.images : [];
     const atMax = images.length >= 10;
@@ -3335,7 +3383,7 @@ function saveLinkRow(id) {
   if (!link) return;
 
   // Headers, subscribe blocks, and video/TikTok blocks don't require a URL
-  if (link.isHeader || link.isSubscribe || link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock || link.isSpotifyBlock || link.isAppleMusicBlock || link.isSoundCloudBlock || link.isImageBlock || link.isImageCarouselBlock || link.isTwitchBlock || link.isTweetBlock) {
+  if (link.isHeader || link.isSubscribe || link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock || link.isSpotifyBlock || link.isAppleMusicBlock || link.isSoundCloudBlock || link.isImageBlock || link.isImageCarouselBlock || link.isGoogleMapBlock || link.isTwitchBlock || link.isTweetBlock) {
     bioExpandedLinks.delete(id);
     renderBioLinks();
     schedulePreviewUpdate();
@@ -3420,6 +3468,18 @@ function extractSoundCloud(url) {
   const isSet = /\/sets\//i.test(clean);
   const src = `https://w.soundcloud.com/player/?url=${encodeURIComponent(clean)}&color=%23ff5500&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false`;
   return { isSet, src };
+}
+
+// Google Maps place embed. The user pastes the embed code from Google Maps
+// (Share, then "Embed a map"); we pull out just the google.com/maps/embed URL
+// and render it in our own iframe. No API key, no cost. The page shows the map
+// and the business star rating; individual reviews open on Google when tapped.
+// We never render the pasted HTML, only the whitelisted embed URL, so pasting a
+// full <iframe> snippet is safe. Accepts the snippet or a bare embed URL.
+function extractGoogleMap(input) {
+  if (!input) return null;
+  const m = String(input).match(/https:\/\/www\.google\.com\/maps\/embed\?pb=[^"'\s<>]+/i);
+  return m ? m[0] : null;
 }
 
 // Resolve a Twitch URL to an embed target: live channel, VOD, or clip. Clips
@@ -3811,7 +3871,7 @@ async function saveBio() {
       return 'https://' + s;
     };
     const cleanLinks = bioState.links
-      .filter(l => (l.title || '').trim() || (l.url || '').trim() || l.isVideoBlock || l.isTikTokBlock || l.isInstagramBlock || l.isSpotifyBlock || l.isAppleMusicBlock || l.isSoundCloudBlock || l.isImageBlock || l.isImageCarouselBlock || l.isTwitchBlock || l.isTweetBlock || l.isHeader || l.isSubscribe || l.isMediaKit)
+      .filter(l => (l.title || '').trim() || (l.url || '').trim() || l.isVideoBlock || l.isTikTokBlock || l.isInstagramBlock || l.isSpotifyBlock || l.isAppleMusicBlock || l.isSoundCloudBlock || l.isImageBlock || l.isImageCarouselBlock || l.isGoogleMapBlock || l.isTwitchBlock || l.isTweetBlock || l.isHeader || l.isSubscribe || l.isMediaKit)
       .map(l => ({
         title: (l.title || '').slice(0, 80),
         description: (l.description || '').slice(0, 120),
@@ -3861,6 +3921,7 @@ async function saveBio() {
             .filter(im => im.photoUrl)
             .slice(0, 10)
         } : {}),
+        ...(l.isGoogleMapBlock ? { isGoogleMapBlock: true, url: extractGoogleMap(l.url) || '' } : {}),
         ...(l.isTwitchBlock ? {
           isTwitchBlock: true,
           videos: (Array.isArray(l.videos) ? l.videos : [])
@@ -4110,7 +4171,7 @@ function buildPreviewHTML() {
     ? `<img src="${escapeHtml(bioState.avatar_url)}" alt="Profile photo" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;">`
     : `<div style="width:100%;height:100%;border-radius:50%;background:${t.surface2};display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;font-size:36px;font-weight:800;color:${t.text};">${escapeHtml(initial)}</div>`;
   const socialsHtml = buildPreviewSocials(t);
-  const linksHtml = bioState.links.filter(l => l.isHeader || l.isSubscribe || l.isVideoBlock || l.isTikTokBlock || l.isInstagramBlock || l.isSpotifyBlock || l.isAppleMusicBlock || l.isSoundCloudBlock || l.isImageBlock || l.isImageCarouselBlock || l.isTwitchBlock || l.isTweetBlock || (l.url || '').trim()).map(l => buildPreviewLink(l, t)).join('');
+  const linksHtml = bioState.links.filter(l => l.isHeader || l.isSubscribe || l.isVideoBlock || l.isTikTokBlock || l.isInstagramBlock || l.isSpotifyBlock || l.isAppleMusicBlock || l.isSoundCloudBlock || l.isImageBlock || l.isImageCarouselBlock || l.isGoogleMapBlock || l.isTwitchBlock || l.isTweetBlock || (l.url || '').trim()).map(l => buildPreviewLink(l, t)).join('');
 
   // For custom themes with a bg image, we dim the radial glow (since bg image is already bg)
   const glowCSS = ((bioState.theme === 'custom' && isPro() && bioState.custom_theme?.bgUrl) || isImageTheme(bioState.theme))
@@ -4320,6 +4381,13 @@ function buildPreviewLink(l, t) {
       <button type="button" class="vids-arrow vids-arrow-r" aria-label="Scroll right" tabindex="-1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button>
       <div class="vids-r">${cards}</div>
     </div>`;
+  }
+  if (l.isGoogleMapBlock) {
+    const src = extractGoogleMap(l.url);
+    if (!src) {
+      return `<div style="width:100%;height:200px;border-radius:14px;background:${t.surface};border:1px dashed ${t.border};display:flex;align-items:center;justify-content:center;color:${t.muted};font-size:12px;text-align:center;padding:0 16px;">Paste your Google Maps embed code</div>`;
+    }
+    return `<div style="width:100%;height:300px;border-radius:14px;overflow:hidden;"><iframe src="${escapeHtml(src)}" loading="lazy" title="Google Maps location" referrerpolicy="no-referrer-when-downgrade" style="width:100%;height:100%;border:0;display:block;"></iframe></div>`;
   }
   if (l.isImageCarouselBlock) {
     const imgs = Array.isArray(l.images) ? l.images : [];
@@ -4679,6 +4747,7 @@ bioRegisterAction('add-soundcloud-block', () => { closeBioMoreModal(); addSoundC
 bioRegisterAction('add-image-block', () => { closeBioMoreModal(); addImageBlock(); });
 bioRegisterAction('image-photo-selected', (e, el) => onImagePhotoSelected(el, parseInt(el.dataset.bioId, 10)));
 bioRegisterAction('add-image-carousel-block', () => { closeBioMoreModal(); addImageCarouselBlock(); });
+bioRegisterAction('add-google-map-block', () => { closeBioMoreModal(); addGoogleMapBlock(); });
 bioRegisterAction('carousel-image-selected', (e, el) => onCarouselImageSelected(el, parseInt(el.dataset.bioId, 10)));
 bioRegisterAction('remove-carousel-image', (e, el) => removeCarouselImage(parseInt(el.dataset.bioId, 10), parseInt(el.dataset.bioIdx, 10)));
 bioRegisterAction('move-carousel-image', (e, el) => moveCarouselImage(parseInt(el.dataset.bioId, 10), parseInt(el.dataset.bioIdx, 10), parseInt(el.dataset.bioDir, 10)));
