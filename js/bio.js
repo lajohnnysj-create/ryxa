@@ -2739,6 +2739,25 @@ function extractTikTokId(url) {
   return m ? m[1] : null;
 }
 
+// Editor-preview thumbnails for TikTok. The browser can't hit TikTok oEmbed
+// directly (no CORS), so we resolve through our own /api/tiktok-oembed route
+// and cache per session. When a thumbnail resolves we refresh the preview so
+// the real image replaces the placeholder. Cached lookups (incl. failures,
+// stored as null) never refetch, so there's no render loop.
+const tiktokThumbCache = {};   // url -> thumbnail_url string, or null if unavailable
+const tiktokThumbPending = {}; // url -> true while a fetch is in flight
+function ensureTikTokThumb(url) {
+  if (!url || !extractTikTokId(url)) return;
+  if (Object.prototype.hasOwnProperty.call(tiktokThumbCache, url)) return;
+  if (tiktokThumbPending[url]) return;
+  tiktokThumbPending[url] = true;
+  fetch('/api/tiktok-oembed?url=' + encodeURIComponent(url))
+    .then(r => (r.ok ? r.json() : null))
+    .then(data => { tiktokThumbCache[url] = (data && data.thumbnail_url) ? data.thumbnail_url : null; })
+    .catch(() => { tiktokThumbCache[url] = null; })
+    .finally(() => { delete tiktokThumbPending[url]; schedulePreviewUpdate(); });
+}
+
 function setAvatarDisplay(mode) {
   if (mode === 'hero' && !isPro()) {
     // Free user clicked Hero. Open the upsell modal (with sample image)
@@ -3508,9 +3527,14 @@ function buildPreviewLink(l, t) {
     const cards = videos.map(v => {
       const id = extractTikTokId(v && v.url);
       if (!id) return '';
-      // Preview shows a lightweight branded placeholder (the live page embeds
-      // the real TikTok player; loading iframes in the editor preview is heavy
-      // and blocked by the dashboard CSP).
+      // Resolve the real thumbnail via /api/tiktok-oembed (cached per session).
+      // Until it arrives, show a lightweight branded placeholder. The live page
+      // always embeds the real player; we avoid loading iframes in the editor.
+      ensureTikTokThumb(v.url);
+      const thumb = tiktokThumbCache[v.url];
+      if (thumb) {
+        return `<div class="vc vc-vertical"><img src="${escapeHtml(thumb)}" alt="TikTok video thumbnail" data-bio-onerror="hide-thumb-bg"></div>`;
+      }
       return `<div class="vc vc-vertical"><div style="width:100%;aspect-ratio:9/16;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:#111;color:#fff;font-size:10px;">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>
         TikTok</div></div>`;
