@@ -790,7 +790,7 @@
   .link-btn.hero-link {
     position: relative;
     padding: 0;
-    min-height: 140px;
+    aspect-ratio: 3 / 2;
     overflow: hidden;
     border: 1px solid var(--accent);
     border-radius: 18px;
@@ -860,10 +860,10 @@
     pointer-events: none;
   }
   .hero-content {
-    position: relative;
+    position: absolute;
+    inset: 0;
     z-index: 2;
     padding: 20px 22px;
-    min-height: 140px;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
