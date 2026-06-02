@@ -101,6 +101,19 @@ function extractAppleMusic(url) {
   return { type, src, song: !!iMatch || type === 'song' };
 }
 
+// SoundCloud embed. The widget takes the full track URL as a query param on
+// w.soundcloud.com/player. Accepts track, set (playlist), and profile links;
+// sets get the taller tracklist player.
+function extractSoundCloud(url) {
+  if (!url) return null;
+  const m = String(url).trim().match(/^https?:\/\/(?:www\.)?soundcloud\.com\/[^?#\s]+/i);
+  if (!m) return null;
+  const clean = m[0];
+  const isSet = /\/sets\//i.test(clean);
+  const src = `https://w.soundcloud.com/player/?url=${encodeURIComponent(clean)}&color=%23ff5500&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false`;
+  return { isSet, src };
+}
+
 // Resolve a Twitch URL to an embed target: a live channel, a VOD (video), or
 // a clip. Order matters — clips/videos are checked before the bare-channel
 // pattern, and reserved path segments are excluded from channel matching.
@@ -450,6 +463,16 @@ function buildLink(link, currency) {
     const tall = !am.song;
     return `<div class="apple-music-embed${tall ? ' tall' : ''}">
       <iframe class="apple-music-frame" src="${am.src}" loading="lazy" title="Apple Music player" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
+    </div>`;
+  }
+
+  // SoundCloud embed — track (compact) or set/playlist (taller tracklist).
+  if (link.isSoundCloudBlock) {
+    const sc = extractSoundCloud(link.url);
+    if (!sc) return '';
+    const tall = sc.isSet;
+    return `<div class="soundcloud-embed${tall ? ' tall' : ''}">
+      <iframe class="soundcloud-frame" src="${sc.src}" loading="lazy" title="SoundCloud player" allow="autoplay"></iframe>
     </div>`;
   }
 
@@ -1221,7 +1244,7 @@ ${customThemeStyle}
       "font-src 'self' https://fonts.gstatic.com data:",
       "img-src 'self' data: blob: https://www.ryxa.io https://kjytapcgxukalwsyputk.supabase.co https://i.ytimg.com",
       "connect-src 'self' https://kjytapcgxukalwsyputk.supabase.co https://cdn.jsdelivr.net",
-      "frame-src https://www.youtube.com https://www.youtube-nocookie.com https://www.tiktok.com https://www.instagram.com https://open.spotify.com https://embed.music.apple.com https://player.twitch.tv https://clips.twitch.tv https://platform.twitter.com https://platform.x.com",
+      "frame-src https://www.youtube.com https://www.youtube-nocookie.com https://www.tiktok.com https://www.instagram.com https://open.spotify.com https://embed.music.apple.com https://w.soundcloud.com https://player.twitch.tv https://clips.twitch.tv https://platform.twitter.com https://platform.x.com",
       "media-src 'self' blob: https://kjytapcgxukalwsyputk.supabase.co",
       "object-src 'none'",
       "base-uri 'self'",
