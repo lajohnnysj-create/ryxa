@@ -330,6 +330,7 @@ function buildLink(link) {
       const id = extractInstagramId(v && v.url);
       if (!id) return '';
       return `<div class="ig-embed-card">
+        <div class="ig-embed-placeholder" aria-hidden="true"><svg class="ig-embed-ph-glyph" width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5.5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.6" cy="6.4" r="1.1" fill="currentColor" stroke="none"/></svg></div>
         <iframe class="ig-embed-frame" src="https://www.instagram.com/reel/${id}/embed/" loading="lazy"
           title="Instagram reel" scrolling="no" allowtransparency="true" allow="encrypted-media; picture-in-picture; fullscreen"></iframe>
       </div>`;
@@ -792,6 +793,7 @@ function render(profile, bio, userTier) {
     `;
   }
   initVideoArrows();
+  if (window.ryxaInitIgEmbeds) window.ryxaInitIgEmbeds();
 }
 
 // Wire up the desktop arrow buttons on every YouTube carousel. Each .videos
@@ -990,6 +992,7 @@ async function load() {
   if (window._ssrHydrated && window._ssrUsername) {
     trackPageView(window._ssrUsername, 'bio');
     initVideoArrows();
+    if (window.ryxaInitIgEmbeds) window.ryxaInitIgEmbeds();
     return;
   }
 
@@ -1210,28 +1213,42 @@ bioRegisterAction('sensitive-deny', function() {
 })();
 
 // =================================================================
-// Instagram embed auto-resize.
+// Instagram embeds: reveal-when-ready.
 //
-// Instagram's /reel/{id}/embed/ iframe reports its own card height to
-// the parent window, the same mechanism instagram.com/embed.js relies
-// on: a JSON string { type:'MEASURE', details:{ height } } posted from
-// an instagram.com origin once the card has laid out. We listen for it
-// and size each .ig-embed-card to match, so the card never clips the
-// caption/footer and never leaves dead whitespace below the reel.
+// Each .ig-embed-card starts as a clean branded loading tile at a 9:16
+// height, with the real Instagram iframe loading underneath but hidden.
+// Instagram's /reel/{id}/embed/ iframe reports its own card height to the
+// parent (the mechanism instagram.com/embed.js uses): a JSON string
+// { type:'MEASURE', details:{ height } } from an instagram.com origin.
+// On that message we size the card to the exact height and reveal the
+// reel (fade in, placeholder fade out, height animates). Starting at the
+// tile height means cards grow into place rather than shrinking, so there
+// is no "big then settles" flash.
 //
-// Fully defensive: messages from other origins, unparseable payloads,
-// the wrong type, or an out-of-range height are all ignored, in which
-// case the CSS fallback height stands. A change to Instagram's message
-// format can degrade the look but can never break the page.
+// Safety: if Instagram never reports a height (blocked message / format
+// change), once the iframe has loaded we reveal it anyway at a fallback
+// height after a short delay, so a reel is never stuck behind the tile.
+// All messages from other origins, unparseable payloads, the wrong type,
+// or out-of-range heights are ignored. Idempotent; safe to call repeatedly
+// (the client render path calls it again after building cards).
 // =================================================================
-(function initInstagramAutoResize() {
-  var MIN_H = 200, MAX_H = 1600;
+(function () {
+  var FALLBACK_H = 740, MIN_H = 200, MAX_H = 1600, REVEAL_MS = 2500;
+  var listenerReady = false;
+
   function isInstagramOrigin(origin) {
     return typeof origin === 'string' &&
       (origin === 'https://www.instagram.com' ||
        /^https:\/\/([\w-]+\.)*instagram\.com$/.test(origin));
   }
-  window.addEventListener('message', function (e) {
+
+  function revealIg(card, h) {
+    if (!card || card.classList.contains('ig-ready')) return;
+    card.style.height = h + 'px';
+    card.classList.add('ig-ready');
+  }
+
+  function onMessage(e) {
     if (!isInstagramOrigin(e.origin)) return;
     var data = e.data;
     if (typeof data === 'string') {
@@ -1243,11 +1260,39 @@ bioRegisterAction('sensitive-deny', function() {
     var frames = document.querySelectorAll('.ig-embed-frame');
     for (var i = 0; i < frames.length; i++) {
       if (frames[i].contentWindow === e.source) {
-        var card = frames[i].closest('.ig-embed-card');
-        if (card) card.style.height = h + 'px';
-        frames[i].style.height = h + 'px';
+        revealIg(frames[i].closest('.ig-embed-card'), h);
         break;
       }
     }
-  });
+  }
+
+  function armFallbacks() {
+    var frames = document.querySelectorAll('.ig-embed-frame');
+    for (var i = 0; i < frames.length; i++) {
+      var f = frames[i];
+      if (f.dataset.igArmed) continue;
+      f.dataset.igArmed = '1';
+      f.addEventListener('load', function () {
+        var frame = this;
+        setTimeout(function () {
+          revealIg(frame.closest('.ig-embed-card'), FALLBACK_H);
+        }, REVEAL_MS);
+      });
+    }
+  }
+
+  window.ryxaInitIgEmbeds = function () {
+    if (!listenerReady) {
+      listenerReady = true;
+      window.addEventListener('message', onMessage);
+    }
+    armFallbacks();
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', window.ryxaInitIgEmbeds);
+  } else {
+    window.ryxaInitIgEmbeds();
+  }
 })();
+
