@@ -1736,7 +1736,7 @@ function addGoogleMapBlock() {
   bioExpandedLinks.add(newId);
   renderBioLinks();
   schedulePreviewUpdate();
-  showBioStatus('saved', 'Google Reviews added');
+  showBioStatus('saved', 'Google Maps added');
 }
 
 // Twitch embed — live channel, VOD, or clip from a single URL. One per page
@@ -2384,7 +2384,7 @@ function bioRowTypeMeta(link) {
   if (link.isGoogleMapBlock) {
     return {
       key: 'google-map',
-      label: 'Google Reviews',
+      label: 'Google Maps',
       icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="5.5" fill="#4285F4"/><path d="M12 5.4c-2.55 0-4.6 2-4.6 4.5 0 3.25 4.6 8.3 4.6 8.3s4.6-5.05 4.6-8.3c0-2.5-2.05-4.5-4.6-4.5z" fill="#fff"/><circle cx="12" cy="9.9" r="1.7" fill="#4285F4"/></svg>'
     };
   }
@@ -2652,7 +2652,7 @@ function renderLinkCollapsed(link, dragSvg, editSvg) {
     title = 'Image carousel';
     subline = imgs.length === 0 ? '<span class="bio-s-dbc3a0">No images yet</span>' : (imgs.length === 1 ? '1 image' : imgs.length + ' images');
   } else if (link.isGoogleMapBlock) {
-    title = 'Google Reviews';
+    title = 'Google Maps';
     subline = extractGoogleMap(link.url) ? 'Map added' : '<span class="bio-s-dbc3a0">No map yet</span>';
   } else if (link.isSubscribe) {
     title = escapeHtml(link.title || 'Subscribe to my newsletter');
@@ -3045,7 +3045,7 @@ function renderLinkExpanded(link, dragSvg) {
     return `<div class="bio-link-row" data-id="${link._id}">
       <div class="bio-link-header">
         <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
-        <span class="bio-featured-badge bio-s-04da54" >Google Reviews</span>
+        <span class="bio-featured-badge bio-s-04da54" >Google Maps</span>
         <div class="bio-s-7623f0"></div>
         <button class="bio-link-remove" data-bio-action="remove-link" data-bio-id="${link._id}">Remove</button>
       </div>
