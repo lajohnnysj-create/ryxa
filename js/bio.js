@@ -1597,6 +1597,47 @@ function addInstagramBlock() {
   showBioStatus('saved', 'Instagram block added');
 }
 
+// Spotify embed — a single track/album/playlist/artist/episode/show. Unlike
+// the video blocks it's one URL, not a list. One per page (all plans); the
+// modal item is disabled when one exists, this guard is the backstop.
+function addSpotifyBlock() {
+  const { maxLinks } = bioLimits();
+  if (bioState.links.length >= maxLinks) {
+    showBioStatus('error', `Link limit reached (${maxLinks}).`);
+    return;
+  }
+  if (bioState.links.some(l => l.isSpotifyBlock)) return;
+  const newId = linkIdSeq++;
+  bioState.links.push({
+    _id: newId,
+    isSpotifyBlock: true,
+    url: ''
+  });
+  bioExpandedLinks.add(newId);
+  renderBioLinks();
+  schedulePreviewUpdate();
+  showBioStatus('saved', 'Spotify added');
+}
+
+// "More" modal — houses widgets beyond the core add row, grouped by category.
+// Items inside use data-bio-action like everything else; opening refreshes any
+// per-item disabled state (e.g. Spotify is one-per-page).
+function openBioMoreModal() {
+  const modal = document.getElementById('bio-more-modal');
+  if (!modal) return;
+  const spotifyItem = document.getElementById('bio-more-spotify');
+  if (spotifyItem) {
+    const used = bioState.links.some(l => l.isSpotifyBlock);
+    spotifyItem.disabled = used;
+    spotifyItem.classList.toggle('is-used', used);
+  }
+  modal.classList.add('is-open');
+}
+function closeBioMoreModal() {
+  const modal = document.getElementById('bio-more-modal');
+  if (modal) modal.classList.remove('is-open');
+}
+
 // Update the URL of a video at a given index inside a video block link.
 function updateVideoBlockUrl(linkId, idx, url) {
   const link = bioState.links.find(l => l._id === linkId);
@@ -2069,7 +2110,7 @@ function toggleLinkHalfWidth(id, checked) {
 function bioHalfBadge(link) {
   if (!link.halfWidth) return '';
   if (link.isMediaKit || link.isHero || link.isHeader || link.isSubscribe ||
-      link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock || link.featured) {
+      link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock || link.isSpotifyBlock || link.featured) {
     return '';
   }
   return '<span class="bio-row-half" title="Half width" aria-label="Half width">&frac12;</span>';
@@ -2112,6 +2153,13 @@ function bioRowTypeMeta(link) {
       key: 'instagram',
       label: 'Instagram',
       icon: `<svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="${ig}" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#FEDA75"/><stop offset=".25" stop-color="#FA7E1E"/><stop offset=".5" stop-color="#D62976"/><stop offset=".75" stop-color="#962FBF"/><stop offset="1" stop-color="#4F5BD5"/></linearGradient></defs><rect x="2" y="2" width="20" height="20" rx="6" fill="url(#${ig})"/><circle cx="12" cy="12" r="4.2" fill="none" stroke="#fff" stroke-width="2"/><circle cx="17.4" cy="6.6" r="1.3" fill="#fff"/></svg>`
+    };
+  }
+  if (link.isSpotifyBlock) {
+    return {
+      key: 'spotify',
+      label: 'Spotify',
+      icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#1DB954"/><path d="M6.4 9.3c3.6-1.05 7.7-0.72 10.8 1.05" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round"/><path d="M7 12.6c3-0.85 6.2-0.5 8.7 1.0" stroke="#fff" stroke-width="1.35" fill="none" stroke-linecap="round"/><path d="M7.5 15.7c2.4-0.62 4.8-0.4 6.7 0.8" stroke="#fff" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg>'
     };
   }
   if (link.isSubscribe) {
@@ -2340,6 +2388,10 @@ function renderLinkCollapsed(link, dragSvg, editSvg) {
     const filledCount = videos.filter(v => v && v.url && v.url.trim() && extractInstagramId(v.url)).length;
     title = 'Instagram reels';
     subline = filledCount === 0 ? 'No reels yet' : (filledCount === 1 ? '1 reel' : filledCount + ' reels');
+  } else if (link.isSpotifyBlock) {
+    const sp = extractSpotify(link.url);
+    title = 'Spotify';
+    subline = sp ? (sp.type.charAt(0).toUpperCase() + sp.type.slice(1)) : '<span class="bio-s-dbc3a0">No link yet</span>';
   } else if (link.isSubscribe) {
     title = escapeHtml(link.title || 'Subscribe to my newsletter');
   } else if (link.isHero) {
@@ -2620,6 +2672,25 @@ function renderLinkExpanded(link, dragSvg) {
     </div>`;
   }
 
+  if (link.isSpotifyBlock) {
+    return `<div class="bio-link-row" data-id="${link._id}">
+      <div class="bio-link-header">
+        <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
+        <span class="bio-featured-badge bio-s-04da54" >Spotify</span>
+        <div class="bio-s-7623f0"></div>
+        <button class="bio-link-remove" data-bio-action="remove-link" data-bio-id="${link._id}">Remove</button>
+      </div>
+      <div class="bio-s-e289c0">Paste a Spotify share link, a track, album, playlist, artist, or podcast. Tracks show a compact player; albums and playlists show a scrollable tracklist.</div>
+      <input type="url" placeholder="https://open.spotify.com/..." value="${escapeHtml(link.url || '')}"
+        data-bio-action="update-link-field" data-bio-event="input" data-bio-id="${link._id}" data-bio-field="url"
+        aria-label="Spotify link" class="bio-s-6c002e">
+      <button type="button" data-bio-action="save-link-row" data-bio-id="${link._id}"
+        class="bio-s-c7cf47">
+        Save
+      </button>
+    </div>`;
+  }
+
   let photoSlot = '';
   if (link.isCourse) {
 
@@ -2768,7 +2839,7 @@ function saveLinkRow(id) {
   if (!link) return;
 
   // Headers, subscribe blocks, and video/TikTok blocks don't require a URL
-  if (link.isHeader || link.isSubscribe || link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock) {
+  if (link.isHeader || link.isSubscribe || link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock || link.isSpotifyBlock) {
     bioExpandedLinks.delete(id);
     renderBioLinks();
     schedulePreviewUpdate();
@@ -2818,6 +2889,14 @@ function extractInstagramId(url) {
   if (!url) return null;
   const m = String(url).match(/instagram\.com\/(?:reel|reels|p|tv)\/([A-Za-z0-9_-]+)/i);
   return m ? m[1] : null;
+}
+
+// Spotify type + id from a share URL (track/album/playlist/artist/episode/show,
+// with an optional /intl-xx/ locale prefix). Embed = open.spotify.com/embed/...
+function extractSpotify(url) {
+  if (!url) return null;
+  const m = String(url).match(/open\.spotify\.com\/(?:intl-[a-z]{2}\/)?(track|album|playlist|artist|episode|show)\/([A-Za-z0-9]+)/i);
+  return m ? { type: m[1].toLowerCase(), id: m[2] } : null;
 }
 
 // Editor-preview thumbnails for TikTok. The browser can't hit TikTok oEmbed
@@ -3160,7 +3239,7 @@ async function saveBio() {
       return 'https://' + s;
     };
     const cleanLinks = bioState.links
-      .filter(l => (l.title || '').trim() || (l.url || '').trim() || l.isVideoBlock || l.isTikTokBlock || l.isInstagramBlock || l.isHeader || l.isSubscribe || l.isMediaKit)
+      .filter(l => (l.title || '').trim() || (l.url || '').trim() || l.isVideoBlock || l.isTikTokBlock || l.isInstagramBlock || l.isSpotifyBlock || l.isHeader || l.isSubscribe || l.isMediaKit)
       .map(l => ({
         title: (l.title || '').slice(0, 80),
         description: (l.description || '').slice(0, 120),
@@ -3199,6 +3278,7 @@ async function saveBio() {
             .filter(v => v.url)
             .slice(0, 10)
         } : {}),
+        ...(l.isSpotifyBlock ? { isSpotifyBlock: true } : {}),
       }));
     // Old top-level videos array is no longer used — videos now live inside
     // isVideoBlock entries in `links`. Always write empty so legacy data clears.
@@ -3434,7 +3514,7 @@ function buildPreviewHTML() {
     ? `<img src="${escapeHtml(bioState.avatar_url)}" alt="Profile photo" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;">`
     : `<div style="width:100%;height:100%;border-radius:50%;background:${t.surface2};display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;font-size:36px;font-weight:800;color:${t.text};">${escapeHtml(initial)}</div>`;
   const socialsHtml = buildPreviewSocials(t);
-  const linksHtml = bioState.links.filter(l => l.isHeader || l.isSubscribe || l.isVideoBlock || l.isTikTokBlock || l.isInstagramBlock || (l.url || '').trim()).map(l => buildPreviewLink(l, t)).join('');
+  const linksHtml = bioState.links.filter(l => l.isHeader || l.isSubscribe || l.isVideoBlock || l.isTikTokBlock || l.isInstagramBlock || l.isSpotifyBlock || (l.url || '').trim()).map(l => buildPreviewLink(l, t)).join('');
 
   // For custom themes with a bg image, we dim the radial glow (since bg image is already bg)
   const glowCSS = ((bioState.theme === 'custom' && isPro() && bioState.custom_theme?.bgUrl) || isImageTheme(bioState.theme))
@@ -3640,6 +3720,16 @@ function buildPreviewLink(l, t) {
       <button type="button" class="vids-arrow vids-arrow-l" aria-label="Scroll left" tabindex="-1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg></button>
       <button type="button" class="vids-arrow vids-arrow-r" aria-label="Scroll right" tabindex="-1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button>
       <div class="vids-r">${cards}</div>
+    </div>`;
+  }
+  if (l.isSpotifyBlock) {
+    const sp = extractSpotify(l.url);
+    const label = sp ? (sp.type.charAt(0).toUpperCase() + sp.type.slice(1)) : 'Add a Spotify link';
+    // Preview shows a branded placeholder; the live page embeds the real player
+    // (loading Spotify iframes in the editor is heavy and re-renders per keystroke).
+    return `<div style="background:#191414;border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:10px;color:#fff;font-size:12px;">
+      <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#1DB954"/><path d="M6.4 9.3c3.6-1.05 7.7-0.72 10.8 1.05" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round"/><path d="M7 12.6c3-0.85 6.2-0.5 8.7 1.0" stroke="#fff" stroke-width="1.35" fill="none" stroke-linecap="round"/><path d="M7.5 15.7c2.4-0.62 4.8-0.4 6.7 0.8" stroke="#fff" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg>
+      <span>Spotify &middot; ${label}</span>
     </div>`;
   }
   if (l.isInstagramBlock) {
@@ -3893,6 +3983,10 @@ bioRegisterAction('add-header', () => addHeader());
 bioRegisterAction('add-video-block', () => addVideoBlock());
 bioRegisterAction('add-tiktok-block', () => addTikTokBlock());
 bioRegisterAction('add-instagram-block', () => addInstagramBlock());
+bioRegisterAction('add-spotify-block', () => { closeBioMoreModal(); addSpotifyBlock(); });
+bioRegisterAction('open-more-modal', () => openBioMoreModal());
+bioRegisterAction('close-more-modal', () => closeBioMoreModal());
+bioRegisterAction('close-more-if-backdrop', (e) => { if (e.target && e.target.id === 'bio-more-modal') closeBioMoreModal(); });
 bioRegisterAction('add-subscribe-block', () => addSubscribeBlock());
 bioRegisterAction('open-course-picker', () => openCoursePickerModal());
 bioRegisterAction('open-coaching-picker', () => openCoachingPickerModal());
