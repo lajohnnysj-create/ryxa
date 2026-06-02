@@ -922,6 +922,7 @@
   }
   .videos-scroll {
     display: flex;
+    align-items: center;
     gap: 12px;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
@@ -953,8 +954,9 @@
     background: var(--surface2);
     overflow: hidden;
   }
-  /* Vertical (Short) cards: same row height as 16:9 cards, narrower width. */
-  .video-card.vertical { flex-basis: 101px; }
+  /* Vertical (Short) cards: featured size, not tied to the 16:9 card height.
+     Horizontal cards keep their smaller height and center within the row. */
+  .video-card.vertical { flex-basis: 240px; }
   .video-card.vertical .video-thumb-wrap { aspect-ratio: 9 / 16; }
   .video-thumb {
     width: 100%;
