@@ -548,10 +548,10 @@ function renderBioContent(profile, bio) {
   const isPaidTier = profile.tier === 'monthly' || profile.tier === 'max';
   const isHeroMode = bio.avatar_display === 'hero' && validImageUrl(bio.avatar_url) && isPaidTier;
 
-  // Verified badge: shown only when verified AND on a paid plan. Mirrors the
-  // client-side fallback renderer in js/bio-page.js. Inline styles so it needs
-  // no external CSS in the SSR output.
-  const showVerified = !!profile.verified && isPaidTier;
+  // Verified badge: shown whenever the profile is verified. Verification is a
+  // manual, admin-controlled flag (only set via SQL / service role behind the
+  // guard trigger), so it stands on its own and is not tied to plan tier.
+  const showVerified = !!profile.verified;
   const nameBadge = showVerified ? verifiedBadgeSvg() : '';
 
   const links = Array.isArray(bio.links) ? bio.links : [];
