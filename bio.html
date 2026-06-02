@@ -959,6 +959,23 @@
   .video-card.vertical { flex-basis: 240px; }
   .video-card.vertical .video-thumb-wrap { aspect-ratio: 9 / 16; }
   .video-card.tiktok-card { cursor: default; }
+  /* Instagram embed cards render Instagram's own card (header, media, caption),
+     so they get their own width/height rather than the 9:16 tile sizing.
+     Height is a fixed viewport into the embed; tune if it clips or pads. */
+  .ig-embed-card {
+    flex: 0 0 328px;
+    height: 560px;
+    scroll-snap-align: start;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #fff;
+  }
+  .ig-embed-frame {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+  }
   .video-thumb {
     width: 100%;
     height: 100%;
