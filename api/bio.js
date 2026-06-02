@@ -289,7 +289,7 @@ function buildLink(link, currency) {
     const cards = videos.map(v => {
       const id = extractYouTubeId(v && (v.url || v.videoId));
       if (!id) return '';
-      const vert = !!(v && (v.vertical === true || (v.vertical == null && isShortsUrl(v.url))));
+      const vert = isShortsUrl(v && (v.url || v.videoId));
       const thumb = `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
       return `<div class="video-card${vert ? ' vertical' : ''}" tabindex="0" role="button" aria-label="Play video"
                 data-bio-action="play-video" data-bio-video-id="${id}">
