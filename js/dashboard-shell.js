@@ -300,6 +300,7 @@ const toolTitles = {
   contractanalyzer: 'AI Contract Analyzer',
   deals: 'Brand Deal CRM',
   analytics: 'Analytics',
+  'bio-analytics': 'Analytics',
     clients: 'Subscribers',
     settings: 'Settings',
     design: 'Design Studio',
