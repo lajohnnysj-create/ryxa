@@ -1739,6 +1739,23 @@ function addGoogleMapBlock() {
   showBioStatus('saved', 'Google Maps added');
 }
 
+// Discord server widget — live member card from a server ID or widget URL. One
+// per page (all plans); the modal item disables when one exists, this backstops.
+function addDiscordBlock() {
+  const { maxLinks } = bioLimits();
+  if (bioState.links.length >= maxLinks) {
+    showBioStatus('error', `Link limit reached (${maxLinks}).`);
+    return;
+  }
+  if (bioState.links.some(l => l.isDiscordBlock)) return;
+  const newId = linkIdSeq++;
+  bioState.links.push({ _id: newId, isDiscordBlock: true, url: '' });
+  bioExpandedLinks.add(newId);
+  renderBioLinks();
+  schedulePreviewUpdate();
+  showBioStatus('saved', 'Discord added');
+}
+
 // Twitch embed — live channel, VOD, or clip from a single URL. One per page
 // (all plans); the modal item disables when one exists, this is the backstop.
 function addTwitchBlock() {
@@ -1816,6 +1833,12 @@ function openBioMoreModal() {
     const used = bioState.links.some(l => l.isGoogleMapBlock);
     googleMapItem.disabled = used;
     googleMapItem.classList.toggle('is-used', used);
+  }
+  const discordItem = document.getElementById('bio-more-discord');
+  if (discordItem) {
+    const used = bioState.links.some(l => l.isDiscordBlock);
+    discordItem.disabled = used;
+    discordItem.classList.toggle('is-used', used);
   }
   const twitchItem = document.getElementById('bio-more-twitch');
   if (twitchItem) {
@@ -2308,7 +2331,7 @@ function toggleLinkHalfWidth(id, checked) {
 function bioHalfBadge(link) {
   if (!link.halfWidth) return '';
   if (link.isMediaKit || link.isHero || link.isHeader || link.isSubscribe ||
-      link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock || link.isSpotifyBlock || link.isAppleMusicBlock || link.isSoundCloudBlock || link.isImageBlock || link.isImageCarouselBlock || link.isGoogleMapBlock || link.isTwitchBlock || link.isTweetBlock || link.featured) {
+      link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock || link.isSpotifyBlock || link.isAppleMusicBlock || link.isSoundCloudBlock || link.isImageBlock || link.isImageCarouselBlock || link.isGoogleMapBlock || link.isDiscordBlock || link.isTwitchBlock || link.isTweetBlock || link.featured) {
     return '';
   }
   return '<span class="bio-row-half" title="Half width" aria-label="Half width">&frac12;</span>';
@@ -2386,6 +2409,13 @@ function bioRowTypeMeta(link) {
       key: 'google-map',
       label: 'Google Maps',
       icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="5.5" fill="#4285F4"/><path d="M12 5.4c-2.55 0-4.6 2-4.6 4.5 0 3.25 4.6 8.3 4.6 8.3s4.6-5.05 4.6-8.3c0-2.5-2.05-4.5-4.6-4.5z" fill="#fff"/><circle cx="12" cy="9.9" r="1.7" fill="#4285F4"/></svg>'
+    };
+  }
+  if (link.isDiscordBlock) {
+    return {
+      key: 'discord',
+      label: 'Discord',
+      icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="5.5" fill="#5865F2"/><path fill="#fff" transform="translate(3.4 3.4) scale(0.72)" d="M20.317 4.3698a19.7913 19.7913 0 0 0-4.8851-1.5152.0741.0741 0 0 0-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 0 0-.0785-.037 19.7363 19.7363 0 0 0-4.8852 1.515.0699.0699 0 0 0-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 0 0 .0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 0 0 .0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 0 0-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 0 1-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 0 1 .0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 0 1 .0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 0 1-.0066.1276 12.2986 12.2986 0 0 1-1.873.8914.0766.0766 0 0 0-.0407.1067c.3604.698.7719 1.3628 1.2253 1.9932a.076.076 0 0 0 .0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 0 0 .0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 0 0-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg>'
     };
   }
   if (link.isImageCarouselBlock) {
@@ -2654,6 +2684,9 @@ function renderLinkCollapsed(link, dragSvg, editSvg) {
   } else if (link.isGoogleMapBlock) {
     title = 'Google Maps';
     subline = extractGoogleMap(link.url) ? 'Map added' : '<span class="bio-s-dbc3a0">No map yet</span>';
+  } else if (link.isDiscordBlock) {
+    title = 'Discord';
+    subline = extractDiscord(link.url) ? 'Server added' : '<span class="bio-s-dbc3a0">No server yet</span>';
   } else if (link.isSubscribe) {
     title = escapeHtml(link.title || 'Subscribe to my newsletter');
   } else if (link.isHero) {
@@ -3041,6 +3074,23 @@ function renderLinkExpanded(link, dragSvg) {
     </div>`;
   }
 
+  if (link.isDiscordBlock) {
+    return `<div class="bio-link-row" data-id="${link._id}">
+      <div class="bio-link-header">
+        <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
+        <span class="bio-featured-badge bio-s-04da54" >Discord</span>
+        <div class="bio-s-7623f0"></div>
+        <button class="bio-link-remove" data-bio-action="remove-link" data-bio-id="${link._id}">Remove</button>
+      </div>
+      <div class="bio-s-e289c0">In Discord, open Server Settings, then Widget, and turn on Enable Server Widget. Copy your Server ID (or the widget URL) and paste it below. Your page shows a live card with online members and an invite button.</div>
+      <textarea rows="2" aria-label="Discord server ID or widget URL" placeholder="Server ID, or https://discord.com/widget?id=..." data-bio-action="update-link-field" data-bio-event="input" data-bio-id="${link._id}" data-bio-field="url" class="bio-s-6c002e" style="min-height:54px;resize:vertical;font-family:inherit;line-height:1.4;">${escapeHtml(link.url || '')}</textarea>
+      <button type="button" data-bio-action="save-link-row" data-bio-id="${link._id}"
+        class="bio-s-c7cf47">
+        Save
+      </button>
+    </div>`;
+  }
+
   if (link.isGoogleMapBlock) {
     return `<div class="bio-link-row" data-id="${link._id}">
       <div class="bio-link-header">
@@ -3383,7 +3433,7 @@ function saveLinkRow(id) {
   if (!link) return;
 
   // Headers, subscribe blocks, and video/TikTok blocks don't require a URL
-  if (link.isHeader || link.isSubscribe || link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock || link.isSpotifyBlock || link.isAppleMusicBlock || link.isSoundCloudBlock || link.isImageBlock || link.isImageCarouselBlock || link.isGoogleMapBlock || link.isTwitchBlock || link.isTweetBlock) {
+  if (link.isHeader || link.isSubscribe || link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock || link.isSpotifyBlock || link.isAppleMusicBlock || link.isSoundCloudBlock || link.isImageBlock || link.isImageCarouselBlock || link.isGoogleMapBlock || link.isDiscordBlock || link.isTwitchBlock || link.isTweetBlock) {
     bioExpandedLinks.delete(id);
     renderBioLinks();
     schedulePreviewUpdate();
@@ -3480,6 +3530,18 @@ function extractGoogleMap(input) {
   if (!input) return null;
   const m = String(input).match(/https:\/\/www\.google\.com\/maps\/embed\?pb=[^"'\s<>]+/i);
   return m ? m[0] : null;
+}
+
+// Discord server widget. Accepts a bare server (snowflake) id, a widget URL, or
+// a pasted iframe snippet; we extract only the numeric id and rebuild the
+// canonical widget URL, so we never render the user's raw HTML.
+function extractDiscord(input) {
+  if (!input) return null;
+  const s = String(input).trim();
+  if (/^\d{17,20}$/.test(s)) return 'https://discord.com/widget?id=' + s + '&theme=dark';
+  const m = s.match(/discord(?:app)?\.com\/widget\?[^"'\s<>]*?id=(\d{17,20})/i);
+  if (m) return 'https://discord.com/widget?id=' + m[1] + '&theme=dark';
+  return null;
 }
 
 // Resolve a Twitch URL to an embed target: live channel, VOD, or clip. Clips
@@ -3882,7 +3944,7 @@ async function saveBio() {
       return (Math.random().toString(36).slice(2, 8) + Math.random().toString(36).slice(2, 6)).slice(0, 8);
     };
     const cleanLinks = bioState.links
-      .filter(l => (l.title || '').trim() || (l.url || '').trim() || l.isVideoBlock || l.isTikTokBlock || l.isInstagramBlock || l.isSpotifyBlock || l.isAppleMusicBlock || l.isSoundCloudBlock || l.isImageBlock || l.isImageCarouselBlock || l.isGoogleMapBlock || l.isTwitchBlock || l.isTweetBlock || l.isHeader || l.isSubscribe || l.isMediaKit)
+      .filter(l => (l.title || '').trim() || (l.url || '').trim() || l.isVideoBlock || l.isTikTokBlock || l.isInstagramBlock || l.isSpotifyBlock || l.isAppleMusicBlock || l.isSoundCloudBlock || l.isImageBlock || l.isImageCarouselBlock || l.isGoogleMapBlock || l.isDiscordBlock || l.isTwitchBlock || l.isTweetBlock || l.isHeader || l.isSubscribe || l.isMediaKit)
       .map(l => ({
         lid: l.lid || genLid(),
         title: (l.title || '').slice(0, 80),
@@ -3934,6 +3996,7 @@ async function saveBio() {
             .slice(0, 10)
         } : {}),
         ...(l.isGoogleMapBlock ? { isGoogleMapBlock: true, url: extractGoogleMap(l.url) || '' } : {}),
+        ...(l.isDiscordBlock ? { isDiscordBlock: true, url: extractDiscord(l.url) || '' } : {}),
         ...(l.isTwitchBlock ? {
           isTwitchBlock: true,
           videos: (Array.isArray(l.videos) ? l.videos : [])
@@ -4183,7 +4246,7 @@ function buildPreviewHTML() {
     ? `<img src="${escapeHtml(bioState.avatar_url)}" alt="Profile photo" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;">`
     : `<div style="width:100%;height:100%;border-radius:50%;background:${t.surface2};display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;font-size:36px;font-weight:800;color:${t.text};">${escapeHtml(initial)}</div>`;
   const socialsHtml = buildPreviewSocials(t);
-  const linksHtml = bioState.links.filter(l => l.isHeader || l.isSubscribe || l.isVideoBlock || l.isTikTokBlock || l.isInstagramBlock || l.isSpotifyBlock || l.isAppleMusicBlock || l.isSoundCloudBlock || l.isImageBlock || l.isImageCarouselBlock || l.isGoogleMapBlock || l.isTwitchBlock || l.isTweetBlock || (l.url || '').trim()).map(l => buildPreviewLink(l, t)).join('');
+  const linksHtml = bioState.links.filter(l => l.isHeader || l.isSubscribe || l.isVideoBlock || l.isTikTokBlock || l.isInstagramBlock || l.isSpotifyBlock || l.isAppleMusicBlock || l.isSoundCloudBlock || l.isImageBlock || l.isImageCarouselBlock || l.isGoogleMapBlock || l.isDiscordBlock || l.isTwitchBlock || l.isTweetBlock || (l.url || '').trim()).map(l => buildPreviewLink(l, t)).join('');
 
   // For custom themes with a bg image, we dim the radial glow (since bg image is already bg)
   const glowCSS = ((bioState.theme === 'custom' && isPro() && bioState.custom_theme?.bgUrl) || isImageTheme(bioState.theme))
@@ -4400,6 +4463,13 @@ function buildPreviewLink(l, t) {
       return `<div style="width:100%;height:200px;border-radius:14px;background:${t.surface};border:1px dashed ${t.border};display:flex;align-items:center;justify-content:center;color:${t.muted};font-size:12px;text-align:center;padding:0 16px;">Paste your Google Maps embed code</div>`;
     }
     return `<div style="width:100%;height:300px;border-radius:14px;overflow:hidden;"><iframe src="${escapeHtml(src)}" loading="lazy" title="Google Maps location" referrerpolicy="no-referrer-when-downgrade" style="width:100%;height:100%;border:0;display:block;"></iframe></div>`;
+  }
+  if (l.isDiscordBlock) {
+    const src = extractDiscord(l.url);
+    if (!src) {
+      return `<div style="width:100%;height:200px;border-radius:14px;background:${t.surface};border:1px dashed ${t.border};display:flex;align-items:center;justify-content:center;color:${t.muted};font-size:12px;text-align:center;padding:0 16px;">Add your Discord server</div>`;
+    }
+    return `<div style="width:100%;height:500px;border-radius:14px;overflow:hidden;"><iframe src="${escapeHtml(src)}" loading="lazy" title="Discord server" style="width:100%;height:100%;border:0;display:block;"></iframe></div>`;
   }
   if (l.isImageCarouselBlock) {
     const imgs = Array.isArray(l.images) ? l.images : [];
@@ -4763,6 +4833,7 @@ bioRegisterAction('add-image-block', () => { closeBioMoreModal(); addImageBlock(
 bioRegisterAction('image-photo-selected', (e, el) => onImagePhotoSelected(el, parseInt(el.dataset.bioId, 10)));
 bioRegisterAction('add-image-carousel-block', () => { closeBioMoreModal(); addImageCarouselBlock(); });
 bioRegisterAction('add-google-map-block', () => { closeBioMoreModal(); addGoogleMapBlock(); });
+bioRegisterAction('add-discord-block', () => { closeBioMoreModal(); addDiscordBlock(); });
 bioRegisterAction('carousel-image-selected', (e, el) => onCarouselImageSelected(el, parseInt(el.dataset.bioId, 10)));
 bioRegisterAction('remove-carousel-image', (e, el) => removeCarouselImage(parseInt(el.dataset.bioId, 10), parseInt(el.dataset.bioIdx, 10)));
 bioRegisterAction('move-carousel-image', (e, el) => moveCarouselImage(parseInt(el.dataset.bioId, 10), parseInt(el.dataset.bioIdx, 10), parseInt(el.dataset.bioDir, 10)));
