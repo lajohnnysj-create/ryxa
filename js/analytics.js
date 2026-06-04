@@ -482,6 +482,7 @@ anaRegisterAction('set-range', (e, el) => {
   setAnalyticsRange(days, el);
 });
 anaRegisterAction('set-custom-range', () => setAnalyticsCustomRange());
+anaRegisterAction('refresh', () => loadAnalyticsData());
 anaRegisterAction('sales-page', (e, el) => {
   const dir = parseInt(el.dataset.anaDir, 10);
   anaSalesPage(dir);

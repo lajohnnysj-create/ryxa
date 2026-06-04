@@ -44,6 +44,8 @@ function initBioAnalyticsTool() {
     });
     const goBtn = document.getElementById('ban-range-go');
     if (goBtn) goBtn.addEventListener('click', setBanCustomRange);
+    const refreshBtn = document.getElementById('ban-range-refresh');
+    if (refreshBtn) refreshBtn.addEventListener('click', loadBioAnalyticsData);
   }
   loadBioAnalyticsData();
 }
