@@ -1392,6 +1392,13 @@ function showTool(tool) {
   if (el) el.style.display = 'block';
   const nav = document.getElementById('nav-' + tool);
   if (nav) nav.classList.add('active');
+  // Keep the Analytics submenu expanded whenever an analytics page is shown
+  if (tool === 'analytics' || tool === 'bio-analytics') {
+    const anaSub = document.getElementById('nav-analytics-submenu');
+    const anaToggle = document.getElementById('nav-analytics-toggle');
+    if (anaSub) anaSub.classList.add('open');
+    if (anaToggle) anaToggle.setAttribute('aria-expanded', 'true');
+  }
 
   // Init settings when shown
   if (tool === 'settings') {
@@ -2591,6 +2598,13 @@ dashRegisterAction('show-tool', (e, el) => {
   // the URL from /dashboard to /dashboard# on every click.
   if (e && e.preventDefault) e.preventDefault();
   if (typeof showTool === 'function') showTool(el.dataset.dashTool);
+});
+
+dashRegisterAction('toggle-analytics-menu', (e, el) => {
+  const submenu = document.getElementById('nav-analytics-submenu');
+  const expanded = el.getAttribute('aria-expanded') === 'true';
+  el.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+  if (submenu) submenu.classList.toggle('open', !expanded);
 });
 dashRegisterAction('show-follower', () => {
   if (typeof showFollowerTool === 'function') showFollowerTool();

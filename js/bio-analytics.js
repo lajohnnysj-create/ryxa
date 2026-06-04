@@ -181,6 +181,7 @@ async function loadBioAnalyticsData() {
 function renderBanChart(canvasId, perDay, startStr, dayCount) {
   const canvas = document.getElementById(canvasId);
   if (!canvas) return;
+  const tooltip = document.getElementById('ban-chart-tooltip');
   const ctx = canvas.getContext('2d');
   const dpr = window.devicePixelRatio || 1;
   const w = canvas.offsetWidth, h = canvas.offsetHeight;
@@ -207,27 +208,67 @@ function renderBanChart(canvasId, perDay, startStr, dayCount) {
   const getX = function (i) { return pad.left + (i / Math.max(dayCount - 1, 1)) * cw; };
   const getY = function (v) { return pad.top + ch - (v / vMax) * ch; };
 
-  ctx.clearRect(0, 0, w, h);
+  function draw(hoverIdx) {
+    ctx.clearRect(0, 0, w, h);
 
-  // Grid
-  ctx.strokeStyle = 'rgba(255,255,255,0.04)'; ctx.lineWidth = 1;
-  for (let i = 0; i < 4; i++) {
-    const y = pad.top + (i / 3) * ch;
-    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(pad.left + cw, y); ctx.stroke();
+    // Grid
+    ctx.strokeStyle = 'rgba(255,255,255,0.04)'; ctx.lineWidth = 1;
+    for (let i = 0; i < 4; i++) {
+      const y = pad.top + (i / 3) * ch;
+      ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(pad.left + cw, y); ctx.stroke();
+    }
+
+    // Date labels
+    ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.font = '9px DM Sans, sans-serif'; ctx.textAlign = 'center';
+    const labelCount = Math.min(dayCount, 7);
+    for (let i = 0; i < labelCount; i++) {
+      const idx = Math.round(i * (dayCount - 1) / Math.max(labelCount - 1, 1));
+      ctx.fillText(dates[idx], getX(idx), h - 4);
+    }
+
+    // Line + fill
+    ctx.beginPath(); ctx.strokeStyle = 'rgba(124,58,237,1)'; ctx.lineWidth = 2; ctx.lineJoin = 'round';
+    vals.forEach(function (v, i) { const x = getX(i), y = getY(v); i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); });
+    ctx.stroke();
+    ctx.lineTo(getX(dayCount - 1), pad.top + ch); ctx.lineTo(getX(0), pad.top + ch); ctx.closePath();
+    ctx.fillStyle = 'rgba(124,58,237,0.10)'; ctx.fill();
+
+    // Hover marker + tooltip
+    if (hoverIdx !== null && hoverIdx >= 0 && hoverIdx < dayCount) {
+      const hx = getX(hoverIdx);
+      const vy = getY(vals[hoverIdx]);
+      ctx.beginPath(); ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 1;
+      ctx.setLineDash([3, 3]); ctx.moveTo(hx, pad.top); ctx.lineTo(hx, pad.top + ch); ctx.stroke(); ctx.setLineDash([]);
+      ctx.beginPath(); ctx.arc(hx, vy, 4, 0, Math.PI * 2);
+      ctx.fillStyle = '#7c3aed'; ctx.fill(); ctx.strokeStyle = '#0a0a14'; ctx.lineWidth = 2; ctx.stroke();
+
+      if (tooltip) {
+        const n = vals[hoverIdx] || 0;
+        tooltip.style.display = 'block';
+        tooltip.innerHTML = '<div style="color:rgba(255,255,255,0.5);margin-bottom:4px;">' + dates[hoverIdx] + '</div>'
+          + '<div style="color:#c4b5fd;">' + n.toLocaleString() + (n === 1 ? ' click' : ' clicks') + '</div>';
+        let tx = hx - tooltip.offsetWidth / 2;
+        if (tx < 0) tx = 0;
+        if (tx + tooltip.offsetWidth > w) tx = w - tooltip.offsetWidth;
+        tooltip.style.left = tx + 'px';
+        tooltip.style.bottom = (h - vy + 10) + 'px';
+        tooltip.style.top = 'auto';
+      }
+    } else if (tooltip) {
+      tooltip.style.display = 'none';
+    }
   }
 
-  // Date labels
-  ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.font = '9px DM Sans, sans-serif'; ctx.textAlign = 'center';
-  const labelCount = Math.min(dayCount, 7);
-  for (let i = 0; i < labelCount; i++) {
-    const idx = Math.round(i * (dayCount - 1) / Math.max(labelCount - 1, 1));
-    ctx.fillText(dates[idx], getX(idx), h - 4);
-  }
+  draw(null);
 
-  // Line + fill
-  ctx.beginPath(); ctx.strokeStyle = 'rgba(124,58,237,1)'; ctx.lineWidth = 2; ctx.lineJoin = 'round';
-  vals.forEach(function (v, i) { const x = getX(i), y = getY(v); i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); });
-  ctx.stroke();
-  ctx.lineTo(getX(dayCount - 1), pad.top + ch); ctx.lineTo(getX(0), pad.top + ch); ctx.closePath();
-  ctx.fillStyle = 'rgba(124,58,237,0.10)'; ctx.fill();
+  function getHoverIdx(e) {
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    return Math.round(((mx - pad.left) / cw) * (dayCount - 1));
+  }
+  canvas.onmousemove = function (e) { draw(getHoverIdx(e)); };
+  canvas.onmouseleave = function () { draw(null); };
+  canvas.ontouchmove = function (e) { e.preventDefault(); draw(getHoverIdx(e.touches[0])); };
+  canvas.ontouchend = function () { draw(null); };
+  canvas.style.cursor = 'crosshair';
 }
