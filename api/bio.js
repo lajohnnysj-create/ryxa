@@ -123,6 +123,18 @@ function extractGoogleMap(input) {
   return m ? m[0] : null;
 }
 
+// Discord server widget. Accepts a bare server (snowflake) id, a widget URL, or
+// a pasted iframe snippet; we extract only the numeric id and rebuild the
+// canonical widget URL, so we never render the user's raw HTML.
+function extractDiscord(input) {
+  if (!input) return null;
+  const s = String(input).trim();
+  if (/^\d{17,20}$/.test(s)) return 'https://discord.com/widget?id=' + s + '&theme=dark';
+  const m = s.match(/discord(?:app)?\.com\/widget\?[^"'\s<>]*?id=(\d{17,20})/i);
+  if (m) return 'https://discord.com/widget?id=' + m[1] + '&theme=dark';
+  return null;
+}
+
 // Resolve a Twitch URL to an embed target: a live channel, a VOD (video), or
 // a clip. Order matters — clips/videos are checked before the bare-channel
 // pattern, and reserved path segments are excluded from channel matching.
@@ -499,6 +511,14 @@ function buildLink(link, currency) {
     const src = extractGoogleMap(link.url);
     if (!src) return '';
     return `<div class="gmap-embed"><iframe class="gmap-frame" src="${esc(src)}" loading="lazy" title="Google Maps location" allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe></div>`;
+  }
+
+  // Discord server widget — live member card. We render only the rebuilt
+  // widget URL, never the pasted HTML.
+  if (link.isDiscordBlock) {
+    const src = extractDiscord(link.url);
+    if (!src) return '';
+    return `<div class="discord-embed"><iframe class="discord-frame" src="${esc(src)}" loading="lazy" title="Discord server"></iframe></div>`;
   }
 
   // Image carousel — up to 10 uploaded images, each at its natural aspect ratio
@@ -1290,7 +1310,7 @@ ${customThemeStyle}
       "font-src 'self' https://fonts.gstatic.com data:",
       "img-src 'self' data: blob: https://www.ryxa.io https://kjytapcgxukalwsyputk.supabase.co https://i.ytimg.com",
       "connect-src 'self' https://kjytapcgxukalwsyputk.supabase.co https://cdn.jsdelivr.net",
-      "frame-src https://www.youtube.com https://www.youtube-nocookie.com https://www.tiktok.com https://www.instagram.com https://open.spotify.com https://embed.music.apple.com https://w.soundcloud.com https://player.twitch.tv https://clips.twitch.tv https://platform.twitter.com https://platform.x.com https://www.google.com",
+      "frame-src https://www.youtube.com https://www.youtube-nocookie.com https://www.tiktok.com https://www.instagram.com https://open.spotify.com https://embed.music.apple.com https://w.soundcloud.com https://player.twitch.tv https://clips.twitch.tv https://platform.twitter.com https://platform.x.com https://www.google.com https://discord.com",
       "media-src 'self' blob: https://kjytapcgxukalwsyputk.supabase.co",
       "object-src 'none'",
       "base-uri 'self'",
