@@ -316,7 +316,7 @@ function buildSocials(socials) {
     const href = buildSocialHref(key, val.trim());
     if (!href) continue;
     const target = (key === 'email' || key === 'phone') ? '' : ' target="_blank" rel="noopener nofollow"';
-    items.push(`<a class="social-btn" href="${esc(href)}" aria-label="${key}"${target}>${SOCIAL_ICONS[key]}</a>`);
+    items.push(`<a class="social-btn" href="${esc(href)}" aria-label="${key}" data-lid="${esc(key)}" data-ltype="social"${target}>${SOCIAL_ICONS[key]}</a>`);
   }
   if (!items.length) return '';
   return `<div class="socials">${items.join('')}</div>`;
@@ -556,11 +556,15 @@ function buildLink(link, currency) {
   const title = esc(link.title || '');
   const desc = link.description ? `<div class="link-desc">${esc(link.description)}</div>` : '';
 
+  // Click-analytics hooks (links, featured, hero only; tools/embeds excluded).
+  const _ltype = link.isHero ? 'hero' : (link.featured ? 'featured' : 'link');
+  const clickAttrs = link.lid ? ` data-lid="${esc(link.lid)}" data-ltype="${_ltype}"` : '';
+
   // Hero link — full-image background, no icon
   if (link.isHero) {
     const safePhoto = validImageUrl(link.photoUrl);
     if (safePhoto) {
-      return `<a class="link-btn hero-link" href="${esc(url)}" target="_blank" rel="noopener nofollow">
+      return `<a class="link-btn hero-link" href="${esc(url)}" target="_blank" rel="noopener nofollow"${clickAttrs}>
         <img class="hero-bg" src="${esc(safePhoto)}" alt="Link background" loading="lazy">
         <div class="hero-overlay"></div>
         <div class="hero-content">
@@ -575,7 +579,7 @@ function buildLink(link, currency) {
   if (link.featured) {
     const safePhoto = validImageUrl(link.photoUrl);
     if (safePhoto) {
-      return `<a class="featured-link" href="${esc(url)}" target="_blank" rel="noopener nofollow">
+      return `<a class="featured-link" href="${esc(url)}" target="_blank" rel="noopener nofollow"${clickAttrs}>
         <img class="featured-photo" src="${esc(safePhoto)}" alt="Featured link" loading="lazy">
         <div class="featured-body">
           <div class="featured-title">${title}</div>
@@ -656,7 +660,7 @@ function buildLink(link, currency) {
   if (thumbUrl) {
     // Image on the left (square, flush to box edge, shares rounded corners with the box).
     // Title/desc fill the rest of the row, padding restored, text centered. CSS lives in bio.html.
-    return `<a class="link-btn link-btn-thumb${halfClass}" href="${esc(url)}" target="_blank" rel="noopener nofollow">
+    return `<a class="link-btn link-btn-thumb${halfClass}" href="${esc(url)}" target="_blank" rel="noopener nofollow"${clickAttrs}>
       <img class="link-thumb-img" src="${esc(thumbUrl)}" alt="" loading="lazy">
       <div class="link-thumb-body">
         <div class="link-title">${title}</div>
@@ -664,7 +668,7 @@ function buildLink(link, currency) {
       </div>
     </a>`;
   }
-  return `<a class="link-btn${halfClass}" href="${esc(url)}" target="_blank" rel="noopener nofollow">
+  return `<a class="link-btn${halfClass}" href="${esc(url)}" target="_blank" rel="noopener nofollow"${clickAttrs}>
     <div class="link-title">${title}</div>
     ${desc}
   </a>`;
