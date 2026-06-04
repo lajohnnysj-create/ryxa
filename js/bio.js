@@ -3082,7 +3082,7 @@ function renderLinkExpanded(link, dragSvg) {
         <div class="bio-s-7623f0"></div>
         <button class="bio-link-remove" data-bio-action="remove-link" data-bio-id="${link._id}">Remove</button>
       </div>
-      <div class="bio-s-e289c0">In Discord, open Server Settings, then Widget, and turn on Enable Server Widget. Copy your Server ID (or the widget URL) and paste it below. Your page shows a live card with online members and an invite button.</div>
+      <div class="bio-s-e289c0">In Discord, open Server Settings, then Engagement, then Widget, and turn on Enable Server Widget. Copy your Server ID (shown on that same screen) and paste it below. Your page shows a live card with online members and an invite button.</div>
       <textarea rows="2" aria-label="Discord server ID or widget URL" placeholder="Server ID, or https://discord.com/widget?id=..." data-bio-action="update-link-field" data-bio-event="input" data-bio-id="${link._id}" data-bio-field="url" class="bio-s-6c002e" style="min-height:54px;resize:vertical;font-family:inherit;line-height:1.4;">${escapeHtml(link.url || '')}</textarea>
       <button type="button" data-bio-action="save-link-row" data-bio-id="${link._id}"
         class="bio-s-c7cf47">
@@ -4469,7 +4469,7 @@ function buildPreviewLink(l, t) {
     if (!src) {
       return `<div style="width:100%;height:200px;border-radius:14px;background:${t.surface};border:1px dashed ${t.border};display:flex;align-items:center;justify-content:center;color:${t.muted};font-size:12px;text-align:center;padding:0 16px;">Add your Discord server</div>`;
     }
-    return `<div style="width:100%;height:500px;border-radius:14px;overflow:hidden;"><iframe src="${escapeHtml(src)}" loading="lazy" title="Discord server" style="width:100%;height:100%;border:0;display:block;"></iframe></div>`;
+    return `<div style="width:100%;height:340px;border-radius:14px;overflow:hidden;"><iframe src="${escapeHtml(src)}" loading="lazy" title="Discord server" style="width:100%;height:100%;border:0;display:block;"></iframe></div>`;
   }
   if (l.isImageCarouselBlock) {
     const imgs = Array.isArray(l.images) ? l.images : [];
