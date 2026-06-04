@@ -114,8 +114,6 @@
   .sidebar-item-badge.green { background: rgba(74,222,128,0.15); color: #4ade80; }
   .sidebar-item-badge.max { background: linear-gradient(135deg,#a78bfa,#e879f9); color: #fff; }
   /* Analytics sidebar dropdown */
-  .sidebar-chevron { margin-left: auto; flex-shrink: 0; opacity: 0.5; transition: transform 0.22s ease; }
-  #nav-analytics-toggle[aria-expanded="true"] .sidebar-chevron { transform: rotate(180deg); opacity: 0.8; }
   .sidebar-submenu { overflow: hidden; max-height: 0; transition: max-height 0.25s ease; }
   .sidebar-submenu.open { max-height: 160px; }
   .sidebar-subitem { display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 12px 8px 42px; position: relative; background: none; border: none; cursor: pointer; border-radius: 8px; font-family: "DM Sans", sans-serif; font-size: 13px; color: var(--muted); text-align: left; transition: color 0.15s, background 0.15s; }
@@ -6431,7 +6429,6 @@
       <button class="sidebar-item" id="nav-analytics-toggle" data-dash-action="toggle-analytics-menu" aria-expanded="false" aria-controls="nav-analytics-submenu">
         <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 20V10M12 20V4M6 20v-6"/></svg></div>
         <span class="sidebar-item-label">Analytics</span>
-        <svg class="sidebar-chevron" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
       </button>
       <div class="sidebar-submenu" id="nav-analytics-submenu" role="group" aria-label="Analytics views">
         <button class="sidebar-subitem" id="nav-bio-analytics" data-dash-action="show-tool" data-dash-tool="bio-analytics">
