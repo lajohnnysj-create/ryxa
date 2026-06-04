@@ -7,19 +7,19 @@
 // =====================================================
 
 let banRangeDays = 7;
-let banAll = false;
+let banCustomStart = null;
+let banCustomEnd = null;
 let banWired = false;
 
 function getBanDateRange() {
   const end = new Date();
   const endStr = end.toISOString().slice(0, 10);
-  if (banAll) {
-    // Pull everything; the chart's day span is recomputed from the data.
-    return { start: '2024-01-01', end: endStr, days: banRangeDays, all: true };
+  if (banCustomStart && banCustomEnd) {
+    return { start: banCustomStart, end: banCustomEnd, custom: true };
   }
   const start = new Date();
   start.setDate(start.getDate() - banRangeDays + 1);
-  return { start: start.toISOString().slice(0, 10), end: endStr, days: banRangeDays, all: false };
+  return { start: start.toISOString().slice(0, 10), end: endStr, custom: false };
 }
 
 function initBioAnalyticsTool() {
@@ -30,20 +30,33 @@ function initBioAnalyticsTool() {
   if (content) content.style.display = pro ? 'block' : 'none';
   if (!pro) return;
 
-  // Wire the range buttons once.
+  // Wire the range controls once.
   if (!banWired) {
     banWired = true;
     document.querySelectorAll('#tool-bio-analytics [data-ban-days]').forEach(function (btn) {
       btn.addEventListener('click', function () {
-        const raw = btn.getAttribute('data-ban-days');
-        banAll = (raw === 'all');
-        banRangeDays = parseInt(raw, 10) || 7;
+        banRangeDays = parseInt(btn.getAttribute('data-ban-days'), 10) || 7;
+        banCustomStart = null; banCustomEnd = null;
         document.querySelectorAll('#tool-bio-analytics .ana-range-btn').forEach(function (b) { b.classList.remove('active'); });
         btn.classList.add('active');
         loadBioAnalyticsData();
       });
     });
+    const goBtn = document.getElementById('ban-range-go');
+    if (goBtn) goBtn.addEventListener('click', setBanCustomRange);
   }
+  loadBioAnalyticsData();
+}
+
+function setBanCustomRange() {
+  const sEl = document.getElementById('ban-range-start');
+  const eEl = document.getElementById('ban-range-end');
+  if (!sEl || !eEl) return;
+  const sv = sEl.value, ev = eEl.value;
+  if (!sv || !ev || sv > ev) return;
+  banCustomStart = sv;
+  banCustomEnd = ev;
+  document.querySelectorAll('#tool-bio-analytics .ana-range-btn').forEach(function (b) { b.classList.remove('active'); });
   loadBioAnalyticsData();
 }
 
@@ -98,7 +111,6 @@ async function loadBioAnalyticsData() {
   const perLink = {};
   const perDay = {};
   let grandTotal = 0;
-  let minDay = null;
   clickRows.forEach(function (r) {
     const key = r.link_type + ':' + r.link_id;
     if (!perLink[key]) perLink[key] = { link_id: r.link_id, link_type: r.link_type, clicks: 0 };
@@ -107,23 +119,15 @@ async function loadBioAnalyticsData() {
     const day = (typeof r.day === 'string') ? r.day.slice(0, 10) : String(r.day).slice(0, 10);
     perDay[day] = (perDay[day] || 0) + c;
     grandTotal += c;
-    if (!minDay || day < minDay) minDay = day;
   });
 
   // Chart day span.
-  let chartStart, dayCount;
-  if (range.all) {
-    let startD;
-    if (minDay) {
-      startD = new Date(minDay + 'T00:00:00');
-    } else {
-      startD = new Date(); startD.setDate(startD.getDate() - 6);
-    }
-    chartStart = startD.toISOString().slice(0, 10);
-    dayCount = Math.max(1, Math.round((new Date(range.end + 'T00:00:00') - new Date(chartStart + 'T00:00:00')) / 86400000) + 1);
+  const chartStart = range.start;
+  let dayCount;
+  if (range.custom) {
+    dayCount = Math.max(1, Math.round((new Date(range.end + 'T00:00:00') - new Date(range.start + 'T00:00:00')) / 86400000) + 1);
   } else {
-    chartStart = range.start;
-    dayCount = range.days;
+    dayCount = banRangeDays;
   }
 
   // Summary: total clicks + overall click rate.
