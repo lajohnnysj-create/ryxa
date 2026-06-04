@@ -2281,7 +2281,7 @@ function renderAiUsage() {
     var teaserLimit = 40;  // show what they'd get on Pro
     bar.style.width = '0%';
     bar.style.background = 'var(--muted)';
-    pctEl.textContent = 'Locked';
+    pctEl.textContent = '';
     pctEl.style.color = 'var(--muted)';
     countEl.textContent = '0 / ' + teaserLimit + ' calls';
     countEl.style.opacity = '0.6';
