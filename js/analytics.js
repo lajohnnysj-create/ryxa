@@ -124,7 +124,7 @@ async function loadAnalyticsData() {
     const v = viewsRes.data;
     vTotal.textContent = (v.total || 0).toLocaleString();
     const avg = v.total > 0 ? Math.round(v.total / dayCount) : 0;
-    vSub.textContent = '~' + avg + '/day avg over ' + dayCount + ' days';
+    vSub.textContent = '~' + avg + '/day avg over ' + dayCount + (dayCount === 1 ? ' day' : ' days');
     viewsDaily = v.daily || [];
   } else {
     vTotal.textContent = '—'; vSub.textContent = 'Could not load';
@@ -139,7 +139,7 @@ async function loadAnalyticsData() {
   if (!revRes.error && revRes.data) {
     const r = revRes.data;
     rTotal.textContent = formatDashUSD(r.total_cents || 0);
-    rSub.textContent = (r.total_cents > 0 ? Object.keys(r.by_source || {}).length + ' source(s)' : 'No revenue') + ' over ' + dayCount + ' days';
+    rSub.textContent = (r.total_cents > 0 ? Object.keys(r.by_source || {}).length + ' source(s)' : 'No revenue') + ' over ' + dayCount + (dayCount === 1 ? ' day' : ' days');
     revDaily = r.daily || [];
     bySource = r.by_source || {};
   } else {
@@ -161,7 +161,13 @@ async function loadAnalyticsData() {
   document.getElementById('ana-pv-mediakit-total').textContent = (byPage.mediakit || 0).toLocaleString();
 
   // Render main chart (dual line)
-  renderAnaLineChart('ana-main-chart', viewsDaily, revDaily, dayCount);
+  const anaChartCard = document.getElementById('ana-chart-card');
+  if (dayCount <= 1) {
+    if (anaChartCard) anaChartCard.style.display = 'none';
+  } else {
+    if (anaChartCard) anaChartCard.style.display = '';
+    renderAnaLineChart('ana-main-chart', viewsDaily, revDaily, dayCount);
+  }
 
   // Render revenue mini charts
   renderAnaMiniChart('ana-courses-chart', revDaily, 'course', '#a78bfa');

@@ -159,7 +159,13 @@ async function loadBioAnalyticsData() {
     }
   }
 
-  renderBanChart('ban-chart', perDay, chartStart, dayCount);
+  const banChartCard = document.getElementById('ban-chart-card');
+  if (dayCount <= 1) {
+    if (banChartCard) banChartCard.style.display = 'none';
+  } else {
+    if (banChartCard) banChartCard.style.display = '';
+    renderBanChart('ban-chart', perDay, chartStart, dayCount);
+  }
 
   // Per-link table, sorted by clicks desc.
   const rows = Object.keys(perLink).map(function (k) { return perLink[k]; }).sort(function (a, b) { return b.clicks - a.clicks; });
