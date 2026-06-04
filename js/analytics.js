@@ -482,7 +482,16 @@ anaRegisterAction('set-range', (e, el) => {
   setAnalyticsRange(days, el);
 });
 anaRegisterAction('set-custom-range', () => setAnalyticsCustomRange());
-anaRegisterAction('refresh', () => loadAnalyticsData());
+anaRegisterAction('refresh', async (e, el) => {
+  if (el) { el.classList.add('is-refreshing'); el.disabled = true; }
+  try {
+    await Promise.all([loadAnalyticsData(), new Promise(r => setTimeout(r, 450))]);
+  } catch (err) {
+    console.error('Analytics refresh failed:', err);
+  } finally {
+    if (el) { el.classList.remove('is-refreshing'); el.disabled = false; }
+  }
+});
 anaRegisterAction('sales-page', (e, el) => {
   const dir = parseInt(el.dataset.anaDir, 10);
   anaSalesPage(dir);

@@ -45,7 +45,18 @@ function initBioAnalyticsTool() {
     const goBtn = document.getElementById('ban-range-go');
     if (goBtn) goBtn.addEventListener('click', setBanCustomRange);
     const refreshBtn = document.getElementById('ban-range-refresh');
-    if (refreshBtn) refreshBtn.addEventListener('click', loadBioAnalyticsData);
+    if (refreshBtn) refreshBtn.addEventListener('click', async function () {
+      refreshBtn.classList.add('is-refreshing');
+      refreshBtn.disabled = true;
+      try {
+        await Promise.all([loadBioAnalyticsData(), new Promise(function (r) { setTimeout(r, 450); })]);
+      } catch (err) {
+        console.error('Bio analytics refresh failed:', err);
+      } finally {
+        refreshBtn.classList.remove('is-refreshing');
+        refreshBtn.disabled = false;
+      }
+    });
   }
   loadBioAnalyticsData();
 }
