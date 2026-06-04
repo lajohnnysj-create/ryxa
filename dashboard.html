@@ -4275,7 +4275,7 @@
   .bio-s-b9b38d { font-family:Syne,sans-serif;font-size:24px;font-weight:800;margin-bottom:4px;letter-spacing:-0.5px; }
   .bio-s-9e2e36 { color:var(--muted);font-size:14px; }
   .bio-s-15b47d { display:flex;gap:10px;align-items:center;flex-wrap:wrap; }
-  .bio-s-6f2ad9 { display:none;padding:9px 14px;background:transparent;color:var(--accent2);border:1px solid rgba(124,58,237,0.4);border-radius:10px;font-size:13px;font-weight:500;text-decoration:none; }
+  .bio-s-6f2ad9 { display:none;padding:9px 14px;background:transparent;color:var(--accent2);border:1px solid rgba(124,58,237,0.4);border-radius:10px;font-size:13px;font-weight:500;text-decoration:none;cursor:pointer; }
   .bio-s-bee3a2 { padding:10px 18px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow); }
   .bio-s-00e937 { background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap; }
   .bio-s-7e30d2 { display:flex;align-items:center;gap:10px; }
@@ -6898,7 +6898,7 @@
           </div>
           <div class="bio-s-15b47d">
             <a id="bio-view-live" href="#" target="_blank" rel="noopener" class="bio-s-6f2ad9">View live page ↗</a>
-            <button id="bio-analytics-btn" data-bio-action="open-analytics" class="bio-s-6f2ad9" style="display:inline-block;">Analytics</button>
+            <button id="bio-analytics-btn" data-bio-action="open-analytics" class="bio-s-bee3a2">Analytics</button>
             <button id="bio-save-btn" data-bio-action="save" class="bio-s-bee3a2">Save</button>
           </div>
         </div>
@@ -7647,7 +7647,12 @@
               <button class="ana-range-btn active" data-ban-days="7">7d</button>
               <button class="ana-range-btn" data-ban-days="14">14d</button>
               <button class="ana-range-btn" data-ban-days="30">30d</button>
-              <button class="ana-range-btn" data-ban-days="all">All time</button>
+              <div class="ana-s-7e407a">
+                <input type="date" id="ban-range-start" aria-label="Bio analytics start date" class="ana-s-428499">
+                <span class="ana-s-e34c4f">to</span>
+                <input type="date" id="ban-range-end" aria-label="Bio analytics end date" class="ana-s-428499">
+                <button class="ana-range-btn" id="ban-range-go">Go</button>
+              </div>
             </div>
           </div>
 
