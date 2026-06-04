@@ -3870,9 +3870,21 @@ async function saveBio() {
       if (/^[a-z][a-z0-9+.-]*:/i.test(s)) return s;
       return 'https://' + s;
     };
+    // Stable per-link id for click analytics. Generated once at save and then
+    // preserved (loadBioData spreads it back in), so a link keeps its id across
+    // reorders and edits. Existing links were backfilled in SQL.
+    const genLid = () => {
+      try {
+        if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+          return crypto.randomUUID().replace(/-/g, '').slice(0, 8);
+        }
+      } catch (e) {}
+      return (Math.random().toString(36).slice(2, 8) + Math.random().toString(36).slice(2, 6)).slice(0, 8);
+    };
     const cleanLinks = bioState.links
       .filter(l => (l.title || '').trim() || (l.url || '').trim() || l.isVideoBlock || l.isTikTokBlock || l.isInstagramBlock || l.isSpotifyBlock || l.isAppleMusicBlock || l.isSoundCloudBlock || l.isImageBlock || l.isImageCarouselBlock || l.isGoogleMapBlock || l.isTwitchBlock || l.isTweetBlock || l.isHeader || l.isSubscribe || l.isMediaKit)
       .map(l => ({
+        lid: l.lid || genLid(),
         title: (l.title || '').slice(0, 80),
         description: (l.description || '').slice(0, 120),
         url: normalizeUrl(l.url),
