@@ -77,7 +77,7 @@ function getAnaDateRange() {
 function setAnalyticsRange(days, btn) {
   anaRangeDays = days;
   anaCustomStart = null; anaCustomEnd = null;
-  document.querySelectorAll('.ana-range-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#tool-analytics .ana-range-btn').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
   loadAnalyticsData();
 }
@@ -87,7 +87,7 @@ function setAnalyticsCustomRange() {
   const e = document.getElementById('ana-range-end').value;
   if (!s || !e || s > e) return;
   anaCustomStart = s; anaCustomEnd = e;
-  document.querySelectorAll('.ana-range-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#tool-analytics .ana-range-btn').forEach(b => b.classList.remove('active'));
   loadAnalyticsData();
 }
 

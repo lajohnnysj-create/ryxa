@@ -58,6 +58,14 @@ function initBioAnalyticsTool() {
       }
     });
   }
+  // Re-assert the active range button on every open. The .ana-range-btn class
+  // is shared with Store Analytics, so this stays correct even if another view
+  // touched it, and it restores the highlight after returning to this page.
+  document.querySelectorAll('#tool-bio-analytics .ana-range-btn').forEach(function (b) { b.classList.remove('active'); });
+  if (!banCustomStart) {
+    const activeBtn = document.querySelector('#tool-bio-analytics [data-ban-days="' + banRangeDays + '"]');
+    if (activeBtn) activeBtn.classList.add('active');
+  }
   loadBioAnalyticsData();
 }
 
