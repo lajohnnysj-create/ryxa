@@ -549,7 +549,7 @@ function buildLink(link) {
     const priceDisplay = link.coursePrice > 0 ? fmtPrice(link.coursePrice) : 'Free';
     const crossoutHtml = link.courseCrossoutPrice > 0 ? '<span style="text-decoration:line-through;opacity:0.5;font-size:12px;margin-right:4px;">' + fmtPrice(link.courseCrossoutPrice) + '</span>' : '';
     const coverHtml = safePhoto ? '<img src="' + esc(safePhoto) + '" alt="Link cover" loading="lazy" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px 10px 0 0;display:block;">' : '';
-    return '<a class="course-link-card' + halfClass + '" href="' + esc(url) + '" target="_blank" rel="noopener nofollow" style="display:block;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;text-decoration:none;color:var(--text);transition:transform 0.15s,border-color 0.15s;">'
+    return '<a class="course-link-card' + halfClass + '" href="' + esc(url) + '" target="_blank" rel="noopener nofollow"' + (link.lid ? ' data-lid="' + esc(link.lid) + '" data-ltype="course"' : '') + ' style="display:block;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;text-decoration:none;color:var(--text);transition:transform 0.15s,border-color 0.15s;">'
       + coverHtml
       + '<div class="clc-body" style="padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">'
       + '<div class="clc-title" style="font-size:13px;font-weight:600;flex:1;min-width:0;">' + title + '</div>'
@@ -561,7 +561,7 @@ function buildLink(link) {
     const safePhoto = validImageUrl(link.photoUrl);
     const priceDisplay = link.coachingPrice > 0 ? fmtPrice(link.coachingPrice) : 'Free';
     const coverHtml = safePhoto ? '<img src="' + esc(safePhoto) + '" alt="Link cover" loading="lazy" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px 10px 0 0;display:block;">' : '';
-    return '<a class="course-link-card' + halfClass + '" href="' + esc(url) + '" target="_blank" rel="noopener nofollow" style="display:block;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;text-decoration:none;color:var(--text);transition:transform 0.15s,border-color 0.15s;">'
+    return '<a class="course-link-card' + halfClass + '" href="' + esc(url) + '" target="_blank" rel="noopener nofollow"' + (link.lid ? ' data-lid="' + esc(link.lid) + '" data-ltype="booking"' : '') + ' style="display:block;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;text-decoration:none;color:var(--text);transition:transform 0.15s,border-color 0.15s;">'
       + coverHtml
       + '<div class="clc-body" style="padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">'
       + '<div class="clc-title" style="font-size:13px;font-weight:600;flex:1;min-width:0;">' + title + '</div>'
@@ -573,7 +573,7 @@ function buildLink(link) {
     const safePhoto = validImageUrl(link.photoUrl);
     const priceDisplay = link.productPrice > 0 ? fmtPrice(link.productPrice) : 'Free';
     const coverHtml = safePhoto ? '<img src="' + esc(safePhoto) + '" alt="Link cover" loading="lazy" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px 10px 0 0;display:block;">' : '';
-    return '<a class="course-link-card' + halfClass + '" href="' + esc(url) + '" target="_blank" rel="noopener nofollow" style="display:block;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;text-decoration:none;color:var(--text);transition:transform 0.15s,border-color 0.15s;">'
+    return '<a class="course-link-card' + halfClass + '" href="' + esc(url) + '" target="_blank" rel="noopener nofollow"' + (link.lid ? ' data-lid="' + esc(link.lid) + '" data-ltype="product"' : '') + ' style="display:block;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;text-decoration:none;color:var(--text);transition:transform 0.15s,border-color 0.15s;">'
       + coverHtml
       + '<div class="clc-body" style="padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">'
       + '<div class="clc-title" style="font-size:13px;font-weight:600;flex:1;min-width:0;">' + title + '</div>'

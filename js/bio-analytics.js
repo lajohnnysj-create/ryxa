@@ -84,7 +84,12 @@ function banLabel(r, linkMap) {
     const n = r.link_id ? (r.link_id.charAt(0).toUpperCase() + r.link_id.slice(1)) : 'Social';
     return { name: n, type: 'Social' };
   }
-  const typeLabel = r.link_type === 'hero' ? 'Hero' : (r.link_type === 'featured' ? 'Featured' : 'Link');
+  const typeLabel = r.link_type === 'hero' ? 'Hero'
+    : r.link_type === 'featured' ? 'Featured'
+    : r.link_type === 'course' ? 'Course'
+    : r.link_type === 'product' ? 'Product'
+    : r.link_type === 'booking' ? 'Booking'
+    : 'Link';
   const l = linkMap[r.link_id];
   if (l) {
     const name = (l.title && l.title.trim()) || l.url || 'Untitled link';
