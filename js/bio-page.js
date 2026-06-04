@@ -1252,7 +1252,10 @@ async function trackLinkClick(linkId, linkType) {
     const username = getUsername();
     if (!username || !linkId || !linkType) return;
     const visitorHash = await getVisitorHash();
-    sb.rpc('record_link_click', {
+    // Must await (or .then) — supabase-js only sends the request when the
+    // builder is awaited. The caller does not await trackLinkClick, so the
+    // click stays non-blocking while the request still fires.
+    await sb.rpc('record_link_click', {
       p_username: username,
       p_link_id: linkId,
       p_link_type: linkType,
