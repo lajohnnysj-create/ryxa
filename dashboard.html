@@ -113,6 +113,19 @@
   .sidebar-item-badge { font-size: 10px; background: rgba(124,58,237,0.2); color: #c4b5fd; border-radius: 100px; padding: 2px 7px; font-weight: 600; }
   .sidebar-item-badge.green { background: rgba(74,222,128,0.15); color: #4ade80; }
   .sidebar-item-badge.max { background: linear-gradient(135deg,#a78bfa,#e879f9); color: #fff; }
+  /* Analytics sidebar dropdown */
+  .sidebar-chevron { margin-left: auto; flex-shrink: 0; opacity: 0.5; transition: transform 0.22s ease; }
+  #nav-analytics-toggle[aria-expanded="true"] .sidebar-chevron { transform: rotate(180deg); opacity: 0.8; }
+  .sidebar-submenu { overflow: hidden; max-height: 0; transition: max-height 0.25s ease; }
+  .sidebar-submenu.open { max-height: 160px; }
+  .sidebar-subitem { display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 12px 8px 42px; position: relative; background: none; border: none; cursor: pointer; border-radius: 8px; font-family: "DM Sans", sans-serif; font-size: 13px; color: var(--muted); text-align: left; transition: color 0.15s, background 0.15s; }
+  .sidebar-subitem:hover { color: var(--text); background: var(--surface2); }
+  .sidebar-subitem.active { color: #c4b5fd; background: rgba(124,58,237,0.12); }
+  .sidebar-subitem-label { flex: 1; }
+  .sidebar-subitem::before { content: ""; position: absolute; left: 26px; top: 0; bottom: 0; width: 1.5px; background: var(--border); }
+  .sidebar-subitem:last-child::before { bottom: 50%; }
+  .sidebar-subitem::after { content: ""; position: absolute; left: 26px; top: 50%; width: 9px; height: 1.5px; background: var(--border); transform: translateY(-50%); }
+  .sidebar-subitem.active::after { background: var(--accent2); }
 
   /* ==================== SCRIPT BUILDER ==================== */
   .scripts-card {
@@ -6414,10 +6427,23 @@
       <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
       <span class="sidebar-item-label">Subscribers</span>
     </button>
-    <button class="sidebar-item" id="nav-analytics" data-dash-action="show-tool" data-dash-tool="analytics">
-      <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 20V10M12 20V4M6 20v-6"/></svg></div>
-      <span class="sidebar-item-label">Analytics <span class="sidebar-pill max">MAX</span></span>
-    </button>
+    <div class="sidebar-analytics-group">
+      <button class="sidebar-item" id="nav-analytics-toggle" data-dash-action="toggle-analytics-menu" aria-expanded="false" aria-controls="nav-analytics-submenu">
+        <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 20V10M12 20V4M6 20v-6"/></svg></div>
+        <span class="sidebar-item-label">Analytics</span>
+        <svg class="sidebar-chevron" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="sidebar-submenu" id="nav-analytics-submenu" role="group" aria-label="Analytics views">
+        <button class="sidebar-subitem" id="nav-bio-analytics" data-dash-action="show-tool" data-dash-tool="bio-analytics">
+          <span class="sidebar-subitem-label">Link in Bio</span>
+          <span class="sidebar-pill pro">PRO</span>
+        </button>
+        <button class="sidebar-subitem" id="nav-analytics" data-dash-action="show-tool" data-dash-tool="analytics">
+          <span class="sidebar-subitem-label">Store</span>
+          <span class="sidebar-pill max">MAX</span>
+        </button>
+      </div>
+    </div>
     <button class="sidebar-item" id="nav-design" data-dash-action="show-tool" data-dash-tool="design">
       <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="12" rx="10" ry="4.5"/><ellipse cx="12" cy="12" rx="10" ry="4.5" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="10" ry="4.5" transform="rotate(120 12 12)"/><circle cx="12" cy="12" r="2"/></svg></div>
       <span class="sidebar-item-label">Design Studio</span>
@@ -7680,6 +7706,7 @@
             <div class="ana-s-895f50">Clicks over time</div>
             <div class="ana-s-87db22">
               <canvas id="ban-chart" class="ana-s-1bfbf5"></canvas>
+              <div id="ban-chart-tooltip" class="ana-s-9b7f5e"></div>
             </div>
           </div>
 
