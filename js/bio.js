@@ -4717,6 +4717,9 @@ function applyAIBio(textareaId, idx) {
 // =============================================================================
 
 bioRegisterAction('save', () => saveBio());
+bioRegisterAction('open-analytics', () => { if (typeof showTool === 'function') showTool('bio-analytics'); });
+bioRegisterAction('back-to-bio', () => { if (typeof showTool === 'function') showTool('bio'); });
+bioRegisterAction('ban-upgrade', () => { if (typeof showTool === 'function') showTool('settings'); });
 bioRegisterAction('toggle-publish', () => togglePublish());
 bioRegisterAction('remove-readonly', (e, el) => el.removeAttribute('readonly'));
 bioRegisterAction('username-input', () => onUsernameInput());

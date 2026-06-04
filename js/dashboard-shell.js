@@ -1381,7 +1381,7 @@ function showTool(tool) {
     if (typeof resetPdfSign === 'function') resetPdfSign();
   }
   // Hide all tools
-  ['welcome','bio','courses','coaching','products','mediakit','grid','follower','image','design','aichat','qr','invoice','pdfsign','deals','scripts','thumbanalyzer','contractanalyzer','analytics','calendar','clients','settings'].forEach(t => {
+  ['welcome','bio','bio-analytics','courses','coaching','products','mediakit','grid','follower','image','design','aichat','qr','invoice','pdfsign','deals','scripts','thumbanalyzer','contractanalyzer','analytics','calendar','clients','settings'].forEach(t => {
     const el = document.getElementById('tool-' + t);
     if (el) el.style.display = 'none';
     const nav = document.getElementById('nav-' + t);
@@ -1472,6 +1472,7 @@ function showTool(tool) {
   if (tool === 'pdfsign') initPdfSignTool();
   if (tool === 'scripts') initScriptsTool();
   if (tool === 'analytics') initAnalyticsTool();
+  if (tool === 'bio-analytics' && typeof initBioAnalyticsTool === 'function') initBioAnalyticsTool();
   if (tool === 'calendar') initCalendarTool();
   if (tool === 'thumbanalyzer') initThumbanalyzerTool();
   if (tool === 'contractanalyzer') initContractanalyzerTool();
