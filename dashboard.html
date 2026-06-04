@@ -1788,6 +1788,12 @@
   .ban-type-link { background:rgba(255,255,255,0.08); color:var(--muted2); }
   .ban-type-social { background:rgba(96,165,250,0.16); color:#93c5fd; }
   .ban-empty-cell { text-align:center; color:var(--muted); padding:28px 14px; }
+  /* Refresh button spin (both analytics pages) */
+  @keyframes ana-spin { to { transform: rotate(360deg); } }
+  .ana-refresh-btn { display:inline-flex; align-items:center; gap:6px; }
+  .ana-refresh-btn .ana-refresh-icon { display:inline-block; transform-origin:center; }
+  .ana-refresh-btn.is-refreshing { opacity:0.7; cursor:default; }
+  .ana-refresh-btn.is-refreshing .ana-refresh-icon { animation: ana-spin 0.7s linear infinite; }
   @media (max-width: 1100px) {
     #ana-pv-grid { grid-template-columns: repeat(3, 1fr) !important; }
     #ana-rev-grid { grid-template-columns: repeat(2, 1fr) !important; }
@@ -7652,7 +7658,7 @@
                 <span class="ana-s-e34c4f">to</span>
                 <input type="date" id="ban-range-end" aria-label="Bio analytics end date" class="ana-s-428499">
                 <button class="ana-range-btn" id="ban-range-go">Go</button>
-                <button class="ana-range-btn" id="ban-range-refresh">Refresh</button>
+                <button class="ana-range-btn ana-refresh-btn" id="ban-range-refresh"><svg class="ana-refresh-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Refresh</button>
               </div>
             </div>
           </div>
@@ -7714,7 +7720,7 @@
                 <span class="ana-s-e34c4f">to</span>
                 <input type="date" id="ana-range-end" aria-label="Analytics end date" class="ana-s-428499">
                 <button class="ana-range-btn" data-ana-action="set-custom-range">Go</button>
-                <button class="ana-range-btn" data-ana-action="refresh">Refresh</button>
+                <button class="ana-range-btn ana-refresh-btn" data-ana-action="refresh"><svg class="ana-refresh-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Refresh</button>
               </div>
             </div>
           </div>
