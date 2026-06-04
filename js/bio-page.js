@@ -510,11 +510,15 @@ function buildLink(link) {
   const title = esc(link.title || '');
   const desc = link.description ? `<div class="link-desc">${esc(link.description)}</div>` : '';
 
+  // Click-analytics hooks (links, featured, hero only; tools/embeds excluded).
+  const _ltype = link.isHero ? 'hero' : (link.featured ? 'featured' : 'link');
+  const clickAttrs = link.lid ? ` data-lid="${esc(link.lid)}" data-ltype="${_ltype}"` : '';
+
   // Hero link — full-image background, no icon
   if (link.isHero) {
     const safePhoto = validImageUrl(link.photoUrl);
     if (safePhoto) {
-      return `<a class="link-btn hero-link" href="${esc(url)}" target="_blank" rel="noopener nofollow">
+      return `<a class="link-btn hero-link" href="${esc(url)}" target="_blank" rel="noopener nofollow"${clickAttrs}>
         <img class="hero-bg" src="${esc(safePhoto)}" alt="Link background" loading="lazy">
         <div class="hero-overlay"></div>
         <div class="hero-content">
@@ -529,7 +533,7 @@ function buildLink(link) {
   if (link.featured) {
     const safePhoto = validImageUrl(link.photoUrl);
     if (safePhoto) {
-      return `<a class="featured-link" href="${esc(url)}" target="_blank" rel="noopener nofollow">
+      return `<a class="featured-link" href="${esc(url)}" target="_blank" rel="noopener nofollow"${clickAttrs}>
         <img class="featured-photo" src="${esc(safePhoto)}" alt="Featured link" loading="lazy">
         <div class="featured-body">
           <div class="featured-title">${title}</div>
@@ -607,7 +611,7 @@ function buildLink(link) {
   if (thumbUrl) {
     // Image on the left (square, flush to box edge, shares rounded corners with the box).
     // Title/desc fill the rest of the row, padding restored, text centered.
-    return `<a class="link-btn link-btn-thumb${halfClass}" href="${esc(url)}" target="_blank" rel="noopener nofollow">
+    return `<a class="link-btn link-btn-thumb${halfClass}" href="${esc(url)}" target="_blank" rel="noopener nofollow"${clickAttrs}>
       <img class="link-thumb-img" src="${esc(thumbUrl)}" alt="" loading="lazy">
       <div class="link-thumb-body">
         <div class="link-title">${title}</div>
@@ -615,7 +619,7 @@ function buildLink(link) {
       </div>
     </a>`;
   }
-  return `<a class="link-btn${halfClass}" href="${esc(url)}" target="_blank" rel="noopener nofollow">
+  return `<a class="link-btn${halfClass}" href="${esc(url)}" target="_blank" rel="noopener nofollow"${clickAttrs}>
     <div class="link-title">${title}</div>
     ${desc}
   </a>`;
@@ -648,7 +652,7 @@ function buildSocials(socials) {
     const href = buildSocialHref(key, val.trim());
     if (!href) continue;
     const target = (key === 'email' || key === 'phone') ? '' : ' target="_blank" rel="noopener nofollow"';
-    items.push(`<a class="social-btn" href="${esc(href)}" aria-label="${key}"${target}>${SOCIAL_ICONS[key]}</a>`);
+    items.push(`<a class="social-btn" href="${esc(href)}" aria-label="${key}" data-lid="${esc(key)}" data-ltype="social"${target}>${SOCIAL_ICONS[key]}</a>`);
   }
   if (!items.length) return '';
   return `<div class="socials">${items.join('')}</div>`;
@@ -1202,11 +1206,12 @@ async function load() {
   trackPageView(username, 'bio');
 }
 
-// Page view tracking with visitor dedup
-async function trackPageView(username, pageType) {
-  try {
-    // Generate a visitor hash from available browser signals (no PII stored)
-    let visitorHash;
+// Visitor hash from browser signals (no PII stored). Memoized so page-view and
+// link-click tracking share a single computation.
+let _visitorHashPromise = null;
+function getVisitorHash() {
+  if (_visitorHashPromise) return _visitorHashPromise;
+  _visitorHashPromise = (async () => {
     try {
       const raw = [
         navigator.userAgent || '',
@@ -1214,15 +1219,20 @@ async function trackPageView(username, pageType) {
         screen.width + 'x' + screen.height,
         new Date().getTimezoneOffset().toString()
       ].join('|');
-      const msgBuf = new TextEncoder().encode(raw);
-      const hashBuf = await crypto.subtle.digest('SHA-256', msgBuf);
-      const hashArr = Array.from(new Uint8Array(hashBuf));
-      visitorHash = hashArr.map(b => b.toString(16).padStart(2, '0')).join('');
+      const hashBuf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw));
+      return Array.from(new Uint8Array(hashBuf)).map(b => b.toString(16).padStart(2, '0')).join('');
     } catch (hashErr) {
       // Fallback if crypto.subtle is unavailable (e.g. non-HTTPS context)
-      visitorHash = 'fb-' + btoa(navigator.userAgent + screen.width + screen.height).slice(0, 32);
+      return 'fb-' + btoa(navigator.userAgent + screen.width + screen.height).slice(0, 32);
     }
+  })();
+  return _visitorHashPromise;
+}
 
+// Page view tracking with visitor dedup
+async function trackPageView(username, pageType) {
+  try {
+    const visitorHash = await getVisitorHash();
     const { error } = await sb.rpc('record_page_view', {
       p_username: username,
       p_page_type: pageType,
@@ -1233,6 +1243,34 @@ async function trackPageView(username, pageType) {
     console.error('trackPageView failed:', e);
   }
 }
+
+// Link/featured/hero/social click tracking. Fire-and-forget: links open in a
+// new tab so the page stays alive and the RPC completes. The owner is resolved
+// server-side from the username, never trusted from the client.
+async function trackLinkClick(linkId, linkType) {
+  try {
+    const username = getUsername();
+    if (!username || !linkId || !linkType) return;
+    const visitorHash = await getVisitorHash();
+    sb.rpc('record_link_click', {
+      p_username: username,
+      p_link_id: linkId,
+      p_link_type: linkType,
+      p_visitor_hash: visitorHash
+    });
+  } catch (e) { /* non-blocking */ }
+}
+
+// Delegated, capture-phase so it fires before the new-tab navigation.
+document.addEventListener('click', function (e) {
+  const t = e.target;
+  if (!t || !t.closest) return;
+  const a = t.closest('a[data-ltype]');
+  if (!a) return;
+  const lid = a.getAttribute('data-lid');
+  const lt = a.getAttribute('data-ltype');
+  if (lid && lt) trackLinkClick(lid, lt);
+}, true);
 
 load().catch(err => {
   console.error(err);
