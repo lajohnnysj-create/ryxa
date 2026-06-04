@@ -204,6 +204,18 @@ function extractGoogleMap(input) {
   return m ? m[0] : null;
 }
 
+// Discord server widget. Accepts a bare server (snowflake) id, a widget URL, or
+// a pasted iframe snippet; we extract only the numeric id and rebuild the
+// canonical widget URL, so we never render the user's raw HTML.
+function extractDiscord(input) {
+  if (!input) return null;
+  const s = String(input).trim();
+  if (/^\d{17,20}$/.test(s)) return 'https://discord.com/widget?id=' + s + '&theme=dark';
+  const m = s.match(/discord(?:app)?\.com\/widget\?[^"'\s<>]*?id=(\d{17,20})/i);
+  if (m) return 'https://discord.com/widget?id=' + m[1] + '&theme=dark';
+  return null;
+}
+
 function extractTwitch(url) {
   if (!url) return null;
   const s = String(url);
@@ -454,6 +466,13 @@ function buildLink(link) {
     const src = extractGoogleMap(link.url);
     if (!src) return '';
     return `<div class="gmap-embed"><iframe class="gmap-frame" src="${esc(src)}" loading="lazy" title="Google Maps location" allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe></div>`;
+  }
+
+  // Discord server widget — render only the rebuilt widget URL.
+  if (link.isDiscordBlock) {
+    const src = extractDiscord(link.url);
+    if (!src) return '';
+    return `<div class="discord-embed"><iframe class="discord-frame" src="${esc(src)}" loading="lazy" title="Discord server"></iframe></div>`;
   }
 
   // Image carousel — up to 10 uploaded images, each at its natural aspect ratio
