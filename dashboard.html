@@ -1773,6 +1773,21 @@
   .ana-range-btn { padding: 6px 14px; background: transparent; border: 1px solid var(--border); color: var(--muted); border-radius: 8px; font-size: 12px; font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.15s; }
   .ana-range-btn:hover { border-color: rgba(124,58,237,0.4); color: var(--text); }
   .ana-range-btn.active { background: linear-gradient(135deg, rgba(124,58,237,0.2), rgba(232,121,249,0.1)); border-color: rgba(124,58,237,0.5); color: #c4b5fd; }
+  /* Link-in-bio click analytics table */
+  .ban-table-wrap { width:100%; overflow-x:auto; border:1px solid var(--border); border-radius:12px; background:var(--surface); }
+  .ban-table { width:100%; border-collapse:collapse; font-size:13px; min-width:340px; }
+  .ban-table th, .ban-table td { padding:11px 14px; text-align:left; border-bottom:1px solid var(--border); }
+  .ban-table th { font-weight:600; color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:0.05em; }
+  .ban-table tr:last-child td { border-bottom:none; }
+  .ban-th-num, .ban-td-num { text-align:right; white-space:nowrap; }
+  .ban-td-link { display:flex; align-items:center; gap:8px; }
+  .ban-link-label { color:var(--text); font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:220px; }
+  .ban-type-badge { font-size:10px; font-weight:600; padding:2px 7px; border-radius:20px; text-transform:uppercase; letter-spacing:0.03em; flex-shrink:0; }
+  .ban-type-hero { background:rgba(124,58,237,0.18); color:#c4b5fd; }
+  .ban-type-featured { background:rgba(232,121,249,0.16); color:#f0abfc; }
+  .ban-type-link { background:rgba(255,255,255,0.08); color:var(--muted2); }
+  .ban-type-social { background:rgba(96,165,250,0.16); color:#93c5fd; }
+  .ban-empty-cell { text-align:center; color:var(--muted); padding:28px 14px; }
   @media (max-width: 1100px) {
     #ana-pv-grid { grid-template-columns: repeat(3, 1fr) !important; }
     #ana-rev-grid { grid-template-columns: repeat(2, 1fr) !important; }
@@ -6883,6 +6898,7 @@
           </div>
           <div class="bio-s-15b47d">
             <a id="bio-view-live" href="#" target="_blank" rel="noopener" class="bio-s-6f2ad9">View live page ↗</a>
+            <button id="bio-analytics-btn" data-bio-action="open-analytics" class="bio-s-6f2ad9" style="display:inline-block;">Analytics</button>
             <button id="bio-save-btn" data-bio-action="save" class="bio-s-bee3a2">Save</button>
           </div>
         </div>
@@ -7601,6 +7617,70 @@
           </div>
         </div>
 
+      </div>
+    </div>
+
+    <div id="tool-bio-analytics" class="bio-s-c8be1c">
+      <div class="course-s-8e1a99">
+
+        <!-- Pro upsell (Free tier) -->
+        <div id="ban-upsell" class="course-s-d72aad">
+          <div class="mk-s-ad83c6"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg></div>
+          <h2 class="course-s-6422e6">Link in Bio Analytics</h2>
+          <p class="course-s-31073b">See clicks on every link, featured link, hero, and social icon, plus the click rate against your bio views. Available on Creator Pro and Max.</p>
+          <button data-bio-action="ban-upgrade" class="ana-s-ff9127">Upgrade to unlock</button>
+        </div>
+
+        <!-- Content (Pro + Max) -->
+        <div id="ban-content" style="display:none;">
+
+          <div class="bio-s-6cffda">
+            <div><p class="bio-s-9e2e36">Clicks on your links, featured links, hero, and social icons.</p></div>
+            <div class="bio-s-15b47d">
+              <button data-bio-action="back-to-bio" class="bio-s-6f2ad9" style="display:inline-block;">&larr; Back to editor</button>
+            </div>
+          </div>
+
+          <!-- Date range -->
+          <div class="course-s-79fe89">
+            <div class="ana-s-b7cb07">
+              <button class="ana-range-btn active" data-ban-days="7">7d</button>
+              <button class="ana-range-btn" data-ban-days="14">14d</button>
+              <button class="ana-range-btn" data-ban-days="30">30d</button>
+              <button class="ana-range-btn" data-ban-days="all">All time</button>
+            </div>
+          </div>
+
+          <!-- Total clicks -->
+          <div class="ana-s-6b5d5a">
+            <div class="ana-s-a436d5">
+              <div class="ana-s-f3d7a5">
+                <div class="ana-s-e15886"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+                <span class="ana-s-f77a0c">Total Link Clicks</span>
+              </div>
+              <div id="ban-total" class="ana-s-d0bda8">-</div>
+              <div id="ban-total-sub" class="deal-s-44d600">Loading...</div>
+            </div>
+          </div>
+
+          <!-- Chart -->
+          <div class="ana-s-27eaf6">
+            <div class="ana-s-895f50">Clicks over time</div>
+            <div class="ana-s-87db22">
+              <canvas id="ban-chart" class="ana-s-1bfbf5"></canvas>
+            </div>
+          </div>
+
+          <!-- Per-link table -->
+          <div class="ana-s-418dcd">Clicks by link</div>
+          <div class="ban-table-wrap">
+            <table class="ban-table">
+              <thead><tr><th>Link</th><th class="ban-th-num">Clicks</th><th class="ban-th-num">Click rate</th></tr></thead>
+              <tbody id="ban-table-body"><tr><td colspan="3" class="ban-empty-cell">Loading...</td></tr></tbody>
+            </table>
+          </div>
+
+        </div>
       </div>
     </div>
 
@@ -11080,6 +11160,7 @@
 <!-- Analytics tool extracted to its own file (refactored 2026-05-10).
      Uses sb, Auth, currentUser, isMax, formatMoney, etc. -->
 <script src="/js/analytics.js"></script>
+<script src="/js/bio-analytics.js"></script>
 <!-- Subscribers/Clients tool extracted to its own file (refactored 2026-05-10).
      Internally still called "clients" for code consistency; user-facing
      name is "Subscribers". -->
