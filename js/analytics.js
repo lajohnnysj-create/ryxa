@@ -169,18 +169,31 @@ async function loadAnalyticsData() {
     renderAnaLineChart('ana-main-chart', viewsDaily, revDaily, dayCount);
   }
 
-  // Render revenue mini charts
-  renderAnaMiniChart('ana-courses-chart', revDaily, 'course', '#a78bfa');
-  renderAnaMiniChart('ana-coaching-chart', revDaily, 'coaching', '#e879f9');
-  renderAnaMiniChart('ana-dp-chart', revDaily, 'digital_product', '#f0abfc');
-  renderAnaMiniChart('ana-deals-chart', revDaily, 'brand_deal', '#7c3aed');
-
-  // Render page view mini charts (uses overall daily views as trend line)
-  renderAnaMiniChart('ana-pv-bio-chart', viewsDaily, 'count', '#e879f9');
-  renderAnaMiniChart('ana-pv-courses-chart', viewsDaily, 'count', '#a78bfa');
-  renderAnaMiniChart('ana-pv-coaching-chart', viewsDaily, 'count', '#c084fc');
-  renderAnaMiniChart('ana-pv-dp-chart', viewsDaily, 'count', '#f0abfc');
-  renderAnaMiniChart('ana-pv-mediakit-chart', viewsDaily, 'count', '#818cf8');
+  // Mini sparklines on each category card. On a single-day view (Today, or a
+  // one-day custom range) a sparkline is a meaningless single point, so we
+  // collapse each card to just its number by hiding the chart wrapper.
+  const anaMiniCharts = [
+    ['ana-courses-chart', revDaily, 'course', '#a78bfa'],
+    ['ana-coaching-chart', revDaily, 'coaching', '#e879f9'],
+    ['ana-dp-chart', revDaily, 'digital_product', '#f0abfc'],
+    ['ana-deals-chart', revDaily, 'brand_deal', '#7c3aed'],
+    ['ana-pv-bio-chart', viewsDaily, 'count', '#e879f9'],
+    ['ana-pv-courses-chart', viewsDaily, 'count', '#a78bfa'],
+    ['ana-pv-coaching-chart', viewsDaily, 'count', '#c084fc'],
+    ['ana-pv-dp-chart', viewsDaily, 'count', '#f0abfc'],
+    ['ana-pv-mediakit-chart', viewsDaily, 'count', '#818cf8']
+  ];
+  anaMiniCharts.forEach(function (m) {
+    const c = document.getElementById(m[0]);
+    if (!c) return;
+    const wrap = c.parentElement;
+    if (dayCount <= 1) {
+      if (wrap) wrap.style.display = 'none';
+    } else {
+      if (wrap) wrap.style.display = '';
+      renderAnaMiniChart(m[0], m[1], m[2], m[3]);
+    }
+  });
 
   // Load latest sales
   anaSalesAllData = [];
