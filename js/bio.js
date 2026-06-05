@@ -3471,7 +3471,7 @@ function saveLinkRow(id) {
   if (!link) return;
 
   // Headers, subscribe blocks, and video/TikTok blocks don't require a URL
-  if (link.isHeader || link.isSubscribe || link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock || link.isSpotifyBlock || link.isAppleMusicBlock || link.isSoundCloudBlock || link.isImageBlock || link.isImageCarouselBlock || link.isGoogleMapBlock || link.isDiscordBlock || link.isTwitchBlock || link.isTweetBlock) {
+  if (link.isHeader || link.isSubscribe || link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock || link.isSpotifyBlock || link.isAppleMusicBlock || link.isSoundCloudBlock || link.isImageBlock || link.isImageCarouselBlock || link.isGoogleMapBlock || link.isDiscordBlock || link.isTwitchBlock || link.isTweetBlock || link.isTipBlock) {
     bioExpandedLinks.delete(id);
     renderBioLinks();
     schedulePreviewUpdate();
