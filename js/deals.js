@@ -250,12 +250,13 @@ function formatDateShort(isoDate) {
 // =====================================================
 let pipelineViewActive = false;
 
+// Only OPEN stages live on the board. Completed and Cancelled are terminal:
+// they leave the board (via the card's Complete/Cancel actions) and live in
+// the list view below, which remains the full record of every deal.
 const PIPELINE_COLUMNS = [
   { key: 'draft', label: 'Draft', color: 'rgba(122,120,143,0.3)' },
   { key: 'pending_contract', label: 'Pending Contract', color: 'rgba(251,191,36,0.3)' },
-  { key: 'active', label: 'Active', color: 'rgba(124,58,237,0.35)' },
-  { key: 'completed', label: 'Completed', color: 'rgba(74,222,128,0.3)' },
-  { key: 'cancelled', label: 'Cancelled', color: 'rgba(239,68,68,0.3)' }
+  { key: 'active', label: 'Active', color: 'rgba(124,58,237,0.35)' }
 ];
 
 function togglePipelineView() {
@@ -358,6 +359,16 @@ function buildPipelineCard(d) {
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
       </button>
     </div>
+    <div class="pipeline-card-terminal">
+      <button class="pipeline-terminal-btn complete" data-deal-action="terminal-status" data-deal-id="${d.id}" data-deal-status="completed">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        Complete
+      </button>
+      <button class="pipeline-terminal-btn cancel" data-deal-action="terminal-status" data-deal-id="${d.id}" data-deal-status="cancelled">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        Cancel
+      </button>
+    </div>
   </div>`;
 }
 
@@ -382,7 +393,30 @@ async function moveDealStatus(dealId, newStatus) {
     deal.status = oldStatus;
     renderPipeline();
     renderDealsList();
+    return false;
   }
+  return true;
+}
+
+// Send a deal to a terminal state (Completed / Cancelled) from the board.
+// Terminal deals leave the board and live in the list view below. We confirm
+// first (the action is consequential and locks the deal) and name where it goes.
+function promptTerminalStatus(dealId, status) {
+  const deal = dealsList.find(d => d.id === dealId);
+  if (!deal) return;
+  const isComplete = status === 'completed';
+  showModalConfirm(
+    isComplete ? 'Mark deal complete?' : 'Cancel this deal?',
+    isComplete
+      ? 'It moves to your completed deals. You can still find it anytime in the list below.'
+      : 'It moves to your cancelled deals. You can still find it anytime in the list below.',
+    async function () {
+      const ok = await moveDealStatus(dealId, status);
+      if (ok) showDashToast('success', isComplete ? 'Deal marked complete.' : 'Deal cancelled.');
+    },
+    isComplete ? 'Mark Complete' : 'Cancel Deal',
+    'Back'
+  );
 }
 
 // --- Drag & Drop ---
@@ -2880,6 +2914,12 @@ dealRegisterAction('move-status', (e, el) => {
   e.stopPropagation();
   if (el.disabled) return;
   moveDealStatus(el.dataset.dealId, el.dataset.dealStatus);
+});
+
+dealRegisterAction('terminal-status', (e, el) => {
+  // Don't bubble to the card's show-detail action
+  e.stopPropagation();
+  promptTerminalStatus(el.dataset.dealId, el.dataset.dealStatus);
 });
 
 // Deliverables (in editor modal)
