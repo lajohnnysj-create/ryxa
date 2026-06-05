@@ -1121,6 +1121,14 @@
   .gmap-frame { width: 100%; height: 100%; border: 0; display: block; }
   .discord-embed { width: 100%; height: 340px; border-radius: 14px; overflow: hidden; }
   .discord-frame { width: 100%; height: 100%; border: 0; display: block; }
+  .tip-card { width: 100%; border: 1px solid rgba(128,128,128,0.25); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px; box-sizing: border-box; }
+  .tip-card-top { display: flex; align-items: center; gap: 8px; }
+  .tip-card-cup { display: inline-flex; color: var(--accent); }
+  .tip-card-heading { font-weight: 700; font-size: 15px; color: var(--text); }
+  .tip-card-amts { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tip-amt { flex: 1 1 0; min-width: 56px; text-align: center; padding: 9px 0; border-radius: 10px; border: 1px solid var(--accent); color: var(--accent); font-weight: 700; font-size: 14px; background: transparent; cursor: pointer; }
+  .tip-amt.is-selected { background: var(--accent); color: #fff; }
+  .tip-card-btn { display: block; text-align: center; padding: 12px; border-radius: 12px; background: var(--accent); color: #fff; font-weight: 700; font-size: 15px; cursor: pointer; box-shadow: 0 0 20px var(--accent-glow); }
   /* Twitch carousel cards — channels, VODs, clips; all 16:9. Sit in the shared
      .videos / .videos-scroll carousel (same as the video blocks). */
   .twitch-card {
