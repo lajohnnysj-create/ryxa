@@ -67,11 +67,35 @@ let anaRangeDays = 7;
 let anaCustomStart = null;
 let anaCustomEnd = null;
 
+// Analytics run in the creator's local timezone (profiles.calendar_timezone,
+// exposed by the dashboard shell as window._ryx_creator_tz). Data is stored in
+// UTC and converted on read by the SQL stats functions; here we just compute
+// the date range and chart day-labels in that same local timezone so "today"
+// and the day buckets line up with the creator's calendar day, not UTC.
+function anaTz() {
+  return (typeof window !== 'undefined' && window._ryx_creator_tz) || 'UTC';
+}
+function anaLocalToday(tz) {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit'
+  }).formatToParts(new Date());
+  const o = {};
+  parts.forEach(function (p) { o[p.type] = p.value; });
+  return o.year + '-' + o.month + '-' + o.day;
+}
+function anaAddDays(dateStr, delta) {
+  const d = new Date(dateStr + 'T00:00:00');
+  d.setDate(d.getDate() + delta);
+  const p = function (n) { return String(n).padStart(2, '0'); };
+  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+}
+
 function getAnaDateRange() {
   if (anaCustomStart && anaCustomEnd) return { start: anaCustomStart, end: anaCustomEnd };
-  const end = new Date(); const start = new Date();
-  start.setDate(start.getDate() - anaRangeDays + 1);
-  return { start: start.toISOString().slice(0,10), end: end.toISOString().slice(0,10) };
+  const tz = anaTz();
+  const end = anaLocalToday(tz);
+  const start = anaAddDays(end, -(anaRangeDays - 1));
+  return { start: start, end: end };
 }
 
 function setAnalyticsRange(days, btn) {
@@ -113,6 +137,7 @@ function initContractanalyzerTool() {
 async function loadAnalyticsData() {
   if (!currentUser) return;
   const { start, end } = getAnaDateRange();
+  const tz = anaTz();
   const dayCount = anaCustomStart ? Math.ceil((new Date(end) - new Date(start)) / 86400000) + 1 : anaRangeDays;
 
   // Load page views
@@ -131,7 +156,7 @@ async function loadAnalyticsData() {
   }
 
   // Load revenue
-  const revRes = await sb.rpc('get_revenue_stats', { p_start_date: start, p_end_date: end });
+  const revRes = await sb.rpc('get_revenue_stats', { p_start_date: start, p_end_date: end, p_tz: tz });
   const rTotal = document.getElementById('ana-revenue-total');
   const rSub = document.getElementById('ana-revenue-sub');
   let revDaily = [];

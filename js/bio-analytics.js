@@ -11,15 +11,37 @@ let banCustomStart = null;
 let banCustomEnd = null;
 let banWired = false;
 
+// Runs in the creator's local timezone (profiles.calendar_timezone, exposed by
+// the dashboard shell as window._ryx_creator_tz). Clicks are stored in UTC and
+// converted on read by get_link_click_stats; here we compute the range and the
+// chart day-labels in that same local timezone so "today" and the day buckets
+// match the creator's calendar day rather than UTC.
+function banTz() {
+  return (typeof window !== 'undefined' && window._ryx_creator_tz) || 'UTC';
+}
+function banLocalToday(tz) {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit'
+  }).formatToParts(new Date());
+  const o = {};
+  parts.forEach(function (p) { o[p.type] = p.value; });
+  return o.year + '-' + o.month + '-' + o.day;
+}
+function banAddDays(dateStr, delta) {
+  const d = new Date(dateStr + 'T00:00:00');
+  d.setDate(d.getDate() + delta);
+  const p = function (n) { return String(n).padStart(2, '0'); };
+  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+}
+
 function getBanDateRange() {
-  const end = new Date();
-  const endStr = end.toISOString().slice(0, 10);
+  const tz = banTz();
+  const endStr = banLocalToday(tz);
   if (banCustomStart && banCustomEnd) {
     return { start: banCustomStart, end: banCustomEnd, custom: true };
   }
-  const start = new Date();
-  start.setDate(start.getDate() - banRangeDays + 1);
-  return { start: start.toISOString().slice(0, 10), end: endStr, custom: false };
+  const start = banAddDays(endStr, -(banRangeDays - 1));
+  return { start: start, end: endStr, custom: false };
 }
 
 function initBioAnalyticsTool() {
@@ -109,6 +131,7 @@ function banLabel(r, linkMap) {
 async function loadBioAnalyticsData() {
   if (!currentUser) return;
   const range = getBanDateRange();
+  const tz = banTz();
   const totalEl = document.getElementById('ban-total');
   const totalSub = document.getElementById('ban-total-sub');
   const tableBody = document.getElementById('ban-table-body');
@@ -119,7 +142,7 @@ async function loadBioAnalyticsData() {
 
   try {
     const results = await Promise.all([
-      sb.rpc('get_link_click_stats', { p_start_date: range.start, p_end_date: range.end }),
+      sb.rpc('get_link_click_stats', { p_start_date: range.start, p_end_date: range.end, p_tz: tz }),
       sb.rpc('get_page_view_stats', { p_start_date: range.start, p_end_date: range.end }),
       sb.from('link_in_bio').select('links').eq('user_id', currentUser.id).maybeSingle()
     ]);
