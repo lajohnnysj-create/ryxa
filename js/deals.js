@@ -176,14 +176,37 @@ function renderDealsList() {
   const tableEl = document.getElementById('deals-table');
   if (!emptyEl || !tableEl) return;
 
+  const chipsEl = document.getElementById('deals-filter-chips');
+
+  // No deals at all: the "create your first deal" empty state, no chips.
   if (dealsList.length === 0) {
     emptyEl.style.display = 'block';
     tableEl.style.display = 'none';
+    if (chipsEl) chipsEl.style.display = 'none';
     return;
   }
 
   emptyEl.style.display = 'none';
+  if (chipsEl) chipsEl.style.display = 'flex';
   tableEl.style.display = 'block';
+
+  // Apply the active list filter. "In Progress" groups the open stages
+  // (draft, pending contract, active); Completed and Cancelled are their own
+  // chips. New deals start as drafts, so In Progress must include draft, or a
+  // freshly created deal would be hidden under the default view.
+  const filtered = dealsList.filter(d => {
+    if (dealsListFilter === 'all') return true;
+    if (dealsListFilter === 'in_progress') return d.status === 'draft' || d.status === 'pending_contract' || d.status === 'active';
+    return d.status === dealsListFilter;
+  });
+
+  if (filtered.length === 0) {
+    const fLabels = { in_progress: 'in progress', completed: 'completed', cancelled: 'cancelled' };
+    const fMsg = (dealsListFilter === 'all') ? 'No deals' : ('No ' + (fLabels[dealsListFilter] || '') + ' deals');
+    tableEl.innerHTML = '<div class="deals-filter-empty">' + fMsg + '</div>';
+    if (pipelineViewActive) renderPipeline();
+    return;
+  }
 
   const header = `
     <div class="deal-row-header">
@@ -195,7 +218,7 @@ function renderDealsList() {
     </div>
   `;
 
-  const rows = dealsList.map(d => {
+  const rows = filtered.map(d => {
     const amount = formatUSD(d.deal_amount_cents);
     const statusLabel = DEAL_STATUS_LABELS[d.status] || d.status;
     const paymentLabel = DEAL_PAYMENT_LABELS[d.payment_status] || d.payment_status;
@@ -249,6 +272,7 @@ function formatDateShort(isoDate) {
 // BRAND DEAL CRM — Pipeline (Kanban) View
 // =====================================================
 let pipelineViewActive = false;
+let dealsListFilter = 'in_progress';  // list filter chip: in_progress | all | completed | cancelled
 
 // Only OPEN stages live on the board. Completed and Cancelled are terminal:
 // they leave the board (via the card's Complete/Cancel actions) and live in
@@ -2920,6 +2944,15 @@ dealRegisterAction('terminal-status', (e, el) => {
   // Don't bubble to the card's show-detail action
   e.stopPropagation();
   promptTerminalStatus(el.dataset.dealId, el.dataset.dealStatus);
+});
+
+dealRegisterAction('list-filter', (e, el) => {
+  const f = el.dataset.dealStatus;
+  if (!f || f === dealsListFilter) return;
+  dealsListFilter = f;
+  document.querySelectorAll('#deals-filter-chips .deals-filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderDealsList();
 });
 
 // Deliverables (in editor modal)
