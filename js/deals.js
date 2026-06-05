@@ -92,10 +92,10 @@ function initDealsCrm() {
   if (btn) {
     btn.textContent = 'View Pipeline';
     btn.classList.remove('active');
-    btn.style.background = 'linear-gradient(135deg,#a78bfa,#e879f9)';
+    btn.style.background = 'var(--accent)';
     btn.style.border = 'none';
     btn.style.color = '#fff';
-    btn.style.boxShadow = '0 0 20px rgba(232,121,249,0.25)';
+    btn.style.boxShadow = '0 0 20px var(--accent-glow)';
   }
   showDealsList();
   loadDealsList();
@@ -273,8 +273,8 @@ function togglePipelineView() {
       btn.textContent = 'View List';
       btn.classList.add('active');
       btn.style.background = 'transparent';
-      btn.style.border = '1px solid rgba(232,121,249,0.4)';
-      btn.style.color = '#e879f9';
+      btn.style.border = '1px solid var(--accent)';
+      btn.style.color = 'var(--accent)';
       btn.style.boxShadow = 'none';
     }
     renderPipeline();
@@ -286,10 +286,10 @@ function togglePipelineView() {
     if (btn) {
       btn.textContent = 'View Pipeline';
       btn.classList.remove('active');
-      btn.style.background = 'linear-gradient(135deg,#a78bfa,#e879f9)';
+      btn.style.background = 'var(--accent)';
       btn.style.border = 'none';
       btn.style.color = '#fff';
-      btn.style.boxShadow = '0 0 20px rgba(232,121,249,0.25)';
+      btn.style.boxShadow = '0 0 20px var(--accent-glow)';
     }
   }
 }
