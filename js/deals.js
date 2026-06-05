@@ -783,7 +783,7 @@ function renderStatusBreakdown() {
     active: '#c4b5fd',
     pending_contract: '#fbbf24',
     completed: '#4ade80',
-    cancelled: '#fca5a5'
+    cancelled: '#ef4444'
   };
 
   el.innerHTML = order.filter(s => counts[s]).map(status => {
