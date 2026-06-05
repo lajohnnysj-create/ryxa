@@ -1741,6 +1741,21 @@ function addGoogleMapBlock() {
 
 // Discord server widget — live member card from a server ID or widget URL. One
 // per page (all plans); the modal item disables when one exists, this backstops.
+function addTipBlock() {
+  const { maxLinks } = bioLimits();
+  if (bioState.links.length >= maxLinks) {
+    showBioStatus('error', `Link limit reached (${maxLinks}).`);
+    return;
+  }
+  if (bioState.links.some(l => l.isTipBlock)) return;
+  const newId = linkIdSeq++;
+  bioState.links.push({ _id: newId, isTipBlock: true, tipHeading: 'Buy me a coffee', tipAmounts: [3, 5, 10] });
+  bioExpandedLinks.add(newId);
+  renderBioLinks();
+  schedulePreviewUpdate();
+  showBioStatus('saved', 'Buy Me a Coffee added');
+}
+
 function addDiscordBlock() {
   const { maxLinks } = bioLimits();
   if (bioState.links.length >= maxLinks) {
@@ -1839,6 +1854,12 @@ function openBioMoreModal() {
     const used = bioState.links.some(l => l.isDiscordBlock);
     discordItem.disabled = used;
     discordItem.classList.toggle('is-used', used);
+  }
+  const coffeeItem = document.getElementById('bio-more-coffee');
+  if (coffeeItem) {
+    const used = bioState.links.some(l => l.isTipBlock);
+    coffeeItem.disabled = used;
+    coffeeItem.classList.toggle('is-used', used);
   }
   const twitchItem = document.getElementById('bio-more-twitch');
   if (twitchItem) {
@@ -3091,6 +3112,23 @@ function renderLinkExpanded(link, dragSvg) {
     </div>`;
   }
 
+  if (link.isTipBlock) {
+    return `<div class="bio-link-row" data-id="${link._id}">
+      <div class="bio-link-header">
+        <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
+        <span class="bio-featured-badge bio-s-04da54">Buy Me a Coffee</span>
+        <div class="bio-s-7623f0"></div>
+        <button class="bio-link-remove" data-bio-action="remove-link" data-bio-id="${link._id}">Remove</button>
+      </div>
+      <div class="bio-s-e289c0">Supporters can tip you through your connected Stripe. Set a heading below (the preset amounts are $3, $5, and $10 for now, with a custom option). You keep your earnings; Ryxa takes 0% transaction fees (standard Stripe processing fees apply).</div>
+      <input type="text" maxlength="40" aria-label="Tip heading" placeholder="Buy me a coffee" data-bio-action="update-link-field" data-bio-event="input" data-bio-id="${link._id}" data-bio-field="tipHeading" value="${escapeHtml(link.tipHeading || '')}" class="bio-s-6c002e" style="font-family:inherit;">
+      <button type="button" data-bio-action="save-link-row" data-bio-id="${link._id}"
+        class="bio-s-c7cf47">
+        Save
+      </button>
+    </div>`;
+  }
+
   if (link.isGoogleMapBlock) {
     return `<div class="bio-link-row" data-id="${link._id}">
       <div class="bio-link-header">
@@ -3944,7 +3982,7 @@ async function saveBio() {
       return (Math.random().toString(36).slice(2, 8) + Math.random().toString(36).slice(2, 6)).slice(0, 8);
     };
     const cleanLinks = bioState.links
-      .filter(l => (l.title || '').trim() || (l.url || '').trim() || l.isVideoBlock || l.isTikTokBlock || l.isInstagramBlock || l.isSpotifyBlock || l.isAppleMusicBlock || l.isSoundCloudBlock || l.isImageBlock || l.isImageCarouselBlock || l.isGoogleMapBlock || l.isDiscordBlock || l.isTwitchBlock || l.isTweetBlock || l.isHeader || l.isSubscribe || l.isMediaKit)
+      .filter(l => (l.title || '').trim() || (l.url || '').trim() || l.isVideoBlock || l.isTikTokBlock || l.isInstagramBlock || l.isSpotifyBlock || l.isAppleMusicBlock || l.isSoundCloudBlock || l.isImageBlock || l.isImageCarouselBlock || l.isGoogleMapBlock || l.isDiscordBlock || l.isTwitchBlock || l.isTweetBlock || l.isTipBlock || l.isHeader || l.isSubscribe || l.isMediaKit)
       .map(l => ({
         lid: l.lid || genLid(),
         title: (l.title || '').slice(0, 80),
@@ -3958,6 +3996,7 @@ async function saveBio() {
         ...(l.isCourse ? { isCourse: true, courseId: l.courseId, coursePrice: l.coursePrice || 0, courseCrossoutPrice: l.courseCrossoutPrice || 0 } : {}),
         ...(l.isCoaching ? { isCoaching: true, coachingId: l.coachingId, coachingPrice: l.coachingPrice || 0 } : {}),
         ...(l.isProduct ? { isProduct: true, productId: l.productId, productPrice: l.productPrice || 0 } : {}),
+        ...(l.isTipBlock ? { isTipBlock: true, tipHeading: (l.tipHeading || '').slice(0, 40), tipAmounts: (Array.isArray(l.tipAmounts) && l.tipAmounts.length ? l.tipAmounts : [3, 5, 10]).map(a => parseInt(a, 10) || 0).filter(a => a > 0).slice(0, 4) } : {}),
         ...(l.halfWidth ? { halfWidth: true } : {}),
         ...(l.isSubscribe ? { isSubscribe: true } : {}),
         // Video block — array of YouTube URLs (capped at 5 by the editor).
@@ -4246,7 +4285,7 @@ function buildPreviewHTML() {
     ? `<img src="${escapeHtml(bioState.avatar_url)}" alt="Profile photo" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;">`
     : `<div style="width:100%;height:100%;border-radius:50%;background:${t.surface2};display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;font-size:36px;font-weight:800;color:${t.text};">${escapeHtml(initial)}</div>`;
   const socialsHtml = buildPreviewSocials(t);
-  const linksHtml = bioState.links.filter(l => l.isHeader || l.isSubscribe || l.isVideoBlock || l.isTikTokBlock || l.isInstagramBlock || l.isSpotifyBlock || l.isAppleMusicBlock || l.isSoundCloudBlock || l.isImageBlock || l.isImageCarouselBlock || l.isGoogleMapBlock || l.isDiscordBlock || l.isTwitchBlock || l.isTweetBlock || (l.url || '').trim()).map(l => buildPreviewLink(l, t)).join('');
+  const linksHtml = bioState.links.filter(l => l.isHeader || l.isSubscribe || l.isVideoBlock || l.isTikTokBlock || l.isInstagramBlock || l.isSpotifyBlock || l.isAppleMusicBlock || l.isSoundCloudBlock || l.isImageBlock || l.isImageCarouselBlock || l.isGoogleMapBlock || l.isDiscordBlock || l.isTwitchBlock || l.isTweetBlock || l.isTipBlock || (l.url || '').trim()).map(l => buildPreviewLink(l, t)).join('');
 
   // For custom themes with a bg image, we dim the radial glow (since bg image is already bg)
   const glowCSS = ((bioState.theme === 'custom' && isPro() && bioState.custom_theme?.bgUrl) || isImageTheme(bioState.theme))
@@ -4359,6 +4398,14 @@ function buildPreviewHTML() {
   .hero-info .sb{background:rgba(0,0,0,0.35);border-color:rgba(255,255,255,0.2);backdrop-filter:blur(6px);}
   .hero-info{display:none;}
   .hero-below{margin-top:-60px;position:relative;z-index:3;display:flex;flex-direction:column;align-items:center;gap:3px;padding:0 18px;width:100%;box-sizing:border-box;}
+  .tip-card { width: 100%; border: 1px solid rgba(128,128,128,0.25); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px; box-sizing: border-box; }
+  .tip-card-top { display: flex; align-items: center; gap: 8px; }
+  .tip-card-cup { display: inline-flex; color: var(--accent); }
+  .tip-card-heading { font-weight: 700; font-size: 15px; color: var(--text); }
+  .tip-card-amts { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tip-amt { flex: 1 1 0; min-width: 56px; text-align: center; padding: 9px 0; border-radius: 10px; border: 1px solid var(--accent); color: var(--accent); font-weight: 700; font-size: 14px; background: transparent; cursor: pointer; }
+  .tip-amt.is-selected { background: var(--accent); color: #fff; }
+  .tip-card-btn { display: block; text-align: center; padding: 12px; border-radius: 12px; background: var(--accent); color: #fff; font-weight: 700; font-size: 15px; cursor: pointer; box-shadow: 0 0 20px var(--accent-glow); }
   </style></head><body>
   <div class="w">
     ${(bioState.avatar_display === 'hero' && bioState.avatar_url) ? `
@@ -4397,6 +4444,20 @@ function buildPreviewLink(l, t) {
   if (l.isHeader) {
     if (!l.title) return '';
     return `<div class="hdr">${escapeHtml(l.title)}</div>`;
+  }
+
+  // Buy Me a Coffee tip card. Preview is non-interactive; the live bio wires the
+  // amount buttons, optional name/message, and the Stripe checkout action.
+  if (l.isTipBlock) {
+    const heading = escapeHtml(l.tipHeading || 'Buy me a coffee');
+    const amounts = (Array.isArray(l.tipAmounts) && l.tipAmounts.length ? l.tipAmounts : [3, 5, 10]).slice(0, 4);
+    const amtBtns = amounts.map(a => `<span class="tip-amt">$${parseInt(a, 10) || 0}</span>`).join('');
+    const cup = '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M4 4h13v6a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V4zm13 2v3h1.5a1.5 1.5 0 0 0 0-3H17zM3 18h15v2H3z"/></svg>';
+    return `<div class="tip-card ${halfClass}">
+      <div class="tip-card-top"><span class="tip-card-cup">${cup}</span><span class="tip-card-heading">${heading}</span></div>
+      <div class="tip-card-amts">${amtBtns}<span class="tip-amt tip-amt-custom">Custom</span></div>
+      <span class="tip-card-btn">Support</span>
+    </div>`;
   }
   // Subscribe block
   if (l.isSubscribe) {
@@ -4833,6 +4894,7 @@ bioRegisterAction('add-image-block', () => { closeBioMoreModal(); addImageBlock(
 bioRegisterAction('image-photo-selected', (e, el) => onImagePhotoSelected(el, parseInt(el.dataset.bioId, 10)));
 bioRegisterAction('add-image-carousel-block', () => { closeBioMoreModal(); addImageCarouselBlock(); });
 bioRegisterAction('add-google-map-block', () => { closeBioMoreModal(); addGoogleMapBlock(); });
+bioRegisterAction('add-coffee-block', () => { closeBioMoreModal(); addTipBlock(); });
 bioRegisterAction('add-discord-block', () => { closeBioMoreModal(); addDiscordBlock(); });
 bioRegisterAction('carousel-image-selected', (e, el) => onCarouselImageSelected(el, parseInt(el.dataset.bioId, 10)));
 bioRegisterAction('remove-carousel-image', (e, el) => removeCarouselImage(parseInt(el.dataset.bioId, 10), parseInt(el.dataset.bioIdx, 10)));
