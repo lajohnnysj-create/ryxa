@@ -5063,6 +5063,11 @@
   .deals-chart-labels { display:flex;gap:8px;margin-top:10px; }
   .deal-s-90358f { display:grid;grid-template-columns:1fr 1.4fr;gap:12px; }
   .deal-s-5ea4e8 { background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:60px 24px;text-align:center; }
+  .deals-filter-chips { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .deals-filter-chip { padding: 7px 16px; border-radius: 999px; font-size: 12px; font-weight: 600; font-family: "DM Sans", sans-serif; cursor: pointer; transition: background 0.15s, border-color 0.15s, color 0.15s; background: var(--surface2); border: 1px solid var(--border); color: var(--muted); }
+  .deals-filter-chip:hover { color: var(--text); border-color: var(--border-hover); }
+  .deals-filter-chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .deals-filter-empty { background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; padding: 40px 24px; text-align: center; color: var(--muted); font-size: 13px; }
   .deal-s-448466 { display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:14px;background:var(--surface);border:1px solid var(--border);margin-bottom:16px; }
   .deal-s-fa696a { font-size:15px;color:var(--text);margin-bottom:4px;font-weight:500; }
   .deal-s-38ef32 { font-size:13px;color:var(--muted);margin-bottom:20px; }
@@ -10138,6 +10143,12 @@
             </div>
 
             <div id="deals-content">
+              <div id="deals-filter-chips" class="deals-filter-chips">
+                <button class="deals-filter-chip" data-deal-action="list-filter" data-deal-status="all">All</button>
+                <button class="deals-filter-chip active" data-deal-action="list-filter" data-deal-status="in_progress">In Progress</button>
+                <button class="deals-filter-chip" data-deal-action="list-filter" data-deal-status="completed">Completed</button>
+                <button class="deals-filter-chip" data-deal-action="list-filter" data-deal-status="cancelled">Cancelled</button>
+              </div>
               <div id="deals-empty" class="deal-s-5ea4e8">
                 <div class="deal-s-448466">
                   <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="bio-s-e3f916"><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 12h18"/></svg>
