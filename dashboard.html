@@ -2450,6 +2450,11 @@
   .pipeline-card-payment { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; padding: 2px 7px; border-radius: 100px; }
   /* Mobile move buttons (hidden on desktop) */
   .pipeline-card-moves { display: none; }
+  /* Terminal actions (Complete / Cancel). Always visible since drag cannot reach a terminal state. */
+  .pipeline-card-terminal { display: flex; gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+  .pipeline-terminal-btn { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 4px; padding: 6px 0; border-radius: 7px; font-size: 11px; font-weight: 600; font-family: "DM Sans", sans-serif; cursor: pointer; transition: background 0.15s, border-color 0.15s, color 0.15s; background: var(--surface2); border: 1px solid var(--border); color: var(--muted); }
+  .pipeline-terminal-btn.complete:hover { background: rgba(74,222,128,0.12); border-color: rgba(74,222,128,0.4); color: #4ade80; }
+  .pipeline-terminal-btn.cancel:hover { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.35); color: #fca5a5; }
 
   @media (max-width: 640px) {
     .pipeline-board { flex-direction: column; gap: 12px; }
