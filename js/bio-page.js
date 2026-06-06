@@ -1420,14 +1420,17 @@ bioRegisterAction('tip-leave-info', function(e, el) {
 
 bioRegisterAction('tip-submit', function() { submitTip(); });
 
-// Keep the custom tip field numeric: strip non-digits and collapse to a single
-// decimal point. Length is capped by maxlength=6 on the input itself.
+// Keep the custom tip field numeric: strip non-digits, collapse to a single
+// decimal point with at most 2 places, and hold the value to the $500 ceiling
+// so supporters can never enter an amount the checkout would reject (the server
+// enforces the same $500 TIP_MAX). $1 minimum is checked at submit.
 document.addEventListener('input', function(e) {
   var el = e.target;
   if (!el || el.id !== 'tip-custom') return;
   var v = el.value.replace(/[^0-9.]/g, '');
   var dot = v.indexOf('.');
-  if (dot !== -1) v = v.slice(0, dot + 1) + v.slice(dot + 1).replace(/\./g, '');
+  if (dot !== -1) v = v.slice(0, dot + 1) + v.slice(dot + 1).replace(/\./g, '').slice(0, 2);
+  if (parseFloat(v) > 500) v = '500';
   if (v !== el.value) el.value = v;
 });
 
