@@ -469,6 +469,32 @@ function buildLink(link) {
   }
 
   // Discord server widget — render only the rebuilt widget URL.
+  // Buy Me a Coffee tip card. Amount chips (first preselected) + custom amount,
+  // an optional "Leave info" toggle revealing name/message, and a Support button
+  // that POSTs to /api/tip-checkout and redirects to Stripe. One per page.
+  if (link.isTipBlock) {
+    const heading = esc(link.tipHeading || 'Buy me a coffee');
+    const amounts = (Array.isArray(link.tipAmounts) && link.tipAmounts.length ? link.tipAmounts : [3, 5, 10]).slice(0, 4);
+    const cup = '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M4 4h13v6a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V4zm13 2v3h1.5a1.5 1.5 0 0 0 0-3H17zM3 18h15v2H3z"/></svg>';
+    const chips = amounts.map(function(a, i) {
+      const cents = (parseInt(a, 10) || 0) * 100;
+      return '<button type="button" class="tip-amt' + (i === 0 ? ' is-selected' : '') + '" data-bio-action="tip-amount" data-amt="' + cents + '">$' + (parseInt(a, 10) || 0) + '</button>';
+    }).join('');
+    return '<div class="tip-card' + halfClass + '" id="tip-card">'
+      + '<div class="tip-card-top"><span class="tip-card-cup">' + cup + '</span><span class="tip-card-heading">' + heading + '</span></div>'
+      + '<div class="tip-card-amts">' + chips + '</div>'
+      + '<input type="number" id="tip-custom" class="tip-custom" min="1" max="500" inputmode="decimal" placeholder="Custom amount ($)" aria-label="Custom tip amount">'
+      + '<button type="button" class="tip-leave-info" data-bio-action="tip-leave-info" id="tip-leave-info" aria-expanded="false">Leave info (optional)</button>'
+      + '<div class="tip-info-fields" id="tip-info-fields" hidden>'
+      + '<input type="text" id="tip-name" class="tip-input" maxlength="50" placeholder="Your name (optional)" aria-label="Your name">'
+      + '<textarea id="tip-message" class="tip-input" maxlength="200" rows="2" placeholder="Message (optional)" aria-label="Message"></textarea>'
+      + '</div>'
+      + '<input type="text" id="tip-hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;">'
+      + '<button type="button" class="tip-card-btn" data-bio-action="tip-submit" id="tip-submit">Support</button>'
+      + '<div id="tip-msg" style="display:none;font-size:13px;margin-top:8px;text-align:center;"></div>'
+      + '</div>';
+  }
+
   if (link.isDiscordBlock) {
     const src = extractDiscord(link.url);
     if (!src) return '';
@@ -1369,6 +1395,95 @@ async function submitSubscribe() {
 bioRegisterAction('subscribe-submit', function() {
   submitSubscribe();
 });
+
+bioRegisterAction('tip-amount', function(e, el) {
+  var amts = el.closest('.tip-card-amts');
+  if (amts) {
+    var cs = amts.querySelectorAll('.tip-amt');
+    for (var i = 0; i < cs.length; i++) cs[i].classList.remove('is-selected');
+  }
+  el.classList.add('is-selected');
+  var custom = document.getElementById('tip-custom');
+  if (custom) custom.value = '';
+});
+
+bioRegisterAction('tip-leave-info', function(e, el) {
+  var fields = document.getElementById('tip-info-fields');
+  if (!fields) return;
+  if (fields.hasAttribute('hidden')) {
+    fields.removeAttribute('hidden');
+    el.setAttribute('aria-expanded', 'true');
+  } else {
+    fields.setAttribute('hidden', '');
+    el.setAttribute('aria-expanded', 'false');
+  }
+});
+
+bioRegisterAction('tip-submit', function() { submitTip(); });
+
+async function submitTip() {
+  var card = document.getElementById('tip-card');
+  if (!card) return;
+  var btn = document.getElementById('tip-submit');
+  var msg = document.getElementById('tip-msg');
+
+  // Custom amount wins when filled; otherwise use the selected chip.
+  var customEl = document.getElementById('tip-custom');
+  var customVal = customEl && customEl.value ? parseFloat(customEl.value) : 0;
+  var amountCents;
+  if (customVal && customVal > 0) {
+    amountCents = Math.round(customVal * 100);
+  } else {
+    var selected = card.querySelector('.tip-amt.is-selected');
+    amountCents = selected ? parseInt(selected.getAttribute('data-amt'), 10) : 0;
+  }
+  if (!amountCents || amountCents < 100 || amountCents > 50000) {
+    if (msg) { msg.textContent = 'Choose an amount between $1 and $500.'; msg.style.color = '#fca5a5'; msg.style.display = 'block'; }
+    return;
+  }
+
+  var nameEl = document.getElementById('tip-name');
+  var messageEl = document.getElementById('tip-message');
+  var hpEl = document.getElementById('tip-hp');
+  var supporterName = nameEl ? nameEl.value.trim() : '';
+  var message = messageEl ? messageEl.value.trim() : '';
+  var hp = hpEl ? hpEl.value : '';
+
+  if (btn) { btn.disabled = true; btn.textContent = '...'; }
+  try {
+    var username = getUsername();
+    var resp = await fetch('/api/tip-checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: username,
+        amount_cents: amountCents,
+        supporter_name: supporterName,
+        message: message,
+        website: hp,
+        success_url: window.location.href,
+        cancel_url: window.location.href
+      })
+    });
+    var payload = {};
+    try { payload = await resp.json(); } catch (e) { /* ignore */ }
+
+    if (resp.status === 429) {
+      if (msg) { msg.textContent = 'Too many attempts. Please try again later.'; msg.style.color = '#fca5a5'; msg.style.display = 'block'; }
+      if (btn) { btn.disabled = false; btn.textContent = 'Support'; }
+      return;
+    }
+    if (resp.ok && payload.checkout_url) {
+      window.location.href = payload.checkout_url;
+      return;
+    }
+    throw new Error(payload.error || 'Could not start checkout');
+  } catch (e) {
+    console.error('Tip error:', e);
+    if (msg) { msg.textContent = (e && e.message) ? e.message : 'Something went wrong. Try again.'; msg.style.color = '#fca5a5'; msg.style.display = 'block'; }
+    if (btn) { btn.disabled = false; btn.textContent = 'Support'; }
+  }
+}
 
 bioRegisterAction('play-video', function(e, el) {
   var id = el.getAttribute('data-bio-video-id');
