@@ -515,6 +515,32 @@ function buildLink(link, currency) {
 
   // Discord server widget — live member card. We render only the rebuilt
   // widget URL, never the pasted HTML.
+  // Buy Me a Coffee tip card (SSR). Mirrors the client render in bio-page.js so
+  // initial HTML matches after hydration. Amount chips (first preselected),
+  // custom amount, optional name/message behind a toggle, Support button.
+  if (link.isTipBlock) {
+    const heading = esc(link.tipHeading || 'Buy me a coffee');
+    const amounts = (Array.isArray(link.tipAmounts) && link.tipAmounts.length ? link.tipAmounts : [3, 5, 10]).slice(0, 4);
+    const cup = '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M4 4h13v6a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V4zm13 2v3h1.5a1.5 1.5 0 0 0 0-3H17zM3 18h15v2H3z"/></svg>';
+    const chips = amounts.map(function(a, i) {
+      const cents = (parseInt(a, 10) || 0) * 100;
+      return '<button type="button" class="tip-amt' + (i === 0 ? ' is-selected' : '') + '" data-bio-action="tip-amount" data-amt="' + cents + '">$' + (parseInt(a, 10) || 0) + '</button>';
+    }).join('');
+    return '<div class="tip-card' + halfClass + '" id="tip-card">'
+      + '<div class="tip-card-top"><span class="tip-card-cup">' + cup + '</span><span class="tip-card-heading">' + heading + '</span></div>'
+      + '<div class="tip-card-amts">' + chips + '</div>'
+      + '<input type="number" id="tip-custom" class="tip-custom" min="1" max="500" inputmode="decimal" placeholder="Custom amount ($)" aria-label="Custom tip amount">'
+      + '<button type="button" class="tip-leave-info" data-bio-action="tip-leave-info" id="tip-leave-info" aria-expanded="false">Leave info (optional)</button>'
+      + '<div class="tip-info-fields" id="tip-info-fields" hidden>'
+      + '<input type="text" id="tip-name" class="tip-input" maxlength="50" placeholder="Your name (optional)" aria-label="Your name">'
+      + '<textarea id="tip-message" class="tip-input" maxlength="200" rows="2" placeholder="Message (optional)" aria-label="Message"></textarea>'
+      + '</div>'
+      + '<input type="text" id="tip-hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;">'
+      + '<button type="button" class="tip-card-btn" data-bio-action="tip-submit" id="tip-submit">Support</button>'
+      + '<div id="tip-msg" style="display:none;font-size:13px;margin-top:8px;text-align:center;"></div>'
+      + '</div>';
+  }
+
   if (link.isDiscordBlock) {
     const src = extractDiscord(link.url);
     if (!src) return '';
