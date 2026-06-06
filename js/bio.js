@@ -1741,19 +1741,48 @@ function addGoogleMapBlock() {
 
 // Discord server widget — live member card from a server ID or widget URL. One
 // per page (all plans); the modal item disables when one exists, this backstops.
-function addTipBlock() {
+async function addTipBlock() {
   const { maxLinks } = bioLimits();
   if (bioState.links.length >= maxLinks) {
     showBioStatus('error', `Link limit reached (${maxLinks}).`);
     return;
   }
   if (bioState.links.some(l => l.isTipBlock)) return;
+  // Tips pay out straight to the creator's Stripe, so a connected account is
+  // required. Gate the block here so creators never add a card that cannot
+  // accept payments. (Checkout also enforces this server-side.)
+  if (!(await isStripeConnected())) {
+    showModalConfirm(
+      'Connect Stripe first',
+      'To accept tips you need a connected Stripe account. Connect Stripe in Settings, then add the Buy me coffee block.',
+      () => { if (typeof showTool === 'function') showTool('settings'); },
+      'Go to Settings',
+      'Not now'
+    );
+    return;
+  }
   const newId = linkIdSeq++;
   bioState.links.push({ _id: newId, isTipBlock: true, tipHeading: 'Buy me coffee', tipAmounts: [3, 5, 10, 50] });
   bioExpandedLinks.add(newId);
   renderBioLinks();
   schedulePreviewUpdate();
   showBioStatus('saved', 'Buy Me Coffee added');
+}
+
+// Returns true unless we positively know Stripe is NOT connected (an explicit
+// {connected:false} from /api/stripe-status). Network/lookup errors do not hard
+// block, since the checkout route still enforces a connected account server-side.
+async function isStripeConnected() {
+  try {
+    const res = await fetch('/api/stripe-status', {
+      headers: { Authorization: 'Bearer ' + Auth.getToken() }
+    });
+    if (!res.ok) return true;
+    const status = await res.json();
+    return status.connected !== false;
+  } catch (e) {
+    return true;
+  }
 }
 
 function addDiscordBlock() {
@@ -3130,7 +3159,7 @@ function renderLinkExpanded(link, dragSvg) {
         <div class="bio-s-7623f0"></div>
         <button class="bio-link-remove" data-bio-action="remove-link" data-bio-id="${link._id}">Remove</button>
       </div>
-      <div class="bio-s-e289c0">Supporters can tip you through your connected Stripe. Set a heading below (the preset amounts are $3, $5, and $10 for now, with a custom option). You keep your earnings; Ryxa takes 0% transaction fees (standard Stripe processing fees apply).</div>
+      <div class="bio-s-e289c0">Supporters can tip you through your connected Stripe. Set a heading below (the preset amounts are $3, $5, $10, and $50, with a custom option). You keep your earnings; Ryxa takes 0% transaction fees (standard Stripe processing fees apply).</div>
       <input type="text" maxlength="40" aria-label="Tip heading" placeholder="Buy me coffee" data-bio-action="update-link-field" data-bio-event="input" data-bio-id="${link._id}" data-bio-field="tipHeading" value="${escapeHtml(link.tipHeading || '')}" class="bio-s-6c002e" style="font-family:inherit;">
       <button type="button" data-bio-action="save-link-row" data-bio-id="${link._id}"
         class="bio-s-c7cf47">
@@ -4366,7 +4395,7 @@ function buildPreviewHTML() {
   .mkh-b{flex:1;min-width:0;}
   .mkh-t{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,0.4);letter-spacing:-0.2px;}
   .mkh-d{font-size:12px;color:rgba(255,255,255,0.85);text-shadow:0 1px 3px rgba(0,0,0,0.4);line-height:1.4;margin-top:3px;word-break:break-word;}
-  .hl{position:relative;border-radius:14px;overflow:hidden;aspect-ratio:3/2;background:#000;border:1px solid ${t.accent};box-shadow:0 0 22px 2px ${t.glow};animation:heroGlow 3s ease-in-out infinite,heroNudge 5s ease-in-out infinite;will-change:transform;}
+  .hl{position:relative;border-radius:14px;overflow:hidden;aspect-ratio:3/2;background:#000;border:1px solid ${t.accent};box-shadow:0 0 22px 2px ${t.glow};animation:heroGlow 2s ease-in-out infinite,heroNudge 5s ease-in-out infinite;will-change:transform;}
   .hl::after{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(115deg,transparent 35%,${t.accent2} 47%,rgba(255,255,255,0.4) 50%,${t.accent2} 53%,transparent 65%);background-size:220% 100%;background-repeat:no-repeat;background-position:150% 0;mix-blend-mode:screen;opacity:0.6;animation:heroSheen 5s ease-in-out infinite;}
   .hl:hover{animation:none;transform:translateY(-3px);border-color:${t.accent2};box-shadow:0 0 38px 4px ${t.glow};}
   @keyframes heroGlow{0%,100%{box-shadow:0 0 15px 1px ${t.glow};}50%{box-shadow:0 0 38px 5px ${t.glow};}}
@@ -4413,7 +4442,7 @@ function buildPreviewHTML() {
   .tip-card-cup { display: inline-flex; color: ${t.accent}; }
   .tip-card-heading { font-weight: 700; font-size: 15px; color: ${t.text}; }
   .tip-card-amts { display: flex; flex-wrap: nowrap; gap: 6px; }
-  .tip-amt { flex: 0 1 auto; min-width: 0; text-align: center; padding: 9px 12px; border-radius: 10px; border: 1px solid ${t.accent}; color: ${t.accent}; font-weight: 700; font-size: 14px; background: transparent; cursor: pointer; }
+  .tip-amt { flex: 0 1 auto; min-width: 0; display: flex; align-items: center; justify-content: center; text-align: center; padding: 9px 12px; border-radius: 10px; border: 1px solid ${t.accent}; color: ${t.accent}; font-weight: 700; font-size: 14px; background: transparent; cursor: pointer; }
   .tip-amt.is-selected { background: ${t.accent}; color: #fff; }
   .tip-card-btn { display: block; text-align: center; padding: 12px; border-radius: 8px; border: none; background: ${t.accent}; color: #fff; font-weight: 600; font-size: 16px; cursor: pointer; }
   .tip-custom { flex: 0 1 78px; min-width: 0; box-sizing: border-box; padding: 9px 8px; border-radius: 10px; border: 1px solid ${t.border}; background: ${t.bg}; color: ${t.text}; font-size: 16px; font-family: inherit; outline: none; text-align: center; -moz-appearance: textfield; appearance: textfield; }
