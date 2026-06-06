@@ -1749,11 +1749,11 @@ function addTipBlock() {
   }
   if (bioState.links.some(l => l.isTipBlock)) return;
   const newId = linkIdSeq++;
-  bioState.links.push({ _id: newId, isTipBlock: true, tipHeading: 'Buy me a coffee', tipAmounts: [3, 5, 10, 50] });
+  bioState.links.push({ _id: newId, isTipBlock: true, tipHeading: 'Buy me coffee', tipAmounts: [3, 5, 10, 50] });
   bioExpandedLinks.add(newId);
   renderBioLinks();
   schedulePreviewUpdate();
-  showBioStatus('saved', 'Buy Me a Coffee added');
+  showBioStatus('saved', 'Buy Me Coffee added');
 }
 
 function addDiscordBlock() {
@@ -3126,12 +3126,12 @@ function renderLinkExpanded(link, dragSvg) {
     return `<div class="bio-link-row" data-id="${link._id}">
       <div class="bio-link-header">
         <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
-        <span class="bio-featured-badge bio-s-04da54">Buy Me a Coffee</span>
+        <span class="bio-featured-badge bio-s-04da54">Buy Me Coffee</span>
         <div class="bio-s-7623f0"></div>
         <button class="bio-link-remove" data-bio-action="remove-link" data-bio-id="${link._id}">Remove</button>
       </div>
       <div class="bio-s-e289c0">Supporters can tip you through your connected Stripe. Set a heading below (the preset amounts are $3, $5, and $10 for now, with a custom option). You keep your earnings; Ryxa takes 0% transaction fees (standard Stripe processing fees apply).</div>
-      <input type="text" maxlength="40" aria-label="Tip heading" placeholder="Buy me a coffee" data-bio-action="update-link-field" data-bio-event="input" data-bio-id="${link._id}" data-bio-field="tipHeading" value="${escapeHtml(link.tipHeading || '')}" class="bio-s-6c002e" style="font-family:inherit;">
+      <input type="text" maxlength="40" aria-label="Tip heading" placeholder="Buy me coffee" data-bio-action="update-link-field" data-bio-event="input" data-bio-id="${link._id}" data-bio-field="tipHeading" value="${escapeHtml(link.tipHeading || '')}" class="bio-s-6c002e" style="font-family:inherit;">
       <button type="button" data-bio-action="save-link-row" data-bio-id="${link._id}"
         class="bio-s-c7cf47">
         Save
@@ -4412,11 +4412,11 @@ function buildPreviewHTML() {
   .tip-card-top { display: flex; align-items: center; gap: 8px; }
   .tip-card-cup { display: inline-flex; color: ${t.accent}; }
   .tip-card-heading { font-weight: 700; font-size: 15px; color: ${t.text}; }
-  .tip-card-amts { display: flex; flex-wrap: wrap; gap: 8px; }
-  .tip-amt { flex: 0 0 auto; text-align: center; padding: 9px 14px; border-radius: 10px; border: 1px solid ${t.accent}; color: ${t.accent}; font-weight: 700; font-size: 14px; background: transparent; cursor: pointer; }
+  .tip-card-amts { display: flex; flex-wrap: nowrap; gap: 6px; }
+  .tip-amt { flex: 0 1 auto; min-width: 0; text-align: center; padding: 9px 12px; border-radius: 10px; border: 1px solid ${t.accent}; color: ${t.accent}; font-weight: 700; font-size: 14px; background: transparent; cursor: pointer; }
   .tip-amt.is-selected { background: ${t.accent}; color: #fff; }
   .tip-card-btn { display: block; text-align: center; padding: 12px; border-radius: 8px; border: none; background: ${t.accent}; color: #fff; font-weight: 600; font-size: 16px; cursor: pointer; }
-  .tip-custom { flex: 0 0 auto; width: 78px; box-sizing: border-box; padding: 9px 8px; border-radius: 10px; border: 1px solid ${t.border}; background: ${t.bg}; color: ${t.text}; font-size: 16px; font-family: inherit; outline: none; text-align: center; -moz-appearance: textfield; appearance: textfield; }
+  .tip-custom { flex: 0 1 78px; min-width: 0; box-sizing: border-box; padding: 9px 8px; border-radius: 10px; border: 1px solid ${t.border}; background: ${t.bg}; color: ${t.text}; font-size: 16px; font-family: inherit; outline: none; text-align: center; -moz-appearance: textfield; appearance: textfield; }
   .tip-custom::-webkit-outer-spin-button, .tip-custom::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
   .tip-leave-info { background: none; border: none; color: ${t.accent}; font-size: 13px; font-weight: 600; cursor: pointer; padding: 2px 0; align-self: flex-start; font-family: inherit; }
   .tip-info-fields { display: flex; flex-direction: column; gap: 8px; }
@@ -4465,7 +4465,7 @@ function buildPreviewLink(l, t) {
   // Buy Me a Coffee tip card. Preview is non-interactive; the live bio wires the
   // amount buttons, optional name/message, and the Stripe checkout action.
   if (l.isTipBlock) {
-    const heading = escapeHtml(l.tipHeading || 'Buy me a coffee');
+    const heading = escapeHtml(l.tipHeading || 'Buy me coffee');
     const amounts = (Array.isArray(l.tipAmounts) && l.tipAmounts.length ? l.tipAmounts : [3, 5, 10, 50]).slice(0, 4);
     const cup = '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M4 4h13v6a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V4zm13 2v3h1.5a1.5 1.5 0 0 0 0-3H17zM3 18h15v2H3z"/></svg>';
     const chips = amounts.map((a, i) => `<span class="tip-amt${i === 0 ? ' is-selected' : ''}">$${parseInt(a, 10) || 0}</span>`).join('');
