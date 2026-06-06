@@ -278,8 +278,7 @@ function renderAnalyticsSalesPage() {
   var maxPage = Math.floor((anaSalesAllData.length - 1) / ANA_SALES_PER_PAGE);
 
   tbody.innerHTML = page.map(function(s) {
-    var d = new Date(s.date);
-    var date = (d.getMonth()+1) + '/' + d.getDate() + '/' + d.getFullYear();
+    var date = new Date(s.date).toLocaleDateString('en-US', { timeZone: anaTz() });
     var buyer = s.buyer;
     var amount = formatMoney(s.amount, {alwaysShowCents:true});
     var pillStyle = '';

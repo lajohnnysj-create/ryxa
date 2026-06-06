@@ -408,7 +408,7 @@ async function loadDashStats() {
   }
 
   // Max user — load revenue
-  const revenueRes = await sb.rpc('get_revenue_stats', { p_start_date: start, p_end_date: end });
+  const revenueRes = await sb.rpc('get_revenue_stats', { p_start_date: start, p_end_date: end, p_tz: window._ryx_creator_tz || 'UTC' });
   if (revenueRes.error || !revenueRes.data) {
     rEl.textContent = '—';
     rSub.textContent = 'Could not load';
