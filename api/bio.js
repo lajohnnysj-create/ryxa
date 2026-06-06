@@ -519,7 +519,7 @@ function buildLink(link, currency) {
   // initial HTML matches after hydration. Amount chips (first preselected),
   // custom amount, optional name/message behind a toggle, Support button.
   if (link.isTipBlock) {
-    const heading = esc(link.tipHeading || 'Buy me a coffee');
+    const heading = esc(link.tipHeading || 'Buy me coffee');
     const amounts = (Array.isArray(link.tipAmounts) && link.tipAmounts.length ? link.tipAmounts : [3, 5, 10, 50]).slice(0, 4);
     const cup = '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M4 4h13v6a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V4zm13 2v3h1.5a1.5 1.5 0 0 0 0-3H17zM3 18h15v2H3z"/></svg>';
     const chips = amounts.map(function(a, i) {
