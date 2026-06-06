@@ -2132,7 +2132,7 @@ function formatMoney(cents, opts) {
 
 // Backward-compatible alias — many places in code call formatDashUSD
 function formatDashUSD(cents) {
-  return formatMoney(cents, { fractionDigits: 0 });
+  return formatMoney(cents, { alwaysShowCents: true });
 }
 
 // Updates all UI elements that show the currency symbol prefix (e.g., $ in price inputs)

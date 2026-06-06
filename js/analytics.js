@@ -661,7 +661,7 @@ function renderAnaLineChart(canvasId, viewsDaily, revDaily, dayCount) {
         tooltip.style.display = 'block';
         tooltip.innerHTML = '<div style="color:rgba(255,255,255,0.5);margin-bottom:4px;">' + dates[hoverIdx] + '</div>'
           + '<div style="color:#e879f9;">' + vVals[hoverIdx].toLocaleString() + ' views</div>'
-          + '<div style="color:#a78bfa;">$' + rVals[hoverIdx].toLocaleString() + '</div>';
+          + '<div style="color:#a78bfa;">' + formatMoney(Math.round(rVals[hoverIdx] * 100), {alwaysShowCents:true}) + '</div>';
         let tx = hx - tooltip.offsetWidth / 2;
         if (tx < 0) tx = 0;
         if (tx + tooltip.offsetWidth > w) tx = w - tooltip.offsetWidth;
@@ -753,7 +753,7 @@ function renderAnaMiniChart(canvasId, dailyData, valKey, color) {
       ctx.fillStyle = color; ctx.fill(); ctx.strokeStyle = '#0a0a14'; ctx.lineWidth = 1.5; ctx.stroke();
 
       if (tipEl) {
-        const valText = isCurrency ? formatMoney(Math.round(vals[hoverIdx] * 100), {fractionDigits:0}) : vals[hoverIdx].toLocaleString();
+        const valText = isCurrency ? formatMoney(Math.round(vals[hoverIdx] * 100), {alwaysShowCents:true}) : vals[hoverIdx].toLocaleString();
         tipEl.style.display = 'block';
         tipEl.innerHTML = '<span style="color:rgba(255,255,255,0.5);">' + dates[hoverIdx] + '</span> <span style="color:' + color + ';font-weight:600;">' + valText + '</span>';
         let tx = hx - tipEl.offsetWidth / 2;
