@@ -2460,6 +2460,13 @@ function bioRowTypeMeta(link) {
       icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="5" fill="#000"/><g transform="translate(4.5 4.5) scale(0.625)"><path fill="#fff" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></g></svg>'
     };
   }
+  if (link.isTipBlock) {
+    return {
+      key: 'tip',
+      label: 'Buy me coffee',
+      icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="5.5" fill="#FFDD00"/><path fill="#5b3a1a" d="M6 6.5h9v4.2a3.4 3.4 0 0 1-3.4 3.4H9.4A3.4 3.4 0 0 1 6 10.7V6.5zm9 1.6v2.6h1.1a1.3 1.3 0 0 0 0-2.6H15zM5.2 16.2h10.6v1.7H5.2z"/></svg>'
+    };
+  }
   if (link.isSubscribe) {
     return {
       key: 'subscribe',
@@ -2735,6 +2742,9 @@ function renderLinkCollapsed(link, dragSvg, editSvg) {
       thumb = `<img alt="Product thumbnail" src="${escapeHtml(link.photoUrl)}" class="bio-s-11a000">`;
     }
     subline = link.productPrice > 0 ? formatMoney(link.productPrice, {alwaysShowCents:true}) : 'Free';
+  } else if (link.isTipBlock) {
+    title = 'Buy me coffee';
+    subline = '';
   } else {
     // Regular link / featured / mediakit
     if (!link.isMediaKit && link.photoUrl) {
@@ -4406,6 +4416,12 @@ function buildPreviewHTML() {
   .tip-amt { flex: 0 0 auto; text-align: center; padding: 9px 14px; border-radius: 10px; border: 1px solid var(--accent); color: var(--accent); font-weight: 700; font-size: 14px; background: transparent; cursor: pointer; }
   .tip-amt.is-selected { background: var(--accent); color: #fff; }
   .tip-card-btn { display: block; text-align: center; padding: 12px; border-radius: 8px; border: none; background: var(--accent); color: #fff; font-weight: 600; font-size: 16px; cursor: pointer; }
+  .tip-custom { flex: 0 0 auto; width: 78px; box-sizing: border-box; padding: 9px 8px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 16px; font-family: inherit; outline: none; text-align: center; -moz-appearance: textfield; appearance: textfield; }
+  .tip-custom::-webkit-outer-spin-button, .tip-custom::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .tip-leave-info { background: none; border: none; color: var(--accent); font-size: 13px; font-weight: 600; cursor: pointer; padding: 2px 0; align-self: flex-start; font-family: inherit; }
+  .tip-info-fields { display: flex; flex-direction: column; gap: 8px; }
+  .tip-info-fields[hidden] { display: none; }
+  .tip-input { width: 100%; box-sizing: border-box; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 16px; font-family: inherit; outline: none; resize: vertical; }
   </style></head><body>
   <div class="w">
     ${(bioState.avatar_display === 'hero' && bioState.avatar_url) ? `
@@ -4451,11 +4467,12 @@ function buildPreviewLink(l, t) {
   if (l.isTipBlock) {
     const heading = escapeHtml(l.tipHeading || 'Buy me a coffee');
     const amounts = (Array.isArray(l.tipAmounts) && l.tipAmounts.length ? l.tipAmounts : [3, 5, 10, 50]).slice(0, 4);
-    const amtBtns = amounts.map(a => `<span class="tip-amt">$${parseInt(a, 10) || 0}</span>`).join('');
     const cup = '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M4 4h13v6a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V4zm13 2v3h1.5a1.5 1.5 0 0 0 0-3H17zM3 18h15v2H3z"/></svg>';
+    const chips = amounts.map((a, i) => `<span class="tip-amt${i === 0 ? ' is-selected' : ''}">$${parseInt(a, 10) || 0}</span>`).join('');
     return `<div class="tip-card ${halfClass}">
       <div class="tip-card-top"><span class="tip-card-cup">${cup}</span><span class="tip-card-heading">${heading}</span></div>
-      <div class="tip-card-amts">${amtBtns}<span class="tip-amt tip-amt-custom">Custom</span></div>
+      <div class="tip-card-amts">${chips}<input type="text" class="tip-custom" placeholder="$0.00" readonly aria-hidden="true"></div>
+      <span class="tip-leave-info">Leave info (optional)</span>
       <span class="tip-card-btn">Support</span>
     </div>`;
   }
