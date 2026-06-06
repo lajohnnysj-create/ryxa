@@ -176,6 +176,7 @@ async function loadAnalyticsData() {
   document.getElementById('ana-coaching-total').textContent = formatDashUSD(bySource.coaching || 0);
   document.getElementById('ana-dp-total').textContent = formatDashUSD(bySource.digital_product || 0);
   document.getElementById('ana-deals-total').textContent = formatDashUSD(bySource.brand_deal || 0);
+  document.getElementById('ana-tips-total').textContent = formatDashUSD(bySource.tip || 0);
 
   // Page view totals by source
   const byPage = (viewsRes && !viewsRes.error && viewsRes.data) ? (viewsRes.data.by_page || {}) : {};
@@ -202,6 +203,7 @@ async function loadAnalyticsData() {
     ['ana-coaching-chart', revDaily, 'coaching', '#e879f9'],
     ['ana-dp-chart', revDaily, 'digital_product', '#f0abfc'],
     ['ana-deals-chart', revDaily, 'brand_deal', '#7c3aed'],
+    ['ana-tips-chart', revDaily, 'tip', '#f59e0b'],
     ['ana-pv-bio-chart', viewsDaily, 'count', '#e879f9'],
     ['ana-pv-courses-chart', viewsDaily, 'count', '#a78bfa'],
     ['ana-pv-coaching-chart', viewsDaily, 'count', '#c084fc'],
@@ -252,6 +254,7 @@ function renderAnalyticsSalesPage() {
     var pillStyle = '';
     if (s.type === 'Course') pillStyle = 'background:rgba(167,139,250,0.15);color:#c4b5fd;';
     else if (s.type === 'Booking') pillStyle = 'background:rgba(232,121,249,0.15);color:#e879f9;';
+    else if (s.type === 'Tip') pillStyle = 'background:rgba(245,158,11,0.15);color:#fbbf24;';
     else pillStyle = 'background:rgba(124,58,237,0.15);color:#a78bfa;';
     return '<tr class="ana-s-a56f95">'
       + '<td class="ana-s-14ba36">' + date + '</td>'
@@ -340,6 +343,21 @@ async function loadAnalyticsSales(start, end) {
     if (deals) {
       deals.forEach(function(d) {
         sales.push({ date: d.received_at, buyer: d.counterparty_name || '—', product: 'Brand Deal', type: 'Brand', amount: d.amount_cents || 0 });
+      });
+    }
+
+    // Fetch coffee tips (recorded in revenue_events with source 'tip')
+    const { data: tips } = await sb
+      .from('revenue_events')
+      .select('received_at, amount_cents, counterparty_name, source')
+      .eq('user_id', currentUser.id)
+      .eq('source', 'tip')
+      .gte('received_at', start + 'T00:00:00')
+      .lte('received_at', end + 'T23:59:59')
+      .order('received_at', { ascending: false });
+    if (tips) {
+      tips.forEach(function(t) {
+        sales.push({ date: t.received_at, buyer: t.counterparty_name || 'Anonymous', product: 'Coffee Tip', type: 'Tip', amount: t.amount_cents || 0 });
       });
     }
 
@@ -692,7 +710,7 @@ function renderAnaMiniChart(canvasId, dailyData, valKey, color) {
     dates.push((d.getMonth() + 1) + '/' + d.getDate());
   }
 
-  const isCurrency = (valKey === 'cents' || valKey === 'course' || valKey === 'coaching' || valKey === 'brand_deal');
+  const isCurrency = (valKey === 'cents' || valKey === 'course' || valKey === 'coaching' || valKey === 'brand_deal' || valKey === 'tip');
   (dailyData || []).forEach(d => {
     const idx = Math.round((new Date(d.date + 'T00:00:00') - startDate) / 86400000);
     if (idx >= 0 && idx < dayCount) vals[idx] = isCurrency ? (d.cents || 0) / 100 : (d[valKey] || 0);
