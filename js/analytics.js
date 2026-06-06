@@ -710,10 +710,17 @@ function renderAnaMiniChart(canvasId, dailyData, valKey, color) {
     dates.push((d.getMonth() + 1) + '/' + d.getDate());
   }
 
-  const isCurrency = (valKey === 'cents' || valKey === 'course' || valKey === 'coaching' || valKey === 'brand_deal' || valKey === 'tip');
+  // Per-source revenue keys chart from daily.by_source[key]; 'cents' is the
+  // daily total; anything else (page-view 'count') reads d[valKey] directly.
+  const SOURCE_KEYS = ['course', 'coaching', 'digital_product', 'brand_deal', 'tip'];
+  const isSource = SOURCE_KEYS.indexOf(valKey) !== -1;
+  const isCurrency = (valKey === 'cents' || isSource);
   (dailyData || []).forEach(d => {
     const idx = Math.round((new Date(d.date + 'T00:00:00') - startDate) / 86400000);
-    if (idx >= 0 && idx < dayCount) vals[idx] = isCurrency ? (d.cents || 0) / 100 : (d[valKey] || 0);
+    if (idx < 0 || idx >= dayCount) return;
+    if (isSource) vals[idx] = ((d.by_source && d.by_source[valKey]) || 0) / 100;
+    else if (valKey === 'cents') vals[idx] = (d.cents || 0) / 100;
+    else vals[idx] = (d[valKey] || 0);
   });
 
   const maxV = Math.max(...vals, 1);
