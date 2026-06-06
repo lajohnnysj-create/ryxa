@@ -1129,6 +1129,11 @@
   .tip-amt { flex: 1 1 0; min-width: 56px; text-align: center; padding: 9px 0; border-radius: 10px; border: 1px solid var(--accent); color: var(--accent); font-weight: 700; font-size: 14px; background: transparent; cursor: pointer; }
   .tip-amt.is-selected { background: var(--accent); color: #fff; }
   .tip-card-btn { display: block; text-align: center; padding: 12px; border-radius: 12px; background: var(--accent); color: #fff; font-weight: 700; font-size: 15px; cursor: pointer; box-shadow: 0 0 20px var(--accent-glow); }
+  .tip-custom { width: 100%; box-sizing: border-box; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 14px; font-family: inherit; outline: none; }
+  .tip-leave-info { background: none; border: none; color: var(--accent); font-size: 13px; font-weight: 600; cursor: pointer; padding: 2px 0; align-self: flex-start; font-family: inherit; }
+  .tip-info-fields { display: flex; flex-direction: column; gap: 8px; }
+  .tip-info-fields[hidden] { display: none; }
+  .tip-input { width: 100%; box-sizing: border-box; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 14px; font-family: inherit; outline: none; resize: vertical; }
   /* Twitch carousel cards — channels, VODs, clips; all 16:9. Sit in the shared
      .videos / .videos-scroll carousel (same as the video blocks). */
   .twitch-card {
@@ -1394,7 +1399,7 @@
   </div>
 </div>
 
-<script src="/js/bio-page.js?v=8" defer></script>
+<script src="/js/bio-page.js?v=9" defer></script>
 <script src="/cookie-banner.js"></script>
 </body>
 </html>
