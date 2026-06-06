@@ -800,7 +800,7 @@
     /* Idle state really stands out: a wide breathing accent glow, a colored
        light sweep traveling across the card, and a periodic rotate-wobble.
        All stop on hover/focus (below) so they never fight the lift. */
-    animation: heroGlow 3s ease-in-out infinite, heroNudge 5s ease-in-out infinite;
+    animation: heroGlow 2s ease-in-out infinite, heroNudge 5s ease-in-out infinite;
     will-change: transform;
   }
   /* Traveling color sweep. Sits above the image/overlay (z1) but below the
@@ -1126,7 +1126,7 @@
   .tip-card-cup { display: inline-flex; color: var(--accent); }
   .tip-card-heading { font-weight: 700; font-size: 15px; color: var(--text); }
   .tip-card-amts { display: flex; flex-wrap: nowrap; gap: 6px; }
-  .tip-amt { flex: 0 1 auto; min-width: 0; text-align: center; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--accent); color: var(--accent); font-weight: 700; font-size: 14px; background: transparent; cursor: pointer; }
+  .tip-amt { flex: 0 1 auto; min-width: 0; display: flex; align-items: center; justify-content: center; text-align: center; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--accent); color: var(--accent); font-weight: 700; font-size: 14px; background: transparent; cursor: pointer; }
   .tip-amt.is-selected { background: var(--accent); color: #fff; }
   .tip-card-btn { display: block; text-align: center; padding: 12px; border-radius: 8px; border: none; background: var(--accent); color: #fff; font-weight: 600; font-size: 16px; cursor: pointer; }
   .tip-custom { flex: 0 1 78px; min-width: 0; box-sizing: border-box; padding: 9px 8px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 16px; font-family: inherit; outline: none; text-align: center; -moz-appearance: textfield; appearance: textfield; }
