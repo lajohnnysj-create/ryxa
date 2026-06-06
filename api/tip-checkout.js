@@ -17,6 +17,8 @@
 // Body: { username, amount_cents, supporter_name?, message?, website?(honeypot),
 //         success_url, cancel_url }
 
+const crypto = require('crypto');
+
 const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
 
 function getServiceKey() {
@@ -36,6 +38,8 @@ const TIP_MIN_CENTS = 100;      // $1.00 floor
 const TIP_MAX_CENTS = 50000;    // $500.00 ceiling (typo and abuse guard)
 const NAME_MAX = 50;
 const MESSAGE_MAX = 200;
+const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000;  // 1 hour
+const RATE_LIMIT_MAX = 12;                    // tip-session creations per IP per creator per hour
 
 async function sbSelect(path) {
   var key = getServiceKey();
@@ -47,6 +51,94 @@ async function sbSelect(path) {
     throw new Error('Supabase SELECT failed (' + res.status + '): ' + body);
   }
   return await res.json();
+}
+
+function getClientIp(req) {
+  // Vercel sets x-forwarded-for (comma-separated; closest proxy on the right).
+  var xff = req.headers['x-forwarded-for'];
+  if (xff) {
+    var first = xff.split(',')[0].trim();
+    if (first) return first;
+  }
+  var xri = req.headers['x-real-ip'];
+  if (xri) return xri;
+  return 'unknown';
+}
+
+// SHA-256 hex of the IP. We never store raw IPs (no PII retention).
+function hashIp(ip) {
+  return crypto.createHash('sha256').update(ip).digest('hex');
+}
+
+async function sbFetch(path, options) {
+  options = options || {};
+  var key = getServiceKey();
+  var headers = Object.assign({
+    apikey: key,
+    Authorization: 'Bearer ' + key,
+    'Content-Type': 'application/json'
+  }, options.headers || {});
+  return await fetch(SUPABASE_URL + '/rest/v1/' + path, {
+    method: options.method || 'GET',
+    headers: headers,
+    body: options.body ? JSON.stringify(options.body) : undefined
+  });
+}
+
+// Per-IP-per-creator throttle. Returns { allowed, retryAfterSeconds? }. Fails
+// OPEN on infra errors: better to let a legitimate supporter through than to
+// block tips if the rate-limit table has a hiccup. Read-then-write is not
+// perfectly atomic, so a burst of concurrent requests could overshoot the cap
+// by one or two; acceptable for a spam throttle.
+async function checkRateLimit(ipHash, creatorId) {
+  var sel = 'tip_rate_limits?ip_hash=eq.' + encodeURIComponent(ipHash)
+    + '&creator_id=eq.' + encodeURIComponent(creatorId)
+    + '&select=attempt_count,window_started_at&limit=1';
+  var base = 'tip_rate_limits?ip_hash=eq.' + encodeURIComponent(ipHash)
+    + '&creator_id=eq.' + encodeURIComponent(creatorId);
+
+  var selRes = await sbFetch(sel);
+  if (!selRes.ok) {
+    console.error('tip rate-limit SELECT failed:', selRes.status);
+    return { allowed: true };
+  }
+  var rows = await selRes.json();
+  var now = Date.now();
+
+  if (!rows || rows.length === 0) {
+    var insRes = await sbFetch('tip_rate_limits', {
+      method: 'POST',
+      headers: { 'Prefer': 'return=minimal' },
+      body: { ip_hash: ipHash, creator_id: creatorId, attempt_count: 1, window_started_at: new Date(now).toISOString() }
+    });
+    if (!insRes.ok) console.error('tip rate-limit INSERT failed:', insRes.status);
+    return { allowed: true };
+  }
+
+  var row = rows[0];
+  var windowAge = now - new Date(row.window_started_at).getTime();
+
+  if (windowAge > RATE_LIMIT_WINDOW_MS) {
+    var resetRes = await sbFetch(base, {
+      method: 'PATCH',
+      headers: { 'Prefer': 'return=minimal' },
+      body: { attempt_count: 1, window_started_at: new Date(now).toISOString() }
+    });
+    if (!resetRes.ok) console.error('tip rate-limit reset PATCH failed:', resetRes.status);
+    return { allowed: true };
+  }
+
+  if (row.attempt_count >= RATE_LIMIT_MAX) {
+    return { allowed: false, retryAfterSeconds: Math.ceil((RATE_LIMIT_WINDOW_MS - windowAge) / 1000) };
+  }
+
+  var incRes = await sbFetch(base, {
+    method: 'PATCH',
+    headers: { 'Prefer': 'return=minimal' },
+    body: { attempt_count: row.attempt_count + 1 }
+  });
+  if (!incRes.ok) console.error('tip rate-limit increment PATCH failed:', incRes.status);
+  return { allowed: true };
 }
 
 function stripeForm(obj, prefix) {
@@ -162,6 +254,13 @@ module.exports = async (req, res) => {
     var creator = profiles[0];
     if (!creator.stripe_account_id) {
       return res.status(400).json({ error: 'This creator is not set up to receive tips yet.' });
+    }
+
+    // Throttle anonymous session creation per IP per creator.
+    var rl = await checkRateLimit(hashIp(getClientIp(req)), creator.user_id);
+    if (!rl.allowed) {
+      if (rl.retryAfterSeconds) res.setHeader('Retry-After', String(rl.retryAfterSeconds));
+      return res.status(429).json({ error: 'Too many tip attempts. Please try again in a bit.' });
     }
 
     var currency = (creator.display_currency || 'usd').toLowerCase();
