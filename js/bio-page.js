@@ -1430,8 +1430,22 @@ document.addEventListener('input', function(e) {
   var v = el.value.replace(/[^0-9.]/g, '');
   var dot = v.indexOf('.');
   if (dot !== -1) v = v.slice(0, dot + 1) + v.slice(dot + 1).replace(/\./g, '').slice(0, 2);
-  if (parseFloat(v) > 500) v = '500';
+  var clamped = false;
+  if (parseFloat(v) > 500) { v = '500'; clamped = true; }
   if (v !== el.value) el.value = v;
+  // Tell the supporter why the field stopped climbing. Only touch our own
+  // "$500 max" note so a pending submit error is never clobbered.
+  var msg = document.getElementById('tip-msg');
+  if (msg) {
+    if (clamped) {
+      msg.textContent = '$500 max';
+      msg.style.color = '#fca5a5';
+      msg.style.display = 'block';
+    } else if (msg.textContent === '$500 max') {
+      msg.textContent = '';
+      msg.style.display = 'none';
+    }
+  }
 });
 
 async function submitTip() {
