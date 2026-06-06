@@ -1749,7 +1749,7 @@ function addTipBlock() {
   }
   if (bioState.links.some(l => l.isTipBlock)) return;
   const newId = linkIdSeq++;
-  bioState.links.push({ _id: newId, isTipBlock: true, tipHeading: 'Buy me a coffee', tipAmounts: [3, 5, 10] });
+  bioState.links.push({ _id: newId, isTipBlock: true, tipHeading: 'Buy me a coffee', tipAmounts: [3, 5, 10, 50] });
   bioExpandedLinks.add(newId);
   renderBioLinks();
   schedulePreviewUpdate();
@@ -3996,7 +3996,7 @@ async function saveBio() {
         ...(l.isCourse ? { isCourse: true, courseId: l.courseId, coursePrice: l.coursePrice || 0, courseCrossoutPrice: l.courseCrossoutPrice || 0 } : {}),
         ...(l.isCoaching ? { isCoaching: true, coachingId: l.coachingId, coachingPrice: l.coachingPrice || 0 } : {}),
         ...(l.isProduct ? { isProduct: true, productId: l.productId, productPrice: l.productPrice || 0 } : {}),
-        ...(l.isTipBlock ? { isTipBlock: true, tipHeading: (l.tipHeading || '').slice(0, 40), tipAmounts: (Array.isArray(l.tipAmounts) && l.tipAmounts.length ? l.tipAmounts : [3, 5, 10]).map(a => parseInt(a, 10) || 0).filter(a => a > 0).slice(0, 4) } : {}),
+        ...(l.isTipBlock ? { isTipBlock: true, tipHeading: (l.tipHeading || '').slice(0, 40), tipAmounts: (Array.isArray(l.tipAmounts) && l.tipAmounts.length ? l.tipAmounts : [3, 5, 10, 50]).map(a => parseInt(a, 10) || 0).filter(a => a > 0).slice(0, 4) } : {}),
         ...(l.halfWidth ? { halfWidth: true } : {}),
         ...(l.isSubscribe ? { isSubscribe: true } : {}),
         // Video block — array of YouTube URLs (capped at 5 by the editor).
@@ -4450,7 +4450,7 @@ function buildPreviewLink(l, t) {
   // amount buttons, optional name/message, and the Stripe checkout action.
   if (l.isTipBlock) {
     const heading = escapeHtml(l.tipHeading || 'Buy me a coffee');
-    const amounts = (Array.isArray(l.tipAmounts) && l.tipAmounts.length ? l.tipAmounts : [3, 5, 10]).slice(0, 4);
+    const amounts = (Array.isArray(l.tipAmounts) && l.tipAmounts.length ? l.tipAmounts : [3, 5, 10, 50]).slice(0, 4);
     const amtBtns = amounts.map(a => `<span class="tip-amt">$${parseInt(a, 10) || 0}</span>`).join('');
     const cup = '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M4 4h13v6a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V4zm13 2v3h1.5a1.5 1.5 0 0 0 0-3H17zM3 18h15v2H3z"/></svg>';
     return `<div class="tip-card ${halfClass}">

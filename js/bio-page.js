@@ -474,7 +474,7 @@ function buildLink(link) {
   // that POSTs to /api/tip-checkout and redirects to Stripe. One per page.
   if (link.isTipBlock) {
     const heading = esc(link.tipHeading || 'Buy me a coffee');
-    const amounts = (Array.isArray(link.tipAmounts) && link.tipAmounts.length ? link.tipAmounts : [3, 5, 10]).slice(0, 4);
+    const amounts = (Array.isArray(link.tipAmounts) && link.tipAmounts.length ? link.tipAmounts : [3, 5, 10, 50]).slice(0, 4);
     const cup = '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M4 4h13v6a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V4zm13 2v3h1.5a1.5 1.5 0 0 0 0-3H17zM3 18h15v2H3z"/></svg>';
     const chips = amounts.map(function(a, i) {
       const cents = (parseInt(a, 10) || 0) * 100;
@@ -482,7 +482,7 @@ function buildLink(link) {
     }).join('');
     return '<div class="tip-card' + halfClass + '" id="tip-card">'
       + '<div class="tip-card-top"><span class="tip-card-cup">' + cup + '</span><span class="tip-card-heading">' + heading + '</span></div>'
-      + '<div class="tip-card-amts">' + chips + '<input type="number" id="tip-custom" class="tip-custom" min="1" max="500" inputmode="decimal" placeholder="$" aria-label="Custom tip amount"></div>'
+      + '<div class="tip-card-amts">' + chips + '<input type="text" id="tip-custom" class="tip-custom" inputmode="decimal" maxlength="6" placeholder="$0.00" aria-label="Custom tip amount"></div>'
       + '<button type="button" class="tip-leave-info" data-bio-action="tip-leave-info" id="tip-leave-info" aria-expanded="false">Leave info (optional)</button>'
       + '<div class="tip-info-fields" id="tip-info-fields" hidden>'
       + '<input type="text" id="tip-name" class="tip-input" maxlength="50" placeholder="Your name (optional)" aria-label="Your name">'
@@ -1419,6 +1419,17 @@ bioRegisterAction('tip-leave-info', function(e, el) {
 });
 
 bioRegisterAction('tip-submit', function() { submitTip(); });
+
+// Keep the custom tip field numeric: strip non-digits and collapse to a single
+// decimal point. Length is capped by maxlength=6 on the input itself.
+document.addEventListener('input', function(e) {
+  var el = e.target;
+  if (!el || el.id !== 'tip-custom') return;
+  var v = el.value.replace(/[^0-9.]/g, '');
+  var dot = v.indexOf('.');
+  if (dot !== -1) v = v.slice(0, dot + 1) + v.slice(dot + 1).replace(/\./g, '');
+  if (v !== el.value) el.value = v;
+});
 
 async function submitTip() {
   var card = document.getElementById('tip-card');
