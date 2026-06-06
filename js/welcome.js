@@ -105,13 +105,21 @@ function getDashDateRange() {
   if (dashCustomStart && dashCustomEnd) {
     return { start: dashCustomStart, end: dashCustomEnd };
   }
-  const end = new Date();
-  const start = new Date();
-  start.setDate(start.getDate() - dashRangeDays + 1);
-  return {
-    start: start.toISOString().slice(0, 10),
-    end: end.toISOString().slice(0, 10)
-  };
+  // Compute the window in the creator's calendar timezone (not UTC) so the home
+  // dashboard's "last N days" matches the Analytics tool. en-CA yields YYYY-MM-DD;
+  // we resolve "today" in their tz, then step back to the window start by date.
+  const tz = (typeof window !== 'undefined' && window._ryx_creator_tz) || 'UTC';
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit'
+  }).formatToParts(new Date());
+  const o = {};
+  parts.forEach(function (p) { o[p.type] = p.value; });
+  const end = o.year + '-' + o.month + '-' + o.day;
+  const d = new Date(end + 'T00:00:00');
+  d.setDate(d.getDate() - dashRangeDays + 1);
+  const pad = function (n) { return String(n).padStart(2, '0'); };
+  const start = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  return { start: start, end: end };
 }
 
 async function loadUpcomingEvents() {
