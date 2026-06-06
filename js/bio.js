@@ -4408,20 +4408,20 @@ function buildPreviewHTML() {
   .hero-info .sb{background:rgba(0,0,0,0.35);border-color:rgba(255,255,255,0.2);backdrop-filter:blur(6px);}
   .hero-info{display:none;}
   .hero-below{margin-top:-60px;position:relative;z-index:3;display:flex;flex-direction:column;align-items:center;gap:3px;padding:0 18px;width:100%;box-sizing:border-box;}
-  .tip-card { width: 100%; border: 1px solid rgba(128,128,128,0.25); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px; box-sizing: border-box; background-color: var(--surface); background-image: linear-gradient(color-mix(in srgb, var(--surface) 85%, transparent), color-mix(in srgb, var(--surface) 85%, transparent)), url('/buymecoffee.webp'); background-size: cover; background-position: center; }
+  .tip-card { width: 100%; border: 1px solid rgba(128,128,128,0.25); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px; box-sizing: border-box; background-color: ${t.surface}; background-image: linear-gradient(color-mix(in srgb, ${t.surface} 85%, transparent), color-mix(in srgb, ${t.surface} 85%, transparent)), url('/buymecoffee.webp'); background-size: cover; background-position: center; }
   .tip-card-top { display: flex; align-items: center; gap: 8px; }
-  .tip-card-cup { display: inline-flex; color: var(--accent); }
-  .tip-card-heading { font-weight: 700; font-size: 15px; color: var(--text); }
+  .tip-card-cup { display: inline-flex; color: ${t.accent}; }
+  .tip-card-heading { font-weight: 700; font-size: 15px; color: ${t.text}; }
   .tip-card-amts { display: flex; flex-wrap: wrap; gap: 8px; }
-  .tip-amt { flex: 0 0 auto; text-align: center; padding: 9px 14px; border-radius: 10px; border: 1px solid var(--accent); color: var(--accent); font-weight: 700; font-size: 14px; background: transparent; cursor: pointer; }
-  .tip-amt.is-selected { background: var(--accent); color: #fff; }
-  .tip-card-btn { display: block; text-align: center; padding: 12px; border-radius: 8px; border: none; background: var(--accent); color: #fff; font-weight: 600; font-size: 16px; cursor: pointer; }
-  .tip-custom { flex: 0 0 auto; width: 78px; box-sizing: border-box; padding: 9px 8px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 16px; font-family: inherit; outline: none; text-align: center; -moz-appearance: textfield; appearance: textfield; }
+  .tip-amt { flex: 0 0 auto; text-align: center; padding: 9px 14px; border-radius: 10px; border: 1px solid ${t.accent}; color: ${t.accent}; font-weight: 700; font-size: 14px; background: transparent; cursor: pointer; }
+  .tip-amt.is-selected { background: ${t.accent}; color: #fff; }
+  .tip-card-btn { display: block; text-align: center; padding: 12px; border-radius: 8px; border: none; background: ${t.accent}; color: #fff; font-weight: 600; font-size: 16px; cursor: pointer; }
+  .tip-custom { flex: 0 0 auto; width: 78px; box-sizing: border-box; padding: 9px 8px; border-radius: 10px; border: 1px solid ${t.border}; background: ${t.bg}; color: ${t.text}; font-size: 16px; font-family: inherit; outline: none; text-align: center; -moz-appearance: textfield; appearance: textfield; }
   .tip-custom::-webkit-outer-spin-button, .tip-custom::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-  .tip-leave-info { background: none; border: none; color: var(--accent); font-size: 13px; font-weight: 600; cursor: pointer; padding: 2px 0; align-self: flex-start; font-family: inherit; }
+  .tip-leave-info { background: none; border: none; color: ${t.accent}; font-size: 13px; font-weight: 600; cursor: pointer; padding: 2px 0; align-self: flex-start; font-family: inherit; }
   .tip-info-fields { display: flex; flex-direction: column; gap: 8px; }
   .tip-info-fields[hidden] { display: none; }
-  .tip-input { width: 100%; box-sizing: border-box; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 16px; font-family: inherit; outline: none; resize: vertical; }
+  .tip-input { width: 100%; box-sizing: border-box; padding: 9px 12px; border-radius: 10px; border: 1px solid ${t.border}; background: ${t.bg}; color: ${t.text}; font-size: 16px; font-family: inherit; outline: none; resize: vertical; }
   </style></head><body>
   <div class="w">
     ${(bioState.avatar_display === 'hero' && bioState.avatar_url) ? `
