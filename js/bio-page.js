@@ -482,8 +482,7 @@ function buildLink(link) {
     }).join('');
     return '<div class="tip-card' + halfClass + '" id="tip-card">'
       + '<div class="tip-card-top"><span class="tip-card-cup">' + cup + '</span><span class="tip-card-heading">' + heading + '</span></div>'
-      + '<div class="tip-card-amts">' + chips + '</div>'
-      + '<input type="number" id="tip-custom" class="tip-custom" min="1" max="500" inputmode="decimal" placeholder="Custom amount ($)" aria-label="Custom tip amount">'
+      + '<div class="tip-card-amts">' + chips + '<input type="number" id="tip-custom" class="tip-custom" min="1" max="500" inputmode="decimal" placeholder="$" aria-label="Custom tip amount"></div>'
       + '<button type="button" class="tip-leave-info" data-bio-action="tip-leave-info" id="tip-leave-info" aria-expanded="false">Leave info (optional)</button>'
       + '<div class="tip-info-fields" id="tip-info-fields" hidden>'
       + '<input type="text" id="tip-name" class="tip-input" maxlength="50" placeholder="Your name (optional)" aria-label="Your name">'
