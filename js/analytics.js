@@ -98,6 +98,38 @@ function getAnaDateRange() {
   return { start: start, end: end };
 }
 
+// Convert the selected local-day range (YYYY-MM-DD in the creator's calendar
+// timezone) into UTC instants for timestamp-column filters, so rows are matched
+// by the creator's calendar day, not the UTC day. Without this an evening tip
+// (stored in UTC as the next day) leaks into "Today". Date columns like
+// view_date are already local and must NOT use this.
+function anaTzDayBoundsUTC(start, end, tz) {
+  function offsetMs(instant) {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: tz, hourCycle: 'h23',
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', second: '2-digit'
+    }).formatToParts(instant);
+    const m = {};
+    parts.forEach(function (p) { m[p.type] = p.value; });
+    const asUTC = Date.UTC(m.year, m.month - 1, m.day, m.hour, m.minute, m.second);
+    return asUTC - instant.getTime();
+  }
+  function localMidnightUTC(dateStr) {
+    const guess = new Date(dateStr + 'T00:00:00Z');
+    return new Date(guess.getTime() - offsetMs(guess));
+  }
+  function addDay(dateStr) {
+    const d = new Date(dateStr + 'T00:00:00Z');
+    d.setUTCDate(d.getUTCDate() + 1);
+    return d.toISOString().slice(0, 10);
+  }
+  return {
+    lo: localMidnightUTC(start).toISOString(),
+    hi: new Date(localMidnightUTC(addDay(end)).getTime() - 1).toISOString()
+  };
+}
+
 function setAnalyticsRange(days, btn) {
   anaRangeDays = days;
   anaCustomStart = null; anaCustomEnd = null;
@@ -314,14 +346,15 @@ async function loadAnalyticsSales(start, end) {
   document.getElementById('ana-sales-pagination').style.display = 'none';
   try {
     const sales = [];
+    const bounds = anaTzDayBoundsUTC(start, end, anaTz());
 
     // Fetch course enrollments with course title
     const { data: enrollments } = await sb
       .from('course_enrollments')
       .select('enrolled_at, amount_paid_cents, user_id, course_id, courses(title, user_id)')
       .eq('courses.user_id', currentUser.id)
-      .gte('enrolled_at', start + 'T00:00:00')
-      .lte('enrolled_at', end + 'T23:59:59')
+      .gte('enrolled_at', bounds.lo)
+      .lte('enrolled_at', bounds.hi)
       .order('enrolled_at', { ascending: false });
     if (enrollments) {
       enrollments.forEach(function(e) {
@@ -335,8 +368,8 @@ async function loadAnalyticsSales(start, end) {
       .from('coaching_bookings')
       .select('booked_at, amount_paid_cents, buyer_email, coaching_id, coaching_services(title, user_id)')
       .eq('coaching_services.user_id', currentUser.id)
-      .gte('booked_at', start + 'T00:00:00')
-      .lte('booked_at', end + 'T23:59:59')
+      .gte('booked_at', bounds.lo)
+      .lte('booked_at', bounds.hi)
       .order('booked_at', { ascending: false });
     if (bookings) {
       bookings.forEach(function(b) {
@@ -351,8 +384,8 @@ async function loadAnalyticsSales(start, end) {
       .select('purchased_at, amount_cents, buyer_email, status, product_id, digital_products(title, user_id)')
       .eq('digital_products.user_id', currentUser.id)
       .eq('status', 'completed')
-      .gte('purchased_at', start + 'T00:00:00')
-      .lte('purchased_at', end + 'T23:59:59')
+      .gte('purchased_at', bounds.lo)
+      .lte('purchased_at', bounds.hi)
       .order('purchased_at', { ascending: false });
     if (dpPurchases) {
       dpPurchases.forEach(function(p) {
@@ -367,8 +400,8 @@ async function loadAnalyticsSales(start, end) {
       .select('received_at, amount_cents, counterparty_name, source')
       .eq('user_id', currentUser.id)
       .eq('source', 'brand_deal')
-      .gte('received_at', start + 'T00:00:00')
-      .lte('received_at', end + 'T23:59:59')
+      .gte('received_at', bounds.lo)
+      .lte('received_at', bounds.hi)
       .order('received_at', { ascending: false });
     if (deals) {
       deals.forEach(function(d) {
@@ -382,8 +415,8 @@ async function loadAnalyticsSales(start, end) {
       .select('received_at, amount_cents, counterparty_name, source')
       .eq('user_id', currentUser.id)
       .eq('source', 'tip')
-      .gte('received_at', start + 'T00:00:00')
-      .lte('received_at', end + 'T23:59:59')
+      .gte('received_at', bounds.lo)
+      .lte('received_at', bounds.hi)
       .order('received_at', { ascending: false });
     if (tips) {
       tips.forEach(function(t) {
@@ -431,6 +464,7 @@ async function loadProductPerformance(start, end) {
   tbody.innerHTML = '<tr><td colspan="6" class="ana-s-cd4491">Loading...</td></tr>';
   try {
     const products = [];
+    const bounds = anaTzDayBoundsUTC(start, end, anaTz());
 
     // Get creator's courses
     const { data: courses } = await sb
@@ -445,8 +479,8 @@ async function loadProductPerformance(start, end) {
           .from('course_enrollments')
           .select('amount_paid_cents', { count: 'exact' })
           .eq('course_id', course.id)
-          .gte('enrolled_at', start + 'T00:00:00')
-          .lte('enrolled_at', end + 'T23:59:59');
+          .gte('enrolled_at', bounds.lo)
+          .lte('enrolled_at', bounds.hi);
 
         const orders = orderCount || 0;
         const revenue = enrollments ? enrollments.reduce(function(sum, e) { return sum + (e.amount_paid_cents || 0); }, 0) : 0;
@@ -478,8 +512,8 @@ async function loadProductPerformance(start, end) {
           .from('coaching_bookings')
           .select('amount_paid_cents', { count: 'exact' })
           .eq('coaching_id', svc.id)
-          .gte('booked_at', start + 'T00:00:00')
-          .lte('booked_at', end + 'T23:59:59');
+          .gte('booked_at', bounds.lo)
+          .lte('booked_at', bounds.hi);
 
         const orders = bookCount || 0;
         const revenue = bookings ? bookings.reduce(function(sum, b) { return sum + (b.amount_paid_cents || 0); }, 0) : 0;
@@ -511,8 +545,8 @@ async function loadProductPerformance(start, end) {
           .select('amount_cents', { count: 'exact' })
           .eq('product_id', dp.id)
           .eq('status', 'completed')
-          .gte('purchased_at', start + 'T00:00:00')
-          .lte('purchased_at', end + 'T23:59:59');
+          .gte('purchased_at', bounds.lo)
+          .lte('purchased_at', bounds.hi);
 
         const orders = dpCount || 0;
         const revenue = dpPurchases ? dpPurchases.reduce(function(sum, p) { return sum + (p.amount_cents || 0); }, 0) : 0;
