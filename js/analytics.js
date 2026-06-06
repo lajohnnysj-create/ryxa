@@ -186,6 +186,37 @@ async function loadAnalyticsData() {
   document.getElementById('ana-pv-dp-total').textContent = (byPage.digital_product || 0).toLocaleString();
   document.getElementById('ana-pv-mediakit-total').textContent = (byPage.mediakit || 0).toLocaleString();
 
+  // Per-source daily page views for the category sparklines. page_view_counts is
+  // already bucketed on the creator's local view_date, so we group by it directly
+  // (no tz math). Without this, every page-view sparkline would plot the daily
+  // total across all sources, not its own, which is why each summed to the same
+  // number while the per-source totals above did not match.
+  const pvDaily = { bio: [], course: [], coaching: [], digital_product: [], mediakit: [] };
+  try {
+    const { data: pvRows } = await sb
+      .from('page_view_counts')
+      .select('page_type, view_date, view_count')
+      .eq('user_id', currentUser.id)
+      .gte('view_date', start)
+      .lte('view_date', end);
+    if (pvRows) {
+      const pvAgg = {};
+      pvRows.forEach(function (r) {
+        const pt = r.page_type;
+        if (!pvAgg[pt]) pvAgg[pt] = {};
+        pvAgg[pt][r.view_date] = (pvAgg[pt][r.view_date] || 0) + (r.view_count || 0);
+      });
+      Object.keys(pvDaily).forEach(function (pt) {
+        const byDate = pvAgg[pt] || {};
+        pvDaily[pt] = Object.keys(byDate).map(function (date) {
+          return { date: date, count: byDate[date] };
+        });
+      });
+    }
+  } catch (e) {
+    console.error('Per-source page view load error:', e);
+  }
+
   // Render main chart (dual line)
   const anaChartCard = document.getElementById('ana-chart-card');
   if (dayCount <= 1) {
@@ -204,11 +235,11 @@ async function loadAnalyticsData() {
     ['ana-dp-chart', revDaily, 'digital_product', '#f0abfc'],
     ['ana-deals-chart', revDaily, 'brand_deal', '#7c3aed'],
     ['ana-tips-chart', revDaily, 'tip', '#f59e0b'],
-    ['ana-pv-bio-chart', viewsDaily, 'count', '#e879f9'],
-    ['ana-pv-courses-chart', viewsDaily, 'count', '#a78bfa'],
-    ['ana-pv-coaching-chart', viewsDaily, 'count', '#c084fc'],
-    ['ana-pv-dp-chart', viewsDaily, 'count', '#f0abfc'],
-    ['ana-pv-mediakit-chart', viewsDaily, 'count', '#818cf8']
+    ['ana-pv-bio-chart', pvDaily.bio, 'count', '#e879f9'],
+    ['ana-pv-courses-chart', pvDaily.course, 'count', '#a78bfa'],
+    ['ana-pv-coaching-chart', pvDaily.coaching, 'count', '#c084fc'],
+    ['ana-pv-dp-chart', pvDaily.digital_product, 'count', '#f0abfc'],
+    ['ana-pv-mediakit-chart', pvDaily.mediakit, 'count', '#818cf8']
   ];
   anaMiniCharts.forEach(function (m) {
     const c = document.getElementById(m[0]);
