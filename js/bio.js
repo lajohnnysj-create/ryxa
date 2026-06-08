@@ -1777,18 +1777,31 @@ async function addTipBlock() {
 // entered in the creator's Media Kit (single source of truth). The Show icons
 // toggle controls whether per-platform rows render under the total.
 
-let bioFollowerSrc = null; // cached { ig } connection data for automatic-mode previews
+// Automatic-mode follower sources. Each entry maps a platform to the connection
+// table holding the creator's cached follower count. To add a platform later,
+// add one entry here (and the same key to MK_SOCIAL_PLATFORMS). The editor reads
+// these tables authenticated as the owner; the public page reads RLS-safe views
+// (see FOLLOWER_AUTO_SOURCES in api/bio.js).
+const FOLLOWER_AUTO_SOURCES = [
+  { key: 'instagram', table: 'instagram_connections' }
+];
+
+let bioFollowerSrc = null; // cached { counts: {platformKey: number} } for automatic previews
 let bioFollowerLoading = false;
 
 async function ensureBioFollowerSrc() {
   if (bioFollowerSrc || bioFollowerLoading || !currentUser) return;
   bioFollowerLoading = true;
+  const counts = {};
   try {
-    const { data } = await sb.from('instagram_connections').select('ig_username,followers_count').eq('user_id', currentUser.id).maybeSingle();
-    bioFollowerSrc = { ig: data || null };
-  } catch (e) {
-    bioFollowerSrc = { ig: null };
-  }
+    const results = await Promise.all(FOLLOWER_AUTO_SOURCES.map(src =>
+      sb.from(src.table).select('followers_count').eq('user_id', currentUser.id).maybeSingle()
+        .then(r => ({ key: src.key, count: r.data ? (parseInt(r.data.followers_count, 10) || 0) : 0 }))
+        .catch(() => ({ key: src.key, count: 0 }))
+    ));
+    results.forEach(r => { if (r.count > 0) counts[r.key] = r.count; });
+  } catch (e) { /* leave counts empty */ }
+  bioFollowerSrc = { counts: counts };
   bioFollowerLoading = false;
   renderBioLinks();
   schedulePreviewUpdate();
@@ -1797,7 +1810,7 @@ async function ensureBioFollowerSrc() {
 // Build { total, items:[{key,label,count,svg}] } from the right source. Manual
 // reads the counts entered on the block itself (works on every tier); Automatic
 // reads connected social accounts (today, Instagram).
-function computeFollowerCounts(link, ig) {
+function computeFollowerCounts(link, autoCounts) {
   const items = [];
   if (link.mode === 'manual') {
     const fcObj = link.followerCounts || {};
@@ -1805,9 +1818,15 @@ function computeFollowerCounts(link, ig) {
       const count = parseInt(fcObj[p.key], 10) || 0;
       if (count > 0) items.push({ key: p.key, label: p.label, count: count, svg: p.svg });
     });
-  } else if (ig && typeof ig.followers_count === 'number' && ig.followers_count > 0) {
-    const p = MK_SOCIAL_PLATFORMS.find(x => x.key === 'instagram');
-    items.push({ key: 'instagram', label: 'Instagram', count: ig.followers_count, svg: p ? p.svg : '' });
+  } else {
+    const ac = autoCounts || {};
+    FOLLOWER_AUTO_SOURCES.forEach(src => {
+      const count = parseInt(ac[src.key], 10) || 0;
+      if (count > 0) {
+        const p = MK_SOCIAL_PLATFORMS.find(x => x.key === src.key);
+        items.push({ key: src.key, label: p ? p.label : src.key, count: count, svg: p ? p.svg : '' });
+      }
+    });
   }
   const total = items.reduce((sum, x) => sum + x.count, 0);
   return { total: total, items: items };
@@ -1884,8 +1903,8 @@ async function pullFollowerCountsFromMediaKit(id) {
 // it is pulling data without opening the live preview, plus a Settings shortcut
 // to connect accounts. Mirrors the Media Kit's automatic CTA.
 function bioFollowerAutoPanel(link) {
-  const fIg = bioFollowerSrc ? bioFollowerSrc.ig : null;
-  const total = computeFollowerCounts(link, fIg).total;
+  const fAuto = bioFollowerSrc ? bioFollowerSrc.counts : null;
+  const total = computeFollowerCounts(link, fAuto).total;
   let note;
   if (bioFollowerLoading) note = 'Checking your connected accounts...';
   else if (total > 0) note = `Pulling from your connected accounts. Total Followers: <strong>${bioFollowerFmt(total)}</strong>`;
@@ -4726,8 +4745,8 @@ function buildPreviewLink(l, t) {
   // Follower-count card. Preview is non-interactive. Counts come from the
   // block's own fields (manual) or connected accounts (automatic).
   if (l.isFollowerBlock) {
-    const fIg = bioFollowerSrc ? bioFollowerSrc.ig : null;
-    const fc = computeFollowerCounts(l, fIg);
+    const fAuto = bioFollowerSrc ? bioFollowerSrc.counts : null;
+    const fc = computeFollowerCounts(l, fAuto);
     const fShow = l.showIcons !== false;
     if (!fc.total) {
       const hint = l.mode === 'manual' ? 'Enter your follower counts below' : 'Connect a social account to show counts';
