@@ -1852,6 +1852,31 @@ function sanitizeFollowerCounts(fc) {
   return out;
 }
 
+// Pro-only convenience: copy the creator's Media Kit follower counts into this
+// block's fields. One-way import; the block fields stay the source of truth.
+async function pullFollowerCountsFromMediaKit(id) {
+  const link = bioState.links.find(l => l._id === id);
+  if (!link) return;
+  if (!isPro()) { showBioStatus('error', 'Pulling from your Media Kit is a Pro feature.'); return; }
+  try {
+    const { data } = await sb.from('media_kit').select('socials').eq('user_id', currentUser.id).maybeSingle();
+    const socials = (data && data.socials) ? data.socials : {};
+    if (!link.followerCounts) link.followerCounts = {};
+    let filled = 0;
+    MK_SOCIAL_PLATFORMS.forEach(p => {
+      const v = socials[p.key];
+      const count = (v && typeof v === 'object') ? (parseInt(v.count, 10) || 0) : (parseInt(v, 10) || 0);
+      if (count > 0) { link.followerCounts[p.key] = count; filled++; }
+    });
+    renderBioLinks();
+    schedulePreviewUpdate();
+    if (filled > 0) showBioStatus('saved', `Pulled ${filled} count${filled === 1 ? '' : 's'} from your Media Kit`);
+    else showBioStatus('error', 'No follower counts found in your Media Kit');
+  } catch (e) {
+    showBioStatus('error', 'Could not load your Media Kit');
+  }
+}
+
 function addFollowerBlock() {
   const { maxLinks } = bioLimits();
   if (bioState.links.length >= maxLinks) {
@@ -3304,7 +3329,10 @@ function renderLinkExpanded(link, dragSvg) {
           <span class="bio-follower-field-name">${p.label}</span>
           <input type="number" min="0" inputmode="numeric" placeholder="0" value="${(link.followerCounts && link.followerCounts[p.key]) ? link.followerCounts[p.key] : ''}" data-bio-action="update-follower-count" data-bio-event="input" data-bio-id="${link._id}" data-bio-platform="${p.key}" aria-label="${p.label} followers" class="bio-follower-field-input">
         </label>`).join('')}
-      </div>` : `<div class="bio-s-e289c0" style="margin-top:2px;">Pulls live counts from your connected social accounts. Connect accounts in Settings.</div>`}
+      </div>${isPro() ? `<button type="button" data-bio-action="pull-follower-from-mediakit" data-bio-id="${link._id}" class="bio-follower-pull">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+        Pull from Media Kit
+      </button>` : ''}` : `<div class="bio-s-e289c0" style="margin-top:2px;">Pulls live counts from your connected social accounts. Connect accounts in Settings.</div>`}
       <label class="bio-half-toggle bio-s-1adb5f">
         <span class="bio-s-e3f610">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.2"/></svg>
@@ -5168,6 +5196,9 @@ bioRegisterAction('toggle-follower-icons', (e, el) => {
 });
 bioRegisterAction('update-follower-count', (e, el) => {
   updateFollowerCount(parseInt(el.dataset.bioId, 10), el.dataset.bioPlatform, el.value);
+});
+bioRegisterAction('pull-follower-from-mediakit', (e, el) => {
+  pullFollowerCountsFromMediaKit(parseInt(el.dataset.bioId, 10));
 });
 bioRegisterAction('open-cropper-featured', (e, el) => openCropper(el, 'featured', parseInt(el.dataset.bioId, 10)));
 bioRegisterAction('hero-photo-selected', (e, el) => onHeroPhotoSelected(el, parseInt(el.dataset.bioId, 10)));
