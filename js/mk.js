@@ -472,6 +472,37 @@ function onMKSocialCount(key, val) {
   scheduleMKPreview();
 }
 
+// Pull the creator's manual follower counts from their Link in Bio "Follower
+// count" block into the Media Kit social fields. One-way import; mirrors the
+// "Pull from Media Kit" button on the bio side.
+async function pullSocialsFromBio() {
+  if (!currentUser) return;
+  try {
+    const { data } = await sb.from('link_in_bio').select('links').eq('user_id', currentUser.id).maybeSingle();
+    const links = (data && Array.isArray(data.links)) ? data.links : [];
+    const block = links.find(l => l && l.isFollowerBlock);
+    const counts = (block && block.followerCounts && typeof block.followerCounts === 'object') ? block.followerCounts : {};
+    let filled = 0;
+    MK_SOCIAL_PLATFORMS.forEach(p => {
+      const n = parseInt(counts[p.key], 10);
+      if (n && n > 0) {
+        if (!mkState.socials[p.key]) mkState.socials[p.key] = { count: 0, url: '', engagement: '' };
+        mkState.socials[p.key].count = n;
+        filled++;
+      }
+    });
+    if (filled > 0) {
+      renderMKSocials();
+      scheduleMKPreview();
+      showMKStatus('success', `Pulled ${filled} count${filled === 1 ? '' : 's'} from your Link in Bio`);
+    } else {
+      showMKStatus('error', 'No follower counts found in your Link in Bio');
+    }
+  } catch (e) {
+    showMKStatus('error', 'Could not load your Link in Bio');
+  }
+}
+
 function onMKSocialEngagement(key, val) {
   if (!mkState.socials[key]) mkState.socials[key] = { count: 0, url: '', engagement: '' };
   // Hard cap at 5 characters - covers values like "99.99" or "100.0".
@@ -1698,6 +1729,7 @@ mkRegisterAction('social-engagement', (e, el) => onMKSocialEngagement(el.dataset
 
 // Social inputs (template literal)
 mkRegisterAction('social-count', (e, el) => onMKSocialCount(el.dataset.mkSocial, el.value));
+mkRegisterAction('pull-socials-from-bio', () => pullSocialsFromBio());
 mkRegisterAction('social-url', (e, el) => onMKSocialUrl(el.dataset.mkSocial, el.value));
 
 // Rate card (template literal)
