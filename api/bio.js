@@ -1134,7 +1134,7 @@ async function resolveLiveCoverUrls(creatorUserId, links, fetchOpts, creatorUser
 
   if (needsFollowerIg && creatorUserId) {
     fetches.push(
-      fetch(`${SUPABASE_URL}/rest/v1/instagram_connections?user_id=eq.${encodeURIComponent(creatorUserId)}&select=followers_count&limit=1`, fetchOpts())
+      fetch(`${SUPABASE_URL}/rest/v1/public_instagram_kit_data?user_id=eq.${encodeURIComponent(creatorUserId)}&select=followers_count&limit=1`, fetchOpts())
         .then(r => r.ok ? r.json() : [])
         .then(rows => ({ type: 'followerig', count: rows[0] ? (parseInt(rows[0].followers_count, 10) || 0) : 0 }))
         .catch(() => ({ type: 'followerig', count: 0 }))
