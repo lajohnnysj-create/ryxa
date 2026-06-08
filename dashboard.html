@@ -2587,6 +2587,8 @@
   .custom-color-input::-webkit-color-swatch { border: 1px solid var(--border); border-radius: 6px; }
   .custom-color-input::-moz-color-swatch { border: 1px solid var(--border); border-radius: 6px; }
   .custom-color-hex { font-family: 'Courier New', monospace; font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .custom-card-transparent { display:flex; align-items:center; justify-content:center; gap:5px; font-size:10px; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); margin-top:7px; cursor:pointer; }
+  .custom-card-transparent input { width:auto; height:auto; margin:0; cursor:pointer; accent-color:var(--accent); }
   .custom-bg-upload { background: var(--surface2); border: 1px dashed var(--border-hover); border-radius: 10px; padding: 14px; display: flex; align-items: center; gap: 12px; }
   .custom-bg-thumb { width: 60px; height: 60px; border-radius: 8px; background-size: cover; background-position: center; background-color: var(--surface); flex-shrink: 0; border: 1px solid var(--border); }
   .custom-bg-info { flex: 1; min-width: 0; font-size: 12px; color: var(--muted); }
@@ -7109,6 +7111,7 @@
                     <label for="bio-color-card">Card</label>
                     <input type="color" id="bio-color-card" class="custom-color-input" aria-label="Card color" value="#161625" data-bio-action="custom-color" data-bio-event="input" data-bio-slot="card">
                     <div id="bio-color-card-hex" class="custom-color-hex">#161625</div>
+                    <label class="custom-card-transparent"><input type="checkbox" id="bio-card-transparent" data-bio-action="custom-card-transparent" data-bio-event="change">Transparent</label>
                   </div>
                   <div class="custom-color-item">
                     <label for="bio-color-text">Text</label>
