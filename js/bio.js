@@ -1777,34 +1777,29 @@ async function addTipBlock() {
 // entered in the creator's Media Kit (single source of truth). The Show icons
 // toggle controls whether per-platform rows render under the total.
 
-let bioFollowerSrc = null; // cached { socials, ig } for follower-block previews
+let bioFollowerSrc = null; // cached { ig } connection data for automatic-mode previews
 
 async function ensureBioFollowerSrc() {
   if (bioFollowerSrc || !currentUser) return;
-  bioFollowerSrc = { socials: {}, ig: null }; // set early so we fetch only once
+  bioFollowerSrc = { ig: null }; // set early so we fetch only once
   try {
-    const [kitRes, igRes] = await Promise.all([
-      sb.from('media_kit').select('socials').eq('user_id', currentUser.id).maybeSingle(),
-      sb.from('instagram_connections').select('ig_username,followers_count').eq('user_id', currentUser.id).maybeSingle()
-    ]);
-    bioFollowerSrc = {
-      socials: (kitRes.data && kitRes.data.socials) ? kitRes.data.socials : {},
-      ig: igRes.data || null
-    };
+    const { data } = await sb.from('instagram_connections').select('ig_username,followers_count').eq('user_id', currentUser.id).maybeSingle();
+    bioFollowerSrc = { ig: data || null };
   } catch (e) {
-    bioFollowerSrc = { socials: {}, ig: null };
+    bioFollowerSrc = { ig: null };
   }
   schedulePreviewUpdate();
 }
 
-// Build { total, items:[{key,label,count,svg}] } from the right source.
-function computeFollowerCounts(link, socials, ig) {
+// Build { total, items:[{key,label,count,svg}] } from the right source. Manual
+// reads the counts entered on the block itself (works on every tier); Automatic
+// reads connected social accounts (today, Instagram).
+function computeFollowerCounts(link, ig) {
   const items = [];
   if (link.mode === 'manual') {
-    const sObj = socials || {};
+    const fcObj = link.followerCounts || {};
     MK_SOCIAL_PLATFORMS.forEach(p => {
-      const v = sObj[p.key];
-      const count = (v && typeof v === 'object') ? (parseInt(v.count, 10) || 0) : (parseInt(v, 10) || 0);
+      const count = parseInt(fcObj[p.key], 10) || 0;
       if (count > 0) items.push({ key: p.key, label: p.label, count: count, svg: p.svg });
     });
   } else if (ig && typeof ig.followers_count === 'number' && ig.followers_count > 0) {
@@ -1833,6 +1828,30 @@ function toggleFollowerIcons(id, checked) {
   schedulePreviewUpdate();
 }
 
+// Manual-mode per-platform count input. No editor re-render here so the number
+// field keeps focus while typing; only the live preview refreshes.
+function updateFollowerCount(id, key, value) {
+  const link = bioState.links.find(l => l._id === id);
+  if (!link) return;
+  if (!link.followerCounts) link.followerCounts = {};
+  const n = parseInt(value, 10);
+  if (n && n > 0) link.followerCounts[key] = n;
+  else delete link.followerCounts[key];
+  schedulePreviewUpdate();
+}
+
+// Keep only known platforms with a positive integer count.
+function sanitizeFollowerCounts(fc) {
+  const out = {};
+  if (fc && typeof fc === 'object') {
+    MK_SOCIAL_PLATFORMS.forEach(p => {
+      const n = parseInt(fc[p.key], 10);
+      if (n && n > 0) out[p.key] = n;
+    });
+  }
+  return out;
+}
+
 function addFollowerBlock() {
   const { maxLinks } = bioLimits();
   if (bioState.links.length >= maxLinks) {
@@ -1841,7 +1860,7 @@ function addFollowerBlock() {
   }
   if (bioState.links.some(l => l.isFollowerBlock)) return;
   const newId = linkIdSeq++;
-  bioState.links.push({ _id: newId, isFollowerBlock: true, mode: 'automatic', showIcons: true });
+  bioState.links.push({ _id: newId, isFollowerBlock: true, mode: 'automatic', showIcons: true, followerCounts: {} });
   bioExpandedLinks.add(newId);
   ensureBioFollowerSrc();
   renderBioLinks();
@@ -3279,7 +3298,13 @@ function renderLinkExpanded(link, dragSvg) {
         <button type="button" data-bio-action="set-follower-mode" data-bio-id="${link._id}" data-bio-mode="automatic" class="bio-follower-mode${fIsManual ? '' : ' is-active'}" aria-pressed="${fIsManual ? 'false' : 'true'}">Automatic</button>
         <button type="button" data-bio-action="set-follower-mode" data-bio-id="${link._id}" data-bio-mode="manual" class="bio-follower-mode${fIsManual ? ' is-active' : ''}" aria-pressed="${fIsManual ? 'true' : 'false'}">Manual</button>
       </div>
-      <div class="bio-s-e289c0" style="margin-top:2px;">${fIsManual ? 'Uses the follower counts from your Media Kit. Update them in the Media Kit tool.' : 'Pulls live counts from your connected social accounts. Connect accounts in Settings.'}</div>
+      ${fIsManual ? `<div class="bio-follower-fields">
+        ${MK_SOCIAL_PLATFORMS.map(p => `<label class="bio-follower-field">
+          <span class="bio-follower-field-ic">${p.svg}</span>
+          <span class="bio-follower-field-name">${p.label}</span>
+          <input type="number" min="0" inputmode="numeric" placeholder="0" value="${(link.followerCounts && link.followerCounts[p.key]) ? link.followerCounts[p.key] : ''}" data-bio-action="update-follower-count" data-bio-event="input" data-bio-id="${link._id}" data-bio-platform="${p.key}" aria-label="${p.label} followers" class="bio-follower-field-input">
+        </label>`).join('')}
+      </div>` : `<div class="bio-s-e289c0" style="margin-top:2px;">Pulls live counts from your connected social accounts. Connect accounts in Settings.</div>`}
       <label class="bio-half-toggle bio-s-1adb5f">
         <span class="bio-s-e3f610">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.2"/></svg>
@@ -4165,7 +4190,7 @@ async function saveBio() {
         ...(l.isCoaching ? { isCoaching: true, coachingId: l.coachingId, coachingPrice: l.coachingPrice || 0 } : {}),
         ...(l.isProduct ? { isProduct: true, productId: l.productId, productPrice: l.productPrice || 0 } : {}),
         ...(l.isTipBlock ? { isTipBlock: true, tipHeading: (l.tipHeading || '').slice(0, 40), tipAmounts: (Array.isArray(l.tipAmounts) && l.tipAmounts.length ? l.tipAmounts : [3, 5, 10, 50]).map(a => parseInt(a, 10) || 0).filter(a => a > 0).slice(0, 4) } : {}),
-        ...(l.isFollowerBlock ? { isFollowerBlock: true, mode: l.mode === 'manual' ? 'manual' : 'automatic', showIcons: l.showIcons !== false } : {}),
+        ...(l.isFollowerBlock ? { isFollowerBlock: true, mode: l.mode === 'manual' ? 'manual' : 'automatic', showIcons: l.showIcons !== false, followerCounts: sanitizeFollowerCounts(l.followerCounts) } : {}),
         ...(l.halfWidth ? { halfWidth: true } : {}),
         ...(l.isSubscribe ? { isSubscribe: true } : {}),
         // Video block — array of YouTube URLs (capped at 5 by the editor).
@@ -4646,14 +4671,13 @@ function buildPreviewLink(l, t) {
     </div>`;
   }
   // Follower-count card. Preview is non-interactive. Counts come from the
-  // creator's Media Kit (manual) or connected accounts (automatic), cached
-  // client-side in bioFollowerSrc.
+  // block's own fields (manual) or connected accounts (automatic).
   if (l.isFollowerBlock) {
-    const fSrc = bioFollowerSrc || { socials: {}, ig: null };
-    const fc = computeFollowerCounts(l, fSrc.socials, fSrc.ig);
+    const fIg = bioFollowerSrc ? bioFollowerSrc.ig : null;
+    const fc = computeFollowerCounts(l, fIg);
     const fShow = l.showIcons !== false;
     if (!fc.total) {
-      const hint = l.mode === 'manual' ? 'Add follower counts in your Media Kit' : 'Connect a social account to show counts';
+      const hint = l.mode === 'manual' ? 'Enter your follower counts below' : 'Connect a social account to show counts';
       return `<div class="follower-card ${halfClass}">
         <div class="follower-card-label">Total Followers</div>
         <div class="follower-card-hint">${hint}</div>
@@ -5141,6 +5165,9 @@ bioRegisterAction('set-follower-mode', (e, el) => {
 });
 bioRegisterAction('toggle-follower-icons', (e, el) => {
   toggleFollowerIcons(parseInt(el.dataset.bioId, 10), el.checked);
+});
+bioRegisterAction('update-follower-count', (e, el) => {
+  updateFollowerCount(parseInt(el.dataset.bioId, 10), el.dataset.bioPlatform, el.value);
 });
 bioRegisterAction('open-cropper-featured', (e, el) => openCropper(el, 'featured', parseInt(el.dataset.bioId, 10)));
 bioRegisterAction('hero-photo-selected', (e, el) => onHeroPhotoSelected(el, parseInt(el.dataset.bioId, 10)));
