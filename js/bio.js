@@ -1077,6 +1077,7 @@ function deriveThemeFromCustom(colors) {
     bg2: surface,
     surface: surface,
     surface2: surface,
+    cardSolid: c.card,
     border: hexAlpha(c.text, 0.1),
     muted: hexAlpha(c.text, 0.6),
     text: c.text,
@@ -1104,6 +1105,7 @@ function buildCustomThemeVars(customTheme) {
     bg: c.bg,
     surface: surface,
     surface2: surface,
+    cardSolid: c.card,
     text: c.text,
     muted: hexAlpha(c.text, 0.65),
     muted2: hexAlpha(c.text, 0.8),
@@ -4681,7 +4683,7 @@ function buildPreviewHTML() {
   .hero-info .sb{background:rgba(0,0,0,0.35);border-color:rgba(255,255,255,0.2);backdrop-filter:blur(6px);}
   .hero-info{display:none;}
   .hero-below{margin-top:-60px;position:relative;z-index:3;display:flex;flex-direction:column;align-items:center;gap:3px;padding:0 18px;width:100%;box-sizing:border-box;}
-  .tip-card { width: 100%; border: 1px solid rgba(128,128,128,0.25); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px; box-sizing: border-box; background-color: ${t.surface}; background-image: linear-gradient(color-mix(in srgb, ${t.surface} 85%, transparent), color-mix(in srgb, ${t.surface} 85%, transparent)), url('/buymecoffee.webp'); background-size: cover; background-position: center; }
+  .tip-card { width: 100%; border: 1px solid rgba(128,128,128,0.25); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px; box-sizing: border-box; background-color: ${t.cardSolid || t.surface}; background-image: linear-gradient(color-mix(in srgb, ${t.cardSolid || t.surface} 85%, transparent), color-mix(in srgb, ${t.cardSolid || t.surface} 85%, transparent)), url('/buymecoffee.webp'); background-size: cover; background-position: center; }
   .tip-card-top { display: flex; align-items: center; gap: 8px; }
   .tip-card-cup { display: inline-flex; color: ${t.accent}; }
   .tip-card-heading { font-weight: 700; font-size: 15px; color: ${t.text}; }
