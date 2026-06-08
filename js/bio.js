@@ -1258,7 +1258,7 @@ function syncBioCustomEditorUI() {
   });
   const cardTransparent = !!colors.cardTransparent;
   const cardTrEl = document.getElementById('bio-card-transparent');
-  if (cardTrEl) cardTrEl.checked = cardTransparent;
+  if (cardTrEl) cardTrEl.setAttribute('aria-pressed', cardTransparent ? 'true' : 'false');
   const cardColorInput = document.getElementById('bio-color-card');
   if (cardColorInput) cardColorInput.style.opacity = cardTransparent ? '0.35' : '';
   const cardHexEl = document.getElementById('bio-color-card-hex');
@@ -5195,7 +5195,10 @@ bioRegisterAction('custom-bg-selected', (e, el) => onBioCustomBgSelected(el));
 bioRegisterAction('remove-custom-bg', () => removeBioCustomBg());
 bioRegisterAction('custom-opacity', (e, el) => onBioCustomOpacityChange(el.value));
 bioRegisterAction('custom-color', (e, el) => onBioColorChange(el.dataset.bioSlot, el.value));
-bioRegisterAction('custom-card-transparent', (e, el) => toggleCardTransparent(el.checked));
+bioRegisterAction('custom-card-transparent', () => {
+  const ct = bioState.custom_theme && bioState.custom_theme.colors;
+  toggleCardTransparent(!(ct && ct.cardTransparent));
+});
 bioRegisterAction('reset-custom-colors', () => resetBioCustomColors());
 bioRegisterAction('pick-font', (e, el) => pickBioFont(el.value));
 bioRegisterAction('add-link', (e, el) => {
