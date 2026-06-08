@@ -369,6 +369,27 @@ function buildHeroHeader(profile, bio) {
 // course, coaching, mediakit, regular w/ thumb, regular w/o thumb)
 // ==========================================================================
 
+// Platforms shown in a Follower count block, in display order. Keys match the
+// bio block's followerCounts (and the Media Kit socials). Icon keys map to
+// SOCIAL_ICONS (note: X is stored under "twitter" but its icon key is "x").
+const FOLLOWER_PLATFORMS = [
+  { key: 'instagram', label: 'Instagram', icon: SOCIAL_ICONS.instagram },
+  { key: 'tiktok', label: 'TikTok', icon: SOCIAL_ICONS.tiktok },
+  { key: 'twitter', label: 'X', icon: SOCIAL_ICONS.x },
+  { key: 'threads', label: 'Threads', icon: SOCIAL_ICONS.threads },
+  { key: 'youtube', label: 'YouTube', icon: SOCIAL_ICONS.youtube },
+  { key: 'facebook', label: 'Facebook', icon: SOCIAL_ICONS.facebook },
+  { key: 'snapchat', label: 'Snapchat', icon: SOCIAL_ICONS.snapchat },
+  { key: 'linkedin', label: 'LinkedIn', icon: SOCIAL_ICONS.linkedin },
+  { key: 'pinterest', label: 'Pinterest', icon: SOCIAL_ICONS.pinterest }
+];
+
+// Thousands-separated integer with no locale dependency (matches the Media Kit).
+function fmtFollowers(n) {
+  n = Math.max(0, Math.floor(Number(n) || 0));
+  return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
 function buildLink(link, currency) {
   // Half-width modifier — only used by the four eligible link types: regular
   // links, course cards, booking cards, and digital product cards. Hero,
@@ -515,6 +536,41 @@ function buildLink(link, currency) {
 
   // Discord server widget — live member card. We render only the rebuilt
   // widget URL, never the pasted HTML.
+  // Follower count card (SSR). Manual reads counts saved on the block; Automatic
+  // reads the resolved connected-account count (today, Instagram). Renders the
+  // total and, when Show icons is on, a row per platform. Hidden entirely when
+  // the total is zero so the public page never shows an empty block.
+  if (link.isFollowerBlock) {
+    const isManual = link.mode === 'manual';
+    const showIcons = link.showIcons !== false;
+    const items = [];
+    if (isManual) {
+      const fc = (link.followerCounts && typeof link.followerCounts === 'object') ? link.followerCounts : {};
+      FOLLOWER_PLATFORMS.forEach(function(p) {
+        const n = parseInt(fc[p.key], 10) || 0;
+        if (n > 0) items.push({ label: p.label, count: n, icon: p.icon || '' });
+      });
+    } else {
+      const n = parseInt(link._igFollowers, 10) || 0;
+      if (n > 0) items.push({ label: 'Instagram', count: n, icon: SOCIAL_ICONS.instagram || '' });
+    }
+    let ftotal = 0;
+    for (let i = 0; i < items.length; i++) ftotal += items[i].count;
+    if (!ftotal) return '';
+    let fhtml = '<div class="follower-card' + halfClass + '">'
+      + '<div class="follower-card-label">Total Followers</div>'
+      + '<div class="follower-card-total">' + fmtFollowers(ftotal) + '</div>';
+    if (showIcons && items.length) {
+      fhtml += '<div class="follower-rows">';
+      items.forEach(function(it) {
+        fhtml += '<div class="follower-row"><span class="follower-row-ic">' + (it.icon || '') + '</span><span class="follower-row-name">' + esc(it.label) + '</span><span class="follower-row-count">' + fmtFollowers(it.count) + '</span></div>';
+      });
+      fhtml += '</div>';
+    }
+    fhtml += '</div>';
+    return fhtml;
+  }
+
   // Buy Me a Coffee tip card (SSR). Mirrors the client render in bio-page.js so
   // initial HTML matches after hydration. Amount chips (first preselected),
   // custom amount, optional name/message behind a toggle, Support button.
@@ -993,12 +1049,14 @@ async function resolveLiveCoverUrls(creatorUserId, links, fetchOpts, creatorUser
   const coachingIds = [];
   const productIds = [];
   let needsMediaKit = false;
+  let needsFollowerIg = false;
 
   for (const link of links) {
     if (link && link.isCourse && link.courseId) courseIds.push(link.courseId);
     if (link && link.isCoaching && link.coachingId) coachingIds.push(link.coachingId);
     if (link && link.isProduct && link.productId) productIds.push(link.productId);
     if (link && link.isMediaKit) needsMediaKit = true;
+    if (link && link.isFollowerBlock && link.mode !== 'manual') needsFollowerIg = true;
   }
 
   // Build storage public URL for path-based covers (course-covers, coaching-covers).
@@ -1074,6 +1132,15 @@ async function resolveLiveCoverUrls(creatorUserId, links, fetchOpts, creatorUser
     );
   }
 
+  if (needsFollowerIg && creatorUserId) {
+    fetches.push(
+      fetch(`${SUPABASE_URL}/rest/v1/instagram_connections?user_id=eq.${encodeURIComponent(creatorUserId)}&select=followers_count&limit=1`, fetchOpts())
+        .then(r => r.ok ? r.json() : [])
+        .then(rows => ({ type: 'followerig', count: rows[0] ? (parseInt(rows[0].followers_count, 10) || 0) : 0 }))
+        .catch(() => ({ type: 'followerig', count: 0 }))
+    );
+  }
+
   if (fetches.length === 0) return;
 
   // 1.5-second timeout. If any source-table query hangs (Supabase outage,
@@ -1093,6 +1160,7 @@ async function resolveLiveCoverUrls(creatorUserId, links, fetchOpts, creatorUser
   const coachingMap = results.find(r => r.type === 'coaching')?.map;
   const productMap = results.find(r => r.type === 'product')?.map;
   const mediaKitUrl = results.find(r => r.type === 'mediakit')?.url;
+  const followerIgCount = results.find(r => r.type === 'followerig')?.count || 0;
 
   // Mutate the links in place. For each field, only overwrite when we got a
   // live value back. If a course/coaching/product was deleted from the source
@@ -1128,6 +1196,8 @@ async function resolveLiveCoverUrls(creatorUserId, links, fetchOpts, creatorUser
       if (typeof creatorUsername === 'string' && creatorUsername.length > 0) {
         link.url = 'https://www.ryxa.io/mediakit/' + creatorUsername;
       }
+    } else if (link.isFollowerBlock && link.mode !== 'manual') {
+      link._igFollowers = followerIgCount;
     }
   }
 }
