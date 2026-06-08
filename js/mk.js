@@ -1014,7 +1014,7 @@ async function loadAudienceAutomatic() {
   const mount = document.getElementById('mk-aud-auto-content');
   if (!mount) return;
   mkAudInflight = true;
-  mount.innerHTML = '<div class="mk-aud-loading">Pulling your Instagram data&hellip;</div>';
+  mount.innerHTML = '<div class="mk-aud-loading">Pulling your social media data&hellip;</div>';
 
   try {
     // First check connection status from instagram_connections via Supabase client
