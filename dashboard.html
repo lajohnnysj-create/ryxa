@@ -2972,6 +2972,9 @@
   .mk-aud-empty-msg { font-size: 12px; color: var(--muted); line-height: 1.55; margin-bottom: 14px; }
   .mk-aud-cta { display: inline-block; padding: 8px 16px; background: var(--accent); color: #fff; border-radius: 8px; font-size: 12px; font-weight: 500; cursor: pointer; border: none; font-family: 'DM Sans', sans-serif; }
   .mk-aud-cta:hover { filter: brightness(1.08); }
+  .mk-pull-bio { display:inline-flex; align-items:center; gap:6px; margin-bottom:12px; padding:8px 12px; border-radius:8px; border:1px solid var(--border); background:var(--surface2); color:var(--text); font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600; cursor:pointer; }
+  .mk-pull-bio:hover { border-color:var(--accent2); }
+  .mk-pull-bio svg { flex-shrink:0; }
   .mk-aud-connected { display: flex; flex-direction: column; gap: 12px; }
   .mk-aud-error-note { padding: 10px 12px; background: rgba(252,176,69,0.06); border: 1px solid rgba(252,176,69,0.18); border-radius: 8px; font-size: 12px; color: var(--muted2); line-height: 1.5; }
 
@@ -8498,6 +8501,10 @@
 
                 <!-- Pane: Manual (original form, unchanged) -->
                 <div class="mk-aud-pane" id="mk-aud-pane-manual" role="tabpanel" aria-labelledby="mk-aud-tab-manual" style="display:none;" >
+                  <button type="button" data-mk-action="pull-socials-from-bio" class="mk-pull-bio">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+                    Pull from Link in Bio
+                  </button>
                   <div id="mk-socials-form" class="mk-s-f67b86"></div>
                 </div>
 
