@@ -801,6 +801,7 @@ function buildCustomThemeStyle(ct) {
   //   accent: "red; } body { background: url(evil) } /*"
   const bg = safeHexColor(colors.bg, '#07070f');
   const card = colors.cardTransparent === true ? 'transparent' : safeHexColor(colors.card, '#161625');
+  const cardSolid = safeHexColor(colors.card, '#161625');
   const text = safeHexColor(colors.text, '#ffffff');
   const accent = safeHexColor(colors.accent, '#a78bfa');
 
@@ -808,6 +809,7 @@ function buildCustomThemeStyle(ct) {
     --bg: ${bg};
     --surface: ${card};
     --surface2: ${card};
+    --card-solid: ${cardSolid};
     --text: ${text};
     --muted: ${hexAlpha(text, 0.65)};
     --muted2: ${hexAlpha(text, 0.8)};
