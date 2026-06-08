@@ -630,6 +630,7 @@ async function loadBioData() {
         }
         return link;
       }) : [];
+      if (bioState.links.some(l => l.isFollowerBlock)) ensureBioFollowerSrc();
       // Old videos array is no longer used — YouTube embeds now live as
       // isVideoBlock entries inside bioState.links. Wipe any legacy data.
       bioState.videos = [];
@@ -1769,6 +1770,85 @@ async function addTipBlock() {
   showBioStatus('saved', 'Buy Me Coffee added');
 }
 
+// ===== Follower count block =====
+// A free Link in Bio block that shows the creator's total followers, with an
+// optional per-platform breakdown. Two modes mirror the Media Kit: Automatic
+// reads connected social accounts (today, Instagram); Manual reads the counts
+// entered in the creator's Media Kit (single source of truth). The Show icons
+// toggle controls whether per-platform rows render under the total.
+
+let bioFollowerSrc = null; // cached { socials, ig } for follower-block previews
+
+async function ensureBioFollowerSrc() {
+  if (bioFollowerSrc || !currentUser) return;
+  bioFollowerSrc = { socials: {}, ig: null }; // set early so we fetch only once
+  try {
+    const [kitRes, igRes] = await Promise.all([
+      sb.from('media_kit').select('socials').eq('user_id', currentUser.id).maybeSingle(),
+      sb.from('instagram_connections').select('ig_username,followers_count').eq('user_id', currentUser.id).maybeSingle()
+    ]);
+    bioFollowerSrc = {
+      socials: (kitRes.data && kitRes.data.socials) ? kitRes.data.socials : {},
+      ig: igRes.data || null
+    };
+  } catch (e) {
+    bioFollowerSrc = { socials: {}, ig: null };
+  }
+  schedulePreviewUpdate();
+}
+
+// Build { total, items:[{key,label,count,svg}] } from the right source.
+function computeFollowerCounts(link, socials, ig) {
+  const items = [];
+  if (link.mode === 'manual') {
+    const sObj = socials || {};
+    MK_SOCIAL_PLATFORMS.forEach(p => {
+      const v = sObj[p.key];
+      const count = (v && typeof v === 'object') ? (parseInt(v.count, 10) || 0) : (parseInt(v, 10) || 0);
+      if (count > 0) items.push({ key: p.key, label: p.label, count: count, svg: p.svg });
+    });
+  } else if (ig && typeof ig.followers_count === 'number' && ig.followers_count > 0) {
+    const p = MK_SOCIAL_PLATFORMS.find(x => x.key === 'instagram');
+    items.push({ key: 'instagram', label: 'Instagram', count: ig.followers_count, svg: p ? p.svg : '' });
+  }
+  const total = items.reduce((sum, x) => sum + x.count, 0);
+  return { total: total, items: items };
+}
+
+function bioFollowerFmt(num) { return (Number(num) || 0).toLocaleString('en-US'); }
+
+function setFollowerMode(id, mode) {
+  const link = bioState.links.find(l => l._id === id);
+  if (!link) return;
+  link.mode = (mode === 'manual') ? 'manual' : 'automatic';
+  renderBioLinks();
+  schedulePreviewUpdate();
+}
+
+function toggleFollowerIcons(id, checked) {
+  const link = bioState.links.find(l => l._id === id);
+  if (!link) return;
+  link.showIcons = !!checked;
+  renderBioLinks();
+  schedulePreviewUpdate();
+}
+
+function addFollowerBlock() {
+  const { maxLinks } = bioLimits();
+  if (bioState.links.length >= maxLinks) {
+    showBioStatus('error', `Link limit reached (${maxLinks}).`);
+    return;
+  }
+  if (bioState.links.some(l => l.isFollowerBlock)) return;
+  const newId = linkIdSeq++;
+  bioState.links.push({ _id: newId, isFollowerBlock: true, mode: 'automatic', showIcons: true });
+  bioExpandedLinks.add(newId);
+  ensureBioFollowerSrc();
+  renderBioLinks();
+  schedulePreviewUpdate();
+  showBioStatus('saved', 'Follower count added');
+}
+
 // Returns true unless we positively know Stripe is NOT connected (an explicit
 // {connected:false} from /api/stripe-status). Network/lookup errors do not hard
 // block, since the checkout route still enforces a connected account server-side.
@@ -1889,6 +1969,12 @@ function openBioMoreModal() {
     const used = bioState.links.some(l => l.isTipBlock);
     coffeeItem.disabled = used;
     coffeeItem.classList.toggle('is-used', used);
+  }
+  const followerItem = document.getElementById('bio-more-followers');
+  if (followerItem) {
+    const usedFollower = bioState.links.some(l => l.isFollowerBlock);
+    followerItem.disabled = usedFollower;
+    followerItem.classList.toggle('is-used', usedFollower);
   }
   const twitchItem = document.getElementById('bio-more-twitch');
   if (twitchItem) {
@@ -2496,6 +2582,13 @@ function bioRowTypeMeta(link) {
       icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="5.5" fill="#FFDD00"/><path fill="#5b3a1a" d="M6 6.5h9v4.2a3.4 3.4 0 0 1-3.4 3.4H9.4A3.4 3.4 0 0 1 6 10.7V6.5zm9 1.6v2.6h1.1a1.3 1.3 0 0 0 0-2.6H15zM5.2 16.2h10.6v1.7H5.2z"/></svg>'
     };
   }
+  if (link.isFollowerBlock) {
+    return {
+      key: 'followers',
+      label: 'Follower count',
+      icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="5.5" fill="#2563cc"/><g fill="#fff"><circle cx="9" cy="9.2" r="2.7"/><path d="M3.8 17.6c0-2.5 2.3-4.1 5.2-4.1s5.2 1.6 5.2 4.1v.4H3.8z"/><circle cx="16.6" cy="8.4" r="2"/><path d="M15.2 13c2.3.1 4.2 1.5 4.2 3.9v.7h-2.9v-.4c0-1.7-.6-3-1.6-3.9z"/></g></svg>'
+    };
+  }
   if (link.isSubscribe) {
     return {
       key: 'subscribe',
@@ -2774,6 +2867,9 @@ function renderLinkCollapsed(link, dragSvg, editSvg) {
   } else if (link.isTipBlock) {
     title = 'Buy me coffee';
     subline = '';
+  } else if (link.isFollowerBlock) {
+    title = 'Follower count';
+    subline = link.mode === 'manual' ? 'Manual' : 'Automatic';
   } else {
     // Regular link / featured / mediakit
     if (!link.isMediaKit && link.photoUrl) {
@@ -3168,6 +3264,39 @@ function renderLinkExpanded(link, dragSvg) {
     </div>`;
   }
 
+  if (link.isFollowerBlock) {
+    const fIsManual = link.mode === 'manual';
+    const fShowIcons = link.showIcons !== false;
+    return `<div class="bio-link-row" data-id="${link._id}">
+      <div class="bio-link-header">
+        <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
+        <span class="bio-featured-badge bio-s-04da54">Follower count</span>
+        <div class="bio-s-7623f0"></div>
+        <button class="bio-link-remove" data-bio-action="remove-link" data-bio-id="${link._id}">Remove</button>
+      </div>
+      <div class="bio-s-e289c0">Show your total followers on your page. This block is free.</div>
+      <div class="bio-follower-modes" role="group" aria-label="Follower count source">
+        <button type="button" data-bio-action="set-follower-mode" data-bio-id="${link._id}" data-bio-mode="automatic" class="bio-follower-mode${fIsManual ? '' : ' is-active'}" aria-pressed="${fIsManual ? 'false' : 'true'}">Automatic</button>
+        <button type="button" data-bio-action="set-follower-mode" data-bio-id="${link._id}" data-bio-mode="manual" class="bio-follower-mode${fIsManual ? ' is-active' : ''}" aria-pressed="${fIsManual ? 'true' : 'false'}">Manual</button>
+      </div>
+      <div class="bio-s-e289c0" style="margin-top:2px;">${fIsManual ? 'Uses the follower counts from your Media Kit. Update them in the Media Kit tool.' : 'Pulls live counts from your connected social accounts. Connect accounts in Settings.'}</div>
+      <label class="bio-half-toggle bio-s-1adb5f">
+        <span class="bio-s-e3f610">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.2"/></svg>
+          Show icons
+        </span>
+        <span class="bio-half-switch bio-half-track ${fShowIcons ? 'on' : ''}" aria-hidden="true">
+          <span class="bio-half-thumb ${fShowIcons ? 'on' : ''}"></span>
+        </span>
+        <input type="checkbox" ${fShowIcons ? 'checked' : ''} data-bio-action="toggle-follower-icons" data-bio-event="change" data-bio-id="${link._id}" aria-label="Show icons" class="bio-s-12c53e">
+      </label>
+      <button type="button" data-bio-action="save-link-row" data-bio-id="${link._id}"
+        class="bio-s-c7cf47">
+        Save
+      </button>
+    </div>`;
+  }
+
   if (link.isGoogleMapBlock) {
     return `<div class="bio-link-row" data-id="${link._id}">
       <div class="bio-link-header">
@@ -3510,7 +3639,7 @@ function saveLinkRow(id) {
   if (!link) return;
 
   // Headers, subscribe blocks, and video/TikTok blocks don't require a URL
-  if (link.isHeader || link.isSubscribe || link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock || link.isSpotifyBlock || link.isAppleMusicBlock || link.isSoundCloudBlock || link.isImageBlock || link.isImageCarouselBlock || link.isGoogleMapBlock || link.isDiscordBlock || link.isTwitchBlock || link.isTweetBlock || link.isTipBlock) {
+  if (link.isHeader || link.isSubscribe || link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock || link.isSpotifyBlock || link.isAppleMusicBlock || link.isSoundCloudBlock || link.isImageBlock || link.isImageCarouselBlock || link.isGoogleMapBlock || link.isDiscordBlock || link.isTwitchBlock || link.isTweetBlock || link.isTipBlock || link.isFollowerBlock) {
     bioExpandedLinks.delete(id);
     renderBioLinks();
     schedulePreviewUpdate();
@@ -4021,7 +4150,7 @@ async function saveBio() {
       return (Math.random().toString(36).slice(2, 8) + Math.random().toString(36).slice(2, 6)).slice(0, 8);
     };
     const cleanLinks = bioState.links
-      .filter(l => (l.title || '').trim() || (l.url || '').trim() || l.isVideoBlock || l.isTikTokBlock || l.isInstagramBlock || l.isSpotifyBlock || l.isAppleMusicBlock || l.isSoundCloudBlock || l.isImageBlock || l.isImageCarouselBlock || l.isGoogleMapBlock || l.isDiscordBlock || l.isTwitchBlock || l.isTweetBlock || l.isTipBlock || l.isHeader || l.isSubscribe || l.isMediaKit)
+      .filter(l => (l.title || '').trim() || (l.url || '').trim() || l.isVideoBlock || l.isTikTokBlock || l.isInstagramBlock || l.isSpotifyBlock || l.isAppleMusicBlock || l.isSoundCloudBlock || l.isImageBlock || l.isImageCarouselBlock || l.isGoogleMapBlock || l.isDiscordBlock || l.isTwitchBlock || l.isTweetBlock || l.isTipBlock || l.isFollowerBlock || l.isHeader || l.isSubscribe || l.isMediaKit)
       .map(l => ({
         lid: l.lid || genLid(),
         title: (l.title || '').slice(0, 80),
@@ -4036,6 +4165,7 @@ async function saveBio() {
         ...(l.isCoaching ? { isCoaching: true, coachingId: l.coachingId, coachingPrice: l.coachingPrice || 0 } : {}),
         ...(l.isProduct ? { isProduct: true, productId: l.productId, productPrice: l.productPrice || 0 } : {}),
         ...(l.isTipBlock ? { isTipBlock: true, tipHeading: (l.tipHeading || '').slice(0, 40), tipAmounts: (Array.isArray(l.tipAmounts) && l.tipAmounts.length ? l.tipAmounts : [3, 5, 10, 50]).map(a => parseInt(a, 10) || 0).filter(a => a > 0).slice(0, 4) } : {}),
+        ...(l.isFollowerBlock ? { isFollowerBlock: true, mode: l.mode === 'manual' ? 'manual' : 'automatic', showIcons: l.showIcons !== false } : {}),
         ...(l.halfWidth ? { halfWidth: true } : {}),
         ...(l.isSubscribe ? { isSubscribe: true } : {}),
         // Video block — array of YouTube URLs (capped at 5 by the editor).
@@ -4324,7 +4454,7 @@ function buildPreviewHTML() {
     ? `<img src="${escapeHtml(bioState.avatar_url)}" alt="Profile photo" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;">`
     : `<div style="width:100%;height:100%;border-radius:50%;background:${t.surface2};display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;font-size:36px;font-weight:800;color:${t.text};">${escapeHtml(initial)}</div>`;
   const socialsHtml = buildPreviewSocials(t);
-  const linksHtml = bioState.links.filter(l => l.isHeader || l.isSubscribe || l.isVideoBlock || l.isTikTokBlock || l.isInstagramBlock || l.isSpotifyBlock || l.isAppleMusicBlock || l.isSoundCloudBlock || l.isImageBlock || l.isImageCarouselBlock || l.isGoogleMapBlock || l.isDiscordBlock || l.isTwitchBlock || l.isTweetBlock || l.isTipBlock || (l.url || '').trim()).map(l => buildPreviewLink(l, t)).join('');
+  const linksHtml = bioState.links.filter(l => l.isHeader || l.isSubscribe || l.isVideoBlock || l.isTikTokBlock || l.isInstagramBlock || l.isSpotifyBlock || l.isAppleMusicBlock || l.isSoundCloudBlock || l.isImageBlock || l.isImageCarouselBlock || l.isGoogleMapBlock || l.isDiscordBlock || l.isTwitchBlock || l.isTweetBlock || l.isTipBlock || l.isFollowerBlock || (l.url || '').trim()).map(l => buildPreviewLink(l, t)).join('');
 
   // For custom themes with a bg image, we dim the radial glow (since bg image is already bg)
   const glowCSS = ((bioState.theme === 'custom' && isPro() && bioState.custom_theme?.bgUrl) || isImageTheme(bioState.theme))
@@ -4451,6 +4581,16 @@ function buildPreviewHTML() {
   .tip-info-fields { display: flex; flex-direction: column; gap: 8px; }
   .tip-info-fields[hidden] { display: none; }
   .tip-input { width: 100%; box-sizing: border-box; padding: 9px 12px; border-radius: 10px; border: 1px solid ${t.border}; background: ${t.bg}; color: ${t.text}; font-size: 16px; font-family: inherit; outline: none; resize: vertical; }
+  .follower-card { width: 100%; border: 1px solid ${t.border}; border-radius: 16px; padding: 16px; box-sizing: border-box; background: ${t.surface}; display: flex; flex-direction: column; gap: 6px; align-items: center; text-align: center; }
+  .follower-card-label { font-size: 11px; font-weight: 600; color: ${t.muted}; text-transform: uppercase; letter-spacing: 0.06em; }
+  .follower-card-total { font-size: 30px; font-weight: 800; color: ${t.text}; line-height: 1.1; }
+  .follower-card-hint { font-size: 11px; color: ${t.muted}; }
+  .follower-rows { display: flex; flex-direction: column; gap: 6px; width: 100%; margin-top: 6px; }
+  .follower-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; background: ${t.bg}; }
+  .follower-row-ic { display: inline-flex; width: 18px; height: 18px; color: ${t.text}; flex-shrink: 0; }
+  .follower-row-ic svg { width: 18px; height: 18px; fill: currentColor; }
+  .follower-row-name { flex: 1; min-width: 0; text-align: left; font-size: 13px; font-weight: 600; color: ${t.text}; }
+  .follower-row-count { font-size: 14px; font-weight: 800; color: ${t.text}; }
   </style></head><body>
   <div class="w">
     ${(bioState.avatar_display === 'hero' && bioState.avatar_url) ? `
@@ -4503,6 +4643,27 @@ function buildPreviewLink(l, t) {
       <div class="tip-card-amts">${chips}<input type="text" class="tip-custom" placeholder="$0.00" readonly aria-hidden="true"></div>
       <span class="tip-leave-info">Leave info (optional)</span>
       <span class="tip-card-btn">Support</span>
+    </div>`;
+  }
+  // Follower-count card. Preview is non-interactive. Counts come from the
+  // creator's Media Kit (manual) or connected accounts (automatic), cached
+  // client-side in bioFollowerSrc.
+  if (l.isFollowerBlock) {
+    const fSrc = bioFollowerSrc || { socials: {}, ig: null };
+    const fc = computeFollowerCounts(l, fSrc.socials, fSrc.ig);
+    const fShow = l.showIcons !== false;
+    if (!fc.total) {
+      const hint = l.mode === 'manual' ? 'Add follower counts in your Media Kit' : 'Connect a social account to show counts';
+      return `<div class="follower-card ${halfClass}">
+        <div class="follower-card-label">Total Followers</div>
+        <div class="follower-card-hint">${hint}</div>
+      </div>`;
+    }
+    const fRows = (fShow && fc.items.length) ? `<div class="follower-rows">${fc.items.map(it => `<div class="follower-row"><span class="follower-row-ic">${it.svg || ''}</span><span class="follower-row-name">${escapeHtml(it.label)}</span><span class="follower-row-count">${bioFollowerFmt(it.count)}</span></div>`).join('')}</div>` : '';
+    return `<div class="follower-card ${halfClass}">
+      <div class="follower-card-label">Total Followers</div>
+      <div class="follower-card-total">${bioFollowerFmt(fc.total)}</div>
+      ${fRows}
     </div>`;
   }
   // Subscribe block
@@ -4941,6 +5102,7 @@ bioRegisterAction('image-photo-selected', (e, el) => onImagePhotoSelected(el, pa
 bioRegisterAction('add-image-carousel-block', () => { closeBioMoreModal(); addImageCarouselBlock(); });
 bioRegisterAction('add-google-map-block', () => { closeBioMoreModal(); addGoogleMapBlock(); });
 bioRegisterAction('add-coffee-block', () => { closeBioMoreModal(); addTipBlock(); });
+bioRegisterAction('add-followers-block', () => { closeBioMoreModal(); addFollowerBlock(); });
 bioRegisterAction('add-discord-block', () => { closeBioMoreModal(); addDiscordBlock(); });
 bioRegisterAction('carousel-image-selected', (e, el) => onCarouselImageSelected(el, parseInt(el.dataset.bioId, 10)));
 bioRegisterAction('remove-carousel-image', (e, el) => removeCarouselImage(parseInt(el.dataset.bioId, 10), parseInt(el.dataset.bioIdx, 10)));
@@ -4973,6 +5135,12 @@ bioRegisterAction('update-link-crossout-price', (e, el) => {
 });
 bioRegisterAction('toggle-link-half-width', (e, el) => {
   toggleLinkHalfWidth(parseInt(el.dataset.bioId, 10), el.checked);
+});
+bioRegisterAction('set-follower-mode', (e, el) => {
+  setFollowerMode(parseInt(el.dataset.bioId, 10), el.dataset.bioMode);
+});
+bioRegisterAction('toggle-follower-icons', (e, el) => {
+  toggleFollowerIcons(parseInt(el.dataset.bioId, 10), el.checked);
 });
 bioRegisterAction('open-cropper-featured', (e, el) => openCropper(el, 'featured', parseInt(el.dataset.bioId, 10)));
 bioRegisterAction('hero-photo-selected', (e, el) => onHeroPhotoSelected(el, parseInt(el.dataset.bioId, 10)));
