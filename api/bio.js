@@ -384,6 +384,14 @@ const FOLLOWER_PLATFORMS = [
   { key: 'pinterest', label: 'Pinterest', icon: SOCIAL_ICONS.pinterest }
 ];
 
+// Automatic-mode follower sources for the public page. Each entry maps a platform
+// to its RLS-safe public view exposing followers_count. To add a platform later,
+// add one entry here (and the same key to FOLLOWER_PLATFORMS / SOCIAL_ICONS). The
+// editor side reads the underlying tables (see FOLLOWER_AUTO_SOURCES in bio.js).
+const FOLLOWER_AUTO_SOURCES = [
+  { key: 'instagram', view: 'public_instagram_kit_data' }
+];
+
 // Thousands-separated integer with no locale dependency (matches the Media Kit).
 function fmtFollowers(n) {
   n = Math.max(0, Math.floor(Number(n) || 0));
@@ -551,8 +559,14 @@ function buildLink(link, currency) {
         if (n > 0) items.push({ label: p.label, count: n, icon: p.icon || '' });
       });
     } else {
-      const n = parseInt(link._igFollowers, 10) || 0;
-      if (n > 0) items.push({ label: 'Instagram', count: n, icon: SOCIAL_ICONS.instagram || '' });
+      const ac = (link._autoCounts && typeof link._autoCounts === 'object') ? link._autoCounts : {};
+      FOLLOWER_AUTO_SOURCES.forEach(function(src) {
+        const n = parseInt(ac[src.key], 10) || 0;
+        if (n > 0) {
+          const p = FOLLOWER_PLATFORMS.find(function(x) { return x.key === src.key; });
+          items.push({ label: p ? p.label : src.key, count: n, icon: p ? (p.icon || '') : '' });
+        }
+      });
     }
     let ftotal = 0;
     for (let i = 0; i < items.length; i++) ftotal += items[i].count;
@@ -1049,14 +1063,14 @@ async function resolveLiveCoverUrls(creatorUserId, links, fetchOpts, creatorUser
   const coachingIds = [];
   const productIds = [];
   let needsMediaKit = false;
-  let needsFollowerIg = false;
+  let needsFollowerAuto = false;
 
   for (const link of links) {
     if (link && link.isCourse && link.courseId) courseIds.push(link.courseId);
     if (link && link.isCoaching && link.coachingId) coachingIds.push(link.coachingId);
     if (link && link.isProduct && link.productId) productIds.push(link.productId);
     if (link && link.isMediaKit) needsMediaKit = true;
-    if (link && link.isFollowerBlock && link.mode !== 'manual') needsFollowerIg = true;
+    if (link && link.isFollowerBlock && link.mode !== 'manual') needsFollowerAuto = true;
   }
 
   // Build storage public URL for path-based covers (course-covers, coaching-covers).
@@ -1132,13 +1146,15 @@ async function resolveLiveCoverUrls(creatorUserId, links, fetchOpts, creatorUser
     );
   }
 
-  if (needsFollowerIg && creatorUserId) {
-    fetches.push(
-      fetch(`${SUPABASE_URL}/rest/v1/public_instagram_kit_data?user_id=eq.${encodeURIComponent(creatorUserId)}&select=followers_count&limit=1`, fetchOpts())
-        .then(r => r.ok ? r.json() : [])
-        .then(rows => ({ type: 'followerig', count: rows[0] ? (parseInt(rows[0].followers_count, 10) || 0) : 0 }))
-        .catch(() => ({ type: 'followerig', count: 0 }))
-    );
+  if (needsFollowerAuto && creatorUserId) {
+    FOLLOWER_AUTO_SOURCES.forEach(function(src) {
+      fetches.push(
+        fetch(`${SUPABASE_URL}/rest/v1/${src.view}?user_id=eq.${encodeURIComponent(creatorUserId)}&select=followers_count&limit=1`, fetchOpts())
+          .then(r => r.ok ? r.json() : [])
+          .then(rows => ({ type: 'followerauto', key: src.key, count: rows[0] ? (parseInt(rows[0].followers_count, 10) || 0) : 0 }))
+          .catch(() => ({ type: 'followerauto', key: src.key, count: 0 }))
+      );
+    });
   }
 
   if (fetches.length === 0) return;
@@ -1160,7 +1176,8 @@ async function resolveLiveCoverUrls(creatorUserId, links, fetchOpts, creatorUser
   const coachingMap = results.find(r => r.type === 'coaching')?.map;
   const productMap = results.find(r => r.type === 'product')?.map;
   const mediaKitUrl = results.find(r => r.type === 'mediakit')?.url;
-  const followerIgCount = results.find(r => r.type === 'followerig')?.count || 0;
+  const followerAutoCounts = {};
+  results.forEach(r => { if (r && r.type === 'followerauto' && r.count > 0) followerAutoCounts[r.key] = r.count; });
 
   // Mutate the links in place. For each field, only overwrite when we got a
   // live value back. If a course/coaching/product was deleted from the source
@@ -1197,7 +1214,7 @@ async function resolveLiveCoverUrls(creatorUserId, links, fetchOpts, creatorUser
         link.url = 'https://www.ryxa.io/mediakit/' + creatorUsername;
       }
     } else if (link.isFollowerBlock && link.mode !== 'manual') {
-      link._igFollowers = followerIgCount;
+      link._autoCounts = followerAutoCounts;
     }
   }
 }
