@@ -3095,10 +3095,11 @@
   .bio-more-item-text { display:flex; flex-direction:column; gap:2px; min-width:0; }
   .bio-more-item-label { font-size:14px; font-weight:700; color:var(--text); }
   .bio-more-item-desc { font-size:12px; color:var(--muted); }
-  .bio-follower-modes { display:flex; gap:6px; margin:4px 0 2px; }
-  .bio-follower-mode { flex:1; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600; padding:8px 10px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--muted); cursor:pointer; transition:border-color 0.15s, background 0.15s, color 0.15s; }
-  .bio-follower-mode:hover { border-color:var(--accent2); }
-  .bio-follower-mode.is-active { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .bio-follower-modes { display:flex; gap:4px; padding:4px; background:var(--surface); border:1px solid var(--border); border-radius:10px; margin:4px 0 2px; }
+  .bio-follower-mode { flex:1; padding:8px 12px; background:transparent; border:none; color:var(--muted); font-family:'DM Sans',sans-serif; font-size:12px; font-weight:500; cursor:pointer; border-radius:7px; transition:background 0.15s, color 0.15s, box-shadow 0.15s; }
+  .bio-follower-mode:hover { color:var(--text); }
+  .bio-follower-mode.is-active { background:linear-gradient(135deg, var(--accent), var(--accent2)); color:#fff; box-shadow:0 0 16px var(--accent-glow); }
+  .bio-follower-mode.is-active:hover { color:#fff; }
   .bio-follower-fields { display:grid; grid-template-columns:1fr 1fr; column-gap:12px; row-gap:8px; margin:4px 0 10px; }
   .bio-follower-field { display:flex; align-items:center; gap:8px; min-width:0; }
   .bio-follower-field-ic { flex-shrink:0; width:18px; height:18px; display:inline-flex; color:var(--text); }
