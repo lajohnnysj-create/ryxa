@@ -800,7 +800,7 @@ function buildCustomThemeStyle(ct) {
   // falls back to the default. Prevents CSS injection like
   //   accent: "red; } body { background: url(evil) } /*"
   const bg = safeHexColor(colors.bg, '#07070f');
-  const card = safeHexColor(colors.card, '#161625');
+  const card = colors.cardTransparent === true ? 'transparent' : safeHexColor(colors.card, '#161625');
   const text = safeHexColor(colors.text, '#ffffff');
   const accent = safeHexColor(colors.accent, '#a78bfa');
 
