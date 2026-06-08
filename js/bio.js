@@ -1778,16 +1778,19 @@ async function addTipBlock() {
 // toggle controls whether per-platform rows render under the total.
 
 let bioFollowerSrc = null; // cached { ig } connection data for automatic-mode previews
+let bioFollowerLoading = false;
 
 async function ensureBioFollowerSrc() {
-  if (bioFollowerSrc || !currentUser) return;
-  bioFollowerSrc = { ig: null }; // set early so we fetch only once
+  if (bioFollowerSrc || bioFollowerLoading || !currentUser) return;
+  bioFollowerLoading = true;
   try {
     const { data } = await sb.from('instagram_connections').select('ig_username,followers_count').eq('user_id', currentUser.id).maybeSingle();
     bioFollowerSrc = { ig: data || null };
   } catch (e) {
     bioFollowerSrc = { ig: null };
   }
+  bioFollowerLoading = false;
+  renderBioLinks();
   schedulePreviewUpdate();
 }
 
@@ -1875,6 +1878,28 @@ async function pullFollowerCountsFromMediaKit(id) {
   } catch (e) {
     showBioStatus('error', 'Could not load your Media Kit');
   }
+}
+
+// Automatic-mode panel: a live "Total Followers" readout so the creator can see
+// it is pulling data without opening the live preview, plus a Settings shortcut
+// to connect accounts. Mirrors the Media Kit's automatic CTA.
+function bioFollowerAutoPanel(link) {
+  const fIg = bioFollowerSrc ? bioFollowerSrc.ig : null;
+  const total = computeFollowerCounts(link, fIg).total;
+  let note;
+  if (bioFollowerLoading) note = 'Checking your connected accounts...';
+  else if (total > 0) note = `Pulling from your connected accounts. Total Followers: <strong>${bioFollowerFmt(total)}</strong>`;
+  else note = 'No connected accounts yet. Connect your social accounts to pull your follower counts automatically.';
+  return `<div class="bio-s-e289c0" style="margin-top:2px;">${note}</div>
+      <button type="button" data-bio-action="follower-go-settings" class="bio-follower-settings"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Settings</button>`;
+}
+
+function bioGoToConnectedAccounts() {
+  if (typeof showTool === 'function') showTool('settings');
+  setTimeout(() => {
+    const target = document.getElementById('settings-connected-accounts');
+    if (target && target.scrollIntoView) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 100);
 }
 
 function addFollowerBlock() {
@@ -3318,7 +3343,7 @@ function renderLinkExpanded(link, dragSvg) {
         <div class="bio-s-7623f0"></div>
         <button class="bio-link-remove" data-bio-action="remove-link" data-bio-id="${link._id}">Remove</button>
       </div>
-      <div class="bio-s-e289c0">Show your total followers on your page. This block is free.</div>
+      <div class="bio-s-e289c0">Show your total followers on your page.</div>
       <div class="bio-follower-modes" role="group" aria-label="Follower count source">
         <button type="button" data-bio-action="set-follower-mode" data-bio-id="${link._id}" data-bio-mode="automatic" class="bio-follower-mode${fIsManual ? '' : ' is-active'}" aria-pressed="${fIsManual ? 'false' : 'true'}">Automatic</button>
         <button type="button" data-bio-action="set-follower-mode" data-bio-id="${link._id}" data-bio-mode="manual" class="bio-follower-mode${fIsManual ? ' is-active' : ''}" aria-pressed="${fIsManual ? 'true' : 'false'}">Manual</button>
@@ -3332,7 +3357,7 @@ function renderLinkExpanded(link, dragSvg) {
       </div>${isPro() ? `<button type="button" data-bio-action="pull-follower-from-mediakit" data-bio-id="${link._id}" class="bio-follower-pull">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
         Pull from Media Kit
-      </button>` : ''}` : `<div class="bio-s-e289c0" style="margin-top:2px;">Pulls live counts from your connected social accounts. Connect accounts in Settings.</div>`}
+      </button>` : ''}` : bioFollowerAutoPanel(link)}
       <label class="bio-half-toggle bio-s-1adb5f">
         <span class="bio-s-e3f610">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.2"/></svg>
@@ -5200,6 +5225,7 @@ bioRegisterAction('update-follower-count', (e, el) => {
 bioRegisterAction('pull-follower-from-mediakit', (e, el) => {
   pullFollowerCountsFromMediaKit(parseInt(el.dataset.bioId, 10));
 });
+bioRegisterAction('follower-go-settings', () => bioGoToConnectedAccounts());
 bioRegisterAction('open-cropper-featured', (e, el) => openCropper(el, 'featured', parseInt(el.dataset.bioId, 10)));
 bioRegisterAction('hero-photo-selected', (e, el) => onHeroPhotoSelected(el, parseInt(el.dataset.bioId, 10)));
 bioRegisterAction('link-thumb-selected', (e, el) => onLinkThumbSelected(el, parseInt(el.dataset.bioId, 10)));
