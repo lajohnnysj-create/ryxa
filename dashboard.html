@@ -3095,6 +3095,10 @@
   .bio-more-item-text { display:flex; flex-direction:column; gap:2px; min-width:0; }
   .bio-more-item-label { font-size:14px; font-weight:700; color:var(--text); }
   .bio-more-item-desc { font-size:12px; color:var(--muted); }
+  .bio-follower-modes { display:flex; gap:6px; margin:4px 0 2px; }
+  .bio-follower-mode { flex:1; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600; padding:8px 10px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--muted); cursor:pointer; transition:border-color 0.15s, background 0.15s, color 0.15s; }
+  .bio-follower-mode:hover { border-color:var(--accent2); }
+  .bio-follower-mode.is-active { background:var(--accent); border-color:var(--accent); color:#fff; }
   .bio-verify-modal-title { font-family:Syne,sans-serif; font-size:20px; font-weight:800; color:#fff; margin-bottom:8px; padding-right:28px; }
   .bio-verify-modal-sub { font-size:13px; color:var(--muted); line-height:1.5; margin-bottom:18px; }
   .bio-verify-modal input[type="text"], .bio-verify-modal input[type="url"] { width:100%; box-sizing:border-box; background:#07070f; border:1px solid rgba(255,255,255,0.16); border-radius:10px; padding:11px 12px; color:#fff; font-size:14px; font-family:'DM Sans',sans-serif; }
@@ -10789,6 +10793,13 @@
       </div>
       <div class="bio-more-cat">Social</div>
       <div class="bio-more-grid">
+        <button type="button" id="bio-more-followers" class="bio-more-item" data-bio-action="add-followers-block">
+          <span class="bio-more-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="5.5" fill="#2563cc"/><g fill="#fff"><circle cx="9" cy="9.2" r="2.7"/><path d="M3.8 17.6c0-2.5 2.3-4.1 5.2-4.1s5.2 1.6 5.2 4.1v.4H3.8z"/><circle cx="16.6" cy="8.4" r="2"/><path d="M15.2 13c2.3.1 4.2 1.5 4.2 3.9v.7h-2.9v-.4c0-1.7-.6-3-1.6-3.9z"/></g></svg></span>
+          <span class="bio-more-item-text">
+            <span class="bio-more-item-label">Follower count</span>
+            <span class="bio-more-item-desc">Show your total followers</span>
+          </span>
+        </button>
         <button type="button" id="bio-more-twitch" class="bio-more-item" data-bio-action="add-twitch-block">
           <span class="bio-more-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#9146FF" d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg></span>
           <span class="bio-more-item-text">
