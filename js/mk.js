@@ -1174,33 +1174,23 @@ function renderAudienceAutomatic() {
   // Helper: build one platform row. `connected` rows get a working refresh button;
   // "soon" rows show a disabled refresh slot for visual consistency.
   function platformRow(opts) {
-    const isConnected = !!opts.connected;
-    const rowClass = isConnected ? 'mk-aud-platform-active' : 'mk-aud-platform-soon';
-    const statusHtml = isConnected
-      ? `<div class="mk-aud-platform-status mk-aud-platform-status-connected"><span class="mk-aud-status-dot"></span>Connected</div>`
-      : `<div class="mk-aud-platform-status">Coming soon</div>`;
+    // Every row here is an OAuth-connected platform (we no longer render
+    // "Coming soon" placeholders for unconnected ones).
+    const statusHtml = `<div class="mk-aud-platform-status mk-aud-platform-status-connected"><span class="mk-aud-status-dot"></span>Connected</div>`;
 
     // Sublabel under platform name: handle for connected, "Last refreshed ..." second line
     const subParts = [];
-    if (isConnected && opts.handle) subParts.push(`<div class="mk-aud-platform-handle">${escapeHtml(opts.handle)}</div>`);
-    if (isConnected && opts.refreshedLabel) subParts.push(`<div class="mk-aud-platform-fresh">Last refreshed ${escapeHtml(opts.refreshedLabel)}</div>`);
+    if (opts.handle) subParts.push(`<div class="mk-aud-platform-handle">${escapeHtml(opts.handle)}</div>`);
+    if (opts.refreshedLabel) subParts.push(`<div class="mk-aud-platform-fresh">Last refreshed ${escapeHtml(opts.refreshedLabel)}</div>`);
 
-    // Refresh button — only Instagram is wired up for now. Coming-soon rows render
-    // a disabled placeholder so the row alignment matches. CSP-strict: the button
-    // dispatches via data-mk-action (set from opts.action) rather than an inline
-    // onclick attribute. Caller passes action name (e.g. 'manual-refresh-ig').
-    let refreshBtnHtml;
-    if (isConnected) {
-      refreshBtnHtml = `<button type="button" id="${opts.btnId || ''}" class="mk-aud-row-refresh" data-mk-action="${opts.action || ''}" title="${escapeHtml(refreshTooltip)}" aria-label="Refresh ${escapeHtml(opts.name)} data" ${opts.disabled ? 'disabled' : ''}>
+    // Refresh button. CSP-strict: dispatches via data-mk-action (set from
+    // opts.action) rather than an inline onclick attribute. Caller passes the
+    // action name (e.g. 'manual-refresh-ig').
+    const refreshBtnHtml = `<button type="button" id="${opts.btnId || ''}" class="mk-aud-row-refresh" data-mk-action="${opts.action || ''}" title="${escapeHtml(refreshTooltip)}" aria-label="Refresh ${escapeHtml(opts.name)} data" ${opts.disabled ? 'disabled' : ''}>
         ${refreshSvg}<span class="mk-aud-row-refresh-label">${escapeHtml(opts.label || 'Refresh')}</span>
       </button>`;
-    } else {
-      refreshBtnHtml = `<button type="button" class="mk-aud-row-refresh" disabled aria-hidden="true" tabindex="-1">
-        ${refreshSvg}<span class="mk-aud-row-refresh-label">Refresh</span>
-      </button>`;
-    }
 
-    return `<div class="mk-aud-platform-row ${rowClass}">
+    return `<div class="mk-aud-platform-row mk-aud-platform-active">
       <div class="mk-aud-platform-left">
         <div class="mk-aud-platform-icon ${opts.iconClass}" aria-hidden="true">${opts.iconSvg}</div>
         <div class="mk-aud-platform-text">
@@ -1437,7 +1427,7 @@ function buildMKPreviewHTML() {
       audienceHtml = `<div class="sec">
         <div class="sec-t">Audience &amp; Stats</div>
         <div style="padding:14px;background:${t.surface2};border:1px dashed ${t.border};border-radius:10px;text-align:center;font-size:10px;color:${t.muted};">
-          Sync Instagram to auto-fill this section.
+          Sync your social media accounts to auto-fill this section.
         </div>
       </div>`;
     } else {
@@ -1461,25 +1451,13 @@ function buildMKPreviewHTML() {
         ? 'Verified by Instagram &bull; Last synced ' + escapeHtml(lastSyncedLabel)
         : 'Verified by Instagram';
 
-      // Compact platform-dots strip — Instagram active, others "coming soon".
-      // Mirrors the public page's full tab strip but in a tighter visual that
-      // fits the narrow preview column.
+      // Compact platform-dots strip. Mirrors the public page: only
+      // OAuth-connected platforms show a dot (today, Instagram). Future
+      // connected platforms add a dot here; no placeholders for unconnected ones.
       const dotBase = `width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;`;
       const platformDotsHtml = `<div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
         <div title="Instagram (Active)" style="${dotBase}background:linear-gradient(135deg,#833ab4,#fd1d1d 50%,#fcb045);box-shadow:0 0 0 2px ${t.bg}, 0 0 0 3px ${t.accent2};">
           <svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor"><path d="M12 2.2c3.2 0 3.6 0 4.85.07 1.17.05 1.8.25 2.22.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.05.41 2.22.06 1.26.07 1.64.07 4.82s-.01 3.57-.07 4.82c-.05 1.17-.25 1.8-.41 2.22a3.72 3.72 0 0 1-.9 1.38c-.42.42-.82.68-1.38.9-.42.16-1.05.36-2.22.41-1.26.06-1.64.07-4.82.07s-3.57-.01-4.82-.07c-1.17-.05-1.8-.25-2.22-.41a3.72 3.72 0 0 1-1.38-.9 3.72 3.72 0 0 1-.9-1.38c-.16-.42-.36-1.05-.41-2.22C2.21 15.57 2.2 15.19 2.2 12s.01-3.57.07-4.82c.05-1.17.25-1.8.41-2.22.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.05-.36 2.22-.41C8.43 2.21 8.81 2.2 12 2.2M12 0C8.74 0 8.33.01 7.05.07 5.78.13 4.9.33 4.14.63a5.92 5.92 0 0 0-2.13 1.39A5.92 5.92 0 0 0 .62 4.14C.33 4.9.13 5.78.07 7.05.01 8.33 0 8.74 0 12c0 3.26.01 3.67.07 4.95.06 1.27.26 2.15.56 2.91a5.92 5.92 0 0 0 1.39 2.13c.66.66 1.32 1.06 2.13 1.39.76.3 1.64.5 2.91.56C8.33 23.99 8.74 24 12 24c3.26 0 3.67-.01 4.95-.07 1.27-.06 2.15-.26 2.91-.56a5.92 5.92 0 0 0 2.13-1.39c.66-.66 1.06-1.32 1.39-2.13.3-.76.5-1.64.56-2.91.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.06-1.27-.26-2.15-.56-2.91a5.92 5.92 0 0 0-1.39-2.13A5.92 5.92 0 0 0 19.86.62c-.76-.3-1.64-.5-2.91-.56C15.67.01 15.26 0 12 0Zm0 5.84a6.16 6.16 0 1 0 0 12.32 6.16 6.16 0 0 0 0-12.32Zm0 10.16a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm6.41-11.88a1.44 1.44 0 1 0 0 2.88 1.44 1.44 0 0 0 0-2.88Z"/></svg>
-        </div>
-        <div title="YouTube (Coming soon)" style="${dotBase}background:#ff0000;opacity:0.35;">
-          <svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.12C19.54 3.58 12 3.58 12 3.58s-7.54 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.07 0 12 0 12s0 3.93.5 5.8a3 3 0 0 0 2.1 2.12c1.86.5 9.4.5 9.4.5s7.54 0 9.4-.5a3 3 0 0 0 2.1-2.12C24 15.93 24 12 24 12s0-3.93-.5-5.8ZM9.55 15.57V8.43L15.82 12l-6.27 3.57Z"/></svg>
-        </div>
-        <div title="TikTok (Coming soon)" style="${dotBase}background:#000;opacity:0.35;">
-          <svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5.8 20.1a6.34 6.34 0 0 0 10.86-4.43V8.83a8.16 8.16 0 0 0 4.77 1.52V6.9a4.85 4.85 0 0 1-1.84-.21Z"/></svg>
-        </div>
-        <div title="Facebook (Coming soon)" style="${dotBase}background:#1877f2;opacity:0.35;">
-          <svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.68.23 2.68.23v2.97h-1.51c-1.49 0-1.95.93-1.95 1.89v2.26h3.32l-.53 3.49h-2.79V24C19.61 23.1 24 18.1 24 12.07Z"/></svg>
-        </div>
-        <div title="LinkedIn (Coming soon)" style="${dotBase}background:#0a66c2;opacity:0.35;">
-          <svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.95v5.66H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.26 2.37 4.26 5.45v6.29ZM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12ZM7.12 20.45H3.56V9h3.56v11.45ZM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0Z"/></svg>
         </div>
       </div>`;
 
@@ -1557,11 +1535,10 @@ function buildMKPreviewHTML() {
     // Future: push more rows as platforms come online.
     if (sources.length > 0) {
       const totalCount = sources.reduce((s, x) => s + x.count, 0);
-      const platformList = sources.map(s => s.platform).join(', ');
       totalFollowersStripHtml = `<div class="tfs">
         <div class="tfs-l">Total Followers</div>
         <div class="tfs-v">${formatNumberShort(totalCount)}</div>
-        <div class="tfs-s">Combined across ${escapeHtml(platformList)}</div>
+        <div class="tfs-s">Combined across all platforms</div>
       </div>`;
     }
   }
