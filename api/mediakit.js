@@ -779,12 +779,11 @@ function buildTotalFollowers(kit, ig) {
   if (sources.length === 0) return '';
 
   const total = sources.reduce((s, x) => s + x.count, 0);
-  const platformList = sources.map(s => s.platform).join(', ');
 
   return `<div class="total-followers-strip">
     <div class="total-followers-label">Total Followers</div>
     <div class="total-followers-value">${esc(formatNumber(total))}</div>
-    <div class="total-followers-sub">Combined across ${esc(platformList)}</div>
+    <div class="total-followers-sub">Combined across all platforms</div>
   </div>`;
 }
 
