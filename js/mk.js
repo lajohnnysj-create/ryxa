@@ -1965,6 +1965,7 @@ function buildMKPreviewHTML() {
     ${contactHtml}
     ${bannerHtml}
   </div>
+  <\u0073cript src="/js/bio-preview-runtime.js"></\u0073cript>
 </body></html>`;
 }
 
