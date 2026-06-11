@@ -223,6 +223,87 @@ function validExternalUrl(u) {
   } catch { return null; }
 }
 
+// ==== Videos (YouTube + TikTok): mirrors the Link in Bio embeds ====
+function extractYouTubeId(url) {
+  if (!url) return null;
+  const m = String(url).match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
+function extractTikTokId(url) {
+  if (!url) return null;
+  const m = String(url).match(/tiktok\.com\/(?:.*\/video\/|embed\/(?:v2\/)?|v\/)(\d{6,})/i);
+  return m ? m[1] : null;
+}
+function isShortsUrl(url) {
+  return /youtube\.com\/shorts\//i.test(String(url || ''));
+}
+function buildVideos(kit) {
+  const v = (kit && kit.videos && typeof kit.videos === 'object') ? kit.videos : {};
+  const yt = Array.isArray(v.youtube) ? v.youtube : [];
+  const tt = Array.isArray(v.tiktok) ? v.tiktok : [];
+  const ytCards = yt.map(url => {
+    const id = extractYouTubeId(url);
+    if (!id) return '';
+    const vert = isShortsUrl(url) ? ' vertical' : '';
+    const thumb = `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+    return `<div class="video-card${vert}" tabindex="0" role="button" aria-label="Play video" data-mk-action="play-video" data-mk-video-id="${id}">
+        <div class="video-thumb-wrap">
+          <img class="video-thumb" src="${thumb}" alt="YouTube video thumbnail" loading="lazy">
+          <div class="video-play"><div class="video-play-icon"></div></div>
+        </div>
+      </div>`;
+  }).filter(Boolean).join('');
+  const ttCards = tt.map(url => {
+    const id = extractTikTokId(url);
+    if (!id) return '';
+    return `<div class="video-card vertical tiktok-card">
+        <div class="video-thumb-wrap">
+          <iframe class="video-iframe" src="https://www.tiktok.com/player/v1/${id}" loading="lazy" title="TikTok video player" allow="fullscreen; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+        </div>
+      </div>`;
+  }).filter(Boolean).join('');
+  if (!ytCards && !ttCards) return '';
+  const arrows = '<button type="button" class="videos-arrow videos-arrow-l" aria-label="Scroll left" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg></button><button type="button" class="videos-arrow videos-arrow-r" aria-label="Scroll right" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button>';
+  const ytBlock = ytCards ? `<div class="videos">${arrows}<div class="videos-scroll">${ytCards}</div></div>` : '';
+  const ttBlock = ttCards ? `<div class="videos">${arrows}<div class="videos-scroll">${ttCards}</div></div>` : '';
+  return `<div class="section">
+    <div class="section-title">Videos</div>
+    ${ytBlock}
+    ${ttBlock}
+  </div>`;
+}
+
+
+// YouTube click-to-play: swap the thumbnail card for an autoplay embed.
+function playVideo(cardEl, videoId) {
+  cardEl.innerHTML = `<div class="video-thumb-wrap">
+    <iframe class="video-iframe" src="https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1" title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
+  </div>`;
+}
+// Desktop arrow buttons scroll each .videos carousel ~one card width.
+function initVideoArrows() {
+  const blocks = document.querySelectorAll('.videos');
+  blocks.forEach(block => {
+    if (block.dataset.arrowsInit) return;
+    block.dataset.arrowsInit = '1';
+    const scroller = block.querySelector('.videos-scroll');
+    const left = block.querySelector('.videos-arrow-l');
+    const right = block.querySelector('.videos-arrow-r');
+    if (!scroller || !left || !right) return;
+    const cardWidth = 272;
+    const updateState = () => {
+      const max = scroller.scrollWidth - scroller.clientWidth;
+      left.disabled = scroller.scrollLeft <= 1;
+      right.disabled = scroller.scrollLeft >= max - 1;
+    };
+    left.addEventListener('click', e => { e.preventDefault(); scroller.scrollBy({ left: -cardWidth, behavior: 'smooth' }); });
+    right.addEventListener('click', e => { e.preventDefault(); scroller.scrollBy({ left: cardWidth, behavior: 'smooth' }); });
+    scroller.addEventListener('scroll', updateState, { passive: true });
+    window.addEventListener('resize', updateState);
+    updateState();
+  });
+}
+
 function buildRateCard(kit) {
   const rates = Array.isArray(kit.rate_card) ? kit.rate_card : [];
   const valid = rates.filter(r => {
@@ -351,9 +432,11 @@ function render(profile, kit) {
     ${buildHero(kit, headshot)}
     ${buildAudience(kit)}
     ${buildRateCard(kit)}
+    ${buildVideos(kit)}
     ${buildContact(kit)}
     ${bannerHtml}
   `;
+  initVideoArrows();
 }
 
 // ====== Custom theme helpers (Creator Max) ======
@@ -489,6 +572,7 @@ async function load() {
   if (window._ssrHydrated && window._ssrUsername) {
     trackPageView(window._ssrUsername, 'mediakit');
     initIgAgeGenderTabs();
+    initVideoArrows();
     return;
   }
 
@@ -506,7 +590,7 @@ async function load() {
 
   const { data: kit, error: kErr } = await sb
     .from('media_kit')
-    .select('headshot_url, display_name, handle, bio, category, socials, engagement_rate, rate_card, contact_email, contact_note, theme, show_branding, published, custom_theme')
+    .select('headshot_url, display_name, handle, bio, category, socials, engagement_rate, rate_card, contact_email, contact_note, theme, show_branding, published, custom_theme, videos')
     .eq('user_id', profile.user_id)
     .eq('published', true)
     .maybeSingle();
@@ -612,4 +696,9 @@ load().catch(err => {
 
 mkRegisterAction('print', function() {
   window.print();
+});
+
+mkRegisterAction('play-video', function(e, el) {
+  var id = el.getAttribute('data-mk-video-id');
+  if (id) playVideo(el, id);
 });
