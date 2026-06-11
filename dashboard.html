@@ -8587,9 +8587,16 @@
                 </div>
               </button>
               <div class="mk-section-body" id="mk-body-carousel">
-                <div style="font-size:12px;color:var(--muted,rgba(255,255,255,0.55));margin-bottom:8px;line-height:1.5;">Add up to 10 photos, horizontal or vertical. Use the arrows on each to rearrange. Everything is heavily compressed on upload.</div>
+                <div style="font-size:12px;color:var(--muted,rgba(255,255,255,0.55));margin-bottom:8px;line-height:1.5;">Add up to 10 photos, horizontal or vertical. Use the arrows on each to rearrange.</div>
                 <div id="mk-carousel-thumbs" class="bio-carousel-thumbs" style="display:none;"></div>
                 <div class="bio-image-slot" id="mk-carousel-add"></div>
+                <div id="mk-carousel-msg" class="mk-carousel-msg" role="status" aria-live="polite" hidden></div>
+                <style>
+                  .mk-carousel-msg { margin-top: 8px; font-size: 12px; line-height: 1.4; padding: 8px 10px; border-radius: 8px; }
+                  .mk-carousel-msg.is-info { color: var(--muted,rgba(255,255,255,0.7)); background: rgba(255,255,255,0.05); }
+                  .mk-carousel-msg.is-success { color: #6ee7b7; background: rgba(16,185,129,0.12); }
+                  .mk-carousel-msg.is-error { color: #fca5a5; background: rgba(239,68,68,0.12); }
+                </style>
               </div>
             </div>
 
