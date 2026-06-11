@@ -8530,6 +8530,50 @@
               </div>
             </div>
 
+            <!-- Videos (collapsible) -->
+            <style>
+              .mk-vid-group{margin-bottom:14px;}
+              .mk-vid-group:last-child{margin-bottom:0;}
+              .mk-vid-grouphead{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;color:var(--text,#e7e7ee);margin-bottom:8px;}
+              .mk-vid-grouphead svg{width:15px;height:15px;fill:currentColor;flex-shrink:0;}
+              .mk-vid-hint{font-size:11px;color:var(--muted,rgba(255,255,255,0.55));font-weight:400;margin-left:auto;}
+              .mk-vid-row{display:flex;gap:8px;align-items:center;margin-bottom:7px;}
+              .mk-vid-input{flex:1;min-width:0;padding:9px 11px;border-radius:8px;border:1px solid var(--border,rgba(255,255,255,0.1));background:var(--surface-2,rgba(255,255,255,0.03));color:var(--text,#e7e7ee);font-size:13px;}
+              .mk-vid-input:focus{outline:none;border-color:var(--accent,#7c3aed);}
+              .mk-vid-add{margin-top:2px;padding:8px 12px;border-radius:8px;border:1px dashed var(--border,rgba(255,255,255,0.1));background:transparent;color:var(--accent2,#a78bfa);font-size:12px;font-weight:600;cursor:pointer;}
+              .mk-vid-add:hover:not(:disabled){border-color:var(--accent,#7c3aed);}
+              .mk-vid-add:disabled{opacity:0.45;cursor:not-allowed;}
+            </style>
+            <div class="mk-section">
+              <button type="button" class="mk-section-header mk-collapsible" data-mk-action="toggle-section" data-mk-section="videos" aria-expanded="true">
+                <div class="mk-section-label">Videos</div>
+                <div class="bio-s-7e30d2">
+                  <span id="mk-videos-count" class="bio-s-5f3468"></span>
+                  <svg class="mk-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+              </button>
+              <div class="mk-section-body" id="mk-body-videos">
+                <div class="mk-vid-group">
+                  <div class="mk-vid-grouphead">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.12C19.54 3.58 12 3.58 12 3.58s-7.54 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.07 0 12 0 12s0 3.93.5 5.8a3 3 0 0 0 2.1 2.12c1.86.5 9.4.5 9.4.5s7.54 0 9.4-.5a3 3 0 0 0 2.1-2.12C24 15.93 24 12 24 12s0-3.93-.5-5.8ZM9.55 15.57V8.43L15.82 12l-6.27 3.57Z"/></svg>
+                    YouTube
+                    <span class="mk-vid-hint">Up to 10</span>
+                  </div>
+                  <div id="mk-videos-youtube-list"></div>
+                  <button type="button" class="mk-vid-add" data-mk-action="add-video" data-mk-platform="youtube">+ Add YouTube video</button>
+                </div>
+                <div class="mk-vid-group">
+                  <div class="mk-vid-grouphead">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5.8 20.1a6.34 6.34 0 0 0 10.86-4.43V8.83a8.16 8.16 0 0 0 4.77 1.52V6.9a4.85 4.85 0 0 1-1.84-.21Z"/></svg>
+                    TikTok
+                    <span class="mk-vid-hint">Up to 10</span>
+                  </div>
+                  <div id="mk-videos-tiktok-list"></div>
+                  <button type="button" class="mk-vid-add" data-mk-action="add-video" data-mk-platform="tiktok">+ Add TikTok video</button>
+                </div>
+              </div>
+            </div>
+
             <!-- Contact (collapsible) -->
             <div class="mk-section">
               <button type="button" class="mk-section-header mk-collapsible" data-mk-action="toggle-section" data-mk-section="contact" aria-expanded="true">
