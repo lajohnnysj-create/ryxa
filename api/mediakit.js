@@ -539,6 +539,56 @@ function buildAudienceAutomatic(kit, ig) {
   </div>`;
 }
 
+// ==== Videos (YouTube + TikTok): mirrors the Link in Bio embeds ====
+function extractYouTubeId(url) {
+  if (!url) return null;
+  const m = String(url).match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
+function extractTikTokId(url) {
+  if (!url) return null;
+  const m = String(url).match(/tiktok\.com\/(?:.*\/video\/|embed\/(?:v2\/)?|v\/)(\d{6,})/i);
+  return m ? m[1] : null;
+}
+function isShortsUrl(url) {
+  return /youtube\.com\/shorts\//i.test(String(url || ''));
+}
+function buildVideos(kit) {
+  const v = (kit && kit.videos && typeof kit.videos === 'object') ? kit.videos : {};
+  const yt = Array.isArray(v.youtube) ? v.youtube : [];
+  const tt = Array.isArray(v.tiktok) ? v.tiktok : [];
+  const ytCards = yt.map(url => {
+    const id = extractYouTubeId(url);
+    if (!id) return '';
+    const vert = isShortsUrl(url) ? ' vertical' : '';
+    const thumb = `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+    return `<div class="video-card${vert}" tabindex="0" role="button" aria-label="Play video" data-mk-action="play-video" data-mk-video-id="${id}">
+        <div class="video-thumb-wrap">
+          <img class="video-thumb" src="${thumb}" alt="YouTube video thumbnail" loading="lazy">
+          <div class="video-play"><div class="video-play-icon"></div></div>
+        </div>
+      </div>`;
+  }).filter(Boolean).join('');
+  const ttCards = tt.map(url => {
+    const id = extractTikTokId(url);
+    if (!id) return '';
+    return `<div class="video-card vertical tiktok-card">
+        <div class="video-thumb-wrap">
+          <iframe class="video-iframe" src="https://www.tiktok.com/player/v1/${id}" loading="lazy" title="TikTok video player" allow="fullscreen; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+        </div>
+      </div>`;
+  }).filter(Boolean).join('');
+  if (!ytCards && !ttCards) return '';
+  const arrows = '<button type="button" class="videos-arrow videos-arrow-l" aria-label="Scroll left" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg></button><button type="button" class="videos-arrow videos-arrow-r" aria-label="Scroll right" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button>';
+  const ytBlock = ytCards ? `<div class="videos">${arrows}<div class="videos-scroll">${ytCards}</div></div>` : '';
+  const ttBlock = ttCards ? `<div class="videos">${arrows}<div class="videos-scroll">${ttCards}</div></div>` : '';
+  return `<div class="section">
+    <div class="section-title">Videos</div>
+    ${ytBlock}
+    ${ttBlock}
+  </div>`;
+}
+
 function buildRateCard(kit, currency) {
   const rates = Array.isArray(kit.rate_card) ? kit.rate_card : [];
   const valid = rates.filter(r => {
@@ -757,6 +807,7 @@ function renderMediaKitContent(profile, kit, ig) {
     ${totalFollowersHtml}
     ${audienceHtml}
     ${buildRateCard(kit, profile.display_currency || 'USD')}
+    ${buildVideos(kit)}
     ${buildContact(kit)}
     ${bannerHtml}`;
 
@@ -838,7 +889,7 @@ async function fetchMediaKitData(username) {
 
     // Step 2: media_kit data, only if published. audience_mode added.
     const kitRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/media_kit?user_id=eq.${profile.user_id}&published=eq.true&select=headshot_url,display_name,handle,bio,category,socials,engagement_rate,rate_card,contact_email,contact_note,theme,font_family,show_branding,published,custom_theme,audience_mode`,
+      `${SUPABASE_URL}/rest/v1/media_kit?user_id=eq.${profile.user_id}&published=eq.true&select=headshot_url,display_name,handle,bio,category,socials,engagement_rate,rate_card,contact_email,contact_note,theme,font_family,show_branding,published,custom_theme,audience_mode,videos`,
       fetchOpts(controller.signal)
     );
     if (!kitRes.ok) { clearTimeout(timeout); return { profile, kit: null, ig: null }; }
@@ -1033,8 +1084,8 @@ ${customThemeStyle}
   //   img-src — Supabase Storage (headshot, bg images), www.ryxa.io (logo)
   //   connect-src — Supabase API for analytics + fetching kit data, cdn.jsdelivr.net
   //     for Supabase SDK sourcemap fetches (silences a console error)
-  //   No frame-src: media kit pages don't embed any external iframes (unlike bio
-  //     which embeds YouTube videos for link cards).
+  //   frame-src: YouTube + TikTok players for the Videos section
+  //   img-src: also i.ytimg.com for YouTube thumbnails
   res.setHeader(
     'Content-Security-Policy',
     [
@@ -1042,9 +1093,10 @@ ${customThemeStyle}
       "script-src 'self' https://cdn.jsdelivr.net",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com data:",
-      "img-src 'self' data: blob: https://www.ryxa.io https://kjytapcgxukalwsyputk.supabase.co",
+      "img-src 'self' data: blob: https://www.ryxa.io https://kjytapcgxukalwsyputk.supabase.co https://i.ytimg.com",
       "connect-src 'self' https://kjytapcgxukalwsyputk.supabase.co https://cdn.jsdelivr.net",
       "media-src 'self' blob: https://kjytapcgxukalwsyputk.supabase.co",
+      "frame-src https://www.youtube.com https://www.youtube-nocookie.com https://www.tiktok.com",
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",
