@@ -729,6 +729,23 @@ function renderMKVideos() {
   updateMKVideoCount();
 }
 
+// TikTok thumbnails for the editor preview. TikTok has no thumbnail-by-id URL,
+// so resolve through our own /api/tiktok-oembed route (same as Link in Bio).
+// Cached per session; the branded placeholder shows until the real thumb lands.
+const mkTiktokThumbCache = {};   // url -> thumbnail_url string, or null if unavailable
+const mkTiktokThumbPending = {};
+function mkEnsureTikTokThumb(url) {
+  if (!url || !mkExtractTikTokId(url)) return;
+  if (Object.prototype.hasOwnProperty.call(mkTiktokThumbCache, url)) return;
+  if (mkTiktokThumbPending[url]) return;
+  mkTiktokThumbPending[url] = true;
+  fetch('/api/tiktok-oembed?url=' + encodeURIComponent(url))
+    .then(r => (r.ok ? r.json() : null))
+    .then(data => { mkTiktokThumbCache[url] = (data && data.thumbnail_url) ? data.thumbnail_url : null; })
+    .catch(() => { mkTiktokThumbCache[url] = null; })
+    .finally(() => { delete mkTiktokThumbPending[url]; scheduleMKPreview(); });
+}
+
 // ==== Theme ====
 function renderMKThemes() {
   const container = document.getElementById('mk-themes');
@@ -1685,17 +1702,30 @@ function buildMKPreviewHTML() {
     }).join('')}
   </div>` : '';
 
-  // Videos. Lightweight preview: YouTube thumbnails + TikTok placeholder cards.
-  // The public media kit page renders the full embeds (Stage 2).
-  const _ttGlyph = '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5.8 20.1a6.34 6.34 0 0 0 10.86-4.43V8.83a8.16 8.16 0 0 0 4.77 1.52V6.9a4.85 4.85 0 0 1-1.84-.21Z"/></svg>';
+  // Videos. Mimics the Link in Bio editor preview exactly: YouTube as i.ytimg
+  // thumbnails, TikTok as its real oEmbed thumbnail (via /api/tiktok-oembed, with
+  // a branded placeholder until it loads). Static thumbnails only; nothing plays
+  // in the preview (the srcdoc has no runtime and the dashboard CSP blocks the
+  // YouTube/TikTok player iframes).
   const _ytPrev = (Array.isArray(mkState.videos && mkState.videos.youtube) ? mkState.videos.youtube : [])
     .map(v => (v.url || '').trim()).filter(u => u && mkExtractYouTubeId(u)).slice(0, 10);
   const _ttPrev = (Array.isArray(mkState.videos && mkState.videos.tiktok) ? mkState.videos.tiktok : [])
     .map(v => (v.url || '').trim()).filter(u => u && mkExtractTikTokId(u)).slice(0, 10);
-  const videosHtml = (_ytPrev.length || _ttPrev.length) ? `<div class="sec">
+  const _ytPrevCards = _ytPrev.map(u => {
+    const id = mkExtractYouTubeId(u);
+    const vert = /youtube\.com\/shorts\//i.test(u) ? ' vc-vertical' : '';
+    return `<div class="vc${vert}"><img src="https://i.ytimg.com/vi/${id}/hqdefault.jpg" alt="YouTube video thumbnail"></div>`;
+  }).join('');
+  const _ttPrevCards = _ttPrev.map(u => {
+    mkEnsureTikTokThumb(u);
+    const thumb = mkTiktokThumbCache[u];
+    if (thumb) return `<div class="vc vc-vertical"><img src="${escapeHtml(thumb)}" alt="TikTok video thumbnail"></div>`;
+    return `<div class="vc vc-vertical"><div style="width:100%;aspect-ratio:9/16;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:#111;color:#fff;font-size:10px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>TikTok</div></div>`;
+  }).join('');
+  const videosHtml = (_ytPrevCards || _ttPrevCards) ? `<div class="sec">
     <div class="sec-t">Videos</div>
-    ${_ytPrev.length ? `<div class="vid-strip">${_ytPrev.map(u => { const id = mkExtractYouTubeId(u); return `<div class="vid-card yt"><img src="https://i.ytimg.com/vi/${id}/hqdefault.jpg" alt="" loading="lazy"></div>`; }).join('')}</div>` : ''}
-    ${_ttPrev.length ? `<div class="vid-strip vid-strip-tt">${_ttPrev.map(() => `<div class="vid-card tt">${_ttGlyph}</div>`).join('')}</div>` : ''}
+    ${_ytPrevCards ? `<div class="vids"><div class="vids-r">${_ytPrevCards}</div></div>` : ''}
+    ${_ttPrevCards ? `<div class="vids"><div class="vids-r">${_ttPrevCards}</div></div>` : ''}
   </div>` : '';
 
   // Contact
@@ -1769,13 +1799,15 @@ function buildMKPreviewHTML() {
   .rate-lbl{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:${t.text};letter-spacing:-0.1px;word-break:break-word;}
   .rate-n{font-size:10px;color:${t.muted};margin-top:2px;line-height:1.4;word-break:break-word;}
   .rate-p{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:${t.accent2};letter-spacing:-0.2px;white-space:nowrap;}
-  .vid-strip{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;}
-  .vid-strip::-webkit-scrollbar{display:none;}
-  .vid-strip-tt{margin-top:8px;}
-  .vid-card{flex:0 0 auto;border-radius:8px;overflow:hidden;background:${t.surface2};border:1px solid ${t.border};}
-  .vid-card.yt{width:148px;aspect-ratio:16/9;}
-  .vid-card.tt{width:84px;aspect-ratio:9/16;display:flex;align-items:center;justify-content:center;color:${t.muted2};}
-  .vid-card img{width:100%;height:100%;object-fit:cover;display:block;}
+  .vids{width:100%;position:relative;margin-top:6px;}
+  .vids + .vids{margin-top:8px;}
+  .vids-r{display:flex;align-items:center;gap:10px;padding:2px 0;overflow-x:auto;scrollbar-width:none;}
+  .vids-r::-webkit-scrollbar{display:none;}
+  .vids-r > :only-child{margin-left:auto;margin-right:auto;}
+  .vc{flex:0 0 270px;background:${t.surface};border:1px solid ${t.border};border-radius:12px;overflow:hidden;}
+  .vc.vc-vertical{flex-basis:200px;}
+  .vc img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:${t.surface2};}
+  .vc.vc-vertical img{aspect-ratio:9/16;}
   .contact-box{display:inline-block;padding:10px 14px;background:${t.surface2};border:1px solid ${t.border};border-radius:8px;color:${t.text};font-size:11px;font-weight:500;word-break:break-all;}
   .contact-n{margin-top:8px;font-size:10px;color:${t.muted2};line-height:1.5;}
   .banner-wrap{text-align:center;margin-top:14px;}
