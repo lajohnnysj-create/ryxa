@@ -128,6 +128,7 @@ let mkPreviewTimer = null;
 let mkStalePhotos = [];
 let mkRateIdSeq = 1;
 let mkVideoIdSeq = 1;
+let mkEditingVideoId = null; // _id of the video row currently expanded for editing (cosmetic only)
 
 function initMediaKitTool() {
   const pro = isPro();
@@ -704,6 +705,39 @@ function onVideoField(platform, id, val) {
   updateMKVideoCount();
   scheduleMKPreview();
 }
+// Click a collapsed chip -> expand that row's input for editing.
+function onMKVideoEdit(platform, id) {
+  mkEditingVideoId = id;
+  const row = document.querySelector('.mk-vid-row[data-mk-vid-row="' + id + '"]');
+  if (!row) return;
+  row.classList.remove('is-collapsed');
+  const input = row.querySelector('.mk-vid-input');
+  if (input) { input.focus(); input.select(); }
+}
+// Blur the input -> collapse back to the chip if the link is valid; if it is invalid
+// (or empty with text), keep it expanded so the typo stays visible and fixable.
+function onMKVideoBlur(input) {
+  if (mkEditingVideoId === parseInt(input.dataset.mkId, 10)) mkEditingVideoId = null;
+  const row = input.closest('.mk-vid-row');
+  if (!row) return;
+  const meta = MK_VIDEO_PLATFORMS[input.dataset.mkPlatform];
+  const vidId = meta ? meta.extract((input.value || '').trim()) : '';
+  if (vidId) {
+    let idEl = row.querySelector('.mk-vid-chip-id');
+    if (!idEl) {
+      idEl = document.createElement('span');
+      idEl.className = 'mk-vid-chip-id';
+      const chip = row.querySelector('.mk-vid-chip');
+      if (chip) chip.appendChild(idEl);
+    }
+    idEl.textContent = '\u00b7 ' + vidId;
+    row.classList.add('is-collapsed');
+    row.classList.remove('is-invalid');
+  } else {
+    row.classList.remove('is-collapsed');
+    row.classList.toggle('is-invalid', !!(input.value || '').trim());
+  }
+}
 function mkCountValidVideos() {
   let n = 0;
   for (const p of Object.keys(MK_VIDEO_PLATFORMS)) {
@@ -723,12 +757,29 @@ function renderMKVideoList(platform) {
   if (!el) return;
   const meta = MK_VIDEO_PLATFORMS[platform];
   const arr = mkVideoArr(platform);
-  el.innerHTML = arr.map(v => `<div class="mk-vid-row">
+  // Each row collapses to a tidy chip (video glyph + "Video N" + the parsed ID) when
+  // it holds a valid link and is not being edited, so the raw URLs stay hidden. The
+  // saved value is always the raw URL; the chip is purely cosmetic. Clicking the chip
+  // (or an empty/invalid row) reveals the input; blurring it collapses again.
+  el.innerHTML = arr.map((v, idx) => {
+    const vidId = meta.extract(v.url || '');
+    const valid = !!vidId;
+    const hasText = !!(v.url || '').trim();
+    const collapsed = valid && v._id !== mkEditingVideoId;
+    const n = idx + 1;
+    const rowCls = 'mk-vid-row' + (collapsed ? ' is-collapsed' : '') + (!valid && hasText ? ' is-invalid' : '');
+    return `<div class="${rowCls}" data-mk-vid-row="${v._id}">
+      <button type="button" class="mk-vid-chip" data-mk-action="edit-video" data-mk-platform="${platform}" data-mk-id="${v._id}" aria-label="Video ${n}, click to show the link">
+        <svg class="mk-vid-chip-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="M10 9l5 3-5 3z" fill="currentColor" stroke="none"/></svg>
+        <span class="mk-vid-chip-label">Video ${n}</span>
+        ${valid ? `<span class="mk-vid-chip-id">\u00b7 ${escapeHtml(vidId)}</span>` : ''}
+      </button>
       <input type="url" placeholder="${meta.placeholder}" value="${escapeHtml(v.url || '')}"
         data-mk-action="video-field" data-mk-event="input" data-mk-platform="${platform}" data-mk-id="${v._id}"
         aria-label="${meta.label}" class="mk-vid-input">
       <button type="button" class="mk-vid-del" data-mk-action="remove-video" data-mk-platform="${platform}" data-mk-id="${v._id}" aria-label="Remove this video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
-    </div>`).join('');
+    </div>`;
+  }).join('');
   const addBtn = document.querySelector('[data-mk-action="add-video"][data-mk-platform="' + platform + '"]');
   if (addBtn) addBtn.disabled = arr.length >= 10;
 }
@@ -2022,6 +2073,13 @@ mkRegisterAction('rate-field', (e, el) => onRateField(parseInt(el.dataset.mkId, 
 mkRegisterAction('add-video', (e, el) => addVideo(el.dataset.mkPlatform));
 mkRegisterAction('remove-video', (e, el) => removeVideo(el.dataset.mkPlatform, parseInt(el.dataset.mkId, 10)));
 mkRegisterAction('video-field', (e, el) => onVideoField(el.dataset.mkPlatform, parseInt(el.dataset.mkId, 10), el.value));
+mkRegisterAction('edit-video', (e, el) => onMKVideoEdit(el.dataset.mkPlatform, parseInt(el.dataset.mkId, 10)));
+// Collapse a video row when its input loses focus. focusout bubbles (unlike blur), so
+// one delegated listener covers every row, including ones added later.
+document.addEventListener('focusout', (e) => {
+  const t = e.target;
+  if (t && t.classList && t.classList.contains('mk-vid-input')) onMKVideoBlur(t);
+});
 mkRegisterAction('carousel-image-selected', (e, el) => onMKCarouselImageSelected(el));
 mkRegisterAction('move-carousel-image', (e, el) => moveMKCarouselImage(parseInt(el.dataset.mkIdx, 10), parseInt(el.dataset.mkDir, 10)));
 mkRegisterAction('remove-carousel-image', (e, el) => removeMKCarouselImage(parseInt(el.dataset.mkIdx, 10)));
