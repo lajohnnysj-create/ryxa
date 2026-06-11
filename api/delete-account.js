@@ -166,6 +166,84 @@ async function clearBunnyVideos(courseIds) {
   return lessons.length;
 }
 
+// Every Supabase Storage bucket that stores files under a "${userId}/..." prefix.
+// The transactional RPC removes DB rows but never touches Storage, and clearR2Storage
+// / clearBunnyVideos only cover R2 + Bunny, so without this pass these objects orphan.
+const USER_STORAGE_BUCKETS = [
+  'bio-photos', 'bio-backgrounds',
+  'media-kit-photos', 'mediakit-backgrounds',
+  'course-covers', 'course-images',
+  'coaching-covers',
+  'digital-products', // cover images, nested as ${userId}/${productId}/...; the downloadable product FILES live in R2
+  'deal-contracts',
+  'logos',
+  'grid-photos',
+];
+
+// List one prefix level of a bucket. Returns the raw entries (files + folder rows).
+async function sbStorageListLevel(bucket, prefix, offset) {
+  const res = await fetch(SUPABASE_URL + '/storage/v1/object/list/' + encodeURIComponent(bucket), {
+    method: 'POST',
+    headers: svcHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify({ prefix: prefix, limit: 100, offset: offset, sortBy: { column: 'name', order: 'asc' } })
+  });
+  if (!res.ok) return [];
+  const items = await res.json().catch(() => []);
+  return Array.isArray(items) ? items : [];
+}
+
+// Recursively collect every file path under a prefix. Folder rows (id == null) are
+// walked into, so this handles flat buckets and the nested digital-products covers
+// alike. Stays strictly within "${userId}/", so it can never reach another user.
+async function listUserStoragePaths(bucket, prefix, depth) {
+  if (depth > 6) return []; // safety; our deepest scheme is userId/productId/file (depth 2)
+  const out = [];
+  let offset = 0;
+  for (let page = 0; page < 100; page++) {
+    const items = await sbStorageListLevel(bucket, prefix, offset);
+    if (!items.length) break;
+    for (const it of items) {
+      const name = it && it.name;
+      if (!name) continue;
+      const full = prefix ? (prefix + '/' + name) : name;
+      if (it.id == null) {
+        const nested = await listUserStoragePaths(bucket, full, depth + 1);
+        for (const p of nested) out.push(p);
+      } else {
+        out.push(full);
+      }
+    }
+    if (items.length < 100) break;
+    offset += 100;
+  }
+  return out;
+}
+
+// Bulk-delete object paths from a bucket, chunked to keep request bodies small.
+async function sbStorageRemove(bucket, paths) {
+  for (let i = 0; i < paths.length; i += 100) {
+    const chunk = paths.slice(i, i + 100);
+    await fetch(SUPABASE_URL + '/storage/v1/object/' + encodeURIComponent(bucket), {
+      method: 'DELETE',
+      headers: svcHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ prefixes: chunk })
+    });
+  }
+}
+
+// Empty every user-scoped Storage bucket for this user. Best effort and per-bucket
+// isolated: one failing bucket is logged and skipped so the rest still get cleaned.
+async function clearSupabaseStorage(userId) {
+  for (const bucket of USER_STORAGE_BUCKETS) {
+    try {
+      const paths = await listUserStoragePaths(bucket, userId, 0);
+      if (paths.length) await sbStorageRemove(bucket, paths);
+    } catch (e) {
+      console.warn('Supabase storage cleanup failed for bucket', bucket, e && e.message);
+    }
+  }
+}
+
 async function runDeletionRpc(userId) {
   const res = await fetch(SUPABASE_URL + '/rest/v1/rpc/delete_my_account', {
     method: 'POST',
@@ -224,6 +302,7 @@ module.exports = async function handler(req, res) {
     // 3. Clear external storage while rows still exist (best effort).
     const { courseIds } = await clearR2Storage(userId);
     await clearBunnyVideos(courseIds);
+    await clearSupabaseStorage(userId);
 
     // 4. Transactional row deletion (must succeed).
     await runDeletionRpc(userId);
