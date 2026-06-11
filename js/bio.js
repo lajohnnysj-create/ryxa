@@ -3232,23 +3232,19 @@ function renderLinkExpanded(link, dragSvg) {
     </div>`;
   }
 
+  // ===== Video URL rows: collapse to a tidy chip when the link is valid =====
+  // Shared by the YouTube, TikTok and Instagram blocks. A row holding a valid
+  // link collapses to a chip (video glyph + "Video/Reel N" + the parsed ID) so
+  // the raw URLs stay hidden; clicking the chip (or any empty/invalid row)
+  // reveals the input again. Purely cosmetic: the saved value is the raw URL.
+
   // Video block — list of up to 10 YouTube URL inputs, each removable. An
   // "Add another video" button appears at the bottom when fewer than 10 are
   // present. The whole block can be removed via the row's Remove button.
   if (link.isVideoBlock) {
     const videos = Array.isArray(link.videos) && link.videos.length ? link.videos : [{ url: '' }];
     const atMax = videos.length >= 10;
-    const inputsHtml = videos.map((v, idx) => {
-      const value = escapeHtml(v && v.url ? v.url : '');
-      return `<div class="bio-s-302bc1">
-        <input type="url" placeholder="https://youtube.com/watch?v=..." value="${value}"
-          data-bio-action="update-video-url" data-bio-event="input" data-bio-id="${link._id}" data-bio-idx="${idx}"
-          aria-label="YouTube URL ${idx + 1}"
-          class="bio-s-d3db56">
-        <button type="button" aria-label="Remove this video" data-bio-action="remove-video" data-bio-id="${link._id}" data-bio-idx="${idx}"
-          class="bio-s-09aacd">×</button>
-      </div>`;
-    }).join('');
+    const inputsHtml = videos.map((v, idx) => bioVideoRowHtml(link, idx, v, 'youtube')).join('');
     return `<div class="bio-link-row" data-id="${link._id}">
       <div class="bio-link-header">
         <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
@@ -3272,17 +3268,7 @@ function renderLinkExpanded(link, dragSvg) {
   if (link.isTikTokBlock) {
     const videos = Array.isArray(link.videos) && link.videos.length ? link.videos : [{ url: '' }];
     const atMax = videos.length >= 10;
-    const inputsHtml = videos.map((v, idx) => {
-      const value = escapeHtml(v && v.url ? v.url : '');
-      return `<div class="bio-s-302bc1">
-        <input type="url" placeholder="https://www.tiktok.com/@user/video/..." value="${value}"
-          data-bio-action="update-video-url" data-bio-event="input" data-bio-id="${link._id}" data-bio-idx="${idx}"
-          aria-label="TikTok URL ${idx + 1}"
-          class="bio-s-d3db56">
-        <button type="button" aria-label="Remove this video" data-bio-action="remove-video" data-bio-id="${link._id}" data-bio-idx="${idx}"
-          class="bio-s-09aacd">×</button>
-      </div>`;
-    }).join('');
+    const inputsHtml = videos.map((v, idx) => bioVideoRowHtml(link, idx, v, 'tiktok')).join('');
     return `<div class="bio-link-row" data-id="${link._id}">
       <div class="bio-link-header">
         <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
@@ -3306,17 +3292,7 @@ function renderLinkExpanded(link, dragSvg) {
   if (link.isInstagramBlock) {
     const videos = Array.isArray(link.videos) && link.videos.length ? link.videos : [{ url: '' }];
     const atMax = videos.length >= 10;
-    const inputsHtml = videos.map((v, idx) => {
-      const value = escapeHtml(v && v.url ? v.url : '');
-      return `<div class="bio-s-302bc1">
-        <input type="url" placeholder="https://www.instagram.com/reel/..." value="${value}"
-          data-bio-action="update-video-url" data-bio-event="input" data-bio-id="${link._id}" data-bio-idx="${idx}"
-          aria-label="Instagram reel URL ${idx + 1}"
-          class="bio-s-d3db56">
-        <button type="button" aria-label="Remove this reel" data-bio-action="remove-video" data-bio-id="${link._id}" data-bio-idx="${idx}"
-          class="bio-s-09aacd">×</button>
-      </div>`;
-    }).join('');
+    const inputsHtml = videos.map((v, idx) => bioVideoRowHtml(link, idx, v, 'instagram')).join('');
     return `<div class="bio-link-row" data-id="${link._id}">
       <div class="bio-link-header">
         <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
@@ -5277,6 +5253,70 @@ bioRegisterAction('remove-link-thumb', (e, el) => removeLinkThumb(parseInt(el.da
 bioRegisterAction('update-video-url', (e, el) => {
   updateVideoBlockUrl(parseInt(el.dataset.bioId, 10), parseInt(el.dataset.bioIdx, 10), el.value);
 });
+
+// Collapse-to-chip relabel for the YouTube / TikTok / Instagram video rows.
+let bioEditingVideoKey = null; // "${blockId}:${idx}" of the row currently expanded
+const BIO_VID_META = {
+  youtube:   { extract: extractYouTubeIdDash, noun: 'Video', nounLower: 'video', placeholder: 'https://youtube.com/watch?v=...', label: 'YouTube URL' },
+  tiktok:    { extract: extractTikTokId,      noun: 'Video', nounLower: 'video', placeholder: 'https://www.tiktok.com/@user/video/...', label: 'TikTok URL' },
+  instagram: { extract: extractInstagramId,   noun: 'Reel',  nounLower: 'reel',  placeholder: 'https://www.instagram.com/reel/...', label: 'Instagram reel URL' },
+};
+function bioVideoRowHtml(link, idx, v, platform) {
+  const meta = BIO_VID_META[platform];
+  const url = (v && v.url) ? v.url : '';
+  const value = escapeHtml(url);
+  const vidId = meta.extract(url);
+  const valid = !!vidId;
+  const hasText = !!url.trim();
+  const collapsed = valid && bioEditingVideoKey !== (link._id + ':' + idx);
+  const n = idx + 1;
+  const rowCls = 'bio-s-302bc1 bio-vid-rl' + (collapsed ? ' is-collapsed' : '') + ((!valid && hasText) ? ' is-invalid' : '');
+  return `<div class="${rowCls}" data-bio-vid-row="${link._id}:${idx}">
+        <button type="button" class="bio-vid-chip" data-bio-action="edit-video" data-bio-id="${link._id}" data-bio-idx="${idx}" aria-label="${meta.noun} ${n}, click to show the link">
+          <svg class="bio-vid-chip-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="M10 9l5 3-5 3z" fill="currentColor" stroke="none"/></svg>
+          <span class="bio-vid-chip-label">${meta.noun} ${n}</span>
+          ${valid ? `<span class="bio-vid-chip-id">\u00b7 ${escapeHtml(vidId)}</span>` : ''}
+        </button>
+        <input type="url" placeholder="${meta.placeholder}" value="${value}"
+          data-bio-action="update-video-url" data-bio-event="input" data-bio-action-blur="bio-video-blur"
+          data-bio-id="${link._id}" data-bio-idx="${idx}" data-bio-platform="${platform}"
+          aria-label="${meta.label} ${n}" class="bio-s-d3db56">
+        <button type="button" aria-label="Remove this ${meta.nounLower}" data-bio-action="remove-video" data-bio-id="${link._id}" data-bio-idx="${idx}"
+          class="bio-s-09aacd">\u00d7</button>
+      </div>`;
+}
+function onBioVideoEdit(e, el) {
+  const row = el.closest('.bio-vid-rl');
+  if (!row) return;
+  bioEditingVideoKey = (el.dataset.bioId || '') + ':' + (el.dataset.bioIdx || '');
+  row.classList.remove('is-collapsed');
+  const input = row.querySelector('.bio-s-d3db56');
+  if (input) { input.focus(); input.select(); }
+}
+function onBioVideoBlur(e, el) {
+  const row = el.closest('.bio-vid-rl');
+  if (!row) return;
+  bioEditingVideoKey = null;
+  const meta = BIO_VID_META[el.dataset.bioPlatform];
+  const vidId = meta ? meta.extract((el.value || '').trim()) : '';
+  if (vidId) {
+    let idEl = row.querySelector('.bio-vid-chip-id');
+    if (!idEl) {
+      idEl = document.createElement('span');
+      idEl.className = 'bio-vid-chip-id';
+      const chip = row.querySelector('.bio-vid-chip');
+      if (chip) chip.appendChild(idEl);
+    }
+    idEl.textContent = '\u00b7 ' + vidId;
+    row.classList.add('is-collapsed');
+    row.classList.remove('is-invalid');
+  } else {
+    row.classList.remove('is-collapsed');
+    row.classList.toggle('is-invalid', !!(el.value || '').trim());
+  }
+}
+bioRegisterAction('edit-video', onBioVideoEdit);
+bioRegisterAction('bio-video-blur', onBioVideoBlur);
 bioRegisterAction('remove-video', (e, el) => {
   removeVideoFromBlock(parseInt(el.dataset.bioId, 10), parseInt(el.dataset.bioIdx, 10));
 });
