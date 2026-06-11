@@ -119,12 +119,14 @@ let mkState = {
   show_branding: true,
   published: false,
   custom_theme: null,
+  videos: { youtube: [], tiktok: [] }, // editor rows are {_id,url}; saved as { youtube:[url], tiktok:[url] }
 };
 let mkStaleBgs = [];
 let mkInited = false;
 let mkPreviewTimer = null;
 let mkStalePhotos = [];
 let mkRateIdSeq = 1;
+let mkVideoIdSeq = 1;
 
 function initMediaKitTool() {
   const pro = isPro();
@@ -140,6 +142,7 @@ function initMediaKitTool() {
     if (mkHint) { mkHint.textContent = 'Same username as your Link in Bio. You can change it up to 2 times per week.'; mkHint.style.color = 'var(--muted)'; }
     renderMKSocials();
     renderMKRates();
+    renderMKVideos();
     renderMKThemes();
     renderMKFonts();
     // If the audience pane is in Automatic mode, refresh its connection status.
@@ -161,6 +164,7 @@ function initMediaKitTool() {
 
   renderMKSocials();
   renderMKRates();
+  renderMKVideos();
   renderMKThemes();
   renderMKFonts();
   loadMediaKit();
@@ -242,6 +246,12 @@ async function loadMediaKit() {
       dbRates.filter(r => !MK_PREDEFINED_RATES.find(p => p.id === r.id)).forEach(r => {
         mkState.rate_card.push({ _id: mkRateIdSeq++, id: r.id || ('custom-' + Date.now() + '-' + Math.random().toString(36).slice(2,6)), label: r.label || 'Custom', price: r.price || '', note: r.note || '' });
       });
+      // Videos: stored as { youtube:[url], tiktok:[url] }; hydrate into editor rows.
+      const dbVideos = (kit.videos && typeof kit.videos === 'object') ? kit.videos : {};
+      mkState.videos = {
+        youtube: (Array.isArray(dbVideos.youtube) ? dbVideos.youtube : []).slice(0, 10).map(u => ({ _id: mkVideoIdSeq++, url: String(u || '') })),
+        tiktok: (Array.isArray(dbVideos.tiktok) ? dbVideos.tiktok : []).slice(0, 10).map(u => ({ _id: mkVideoIdSeq++, url: String(u || '') })),
+      };
     }
   } catch (e) { console.error('loadMediaKit', e); }
   syncMKForm();
@@ -250,6 +260,7 @@ async function loadMediaKit() {
   if (mkHint2) { mkHint2.textContent = 'Same username as your Link in Bio. You can change it up to 2 times per week.'; mkHint2.style.color = 'var(--muted)'; }
   renderMKSocials();
   renderMKRates();
+  renderMKVideos();
   renderMKThemes();
   renderMKFonts();
   syncMKCustomEditorUI();
@@ -640,6 +651,84 @@ function clearRate(id) {
   scheduleMKPreview();
 }
 
+// ==== Videos (YouTube + TikTok) ====
+// Mirrors the Link in Bio video/TikTok blocks: up to 10 URLs per platform.
+// mk-prefixed extractors avoid colliding with the globals bio.js defines
+// (both scripts share the dashboard's global scope).
+function mkExtractYouTubeId(url) {
+  if (!url) return null;
+  const m = String(url).match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
+function mkExtractTikTokId(url) {
+  if (!url) return null;
+  const m = String(url).match(/tiktok\.com\/(?:.*\/video\/|embed\/(?:v2\/)?|v\/)(\d{6,})/i);
+  return m ? m[1] : null;
+}
+const MK_VIDEO_PLATFORMS = {
+  youtube: { extract: mkExtractYouTubeId, placeholder: 'https://youtube.com/watch?v=...', label: 'YouTube video URL' },
+  tiktok:  { extract: mkExtractTikTokId, placeholder: 'https://www.tiktok.com/@user/video/...', label: 'TikTok video URL' },
+};
+function mkVideoArr(platform) {
+  if (!mkState.videos || typeof mkState.videos !== 'object') mkState.videos = { youtube: [], tiktok: [] };
+  if (!Array.isArray(mkState.videos[platform])) mkState.videos[platform] = [];
+  return mkState.videos[platform];
+}
+function addVideo(platform) {
+  if (!MK_VIDEO_PLATFORMS[platform]) return;
+  const arr = mkVideoArr(platform);
+  if (arr.length >= 10) return;
+  arr.push({ _id: mkVideoIdSeq++, url: '' });
+  renderMKVideos();
+  scheduleMKPreview();
+}
+function removeVideo(platform, id) {
+  const arr = mkVideoArr(platform);
+  mkState.videos[platform] = arr.filter(v => v._id !== id);
+  renderMKVideos();
+  scheduleMKPreview();
+}
+function onVideoField(platform, id, val) {
+  const v = mkVideoArr(platform).find(x => x._id === id);
+  if (!v) return;
+  v.url = val;
+  updateMKVideoCount();
+  scheduleMKPreview();
+}
+function mkCountValidVideos() {
+  let n = 0;
+  for (const p of Object.keys(MK_VIDEO_PLATFORMS)) {
+    const ex = MK_VIDEO_PLATFORMS[p].extract;
+    n += mkVideoArr(p).filter(v => v.url && v.url.trim() && ex(v.url.trim())).length;
+  }
+  return n;
+}
+function updateMKVideoCount() {
+  const counts = document.getElementById('mk-videos-count');
+  if (!counts) return;
+  const n = mkCountValidVideos();
+  counts.textContent = n > 0 ? (n + (n === 1 ? ' video' : ' videos')) : '';
+}
+function renderMKVideoList(platform) {
+  const el = document.getElementById('mk-videos-' + platform + '-list');
+  if (!el) return;
+  const meta = MK_VIDEO_PLATFORMS[platform];
+  const arr = mkVideoArr(platform);
+  el.innerHTML = arr.map(v => `<div class="mk-vid-row">
+      <input type="url" placeholder="${meta.placeholder}" value="${escapeHtml(v.url || '')}"
+        data-mk-action="video-field" data-mk-event="input" data-mk-platform="${platform}" data-mk-id="${v._id}"
+        aria-label="${meta.label}" class="mk-vid-input">
+      <button type="button" class="mk-rate-remove" data-mk-action="remove-video" data-mk-platform="${platform}" data-mk-id="${v._id}" aria-label="Remove this video">Delete</button>
+    </div>`).join('');
+  const addBtn = document.querySelector('[data-mk-action="add-video"][data-mk-platform="' + platform + '"]');
+  if (addBtn) addBtn.disabled = arr.length >= 10;
+}
+function renderMKVideos() {
+  renderMKVideoList('youtube');
+  renderMKVideoList('tiktok');
+  updateMKVideoCount();
+}
+
 // ==== Theme ====
 function renderMKThemes() {
   const container = document.getElementById('mk-themes');
@@ -939,6 +1028,11 @@ async function saveMediaKit() {
       engagement_rate: null,
       audience_mode: mkState.audience_mode === 'automatic' ? 'automatic' : 'manual',
       rate_card: cleanRates,
+      videos: (() => {
+        const yt = mkVideoArr('youtube').map(v => (v.url || '').trim()).filter(u => u && mkExtractYouTubeId(u)).slice(0, 10);
+        const tt = mkVideoArr('tiktok').map(v => (v.url || '').trim()).filter(u => u && mkExtractTikTokId(u)).slice(0, 10);
+        return (yt.length || tt.length) ? { youtube: yt, tiktok: tt } : null;
+      })(),
       contact_email: mkState.contact_email || null,
       contact_note: mkState.contact_note || null,
       theme: (() => {
@@ -1591,6 +1685,19 @@ function buildMKPreviewHTML() {
     }).join('')}
   </div>` : '';
 
+  // Videos. Lightweight preview: YouTube thumbnails + TikTok placeholder cards.
+  // The public media kit page renders the full embeds (Stage 2).
+  const _ttGlyph = '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5.8 20.1a6.34 6.34 0 0 0 10.86-4.43V8.83a8.16 8.16 0 0 0 4.77 1.52V6.9a4.85 4.85 0 0 1-1.84-.21Z"/></svg>';
+  const _ytPrev = (Array.isArray(mkState.videos && mkState.videos.youtube) ? mkState.videos.youtube : [])
+    .map(v => (v.url || '').trim()).filter(u => u && mkExtractYouTubeId(u)).slice(0, 10);
+  const _ttPrev = (Array.isArray(mkState.videos && mkState.videos.tiktok) ? mkState.videos.tiktok : [])
+    .map(v => (v.url || '').trim()).filter(u => u && mkExtractTikTokId(u)).slice(0, 10);
+  const videosHtml = (_ytPrev.length || _ttPrev.length) ? `<div class="sec">
+    <div class="sec-t">Videos</div>
+    ${_ytPrev.length ? `<div class="vid-strip">${_ytPrev.map(u => { const id = mkExtractYouTubeId(u); return `<div class="vid-card yt"><img src="https://i.ytimg.com/vi/${id}/hqdefault.jpg" alt="" loading="lazy"></div>`; }).join('')}</div>` : ''}
+    ${_ttPrev.length ? `<div class="vid-strip vid-strip-tt">${_ttPrev.map(() => `<div class="vid-card tt">${_ttGlyph}</div>`).join('')}</div>` : ''}
+  </div>` : '';
+
   // Contact
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mkState.contact_email || '');
   // Render the Contact section when EITHER a valid email OR a note is
@@ -1662,6 +1769,13 @@ function buildMKPreviewHTML() {
   .rate-lbl{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:${t.text};letter-spacing:-0.1px;word-break:break-word;}
   .rate-n{font-size:10px;color:${t.muted};margin-top:2px;line-height:1.4;word-break:break-word;}
   .rate-p{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:${t.accent2};letter-spacing:-0.2px;white-space:nowrap;}
+  .vid-strip{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;}
+  .vid-strip::-webkit-scrollbar{display:none;}
+  .vid-strip-tt{margin-top:8px;}
+  .vid-card{flex:0 0 auto;border-radius:8px;overflow:hidden;background:${t.surface2};border:1px solid ${t.border};}
+  .vid-card.yt{width:148px;aspect-ratio:16/9;}
+  .vid-card.tt{width:84px;aspect-ratio:9/16;display:flex;align-items:center;justify-content:center;color:${t.muted2};}
+  .vid-card img{width:100%;height:100%;object-fit:cover;display:block;}
   .contact-box{display:inline-block;padding:10px 14px;background:${t.surface2};border:1px solid ${t.border};border-radius:8px;color:${t.text};font-size:11px;font-weight:500;word-break:break-all;}
   .contact-n{margin-top:8px;font-size:10px;color:${t.muted2};line-height:1.5;}
   .banner-wrap{text-align:center;margin-top:14px;}
@@ -1681,6 +1795,7 @@ function buildMKPreviewHTML() {
     ${totalFollowersStripHtml}
     ${audienceHtml}
     ${ratesHtml}
+    ${videosHtml}
     ${contactHtml}
     ${bannerHtml}
   </div>
@@ -1737,6 +1852,9 @@ mkRegisterAction('add-custom-rate', () => addCustomRate());
 mkRegisterAction('clear-rate', (e, el) => clearRate(parseInt(el.dataset.mkId, 10)));
 mkRegisterAction('remove-rate', (e, el) => removeRate(parseInt(el.dataset.mkId, 10)));
 mkRegisterAction('rate-field', (e, el) => onRateField(parseInt(el.dataset.mkId, 10), el.dataset.mkField, el.value));
+mkRegisterAction('add-video', (e, el) => addVideo(el.dataset.mkPlatform));
+mkRegisterAction('remove-video', (e, el) => removeVideo(el.dataset.mkPlatform, parseInt(el.dataset.mkId, 10)));
+mkRegisterAction('video-field', (e, el) => onVideoField(el.dataset.mkPlatform, parseInt(el.dataset.mkId, 10), el.value));
 
 // Instagram connection
 mkRegisterAction('go-to-instagram-connect', () => goToInstagramConnect());
