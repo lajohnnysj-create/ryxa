@@ -1814,7 +1814,7 @@ function buildMKPreviewHTML() {
           const eng = parseFloat(p.data.engagement);
           const engCell = (isFinite(eng) && eng > 0)
             ? `<div class="stat-eng"><span class="stat-eng-n">${(+eng.toFixed(2))}%</span><span class="stat-eng-l">eng</span></div>`
-            : '<div class="stat-eng"></div>';
+            : '';
           return `<div class="stat-row">
           <div class="stat-icn">${p.svg}</div>
           <div class="stat-name">${p.label}</div>
