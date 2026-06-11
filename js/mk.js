@@ -762,6 +762,15 @@ function mkCarouselArr() {
   if (!Array.isArray(mkState.carousel)) mkState.carousel = [];
   return mkState.carousel;
 }
+// Inline status shown inside the Photos section (not a toast), so users can see it.
+function setMKCarouselMsg(type, text) {
+  const el = document.getElementById('mk-carousel-msg');
+  if (!el) return;
+  if (!text) { el.hidden = true; el.textContent = ''; el.className = 'mk-carousel-msg'; return; }
+  el.hidden = false;
+  el.textContent = text;
+  el.className = 'mk-carousel-msg is-' + type;
+}
 async function onMKCarouselImageSelected(input) {
   const files = Array.from(input.files || []);
   input.value = '';
@@ -776,10 +785,10 @@ async function onMKCarouselImageSelected(input) {
   });
   try {
     for (const file of files) {
-      if (arr.length >= 10) { showMKStatus('info', 'Carousel is full (10 images max).'); break; }
+      if (arr.length >= 10) { setMKCarouselMsg('info', 'Carousel is full (10 images max).'); break; }
       if (!file.type.startsWith('image/')) continue;
-      if (file.size > 25 * 1024 * 1024) { showMKStatus('error', 'An image was over 25MB and was skipped.'); continue; }
-      showMKStatus('info', `Uploading image ${arr.length + 1}...`);
+      if (file.size > 25 * 1024 * 1024) { setMKCarouselMsg('error', 'An image was over 25MB and was skipped.'); continue; }
+      setMKCarouselMsg('info', `Uploading image ${arr.length + 1}...`);
       const blob = await compressBgImage(file, 1200, 1200, 120 * 1024);
       const dims = await readDims(blob);
       const fileName = `carousel-${Date.now()}-${Math.random().toString(36).slice(2,8)}.webp`;
@@ -791,10 +800,10 @@ async function onMKCarouselImageSelected(input) {
     }
     renderMKCarousel();
     scheduleMKPreview();
-    showMKStatus('success', 'Images uploaded. Remember to save.');
+    setMKCarouselMsg('success', 'Images uploaded. Remember to save.');
   } catch (e) {
     console.error('mk carousel upload', e);
-    showMKStatus('error', `Upload failed: ${e.message || 'unknown'}`);
+    setMKCarouselMsg('error', `Upload failed: ${e.message || 'unknown'}`);
   }
 }
 function moveMKCarouselImage(idx, dir) {
