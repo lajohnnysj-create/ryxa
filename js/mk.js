@@ -718,7 +718,7 @@ function renderMKVideoList(platform) {
       <input type="url" placeholder="${meta.placeholder}" value="${escapeHtml(v.url || '')}"
         data-mk-action="video-field" data-mk-event="input" data-mk-platform="${platform}" data-mk-id="${v._id}"
         aria-label="${meta.label}" class="mk-vid-input">
-      <button type="button" class="mk-rate-remove" data-mk-action="remove-video" data-mk-platform="${platform}" data-mk-id="${v._id}" aria-label="Remove this video">Delete</button>
+      <button type="button" class="mk-vid-del" data-mk-action="remove-video" data-mk-platform="${platform}" data-mk-id="${v._id}" aria-label="Remove this video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
     </div>`).join('');
   const addBtn = document.querySelector('[data-mk-action="add-video"][data-mk-platform="' + platform + '"]');
   if (addBtn) addBtn.disabled = arr.length >= 10;
