@@ -28,12 +28,24 @@ document.addEventListener('click', function(e) {
 
 const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_PLU28Un_GfsUXeUsK3zB9Q_hvNM7aeG';
-const { createClient } = supabase;
-const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Resilience guard: if the Supabase library did not load (blocked, network
+// failure, 404), do NOT throw here. A throw during module evaluation aborts the
+// whole file, leaving later declarations uninitialized and surfacing misleading
+// errors elsewhere. Instead leave sb null and show a clear message at use time.
+let sb = null;
+if (typeof supabase !== 'undefined' && supabase && typeof supabase.createClient === 'function') {
+  sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+} else {
+  console.error('[Ryxa] Supabase library failed to load. Authentication is unavailable. A hard refresh usually fixes it.');
+}
+function _authMsgUnavailable() {
+  showAuthMsg('error', 'Sign-in is temporarily unavailable. Please refresh the page and try again.');
+}
 let authMode = 'signin';
 let currentUser = null;
 
 async function initAuth() {
+  if (!sb) return;
   const { data: { session } } = await sb.auth.getSession();
   if (session?.user) { currentUser = session.user; window.location.href = 'dashboard.html'; return; }
   sb.auth.onAuthStateChange((_event, session) => {
@@ -147,6 +159,7 @@ function openAuthModal() {
   setTimeout(_authModalInitialFocus, 100);
   _authModalAttachListeners();
   renderTurnstileWidget();
+  if (!sb) _authMsgUnavailable();
 }
 
 function openSignupModal() {
@@ -157,6 +170,7 @@ function openSignupModal() {
   setTimeout(_authModalInitialFocus, 100);
   _authModalAttachListeners();
   renderTurnstileWidget();
+  if (!sb) _authMsgUnavailable();
 }
 
 // Open signup modal if URL has #signup OR ?action=signup (from external page links)
@@ -291,6 +305,7 @@ function resetTurnstile() {
 }
 
 async function handleGoogleAuth() {
+  if (!sb) { _authMsgUnavailable(); return; }
   // Carry a hero-claimed username through OAuth the same way the email
   // signup carries it - as a URL param on the redirect target, so the
   // dashboard first-run flow can pre-fill it. localStorage also still works
@@ -312,6 +327,7 @@ async function handleGoogleAuth() {
 }
 
 async function handleAuth() {
+  if (!sb) { _authMsgUnavailable(); return; }
   const email = document.getElementById('auth-email').value.trim();
   const password = document.getElementById('auth-password').value;
   const btn = document.getElementById('auth-submit-btn');
@@ -388,6 +404,7 @@ async function handleAuth() {
 }
 
 async function handleForgotPassword() {
+  if (!sb) { _authMsgUnavailable(); return; }
   const email = document.getElementById('auth-email').value.trim();
   if (!email) { showAuthMsg('error', 'Enter your email address above first.'); return; }
   const link = document.getElementById('forgot-password-link');
