@@ -728,6 +728,9 @@
     border-left: 13px solid #000; border-top: 9px solid transparent; border-bottom: 9px solid transparent; margin-left: 3px;
   }
   .video-iframe { width: 100%; height: 100%; border: 0; display: block; }
+  /* Photo carousel cards (reuse .videos chrome); each image keeps its aspect ratio. */
+  .img-card { flex: 0 0 auto; width: 240px; border-radius: 12px; overflow: hidden; scroll-snap-align: start; }
+  .img-card-img { width: 100%; height: auto; display: block; }
 
   /* Rate card */
   .rate-row {
