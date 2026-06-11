@@ -120,6 +120,7 @@ let mkState = {
   published: false,
   custom_theme: null,
   videos: { youtube: [], tiktok: [] }, // editor rows are {_id,url}; saved as { youtube:[url], tiktok:[url] }
+  carousel: [], // photo carousel: [{photoUrl,w,h}]
 };
 let mkStaleBgs = [];
 let mkInited = false;
@@ -143,6 +144,7 @@ function initMediaKitTool() {
     renderMKSocials();
     renderMKRates();
     renderMKVideos();
+    renderMKCarousel();
     renderMKThemes();
     renderMKFonts();
     // If the audience pane is in Automatic mode, refresh its connection status.
@@ -165,6 +167,7 @@ function initMediaKitTool() {
   renderMKSocials();
   renderMKRates();
   renderMKVideos();
+  renderMKCarousel();
   renderMKThemes();
   renderMKFonts();
   loadMediaKit();
@@ -252,6 +255,11 @@ async function loadMediaKit() {
         youtube: (Array.isArray(dbVideos.youtube) ? dbVideos.youtube : []).slice(0, 10).map(u => ({ _id: mkVideoIdSeq++, url: String(u || '') })),
         tiktok: (Array.isArray(dbVideos.tiktok) ? dbVideos.tiktok : []).slice(0, 10).map(u => ({ _id: mkVideoIdSeq++, url: String(u || '') })),
       };
+      // Photo carousel: array of {photoUrl,w,h}
+      mkState.carousel = (Array.isArray(kit.carousel) ? kit.carousel : [])
+        .filter(im => im && im.photoUrl)
+        .slice(0, 10)
+        .map(im => ({ photoUrl: String(im.photoUrl), w: parseInt(im.w) || 0, h: parseInt(im.h) || 0 }));
     }
   } catch (e) { console.error('loadMediaKit', e); }
   syncMKForm();
@@ -261,6 +269,7 @@ async function loadMediaKit() {
   renderMKSocials();
   renderMKRates();
   renderMKVideos();
+  renderMKCarousel();
   renderMKThemes();
   renderMKFonts();
   syncMKCustomEditorUI();
@@ -746,6 +755,93 @@ function mkEnsureTikTokThumb(url) {
     .finally(() => { delete mkTiktokThumbPending[url]; scheduleMKPreview(); });
 }
 
+// ==== Photo carousel (mirrors the Link in Bio image carousel) ====
+// Up to 10 images, compressed to WebP (max 1200px, ~120KB) and uploaded to the
+// media-kit-photos bucket beside the headshot. Stored as [{photoUrl,w,h}].
+function mkCarouselArr() {
+  if (!Array.isArray(mkState.carousel)) mkState.carousel = [];
+  return mkState.carousel;
+}
+async function onMKCarouselImageSelected(input) {
+  const files = Array.from(input.files || []);
+  input.value = '';
+  if (!files.length || !currentUser) return;
+  const arr = mkCarouselArr();
+  const readDims = (blob) => new Promise((res) => {
+    const u = URL.createObjectURL(blob);
+    const im = new Image();
+    im.onload = () => { res({ w: im.naturalWidth, h: im.naturalHeight }); URL.revokeObjectURL(u); };
+    im.onerror = () => { res({ w: 0, h: 0 }); URL.revokeObjectURL(u); };
+    im.src = u;
+  });
+  try {
+    for (const file of files) {
+      if (arr.length >= 10) { showMKStatus('info', 'Carousel is full (10 images max).'); break; }
+      if (!file.type.startsWith('image/')) continue;
+      if (file.size > 25 * 1024 * 1024) { showMKStatus('error', 'An image was over 25MB and was skipped.'); continue; }
+      showMKStatus('info', `Uploading image ${arr.length + 1}...`);
+      const blob = await compressBgImage(file, 1200, 1200, 120 * 1024);
+      const dims = await readDims(blob);
+      const fileName = `carousel-${Date.now()}-${Math.random().toString(36).slice(2,8)}.webp`;
+      const path = `${currentUser.id}/${fileName}`;
+      const { error: upErr } = await sb.storage.from('media-kit-photos').upload(path, blob, { contentType: 'image/webp', upsert: false });
+      if (upErr) throw upErr;
+      const { data: { publicUrl } } = sb.storage.from('media-kit-photos').getPublicUrl(path);
+      arr.push({ photoUrl: publicUrl, w: dims.w, h: dims.h });
+    }
+    renderMKCarousel();
+    scheduleMKPreview();
+    showMKStatus('success', 'Images uploaded. Remember to save.');
+  } catch (e) {
+    console.error('mk carousel upload', e);
+    showMKStatus('error', `Upload failed: ${e.message || 'unknown'}`);
+  }
+}
+function moveMKCarouselImage(idx, dir) {
+  const arr = mkCarouselArr();
+  const j = idx + dir;
+  if (j < 0 || j >= arr.length) return;
+  const tmp = arr[idx]; arr[idx] = arr[j]; arr[j] = tmp;
+  renderMKCarousel();
+  scheduleMKPreview();
+}
+function removeMKCarouselImage(idx) {
+  const arr = mkCarouselArr();
+  arr.splice(idx, 1);
+  // Removed files orphan in media-kit-photos and are swept by deleteMKStalePhotos()
+  // on the next save (it removes any file in the user's folder that is not in use).
+  renderMKCarousel();
+  scheduleMKPreview();
+}
+function updateMKCarouselCount() {
+  const el = document.getElementById('mk-carousel-count');
+  if (!el) return;
+  const n = mkCarouselArr().filter(im => im && im.photoUrl).length;
+  el.textContent = n > 0 ? (n + (n === 1 ? ' photo' : ' photos')) : '';
+}
+function renderMKCarousel() {
+  const grid = document.getElementById('mk-carousel-thumbs');
+  const slot = document.getElementById('mk-carousel-add');
+  const arr = mkCarouselArr();
+  if (grid) {
+    grid.innerHTML = arr.map((im, idx) => `<div class="bio-carousel-thumb">
+        <img src="${escapeHtml(im.photoUrl)}" alt="">
+        <div class="bio-carousel-thumb-bar">
+          <button type="button" aria-label="Move left" data-mk-action="move-carousel-image" data-mk-idx="${idx}" data-mk-dir="-1"${idx === 0 ? ' disabled' : ''}>&lsaquo;</button>
+          <button type="button" aria-label="Move right" data-mk-action="move-carousel-image" data-mk-idx="${idx}" data-mk-dir="1"${idx === arr.length - 1 ? ' disabled' : ''}>&rsaquo;</button>
+        </div>
+        <button type="button" aria-label="Remove image" data-mk-action="remove-carousel-image" data-mk-idx="${idx}" class="bio-carousel-thumb-x">&times;</button>
+      </div>`).join('');
+    grid.style.display = arr.length ? 'flex' : 'none';
+  }
+  if (slot) {
+    const atMax = arr.length >= 10;
+    slot.innerHTML = `<span>${atMax ? 'Carousel full (10 max)' : (arr.length ? '+ Add more images' : '+ Add images')}</span>` +
+      (atMax ? '' : `<input type="file" accept="image/*" multiple aria-label="Add carousel images" data-mk-action="carousel-image-selected" data-mk-event="change">`);
+  }
+  updateMKCarouselCount();
+}
+
 // ==== Theme ====
 function renderMKThemes() {
   const container = document.getElementById('mk-themes');
@@ -1049,6 +1145,11 @@ async function saveMediaKit() {
         const yt = mkVideoArr('youtube').map(v => (v.url || '').trim()).filter(u => u && mkExtractYouTubeId(u)).slice(0, 10);
         const tt = mkVideoArr('tiktok').map(v => (v.url || '').trim()).filter(u => u && mkExtractTikTokId(u)).slice(0, 10);
         return (yt.length || tt.length) ? { youtube: yt, tiktok: tt } : null;
+      })(),
+      carousel: (() => {
+        const imgs = mkCarouselArr().filter(im => im && im.photoUrl).slice(0, 10)
+          .map(im => ({ photoUrl: im.photoUrl, w: parseInt(im.w) || 0, h: parseInt(im.h) || 0 }));
+        return imgs.length ? imgs : null;
       })(),
       contact_email: mkState.contact_email || null,
       contact_note: mkState.contact_note || null,
@@ -1498,6 +1599,11 @@ async function deleteMKStalePhotos() {
     };
     const p = extractPath(mkState.headshot_url);
     if (p) inUse.add(p);
+    // Keep carousel images: same bucket/folder as the headshot.
+    (Array.isArray(mkState.carousel) ? mkState.carousel : []).forEach(im => {
+      const cp = extractPath(im && im.photoUrl);
+      if (cp) inUse.add(cp);
+    });
     const toDelete = files.map(f => `${currentUser.id}/${f.name}`).filter(path => !inUse.has(path));
     if (toDelete.length > 0) await sb.storage.from('media-kit-photos').remove(toDelete);
   } catch (e) { console.warn('Failed to cleanup MK stale photos', e); }
@@ -1728,6 +1834,14 @@ function buildMKPreviewHTML() {
     ${_ttPrevCards ? `<div class="vids"><div class="vids-r">${_ttPrevCards}</div></div>` : ''}
   </div>` : '';
 
+  // Photos. Mirrors the Link in Bio image carousel: each image keeps its natural
+  // aspect (width/height), horizontal and vertical mix freely. Hidden when empty.
+  const _carPrev = (Array.isArray(mkState.carousel) ? mkState.carousel : []).filter(im => im && im.photoUrl).slice(0, 10);
+  const carouselHtml = _carPrev.length ? `<div class="sec">
+    <div class="sec-t">Photos</div>
+    <div class="vids"><div class="vids-r">${_carPrev.map(im => { const dim = (im.w && im.h) ? ` width="${im.w}" height="${im.h}"` : ''; return `<div class="ic"><img src="${escapeHtml(im.photoUrl)}"${dim} alt="" style="width:100%;height:auto;display:block;"></div>`; }).join('')}</div></div>
+  </div>` : '';
+
   // Contact
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mkState.contact_email || '');
   // Render the Contact section when EITHER a valid email OR a note is
@@ -1808,6 +1922,8 @@ function buildMKPreviewHTML() {
   .vc.vc-vertical{flex-basis:200px;}
   .vc img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:${t.surface2};}
   .vc.vc-vertical img{aspect-ratio:9/16;}
+  .ic{flex:0 0 200px;border-radius:10px;overflow:hidden;}
+  .ic img{width:100%;height:auto;display:block;}
   .contact-box{display:inline-block;padding:10px 14px;background:${t.surface2};border:1px solid ${t.border};border-radius:8px;color:${t.text};font-size:11px;font-weight:500;word-break:break-all;}
   .contact-n{margin-top:8px;font-size:10px;color:${t.muted2};line-height:1.5;}
   .banner-wrap{text-align:center;margin-top:14px;}
@@ -1828,6 +1944,7 @@ function buildMKPreviewHTML() {
     ${audienceHtml}
     ${ratesHtml}
     ${videosHtml}
+    ${carouselHtml}
     ${contactHtml}
     ${bannerHtml}
   </div>
@@ -1887,6 +2004,9 @@ mkRegisterAction('rate-field', (e, el) => onRateField(parseInt(el.dataset.mkId, 
 mkRegisterAction('add-video', (e, el) => addVideo(el.dataset.mkPlatform));
 mkRegisterAction('remove-video', (e, el) => removeVideo(el.dataset.mkPlatform, parseInt(el.dataset.mkId, 10)));
 mkRegisterAction('video-field', (e, el) => onVideoField(el.dataset.mkPlatform, parseInt(el.dataset.mkId, 10), el.value));
+mkRegisterAction('carousel-image-selected', (e, el) => onMKCarouselImageSelected(el));
+mkRegisterAction('move-carousel-image', (e, el) => moveMKCarouselImage(parseInt(el.dataset.mkIdx, 10), parseInt(el.dataset.mkDir, 10)));
+mkRegisterAction('remove-carousel-image', (e, el) => removeMKCarouselImage(parseInt(el.dataset.mkIdx, 10)));
 
 // Instagram connection
 mkRegisterAction('go-to-instagram-connect', () => goToInstagramConnect());
