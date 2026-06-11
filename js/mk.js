@@ -1837,10 +1837,12 @@ function buildMKPreviewHTML() {
     if (thumb) return `<div class="vc vc-vertical"><img src="${escapeHtml(thumb)}" alt="TikTok video thumbnail"></div>`;
     return `<div class="vc vc-vertical"><div style="width:100%;aspect-ratio:9/16;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:#111;color:#fff;font-size:10px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>TikTok</div></div>`;
   }).join('');
+  // Carousel arrow buttons, identical to the Link in Bio editor preview.
+  const _prevArrows = '<button type="button" class="vids-arrow vids-arrow-l" aria-label="Scroll left" tabindex="-1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg></button><button type="button" class="vids-arrow vids-arrow-r" aria-label="Scroll right" tabindex="-1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button>';
   const videosHtml = (_ytPrevCards || _ttPrevCards) ? `<div class="sec">
     <div class="sec-t">Videos</div>
-    ${_ytPrevCards ? `<div class="vids"><div class="vids-r">${_ytPrevCards}</div></div>` : ''}
-    ${_ttPrevCards ? `<div class="vids"><div class="vids-r">${_ttPrevCards}</div></div>` : ''}
+    ${_ytPrevCards ? `<div class="vids">${_prevArrows}<div class="vids-r">${_ytPrevCards}</div></div>` : ''}
+    ${_ttPrevCards ? `<div class="vids">${_prevArrows}<div class="vids-r">${_ttPrevCards}</div></div>` : ''}
   </div>` : '';
 
   // Photos. Mirrors the Link in Bio image carousel: each image keeps its natural
@@ -1848,7 +1850,7 @@ function buildMKPreviewHTML() {
   const _carPrev = (Array.isArray(mkState.carousel) ? mkState.carousel : []).filter(im => im && im.photoUrl).slice(0, 10);
   const carouselHtml = _carPrev.length ? `<div class="sec">
     <div class="sec-t">Photos</div>
-    <div class="vids"><div class="vids-r">${_carPrev.map(im => { const dim = (im.w && im.h) ? ` width="${im.w}" height="${im.h}"` : ''; return `<div class="ic"><img src="${escapeHtml(im.photoUrl)}"${dim} alt="" style="width:100%;height:auto;display:block;"></div>`; }).join('')}</div></div>
+    <div class="vids">${_prevArrows}<div class="vids-r">${_carPrev.map(im => { const dim = (im.w && im.h) ? ` width="${im.w}" height="${im.h}"` : ''; return `<div class="ic"><img src="${escapeHtml(im.photoUrl)}"${dim} alt="" style="width:100%;height:auto;display:block;"></div>`; }).join('')}</div></div>
   </div>` : '';
 
   // Contact
@@ -1933,6 +1935,12 @@ function buildMKPreviewHTML() {
   .vc.vc-vertical img{aspect-ratio:9/16;}
   .ic{flex:0 0 200px;border-radius:10px;overflow:hidden;}
   .ic img{width:100%;height:auto;display:block;}
+  /* Preview carousel arrows, small since the preview is itself small (matches Link in Bio). */
+  .vids-arrow{position:absolute;top:50%;transform:translateY(-50%);width:28px;height:28px;border-radius:50%;border:1px solid ${t.border};background:${t.surface};color:${t.text};cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2;box-shadow:0 2px 6px rgba(0,0,0,0.2);padding:0;transition:opacity 0.15s,background 0.15s;}
+  .vids-arrow:hover{background:${t.surface2};}
+  .vids-arrow:disabled{opacity:0.35;cursor:default;}
+  .vids-arrow-l{left:2px;}
+  .vids-arrow-r{right:2px;}
   .contact-box{display:inline-block;padding:10px 14px;background:${t.surface2};border:1px solid ${t.border};border-radius:8px;color:${t.text};font-size:11px;font-weight:500;word-break:break-all;}
   .contact-n{margin-top:8px;font-size:10px;color:${t.muted2};line-height:1.5;}
   .banner-wrap{text-align:center;margin-top:14px;}
