@@ -770,7 +770,7 @@ function renderMKVideoList(platform) {
     const rowCls = 'mk-vid-row' + (collapsed ? ' is-collapsed' : '') + (!valid && hasText ? ' is-invalid' : '');
     return `<div class="${rowCls}" data-mk-vid-row="${v._id}">
       <button type="button" class="mk-vid-chip" data-mk-action="edit-video" data-mk-platform="${platform}" data-mk-id="${v._id}" aria-label="Video ${n}, click to show the link">
-        <svg class="mk-vid-chip-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="M10 9l5 3-5 3z" fill="currentColor" stroke="none"/></svg>
+        <svg class="mk-vid-chip-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="M10 9l5 3-5 3z" fill="currentColor" stroke="none"/></svg>
         <span class="mk-vid-chip-label">Video ${n}</span>
         ${valid ? `<span class="mk-vid-chip-id">\u00b7 ${escapeHtml(vidId)}</span>` : ''}
       </button>

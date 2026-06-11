@@ -5273,7 +5273,7 @@ function bioVideoRowHtml(link, idx, v, platform) {
   const rowCls = 'bio-s-302bc1 bio-vid-rl' + (collapsed ? ' is-collapsed' : '') + ((!valid && hasText) ? ' is-invalid' : '');
   return `<div class="${rowCls}" data-bio-vid-row="${link._id}:${idx}">
         <button type="button" class="bio-vid-chip" data-bio-action="edit-video" data-bio-id="${link._id}" data-bio-idx="${idx}" aria-label="${meta.noun} ${n}, click to show the link">
-          <svg class="bio-vid-chip-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="M10 9l5 3-5 3z" fill="currentColor" stroke="none"/></svg>
+          <svg class="bio-vid-chip-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="M10 9l5 3-5 3z" fill="currentColor" stroke="none"/></svg>
           <span class="bio-vid-chip-label">${meta.noun} ${n}</span>
           ${valid ? `<span class="bio-vid-chip-id">\u00b7 ${escapeHtml(vidId)}</span>` : ''}
         </button>
