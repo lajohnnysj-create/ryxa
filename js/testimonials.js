@@ -58,6 +58,14 @@
       handle: '@jvbrwn'
     },
     {
+      photo: 'testimonials/angie.jpg',
+      color: 'c-teal',
+      stars: 5,
+      quote: "Ryxa is the first platform I've ever used that has everything for creators! You can organize your brand deals, plan future posts, create your media kit, etc., all in one! The founder, Johnny, has also been so quick to respond to any/all questions I've thrown at him and his customer support is top notch.",
+      name: 'Angie Jho Lee',
+      handle: '@angjholee'
+    },
+    {
       photo: 'testimonials/jennie.jpg',
       color: 'c-blue',
       stars: 5,
@@ -118,6 +126,8 @@
     + '.testimonial-panel.c-amber .testimonial-stars{color:#1a1308;}'
     + '.testimonial-panel.c-blue{background:#2563eb;color:#fff;}'
     + '.testimonial-panel.c-blue .testimonial-stars{color:#fff;}'
+    + '.testimonial-panel.c-teal{background:#0f766e;color:#fff;}'
+    + '.testimonial-panel.c-teal .testimonial-stars{color:#fff;}'
     + '@media (max-width:600px){'
     +   '.testimonials-heading{font-size:13px;letter-spacing:-0.2px;margin-bottom:20px;}'
     +   '.testimonial-card{width:300px;min-width:300px;min-height:470px;}'
