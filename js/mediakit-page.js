@@ -273,6 +273,22 @@ function buildVideos(kit) {
   </div>`;
 }
 
+// Photos. Mirrors the Link in Bio image carousel: reuses the .videos chrome so the
+// existing arrow wiring covers it; each image keeps its natural aspect ratio.
+function buildCarousel(kit) {
+  const imgs = (kit && Array.isArray(kit.carousel)) ? kit.carousel : [];
+  const cards = imgs.filter(im => im && im.photoUrl).slice(0, 10).map(im => {
+    const dim = (im.w && im.h) ? ` width="${im.w}" height="${im.h}"` : '';
+    return `<div class="img-card"><img class="img-card-img" src="${esc(im.photoUrl)}"${dim} loading="lazy" alt=""></div>`;
+  }).join('');
+  if (!cards) return '';
+  const arrows = '<button type="button" class="videos-arrow videos-arrow-l" aria-label="Scroll left" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg></button><button type="button" class="videos-arrow videos-arrow-r" aria-label="Scroll right" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button>';
+  return `<div class="section">
+    <div class="section-title">Photos</div>
+    <div class="videos">${arrows}<div class="videos-scroll">${cards}</div></div>
+  </div>`;
+}
+
 
 // YouTube click-to-play: swap the thumbnail card for an autoplay embed.
 function playVideo(cardEl, videoId) {
@@ -433,6 +449,7 @@ function render(profile, kit) {
     ${buildAudience(kit)}
     ${buildRateCard(kit)}
     ${buildVideos(kit)}
+    ${buildCarousel(kit)}
     ${buildContact(kit)}
     ${bannerHtml}
   `;
@@ -590,7 +607,7 @@ async function load() {
 
   const { data: kit, error: kErr } = await sb
     .from('media_kit')
-    .select('headshot_url, display_name, handle, bio, category, socials, engagement_rate, rate_card, contact_email, contact_note, theme, show_branding, published, custom_theme, videos')
+    .select('headshot_url, display_name, handle, bio, category, socials, engagement_rate, rate_card, contact_email, contact_note, theme, show_branding, published, custom_theme, videos, carousel')
     .eq('user_id', profile.user_id)
     .eq('published', true)
     .maybeSingle();
