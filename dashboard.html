@@ -2464,6 +2464,10 @@
     .bio-tool-wrap input[type="checkbox"], .bio-tool-wrap input[type="radio"] { min-width: 18px !important; flex-shrink: 0 !important; }
     .bio-tool-wrap { max-width: 100%; overflow: hidden; padding: 0 !important; }
     .bio-tool-wrap h2 { font-size: 20px !important; }
+    /* Mobile: widen section content by trimming the 20px side padding to 12px
+       (vertical padding kept). Scoped to .bio-tool-wrap so it beats the base rule. */
+    .bio-tool-wrap .bio-section-header { padding-left: 12px; padding-right: 12px; }
+    .bio-tool-wrap .bio-section-body { padding-left: 12px; padding-right: 12px; }
     .bio-tool-wrap p { font-size: 13px !important; }
     /* All bio form section cards, reduce padding so they don't overflow */
     .bio-tool-wrap .bio-grid > div > div[style*="background:var(--surface2)"] { padding: 14px !important; }
