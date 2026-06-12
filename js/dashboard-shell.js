@@ -375,7 +375,7 @@ function _renderAuthDiag() {
     if (!box) {
       box = document.createElement('div');
       box.id = 'pwa-auth-diag';
-      box.style.cssText = 'margin:18px auto 0;max-width:320px;font-size:10px;line-height:1.5;color:rgba(255,255,255,0.6);text-align:left;white-space:pre-wrap;word-break:break-word;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:10px;cursor:pointer;';
+      box.style.cssText = 'position:fixed;left:8px;right:8px;top:calc(env(safe-area-inset-top,0px) + 8px);z-index:10002;max-width:360px;max-height:38vh;overflow:auto;margin:0 auto;font-size:10px;line-height:1.5;color:rgba(255,255,255,0.85);text-align:left;white-space:pre-wrap;word-break:break-word;background:rgba(0,0,0,0.72);border:1px solid rgba(255,255,255,0.2);border-radius:8px;padding:10px;cursor:pointer;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);';
       screen.appendChild(box);
     }
     var text = 'auth diagnostics (tap to copy)\n' + _authDiag.join('\n');
@@ -2046,9 +2046,24 @@ function showPwaLogin() {
   if (msg) msg.style.display = 'none';
   var btn = document.getElementById('pwa-submit-btn');
   if (btn) { btn.disabled = false; btn.textContent = pwaAuthMode === 'signin' ? 'Sign in' : 'Create account'; }
+  // Always start collapsed: email form hidden, the "email ID" toggle visible.
+  var emForm = document.getElementById('pwa-email-form');
+  var emToggle = document.getElementById('pwa-email-toggle');
+  if (emForm) emForm.style.display = 'none';
+  if (emToggle) emToggle.style.display = 'block';
   renderPwaTurnstile();
-  setTimeout(function() { if (emailEl) emailEl.focus(); }, 100);
   if (isPwaMode) _renderAuthDiag();
+}
+
+// Reveal the email/password form when the user taps "Sign in or sign up with
+// email ID". Hides the toggle and focuses the email field.
+function showPwaEmailForm() {
+  var form = document.getElementById('pwa-email-form');
+  var toggle = document.getElementById('pwa-email-toggle');
+  if (form) form.style.display = 'block';
+  if (toggle) toggle.style.display = 'none';
+  var emailEl = document.getElementById('pwa-email');
+  setTimeout(function() { if (emailEl) emailEl.focus(); }, 60);
 }
 
 function hidePwaLogin() {
@@ -2837,5 +2852,6 @@ dashRegisterAction('checkout-max', () => goToPricing('max'));
 dashRegisterAction('pwa-auth-mode-signin', () => setPwaAuthMode('signin'));
 dashRegisterAction('pwa-auth-mode-signup', () => setPwaAuthMode('signup'));
 dashRegisterAction('pwa-google-auth', () => handlePwaGoogleAuth());
+dashRegisterAction('pwa-show-email-form', () => showPwaEmailForm());
 dashRegisterAction('pwa-forgot-password', () => handlePwaForgotPassword());
 dashRegisterAction('pwa-auth', () => handlePwaAuth());
