@@ -744,10 +744,10 @@ function renderAvatarPreview() {
   const removeBtn = document.getElementById('bio-avatar-remove');
   if (bioState.avatar_url) {
     inner.innerHTML = `<img alt="Profile photo" src="${escapeHtml(bioState.avatar_url)}" class="bio-s-0c9434">`;
-    removeBtn.style.display = 'inline-block';
+    removeBtn.style.display = 'flex';
   } else {
-    const name = bioState.display_name || bioState.username || '?';
-    inner.textContent = (name[0] || '?').toUpperCase();
+    // Empty state: a "+" affordance (click the avatar to upload) instead of an initial.
+    inner.innerHTML = '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
     removeBtn.style.display = 'none';
   }
 }
@@ -3949,11 +3949,9 @@ function updateAvatarDisplayUI() {
     const isHero = bioState.avatar_display === 'hero';
     btnDefault.style.background = isHero ? 'transparent' : 'var(--accent)';
     btnDefault.style.color = isHero ? 'var(--muted)' : '#fff';
-    btnDefault.style.borderColor = isHero ? 'var(--border-hover)' : 'var(--accent)';
-    // Hero button: Creator Max gradient when selected, purple border when not
+    // Hero button: Creator Max gradient when selected
     btnHero.style.background = isHero ? 'linear-gradient(135deg, #a78bfa, #e879f9)' : 'transparent';
     btnHero.style.color = isHero ? '#fff' : '#f0abfc';
-    btnHero.style.borderColor = isHero ? 'transparent' : 'rgba(232,121,249,0.4)';
     btnHero.style.boxShadow = isHero ? '0 0 14px rgba(232,121,249,0.3)' : 'none';
   }
 }
