@@ -1264,7 +1264,7 @@ function syncBioCustomEditorUI() {
   const cardColorInput = document.getElementById('bio-color-card');
   if (cardColorInput) cardColorInput.style.opacity = cardTransparent ? '0.35' : '';
   const cardHexEl = document.getElementById('bio-color-card-hex');
-  if (cardHexEl) cardHexEl.style.opacity = cardTransparent ? '0.35' : '';
+  if (cardHexEl) cardHexEl.style.opacity = cardTransparent ? '0.7' : '';  // 0.7 keeps a dim look but passes WCAG AA (5.3:1); 0.35 failed (2.3:1)
   const bgThumb = document.getElementById('bio-custom-bg-thumb');
   const bgStatus = document.getElementById('bio-custom-bg-status');
   const bgRemove = document.getElementById('bio-custom-bg-remove');
@@ -3951,7 +3951,7 @@ function updateAvatarDisplayUI() {
     btnDefault.style.color = isHero ? 'var(--muted)' : '#fff';
     // Hero button: Creator Max gradient when selected
     btnHero.style.background = isHero ? 'linear-gradient(135deg, #a78bfa, #e879f9)' : 'transparent';
-    btnHero.style.color = isHero ? '#fff' : '#f0abfc';
+    btnHero.style.color = isHero ? '#fff' : 'var(--muted)';
     btnHero.style.boxShadow = isHero ? '0 0 14px rgba(232,121,249,0.3)' : 'none';
   }
 }
