@@ -1609,7 +1609,7 @@
   .main { margin-left: var(--sidebar-width); flex: 1; min-height: 100vh; display: flex; flex-direction: column; min-width: 0; overflow-x: clip; }
   .topbar { height: calc(var(--topbar-height) + env(safe-area-inset-top, 0px)); background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: env(safe-area-inset-top, 0px) 32px 0; position: sticky; top: 0; z-index: 50; }
   .topbar-left { display: flex; align-items: center; gap: 12px; }
-  .topbar-title { font-family: "Syne", sans-serif; font-size: 18px; font-weight: 800; letter-spacing: -0.3px; }
+  .topbar-title { font-family: "Plus Jakarta Sans", sans-serif; font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
   .topbar-right { display: flex; align-items: center; gap: 10px; }
   .tier-badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 100px; font-size: 12px; font-weight: 500; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #c9c7dc; }
   .tier-badge.free { background: rgba(255,255,255,0.05); color: #c9c7dc; border: 1px solid rgba(255,255,255,0.1); }
@@ -1709,7 +1709,7 @@
   .dash-stat-value { font-family: "Syne", sans-serif; font-size: 30px; font-weight: 800; letter-spacing: -1px; margin-bottom: 4px; color: var(--text); position: relative; }
   .dash-stat-sub { font-size: 11px; color: var(--muted); line-height: 1.4; position: relative; }
   .dash-stat-breakdown { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; position: relative; }
-  .dash-stat-pill { font-size: 10px; padding: 3px 9px; background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.2); border-radius: 999px; color: #c4b5fd; font-weight: 500; }
+  .dash-stat-pill { font-size: 10px; padding: 3px 9px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 999px; color: var(--muted); font-weight: 500; }
   .dash-stat-locked { font-size: 11px; color: #c4b5fd; line-height: 1.4; padding: 7px 11px; background: rgba(124,58,237,0.08); border: 1px dashed rgba(124,58,237,0.3); border-radius: 8px; margin-top: 12px; display: inline-flex; align-items: center; gap: 6px; }
   .dash-stat-locked svg { width: 11px; height: 11px; flex-shrink: 0; }
 
@@ -6594,7 +6594,7 @@
   <!-- TOPBAR -->
   <div class="topbar">
     <div class="topbar-left">
-      <div style="width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0;"></div><div class="topbar-title" id="topbar-title">Dashboard</div>
+      <div class="topbar-title" id="topbar-title">Dashboard</div>
     </div>
     <div class="topbar-right">
 <span class="tier-badge free" id="topbar-tier-badge">Free</span>
