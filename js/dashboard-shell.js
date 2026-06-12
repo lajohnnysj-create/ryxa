@@ -2378,19 +2378,40 @@ document.getElementById('signout-modal').addEventListener('click', function(e) {
   if (e.target === this) closeSignoutModal();
 });
 
+var _sidebarScrollY = 0;
 function openSidebar() {
   document.getElementById('sidebar').classList.add('open');
   document.getElementById('sidebar-overlay').classList.add('open');
-  document.body.style.overflow = 'hidden';
-  document.body.style.position = 'fixed';
-  document.body.style.width = '100%';
+  _sidebarScrollY = window.scrollY || window.pageYOffset || 0;
+  // Lock scroll while keeping the body EXACTLY viewport-sized. A position:fixed
+  // body with no height collapses to its content height, and on iOS the fixed
+  // bottom bar then anchors to that shorter box and rides up. Pinning the body to
+  // the full viewport (top/left/right/bottom: 0) keeps "bottom" at the real bottom,
+  // so the bar stays put. Scroll position is saved here and restored on close.
+  var b = document.body.style;
+  b.position = 'fixed';
+  b.top = '0';
+  b.left = '0';
+  b.right = '0';
+  b.bottom = '0';
+  b.width = '100%';
+  b.overflow = 'hidden';
 }
 function closeSidebar() {
   document.getElementById('sidebar').classList.remove('open');
   document.getElementById('sidebar-overlay').classList.remove('open');
-  document.body.style.overflow = '';
-  document.body.style.position = '';
-  document.body.style.width = '';
+  var wasLocked = document.body.style.position === 'fixed';
+  var b = document.body.style;
+  b.position = '';
+  b.top = '';
+  b.left = '';
+  b.right = '';
+  b.bottom = '';
+  b.width = '';
+  b.overflow = '';
+  // Only restore scroll if we actually locked (closeSidebar also runs on every
+  // navigation via showTool, where no lock was applied).
+  if (wasLocked) window.scrollTo(0, _sidebarScrollY);
   closeSidebarMenu();
 }
 
