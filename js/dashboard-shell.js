@@ -2384,11 +2384,6 @@ function openSidebar() {
   document.body.style.overflow = 'hidden';
   document.body.style.position = 'fixed';
   document.body.style.width = '100%';
-  // Hide the bottom bar while the drawer is open. The scroll lock sets body to
-  // position:fixed, which on iOS re-anchors fixed elements and makes the bar
-  // visibly jump. Hiding it sidesteps that (the overlay covers it anyway).
-  var _bn = document.getElementById('mobile-bottom-nav');
-  if (_bn) _bn.classList.add('bnav-hidden');
 }
 function closeSidebar() {
   document.getElementById('sidebar').classList.remove('open');
@@ -2396,8 +2391,6 @@ function closeSidebar() {
   document.body.style.overflow = '';
   document.body.style.position = '';
   document.body.style.width = '';
-  var _bn = document.getElementById('mobile-bottom-nav');
-  if (_bn) _bn.classList.remove('bnav-hidden');
   closeSidebarMenu();
 }
 
