@@ -2225,14 +2225,26 @@
       background: var(--surface); border-top: 1px solid var(--border);
       padding-bottom: env(safe-area-inset-bottom, 0px);
     }
-    .mobile-bottom-nav-item {
-      flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center;
-      justify-content: center; gap: 3px; padding: 8px 2px 6px; background: none; border: none;
-      cursor: pointer; color: var(--muted); font-family: "DM Sans", sans-serif; font-size: 10px;
-      font-weight: 500; line-height: 1; white-space: nowrap; -webkit-tap-highlight-color: transparent;
+    /* Hidden while the sidebar drawer is open (avoids an iOS fixed-position shift). */
+    .mobile-bottom-nav.bnav-hidden { display: none; }
+    /* Sliding active indicator: translucent purple pill that animates between tabs. */
+    .bnav-pill {
+      position: absolute; top: 7px; bottom: 7px; left: 0; width: 20%; box-sizing: border-box;
+      border-left: 7px solid transparent; border-right: 7px solid transparent;
+      background: rgba(124,58,237,0.22); background-clip: padding-box; border-radius: 14px;
+      transform: translateX(0); opacity: 1; pointer-events: none; z-index: 0;
+      transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
     }
-    .mobile-bottom-nav-item svg { width: 22px; height: 22px; flex-shrink: 0; }
-    .mobile-bottom-nav-item.active { color: var(--accent); }
+    .mobile-bottom-nav-item {
+      position: relative; z-index: 1; flex: 1; min-width: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 3px; padding: 8px 2px 6px; background: none;
+      border: none; cursor: pointer; color: var(--muted); font-family: "DM Sans", sans-serif;
+      font-size: 10px; font-weight: 500; line-height: 1; white-space: nowrap;
+      -webkit-tap-highlight-color: transparent;
+    }
+    /* Icons stay white at all times; the pill carries the active state. */
+    .mobile-bottom-nav-item svg { width: 22px; height: 22px; flex-shrink: 0; stroke: var(--text); }
+    .mobile-bottom-nav-item.active { color: var(--text); }
     .main { padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px)); }
   }
   @media (max-width: 900px) {
@@ -6372,6 +6384,7 @@
 
 <!-- MOBILE BOTTOM NAV (app-style tab bar, mobile only) -->
 <nav class="mobile-bottom-nav" id="mobile-bottom-nav" aria-label="Mobile navigation">
+  <span class="bnav-pill" id="bnav-pill" aria-hidden="true"></span>
   <button class="mobile-bottom-nav-item active" id="bnav-welcome" data-dash-action="show-tool" data-dash-tool="welcome" aria-label="Dashboard">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
     <span>Dashboard</span>
@@ -6380,9 +6393,9 @@
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
     <span>Link in Bio</span>
   </button>
-  <button class="mobile-bottom-nav-item" id="bnav-mediakit" data-dash-action="show-tool" data-dash-tool="mediakit" aria-label="Media Kit">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="17" x2="8" y2="13"/><line x1="12" y1="17" x2="12" y2="11"/><line x1="16" y1="17" x2="16" y2="15"/></svg>
-    <span>Media Kit</span>
+  <button class="mobile-bottom-nav-item" id="bnav-calendar" data-dash-action="show-tool" data-dash-tool="calendar" aria-label="Calendar">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    <span>Calendar</span>
   </button>
   <button class="mobile-bottom-nav-item" id="bnav-clients" data-dash-action="show-tool" data-dash-tool="clients" aria-label="Subscribers">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
