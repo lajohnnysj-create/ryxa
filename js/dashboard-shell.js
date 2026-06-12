@@ -313,34 +313,113 @@ var isPwaMode = window.matchMedia('(display-mode: standalone)').matches
   || window.navigator.standalone === true
   || document.referrer.includes('android-app://');
 
-async function initAuth() {
-  let { data: { session } } = await sb.auth.getSession();
-  // If no session, try one explicit refresh before showing login.
-  // iOS PWAs frequently resume from suspend with an expired access token;
-  // getSession() can return null on transient refresh failure even when the
-  // refresh token is still valid. An explicit refreshSession() gives the
-  // resumed PWA a second chance before we kick the user to the login screen.
-  if (!session?.user) {
+// ---------------------------------------------------------------------------
+// iOS PWA cold-start auth recovery
+//
+// When a standalone PWA is backgrounded, iOS usually TERMINATES it (not just
+// suspends). Reopening is therefore a cold start: a full reload, and initAuth()
+// runs again. By then the access token has typically expired, so the session
+// has to be refreshed over the network. The catch: on iOS the network radio is
+// often not ready in the first ~second after launch, so that refresh fetch
+// fails transiently even though the refresh token in localStorage is perfectly
+// valid. Giving up after one attempt bounces the user to the login screen on
+// essentially every reopen.
+//
+// The fix below is patient and discerning: if a refresh token is persisted, we
+// retry the refresh across the cold-start network window, and we only show the
+// login screen when there is genuinely nothing stored or the SERVER explicitly
+// rejects the token (400/401/403). Pure network/fetch failures are retried.
+// ---------------------------------------------------------------------------
+
+function _sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+
+// Wait (bounded) for connectivity to come back if the device reports offline.
+function _waitForOnline(maxMs) {
+  return new Promise(function (resolve) {
+    try { if (navigator.onLine !== false) return resolve(); } catch (e) { return resolve(); }
+    var done = false;
+    function finish() { if (done) return; done = true; try { window.removeEventListener('online', finish); } catch (e) {} resolve(); }
+    try { window.addEventListener('online', finish); } catch (e) {}
+    setTimeout(finish, maxMs);
+  });
+}
+
+// Locate Supabase's persisted session key (sb-<project-ref>-auth-token) and
+// report whether a refresh token is stored. A stored refresh token means the
+// user intended to stay logged in, so a failed cold-start refresh is almost
+// certainly a transient network race rather than a real logout.
+function _hasStoredRefreshToken() {
+  try {
+    for (var i = 0; i < localStorage.length; i++) {
+      var k = localStorage.key(i);
+      if (k && /^sb-.*-auth-token$/.test(k)) {
+        var raw = localStorage.getItem(k);
+        if (!raw) continue;
+        var parsed = JSON.parse(raw);
+        if (parsed && parsed.refresh_token) return true;
+      }
+    }
+  } catch (e) {}
+  return false;
+}
+
+// A refresh failure is permanent (a genuine logout) only when the server
+// explicitly rejects the token. Network / fetch / 5xx / offline are transient.
+function _isPermanentAuthError(err) {
+  if (!err) return false;
+  if ((err.name || '') === 'AuthRetryableFetchError') return false;
+  var status = err.status;
+  return status === 400 || status === 401 || status === 403;
+}
+
+// Retry refreshSession() across the cold-start network-not-ready window.
+// Returns a live session, or null if it never recovered. Bails out early only
+// on a permanent auth error.
+async function _retryRefreshSession() {
+  var delays = [250, 600, 1200, 2500]; // patient but bounded (~4.5s of retries)
+  for (var i = 0; i < delays.length; i++) {
+    try { if (navigator.onLine === false) await _waitForOnline(delays[i]); } catch (e) {}
     try {
-      const { data: refreshed } = await sb.auth.refreshSession();
-      session = refreshed?.session || null;
+      var res = await sb.auth.refreshSession();
+      if (res && res.data && res.data.session && res.data.session.user) return res.data.session;
+      if (_isPermanentAuthError(res && res.error)) return null;
     } catch (e) {
-      // Refresh threw (refresh token genuinely expired/revoked, or network gone).
-      // Fall through to login screen.
+      if (_isPermanentAuthError(e)) return null;
+    }
+    await _sleep(delays[i]);
+  }
+  // One final attempt after the last delay.
+  try {
+    var last = await sb.auth.refreshSession();
+    if (last && last.data && last.data.session && last.data.session.user) return last.data.session;
+  } catch (e) {}
+  return null;
+}
+
+async function initAuth() {
+  let session = null;
+  try { session = (await sb.auth.getSession())?.data?.session || null; } catch (e) { /* transient */ }
+
+  // No live session yet. If credentials are persisted, ride out the cold-start
+  // network race with retries before ever showing login. If nothing is stored,
+  // a single refresh attempt is enough to confirm there is truly no session.
+  if (!session?.user) {
+    if (_hasStoredRefreshToken()) {
+      session = await _retryRefreshSession();
+    } else {
+      try { const { data } = await sb.auth.refreshSession(); session = data?.session || null; } catch (e) {}
     }
   }
+
   if (!session?.user) { _authCompleted = true; showPwaLogin(); return; }
   Auth.setToken(session.access_token);
   await setUser(session.user);
   _authCompleted = true;
   try { sessionStorage.removeItem('_authRetry'); } catch(e) {}
-  // Auth state change handler. The earlier version called showPwaLogin() on
-  // ANY event with a null session, which caused premature logouts: TOKEN_REFRESHED
-  // can briefly fire with session=null on transient refresh failure (network blip,
-  // rate limit), and Supabase auto-retries. The old handler kicked the user out
-  // to the login screen during these transient states. New behavior: only logout
-  // the UI on an actual SIGNED_OUT event. INITIAL_SESSION with null is already
-  // handled by initAuth() above before this listener attaches.
+  // Only an explicit SIGNED_OUT logs the UI out. Supabase fires SIGNED_OUT only
+  // when it removes the session on a NON-retryable error; transient network
+  // refresh failures keep the session and auto-retry, so they must not bounce
+  // the user. INITIAL_SESSION with null is already handled by initAuth() above.
   sb.auth.onAuthStateChange((event, session) => {
     if (session?.user) {
       Auth.setToken(session.access_token);
@@ -391,8 +470,7 @@ document.addEventListener('visibilitychange', function() {
   // Proactive refresh. We don't await; we don't react to failure here.
   // onAuthStateChange remains the only thing that actually logs the user out.
   try {
-    sb.auth.refreshSession().then(function(res) {
-      var s = res && res.data && res.data.session;
+    _retryRefreshSession().then(function(s) {
       if (s && s.access_token) Auth.setToken(s.access_token);
     }).catch(function() { /* best-effort */ });
   } catch (e) { /* best-effort */ }
