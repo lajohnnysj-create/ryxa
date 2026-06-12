@@ -2224,9 +2224,6 @@
       display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 90;
       background: var(--surface); border-top: 1px solid var(--border);
       padding-bottom: env(safe-area-inset-bottom, 0px);
-      /* Own compositing layer so the bar stays viewport-anchored when the drawer
-         opens and the body becomes position:fixed (prevents the iOS shift). */
-      transform: translateZ(0); will-change: transform;
     }
     /* Sliding active indicator: translucent purple pill that animates between tabs. */
     .bnav-pill {
