@@ -1620,9 +1620,10 @@ function showTool(tool) {
   const title = document.getElementById('topbar-title');
   if (title) title.textContent = toolTitles[tool] || 'Dashboard';
   currentTool = tool;
-  // Adjust padding — no padding for iframe tool
+  // Let the responsive CSS gutter govern. Previously this hardcoded 32px
+  // (the desktop value), which overrode the mobile gutter on every tool switch.
   const toolArea = document.querySelector('.tool-area');
-  if (toolArea) toolArea.style.padding = '32px';
+  if (toolArea) toolArea.style.padding = '';
   // Init tools on first open
   if (tool === 'image') initImageConverter();
   if (tool === 'qr') { initQRGenerator(); loadQRLibrary(null); }
