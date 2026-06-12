@@ -8223,43 +8223,41 @@
                 <svg class="mk-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
               </button>
               <div class="mk-section-body" id="mk-body-profile">
-                <div class="bio-s-595d2a">
-                  <div class="bio-s-f38a95">
-                    <div id="mk-headshot-preview" class="mk-s-b2fbf9">
-                      <div id="mk-headshot-inner" class="mk-s-1c70f8">?</div>
-                    </div>
-                    <div class="bio-s-0f6e6a">
-                      <label class="bio-s-7d044a">
-                        Upload
-                        <input type="file" id="mk-headshot-input" accept="image/*" aria-label="Upload headshot" class="bio-s-1d4b3b" data-mk-action="open-cropper-headshot" data-mk-event="change">
-                      </label>
-                      <button id="mk-headshot-remove" data-mk-action="remove-headshot" class="bio-s-1a6262">Remove</button>
-                    </div>
+                <div class="bio-s-profile-stack">
+                  <!-- Headshot: click to upload, trash to remove, + when empty -->
+                  <div id="mk-headshot-preview" class="mk-s-b2fbf9">
+                    <div id="mk-headshot-inner" class="mk-s-1c70f8"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></div>
+                    <button id="mk-headshot-remove" type="button" data-mk-action="remove-headshot" class="bio-s-avatar-trash" aria-label="Remove photo">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                    </button>
+                    <input type="file" id="mk-headshot-input" accept="image/*" aria-label="Upload headshot" data-mk-action="open-cropper-headshot" data-mk-event="change" style="display:none">
                   </div>
-                  <div class="bio-s-8787c2">
-                    <div>
-                      <label for="mk-display-name" class="bio-s-58d1b4">Name</label>
-                      <input type="text" id="mk-display-name" maxlength="60" aria-label="Display name" data-mk-action="field-change" data-mk-event="input" placeholder="Your name" class="bio-s-38581f">
-                    </div>
-                    <div>
-                      <label for="mk-handle" class="bio-s-58d1b4">Handle (optional)</label>
-                      <input type="text" id="mk-handle" maxlength="40" aria-label="Your handle" data-mk-action="field-change" data-mk-event="input" placeholder="@yourhandle" class="bio-s-38581f">
-                    </div>
-                    <div>
-                      <label for="mk-category" class="bio-s-58d1b4">Category</label>
-                      <input type="text" id="mk-category" maxlength="60" aria-label="Category or tagline" data-mk-action="field-change" data-mk-event="input" placeholder="e.g. Lifestyle Creator · NYC" class="bio-s-38581f">
-                      <div class="bio-s-69a6aa"><span id="mk-category-count">0</span>/60</div>
-                    </div>
-                    <div>
-                      <label for="mk-bio" class="bio-s-58d1b4">Bio</label>
-                      <textarea id="mk-bio" maxlength="300" rows="3" aria-label="Bio text" data-mk-action="field-change" data-mk-event="input" placeholder="A few sentences about you, your audience, and what you create." class="mk-s-680bdc"></textarea>
-                      <div class="bio-s-48e626">
-                        <button data-mk-action="ai-mk-assist" class="ds-tool-btn bio-s-3c4fd7" title="AI Bio Assist" >
-                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-                          AI
-                        </button>
-                        <span class="bio-s-5f3468"><span id="mk-bio-count">0</span>/300</span>
-                      </div>
+                  <!-- Name -->
+                  <div class="bio-s-profile-field">
+                    <label for="mk-display-name" class="bio-s-58d1b4">Name</label>
+                    <input type="text" id="mk-display-name" maxlength="60" aria-label="Display name" data-mk-action="field-change" data-mk-event="input" placeholder="Your name" class="bio-s-38581f">
+                  </div>
+                  <!-- Handle -->
+                  <div class="bio-s-profile-field">
+                    <label for="mk-handle" class="bio-s-58d1b4">Handle (optional)</label>
+                    <input type="text" id="mk-handle" maxlength="40" aria-label="Your handle" data-mk-action="field-change" data-mk-event="input" placeholder="@yourhandle" class="bio-s-38581f">
+                  </div>
+                  <!-- Category -->
+                  <div class="bio-s-profile-field">
+                    <label for="mk-category" class="bio-s-58d1b4">Category</label>
+                    <input type="text" id="mk-category" maxlength="60" aria-label="Category or tagline" data-mk-action="field-change" data-mk-event="input" placeholder="e.g. Lifestyle Creator · NYC" class="bio-s-38581f">
+                    <div class="bio-s-69a6aa"><span id="mk-category-count">0</span>/60</div>
+                  </div>
+                  <!-- Bio -->
+                  <div class="bio-s-profile-field">
+                    <label for="mk-bio" class="bio-s-58d1b4">Bio</label>
+                    <textarea id="mk-bio" maxlength="300" rows="3" aria-label="Bio text" data-mk-action="field-change" data-mk-event="input" placeholder="A few sentences about you, your audience, and what you create." class="mk-s-680bdc"></textarea>
+                    <div class="bio-s-48e626">
+                      <button data-mk-action="ai-mk-assist" class="ds-tool-btn bio-s-3c4fd7" title="AI Bio Assist">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                        AI
+                      </button>
+                      <span class="bio-s-5f3468"><span id="mk-bio-count">0</span>/300</span>
                     </div>
                   </div>
                 </div>
