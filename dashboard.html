@@ -2250,11 +2250,9 @@
     .sidebar { transform: translateX(-100%); }
     .sidebar.open { transform: translateX(0); }
     .main { margin-left: 0; }
-    .tool-area { padding: 20px 16px; }
+    .tool-area { padding: 20px 12px; }
     .welcome-screen { padding-left: 0; padding-right: 0; }
-    /* Link in Bio: fill the screen like the dashboard, pull the editor cards out
-       toward the edge (offset the tool-area gutter) and trim section side padding. */
-    .bio-tool-wrap { margin-left: -8px; margin-right: -8px; }
+    /* Link in Bio: trim section side padding so content fills the shared gutter. */
     .bio-tool-wrap .bio-section-header { padding-left: 12px; padding-right: 12px; }
     .bio-tool-wrap .bio-section-body { padding-left: 12px; padding-right: 12px; }
     #tool-follower { left: 0 !important; }
@@ -2467,7 +2465,7 @@
     .bio-tool-wrap, .bio-tool-wrap *:not(input):not(button):not(svg):not(img) { min-width: 0 !important; }
     /* Keep checkbox/radio at their specified width */
     .bio-tool-wrap input[type="checkbox"], .bio-tool-wrap input[type="radio"] { min-width: 18px !important; flex-shrink: 0 !important; }
-    .bio-tool-wrap { max-width: none; overflow: hidden; padding: 0 !important; }
+    .bio-tool-wrap { max-width: 100%; overflow: hidden; padding: 0 !important; }
     .bio-tool-wrap h2 { font-size: 20px !important; }
     .bio-tool-wrap p { font-size: 13px !important; }
     /* All bio form section cards, reduce padding so they don't overflow */
@@ -2526,7 +2524,7 @@
   @media (max-width: 420px) {
     .bio-themes-grid { grid-template-columns: repeat(2, 1fr) !important; }
     .bio-tool-wrap .bio-grid > div > div[style*="background:var(--surface2)"] { padding: 12px !important; }
-    .tool-area { padding: 14px 10px !important; }
+    .tool-area { padding: 14px 8px !important; }
     .custom-color-grid { grid-template-columns: 1fr !important; }
   }
   .bio-theme.selected { border-color: var(--accent) !important; box-shadow: 0 0 0 2px var(--accent) !important; }
