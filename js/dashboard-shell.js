@@ -1544,10 +1544,11 @@ function showTool(tool) {
   if (el) el.style.display = 'block';
   const nav = document.getElementById('nav-' + tool);
   if (nav) nav.classList.add('active');
-  // Sync the mobile bottom-nav tab (only welcome/bio/mediakit/clients exist there;
+  // Sync the mobile bottom-nav tab (only welcome/bio/calendar/clients exist there;
   // on any other tool no tab is highlighted, which is the intended behavior).
   const bnav = document.getElementById('bnav-' + tool);
   if (bnav) bnav.classList.add('active');
+  positionBnavPill();
   // Keep the Analytics submenu expanded whenever an analytics page is shown
   if (tool === 'analytics' || tool === 'bio-analytics') {
     const anaSub = document.getElementById('nav-analytics-submenu');
@@ -1643,6 +1644,23 @@ function showTool(tool) {
   if (tool === 'welcome') loadDashStats();
   // Close sidebar on mobile
   closeSidebar();
+}
+
+// Slide the bottom-nav pill to the active tab. The pill is 20% wide (one of five
+// tabs), so translateX(index * 100%) lands it under the active tab. When the
+// active tool is not on the bar, the pill fades out.
+function positionBnavPill() {
+  var bar = document.getElementById('mobile-bottom-nav');
+  var pill = document.getElementById('bnav-pill');
+  if (!bar || !pill) return;
+  var items = bar.querySelectorAll('.mobile-bottom-nav-item');
+  var idx = -1;
+  for (var i = 0; i < items.length; i++) {
+    if (items[i].classList.contains('active')) { idx = i; break; }
+  }
+  if (idx < 0) { pill.style.opacity = '0'; return; }
+  pill.style.opacity = '1';
+  pill.style.transform = 'translateX(' + (idx * 100) + '%)';
 }
 
 // ===== Button loading state helpers =====
@@ -2366,6 +2384,11 @@ function openSidebar() {
   document.body.style.overflow = 'hidden';
   document.body.style.position = 'fixed';
   document.body.style.width = '100%';
+  // Hide the bottom bar while the drawer is open. The scroll lock sets body to
+  // position:fixed, which on iOS re-anchors fixed elements and makes the bar
+  // visibly jump. Hiding it sidesteps that (the overlay covers it anyway).
+  var _bn = document.getElementById('mobile-bottom-nav');
+  if (_bn) _bn.classList.add('bnav-hidden');
 }
 function closeSidebar() {
   document.getElementById('sidebar').classList.remove('open');
@@ -2373,6 +2396,8 @@ function closeSidebar() {
   document.body.style.overflow = '';
   document.body.style.position = '';
   document.body.style.width = '';
+  var _bn = document.getElementById('mobile-bottom-nav');
+  if (_bn) _bn.classList.remove('bnav-hidden');
   closeSidebarMenu();
 }
 
