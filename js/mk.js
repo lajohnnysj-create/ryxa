@@ -297,10 +297,10 @@ function renderMKHeadshotPreview() {
   const removeBtn = document.getElementById('mk-headshot-remove');
   if (mkState.headshot_url) {
     inner.innerHTML = `<img alt="Media kit headshot" src="${escapeHtml(mkState.headshot_url)}" class="mk-s-5138f3">`;
-    removeBtn.style.display = 'inline-block';
+    removeBtn.style.display = 'flex';
   } else {
-    const name = mkState.display_name || '?';
-    inner.textContent = (name[0] || '?').toUpperCase();
+    // Empty state: a "+" affordance (click the headshot to upload) instead of an initial.
+    inner.innerHTML = '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
     removeBtn.style.display = 'none';
   }
 }
