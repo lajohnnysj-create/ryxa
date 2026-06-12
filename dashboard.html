@@ -1542,44 +1542,6 @@
     color: #f0abfc;
     box-shadow: 0 0 20px rgba(232,121,249,0.15);
   }
-  /* Default card styling for Max users, subtly distinguished */
-  body.max-user .welcome-tool-card {
-    border-color: rgba(232,121,249,0.15);
-    background: linear-gradient(135deg, rgba(167,139,250,0.03), rgba(232,121,249,0.03));
-  }
-  body.max-user .welcome-tool-icon {
-    background: linear-gradient(135deg, rgba(167,139,250,0.15), rgba(232,121,249,0.15));
-    border-color: rgba(232,121,249,0.25);
-  }
-  body.max-user .welcome-tool-icon svg {
-    stroke: #e9c4f7;
-  }
-  body.max-user .welcome-tool-name {
-    background: linear-gradient(135deg, #f0eef8 0%, #f0abfc 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  /* Inline badges (PRO / MAX labels) inside the gradient name need their own color reset */
-  body.max-user .welcome-tool-name span {
-    -webkit-text-fill-color: #fff;
-    background-clip: border-box;
-    -webkit-background-clip: border-box;
-  }
-  /* Hover state, more pronounced for Max */
-  body.max-user .welcome-tool-card:hover {
-    border-color: rgba(232,121,249,0.5);
-    background: linear-gradient(135deg, rgba(167,139,250,0.1), rgba(232,121,249,0.1));
-    box-shadow: 0 8px 28px rgba(232,121,249,0.18);
-    transform: translateY(-2px);
-  }
-  body.max-user .welcome-tool-card:hover .welcome-tool-icon {
-    background: linear-gradient(135deg, rgba(167,139,250,0.3), rgba(232,121,249,0.3));
-    border-color: rgba(232,121,249,0.5);
-  }
-  body.max-user .welcome-tool-card:hover .welcome-tool-icon svg {
-    stroke: #f0abfc;
-  }
 
   /* === PRO PLAN: sidebar bottom === */
   .sidebar-bottom.pro-mode {
@@ -1641,30 +1603,6 @@
     border: 1px solid rgba(167,139,250,0.32);
     color: #c4b5fd;
     box-shadow: 0 0 16px rgba(167,139,250,0.12);
-  }
-  body.pro-user .welcome-tool-card {
-    border-color: rgba(167,139,250,0.13);
-    background: rgba(167,139,250,0.025);
-  }
-  body.pro-user .welcome-tool-icon {
-    background: rgba(167,139,250,0.13);
-    border-color: rgba(167,139,250,0.22);
-  }
-  body.pro-user .welcome-tool-icon svg {
-    stroke: #c4b5fd;
-  }
-  body.pro-user .welcome-tool-card:hover {
-    border-color: rgba(167,139,250,0.4);
-    background: rgba(167,139,250,0.08);
-    box-shadow: 0 8px 24px rgba(167,139,250,0.14);
-    transform: translateY(-2px);
-  }
-  body.pro-user .welcome-tool-card:hover .welcome-tool-icon {
-    background: rgba(167,139,250,0.24);
-    border-color: rgba(167,139,250,0.4);
-  }
-  body.pro-user .welcome-tool-card:hover .welcome-tool-icon svg {
-    stroke: #ddd6fe;
   }
 
   /* ── MAIN ── */
@@ -2256,14 +2194,6 @@
     .dash-range-date { font-size: 10px; padding: 2px 4px; }
   }
 
-  .welcome-tools-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; max-width: 640px; width: 100%; margin-bottom: 40px; }
-  .welcome-tool-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 16px; padding: 24px; text-align: left; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 16px; }
-  .welcome-tool-card:hover { border-color: rgba(124,58,237,0.4); background: rgba(124,58,237,0.05); transform: translateY(-2px); }
-  .welcome-tool-icon { width: 44px; height: 44px; background: rgba(124,58,237,0.12); border: 1px solid rgba(124,58,237,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .welcome-tool-icon svg { width: 22px; height: 22px; stroke: #c4b5fd; stroke-width: 1.8; fill: none; stroke-linecap: round; stroke-linejoin: round; }
-  .welcome-tool-name { font-family: "Syne", sans-serif; font-size: 15px; font-weight: 700; margin-bottom: 2px; }
-  .welcome-tool-desc { font-size: 12px; color: var(--muted); line-height: 1.4; }
-
   /* ── UPGRADE BANNER ── */
   .upgrade-banner { background: linear-gradient(135deg, rgba(124,58,237,0.1) 0%, var(--surface2) 100%); border: 1px solid rgba(124,58,237,0.25); border-radius: 14px; padding: 20px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }
   .upgrade-banner-text strong { color: var(--text); font-weight: 500; }
@@ -2294,7 +2224,6 @@
     .main { margin-left: 0; }
     .mobile-menu-btn { display: flex; }
     .tool-area { padding: 20px 16px; }
-    .welcome-tools-grid { grid-template-columns: 1fr; }
     #tool-follower { left: 0 !important; }
     #tool-follower .fa-inner { padding: 24px 16px 80px; }
   }
@@ -6701,141 +6630,6 @@
           <div id="dash-upcoming-list" class="scroll-on-hover welcome-s-b85373" ></div>
         </div>
 
-        <div class="welcome-tools-grid">
-          <div class="welcome-tool-card" data-welcome-action="show-tool" data-welcome-tool="bio">
-            <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
-            <div>
-              <div class="welcome-tool-name">Link in Bio</div>
-              <div class="welcome-tool-desc">Share your content, links, and more with your audience from one clean page</div>
-            </div>
-          </div>
-          <div class="welcome-tool-card" data-welcome-action="show-tool" data-welcome-tool="deals">
-            <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 12h18"/></svg></div>
-            <div>
-              <div class="welcome-tool-name">Brand Deal CRM <span class="welcome-s-cf95f2">MAX</span></div>
-              <div class="welcome-tool-desc">Manage brand partnerships, contracts, deliverables, and revenue</div>
-            </div>
-          </div>
-          <div class="welcome-tool-card" data-welcome-action="show-tool" data-welcome-tool="courses">
-            <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M8 7h8M8 11h6"/></svg></div>
-            <div>
-              <div class="welcome-tool-name">Course Builder <span class="welcome-s-cf95f2">MAX</span></div>
-              <div class="welcome-tool-desc">Build and sell courses to your audience</div>
-            </div>
-          </div>
-          <div class="welcome-tool-card" data-welcome-action="show-tool" data-welcome-tool="coaching">
-            <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
-            <div>
-              <div class="welcome-tool-name">1:1 Booking <span class="welcome-s-cf95f2">MAX</span></div>
-              <div class="welcome-tool-desc">Sell private coaching sessions and consultations</div>
-            </div>
-          </div>
-          <div class="welcome-tool-card" data-welcome-action="show-tool" data-welcome-tool="products">
-            <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>
-            <div>
-              <div class="welcome-tool-name">Digital Products <span class="welcome-s-cf95f2">MAX</span></div>
-              <div class="welcome-tool-desc">Sell ebooks, presets, templates, and downloadable files</div>
-            </div>
-          </div>
-          <div class="welcome-tool-card" data-welcome-action="show-tool" data-welcome-tool="analytics">
-            <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 20V10M12 20V4M6 20v-6"/></svg></div>
-            <div>
-              <div class="welcome-tool-name">Analytics <span class="welcome-s-cf95f2">MAX</span></div>
-              <div class="welcome-tool-desc">Track page views, revenue trends, and sales breakdown</div>
-            </div>
-          </div>
-          <div class="welcome-tool-card" data-welcome-action="show-tool" data-welcome-tool="clients">
-            <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
-            <div>
-              <div class="welcome-tool-name">Subscribers</div>
-              <div class="welcome-tool-desc">View and export your email list from purchases and signups</div>
-            </div>
-          </div>
-          <div class="welcome-tool-card" data-welcome-action="show-tool" data-welcome-tool="calendar">
-            <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
-            <div>
-              <div class="welcome-tool-name">Calendar</div>
-              <div class="welcome-tool-desc">Plan your content, coaching sessions, and brand deals all in one place</div>
-            </div>
-          </div>
-          <div class="welcome-tool-card" data-welcome-action="show-tool" data-welcome-tool="design">
-            <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="12" rx="10" ry="4.5"/><ellipse cx="12" cy="12" rx="10" ry="4.5" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="10" ry="4.5" transform="rotate(120 12 12)"/><circle cx="12" cy="12" r="2"/></svg></div>
-            <div>
-              <div class="welcome-tool-name">Design Studio</div>
-              <div class="welcome-tool-desc">Create graphics with AI tools, free to start</div>
-            </div>
-          </div>
-          <div class="welcome-tool-card" data-welcome-action="show-tool" data-welcome-tool="mediakit">
-            <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="17" x2="8" y2="13"/><line x1="12" y1="17" x2="12" y2="11"/><line x1="16" y1="17" x2="16" y2="15"/></svg></div>
-            <div>
-              <div class="welcome-tool-name">Media Kit <span class="welcome-s-aaf10c">PRO</span></div>
-              <div class="welcome-tool-desc">Pitch brands with a professional media kit and rate card</div>
-            </div>
-          </div>
-          <div class="welcome-tool-card" data-welcome-action="show-tool" data-welcome-tool="scripts">
-            <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/><path d="M6 21l-2-2 2-2M18 21l2-2-2-2"/></svg></div>
-            <div>
-              <div class="welcome-tool-name">Script Builder <span class="welcome-s-aaf10c">PRO</span></div>
-              <div class="welcome-tool-desc">Write your next reel, video, podcast, or story in blocks</div>
-            </div>
-          </div>
-          <div class="welcome-tool-card" data-welcome-action="show-tool" data-welcome-tool="thumbanalyzer">
-            <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/><path d="M11 8v6M8 11h6"/></svg></div>
-            <div>
-              <div class="welcome-tool-name">Thumbnails <span class="welcome-s-aaf10c">PRO</span></div>
-              <div class="welcome-tool-desc">Analyze your thumbnails with AI for clickability, composition, and text</div>
-            </div>
-          </div>
-          <div class="welcome-tool-card" data-welcome-action="show-tool" data-welcome-tool="contractanalyzer">
-            <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 15l2 2 4-4"/></svg></div>
-            <div>
-              <div class="welcome-tool-name">Contract Analyzer <span class="welcome-s-aaf10c">PRO</span></div>
-              <div class="welcome-tool-desc">Upload a brand deal contract and get an instant AI report</div>
-            </div>
-          </div>
-          <div class="welcome-tool-card" data-welcome-action="show-tool" data-welcome-tool="grid">
-            <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
-            <div>
-              <div class="welcome-tool-name">Grid Planner</div>
-              <div class="welcome-tool-desc">Plan your social media grid, drop photos, drag to reorder</div>
-            </div>
-          </div>
-          <div class="welcome-tool-card" data-welcome-action="show-follower">
-            <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></div>
-            <div>
-              <div class="welcome-tool-name">Follow-Back Audit</div>
-              <div class="welcome-tool-desc">Find out who stopped following you back on Instagram</div>
-            </div>
-          </div>
-          <div class="welcome-tool-card" data-welcome-action="show-tool" data-welcome-tool="image">
-            <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg></div>
-            <div>
-              <div class="welcome-tool-name">Photo Editor</div>
-              <div class="welcome-tool-desc">Crop, adjust, and convert images with creator-ready aspect ratios</div>
-            </div>
-          </div>
-          <div class="welcome-tool-card" data-welcome-action="show-tool" data-welcome-tool="qr">
-            <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20v1"/></svg></div>
-            <div>
-              <div class="welcome-tool-name">QR Generator</div>
-              <div class="welcome-tool-desc">Create QR codes for your links and profiles</div>
-            </div>
-          </div>
-          <div class="welcome-tool-card" data-welcome-action="show-tool" data-welcome-tool="invoice">
-            <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/></svg></div>
-            <div>
-              <div class="welcome-tool-name">Invoice Generator</div>
-              <div class="welcome-tool-desc">Create professional invoices for brand deals, collaborations, and more</div>
-            </div>
-          </div>
-          <div class="welcome-tool-card" data-welcome-action="show-tool" data-welcome-tool="pdfsign">
-            <div class="welcome-tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M3 17l3-3 2 2 5-5 3 3"/></svg></div>
-            <div>
-              <div class="welcome-tool-name">Sign PDF</div>
-              <div class="welcome-tool-desc">Fill out and sign any PDF, no printing, no scanning</div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
 
