@@ -331,6 +331,61 @@ var isPwaMode = window.matchMedia('(display-mode: standalone)').matches
 // rejects the token (400/401/403). Pure network/fetch failures are retried.
 // ---------------------------------------------------------------------------
 
+// ===========================================================================
+// TEMP AUTH DIAGNOSTICS (remove once the iOS PWA logout cause is identified)
+// Captures, on each (re)open, exactly why auto-login succeeded or failed and
+// renders it on the PWA login screen so it can be read on-device (no Mac).
+// Distinguishes: no stored token (storage eviction) | lock timeout (Web Locks
+// hang, ~5000ms + NavigatorLockAcquireTimeoutError) | 400/401/403 rejected
+// token (refresh-token rotation) | network/fetch failure.
+// ===========================================================================
+var _authDiag = [];
+var _authDiagT0 = Date.now();
+function _diag(m) { try { _authDiag.push('+' + (Date.now() - _authDiagT0) + 'ms ' + m); } catch (e) {} }
+function _errInfo(e) {
+  if (!e) return 'none';
+  var parts = [];
+  if (e.name) parts.push(e.name);
+  if (e.status !== undefined && e.status !== null) parts.push('status=' + e.status);
+  if (e.code) parts.push('code=' + e.code);
+  if (e.message) parts.push(String(e.message).slice(0, 80));
+  return parts.join('/') || 'err';
+}
+function _diagStoredToken() {
+  try {
+    var found = null;
+    for (var i = 0; i < localStorage.length; i++) {
+      var k = localStorage.key(i);
+      if (k && /^sb-.*-auth-token$/.test(k)) { found = k; break; }
+    }
+    if (!found) { _diag('stored: NO key (storage empty/evicted)'); return; }
+    var raw = localStorage.getItem(found);
+    if (!raw) { _diag('stored: key present but empty'); return; }
+    var p = JSON.parse(raw);
+    var hasRt = !!(p && p.refresh_token);
+    var expd = (p && p.expires_at) ? (p.expires_at * 1000 < Date.now()) : '?';
+    _diag('stored: rt=' + hasRt + ' expired=' + expd);
+  } catch (e) { _diag('stored: parse-fail ' + _errInfo(e)); }
+}
+function _renderAuthDiag() {
+  try {
+    var screen = document.getElementById('pwa-login-screen');
+    if (!screen) return;
+    var box = document.getElementById('pwa-auth-diag');
+    if (!box) {
+      box = document.createElement('div');
+      box.id = 'pwa-auth-diag';
+      box.style.cssText = 'margin:18px auto 0;max-width:320px;font-size:10px;line-height:1.5;color:rgba(255,255,255,0.6);text-align:left;white-space:pre-wrap;word-break:break-word;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:10px;cursor:pointer;';
+      screen.appendChild(box);
+    }
+    var text = 'auth diagnostics (tap to copy)\n' + _authDiag.join('\n');
+    box.textContent = text;
+    box.addEventListener('click', function () {
+      try { navigator.clipboard.writeText(text); box.style.borderColor = '#6ee7b7'; } catch (e) {}
+    });
+  } catch (e) {}
+}
+
 function _sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
 
 // Wait (bounded) for connectivity to come back if the device reports offline.
@@ -378,27 +433,37 @@ function _isPermanentAuthError(err) {
 async function _retryRefreshSession() {
   var delays = [250, 600, 1200, 2500]; // patient but bounded (~4.5s of retries)
   for (var i = 0; i < delays.length; i++) {
-    try { if (navigator.onLine === false) await _waitForOnline(delays[i]); } catch (e) {}
+    try { if (navigator.onLine === false) { _diag('offline; waiting'); await _waitForOnline(delays[i]); } } catch (e) {}
+    var _t0 = Date.now();
     try {
       var res = await sb.auth.refreshSession();
-      if (res && res.data && res.data.session && res.data.session.user) return res.data.session;
-      if (_isPermanentAuthError(res && res.error)) return null;
+      if (res && res.data && res.data.session && res.data.session.user) { _diag('refresh#' + i + ' ' + (Date.now() - _t0) + 'ms OK'); return res.data.session; }
+      _diag('refresh#' + i + ' ' + (Date.now() - _t0) + 'ms null err=' + _errInfo(res && res.error));
+      if (_isPermanentAuthError(res && res.error)) { _diag('permanent; stop'); return null; }
     } catch (e) {
-      if (_isPermanentAuthError(e)) return null;
+      _diag('refresh#' + i + ' ' + (Date.now() - _t0) + 'ms THREW ' + _errInfo(e));
+      if (_isPermanentAuthError(e)) { _diag('permanent; stop'); return null; }
     }
     await _sleep(delays[i]);
   }
-  // One final attempt after the last delay.
+  var _tf = Date.now();
   try {
     var last = await sb.auth.refreshSession();
-    if (last && last.data && last.data.session && last.data.session.user) return last.data.session;
-  } catch (e) {}
+    if (last && last.data && last.data.session && last.data.session.user) { _diag('refresh#final ' + (Date.now() - _tf) + 'ms OK'); return last.data.session; }
+    _diag('refresh#final ' + (Date.now() - _tf) + 'ms null err=' + _errInfo(last && last.error));
+  } catch (e) { _diag('refresh#final THREW ' + _errInfo(e)); }
   return null;
 }
 
 async function initAuth() {
+  _diag('init online=' + (typeof navigator !== 'undefined' && navigator.onLine !== false));
+  _diagStoredToken();
   let session = null;
-  try { session = (await sb.auth.getSession())?.data?.session || null; } catch (e) { /* transient */ }
+  var _gT0 = Date.now();
+  try {
+    session = (await sb.auth.getSession())?.data?.session || null;
+    _diag('getSession ' + (Date.now() - _gT0) + 'ms -> ' + (session && session.user ? 'user' : 'null'));
+  } catch (e) { _diag('getSession ' + (Date.now() - _gT0) + 'ms THREW ' + _errInfo(e)); }
 
   // No live session yet. If credentials are persisted, ride out the cold-start
   // network race with retries before ever showing login. If nothing is stored,
@@ -407,11 +472,17 @@ async function initAuth() {
     if (_hasStoredRefreshToken()) {
       session = await _retryRefreshSession();
     } else {
-      try { const { data } = await sb.auth.refreshSession(); session = data?.session || null; } catch (e) {}
+      _diag('no stored rt; one refresh');
+      try {
+        const { data } = await sb.auth.refreshSession();
+        session = data?.session || null;
+        _diag('one refresh -> ' + (session && session.user ? 'user' : 'null'));
+      } catch (e) { _diag('one refresh THREW ' + _errInfo(e)); }
     }
   }
 
-  if (!session?.user) { _authCompleted = true; showPwaLogin(); return; }
+  if (!session?.user) { _diag('DECISION: show login'); _authCompleted = true; showPwaLogin(); return; }
+  _diag('DECISION: authed');
   Auth.setToken(session.access_token);
   await setUser(session.user);
   _authCompleted = true;
@@ -1949,6 +2020,7 @@ function showPwaLogin() {
   if (btn) { btn.disabled = false; btn.textContent = pwaAuthMode === 'signin' ? 'Sign in' : 'Create account'; }
   renderPwaTurnstile();
   setTimeout(function() { if (emailEl) emailEl.focus(); }, 100);
+  if (isPwaMode) _renderAuthDiag();
 }
 
 function hidePwaLogin() {
