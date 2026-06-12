@@ -1536,12 +1536,18 @@ function showTool(tool) {
     if (el) el.style.display = 'none';
     const nav = document.getElementById('nav-' + t);
     if (nav) nav.classList.remove('active');
+    const bnav = document.getElementById('bnav-' + t);
+    if (bnav) bnav.classList.remove('active');
   });
   // Show selected
   const el = document.getElementById('tool-' + tool);
   if (el) el.style.display = 'block';
   const nav = document.getElementById('nav-' + tool);
   if (nav) nav.classList.add('active');
+  // Sync the mobile bottom-nav tab (only welcome/bio/mediakit/clients exist there;
+  // on any other tool no tab is highlighted, which is the intended behavior).
+  const bnav = document.getElementById('bnav-' + tool);
+  if (bnav) bnav.classList.add('active');
   // Keep the Analytics submenu expanded whenever an analytics page is shown
   if (tool === 'analytics' || tool === 'bio-analytics') {
     const anaSub = document.getElementById('nav-analytics-submenu');
