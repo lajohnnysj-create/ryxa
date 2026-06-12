@@ -492,11 +492,13 @@ async function initAuth() {
   // refresh failures keep the session and auto-retry, so they must not bounce
   // the user. INITIAL_SESSION with null is already handled by initAuth() above.
   sb.auth.onAuthStateChange((event, session) => {
+    _diag('authchange: ' + event + ' -> ' + (session?.user ? 'user' : 'null'));
     if (session?.user) {
       Auth.setToken(session.access_token);
       return;
     }
     if (event === 'SIGNED_OUT') {
+      _diag('SIGNED_OUT -> showing login (this is the kick-out)');
       Auth.setToken('');
       showPwaLogin();
     }
@@ -538,6 +540,7 @@ document.addEventListener('visibilitychange', function() {
   var hiddenFor = Date.now() - _pwaHiddenAt;
   _pwaHiddenAt = null;
   if (hiddenFor < _pwaRefreshThresholdMs) return;
+  _diag('resume visible after ' + Math.round(hiddenFor / 1000) + 's hidden; proactive refresh');
   // Proactive refresh. We don't await; we don't react to failure here.
   // onAuthStateChange remains the only thing that actually logs the user out.
   try {
