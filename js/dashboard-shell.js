@@ -1311,6 +1311,19 @@ async function acceptTerms() {  var check = document.getElementById('terms-accep
     var bioLinkMobile = document.getElementById('ana-bio-link');
     if (bioLinkMobile) bioLinkMobile.textContent = 'ryxa.io/' + uname;
 
+    // A brand-new user's setUser() ran before this username existed, so the
+    // welcome greeting + bio-link row never populated. Mirror setUser()'s
+    // username branch here so the dashboard updates immediately on accept,
+    // without needing a page refresh.
+    applyDashGreeting('@' + uname);
+    var sidebarBioText = document.getElementById('sidebar-menu-biolink-text');
+    if (sidebarBioText) sidebarBioText.textContent = 'ryxa.io/' + uname;
+    var dashBioText = document.getElementById('dash-welcome-biolink-text');
+    if (dashBioText) dashBioText.textContent = 'ryxa.io/' + uname;
+    var dashBioRow = document.getElementById('dash-welcome-biolink');
+    if (dashBioRow) dashBioRow.style.display = 'block';
+    showBioLinkButtons();
+
     var modal = document.getElementById('terms-modal');
     if (modal) modal.style.display = 'none';
 
