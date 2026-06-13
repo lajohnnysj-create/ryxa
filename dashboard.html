@@ -1771,20 +1771,20 @@
     color: var(--text);
   }
   .aichat-example:hover {
-    border-color: rgba(124,58,237,0.45);
+    border-color: var(--border-hover);
     transform: translateY(-1px);
   }
   .aichat-example-icon {
     width: 28px;
     height: 28px;
     border-radius: 8px;
-    background: rgba(124,58,237,0.12);
-    border: 1px solid rgba(124,58,237,0.25);
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border-hover);
     display: flex;
     align-items: center;
     justify-content: center;
     margin-bottom: 8px;
-    color: #a78bfa;
+    color: var(--text);
   }
   .aichat-example-icon svg {
     width: 15px;
@@ -1852,6 +1852,16 @@
     color: var(--muted);
     padding: 10px 11px 4px;
   }
+  .aichat-allchats { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+  .aichat-allchats-head { width:100%; max-width:760px; margin:0 auto; padding:28px 24px 14px; box-sizing:border-box; }
+  .aichat-allchats-title { font-family:Syne,sans-serif; font-size:26px; font-weight:800; letter-spacing:-0.5px; margin:0 0 16px; }
+  .aichat-allchats-search { display:flex; align-items:center; gap:10px; background:var(--surface2); border:1px solid var(--border); border-radius:12px; padding:11px 14px; }
+  .aichat-allchats-search svg { width:17px; height:17px; stroke:var(--muted); flex-shrink:0; }
+  .aichat-allchats-search input { flex:1; min-width:0; background:transparent; border:none; outline:none; color:var(--text); font-size:15px; font-family:DM Sans,sans-serif; }
+  .aichat-allchats-list { flex:1; overflow-y:auto; width:100%; max-width:760px; margin:0 auto; padding:6px 16px 28px; box-sizing:border-box; }
+  .aichat-allchats-row { display:block; width:100%; text-align:left; background:transparent; border:none; border-radius:10px; padding:13px 14px; color:var(--text); font-size:15px; font-family:DM Sans,sans-serif; cursor:pointer; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; transition:background 0.12s; }
+  .aichat-allchats-row:hover { background:var(--surface2); }
+  .aichat-allchats-empty { color:var(--muted); font-size:14px; text-align:center; padding:36px 16px; }
   .aichat-msg {
     max-width: 760px;
     margin: 0 auto 18px auto;
@@ -5702,7 +5712,8 @@
   .chat-s-d9f697 { flex:1;display:flex;flex-direction:column;min-width:0; }
   .chat-s-67a615 { flex:1;font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
   .chat-s-52d25c { flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;overflow-y:auto; }
-  .chat-s-423c35 { width:60px;height:60px;background:linear-gradient(135deg,rgba(167,139,250,0.18),rgba(232,121,249,0.14));border:1px solid rgba(232,121,249,0.3);border-radius:16px;display:flex;align-items:center;justify-content:center;margin-bottom:18px; }
+  .chat-s-423c35 { width:60px;height:60px;background:rgba(255,255,255,0.06);border:1px solid var(--border-hover);border-radius:16px;display:flex;align-items:center;justify-content:center;margin-bottom:18px; }
+  .chat-s-423c35 svg { stroke:var(--text); }
   .chat-s-2f3ad0 { font-family:Syne,sans-serif;font-size:24px;font-weight:800;margin-bottom:6px;letter-spacing:-0.5px;text-align:center; }
   .chat-s-d2b0d5 { color:var(--muted);font-size:14px;margin-bottom:28px;text-align:center;max-width:420px;line-height:1.55; }
   .chat-s-5fa28f { width:100%;max-width:560px;display:grid;grid-template-columns:repeat(2,1fr);gap:10px; }
@@ -9978,6 +9989,10 @@
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               New Chat
             </button>
+            <button data-chat-action="show-all-chats" class="chat-s-8037c6">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              Chats
+            </button>
           </div>
           <div id="aichat-conv-list" class="chat-s-2968fc">
             <div class="chat-s-3ad1d5">Loading...</div>
@@ -10019,11 +10034,23 @@
             </div>
           </div>
 
+          <!-- All-chats view (full main window, opened from the Chats nav item) -->
+          <div id="aichat-allchats" class="aichat-allchats" style="display:none;">
+            <div class="aichat-allchats-head">
+              <h2 class="aichat-allchats-title">Chats</h2>
+              <div class="aichat-allchats-search">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input id="aichat-allchats-search-input" type="text" placeholder="Search your chats..." aria-label="Search your chats" data-chat-action-input="filter-allchats">
+              </div>
+            </div>
+            <div id="aichat-allchats-list" class="aichat-allchats-list"></div>
+          </div>
+
           <!-- Conversation messages -->
           <div id="aichat-messages" class="chat-s-e1d91f"></div>
 
           <!-- Input bar -->
-          <div class="chat-s-fe3d36">
+          <div id="aichat-inputbar" class="chat-s-fe3d36">
             <div class="chat-s-5300cf">
               <textarea id="aichat-input" aria-label="Message Ryxa AI" rows="1" placeholder="Ask anything..." class="chat-s-3ff1da" data-chat-action-input="autosize-input" data-chat-action-keydown="handle-key"></textarea>
               <button id="aichat-send-btn" data-chat-action="send" class="chat-s-5cb1cd dash-h-e4995c">
