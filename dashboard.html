@@ -6237,6 +6237,22 @@
   .prod-h-card:hover { border-color: rgba(124,58,237,0.4); }
   /* Script Builder tool */
   .scripts-h-card:hover { border-color: rgba(124,58,237,0.4); }
+  /* PWA / logged-out login: desktop split-screen (photo left, form right).
+     Mobile + PWA keep the full-bleed overlay (inline styles); these override on wide viewports.
+     Inline styles outrank selectors, so desktop overrides need !important. */
+  @media (min-width: 900px) {
+    #pwa-login-screen { display: flex !important; flex-direction: row !important; }
+    #pwa-login-photo { position: relative !important; inset: auto !important; width: 46% !important; min-width: 380px; height: 100% !important; flex-shrink: 0; }
+    #pwa-login-content { position: relative !important; inset: auto !important; flex: 1 1 auto !important; height: 100% !important; justify-content: center !important; }
+    #pwa-login-brand { padding-top: 0 !important; margin-bottom: 30px; }
+    #pwa-login-auth { padding-bottom: 0 !important; }
+    /* Text sits on the form panel, not the photo, so soften the scrim and blend the right edge into the dark panel */
+    #pwa-login-scrim { background: linear-gradient(to right, rgba(8,8,18,0.18) 0%, rgba(8,8,18,0.10) 55%, rgba(8,8,18,0.65) 100%) !important; }
+  }
+  /* Homepage logo shows on mobile + desktop browser; hide it when installed as a PWA (standalone) */
+  @media (display-mode: standalone) {
+    #pwa-login-logo { display: none !important; }
+  }
 
 </style>
 <style>html{background:#07070f;}body{visibility:hidden;}body.ready{visibility:visible;}</style>
@@ -6246,20 +6262,24 @@
 
 
 <!-- PWA LOGIN SCREEN (shown instead of redirect when in standalone/app mode) -->
-<div id="pwa-login-screen" style="display:none;position:fixed;inset:0;z-index:10000;background:#0a0a14 url('/ryxalogin.webp') center/cover no-repeat;overflow:hidden;">
-  <!-- Dark scrim: light at top (brand reads), heavy at bottom (form reads) -->
-  <div style="position:absolute;inset:0;background:linear-gradient(to bottom, rgba(8,8,18,0.6) 0%, rgba(8,8,18,0.28) 30%, rgba(8,8,18,0.46) 60%, rgba(8,8,18,0.92) 100%);pointer-events:none;"></div>
+<div id="pwa-login-screen" style="display:none;position:fixed;inset:0;z-index:10000;background:#0a0a14;overflow:hidden;">
+  <!-- PHOTO panel: full-bleed on mobile/PWA; left split panel on desktop -->
+  <div id="pwa-login-photo" style="position:absolute;inset:0;background:#0a0a14 url('/ryxalogin.webp') center/cover no-repeat;">
+    <!-- Dark scrim: light at top (brand reads), heavy at bottom (form reads) -->
+    <div id="pwa-login-scrim" style="position:absolute;inset:0;background:linear-gradient(to bottom, rgba(8,8,18,0.6) 0%, rgba(8,8,18,0.28) 30%, rgba(8,8,18,0.46) 60%, rgba(8,8,18,0.92) 100%);pointer-events:none;"></div>
+  </div>
   <!-- Founder-only diagnostics toggle (faint corner dot; reveals the auth log) -->
   <button type="button" data-dash-action="pwa-toggle-diag" aria-label="Diagnostics" style="position:fixed;right:5px;bottom:calc(env(safe-area-inset-bottom,0px) + 5px);width:32px;height:32px;background:none;border:none;cursor:pointer;z-index:10003;display:flex;align-items:center;justify-content:center;padding:0;"><span style="width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.13);"></span></button>
-  <!-- Scrollable content layer (scrolls over the fixed image so the keyboard can reveal inputs) -->
-  <div style="position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;justify-content:space-between;">
+  <!-- CONTENT panel: over the photo on mobile/PWA; right split panel on desktop -->
+  <div id="pwa-login-content" style="position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;justify-content:space-between;">
     <!-- TOP: brand -->
-    <div style="text-align:center;padding:calc(env(safe-area-inset-top,0px) + 34px) 24px 0;flex-shrink:0;">
+    <div id="pwa-login-brand" style="text-align:center;padding:calc(env(safe-area-inset-top,0px) + 34px) 24px 0;flex-shrink:0;">
+      <a id="pwa-login-logo" href="/" aria-label="Ryxa home" style="display:inline-block;margin:0 auto 14px;line-height:0;"><img src="/logo.png?v=2" alt="Ryxa" style="width:52px;height:52px;display:block;"></a>
       <h1 style="font-family:Syne,sans-serif;font-size:30px;font-weight:800;letter-spacing:-1px;color:#fff;margin:0 0 10px;text-shadow:0 2px 24px rgba(0,0,0,0.55);">Ryxa for Creators</h1>
       <p style="color:rgba(255,255,255,0.9);font-size:12.5px;font-weight:500;font-family:'DM Sans',sans-serif;margin:0;text-shadow:0 1px 14px rgba(0,0,0,0.7);">Link in Bio <span style="opacity:0.55;margin:0 5px;">|</span> Media Kit <span style="opacity:0.55;margin:0 5px;">|</span> Sell Courses &amp; Digital Products</p>
     </div>
     <!-- BOTTOM: auth -->
-    <div style="width:100%;max-width:400px;margin:0 auto;padding:24px 22px calc(env(safe-area-inset-bottom,0px) + 28px);flex-shrink:0;">
+    <div id="pwa-login-auth" style="width:100%;max-width:400px;margin:0 auto;padding:24px 22px calc(env(safe-area-inset-bottom,0px) + 28px);flex-shrink:0;">
       <div id="pwa-auth-msg" style="padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:12px;display:none;"></div>
       <button type="button" id="pwa-google-btn" data-dash-action="pwa-google-auth" style="width:100%;padding:13px;background:#fff;color:#1f1f1f;border:none;border-radius:12px;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 10px 34px rgba(0,0,0,0.4);">
         <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.836.86-3.048.86-2.344 0-4.328-1.584-5.036-3.71H.957v2.332C2.438 15.983 5.482 18 9 18z"/><path fill="#FBBC05" d="M3.964 10.71c-.18-.54-.282-1.117-.282-1.71s.102-1.17.282-1.71V4.958H.957C.347 6.173 0 7.548 0 9s.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/></svg>
