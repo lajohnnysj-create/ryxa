@@ -6241,7 +6241,7 @@
      Mobile + PWA keep the full-bleed overlay (inline styles); these override on wide viewports.
      Inline styles outrank selectors, so desktop overrides need !important. */
   @media (min-width: 900px) {
-    #pwa-login-screen { display: flex !important; flex-direction: row !important; }
+    #pwa-login-screen { flex-direction: row !important; }
     #pwa-login-photo { position: relative !important; inset: auto !important; width: 46% !important; min-width: 380px; height: 100% !important; flex-shrink: 0; }
     #pwa-login-content { position: relative !important; inset: auto !important; flex: 1 1 auto !important; height: 100% !important; justify-content: center !important; }
     #pwa-login-brand { padding-top: 0 !important; margin-bottom: 30px; }
