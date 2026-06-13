@@ -1651,7 +1651,7 @@
   .dash-stat-box::before { content: ''; position: absolute; left: 0; top: 14px; bottom: 14px; width: 3px; border-radius: 0 3px 3px 0; background: linear-gradient(180deg, #a78bfa, #e879f9); }
   .dash-stat-box:hover { border-color: var(--border-hover); }
   .dash-stat-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; position: relative; }
-  .dash-stat-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: linear-gradient(135deg, rgba(124,58,237,0.18), rgba(232,121,249,0.12)); border: 1px solid rgba(167,139,250,0.3); }
+  .dash-stat-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: rgba(255,255,255,0.06); border: 1px solid var(--border-hover); }
   .dash-stat-icon svg { width: 16px; height: 16px; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; stroke: #fff; }
   .dash-stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
   .dash-stat-info {
@@ -1662,9 +1662,9 @@
     width: 16px;
     height: 16px;
     border-radius: 50%;
-    background: rgba(124,58,237,0.15);
-    border: 1px solid rgba(124,58,237,0.3);
-    color: #c4b5fd;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border-hover);
+    color: var(--muted);
     cursor: help;
     flex-shrink: 0;
     margin-left: 4px;
