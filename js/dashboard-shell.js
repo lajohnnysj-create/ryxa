@@ -1779,6 +1779,15 @@ function showTool(tool) {
   // Update topbar title
   const title = document.getElementById('topbar-title');
   if (title) title.textContent = toolTitles[tool] || 'Dashboard';
+  // Show the chat sidebar toggle (in the topbar) only on the Chatbox tool, and
+  // start collapsed each time the tool is opened.
+  var chatSideToggle = document.getElementById('aichat-side-toggle');
+  if (chatSideToggle) chatSideToggle.style.display = (tool === 'aichat') ? 'inline-flex' : 'none';
+  if (tool === 'aichat') {
+    var aichatSideEl = document.getElementById('aichat-side');
+    if (aichatSideEl) aichatSideEl.classList.remove('aichat-side-open');
+    if (chatSideToggle) chatSideToggle.setAttribute('aria-expanded', 'false');
+  }
   currentTool = tool;
   // Let the responsive CSS gutter govern. Previously this hardcoded 32px
   // (the desktop value), which overrode the mobile gutter on every tool switch.

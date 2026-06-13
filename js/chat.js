@@ -190,6 +190,8 @@ function aichatToggleSide(forceState) {
     side.classList.remove('aichat-side-open');
     backdrop.classList.remove('aichat-side-open');
   }
+  var toggleBtn = document.getElementById('aichat-side-toggle');
+  if (toggleBtn) toggleBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
 }
 
 async function aichatLoadConversation(convId) {
@@ -511,6 +513,7 @@ async function aichatSend() {
 chatRegisterAction('start-checkout', (e, el) => goToPricing(el.dataset.chatPlan === 'max' ? 'max' : 'pro'));
 
 // Sidebar toggle
+chatRegisterAction('toggle-side', () => aichatToggleSide());
 chatRegisterAction('toggle-side-open', () => aichatToggleSide(true));
 chatRegisterAction('toggle-side-close', () => aichatToggleSide(false));
 
