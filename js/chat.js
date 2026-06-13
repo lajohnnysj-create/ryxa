@@ -164,6 +164,7 @@ function aichatRenderConversationList() {
 
 function aichatNewConversation() {
   aichatState.conversationId = null;
+  aichatExitAllChats();
   document.getElementById('aichat-empty').style.display = 'flex';
   document.getElementById('aichat-messages').style.display = 'none';
   document.getElementById('aichat-messages').innerHTML = '';
@@ -194,8 +195,54 @@ function aichatToggleSide(forceState) {
   if (toggleBtn) toggleBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
 }
 
+// ---- All-chats view (full main window, opened from the Chats nav item) ------
+function aichatExitAllChats() {
+  var panel = document.getElementById('aichat-allchats');
+  if (panel) panel.style.display = 'none';
+  var bar = document.getElementById('aichat-inputbar');
+  if (bar) bar.style.display = '';
+}
+
+function aichatRenderAllChats(filter) {
+  var listEl = document.getElementById('aichat-allchats-list');
+  if (!listEl) return;
+  var convs = aichatState.conversations || [];
+  var q = (filter || '').trim().toLowerCase();
+  if (q) {
+    convs = convs.filter(function(c) { return (c.title || '').toLowerCase().indexOf(q) !== -1; });
+  }
+  if (!convs.length) {
+    listEl.innerHTML = '<div class="aichat-allchats-empty">' + (q ? 'No chats match your search.' : 'No chats yet. Start a new one!') + '</div>';
+    return;
+  }
+  var html = '';
+  convs.forEach(function(c) {
+    html += '<button class="aichat-allchats-row" data-chat-action="load-conversation" data-chat-conv-id="' + escapeHtml(c.id) + '" title="' + escapeHtml(c.title || '') + '">'
+      + escapeHtml(c.title || 'Untitled chat')
+      + '</button>';
+  });
+  listEl.innerHTML = html;
+}
+
+function aichatShowAllChats() {
+  var empty = document.getElementById('aichat-empty');
+  var messages = document.getElementById('aichat-messages');
+  var bar = document.getElementById('aichat-inputbar');
+  var panel = document.getElementById('aichat-allchats');
+  if (empty) empty.style.display = 'none';
+  if (messages) messages.style.display = 'none';
+  if (bar) bar.style.display = 'none';
+  if (panel) panel.style.display = 'flex';
+  var search = document.getElementById('aichat-allchats-search-input');
+  if (search) search.value = '';
+  aichatRenderAllChats('');
+  aichatToggleSide(false); // close the drawer on mobile after navigating
+  if (search) search.focus();
+}
+
 async function aichatLoadConversation(convId) {
   aichatState.conversationId = convId;
+  aichatExitAllChats();
   aichatRenderConversationList();
   aichatToggleSide(false);
   // Set the mobile header title from the conversation list
@@ -516,6 +563,8 @@ chatRegisterAction('start-checkout', (e, el) => goToPricing(el.dataset.chatPlan 
 chatRegisterAction('toggle-side', () => aichatToggleSide());
 chatRegisterAction('toggle-side-open', () => aichatToggleSide(true));
 chatRegisterAction('toggle-side-close', () => aichatToggleSide(false));
+chatRegisterAction('show-all-chats', () => aichatShowAllChats());
+chatRegisterAction('filter-allchats', (e, el) => aichatRenderAllChats(el.value));
 
 // Conversation management
 chatRegisterAction('new-conversation', () => aichatNewConversation());
