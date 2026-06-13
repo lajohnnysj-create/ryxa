@@ -730,6 +730,10 @@ async function setUser(user) {
       applyDashGreeting('@' + profile.username);
       var bioLinkText = document.getElementById('sidebar-menu-biolink-text');
       if (bioLinkText) bioLinkText.textContent = 'ryxa.io/' + profile.username;
+      var dashBioText = document.getElementById('dash-welcome-biolink-text');
+      if (dashBioText) dashBioText.textContent = 'ryxa.io/' + profile.username;
+      var dashBioRow = document.getElementById('dash-welcome-biolink');
+      if (dashBioRow) dashBioRow.style.display = 'block';
       showBioLinkButtons();
     } else {
       applyDashGreeting('creator');
@@ -1292,21 +1296,48 @@ function copyEmail(btn) {
 
 var dashboardAvatarUrl = ''; // cached for chatbox and other tools that need the avatar
 
+// Silhouette placeholder for the dashboard welcome avatar when no bio photo is set.
+var DASH_AVATAR_PLACEHOLDER = '<svg width="56" height="56" viewBox="0 0 24 24" fill="var(--muted)" aria-hidden="true"><path d="M12 12.2a4.6 4.6 0 1 0 0-9.2 4.6 4.6 0 0 0 0 9.2z"/><path d="M12 13.8c-4.8 0-8.4 2.5-8.4 5.8V21h16.8v-1.4c0-3.3-3.6-5.8-8.4-5.8z"/></svg>';
+
 function updateDashboardAvatar(url) {
   dashboardAvatarUrl = url || '';
   const sidebarAvatar = document.getElementById('sidebar-avatar');
   const settingsAvatar = document.getElementById('settings-avatar');
   const menuAvatar = document.getElementById('sidebar-menu-avatar');
+  const welcomeAvatar = document.getElementById('dash-welcome-avatar');
   if (url) {
     const imgHtml = '<img src="' + escapeHtml(url) + '" alt="Profile photo" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
     if (sidebarAvatar) { sidebarAvatar.innerHTML = imgHtml; sidebarAvatar.style.overflow = 'hidden'; }
     if (settingsAvatar) { settingsAvatar.innerHTML = imgHtml; settingsAvatar.style.overflow = 'hidden'; }
     if (menuAvatar) { menuAvatar.innerHTML = imgHtml; }
+    if (welcomeAvatar) { welcomeAvatar.innerHTML = imgHtml; }
   } else {
     const initial = currentUser ? currentUser.email[0].toUpperCase() : '?';
     if (sidebarAvatar) { sidebarAvatar.textContent = initial; sidebarAvatar.style.overflow = ''; }
     if (settingsAvatar) { settingsAvatar.textContent = initial; settingsAvatar.style.overflow = ''; }
     if (menuAvatar) { menuAvatar.textContent = initial; }
+    if (welcomeAvatar) { welcomeAvatar.innerHTML = DASH_AVATAR_PLACEHOLDER; }
+  }
+}
+
+
+function copyWelcomeBioLink() {
+  var textEl = document.getElementById('dash-welcome-biolink-text');
+  if (!textEl) return;
+  var linkText = textEl.textContent;
+  if (!linkText || linkText === 'ryxa.io/...') return;
+  var fullUrl = 'https://' + linkText;
+  function showCopied() {
+    var orig = linkText;
+    textEl.textContent = 'Copied!';
+    textEl.style.color = '#4ade80';
+    setTimeout(function() { textEl.textContent = orig; textEl.style.color = ''; }, 1500);
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(fullUrl).then(showCopied).catch(function() { fallbackCopy(fullUrl); showCopied(); });
+  } else {
+    fallbackCopy(fullUrl);
+    showCopied();
   }
 }
 
@@ -2806,6 +2837,7 @@ dashRegisterAction('close-sidebar-menu', () => closeSidebarMenu());
 
 // Sidebar utility — "Copy bio link" button (calls into bio.js)
 dashRegisterAction('copy-sidebar-bio-link', () => copySidebarBioLink());
+dashRegisterAction('copy-welcome-bio-link', () => copyWelcomeBioLink());
 
 // Compound actions — these combine menu-close with another action so the menu
 // closes when navigating away (mimics the original inline `a();b();` pattern).
