@@ -433,6 +433,51 @@ function _isPermanentAuthError(err) {
   return status === 400 || status === 401 || status === 403;
 }
 
+// ---- Involuntary sign-out recovery -----------------------------------------
+// iOS can suspend a PWA and drop the in-memory/persisted session even though
+// the refresh token is still valid; Supabase then emits SIGNED_OUT. To avoid
+// bouncing the user to the login screen in that case, we cache the last good
+// tokens and, on an INVOLUNTARY SIGNED_OUT, try to re-establish the session
+// from them. A genuine logout (the user signing out, or a server-revoked
+// token) still ends at login: setSession returns an error and we fall through.
+var _lastGoodSession = null;     // { access_token, refresh_token }
+var _intentionalSignOut = false; // set true right before our own signOut() calls
+var _recovering = false;         // guard so a re-emitted SIGNED_OUT cannot loop
+
+function _cacheGoodSession(s) {
+  if (s && s.access_token && s.refresh_token) {
+    _lastGoodSession = { access_token: s.access_token, refresh_token: s.refresh_token };
+  }
+}
+
+// Try to restore the session from the cached tokens. Resolves true ONLY if a
+// live user session comes back. Never throws. setSession refreshes the token
+// internally if the cached access token has expired, and returns an error if
+// the refresh token has been revoked (a real logout), in which case we give up.
+async function _attemptSignOutRecovery() {
+  var cached = _lastGoodSession;
+  if (!cached || !cached.access_token || !cached.refresh_token) { _diag('recovery: no cached session'); return false; }
+  try { if (navigator.onLine === false) { _diag('recovery: offline, waiting'); await _waitForOnline(3000); } } catch (e) {}
+  var delays = [0, 600, 1500];
+  for (var i = 0; i < delays.length; i++) {
+    if (delays[i]) { await _sleep(delays[i]); }
+    var _t0 = Date.now();
+    try {
+      var res = await sb.auth.setSession({ access_token: cached.access_token, refresh_token: cached.refresh_token });
+      if (res && res.data && res.data.session && res.data.session.user) {
+        _diag('recovery#' + i + ' ' + (Date.now() - _t0) + 'ms OK');
+        return true;
+      }
+      _diag('recovery#' + i + ' ' + (Date.now() - _t0) + 'ms null err=' + _errInfo(res && res.error));
+      if (_isPermanentAuthError(res && res.error)) { _diag('recovery: permanent, give up'); return false; }
+    } catch (e) {
+      _diag('recovery#' + i + ' ' + (Date.now() - _t0) + 'ms THREW ' + _errInfo(e));
+      if (_isPermanentAuthError(e)) { _diag('recovery: permanent, give up'); return false; }
+    }
+  }
+  return false;
+}
+
 // Retry refreshSession() across the cold-start network-not-ready window.
 // Returns a live session, or null if it never recovered. Bails out early only
 // on a permanent auth error.
@@ -490,6 +535,7 @@ async function initAuth() {
   if (!session?.user) { _diag('DECISION: show login'); _authCompleted = true; showPwaLogin(); return; }
   _diag('DECISION: authed');
   Auth.setToken(session.access_token);
+  _cacheGoodSession(session);
   await setUser(session.user);
   _authCompleted = true;
   try { sessionStorage.removeItem('_authRetry'); } catch(e) {}
@@ -501,12 +547,44 @@ async function initAuth() {
     _diag('authchange: ' + event + ' -> ' + (session?.user ? 'user' : 'null'));
     if (session?.user) {
       Auth.setToken(session.access_token);
+      _cacheGoodSession(session);
+      _intentionalSignOut = false; // a fresh sign-in re-arms recovery
       return;
     }
     if (event === 'SIGNED_OUT') {
-      _diag('SIGNED_OUT -> showing login (this is the kick-out)');
-      Auth.setToken('');
-      showPwaLogin();
+      // (a) User-initiated sign-out or a deleted account: honor it, no recovery.
+      if (_intentionalSignOut) {
+        _diag('SIGNED_OUT (intentional) -> login');
+        _intentionalSignOut = false;
+        _lastGoodSession = null;
+        Auth.setToken('');
+        showPwaLogin();
+        return;
+      }
+      // (b) A SIGNED_OUT re-emitted while a recovery is already running (e.g.
+      // setSession's own failed refresh): ignore it; the in-flight attempt owns
+      // the outcome. Without this guard the failure could re-enter and loop.
+      if (_recovering) { _diag('SIGNED_OUT during recovery -> ignored'); return; }
+      // (c) Involuntary SIGNED_OUT (the kick-out). Try to restore the session
+      // from cached tokens before showing login. Only bounce to login if that
+      // fails. A revoked token makes recovery fail, so real logouts still land
+      // on login and we never keep a dead session alive.
+      _diag('SIGNED_OUT (involuntary) -> attempting recovery');
+      _recovering = true;
+      _attemptSignOutRecovery().then(function (ok) {
+        _recovering = false;
+        if (ok) { _diag('recovery succeeded -> staying signed in'); return; }
+        _diag('recovery failed -> showing login');
+        _lastGoodSession = null;
+        Auth.setToken('');
+        showPwaLogin();
+      }).catch(function (e) {
+        _recovering = false;
+        _diag('recovery threw -> showing login ' + _errInfo(e));
+        _lastGoodSession = null;
+        Auth.setToken('');
+        showPwaLogin();
+      });
     }
   });
 }
@@ -1167,6 +1245,7 @@ async function termsLogout() {
   var btn = document.getElementById('terms-logout-btn');
   if (btn) { btn.disabled = true; btn.textContent = 'Logging out...'; }
   try {
+    _intentionalSignOut = true;
     await sb.auth.signOut();
   } catch (e) {
     console.error('Terms-modal logout error:', e);
@@ -2013,6 +2092,7 @@ function closeSignoutModal() {
 async function confirmSignOut() {
   const btn = document.getElementById('signout-confirm-btn');
   if (btn) { btn.disabled = true; btn.innerHTML = '<span class="auth-spinner"></span> Signing out...'; }
+  _intentionalSignOut = true;
   try { await sb.auth.signOut(); } catch(e) { console.error(e); }
   // Reset tool init flags so fresh data loads on next login
   bioInited = false;
