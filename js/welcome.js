@@ -225,28 +225,123 @@ function setDashCustomRange() {
   loadDashStats();
 }
 
-// Sparkline renderer for dashboard stat boxes. Produces div-based bars
-// (cheaper than canvas, sufficient for this small ambient chart) and
-// attaches data-* attributes that the hover tooltip layer below reads.
-// kind: 'count' for view bars, 'cents' for revenue bars (drives formatting).
+// Sparkline renderer for dashboard stat boxes. Canvas line chart matching the
+// analytics page mini charts: a solid purple line with a faint area fill, plus
+// a hover dot, dashed guide, and tooltip. Self-contained: a fresh canvas is
+// built per render, so listeners never accumulate across re-renders.
+// kind: 'count' for views, 'cents' for revenue (drives tooltip formatting).
 function renderSparkline(containerId, data, kind) {
   const el = document.getElementById(containerId);
   if (!el) return;
+  if (el._sparkRO) { el._sparkRO.disconnect(); el._sparkRO = null; }
   if (!data || data.length === 0) { el.innerHTML = ''; return; }
+
+  const PURPLE = '#7c3aed';
   const vals = data.map(d => d[kind] || 0);
+  const dates = data.map(d => d.date || '');
+  const n = vals.length;
   const maxVal = Math.max(...vals, 1);
-  el.innerHTML = data.map((d, i) => {
-    const v = d[kind] || 0;
-    const pct = Math.max(2, (v / maxVal) * 100);
-    // data-* values escape via attribute-value normalization; numeric values
-    // and ISO date strings are safe. No user-supplied content goes here.
-    return `<div class="dash-sparkline-bar" style="height:${pct}%;" data-spark-value="${v}" data-spark-date="${d.date || ''}" data-spark-kind="${kind}"></div>`;
-  }).join('');
-  // Hook up the hover tooltip once per container. Idempotent — re-renders
-  // wipe innerHTML but the parent listener stays attached.
-  attachSparklineTooltip(el);
+  const p = 4;
+
+  el.innerHTML = '';
+  const canvas = document.createElement('canvas');
+  canvas.style.cssText = 'width:100%;height:100%;display:block;';
+  el.appendChild(canvas);
+  const tip = document.createElement('div');
+  tip.className = 'dash-spark-tip';
+  tip.setAttribute('role', 'tooltip');
+  tip.style.display = 'none';
+  el.appendChild(tip);
+
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  let W = 0, H = 0, cw = 0, ch = 0;
+  const getX = i => p + (i / Math.max(n - 1, 1)) * cw;
+  const getY = v => p + ch - (v / maxVal) * ch;
+
+  function resize() {
+    W = canvas.clientWidth; H = canvas.clientHeight;
+    if (!W || !H) return;
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    cw = W - p * 2; ch = H - p * 2;
+  }
+  function draw(hoverIdx) {
+    if (!W || !H) return;
+    ctx.clearRect(0, 0, W, H);
+    // Area fill under the line.
+    ctx.beginPath();
+    vals.forEach((v, i) => { const x = getX(i), y = getY(v); i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); });
+    ctx.lineTo(getX(n - 1), p + ch); ctx.lineTo(getX(0), p + ch); ctx.closePath();
+    ctx.fillStyle = PURPLE + '22'; ctx.fill();
+    // The line.
+    ctx.beginPath(); ctx.strokeStyle = PURPLE; ctx.lineWidth = 1.5; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    vals.forEach((v, i) => { const x = getX(i), y = getY(v); i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); });
+    ctx.stroke();
+    // Hover guide + dot.
+    if (hoverIdx != null && hoverIdx >= 0 && hoverIdx < n) {
+      const hx = getX(hoverIdx), hy = getY(vals[hoverIdx]);
+      ctx.beginPath(); ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 1; ctx.setLineDash([2, 2]);
+      ctx.moveTo(hx, 0); ctx.lineTo(hx, H); ctx.stroke(); ctx.setLineDash([]);
+      ctx.beginPath(); ctx.arc(hx, hy, 3, 0, Math.PI * 2);
+      ctx.fillStyle = PURPLE; ctx.fill(); ctx.strokeStyle = '#0a0a14'; ctx.lineWidth = 1.5; ctx.stroke();
+    }
+  }
+
+  resize();
+  draw(null);
+
+  if (window.ResizeObserver) {
+    const ro = new ResizeObserver(() => { resize(); draw(null); });
+    ro.observe(canvas);
+    el._sparkRO = ro;
+  }
+
+  canvas.addEventListener('mousemove', function(e) {
+    if (!n || !W) return;
+    const rect = canvas.getBoundingClientRect();
+    let relX = e.clientX - rect.left;
+    relX = Math.max(0, Math.min(rect.width - 1, relX));
+    let idx = Math.round(((relX - p) / Math.max(rect.width - p * 2, 1)) * (n - 1));
+    if (idx < 0) idx = 0;
+    if (idx >= n) idx = n - 1;
+    draw(idx);
+    tip.innerHTML = '<div class="dash-spark-tip-val">' + sparkFmtVal(vals[idx], kind) + '</div>'
+      + '<div class="dash-spark-tip-date">' + sparkFmtDate(dates[idx]) + '</div>';
+    tip.style.display = 'block';
+    const cx = getX(idx);
+    const tipHalf = 60;
+    const clampedX = Math.max(tipHalf, Math.min(W - tipHalf, cx));
+    tip.style.left = clampedX + 'px';
+    tip.style.top = '0px';
+  });
+  canvas.addEventListener('mouseleave', function() {
+    tip.style.display = 'none';
+    draw(null);
+  });
 }
 
+// Tooltip formatters for the sparkline hover (module-level so the canvas
+// listeners can reach them).
+function sparkFmtDate(iso) {
+  if (!iso) return '';
+  var parts = String(iso).split('-');
+  if (parts.length !== 3) return iso;
+  var d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+  try { return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }); }
+  catch (e) { return iso; }
+}
+function sparkFmtVal(v, kind) {
+  var num = Number(v) || 0;
+  if (kind === 'cents') {
+    try { return formatDashUSD(num); } catch (e) { return '$' + (num / 100).toFixed(2); }
+  }
+  return num.toLocaleString() + ' view' + (num === 1 ? '' : 's');
+}
+
+// DEPRECATED (no longer called): dashboard sparklines are now canvas line
+// charts rendered by renderSparkline above. This bar-based tooltip helper is
+// retained only to avoid a large deletion and can be removed safely.
 // One tooltip div per sparkline container, lazily created on first hover.
 // Uses event delegation on the container so we don't have to wire up N
 // individual bar listeners on every re-render. Hidden by default, shown on
