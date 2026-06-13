@@ -1933,12 +1933,6 @@
   }
   @media (max-width: 720px) {
     /* Layout: full-screen chat, sidebar slides in as overlay */
-    #aichat-content {
-      height: calc(100vh - 100px) !important;
-      min-height: 0 !important;
-      border-radius: 10px !important;
-      position: relative;
-    }
     #aichat-side {
       position: absolute !important;
       top: 0;
@@ -1967,6 +1961,10 @@
     }
     #aichat-mobile-header {
       display: flex !important;
+    }
+    /* Drop the "Ryxa AI" title text in the mobile chat header (keep the toggle). */
+    #aichat-mobile-title {
+      display: none !important;
     }
     /* Compact empty state */
     #aichat-empty {
@@ -2258,6 +2256,14 @@
     html { overscroll-behavior-y: none; }
     .tool-area { padding: 20px 12px; }
     .welcome-screen { padding-left: 0; padding-right: 0; }
+    /* Full-screen chat fills between the fixed topbar and the bottom nav; the
+       input bar stays pinned at the bottom of this fixed area, above the nav.
+       (position:fixed + right:0 come from the base rule; ID specificity wins.) */
+    #aichat-content {
+      top: calc(var(--topbar-height) + env(safe-area-inset-top, 0px));
+      left: 0;
+      bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+    }
     /* Link in Bio: trim section side padding so content fills the shared gutter. */
     .bio-tool-wrap .bio-section-header { padding-left: 12px; padding-right: 12px; }
     .bio-tool-wrap .bio-section-body { padding-left: 12px; padding-right: 12px; }
@@ -5675,7 +5681,7 @@
      ============================================================ */
   /* Phase 3, Chatbox markup style extraction */
   .chat-s-43c698 { padding:12px 28px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow); }
-  .chat-s-38bd0d { display:none;height:calc(100vh - 120px);min-height:560px;display:flex;gap:0;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--surface);position:relative; }
+  .chat-s-38bd0d { display:none;display:flex;gap:0;overflow:hidden;background:var(--surface);position:fixed;top:var(--topbar-height);left:var(--sidebar-width);right:0;bottom:0;z-index:5; }
   .chat-s-5dad98 { width:240px;flex-shrink:0;border-right:1px solid var(--border);background:var(--surface2);display:flex;flex-direction:column; }
   .chat-s-58cc6f { padding:14px 14px 10px 14px;border-bottom:1px solid var(--border); }
   .chat-s-8037c6 { width:100%;padding:9px 12px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:9px;color:#fff;font-size:13px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:opacity 0.15s; }
