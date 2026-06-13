@@ -149,7 +149,7 @@ function aichatRenderConversationList() {
     listEl.innerHTML = '<div class="chat-s-3f41bf">No chats yet.<br>Start a new one!</div>';
     return;
   }
-  var html = '';
+  var html = '<div class="aichat-conv-section-label">Recents</div>';
   aichatState.conversations.forEach(function(c) {
     var active = c.id === aichatState.conversationId ? ' active' : '';
     html += '<div class="aichat-conv-item' + active + '" data-chat-action="load-conversation" data-chat-conv-id="' + escapeHtml(c.id) + '" title="' + escapeHtml(c.title) + '">'
