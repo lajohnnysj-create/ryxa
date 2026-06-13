@@ -2038,11 +2038,6 @@ function showPwaLogin() {
   var main = document.querySelector('.main');
   if (sidebar) sidebar.style.display = 'none';
   if (main) main.style.display = 'none';
-  // In standalone/PWA mode, remove logo link
-  var logoWrap = document.getElementById('pwa-login-logo');
-  if (logoWrap && isPwaMode) {
-    logoWrap.innerHTML = '<img src="/logo.png" alt="Ryxa" style="width:56px;height:56px;margin:0 auto 16px;display:block;">';
-  }
   // Reset form
   var emailEl = document.getElementById('pwa-email');
   var pwEl = document.getElementById('pwa-password');
