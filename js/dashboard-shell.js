@@ -364,6 +364,7 @@ function _diagStoredToken() {
     var p = JSON.parse(raw);
     var hasRt = !!(p && p.refresh_token);
     var expd = (p && p.expires_at) ? (p.expires_at * 1000 < Date.now()) : '?';
+    _coldStartStored = (p && p.access_token && p.refresh_token) ? { access_token: p.access_token, refresh_token: p.refresh_token } : null;
     _diag('stored: rt=' + hasRt + ' expired=' + expd);
   } catch (e) { _diag('stored: parse-fail ' + _errInfo(e)); }
 }
@@ -443,6 +444,11 @@ function _isPermanentAuthError(err) {
 var _lastGoodSession = null;     // { access_token, refresh_token }
 var _intentionalSignOut = false; // set true right before our own signOut() calls
 var _recovering = false;         // guard so a re-emitted SIGNED_OUT cannot loop
+// Tokens read from storage at cold start, BEFORE getSession() runs. getSession()
+// wipes the stored token if its internal refresh fails (even transiently), which
+// would otherwise rob our retry path of anything to work with. Captured here so
+// a transient cold-start failure can still be retried from this copy.
+var _coldStartStored = null;     // { access_token, refresh_token }
 
 function _cacheGoodSession(s) {
   if (s && s.access_token && s.refresh_token) {
@@ -476,6 +482,34 @@ async function _attemptSignOutRecovery() {
     }
   }
   return false;
+}
+
+// Cold-start counterpart to _attemptSignOutRecovery: getSession() consumed and
+// wiped the stored token while trying (and failing) to refresh it. If that
+// failure was transient the token is still valid, so retry from the copy we
+// captured before getSession ran. Returns a live session or null. A genuinely
+// rejected token fails permanently here and we give up (login is correct).
+async function _retryRefreshFromTokens(tokens) {
+  if (!tokens || !tokens.access_token || !tokens.refresh_token) return null;
+  try { if (navigator.onLine === false) { _diag('cold retry: offline, waiting'); await _waitForOnline(3000); } } catch (e) {}
+  var delays = [0, 700, 1600];
+  for (var i = 0; i < delays.length; i++) {
+    if (delays[i]) { await _sleep(delays[i]); }
+    var _t0 = Date.now();
+    try {
+      var res = await sb.auth.setSession({ access_token: tokens.access_token, refresh_token: tokens.refresh_token });
+      if (res && res.data && res.data.session && res.data.session.user) {
+        _diag('cold retry#' + i + ' ' + (Date.now() - _t0) + 'ms OK');
+        return res.data.session;
+      }
+      _diag('cold retry#' + i + ' ' + (Date.now() - _t0) + 'ms null err=' + _errInfo(res && res.error));
+      if (_isPermanentAuthError(res && res.error)) { _diag('cold retry: permanent, give up'); return null; }
+    } catch (e) {
+      _diag('cold retry#' + i + ' ' + (Date.now() - _t0) + 'ms THREW ' + _errInfo(e));
+      if (_isPermanentAuthError(e)) { _diag('cold retry: permanent, give up'); return null; }
+    }
+  }
+  return null;
 }
 
 // Retry refreshSession() across the cold-start network-not-ready window.
@@ -522,6 +556,12 @@ async function initAuth() {
   if (!session?.user) {
     if (_hasStoredRefreshToken()) {
       session = await _retryRefreshSession();
+    } else if (_coldStartStored && _coldStartStored.refresh_token) {
+      // getSession() wiped the stored token while its refresh failed. Retry from
+      // the copy captured before getSession ran: rescues a transient failure,
+      // and surfaces the real error if the token was genuinely rejected.
+      _diag('stored rt wiped by getSession; retry from captured token');
+      session = await _retryRefreshFromTokens(_coldStartStored);
     } else {
       _diag('no stored rt; one refresh');
       try {
