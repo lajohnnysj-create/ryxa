@@ -1181,7 +1181,7 @@ async function performAccountDeletion() {
     _delSetOk('Your account has been deleted. Signing you out...');
     try { _intentionalSignOut = true; } catch (e) {}
     try { await sb.auth.signOut(); } catch (e) { /* token already invalid; ignore */ }
-    setTimeout(function() { window.location.href = '/'; }, 1400);
+    setTimeout(function() { window.location.href = '/dashboard.html'; }, 1400);
   } catch (e) {
     console.error('performAccountDeletion error:', e);
     _delSetMsg('Something went wrong. Please email hello@ryxa.io.');

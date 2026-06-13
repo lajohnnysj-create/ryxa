@@ -1250,9 +1250,9 @@ async function termsLogout() {
   } catch (e) {
     console.error('Terms-modal logout error:', e);
   }
-  // Leave the dashboard entirely. A full navigation avoids any stuck
-  // modal / stale in-memory state - the homepage loads fresh.
-  window.location.href = '/index.html';
+  // Full navigation back to the dashboard so it reloads signed-out: this lands
+  // on the login screen with fresh state (no stuck modal / stale in-memory data).
+  window.location.href = '/dashboard.html';
 }
 
 async function acceptTerms() {  var check = document.getElementById('terms-accept-check');
