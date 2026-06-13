@@ -451,6 +451,7 @@ function calRenderDayEvents() {
     var color = /^#[0-9a-fA-F]{3,8}$/.test(rawColor) ? rawColor : '#7c3aed';
     return '<div class="cal-s-1fb064">'
       + '<div style="width:3px;align-self:stretch;background:' + color + ';border-radius:2px;flex-shrink:0;"></div>'
+      + '<div class="cal-s-7c1d05">'
       + '<div class="bio-s-a07604">'
       + '<div class="cal-s-8699f1"><span class="cal-s-592db1">' + escapeHtml((e.title || 'Untitled').replace(/^Coaching:\s*/i, '')) + '</span>' + typeLabel + '</div>'
       + (timeLabel ? '<div class="cal-s-37775c">' + escapeHtml(timeLabel) + '</div>' : '')
@@ -469,6 +470,7 @@ function calRenderDayEvents() {
           var deleteBtn = '<button data-cal-action="delete-event" data-cal-event-id="' + e.id + '" data-cal-event-type="' + e.event_type + '" aria-label="' + deleteLabel + '" title="' + deleteLabel + '" class="cal-s-85a1b8"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg></button>';
           return '<div class="cal-s-70662e">' + sendMsgBtn + editBtn + deleteBtn + '</div>';
         })()
+      + '</div>'
       + '</div>';
   }).join('');
 }
