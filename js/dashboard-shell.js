@@ -375,7 +375,7 @@ function _renderAuthDiag() {
     if (!box) {
       box = document.createElement('div');
       box.id = 'pwa-auth-diag';
-      box.style.cssText = 'position:fixed;left:8px;right:8px;top:calc(env(safe-area-inset-top,0px) + 8px);z-index:10002;max-width:360px;max-height:38vh;overflow:auto;margin:0 auto;font-size:10px;line-height:1.5;color:rgba(255,255,255,0.85);text-align:left;white-space:pre-wrap;word-break:break-word;background:rgba(0,0,0,0.72);border:1px solid rgba(255,255,255,0.2);border-radius:8px;padding:10px;cursor:pointer;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);';
+      box.style.cssText = 'display:none;position:fixed;left:8px;right:8px;top:calc(env(safe-area-inset-top,0px) + 8px);z-index:10002;max-width:360px;max-height:38vh;overflow:auto;margin:0 auto;font-size:10px;line-height:1.5;color:rgba(255,255,255,0.85);text-align:left;white-space:pre-wrap;word-break:break-word;background:rgba(0,0,0,0.72);border:1px solid rgba(255,255,255,0.2);border-radius:8px;padding:10px;cursor:pointer;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);';
       screen.appendChild(box);
     }
     var text = 'auth diagnostics (tap to copy)\n' + _authDiag.join('\n');
@@ -384,6 +384,12 @@ function _renderAuthDiag() {
       try { navigator.clipboard.writeText(text); box.style.borderColor = '#6ee7b7'; } catch (e) {}
     });
   } catch (e) {}
+}
+
+function togglePwaDiag() {
+  _renderAuthDiag();
+  var box = document.getElementById('pwa-auth-diag');
+  if (box) box.style.display = (box.style.display === 'none' || !box.style.display) ? 'block' : 'none';
 }
 
 function _sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
@@ -2853,5 +2859,6 @@ dashRegisterAction('pwa-auth-mode-signin', () => setPwaAuthMode('signin'));
 dashRegisterAction('pwa-auth-mode-signup', () => setPwaAuthMode('signup'));
 dashRegisterAction('pwa-google-auth', () => handlePwaGoogleAuth());
 dashRegisterAction('pwa-show-email-form', () => showPwaEmailForm());
+dashRegisterAction('pwa-toggle-diag', () => togglePwaDiag());
 dashRegisterAction('pwa-forgot-password', () => handlePwaForgotPassword());
 dashRegisterAction('pwa-auth', () => handlePwaAuth());
