@@ -2250,6 +2250,12 @@
     .sidebar { transform: translateX(-100%); }
     .sidebar.open { transform: translateX(0); }
     .main { margin-left: 0; }
+    /* Mobile: lock the header so it doesn't scroll or rubber-band bounce, and
+       center the title across the bar (tier badge stays in its corner). */
+    .topbar { position: fixed; left: 0; right: 0; }
+    .topbar-title { position: absolute; left: 0; right: 0; text-align: center; pointer-events: none; }
+    .main { padding-top: calc(var(--topbar-height) + env(safe-area-inset-top, 0px)); }
+    html { overscroll-behavior-y: none; }
     .tool-area { padding: 20px 6px; }
     .welcome-screen { padding-left: 0; padding-right: 0; }
     /* Link in Bio: trim section side padding so content fills the shared gutter. */
