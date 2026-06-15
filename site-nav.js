@@ -747,6 +747,24 @@ if (typeof window.openSignupModal === 'undefined') {
 })();
 
 // =====================
+// BLEVIQ WIDGET
+// =====================
+// First-party widget (bleviq.com) loaded on every site-nav page (marketing +
+// blog). Injected via createElement so it runs under the strict CSP, where
+// www.bleviq.com is allowlisted in script-src + connect-src for these routes.
+// The widget key rides on the data attribute, which the widget reads via
+// document.currentScript. Guarded against double-injection.
+(function loadBleviqWidget() {
+  if (document.querySelector('script[data-bleviq-widget]')) return;
+  var s = document.createElement('script');
+  s.src = 'https://www.bleviq.com/widget.js';
+  s.async = true;
+  s.setAttribute('data-widget-key', 'wk_e1f708540adc4ef6be3dd0e15f4ac7f0');
+  s.setAttribute('data-bleviq-widget', '1');
+  document.head.appendChild(s);
+})();
+
+// =====================
 // SCROLL-HIDE NAV
 // =====================
 // The floating nav hides when the user scrolls down and reappears when they
