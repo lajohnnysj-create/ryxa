@@ -259,6 +259,7 @@ function switchImgTab(tabName) {
       btn.style.boxShadow = 'none';
     }
   });
+  if (tabName === 'output') updateImgResizeReadout();
 }
 
 function setupCropStage(dataUrl) {
@@ -946,6 +947,14 @@ async function convertImage() {
     }
     outW = Math.max(1, outW); outH = Math.max(1, outH);
 
+    // Step 2b: apply Resize percentage (100 = unchanged). Scales both dims equally,
+    // so aspect ratio is preserved regardless of crop or any width/height override.
+    const resizePct = getImgResizePct();
+    if (resizePct !== 100) {
+      outW = Math.max(1, Math.round(outW * resizePct / 100));
+      outH = Math.max(1, Math.round(outH * resizePct / 100));
+    }
+
     // Step 3: Draw cropped-and-resized image onto final canvas WITH filters applied
     const canvas = document.createElement('canvas');
     canvas.width = outW; canvas.height = outH;
@@ -1025,4 +1034,49 @@ imageRegisterAction('quality-display', (e, el) => {
   var out = document.getElementById('quality-val');
   if (out) out.textContent = el.value;
 });
+
+// Resize percentage slider. Scales the cropped output on export, with a live px readout.
+function getImgResizePct() {
+  const el = document.getElementById('img-resize-pct');
+  if (!el) return 100;
+  const v = parseInt(el.value, 10);
+  return (isNaN(v) || v <= 0) ? 100 : v;
+}
+
+// Base output size in natural pixels (before the percentage is applied): the cropped
+// region if a crop is set, otherwise the rotation-aware natural size. Honors the legacy
+// width/height override inputs if they are populated, mirroring the export size logic.
+function imgBaseOutputSize() {
+  let baseW, baseH;
+  if (imgCropBox && imgDisplaySize.w > 0) {
+    const r = computeCropRegionInNaturalPixels();
+    if (r.w > 0 && r.h > 0) { baseW = r.w; baseH = r.h; }
+  }
+  if (!baseW || !baseH) {
+    const eff = getEffectiveNaturalSize();
+    baseW = eff.w; baseH = eff.h;
+  }
+  const wInput = document.getElementById('img-width').value;
+  const hInput = document.getElementById('img-height').value;
+  const lock = document.getElementById('img-resize-lock').checked;
+  if (wInput && hInput) { baseW = parseInt(wInput); baseH = parseInt(hInput); }
+  else if (wInput) { const w = parseInt(wInput); baseH = lock ? Math.round(baseH * (w / baseW)) : baseH; baseW = w; }
+  else if (hInput) { const h = parseInt(hInput); baseW = lock ? Math.round(baseW * (h / baseH)) : baseW; baseH = h; }
+  return { w: Math.max(1, Math.round(baseW)), h: Math.max(1, Math.round(baseH)) };
+}
+
+function updateImgResizeReadout() {
+  const pct = getImgResizePct();
+  const valEl = document.getElementById('img-resize-val');
+  if (valEl) valEl.textContent = pct;
+  const dimsEl = document.getElementById('img-resize-dims');
+  if (!dimsEl) return;
+  if (!imgNatural.w || !imgNatural.h) { dimsEl.textContent = ''; return; }
+  const base = imgBaseOutputSize();
+  const outW = Math.max(1, Math.round(base.w * pct / 100));
+  const outH = Math.max(1, Math.round(base.h * pct / 100));
+  dimsEl.textContent = '\u2192 ' + outW + ' \u00d7 ' + outH + ' px';
+}
+
+imageRegisterAction('resize-display', () => updateImgResizeReadout());
 
