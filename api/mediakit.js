@@ -260,12 +260,90 @@ function buildAudience(kit) {
 // includes this when a connection exists, so tabs never show when nothing is
 // connected. When another platform's OAuth lands, add its tab here. We do not
 // render disabled placeholder tabs for unconnected platforms.
-function buildPlatformTabsHtml() {
+function buildPlatformTabsHtml(platforms) {
+  if (!Array.isArray(platforms) || platforms.length === 0) return '';
   return `<div class="ig-platform-tabs" role="tablist" aria-label="Audience by platform">
-    <span class="ig-platform-tab is-active" role="tab" aria-selected="true">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.2c3.2 0 3.6 0 4.85.07 1.17.05 1.8.25 2.22.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.05.41 2.22.06 1.26.07 1.64.07 4.82s-.01 3.57-.07 4.82c-.05 1.17-.25 1.8-.41 2.22a3.72 3.72 0 0 1-.9 1.38c-.42.42-.82.68-1.38.9-.42.16-1.05.36-2.22.41-1.26.06-1.64.07-4.82.07s-3.57-.01-4.82-.07c-1.17-.05-1.8-.25-2.22-.41a3.72 3.72 0 0 1-1.38-.9 3.72 3.72 0 0 1-.9-1.38c-.16-.42-.36-1.05-.41-2.22C2.21 15.57 2.2 15.19 2.2 12s.01-3.57.07-4.82c.05-1.17.25-1.8.41-2.22.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.05-.36 2.22-.41C8.43 2.21 8.81 2.2 12 2.2M12 0C8.74 0 8.33.01 7.05.07 5.78.13 4.9.33 4.14.63a5.92 5.92 0 0 0-2.13 1.39A5.92 5.92 0 0 0 .62 4.14C.33 4.9.13 5.78.07 7.05.01 8.33 0 8.74 0 12c0 3.26.01 3.67.07 4.95.06 1.27.26 2.15.56 2.91a5.92 5.92 0 0 0 1.39 2.13c.66.66 1.32 1.06 2.13 1.39.76.3 1.64.5 2.91.56C8.33 23.99 8.74 24 12 24c3.26 0 3.67-.01 4.95-.07 1.27-.06 2.15-.26 2.91-.56a5.92 5.92 0 0 0 2.13-1.39c.66-.66 1.06-1.32 1.39-2.13.3-.76.5-1.64.56-2.91.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.06-1.27-.26-2.15-.56-2.91a5.92 5.92 0 0 0-1.39-2.13A5.92 5.92 0 0 0 19.86.62c-.76-.3-1.64-.5-2.91-.56C15.67.01 15.26 0 12 0Zm0 5.84a6.16 6.16 0 1 0 0 12.32 6.16 6.16 0 0 0 0-12.32Zm0 10.16a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm6.41-11.88a1.44 1.44 0 1 0 0 2.88 1.44 1.44 0 0 0 0-2.88Z"/></svg>
-      Instagram
-    </span>
+    ${platforms.map((p, i) => `<button type="button" class="ig-platform-tab${i === 0 ? ' is-active' : ''}" role="tab" aria-selected="${i === 0 ? 'true' : 'false'}" data-platform-tab="${esc(p.key)}">${p.svg}${esc(p.label)}</button>`).join('')}
+  </div>`;
+}
+
+// Format a duration in seconds as M:SS (used by the YouTube panel).
+function fmtDuration(totalSeconds) {
+  const s = Math.max(0, Math.round(Number(totalSeconds) || 0));
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return m + ':' + (sec < 10 ? '0' + sec : '' + sec);
+}
+
+// Gender stacked-bar block. Shared by all platform panels. Expects the stored
+// shape [{ keys: ['M'|'F'|'O'], value }].
+function buildGenderBlock(genderArr) {
+  if (!Array.isArray(genderArr) || genderArr.length === 0) return '';
+  const total = genderArr.reduce((s, g) => s + (Number(g.value) || 0), 0);
+  if (total <= 0) return '';
+  const segs = genderArr
+    .map(g => {
+      const k = (g.keys && g.keys[0]) || '';
+      const v = Number(g.value) || 0;
+      return { key: (k || 'U').toUpperCase(), pct: (v / total) * 100 };
+    })
+    .filter(s => s.pct > 0);
+  const segClass = k => (k === 'M' ? 'ig-gender-seg-male' : k === 'F' ? 'ig-gender-seg-female' : 'ig-gender-seg-other');
+  const segLabel = k => (k === 'M' ? 'Male' : k === 'F' ? 'Female' : 'Other');
+  const barSegs = segs.map(s =>
+    `<div class="${segClass(s.key)}" style="width:${s.pct.toFixed(1)}%" title="${segLabel(s.key)} ${s.pct.toFixed(1)}%"></div>`
+  ).join('');
+  const legendHtml = segs.map(s =>
+    `<span class="ig-gender-legend-item">
+      <span class="ig-gender-legend-dot ${segClass(s.key)}"></span>
+      ${esc(segLabel(s.key))} <strong style="color:var(--text);margin-left:2px;">${s.pct.toFixed(1)}%</strong>
+    </span>`
+  ).join('');
+  return `<div class="ig-demo-block">
+    <div class="ig-demo-block-title">Gender</div>
+    <div class="ig-gender-split">${barSegs}</div>
+    <div class="ig-gender-legend">${legendHtml}</div>
+  </div>`;
+}
+
+// Age x Gender block with All/Male/Female tabs. Shared by all platform panels.
+// Expects the stored shape [{ keys: ['18-24','M'], value }]. SSR renders the
+// "All" tab; the client swaps Male/Female from the JSON payload.
+function buildAgeGenderBlock(ageGenderArr) {
+  if (!Array.isArray(ageGenderArr) || ageGenderArr.length === 0) return '';
+  const buckets = { all: {}, M: {}, F: {}, U: {} };
+  for (const item of ageGenderArr) {
+    const k1 = (item.keys && item.keys[0]) || '';
+    const k2 = (item.keys && item.keys[1]) || '';
+    const isAgeFirst = /-/.test(k1);
+    const age = isAgeFirst ? k1 : k2;
+    const gender = (isAgeFirst ? k2 : k1).toUpperCase();
+    const v = Number(item.value) || 0;
+    if (!age) continue;
+    buckets.all[age] = (buckets.all[age] || 0) + v;
+    const g = (gender === 'M' || gender === 'F') ? gender : 'U';
+    buckets[g][age] = (buckets[g][age] || 0) + v;
+  }
+  function bucketToBars(b) {
+    const ageOrder = ['13-17','18-24','25-34','35-44','45-54','55-64','65+'];
+    const arr = ageOrder.map(age => ({ age, value: b[age] || 0 })).filter(x => x.value > 0);
+    const total = arr.reduce((s, x) => s + x.value, 0);
+    if (total === 0) return null;
+    return arr.map(x => ({ label: x.age, value: x.value, pct: Math.round((x.value / total) * 1000) / 10 }));
+  }
+  const allBars = bucketToBars(buckets.all);
+  const maleBars = bucketToBars(buckets.M);
+  const femaleBars = bucketToBars(buckets.F);
+  if (!allBars || allBars.length === 0) return '';
+  const payload = JSON.stringify({ all: allBars, male: maleBars, female: femaleBars });
+  return `<div class="ig-demo-block">
+    <div class="ig-demo-block-title">Age &amp; Gender</div>
+    <div class="ig-demo-tabs" role="tablist" data-ag-tabs>
+      <button class="ig-demo-tab is-active" type="button" role="tab" data-ag-tab="all">All</button>
+      ${maleBars ? '<button class="ig-demo-tab" type="button" role="tab" data-ag-tab="male">Male</button>' : ''}
+      ${femaleBars ? '<button class="ig-demo-tab" type="button" role="tab" data-ag-tab="female">Female</button>' : ''}
+    </div>
+    <div class="ig-ag-mount" data-ag-payload='${esc(payload)}'>${renderBarList(allBars)}</div>
   </div>`;
 }
 
@@ -321,29 +399,18 @@ function countryLabel(code) {
   return COUNTRY_NAMES[code] || code;
 }
 
-function buildAudienceAutomatic(kit, ig) {
-  const platformTabs = buildPlatformTabsHtml();
-
-  // No connection at all → empty-state hint
-  if (!ig) {
-    return `<div class="section ig-section">
-      <div class="section-title">Audience &amp; Stats</div>
-      <div class="ig-empty">Audience data is not yet available. The creator hasn't connected their Instagram, or data is still syncing.</div>
-    </div>`;
-  }
-
+// Instagram audience panel (inner HTML, no section wrapper). Demographics use
+// the shared buildGenderBlock / buildAgeGenderBlock helpers; output markup is
+// unchanged from the prior single-platform renderer.
+function buildIgPanel(ig) {
   const igHandle = ig.ig_username ? '@' + ig.ig_username : '';
   const igUrl = ig.ig_username ? 'https://instagram.com/' + encodeURIComponent(ig.ig_username) : null;
   const lastSynced = formatLastSynced(ig.data_last_fetched_at);
 
-  // Attribution line: required for Meta App Review (signals data origin).
-  // Combined with the last sync timestamp on the same line so brands viewing
-  // the kit can see when the numbers were pulled.
   const attributionInner = lastSynced
     ? `Verified by Instagram <span class="ig-attr-sep" aria-hidden="true">&bull;</span> Last synced ${esc(lastSynced)}`
     : 'Verified by Instagram';
 
-  // Top header: handle + IG attribution
   const headerHtml = `<div class="ig-header">
     <div class="ig-header-icon" aria-hidden="true">${SOCIAL_PLATFORMS[0].svg}</div>
     <div class="ig-header-body">
@@ -354,7 +421,6 @@ function buildAudienceAutomatic(kit, ig) {
     </div>
   </div>`;
 
-  // Primary stats
   const primaryStats = [];
   if (typeof ig.followers_count === 'number') {
     primaryStats.push({ label: 'Followers', value: formatNumber(ig.followers_count) });
@@ -379,7 +445,6 @@ function buildAudienceAutomatic(kit, ig) {
     </div>`).join('')}
   </div>` : '';
 
-  // Per-post averages
   const avgStats = [];
   if (typeof ig.avg_likes === 'number') avgStats.push({ label: 'Avg Likes', value: formatNumber(Math.round(ig.avg_likes)) });
   if (typeof ig.avg_comments === 'number') avgStats.push({ label: 'Avg Comments', value: formatNumber(Math.round(ig.avg_comments)) });
@@ -396,108 +461,9 @@ function buildAudienceAutomatic(kit, ig) {
     </div>
   </div>` : '';
 
-  // -------- Demographics --------
+  const genderHtml = buildGenderBlock(ig.demographics_gender);
+  const ageGenderHtml = buildAgeGenderBlock(ig.demographics_age_gender);
 
-  // Gender split (single horizontal stacked bar)
-  let genderHtml = '';
-  if (Array.isArray(ig.demographics_gender) && ig.demographics_gender.length > 0) {
-    const total = ig.demographics_gender.reduce((s, g) => s + (Number(g.value) || 0), 0);
-    if (total > 0) {
-      const segs = ig.demographics_gender
-        .map(g => {
-          const k = (g.keys && g.keys[0]) || '';
-          const v = Number(g.value) || 0;
-          const pct = (v / total) * 100;
-          return { key: (k || 'U').toUpperCase(), pct: pct };
-        })
-        .filter(s => s.pct > 0);
-
-      const segClass = k => (k === 'M' ? 'ig-gender-seg-male' : k === 'F' ? 'ig-gender-seg-female' : 'ig-gender-seg-other');
-      const segLabel = k => (k === 'M' ? 'Male' : k === 'F' ? 'Female' : 'Other');
-
-      const barSegs = segs.map(s =>
-        `<div class="${segClass(s.key)}" style="width:${s.pct.toFixed(1)}%" title="${segLabel(s.key)} ${s.pct.toFixed(1)}%"></div>`
-      ).join('');
-
-      const legendHtml = segs.map(s =>
-        `<span class="ig-gender-legend-item">
-          <span class="ig-gender-legend-dot ${segClass(s.key)}"></span>
-          ${esc(segLabel(s.key))} <strong style="color:var(--text);margin-left:2px;">${s.pct.toFixed(1)}%</strong>
-        </span>`
-      ).join('');
-
-      genderHtml = `<div class="ig-demo-block">
-        <div class="ig-demo-block-title">Gender</div>
-        <div class="ig-gender-split">${barSegs}</div>
-        <div class="ig-gender-legend">${legendHtml}</div>
-      </div>`;
-    }
-  }
-
-  // Age x Gender chart with All/Male/Female tabs.
-  // We render the "All" tab content SSR (so it shows without JS), and ship
-  // the Male/Female data as a JSON payload for the client tab-switcher.
-  let ageGenderHtml = '';
-  if (Array.isArray(ig.demographics_age_gender) && ig.demographics_age_gender.length > 0) {
-    // Aggregate buckets:
-    //   all → sum across genders for each age bracket
-    //   M / F → just that gender's age distribution
-    const buckets = { all: {}, M: {}, F: {}, U: {} };
-    for (const item of ig.demographics_age_gender) {
-      // keys can come as ['age', 'gender'] OR ['gender', 'age']; rely on shape:
-      // age looks like "18-24", "25-34", etc. — we detect by hyphen.
-      const k1 = (item.keys && item.keys[0]) || '';
-      const k2 = (item.keys && item.keys[1]) || '';
-      const isAgeFirst = /-/.test(k1);
-      const age = isAgeFirst ? k1 : k2;
-      const gender = (isAgeFirst ? k2 : k1).toUpperCase();
-      const v = Number(item.value) || 0;
-      if (!age) continue;
-      buckets.all[age] = (buckets.all[age] || 0) + v;
-      const g = (gender === 'M' || gender === 'F') ? gender : 'U';
-      buckets[g][age] = (buckets[g][age] || 0) + v;
-    }
-
-    function bucketToBars(b) {
-      const ageOrder = ['13-17','18-24','25-34','35-44','45-54','55-64','65+'];
-      const arr = ageOrder
-        .map(age => ({ age, value: b[age] || 0 }))
-        .filter(x => x.value > 0);
-      const total = arr.reduce((s, x) => s + x.value, 0);
-      if (total === 0) return null;
-      return arr.map(x => ({ label: x.age, value: x.value, pct: Math.round((x.value / total) * 1000) / 10 }));
-    }
-
-    const allBars = bucketToBars(buckets.all);
-    const maleBars = bucketToBars(buckets.M);
-    const femaleBars = bucketToBars(buckets.F);
-
-    if (allBars && allBars.length > 0) {
-      const payload = JSON.stringify({
-        all: allBars,
-        male: maleBars,
-        female: femaleBars
-      });
-
-      const tabsAvailable = {
-        all: !!allBars,
-        male: !!maleBars,
-        female: !!femaleBars
-      };
-
-      ageGenderHtml = `<div class="ig-demo-block">
-        <div class="ig-demo-block-title">Age &amp; Gender</div>
-        <div class="ig-demo-tabs" role="tablist" data-ag-tabs>
-          <button class="ig-demo-tab is-active" type="button" role="tab" data-ag-tab="all">All</button>
-          ${tabsAvailable.male ? '<button class="ig-demo-tab" type="button" role="tab" data-ag-tab="male">Male</button>' : ''}
-          ${tabsAvailable.female ? '<button class="ig-demo-tab" type="button" role="tab" data-ag-tab="female">Female</button>' : ''}
-        </div>
-        <div class="ig-ag-mount" data-ag-payload='${esc(payload)}'>${renderBarList(allBars)}</div>
-      </div>`;
-    }
-  }
-
-  // Top countries
   let countriesHtml = '';
   const countryItems = buildBarList(ig.demographics_top_countries, 6);
   if (countryItems) {
@@ -507,7 +473,6 @@ function buildAudienceAutomatic(kit, ig) {
     </div>`;
   }
 
-  // Top cities
   let citiesHtml = '';
   const cityItems = buildBarList(ig.demographics_top_cities, 6);
   if (cityItems) {
@@ -523,19 +488,128 @@ function buildAudienceAutomatic(kit, ig) {
     <div class="ig-demo-grid">${demoBlocks.join('')}</div>
   </div>` : '';
 
-  // Note when demographics aren't available due to <100 follower threshold
   const demographicsNotAvailable = demoBlocks.length === 0 && typeof ig.followers_count === 'number' && ig.followers_count < 100
     ? `<div class="ig-note">Audience demographics are not available yet. Instagram requires 100+ followers to share these insights.</div>`
     : '';
 
+  return `${headerHtml}${primaryHtml}${avgHtml}${demographicsBlock}${demographicsNotAvailable}`;
+}
+
+// YouTube audience panel (inner HTML, no section wrapper). Same structure and
+// classes as the Instagram panel, with YouTube-appropriate stat labels and no
+// "Top Cities" block (YouTube Analytics does not provide city-level data).
+function buildYtPanel(yt) {
+  const title = yt.yt_channel_title || 'YouTube';
+  let url = null;
+  if (yt.yt_custom_url) {
+    const cu = String(yt.yt_custom_url);
+    url = cu.charAt(0) === '@'
+      ? 'https://youtube.com/' + encodeURIComponent(cu)
+      : 'https://youtube.com/' + cu.split('/').map(encodeURIComponent).join('/');
+  }
+  const lastSynced = formatLastSynced(yt.data_last_fetched_at);
+
+  const attributionInner = lastSynced
+    ? `Verified by YouTube <span class="ig-attr-sep" aria-hidden="true">&bull;</span> Last synced ${esc(lastSynced)}`
+    : 'Verified by YouTube';
+
+  const ytSvg = (SOCIAL_PLATFORMS.find(p => p.key === 'youtube') || {}).svg || '';
+
+  const headerHtml = `<div class="ig-header">
+    <div class="ig-header-icon" aria-hidden="true">${ytSvg}</div>
+    <div class="ig-header-body">
+      ${url
+        ? `<a class="ig-handle" href="${esc(url)}" target="_blank" rel="noopener nofollow">${esc(title)}</a>`
+        : `<span class="ig-handle">${esc(title)}</span>`}
+      <span class="ig-attribution">${attributionInner}</span>
+    </div>
+  </div>`;
+
+  const primaryStats = [];
+  if (typeof yt.subscriber_count === 'number') primaryStats.push({ label: 'Subscribers', value: formatNumber(yt.subscriber_count) });
+  if (typeof yt.view_count === 'number') primaryStats.push({ label: 'Total Views', value: formatNumber(yt.view_count) });
+  if (typeof yt.views_30d === 'number') primaryStats.push({ label: '30-Day Views', value: formatNumber(yt.views_30d) });
+  if (typeof yt.watch_time_minutes_30d === 'number') primaryStats.push({ label: 'Watch Hours (30d)', value: formatNumber(Math.round(yt.watch_time_minutes_30d / 60)) });
+  if (typeof yt.avg_view_duration_seconds === 'number') primaryStats.push({ label: 'Avg View Duration', value: fmtDuration(yt.avg_view_duration_seconds) });
+  if (typeof yt.engagement_rate === 'number') primaryStats.push({ label: 'Engagement Rate', value: yt.engagement_rate.toFixed(2) + '%' });
+
+  const primaryHtml = primaryStats.length > 0 ? `<div class="ig-stats-grid">
+    ${primaryStats.map(s => `<div class="ig-stat-card">
+      <div class="ig-stat-num">${esc(s.value)}</div>
+      <div class="ig-stat-label">${esc(s.label)}</div>
+    </div>`).join('')}
+  </div>` : '';
+
+  const avgStats = [];
+  if (typeof yt.avg_views_per_video === 'number') avgStats.push({ label: 'Avg Views / Video', value: formatNumber(Math.round(yt.avg_views_per_video)) });
+  if (Array.isArray(yt.recent_media) && yt.recent_media.length) {
+    const likes = yt.recent_media.map(v => Number(v.likes)).filter(n => !isNaN(n));
+    const comments = yt.recent_media.map(v => Number(v.comments)).filter(n => !isNaN(n));
+    if (likes.length) avgStats.push({ label: 'Avg Likes', value: formatNumber(Math.round(likes.reduce((a, b) => a + b, 0) / likes.length)) });
+    if (comments.length) avgStats.push({ label: 'Avg Comments', value: formatNumber(Math.round(comments.reduce((a, b) => a + b, 0) / comments.length)) });
+  }
+  if (typeof yt.subscribers_gained_30d === 'number') avgStats.push({ label: 'Subscribers Gained (30d)', value: formatNumber(yt.subscribers_gained_30d) });
+
+  const avgHtml = avgStats.length > 0 ? `<div class="ig-subsection">
+    <div class="ig-subtitle">Performance</div>
+    <div class="ig-stats-grid">
+      ${avgStats.map(s => `<div class="ig-stat-card">
+        <div class="ig-stat-num">${esc(s.value)}</div>
+        <div class="ig-stat-label">${esc(s.label)}</div>
+      </div>`).join('')}
+    </div>
+  </div>` : '';
+
+  const genderHtml = buildGenderBlock(yt.demographics_gender);
+  const ageGenderHtml = buildAgeGenderBlock(yt.demographics_age_gender);
+
+  let countriesHtml = '';
+  const countryItems = buildBarList(yt.demographics_top_countries, 6);
+  if (countryItems) {
+    countriesHtml = `<div class="ig-demo-block">
+      <div class="ig-demo-block-title">Top Countries</div>
+      ${renderBarList(countryItems, { labelMap: countryLabel })}
+    </div>`;
+  }
+
+  const demoBlocks = [genderHtml, ageGenderHtml, countriesHtml].filter(Boolean);
+  const demographicsBlock = demoBlocks.length > 0 ? `<div class="ig-subsection">
+    <div class="ig-subtitle">Audience Demographics</div>
+    <div class="ig-demo-grid">${demoBlocks.join('')}</div>
+  </div>` : '';
+
+  return `${headerHtml}${primaryHtml}${avgHtml}${demographicsBlock}`;
+}
+
+// Renders when media_kit.audience_mode = 'automatic'. Accepts a map of platform
+// data ({ instagram, youtube }); renders one tab + panel per connected platform.
+// The first connected platform's panel is visible; the rest are hidden and
+// revealed by the client-side platform-tab switcher.
+function buildAudienceAutomatic(kit, data) {
+  data = data || {};
+  const ig = data.instagram || null;
+  const yt = data.youtube || null;
+
+  const platforms = [];
+  if (ig) platforms.push({ key: 'instagram', label: 'Instagram', svg: SOCIAL_PLATFORMS[0].svg, panel: buildIgPanel(ig) });
+  if (yt) platforms.push({ key: 'youtube', label: 'YouTube', svg: (SOCIAL_PLATFORMS.find(p => p.key === 'youtube') || {}).svg || '', panel: buildYtPanel(yt) });
+
+  if (platforms.length === 0) {
+    return `<div class="section ig-section">
+      <div class="section-title">Audience &amp; Stats</div>
+      <div class="ig-empty">Audience data is not yet available. The creator hasn't connected an account, or data is still syncing.</div>
+    </div>`;
+  }
+
+  const tabs = platforms.length > 1 ? buildPlatformTabsHtml(platforms) : '';
+  const panels = platforms.map((p, i) =>
+    `<div class="ig-platform-panel" data-platform-panel="${esc(p.key)}"${i === 0 ? '' : ' hidden'}>${p.panel}</div>`
+  ).join('');
+
   return `<div class="section ig-section">
     <div class="section-title">Audience &amp; Stats</div>
-    ${platformTabs}
-    ${headerHtml}
-    ${primaryHtml}
-    ${avgHtml}
-    ${demographicsBlock}
-    ${demographicsNotAvailable}
+    ${tabs}
+    ${panels}
   </div>`;
 }
 
@@ -788,7 +862,7 @@ function isBuiltinImageTheme(key) {
 // MAIN RENDER — produces inner HTML for the #wrap div
 // ==========================================================================
 
-function renderMediaKitContent(profile, kit, ig) {
+function renderMediaKitContent(profile, kit, ig, yt) {
   const headshot = validImageUrl(kit.headshot_url);
 
   const isPaid = profile.tier === 'monthly' || profile.tier === 'max';
@@ -803,7 +877,7 @@ function renderMediaKitContent(profile, kit, ig) {
   // 'automatic' → pull from instagram_connections cache (ig param).
   // 'manual' (or unset) → use kit.socials + kit.engagement_rate from the kit row.
   const audienceHtml = kit.audience_mode === 'automatic'
-    ? buildAudienceAutomatic(kit, ig)
+    ? buildAudienceAutomatic(kit, { instagram: ig, youtube: yt })
     : buildAudience(kit);
 
   // Total Followers strip — sum across all connected platforms. For now only
@@ -935,8 +1009,27 @@ async function fetchMediaKitData(username) {
       }
     }
 
+    // Step 3b: YouTube cached data (same automatic mode). Reads from the
+    // public_youtube_kit_data view (safe columns only); the private
+    // youtube_connections table is owner-only RLS.
+    let yt = null;
+    if (kit && kit.audience_mode === 'automatic') {
+      try {
+        const ytRes = await fetch(
+          `${SUPABASE_URL}/rest/v1/public_youtube_kit_data?user_id=eq.${profile.user_id}&select=yt_channel_title,yt_custom_url,thumbnail_url,subscriber_count,view_count,video_count,views_30d,watch_time_minutes_30d,avg_view_duration_seconds,subscribers_gained_30d,likes_30d,comments_30d,shares_30d,engagement_rate,avg_views_per_video,demographics_age_gender,demographics_gender,demographics_top_countries,recent_media,data_last_fetched_at,data_fetch_error`,
+          fetchOpts(controller.signal)
+        );
+        if (ytRes.ok) {
+          const ytRows = await ytRes.json();
+          yt = ytRows[0] || null;
+        }
+      } catch (e) {
+        console.error('mediakit YT fetch error', e);
+      }
+    }
+
     clearTimeout(timeout);
-    return { profile, kit, ig };
+    return { profile, kit, ig, yt };
   } catch (e) {
     clearTimeout(timeout);
     console.error('mediakit fetch error', e);
@@ -984,7 +1077,7 @@ module.exports = async (req, res) => {
   let customThemeStyle = '';
 
   if (result && result.kit && result.kit.published !== false) {
-    const { profile, kit, ig } = result;
+    const { profile, kit, ig, yt } = result;
 
     // Update OG metadata for social previews
     const name = kit.display_name || profile.username;
@@ -1012,7 +1105,7 @@ module.exports = async (req, res) => {
     }
 
     // Render the media kit content server-side
-    const rendered = renderMediaKitContent(profile, kit, ig);
+    const rendered = renderMediaKitContent(profile, kit, ig, yt);
     renderedInner = rendered.inner;
 
     // Bootstrap meta tags: stash creator currency + signal SSR hydration so
