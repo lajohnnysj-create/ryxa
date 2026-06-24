@@ -608,9 +608,16 @@ function buildTtPanel(tt) {
 
   // TikTok Login Kit is headline-only: no audience demographics or per-video
   // analytics are available with the user.info.* scopes.
+  // Engagement rate is a derived proxy: average likes per video / followers.
+  // (TikTok exposes only lifetime likes, so this is likes-based, not per-window.)
+  const ttEngagement = (typeof tt.avg_likes_per_video === 'number' && typeof tt.follower_count === 'number' && tt.follower_count > 0)
+    ? (tt.avg_likes_per_video / tt.follower_count) * 100
+    : null;
+
   const primaryStats = [];
   if (typeof tt.follower_count === 'number') primaryStats.push({ label: 'Followers', value: formatNumber(tt.follower_count) });
   if (typeof tt.likes_count === 'number') primaryStats.push({ label: 'Total Likes', value: formatNumber(tt.likes_count) });
+  if (ttEngagement != null) primaryStats.push({ label: 'Engagement Rate', value: ttEngagement.toFixed(2) + '%' });
   if (typeof tt.video_count === 'number') primaryStats.push({ label: 'Videos', value: formatNumber(tt.video_count) });
   if (typeof tt.following_count === 'number') primaryStats.push({ label: 'Following', value: formatNumber(tt.following_count) });
   if (typeof tt.avg_likes_per_video === 'number') primaryStats.push({ label: 'Avg Likes / Video', value: formatNumber(Math.round(tt.avg_likes_per_video)) });
