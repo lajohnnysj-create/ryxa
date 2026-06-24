@@ -549,6 +549,14 @@
 
   /* Subsections (per-post averages, demographics) */
   .ig-subsection { margin-top: 22px; }
+  .tt-vid-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .tt-vid-card { display: block; text-decoration: none; border-radius: 10px; overflow: hidden; background: var(--surface2); border: 1px solid var(--border); transition: border-color 0.15s; }
+  .tt-vid-card:hover { border-color: var(--accent2); }
+  .tt-vid-thumb { position: relative; width: 100%; aspect-ratio: 9 / 16; background: var(--surface2); }
+  .tt-vid-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .tt-vid-meta { padding: 6px 8px; }
+  .tt-vid-views { font-size: 11px; color: var(--muted); }
+  @media (max-width: 480px) { .tt-vid-grid { grid-template-columns: repeat(2, 1fr); } }
   .ig-subtitle {
     font-size: 11px;
     color: var(--accent2);
