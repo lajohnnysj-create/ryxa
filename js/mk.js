@@ -1283,6 +1283,7 @@ let mkAudCache = null;        // last-fetched IG data {connected, data, error}
 let mkAudInflight = false;    // prevent overlapping fetches
 let mkAudRefreshLockUntil = 0; // unix ms; refresh button disabled while in future
 let mkYtRefreshLockUntil = 0;  // unix ms; YouTube refresh button cooldown
+let mkTtRefreshLockUntil = 0;  // unix ms; TikTok refresh button cooldown
 
 function setAudienceMode(mode) {
   mkState.audience_mode = (mode === 'automatic') ? 'automatic' : 'manual';
@@ -1344,6 +1345,19 @@ async function loadAudienceAutomatic() {
       console.error('loadAudienceAutomatic YT', e);
     }
 
+    // TikTok connection (parallel). Headline-only columns (no demographics).
+    let ttConn = null;
+    try {
+      const { data: tc } = await sb
+        .from('tiktok_connections')
+        .select('tt_display_name,tt_avatar_url,tt_profile_web_link,tt_bio_description,tt_is_verified,follower_count,following_count,likes_count,video_count,avg_likes_per_video,data_last_fetched_at,data_fetch_error')
+        .eq('user_id', currentUser.id)
+        .maybeSingle();
+      ttConn = tc || null;
+    } catch (e) {
+      console.error('loadAudienceAutomatic TikTok', e);
+    }
+
     const STALE_MS = 24 * 60 * 60 * 1000; // 24h, shared by both platforms
 
     // ---- Instagram: refresh if stale, else use cached row ----
@@ -1372,11 +1386,26 @@ async function loadAudienceAutomatic() {
       }
     }
 
+    // ---- TikTok: refresh if stale, else use cached row ----
+    let ttResult = null;
+    if (ttConn) {
+      const ttTs = ttConn.data_last_fetched_at ? new Date(ttConn.data_last_fetched_at).getTime() : 0;
+      const ttStale = !ttTs || (Date.now() - ttTs) > STALE_MS;
+      if (ttStale) {
+        const r = await refreshTTData();
+        ttResult = (r && r.ok && r.data) ? r.data : ttConn;
+      } else {
+        ttResult = ttConn;
+      }
+    }
+
     mkAudCache = {
       connected: !!igResult,
       data: igResult || null,
       ytConnected: !!ytResult,
       yt: ytResult || null,
+      ttConnected: !!ttResult,
+      tt: ttResult || null,
     };
     renderAudienceAutomatic();
   } catch (e) {
@@ -1441,6 +1470,44 @@ async function manualRefreshYT() {
   }, 5 * 60 * 1000);
 }
 
+async function refreshTTData() {
+  try {
+    const session = (await sb.auth.getSession()).data.session;
+    if (!session) return { ok: false, error: 'Not authenticated' };
+    const r = await fetch('/api/tiktok-data-fetch', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + session.access_token }
+    });
+    const body = await r.json().catch(() => ({}));
+    return body;
+  } catch (e) {
+    console.error('refreshTTData', e);
+    return { ok: false, error: e.message };
+  }
+}
+
+async function manualRefreshTT() {
+  const btn = document.getElementById('mk-aud-refresh-tt-btn');
+  if (!btn) return;
+  if (Date.now() < mkTtRefreshLockUntil) return;
+
+  btn.disabled = true;
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg><span class="mk-aud-row-refresh-label">Refreshing&hellip;</span>';
+
+  const res = await refreshTTData();
+  if (res && res.ok && res.data) {
+    if (mkAudCache) { mkAudCache.ttConnected = true; mkAudCache.tt = res.data; }
+    else mkAudCache = { connected: false, data: null, ttConnected: true, tt: res.data };
+  }
+  mkTtRefreshLockUntil = Date.now() + 5 * 60 * 1000;
+  renderAudienceAutomatic();
+  setTimeout(() => {
+    const b = document.getElementById('mk-aud-refresh-tt-btn');
+    if (b) { b.disabled = false; }
+    renderAudienceAutomatic();
+  }, 5 * 60 * 1000);
+}
+
 async function manualRefreshIG() {
   const btn = document.getElementById('mk-aud-refresh-btn');
   if (!btn) return;
@@ -1498,7 +1565,7 @@ function renderAudienceAutomatic() {
   }
 
   // ---- State: not connected ----
-  if (!mkAudCache.connected && !mkAudCache.ytConnected) {
+  if (!mkAudCache.connected && !mkAudCache.ytConnected && !mkAudCache.ttConnected) {
     mount.innerHTML = `
       <div class="mk-aud-empty">
         <div class="mk-aud-empty-icon">
@@ -1596,6 +1663,20 @@ function renderAudienceAutomatic() {
     ytErrorNoteHtml = `<div class="mk-aud-error-note">${escapeHtml(ytFriendly)}</div>`;
   }
 
+  // TikTok SVG + row computations (rendered only when connected). Headline-only.
+  const ttSvg = '<svg viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5.8 20.1a6.34 6.34 0 0 0 10.86-4.43V8.83a8.16 8.16 0 0 0 4.77 1.52V6.9a4.85 4.85 0 0 1-1.84-.21Z"/></svg>';
+  const ttData = mkAudCache.tt || {};
+  const ttHandle = ttData.tt_display_name || 'TikTok';
+  const ttFreshLabel = (typeof formatLastRefreshed === 'function') ? formatLastRefreshed(ttData.data_last_fetched_at) : '';
+  const ttRemainingMs = Math.max(0, mkTtRefreshLockUntil - Date.now());
+  const ttRefreshDisabled = ttRemainingMs > 0;
+  const ttRefreshLabel = ttRefreshDisabled ? 'Wait ' + Math.ceil(ttRemainingMs / 1000) + 's' : 'Refresh';
+
+  let ttErrorNoteHtml = '';
+  if (mkAudCache.ttConnected && ttData.data_fetch_error) {
+    ttErrorNoteHtml = `<div class="mk-aud-error-note">${escapeHtml('Some TikTok data couldn\'t be loaded. Click Refresh, or reconnect TikTok in Settings.')}</div>`;
+  }
+
   const igRowHtml = mkAudCache.connected ? platformRow({
     name: 'Instagram',
     iconClass: 'mk-aud-platform-ig',
@@ -1622,14 +1703,29 @@ function renderAudienceAutomatic() {
     label: ytRefreshLabel
   }) : '';
 
+  const ttRowHtml = mkAudCache.ttConnected ? platformRow({
+    name: 'TikTok',
+    iconClass: 'mk-aud-platform-tt',
+    iconSvg: ttSvg,
+    connected: true,
+    handle: ttHandle,
+    refreshedLabel: ttFreshLabel,
+    btnId: 'mk-aud-refresh-tt-btn',
+    action: 'manual-refresh-tt',
+    disabled: ttRefreshDisabled,
+    label: ttRefreshLabel
+  }) : '';
+
   mount.innerHTML = `
     <div class="mk-aud-connected">
       <div class="mk-aud-platforms">
         ${igRowHtml}
         ${ytRowHtml}
+        ${ttRowHtml}
       </div>
       ${errorNoteHtml}
       ${ytErrorNoteHtml}
+      ${ttErrorNoteHtml}
     </div>`;
 
   // Now that the cache may have changed, re-render the live preview so
@@ -1828,9 +1924,11 @@ function buildMKPreviewHTML() {
     // Build a compact panel per connected platform from the client cache.
     const igData = (typeof mkAudCache !== 'undefined' && mkAudCache && mkAudCache.connected) ? mkAudCache.data : null;
     const ytData = (typeof mkAudCache !== 'undefined' && mkAudCache && mkAudCache.ytConnected) ? mkAudCache.yt : null;
+    const ttData = (typeof mkAudCache !== 'undefined' && mkAudCache && mkAudCache.ttConnected) ? mkAudCache.tt : null;
 
     const igPath = 'M12 2.2c3.2 0 3.6 0 4.85.07 1.17.05 1.8.25 2.22.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.05.41 2.22.06 1.26.07 1.64.07 4.82s-.01 3.57-.07 4.82c-.05 1.17-.25 1.8-.41 2.22a3.72 3.72 0 0 1-.9 1.38c-.42.42-.82.68-1.38.9-.42.16-1.05.36-2.22.41-1.26.06-1.64.07-4.82.07s-3.57-.01-4.82-.07c-1.17-.05-1.8-.25-2.22-.41a3.72 3.72 0 0 1-1.38-.9 3.72 3.72 0 0 1-.9-1.38c-.16-.42-.36-1.05-.41-2.22C2.21 15.57 2.2 15.19 2.2 12s.01-3.57.07-4.82c.05-1.17.25-1.8.41-2.22.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.05-.36 2.22-.41C8.43 2.21 8.81 2.2 12 2.2M12 0C8.74 0 8.33.01 7.05.07 5.78.13 4.9.33 4.14.63a5.92 5.92 0 0 0-2.13 1.39A5.92 5.92 0 0 0 .62 4.14C.33 4.9.13 5.78.07 7.05.01 8.33 0 8.74 0 12c0 3.26.01 3.67.07 4.95.06 1.27.26 2.15.56 2.91a5.92 5.92 0 0 0 1.39 2.13c.66.66 1.32 1.06 2.13 1.39.76.3 1.64.5 2.91.56C8.33 23.99 8.74 24 12 24c3.26 0 3.67-.01 4.95-.07 1.27-.06 2.15-.26 2.91-.56a5.92 5.92 0 0 0 2.13-1.39c.66-.66 1.06-1.32 1.39-2.13.3-.76.5-1.64.56-2.91.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.06-1.27-.26-2.15-.56-2.91a5.92 5.92 0 0 0-1.39-2.13A5.92 5.92 0 0 0 19.86.62c-.76-.3-1.64-.5-2.91-.56C15.67.01 15.26 0 12 0Zm0 5.84a6.16 6.16 0 1 0 0 12.32 6.16 6.16 0 0 0 0-12.32Zm0 10.16a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm6.41-11.88a1.44 1.44 0 1 0 0 2.88 1.44 1.44 0 0 0 0-2.88Z';
     const ytPath = 'M23.5 6.2a3 3 0 0 0-2.1-2.12C19.54 3.58 12 3.58 12 3.58s-7.54 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.07 0 12 0 12s0 3.93.5 5.8a3 3 0 0 0 2.1 2.12c1.86.5 9.4.5 9.4.5s7.54 0 9.4-.5a3 3 0 0 0 2.1-2.12C24 15.93 24 12 24 12s0-3.93-.5-5.8ZM9.55 15.57V8.43L15.82 12l-6.27 3.57Z';
+    const ttPath = 'M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5.8 20.1a6.34 6.34 0 0 0 10.86-4.43V8.83a8.16 8.16 0 0 0 4.77 1.52V6.9a4.85 4.85 0 0 1-1.84-.21Z';
     const svgFor = (path, sz) => `<svg viewBox="0 0 24 24" width="${sz}" height="${sz}" fill="currentColor"><path d="${path}"></path></svg>`;
 
     const panels = [];
@@ -1871,6 +1969,24 @@ function buildMKPreviewHTML() {
         attribution: lastSync ? 'Verified by YouTube &bull; Last synced ' + escapeHtml(lastSync) : 'Verified by YouTube',
         stats: stats,
         hasDemo: !!(ytData.demographics_gender || ytData.demographics_top_countries),
+      });
+    }
+
+    if (ttData) {
+      const stats = [];
+      if (typeof ttData.follower_count === 'number') stats.push({ n: formatNumberShort(ttData.follower_count), l: 'Followers' });
+      if (typeof ttData.likes_count === 'number') stats.push({ n: formatNumberShort(ttData.likes_count), l: 'Total Likes' });
+      if (typeof ttData.video_count === 'number') stats.push({ n: formatNumberShort(ttData.video_count), l: 'Videos' });
+      if (typeof ttData.following_count === 'number') stats.push({ n: formatNumberShort(ttData.following_count), l: 'Following' });
+      if (typeof ttData.avg_likes_per_video === 'number') stats.push({ n: formatNumberShort(Math.round(ttData.avg_likes_per_video)), l: 'Avg Likes/Video' });
+      const lastSync = (typeof formatLastRefreshed === 'function') ? formatLastRefreshed(ttData.data_last_fetched_at) : '';
+      panels.push({
+        key: 'tiktok', label: 'TikTok', path: ttPath,
+        grad: '#010101',
+        handle: ttData.tt_display_name || 'TikTok',
+        attribution: lastSync ? 'Verified by TikTok &bull; Last synced ' + escapeHtml(lastSync) : 'Verified by TikTok',
+        stats: stats,
+        hasDemo: false,
       });
     }
 
@@ -1966,6 +2082,10 @@ function buildMKPreviewHTML() {
     const ytTotData = (typeof mkAudCache !== 'undefined' && mkAudCache && mkAudCache.ytConnected) ? mkAudCache.yt : null;
     if (ytTotData && typeof ytTotData.subscriber_count === 'number' && ytTotData.subscriber_count > 0) {
       sources.push({ platform: 'YouTube', count: ytTotData.subscriber_count });
+    }
+    const ttTotData = (typeof mkAudCache !== 'undefined' && mkAudCache && mkAudCache.ttConnected) ? mkAudCache.tt : null;
+    if (ttTotData && typeof ttTotData.follower_count === 'number' && ttTotData.follower_count > 0) {
+      sources.push({ platform: 'TikTok', count: ttTotData.follower_count });
     }
     if (sources.length > 0) {
       const totalCount = sources.reduce((s, x) => s + x.count, 0);
@@ -2214,6 +2334,7 @@ mkRegisterAction('remove-carousel-image', (e, el) => removeMKCarouselImage(parse
 mkRegisterAction('go-to-instagram-connect', () => goToInstagramConnect());
 mkRegisterAction('manual-refresh-ig', () => manualRefreshIG());
 mkRegisterAction('manual-refresh-yt', () => manualRefreshYT());
+mkRegisterAction('manual-refresh-tt', () => manualRefreshTT());
 
 // Copy media kit link (template literal)
 mkRegisterAction('copy-mk-link', (e, el) => copyBioLink(el.dataset.mkUrl, el));
