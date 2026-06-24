@@ -6130,6 +6130,8 @@
   .settings-s-266a6c { width:100%;padding:11px;background:transparent;border:1px solid var(--accent);color:var(--text);border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.2s; }
   .settings-s-266a6c:hover { background:rgba(124,58,237,0.10);border-color:var(--accent2); }
   .settings-acct-stack { margin-top:10px; }
+  .settings-acct-x { flex-shrink:0;width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:7px;cursor:pointer;transition:all 0.2s;padding:0; }
+  .settings-acct-x:hover { border-color:rgba(239,68,68,0.4);color:#fca5a5;background:rgba(239,68,68,0.08); }
   .settings-s-ac5f6a { width:32px;height:32px;border-radius:50%;background:rgba(74,222,128,0.12);border:1px solid rgba(74,222,128,0.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden; }
   .settings-s-a34021 { font-size:11px;color:var(--muted);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
   .settings-s-98265b { position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0; }
@@ -10627,8 +10629,10 @@
             <div class="settings-s-279016">Instagram Connected</div>
             <div id="settings-instagram-username" class="settings-s-a34021">@username</div>
           </div>
+          <button data-settings-action="show-instagram-disconnect" class="settings-acct-x" aria-label="Disconnect Instagram">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
         </div>
-        <button id="instagram-disconnect-btn" data-settings-action="show-instagram-disconnect" class="settings-s-18bcb9 dash-h-80742c">Disconnect Instagram</button>
         <div id="instagram-disconnect-confirm" class="settings-s-ed8a71">
           <p class="settings-s-57abe2">Disconnect Instagram?</p>
           <p class="settings-s-c06372">Ryxa will stop syncing your Instagram data and your stored insights will be removed.</p>
@@ -10657,8 +10661,10 @@
             <div class="settings-s-279016">YouTube Connected</div>
             <div id="settings-youtube-title" class="settings-s-a34021">Channel</div>
           </div>
+          <button data-settings-action="show-youtube-disconnect" class="settings-acct-x" aria-label="Disconnect YouTube">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
         </div>
-        <button id="youtube-disconnect-btn" data-settings-action="show-youtube-disconnect" class="settings-s-18bcb9 dash-h-80742c">Disconnect YouTube</button>
         <div id="youtube-disconnect-confirm" class="settings-s-ed8a71">
           <p class="settings-s-57abe2">Disconnect YouTube?</p>
           <p class="settings-s-c06372">Ryxa will stop syncing your YouTube data and your stored insights will be removed.</p>
