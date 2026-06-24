@@ -32,7 +32,8 @@ const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12
 //   - user.info.basic   open_id, union_id, avatar_url, display_name
 //   - user.info.profile profile_web_link, profile_deep_link, bio_description, is_verified
 //   - user.info.stats   follower_count, following_count, likes_count, video_count
-const SCOPE = 'user.info.basic,user.info.profile,user.info.stats';
+//   - video.list        recent public videos (for the Recent Videos strip)
+const SCOPE = 'user.info.basic,user.info.profile,user.info.stats,video.list';
 
 function getSigningKey() {
   return crypto.createHash('sha256').update('ryxa_tt_ticket_' + TICKET_SIGNING_SECRET).digest();
