@@ -635,12 +635,12 @@ function buildTtPanel(tt) {
   if (vids.length) {
     const cards = vids.slice(0, 6).map(v => {
       const cover = esc(v.cover);
-      const link = v.link ? esc(v.link) : null;
+      const link = validExternalUrl(v.link);
       const views = (typeof v.views === 'number') ? formatNumber(v.views) : null;
       const metaHtml = views ? `<div class="tt-vid-meta"><span class="tt-vid-views">${esc(views)} views</span></div>` : '';
       const inner = `<div class="tt-vid-thumb"><img src="${cover}" alt="" loading="lazy"></div>${metaHtml}`;
       return link
-        ? `<a class="tt-vid-card" href="${link}" target="_blank" rel="noopener nofollow">${inner}</a>`
+        ? `<a class="tt-vid-card" href="${esc(link)}" target="_blank" rel="noopener nofollow">${inner}</a>`
         : `<div class="tt-vid-card">${inner}</div>`;
     }).join('');
     recentHtml = `<div class="ig-subsection">
