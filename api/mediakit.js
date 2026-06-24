@@ -884,7 +884,7 @@ function renderMediaKitContent(profile, kit, ig, yt) {
   // Instagram is wired up, but the structure already accumulates so future
   // platforms (TikTok, YouTube, etc.) can each contribute their followers_count.
   const totalFollowersHtml = kit.audience_mode === 'automatic'
-    ? buildTotalFollowers(kit, ig)
+    ? buildTotalFollowers(kit, ig, yt)
     : '';
 
   const inner = `<div class="top-actions">
@@ -911,10 +911,13 @@ function renderMediaKitContent(profile, kit, ig, yt) {
 // YouTube, etc.) by adding to the `sources` array.
 //
 // Renders only when at least one source has a follower count.
-function buildTotalFollowers(kit, ig) {
+function buildTotalFollowers(kit, ig, yt) {
   const sources = [];
   if (ig && typeof ig.followers_count === 'number' && ig.followers_count > 0) {
     sources.push({ platform: 'Instagram', count: ig.followers_count });
+  }
+  if (yt && typeof yt.subscriber_count === 'number' && yt.subscriber_count > 0) {
+    sources.push({ platform: 'YouTube', count: yt.subscriber_count });
   }
   // Future: push more rows here as platforms come online.
 
