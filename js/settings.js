@@ -605,6 +605,195 @@ function showInstagramMsg(type, text) {
   }
 })();
 
+// ============================================================
+// YouTube Connection (Settings) - mirrors the Instagram block
+// ============================================================
+async function loadYouTubeConnectionStatus() {
+  const disconnectedEl = document.getElementById('settings-youtube-disconnected');
+  const connectedEl = document.getElementById('settings-youtube-connected');
+  const titleEl = document.getElementById('settings-youtube-title');
+  const avatarEl = document.getElementById('settings-youtube-avatar');
+  const msgEl = document.getElementById('settings-youtube-msg');
+  if (msgEl) msgEl.style.display = 'none';
+
+  if (!currentUser) return;
+
+  try {
+    const { data: conn } = await sb
+      .from('youtube_connections')
+      .select('yt_channel_title,yt_custom_url,thumbnail_url,connected_at')
+      .eq('user_id', currentUser.id)
+      .maybeSingle();
+
+    if (conn) {
+      if (disconnectedEl) disconnectedEl.style.display = 'none';
+      if (connectedEl) connectedEl.style.display = 'block';
+      if (titleEl) titleEl.textContent = conn.yt_channel_title || (conn.yt_custom_url || 'Connected');
+      if (avatarEl && conn.thumbnail_url) {
+        avatarEl.innerHTML = '<img src="' + escapeHtml(conn.thumbnail_url) + '" alt="" class="bio-s-0c9434">';
+      }
+    } else {
+      if (disconnectedEl) disconnectedEl.style.display = 'block';
+      if (connectedEl) connectedEl.style.display = 'none';
+    }
+  } catch (err) {
+    console.error('Failed to load YouTube status:', err);
+  }
+}
+
+async function connectYouTubeAccount() {
+  if (!currentUser) return;
+
+  const btn = document.getElementById('settings-youtube-connect-btn');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" class="ds-s-f33c30" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Redirecting to YouTube...';
+  }
+
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session || !session.access_token) {
+      throw new Error('No session');
+    }
+    // Step 1: short-lived signed ticket (POST). Contains our user_id, expires
+    // in 5 minutes, cannot be used as session auth.
+    const ticketRes = await fetch('/api/youtube-oauth-ticket', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + session.access_token }
+    });
+    if (!ticketRes.ok) {
+      const errBody = await ticketRes.json().catch(function() { return {}; });
+      throw new Error(errBody.error || 'ticket_failed');
+    }
+    const ticketJson = await ticketRes.json();
+    if (!ticketJson || !ticketJson.ticket) {
+      throw new Error('Empty ticket response');
+    }
+    // Step 2: navigate to the OAuth start endpoint with the signed ticket.
+    window.location.href = '/api/youtube-oauth-start?ticket=' + encodeURIComponent(ticketJson.ticket);
+  } catch (err) {
+    console.error('Failed to start YouTube OAuth:', err);
+    showYouTubeMsg('error', 'Failed to start connection. Please try again.');
+    resetYouTubeConnectButton(true);
+  }
+}
+
+function resetYouTubeConnectButton(force) {
+  const btn = document.getElementById('settings-youtube-connect-btn');
+  if (!btn) return;
+  if (!force && !/Redirecting to YouTube/i.test(btn.innerText || btn.textContent || '')) return;
+  btn.disabled = false;
+  btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-2C18.88 4 12 4 12 4s-6.88 0-8.59.42a2.78 2.78 0 0 0-1.95 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.41 19c1.71.42 8.59.42 8.59.42s6.88 0 8.59-.42a2.78 2.78 0 0 0 1.95-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"/></svg> Connect YouTube';
+}
+
+function showYouTubeDisconnectConfirm() {
+  const el = document.getElementById('youtube-disconnect-confirm');
+  if (el) el.style.display = 'block';
+}
+
+function hideYouTubeDisconnectConfirm() {
+  const el = document.getElementById('youtube-disconnect-confirm');
+  if (el) el.style.display = 'none';
+}
+
+async function confirmDisconnectYouTube() {
+  if (!currentUser) return;
+
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session || !session.access_token) {
+      throw new Error('No session');
+    }
+    const res = await fetch('/api/youtube-disconnect', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + session.access_token
+      }
+    });
+    if (!res.ok) {
+      const errBody = await res.json().catch(() => ({}));
+      throw new Error(errBody.error || 'Disconnect failed');
+    }
+    hideYouTubeDisconnectConfirm();
+    showYouTubeMsg('success', 'YouTube disconnected.');
+    showDashToast('success', 'YouTube disconnected.');
+    loadYouTubeConnectionStatus();
+    // Invalidate the Media Kit Automatic-tab cache so the pane re-renders
+    // without the disconnected platform.
+    if (typeof mkAudCache !== 'undefined') mkAudCache = null;
+  } catch (err) {
+    console.error('Failed to disconnect YouTube:', err);
+    showYouTubeMsg('error', 'Failed to disconnect. Please try again.');
+  }
+}
+
+function showYouTubeMsg(type, text) {
+  const el = document.getElementById('settings-youtube-msg');
+  if (!el) return;
+  el.style.display = 'block';
+  el.textContent = text;
+  if (type === 'success') {
+    el.style.background = 'rgba(74,222,128,0.08)';
+    el.style.color = '#4ade80';
+    el.style.border = '1px solid rgba(74,222,128,0.2)';
+  } else {
+    el.style.background = 'rgba(239,68,68,0.08)';
+    el.style.color = '#fca5a5';
+    el.style.border = '1px solid rgba(239,68,68,0.2)';
+  }
+}
+
+// Handle ?youtube_status=... return params from the OAuth callback. On a
+// successful connect, fire an immediate data pull so the Media Kit shows real
+// stats right away (rather than waiting for the next cron / editor open).
+(function handleYouTubeReturn() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get('youtube_status');
+    if (!status) return;
+
+    function showWhenReady() {
+      if (typeof showDashToast !== 'function') {
+        setTimeout(showWhenReady, 200);
+        return;
+      }
+      if (status === 'connected') {
+        showDashToast('success', 'YouTube connected!');
+        // Fire-and-forget initial data pull.
+        (async function() {
+          try {
+            const { data: { session } } = await sb.auth.getSession();
+            if (session && session.access_token) {
+              fetch('/api/youtube-data-fetch', {
+                method: 'POST',
+                headers: { Authorization: 'Bearer ' + session.access_token }
+              }).catch(function(e) { console.error('Initial YouTube fetch failed (non-fatal):', e); });
+            }
+          } catch (e) {
+            console.error('Initial YouTube fetch setup failed:', e);
+          }
+        })();
+      } else if (status === 'cancelled') {
+        showDashToast('info', 'YouTube connection cancelled.');
+      } else if (status === 'error') {
+        const msg = params.get('youtube_message') || 'Could not connect YouTube.';
+        showDashToast('error', msg);
+      }
+      // Clean up URL so refresh doesn't re-trigger.
+      const cleanUrl = window.location.pathname;
+      window.history.replaceState({}, '', cleanUrl);
+      if (typeof loadYouTubeConnectionStatus === 'function') {
+        loadYouTubeConnectionStatus();
+      }
+      if (typeof mkAudCache !== 'undefined') mkAudCache = null;
+    }
+    showWhenReady();
+  } catch (e) {
+    console.error('handleYouTubeReturn failed:', e);
+  }
+})();
+
 // ---------- From dashboard.html L11347-11348: Settings Turnstile constants ----------
 const SETTINGS_TURNSTILE_SITE_KEY = '0x4AAAAAAC9W8avdI3sdVEcc';
 let settingsTurnstileWidgetId = null;
@@ -896,6 +1085,10 @@ settingsRegisterAction('connect-instagram', () => connectInstagramAccount());
 settingsRegisterAction('show-instagram-disconnect', () => showInstagramDisconnectConfirm());
 settingsRegisterAction('hide-instagram-disconnect', () => hideInstagramDisconnectConfirm());
 settingsRegisterAction('confirm-disconnect-instagram', () => confirmDisconnectInstagram());
+settingsRegisterAction('connect-youtube', () => connectYouTubeAccount());
+settingsRegisterAction('show-youtube-disconnect', () => showYouTubeDisconnectConfirm());
+settingsRegisterAction('hide-youtube-disconnect', () => hideYouTubeDisconnectConfirm());
+settingsRegisterAction('confirm-disconnect-youtube', () => confirmDisconnectYouTube());
 
 // Currency
 settingsRegisterAction('change-currency', (e, el) => changeDisplayCurrency(el.value));
