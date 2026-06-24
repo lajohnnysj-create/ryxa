@@ -108,6 +108,26 @@ function rowsToKeyed(report, dimCount) {
   return out.length ? out : null;
 }
 
+// Normalize YouTube demographic keys into the same shape Instagram stores, so
+// the Media Kit render helpers work unchanged:
+//   gender: 'female'/'male'/other -> 'F'/'M'/'O'
+//   age:    'age18-24' -> '18-24', 'age65-' -> '65+'
+function normYtGender(k) {
+  const s = String(k || '').toLowerCase();
+  if (s === 'female') return 'F';
+  if (s === 'male') return 'M';
+  return 'O';
+}
+function normYtAge(k) {
+  const s = String(k || '').toLowerCase().replace(/^age/, '');
+  if (s === '65-' || s === '65' || s === '65plus' || s === '65+') return '65+';
+  return s;
+}
+function normKeyed(arr, mapKeysFn) {
+  if (!Array.isArray(arr)) return arr;
+  return arr.map((it) => ({ keys: mapKeysFn(it.keys || []), value: it.value }));
+}
+
 // ============================================================
 // LOAD CONNECTION ROW
 // ============================================================
@@ -282,7 +302,7 @@ async function refreshYouTubeData(userId) {
     const genderReport = await ytAnalytics(token, {
       startDate, endDate, metrics: 'viewerPercentage', dimensions: 'gender',
     });
-    collected.demographics_gender = rowsToKeyed(genderReport, 1);
+    collected.demographics_gender = normKeyed(rowsToKeyed(genderReport, 1), (ks) => [normYtGender(ks[0])]);
   } catch (e) {
     errors.push('demographics_gender:' + e.message);
   }
@@ -291,7 +311,7 @@ async function refreshYouTubeData(userId) {
     const ageGenderReport = await ytAnalytics(token, {
       startDate, endDate, metrics: 'viewerPercentage', dimensions: 'ageGroup,gender',
     });
-    collected.demographics_age_gender = rowsToKeyed(ageGenderReport, 2);
+    collected.demographics_age_gender = normKeyed(rowsToKeyed(ageGenderReport, 2), (ks) => [normYtAge(ks[0]), normYtGender(ks[1])]);
   } catch (e) {
     errors.push('demographics_age_gender:' + e.message);
   }
