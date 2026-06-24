@@ -589,6 +589,7 @@ async function load() {
   if (window._ssrHydrated && window._ssrUsername) {
     trackPageView(window._ssrUsername, 'mediakit');
     initIgAgeGenderTabs();
+    initIgPlatformTabs();
     initVideoArrows();
     return;
   }
@@ -650,6 +651,34 @@ async function trackPageView(username, pageType) {
   } catch (e) {
     console.error('trackPageView failed:', e);
   }
+}
+
+// Switch between platform panels (Instagram / YouTube) when a platform tab is
+// clicked. All panels are server-rendered; this toggles the [hidden] attribute
+// and the active tab styling. Mirrors the age/gender tab switcher.
+function initIgPlatformTabs() {
+  const tabRoots = document.querySelectorAll('.ig-platform-tabs');
+  tabRoots.forEach(tabsRoot => {
+    const section = tabsRoot.closest('.ig-section') || document;
+    tabsRoot.addEventListener('click', e => {
+      const btn = e.target && e.target.closest('[data-platform-tab]');
+      if (!btn) return;
+      const which = btn.getAttribute('data-platform-tab');
+      tabsRoot.querySelectorAll('.ig-platform-tab').forEach(t => {
+        t.classList.remove('is-active');
+        t.setAttribute('aria-selected', 'false');
+      });
+      btn.classList.add('is-active');
+      btn.setAttribute('aria-selected', 'true');
+      section.querySelectorAll('[data-platform-panel]').forEach(panel => {
+        if (panel.getAttribute('data-platform-panel') === which) {
+          panel.removeAttribute('hidden');
+        } else {
+          panel.setAttribute('hidden', '');
+        }
+      });
+    });
+  });
 }
 
 // Wire the All/Male/Female tabs in the IG age-gender chart.
