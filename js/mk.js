@@ -1976,9 +1976,27 @@ function buildMKPreviewHTML() {
       const stats = [];
       if (typeof ttData.follower_count === 'number') stats.push({ n: formatNumberShort(ttData.follower_count), l: 'Followers' });
       if (typeof ttData.likes_count === 'number') stats.push({ n: formatNumberShort(ttData.likes_count), l: 'Total Likes' });
-      if (typeof ttData.avg_likes_per_video === 'number' && typeof ttData.follower_count === 'number' && ttData.follower_count > 0) {
-        stats.push({ n: ((ttData.avg_likes_per_video / ttData.follower_count) * 100).toFixed(2) + '%', l: 'Engagement' });
-      }
+      // Recent Engagement from recent_media per-video stats (view-based, with a
+      // followers-based fallback). Mirrors computeTtRecentEngagement in mediakit.js.
+      (function () {
+        const vids = Array.isArray(ttData.recent_media) ? ttData.recent_media : [];
+        let sv = 0, sl = 0, sc = 0, nn = 0;
+        for (const v of vids) {
+          if (!v) continue;
+          const lk = (typeof v.likes === 'number') ? v.likes : null;
+          const cm = (typeof v.comments === 'number') ? v.comments : null;
+          if (lk == null && cm == null) continue;
+          sl += lk || 0; sc += cm || 0;
+          if (typeof v.views === 'number' && v.views > 0) sv += v.views;
+          nn++;
+        }
+        let er = null;
+        if (nn > 0) {
+          if (sv > 0) er = ((sl + sc) / sv) * 100;
+          else if (typeof ttData.follower_count === 'number' && ttData.follower_count > 0) er = (((sl + sc) / nn) / ttData.follower_count) * 100;
+        }
+        if (er != null) stats.push({ n: er.toFixed(2) + '%', l: 'Engagement' });
+      })();
       if (typeof ttData.video_count === 'number') stats.push({ n: formatNumberShort(ttData.video_count), l: 'Videos' });
       if (typeof ttData.following_count === 'number') stats.push({ n: formatNumberShort(ttData.following_count), l: 'Following' });
       if (typeof ttData.avg_likes_per_video === 'number') stats.push({ n: formatNumberShort(Math.round(ttData.avg_likes_per_video)), l: 'Avg Likes/Video' });
