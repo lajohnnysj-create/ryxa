@@ -166,7 +166,7 @@
   <div style="margin-bottom:48px;">
     <span style="font-size:12px;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent2);font-weight:600;display:block;margin-bottom:12px;">Legal</span>
     <h1 style="font-family:'Syne',sans-serif;font-size:clamp(32px,5vw,48px);font-weight:800;letter-spacing:-2px;margin-bottom:12px;">Privacy Policy</h1>
-    <p style="color:var(--muted);font-size:14px;">Effective date: April 12, 2026 · Last updated: May 28, 2026</p>
+    <p style="color:var(--muted);font-size:14px;">Effective date: April 12, 2026 · Last updated: June 24, 2026</p>
   </div>
 
   <div style="display:flex;flex-direction:column;gap:40px;font-size:15px;line-height:1.8;color:var(--muted);">
@@ -282,6 +282,7 @@
         <li><strong style="color:var(--text);">Meta Platforms (Instagram)</strong>: social account integration via the official Instagram Graph API, only when you choose to connect your Instagram account. See Section 8 below for details. <a href="https://www.facebook.com/policy.php" target="_blank" rel="noopener" style="color:var(--accent2);">Privacy policy</a></li>
         <li><strong style="color:var(--text);">Google LLC (Analytics)</strong>: web analytics for marketing and tool pages via Google Analytics 4. We send aggregate usage data (page views, approximate location, referrer, device type, anonymized client identifier). GA4 is not loaded on the signed-in dashboard. Opt out at any time via our <a href="/do-not-sell.html" style="color:var(--accent2);">Do Not Sell or Share My Personal Information</a> page. <a href="https://policies.google.com/privacy" target="_blank" rel="noopener" style="color:var(--accent2);">Privacy policy</a></li>
         <li><strong style="color:var(--text);">Google LLC (Calendar)</strong>: calendar integration via the official Google Calendar API, only when you choose to connect your Google Calendar. See Section 9 below for details. <a href="https://policies.google.com/privacy" target="_blank" rel="noopener" style="color:var(--accent2);">Privacy policy</a></li>
+        <li><strong style="color:var(--text);">Google LLC (YouTube)</strong>: channel statistics and audience insights via the YouTube API Services, only when you choose to connect your YouTube channel. See Section 10 below for details. <a href="https://policies.google.com/privacy" target="_blank" rel="noopener" style="color:var(--accent2);">Privacy policy</a></li>
         <li><strong style="color:var(--text);">Cloudflare (Turnstile)</strong>, bot protection on our login and signup forms. Turnstile runs invisibly in your browser to verify you're human, without showing a CAPTCHA. Cloudflare collects certain browser characteristics and behavioral signals to perform this check. Refer to the <a href="https://www.cloudflare.com/turnstile-privacy-policy/" target="_blank" rel="noopener" style="color:var(--accent2);">Turnstile Privacy Addendum</a> for details. <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener" style="color:var(--accent2);">Privacy policy</a></li>
       </ul>
     </div>
@@ -361,14 +362,47 @@
     </div>
 
     <div>
-      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">10. Where your data is stored</h2>
+      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">10. Connecting your YouTube channel</h2>
+      <p style="margin-bottom:12px;">Ryxa lets you connect your YouTube channel so that verified statistics and audience insights appear automatically on your Media Kit. Connecting is always optional, Ryxa works fully without it.</p>
+
+      <p style="margin-bottom:12px;"><strong style="color:var(--text);">How the connection works.</strong> When you click "Connect YouTube," you're sent to Google's official OAuth authorization page. You log in to Google directly, Ryxa never sees your password. After you approve, Google sends Ryxa an access token and refresh token that let us read your channel's statistics and analytics on your behalf. You can revoke this access at any time (see below).</p>
+
+      <p style="margin-bottom:12px;"><strong style="color:var(--text);">What permissions we request.</strong> Ryxa requests these Google scopes:</p>
+      <ul style="padding-left:22px;margin-bottom:12px;">
+        <li><code style="font-size:12px;color:var(--accent2);">youtube.readonly</code>, Lets Ryxa read your channel's public statistics and profile, and a limited list of your most recent uploads. This scope is read-only: Ryxa cannot upload, modify, manage, or delete any videos, comments, playlists, or channel settings.</li>
+        <li><code style="font-size:12px;color:var(--accent2);">yt-analytics.readonly</code>, Lets Ryxa read your own channel's aggregate analytics (recent views, watch time, average view duration, and anonymized audience demographics) so they can be shown on your Media Kit.</li>
+        <li><code style="font-size:12px;color:var(--accent2);">userinfo.email</code>, Lets us display the email address of the connected Google account in your dashboard so you can confirm you connected the right account.</li>
+      </ul>
+
+      <p style="margin-bottom:12px;"><strong style="color:var(--text);">What we receive from YouTube.</strong> When you grant these permissions, Ryxa may receive: your channel title, handle, and thumbnail; channel statistics (subscriber count, total views, video count); recent performance over a trailing 30-day window (views, watch time, average view duration, subscribers gained, likes, comments, shares); aggregate, anonymized audience demographics (age range, gender, and top countries); and metadata for a limited number of your most recent uploads (title, thumbnail, and public view, like, and comment counts). We do not receive viewer identities or any private viewer information.</p>
+
+      <p style="margin-bottom:12px;"><strong style="color:var(--text);">How we use this data.</strong> YouTube data is used solely to populate the Audience &amp; Stats section of your Media Kit, which is shown to you and to the people you choose to share your Media Kit with. We do NOT sell, rent, or share your YouTube data with third parties. We do NOT use it for advertising. We do NOT use it to train AI models.</p>
+
+      <p style="margin-bottom:12px;"><strong style="color:var(--text);">How we store this data.</strong> Your YouTube access token and refresh token are stored in our Supabase database, encrypted at rest. The statistics and insights we fetch are cached so your Media Kit loads quickly. Access is restricted by row-level security policies so only you and our authenticated systems can read your data. We refresh the cached data periodically so your Media Kit stays current, and you can also trigger a manual refresh from your dashboard at any time.</p>
+
+      <p style="margin-bottom:12px;"><strong style="color:var(--text);">How to disconnect or delete your YouTube data.</strong> You can disconnect YouTube from Ryxa at any time:</p>
+      <ul style="padding-left:22px;margin-bottom:12px;">
+        <li><strong style="color:var(--text);">Inside Ryxa:</strong> Go to Settings → Connected Accounts → Disconnect YouTube. This revokes our access on Google's side and immediately deletes all cached YouTube data from our database.</li>
+        <li><strong style="color:var(--text);">Inside Google:</strong> Go to <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener" style="color:var(--accent2);">myaccount.google.com/permissions</a> → find "Ryxa" → Remove access. This revokes Ryxa's access immediately.</li>
+        <li><strong style="color:var(--text);">By request:</strong> Email <a href="mailto:hello@ryxa.io" style="color:var(--accent2);">hello@ryxa.io</a> and we will permanently delete all YouTube data associated with your account within 30 days.</li>
+      </ul>
+
+      <p style="margin-bottom:12px;"><strong style="color:var(--text);">YouTube API Services.</strong> Ryxa's YouTube features use the YouTube API Services. By connecting your channel, you agree to be bound by the <a href="https://www.youtube.com/t/terms" target="_blank" rel="noopener" style="color:var(--accent2);">YouTube Terms of Service</a>. Information handled through these services is also subject to the <a href="https://policies.google.com/privacy" target="_blank" rel="noopener" style="color:var(--accent2);">Google Privacy Policy</a>.</p>
+
+      <p style="margin-bottom:12px;"><strong style="color:var(--text);">Compliance with Google API Services User Data Policy.</strong> Ryxa's use and transfer to any other app of information received from Google APIs, including the YouTube API Services, adheres to the <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noopener" style="color:var(--accent2);">Google API Services User Data Policy</a>, including the Limited Use requirements. We will not transfer YouTube-derived data to any ad network, data broker, or other advertising or monetization-related service.</p>
+
+      <p><strong style="color:var(--text);">Note on affiliation.</strong> Ryxa is an independent platform. We are not affiliated with, endorsed by, or sponsored by YouTube or Google LLC.</p>
+    </div>
+
+    <div>
+      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">11. Where your data is stored</h2>
       <p style="margin-bottom:12px;">Your primary account data (database records, authentication, cover images) is stored in the United States in AWS us-east-2 (Ohio), via Supabase.</p>
       <p style="margin-bottom:12px;">Creator-uploaded files for Digital Products and Course Lessons (PDFs, images, audio, archives, and other supported formats) are stored on Cloudflare R2, a globally distributed object storage network. Course lesson videos are stored and delivered through Bunny.net's Bunny Stream service, a globally distributed video CDN. Cloudflare and Bunny may route or replicate this data across multiple regions to ensure availability and delivery performance. Files in R2 are stored in private buckets and only delivered to authorized recipients via short-lived signed URLs. Bunny-hosted videos are similarly delivered via signed URLs that expire after a short period.</p>
       <p>If you are accessing the service from outside the US, by using Ryxa you consent to your data being transferred to and processed in the United States and, for file and video storage, across Cloudflare's and Bunny's global networks.</p>
     </div>
 
     <div>
-      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">11. Data retention</h2>
+      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">12. Data retention</h2>
       <p style="margin-bottom:12px;"><strong style="color:var(--text);">Active accounts:</strong> We retain your data as long as your account is active.</p>
       <p style="margin-bottom:12px;"><strong style="color:var(--text);">Cancelled Pro/Max subscriptions:</strong> When you cancel Pro or Max, your account downgrades to Free at the end of your billing period, but your feature data (grid plans, scripts, custom themes, media kit, audit history) is preserved. If you resubscribe later, your data will be right where you left it.</p>
       <p style="margin-bottom:12px;"><strong style="color:var(--text);">Chatbox conversations:</strong> Stored as long as your account is active. You can delete individual conversations at any time from the Chatbox sidebar, deletion is permanent and removes all messages in that conversation.</p>
@@ -376,7 +410,7 @@
     </div>
 
     <div>
-      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">12. Your rights</h2>
+      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">13. Your rights</h2>
       <p style="margin-bottom:12px;">Regardless of where you live, you have the right to:</p>
       <ul style="padding-left:22px;margin-bottom:12px;">
         <li><strong>Access</strong> your data, request a copy of what we store</li>
@@ -391,23 +425,23 @@
     </div>
 
     <div>
-      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">13. Security</h2>
-      <p>We take reasonable measures to protect your data, including encrypted connections (HTTPS everywhere), industry-standard authentication practices, row-level security policies on all database tables, encryption of sensitive integration tokens (such as Google Calendar and Instagram access tokens) at rest, private storage buckets with time-limited signed download URLs for uploaded files, and limited access to production data. No online service is 100% secure, but we work to minimize risk.</p>
+      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">14. Security</h2>
+      <p>We take reasonable measures to protect your data, including encrypted connections (HTTPS everywhere), industry-standard authentication practices, row-level security policies on all database tables, encryption of sensitive integration tokens (such as Google Calendar, YouTube, and Instagram access tokens) at rest, private storage buckets with time-limited signed download URLs for uploaded files, and limited access to production data. No online service is 100% secure, but we work to minimize risk.</p>
       <p style="margin-top:12px;">In the event of a data breach affecting your personal information, we will notify you within 72 hours of discovery via email, in accordance with applicable laws (including CCPA in California and GDPR if applicable). The notification will include the nature of the breach, the data affected, and steps we are taking to address it.</p>
     </div>
 
     <div>
-      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">14. Children's privacy</h2>
+      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">15. Children's privacy</h2>
       <p>Ryxa is not directed at children under 13. We do not knowingly collect personal information from anyone under 13. If you are a parent and believe your child has signed up, please contact us at hello@ryxa.io and we will delete the account.</p>
     </div>
 
     <div>
-      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">15. Changes to this policy</h2>
+      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">16. Changes to this policy</h2>
       <p>We may update this policy as the service evolves. We will update the "Last updated" date at the top. For material changes, we will notify you by email or via an in-app notice. Continued use of the service after updates constitutes acceptance of the updated policy.</p>
     </div>
 
     <div>
-      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">16. Contact</h2>
+      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">17. Contact</h2>
       <p>Questions about privacy? Email hello@ryxa.io.</p>
       <p style="margin-top:12px;">MRLA Media LLC</p>
     </div>
