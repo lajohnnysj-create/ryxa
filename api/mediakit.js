@@ -675,10 +675,13 @@ function buildAudienceAutomatic(kit, data) {
     `<div class="ig-platform-panel" data-platform-panel="${esc(p.key)}"${i === 0 ? '' : ' hidden'}>${p.panel}</div>`
   ).join('');
 
+  const donut = buildFollowerSplitDonut(data);
+
   return `<div class="section ig-section">
     <div class="section-title">Audience &amp; Stats</div>
     ${tabs}
     ${panels}
+    ${donut}
   </div>`;
 }
 
@@ -980,6 +983,75 @@ function renderMediaKitContent(profile, kit, ig, yt, tt) {
 // YouTube, etc.) by adding to the `sources` array.
 //
 // Renders only when at least one source has a follower count.
+// ==========================================================================
+// Cross-platform follower-split donut.
+//
+// Dynamic and registry-driven: any platform with a positive follower count
+// joins automatically, and disconnected platforms (null data) drop out. To add
+// a future platform, add one line to FOLLOWER_SPLIT_REGISTRY — no other change.
+// Reads only the in-memory follower counts already loaded for this render, so
+// there is nothing to persist. Renders only when 2+ platforms have followers
+// (a single platform is just "100% X"). Pure inline SVG so it survives the
+// page CSP and the PDF export.
+// ==========================================================================
+const FOLLOWER_SPLIT_REGISTRY = [
+  { platform: 'Instagram', color: '#E1306C', get: (d) => d.instagram && d.instagram.followers_count },
+  { platform: 'YouTube',   color: '#FF0000', get: (d) => d.youtube && d.youtube.subscriber_count },
+  { platform: 'TikTok',    color: '#25F4EE', get: (d) => d.tiktok && d.tiktok.follower_count },
+  // Future platforms plug in here, e.g.:
+  // { platform: 'Pinterest', color: '#E60023', get: (d) => d.pinterest && d.pinterest.follower_count },
+  // { platform: 'Facebook',  color: '#1877F2', get: (d) => d.facebook && d.facebook.follower_count },
+];
+
+function buildFollowerSplitDonut(data) {
+  data = data || {};
+  const slices = [];
+  for (const entry of FOLLOWER_SPLIT_REGISTRY) {
+    const c = entry.get(data);
+    if (typeof c === 'number' && c > 0) slices.push({ platform: entry.platform, color: entry.color, count: c });
+  }
+  if (slices.length < 2) return '';
+
+  const total = slices.reduce((s, x) => s + x.count, 0);
+  const size = 188, stroke = 28, radius = (size - stroke) / 2, cx = size / 2, cy = size / 2;
+  const circ = 2 * Math.PI * radius;
+
+  let cumulative = 0;
+  const segs = slices.map((s) => {
+    const dash = (s.count / total) * circ;
+    const seg = `<circle cx="${cx}" cy="${cy}" r="${radius}" fill="none" stroke="${s.color}" stroke-width="${stroke}" stroke-dasharray="${dash.toFixed(2)} ${(circ - dash).toFixed(2)}" stroke-dashoffset="${(-cumulative).toFixed(2)}"></circle>`;
+    cumulative += dash;
+    return seg;
+  }).join('');
+
+  const legend = slices.map((s) => {
+    const pct = Math.round((s.count / total) * 100);
+    return `<div class="fsd-row">
+      <span class="fsd-dot" style="background:${s.color}"></span>
+      <span class="fsd-name">${esc(s.platform)}</span>
+      <span class="fsd-pct">${pct}%</span>
+      <span class="fsd-count">${esc(formatNumber(s.count))}</span>
+    </div>`;
+  }).join('');
+
+  return `<div class="fsd">
+    <div class="fsd-title">Audience Split</div>
+    <div class="fsd-body">
+      <div class="fsd-chart">
+        <svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}" role="img" aria-label="Share of total followers by platform">
+          <g transform="rotate(-90 ${cx} ${cy})">
+            <circle cx="${cx}" cy="${cy}" r="${radius}" fill="none" stroke="var(--border)" stroke-width="${stroke}"></circle>
+            ${segs}
+          </g>
+          <text x="${cx}" y="${cy - 2}" text-anchor="middle" class="fsd-cnum">${esc(formatNumber(total))}</text>
+          <text x="${cx}" y="${cy + 15}" text-anchor="middle" class="fsd-clbl">Total</text>
+        </svg>
+      </div>
+      <div class="fsd-legend">${legend}</div>
+    </div>
+  </div>`;
+}
+
 function buildTotalFollowers(kit, ig, yt, tt) {
   const sources = [];
   if (ig && typeof ig.followers_count === 'number' && ig.followers_count > 0) {
