@@ -1282,6 +1282,7 @@ async function deleteMKStaleBgs() {
 let mkAudCache = null;        // last-fetched IG data {connected, data, error}
 let mkAudInflight = false;    // prevent overlapping fetches
 let mkAudRefreshLockUntil = 0; // unix ms; refresh button disabled while in future
+let mkYtRefreshLockUntil = 0;  // unix ms; YouTube refresh button cooldown
 
 function setAudienceMode(mode) {
   mkState.audience_mode = (mode === 'automatic') ? 'automatic' : 'manual';
@@ -1330,34 +1331,57 @@ async function loadAudienceAutomatic() {
 
     if (error) throw error;
 
-    if (!conn) {
-      mkAudCache = { connected: false };
-      renderAudienceAutomatic();
-      return;
+    // YouTube connection (parallel to Instagram). Safe public-ish columns only.
+    let ytConn = null;
+    try {
+      const { data: yc } = await sb
+        .from('youtube_connections')
+        .select('yt_channel_title,yt_custom_url,thumbnail_url,subscriber_count,view_count,video_count,views_30d,watch_time_minutes_30d,avg_view_duration_seconds,subscribers_gained_30d,likes_30d,comments_30d,shares_30d,engagement_rate,avg_views_per_video,demographics_age_gender,demographics_gender,demographics_top_countries,recent_media,data_last_fetched_at,data_fetch_error')
+        .eq('user_id', currentUser.id)
+        .maybeSingle();
+      ytConn = yc || null;
+    } catch (e) {
+      console.error('loadAudienceAutomatic YT', e);
     }
 
-    // Decide: do we need to refresh from Meta, or is cache fresh enough?
-    const cacheTs = conn.data_last_fetched_at ? new Date(conn.data_last_fetched_at).getTime() : 0;
-    const ageMs = Date.now() - cacheTs;
-    const STALE_MS = 24 * 60 * 60 * 1000; // 24h
-    const cacheStale = !cacheTs || ageMs > STALE_MS;
+    const STALE_MS = 24 * 60 * 60 * 1000; // 24h, shared by both platforms
 
-    if (cacheStale) {
-      // Trigger a fresh fetch in the background
-      const refreshed = await refreshIGData();
-      if (refreshed && refreshed.ok && refreshed.data) {
-        mkAudCache = { connected: true, data: refreshed.data };
+    // ---- Instagram: refresh if stale, else use cached row ----
+    let igResult = null;
+    if (conn) {
+      const cacheTs = conn.data_last_fetched_at ? new Date(conn.data_last_fetched_at).getTime() : 0;
+      const cacheStale = !cacheTs || (Date.now() - cacheTs) > STALE_MS;
+      if (cacheStale) {
+        const refreshed = await refreshIGData();
+        igResult = (refreshed && refreshed.ok && refreshed.data) ? refreshed.data : conn;
       } else {
-        // Fall back to whatever is in DB (might still have partial data)
-        mkAudCache = { connected: true, data: conn };
+        igResult = conn;
       }
-    } else {
-      mkAudCache = { connected: true, data: conn };
     }
+
+    // ---- YouTube: refresh if stale, else use cached row ----
+    let ytResult = null;
+    if (ytConn) {
+      const ytTs = ytConn.data_last_fetched_at ? new Date(ytConn.data_last_fetched_at).getTime() : 0;
+      const ytStale = !ytTs || (Date.now() - ytTs) > STALE_MS;
+      if (ytStale) {
+        const r = await refreshYTData();
+        ytResult = (r && r.ok && r.data) ? r.data : ytConn;
+      } else {
+        ytResult = ytConn;
+      }
+    }
+
+    mkAudCache = {
+      connected: !!igResult,
+      data: igResult || null,
+      ytConnected: !!ytResult,
+      yt: ytResult || null,
+    };
     renderAudienceAutomatic();
   } catch (e) {
     console.error('loadAudienceAutomatic', e);
-    mount.innerHTML = '<div class="mk-aud-error-note">Couldn\'t load Instagram data right now. Try again in a moment.</div>';
+    mount.innerHTML = '<div class="mk-aud-error-note">Couldn\'t load your social data right now. Try again in a moment.</div>';
   } finally {
     mkAudInflight = false;
   }
@@ -1377,6 +1401,44 @@ async function refreshIGData() {
     console.error('refreshIGData', e);
     return { ok: false, error: e.message };
   }
+}
+
+async function refreshYTData() {
+  try {
+    const session = (await sb.auth.getSession()).data.session;
+    if (!session) return { ok: false, error: 'Not authenticated' };
+    const r = await fetch('/api/youtube-data-fetch', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + session.access_token }
+    });
+    const body = await r.json().catch(() => ({}));
+    return body;
+  } catch (e) {
+    console.error('refreshYTData', e);
+    return { ok: false, error: e.message };
+  }
+}
+
+async function manualRefreshYT() {
+  const btn = document.getElementById('mk-aud-refresh-yt-btn');
+  if (!btn) return;
+  if (Date.now() < mkYtRefreshLockUntil) return;
+
+  btn.disabled = true;
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg><span class="mk-aud-row-refresh-label">Refreshing&hellip;</span>';
+
+  const res = await refreshYTData();
+  if (res && res.ok && res.data) {
+    if (mkAudCache) { mkAudCache.ytConnected = true; mkAudCache.yt = res.data; }
+    else mkAudCache = { connected: false, data: null, ytConnected: true, yt: res.data };
+  }
+  mkYtRefreshLockUntil = Date.now() + 5 * 60 * 1000;
+  renderAudienceAutomatic();
+  setTimeout(() => {
+    const b = document.getElementById('mk-aud-refresh-yt-btn');
+    if (b) { b.disabled = false; }
+    renderAudienceAutomatic();
+  }, 5 * 60 * 1000);
 }
 
 async function manualRefreshIG() {
@@ -1436,7 +1498,7 @@ function renderAudienceAutomatic() {
   }
 
   // ---- State: not connected ----
-  if (!mkAudCache.connected) {
+  if (!mkAudCache.connected && !mkAudCache.ytConnected) {
     mount.innerHTML = `
       <div class="mk-aud-empty">
         <div class="mk-aud-empty-icon">
@@ -1516,26 +1578,61 @@ function renderAudienceAutomatic() {
   // platformRow for it gated on that platform's connection data, the same way
   // the Instagram row below is. We intentionally do not render disabled
   // "Coming soon" placeholder rows for platforms that are not connected.
+  // YouTube SVG + row computations (rendered only when connected).
+  const ytSvg = '<svg viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.12C19.54 3.58 12 3.58 12 3.58s-7.54 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.07 0 12 0 12s0 3.93.5 5.8a3 3 0 0 0 2.1 2.12c1.86.5 9.4.5 9.4.5s7.54 0 9.4-.5a3 3 0 0 0 2.1-2.12C24 15.93 24 12 24 12s0-3.93-.5-5.8ZM9.55 15.57V8.43L15.82 12l-6.27 3.57Z"/></svg>';
+  const ytData = mkAudCache.yt || {};
+  const ytHandle = ytData.yt_channel_title || (ytData.yt_custom_url || 'YouTube');
+  const ytFreshLabel = (typeof formatLastRefreshed === 'function') ? formatLastRefreshed(ytData.data_last_fetched_at) : '';
+  const ytRemainingMs = Math.max(0, mkYtRefreshLockUntil - Date.now());
+  const ytRefreshDisabled = ytRemainingMs > 0;
+  const ytRefreshLabel = ytRefreshDisabled ? 'Wait ' + Math.ceil(ytRemainingMs / 1000) + 's' : 'Refresh';
+
+  // Combined partial-data note (Instagram + YouTube).
+  let ytErrorNoteHtml = '';
+  if (mkAudCache.ytConnected && ytData.data_fetch_error) {
+    const ytFriendly = /demograph/i.test(ytData.data_fetch_error)
+      ? 'YouTube audience demographics appear once your channel has enough traffic (YouTube withholds them below a threshold).'
+      : 'Some YouTube data couldn\'t be loaded. Click Refresh, or reconnect YouTube in Settings.';
+    ytErrorNoteHtml = `<div class="mk-aud-error-note">${escapeHtml(ytFriendly)}</div>`;
+  }
+
+  const igRowHtml = mkAudCache.connected ? platformRow({
+    name: 'Instagram',
+    iconClass: 'mk-aud-platform-ig',
+    iconSvg: igSvg,
+    connected: true,
+    handle: handle,
+    refreshedLabel: freshLabel,
+    btnId: 'mk-aud-refresh-btn',
+    action: 'manual-refresh-ig',
+    disabled: refreshDisabled,
+    label: refreshLabel
+  }) : '';
+
+  const ytRowHtml = mkAudCache.ytConnected ? platformRow({
+    name: 'YouTube',
+    iconClass: 'mk-aud-platform-yt',
+    iconSvg: ytSvg,
+    connected: true,
+    handle: ytHandle,
+    refreshedLabel: ytFreshLabel,
+    btnId: 'mk-aud-refresh-yt-btn',
+    action: 'manual-refresh-yt',
+    disabled: ytRefreshDisabled,
+    label: ytRefreshLabel
+  }) : '';
+
   mount.innerHTML = `
     <div class="mk-aud-connected">
       <div class="mk-aud-platforms">
-        ${platformRow({
-          name: 'Instagram',
-          iconClass: 'mk-aud-platform-ig',
-          iconSvg: igSvg,
-          connected: true,
-          handle: handle,
-          refreshedLabel: freshLabel,
-          btnId: 'mk-aud-refresh-btn',
-          action: 'manual-refresh-ig',
-          disabled: refreshDisabled,
-          label: refreshLabel
-        })}
+        ${igRowHtml}
+        ${ytRowHtml}
       </div>
       ${errorNoteHtml}
+      ${ytErrorNoteHtml}
     </div>`;
 
-  // Now that the IG cache may have changed, re-render the live preview so
+  // Now that the cache may have changed, re-render the live preview so
   // the Automatic-mode preview reflects the latest data.
   if (typeof updateMKPreview === 'function') updateMKPreview();
 }
@@ -1728,10 +1825,57 @@ function buildMKPreviewHTML() {
   // Audience — branches on audience_mode
   let audienceHtml = '';
   if (mkState.audience_mode === 'automatic') {
-    // Pull from cached IG data on the client (already loaded into mkAudCache)
-    const ig = (typeof mkAudCache !== 'undefined' && mkAudCache && mkAudCache.connected) ? mkAudCache.data : null;
-    if (!ig) {
-      // Not connected (or cache not loaded yet) — show a friendly placeholder in the preview
+    // Build a compact panel per connected platform from the client cache.
+    const igData = (typeof mkAudCache !== 'undefined' && mkAudCache && mkAudCache.connected) ? mkAudCache.data : null;
+    const ytData = (typeof mkAudCache !== 'undefined' && mkAudCache && mkAudCache.ytConnected) ? mkAudCache.yt : null;
+
+    const igPath = 'M12 2.2c3.2 0 3.6 0 4.85.07 1.17.05 1.8.25 2.22.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.05.41 2.22.06 1.26.07 1.64.07 4.82s-.01 3.57-.07 4.82c-.05 1.17-.25 1.8-.41 2.22a3.72 3.72 0 0 1-.9 1.38c-.42.42-.82.68-1.38.9-.42.16-1.05.36-2.22.41-1.26.06-1.64.07-4.82.07s-3.57-.01-4.82-.07c-1.17-.05-1.8-.25-2.22-.41a3.72 3.72 0 0 1-1.38-.9 3.72 3.72 0 0 1-.9-1.38c-.16-.42-.36-1.05-.41-2.22C2.21 15.57 2.2 15.19 2.2 12s.01-3.57.07-4.82c.05-1.17.25-1.8.41-2.22.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.05-.36 2.22-.41C8.43 2.21 8.81 2.2 12 2.2M12 0C8.74 0 8.33.01 7.05.07 5.78.13 4.9.33 4.14.63a5.92 5.92 0 0 0-2.13 1.39A5.92 5.92 0 0 0 .62 4.14C.33 4.9.13 5.78.07 7.05.01 8.33 0 8.74 0 12c0 3.26.01 3.67.07 4.95.06 1.27.26 2.15.56 2.91a5.92 5.92 0 0 0 1.39 2.13c.66.66 1.32 1.06 2.13 1.39.76.3 1.64.5 2.91.56C8.33 23.99 8.74 24 12 24c3.26 0 3.67-.01 4.95-.07 1.27-.06 2.15-.26 2.91-.56a5.92 5.92 0 0 0 2.13-1.39c.66-.66 1.06-1.32 1.39-2.13.3-.76.5-1.64.56-2.91.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.06-1.27-.26-2.15-.56-2.91a5.92 5.92 0 0 0-1.39-2.13A5.92 5.92 0 0 0 19.86.62c-.76-.3-1.64-.5-2.91-.56C15.67.01 15.26 0 12 0Zm0 5.84a6.16 6.16 0 1 0 0 12.32 6.16 6.16 0 0 0 0-12.32Zm0 10.16a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm6.41-11.88a1.44 1.44 0 1 0 0 2.88 1.44 1.44 0 0 0 0-2.88Z';
+    const ytPath = 'M23.5 6.2a3 3 0 0 0-2.1-2.12C19.54 3.58 12 3.58 12 3.58s-7.54 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.07 0 12 0 12s0 3.93.5 5.8a3 3 0 0 0 2.1 2.12c1.86.5 9.4.5 9.4.5s7.54 0 9.4-.5a3 3 0 0 0 2.1-2.12C24 15.93 24 12 24 12s0-3.93-.5-5.8ZM9.55 15.57V8.43L15.82 12l-6.27 3.57Z';
+    const svgFor = (path, sz) => `<svg viewBox="0 0 24 24" width="${sz}" height="${sz}" fill="currentColor"><path d="${path}"></path></svg>`;
+
+    const panels = [];
+
+    if (igData) {
+      const stats = [];
+      if (typeof igData.followers_count === 'number') stats.push({ n: formatNumberShort(igData.followers_count), l: 'Followers' });
+      if (typeof igData.engagement_rate === 'number') stats.push({ n: igData.engagement_rate.toFixed(2) + '%', l: 'Engagement' });
+      if (typeof igData.reach_30d === 'number') stats.push({ n: formatNumberShort(igData.reach_30d), l: '30d Reach' });
+      if (typeof igData.total_interactions_30d === 'number') stats.push({ n: formatNumberShort(igData.total_interactions_30d), l: '30d Engagements' });
+      if (typeof igData.views_30d === 'number') stats.push({ n: formatNumberShort(igData.views_30d), l: '30d Impressions' });
+      if (typeof igData.avg_likes === 'number') stats.push({ n: formatNumberShort(Math.round(igData.avg_likes)), l: 'Avg Likes' });
+      if (typeof igData.avg_comments === 'number') stats.push({ n: formatNumberShort(Math.round(igData.avg_comments)), l: 'Avg Comments' });
+      const lastSync = (typeof formatLastRefreshed === 'function') ? formatLastRefreshed(igData.data_last_fetched_at) : '';
+      panels.push({
+        key: 'instagram', label: 'Instagram', path: igPath,
+        grad: 'linear-gradient(135deg,#833ab4,#fd1d1d 50%,#fcb045)',
+        handle: igData.ig_username ? '@' + igData.ig_username : 'Instagram',
+        attribution: lastSync ? 'Verified by Instagram &bull; Last synced ' + escapeHtml(lastSync) : 'Verified by Instagram',
+        stats: stats,
+        hasDemo: !!(igData.demographics_gender || igData.demographics_top_countries),
+      });
+    }
+
+    if (ytData) {
+      const stats = [];
+      if (typeof ytData.subscriber_count === 'number') stats.push({ n: formatNumberShort(ytData.subscriber_count), l: 'Subscribers' });
+      if (typeof ytData.view_count === 'number') stats.push({ n: formatNumberShort(ytData.view_count), l: 'Total Views' });
+      if (typeof ytData.views_30d === 'number') stats.push({ n: formatNumberShort(ytData.views_30d), l: '30d Views' });
+      if (typeof ytData.watch_time_minutes_30d === 'number') stats.push({ n: formatNumberShort(Math.round(ytData.watch_time_minutes_30d / 60)), l: 'Watch Hours' });
+      if (typeof ytData.engagement_rate === 'number') stats.push({ n: ytData.engagement_rate.toFixed(2) + '%', l: 'Engagement' });
+      if (typeof ytData.avg_views_per_video === 'number') stats.push({ n: formatNumberShort(Math.round(ytData.avg_views_per_video)), l: 'Avg Views/Video' });
+      const lastSync = (typeof formatLastRefreshed === 'function') ? formatLastRefreshed(ytData.data_last_fetched_at) : '';
+      panels.push({
+        key: 'youtube', label: 'YouTube', path: ytPath,
+        grad: '#ff0000',
+        handle: ytData.yt_channel_title || ytData.yt_custom_url || 'YouTube',
+        attribution: lastSync ? 'Verified by YouTube &bull; Last synced ' + escapeHtml(lastSync) : 'Verified by YouTube',
+        stats: stats,
+        hasDemo: !!(ytData.demographics_gender || ytData.demographics_top_countries),
+      });
+    }
+
+    if (panels.length === 0) {
+      // Not connected (or cache not loaded yet) — friendly placeholder
       audienceHtml = `<div class="sec">
         <div class="sec-t">Audience &amp; Stats</div>
         <div style="padding:14px;background:${t.surface2};border:1px dashed ${t.border};border-radius:10px;text-align:center;font-size:10px;color:${t.muted};">
@@ -1739,60 +1883,39 @@ function buildMKPreviewHTML() {
         </div>
       </div>`;
     } else {
-      // Compact preview rendering of the IG data
-      const stats = [];
-      if (typeof ig.followers_count === 'number') stats.push({ n: formatNumberShort(ig.followers_count), l: 'Followers' });
-      if (typeof ig.engagement_rate === 'number') stats.push({ n: ig.engagement_rate.toFixed(2) + '%', l: 'Engagement' });
-      if (typeof ig.reach_30d === 'number') stats.push({ n: formatNumberShort(ig.reach_30d), l: '30d Reach' });
-      if (typeof ig.total_interactions_30d === 'number') stats.push({ n: formatNumberShort(ig.total_interactions_30d), l: '30d Engagements' });
-      if (typeof ig.views_30d === 'number') stats.push({ n: formatNumberShort(ig.views_30d), l: '30d Impressions' });
-      if (typeof ig.avg_likes === 'number') stats.push({ n: formatNumberShort(Math.round(ig.avg_likes)), l: 'Avg Likes' });
-      if (typeof ig.avg_comments === 'number') stats.push({ n: formatNumberShort(Math.round(ig.avg_comments)), l: 'Avg Comments' });
-      if (typeof ig.avg_reel_views === 'number') stats.push({ n: formatNumberShort(Math.round(ig.avg_reel_views)), l: 'Avg Reel Views' });
+      // Tab chips (one per connected platform). The preview is static, so the
+      // first platform's panel is shown; switching is interactive on the
+      // published page. With a single platform, no chip strip is shown.
+      const chipsHtml = panels.length > 1 ? `<div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
+        ${panels.map((p, i) => `<span style="display:inline-flex;align-items:center;gap:5px;padding:5px 9px;border-radius:999px;font-size:9px;font-family:'DM Sans',sans-serif;border:1px solid ${i === 0 ? t.accent2 : t.border};background:${i === 0 ? t.surface : t.surface2};color:${i === 0 ? t.text : t.muted};">
+          <span style="display:inline-flex;">${svgFor(p.path, 11)}</span>${escapeHtml(p.label)}
+        </span>`).join('')}
+      </div>` : '';
 
-      const igHandle = ig.ig_username ? '@' + ig.ig_username : 'Instagram';
-      // Match the public page: "Verified by Instagram • Last synced Apr 30 at 9:45 AM"
-      const lastSyncedLabel = (typeof formatLastRefreshed === 'function')
-        ? formatLastRefreshed(ig.data_last_fetched_at)
-        : '';
-      const attributionInner = lastSyncedLabel
-        ? 'Verified by Instagram &bull; Last synced ' + escapeHtml(lastSyncedLabel)
-        : 'Verified by Instagram';
-
-      // Compact platform-dots strip. Mirrors the public page: only
-      // OAuth-connected platforms show a dot (today, Instagram). Future
-      // connected platforms add a dot here; no placeholders for unconnected ones.
-      const dotBase = `width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;`;
-      const platformDotsHtml = `<div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
-        <div title="Instagram (Active)" style="${dotBase}background:linear-gradient(135deg,#833ab4,#fd1d1d 50%,#fcb045);box-shadow:0 0 0 2px ${t.bg}, 0 0 0 3px ${t.accent2};">
-          <svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor"><path d="M12 2.2c3.2 0 3.6 0 4.85.07 1.17.05 1.8.25 2.22.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.05.41 2.22.06 1.26.07 1.64.07 4.82s-.01 3.57-.07 4.82c-.05 1.17-.25 1.8-.41 2.22a3.72 3.72 0 0 1-.9 1.38c-.42.42-.82.68-1.38.9-.42.16-1.05.36-2.22.41-1.26.06-1.64.07-4.82.07s-3.57-.01-4.82-.07c-1.17-.05-1.8-.25-2.22-.41a3.72 3.72 0 0 1-1.38-.9 3.72 3.72 0 0 1-.9-1.38c-.16-.42-.36-1.05-.41-2.22C2.21 15.57 2.2 15.19 2.2 12s.01-3.57.07-4.82c.05-1.17.25-1.8.41-2.22.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.05-.36 2.22-.41C8.43 2.21 8.81 2.2 12 2.2M12 0C8.74 0 8.33.01 7.05.07 5.78.13 4.9.33 4.14.63a5.92 5.92 0 0 0-2.13 1.39A5.92 5.92 0 0 0 .62 4.14C.33 4.9.13 5.78.07 7.05.01 8.33 0 8.74 0 12c0 3.26.01 3.67.07 4.95.06 1.27.26 2.15.56 2.91a5.92 5.92 0 0 0 1.39 2.13c.66.66 1.32 1.06 2.13 1.39.76.3 1.64.5 2.91.56C8.33 23.99 8.74 24 12 24c3.26 0 3.67-.01 4.95-.07 1.27-.06 2.15-.26 2.91-.56a5.92 5.92 0 0 0 2.13-1.39c.66-.66 1.06-1.32 1.39-2.13.3-.76.5-1.64.56-2.91.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.06-1.27-.26-2.15-.56-2.91a5.92 5.92 0 0 0-1.39-2.13A5.92 5.92 0 0 0 19.86.62c-.76-.3-1.64-.5-2.91-.56C15.67.01 15.26 0 12 0Zm0 5.84a6.16 6.16 0 1 0 0 12.32 6.16 6.16 0 0 0 0-12.32Zm0 10.16a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm6.41-11.88a1.44 1.44 0 1 0 0 2.88 1.44 1.44 0 0 0 0-2.88Z"/></svg>
-        </div>
-      </div>`;
+      const active = panels[0];
 
       const headerHtml = `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-        <div style="width:24px;height:24px;border-radius:6px;background:linear-gradient(135deg,#833ab4,#fd1d1d 50%,#fcb045);display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;">
-          <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M12 2.2c3.2 0 3.6 0 4.85.07 1.17.05 1.8.25 2.22.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.05.41 2.22.06 1.26.07 1.64.07 4.82s-.01 3.57-.07 4.82c-.05 1.17-.25 1.8-.41 2.22a3.72 3.72 0 0 1-.9 1.38c-.42.42-.82.68-1.38.9-.42.16-1.05.36-2.22.41-1.26.06-1.64.07-4.82.07s-3.57-.01-4.82-.07c-1.17-.05-1.8-.25-2.22-.41a3.72 3.72 0 0 1-1.38-.9 3.72 3.72 0 0 1-.9-1.38c-.16-.42-.36-1.05-.41-2.22C2.21 15.57 2.2 15.19 2.2 12s.01-3.57.07-4.82c.05-1.17.25-1.8.41-2.22.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.05-.36 2.22-.41C8.43 2.21 8.81 2.2 12 2.2M12 0C8.74 0 8.33.01 7.05.07 5.78.13 4.9.33 4.14.63a5.92 5.92 0 0 0-2.13 1.39A5.92 5.92 0 0 0 .62 4.14C.33 4.9.13 5.78.07 7.05.01 8.33 0 8.74 0 12c0 3.26.01 3.67.07 4.95.06 1.27.26 2.15.56 2.91a5.92 5.92 0 0 0 1.39 2.13c.66.66 1.32 1.06 2.13 1.39.76.3 1.64.5 2.91.56C8.33 23.99 8.74 24 12 24c3.26 0 3.67-.01 4.95-.07 1.27-.06 2.15-.26 2.91-.56a5.92 5.92 0 0 0 2.13-1.39c.66-.66 1.06-1.32 1.39-2.13.3-.76.5-1.64.56-2.91.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.06-1.27-.26-2.15-.56-2.91a5.92 5.92 0 0 0-1.39-2.13A5.92 5.92 0 0 0 19.86.62c-.76-.3-1.64-.5-2.91-.56C15.67.01 15.26 0 12 0Zm0 5.84a6.16 6.16 0 1 0 0 12.32 6.16 6.16 0 0 0 0-12.32Zm0 10.16a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm6.41-11.88a1.44 1.44 0 1 0 0 2.88 1.44 1.44 0 0 0 0-2.88Z"/></svg>
+        <div style="width:24px;height:24px;border-radius:6px;background:${active.grad};display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;">
+          ${svgFor(active.path, 12)}
         </div>
         <div style="min-width:0;flex:1;">
-          <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:${t.text};">${escapeHtml(igHandle)}</div>
-          <div style="font-size:8px;color:${t.muted};text-transform:uppercase;letter-spacing:0.06em;">${attributionInner}</div>
+          <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:${t.text};">${escapeHtml(active.handle)}</div>
+          <div style="font-size:8px;color:${t.muted};text-transform:uppercase;letter-spacing:0.06em;">${active.attribution}</div>
         </div>
       </div>`;
 
-      const statsHtml = stats.length > 0 ? `<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;">
-        ${stats.map(s => `<div style="background:${t.surface2};border:1px solid ${t.border};border-radius:8px;padding:8px 10px;">
+      const statsHtml = active.stats.length > 0 ? `<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;">
+        ${active.stats.map(s => `<div style="background:${t.surface2};border:1px solid ${t.border};border-radius:8px;padding:8px 10px;">
           <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:${t.text};">${escapeHtml(s.n)}</div>
           <div style="font-size:8px;color:${t.muted};text-transform:uppercase;letter-spacing:0.05em;margin-top:2px;">${escapeHtml(s.l)}</div>
         </div>`).join('')}
       </div>` : '';
 
-      // Tiny demographic teaser if we have any
-      const hasDemo = ig.demographics_gender || ig.demographics_top_countries;
-      const demoHint = hasDemo ? `<div style="margin-top:8px;padding:8px 10px;background:${t.surface2};border:1px solid ${t.border};border-radius:8px;font-size:9px;color:${t.muted};text-align:center;">+ Audience demographics shown on published page</div>` : '';
+      const demoHint = active.hasDemo ? `<div style="margin-top:8px;padding:8px 10px;background:${t.surface2};border:1px solid ${t.border};border-radius:8px;font-size:9px;color:${t.muted};text-align:center;">+ Audience demographics shown on published page</div>` : '';
 
       audienceHtml = `<div class="sec">
         <div class="sec-t">Audience &amp; Stats</div>
-        ${platformDotsHtml}
+        ${chipsHtml}
         ${headerHtml}
         ${statsHtml}
         ${demoHint}
@@ -1840,7 +1963,10 @@ function buildMKPreviewHTML() {
     if (igData && typeof igData.followers_count === 'number' && igData.followers_count > 0) {
       sources.push({ platform: 'Instagram', count: igData.followers_count });
     }
-    // Future: push more rows as platforms come online.
+    const ytTotData = (typeof mkAudCache !== 'undefined' && mkAudCache && mkAudCache.ytConnected) ? mkAudCache.yt : null;
+    if (ytTotData && typeof ytTotData.subscriber_count === 'number' && ytTotData.subscriber_count > 0) {
+      sources.push({ platform: 'YouTube', count: ytTotData.subscriber_count });
+    }
     if (sources.length > 0) {
       const totalCount = sources.reduce((s, x) => s + x.count, 0);
       totalFollowersStripHtml = `<div class="tfs">
@@ -2087,6 +2213,7 @@ mkRegisterAction('remove-carousel-image', (e, el) => removeMKCarouselImage(parse
 // Instagram connection
 mkRegisterAction('go-to-instagram-connect', () => goToInstagramConnect());
 mkRegisterAction('manual-refresh-ig', () => manualRefreshIG());
+mkRegisterAction('manual-refresh-yt', () => manualRefreshYT());
 
 // Copy media kit link (template literal)
 mkRegisterAction('copy-mk-link', (e, el) => copyBioLink(el.dataset.mkUrl, el));
