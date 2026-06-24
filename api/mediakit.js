@@ -585,6 +585,33 @@ function buildYtPanel(yt) {
 // data ({ instagram, youtube }); renders one tab + panel per connected platform.
 // The first connected platform's panel is visible; the rest are hidden and
 // revealed by the client-side platform-tab switcher.
+// Recent Engagement rate from per-video stats in recent_media.
+// View-based (likes+comments / views) when TikTok returns per-video views;
+// otherwise followers-based (avg engagements per recent video / followers).
+// Returns a percentage number, or null if nothing usable.
+function computeTtRecentEngagement(tt) {
+  const vids = (tt && Array.isArray(tt.recent_media)) ? tt.recent_media : [];
+  let sumViews = 0, sumLikes = 0, sumComments = 0, n = 0;
+  for (const v of vids) {
+    if (!v) continue;
+    const likes = (typeof v.likes === 'number') ? v.likes : null;
+    const comments = (typeof v.comments === 'number') ? v.comments : null;
+    if (likes == null && comments == null) continue;
+    sumLikes += likes || 0;
+    sumComments += comments || 0;
+    if (typeof v.views === 'number' && v.views > 0) sumViews += v.views;
+    n++;
+  }
+  if (n === 0) return null;
+  if (sumViews > 0) {
+    return ((sumLikes + sumComments) / sumViews) * 100;
+  }
+  if (typeof tt.follower_count === 'number' && tt.follower_count > 0) {
+    return (((sumLikes + sumComments) / n) / tt.follower_count) * 100;
+  }
+  return null;
+}
+
 function buildTtPanel(tt) {
   const title = tt.tt_display_name || 'TikTok';
   const url = tt.tt_profile_web_link ? String(tt.tt_profile_web_link) : null;
@@ -606,13 +633,14 @@ function buildTtPanel(tt) {
     </div>
   </div>`;
 
-  // TikTok Login Kit is headline-only: no audience demographics or per-video
-  // analytics are available with the user.info.* scopes.
-  // Engagement rate is a derived proxy: average likes per video / followers.
-  // (TikTok exposes only lifetime likes, so this is likes-based, not per-window.)
-  const ttEngagement = (typeof tt.avg_likes_per_video === 'number' && typeof tt.follower_count === 'number' && tt.follower_count > 0)
-    ? (tt.avg_likes_per_video / tt.follower_count) * 100
-    : null;
+  // Recent Engagement, computed from the per-video stats in recent_media (the
+  // same videos we fetch via video.list). Preferred: view-based (likes+comments
+  // over views), the industry-standard TikTok rate. Falls back to a
+  // followers-based rate on those recent videos if TikTok withholds per-video
+  // views. Returns null when there are no usable recent stats. This replaces the
+  // old lifetime-likes proxy, which distorted the number (cumulative likes vs.
+  // current followers).
+  const ttEngagement = computeTtRecentEngagement(tt);
 
   const primaryStats = [];
   if (typeof tt.follower_count === 'number') primaryStats.push({ label: 'Followers', value: formatNumber(tt.follower_count) });
