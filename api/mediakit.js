@@ -645,7 +645,7 @@ function buildTtPanel(tt) {
   const primaryStats = [];
   if (typeof tt.follower_count === 'number') primaryStats.push({ label: 'Followers', value: formatNumber(tt.follower_count) });
   if (typeof tt.likes_count === 'number') primaryStats.push({ label: 'Total Likes', value: formatNumber(tt.likes_count) });
-  if (ttEngagement != null) primaryStats.push({ label: 'Engagement Rate', value: ttEngagement.toFixed(2) + '%' });
+  if (ttEngagement != null) primaryStats.push({ label: 'Recent Engagement', value: ttEngagement.toFixed(2) + '%' });
   if (typeof tt.video_count === 'number') primaryStats.push({ label: 'Videos', value: formatNumber(tt.video_count) });
   if (typeof tt.following_count === 'number') primaryStats.push({ label: 'Following', value: formatNumber(tt.following_count) });
   if (typeof tt.avg_likes_per_video === 'number') primaryStats.push({ label: 'Avg Likes / Video', value: formatNumber(Math.round(tt.avg_likes_per_video)) });
