@@ -2040,6 +2040,47 @@ function buildMKPreviewHTML() {
         </div>
       </div>` : '';
 
+      // Cross-platform follower-split donut (mirrors api/mediakit.js). Dynamic:
+      // any connected platform with followers joins; renders at 2+ platforms.
+      const splitReg = [
+        { name: 'Instagram', color: '#E1306C', count: (igData && typeof igData.followers_count === 'number') ? igData.followers_count : 0 },
+        { name: 'YouTube', color: '#FF0000', count: (ytData && typeof ytData.subscriber_count === 'number') ? ytData.subscriber_count : 0 },
+        { name: 'TikTok', color: '#25F4EE', count: (ttData && typeof ttData.follower_count === 'number') ? ttData.follower_count : 0 },
+      ];
+      const splitSlices = splitReg.filter(s => s.count > 0);
+      let splitDonutHtml = '';
+      if (splitSlices.length >= 2) {
+        const splitTotal = splitSlices.reduce((a, b) => a + b.count, 0);
+        const dsize = 120, dstroke = 18, dr = (dsize - dstroke) / 2, dcx = dsize / 2, dcy = dsize / 2, dcirc = 2 * Math.PI * dr;
+        let dcum = 0;
+        const dsegs = splitSlices.map(s => {
+          const dash = (s.count / splitTotal) * dcirc;
+          const seg = `<circle cx="${dcx}" cy="${dcy}" r="${dr}" fill="none" stroke="${s.color}" stroke-width="${dstroke}" stroke-dasharray="${dash.toFixed(2)} ${(dcirc - dash).toFixed(2)}" stroke-dashoffset="${(-dcum).toFixed(2)}"></circle>`;
+          dcum += dash;
+          return seg;
+        }).join('');
+        const dlegend = splitSlices.map(s => {
+          const pct = Math.round((s.count / splitTotal) * 100);
+          return `<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;">
+            <span style="width:8px;height:8px;border-radius:50%;background:${s.color};flex-shrink:0;"></span>
+            <span style="font-size:9px;color:${t.text};flex:1;">${escapeHtml(s.name)}</span>
+            <span style="font-family:'Syne',sans-serif;font-size:9px;color:${t.text};font-weight:800;">${pct}%</span>
+          </div>`;
+        }).join('');
+        splitDonutHtml = `<div style="margin-top:12px;padding:12px;background:${t.surface2};border:1px solid ${t.border};border-radius:10px;">
+          <div style="font-size:8px;color:${t.muted};text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Audience Split</div>
+          <div style="display:flex;align-items:center;gap:14px;">
+            <svg viewBox="0 0 ${dsize} ${dsize}" width="84" height="84" style="flex-shrink:0;">
+              <g transform="rotate(-90 ${dcx} ${dcy})">
+                <circle cx="${dcx}" cy="${dcy}" r="${dr}" fill="none" stroke="${t.border}" stroke-width="${dstroke}"></circle>
+                ${dsegs}
+              </g>
+            </svg>
+            <div style="flex:1;">${dlegend}</div>
+          </div>
+        </div>`;
+      }
+
       audienceHtml = `<div class="sec">
         <div class="sec-t">Audience &amp; Stats</div>
         ${chipsHtml}
@@ -2047,6 +2088,7 @@ function buildMKPreviewHTML() {
         ${statsHtml}
         ${demoHint}
         ${recentHtml}
+        ${splitDonutHtml}
       </div>`;
     }
   } else {
