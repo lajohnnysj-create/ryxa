@@ -1976,6 +1976,9 @@ function buildMKPreviewHTML() {
       const stats = [];
       if (typeof ttData.follower_count === 'number') stats.push({ n: formatNumberShort(ttData.follower_count), l: 'Followers' });
       if (typeof ttData.likes_count === 'number') stats.push({ n: formatNumberShort(ttData.likes_count), l: 'Total Likes' });
+      if (typeof ttData.avg_likes_per_video === 'number' && typeof ttData.follower_count === 'number' && ttData.follower_count > 0) {
+        stats.push({ n: ((ttData.avg_likes_per_video / ttData.follower_count) * 100).toFixed(2) + '%', l: 'Engagement' });
+      }
       if (typeof ttData.video_count === 'number') stats.push({ n: formatNumberShort(ttData.video_count), l: 'Videos' });
       if (typeof ttData.following_count === 'number') stats.push({ n: formatNumberShort(ttData.following_count), l: 'Following' });
       if (typeof ttData.avg_likes_per_video === 'number') stats.push({ n: formatNumberShort(Math.round(ttData.avg_likes_per_video)), l: 'Avg Likes/Video' });
