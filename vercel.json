@@ -36,6 +36,10 @@
   ],
   "rewrites": [
     {
+      "source": "/auth/tiktok/callback",
+      "destination": "/api/tiktok-oauth-callback"
+    },
+    {
       "source": "/deal/:token",
       "destination": "/portal?t=:token"
     },
