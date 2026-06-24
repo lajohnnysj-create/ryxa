@@ -1755,6 +1755,7 @@ function showTool(tool) {
     try { loadStripeConnectStatus(); } catch(e) { console.error('Stripe status error:', e); }
     try { loadInstagramConnectionStatus(); } catch(e) { console.error('Instagram status error:', e); }
     try { loadYouTubeConnectionStatus(); } catch(e) { console.error('YouTube status error:', e); }
+    try { loadTikTokConnectionStatus(); } catch(e) { console.error('TikTok status error:', e); }
     // Adjust the password section for Google-login accounts (no Ryxa password to reset)
     try { applyGoogleAccountPasswordUI(); } catch(e) { console.error('Password UI error:', e); }
     // Load marketing email preference

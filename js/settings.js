@@ -777,7 +777,7 @@ function showYouTubeMsg(type, text) {
       } else if (status === 'cancelled') {
         showDashToast('info', 'YouTube connection cancelled.');
       } else if (status === 'error') {
-        const msg = params.get('youtube_message') || 'Could not connect YouTube.';
+        const msg = escapeHtml(params.get('youtube_message') || 'Could not connect YouTube.');
         showDashToast('error', msg);
       }
       // Clean up URL so refresh doesn't re-trigger.
@@ -791,6 +791,191 @@ function showYouTubeMsg(type, text) {
     showWhenReady();
   } catch (e) {
     console.error('handleYouTubeReturn failed:', e);
+  }
+})();
+
+// ============================================================
+// TikTok Connection (Settings) - mirrors the YouTube block
+// ============================================================
+async function loadTikTokConnectionStatus() {
+  const disconnectedEl = document.getElementById('settings-tiktok-disconnected');
+  const connectedEl = document.getElementById('settings-tiktok-connected');
+  const titleEl = document.getElementById('settings-tiktok-title');
+  const avatarEl = document.getElementById('settings-tiktok-avatar');
+  const msgEl = document.getElementById('settings-tiktok-msg');
+  if (msgEl) msgEl.style.display = 'none';
+
+  if (!currentUser) return;
+
+  try {
+    const { data: conn } = await sb
+      .from('tiktok_connections')
+      .select('tt_display_name,tt_avatar_url,tt_profile_web_link,connected_at')
+      .eq('user_id', currentUser.id)
+      .maybeSingle();
+
+    if (conn) {
+      if (disconnectedEl) disconnectedEl.style.display = 'none';
+      if (connectedEl) connectedEl.style.display = 'block';
+      if (titleEl) titleEl.textContent = conn.tt_display_name || 'Connected';
+      if (avatarEl && conn.tt_avatar_url) {
+        avatarEl.innerHTML = '<img src="' + escapeHtml(conn.tt_avatar_url) + '" alt="" class="bio-s-0c9434">';
+      }
+    } else {
+      if (disconnectedEl) disconnectedEl.style.display = 'block';
+      if (connectedEl) connectedEl.style.display = 'none';
+    }
+  } catch (err) {
+    console.error('Failed to load TikTok status:', err);
+  }
+}
+
+async function connectTikTokAccount() {
+  if (!currentUser) return;
+
+  const btn = document.getElementById('settings-tiktok-connect-btn');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" class="ds-s-f33c30" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Redirecting to TikTok...';
+  }
+
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session || !session.access_token) {
+      throw new Error('No session');
+    }
+    // Step 1: short-lived signed ticket (POST). Contains our user_id, expires
+    // in 5 minutes, cannot be used as session auth.
+    const ticketRes = await fetch('/api/tiktok-oauth-ticket', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + session.access_token }
+    });
+    if (!ticketRes.ok) {
+      const errBody = await ticketRes.json().catch(function() { return {}; });
+      throw new Error(errBody.error || 'ticket_failed');
+    }
+    const ticketJson = await ticketRes.json();
+    if (!ticketJson || !ticketJson.ticket) {
+      throw new Error('Empty ticket response');
+    }
+    // Step 2: navigate to the OAuth start endpoint with the signed ticket.
+    window.location.href = '/api/tiktok-oauth-start?ticket=' + encodeURIComponent(ticketJson.ticket);
+  } catch (err) {
+    console.error('Failed to start TikTok OAuth:', err);
+    showTikTokMsg('error', 'Failed to start connection. Please try again.');
+    resetTikTokConnectButton(true);
+  }
+}
+
+function resetTikTokConnectButton(force) {
+  const btn = document.getElementById('settings-tiktok-connect-btn');
+  if (!btn) return;
+  if (!force && !/Redirecting to TikTok/i.test(btn.innerText || btn.textContent || '')) return;
+  btn.disabled = false;
+  btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M16.6 5.82A4.28 4.28 0 0 1 15.54 3h-3.09v12.4a2.59 2.59 0 0 1-2.59 2.5c-1.42 0-2.6-1.16-2.6-2.6 0-1.72 1.66-3.01 3.37-2.48V9.66c-3.45-.46-6.47 2.22-6.47 5.64 0 3.33 2.76 5.7 5.69 5.7 3.14 0 5.69-2.55 5.69-5.7V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3s-1.88.09-3.24-1.48z" fill="#25F4EE" transform="translate(-0.9,-0.9)"/><path d="M16.6 5.82A4.28 4.28 0 0 1 15.54 3h-3.09v12.4a2.59 2.59 0 0 1-2.59 2.5c-1.42 0-2.6-1.16-2.6-2.6 0-1.72 1.66-3.01 3.37-2.48V9.66c-3.45-.46-6.47 2.22-6.47 5.64 0 3.33 2.76 5.7 5.69 5.7 3.14 0 5.69-2.55 5.69-5.7V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3s-1.88.09-3.24-1.48z" fill="#FE2C55" transform="translate(0.9,0.9)"/><path d="M16.6 5.82A4.28 4.28 0 0 1 15.54 3h-3.09v12.4a2.59 2.59 0 0 1-2.59 2.5c-1.42 0-2.6-1.16-2.6-2.6 0-1.72 1.66-3.01 3.37-2.48V9.66c-3.45-.46-6.47 2.22-6.47 5.64 0 3.33 2.76 5.7 5.69 5.7 3.14 0 5.69-2.55 5.69-5.7V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3s-1.88.09-3.24-1.48z" fill="#f0eef8"/></svg> Connect TikTok';
+}
+
+function showTikTokDisconnectConfirm() {
+  const el = document.getElementById('tiktok-disconnect-confirm');
+  if (el) el.style.display = 'block';
+}
+
+function hideTikTokDisconnectConfirm() {
+  const el = document.getElementById('tiktok-disconnect-confirm');
+  if (el) el.style.display = 'none';
+}
+
+async function confirmDisconnectTikTok() {
+  if (!currentUser) return;
+
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session || !session.access_token) {
+      throw new Error('No session');
+    }
+    const res = await fetch('/api/tiktok-disconnect', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + session.access_token
+      }
+    });
+    if (!res.ok) {
+      const errBody = await res.json().catch(() => ({}));
+      throw new Error(errBody.error || 'Disconnect failed');
+    }
+    hideTikTokDisconnectConfirm();
+    showTikTokMsg('success', 'TikTok disconnected.');
+    showDashToast('success', 'TikTok disconnected.');
+    loadTikTokConnectionStatus();
+    if (typeof mkAudCache !== 'undefined') mkAudCache = null;
+  } catch (err) {
+    console.error('Failed to disconnect TikTok:', err);
+    showTikTokMsg('error', 'Failed to disconnect. Please try again.');
+  }
+}
+
+function showTikTokMsg(type, text) {
+  const el = document.getElementById('settings-tiktok-msg');
+  if (!el) return;
+  el.style.display = 'block';
+  el.textContent = text;
+  if (type === 'success') {
+    el.style.background = 'rgba(74,222,128,0.08)';
+    el.style.color = '#4ade80';
+    el.style.border = '1px solid rgba(74,222,128,0.2)';
+  } else {
+    el.style.background = 'rgba(239,68,68,0.08)';
+    el.style.color = '#fca5a5';
+    el.style.border = '1px solid rgba(239,68,68,0.2)';
+  }
+}
+
+// Handle ?tiktok_status=... return params from the OAuth callback. On a
+// successful connect, fire an immediate data pull so the Media Kit shows real
+// stats right away (rather than waiting for the next cron / editor open).
+(function handleTikTokReturn() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get('tiktok_status');
+    if (!status) return;
+
+    function showWhenReady() {
+      if (typeof showDashToast !== 'function') {
+        setTimeout(showWhenReady, 200);
+        return;
+      }
+      if (status === 'connected') {
+        showDashToast('success', 'TikTok connected!');
+        (async function() {
+          try {
+            const { data: { session } } = await sb.auth.getSession();
+            if (session && session.access_token) {
+              fetch('/api/tiktok-data-fetch', {
+                method: 'POST',
+                headers: { Authorization: 'Bearer ' + session.access_token }
+              }).catch(function(e) { console.error('Initial TikTok fetch failed (non-fatal):', e); });
+            }
+          } catch (e) {
+            console.error('Initial TikTok fetch setup failed:', e);
+          }
+        })();
+      } else if (status === 'cancelled') {
+        showDashToast('info', 'TikTok connection cancelled.');
+      } else if (status === 'error') {
+        const msg = escapeHtml(params.get('tiktok_message') || 'Could not connect TikTok.');
+        showDashToast('error', msg);
+      }
+      const cleanUrl = window.location.pathname;
+      window.history.replaceState({}, '', cleanUrl);
+      if (typeof loadTikTokConnectionStatus === 'function') {
+        loadTikTokConnectionStatus();
+      }
+      if (typeof mkAudCache !== 'undefined') mkAudCache = null;
+    }
+    showWhenReady();
+  } catch (e) {
+    console.error('handleTikTokReturn failed:', e);
   }
 })();
 
@@ -1089,6 +1274,10 @@ settingsRegisterAction('connect-youtube', () => connectYouTubeAccount());
 settingsRegisterAction('show-youtube-disconnect', () => showYouTubeDisconnectConfirm());
 settingsRegisterAction('hide-youtube-disconnect', () => hideYouTubeDisconnectConfirm());
 settingsRegisterAction('confirm-disconnect-youtube', () => confirmDisconnectYouTube());
+settingsRegisterAction('connect-tiktok', () => connectTikTokAccount());
+settingsRegisterAction('show-tiktok-disconnect', () => showTikTokDisconnectConfirm());
+settingsRegisterAction('hide-tiktok-disconnect', () => hideTikTokDisconnectConfirm());
+settingsRegisterAction('confirm-disconnect-tiktok', () => confirmDisconnectTikTok());
 
 // Currency
 settingsRegisterAction('change-currency', (e, el) => changeDisplayCurrency(el.value));
