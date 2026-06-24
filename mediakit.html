@@ -455,9 +455,12 @@
     font-size: 12px;
     color: var(--muted);
     font-family: 'DM Sans', sans-serif;
-    cursor: not-allowed;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
     user-select: none;
   }
+  .ig-platform-panel[hidden] { display: none !important; }
   .ig-platform-tab.is-active {
     background: var(--surface);
     color: var(--text);
