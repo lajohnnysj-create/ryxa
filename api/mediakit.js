@@ -585,14 +585,56 @@ function buildYtPanel(yt) {
 // data ({ instagram, youtube }); renders one tab + panel per connected platform.
 // The first connected platform's panel is visible; the rest are hidden and
 // revealed by the client-side platform-tab switcher.
+function buildTtPanel(tt) {
+  const title = tt.tt_display_name || 'TikTok';
+  const url = tt.tt_profile_web_link ? String(tt.tt_profile_web_link) : null;
+  const lastSynced = formatLastSynced(tt.data_last_fetched_at);
+
+  const attributionInner = lastSynced
+    ? `Verified by TikTok <span class="ig-attr-sep" aria-hidden="true">&bull;</span> Last synced ${esc(lastSynced)}`
+    : 'Verified by TikTok';
+
+  const ttSvg = (SOCIAL_PLATFORMS.find(p => p.key === 'tiktok') || {}).svg || '';
+
+  const headerHtml = `<div class="ig-header">
+    <div class="ig-header-icon" aria-hidden="true">${ttSvg}</div>
+    <div class="ig-header-body">
+      ${url
+        ? `<a class="ig-handle" href="${esc(url)}" target="_blank" rel="noopener nofollow">${esc(title)}</a>`
+        : `<span class="ig-handle">${esc(title)}</span>`}
+      <span class="ig-attribution">${attributionInner}</span>
+    </div>
+  </div>`;
+
+  // TikTok Login Kit is headline-only: no audience demographics or per-video
+  // analytics are available with the user.info.* scopes.
+  const primaryStats = [];
+  if (typeof tt.follower_count === 'number') primaryStats.push({ label: 'Followers', value: formatNumber(tt.follower_count) });
+  if (typeof tt.likes_count === 'number') primaryStats.push({ label: 'Total Likes', value: formatNumber(tt.likes_count) });
+  if (typeof tt.video_count === 'number') primaryStats.push({ label: 'Videos', value: formatNumber(tt.video_count) });
+  if (typeof tt.following_count === 'number') primaryStats.push({ label: 'Following', value: formatNumber(tt.following_count) });
+  if (typeof tt.avg_likes_per_video === 'number') primaryStats.push({ label: 'Avg Likes / Video', value: formatNumber(Math.round(tt.avg_likes_per_video)) });
+
+  const primaryHtml = primaryStats.length > 0 ? `<div class="ig-stats-grid">
+    ${primaryStats.map(s => `<div class="ig-stat-card">
+      <div class="ig-stat-num">${esc(s.value)}</div>
+      <div class="ig-stat-label">${esc(s.label)}</div>
+    </div>`).join('')}
+  </div>` : '';
+
+  return `${headerHtml}${primaryHtml}`;
+}
+
 function buildAudienceAutomatic(kit, data) {
   data = data || {};
   const ig = data.instagram || null;
   const yt = data.youtube || null;
+  const tt = data.tiktok || null;
 
   const platforms = [];
   if (ig) platforms.push({ key: 'instagram', label: 'Instagram', svg: SOCIAL_PLATFORMS[0].svg, panel: buildIgPanel(ig) });
   if (yt) platforms.push({ key: 'youtube', label: 'YouTube', svg: (SOCIAL_PLATFORMS.find(p => p.key === 'youtube') || {}).svg || '', panel: buildYtPanel(yt) });
+  if (tt) platforms.push({ key: 'tiktok', label: 'TikTok', svg: (SOCIAL_PLATFORMS.find(p => p.key === 'tiktok') || {}).svg || '', panel: buildTtPanel(tt) });
 
   if (platforms.length === 0) {
     return `<div class="section ig-section">
@@ -862,7 +904,7 @@ function isBuiltinImageTheme(key) {
 // MAIN RENDER — produces inner HTML for the #wrap div
 // ==========================================================================
 
-function renderMediaKitContent(profile, kit, ig, yt) {
+function renderMediaKitContent(profile, kit, ig, yt, tt) {
   const headshot = validImageUrl(kit.headshot_url);
 
   const isPaid = profile.tier === 'monthly' || profile.tier === 'max';
@@ -877,14 +919,14 @@ function renderMediaKitContent(profile, kit, ig, yt) {
   // 'automatic' → pull from instagram_connections cache (ig param).
   // 'manual' (or unset) → use kit.socials + kit.engagement_rate from the kit row.
   const audienceHtml = kit.audience_mode === 'automatic'
-    ? buildAudienceAutomatic(kit, { instagram: ig, youtube: yt })
+    ? buildAudienceAutomatic(kit, { instagram: ig, youtube: yt, tiktok: tt })
     : buildAudience(kit);
 
   // Total Followers strip — sum across all connected platforms. For now only
   // Instagram is wired up, but the structure already accumulates so future
   // platforms (TikTok, YouTube, etc.) can each contribute their followers_count.
   const totalFollowersHtml = kit.audience_mode === 'automatic'
-    ? buildTotalFollowers(kit, ig, yt)
+    ? buildTotalFollowers(kit, ig, yt, tt)
     : '';
 
   const inner = `<div class="top-actions">
@@ -911,13 +953,16 @@ function renderMediaKitContent(profile, kit, ig, yt) {
 // YouTube, etc.) by adding to the `sources` array.
 //
 // Renders only when at least one source has a follower count.
-function buildTotalFollowers(kit, ig, yt) {
+function buildTotalFollowers(kit, ig, yt, tt) {
   const sources = [];
   if (ig && typeof ig.followers_count === 'number' && ig.followers_count > 0) {
     sources.push({ platform: 'Instagram', count: ig.followers_count });
   }
   if (yt && typeof yt.subscriber_count === 'number' && yt.subscriber_count > 0) {
     sources.push({ platform: 'YouTube', count: yt.subscriber_count });
+  }
+  if (tt && typeof tt.follower_count === 'number' && tt.follower_count > 0) {
+    sources.push({ platform: 'TikTok', count: tt.follower_count });
   }
   // Future: push more rows here as platforms come online.
 
@@ -1031,8 +1076,27 @@ async function fetchMediaKitData(username) {
       }
     }
 
+    // Step 3c: TikTok cached data (same automatic mode). Reads from the
+    // public_tiktok_kit_data view (safe columns only); the private
+    // tiktok_connections table is owner-only RLS. Headline-only (no demographics).
+    let tt = null;
+    if (kit && kit.audience_mode === 'automatic') {
+      try {
+        const ttRes = await fetch(
+          `${SUPABASE_URL}/rest/v1/public_tiktok_kit_data?user_id=eq.${profile.user_id}&select=tt_display_name,tt_avatar_url,tt_profile_web_link,tt_bio_description,tt_is_verified,follower_count,following_count,likes_count,video_count,avg_likes_per_video,data_last_fetched_at,data_fetch_error`,
+          fetchOpts(controller.signal)
+        );
+        if (ttRes.ok) {
+          const ttRows = await ttRes.json();
+          tt = ttRows[0] || null;
+        }
+      } catch (e) {
+        console.error('mediakit TikTok fetch error', e);
+      }
+    }
+
     clearTimeout(timeout);
-    return { profile, kit, ig, yt };
+    return { profile, kit, ig, yt, tt };
   } catch (e) {
     clearTimeout(timeout);
     console.error('mediakit fetch error', e);
@@ -1080,7 +1144,7 @@ module.exports = async (req, res) => {
   let customThemeStyle = '';
 
   if (result && result.kit && result.kit.published !== false) {
-    const { profile, kit, ig, yt } = result;
+    const { profile, kit, ig, yt, tt } = result;
 
     // Update OG metadata for social previews
     const name = kit.display_name || profile.username;
@@ -1108,7 +1172,7 @@ module.exports = async (req, res) => {
     }
 
     // Render the media kit content server-side
-    const rendered = renderMediaKitContent(profile, kit, ig, yt);
+    const rendered = renderMediaKitContent(profile, kit, ig, yt, tt);
     renderedInner = rendered.inner;
 
     // Bootstrap meta tags: stash creator currency + signal SSR hydration so
