@@ -629,7 +629,27 @@ function buildTtPanel(tt) {
     </div>`).join('')}
   </div>` : '';
 
-  return `${headerHtml}${primaryHtml}`;
+  // Recent public videos (video.list). Thumbnail grid linking out to TikTok.
+  let recentHtml = '';
+  const vids = Array.isArray(tt.recent_media) ? tt.recent_media.filter(v => v && v.cover) : [];
+  if (vids.length) {
+    const cards = vids.slice(0, 6).map(v => {
+      const cover = esc(v.cover);
+      const link = v.link ? esc(v.link) : null;
+      const views = (typeof v.views === 'number') ? formatNumber(v.views) : null;
+      const metaHtml = views ? `<div class="tt-vid-meta"><span class="tt-vid-views">${esc(views)} views</span></div>` : '';
+      const inner = `<div class="tt-vid-thumb"><img src="${cover}" alt="" loading="lazy"></div>${metaHtml}`;
+      return link
+        ? `<a class="tt-vid-card" href="${link}" target="_blank" rel="noopener nofollow">${inner}</a>`
+        : `<div class="tt-vid-card">${inner}</div>`;
+    }).join('');
+    recentHtml = `<div class="ig-subsection">
+      <div class="ig-subtitle">Recent Videos</div>
+      <div class="tt-vid-grid">${cards}</div>
+    </div>`;
+  }
+
+  return `${headerHtml}${primaryHtml}${recentHtml}`;
 }
 
 function buildAudienceAutomatic(kit, data) {
@@ -1090,7 +1110,7 @@ async function fetchMediaKitData(username) {
     if (kit && kit.audience_mode === 'automatic') {
       try {
         const ttRes = await fetch(
-          `${SUPABASE_URL}/rest/v1/public_tiktok_kit_data?user_id=eq.${profile.user_id}&select=tt_display_name,tt_avatar_url,tt_profile_web_link,tt_bio_description,tt_is_verified,follower_count,following_count,likes_count,video_count,avg_likes_per_video,data_last_fetched_at,data_fetch_error`,
+          `${SUPABASE_URL}/rest/v1/public_tiktok_kit_data?user_id=eq.${profile.user_id}&select=tt_display_name,tt_avatar_url,tt_profile_web_link,tt_bio_description,tt_is_verified,follower_count,following_count,likes_count,video_count,avg_likes_per_video,recent_media,data_last_fetched_at,data_fetch_error`,
           fetchOpts(controller.signal)
         );
         if (ttRes.ok) {
@@ -1277,7 +1297,7 @@ ${customThemeStyle}
       "script-src 'self' https://cdn.jsdelivr.net",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com data:",
-      "img-src 'self' data: blob: https://www.ryxa.io https://kjytapcgxukalwsyputk.supabase.co https://i.ytimg.com",
+      "img-src 'self' data: blob: https://www.ryxa.io https://kjytapcgxukalwsyputk.supabase.co https://i.ytimg.com https://*.tiktokcdn.com https://*.tiktokcdn-us.com",
       "connect-src 'self' https://kjytapcgxukalwsyputk.supabase.co https://cdn.jsdelivr.net",
       "media-src 'self' blob: https://kjytapcgxukalwsyputk.supabase.co",
       "frame-src https://www.youtube.com https://www.youtube-nocookie.com https://www.tiktok.com",

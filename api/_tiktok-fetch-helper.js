@@ -25,6 +25,12 @@ const TIKTOK_CLIENT_SECRET = process.env.TIKTOK_CLIENT_SECRET;
 
 const TOKEN_ENDPOINT = 'https://open.tiktokapis.com/v2/oauth/token/';
 const USERINFO_ENDPOINT = 'https://open.tiktokapis.com/v2/user/info/';
+const VIDEOLIST_ENDPOINT = 'https://open.tiktokapis.com/v2/video/list/';
+const VIDEOLIST_FIELDS = [
+  'id', 'title', 'video_description', 'duration', 'cover_image_url',
+  'embed_link', 'share_url', 'create_time', 'view_count', 'like_count', 'comment_count',
+].join(',');
+const RECENT_VIDEO_COUNT = 6;
 const USERINFO_FIELDS = [
   'open_id', 'union_id', 'avatar_url', 'display_name',
   'profile_deep_link', 'profile_web_link', 'bio_description', 'is_verified',
@@ -197,6 +203,49 @@ async function refreshTikTokData(userId) {
     }
   } catch (e) {
     errors.push('user_info:' + e.message);
+  }
+
+  // ---- Recent public videos (video.list scope) ----
+  // Sorted newest-first by TikTok. Cover image URLs are signed and expire (~6d);
+  // the cron refresh cadence keeps them live. We store metadata only.
+  try {
+    const vidRes = await fetch(VIDEOLIST_ENDPOINT + '?fields=' + encodeURIComponent(VIDEOLIST_FIELDS), {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer ' + token,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ max_count: RECENT_VIDEO_COUNT }),
+    });
+    const vidText = await vidRes.text();
+    let vidBody;
+    try { vidBody = JSON.parse(vidText); } catch { vidBody = null; }
+
+    const vErr = vidBody && vidBody.error && vidBody.error.code;
+    if (vidRes.ok && vidBody && (vErr === 'ok' || vErr === undefined) &&
+        vidBody.data && Array.isArray(vidBody.data.videos)) {
+      const profileUrl = collected.tt_profile_web_link || null;
+      collected.recent_media = vidBody.data.videos.slice(0, RECENT_VIDEO_COUNT).map((v) => {
+        const id = v.id ? String(v.id) : null;
+        const link = v.share_url
+          || (profileUrl && id ? (String(profileUrl).replace(/\/$/, '') + '/video/' + id) : (v.embed_link || null));
+        return {
+          id: id,
+          cover: v.cover_image_url || null,
+          caption: v.title || v.video_description || '',
+          created: typeof v.create_time === 'number' ? v.create_time : null,
+          link: link,
+          duration: toInt(v.duration),
+          views: toInt(v.view_count),
+          likes: toInt(v.like_count),
+          comments: toInt(v.comment_count),
+        };
+      });
+    } else {
+      errors.push('video_list:' + ((vErr && String(vErr)) || ('HTTP ' + vidRes.status)));
+    }
+  } catch (e) {
+    errors.push('video_list:' + e.message);
   }
 
   // ---- Write ----
