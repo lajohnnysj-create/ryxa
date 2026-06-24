@@ -1350,7 +1350,7 @@ async function loadAudienceAutomatic() {
     try {
       const { data: tc } = await sb
         .from('tiktok_connections')
-        .select('tt_display_name,tt_avatar_url,tt_profile_web_link,tt_bio_description,tt_is_verified,follower_count,following_count,likes_count,video_count,avg_likes_per_video,data_last_fetched_at,data_fetch_error')
+        .select('tt_display_name,tt_avatar_url,tt_profile_web_link,tt_bio_description,tt_is_verified,follower_count,following_count,likes_count,video_count,avg_likes_per_video,recent_media,data_last_fetched_at,data_fetch_error')
         .eq('user_id', currentUser.id)
         .maybeSingle();
       ttConn = tc || null;
@@ -1990,6 +1990,7 @@ function buildMKPreviewHTML() {
         attribution: lastSync ? 'Verified by TikTok &bull; Last synced ' + escapeHtml(lastSync) : 'Verified by TikTok',
         stats: stats,
         hasDemo: false,
+        recent: Array.isArray(ttData.recent_media) ? ttData.recent_media.filter(v => v && v.cover).slice(0, 6) : [],
       });
     }
 
@@ -2032,12 +2033,20 @@ function buildMKPreviewHTML() {
 
       const demoHint = active.hasDemo ? `<div style="margin-top:8px;padding:8px 10px;background:${t.surface2};border:1px solid ${t.border};border-radius:8px;font-size:9px;color:${t.muted};text-align:center;">+ Audience demographics shown on published page</div>` : '';
 
+      const recentHtml = (active.recent && active.recent.length) ? `<div style="margin-top:10px;">
+        <div style="font-size:8px;color:${t.muted};text-transform:uppercase;letter-spacing:0.06em;margin-bottom:5px;">Recent Videos</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;">
+          ${active.recent.slice(0, 6).map(v => `<div style="aspect-ratio:9/16;border-radius:6px;overflow:hidden;background:${t.surface2};border:1px solid ${t.border};"><img src="${escapeHtml(v.cover)}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;"></div>`).join('')}
+        </div>
+      </div>` : '';
+
       audienceHtml = `<div class="sec">
         <div class="sec-t">Audience &amp; Stats</div>
         ${chipsHtml}
         ${headerHtml}
         ${statsHtml}
         ${demoHint}
+        ${recentHtml}
       </div>`;
     }
   } else {
