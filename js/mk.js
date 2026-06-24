@@ -1995,7 +1995,7 @@ function buildMKPreviewHTML() {
           if (sv > 0) er = ((sl + sc) / sv) * 100;
           else if (typeof ttData.follower_count === 'number' && ttData.follower_count > 0) er = (((sl + sc) / nn) / ttData.follower_count) * 100;
         }
-        if (er != null) stats.push({ n: er.toFixed(2) + '%', l: 'Engagement' });
+        if (er != null) stats.push({ n: er.toFixed(2) + '%', l: 'Recent Engagement' });
       })();
       if (typeof ttData.video_count === 'number') stats.push({ n: formatNumberShort(ttData.video_count), l: 'Videos' });
       if (typeof ttData.following_count === 'number') stats.push({ n: formatNumberShort(ttData.following_count), l: 'Following' });
