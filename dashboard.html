@@ -6132,7 +6132,16 @@
   .settings-acct-stack { margin-top:10px; }
   .settings-acct-x { flex-shrink:0;width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:7px;cursor:pointer;transition:all 0.2s;padding:0; }
   .settings-acct-x:hover { border-color:rgba(239,68,68,0.4);color:#fca5a5;background:rgba(239,68,68,0.08); }
-  .settings-s-ac5f6a { width:32px;height:32px;border-radius:50%;background:rgba(74,222,128,0.12);border:1px solid rgba(74,222,128,0.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden; }
+  .settings-s-ac5f6a { width:36px;height:36px;border-radius:50%;background:rgba(74,222,128,0.12);border:1px solid rgba(74,222,128,0.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden; }
+  /* Connected-account avatar with a platform badge in the bottom-right corner. */
+  /* Reusable: for a new platform add one .settings-acct-badge-<key> color rule */
+  /* and drop its white brand glyph into the badge span. Ring matches row bg.   */
+  .settings-acct-avatar-wrap { position:relative; width:36px; height:36px; flex-shrink:0; }
+  .settings-acct-badge { position:absolute; right:-2px; bottom:-2px; width:18px; height:18px; border-radius:50%; border:2px solid #19222a; box-sizing:border-box; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+  .settings-acct-badge svg { display:block; }
+  .settings-acct-badge-ig { background:#E1306C; }
+  .settings-acct-badge-yt { background:#FF0000; }
+  .settings-acct-badge-tt { background:#010101; }
   .settings-s-a34021 { font-size:11px;color:var(--muted);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
   .settings-s-98265b { position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0; }
   .settings-s-8e0e33 { width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:11px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;cursor:pointer; }
@@ -10622,8 +10631,11 @@
       <!-- Instagram: connected -->
       <div id="settings-instagram-connected" class="bio-s-c8be1c">
         <div class="settings-s-9403ee">
-          <div id="settings-instagram-avatar" class="settings-s-ac5f6a">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <div class="settings-acct-avatar-wrap">
+            <div id="settings-instagram-avatar" class="settings-s-ac5f6a">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <span class="settings-acct-badge settings-acct-badge-ig" aria-hidden="true"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4"><rect x="3" y="3" width="18" height="18" rx="5.5"/><circle cx="12" cy="12" r="4"/></svg></span>
           </div>
           <div class="bio-s-a07604">
             <div class="settings-s-279016">Instagram Connected</div>
@@ -10654,8 +10666,11 @@
       <!-- YouTube: connected -->
       <div id="settings-youtube-connected" class="bio-s-c8be1c settings-acct-stack">
         <div class="settings-s-9403ee">
-          <div id="settings-youtube-avatar" class="settings-s-ac5f6a">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <div class="settings-acct-avatar-wrap">
+            <div id="settings-youtube-avatar" class="settings-s-ac5f6a">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <span class="settings-acct-badge settings-acct-badge-yt" aria-hidden="true"><svg width="11" height="11" viewBox="0 0 24 24"><path d="M10 8l6 4-6 4z" fill="#fff"/></svg></span>
           </div>
           <div class="bio-s-a07604">
             <div class="settings-s-279016">YouTube Connected</div>
@@ -10686,8 +10701,11 @@
       <!-- TikTok: connected -->
       <div id="settings-tiktok-connected" class="bio-s-c8be1c settings-acct-stack">
         <div class="settings-s-9403ee">
-          <div id="settings-tiktok-avatar" class="settings-s-ac5f6a">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <div class="settings-acct-avatar-wrap">
+            <div id="settings-tiktok-avatar" class="settings-s-ac5f6a">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <span class="settings-acct-badge settings-acct-badge-tt" aria-hidden="true"><svg width="10" height="10" viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5.8 20.1a6.34 6.34 0 0 0 10.86-4.43V8.83a8.16 8.16 0 0 0 4.77 1.52V6.9a4.85 4.85 0 0 1-1.84-.21Z" fill="#fff"/></svg></span>
           </div>
           <div class="bio-s-a07604">
             <div class="settings-s-279016">TikTok Connected</div>
