@@ -385,11 +385,13 @@ const FOLLOWER_PLATFORMS = [
 ];
 
 // Automatic-mode follower sources for the public page. Each entry maps a platform
-// to its RLS-safe public view exposing followers_count. To add a platform later,
+// to its RLS-safe public view exposing the follower/subscriber count. To add a platform later,
 // add one entry here (and the same key to FOLLOWER_PLATFORMS / SOCIAL_ICONS). The
 // editor side reads the underlying tables (see FOLLOWER_AUTO_SOURCES in bio.js).
 const FOLLOWER_AUTO_SOURCES = [
-  { key: 'instagram', view: 'public_instagram_kit_data' }
+  { key: 'instagram', view: 'public_instagram_kit_data', col: 'followers_count' },
+  { key: 'youtube', view: 'public_youtube_kit_data', col: 'subscriber_count' },
+  { key: 'tiktok', view: 'public_tiktok_kit_data', col: 'follower_count' }
 ];
 
 // Thousands-separated integer with no locale dependency (matches the Media Kit).
@@ -1151,9 +1153,9 @@ async function resolveLiveCoverUrls(creatorUserId, links, fetchOpts, creatorUser
   if (needsFollowerAuto && creatorUserId) {
     FOLLOWER_AUTO_SOURCES.forEach(function(src) {
       fetches.push(
-        fetch(`${SUPABASE_URL}/rest/v1/${src.view}?user_id=eq.${encodeURIComponent(creatorUserId)}&select=followers_count&limit=1`, fetchOpts())
+        fetch(`${SUPABASE_URL}/rest/v1/${src.view}?user_id=eq.${encodeURIComponent(creatorUserId)}&select=${src.col}&limit=1`, fetchOpts())
           .then(r => r.ok ? r.json() : [])
-          .then(rows => ({ type: 'followerauto', key: src.key, count: rows[0] ? (parseInt(rows[0].followers_count, 10) || 0) : 0 }))
+          .then(rows => ({ type: 'followerauto', key: src.key, count: rows[0] ? (parseInt(rows[0][src.col], 10) || 0) : 0 }))
           .catch(() => ({ type: 'followerauto', key: src.key, count: 0 }))
       );
     });
