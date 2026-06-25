@@ -1364,7 +1364,7 @@ async function loadAudienceAutomatic() {
     try {
       const { data: wc } = await sb
         .from('twitch_connections')
-        .select('tw_display_name,tw_login,tw_avatar_url,tw_description,tw_broadcaster_type,tw_profile_url,follower_count,recent_media,data_last_fetched_at,data_fetch_error')
+        .select('tw_display_name,tw_login,tw_avatar_url,tw_description,tw_broadcaster_type,tw_profile_url,tw_primary_game,tw_created_at,follower_count,recent_media,top_clips,data_last_fetched_at,data_fetch_error')
         .eq('user_id', currentUser.id)
         .maybeSingle();
       twConn = wc || null;
@@ -2122,6 +2122,10 @@ function buildMKPreviewHTML() {
       const bt = (twData.tw_broadcaster_type || '').toLowerCase();
       if (bt === 'partner' || bt === 'affiliate') stats.push({ n: bt.charAt(0).toUpperCase() + bt.slice(1), l: 'Channel' });
       const lastSync = (typeof formatLastRefreshed === 'function') ? formatLastRefreshed(twData.data_last_fetched_at) : '';
+      const twMetaParts = [];
+      if (twData.tw_primary_game && String(twData.tw_primary_game).trim()) twMetaParts.push('Streams ' + escapeHtml(String(twData.tw_primary_game)));
+      const twSinceYear = twData.tw_created_at ? new Date(twData.tw_created_at).getFullYear() : null;
+      if (twSinceYear && !isNaN(twSinceYear)) twMetaParts.push('On Twitch since ' + twSinceYear);
       panels.push({
         key: 'twitch', label: 'Twitch', path: twPath,
         grad: '#9146FF',
@@ -2129,6 +2133,12 @@ function buildMKPreviewHTML() {
         attribution: lastSync ? 'Verified by Twitch &bull; Last synced ' + escapeHtml(lastSync) : 'Verified by Twitch',
         stats: stats,
         hasDemo: false,
+        meta: twMetaParts.join(' &bull; '),
+        recent: Array.isArray(twData.recent_media) ? twData.recent_media.filter(v => v && v.cover).slice(0, 6) : [],
+        recentLabel: 'Recent Streams',
+        recentAspect: '16/9',
+        clips: Array.isArray(twData.top_clips) ? twData.top_clips.filter(v => v && v.cover).slice(0, 6) : [],
+        clipsLabel: 'Top Clips',
       });
     }
 
@@ -2172,9 +2182,16 @@ function buildMKPreviewHTML() {
       const demoHint = active.hasDemo ? `<div style="margin-top:8px;padding:8px 10px;background:${t.surface2};border:1px solid ${t.border};border-radius:8px;font-size:9px;color:${t.muted};text-align:center;">+ Audience demographics shown on published page</div>` : '';
 
       const recentHtml = (active.recent && active.recent.length) ? `<div style="margin-top:10px;">
-        <div style="font-size:8px;color:${t.muted};text-transform:uppercase;letter-spacing:0.06em;margin-bottom:5px;">Recent Videos</div>
+        <div style="font-size:8px;color:${t.muted};text-transform:uppercase;letter-spacing:0.06em;margin-bottom:5px;">${escapeHtml(active.recentLabel || 'Recent Videos')}</div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;">
-          ${active.recent.slice(0, 6).map(v => `<div style="aspect-ratio:9/16;border-radius:6px;overflow:hidden;background:${t.surface2};border:1px solid ${t.border};"><img src="${escapeHtml(v.cover)}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;"></div>`).join('')}
+          ${active.recent.slice(0, 6).map(v => `<div style="aspect-ratio:${active.recentAspect || '9/16'};border-radius:6px;overflow:hidden;background:${t.surface2};border:1px solid ${t.border};"><img src="${escapeHtml(v.cover)}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;"></div>`).join('')}
+        </div>
+      </div>` : '';
+
+      const clipsHtml = (active.clips && active.clips.length) ? `<div style="margin-top:10px;">
+        <div style="font-size:8px;color:${t.muted};text-transform:uppercase;letter-spacing:0.06em;margin-bottom:5px;">${escapeHtml(active.clipsLabel || 'Top Clips')}</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;">
+          ${active.clips.slice(0, 6).map(v => `<div style="aspect-ratio:${active.recentAspect || '16/9'};border-radius:6px;overflow:hidden;background:${t.surface2};border:1px solid ${t.border};"><img src="${escapeHtml(v.cover)}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;"></div>`).join('')}
         </div>
       </div>` : '';
 
@@ -2220,13 +2237,17 @@ function buildMKPreviewHTML() {
         </div>`;
       }
 
+      const metaHtml = active.meta ? `<div style="font-size:9px;color:${t.muted};margin:-4px 0 10px;line-height:1.5;">${active.meta}</div>` : '';
+
       audienceHtml = `<div class="sec">
         <div class="sec-t">Audience &amp; Stats</div>
         ${chipsHtml}
         ${headerHtml}
+        ${metaHtml}
         ${statsHtml}
         ${demoHint}
         ${recentHtml}
+        ${clipsHtml}
         ${splitDonutHtml}
       </div>`;
     }
