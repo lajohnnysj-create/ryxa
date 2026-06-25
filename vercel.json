@@ -40,6 +40,10 @@
       "destination": "/api/tiktok-oauth-callback"
     },
     {
+      "source": "/auth/twitch/callback",
+      "destination": "/api/twitch-oauth-callback"
+    },
+    {
       "source": "/deal/:token",
       "destination": "/portal?t=:token"
     },
