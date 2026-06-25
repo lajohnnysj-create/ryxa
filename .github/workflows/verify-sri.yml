@@ -1,1 +1,25 @@
+name: Verify SRI hashes
 
+# Runs on every push and pull request. If any pinned jsDelivr <script> tag's
+# integrity hash does not match the real file on the CDN, this job fails with a
+# red X on the commit, so a broken hash can never silently reach production and
+# blank out a page. A green check means every pinned hash is valid.
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  verify-sri:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Verify Subresource Integrity hashes
+        run: node scripts/verify-sri.mjs
