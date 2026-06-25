@@ -250,6 +250,7 @@ module.exports = async function handler(req, res) {
           tw_description: user.description || null,
           tw_broadcaster_type: typeof user.broadcaster_type === 'string' ? user.broadcaster_type : null,
           tw_profile_url: login ? ('https://twitch.tv/' + login) : null,
+          tw_created_at: user.created_at || null,
           access_token: encryptToken(tokens.access_token),
           refresh_token: encryptToken(tokens.refresh_token),
           scopes: scopesArr,

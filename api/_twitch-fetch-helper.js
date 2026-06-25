@@ -25,6 +25,9 @@ const TWITCH_CLIENT_SECRET = process.env.TWITCH_CLIENT_SECRET;
 const TOKEN_ENDPOINT = 'https://id.twitch.tv/oauth2/token';
 const USERS_ENDPOINT = 'https://api.twitch.tv/helix/users';
 const FOLLOWERS_ENDPOINT = 'https://api.twitch.tv/helix/channels/followers';
+const VIDEOS_ENDPOINT = 'https://api.twitch.tv/helix/videos';
+const CLIPS_ENDPOINT = 'https://api.twitch.tv/helix/clips';
+const CHANNELS_ENDPOINT = 'https://api.twitch.tv/helix/channels';
 
 const { decryptToken, encryptToken } = require('./lib/token-crypto');
 
@@ -44,6 +47,41 @@ function toInt(v) {
   if (v === null || v === undefined || v === '') return null;
   const n = parseInt(String(v), 10);
   return Number.isFinite(n) ? n : null;
+}
+
+// helix/videos thumbnail_url comes templated with %{width}x%{height}. Replace
+// with a concrete 16:9 size. Returns '' if there is no usable thumbnail (very
+// recent VODs are sometimes still processing and return an empty string).
+function vodThumb(raw) {
+  if (!raw || typeof raw !== 'string') return '';
+  if (raw.indexOf('%{width}') === -1) return raw;
+  return raw.replace('%{width}', '320').replace('%{height}', '180');
+}
+
+// Map a helix/videos item (a past broadcast) to the shared recent_media shape.
+function mapVod(v) {
+  return {
+    id: v.id ? String(v.id) : '',
+    title: v.title ? String(v.title) : '',
+    cover: vodThumb(v.thumbnail_url),
+    link: v.url ? String(v.url) : '',
+    views: toInt(v.view_count),
+    created: v.created_at ? String(v.created_at) : '',
+    duration: v.duration ? String(v.duration) : '',
+  };
+}
+
+// Map a helix/clips item to the same shape (clip thumbnails are direct URLs).
+function mapClip(c) {
+  return {
+    id: c.id ? String(c.id) : '',
+    title: c.title ? String(c.title) : '',
+    cover: c.thumbnail_url ? String(c.thumbnail_url) : '',
+    link: c.url ? String(c.url) : '',
+    views: toInt(c.view_count),
+    created: c.created_at ? String(c.created_at) : '',
+    duration: (typeof c.duration === 'number') ? c.duration : null,
+  };
 }
 
 // ============================================================
@@ -179,6 +217,7 @@ async function refreshTwitchData(userId) {
       collected.tw_description = u.description || null;
       collected.tw_broadcaster_type = typeof u.broadcaster_type === 'string' ? u.broadcaster_type : null;
       collected.tw_profile_url = login ? ('https://twitch.tv/' + login) : null;
+      collected.tw_created_at = u.created_at || null;
     } else {
       errors.push('users:HTTP ' + usersRes.status);
     }
@@ -205,6 +244,74 @@ async function refreshTwitchData(userId) {
     }
   } else {
     errors.push('followers:no_broadcaster_id');
+  }
+
+  // ---- Recent VODs / past broadcasts (helix/videos; no scope) ----
+  // type=archive = recorded past streams, newest first. Note: many channels
+  // do not retain VODs (they expire), so this is best-effort and may be empty.
+  if (broadcasterId) {
+    try {
+      const vRes = await fetch(
+        VIDEOS_ENDPOINT + '?user_id=' + encodeURIComponent(broadcasterId) + '&type=archive&sort=time&first=6',
+        { headers: helixHeaders }
+      );
+      const vText = await vRes.text();
+      let vBody;
+      try { vBody = JSON.parse(vText); } catch { vBody = null; }
+      if (vRes.ok && vBody && Array.isArray(vBody.data)) {
+        collected.recent_media = vBody.data.map(mapVod).filter(v => v.cover).slice(0, 6);
+      } else {
+        errors.push('vods:HTTP ' + vRes.status);
+      }
+    } catch (e) {
+      errors.push('vods:' + e.message);
+    }
+  }
+
+  // ---- Top Clips (helix/clips; no scope) ----
+  // Pull a generous page, then sort by view_count desc and keep the top 6.
+  if (broadcasterId) {
+    try {
+      const cRes = await fetch(
+        CLIPS_ENDPOINT + '?broadcaster_id=' + encodeURIComponent(broadcasterId) + '&first=20',
+        { headers: helixHeaders }
+      );
+      const cText = await cRes.text();
+      let cBody;
+      try { cBody = JSON.parse(cText); } catch { cBody = null; }
+      if (cRes.ok && cBody && Array.isArray(cBody.data)) {
+        collected.top_clips = cBody.data
+          .map(mapClip)
+          .filter(c => c.cover)
+          .sort((a, b) => (b.views || 0) - (a.views || 0))
+          .slice(0, 6);
+      } else {
+        errors.push('clips:HTTP ' + cRes.status);
+      }
+    } catch (e) {
+      errors.push('clips:' + e.message);
+    }
+  }
+
+  // ---- Channel info: primary game/category (helix/channels; no scope) ----
+  if (broadcasterId) {
+    try {
+      const chRes = await fetch(
+        CHANNELS_ENDPOINT + '?broadcaster_id=' + encodeURIComponent(broadcasterId),
+        { headers: helixHeaders }
+      );
+      const chText = await chRes.text();
+      let chBody;
+      try { chBody = JSON.parse(chText); } catch { chBody = null; }
+      if (chRes.ok && chBody && Array.isArray(chBody.data) && chBody.data[0]) {
+        const gn = chBody.data[0].game_name;
+        collected.tw_primary_game = (gn && String(gn).trim()) ? String(gn) : null;
+      } else {
+        errors.push('channel:HTTP ' + chRes.status);
+      }
+    } catch (e) {
+      errors.push('channel:' + e.message);
+    }
   }
 
   // ---- Write ----

@@ -720,7 +720,44 @@ function buildTwPanel(tw) {
     </div>`).join('')}
   </div>` : '';
 
-  return `${headerHtml}${primaryHtml}`;
+  // Meta line: "Streams {game}" and/or "On Twitch since {year}". Brand-fit
+  // context (what they play) plus a longevity signal, both single-line.
+  const metaParts = [];
+  if (tw.tw_primary_game && String(tw.tw_primary_game).trim()) {
+    metaParts.push('Streams ' + esc(String(tw.tw_primary_game)));
+  }
+  const sinceYear = tw.tw_created_at ? new Date(tw.tw_created_at).getFullYear() : null;
+  if (sinceYear && !isNaN(sinceYear)) {
+    metaParts.push('On Twitch since ' + sinceYear);
+  }
+  const metaHtml = metaParts.length
+    ? `<div class="tw-meta">${metaParts.join('<span class="ig-attr-sep" aria-hidden="true">&bull;</span>')}</div>`
+    : '';
+
+  // Shared thumbnail-strip builder for VODs and Clips (16:9 landscape cards).
+  function twStrip(items, subtitle) {
+    const list = Array.isArray(items) ? items.filter(v => v && v.cover) : [];
+    if (!list.length) return '';
+    const cards = list.slice(0, 6).map(v => {
+      const cover = esc(v.cover);
+      const link = validExternalUrl(v.link);
+      const views = (typeof v.views === 'number') ? formatNumber(v.views) : null;
+      const metaInner = views ? `<div class="tw-vid-meta"><span class="tw-vid-views">${esc(views)} views</span></div>` : '';
+      const inner = `<div class="tw-vid-thumb"><img src="${cover}" alt="" loading="lazy"></div>${metaInner}`;
+      return link
+        ? `<a class="tw-vid-card" href="${esc(link)}" target="_blank" rel="noopener nofollow">${inner}</a>`
+        : `<div class="tw-vid-card">${inner}</div>`;
+    }).join('');
+    return `<div class="ig-subsection">
+      <div class="ig-subtitle">${esc(subtitle)}</div>
+      <div class="tw-vid-grid">${cards}</div>
+    </div>`;
+  }
+
+  const vodsHtml = twStrip(tw.recent_media, 'Recent Streams');
+  const clipsHtml = twStrip(tw.top_clips, 'Top Clips');
+
+  return `${headerHtml}${metaHtml}${primaryHtml}${vodsHtml}${clipsHtml}`;
 }
 
 function buildAudienceAutomatic(kit, data) {
@@ -1279,7 +1316,7 @@ async function fetchMediaKitData(username) {
     if (kit && kit.audience_mode === 'automatic') {
       try {
         const twRes = await fetch(
-          `${SUPABASE_URL}/rest/v1/public_twitch_kit_data?user_id=eq.${profile.user_id}&select=tw_display_name,tw_login,tw_avatar_url,tw_description,tw_broadcaster_type,tw_profile_url,follower_count,recent_media,data_last_fetched_at,data_fetch_error`,
+          `${SUPABASE_URL}/rest/v1/public_twitch_kit_data?user_id=eq.${profile.user_id}&select=tw_display_name,tw_login,tw_avatar_url,tw_description,tw_broadcaster_type,tw_profile_url,tw_primary_game,tw_created_at,follower_count,recent_media,top_clips,data_last_fetched_at,data_fetch_error`,
           fetchOpts(controller.signal)
         );
         if (twRes.ok) {
@@ -1466,7 +1503,7 @@ ${customThemeStyle}
       "script-src 'self' https://cdn.jsdelivr.net",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com data:",
-      "img-src 'self' data: blob: https://www.ryxa.io https://kjytapcgxukalwsyputk.supabase.co https://i.ytimg.com https://*.tiktokcdn.com https://*.tiktokcdn-us.com",
+      "img-src 'self' data: blob: https://www.ryxa.io https://kjytapcgxukalwsyputk.supabase.co https://i.ytimg.com https://*.tiktokcdn.com https://*.tiktokcdn-us.com https://static-cdn.jtvnw.net https://clips-media-assets2.twitch.tv",
       "connect-src 'self' https://kjytapcgxukalwsyputk.supabase.co https://cdn.jsdelivr.net",
       "media-src 'self' blob: https://kjytapcgxukalwsyputk.supabase.co",
       "frame-src https://www.youtube.com https://www.youtube-nocookie.com https://www.tiktok.com",
