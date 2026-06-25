@@ -1791,8 +1791,7 @@ async function addTipBlock() {
 
 // ===== Follower count block =====
 // A free Link in Bio block that shows the creator's total followers, with an
-// optional per-platform breakdown. Two modes mirror the Media Kit: Automatic
-// reads connected social accounts (today, Instagram); Manual reads the counts
+// optional per-platform breakdown. Two modes mirror the Media Kit: Automatic reads connected social accounts (Instagram, YouTube, TikTok); Manual reads the counts
 // entered in the creator's Media Kit (single source of truth). The Show icons
 // toggle controls whether per-platform rows render under the total.
 
@@ -1802,7 +1801,9 @@ async function addTipBlock() {
 // these tables authenticated as the owner; the public page reads RLS-safe views
 // (see FOLLOWER_AUTO_SOURCES in api/bio.js).
 const FOLLOWER_AUTO_SOURCES = [
-  { key: 'instagram', table: 'instagram_connections' }
+  { key: 'instagram', table: 'instagram_connections', col: 'followers_count' },
+  { key: 'youtube', table: 'youtube_connections', col: 'subscriber_count' },
+  { key: 'tiktok', table: 'tiktok_connections', col: 'follower_count' }
 ];
 
 let bioFollowerSrc = null; // cached { counts: {platformKey: number} } for automatic previews
@@ -1814,8 +1815,8 @@ async function ensureBioFollowerSrc() {
   const counts = {};
   try {
     const results = await Promise.all(FOLLOWER_AUTO_SOURCES.map(src =>
-      sb.from(src.table).select('followers_count').eq('user_id', currentUser.id).maybeSingle()
-        .then(r => ({ key: src.key, count: r.data ? (parseInt(r.data.followers_count, 10) || 0) : 0 }))
+      sb.from(src.table).select(src.col).eq('user_id', currentUser.id).maybeSingle()
+        .then(r => ({ key: src.key, count: r.data ? (parseInt(r.data[src.col], 10) || 0) : 0 }))
         .catch(() => ({ key: src.key, count: 0 }))
     ));
     results.forEach(r => { if (r.count > 0) counts[r.key] = r.count; });
@@ -1827,8 +1828,7 @@ async function ensureBioFollowerSrc() {
 }
 
 // Build { total, items:[{key,label,count,svg}] } from the right source. Manual
-// reads the counts entered on the block itself (works on every tier); Automatic
-// reads connected social accounts (today, Instagram).
+// reads the counts entered on the block itself (works on every tier); Automatic reads connected social accounts (Instagram, YouTube, TikTok).
 function computeFollowerCounts(link, autoCounts) {
   const items = [];
   if (link.mode === 'manual') {
