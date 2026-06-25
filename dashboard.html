@@ -6146,6 +6146,7 @@
   .settings-acct-badge-ig { background:#E1306C; }
   .settings-acct-badge-yt { background:#FF0000; }
   .settings-acct-badge-tt { background:#010101; }
+  .settings-acct-badge-tw { background:#9146FF; }
   .settings-s-a34021 { font-size:11px;color:var(--muted);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
   .settings-s-98265b { position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0; }
   .settings-s-8e0e33 { width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:11px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;cursor:pointer; }
@@ -10729,9 +10730,44 @@
         </div>
       </div>
 
+      <div id="settings-twitch-disconnected" class="settings-acct-stack">
+        <button id="settings-twitch-connect-btn" data-settings-action="connect-twitch" class="settings-s-266a6c dash-h-476242">
+          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z" fill="#9146FF"/></svg>
+          Connect Twitch
+        </button>
+      </div>
+
+      <!-- Twitch: connected -->
+      <div id="settings-twitch-connected" class="bio-s-c8be1c settings-acct-stack">
+        <div class="settings-s-9403ee">
+          <div class="settings-acct-avatar-wrap">
+            <div id="settings-twitch-avatar" class="settings-s-ac5f6a">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <span class="settings-acct-badge settings-acct-badge-tw" aria-hidden="true"><svg width="10" height="10" viewBox="0 0 24 24"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z" fill="#fff"/></svg></span>
+          </div>
+          <div class="bio-s-a07604">
+            <div class="settings-s-279016">Twitch Connected</div>
+            <div id="settings-twitch-title" class="settings-s-a34021">Channel</div>
+          </div>
+          <button data-settings-action="show-twitch-disconnect" class="settings-acct-x" aria-label="Disconnect Twitch">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div id="twitch-disconnect-confirm" class="settings-s-ed8a71">
+          <p class="settings-s-57abe2">Disconnect Twitch?</p>
+          <p class="settings-s-c06372">Ryxa will stop syncing your Twitch data and your stored insights will be removed.</p>
+          <div class="course-s-b9bbe5">
+            <button data-settings-action="confirm-disconnect-twitch" class="settings-s-acc584">Yes, disconnect</button>
+            <button data-settings-action="hide-twitch-disconnect" class="settings-s-b2ca91">Keep connected</button>
+          </div>
+        </div>
+      </div>
+
       <div id="settings-instagram-msg" class="settings-s-b99790"></div>
       <div id="settings-youtube-msg" class="settings-s-b99790"></div>
       <div id="settings-tiktok-msg" class="settings-s-b99790"></div>
+      <div id="settings-twitch-msg" class="settings-s-b99790"></div>
     </div>
 
     <!-- Display Currency -->
