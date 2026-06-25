@@ -1274,10 +1274,196 @@ settingsRegisterAction('connect-youtube', () => connectYouTubeAccount());
 settingsRegisterAction('show-youtube-disconnect', () => showYouTubeDisconnectConfirm());
 settingsRegisterAction('hide-youtube-disconnect', () => hideYouTubeDisconnectConfirm());
 settingsRegisterAction('confirm-disconnect-youtube', () => confirmDisconnectYouTube());
+async function loadTwitchConnectionStatus() {
+  const disconnectedEl = document.getElementById('settings-twitch-disconnected');
+  const connectedEl = document.getElementById('settings-twitch-connected');
+  const titleEl = document.getElementById('settings-twitch-title');
+  const avatarEl = document.getElementById('settings-twitch-avatar');
+  const msgEl = document.getElementById('settings-twitch-msg');
+  if (msgEl) msgEl.style.display = 'none';
+
+  if (!currentUser) return;
+
+  try {
+    const { data: conn } = await sb
+      .from('twitch_connections')
+      .select('tw_display_name,tw_avatar_url,tw_profile_url,connected_at')
+      .eq('user_id', currentUser.id)
+      .maybeSingle();
+
+    if (conn) {
+      if (disconnectedEl) disconnectedEl.style.display = 'none';
+      if (connectedEl) connectedEl.style.display = 'block';
+      if (titleEl) titleEl.textContent = conn.tw_display_name || 'Connected';
+      if (avatarEl && conn.tw_avatar_url) {
+        avatarEl.innerHTML = '<img src="' + escapeHtml(conn.tw_avatar_url) + '" alt="" class="bio-s-0c9434">';
+      }
+    } else {
+      if (disconnectedEl) disconnectedEl.style.display = 'block';
+      if (connectedEl) connectedEl.style.display = 'none';
+    }
+  } catch (err) {
+    console.error('Failed to load Twitch status:', err);
+  }
+}
+
+async function connectTwitchAccount() {
+  if (!currentUser) return;
+
+  const btn = document.getElementById('settings-twitch-connect-btn');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" class="ds-s-f33c30" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Redirecting to Twitch...';
+  }
+
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session || !session.access_token) {
+      throw new Error('No session');
+    }
+    // Step 1: short-lived signed ticket (POST). Contains our user_id, expires
+    // in 5 minutes, cannot be used as session auth.
+    const ticketRes = await fetch('/api/twitch-oauth-ticket', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + session.access_token }
+    });
+    if (!ticketRes.ok) {
+      const errBody = await ticketRes.json().catch(function() { return {}; });
+      throw new Error(errBody.error || 'ticket_failed');
+    }
+    const ticketJson = await ticketRes.json();
+    if (!ticketJson || !ticketJson.ticket) {
+      throw new Error('Empty ticket response');
+    }
+    // Step 2: navigate to the OAuth start endpoint with the signed ticket.
+    window.location.href = '/api/twitch-oauth-start?ticket=' + encodeURIComponent(ticketJson.ticket);
+  } catch (err) {
+    console.error('Failed to start Twitch OAuth:', err);
+    showTwitchMsg('error', 'Failed to start connection. Please try again.');
+    resetTwitchConnectButton(true);
+  }
+}
+
+function resetTwitchConnectButton(force) {
+  const btn = document.getElementById('settings-twitch-connect-btn');
+  if (!btn) return;
+  if (!force && !/Redirecting to Twitch/i.test(btn.innerText || btn.textContent || '')) return;
+  btn.disabled = false;
+  btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z" fill="#9146FF"/></svg> Connect Twitch';
+}
+
+function showTwitchDisconnectConfirm() {
+  const el = document.getElementById('twitch-disconnect-confirm');
+  if (el) el.style.display = 'block';
+}
+
+function hideTwitchDisconnectConfirm() {
+  const el = document.getElementById('twitch-disconnect-confirm');
+  if (el) el.style.display = 'none';
+}
+
+async function confirmDisconnectTwitch() {
+  if (!currentUser) return;
+
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session || !session.access_token) {
+      throw new Error('No session');
+    }
+    const res = await fetch('/api/twitch-disconnect', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + session.access_token
+      }
+    });
+    if (!res.ok) {
+      const errBody = await res.json().catch(() => ({}));
+      throw new Error(errBody.error || 'Disconnect failed');
+    }
+    hideTwitchDisconnectConfirm();
+    showTwitchMsg('success', 'Twitch disconnected.');
+    showDashToast('success', 'Twitch disconnected.');
+    loadTwitchConnectionStatus();
+    if (typeof mkAudCache !== 'undefined') mkAudCache = null;
+  } catch (err) {
+    console.error('Failed to disconnect Twitch:', err);
+    showTwitchMsg('error', 'Failed to disconnect. Please try again.');
+  }
+}
+
+function showTwitchMsg(type, text) {
+  const el = document.getElementById('settings-twitch-msg');
+  if (!el) return;
+  el.style.display = 'block';
+  el.textContent = text;
+  if (type === 'success') {
+    el.style.background = 'rgba(74,222,128,0.08)';
+    el.style.color = '#4ade80';
+    el.style.border = '1px solid rgba(74,222,128,0.2)';
+  } else {
+    el.style.background = 'rgba(239,68,68,0.08)';
+    el.style.color = '#fca5a5';
+    el.style.border = '1px solid rgba(239,68,68,0.2)';
+  }
+}
+
+// Handle ?twitch_status=... return params from the OAuth callback. On a
+// successful connect, fire an immediate data pull so the Media Kit shows real
+// stats right away (rather than waiting for the next cron / editor open).
+(function handleTwitchReturn() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get('twitch_status');
+    if (!status) return;
+
+    function showWhenReady() {
+      if (typeof showDashToast !== 'function') {
+        setTimeout(showWhenReady, 200);
+        return;
+      }
+      if (status === 'connected') {
+        showDashToast('success', 'Twitch connected!');
+        (async function() {
+          try {
+            const { data: { session } } = await sb.auth.getSession();
+            if (session && session.access_token) {
+              fetch('/api/twitch-data-fetch', {
+                method: 'POST',
+                headers: { Authorization: 'Bearer ' + session.access_token }
+              }).catch(function(e) { console.error('Initial Twitch fetch failed (non-fatal):', e); });
+            }
+          } catch (e) {
+            console.error('Initial Twitch fetch setup failed:', e);
+          }
+        })();
+      } else if (status === 'cancelled') {
+        showDashToast('info', 'Twitch connection cancelled.');
+      } else if (status === 'error') {
+        const msg = escapeHtml(params.get('twitch_message') || 'Could not connect Twitch.');
+        showDashToast('error', msg);
+      }
+      const cleanUrl = window.location.pathname;
+      window.history.replaceState({}, '', cleanUrl);
+      if (typeof loadTwitchConnectionStatus === 'function') {
+        loadTwitchConnectionStatus();
+      }
+      if (typeof mkAudCache !== 'undefined') mkAudCache = null;
+    }
+    showWhenReady();
+  } catch (e) {
+    console.error('handleTwitchReturn failed:', e);
+  }
+})();
+
 settingsRegisterAction('connect-tiktok', () => connectTikTokAccount());
 settingsRegisterAction('show-tiktok-disconnect', () => showTikTokDisconnectConfirm());
 settingsRegisterAction('hide-tiktok-disconnect', () => hideTikTokDisconnectConfirm());
 settingsRegisterAction('confirm-disconnect-tiktok', () => confirmDisconnectTikTok());
+settingsRegisterAction('connect-twitch', () => connectTwitchAccount());
+settingsRegisterAction('show-twitch-disconnect', () => showTwitchDisconnectConfirm());
+settingsRegisterAction('hide-twitch-disconnect', () => hideTwitchDisconnectConfirm());
+settingsRegisterAction('confirm-disconnect-twitch', () => confirmDisconnectTwitch());
 
 // Currency
 settingsRegisterAction('change-currency', (e, el) => changeDisplayCurrency(el.value));
