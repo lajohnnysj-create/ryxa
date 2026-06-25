@@ -680,16 +680,61 @@ function buildTtPanel(tt) {
   return `${headerHtml}${primaryHtml}${recentHtml}`;
 }
 
+function buildTwPanel(tw) {
+  const title = tw.tw_display_name || 'Twitch';
+  const url = tw.tw_profile_url ? String(tw.tw_profile_url) : null;
+  const lastSynced = formatLastSynced(tw.data_last_fetched_at);
+
+  const attributionInner = lastSynced
+    ? `Verified by Twitch <span class="ig-attr-sep" aria-hidden="true">&bull;</span> Last synced ${esc(lastSynced)}`
+    : 'Verified by Twitch';
+
+  const twSvg = (SOCIAL_PLATFORMS.find(p => p.key === 'twitch') || {}).svg || '';
+
+  const headerHtml = `<div class="ig-header">
+    <div class="ig-header-icon" aria-hidden="true">${twSvg}</div>
+    <div class="ig-header-body">
+      ${url
+        ? `<a class="ig-handle" href="${esc(url)}" target="_blank" rel="noopener nofollow">${esc(title)}</a>`
+        : `<span class="ig-handle">${esc(title)}</span>`}
+      <span class="ig-attribution">${attributionInner}</span>
+    </div>
+  </div>`;
+
+  // Twitch is headline-light: the Helix API gives a follower count and profile,
+  // but no usable total-views (deprecated) or organic engagement metric. So this
+  // panel shows Followers, plus the Partner/Affiliate status when set (a Twitch
+  // credibility signal). A standard account has an empty broadcaster_type, which
+  // we simply omit.
+  const primaryStats = [];
+  if (typeof tw.follower_count === 'number') primaryStats.push({ label: 'Followers', value: formatNumber(tw.follower_count) });
+  const bt = (tw.tw_broadcaster_type || '').toLowerCase();
+  if (bt === 'partner' || bt === 'affiliate') {
+    primaryStats.push({ label: 'Channel', value: bt.charAt(0).toUpperCase() + bt.slice(1) });
+  }
+
+  const primaryHtml = primaryStats.length > 0 ? `<div class="ig-stats-grid">
+    ${primaryStats.map(s => `<div class="ig-stat-card">
+      <div class="ig-stat-num">${esc(s.value)}</div>
+      <div class="ig-stat-label">${esc(s.label)}</div>
+    </div>`).join('')}
+  </div>` : '';
+
+  return `${headerHtml}${primaryHtml}`;
+}
+
 function buildAudienceAutomatic(kit, data) {
   data = data || {};
   const ig = data.instagram || null;
   const yt = data.youtube || null;
   const tt = data.tiktok || null;
+  const tw = data.twitch || null;
 
   const platforms = [];
   if (ig) platforms.push({ key: 'instagram', label: 'Instagram', svg: SOCIAL_PLATFORMS[0].svg, panel: buildIgPanel(ig) });
   if (yt) platforms.push({ key: 'youtube', label: 'YouTube', svg: (SOCIAL_PLATFORMS.find(p => p.key === 'youtube') || {}).svg || '', panel: buildYtPanel(yt) });
   if (tt) platforms.push({ key: 'tiktok', label: 'TikTok', svg: (SOCIAL_PLATFORMS.find(p => p.key === 'tiktok') || {}).svg || '', panel: buildTtPanel(tt) });
+  if (tw) platforms.push({ key: 'twitch', label: 'Twitch', svg: (SOCIAL_PLATFORMS.find(p => p.key === 'twitch') || {}).svg || '', panel: buildTwPanel(tw) });
 
   if (platforms.length === 0) {
     return `<div class="section ig-section">
@@ -962,7 +1007,7 @@ function isBuiltinImageTheme(key) {
 // MAIN RENDER — produces inner HTML for the #wrap div
 // ==========================================================================
 
-function renderMediaKitContent(profile, kit, ig, yt, tt) {
+function renderMediaKitContent(profile, kit, ig, yt, tt, tw) {
   const headshot = validImageUrl(kit.headshot_url);
 
   const isPaid = profile.tier === 'monthly' || profile.tier === 'max';
@@ -977,14 +1022,14 @@ function renderMediaKitContent(profile, kit, ig, yt, tt) {
   // 'automatic' → pull from instagram_connections cache (ig param).
   // 'manual' (or unset) → use kit.socials + kit.engagement_rate from the kit row.
   const audienceHtml = kit.audience_mode === 'automatic'
-    ? buildAudienceAutomatic(kit, { instagram: ig, youtube: yt, tiktok: tt })
+    ? buildAudienceAutomatic(kit, { instagram: ig, youtube: yt, tiktok: tt, twitch: tw })
     : buildAudience(kit);
 
   // Total Followers strip — sum across all connected platforms. For now only
   // Instagram is wired up, but the structure already accumulates so future
   // platforms (TikTok, YouTube, etc.) can each contribute their followers_count.
   const totalFollowersHtml = kit.audience_mode === 'automatic'
-    ? buildTotalFollowers(kit, ig, yt, tt)
+    ? buildTotalFollowers(kit, ig, yt, tt, tw)
     : '';
 
   const inner = `<div class="top-actions">
@@ -1026,6 +1071,7 @@ const FOLLOWER_SPLIT_REGISTRY = [
   { platform: 'Instagram', color: '#E1306C', get: (d) => d.instagram && d.instagram.followers_count },
   { platform: 'YouTube',   color: '#FF0000', get: (d) => d.youtube && d.youtube.subscriber_count },
   { platform: 'TikTok',    color: '#25F4EE', get: (d) => d.tiktok && d.tiktok.follower_count },
+  { platform: 'Twitch',    color: '#9146FF', get: (d) => d.twitch && d.twitch.follower_count },
   // Future platforms plug in here, e.g.:
   // { platform: 'Pinterest', color: '#E60023', get: (d) => d.pinterest && d.pinterest.follower_count },
   // { platform: 'Facebook',  color: '#1877F2', get: (d) => d.facebook && d.facebook.follower_count },
@@ -1080,7 +1126,7 @@ function buildFollowerSplitDonut(data) {
   </div>`;
 }
 
-function buildTotalFollowers(kit, ig, yt, tt) {
+function buildTotalFollowers(kit, ig, yt, tt, tw) {
   const sources = [];
   if (ig && typeof ig.followers_count === 'number' && ig.followers_count > 0) {
     sources.push({ platform: 'Instagram', count: ig.followers_count });
@@ -1090,6 +1136,9 @@ function buildTotalFollowers(kit, ig, yt, tt) {
   }
   if (tt && typeof tt.follower_count === 'number' && tt.follower_count > 0) {
     sources.push({ platform: 'TikTok', count: tt.follower_count });
+  }
+  if (tw && typeof tw.follower_count === 'number' && tw.follower_count > 0) {
+    sources.push({ platform: 'Twitch', count: tw.follower_count });
   }
   // Future: push more rows here as platforms come online.
 
@@ -1222,8 +1271,28 @@ async function fetchMediaKitData(username) {
       }
     }
 
+    // Step 3d: Twitch cached data (same automatic mode). Reads from the
+    // public_twitch_kit_data view (safe columns only); the private
+    // twitch_connections table is owner-only RLS. Headline-light (followers +
+    // broadcaster_type; no demographics, no views).
+    let tw = null;
+    if (kit && kit.audience_mode === 'automatic') {
+      try {
+        const twRes = await fetch(
+          `${SUPABASE_URL}/rest/v1/public_twitch_kit_data?user_id=eq.${profile.user_id}&select=tw_display_name,tw_login,tw_avatar_url,tw_description,tw_broadcaster_type,tw_profile_url,follower_count,recent_media,data_last_fetched_at,data_fetch_error`,
+          fetchOpts(controller.signal)
+        );
+        if (twRes.ok) {
+          const twRows = await twRes.json();
+          tw = twRows[0] || null;
+        }
+      } catch (e) {
+        console.error('mediakit Twitch fetch error', e);
+      }
+    }
+
     clearTimeout(timeout);
-    return { profile, kit, ig, yt, tt };
+    return { profile, kit, ig, yt, tt, tw };
   } catch (e) {
     clearTimeout(timeout);
     console.error('mediakit fetch error', e);
@@ -1271,7 +1340,7 @@ module.exports = async (req, res) => {
   let customThemeStyle = '';
 
   if (result && result.kit && result.kit.published !== false) {
-    const { profile, kit, ig, yt, tt } = result;
+    const { profile, kit, ig, yt, tt, tw } = result;
 
     // Update OG metadata for social previews
     const name = kit.display_name || profile.username;
@@ -1299,7 +1368,7 @@ module.exports = async (req, res) => {
     }
 
     // Render the media kit content server-side
-    const rendered = renderMediaKitContent(profile, kit, ig, yt, tt);
+    const rendered = renderMediaKitContent(profile, kit, ig, yt, tt, tw);
     renderedInner = rendered.inner;
 
     // Bootstrap meta tags: stash creator currency + signal SSR hydration so
