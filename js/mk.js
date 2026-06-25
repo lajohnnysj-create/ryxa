@@ -1284,6 +1284,7 @@ let mkAudInflight = false;    // prevent overlapping fetches
 let mkAudRefreshLockUntil = 0; // unix ms; refresh button disabled while in future
 let mkYtRefreshLockUntil = 0;  // unix ms; YouTube refresh button cooldown
 let mkTtRefreshLockUntil = 0;  // unix ms; TikTok refresh button cooldown
+let mkTwRefreshLockUntil = 0;  // unix ms; Twitch refresh button cooldown
 
 function setAudienceMode(mode) {
   mkState.audience_mode = (mode === 'automatic') ? 'automatic' : 'manual';
@@ -1358,6 +1359,19 @@ async function loadAudienceAutomatic() {
       console.error('loadAudienceAutomatic TikTok', e);
     }
 
+    // Twitch connection (parallel). Headline-light columns (followers + profile).
+    let twConn = null;
+    try {
+      const { data: wc } = await sb
+        .from('twitch_connections')
+        .select('tw_display_name,tw_login,tw_avatar_url,tw_description,tw_broadcaster_type,tw_profile_url,follower_count,recent_media,data_last_fetched_at,data_fetch_error')
+        .eq('user_id', currentUser.id)
+        .maybeSingle();
+      twConn = wc || null;
+    } catch (e) {
+      console.error('loadAudienceAutomatic Twitch', e);
+    }
+
     const STALE_MS = 24 * 60 * 60 * 1000; // 24h, shared by both platforms
 
     // ---- Instagram: refresh if stale, else use cached row ----
@@ -1399,6 +1413,19 @@ async function loadAudienceAutomatic() {
       }
     }
 
+    // ---- Twitch: refresh if stale, else use cached row ----
+    let twResult = null;
+    if (twConn) {
+      const twTs = twConn.data_last_fetched_at ? new Date(twConn.data_last_fetched_at).getTime() : 0;
+      const twStale = !twTs || (Date.now() - twTs) > STALE_MS;
+      if (twStale) {
+        const r = await refreshTWData();
+        twResult = (r && r.ok && r.data) ? r.data : twConn;
+      } else {
+        twResult = twConn;
+      }
+    }
+
     mkAudCache = {
       connected: !!igResult,
       data: igResult || null,
@@ -1406,6 +1433,8 @@ async function loadAudienceAutomatic() {
       yt: ytResult || null,
       ttConnected: !!ttResult,
       tt: ttResult || null,
+      twConnected: !!twResult,
+      tw: twResult || null,
     };
     renderAudienceAutomatic();
   } catch (e) {
@@ -1508,6 +1537,44 @@ async function manualRefreshTT() {
   }, 5 * 60 * 1000);
 }
 
+async function refreshTWData() {
+  try {
+    const session = (await sb.auth.getSession()).data.session;
+    if (!session) return { ok: false, error: 'Not authenticated' };
+    const r = await fetch('/api/twitch-data-fetch', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + session.access_token }
+    });
+    const body = await r.json().catch(() => ({}));
+    return body;
+  } catch (e) {
+    console.error('refreshTWData', e);
+    return { ok: false, error: e.message };
+  }
+}
+
+async function manualRefreshTW() {
+  const btn = document.getElementById('mk-aud-refresh-tw-btn');
+  if (!btn) return;
+  if (Date.now() < mkTwRefreshLockUntil) return;
+
+  btn.disabled = true;
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg><span class="mk-aud-row-refresh-label">Refreshing&hellip;</span>';
+
+  const res = await refreshTWData();
+  if (res && res.ok && res.data) {
+    if (mkAudCache) { mkAudCache.twConnected = true; mkAudCache.tw = res.data; }
+    else mkAudCache = { connected: false, data: null, twConnected: true, tw: res.data };
+  }
+  mkTwRefreshLockUntil = Date.now() + 5 * 60 * 1000;
+  renderAudienceAutomatic();
+  setTimeout(() => {
+    const b = document.getElementById('mk-aud-refresh-tw-btn');
+    if (b) { b.disabled = false; }
+    renderAudienceAutomatic();
+  }, 5 * 60 * 1000);
+}
+
 async function manualRefreshIG() {
   const btn = document.getElementById('mk-aud-refresh-btn');
   if (!btn) return;
@@ -1565,7 +1632,7 @@ function renderAudienceAutomatic() {
   }
 
   // ---- State: not connected ----
-  if (!mkAudCache.connected && !mkAudCache.ytConnected && !mkAudCache.ttConnected) {
+  if (!mkAudCache.connected && !mkAudCache.ytConnected && !mkAudCache.ttConnected && !mkAudCache.twConnected) {
     mount.innerHTML = `
       <div class="mk-aud-empty">
         <div class="mk-aud-empty-icon">
@@ -1677,6 +1744,20 @@ function renderAudienceAutomatic() {
     ttErrorNoteHtml = `<div class="mk-aud-error-note">${escapeHtml('Some TikTok data couldn\'t be loaded. Click Refresh, or reconnect TikTok in Settings.')}</div>`;
   }
 
+  // Twitch SVG + row computations (rendered only when connected). Headline-light.
+  const twSvg = '<svg viewBox="0 0 24 24"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>';
+  const twData = mkAudCache.tw || {};
+  const twHandle = twData.tw_display_name || 'Twitch';
+  const twFreshLabel = (typeof formatLastRefreshed === 'function') ? formatLastRefreshed(twData.data_last_fetched_at) : '';
+  const twRemainingMs = Math.max(0, mkTwRefreshLockUntil - Date.now());
+  const twRefreshDisabled = twRemainingMs > 0;
+  const twRefreshLabel = twRefreshDisabled ? 'Wait ' + Math.ceil(twRemainingMs / 1000) + 's' : 'Refresh';
+
+  let twErrorNoteHtml = '';
+  if (mkAudCache.twConnected && twData.data_fetch_error) {
+    twErrorNoteHtml = `<div class="mk-aud-error-note">${escapeHtml('Some Twitch data couldn\'t be loaded. Click Refresh, or reconnect Twitch in Settings.')}</div>`;
+  }
+
   const igRowHtml = mkAudCache.connected ? platformRow({
     name: 'Instagram',
     iconClass: 'mk-aud-platform-ig',
@@ -1716,6 +1797,19 @@ function renderAudienceAutomatic() {
     label: ttRefreshLabel
   }) : '';
 
+  const twRowHtml = mkAudCache.twConnected ? platformRow({
+    name: 'Twitch',
+    iconClass: 'mk-aud-platform-tw',
+    iconSvg: twSvg,
+    connected: true,
+    handle: twHandle,
+    refreshedLabel: twFreshLabel,
+    btnId: 'mk-aud-refresh-tw-btn',
+    action: 'manual-refresh-tw',
+    disabled: twRefreshDisabled,
+    label: twRefreshLabel
+  }) : '';
+
   mount.innerHTML = `
     <div class="mk-aud-connected">
       <div class="mk-aud-toolbar">
@@ -1728,10 +1822,12 @@ function renderAudienceAutomatic() {
         ${igRowHtml}
         ${ytRowHtml}
         ${ttRowHtml}
+        ${twRowHtml}
       </div>
       ${errorNoteHtml}
       ${ytErrorNoteHtml}
       ${ttErrorNoteHtml}
+      ${twErrorNoteHtml}
     </div>`;
 
   // Now that the cache may have changed, re-render the live preview so
@@ -1931,10 +2027,12 @@ function buildMKPreviewHTML() {
     const igData = (typeof mkAudCache !== 'undefined' && mkAudCache && mkAudCache.connected) ? mkAudCache.data : null;
     const ytData = (typeof mkAudCache !== 'undefined' && mkAudCache && mkAudCache.ytConnected) ? mkAudCache.yt : null;
     const ttData = (typeof mkAudCache !== 'undefined' && mkAudCache && mkAudCache.ttConnected) ? mkAudCache.tt : null;
+    const twData = (typeof mkAudCache !== 'undefined' && mkAudCache && mkAudCache.twConnected) ? mkAudCache.tw : null;
 
     const igPath = 'M12 2.2c3.2 0 3.6 0 4.85.07 1.17.05 1.8.25 2.22.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.05.41 2.22.06 1.26.07 1.64.07 4.82s-.01 3.57-.07 4.82c-.05 1.17-.25 1.8-.41 2.22a3.72 3.72 0 0 1-.9 1.38c-.42.42-.82.68-1.38.9-.42.16-1.05.36-2.22.41-1.26.06-1.64.07-4.82.07s-3.57-.01-4.82-.07c-1.17-.05-1.8-.25-2.22-.41a3.72 3.72 0 0 1-1.38-.9 3.72 3.72 0 0 1-.9-1.38c-.16-.42-.36-1.05-.41-2.22C2.21 15.57 2.2 15.19 2.2 12s.01-3.57.07-4.82c.05-1.17.25-1.8.41-2.22.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.05-.36 2.22-.41C8.43 2.21 8.81 2.2 12 2.2M12 0C8.74 0 8.33.01 7.05.07 5.78.13 4.9.33 4.14.63a5.92 5.92 0 0 0-2.13 1.39A5.92 5.92 0 0 0 .62 4.14C.33 4.9.13 5.78.07 7.05.01 8.33 0 8.74 0 12c0 3.26.01 3.67.07 4.95.06 1.27.26 2.15.56 2.91a5.92 5.92 0 0 0 1.39 2.13c.66.66 1.32 1.06 2.13 1.39.76.3 1.64.5 2.91.56C8.33 23.99 8.74 24 12 24c3.26 0 3.67-.01 4.95-.07 1.27-.06 2.15-.26 2.91-.56a5.92 5.92 0 0 0 2.13-1.39c.66-.66 1.06-1.32 1.39-2.13.3-.76.5-1.64.56-2.91.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.06-1.27-.26-2.15-.56-2.91a5.92 5.92 0 0 0-1.39-2.13A5.92 5.92 0 0 0 19.86.62c-.76-.3-1.64-.5-2.91-.56C15.67.01 15.26 0 12 0Zm0 5.84a6.16 6.16 0 1 0 0 12.32 6.16 6.16 0 0 0 0-12.32Zm0 10.16a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm6.41-11.88a1.44 1.44 0 1 0 0 2.88 1.44 1.44 0 0 0 0-2.88Z';
     const ytPath = 'M23.5 6.2a3 3 0 0 0-2.1-2.12C19.54 3.58 12 3.58 12 3.58s-7.54 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.07 0 12 0 12s0 3.93.5 5.8a3 3 0 0 0 2.1 2.12c1.86.5 9.4.5 9.4.5s7.54 0 9.4-.5a3 3 0 0 0 2.1-2.12C24 15.93 24 12 24 12s0-3.93-.5-5.8ZM9.55 15.57V8.43L15.82 12l-6.27 3.57Z';
     const ttPath = 'M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5.8 20.1a6.34 6.34 0 0 0 10.86-4.43V8.83a8.16 8.16 0 0 0 4.77 1.52V6.9a4.85 4.85 0 0 1-1.84-.21Z';
+    const twPath = 'M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z';
     const svgFor = (path, sz) => `<svg viewBox="0 0 24 24" width="${sz}" height="${sz}" fill="currentColor"><path d="${path}"></path></svg>`;
 
     const panels = [];
@@ -2018,6 +2116,22 @@ function buildMKPreviewHTML() {
       });
     }
 
+    if (twData) {
+      const stats = [];
+      if (typeof twData.follower_count === 'number') stats.push({ n: formatNumberShort(twData.follower_count), l: 'Followers' });
+      const bt = (twData.tw_broadcaster_type || '').toLowerCase();
+      if (bt === 'partner' || bt === 'affiliate') stats.push({ n: bt.charAt(0).toUpperCase() + bt.slice(1), l: 'Channel' });
+      const lastSync = (typeof formatLastRefreshed === 'function') ? formatLastRefreshed(twData.data_last_fetched_at) : '';
+      panels.push({
+        key: 'twitch', label: 'Twitch', path: twPath,
+        grad: '#9146FF',
+        handle: twData.tw_display_name || 'Twitch',
+        attribution: lastSync ? 'Verified by Twitch &bull; Last synced ' + escapeHtml(lastSync) : 'Verified by Twitch',
+        stats: stats,
+        hasDemo: false,
+      });
+    }
+
     if (panels.length === 0) {
       // Not connected (or cache not loaded yet) — friendly placeholder
       audienceHtml = `<div class="sec">
@@ -2070,6 +2184,7 @@ function buildMKPreviewHTML() {
         { name: 'Instagram', color: '#E1306C', count: (igData && typeof igData.followers_count === 'number') ? igData.followers_count : 0 },
         { name: 'YouTube', color: '#FF0000', count: (ytData && typeof ytData.subscriber_count === 'number') ? ytData.subscriber_count : 0 },
         { name: 'TikTok', color: '#25F4EE', count: (ttData && typeof ttData.follower_count === 'number') ? ttData.follower_count : 0 },
+        { name: 'Twitch', color: '#9146FF', count: (twData && typeof twData.follower_count === 'number') ? twData.follower_count : 0 },
       ];
       const splitSlices = splitReg.filter(s => s.count > 0);
       let splitDonutHtml = '';
@@ -2164,6 +2279,10 @@ function buildMKPreviewHTML() {
     const ttTotData = (typeof mkAudCache !== 'undefined' && mkAudCache && mkAudCache.ttConnected) ? mkAudCache.tt : null;
     if (ttTotData && typeof ttTotData.follower_count === 'number' && ttTotData.follower_count > 0) {
       sources.push({ platform: 'TikTok', count: ttTotData.follower_count });
+    }
+    const twTotData = (typeof mkAudCache !== 'undefined' && mkAudCache && mkAudCache.twConnected) ? mkAudCache.tw : null;
+    if (twTotData && typeof twTotData.follower_count === 'number' && twTotData.follower_count > 0) {
+      sources.push({ platform: 'Twitch', count: twTotData.follower_count });
     }
     if (sources.length > 0) {
       const totalCount = sources.reduce((s, x) => s + x.count, 0);
@@ -2414,6 +2533,7 @@ mkRegisterAction('add-social-media', () => goToInstagramConnect());
 mkRegisterAction('manual-refresh-ig', () => manualRefreshIG());
 mkRegisterAction('manual-refresh-yt', () => manualRefreshYT());
 mkRegisterAction('manual-refresh-tt', () => manualRefreshTT());
+mkRegisterAction('manual-refresh-tw', () => manualRefreshTW());
 
 // Copy media kit link (template literal)
 mkRegisterAction('copy-mk-link', (e, el) => copyBioLink(el.dataset.mkUrl, el));
