@@ -381,7 +381,8 @@ const FOLLOWER_PLATFORMS = [
   { key: 'facebook', label: 'Facebook', icon: SOCIAL_ICONS.facebook },
   { key: 'snapchat', label: 'Snapchat', icon: SOCIAL_ICONS.snapchat },
   { key: 'linkedin', label: 'LinkedIn', icon: SOCIAL_ICONS.linkedin },
-  { key: 'pinterest', label: 'Pinterest', icon: SOCIAL_ICONS.pinterest }
+  { key: 'pinterest', label: 'Pinterest', icon: SOCIAL_ICONS.pinterest },
+  { key: 'twitch', label: 'Twitch', icon: SOCIAL_ICONS.twitch }
 ];
 
 // Automatic-mode follower sources for the public page. Each entry maps a platform
@@ -391,7 +392,8 @@ const FOLLOWER_PLATFORMS = [
 const FOLLOWER_AUTO_SOURCES = [
   { key: 'instagram', view: 'public_instagram_kit_data', col: 'followers_count' },
   { key: 'youtube', view: 'public_youtube_kit_data', col: 'subscriber_count' },
-  { key: 'tiktok', view: 'public_tiktok_kit_data', col: 'follower_count' }
+  { key: 'tiktok', view: 'public_tiktok_kit_data', col: 'follower_count' },
+  { key: 'twitch', view: 'public_twitch_kit_data', col: 'follower_count' }
 ];
 
 // Thousands-separated integer with no locale dependency (matches the Media Kit).
