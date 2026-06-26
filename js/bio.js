@@ -1803,7 +1803,8 @@ async function addTipBlock() {
 const FOLLOWER_AUTO_SOURCES = [
   { key: 'instagram', table: 'instagram_connections', col: 'followers_count' },
   { key: 'youtube', table: 'youtube_connections', col: 'subscriber_count' },
-  { key: 'tiktok', table: 'tiktok_connections', col: 'follower_count' }
+  { key: 'tiktok', table: 'tiktok_connections', col: 'follower_count' },
+  { key: 'twitch', table: 'twitch_connections', col: 'follower_count' }
 ];
 
 let bioFollowerSrc = null; // cached { counts: {platformKey: number} } for automatic previews
