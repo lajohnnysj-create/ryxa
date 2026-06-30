@@ -2992,6 +2992,15 @@ dashRegisterAction('go-connect-stripe', () => {
     if (target && target.scrollIntoView) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, 100);
 });
+// Stripe nudge: permanent dismiss (per-device, localStorage). Overrides the Stripe-status check.
+function isStripeNudgeDismissed() {
+  try { return localStorage.getItem('ryxa_stripe_nudge_dismissed') === '1'; } catch (e) { return false; }
+}
+dashRegisterAction('dismiss-stripe-nudge', () => {
+  try { localStorage.setItem('ryxa_stripe_nudge_dismissed', '1'); } catch (e) {}
+  const n = document.getElementById('dash-stripe-nudge');
+  if (n) n.style.display = 'none';
+});
 
 // Compound actions — these combine menu-close with another action so the menu
 // closes when navigating away (mimics the original inline `a();b();` pattern).

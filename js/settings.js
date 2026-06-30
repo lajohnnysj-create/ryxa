@@ -311,7 +311,7 @@ async function loadStripeConnectStatus() {
       // Not connected
       if (disconnectedEl) disconnectedEl.style.display = 'block';
       if (connectedEl) connectedEl.style.display = 'none';
-      if (nudgeEl) nudgeEl.style.display = 'flex';
+      if (nudgeEl) nudgeEl.style.display = (typeof isStripeNudgeDismissed === 'function' && isStripeNudgeDismissed()) ? 'none' : 'flex';
     }
   } catch (err) {
     console.error('Failed to load Stripe status:', err);
