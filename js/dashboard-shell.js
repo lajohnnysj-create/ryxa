@@ -305,7 +305,8 @@ const toolTitles = {
     settings: 'Settings',
     design: 'Design Studio',
     aichat: 'Chatbox',
-    calendar: 'Calendar'
+    calendar: 'Calendar',
+    moretools: 'More Tools'
 };
 
 // Detect PWA / standalone mode
