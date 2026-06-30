@@ -444,7 +444,7 @@ function renderMKSocials() {
       const shownPrefix = p.urlPrefix.replace(/^https?:\/\//i, '');
       urlInput = `<div class="bio-social-prefixwrap">
         <span class="bio-social-prefix">${escapeHtml(shownPrefix)}</span>
-        <input type="text" placeholder="yourhandle"
+        <input type="text" maxlength="80" placeholder="yourhandle"
           value="${escapeHtml(data.url || '')}"
           data-mk-action="social-url" data-mk-event="input" data-mk-social="${p.key}"
           aria-label="${p.label} handle">
@@ -454,7 +454,7 @@ function renderMKSocials() {
         value="${escapeHtml(data.url || '')}"
         data-mk-action="social-url" data-mk-event="input" data-mk-social="${p.key}"
         aria-label="${p.label} profile URL"
-        class="mk-s-2f0e33">`;
+        class="mk-s-2f0e33" maxlength="500">`;
     }
     return `<div class="mk-s-bbc25c">
       <div class="mk-social-row bio-s-6c002e" >
@@ -776,7 +776,7 @@ function renderMKVideoList(platform) {
       </button>
       <input type="url" placeholder="${meta.placeholder}" value="${escapeHtml(v.url || '')}"
         data-mk-action="video-field" data-mk-event="input" data-mk-platform="${platform}" data-mk-id="${v._id}"
-        aria-label="${meta.label}" class="mk-vid-input">
+        aria-label="${meta.label}" class="mk-vid-input" maxlength="500">
       <button type="button" class="mk-vid-del" data-mk-action="remove-video" data-mk-platform="${platform}" data-mk-id="${v._id}" aria-label="Remove this video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
     </div>`;
   }).join('');

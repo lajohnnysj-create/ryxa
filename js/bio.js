@@ -1415,7 +1415,7 @@ function renderBioSocials() {
       <div class="bio-social-icon">${f.svg}</div>
       <div class="bio-social-prefixwrap">
         <span class="bio-social-prefix">${escapeHtml(f.urlBase)}</span>
-        <input type="text" aria-label="${f.label}" placeholder="${escapeHtml(f.placeholder)}"
+        <input type="text" maxlength="80" aria-label="${f.label}" placeholder="${escapeHtml(f.placeholder)}"
           value="${val}"
           data-bio-action="social-change" data-bio-event="input" data-bio-social="${f.key}">
       </div>
@@ -1424,7 +1424,7 @@ function renderBioSocials() {
     return `
     <div class="bio-social-row">
       <div class="bio-social-icon">${f.svg}</div>
-      <input type="text" aria-label="${f.label}" placeholder="${f.label}: ${escapeHtml(f.placeholder)}"
+      <input type="text" maxlength="300" aria-label="${f.label}" placeholder="${f.label}: ${escapeHtml(f.placeholder)}"
         value="${val}"
         data-bio-action="social-change" data-bio-event="input" data-bio-social="${f.key}">
     </div>`;
@@ -3323,7 +3323,7 @@ function renderLinkExpanded(link, dragSvg) {
         <button class="bio-link-remove" data-bio-action="remove-link" data-bio-id="${link._id}">Remove</button>
       </div>
       <div class="bio-s-e289c0">In Discord, open Server Settings, then Engagement, then Widget, and turn on Enable Server Widget. Copy your Server ID (shown on that same screen) and paste it below. Your page shows a live card with online members and an invite button.</div>
-      <textarea rows="2" aria-label="Discord server ID or widget URL" placeholder="Server ID, or https://discord.com/widget?id=..." data-bio-action="update-link-field" data-bio-event="input" data-bio-id="${link._id}" data-bio-field="url" class="bio-s-6c002e" style="min-height:54px;resize:vertical;font-family:inherit;line-height:1.4;">${escapeHtml(link.url || '')}</textarea>
+      <textarea rows="2" maxlength="300" aria-label="Discord server ID or widget URL" placeholder="Server ID, or https://discord.com/widget?id=..." data-bio-action="update-link-field" data-bio-event="input" data-bio-id="${link._id}" data-bio-field="url" class="bio-s-6c002e" style="min-height:54px;resize:vertical;font-family:inherit;line-height:1.4;">${escapeHtml(link.url || '')}</textarea>
       <button type="button" data-bio-action="save-link-row" data-bio-id="${link._id}"
         class="bio-s-c7cf47">
         Save
@@ -3399,7 +3399,7 @@ function renderLinkExpanded(link, dragSvg) {
         <button class="bio-link-remove" data-bio-action="remove-link" data-bio-id="${link._id}">Remove</button>
       </div>
       <div class="bio-s-e289c0">On Google Maps, search your business, click Share, open the "Embed a map" tab, then copy and paste the HTML below. Your page shows the map with your star rating, and tapping it opens your full reviews on Google.</div>
-      <textarea rows="3" aria-label="Google Maps embed code" placeholder="Paste the embed code from Google Maps" data-bio-action="update-link-field" data-bio-event="input" data-bio-id="${link._id}" data-bio-field="url" class="bio-s-6c002e" style="min-height:70px;resize:vertical;font-family:inherit;line-height:1.4;">${escapeHtml(link.url || '')}</textarea>
+      <textarea rows="3" maxlength="2000" aria-label="Google Maps embed code" placeholder="Paste the embed code from Google Maps" data-bio-action="update-link-field" data-bio-event="input" data-bio-id="${link._id}" data-bio-field="url" class="bio-s-6c002e" style="min-height:70px;resize:vertical;font-family:inherit;line-height:1.4;">${escapeHtml(link.url || '')}</textarea>
       <button type="button" data-bio-action="save-link-row" data-bio-id="${link._id}"
         class="bio-s-c7cf47">
         Save
@@ -3470,7 +3470,7 @@ function renderLinkExpanded(link, dragSvg) {
       <div class="bio-s-e289c0">Paste a SoundCloud share link, a track, playlist, or profile. Tracks show a compact player; playlists show a scrollable tracklist.</div>
       <input type="url" placeholder="https://soundcloud.com/..." value="${escapeHtml(link.url || '')}"
         data-bio-action="update-link-field" data-bio-event="input" data-bio-id="${link._id}" data-bio-field="url"
-        aria-label="SoundCloud link" class="bio-s-6c002e">
+        aria-label="SoundCloud link" class="bio-s-6c002e" maxlength="500">
       <button type="button" data-bio-action="save-link-row" data-bio-id="${link._id}"
         class="bio-s-c7cf47">
         Save
@@ -3489,7 +3489,7 @@ function renderLinkExpanded(link, dragSvg) {
       <div class="bio-s-e289c0">Paste an Apple Music share link, a song, album, playlist, or artist. Songs show a compact player; albums and playlists show a scrollable tracklist.</div>
       <input type="url" placeholder="https://music.apple.com/..." value="${escapeHtml(link.url || '')}"
         data-bio-action="update-link-field" data-bio-event="input" data-bio-id="${link._id}" data-bio-field="url"
-        aria-label="Apple Music link" class="bio-s-6c002e">
+        aria-label="Apple Music link" class="bio-s-6c002e" maxlength="500">
       <button type="button" data-bio-action="save-link-row" data-bio-id="${link._id}"
         class="bio-s-c7cf47">
         Save
@@ -3508,7 +3508,7 @@ function renderLinkExpanded(link, dragSvg) {
       <div class="bio-s-e289c0">Paste a Spotify share link, a track, album, playlist, artist, or podcast. Tracks show a compact player; albums and playlists show a scrollable tracklist.</div>
       <input type="url" placeholder="https://open.spotify.com/..." value="${escapeHtml(link.url || '')}"
         data-bio-action="update-link-field" data-bio-event="input" data-bio-id="${link._id}" data-bio-field="url"
-        aria-label="Spotify link" class="bio-s-6c002e">
+        aria-label="Spotify link" class="bio-s-6c002e" maxlength="500">
       <button type="button" data-bio-action="save-link-row" data-bio-id="${link._id}"
         class="bio-s-c7cf47">
         Save
@@ -3525,7 +3525,7 @@ function renderLinkExpanded(link, dragSvg) {
         <input type="url" placeholder="https://twitch.tv/... or clips.twitch.tv/..." value="${value}"
           data-bio-action="update-video-url" data-bio-event="input" data-bio-id="${link._id}" data-bio-idx="${idx}"
           aria-label="Twitch URL ${idx + 1}"
-          class="bio-s-d3db56">
+          class="bio-s-d3db56" maxlength="500">
         <button type="button" aria-label="Remove this Twitch link" data-bio-action="remove-video" data-bio-id="${link._id}" data-bio-idx="${idx}"
           class="bio-s-09aacd">×</button>
       </div>`;
@@ -3559,7 +3559,7 @@ function renderLinkExpanded(link, dragSvg) {
         <input type="url" placeholder="https://x.com/.../status/..." value="${value}"
           data-bio-action="update-video-url" data-bio-event="input" data-bio-id="${link._id}" data-bio-idx="${idx}"
           aria-label="X post URL ${idx + 1}"
-          class="bio-s-d3db56">
+          class="bio-s-d3db56" maxlength="500">
         <button type="button" aria-label="Remove this post" data-bio-action="remove-video" data-bio-id="${link._id}" data-bio-idx="${idx}"
           class="bio-s-09aacd">×</button>
       </div>`;
@@ -3609,7 +3609,7 @@ function renderLinkExpanded(link, dragSvg) {
         </div>
         <div class="bio-s-598868">
           <span class="bio-s-dc6286">Crossout $</span>
-          <input type="text" inputmode="decimal" value="${crossoutVal}" placeholder="99.99"
+          <input type="text" inputmode="decimal" maxlength="10" value="${crossoutVal}" placeholder="99.99"
             data-bio-action="update-link-crossout-price" data-bio-event="input" data-bio-id="${link._id}"
             aria-label="Crossout price" class="bio-s-09cb7b">
         </div>
@@ -3712,7 +3712,7 @@ function renderLinkExpanded(link, dragSvg) {
     <input type="text" placeholder="Description (optional)" maxlength="120" value="${escapeHtml(link.description || '')}"
       data-bio-action="update-link-field" data-bio-event="input" data-bio-id="${link._id}" data-bio-field="description" aria-label="Link description">
     <input type="url" placeholder="https://..." value="${escapeHtml(link.url || '')}"
-      data-bio-action="update-link-field" data-bio-event="input" data-bio-id="${link._id}" data-bio-field="url" aria-label="Link URL" class="bio-s-6c002e">
+      data-bio-action="update-link-field" data-bio-event="input" data-bio-id="${link._id}" data-bio-field="url" aria-label="Link URL" class="bio-s-6c002e" maxlength="500">
     ${(!link.featured && !link.isHero && !link.isMediaKit) ? bioHalfWidthToggle(link) : ''}
     <div id="bio-link-err-${link._id}" class="bio-s-f62f0b"></div>
     <button type="button" data-bio-action="save-link-row" data-bio-id="${link._id}"
@@ -5279,7 +5279,7 @@ function bioVideoRowHtml(link, idx, v, platform) {
         <input type="url" placeholder="${meta.placeholder}" value="${value}"
           data-bio-action="update-video-url" data-bio-event="input" data-bio-action-blur="bio-video-blur"
           data-bio-id="${link._id}" data-bio-idx="${idx}" data-bio-platform="${platform}"
-          aria-label="${meta.label} ${n}" class="bio-s-d3db56">
+          aria-label="${meta.label} ${n}" class="bio-s-d3db56" maxlength="500">
         <button type="button" aria-label="Remove this ${meta.nounLower}" data-bio-action="remove-video" data-bio-id="${link._id}" data-bio-idx="${idx}"
           class="bio-s-09aacd">\u00d7</button>
       </div>`;
