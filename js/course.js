@@ -2797,7 +2797,7 @@ function renderCourseModules() {
         + '</div>'
         + '<div class="course-s-c42e2a">'
         + '<div class="mk-s-e4ad4a">'
-        + '<input type="text" value="' + escapeHtml(l.title) + '" placeholder="Lesson title" data-course-action="update-lesson-field" data-course-event="input" data-course-mi="' + mi + '" data-course-li="' + li + '" data-course-field="title" aria-label="Lesson title" class="course-s-9fc438">'
+        + '<input type="text" maxlength="80" value="' + escapeHtml(l.title) + '" placeholder="Lesson title" data-course-action="update-lesson-field" data-course-event="input" data-course-mi="' + mi + '" data-course-li="' + li + '" data-course-field="title" aria-label="Lesson title" class="course-s-9fc438">'
         + '</div>'
         + (isVideo
           ? (function() {
