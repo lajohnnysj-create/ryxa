@@ -3367,7 +3367,7 @@ function renderLinkExpanded(link, dragSvg) {
         ${MK_SOCIAL_PLATFORMS.map(p => `<label class="bio-follower-field">
           <span class="bio-follower-field-ic">${p.svg}</span>
           <span class="bio-follower-field-name">${p.label}</span>
-          <input type="number" min="0" inputmode="numeric" placeholder="0" value="${(link.followerCounts && link.followerCounts[p.key]) ? link.followerCounts[p.key] : ''}" data-bio-action="update-follower-count" data-bio-event="input" data-bio-id="${link._id}" data-bio-platform="${p.key}" aria-label="${p.label} followers" class="bio-follower-field-input">
+          <input type="text" inputmode="numeric" maxlength="12" placeholder="0" value="${(link.followerCounts && link.followerCounts[p.key]) ? link.followerCounts[p.key] : ''}" data-bio-action="update-follower-count" data-bio-event="input" data-bio-id="${link._id}" data-bio-platform="${p.key}" aria-label="${p.label} followers" class="bio-follower-field-input">
         </label>`).join('')}
       </div>${isPro() ? `<button type="button" data-bio-action="pull-follower-from-mediakit" data-bio-id="${link._id}" class="bio-follower-pull">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>

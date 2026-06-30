@@ -460,11 +460,11 @@ function renderMKSocials() {
       <div class="mk-social-row bio-s-6c002e" >
         <div class="mk-social-icon">${p.svg}</div>
         <div class="mk-social-label">${p.label}</div>
-        <input type="number" min="0" placeholder="Follower count"
+        <input type="text" inputmode="numeric" maxlength="12" placeholder="Follower count"
           value="${data.count || ''}"
           data-mk-action="social-count" data-mk-event="input" data-mk-social="${p.key}"
           aria-label="${p.label} follower count">
-        <input type="number" min="0" max="100" step="0.01" placeholder="Eng. %"
+        <input type="text" inputmode="decimal" maxlength="6" placeholder="Eng. %"
           value="${data.engagement || ''}"
           data-mk-action="social-engagement" data-mk-event="input" data-mk-social="${p.key}"
           aria-label="${p.label} engagement rate percentage"
@@ -637,7 +637,7 @@ function renderMKRates() {
       ${headerHtml}
       <div class="mk-rate-price-row">
         <span class="mk-rate-prefix currency-symbol-prefix">${getCurrencySymbol()}</span>
-        <input type="number" min="0" step="1" placeholder="Price"
+        <input type="text" inputmode="decimal" maxlength="10" placeholder="Price"
           value="${escapeHtml(r.price ? String(r.price) : '')}"
           data-mk-action="rate-field" data-mk-event="input" data-mk-id="${r._id}" data-mk-field="price"
           aria-label="Price"
