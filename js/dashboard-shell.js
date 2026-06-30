@@ -1721,6 +1721,10 @@ function showTool(tool) {
 
   // Init settings when shown
   if (tool === 'settings') {
+    // Open Settings at the top. showTool doesn't reset the window scroll, so a
+    // scrolled-down previous view would otherwise carry its offset into Settings.
+    // Instant (not smooth) so it doesn't animate against the html smooth-scroll.
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     const pro = isPro();
     // Pre-select current currency dropdown
     var ccSel = document.getElementById('settings-currency-select');
