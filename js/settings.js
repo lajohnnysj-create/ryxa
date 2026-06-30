@@ -288,6 +288,7 @@ async function loadStripeConnectStatus() {
   const connectedEl = document.getElementById('settings-stripe-connected');
   const acctIdEl = document.getElementById('settings-stripe-acct-id');
   const msgEl = document.getElementById('settings-stripe-msg');
+  const nudgeEl = document.getElementById('dash-stripe-nudge');
   if (msgEl) msgEl.style.display = 'none';
 
   if (!currentUser) return;
@@ -302,6 +303,7 @@ async function loadStripeConnectStatus() {
       // Connected
       if (disconnectedEl) disconnectedEl.style.display = 'none';
       if (connectedEl) connectedEl.style.display = 'block';
+      if (nudgeEl) nudgeEl.style.display = 'none';
       if (acctIdEl && status.masked_id) {
         acctIdEl.textContent = status.masked_id;
       }
@@ -309,6 +311,7 @@ async function loadStripeConnectStatus() {
       // Not connected
       if (disconnectedEl) disconnectedEl.style.display = 'block';
       if (connectedEl) connectedEl.style.display = 'none';
+      if (nudgeEl) nudgeEl.style.display = 'flex';
     }
   } catch (err) {
     console.error('Failed to load Stripe status:', err);
@@ -1205,6 +1208,41 @@ function showSettingsResult(type, msg) {
   el.textContent = msg;
 }
 
+// Confirm a cancel/reactivate actually took effect by reading Stripe (the
+// source of truth) via /api/subscription-verify. We poll briefly because the
+// endpoint reads Stripe right after the Edge Function ran. Returns true once
+// Stripe matches the expected state; false if it never confirms within the
+// window, in which case the caller shows a "could not confirm" message rather
+// than a false success. A bare 2xx from the cancel function is NOT proof the
+// Stripe call landed, which is exactly the gap that let a cancel look done
+// while Stripe stayed active.
+async function verifySubscriptionCancelState(expectCancelAtPeriodEnd) {
+  let token = null;
+  try {
+    const { data } = await sb.auth.getSession();
+    token = data && data.session && data.session.access_token;
+  } catch (e) { token = null; }
+  if (!token) return false; // cannot verify -> treat as unconfirmed (safe)
+
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt > 0) await new Promise(function (r) { setTimeout(r, 1200); });
+    try {
+      const res = await fetch('/api/subscription-verify', {
+        headers: { Authorization: 'Bearer ' + token },
+      });
+      if (!res.ok) continue;
+      const d = await res.json();
+      // A confirmed result requires a real subscription whose cancel state
+      // matches what we expect. "No subscription found" is NOT treated as a
+      // confirmed cancel: that ambiguity (possibly a stale pointer) is exactly
+      // what produced false "cancelled!" successes before. We keep retrying,
+      // and if it never confirms the caller shows "could not confirm".
+      if (d.has_subscription && d.cancel_at_period_end === expectCancelAtPeriodEnd) return true;
+    } catch (e) { /* transient; retry */ }
+  }
+  return false;
+}
+
 async function confirmSettingsCancel() {
   const wasCancelling = userStatus === 'cancelling';
   // Snapshot tier/trial state BEFORE the function call so the success
@@ -1226,8 +1264,23 @@ async function confirmSettingsCancel() {
     const fn = wasCancelling ? 'reactivate-subscription' : 'cancel-subscription';
     const { error } = await sb.functions.invoke(fn, { body: { userId: currentUser.id } });
     if (error) throw error;
+
+    // SAFEGUARD: a 2xx from the function is not proof Stripe actually applied
+    // the change. Confirm against Stripe (source of truth) before claiming
+    // success, so the UI can never report a cancel/reactivate that did not land.
+    const expectCancel = !wasCancelling; // after a cancel we expect cancel_at_period_end === true
+    const confirmed = await verifySubscriptionCancelState(expectCancel);
+
     await fetchTier(currentUser.id);
     updateSettingsCancelBtn();
+
+    if (!confirmed) {
+      showSettingsResult('error',
+        wasCancelling
+          ? 'We could not confirm your reactivation with Stripe yet. Please refresh in a moment. If it still shows cancelling, try again or email hello@ryxa.io.'
+          : 'We could not confirm your cancellation with Stripe yet. Please refresh in a moment. If your plan still shows active, cancel again or email hello@ryxa.io.');
+      return;
+    }
 
     let msg;
     if (wasCancelling) {

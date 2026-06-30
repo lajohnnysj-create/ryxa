@@ -854,6 +854,7 @@ async function setUser(user) {
       var dashBioRow = document.getElementById('dash-welcome-biolink');
       if (dashBioRow) dashBioRow.style.display = 'block';
       showBioLinkButtons();
+      try { loadStripeConnectStatus(); } catch(e) { console.error('Stripe nudge status error:', e); }
     } else {
       applyDashGreeting('creator');
     }
@@ -2984,6 +2985,13 @@ dashRegisterAction('close-sidebar-menu', () => closeSidebarMenu());
 // Sidebar utility — "Copy bio link" button (calls into bio.js)
 dashRegisterAction('copy-sidebar-bio-link', () => copySidebarBioLink());
 dashRegisterAction('copy-welcome-bio-link', () => copyWelcomeBioLink());
+dashRegisterAction('go-connect-stripe', () => {
+  if (typeof showTool === 'function') showTool('settings');
+  setTimeout(() => {
+    const target = document.getElementById('settings-stripe-section');
+    if (target && target.scrollIntoView) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 100);
+});
 
 // Compound actions — these combine menu-close with another action so the menu
 // closes when navigating away (mimics the original inline `a();b();` pattern).
