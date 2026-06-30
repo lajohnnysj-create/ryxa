@@ -4513,6 +4513,9 @@
     .bio-s-f883c5 { height: min(640px, calc(100vh - 160px)); }
     .mk-s-0580dd { height: min(720px, calc(100vh - 160px)); }
   }
+  /* Match the Media Kit mobile preview height to Link in Bio for consistency */
+  @media (max-width: 1100px) { .mk-s-0580dd { height: 600px; } }
+  @media (max-width: 640px) { .mk-s-0580dd { height: 500px; } }
   .mk-s-c52a20 { width:100%;height:100%;border:none;border-radius:12px;background:var(--bg); }
 
   /* Phase 3b, extracted inline styles from mk.js template literals */
