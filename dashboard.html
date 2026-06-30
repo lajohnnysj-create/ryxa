@@ -1616,6 +1616,8 @@
      both deep-link here). */
   #settings-connected-accounts { scroll-margin-top: calc(var(--topbar-height) + env(safe-area-inset-top, 0px) + 16px); }
   #settings-stripe-section { scroll-margin-top: calc(var(--topbar-height) + env(safe-area-inset-top, 0px) + 16px); }
+  .dash-nudge-icon-btn { flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; padding: 0; border: none; border-radius: 8px; background: transparent; cursor: pointer; transition: background 0.15s; }
+  .dash-nudge-icon-btn:hover { background: var(--surface2); }
   .aichat-side-toggle { display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; padding:0; background:transparent; border:none; border-radius:8px; color:var(--text); cursor:pointer; flex-shrink:0; transition:background 0.15s; }
   .aichat-side-toggle:hover { background:var(--surface2); }
   .tier-badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 100px; font-size: 12px; font-weight: 500; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #c9c7dc; }
@@ -6715,8 +6717,12 @@
         <div id="dash-stripe-nudge" style="display:none;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin:0 auto 24px;padding:10px 14px;max-width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#facc15" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
           <span style="font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;">Connect your Stripe to start earning</span>
-          <button data-dash-action="go-connect-stripe" style="flex-shrink:0;font-size:12px;font-weight:700;font-family:DM Sans,sans-serif;padding:6px 16px;border-radius:8px;border:1px solid #fff;background:transparent;color:#fff;cursor:pointer;">Go</button>
-          <button data-dash-action="dismiss-stripe-nudge" aria-label="Dismiss" title="Dismiss forever" style="flex-shrink:0;font-size:13px;font-weight:700;font-family:DM Sans,sans-serif;line-height:1;padding:6px 12px;border-radius:8px;border:1px solid #ef4444;background:transparent;color:#ef4444;cursor:pointer;">✕</button>
+          <button data-dash-action="go-connect-stripe" class="dash-nudge-icon-btn" aria-label="Connect Stripe" title="Connect Stripe" style="color:var(--text);">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+          <button data-dash-action="dismiss-stripe-nudge" class="dash-nudge-icon-btn" aria-label="Dismiss forever" title="Dismiss forever" style="color:#ef4444;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+          </button>
         </div>
 
         <!-- Time Range Controls -->
