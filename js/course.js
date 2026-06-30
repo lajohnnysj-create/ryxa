@@ -2710,14 +2710,14 @@ function renderQuizCard(quiz, mi) {
       var radioName = 'q-correct-m' + mi + '-q' + qi;
       return '<div class="course-s-quiz-answer-row">'
         + '<input type="radio" name="' + escapeHtml(radioName) + '" data-course-action="mark-answer-correct" data-course-event="change" data-course-mi="' + mi + '" data-course-qi="' + qi + '" data-course-ai="' + ai + '"' + (a && a.is_correct ? ' checked' : '') + ' aria-label="Mark answer ' + (ai + 1) + ' as correct">'
-        + '<input type="text" value="' + escapeHtml((a && a.text) || '') + '" placeholder="Answer ' + (ai + 1) + '" data-course-action="update-answer-text" data-course-event="input" data-course-mi="' + mi + '" data-course-qi="' + qi + '" data-course-ai="' + ai + '" aria-label="Answer ' + (ai + 1) + ' text" class="course-s-quiz-answer-input">'
+        + '<input type="text" maxlength="200" value="' + escapeHtml((a && a.text) || '') + '" placeholder="Answer ' + (ai + 1) + '" data-course-action="update-answer-text" data-course-event="input" data-course-mi="' + mi + '" data-course-qi="' + qi + '" data-course-ai="' + ai + '" aria-label="Answer ' + (ai + 1) + ' text" class="course-s-quiz-answer-input">'
         + '</div>';
     }).join('');
 
     return '<div class="course-s-quiz-question">'
       + '<div class="course-s-quiz-question-head">'
       + '<span class="course-s-quiz-qnum">Q' + (qi + 1) + '</span>'
-      + '<input type="text" value="' + escapeHtml(q.text || '') + '" placeholder="Question text" data-course-action="update-question-text" data-course-event="input" data-course-mi="' + mi + '" data-course-qi="' + qi + '" aria-label="Question ' + (qi + 1) + ' text" class="course-s-quiz-q-input">'
+      + '<input type="text" maxlength="300" value="' + escapeHtml(q.text || '') + '" placeholder="Question text" data-course-action="update-question-text" data-course-event="input" data-course-mi="' + mi + '" data-course-qi="' + qi + '" aria-label="Question ' + (qi + 1) + ' text" class="course-s-quiz-q-input">'
       + '<button type="button" data-course-action="remove-question" data-course-mi="' + mi + '" data-course-qi="' + qi + '" class="course-s-quiz-q-remove" aria-label="Remove question ' + (qi + 1) + '">'
       + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg>'
       + '</button>'
@@ -2825,7 +2825,7 @@ function renderCourseModules() {
               }
               var pastePanel = '<div class="course-vid-panel" data-vid-panel="paste" aria-hidden="' + (defaultTab === 'paste' ? 'false' : 'true') + '">'
                 + '<div class="course-s-vurl-wrap">'
-                + '<input type="url" value="' + escapeHtml(l.video_url || '') + '" placeholder="Video URL (YouTube, Vimeo, or Loom)" data-course-action="validate-video-url" data-course-event="input" data-course-action-blur="validate-video-url-blur" data-course-mi="' + mi + '" data-course-li="' + li + '" data-course-field="video_url" aria-label="Video URL" class="course-s-59ebc5">'
+                + '<input type="url" maxlength="500" value="' + escapeHtml(l.video_url || '') + '" placeholder="Video URL (YouTube, Vimeo, or Loom)" data-course-action="validate-video-url" data-course-event="input" data-course-action-blur="validate-video-url-blur" data-course-mi="' + mi + '" data-course-li="' + li + '" data-course-field="video_url" aria-label="Video URL" class="course-s-59ebc5">'
                 + pasteStatusHtml
                 + '</div>'
                 + '</div>';
@@ -2958,7 +2958,7 @@ function renderCourseModules() {
       + (mi < (courseModules.length - 1) ? '<button data-course-action="move-module-down" data-course-mi="' + mi + '" class="course-s-f1cd5a" title="Move module down" aria-label="Move module down"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>' : '<div class="course-s-0a4e53"></div>')
       + '</div>'
       + '<span class="course-s-2653e1">Module ' + (mi + 1) + '</span>'
-      + '<input type="text" value="' + escapeHtml(mod.title) + '" placeholder="Module title (e.g., Getting Started)" data-course-action="update-module-title" data-course-event="input" data-course-mi="' + mi + '" aria-label="Module title" class="course-s-ced5e0">'
+      + '<input type="text" maxlength="80" value="' + escapeHtml(mod.title) + '" placeholder="Module title (e.g., Getting Started)" data-course-action="update-module-title" data-course-event="input" data-course-mi="' + mi + '" aria-label="Module title" class="course-s-ced5e0">'
       + '<button data-course-action="remove-module" data-course-mi="' + mi + '" class="course-s-02ecf5" title="Remove module" aria-label="Remove module"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>'
       + '</div>'
       + lessonsHtml
