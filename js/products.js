@@ -352,6 +352,11 @@ var _productDescSyncInProgress = false;
 // landing-page view loads this) and UX (long descriptions don't convert
 // better).
 var PRODUCT_DESC_MAX_HTML = 3000;
+// 1 MB safety backstop on the saved description HTML, mirroring the per-lesson
+// MAX_LESSON_TEXT_BYTES cap in course.js. The 3000-char cap above is the live
+// UX limit; this is a persistence-layer guard against pathological or bypassed
+// input. Pair with a Postgres CHECK constraint on the column for defense in depth.
+var MAX_PRODUCT_DESC_BYTES = 1024 * 1024;
 // Max <img> embeds in a single product description. Same cap as course and
 // booking descriptions. Product descriptions are short marketing copy;
 // image-heavy pages slow public landing TTFB which hurts conversion.
@@ -1113,6 +1118,11 @@ async function saveProduct() {
       return;
     }
     priceCents = Math.round(n * 100);
+  }
+
+  if (description && description.length > MAX_PRODUCT_DESC_BYTES) {
+    showModalAlert('Description too large', 'Your product description is over the 1 MB limit. Trim the text or remove some images and try again.');
+    return;
   }
 
   var saveBtn = document.getElementById('products-save-btn');
