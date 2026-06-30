@@ -6308,6 +6308,24 @@
     html { scrollbar-width: none !important; }
   }
 
+
+  /* ===== More Tools page ===== */
+  #tool-moretools .mt-head { margin-bottom: 22px; }
+  #tool-moretools .mt-title { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; color: var(--text); margin: 0 0 6px; }
+  #tool-moretools .mt-sub { font-size: 14px; color: var(--muted); margin: 0; }
+  #tool-moretools .mt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+  #tool-moretools .mt-card { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; padding: 16px; background: rgba(255,255,255,0.035); border: 1px solid var(--border); border-radius: 12px; cursor: pointer; text-align: left; font-family: inherit; transition: border-color 0.15s, background 0.15s, transform 0.15s; }
+  #tool-moretools .mt-card:hover { border-color: var(--accent); background: rgba(124,58,237,0.10); transform: translateY(-1px); }
+  #tool-moretools .mt-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  #tool-moretools .mt-card-icon { width: 40px; height: 40px; border-radius: 10px; background: rgba(124,58,237,0.12); display: flex; align-items: center; justify-content: center; color: var(--accent); flex-shrink: 0; }
+  #tool-moretools .mt-card-icon svg { width: 21px; height: 21px; stroke: currentColor; stroke-width: 1.8; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  #tool-moretools .mt-card-label { font-size: 14px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; line-height: 1.3; }
+  .mt-pill { font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 700; letter-spacing: 0.04em; line-height: 1; }
+  .mt-pill.pro { background: rgba(124,58,237,0.15); border: 1px solid rgba(124,58,237,0.3); color: #c4b5fd; }
+  .mt-pill.max { background: linear-gradient(135deg,#a78bfa,#e879f9); color: #fff; }
+  body.tier-loading .mt-pill { display: none; }
+  body.pro-user .mt-pill.pro { display: none; }
+  body.max-user .mt-pill.pro, body.max-user .mt-pill.max { display: none; }
 </style>
 <style>html{background:#0f0f1a;}body{visibility:hidden;}body.ready{visibility:visible;}</style>
 
@@ -6526,7 +6544,7 @@
       <span class="sidebar-item-label">Media Kit <span class="sidebar-pill pro">PRO</span></span>
     </button>
 
-    <div class="sidebar-section-label">The Suite</div>
+    <div class="sidebar-section-label">Monetization Tools</div>
     <button class="sidebar-item" id="nav-courses" data-dash-action="show-tool" data-dash-tool="courses">
       <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M8 7h8M8 11h6"/></svg></div>
       <span class="sidebar-item-label">Courses <span class="sidebar-pill max">MAX</span></span>
@@ -6563,57 +6581,13 @@
         </button>
       </div>
     </div>
-    <button class="sidebar-item" id="nav-design" data-dash-action="show-tool" data-dash-tool="design">
-      <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="12" rx="10" ry="4.5"/><ellipse cx="12" cy="12" rx="10" ry="4.5" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="10" ry="4.5" transform="rotate(120 12 12)"/><circle cx="12" cy="12" r="2"/></svg></div>
-      <span class="sidebar-item-label">Design Studio</span>
-    </button>
-    <button class="sidebar-item" id="nav-scripts" data-dash-action="show-tool" data-dash-tool="scripts">
-      <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/><path d="M6 21l-2-2 2-2M18 21l2-2-2-2"/></svg></div>
-      <span class="sidebar-item-label">Script Builder <span class="sidebar-pill pro">PRO</span></span>
-    </button>
     <button class="sidebar-item" id="nav-calendar" data-dash-action="show-tool" data-dash-tool="calendar">
       <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
       <span class="sidebar-item-label">Calendar</span>
     </button>
-
-    <div class="sidebar-section-label">AI</div>
-    <button class="sidebar-item" id="nav-aichat" data-dash-action="show-tool" data-dash-tool="aichat">
-      <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
-      <span class="sidebar-item-label">Chatbox <span class="sidebar-pill pro">PRO</span></span>
-    </button>
-    <button class="sidebar-item" id="nav-thumbanalyzer" data-dash-action="show-tool" data-dash-tool="thumbanalyzer">
-      <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/><path d="M11 8v6M8 11h6"/></svg></div>
-      <span class="sidebar-item-label">Thumbnail <span class="sidebar-pill pro">PRO</span></span>
-    </button>
-    <button class="sidebar-item" id="nav-contractanalyzer" data-dash-action="show-tool" data-dash-tool="contractanalyzer">
-      <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 15l2 2 4-4"/></svg></div>
-      <span class="sidebar-item-label">Contract <span class="sidebar-pill pro">PRO</span></span>
-    </button>
-
-    <div class="sidebar-section-label">Tools</div>
-    <button class="sidebar-item" id="nav-image" data-dash-action="show-tool" data-dash-tool="image">
-      <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg></div>
-      <span class="sidebar-item-label">Photo Editor</span>
-    </button>
-    <button class="sidebar-item" id="nav-grid" data-dash-action="show-tool" data-dash-tool="grid">
-      <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
-      <span class="sidebar-item-label">Grid Planner</span>
-    </button>
-    <button class="sidebar-item" id="nav-follower" data-dash-action="show-follower">
-      <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></div>
-      <span class="sidebar-item-label">Follow-Back Audit</span>
-    </button>
-    <button class="sidebar-item" id="nav-qr" data-dash-action="show-tool" data-dash-tool="qr">
-      <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20v1"/></svg></div>
-      <span class="sidebar-item-label">QR Generator</span>
-    </button>
-    <button class="sidebar-item" id="nav-invoice" data-dash-action="show-tool" data-dash-tool="invoice">
-      <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/></svg></div>
-      <span class="sidebar-item-label">Invoice Generator</span>
-    </button>
-    <button class="sidebar-item" id="nav-pdfsign" data-dash-action="show-tool" data-dash-tool="pdfsign">
-      <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M3 17l3-3 2 2 5-5 3 3"/></svg></div>
-      <span class="sidebar-item-label">Sign PDF</span>
+    <button class="sidebar-item" id="nav-moretools" data-dash-action="show-tool" data-dash-tool="moretools">
+      <div class="sidebar-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="4" height="4" rx="1"/><rect x="10" y="3" width="4" height="4" rx="1"/><rect x="17" y="3" width="4" height="4" rx="1"/><rect x="3" y="10" width="4" height="4" rx="1"/><rect x="10" y="10" width="4" height="4" rx="1"/><rect x="17" y="10" width="4" height="4" rx="1"/><rect x="3" y="17" width="4" height="4" rx="1"/><rect x="10" y="17" width="4" height="4" rx="1"/><rect x="17" y="17" width="4" height="4" rx="1"/></svg></div>
+      <span class="sidebar-item-label">More Tools</span>
     </button>
 
     <button class="sidebar-item" id="nav-settings" data-dash-action="show-tool" data-dash-tool="settings">
@@ -8734,6 +8708,59 @@
     </div>
 
     <!-- IMAGE STUDIO -->
+    <div id="tool-moretools" class="bio-s-c8be1c">
+      <div class="mt-head">
+        <h1 class="mt-title">More Tools</h1>
+        <p class="mt-sub">Creator utilities and AI helpers. Select any tool to open it.</p>
+      </div>
+      <div class="mt-grid">
+      <button class="mt-card" data-dash-action="show-tool" data-dash-tool="design">
+        <span class="mt-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="12" rx="10" ry="4.5"/><ellipse cx="12" cy="12" rx="10" ry="4.5" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="10" ry="4.5" transform="rotate(120 12 12)"/><circle cx="12" cy="12" r="2"/></svg></span>
+        <span class="mt-card-label">Design Studio</span>
+      </button>
+      <button class="mt-card" data-dash-action="show-tool" data-dash-tool="scripts">
+        <span class="mt-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/><path d="M6 21l-2-2 2-2M18 21l2-2-2-2"/></svg></span>
+        <span class="mt-card-label">Script Builder <span class="mt-pill pro">PRO</span></span>
+      </button>
+      <button class="mt-card" data-dash-action="show-tool" data-dash-tool="aichat">
+        <span class="mt-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+        <span class="mt-card-label">Chatbox <span class="mt-pill pro">PRO</span></span>
+      </button>
+      <button class="mt-card" data-dash-action="show-tool" data-dash-tool="thumbanalyzer">
+        <span class="mt-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/><path d="M11 8v6M8 11h6"/></svg></span>
+        <span class="mt-card-label">Thumbnail Analyzer <span class="mt-pill pro">PRO</span></span>
+      </button>
+      <button class="mt-card" data-dash-action="show-tool" data-dash-tool="contractanalyzer">
+        <span class="mt-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 15l2 2 4-4"/></svg></span>
+        <span class="mt-card-label">Contract Analyzer <span class="mt-pill pro">PRO</span></span>
+      </button>
+      <button class="mt-card" data-dash-action="show-tool" data-dash-tool="image">
+        <span class="mt-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg></span>
+        <span class="mt-card-label">Photo Editor</span>
+      </button>
+      <button class="mt-card" data-dash-action="show-tool" data-dash-tool="grid">
+        <span class="mt-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+        <span class="mt-card-label">Grid Planner</span>
+      </button>
+      <button class="mt-card" data-dash-action="show-follower">
+        <span class="mt-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></span>
+        <span class="mt-card-label">Follow-Back Audit</span>
+      </button>
+      <button class="mt-card" data-dash-action="show-tool" data-dash-tool="qr">
+        <span class="mt-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20v1"/></svg></span>
+        <span class="mt-card-label">QR Generator</span>
+      </button>
+      <button class="mt-card" data-dash-action="show-tool" data-dash-tool="invoice">
+        <span class="mt-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/></svg></span>
+        <span class="mt-card-label">Invoice Generator</span>
+      </button>
+      <button class="mt-card" data-dash-action="show-tool" data-dash-tool="pdfsign">
+        <span class="mt-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M3 17l3-3 2 2 5-5 3 3"/></svg></span>
+        <span class="mt-card-label">Sign PDF</span>
+      </button>
+      </div>
+    </div>
+
     <div id="tool-image" class="bio-s-c8be1c">
       <div class="image-s-5a9322">
         <p class="image-s-77d040">A lightweight editor for quick photo edits. Crop, adjust, remove backgrounds, and more.</p>
