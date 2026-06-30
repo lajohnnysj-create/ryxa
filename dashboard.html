@@ -2492,7 +2492,6 @@
     .bio-grid { grid-template-columns: 1fr !important; min-width: 0 !important; }
     .bio-grid > div { min-width: 0 !important; }
     .bio-grid > div:last-child { position: static !important; }
-    .bio-s-472c54 { max-height: none !important; overflow: visible !important; }
     #bio-preview-frame { height: 600px; max-width: 100%; margin: 0 auto; box-sizing: border-box; }
   }
   /* Tighter mobile fixes */
@@ -4383,7 +4382,7 @@
   .bio-s-cc416b { font-size:14px;color:var(--text);font-weight:500; }
   .bio-s-bc68b9 { font-size:10px;background:rgba(124,58,237,0.2);color:#c4b5fd;border-radius:100px;padding:2px 8px;font-weight:700;letter-spacing:0.05em;display:none; }
   .bio-s-3c78c4 { font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5; }
-  .bio-s-472c54 { position:sticky;top:100px;max-height:calc(100vh - 124px);overflow-y:auto;overflow-x:hidden; }
+  .bio-s-472c54 { position:sticky;top:100px; }
   .bio-s-b4ce60 { font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);font-weight:600;margin-bottom:10px;text-align:center; }
   .bio-s-f883c5 { background:var(--surface2);border:1px solid var(--border);border-radius:24px;padding:14px;height:640px;overflow:hidden; }
   .bio-s-63d1ae { width:100%;height:100%;border:none;border-radius:16px;background:var(--bg); }
@@ -4507,6 +4506,13 @@
   .mk-s-73ffb1 { width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;margin-bottom:10px; }
   .mk-s-d3f097 { width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;resize:vertical;line-height:1.5; }
   .mk-s-0580dd { background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:12px;height:720px;overflow:hidden; }
+  /* On desktop the preview is sticky; cap its height to the viewport so the
+     whole preview stays visible and pinned while scrolling, instead of its
+     bottom hiding until the page bottom. No internal scrollbar; it just fits. */
+  @media (min-width: 1101px) {
+    .bio-s-f883c5 { height: min(640px, calc(100vh - 160px)); }
+    .mk-s-0580dd { height: min(720px, calc(100vh - 160px)); }
+  }
   .mk-s-c52a20 { width:100%;height:100%;border:none;border-radius:12px;background:var(--bg); }
 
   /* Phase 3b, extracted inline styles from mk.js template literals */
