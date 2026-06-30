@@ -700,7 +700,7 @@ function calOpenEventModal(existingEvent) {
     + '<button data-cal-action="close-event-modal" class="course-s-a2c730">✕</button>'
     + '</div>'
     + '<div class="coach-s-a82d70"><label for="cal-modal-title" class="cal-s-0d9ec6">Title</label>'
-    + '<input id="cal-modal-title" type="text" placeholder="Event title" value="' + escapeHtml(defaultTitle) + '"' + titleReadonlyAttr + ' class="cal-s-367b98' + titleExtraClass + '">'
+    + '<input id="cal-modal-title" type="text" maxlength="120" placeholder="Event title" value="' + escapeHtml(defaultTitle) + '"' + titleReadonlyAttr + ' class="cal-s-367b98' + titleExtraClass + '">'
     + titleHint + '</div>'
     + '<div class="coach-s-a82d70"><label for="cal-modal-date" class="cal-s-0d9ec6">Date</label>'
     + '<input id="cal-modal-date" type="date" value="' + defaultDate + '" class="cal-s-ed0012"></div>'
@@ -711,7 +711,7 @@ function calOpenEventModal(existingEvent) {
     + '<div class="coach-s-a82d70"><label class="cal-s-0d9ec6">Color</label>'
     + '<div id="cal-modal-colors" role="radiogroup" aria-label="Event color" class="coach-s-088936"></div></div>'
     + '<div class="deal-s-5b6aad"><label for="cal-modal-notes" class="cal-s-0d9ec6">Notes (optional)</label>'
-    + '<textarea id="cal-modal-notes" placeholder="Add notes..." rows="3" class="cal-s-e8f0a9">' + escapeHtml(defaultNotes) + '</textarea></div>'
+    + '<textarea id="cal-modal-notes" maxlength="2000" placeholder="Add notes..." rows="3" class="cal-s-e8f0a9">' + escapeHtml(defaultNotes) + '</textarea></div>'
     + (isCoachingEvent ? '' : '<div class="cal-s-77e2bc"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="cal-s-be496e"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg><span>Adding an event will also block out time slots for your 1:1 booking services. Bookers will see fewer available slots, but never see what you have scheduled.</span></div>')
     + '<button data-cal-action="save-event" class="cal-s-249433 cal-h-6ebecd">' + (isEdit ? 'Save Changes' : 'Save Event') + '</button>'
     + '<div id="cal-modal-error" class="cal-s-5b5ea7"></div>'
