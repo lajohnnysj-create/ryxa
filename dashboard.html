@@ -1611,6 +1611,10 @@
   .topbar-left { display: flex; align-items: center; gap: 12px; }
   .topbar-title { font-family: "Plus Jakarta Sans", sans-serif; font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
   .topbar-right { display: flex; align-items: center; gap: 10px; }
+  /* Offset scroll-into-view for the sticky topbar so the section heading is not
+     hidden behind it (Media Kit "+Social Media" and Link in Bio "Add Social"
+     both deep-link here). */
+  #settings-connected-accounts { scroll-margin-top: calc(var(--topbar-height) + env(safe-area-inset-top, 0px) + 16px); }
   .aichat-side-toggle { display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; padding:0; background:transparent; border:none; border-radius:8px; color:var(--text); cursor:pointer; flex-shrink:0; transition:background 0.15s; }
   .aichat-side-toggle:hover { background:var(--surface2); }
   .tier-badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 100px; font-size: 12px; font-weight: 500; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #c9c7dc; }
