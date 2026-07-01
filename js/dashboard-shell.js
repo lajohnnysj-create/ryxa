@@ -1710,7 +1710,14 @@ function showTool(tool) {
   });
   // Show selected
   const el = document.getElementById('tool-' + tool);
-  if (el) el.style.display = 'block';
+  if (el) {
+    el.style.display = 'block';
+    // Fade the tool in on every switch. Remove + reflow + re-add so the
+    // animation replays each time the same tool element is re-shown.
+    el.classList.remove('dash-tool-fade-in');
+    void el.offsetWidth;
+    el.classList.add('dash-tool-fade-in');
+  }
   const nav = document.getElementById('nav-' + tool);
   if (nav) nav.classList.add('active');
   // Sync the mobile bottom-nav tab (only welcome/bio/calendar/clients exist there;
