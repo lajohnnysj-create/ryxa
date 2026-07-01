@@ -854,7 +854,6 @@ async function setUser(user) {
       var dashBioRow = document.getElementById('dash-welcome-biolink');
       if (dashBioRow) dashBioRow.style.display = 'block';
       showBioLinkButtons();
-      try { loadStripeConnectStatus(); } catch(e) { console.error('Stripe nudge status error:', e); }
     } else {
       applyDashGreeting('creator');
     }
@@ -987,8 +986,16 @@ async function setUser(user) {
     }
   } catch (e) { console.warn('intent check', e); }
 
-  // Load dashboard home stats (page views + revenue)
-  loadDashStats();
+  // Load home stats + Stripe status, then reveal. Awaiting these before hiding
+  // the spinner keeps content (the stats and the Stripe nudge) from popping in
+  // after the spinner disappears. Capped so a slow or failed request can't stall
+  // the reveal, and allSettled means one failure won't block the other.
+  try {
+    await Promise.race([
+      Promise.allSettled([ loadDashStats(), loadStripeConnectStatus() ]),
+      new Promise(function(resolve){ setTimeout(resolve, 4000); })
+    ]);
+  } catch (e) { console.warn('dash reveal wait', e); }
 
   // Hide loading spinner, show welcome content
   var dashLoader = document.getElementById('dash-loading');
