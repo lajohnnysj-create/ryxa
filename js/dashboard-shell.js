@@ -1001,7 +1001,7 @@ async function setUser(user) {
   var dashLoader = document.getElementById('dash-loading');
   if (dashLoader) dashLoader.style.display = 'none';
   var welcomeContent = document.getElementById('welcome-content');
-  if (welcomeContent) welcomeContent.style.display = '';
+  if (welcomeContent) { welcomeContent.style.display = ''; welcomeContent.classList.add('dash-fade-in'); }
 
   // Handle Stripe Connect callback redirect
   handleStripeConnectRedirect();
@@ -2730,6 +2730,18 @@ setTimeout(function() {
     } catch(e) {}
   }
 }, 8000);
+
+// Absolute failsafe: if the loading spinner is somehow still up after 12s (e.g. a
+// request inside setUser that never resolves), force-reveal so the user is never
+// stuck. Skips the case where the auth retry UI is already showing.
+setTimeout(function() {
+  var dl = document.getElementById('dash-loading');
+  if (dl && dl.style.display !== 'none' && !dl.querySelector('[data-dash-action="reload"]')) {
+    dl.style.display = 'none';
+    var wc = document.getElementById('welcome-content');
+    if (wc) { wc.style.display = ''; wc.classList.add('dash-fade-in'); }
+  }
+}, 12000);
 
 
 // =====================================================
