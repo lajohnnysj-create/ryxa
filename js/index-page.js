@@ -181,7 +181,7 @@ function openAuthModal() {
 function openSignupModal() {
   _authModalLastFocus = document.activeElement;
   authMode = 'signup'; syncAuthModal();
-  expandEmailAuth();
+  collapseEmailAuth();
   document.getElementById('auth-modal').classList.add('open');
   _authModalSetBackgroundInert(true);
   setTimeout(_authModalInitialFocus, 100);
