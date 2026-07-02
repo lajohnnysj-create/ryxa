@@ -2367,6 +2367,16 @@ async function handlePwaGoogleAuth() {
   if (error) showPwaMsg('error', error.message);
 }
 
+async function handlePwaAppleAuth() {
+  var { error } = await sb.auth.signInWithOAuth({
+    provider: 'apple',
+    options: {
+      redirectTo: 'https://ryxa.io/dashboard.html'
+    }
+  });
+  if (error) showPwaMsg('error', error.message);
+}
+
 async function handlePwaAuth() {
   var email = document.getElementById('pwa-email').value.trim();
   var password = document.getElementById('pwa-password').value;
@@ -3063,6 +3073,7 @@ dashRegisterAction('checkout-max', () => goToPricing('max'));
 dashRegisterAction('pwa-auth-mode-signin', () => setPwaAuthMode('signin'));
 dashRegisterAction('pwa-auth-mode-signup', () => setPwaAuthMode('signup'));
 dashRegisterAction('pwa-google-auth', () => handlePwaGoogleAuth());
+dashRegisterAction('pwa-apple-auth', () => handlePwaAppleAuth());
 dashRegisterAction('pwa-show-email-form', () => showPwaEmailForm());
 dashRegisterAction('pwa-toggle-diag', () => togglePwaDiag());
 dashRegisterAction('pwa-forgot-password', () => handlePwaForgotPassword());
