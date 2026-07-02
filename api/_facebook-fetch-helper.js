@@ -84,11 +84,16 @@ async function fetchInsight(pageId, token, spec) {
   try {
     const body = await fb('/' + encodeURIComponent(pageId) + '/insights/' + spec.metric, token, { period: spec.period });
     const d = body && body.data && body.data[0];
-    if (!d || !Array.isArray(d.values) || !d.values.length) return null;
+    if (!d || !Array.isArray(d.values) || !d.values.length) {
+      console.log('facebook insight empty: ' + spec.metric);
+      return null;
+    }
     const v = d.values[d.values.length - 1].value;
     return (typeof v === 'number') ? v : null;
   } catch (e) {
     // Deprecated metric, no data, or Page under the 100-like insights threshold.
+    // Message is safe to log (no tokens in insight error bodies).
+    console.log('facebook insight error: ' + spec.metric + ' -> ' + e.message);
     return null;
   }
 }
@@ -148,15 +153,12 @@ async function refreshFacebookData(userId) {
     else errors.push(spec.metric);
   }
 
-  // Engagement rate. Prefer reach as the denominator (the standard engagement-
-  // rate definition); fall back to followers when Meta does not return reach.
-  // This is a 28-day figure (matches the engagement window), not a per-post rate.
-  const denom = (typeof insights.reach === 'number' && insights.reach > 0)
-    ? insights.reach
-    : ((typeof collected.followers_count === 'number' && collected.followers_count > 0) ? collected.followers_count : 0);
-  if (typeof insights.engagement === 'number' && denom > 0) {
-    insights.engagement_rate = Math.round((insights.engagement / denom) * 1000) / 10;
-    insights.engagement_rate_basis = (typeof insights.reach === 'number' && insights.reach > 0) ? 'reach' : 'followers';
+  // Engagement rate = 28-day engagements / 28-day reach (the standard
+  // definition). Computed ONLY when reach is available, so we never show an
+  // inflated followers-based figure. If Meta returns no reach for this Page,
+  // the rate is omitted rather than faked.
+  if (typeof insights.engagement === 'number' && typeof insights.reach === 'number' && insights.reach > 0) {
+    insights.engagement_rate = Math.round((insights.engagement / insights.reach) * 1000) / 10;
   }
 
   collected.cached_data = insights;
