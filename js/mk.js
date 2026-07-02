@@ -1285,6 +1285,7 @@ let mkAudRefreshLockUntil = 0; // unix ms; refresh button disabled while in futu
 let mkYtRefreshLockUntil = 0;  // unix ms; YouTube refresh button cooldown
 let mkTtRefreshLockUntil = 0;  // unix ms; TikTok refresh button cooldown
 let mkTwRefreshLockUntil = 0;  // unix ms; Twitch refresh button cooldown
+let mkFbRefreshLockUntil = 0;  // unix ms; Facebook refresh button cooldown
 
 function setAudienceMode(mode) {
   mkState.audience_mode = (mode === 'automatic') ? 'automatic' : 'manual';
@@ -1372,6 +1373,20 @@ async function loadAudienceAutomatic() {
       console.error('loadAudienceAutomatic Twitch', e);
     }
 
+    // Facebook connection (parallel). Page headline + cached insights. Only
+    // treated as connected once a Page has actually been chosen (fb_page_id).
+    let fbConn = null;
+    try {
+      const { data: fc } = await sb
+        .from('facebook_connections')
+        .select('fb_page_name,profile_picture_url,followers_count,fan_count,cached_data,last_refreshed_at,fb_page_id')
+        .eq('user_id', currentUser.id)
+        .maybeSingle();
+      fbConn = (fc && fc.fb_page_id) ? fc : null;
+    } catch (e) {
+      console.error('loadAudienceAutomatic Facebook', e);
+    }
+
     const STALE_MS = 24 * 60 * 60 * 1000; // 24h, shared by both platforms
 
     // ---- Instagram: refresh if stale, else use cached row ----
@@ -1426,6 +1441,19 @@ async function loadAudienceAutomatic() {
       }
     }
 
+    // ---- Facebook: refresh if stale, else use cached row ----
+    let fbResult = null;
+    if (fbConn) {
+      const fbTs = (fbConn.cached_data && fbConn.cached_data.fetched_at) ? new Date(fbConn.cached_data.fetched_at).getTime() : 0;
+      const fbStale = !fbTs || (Date.now() - fbTs) > STALE_MS;
+      if (fbStale) {
+        const r = await refreshFBData();
+        fbResult = (r && r.ok && r.data) ? r.data : fbConn;
+      } else {
+        fbResult = fbConn;
+      }
+    }
+
     mkAudCache = {
       connected: !!igResult,
       data: igResult || null,
@@ -1435,6 +1463,8 @@ async function loadAudienceAutomatic() {
       tt: ttResult || null,
       twConnected: !!twResult,
       tw: twResult || null,
+      fbConnected: !!fbResult,
+      fb: fbResult || null,
     };
     renderAudienceAutomatic();
   } catch (e) {
@@ -1622,6 +1652,42 @@ function fmtNum(n) {
   return String(Math.round(n));
 }
 
+async function refreshFBData() {
+  try {
+    const session = (await sb.auth.getSession()).data.session;
+    if (!session) return { ok: false, error: 'Not authenticated' };
+    const r = await fetch('/api/facebook-data-fetch', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + session.access_token }
+    });
+    const body = await r.json().catch(() => ({}));
+    return body;
+  } catch (e) {
+    console.error('refreshFBData', e);
+    return { ok: false, error: e.message };
+  }
+}
+
+async function manualRefreshFB() {
+  const btn = document.getElementById('mk-aud-refresh-fb-btn');
+  if (!btn) return;
+  if (Date.now() < mkFbRefreshLockUntil) return;
+  btn.disabled = true;
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg><span class="mk-aud-row-refresh-label">Refreshing&hellip;</span>';
+  const res = await refreshFBData();
+  if (res && res.ok && res.data) {
+    if (mkAudCache) { mkAudCache.fbConnected = true; mkAudCache.fb = res.data; }
+    else mkAudCache = { connected: false, data: null, fbConnected: true, fb: res.data };
+  }
+  mkFbRefreshLockUntil = Date.now() + 5 * 60 * 1000;
+  renderAudienceAutomatic();
+  setTimeout(() => {
+    const b = document.getElementById('mk-aud-refresh-fb-btn');
+    if (b) { b.disabled = false; }
+    renderAudienceAutomatic();
+  }, 5 * 60 * 1000);
+}
+
 function renderAudienceAutomatic() {
   const mount = document.getElementById('mk-aud-auto-content');
   if (!mount) return;
@@ -1632,7 +1698,7 @@ function renderAudienceAutomatic() {
   }
 
   // ---- State: not connected ----
-  if (!mkAudCache.connected && !mkAudCache.ytConnected && !mkAudCache.ttConnected && !mkAudCache.twConnected) {
+  if (!mkAudCache.connected && !mkAudCache.ytConnected && !mkAudCache.ttConnected && !mkAudCache.twConnected && !mkAudCache.fbConnected) {
     mount.innerHTML = `
       <div class="mk-aud-empty">
         <div class="mk-aud-empty-icon">
@@ -1758,6 +1824,14 @@ function renderAudienceAutomatic() {
     twErrorNoteHtml = `<div class="mk-aud-error-note">${escapeHtml('Some Twitch data couldn\'t be loaded. Click Refresh, or reconnect Twitch in Settings.')}</div>`;
   }
 
+  const fbSvg = '<svg viewBox="0 0 24 24"><path d="M24 12a12 12 0 1 0-13.88 11.85v-8.38H7.08V12h3.04V9.36c0-3 1.79-4.67 4.53-4.67 1.31 0 2.68.24 2.68.24v2.95h-1.51c-1.49 0-1.95.92-1.95 1.87V12h3.32l-.53 3.47h-2.79v8.38A12 12 0 0 0 24 12z"/></svg>';
+  const fbData = mkAudCache.fb || {};
+  const fbHandle = fbData.fb_page_name || 'Facebook';
+  const fbFreshLabel = (typeof formatLastRefreshed === 'function') ? formatLastRefreshed(fbData.last_refreshed_at) : '';
+  const fbRemainingMs = Math.max(0, mkFbRefreshLockUntil - Date.now());
+  const fbRefreshDisabled = fbRemainingMs > 0;
+  const fbRefreshLabel = fbRefreshDisabled ? 'Wait ' + Math.ceil(fbRemainingMs / 1000) + 's' : 'Refresh';
+
   const igRowHtml = mkAudCache.connected ? platformRow({
     name: 'Instagram',
     iconClass: 'mk-aud-platform-ig',
@@ -1810,6 +1884,19 @@ function renderAudienceAutomatic() {
     label: twRefreshLabel
   }) : '';
 
+  const fbRowHtml = mkAudCache.fbConnected ? platformRow({
+    name: 'Facebook',
+    iconClass: 'mk-aud-platform-fb',
+    iconSvg: fbSvg,
+    connected: true,
+    handle: fbHandle,
+    refreshedLabel: fbFreshLabel,
+    btnId: 'mk-aud-refresh-fb-btn',
+    action: 'manual-refresh-fb',
+    disabled: fbRefreshDisabled,
+    label: fbRefreshLabel
+  }) : '';
+
   mount.innerHTML = `
     <div class="mk-aud-connected">
       <div class="mk-aud-toolbar">
@@ -1823,6 +1910,7 @@ function renderAudienceAutomatic() {
         ${ytRowHtml}
         ${ttRowHtml}
         ${twRowHtml}
+        ${fbRowHtml}
       </div>
       ${errorNoteHtml}
       ${ytErrorNoteHtml}
@@ -2028,6 +2116,7 @@ function buildMKPreviewHTML() {
     const ytData = (typeof mkAudCache !== 'undefined' && mkAudCache && mkAudCache.ytConnected) ? mkAudCache.yt : null;
     const ttData = (typeof mkAudCache !== 'undefined' && mkAudCache && mkAudCache.ttConnected) ? mkAudCache.tt : null;
     const twData = (typeof mkAudCache !== 'undefined' && mkAudCache && mkAudCache.twConnected) ? mkAudCache.tw : null;
+    const fbData = (typeof mkAudCache !== 'undefined' && mkAudCache && mkAudCache.fbConnected) ? mkAudCache.fb : null;
 
     const igPath = 'M12 2.2c3.2 0 3.6 0 4.85.07 1.17.05 1.8.25 2.22.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.05.41 2.22.06 1.26.07 1.64.07 4.82s-.01 3.57-.07 4.82c-.05 1.17-.25 1.8-.41 2.22a3.72 3.72 0 0 1-.9 1.38c-.42.42-.82.68-1.38.9-.42.16-1.05.36-2.22.41-1.26.06-1.64.07-4.82.07s-3.57-.01-4.82-.07c-1.17-.05-1.8-.25-2.22-.41a3.72 3.72 0 0 1-1.38-.9 3.72 3.72 0 0 1-.9-1.38c-.16-.42-.36-1.05-.41-2.22C2.21 15.57 2.2 15.19 2.2 12s.01-3.57.07-4.82c.05-1.17.25-1.8.41-2.22.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.05-.36 2.22-.41C8.43 2.21 8.81 2.2 12 2.2M12 0C8.74 0 8.33.01 7.05.07 5.78.13 4.9.33 4.14.63a5.92 5.92 0 0 0-2.13 1.39A5.92 5.92 0 0 0 .62 4.14C.33 4.9.13 5.78.07 7.05.01 8.33 0 8.74 0 12c0 3.26.01 3.67.07 4.95.06 1.27.26 2.15.56 2.91a5.92 5.92 0 0 0 1.39 2.13c.66.66 1.32 1.06 2.13 1.39.76.3 1.64.5 2.91.56C8.33 23.99 8.74 24 12 24c3.26 0 3.67-.01 4.95-.07 1.27-.06 2.15-.26 2.91-.56a5.92 5.92 0 0 0 2.13-1.39c.66-.66 1.06-1.32 1.39-2.13.3-.76.5-1.64.56-2.91.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.06-1.27-.26-2.15-.56-2.91a5.92 5.92 0 0 0-1.39-2.13A5.92 5.92 0 0 0 19.86.62c-.76-.3-1.64-.5-2.91-.56C15.67.01 15.26 0 12 0Zm0 5.84a6.16 6.16 0 1 0 0 12.32 6.16 6.16 0 0 0 0-12.32Zm0 10.16a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm6.41-11.88a1.44 1.44 0 1 0 0 2.88 1.44 1.44 0 0 0 0-2.88Z';
     const ytPath = 'M23.5 6.2a3 3 0 0 0-2.1-2.12C19.54 3.58 12 3.58 12 3.58s-7.54 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.07 0 12 0 12s0 3.93.5 5.8a3 3 0 0 0 2.1 2.12c1.86.5 9.4.5 9.4.5s7.54 0 9.4-.5a3 3 0 0 0 2.1-2.12C24 15.93 24 12 24 12s0-3.93-.5-5.8ZM9.55 15.57V8.43L15.82 12l-6.27 3.57Z';
@@ -2142,6 +2231,25 @@ function buildMKPreviewHTML() {
       });
     }
 
+    if (fbData) {
+      const stats = [];
+      if (typeof fbData.followers_count === 'number') stats.push({ n: formatNumberShort(fbData.followers_count), l: 'Followers' });
+      if (typeof fbData.fan_count === 'number') stats.push({ n: formatNumberShort(fbData.fan_count), l: 'Page Likes' });
+      const fbc = fbData.cached_data || {};
+      if (typeof fbc.reach === 'number') stats.push({ n: formatNumberShort(fbc.reach), l: '28d Reach' });
+      if (typeof fbc.views === 'number') stats.push({ n: formatNumberShort(fbc.views), l: '28d Views' });
+      if (typeof fbc.engagement === 'number') stats.push({ n: formatNumberShort(fbc.engagement), l: '28d Engagements' });
+      const lastSync = (typeof formatLastRefreshed === 'function') ? formatLastRefreshed(fbData.last_refreshed_at) : '';
+      panels.push({
+        key: 'facebook', label: 'Facebook', path: 'M24 12a12 12 0 1 0-13.88 11.85v-8.38H7.08V12h3.04V9.36c0-3 1.79-4.67 4.53-4.67 1.31 0 2.68.24 2.68.24v2.95h-1.51c-1.49 0-1.95.92-1.95 1.87V12h3.32l-.53 3.47h-2.79v8.38A12 12 0 0 0 24 12z',
+        grad: '#1877F2',
+        handle: fbData.fb_page_name || 'Facebook',
+        attribution: lastSync ? 'Verified by Facebook &bull; Last synced ' + escapeHtml(lastSync) : 'Verified by Facebook',
+        stats: stats,
+        hasDemo: false,
+      });
+    }
+
     if (panels.length === 0) {
       // Not connected (or cache not loaded yet) — friendly placeholder
       audienceHtml = `<div class="sec">
@@ -2202,6 +2310,7 @@ function buildMKPreviewHTML() {
         { name: 'YouTube', color: '#FF0000', count: (ytData && typeof ytData.subscriber_count === 'number') ? ytData.subscriber_count : 0 },
         { name: 'TikTok', color: '#25F4EE', count: (ttData && typeof ttData.follower_count === 'number') ? ttData.follower_count : 0 },
         { name: 'Twitch', color: '#9146FF', count: (twData && typeof twData.follower_count === 'number') ? twData.follower_count : 0 },
+        { name: 'Facebook', color: '#1877F2', count: (fbData && typeof fbData.followers_count === 'number') ? fbData.followers_count : 0 },
       ];
       const splitSlices = splitReg.filter(s => s.count > 0);
       let splitDonutHtml = '';
@@ -2555,6 +2664,7 @@ mkRegisterAction('manual-refresh-ig', () => manualRefreshIG());
 mkRegisterAction('manual-refresh-yt', () => manualRefreshYT());
 mkRegisterAction('manual-refresh-tt', () => manualRefreshTT());
 mkRegisterAction('manual-refresh-tw', () => manualRefreshTW());
+mkRegisterAction('manual-refresh-fb', () => manualRefreshFB());
 
 // Copy media kit link (template literal)
 mkRegisterAction('copy-mk-link', (e, el) => copyBioLink(el.dataset.mkUrl, el));
