@@ -2421,6 +2421,10 @@ function buildMKPreviewHTML() {
     if (twTotData && typeof twTotData.follower_count === 'number' && twTotData.follower_count > 0) {
       sources.push({ platform: 'Twitch', count: twTotData.follower_count });
     }
+    const fbTotData = (typeof mkAudCache !== 'undefined' && mkAudCache && mkAudCache.fbConnected) ? mkAudCache.fb : null;
+    if (fbTotData && typeof fbTotData.followers_count === 'number' && fbTotData.followers_count > 0) {
+      sources.push({ platform: 'Facebook', count: fbTotData.followers_count });
+    }
     if (sources.length > 0) {
       const totalCount = sources.reduce((s, x) => s + x.count, 0);
       totalFollowersStripHtml = `<div class="tfs">
