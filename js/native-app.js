@@ -2,9 +2,11 @@
 // Bridges the Ryxa dashboard to the native mobile app. Loaded on every
 // dashboard visit but does NOTHING in a normal browser: everything is
 // gated on window.RyxaNative, which only the native app injects.
+// The gate is platform-agnostic on purpose: iOS today, and Android
+// inherits the same behavior automatically if that build ships later.
 //
-// Adds "Alerts" and "App Settings" to the sidebar menu. Tapping them
-// opens the app's native screens via the WebView message bridge.
+// Adds a bell icon to the topbar (opens the app's native Alerts screen)
+// and an "App Settings" item to the sidebar menu.
 // CSP-safe: external file, no inline handlers, delegated listener.
 
 (function () {
@@ -14,36 +16,61 @@
 
   var ICONS = {
     alerts:
-      '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>',
+      '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>',
     settings:
       '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>'
   };
 
-  function buildItem(screen, label, icon) {
+  // Bell button in the topbar, left of the tier badge.
+  function insertBell() {
+    var right = document.querySelector('.topbar-right');
+    if (!right || document.getElementById('native-alerts-bell')) return;
+
+    var btn = document.createElement('button');
+    btn.id = 'native-alerts-bell';
+    btn.setAttribute('data-native-screen', 'alerts');
+    btn.setAttribute('type', 'button');
+    btn.setAttribute('aria-label', 'Alerts');
+    btn.style.background = 'none';
+    btn.style.border = 'none';
+    btn.style.padding = '6px';
+    btn.style.marginRight = '10px';
+    btn.style.cursor = 'pointer';
+    btn.style.color = 'var(--text)';
+    btn.style.display = 'inline-flex';
+    btn.style.alignItems = 'center';
+    btn.innerHTML = ICONS.alerts;
+
+    right.insertBefore(btn, right.firstChild);
+  }
+
+  // App Settings item at the bottom of the sidebar menu.
+  function insertSettingsItem() {
+    var nav = document.querySelector('.sidebar-nav');
+    if (!nav || document.getElementById('nav-native-settings')) return;
+
     var btn = document.createElement('button');
     btn.className = 'sidebar-item';
-    btn.id = 'nav-native-' + screen;
-    btn.setAttribute('data-native-screen', screen);
+    btn.id = 'nav-native-settings';
+    btn.setAttribute('data-native-screen', 'settings');
     btn.setAttribute('type', 'button');
 
     var iconWrap = document.createElement('div');
     iconWrap.className = 'sidebar-item-icon';
-    iconWrap.innerHTML = icon;
+    iconWrap.innerHTML = ICONS.settings;
 
     var labelSpan = document.createElement('span');
     labelSpan.className = 'sidebar-item-label';
-    labelSpan.textContent = label;
+    labelSpan.textContent = 'App Settings';
 
     btn.appendChild(iconWrap);
     btn.appendChild(labelSpan);
-    return btn;
+    nav.appendChild(btn);
   }
 
-  function insertItems() {
-    var nav = document.querySelector('.sidebar-nav');
-    if (!nav || document.getElementById('nav-native-alerts')) return;
-    nav.appendChild(buildItem('alerts', 'Alerts', ICONS.alerts));
-    nav.appendChild(buildItem('settings', 'App Settings', ICONS.settings));
+  function insertAll() {
+    insertBell();
+    insertSettingsItem();
   }
 
   function closeSidebar() {
@@ -69,8 +96,8 @@
   });
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', insertItems);
+    document.addEventListener('DOMContentLoaded', insertAll);
   } else {
-    insertItems();
+    insertAll();
   }
 })();
