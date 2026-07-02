@@ -241,6 +241,31 @@ function openPricingPage() {
   goToPricing();
 }
 
+// "Manage billing" opens the Stripe Customer Portal, where the user can change
+// their payment method, view invoices, switch plans, or cancel/reactivate. The
+// portal keeps the single existing subscription in sync (no duplicate subs).
+async function handleManageBilling() {
+  const btn = document.getElementById('settings-manage-billing-btn');
+  const orig = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = 'Opening...'; }
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) { showSettingsResult('error', 'Please sign in again.'); if (btn) { btn.disabled = false; btn.textContent = orig; } return; }
+    const res = await fetch('/api/billing-portal', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + session.access_token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({})
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.url) { window.location.href = data.url; return; }
+    showSettingsResult('error', 'Could not open billing. Please try again.');
+    if (btn) { btn.disabled = false; btn.textContent = orig; }
+  } catch (e) {
+    showSettingsResult('error', 'Could not open billing. Please try again.');
+    if (btn) { btn.disabled = false; btn.textContent = orig; }
+  }
+}
+
 // ---------- From dashboard.html L10685-10714: changeDisplayCurrency ----------
 async function changeDisplayCurrency(newCurrency) {
   if (!SUPPORTED_CURRENCIES[newCurrency]) return;
@@ -1803,6 +1828,7 @@ settingsRegisterAction('change-currency', (e, el) => changeDisplayCurrency(el.va
 // Subscription / Upgrade flows
 // "Upgrade Now" (free) and "Change Plan" (paid) both route to the pricing page.
 settingsRegisterAction('open-pricing', () => openPricingPage());
+settingsRegisterAction('manage-billing', () => handleManageBilling());
 settingsRegisterAction('handle-cancel', () => handleSettingsCancel());
 settingsRegisterAction('confirm-cancel', () => confirmSettingsCancel());
 
