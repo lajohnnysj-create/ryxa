@@ -514,8 +514,21 @@ function hideInstagramDisconnectConfirm() {
 }
 
 // ---------- From dashboard.html L11255-11291: confirmDisconnectInstagram ----------
+// Puts a "Yes, disconnect" button into a spinner + "Disconnecting..." state
+// while the request is in flight, so it never looks frozen. Returns a restore
+// function that puts the original label back (used on completion / failure).
+function setDisconnectBtnLoading(action) {
+  const btn = document.querySelector('[data-settings-action="' + action + '"]');
+  if (!btn) return null;
+  const original = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" class="ds-s-f33c30" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:6px;"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>Disconnecting...';
+  return function () { btn.disabled = false; btn.innerHTML = original; };
+}
+
 async function confirmDisconnectInstagram() {
   if (!currentUser) return;
+  const _restore = setDisconnectBtnLoading('confirm-disconnect-instagram');
 
   try {
     const { data: { session } } = await sb.auth.getSession();
@@ -549,6 +562,8 @@ async function confirmDisconnectInstagram() {
   } catch (err) {
     console.error('Failed to disconnect Instagram:', err);
     showInstagramMsg('error', 'Failed to disconnect. Please try again.');
+  } finally {
+    if (_restore) _restore();
   }
 }
 
@@ -764,6 +779,7 @@ function hideFacebookDisconnectConfirm() {
 
 async function confirmDisconnectFacebook() {
   if (!currentUser) return;
+  const _restore = setDisconnectBtnLoading('confirm-disconnect-facebook');
   try {
     const { data: { session } } = await sb.auth.getSession();
     if (!session || !session.access_token) throw new Error('No session');
@@ -783,6 +799,8 @@ async function confirmDisconnectFacebook() {
   } catch (err) {
     console.error('Failed to disconnect Facebook:', err);
     showFacebookMsg('error', 'Failed to disconnect. Please try again.');
+  } finally {
+    if (_restore) _restore();
   }
 }
 
@@ -927,6 +945,7 @@ function hideYouTubeDisconnectConfirm() {
 
 async function confirmDisconnectYouTube() {
   if (!currentUser) return;
+  const _restore = setDisconnectBtnLoading('confirm-disconnect-youtube');
 
   try {
     const { data: { session } } = await sb.auth.getSession();
@@ -954,6 +973,8 @@ async function confirmDisconnectYouTube() {
   } catch (err) {
     console.error('Failed to disconnect YouTube:', err);
     showYouTubeMsg('error', 'Failed to disconnect. Please try again.');
+  } finally {
+    if (_restore) _restore();
   }
 }
 
@@ -1116,6 +1137,7 @@ function hideTikTokDisconnectConfirm() {
 
 async function confirmDisconnectTikTok() {
   if (!currentUser) return;
+  const _restore = setDisconnectBtnLoading('confirm-disconnect-tiktok');
 
   try {
     const { data: { session } } = await sb.auth.getSession();
@@ -1141,6 +1163,8 @@ async function confirmDisconnectTikTok() {
   } catch (err) {
     console.error('Failed to disconnect TikTok:', err);
     showTikTokMsg('error', 'Failed to disconnect. Please try again.');
+  } finally {
+    if (_restore) _restore();
   }
 }
 
@@ -1648,6 +1672,7 @@ function hideTwitchDisconnectConfirm() {
 
 async function confirmDisconnectTwitch() {
   if (!currentUser) return;
+  const _restore = setDisconnectBtnLoading('confirm-disconnect-twitch');
 
   try {
     const { data: { session } } = await sb.auth.getSession();
@@ -1673,6 +1698,8 @@ async function confirmDisconnectTwitch() {
   } catch (err) {
     console.error('Failed to disconnect Twitch:', err);
     showTwitchMsg('error', 'Failed to disconnect. Please try again.');
+  } finally {
+    if (_restore) _restore();
   }
 }
 
