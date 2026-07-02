@@ -6173,6 +6173,7 @@
   .settings-acct-badge-tt { background:#010101; }
   .settings-acct-badge-fb { background:#1877F2; }
   .settings-acct-badge-tw { background:#9146FF; }
+  .settings-accounts-loading { display:flex; justify-content:center; align-items:center; padding:28px 0; }
   .settings-s-a34021 { font-size:11px;color:var(--muted);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
   .settings-s-98265b { position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0; }
   .settings-s-8e0e33 { width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:11px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;cursor:pointer; }
@@ -10683,6 +10684,9 @@
       <div class="settings-s-501c37">Connected Accounts</div>
       <p class="settings-s-4fba18">Sync your social media accounts with Ryxa to keep your data up to date across the platform.</p>
 
+      <div id="settings-accounts-loading" class="settings-accounts-loading"><div class="ds-loading-spinner" aria-label="Loading connected accounts"></div></div>
+      <div id="settings-accounts-list" style="display:none;">
+
       <!-- Instagram: not connected -->
       <div id="settings-instagram-disconnected">
         <button id="settings-instagram-connect-btn" data-settings-action="connect-instagram" class="settings-s-266a6c dash-h-476242">
@@ -10869,6 +10873,7 @@
       <div id="settings-youtube-msg" class="settings-s-b99790"></div>
       <div id="settings-tiktok-msg" class="settings-s-b99790"></div>
       <div id="settings-twitch-msg" class="settings-s-b99790"></div>
+      </div>
     </div>
 
     <!-- Display Currency -->
