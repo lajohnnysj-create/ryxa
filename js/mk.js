@@ -2141,9 +2141,9 @@ function buildMKPreviewHTML() {
       const stats = [];
       if (typeof igData.followers_count === 'number') stats.push({ n: formatNumberShort(igData.followers_count), l: 'Followers' });
       if (typeof igData.engagement_rate === 'number') stats.push({ n: igData.engagement_rate.toFixed(2) + '%', l: 'Engagement' });
-      if (typeof igData.reach_30d === 'number') stats.push({ n: formatNumberShort(igData.reach_30d), l: '30d Reach' });
-      if (typeof igData.total_interactions_30d === 'number') stats.push({ n: formatNumberShort(igData.total_interactions_30d), l: '30d Engagements' });
-      if (typeof igData.views_30d === 'number') stats.push({ n: formatNumberShort(igData.views_30d), l: '30d Impressions' });
+      if (typeof igData.reach_30d === 'number') stats.push({ n: formatNumberShort(igData.reach_30d), l: '28d Reach' });
+      if (typeof igData.total_interactions_30d === 'number') stats.push({ n: formatNumberShort(igData.total_interactions_30d), l: '28d Engagements' });
+      if (typeof igData.views_30d === 'number') stats.push({ n: formatNumberShort(igData.views_30d), l: '28d Views' });
       if (typeof igData.avg_likes === 'number') stats.push({ n: formatNumberShort(Math.round(igData.avg_likes)), l: 'Avg Likes' });
       if (typeof igData.avg_comments === 'number') stats.push({ n: formatNumberShort(Math.round(igData.avg_comments)), l: 'Avg Comments' });
       const lastSync = (typeof formatLastRefreshed === 'function') ? formatLastRefreshed(igData.data_last_fetched_at) : '';
