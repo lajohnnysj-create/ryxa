@@ -23,15 +23,12 @@ const GRAPH_VERSION = 'v22.0';
 const TICKET_TTL_MS = 5 * 60 * 1000; // must match facebook-ticket.js
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-// Page-level scopes. pages_show_list + pages_read_engagement are required to
-// list the user's Pages and read the Page node (name, followers_count,
-// fan_count). read_insights is included now so Stage 2 (reach/views/engagement)
-// works without a second consent screen.
-const SCOPES = [
-  'pages_show_list',
-  'pages_read_engagement',
-  'read_insights'
-];
+// Facebook Login for Business uses a CONFIGURATION (config_id) instead of a
+// scope list. Create the configuration in the Meta dashboard as a "User access
+// token" type, selecting permissions pages_show_list, pages_read_engagement,
+// read_insights and the Pages asset. The config_id it generates goes in this
+// env var. (config_id replaces scope per Meta's FLFB docs.)
+const CONFIG_ID = process.env.FACEBOOK_LOGIN_CONFIG_ID;
 
 // ----- Ticket verification -----
 
@@ -101,6 +98,10 @@ module.exports = async function handler(req, res) {
     console.error('Missing FACEBOOK_TICKET_SIGNING_SECRET');
     return res.status(500).json({ error: 'Server not configured' });
   }
+  if (!CONFIG_ID) {
+    console.error('Missing FACEBOOK_LOGIN_CONFIG_ID');
+    return res.status(500).json({ error: 'Server not configured' });
+  }
 
   const ticket = req.query && req.query.ticket ? String(req.query.ticket) : null;
   if (!ticket) {
@@ -120,9 +121,10 @@ module.exports = async function handler(req, res) {
 
   const params = new URLSearchParams({
     client_id: META_APP_ID,
+    config_id: CONFIG_ID,
     redirect_uri: REDIRECT_URI,
     response_type: 'code',
-    scope: SCOPES.join(','),
+    override_default_response_type: 'true',
     state: state
   });
 

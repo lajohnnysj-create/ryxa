@@ -128,15 +128,6 @@ async function fetchPages(userToken) {
   return Array.isArray(data.data) ? data.data : [];
 }
 
-// Pick the Page with the most followers (most likely the creator's main page).
-// A Page picker UI can replace this later; for now we auto-select.
-function pickBestPage(pages) {
-  if (!pages.length) return null;
-  return pages.slice().sort(
-    (a, b) => (Number(b.followers_count) || 0) - (Number(a.followers_count) || 0)
-  )[0];
-}
-
 // Upsert the connection row (one per Ryxa user, PK user_id).
 async function saveConnection(userId, payload) {
   const body = JSON.stringify({
@@ -240,30 +231,57 @@ module.exports = async function handler(req, res) {
     return redirectToDashboard(res, 'error', 'Could not read your Pages');
   }
 
-  const page = pickBestPage(pages);
-  if (!page || !page.access_token) {
-    // User authorized but administers no Page (or granted no Page).
+  if (!pages.length) {
+    // Authorized but administers no Page (or granted none).
     return redirectToDashboard(res, 'no_page');
   }
 
-  // Save (encrypt both tokens; ids/names/counts are not secrets).
+  const encUserToken = encryptToken(userToken);
+  const baseScopes = ['pages_show_list', 'pages_read_engagement', 'read_insights'];
+
+  // Exactly one Page: nothing to choose, save it fully.
+  if (pages.length === 1) {
+    const page = pages[0];
+    if (!page.access_token) return redirectToDashboard(res, 'no_page');
+    try {
+      await saveConnection(userId, {
+        fb_user_id: fbUserId,
+        fb_page_id: String(page.id),
+        fb_page_name: page.name || null,
+        user_access_token: encUserToken,
+        page_access_token: encryptToken(page.access_token),
+        scopes: baseScopes,
+        followers_count: Number(page.followers_count) || null,
+        fan_count: Number(page.fan_count) || null,
+        profile_picture_url: (page.picture && page.picture.data && page.picture.data.url) || null,
+        token_expires_at: expiresAt
+      });
+    } catch (e) {
+      console.error('Save failed:', e.message);
+      return redirectToDashboard(res, 'error', 'Could not save connection');
+    }
+    return redirectToDashboard(res, 'connected');
+  }
+
+  // Multiple Pages: store a PENDING connection (user token only) and let the
+  // user pick which Page on the dashboard. The chosen Page's token is fetched
+  // server-side in facebook-select-page, so page tokens never touch the client.
   try {
     await saveConnection(userId, {
       fb_user_id: fbUserId,
-      fb_page_id: String(page.id),
-      fb_page_name: page.name || null,
-      user_access_token: encryptToken(userToken),
-      page_access_token: encryptToken(page.access_token),
-      scopes: ['pages_show_list', 'pages_read_engagement', 'read_insights'],
-      followers_count: Number(page.followers_count) || null,
-      fan_count: Number(page.fan_count) || null,
-      profile_picture_url: (page.picture && page.picture.data && page.picture.data.url) || null,
+      fb_page_id: null,
+      fb_page_name: null,
+      user_access_token: encUserToken,
+      page_access_token: null,
+      scopes: baseScopes,
+      followers_count: null,
+      fan_count: null,
+      profile_picture_url: null,
       token_expires_at: expiresAt
     });
   } catch (e) {
-    console.error('Save failed:', e.message);
+    console.error('Save pending failed:', e.message);
     return redirectToDashboard(res, 'error', 'Could not save connection');
   }
-
-  return redirectToDashboard(res, 'connected');
+  return redirectToDashboard(res, 'pick_page');
 };
