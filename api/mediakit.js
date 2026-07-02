@@ -1374,6 +1374,10 @@ async function fetchMediaKitData(username) {
         if (fbRes.ok) {
           const fbRows = await fbRes.json();
           fb = fbRows[0] || null;
+          if (fb) {
+            if (fb.followers_count != null) fb.followers_count = Number(fb.followers_count);
+            if (fb.fan_count != null) fb.fan_count = Number(fb.fan_count);
+          }
         }
       } catch (e) {
         console.error('mediakit Facebook fetch error', e);
