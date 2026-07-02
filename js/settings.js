@@ -423,13 +423,19 @@ async function loadConnectedAccountsWithSpinner() {
   if (loading) loading.style.display = 'flex';
   if (list) list.style.display = 'none';
   const run = (fn) => { try { return Promise.resolve(fn()); } catch (e) { return Promise.resolve(); } };
-  await Promise.allSettled([
+  const all = Promise.allSettled([
     run(loadInstagramConnectionStatus),
     run(loadFacebookConnectionStatus),
     run(loadYouTubeConnectionStatus),
     run(loadTikTokConnectionStatus),
     run(loadTwitchConnectionStatus)
   ]);
+  // Fail-safe: allSettled waits for every promise to settle, but a hung network
+  // request never settles. Race it against an 8s timeout so the list always
+  // reveals (any still-loading row just shows its default state and corrects
+  // itself when its query eventually returns) rather than spinning forever.
+  const timeout = new Promise((resolve) => setTimeout(resolve, 8000));
+  await Promise.race([all, timeout]);
   if (loading) loading.style.display = 'none';
   if (list) list.style.display = '';
 }
