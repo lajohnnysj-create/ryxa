@@ -760,18 +760,50 @@ function buildTwPanel(tw) {
   return `${headerHtml}${metaHtml}${primaryHtml}${vodsHtml}${clipsHtml}`;
 }
 
+function buildFbPanel(fb) {
+  const title = fb.fb_page_name || 'Facebook';
+  const lastSynced = formatLastSynced(fb.last_refreshed_at);
+  const attributionInner = lastSynced
+    ? `Verified by Facebook <span class="ig-attr-sep" aria-hidden="true">&bull;</span> Last synced ${esc(lastSynced)}`
+    : 'Verified by Facebook';
+  const fbSvg = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 12a12 12 0 1 0-13.88 11.85v-8.38H7.08V12h3.04V9.36c0-3 1.79-4.67 4.53-4.67 1.31 0 2.68.24 2.68.24v2.95h-1.51c-1.49 0-1.95.92-1.95 1.87V12h3.32l-.53 3.47h-2.79v8.38A12 12 0 0 0 24 12z"/></svg>';
+  const headerHtml = `<div class="ig-header">
+    <div class="ig-header-icon" aria-hidden="true">${fbSvg}</div>
+    <div class="ig-header-body">
+      <span class="ig-handle">${esc(title)}</span>
+      <span class="ig-attribution">${attributionInner}</span>
+    </div>
+  </div>`;
+  const c = fb.cached_data || {};
+  const primaryStats = [];
+  if (typeof fb.followers_count === 'number') primaryStats.push({ label: 'Followers', value: formatNumber(fb.followers_count) });
+  if (typeof fb.fan_count === 'number') primaryStats.push({ label: 'Page Likes', value: formatNumber(fb.fan_count) });
+  if (typeof c.reach === 'number') primaryStats.push({ label: '28d Reach', value: formatNumber(c.reach) });
+  if (typeof c.views === 'number') primaryStats.push({ label: '28d Views', value: formatNumber(c.views) });
+  if (typeof c.engagement === 'number') primaryStats.push({ label: '28d Engagements', value: formatNumber(c.engagement) });
+  const primaryHtml = primaryStats.length > 0 ? `<div class="ig-stats-grid">
+    ${primaryStats.map(st => `<div class="ig-stat-card">
+      <div class="ig-stat-num">${esc(st.value)}</div>
+      <div class="ig-stat-label">${esc(st.label)}</div>
+    </div>`).join('')}
+  </div>` : '';
+  return `${headerHtml}${primaryHtml}`;
+}
+
 function buildAudienceAutomatic(kit, data) {
   data = data || {};
   const ig = data.instagram || null;
   const yt = data.youtube || null;
   const tt = data.tiktok || null;
   const tw = data.twitch || null;
+  const fb = data.facebook || null;
 
   const platforms = [];
   if (ig) platforms.push({ key: 'instagram', label: 'Instagram', svg: SOCIAL_PLATFORMS[0].svg, panel: buildIgPanel(ig) });
   if (yt) platforms.push({ key: 'youtube', label: 'YouTube', svg: (SOCIAL_PLATFORMS.find(p => p.key === 'youtube') || {}).svg || '', panel: buildYtPanel(yt) });
   if (tt) platforms.push({ key: 'tiktok', label: 'TikTok', svg: (SOCIAL_PLATFORMS.find(p => p.key === 'tiktok') || {}).svg || '', panel: buildTtPanel(tt) });
   if (tw) platforms.push({ key: 'twitch', label: 'Twitch', svg: (SOCIAL_PLATFORMS.find(p => p.key === 'twitch') || {}).svg || '', panel: buildTwPanel(tw) });
+  if (fb) platforms.push({ key: 'facebook', label: 'Facebook', svg: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 12a12 12 0 1 0-13.88 11.85v-8.38H7.08V12h3.04V9.36c0-3 1.79-4.67 4.53-4.67 1.31 0 2.68.24 2.68.24v2.95h-1.51c-1.49 0-1.95.92-1.95 1.87V12h3.32l-.53 3.47h-2.79v8.38A12 12 0 0 0 24 12z"/></svg>', panel: buildFbPanel(fb) });
 
   if (platforms.length === 0) {
     return `<div class="section ig-section">
@@ -1044,7 +1076,7 @@ function isBuiltinImageTheme(key) {
 // MAIN RENDER — produces inner HTML for the #wrap div
 // ==========================================================================
 
-function renderMediaKitContent(profile, kit, ig, yt, tt, tw) {
+function renderMediaKitContent(profile, kit, ig, yt, tt, tw, fb) {
   const headshot = validImageUrl(kit.headshot_url);
 
   const isPaid = profile.tier === 'monthly' || profile.tier === 'max';
@@ -1059,14 +1091,14 @@ function renderMediaKitContent(profile, kit, ig, yt, tt, tw) {
   // 'automatic' → pull from instagram_connections cache (ig param).
   // 'manual' (or unset) → use kit.socials + kit.engagement_rate from the kit row.
   const audienceHtml = kit.audience_mode === 'automatic'
-    ? buildAudienceAutomatic(kit, { instagram: ig, youtube: yt, tiktok: tt, twitch: tw })
+    ? buildAudienceAutomatic(kit, { instagram: ig, youtube: yt, tiktok: tt, twitch: tw, facebook: fb })
     : buildAudience(kit);
 
   // Total Followers strip — sum across all connected platforms. For now only
   // Instagram is wired up, but the structure already accumulates so future
   // platforms (TikTok, YouTube, etc.) can each contribute their followers_count.
   const totalFollowersHtml = kit.audience_mode === 'automatic'
-    ? buildTotalFollowers(kit, ig, yt, tt, tw)
+    ? buildTotalFollowers(kit, ig, yt, tt, tw, fb)
     : '';
 
   const inner = `<div class="top-actions">
@@ -1109,6 +1141,7 @@ const FOLLOWER_SPLIT_REGISTRY = [
   { platform: 'YouTube',   color: '#FF0000', get: (d) => d.youtube && d.youtube.subscriber_count },
   { platform: 'TikTok',    color: '#25F4EE', get: (d) => d.tiktok && d.tiktok.follower_count },
   { platform: 'Twitch',    color: '#9146FF', get: (d) => d.twitch && d.twitch.follower_count },
+  { platform: 'Facebook',  color: '#1877F2', get: (d) => d.facebook && d.facebook.followers_count },
   // Future platforms plug in here, e.g.:
   // { platform: 'Pinterest', color: '#E60023', get: (d) => d.pinterest && d.pinterest.follower_count },
   // { platform: 'Facebook',  color: '#1877F2', get: (d) => d.facebook && d.facebook.follower_count },
@@ -1163,7 +1196,7 @@ function buildFollowerSplitDonut(data) {
   </div>`;
 }
 
-function buildTotalFollowers(kit, ig, yt, tt, tw) {
+function buildTotalFollowers(kit, ig, yt, tt, tw, fb) {
   const sources = [];
   if (ig && typeof ig.followers_count === 'number' && ig.followers_count > 0) {
     sources.push({ platform: 'Instagram', count: ig.followers_count });
@@ -1176,6 +1209,9 @@ function buildTotalFollowers(kit, ig, yt, tt, tw) {
   }
   if (tw && typeof tw.follower_count === 'number' && tw.follower_count > 0) {
     sources.push({ platform: 'Twitch', count: tw.follower_count });
+  }
+  if (fb && typeof fb.followers_count === 'number' && fb.followers_count > 0) {
+    sources.push({ platform: 'Facebook', count: fb.followers_count });
   }
   // Future: push more rows here as platforms come online.
 
@@ -1328,8 +1364,24 @@ async function fetchMediaKitData(username) {
       }
     }
 
+    let fb = null;
+    if (kit && kit.audience_mode === 'automatic') {
+      try {
+        const fbRes = await fetch(
+          `${SUPABASE_URL}/rest/v1/public_facebook_kit_data?user_id=eq.${profile.user_id}&select=fb_page_name,profile_picture_url,followers_count,fan_count,cached_data,last_refreshed_at`,
+          fetchOpts(controller.signal)
+        );
+        if (fbRes.ok) {
+          const fbRows = await fbRes.json();
+          fb = fbRows[0] || null;
+        }
+      } catch (e) {
+        console.error('mediakit Facebook fetch error', e);
+      }
+    }
+
     clearTimeout(timeout);
-    return { profile, kit, ig, yt, tt, tw };
+    return { profile, kit, ig, yt, tt, tw, fb };
   } catch (e) {
     clearTimeout(timeout);
     console.error('mediakit fetch error', e);
@@ -1377,7 +1429,7 @@ module.exports = async (req, res) => {
   let customThemeStyle = '';
 
   if (result && result.kit && result.kit.published !== false) {
-    const { profile, kit, ig, yt, tt, tw } = result;
+    const { profile, kit, ig, yt, tt, tw, fb } = result;
 
     // Update OG metadata for social previews
     const name = kit.display_name || profile.username;
@@ -1405,7 +1457,7 @@ module.exports = async (req, res) => {
     }
 
     // Render the media kit content server-side
-    const rendered = renderMediaKitContent(profile, kit, ig, yt, tt, tw);
+    const rendered = renderMediaKitContent(profile, kit, ig, yt, tt, tw, fb);
     renderedInner = rendered.inner;
 
     // Bootstrap meta tags: stash creator currency + signal SSR hydration so
