@@ -1622,7 +1622,11 @@ async function manualRefreshIG() {
 
   const res = await refreshIGData();
   if (res && res.ok && res.data) {
-    mkAudCache = { connected: true, data: res.data };
+    // Merge into the shared cache, never replace it, or refreshing Instagram
+    // would drop the other connected platforms (YouTube/TikTok/Twitch/Facebook)
+    // from the preview until the next full load.
+    if (mkAudCache) { mkAudCache.connected = true; mkAudCache.data = res.data; }
+    else mkAudCache = { connected: true, data: res.data };
   }
   // Result is communicated by the button state itself: success = data updates
   // on screen + button enters its cooldown countdown; failure = data stays as
