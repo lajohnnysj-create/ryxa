@@ -166,7 +166,7 @@
   <div style="margin-bottom:48px;">
     <span style="font-size:12px;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent2);font-weight:600;display:block;margin-bottom:12px;">Legal</span>
     <h1 style="font-family:'Syne',sans-serif;font-size:clamp(32px,5vw,48px);font-weight:800;letter-spacing:-2px;margin-bottom:12px;">Privacy Policy</h1>
-    <p style="color:var(--muted);font-size:14px;">Effective date: April 12, 2026 · Last updated: June 24, 2026</p>
+    <p style="color:var(--muted);font-size:14px;">Effective date: April 12, 2026 · Last updated: July 2, 2026</p>
   </div>
 
   <div style="display:flex;flex-direction:column;gap:40px;font-size:15px;line-height:1.8;color:var(--muted);">
@@ -280,6 +280,7 @@
         <li><strong style="color:var(--text);">Resend</strong>: transactional email delivery (password resets, receipts). <a href="https://resend.com/legal/privacy-policy" target="_blank" rel="noopener" style="color:var(--accent2);">Privacy policy</a></li>
         <li><strong style="color:var(--text);">Anthropic</strong>: AI provider for AI-powered features (Chatbox, Design Studio, Script Builder, Bio Writer, Caption Generator, Thumbnail Analyzer, Contract Analyzer, Alt-text Generator). Prompts and inputs you send to AI features are processed by Anthropic. Anthropic does not use API inputs or outputs to train their models. <a href="https://www.anthropic.com/legal/privacy" target="_blank" rel="noopener" style="color:var(--accent2);">Privacy policy</a></li>
         <li><strong style="color:var(--text);">Meta Platforms (Instagram)</strong>: social account integration via the official Instagram Graph API, only when you choose to connect your Instagram account. See Section 8 below for details. <a href="https://www.facebook.com/policy.php" target="_blank" rel="noopener" style="color:var(--accent2);">Privacy policy</a></li>
+        <li><strong style="color:var(--text);">Meta Platforms (Facebook)</strong>: Facebook Page integration via the official Facebook Graph API, only when you choose to connect a Facebook Page. See Section 13 below for details. <a href="https://www.facebook.com/policy.php" target="_blank" rel="noopener" style="color:var(--accent2);">Privacy policy</a></li>
         <li><strong style="color:var(--text);">Google LLC (Analytics)</strong>: web analytics for marketing and tool pages via Google Analytics 4. We send aggregate usage data (page views, approximate location, referrer, device type, anonymized client identifier). GA4 is not loaded on the signed-in dashboard. Opt out at any time via our <a href="/do-not-sell.html" style="color:var(--accent2);">Do Not Sell or Share My Personal Information</a> page. <a href="https://policies.google.com/privacy" target="_blank" rel="noopener" style="color:var(--accent2);">Privacy policy</a></li>
         <li><strong style="color:var(--text);">Google LLC (Calendar)</strong>: calendar integration via the official Google Calendar API, only when you choose to connect your Google Calendar. See Section 9 below for details. <a href="https://policies.google.com/privacy" target="_blank" rel="noopener" style="color:var(--accent2);">Privacy policy</a></li>
         <li><strong style="color:var(--text);">Google LLC (YouTube)</strong>: channel statistics and audience insights via the YouTube API Services, only when you choose to connect your YouTube channel. See Section 10 below for details. <a href="https://policies.google.com/privacy" target="_blank" rel="noopener" style="color:var(--accent2);">Privacy policy</a></li>
@@ -458,14 +459,50 @@
     </div>
 
     <div>
-      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">13. Where your data is stored</h2>
+      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">13. Connecting your Facebook Page</h2>
+      <p style="margin-bottom:12px;">Ryxa lets you connect a Facebook Page you manage to keep your audience data synced with your Ryxa profile and media kit. Connecting is always optional, Ryxa works fully without it.</p>
+
+      <p style="margin-bottom:12px;"><strong style="color:var(--text);">How the connection works.</strong> When you click "Connect Facebook," you're sent to Meta's official Facebook Login for Business authorization page. You log in to Facebook directly with Meta, Ryxa never sees your password. After you approve, Meta sends Ryxa a long-lived access token (valid for approximately 60 days, refreshable) plus a Page access token that let us call the Facebook Graph API on your behalf. If you manage more than one Page, you choose which single Page to connect. You can revoke this access at any time (see below).</p>
+
+      <p style="margin-bottom:12px;"><strong style="color:var(--text);">What we receive from Meta.</strong> When you grant the permissions <code style="font-size:12px;color:var(--accent2);">pages_show_list</code>, <code style="font-size:12px;color:var(--accent2);">pages_read_engagement</code>, <code style="font-size:12px;color:var(--accent2);">read_insights</code>, and <code style="font-size:12px;color:var(--accent2);">business_management</code>, Ryxa may receive:</p>
+      <ul style="padding-left:22px;margin-bottom:12px;">
+        <li>Page information: Page name and Page profile picture</li>
+        <li>Page totals: follower count and Page like count</li>
+        <li>28-day Page insights (where available): reach, views, and engagement</li>
+        <li>The list of Pages you manage, used only so you can choose which single Page to connect</li>
+      </ul>
+
+      <p style="margin-bottom:12px;"><strong style="color:var(--text);">How we use this data.</strong> Facebook data powers features you have activated in Ryxa, such as:</p>
+      <ul style="padding-left:22px;margin-bottom:12px;">
+        <li>Auto-filling your Ryxa media kit with your current Facebook follower count, Page likes, and engagement metrics that brands can view on your public media kit page</li>
+        <li>Calculating an engagement rate for display on your media kit and dashboard</li>
+        <li>Including your Facebook following in the combined follower totals shown on your media kit</li>
+      </ul>
+      <p style="margin-bottom:12px;">We do NOT sell, rent, or share your Facebook data with third parties. We do NOT use it for advertising. We do NOT use it to train AI models.</p>
+
+      <p style="margin-bottom:12px;"><strong style="color:var(--text);">How we store this data.</strong> Your Facebook access tokens and the data we receive from Meta are stored in our Supabase database, with access tokens encrypted at rest. Access is restricted by row-level security policies so only you and our authenticated systems can read your data. We refresh the cached data automatically every 24 hours so your media kit stays current, and you can also trigger a manual refresh from your dashboard at any time.</p>
+
+      <p style="margin-bottom:12px;"><strong style="color:var(--text);">How to disconnect or delete your Facebook data.</strong> You can disconnect Facebook from Ryxa at any time:</p>
+      <ul style="padding-left:22px;margin-bottom:12px;">
+        <li><strong style="color:var(--text);">Inside Ryxa:</strong> Go to Settings &rarr; Connected Accounts &rarr; Disconnect Facebook. This revokes our access token on Meta's side and immediately deletes all cached Facebook data from our database.</li>
+        <li><strong style="color:var(--text);">Inside Facebook:</strong> Go to Facebook Settings &rarr; Business Integrations (or Apps and Websites) &rarr; find "Ryxa" &rarr; Remove. This revokes our access on Meta's side immediately. Meta will also send our endpoint a deletion notification, and we will delete your data within 24 hours.</li>
+        <li><strong style="color:var(--text);">By request:</strong> Email <a href="mailto:hello@ryxa.io" style="color:var(--accent2);">hello@ryxa.io</a> and we will permanently delete all Facebook data associated with your account within 30 days.</li>
+      </ul>
+
+      <p style="margin-bottom:12px;"><strong style="color:var(--text);">Compliance with Meta Platform Terms.</strong> Ryxa's use of information received from the Facebook Graph API and Meta APIs adheres to the <a href="https://developers.facebook.com/terms" target="_blank" rel="noopener" style="color:var(--accent2);">Meta Platform Terms</a> and <a href="https://developers.facebook.com/devpolicy/" target="_blank" rel="noopener" style="color:var(--accent2);">Developer Policies</a>. We will not transfer Meta-derived data to any ad network, data broker, or other advertising or monetization-related service.</p>
+
+      <p><strong style="color:var(--text);">Note on affiliation.</strong> Ryxa is an independent platform. We are not affiliated with, endorsed by, or sponsored by Facebook or Meta Platforms, Inc.</p>
+    </div>
+
+    <div>
+      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">14. Where your data is stored</h2>
       <p style="margin-bottom:12px;">Your primary account data (database records, authentication, cover images) is stored in the United States in AWS us-east-2 (Ohio), via Supabase.</p>
       <p style="margin-bottom:12px;">Creator-uploaded files for Digital Products and Course Lessons (PDFs, images, audio, archives, and other supported formats) are stored on Cloudflare R2, a globally distributed object storage network. Course lesson videos are stored and delivered through Bunny.net's Bunny Stream service, a globally distributed video CDN. Cloudflare and Bunny may route or replicate this data across multiple regions to ensure availability and delivery performance. Files in R2 are stored in private buckets and only delivered to authorized recipients via short-lived signed URLs. Bunny-hosted videos are similarly delivered via signed URLs that expire after a short period.</p>
       <p>If you are accessing the service from outside the US, by using Ryxa you consent to your data being transferred to and processed in the United States and, for file and video storage, across Cloudflare's and Bunny's global networks.</p>
     </div>
 
     <div>
-      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">14. Data retention</h2>
+      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">15. Data retention</h2>
       <p style="margin-bottom:12px;"><strong style="color:var(--text);">Active accounts:</strong> We retain your data as long as your account is active.</p>
       <p style="margin-bottom:12px;"><strong style="color:var(--text);">Cancelled Pro/Max subscriptions:</strong> When you cancel Pro or Max, your account downgrades to Free at the end of your billing period, but your feature data (grid plans, scripts, custom themes, media kit, audit history) is preserved. If you resubscribe later, your data will be right where you left it.</p>
       <p style="margin-bottom:12px;"><strong style="color:var(--text);">Chatbox conversations:</strong> Stored as long as your account is active. You can delete individual conversations at any time from the Chatbox sidebar, deletion is permanent and removes all messages in that conversation.</p>
@@ -473,7 +510,7 @@
     </div>
 
     <div>
-      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">15. Your rights</h2>
+      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">16. Your rights</h2>
       <p style="margin-bottom:12px;">Regardless of where you live, you have the right to:</p>
       <ul style="padding-left:22px;margin-bottom:12px;">
         <li><strong>Access</strong> your data, request a copy of what we store</li>
@@ -488,23 +525,23 @@
     </div>
 
     <div>
-      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">16. Security</h2>
+      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">17. Security</h2>
       <p>We take reasonable measures to protect your data, including encrypted connections (HTTPS everywhere), industry-standard authentication practices, row-level security policies on all database tables, encryption of sensitive integration tokens (such as Google Calendar, YouTube, TikTok, Twitch, and Instagram access tokens) at rest, private storage buckets with time-limited signed download URLs for uploaded files, and limited access to production data. No online service is 100% secure, but we work to minimize risk.</p>
       <p style="margin-top:12px;">In the event of a data breach affecting your personal information, we will notify you within 72 hours of discovery via email, in accordance with applicable laws (including CCPA in California and GDPR if applicable). The notification will include the nature of the breach, the data affected, and steps we are taking to address it.</p>
     </div>
 
     <div>
-      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">17. Children's privacy</h2>
+      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">18. Children's privacy</h2>
       <p>Ryxa is not directed at children under 13. We do not knowingly collect personal information from anyone under 13. If you are a parent and believe your child has signed up, please contact us at hello@ryxa.io and we will delete the account.</p>
     </div>
 
     <div>
-      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">18. Changes to this policy</h2>
+      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">19. Changes to this policy</h2>
       <p>We may update this policy as the service evolves. We will update the "Last updated" date at the top. For material changes, we will notify you by email or via an in-app notice. Continued use of the service after updates constitutes acceptance of the updated policy.</p>
     </div>
 
     <div>
-      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">19. Contact</h2>
+      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">20. Contact</h2>
       <p>Questions about privacy? Email hello@ryxa.io.</p>
       <p style="margin-top:12px;">MRLA Media LLC</p>
     </div>
