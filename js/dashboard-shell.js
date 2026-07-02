@@ -1773,11 +1773,7 @@ function showTool(tool) {
     if (typeof resetSettingsTurnstile === 'function') resetSettingsTurnstile();
     // Load Stripe status with error handling
     try { loadStripeConnectStatus(); } catch(e) { console.error('Stripe status error:', e); }
-    try { loadInstagramConnectionStatus(); } catch(e) { console.error('Instagram status error:', e); }
-    try { loadFacebookConnectionStatus(); } catch(e) { console.error('Facebook status error:', e); }
-    try { loadYouTubeConnectionStatus(); } catch(e) { console.error('YouTube status error:', e); }
-    try { loadTikTokConnectionStatus(); } catch(e) { console.error('TikTok status error:', e); }
-    try { loadTwitchConnectionStatus(); } catch(e) { console.error('Twitch status error:', e); }
+    try { loadConnectedAccountsWithSpinner(); } catch(e) { console.error('Connected accounts error:', e); }
     // Adjust the password section for Google-login accounts (no Ryxa password to reset)
     try { applyGoogleAccountPasswordUI(); } catch(e) { console.error('Password UI error:', e); }
     // Load marketing email preference

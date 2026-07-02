@@ -417,6 +417,23 @@ function showStripeMsg(type, text) {
 // ============================================================
 // Instagram Connection (Settings)
 // ============================================================
+async function loadConnectedAccountsWithSpinner() {
+  const loading = document.getElementById('settings-accounts-loading');
+  const list = document.getElementById('settings-accounts-list');
+  if (loading) loading.style.display = 'flex';
+  if (list) list.style.display = 'none';
+  const run = (fn) => { try { return Promise.resolve(fn()); } catch (e) { return Promise.resolve(); } };
+  await Promise.allSettled([
+    run(loadInstagramConnectionStatus),
+    run(loadFacebookConnectionStatus),
+    run(loadYouTubeConnectionStatus),
+    run(loadTikTokConnectionStatus),
+    run(loadTwitchConnectionStatus)
+  ]);
+  if (loading) loading.style.display = 'none';
+  if (list) list.style.display = '';
+}
+
 async function loadInstagramConnectionStatus() {
   const disconnectedEl = document.getElementById('settings-instagram-disconnected');
   const connectedEl = document.getElementById('settings-instagram-connected');
