@@ -393,7 +393,8 @@ const FOLLOWER_AUTO_SOURCES = [
   { key: 'instagram', view: 'public_instagram_kit_data', col: 'followers_count' },
   { key: 'youtube', view: 'public_youtube_kit_data', col: 'subscriber_count' },
   { key: 'tiktok', view: 'public_tiktok_kit_data', col: 'follower_count' },
-  { key: 'twitch', view: 'public_twitch_kit_data', col: 'follower_count' }
+  { key: 'twitch', view: 'public_twitch_kit_data', col: 'follower_count' },
+  { key: 'facebook', view: 'public_facebook_kit_data', col: 'followers_count' }
 ];
 
 // Thousands-separated integer with no locale dependency (matches the Media Kit).
