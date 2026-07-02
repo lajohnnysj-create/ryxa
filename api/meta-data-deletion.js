@@ -17,6 +17,7 @@ const crypto = require('crypto');
 const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const META_APP_SECRET = process.env.META_APP_SECRET;
+const FACEBOOK_APP_SECRET = process.env.FACEBOOK_APP_SECRET;
 const PUBLIC_BASE_URL = 'https://ryxa.io';
 
 // ----- helpers --------------------------------------------------
@@ -46,8 +47,8 @@ function parseSignedRequest(signedRequest) {
     return null;
   }
 
-  if (!META_APP_SECRET) {
-    console.error('META_APP_SECRET env var not set');
+  if (!META_APP_SECRET && !FACEBOOK_APP_SECRET) {
+    console.error('No app secret configured (META_APP_SECRET / FACEBOOK_APP_SECRET)');
     return null;
   }
 
@@ -58,17 +59,22 @@ function parseSignedRequest(signedRequest) {
     return null;
   }
 
-  const computedSig = crypto
-    .createHmac('sha256', META_APP_SECRET)
-    .update(encodedPayload)
-    .digest();
-
-  // Constant-time comparison
-  if (
-    expectedSig.length !== computedSig.length ||
-    !crypto.timingSafeEqual(expectedSig, computedSig)
-  ) {
-    console.error('signed_request signature mismatch');
+  // Instagram-Login and Facebook-Login share this app but sign with DIFFERENT
+  // secrets (the Instagram product secret vs the Facebook App-Settings secret).
+  // Accept the request if it verifies against EITHER, so both Instagram and
+  // Facebook deauthorization/deletion callbacks are honored. Each comparison is
+  // still constant-time.
+  const secrets = [META_APP_SECRET, FACEBOOK_APP_SECRET].filter(Boolean);
+  let verified = false;
+  for (const secret of secrets) {
+    const computedSig = crypto.createHmac('sha256', secret).update(encodedPayload).digest();
+    if (expectedSig.length === computedSig.length && crypto.timingSafeEqual(expectedSig, computedSig)) {
+      verified = true;
+      break;
+    }
+  }
+  if (!verified) {
+    console.error('signed_request signature mismatch (tried all configured app secrets)');
     return null;
   }
 
@@ -115,7 +121,7 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  if (!META_APP_SECRET || !SUPABASE_SERVICE_KEY) {
+  if ((!META_APP_SECRET && !FACEBOOK_APP_SECRET) || !SUPABASE_SERVICE_KEY) {
     console.error('Missing required env vars');
     return res.status(500).json({ error: 'Server not configured' });
   }
