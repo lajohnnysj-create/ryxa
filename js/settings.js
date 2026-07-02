@@ -668,7 +668,7 @@ async function connectFacebookAccount() {
   const btn = document.getElementById('settings-facebook-connect-btn');
   if (btn) {
     btn.disabled = true;
-    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Redirecting to Facebook...';
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" class="ds-s-f33c30" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Redirecting to Facebook...';
   }
   try {
     const { data: { session } } = await sb.auth.getSession();
