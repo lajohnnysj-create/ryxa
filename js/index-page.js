@@ -144,16 +144,32 @@ function _authModalInitialFocus() {
   try {
     isTouch = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
   } catch (e) { /* matchMedia unavailable - treat as non-touch */ }
-  if (isTouch) {
+  var _sec = document.getElementById('auth-email-section');
+  var _emailVisible = _sec && _sec.style.display !== 'none';
+  if (isTouch || !_emailVisible) {
     document.getElementById('auth-modal-title')?.focus();
   } else {
     document.getElementById('auth-email')?.focus();
   }
 }
 
+function expandEmailAuth() {
+  var sec = document.getElementById('auth-email-section');
+  var tog = document.getElementById('auth-email-toggle');
+  if (sec) sec.style.display = '';
+  if (tog) tog.style.display = 'none';
+}
+function collapseEmailAuth() {
+  var sec = document.getElementById('auth-email-section');
+  var tog = document.getElementById('auth-email-toggle');
+  if (sec) sec.style.display = 'none';
+  if (tog) tog.style.display = '';
+}
+
 function openAuthModal() {
   _authModalLastFocus = document.activeElement;
   authMode = 'signin'; syncAuthModal();
+  collapseEmailAuth();
   document.getElementById('auth-modal').classList.add('open');
   _authModalSetBackgroundInert(true);
   setTimeout(_authModalInitialFocus, 100);
@@ -165,6 +181,7 @@ function openAuthModal() {
 function openSignupModal() {
   _authModalLastFocus = document.activeElement;
   authMode = 'signup'; syncAuthModal();
+  expandEmailAuth();
   document.getElementById('auth-modal').classList.add('open');
   _authModalSetBackgroundInert(true);
   setTimeout(_authModalInitialFocus, 100);
@@ -326,6 +343,24 @@ async function handleGoogleAuth() {
   if (error) showAuthMsg('error', error.message);
 }
 
+async function handleAppleAuth() {
+  if (!sb) { _authMsgUnavailable(); return; }
+  let redirectTo = 'https://ryxa.io/dashboard.html';
+  try {
+    const intendedUsername = localStorage.getItem('ryx_intended_username');
+    if (intendedUsername) {
+      redirectTo += '?username=' + encodeURIComponent(intendedUsername);
+    }
+  } catch (_) { /* storage unavailable - bare redirect */ }
+  const { error } = await sb.auth.signInWithOAuth({
+    provider: 'apple',
+    options: {
+      redirectTo: redirectTo,
+    },
+  });
+  if (error) showAuthMsg('error', error.message);
+}
+
 async function handleAuth() {
   if (!sb) { _authMsgUnavailable(); return; }
   const email = document.getElementById('auth-email').value.trim();
@@ -444,6 +479,8 @@ homeRegisterAction('close-auth-modal', function() { closeAuthModal(); });
 homeRegisterAction('auth-mode-signin', function() { setAuthMode('signin'); });
 homeRegisterAction('auth-mode-signup', function() { setAuthMode('signup'); });
 homeRegisterAction('google-auth', function() { handleGoogleAuth(); });
+homeRegisterAction('apple-auth', function() { handleAppleAuth(); });
+homeRegisterAction('toggle-email-auth', function() { expandEmailAuth(); setTimeout(function(){ document.getElementById('auth-email')?.focus(); }, 50); });
 homeRegisterAction('forgot-password', function() { handleForgotPassword(); });
 homeRegisterAction('auth', function() { handleAuth(); });
 homeRegisterAction('open-signup', function() { openSignupModal(); });
