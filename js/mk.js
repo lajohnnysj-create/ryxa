@@ -2243,6 +2243,7 @@ function buildMKPreviewHTML() {
       if (typeof fbData.followers_count === 'number') stats.push({ n: formatNumberShort(fbData.followers_count), l: 'Followers' });
       if (typeof fbData.fan_count === 'number') stats.push({ n: formatNumberShort(fbData.fan_count), l: 'Page Likes' });
       const fbc = fbData.cached_data || {};
+      if (typeof fbc.engagement_rate === 'number') stats.push({ n: fbc.engagement_rate.toFixed(1) + '%', l: 'Engagement' });
       if (typeof fbc.reach === 'number') stats.push({ n: formatNumberShort(fbc.reach), l: '28d Reach' });
       if (typeof fbc.views === 'number') stats.push({ n: formatNumberShort(fbc.views), l: '28d Views' });
       if (typeof fbc.engagement === 'number') stats.push({ n: formatNumberShort(fbc.engagement), l: '28d Engagements' });
