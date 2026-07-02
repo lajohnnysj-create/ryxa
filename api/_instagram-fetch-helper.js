@@ -87,13 +87,20 @@ async function fetchProfile(token) {
 }
 
 async function fetchAccountInsights(token) {
-  // 30-day account insights. metric_type=total_value returns a single rolled-up number.
+  // 28-day account insights. metric_type=total_value returns a single rolled-up number.
   // Uses 'days_28' period (Instagram's only supported rolling-window period).
   // 'views' replaces deprecated 'impressions'.
+  // IMPORTANT: without since/until, Meta defaults to a ~2-day window (yesterday
+  // through today), which severely undercounts the totals. We pass an explicit
+  // 28-day range so the total_value reflects the full window the app shows.
+  const until = Math.floor(Date.now() / 1000);
+  const since = until - 28 * 24 * 60 * 60;
   return ig('/me/insights', token, {
     metric: 'reach,total_interactions,views,profile_views',
     period: 'days_28',
-    metric_type: 'total_value'
+    metric_type: 'total_value',
+    since: String(since),
+    until: String(until)
   });
 }
 
@@ -214,6 +221,10 @@ async function refreshInstagramData(userId) {
     collected.total_interactions_30d = pickInsightValue(acct, 'total_interactions');
     collected.views_30d = pickInsightValue(acct, 'views');
     collected.profile_views_30d = pickInsightValue(acct, 'profile_views');
+    // Token-safe: numbers only, so we can confirm the 28-day window is landing.
+    console.log('instagram account insights (28d): reach=' + collected.reach_30d +
+      ' interactions=' + collected.total_interactions_30d +
+      ' views=' + collected.views_30d + ' profile_views=' + collected.profile_views_30d);
   } catch (e) {
     errors.push('insights:' + e.message);
   }
