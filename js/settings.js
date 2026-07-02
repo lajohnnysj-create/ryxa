@@ -650,9 +650,7 @@ async function loadFacebookConnectionStatus() {
       if (pickEl) pickEl.style.display = 'none';
       if (connectedEl) connectedEl.style.display = 'block';
       if (nameEl) {
-        const followers = (conn.followers_count != null)
-          ? (' \u00b7 ' + Number(conn.followers_count).toLocaleString() + ' followers') : '';
-        nameEl.textContent = (conn.fb_page_name || 'Connected') + followers;
+        nameEl.textContent = conn.fb_page_name || 'Connected';
       }
       if (avatarEl && conn.profile_picture_url) {
         avatarEl.innerHTML = '<img src="' + escapeHtml(conn.profile_picture_url) + '" alt="" class="bio-s-0c9434">';
