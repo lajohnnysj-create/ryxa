@@ -1287,6 +1287,60 @@ let mkTtRefreshLockUntil = 0;  // unix ms; TikTok refresh button cooldown
 let mkTwRefreshLockUntil = 0;  // unix ms; Twitch refresh button cooldown
 let mkFbRefreshLockUntil = 0;  // unix ms; Facebook refresh button cooldown
 
+// ---- Refresh cooldown: shared 1 Hz ticker + localStorage persistence --------
+// The five per-platform refresh buttons render a static "Wait Ns" label, so a
+// single ticker counts them all down live. The cooldown timestamps also persist
+// in localStorage so reloading the page can't be used to bypass the cooldown.
+const MK_REFRESH_BUTTONS = [
+  { id: 'mk-aud-refresh-btn',    key: 'ig', get: () => mkAudRefreshLockUntil },
+  { id: 'mk-aud-refresh-yt-btn', key: 'yt', get: () => mkYtRefreshLockUntil },
+  { id: 'mk-aud-refresh-tt-btn', key: 'tt', get: () => mkTtRefreshLockUntil },
+  { id: 'mk-aud-refresh-tw-btn', key: 'tw', get: () => mkTwRefreshLockUntil },
+  { id: 'mk-aud-refresh-fb-btn', key: 'fb', get: () => mkFbRefreshLockUntil }
+];
+let mkRefreshTicker = null;
+
+function mkSaveRefreshLock(key, until) {
+  try { localStorage.setItem('mk_refresh_lock_' + key, String(until)); } catch (e) {}
+}
+
+function mkLoadRefreshLocks() {
+  function rd(k) { try { return Number(localStorage.getItem('mk_refresh_lock_' + k)) || 0; } catch (e) { return 0; } }
+  mkAudRefreshLockUntil = rd('ig');
+  mkYtRefreshLockUntil  = rd('yt');
+  mkTtRefreshLockUntil  = rd('tt');
+  mkTwRefreshLockUntil  = rd('tw');
+  mkFbRefreshLockUntil  = rd('fb');
+}
+
+function mkTickRefreshButtons() {
+  const now = Date.now();
+  let anyActive = false;
+  for (const b of MK_REFRESH_BUTTONS) {
+    const btn = document.getElementById(b.id);
+    if (!btn) continue;
+    const remaining = Math.max(0, b.get() - now);
+    const labelEl = btn.querySelector('.mk-aud-row-refresh-label');
+    if (remaining > 0) {
+      anyActive = true;
+      btn.disabled = true;
+      if (labelEl) labelEl.textContent = 'Wait ' + Math.ceil(remaining / 1000) + 's';
+    } else {
+      btn.disabled = false;
+      if (labelEl && labelEl.textContent !== 'Refresh') labelEl.textContent = 'Refresh';
+    }
+  }
+  if (!anyActive && mkRefreshTicker) { clearInterval(mkRefreshTicker); mkRefreshTicker = null; }
+}
+
+function mkStartRefreshTicker() {
+  mkTickRefreshButtons();
+  if (mkRefreshTicker) return;
+  if (MK_REFRESH_BUTTONS.some(b => b.get() > Date.now())) {
+    mkRefreshTicker = setInterval(mkTickRefreshButtons, 1000);
+  }
+}
+
 function setAudienceMode(mode) {
   mkState.audience_mode = (mode === 'automatic') ? 'automatic' : 'manual';
   // Toggle tab visuals
@@ -1320,6 +1374,7 @@ function syncAudienceModeUI() {
 async function loadAudienceAutomatic() {
   const mount = document.getElementById('mk-aud-auto-content');
   if (!mount) return;
+  mkLoadRefreshLocks();
   mkAudInflight = true;
   mount.innerHTML = '<div class="mk-aud-loading">Pulling your social media data&hellip;</div>';
 
@@ -1528,6 +1583,8 @@ async function manualRefreshYT() {
     else mkAudCache = { connected: false, data: null, ytConnected: true, yt: res.data };
   }
   mkYtRefreshLockUntil = Date.now() + 5 * 60 * 1000;
+  mkSaveRefreshLock('yt', mkYtRefreshLockUntil);
+  mkStartRefreshTicker();
   renderAudienceAutomatic();
   setTimeout(() => {
     const b = document.getElementById('mk-aud-refresh-yt-btn');
@@ -1566,6 +1623,8 @@ async function manualRefreshTT() {
     else mkAudCache = { connected: false, data: null, ttConnected: true, tt: res.data };
   }
   mkTtRefreshLockUntil = Date.now() + 5 * 60 * 1000;
+  mkSaveRefreshLock('tt', mkTtRefreshLockUntil);
+  mkStartRefreshTicker();
   renderAudienceAutomatic();
   setTimeout(() => {
     const b = document.getElementById('mk-aud-refresh-tt-btn');
@@ -1604,6 +1663,8 @@ async function manualRefreshTW() {
     else mkAudCache = { connected: false, data: null, twConnected: true, tw: res.data };
   }
   mkTwRefreshLockUntil = Date.now() + 5 * 60 * 1000;
+  mkSaveRefreshLock('tw', mkTwRefreshLockUntil);
+  mkStartRefreshTicker();
   renderAudienceAutomatic();
   setTimeout(() => {
     const b = document.getElementById('mk-aud-refresh-tw-btn');
@@ -1634,6 +1695,8 @@ async function manualRefreshIG() {
   // collide with the iOS non-safe zone on devices with a notch).
   // 5-minute cooldown regardless of success — protects rate limits
   mkAudRefreshLockUntil = Date.now() + 5 * 60 * 1000;
+  mkSaveRefreshLock('ig', mkAudRefreshLockUntil);
+  mkStartRefreshTicker();
   renderAudienceAutomatic();
   // Re-enable after cooldown
   setTimeout(() => {
@@ -1691,6 +1754,8 @@ async function manualRefreshFB() {
     else mkAudCache = { connected: false, data: null, fbConnected: true, fb: res.data };
   }
   mkFbRefreshLockUntil = Date.now() + 5 * 60 * 1000;
+  mkSaveRefreshLock('fb', mkFbRefreshLockUntil);
+  mkStartRefreshTicker();
   renderAudienceAutomatic();
   setTimeout(() => {
     const b = document.getElementById('mk-aud-refresh-fb-btn');
@@ -1932,6 +1997,9 @@ function renderAudienceAutomatic() {
   // Now that the cache may have changed, re-render the live preview so
   // the Automatic-mode preview reflects the latest data.
   if (typeof updateMKPreview === 'function') updateMKPreview();
+
+  // Buttons were just rebuilt; keep their cooldown counters ticking live.
+  mkStartRefreshTicker();
 }
 
 function goToInstagramConnect() {
