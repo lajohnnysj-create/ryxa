@@ -609,6 +609,232 @@ function showInstagramMsg(type, text) {
 })();
 
 // ============================================================
+// Facebook Connection (Settings) - mirrors the Instagram block,
+// with a Page picker for accounts that manage more than one Page.
+// ============================================================
+async function loadFacebookConnectionStatus() {
+  const disconnectedEl = document.getElementById('settings-facebook-disconnected');
+  const connectedEl = document.getElementById('settings-facebook-connected');
+  const pickEl = document.getElementById('settings-facebook-pickpage');
+  const nameEl = document.getElementById('settings-facebook-pagename');
+  const avatarEl = document.getElementById('settings-facebook-avatar');
+  const msgEl = document.getElementById('settings-facebook-msg');
+  if (msgEl) msgEl.style.display = 'none';
+  if (!currentUser) return;
+
+  try {
+    const { data: conn } = await sb
+      .from('facebook_connections')
+      .select('fb_page_id,fb_page_name,profile_picture_url,followers_count')
+      .eq('user_id', currentUser.id)
+      .maybeSingle();
+
+    if (conn && conn.fb_page_id) {
+      // Connected with a chosen Page
+      if (disconnectedEl) disconnectedEl.style.display = 'none';
+      if (pickEl) pickEl.style.display = 'none';
+      if (connectedEl) connectedEl.style.display = 'block';
+      if (nameEl) {
+        const followers = (conn.followers_count != null)
+          ? (' \u00b7 ' + Number(conn.followers_count).toLocaleString() + ' followers') : '';
+        nameEl.textContent = (conn.fb_page_name || 'Connected') + followers;
+      }
+      if (avatarEl && conn.profile_picture_url) {
+        avatarEl.innerHTML = '<img src="' + escapeHtml(conn.profile_picture_url) + '" alt="" class="bio-s-0c9434">';
+      }
+    } else if (conn) {
+      // Connected but no Page chosen yet -> show the picker
+      if (disconnectedEl) disconnectedEl.style.display = 'none';
+      if (connectedEl) connectedEl.style.display = 'none';
+      if (pickEl) pickEl.style.display = 'block';
+      loadFacebookPages();
+    } else {
+      // Not connected
+      if (disconnectedEl) disconnectedEl.style.display = 'block';
+      if (connectedEl) connectedEl.style.display = 'none';
+      if (pickEl) pickEl.style.display = 'none';
+    }
+  } catch (err) {
+    console.error('Failed to load Facebook status:', err);
+  }
+}
+
+function fbConnectButtonDefault() {
+  return '<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="#1877F2" d="M24 12a12 12 0 1 0-13.88 11.85v-8.38H7.08V12h3.04V9.36c0-3 1.79-4.67 4.53-4.67 1.31 0 2.68.24 2.68.24v2.95h-1.51c-1.49 0-1.95.92-1.95 1.87V12h3.32l-.53 3.47h-2.79v8.38A12 12 0 0 0 24 12z"/></svg> Connect Facebook';
+}
+
+async function connectFacebookAccount() {
+  if (!currentUser) return;
+  const btn = document.getElementById('settings-facebook-connect-btn');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Redirecting to Facebook...';
+  }
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session || !session.access_token) throw new Error('No session');
+    const ticketRes = await fetch('/api/facebook-ticket', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + session.access_token }
+    });
+    if (!ticketRes.ok) {
+      const errBody = await ticketRes.json().catch(function() { return {}; });
+      throw new Error(errBody.error || 'ticket_failed');
+    }
+    const ticketJson = await ticketRes.json();
+    if (!ticketJson || !ticketJson.ticket) throw new Error('Empty ticket response');
+    window.location.href = '/api/facebook-oauth-start?ticket=' + encodeURIComponent(ticketJson.ticket);
+  } catch (err) {
+    console.error('Failed to start Facebook OAuth:', err);
+    showFacebookMsg('error', 'Failed to start connection. Please try again.');
+    resetFacebookConnectButton(true);
+  }
+}
+
+function resetFacebookConnectButton(force) {
+  const btn = document.getElementById('settings-facebook-connect-btn');
+  if (!btn) return;
+  if (!force && !/Redirecting to Facebook/i.test(btn.innerText || btn.textContent || '')) return;
+  btn.disabled = false;
+  btn.innerHTML = fbConnectButtonDefault();
+}
+
+async function loadFacebookPages() {
+  const listEl = document.getElementById('settings-facebook-page-list');
+  if (!listEl) return;
+  listEl.innerHTML = '<div class="settings-s-c06372">Loading your Pages...</div>';
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) throw new Error('No session');
+    const r = await fetch('/api/facebook-pages', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + session.access_token }
+    });
+    const body = await r.json().catch(function() { return {}; });
+    if (!r.ok || !body.ok) throw new Error(body.error || 'Could not load Pages');
+    if (!body.pages || !body.pages.length) {
+      listEl.innerHTML = '<div class="settings-s-c06372">No Pages found on your account.</div>';
+      return;
+    }
+    listEl.innerHTML = body.pages.map(function(p) {
+      const followers = Number(p.followers_count || 0).toLocaleString();
+      return '<button type="button" data-settings-action="select-facebook-page" data-fb-page-id="' +
+        escapeHtml(String(p.id)) + '" class="settings-s-266a6c dash-h-476242">' +
+        escapeHtml(p.name || 'Page') + ' (' + followers + ' followers)</button>';
+    }).join('');
+  } catch (e) {
+    console.error('loadFacebookPages', e);
+    listEl.innerHTML = '<div class="settings-s-c06372">Couldn\'t load your Pages. Try reconnecting.</div>';
+  }
+}
+
+async function selectFacebookPage(pageId) {
+  if (!pageId) return;
+  const listEl = document.getElementById('settings-facebook-page-list');
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) throw new Error('No session');
+    if (listEl) listEl.innerHTML = '<div class="settings-s-c06372">Connecting your Page...</div>';
+    const r = await fetch('/api/facebook-select-page', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + session.access_token },
+      body: JSON.stringify({ page_id: pageId })
+    });
+    const body = await r.json().catch(function() { return {}; });
+    if (!r.ok || !body.ok) throw new Error(body.error || 'Could not select Page');
+    showFacebookMsg('success', 'Facebook Page connected.');
+    if (typeof showDashToast === 'function') showDashToast('success', 'Facebook Page connected!');
+    if (typeof mkAudCache !== 'undefined') mkAudCache = null;
+    loadFacebookConnectionStatus();
+  } catch (e) {
+    console.error('selectFacebookPage', e);
+    showFacebookMsg('error', 'Could not connect that Page. Please try again.');
+    loadFacebookConnectionStatus();
+  }
+}
+
+function showFacebookDisconnectConfirm() {
+  const el = document.getElementById('facebook-disconnect-confirm');
+  if (el) el.style.display = 'block';
+}
+function hideFacebookDisconnectConfirm() {
+  const el = document.getElementById('facebook-disconnect-confirm');
+  if (el) el.style.display = 'none';
+}
+
+async function confirmDisconnectFacebook() {
+  if (!currentUser) return;
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session || !session.access_token) throw new Error('No session');
+    const res = await fetch('/api/facebook-disconnect', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token }
+    });
+    if (!res.ok) {
+      const errBody = await res.json().catch(() => ({}));
+      throw new Error(errBody.error || 'Disconnect failed');
+    }
+    hideFacebookDisconnectConfirm();
+    showFacebookMsg('success', 'Facebook disconnected.');
+    if (typeof showDashToast === 'function') showDashToast('success', 'Facebook disconnected.');
+    if (typeof mkAudCache !== 'undefined') mkAudCache = null;
+    loadFacebookConnectionStatus();
+  } catch (err) {
+    console.error('Failed to disconnect Facebook:', err);
+    showFacebookMsg('error', 'Failed to disconnect. Please try again.');
+  }
+}
+
+function showFacebookMsg(type, text) {
+  const el = document.getElementById('settings-facebook-msg');
+  if (!el) return;
+  el.style.display = 'block';
+  el.textContent = text;
+  if (type === 'success') {
+    el.style.background = 'rgba(74,222,128,0.08)';
+    el.style.color = '#4ade80';
+    el.style.border = '1px solid rgba(74,222,128,0.2)';
+  } else {
+    el.style.background = 'rgba(239,68,68,0.08)';
+    el.style.color = '#fca5a5';
+    el.style.border = '1px solid rgba(239,68,68,0.2)';
+  }
+}
+
+// Handle ?facebook_status=... return params from the OAuth callback
+(function handleFacebookReturn() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get('facebook_status');
+    if (!status) return;
+    function showWhenReady() {
+      if (typeof showDashToast !== 'function') { setTimeout(showWhenReady, 200); return; }
+      if (status === 'connected') {
+        showDashToast('success', 'Facebook connected!');
+      } else if (status === 'pick_page') {
+        showDashToast('info', 'Almost there, choose which Page to connect.');
+      } else if (status === 'no_page') {
+        showDashToast('error', 'No Facebook Page found on your account.');
+      } else if (status === 'cancelled') {
+        showDashToast('info', 'Facebook connection cancelled.');
+      } else if (status === 'error') {
+        const msg = params.get('facebook_message') || 'Could not connect Facebook.';
+        showDashToast('error', msg);
+      }
+      const cleanUrl = window.location.pathname;
+      window.history.replaceState({}, '', cleanUrl);
+      if (typeof loadFacebookConnectionStatus === 'function') loadFacebookConnectionStatus();
+      if (typeof mkAudCache !== 'undefined') mkAudCache = null;
+    }
+    showWhenReady();
+  } catch (e) {
+    console.error('handleFacebookReturn failed:', e);
+  }
+})();
+
+
+// ============================================================
 // YouTube Connection (Settings) - mirrors the Instagram block
 // ============================================================
 async function loadYouTubeConnectionStatus() {
@@ -1323,6 +1549,11 @@ settingsRegisterAction('connect-instagram', () => connectInstagramAccount());
 settingsRegisterAction('show-instagram-disconnect', () => showInstagramDisconnectConfirm());
 settingsRegisterAction('hide-instagram-disconnect', () => hideInstagramDisconnectConfirm());
 settingsRegisterAction('confirm-disconnect-instagram', () => confirmDisconnectInstagram());
+settingsRegisterAction('connect-facebook', () => connectFacebookAccount());
+settingsRegisterAction('select-facebook-page', (e, el) => selectFacebookPage(el && el.dataset ? el.dataset.fbPageId : null));
+settingsRegisterAction('show-facebook-disconnect', () => showFacebookDisconnectConfirm());
+settingsRegisterAction('hide-facebook-disconnect', () => hideFacebookDisconnectConfirm());
+settingsRegisterAction('confirm-disconnect-facebook', () => confirmDisconnectFacebook());
 settingsRegisterAction('connect-youtube', () => connectYouTubeAccount());
 settingsRegisterAction('show-youtube-disconnect', () => showYouTubeDisconnectConfirm());
 settingsRegisterAction('hide-youtube-disconnect', () => hideYouTubeDisconnectConfirm());
