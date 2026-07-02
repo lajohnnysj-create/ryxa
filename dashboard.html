@@ -6170,6 +6170,7 @@
   .settings-acct-badge-ig { background:#E1306C; }
   .settings-acct-badge-yt { background:#FF0000; }
   .settings-acct-badge-tt { background:#010101; }
+  .settings-acct-badge-fb { background:#1877F2; }
   .settings-acct-badge-tw { background:#9146FF; }
   .settings-s-a34021 { font-size:11px;color:var(--muted);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
   .settings-s-98265b { position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0; }
@@ -10715,6 +10716,49 @@
           </div>
         </div>
       </div>
+
+      <!-- Facebook: not connected -->
+      <div id="settings-facebook-disconnected" class="settings-acct-stack">
+        <button id="settings-facebook-connect-btn" data-settings-action="connect-facebook" class="settings-s-266a6c dash-h-476242">
+          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="#1877F2" d="M24 12a12 12 0 1 0-13.88 11.85v-8.38H7.08V12h3.04V9.36c0-3 1.79-4.67 4.53-4.67 1.31 0 2.68.24 2.68.24v2.95h-1.51c-1.49 0-1.95.92-1.95 1.87V12h3.32l-.53 3.47h-2.79v8.38A12 12 0 0 0 24 12z"/></svg>
+          Connect Facebook
+        </button>
+      </div>
+
+      <!-- Facebook: pick a Page (when the user manages more than one) -->
+      <div id="settings-facebook-pickpage" class="settings-s-ed8a71" style="display:none;">
+        <p class="settings-s-57abe2">Choose a Page to connect</p>
+        <p class="settings-s-c06372">You manage more than one Facebook Page. Pick the one to show on your media kit.</p>
+        <div id="settings-facebook-page-list" class="settings-acct-stack"></div>
+      </div>
+
+      <!-- Facebook: connected -->
+      <div id="settings-facebook-connected" class="bio-s-c8be1c settings-acct-stack">
+        <div class="settings-s-9403ee">
+          <div class="settings-acct-avatar-wrap">
+            <div id="settings-facebook-avatar" class="settings-s-ac5f6a">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <span class="settings-acct-badge settings-acct-badge-fb" aria-hidden="true"><svg width="10" height="10" viewBox="0 0 24 24"><path fill="#fff" d="M24 12a12 12 0 1 0-13.88 11.85v-8.38H7.08V12h3.04V9.36c0-3 1.79-4.67 4.53-4.67 1.31 0 2.68.24 2.68.24v2.95h-1.51c-1.49 0-1.95.92-1.95 1.87V12h3.32l-.53 3.47h-2.79v8.38A12 12 0 0 0 24 12z"/></svg></span>
+          </div>
+          <div class="bio-s-a07604">
+            <div class="settings-s-279016">Facebook Connected</div>
+            <div id="settings-facebook-pagename" class="settings-s-a34021">Page</div>
+          </div>
+          <button data-settings-action="show-facebook-disconnect" class="settings-acct-x" aria-label="Disconnect Facebook">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div id="facebook-disconnect-confirm" class="settings-s-ed8a71">
+          <p class="settings-s-57abe2">Disconnect Facebook?</p>
+          <p class="settings-s-c06372">Ryxa will stop syncing your Facebook Page data and your stored insights will be removed.</p>
+          <div class="course-s-b9bbe5">
+            <button data-settings-action="confirm-disconnect-facebook" class="settings-s-acc584">Yes, disconnect</button>
+            <button data-settings-action="hide-facebook-disconnect" class="settings-s-b2ca91">Keep connected</button>
+          </div>
+        </div>
+      </div>
+      <div id="settings-facebook-msg" class="settings-s-b99790"></div>
 
       <!-- YouTube: not connected -->
       <div id="settings-youtube-disconnected" class="settings-acct-stack">
