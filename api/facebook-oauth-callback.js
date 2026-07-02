@@ -20,8 +20,8 @@ const { encryptToken } = require('./lib/token-crypto');
 
 const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const META_APP_ID = process.env.META_APP_ID;
-const META_APP_SECRET = process.env.META_APP_SECRET;
+const FACEBOOK_APP_ID = process.env.FACEBOOK_APP_ID;
+const FACEBOOK_APP_SECRET = process.env.FACEBOOK_APP_SECRET;
 const PUBLIC_BASE_URL = 'https://ryxa.io';
 const REDIRECT_URI = PUBLIC_BASE_URL + '/api/facebook-oauth-callback';
 const DASHBOARD_URL = PUBLIC_BASE_URL + '/dashboard';
@@ -32,7 +32,7 @@ const STATE_MAX_AGE_MS = 10 * 60 * 1000;
 // ----- state verification --------------------------------------
 
 function getSigningKey() {
-  return crypto.createHash('sha256').update('ryxa_fb_oauth_' + META_APP_SECRET).digest();
+  return crypto.createHash('sha256').update('ryxa_fb_oauth_' + FACEBOOK_APP_SECRET).digest();
 }
 
 function verifyState(stateRaw) {
@@ -76,8 +76,8 @@ function redirectToDashboard(res, status, message) {
 // Exchange the auth code for a short-lived USER access token.
 async function exchangeCodeForToken(code) {
   const params = new URLSearchParams({
-    client_id: META_APP_ID,
-    client_secret: META_APP_SECRET,
+    client_id: FACEBOOK_APP_ID,
+    client_secret: FACEBOOK_APP_SECRET,
     redirect_uri: REDIRECT_URI,
     code: code
   });
@@ -93,8 +93,8 @@ async function exchangeCodeForToken(code) {
 async function getLongLivedToken(shortLivedToken) {
   const params = new URLSearchParams({
     grant_type: 'fb_exchange_token',
-    client_id: META_APP_ID,
-    client_secret: META_APP_SECRET,
+    client_id: FACEBOOK_APP_ID,
+    client_secret: FACEBOOK_APP_SECRET,
     fb_exchange_token: shortLivedToken
   });
   const res = await fetch(GRAPH + '/oauth/access_token?' + params.toString());
@@ -168,7 +168,7 @@ module.exports = async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
-  if (!META_APP_ID || !META_APP_SECRET || !SUPABASE_SERVICE_KEY) {
+  if (!FACEBOOK_APP_ID || !FACEBOOK_APP_SECRET || !SUPABASE_SERVICE_KEY) {
     console.error('Missing required env vars');
     return redirectToDashboard(res, 'error', 'Server not configured');
   }

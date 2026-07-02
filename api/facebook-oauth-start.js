@@ -5,7 +5,7 @@
 //
 // Mirrors instagram-oauth-start.js, but uses the FACEBOOK LOGIN flow
 // (facebook.com/dialog/oauth + graph.facebook.com), not the Instagram-Login
-// flow. Same Meta app (META_APP_ID / META_APP_SECRET).
+// flow. Same Meta app (FACEBOOK_APP_ID / FACEBOOK_APP_SECRET).
 //
 // Deploy to: /api/facebook-oauth-start.js
 // Endpoint:  https://ryxa.io/api/facebook-oauth-start
@@ -13,8 +13,8 @@
 
 const crypto = require('crypto');
 
-const META_APP_ID = process.env.META_APP_ID;
-const META_APP_SECRET = process.env.META_APP_SECRET;
+const FACEBOOK_APP_ID = process.env.FACEBOOK_APP_ID;
+const FACEBOOK_APP_SECRET = process.env.FACEBOOK_APP_SECRET;
 const TICKET_SIGNING_SECRET = process.env.FACEBOOK_TICKET_SIGNING_SECRET;
 const PUBLIC_BASE_URL = 'https://ryxa.io';
 const REDIRECT_URI = PUBLIC_BASE_URL + '/api/facebook-oauth-callback';
@@ -73,7 +73,7 @@ function verifyTicket(rawTicket) {
 // ----- State signing (CSRF on the callback). Distinct key from the ticket. -----
 
 function getStateSigningKey() {
-  return crypto.createHash('sha256').update('ryxa_fb_oauth_' + META_APP_SECRET).digest();
+  return crypto.createHash('sha256').update('ryxa_fb_oauth_' + FACEBOOK_APP_SECRET).digest();
 }
 
 function signState(payload) {
@@ -90,8 +90,8 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  if (!META_APP_ID || !META_APP_SECRET) {
-    console.error('Missing META_APP_ID or META_APP_SECRET');
+  if (!FACEBOOK_APP_ID || !FACEBOOK_APP_SECRET) {
+    console.error('Missing FACEBOOK_APP_ID or FACEBOOK_APP_SECRET');
     return res.status(500).json({ error: 'Server not configured' });
   }
   if (!TICKET_SIGNING_SECRET) {
@@ -120,7 +120,7 @@ module.exports = async function handler(req, res) {
   });
 
   const params = new URLSearchParams({
-    client_id: META_APP_ID,
+    client_id: FACEBOOK_APP_ID,
     config_id: CONFIG_ID,
     redirect_uri: REDIRECT_URI,
     response_type: 'code',
