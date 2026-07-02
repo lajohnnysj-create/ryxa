@@ -380,6 +380,7 @@ function renderFooter() {
   +   '</div>'
   +   '<div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:20px;width:100%;clear:both;">'
   +     '<p style="font-size:12px;color:#b4b2c8;margin:0;">&copy; ' + new Date().getFullYear() + ' <a href="https://www.mrla-media.com" target="_blank" rel="noopener noreferrer" style="color:#b4b2c8;text-decoration:none;">MRLA Media LLC</a> &middot; Ryxa&trade;</p>'
+  +     '<p style="font-size:12px;color:#7d7b90;margin:8px 0 0;line-height:1.5;">Some images on this site are AI-generated and do not depict real people.</p>'
   +   '</div>'
   + '</footer>';
 }
