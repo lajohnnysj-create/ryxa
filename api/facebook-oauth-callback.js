@@ -125,7 +125,11 @@ async function fetchPages(userToken) {
     throw new Error('Pages fetch failed: ' + res.status + ' ' + err);
   }
   const data = await res.json();
-  return Array.isArray(data.data) ? data.data : [];
+  const list = Array.isArray(data.data) ? data.data : [];
+  // Safe diagnostic: log the page COUNT and any API error only. Never log
+  // `data` itself, each page entry contains an access_token.
+  console.log('facebook me/accounts: pages=' + list.length + (data.error ? ' error=' + JSON.stringify(data.error) : ''));
+  return list;
 }
 
 // Upsert the connection row (one per Ryxa user, PK user_id).
