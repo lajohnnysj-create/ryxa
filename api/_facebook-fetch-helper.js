@@ -29,10 +29,15 @@ const { decryptToken } = require('./lib/token-crypto');
 // Insight metrics to attempt, each queried independently. period days_28 gives
 // a rolling 28-day figure, which is a good media-kit window. If any of these
 // is deprecated, its request errors and we skip it (see fetchInsight).
+// Each logical metric lists candidate API names; the first that returns data
+// wins. Reach is volatile: Meta deprecated page_impressions_unique on
+// 2026-06-15 (returns error #100 "not a valid insights metric") and moved reach
+// into the new "media views" family, so we try page_media_view first and keep
+// the old name as a fallback for any Page still serving it.
 const INSIGHT_METRICS = [
-  { key: 'reach', metric: 'page_impressions_unique', period: 'days_28' },
-  { key: 'views', metric: 'page_views_total', period: 'days_28' },
-  { key: 'engagement', metric: 'page_post_engagements', period: 'days_28' }
+  { key: 'reach', metrics: ['page_media_view', 'page_impressions_unique'], period: 'days_28' },
+  { key: 'views', metrics: ['page_views_total'], period: 'days_28' },
+  { key: 'engagement', metrics: ['page_post_engagements'], period: 'days_28' }
 ];
 
 function bearerHeaders() {
@@ -81,21 +86,23 @@ async function fetchPageFields(pageId, token) {
 // A deprecated / unsupported metric throws inside fb(); we swallow it so the
 // rest of the refresh proceeds.
 async function fetchInsight(pageId, token, spec) {
-  try {
-    const body = await fb('/' + encodeURIComponent(pageId) + '/insights/' + spec.metric, token, { period: spec.period });
-    const d = body && body.data && body.data[0];
-    if (!d || !Array.isArray(d.values) || !d.values.length) {
-      console.log('facebook insight empty: ' + spec.metric);
-      return null;
+  for (const metric of spec.metrics) {
+    try {
+      const body = await fb('/' + encodeURIComponent(pageId) + '/insights/' + metric, token, { period: spec.period });
+      const d = body && body.data && body.data[0];
+      if (!d || !Array.isArray(d.values) || !d.values.length) {
+        console.log('facebook insight empty: ' + metric);
+        continue;
+      }
+      const v = d.values[d.values.length - 1].value;
+      if (typeof v === 'number') return v;
+    } catch (e) {
+      // Deprecated metric, no data, or Page under the 100-like insights
+      // threshold. Message is safe to log (no tokens in insight error bodies).
+      console.log('facebook insight error: ' + metric + ' -> ' + e.message);
     }
-    const v = d.values[d.values.length - 1].value;
-    return (typeof v === 'number') ? v : null;
-  } catch (e) {
-    // Deprecated metric, no data, or Page under the 100-like insights threshold.
-    // Message is safe to log (no tokens in insight error bodies).
-    console.log('facebook insight error: ' + spec.metric + ' -> ' + e.message);
-    return null;
   }
+  return null;
 }
 
 async function updateConnection(userId, fields) {
@@ -150,7 +157,7 @@ async function refreshFacebookData(userId) {
   for (const spec of INSIGHT_METRICS) {
     const val = await fetchInsight(conn.fb_page_id, token, spec);
     if (val != null) insights[spec.key] = val;
-    else errors.push(spec.metric);
+    else errors.push(spec.key);
   }
 
   // Engagement rate = 28-day engagements / 28-day reach (the standard
