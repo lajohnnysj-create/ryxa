@@ -21,7 +21,7 @@
       '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>'
   };
 
-  // Bell button in the topbar, left of the tier badge.
+  // Bell button at the far right of the topbar, after the tier badge.
   function insertBell() {
     var right = document.querySelector('.topbar-right');
     if (!right || document.getElementById('native-alerts-bell')) return;
@@ -34,14 +34,14 @@
     btn.style.background = 'none';
     btn.style.border = 'none';
     btn.style.padding = '6px';
-    btn.style.marginRight = '10px';
+    btn.style.marginLeft = '12px';
     btn.style.cursor = 'pointer';
     btn.style.color = 'var(--text)';
     btn.style.display = 'inline-flex';
     btn.style.alignItems = 'center';
     btn.innerHTML = ICONS.alerts;
 
-    right.insertBefore(btn, right.firstChild);
+    right.appendChild(btn);
   }
 
   // App Settings item at the bottom of the sidebar menu.
