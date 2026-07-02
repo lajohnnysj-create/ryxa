@@ -1453,6 +1453,13 @@ async function loadAudienceAutomatic() {
         fbResult = fbConn;
       }
     }
+    // followers_count / fan_count are bigint columns and can arrive as strings;
+    // coerce so the downstream `typeof === number` checks in the panel, donut
+    // and preview all see real numbers.
+    if (fbResult) {
+      if (fbResult.followers_count != null) fbResult.followers_count = Number(fbResult.followers_count);
+      if (fbResult.fan_count != null) fbResult.fan_count = Number(fbResult.fan_count);
+    }
 
     mkAudCache = {
       connected: !!igResult,
