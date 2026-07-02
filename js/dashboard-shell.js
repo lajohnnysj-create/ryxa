@@ -2026,8 +2026,14 @@ async function startCheckout(planOrIntent, cycleOrBtn, maybeBtn) {
       body: {
         priceId,
         userId: currentUser.id,
-        successUrl: window.location.origin + '/dashboard.html?payment=success',
-        cancelUrl: window.location.origin + '/dashboard.html?payment=cancelled',
+        // Inside the native app, Stripe checkout runs in Safari, so success and
+        // cancel route through app-return.html, which deep links back into the app.
+        successUrl: window.RyxaNative
+          ? window.location.origin + '/app-return.html?status=success'
+          : window.location.origin + '/dashboard.html?payment=success',
+        cancelUrl: window.RyxaNative
+          ? window.location.origin + '/app-return.html?status=cancelled'
+          : window.location.origin + '/dashboard.html?payment=cancelled',
       }
     });
     if (error) {
