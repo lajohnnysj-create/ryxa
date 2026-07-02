@@ -182,6 +182,37 @@ module.exports = async function handler(req, res) {
     deletionNote = 'exception: ' + e.message;
   }
 
+  // ---- Also delete any Facebook connection ----
+  // Same Meta app serves Instagram and Facebook, but the app-scoped user id
+  // space differs, so we try facebook_connections with the same id; whichever
+  // table has a matching row gets cleaned. Graceful if the table is absent.
+  try {
+    const fbDeleteRes = await fetch(
+      SUPABASE_URL + '/rest/v1/facebook_connections?fb_user_id=eq.' + encodeURIComponent(igUserId),
+      {
+        method: 'DELETE',
+        headers: {
+          apikey: SUPABASE_SERVICE_KEY,
+          Authorization: 'Bearer ' + SUPABASE_SERVICE_KEY,
+          Prefer: 'return=representation'
+        }
+      }
+    );
+    if (fbDeleteRes.ok) {
+      const fbRows = await fbDeleteRes.json().catch(() => []);
+      deletionNote += (deletionNote ? '; ' : '') + ('fb: deleted ' + fbRows.length + ' row(s)');
+    } else if (fbDeleteRes.status === 404 || fbDeleteRes.status === 406) {
+      deletionNote += (deletionNote ? '; ' : '') + 'fb: no table yet';
+    } else {
+      const errText = await fbDeleteRes.text();
+      console.error('FB delete error:', fbDeleteRes.status, errText);
+      deletionNote += (deletionNote ? '; ' : '') + ('fb: error ' + fbDeleteRes.status);
+    }
+  } catch (e) {
+    console.error('FB delete exception:', e.message);
+    deletionNote += (deletionNote ? '; ' : '') + 'fb: exception';
+  }
+
   // ---- Log the deletion request for the status page ----
   try {
     await sbRequest('instagram_deletion_requests', {
