@@ -429,13 +429,13 @@ function buildIgPanel(ig) {
     primaryStats.push({ label: 'Engagement Rate', value: ig.engagement_rate.toFixed(2) + '%' });
   }
   if (typeof ig.reach_30d === 'number') {
-    primaryStats.push({ label: '30-Day Reach', value: formatNumber(ig.reach_30d) });
+    primaryStats.push({ label: '28-Day Unique Reach', value: formatNumber(ig.reach_30d) });
   }
   if (typeof ig.total_interactions_30d === 'number') {
-    primaryStats.push({ label: 'Total Engagements (30d)', value: formatNumber(ig.total_interactions_30d) });
+    primaryStats.push({ label: 'Total Engagements (28d)', value: formatNumber(ig.total_interactions_30d) });
   }
   if (typeof ig.views_30d === 'number') {
-    primaryStats.push({ label: 'Total Impressions (30d)', value: formatNumber(ig.views_30d) });
+    primaryStats.push({ label: 'Total Views (28d)', value: formatNumber(ig.views_30d) });
   }
 
   const primaryHtml = primaryStats.length > 0 ? `<div class="ig-stats-grid">
