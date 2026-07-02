@@ -778,6 +778,7 @@ function buildFbPanel(fb) {
   const primaryStats = [];
   if (typeof fb.followers_count === 'number') primaryStats.push({ label: 'Followers', value: formatNumber(fb.followers_count) });
   if (typeof fb.fan_count === 'number') primaryStats.push({ label: 'Page Likes', value: formatNumber(fb.fan_count) });
+  if (typeof c.engagement_rate === 'number') primaryStats.push({ label: 'Engagement', value: c.engagement_rate.toFixed(1) + '%' });
   if (typeof c.reach === 'number') primaryStats.push({ label: '28d Reach', value: formatNumber(c.reach) });
   if (typeof c.views === 'number') primaryStats.push({ label: '28d Views', value: formatNumber(c.views) });
   if (typeof c.engagement === 'number') primaryStats.push({ label: '28d Engagements', value: formatNumber(c.engagement) });

@@ -147,6 +147,18 @@ async function refreshFacebookData(userId) {
     if (val != null) insights[spec.key] = val;
     else errors.push(spec.metric);
   }
+
+  // Engagement rate. Prefer reach as the denominator (the standard engagement-
+  // rate definition); fall back to followers when Meta does not return reach.
+  // This is a 28-day figure (matches the engagement window), not a per-post rate.
+  const denom = (typeof insights.reach === 'number' && insights.reach > 0)
+    ? insights.reach
+    : ((typeof collected.followers_count === 'number' && collected.followers_count > 0) ? collected.followers_count : 0);
+  if (typeof insights.engagement === 'number' && denom > 0) {
+    insights.engagement_rate = Math.round((insights.engagement / denom) * 1000) / 10;
+    insights.engagement_rate_basis = (typeof insights.reach === 'number' && insights.reach > 0) ? 'reach' : 'followers';
+  }
+
   collected.cached_data = insights;
 
   try {
