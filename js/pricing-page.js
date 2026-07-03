@@ -141,6 +141,13 @@ function showPricingConfirm(opts, onConfirm) {
     'box-shadow:0 20px 70px rgba(0,0,0,0.5);transform:translateY(10px);' +
     'transition:transform 0.2s ease;';
 
+  // Brand mark at the top of every pricing modal.
+  var logo = document.createElement('img');
+  logo.src = '/logo.png?v=2';
+  logo.alt = '';
+  logo.setAttribute('aria-hidden', 'true');
+  logo.style.cssText = 'display:block;height:44px;width:auto;margin:0 auto 18px;';
+
   var h = document.createElement('h3');
   h.id = 'pricing-confirm-title';
   h.textContent = title;
@@ -201,6 +208,7 @@ function showPricingConfirm(opts, onConfirm) {
 
   btnRow.appendChild(cancelBtn);
   btnRow.appendChild(confirmBtn);
+  box.appendChild(logo);
   box.appendChild(h);
   box.appendChild(p);
   box.appendChild(btnRow);
