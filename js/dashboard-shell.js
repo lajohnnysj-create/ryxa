@@ -1490,7 +1490,7 @@ function showDashToast(type, message) {
   if (existing) existing.remove();
 
   const isSuccess = type === 'success';
-  const accent = isSuccess ? '#2563cc' : '#e5484d';
+  const accent = isSuccess ? 'var(--accent, #a855f7)' : '#e5484d';
   const icon = isSuccess
     ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
     : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
@@ -1498,7 +1498,13 @@ function showDashToast(type, message) {
   const toast = document.createElement('div');
   toast.id = 'dash-toast';
   toast.setAttribute('role', isSuccess ? 'status' : 'alert');
-  toast.style.cssText = 'position:fixed;right:0;top:calc(18px + env(safe-area-inset-top, 0px));z-index:10001;'
+  // Anchor slightly below the topbar, measured live so it tracks the real
+  // header height (which includes the safe-area inset inside the app).
+  const bar = document.querySelector('.topbar');
+  const topPos = bar
+    ? (bar.getBoundingClientRect().bottom + 12) + 'px'
+    : 'calc(76px + env(safe-area-inset-top, 0px))';
+  toast.style.cssText = 'position:fixed;right:0;top:' + topPos + ';z-index:10001;'
     + 'background:#1b1b26;color:#ffffff;border-left:3px solid ' + accent + ';'
     + 'border-radius:12px 0 0 12px;padding:14px 18px 14px 14px;'
     + 'font-size:14px;font-weight:500;font-family:\'DM Sans\',sans-serif;'
