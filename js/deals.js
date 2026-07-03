@@ -2625,6 +2625,12 @@ function showDealModalMsg(type, text) {
   // yanking the user away from what they were doing (e.g. signing a contract).
   // The inline banner element (#deal-detail-msg) is intentionally left in
   // place to keep the existing markup stable, but is no longer used here.
+  // Unified into the shared slide-in toast; the custom implementation
+  // below remains only as a fallback if the shell isn't loaded.
+  if (typeof showDashToast === 'function') {
+    showDashToast(type === 'error' ? 'error' : 'success', text);
+    return;
+  }
   var existing = document.getElementById('deal-toast');
   if (existing) existing.remove();
   var toast = document.createElement('div');
