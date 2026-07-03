@@ -427,9 +427,22 @@ function showGridStatus(kind, msg) {
 // ======== SAVE / LOAD (Pro only) ========
 async function loadSavedGrid() {
   if (!currentUser) return;
+  // RLS returns EMPTY SUCCESS to a session-less query, which would render
+  // a blank grid over a real saved one; the next save would then overwrite
+  // the real grid with whatever was added to the blank. Require a live
+  // session, and never mark a FAILED load as loaded.
+  const { data: _gridSess } = await sb.auth.getSession();
+  if (!_gridSess || !_gridSess.session) {
+    showGridStatus('error', 'Your session is still loading. Refresh before making changes; saving is disabled to protect your saved grid.');
+    return;
+  }
   try {
     const { data, error } = await sb.from('grid_plan').select('photo_urls').eq('user_id', currentUser.id).maybeSingle();
-    if (error || !data) { gridLoaded = true; return; }
+    if (error) {
+      showGridStatus('error', 'Could not load your saved grid. Refresh before making changes; saving is disabled to protect it.');
+      return;
+    }
+    if (!data) { gridLoaded = true; return; } // no saved grid yet: empty is real
     const urls = Array.isArray(data.photo_urls) ? data.photo_urls : [];
     // Validate URLs (only from grid-photos bucket).
     const valid = urls.filter(validGridPhotoUrl);
@@ -461,7 +474,9 @@ async function loadSavedGrid() {
     renderGrid();
   } catch (e) {
     console.warn('loadSavedGrid', e);
-    gridLoaded = true;
+    // A failed load must never count as loaded; saving stays disabled to
+    // protect the existing saved grid.
+    showGridStatus('error', 'Could not load your saved grid. Refresh before making changes; saving is disabled to protect it.');
   }
 }
 
@@ -497,6 +512,10 @@ const GRID_SAVE_COOLDOWN_MS = 3000; // min 3s between saves
 async function saveGrid() {
   if (!isPro()) { showGridStatus('error', 'Upgrade to Pro to save your grid.'); return; }
   if (!currentUser) return;
+  if (!gridLoaded) {
+    showGridStatus('error', 'Saving is disabled because your saved grid did not finish loading. Refresh and try again; this protects your existing grid from being overwritten.');
+    return;
+  }
   if (gridPhotos.length === 0) { showGridStatus('error', 'Add at least one photo first.'); return; }
 
   const now = Date.now();
