@@ -91,6 +91,12 @@ function courseApplyDataStyles(root) {
 let coursesList = [];
 let currentCourseId = null;
 let courseModules = []; // local working copy: [{id, title, sort_order, lessons: [...], quiz: null|{id, require_pass, questions: [...]}}]
+// Data-loss guards. courseModulesLoaded is true only after the curriculum
+// loaded successfully (or for a brand new course, where empty IS the truth).
+// courseExplicitRemovals holds ids the user deliberately removed this
+// session; the save may ONLY delete rows recorded here.
+let courseModulesLoaded = false;
+let courseExplicitRemovals = new Set();
 let courseCoverFile = null;
 let coursesInited = false;
 
@@ -183,6 +189,8 @@ async function openCourseEditor(courseId) {
   currentCourseId = courseId || null;
   courseCoverFile = null;
   courseModules = [];
+  courseModulesLoaded = false;
+  courseExplicitRemovals = new Set();
   document.getElementById('courses-list-view').style.display = 'none';
   document.getElementById('courses-editor-view').style.display = 'block';
   document.getElementById('course-editor-msg').style.display = 'none';
@@ -249,6 +257,7 @@ async function openCourseEditor(courseId) {
     await loadCourseModules(courseId);
   } else {
     document.getElementById('courses-editor-title').textContent = 'New Course';
+    courseModulesLoaded = true; // brand new course: empty curriculum is real
     document.getElementById('course-slug-notice').textContent = 'This URL is generated from your title and locked permanently once saved.';
   }
 
@@ -754,11 +763,21 @@ async function deleteCourse() {
 
 // ---- Modules & Lessons ----
 async function loadCourseModules(courseId) {
-  const { data: modules } = await sb.from('course_modules').select('*').eq('course_id', courseId).order('sort_order');
-  const { data: lessons } = await sb.from('course_lessons').select('*').eq('course_id', courseId).order('sort_order');
+  courseModulesLoaded = false;
+  const { data: modules, error: modErr } = await sb.from('course_modules').select('*').eq('course_id', courseId).order('sort_order');
+  const { data: lessons, error: lesErr } = await sb.from('course_lessons').select('*').eq('course_id', courseId).order('sort_order');
   // Load quizzes (creator view = raw table, includes is_correct flags so the
   // creator can edit). One quiz per module max, enforced by UNIQUE constraint.
-  const { data: quizzes } = await sb.from('course_quizzes').select('*').eq('course_id', courseId);
+  const { data: quizzes, error: quizErr } = await sb.from('course_quizzes').select('*').eq('course_id', courseId);
+
+  // A failed load must never masquerade as an empty curriculum. Saving an
+  // empty local state over a populated course deletes everything, so the
+  // save path is disabled (courseModulesLoaded stays false) until a clean
+  // load happens.
+  if (modErr || lesErr || quizErr) {
+    showCourseMsg('error', 'Could not load the course curriculum. Refresh the page before making changes; saving is disabled to protect your modules and lessons.');
+    return;
+  }
 
   courseModules = (modules || []).map(m => {
     const moduleQuiz = (quizzes || []).find(q => q.module_id === m.id) || null;
@@ -771,6 +790,7 @@ async function loadCourseModules(courseId) {
       quiz: moduleQuiz ? { ...moduleQuiz, _collapsed: true } : null
     };
   });
+  courseModulesLoaded = true;
   renderCourseModules();
 }
 
@@ -782,6 +802,17 @@ async function loadCourseModules(courseId) {
 var MAX_LESSON_TEXT_BYTES = 1024 * 1024;
 
 async function saveCourseModules(courseId) {
+  // Guard 1: never save a curriculum that did not finish loading. An empty
+  // or partial local state would be interpreted by the diff below as mass
+  // deletion.
+  if (!courseModulesLoaded) {
+    showModalAlert(
+      'Saving is disabled',
+      'The course curriculum did not finish loading, so saving is disabled to protect your modules and lessons. Refresh the page and try again.'
+    );
+    throw new Error('Curriculum not loaded; save blocked');
+  }
+
   // Pre-flight: validate every lesson's text_content size before we start
   // any DB writes. Catches oversize content with a clear error and leaves
   // the existing DB rows intact (because no writes have happened yet).
@@ -877,6 +908,24 @@ async function saveCourseModules(courseId) {
   const lessonsToDelete = (dbLessons || [])
     .map(function(l) { return l.id; })
     .filter(function(id) { return !localLessonIds.has(id); });
+
+  // Guard 2: the save may only delete rows the user explicitly removed in
+  // this session. Anything else missing from local state means the editor
+  // is out of sync with the database, and deleting would destroy content
+  // the user never touched. Abort before any write happens.
+  const modulesToDeleteCheck = (dbModules || [])
+    .map(function(m) { return m.id; })
+    .filter(function(id) { return !localModuleIds.has(id); });
+  const unexpectedDeletes = modulesToDeleteCheck
+    .filter(function(id) { return !courseExplicitRemovals.has(id); })
+    .concat(lessonsToDelete.filter(function(id) { return !courseExplicitRemovals.has(id); }));
+  if (unexpectedDeletes.length > 0) {
+    showModalAlert(
+      'Save blocked to protect your course',
+      'This save would remove modules or lessons that were not deleted in this editing session, which means the editor is out of sync with the database. Nothing has been changed. Refresh the page and try again.'
+    );
+    throw new Error('Blocked out-of-sync curriculum deletion');
+  }
   if (lessonsToDelete.length > 0) {
     const { error: delLErr } = await sb.from('course_lessons').delete().in('id', lessonsToDelete);
     if (delLErr) throw delLErr;
@@ -1124,6 +1173,9 @@ function removeCourseModule(idx) {
     + '. This cannot be undone.';
   confirmTypedDelete('Delete Module', detail, 'Delete Module').then(function(confirmed) {
     if (!confirmed) return;
+    // Record the deliberate removals so the save is allowed to delete them.
+    if (mod.id) courseExplicitRemovals.add(mod.id);
+    (mod.lessons || []).forEach(function(l) { if (l.id) courseExplicitRemovals.add(l.id); });
     courseModules.splice(idx, 1);
     renderCourseModules();
   });
@@ -1143,6 +1195,8 @@ function addCourseLesson(modIdx, type) {
 }
 
 function removeCourseLesson(modIdx, lessonIdx) {
+  var lesson = courseModules[modIdx] && courseModules[modIdx].lessons[lessonIdx];
+  if (lesson && lesson.id) courseExplicitRemovals.add(lesson.id);
   courseModules[modIdx].lessons.splice(lessonIdx, 1);
   renderCourseModules();
 }
