@@ -659,6 +659,9 @@ async function loadClients() {
     await statsPromise;
   } catch (e) {
     console.error('Subscribers load error:', e);
+    if (typeof showDashToast === 'function') {
+      showDashToast('error', 'Could not load your subscribers list. Refresh the page to try again. Your list is safe; this is a loading problem, not data loss.');
+    }
     tbody.innerHTML = '<tr><td colspan="7" class="ana-s-cd4491">Could not load subscribers</td></tr>';
   }
 }
