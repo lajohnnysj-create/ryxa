@@ -1993,6 +1993,12 @@ function showModalAlert(title, message) {
 }
 
 function showDsMsg(type, msg) {
+  // Delegates to the dashboard's slide-in toast. Falls back to the inline
+  // banner if the shell isn't loaded.
+  if (typeof showDashToast === 'function') {
+    showDashToast(type === 'error' ? 'error' : 'success', msg);
+    return;
+  }
   var el = document.getElementById('ds-editor-msg');
   el.style.display = 'block';
   el.style.background = type === 'error' ? 'rgba(239,68,68,0.1)' : 'rgba(74,222,128,0.1)';

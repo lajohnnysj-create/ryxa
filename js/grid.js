@@ -264,7 +264,7 @@ async function clearGrid() {
       await deleteStaleGridPhotos();
       gridDirty = false;
       gridLoaded = true;
-      showGridStatus('success', 'Grid cleared ✓');
+      showGridStatus('success', 'Grid cleared');
       renderGrid();
     } catch (e) {
       console.error('clearGrid', e);
@@ -409,6 +409,12 @@ function renderPhonePreview() {
 }
 
 function showGridStatus(kind, msg) {
+  // Delegates to the dashboard's slide-in toast. Falls back to the inline
+  // status element if the shell isn't loaded.
+  if (typeof showDashToast === 'function') {
+    showDashToast(kind === 'error' ? 'error' : 'success', msg);
+    return;
+  }
   const el = document.getElementById('grid-save-status');
   if (!el) return;
   el.textContent = msg;
@@ -549,7 +555,7 @@ async function saveGrid() {
 
     gridDirty = false;
     gridLoaded = true;
-    showGridStatus('success', 'Grid saved ✓');
+    showGridStatus('success', 'Grid saved');
     renderGrid();
   } catch (e) {
     console.error('saveGrid', e);

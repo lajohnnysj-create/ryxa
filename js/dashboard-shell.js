@@ -197,6 +197,12 @@ function escapeHtml(str) {
 // than stacking — avoids the "10 toasts on top of each other" mess.
 function dashShowToast(message, type) {
   type = type || 'success';
+  // Legacy bottom-center toast, retired: all callers now route to the
+  // slide-in toast for one consistent notification style.
+  if (typeof showDashToast === 'function') {
+    showDashToast(type === 'error' ? 'error' : 'success', message);
+    return;
+  }
   document.querySelectorAll('.dash-toast').forEach(function(t) { t.remove(); });
   var t = document.createElement('div');
   t.className = 'dash-toast dash-toast-' + type;
@@ -1504,7 +1510,7 @@ function showDashToast(type, message) {
   const topPos = bar
     ? (bar.getBoundingClientRect().bottom + 12) + 'px'
     : 'calc(76px + env(safe-area-inset-top, 0px))';
-  toast.style.cssText = 'position:fixed;right:0;top:' + topPos + ';z-index:10001;'
+  toast.style.cssText = 'position:fixed;right:0;top:' + topPos + ';z-index:10010;'
     + 'background:#1b1b26;color:#ffffff;border-left:3px solid ' + accent + ';'
     + 'border-radius:12px 0 0 12px;padding:14px 18px 14px 14px;'
     + 'font-size:14px;font-weight:500;font-family:\'DM Sans\',sans-serif;'

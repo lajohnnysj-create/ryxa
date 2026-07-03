@@ -263,6 +263,11 @@ async function faClearWhitelist() {
   );
 }
 function faShowMiniToast(msg) {
+  // Delegates to the dashboard's slide-in toast for a consistent style.
+  if (typeof showDashToast === 'function') {
+    showDashToast('success', msg);
+    return;
+  }
   document.querySelectorAll('.fa-whitelist-toast').forEach(t => t.remove());
   const t = document.createElement('div');
   t.className = 'fa-whitelist-toast';
