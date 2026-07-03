@@ -295,6 +295,12 @@ function toggleCourseSection(section) {
 }
 
 function showCourseMsg(type, msg, isHtml) {
+  // Delegates to the dashboard's slide-in toast (plain-text messages only;
+  // no current caller uses isHtml). Falls back to the inline banner.
+  if (!isHtml && typeof showDashToast === 'function') {
+    showDashToast(type === 'error' ? 'error' : 'success', msg);
+    return;
+  }
   const el = document.getElementById('course-editor-msg');
   el.style.display = 'block';
   el.style.background = type === 'error' ? 'rgba(239,68,68,0.1)' : 'rgba(74,222,128,0.1)';

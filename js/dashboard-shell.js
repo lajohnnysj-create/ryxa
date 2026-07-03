@@ -1511,8 +1511,16 @@ function showDashToast(type, message) {
     + 'display:flex;align-items:center;gap:10px;max-width:min(340px, 86vw);'
     + 'box-shadow:0 8px 32px rgba(0,0,0,0.45);cursor:pointer;'
     + 'transform:translateX(110%);transition:transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);';
-  toast.innerHTML = '<span style="color:' + accent + ';display:inline-flex;flex-shrink:0;">' + icon + '</span>'
-    + '<span style="line-height:1.4;">' + message + '</span>';
+  // Icon is a static SVG literal; the message is rendered as TEXT so
+  // interpolated strings (server error messages etc.) can never inject HTML.
+  const iconWrap = document.createElement('span');
+  iconWrap.style.cssText = 'color:' + accent + ';display:inline-flex;flex-shrink:0;';
+  iconWrap.innerHTML = icon;
+  const msgWrap = document.createElement('span');
+  msgWrap.style.lineHeight = '1.4';
+  msgWrap.textContent = message;
+  toast.appendChild(iconWrap);
+  toast.appendChild(msgWrap);
   document.body.appendChild(toast);
 
   // Next frame: slide in from the right edge.
