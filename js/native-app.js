@@ -41,6 +41,9 @@
     btn.style.border = 'none';
     btn.style.padding = '6px';
     btn.style.marginLeft = '12px';
+    // Negative margin cancels the button's own right padding so the glyph
+    // sits flush with the topbar's content edge while keeping the tap target.
+    btn.style.marginRight = '-6px';
     btn.style.cursor = 'pointer';
     btn.style.color = 'var(--text)';
     btn.style.display = 'inline-flex';
