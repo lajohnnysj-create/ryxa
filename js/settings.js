@@ -424,6 +424,11 @@ async function confirmDisconnectStripe() {
 }
 
 function showStripeMsg(type, text) {
+  // Delegates to the dashboard's slide-in toast.
+  if (typeof showDashToast === 'function') {
+    showDashToast(type === 'success' ? 'success' : 'error', text);
+    return;
+  }
   const el = document.getElementById('settings-stripe-msg');
   if (!el) return;
   el.style.display = 'block';
@@ -617,6 +622,11 @@ async function confirmDisconnectInstagram() {
 
 // ---------- From dashboard.html L11293-11307: showInstagramMsg ----------
 function showInstagramMsg(type, text) {
+  // Delegates to the dashboard's slide-in toast.
+  if (typeof showDashToast === 'function') {
+    showDashToast(type === 'success' ? 'success' : 'error', text);
+    return;
+  }
   const el = document.getElementById('settings-instagram-msg');
   if (!el) return;
   el.style.display = 'block';
@@ -851,6 +861,11 @@ async function confirmDisconnectFacebook() {
 }
 
 function showFacebookMsg(type, text) {
+  // Delegates to the dashboard's slide-in toast.
+  if (typeof showDashToast === 'function') {
+    showDashToast(type === 'success' ? 'success' : 'error', text);
+    return;
+  }
   const el = document.getElementById('settings-facebook-msg');
   if (!el) return;
   el.style.display = 'block';
@@ -1025,6 +1040,11 @@ async function confirmDisconnectYouTube() {
 }
 
 function showYouTubeMsg(type, text) {
+  // Delegates to the dashboard's slide-in toast.
+  if (typeof showDashToast === 'function') {
+    showDashToast(type === 'success' ? 'success' : 'error', text);
+    return;
+  }
   const el = document.getElementById('settings-youtube-msg');
   if (!el) return;
   el.style.display = 'block';
@@ -1215,6 +1235,11 @@ async function confirmDisconnectTikTok() {
 }
 
 function showTikTokMsg(type, text) {
+  // Delegates to the dashboard's slide-in toast.
+  if (typeof showDashToast === 'function') {
+    showDashToast(type === 'success' ? 'success' : 'error', text);
+    return;
+  }
   const el = document.getElementById('settings-tiktok-msg');
   if (!el) return;
   el.style.display = 'block';
@@ -1494,6 +1519,12 @@ function dismissSettingsMsg() {
 }
 
 function showSettingsResult(type, msg) {
+  // Delegates to the dashboard's slide-in toast. Legacy inline banner kept
+  // as fallback if the shell isn't loaded.
+  if (typeof showDashToast === 'function') {
+    showDashToast(type === 'success' ? 'success' : 'error', msg);
+    return;
+  }
   dismissSettingsMsg();
   const el = document.getElementById('settings-result-msg');
   const isSuccess = type === 'success';
@@ -1750,6 +1781,11 @@ async function confirmDisconnectTwitch() {
 }
 
 function showTwitchMsg(type, text) {
+  // Delegates to the dashboard's slide-in toast.
+  if (typeof showDashToast === 'function') {
+    showDashToast(type === 'success' ? 'success' : 'error', text);
+    return;
+  }
   const el = document.getElementById('settings-twitch-msg');
   if (!el) return;
   el.style.display = 'block';
