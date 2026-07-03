@@ -87,6 +87,10 @@
     var footer = document.getElementById('site-footer');
     if (footer) footer.style.display = 'none';
 
+    // Inside the bottom sheet, the sheet's own header provides the exit,
+    // so skip the Back to Dashboard bar and its body padding.
+    if (window.RyxaNative.sheet) return;
+
     var bar = document.createElement('div');
     bar.id = 'native-back-bar';
     bar.style.position = 'fixed';
