@@ -280,10 +280,14 @@ async function changeDisplayCurrency(newCurrency) {
       .eq('user_id', currentUser.id);
     if (error) throw error;
 
-    var msg = document.getElementById('settings-currency-msg');
-    if (msg) {
-      msg.style.display = 'block';
-      setTimeout(function() { if (msg) msg.style.display = 'none'; }, 2500);
+    if (typeof showDashToast === 'function') {
+      showDashToast('success', 'Display currency updated');
+    } else {
+      var msg = document.getElementById('settings-currency-msg');
+      if (msg) {
+        msg.style.display = 'block';
+        setTimeout(function() { if (msg) msg.style.display = 'none'; }, 2500);
+      }
     }
 
     // Re-render any data views that are currently visible so amounts refresh
@@ -1406,7 +1410,9 @@ function onSettingsTurnstileError() {
   settingsResetArmed = false;
   const btn = document.getElementById('settings-reset-password-btn');
   const msg = document.getElementById('settings-password-msg');
-  if (msg) {
+  if (typeof showDashToast === 'function') {
+    showDashToast('error', 'Verification failed. Please disable your ad blocker for ryxa.io and try again.');
+  } else if (msg) {
     msg.textContent = 'Verification failed. Please disable your ad blocker for ryxa.io and try again.';
     msg.style.background = 'rgba(239,68,68,0.08)';
     msg.style.border = '1px solid rgba(239,68,68,0.2)';
@@ -1465,11 +1471,15 @@ async function finishPasswordReset(captchaToken) {
       captchaToken
     });
     if (error) throw error;
-    msg.innerHTML = `Check your inbox, we sent a reset link to <strong>${escapeHtml(currentUser.email)}</strong>.`;
-    msg.style.background = 'rgba(74,222,128,0.08)';
-    msg.style.border = '1px solid rgba(74,222,128,0.2)';
-    msg.style.color = '#4ade80';
-    msg.style.display = 'block';
+    if (typeof showDashToast === 'function') {
+      showDashToast('success', 'Check your inbox, we sent a reset link to ' + currentUser.email + '.');
+    } else {
+      msg.innerHTML = `Check your inbox, we sent a reset link to <strong>${escapeHtml(currentUser.email)}</strong>.`;
+      msg.style.background = 'rgba(74,222,128,0.08)';
+      msg.style.border = '1px solid rgba(74,222,128,0.2)';
+      msg.style.color = '#4ade80';
+      msg.style.display = 'block';
+    }
     btn.textContent = 'Email sent ✓';
     // Reset captcha — tokens are single-use.
     resetSettingsTurnstile();
@@ -1484,11 +1494,14 @@ async function finishPasswordReset(captchaToken) {
     if (emsg.toLowerCase().indexOf('captcha') !== -1 || emsg.toLowerCase().indexOf('invalid-input') !== -1) {
       emsg = 'Verification failed. Please disable your ad blocker for ryxa.io and try again.';
     }
+    if (typeof showDashToast === 'function') { showDashToast('error', emsg); }
+    else if (msg) {
     msg.textContent = emsg;
     msg.style.background = 'rgba(239,68,68,0.08)';
     msg.style.border = '1px solid rgba(239,68,68,0.2)';
     msg.style.color = '#fca5a5';
     msg.style.display = 'block';
+    }
     btn.disabled = false;
     btn.textContent = 'Send password reset email';
     // Token is spent on a failed attempt too — reset so a retry gets a fresh one.
