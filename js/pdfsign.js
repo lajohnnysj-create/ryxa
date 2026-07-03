@@ -1114,6 +1114,12 @@ pdfsignRegisterAction('palette-click', (e, el) => onPaletteClick(e, el.dataset.p
 // Toolbar (Print / Download)
 pdfsignRegisterAction('print', () => printSignedPdf());
 pdfsignRegisterAction('download', () => downloadSignedPdf());
+// Native app: hide the Print button. window.print() does not work in the
+// app's WebView, and the iOS share sheet (via Download) includes Print.
+if (window.RyxaNative) {
+  const printBtn = document.getElementById('pdfsign-print-btn');
+  if (printBtn) printBtn.style.display = 'none';
+}
 
 // Signature modal
 pdfsignRegisterAction('close-sig-modal', () => closeSigModal());
