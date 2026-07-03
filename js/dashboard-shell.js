@@ -1301,7 +1301,10 @@ async function termsLogout() {
   if (btn) { btn.disabled = true; btn.textContent = 'Logging out...'; }
   try {
     _intentionalSignOut = true;
-    await sb.auth.signOut();
+    // scope 'local': sign out this device only. The default 'global' scope
+    // revokes every session on every device, which is why signing out in
+    // the app was killing web sessions (and vice versa).
+    await sb.auth.signOut({ scope: 'local' });
   } catch (e) {
     console.error('Terms-modal logout error:', e);
   }
@@ -2232,7 +2235,7 @@ async function confirmSignOut() {
   const btn = document.getElementById('signout-confirm-btn');
   if (btn) { btn.disabled = true; btn.innerHTML = '<span class="auth-spinner"></span> Signing out...'; }
   _intentionalSignOut = true;
-  try { await sb.auth.signOut(); } catch(e) { console.error(e); }
+  try { await sb.auth.signOut({ scope: 'local' }); } catch(e) { console.error(e); }
   // Reset tool init flags so fresh data loads on next login
   bioInited = false;
   bioState = { username: '', display_name: '', bio: '', avatar_url: '', avatar_display: 'default', theme: 'purple', font_family: 'DM Sans', socials: {}, links: [], videos: [], published: false, show_branding: true, custom_theme: null };

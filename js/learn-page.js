@@ -373,7 +373,7 @@ async function onLoggedIn() {
 }
 
 async function signOut() {
-  await sb.auth.signOut();
+  await sb.auth.signOut({ scope: 'local' });
   window.location.href = '/learn/';
 }
 

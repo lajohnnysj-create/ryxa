@@ -195,7 +195,7 @@ document.addEventListener('click', function(e) {
   }
 });
 async function signOutAndReload() {
-  await sb.auth.signOut();
+  await sb.auth.signOut({ scope: 'local' });
   window.location.reload();
 }
 
