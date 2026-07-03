@@ -358,6 +358,9 @@ async function calLoadEvents() {
     if (error) {
       // Table might not exist yet
       console.warn('Calendar events not loaded:', error.message);
+      if (typeof showDashToast === 'function') {
+        showDashToast('error', 'Could not load your calendar events. Refresh the page to try again.');
+      }
       calState.events = [];
       return;
     }

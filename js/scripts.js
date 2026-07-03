@@ -134,6 +134,9 @@ async function loadScriptsList() {
     renderScriptsList();
   } catch (e) {
     console.error('loadScriptsList', e);
+    if (typeof showDashToast === 'function') {
+      showDashToast('error', 'Could not load your scripts. Refresh the page to try again.');
+    }
   }
 }
 
@@ -977,14 +980,26 @@ async function saveScriptNow(silent) {
       platform: currentScript.platform || 'reel',
       items: currentScript.items || [],
     };
-    const { data, error } = await sb
+    let q = sb
       .from('scripts')
       .update(payload)
       .eq('id', currentScript.id)
-      .eq('user_id', currentUser.id)
-      .select()
-      .single();
+      .eq('user_id', currentUser.id);
+    // Optimistic concurrency: the update only matches if the row still has
+    // the updated_at this tab loaded. If another tab or device saved a
+    // newer version, zero rows match and nothing is overwritten.
+    if (currentScript.updated_at) q = q.eq('updated_at', currentScript.updated_at);
+    const { data, error } = await q.select().maybeSingle();
     if (error) throw error;
+    if (!data) {
+      updateSaveStatus('Not saved: newer version exists', 'error');
+      showModalAlert(
+        'Newer version exists',
+        'This script was changed in another tab or on another device after this page loaded. To avoid overwriting that newer version, this save was blocked. Refresh the page to load the latest version.'
+      );
+      return;
+    }
+    currentScript.updated_at = data.updated_at;
     // Update cached list
     const idx = scriptsList.findIndex(s => s.id === currentScript.id);
     if (idx !== -1) scriptsList[idx] = { ...scriptsList[idx], ...payload, updated_at: data.updated_at };

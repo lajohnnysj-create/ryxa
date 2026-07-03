@@ -89,6 +89,7 @@ function dsDispatchEvent(event) {
 var dsCanvas = null;
 var dsProjectW = 1080, dsProjectH = 1350;
 var dsCurrentProjectId = null;
+var dsProjectUpdatedAt = null; // updated_at of the loaded project, for save conflict detection
 var dsProjectName = 'Untitled';
 var dsSaveLimit = { free: 10, pro: 50, max: 100 };
 var dsPendingJSON = null;
@@ -2082,7 +2083,19 @@ async function saveDesignProject() {
     };
 
     if (dsCurrentProjectId) {
-      var { error } = await sb.from('design_projects').update(payload).eq('id', dsCurrentProjectId);
+      var upd = sb.from('design_projects').update(payload).eq('id', dsCurrentProjectId);
+      // Optimistic concurrency (only when the loaded row carried updated_at):
+      // refuse to overwrite a version saved elsewhere after this tab loaded.
+      if (dsProjectUpdatedAt) upd = upd.eq('updated_at', dsProjectUpdatedAt);
+      var { data: updRow, error } = await upd.select().maybeSingle();
+      if (!error && dsProjectUpdatedAt && !updRow) {
+        showModalAlert(
+          'Newer version exists',
+          'This project was changed in another tab or on another device after this page loaded. To avoid overwriting that newer version, this save was blocked. Reopen the project to load the latest version.'
+        );
+        return;
+      }
+      if (!error && updRow && updRow.updated_at) dsProjectUpdatedAt = updRow.updated_at;
       if (error) throw error;
     } else {
       var { data, error } = await sb.from('design_projects').insert(payload).select('id').single();
@@ -2163,6 +2176,9 @@ async function openDesignProject(id) {
     showModalAlert('Error', 'Could not load project. Please try again.');
     return;
   }
+
+  // Remember the loaded version for the concurrency check on save.
+  dsProjectUpdatedAt = data.updated_at || null;
 
   dsProjectW = data.canvas_width || 1080;
   dsProjectH = data.canvas_height || 1350;
