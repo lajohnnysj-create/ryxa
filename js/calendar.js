@@ -212,7 +212,7 @@ function gcalRenderConnectionState() {
     row.innerHTML =
       '<div class="cal-s-bd9395">'
       + '<span class="cal-s-d8b3b8"></span>'
-      + 'Google Calendar connected as ' + emailLabel
+      + 'Connected as ' + emailLabel
       + '</div>'
       + '<button data-cal-action="gcal-disconnect" class="cal-s-2b653b cal-h-e4ed29">Disconnect</button>';
   } else {
@@ -291,6 +291,9 @@ async function gcalDoDisconnect() {
     gcalState.connected = false;
     gcalState.email = null;
     gcalRenderConnectionState();
+    if (typeof showDashToast === 'function') {
+      showDashToast('success', 'Google Calendar disconnected');
+    }
   } catch (e) {
     console.error('gcal disconnect failed:', e);
     showModalAlert('Could not disconnect', e.message || 'Please try again.');
@@ -310,7 +313,9 @@ function gcalHandleReturnParams() {
   window.history.replaceState({}, '', url.toString());
 
   if (flag === 'connected') {
-    // No success modal — the green "connected" pill is the visual confirmation
+    if (typeof showDashToast === 'function') {
+      showDashToast('success', 'Google Calendar connected');
+    }
     gcalLoadConnectionState();
     gcalHideError();
   } else if (flag === 'cancelled') {
