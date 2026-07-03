@@ -987,7 +987,7 @@ async function toggleCoachingPublish() {
     pubBtn.style.color = '#ef4444';
     document.getElementById('coaching-marketplace-toggle').style.display = 'block';
     updateMarketplaceCountDisplay();
-    showCoachingMsg('success', 'Published! Landing page: ryxa.io/booking/' + (coaching?.slug || '') + ' <button data-coach-action="copy-publish-url" data-coach-url="https://ryxa.io/booking/' + (coaching?.slug || '') + '" class="course-s-e57ade">Copy</button>', true);
+    showCoachingMsg('success', 'Published! Landing page: ryxa.io/booking/' + (coaching?.slug || ''));
   } else {
     pubBtn.textContent = 'Publish';
     pubBtn.style.borderColor = 'rgba(74,222,128,0.4)';
