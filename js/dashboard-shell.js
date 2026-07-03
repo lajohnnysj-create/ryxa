@@ -1529,7 +1529,12 @@ function showDashToast(type, message) {
   }
   // Tap anywhere on the tab to dismiss early.
   toast.addEventListener('click', dismiss);
-  setTimeout(dismiss, isSuccess ? 4500 : 6000);
+  // Successes are short confirmations: 3s. Errors get 6s plus extra time
+  // for long messages (reading time scales with length), capped at 10s.
+  const duration = isSuccess
+    ? 3000
+    : Math.min(10000, 6000 + Math.max(0, message.length - 60) * 40);
+  setTimeout(dismiss, duration);
 }
 
 async function fetchTier(userId) {
