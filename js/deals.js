@@ -1317,6 +1317,18 @@ function updateMessageCharCount() {
 // =====================================================
 async function loadDealDeliverables(dealId) {
   dealDeliverablesLoaded = false;
+  // Same RLS subtlety as the course loader: an unauthenticated select
+  // returns empty data with NO error. Never trust an empty result unless
+  // a live session existed when the query ran.
+  const { data: _sessData } = await sb.auth.getSession();
+  if (!_sessData || !_sessData.session) {
+    currentDealDeliverables = [];
+    if (typeof showDashToast === 'function') {
+      showDashToast('error', 'Session still loading. Reopen this deal before editing deliverables.');
+    }
+    renderDeliverables();
+    return;
+  }
   const { data, error } = await sb
     .from('deal_deliverables')
     .select('*')

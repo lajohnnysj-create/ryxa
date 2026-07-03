@@ -764,6 +764,15 @@ async function deleteCourse() {
 // ---- Modules & Lessons ----
 async function loadCourseModules(courseId) {
   courseModulesLoaded = false;
+  // RLS makes an unauthenticated select return EMPTY DATA with no error
+  // (owner-scoped policies simply match nothing). So a load that runs
+  // before the session has settled looks like a successfully empty course.
+  // Require a live session before trusting anything this load returns.
+  const { data: sessData } = await sb.auth.getSession();
+  if (!sessData || !sessData.session) {
+    showCourseMsg('error', 'Your session is still loading. Refresh the page before making changes; saving is disabled to protect your modules and lessons.');
+    return;
+  }
   const { data: modules, error: modErr } = await sb.from('course_modules').select('*').eq('course_id', courseId).order('sort_order');
   const { data: lessons, error: lesErr } = await sb.from('course_lessons').select('*').eq('course_id', courseId).order('sort_order');
   // Load quizzes (creator view = raw table, includes is_correct flags so the
