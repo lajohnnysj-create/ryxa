@@ -83,6 +83,16 @@
     var stats = await api('action=stats');
     if (stats.status === 403 || stats.status === 401) { showDenied(stats.status); return; }
     if (stats.body) {
+      if (stats.body.earnings) {
+        var cents = stats.body.earnings.total_cents || 0;
+        el('stat-earnings').textContent = '$' + (cents / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        var b = stats.body.earnings.breakdown || {};
+        el('stat-earnings-detail').textContent =
+          'Earnings: products $' + ((b.products_cents || 0) / 100).toFixed(0) +
+          ', courses $' + ((b.courses_cents || 0) / 100).toFixed(0) +
+          ', bookings $' + ((b.bookings_cents || 0) / 100).toFixed(0) +
+          ', tips $' + ((b.tips_cents || 0) / 100).toFixed(0);
+      }
       el('stat-users').textContent = stats.body.users_total || '0';
       el('stat-err24').textContent = stats.body.errors_24h || '0';
       el('stat-err7').textContent = stats.body.errors_7d || '0';
