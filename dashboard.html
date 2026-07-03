@@ -3588,8 +3588,11 @@
     .pdfsign-privacy-badge { order: 1; }
   }
   @media (max-width: 640px) {
-    /* Full-bleed: cancel tool-area horizontal padding specifically for pdfsign */
-    #tool-pdfsign { margin-left: -16px; margin-right: -16px; }
+    /* Full-bleed: cancel tool-area horizontal padding, but only for the
+       palette bar and the canvas area. Applying it to the whole tool pushed
+       the header text and dropzone past the viewport edges on mobile. */
+    #tool-pdfsign .pdfsign-palette,
+    #tool-pdfsign .pdfsign-canvas-area { margin-left: -16px; margin-right: -16px; }
     .pdfsign-palette { padding: 8px 10px; border-radius: 0; border-left: none; border-right: none; }
     .pdfsign-palette-header { gap: 6px; }
     .pdfsign-palette-label, .pdfsign-privacy-badge { display: none; }
@@ -3605,7 +3608,8 @@
     .pdfsign-palette-actions { padding-top: 8px; margin-top: 2px; order: 2; border-top: 1px solid var(--border); }
   }
   @media (max-width: 420px) {
-    #tool-pdfsign { margin-left: -10px; margin-right: -10px; }
+    #tool-pdfsign .pdfsign-palette,
+    #tool-pdfsign .pdfsign-canvas-area { margin-left: -10px; margin-right: -10px; }
   }
 
   /* Canvas area now takes full width */
