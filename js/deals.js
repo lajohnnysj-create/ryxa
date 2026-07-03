@@ -1713,6 +1713,26 @@ async function downloadFileFromUrl(url, filename) {
   const resp = await fetch(url);
   if (!resp.ok) throw new Error('Download failed (' + resp.status + ')');
   const blob = await resp.blob();
+
+  // Native app: WKWebView does not support the anchor download attribute
+  // (clicking would navigate to the blob and take over the screen), so the
+  // file is handed across the bridge for the iOS save/share sheet instead.
+  if (window.RyxaNative && window.ReactNativeWebView) {
+    const base64 = await new Promise(function(resolve, reject) {
+      const reader = new FileReader();
+      reader.onload = function() { resolve(String(reader.result).split(',')[1] || ''); };
+      reader.onerror = function() { reject(new Error('Could not read file')); };
+      reader.readAsDataURL(blob);
+    });
+    window.ReactNativeWebView.postMessage(JSON.stringify({
+      type: 'saveFile',
+      filename: filename || 'document.pdf',
+      mime: blob.type || 'application/pdf',
+      base64: base64
+    }));
+    return;
+  }
+
   const objectUrl = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = objectUrl;
