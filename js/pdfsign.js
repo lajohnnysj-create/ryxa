@@ -1014,10 +1014,30 @@ async function downloadSignedPdf() {
   try {
     const pdfBytes = await buildSignedPdfBytes();
     const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+    const outName = pdfsignFilename.replace(/\.pdf$/i, '') + '-signed.pdf';
+
+    // Native app: WKWebView does not support the anchor download attribute,
+    // so the signed PDF is handed across the bridge for the iOS save sheet.
+    if (window.RyxaNative && window.ReactNativeWebView) {
+      const base64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result).split(',')[1] || '');
+        reader.onerror = () => reject(new Error('Could not read PDF'));
+        reader.readAsDataURL(blob);
+      });
+      window.ReactNativeWebView.postMessage(JSON.stringify({
+        type: 'saveFile',
+        filename: outName,
+        mime: 'application/pdf',
+        base64: base64
+      }));
+      return;
+    }
+
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = pdfsignFilename.replace(/\.pdf$/i, '') + '-signed.pdf';
+    a.download = outName;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
