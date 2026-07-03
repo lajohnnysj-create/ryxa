@@ -33,8 +33,15 @@ const SUPABASE_ANON_KEY = 'sb_publishable_PLU28Un_GfsUXeUsK3zB9Q_hvNM7aeG';
 // whole file, leaving later declarations uninitialized and surfacing misleading
 // errors elsewhere. Instead leave sb null and show a clear message at use time.
 let sb = null;
-if (typeof supabase !== 'undefined' && supabase && typeof supabase.createClient === 'function') {
-  sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+if (typeof supabase !== 'undefined' && supabase && typeof supabase.createClient === 'function') {// autoRefreshToken stays OFF outside the dashboard. Only one page per
+// origin may run the background refresh timer; multiple timers race for
+// the single-use refresh token and trip Supabase reuse detection, which
+// revokes the session (the random logout bug). Reads still refresh
+// on demand when a real action needs a fresh token.
+
+  sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { persistSession: true, autoRefreshToken: false }
+});
 } else {
   console.error('[Ryxa] Supabase library failed to load. Authentication is unavailable. A hard refresh usually fixes it.');
 }

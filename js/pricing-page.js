@@ -27,7 +27,14 @@ document.addEventListener('click', function(e) {
 const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_PLU28Un_GfsUXeUsK3zB9Q_hvNM7aeG';
 const { createClient } = supabase;
-const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// autoRefreshToken stays OFF outside the dashboard. Only one page per
+// origin may run the background refresh timer; multiple timers race for
+// the single-use refresh token and trip Supabase reuse detection, which
+// revokes the session (the random logout bug). Reads still refresh
+// on demand when a real action needs a fresh token.
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { persistSession: true, autoRefreshToken: false }
+});
 
 // Stripe price ID mapping. Source of truth lives in the create-checkout-session
 // edge function; this client-side map is for routing the user's plan+cycle

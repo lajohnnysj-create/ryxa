@@ -41,7 +41,14 @@ const IS_FREE = _metaContent('ryxa-product-is-free') === 'true';
 // Public Supabase config — anon key is meant to be browser-visible
 const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_PLU28Un_GfsUXeUsK3zB9Q_hvNM7aeG';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// autoRefreshToken stays OFF outside the dashboard. Only one page per
+// origin may run the background refresh timer; multiple timers race for
+// the single-use refresh token and trip Supabase reuse detection, which
+// revokes the session (the random logout bug). Reads still refresh
+// on demand when a real action needs a fresh token.
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { persistSession: true, autoRefreshToken: false }
+});
 
 function showToast(msg, type) {
   var el = document.getElementById('toast');
