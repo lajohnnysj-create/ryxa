@@ -71,6 +71,12 @@ function prodDispatchEvent(event) {
 // Used by toggleProductMarketplace and any other in-editor success/error feedback
 // where a modal would be overkill. Auto-hides after 5s.
 function showProductsMsg(type, msg, isHtml) {
+  // Delegates to the dashboard's slide-in toast (plain-text messages only).
+  // Falls back to the inline banner for any HTML-mode caller.
+  if (!isHtml && typeof showDashToast === 'function') {
+    showDashToast(type === 'error' ? 'error' : 'success', msg);
+    return;
+  }
   var el = document.getElementById('products-editor-msg');
   if (!el) return;
   el.style.display = 'block';
