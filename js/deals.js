@@ -123,6 +123,7 @@ function showDealsList() {
 
   currentDealId = null;
   currentDealDeliverables = [];
+  dealDeliverablesLoaded = true; // reset state: empty list is real until a load says otherwise
 }
 
 
@@ -150,6 +151,11 @@ const DEAL_PAYMENT_LABELS = {
 let dealsList = [];              // Cache of all user deals
 let currentDealId = null;        // Deal being edited in modal (null = new)
 let currentDealDeliverables = []; // Working list of deliverables in modal
+// True only when the deliverables list reflects reality: a successful load
+// for existing deals, or the empty list of a brand new deal. Saving the
+// deliverables section is blocked while false, so a failed load can never
+// masquerade as "user deleted everything".
+let dealDeliverablesLoaded = false;
 
 // =====================================================
 // BRAND DEAL CRM — List & Load
@@ -912,6 +918,7 @@ function renderUpcomingEnds() {
 function showDealDetail(dealId) {
   currentDealId = dealId || null;
   currentDealDeliverables = [];
+  dealDeliverablesLoaded = true; // reset state: empty list is real until a load says otherwise
 
   // Reset form fields
   document.getElementById('deal-id').value = '';
@@ -1309,6 +1316,7 @@ function updateMessageCharCount() {
 // BRAND DEAL CRM — Deliverables in modal
 // =====================================================
 async function loadDealDeliverables(dealId) {
+  dealDeliverablesLoaded = false;
   const { data, error } = await sb
     .from('deal_deliverables')
     .select('*')
@@ -1318,7 +1326,11 @@ async function loadDealDeliverables(dealId) {
   if (error) {
     console.error('Failed to load deliverables:', error);
     currentDealDeliverables = [];
+    if (typeof showDashToast === 'function') {
+      showDashToast('error', 'Could not load deliverables. Saving deliverables is disabled until you reopen this deal.');
+    }
   } else {
+    dealDeliverablesLoaded = true;
     currentDealDeliverables = (data || []).map(d => ({
       id: d.id,
       title: d.title,
@@ -2433,26 +2445,51 @@ async function saveDeal() {
     currentDealId = dealId;
   }
 
-  // Save deliverables: simplest approach — delete all existing, insert current
-  // (safe because deliverables are always small and always loaded fresh)
+  // Save deliverables. Full-replace semantics, but ordered so failure can
+  // never destroy data: insert the new set FIRST, then delete only the old
+  // rows. Insert failure leaves the old rows untouched; delete failure
+  // leaves visible duplicates, which a retry cleans up. The old order
+  // (delete first, insert after) silently lost all deliverables whenever
+  // the insert failed, and wiped them whenever local state was stale.
   if (dealId) {
-    await sb.from('deal_deliverables').delete().eq('deal_id', dealId);
-    const deliverablesToInsert = currentDealDeliverables
-      .filter(d => (d.title || '').trim().length > 0)
-      .map((d, i) => ({
-        deal_id: dealId,
-        user_id: currentUser.id,
-        title: d.title.trim(),
-        notes: (d.notes || '').trim() || null,
-        submitted_url: (d.submitted_url || '').trim() || null,
-        due_date: (d.due_date && d.due_date.length) ? d.due_date : null,
-        sort_order: i
-      }));
-    if (deliverablesToInsert.length > 0) {
-      const { error: delivErr } = await sb.from('deal_deliverables').insert(deliverablesToInsert);
-      if (delivErr) {
-        console.error('Deliverables save failed:', delivErr);
-        // Non-fatal — deal saved successfully
+    if (!dealDeliverablesLoaded) {
+      showDealModalMsg('error', 'Deal saved, but deliverables were NOT saved because they never finished loading. Reopen this deal and try again.');
+    } else {
+      const { data: oldRows, error: oldErr } = await sb
+        .from('deal_deliverables').select('id').eq('deal_id', dealId);
+      if (oldErr) {
+        showDealModalMsg('error', 'Deal saved, but deliverables were NOT saved (could not read existing ones). Try saving again.');
+      } else {
+        const deliverablesToInsert = currentDealDeliverables
+          .filter(d => (d.title || '').trim().length > 0)
+          .map((d, i) => ({
+            deal_id: dealId,
+            user_id: currentUser.id,
+            title: d.title.trim(),
+            notes: (d.notes || '').trim() || null,
+            submitted_url: (d.submitted_url || '').trim() || null,
+            due_date: (d.due_date && d.due_date.length) ? d.due_date : null,
+            sort_order: i
+          }));
+        let insertFailed = false;
+        if (deliverablesToInsert.length > 0) {
+          const { error: delivErr } = await sb.from('deal_deliverables').insert(deliverablesToInsert);
+          if (delivErr) {
+            insertFailed = true;
+            console.error('Deliverables save failed:', delivErr);
+            showDealModalMsg('error', 'Deal saved, but deliverable changes were NOT saved: ' + delivErr.message + '. Your previous deliverables are untouched.');
+          }
+        }
+        if (!insertFailed) {
+          const oldIds = (oldRows || []).map(function(r) { return r.id; });
+          if (oldIds.length > 0) {
+            const { error: delOldErr } = await sb.from('deal_deliverables').delete().in('id', oldIds);
+            if (delOldErr) {
+              console.error('Old deliverables cleanup failed:', delOldErr);
+              showDealModalMsg('error', 'Deliverables saved, but old copies could not be removed and may appear duplicated. Save again to clean up.');
+            }
+          }
+        }
       }
     }
   }
