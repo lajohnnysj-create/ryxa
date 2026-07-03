@@ -593,8 +593,20 @@ async function resolveBioLinkLiveCovers(creatorUserId, links, creatorUsername) {
   }
 }
 
+// True only after the bio row loaded with a live session. The save is a
+// full-row overwrite, so saving default/blank state over a real bio is the
+// overwrite twin of the course wipe. RLS returns EMPTY SUCCESS to a
+// session-less query, so a session check is required, not just error checks.
+let bioDataLoaded = false;
+
 async function loadBioData() {
   if (!currentUser) return;
+  bioDataLoaded = false;
+  const { data: _bioSess } = await sb.auth.getSession();
+  if (!_bioSess || !_bioSess.session) {
+    showBioStatus('error', 'Your session is still loading. Refresh before making changes; saving is disabled to protect your page.');
+    return;
+  }
   try {
     const { data: profile } = await sb.from('profiles').select('username').eq('user_id', currentUser.id).maybeSingle();
     if (profile?.username) {
@@ -611,7 +623,9 @@ async function loadBioData() {
         if (el && el.value !== bioState.username) el.value = bioState.username;
       }, 1500);
     }
-    const { data: bio } = await sb.from('link_in_bio').select('*').eq('user_id', currentUser.id).maybeSingle();
+    const { data: bio, error: bioLoadErr } = await sb.from('link_in_bio').select('*').eq('user_id', currentUser.id).maybeSingle();
+    if (bioLoadErr) throw bioLoadErr;
+    bioDataLoaded = true;
     if (bio) {
       bioState.display_name = bio.display_name || '';
       bioState.bio = bio.bio || '';
@@ -655,7 +669,11 @@ async function loadBioData() {
         console.error('cover URL resolver failed in dashboard:', e);
       }
     }
-  } catch (e) { console.error('loadBioData', e); }
+  } catch (e) {
+    console.error('loadBioData', e);
+    bioDataLoaded = false;
+    showBioStatus('error', 'Could not load your Link in Bio data. Refresh before making changes; saving is disabled to protect your page.');
+  }
   syncBioForm();
   // Reset username hint to default message
   var bioHint = document.getElementById('bio-username-hint');
@@ -4183,6 +4201,10 @@ function showBioStatus(kind, msg) {
 
 async function saveBio() {
   if (!currentUser) return;
+  if (!bioDataLoaded) {
+    showBioStatus('error', 'Saving is disabled because your page did not finish loading. Refresh and try again; this protects your existing page from being overwritten.');
+    return;
+  }
   const btn = document.getElementById('bio-save-btn');
   btn.disabled = true;
   btn.textContent = 'Saving…';

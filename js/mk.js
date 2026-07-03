@@ -203,8 +203,18 @@ async function resyncMKUsername() {
   updateMKPublishUI();
 }
 
+// Same overwrite protection as Link in Bio: the save replaces the whole
+// media_kit row, so it must never run over unloaded or session-less state.
+let mkDataLoaded = false;
+
 async function loadMediaKit() {
   if (!currentUser) return;
+  mkDataLoaded = false;
+  const { data: _mkSess } = await sb.auth.getSession();
+  if (!_mkSess || !_mkSess.session) {
+    showMKStatus('error', 'Your session is still loading. Refresh before making changes; saving is disabled to protect your media kit.');
+    return;
+  }
   try {
     // Load shared username from profiles
     const { data: profile } = await sb.from('profiles').select('username').eq('user_id', currentUser.id).maybeSingle();
@@ -215,7 +225,9 @@ async function loadMediaKit() {
       if (typeof bioState !== 'undefined') bioState.username = profile.username;
     }
     // Load media kit data
-    const { data: kit } = await sb.from('media_kit').select('*').eq('user_id', currentUser.id).maybeSingle();
+    const { data: kit, error: kitLoadErr } = await sb.from('media_kit').select('*').eq('user_id', currentUser.id).maybeSingle();
+    if (kitLoadErr) throw kitLoadErr;
+    mkDataLoaded = true;
     if (kit) {
       mkState.headshot_url = kit.headshot_url || '';
       mkState.display_name = kit.display_name || '';
@@ -262,7 +274,10 @@ async function loadMediaKit() {
         .slice(0, 10)
         .map(im => ({ photoUrl: String(im.photoUrl), w: parseInt(im.w) || 0, h: parseInt(im.h) || 0 }));
     }
-  } catch (e) { console.error('loadMediaKit', e); }
+  } catch (e) {
+    console.error('loadMediaKit', e);
+    showMKStatus('error', 'Could not fully load your media kit. Refresh before making changes.');
+  }
   syncMKForm();
   // Reset username hint to default
   var mkHint2 = document.getElementById('mk-username-hint');
@@ -1117,6 +1132,10 @@ function showMKStatus(kind, msg) {
 
 async function saveMediaKit() {
   if (!currentUser) return;
+  if (!mkDataLoaded) {
+    showMKStatus('error', 'Saving is disabled because your media kit did not finish loading. Refresh and try again; this protects your existing kit from being overwritten.');
+    return;
+  }
   if (!isPro()) { showMKStatus('error', 'Media Kit is a Pro feature.'); return; }
   const btn = document.getElementById('mk-save-btn');
   btn.disabled = true;
