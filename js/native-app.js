@@ -5,8 +5,8 @@
 // native app injects. Platform-agnostic on purpose: iOS today, Android
 // inherits the same behavior automatically if that build ships later.
 //
-// Dashboard pages: adds a topbar bell (native Alerts) and a sidebar
-// "App Settings" item.
+// Dashboard pages: adds a phone icon (native App Settings) and a bell
+// (native Alerts) at the right end of the topbar.
 // Marketing pages (anything with #site-header): hides the site nav and
 // footer and adds a slim safe-area "Back to Dashboard" bar instead.
 // CSP-safe: external file, no inline handlers, delegated listener.
@@ -20,61 +20,45 @@
     alerts:
       '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>',
     settings:
-      '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>',
+      '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>',
     back:
       '<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>'
   };
 
-  // ==== Dashboard mode ====
+  // ==== Dashboard mode: phone (App Settings) + bell (Alerts) in topbar ====
 
-  // Bell button at the far right of the topbar, after the tier badge.
-  function insertBell() {
-    var right = document.querySelector('.topbar-right');
-    if (!right || document.getElementById('native-alerts-bell')) return;
-
+  function makeTopbarButton(id, screen, label, icon) {
     var btn = document.createElement('button');
-    btn.id = 'native-alerts-bell';
-    btn.setAttribute('data-native-screen', 'alerts');
+    btn.id = id;
+    btn.setAttribute('data-native-screen', screen);
     btn.setAttribute('type', 'button');
-    btn.setAttribute('aria-label', 'Alerts');
+    btn.setAttribute('aria-label', label);
     btn.style.background = 'none';
     btn.style.border = 'none';
     btn.style.padding = '6px';
-    btn.style.marginLeft = '12px';
-    // Negative margin cancels the button's own right padding so the glyph
-    // sits flush with the topbar's content edge while keeping the tap target.
-    btn.style.marginRight = '-6px';
     btn.style.cursor = 'pointer';
     btn.style.color = 'var(--text)';
     btn.style.display = 'inline-flex';
     btn.style.alignItems = 'center';
-    btn.innerHTML = ICONS.alerts;
-
-    right.appendChild(btn);
+    btn.innerHTML = icon;
+    return btn;
   }
 
-  // App Settings item at the bottom of the sidebar menu.
-  function insertSettingsItem() {
-    var nav = document.querySelector('.sidebar-nav');
-    if (!nav || document.getElementById('nav-native-settings')) return;
+  function insertTopbarButtons() {
+    var right = document.querySelector('.topbar-right');
+    if (!right || document.getElementById('native-alerts-bell')) return;
 
-    var btn = document.createElement('button');
-    btn.className = 'sidebar-item';
-    btn.id = 'nav-native-settings';
-    btn.setAttribute('data-native-screen', 'settings');
-    btn.setAttribute('type', 'button');
+    var phone = makeTopbarButton('native-app-settings', 'settings', 'App Settings', ICONS.settings);
+    phone.style.marginLeft = '10px';
 
-    var iconWrap = document.createElement('div');
-    iconWrap.className = 'sidebar-item-icon';
-    iconWrap.innerHTML = ICONS.settings;
+    var bell = makeTopbarButton('native-alerts-bell', 'alerts', 'Alerts', ICONS.alerts);
+    bell.style.marginLeft = '8px';
+    // Negative margin cancels the button's own right padding (and a touch
+    // more) so the glyph sits flush against the topbar's content edge.
+    bell.style.marginRight = '-9px';
 
-    var labelSpan = document.createElement('span');
-    labelSpan.className = 'sidebar-item-label';
-    labelSpan.textContent = 'App Settings';
-
-    btn.appendChild(iconWrap);
-    btn.appendChild(labelSpan);
-    nav.appendChild(btn);
+    right.appendChild(phone);
+    right.appendChild(bell);
   }
 
   // ==== Marketing page mode (pricing and any page with #site-header) ====
@@ -128,8 +112,7 @@
   }
 
   function insertAll() {
-    insertBell();
-    insertSettingsItem();
+    insertTopbarButtons();
     setupMarketingPage();
   }
 
