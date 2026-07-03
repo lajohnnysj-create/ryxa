@@ -784,6 +784,26 @@ async function exportSubscribers() {
       csv += '"' + c.email.replace(/"/g, '""') + '",' + source + ',' + (c.optin ? 'Yes' : 'No') + ',' + date + '\n';
     });
     var blob = new Blob([csv], { type: 'text/csv' });
+
+    // Native app: WKWebView does not support the anchor download attribute,
+    // so the CSV is handed across the bridge for the iOS save/share sheet.
+    if (window.RyxaNative && window.ReactNativeWebView) {
+      var base64 = await new Promise(function(resolve, reject) {
+        var reader = new FileReader();
+        reader.onload = function() { resolve(String(reader.result).split(',')[1] || ''); };
+        reader.onerror = function() { reject(new Error('Could not read file')); };
+        reader.readAsDataURL(blob);
+      });
+      window.ReactNativeWebView.postMessage(JSON.stringify({
+        type: 'saveFile',
+        filename: 'ryxa-subscribers.csv',
+        mime: 'text/csv',
+        base64: base64
+      }));
+      restoreBtn();
+      return;
+    }
+
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a');
     a.href = url;
