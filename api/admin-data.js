@@ -69,15 +69,33 @@ module.exports = async (req, res) => {
   if (action === 'stats') {
     const day = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
     const week = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString();
-    const [users, err24, err7d] = await Promise.all([
+    const [users, err24, err7d, earningsRes] = await Promise.all([
       sbGet('/rest/v1/profiles?select=user_id&limit=1'),
       sbGet('/rest/v1/client_errors?select=id&occurred_at=gte.' + day + '&limit=1'),
-      sbGet('/rest/v1/client_errors?select=id&occurred_at=gte.' + week + '&limit=1')
+      sbGet('/rest/v1/client_errors?select=id&occurred_at=gte.' + week + '&limit=1'),
+      fetch(SUPABASE_URL + '/rest/v1/rpc/admin_total_earnings', {
+        method: 'POST',
+        headers: {
+          apikey: SUPABASE_SERVICE_KEY,
+          Authorization: 'Bearer ' + SUPABASE_SERVICE_KEY,
+          'Content-Type': 'application/json'
+        },
+        body: '{}'
+      })
     ]);
+    let earnings = null;
+    if (earningsRes.ok) {
+      const e = await earningsRes.json();
+      const total =
+        (e.products_cents || 0) + (e.courses_cents || 0) +
+        (e.bookings_cents || 0) + (e.tips_cents || 0);
+      earnings = { total_cents: total, breakdown: e };
+    }
     return res.status(200).json({
       users_total: users.total,
       errors_24h: err24.total,
-      errors_7d: err7d.total
+      errors_7d: err7d.total,
+      earnings: earnings
     });
   }
 
