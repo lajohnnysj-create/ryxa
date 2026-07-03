@@ -273,6 +273,7 @@
       <p style="margin-bottom:12px;">We use these trusted third-party services to operate Ryxa:</p>
       <ul style="padding-left:22px;">
         <li><strong style="color:var(--text);">Supabase</strong>: authentication, primary database, and storage for profile and landing page cover images. Primary data stored in AWS us-east-2 (Ohio, USA). <a href="https://supabase.com/privacy" target="_blank" rel="noopener" style="color:var(--accent2);">Privacy policy</a></li>
+        <li><strong style="color:var(--text);">Expo (EAS)</strong>: push notification delivery for the Ryxa mobile app. If you enable notifications in the app, your device push token passes through Expo's push service and Apple's or Google's notification network to reach your device. <a href="https://expo.dev/privacy" target="_blank" rel="noopener" style="color:var(--accent2);">Privacy policy</a></li>
         <li><strong style="color:var(--text);">Cloudflare (R2)</strong>: object storage for creator-uploaded files, including digital product files and course lesson files (video, audio, PDFs, images, archives, and other supported formats). Files are stored in private buckets and only delivered to authorized recipients (the uploading creator or a purchasing buyer) via short-lived signed URLs. Cloudflare R2 is a globally distributed storage network. <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener" style="color:var(--accent2);">Privacy policy</a></li>
         <li><strong style="color:var(--text);">Bunny.net (Bunny Stream)</strong>: video hosting, encoding, and delivery for course lesson videos. When you upload a video to a course lesson, the file is uploaded directly from your browser to Bunny via a chunked, resumable upload protocol. Bunny encodes the video into multiple quality renditions and serves playback to enrolled buyers via signed URLs that expire after a short period. Bunny is a globally distributed video CDN. <a href="https://bunny.net/privacy" target="_blank" rel="noopener" style="color:var(--accent2);">Privacy policy</a></li>
         <li><strong style="color:var(--text);">Vercel</strong>: web hosting and serverless functions. USA-based. <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener" style="color:var(--accent2);">Privacy policy</a></li>
@@ -537,12 +538,22 @@
     </div>
 
     <div>
-      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">19. Changes to this policy</h2>
+      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">19. The Ryxa mobile app</h2>
+      <p style="margin-bottom:12px;">The Ryxa mobile app provides the same Service described in this policy, with three app-specific practices:</p>
+      <ul style="padding-left:22px;">
+        <li><strong style="color:var(--text);">Push notifications</strong>: if you turn on notifications in the app, we store a device push token linked to your account so we can send you alerts about your sales and bookings. Turning notifications off removes the token, and deleting your account deletes it along with your other data.</li>
+        <li><strong style="color:var(--text);">Face ID / biometric unlock</strong>: the optional app lock is handled entirely by your device's operating system. Your biometric data never leaves your device and is never sent to or stored by Ryxa.</li>
+        <li><strong style="color:var(--text);">Camera</strong>: the app only requests camera access when a connected service you are using asks for it (for example, identity verification during Stripe onboarding). Ryxa does not capture or store camera data.</li>
+      </ul>
+    </div>
+
+    <div>
+      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">20. Changes to this policy</h2>
       <p>We may update this policy as the service evolves. We will update the "Last updated" date at the top. For material changes, we will notify you by email or via an in-app notice. Continued use of the service after updates constitutes acceptance of the updated policy.</p>
     </div>
 
     <div>
-      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">20. Contact</h2>
+      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;">21. Contact</h2>
       <p>Questions about privacy? Email hello@ryxa.io.</p>
       <p style="margin-top:12px;">MRLA Media LLC</p>
     </div>
