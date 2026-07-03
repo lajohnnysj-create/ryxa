@@ -341,14 +341,35 @@ async function handleGoogleAuth() {
       redirectTo += '?username=' + encodeURIComponent(intendedUsername);
     }
   } catch (_) { /* storage unavailable - bare redirect */ }
+  setAuthBtnLoading('google-btn', true);
   const { error } = await sb.auth.signInWithOAuth({
     provider: 'google',
     options: {
       redirectTo: redirectTo,
     },
   });
-  if (error) showAuthMsg('error', error.message);
+  if (error) {
+    setAuthBtnLoading('google-btn', false);
+    showAuthMsg('error', error.message);
+  }
 }
+
+
+// Spinner state for the OAuth buttons. Applied to every matching button
+// (login and signup modals share classes); reset on error, on returning
+// via back/forward cache, and by the app when its auth sheet is closed.
+function setAuthBtnLoading(cls, on) {
+  document.querySelectorAll('.' + cls).forEach(function(b) {
+    b.classList.toggle('auth-btn-loading', on);
+    b.disabled = on;
+  });
+}
+window.addEventListener('pageshow', function(e) {
+  if (e.persisted) {
+    setAuthBtnLoading('google-btn', false);
+    setAuthBtnLoading('apple-btn', false);
+  }
+});
 
 async function handleAppleAuth() {
   if (!sb) { _authMsgUnavailable(); return; }
@@ -359,13 +380,17 @@ async function handleAppleAuth() {
       redirectTo += '?username=' + encodeURIComponent(intendedUsername);
     }
   } catch (_) { /* storage unavailable - bare redirect */ }
+  setAuthBtnLoading('apple-btn', true);
   const { error } = await sb.auth.signInWithOAuth({
     provider: 'apple',
     options: {
       redirectTo: redirectTo,
     },
   });
-  if (error) showAuthMsg('error', error.message);
+  if (error) {
+    setAuthBtnLoading('apple-btn', false);
+    showAuthMsg('error', error.message);
+  }
 }
 
 async function handleAuth() {
