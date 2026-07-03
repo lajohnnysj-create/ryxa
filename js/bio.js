@@ -4360,7 +4360,7 @@ async function saveBio() {
     await deleteStaleBios();
 
     updatePublishUI();
-    showBioStatus('success', 'Saved ✓');
+    showBioStatus('success', 'Saved');
     // Re-render username hint so "Press save to change username" disappears
     if (bioState.username) renderUsernameAvailable(bioState.username);
   } catch (e) {
