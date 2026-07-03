@@ -6,7 +6,7 @@
 //
 // Copy this file into the Ryxa repo at api/push-token.js.
 
-const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 async function getUserIdFromBearer(req) {
@@ -39,6 +39,10 @@ module.exports = async (req, res) => {
   if (req.method !== 'POST' && req.method !== 'DELETE') {
     res.setHeader('Allow', 'POST, DELETE');
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  if (!SUPABASE_SERVICE_KEY) {
+    return res.status(500).json({ error: 'Server not configured' });
   }
 
   const userId = await getUserIdFromBearer(req);

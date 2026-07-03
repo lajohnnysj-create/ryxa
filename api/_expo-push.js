@@ -6,7 +6,7 @@
 //   const { sendPushToUser } = require('./_expo-push');
 //   await sendPushToUser(userId, { title: 'New sale', body: 'Someone bought your course.' });
 
-const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 async function getTokensForUser(userId) {
