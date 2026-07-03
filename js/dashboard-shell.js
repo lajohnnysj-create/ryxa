@@ -1484,31 +1484,46 @@ function copyWelcomeBioLink() {
 
 
 function showDashToast(type, message) {
-  // Remove existing toast if any
+  // Slide-in notification tab, anchored to the right edge (GeForce style).
+  // Safe-area aware so it clears the notch inside the mobile app.
   const existing = document.getElementById('dash-toast');
   if (existing) existing.remove();
 
+  const isSuccess = type === 'success';
+  const accent = isSuccess ? '#2563cc' : '#e5484d';
+  const icon = isSuccess
+    ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+    : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
+
   const toast = document.createElement('div');
   toast.id = 'dash-toast';
-  const isSuccess = type === 'success';
-  const bg = isSuccess ? 'rgba(74,222,128,0.12)' : 'rgba(239,68,68,0.12)';
-  const border = isSuccess ? 'rgba(74,222,128,0.3)' : 'rgba(239,68,68,0.3)';
-  const color = isSuccess ? '#4ade80' : '#fca5a5';
-  const icon = isSuccess
-    ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
-    : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
-
-  toast.style.cssText = `position:fixed;top:24px;left:50%;transform:translateX(-50%);z-index:10000;background:${bg};border:1px solid ${border};color:${color};padding:14px 24px;border-radius:12px;font-size:14px;font-weight:500;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,0.4);backdrop-filter:blur(12px);max-width:90vw;animation:toastIn 0.4s ease;`;
-  toast.innerHTML = `${icon}<span>${message}</span>`;
+  toast.setAttribute('role', isSuccess ? 'status' : 'alert');
+  toast.style.cssText = 'position:fixed;right:0;top:calc(18px + env(safe-area-inset-top, 0px));z-index:10001;'
+    + 'background:#1b1b26;color:#ffffff;border-left:3px solid ' + accent + ';'
+    + 'border-radius:12px 0 0 12px;padding:14px 18px 14px 14px;'
+    + 'font-size:14px;font-weight:500;font-family:\'DM Sans\',sans-serif;'
+    + 'display:flex;align-items:center;gap:10px;max-width:min(340px, 86vw);'
+    + 'box-shadow:0 8px 32px rgba(0,0,0,0.45);cursor:pointer;'
+    + 'transform:translateX(110%);transition:transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);';
+  toast.innerHTML = '<span style="color:' + accent + ';display:inline-flex;flex-shrink:0;">' + icon + '</span>'
+    + '<span style="line-height:1.4;">' + message + '</span>';
   document.body.appendChild(toast);
 
-  // Auto-dismiss after 5 seconds
-  setTimeout(() => {
-    toast.style.transition = 'opacity 0.4s, transform 0.4s';
-    toast.style.opacity = '0';
-    toast.style.transform = 'translateX(-50%) translateY(-10px)';
-    setTimeout(() => toast.remove(), 400);
-  }, 5000);
+  // Next frame: slide in from the right edge.
+  requestAnimationFrame(function() {
+    requestAnimationFrame(function() { toast.style.transform = 'translateX(0)'; });
+  });
+
+  let dismissed = false;
+  function dismiss() {
+    if (dismissed) return;
+    dismissed = true;
+    toast.style.transform = 'translateX(110%)';
+    setTimeout(function() { if (toast.parentNode) toast.remove(); }, 400);
+  }
+  // Tap anywhere on the tab to dismiss early.
+  toast.addEventListener('click', dismiss);
+  setTimeout(dismiss, isSuccess ? 4500 : 6000);
 }
 
 async function fetchTier(userId) {
