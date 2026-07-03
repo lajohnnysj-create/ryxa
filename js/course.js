@@ -1033,7 +1033,18 @@ async function saveCourseModules(courseId) {
     const localQuiz = mod.quiz || null;
 
     if (dbQuiz && !localQuiz) {
-      // Case A: deleted
+      // Case A: deleted. Same protection as modules and lessons: only rows
+      // the user explicitly removed this session may be deleted. A quiz
+      // missing from local state for any other reason means the editor is
+      // out of sync (two-tab editing, partial state corruption), and
+      // deleting would destroy content the user never touched.
+      if (!courseExplicitRemovals.has(dbQuiz.id)) {
+        showModalAlert(
+          'Save blocked to protect your course',
+          'This save would remove a quiz that was not deleted in this editing session, which means the editor is out of sync. Refresh the page and try again.'
+        );
+        throw new Error('Blocked out-of-sync quiz deletion');
+      }
       const { error: delErr } = await sb.from('course_quizzes').delete().eq('id', dbQuiz.id);
       if (delErr) throw delErr;
     } else if (localQuiz) {
@@ -1175,6 +1186,7 @@ function removeCourseModule(idx) {
     if (!confirmed) return;
     // Record the deliberate removals so the save is allowed to delete them.
     if (mod.id) courseExplicitRemovals.add(mod.id);
+    if (mod.quiz && mod.quiz.id) courseExplicitRemovals.add(mod.quiz.id);
     (mod.lessons || []).forEach(function(l) { if (l.id) courseExplicitRemovals.add(l.id); });
     courseModules.splice(idx, 1);
     renderCourseModules();
@@ -3778,6 +3790,7 @@ courseRegisterAction('remove-quiz', (e, el) => {
     'Remove Quiz',
     'Are you sure you want to remove this quiz? All questions and answers will be deleted.',
     function() {
+      if (mod.quiz && mod.quiz.id) courseExplicitRemovals.add(mod.quiz.id);
       mod.quiz = null;
       renderCourseModules();
     }
