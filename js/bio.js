@@ -4445,7 +4445,7 @@ function updatePublishUI() {
       } else {
         viewLink.href = '/' + bioState.username;
         viewLink.setAttribute('target', '_blank');
-        viewLink.textContent = 'View live page \u2197';
+        viewLink.textContent = 'View live page';
         viewLink.onclick = null;
       }
       viewLink.style.display = 'inline-flex';

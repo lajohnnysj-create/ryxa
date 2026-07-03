@@ -2088,7 +2088,7 @@ function updateMKPublishUI() {
       } else {
         viewLink.href = '/mediakit/' + uname;
         viewLink.setAttribute('target', '_blank');
-        viewLink.textContent = 'View live page \u2197';
+        viewLink.textContent = 'View live page';
         viewLink.onclick = null;
       }
       viewLink.style.display = 'inline-flex';
