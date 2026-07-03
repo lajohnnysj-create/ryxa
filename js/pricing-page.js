@@ -511,6 +511,15 @@ pricingRegisterAction('select-plan', function(_e, el) {
 // CHECKOUT (signed-in users)
 // =================================================================
 
+// Native app only: the checkout button left loading when Safari opened.
+var _nativeCheckoutBtn = null;
+document.addEventListener('visibilitychange', function () {
+  if (document.visibilityState !== 'visible') return;
+  if (!window.RyxaNative || !_nativeCheckoutBtn) return;
+  try { clearBtnLoading(_nativeCheckoutBtn); } catch (e) {}
+  _nativeCheckoutBtn = null;
+});
+
 function setBtnLoading(btn, label) {
   if (!btn) return;
   if (btn._origHtml === undefined) btn._origHtml = btn.innerHTML;
@@ -548,8 +557,14 @@ async function startCheckoutFromPricing(plan, cycle, btn) {
       body: {
         priceId: priceId,
         userId: currentUser.id,
-        successUrl: window.location.origin + '/dashboard.html?payment=success',
-        cancelUrl:  window.location.origin + '/pricing.html?payment=cancelled'
+        // Inside the native app, checkout runs in Safari, so success and
+        // cancel route through app-return.html, which deep links back in.
+        successUrl: window.RyxaNative
+          ? window.location.origin + '/app-return.html?status=success'
+          : window.location.origin + '/dashboard.html?payment=success',
+        cancelUrl: window.RyxaNative
+          ? window.location.origin + '/app-return.html?status=cancelled'
+          : window.location.origin + '/pricing.html?payment=cancelled'
       }
     });
 
@@ -560,7 +575,10 @@ async function startCheckoutFromPricing(plan, cycle, btn) {
 
     if (data && data.url) {
       // Whether this is a fresh Stripe Checkout URL or a redirect back to the
-      // dashboard (in-place subscription update), follow it.
+      // dashboard (in-place subscription update), follow it. Inside the native
+      // app the checkout opens in Safari and this page stays, so remember the
+      // button and restore it when the user comes back (visibilitychange).
+      if (window.RyxaNative) _nativeCheckoutBtn = btn;
       window.location.href = data.url;
       return;
     }

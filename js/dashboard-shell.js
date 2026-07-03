@@ -1902,6 +1902,17 @@ window.addEventListener('pageshow', function(e) {
   });
 });
 
+// Native app only: checkout link-outs open Safari while this page stays put,
+// so pageshow never fires and loading buttons stay stuck. Restore them all
+// whenever the app comes back to the foreground.
+document.addEventListener('visibilitychange', function () {
+  if (document.visibilityState !== 'visible') return;
+  if (!window.RyxaNative || !_btnLoadingSet.size) return;
+  Array.from(_btnLoadingSet).forEach(function (btn) {
+    try { clearBtnLoading(btn); } catch (_) {}
+  });
+});
+
 // =============================================================================
 // goToPricing - the new SaaS-standard upgrade entry point.
 //
