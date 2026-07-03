@@ -596,6 +596,15 @@ async function initAuth() {
       Auth.setToken(session.access_token);
       _cacheGoodSession(session);
       _intentionalSignOut = false; // a fresh sign-in re-arms recovery
+      // If the login screen is showing when a session arrives (the app's
+      // sheet login writes the session to shared storage while this page
+      // sits on the login view), reload into the dashboard. Without this,
+      // the user is authenticated but still staring at the login screen.
+      var loginScreen = document.getElementById('pwa-login-screen');
+      if (loginScreen && loginScreen.style.display === 'flex') {
+        _diag('SIGNED_IN while login showing -> reloading into dashboard');
+        window.location.href = '/dashboard.html';
+      }
       return;
     }
     if (event === 'SIGNED_OUT') {
