@@ -987,7 +987,7 @@ async function toggleCoachingPublish() {
     pubBtn.style.color = '#ef4444';
     document.getElementById('coaching-marketplace-toggle').style.display = 'block';
     updateMarketplaceCountDisplay();
-    showCoachingMsg('success', 'Published! Landing page: ryxa.io/booking/' + (coaching?.slug || ''));
+    showCoachingMsg('success', 'Published!');
   } else {
     pubBtn.textContent = 'Publish';
     pubBtn.style.borderColor = 'rgba(74,222,128,0.4)';
