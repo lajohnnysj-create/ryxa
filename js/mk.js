@@ -1096,6 +1096,13 @@ function removeMKCustomBg() {
 
 // ==== Save / Publish ====
 function showMKStatus(kind, msg) {
+  // Delegates to the dashboard's slide-in toast so Media Kit feedback
+  // matches the new notification style. Falls back to the legacy inline
+  // banner if the shell isn't loaded.
+  if (typeof showDashToast === 'function') {
+    showDashToast(kind === 'error' ? 'error' : 'success', msg);
+    return;
+  }
   const el = document.getElementById('mk-save-status');
   if (!el) return;
   el.style.display = 'block';
@@ -1234,7 +1241,7 @@ async function saveMediaKit() {
     await deleteMKStalePhotos();
     await deleteMKStaleBgs();
     updateMKPublishUI();
-    showMKStatus('success', 'Saved ✓');
+    showMKStatus('success', 'Saved');
     // Re-render username hint so "Press save to change username" disappears
     const mkUname = document.getElementById('mk-username')?.value?.trim();
     if (mkUname) renderMKUsernameAvailable(mkUname);
