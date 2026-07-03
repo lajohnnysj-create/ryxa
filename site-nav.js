@@ -763,6 +763,9 @@ if (typeof window.openSignupModal === 'undefined') {
 // The widget key rides on the data attribute, which the widget reads via
 // document.currentScript. Guarded against double-injection.
 (function loadBleviqWidget() {
+  // Inside the native mobile app the chat widget is suppressed entirely.
+  // window.RyxaNative is injected by the app before any page script runs.
+  if (window.RyxaNative) return;
   if (document.querySelector('script[data-bleviq-widget]')) return;
   var s = document.createElement('script');
   s.src = 'https://www.bleviq.com/widget.js';
