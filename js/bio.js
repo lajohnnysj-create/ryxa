@@ -4162,6 +4162,13 @@ async function deleteStalePhotos() {
 
 // ====== SAVE / PUBLISH ======
 function showBioStatus(kind, msg) {
+  // Delegates to the dashboard's slide-in toast so all Link in Bio feedback
+  // (saves, blocks added, uploads, errors) matches the new notification
+  // style. Falls back to the legacy inline banner if the shell isn't loaded.
+  if (typeof showDashToast === 'function') {
+    showDashToast(kind === 'error' ? 'error' : 'success', msg);
+    return;
+  }
   const el = document.getElementById('bio-save-status');
   if (!el) return;
   el.style.display = 'block';
