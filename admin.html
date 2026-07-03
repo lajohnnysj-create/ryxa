@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Ryxa Admin</title>
+<style>
+  :root { --bg:#07070f; --surface:#0f0f1a; --card:#181828; --text:#f0eef8; --muted:#b4b2c8; --accent:#7c3aed; --danger:#e5484d; --border:rgba(255,255,255,0.08); }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:"DM Sans",-apple-system,sans-serif; min-height:100vh; }
+  .wrap { max-width:1080px; margin:0 auto; padding:calc(24px + env(safe-area-inset-top,0px)) 20px 60px; }
+  h1 { font-size:22px; margin:0 0 4px; }
+  .sub { color:var(--muted); font-size:14px; margin:0 0 24px; }
+  .gate { text-align:center; padding:80px 20px; }
+  .btn { background:var(--accent); color:#fff; border:none; border-radius:10px; padding:12px 26px; font-size:15px; font-weight:600; cursor:pointer; font-family:inherit; }
+  .btn:hover { background:#6d28d9; }
+  .denied { color:var(--danger); font-weight:600; margin-top:16px; }
+  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; margin-bottom:24px; }
+  .stat { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px; }
+  .stat .n { font-size:26px; font-weight:700; }
+  .stat .l { color:var(--muted); font-size:13px; margin-top:2px; }
+  table { width:100%; border-collapse:collapse; background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  th, td { text-align:left; padding:10px 12px; font-size:13px; border-bottom:1px solid var(--border); vertical-align:top; }
+  th { color:var(--muted); font-weight:600; background:var(--card); }
+  tr.err-row { cursor:pointer; }
+  tr.err-row:hover { background:rgba(124,58,237,0.07); }
+  .msg { max-width:480px; overflow-wrap:anywhere; }
+  .stack { display:none; white-space:pre-wrap; font-family:ui-monospace,Menlo,monospace; font-size:12px; color:var(--muted); background:var(--bg); border-radius:8px; padding:10px; margin:4px 0 8px; overflow-wrap:anywhere; }
+  .stack.open { display:block; }
+  .muted { color:var(--muted); }
+  .toolbar { display:flex; justify-content:space-between; align-items:center; margin:0 0 12px; gap:12px; flex-wrap:wrap; }
+  .btn-ghost { background:none; border:1px solid var(--border); color:var(--text); border-radius:10px; padding:8px 16px; cursor:pointer; font-family:inherit; font-size:13px; }
+  .btn-ghost:hover { border-color:var(--accent); }
+  #load-more { margin:16px auto 0; display:block; }
+  @media (max-width:640px) { th.hide-m, td.hide-m { display:none; } }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div id="gate" class="gate">
+      <h1>Ryxa Admin</h1>
+      <p class="sub">Restricted area.</p>
+      <button class="btn" id="admin-login-btn" data-admin-action="login">Sign in with Google</button>
+      <div id="gate-msg" class="denied" style="display:none;"></div>
+    </div>
+
+    <div id="panel" style="display:none;">
+      <h1>Ryxa Admin</h1>
+      <p class="sub" id="admin-who"></p>
+      <div class="stats">
+        <div class="stat"><div class="n" id="stat-users">-</div><div class="l">Total creators</div></div>
+        <div class="stat"><div class="n" id="stat-err24">-</div><div class="l">Errors, last 24h</div></div>
+        <div class="stat"><div class="n" id="stat-err7">-</div><div class="l">Errors, last 7 days</div></div>
+      </div>
+      <div class="toolbar">
+        <h2 style="font-size:16px;margin:0;">Client errors</h2>
+        <button class="btn-ghost" data-admin-action="refresh">Refresh</button>
+      </div>
+      <table aria-label="Client errors">
+        <thead><tr><th>Time</th><th>Message</th><th class="hide-m">Page</th><th class="hide-m">User</th><th class="hide-m">Source</th></tr></thead>
+        <tbody id="err-body"></tbody>
+      </table>
+      <button class="btn-ghost" id="load-more" data-admin-action="load-more">Load older</button>
+    </div>
+  </div>
+  <script src="/js/supabase-2.105.4.js"></script>
+  <script src="/js/admin-page.js"></script>
+</body>
+</html>
