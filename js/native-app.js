@@ -46,18 +46,22 @@
 
   function insertTopbarButtons() {
     var right = document.querySelector('.topbar-right');
+    var left = document.querySelector('.topbar-left');
     if (!right || document.getElementById('native-alerts-bell')) return;
 
-    var phone = makeTopbarButton('native-app-settings', 'settings', 'App Settings', ICONS.settings);
-    phone.style.marginLeft = '10px';
+    // Phone icon (App Settings) anchors the top-left corner.
+    if (left) {
+      var phone = makeTopbarButton('native-app-settings', 'settings', 'App Settings', ICONS.settings);
+      phone.style.marginRight = '8px';
+      phone.style.marginLeft = '-6px';
+      left.insertBefore(phone, left.firstChild);
+    }
 
     var bell = makeTopbarButton('native-alerts-bell', 'alerts', 'Alerts', ICONS.alerts);
     bell.style.marginLeft = '8px';
     // Negative margin cancels the button's own right padding (and a touch
     // more) so the glyph sits flush against the topbar's content edge.
     bell.style.marginRight = '-9px';
-
-    right.appendChild(phone);
     right.appendChild(bell);
   }
 
