@@ -37,7 +37,14 @@ document.addEventListener('change', function(e) {
 
 const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_PLU28Un_GfsUXeUsK3zB9Q_hvNM7aeG';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// autoRefreshToken stays OFF on public pages. This page only READS the
+// shared session (enrolled/booked state); letting it also refresh tokens
+// made it race the dashboard tab for the single-use refresh token, which
+// triggers Supabase's reuse detection and revokes the whole session
+// (the random logout bug).
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { persistSession: true, autoRefreshToken: false }
+});
 
 let coachingData = null;
 
