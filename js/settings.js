@@ -393,18 +393,15 @@ async function connectStripeAccount() {
 }
 
 function showStripeDisconnectConfirm() {
-  const confirm = document.getElementById('stripe-disconnect-confirm');
-  const btn = document.getElementById('stripe-disconnect-btn');
-  if (confirm) confirm.style.display = 'block';
-  if (btn) btn.style.display = 'none';
-}
-
-function hideStripeDisconnectConfirm() {
-  const confirm = document.getElementById('stripe-disconnect-confirm');
-  const btn = document.getElementById('stripe-disconnect-btn');
-  if (confirm) confirm.style.display = 'none';
-  // Empty string restores the stylesheet's flex display for the X button.
-  if (btn) btn.style.display = '';
+  // Modern centered confirm modal (shared showModalConfirm) instead of the
+  // old inline panel. The destructive action is the primary button.
+  showModalConfirm(
+    'Disconnect Stripe?',
+    "You won't receive payouts until you reconnect. Your Stripe account itself is not affected.",
+    function() { confirmDisconnectStripe(); },
+    'Yes, disconnect',
+    'Keep connected'
+  );
 }
 
 async function confirmDisconnectStripe() {
@@ -1656,7 +1653,6 @@ async function confirmSettingsCancel() {
 // Stripe Connect
 settingsRegisterAction('connect-stripe', () => connectStripeAccount());
 settingsRegisterAction('show-stripe-disconnect', () => showStripeDisconnectConfirm());
-settingsRegisterAction('hide-stripe-disconnect', () => hideStripeDisconnectConfirm());
 settingsRegisterAction('confirm-disconnect-stripe', () => confirmDisconnectStripe());
 
 // Instagram
