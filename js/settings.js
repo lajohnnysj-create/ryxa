@@ -403,7 +403,8 @@ function hideStripeDisconnectConfirm() {
   const confirm = document.getElementById('stripe-disconnect-confirm');
   const btn = document.getElementById('stripe-disconnect-btn');
   if (confirm) confirm.style.display = 'none';
-  if (btn) btn.style.display = 'block';
+  // Empty string restores the stylesheet's flex display for the X button.
+  if (btn) btn.style.display = '';
 }
 
 async function confirmDisconnectStripe() {
