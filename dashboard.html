@@ -6353,6 +6353,22 @@
   body.tier-loading .mt-pill { display: none; }
   body.pro-user .mt-pill.pro { display: none; }
   body.max-user .mt-pill.pro, body.max-user .mt-pill.max { display: none; }
+  /* Right-side spinner for the PWA login OAuth buttons while redirecting */
+  .auth-btn-loading { position: relative; pointer-events: none; opacity: 0.75; }
+  .auth-btn-loading::after {
+    content: '';
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    width: 16px;
+    height: 16px;
+    margin-top: -8px;
+    border: 2px solid rgba(127,127,127,0.35);
+    border-top-color: currentColor;
+    border-radius: 50%;
+    animation: authspin 0.7s linear infinite;
+  }
+  @keyframes authspin { to { transform: rotate(360deg); } }
 </style>
 <style>html{background:#0f0f1a;}body{visibility:hidden;}body.ready{visibility:visible;}</style>
 
