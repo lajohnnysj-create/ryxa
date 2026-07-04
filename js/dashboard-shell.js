@@ -2425,7 +2425,24 @@ function resetPwaTurnstile() {
   _pwaTurnstilePendingReject = null;
 }
 
+
+// Spinner state for the PWA login OAuth buttons. Reset on error, on
+// back/forward-cache returns, and by the app when its auth sheet closes.
+function setPwaAuthBtnLoading(id, on) {
+  var b = document.getElementById(id);
+  if (!b) return;
+  b.classList.toggle('auth-btn-loading', on);
+  b.disabled = on;
+}
+window.addEventListener('pageshow', function(e) {
+  if (e.persisted) {
+    setPwaAuthBtnLoading('pwa-google-btn', false);
+    setPwaAuthBtnLoading('pwa-apple-btn', false);
+  }
+});
+
 async function handlePwaGoogleAuth() {
+  setPwaAuthBtnLoading('pwa-google-btn', true);
   var { error } = await sb.auth.signInWithOAuth({
     provider: 'google',
     options: {
@@ -2433,17 +2450,24 @@ async function handlePwaGoogleAuth() {
       queryParams: { prompt: 'select_account' }
     }
   });
-  if (error) showPwaMsg('error', error.message);
+  if (error) {
+    setPwaAuthBtnLoading('pwa-google-btn', false);
+    showPwaMsg('error', error.message);
+  }
 }
 
 async function handlePwaAppleAuth() {
+  setPwaAuthBtnLoading('pwa-apple-btn', true);
   var { error } = await sb.auth.signInWithOAuth({
     provider: 'apple',
     options: {
       redirectTo: 'https://ryxa.io/dashboard.html'
     }
   });
-  if (error) showPwaMsg('error', error.message);
+  if (error) {
+    setPwaAuthBtnLoading('pwa-apple-btn', false);
+    showPwaMsg('error', error.message);
+  }
 }
 
 async function handlePwaAuth() {
