@@ -1874,7 +1874,8 @@ settingsRegisterAction('toggle-marketing', (e, el) => toggleMarketingEmails(el.c
 // =============================================================================
 
 const DELETE_ACCOUNT_PHRASE = 'DELETE MY ACCOUNT';
-var _deleteAccountMode = null; // 'password' | 'google' | 'confirmed'
+var _deleteAccountMode = null; // 'password' | 'google' | 'apple'
+var _deleteAccountStep = 1;    // 1 = verify identity, 2 = typed confirmation
 
 function _delEl(id) { return document.getElementById(id); }
 
@@ -1956,23 +1957,26 @@ async function openDeleteAccountModal(forcedMode) {
   var pwInput = _delEl('settings-delete-password');
   if (pwInput) pwInput.value = '';
   var confirmBtn = _delEl('settings-delete-confirm-btn');
-  if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = 'Delete permanently'; }
 
   var pwBlock = _delEl('settings-delete-pw-block');
-  var googleBlock = _delEl('settings-delete-google-block');
+  var oauthBlock = _delEl('settings-delete-oauth-block');
+  var oauthNote = _delEl('settings-delete-oauth-note');
   var confirmedBlock = _delEl('settings-delete-confirmed-block');
+  var phraseBlock = _delEl('settings-delete-phrase-block');
   if (pwBlock) pwBlock.style.display = 'none';
-  if (googleBlock) googleBlock.style.display = 'none';
+  if (oauthBlock) oauthBlock.style.display = 'none';
   if (confirmedBlock) confirmedBlock.style.display = 'none';
+  if (phraseBlock) phraseBlock.style.display = 'none';
 
   if (forcedMode === 'confirmed') {
-    // Returning from a fresh Google re-auth.
-    _deleteAccountMode = 'confirmed';
-    if (confirmedBlock) confirmedBlock.style.display = '';
+    // Step 2: identity already re-confirmed (returning from Google/Apple).
+    _delEnterStep2();
   } else {
-    // Detect whether this is a Google-managed account (no password) or a
-    // password account. Mirrors applyGoogleAccountPasswordUI's detection.
-    var hasGoogle = false, hasEmail = false;
+    // Step 1: verify identity first. Detect the account's sign-in method,
+    // including Apple (Apple-only accounts previously fell through to the
+    // password prompt they could never satisfy).
+    _deleteAccountStep = 1;
+    var hasGoogle = false, hasApple = false, hasEmail = false;
     try {
       var res = await sb.auth.getUser();
       var user = res && res.data ? res.data.user : null;
@@ -1984,75 +1988,119 @@ async function openDeleteAccountModal(forcedMode) {
       if (meta.provider) providers.push(meta.provider);
       if (Array.isArray(meta.providers)) providers = providers.concat(meta.providers);
       hasGoogle = providers.indexOf('google') !== -1;
+      hasApple = providers.indexOf('apple') !== -1;
       hasEmail = providers.indexOf('email') !== -1;
     } catch (e) {
       // If detection fails, fall back to password mode (the safer prompt).
       hasEmail = true;
     }
 
-    if (hasGoogle && !hasEmail) {
-      _deleteAccountMode = 'google';
-      if (googleBlock) googleBlock.style.display = '';
-    } else {
+    if (hasEmail || (!hasGoogle && !hasApple)) {
       _deleteAccountMode = 'password';
       if (pwBlock) pwBlock.style.display = '';
+      if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = 'Verify identity'; }
       ensureDeleteTurnstile();
       resetDeleteTurnstile();
+    } else if (hasGoogle) {
+      _deleteAccountMode = 'google';
+      if (oauthBlock) oauthBlock.style.display = '';
+      if (oauthNote) oauthNote.textContent = 'You sign in with Google. Verify your identity with a quick Google sign-in, then you can confirm the deletion.';
+      if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = 'Verify with Google'; }
+    } else {
+      _deleteAccountMode = 'apple';
+      if (oauthBlock) oauthBlock.style.display = '';
+      if (oauthNote) oauthNote.textContent = 'You sign in with Apple. Verify your identity with a quick Apple sign-in, then you can confirm the deletion.';
+      if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = 'Verify with Apple'; }
     }
   }
 
   modal.classList.add('open');
-  if (phraseInput) phraseInput.focus();
+  if (_deleteAccountStep === 1 && _deleteAccountMode === 'password' && pwInput) {
+    pwInput.focus();
+  } else if (_deleteAccountStep === 2 && phraseInput) {
+    phraseInput.focus();
+  }
+}
+
+// Switch the modal into step 2: identity confirmed, typed phrase required.
+function _delEnterStep2() {
+  _deleteAccountStep = 2;
+  var pwBlock = _delEl('settings-delete-pw-block');
+  var oauthBlock = _delEl('settings-delete-oauth-block');
+  var confirmedBlock = _delEl('settings-delete-confirmed-block');
+  var phraseBlock = _delEl('settings-delete-phrase-block');
+  if (pwBlock) pwBlock.style.display = 'none';
+  if (oauthBlock) oauthBlock.style.display = 'none';
+  if (confirmedBlock) confirmedBlock.style.display = '';
+  if (phraseBlock) phraseBlock.style.display = '';
+  var confirmBtn = _delEl('settings-delete-confirm-btn');
+  if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = 'Delete permanently'; }
+  var phraseInput = _delEl('settings-delete-input');
+  if (phraseInput) { phraseInput.value = ''; phraseInput.focus(); }
 }
 
 function closeDeleteAccountModal() {
   var modal = _delEl('settings-delete-modal');
   if (modal) modal.classList.remove('open');
   _deleteAccountMode = null;
+  _deleteAccountStep = 1;
 }
 
 function deleteAccountInputCheck(e, el) {
+  if (_deleteAccountStep !== 2) return;
   var confirmBtn = _delEl('settings-delete-confirm-btn');
   if (!confirmBtn) return;
   confirmBtn.disabled = (el.value !== DELETE_ACCOUNT_PHRASE);
 }
 
 async function confirmDeleteAccount() {
-  var phraseInput = _delEl('settings-delete-input');
-  if (!phraseInput || phraseInput.value !== DELETE_ACCOUNT_PHRASE) {
-    _delSetMsg('Please type ' + DELETE_ACCOUNT_PHRASE + ' exactly.');
-    return;
-  }
-  _delSetMsg('');
-
-  // Already re-authenticated via Google on this return, proceed straight to deletion.
-  if (_deleteAccountMode === 'confirmed') {
+  // ---- STEP 2: identity already verified; typed phrase gates deletion. ----
+  if (_deleteAccountStep === 2) {
+    var phraseInput = _delEl('settings-delete-input');
+    if (!phraseInput || phraseInput.value !== DELETE_ACCOUNT_PHRASE) {
+      _delSetMsg('Please type ' + DELETE_ACCOUNT_PHRASE + ' exactly.');
+      return;
+    }
+    _delSetMsg('');
     await performAccountDeletion();
     return;
   }
 
-  // Google account: kick off a fresh Google sign-in. Deletion resumes on return.
-  if (_deleteAccountMode === 'google') {
+  // ---- STEP 1: verify identity only. Never deletes. ----
+  _delSetMsg('');
+
+  // Google/Apple: fresh provider sign-in; the modal resumes at step 2 on
+  // return (?finish_delete=1). In the native app the OAuth runs in the
+  // bottom sheet (a blocked full-page navigation would replay and loop,
+  // same lesson as the login flow).
+  if (_deleteAccountMode === 'google' || _deleteAccountMode === 'apple') {
+    var provider = _deleteAccountMode;
+    var providerLabel = provider === 'google' ? 'Google' : 'Apple';
     var btn = _delEl('settings-delete-confirm-btn');
-    if (btn) { btn.disabled = true; btn.textContent = 'Redirecting to Google...'; }
-    var oauth = await sb.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: 'https://ryxa.io/dashboard.html?finish_delete=1',
-        queryParams: { prompt: 'select_account' }
-      }
-    });
+    if (btn) { btn.disabled = true; btn.textContent = 'Opening ' + providerLabel + '...'; }
+    var inApp = !!(window.RyxaNative && window.ReactNativeWebView);
+    var oauthOptions = {
+      redirectTo: 'https://ryxa.io/dashboard.html?finish_delete=1',
+      skipBrowserRedirect: inApp
+    };
+    if (provider === 'google') oauthOptions.queryParams = { prompt: 'select_account' };
+    var oauth = await sb.auth.signInWithOAuth({ provider: provider, options: oauthOptions });
     if (oauth && oauth.error) {
-      _delSetMsg(oauth.error.message || 'Could not start Google sign-in. Please try again.');
-      if (btn) { btn.disabled = false; btn.textContent = 'Delete permanently'; }
+      _delSetMsg(oauth.error.message || 'Could not start ' + providerLabel + ' sign-in. Please try again.');
+      if (btn) { btn.disabled = false; btn.textContent = 'Verify with ' + providerLabel; }
+      return;
+    }
+    if (inApp && oauth && oauth.data && oauth.data.url) {
+      window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'openSheet', url: oauth.data.url }));
     }
     return;
   }
 
-  // Password account: verify the password (with captcha) before deleting.
+  // Password account: verify the password (with captcha), then advance to
+  // the typed confirmation step.
   var pwInput = _delEl('settings-delete-password');
   var password = pwInput ? pwInput.value : '';
-  if (!password) { _delSetMsg('Please enter your password to confirm.'); return; }
+  if (!password) { _delSetMsg('Please enter your password to continue.'); return; }
 
   var btn2 = _delEl('settings-delete-confirm-btn');
   if (btn2) { btn2.disabled = true; btn2.textContent = 'Verifying...'; }
@@ -2064,7 +2112,7 @@ async function confirmDeleteAccount() {
   } catch (e) {
     _delSetMsg('Verification failed. Please disable any ad blocker for ryxa.io and try again.');
     resetDeleteTurnstile();
-    if (btn2) { btn2.disabled = false; btn2.textContent = 'Delete permanently'; }
+    if (btn2) { btn2.disabled = false; btn2.textContent = 'Verify identity'; }
     return;
   }
 
@@ -2083,17 +2131,18 @@ async function confirmDeleteAccount() {
       } else {
         _delSetMsg('That password is not correct. Please try again.');
       }
-      if (btn2) { btn2.disabled = false; btn2.textContent = 'Delete permanently'; }
+      if (btn2) { btn2.disabled = false; btn2.textContent = 'Verify identity'; }
       return;
     }
   } catch (e) {
     resetDeleteTurnstile();
     _delSetMsg('Could not verify your password. Please try again.');
-    if (btn2) { btn2.disabled = false; btn2.textContent = 'Delete permanently'; }
+    if (btn2) { btn2.disabled = false; btn2.textContent = 'Verify identity'; }
     return;
   }
 
-  await performAccountDeletion();
+  // Password verified: advance to the typed confirmation step.
+  _delEnterStep2();
 }
 
 async function performAccountDeletion() {
