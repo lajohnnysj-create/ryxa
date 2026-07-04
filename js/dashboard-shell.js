@@ -2443,30 +2443,45 @@ window.addEventListener('pageshow', function(e) {
 
 async function handlePwaGoogleAuth() {
   setPwaAuthBtnLoading('pwa-google-btn', true);
-  var { error } = await sb.auth.signInWithOAuth({
+  // Native app: don't navigate this page to the OAuth URL (a blocked
+  // navigation replays when the sheet closes, reopening it in a loop).
+  // Instead ask Supabase for the URL and hand it to the sheet directly.
+  var inApp = !!(window.RyxaNative && window.ReactNativeWebView);
+  var { data, error } = await sb.auth.signInWithOAuth({
     provider: 'google',
     options: {
       redirectTo: 'https://ryxa.io/dashboard.html',
-      queryParams: { prompt: 'select_account' }
+      queryParams: { prompt: 'select_account' },
+      skipBrowserRedirect: inApp
     }
   });
   if (error) {
     setPwaAuthBtnLoading('pwa-google-btn', false);
     showPwaMsg('error', error.message);
+    return;
+  }
+  if (inApp && data && data.url) {
+    window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'openSheet', url: data.url }));
   }
 }
 
 async function handlePwaAppleAuth() {
   setPwaAuthBtnLoading('pwa-apple-btn', true);
-  var { error } = await sb.auth.signInWithOAuth({
+  var inApp = !!(window.RyxaNative && window.ReactNativeWebView);
+  var { data, error } = await sb.auth.signInWithOAuth({
     provider: 'apple',
     options: {
-      redirectTo: 'https://ryxa.io/dashboard.html'
+      redirectTo: 'https://ryxa.io/dashboard.html',
+      skipBrowserRedirect: inApp
     }
   });
   if (error) {
     setPwaAuthBtnLoading('pwa-apple-btn', false);
     showPwaMsg('error', error.message);
+    return;
+  }
+  if (inApp && data && data.url) {
+    window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'openSheet', url: data.url }));
   }
 }
 

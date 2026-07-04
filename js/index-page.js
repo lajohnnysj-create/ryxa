@@ -342,15 +342,23 @@ async function handleGoogleAuth() {
     }
   } catch (_) { /* storage unavailable - bare redirect */ }
   setAuthBtnLoading('google-btn', true);
-  const { error } = await sb.auth.signInWithOAuth({
+  // Native app: hand the OAuth URL to the sheet instead of navigating
+  // (a blocked navigation replays when the sheet closes: reopen loop).
+  const inApp = !!(window.RyxaNative && window.ReactNativeWebView);
+  const { data, error } = await sb.auth.signInWithOAuth({
     provider: 'google',
     options: {
       redirectTo: redirectTo,
+      skipBrowserRedirect: inApp,
     },
   });
   if (error) {
     setAuthBtnLoading('google-btn', false);
     showAuthMsg('error', error.message);
+    return;
+  }
+  if (inApp && data && data.url) {
+    window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'openSheet', url: data.url }));
   }
 }
 
@@ -381,15 +389,23 @@ async function handleAppleAuth() {
     }
   } catch (_) { /* storage unavailable - bare redirect */ }
   setAuthBtnLoading('apple-btn', true);
-  const { error } = await sb.auth.signInWithOAuth({
+  // Native app: hand the OAuth URL to the sheet instead of navigating
+  // (a blocked navigation replays when the sheet closes: reopen loop).
+  const inApp = !!(window.RyxaNative && window.ReactNativeWebView);
+  const { data, error } = await sb.auth.signInWithOAuth({
     provider: 'apple',
     options: {
       redirectTo: redirectTo,
+      skipBrowserRedirect: inApp,
     },
   });
   if (error) {
     setAuthBtnLoading('apple-btn', false);
     showAuthMsg('error', error.message);
+    return;
+  }
+  if (inApp && data && data.url) {
+    window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'openSheet', url: data.url }));
   }
 }
 
