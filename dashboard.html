@@ -10959,25 +10959,27 @@
     </ul>
     <p class="settings-s-delbody">Any active subscription is cancelled first so you are not billed again.</p>
 
-    <!-- Re-auth: password accounts -->
+    <!-- STEP 1: verify identity (password accounts) -->
     <div id="settings-delete-pw-block">
       <label for="settings-delete-password" class="settings-s-dellabel">Confirm your password</label>
       <input type="password" id="settings-delete-password" class="settings-s-delinput" autocomplete="current-password" placeholder="Your password">
       <div id="settings-delete-turnstile"></div>
     </div>
 
-    <!-- Re-auth: Google accounts (no password) -->
-    <div id="settings-delete-google-block" style="display:none;">
-      <p class="settings-s-delgoogle">You sign in with Google. When you confirm, you will be asked to re-authenticate with Google before deletion proceeds.</p>
+    <!-- STEP 1: verify identity (Google/Apple accounts, note text set by JS) -->
+    <div id="settings-delete-oauth-block" style="display:none;">
+      <p class="settings-s-delgoogle" id="settings-delete-oauth-note"></p>
     </div>
 
-    <!-- Identity-confirmed note (shown after Google re-auth return) -->
+    <!-- STEP 2: identity confirmed + final typed confirmation -->
     <div id="settings-delete-confirmed-block" style="display:none;">
-      <p class="settings-s-delgoogle">Your identity has been re-confirmed with Google. Click "Delete permanently" to finish.</p>
+      <p class="settings-s-delgoogle">Your identity has been confirmed. This is the final step.</p>
     </div>
 
-    <label for="settings-delete-input" class="settings-s-dellabel">Type <strong>DELETE MY ACCOUNT</strong> to confirm</label>
-    <input type="text" id="settings-delete-input" class="settings-s-delinput" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="DELETE MY ACCOUNT" data-settings-action="delete-input-check" data-settings-event="input">
+    <div id="settings-delete-phrase-block" style="display:none;">
+      <label for="settings-delete-input" class="settings-s-dellabel">Type <strong>DELETE MY ACCOUNT</strong> to confirm</label>
+      <input type="text" id="settings-delete-input" class="settings-s-delinput" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="DELETE MY ACCOUNT" data-settings-action="delete-input-check" data-settings-event="input">
+    </div>
 
     <div id="settings-delete-msg" class="settings-s-delmsg" role="alert"></div>
     <div id="settings-delete-ok" class="settings-s-delok" role="status"></div>
