@@ -594,14 +594,36 @@ async function downloadProductFile(fileId, btn) {
       throw new Error(data.error || 'Could not generate download link');
     }
 
-    // Trigger browser download via a transient link
-    var a = document.createElement('a');
-    a.href = data.url;
-    a.download = data.filename || '';
-    a.rel = 'noopener';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    // Native app: WKWebView does not support the anchor download attribute,
+    // so the file is fetched and handed across the bridge for the native
+    // save/share sheet. Keys off RyxaNative so any future buyer app
+    // inherits this automatically.
+    if (window.RyxaNative && window.ReactNativeWebView) {
+      var natResp = await fetch(data.url);
+      if (!natResp.ok) throw new Error('Download failed (' + natResp.status + ')');
+      var natBlob = await natResp.blob();
+      var natB64 = await new Promise(function(resolve, reject) {
+        var reader = new FileReader();
+        reader.onload = function() { resolve(String(reader.result).split(',')[1] || ''); };
+        reader.onerror = function() { reject(new Error('Could not read file')); };
+        reader.readAsDataURL(natBlob);
+      });
+      window.ReactNativeWebView.postMessage(JSON.stringify({
+        type: 'saveFile',
+        filename: data.filename || 'download',
+        mime: natBlob.type || 'application/octet-stream',
+        base64: natB64
+      }));
+    } else {
+      // Trigger browser download via a transient link
+      var a = document.createElement('a');
+      a.href = data.url;
+      a.download = data.filename || '';
+      a.rel = 'noopener';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
 
     btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Started';
     setTimeout(function() {
@@ -663,6 +685,26 @@ async function downloadLessonFile(fileId, btn) {
     var fileResp = await fetch(data.url);
     if (!fileResp.ok) throw new Error('Download failed (' + fileResp.status + ')');
     var blob = await fileResp.blob();
+
+    // Native app: hand the bytes across the bridge for the native
+    // save/share sheet (anchor download attribute is unsupported there).
+    if (window.RyxaNative && window.ReactNativeWebView) {
+      var b64 = await new Promise(function(resolve, reject) {
+        var reader = new FileReader();
+        reader.onload = function() { resolve(String(reader.result).split(',')[1] || ''); };
+        reader.onerror = function() { reject(new Error('Could not read file')); };
+        reader.readAsDataURL(blob);
+      });
+      window.ReactNativeWebView.postMessage(JSON.stringify({
+        type: 'saveFile',
+        filename: data.filename || 'download',
+        mime: blob.type || 'application/octet-stream',
+        base64: b64
+      }));
+      restore();
+      return;
+    }
+
     var objectUrl = URL.createObjectURL(blob);
     var a = document.createElement('a');
     a.href = objectUrl;
