@@ -52,6 +52,9 @@ async function verifySupabaseUser(accessToken) {
 }
 
 module.exports = async function handler(req, res) {
+  // Per-IP rate limit: 30 requests / 60s. See api/lib/rate-limit.js.
+  if (require('./lib/rate-limit').tooMany(req, res, 'yt-ticket', 30, 60000)) return;
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }

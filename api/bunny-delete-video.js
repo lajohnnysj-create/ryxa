@@ -115,6 +115,9 @@ async function bunnyDeleteVideo(libraryId, apiKey, videoGuid) {
 
 // ---------- handler ----------
 module.exports = async (req, res) => {
+  // Per-IP rate limit: 20 requests / 60s. See api/lib/rate-limit.js.
+  if (require('./lib/rate-limit').tooMany(req, res, 'bunny-delete', 20, 60000)) return;
+
   var origin = req.headers.origin || '';
   var allowed = ['https://ryxa.io', 'https://www.ryxa.io', 'http://localhost:3000'];
   if (allowed.includes(origin)) res.setHeader('Access-Control-Allow-Origin', origin);

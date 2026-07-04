@@ -63,6 +63,9 @@ async function derivePageToken(userToken, pageId) {
 }
 
 module.exports = async function handler(req, res) {
+  // Per-IP rate limit: 6 requests / 60s. See api/lib/rate-limit.js.
+  if (require('./lib/rate-limit').tooMany(req, res, 'fb-refresh', 6, 60000)) return;
+
   if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'Method not allowed' });
 
   if (!CRON_SECRET) return res.status(500).json({ ok: false, error: 'Cron secret not configured' });

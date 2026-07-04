@@ -48,6 +48,9 @@ const MIN_TOKEN_AGE_HOURS = 24;
 const MAX_REFRESHES_PER_RUN = 100;
 
 module.exports = async function handler(req, res) {
+  // Per-IP rate limit: 6 requests / 60s. See api/lib/rate-limit.js.
+  if (require('./lib/rate-limit').tooMany(req, res, 'ig-refresh', 6, 60000)) return;
+
   if (req.method !== 'POST') {
     return res.status(405).json({ ok: false, error: 'Method not allowed' });
   }

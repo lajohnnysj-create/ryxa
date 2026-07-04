@@ -184,6 +184,9 @@ async function sendNotificationEmail(data) {
 }
 
 module.exports = async function handler(req, res) {
+  // Per-IP rate limit: 20 requests / 60s. See api/lib/rate-limit.js.
+  if (require('./lib/rate-limit').tooMany(req, res, 'subs-threshold', 20, 60000)) return;
+
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' });
     return;

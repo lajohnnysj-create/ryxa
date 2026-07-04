@@ -56,6 +56,9 @@ async function fetchPages(userToken) {
 }
 
 module.exports = async function handler(req, res) {
+  // Per-IP rate limit: 10 requests / 60s. See api/lib/rate-limit.js.
+  if (require('./lib/rate-limit').tooMany(req, res, 'fb-pages', 10, 60000)) return;
+
   res.setHeader('Access-Control-Allow-Origin', 'https://ryxa.io');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');

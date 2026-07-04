@@ -108,6 +108,9 @@ async function deleteConnection(userId) {
 // ----- main handler --------------------------------------------
 
 module.exports = async function handler(req, res) {
+  // Per-IP rate limit: 10 requests / 60s. See api/lib/rate-limit.js.
+  if (require('./lib/rate-limit').tooMany(req, res, 'ig-disconnect', 10, 60000)) return;
+
   // CORS for in-app fetch from dashboard
   res.setHeader('Access-Control-Allow-Origin', 'https://ryxa.io');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');

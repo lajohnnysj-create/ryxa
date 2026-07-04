@@ -117,6 +117,9 @@ async function sendNotificationEmail(row, email) {
 }
 
 module.exports = async function handler(req, res) {
+  // Per-IP rate limit: 5 requests / 600s. See api/lib/rate-limit.js.
+  if (require('./lib/rate-limit').tooMany(req, res, 'submit-verification', 5, 600000)) return;
+
   res.setHeader('Access-Control-Allow-Origin', 'https://ryxa.io');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');

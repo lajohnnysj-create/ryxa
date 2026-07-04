@@ -91,6 +91,9 @@ async function getFreshGoogleToken(userId, conn) {
 }
 
 module.exports = async function handler(req, res) {
+  // Per-IP rate limit: 10 requests / 60s. See api/lib/rate-limit.js.
+  if (require('./lib/rate-limit').tooMany(req, res, 'gcal-disconnect', 10, 60000)) return;
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }

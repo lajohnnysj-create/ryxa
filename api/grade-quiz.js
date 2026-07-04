@@ -100,6 +100,9 @@ async function sbInsertIgnoreDup(table, row) {
 }
 
 module.exports = async (req, res) => {
+  // Per-IP rate limit: 30 requests / 60s. See api/lib/rate-limit.js.
+  if (require('./lib/rate-limit').tooMany(req, res, 'grade-quiz', 30, 60000)) return;
+
   // CORS preflight - matches other endpoints in this codebase
   if (req.method === 'OPTIONS') {
     res.setHeader('Access-Control-Allow-Origin', '*');

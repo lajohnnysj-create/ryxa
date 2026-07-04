@@ -64,6 +64,9 @@ function createSignedUrl(bucket, path, expiresIn, downloadFilename) {
 }
 
 module.exports = async (req, res) => {
+  // Per-IP rate limit: 60 requests / 60s. See api/lib/rate-limit.js.
+  if (require('./lib/rate-limit').tooMany(req, res, 'download-lesson', 60, 60000)) return;
+
   var origin = req.headers.origin || '';
   var allowedOrigins = ['https://ryxa.io', 'https://www.ryxa.io', 'http://localhost:3000'];
   if (allowedOrigins.indexOf(origin) !== -1) res.setHeader('Access-Control-Allow-Origin', origin);

@@ -316,6 +316,9 @@ function renderPage(product, creator) {
 }
 
 module.exports = async (req, res) => {
+  // Per-IP rate limit: 60 requests / 60s. See api/lib/rate-limit.js.
+  if (require('./lib/rate-limit').tooMany(req, res, 'product-data', 60, 60000)) return;
+
   // Content Security Policy — ENFORCED. Product landing pages are PUBLIC and
   // render seller-supplied content (title, description, images). Strict CSP
   // defends against XSS via injected <script> in product fields.

@@ -69,6 +69,9 @@ async function verifyCreatorJWT(authHeader) {
 }
 
 module.exports = async function (req, res) {
+  // Per-IP rate limit: 60 requests / 60s. See api/lib/rate-limit.js.
+  if (require('./lib/rate-limit').tooMany(req, res, 'r2-delete', 60, 60000)) return;
+
   var origin = req.headers.origin || '';
   var allowed = ['https://ryxa.io', 'https://www.ryxa.io', 'http://localhost:3000'];
   if (allowed.indexOf(origin) !== -1) res.setHeader('Access-Control-Allow-Origin', origin);
