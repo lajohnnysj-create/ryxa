@@ -1935,6 +1935,11 @@ function closeDesignEditor() {
 // =====================================================
 function showModalConfirm(title, message, onConfirm, confirmText, cancelText, opts) {
   opts = opts || {};
+  // House style (July 2026): every confirm modal shows the brand logo and
+  // uses white text on the red confirm button. Callers can opt out with
+  // { logo: false } or { danger: false } if a context ever needs it.
+  if (opts.logo === undefined) opts.logo = true;
+  if (opts.danger === undefined) opts.danger = true;
   var overlay = document.createElement('div');
   overlay.id = 'modal-confirm-overlay';
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;';
