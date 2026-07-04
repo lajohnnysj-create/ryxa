@@ -664,6 +664,7 @@ async function deleteCourse() {
     var overlay = document.createElement('div');
     overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;';
     overlay.innerHTML = '<div class="course-s-a25ccd">'
+      + '<img src="/logo.png?v=2" alt="" aria-hidden="true" style="display:block;height:40px;width:auto;margin:0 auto 16px;">'
       + '<div class="course-s-bc1a76">Delete Course</div>'
       + '<p class="course-s-1668a0">This will permanently delete this course, all modules, lessons, and enrollment data. This cannot be undone.</p>'
       + '<p class="course-s-7a34e5">Type <strong class="course-s-9dd120">DELETE</strong> to confirm:</p>'
@@ -682,7 +683,9 @@ async function deleteCourse() {
       var match = input.value.trim() === 'DELETE';
       confirmBtn.disabled = !match;
       confirmBtn.style.opacity = match ? '1' : '0.4';
-      if (match) { confirmBtn.style.background = '#ef4444'; confirmBtn.style.color = '#fff'; confirmBtn.style.borderColor = '#ef4444'; }
+      // Enabled state matches the disconnect-modal danger button: translucent
+      // red background with white text (readable, consistent across modals).
+      if (match) { confirmBtn.style.background = 'rgba(239,68,68,0.12)'; confirmBtn.style.color = '#ffffff'; confirmBtn.style.borderColor = 'rgba(239,68,68,0.3)'; }
       else { confirmBtn.style.background = 'transparent'; confirmBtn.style.color = '#ef4444'; confirmBtn.style.borderColor = 'rgba(239,68,68,0.3)'; }
     });
 
@@ -1143,6 +1146,7 @@ function confirmTypedDelete(title, message, confirmLabel) {
     var confirmId = 'typed-delete-confirm-' + Date.now();
     var cancelId = 'typed-delete-cancel-' + Date.now();
     overlay.innerHTML = '<div class="course-s-a25ccd">'
+      + '<img src="/logo.png?v=2" alt="" aria-hidden="true" style="display:block;height:40px;width:auto;margin:0 auto 16px;">'
       + '<div class="course-s-bc1a76">' + escapeHtml(title) + '</div>'
       + '<p class="course-s-1668a0">' + escapeHtml(message) + '</p>'
       + '<p class="course-s-7a34e5">Type <strong class="course-s-9dd120">DELETE</strong> to confirm:</p>'
@@ -1161,7 +1165,9 @@ function confirmTypedDelete(title, message, confirmLabel) {
       var match = input.value.trim() === 'DELETE';
       confirmBtn.disabled = !match;
       confirmBtn.style.opacity = match ? '1' : '0.4';
-      if (match) { confirmBtn.style.background = '#ef4444'; confirmBtn.style.color = '#fff'; confirmBtn.style.borderColor = '#ef4444'; }
+      // Enabled state matches the disconnect-modal danger button: translucent
+      // red background with white text (readable, consistent across modals).
+      if (match) { confirmBtn.style.background = 'rgba(239,68,68,0.12)'; confirmBtn.style.color = '#ffffff'; confirmBtn.style.borderColor = 'rgba(239,68,68,0.3)'; }
       else { confirmBtn.style.background = 'transparent'; confirmBtn.style.color = '#ef4444'; confirmBtn.style.borderColor = 'rgba(239,68,68,0.3)'; }
     });
 
