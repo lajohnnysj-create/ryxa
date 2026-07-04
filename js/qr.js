@@ -217,8 +217,25 @@ function downloadQR() {
   }
   if (!hasContent) return;
   const canvas = document.getElementById('qr-canvas');
+  const dataUrl = canvas.toDataURL('image/png');
+
+  // Native app: WKWebView does not support the anchor download attribute,
+  // so the PNG goes across the bridge to the iOS save/share sheet. Covers
+  // both link and contact card QR codes (same canvas, same path).
+  if (window.RyxaNative && window.ReactNativeWebView) {
+    try {
+      window.ReactNativeWebView.postMessage(JSON.stringify({
+        type: 'saveFile',
+        filename: 'qrcode.png',
+        mime: 'image/png',
+        base64: dataUrl.split(',')[1] || ''
+      }));
+    } catch (e) { console.error('qr bridge', e); }
+    return;
+  }
+
   const a = document.createElement('a');
-  a.href = canvas.toDataURL('image/png');
+  a.href = dataUrl;
   a.download = 'qrcode.png';
   a.click();
 }

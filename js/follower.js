@@ -627,18 +627,6 @@ function faExportCSV() {
 
 // ── PRINT ──
 function faPrintReport() {
-  // Native app: window.print() is unsupported in the WebView. The report
-  // HTML goes across the bridge instead; the app renders it to a PDF and
-  // opens the iOS share sheet, which includes Print.
-  if (window.RyxaNative && window.ReactNativeWebView) {
-    try {
-      window.ReactNativeWebView.postMessage(JSON.stringify({
-        type: 'openDocument',
-        html: buildFaPrintHTML()
-      }));
-    } catch (e) { console.error('print bridge', e); }
-    return;
-  }
   // Build a clean print-ready HTML doc in a hidden iframe and trigger print.
   // Same pattern as Contract Analyzer's caPrintReport — avoids the dashboard's
   // dark theme bleeding into the print output. All black text, white background.
