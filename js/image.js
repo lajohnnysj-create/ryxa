@@ -991,9 +991,27 @@ async function convertImage() {
       btn.textContent = 'Download Image'; btn.disabled = false;
       return;
     }
+    const outName = imgFile.name.replace(/\.[^/.]+$/, '') + '_edited.' + ext;
+
+    // Native app: WKWebView does not support the anchor download attribute,
+    // so the image goes across the bridge to the iOS save/share sheet.
+    if (window.RyxaNative && window.ReactNativeWebView) {
+      try {
+        window.ReactNativeWebView.postMessage(JSON.stringify({
+          type: 'saveFile',
+          filename: outName,
+          mime: format,
+          base64: dataUrl.split(',')[1] || ''
+        }));
+      } catch (e) { console.error('download bridge', e); }
+      document.getElementById('img-usage').textContent = '';
+      btn.textContent = 'Download Image'; btn.disabled = false;
+      return;
+    }
+
     const a = document.createElement('a');
     a.href = dataUrl;
-    a.download = imgFile.name.replace(/\.[^/.]+$/, '') + '_edited.' + ext;
+    a.download = outName;
     a.click();
     document.getElementById('img-usage').textContent = '';
     btn.textContent = 'Download Image'; btn.disabled = false;

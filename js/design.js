@@ -1846,8 +1846,25 @@ function exportDesign() {
   var ext = fmt === 'jpeg' ? 'jpg' : fmt;
 
   var dataUrl = dsCanvas.toDataURL({ format: fmt, multiplier: multiplier, quality: quality });
+  var fileName = (dsProjectName || 'design').replace(/[^a-zA-Z0-9_-]/g, '_') + '.' + ext;
+
+  // Native app: WKWebView does not support the anchor download attribute,
+  // so the image goes across the bridge to the iOS save/share sheet.
+  if (window.RyxaNative && window.ReactNativeWebView) {
+    try {
+      window.ReactNativeWebView.postMessage(JSON.stringify({
+        type: 'saveFile',
+        filename: fileName,
+        mime: 'image/' + fmt,
+        base64: dataUrl.split(',')[1] || ''
+      }));
+    } catch (e) { console.error('export bridge', e); }
+    document.getElementById('ds-export-menu').style.display = 'none';
+    return;
+  }
+
   var a = document.createElement('a');
-  a.download = (dsProjectName || 'design').replace(/[^a-zA-Z0-9_-]/g, '_') + '.' + ext;
+  a.download = fileName;
   a.href = dataUrl;
   a.click();
   document.getElementById('ds-export-menu').style.display = 'none';
