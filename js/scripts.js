@@ -1047,11 +1047,28 @@ function exportScriptCopySpoken() {
 
 function exportScriptDownloadTxt() {
   const text = buildScriptFullText();
+  const fileName = (currentScript.title || 'script').replace(/[^a-z0-9]+/gi, '-').toLowerCase() + '.txt';
+
+  // Native app: WKWebView does not support the anchor download attribute,
+  // so the text file goes across the bridge to the iOS save/share sheet.
+  if (window.RyxaNative && window.ReactNativeWebView) {
+    try {
+      window.ReactNativeWebView.postMessage(JSON.stringify({
+        type: 'saveFile',
+        filename: fileName,
+        mime: 'text/plain',
+        base64: btoa(unescape(encodeURIComponent(text)))
+      }));
+    } catch (e) { console.error('export bridge', e); }
+    toggleScriptsExportMenu();
+    return;
+  }
+
   const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = (currentScript.title || 'script').replace(/[^a-z0-9]+/gi, '-').toLowerCase() + '.txt';
+  a.download = fileName;
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
   toggleScriptsExportMenu();
