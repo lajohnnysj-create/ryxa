@@ -1933,7 +1933,8 @@ function closeDesignEditor() {
 // =====================================================
 // REUSABLE MODAL CONFIRM / ALERT (replaces browser popups)
 // =====================================================
-function showModalConfirm(title, message, onConfirm, confirmText, cancelText) {
+function showModalConfirm(title, message, onConfirm, confirmText, cancelText, opts) {
+  opts = opts || {};
   var overlay = document.createElement('div');
   overlay.id = 'modal-confirm-overlay';
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;';
@@ -1941,11 +1942,18 @@ function showModalConfirm(title, message, onConfirm, confirmText, cancelText) {
   var msgHtml = (message || 'Are you sure?').split(/\n\n+/).map(function(p) {
     return '<p class="ds-s-f6f597">' + p.replace(/\n/g, '<br>') + '</p>';
   }).join('');
+  // Optional brand logo at the top (opts.logo === true) for a more polished,
+  // consistent look, matching the pricing modals. Existing callers that omit
+  // opts are unchanged.
+  var logoHtml = opts.logo
+    ? '<img src="/logo.png?v=2" alt="" aria-hidden="true" style="display:block;height:40px;width:auto;margin:0 auto 16px;">'
+    : '';
   overlay.innerHTML = '<div class="ds-s-6646ca">'
+    + logoHtml
     + '<div class="ds-s-85e627">' + (title || 'Confirm') + '</div>'
     + '<div class="mk-s-e4ad4a">' + msgHtml + '</div>'
     + '<div class="course-s-b9bbe5">'
-    + '<button id="modal-confirm-yes" class="ds-s-6e0dd5">' + (confirmText || 'Delete') + '</button>'
+    + '<button id="modal-confirm-yes" class="ds-s-6e0dd5"' + (opts.danger ? ' style="background:#e5484d;border-color:#e5484d;"' : '') + '>' + (confirmText || 'Delete') + '</button>'
     + '<button id="modal-confirm-no" class="ds-s-dea7b5">' + (cancelText || 'Cancel') + '</button>'
     + '</div>'
     + '</div>';

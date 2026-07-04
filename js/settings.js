@@ -400,7 +400,8 @@ function showStripeDisconnectConfirm() {
     "You won't receive payouts until you reconnect. Your Stripe account itself is not affected.",
     function() { confirmDisconnectStripe(); },
     'Yes, disconnect',
-    'Keep connected'
+    'Keep connected',
+    { logo: true, danger: true }
   );
 }
 
