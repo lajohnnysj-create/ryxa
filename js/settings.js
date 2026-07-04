@@ -416,7 +416,6 @@ async function confirmDisconnectStripe() {
 
     if (error) throw error;
 
-    hideStripeDisconnectConfirm();
     showStripeMsg('success', 'Stripe account disconnected.');
     showDashToast('success', 'Stripe account disconnected.');
     loadStripeConnectStatus();
