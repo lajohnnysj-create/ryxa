@@ -608,7 +608,13 @@ async function loadBioData() {
     return;
   }
   try {
-    const { data: profile } = await sb.from('profiles').select('username').eq('user_id', currentUser.id).maybeSingle();
+    // The profile and bio queries are independent; run them in parallel to
+    // save a full network round trip on first paint.
+    const [profileRes, bioRes] = await Promise.all([
+      sb.from('profiles').select('username').eq('user_id', currentUser.id).maybeSingle(),
+      sb.from('link_in_bio').select('*').eq('user_id', currentUser.id).maybeSingle()
+    ]);
+    const profile = profileRes.data;
     if (profile?.username) {
       bioState.username = profile.username;
       bioOriginalUsername = profile.username;
@@ -623,7 +629,8 @@ async function loadBioData() {
         if (el && el.value !== bioState.username) el.value = bioState.username;
       }, 1500);
     }
-    const { data: bio, error: bioLoadErr } = await sb.from('link_in_bio').select('*').eq('user_id', currentUser.id).maybeSingle();
+    const bio = bioRes.data;
+    const bioLoadErr = bioRes.error;
     if (bioLoadErr) throw bioLoadErr;
     bioDataLoaded = true;
     if (bio) {
@@ -663,11 +670,21 @@ async function loadBioData() {
       // from the canonical tables and overwrite. Same logic as the public
       // bio render path. Wrapped in try/catch so a slow lookup never blocks
       // the editor from loading.
-      try {
-        await resolveBioLinkLiveCovers(currentUser.id, bioState.links, bioState.username);
-      } catch (e) {
-        console.error('cover URL resolver failed in dashboard:', e);
-      }
+      // Covers are a display cache (the public page re-resolves them), so
+      // they must not block first paint. Render immediately with stored
+      // values; patch fresh covers in when they arrive. The patch skips the
+      // links re-render if the user is mid-edit inside the links editor so
+      // a late response can never stomp their typing.
+      resolveBioLinkLiveCovers(currentUser.id, bioState.links, bioState.username)
+        .then(function() {
+          var linksHost = document.getElementById('bio-links-list');
+          var editing = linksHost && linksHost.contains(document.activeElement);
+          if (!editing) renderBioLinks();
+          updateBioPreview();
+        })
+        .catch(function(e) {
+          console.error('cover URL resolver failed in dashboard:', e);
+        });
     }
   } catch (e) {
     console.error('loadBioData', e);
