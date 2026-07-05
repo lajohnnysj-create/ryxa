@@ -216,16 +216,22 @@ async function loadMediaKit() {
     return;
   }
   try {
-    // Load shared username from profiles
-    const { data: profile } = await sb.from('profiles').select('username').eq('user_id', currentUser.id).maybeSingle();
+    // Load shared username + the kit row in parallel (they're independent);
+    // saves a full network round trip on first paint.
+    const [profileRes, kitRes] = await Promise.all([
+      sb.from('profiles').select('username').eq('user_id', currentUser.id).maybeSingle(),
+      sb.from('media_kit').select('*').eq('user_id', currentUser.id).maybeSingle()
+    ]);
+    const profile = profileRes.data;
     if (profile?.username) {
       document.getElementById('mk-username').value = profile.username;
       // Keep bioOriginalUsername in sync (Link in Bio uses this)
       if (typeof bioOriginalUsername !== 'undefined') bioOriginalUsername = profile.username;
       if (typeof bioState !== 'undefined') bioState.username = profile.username;
     }
-    // Load media kit data
-    const { data: kit, error: kitLoadErr } = await sb.from('media_kit').select('*').eq('user_id', currentUser.id).maybeSingle();
+    // Media kit row (already fetched above in parallel)
+    const kit = kitRes.data;
+    const kitLoadErr = kitRes.error;
     if (kitLoadErr) throw kitLoadErr;
     mkDataLoaded = true;
     if (kit) {
