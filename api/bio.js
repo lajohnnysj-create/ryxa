@@ -248,7 +248,11 @@ function buildFontInjection(fontKey) {
   // signature visual hierarchy. Skipping the override preserves that look.
   if (!fontKey || fontKey === 'DM Sans') return '';
   const font = BIO_FONTS_SSR[fontKey] || BIO_FONTS_SSR['DM Sans'];
-  const link = `<link href="https://fonts.googleapis.com/css2?family=${font.gfont}:wght@${font.weights}&display=swap" rel="stylesheet">`;
+  const link = `<link rel="preconnect" href="https://kjytapcgxukalwsyputk.supabase.co">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://fonts.googleapis.com/css2?family=${font.gfont}:wght@${font.weights}&display=swap" rel="stylesheet">`;
   // Body font is overridden via inline <style> with high specificity
   // so it wins against the default DM Sans declaration in bio.html's stylesheet.
   // The wildcard `body *` ensures every element on the page picks up the
@@ -348,7 +352,7 @@ function buildAvatar(profile, bio) {
   if (isHero) return ''; // hero is rendered separately
   if (safeAvatar) {
     return `<div class="avatar-frame">
-      <img class="avatar" src="${esc(safeAvatar)}" alt="${esc(name)}">
+      <img class="avatar" fetchpriority="high" src="${esc(safeAvatar)}" alt="${esc(name)}">
     </div>`;
   }
   return `<div class="avatar-frame"><div class="avatar-fallback">${esc(initial)}</div></div>`;

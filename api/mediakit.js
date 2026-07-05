@@ -102,7 +102,11 @@ function buildFontInjection(fontKey) {
   // Ryxa's signature visual hierarchy. Skipping the override preserves that look.
   if (!fontKey || fontKey === 'DM Sans') return '';
   const font = BIO_FONTS_SSR[fontKey] || BIO_FONTS_SSR['DM Sans'];
-  const link = `<link href="https://fonts.googleapis.com/css2?family=${font.gfont}:wght@${font.weights}&display=swap" rel="stylesheet">`;
+  const link = `<link rel="preconnect" href="https://kjytapcgxukalwsyputk.supabase.co">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://fonts.googleapis.com/css2?family=${font.gfont}:wght@${font.weights}&display=swap" rel="stylesheet">`;
   // Wildcard `body *` ensures every element picks up the creator's chosen
   // font (including Syne-styled headings, stat values, rate labels, etc).
   // .brand-banner stays DM Sans for Ryxa branding consistency.
@@ -156,7 +160,7 @@ function buildHero(kit, headshot) {
   const name = kit.display_name || '';
   const initial = (name[0] || '?').toUpperCase();
   const headshotHtml = headshot
-    ? `<img class="headshot" src="${esc(headshot)}" alt="${esc(name)}">`
+    ? `<img class="headshot" fetchpriority="high" src="${esc(headshot)}" alt="${esc(name)}">`
     : `<div class="headshot-fallback">${esc(initial)}</div>`;
   return `<div class="hero">
     <div class="headshot-frame">${headshotHtml}</div>
