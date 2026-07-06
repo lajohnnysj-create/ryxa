@@ -107,32 +107,53 @@ function calFormatMonthLabel(year, month) {
   return d.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
 }
 
-async function initCalendarTool() {
-  // Load timezone preference — prefer DB (so it's known to coaching page), fall back to localStorage
-  if (currentUser) {
-    try {
-      var { data: prof } = await sb.from('profiles').select('calendar_timezone').eq('user_id', currentUser.id).maybeSingle();
-      if (prof && prof.calendar_timezone) {
-        calState.timezone = prof.calendar_timezone;
-        try { localStorage.setItem('ryxa_cal_tz', prof.calendar_timezone); } catch (e) {}
-      } else {
-        // No DB value yet — check localStorage and migrate it to DB
-        try {
-          var saved = localStorage.getItem('ryxa_cal_tz');
-          if (saved) {
-            calState.timezone = saved;
-            // Migrate: persist to DB for future sessions / public pages
-            await sb.from('profiles').update({ calendar_timezone: saved }).eq('user_id', currentUser.id);
-          }
-        } catch (e) {}
-      }
-    } catch (e) {
-      // DB read failed — fall back to localStorage only
+// Timezone preference resolution — prefer DB (so it's known to the coaching
+// page), fall back to localStorage. Extracted so init can run it in parallel
+// with the events load, once per session.
+async function _calResolveTimezone() {
+  try {
+    var { data: prof } = await sb.from('profiles').select('calendar_timezone').eq('user_id', currentUser.id).maybeSingle();
+    if (prof && prof.calendar_timezone) {
+      calState.timezone = prof.calendar_timezone;
+      try { localStorage.setItem('ryxa_cal_tz', prof.calendar_timezone); } catch (e) {}
+    } else {
+      // No DB value yet — check localStorage and migrate it to DB
       try {
-        var saved2 = localStorage.getItem('ryxa_cal_tz');
-        if (saved2) calState.timezone = saved2;
-      } catch (e2) {}
+        var saved = localStorage.getItem('ryxa_cal_tz');
+        if (saved) {
+          calState.timezone = saved;
+          // Migrate: persist to DB for future sessions / public pages
+          await sb.from('profiles').update({ calendar_timezone: saved }).eq('user_id', currentUser.id);
+        }
+      } catch (e) {}
     }
+  } catch (e) {
+    // DB read failed — fall back to localStorage only
+    try {
+      var saved2 = localStorage.getItem('ryxa_cal_tz');
+      if (saved2) calState.timezone = saved2;
+    } catch (e2) {}
+  }
+}
+
+async function initCalendarTool() {
+  if (currentUser) {
+    // Instant paint value from localStorage while the DB copy (if needed)
+    // loads; both timezone and events resolve ONCE per session, in parallel.
+    // Repeat opens of the tool hit no network at all before rendering.
+    try {
+      var cachedTz = localStorage.getItem('ryxa_cal_tz');
+      if (cachedTz) calState.timezone = cachedTz;
+    } catch (e) {}
+    var pending = [];
+    if (!calState.tzLoaded) {
+      calState.tzLoaded = true;
+      pending.push(_calResolveTimezone());
+    }
+    if (!calState.loaded) {
+      pending.push(calLoadEvents().then(function() { calState.loaded = true; }));
+    }
+    if (pending.length) await Promise.all(pending);
   } else {
     try {
       var saved3 = localStorage.getItem('ryxa_cal_tz');
@@ -144,11 +165,6 @@ async function initCalendarTool() {
     calState.selectedDate = calToYmd(new Date());
     calState.viewYear = new Date().getFullYear();
     calState.viewMonth = new Date().getMonth();
-  }
-
-  if (!calState.loaded && currentUser) {
-    await calLoadEvents();
-    calState.loaded = true;
   }
 
   calRender();
