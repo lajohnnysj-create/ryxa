@@ -557,6 +557,29 @@ function resetInstagramConnectButton(force) {
   btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg> Connect Instagram';
 }
 
+// Stripe connect button reset (same stuck-state pattern as the socials).
+function resetStripeConnectButton(force) {
+  const btn = document.getElementById('settings-stripe-connect-btn');
+  if (!btn) return;
+  if (!force && !/Redirecting to Stripe/i.test(btn.innerText || btn.textContent || '')) return;
+  btn.disabled = false;
+  btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg> Connect Stripe Account';
+}
+
+// The bfcache reset the helpers were built for: returning via the browser
+// back button restores this page from the back-forward cache with any
+// "Redirecting to X..." button frozen mid-state. Non-forced calls only touch
+// buttons actually stuck in that state.
+window.addEventListener('pageshow', function(e) {
+  if (!e.persisted) return;
+  try { resetStripeConnectButton(false); } catch (err) {}
+  try { resetInstagramConnectButton(false); } catch (err) {}
+  try { resetFacebookConnectButton(false); } catch (err) {}
+  try { resetYouTubeConnectButton(false); } catch (err) {}
+  try { resetTikTokConnectButton(false); } catch (err) {}
+  try { resetTwitchConnectButton(false); } catch (err) {}
+});
+
 function showInstagramDisconnectConfirm() {
   showModalConfirm(
     'Disconnect Instagram?',
