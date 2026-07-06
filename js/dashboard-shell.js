@@ -2288,6 +2288,14 @@ function showPwaLogin() {
   var main = document.querySelector('.main');
   if (sidebar) sidebar.style.display = 'none';
   if (main) main.style.display = 'none';
+  // Clean up any leftover sign-out UI beneath this overlay. Without this,
+  // the still-open "Signing out..." modal flashes when the next login
+  // reveals or reloads the dashboard underneath.
+  closeSignoutModal();
+  var soBtn = document.getElementById('signout-confirm-btn');
+  if (soBtn) { soBtn.disabled = false; soBtn.textContent = 'Yes, sign me out'; }
+  var staleConfirm = document.getElementById('modal-confirm-overlay');
+  if (staleConfirm) staleConfirm.remove();
   // Reset form
   var emailEl = document.getElementById('pwa-email');
   var pwEl = document.getElementById('pwa-password');
