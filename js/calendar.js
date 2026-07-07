@@ -831,9 +831,13 @@ async function calSaveEvent() {
     }
   }
 
-  if (!title) { showError('Please enter an event title.'); return; }
-  if (!date) { showError('Please select a date.'); return; }
-  if (!startTime || !endTime) { showError('Please set start and end times.'); return; }
+  function validationToast(msg) {
+    if (typeof showDashToast === 'function') showDashToast('error', msg);
+    else showError(msg);
+  }
+  if (!title) { validationToast('Please add a title'); return; }
+  if (!date) { validationToast('Please select a date'); return; }
+  if (!startTime || !endTime) { validationToast('Please set start and end times'); return; }
 
   // Build ISO timestamps treating the entered Y-M-D and H:M as a wall-clock
   // time IN THE CREATOR'S SELECTED CALENDAR TIMEZONE (calState.timezone).
@@ -1032,11 +1036,10 @@ async function calSendMessageNow(bookingId) {
     var result = await resp.json().catch(function() { return {}; });
     if (!resp.ok || result.error) throw new Error(result.error || 'Could not send email.');
 
-    if (okEl) okEl.style.display = 'block';
-    setTimeout(function() {
-      var modal = document.getElementById('cal-send-msg-modal');
-      if (modal) modal.remove();
-    }, 1500);
+    var modal = document.getElementById('cal-send-msg-modal');
+    if (modal) modal.remove();
+    if (typeof showDashToast === 'function') showDashToast('success', 'Email has been sent');
+    else if (okEl) okEl.style.display = 'block';
   } catch (e) {
     console.error('Send message failed:', e);
     if (btn) { btn.disabled = false; btn.textContent = 'Send Email'; btn.style.opacity = '1'; }
