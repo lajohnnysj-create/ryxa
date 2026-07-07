@@ -3183,6 +3183,11 @@ dashRegisterAction('toggle-analytics-menu', (e, el) => {
   const expanded = el.getAttribute('aria-expanded') === 'true';
   el.setAttribute('aria-expanded', expanded ? 'false' : 'true');
   if (submenu) submenu.classList.toggle('open', !expanded);
+  // Visual feedback on the toggle itself (it never receives showTool's
+  // active pass): lit while expanded, and it stays lit on collapse only
+  // if one of its child tools is currently the active tool.
+  const childActive = submenu && submenu.querySelector('.active');
+  el.classList.toggle('active', !expanded || !!childActive);
 });
 dashRegisterAction('show-follower', () => {
   if (typeof showFollowerTool === 'function') showFollowerTool();
