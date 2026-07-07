@@ -1381,11 +1381,14 @@
      rewrite in api/bio.js never has to know about it. */
   #bio-share-btn {
     position: absolute;
-    /* Anchored off the column CENTERLINE, hugging the avatar's top-right
-       arc (avatar is a centered 126px circle). Center-keyed positioning is
-       the only anchor that never shifts on browser resize. */
-    top: 2px;
-    left: calc(50% + 48px);
+    /* Very top-right corner of the centered mobile column, with even 10px
+       insets. The wrap's box starts 48px down (body padding-top), so
+       top:-38px places the 38px button 10px from the page top; right:10px
+       is 10px in from the column's right edge. Above 580px viewports the
+       column is a fixed 540px, so the icon is locked in place; below that
+       the column IS the screen and the icon pins to the screen corner. */
+    top: -38px;
+    right: 10px;
     z-index: 5;
     width: 38px;
     height: 38px;
