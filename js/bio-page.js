@@ -1660,3 +1660,35 @@ bioRegisterAction('sensitive-deny', function() {
   }
 })();
 
+// Share icon: copy the public page link; icon confirms with a checkmark.
+(function () {
+  var btn = document.getElementById('bio-share-btn');
+  if (!btn) return;
+  var CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>';
+  btn.addEventListener('click', function () {
+    var link = location.origin + location.pathname;
+    function done(ok) {
+      if (!ok) return;
+      if (btn._revertT) clearTimeout(btn._revertT);
+      if (!btn._originalHtml) btn._originalHtml = btn.innerHTML;
+      btn.innerHTML = CHECK;
+      btn.setAttribute('aria-label', 'Link copied');
+      btn._revertT = setTimeout(function () {
+        btn.innerHTML = btn._originalHtml;
+        btn.setAttribute('aria-label', 'Copy page link');
+      }, 1600);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(link).then(function () { done(true); }, function () { done(false); });
+    } else {
+      var ta = document.createElement('textarea');
+      ta.value = link;
+      ta.style.position = 'fixed'; ta.style.left = '-9999px';
+      document.body.appendChild(ta); ta.select();
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) {}
+      document.body.removeChild(ta);
+      done(ok);
+    }
+  });
+})();
