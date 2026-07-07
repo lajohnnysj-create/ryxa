@@ -359,6 +359,7 @@ async function handleGoogleAuth() {
   }
   if (inApp && data && data.url) {
     window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'openSheet', url: data.url }));
+    armSheetCancelWatchdog();
   }
 }
 
@@ -372,6 +373,27 @@ function setAuthBtnLoading(cls, on) {
     b.disabled = on;
   });
 }
+
+// In-app OAuth sheet watchdog: the app resets these buttons when the sheet's
+// Close button is tapped, but an iOS swipe-down dismissal bypasses that
+// callback (RN Modal quirk; proper fix ships in the next app build). The
+// page under the sheet receives no touches while it's presented, so the
+// next interaction here means the sheet is gone: restore the buttons.
+var _sheetWatchdogArmed = false;
+function armSheetCancelWatchdog() {
+  if (_sheetWatchdogArmed) return;
+  _sheetWatchdogArmed = true;
+  function restore() {
+    _sheetWatchdogArmed = false;
+    document.removeEventListener('pointerdown', restore, true);
+    clearTimeout(t);
+    setAuthBtnLoading('google-btn', false);
+    setAuthBtnLoading('apple-btn', false);
+  }
+  var t = setTimeout(restore, 90000);
+  document.addEventListener('pointerdown', restore, true);
+}
+
 window.addEventListener('pageshow', function(e) {
   if (e.persisted) {
     setAuthBtnLoading('google-btn', false);
@@ -406,6 +428,7 @@ async function handleAppleAuth() {
   }
   if (inApp && data && data.url) {
     window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'openSheet', url: data.url }));
+    armSheetCancelWatchdog();
   }
 }
 
