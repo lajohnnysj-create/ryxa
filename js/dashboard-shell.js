@@ -3183,11 +3183,17 @@ dashRegisterAction('toggle-analytics-menu', (e, el) => {
   const expanded = el.getAttribute('aria-expanded') === 'true';
   el.setAttribute('aria-expanded', expanded ? 'false' : 'true');
   if (submenu) submenu.classList.toggle('open', !expanded);
-  // Visual feedback on the toggle itself (it never receives showTool's
-  // active pass): lit while expanded, and it stays lit on collapse only
-  // if one of its child tools is currently the active tool.
   const childActive = submenu && submenu.querySelector('.active');
-  el.classList.toggle('active', !expanded || !!childActive);
+  if (!expanded && !childActive) {
+    // Expanding while no analytics view is open: this click IS navigation.
+    // Open the default analytics view; showTool's sweep clears the previous
+    // tool's highlight and lights this toggle.
+    if (typeof showTool === 'function') showTool('analytics');
+  } else {
+    // Collapsing (or expanding while a child is already active): pure
+    // accordion. The toggle stays lit only if a child view is the open tool.
+    el.classList.toggle('active', !!childActive);
+  }
 });
 dashRegisterAction('show-follower', () => {
   if (typeof showFollowerTool === 'function') showFollowerTool();
