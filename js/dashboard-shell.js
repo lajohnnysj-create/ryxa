@@ -346,6 +346,29 @@ var isPwaMode = window.matchMedia('(display-mode: standalone)').matches
 // hang, ~5000ms + NavigatorLockAcquireTimeoutError) | 400/401/403 rejected
 // token (refresh-token rotation) | network/fetch failure.
 // ===========================================================================
+
+// WKWebView occasionally leaves position:fixed elements anchored to stale
+// viewport geometry after momentum scrolls or viewport-height changes (the
+// bottom nav visibly "floats" with content, then snaps back). Nudging the
+// nav's transform for one frame forces the compositor to re-anchor it.
+(function () {
+  var _navNudgeT = null;
+  function nudgeBottomNav() {
+    var nav = document.getElementById('mobile-bottom-nav');
+    if (!nav || getComputedStyle(nav).display === 'none') return;
+    nav.style.transform = 'translateZ(0.01px)';
+    requestAnimationFrame(function () { nav.style.transform = ''; });
+  }
+  function scheduleNudge() {
+    clearTimeout(_navNudgeT);
+    _navNudgeT = setTimeout(nudgeBottomNav, 160);
+  }
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', scheduleNudge);
+  }
+  window.addEventListener('scroll', scheduleNudge, { passive: true });
+})();
+
 var _authDiag = [];
 var _authDiagT0 = Date.now();
 function _diag(m) { try { _authDiag.push('+' + (Date.now() - _authDiagT0) + 'ms ' + m); } catch (e) {} }
