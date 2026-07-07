@@ -464,12 +464,6 @@
       width: calc(100% + 40px);
       margin-top: calc(env(safe-area-inset-top, 0px) - 48px);
     }
-    /* The hero bleeds 20px past the column on mobile; shift the share icon
-       out by the same amount so it keeps a 10px inset from the VISIBLE
-       section edge, matching the desktop look. */
-    #bio-share-btn {
-      right: -10px;
-    }
   }
 
   .handle {
@@ -1411,6 +1405,12 @@
   }
   #bio-share-btn:hover, #bio-share-btn:focus-visible { opacity: 1; }
   #bio-share-btn svg { width: 17px; height: 17px; }
+  /* Mobile: the hero bleeds 20px past the column, so shift the icon out by
+     the same amount to keep a 10px inset from the visible edge. Placed
+     AFTER the base rule because equal specificity resolves by source order. */
+  @media (max-width: 600px) {
+    #bio-share-btn { right: -10px; }
+  }
   /* Privacy footer: theme text color; bottom padding clears the fixed
      brand-banner pill so the link is never covered when scrolled to end. */
   #bio-privacy-footer {
