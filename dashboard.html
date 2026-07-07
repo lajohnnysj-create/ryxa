@@ -6275,6 +6275,9 @@
   .welcome-s-00699a { color:var(--accent2);text-decoration:none; }
   .welcome-s-e49100 { display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer;border-radius:6px;transition:background 0.12s ease; }
   .welcome-s-e49100:hover { background:rgba(255,255,255,0.04); }
+  .cal-info-dot { position:relative; display:inline-flex; align-items:center; justify-content:center; width:15px; height:15px; margin-left:2px; border-radius:50%; border:1px solid rgba(255,255,255,0.35); color:rgba(255,255,255,0.6); font-size:10px; font-style:italic; font-weight:600; font-family:Georgia,serif; cursor:help; vertical-align:middle; }
+  .cal-info-dot::after { content:attr(data-tip); position:absolute; bottom:calc(100% + 8px); left:50%; transform:translateX(-50%); width:230px; padding:8px 10px; border-radius:8px; background:#1c1c2b; border:1px solid rgba(255,255,255,0.12); color:rgba(255,255,255,0.85); font-size:12px; font-style:normal; font-weight:400; font-family:'DM Sans',sans-serif; line-height:1.4; text-align:left; opacity:0; visibility:hidden; transition:opacity 0.12s ease; pointer-events:none; z-index:40; }
+  .cal-info-dot:hover::after, .cal-info-dot:focus::after { opacity:1; visibility:visible; }
   .welcome-s-825ae1 { flex:1;min-width:0;font-size:13px;color:var(--text);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left; }
   .welcome-s-a0676c { font-size:11px;color:var(--muted);flex-shrink:0;white-space:nowrap; }
 
@@ -7954,7 +7957,7 @@
     <div id="tool-calendar" class="bio-s-c8be1c">
       <div class="cal-s-76b393">
         <div class="deal-s-8b9688">
-          <p class="cal-s-d84dd0">Plan your creator schedule, 1:1 bookings, brand deals, and more in one place.</p>
+          <p class="cal-s-d84dd0">Plan your creator schedule and more in one place. Syncs with your 1:1 bookings and brand deal CRM.</p>
         </div>
 
         <!-- Google Calendar Connection -->
