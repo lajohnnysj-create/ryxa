@@ -1381,8 +1381,11 @@
      rewrite in api/bio.js never has to know about it. */
   #bio-share-btn {
     position: absolute;
-    top: 4px;
-    right: 4px;
+    /* Anchored off the column CENTERLINE, hugging the avatar's top-right
+       arc (avatar is a centered 126px circle). Center-keyed positioning is
+       the only anchor that never shifts on browser resize. */
+    top: 2px;
+    left: calc(50% + 48px);
     z-index: 5;
     width: 38px;
     height: 38px;
