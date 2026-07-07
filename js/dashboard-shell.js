@@ -369,6 +369,21 @@ var isPwaMode = window.matchMedia('(display-mode: standalone)').matches
   window.addEventListener('scroll', scheduleNudge, { passive: true });
 })();
 
+// Instant tier paint: the sidebar plan label is hidden by body.tier-loading
+// until the tier resolves. For returning users, paint the cached label
+// immediately (inline visibility beats the hiding rule); the fresh fetch
+// corrects it in the rare case the plan changed since last visit.
+(function () {
+  try {
+    var cached = localStorage.getItem('ryxa_tier_label');
+    if (!cached) return;
+    var el = document.getElementById('sidebar-tier');
+    if (el) { el.textContent = cached; el.style.visibility = 'visible'; }
+    var mel = document.getElementById('sidebar-menu-tier');
+    if (mel) { mel.textContent = cached; mel.style.visibility = 'visible'; }
+  } catch (e) {}
+})();
+
 var _authDiag = [];
 var _authDiagT0 = Date.now();
 function _diag(m) { try { _authDiag.push('+' + (Date.now() - _authDiagT0) + 'ms ' + m); } catch (e) {} }
@@ -1645,7 +1660,6 @@ function updateTierUI() {
   const pro = isPro();
   const max = isMax();
   const isCancelling = pro && userStatus === 'cancelling';
-  const tierBadge = document.getElementById('topbar-tier-badge');
   const sidebarTier = document.getElementById('sidebar-tier');
   const upgradeBtn = document.getElementById('topbar-upgrade-btn');
 
@@ -1682,13 +1696,11 @@ function updateTierUI() {
     ? (max ? 'Max (Cancelling)' : 'Pro (Cancelling)')
     : max ? 'Creator Max' : pro ? 'Pro Plan' : 'Free Plan';
 
-  if (tierBadge) {
-    tierBadge.textContent = badgeText;
-    tierBadge.className = 'tier-badge ' + (max ? 'max' : pro ? 'pro' : 'free');
-  }
-  if (sidebarTier) sidebarTier.textContent = planText;
+  if (sidebarTier) { sidebarTier.textContent = planText; sidebarTier.style.visibility = ''; }
   var menuTier = document.getElementById('sidebar-menu-tier');
-  if (menuTier) menuTier.textContent = planText;
+  if (menuTier) { menuTier.textContent = planText; menuTier.style.visibility = ''; }
+  // Cache for instant paint on the next load (prevents the Free Plan flash).
+  try { localStorage.setItem('ryxa_tier_label', planText); } catch (e) {}
   // Toggle Creator Max styling on sidebar bottom and body
   const sidebarBottom = document.querySelector('.sidebar-bottom');
   if (sidebarBottom) {
@@ -2320,6 +2332,7 @@ var pwaAuthMode = 'signin';
 var pwaTurnstileWidgetId = null;
 
 function showPwaLogin() {
+  try { localStorage.removeItem('ryxa_tier_label'); } catch (e) {}
   var screen = document.getElementById('pwa-login-screen');
   if (!screen) return;
   screen.style.display = 'flex';
