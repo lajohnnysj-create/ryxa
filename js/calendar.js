@@ -929,6 +929,7 @@ async function calSaveEvent() {
       calState.viewYear = dParts[0];
       calState.viewMonth = dParts[1] - 1;
       calRender();
+      if (typeof showDashToast === 'function') showDashToast('success', 'Changes saved');
     } else {
       // ADD mode — insert new event
       var { data, error } = await sb.from('calendar_events').insert({
@@ -950,6 +951,7 @@ async function calSaveEvent() {
       calState.viewYear = dParts[0];
       calState.viewMonth = dParts[1] - 1;
       calRender();
+      if (typeof showDashToast === 'function') showDashToast('success', 'Event added to calendar');
     }
   } catch (e) {
     console.error('Save event failed:', e);
@@ -1072,6 +1074,7 @@ async function calDeleteEvent(eventId, eventType) {
 
       calState.events = calState.events.filter(function(e) { return e.id !== eventId; });
       calRender();
+      if (typeof showDashToast === 'function') showDashToast('success', 'Event removed from calendar');
     } catch (e) {
       console.error('Delete failed:', e);
       showModalAlert('Delete Failed', e.message || 'Could not delete event.');
