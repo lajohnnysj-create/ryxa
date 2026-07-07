@@ -166,6 +166,22 @@ async function handleLearnGoogleAuth() {
     errEl.style.color = '#f87171';
   }
 }
+async function handleLearnAppleAuth() {
+  var params = new URLSearchParams(window.location.search);
+  var redirect = params.get('redirect');
+  var redirectUrl = 'https://ryxa.io/learn/';
+  if (redirect && redirect.startsWith('/') && !redirect.startsWith('//')) redirectUrl = 'https://ryxa.io' + redirect;
+  var { error } = await sb.auth.signInWithOAuth({
+    provider: 'apple',
+    options: { redirectTo: redirectUrl }
+  });
+  if (error) {
+    var errEl = document.getElementById('auth-error');
+    errEl.textContent = error.message;
+    errEl.style.display = 'block';
+    errEl.style.color = '#f87171';
+  }
+}
 const TURNSTILE_SITE_KEY = '0x4AAAAAAC9W8avdI3sdVEcc';
 let turnstileWidgetId = null;
 let _turnstilePendingResolve = null;
@@ -2331,6 +2347,7 @@ init();
 learnRegisterAction('auth-mode-signin', function() { setLearnAuthMode('signin'); });
 learnRegisterAction('auth-mode-signup', function() { setLearnAuthMode('signup'); });
 learnRegisterAction('google-auth', function() { handleLearnGoogleAuth(); });
+learnRegisterAction('apple-auth', function() { handleLearnAppleAuth(); });
 learnRegisterAction('forgot-password', function() { handleLearnForgotPassword(); });
 learnRegisterAction('auth', function() { handleAuth(); });
 
