@@ -1375,19 +1375,15 @@
   #sensitive-gate .sg-standards:hover { color: #f0eef8; }
 
 
-  /* Share icon: anchored to the content column's top-right (mirrors .wrap's
-     540px centered column), so it hugs the profile area at any window width. */
-  #share-anchor {
-    position: relative;
-    z-index: 5;
-    max-width: 540px;
-    margin: 0 auto;
-    height: 0;
-  }
+  /* Share icon: absolutely positioned inside .wrap (position:relative), so
+     it hugs the content column's top-right corner at any window width. The
+     button is injected by js/bio-page.js AFTER render, so the SSR wrap
+     rewrite in api/bio.js never has to know about it. */
   #bio-share-btn {
     position: absolute;
     top: 14px;
     right: 12px;
+    z-index: 5;
     width: 38px;
     height: 38px;
     display: flex;
@@ -1426,8 +1422,6 @@
 
 </head>
 <body>
-
-<div id="share-anchor"><button id="bio-share-btn" type="button" aria-label="Copy page link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></button></div>
 
 <div class="wrap" id="wrap">
   <div class="state" id="loading-state">
