@@ -877,6 +877,7 @@ async function clientsBulkRemove() {
       clientsStatsData = await clientsFetchStats();
       renderClientsStats();
     } catch (statsErr) { console.warn('Stats refresh failed:', statsErr); }
+    if (typeof showDashToast === 'function') showDashToast('success', emails.length === 1 ? 'Subscriber removed' : emails.length + ' subscribers removed');
   } catch (e) {
     console.error('Bulk remove failed:', e);
     showModalAlert('Could not remove', e.message || 'Failed to remove subscribers.');
@@ -905,6 +906,7 @@ async function clientsRemoveOne(email) {
       clientsStatsData = await clientsFetchStats();
       renderClientsStats();
     } catch (statsErr) { console.warn('Stats refresh failed:', statsErr); }
+    if (typeof showDashToast === 'function') showDashToast('success', 'Subscriber removed');
   } catch (e) {
     console.error('Remove failed:', e);
     showModalAlert('Could not remove', e.message || 'Failed to remove subscriber.');
@@ -1064,6 +1066,7 @@ async function clientsSaveNote() {
     }
     // Re-render the page so the note indicator dot appears/disappears.
     renderSubscribersPage();
+    if (typeof showDashToast === 'function') showDashToast('success', 'Notes saved');
   } catch (e) {
     console.error('Note save failed:', e);
     if (statusEl) {
@@ -1272,6 +1275,7 @@ async function clientsSubmitAdd() {
       renderClientsStats();
     } catch (statsErr) { console.warn('Stats refresh failed:', statsErr); }
     clientsCloseAdd();
+    if (typeof showDashToast === 'function') showDashToast('success', 'Subscriber added');
   } catch (e) {
     console.error('Add subscriber failed:', e);
     // Hard ceiling hit: trigger raised manual_subscriber_limit_exceeded.
