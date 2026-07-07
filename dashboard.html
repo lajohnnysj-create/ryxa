@@ -110,6 +110,10 @@
   .sidebar-pill.pro { background: rgba(124,58,237,0.15); border: 1px solid rgba(124,58,237,0.3); color: #c4b5fd; }
   .sidebar-pill.max { background: linear-gradient(135deg,#a78bfa,#e879f9); color: #fff; }
   body.tier-loading .sidebar-pill { display: none; }
+  /* Hide the plan labels until the tier is known (or instantly painted from
+     cache by dashboard-shell), so users never see a wrong "Free Plan" flash. */
+  body.tier-loading .sidebar-user-tier,
+  body.tier-loading #sidebar-menu-tier { visibility: hidden; }
   body.pro-user .sidebar-pill.pro { display: none; }
   body.max-user .sidebar-pill.pro, body.max-user .sidebar-pill.max { display: none; }
   .sidebar-item-badge { font-size: 10px; background: rgba(124,58,237,0.2); color: #c4b5fd; border-radius: 100px; padding: 2px 7px; font-weight: 600; }
@@ -1640,7 +1644,6 @@
   @media (max-width: 760px) {
     #topbar-upgrade-btn,
     #topbar-upgrade-max-btn,
-    #topbar-tier-badge { display: none !important; }
   }
   /* Mobile upgrade banner: stack copy on top, buttons side-by-side below
      so it doesn't dominate the screen. */
@@ -6666,7 +6669,7 @@
       <div class="sidebar-avatar" id="sidebar-avatar">?</div>
       <div class="sidebar-user-info">
         <div class="sidebar-user-email" id="sidebar-email">Loading...</div>
-        <div class="sidebar-user-tier" id="sidebar-tier">Free</div>
+        <div class="sidebar-user-tier" id="sidebar-tier">&nbsp;</div>
       </div>
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-left:auto;transition:transform 0.2s;" id="sidebar-menu-chevron"><polyline points="6 15 12 9 18 15"/></svg>
     </div>
@@ -6737,7 +6740,6 @@
       <div class="topbar-title" id="topbar-title">Dashboard</div>
     </div>
     <div class="topbar-right">
-<span class="tier-badge free" id="topbar-tier-badge">Free</span>
     </div>
   </div>
 
