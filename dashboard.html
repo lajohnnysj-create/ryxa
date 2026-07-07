@@ -2255,6 +2255,10 @@
       display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 90;
       background: var(--surface); border-top: 1px solid var(--border);
       padding-bottom: env(safe-area-inset-bottom, 0px);
+      /* WKWebView fixed-position hardening: own compositor layer so the nav
+         doesn't drift with content during momentum scroll / viewport shifts. */
+      transform: translateZ(0); will-change: transform;
+      -webkit-backface-visibility: hidden; backface-visibility: hidden;
     }
     /* Sliding active indicator: translucent purple pill that animates between tabs. */
     .bnav-pill {
