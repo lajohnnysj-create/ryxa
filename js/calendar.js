@@ -916,6 +916,11 @@ async function calSaveEvent() {
             .eq('id', existing.source_id);
         } catch (e) {
           console.error('Could not update coaching booking slot:', e);
+          // Surface it: the calendar shows the new time but the buyer's
+          // booking (and reminder email) would still carry the old one.
+          if (typeof showDashToast === 'function') {
+            showDashToast('error', 'Event updated, but the booking time could not sync. Please edit the event again.');
+          }
         }
       }
 
