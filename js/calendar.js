@@ -167,6 +167,16 @@ async function initCalendarTool() {
     calState.viewMonth = new Date().getMonth();
   }
 
+  // Deep-link from the welcome page's Upcoming events list: jump the view
+  // to the event's month and select its day, then clear the flag.
+  if (window._calFocusDate && /^\d{4}-\d{2}-\d{2}$/.test(window._calFocusDate)) {
+    var fp = window._calFocusDate.split('-');
+    calState.viewYear = parseInt(fp[0], 10);
+    calState.viewMonth = parseInt(fp[1], 10) - 1;
+    calState.selectedDate = window._calFocusDate;
+    window._calFocusDate = null;
+  }
+
   calRender();
   calPopulateInlineTimezone();
 

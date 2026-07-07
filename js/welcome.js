@@ -183,7 +183,16 @@ async function loadUpcomingEvents() {
         ? '<span style="' + typeBadgeStyle + 'display:inline-block;padding:1px 6px;border-radius:4px;font-size:9px;font-weight:600;letter-spacing:0.3px;margin-right:8px;flex-shrink:0;">' + typeBadgeText + '</span>'
         : '';
 
-      return '<div class="welcome-s-e49100">'
+      // Event date as YYYY-MM-DD in the creator's calendar timezone, so the
+      // calendar opens focused on the same day the row displays.
+      var ymdParts = new Intl.DateTimeFormat('en-CA', {
+        timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit'
+      }).formatToParts(startDate);
+      var yo = {};
+      ymdParts.forEach(function (pp) { yo[pp.type] = pp.value; });
+      var eventYmd = yo.year + '-' + yo.month + '-' + yo.day;
+
+      return '<div class="welcome-s-e49100" data-welcome-action="open-calendar-day" data-date="' + eventYmd + '" role="button" tabindex="0" aria-label="Open ' + escapeHtml(e.title || 'event') + ' in calendar">'
         + '<div style="width:3px;height:20px;' + stripeStyle + 'border-radius:2px;flex-shrink:0;"></div>'
         + typeBadge
         + '<div class="welcome-s-825ae1">' + escapeHtml((e.title || 'Untitled').replace(/^Coaching:\s*/i, '')) + '</div>'
@@ -542,6 +551,12 @@ async function loadDashStats() {
 // =============================================================================
 
 // Tool tiles + View Calendar link + the "Add one" link inside loadUpcomingEvents
+welcomeRegisterAction('open-calendar-day', (e, el) => {
+  var date = el.getAttribute('data-date');
+  if (date) window._calFocusDate = date;
+  if (typeof showTool === 'function') showTool('calendar');
+});
+
 welcomeRegisterAction('show-tool', (e, el) => {
   // Some show-tool elements are <a href="#">, so preventDefault to avoid the URL jump
   if (e && e.preventDefault) e.preventDefault();
