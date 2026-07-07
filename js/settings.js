@@ -354,6 +354,7 @@ async function connectStripeAccount() {
   if (btn) {
     btn.disabled = true;
     btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" class="ds-s-f33c30" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Redirecting to Stripe...`;
+    armConnectSheetWatchdog();
   }
 
   try {
@@ -514,6 +515,7 @@ async function connectInstagramAccount() {
   if (btn) {
     btn.disabled = true;
     btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" class="ds-s-f33c30" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Redirecting to Instagram...';
+    armConnectSheetWatchdog();
   }
 
   try {
@@ -555,6 +557,33 @@ function resetInstagramConnectButton(force) {
   if (!force && !/Redirecting to Instagram/i.test(btn.innerText || btn.textContent || '')) return;
   btn.disabled = false;
   btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg> Connect Instagram';
+}
+
+
+// In-app OAuth sheet watchdog for connect flows: the app intercepts the
+// oauth-start navigation into its sheet, so this page stays put. Tapping
+// the sheet's Close resets these buttons via the app; a swipe-down
+// dismissal does not (RN Modal quirk; native fix in the next app build).
+// Any touch on this page after the handoff means the sheet is gone:
+// restore whichever buttons are still stuck.
+var _connectSheetWatchdogArmed = false;
+function armConnectSheetWatchdog() {
+  if (!(window.RyxaNative && window.ReactNativeWebView)) return;
+  if (_connectSheetWatchdogArmed) return;
+  _connectSheetWatchdogArmed = true;
+  function restore() {
+    _connectSheetWatchdogArmed = false;
+    document.removeEventListener('pointerdown', restore, true);
+    clearTimeout(t);
+    try { resetStripeConnectButton(false); } catch (e) {}
+    try { resetInstagramConnectButton(false); } catch (e) {}
+    try { resetFacebookConnectButton(false); } catch (e) {}
+    try { resetYouTubeConnectButton(false); } catch (e) {}
+    try { resetTikTokConnectButton(false); } catch (e) {}
+    try { resetTwitchConnectButton(false); } catch (e) {}
+  }
+  var t = setTimeout(restore, 90000);
+  document.addEventListener('pointerdown', restore, true);
 }
 
 // Stripe connect button reset (same stuck-state pattern as the socials).
@@ -753,6 +782,7 @@ async function connectFacebookAccount() {
   if (btn) {
     btn.disabled = true;
     btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" class="ds-s-f33c30" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Redirecting to Facebook...';
+    armConnectSheetWatchdog();
   }
   try {
     const { data: { session } } = await sb.auth.getSession();
@@ -967,6 +997,7 @@ async function connectYouTubeAccount() {
   if (btn) {
     btn.disabled = true;
     btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" class="ds-s-f33c30" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Redirecting to YouTube...';
+    armConnectSheetWatchdog();
   }
 
   try {
@@ -1162,6 +1193,7 @@ async function connectTikTokAccount() {
   if (btn) {
     btn.disabled = true;
     btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" class="ds-s-f33c30" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Redirecting to TikTok...';
+    armConnectSheetWatchdog();
   }
 
   try {
@@ -1711,6 +1743,7 @@ async function connectTwitchAccount() {
   if (btn) {
     btn.disabled = true;
     btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" class="ds-s-f33c30" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Redirecting to Twitch...';
+    armConnectSheetWatchdog();
   }
 
   try {

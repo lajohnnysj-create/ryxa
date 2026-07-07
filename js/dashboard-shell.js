@@ -2441,6 +2441,27 @@ function resetPwaTurnstile() {
 
 
 // Spinner state for the PWA login OAuth buttons. Reset on error, on
+
+// In-app OAuth sheet watchdog: the app's own reset fires on the sheet's
+// Close button but NOT on an iOS swipe-down dismissal (RN Modal quirk;
+// native fix ships in the next app build). The page under the sheet can't
+// be touched while it's presented, so the next pointer event here means
+// the sheet is gone: restore the login buttons if still stuck.
+var _pwaSheetWatchdogArmed = false;
+function armPwaSheetWatchdog() {
+  if (_pwaSheetWatchdogArmed) return;
+  _pwaSheetWatchdogArmed = true;
+  function restore() {
+    _pwaSheetWatchdogArmed = false;
+    document.removeEventListener('pointerdown', restore, true);
+    clearTimeout(t);
+    setPwaAuthBtnLoading('pwa-google-btn', false);
+    setPwaAuthBtnLoading('pwa-apple-btn', false);
+  }
+  var t = setTimeout(restore, 90000);
+  document.addEventListener('pointerdown', restore, true);
+}
+
 // back/forward-cache returns, and by the app when its auth sheet closes.
 function setPwaAuthBtnLoading(id, on) {
   var b = document.getElementById(id);
@@ -2476,6 +2497,7 @@ async function handlePwaGoogleAuth() {
   }
   if (inApp && data && data.url) {
     window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'openSheet', url: data.url }));
+    armPwaSheetWatchdog();
   }
 }
 
@@ -2496,6 +2518,7 @@ async function handlePwaAppleAuth() {
   }
   if (inApp && data && data.url) {
     window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'openSheet', url: data.url }));
+    armPwaSheetWatchdog();
   }
 }
 
