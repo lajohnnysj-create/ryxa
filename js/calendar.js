@@ -964,7 +964,8 @@ async function calSaveEvent() {
     }
   } catch (e) {
     console.error('Save event failed:', e);
-    showError(e.message || 'Could not save event. Please try again.');
+    if (typeof showDashToast === 'function') showDashToast('error', e.message || 'Could not save event. Please try again.');
+    else showError(e.message || 'Could not save event. Please try again.');
   }
 }
 
@@ -1017,8 +1018,12 @@ async function calSendMessageNow(bookingId) {
     }
   }
 
-  if (!text) { showError('Please enter a message before sending.'); return; }
-  if (!currentUser) { showError('You must be signed in.'); return; }
+  function sendToast(msg) {
+    if (typeof showDashToast === 'function') showDashToast('error', msg);
+    else showError(msg);
+  }
+  if (!text) { sendToast('Please enter a message before sending'); return; }
+  if (!currentUser) { sendToast('You must be signed in'); return; }
 
   if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; btn.style.opacity = '0.6'; }
 
@@ -1043,7 +1048,7 @@ async function calSendMessageNow(bookingId) {
   } catch (e) {
     console.error('Send message failed:', e);
     if (btn) { btn.disabled = false; btn.textContent = 'Send Email'; btn.style.opacity = '1'; }
-    showError(e.message || 'Could not send. Please try again.');
+    sendToast(e.message || 'Could not send. Please try again.');
   }
 }
 
