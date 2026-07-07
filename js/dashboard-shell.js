@@ -1018,17 +1018,23 @@ async function setUser(user) {
   var welcomeContent = document.getElementById('welcome-content');
   if (welcomeContent) { welcomeContent.style.display = ''; welcomeContent.classList.add('dash-fade-in'); }
 
+  // Cross-file calls below are typeof-guarded: if a sibling script file
+  // failed to load (network blip, extension), init degrades gracefully for
+  // that session instead of aborting here. (client_errors showed exactly
+  // this: "handleStripeConnectRedirect is not defined" when settings.js
+  // didn't execute.)
+
   // Handle Stripe Connect callback redirect
-  handleStripeConnectRedirect();
+  if (typeof handleStripeConnectRedirect === 'function') handleStripeConnectRedirect();
 
   // Resume account deletion after a Google re-authentication redirect
   if (typeof handleDeleteAccountReturn === 'function') handleDeleteAccountReturn();
 
   // Handle Google Calendar OAuth callback — auto-navigate to Calendar tool
-  handleGcalRedirect();
+  if (typeof handleGcalRedirect === 'function') handleGcalRedirect();
 
   // Check if user has accepted terms
-  checkTermsAcceptance();
+  if (typeof checkTermsAcceptance === 'function') checkTermsAcceptance();
 }
 
 function handleGcalRedirect() {
