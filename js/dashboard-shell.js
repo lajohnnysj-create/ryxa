@@ -1789,6 +1789,10 @@ function showTool(tool) {
     const bnav = document.getElementById('bnav-' + t);
     if (bnav) bnav.classList.remove('active');
   });
+  // The Analytics parent toggle isn't a nav-{tool} id; clear it here and the
+  // analytics branch below re-adds it when one of its tools is shown.
+  const _anaToggleClear = document.getElementById('nav-analytics-toggle');
+  if (_anaToggleClear) _anaToggleClear.classList.remove('active');
   // Show selected
   const el = document.getElementById('tool-' + tool);
   if (el) {
@@ -1811,7 +1815,13 @@ function showTool(tool) {
     const anaSub = document.getElementById('nav-analytics-submenu');
     const anaToggle = document.getElementById('nav-analytics-toggle');
     if (anaSub) anaSub.classList.add('open');
-    if (anaToggle) anaToggle.setAttribute('aria-expanded', 'true');
+    if (anaToggle) {
+      anaToggle.setAttribute('aria-expanded', 'true');
+      // The toggle isn't a nav-{tool} item, so the generic active-class pass
+      // never lights it. Without this, touch devices (where hover is gated)
+      // get zero highlight on the Analytics parent while its tool is open.
+      anaToggle.classList.add('active');
+    }
   }
 
   // Init settings when shown
