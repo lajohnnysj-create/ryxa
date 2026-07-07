@@ -1,0 +1,779 @@
+// =================================================================
+// Ryxa media kit page — extracted from mediakit.html inline <script> for CSP.
+//
+// CSP rules applied to media kit pages (set by api/mediakit.js):
+//   - No inline <script> tags
+//   - No inline event handlers (onclick=, onerror=, etc.)
+// Every interaction is wired through the delegation framework below,
+// keyed by data-mk-action attributes in HTML.
+//
+// Bootstrap values that were previously injected as an inline <script>
+// (window._creatorCurrency, etc.) are now passed via <meta> tags written
+// by api/mediakit.js, and read here on load.
+// =================================================================
+
+// -------- BOOTSTRAP FROM <meta> TAGS --------
+(function bootstrapFromMeta() {
+  function metaContent(name) {
+    var el = document.querySelector('meta[name="' + name + '"]');
+    return el ? el.getAttribute('content') : null;
+  }
+  var currency = metaContent('ryxa-creator-currency');
+  if (currency) window._creatorCurrency = currency;
+  var ssrUser = metaContent('ryxa-ssr-username');
+  if (ssrUser) window._ssrUsername = ssrUser;
+  if (metaContent('ryxa-ssr-hydrated') === 'true') window._ssrHydrated = true;
+})();
+
+// -------- DELEGATION FRAMEWORK --------
+// Pattern: data-mk-action="foo-bar" → handler registered via mkRegisterAction
+// Patches the gap left by removing inline onclick handlers.
+var mkActionHandlers = {};
+function mkRegisterAction(name, fn) { mkActionHandlers[name] = fn; }
+
+// Share: copy the public media kit link; button confirms then reverts.
+mkRegisterAction('share-link', function () {
+  var btn = document.getElementById('mk-share-btn');
+  var link = location.origin + location.pathname;
+  function done(ok) {
+    if (!btn) return;
+    if (btn._revertT) clearTimeout(btn._revertT);
+    if (!btn._originalHtml) btn._originalHtml = btn.innerHTML;
+    btn.textContent = ok ? 'Copied to clipboard' : 'Copy failed';
+    btn._revertT = setTimeout(function () {
+      btn.innerHTML = btn._originalHtml;
+    }, 2000);
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(link).then(function () { done(true); }, function () { done(false); });
+  } else {
+    var ta = document.createElement('textarea');
+    ta.value = link;
+    ta.style.position = 'fixed'; ta.style.left = '-9999px';
+    document.body.appendChild(ta); ta.select();
+    var ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
+    done(ok);
+  }
+});
+
+document.addEventListener('click', function(e) {
+  var el = e.target && e.target.closest ? e.target.closest('[data-mk-action]') : null;
+  if (!el) return;
+  var action = el.getAttribute('data-mk-action');
+  var h = mkActionHandlers[action];
+  if (h) h(e, el);
+});
+
+// =================================================================
+// ORIGINAL MEDIA KIT PAGE CODE (extracted from mediakit.html)
+// =================================================================
+
+const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_PLU28Un_GfsUXeUsK3zB9Q_hvNM7aeG';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { persistSession: false, autoRefreshToken: false }
+});
+
+function getUsername() {
+  let raw = null;
+  const params = new URLSearchParams(window.location.search);
+  if (params.has('u')) raw = params.get('u');
+  else {
+    // Match /mediakit/username path
+    const m = window.location.pathname.match(/^\/mediakit\/@?([^/?#]+)/);
+    if (m) raw = m[1];
+  }
+  if (!raw) return null;
+  const cleaned = String(raw).replace(/^@/, '').toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 30);
+  return cleaned || null;
+}
+
+function esc(s) {
+  if (s == null) return '';
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+
+// Image URLs are restricted to our own Supabase Storage buckets.
+// Allowed: bio-photos (link-in-bio), media-kit-photos (headshots),
+// and bio-backgrounds (Creator Max custom backgrounds — forward-compat).
+function validImageUrl(u) {
+  if (!u) return null;
+  try {
+    const url = new URL(u);
+    if (url.protocol !== 'https:') return null;
+    const expectedHost = 'kjytapcgxukalwsyputk.supabase.co';
+    if (url.hostname !== expectedHost) return null;
+    const allowedBuckets = [
+      '/storage/v1/object/public/bio-photos/',
+      '/storage/v1/object/public/media-kit-photos/',
+      '/storage/v1/object/public/bio-backgrounds/',
+    ];
+    if (!allowedBuckets.some(b => url.pathname.includes(b))) return null;
+    return url.toString();
+  } catch { return null; }
+}
+
+function formatNumber(n) {
+  const num = parseInt(n);
+  if (!num || num < 0) return '0';
+  if (num >= 1000000) return (num / 1000000).toFixed(num % 1000000 === 0 ? 0 : 1) + 'M';
+  if (num >= 1000) return (num / 1000).toFixed(num % 1000 === 0 ? 0 : 1) + 'K';
+  return String(num);
+}
+
+function formatPrice(p) {
+  const num = parseFloat(p);
+  if (!isFinite(num) || num < 0) return '';
+  var code = window._creatorCurrency || 'USD';
+  var localeMap = { USD:'en-US', EUR:'en-IE', GBP:'en-GB', CAD:'en-CA', AUD:'en-AU', JPY:'ja-JP', INR:'en-IN', BRL:'pt-BR', MXN:'es-MX', CHF:'de-CH', SGD:'en-SG', SEK:'sv-SE', NOK:'nb-NO', NZD:'en-NZ', ZAR:'en-ZA' };
+  var locale = localeMap[code] || 'en-US';
+  try {
+    return new Intl.NumberFormat(locale, { style:'currency', currency:code, minimumFractionDigits:0, maximumFractionDigits:0 }).format(Math.round(num));
+  } catch (e) {
+    return '$' + Math.round(num).toLocaleString('en-US');
+  }
+}
+
+function renderNotFound(username) {
+  document.title = 'Not found | Ryxa';
+  document.getElementById('wrap').innerHTML = `
+    <div class="state">
+      <h1>This media kit isn't here yet</h1>
+      <p>${username ? `<strong>${esc(username)}</strong> hasn't published a media kit on Ryxa.` : 'No username in the URL.'}</p>
+      <a class="cta" href="https://www.ryxa.io">Create your own →</a>
+    </div>
+  `;
+}
+
+// Social platforms — shown on media kit stats grid
+const SOCIAL_PLATFORMS = [
+  { key:'instagram', label:'Instagram', svg:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.2c3.2 0 3.6 0 4.85.07 1.17.05 1.8.25 2.22.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.05.41 2.22.06 1.26.07 1.64.07 4.82s-.01 3.57-.07 4.82c-.05 1.17-.25 1.8-.41 2.22a3.72 3.72 0 0 1-.9 1.38c-.42.42-.82.68-1.38.9-.42.16-1.05.36-2.22.41-1.26.06-1.64.07-4.82.07s-3.57-.01-4.82-.07c-1.17-.05-1.8-.25-2.22-.41a3.72 3.72 0 0 1-1.38-.9 3.72 3.72 0 0 1-.9-1.38c-.16-.42-.36-1.05-.41-2.22C2.21 15.57 2.2 15.19 2.2 12s.01-3.57.07-4.82c.05-1.17.25-1.8.41-2.22.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.05-.36 2.22-.41C8.43 2.21 8.81 2.2 12 2.2M12 0C8.74 0 8.33.01 7.05.07 5.78.13 4.9.33 4.14.63a5.92 5.92 0 0 0-2.13 1.39A5.92 5.92 0 0 0 .62 4.14C.33 4.9.13 5.78.07 7.05.01 8.33 0 8.74 0 12c0 3.26.01 3.67.07 4.95.06 1.27.26 2.15.56 2.91a5.92 5.92 0 0 0 1.39 2.13c.66.66 1.32 1.06 2.13 1.39.76.3 1.64.5 2.91.56C8.33 23.99 8.74 24 12 24c3.26 0 3.67-.01 4.95-.07 1.27-.06 2.15-.26 2.91-.56a5.92 5.92 0 0 0 2.13-1.39c.66-.66 1.06-1.32 1.39-2.13.3-.76.5-1.64.56-2.91.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.06-1.27-.26-2.15-.56-2.91a5.92 5.92 0 0 0-1.39-2.13A5.92 5.92 0 0 0 19.86.62c-.76-.3-1.64-.5-2.91-.56C15.67.01 15.26 0 12 0Zm0 5.84a6.16 6.16 0 1 0 0 12.32 6.16 6.16 0 0 0 0-12.32Zm0 10.16a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm6.41-11.88a1.44 1.44 0 1 0 0 2.88 1.44 1.44 0 0 0 0-2.88Z"/></svg>' },
+  { key:'tiktok', label:'TikTok', svg:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5.8 20.1a6.34 6.34 0 0 0 10.86-4.43V8.83a8.16 8.16 0 0 0 4.77 1.52V6.9a4.85 4.85 0 0 1-1.84-.21Z"/></svg>' },
+  { key:'youtube', label:'YouTube', svg:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.12C19.54 3.58 12 3.58 12 3.58s-7.54 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.07 0 12 0 12s0 3.93.5 5.8a3 3 0 0 0 2.1 2.12c1.86.5 9.4.5 9.4.5s7.54 0 9.4-.5a3 3 0 0 0 2.1-2.12C24 15.93 24 12 24 12s0-3.93-.5-5.8ZM9.55 15.57V8.43L15.82 12l-6.27 3.57Z"/></svg>' },
+  { key:'twitter', label:'Twitter/X', svg:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>' },
+  { key:'facebook', label:'Facebook', svg:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.68.23 2.68.23v2.97h-1.51c-1.49 0-1.95.93-1.95 1.89v2.26h3.32l-.53 3.49h-2.79V24C19.61 23.1 24 18.1 24 12.07Z"/></svg>' },
+  { key:'threads', label:'Threads', svg:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.472 12.01v-.017c.03-3.579.879-6.43 2.525-8.482C5.845 1.205 8.6.024 12.18 0h.014c2.746.02 5.043.725 6.826 2.098 1.677 1.29 2.858 3.13 3.509 5.467l-2.04.569c-1.104-3.96-3.898-5.984-8.304-6.015-2.91.022-5.11.936-6.54 2.717C4.307 6.504 3.616 8.914 3.589 12c.027 3.086.718 5.496 2.057 7.164 1.43 1.783 3.631 2.698 6.54 2.717 2.623-.02 4.358-.631 5.8-2.045 1.647-1.613 1.618-3.593 1.09-4.798-.31-.71-.873-1.3-1.634-1.75-.192 1.352-.622 2.446-1.284 3.272-.886 1.102-2.14 1.704-3.73 1.79-1.202.065-2.361-.218-3.259-.801-1.063-.689-1.685-1.74-1.752-2.964-.065-1.19.408-2.285 1.33-3.082.88-.76 2.119-1.207 3.583-1.291 1.034-.06 1.995 0 2.917.175-.084-.689-.302-1.235-.646-1.62-.523-.584-1.252-.823-2.196-.734a3.62 3.62 0 0 0-1.907.795l-1.078-1.66c.845-.621 2.027-.964 3.158-.988 1.692-.035 2.979.492 3.853 1.575.781.968 1.147 2.329 1.09 4.039 1.32.639 2.316 1.674 2.854 2.972.768 1.855.82 4.84-1.639 7.245-1.876 1.834-4.215 2.658-7.39 2.678zm2.62-12.395c-.457-.03-.987-.04-1.557-.006-1.034.06-1.868.327-2.357.746-.456.39-.63.9-.598 1.477.034.604.299 1.04.863 1.406.518.34 1.24.516 2.053.47.988-.055 1.739-.426 2.294-1.125.538-.676.85-1.694.846-2.895l-.004-.073h-1.54z"/></svg>' },
+  { key:'snapchat', label:'Snapchat', svg:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.02 0C5.44 0 4.73 5.08 4.86 7.15c.03.5.05 1.01.06 1.52-.3.16-.79.38-1.29.38-.38 0-.75-.14-1.08-.41-.06-.05-.17-.14-.35-.14-.3 0-.65.17-.92.47-.3.34-.3.78.02 1.08.27.26.7.48 1.2.62.68.19 1.56.49 1.79 1.04.13.3-.01.69-.41 1.17a.35.35 0 0 1-.03.03c-.01.02-1.28 2.08-4.21 2.56-.22.04-.38.24-.36.46 0 .05.02.1.04.15.13.3.56.52 1.32.68.08.02.14.11.17.3.03.18.07.4.17.63.1.23.29.35.55.35.14 0 .3-.03.48-.06.25-.05.57-.11.96-.11.22 0 .44.02.68.06.45.07.83.34 1.27.65.63.45 1.35.96 2.43.96.08 0 .17 0 .26-.02.08.01.2.02.33.02 1.08 0 1.8-.51 2.43-.96.44-.31.82-.58 1.27-.65.24-.04.46-.06.68-.06.38 0 .68.05.96.11.2.04.36.06.48.06h.02c.19 0 .41-.08.53-.35.1-.22.14-.43.17-.62.02-.17.09-.28.17-.3.76-.16 1.19-.38 1.32-.68a.43.43 0 0 0 .04-.15c.02-.22-.14-.42-.36-.46-2.93-.48-4.2-2.54-4.21-2.56a.57.57 0 0 1-.03-.03c-.4-.48-.54-.87-.41-1.17.23-.55 1.11-.85 1.79-1.04.5-.14.93-.36 1.2-.62.33-.32.33-.76.03-1.08-.28-.3-.63-.47-.92-.47-.19 0-.3.08-.35.14-.32.26-.69.41-1.08.41-.5 0-.99-.22-1.29-.38.01-.51.03-1.02.06-1.52.13-2.07-.58-7.15-7.16-7.15Z"/></svg>' },
+  { key:'pinterest', label:'Pinterest', svg:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 0C5.373 0 0 5.372 0 12c0 5.084 3.163 9.426 7.627 11.174-.105-.949-.2-2.405.042-3.441.218-.937 1.407-5.965 1.407-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738.098.119.112.224.083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.889-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.359-.631-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/></svg>' },
+  { key:'linkedin', label:'LinkedIn', svg:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.95v5.66H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.26 2.37 4.26 5.45v6.29ZM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12ZM7.12 20.45H3.56V9h3.56v11.45ZM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0Z"/></svg>' },
+  { key:'twitch', label:'Twitch', svg:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>' },
+];
+
+const PREDEFINED_RATES = {
+  'ig_reel':     'Instagram Reel',
+  'ig_post':     'Instagram Post',
+  'ig_story':    'Instagram Story',
+  'tiktok':      'TikTok Video',
+  'youtube':     'YouTube Video',
+};
+
+function buildHero(kit, headshot) {
+  const name = kit.display_name || '';
+  const initial = (name[0] || '?').toUpperCase();
+  const headshotHtml = headshot
+    ? `<img class="headshot" src="${esc(headshot)}" alt="${esc(name)}">`
+    : `<div class="headshot-fallback">${esc(initial)}</div>`;
+  return `<div class="hero">
+    <div class="headshot-frame">${headshotHtml}</div>
+    <div class="hero-body">
+      <div class="hero-name">${esc(name || 'Creator')}</div>
+      ${kit.handle ? `<div class="hero-handle">${esc(kit.handle)}</div>` : ''}
+      ${kit.category ? `<div class="hero-category">${esc(kit.category)}</div>` : ''}
+      ${kit.bio ? `<div class="hero-bio">${esc(kit.bio)}</div>` : ''}
+    </div>
+  </div>`;
+}
+
+function buildAudience(kit) {
+  const rawSocials = kit.socials || {};
+  // Normalize: legacy number-only, or {count, url}
+  const normalized = {};
+  for (const key of Object.keys(rawSocials)) {
+    const v = rawSocials[key];
+    if (typeof v === 'number') normalized[key] = { count: v, url: '' };
+    else if (v && typeof v === 'object') normalized[key] = { count: parseInt(v.count) || 0, url: v.url || '' };
+  }
+
+  const filled = SOCIAL_PLATFORMS
+    .map(p => ({ ...p, data: normalized[p.key] || { count: 0, url: '' } }))
+    .filter(p => p.data.count > 0);
+
+  if (filled.length === 0 && !kit.engagement_rate) return '';
+
+  const total = filled.reduce((sum, p) => sum + p.data.count, 0);
+
+  const totalHtml = total > 0 ? `<div class="total-followers">
+    <div class="total-followers-num">${formatNumber(total)}</div>
+    <div class="total-followers-label">Total Followers</div>
+  </div>` : '';
+
+  const statsHtml = filled.length > 0 ? `<div class="stats-grid">
+    ${filled.map(p => {
+      const inner = `<div class="stat-icon">${p.svg}</div>
+      <div class="stat-text">
+        <div class="stat-num">${formatNumber(p.data.count)}</div>
+        <div class="stat-label">${esc(p.label)}</div>
+      </div>`;
+      // If URL is present and valid, wrap as a link
+      const safeUrl = validExternalUrl(p.data.url);
+      if (safeUrl) {
+        return `<a class="stat-card stat-link" href="${esc(safeUrl)}" target="_blank" rel="noopener nofollow" aria-label="${esc(p.label)} profile">${inner}</a>`;
+      }
+      return `<div class="stat-card">${inner}</div>`;
+    }).join('')}
+  </div>` : '';
+
+  const engagementHtml = (kit.engagement_rate && parseFloat(kit.engagement_rate) > 0) ? `<div class="engagement-row">
+    <div class="engagement-label">Engagement Rate</div>
+    <div class="engagement-value">${parseFloat(kit.engagement_rate).toFixed(2)}%</div>
+  </div>` : '';
+
+  return `<div class="section">
+    <div class="section-title">Audience</div>
+    ${totalHtml}
+    ${statsHtml}
+    ${engagementHtml}
+  </div>`;
+}
+
+// Validates any external http(s) URL — used for social profile links
+function validExternalUrl(u) {
+  if (!u) return null;
+  try {
+    const url = new URL(u);
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') return null;
+    return url.toString();
+  } catch { return null; }
+}
+
+// ==== Videos (YouTube + TikTok): mirrors the Link in Bio embeds ====
+function extractYouTubeId(url) {
+  if (!url) return null;
+  const m = String(url).match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
+function extractTikTokId(url) {
+  if (!url) return null;
+  const m = String(url).match(/tiktok\.com\/(?:.*\/video\/|embed\/(?:v2\/)?|v\/)(\d{6,})/i);
+  return m ? m[1] : null;
+}
+function isShortsUrl(url) {
+  return /youtube\.com\/shorts\//i.test(String(url || ''));
+}
+function buildVideos(kit) {
+  const v = (kit && kit.videos && typeof kit.videos === 'object') ? kit.videos : {};
+  const yt = Array.isArray(v.youtube) ? v.youtube : [];
+  const tt = Array.isArray(v.tiktok) ? v.tiktok : [];
+  const ytCards = yt.map(url => {
+    const id = extractYouTubeId(url);
+    if (!id) return '';
+    const vert = isShortsUrl(url) ? ' vertical' : '';
+    const thumb = `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+    return `<div class="video-card${vert}" tabindex="0" role="button" aria-label="Play video" data-mk-action="play-video" data-mk-video-id="${id}">
+        <div class="video-thumb-wrap">
+          <img class="video-thumb" src="${thumb}" alt="YouTube video thumbnail" loading="lazy">
+          <div class="video-play"><div class="video-play-icon"></div></div>
+        </div>
+      </div>`;
+  }).filter(Boolean).join('');
+  const ttCards = tt.map(url => {
+    const id = extractTikTokId(url);
+    if (!id) return '';
+    return `<div class="video-card vertical tiktok-card">
+        <div class="video-thumb-wrap">
+          <iframe class="video-iframe" src="https://www.tiktok.com/player/v1/${id}" loading="lazy" title="TikTok video player" allow="fullscreen; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+        </div>
+      </div>`;
+  }).filter(Boolean).join('');
+  if (!ytCards && !ttCards) return '';
+  const arrows = '<button type="button" class="videos-arrow videos-arrow-l" aria-label="Scroll left" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg></button><button type="button" class="videos-arrow videos-arrow-r" aria-label="Scroll right" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button>';
+  const ytBlock = ytCards ? `<div class="videos">${arrows}<div class="videos-scroll">${ytCards}</div></div>` : '';
+  const ttBlock = ttCards ? `<div class="videos">${arrows}<div class="videos-scroll">${ttCards}</div></div>` : '';
+  return `<div class="section">
+    <div class="section-title">Videos</div>
+    ${ytBlock}
+    ${ttBlock}
+  </div>`;
+}
+
+// Photos. Mirrors the Link in Bio image carousel: reuses the .videos chrome so the
+// existing arrow wiring covers it; each image keeps its natural aspect ratio.
+function buildCarousel(kit) {
+  const imgs = (kit && Array.isArray(kit.carousel)) ? kit.carousel : [];
+  const cards = imgs.filter(im => im && im.photoUrl).slice(0, 10).map(im => {
+    const dim = (im.w && im.h) ? ` width="${im.w}" height="${im.h}"` : '';
+    return `<div class="img-card"><img class="img-card-img" src="${esc(im.photoUrl)}"${dim} loading="lazy" alt=""></div>`;
+  }).join('');
+  if (!cards) return '';
+  const arrows = '<button type="button" class="videos-arrow videos-arrow-l" aria-label="Scroll left" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg></button><button type="button" class="videos-arrow videos-arrow-r" aria-label="Scroll right" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button>';
+  return `<div class="section">
+    <div class="section-title">Photos</div>
+    <div class="videos">${arrows}<div class="videos-scroll">${cards}</div></div>
+  </div>`;
+}
+
+
+// YouTube click-to-play: swap the thumbnail card for an autoplay embed.
+function playVideo(cardEl, videoId) {
+  cardEl.innerHTML = `<div class="video-thumb-wrap">
+    <iframe class="video-iframe" src="https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1" title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
+  </div>`;
+}
+// Desktop arrow buttons scroll each .videos carousel ~one card width.
+function initVideoArrows() {
+  const blocks = document.querySelectorAll('.videos');
+  blocks.forEach(block => {
+    if (block.dataset.arrowsInit) return;
+    block.dataset.arrowsInit = '1';
+    const scroller = block.querySelector('.videos-scroll');
+    const left = block.querySelector('.videos-arrow-l');
+    const right = block.querySelector('.videos-arrow-r');
+    if (!scroller || !left || !right) return;
+    const cardWidth = 272;
+    const updateState = () => {
+      const max = scroller.scrollWidth - scroller.clientWidth;
+      left.disabled = scroller.scrollLeft <= 1;
+      right.disabled = scroller.scrollLeft >= max - 1;
+    };
+    left.addEventListener('click', e => { e.preventDefault(); scroller.scrollBy({ left: -cardWidth, behavior: 'smooth' }); });
+    right.addEventListener('click', e => { e.preventDefault(); scroller.scrollBy({ left: cardWidth, behavior: 'smooth' }); });
+    scroller.addEventListener('scroll', updateState, { passive: true });
+    window.addEventListener('resize', updateState);
+    updateState();
+  });
+}
+
+function buildRateCard(kit) {
+  const rates = Array.isArray(kit.rate_card) ? kit.rate_card : [];
+  const valid = rates.filter(r => {
+    const p = parseFloat(r.price);
+    return isFinite(p) && p > 0;
+  });
+  if (valid.length === 0) return '';
+
+  return `<div class="section">
+    <div class="section-title">Rate Card</div>
+    ${valid.map(r => {
+      const label = PREDEFINED_RATES[r.id] || r.label || 'Custom';
+      return `<div class="rate-row">
+        <div>
+          <div class="rate-label">${esc(label)}</div>
+          ${r.note ? `<div class="rate-note">${esc(r.note)}</div>` : ''}
+        </div>
+        <div class="rate-price">${esc(formatPrice(r.price))}</div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function buildContact(kit) {
+  if (!kit.contact_email) return '';
+  // Basic email validation
+  const safeEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(kit.contact_email) ? kit.contact_email : null;
+  if (!safeEmail) return '';
+
+  const mailIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 4h20a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm10 9.44L3.3 6H20.7L12 13.44Z"/></svg>';
+
+  return `<div class="section">
+    <div class="section-title">Contact</div>
+    <a class="contact-email" href="mailto:${esc(safeEmail)}">
+      ${mailIcon}
+      <span>${esc(safeEmail)}</span>
+    </a>
+    ${kit.contact_note ? `<div class="contact-note">${esc(kit.contact_note)}</div>` : ''}
+  </div>`;
+}
+
+function updateMKOgTags({ title, description, image, url }) {
+  const setMeta = (property, content) => {
+    if (!content) return;
+    let el = document.querySelector(`meta[property="${property}"]`);
+    if (!el) {
+      el = document.createElement('meta');
+      el.setAttribute('property', property);
+      document.head.appendChild(el);
+    }
+    el.setAttribute('content', content);
+  };
+  const setName = (name, content) => {
+    if (!content) return;
+    let el = document.querySelector(`meta[name="${name}"]`);
+    if (!el) {
+      el = document.createElement('meta');
+      el.setAttribute('name', name);
+      document.head.appendChild(el);
+    }
+    el.setAttribute('content', content);
+  };
+  setMeta('og:title', title);
+  setMeta('og:description', description);
+  setMeta('og:type', 'profile');
+  if (url) setMeta('og:url', url);
+  if (image) {
+    setMeta('og:image', image);
+    setMeta('og:image:width', '800');
+    setMeta('og:image:height', '800');
+  }
+  setName('twitter:card', image ? 'summary_large_image' : 'summary');
+  setName('twitter:title', title);
+  setName('twitter:description', description);
+  if (image) setName('twitter:image', image);
+  setName('description', description);
+}
+
+function render(profile, kit) {
+  const name = kit.display_name || profile.username;
+  const username = profile.username || '';
+  const title = `${name}. Media Kit | Ryxa`;
+  document.title = title;
+  const headshot = validImageUrl(kit.headshot_url);
+  const description = kit.bio || `${name}'s creator media kit — collaborations, audience stats, and rates.`;
+  updateMKOgTags({
+    title: title,
+    description: description,
+    image: headshot,
+    url: window.location.href,
+  });
+
+  // Apply theme — custom theme only honored if user is Max tier
+  // Image themes (paperwhite, ember, sapphire, blossom, honey) are free for all.
+  const isMaxTier = profile.tier === 'max';
+  if (kit.theme === 'custom' && isMaxTier && kit.custom_theme) {
+    applyCustomTheme(kit.custom_theme);
+    document.documentElement.setAttribute('data-theme', 'custom');
+  } else if (BUILTIN_IMAGE_THEMES[kit.theme]) {
+    // Builtin image theme — apply via the same pipeline as custom theme
+    applyImageTheme(kit.theme);
+    document.documentElement.setAttribute('data-theme', 'custom');
+  } else {
+    const theme = (kit.theme === 'custom' && !isMaxTier) ? 'purple' : (kit.theme || 'purple');
+    document.documentElement.setAttribute('data-theme', theme);
+  }
+
+  // Apply font — no-op if SSR already injected. Falls back to default if invalid.
+  applyMKFont(kit.font_family);
+
+  // Banner rule: always on for non-Pro. Pro/Max can opt out via show_branding=false.
+  const isPaid = profile.tier === 'monthly' || profile.tier === 'max';
+  const showBanner = !isPaid || kit.show_branding === true;
+
+  const bannerHtml = showBanner ? `<div class="banner-wrap">
+    <a class="brand-banner" href="https://www.ryxa.io"><img src="https://www.ryxa.io/logo.png" alt="Ryxa" class="brand-banner-logo"><span>Media Kit powered by <strong>Ryxa</strong></span></a>
+  </div>` : '';
+
+  document.getElementById('wrap').innerHTML = `
+    <div class="top-actions">
+      <button class="btn-dl" id="mk-share-btn" data-mk-action="share-link" aria-label="Copy media kit link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg> Share</button>
+      
+      <button class="btn-dl" data-mk-action="print" aria-label="Download as PDF">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download PDF
+      </button>
+    </div>
+    ${buildHero(kit, headshot)}
+    ${buildAudience(kit)}
+    ${buildRateCard(kit)}
+    ${buildVideos(kit)}
+    ${buildCarousel(kit)}
+    ${buildContact(kit)}
+    ${bannerHtml}
+  `;
+  initVideoArrows();
+}
+
+// ====== Custom theme helpers (Creator Max) ======
+function hexAlpha(hex, alpha) {
+  const h = (hex || '#ffffff').replace('#', '');
+  const bigint = parseInt(h.length === 3 ? h.split('').map(c => c + c).join('') : h, 16);
+  const r = (bigint >> 16) & 255, g = (bigint >> 8) & 255, b = bigint & 255;
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+function applyCustomTheme(ct) {
+  const colors = ct?.colors || {};
+  const bg = colors.bg || '#07070f';
+  const card = colors.card || '#161625';
+  const text = colors.text || '#ffffff';
+  const accent = colors.accent || '#a78bfa';
+
+  const root = document.documentElement;
+  root.style.setProperty('--bg', bg);
+  root.style.setProperty('--surface', card);
+  root.style.setProperty('--surface2', card);
+  root.style.setProperty('--text', text);
+  root.style.setProperty('--muted', hexAlpha(text, 0.65));
+  root.style.setProperty('--muted2', hexAlpha(text, 0.8));
+  root.style.setProperty('--border', hexAlpha(text, 0.1));
+  root.style.setProperty('--accent', accent);
+  root.style.setProperty('--accent2', accent);
+  root.style.setProperty('--accent-glow', hexAlpha(accent, 0.3));
+  root.style.setProperty('--avatar-border', `linear-gradient(135deg, ${accent}, ${accent})`);
+
+  if (ct.bgUrl) {
+    const op = ct.bgOpacity != null ? ct.bgOpacity : 0.4;
+    const darkness = 1 - op;
+    let bgStyle = document.getElementById('custom-bg-style');
+    if (!bgStyle) {
+      bgStyle = document.createElement('style');
+      bgStyle.id = 'custom-bg-style';
+      document.head.appendChild(bgStyle);
+    }
+    bgStyle.textContent = `
+      :root[data-theme="custom"] body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background-image: url("${ct.bgUrl.replace(/"/g, '&quot;')}");
+        background-size: cover;
+        background-position: center;
+        z-index: -2;
+      }
+      :root[data-theme="custom"] body::after {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,${darkness.toFixed(2)});
+        z-index: -1;
+      }
+    `;
+  }
+}
+
+// Builtin image themes — free for all tiers.
+// Mirror of BUILTIN_IMAGE_THEMES in api/mediakit.js — keep in sync.
+const BUILTIN_IMAGE_THEMES = {
+  paperwhite: { image:'/bgtemplates/1.webp', colors:{bg:'#FFFFFF',card:'#F5F5F8',text:'#1A1A2E',accent:'#6366F1'} },
+  ember:      { image:'/bgtemplates/2.webp', colors:{bg:'#1A1A1C',card:'#262628',text:'#F5F2ED',accent:'#F97316'} },
+  sapphire:   { image:'/bgtemplates/3.webp', colors:{bg:'#1E3A8A',card:'#172554',text:'#F5EFE0',accent:'#D4AF37'} },
+  blossom:    { image:'/bgtemplates/4.webp', colors:{bg:'#FCE7EB',card:'#F8D7DD',text:'#5C2E3D',accent:'#C9A961'} },
+  honey:      { image:'/bgtemplates/5.webp', colors:{bg:'#FCEFC0',card:'#F8E48E',text:'#5C3F17',accent:'#B45309'} },
+};
+
+function applyImageTheme(themeKey) {
+  const theme = BUILTIN_IMAGE_THEMES[themeKey];
+  if (!theme) return false;
+  applyCustomTheme({
+    colors: theme.colors,
+    bgUrl: theme.image,
+    bgOpacity: 1, // 1 means no overlay darkening
+  });
+  return true;
+}
+
+// Mirrors BIO_FONTS_SSR in mediakit.js. Keep in sync when adding new fonts.
+const BIO_FONTS_CLIENT = {
+  'DM Sans':             { gfont:'DM+Sans',             weights:'300;400;500;600;700', stack:"'DM Sans', sans-serif" },
+  'Abril Fatface':       { gfont:'Abril+Fatface',       weights:'400', stack:"'Abril Fatface', serif" },
+  'Anton':               { gfont:'Anton',               weights:'400', stack:"'Anton', sans-serif" },
+  'Archivo Black':       { gfont:'Archivo+Black',       weights:'400', stack:"'Archivo Black', sans-serif" },
+  'Bebas Neue':          { gfont:'Bebas+Neue',          weights:'400', stack:"'Bebas Neue', sans-serif" },
+  'Bricolage Grotesque': { gfont:'Bricolage+Grotesque', weights:'400;500;600;700;800', stack:"'Bricolage Grotesque', sans-serif" },
+  'Caveat':              { gfont:'Caveat',              weights:'400;500;600;700', stack:"'Caveat', cursive" },
+  'Cormorant':           { gfont:'Cormorant',           weights:'400;500;600;700', stack:"'Cormorant', serif" },
+  'Fraunces':            { gfont:'Fraunces',            weights:'300;400;500;600;700', stack:"'Fraunces', serif" },
+  'Inter':               { gfont:'Inter',               weights:'300;400;500;600;700', stack:"'Inter', sans-serif" },
+  'JetBrains Mono':      { gfont:'JetBrains+Mono',      weights:'300;400;500;600;700', stack:"'JetBrains Mono', monospace" },
+  'Lora':                { gfont:'Lora',                weights:'400;500;600;700', stack:"'Lora', serif" },
+  'Monoton':             { gfont:'Monoton',             weights:'400', stack:"'Monoton', sans-serif" },
+  'Nunito':              { gfont:'Nunito',              weights:'300;400;600;700;800', stack:"'Nunito', sans-serif" },
+  'Outfit':              { gfont:'Outfit',              weights:'300;400;500;600;700;800', stack:"'Outfit', sans-serif" },
+  'Pacifico':            { gfont:'Pacifico',            weights:'400', stack:"'Pacifico', cursive" },
+  'Playfair Display':    { gfont:'Playfair+Display',    weights:'400;500;600;700;800', stack:"'Playfair Display', serif" },
+  'Plus Jakarta Sans':   { gfont:'Plus+Jakarta+Sans',   weights:'300;400;500;600;700;800', stack:"'Plus Jakarta Sans', sans-serif" },
+  'Rubik Mono One':      { gfont:'Rubik+Mono+One',      weights:'400', stack:"'Rubik Mono One', sans-serif" },
+  'Space Grotesk':       { gfont:'Space+Grotesk',       weights:'300;400;500;600;700', stack:"'Space Grotesk', sans-serif" },
+};
+
+// Apply creator's chosen font (client-side fallback path). When SSR runs,
+// the font is already injected — this function checks for that and skips.
+// Falls back to default DM Sans if key invalid or not provided.
+function applyMKFont(fontKey) {
+  if (document.getElementById('mk-font-override')) return;
+  // Default ('DM Sans' or null/unknown): no override. The static stylesheet
+  // already paints DM Sans on body + Syne on headings for Ryxa's signature look.
+  if (!fontKey || fontKey === 'DM Sans') return;
+  const font = BIO_FONTS_CLIENT[fontKey] || BIO_FONTS_CLIENT['DM Sans'];
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = `https://fonts.googleapis.com/css2?family=${font.gfont}:wght@${font.weights}&display=swap`;
+  document.head.appendChild(link);
+  const style = document.createElement('style');
+  style.id = 'mk-font-override';
+  style.textContent = `body, body * { font-family: ${font.stack} !important; } .brand-banner, .brand-banner * { font-family: 'DM Sans', sans-serif !important; }`;
+  document.head.appendChild(style);
+}
+
+async function load() {
+  const username = getUsername();
+  if (!username) { renderNotFound(null); return; }
+
+  // FAST PATH: server-side rendered. Skip the data fetch + render entirely.
+  // The page is already painted with the creator's content; we only need to
+  // track the page view (which has to happen client-side so we don't count
+  // bots or CDN cache warmers as views).
+  if (window._ssrHydrated && window._ssrUsername) {
+    trackPageView(window._ssrUsername, 'mediakit');
+    initIgAgeGenderTabs();
+    initIgPlatformTabs();
+    initVideoArrows();
+    return;
+  }
+
+  // FALLBACK PATH: server-side render failed or wasn't applied. Render client-side.
+  const { data: profile, error: pErr } = await sb
+    .from('public_profile_tiers')
+    .select('user_id, username, tier, display_currency')
+    .eq('username', username)
+    .maybeSingle();
+
+  if (pErr || !profile) { renderNotFound(username); return; }
+
+  // Set creator's display currency for price formatting
+  window._creatorCurrency = profile.display_currency || 'USD';
+
+  const { data: kit, error: kErr } = await sb
+    .from('media_kit')
+    .select('headshot_url, display_name, handle, bio, category, socials, engagement_rate, rate_card, contact_email, contact_note, theme, show_branding, published, custom_theme, videos, carousel')
+    .eq('user_id', profile.user_id)
+    .eq('published', true)
+    .maybeSingle();
+
+  if (kErr || !kit) { renderNotFound(username); return; }
+
+  render(profile, kit);
+
+  // Track page view (fire-and-forget, non-blocking)
+  trackPageView(username, 'mediakit');
+}
+
+// Page view tracking with visitor dedup
+async function trackPageView(username, pageType) {
+  try {
+    // Generate a visitor hash from available browser signals (no PII stored)
+    let visitorHash;
+    try {
+      const raw = [
+        navigator.userAgent || '',
+        navigator.language || '',
+        screen.width + 'x' + screen.height,
+        new Date().getTimezoneOffset().toString()
+      ].join('|');
+      const msgBuf = new TextEncoder().encode(raw);
+      const hashBuf = await crypto.subtle.digest('SHA-256', msgBuf);
+      const hashArr = Array.from(new Uint8Array(hashBuf));
+      visitorHash = hashArr.map(b => b.toString(16).padStart(2, '0')).join('');
+    } catch (hashErr) {
+      // Fallback if crypto.subtle is unavailable (e.g. non-HTTPS context)
+      visitorHash = 'fb-' + btoa(navigator.userAgent + screen.width + screen.height).slice(0, 32);
+    }
+
+    const { error } = await sb.rpc('record_page_view', {
+      p_username: username,
+      p_page_type: pageType,
+      p_visitor_hash: visitorHash
+    });
+    if (error) console.error('Page view tracking error:', error.message);
+  } catch (e) {
+    console.error('trackPageView failed:', e);
+  }
+}
+
+// Switch between platform panels (Instagram / YouTube) when a platform tab is
+// clicked. All panels are server-rendered; this toggles the [hidden] attribute
+// and the active tab styling. Mirrors the age/gender tab switcher.
+function initIgPlatformTabs() {
+  const tabRoots = document.querySelectorAll('.ig-platform-tabs');
+  tabRoots.forEach(tabsRoot => {
+    const section = tabsRoot.closest('.ig-section') || document;
+    tabsRoot.addEventListener('click', e => {
+      const btn = e.target && e.target.closest('[data-platform-tab]');
+      if (!btn) return;
+      const which = btn.getAttribute('data-platform-tab');
+      tabsRoot.querySelectorAll('.ig-platform-tab').forEach(t => {
+        t.classList.remove('is-active');
+        t.setAttribute('aria-selected', 'false');
+      });
+      btn.classList.add('is-active');
+      btn.setAttribute('aria-selected', 'true');
+      section.querySelectorAll('[data-platform-panel]').forEach(panel => {
+        if (panel.getAttribute('data-platform-panel') === which) {
+          panel.removeAttribute('hidden');
+        } else {
+          panel.setAttribute('hidden', '');
+        }
+      });
+    });
+  });
+}
+
+// Wire the All/Male/Female tabs in the IG age-gender chart.
+// SSR ships the "All" data already rendered; this just swaps in
+// the male/female data when the corresponding tab is clicked.
+function initIgAgeGenderTabs() {
+  const mounts = document.querySelectorAll('.ig-ag-mount[data-ag-payload]');
+  mounts.forEach(mount => {
+    let payload;
+    try { payload = JSON.parse(mount.getAttribute('data-ag-payload') || '{}'); }
+    catch { return; }
+
+    const tabsRoot = mount.parentElement && mount.parentElement.querySelector('[data-ag-tabs]');
+    if (!tabsRoot) return;
+
+    function renderBars(items) {
+      if (!items || items.length === 0) {
+        mount.innerHTML = '<div class="ig-demo-loading">No data for this view.</div>';
+        return;
+      }
+      mount.innerHTML = '<div class="ig-bar-list">' +
+        items.map(it =>
+          '<div class="ig-bar-row">' +
+            '<div class="ig-bar-label">' + escapeText(it.label) + '</div>' +
+            '<div class="ig-bar-track"><div class="ig-bar-fill" style="width:' + Number(it.pct).toFixed(1) + '%"></div></div>' +
+            '<div class="ig-bar-pct">' + Number(it.pct).toFixed(1) + '%</div>' +
+          '</div>'
+        ).join('') +
+        '</div>';
+    }
+
+    tabsRoot.addEventListener('click', e => {
+      const btn = e.target && e.target.closest('[data-ag-tab]');
+      if (!btn) return;
+      const which = btn.getAttribute('data-ag-tab'); // 'all' | 'male' | 'female'
+      // Update tab visual state
+      tabsRoot.querySelectorAll('.ig-demo-tab').forEach(t => t.classList.remove('is-active'));
+      btn.classList.add('is-active');
+      // Render the chosen dataset
+      renderBars(payload[which]);
+    });
+  });
+}
+
+function escapeText(s) {
+  if (s == null) return '';
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+
+load().catch(err => {
+  console.error(err);
+  renderNotFound(getUsername());
+});
+
+
+// =================================================================
+// ACTION REGISTRATIONS — wire data-mk-* attributes to handlers
+// =================================================================
+
+mkRegisterAction('print', function() {
+  window.print();
+});
+
+mkRegisterAction('play-video', function(e, el) {
+  var id = el.getAttribute('data-mk-video-id');
+  if (id) playVideo(el, id);
+});
