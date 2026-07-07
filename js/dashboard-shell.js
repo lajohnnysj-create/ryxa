@@ -1789,10 +1789,16 @@ function showTool(tool) {
     const bnav = document.getElementById('bnav-' + t);
     if (bnav) bnav.classList.remove('active');
   });
-  // The Analytics parent toggle isn't a nav-{tool} id; clear it here and the
-  // analytics branch below re-adds it when one of its tools is shown.
+  // The Analytics parent toggle isn't a nav-{tool} id; reset it fully here.
+  // For analytics tools the branch below re-lights it and re-opens the
+  // submenu; for every other tool this collapses the drawer and clears it.
   const _anaToggleClear = document.getElementById('nav-analytics-toggle');
-  if (_anaToggleClear) _anaToggleClear.classList.remove('active');
+  const _anaSubClear = document.getElementById('nav-analytics-submenu');
+  if (_anaToggleClear) {
+    _anaToggleClear.classList.remove('active');
+    _anaToggleClear.setAttribute('aria-expanded', 'false');
+  }
+  if (_anaSubClear) _anaSubClear.classList.remove('open');
   // Show selected
   const el = document.getElementById('tool-' + tool);
   if (el) {
@@ -3183,15 +3189,17 @@ dashRegisterAction('toggle-analytics-menu', (e, el) => {
   const expanded = el.getAttribute('aria-expanded') === 'true';
   el.setAttribute('aria-expanded', expanded ? 'false' : 'true');
   if (submenu) submenu.classList.toggle('open', !expanded);
-  const childActive = submenu && submenu.querySelector('.active');
-  if (!expanded && !childActive) {
-    // Expanding while no analytics view is open: this click IS navigation.
-    // Open the default analytics view; showTool's sweep clears the previous
-    // tool's highlight and lights this toggle.
-    if (typeof showTool === 'function') showTool('analytics');
+  if (!expanded) {
+    // Expanding: menu focus moves to Analytics. Clear every other sidebar
+    // pill and light this toggle. No navigation happens here.
+    document.querySelectorAll('.sidebar-item.active').forEach(function (it) {
+      if (it !== el) it.classList.remove('active');
+    });
+    el.classList.add('active');
   } else {
-    // Collapsing (or expanding while a child is already active): pure
-    // accordion. The toggle stays lit only if a child view is the open tool.
+    // Collapsing: the toggle stays lit only if one of its views is the
+    // currently open tool.
+    const childActive = submenu && submenu.querySelector('.active');
     el.classList.toggle('active', !!childActive);
   }
 });
