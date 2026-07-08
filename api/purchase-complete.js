@@ -9,7 +9,14 @@
 //     -> { status: 'ready', email, ... }               existing account, has a password
 //
 //   POST { action: 'set_password', session_id, password }
-//     -> { ok: true, email }   caller then signs in client side
+//     -> { ok: true, email, redirect_url }
+//        redirect_url is a one-time magic link that signs the buyer in and
+//        lands them on their purchase. We do NOT sign in from the browser:
+//        CAPTCHA protection is enabled on this project, so any client-side
+//        signInWithPassword without a Turnstile token fails, and Supabase
+//        reports that as "Invalid login credentials". Minting the link server
+//        side sidesteps the captcha entirely and needs no Supabase client on
+//        the page.
 //
 // Guards on set_password, all of them required:
 //   1. Stripe session exists, is ours, and payment_status === 'paid'
@@ -66,6 +73,28 @@ async function adminGetUser(userId) {
   });
   if (!res.ok) throw new Error('admin getUser failed: ' + res.status);
   return await res.json();
+}
+
+// A one-time link that authenticates the buyer and lands them on their
+// purchase. Generated with the service role, so no captcha is involved.
+async function adminMagicLink(email, redirectTo) {
+  var key = getServiceKey();
+  var res = await fetch(SUPABASE_URL + '/auth/v1/admin/generate_link', {
+    method: 'POST',
+    headers: {
+      apikey: key,
+      Authorization: 'Bearer ' + key,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ type: 'magiclink', email: email, redirect_to: redirectTo })
+  });
+  if (!res.ok) {
+    var t = await res.text().catch(function () { return ''; });
+    console.error('generate_link failed', res.status, t.slice(0, 200));
+    return null;
+  }
+  var data = await res.json().catch(function () { return null; });
+  return (data && (data.action_link || (data.properties && data.properties.action_link))) || null;
 }
 
 async function adminUpdateUser(userId, payload) {
@@ -209,7 +238,18 @@ module.exports = async (req, res) => {
       return res.status(500).json({ error: 'Could not set your password. Please use "Email me a login link" at the Ryxa Hub.' });
     }
 
-    return res.status(200).json({ ok: true, email: email });
+    // Sign them in by redirecting to a freshly minted magic link. If link
+    // generation fails, the password is still set: send them to the Hub to
+    // sign in normally rather than failing a completed purchase.
+    var origin2 = allowed.includes(origin) ? origin : 'https://www.ryxa.io';
+    var target = origin2 + '/learn/?dp=' + encodeURIComponent(purchase.product_id) + '&purchased=1';
+    var redirectUrl = await adminMagicLink(email, target);
+
+    return res.status(200).json({
+      ok: true,
+      email: email,
+      redirect_url: redirectUrl || (origin2 + '/learn/')
+    });
   } catch (err) {
     console.error('purchase-complete error:', err);
     return res.status(500).json({ error: 'Something went wrong. Check your email for your access link.' });
