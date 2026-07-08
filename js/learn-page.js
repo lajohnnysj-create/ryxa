@@ -116,6 +116,86 @@ function setLearnAuthMode(mode) {
   document.getElementById('auth-error').style.display = 'none';
 }
 
+// Magic link: the canonical path for accounts created by the purchase webhook
+// (confirmed, but passwordless). One field, one click, and it can never route
+// the buyer to an account other than the one holding their purchase, because
+// the link is delivered to the purchase email itself.
+async function handleLearnMagicLink() {
+  var email = document.getElementById('auth-email').value.trim();
+  var errEl = document.getElementById('auth-error');
+  var btn = document.getElementById('magic-link-btn');
+  if (!email) {
+    errEl.textContent = 'Enter your email address first.';
+    errEl.style.display = 'block';
+    errEl.style.color = '#f87171';
+    return;
+  }
+  errEl.textContent = 'Sending...';
+  errEl.style.display = 'block';
+  errEl.style.color = 'var(--muted)';
+  if (btn) btn.disabled = true;
+
+  var captchaToken;
+  try {
+    captchaToken = await getTurnstileToken();
+  } catch (err) {
+    errEl.textContent = err.message || 'Verification failed. Please try again.';
+    errEl.style.color = '#f87171';
+    resetTurnstile();
+    if (btn) btn.disabled = false;
+    return;
+  }
+
+  // Preserve any ?redirect= so a buyer who followed a course link lands there.
+  var params = new URLSearchParams(window.location.search);
+  var redirect = params.get('redirect');
+  var emailRedirectTo = 'https://ryxa.io/learn/';
+  if (redirect && redirect.startsWith('/') && !redirect.startsWith('//')) {
+    emailRedirectTo = 'https://ryxa.io/learn/?redirect=' + encodeURIComponent(redirect);
+  }
+
+  var { error } = await sb.auth.signInWithOtp({
+    email: email,
+    options: { emailRedirectTo: emailRedirectTo, captchaToken: captchaToken }
+  });
+
+  if (error) {
+    var msg = error.message;
+    if (msg.toLowerCase().indexOf('captcha') !== -1 || msg.toLowerCase().indexOf('invalid-input') !== -1) {
+      msg = 'Verification failed. Please disable your ad blocker for ryxa.io and try again.';
+    }
+    errEl.textContent = msg;
+    errEl.style.display = 'block';
+    errEl.style.color = '#f87171';
+    resetTurnstile();
+    if (btn) btn.disabled = false;
+    return;
+  }
+
+  errEl.textContent = 'Login link sent. Check your email.';
+  errEl.style.display = 'block';
+  errEl.style.color = 'var(--text)';
+  resetTurnstile();
+  if (btn) btn.disabled = false;
+}
+
+// Reveal the de-emphasized Google/Apple buttons.
+function handleLearnToggleSocial() {
+  var wrap = document.getElementById('social-signin-options');
+  var toggle = document.getElementById('more-signin-toggle');
+  if (!wrap || !toggle) return;
+  var open = !wrap.hasAttribute('hidden');
+  if (open) {
+    wrap.setAttribute('hidden', '');
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.textContent = 'More sign-in options';
+  } else {
+    wrap.removeAttribute('hidden');
+    toggle.setAttribute('aria-expanded', 'true');
+    toggle.textContent = 'Fewer sign-in options';
+  }
+}
+
 async function handleLearnForgotPassword() {
   var email = document.getElementById('auth-email').value.trim();
   var errEl = document.getElementById('auth-error');
@@ -310,6 +390,52 @@ async function handleAuth() {
       result = await sb.auth.signUp({ email: email, password: password, options: { captchaToken: captchaToken, emailRedirectTo: confirmRedirect } });
       if (result.error) throw result.error;
       if (result.data?.user && !result.data.session) {
+        // Two very different situations produce this same "user, no session"
+        // shape, and telling them apart matters:
+        //
+        //  (a) A genuinely new signup awaiting email confirmation.
+        //  (b) An email that ALREADY has an account. Buyers whose account was
+        //      created by the purchase webhook are confirmed but passwordless,
+        //      so they don't know they have one and click Create Account. If we
+        //      tell them to "check your email for a confirmation link," they
+        //      wait for a message that never meaningfully arrives while their
+        //      purchases sit in an account they can't enter.
+        //
+        // Supabase obfuscates existing users: identities comes back empty.
+        // Detect that and route them to the real recovery path instead.
+        var identities = result.data.user.identities;
+        var alreadyExists = Array.isArray(identities) && identities.length === 0;
+
+        if (alreadyExists) {
+          errEl.textContent = 'You already have an account with this email. Sending you a login link...';
+          errEl.style.display = 'block';
+          errEl.style.color = 'var(--text)';
+          btn.disabled = false; btn.textContent = 'Sign Up';
+          // Fresh captcha token: the previous one was consumed by signUp.
+          var recoveryToken;
+          try {
+            resetTurnstile();
+            recoveryToken = await getTurnstileToken();
+          } catch (e) {
+            errEl.textContent = 'You already have an account with this email. Use "Email me a login link" below to sign in.';
+            errEl.style.color = '#f87171';
+            return;
+          }
+          var otpRes = await sb.auth.signInWithOtp({
+            email: email,
+            options: { emailRedirectTo: confirmRedirect, captchaToken: recoveryToken }
+          });
+          if (otpRes.error) {
+            errEl.textContent = 'You already have an account with this email. Use "Email me a login link" below to sign in.';
+            errEl.style.color = '#f87171';
+          } else {
+            errEl.textContent = 'You already have an account. We sent a login link to ' + email + '.';
+            errEl.style.color = 'var(--text)';
+          }
+          resetTurnstile();
+          return;
+        }
+
         errEl.textContent = 'Check your email for a confirmation link.';
         errEl.style.display = 'block';
         errEl.style.color = 'var(--text)';
@@ -2348,6 +2474,8 @@ learnRegisterAction('auth-mode-signin', function() { setLearnAuthMode('signin');
 learnRegisterAction('auth-mode-signup', function() { setLearnAuthMode('signup'); });
 learnRegisterAction('google-auth', function() { handleLearnGoogleAuth(); });
 learnRegisterAction('apple-auth', function() { handleLearnAppleAuth(); });
+learnRegisterAction('magic-link', function() { handleLearnMagicLink(); });
+learnRegisterAction('toggle-social', function() { handleLearnToggleSocial(); });
 learnRegisterAction('forgot-password', function() { handleLearnForgotPassword(); });
 learnRegisterAction('auth', function() { handleAuth(); });
 
