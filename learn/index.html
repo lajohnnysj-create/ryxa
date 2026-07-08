@@ -268,6 +268,23 @@
   }
 
   .learn-auth-apple-btn:hover { opacity: 0.85; }
+  .learn-magic-btn {
+    width: 100%; margin-top: 10px; padding: 11px;
+    background: transparent; color: var(--text);
+    border: 1px solid var(--border-hover); border-radius: 10px;
+    font-size: 14px; font-weight: 500; font-family: 'DM Sans', sans-serif;
+    cursor: pointer; transition: background 0.15s;
+  }
+  .learn-magic-btn:hover { background: var(--surface); }
+  .learn-magic-btn:disabled { opacity: 0.6; cursor: default; }
+  .learn-more-options { text-align: center; margin-top: 16px; }
+  .learn-more-toggle {
+    background: none; border: none; padding: 4px;
+    color: var(--muted); font-size: 12px; font-family: 'DM Sans', sans-serif;
+    cursor: pointer; text-decoration: underline;
+  }
+  .learn-more-toggle:hover { color: var(--text); }
+  .learn-social-wrap { margin-top: 12px; }
   /* Auth modal Google button - hover via class (CSP-compatible) */
   .learn-auth-google-btn { background:#fff; transition:background 0.15s; }
   .learn-auth-google-btn:hover { background:#f8f8f8; }
@@ -314,6 +331,28 @@
       <button type="button" class="auth-tab-btn" id="learn-tab-signin" data-learn-action="auth-mode-signin" style="flex:1;padding:8px;border:none;border-radius:7px;font-size:13px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.15s;background:var(--btn-bg);color:var(--btn-text);">Sign In</button>
       <button type="button" class="auth-tab-btn" id="learn-tab-signup" data-learn-action="auth-mode-signup" style="flex:1;padding:8px;border:none;border-radius:7px;font-size:13px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.15s;background:transparent;color:var(--muted);">Create Account</button>
     </div>
+    <input type="email" id="auth-email" class="auth-input" placeholder="Email address" aria-label="Email address">
+    <input type="password" id="auth-password" class="auth-input" placeholder="Password" aria-label="Password">
+    <a data-learn-action="forgot-password" class="learn-forgot-link" style="display:block;font-size:12px;text-align:right;margin-bottom:8px;text-decoration:none;">Forgot password?</a>
+    <div id="auth-turnstile" style="display:none;"></div>
+    <button class="auth-btn" id="auth-btn" data-learn-action="auth">Sign In</button>
+
+    <!-- Magic link: the canonical path for buyers whose account was created by
+         the purchase webhook and who may never have set a password. Visible,
+         not buried, because most guest buyers land here without credentials. -->
+    <button type="button" id="magic-link-btn" data-learn-action="magic-link" class="learn-magic-btn">
+      Email me a login link instead
+    </button>
+
+    <!-- Social sign-in is de-emphasized on the hub: for BUYERS a stray click
+         can land them in a different account than the one holding their
+         purchase (notably Apple's Hide My Email relay address). -->
+    <div class="learn-more-options">
+      <button type="button" id="more-signin-toggle" data-learn-action="toggle-social" class="learn-more-toggle" aria-expanded="false" aria-controls="social-signin-options">
+        More sign-in options
+      </button>
+    </div>
+    <div id="social-signin-options" class="learn-social-wrap" hidden>
     <button type="button" data-learn-action="google-auth" class="learn-auth-google-btn" style="width:100%;padding:11px;color:#1f1f1f;border:1px solid var(--border-hover);border-radius:10px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px;">
       <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
         <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/>
@@ -327,16 +366,8 @@
       <svg width="16" height="18" viewBox="0 0 814 1000" aria-hidden="true"><path fill="#fff" d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76.5 0-103.7 40.8-165.9 40.8s-105.6-57-155.5-127C46.7 790.7 0 663 0 541.8c0-194.4 126.4-297.5 250.8-297.5 66.1 0 121.2 43.4 162.7 43.4 39.5 0 101.1-46 176.3-46 28.5 0 130.9 2.6 198.3 99.2zm-234-181.5c31.1-36.9 53.1-88.1 53.1-139.3 0-7.1-.6-14.3-1.9-20.1-50.6 1.9-110.8 33.7-147.1 75.8-28.5 32.4-55.1 83.6-55.1 135.5 0 7.8 1.3 15.6 1.9 18.1 3.2.6 8.4 1.3 13.6 1.3 45.4 0 102.5-30.4 135.5-71.3z"/></svg>
       <span>Continue with Apple</span>
     </button>
-    <div style="display:flex;align-items:center;gap:12px;margin:12px 0;">
-      <div style="flex:1;height:1px;background:var(--border);"></div>
-      <span style="font-size:12px;color:var(--muted);">or</span>
-      <div style="flex:1;height:1px;background:var(--border);"></div>
     </div>
-    <input type="email" id="auth-email" class="auth-input" placeholder="Email address" aria-label="Email address">
-    <input type="password" id="auth-password" class="auth-input" placeholder="Password" aria-label="Password">
-    <a data-learn-action="forgot-password" class="learn-forgot-link" style="display:block;font-size:12px;text-align:right;margin-bottom:8px;text-decoration:none;">Forgot password?</a>
-    <div id="auth-turnstile" style="display:none;"></div>
-    <button class="auth-btn" id="auth-btn" data-learn-action="auth">Sign In</button>
+
     <div class="auth-error" id="auth-error"></div>
   </div>
   <p style="text-align:center;margin-top:20px;font-size:13px;color:var(--muted);">Create and sell your own courses with <a href="/" style="color:var(--text);font-weight:600;text-decoration:none;">Ryxa</a></p>
