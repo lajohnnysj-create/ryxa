@@ -226,16 +226,27 @@ module.exports = async (req, res) => {
       });
     }
 
-    // Set the password on the account that owns this purchase, and clear the
-    // flag in the same call so the window closes immediately.
+    // Set the password. This MUST be its own admin call.
+    //
+    // Sending { password, app_metadata } together does NOT work: GoTrue
+    // applies the metadata, silently ignores the password, and still bumps
+    // updated_at. It looks like a success and leaves the account with the
+    // random password createUser generated. Verified the hard way.
     try {
-      await adminUpdateUser(userId, {
-        password: password,
-        app_metadata: { needs_password: false }
-      });
+      await adminUpdateUser(userId, { password: password });
     } catch (e) {
-      console.error('set_password: admin update failed', e.message);
+      console.error('set_password: password update failed', e.message);
       return res.status(500).json({ error: 'Could not set your password. Please use "Email me a login link" at the Ryxa Hub.' });
+    }
+
+    // Only once the password is actually stored do we close the window. If the
+    // call above had failed, the flag must stay true so the buyer can retry.
+    try {
+      await adminUpdateUser(userId, { app_metadata: { needs_password: false } });
+    } catch (e) {
+      // Non-fatal: the password is set, which is what the buyer cares about.
+      // The stale flag is harmless because the ledger already blocks reuse.
+      console.error('set_password: could not clear needs_password flag', e.message);
     }
 
     // Sign them in by redirecting to a freshly minted magic link. If link
