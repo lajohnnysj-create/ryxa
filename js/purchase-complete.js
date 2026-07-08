@@ -87,9 +87,15 @@ async function pollStatus(attempt) {
       return;
     }
 
-    // Existing account, already has a password.
+    // Existing account, already has a password. Note the wording: this email
+    // contains a link to the download, NOT a link that signs them in. Only
+    // brand-new accounts get an authenticating link, so do not promise one.
     var readyNote = document.getElementById('ready-note');
-    if (readyNote) readyNote.textContent = 'Your purchase is in the Ryxa Hub account for ' + buyerEmail + '.';
+    if (readyNote) readyNote.textContent = "It's saved to your Ryxa Hub account for " + buyerEmail + '.';
+    var emailNote = document.getElementById('ready-email-note');
+    if (emailNote) {
+      emailNote.textContent = 'We also emailed your download link to that address. Sign in with your password, or use "Email me a login link" at the Hub.';
+    }
     var readyBtn = document.getElementById('ready-btn');
     if (readyBtn) readyBtn.setAttribute('href', hubUrl());
     show('state-ready');
