@@ -1,12 +1,20 @@
-// Vercel serverless function — creates a Stripe Checkout Session for a
+// Vercel serverless function, creates a Stripe Checkout Session for a
 // digital product. Uses Stripe Connect so payment goes directly to the
 // creator's connected account.
 //
-// Buyer must be authenticated (matches courses pattern).
-// On success, the webhook records the purchase using buyer_id from metadata.
+// GUEST CHECKOUT: the buyer does NOT need an account. Two paths:
+//
+//   Logged in  -> Authorization header verifies, buyer_id goes in metadata,
+//                 success_url is the caller's (straight into the Hub).
+//   Guest      -> no auth header. Stripe collects the email on its own page.
+//                 metadata carries NO buyer_id. The course-webhook then
+//                 resolves or creates the account from that email and binds
+//                 the purchase to it (payment provisions, login only accesses).
+//                 success_url is rewritten to /purchase-complete, because a
+//                 guest dropped on /learn/ would just hit a login wall.
 //
 // POST /api/digital-product-checkout
-// Headers: Authorization: Bearer <buyer_access_token>
+// Headers: Authorization: Bearer <buyer_access_token>   (OPTIONAL)
 // Body: { product_id, marketing_consent, success_url, cancel_url }
 
 const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
@@ -38,6 +46,8 @@ async function sbSelect(path) {
   return await res.json();
 }
 
+// Returns the buyer when a valid token is present, otherwise null.
+// null is now a normal, supported state (guest checkout), not an error.
 async function verifyBuyerJWT(authHeader) {
   if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
   var token = authHeader.split(' ')[1];
@@ -96,6 +106,8 @@ async function stripeRequest(path, body) {
 
 module.exports = async (req, res) => {
   // Per-IP rate limit: 10 requests / 60s. See api/lib/rate-limit.js.
+  // This route is reachable without auth now, so the limiter is the primary
+  // abuse control. Keep it.
   if (require('./lib/rate-limit').tooMany(req, res, 'product-checkout', 10, 60000)) return;
 
   var origin = req.headers.origin || '';
@@ -107,11 +119,9 @@ module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    // 1. Verify buyer is signed in
+    // 1. Buyer is OPTIONAL. A missing or invalid token means a guest checkout.
     var buyer = await verifyBuyerJWT(req.headers.authorization || '');
-    if (!buyer) {
-      return res.status(401).json({ error: 'You must be signed in to checkout' });
-    }
+    var isGuest = !buyer;
 
     // 2. Parse body
     var body = req.body || {};
@@ -148,14 +158,38 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'This product has no files yet' });
     }
 
-    // 6. Create Stripe Checkout Session via Connect
+    // 6. Where Stripe sends the browser after payment.
+    // A guest is not signed in, so the Hub would only show them a login wall.
+    // Send them to the completion page instead, which works logged out and
+    // hands them a set-password step. Stripe substitutes the real id for the
+    // {CHECKOUT_SESSION_ID} template token.
+    var resolvedSuccessUrl = successUrl;
+    if (isGuest) {
+      var base = allowed.includes(origin) ? origin : 'https://www.ryxa.io';
+      resolvedSuccessUrl = base + '/purchase-complete.html'
+        + '?session_id={CHECKOUT_SESSION_ID}'
+        + '&type=digital_product'
+        + '&id=' + encodeURIComponent(product.id);
+    }
+
+    // 7. Metadata. buyer_id is present ONLY for a logged-in purchase. Its
+    // absence is the webhook's signal to resolve or create the buyer from the
+    // email Stripe collected.
+    var meta = {
+      type: 'digital_product',
+      product_id: product.id,
+      creator_user_id: product.user_id,
+      marketing_consent: marketingConsent ? '1' : '0'
+    };
+    if (buyer) meta.buyer_id = buyer.id;
+
+    // 8. Create Stripe Checkout Session via Connect
     var amountCents = Number(product.price_cents);
     var feeAmount = Math.floor(amountCents * (PLATFORM_FEE_BPS / 10000));
 
-    var session = await stripeRequest('checkout/sessions', {
+    var sessionParams = {
       mode: 'payment',
       payment_method_types: ['card'],
-      customer_email: buyer.email,
       // Optional individual name field. Adds ONE field to checkout (no address).
       // Buyer's name comes back on session.customer_details.individual_name after
       // checkout completes, captured by the course-webhook into buyer_first_name
@@ -174,25 +208,22 @@ module.exports = async (req, res) => {
       payment_intent_data: {
         application_fee_amount: feeAmount,
         transfer_data: { destination: creator.stripe_account_id },
-        metadata: {
-          type: 'digital_product',
-          product_id: product.id,
-          buyer_id: buyer.id,
-          creator_user_id: product.user_id,
-          marketing_consent: marketingConsent ? '1' : '0'
-        }
+        metadata: meta
       },
-      metadata: {
-        type: 'digital_product',
-        product_id: product.id,
-        buyer_id: buyer.id,
-        creator_user_id: product.user_id,
-        marketing_consent: marketingConsent ? '1' : '0'
-      },
-      success_url: successUrl,
+      metadata: meta,
+      success_url: resolvedSuccessUrl,
       cancel_url: cancelUrl,
       allow_promotion_codes: false
-    });
+    };
+
+    // Logged-in buyers get their email prefilled. Guests type theirs on
+    // Stripe's page, and that address becomes the account that owns the
+    // purchase, so it arrives on session.customer_details.email.
+    if (buyer && buyer.email) {
+      sessionParams.customer_email = buyer.email;
+    }
+
+    var session = await stripeRequest('checkout/sessions', sessionParams);
 
     return res.status(200).json({ checkout_url: session.url, session_id: session.id });
   } catch (err) {
