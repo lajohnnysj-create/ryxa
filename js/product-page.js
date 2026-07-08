@@ -140,7 +140,12 @@ trackPageView();
 
 async function handleBuyClick() {
   var { data: { session } } = await sb.auth.getSession();
-  if (!session?.user) {
+
+  // GUEST CHECKOUT (paid products only): no login wall. Stripe collects the
+  // email, and the webhook binds the purchase to an account under it. Free
+  // claims still require an account, since there is no Stripe session to
+  // carry an email or to prove the claim.
+  if (IS_FREE && !session?.user) {
     window.location.href = '/learn/?redirect=' + encodeURIComponent(window.location.pathname);
     return;
   }
@@ -172,15 +177,19 @@ async function handleBuyClick() {
       return;
     }
 
+    var checkoutHeaders = { 'Content-Type': 'application/json' };
+    if (session?.access_token) {
+      checkoutHeaders['Authorization'] = 'Bearer ' + session.access_token;
+    }
+
     var resp = await fetch('/api/digital-product-checkout', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + session.access_token
-      },
+      headers: checkoutHeaders,
       body: JSON.stringify({
         product_id: PRODUCT_ID,
         marketing_consent: consent,
+        // Only used for logged-in buyers. The server rewrites the guest
+        // success_url to the purchase-complete page, which works logged out.
         success_url: window.location.origin + '/learn/?dp=' + PRODUCT_ID + '&purchased=1',
         cancel_url: window.location.href
       })
