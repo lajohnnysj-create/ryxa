@@ -14,11 +14,13 @@
  * so a purchase is never stranded.
  */
 
-var SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
-var SUPABASE_ANON_KEY = 'sb_publishable_PLU28Un_GfsUXeUsK3zB9Q_hvNM7aeG';
-
-var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
+// No Supabase client on this page, on purpose. Two reasons:
+//   1. CAPTCHA protection is enabled, so a client-side signInWithPassword
+//      without a Turnstile token fails (reported, misleadingly, as "Invalid
+//      login credentials"). The server mints a magic link instead.
+//   2. Only one page per origin may run the auth refresh timer. Extra timers
+//      race for the single-use refresh token and trip Supabase's reuse
+//      detection, which revokes the session. That was the random-logout bug.
 var params = new URLSearchParams(window.location.search);
 var SESSION_ID = params.get('session_id') || '';
 var PRODUCT_ID = params.get('id') || '';
@@ -121,17 +123,11 @@ async function handleSetPassword() {
   btn.textContent = 'Setting up...';
 
   try {
-    await callApi({ action: 'set_password', session_id: SESSION_ID, password: pw });
+    var result = await callApi({ action: 'set_password', session_id: SESSION_ID, password: pw });
 
-    // Sign in with the credentials we just created, then go to the purchase.
-    var signIn = await sb.auth.signInWithPassword({ email: buyerEmail, password: pw });
-    if (signIn.error) {
-      // Password is set even though sign-in hiccupped. Send them to the Hub
-      // to sign in normally rather than pretending something broke.
-      window.location.href = '/learn/';
-      return;
-    }
-    window.location.href = hubUrl();
+    // The server returns a one-time link that signs them in and lands them on
+    // the purchase. It always returns somewhere usable, so just follow it.
+    window.location.href = result.redirect_url || hubUrl();
   } catch (e) {
     btn.disabled = false;
     btn.textContent = 'Set password and continue';
