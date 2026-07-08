@@ -17,7 +17,10 @@
 //   3. A purchase row exists for THIS session id, which names the owning user.
 //      The password can therefore only ever be set on the account that owns
 //      this exact purchase.
-//   4. That account has no password yet (public.user_has_password)
+//   4. The account is one WE provisioned and still awaits a password
+//      (app_metadata.needs_password, service-role writable only), and has
+//      never signed in. Note: encrypted_password is useless for this, because
+//      createUser hashes a random password when none is supplied.
 //   5. This session has never set a password before (one-shot ledger)
 
 const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
@@ -53,11 +56,34 @@ async function sbFetch(path, opts) {
   return data;
 }
 
-async function sbRpc(fn, args) {
-  return await sbFetch('/rest/v1/rpc/' + fn, {
-    method: 'POST',
-    body: JSON.stringify(args || {})
+// Read the auth user through the admin API. Returns app_metadata (service-role
+// writable only) and last_sign_in_at, which together tell us whether this is a
+// purchase-provisioned account still waiting for its password.
+async function adminGetUser(userId) {
+  var key = getServiceKey();
+  var res = await fetch(SUPABASE_URL + '/auth/v1/admin/users/' + encodeURIComponent(userId), {
+    headers: { apikey: key, Authorization: 'Bearer ' + key, Accept: 'application/json' }
   });
+  if (!res.ok) throw new Error('admin getUser failed: ' + res.status);
+  return await res.json();
+}
+
+async function adminUpdateUser(userId, payload) {
+  var key = getServiceKey();
+  var res = await fetch(SUPABASE_URL + '/auth/v1/admin/users/' + encodeURIComponent(userId), {
+    method: 'PUT',
+    headers: {
+      apikey: key,
+      Authorization: 'Bearer ' + key,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) {
+    var t = await res.text().catch(function () { return ''; });
+    throw new Error('admin updateUser failed: ' + res.status + ' ' + t.slice(0, 200));
+  }
+  return await res.json();
 }
 
 async function stripeGetSession(sessionId) {
@@ -122,12 +148,16 @@ module.exports = async (req, res) => {
     var userId = purchase.buyer_user_id;
     var email = purchase.buyer_email;
 
-    var hasPassword = await sbRpc('user_has_password', { p_user_id: userId });
-    hasPassword = hasPassword === true;
+    var authUser = await adminGetUser(userId);
+    var appMeta = (authUser && authUser.app_metadata) || {};
+    // Only an account WE provisioned for this purchase flow, which has never
+    // been signed into, may set a password here.
+    var needsPassword = appMeta.needs_password === true && !authUser.last_sign_in_at;
 
     if (action === 'status') {
       return res.status(200).json({
-        status: hasPassword ? 'ready' : 'needs_password',
+        status: needsPassword ? 'needs_password' : 'ready',
+        is_new_account: needsPassword,
         email: email,
         product_id: purchase.product_id
       });
@@ -143,10 +173,10 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'Password must be at least 8 characters.' });
     }
 
-    // Guard 4: never overwrite an existing account's password. Someone with a
-    // leaked session URL must not be able to take over an account that simply
-    // happened to buy something.
-    if (hasPassword) {
+    // Guard 4: never touch an account we did not provision, or one that has
+    // already been used. Someone with a leaked session URL must not be able to
+    // take over an account that simply happened to buy something.
+    if (!needsPassword) {
       return res.status(409).json({
         error: 'This account already has a password. Sign in at the Ryxa Hub, or use "Email me a login link".'
       });
@@ -167,21 +197,15 @@ module.exports = async (req, res) => {
       });
     }
 
-    // Set the password on the account that owns this purchase.
-    var key = getServiceKey();
-    var updRes = await fetch(SUPABASE_URL + '/auth/v1/admin/users/' + encodeURIComponent(userId), {
-      method: 'PUT',
-      headers: {
-        apikey: key,
-        Authorization: 'Bearer ' + key,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ password: password })
-    });
-
-    if (!updRes.ok) {
-      var errText = await updRes.text().catch(function () { return ''; });
-      console.error('set_password: admin update failed', updRes.status, errText.slice(0, 200));
+    // Set the password on the account that owns this purchase, and clear the
+    // flag in the same call so the window closes immediately.
+    try {
+      await adminUpdateUser(userId, {
+        password: password,
+        app_metadata: { needs_password: false }
+      });
+    } catch (e) {
+      console.error('set_password: admin update failed', e.message);
       return res.status(500).json({ error: 'Could not set your password. Please use "Email me a login link" at the Ryxa Hub.' });
     }
 
