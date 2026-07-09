@@ -23,7 +23,11 @@
 //      detection, which revokes the session. That was the random-logout bug.
 var params = new URLSearchParams(window.location.search);
 var SESSION_ID = params.get('session_id') || '';
-var PRODUCT_ID = params.get('id') || '';
+var PURCHASE_TYPE = params.get('type') || 'digital_product';
+var ITEM_ID = params.get('id') || '';
+// The server tells us where this purchase lives in the Hub, since the path
+// differs per type. Until it does, fall back to the Hub root.
+var HUB_PATH = '/learn/';
 
 var POLL_INTERVAL_MS = 2000;
 var POLL_MAX_ATTEMPTS = 12; // ~24s, generous for webhook latency
@@ -45,8 +49,7 @@ function setError(msg) {
 }
 
 function hubUrl() {
-  if (PRODUCT_ID) return '/learn/?dp=' + encodeURIComponent(PRODUCT_ID) + '&purchased=1';
-  return '/learn/';
+  return HUB_PATH || '/learn/';
 }
 
 async function callApi(payload) {
@@ -64,7 +67,7 @@ async function callApi(payload) {
 async function pollStatus(attempt) {
   attempt = attempt || 1;
   try {
-    var data = await callApi({ action: 'status', session_id: SESSION_ID });
+    var data = await callApi({ action: 'status', session_id: SESSION_ID, type: PURCHASE_TYPE });
 
     if (data.status === 'processing') {
       if (attempt >= POLL_MAX_ATTEMPTS) {
@@ -78,13 +81,20 @@ async function pollStatus(attempt) {
     }
 
     buyerEmail = data.email || '';
-    if (PRODUCT_ID === '' && data.product_id) PRODUCT_ID = data.product_id;
+    if (data.item_id) ITEM_ID = data.item_id;
+    if (data.hub_path) HUB_PATH = data.hub_path;
 
     if (data.status === 'needs_password') {
       var emailEl = document.getElementById('locked-email');
       if (emailEl) emailEl.value = buyerEmail;
       var noteEl = document.getElementById('email-note');
       if (noteEl) noteEl.textContent = 'We also sent an access link to ' + buyerEmail + '.';
+      var pwSub = document.getElementById('password-subhead');
+      if (pwSub && data.is_new_account === false) {
+        // Existing account with no password (for example, one created by
+        // signing in with Google or Apple). Reassure rather than confuse.
+        pwSub.textContent = 'Create a password to access your purchase. If you usually sign in with Google or Apple, you can keep doing that too.';
+      }
       show('state-password');
       return;
     }
@@ -96,7 +106,7 @@ async function pollStatus(attempt) {
     if (readyNote) readyNote.textContent = "It's saved to your Ryxa Hub account for " + buyerEmail + '.';
     var emailNote = document.getElementById('ready-email-note');
     if (emailNote) {
-      emailNote.textContent = 'We also emailed your download link to that address. Sign in with your password, or use "Email me a login link" at the Hub.';
+      emailNote.textContent = 'We also emailed the details to that address. Sign in with your password, or use "Email me a login link" at the Hub.';
     }
     var readyBtn = document.getElementById('ready-btn');
     if (readyBtn) readyBtn.setAttribute('href', hubUrl());
@@ -123,7 +133,12 @@ async function handleSetPassword() {
   btn.textContent = 'Setting up...';
 
   try {
-    var result = await callApi({ action: 'set_password', session_id: SESSION_ID, password: pw });
+    var result = await callApi({
+      action: 'set_password',
+      session_id: SESSION_ID,
+      type: PURCHASE_TYPE,
+      password: pw
+    });
 
     // The server returns a one-time link that signs them in and lands them on
     // the purchase. It always returns somewhere usable, so just follow it.
