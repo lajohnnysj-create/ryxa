@@ -465,6 +465,10 @@ async function handleAuth() {
 }
 
 async function onLoggedIn() {
+  // Repair orphan purchases BEFORE any loader queries by user_id, otherwise a
+  // repaired row would not appear until the next page load.
+  await linkOrphanPurchases();
+
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('nav-right').innerHTML = '<div class="nav-menu-wrap">'
     + '<button class="nav-menu-btn" data-learn-action="toggle-nav-menu" aria-label="Menu">'
@@ -555,20 +559,23 @@ async function loadDashboard() {
 // DIGITAL PRODUCTS, buyer side
 // =====================================================
 
-// On every dashboard load, retroactively link any orphan email-only purchases
-// to the buyer's user_id. (Defensive, our flow always sets buyer_user_id at
-// purchase time, but this catches edge cases like email-mismatch recovery.)
-async function linkOrphanDigitalPurchases() {
+// On every dashboard load, retroactively link any orphan purchases to the
+// buyer's user_id, across products, courses, and bookings.
+//
+// This matters more since guest checkout: ownership binds by EMAIL at payment
+// time, so a row whose owner was nulled (an account deleted outside
+// delete_my_account) is repaired the moment the buyer signs in with the address
+// they purchased with. The function derives the user from auth.uid() and only
+// touches rows with a NULL owner, so it can never claim someone else's row.
+async function linkOrphanPurchases() {
   try {
-    await sb.rpc('link_digital_product_purchases_to_user');
+    await sb.rpc('link_purchases_to_user');
   } catch (e) {
     console.warn('Could not link orphan purchases:', e);
   }
 }
 
 async function loadProducts() {
-  await linkOrphanDigitalPurchases();
-
   var { data: purchases, error } = await sb
     .from('digital_product_purchases')
     .select('*, digital_products(id, title, slug, description, cover_image_url, delivery_message, user_id)')
