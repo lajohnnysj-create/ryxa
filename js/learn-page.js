@@ -514,7 +514,7 @@ async function onLoggedIn() {
   if (courseId) {
     await openCourseViewer(courseId);
   } else {
-    await loadDashboard();
+    await loadAllSections();
   }
 }
 
@@ -523,8 +523,28 @@ async function signOut() {
   window.location.href = '/learn/';
 }
 
+// Courses, downloads, and bookings are independent of one another. Loading them
+// in parallel takes the time of the slowest, not the sum of all three.
+async function loadAllSections() {
+  var spinner = document.getElementById('dash-loading');
+  var dash = document.getElementById('dash-screen');
+  var viewer = document.getElementById('viewer-screen');
+
+  if (viewer) viewer.style.display = 'none';
+  if (dash) dash.style.display = 'none';
+  if (spinner) spinner.style.display = 'block';
+
+  try {
+    await Promise.all([loadDashboard(), loadProducts(), loadBookings()]);
+  } catch (e) {
+    console.error('Dashboard load failed:', e);
+  } finally {
+    if (spinner) spinner.style.display = 'none';
+    if (dash) dash.style.display = 'block';
+  }
+}
+
 async function loadDashboard() {
-  document.getElementById('dash-screen').style.display = 'block';
   document.getElementById('viewer-screen').style.display = 'none';
 
   const { data } = await sb
@@ -535,24 +555,50 @@ async function loadDashboard() {
 
   enrollments = data || [];
 
-  // Load creator names and progress for each enrollment
-  for (var i = 0; i < enrollments.length; i++) {
-    var e = enrollments[i];
-    if (!e.courses) continue;
-    // Get creator username
-    var { data: creatorProfile } = await sb.from('public_profiles').select('username').eq('user_id', e.courses.user_id).maybeSingle();
-    e._creatorName = creatorProfile?.username || 'Creator';
-    // Get total lessons
-    var { count: totalLessons } = await sb.from('course_lessons').select('id', { count: 'exact', head: true }).eq('course_id', e.courses.id);
-    // Get completed lessons
-    var { count: completedLessons } = await sb.from('course_progress').select('id', { count: 'exact', head: true }).eq('enrollment_id', e.id);
-    e._totalLessons = totalLessons || 0;
-    e._completedLessons = completedLessons || 0;
+  // Creator names, lesson totals, and progress for every enrollment.
+  //
+  // This used to be a for-loop issuing THREE queries per enrollment, awaited
+  // one at a time. Five courses meant fifteen sequential round trips, and the
+  // cost grew with every course a buyer owned. Now it is three queries total,
+  // regardless of how many enrollments there are, run in parallel.
+  var withCourses = enrollments.filter(function (e) { return !!e.courses; });
+  if (withCourses.length > 0) {
+    var creatorIds = [];
+    var courseIds = [];
+    var enrollmentIds = [];
+    withCourses.forEach(function (e) {
+      if (creatorIds.indexOf(e.courses.user_id) === -1) creatorIds.push(e.courses.user_id);
+      courseIds.push(e.courses.id);
+      enrollmentIds.push(e.id);
+    });
+
+    var results = await Promise.all([
+      sb.from('public_profiles').select('user_id, username').in('user_id', creatorIds),
+      sb.from('course_lessons').select('id, course_id').in('course_id', courseIds),
+      sb.from('course_progress').select('id, enrollment_id').in('enrollment_id', enrollmentIds)
+    ]);
+
+    var nameByCreator = {};
+    (results[0].data || []).forEach(function (p) { nameByCreator[p.user_id] = p.username; });
+
+    var lessonsByCourse = {};
+    (results[1].data || []).forEach(function (l) {
+      lessonsByCourse[l.course_id] = (lessonsByCourse[l.course_id] || 0) + 1;
+    });
+
+    var doneByEnrollment = {};
+    (results[2].data || []).forEach(function (p) {
+      doneByEnrollment[p.enrollment_id] = (doneByEnrollment[p.enrollment_id] || 0) + 1;
+    });
+
+    withCourses.forEach(function (e) {
+      e._creatorName = nameByCreator[e.courses.user_id] || 'Creator';
+      e._totalLessons = lessonsByCourse[e.courses.id] || 0;
+      e._completedLessons = doneByEnrollment[e.id] || 0;
+    });
   }
 
   renderDashboard();
-  await loadProducts();
-  await loadBookings();
 }
 
 // =====================================================
@@ -598,37 +644,42 @@ async function loadProducts() {
     return;
   }
 
-  // Load files for each purchase's product (via server-side endpoint -
-  // direct DB access is RLS-blocked since buyers aren't the file owners)
+  // File lists come from a server endpoint (direct DB access is RLS-blocked,
+  // since buyers do not own the files). One call per product is unavoidable
+  // without changing that endpoint, but they no longer run one after another:
+  // this used to be two sequential awaits per purchase.
   var { data: { session } } = await sb.auth.getSession();
-  for (var i = 0; i < purchases.length; i++) {
-    var p = purchases[i];
-    var prodId = p.digital_products.id;
+  var token = session?.access_token || '';
 
-    try {
-      var resp = await fetch('/api/list-product-files', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + (session?.access_token || '')
-        },
-        body: JSON.stringify({ product_id: prodId })
+  var creatorIds = [];
+  purchases.forEach(function (p) {
+    if (creatorIds.indexOf(p.digital_products.user_id) === -1) creatorIds.push(p.digital_products.user_id);
+  });
+
+  var fileFetches = purchases.map(function (p) {
+    return fetch('/api/list-product-files', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ product_id: p.digital_products.id })
+    })
+      .then(function (resp) { return resp.ok ? resp.json() : null; })
+      .then(function (data) { p._files = (data && data.files) ? data.files : []; })
+      .catch(function (e) {
+        console.error('Could not load files for product', p.digital_products.id, e);
+        p._files = [];
       });
-      var data = await resp.json();
-      p._files = (resp.ok && data && data.files) ? data.files : [];
-    } catch (e) {
-      console.error('Could not load files for product', prodId, e);
-      p._files = [];
-    }
+  });
 
-    // Load creator name
-    var { data: creatorProfile } = await sb
-      .from('public_profiles')
-      .select('username')
-      .eq('user_id', p.digital_products.user_id)
-      .maybeSingle();
-    p._creatorName = creatorProfile?.username || 'Creator';
-  }
+  // Creator names in ONE query, not one per purchase.
+  var namesPromise = sb.from('public_profiles').select('user_id, username').in('user_id', creatorIds);
+
+  var settled = await Promise.all([Promise.all(fileFetches), namesPromise]);
+
+  var nameByCreator = {};
+  (settled[1].data || []).forEach(function (pr) { nameByCreator[pr.user_id] = pr.username; });
+  purchases.forEach(function (p) {
+    p._creatorName = nameByCreator[p.digital_products.user_id] || 'Creator';
+  });
 
   renderProducts(purchases);
 
@@ -881,12 +932,19 @@ async function loadBookings() {
 
   bookings = bookings || [];
 
-  // Load creator names
-  for (var i = 0; i < bookings.length; i++) {
-    var b = bookings[i];
-    if (!b.coaching_services) continue;
-    var { data: creatorProfile } = await sb.from('public_profiles').select('username').eq('user_id', b.coaching_services.user_id).maybeSingle();
-    b._creatorName = creatorProfile?.username || 'Creator';
+  // Creator names in ONE query, not one per booking.
+  var withServices = bookings.filter(function (b) { return !!b.coaching_services; });
+  if (withServices.length > 0) {
+    var creatorIds = [];
+    withServices.forEach(function (b) {
+      if (creatorIds.indexOf(b.coaching_services.user_id) === -1) creatorIds.push(b.coaching_services.user_id);
+    });
+    var { data: profiles } = await sb.from('public_profiles').select('user_id, username').in('user_id', creatorIds);
+    var nameByCreator = {};
+    (profiles || []).forEach(function (p) { nameByCreator[p.user_id] = p.username; });
+    withServices.forEach(function (b) {
+      b._creatorName = nameByCreator[b.coaching_services.user_id] || 'Creator';
+    });
   }
 
   renderBookings(bookings);
@@ -2183,7 +2241,7 @@ function backToDash() {
   // Clear URL params
   window.history.replaceState({}, '', '/learn/');
   document.getElementById('viewer-screen').style.display = 'none';
-  loadDashboard();
+  loadAllSections();
 }
 
 function getEmbedUrl(url) {
