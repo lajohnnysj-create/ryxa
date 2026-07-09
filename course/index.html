@@ -63,13 +63,13 @@
   .signin-popover-btn.danger:hover { background: rgba(239,68,68,0.08); }
 
   /* Hero */
-  .course-hero { max-width: 960px; margin: 0 auto; padding: 48px 32px; }
+  .course-hero { max-width: 720px; margin: 0 auto; padding: 48px 24px; }
   .course-cover { width: 100%; max-height: 400px; object-fit: cover; border-radius: 16px; margin-bottom: 32px; border: 1px solid var(--border); }
   .course-cover-placeholder { width: 100%; height: 240px; background: linear-gradient(135deg, rgba(124,58,237,0.15), rgba(232,121,249,0.1)); border-radius: 16px; margin-bottom: 32px; display: flex; align-items: center; justify-content: center; font-size: 48px; border: 1px solid var(--border); }
   .course-title { font-family: 'Plus Jakarta Sans', sans-serif; font-size: clamp(28px, 5vw, 44px); font-weight: 800; letter-spacing: -1.5px; line-height: 1.1; margin-bottom: 16px; }
   .course-creator { font-size: 14px; color: var(--text-secondary); margin-bottom: 24px; }
   .course-creator strong { color: var(--accent2); font-weight: 600; }
-  .course-desc { font-size: 16px; line-height: 1.75; color: var(--text-secondary); margin-bottom: 32px; max-width: 700px; }
+  .course-desc { font-size: 16px; line-height: 1.75; color: var(--text-secondary); margin-bottom: 32px; }
   /* Rich-text elements inside the description (set by the dashboard's Quill
      editor). Spacing tuned for landing-page readability. */
   .course-desc p { margin: 0 0 14px; }
@@ -91,16 +91,16 @@
   .course-desc img.lesson-img-size-large { max-width: 100%; width: 100%; }
 
   /* Buy section */
-  .course-buy-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 16px; padding: 28px; margin-bottom: 40px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
-  .course-price { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 32px; font-weight: 800; letter-spacing: -1px; }
+  .course-buy-card { margin-bottom: 40px; }
+  .course-price { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 32px; font-weight: 800; letter-spacing: -1px; margin-bottom: 20px; }
   .course-price-free { color: #4ade80; }
-  .course-buy-btn { padding: 14px 36px; background: linear-gradient(135deg, #a78bfa, #e879f9); color: #fff; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer; box-shadow: 0 4px 24px rgba(167,139,250,0.3); transition: all 0.2s; }
-  .course-buy-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 30px rgba(167,139,250,0.4); }
+  .course-buy-btn { width: 100%; padding: 16px; background: var(--accent); color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: opacity 0.15s; }
+  .course-buy-btn:hover:not(:disabled) { opacity: 0.9; }
   .course-buy-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
   .course-enrolled-badge { padding: 12px 24px; background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.3); border-radius: 10px; color: #4ade80; font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; }
 
   /* Curriculum */
-  .course-curriculum { max-width: 960px; margin: 0 auto; padding: 0 32px 80px; }
+  .course-curriculum { max-width: 720px; margin: 0 auto; padding: 0 24px 80px; }
   .curriculum-title { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 22px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 20px; }
   .module-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-bottom: 12px; }
   .module-header { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
@@ -123,7 +123,7 @@
     .signin-chip-email { max-width: 100px; }
     .course-hero { padding: 32px 16px; }
     .course-curriculum { padding: 0 16px 60px; }
-    .course-buy-card { flex-direction: column; text-align: center; }
+    
     .course-buy-btn { width: 100%; }
   }
 </style>
