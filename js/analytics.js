@@ -195,12 +195,18 @@ async function loadAnalyticsData() {
   let bySource = {};
   if (!revRes.error && revRes.data) {
     const r = revRes.data;
-    rTotal.textContent = formatDashUSD(r.total_cents || 0);
+    var revCents = r.total_cents || 0;
+    rTotal.textContent = formatDashUSD(revCents);
+    // Toggle on the number, not the formatted string: a refund back to zero
+    // must return the figure to muted, the same as a creator who has not sold
+    // anything yet.
+    rTotal.classList.toggle('has-revenue', revCents > 0);
     rSub.textContent = (r.total_cents > 0 ? Object.keys(r.by_source || {}).length + ' source(s)' : 'No revenue') + ' over ' + dayCount + (dayCount === 1 ? ' day' : ' days');
     revDaily = r.daily || [];
     bySource = r.by_source || {};
   } else {
     rTotal.textContent = '—'; rSub.textContent = 'Could not load';
+    rTotal.classList.remove('has-revenue');
   }
 
   // Mini chart totals
