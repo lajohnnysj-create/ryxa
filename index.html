@@ -648,15 +648,19 @@
   .int-sub { color: var(--muted); font-size: 15px; line-height: 1.7; }
 
   .int-group-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.09em; font-weight: 600; color: var(--muted); margin-bottom: 16px; text-align: center; }
-  .int-logos { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 12px; }
+  .int-logos { display: grid; grid-template-columns: repeat(auto-fit, minmax(56px, 1fr)); gap: 18px 14px; align-items: center; justify-items: center; }
 
-  .int-logo { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 16px 8px; background: rgba(255,255,255,0.035); border: 1px solid var(--border); border-radius: 12px; }
-  /* Marks render in one muted tone rather than a rainbow of brand colors:
-     it sits better with the palette, and it keeps the marks unaltered in the
-     one way that matters, shape. Source each SVG from the owner's official
-     brand kit, never a scraped favicon. */
-  .int-logo svg { width: 24px; height: 24px; opacity: 0.85; }
-  .int-logo-name { font-size: 11px; color: var(--muted); line-height: 1; }
+  /* Just the marks. No tiles, no captions, full brand color. Source each SVG
+     from the owner's official brand kit and paste it in unaltered: recoloring
+     or reshaping a trademark is what the guidelines actually prohibit, and a
+     scraped 16px favicon will look like mush at this size. */
+  .int-logo { display: flex; align-items: center; justify-content: center; padding: 10px; }
+  .int-logo svg,
+  .int-logo img { width: 36px; height: 36px; display: block; }
+
+  /* Names stay in the DOM for screen readers, since a logo alone says nothing
+     to someone who cannot see it. */
+  .int-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 
   @media (max-width: 900px) {
     .int-section { padding: 64px 20px; }
@@ -1091,32 +1095,32 @@
       <div class="int-group-label">Connect your accounts</div>
       <div class="int-logos">
         <div class="int-logo">
-          <!-- TODO: official SVG from Stripe's brand kit -->
-          <span class="int-logo-name">Stripe</span>
+          <!-- TODO: paste Stripe's official full-color SVG here -->
+          <span class="int-sr">Stripe</span>
         </div>
         <div class="int-logo">
-          <!-- TODO: official SVG from Google Calendar's brand kit -->
-          <span class="int-logo-name">Google Calendar</span>
+          <!-- TODO: paste Google Calendar's official full-color SVG here -->
+          <span class="int-sr">Google Calendar</span>
         </div>
         <div class="int-logo">
-          <!-- TODO: official SVG from Instagram's brand kit -->
-          <span class="int-logo-name">Instagram</span>
+          <!-- TODO: paste Instagram's official full-color SVG here -->
+          <span class="int-sr">Instagram</span>
         </div>
         <div class="int-logo">
-          <!-- TODO: official SVG from TikTok's brand kit -->
-          <span class="int-logo-name">TikTok</span>
+          <!-- TODO: paste TikTok's official full-color SVG here -->
+          <span class="int-sr">TikTok</span>
         </div>
         <div class="int-logo">
-          <!-- TODO: official SVG from YouTube's brand kit -->
-          <span class="int-logo-name">YouTube</span>
+          <!-- TODO: paste YouTube's official full-color SVG here -->
+          <span class="int-sr">YouTube</span>
         </div>
         <div class="int-logo">
-          <!-- TODO: official SVG from Twitch's brand kit -->
-          <span class="int-logo-name">Twitch</span>
+          <!-- TODO: paste Twitch's official full-color SVG here -->
+          <span class="int-sr">Twitch</span>
         </div>
         <div class="int-logo">
-          <!-- TODO: official SVG from Facebook's brand kit -->
-          <span class="int-logo-name">Facebook</span>
+          <!-- TODO: paste Facebook's official full-color SVG here -->
+          <span class="int-sr">Facebook</span>
         </div>
       </div>
     </div>
@@ -1131,24 +1135,24 @@
       <div class="int-group-label">Embed your content</div>
       <div class="int-logos">
         <div class="int-logo">
-          <!-- TODO: official SVG from Spotify's brand kit -->
-          <span class="int-logo-name">Spotify</span>
+          <!-- TODO: paste Spotify's official full-color SVG here -->
+          <span class="int-sr">Spotify</span>
         </div>
         <div class="int-logo">
-          <!-- TODO: official SVG from Apple Music's brand kit -->
-          <span class="int-logo-name">Apple Music</span>
+          <!-- TODO: paste Apple Music's official full-color SVG here -->
+          <span class="int-sr">Apple Music</span>
         </div>
         <div class="int-logo">
-          <!-- TODO: official SVG from SoundCloud's brand kit -->
-          <span class="int-logo-name">SoundCloud</span>
+          <!-- TODO: paste SoundCloud's official full-color SVG here -->
+          <span class="int-sr">SoundCloud</span>
         </div>
         <div class="int-logo">
-          <!-- TODO: official SVG from Google Maps's brand kit -->
-          <span class="int-logo-name">Google Maps</span>
+          <!-- TODO: paste Google Maps's official full-color SVG here -->
+          <span class="int-sr">Google Maps</span>
         </div>
         <div class="int-logo">
-          <!-- TODO: official SVG from Discord's brand kit -->
-          <span class="int-logo-name">Discord</span>
+          <!-- TODO: paste Discord's official full-color SVG here -->
+          <span class="int-sr">Discord</span>
         </div>
       </div>
     </div>
