@@ -6369,6 +6369,15 @@
   #tool-moretools .mt-card-icon { width: 40px; height: 40px; border-radius: 10px; background: rgba(124,58,237,0.12); display: flex; align-items: center; justify-content: center; color: #fff; flex-shrink: 0; }
   #tool-moretools .mt-card-icon svg { width: 21px; height: 21px; stroke: currentColor; stroke-width: 1.8; fill: none; stroke-linecap: round; stroke-linejoin: round; }
   #tool-moretools .mt-card-label { font-size: 14px; font-weight: 400; color: var(--text); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; line-height: 1.3; }
+
+  /* More Tools on a phone: 11 cards lay out as 2 columns x 6 rows. Trimming
+     the card padding, the inner gap, and the grid gap saves about 12px per
+     row (roughly 72px total), which is the difference between the grid
+     fitting on one screen and not. Desktop spacing is unchanged. */
+  @media (max-width: 640px) {
+    #tool-moretools .mt-grid { gap: 10px; }
+    #tool-moretools .mt-card { padding: 12px; gap: 10px; }
+  }
   .mt-pill { font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 700; letter-spacing: 0.04em; line-height: 1; }
   .mt-pill.pro { background: rgba(124,58,237,0.15); border: 1px solid rgba(124,58,237,0.3); color: #c4b5fd; }
   .mt-pill.max { background: linear-gradient(135deg,#a78bfa,#e879f9); color: #fff; }
