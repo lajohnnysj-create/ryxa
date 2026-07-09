@@ -257,7 +257,12 @@ function renderPage(product, creator) {
 <body>
 
 <nav class="nav">
-  <a href="/" class="nav-logo"><img src="/logo.png" alt="Ryxa"> Ryxa</a>
+  <!-- Not a link, on purpose. The wordmark is a trust signal for a buyer about
+       to enter a card on an unfamiliar domain, and it puts Ryxa in front of a
+       creator audience. But linking it to ryxa.io sends a buyer mid-purchase to
+       a page selling the platform to creators, which is the worst possible
+       destination. Keep the mark, remove the exit. -->
+  <div class="nav-logo"><img src="/logo.png" alt="Ryxa"> Ryxa</div>
   <div class="nav-right">
     <button id="signin-chip" class="signin-chip" type="button" data-product-action="toggle-signin-popover">
       <span class="signin-chip-avatar" id="signin-chip-avatar">U</span>
