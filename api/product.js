@@ -294,7 +294,7 @@ function renderPage(product, creator) {
   <div class="dp-buy-card">
     <div class="dp-price">${isFree ? '<span class="dp-price-free">Free</span>' : esc(price)}</div>
     <div id="dp-buy-area">
-      <button id="buy-btn" class="dp-buy-btn" data-product-action="buy">${isFree ? 'Get for free' : 'Buy now'}</button>
+      <button id="buy-btn" class="dp-buy-btn" data-product-action="buy">${isFree ? 'Get for free' : 'Get instant access'}</button>
     </div>
   </div>
   <label class="dp-consent" id="consent-row" style="display:none;">
