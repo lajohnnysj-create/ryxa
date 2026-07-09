@@ -125,15 +125,56 @@ async function stripeGetSession(sessionId) {
   return data;
 }
 
+// Each purchase type lands in its own table, with its own column names.
+// Getting these wrong means the page polls forever on "Setting up your access".
+var PURCHASE_TABLES = {
+  digital_product: {
+    table: 'digital_product_purchases',
+    sessionCol: 'stripe_session_id',
+    userCol: 'buyer_user_id',
+    itemCol: 'product_id'
+  },
+  course: {
+    table: 'course_enrollments',
+    sessionCol: 'stripe_checkout_session_id',
+    userCol: 'user_id',
+    itemCol: 'course_id'
+  },
+  coaching: {
+    table: 'coaching_bookings',
+    sessionCol: 'stripe_checkout_session_id',
+    userCol: 'user_id',
+    itemCol: 'coaching_id'
+  }
+};
+
 // Look up the purchase row this session created. Its presence proves the
 // webhook has run, and it names the account that owns the purchase.
-async function findPurchase(sessionId) {
+async function findPurchase(type, sessionId) {
+  var cfg = PURCHASE_TABLES[type];
+  if (!cfg) return null;
+
   var rows = await sbFetch(
-    '/rest/v1/digital_product_purchases?stripe_session_id=eq.' +
-    encodeURIComponent(sessionId) +
-    '&select=buyer_user_id,buyer_email,product_id&limit=1'
+    '/rest/v1/' + cfg.table +
+    '?' + cfg.sessionCol + '=eq.' + encodeURIComponent(sessionId) +
+    '&select=' + cfg.userCol + ',buyer_email,' + cfg.itemCol +
+    '&limit=1'
   );
-  return rows && rows.length ? rows[0] : null;
+  if (!rows || !rows.length) return null;
+
+  var row = rows[0];
+  return {
+    userId: row[cfg.userCol],
+    email: row.buyer_email,
+    itemId: row[cfg.itemCol]
+  };
+}
+
+// Where the Hub shows this purchase.
+function hubPath(type, itemId) {
+  if (type === 'course') return '/learn/?course=' + encodeURIComponent(itemId) + '&enrolled=1';
+  if (type === 'coaching') return '/learn/';
+  return '/learn/?dp=' + encodeURIComponent(itemId) + '&purchased=1';
 }
 
 module.exports = async (req, res) => {
@@ -156,6 +197,11 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'Invalid session' });
     }
 
+    var type = body.type || 'digital_product';
+    if (!PURCHASE_TABLES[type]) {
+      return res.status(400).json({ error: 'Unknown purchase type' });
+    }
+
     // Guard 1 + 2: the session must be real, paid, and recent.
     var session = await stripeGetSession(sessionId);
     if (!session || session.payment_status !== 'paid') {
@@ -169,13 +215,13 @@ module.exports = async (req, res) => {
     // Guard 3: the purchase row names the owning account. Missing means the
     // webhook has not landed yet (the browser beat it), not that anything
     // failed. The page polls.
-    var purchase = await findPurchase(sessionId);
-    if (!purchase) {
+    var purchase = await findPurchase(type, sessionId);
+    if (!purchase || !purchase.userId) {
       return res.status(200).json({ status: 'processing' });
     }
 
-    var userId = purchase.buyer_user_id;
-    var email = purchase.buyer_email;
+    var userId = purchase.userId;
+    var email = purchase.email;
 
     var authUser = await adminGetUser(userId);
     var appMeta = (authUser && authUser.app_metadata) || {};
@@ -188,7 +234,8 @@ module.exports = async (req, res) => {
         status: needsPassword ? 'needs_password' : 'ready',
         is_new_account: needsPassword,
         email: email,
-        product_id: purchase.product_id
+        item_id: purchase.itemId,
+        hub_path: hubPath(type, purchase.itemId)
       });
     }
 
@@ -253,7 +300,7 @@ module.exports = async (req, res) => {
     // generation fails, the password is still set: send them to the Hub to
     // sign in normally rather than failing a completed purchase.
     var origin2 = allowed.includes(origin) ? origin : 'https://www.ryxa.io';
-    var target = origin2 + '/learn/?dp=' + encodeURIComponent(purchase.product_id) + '&purchased=1';
+    var target = origin2 + hubPath(type, purchase.itemId);
     var redirectUrl = await adminMagicLink(email, target);
 
     return res.status(200).json({
