@@ -318,9 +318,9 @@ function renderCourse(course, creatorName, modules, lessons, quizzes, session) {
   if (isEnrolled) {
     buyArea.innerHTML = '<a href="/learn/?course=' + course.id + '" class="course-enrolled-badge" style="text-decoration:none;cursor:pointer;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Go to Course</a>';
   } else if (course.price_cents === 0) {
-    buyArea.innerHTML = '<button class="course-buy-btn" data-course-action="enroll-free">' + (isLoggedIn ? 'Proceed to Enrollment' : 'Enroll for Free') + '</button>' + consentHtml;
+    buyArea.innerHTML = '<button class="course-buy-btn" data-course-action="enroll-free">Enroll for free</button>' + consentHtml;
   } else {
-    buyArea.innerHTML = '<button class="course-buy-btn" data-course-action="buy-course">' + (isLoggedIn ? 'Proceed to Checkout' : 'Enroll Now') + '</button>' + consentHtml;
+    buyArea.innerHTML = '<button class="course-buy-btn" data-course-action="buy-course">Enroll now</button>' + consentHtml;
   }
 
   // Curriculum
@@ -441,7 +441,7 @@ async function buyCourse() {
 
     window.location.href = data.checkout_url;
   } catch (err) {
-    if (btn) { btn.disabled = false; btn.textContent = 'Enroll Now'; }
+    if (btn) { btn.disabled = false; btn.textContent = 'Enroll now'; }
     alert('Failed: ' + err.message);
   }
 }

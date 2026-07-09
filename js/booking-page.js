@@ -277,9 +277,9 @@ function renderCoaching(coaching, creatorName, isLoggedIn) {
   var showConsent = isLoggedIn || coaching.price_cents > 0;
   var consentHtml = showConsent ? '<label style="display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer;font-size:13px;color:var(--muted);"><input type="checkbox" id="marketing-consent" style="accent-color:#7c3aed;width:16px;height:16px;cursor:pointer;"> Get updates from this creator</label>' : '';
   if (coaching.price_cents === 0) {
-    buyArea.innerHTML = '<button class="coaching-buy-btn" data-booking-action="book">' + (isLoggedIn ? 'Proceed to Booking' : 'Book for Free') + '</button>' + consentHtml;
+    buyArea.innerHTML = '<button class="coaching-buy-btn" data-booking-action="book">Book for free</button>' + consentHtml;
   } else {
-    buyArea.innerHTML = '<button class="coaching-buy-btn" data-booking-action="book">' + (isLoggedIn ? 'Proceed to Booking' : 'Book Now') + '</button>' + consentHtml;
+    buyArea.innerHTML = '<button class="coaching-buy-btn" data-booking-action="book">Book your session</button>' + consentHtml;
   }
 }
 
@@ -344,7 +344,7 @@ async function proceedWithBooking(slotInfo) {
     }
     window.location.href = data.checkout_url;
   } catch (err) {
-    if (btn) { btn.disabled = false; btn.textContent = 'Book Now'; }
+    if (btn) { btn.disabled = false; btn.textContent = 'Book your session'; }
     alert('Failed: ' + err.message);
   }
 }

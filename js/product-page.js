@@ -212,7 +212,7 @@ async function handleBuyClick() {
     window.location.href = data.checkout_url;
   } catch (err) {
     btn.disabled = false;
-    btn.textContent = IS_FREE ? 'Get for free' : 'Buy now';
+    btn.textContent = IS_FREE ? 'Get for free' : 'Get instant access';
     showToast(err.message || 'Something went wrong', 'error');
   }
 }
