@@ -120,7 +120,7 @@
      "new users only": a long-time Pro creator who never tried Max is still
      eligible, and that is exactly the person we want upgrading. */
   .trial-info{position:relative;display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;border:1px solid var(--border-hover);color:var(--muted);font-size:9px;font-style:italic;font-weight:600;font-family:Georgia,serif;cursor:help;vertical-align:middle;}
-  .trial-info::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);width:220px;padding:8px 10px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:11px;font-style:normal;font-weight:400;font-family:'DM Sans',sans-serif;line-height:1.45;text-align:left;opacity:0;visibility:hidden;transition:opacity .12s ease;pointer-events:none;z-index:40;}
+  .trial-info::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 8px);right:-6px;width:220px;max-width:min(220px,70vw);padding:8px 10px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:11px;font-style:normal;font-weight:400;font-family:'DM Sans',sans-serif;line-height:1.45;text-align:left;opacity:0;visibility:hidden;transition:opacity .12s ease;pointer-events:none;z-index:40;}
   .trial-info:hover::after,.trial-info:focus::after{opacity:1;visibility:visible;}
   .plan-disclosure{font-size:12px;line-height:1.5;color:var(--muted);text-align:center;min-height:36px;margin-bottom:16px;padding:0 4px;}
   .plan-btn.free{background:var(--surface2);color:var(--text);border:1px solid var(--border-hover);}
@@ -321,8 +321,8 @@
       <div class="plan-desc">Sell courses, sessions, and products directly to your audience.</div>
       <button class="plan-btn max" data-pricing-action="select-plan" data-plan="max">Try Free for 7 Days</button>
       <div class="plan-disclosure">
-        <span class="price-when-monthly">7-day free trial <span class="trial-info" tabindex="0" role="note" aria-label="One Creator Max trial per account. If you have used it before, your upgrade bills right away." data-tip="One Creator Max trial per account. If you have used it before, your upgrade bills right away.">i</span>, then $24/month. Cancel anytime in Settings.</span>
-        <span class="price-when-annual">7-day free trial <span class="trial-info" tabindex="0" role="note" aria-label="One Creator Max trial per account. If you have used it before, your upgrade bills right away." data-tip="One Creator Max trial per account. If you have used it before, your upgrade bills right away.">i</span>, then $240/year. Cancel anytime in Settings.</span>
+        <span class="price-when-monthly">7-day free trial, then $24/month. Cancel anytime in Settings. <span class="trial-info" tabindex="0" role="note" aria-label="One Creator Max trial per account. If you have used it before, your upgrade bills right away." data-tip="One Creator Max trial per account. If you have used it before, your upgrade bills right away.">i</span></span>
+        <span class="price-when-annual">7-day free trial, then $240/year. Cancel anytime in Settings. <span class="trial-info" tabindex="0" role="note" aria-label="One Creator Max trial per account. If you have used it before, your upgrade bills right away." data-tip="One Creator Max trial per account. If you have used it before, your upgrade bills right away.">i</span></span>
       </div>
       <div class="plan-features">
         <div class="plan-feature plan-feature-credits"><span class="plan-feature-credits-icon">&#x2728;</span><span>85 daily AI credits</span></div>
