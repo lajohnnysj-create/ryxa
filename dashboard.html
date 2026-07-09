@@ -6512,13 +6512,13 @@
           <span class="onb-option-hint">Your shareable profile page for all your links</span>
         </span>
       </button>
-      <button type="button" class="onb-option" data-dash-action="onboarding-choose" data-onb-tool="design">
+      <button type="button" class="onb-option" data-dash-action="onboarding-choose" data-onb-tool="settings-stripe">
         <span class="onb-option-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12.5" r="2.5"/><path d="M12 2a10 10 0 0 0 0 20 2.5 2.5 0 0 0 2.5-2.5c0-.61-.23-1.2-.64-1.67-.08-.09-.13-.21-.13-.33a.5.5 0 0 1 .5-.5H16a6 6 0 0 0 6-6c0-5.5-4.5-9-10-9z"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>
         </span>
         <span class="onb-option-body">
-          <span class="onb-option-text">Design graphics</span>
-          <span class="onb-option-hint">Make posts and visuals in the Design Studio</span>
+          <span class="onb-option-text">Connect your Stripe</span>
+          <span class="onb-option-hint">Get paid directly. Ryxa takes 0% transaction fees</span>
         </span>
       </button>
       <button type="button" class="onb-option" data-dash-action="onboarding-choose" data-onb-tool="follower">
@@ -11031,7 +11031,7 @@
   </div>
 </div>
 
-<!-- BIO "MORE" MODAL — extra widgets, grouped by category. Items use
+<!-- BIO "MORE" MODAL: extra widgets, grouped by category. Items use
      data-bio-action; the dispatcher walks to the closest action, so item
      clicks add the widget while a backdrop click closes. -->
 <div class="bio-more-modal" id="bio-more-modal" role="dialog" aria-modal="true" aria-labelledby="bio-more-modal-title" data-bio-action="close-more-if-backdrop">
@@ -11394,7 +11394,7 @@
     border-radius: 6px;
     box-shadow: 0 4px 16px rgba(232,121,249,0.4);
   }
-  /* Hero LINK upsell — sample card mirrors the live .link-btn.hero-link. */
+  /* Hero LINK upsell: sample card mirrors the live .link-btn.hero-link. */
   .hlu-wrap { position: relative; padding: 24px 24px 6px; }
   .hlu-pro-badge { position: absolute; top: 34px; right: 34px; z-index: 5; padding: 4px 10px; background: linear-gradient(135deg, #a78bfa, #e879f9); color: #fff; font-family: 'DM Sans', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; border-radius: 6px; box-shadow: 0 4px 16px rgba(232,121,249,0.4); }
   .hlu-hero { position: relative; aspect-ratio: 3 / 2; overflow: hidden; border: 1px solid var(--accent); border-radius: 18px; background: #000; box-shadow: 0 0 26px 2px var(--accent-glow); animation: hluGlow 3s ease-in-out infinite, hluNudge 5s ease-in-out infinite; }
@@ -11427,7 +11427,7 @@
   </div>
 </div>
 
-<!-- HERO LINK UPSELL — shown to Free users who click the Hero add button.
+<!-- HERO LINK UPSELL: shown to Free users who click the Hero add button.
      Shows a live sample hero link (mirrors .link-btn.hero-link on the live page). -->
 <div id="hero-link-upsell-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.8);align-items:center;justify-content:center;pointer-events:all;" data-bio-action="close-hero-link-upsell-if-backdrop">
   <div style="background:#0f0f1a;border:1px solid rgba(124,58,237,0.35);border-radius:16px;padding:0;position:relative;width:100%;max-width:420px;pointer-events:all;margin:20px;max-height:90vh;overflow-y:auto;">
