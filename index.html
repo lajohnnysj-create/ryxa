@@ -507,8 +507,11 @@
   @keyframes cursorFloat { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(4px, -6px); } }
   .mockup-glow { position: absolute; inset: -20px; background: radial-gradient(ellipse at 50% 50%, rgba(124,58,237,0.12) 0%, transparent 70%); pointer-events: none; border-radius: 24px; }
   .tools-section { background: #2f6fe0; padding: 120px 48px 90px; margin-top: -90px; }
-  .tools-slash-bed { background: #fff; }
-  .tools-slash { height: 90px; background: #2f6fe0; clip-path: polygon(0 0, 100% 0, 100% 0, 0 100%); margin-top: -1px; }
+  /* The bed, not the triangle, carries the 1px overlap. With the pull on the
+     inner element, the bed's own top edge sat flush against the blue section
+     and showed as a white hairline. */
+  .tools-slash-bed { background: #fff; margin-top: -1px; }
+  .tools-slash { height: 90px; background: #2f6fe0; clip-path: polygon(0 0, 100% 0, 100% 0, 0 100%); margin-top: 0; }
   .tools-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1.05fr; gap: 60px; align-items: center; }
   .tools-copy { max-width: 440px; }
   .tools-eyebrow { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: #fff; font-weight: 600; margin-bottom: 16px; display: block; }
@@ -653,9 +656,15 @@
      square icons (Instagram, Facebook) and wide wordmarks (Discord is 6.6:1),
      and forcing both into a 36px square would smear the wordmarks. Matching on
      height is how logo strips are normally set. */
-  .int-logos { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 26px 30px; }
-  .int-logo { display: flex; align-items: center; justify-content: center; height: 30px; }
-  .int-logo img { height: 100%; width: auto; max-width: 130px; object-fit: contain; display: block; }
+  .int-logos { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 28px 34px; }
+  .int-logo { display: flex; align-items: center; justify-content: center; height: 56px; }
+  .int-logo img { height: 100%; width: auto; max-width: 190px; object-fit: contain; display: block; }
+
+  /* Forces a wrap so YouTube starts the second row. Relying on natural
+     flex-wrap here would be luck: these marks have wildly different widths
+     (Discord's wordmark is 6.6:1), so where a row breaks changes with the
+     viewport and with any asset swap. */
+  .int-break { flex-basis: 100%; height: 0; }
 
   /* Names stay in the DOM for screen readers: a logo alone says nothing to
      someone who cannot see it. */
@@ -667,7 +676,8 @@
     /* Headline first on a phone: the logo rows mean nothing without it. */
     .int-center { order: -1; }
     .int-logos { gap: 22px 26px; }
-    .int-logo { height: 26px; }
+    .int-logo { height: 40px; }
+    .int-logo img { max-width: 150px; }
   }
 </style>
 <style>body{opacity:0;transition:opacity 0.2s ease;}body.site-ready{opacity:1;}
@@ -1116,6 +1126,7 @@
           <img src="/applogos/tiktok.svg" alt="" loading="lazy" decoding="async">
           <span class="int-sr">TikTok</span>
         </div>
+        <div class="int-break" aria-hidden="true"></div>
         <div class="int-logo">
           <img src="/applogos/youtube.png" alt="" loading="lazy" decoding="async">
           <span class="int-sr">YouTube</span>
@@ -1132,16 +1143,15 @@
     </div>
 
     <div class="int-center">
-      <span class="int-eyebrow">Integrations</span>
       <h2 class="int-headline">Works with the tools you already use.</h2>
-      <p class="int-sub">Connect Stripe, your calendar, and your social accounts. Embed your music, maps, and Discord right on your page.</p>
+      <p class="int-sub">Connect Stripe, your calendar, and your social accounts. Embed your music, maps, and Discord right on your link in bio.</p>
     </div>
 
     <div class="int-group">
       <div class="int-group-label">Embed your content</div>
       <div class="int-logos">
         <div class="int-logo">
-          <img src="/applogos/spotify.svg" alt="" loading="lazy" decoding="async">
+          <img src="/applogos/spotify.png" alt="" loading="lazy" decoding="async">
           <span class="int-sr">Spotify</span>
         </div>
         <div class="int-logo">
