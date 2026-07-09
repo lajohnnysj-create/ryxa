@@ -248,8 +248,6 @@ function renderPage(product, creator) {
     .nav { padding:12px 16px; }
     .signin-popover { right:16px; }
     .dp-hero { padding:32px 16px; }
-    .dp-buy-card { flex-direction:column; text-align:center; align-items:stretch; }
-    .dp-buy-btn { width:100%; }
     .signin-chip-email { max-width:100px; }
   }
 </style>
