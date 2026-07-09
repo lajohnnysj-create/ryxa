@@ -99,12 +99,12 @@ function notFoundResponse() {
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Plus+Jakarta+Sans:wght@700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root { --bg:#0a0a14; --surface:#12121e; --surface2:#16162a; --border:rgba(255,255,255,0.06); --border-hover:rgba(255,255,255,0.12); --text:#f0eef8; --text-secondary:#fff; --muted:#b4b2c8; --accent:#7c3aed; --accent2:#a855f7; --accent-glow:rgba(124,58,237,0.35); }
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; text-align:center; }
-h1 { font-family:'Syne',sans-serif; font-size:32px; font-weight:800; margin-bottom:12px; letter-spacing:-1px; }
+h1 { font-family:'Plus Jakarta Sans',sans-serif; font-size:32px; font-weight:800; margin-bottom:12px; letter-spacing:-1px; }
 p { color:var(--text-secondary); font-size:15px; line-height:1.6; max-width:420px; margin:0 auto 24px; }
 a.btn { display:inline-block; padding:12px 26px; background:var(--accent); color:#fff; border-radius:10px; text-decoration:none; font-weight:600; font-size:14px; box-shadow:0 0 16px var(--accent-glow); }
 </style>
@@ -164,7 +164,7 @@ function renderPage(product, creator) {
 <meta name="twitter:image" content="${esc(ogImage)}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Plus+Jakarta+Sans:wght@700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.105.4/dist/umd/supabase.js" integrity="sha384-7SfFUrg31wOnGWBLLniKFCNmCSguYA5wI1WPDOt7kP/mom4R9/0pwghVEnv0uwYP" crossorigin="anonymous"></script>
 <style>
   :root { --bg:#0a0a14; --surface:#12121e; --surface2:#16162a; --border:rgba(255,255,255,0.06); --border-hover:rgba(255,255,255,0.12); --text:#f0eef8; --text-secondary:#fff; --muted:#b4b2c8; --accent:#7c3aed; --accent2:#a855f7; --accent-glow:rgba(124,58,237,0.35); }
@@ -195,7 +195,7 @@ function renderPage(product, creator) {
   .dp-hero { max-width:960px; margin:0 auto; padding:48px 32px; }
   .dp-cover { width:100%; max-height:400px; object-fit:cover; border-radius:16px; margin-bottom:32px; border:1px solid var(--border); display:block; }
   .dp-cover-placeholder { width:100%; height:240px; background:linear-gradient(135deg,rgba(124,58,237,0.15),rgba(232,121,249,0.1)); border-radius:16px; margin-bottom:32px; display:flex; align-items:center; justify-content:center; border:1px solid var(--border); }
-  .dp-title { font-family:'Syne',sans-serif; font-size:clamp(28px,5vw,44px); font-weight:800; letter-spacing:-1.5px; line-height:1.1; margin-bottom:16px; }
+  .dp-title { font-family:'Plus Jakarta Sans',sans-serif; font-size:clamp(28px,5vw,44px); font-weight:800; letter-spacing:-1.5px; line-height:1.1; margin-bottom:16px; }
   .dp-creator { font-size:14px; color:var(--text-secondary); margin-bottom:24px; }
   .dp-creator strong { color:var(--accent2); font-weight:600; }
   .dp-desc { font-size:16px; line-height:1.75; color:var(--text-secondary); margin-bottom:32px; max-width:700px; word-wrap:break-word; }
