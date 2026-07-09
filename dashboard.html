@@ -5280,7 +5280,13 @@
   .ana-s-f77a0c { font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);font-weight:600; }
   .ana-s-d0bda8 { font-family:Syne,sans-serif;font-size:28px;font-weight:800;letter-spacing:-1px;color:var(--text); }
   .ana-s-e15886 { width:32px;height:32px;border-radius:8px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.25);display:flex;align-items:center;justify-content:center; }
-  .ana-s-2f9321 { font-family:Syne,sans-serif;font-size:28px;font-weight:800;letter-spacing:-1px;color:#4ade80; }
+    /* Revenue is the one figure that says Ryxa is working, so it is the only
+     coloured number in the row. Green is EARNED: at zero it stays muted, so
+     the colour carries information rather than decoration, and a creator's
+     first sale is a moment the product visibly notices.
+     var(--muted) #bdbcd0 is 8.8:1 on the card. #4ade80 is 10.5:1. */
+  .ana-s-2f9321 { font-family:Syne,sans-serif;font-size:28px;font-weight:800;letter-spacing:-1px;color:var(--muted); }
+  .ana-s-2f9321.has-revenue { color:#4ade80; }
   .ana-s-27eaf6 { background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:24px;position:relative; }
   .ana-s-895f50 { font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);font-weight:600;margin-bottom:16px; }
   .ana-s-200a70 { display:flex;gap:16px;margin-bottom:12px; }
