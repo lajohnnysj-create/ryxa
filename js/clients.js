@@ -527,7 +527,11 @@ async function clientsReloadPage() {
       // via NOT IN). No further client-side subtraction needed in the
       // common case. The clientsFetchPage fallback path for huge suppression
       // sets also returns post-filter total, so this is consistent.
-      countEl.textContent = total + ' subscriber' + (total !== 1 ? 's' : '');
+      // Use clientsTotalCount, not the raw fetch result: the count is only
+  // requested when the filter changed, so `total` is null on a page turn or a
+  // cached re-open, and rendering it directly printed "null subscribers".
+  var shown = clientsTotalCount;
+  countEl.textContent = shown + ' subscriber' + (shown !== 1 ? 's' : '');
     }
     renderSubscribersPage();
   } catch (e) {
