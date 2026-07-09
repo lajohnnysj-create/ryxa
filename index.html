@@ -220,7 +220,7 @@
   .hero-phone { position: relative; display: flex; justify-content: center; padding: 20px 60px 20px 20px; }
   .hero-phone-device { background: var(--bg); border: 1.5px solid rgba(232,121,249,0.3); border-radius: 16px; padding: 0; box-shadow: 0 20px 50px rgba(0,0,0,0.4), 0 0 30px rgba(124,58,237,0.1); width: 220px; transform: perspective(800px) rotateY(-12deg) rotateX(3deg) translateY(-10px); transition: transform 0.4s ease; position: relative; z-index: 4; overflow: hidden; }
   .hero-phone-device:hover { transform: perspective(800px) rotateY(-5deg) rotateX(1deg) translateY(-10px); }
-  /* Layered ghost screens — fanning to the right */
+  /* Layered ghost screens: fanning to the right */
   .hero-phone::before,
   .hero-phone::after,
   .hero-phone-ghost-3 {
@@ -633,6 +633,37 @@
     animation: authspin 0.7s linear infinite;
   }
   @keyframes authspin { to { transform: rotate(360deg); } }
+
+  /* ===== Integrations ===== */
+  /* Two groups, deliberately labelled. "Connect" means OAuth: tokens, data
+     flowing both ways. "Embed" means the creator pastes a link and we render
+     the player. Putting them in one undifferentiated row invites a creator to
+     assume Spotify connects the way Stripe does, then go hunting in Settings
+     for a button that does not exist. */
+  .int-section { padding: 90px 24px; }
+  .int-inner { max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: 1fr minmax(260px, 340px) 1fr; gap: 48px; align-items: center; }
+  .int-center { text-align: center; }
+  .int-eyebrow { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent2, #a78bfa); font-weight: 600; margin-bottom: 14px; display: block; }
+  .int-headline { font-family: "Plus Jakarta Sans", sans-serif; font-size: clamp(26px, 3.2vw, 36px); font-weight: 800; letter-spacing: -1.2px; line-height: 1.15; margin-bottom: 14px; }
+  .int-sub { color: var(--muted); font-size: 15px; line-height: 1.7; }
+
+  .int-group-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.09em; font-weight: 600; color: var(--muted); margin-bottom: 16px; text-align: center; }
+  .int-logos { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 12px; }
+
+  .int-logo { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 16px 8px; background: rgba(255,255,255,0.035); border: 1px solid var(--border); border-radius: 12px; }
+  /* Marks render in one muted tone rather than a rainbow of brand colors:
+     it sits better with the palette, and it keeps the marks unaltered in the
+     one way that matters, shape. Source each SVG from the owner's official
+     brand kit, never a scraped favicon. */
+  .int-logo svg { width: 24px; height: 24px; opacity: 0.85; }
+  .int-logo-name { font-size: 11px; color: var(--muted); line-height: 1; }
+
+  @media (max-width: 900px) {
+    .int-section { padding: 64px 20px; }
+    .int-inner { grid-template-columns: 1fr; gap: 36px; }
+    /* Headline first on a phone: the groups mean nothing without it. */
+    .int-center { order: -1; }
+  }
 </style>
 <style>body{opacity:0;transition:opacity 0.2s ease;}body.site-ready{opacity:1;}
   /* Hover effects converted from inline onmouseover/onmouseout for CSP */
@@ -854,7 +885,7 @@
     32%  { transform: translateY(-15%); }
     100% { transform: translateY(-15%); }
   }
-  /* Cursor — animates between three positions matching the three screenshots */
+  /* Cursor: animates between three positions matching the three screenshots */
   .lib-promo-cursor {
     position: absolute;
     z-index: 10;
@@ -1052,6 +1083,79 @@
 
 <div class="tools-slash" aria-hidden="true"></div>
 
+<!-- Integrations -->
+<section class="int-section">
+  <div class="int-inner">
+
+    <div class="int-group">
+      <div class="int-group-label">Connect your accounts</div>
+      <div class="int-logos">
+        <div class="int-logo">
+          <!-- TODO: official SVG from Stripe's brand kit -->
+          <span class="int-logo-name">Stripe</span>
+        </div>
+        <div class="int-logo">
+          <!-- TODO: official SVG from Google Calendar's brand kit -->
+          <span class="int-logo-name">Google Calendar</span>
+        </div>
+        <div class="int-logo">
+          <!-- TODO: official SVG from Instagram's brand kit -->
+          <span class="int-logo-name">Instagram</span>
+        </div>
+        <div class="int-logo">
+          <!-- TODO: official SVG from TikTok's brand kit -->
+          <span class="int-logo-name">TikTok</span>
+        </div>
+        <div class="int-logo">
+          <!-- TODO: official SVG from YouTube's brand kit -->
+          <span class="int-logo-name">YouTube</span>
+        </div>
+        <div class="int-logo">
+          <!-- TODO: official SVG from Twitch's brand kit -->
+          <span class="int-logo-name">Twitch</span>
+        </div>
+        <div class="int-logo">
+          <!-- TODO: official SVG from Facebook's brand kit -->
+          <span class="int-logo-name">Facebook</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="int-center">
+      <span class="int-eyebrow">Integrations</span>
+      <h2 class="int-headline">Works with the tools you already use.</h2>
+      <p class="int-sub">Connect Stripe, your calendar, and your social accounts. Embed your music, maps, and Discord right on your page.</p>
+    </div>
+
+    <div class="int-group">
+      <div class="int-group-label">Embed your content</div>
+      <div class="int-logos">
+        <div class="int-logo">
+          <!-- TODO: official SVG from Spotify's brand kit -->
+          <span class="int-logo-name">Spotify</span>
+        </div>
+        <div class="int-logo">
+          <!-- TODO: official SVG from Apple Music's brand kit -->
+          <span class="int-logo-name">Apple Music</span>
+        </div>
+        <div class="int-logo">
+          <!-- TODO: official SVG from SoundCloud's brand kit -->
+          <span class="int-logo-name">SoundCloud</span>
+        </div>
+        <div class="int-logo">
+          <!-- TODO: official SVG from Google Maps's brand kit -->
+          <span class="int-logo-name">Google Maps</span>
+        </div>
+        <div class="int-logo">
+          <!-- TODO: official SVG from Discord's brand kit -->
+          <span class="int-logo-name">Discord</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
 <!-- Marketplace Discoverable + Download App -->
 <section style="padding:72px 24px;">
   <div class="discover-app-grid" style="max-width:800px;margin:0 auto;display:grid;grid-template-columns:1fr auto 1fr;gap:32px;align-items:center;">
@@ -1079,7 +1183,7 @@
   }
 </style>
 
-<!-- Diagonal photo divider — reversed slash -->
+<!-- Diagonal photo divider: reversed slash -->
 <section class="problem-divider problem-divider-reverse">
   <div class="problem-divider-photo problem-divider-photo-2"></div>
   <div class="problem-divider-overlay problem-divider-overlay-right"></div>
@@ -1573,7 +1677,7 @@
     text-decoration-color:#c0392b;
     color:#666 !important;
   }
-  /* Hand-drawn X cross-out — number stays readable */
+  /* Hand-drawn X cross-out: number stays readable */
   .receipt-cross {
     position:relative;
     color:#1a1a1a !important;
