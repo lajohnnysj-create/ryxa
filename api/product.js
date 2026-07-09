@@ -192,13 +192,13 @@ function renderPage(product, creator) {
   .signin-popover-btn.danger:hover { background:rgba(239,68,68,0.08); }
 
   /* Hero */
-  .dp-hero { max-width:960px; margin:0 auto; padding:48px 32px; }
+  .dp-hero { max-width:720px; margin:0 auto; padding:48px 24px; }
   .dp-cover { width:100%; max-height:400px; object-fit:cover; border-radius:16px; margin-bottom:32px; border:1px solid var(--border); display:block; }
   .dp-cover-placeholder { width:100%; height:240px; background:linear-gradient(135deg,rgba(124,58,237,0.15),rgba(232,121,249,0.1)); border-radius:16px; margin-bottom:32px; display:flex; align-items:center; justify-content:center; border:1px solid var(--border); }
   .dp-title { font-family:'Plus Jakarta Sans',sans-serif; font-size:clamp(28px,5vw,44px); font-weight:800; letter-spacing:-1.5px; line-height:1.1; margin-bottom:16px; }
   .dp-creator { font-size:14px; color:var(--text-secondary); margin-bottom:24px; }
   .dp-creator strong { color:var(--accent2); font-weight:600; }
-  .dp-desc { font-size:16px; line-height:1.75; color:var(--text-secondary); margin-bottom:32px; max-width:700px; word-wrap:break-word; }
+  .dp-desc { font-size:16px; line-height:1.75; color:var(--text-secondary); margin-bottom:32px; word-wrap:break-word; }
   /* Rich-text elements inside the description (set by the dashboard's Quill
      editor). Spacing tuned for landing-page readability. Mirrors the same
      pattern courses/index.html uses. */
@@ -223,11 +223,11 @@ function renderPage(product, creator) {
   .dp-desc img.lesson-img-size-large { max-width:100%; width:100%; }
 
   /* Buy card — matches course page */
-  .dp-buy-card { background:var(--surface2); border:1px solid var(--border); border-radius:16px; padding:28px; margin-bottom:24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; }
-  .dp-price { font-family:'Syne',sans-serif; font-size:32px; font-weight:800; letter-spacing:-1px; }
+  .dp-buy-card { margin-bottom:24px; }
+  .dp-price { font-family:'Syne',sans-serif; font-size:32px; font-weight:800; letter-spacing:-1px; margin-bottom:20px; }
   .dp-price-free { color:#4ade80; }
-  .dp-buy-btn { padding:14px 36px; background:linear-gradient(135deg,#a78bfa,#e879f9); color:#fff; border:none; border-radius:10px; font-size:16px; font-weight:600; font-family:'DM Sans',sans-serif; cursor:pointer; box-shadow:0 4px 24px rgba(167,139,250,0.3); transition:all 0.2s; }
-  .dp-buy-btn:hover:not(:disabled) { transform:translateY(-1px); box-shadow:0 6px 30px rgba(167,139,250,0.4); }
+  .dp-buy-btn { width:100%; padding:16px; background:var(--accent); color:#fff; border:none; border-radius:12px; font-size:16px; font-weight:600; font-family:'DM Sans',sans-serif; cursor:pointer; transition:opacity 0.15s; }
+  .dp-buy-btn:hover:not(:disabled) { opacity:0.9; }
   .dp-buy-btn:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
   .dp-purchased-badge { padding:12px 24px; background:rgba(74,222,128,0.1); border:1px solid rgba(74,222,128,0.3); border-radius:10px; color:#4ade80; font-size:14px; font-weight:600; display:inline-flex; align-items:center; gap:8px; text-decoration:none; }
 
