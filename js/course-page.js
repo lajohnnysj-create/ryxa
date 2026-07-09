@@ -306,7 +306,11 @@ function renderCourse(course, creatorName, modules, lessons, quizzes, session) {
 
   var isLoggedIn = !!session?.user;
 
-  var consentHtml = isLoggedIn ? '<label style="display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer;font-size:13px;color:var(--muted);"><input type="checkbox" id="marketing-consent" style="accent-color:#7c3aed;width:16px;height:16px;cursor:pointer;"> Get updates from this creator</label>' : '';
+  // Guests can buy paid courses now, so they must be able to opt in to the
+  // creator's updates. Free courses still require an account, and the login
+  // redirect would discard a ticked box, so those stay logged-in only.
+  var showConsent = isLoggedIn || course.price_cents > 0;
+  var consentHtml = showConsent ? '<label style="display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer;font-size:13px;color:var(--muted);"><input type="checkbox" id="marketing-consent" style="accent-color:#7c3aed;width:16px;height:16px;cursor:pointer;"> Get updates from this creator</label>' : '';
 
   if (isEnrolled) {
     buyArea.innerHTML = '<a href="/learn/?course=' + course.id + '" class="course-enrolled-badge" style="text-decoration:none;cursor:pointer;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Go to Course</a>';

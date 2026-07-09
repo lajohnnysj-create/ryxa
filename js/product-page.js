@@ -81,6 +81,17 @@ async function signOutAndReload() {
 async function init() {
   try {
     var { data: { session } } = await sb.auth.getSession();
+
+    // Guests can buy paid products now, so they must be able to opt in to the
+    // creator's updates. Without this the checkbox is invisible to them and
+    // marketing_consent is always false, not because they declined but because
+    // they were never asked. Free products still require an account, and the
+    // login redirect would discard a ticked box, so leave those logged-in only.
+    if (!session?.user && !IS_FREE) {
+      var guestConsent = document.getElementById('consent-row');
+      if (guestConsent) guestConsent.style.display = 'flex';
+    }
+
     if (session?.user) {
       var email = session.user.email || '';
       document.getElementById('signin-chip-email').textContent = email;
