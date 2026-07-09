@@ -90,7 +90,7 @@
     }
 
     btn.disabled = true;
-    btn.textContent = 'Updating...';
+    btn.setAttribute('data-busy', '');
 
     var { error } = await sb.auth.updateUser({ password: newPass });
 
@@ -101,33 +101,16 @@
       }
       showMsg('error', m);
       btn.disabled = false;
-      btn.textContent = purchaseMode() ? 'Set password and continue' : 'Update password';
+      btn.removeAttribute('data-busy');
     } else {
       showMsg('success', 'Password updated successfully! Redirecting...');
       setTimeout(function () { window.location.href = safeNext(); }, 1500);
     }
   }
 
-  // A purchase link carries ?next=. An ordinary password reset never does, so
-  // its presence means this person is finishing a purchase, not recovering a
-  // forgotten password. Say "set", not "reset".
-  function applyPurchaseCopy() {
-    var next = null;
-    try {
-      next = new URLSearchParams(window.location.search).get('next');
-    } catch (e) {}
-    if (!next || next.charAt(0) !== '/' || next.charAt(1) === '/') return;
-
-    var h = document.getElementById('reset-heading');
-    if (h) h.textContent = 'Set your password';
-    var sub = document.getElementById('reset-subhead');
-    if (sub) sub.textContent = 'Create a password for your Ryxa account, then continue to your purchase.';
-    var btn = document.getElementById('reset-btn');
-    if (btn) btn.textContent = 'Set password and continue';
-  }
-
+  // Heading and button copy are chosen by CSS before first paint. See
+  // js/reset-password-mode.js, loaded blocking in <head>.
   function init() {
-    applyPurchaseCopy();
     gateOnSession();
 
     var btn = document.getElementById('reset-btn');
