@@ -929,3 +929,24 @@ bookingRegisterAction('pick-time', function(e, el) {
 bookingRegisterAction('change-booker-timezone', function(e, el) {
   onBookerTimezoneChange(el.value);
 });
+
+
+// Back-button return from Stripe restores this page from the back-forward
+// cache. Both the buy button and the slot picker's confirm button can be
+// frozen mid-flight, so reset whichever is present.
+window.addEventListener('pageshow', function (e) {
+  if (!e.persisted) return;
+
+  var buyBtn = document.querySelector('.coaching-buy-btn');
+  if (buyBtn) {
+    buyBtn.disabled = false;
+    var isFree = coachingData && coachingData.price_cents === 0;
+    buyBtn.textContent = isFree ? 'Book for free' : 'Book your session';
+  }
+
+  var confirmBtn = document.getElementById('picker-confirm-btn');
+  if (confirmBtn) {
+    confirmBtn.disabled = false;
+    confirmBtn.textContent = 'Continue to Checkout';
+  }
+});

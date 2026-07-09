@@ -233,3 +233,16 @@ productRegisterAction('signout', function() {
 productRegisterAction('buy', function() {
   handleBuyClick();
 });
+
+
+// Returning from Stripe with the browser Back button restores this page from
+// the back-forward cache, DOM intact: the buy button is still disabled and
+// still reads "Loading checkout...". Nothing re-runs on a bfcache restore, so
+// reset it explicitly. e.persisted is true only for that restore.
+window.addEventListener('pageshow', function (e) {
+  if (!e.persisted) return;
+  var btn = document.getElementById('buy-btn');
+  if (!btn) return;
+  btn.disabled = false;
+  btn.textContent = IS_FREE ? 'Get for free' : 'Get instant access';
+});

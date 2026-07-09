@@ -406,7 +406,7 @@ async function enrollFree() {
     // Redirect to course viewer
     window.location.href = '/learn/?course=' + courseData.id;
   } catch (err) {
-    if (btn) { btn.disabled = false; btn.textContent = 'Enroll for Free'; }
+    if (btn) { btn.disabled = false; btn.textContent = 'Enroll for free'; }
     alert('Failed to enroll: ' + err.message);
   }
 }
@@ -467,4 +467,16 @@ courseRegisterAction('enroll-free', function() {
 
 courseRegisterAction('buy-course', function() {
   buyCourse();
+});
+
+
+// Back-button return from Stripe restores this page from the back-forward
+// cache with the button still disabled and mid-flight text. Reset it.
+window.addEventListener('pageshow', function (e) {
+  if (!e.persisted) return;
+  var btn = document.querySelector('.course-buy-btn');
+  if (!btn) return;
+  btn.disabled = false;
+  var isFree = courseData && courseData.price_cents === 0;
+  btn.textContent = isFree ? 'Enroll for free' : 'Enroll now';
 });
