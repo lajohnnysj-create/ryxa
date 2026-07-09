@@ -238,7 +238,19 @@ function updateSettingsCancelBtn() {
 // the pricing page. The pricing page handles every transition: free->paid,
 // Pro<->Max, and monthly<->annual cycle switches.
 function openPricingPage() {
-  goToPricing();
+  // Land on the plan the creator is reaching for, never at the top of the page
+  // looking at Free. Free -> Pro. Pro -> Max. Max -> Max (their own plan, where
+  // the cycle switch and cancel controls live).
+  //
+  // Note the tier value: Pro is stored as 'monthly' internally. 'pro' is
+  // accepted too so this keeps working if that name is ever normalized.
+  // Explicit rather than defaulted: if userTier has not loaded yet, a default
+  // of 'max' would send a free creator to the Max card.
+  var target = '';
+  if (userTier === 'free') target = 'pro';
+  else if (userTier === 'monthly' || userTier === 'pro') target = 'max';
+  else if (userTier === 'max') target = 'max';
+  goToPricing(target);
 }
 
 // "Manage billing" opens the Stripe Customer Portal, where the user can change
