@@ -641,8 +641,18 @@ window.addEventListener('pageshow', function(e) {
 // Every upgrade path in the dashboard calls goToPricing('pro'|'max'), which has
 // been appending this param for a while. Nothing consumed it, so a creator who
 // clicked "Upgrade to Creator Max" landed at the top of the page looking at the
-// Free plan. Scroll them to the plan they asked for, and ring it once so it is
-// obvious which card answered their click.
+// Free plan.
+//
+// Two things this must NOT do:
+//
+//   1. Scroll on desktop. All three cards are already on screen there, so any
+//      movement is noise. Only scroll when the target card is actually out of
+//      view, which in practice means the stacked mobile layout.
+//
+//   2. Use scrollIntoView(). It scrolls every scrollable ancestor, and inside
+//      the app's WebView it shoves the fixed "Back to Dashboard" bar that
+//      native-app.js injects. A measured window.scrollTo leaves fixed elements
+//      alone.
 // =============================================================================
 (function () {
   var plan;
@@ -656,13 +666,44 @@ window.addEventListener('pageshow', function(e) {
   var card = document.getElementById('plan-' + plan);
   if (!card) return;
 
-  card.classList.add('is-highlighted');
+  // Height of anything pinned to the top of the viewport: the app's back bar,
+  // plus the site nav if it is fixed on this page.
+  function fixedTopOffset() {
+    var total = 0;
+    // The site nav is position:fixed INSIDE #site-header, so the wrapper has
+    // no height. Measure the nav itself. The app's back bar is fixed directly.
+    var els = [document.getElementById('native-back-bar'),
+               document.querySelector('#site-header nav')];
+    els.forEach(function (el) {
+      if (!el) return;
+      var pos = getComputedStyle(el).position;
+      if (pos === 'fixed' || pos === 'sticky') {
+        total = Math.max(total, el.getBoundingClientRect().bottom);
+      }
+    });
+    return total > 0 ? total : 0;
+  }
 
-  // block:'center' rather than 'start': these cards are tall, and pinning the
-  // top edge to the viewport top hides the price on shorter screens.
-  card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  function run() {
+    card.classList.add('is-highlighted');
 
-  // The ring is a landing cue, not a permanent state. Leave the card unmarked
-  // once the creator has had a moment to see it.
-  setTimeout(function () { card.classList.remove('is-highlighted'); }, 2600);
+    var offset = fixedTopOffset();
+    var rect = card.getBoundingClientRect();
+    var viewport = window.innerHeight || document.documentElement.clientHeight;
+
+    // Already fully visible below whatever is pinned up top? Then the creator
+    // can see the card they asked for. Ring it and leave the page alone.
+    var fullyVisible = rect.top >= offset && rect.bottom <= viewport;
+    if (!fullyVisible) {
+      var target = rect.top + window.pageYOffset - offset - 16;
+      window.scrollTo({ top: Math.max(0, target), behavior: 'smooth' });
+    }
+
+    // The ring is a landing cue, not a state.
+    setTimeout(function () { card.classList.remove('is-highlighted'); }, 2600);
+  }
+
+  // The back bar is injected by native-app.js, which is also deferred. Wait a
+  // frame so its height is measurable before we compute the offset.
+  requestAnimationFrame(function () { requestAnimationFrame(run); });
 })();
