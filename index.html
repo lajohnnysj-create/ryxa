@@ -507,6 +507,7 @@
   @keyframes cursorFloat { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(4px, -6px); } }
   .mockup-glow { position: absolute; inset: -20px; background: radial-gradient(ellipse at 50% 50%, rgba(124,58,237,0.12) 0%, transparent 70%); pointer-events: none; border-radius: 24px; }
   .tools-section { background: #2f6fe0; padding: 120px 48px 90px; margin-top: -90px; }
+  .tools-slash-bed { background: #fff; }
   .tools-slash { height: 90px; background: #2f6fe0; clip-path: polygon(0 0, 100% 0, 100% 0, 0 100%); margin-top: -1px; }
   .tools-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1.05fr; gap: 60px; align-items: center; }
   .tools-copy { max-width: 440px; }
@@ -635,38 +636,38 @@
   @keyframes authspin { to { transform: rotate(360deg); } }
 
   /* ===== Integrations ===== */
-  /* Two groups, deliberately labelled. "Connect" means OAuth: tokens, data
-     flowing both ways. "Embed" means the creator pastes a link and we render
-     the player. Putting them in one undifferentiated row invites a creator to
-     assume Spotify connects the way Stripe does, then go hunting in Settings
-     for a button that does not exist. */
-  .int-section { padding: 90px 24px; }
-  .int-inner { max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: 1fr minmax(260px, 340px) 1fr; gap: 48px; align-items: center; }
+  /* White band, deliberately. Several of these marks (YouTube's wordmark,
+     Spotify's #231F20 text) are near-black and would disappear on the dark
+     page. A white section means every brand's standard asset works unaltered,
+     which is also what their guidelines require. */
+  .int-section { background: #fff; color: #111; padding: 84px 24px; }
+  .int-inner { max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: 1fr minmax(260px, 330px) 1fr; gap: 48px; align-items: center; }
   .int-center { text-align: center; }
-  .int-eyebrow { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent2, #a78bfa); font-weight: 600; margin-bottom: 14px; display: block; }
-  .int-headline { font-family: "Plus Jakarta Sans", sans-serif; font-size: clamp(26px, 3.2vw, 36px); font-weight: 800; letter-spacing: -1.2px; line-height: 1.15; margin-bottom: 14px; }
-  .int-sub { color: var(--muted); font-size: 15px; line-height: 1.7; }
+  .int-eyebrow { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: #7c3aed; font-weight: 600; margin-bottom: 14px; display: block; }
+  .int-headline { font-family: "Plus Jakarta Sans", sans-serif; font-size: clamp(26px, 3.2vw, 36px); font-weight: 800; letter-spacing: -1.2px; line-height: 1.15; margin-bottom: 14px; color: #111; }
+  .int-sub { color: #555; font-size: 15px; line-height: 1.7; }
 
-  .int-group-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.09em; font-weight: 600; color: var(--muted); margin-bottom: 16px; text-align: center; }
-  .int-logos { display: grid; grid-template-columns: repeat(auto-fit, minmax(56px, 1fr)); gap: 18px 14px; align-items: center; justify-items: center; }
+  .int-group-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.09em; font-weight: 600; color: #888; margin-bottom: 20px; text-align: center; }
 
-  /* Just the marks. No tiles, no captions, full brand color. Source each SVG
-     from the owner's official brand kit and paste it in unaltered: recoloring
-     or reshaping a trademark is what the guidelines actually prohibit, and a
-     scraped 16px favicon will look like mush at this size. */
-  .int-logo { display: flex; align-items: center; justify-content: center; padding: 10px; }
-  .int-logo svg,
-  .int-logo img { width: 36px; height: 36px; display: block; }
+  /* Height-normalized rather than boxed into squares. The assets are a mix of
+     square icons (Instagram, Facebook) and wide wordmarks (Discord is 6.6:1),
+     and forcing both into a 36px square would smear the wordmarks. Matching on
+     height is how logo strips are normally set. */
+  .int-logos { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 26px 30px; }
+  .int-logo { display: flex; align-items: center; justify-content: center; height: 30px; }
+  .int-logo img { height: 100%; width: auto; max-width: 130px; object-fit: contain; display: block; }
 
-  /* Names stay in the DOM for screen readers, since a logo alone says nothing
-     to someone who cannot see it. */
+  /* Names stay in the DOM for screen readers: a logo alone says nothing to
+     someone who cannot see it. */
   .int-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 
   @media (max-width: 900px) {
-    .int-section { padding: 64px 20px; }
-    .int-inner { grid-template-columns: 1fr; gap: 36px; }
-    /* Headline first on a phone: the groups mean nothing without it. */
+    .int-section { padding: 60px 20px; }
+    .int-inner { grid-template-columns: 1fr; gap: 34px; }
+    /* Headline first on a phone: the logo rows mean nothing without it. */
     .int-center { order: -1; }
+    .int-logos { gap: 22px 26px; }
+    .int-logo { height: 26px; }
   }
 </style>
 <style>body{opacity:0;transition:opacity 0.2s ease;}body.site-ready{opacity:1;}
@@ -1085,7 +1086,12 @@
   </div>
 </section>
 
-<div class="tools-slash" aria-hidden="true"></div>
+<!-- The slash is a blue triangle over a transparent half. With a white
+     section below it, that transparent half must show white, not the dark
+     page, or a dark wedge appears between the two bands. -->
+<div class="tools-slash-bed">
+  <div class="tools-slash" aria-hidden="true"></div>
+</div>
 
 <!-- Integrations -->
 <section class="int-section">
@@ -1095,31 +1101,31 @@
       <div class="int-group-label">Connect your accounts</div>
       <div class="int-logos">
         <div class="int-logo">
-          <!-- TODO: paste Stripe's official full-color SVG here -->
+          <img src="/applogos/stripe.svg" alt="" loading="lazy" decoding="async">
           <span class="int-sr">Stripe</span>
         </div>
         <div class="int-logo">
-          <!-- TODO: paste Google Calendar's official full-color SVG here -->
+          <img src="/applogos/calendar.webp" alt="" loading="lazy" decoding="async">
           <span class="int-sr">Google Calendar</span>
         </div>
         <div class="int-logo">
-          <!-- TODO: paste Instagram's official full-color SVG here -->
+          <img src="/applogos/instagramm.webp" alt="" loading="lazy" decoding="async">
           <span class="int-sr">Instagram</span>
         </div>
         <div class="int-logo">
-          <!-- TODO: paste TikTok's official full-color SVG here -->
+          <img src="/applogos/tiktok.svg" alt="" loading="lazy" decoding="async">
           <span class="int-sr">TikTok</span>
         </div>
         <div class="int-logo">
-          <!-- TODO: paste YouTube's official full-color SVG here -->
+          <img src="/applogos/youtube.png" alt="" loading="lazy" decoding="async">
           <span class="int-sr">YouTube</span>
         </div>
         <div class="int-logo">
-          <!-- TODO: paste Twitch's official full-color SVG here -->
+          <img src="/applogos/twitch.png" alt="" loading="lazy" decoding="async">
           <span class="int-sr">Twitch</span>
         </div>
         <div class="int-logo">
-          <!-- TODO: paste Facebook's official full-color SVG here -->
+          <img src="/applogos/facebook.png" alt="" loading="lazy" decoding="async">
           <span class="int-sr">Facebook</span>
         </div>
       </div>
@@ -1135,23 +1141,23 @@
       <div class="int-group-label">Embed your content</div>
       <div class="int-logos">
         <div class="int-logo">
-          <!-- TODO: paste Spotify's official full-color SVG here -->
+          <img src="/applogos/spotify.svg" alt="" loading="lazy" decoding="async">
           <span class="int-sr">Spotify</span>
         </div>
         <div class="int-logo">
-          <!-- TODO: paste Apple Music's official full-color SVG here -->
+          <img src="/applogos/applemusic.webp" alt="" loading="lazy" decoding="async">
           <span class="int-sr">Apple Music</span>
         </div>
         <div class="int-logo">
-          <!-- TODO: paste SoundCloud's official full-color SVG here -->
+          <img src="/applogos/soundcloud.svg" alt="" loading="lazy" decoding="async">
           <span class="int-sr">SoundCloud</span>
         </div>
         <div class="int-logo">
-          <!-- TODO: paste Google Maps's official full-color SVG here -->
+          <img src="/applogos/maps.webp" alt="" loading="lazy" decoding="async">
           <span class="int-sr">Google Maps</span>
         </div>
         <div class="int-logo">
-          <!-- TODO: paste Discord's official full-color SVG here -->
+          <img src="/applogos/discord.svg" alt="" loading="lazy" decoding="async">
           <span class="int-sr">Discord</span>
         </div>
       </div>
