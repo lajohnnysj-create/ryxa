@@ -224,7 +224,7 @@ function renderPage(product, creator) {
 
   /* Buy card — matches course page */
   .dp-buy-card { margin-bottom:24px; }
-  .dp-price { font-family:'Syne',sans-serif; font-size:32px; font-weight:800; letter-spacing:-1px; margin-bottom:20px; }
+  .dp-price { font-family:'Plus Jakarta Sans',sans-serif; font-size:32px; font-weight:800; letter-spacing:-1px; margin-bottom:20px; }
   .dp-price-free { color:#4ade80; }
   .dp-buy-btn { width:100%; padding:16px; background:var(--accent); color:#fff; border:none; border-radius:12px; font-size:16px; font-weight:600; font-family:'DM Sans',sans-serif; cursor:pointer; transition:opacity 0.15s; }
   .dp-buy-btn:hover:not(:disabled) { opacity:0.9; }
