@@ -269,7 +269,11 @@ function renderCoaching(coaching, creatorName, isLoggedIn) {
 
   // Buy button
   var buyArea = document.getElementById('cp-buy-area');
-  var consentHtml = isLoggedIn ? '<label style="display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer;font-size:13px;color:var(--muted);"><input type="checkbox" id="marketing-consent" style="accent-color:#7c3aed;width:16px;height:16px;cursor:pointer;"> Get updates from this creator</label>' : '';
+  // Guests can buy paid bookings now, so they must be able to opt in to the
+  // creator's updates. Free bookings still require an account, and the login
+  // redirect would discard a ticked box, so those stay logged-in only.
+  var showConsent = isLoggedIn || coaching.price_cents > 0;
+  var consentHtml = showConsent ? '<label style="display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer;font-size:13px;color:var(--muted);"><input type="checkbox" id="marketing-consent" style="accent-color:#7c3aed;width:16px;height:16px;cursor:pointer;"> Get updates from this creator</label>' : '';
   if (coaching.price_cents === 0) {
     buyArea.innerHTML = '<button class="coaching-buy-btn" data-booking-action="book">' + (isLoggedIn ? 'Proceed to Booking' : 'Book for Free') + '</button>' + consentHtml;
   } else {
@@ -278,8 +282,12 @@ function renderCoaching(coaching, creatorName, isLoggedIn) {
 }
 
 async function bookCoaching() {
+  // GUEST CHECKOUT: no login wall on paid bookings. Stripe collects the email,
+  // and the webhook binds the booking to an account under it. FREE bookings
+  // still require an account: there is no Stripe session to carry an email or
+  // to prove the claim.
   var { data: { session } } = await sb.auth.getSession();
-  if (!session?.user) {
+  if (coachingData.price_cents === 0 && !session?.user) {
     window.location.href = '/learn/?redirect=' + encodeURIComponent(window.location.pathname);
     return;
   }
@@ -311,7 +319,6 @@ async function proceedWithBooking(slotInfo) {
       requestBody.slot_start = slotInfo.start_at;
       requestBody.slot_end = slotInfo.end_at;
       requestBody.slot_timezone = slotInfo.timezone;
-      requestBody.reservation_id = slotInfo.reservation_id;
     }
 
     if (coachingData.price_cents === 0) {
@@ -774,24 +781,11 @@ async function confirmPickerSelection() {
   btn.textContent = 'Reserving slot...';
 
   try {
-    // Create slot reservation (10-min hold)
-    var { data: { session } } = await sb.auth.getSession();
-    if (!session?.user) throw new Error('Sign in required');
-
-    var expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
-    var { data: reservation, error } = await sb.from('coaching_slot_reservations').insert({
-      coaching_id: coachingData.id,
-      booker_id: session.user.id,
-      slot_start: pickerState.selectedSlot.start_at,
-      slot_end: pickerState.selectedSlot.end_at,
-      booker_timezone: pickerState.bookerTz,
-      expires_at: expiresAt
-    }).select().single();
-
-    if (error) throw error;
-
-    // Pass reservation info to checkout flow
-    pickerState.selectedSlot.reservation_id = reservation.id;
+    // The reservation is created SERVER SIDE by create-coaching-checkout, which
+    // verifies the slot is free and holds it under the service role. The browser
+    // used to insert it directly, which would have required giving `anon` INSERT
+    // on coaching_slot_reservations once guests could book: a script could then
+    // hold every slot on a creator's calendar.
 
     // Restore consent state for proceedWithBooking
     var consentCheck = document.getElementById('marketing-consent');
