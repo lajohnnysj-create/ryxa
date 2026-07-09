@@ -122,18 +122,72 @@ function getDashDateRange() {
   return { start: start, end: end };
 }
 
+// ---- Timezone-correct calendar-day math -------------------------------------
+// The creator's "today" as YYYY-MM-DD, in their timezone rather than the
+// browser's. Same technique the stats window uses.
+function todayInTz(tz) {
+  var parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit'
+  }).formatToParts(new Date());
+  var o = {};
+  parts.forEach(function (p) { o[p.type] = p.value; });
+  return o.year + '-' + o.month + '-' + o.day;
+}
+
+function addDays(ymd, n) {
+  var p = ymd.split('-');
+  // Noon UTC avoids the date flipping when adding days across a DST boundary.
+  var d = new Date(Date.UTC(+p[0], +p[1] - 1, +p[2], 12));
+  d.setUTCDate(d.getUTCDate() + n);
+  var pad = function (x) { return String(x).padStart(2, '0'); };
+  return d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate());
+}
+
+// What UTC instant is 23:59:59.999 on this date, in this timezone? Raw
+// millisecond arithmetic gets this wrong across DST, so measure the zone's
+// offset at the candidate instant and correct for it. One refinement pass
+// handles the case where the correction itself crosses the transition.
+function endOfDayInTz(ymd, tz) {
+  var wall = Date.parse(ymd + 'T23:59:59.999Z');
+  // First pass gets close; the second re-measures the offset at the corrected
+  // instant, which is what makes DST-transition days land correctly.
+  var utc = wall - tzOffsetMs(new Date(wall), tz);
+  return wall - tzOffsetMs(new Date(utc), tz);
+}
+
+// How far ahead of UTC is `tz` at this instant, in milliseconds?
+function tzOffsetMs(date, tz) {
+  var dtf = new Intl.DateTimeFormat('en-US', {
+    timeZone: tz, hour12: false,
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit'
+  });
+  var o = {};
+  dtf.formatToParts(date).forEach(function (p) { o[p.type] = p.value; });
+  var asUTC = Date.UTC(+o.year, +o.month - 1, +o.day, +o.hour % 24, +o.minute, +o.second);
+  return asUTC - Math.floor(date.getTime() / 1000) * 1000;
+}
+
 async function loadUpcomingEvents() {
   if (!currentUser) return;
   var listEl = document.getElementById('dash-upcoming-list');
   if (!listEl) return;
 
-  // Determine forward window (matches selected range, but forward-looking)
+  // Forward window, mirroring the stats range beside it: today plus the next
+  // (days - 1) CALENDAR days, ending at local midnight.
+  //
+  // This used to be `now + days * 24h`, a rolling window measured from the
+  // current instant. At 7d nobody noticed. At 1d ("Today") it showed tomorrow
+  // morning's events, because 9pm + 24h is 9pm tomorrow. It also ignored the
+  // creator's timezone, doing raw millisecond math on a UTC timestamp.
   var days = dashCustomStart && dashCustomEnd
     ? Math.ceil((new Date(dashCustomEnd) - new Date(dashCustomStart)) / 86400000) + 1
     : dashRangeDays;
 
+  var tz = window._ryx_creator_tz || Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+
   var now = new Date();
-  var futureEnd = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+  var futureEnd = new Date(endOfDayInTz(addDays(todayInTz(tz), days - 1), tz));
 
   try {
     var { data: events, error } = await sb.from('calendar_events')
