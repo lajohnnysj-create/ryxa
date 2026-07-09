@@ -405,11 +405,11 @@ async function enrollFree() {
 }
 
 async function buyCourse() {
+  // GUEST CHECKOUT: no login wall on paid courses. Stripe collects the email,
+  // and the webhook binds the enrollment to an account under it. Free
+  // enrollment (enrollFree) still requires an account: there is no Stripe
+  // session to carry an email or to prove the claim.
   const { data: { session } } = await sb.auth.getSession();
-  if (!session?.user) {
-    window.location.href = '/learn/?redirect=' + encodeURIComponent(window.location.pathname);
-    return;
-  }
 
   const btn = document.querySelector('.course-buy-btn');
   if (btn) { btn.disabled = true; btn.textContent = 'Loading checkout...'; }
@@ -421,6 +421,8 @@ async function buyCourse() {
       body: {
         course_id: courseData.id,
         marketing_consent: consentCheck ? consentCheck.checked : false,
+        // Only used for logged-in buyers. The edge function rewrites the guest
+        // success_url to the purchase-complete page, which works logged out.
         success_url: window.location.origin + '/learn/?course=' + courseData.id + '&enrolled=1',
         cancel_url: window.location.href
       }
