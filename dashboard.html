@@ -5472,12 +5472,12 @@
   /* Subscriber Details modal */
   .clients-s-modal-backdrop { position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;animation:clients-fade-in 0.15s ease; }
   @keyframes clients-fade-in { from { opacity:0; } to { opacity:1; } }
-  .clients-s-modal { background:var(--surface);border:1px solid var(--border);border-radius:16px;width:100%;max-width:560px;max-height:85vh;max-height:calc(100dvh - 40px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));overflow-y:auto;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5); }
-  .clients-s-modal-header { display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border); }
+  .clients-s-modal { background:var(--surface);border:1px solid var(--border);border-radius:16px;width:100%;max-width:560px;max-height:85vh;max-height:calc(100dvh - 40px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5); }
+  .clients-s-modal-header { display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border);flex-shrink:0; }
   .clients-s-modal-title { font-family:Plus Jakarta Sans,sans-serif;font-size:17px;font-weight:700;color:var(--text);margin:0;letter-spacing:-0.2px; }
   .clients-s-modal-close { background:transparent;border:none;color:var(--muted);width:32px;height:32px;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all 0.15s; }
   .clients-s-modal-close:hover { background:var(--surface2);color:var(--text); }
-  .clients-s-modal-body { padding:22px; }
+  .clients-s-modal-body { padding:22px;flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch; }
   .clients-s-detail-row { margin-bottom:14px; }
   .clients-s-detail-row:last-child { margin-bottom:0; }
   .clients-s-detail-label { font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:600;margin-bottom:6px;display:block; }
@@ -5498,7 +5498,7 @@
   .clients-s-note-textarea { width:100%;padding:12px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;line-height:1.6;font-family:DM Sans,sans-serif;outline:none;resize:vertical;min-height:120px;box-sizing:border-box; }
   .clients-s-note-textarea:focus { border-color:var(--border-hover); }
   .clients-s-note-hint { font-size:11px;color:var(--muted);margin-top:6px; }
-  .clients-s-modal-footer { display:flex;justify-content:flex-end;padding:14px 22px;border-top:1px solid var(--border);background:var(--surface); }
+  .clients-s-modal-footer { display:flex;justify-content:flex-end;padding:14px 22px;border-top:1px solid var(--border);background:var(--surface);flex-shrink:0; }
   .clients-s-modal-done { padding:8px 22px;background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.35);color:#c4b5fd;border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.15s; }
   .clients-s-modal-done:hover { background:rgba(124,58,237,0.22);border-color:rgba(124,58,237,0.55);color:#fff; }
   .clients-s-modal-done:disabled { opacity:0.6;cursor:default; }
@@ -8201,7 +8201,7 @@
                     <label for="clients-detail-note" class="clients-s-detail-label">Note</label>
                     <span id="clients-detail-note-status" class="clients-s-note-status" aria-live="polite"></span>
                   </div>
-                  <textarea id="clients-detail-note" placeholder="Add a private note about this subscriber. Only you can see it." rows="6" maxlength="5000" data-clients-action="note-count" data-clients-event="input" class="clients-s-note-textarea"></textarea>
+                  <textarea id="clients-detail-note" placeholder="Add a private note about this subscriber. Only you can see it." rows="4" maxlength="5000" data-clients-action="note-count" data-clients-event="input" class="clients-s-note-textarea"></textarea>
                   <div class="clients-s-note-hint"><span id="clients-note-count">0</span>/5000</div>
                 </div>
               </div>
