@@ -213,6 +213,8 @@
   /* Loading overlay sits above the iframe until the iframe load event fires.
      pointer-events:none so it never blocks player controls if it lingers. */
   .viewer-video-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background: #000; color: rgba(255,255,255,0.85); font-size: 14px; pointer-events: none; transition: opacity 0.25s ease-out; z-index: 2; }
+  .dash-spinner { width: 34px; height: 34px; margin: 0 auto; border: 3px solid rgba(255,255,255,0.12); border-top-color: var(--accent2, #a78bfa); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @media (prefers-reduced-motion: reduce) { .dash-spinner { animation-duration: 2.4s; } }
   .viewer-video-overlay-spinner { width: 28px; height: 28px; border: 2px solid rgba(255,255,255,0.2); border-top-color: rgba(255,255,255,0.85); border-radius: 50%; animation: spin 0.8s linear infinite; }
   .viewer-video-overlay-text { font-family: 'DM Sans', sans-serif; padding: 0 24px; text-align: center; max-width: 360px; }
   .viewer-text { font-size: 15px; line-height: 1.75; color: var(--text); }
@@ -384,6 +386,13 @@
 
 <!-- Dashboard (My Courses) -->
 <div id="learn-main">
+<!-- Shown while courses, downloads, and bookings load. Hidden once all three
+     have settled, so the page never renders half-populated. -->
+<div id="dash-loading" class="dash-wrap" style="display:none;text-align:center;padding:80px 24px;">
+  <div class="dash-spinner" role="status" aria-label="Loading your purchases"></div>
+  <p style="margin-top:16px;font-size:14px;color:var(--muted);">Loading your purchases...</p>
+</div>
+
 <div id="dash-screen" class="dash-wrap" style="display:none;">
   <h1 class="dash-title">My Courses</h1>
   <div id="dash-courses" class="courses-grid"></div>
