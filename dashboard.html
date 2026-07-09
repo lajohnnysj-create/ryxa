@@ -5472,7 +5472,7 @@
   /* Subscriber Details modal */
   .clients-s-modal-backdrop { position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;animation:clients-fade-in 0.15s ease; }
   @keyframes clients-fade-in { from { opacity:0; } to { opacity:1; } }
-  .clients-s-modal { background:var(--surface);border:1px solid var(--border);border-radius:16px;width:100%;max-width:560px;max-height:85vh;overflow-y:auto;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5); }
+  .clients-s-modal { background:var(--surface);border:1px solid var(--border);border-radius:16px;width:100%;max-width:560px;max-height:85vh;max-height:calc(100dvh - 40px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));overflow-y:auto;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5); }
   .clients-s-modal-header { display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border); }
   .clients-s-modal-title { font-family:Plus Jakarta Sans,sans-serif;font-size:17px;font-weight:700;color:var(--text);margin:0;letter-spacing:-0.2px; }
   .clients-s-modal-close { background:transparent;border:none;color:var(--muted);width:32px;height:32px;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all 0.15s; }
@@ -5565,7 +5565,7 @@
   .clients-s-import-result-stats .clients-s-import-validation-line { margin-bottom:0; }
 
   @media (max-width: 500px) {
-    .clients-s-detail-grid { grid-template-columns:1fr;gap:10px;padding:12px 14px; }
+    .clients-s-detail-grid { gap:8px;padding:12px 10px; }
   }
 
 
@@ -8178,8 +8178,8 @@
                     <span id="clients-detail-name-status" class="clients-s-note-status" aria-live="polite"></span>
                   </div>
                   <div class="clients-s-detail-name-grid">
-                    <input type="text" id="clients-detail-first-name" placeholder="First name" aria-label="First name" maxlength="120" autocomplete="off" data-clients-action="name-blur" data-clients-event="blur" class="clients-s-add-input">
-                    <input type="text" id="clients-detail-last-name" placeholder="Last name" aria-label="Last name" maxlength="120" autocomplete="off" data-clients-action="name-blur" data-clients-event="blur" class="clients-s-add-input">
+                    <input type="text" id="clients-detail-first-name" placeholder="First name" aria-label="First name" maxlength="120" autocomplete="off" class="clients-s-add-input">
+                    <input type="text" id="clients-detail-last-name" placeholder="Last name" aria-label="Last name" maxlength="120" autocomplete="off" class="clients-s-add-input">
                   </div>
                 </div>
                 <div class="clients-s-detail-grid">
@@ -8201,12 +8201,12 @@
                     <label for="clients-detail-note" class="clients-s-detail-label">Note</label>
                     <span id="clients-detail-note-status" class="clients-s-note-status" aria-live="polite"></span>
                   </div>
-                  <textarea id="clients-detail-note" placeholder="Add a private note about this subscriber. Only you can see it." rows="6" maxlength="5000" data-clients-action="note-blur" data-clients-event="blur" class="clients-s-note-textarea"></textarea>
-                  <div class="clients-s-note-hint">Notes save automatically. Max 5,000 characters.</div>
+                  <textarea id="clients-detail-note" placeholder="Add a private note about this subscriber. Only you can see it." rows="6" maxlength="5000" data-clients-action="note-count" data-clients-event="input" class="clients-s-note-textarea"></textarea>
+                  <div class="clients-s-note-hint"><span id="clients-note-count">0</span>/5000</div>
                 </div>
               </div>
               <div class="clients-s-modal-footer">
-                <button data-clients-action="done-detail" class="clients-s-modal-done dash-h-186bb3">Done</button>
+                <button data-clients-action="done-detail" class="clients-s-modal-done dash-h-186bb3">Save</button>
               </div>
             </div>
           </div>
