@@ -1276,6 +1276,14 @@ async function onboardingChoose(tool) {
   // 'follower' needs showFollowerTool() (extra setup); others use showTool().
   if (tool === 'follower') {
     if (typeof showFollowerTool === 'function') showFollowerTool();
+  } else if (tool === 'settings-stripe') {
+    // Settings is a long page. Opening it and leaving the buyer at the top
+    // means the thing they just asked for is below the fold.
+    if (typeof showTool === 'function') showTool('settings');
+    setTimeout(function () {
+      var el = document.getElementById('settings-stripe-section');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 250);
   } else if (tool && typeof showTool === 'function') {
     showTool(tool);
   }
