@@ -283,7 +283,7 @@ function renderPage(product, creator) {
 <section class="dp-hero">
   ${coverHtml}
   <h1 class="dp-title">${esc(product.title)}</h1>
-  <div class="dp-creator">by <a href="/${esc(creatorName)}" style="color:inherit;text-decoration:none;"><strong>${esc(creatorName)}</strong></a></div>
+  <div class="dp-creator">by <a href="/${esc(creatorName)}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;"><strong>${esc(creatorName)}</strong></a></div>
   ${description}
 
   <div class="dp-buy-card">
