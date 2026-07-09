@@ -203,7 +203,12 @@ async function loadUpcomingEvents() {
     }
 
     if (!events || events.length === 0) {
-      listEl.innerHTML = '<div class="welcome-s-077293">No events in the next ' + days + ' days. <a href="#" data-welcome-action="show-tool" data-welcome-tool="calendar" class="welcome-s-00699a">Add one →</a></div>';
+      // "the next 1 days" once Today became selectable. A one-day window is
+      // just today, so say so rather than counting it.
+      var emptyMsg = (!dashCustomStart && dashRangeDays === 1)
+        ? 'No events today.'
+        : 'No events in the next ' + days + (days === 1 ? ' day.' : ' days.');
+      listEl.innerHTML = '<div class="welcome-s-077293">' + emptyMsg + ' <a href="#" data-welcome-action="show-tool" data-welcome-tool="calendar" class="welcome-s-00699a">Add one →</a></div>';
       return;
     }
 
@@ -541,8 +546,11 @@ async function loadDashStats() {
     const v = viewsRes.data;
     vEl.textContent = (v.total || 0).toLocaleString();
     const dayCount = dashCustomStart ? Math.ceil((new Date(end) - new Date(start)) / 86400000) + 1 : dashRangeDays;
+    const isToday = !dashCustomStart && dashRangeDays === 1;
     const avg = v.total > 0 ? Math.round(v.total / dayCount) : 0;
-    vSub.textContent = `~${avg}/day avg over ${dayCount} ${dayCount === 1 ? 'day' : 'days'}`;
+    vSub.textContent = isToday
+      ? 'So far today'
+      : `~${avg}/day avg over ${dayCount} ${dayCount === 1 ? 'day' : 'days'}`;
     const bp = v.by_page || {};
     const pills = [];
     if (bp.bio) pills.push(`<span class="dash-stat-pill">Bio: ${Number(bp.bio).toLocaleString()}</span>`);
@@ -583,6 +591,7 @@ async function loadDashStats() {
     rEl.textContent = formatDashUSD(r.total_cents || 0);
     const bs = r.by_source || {};
     const dayCount = dashCustomStart ? Math.ceil((new Date(end) - new Date(start)) / 86400000) + 1 : dashRangeDays;
+    const isToday = !dashCustomStart && dashRangeDays === 1;
     const sources = [];
     if (bs.brand_deal) sources.push(`<span class="dash-stat-pill">Brand Deals: ${formatDashUSD(bs.brand_deal)}</span>`);
     if (bs.course) sources.push(`<span class="dash-stat-pill">Courses: ${formatDashUSD(bs.course)}</span>`);
@@ -592,9 +601,15 @@ async function loadDashStats() {
     if (bs.other) sources.push(`<span class="dash-stat-pill">Other: ${formatDashUSD(bs.other)}</span>`);
     rBreak.innerHTML = sources.join('');
     if (r.total_cents > 0) {
-      rSub.textContent = `${Object.keys(bs).length} source${Object.keys(bs).length !== 1 ? 's' : ''} over ${dayCount} ${dayCount === 1 ? 'day' : 'days'}`;
+      const srcCount = Object.keys(bs).length;
+      const srcLabel = `${srcCount} source${srcCount !== 1 ? 's' : ''}`;
+      rSub.textContent = isToday
+        ? `${srcLabel} today`
+        : `${srcLabel} over ${dayCount} ${dayCount === 1 ? 'day' : 'days'}`;
     } else {
-      rSub.textContent = `No revenue recorded over ${dayCount} ${dayCount === 1 ? 'day' : 'days'}`;
+      rSub.textContent = isToday
+        ? 'No revenue recorded today'
+        : `No revenue recorded over ${dayCount} ${dayCount === 1 ? 'day' : 'days'}`;
     }
     renderSparkline('dash-revenue-sparkline', r.daily, 'cents');
   }
