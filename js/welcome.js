@@ -488,7 +488,7 @@ async function loadDashStats() {
     vEl.textContent = (v.total || 0).toLocaleString();
     const dayCount = dashCustomStart ? Math.ceil((new Date(end) - new Date(start)) / 86400000) + 1 : dashRangeDays;
     const avg = v.total > 0 ? Math.round(v.total / dayCount) : 0;
-    vSub.textContent = `~${avg}/day avg over ${dayCount} days`;
+    vSub.textContent = `~${avg}/day avg over ${dayCount} ${dayCount === 1 ? 'day' : 'days'}`;
     const bp = v.by_page || {};
     const pills = [];
     if (bp.bio) pills.push(`<span class="dash-stat-pill">Bio: ${Number(bp.bio).toLocaleString()}</span>`);
@@ -538,9 +538,9 @@ async function loadDashStats() {
     if (bs.other) sources.push(`<span class="dash-stat-pill">Other: ${formatDashUSD(bs.other)}</span>`);
     rBreak.innerHTML = sources.join('');
     if (r.total_cents > 0) {
-      rSub.textContent = `${Object.keys(bs).length} source${Object.keys(bs).length !== 1 ? 's' : ''} over ${dayCount} days`;
+      rSub.textContent = `${Object.keys(bs).length} source${Object.keys(bs).length !== 1 ? 's' : ''} over ${dayCount} ${dayCount === 1 ? 'day' : 'days'}`;
     } else {
-      rSub.textContent = `No revenue recorded over ${dayCount} days`;
+      rSub.textContent = `No revenue recorded over ${dayCount} ${dayCount === 1 ? 'day' : 'days'}`;
     }
     renderSparkline('dash-revenue-sparkline', r.daily, 'cents');
   }
