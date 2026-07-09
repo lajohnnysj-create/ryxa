@@ -633,3 +633,36 @@ window.addEventListener('pageshow', function(e) {
   // plan" button is not wrongly re-enabled by the clearBtnLoading pass above.
   decoratePlanCards();
 });
+
+
+// =============================================================================
+// ?highlight=pro|max
+//
+// Every upgrade path in the dashboard calls goToPricing('pro'|'max'), which has
+// been appending this param for a while. Nothing consumed it, so a creator who
+// clicked "Upgrade to Creator Max" landed at the top of the page looking at the
+// Free plan. Scroll them to the plan they asked for, and ring it once so it is
+// obvious which card answered their click.
+// =============================================================================
+(function () {
+  var plan;
+  try {
+    plan = new URLSearchParams(window.location.search).get('highlight');
+  } catch (e) {
+    return;
+  }
+  if (plan !== 'pro' && plan !== 'max') return;
+
+  var card = document.getElementById('plan-' + plan);
+  if (!card) return;
+
+  card.classList.add('is-highlighted');
+
+  // block:'center' rather than 'start': these cards are tall, and pinning the
+  // top edge to the viewport top hides the price on shorter screens.
+  card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+  // The ring is a landing cue, not a permanent state. Leave the card unmarked
+  // once the creator has had a moment to see it.
+  setTimeout(function () { card.classList.remove('is-highlighted'); }, 2600);
+})();
