@@ -115,9 +115,25 @@
     document.body.style.paddingTop = 'calc(48px + env(safe-area-inset-top, 0px))';
   }
 
+  // The login screen's wordmark links to "/" so the web PWA can go home. Inside
+  // the app that is a leak: isInternal() lets ryxa.io through, so the WebView
+  // would navigate the app's first screen onto the marketing homepage, with no
+  // back bar to return from (the login screen is not a sheet).
+  //
+  // Neutralize the link rather than hide the wordmark: it is a trust signal on
+  // the screen where someone is about to hand over an email.
+  function unlinkLoginLogo() {
+    var logo = document.getElementById('pwa-login-logo');
+    if (!logo || logo.tagName !== 'A') return;
+    logo.removeAttribute('href');
+    logo.removeAttribute('aria-label');
+    logo.style.cursor = 'default';
+  }
+
   function insertAll() {
     insertTopbarButtons();
     setupMarketingPage();
+    unlinkLoginLogo();
   }
 
   function closeSidebar() {
