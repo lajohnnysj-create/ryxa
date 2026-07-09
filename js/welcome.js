@@ -97,7 +97,7 @@ function applyDashGreeting(name) {
 // =====================================================
 // DASHBOARD HOME — Stats (Page Views + Revenue)
 // =====================================================
-let dashRangeDays = 14;
+let dashRangeDays = 30;
 let dashCustomStart = null;
 let dashCustomEnd = null;
 

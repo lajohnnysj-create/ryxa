@@ -63,7 +63,7 @@ function anaDispatchEvent(event) {
 // =====================================================
 // ANALYTICS
 // =====================================================
-let anaRangeDays = 7;
+let anaRangeDays = 30;
 let anaCustomStart = null;
 let anaCustomEnd = null;
 

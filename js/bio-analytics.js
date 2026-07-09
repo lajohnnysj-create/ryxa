@@ -6,7 +6,7 @@
 // signed-in creator). Click rate uses bio views from get_page_view_stats.
 // =====================================================
 
-let banRangeDays = 7;
+let banRangeDays = 30;
 let banCustomStart = null;
 let banCustomEnd = null;
 let banWired = false;
