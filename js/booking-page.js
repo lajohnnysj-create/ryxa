@@ -189,7 +189,9 @@ function renderCoaching(coaching, creatorName, isLoggedIn) {
 
   // Title & creator
   document.getElementById('cp-title').textContent = coaching.title;
-  document.getElementById('cp-creator').innerHTML = 'by <a href="/' + escapeHtml(creatorName) + '">' + escapeHtml(creatorName) + '</a>';
+  // Opens in a new tab on purpose: the creator's bio is a trust signal worth
+  // clicking, but the purchase page must survive the click.
+  document.getElementById('cp-creator').innerHTML = 'by <a href="/' + escapeHtml(creatorName) + '" target="_blank" rel="noopener">' + escapeHtml(creatorName) + '</a>';
 
   // Meta (price + duration)
   var metaHtml = '';

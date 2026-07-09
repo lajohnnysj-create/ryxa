@@ -214,7 +214,10 @@ function renderCourse(course, creatorName, modules, lessons, quizzes, session) {
 
   // Title, creator, description
   document.getElementById('cp-title').textContent = course.title;
-  document.getElementById('cp-creator').innerHTML = 'by <a href="/' + escapeHtml(creatorName) + '" style="color:inherit;text-decoration:none;"><strong>' + escapeHtml(creatorName) + '</strong></a>';
+  // Opens in a new tab on purpose: the creator's bio is a trust signal worth
+  // clicking, but the purchase page must survive the click. Replacing the page
+  // here loses the buyer mid-decision.
+  document.getElementById('cp-creator').innerHTML = 'by <a href="/' + escapeHtml(creatorName) + '" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;"><strong>' + escapeHtml(creatorName) + '</strong></a>';
   // Description is rich-text HTML (sanitized when saved by the dashboard's
   // Quill editor). Sanitize again on render as defense in depth - never
   // trust HTML alone, even our own. Also clean up two known issues from
