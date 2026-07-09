@@ -29,6 +29,30 @@ var ITEM_ID = params.get('id') || '';
 // differs per type. Until it does, fall back to the Hub root.
 var HUB_PATH = '/learn/';
 
+// The page serves three purchase types. "Your purchase is ready" reads wrong
+// for a booked session, and "download" reads wrong for a course.
+var COPY = {
+  digital_product: {
+    readyTitle: 'Your purchase is ready',
+    readyBtn: 'Go to your download',
+    passwordSub: 'Create a password to access your download and sign in anytime.'
+  },
+  course: {
+    readyTitle: "You're enrolled",
+    readyBtn: 'Go to your course',
+    passwordSub: 'Create a password to access your course and sign in anytime.'
+  },
+  coaching: {
+    readyTitle: 'Your session is booked',
+    readyBtn: 'View your booking',
+    passwordSub: 'Create a password to view your booking and sign in anytime.'
+  }
+};
+
+function copyFor() {
+  return COPY[PURCHASE_TYPE] || COPY.digital_product;
+}
+
 var POLL_INTERVAL_MS = 2000;
 var POLL_MAX_ATTEMPTS = 12; // ~24s, generous for webhook latency
 
@@ -90,6 +114,7 @@ async function pollStatus(attempt) {
       var noteEl = document.getElementById('email-note');
       if (noteEl) noteEl.textContent = 'We also sent an access link to ' + buyerEmail + '.';
       var pwSub = document.getElementById('password-subhead');
+      if (pwSub) pwSub.textContent = copyFor().passwordSub;
       if (pwSub && data.is_new_account === false) {
         // Existing account with no password (for example, one created by
         // signing in with Google or Apple). Reassure rather than confuse.
@@ -102,6 +127,8 @@ async function pollStatus(attempt) {
     // Existing account, already has a password. Note the wording: this email
     // contains a link to the download, NOT a link that signs them in. Only
     // brand-new accounts get an authenticating link, so do not promise one.
+    var readyTitle = document.getElementById('ready-title');
+    if (readyTitle) readyTitle.textContent = copyFor().readyTitle;
     var readyNote = document.getElementById('ready-note');
     if (readyNote) readyNote.textContent = "It's saved to your Ryxa Hub account for " + buyerEmail + '.';
     var emailNote = document.getElementById('ready-email-note');
@@ -109,7 +136,10 @@ async function pollStatus(attempt) {
       emailNote.textContent = 'We also emailed the details to that address. Sign in with your password, or use "Email me a login link" at the Hub.';
     }
     var readyBtn = document.getElementById('ready-btn');
-    if (readyBtn) readyBtn.setAttribute('href', hubUrl());
+    if (readyBtn) {
+      readyBtn.setAttribute('href', hubUrl());
+      readyBtn.textContent = copyFor().readyBtn;
+    }
     show('state-ready');
   } catch (e) {
     setError(e.message || 'We could not confirm this purchase. Check your email for your access link.');
