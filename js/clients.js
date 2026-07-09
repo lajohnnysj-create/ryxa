@@ -63,6 +63,15 @@ function clientsDispatchEvent(event) {
 // ---------- From dashboard.html lines 17122-17308 (Subscribers/Clients tool) ----------
 function initClientsTool() {
   document.getElementById('clients-content').style.display = 'block';
+
+  // Subscribers is a bottom-nav tab, so this fires every time a creator taps
+  // back to it. If the rendered list is under a minute old and nothing has
+  // invalidated it, keep what is on screen rather than re-querying.
+  var fresh = clientsLastLoadedAt > 0 &&
+              (Date.now() - clientsLastLoadedAt) < CLIENTS_FRESH_MS &&
+              clientsData.length > 0;
+  if (fresh) return;
+
   loadClients();
 }
 
@@ -138,6 +147,7 @@ function renderBulkBar() {
 // use a separate emails-only fetch helper that returns ~30 bytes per row.
 
 var clientsTotalCount = 0;
+var clientsLastFilterKey = null;
 var clientsStatsData = { total: 0, optin: 0, optout: 0 };
 
 // =============================================================================
@@ -192,9 +202,13 @@ function clientsReadFilterState() {
 // PostgREST views can't easily do LEFT JOIN at query time - instead we fetch
 // the suppression list once on load and post-filter rows. At reasonable
 // suppression sizes (under a few hundred per creator) this is fine.
-function clientsBuildQuery(filters) {
+function clientsBuildQuery(filters, wantCount) {
+  // count:'exact' makes Postgres count every matching row, and
+  // subscribers_view is a UNION over four tables, so the count is a full scan.
+  // Paging forward with an unchanged filter cannot change the total, so ask
+  // for it only on page 0 and reuse it for the rest.
   var q = sb.from('subscribers_view')
-    .select('email, source, optin, joined_at, email_lc', { count: 'exact' })
+    .select('email, source, optin, joined_at, email_lc', wantCount ? { count: 'exact' } : undefined)
     .eq('creator_id', currentUser.id);
   if (filters.optinOnly) q = q.eq('optin', true);
   if (filters.cutoffMs !== null) q = q.gte('joined_at', new Date(filters.cutoffMs).toISOString());
@@ -238,6 +252,34 @@ function clientsBuildQuery(filters) {
 // creator suppression list would hit.
 var CLIENTS_SERVER_SUPPRESSION_LIMIT = 500;
 
+// ---------------------------------------------------------------------------
+// Subscribers is a bottom-nav tab in the app, so a creator taps in and out of
+// it constantly. Every open used to re-fetch the full suppression list, the
+// full notes list, and two count:'exact' queries against subscribers_view (a
+// UNION over four tables), which Postgres can only answer with a full scan.
+// At 10,000 subscribers that was two scans and four round trips per tap.
+//
+// The overlays and stats are cached for the session and invalidated by the
+// writes that change them. The list itself was always paginated at 50.
+// ---------------------------------------------------------------------------
+var clientsOverlaysLoaded = false;
+var clientsStatsFresh = false;
+var CLIENTS_FRESH_MS = 60000;
+var clientsLastLoadedAt = 0;
+
+// Any write that changes suppressions, notes, or the subscriber set must call
+// this, or the tool will render yesterday's overlays.
+function clientsInvalidateCaches(opts) {
+  opts = opts || {};
+  if (opts.overlays !== false) clientsOverlaysLoaded = false;
+  if (opts.stats !== false) clientsStatsFresh = false;
+  // Forget the cached row count too, or an added or removed subscriber would
+  // leave "Page 1 of 7" describing the list as it was before the write.
+  clientsLastFilterKey = null;
+  clientsTotalCount = 0;
+  clientsLastLoadedAt = 0;
+}
+
 // Fetches one page of subscribers for the current filter state. Suppression
 // filter is applied server-side when feasible (size <= CLIENTS_SERVER_SUPPRESSION_LIMIT).
 // For pathologically large suppression sets, falls back to client-side filter
@@ -245,21 +287,21 @@ var CLIENTS_SERVER_SUPPRESSION_LIMIT = 500;
 // rare case but it's a degenerate scenario unlikely to occur in practice.
 // Returns { rows, total } where total reflects the count after the
 // server-side suppression filter (so pagination math is correct).
-async function clientsFetchPage(pageIndex, filters) {
+async function clientsFetchPage(pageIndex, filters, wantCount) {
   var start = pageIndex * CLIENTS_PER_PAGE;
   var pageEnd = start + CLIENTS_PER_PAGE - 1;
   var serverHandlesSuppression = clientsSuppressed.size <= CLIENTS_SERVER_SUPPRESSION_LIMIT;
-  var q = clientsBuildQuery(filters).range(start, pageEnd);
+  var q = clientsBuildQuery(filters, wantCount).range(start, pageEnd);
   var { data, count, error } = await q;
   if (error) throw error;
-  // If server handled suppression, server count is already correct (post-filter).
-  // If not, we need to filter client-side and the count is a slight over-estimate.
+  // total === null means "unchanged, keep what you had". Distinct from 0.
   if (serverHandlesSuppression) {
-    return { rows: data || [], total: count || 0 };
+    return { rows: data || [], total: wantCount ? (count || 0) : null };
   }
   // Fallback: large-suppression case. Client-side filter and approximate count.
   var rows = (data || []).filter(function(r) { return !clientsSuppressed.has(r.email_lc); });
-  return { rows: rows, total: Math.max(0, (count || 0) - clientsSuppressed.size) };
+  var total = wantCount ? Math.max(0, (count || 0) - clientsSuppressed.size) : null;
+  return { rows: rows, total: total };
 }
 
 // Stats: total, opted-in, opted-out counts (filter-independent - shows overall
@@ -409,7 +451,7 @@ function clientsIsTransientError(err) {
 // Wraps a fetcher in a sequence-aware retry. On transient failure, waits
 // briefly and retries up to maxRetries times. Aborts early if the sequence
 // number changes (meaning a newer reload has been issued, this one is stale).
-async function clientsFetchPageWithRetry(pageIndex, filters, mySeq, maxRetries) {
+async function clientsFetchPageWithRetry(pageIndex, filters, mySeq, maxRetries, wantCount) {
   var attempt = 0;
   var lastErr = null;
   while (attempt <= maxRetries) {
@@ -420,7 +462,7 @@ async function clientsFetchPageWithRetry(pageIndex, filters, mySeq, maxRetries) 
       throw abort;
     }
     try {
-      return await clientsFetchPage(pageIndex, filters);
+      return await clientsFetchPage(pageIndex, filters, wantCount);
     } catch (e) {
       lastErr = e;
       if (!clientsIsTransientError(e) || attempt === maxRetries) throw e;
@@ -441,7 +483,16 @@ async function clientsReloadPage() {
   var mySeq = ++clientsReloadSeq;
   try {
     var filters = clientsReadFilterState();
-    var { rows, total } = await clientsFetchPageWithRetry(clientsCurrentPage, filters, mySeq, 2);
+
+    // Ask for the row count only when it can have changed: a different filter,
+    // or the first page after a cache invalidation. Paging through an
+    // unchanged filter reuses clientsTotalCount, which saves a full scan of a
+    // four-table UNION on every page turn and every keystroke of search.
+    var filterKey = JSON.stringify(filters);
+    var wantCount = filterKey !== clientsLastFilterKey || clientsTotalCount === 0;
+    clientsLastFilterKey = filterKey;
+
+    var { rows, total } = await clientsFetchPageWithRetry(clientsCurrentPage, filters, mySeq, 2, wantCount);
     // If a newer reload has been issued while we were waiting, drop this
     // result on the floor. The newer reload owns the UI.
     if (mySeq !== clientsReloadSeq) return;
@@ -454,7 +505,7 @@ async function clientsReloadPage() {
         date: r.joined_at
       };
     });
-    clientsTotalCount = total;
+    if (total !== null && total !== undefined) clientsTotalCount = total;
     // Fetch names just for emails on this page. Merge into clientsNamesData
     // so we don't blow away names already fetched for prior pages (which we
     // DO need cached - the modal opens against any visible row).
@@ -617,46 +668,59 @@ async function loadClients() {
     // ----- Load overlays in parallel: suppressions, notes (full sets) -----
     // These are creator-scoped and typically small (under a few thousand even
     // for large creators). Pulled once on tool open and reused across paging.
-    clientsSuppressed = new Set();
-    clientsNotes = {};
     clientsNamesData = {};
     clientsCurrentPage = 0;
     clientsSelected = new Set();
 
-    var overlayPromises = [
-      sb.from('subscriber_suppressions').select('email').eq('creator_id', currentUser.id)
-        .then(function(res) {
-          (res.data || []).forEach(function(s) {
-            if (s.email) clientsSuppressed.add(s.email.toLowerCase());
-          });
-        })
-        .catch(function(err) { console.warn('suppressions load failed:', err); }),
-      sb.from('subscriber_notes').select('email, note').eq('creator_id', currentUser.id)
-        .then(function(res) {
-          (res.data || []).forEach(function(n) {
-            if (n.email) clientsNotes[n.email.toLowerCase()] = n.note || '';
-          });
-        })
-        .catch(function(err) { console.warn('notes load failed:', err); })
-    ];
-    await Promise.all(overlayPromises);
+    // Suppressions and notes change only through this tool's own writes, so
+    // fetch them once per session rather than on every tab press.
+    if (!clientsOverlaysLoaded) {
+      clientsSuppressed = new Set();
+      clientsNotes = {};
+      var overlayPromises = [
+        sb.from('subscriber_suppressions').select('email').eq('creator_id', currentUser.id)
+          .then(function(res) {
+            (res.data || []).forEach(function(s) {
+              if (s.email) clientsSuppressed.add(s.email.toLowerCase());
+            });
+          })
+          .catch(function(err) { console.warn('suppressions load failed:', err); }),
+        sb.from('subscriber_notes').select('email, note').eq('creator_id', currentUser.id)
+          .then(function(res) {
+            (res.data || []).forEach(function(n) {
+              if (n.email) clientsNotes[n.email.toLowerCase()] = n.note || '';
+            });
+          })
+          .catch(function(err) { console.warn('notes load failed:', err); })
+      ];
+      await Promise.all(overlayPromises);
+      clientsOverlaysLoaded = true;
+    }
 
     // Clear search input on reload.
     var searchEl = document.getElementById('clients-search');
     if (searchEl) searchEl.value = '';
 
-    // Stats (parallel with first-page fetch).
-    var statsPromise = clientsFetchStats()
-      .then(function(s) { clientsStatsData = s; renderClientsStats(); })
-      .catch(function(err) {
-        console.warn('Stats load failed:', err);
-        clientsStatsData = { total: 0, optin: 0, optout: 0 };
-        renderClientsStats();
-      });
+    // Stats (parallel with first-page fetch). Re-render from memory when they
+    // are still fresh: the counts are the expensive part of this screen.
+    var statsPromise;
+    if (clientsStatsFresh && clientsStatsData) {
+      renderClientsStats();
+      statsPromise = Promise.resolve();
+    } else {
+      statsPromise = clientsFetchStats()
+        .then(function(s) { clientsStatsData = s; clientsStatsFresh = true; renderClientsStats(); })
+        .catch(function(err) {
+          console.warn('Stats load failed:', err);
+          clientsStatsData = { total: 0, optin: 0, optout: 0 };
+          renderClientsStats();
+        });
+    }
 
     // First page of subscribers + names for that page.
     await clientsReloadPage();
     await statsPromise;
+    clientsLastLoadedAt = Date.now();
   } catch (e) {
     console.error('Subscribers load error:', e);
     if (typeof showDashToast === 'function') {
@@ -874,7 +938,9 @@ async function clientsBulkRemove() {
     // stats too since the visible total changed.
     await clientsReloadPage();
     try {
+      clientsInvalidateCaches({ overlays: false });
       clientsStatsData = await clientsFetchStats();
+      clientsStatsFresh = true;
       renderClientsStats();
     } catch (statsErr) { console.warn('Stats refresh failed:', statsErr); }
     if (typeof showDashToast === 'function') showDashToast('success', emails.length === 1 ? 'Subscriber removed' : emails.length + ' subscribers removed');
@@ -903,7 +969,9 @@ async function clientsRemoveOne(email) {
     // Reload page from server and refresh stats.
     await clientsReloadPage();
     try {
+      clientsInvalidateCaches({ overlays: false });
       clientsStatsData = await clientsFetchStats();
+      clientsStatsFresh = true;
       renderClientsStats();
     } catch (statsErr) { console.warn('Stats refresh failed:', statsErr); }
     if (typeof showDashToast === 'function') showDashToast('success', 'Subscriber removed');
@@ -1271,7 +1339,9 @@ async function clientsSubmitAdd() {
     clientsCurrentPage = 0;
     await clientsReloadPage();
     try {
+      clientsInvalidateCaches({ overlays: false });
       clientsStatsData = await clientsFetchStats();
+      clientsStatsFresh = true;
       renderClientsStats();
     } catch (statsErr) { console.warn('Stats refresh failed:', statsErr); }
     clientsCloseAdd();
