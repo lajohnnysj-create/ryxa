@@ -1043,6 +1043,8 @@ function clientsOpenDetail(email) {
     statusEl.className = 'clients-s-note-status';
   }
 
+  clientsUpdateNoteCount();
+
   modal.style.display = 'flex';
   // Focus the textarea on next frame so the modal mounts first (avoids
   // scroll jump on some browsers).
@@ -1064,21 +1066,31 @@ function clientsCloseDetail() {
 // closing the modal saves their note. The button makes the action explicit.
 async function clientsDoneDetail(e, el) {
   if (el) el.disabled = true;
+  var hadChanges = clientsDetailIsDirty();
+  var failed = false;
   try {
     // Save name first (small write), then note. Both no-op if unchanged.
     await clientsSaveName();
     await clientsSaveNote();
   } catch (err) {
-    // Save errors are surfaced inline by their respective save functions.
-    // Don't block the close - creator can re-open and try again.
-    console.error('Save during Done failed:', err);
+    failed = true;
+    console.error('Save failed:', err);
+    if (typeof showDashToast === 'function') {
+      showDashToast('error', 'Could not save. Please try again.');
+    }
   } finally {
     if (el) el.disabled = false;
-    clientsCloseDetail();
+    // Hold the modal open on failure. Closing on error was survivable when
+    // blur auto-saved; now it would discard what they typed.
+    if (!failed) {
+      if (hadChanges && typeof showDashToast === 'function') showDashToast('success', 'Saved');
+      clientsCloseDetail();
+    }
   }
 }
 
-// Auto-save the note on textarea blur. Skips the network call if nothing
+// Save the note. Called from the Save button, never from blur. Skips the
+// network call if nothing
 // changed since open. Uses upsert with the (creator_id, email) unique
 // constraint so the same email can be saved repeatedly without growing rows.
 async function clientsSaveNote() {
@@ -1220,8 +1232,50 @@ async function clientsSaveName() {
 
 // Close the modal when clicking the dark backdrop (but not when clicking
 // inside the modal itself). The button uses the same close handler.
+function clientsUpdateNoteCount() {
+  var noteEl = document.getElementById('clients-detail-note');
+  var countEl = document.getElementById('clients-note-count');
+  if (noteEl && countEl) countEl.textContent = String((noteEl.value || '').length);
+}
+
+// Has anything been typed since the modal opened? Trim-compared, so trailing
+// whitespace alone is not a change, matching what the save functions do.
+function clientsDetailIsDirty() {
+  var noteEl = document.getElementById('clients-detail-note');
+  var firstEl = document.getElementById('clients-detail-first-name');
+  var lastEl = document.getElementById('clients-detail-last-name');
+  if (!noteEl) return false;
+
+  var noteChanged = (noteEl.value || '').trim() !== (clientsCurrentDetailNoteOriginal || '').trim();
+  var orig = clientsCurrentDetailNameOriginal || { first_name: '', last_name: '' };
+  var firstChanged = firstEl && (firstEl.value || '').trim() !== (orig.first_name || '').trim();
+  var lastChanged = lastEl && (lastEl.value || '').trim() !== (orig.last_name || '').trim();
+  return noteChanged || !!firstChanged || !!lastChanged;
+}
+
+// Closing without saving used to be safe because blur auto-saved. It isn't
+// any more, so the X, the backdrop, and Escape all confirm first. Losing a
+// note someone typed is far worse than one extra tap.
+function clientsRequestCloseDetail() {
+  if (!clientsDetailIsDirty()) {
+    clientsCloseDetail();
+    return;
+  }
+  if (typeof showModalConfirm === 'function') {
+    showModalConfirm(
+      'Discard changes?',
+      'Your edits to this subscriber have not been saved.',
+      function () { clientsCloseDetail(); },
+      'Discard',
+      'Keep editing'
+    );
+  } else {
+    clientsCloseDetail();
+  }
+}
+
 function clientsBackdropClick(event, el) {
-  if (event.target === el) clientsCloseDetail();
+  if (event.target === el) clientsRequestCloseDetail();
 }
 
 // =============================================================================
@@ -1881,11 +1935,12 @@ clientsRegisterAction('bulk-remove', () => clientsBulkRemove());
 clientsRegisterAction('bulk-clear', () => clientsClearSelection());
 clientsRegisterAction('remove-one', (e, el) => clientsRemoveOne(el.dataset.clientsEmail));
 clientsRegisterAction('open-detail', (e, el) => clientsOpenDetail(el.dataset.clientsEmail));
-clientsRegisterAction('close-detail', () => clientsCloseDetail());
+clientsRegisterAction('close-detail', () => clientsRequestCloseDetail());
 clientsRegisterAction('done-detail', (e, el) => clientsDoneDetail(e, el));
 clientsRegisterAction('modal-backdrop-click', (e, el) => clientsBackdropClick(e, el));
-clientsRegisterAction('note-blur', () => clientsSaveNote());
-clientsRegisterAction('name-blur', () => clientsSaveName());
+// Notes and names no longer save on blur. Saving is an explicit act: the Save
+// button. Every close path checks for unsaved edits first.
+clientsRegisterAction('note-count', () => clientsUpdateNoteCount());
 clientsRegisterAction('open-add', () => clientsOpenAdd());
 clientsRegisterAction('close-add', () => clientsCloseAdd());
 clientsRegisterAction('add-backdrop-click', (e, el) => clientsAddBackdropClick(e, el));
@@ -1913,13 +1968,10 @@ document.addEventListener('keydown', function(e) {
   var add = document.getElementById('clients-add-modal');
   var imp = document.getElementById('clients-import-modal');
   if (detail && detail.style.display !== 'none') {
-    // Give whatever field is focused (note textarea or name input) a chance
-    // to fire its blur handler and save before closing.
-    var active = document.activeElement;
-    if (active && active.id && (active.id === 'clients-detail-note' || active.id === 'clients-detail-first-name' || active.id === 'clients-detail-last-name')) {
-      active.blur();
-    }
-    clientsCloseDetail();
+    // Blurring the focused field used to trigger the auto-save. It no longer
+    // does, so Escape goes through the same unsaved-changes guard as the X
+    // and the backdrop.
+    clientsRequestCloseDetail();
   } else if (add && add.style.display !== 'none') {
     clientsCloseAdd();
   } else if (imp && imp.style.display !== 'none') {
