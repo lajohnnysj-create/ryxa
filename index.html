@@ -517,6 +517,14 @@
     margin-top: -1px;
   }
   .tools-slash { height: 90px; background: #2f6fe0; clip-path: polygon(0 0, 100% 0, 100% 0, 0 100%); margin-top: 0; }
+
+  /* Closes the white band, mirroring the blue slash above it. The diagonal
+     runs the opposite way (hypotenuse from top-left to bottom-right) so the
+     two cuts read as a pair rather than a repeat. No bed needed: the page
+     behind is already dark, and the triangle's own top edge is full width, so
+     the -1px tuck is enough to beat subpixel rounding. */
+  .int-slash { height: 90px; background: #fff; clip-path: polygon(0 0, 100% 0, 100% 100%); margin-top: -1px; }
+  @media (max-width: 900px) { .int-slash { height: 56px; } }
   .tools-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1.05fr; gap: 60px; align-items: center; }
   .tools-copy { max-width: 440px; }
   .tools-eyebrow { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: #fff; font-weight: 600; margin-bottom: 16px; display: block; }
@@ -1181,6 +1189,8 @@
 
   </div>
 </section>
+
+<div class="int-slash" aria-hidden="true"></div>
 
 <!-- Marketplace Discoverable + Download App -->
 <section style="padding:72px 24px;">
