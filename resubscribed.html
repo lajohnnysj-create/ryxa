@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Subscription confirmed | Ryxa</title>
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:image" content="https://www.ryxa.io/og-image.png">
+<meta name="twitter:image" content="https://www.ryxa.io/og-image.png">
+<link rel="icon" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0b12;
+    --surface2: #1a1a28;
+    --border: rgba(255,255,255,0.08);
+    --text: #f2f2f7;
+    --muted: rgba(255,255,255,0.62);
+    --accent: #7c3aed;
+    --accent2: #a78bfa;
+    --ok: #4ade80;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .rs-wrap { width: 100%; max-width: 420px; text-align: center; }
+  .rs-logo img { width: 40px; height: 40px; border-radius: 9px; margin-bottom: 22px; }
+  .rs-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 34px 28px;
+  }
+  .rs-mark {
+    width: 48px; height: 48px; margin: 0 auto 18px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .rs-mark svg { width: 24px; height: 24px; }
+  .rs-ok   { background: rgba(74,222,128,0.14); border: 1px solid rgba(74,222,128,0.3); }
+  .rs-ok   svg { stroke: var(--ok); }
+  .rs-warn { background: rgba(255,255,255,0.06); border: 1px solid var(--border); }
+  .rs-warn svg { stroke: var(--muted); }
+  .rs-title {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 21px; font-weight: 800; letter-spacing: -0.4px;
+    margin-bottom: 10px;
+  }
+  .rs-sub { font-size: 14px; line-height: 1.65; color: var(--muted); }
+  .rs-foot { margin-top: 26px; font-size: 12px; color: var(--muted); }
+  .rs-foot a { color: var(--accent2); text-decoration: none; }
+  .rs-foot a:hover { text-decoration: underline; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="rs-wrap">
+  <div class="rs-logo"><img src="/logo.png" alt="Ryxa"></div>
+
+  <!-- Confirmed. The suppression is lifted and the consent is recorded. -->
+  <div class="rs-card" id="state-ok" hidden>
+    <div class="rs-mark rs-ok">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <div class="rs-title">You're subscribed again</div>
+    <p class="rs-sub">Thanks for confirming. You'll start receiving emails from this creator again. You can unsubscribe at any time from any email they send.</p>
+  </div>
+
+  <!-- Expired, already used, or never valid. Deliberately one message for all
+       three: telling a link-holder that it was "already used" would reveal
+       that somebody confirmed. -->
+  <div class="rs-card" id="state-invalid" hidden>
+    <div class="rs-mark rs-warn">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="13"/><line x1="12" y1="16.5" x2="12.01" y2="16.5"/></svg>
+    </div>
+    <div class="rs-title">This link is no longer valid</div>
+    <p class="rs-sub">Confirmation links expire after 24 hours and can only be used once. If you still want to hear from this creator, enter your email on their page again and we'll send a fresh link.</p>
+  </div>
+
+  <div class="rs-card" id="state-error" hidden>
+    <div class="rs-mark rs-warn">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="13"/><line x1="12" y1="16.5" x2="12.01" y2="16.5"/></svg>
+    </div>
+    <div class="rs-title">Something went wrong</div>
+    <p class="rs-sub">We couldn't confirm your subscription just now. Nothing has changed, you are still unsubscribed. Please try the link again in a few minutes.</p>
+  </div>
+
+  <p class="rs-foot">Powered by <a href="/">Ryxa</a></p>
+</div>
+
+<script src="/js/resubscribed.js"></script>
+</body>
+</html>
