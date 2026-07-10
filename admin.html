@@ -61,6 +61,17 @@
   .lookup-msg.err { color:#fca5a5; }
   .lookup-msg.ok { color:#86efac; }
 
+  /* Report detail, same interaction as an error's stack trace: the row toggles
+     it, the open block copies. Reported content is user text, sometimes long
+     and sometimes ugly, so it stays collapsed until asked for. */
+  .report-detail { display:none; white-space:pre-wrap; font-size:12.5px; line-height:1.55; color:var(--muted); background:var(--bg); border-radius:8px; padding:12px; margin:6px 0 8px; overflow-wrap:anywhere; }
+  .report-detail.open { display:block; cursor:copy; }
+  .report-detail.open:hover { background:#0b0b16; box-shadow:inset 0 0 0 1px rgba(255,255,255,0.10); }
+  .report-detail.copied { background:rgba(74,222,128,0.10) !important; box-shadow:inset 2px 0 0 #4ade80 !important; }
+  .report-label { font-size:10.5px; text-transform:uppercase; letter-spacing:0.08em; color:#6f6e80; margin-bottom:4px; }
+  .badge-pending { display:inline-block; padding:2px 8px; border-radius:999px; font-size:11px; font-weight:600; background:rgba(251,191,36,0.14); border:1px solid rgba(251,191,36,0.32); color:#fbbf24; }
+  .badge-resolved { display:inline-block; padding:2px 8px; border-radius:999px; font-size:11px; font-weight:600; background:rgba(74,222,128,0.12); border:1px solid rgba(74,222,128,0.3); color:#86efac; }
+
   /* Tapping a row opens its stack trace. Tapping the OPEN stack trace copies
      the whole record. Two targets, two jobs: a row that did both meant every
      glance at a trace also hijacked the clipboard. */
@@ -130,6 +141,7 @@
         <button class="tab active" role="tab" aria-selected="true" aria-controls="tab-errors" data-admin-action="tab" data-admin-tab="errors">Errors</button>
         <button class="tab" role="tab" aria-selected="false" aria-controls="tab-creators" data-admin-action="tab" data-admin-tab="creators">Creators</button>
         <button class="tab" role="tab" aria-selected="false" aria-controls="tab-threshold" data-admin-action="tab" data-admin-tab="threshold">High volume</button>
+        <button class="tab" role="tab" aria-selected="false" aria-controls="tab-reports" data-admin-action="tab" data-admin-tab="reports">Reports</button>
       </div>
 
       <div class="tabpanel" id="tab-creators" role="tabpanel" hidden>
@@ -157,6 +169,25 @@
             </tr>
           </thead>
           <tbody id="threshold-body"></tbody>
+        </table>
+      </div>
+
+      <div class="tabpanel" id="tab-reports" role="tabpanel" hidden>
+        <div class="toolbar">
+          <h2 style="font-size:16px;margin:0;">AI content reports</h2>
+          <button class="btn-ghost" data-admin-action="load-reports">Refresh</button>
+        </div>
+        <p class="search-hint">Reports of AI-generated output. Tap a row to read what was reported.</p>
+        <table>
+          <thead>
+            <tr>
+              <th>When</th>
+              <th>Source</th>
+              <th class="hide-m">Reporter</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="reports-body"></tbody>
         </table>
       </div>
 
