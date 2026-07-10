@@ -81,7 +81,7 @@ async function loadConnection(userId) {
 // within a 5-min skew), refreshes via the refresh token, then persists the
 // re-encrypted NEW access token AND NEW refresh token (TikTok rotates it) with
 // both new expiries.
-async function ensureFreshToken(userId, conn) {
+async function ensureFreshToken(userId, conn, _retried) {
   let accessToken;
   let refreshToken;
   try {
@@ -118,6 +118,27 @@ async function ensureFreshToken(userId, conn) {
 
   if (!tokenRes.ok || !tok || tok.error || !tok.access_token) {
     console.error('TikTok token refresh failed:', tokenRes.status, text);
+    // Rotation-race recovery: TikTok refresh tokens are single-use. If a
+    // parallel run (cron + a client-triggered fetch, or two overlapping
+    // client calls) rotated and persisted a NEWER refresh token between our
+    // row read and this exchange, the token we just presented is the consumed
+    // old one. Re-read the row; if the stored token differs from the one we
+    // tried, retry ONCE with the fresh one instead of failing the run.
+    if (!_retried) {
+      try {
+        const freshConn = await loadConnection(userId);
+        if (freshConn) {
+          let freshRT = null;
+          try { freshRT = decryptToken(freshConn.refresh_token); } catch (e2) { freshRT = null; }
+          if (freshRT && freshRT !== refreshToken) {
+            console.error('TikTok refresh: stored token changed mid-flight; retrying with the newer one.');
+            return await ensureFreshToken(userId, freshConn, true);
+          }
+        }
+      } catch (e3) {
+        console.error('TikTok refresh: rotation-race re-read failed:', e3.message);
+      }
+    }
     throw new Error('Token refresh failed; reconnect TikTok');
   }
 
@@ -135,13 +156,35 @@ async function ensureFreshToken(userId, conn) {
     patch.refresh_expires_at =
       new Date(Date.now() + (tok.refresh_expires_in || 365 * 24 * 3600) * 1000).toISOString();
   }
-  try {
-    await fetch(
+  // Persisting is NOT best-effort for TikTok: the refresh token rotates and
+  // the old one is already consumed, so a lost persist permanently bricks the
+  // connection (the next run presents a dead token, forever). Check the HTTP
+  // status (fetch only rejects on network failure, not on 4xx/5xx), retry
+  // once, and if both attempts fail, log at maximum severity so it is
+  // findable in the Vercel logs before the user hits the dead-token state.
+  async function persistRotatedTokens() {
+    const pres = await fetch(
       SUPABASE_URL + '/rest/v1/tiktok_connections?user_id=eq.' + encodeURIComponent(userId),
       { method: 'PATCH', headers: bearerHeaders(), body: JSON.stringify(patch) }
     );
+    if (!pres.ok) {
+      const errText = await pres.text().catch(() => '');
+      throw new Error('HTTP ' + pres.status + ' ' + errText.slice(0, 200));
+    }
+  }
+  try {
+    await persistRotatedTokens();
   } catch (e) {
-    console.error('Persisting refreshed token failed (non-fatal):', e.message);
+    console.error('TikTok token persist attempt 1 FAILED:', e.message);
+    try {
+      await persistRotatedTokens();
+    } catch (e2) {
+      console.error(
+        'CRITICAL: TikTok rotated-token persist FAILED TWICE for user ' + userId +
+        '. The stored refresh token is now consumed and this connection will be ' +
+        'dead on the next refresh unless the user reconnects TikTok. Error: ' + e2.message
+      );
+    }
   }
 
   return tok.access_token;
