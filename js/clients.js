@@ -187,8 +187,9 @@ var clientsSearchDebounceTimer = null;
 // "what does the creator want to see right now".
 function clientsReadFilterState() {
   var query = (document.getElementById('clients-search')?.value || '').trim();
-  // 'all' | 'in' | 'out'. The old boolean could not express "show me the people
-  // who opted out", which is the view a compliance question actually needs.
+  // 'all' | 'in' | 'not-in'. The old boolean could not express "show me
+  // everyone I may not email", which is both the people who opted out and the
+  // people who never consented. The row badge tells those two apart.
   var activeSeg = document.querySelector('.clients-consent-btn.is-active');
   var consent = (activeSeg && activeSeg.dataset.clientsConsent) || 'all';
   var rangeDays = parseInt(document.getElementById('clients-range-filter')?.value || 'all', 10);
@@ -248,7 +249,7 @@ function clientsBuildQuery(filters, wantCount) {
     .select('email, source, optin, suppressed, suppressed_at, joined_at, email_lc', wantCount ? { count: 'exact' } : undefined)
     .eq('creator_id', currentUser.id);
   if (filters.consent === 'in') q = q.eq('optin', true);
-  else if (filters.consent === 'out') q = q.eq('suppressed', true);
+  else if (filters.consent === 'not-in') q = q.eq('optin', false);
   if (filters.cutoffMs !== null) q = q.gte('joined_at', new Date(filters.cutoffMs).toISOString());
   if (filters.query) {
     // ILIKE on email. Match anywhere in the address.
@@ -752,11 +753,11 @@ async function exportSubscribers() {
     // Exports always exclude opted-out people. If that is the filter the
     // creator is looking at, say so rather than handing them an empty file or,
     // worse, quietly exporting a different set than the one on screen.
-    if (filters.consent === 'out') {
+    if (filters.consent === 'not-in') {
       restoreBtn();
       showModalAlert(
         'Nothing to export',
-        'Opted-out subscribers are never included in exports. Switch the filter to All or Opted in to export.'
+        'These subscribers have not opted in, so they are not included in exports. Switch the filter to All or Opted in to export.'
       );
       return;
     }
