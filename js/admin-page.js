@@ -95,6 +95,34 @@
     setTimeout(function () { node.classList.remove('copied'); }, 900);
   }
 
+  // A button that fires a network call with no visible change reads as broken,
+  // and the admin presses it again. Every load path shows the same thing.
+  function showLoadingRow(bodyId, cols) {
+    var body = el(bodyId);
+    if (!body) return;
+    body.textContent = '';
+    var tr = document.createElement('tr');
+    var td = document.createElement('td');
+    td.colSpan = cols;
+    td.className = 'muted';
+    td.textContent = 'Loading...';
+    tr.appendChild(td);
+    body.appendChild(tr);
+  }
+
+  // Disable the button that triggered the load, so a second press cannot
+  // interleave two responses into one table.
+  function withBusy(btn, label, fn) {
+    if (!btn) return fn();
+    var original = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = label;
+    return Promise.resolve(fn()).finally(function () {
+      btn.disabled = false;
+      btn.textContent = original;
+    });
+  }
+
   function renderRows(errors, append) {
     var body = el('err-body');
     if (!append) body.textContent = '';
@@ -175,6 +203,8 @@ var cents = stats.body.earnings.total_cents || 0;
     }
     var errs = await api('action=errors&limit=50');
     if (errs.body) renderRows(errs.body.errors || [], false);
+    var moreBtn = el('load-more');
+    if (moreBtn) moreBtn.style.display = (errs.body && (errs.body.errors || []).length === 50) ? '' : 'none';
     el('gate').style.display = 'none';
     el('panel').style.display = 'block';
   }
@@ -198,7 +228,12 @@ var cents = stats.body.earnings.total_cents || 0;
         });
         return;
       }
-      if (action === 'refresh') { oldest = null; loadAll(); return; }
+      if (action === 'refresh') {
+        oldest = null;
+        showLoadingRow('err-body', 5);
+        withBusy(btn, 'Refreshing...', loadAll);
+        return;
+      }
 
       if (action === 'tab') {
         showTab(btn.getAttribute('data-admin-tab'));
@@ -207,13 +242,13 @@ var cents = stats.body.earnings.total_cents || 0;
 
       if (action === 'find-creator') { findCreator(); return; }
 
-      if (action === 'load-threshold') { loadThreshold(); return; }
+      if (action === 'load-threshold') { withBusy(btn, 'Refreshing...', function () { return loadThreshold(false); }); return; }
 
-      if (action === 'load-reports') { loadReports(false); return; }
+      if (action === 'load-reports') { withBusy(btn, 'Refreshing...', function () { return loadReports(false); }); return; }
 
-      if (action === 'reports-more') { loadReports(true); return; }
+      if (action === 'reports-more') { withBusy(btn, 'Loading...', function () { return loadReports(true); }); return; }
 
-      if (action === 'threshold-more') { loadThreshold(true); return; }
+      if (action === 'threshold-more') { withBusy(btn, 'Loading...', function () { return loadThreshold(true); }); return; }
 
       if (action === 'logout') {
         // scope:'local' clears this browser only. A global sign-out would also
@@ -231,8 +266,12 @@ var cents = stats.body.earnings.total_cents || 0;
       }
       if (action === 'load-more') {
         if (!oldest) return;
-        var more = await api('action=errors&limit=50&before=' + encodeURIComponent(oldest));
-        if (more.body) renderRows(more.body.errors || [], true);
+        await withBusy(btn, 'Loading...', async function () {
+          var more = await api('action=errors&limit=50&before=' + encodeURIComponent(oldest));
+          if (more.body) renderRows(more.body.errors || [], true);
+          var hasMore = more.body && (more.body.errors || []).length === 50;
+          btn.style.display = hasMore ? '' : 'none';
+        });
         return;
       }
     }
@@ -450,14 +489,10 @@ var cents = stats.body.earnings.total_cents || 0;
 
   async function loadThreshold(append) {
     var body = el('threshold-body');
-    if (!append) { body.textContent = ''; thresholdOldest = null; }
-    var trL = document.createElement('tr');
-    var tdL = document.createElement('td');
-    tdL.colSpan = 4;
-    tdL.className = 'muted';
-    tdL.textContent = 'Loading...';
-    trL.appendChild(tdL);
-    body.appendChild(trL);
+    if (!append) {
+      thresholdOldest = null;
+      showLoadingRow('threshold-body', 4);
+    }
 
     var q = 'action=threshold';
     if (append && thresholdOldest) q += '&before=' + encodeURIComponent(thresholdOldest);
@@ -475,10 +510,6 @@ var cents = stats.body.earnings.total_cents || 0;
       return;
     }
     thresholdLoaded = true;
-    if (append) {
-      var rows = body.querySelectorAll('tr');
-      if (rows.length) body.removeChild(rows[rows.length - 1]);
-    }
     renderThreshold(r.body.accounts, append);
     var moreBtn = el('threshold-more');
     if (moreBtn) moreBtn.style.display = r.body.has_more ? '' : 'none';
@@ -576,16 +607,12 @@ var cents = stats.body.earnings.total_cents || 0;
 
   var reportsOldest = null;
 
-  async function loadReports(append) {
+    async function loadReports(append) {
     var body = el('reports-body');
-    if (!append) { body.textContent = ''; reportsOldest = null; }
-    var trL = document.createElement('tr');
-    var tdL = document.createElement('td');
-    tdL.colSpan = 3;
-    tdL.className = 'muted';
-    tdL.textContent = 'Loading...';
-    trL.appendChild(tdL);
-    body.appendChild(trL);
+    if (!append) {
+      reportsOldest = null;
+      showLoadingRow('reports-body', 3);
+    }
 
     var q = 'action=reports';
     if (append && reportsOldest) q += '&before=' + encodeURIComponent(reportsOldest);
@@ -603,11 +630,6 @@ var cents = stats.body.earnings.total_cents || 0;
       return;
     }
     reportsLoaded = true;
-    if (append) {
-      // Drop the "Loading..." row we appended, then add the page.
-      var rows = body.querySelectorAll('tr');
-      if (rows.length) body.removeChild(rows[rows.length - 1]);
-    }
     renderReports(r.body.reports, append);
     var moreBtn = el('reports-more');
     if (moreBtn) moreBtn.style.display = r.body.has_more ? '' : 'none';
