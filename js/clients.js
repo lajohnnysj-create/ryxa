@@ -884,10 +884,10 @@ async function clientsResolveExportMode(filters, restoreBtn) {
     return 'not-in';
   }
 
-  // "All": customers, minus the opted-out. If some of them never consented,
-  // offer the safe file first.
+  // "All": everyone. If anyone in it may not be emailed, whether they opted
+  // out or never opted in, offer the safe file first.
   var [allRes, optinRes] = await Promise.all([
-    scoped().eq('suppressed', false),
+    scoped(),
     scoped().eq('optin', true)
   ]);
   var allCount = allRes.count || 0;
@@ -901,8 +901,11 @@ async function clientsResolveExportMode(filters, restoreBtn) {
   }
   if (nonConsented === 0) return 'all';
 
+  var optedOutRes = await scoped().eq('suppressed', true);
+  var optedOutCount = optedOutRes.count || 0;
+
   return await new Promise(function (resolve) {
-    clientsExportChoiceModal(nonConsented, allCount, function (choice) {
+    clientsExportChoiceModal(nonConsented, allCount, optedOutCount, function (choice) {
       if (!choice) { restoreBtn(); resolve(null); return; }
       resolve(choice);
     });
@@ -910,17 +913,27 @@ async function clientsResolveExportMode(filters, restoreBtn) {
   });
 }
 
-function clientsExportChoiceModal(nonConsentedCount, totalCount, onChoice) {
+function clientsExportChoiceModal(nonConsentedCount, totalCount, optedOutCount, onChoice) {
   var overlay = document.createElement('div');
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;';
 
   var optedInCount = Math.max(0, totalCount - nonConsentedCount);
   var plural = nonConsentedCount === 1 ? 'contact who has' : 'contacts who have';
 
+  // Spell out the opted-out subset. "Has not opted in" is technically true of
+  // someone who explicitly asked to leave, but it understates what exporting
+  // them would mean.
+  var detail = '';
+  if (optedOutCount === 1) {
+    detail = 'One of them opted out and asked not to be emailed. ';
+  } else if (optedOutCount > 1) {
+    detail = optedOutCount + ' of them opted out and asked not to be emailed. ';
+  }
+
   overlay.innerHTML = '<div class="ds-s-6646ca">'
     + '<img src="/logo.png?v=2" alt="" aria-hidden="true" style="display:block;height:40px;width:auto;margin:0 auto 16px;">'
     + '<div class="ds-s-85e627">This export includes ' + nonConsentedCount + ' ' + plural + ' not opted in</div>'
-    + '<div class="mk-s-e4ad4a">The Opt In column marks them, but most email tools ignore it. Exporting only opted-in contacts is the safe choice.</div>'
+    + '<div class="mk-s-e4ad4a">' + detail + 'The Opt In column marks every row, but most email tools ignore it. Exporting only opted-in contacts is the safe choice.</div>'
     + '<div class="course-s-b9bbe5" style="flex-direction:column;gap:8px;">'
     + '<button id="clients-export-safe" class="ds-s-6e0dd5" style="color:#ffffff;width:100%;">Export opted in only (' + optedInCount + ')</button>'
     + '<button id="clients-export-all" class="ds-s-dea7b5" style="width:100%;">Export all (' + totalCount + ')</button>'
@@ -956,7 +969,9 @@ function clientsExportChoiceModal(nonConsentedCount, totalCount, onChoice) {
       // to be. It must never depend on a set the client happened to load.
       if (mode === 'optin') q = q.eq('optin', true);
       else if (mode === 'not-in') q = q.eq('optin', false);
-      else q = q.eq('suppressed', false);
+      // 'all' applies no consent filter at all. Every row carries its state in
+      // the Opt In column (Yes / No / Opted out), and the creator was shown a
+      // count and offered the opted-in-only file before getting here.
       if (filters.cutoffMs !== null) q = q.gte('joined_at', new Date(filters.cutoffMs).toISOString());
       if (filters.query) q = q.ilike('email', '%' + filters.query.replace(/[%_]/g, '\\$&') + '%');
       q = q.order('joined_at', { ascending: false }).range(from, to);
