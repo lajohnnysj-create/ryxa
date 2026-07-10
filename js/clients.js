@@ -750,17 +750,19 @@ async function exportSubscribers() {
   try {
     var filters = clientsReadFilterState();
 
-    // Exports always exclude opted-out people. If that is the filter the
-    // creator is looking at, say so rather than handing them an empty file or,
-    // worse, quietly exporting a different set than the one on screen.
-    if (filters.consent === 'not-in') {
-      restoreBtn();
-      showModalAlert(
-        'Nothing to export',
-        'These subscribers have not opted in, so they are not included in exports. Switch the filter to All or Opted in to export.'
-      );
-      return;
-    }
+    // What set are we exporting? Three modes, and they are not variations of
+    // one query:
+    //
+    //   'optin'   optin = true            the safe file, and the only one that
+    //                                     belongs in an email tool
+    //   'all'     suppressed = false      the CRM export: customers, including
+    //                                     those who never consented
+    //   'not-in'  optin = false           the compliance record: everyone who
+    //                                     may not be emailed. This one INCLUDES
+    //                                     opted-out people, which every other
+    //                                     mode excludes.
+    var mode = await clientsResolveExportMode(filters, restoreBtn);
+    if (!mode) return;   // creator cancelled, or a warning stopped it
 
     // Rate limit check: 3 exports per hour, 10 per day.
     // We hit the server first so any limit-hit returns instantly without
@@ -800,20 +802,161 @@ async function exportSubscribers() {
     setBtnLabel('Preparing export...', true);
 
     // Build the base query function. Each call creates a fresh query so we
-    // can apply .range() per page.
+    // can apply .range() per page.// A three-way export choice. showModalConfirm only does two buttons, and this
+// is the one place a third genuinely earns its keep: the safe option, the full
+// option, and out. Counts go in the labels because a warning without numbers
+// tells a creator nothing about what they are about to download.
+//
+// Reuses the house modal classes (logo, title, message, button row) so it does
+// not become a second visual language.
+// showModalConfirm's cancel button just closes the overlay: it never calls
+// back. Awaiting it would hang the moment a creator backs out. This one
+// resolves either way, and uses the same house classes and logo.
+function clientsConfirm(title, message, confirmText, cancelText, danger) {
+  return new Promise(function (resolve) {
+    var overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;';
+    overlay.innerHTML = '<div class="ds-s-6646ca">'
+      + '<img src="/logo.png?v=2" alt="" aria-hidden="true" style="display:block;height:40px;width:auto;margin:0 auto 16px;">'
+      + '<div class="ds-s-85e627">' + escapeHtml(title) + '</div>'
+      + '<div class="mk-s-e4ad4a">' + escapeHtml(message) + '</div>'
+      + '<div class="course-s-b9bbe5">'
+      + '<button id="clients-confirm-yes" class="ds-s-6e0dd5"' + (danger ? ' style="color:#ffffff;"' : '') + '>' + escapeHtml(confirmText) + '</button>'
+      + '<button id="clients-confirm-no" class="ds-s-dea7b5">' + escapeHtml(cancelText || 'Cancel') + '</button>'
+      + '</div>'
+      + '</div>';
+
+    function close(v) {
+      overlay.remove();
+      document.removeEventListener('keydown', onKey);
+      resolve(v);
+    }
+    function onKey(e) { if (e.key === 'Escape') close(false); }
+
+    overlay.onclick = function (e) { if (e.target === overlay) close(false); };
+    document.body.appendChild(overlay);
+    document.addEventListener('keydown', onKey);
+    document.getElementById('clients-confirm-yes').onclick = function () { close(true); };
+    document.getElementById('clients-confirm-no').onclick = function () { close(false); };
+  });
+}
+
+// Decides which set the creator is about to download, and warns when that
+// decision has consequences. Returns 'optin' | 'all' | 'not-in', or null if
+// they backed out.
+//
+// The counts come from live head queries rather than the cached stats, because
+// the search box and date range narrow the export too, and a warning that
+// counts the wrong rows is worse than no warning.
+async function clientsResolveExportMode(filters, restoreBtn) {
+  // Already filtered to opted-in: nothing to warn about, nothing to choose.
+  if (filters.consent === 'in') return 'optin';
+
+  function scoped() {
+    var q = sb.from('subscribers_view')
+      .select('email_lc', { count: 'exact', head: true })
+      .eq('creator_id', currentUser.id);
+    if (filters.cutoffMs !== null) q = q.gte('joined_at', new Date(filters.cutoffMs).toISOString());
+    if (filters.query) q = q.ilike('email', '%' + filters.query.replace(/[%_]/g, '\\$&') + '%');
+    return q;
+  }
+
+  // "Not opted in": the compliance record. Allowed, because the list on screen
+  // already shows these emails and blocking the download only forces a
+  // copy-paste. But every row is somebody who must not be emailed, so it says
+  // so, and the file is named to match.
+  if (filters.consent === 'not-in') {
+    var notInRes = await scoped().eq('optin', false);
+    var notInCount = notInRes.count || 0;
+    if (notInCount === 0) {
+      restoreBtn();
+      showModalAlert('No Data', 'No subscribers to export.');
+      return null;
+    }
+    var proceed = await clientsConfirm(
+      'Every contact in this file has not opted in',
+      'This is a record of the ' + notInCount + ' people you may not email, including those who opted out. Do not import it into an email tool.',
+      'Download anyway',
+      'Cancel',
+      true
+    );
+    if (!proceed) { restoreBtn(); return null; }
+    return 'not-in';
+  }
+
+  // "All": customers, minus the opted-out. If some of them never consented,
+  // offer the safe file first.
+  var [allRes, optinRes] = await Promise.all([
+    scoped().eq('suppressed', false),
+    scoped().eq('optin', true)
+  ]);
+  var allCount = allRes.count || 0;
+  var optinCount = optinRes.count || 0;
+  var nonConsented = Math.max(0, allCount - optinCount);
+
+  if (allCount === 0) {
+    restoreBtn();
+    showModalAlert('No Data', 'No subscribers to export.');
+    return null;
+  }
+  if (nonConsented === 0) return 'all';
+
+  return await new Promise(function (resolve) {
+    clientsExportChoiceModal(nonConsented, allCount, function (choice) {
+      if (!choice) { restoreBtn(); resolve(null); return; }
+      resolve(choice);
+    });
+    // The choice modal DOES report cancellation, so the restore happens there.
+  });
+}
+
+function clientsExportChoiceModal(nonConsentedCount, totalCount, onChoice) {
+  var overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;';
+
+  var optedInCount = Math.max(0, totalCount - nonConsentedCount);
+  var plural = nonConsentedCount === 1 ? 'contact who has' : 'contacts who have';
+
+  overlay.innerHTML = '<div class="ds-s-6646ca">'
+    + '<img src="/logo.png?v=2" alt="" aria-hidden="true" style="display:block;height:40px;width:auto;margin:0 auto 16px;">'
+    + '<div class="ds-s-85e627">This export includes ' + nonConsentedCount + ' ' + plural + ' not opted in</div>'
+    + '<div class="mk-s-e4ad4a">The Opt In column marks them, but most email tools ignore it. Exporting only opted-in contacts is the safe choice.</div>'
+    + '<div class="course-s-b9bbe5" style="flex-direction:column;gap:8px;">'
+    + '<button id="clients-export-safe" class="ds-s-6e0dd5" style="color:#ffffff;width:100%;">Export opted in only (' + optedInCount + ')</button>'
+    + '<button id="clients-export-all" class="ds-s-dea7b5" style="width:100%;">Export all (' + totalCount + ')</button>'
+    + '<button id="clients-export-cancel" class="ds-s-dea7b5" style="width:100%;background:transparent;border:none;">Cancel</button>'
+    + '</div>'
+    + '</div>';
+
+  function close(choice) {
+    overlay.remove();
+    document.removeEventListener('keydown', onKey);
+    if (choice) onChoice(choice);
+  }
+  function onKey(e) { if (e.key === 'Escape') close(null); }
+
+  overlay.onclick = function (e) { if (e.target === overlay) close(null); };
+  document.body.appendChild(overlay);
+  document.addEventListener('keydown', onKey);
+
+  document.getElementById('clients-export-safe').onclick = function () { close('optin'); };
+  document.getElementById('clients-export-all').onclick = function () { close('all'); };
+  document.getElementById('clients-export-cancel').onclick = function () { close(null); };
+}
+
+
     function buildExportQuery(from, to) {
       var q = sb.from('subscribers_view')
-        .select('email, source, optin, joined_at, email_lc')
-        .eq('creator_id', currentUser.id)
-        // Opted-out people are excluded HERE, deliberately, in the query.
-        //
-        // This used to happen as a side effect of the client-side suppression
-        // filter that also hid them from the list. That filter is gone. An
-        // export is the one place a stale suppression list becomes real harm:
-        // a CSV carried into another mail tool, emailing someone who asked not
-        // to be. It must never depend on a set the client happened to load.
-        .eq('suppressed', false);
-      if (filters.optinOnly) q = q.eq('optin', true);
+        .select('email, source, optin, suppressed, joined_at, email_lc')
+        .eq('creator_id', currentUser.id);
+
+      // The consent boundary is drawn HERE, in the query, never in memory.
+      // An export is the one place a stale suppression list becomes real harm:
+      // a CSV carried into another mail tool, emailing someone who asked not
+      // to be. It must never depend on a set the client happened to load.
+      if (mode === 'optin') q = q.eq('optin', true);
+      else if (mode === 'not-in') q = q.eq('optin', false);
+      else q = q.eq('suppressed', false);
       if (filters.cutoffMs !== null) q = q.gte('joined_at', new Date(filters.cutoffMs).toISOString());
       if (filters.query) q = q.ilike('email', '%' + filters.query.replace(/[%_]/g, '\\$&') + '%');
       q = q.order('joined_at', { ascending: false }).range(from, to);
@@ -853,12 +996,26 @@ async function exportSubscribers() {
     }
 
     setBtnLabel('Building file...', true);
+
+    // Name the file after what is in it. A compliance record sitting on a
+    // desktop called "ryxa-subscribers.csv" is one drag away from being
+    // imported into a mail tool by someone who never saw the warning.
+    var stamp = new Date().toISOString().slice(0, 10);
+    var exportFilename =
+        mode === 'optin'  ? 'ryxa-subscribers-opted-in-' + stamp + '.csv'
+      : mode === 'not-in' ? 'ryxa-not-opted-in-do-not-email-' + stamp + '.csv'
+      :                     'ryxa-subscribers-' + stamp + '.csv';
+
     var csv = 'Email,Source,Opt In,Date Joined\n';
     rows.forEach(function(c) {
       var d = new Date(c.joined_at);
       var date = (d.getMonth()+1) + '/' + d.getDate() + '/' + d.getFullYear();
       var source = CLIENT_SOURCE_LABEL[c.source] || 'Bio';
-      csv += '"' + c.email.replace(/"/g, '""') + '",' + source + ',' + (c.optin ? 'Yes' : 'No') + ',' + date + '\n';
+      // Three states on screen, three states in the file. "No" (never
+      // consented) and "Opted out" (asked to leave) are different facts, and
+      // the compliance export exists precisely to tell them apart.
+      var consent = c.suppressed ? 'Opted out' : (c.optin ? 'Yes' : 'No');
+      csv += '"' + c.email.replace(/"/g, '""') + '",' + source + ',' + consent + ',' + date + '\n';
     });
     var blob = new Blob([csv], { type: 'text/csv' });
 
@@ -873,7 +1030,7 @@ async function exportSubscribers() {
       });
       window.ReactNativeWebView.postMessage(JSON.stringify({
         type: 'saveFile',
-        filename: 'ryxa-subscribers.csv',
+        filename: exportFilename,
         mime: 'text/csv',
         base64: base64
       }));
@@ -884,7 +1041,7 @@ async function exportSubscribers() {
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a');
     a.href = url;
-    a.download = 'ryxa-subscribers.csv';
+    a.download = exportFilename;
     a.click();
     URL.revokeObjectURL(url);
     restoreBtn();
