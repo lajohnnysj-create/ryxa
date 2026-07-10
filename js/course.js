@@ -824,13 +824,13 @@ async function deleteCourse() {
 
 // ---- Modules & Lessons ----
 // Enable/disable every control that acts on this course, as one unit: Save,
-// Publish/Unpublish, and Add Module. Locked while the curriculum is loading
-// and while it is in the failed state; unlocked only after a clean load.
-// A course whose curriculum state is unknown must not accept ANY action, and
-// the lock must be visible (dimmed), not just functional, so nothing looks
-// clickable when it is not.
+// Publish/Unpublish, Add Module, the marketplace listing toggle, and Delete
+// Course. Locked while the curriculum is loading and while it is in the
+// failed state; unlocked only after a clean load. A course whose curriculum
+// state is unknown must not accept ANY action, and the lock must be visible
+// (dimmed), not just functional, so nothing looks clickable when it is not.
 function setCourseEditorControlsLocked(locked) {
-  const ids = ['course-save-btn', 'course-publish-btn'];
+  const ids = ['course-save-btn', 'course-publish-btn', 'course-marketplace-btn', 'course-delete-btn'];
   const els = ids.map(function(id) { return document.getElementById(id); });
   const addBtn = document.querySelector('#course-section-modules [data-course-action="add-module"]');
   if (addBtn) els.push(addBtn);
