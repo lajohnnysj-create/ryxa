@@ -187,13 +187,17 @@ var clientsSearchDebounceTimer = null;
 // "what does the creator want to see right now".
 function clientsReadFilterState() {
   var query = (document.getElementById('clients-search')?.value || '').trim();
-  var optinOnly = document.getElementById('clients-optin-filter')?.checked || false;
+  // 'all' | 'in' | 'out'. The old boolean could not express "show me the people
+  // who opted out", which is the view a compliance question actually needs.
+  var activeSeg = document.querySelector('.clients-consent-btn.is-active');
+  var consent = (activeSeg && activeSeg.dataset.clientsConsent) || 'all';
   var rangeDays = parseInt(document.getElementById('clients-range-filter')?.value || 'all', 10);
   var sort = document.getElementById('clients-sort')?.value || 'date-desc';
   var cutoffMs = (!isNaN(rangeDays) && rangeDays > 0)
     ? (Date.now() - rangeDays * 24 * 60 * 60 * 1000)
     : null;
-  return { query: query, optinOnly: optinOnly, cutoffMs: cutoffMs, sort: sort };
+  return { query: query, consent: consent,
+           optinOnly: consent === 'in', cutoffMs: cutoffMs, sort: sort };
 }
 
 // Builds the Supabase query against subscribers_view with filters applied.
@@ -243,7 +247,8 @@ function clientsBuildQuery(filters, wantCount) {
   var q = sb.from('subscribers_view')
     .select('email, source, optin, suppressed, suppressed_at, joined_at, email_lc', wantCount ? { count: 'exact' } : undefined)
     .eq('creator_id', currentUser.id);
-  if (filters.optinOnly) q = q.eq('optin', true);
+  if (filters.consent === 'in') q = q.eq('optin', true);
+  else if (filters.consent === 'out') q = q.eq('suppressed', true);
   if (filters.cutoffMs !== null) q = q.gte('joined_at', new Date(filters.cutoffMs).toISOString());
   if (filters.query) {
     // ILIKE on email. Match anywhere in the address.
@@ -743,6 +748,18 @@ async function exportSubscribers() {
 
   try {
     var filters = clientsReadFilterState();
+
+    // Exports always exclude opted-out people. If that is the filter the
+    // creator is looking at, say so rather than handing them an empty file or,
+    // worse, quietly exporting a different set than the one on screen.
+    if (filters.consent === 'out') {
+      restoreBtn();
+      showModalAlert(
+        'Nothing to export',
+        'Opted-out subscribers are never included in exports. Switch the filter to All or Opted in to export.'
+      );
+      return;
+    }
 
     // Rate limit check: 3 exports per hour, 10 per day.
     // We hit the server first so any limit-hit returns instantly without
@@ -1938,6 +1955,19 @@ clientsRegisterAction('sort-change', () => { clientsCurrentPage = 0; clientsRelo
 clientsRegisterAction('page', (e, el) => clientsPage(parseInt(el.dataset.clientsDir, 10)));
 clientsRegisterAction('remove-readonly', (e, el) => el.removeAttribute('readonly'));
 clientsRegisterAction('toggle-row', (e, el) => clientsToggleRow(el.dataset.clientsEmail, el.checked));
+clientsRegisterAction('consent-filter', function (e, el) {
+  if (!el || el.classList.contains('is-active')) return;
+  document.querySelectorAll('.clients-consent-btn').forEach(function (b) {
+    var active = b === el;
+    b.classList.toggle('is-active', active);
+    b.setAttribute('aria-pressed', active ? 'true' : 'false');
+  });
+  // A different filter is a different result set, so page 1 and a fresh count.
+  clientsCurrentPage = 0;
+  clientsSelected = new Set();
+  clientsReloadPage();
+});
+
 clientsRegisterAction('toggle-all', (e, el) => clientsToggleAll(el.checked));
 clientsRegisterAction('bulk-remove', () => clientsBulkRemove());
 clientsRegisterAction('bulk-clear', () => clientsClearSelection());
