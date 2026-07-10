@@ -5434,7 +5434,13 @@
   /* Opted out is a request the subscriber made, distinct from never having
      consented. Amber, not red: honoring it is correct, not a failure. */
   /* Segmented consent filter. One visible selection, no hidden state. */
-  .clients-consent-seg { display:inline-flex;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:2px;gap:2px; }
+    /* Safe/recommended modal action. Same construction as the danger button
+     (.ds-s-6e0dd5): tinted fill, tinted border, light text. Green because the
+     action it names is the one that protects someone, not the one that risks
+     them. */
+  .clients-modal-safe-btn { flex:1;padding:11px;background:rgba(74,222,128,0.12);border:1px solid rgba(74,222,128,0.32);color:#86efac;border-radius:8px;font-size:14px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;transition:background 0.15s; }
+  .clients-modal-safe-btn:hover { background:rgba(74,222,128,0.2); }
+.clients-consent-seg { display:inline-flex;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:2px;gap:2px; }
   .clients-consent-btn { appearance:none;background:transparent;border:none;border-radius:7px;padding:6px 11px;font-size:12.5px;font-weight:500;font-family:'DM Sans',sans-serif;color:var(--muted);cursor:pointer;white-space:nowrap;transition:background 0.12s, color 0.12s; }
   .clients-consent-btn:hover { color:var(--text); }
   .clients-consent-btn.is-active { background:var(--accent);color:#fff; }
