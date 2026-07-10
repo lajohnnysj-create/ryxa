@@ -823,13 +823,32 @@ async function deleteCourse() {
 }
 
 // ---- Modules & Lessons ----
+// Enable/disable every control that acts on this course, as one unit: Save,
+// Publish/Unpublish, and Add Module. Locked while the curriculum is loading
+// and while it is in the failed state; unlocked only after a clean load.
+// A course whose curriculum state is unknown must not accept ANY action, and
+// the lock must be visible (dimmed), not just functional, so nothing looks
+// clickable when it is not.
+function setCourseEditorControlsLocked(locked) {
+  const ids = ['course-save-btn', 'course-publish-btn'];
+  const els = ids.map(function(id) { return document.getElementById(id); });
+  const addBtn = document.querySelector('#course-section-modules [data-course-action="add-module"]');
+  if (addBtn) els.push(addBtn);
+  els.forEach(function(el) {
+    if (!el) return;
+    el.disabled = locked;
+    el.style.opacity = locked ? '0.5' : '';
+    el.style.cursor = locked ? 'not-allowed' : '';
+  });
+}
+
 async function loadCourseModules(courseId) {
   courseModulesLoaded = false;
-  // Clear any prior failure banner and disable Save for the duration of the
-  // load. Save re-enables only if the load completes cleanly.
+  // Clear any prior failure banner, then lock every course action (Save,
+  // Publish/Unpublish, Add Module) for the duration of the load. Controls
+  // unlock only if the load completes cleanly.
   setCourseModulesLoadFailed(false);
-  const _loadSaveBtn = document.getElementById('course-save-btn');
-  if (_loadSaveBtn) _loadSaveBtn.disabled = true;
+  setCourseEditorControlsLocked(true);
 
   // Visible feedback from the very first moment. Without this, the modules
   // area sits blank (and Save sits mysteriously disabled) for the entire load,
@@ -887,7 +906,7 @@ async function loadCourseModules(courseId) {
       });
       courseModulesLoaded = true;
       setCourseModulesLoadFailed(false);
-      if (_loadSaveBtn) _loadSaveBtn.disabled = false;
+      setCourseEditorControlsLocked(false);
       renderCourseModules();
       return;
     } catch (err) {
@@ -911,16 +930,22 @@ async function loadCourseModules(courseId) {
   }
 }
 
-// Loading indicator for the modules area during loadCourseModules. Shows a
-// small spinner and a status line ("Loading course..." initially, upgraded to
-// a retrying message if attempts fail) so the load is never a silent blank.
-// Overwritten by renderCourseModules on success or by the failure panel from
-// setCourseModulesLoadFailed on final failure.
+// Loading indicator for the course load. Renders in the course-editor-msg
+// slot at the TOP of the editor, directly under the header, the same slot the
+// failure panel uses. The user lands at the top when the editor opens, so
+// every load status (loading, retrying, failed) lives there; nothing about
+// the load's health is ever buried below the fold. Shows a small spinner and
+// a status line ("Loading course..." initially, upgraded to a retrying
+// message if attempts fail). Replaced by the failure panel on final failure;
+// cleared by setCourseModulesLoadFailed(false) on success.
 function showCourseModulesLoading(text) {
-  const list = document.getElementById('course-modules-list');
   const empty = document.getElementById('course-modules-empty');
+  // Hide the "Add a module to start building" empty-state while loading; it
+  // would be misleading next to a curriculum that has not arrived yet.
   if (empty) empty.style.display = 'none';
-  if (!list) return;
+
+  const msgHost = document.getElementById('course-editor-msg');
+  if (!msgHost) return;
 
   // One-time keyframes for the spinner. A JS-created <style> element is
   // CSP-compatible (the inline-script and style-attribute restrictions do not
@@ -935,19 +960,30 @@ function showCourseModulesLoading(text) {
   // If the indicator is already mounted, just update the status text. This
   // keeps the spinner animation smooth across the loading -> retrying upgrade
   // instead of remounting and visually restarting it.
-  const existing = list.querySelector('[data-course-loading-text]');
+  const existing = msgHost.querySelector('[data-course-loading-text]');
   if (existing) {
     existing.textContent = text;
     return;
   }
 
-  list.innerHTML = '';
+  // Take over the slot the same way the failure panel does: neutralize the
+  // toast slot's own styling for the duration. Restored on clear.
+  msgHost.innerHTML = '';
+  msgHost.style.display = 'block';
+  msgHost.style.background = 'transparent';
+  msgHost.style.border = 'none';
+  msgHost.style.padding = '0';
+
   const wrap = document.createElement('div');
   wrap.setAttribute('role', 'status');
   wrap.style.display = 'flex';
   wrap.style.alignItems = 'center';
   wrap.style.gap = '10px';
-  wrap.style.padding = '18px 4px';
+  wrap.style.padding = '14px 16px';
+  wrap.style.borderRadius = '10px';
+  wrap.style.border = '1px solid rgba(255,255,255,0.12)';
+  wrap.style.background = 'rgba(255,255,255,0.04)';
+  wrap.style.marginBottom = '16px';
 
   const spinner = document.createElement('div');
   spinner.style.width = '16px';
@@ -966,7 +1002,7 @@ function showCourseModulesLoading(text) {
 
   wrap.appendChild(spinner);
   wrap.appendChild(label);
-  list.appendChild(wrap);
+  msgHost.appendChild(wrap);
 }
 
 // Blocking load-failure state for the course curriculum. A curriculum that did
@@ -978,17 +1014,22 @@ function showCourseModulesLoading(text) {
 function setCourseModulesLoadFailed(failed) {
   const list = document.getElementById('course-modules-list');
   const empty = document.getElementById('course-modules-empty');
-  const saveBtn = document.getElementById('course-save-btn');
-  const addBtn = document.querySelector('#course-section-modules [data-course-action="add-module"]');
+
+  // Controls (Save, Publish/Unpublish, Add Module) lock and unlock as one
+  // unit via setCourseEditorControlsLocked, so no course action is ever
+  // available against a curriculum in an unknown or failed state.
+  setCourseEditorControlsLocked(failed);
 
   if (!failed) {
-    if (saveBtn) { saveBtn.disabled = false; saveBtn.style.opacity = ''; saveBtn.style.cursor = ''; }
-    if (addBtn) { addBtn.disabled = false; addBtn.style.opacity = ''; addBtn.style.cursor = ''; }
-    // Release the top message slot if a failure panel is occupying it, and
-    // undo our style overrides so showCourseMsg's inline-banner fallback
-    // renders normally next time it uses this element.
+    // Release the top message slot if a failure panel OR the loading
+    // indicator is occupying it, and undo our style overrides so
+    // showCourseMsg's inline-banner fallback renders normally next time it
+    // uses this element.
     const msgHostClear = document.getElementById('course-editor-msg');
-    if (msgHostClear && msgHostClear.querySelector('[data-course-action="retry-load"]')) {
+    if (msgHostClear && (
+      msgHostClear.querySelector('[data-course-action="retry-load"]') ||
+      msgHostClear.querySelector('[data-course-loading-text]')
+    )) {
       msgHostClear.innerHTML = '';
       msgHostClear.style.display = 'none';
       msgHostClear.style.background = '';
@@ -1001,8 +1042,6 @@ function setCourseModulesLoadFailed(failed) {
   }
 
   if (empty) empty.style.display = 'none';
-  if (saveBtn) { saveBtn.disabled = true; saveBtn.style.opacity = '0.5'; saveBtn.style.cursor = 'not-allowed'; }
-  if (addBtn) { addBtn.disabled = true; addBtn.style.opacity = '0.5'; addBtn.style.cursor = 'not-allowed'; }
 
   // The panel lives at the TOP of the editor (the course-editor-msg slot,
   // directly under the header and Save button), not down in the modules
