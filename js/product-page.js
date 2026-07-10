@@ -126,7 +126,7 @@ async function init() {
   try {
     var resumeSession = (await sb.auth.getSession()).data.session;
     var buyBtn = document.getElementById('buy-btn');
-    if (IS_FREE && resumeSession?.user && buyBtn && window.RyxaResume && window.RyxaResume.take('product')) {
+    if (IS_FREE && resumeSession?.user && buyBtn && window.RyxaResume && window.RyxaResume.take()) {
       handleBuyClick();
     }
   } catch (e) {
@@ -173,10 +173,11 @@ async function handleBuyClick() {
   // claims still require an account, since there is no Stripe session to
   // carry an email or to prove the claim.
   if (IS_FREE && !session?.user) {
-    // Remember what they were doing so the return trip does not make them
-    // press this button a second time.
-    if (window.RyxaResume) window.RyxaResume.save('product');
-    window.location.href = '/learn/?redirect=' + encodeURIComponent(window.location.pathname);
+    // Carry the intent in the URL so it survives the email round trip, even
+    // when the confirmation link opens in a different browser.
+    window.location.href = window.RyxaResume
+      ? window.RyxaResume.hubUrlFor(window.location.pathname)
+      : '/learn/?redirect=' + encodeURIComponent(window.location.pathname);
     return;
   }
 

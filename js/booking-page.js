@@ -104,7 +104,7 @@ async function init() {
   // Returning from the Hub? Open the picker rather than the button they already
   // pressed. This creates nothing: a booking exists only once they confirm a
   // slot, which is exactly why resuming here is safe.
-  if (session?.user && coaching.price_cents === 0 && window.RyxaResume && window.RyxaResume.take('booking')) {
+  if (session?.user && coaching.price_cents === 0 && window.RyxaResume && window.RyxaResume.take()) {
     if (coaching.booking_type === 'ryxa_calendar') showPicker();
     else bookCoaching();
   }
@@ -298,8 +298,9 @@ async function bookCoaching() {
   // to prove the claim.
   var { data: { session } } = await sb.auth.getSession();
   if (coachingData.price_cents === 0 && !session?.user) {
-    if (window.RyxaResume) window.RyxaResume.save('booking');
-    window.location.href = '/learn/?redirect=' + encodeURIComponent(window.location.pathname);
+    window.location.href = window.RyxaResume
+      ? window.RyxaResume.hubUrlFor(window.location.pathname)
+      : '/learn/?redirect=' + encodeURIComponent(window.location.pathname);
     return;
   }
 

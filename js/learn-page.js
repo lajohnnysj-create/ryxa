@@ -139,17 +139,33 @@ function learnRedirectParam() {
 
 // Email flows land back on the Hub, which forwards them. The path travels as a
 // query param because the email link cannot carry a session.
+function learnHasResumeFlag() {
+  try {
+    return new URLSearchParams(window.location.search).get('resume') === '1';
+  } catch (e) {
+    return false;
+  }
+}
+
 function learnHubRedirectUrl() {
   var redirect = learnRedirectParam();
   var base = window.location.origin + '/learn/';
-  return redirect ? base + '?redirect=' + encodeURIComponent(redirect) : base;
+  if (!redirect) return base;
+  var url = base + '?redirect=' + encodeURIComponent(redirect);
+  // The link in their inbox is the only thing that survives a different
+  // browser, so the resume intent has to ride in it.
+  if (learnHasResumeFlag()) url += '&resume=1';
+  return url;
 }
 
 // OAuth returns with a session already established, so it can go straight to
 // the destination rather than bouncing through the Hub.
 function learnOAuthRedirectUrl() {
   var redirect = learnRedirectParam();
-  return redirect ? window.location.origin + redirect : window.location.origin + '/learn/';
+  if (!redirect) return window.location.origin + '/learn/';
+  var url = window.location.origin + redirect;
+  if (learnHasResumeFlag()) url += (redirect.indexOf('?') === -1 ? '?' : '&') + 'resume=1';
+  return url;
 }
 
 function applyLearnAuthContext() {
@@ -584,7 +600,13 @@ async function onLoggedIn() {
 
   // If redirected from a course page, send them back (only allow relative paths)
   if (redirect && redirect.startsWith('/') && !redirect.startsWith('//')) {
-    window.location.href = redirect;
+    // Forward the resume flag so the destination knows this buyer was
+    // mid-claim when they were sent here to sign in.
+    var dest = redirect;
+    if (params.get('resume') === '1') {
+      dest += (redirect.indexOf('?') === -1 ? '?' : '&') + 'resume=1';
+    }
+    window.location.href = dest;
     return;
   }
 
