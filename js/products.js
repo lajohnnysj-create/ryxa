@@ -144,51 +144,16 @@ function setProductsListLocked(locked) {
 // just updates the text so the spin stays smooth across retries. Pass
 // boxed=true for the editor variant, which wraps the spinner in the same
 // bordered box the course curriculum loader uses (list loaders stay bare).
-function prodShowSpinnerStatus(host, text, boxed) {
+function prodShowSpinnerStatus(host, text) {
   if (!host) return;
-  if (!document.getElementById('course-load-spin-style')) {
-    var styleEl = document.createElement('style');
-    styleEl.id = 'course-load-spin-style';
-    styleEl.textContent = '@keyframes courseLoadSpin { to { transform: rotate(360deg); } }';
-    document.head.appendChild(styleEl);
+  // First call starts the bar (silent happy path); a repeat call means an
+  // attempt failed, so surface the retrying status line under the bar.
+  if (window.RyxaLoadBar.isActive(host)) {
+    window.RyxaLoadBar.retrying(host, text);
+    return;
   }
-  var existing = host.querySelector('[data-prod-loading-text]');
-  if (existing) { existing.textContent = text; return; }
-
   host.innerHTML = '';
-  var wrap = document.createElement('div');
-  wrap.setAttribute('role', 'status');
-  wrap.style.display = 'flex';
-  wrap.style.alignItems = 'center';
-  wrap.style.gap = '10px';
-  if (boxed) {
-    wrap.style.padding = '14px 16px';
-    wrap.style.borderRadius = '10px';
-    wrap.style.border = '1px solid rgba(255,255,255,0.12)';
-    wrap.style.background = 'rgba(255,255,255,0.04)';
-    wrap.style.marginBottom = '16px';
-  } else {
-    wrap.style.padding = '18px 4px';
-  }
-
-  var spinner = document.createElement('div');
-  spinner.style.width = '16px';
-  spinner.style.height = '16px';
-  spinner.style.border = '2px solid rgba(124,58,237,0.25)';
-  spinner.style.borderTopColor = '#7c3aed';
-  spinner.style.borderRadius = '50%';
-  spinner.style.animation = 'courseLoadSpin 0.7s linear infinite';
-  spinner.style.flexShrink = '0';
-
-  var label = document.createElement('div');
-  label.setAttribute('data-prod-loading-text', '1');
-  label.style.color = 'rgba(255,255,255,0.7)';
-  label.style.fontSize = '14px';
-  label.textContent = text;
-
-  wrap.appendChild(spinner);
-  wrap.appendChild(label);
-  host.appendChild(wrap);
+  window.RyxaLoadBar.start(host);
 }
 
 prodRegisterAction('retry-list', function() { loadProductsList(); });
@@ -226,6 +191,7 @@ async function loadProductsList() {
         .order('updated_at', { ascending: false });
       if (res.error) throw res.error;
       productsState.list = res.data || [];
+      window.RyxaLoadBar.finish(listEl);
       setProductsListLocked(false);
       if (!productsState.list.length) {
         listEl.innerHTML = '';
@@ -244,8 +210,9 @@ async function loadProductsList() {
         continue;
       }
       // Final failure: blocking panel with Retry; New Product stays locked.
+      window.RyxaLoadBar.fail(listEl);
       console.error('loadProductsList failed:', e);
-      showProductsMsg('error', 'Failed to load your products. Please retry.');
+      showProductsMsg('error', 'Failed to load. Please retry, or contact hello@ryxa.io if it continues.');
       listEl.style.display = 'block';
       listEl.innerHTML = '';
       var panel = document.createElement('div');
@@ -267,7 +234,7 @@ async function loadProductsList() {
       body.style.fontSize = '14px';
       body.style.lineHeight = '1.5';
       body.style.marginBottom = '14px';
-      body.textContent = 'Your products are safe; they just could not be loaded right now. This is usually a brief connection hiccup.';
+      body.textContent = 'Check your internet connection and press Retry. If the issue continues, contact us at hello@ryxa.io.';
 
       var retry = document.createElement('button');
       retry.type = 'button';
@@ -373,16 +340,14 @@ async function openProductEditor(productId) {
   var msgEl = document.getElementById('products-editor-msg');
   function showEditorLoading(text) {
     if (!msgEl) return;
-    // Neutralize the slot itself (same as the course editor); the boxed
-    // spinner wrap carries the visual box, so there is exactly one box.
-    msgEl.style.display = 'block';
-    msgEl.style.background = 'transparent';
-    msgEl.style.border = 'none';
-    msgEl.style.padding = '0';
-    prodShowSpinnerStatus(msgEl, text, true);
+    prodShowSpinnerStatus(msgEl, text);
   }
-  function hideEditorLoading() {
+  // done=true: the load succeeded, sweep the bar to 100% before it fades.
+  // done falsy: clearing leftovers at editor open, remove instantly.
+  function hideEditorLoading(done) {
     if (!msgEl) return;
+    if (done) window.RyxaLoadBar.finish(msgEl);
+    else window.RyxaLoadBar.stop(msgEl);
     msgEl.style.display = 'none';
     msgEl.innerHTML = '';
     msgEl.style.background = '';
@@ -425,7 +390,7 @@ async function openProductEditor(productId) {
         productsState.editingFiles = filesRes.data || [];
         productsState.editingProductBytes = (filesRes.data || []).reduce(function(s, f) { return s + Number(f.file_size_bytes || 0); }, 0);
         hydrateProductEditor(prodRes.data);
-        hideEditorLoading();
+        hideEditorLoading(true);
         setProductEditorControlsLocked(false);
         break;
       } catch (e) {
@@ -439,6 +404,7 @@ async function openProductEditor(productId) {
         // panel with a Retry button renders in the top message slot. No
         // modal, no bouncing back to the list; one consistent pattern.
         console.error('Load product failed:', e);
+        window.RyxaLoadBar.fail(msgEl);
         productsState.editorLoadFailed = true;
         if (msgEl) {
           msgEl.innerHTML = '';
@@ -467,7 +433,7 @@ async function openProductEditor(productId) {
           body.style.fontSize = '14px';
           body.style.lineHeight = '1.5';
           body.style.marginBottom = '14px';
-          body.textContent = 'Editing and saving are turned off until the product loads, so your product and files stay safe. This is usually a brief connection hiccup.';
+          body.textContent = 'Check your internet connection and press Retry. If the issue continues, contact us at hello@ryxa.io.';
 
           var retry = document.createElement('button');
           retry.type = 'button';
@@ -487,7 +453,7 @@ async function openProductEditor(productId) {
           msgEl.appendChild(panel);
           panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
-        showProductsMsg('error', 'Failed to load product. Please retry.');
+        showProductsMsg('error', 'Failed to load. Please retry, or contact hello@ryxa.io if it continues.');
         return;
       }
     }

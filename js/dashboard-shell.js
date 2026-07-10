@@ -1579,6 +1579,116 @@ function copyWelcomeBioLink() {
 }
 
 
+
+// =============================================================================
+// RyxaLoadBar: shared trickle progress bar for every tool/data loader (courses,
+// booking, products, link in bio, media kit; lists and editors alike).
+//
+// Design decisions (agreed 2026-07-10):
+//   - The bar is THEATRICAL: loads are 1-3 queries with no real progress, so it
+//     sprints to ~30%, trickles toward 84% while waiting, and snaps to 100% on
+//     completion. Standard NProgress-style behavior.
+//   - Always completes: even an 80ms load gets a smooth sweep to 100% over a
+//     minimum of ~400ms total, so fast loads read as one satisfying motion
+//     instead of a flash of loading UI.
+//   - Text only when something is wrong: no "Loading..." label in the happy
+//     path. A status line ("Having trouble... Retrying...") appears under the
+//     bar only once a retry is underway.
+//   - Mounted as a SIBLING ABOVE the anchor element (not inside it), so
+//     content renders and innerHTML wipes can never destroy the bar mid-sweep.
+//   - On final failure the bar fills red, then removes itself as the red
+//     failure panel takes over.
+// =============================================================================
+window.RyxaLoadBar = (function() {
+  const TRICKLE_MS = 180;
+  const MIN_VISIBLE_MS = 400;
+
+  function get(anchor) { return (anchor && anchor._ryxaLoadBar) || null; }
+
+  function isActive(anchor) {
+    const s = get(anchor);
+    return !!(s && !s.done);
+  }
+
+  function stop(anchor) {
+    const s = get(anchor);
+    if (!s) return;
+    clearInterval(s.timer);
+    if (s.wrap.parentNode) s.wrap.remove();
+    anchor._ryxaLoadBar = null;
+  }
+
+  function start(anchor) {
+    if (!anchor || !anchor.parentNode) return;
+    stop(anchor);
+    const wrap = document.createElement('div');
+    wrap.setAttribute('data-ryxa-loadbar', '1');
+    wrap.style.width = '100%';
+    wrap.style.margin = '0 0 12px 0';
+    const track = document.createElement('div');
+    track.style.cssText = 'width:100%;height:3px;border-radius:99px;background:rgba(124,58,237,0.15);overflow:hidden;';
+    const bar = document.createElement('div');
+    bar.style.cssText = 'width:4%;height:100%;border-radius:99px;background:#7c3aed;transition:width 0.25s ease;';
+    track.appendChild(bar);
+    const text = document.createElement('div');
+    text.setAttribute('role', 'status');
+    text.style.cssText = 'display:none;color:rgba(255,255,255,0.7);font-size:13px;margin-top:8px;';
+    wrap.appendChild(track);
+    wrap.appendChild(text);
+    anchor.parentNode.insertBefore(wrap, anchor);
+    const state = { wrap: wrap, bar: bar, text: text, t0: Date.now(), timer: null, done: false };
+    requestAnimationFrame(function() { bar.style.width = '30%'; });
+    let w = 30;
+    state.timer = setInterval(function() {
+      w = Math.min(84, w + (84 - w) * 0.12);
+      bar.style.width = w + '%';
+    }, TRICKLE_MS);
+    anchor._ryxaLoadBar = state;
+  }
+
+  function retrying(anchor, msg) {
+    const s = get(anchor);
+    if (!s || s.done) return;
+    s.text.style.display = 'block';
+    s.text.textContent = msg;
+  }
+
+  function finish(anchor) {
+    const s = get(anchor);
+    if (!s || s.done) return;
+    s.done = true;
+    clearInterval(s.timer);
+    s.text.style.display = 'none';
+    const remaining = Math.max(150, MIN_VISIBLE_MS - (Date.now() - s.t0));
+    s.bar.style.transition = 'width ' + remaining + 'ms ease';
+    s.bar.style.width = '100%';
+    setTimeout(function() {
+      s.wrap.style.transition = 'opacity 0.2s ease';
+      s.wrap.style.opacity = '0';
+      setTimeout(function() {
+        if (s.wrap.parentNode) s.wrap.remove();
+        if (anchor._ryxaLoadBar === s) anchor._ryxaLoadBar = null;
+      }, 220);
+    }, remaining + 40);
+  }
+
+  function fail(anchor) {
+    const s = get(anchor);
+    if (!s || s.done) return;
+    s.done = true;
+    clearInterval(s.timer);
+    s.text.style.display = 'none';
+    s.bar.style.background = '#ef4444';
+    s.bar.style.width = '100%';
+    setTimeout(function() {
+      if (s.wrap.parentNode) s.wrap.remove();
+      if (anchor._ryxaLoadBar === s) anchor._ryxaLoadBar = null;
+    }, 700);
+  }
+
+  return { start: start, retrying: retrying, finish: finish, fail: fail, stop: stop, isActive: isActive };
+})();
+
 // Check all five social connection tables for needs_reconnect flags and, if
 // any are set, show ONE combined error toast listing the affected platforms.
 // A single combined toast (rather than one per platform) is deliberate:

@@ -122,44 +122,15 @@ function coachShowListLoading(text) {
   var empty = document.getElementById('coaching-empty');
   if (empty) empty.style.display = 'none';
   if (!grid) return;
-
-  if (!document.getElementById('course-load-spin-style')) {
-    var styleEl = document.createElement('style');
-    styleEl.id = 'course-load-spin-style';
-    styleEl.textContent = '@keyframes courseLoadSpin { to { transform: rotate(360deg); } }';
-    document.head.appendChild(styleEl);
+  // First call starts the bar (no text: the happy path is silent). A second
+  // call means an attempt failed, so surface the retrying status line.
+  if (window.RyxaLoadBar.isActive(grid)) {
+    window.RyxaLoadBar.retrying(grid, text);
+    return;
   }
-
-  var existing = grid.querySelector('[data-coach-loading-text]');
-  if (existing) { existing.textContent = text; return; }
-
   grid.style.display = 'block';
   grid.innerHTML = '';
-  var wrap = document.createElement('div');
-  wrap.setAttribute('role', 'status');
-  wrap.style.display = 'flex';
-  wrap.style.alignItems = 'center';
-  wrap.style.gap = '10px';
-  wrap.style.padding = '18px 4px';
-
-  var spinner = document.createElement('div');
-  spinner.style.width = '16px';
-  spinner.style.height = '16px';
-  spinner.style.border = '2px solid rgba(124,58,237,0.25)';
-  spinner.style.borderTopColor = '#7c3aed';
-  spinner.style.borderRadius = '50%';
-  spinner.style.animation = 'courseLoadSpin 0.7s linear infinite';
-  spinner.style.flexShrink = '0';
-
-  var label = document.createElement('div');
-  label.setAttribute('data-coach-loading-text', '1');
-  label.style.color = 'rgba(255,255,255,0.7)';
-  label.style.fontSize = '14px';
-  label.textContent = text;
-
-  wrap.appendChild(spinner);
-  wrap.appendChild(label);
-  grid.appendChild(wrap);
+  window.RyxaLoadBar.start(grid);
 }
 
 // Blocking failure state for the services list. Previously a failed load was
@@ -193,7 +164,7 @@ function coachShowListFailed() {
   body.style.fontSize = '14px';
   body.style.lineHeight = '1.5';
   body.style.marginBottom = '14px';
-  body.textContent = 'Your services are safe; they just could not be loaded right now. This is usually a brief connection hiccup.';
+  body.textContent = 'Check your internet connection and press Retry. If the issue continues, contact us at hello@ryxa.io.';
 
   var retry = document.createElement('button');
   retry.type = 'button';
@@ -237,6 +208,7 @@ async function loadCoachingList() {
         c._bookings = countRes.count || 0;
       }
 
+      window.RyxaLoadBar.finish(document.getElementById('coaching-grid'));
       setCoachingListLocked(false);
       renderCoachingList();
       return;
@@ -248,9 +220,10 @@ async function loadCoachingList() {
       }
       // Final failure: blocking panel with Retry; New Service stays locked.
       // A failed load must never masquerade as an empty list.
+      window.RyxaLoadBar.fail(document.getElementById('coaching-grid'));
       console.error('Failed to load coaching:', err);
       coachShowListFailed();
-      showCoachingMsg('error', 'Failed to load your services. Please retry.');
+      showCoachingMsg('error', 'Failed to load. Please retry, or contact hello@ryxa.io if it continues.');
       return;
     }
   }
@@ -319,52 +292,8 @@ function setCoachingEditorControlsLocked(locked) {
 function coachShowEditorLoading(text) {
   var msgEl = document.getElementById('coaching-editor-msg');
   if (!msgEl) return;
-
-  if (!document.getElementById('course-load-spin-style')) {
-    var styleEl = document.createElement('style');
-    styleEl.id = 'course-load-spin-style';
-    styleEl.textContent = '@keyframes courseLoadSpin { to { transform: rotate(360deg); } }';
-    document.head.appendChild(styleEl);
-  }
-
-  msgEl.style.display = 'block';
-  msgEl.style.background = 'transparent';
-  msgEl.style.border = 'none';
-  msgEl.style.padding = '0';
-
-  var existing = msgEl.querySelector('[data-coach-editor-loading-text]');
-  if (existing) { existing.textContent = text; return; }
-
-  msgEl.innerHTML = '';
-  var wrap = document.createElement('div');
-  wrap.setAttribute('role', 'status');
-  wrap.style.display = 'flex';
-  wrap.style.alignItems = 'center';
-  wrap.style.gap = '10px';
-  wrap.style.padding = '14px 16px';
-  wrap.style.borderRadius = '10px';
-  wrap.style.border = '1px solid rgba(255,255,255,0.12)';
-  wrap.style.background = 'rgba(255,255,255,0.04)';
-  wrap.style.marginBottom = '16px';
-
-  var spinner = document.createElement('div');
-  spinner.style.width = '16px';
-  spinner.style.height = '16px';
-  spinner.style.border = '2px solid rgba(124,58,237,0.25)';
-  spinner.style.borderTopColor = '#7c3aed';
-  spinner.style.borderRadius = '50%';
-  spinner.style.animation = 'courseLoadSpin 0.7s linear infinite';
-  spinner.style.flexShrink = '0';
-
-  var label = document.createElement('div');
-  label.setAttribute('data-coach-editor-loading-text', '1');
-  label.style.color = 'rgba(255,255,255,0.7)';
-  label.style.fontSize = '14px';
-  label.textContent = text;
-
-  wrap.appendChild(spinner);
-  wrap.appendChild(label);
-  msgEl.appendChild(wrap);
+  if (window.RyxaLoadBar.isActive(msgEl)) window.RyxaLoadBar.retrying(msgEl, text);
+  else window.RyxaLoadBar.start(msgEl);
 }
 
 // Clear the editor msg slot and restore its styles so showCoachingMsg's
@@ -411,7 +340,7 @@ function coachShowEditorFailed() {
   body.style.fontSize = '14px';
   body.style.lineHeight = '1.5';
   body.style.marginBottom = '14px';
-  body.textContent = 'Editing and saving are turned off until the service loads, so your service and availability stay safe. This is usually a brief connection hiccup.';
+  body.textContent = 'Check your internet connection and press Retry. If the issue continues, contact us at hello@ryxa.io.';
 
   var retry = document.createElement('button');
   retry.type = 'button';
@@ -544,6 +473,7 @@ async function openCoachingEditor(coachingId) {
           res.data._bookings = coachingList[idx]._bookings;
           coachingList[idx] = res.data;
         }
+        window.RyxaLoadBar.finish(document.getElementById('coaching-editor-msg'));
         coachHydrateEditor(res.data);
         coachClearEditorMsg();
         setCoachingEditorControlsLocked(false);
@@ -557,9 +487,10 @@ async function openCoachingEditor(coachingId) {
         // Final failure: in-editor blocking panel with Retry, controls stay
         // locked, description editor not mounted. Retry re-runs the open.
         console.error('Failed to load service:', err);
+        window.RyxaLoadBar.fail(document.getElementById('coaching-editor-msg'));
         coachingEditorLoadFailed = true;
         coachShowEditorFailed();
-        showCoachingMsg('error', 'Failed to load service. Please retry.');
+        showCoachingMsg('error', 'Failed to load. Please retry, or contact hello@ryxa.io if it continues.');
         return;
       }
     }

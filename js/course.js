@@ -147,44 +147,15 @@ function courseShowListLoading(text) {
   var empty = document.getElementById('courses-empty');
   if (empty) empty.style.display = 'none';
   if (!grid) return;
-
-  if (!document.getElementById('course-load-spin-style')) {
-    var styleEl = document.createElement('style');
-    styleEl.id = 'course-load-spin-style';
-    styleEl.textContent = '@keyframes courseLoadSpin { to { transform: rotate(360deg); } }';
-    document.head.appendChild(styleEl);
+  // First call starts the bar (no text: the happy path is silent). A second
+  // call means an attempt failed, so surface the retrying status line.
+  if (window.RyxaLoadBar.isActive(grid)) {
+    window.RyxaLoadBar.retrying(grid, text);
+    return;
   }
-
-  var existing = grid.querySelector('[data-course-list-loading-text]');
-  if (existing) { existing.textContent = text; return; }
-
   grid.style.display = 'block';
   grid.innerHTML = '';
-  var wrap = document.createElement('div');
-  wrap.setAttribute('role', 'status');
-  wrap.style.display = 'flex';
-  wrap.style.alignItems = 'center';
-  wrap.style.gap = '10px';
-  wrap.style.padding = '18px 4px';
-
-  var spinner = document.createElement('div');
-  spinner.style.width = '16px';
-  spinner.style.height = '16px';
-  spinner.style.border = '2px solid rgba(124,58,237,0.25)';
-  spinner.style.borderTopColor = '#7c3aed';
-  spinner.style.borderRadius = '50%';
-  spinner.style.animation = 'courseLoadSpin 0.7s linear infinite';
-  spinner.style.flexShrink = '0';
-
-  var label = document.createElement('div');
-  label.setAttribute('data-course-list-loading-text', '1');
-  label.style.color = 'rgba(255,255,255,0.7)';
-  label.style.fontSize = '14px';
-  label.textContent = text;
-
-  wrap.appendChild(spinner);
-  wrap.appendChild(label);
-  grid.appendChild(wrap);
+  window.RyxaLoadBar.start(grid);
 }
 
 // Blocking failure state for the courses list. A failed load must never
@@ -217,7 +188,7 @@ function courseShowListFailed() {
   body.style.fontSize = '14px';
   body.style.lineHeight = '1.5';
   body.style.marginBottom = '14px';
-  body.textContent = 'Your courses are safe; they just could not be loaded right now. This is usually a brief connection hiccup.';
+  body.textContent = 'Check your internet connection and press Retry. If the issue continues, contact us at hello@ryxa.io.';
 
   var retry = document.createElement('button');
   retry.type = 'button';
@@ -265,6 +236,7 @@ async function loadCoursesList() {
         c._enrollments = countRes.count || 0;
       }
 
+      window.RyxaLoadBar.finish(document.getElementById('courses-grid'));
       setCoursesListLocked(false);
       renderCoursesList();
       return;
@@ -274,9 +246,10 @@ async function loadCoursesList() {
         await new Promise(function(resolve) { setTimeout(resolve, 400 * attempt); });
         continue;
       }
+      window.RyxaLoadBar.fail(document.getElementById('courses-grid'));
       console.error('Failed to load courses:', err);
       courseShowListFailed();
-      showCourseMsg('error', 'Failed to load your courses. Please retry.');
+      showCourseMsg('error', 'Failed to load. Please retry, or contact hello@ryxa.io if it continues.');
       return;
     }
   }
@@ -1039,6 +1012,7 @@ async function loadCourseModules(courseId) {
           quiz: moduleQuiz ? { ...moduleQuiz, _collapsed: true } : null
         };
       });
+      window.RyxaLoadBar.finish(document.getElementById('course-editor-msg'));
       courseModulesLoaded = true;
       setCourseModulesLoadFailed(false);
       setCourseEditorControlsLocked(false);
@@ -1058,9 +1032,10 @@ async function loadCourseModules(courseId) {
       // creator can miss, then unknowingly build on a broken base), show a
       // persistent blocking panel with a Retry button and keep Save and
       // Add Module disabled until a clean load succeeds.
+      window.RyxaLoadBar.fail(document.getElementById('course-editor-msg'));
       courseModulesLoaded = false;
       setCourseModulesLoadFailed(true);
-      showCourseMsg('error', 'Failed to load course. Please retry.');
+      showCourseMsg('error', 'Failed to load. Please retry, or contact hello@ryxa.io if it continues.');
       return;
     }
   }
@@ -1075,70 +1050,12 @@ async function loadCourseModules(courseId) {
 // message if attempts fail). Replaced by the failure panel on final failure;
 // cleared by setCourseModulesLoadFailed(false) on success.
 function showCourseModulesLoading(text) {
-  const empty = document.getElementById('course-modules-empty');
-  // Hide the "Add a module to start building" empty-state while loading; it
-  // would be misleading next to a curriculum that has not arrived yet.
+  var msgEl = document.getElementById('course-editor-msg');
+  var empty = document.getElementById('course-modules-empty');
   if (empty) empty.style.display = 'none';
-
-  const msgHost = document.getElementById('course-editor-msg');
-  if (!msgHost) return;
-
-  // One-time keyframes for the spinner. A JS-created <style> element is
-  // CSP-compatible (the inline-script and style-attribute restrictions do not
-  // apply to stylesheet text set on a created style node).
-  if (!document.getElementById('course-load-spin-style')) {
-    const styleEl = document.createElement('style');
-    styleEl.id = 'course-load-spin-style';
-    styleEl.textContent = '@keyframes courseLoadSpin { to { transform: rotate(360deg); } }';
-    document.head.appendChild(styleEl);
-  }
-
-  // If the indicator is already mounted, just update the status text. This
-  // keeps the spinner animation smooth across the loading -> retrying upgrade
-  // instead of remounting and visually restarting it.
-  const existing = msgHost.querySelector('[data-course-loading-text]');
-  if (existing) {
-    existing.textContent = text;
-    return;
-  }
-
-  // Take over the slot the same way the failure panel does: neutralize the
-  // toast slot's own styling for the duration. Restored on clear.
-  msgHost.innerHTML = '';
-  msgHost.style.display = 'block';
-  msgHost.style.background = 'transparent';
-  msgHost.style.border = 'none';
-  msgHost.style.padding = '0';
-
-  const wrap = document.createElement('div');
-  wrap.setAttribute('role', 'status');
-  wrap.style.display = 'flex';
-  wrap.style.alignItems = 'center';
-  wrap.style.gap = '10px';
-  wrap.style.padding = '14px 16px';
-  wrap.style.borderRadius = '10px';
-  wrap.style.border = '1px solid rgba(255,255,255,0.12)';
-  wrap.style.background = 'rgba(255,255,255,0.04)';
-  wrap.style.marginBottom = '16px';
-
-  const spinner = document.createElement('div');
-  spinner.style.width = '16px';
-  spinner.style.height = '16px';
-  spinner.style.border = '2px solid rgba(124,58,237,0.25)';
-  spinner.style.borderTopColor = '#7c3aed';
-  spinner.style.borderRadius = '50%';
-  spinner.style.animation = 'courseLoadSpin 0.7s linear infinite';
-  spinner.style.flexShrink = '0';
-
-  const label = document.createElement('div');
-  label.setAttribute('data-course-loading-text', '1');
-  label.style.color = 'rgba(255,255,255,0.7)';
-  label.style.fontSize = '14px';
-  label.textContent = text;
-
-  wrap.appendChild(spinner);
-  wrap.appendChild(label);
-  msgHost.appendChild(wrap);
+  if (!msgEl) return;
+  if (window.RyxaLoadBar.isActive(msgEl)) window.RyxaLoadBar.retrying(msgEl, text);
+  else window.RyxaLoadBar.start(msgEl);
 }
 
 // Blocking load-failure state for the course curriculum. A curriculum that did
@@ -1215,7 +1132,7 @@ function setCourseModulesLoadFailed(failed) {
     body.style.fontSize = '14px';
     body.style.lineHeight = '1.5';
     body.style.marginBottom = '14px';
-    body.textContent = 'Editing and saving are turned off until the curriculum loads, so your existing modules and lessons stay safe. This is usually a brief connection hiccup.';
+    body.textContent = 'Check your internet connection and press Retry. If the issue continues, contact us at hello@ryxa.io.';
 
     const retry = document.createElement('button');
     retry.type = 'button';

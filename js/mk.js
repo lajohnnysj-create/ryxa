@@ -234,52 +234,8 @@ function mkSetEditorLocked(locked) {
 function mkShowLoading(text) {
   var msgEl = document.getElementById('mk-save-status');
   if (!msgEl) return;
-
-  if (!document.getElementById('course-load-spin-style')) {
-    var styleEl = document.createElement('style');
-    styleEl.id = 'course-load-spin-style';
-    styleEl.textContent = '@keyframes courseLoadSpin { to { transform: rotate(360deg); } }';
-    document.head.appendChild(styleEl);
-  }
-
-  msgEl.style.display = 'block';
-  msgEl.style.background = 'transparent';
-  msgEl.style.border = 'none';
-  msgEl.style.padding = '0';
-
-  var existing = msgEl.querySelector('[data-mk-loading-text]');
-  if (existing) { existing.textContent = text; return; }
-
-  msgEl.innerHTML = '';
-  var wrap = document.createElement('div');
-  wrap.setAttribute('role', 'status');
-  wrap.style.display = 'flex';
-  wrap.style.alignItems = 'center';
-  wrap.style.gap = '10px';
-  wrap.style.padding = '14px 16px';
-  wrap.style.borderRadius = '10px';
-  wrap.style.border = '1px solid rgba(255,255,255,0.12)';
-  wrap.style.background = 'rgba(255,255,255,0.04)';
-  wrap.style.marginBottom = '16px';
-
-  var spinner = document.createElement('div');
-  spinner.style.width = '16px';
-  spinner.style.height = '16px';
-  spinner.style.border = '2px solid rgba(124,58,237,0.25)';
-  spinner.style.borderTopColor = '#7c3aed';
-  spinner.style.borderRadius = '50%';
-  spinner.style.animation = 'courseLoadSpin 0.7s linear infinite';
-  spinner.style.flexShrink = '0';
-
-  var label = document.createElement('div');
-  label.setAttribute('data-mk-loading-text', '1');
-  label.style.color = 'rgba(255,255,255,0.7)';
-  label.style.fontSize = '14px';
-  label.textContent = text;
-
-  wrap.appendChild(spinner);
-  wrap.appendChild(label);
-  msgEl.appendChild(wrap);
+  if (window.RyxaLoadBar.isActive(msgEl)) window.RyxaLoadBar.retrying(msgEl, text);
+  else window.RyxaLoadBar.start(msgEl);
 }
 
 // Clear the status slot and restore its styles so the inline-banner fallback
@@ -327,7 +283,7 @@ function mkShowLoadFailed() {
   body.style.fontSize = '14px';
   body.style.lineHeight = '1.5';
   body.style.marginBottom = '14px';
-  body.textContent = 'Editing and saving are turned off until it loads, so your existing media kit stays safe. This is usually a brief connection hiccup.';
+  body.textContent = 'Check your internet connection and press Retry. If the issue continues, contact us at hello@ryxa.io.';
 
   var retry = document.createElement('button');
   retry.type = 'button';
@@ -356,6 +312,7 @@ async function loadMediaKit() {
   // Lock the whole editor and show visible loading from the first moment.
   // Unlocks only after a clean load and hydration; stays locked on failure.
   mkSetEditorLocked(true);
+  mkClearStatusSlot();
   mkShowLoading('Loading your media kit...');
 
   // Retry transient blips instead of dead-ending; a null session is
@@ -384,8 +341,10 @@ async function loadMediaKit() {
         continue;
       }
       console.error('loadMediaKit', err);
+      window.RyxaLoadBar.fail(document.getElementById('mk-save-status'));
+      window.RyxaLoadBar.fail(document.getElementById('mk-save-status'));
       mkShowLoadFailed();
-      showMKStatus('error', 'Failed to load your media kit. Please retry.');
+      showMKStatus('error', 'Failed to load. Please retry, or contact hello@ryxa.io if it continues.');
       return;
     }
   }
@@ -452,10 +411,12 @@ async function loadMediaKit() {
     // load failure: a partially hydrated editor must never be saveable.
     console.error('loadMediaKit', e);
     mkDataLoaded = false;
+    window.RyxaLoadBar.fail(document.getElementById('mk-save-status'));
     mkShowLoadFailed();
-    showMKStatus('error', 'Failed to load your media kit. Please retry.');
+    showMKStatus('error', 'Failed to load. Please retry, or contact hello@ryxa.io if it continues.');
     return;
   }
+  window.RyxaLoadBar.finish(document.getElementById('mk-save-status'));
   mkSetEditorLocked(false);
   mkClearStatusSlot();
   syncMKForm();
