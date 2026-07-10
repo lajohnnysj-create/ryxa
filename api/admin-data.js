@@ -6,35 +6,10 @@
 //
 // Copy into the Ryxa repo at api/admin-data.js.
 
-const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
+const { SUPABASE_URL, getServiceKey, requireAdmin } = require('./lib/admin-auth');
+
+// Kept as a module-level constant so the existing call sites read unchanged.
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-const ADMIN_EMAIL = 'johnnyla@mrla-media.com';
-
-async function getVerifiedUser(req) {
-  try {
-    const auth = req.headers.authorization || '';
-    if (!auth.startsWith('Bearer ')) return null;
-    const res = await fetch(SUPABASE_URL + '/auth/v1/user', {
-      headers: { Authorization: auth, apikey: SUPABASE_SERVICE_KEY }
-    });
-    if (!res.ok) return null;
-    return await res.json();
-  } catch (e) {
-    return null;
-  }
-}
-
-function isAdmin(user) {
-  if (!user || !user.email) return false;
-  if (user.email.toLowerCase() !== ADMIN_EMAIL) return false;
-  // Require the Google identity specifically. An email/password account
-  // created with the same address (unverifiable, but belt and suspenders)
-  // does not qualify.
-  const identities = Array.isArray(user.identities) ? user.identities : [];
-  const hasGoogle = identities.some(function (i) { return i.provider === 'google'; });
-  return hasGoogle;
-}
 
 async function sbGet(path) {
   const res = await fetch(SUPABASE_URL + path, {
@@ -50,19 +25,15 @@ async function sbGet(path) {
 }
 
 module.exports = async (req, res) => {
-  res.setHeader('Cache-Control', 'no-store');
   if (req.method !== 'GET') {
     res.setHeader('Allow', 'GET');
+    res.setHeader('Cache-Control', 'no-store');
     return res.status(405).json({ error: 'Method not allowed' });
   }
-  if (!SUPABASE_SERVICE_KEY) {
-    return res.status(500).json({ error: 'Server not configured' });
-  }
 
-  const user = await getVerifiedUser(req);
-  if (!isAdmin(user)) {
-    return res.status(403).json({ error: 'Forbidden' });
-  }
+  // Shared with api/admin-action.js. One rule, one place.
+  const user = await requireAdmin(req, res);
+  if (!user) return;
 
   const action = String(req.query.action || 'errors');
 
