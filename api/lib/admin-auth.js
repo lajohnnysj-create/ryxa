@@ -32,6 +32,32 @@ function getServiceKey() {
   return k;
 }
 
+// The provider used for THIS session, read from the access token.
+//
+// user.app_metadata.provider from /auth/v1/user is the SIGNUP provider, frozen
+// at account creation. An account made with a password and later linked to
+// Google reports "email" forever, so it cannot answer "how did this session
+// start". The JWT carries app_metadata.provider per token, set by GoTrue when
+// the session was minted.
+//
+// This only READS the claim to decide which of two admin doors was used. The
+// token's authenticity is established separately, by exchanging it with
+// Supabase in getVerifiedUser(). A forged claim in an unsigned token gets a
+// 401 there before this value is ever consulted.
+function sessionProvider(req) {
+  try {
+    const auth = req.headers.authorization || '';
+    if (!auth.startsWith('Bearer ')) return null;
+    const parts = auth.slice(7).split('.');
+    if (parts.length !== 3) return null;
+    const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8'));
+    const meta = payload.app_metadata || {};
+    return meta.provider || null;
+  } catch (e) {
+    return null;
+  }
+}
+
 async function getVerifiedUser(req) {
   try {
     const auth = req.headers.authorization || '';
@@ -93,7 +119,16 @@ async function requireAdmin(req, res) {
     res.status(403).json({ error: 'Forbidden' });
     return null;
   }
+
+  // Google only. A password or magic-link session on an admin account is
+  // rejected even though the account itself qualifies: the panel was designed
+  // to have exactly one door.
+  if (sessionProvider(req) !== 'google') {
+    res.status(403).json({ error: 'Forbidden' });
+    return null;
+  }
+
   return user;
 }
 
-module.exports = { SUPABASE_URL, ADMIN_EMAILS, getServiceKey, getVerifiedUser, isAdmin, requireAdmin };
+module.exports = { SUPABASE_URL, ADMIN_EMAILS, getServiceKey, getVerifiedUser, isAdmin, sessionProvider, requireAdmin };
