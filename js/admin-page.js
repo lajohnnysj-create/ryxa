@@ -35,6 +35,48 @@
     return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }
 
+  // Click a row to copy the whole record, not just the message. The message
+  // alone is rarely enough to act on: the stack, the page, and the app version
+  // are what turn "TypeError" into a fixable report.
+  function errorAsText(e) {
+    var parts = [
+      fmtTime(e.occurred_at),
+      e.message || '(no message)',
+    ];
+    if (e.page) parts.push('page: ' + e.page);
+    if (e.app_version) parts.push('version: ' + e.app_version);
+    if (e.user_id) parts.push('user: ' + e.user_id);
+    if (e.stack) parts.push('', e.stack);
+    return parts.join('\n');
+  }
+
+  // navigator.clipboard needs a secure context AND a user gesture. A click is
+  // a gesture, and admin.html is https, but Safari has historically been
+  // fussy, so fall back to the old textarea+execCommand trick rather than
+  // silently doing nothing.
+  function copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text);
+    }
+    return new Promise(function (resolve, reject) {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.cssText = 'position:fixed;top:-1000px;opacity:0;';
+      document.body.appendChild(ta);
+      ta.select();
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch (err) { ok = false; }
+      document.body.removeChild(ta);
+      ok ? resolve() : reject(new Error('copy failed'));
+    });
+  }
+
+  function flashCopied(tr) {
+    tr.classList.add('copied');
+    setTimeout(function () { tr.classList.remove('copied'); }, 900);
+  }
+
   function renderRows(errors, append) {
     var body = el('err-body');
     if (!append) body.textContent = '';
@@ -65,6 +107,18 @@
 
       tr.appendChild(tdTime); tr.appendChild(tdMsg); tr.appendChild(tdPage);
       tr.appendChild(tdUser); tr.appendChild(tdSrc);
+
+      tr.title = 'Click to copy this error';
+      tr.addEventListener('click', function () {
+        // Selecting text inside a row should not also copy the row. If the
+        // reader has highlighted something, leave them alone.
+        var sel = window.getSelection && window.getSelection().toString();
+        if (sel) return;
+        copyText(errorAsText(e))
+          .then(function () { flashCopied(tr); })
+          .catch(function (err) { console.error('copy failed:', err); });
+      });
+
       body.appendChild(tr);
       oldest = e.occurred_at;
     });
