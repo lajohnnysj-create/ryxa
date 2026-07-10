@@ -40,6 +40,20 @@ function bearerHeaders() {
   };
 }
 
+// Best-effort: flag this connection as needing reconnection so Settings can
+// show a "Reconnection needed" badge. Cleared automatically by the next
+// successful refresh (the success write sets needs_reconnect = false).
+async function markNeedsReconnect(userId) {
+  try {
+    await fetch(
+      SUPABASE_URL + '/rest/v1/youtube_connections?user_id=eq.' + encodeURIComponent(userId),
+      { method: 'PATCH', headers: bearerHeaders(), body: JSON.stringify({ needs_reconnect: true }) }
+    );
+  } catch (e) {
+    console.error('markNeedsReconnect failed:', e.message);
+  }
+}
+
 function toInt(v) {
   if (v === null || v === undefined || v === '') return null;
   const n = parseInt(String(v), 10);
@@ -227,6 +241,9 @@ async function refreshYouTubeData(userId) {
   try {
     token = await ensureFreshToken(userId, conn);
   } catch (e) {
+    // Every ensureFreshToken failure is a token-death class error; flag the
+    // connection so Settings shows "Reconnection needed".
+    await markNeedsReconnect(userId);
     return { ok: false, error: e.message };
   }
 
@@ -371,6 +388,7 @@ async function refreshYouTubeData(userId) {
   // ---- 5. Write ----
   collected.data_last_fetched_at = new Date().toISOString();
   collected.data_fetch_error = errors.length > 0 ? errors.join(' | ') : null;
+  collected.needs_reconnect = false;
   collected.last_refreshed_at = new Date().toISOString();
 
   const updateRes = await fetch(

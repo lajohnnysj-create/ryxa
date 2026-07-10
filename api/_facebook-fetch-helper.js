@@ -48,6 +48,20 @@ function bearerHeaders() {
   };
 }
 
+// Best-effort: flag this connection as needing reconnection so Settings can
+// show a "Reconnection needed" badge. Cleared automatically by the next
+// successful refresh (the success write sets needs_reconnect = false).
+async function markNeedsReconnect(userId) {
+  try {
+    await fetch(
+      SUPABASE_URL + '/rest/v1/facebook_connections?user_id=eq.' + encodeURIComponent(userId),
+      { method: 'PATCH', headers: bearerHeaders(), body: JSON.stringify({ needs_reconnect: true }) }
+    );
+  } catch (e) {
+    console.error('markNeedsReconnect failed:', e.message);
+  }
+}
+
 // Graph GET. Returns parsed JSON; throws on non-200 with the Graph error message.
 async function fb(path, token, extraParams) {
   const params = new URLSearchParams(Object.assign({ access_token: token }, extraParams || {}));
@@ -132,6 +146,7 @@ async function refreshFacebookData(userId) {
   try {
     token = decryptToken(conn.page_access_token);
   } catch (e) {
+    await markNeedsReconnect(userId);
     return { ok: false, error: 'Stored token unreadable, please reconnect' };
   }
 
@@ -149,6 +164,7 @@ async function refreshFacebookData(userId) {
     }
   } catch (e) {
     // If even the Page object fails, the token is likely dead/revoked.
+    await markNeedsReconnect(userId);
     return { ok: false, error: 'data_fetch_error: ' + e.message };
   }
 
@@ -169,6 +185,7 @@ async function refreshFacebookData(userId) {
   }
 
   collected.cached_data = insights;
+  collected.needs_reconnect = false;
 
   try {
     await updateConnection(userId, collected);

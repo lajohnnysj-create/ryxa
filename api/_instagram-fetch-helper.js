@@ -1,4 +1,4 @@
-// Shared Instagram data fetcher — imported by:
+// Shared Instagram data fetcher - imported by:
 //   - api/instagram-data-fetch.js  (creator-triggered, auto + manual refresh)
 //   - api/instagram-cron-refresh.js (background cron, every 3 days)
 //
@@ -30,6 +30,20 @@ function bearerHeaders() {
     Authorization: 'Bearer ' + SUPABASE_SERVICE_KEY,
     'Content-Type': 'application/json'
   };
+}
+
+// Best-effort: flag this connection as needing reconnection so Settings can
+// show a "Reconnection needed" badge. Cleared automatically by the next
+// successful refresh (the success write sets needs_reconnect = false).
+async function markNeedsReconnect(userId) {
+  try {
+    await fetch(
+      SUPABASE_URL + '/rest/v1/instagram_connections?user_id=eq.' + encodeURIComponent(userId),
+      { method: 'PATCH', headers: bearerHeaders(), body: JSON.stringify({ needs_reconnect: true }) }
+    );
+  } catch (e) {
+    console.error('markNeedsReconnect failed:', e.message);
+  }
 }
 
 // Fetch a Graph API endpoint, return parsed JSON or throw with context
@@ -75,7 +89,7 @@ async function loadConnection(userId) {
 }
 
 // ============================================================
-// FETCH BLOCKS — each isolated so partial failures don't kill the whole refresh
+// FETCH BLOCKS - each isolated so partial failures don't kill the whole refresh
 // ============================================================
 
 async function fetchProfile(token) {
@@ -105,7 +119,7 @@ async function fetchAccountInsights(token) {
 }
 
 async function fetchDemographics(token, breakdown) {
-  // Follower demographics. Requires 100+ followers — Instagram returns an error otherwise.
+  // Follower demographics. Requires 100+ followers - Instagram returns an error otherwise.
   // We catch that error in the calling function and treat it as "not enough data".
   return ig('/me/insights', token, {
     metric: 'follower_demographics',
@@ -124,7 +138,7 @@ async function fetchRecentMedia(token) {
 }
 
 async function fetchReelViews(token, mediaId) {
-  // Per-reel view count. Wrapped in try/catch by caller — some reels return
+  // Per-reel view count. Wrapped in try/catch by caller - some reels return
   // permission errors depending on age/privacy, which is fine to skip.
   return ig('/' + mediaId + '/insights', token, {
     metric: 'ig_reels_video_view_total_count'
@@ -194,9 +208,10 @@ async function refreshInstagramData(userId) {
     token = decryptToken(conn.access_token);
   } catch (e) {
     console.error('Token decrypt failed for user', userId, ':', e.message);
+    await markNeedsReconnect(userId);
     return { ok: false, error: 'Token decryption failed; reconnect Instagram' };
   }
-  if (!token) return { ok: false, error: 'No access token stored; reconnect Instagram' };
+  if (!token) { await markNeedsReconnect(userId); return { ok: false, error: 'No access token stored; reconnect Instagram' }; }
   const collected = {};
   const errors = [];
 
@@ -240,7 +255,7 @@ async function refreshInstagramData(userId) {
     collected.avg_likes = avg(likes);
     collected.avg_comments = avg(comments);
 
-    // Reel views — fetch per-reel insights for items that are reels
+    // Reel views - fetch per-reel insights for items that are reels
     const reels = items.filter(m => m.media_product_type === 'REELS');
     const reelViewPromises = reels.slice(0, 10).map(async r => {
       try {
@@ -288,11 +303,11 @@ async function refreshInstagramData(userId) {
       collected.avg_story_views = null;
     }
   } catch (e) {
-    // Story endpoint can 400 if there are no stories — non-fatal
+    // Story endpoint can 400 if there are no stories - non-fatal
     collected.avg_story_views = null;
   }
 
-  // ---- 6. Demographics — 4 separate calls, gracefully handle <100 follower error ----
+  // ---- 6. Demographics - 4 separate calls, gracefully handle <100 follower error ----
   // Instagram returns code 10 / subcode 2207050 when account has under 100 followers.
   let demographicsErrorNoted = false;
   const demographicsBreakdowns = [
@@ -323,6 +338,7 @@ async function refreshInstagramData(userId) {
   // ---- 7. Write everything back to the DB ----
   collected.data_last_fetched_at = new Date().toISOString();
   collected.data_fetch_error = errors.length > 0 ? errors.join(' | ') : null;
+  collected.needs_reconnect = false;
   collected.last_refreshed_at = new Date().toISOString();
 
   const updateRes = await fetch(
