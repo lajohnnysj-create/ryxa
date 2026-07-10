@@ -183,6 +183,14 @@ function prodShowSpinnerStatus(host, text) {
 
 prodRegisterAction('retry-list', function() { loadProductsList(); });
 
+// Retry for a failed editor load: re-runs the full open for the same product.
+// Nothing user-entered can be lost because the failed state has blank fields
+// and locked controls.
+prodRegisterAction('retry-editor-load', function() {
+  if (!productsState.editingId) return;
+  openProductEditor(productsState.editingId);
+});
+
 async function loadProductsList() {
   var listEl = document.getElementById('products-list');
   var emptyEl = document.getElementById('products-empty');
@@ -358,20 +366,28 @@ async function openProductEditor(productId) {
     msgEl.innerHTML = '';
     msgEl.style.background = '';
     msgEl.style.border = '';
+    msgEl.style.padding = '';
   }
+  // Clear any loading indicator or failure panel left over from a previous
+  // open (e.g. a failed edit-load followed by opening another product).
+  hideEditorLoading();
+  productsState.editorLoadFailed = false;
 
   if (productId) {
     productsState.editingId = productId;
+    productsState.editorLoadFailed = false;
     document.getElementById('products-editor-title').textContent = 'Edit Product';
     document.getElementById('products-danger-zone').style.display = 'block';
 
     // Close the stale-save window: previously, during the awaits below, the
     // form still showed the PREVIOUS product's values (or blanks) with Save
     // fully clickable; a fast Save would overwrite the real row with those
-    // values. Blank the fields and lock every control until the row and its
-    // files have actually loaded.
+    // values. Blank the fields, render the (empty) files area so the previous
+    // product's files never linger on screen, and lock every control until
+    // the row and its files have actually loaded.
     setProductEditorControlsLocked(true);
     hydrateProductEditor(null);
+    renderProductFiles();
     showEditorLoading('Loading product...');
 
     var MAX_LOAD_ATTEMPTS = 3;
@@ -394,13 +410,59 @@ async function openProductEditor(productId) {
           await new Promise(function(resolve) { setTimeout(resolve, 400 * attempt); });
           continue;
         }
-        // Final failure: blocking outcome. Close the editor rather than leave
-        // an editable-looking form with unknown state; re-opening the product
-        // from the list is the retry path.
+        // Final failure: same blocking in-editor state as the course editor.
+        // The editor stays open with every control locked, and a persistent
+        // panel with a Retry button renders in the top message slot. No
+        // modal, no bouncing back to the list; one consistent pattern.
         console.error('Load product failed:', e);
-        hideEditorLoading();
-        showModalAlert('Error', 'Could not load this product. Your product is safe; this is usually a brief connection hiccup. Please try opening it again.');
-        closeProductEditor();
+        productsState.editorLoadFailed = true;
+        if (msgEl) {
+          msgEl.innerHTML = '';
+          msgEl.style.display = 'block';
+          msgEl.style.background = 'transparent';
+          msgEl.style.border = 'none';
+          msgEl.style.padding = '0';
+
+          var panel = document.createElement('div');
+          panel.setAttribute('role', 'alert');
+          panel.style.padding = '20px';
+          panel.style.borderRadius = '12px';
+          panel.style.border = '1px solid rgba(239,68,68,0.35)';
+          panel.style.background = 'rgba(239,68,68,0.08)';
+          panel.style.marginBottom = '16px';
+
+          var heading = document.createElement('div');
+          heading.style.color = '#f87171';
+          heading.style.fontWeight = '600';
+          heading.style.fontSize = '15px';
+          heading.style.marginBottom = '6px';
+          heading.textContent = 'Could not load this product';
+
+          var body = document.createElement('div');
+          body.style.color = 'rgba(255,255,255,0.7)';
+          body.style.fontSize = '14px';
+          body.style.lineHeight = '1.5';
+          body.style.marginBottom = '14px';
+          body.textContent = 'Editing and saving are turned off until the product loads, so your product and files stay safe. This is usually a brief connection hiccup.';
+
+          var retry = document.createElement('button');
+          retry.type = 'button';
+          retry.setAttribute('data-prod-action', 'retry-editor-load');
+          retry.textContent = 'Retry';
+          retry.style.padding = '9px 18px';
+          retry.style.borderRadius = '8px';
+          retry.style.border = '1px solid rgba(255,255,255,0.25)';
+          retry.style.background = 'rgba(255,255,255,0.06)';
+          retry.style.color = '#fff';
+          retry.style.fontWeight = '600';
+          retry.style.cursor = 'pointer';
+
+          panel.appendChild(heading);
+          panel.appendChild(body);
+          panel.appendChild(retry);
+          msgEl.appendChild(panel);
+          panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
         return;
       }
     }
@@ -1087,6 +1149,13 @@ function dpClickCover() {
   document.getElementById('products-cover-input').click();
 }
 function dpClickAddFile() {
+  // File uploads insert DB rows immediately, so they must be unreachable
+  // while the product's state is unknown. The visible controls are locked by
+  // setProductEditorControlsLocked; this guards the upload entry point itself.
+  if (productsState.editorLoadFailed) {
+    showModalAlert('Product not loaded', 'This product could not be loaded. Use the Retry button at the top of the editor before making changes.');
+    return;
+  }
   if (!dpRequireTitleBeforeUpload()) return;
   document.getElementById('products-file-input').click();
 }
