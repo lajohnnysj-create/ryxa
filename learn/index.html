@@ -335,6 +335,10 @@
     <p style="font-size:14px;color:var(--muted);line-height:1.6;max-width:340px;margin:0 auto;">Your courses, products, and bookings. All in one place.</p>
   </div>
   <div class="auth-card">
+    <!-- Filled by learn-page.js when the buyer arrived from a product, course,
+         or booking page. Says why they are looking at a login screen. -->
+    <div id="learn-auth-context" style="display:none;background:rgba(124,58,237,0.10);border:1px solid rgba(124,58,237,0.28);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:13.5px;line-height:1.5;color:var(--text);"></div>
+
     <div style="display:flex;gap:4px;padding:4px;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:16px;">
       <button type="button" class="auth-tab-btn" id="learn-tab-signin" data-learn-action="auth-mode-signin" style="flex:1;padding:8px;border:none;border-radius:7px;font-size:13px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.15s;background:var(--btn-bg);color:var(--btn-text);">Sign In</button>
       <button type="button" class="auth-tab-btn" id="learn-tab-signup" data-learn-action="auth-mode-signup" style="flex:1;padding:8px;border:none;border-radius:7px;font-size:13px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.15s;background:transparent;color:var(--muted);">Create Account</button>
