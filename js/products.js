@@ -141,8 +141,10 @@ function setProductsListLocked(locked) {
 
 // Purple brand spinner + status line, matching the course and booking
 // loaders. Renders into the given host element; if already mounted there,
-// just updates the text so the spin stays smooth across retries.
-function prodShowSpinnerStatus(host, text) {
+// just updates the text so the spin stays smooth across retries. Pass
+// boxed=true for the editor variant, which wraps the spinner in the same
+// bordered box the course curriculum loader uses (list loaders stay bare).
+function prodShowSpinnerStatus(host, text, boxed) {
   if (!host) return;
   if (!document.getElementById('course-load-spin-style')) {
     var styleEl = document.createElement('style');
@@ -159,7 +161,15 @@ function prodShowSpinnerStatus(host, text) {
   wrap.style.display = 'flex';
   wrap.style.alignItems = 'center';
   wrap.style.gap = '10px';
-  wrap.style.padding = '18px 4px';
+  if (boxed) {
+    wrap.style.padding = '14px 16px';
+    wrap.style.borderRadius = '10px';
+    wrap.style.border = '1px solid rgba(255,255,255,0.12)';
+    wrap.style.background = 'rgba(255,255,255,0.04)';
+    wrap.style.marginBottom = '16px';
+  } else {
+    wrap.style.padding = '18px 4px';
+  }
 
   var spinner = document.createElement('div');
   spinner.style.width = '16px';
@@ -211,7 +221,7 @@ async function loadProductsList() {
     try {
       var res = await sb
         .from('digital_products')
-        .select('id, slug, title, description, cover_image_url, price_cents, currency, is_active, total_size_bytes, updated_at')
+        .select('id, slug, title, description, cover_image_url, price_cents, currency, is_active, listed_in_marketplace, total_size_bytes, updated_at')
         .eq('user_id', currentUser.id)
         .order('updated_at', { ascending: false });
       if (res.error) throw res.error;
@@ -362,10 +372,13 @@ async function openProductEditor(productId) {
   var msgEl = document.getElementById('products-editor-msg');
   function showEditorLoading(text) {
     if (!msgEl) return;
+    // Neutralize the slot itself (same as the course editor); the boxed
+    // spinner wrap carries the visual box, so there is exactly one box.
     msgEl.style.display = 'block';
-    msgEl.style.background = 'rgba(255,255,255,0.04)';
-    msgEl.style.border = '1px solid rgba(255,255,255,0.12)';
-    prodShowSpinnerStatus(msgEl, text);
+    msgEl.style.background = 'transparent';
+    msgEl.style.border = 'none';
+    msgEl.style.padding = '0';
+    prodShowSpinnerStatus(msgEl, text, true);
   }
   function hideEditorLoading() {
     if (!msgEl) return;
@@ -386,14 +399,17 @@ async function openProductEditor(productId) {
     document.getElementById('products-editor-title').textContent = 'Edit Product';
     document.getElementById('products-danger-zone').style.display = 'block';
 
-    // Close the stale-save window: previously, during the awaits below, the
-    // form still showed the PREVIOUS product's values (or blanks) with Save
-    // fully clickable; a fast Save would overwrite the real row with those
-    // values. Blank the fields, render the (empty) files area so the previous
-    // product's files never linger on screen, and lock every control until
-    // the row and its files have actually loaded.
+    // Populate fields and chrome (Publish/Unpublish state, marketplace
+    // toggle, title, slug, price, cover) instantly from the in-memory list
+    // cache, exactly like the course editor does with coursesList. Only the
+    // parts that genuinely need the network (the full row and the files)
+    // load behind the lock; the editor never collapses to a stripped
+    // "New Product" look and back. On a cache miss (deep link edge case)
+    // the snapshot is null and fields simply start blank.
+    var cachedSnapshot = (productsState.list || []).find(function(p) { return p.id === productId; }) || null;
+    productsState.editing = cachedSnapshot;
     setProductEditorControlsLocked(true);
-    hydrateProductEditor(null);
+    hydrateProductEditor(cachedSnapshot);
     renderProductFiles();
     showEditorLoading('Loading product...');
 
