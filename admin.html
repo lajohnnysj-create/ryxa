@@ -5,9 +5,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <title>Ryxa Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root { --bg:#07070f; --surface:#0f0f1a; --card:#181828; --text:#f0eef8; --muted:#b4b2c8; --accent:#7c3aed; --danger:#e5484d; --border:rgba(255,255,255,0.08); }
   * { box-sizing:border-box; }
+  /* Wordmark, matching the rest of the site: logo mark plus "Ryxa" in Syne.
+     The page title said "Ryxa Admin", which is a label rather than a brand. */
+  .brand { display:inline-flex; align-items:center; gap:9px; line-height:1; }
+  .brand img { width:34px; height:34px; border-radius:8px; display:block; }
+  .brand-text { font-family:"Syne",sans-serif; font-size:24px; font-weight:800; letter-spacing:-0.5px; color:var(--text); }
+  .topbar { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:22px; }
+  .btn-logout { background:transparent; border:1px solid var(--border); color:var(--muted); border-radius:8px; padding:8px 14px; font-size:13px; font-family:"DM Sans",sans-serif; cursor:pointer; transition:border-color .15s, color .15s; }
+  .btn-logout:hover { border-color:rgba(255,255,255,0.22); color:var(--text); }
   body { margin:0; background:var(--bg); color:var(--text); font-family:"DM Sans",-apple-system,sans-serif; min-height:100vh; }
   .wrap { max-width:1080px; margin:0 auto; padding:calc(24px + env(safe-area-inset-top,0px)) 20px 60px; }
   h1 { font-size:22px; margin:0 0 4px; }
@@ -39,15 +50,23 @@
 <body>
   <div class="wrap">
     <div id="gate" class="gate">
-      <h1>Ryxa Admin</h1>
+      <div class="brand" style="margin-bottom:14px;">
+        <img src="/logo.png?v=2" alt="">
+        <span class="brand-text">Ryxa</span>
+      </div>
       <p class="sub">Restricted area.</p>
       <button class="btn" id="admin-login-btn" data-admin-action="login">Sign in with Google</button>
       <div id="gate-msg" class="denied" style="display:none;"></div>
     </div>
 
     <div id="panel" style="display:none;">
-      <h1>Ryxa Admin</h1>
-      <p class="sub" id="admin-who"></p>
+      <div class="topbar">
+        <div class="brand">
+          <img src="/logo.png?v=2" alt="">
+          <span class="brand-text">Ryxa</span>
+        </div>
+        <button type="button" class="btn-logout" data-admin-action="logout">Sign out</button>
+      </div>
       <div class="stats">
         <div class="stat"><div class="n" id="stat-earnings">-</div><div class="l" id="stat-earnings-detail">Total creator earnings</div></div>
         <div class="stat"><div class="n" id="stat-users">-</div><div class="l">Total creators</div></div>
