@@ -1,5 +1,5 @@
 // =============================================================================
-// /js/products.js — Digital Products (extracted from dashboard.html, 2026-05-10)
+// /js/products.js - Digital Products (extracted from dashboard.html, 2026-05-10)
 // -----------------------------------------------------------------------------
 // All JavaScript for the Digital Products tool (Max tier). Extracted from
 // dashboard.html for stricter CSP.
@@ -92,7 +92,7 @@ function showProductsMsg(type, msg, isHtml) {
 // DIGITAL PRODUCTS
 // =====================================================
 
-// Hard limits — must match SQL bucket config and migration
+// Hard limits - must match SQL bucket config and migration
 var DP_MAX_FILE_BYTES    = 1024 * 1024 * 1024;          // 1 GB
 var DP_MAX_ACCOUNT_BYTES = 10 * 1024 * 1024 * 1024;     // 10 GB shared cap with courses
 
@@ -129,30 +129,103 @@ function initDigitalProducts() {
   refreshProductsStorage();
 }
 
+// Lock/unlock the New Product button while the products list is loading or in
+// a failed state. Visible (dimmed) lock, same pattern as coaching and courses.
+function setProductsListLocked(locked) {
+  var btn = document.querySelector('#products-list-view button[data-prod-action="open-editor"]');
+  if (!btn) return;
+  btn.disabled = locked;
+  btn.style.opacity = locked ? '0.5' : '';
+  btn.style.cursor = locked ? 'not-allowed' : '';
+}
+
+prodRegisterAction('retry-list', function() { loadProductsList(); });
+
 async function loadProductsList() {
   var listEl = document.getElementById('products-list');
   var emptyEl = document.getElementById('products-empty');
+
+  // Lock New Product and show loading from the first moment. Also force the
+  // list element visible and the empty state hidden HERE, not just on
+  // success: previously, if the empty state was showing and a reload then
+  // failed, the error text was written into the still-hidden list element
+  // while "no products yet" stayed on screen, a failed load masquerading as
+  // an empty account.
+  setProductsListLocked(true);
+  if (emptyEl) emptyEl.style.display = 'none';
+  listEl.style.display = 'block';
   listEl.innerHTML = '<div class="prod-s-8e22b6">Loading...</div>';
-  try {
-    var { data, error } = await sb
-      .from('digital_products')
-      .select('id, slug, title, description, cover_image_url, price_cents, currency, is_active, total_size_bytes, updated_at')
-      .eq('user_id', currentUser.id)
-      .order('updated_at', { ascending: false });
-    if (error) throw error;
-    productsState.list = data || [];
-    if (!productsState.list.length) {
+
+  var MAX_LOAD_ATTEMPTS = 3;
+  for (var attempt = 1; attempt <= MAX_LOAD_ATTEMPTS; attempt++) {
+    try {
+      var res = await sb
+        .from('digital_products')
+        .select('id, slug, title, description, cover_image_url, price_cents, currency, is_active, total_size_bytes, updated_at')
+        .eq('user_id', currentUser.id)
+        .order('updated_at', { ascending: false });
+      if (res.error) throw res.error;
+      productsState.list = res.data || [];
+      setProductsListLocked(false);
+      if (!productsState.list.length) {
+        listEl.innerHTML = '';
+        listEl.style.display = 'none';
+        emptyEl.style.display = 'block';
+        return;
+      }
+      listEl.style.display = 'grid';
+      emptyEl.style.display = 'none';
+      renderProductsList();
+      return;
+    } catch (e) {
+      if (attempt < MAX_LOAD_ATTEMPTS) {
+        listEl.innerHTML = '<div class="prod-s-8e22b6">Having trouble loading your products. Retrying...</div>';
+        await new Promise(function(resolve) { setTimeout(resolve, 400 * attempt); });
+        continue;
+      }
+      // Final failure: blocking panel with Retry; New Product stays locked.
+      console.error('loadProductsList failed:', e);
+      listEl.style.display = 'block';
       listEl.innerHTML = '';
-      listEl.style.display = 'none';
-      emptyEl.style.display = 'block';
+      var panel = document.createElement('div');
+      panel.setAttribute('role', 'alert');
+      panel.style.padding = '20px';
+      panel.style.borderRadius = '12px';
+      panel.style.border = '1px solid rgba(239,68,68,0.35)';
+      panel.style.background = 'rgba(239,68,68,0.08)';
+
+      var heading = document.createElement('div');
+      heading.style.color = '#f87171';
+      heading.style.fontWeight = '600';
+      heading.style.fontSize = '15px';
+      heading.style.marginBottom = '6px';
+      heading.textContent = 'Could not load your products';
+
+      var body = document.createElement('div');
+      body.style.color = 'rgba(255,255,255,0.7)';
+      body.style.fontSize = '14px';
+      body.style.lineHeight = '1.5';
+      body.style.marginBottom = '14px';
+      body.textContent = 'Your products are safe; they just could not be loaded right now. This is usually a brief connection hiccup.';
+
+      var retry = document.createElement('button');
+      retry.type = 'button';
+      retry.setAttribute('data-prod-action', 'retry-list');
+      retry.textContent = 'Retry';
+      retry.style.padding = '9px 18px';
+      retry.style.borderRadius = '8px';
+      retry.style.border = '1px solid rgba(255,255,255,0.25)';
+      retry.style.background = 'rgba(255,255,255,0.06)';
+      retry.style.color = '#fff';
+      retry.style.fontWeight = '600';
+      retry.style.cursor = 'pointer';
+
+      panel.appendChild(heading);
+      panel.appendChild(body);
+      panel.appendChild(retry);
+      listEl.appendChild(panel);
       return;
     }
-    listEl.style.display = 'grid';
-    emptyEl.style.display = 'none';
-    renderProductsList();
-  } catch (e) {
-    console.error('loadProductsList failed:', e);
-    listEl.innerHTML = '<div class="prod-s-988306">Could not load your products</div>';
   }
 }
 
@@ -199,6 +272,21 @@ async function refreshProductsStorage() {
   }
 }
 
+// Lock/unlock every control that acts on this product, as one unit: Save,
+// Publish/Unpublish, marketplace toggle, and Delete. Locked while the product
+// row and its files are loading; a product whose state is unknown must not
+// accept any action, and stale on-screen fields must never be saveable.
+function setProductEditorControlsLocked(locked) {
+  var ids = ['products-save-btn', 'products-publish-btn', 'products-marketplace-btn', 'products-delete-btn'];
+  ids.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.disabled = locked;
+    el.style.opacity = locked ? '0.5' : '';
+    el.style.cursor = locked ? 'not-allowed' : '';
+  });
+}
+
 async function openProductEditor(productId) {
   document.getElementById('products-list-view').style.display = 'none';
   document.getElementById('products-editor-view').style.display = 'block';
@@ -211,25 +299,70 @@ async function openProductEditor(productId) {
   productsState.coverFile = null;
   productsState.coverPreviewUrl = null;
   productsState.coverRemoved = false;
+  // Start unlocked; the edit branch locks for the duration of its load.
+  setProductEditorControlsLocked(false);
+
+  var msgEl = document.getElementById('products-editor-msg');
+  function showEditorLoading(text) {
+    if (!msgEl) return;
+    msgEl.style.display = 'block';
+    msgEl.style.background = 'rgba(255,255,255,0.04)';
+    msgEl.style.border = '1px solid rgba(255,255,255,0.12)';
+    msgEl.style.color = 'rgba(255,255,255,0.7)';
+    msgEl.textContent = text;
+  }
+  function hideEditorLoading() {
+    if (!msgEl) return;
+    msgEl.style.display = 'none';
+    msgEl.textContent = '';
+    msgEl.style.background = '';
+    msgEl.style.border = '';
+    msgEl.style.color = '';
+  }
 
   if (productId) {
     productsState.editingId = productId;
     document.getElementById('products-editor-title').textContent = 'Edit Product';
     document.getElementById('products-danger-zone').style.display = 'block';
-    try {
-      var { data: prod, error: e1 } = await sb.from('digital_products').select('*').eq('id', productId).eq('user_id', currentUser.id).single();
-      if (e1) throw e1;
-      productsState.editing = prod;
-      var { data: files, error: e2 } = await sb.from('digital_product_files').select('*').eq('product_id', productId).order('sort_order', { ascending: true });
-      if (e2) throw e2;
-      productsState.editingFiles = files || [];
-      productsState.editingProductBytes = (files || []).reduce(function(s,f){return s + Number(f.file_size_bytes || 0);}, 0);
-      hydrateProductEditor(prod);
-    } catch (e) {
-      console.error('Load product failed:', e);
-      showModalAlert('Error', 'Could not load this product.');
-      closeProductEditor();
-      return;
+
+    // Close the stale-save window: previously, during the awaits below, the
+    // form still showed the PREVIOUS product's values (or blanks) with Save
+    // fully clickable; a fast Save would overwrite the real row with those
+    // values. Blank the fields and lock every control until the row and its
+    // files have actually loaded.
+    setProductEditorControlsLocked(true);
+    hydrateProductEditor(null);
+    showEditorLoading('Loading product...');
+
+    var MAX_LOAD_ATTEMPTS = 3;
+    for (var attempt = 1; attempt <= MAX_LOAD_ATTEMPTS; attempt++) {
+      try {
+        var prodRes = await sb.from('digital_products').select('*').eq('id', productId).eq('user_id', currentUser.id).single();
+        if (prodRes.error) throw prodRes.error;
+        var filesRes = await sb.from('digital_product_files').select('*').eq('product_id', productId).order('sort_order', { ascending: true });
+        if (filesRes.error) throw filesRes.error;
+        productsState.editing = prodRes.data;
+        productsState.editingFiles = filesRes.data || [];
+        productsState.editingProductBytes = (filesRes.data || []).reduce(function(s, f) { return s + Number(f.file_size_bytes || 0); }, 0);
+        hydrateProductEditor(prodRes.data);
+        hideEditorLoading();
+        setProductEditorControlsLocked(false);
+        break;
+      } catch (e) {
+        if (attempt < MAX_LOAD_ATTEMPTS) {
+          showEditorLoading('Having trouble loading this product. Retrying...');
+          await new Promise(function(resolve) { setTimeout(resolve, 400 * attempt); });
+          continue;
+        }
+        // Final failure: blocking outcome. Close the editor rather than leave
+        // an editable-looking form with unknown state; re-opening the product
+        // from the list is the retry path.
+        console.error('Load product failed:', e);
+        hideEditorLoading();
+        showModalAlert('Error', 'Could not load this product. Your product is safe; this is usually a brief connection hiccup. Please try opening it again.');
+        closeProductEditor();
+        return;
+      }
     }
   } else {
     productsState.editingId = null;
@@ -894,7 +1027,7 @@ async function removeProductFile(fileId) {
   });
 }
 
-// Guard helpers — title is required before any upload because we need a
+// Guard helpers - title is required before any upload because we need a
 // product ID to namespace the storage path. Show a clear message and
 // focus the title input if it's missing.
 function dpRequireTitleBeforeUpload() {
@@ -993,7 +1126,7 @@ async function dpCompressCoverImage(file) {
   });
 }
 
-// Cover image select — held in memory until Save (matches Course/Coaching pattern).
+// Cover image select - held in memory until Save (matches Course/Coaching pattern).
 // Reads the file, compresses it, generates a preview blob URL, and stores
 // the File on productsState. Actual upload happens in saveProduct().
 async function onProductCoverSelect(input) {
@@ -1028,7 +1161,7 @@ async function onProductCoverSelect(input) {
   }
 }
 
-// Remove cover — clears the in-memory File and the preview. The actual storage
+// Remove cover - clears the in-memory File and the preview. The actual storage
 // object (if any) is deleted when the user hits Save.
 function removeProductCover() {
   showModalConfirm('Remove cover image?', 'The cover image will be removed when you save.', function() {
@@ -1174,15 +1307,22 @@ async function saveProduct() {
       description: description || null,
       price_cents: priceCents,
       delivery_message: deliveryMessage || null
-      // is_active is left alone — managed by the Publish/Unpublish toggle separately
+      // is_active is left alone - managed by the Publish/Unpublish toggle separately
     };
     if (newCoverUrl !== null) payload.cover_image_url = newCoverUrl;
     if (clearCoverInDb) payload.cover_image_url = null;
 
     var savedId;
     if (productsState.editingId) {
-      var { error } = await sb.from('digital_products').update(payload).eq('id', productsState.editingId);
-      if (error) throw error;
+      // .select('id') so a zero-row update (RLS mismatch after an identity
+      // change in another tab, or a product deleted elsewhere) is a visible
+      // failure rather than a silent "Saved!" that saved nothing. Same
+      // pattern as the course and booking saves.
+      var updRes = await sb.from('digital_products').update(payload).eq('id', productsState.editingId).select('id');
+      if (updRes.error) throw updRes.error;
+      if (!updRes.data || updRes.data.length === 0) {
+        throw new Error('Nothing was saved. You may have been signed out. Reload and try again.');
+      }
       savedId = productsState.editingId;
     } else {
       payload.user_id = currentUser.id;
@@ -1216,7 +1356,7 @@ async function saveProduct() {
     Object.assign(productsState.editing, payload);
 
     // Best-effort cleanup of the previous cover storage object
-    // (only after the new cover/null write succeeded — prevents orphan loss
+    // (only after the new cover/null write succeeded - prevents orphan loss
     //  on failure, prevents orphan accumulation on success).
     if (oldCoverPath && (newCoverUrl !== null || clearCoverInDb)) {
       try {
@@ -1448,7 +1588,7 @@ async function deleteProduct() {
 
 
 // =============================================================================
-// ACTION REGISTRATIONS — wired up below as part of Phase 2
+// ACTION REGISTRATIONS - wired up below as part of Phase 2
 // =============================================================================
 
 // Markup buttons
