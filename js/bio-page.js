@@ -1368,7 +1368,9 @@ async function submitSubscribe() {
       msg.textContent = "Too many attempts. Please try again later.";
       msg.style.color = '#fca5a5';
     } else if (resp.ok && payload.already_subscribed) {
-      msg.textContent = "You're already subscribed!";
+      // Legacy branch: the endpoint no longer returns this flag. Kept only so
+      // a cached client cannot fall through to the error message.
+      msg.textContent = 'Thanks for subscribing!';
       msg.style.color = 'var(--accent)';
     } else if (resp.ok) {
       msg.textContent = 'Thanks for subscribing!';
