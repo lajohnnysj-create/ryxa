@@ -17,6 +17,13 @@
   .brand img { width:34px; height:34px; border-radius:8px; display:block; }
   .brand-text { font-family:"Syne",sans-serif; font-size:24px; font-weight:800; letter-spacing:-0.5px; color:var(--text); }
   .topbar { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:22px; }
+  /* Error rows are click-to-copy. The cursor says so, and a brief flash
+     confirms it: a copy that gives no feedback feels like a dead click. */
+  .err-row { cursor:pointer; transition:background .12s; }
+  .err-row:hover { background:rgba(255,255,255,0.03); }
+  .err-row.copied td { background:rgba(74,222,128,0.10); }
+  .err-row.copied td:first-child { box-shadow:inset 2px 0 0 #4ade80; }
+  @media (prefers-reduced-motion: reduce) { .err-row { transition:none; } }
   .btn-logout { background:transparent; border:1px solid var(--border); color:var(--muted); border-radius:8px; padding:8px 14px; font-size:13px; font-family:"DM Sans",sans-serif; cursor:pointer; transition:border-color .15s, color .15s; }
   .btn-logout:hover { border-color:rgba(255,255,255,0.22); color:var(--text); }
   body { margin:0; background:var(--bg); color:var(--text); font-family:"DM Sans",-apple-system,sans-serif; min-height:100vh; }
