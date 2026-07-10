@@ -988,8 +988,8 @@ function showCourseModulesLoading(text) {
   const spinner = document.createElement('div');
   spinner.style.width = '16px';
   spinner.style.height = '16px';
-  spinner.style.border = '2px solid rgba(255,255,255,0.15)';
-  spinner.style.borderTopColor = 'rgba(255,255,255,0.7)';
+  spinner.style.border = '2px solid rgba(124,58,237,0.25)';
+  spinner.style.borderTopColor = '#7c3aed';
   spinner.style.borderRadius = '50%';
   spinner.style.animation = 'courseLoadSpin 0.7s linear infinite';
   spinner.style.flexShrink = '0';

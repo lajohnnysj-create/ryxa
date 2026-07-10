@@ -1,5 +1,5 @@
 // =============================================================================
-// /js/coaching.js — 1:1 Booking (extracted from dashboard.html, 2026-05-10)
+// /js/coaching.js - 1:1 Booking (extracted from dashboard.html, 2026-05-10)
 // -----------------------------------------------------------------------------
 // All JavaScript for the 1:1 Booking tool (formerly "Coaching", Max tier).
 // Extracted from dashboard.html for stricter CSP and easier maintenance.
@@ -102,18 +102,157 @@ function initCoachingTool() {
   if (max) loadCoachingList();
 }
 
-async function loadCoachingList() {
-  const { data, error } = await sb.from('coaching_services').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
-  if (error) { console.error('Failed to load coaching:', error); return; }
-  coachingList = data || [];
+// Lock/unlock the New Service button while the services list is loading or in
+// a failed state. A list in an unknown state must not accept actions, and the
+// lock must be visible (dimmed), not just functional.
+function setCoachingListLocked(locked) {
+  var btn = document.getElementById('coaching-create-btn');
+  if (!btn) return;
+  btn.disabled = locked;
+  btn.style.opacity = locked ? '0.5' : '';
+  btn.style.cursor = locked ? 'not-allowed' : '';
+}
 
-  for (var i = 0; i < coachingList.length; i++) {
-    var c = coachingList[i];
-    var { count } = await sb.from('coaching_bookings').select('id', { count: 'exact', head: true }).eq('coaching_id', c.id);
-    c._bookings = count || 0;
+// Loading indicator for the services list. Same pattern as the course
+// curriculum loader: visible from the first moment, upgraded to a retrying
+// message if attempts fail, so a load in progress is never a silent blank
+// and a failed load can never masquerade as "you have no services".
+function coachShowListLoading(text) {
+  var grid = document.getElementById('coaching-grid');
+  var empty = document.getElementById('coaching-empty');
+  if (empty) empty.style.display = 'none';
+  if (!grid) return;
+
+  if (!document.getElementById('course-load-spin-style')) {
+    var styleEl = document.createElement('style');
+    styleEl.id = 'course-load-spin-style';
+    styleEl.textContent = '@keyframes courseLoadSpin { to { transform: rotate(360deg); } }';
+    document.head.appendChild(styleEl);
   }
 
-  renderCoachingList();
+  var existing = grid.querySelector('[data-coach-loading-text]');
+  if (existing) { existing.textContent = text; return; }
+
+  grid.style.display = 'block';
+  grid.innerHTML = '';
+  var wrap = document.createElement('div');
+  wrap.setAttribute('role', 'status');
+  wrap.style.display = 'flex';
+  wrap.style.alignItems = 'center';
+  wrap.style.gap = '10px';
+  wrap.style.padding = '18px 4px';
+
+  var spinner = document.createElement('div');
+  spinner.style.width = '16px';
+  spinner.style.height = '16px';
+  spinner.style.border = '2px solid rgba(124,58,237,0.25)';
+  spinner.style.borderTopColor = '#7c3aed';
+  spinner.style.borderRadius = '50%';
+  spinner.style.animation = 'courseLoadSpin 0.7s linear infinite';
+  spinner.style.flexShrink = '0';
+
+  var label = document.createElement('div');
+  label.setAttribute('data-coach-loading-text', '1');
+  label.style.color = 'rgba(255,255,255,0.7)';
+  label.style.fontSize = '14px';
+  label.textContent = text;
+
+  wrap.appendChild(spinner);
+  wrap.appendChild(label);
+  grid.appendChild(wrap);
+}
+
+// Blocking failure state for the services list. Previously a failed load was
+// a silent console.error, leaving the list looking empty, which reads as
+// "you have no services" to a creator. Now it is a persistent panel with a
+// Retry button, and the New Service button stays locked until a clean load.
+function coachShowListFailed() {
+  var grid = document.getElementById('coaching-grid');
+  var empty = document.getElementById('coaching-empty');
+  if (empty) empty.style.display = 'none';
+  if (!grid) return;
+
+  grid.style.display = 'block';
+  grid.innerHTML = '';
+  var panel = document.createElement('div');
+  panel.setAttribute('role', 'alert');
+  panel.style.padding = '20px';
+  panel.style.borderRadius = '12px';
+  panel.style.border = '1px solid rgba(239,68,68,0.35)';
+  panel.style.background = 'rgba(239,68,68,0.08)';
+
+  var heading = document.createElement('div');
+  heading.style.color = '#f87171';
+  heading.style.fontWeight = '600';
+  heading.style.fontSize = '15px';
+  heading.style.marginBottom = '6px';
+  heading.textContent = 'Could not load your services';
+
+  var body = document.createElement('div');
+  body.style.color = 'rgba(255,255,255,0.7)';
+  body.style.fontSize = '14px';
+  body.style.lineHeight = '1.5';
+  body.style.marginBottom = '14px';
+  body.textContent = 'Your services are safe; they just could not be loaded right now. This is usually a brief connection hiccup.';
+
+  var retry = document.createElement('button');
+  retry.type = 'button';
+  retry.setAttribute('data-coach-action', 'retry-list');
+  retry.textContent = 'Retry';
+  retry.style.padding = '9px 18px';
+  retry.style.borderRadius = '8px';
+  retry.style.border = '1px solid rgba(255,255,255,0.25)';
+  retry.style.background = 'rgba(255,255,255,0.06)';
+  retry.style.color = '#fff';
+  retry.style.fontWeight = '600';
+  retry.style.cursor = 'pointer';
+
+  panel.appendChild(heading);
+  panel.appendChild(body);
+  panel.appendChild(retry);
+  grid.appendChild(panel);
+}
+
+coachRegisterAction('retry-list', function() { loadCoachingList(); });
+
+async function loadCoachingList() {
+  // Lock the New Service button and show visible loading from the first
+  // moment. Unlocks only after a clean load; stays locked on failure.
+  setCoachingListLocked(true);
+  coachShowListLoading('Loading your services...');
+
+  var MAX_LOAD_ATTEMPTS = 3;
+  for (var attempt = 1; attempt <= MAX_LOAD_ATTEMPTS; attempt++) {
+    try {
+      var res = await sb.from('coaching_services').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
+      if (res.error) throw res.error;
+      coachingList = res.data || [];
+
+      for (var i = 0; i < coachingList.length; i++) {
+        var c = coachingList[i];
+        // Booking counts are decoration; a query-level error here returns
+        // { count: null } rather than throwing, and falls back to 0. Only a
+        // hard network failure rejects, which correctly triggers a retry.
+        var countRes = await sb.from('coaching_bookings').select('id', { count: 'exact', head: true }).eq('coaching_id', c.id);
+        c._bookings = countRes.count || 0;
+      }
+
+      setCoachingListLocked(false);
+      renderCoachingList();
+      return;
+    } catch (err) {
+      if (attempt < MAX_LOAD_ATTEMPTS) {
+        coachShowListLoading('Having trouble loading your services. Retrying...');
+        await new Promise(function(resolve) { setTimeout(resolve, 400 * attempt); });
+        continue;
+      }
+      // Final failure: blocking panel with Retry; New Service stays locked.
+      // A failed load must never masquerade as an empty list.
+      console.error('Failed to load coaching:', err);
+      coachShowListFailed();
+      return;
+    }
+  }
 }
 
 function renderCoachingList() {
@@ -629,7 +768,7 @@ function setCoachingTzHint() {
   // Display label: drop the IANA continent prefix and append the current
   // UTC offset for confirmation (handles DST automatically via Intl).
   // Example: 'America/Los_Angeles' → 'Los Angeles (UTC−7)'. Mirrors
-  // calFormatTzLabel in calendar.js — kept inline to avoid cross-file deps.
+  // calFormatTzLabel in calendar.js - kept inline to avoid cross-file deps.
   var label = tz;
   if (tz) {
     var idx = tz.lastIndexOf('/');
@@ -661,7 +800,7 @@ function setCoachingTzHint() {
 }
 
 function renderAvailabilityDays() {
-  // Keep the timezone hint in sync with each render — covers fresh open,
+  // Keep the timezone hint in sync with each render - covers fresh open,
   // toggling availability days, and any other re-render path.
   setCoachingTzHint();
   var container = document.getElementById('coaching-avail-days');
@@ -672,7 +811,7 @@ function renderAvailabilityDays() {
     var d = coachingAvailability.days[k];
     var enabled = d.enabled;
     // Enabled/disabled visual state expressed via a class modifier instead of
-    // inline style — CSP-strict. `.coach-avail-row.is-disabled` handles the
+    // inline style - CSP-strict. `.coach-avail-row.is-disabled` handles the
     // dimmed bg and reduced opacity on the right pane.
     var rowClass = 'coach-avail-row' + (enabled ? '' : ' is-disabled');
     // Layout: checkbox + day name on the left (fixed width), Start/End pickers
@@ -906,8 +1045,15 @@ async function saveCoaching() {
     if (coverPath) payload.cover_image_path = coverPath;
 
     if (currentCoachingId) {
-      const { error } = await sb.from('coaching_services').update(payload).eq('id', currentCoachingId);
-      if (error) throw error;
+      // .select('id') so a zero-row update (RLS mismatch after an identity
+      // change in another tab, or a service deleted elsewhere) is a visible
+      // failure rather than a silent "Saved!" that saved nothing. Same
+      // pattern as the course save.
+      const updRes = await sb.from('coaching_services').update(payload).eq('id', currentCoachingId).select('id');
+      if (updRes.error) throw updRes.error;
+      if (!updRes.data || updRes.data.length === 0) {
+        throw new Error('Nothing was saved. You may have been signed out. Reload and try again.');
+      }
       const idx = coachingList.findIndex(c => c.id === currentCoachingId);
       if (idx >= 0) Object.assign(coachingList[idx], payload);
     } else {
@@ -1044,7 +1190,7 @@ async function deleteCoaching() {
 
 
 // =============================================================================
-// ACTION REGISTRATIONS — wired up below as part of Phase 2
+// ACTION REGISTRATIONS - wired up below as part of Phase 2
 // =============================================================================
 
 // Markup buttons

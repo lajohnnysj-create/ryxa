@@ -139,6 +139,48 @@ function setProductsListLocked(locked) {
   btn.style.cursor = locked ? 'not-allowed' : '';
 }
 
+// Purple brand spinner + status line, matching the course and booking
+// loaders. Renders into the given host element; if already mounted there,
+// just updates the text so the spin stays smooth across retries.
+function prodShowSpinnerStatus(host, text) {
+  if (!host) return;
+  if (!document.getElementById('course-load-spin-style')) {
+    var styleEl = document.createElement('style');
+    styleEl.id = 'course-load-spin-style';
+    styleEl.textContent = '@keyframes courseLoadSpin { to { transform: rotate(360deg); } }';
+    document.head.appendChild(styleEl);
+  }
+  var existing = host.querySelector('[data-prod-loading-text]');
+  if (existing) { existing.textContent = text; return; }
+
+  host.innerHTML = '';
+  var wrap = document.createElement('div');
+  wrap.setAttribute('role', 'status');
+  wrap.style.display = 'flex';
+  wrap.style.alignItems = 'center';
+  wrap.style.gap = '10px';
+  wrap.style.padding = '18px 4px';
+
+  var spinner = document.createElement('div');
+  spinner.style.width = '16px';
+  spinner.style.height = '16px';
+  spinner.style.border = '2px solid rgba(124,58,237,0.25)';
+  spinner.style.borderTopColor = '#7c3aed';
+  spinner.style.borderRadius = '50%';
+  spinner.style.animation = 'courseLoadSpin 0.7s linear infinite';
+  spinner.style.flexShrink = '0';
+
+  var label = document.createElement('div');
+  label.setAttribute('data-prod-loading-text', '1');
+  label.style.color = 'rgba(255,255,255,0.7)';
+  label.style.fontSize = '14px';
+  label.textContent = text;
+
+  wrap.appendChild(spinner);
+  wrap.appendChild(label);
+  host.appendChild(wrap);
+}
+
 prodRegisterAction('retry-list', function() { loadProductsList(); });
 
 async function loadProductsList() {
@@ -154,7 +196,7 @@ async function loadProductsList() {
   setProductsListLocked(true);
   if (emptyEl) emptyEl.style.display = 'none';
   listEl.style.display = 'block';
-  listEl.innerHTML = '<div class="prod-s-8e22b6">Loading...</div>';
+  prodShowSpinnerStatus(listEl, 'Loading your products...');
 
   var MAX_LOAD_ATTEMPTS = 3;
   for (var attempt = 1; attempt <= MAX_LOAD_ATTEMPTS; attempt++) {
@@ -179,7 +221,7 @@ async function loadProductsList() {
       return;
     } catch (e) {
       if (attempt < MAX_LOAD_ATTEMPTS) {
-        listEl.innerHTML = '<div class="prod-s-8e22b6">Having trouble loading your products. Retrying...</div>';
+        prodShowSpinnerStatus(listEl, 'Having trouble loading your products. Retrying...');
         await new Promise(function(resolve) { setTimeout(resolve, 400 * attempt); });
         continue;
       }
@@ -308,16 +350,14 @@ async function openProductEditor(productId) {
     msgEl.style.display = 'block';
     msgEl.style.background = 'rgba(255,255,255,0.04)';
     msgEl.style.border = '1px solid rgba(255,255,255,0.12)';
-    msgEl.style.color = 'rgba(255,255,255,0.7)';
-    msgEl.textContent = text;
+    prodShowSpinnerStatus(msgEl, text);
   }
   function hideEditorLoading() {
     if (!msgEl) return;
     msgEl.style.display = 'none';
-    msgEl.textContent = '';
+    msgEl.innerHTML = '';
     msgEl.style.background = '';
     msgEl.style.border = '';
-    msgEl.style.color = '';
   }
 
   if (productId) {
