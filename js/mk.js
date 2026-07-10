@@ -1577,9 +1577,45 @@ function syncAudienceModeUI() {
   setAudienceMode(mode);
 }
 
+// ---- Auto-refresh failure backoff ------------------------------------------
+// When a stale-triggered background refresh fails (dead token, provider
+// outage), retrying on every tool open hammers the API with guaranteed 500s
+// and fills the console with noise. Back off for 6 hours per platform after a
+// failure; a successful refresh (auto or manual) clears the backoff. Failures
+// whose error says "reconnect" also surface a single toast pointing the
+// creator to Settings, once per backoff window instead of once per visit.
+const MK_REFRESH_FAIL_BACKOFF_MS = 6 * 60 * 60 * 1000;
+function mkMarkAutoRefreshFailed(key) {
+  try { localStorage.setItem('mk_refresh_fail_' + key, String(Date.now())); } catch (e) {}
+}
+function mkClearAutoRefreshFailed(key) {
+  try { localStorage.removeItem('mk_refresh_fail_' + key); } catch (e) {}
+}
+function mkAutoRefreshBackedOff(key) {
+  try {
+    const t = Number(localStorage.getItem('mk_refresh_fail_' + key)) || 0;
+    return !!t && (Date.now() - t) < MK_REFRESH_FAIL_BACKOFF_MS;
+  } catch (e) { return false; }
+}
+function mkNoteAutoRefreshResult(key, platformLabel, r) {
+  if (r && r.ok) { mkClearAutoRefreshFailed(key); return; }
+  const alreadyBackedOff = mkAutoRefreshBackedOff(key);
+  mkMarkAutoRefreshFailed(key);
+  const msg = r && r.error ? String(r.error) : '';
+  if (/reconnect/i.test(msg) && !alreadyBackedOff) {
+    showMKStatus('error', platformLabel + ' data could not refresh. Reconnect ' + platformLabel + ' in Settings to resume updates.');
+  }
+}
+
 async function loadAudienceAutomatic() {
   const mount = document.getElementById('mk-aud-auto-content');
   if (!mount) return;
+  // Single-flight: overlapping runs are not just wasteful, they are dangerous
+  // for TikTok, whose refresh token is single-use. Two concurrent refreshes
+  // present the same stored token; the second one uses an already-consumed
+  // token, and providers can treat rotated-token reuse as a breach signal and
+  // invalidate the whole grant. One run at a time, always.
+  if (mkAudInflight) return;
   mkLoadRefreshLocks();
   mkAudInflight = true;
   mount.innerHTML = '<div class="mk-aud-loading">Pulling your social media data&hellip;</div>';
@@ -1655,8 +1691,9 @@ async function loadAudienceAutomatic() {
     if (conn) {
       const cacheTs = conn.data_last_fetched_at ? new Date(conn.data_last_fetched_at).getTime() : 0;
       const cacheStale = !cacheTs || (Date.now() - cacheTs) > STALE_MS;
-      if (cacheStale) {
+      if (cacheStale && !mkAutoRefreshBackedOff('ig')) {
         const refreshed = await refreshIGData();
+        mkNoteAutoRefreshResult('ig', 'Instagram', refreshed);
         igResult = (refreshed && refreshed.ok && refreshed.data) ? refreshed.data : conn;
       } else {
         igResult = conn;
@@ -1668,8 +1705,9 @@ async function loadAudienceAutomatic() {
     if (ytConn) {
       const ytTs = ytConn.data_last_fetched_at ? new Date(ytConn.data_last_fetched_at).getTime() : 0;
       const ytStale = !ytTs || (Date.now() - ytTs) > STALE_MS;
-      if (ytStale) {
+      if (ytStale && !mkAutoRefreshBackedOff('yt')) {
         const r = await refreshYTData();
+        mkNoteAutoRefreshResult('yt', 'YouTube', r);
         ytResult = (r && r.ok && r.data) ? r.data : ytConn;
       } else {
         ytResult = ytConn;
@@ -1681,8 +1719,9 @@ async function loadAudienceAutomatic() {
     if (ttConn) {
       const ttTs = ttConn.data_last_fetched_at ? new Date(ttConn.data_last_fetched_at).getTime() : 0;
       const ttStale = !ttTs || (Date.now() - ttTs) > STALE_MS;
-      if (ttStale) {
+      if (ttStale && !mkAutoRefreshBackedOff('tt')) {
         const r = await refreshTTData();
+        mkNoteAutoRefreshResult('tt', 'TikTok', r);
         ttResult = (r && r.ok && r.data) ? r.data : ttConn;
       } else {
         ttResult = ttConn;
@@ -1694,8 +1733,9 @@ async function loadAudienceAutomatic() {
     if (twConn) {
       const twTs = twConn.data_last_fetched_at ? new Date(twConn.data_last_fetched_at).getTime() : 0;
       const twStale = !twTs || (Date.now() - twTs) > STALE_MS;
-      if (twStale) {
+      if (twStale && !mkAutoRefreshBackedOff('tw')) {
         const r = await refreshTWData();
+        mkNoteAutoRefreshResult('tw', 'Twitch', r);
         twResult = (r && r.ok && r.data) ? r.data : twConn;
       } else {
         twResult = twConn;
@@ -1707,8 +1747,9 @@ async function loadAudienceAutomatic() {
     if (fbConn) {
       const fbTs = (fbConn.cached_data && fbConn.cached_data.fetched_at) ? new Date(fbConn.cached_data.fetched_at).getTime() : 0;
       const fbStale = !fbTs || (Date.now() - fbTs) > STALE_MS;
-      if (fbStale) {
+      if (fbStale && !mkAutoRefreshBackedOff('fb')) {
         const r = await refreshFBData();
+        mkNoteAutoRefreshResult('fb', 'Facebook', r);
         fbResult = (r && r.ok && r.data) ? r.data : fbConn;
       } else {
         fbResult = fbConn;
@@ -1785,6 +1826,7 @@ async function manualRefreshYT() {
 
   const res = await refreshYTData();
   if (res && res.ok && res.data) {
+    mkClearAutoRefreshFailed('yt');
     if (mkAudCache) { mkAudCache.ytConnected = true; mkAudCache.yt = res.data; }
     else mkAudCache = { connected: false, data: null, ytConnected: true, yt: res.data };
   }
@@ -1825,6 +1867,7 @@ async function manualRefreshTT() {
 
   const res = await refreshTTData();
   if (res && res.ok && res.data) {
+    mkClearAutoRefreshFailed('tt');
     if (mkAudCache) { mkAudCache.ttConnected = true; mkAudCache.tt = res.data; }
     else mkAudCache = { connected: false, data: null, ttConnected: true, tt: res.data };
   }
@@ -1865,6 +1908,7 @@ async function manualRefreshTW() {
 
   const res = await refreshTWData();
   if (res && res.ok && res.data) {
+    mkClearAutoRefreshFailed('tw');
     if (mkAudCache) { mkAudCache.twConnected = true; mkAudCache.tw = res.data; }
     else mkAudCache = { connected: false, data: null, twConnected: true, tw: res.data };
   }
@@ -1889,6 +1933,7 @@ async function manualRefreshIG() {
 
   const res = await refreshIGData();
   if (res && res.ok && res.data) {
+    mkClearAutoRefreshFailed('ig');
     // Merge into the shared cache, never replace it, or refreshing Instagram
     // would drop the other connected platforms (YouTube/TikTok/Twitch/Facebook)
     // from the preview until the next full load.
@@ -1956,6 +2001,7 @@ async function manualRefreshFB() {
   btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg><span class="mk-aud-row-refresh-label">Refreshing&hellip;</span>';
   const res = await refreshFBData();
   if (res && res.ok && res.data) {
+    mkClearAutoRefreshFailed('fb');
     if (mkAudCache) { mkAudCache.fbConnected = true; mkAudCache.fb = res.data; }
     else mkAudCache = { connected: false, data: null, fbConnected: true, fb: res.data };
   }
