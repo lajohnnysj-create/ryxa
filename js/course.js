@@ -426,8 +426,12 @@ async function saveCourse(opts) {
 
     if (courseId) {
       // Update
-      const { error } = await sb.from('courses').update(payload).eq('id', courseId);
-      if (error) throw new Error(error.message);
+      // .select('id') so a zero-row update (RLS mismatch, deleted course) is a
+      // failure rather than a silent success.
+      assertSaved(
+        await sb.from('courses').update(payload).eq('id', courseId).select('id'),
+        'course'
+      );
     } else {
       // Insert, slug is set once and locked permanently
       payload.user_id = currentUser.id;
@@ -528,8 +532,12 @@ async function toggleCoursePublish() {
   const updates = { status: newStatus };
   if (newStatus === 'published') updates.published_at = new Date().toISOString();
 
-  const { error } = await sb.from('courses').update(updates).eq('id', currentCourseId);
-  if (error) { showCourseMsg('error', 'Failed: ' + error.message); return; }
+  const pubRes = await sb.from('courses').update(updates).eq('id', currentCourseId).select('id');
+  if (pubRes.error) { showCourseMsg('error', 'Failed: ' + pubRes.error.message); return; }
+  if (!pubRes.data || pubRes.data.length === 0) {
+    showCourseMsg('error', 'Nothing was saved. You may have been signed out. Reload and try again.');
+    return;
+  }
 
   if (course) course.status = newStatus;
   const pubBtn = document.getElementById('course-publish-btn');
@@ -546,7 +554,16 @@ async function toggleCoursePublish() {
     pubBtn.style.color = '#4ade80';
     // Unpublishing also unlists from marketplace
     if (course && course.listed_in_marketplace) {
-      await sb.from('courses').update({ listed_in_marketplace: false }).eq('id', currentCourseId);
+      // Was fire-and-forget. A failure here left the course unpublished but
+      // still listed in the marketplace: the wrong direction to fail in.
+      const unlistRes = await sb.from('courses')
+        .update({ listed_in_marketplace: false })
+        .eq('id', currentCourseId)
+        .select('id');
+      if (unlistRes.error || !unlistRes.data || unlistRes.data.length === 0) {
+        showCourseMsg('error', 'Unpublished, but could not remove it from the marketplace. Reload and try again.');
+        return;
+      }
       course.listed_in_marketplace = false;
     }
     document.getElementById('course-marketplace-toggle').style.display = 'none';
@@ -606,8 +623,15 @@ async function toggleCourseMarketplace() {
     }
   }
 
-  const { error } = await sb.from('courses').update({ listed_in_marketplace: newVal }).eq('id', currentCourseId);
-  if (error) { showCourseMsg('error', 'Failed: ' + error.message); return; }
+  const mkRes = await sb.from('courses')
+    .update({ listed_in_marketplace: newVal })
+    .eq('id', currentCourseId)
+    .select('id');
+  if (mkRes.error) { showCourseMsg('error', 'Failed: ' + mkRes.error.message); return; }
+  if (!mkRes.data || mkRes.data.length === 0) {
+    showCourseMsg('error', 'Nothing was saved. You may have been signed out. Reload and try again.');
+    return;
+  }
   course.listed_in_marketplace = newVal;
   updateMarketplaceToggleUI('course', newVal);
   updateMarketplaceCountDisplay();
@@ -628,8 +652,15 @@ async function toggleCoachingMarketplace() {
     }
   }
 
-  const { error } = await sb.from('coaching_services').update({ listed_in_marketplace: newVal }).eq('id', currentCoachingId);
-  if (error) { showCoachingMsg('error', 'Failed: ' + error.message); return; }
+  const mkRes = await sb.from('coaching_services')
+    .update({ listed_in_marketplace: newVal })
+    .eq('id', currentCoachingId)
+    .select('id');
+  if (mkRes.error) { showCoachingMsg('error', 'Failed: ' + mkRes.error.message); return; }
+  if (!mkRes.data || mkRes.data.length === 0) {
+    showCoachingMsg('error', 'Nothing was saved. You may have been signed out. Reload and try again.');
+    return;
+  }
   coaching.listed_in_marketplace = newVal;
   updateMarketplaceToggleUI('coaching', newVal);
   updateMarketplaceCountDisplay();
@@ -648,8 +679,15 @@ async function toggleProductMarketplace() {
     }
   }
 
-  const { error } = await sb.from('digital_products').update({ listed_in_marketplace: newVal }).eq('id', productsState.editingId);
-  if (error) { showProductsMsg('error', 'Failed: ' + error.message); return; }
+  const mkRes = await sb.from('digital_products')
+    .update({ listed_in_marketplace: newVal })
+    .eq('id', productsState.editingId)
+    .select('id');
+  if (mkRes.error) { showProductsMsg('error', 'Failed: ' + mkRes.error.message); return; }
+  if (!mkRes.data || mkRes.data.length === 0) {
+    showProductsMsg('error', 'Nothing was saved. You may have been signed out. Reload and try again.');
+    return;
+  }
   productsState.editing.listed_in_marketplace = newVal;
   updateMarketplaceToggleUI('products', newVal);
   updateMarketplaceCountDisplay();
@@ -744,14 +782,24 @@ async function deleteCourse() {
         if (bioData && Array.isArray(bioData.links)) {
           var filtered = bioData.links.filter(function(l) { return !(l.isCourse && l.courseId === currentCourseId); });
           if (filtered.length !== bioData.links.length) {
-            await sb.from('link_in_bio').update({ links: filtered }).eq('user_id', currentUser.id);
+            // Course already deleted here. A zero-row update means a dead course
+            // link is still on the public bio page, not that the delete failed.
+            var bioRes = await sb.from('link_in_bio')
+              .update({ links: filtered })
+              .eq('user_id', currentUser.id)
+              .select('user_id');
+            if (bioRes.error) throw bioRes.error;
+            if (!bioRes.data || bioRes.data.length === 0) throw new Error('bio link cleanup matched no rows');
             // Also update local state if bio is loaded
             if (typeof bioState !== 'undefined' && bioState.links) {
               bioState.links = bioState.links.filter(function(l) { return !(l.isCourse && l.courseId === currentCourseId); });
             }
           }
         }
-      } catch (bioErr) { console.warn('Failed to clean bio link:', bioErr); }
+      } catch (bioErr) {
+        console.error('Failed to remove the deleted course from Link in Bio:', bioErr);
+        showCourseMsg('error', 'Course deleted, but its link may still be on your bio page. Open Link in Bio and remove it.');
+      }
 
       document.body.removeChild(overlay);
       if (error) { showCourseMsg('error', 'Failed: ' + error.message); return resolve(); }
@@ -976,9 +1024,14 @@ async function saveCourseModules(courseId) {
     const dbMod = dbModulesById[mod.id];
     const newTitle = mod.title || 'Untitled Module';
     if (!dbMod || dbMod.title !== newTitle || dbMod.sort_order !== mi) {
-      const { error: updErr } = await sb.from('course_modules')
+      const modRes = await sb.from('course_modules')
         .update({ title: newTitle, sort_order: mi })
-        .eq('id', mod.id);
+        .eq('id', mod.id)
+        .select('id');
+      const updErr = modRes.error ||
+        (!modRes.data || modRes.data.length === 0
+          ? new Error('Module save matched no rows. Reload and try again.')
+          : null);
       if (updErr) throw updErr;
     }
   }
@@ -1016,9 +1069,14 @@ async function saveCourseModules(courseId) {
         if (insErr || !savedLesson) throw (insErr || new Error('Lesson insert returned no row'));
         lesson.id = savedLesson.id;
       } else {
-        const { error: updErr } = await sb.from('course_lessons')
+        const lesRes = await sb.from('course_lessons')
           .update(lessonPayload)
-          .eq('id', lesson.id);
+          .eq('id', lesson.id)
+          .select('id');
+        const updErr = lesRes.error ||
+          (!lesRes.data || lesRes.data.length === 0
+            ? new Error('Lesson save matched no rows. Reload and try again.')
+            : null);
         if (updErr) throw updErr;
       }
     }
@@ -1113,9 +1171,14 @@ async function saveCourseModules(courseId) {
         // has a 'new_...' id but the DB row for this module_id still
         // exists. The UNIQUE constraint on module_id means we MUST
         // update in place rather than insert. Adopt the DB id.
-        const { error: updErr } = await sb.from('course_quizzes')
+        const quizRes = await sb.from('course_quizzes')
           .update(quizPayload)
-          .eq('id', dbQuiz.id);
+          .eq('id', dbQuiz.id)
+          .select('id');
+        const updErr = quizRes.error ||
+          (!quizRes.data || quizRes.data.length === 0
+            ? new Error('Quiz save matched no rows. Reload and try again.')
+            : null);
         if (updErr) throw updErr;
         localQuiz.id = dbQuiz.id;
       }

@@ -2789,6 +2789,52 @@ function densifyDailySeries(daily, start, end, key) {
   return out;
 }
 
+// ---------------------------------------------------------------------------
+// Save verification
+//
+// supabase-js returns { data: null, error: null } for an UPDATE that matched
+// ZERO rows. It is byte-identical to a successful one. So a save blocked by
+// RLS, or aimed at a row that no longer exists, returns "success" and the UI
+// says "Saved" while nothing was written.
+//
+// This is not hypothetical: signing into a second account in another tab
+// swaps the shared session, every subsequent update matches zero rows under
+// auth.uid() = user_id, and the dashboard cheerfully reports saving for as
+// long as you keep typing.
+//
+// The fix is to ask which rows were touched (.select() on the chain) and treat
+// an empty result as a failure. Every update in this app targets a specific
+// row by id or user_id, so zero rows always means something is wrong.
+//
+//   const res = await sb.from('courses')
+//     .update(payload)
+//     .eq('id', courseId)
+//     .select('id');            // <- ask
+//   assertSaved(res, 'course');  // <- verify
+function assertSaved(res, what) {
+  if (res && res.error) throw new Error(res.error.message);
+  if (!res || !res.data || res.data.length === 0) {
+    throw new Error(
+      'Nothing was saved' + (what ? ' (' + what + ')' : '') +
+      '. You may have been signed out, or this item was deleted. Reload and try again.'
+    );
+  }
+  return res.data;
+}
+
+// Bulk variant: a partial write is not a success. Reordering ten links and
+// writing three of them is a corrupted list, not a saved one.
+function assertAllSaved(res, expected, what) {
+  var rows = assertSaved(res, what);
+  if (rows.length !== expected) {
+    throw new Error(
+      'Only ' + rows.length + ' of ' + expected + ' items saved' +
+      (what ? ' (' + what + ')' : '') + '. Reload and try again.'
+    );
+  }
+  return rows;
+}
+
 function formatDashUSD(cents) {
   return formatMoney(cents, { alwaysShowCents: true });
 }
