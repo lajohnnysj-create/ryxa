@@ -191,6 +191,11 @@ async function openCourseEditor(courseId) {
   courseModules = [];
   courseModulesLoaded = false;
   courseExplicitRemovals = new Set();
+  // Clear any load-failure state carried over from a previously opened course,
+  // so Save and Add Module start enabled. For a new course they stay enabled;
+  // for an existing course, loadCourseModules disables Save during the load and
+  // re-enables it (or re-blocks) based on the outcome.
+  setCourseModulesLoadFailed(false);
   document.getElementById('courses-list-view').style.display = 'none';
   document.getElementById('courses-editor-view').style.display = 'block';
   document.getElementById('course-editor-msg').style.display = 'none';
@@ -815,44 +820,150 @@ async function deleteCourse() {
 // ---- Modules & Lessons ----
 async function loadCourseModules(courseId) {
   courseModulesLoaded = false;
-  // RLS makes an unauthenticated select return EMPTY DATA with no error
-  // (owner-scoped policies simply match nothing). So a load that runs
-  // before the session has settled looks like a successfully empty course.
-  // Require a live session before trusting anything this load returns.
-  const { data: sessData } = await sb.auth.getSession();
-  if (!sessData || !sessData.session) {
-    showCourseMsg('error', 'Your session is still loading. Refresh the page before making changes; saving is disabled to protect your modules and lessons.');
-    return;
-  }
-  const { data: modules, error: modErr } = await sb.from('course_modules').select('*').eq('course_id', courseId).order('sort_order');
-  const { data: lessons, error: lesErr } = await sb.from('course_lessons').select('*').eq('course_id', courseId).order('sort_order');
-  // Load quizzes (creator view = raw table, includes is_correct flags so the
-  // creator can edit). One quiz per module max, enforced by UNIQUE constraint.
-  const { data: quizzes, error: quizErr } = await sb.from('course_quizzes').select('*').eq('course_id', courseId);
+  // Clear any prior failure banner and disable Save for the duration of the
+  // load. Save re-enables only if the load completes cleanly.
+  setCourseModulesLoadFailed(false);
+  const _loadSaveBtn = document.getElementById('course-save-btn');
+  if (_loadSaveBtn) _loadSaveBtn.disabled = true;
 
-  // A failed load must never masquerade as an empty curriculum. Saving an
-  // empty local state over a populated course deletes everything, so the
-  // save path is disabled (courseModulesLoaded stays false) until a clean
-  // load happens.
-  if (modErr || lesErr || quizErr) {
-    showCourseMsg('error', 'Could not load the course curriculum. Refresh the page before making changes; saving is disabled to protect your modules and lessons.');
-    return;
-  }
+  // Transient blips at open time (an in-flight token refresh that has not yet
+  // settled, a one-off network error on a query) previously left the editor
+  // permanently in a "not loaded" state, escapable only by a full page reload.
+  // A reload discards unsaved work, which is the exact "built for hours,
+  // cannot save, cannot recover" trap. So we retry a few times with a short
+  // backoff before giving up.
+  //
+  // We deliberately do NOT force refreshSession() here. getSession() already
+  // refreshes internally when the token is near expiry; an extra forced
+  // refresh rotates the refresh token on every call, widening the "refresh
+  // token already used" race behind mid-session sign-out kick-outs. Retrying
+  // getSession() simply lets any in-flight, lock-coordinated refresh finish.
+  const MAX_LOAD_ATTEMPTS = 3;
+  for (let attempt = 1; attempt <= MAX_LOAD_ATTEMPTS; attempt++) {
+    try {
+      // RLS makes an unauthenticated select return EMPTY DATA with no error
+      // (owner-scoped policies simply match nothing). So a load that runs
+      // before the session has settled looks like a successfully empty course.
+      // Require a live session before trusting anything this load returns.
+      const sessRes = await sb.auth.getSession();
+      const session = sessRes && sessRes.data ? sessRes.data.session : null;
+      if (!session) throw new Error('course-load: no live session');
 
-  courseModules = (modules || []).map(m => {
-    const moduleQuiz = (quizzes || []).find(q => q.module_id === m.id) || null;
-    return {
-      ...m,
-      lessons: (lessons || []).filter(l => l.module_id === m.id).map(l => ({ ...l, _collapsed: true })),
-      // quiz is null when no quiz exists for this module. When present, the
-      // shape is { id, course_id, module_id, require_pass, questions, _collapsed }.
-      // _collapsed is local-only UI state, same pattern as lessons.
-      quiz: moduleQuiz ? { ...moduleQuiz, _collapsed: true } : null
-    };
-  });
-  courseModulesLoaded = true;
-  renderCourseModules();
+      const modRes = await sb.from('course_modules').select('*').eq('course_id', courseId).order('sort_order');
+      const lesRes = await sb.from('course_lessons').select('*').eq('course_id', courseId).order('sort_order');
+      // Load quizzes (creator view = raw table, includes is_correct flags so the
+      // creator can edit). One quiz per module max, enforced by UNIQUE constraint.
+      const quizRes = await sb.from('course_quizzes').select('*').eq('course_id', courseId);
+      if (modRes.error || lesRes.error || quizRes.error) {
+        throw (modRes.error || lesRes.error || quizRes.error);
+      }
+
+      const modules = modRes.data;
+      const lessons = lesRes.data;
+      const quizzes = quizRes.data;
+      courseModules = (modules || []).map(m => {
+        const moduleQuiz = (quizzes || []).find(q => q.module_id === m.id) || null;
+        return {
+          ...m,
+          lessons: (lessons || []).filter(l => l.module_id === m.id).map(l => ({ ...l, _collapsed: true })),
+          // quiz is null when no quiz exists for this module. When present, the
+          // shape is { id, course_id, module_id, require_pass, questions, _collapsed }.
+          // _collapsed is local-only UI state, same pattern as lessons.
+          quiz: moduleQuiz ? { ...moduleQuiz, _collapsed: true } : null
+        };
+      });
+      courseModulesLoaded = true;
+      setCourseModulesLoadFailed(false);
+      if (_loadSaveBtn) _loadSaveBtn.disabled = false;
+      renderCourseModules();
+      return;
+    } catch (err) {
+      if (attempt < MAX_LOAD_ATTEMPTS) {
+        await new Promise(resolve => setTimeout(resolve, 400 * attempt));
+        continue;
+      }
+      // Final failure. A failed load must never masquerade as an empty
+      // curriculum: saving empty local state over a populated course would
+      // delete everything. Rather than a toast that slides away (which a
+      // creator can miss, then unknowingly build on a broken base), show a
+      // persistent blocking panel with a Retry button and keep Save and
+      // Add Module disabled until a clean load succeeds.
+      courseModulesLoaded = false;
+      setCourseModulesLoadFailed(true);
+      return;
+    }
+  }
 }
+
+// Blocking load-failure state for the course curriculum. A curriculum that did
+// not load cleanly must not present itself as a normal, editable, empty
+// editor: a creator could build for hours on top of it and then be unable to
+// save (Guard 1 in saveCourseModules blocks the save to avoid wiping the real
+// DB rows). We show a persistent panel with a Retry button and disable the
+// controls that would let them build or save until a clean load succeeds.
+function setCourseModulesLoadFailed(failed) {
+  const list = document.getElementById('course-modules-list');
+  const empty = document.getElementById('course-modules-empty');
+  const saveBtn = document.getElementById('course-save-btn');
+  const addBtn = document.querySelector('#course-section-modules [data-course-action="add-module"]');
+
+  if (!failed) {
+    if (saveBtn) { saveBtn.disabled = false; saveBtn.style.opacity = ''; saveBtn.style.cursor = ''; }
+    if (addBtn) { addBtn.disabled = false; addBtn.style.opacity = ''; addBtn.style.cursor = ''; }
+    // The list and empty-state are owned by renderCourseModules on success and
+    // by openCourseEditor on open, so there is nothing to restore here.
+    return;
+  }
+
+  if (empty) empty.style.display = 'none';
+  if (saveBtn) { saveBtn.disabled = true; saveBtn.style.opacity = '0.5'; saveBtn.style.cursor = 'not-allowed'; }
+  if (addBtn) { addBtn.disabled = true; addBtn.style.opacity = '0.5'; addBtn.style.cursor = 'not-allowed'; }
+  if (!list) return;
+
+  list.innerHTML = '';
+  const panel = document.createElement('div');
+  panel.setAttribute('role', 'alert');
+  panel.style.padding = '20px';
+  panel.style.borderRadius = '12px';
+  panel.style.border = '1px solid rgba(239,68,68,0.35)';
+  panel.style.background = 'rgba(239,68,68,0.08)';
+
+  const heading = document.createElement('div');
+  heading.style.color = '#f87171';
+  heading.style.fontWeight = '600';
+  heading.style.fontSize = '15px';
+  heading.style.marginBottom = '6px';
+  heading.textContent = 'Could not load this course';
+
+  const body = document.createElement('div');
+  body.style.color = 'rgba(255,255,255,0.7)';
+  body.style.fontSize = '14px';
+  body.style.lineHeight = '1.5';
+  body.style.marginBottom = '14px';
+  body.textContent = 'Editing and saving are turned off until the curriculum loads, so your existing modules and lessons stay safe. This is usually a brief connection hiccup.';
+
+  const retry = document.createElement('button');
+  retry.type = 'button';
+  retry.setAttribute('data-course-action', 'retry-load');
+  retry.textContent = 'Retry';
+  retry.style.padding = '9px 18px';
+  retry.style.borderRadius = '8px';
+  retry.style.border = '1px solid rgba(255,255,255,0.25)';
+  retry.style.background = 'rgba(255,255,255,0.06)';
+  retry.style.color = '#fff';
+  retry.style.fontWeight = '600';
+  retry.style.cursor = 'pointer';
+
+  panel.appendChild(heading);
+  panel.appendChild(body);
+  panel.appendChild(retry);
+  list.appendChild(panel);
+}
+
+courseRegisterAction('retry-load', function() {
+  if (!currentCourseId) return;
+  loadCourseModules(currentCourseId);
+});
 
 // Per-lesson text_content size cap (1 MB of sanitized HTML). This is a DoS
 // safety net, no realistic lesson approaches this size (1 MB of clean HTML
@@ -1562,7 +1673,7 @@ async function uploadLessonFile(courseId, lessonId, file) {
 
 // Delete one lesson file via the server-side R2 delete route. The route
 // validates ownership via JWT, deletes the DB row, and deletes the R2 object
-// in one call. Idempotent — safe to call on an already-deleted file.
+// in one call. Idempotent - safe to call on an already-deleted file.
 async function deleteLessonFile(lessonId, fileId) {
   var files = lessonFilesByLessonId[lessonId] || [];
   var file = files.find(function(f) { return f.id === fileId; });
@@ -2489,8 +2600,8 @@ function mountLessonEditor(mi, li) {
 
 // Apply standard aria-labels to a Quill 1.x Snow toolbar + tooltip. Idempotent:
 // safe to call multiple times since each branch checks hasAttribute first.
-// Accepts ANY element that lives inside the Quill widget — toolbar, container,
-// or .ql-editor (quill.root) — since the DOM hierarchy varies depending on how
+// Accepts ANY element that lives inside the Quill widget - toolbar, container,
+// or .ql-editor (quill.root) - since the DOM hierarchy varies depending on how
 // Quill was mounted (mount target becomes .ql-container, with .ql-toolbar as
 // its previous sibling; .ql-editor is nested INSIDE .ql-container, so passing
 // quill.root requires walking up one level to find the toolbar).
@@ -2639,7 +2750,7 @@ function withImagesAllowed(quill, fn) {
 // deciding which sanitizer to use and where to persist it.
 //
 // Clicking an image also syncs Quill's selection to span the embed so
-// Delete/Backspace work on the visually-selected image — without this,
+// Delete/Backspace work on the visually-selected image - without this,
 // pressing Delete with an image visually selected does nothing because our
 // click handler never moved Quill's cursor.
 function setupImageSizing(quill, container, saveCallback) {
@@ -2684,7 +2795,7 @@ function setupImageSizing(quill, container, saveCallback) {
 
   // Track the currently-selected image. Click on an image to select it.
   // Clicking elsewhere deselects. Selecting an image also moves Quill's
-  // cursor to span the embed so Delete/Backspace work as expected — without
+  // cursor to span the embed so Delete/Backspace work as expected - without
   // this, pressing Delete with an image visually selected does nothing
   // because Quill's selection range never moved.
   var selectedImg = null;
