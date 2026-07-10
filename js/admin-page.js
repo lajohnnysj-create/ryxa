@@ -27,7 +27,25 @@
     var res = await fetch('/api/admin-data?' + params, {
       headers: { Authorization: 'Bearer ' + t }
     });
-    return { status: res.status, body: res.ok ? await res.json() : null };
+    // Parse the body either way: a 404 carries the reason, and discarding it
+    // leaves the UI saying "something went wrong" when the server said exactly
+    // what went wrong.
+    var body = null;
+    try { body = await res.json(); } catch (e) { body = null; }
+    return { status: res.status, body: body };
+  }
+
+  async function apiPost(payload) {
+    var t = await token();
+    if (!t) return { status: 401, body: null };
+    var res = await fetch('/api/admin-action', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + t, 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    var body = null;
+    try { body = await res.json(); } catch (e) { body = null; }
+    return { status: res.status, body: body };
   }
 
   function fmtTime(iso) {
@@ -182,6 +200,13 @@ var cents = stats.body.earnings.total_cents || 0;
       }
       if (action === 'refresh') { oldest = null; loadAll(); return; }
 
+      if (action === 'tab') {
+        showTab(btn.getAttribute('data-admin-tab'));
+        return;
+      }
+
+      if (action === 'find-creator') { findCreator(); return; }
+
       if (action === 'logout') {
         // scope:'local' clears this browser only. A global sign-out would also
         // end the session in the creator dashboard, a different surface, which
@@ -211,7 +236,163 @@ var cents = stats.body.earnings.total_cents || 0;
     }
   });
 
+  // Read this in the console to know which build the browser actually loaded.
+  window.__adminBuild = 'tabs-v2';
+
+  // -------------------------------------------------------------------------
+  // Tabs
+  // -------------------------------------------------------------------------
+  function showTab(name) {
+    var tabs = document.querySelectorAll('.tab');
+    for (var i = 0; i < tabs.length; i++) {
+      var on = tabs[i].getAttribute('data-admin-tab') === name;
+      tabs[i].classList.toggle('active', on);
+      tabs[i].setAttribute('aria-selected', on ? 'true' : 'false');
+    }
+    var panels = document.querySelectorAll('.tabpanel');
+    for (var j = 0; j < panels.length; j++) {
+      panels[j].hidden = panels[j].id !== 'tab-' + name;
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Creator lookup
+  //
+  // Username is user-controlled data landing in the admin's own page, so every
+  // node here is built with createElement + textContent. No innerHTML, ever.
+  // -------------------------------------------------------------------------
+  function lookupMsg(text, kind) {
+    var host = el('creator-result');
+    host.textContent = '';
+    if (!text) return;
+    var p = document.createElement('p');
+    p.className = 'lookup-msg ' + (kind || '');
+    p.textContent = text;
+    host.appendChild(p);
+  }
+
+  function renderCreator(c) {
+    var host = el('creator-result');
+    host.textContent = '';
+
+    var card = document.createElement('div');
+    card.className = 'creator-card';
+
+    var name = document.createElement('div');
+    name.className = 'creator-name';
+    name.textContent = '@' + c.username;
+    card.appendChild(name);
+
+    var meta = document.createElement('div');
+    meta.className = 'creator-meta';
+    meta.textContent = c.user_id;
+    card.appendChild(meta);
+
+    var row = document.createElement('div');
+    row.className = 'creator-row';
+
+    var labelWrap = document.createElement('div');
+    var label = document.createElement('div');
+    label.className = 'creator-row-label';
+    label.textContent = 'Blue check verification';
+    var sub = document.createElement('div');
+    sub.className = 'creator-row-sub';
+    sub.textContent = 'Shows on their public Link in Bio.';
+    labelWrap.appendChild(label);
+    labelWrap.appendChild(sub);
+
+    var sw = document.createElement('label');
+    sw.className = 'switch';
+    var input = document.createElement('input');
+    input.type = 'checkbox';
+    input.checked = !!c.verified;
+    input.setAttribute('aria-label', 'Verified badge for ' + c.username);
+    var slider = document.createElement('span');
+    slider.className = 'slider';
+    sw.appendChild(input);
+    sw.appendChild(slider);
+
+    input.addEventListener('change', function () {
+      var want = input.checked;
+      input.disabled = true;
+
+      apiPost({ action: 'set_verified', user_id: c.user_id, verified: want })
+        .then(function (r) {
+          input.disabled = false;
+          if (r.status === 200 && r.body && typeof r.body.verified === 'boolean') {
+            // Trust the server's echo, not what we asked for. If the two ever
+            // disagree, the checkbox should show what is actually stored.
+            input.checked = r.body.verified;
+            c.verified = r.body.verified;
+            status.className = 'lookup-msg ok';
+            status.textContent = r.body.verified
+              ? 'Verified. The badge is live on their page.'
+              : 'Verification removed.';
+            return;
+          }
+          // Roll the switch back: nothing changed on the server.
+          input.checked = !want;
+          status.className = 'lookup-msg err';
+          status.textContent = (r.body && r.body.error) || 'Could not update (' + r.status + ')';
+        })
+        .catch(function (err) {
+          input.disabled = false;
+          input.checked = !want;
+          status.className = 'lookup-msg err';
+          status.textContent = 'Could not update: ' + (err && err.message ? err.message : 'network error');
+        });
+    });
+
+    row.appendChild(labelWrap);
+    row.appendChild(sw);
+    card.appendChild(row);
+
+    var status = document.createElement('p');
+    status.className = 'lookup-msg';
+    card.appendChild(status);
+
+    host.appendChild(card);
+  }
+
+  async function findCreator() {
+    var input = el('creator-search');
+    var raw = (input.value || '').trim().replace(/^@+/, '');
+    if (!raw) { lookupMsg('Enter a username.', 'err'); return; }
+
+    lookupMsg('Searching...', '');
+    var r = await api('action=creator&username=' + encodeURIComponent(raw));
+
+    if (r.status === 200 && r.body && r.body.creator) {
+      renderCreator(r.body.creator);
+      return;
+    }
+    if (r.status === 404) { lookupMsg('No creator with that username.', 'err'); return; }
+    if (r.status === 403 || r.status === 401) { showDenied(r.status); return; }
+    lookupMsg((r.body && r.body.error) || 'Lookup failed (' + r.status + ')', 'err');
+  }
+
+  // A search box that ignores Enter feels broken, and the admin will press it.
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter') return;
+    if (!e.target || e.target.id !== 'creator-search') return;
+    e.preventDefault();
+    findCreator();
+  });
+
+  function bindTabs() {
+    var tabs = document.querySelectorAll('.tab');
+    for (var i = 0; i < tabs.length; i++) {
+      (function (btn) {
+        btn.addEventListener('click', function (ev) {
+          ev.preventDefault();
+          showTab(btn.getAttribute('data-admin-tab'));
+        });
+      })(tabs[i]);
+    }
+  }
+
   (async function init() {
+    bindTabs();
     var s = await sb.auth.getSession();
     if (s.data && s.data.session) {
       // No "signed in as" line: reaching this panel already proves who you are,
