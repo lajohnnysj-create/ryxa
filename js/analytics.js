@@ -182,7 +182,7 @@ async function loadAnalyticsData() {
     vTotal.textContent = (v.total || 0).toLocaleString();
     const avg = v.total > 0 ? Math.round(v.total / dayCount) : 0;
     vSub.textContent = '~' + avg + '/day avg over ' + dayCount + (dayCount === 1 ? ' day' : ' days');
-    viewsDaily = v.daily || [];
+    viewsDaily = densifyDailySeries(v.daily, start, end, 'count');
   } else {
     vTotal.textContent = '—'; vSub.textContent = 'Could not load';
   }
@@ -202,7 +202,7 @@ async function loadAnalyticsData() {
     // anything yet.
     rTotal.classList.toggle('has-revenue', revCents > 0);
     rSub.textContent = (r.total_cents > 0 ? Object.keys(r.by_source || {}).length + ' source(s)' : 'No revenue') + ' over ' + dayCount + (dayCount === 1 ? ' day' : ' days');
-    revDaily = r.daily || [];
+    revDaily = densifyDailySeries(r.daily, start, end, 'cents');
     bySource = r.by_source || {};
   } else {
     rTotal.textContent = '—'; rSub.textContent = 'Could not load';

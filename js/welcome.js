@@ -559,7 +559,8 @@ async function loadDashStats() {
     if (bp.coaching) pills.push(`<span class="dash-stat-pill">1:1 Bookings: ${Number(bp.coaching).toLocaleString()}</span>`);
     if (bp.digital_product) pills.push(`<span class="dash-stat-pill">Digital Products: ${Number(bp.digital_product).toLocaleString()}</span>`);
     vBreak.innerHTML = pills.join('');
-    renderSparkline('dash-views-sparkline', v.daily, 'count');
+    // Zero-fill quiet days so the axis means what it looks like it means.
+    renderSparkline('dash-views-sparkline', densifyDailySeries(v.daily, start, end, 'count'), 'count');
   }
 
   // --- Revenue (Max only) ---
@@ -611,7 +612,7 @@ async function loadDashStats() {
         ? 'No revenue recorded today'
         : `No revenue recorded over ${dayCount} ${dayCount === 1 ? 'day' : 'days'}`;
     }
-    renderSparkline('dash-revenue-sparkline', r.daily, 'cents');
+    renderSparkline('dash-revenue-sparkline', densifyDailySeries(r.daily, start, end, 'cents'), 'cents');
   }
 }
 

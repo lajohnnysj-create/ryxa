@@ -2721,6 +2721,55 @@ function formatMoney(cents, opts) {
 }
 
 // Backward-compatible alias — many places in code call formatDashUSD
+// ---------------------------------------------------------------------------
+// Chart series: fill the gaps.
+//
+// The stats RPCs return one row per day that HAS data, not one row per day in
+// the requested range. A chart drawn straight from that array silently omits
+// quiet days: four data points get stretched across a 30-day axis and read as
+// a month of steady traffic. A zero day and a missing day also render
+// identically, which they should not.
+//
+// Every analytics product zero-fills. This is the client-side version of the
+// generate_series() left join the RPC would ideally do itself.
+//
+//   daily  : [{ date: 'YYYY-MM-DD', <key>: n }, ...]  sparse, ascending
+//   start  : 'YYYY-MM-DD'  inclusive
+//   end    : 'YYYY-MM-DD'  inclusive
+//   key    : the value field, e.g. 'count' or 'cents'
+function densifyDailySeries(daily, start, end, key) {
+  if (!start || !end) return daily || [];
+
+  var byDate = {};
+  (daily || []).forEach(function (row) {
+    if (row && row.date) byDate[String(row.date).slice(0, 10)] = row;
+  });
+
+  // Iterate in UTC at noon: adding days at midnight can skip or repeat a date
+  // when the browser's zone crosses a DST boundary.
+  var out = [];
+  var p = start.split('-');
+  var cur = new Date(Date.UTC(+p[0], +p[1] - 1, +p[2], 12));
+  var last = end.split('-');
+  var stop = new Date(Date.UTC(+last[0], +last[1] - 1, +last[2], 12));
+  var pad = function (n) { return String(n).padStart(2, '0'); };
+  var guard = 0;
+
+  while (cur <= stop && guard++ < 400) {
+    var ymd = cur.getUTCFullYear() + '-' + pad(cur.getUTCMonth() + 1) + '-' + pad(cur.getUTCDate());
+    var row = byDate[ymd];
+    if (row) {
+      out.push(row);
+    } else {
+      var filled = { date: ymd };
+      filled[key] = 0;
+      out.push(filled);
+    }
+    cur.setUTCDate(cur.getUTCDate() + 1);
+  }
+  return out;
+}
+
 function formatDashUSD(cents) {
   return formatMoney(cents, { alwaysShowCents: true });
 }
