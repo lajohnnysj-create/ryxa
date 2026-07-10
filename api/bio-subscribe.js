@@ -260,6 +260,43 @@ async function sendResubscribeEmail(creatorId, emailLc) {
   }
 }
 
+async function sendWelcomeEmail(creatorId, emailLc) {
+  const resendKey = process.env.RESEND_API_KEY;
+  if (!resendKey) return;
+
+  let creatorName = 'this creator';
+  try {
+    const pr = await sbFetch('public_profiles?user_id=eq.' + encodeURIComponent(creatorId) + '&select=username&limit=1');
+    if (pr.ok) {
+      const rows = await pr.json();
+      if (rows && rows[0] && rows[0].username) creatorName = rows[0].username;
+    }
+  } catch (e) { /* cosmetic */ }
+
+  const html =
+    '<div style="font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;">' +
+      '<div style="text-align:center;margin-bottom:24px;"><img src="https://www.ryxa.io/logo.png" alt="Ryxa" width="36" height="36" style="border-radius:8px;"></div>' +
+      '<h1 style="font-size:21px;font-weight:700;text-align:center;margin-bottom:10px;color:#111;">You\'re on the list</h1>' +
+      '<p style="font-size:15px;color:#555;text-align:center;line-height:1.6;margin-bottom:8px;">You subscribed to updates from ' + escapeHtml(creatorName) + '.</p>' +
+      '<p style="font-size:12px;color:#999;text-align:center;line-height:1.6;margin-top:22px;">If this was not you, no action is needed. ' + escapeHtml(creatorName) + ' will contact you directly, and you can unsubscribe from any email they send.</p>' +
+    '</div>';
+
+  try {
+    await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + resendKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from: 'Ryxa <no-reply@ryxa.io>',
+        to: [emailLc],
+        subject: 'You subscribed to ' + creatorName,
+        html,
+      }),
+    });
+  } catch (e) {
+    console.error('welcome email send failed', e);
+  }
+}
+
 function escapeHtml(str) {
   return String(str || '').replace(/[&<>"']/g, function (c) {
     return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
@@ -321,8 +358,18 @@ module.exports = async function handler(req, res) {
   // about who is or is not on this creator's list.
   try {
     if (await isSuppressed(creator_id, trimmedEmail)) {
-      if (!(await hasPendingToken(creator_id, trimmedEmail))) {
-        await sendResubscribeEmail(creator_id, trimmedEmail);
+      // Awaited, not fired and forgotten. A Vercel function can freeze the
+      // instant the response is sent, so background work is not guaranteed to
+      // run, and a confirmation email that never arrives is worse than a
+      // slower response. The welcome email on the normal path is awaited too,
+      // so both branches spend one mail-provider round trip and the response
+      // time does not answer the question the response body refuses to.
+      try {
+        if (!(await hasPendingToken(creator_id, trimmedEmail))) {
+          await sendResubscribeEmail(creator_id, trimmedEmail);
+        }
+      } catch (e) {
+        console.error('resubscribe flow failed:', e);
       }
       return res.status(200).json({ success: true });
     }
@@ -347,15 +394,24 @@ module.exports = async function handler(req, res) {
     });
 
     if (insRes.ok) {
+      // Awaited so the send actually happens (a serverless function may freeze
+      // once the response is written), and so this path costs the same round
+      // trip as the suppressed one.
+      await sendWelcomeEmail(creator_id, trimmedEmail);
       return res.status(200).json({ success: true });
     }
 
     // Read the body to distinguish duplicate (23505) from real errors.
     const errBody = await insRes.text().catch(() => '');
     if (errBody.includes('23505') || errBody.toLowerCase().includes('duplicate')) {
-      // Already subscribed. Treat as success (non-leaky) so the form's
-      // duplicate handling can kick in.
-      return res.status(200).json({ success: true, already_subscribed: true });
+      // Already subscribed. Return the SAME body as a fresh signup.
+      //
+      // It used to answer { already_subscribed: true }, and the form said
+      // "You're already subscribed!". That is an enumeration leak in a
+      // friendly voice: type any address into any creator's page and learn
+      // whether that person is on their list. Every branch of this endpoint
+      // now answers identically.
+      return res.status(200).json({ success: true });
     }
 
     console.error('bio_email_signups INSERT failed:', insRes.status, errBody);
