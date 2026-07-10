@@ -200,43 +200,85 @@ async function hasPendingToken(creatorId, emailLc) {
   return Array.isArray(rows) && rows.length > 0;
 }
 
-// Shared layout for every email this endpoint sends. The preheader is the grey
-// line a mail client shows next to the subject: without one it grabs the first
-// text it finds, which is usually the logo alt text.
-function renderEmail({ preheader, heading, sub, cardHtml, ctaHtml, footHtml }) {
+// Shared layout, matching the Supabase auth templates: table-based (Outlook
+// renders divs unpredictably), 560px, black header carrying the wordmark, a
+// white card with a soft shadow, then a rule and a muted footer.
+//
+// NOTE ON ESCAPING: heading, sub, cardHtml, ctaHtml and footHtml are
+// interpolated RAW, because the footer carries an <a> and the card carries
+// markup. Every caller must escapeHtml() any user-controlled value before
+// passing it in. Both current call sites do.
+function renderEmail({ preheader, heading, sub, cardHtml, ctaHtml, linkHtml, footHtml }) {
   return '' +
-  '<div style="background:#f4f4f7;padding:28px 12px;">' +
-    '<div style="display:none;max-height:0;overflow:hidden;opacity:0;">' + escapeHtml(preheader || '') + '</div>' +
-    '<div style="font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,sans-serif;max-width:520px;margin:0 auto;background:#ffffff;border:1px solid #e9e9ee;border-radius:16px;padding:32px 28px;">' +
-      '<div style="text-align:center;margin-bottom:22px;">' +
-        '<img src="https://www.ryxa.io/logo.png" alt="Ryxa" width="36" height="36" style="border-radius:8px;">' +
-      '</div>' +
-      '<h1 style="font-size:22px;font-weight:700;text-align:center;margin:0 0 8px;color:#111;">' + heading + '</h1>' +
-      '<p style="font-size:15px;color:#555;text-align:center;line-height:1.6;margin:0 0 24px;">' + sub + '</p>' +
-      (cardHtml || '') +
-      (ctaHtml || '') +
-      '<div style="border-top:1px solid #eeeef2;margin-top:26px;padding-top:18px;">' +
-        '<p style="font-size:12px;color:#999;text-align:center;line-height:1.6;margin:0;">' + (footHtml || '') + '</p>' +
-      '</div>' +
-    '</div>' +
-    '<p style="font-size:11px;color:#aaa;text-align:center;margin:16px 0 0;">Sent by Ryxa on behalf of the creator you subscribed to.</p>' +
-  '</div>';
+'<!DOCTYPE html>' +
+'<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>' +
+'<body style="margin:0; padding:0; background-color:#f4f4f7; font-family: -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, Helvetica, Arial, sans-serif;">' +
+  // The grey line a mail client shows beside the subject. Without it, the
+  // client grabs the first text it finds, which was the logo's alt attribute.
+  '<div style="display:none; max-height:0; overflow:hidden; opacity:0;">' + escapeHtml(preheader || '') + '</div>' +
+  '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f7; padding:40px 20px;">' +
+    '<tr><td align="center">' +
+      '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px; background-color:#ffffff; border-radius:16px; overflow:hidden; box-shadow:0 4px 20px rgba(0,0,0,0.06);">' +
+
+        '<tr>' +
+          '<td bgcolor="#0f0f1a" style="background-color:#0f0f1a; padding:48px 40px; text-align:center;">' +
+            '<a href="https://www.ryxa.io" style="display:inline-block; text-decoration:none;">' +
+              '<img src="https://www.ryxa.io/ryxa-email.png" alt="Ryxa" style="max-height:48px; max-width:180px; display:inline-block; border:0;">' +
+            '</a>' +
+          '</td>' +
+        '</tr>' +
+
+        '<tr>' +
+          '<td style="padding:48px 40px 32px 40px; text-align:center;">' +
+            '<h1 style="margin:0 0 16px 0; font-size:26px; font-weight:700; color:#111827; letter-spacing:-0.3px;">' + heading + '</h1>' +
+            '<p style="margin:0 0 32px 0; font-size:16px; line-height:1.6; color:#4b5563;">' + sub + '</p>' +
+            (cardHtml || '') +
+            (ctaHtml || '') +
+            (linkHtml || '') +
+          '</td>' +
+        '</tr>' +
+
+        '<tr><td style="padding:0 40px;"><hr style="border:none; border-top:1px solid #e5e7eb; margin:0;"></td></tr>' +
+
+        '<tr>' +
+          '<td style="padding:24px 40px 40px 40px; text-align:center;">' +
+            '<p style="margin:0; font-size:13px; line-height:1.6; color:#9ca3af;">' + (footHtml || '') + '</p>' +
+            '<p style="margin:16px 0 0 0; font-size:12px; color:#9ca3af;">Sent by Ryxa on behalf of the creator you subscribed to.</p>' +
+          '</td>' +
+        '</tr>' +
+
+      '</table>' +
+    '</td></tr>' +
+  '</table>' +
+'</body></html>';
 }
 
-// The creator identity block. Same treatment as the product card in the
-// purchase emails, so a subscriber who has bought from this creator sees a
-// consistent voice.
+// Whose list is this? On the confirmation email that is the entire question,
+// so the creator gets a card rather than a passing mention.
 function creatorCard(creatorName) {
-  return '<div style="background:#f8f8f8;border:1px solid #e5e5e5;border-radius:12px;padding:16px 18px;margin-bottom:22px;text-align:center;">' +
-           '<div style="font-size:11px;font-weight:600;color:#888;letter-spacing:0.07em;text-transform:uppercase;margin-bottom:6px;">Creator</div>' +
-           '<div style="font-size:16px;font-weight:600;color:#111;">' + escapeHtml(creatorName) + '</div>' +
-         '</div>';
+  return '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 32px 0;">' +
+           '<tr><td style="background-color:#f8f8fb; border:1px solid #e9e9ee; border-radius:12px; padding:16px 18px; text-align:center;">' +
+             '<div style="font-size:11px; font-weight:600; color:#9ca3af; letter-spacing:0.07em; text-transform:uppercase; margin-bottom:6px;">Creator</div>' +
+             '<div style="font-size:16px; font-weight:600; color:#111827;">' + escapeHtml(creatorName) + '</div>' +
+           '</td></tr>' +
+         '</table>';
 }
 
 function ctaButton(href, label) {
-  return '<div style="text-align:center;margin-bottom:6px;">' +
-           '<a href="' + href + '" style="display:inline-block;padding:13px 30px;background:#7c3aed;color:#ffffff;text-decoration:none;border-radius:10px;font-size:15px;font-weight:600;">' + label + '</a>' +
-         '</div>';
+  return '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto;">' +
+           '<tr><td style="border-radius:10px; background-color:#7c3aed;">' +
+             '<a href="' + href + '" style="display:inline-block; padding:14px 36px; font-size:15px; font-weight:500; color:#ffffff; text-decoration:none; border-radius:10px;">' + label + '</a>' +
+           '</td></tr>' +
+         '</table>';
+}
+
+// Some mail clients strip buttons, and some people do not trust them. The raw
+// URL is the fallback, and it is the same link.
+function fallbackLink(href) {
+  return '<p style="margin:32px 0 0 0; font-size:14px; line-height:1.6; color:#6b7280;">Or copy and paste this link into your browser:</p>' +
+         '<p style="margin:8px 0 0 0; font-size:13px; line-height:1.5; color:#7c3aed; word-break:break-all;">' +
+           '<a href="' + href + '" style="color:#7c3aed; text-decoration:none;">' + href + '</a>' +
+         '</p>';
 }
 
 async function sendResubscribeEmail(creatorId, emailLc) {
@@ -280,7 +322,8 @@ async function sendResubscribeEmail(creatorId, emailLc) {
     sub: 'Someone entered this address on ' + escapeHtml(creatorName) + '\'s page. You previously asked to stop receiving their emails, so nothing changes unless you confirm.',
     cardHtml: creatorCard(creatorName),
     ctaHtml: ctaButton(link, 'Yes, subscribe me again'),
-    footHtml: 'If this was not you, ignore this email. You will stay unsubscribed and we will not email you about it again.<br>This link expires in 24 hours and can be used once.',
+    linkHtml: fallbackLink(link),
+    footHtml: 'If this was not you, ignore this email. You will stay unsubscribed and we will not email you about it again. This link expires in 24 hours and can be used once.',
   });
 
   try {
@@ -317,12 +360,13 @@ async function sendWelcomeEmail(creatorId, emailLc) {
   const html = renderEmail({
     preheader: 'You subscribed to updates from ' + creatorName + '.',
     heading: "You're on the list",
-    sub: 'You subscribed to updates from ' + escapeHtml(creatorName) + '. They will email you directly.',
+    sub: 'You subscribed to updates from ' + escapeHtml(creatorName) + '. They will email you directly from here on.',
     cardHtml: creatorCard(creatorName),
     ctaHtml: '',
+    linkHtml: '',
     // The bio signup form is public and single opt-in, so this email is the
     // only place an unwanted subscriber can be reached with a way out.
-    footHtml: 'Did not sign up? <a href="' + unsubUrl + '" style="color:#7c3aed;font-weight:600;">Remove me from this list</a>. One click, no account needed.',
+    footHtml: 'Did not sign up? <a href="' + unsubUrl + '" style="color:#7c3aed; font-weight:600; text-decoration:none;">Remove me from this list</a>. One click, no account needed.',
   });
 
   try {
