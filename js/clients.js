@@ -930,14 +930,14 @@ function clientsExportChoiceModal(nonConsentedCount, totalCount, optedOutCount, 
     detail = optedOutCount + ' of them opted out and asked not to be emailed. ';
   }
 
-  overlay.innerHTML = '<div class="ds-s-6646ca">'
+  overlay.innerHTML = '<div class="ds-s-6646ca" style="position:relative;">'
+    + '<button id="clients-export-cancel" class="clients-modal-close" aria-label="Cancel">&times;</button>' 
     + '<img src="/logo.png?v=2" alt="" aria-hidden="true" style="display:block;height:40px;width:auto;margin:0 auto 16px;">'
     + '<div class="ds-s-85e627">This export includes ' + nonConsentedCount + ' ' + plural + ' not opted in</div>'
     + '<div class="mk-s-e4ad4a"><p class="ds-s-f6f597">' + detail + 'The Opt In column marks every row, but most email tools ignore it. Exporting only opted-in contacts is the safe choice.</p></div>'
     + '<div class="course-s-b9bbe5" style="flex-direction:column;gap:8px;">'
     + '<button id="clients-export-safe" class="clients-modal-safe-btn" style="width:100%;">Export opted in only (' + optedInCount + ')</button>'
     + '<button id="clients-export-all" class="ds-s-dea7b5" style="width:100%;">Export all (' + totalCount + ')</button>'
-    + '<button id="clients-export-cancel" class="ds-s-dea7b5" style="width:100%;background:transparent;border:none;color:var(--muted);">Cancel</button>'
     + '</div>'
     + '</div>';
 
