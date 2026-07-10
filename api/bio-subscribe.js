@@ -200,6 +200,45 @@ async function hasPendingToken(creatorId, emailLc) {
   return Array.isArray(rows) && rows.length > 0;
 }
 
+// Shared layout for every email this endpoint sends. The preheader is the grey
+// line a mail client shows next to the subject: without one it grabs the first
+// text it finds, which is usually the logo alt text.
+function renderEmail({ preheader, heading, sub, cardHtml, ctaHtml, footHtml }) {
+  return '' +
+  '<div style="background:#f4f4f7;padding:28px 12px;">' +
+    '<div style="display:none;max-height:0;overflow:hidden;opacity:0;">' + escapeHtml(preheader || '') + '</div>' +
+    '<div style="font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,sans-serif;max-width:520px;margin:0 auto;background:#ffffff;border:1px solid #e9e9ee;border-radius:16px;padding:32px 28px;">' +
+      '<div style="text-align:center;margin-bottom:22px;">' +
+        '<img src="https://www.ryxa.io/logo.png" alt="Ryxa" width="36" height="36" style="border-radius:8px;">' +
+      '</div>' +
+      '<h1 style="font-size:22px;font-weight:700;text-align:center;margin:0 0 8px;color:#111;">' + heading + '</h1>' +
+      '<p style="font-size:15px;color:#555;text-align:center;line-height:1.6;margin:0 0 24px;">' + sub + '</p>' +
+      (cardHtml || '') +
+      (ctaHtml || '') +
+      '<div style="border-top:1px solid #eeeef2;margin-top:26px;padding-top:18px;">' +
+        '<p style="font-size:12px;color:#999;text-align:center;line-height:1.6;margin:0;">' + (footHtml || '') + '</p>' +
+      '</div>' +
+    '</div>' +
+    '<p style="font-size:11px;color:#aaa;text-align:center;margin:16px 0 0;">Sent by Ryxa on behalf of the creator you subscribed to.</p>' +
+  '</div>';
+}
+
+// The creator identity block. Same treatment as the product card in the
+// purchase emails, so a subscriber who has bought from this creator sees a
+// consistent voice.
+function creatorCard(creatorName) {
+  return '<div style="background:#f8f8f8;border:1px solid #e5e5e5;border-radius:12px;padding:16px 18px;margin-bottom:22px;text-align:center;">' +
+           '<div style="font-size:11px;font-weight:600;color:#888;letter-spacing:0.07em;text-transform:uppercase;margin-bottom:6px;">Creator</div>' +
+           '<div style="font-size:16px;font-weight:600;color:#111;">' + escapeHtml(creatorName) + '</div>' +
+         '</div>';
+}
+
+function ctaButton(href, label) {
+  return '<div style="text-align:center;margin-bottom:6px;">' +
+           '<a href="' + href + '" style="display:inline-block;padding:13px 30px;background:#7c3aed;color:#ffffff;text-decoration:none;border-radius:10px;font-size:15px;font-weight:600;">' + label + '</a>' +
+         '</div>';
+}
+
 async function sendResubscribeEmail(creatorId, emailLc) {
   const resendKey = process.env.RESEND_API_KEY;
   if (!resendKey) {
@@ -234,16 +273,15 @@ async function sendResubscribeEmail(creatorId, emailLc) {
   }
 
   const link = 'https://www.ryxa.io/api/confirm-resubscribe?token=' + encodeURIComponent(raw);
-  const html =
-    '<div style="font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;">' +
-      '<div style="text-align:center;margin-bottom:24px;"><img src="https://www.ryxa.io/logo.png" alt="Ryxa" width="36" height="36" style="border-radius:8px;"></div>' +
-      '<h1 style="font-size:21px;font-weight:700;text-align:center;margin-bottom:10px;color:#111;">Confirm you want these emails</h1>' +
-      '<p style="font-size:15px;color:#555;text-align:center;line-height:1.6;margin-bottom:24px;">Someone entered this address on ' + escapeHtml(creatorName) + '\'s page. You previously asked to stop receiving their emails, so nothing changes unless you confirm.</p>' +
-      '<div style="text-align:center;margin-bottom:24px;">' +
-        '<a href="' + link + '" style="display:inline-block;padding:12px 28px;background:#7c3aed;color:#fff;text-decoration:none;border-radius:8px;font-size:14px;font-weight:600;">Yes, subscribe me again</a>' +
-      '</div>' +
-      '<p style="font-size:12px;color:#999;text-align:center;line-height:1.6;">If this was not you, ignore this email. You will stay unsubscribed and we will not email you about it again. This link expires in 24 hours.</p>' +
-    '</div>';
+
+  const html = renderEmail({
+    preheader: 'Confirm you want emails from ' + creatorName + ' again.',
+    heading: 'Confirm you want these emails',
+    sub: 'Someone entered this address on ' + escapeHtml(creatorName) + '\'s page. You previously asked to stop receiving their emails, so nothing changes unless you confirm.',
+    cardHtml: creatorCard(creatorName),
+    ctaHtml: ctaButton(link, 'Yes, subscribe me again'),
+    footHtml: 'If this was not you, ignore this email. You will stay unsubscribed and we will not email you about it again.<br>This link expires in 24 hours and can be used once.',
+  });
 
   try {
     await fetch('https://api.resend.com/emails', {
@@ -274,13 +312,18 @@ async function sendWelcomeEmail(creatorId, emailLc) {
     }
   } catch (e) { /* cosmetic */ }
 
-  const html =
-    '<div style="font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;">' +
-      '<div style="text-align:center;margin-bottom:24px;"><img src="https://www.ryxa.io/logo.png" alt="Ryxa" width="36" height="36" style="border-radius:8px;"></div>' +
-      '<h1 style="font-size:21px;font-weight:700;text-align:center;margin-bottom:10px;color:#111;">You\'re on the list</h1>' +
-      '<p style="font-size:15px;color:#555;text-align:center;line-height:1.6;margin-bottom:8px;">You subscribed to updates from ' + escapeHtml(creatorName) + '.</p>' +
-      '<p style="font-size:12px;color:#999;text-align:center;line-height:1.6;margin-top:22px;">Did not sign up? <a href="' + unsubscribeUrl(creatorId, emailLc) + '" style="color:#7c3aed;">Remove me from this list</a>. One click, no account needed.</p>' +
-    '</div>';
+  const unsubUrl = unsubscribeUrl(creatorId, emailLc);
+
+  const html = renderEmail({
+    preheader: 'You subscribed to updates from ' + creatorName + '.',
+    heading: "You're on the list",
+    sub: 'You subscribed to updates from ' + escapeHtml(creatorName) + '. They will email you directly.',
+    cardHtml: creatorCard(creatorName),
+    ctaHtml: '',
+    // The bio signup form is public and single opt-in, so this email is the
+    // only place an unwanted subscriber can be reached with a way out.
+    footHtml: 'Did not sign up? <a href="' + unsubUrl + '" style="color:#7c3aed;font-weight:600;">Remove me from this list</a>. One click, no account needed.',
+  });
 
   try {
     await fetch('https://api.resend.com/emails', {
