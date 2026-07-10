@@ -129,6 +129,17 @@ async function init() {
   if (creatorName && creatorName !== 'Creator') {
     trackPageView(creatorName, 'course', course.id);
   }
+
+  // Returning from the Hub after making an account? Finish what they started
+  // rather than showing them the button they already pressed.
+  //
+  // Free only. A paid course must never auto-open a Stripe session on page
+  // load: that is a checkout nobody clicked.
+  if (session?.user && course.price_cents === 0 && window.RyxaResume && window.RyxaResume.take('course')) {
+    var resumeBtn = document.querySelector('.course-buy-btn');
+    if (resumeBtn) { resumeBtn.disabled = true; resumeBtn.textContent = 'Enrolling...'; }
+    enrollFree();
+  }
 }
 
 // Page view tracking with visitor dedup (same as bio.html)
@@ -371,6 +382,7 @@ function renderCourse(course, creatorName, modules, lessons, quizzes, session) {
 async function enrollFree() {
   const { data: { session } } = await sb.auth.getSession();
   if (!session?.user) {
+    if (window.RyxaResume) window.RyxaResume.save('course');
     window.location.href = '/learn/?redirect=' + encodeURIComponent(window.location.pathname);
     return;
   }

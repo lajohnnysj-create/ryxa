@@ -116,6 +116,22 @@ async function init() {
   } catch (e) {
     console.error('Session check failed:', e);
   }
+
+  // Returning from the Hub after making an account? Claim the product rather
+  // than showing them the button they already pressed.
+  //
+  // Free only: a paid product must never auto-open a Stripe session on page
+  // load. And only if the buy button still exists: if the webhook already
+  // granted this product, the page has swapped it for "Go to your download".
+  try {
+    var resumeSession = (await sb.auth.getSession()).data.session;
+    var buyBtn = document.getElementById('buy-btn');
+    if (IS_FREE && resumeSession?.user && buyBtn && window.RyxaResume && window.RyxaResume.take('product')) {
+      handleBuyClick();
+    }
+  } catch (e) {
+    // A failed resume is a button. Nothing worse.
+  }
 }
 init();
 
@@ -157,6 +173,9 @@ async function handleBuyClick() {
   // claims still require an account, since there is no Stripe session to
   // carry an email or to prove the claim.
   if (IS_FREE && !session?.user) {
+    // Remember what they were doing so the return trip does not make them
+    // press this button a second time.
+    if (window.RyxaResume) window.RyxaResume.save('product');
     window.location.href = '/learn/?redirect=' + encodeURIComponent(window.location.pathname);
     return;
   }
