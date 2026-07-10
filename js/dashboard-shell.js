@@ -631,6 +631,25 @@ async function initAuth() {
   sb.auth.onAuthStateChange((event, session) => {
     _diag('authchange: ' + event + ' -> ' + (session?.user ? 'user' : 'null'));
     if (session?.user) {
+      // IDENTITY SWAP GUARD
+      //
+      // The Supabase session lives in localStorage, keyed per origin, and is
+      // shared across tabs. Sign in as somebody else in tab B (a magic link,
+      // a test account) and tab A silently starts sending that person's token.
+      //
+      // Nothing corrupts, because every write policy is auth.uid() = user_id,
+      // so the UPDATE matches zero rows. But zero rows is not an error:
+      // PostgREST returns 200, supabase-js returns { error: null }, and the
+      // dashboard says "Saved" while saving nothing.
+      //
+      // A page whose identity changed underneath it must not keep accepting
+      // edits. Reload into whoever is now signed in.
+      if (currentUser && currentUser.id && session.user.id !== currentUser.id) {
+        _diag('IDENTITY SWAP: ' + currentUser.id + ' -> ' + session.user.id + ', reloading');
+        window.location.reload();
+        return;
+      }
+
       Auth.setToken(session.access_token);
       _cacheGoodSession(session);
       _intentionalSignOut = false; // a fresh sign-in re-arms recovery
