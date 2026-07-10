@@ -76,6 +76,49 @@ module.exports = async (req, res) => {
   }
 
   // ---------------------------------------------------------------------
+  // action=creator&username=<exact>
+  //
+  // EXACT match only, deliberately. A prefix or fuzzy search would let anyone
+  // who reached this panel enumerate every creator on Ryxa by typing letters.
+  // The admin knows the username they are looking for; the tool should not
+  // help anyone discover usernames they do not already know.
+  // ---------------------------------------------------------------------
+  if (action === 'creator') {
+    const raw = String(req.query.username || '').trim();
+
+    // Strip the leading @ people paste out of habit.
+    const username = raw.replace(/^@+/, '');
+
+    // Usernames are stored lowercase and validated as /^[a-z0-9_]+$/ when a
+    // creator sets one, so normalize and match that alphabet exactly.
+    const lower = username.toLowerCase();
+    if (!lower || !/^[a-z0-9_]{1,64}$/.test(lower)) {
+      return res.status(400).json({ error: 'Invalid username' });
+    }
+
+    // eq, not ilike. In ilike, "_" is a single-character wildcard, so
+    // "the_johnny" would also match "theXjohnny". Usernames legitimately
+    // contain underscores, so an exact match is both safer and correct.
+    // This mirrors how api/bio.js resolves a public page.
+    const url = SUPABASE_URL + '/rest/v1/profiles'
+      + '?username=eq.' + encodeURIComponent(lower)
+      + '&select=user_id,username,verified,display_currency,created_at'
+      + '&limit=1';
+
+    const r = await fetch(url, {
+      headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: 'Bearer ' + SUPABASE_SERVICE_KEY },
+    });
+    if (!r.ok) {
+      return res.status(502).json({ error: 'Lookup failed' });
+    }
+    const rows = await r.json();
+    if (!rows || rows.length === 0) {
+      return res.status(404).json({ error: 'No creator with that username' });
+    }
+    return res.status(200).json({ creator: rows[0] });
+  }
+
+  // ---------------------------------------------------------------------
   // action=threshold
   //
   // Accounts that crossed the manual-subscriber soft threshold.
