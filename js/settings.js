@@ -462,6 +462,27 @@ function showStripeMsg(type, text) {
 // ============================================================
 // Instagram Connection (Settings)
 // ============================================================
+
+// Paint (or clear) the "Reconnection needed" state on a connected-account
+// card: red border and tint on the card, and the status label swapped from
+// "<Platform> Connected" to a red "Reconnection needed". Cleared explicitly
+// on every load so a card returns to normal after a successful reconnect.
+function setAcctReconnectState(connectedEl, defaultLabel, needs) {
+  if (!connectedEl) return;
+  const labelEl = connectedEl.querySelector('.settings-s-279016');
+  if (needs) {
+    connectedEl.style.border = '1px solid rgba(239,68,68,0.45)';
+    connectedEl.style.background = 'rgba(239,68,68,0.08)';
+    connectedEl.style.borderRadius = '12px';
+    if (labelEl) { labelEl.textContent = 'Reconnection needed'; labelEl.style.color = '#f87171'; }
+  } else {
+    connectedEl.style.border = '';
+    connectedEl.style.background = '';
+    connectedEl.style.borderRadius = '';
+    if (labelEl) { labelEl.textContent = defaultLabel; labelEl.style.color = ''; }
+  }
+}
+
 async function loadConnectedAccountsWithSpinner() {
   const loading = document.getElementById('settings-accounts-loading');
   const list = document.getElementById('settings-accounts-list');
@@ -506,11 +527,7 @@ async function loadInstagramConnectionStatus() {
       // Connected
       if (disconnectedEl) disconnectedEl.style.display = 'none';
       if (connectedEl) connectedEl.style.display = 'block';
-      if (conn.needs_reconnect && msgEl) {
-        msgEl.textContent = 'Reconnection needed: Instagram stopped accepting Ryxa\'s access, so data updates are paused. Disconnect and reconnect below to resume.';
-        msgEl.style.display = 'block';
-        msgEl.style.color = '#fbbf24';
-      }
+      setAcctReconnectState(connectedEl, 'Instagram Connected', !!conn.needs_reconnect);
       if (usernameEl) usernameEl.textContent = conn.ig_username ? '@' + conn.ig_username : 'Connected';
       if (avatarEl && conn.profile_picture_url) {
         avatarEl.innerHTML = '<img src="' + escapeHtml(conn.profile_picture_url) + '" alt="" class="bio-s-0c9434">';
@@ -766,11 +783,7 @@ async function loadFacebookConnectionStatus() {
       if (disconnectedEl) disconnectedEl.style.display = 'none';
       if (pickEl) pickEl.style.display = 'none';
       if (connectedEl) connectedEl.style.display = 'block';
-      if (conn.needs_reconnect && msgEl) {
-        msgEl.textContent = 'Reconnection needed: Facebook stopped accepting Ryxa\'s access, so data updates are paused. Disconnect and reconnect below to resume.';
-        msgEl.style.display = 'block';
-        msgEl.style.color = '#fbbf24';
-      }
+      setAcctReconnectState(connectedEl, 'Facebook Connected', !!conn.needs_reconnect);
       if (nameEl) {
         nameEl.textContent = conn.fb_page_name || 'Connected';
       }
@@ -783,9 +796,9 @@ async function loadFacebookConnectionStatus() {
       if (connectedEl) connectedEl.style.display = 'none';
       if (pickEl) pickEl.style.display = 'block';
       if (conn.needs_reconnect && msgEl) {
-        msgEl.textContent = 'Reconnection needed: Facebook stopped accepting Ryxa\'s access, so data updates are paused. Disconnect and reconnect below to resume.';
+        msgEl.textContent = 'Reconnection needed';
         msgEl.style.display = 'block';
-        msgEl.style.color = '#fbbf24';
+        msgEl.style.color = '#f87171';
       }
       loadFacebookPages();
     } else {
@@ -1004,11 +1017,7 @@ async function loadYouTubeConnectionStatus() {
     if (conn) {
       if (disconnectedEl) disconnectedEl.style.display = 'none';
       if (connectedEl) connectedEl.style.display = 'block';
-      if (conn.needs_reconnect && msgEl) {
-        msgEl.textContent = 'Reconnection needed: YouTube stopped accepting Ryxa\'s access, so data updates are paused. Disconnect and reconnect below to resume.';
-        msgEl.style.display = 'block';
-        msgEl.style.color = '#fbbf24';
-      }
+      setAcctReconnectState(connectedEl, 'YouTube Connected', !!conn.needs_reconnect);
       if (titleEl) titleEl.textContent = conn.yt_channel_title || (conn.yt_custom_url || 'Connected');
       if (avatarEl && conn.thumbnail_url) {
         avatarEl.innerHTML = '<img src="' + escapeHtml(conn.thumbnail_url) + '" alt="" class="bio-s-0c9434">';
@@ -1205,11 +1214,7 @@ async function loadTikTokConnectionStatus() {
     if (conn) {
       if (disconnectedEl) disconnectedEl.style.display = 'none';
       if (connectedEl) connectedEl.style.display = 'block';
-      if (conn.needs_reconnect && msgEl) {
-        msgEl.textContent = 'Reconnection needed: TikTok stopped accepting Ryxa\'s access, so data updates are paused. Disconnect and reconnect below to resume.';
-        msgEl.style.display = 'block';
-        msgEl.style.color = '#fbbf24';
-      }
+      setAcctReconnectState(connectedEl, 'TikTok Connected', !!conn.needs_reconnect);
       if (titleEl) titleEl.textContent = conn.tt_display_name || 'Connected';
       if (avatarEl && conn.tt_avatar_url) {
         avatarEl.innerHTML = '<img src="' + escapeHtml(conn.tt_avatar_url) + '" alt="" class="bio-s-0c9434">';
@@ -1760,11 +1765,7 @@ async function loadTwitchConnectionStatus() {
     if (conn) {
       if (disconnectedEl) disconnectedEl.style.display = 'none';
       if (connectedEl) connectedEl.style.display = 'block';
-      if (conn.needs_reconnect && msgEl) {
-        msgEl.textContent = 'Reconnection needed: Twitch stopped accepting Ryxa\'s access, so data updates are paused. Disconnect and reconnect below to resume.';
-        msgEl.style.display = 'block';
-        msgEl.style.color = '#fbbf24';
-      }
+      setAcctReconnectState(connectedEl, 'Twitch Connected', !!conn.needs_reconnect);
       if (titleEl) titleEl.textContent = conn.tw_display_name || 'Connected';
       if (avatarEl && conn.tw_avatar_url) {
         avatarEl.innerHTML = '<img src="' + escapeHtml(conn.tw_avatar_url) + '" alt="" class="bio-s-0c9434">';

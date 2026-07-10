@@ -1625,7 +1625,7 @@ async function loadAudienceAutomatic() {
     // (cheap read, gives us current cached data without calling Meta if cache is fresh)
     const { data: conn, error } = await sb
       .from('instagram_connections')
-      .select('ig_username,profile_picture_url,followers_count,follows_count,media_count,reach_30d,total_interactions_30d,views_30d,profile_views_30d,avg_likes,avg_comments,avg_reel_views,avg_story_views,engagement_rate,demographics_age_gender,demographics_gender,demographics_top_countries,demographics_top_cities,data_last_fetched_at,data_fetch_error')
+      .select('ig_username,profile_picture_url,followers_count,follows_count,media_count,reach_30d,total_interactions_30d,views_30d,profile_views_30d,avg_likes,avg_comments,avg_reel_views,avg_story_views,engagement_rate,demographics_age_gender,demographics_gender,demographics_top_countries,demographics_top_cities,data_last_fetched_at,data_fetch_error,needs_reconnect')
       .eq('user_id', currentUser.id)
       .maybeSingle();
 
@@ -1636,7 +1636,7 @@ async function loadAudienceAutomatic() {
     try {
       const { data: yc } = await sb
         .from('youtube_connections')
-        .select('yt_channel_title,yt_custom_url,thumbnail_url,subscriber_count,view_count,video_count,views_30d,watch_time_minutes_30d,avg_view_duration_seconds,subscribers_gained_30d,likes_30d,comments_30d,shares_30d,engagement_rate,avg_views_per_video,demographics_age_gender,demographics_gender,demographics_top_countries,recent_media,data_last_fetched_at,data_fetch_error')
+        .select('yt_channel_title,yt_custom_url,thumbnail_url,subscriber_count,view_count,video_count,views_30d,watch_time_minutes_30d,avg_view_duration_seconds,subscribers_gained_30d,likes_30d,comments_30d,shares_30d,engagement_rate,avg_views_per_video,demographics_age_gender,demographics_gender,demographics_top_countries,recent_media,data_last_fetched_at,data_fetch_error,needs_reconnect')
         .eq('user_id', currentUser.id)
         .maybeSingle();
       ytConn = yc || null;
@@ -1649,7 +1649,7 @@ async function loadAudienceAutomatic() {
     try {
       const { data: tc } = await sb
         .from('tiktok_connections')
-        .select('tt_display_name,tt_avatar_url,tt_profile_web_link,tt_bio_description,tt_is_verified,follower_count,following_count,likes_count,video_count,avg_likes_per_video,recent_media,data_last_fetched_at,data_fetch_error')
+        .select('tt_display_name,tt_avatar_url,tt_profile_web_link,tt_bio_description,tt_is_verified,follower_count,following_count,likes_count,video_count,avg_likes_per_video,recent_media,data_last_fetched_at,data_fetch_error,needs_reconnect')
         .eq('user_id', currentUser.id)
         .maybeSingle();
       ttConn = tc || null;
@@ -1662,7 +1662,7 @@ async function loadAudienceAutomatic() {
     try {
       const { data: wc } = await sb
         .from('twitch_connections')
-        .select('tw_display_name,tw_login,tw_avatar_url,tw_description,tw_broadcaster_type,tw_profile_url,tw_primary_game,tw_created_at,follower_count,recent_media,top_clips,data_last_fetched_at,data_fetch_error')
+        .select('tw_display_name,tw_login,tw_avatar_url,tw_description,tw_broadcaster_type,tw_profile_url,tw_primary_game,tw_created_at,follower_count,recent_media,top_clips,data_last_fetched_at,data_fetch_error,needs_reconnect')
         .eq('user_id', currentUser.id)
         .maybeSingle();
       twConn = wc || null;
@@ -1676,7 +1676,7 @@ async function loadAudienceAutomatic() {
     try {
       const { data: fc } = await sb
         .from('facebook_connections')
-        .select('fb_page_name,profile_picture_url,followers_count,fan_count,cached_data,last_refreshed_at,fb_page_id')
+        .select('fb_page_name,profile_picture_url,followers_count,fan_count,cached_data,last_refreshed_at,fb_page_id,needs_reconnect')
         .eq('user_id', currentUser.id)
         .maybeSingle();
       fbConn = (fc && fc.fb_page_id) ? fc : null;
@@ -2068,8 +2068,13 @@ function renderAudienceAutomatic() {
   // "soon" rows show a disabled refresh slot for visual consistency.
   function platformRow(opts) {
     // Every row here is an OAuth-connected platform (we no longer render
-    // "Coming soon" placeholders for unconnected ones).
-    const statusHtml = `<div class="mk-aud-platform-status mk-aud-platform-status-connected"><span class="mk-aud-status-dot"></span>Connected</div>`;
+    // "Coming soon" placeholders for unconnected ones). A platform whose
+    // token has died renders a red "Reconnection needed" state instead of
+    // "Connected": showing green next to data that silently stopped updating
+    // is exactly the kind of lie the safeguards exist to prevent.
+    const statusHtml = opts.needsReconnect
+      ? `<div class="mk-aud-platform-status" style="color:#f87171"><span class="mk-aud-status-dot" style="background:#f87171"></span>Reconnection needed</div>`
+      : `<div class="mk-aud-platform-status mk-aud-platform-status-connected"><span class="mk-aud-status-dot"></span>Connected</div>`;
 
     // Sublabel under platform name: handle for connected, "Last refreshed ..." second line
     const subParts = [];
@@ -2079,7 +2084,13 @@ function renderAudienceAutomatic() {
     // Refresh button. CSP-strict: dispatches via data-mk-action (set from
     // opts.action) rather than an inline onclick attribute. Caller passes the
     // action name (e.g. 'manual-refresh-ig').
-    const refreshBtnHtml = `<button type="button" id="${opts.btnId || ''}" class="mk-aud-row-refresh" data-mk-action="${opts.action || ''}" title="${escapeHtml(refreshTooltip)}" aria-label="Refresh ${escapeHtml(opts.name)} data" ${opts.disabled ? 'disabled' : ''}>
+    // Dead-token rows swap the Refresh button (which can only fail) for a
+    // Settings button that takes the creator straight to the reconnect flow.
+    const refreshBtnHtml = opts.needsReconnect
+      ? `<button type="button" class="mk-aud-row-refresh" data-mk-action="go-to-instagram-connect" style="border-color:rgba(239,68,68,0.45);color:#f87171" aria-label="Reconnect ${escapeHtml(opts.name)} in Settings">
+        <span class="mk-aud-row-refresh-label">Reconnect</span>
+      </button>`
+      : `<button type="button" id="${opts.btnId || ''}" class="mk-aud-row-refresh" data-mk-action="${opts.action || ''}" title="${escapeHtml(refreshTooltip)}" aria-label="Refresh ${escapeHtml(opts.name)} data" ${opts.disabled ? 'disabled' : ''}>
         ${refreshSvg}<span class="mk-aud-row-refresh-label">${escapeHtml(opts.label || 'Refresh')}</span>
       </button>`;
 
@@ -2162,6 +2173,7 @@ function renderAudienceAutomatic() {
 
   const igRowHtml = mkAudCache.connected ? platformRow({
     name: 'Instagram',
+    needsReconnect: !!(mkAudCache.data && mkAudCache.data.needs_reconnect),
     iconClass: 'mk-aud-platform-ig',
     iconSvg: igSvg,
     connected: true,
@@ -2175,6 +2187,7 @@ function renderAudienceAutomatic() {
 
   const ytRowHtml = mkAudCache.ytConnected ? platformRow({
     name: 'YouTube',
+    needsReconnect: !!(mkAudCache.yt && mkAudCache.yt.needs_reconnect),
     iconClass: 'mk-aud-platform-yt',
     iconSvg: ytSvg,
     connected: true,
@@ -2188,6 +2201,7 @@ function renderAudienceAutomatic() {
 
   const ttRowHtml = mkAudCache.ttConnected ? platformRow({
     name: 'TikTok',
+    needsReconnect: !!(mkAudCache.tt && mkAudCache.tt.needs_reconnect),
     iconClass: 'mk-aud-platform-tt',
     iconSvg: ttSvg,
     connected: true,
@@ -2201,6 +2215,7 @@ function renderAudienceAutomatic() {
 
   const twRowHtml = mkAudCache.twConnected ? platformRow({
     name: 'Twitch',
+    needsReconnect: !!(mkAudCache.tw && mkAudCache.tw.needs_reconnect),
     iconClass: 'mk-aud-platform-tw',
     iconSvg: twSvg,
     connected: true,
@@ -2214,6 +2229,7 @@ function renderAudienceAutomatic() {
 
   const fbRowHtml = mkAudCache.fbConnected ? platformRow({
     name: 'Facebook',
+    needsReconnect: !!(mkAudCache.fb && mkAudCache.fb.needs_reconnect),
     iconClass: 'mk-aud-platform-fb',
     iconSvg: fbSvg,
     connected: true,
