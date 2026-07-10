@@ -494,7 +494,12 @@ async function saveCourse(opts) {
   } catch (err) {
     showCourseMsg('error', 'Failed to save: ' + err.message);
   } finally {
-    btn.disabled = false; btn.textContent = 'Save';
+    // Do not re-enable Save while the curriculum is in the load-failed state:
+    // setCourseModulesLoadFailed(true) owns the button until a clean load.
+    // Without this check, a blocked save's cleanup would silently undo the
+    // failure lockout and leave Save clickable against an unloaded course.
+    if (courseModulesLoaded) { btn.disabled = false; }
+    btn.textContent = 'Save';
     _saveCourseInProgress = false;
   }
 }
@@ -826,6 +831,14 @@ async function loadCourseModules(courseId) {
   const _loadSaveBtn = document.getElementById('course-save-btn');
   if (_loadSaveBtn) _loadSaveBtn.disabled = true;
 
+  // Visible feedback from the very first moment. Without this, the modules
+  // area sits blank (and Save sits mysteriously disabled) for the entire load,
+  // which on a struggling connection is up to ~1.2s of dead silence before
+  // the failure panel appears. The indicator upgrades to a "retrying" message
+  // the moment the first attempt fails, so the user always knows what state
+  // the editor is in.
+  showCourseModulesLoading('Loading course...');
+
   // Transient blips at open time (an in-flight token refresh that has not yet
   // settled, a one-off network error on a query) previously left the editor
   // permanently in a "not loaded" state, escapable only by a full page reload.
@@ -879,6 +892,9 @@ async function loadCourseModules(courseId) {
       return;
     } catch (err) {
       if (attempt < MAX_LOAD_ATTEMPTS) {
+        // Tell the user we are struggling but still working, instead of
+        // leaving a silent blank area during the backoff.
+        showCourseModulesLoading('Having trouble loading this course. Retrying...');
         await new Promise(resolve => setTimeout(resolve, 400 * attempt));
         continue;
       }
@@ -893,6 +909,64 @@ async function loadCourseModules(courseId) {
       return;
     }
   }
+}
+
+// Loading indicator for the modules area during loadCourseModules. Shows a
+// small spinner and a status line ("Loading course..." initially, upgraded to
+// a retrying message if attempts fail) so the load is never a silent blank.
+// Overwritten by renderCourseModules on success or by the failure panel from
+// setCourseModulesLoadFailed on final failure.
+function showCourseModulesLoading(text) {
+  const list = document.getElementById('course-modules-list');
+  const empty = document.getElementById('course-modules-empty');
+  if (empty) empty.style.display = 'none';
+  if (!list) return;
+
+  // One-time keyframes for the spinner. A JS-created <style> element is
+  // CSP-compatible (the inline-script and style-attribute restrictions do not
+  // apply to stylesheet text set on a created style node).
+  if (!document.getElementById('course-load-spin-style')) {
+    const styleEl = document.createElement('style');
+    styleEl.id = 'course-load-spin-style';
+    styleEl.textContent = '@keyframes courseLoadSpin { to { transform: rotate(360deg); } }';
+    document.head.appendChild(styleEl);
+  }
+
+  // If the indicator is already mounted, just update the status text. This
+  // keeps the spinner animation smooth across the loading -> retrying upgrade
+  // instead of remounting and visually restarting it.
+  const existing = list.querySelector('[data-course-loading-text]');
+  if (existing) {
+    existing.textContent = text;
+    return;
+  }
+
+  list.innerHTML = '';
+  const wrap = document.createElement('div');
+  wrap.setAttribute('role', 'status');
+  wrap.style.display = 'flex';
+  wrap.style.alignItems = 'center';
+  wrap.style.gap = '10px';
+  wrap.style.padding = '18px 4px';
+
+  const spinner = document.createElement('div');
+  spinner.style.width = '16px';
+  spinner.style.height = '16px';
+  spinner.style.border = '2px solid rgba(255,255,255,0.15)';
+  spinner.style.borderTopColor = 'rgba(255,255,255,0.7)';
+  spinner.style.borderRadius = '50%';
+  spinner.style.animation = 'courseLoadSpin 0.7s linear infinite';
+  spinner.style.flexShrink = '0';
+
+  const label = document.createElement('div');
+  label.setAttribute('data-course-loading-text', '1');
+  label.style.color = 'rgba(255,255,255,0.7)';
+  label.style.fontSize = '14px';
+  label.textContent = text;
+
+  wrap.appendChild(spinner);
+  wrap.appendChild(label);
+  list.appendChild(wrap);
 }
 
 // Blocking load-failure state for the course curriculum. A curriculum that did
