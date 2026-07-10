@@ -73,131 +73,28 @@ module.exports = async (req, res) => {
   // ---------------------------------------------------------------------
   // action=threshold
   //
-  // Accounts that crossed the manual-subscriber threshold. These are the
-  // accounts worth looking at: a creator who imports 5,000 addresses either
-  // has a real list or has a scraped one, and the attestation they signed is
-  // the record of which they claimed.
+  // Accounts that crossed the manual-subscriber soft threshold.
   //
-  // Two queries rather than a join: PostgREST can only embed across a declared
-  // foreign key, and the events table points at auth.users, not profiles.
-  // ---------------------------------------------------------------------
-  if (action === 'threshold') {
-    const limit = Math.min(parseInt(req.query.limit, 10) || 50, 200);
-
-    const evRes = await fetch(
-      SUPABASE_URL + '/rest/v1/manual_subscriber_threshold_events'
-        + '?select=*&order=created_at.desc&limit=' + limit,
-      { headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: 'Bearer ' + SUPABASE_SERVICE_KEY } }
-    );
-    if (!evRes.ok) return res.status(502).json({ error: 'Lookup failed' });
-    const events = await evRes.json();
-
-    if (!events || events.length === 0) {
-      return res.status(200).json({ events: [] });
-    }
-
-    // Resolve usernames in ONE query. A per-row lookup would be N+1 against a
-    // table an admin hits rarely but with a long list.
-    const ids = Array.from(new Set(events.map(function (e) { return e.user_id; }).filter(Boolean)));
-    const nameById = {};
-    if (ids.length > 0) {
-      const inList = '(' + ids.map(function (id) { return '"' + id + '"'; }).join(',') + ')';
-      const prRes = await fetch(
-        SUPABASE_URL + '/rest/v1/profiles?select=user_id,username&user_id=in.' + encodeURIComponent(inList),
-        { headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: 'Bearer ' + SUPABASE_SERVICE_KEY } }
-      );
-      if (prRes.ok) {
-        const profiles = await prRes.json();
-        (profiles || []).forEach(function (p) { nameById[p.user_id] = p.username; });
-      }
-    }
-
-    const rows = events.map(function (e) {
-      return {
-        id: e.id,
-        user_id: e.user_id,
-        username: nameById[e.user_id] || null,
-        threshold_count: e.threshold_count,
-        subscriber_count_at_crossing: e.subscriber_count_at_crossing,
-        attestation_text: e.attestation_text,
-        attestation_version: e.attestation_version,
-        ip_address: e.ip_address,
-        user_agent: e.user_agent,
-        created_at: e.created_at,
-      };
-    });
-
-    return res.status(200).json({ events: rows });
-  }
-
-  // ---------------------------------------------------------------------
-  // action=creator&username=<exact>
-  //
-  // EXACT match only, deliberately. A prefix or fuzzy search would let anyone
-  // who reached this panel enumerate every creator on Ryxa by typing letters.
-  // The admin knows the username they are looking for; the tool should not
-  // help anyone discover usernames they do not already know.
-  // ---------------------------------------------------------------------
-  if (action === 'creator') {
-    const raw = String(req.query.username || '').trim();
-
-    // Strip the leading @ people paste out of habit.
-    const username = raw.replace(/^@+/, '');
-
-    // Usernames are stored lowercase and validated as /^[a-z0-9_]+$/ when a
-    // creator sets one, so normalize and match that alphabet exactly.
-    const lower = username.toLowerCase();
-    if (!lower || !/^[a-z0-9_]{1,64}$/.test(lower)) {
-      return res.status(400).json({ error: 'Invalid username' });
-    }
-
-    // eq, not ilike. In ilike, "_" is a single-character wildcard, so
-    // "the_johnny" would also match "theXjohnny". Usernames legitimately
-    // contain underscores, so an exact match is both safer and correct.
-    // This mirrors how api/bio.js resolves a public page.
-    const url = SUPABASE_URL + '/rest/v1/profiles'
-      + '?username=eq.' + encodeURIComponent(lower)
-      + '&select=user_id,username,verified,display_currency,created_at'
-      + '&limit=1';
-
-    const r = await fetch(url, {
-      headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: 'Bearer ' + SUPABASE_SERVICE_KEY },
-    });
-    if (!r.ok) {
-      return res.status(502).json({ error: 'Lookup failed' });
-    }
-    const rows = await r.json();
-    if (!rows || rows.length === 0) {
-      return res.status(404).json({ error: 'No creator with that username' });
-    }
-    return res.status(200).json({ creator: rows[0] });
-  }
-
-  // ---------------------------------------------------------------------
-  // action=threshold
-  //
-  // Accounts that crossed the manual-subscriber soft threshold. The event row
-  // records the count at the moment of crossing; what an admin actually wants
-  // to know is how large the list is NOW, so each account gets a live count.
-  //
-  // Counts come from subscribers_view, which is the single authority on who is
-  // on a list. It runs security_invoker, and service_role bypasses RLS, so the
-  // server sees every creator's list. Nothing here is reachable without the
-  // admin identity check above.
+  // Everything here comes from the event row plus one profiles lookup for the
+  // usernames. Deliberately NO live subscriber counts: Prefer:count=exact on
+  // subscribers_view forces Postgres to materialize a five-table UNION with a
+  // DISTINCT ON and count every row, per account, on every tab open. Cheap at
+  // five accounts, ruinous at fifty large ones, and it answers a question the
+  // event row already answers well enough.
   // ---------------------------------------------------------------------
   if (action === 'threshold') {
     const evRes = await fetch(
       SUPABASE_URL + '/rest/v1/manual_subscriber_threshold_events'
-        + '?select=user_id,threshold_count,subscriber_count_at_crossing,created_at,flagged'
-        + '&order=created_at.desc&limit=50',
+        + '?select=user_id,threshold_count,subscriber_count_at_crossing,created_at,flagged,attestation_version'
+        + '&order=created_at.desc&limit=100',
       { headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: 'Bearer ' + SUPABASE_SERVICE_KEY } }
     );
-    if (!evRes.ok) return res.status(502).json({ error: 'Watchlist lookup failed' });
+    if (!evRes.ok) return res.status(502).json({ error: 'Threshold lookup failed' });
     const events = await evRes.json();
     if (!events || events.length === 0) return res.status(200).json({ accounts: [] });
 
-    // One account can cross more than once if the flag is ever reset. Keep the
-    // earliest crossing per account: that is the moment worth knowing about.
+    // An account can cross more than once if the profile flag is ever reset.
+    // Keep the earliest: the first crossing is the event worth knowing about.
     const byUser = {};
     events.forEach(function (e) {
       const prev = byUser[e.user_id];
@@ -205,7 +102,7 @@ module.exports = async (req, res) => {
     });
     const userIds = Object.keys(byUser);
 
-    // Usernames. A bare UUID tells an admin nothing.
+    // One query for every username. A bare UUID tells an admin nothing.
     const idList = '(' + userIds.map(encodeURIComponent).join(',') + ')';
     const prRes = await fetch(
       SUPABASE_URL + '/rest/v1/profiles?select=user_id,username&user_id=in.' + idList,
@@ -215,39 +112,21 @@ module.exports = async (req, res) => {
     const nameOf = {};
     profiles.forEach(function (p) { nameOf[p.user_id] = p.username; });
 
-    // Live subscriber totals, one head-count each. This list is small by
-    // definition (accounts over the threshold), so N queries is fine. A GROUP
-    // BY would need a view; not worth one for a handful of rows.
-    const counts = await Promise.all(userIds.map(async function (uid) {
-      const r = await fetch(
-        SUPABASE_URL + '/rest/v1/subscribers_view?select=email_lc&creator_id=eq.' + encodeURIComponent(uid),
-        {
-          method: 'HEAD',
-          headers: {
-            apikey: SUPABASE_SERVICE_KEY,
-            Authorization: 'Bearer ' + SUPABASE_SERVICE_KEY,
-            Prefer: 'count=exact',
-            Range: '0-0'
-          }
-        }
-      );
-      const cr = r.headers.get('content-range') || '';
-      const total = cr.indexOf('/') !== -1 ? parseInt(cr.split('/')[1], 10) : null;
-      return { uid: uid, total: isNaN(total) ? null : total };
-    }));
-    const totalOf = {};
-    counts.forEach(function (c) { totalOf[c.uid] = c.total; });
-
     const accounts = userIds.map(function (uid) {
+      const e = byUser[uid];
       return {
         user_id: uid,
         username: nameOf[uid] || null,
-        subscribers_now: totalOf[uid],
-        subscribers_at_crossing: byUser[uid].subscriber_count_at_crossing,
-        crossed_at: byUser[uid].created_at,
-        flagged: !!byUser[uid].flagged
+        subscribers_at_crossing: e.subscriber_count_at_crossing,
+        threshold_count: e.threshold_count,
+        crossed_at: e.created_at,
+        attestation_version: e.attestation_version || null,
+        flagged: !!e.flagged
       };
-    }).sort(function (a, b) { return (b.subscribers_now || 0) - (a.subscribers_now || 0); });
+    }).sort(function (a, b) {
+      // Most recent crossing first: it is the thing that just happened.
+      return new Date(b.crossed_at) - new Date(a.crossed_at);
+    });
 
     return res.status(200).json({ accounts: accounts });
   }
