@@ -209,6 +209,8 @@ var cents = stats.body.earnings.total_cents || 0;
 
       if (action === 'load-threshold') { loadThreshold(); return; }
 
+      if (action === 'load-reports') { loadReports(); return; }
+
       if (action === 'logout') {
         // scope:'local' clears this browser only. A global sign-out would also
         // end the session in the creator dashboard, a different surface, which
@@ -233,8 +235,10 @@ var cents = stats.body.earnings.total_cents || 0;
     // Row tap toggles the stack trace.
     var row = e.target && e.target.closest ? e.target.closest('tr.err-row') : null;
     if (row) {
-      var stack = row.querySelector('.stack');
-      if (stack) stack.classList.toggle('open');
+      // Errors carry a .stack, reports carry a .report-detail. Same gesture,
+      // same class name for the open state, so one handler serves both.
+      var detail = row.querySelector('.stack, .report-detail');
+      if (detail) detail.classList.toggle('open');
     }
   });
 
@@ -248,6 +252,7 @@ var cents = stats.body.earnings.total_cents || 0;
     // Loads on first open rather than with the page. Two queries we need not
     // make while an admin is reading the error log.
     if (name === 'threshold' && !thresholdLoaded) loadThreshold();
+    if (name === 'reports' && !reportsLoaded) loadReports();
 
     var tabs = document.querySelectorAll('.tab');
     for (var i = 0; i < tabs.length; i++) {
@@ -463,6 +468,130 @@ var cents = stats.body.earnings.total_cents || 0;
     }
     thresholdLoaded = true;
     renderThreshold(r.body.accounts);
+  }
+
+  // -------------------------------------------------------------------------
+  // AI content reports
+  //
+  // Reported content is text a user wrote or an AI produced. It is rendered
+  // with textContent and never innerHTML: this page runs as the admin, and a
+  // report is the one place hostile text arrives by design.
+  // -------------------------------------------------------------------------
+  var reportsLoaded = false;
+
+  function reportAsText(r) {
+    var parts = [
+      fmtTime(r.created_at),
+      'source: ' + r.source,
+      'reporter: ' + (r.reporter ? '@' + r.reporter : r.reporter_id)
+    ];
+    if (r.conversation_id) parts.push('conversation: ' + r.conversation_id);
+    if (r.reason) parts.push('', 'REASON:', r.reason);
+    if (r.content) parts.push('', 'REPORTED CONTENT:', r.content);
+    return parts.join('\n');
+  }
+
+  function renderReports(reports) {
+    var body = el('reports-body');
+    body.textContent = '';
+
+    if (!reports || reports.length === 0) {
+      var tr0 = document.createElement('tr');
+      var td0 = document.createElement('td');
+      td0.colSpan = 4;
+      td0.className = 'muted';
+      td0.textContent = 'No reports. Quiet is good.';
+      tr0.appendChild(td0);
+      body.appendChild(tr0);
+      return;
+    }
+
+    reports.forEach(function (r) {
+      var tr = document.createElement('tr');
+      tr.className = 'err-row';   // same hover + pointer affordance
+
+      var tdWhen = document.createElement('td');
+      tdWhen.textContent = fmtTime(r.created_at);
+
+      var tdSrc = document.createElement('td');
+      tdSrc.textContent = r.source || '';
+
+      // The detail block lives inside the source cell so it spans naturally
+      // under the row when opened, exactly like an error's stack trace.
+      var detail = document.createElement('div');
+      detail.className = 'report-detail';
+
+      if (r.reason) {
+        var rl = document.createElement('div');
+        rl.className = 'report-label';
+        rl.textContent = 'Reason';
+        var rv = document.createElement('div');
+        rv.textContent = r.reason;
+        rv.style.marginBottom = '10px';
+        detail.appendChild(rl);
+        detail.appendChild(rv);
+      }
+      var cl = document.createElement('div');
+      cl.className = 'report-label';
+      cl.textContent = 'Reported content';
+      var cv = document.createElement('div');
+      cv.textContent = r.content || '(empty)';
+      detail.appendChild(cl);
+      detail.appendChild(cv);
+
+      detail.title = 'Click to copy this report';
+      detail.addEventListener('click', function (ev) {
+        ev.stopPropagation();   // do not collapse the box you just clicked
+        var sel = window.getSelection && window.getSelection().toString();
+        if (sel) return;
+        copyText(reportAsText(r))
+          .then(function () { flashCopied(detail); })
+          .catch(function (err) { console.error('copy failed:', err); });
+      });
+      tdSrc.appendChild(detail);
+
+      var tdWho = document.createElement('td');
+      tdWho.className = 'hide-m muted';
+      tdWho.textContent = r.reporter ? '@' + r.reporter : (r.reporter_id || '').slice(0, 8);
+
+      var tdStatus = document.createElement('td');
+      var badge = document.createElement('span');
+      badge.className = r.status === 'pending' ? 'badge-pending' : 'badge-resolved';
+      badge.textContent = r.status || 'pending';
+      tdStatus.appendChild(badge);
+
+      tr.appendChild(tdWhen); tr.appendChild(tdSrc);
+      tr.appendChild(tdWho); tr.appendChild(tdStatus);
+      body.appendChild(tr);
+    });
+  }
+
+  async function loadReports() {
+    var body = el('reports-body');
+    body.textContent = '';
+    var trL = document.createElement('tr');
+    var tdL = document.createElement('td');
+    tdL.colSpan = 4;
+    tdL.className = 'muted';
+    tdL.textContent = 'Loading...';
+    trL.appendChild(tdL);
+    body.appendChild(trL);
+
+    var r = await api('action=reports');
+    if (r.status === 403 || r.status === 401) { showDenied(r.status); return; }
+    if (r.status !== 200 || !r.body) {
+      body.textContent = '';
+      var trE = document.createElement('tr');
+      var tdE = document.createElement('td');
+      tdE.colSpan = 4;
+      tdE.className = 'muted';
+      tdE.textContent = (r.body && r.body.error) || 'Could not load (' + r.status + ')';
+      trE.appendChild(tdE);
+      body.appendChild(trE);
+      return;
+    }
+    reportsLoaded = true;
+    renderReports(r.body.reports);
   }
 
   function bindTabs() {
