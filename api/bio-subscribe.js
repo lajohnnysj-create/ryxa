@@ -11,6 +11,7 @@
 // REST. NO @supabase/supabase-js.
 
 const crypto = require('crypto');
+const { unsubscribeUrl } = require('./lib/unsub-sign');
 
 const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
 
@@ -278,7 +279,7 @@ async function sendWelcomeEmail(creatorId, emailLc) {
       '<div style="text-align:center;margin-bottom:24px;"><img src="https://www.ryxa.io/logo.png" alt="Ryxa" width="36" height="36" style="border-radius:8px;"></div>' +
       '<h1 style="font-size:21px;font-weight:700;text-align:center;margin-bottom:10px;color:#111;">You\'re on the list</h1>' +
       '<p style="font-size:15px;color:#555;text-align:center;line-height:1.6;margin-bottom:8px;">You subscribed to updates from ' + escapeHtml(creatorName) + '.</p>' +
-      '<p style="font-size:12px;color:#999;text-align:center;line-height:1.6;margin-top:22px;">If this was not you, no action is needed. ' + escapeHtml(creatorName) + ' will contact you directly, and you can unsubscribe from any email they send.</p>' +
+      '<p style="font-size:12px;color:#999;text-align:center;line-height:1.6;margin-top:22px;">Did not sign up? <a href="' + unsubscribeUrl(creatorId, emailLc) + '" style="color:#7c3aed;">Remove me from this list</a>. One click, no account needed.</p>' +
     '</div>';
 
   try {
