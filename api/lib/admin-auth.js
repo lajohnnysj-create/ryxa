@@ -38,12 +38,31 @@ async function getVerifiedUser(req) {
 }
 
 function isAdmin(user) {
-  if (!user || !user.email) return false;
-  if (user.email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) return false;
+  if (!user) return false;
 
-  // The identity list is written by Supabase, never by the client.
   const identities = Array.isArray(user.identities) ? user.identities : [];
-  return identities.some(function (i) { return i.provider === 'google'; });
+  const google = identities.find(function (i) { return i.provider === 'google'; });
+  if (!google) return false;
+
+  // Check the email GOOGLE asserts, not the one on the Supabase user record.
+  //
+  // user.email is mutable: any authenticated user can call updateUser({email}).
+  // Supabase normally requires confirming a link sent to the new address, but
+  // if "Confirm email" is ever disabled the change lands immediately. An
+  // attacker could then sign in with their own Google account, rename their
+  // email to the admin's, and pass a check that looked at user.email while
+  // merely requiring that *some* Google identity exists.
+  //
+  // identity_data.email comes from Google's ID token. A user cannot set it.
+  const googleEmail = google.identity_data && google.identity_data.email;
+  if (!googleEmail) return false;
+  if (googleEmail.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) return false;
+
+  // And the Supabase record must still agree. Both must point at the admin, so
+  // a stale or renamed account cannot slip through either direction.
+  if (!user.email || user.email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) return false;
+
+  return true;
 }
 
 // Every admin endpoint starts the same way. Returns the user on success, or
