@@ -619,7 +619,7 @@ function renderSubscribersPage() {
         + '</button>'
         + '</td>'
         + '<td class="clients-s-row-remove-cell">'
-        + '<button class="clients-s-row-remove" data-clients-action="remove-one" data-clients-email="' + escEmail + '" aria-label="Remove ' + escEmail + ' from list" title="Remove from list">'
+        + '<button class="clients-s-row-remove" data-clients-action="remove-one" data-clients-email="' + escEmail + '" aria-label="Mark as opted out: ' + escEmail + '" title="Mark as opted out">'
         + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
         + '</button>'
         + '</td>'
@@ -919,9 +919,9 @@ async function clientsBulkRemove() {
   if (clientsSelected.size === 0) return;
   var emails = Array.from(clientsSelected);
   var confirmText = emails.length === 1
-    ? 'Remove this subscriber from your list? Their purchase records stay intact, but they will no longer appear in your subscribers list or exports.'
-    : 'Remove ' + emails.length + ' subscribers from your list? Their purchase records stay intact, but they will no longer appear in your subscribers list or exports.';
-  var confirmed = await confirmTypedDelete('Remove from List', confirmText, 'Remove');
+    ? 'This subscriber will stop receiving your emails and will not appear in your subscribers list or exports. Their purchase records stay intact. This cannot be undone from the dashboard.'
+    : emails.length + ' subscribers will stop receiving your emails and will not appear in your subscribers list or exports. Their purchase records stay intact. This cannot be undone from the dashboard.';
+  var confirmed = await confirmTypedDelete('Mark as opted out', confirmText, 'Opt out');
   if (!confirmed) return;
 
   try {
@@ -947,19 +947,22 @@ async function clientsBulkRemove() {
       clientsStatsFresh = true;
       renderClientsStats();
     } catch (statsErr) { console.warn('Stats refresh failed:', statsErr); }
-    if (typeof showDashToast === 'function') showDashToast('success', emails.length === 1 ? 'Subscriber removed' : emails.length + ' subscribers removed');
+    if (typeof showDashToast === 'function') showDashToast('success', emails.length === 1 ? 'Subscriber opted out' : emails.length + ' subscribers opted out');
   } catch (e) {
     console.error('Bulk remove failed:', e);
-    showModalAlert('Could not remove', e.message || 'Failed to remove subscribers.');
+    showModalAlert('Could not opt out', e.message || 'Failed to opt out subscribers.');
   }
 }
 
 async function clientsRemoveOne(email) {
   if (!email) return;
+  // "Remove" always suppressed rather than deleted, which is exactly what an
+  // opt-out is. The label just never said so, and a creator honoring an
+  // unsubscribe request could not tell this was the right button.
   var confirmed = await confirmTypedDelete(
-    'Remove from List',
-    'Remove ' + email + ' from your subscribers list? Their purchase records stay intact, but they will no longer appear in your list or exports.',
-    'Remove'
+    'Mark as opted out',
+    email + ' will stop receiving your emails and will not appear in your subscribers list or exports. Their purchase records stay intact. This cannot be undone from the dashboard.',
+    'Opt out'
   );
   if (!confirmed) return;
 
@@ -978,10 +981,10 @@ async function clientsRemoveOne(email) {
       clientsStatsFresh = true;
       renderClientsStats();
     } catch (statsErr) { console.warn('Stats refresh failed:', statsErr); }
-    if (typeof showDashToast === 'function') showDashToast('success', 'Subscriber removed');
+    if (typeof showDashToast === 'function') showDashToast('success', 'Subscriber opted out');
   } catch (e) {
     console.error('Remove failed:', e);
-    showModalAlert('Could not remove', e.message || 'Failed to remove subscriber.');
+    showModalAlert('Could not opt out', e.message || 'Failed to opt out this subscriber.');
   }
 }
 
@@ -1341,7 +1344,7 @@ async function clientsSubmitAdd() {
   // Block adding emails that are currently suppressed - the creator explicitly
   // removed them before, so silently re-adding would defeat the opt-out.
   if (clientsSuppressed.has(emailLc)) {
-    return showErr('This email was previously removed from your list. Restore it from the suppression list first or contact support.');
+    return showErr('This email previously opted out of your list. Re-adding them would override that choice, so it has to be done by support.');
   }
   // Note: We used to check clientsData here for duplicates, but with server-
   // side pagination clientsData only holds the current page. Rely on the
@@ -1793,7 +1796,7 @@ function clientsImportRenderValidation() {
   if (stats.skippedStatus > 0) lines.push('<div class="clients-s-import-validation-line"><span>Marked as unsubscribed in your CSV (skipped)</span><span class="clients-s-import-validation-num clients-s-import-validation-num-skip">' + stats.skippedStatus.toLocaleString() + '</span></div>');
   if (stats.duplicateInFile > 0) lines.push('<div class="clients-s-import-validation-line"><span>Duplicate rows in this file</span><span class="clients-s-import-validation-num clients-s-import-validation-num-skip">' + stats.duplicateInFile.toLocaleString() + '</span></div>');
   if (stats.alreadyIn > 0) lines.push('<div class="clients-s-import-validation-line"><span>Already in your list</span><span class="clients-s-import-validation-num clients-s-import-validation-num-skip">' + stats.alreadyIn.toLocaleString() + '</span></div>');
-  if (stats.suppressed > 0) lines.push('<div class="clients-s-import-validation-line"><span>Previously removed by you</span><span class="clients-s-import-validation-num clients-s-import-validation-num-skip">' + stats.suppressed.toLocaleString() + '</span></div>');
+  if (stats.suppressed > 0) lines.push('<div class="clients-s-import-validation-line"><span>Previously opted out</span><span class="clients-s-import-validation-num clients-s-import-validation-num-skip">' + stats.suppressed.toLocaleString() + '</span></div>');
   lines.push('<div class="clients-s-import-validation-line"><span><strong>Ready to add</strong></span><span class="clients-s-import-validation-num clients-s-import-validation-num-add">' + stats.toAdd.toLocaleString() + '</span></div>');
   el.innerHTML = lines.join('');
 
@@ -1913,7 +1916,7 @@ async function clientsImportRunImport() {
     if (stats.invalid > 0) lines.push('<div class="clients-s-import-validation-line"><span>Invalid emails (skipped)</span><span class="clients-s-import-validation-num clients-s-import-validation-num-skip">' + stats.invalid.toLocaleString() + '</span></div>');
     if (stats.skippedStatus > 0) lines.push('<div class="clients-s-import-validation-line"><span>Unsubscribed (skipped)</span><span class="clients-s-import-validation-num clients-s-import-validation-num-skip">' + stats.skippedStatus.toLocaleString() + '</span></div>');
     if (stats.alreadyIn > 0) lines.push('<div class="clients-s-import-validation-line"><span>Already in your list</span><span class="clients-s-import-validation-num clients-s-import-validation-num-skip">' + stats.alreadyIn.toLocaleString() + '</span></div>');
-    if (stats.suppressed > 0) lines.push('<div class="clients-s-import-validation-line"><span>Previously removed by you</span><span class="clients-s-import-validation-num clients-s-import-validation-num-skip">' + stats.suppressed.toLocaleString() + '</span></div>');
+    if (stats.suppressed > 0) lines.push('<div class="clients-s-import-validation-line"><span>Previously opted out</span><span class="clients-s-import-validation-num clients-s-import-validation-num-skip">' + stats.suppressed.toLocaleString() + '</span></div>');
     resultEl.innerHTML = lines.join('');
   }
   clientsImportUpdateActionBtn('Close', false);
