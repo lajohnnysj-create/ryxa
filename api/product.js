@@ -311,7 +311,7 @@ function renderPage(product, creator) {
 <meta name="ryxa-product-slug" content="${esc(product.slug)}">
 <meta name="ryxa-product-is-free" content="${isFree ? 'true' : 'false'}">
 <meta name="ryxa-product-creator-name" content="${esc(creatorName)}">
-<script src="/js/product-page.js" defer></script>
+<script src="/js/resume-intent.js"></script>\n    <script src="/js/product-page.js" defer></script>
 <script src="/cookie-banner.js"></script>
 
 </body>
