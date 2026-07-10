@@ -141,7 +141,7 @@
         <button class="tab active" role="tab" aria-selected="true" aria-controls="tab-errors" data-admin-action="tab" data-admin-tab="errors">Errors</button>
         <button class="tab" role="tab" aria-selected="false" aria-controls="tab-creators" data-admin-action="tab" data-admin-tab="creators">Creators</button>
         <button class="tab" role="tab" aria-selected="false" aria-controls="tab-threshold" data-admin-action="tab" data-admin-tab="threshold">High volume</button>
-        <button class="tab" role="tab" aria-selected="false" aria-controls="tab-reports" data-admin-action="tab" data-admin-tab="reports">Reports</button>
+        <button class="tab" role="tab" aria-selected="false" aria-controls="tab-reports" data-admin-action="tab" data-admin-tab="reports">AI Reports</button>
       </div>
 
       <div class="tabpanel" id="tab-creators" role="tabpanel" hidden>
@@ -170,6 +170,7 @@
           </thead>
           <tbody id="threshold-body"></tbody>
         </table>
+        <button class="btn-ghost" id="threshold-more" data-admin-action="threshold-more" style="display:none;">Load older</button>
       </div>
 
       <div class="tabpanel" id="tab-reports" role="tabpanel" hidden>
@@ -184,11 +185,11 @@
               <th>When</th>
               <th>Source</th>
               <th class="hide-m">Reporter</th>
-              <th>Status</th>
             </tr>
           </thead>
           <tbody id="reports-body"></tbody>
         </table>
+        <button class="btn-ghost" id="reports-more" data-admin-action="reports-more" style="display:none;">Load older</button>
       </div>
 
       <div class="tabpanel" id="tab-errors" role="tabpanel">
