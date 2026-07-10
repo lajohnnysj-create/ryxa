@@ -470,15 +470,17 @@ function showStripeMsg(type, text) {
 function setAcctReconnectState(connectedEl, defaultLabel, needs) {
   if (!connectedEl) return;
   const labelEl = connectedEl.querySelector('.settings-s-279016');
+  // The visual card is the inner .settings-s-9403ee row (it carries the green
+  // background, border, and radius), NOT the outer stack wrapper. Styling the
+  // wrapper draws a second, misaligned outline around the real card.
+  const cardEl = connectedEl.querySelector('.settings-s-9403ee') || connectedEl;
   if (needs) {
-    connectedEl.style.border = '1px solid rgba(239,68,68,0.45)';
-    connectedEl.style.background = 'rgba(239,68,68,0.08)';
-    connectedEl.style.borderRadius = '12px';
+    cardEl.style.border = '1px solid rgba(239,68,68,0.45)';
+    cardEl.style.background = 'rgba(239,68,68,0.08)';
     if (labelEl) { labelEl.textContent = 'Reconnection needed'; labelEl.style.color = '#f87171'; }
   } else {
-    connectedEl.style.border = '';
-    connectedEl.style.background = '';
-    connectedEl.style.borderRadius = '';
+    cardEl.style.border = '';
+    cardEl.style.background = '';
     if (labelEl) { labelEl.textContent = defaultLabel; labelEl.style.color = ''; }
   }
 }

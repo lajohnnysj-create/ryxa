@@ -1,5 +1,5 @@
 // =============================================================================
-// /js/dashboard-shell.js — Dashboard shell code (extracted 2026-05-11)
+// /js/dashboard-shell.js - Dashboard shell code (extracted 2026-05-11)
 // -----------------------------------------------------------------------------
 // This file contains the chassis that all the tools hang off of:
 //   • Supabase client setup, Auth token holder, getAIHeaders
@@ -17,7 +17,7 @@
 // markup is parsed (where it lived inline before extraction). Tool scripts
 // load AFTER this file, so:
 //   • Tool scripts can reference these globals at parse time and at runtime.
-//   • initAuth() is called at the bottom of this file. It's async — yields
+//   • initAuth() is called at the bottom of this file. It's async - yields
 //     immediately on `await sb.auth.getSession()`. By the time it resumes,
 //     all tool scripts have loaded.
 //   • Top-level DOM access (document.body, document.addEventListener) is safe
@@ -33,7 +33,7 @@
 //   isPro, isMax, tierLabel, escapeHtml, getAIHeaders,
 //   showTool, showFollowerTool, fetchTier, updateTierUI, applyMaxTrialButtonLabels,
 //   showDashToast, showProUpsell, dashConfirm (via deals.js),
-//   showModalAlert, showModalConfirm (via deals.js — they live in deals.js
+//   showModalAlert, showModalConfirm (via deals.js - they live in deals.js
 //   but are general-purpose),
 //   setBtnLoading, clearBtnLoading, startCheckout,
 //   formatMoney, formatDashUSD, getCurrencySymbol, applyCurrencySymbols,
@@ -92,7 +92,7 @@ const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // running in this page (extensions, supply-chain XSS, etc.).
 //
 // The token is still fundamentally accessible via sb.auth.getSession() or
-// localStorage to any code in this origin — that's an unavoidable property
+// localStorage to any code in this origin - that's an unavoidable property
 // of a JS-SDK auth model. But removing the named global eliminates the
 // most common opportunistic exfiltration pattern (scripts that grep window
 // for token-shaped values).
@@ -172,7 +172,7 @@ function ryxaReportAIOutput(source, contentText) {
 let currentUser = null;
 let userTier = 'free';
 
-// HTML escape utility — used everywhere to prevent XSS when rendering user content
+// HTML escape utility - used everywhere to prevent XSS when rendering user content
 function escapeHtml(str) {
   if (str == null) return '';
   return String(str)
@@ -183,18 +183,18 @@ function escapeHtml(str) {
     .replace(/'/g, '&#39;');
 }
 
-// Generic dashboard toast — brief notification at the bottom of the screen.
+// Generic dashboard toast - brief notification at the bottom of the screen.
 // Use for success confirmations after auto-save actions where the visual
 // re-render alone isn't enough confirmation (e.g. timezone change saves to
 // DB and re-renders, but the user can't tell the DB write actually landed).
 //
 // Types:
-//   'success' (default) — green accent, auto-dismisses after 2.5s
-//   'error'             — red accent, auto-dismisses after 5s (longer for
+//   'success' (default) - green accent, auto-dismisses after 2.5s
+//   'error'             - red accent, auto-dismisses after 5s (longer for
 //                         readability; errors are rare and worth showing)
 //
 // Multiple calls in quick succession replace the previous toast rather
-// than stacking — avoids the "10 toasts on top of each other" mess.
+// than stacking - avoids the "10 toasts on top of each other" mess.
 function dashShowToast(message, type) {
   type = type || 'success';
   // Legacy bottom-center toast, retired: all callers now route to the
@@ -207,7 +207,7 @@ function dashShowToast(message, type) {
   var t = document.createElement('div');
   t.className = 'dash-toast dash-toast-' + type;
   // role="status" for success (polite live region), "alert" for errors
-  // (assertive live region — screen readers interrupt to announce).
+  // (assertive live region - screen readers interrupt to announce).
   t.setAttribute('role', type === 'error' ? 'alert' : 'status');
   t.textContent = message;
   document.body.appendChild(t);
@@ -219,7 +219,7 @@ function dashShowToast(message, type) {
   }, duration);
 }
 
-// Tier helpers — use these everywhere instead of raw string comparison
+// Tier helpers - use these everywhere instead of raw string comparison
 function isPro() { return userTier === 'monthly' || userTier === 'max'; }
 function isMax() { return userTier === 'max'; }
 function tierLabel(t) {
@@ -275,7 +275,7 @@ function dashDispatchEvent(event) {
 
 let userStatus = 'free';
 // ISO timestamp when the trial ends, or null when not in a trial. Source of
-// truth for "is the user currently in a trial" — checked at render time
+// truth for "is the user currently in a trial" - checked at render time
 // because trials expire silently and we don't always get a webhook on tick.
 let userTrialEnd = null;
 let userBillingCycle = 'monthly';
@@ -283,7 +283,7 @@ let userBillingCycle = 'monthly';
 // Drives whether Max upgrade buttons say "Try free" or "Upgrade".
 let userMaxTrialUsed = false;
 // Tier the user had BEFORE upgrading into Max (null = never had a prior tier).
-// Used to give Pro→Max-trial users an honest cancel message — cancel drops
+// Used to give Pro→Max-trial users an honest cancel message - cancel drops
 // them to Free, not back to Pro, so they know to resubscribe if they want Pro.
 let userPreMaxTier = null;
 let currentTool = 'welcome';
@@ -736,7 +736,7 @@ document.addEventListener('visibilitychange', function() {
 });
 
 // Rotating welcome greetings. {name} gets replaced with @username (or "creator" if no username yet).
-// Tone: warm, brief, work-focused — never effusive. Mix of creator-context and neutral lines.
+// Tone: warm, brief, work-focused - never effusive. Mix of creator-context and neutral lines.
 const DASH_GREETINGS = [
   "Welcome back, {name}.",
   "Hey {name}.",
@@ -893,6 +893,13 @@ const DASH_GREETINGS = [
 
 async function setUser(user) {
   currentUser = user;
+  // Surface dead social connections right at login: one combined error toast
+  // naming every platform whose token has died, so a paused connection is
+  // hard to miss without waiting for the user to visit Settings or Media Kit.
+  // Fired on a delay so it lands after (rather than getting replaced by, or
+  // replacing) any toast the login flow itself shows: showDashToast is a
+  // single-slot notification, a new toast removes the current one.
+  setTimeout(function() { checkSocialReconnections(user.id); }, 2500);
   // Update sidebar user info
   const email = document.getElementById('sidebar-email');
   const avatar = document.getElementById('sidebar-avatar');
@@ -947,7 +954,7 @@ async function setUser(user) {
       try { localStorage.setItem('ryxa_cal_tz', window._ryx_creator_tz); } catch (e) {}
     } catch (e) { window._ryx_creator_tz = 'UTC'; }
     // Auto-detect calendar timezone for first-time users. We only write if
-    // calendar_timezone is missing — never overwrite. This means:
+    // calendar_timezone is missing - never overwrite. This means:
     //   - New accounts: get a sensible default based on browser locale.
     //   - Existing accounts with a NULL value (created before this field):
     //     backfilled on next login.
@@ -1019,7 +1026,7 @@ async function setUser(user) {
     // Source 2: localStorage (fallback, same-device path)
     const intentRaw = localStorage.getItem('fts_intended_plan');
     if (intentRaw) {
-      // ALWAYS clear the intent — we don't want it to persist across sessions
+      // ALWAYS clear the intent - we don't want it to persist across sessions
       localStorage.removeItem('fts_intended_plan');
       // Only use localStorage if URL params didn't already give us an intent.
       if (!intentObj) {
@@ -1087,7 +1094,7 @@ async function setUser(user) {
   // Resume account deletion after a Google re-authentication redirect
   if (typeof handleDeleteAccountReturn === 'function') handleDeleteAccountReturn();
 
-  // Handle Google Calendar OAuth callback — auto-navigate to Calendar tool
+  // Handle Google Calendar OAuth callback - auto-navigate to Calendar tool
   if (typeof handleGcalRedirect === 'function') handleGcalRedirect();
 
   // Check if user has accepted terms
@@ -1572,6 +1579,36 @@ function copyWelcomeBioLink() {
 }
 
 
+// Check all five social connection tables for needs_reconnect flags and, if
+// any are set, show ONE combined error toast listing the affected platforms.
+// A single combined toast (rather than one per platform) is deliberate:
+// showDashToast keeps only one toast on screen at a time, so sequential
+// per-platform toasts would replace each other and only the last would be seen.
+async function checkSocialReconnections(userId) {
+  const tables = [
+    ['instagram_connections', 'Instagram'],
+    ['youtube_connections', 'YouTube'],
+    ['tiktok_connections', 'TikTok'],
+    ['twitch_connections', 'Twitch'],
+    ['facebook_connections', 'Facebook'],
+  ];
+  try {
+    const results = await Promise.all(tables.map(function(t) {
+      return sb.from(t[0]).select('needs_reconnect').eq('user_id', userId).eq('needs_reconnect', true).maybeSingle()
+        .then(function(res) { return (res && res.data) ? t[1] : null; })
+        .catch(function() { return null; });
+    }));
+    const dead = results.filter(Boolean);
+    if (!dead.length) return;
+    const list = dead.length === 1 ? dead[0]
+      : dead.length === 2 ? dead[0] + ' and ' + dead[1]
+      : dead.slice(0, -1).join(', ') + ', and ' + dead[dead.length - 1];
+    showDashToast('error', 'Reconnection needed: ' + list + '. Data updates are paused. Go to Settings to reconnect.');
+  } catch (e) {
+    console.error('checkSocialReconnections', e);
+  }
+}
+
 function showDashToast(type, message) {
   // Slide-in notification tab, anchored to the right edge (GeForce style).
   // Safe-area aware so it clears the notch inside the mobile app.
@@ -1652,7 +1689,7 @@ async function fetchTier(userId) {
     }
     updateTierUI();
     // Pre-load AI usage so the sidebar menu opens instantly with no layout shift.
-    // Runs for ALL tiers — Free shows a locked state with upgrade CTA.
+    // Runs for ALL tiers - Free shows a locked state with upgrade CTA.
     fetchAiUsage();
   } finally {
     clearTimeout(safety);
@@ -1670,7 +1707,7 @@ async function fetchTier(userId) {
 // Also updates the body of the Settings upgrade confirmation dialog, which
 // needs to reflect whether a trial will be granted on confirm.
 function applyMaxTrialButtonLabels() {
-  const trialLabel = 'Try Creator Max Free — 7 Days';
+  const trialLabel = 'Try Creator Max Free - 7 Days';
   const noTrialLabel = 'Upgrade to Creator Max';
   const label = userMaxTrialUsed ? noTrialLabel : trialLabel;
 
@@ -1716,7 +1753,7 @@ function updateTierUI() {
     badgeText = max ? 'Creator Max' : pro ? 'Pro' : 'Free';
   }
 
-  // Sidebar / account menu label — intentionally NOT showing trial state.
+  // Sidebar / account menu label - intentionally NOT showing trial state.
   // Keeps the sidebar text short; trial info is surfaced in the topbar pill
   // and the Settings panel.
   const planText = isCancelling
@@ -1756,7 +1793,7 @@ function updateTierUI() {
       upgradeBtn.style.display = 'block';
       upgradeBtn.textContent = userMaxTrialUsed
         ? 'Upgrade to Creator Max'
-        : 'Try Creator Max Free — 7 Days';
+        : 'Try Creator Max Free - 7 Days';
       upgradeBtn.onclick = () => promptUpgradeToMax();
       upgradeBtn.style.background = 'linear-gradient(135deg,#a78bfa,#e879f9)';
       upgradeBtn.style.boxShadow = '0 0 20px rgba(232,121,249,0.35)';
@@ -1784,7 +1821,7 @@ function updateTierUI() {
   // Sync Max upgrade CTA labels (trial vs no-trial) based on userMaxTrialUsed
   applyMaxTrialButtonLabels();
 
-  // Tier is now resolved — reveal the appropriate pills.
+  // Tier is now resolved - reveal the appropriate pills.
   // Until this point, body.tier-loading was hiding all pills to prevent
   // a flash of incorrect pills (e.g., Max pills briefly showing for a Max user).
   document.body.classList.remove('tier-loading');
@@ -1884,7 +1921,7 @@ function showTool(tool) {
       if (typeof bioState !== 'undefined' && bioState.avatar_url) {
         updateDashboardAvatar(bioState.avatar_url);
       } else {
-        // bioState might not be loaded yet — query directly
+        // bioState might not be loaded yet - query directly
         sb.from('link_in_bio').select('avatar_url').eq('user_id', currentUser.id).maybeSingle().then(function(res) {
           if (res.data?.avatar_url) {
             updateDashboardAvatar(res.data.avatar_url);
@@ -2102,7 +2139,7 @@ async function startCheckout(planOrIntent, cycleOrBtn, maybeBtn) {
     if (planArg === 'monthly') { resolved.plan = 'pro'; resolved.cycle = 'monthly'; }
     else if (planArg === 'max') { resolved.plan = 'max'; }
     else if (planArg === 'pro') { resolved.plan = 'pro'; }
-    // else planArg is null/undefined — will be resolved from localStorage below
+    // else planArg is null/undefined - will be resolved from localStorage below
 
     // Second arg: cycle ('monthly'/'annual') or button element
     if (b === 'monthly' || b === 'annual') {
@@ -2156,7 +2193,7 @@ async function startCheckout(planOrIntent, cycleOrBtn, maybeBtn) {
   // Extract a user-readable error message from the Edge Function response.
   // Supabase JS SDK wraps non-2xx responses in a FunctionsHttpError where the
   // body lives at err.context (a Response). We try to JSON-parse it for the
-  // "error" field — that's what our Edge Function returns. Fallback to the
+  // "error" field - that's what our Edge Function returns. Fallback to the
   // generic message if parsing fails.
   async function extractEdgeFunctionError(err) {
     try {
@@ -2199,7 +2236,7 @@ async function startCheckout(planOrIntent, cycleOrBtn, maybeBtn) {
     try { localStorage.removeItem('fts_intended_plan'); } catch (e) {}
     if (data?.url) {
       if (data.upgraded || data.alreadyOnPlan) {
-        // Tier updated in-place — refresh user tier and show status inline
+        // Tier updated in-place - refresh user tier and show status inline
         await fetchTier(currentUser.id);
         let msg;
         if (data.alreadyOnPlan) {
@@ -2217,7 +2254,7 @@ async function startCheckout(planOrIntent, cycleOrBtn, maybeBtn) {
         if (typeof showSettingsResult === 'function' && document.getElementById('tool-settings')?.style.display !== 'none') {
           showSettingsResult('success', msg);
         } else {
-          // Settings modal is closed — open it so the user sees their new state
+          // Settings modal is closed - open it so the user sees their new state
           if (typeof openSettingsModal === 'function') {
             openSettingsModal();
             setTimeout(() => showSettingsResult('success', msg), 150);
@@ -2225,7 +2262,7 @@ async function startCheckout(planOrIntent, cycleOrBtn, maybeBtn) {
         }
         clearBtnLoading(btn);
       } else {
-        // Page is about to navigate away — keep the loading state so users don't double-click
+        // Page is about to navigate away - keep the loading state so users don't double-click
         window.location.href = data.url;
       }
     } else {
@@ -2255,7 +2292,7 @@ function openSignoutModal() {
   if (modal) modal.style.display = 'flex';
 }
 
-// Step 1: user clicked "Upgrade to Creator Max" — show inline confirmation
+// Step 1: user clicked "Upgrade to Creator Max" - show inline confirmation
 
 // Confirm + trigger upgrade from outside the settings modal (e.g. topbar button)
 function promptUpgradeToMax() {
@@ -2269,7 +2306,7 @@ function closeTopbarUpgradeConfirm() {
 }
 
 // ========================================================================
-// PRO UPSELL MODAL — reusable for any Pro-locked feature.
+// PRO UPSELL MODAL - reusable for any Pro-locked feature.
 // Call: showProUpsell({ feature: 'Custom Theme', description: '...' })
 //   - feature: short name shown in title (e.g., "Custom Theme is a Pro feature")
 //   - description: optional 1-2 sentence pitch shown above the feature list
@@ -2319,7 +2356,7 @@ function handleMaxUpgradeClick(ev) {
   goToPricing('max');
 }
 
-// Step 1: user clicked "Downgrade to Pro" — show inline confirmation
+// Step 1: user clicked "Downgrade to Pro" - show inline confirmation
 function closeSignoutModal() {
   const modal = document.getElementById('signout-modal');
   if (modal) modal.style.display = 'none';
@@ -2739,7 +2776,7 @@ function formatMoney(cents, opts) {
   }
 }
 
-// Backward-compatible alias — many places in code call formatDashUSD
+// Backward-compatible alias - many places in code call formatDashUSD
 // ---------------------------------------------------------------------------
 // Chart series: fill the gaps.
 //
@@ -2940,11 +2977,11 @@ function closeSidebarMenu() {
   if (menu) menu.style.display = 'none';
 }
 
-// AI usage state — cached so the menu opens instantly with no layout shift.
+// AI usage state - cached so the menu opens instantly with no layout shift.
 window._aiUsageCache = null;
 
 // Fetch AI usage from server and update cache.
-// Safe to call repeatedly — it's a single indexed COUNT query.
+// Safe to call repeatedly - it's a single indexed COUNT query.
 async function fetchAiUsage() {
   try {
     var { data, error } = await sb.rpc('get_ai_usage');
@@ -2963,14 +3000,14 @@ async function fetchAiUsage() {
 }
 
 // Render AI usage bar from cache. Synchronous, no fetch.
-// Free tier shows a locked state with an upgrade CTA — drives upsell visibility.
+// Free tier shows a locked state with an upgrade CTA - drives upsell visibility.
 // Pro/Max tier shows the live counter.
 function renderAiUsage() {
   var box = document.getElementById('sidebar-ai-usage');
   if (!box) return;
   var data = window._aiUsageCache;
 
-  // No cache yet — keep box hidden until first fetch returns
+  // No cache yet - keep box hidden until first fetch returns
   if (!data || data.hidden) { box.style.display = 'none'; return; }
 
   var bar = document.getElementById('sidebar-ai-bar');
@@ -2982,7 +3019,7 @@ function renderAiUsage() {
 
   var limit = Number(data.limit || 0);
 
-  // FREE TIER — locked state, drive upgrade
+  // FREE TIER - locked state, drive upgrade
   if (limit === 0) {
     var teaserLimit = 40;  // show what they'd get on Pro
     bar.style.width = '0%';
@@ -2998,7 +3035,7 @@ function renderAiUsage() {
     return;
   }
 
-  // PRO / MAX — live counter
+  // PRO / MAX - live counter
   if (lockEl) lockEl.style.display = 'none';
   if (upgradeBtn) upgradeBtn.style.display = 'none';
   countEl.style.opacity = '1';
@@ -3187,7 +3224,7 @@ function applyCleanUp(textareaId) {
 
 
 
-// PWA Install — Chrome: deferred prompt, iOS: instruction modal
+// PWA Install - Chrome: deferred prompt, iOS: instruction modal
 var deferredInstallPrompt = null;
 var isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 var isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
@@ -3205,16 +3242,16 @@ window.addEventListener('beforeinstallprompt', function(e) {
 
 function handleInstallClick() {
   if (deferredInstallPrompt) {
-    // Chrome/Android — use native prompt
+    // Chrome/Android - use native prompt
     deferredInstallPrompt.prompt();
     deferredInstallPrompt.userChoice.then(function(result) {
       deferredInstallPrompt = null;
     });
   } else if (isIos) {
-    // iOS — show instruction modal
+    // iOS - show instruction modal
     openInstallModal();
   } else {
-    // Desktop/other with no prompt available — already installed or not supported
+    // Desktop/other with no prompt available - already installed or not supported
     showModalAlert('Already Installed', 'Ryxa is already installed on your device. Look for it in your apps or taskbar.');
   }
 }
@@ -3240,7 +3277,7 @@ document.getElementById('signout-modal').addEventListener('click', function(e) {
   if (e.target === this) closeSignoutModal();
 });
 
-// Brand Deal CRM — delete modal click-outside-to-close (attached after DOMContentLoaded since modal is below)
+// Brand Deal CRM - delete modal click-outside-to-close (attached after DOMContentLoaded since modal is below)
 window.addEventListener('DOMContentLoaded', () => {
   const ddm = document.getElementById('deal-delete-modal');
   if (ddm) ddm.addEventListener('click', function(e) { if (e.target === this) closeDealDeleteModal(); });
@@ -3292,7 +3329,7 @@ dashRegisterAction('discard-cleanup', () => {
 dashRegisterAction('confirm-topbar-upgrade-max', (e) => confirmTopbarUpgradeToMax(e));
 dashRegisterAction('close-topbar-upgrade-confirm', () => closeTopbarUpgradeConfirm());
 
-// Pro upsell modal — triggered by showProUpsell() for Pro-locked features
+// Pro upsell modal - triggered by showProUpsell() for Pro-locked features
 dashRegisterAction('confirm-pro-upsell', (e) => confirmProUpsell(e));
 dashRegisterAction('close-pro-upsell', () => closeProUpsell());
 // Only close if the click target IS the backdrop element itself (not a child).
@@ -3307,7 +3344,7 @@ dashRegisterAction('close-pro-upsell-if-backdrop', (e, el) => {
 // Tool navigation, sidebar menu open/close, sidebar utility buttons.
 // =============================================================================
 
-// Tool navigation — generic show-tool, reads target from data-dash-tool attribute.
+// Tool navigation - generic show-tool, reads target from data-dash-tool attribute.
 // Used by every sidebar tool button. Follower has its own wrapper that does
 // extra setup (showFollowerTool) so it's a separate action.
 dashRegisterAction('show-tool', (e, el) => {
@@ -3351,7 +3388,7 @@ dashRegisterAction('onboarding-choose', (e, el) => {
 dashRegisterAction('toggle-sidebar-menu', () => toggleSidebarMenu());
 dashRegisterAction('close-sidebar-menu', () => closeSidebarMenu());
 
-// Sidebar utility — "Copy bio link" button (calls into bio.js)
+// Sidebar utility - "Copy bio link" button (calls into bio.js)
 dashRegisterAction('copy-sidebar-bio-link', () => copySidebarBioLink());
 dashRegisterAction('copy-welcome-bio-link', () => copyWelcomeBioLink());
 dashRegisterAction('go-connect-stripe', () => {
@@ -3371,7 +3408,7 @@ dashRegisterAction('dismiss-stripe-nudge', () => {
   if (n) n.style.display = 'none';
 });
 
-// Compound actions — these combine menu-close with another action so the menu
+// Compound actions - these combine menu-close with another action so the menu
 // closes when navigating away (mimics the original inline `a();b();` pattern).
 dashRegisterAction('sidebar-upgrade-pro', (e, el) => {
   closeSidebarMenu();
