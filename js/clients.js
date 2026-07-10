@@ -204,33 +204,23 @@ function clientsReadFilterState() {
 // suppression sizes (under a few hundred per creator) this is fine.
 function clientsBuildQuery(filters, wantCount) {
   // count:'exact' makes Postgres count every matching row, and
-  // subscribers_view is a UNION over four tables, so the count is a full scan.
+  // subscribers_view is a UNION over five tables, so the count is a full scan.
   // Paging forward with an unchanged filter cannot change the total, so ask
   // for it only on page 0 and reuse it for the rest.
+  //
+  // Suppression is no longer filtered here. The view joins
+  // subscriber_suppressions and reports `suppressed`, so opted-out people stay
+  // in the list and are shown as such. The old NOT IN filter hid them, which
+  // made an opt-out look like a deletion and left the pagination math to
+  // guess once the suppression list grew past what a URL could carry.
   var q = sb.from('subscribers_view')
-    .select('email, source, optin, joined_at, email_lc', wantCount ? { count: 'exact' } : undefined)
+    .select('email, source, optin, suppressed, suppressed_at, joined_at, email_lc', wantCount ? { count: 'exact' } : undefined)
     .eq('creator_id', currentUser.id);
   if (filters.optinOnly) q = q.eq('optin', true);
   if (filters.cutoffMs !== null) q = q.gte('joined_at', new Date(filters.cutoffMs).toISOString());
   if (filters.query) {
     // ILIKE on email. Match anywhere in the address.
     q = q.ilike('email', '%' + filters.query.replace(/[%_]/g, '\\$&') + '%');
-  }
-  // Apply suppression filter server-side via NOT IN. This makes pagination
-  // math accurate (otherwise pages with many suppressed rows would show
-  // fewer items than CLIENTS_PER_PAGE, and the page count would be wrong).
-  // PostgREST serializes the IN list into the URL, so very large suppression
-  // sets would exceed URL length limits. Cap at SERVER_SUPPRESSION_LIMIT;
-  // beyond that, fall back to client-side filter (the comment above the
-  // fallback in clientsFetchPage explains the tradeoff).
-  if (clientsSuppressed.size > 0 && clientsSuppressed.size <= CLIENTS_SERVER_SUPPRESSION_LIMIT) {
-    // PostgREST .not('col', 'in', '(...)') wants parens-wrapped, comma-joined.
-    // Emails can't contain parens or commas in valid form, but escape just
-    // in case via a defensive replacement.
-    var suppressList = Array.from(clientsSuppressed).map(function(e) {
-      return String(e).replace(/[(),]/g, '');
-    });
-    q = q.not('email_lc', 'in', '(' + suppressList.join(',') + ')');
   }
   // Sort. Default date-desc. Email A-Z uses email_lc for stable case-insensitive
   // ordering. Source A-Z sorts by the source label alphabetically.
@@ -245,63 +235,18 @@ function clientsBuildQuery(filters, wantCount) {
   return q;
 }
 
-// Cap on how many suppressed emails we'll include in the server-side NOT IN
-// clause. PostgREST URL limit is ~8KB. Each email averages ~25 chars; at 500
-// items the URL fragment is ~12-15KB which is fine, at 2000 it's ~50KB which
-// would be rejected. Cap conservatively at 500 - way beyond what any real
-// creator suppression list would hit.
-var CLIENTS_SERVER_SUPPRESSION_LIMIT = 500;
-
-// ---------------------------------------------------------------------------
-// Subscribers is a bottom-nav tab in the app, so a creator taps in and out of
-// it constantly. Every open used to re-fetch the full suppression list, the
-// full notes list, and two count:'exact' queries against subscribers_view (a
-// UNION over four tables), which Postgres can only answer with a full scan.
-// At 10,000 subscribers that was two scans and four round trips per tap.
-//
-// The overlays and stats are cached for the session and invalidated by the
-// writes that change them. The list itself was always paginated at 50.
-// ---------------------------------------------------------------------------
-var clientsOverlaysLoaded = false;
-var clientsStatsFresh = false;
-var CLIENTS_FRESH_MS = 60000;
-var clientsLastLoadedAt = 0;
-
-// Any write that changes suppressions, notes, or the subscriber set must call
-// this, or the tool will render yesterday's overlays.
-function clientsInvalidateCaches(opts) {
-  opts = opts || {};
-  if (opts.overlays !== false) clientsOverlaysLoaded = false;
-  if (opts.stats !== false) clientsStatsFresh = false;
-  // Forget the cached row count too, or an added or removed subscriber would
-  // leave "Page 1 of 7" describing the list as it was before the write.
-  clientsLastFilterKey = null;
-  clientsTotalCount = 0;
-  clientsLastLoadedAt = 0;
-}
-
-// Fetches one page of subscribers for the current filter state. Suppression
-// filter is applied server-side when feasible (size <= CLIENTS_SERVER_SUPPRESSION_LIMIT).
-// For pathologically large suppression sets, falls back to client-side filter
-// with a small over-fetch buffer; pagination math may be slightly off in that
-// rare case but it's a degenerate scenario unlikely to occur in practice.
-// Returns { rows, total } where total reflects the count after the
-// server-side suppression filter (so pagination math is correct).
 async function clientsFetchPage(pageIndex, filters, wantCount) {
   var start = pageIndex * CLIENTS_PER_PAGE;
   var pageEnd = start + CLIENTS_PER_PAGE - 1;
-  var serverHandlesSuppression = clientsSuppressed.size <= CLIENTS_SERVER_SUPPRESSION_LIMIT;
   var q = clientsBuildQuery(filters, wantCount).range(start, pageEnd);
   var { data, count, error } = await q;
   if (error) throw error;
   // total === null means "unchanged, keep what you had". Distinct from 0.
-  if (serverHandlesSuppression) {
-    return { rows: data || [], total: wantCount ? (count || 0) : null };
-  }
-  // Fallback: large-suppression case. Client-side filter and approximate count.
-  var rows = (data || []).filter(function(r) { return !clientsSuppressed.has(r.email_lc); });
-  var total = wantCount ? Math.max(0, (count || 0) - clientsSuppressed.size) : null;
-  return { rows: rows, total: total };
+  //
+  // The old client-side fallback and its approximate page count existed only
+  // because a long NOT IN list overflowed the PostgREST URL. The view joins
+  // suppressions now, so the count is always exact.
+  return { rows: data || [], total: wantCount ? (count || 0) : null };
 }
 
 // Stats: total, opted-in, opted-out counts (filter-independent - shows overall
@@ -310,36 +255,34 @@ async function clientsFetchPage(pageIndex, filters, wantCount) {
 // server-side suppression filter as clientsFetchPage so counts are
 // consistent with the page-level rendering math.
 async function clientsFetchStats() {
-  var serverHandlesSuppression = clientsSuppressed.size <= CLIENTS_SERVER_SUPPRESSION_LIMIT;
-  function applySuppression(q) {
-    if (clientsSuppressed.size > 0 && serverHandlesSuppression) {
-      var suppressList = Array.from(clientsSuppressed).map(function(e) {
-        return String(e).replace(/[(),]/g, '');
-      });
-      return q.not('email_lc', 'in', '(' + suppressList.join(',') + ')');
-    }
-    return q;
-  }
-  var [totalRes, optinRes] = await Promise.all([
-    applySuppression(sb.from('subscribers_view')
+  // subscribers_view now joins subscriber_suppressions and exposes `optin`
+  // (false when suppressed) and `suppressed`. The client no longer filters:
+  // there is one answer, and the database gives it.
+  //
+  // The three numbers mean three different things, and they do not sum:
+  //   total     every subscriber, including people who opted out
+  //   optin     may be emailed
+  //   optout    asked not to be
+  // Someone who bought without ticking consent is in none of the last two.
+  var [totalRes, optinRes, optoutRes] = await Promise.all([
+    sb.from('subscribers_view')
       .select('email_lc', { count: 'exact', head: true })
-      .eq('creator_id', currentUser.id)),
-    applySuppression(sb.from('subscribers_view')
+      .eq('creator_id', currentUser.id),
+    sb.from('subscribers_view')
       .select('email_lc', { count: 'exact', head: true })
       .eq('creator_id', currentUser.id)
-      .eq('optin', true))
+      .eq('optin', true),
+    sb.from('subscribers_view')
+      .select('email_lc', { count: 'exact', head: true })
+      .eq('creator_id', currentUser.id)
+      .eq('suppressed', true)
   ]);
-  var total = totalRes.count || 0;
-  var optin = optinRes.count || 0;
-  // Fallback path: suppression too large for server NOT IN. Approximate by
-  // subtracting suppression count from total. The optin count is harder to
-  // correct (we don't know how many suppressed emails were opt-in), so
-  // conservatively cap optin <= total.
-  if (!serverHandlesSuppression && clientsSuppressed.size > 0) {
-    total = Math.max(0, total - clientsSuppressed.size);
-    optin = Math.min(optin, total);
-  }
-  return { total: total, optin: optin, optout: total - optin };
+
+  return {
+    total: totalRes.count || 0,
+    optin: optinRes.count || 0,
+    optout: optoutRes.count || 0
+  };
 }
 
 // Fetches Stripe-captured names + manual_subscribers names ONLY for the
@@ -502,6 +445,8 @@ async function clientsReloadPage() {
         email: r.email,
         source: r.source,
         optin: !!r.optin,
+        suppressed: !!r.suppressed,
+        suppressedAt: r.suppressed_at || null,
         date: r.joined_at
       };
     });
@@ -595,9 +540,20 @@ function renderSubscribersPage() {
     tbody.innerHTML = page.map(function(c) {
       var d = new Date(c.date);
       var date = (d.getMonth()+1) + '/' + d.getDate() + '/' + d.getFullYear();
-      var optinBadge = c.optin
-        ? '<span class="clients-s-becac0">Yes</span>'
-        : '<span class="prod-s-6c6a73">No</span>';
+      // Three states, not two. "Opted out" is a request this person made.
+      // "No" just means they never consented. Rendering them the same way
+      // loses the distinction the creator most needs to see.
+      var optinBadge;
+      if (c.suppressed) {
+        var outDate = c.suppressedAt
+          ? new Date(c.suppressedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+          : '';
+        optinBadge = '<span class="clients-s-optout-badge"' + (outDate ? ' title="Opted out on ' + escapeHtml(outDate) + '"' : '') + '>Opted out</span>';
+      } else if (c.optin) {
+        optinBadge = '<span class="clients-s-becac0">Yes</span>';
+      } else {
+        optinBadge = '<span class="prod-s-6c6a73">No</span>';
+      }
       var sourceClass = 'clients-s-source-' + (c.source || 'bio');
       var sourceLabel = CLIENT_SOURCE_LABEL[c.source] || 'Bio';
       var checked = clientsSelected.has(c.email) ? ' checked' : '';
@@ -619,9 +575,9 @@ function renderSubscribersPage() {
         + '</button>'
         + '</td>'
         + '<td class="clients-s-row-remove-cell">'
-        + '<button class="clients-s-row-remove" data-clients-action="remove-one" data-clients-email="' + escEmail + '" aria-label="Mark as opted out: ' + escEmail + '" title="Mark as opted out">'
-        + '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="23" y1="11" x2="17" y2="11"/></svg>'
-        + '</button>'
+        // Already opted out: nothing left to do, and offering the action
+        // again implies it could be toggled back. It cannot, not by the creator.
+        + (c.suppressed ? '' : ('<button class="clients-s-row-remove" data-clients-action="remove-one" data-clients-email="' + escEmail + '" aria-label="Mark as opted out: ' + escEmail + '" title="Mark as opted out">' + '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="23" y1="11" x2="17" y2="11"/></svg>' + '</button>'))
         + '</td>'
         + '</tr>';
     }).join('');
@@ -803,7 +759,15 @@ async function exportSubscribers() {
     function buildExportQuery(from, to) {
       var q = sb.from('subscribers_view')
         .select('email, source, optin, joined_at, email_lc')
-        .eq('creator_id', currentUser.id);
+        .eq('creator_id', currentUser.id)
+        // Opted-out people are excluded HERE, deliberately, in the query.
+        //
+        // This used to happen as a side effect of the client-side suppression
+        // filter that also hid them from the list. That filter is gone. An
+        // export is the one place a stale suppression list becomes real harm:
+        // a CSV carried into another mail tool, emailing someone who asked not
+        // to be. It must never depend on a set the client happened to load.
+        .eq('suppressed', false);
       if (filters.optinOnly) q = q.eq('optin', true);
       if (filters.cutoffMs !== null) q = q.gte('joined_at', new Date(filters.cutoffMs).toISOString());
       if (filters.query) q = q.ilike('email', '%' + filters.query.replace(/[%_]/g, '\\$&') + '%');
@@ -833,9 +797,9 @@ async function exportSubscribers() {
       }
     }
 
-    // Apply the same client-side suppression filter that the page view uses
-    // (consistent with what the user sees in the dashboard).
-    var rows = allRows.filter(function(r) { return !clientsSuppressed.has(r.email_lc); });
+    // Suppression was applied server-side in buildExportQuery. No client-side
+    // filtering: the database is the only thing that knows.
+    var rows = allRows;
 
     if (rows.length === 0) {
       restoreBtn();
@@ -921,9 +885,16 @@ async function clientsBulkRemove() {
   var confirmText = emails.length === 1
     ? 'This subscriber will be marked as opted out and will no longer appear in your subscribers list or exports. Their purchase records stay intact. This cannot be undone from the dashboard.'
     : emails.length + ' subscribers will be marked as opted out and will no longer appear in your subscribers list or exports. Their purchase records stay intact. This cannot be undone from the dashboard.';
-  var confirmed = await confirmTypedDelete('Mark as opted out', confirmText, 'Opt out');
-  if (!confirmed) return;
+  showModalConfirm(
+    'Mark as opted out',
+    confirmText,
+    function () { clientsOptOutBulk(emails); },
+    'Opt out',
+    'Cancel'
+  );
+}
 
+async function clientsOptOutBulk(emails) {
   try {
     var rows = emails.map(function(email) {
       return { creator_id: currentUser.id, email: email };
@@ -959,13 +930,16 @@ async function clientsRemoveOne(email) {
   // "Remove" always suppressed rather than deleted, which is exactly what an
   // opt-out is. The label just never said so, and a creator honoring an
   // unsubscribe request could not tell this was the right button.
-  var confirmed = await confirmTypedDelete(
+  showModalConfirm(
     'Mark as opted out',
     email + ' will be marked as opted out and will no longer appear in your subscribers list or exports. Their purchase records stay intact. This cannot be undone from the dashboard.',
-    'Opt out'
+    function () { clientsOptOutOne(email); },
+    'Opt out',
+    'Cancel'
   );
-  if (!confirmed) return;
+}
 
+async function clientsOptOutOne(email) {
   try {
     var { error } = await sb.from('subscriber_suppressions').upsert([
       { creator_id: currentUser.id, email: email }
