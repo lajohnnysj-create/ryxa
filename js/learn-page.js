@@ -121,6 +121,37 @@ function showLearnEmailSent(message) {
   return true;
 }
 
+// Auth redirects must stay on the SAME ORIGIN the buyer is already on.
+//
+// These were hardcoded to https://ryxa.io, the apex. The canonical host is
+// www.ryxa.io. localStorage is scoped per origin, so a resume intent saved on
+// www was invisible to the page that loaded after an email confirmation
+// bounced through the apex. Password sign-in worked (no origin change);
+// confirming by email did not.
+function learnRedirectParam() {
+  var params;
+  try { params = new URLSearchParams(window.location.search); } catch (e) { return null; }
+  var redirect = params.get('redirect');
+  // Relative paths only. Never protocol-relative, which would leave the site.
+  if (redirect && redirect.startsWith('/') && !redirect.startsWith('//')) return redirect;
+  return null;
+}
+
+// Email flows land back on the Hub, which forwards them. The path travels as a
+// query param because the email link cannot carry a session.
+function learnHubRedirectUrl() {
+  var redirect = learnRedirectParam();
+  var base = window.location.origin + '/learn/';
+  return redirect ? base + '?redirect=' + encodeURIComponent(redirect) : base;
+}
+
+// OAuth returns with a session already established, so it can go straight to
+// the destination rather than bouncing through the Hub.
+function learnOAuthRedirectUrl() {
+  var redirect = learnRedirectParam();
+  return redirect ? window.location.origin + redirect : window.location.origin + '/learn/';
+}
+
 function applyLearnAuthContext() {
   var params;
   try { params = new URLSearchParams(window.location.search); } catch (e) { return; }
@@ -200,10 +231,7 @@ async function handleLearnMagicLink() {
   // Preserve any ?redirect= so a buyer who followed a course link lands there.
   var params = new URLSearchParams(window.location.search);
   var redirect = params.get('redirect');
-  var emailRedirectTo = 'https://ryxa.io/learn/';
-  if (redirect && redirect.startsWith('/') && !redirect.startsWith('//')) {
-    emailRedirectTo = 'https://ryxa.io/learn/?redirect=' + encodeURIComponent(redirect);
-  }
+  var emailRedirectTo = learnHubRedirectUrl();
 
   var { error } = await sb.auth.signInWithOtp({
     email: email,
@@ -263,7 +291,7 @@ async function handleLearnForgotPassword() {
     resetTurnstile();
     return;
   }
-  var { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: 'https://ryxa.io/reset-password.html', captchaToken: captchaToken });
+  var { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + '/reset-password.html', captchaToken: captchaToken });
   if (error) {
     var msg = error.message;
     if (msg.toLowerCase().indexOf('captcha') !== -1 || msg.toLowerCase().indexOf('invalid-input') !== -1) {
@@ -282,10 +310,7 @@ async function handleLearnForgotPassword() {
 }
 
 async function handleLearnGoogleAuth() {
-  var params = new URLSearchParams(window.location.search);
-  var redirect = params.get('redirect');
-  var redirectUrl = 'https://ryxa.io/learn/';
-  if (redirect && redirect.startsWith('/') && !redirect.startsWith('//')) redirectUrl = 'https://ryxa.io' + redirect;
+  var redirectUrl = learnOAuthRedirectUrl();
   var { error } = await sb.auth.signInWithOAuth({
     provider: 'google',
     options: { redirectTo: redirectUrl }
@@ -298,10 +323,7 @@ async function handleLearnGoogleAuth() {
   }
 }
 async function handleLearnAppleAuth() {
-  var params = new URLSearchParams(window.location.search);
-  var redirect = params.get('redirect');
-  var redirectUrl = 'https://ryxa.io/learn/';
-  if (redirect && redirect.startsWith('/') && !redirect.startsWith('//')) redirectUrl = 'https://ryxa.io' + redirect;
+  var redirectUrl = learnOAuthRedirectUrl();
   var { error } = await sb.auth.signInWithOAuth({
     provider: 'apple',
     options: { redirectTo: redirectUrl }
@@ -436,12 +458,7 @@ async function handleAuth() {
     var result;
     if (authMode === 'signup') {
       // Build redirect URL so email confirmation sends user back here
-      var confirmRedirect = 'https://ryxa.io/learn/';
-      var params = new URLSearchParams(window.location.search);
-      var redirect = params.get('redirect');
-      if (redirect && redirect.startsWith('/') && !redirect.startsWith('//')) {
-        confirmRedirect = 'https://ryxa.io/learn/?redirect=' + encodeURIComponent(redirect);
-      }
+      var confirmRedirect = learnHubRedirectUrl();
       result = await sb.auth.signUp({ email: email, password: password, options: { captchaToken: captchaToken, emailRedirectTo: confirmRedirect } });
       if (result.error) throw result.error;
       if (result.data?.user && !result.data.session) {
