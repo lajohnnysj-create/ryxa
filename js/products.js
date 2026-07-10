@@ -245,6 +245,7 @@ async function loadProductsList() {
       }
       // Final failure: blocking panel with Retry; New Product stays locked.
       console.error('loadProductsList failed:', e);
+      showProductsMsg('error', 'Failed to load your products. Please retry.');
       listEl.style.display = 'block';
       listEl.innerHTML = '';
       var panel = document.createElement('div');
@@ -486,6 +487,7 @@ async function openProductEditor(productId) {
           msgEl.appendChild(panel);
           panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
+        showProductsMsg('error', 'Failed to load product. Please retry.');
         return;
       }
     }
@@ -1176,7 +1178,7 @@ function dpClickAddFile() {
   // while the product's state is unknown. The visible controls are locked by
   // setProductEditorControlsLocked; this guards the upload entry point itself.
   if (productsState.editorLoadFailed) {
-    showModalAlert('Product not loaded', 'This product could not be loaded. Use the Retry button at the top of the editor before making changes.');
+    showProductsMsg('error', 'This product could not be loaded, so changes are disabled to protect it. Use the Retry button at the top of the editor.');
     return;
   }
   if (!dpRequireTitleBeforeUpload()) return;

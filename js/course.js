@@ -276,6 +276,7 @@ async function loadCoursesList() {
       }
       console.error('Failed to load courses:', err);
       courseShowListFailed();
+      showCourseMsg('error', 'Failed to load your courses. Please retry.');
       return;
     }
   }
@@ -624,7 +625,9 @@ async function saveCourse(opts) {
     showCourseMsg('success', 'Course saved!');
     courseCoverFile = null;
   } catch (err) {
-    showCourseMsg('error', 'Failed to save: ' + err.message);
+    // Guards that already surfaced their own toast set _shownToUser; avoid
+    // stacking a second "Failed to save" toast on top of it.
+    if (!err._shownToUser) showCourseMsg('error', 'Failed to save: ' + err.message);
   } finally {
     // Do not re-enable Save while the curriculum is in the load-failed state:
     // setCourseModulesLoadFailed(true) owns the button until a clean load.
@@ -1057,6 +1060,7 @@ async function loadCourseModules(courseId) {
       // Add Module disabled until a clean load succeeds.
       courseModulesLoaded = false;
       setCourseModulesLoadFailed(true);
+      showCourseMsg('error', 'Failed to load course. Please retry.');
       return;
     }
   }
@@ -1266,11 +1270,13 @@ async function saveCourseModules(courseId) {
   // or partial local state would be interpreted by the diff below as mass
   // deletion.
   if (!courseModulesLoaded) {
-    showModalAlert(
-      'Saving is disabled',
-      'The course curriculum did not finish loading, so saving is disabled to protect your modules and lessons. Refresh the page and try again.'
+    showCourseMsg(
+      'error',
+      'Saving is disabled because the course curriculum did not finish loading. This protects your modules and lessons. Use the Retry button to reload it.'
     );
-    throw new Error('Curriculum not loaded; save blocked');
+    const guardErr = new Error('Curriculum not loaded; save blocked');
+    guardErr._shownToUser = true;
+    throw guardErr;
   }
 
   // Pre-flight: validate every lesson's text_content size before we start
@@ -1380,11 +1386,13 @@ async function saveCourseModules(courseId) {
     .filter(function(id) { return !courseExplicitRemovals.has(id); })
     .concat(lessonsToDelete.filter(function(id) { return !courseExplicitRemovals.has(id); }));
   if (unexpectedDeletes.length > 0) {
-    showModalAlert(
-      'Save blocked to protect your course',
-      'This save would remove modules or lessons that were not deleted in this editing session, which means the editor is out of sync with the database. Nothing has been changed. Refresh the page and try again.'
+    showCourseMsg(
+      'error',
+      'Save blocked to protect your course: this save would remove modules or lessons that were not deleted in this session, so the editor is out of sync. Nothing has been changed. Refresh the page and try again.'
     );
-    throw new Error('Blocked out-of-sync curriculum deletion');
+    const syncErr = new Error('Blocked out-of-sync curriculum deletion');
+    syncErr._shownToUser = true;
+    throw syncErr;
   }
   if (lessonsToDelete.length > 0) {
     const { error: delLErr } = await sb.from('course_lessons').delete().in('id', lessonsToDelete);

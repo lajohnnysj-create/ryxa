@@ -250,6 +250,7 @@ async function loadCoachingList() {
       // A failed load must never masquerade as an empty list.
       console.error('Failed to load coaching:', err);
       coachShowListFailed();
+      showCoachingMsg('error', 'Failed to load your services. Please retry.');
       return;
     }
   }
@@ -558,6 +559,7 @@ async function openCoachingEditor(coachingId) {
         console.error('Failed to load service:', err);
         coachingEditorLoadFailed = true;
         coachShowEditorFailed();
+        showCoachingMsg('error', 'Failed to load service. Please retry.');
         return;
       }
     }
