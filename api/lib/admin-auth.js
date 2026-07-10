@@ -32,36 +32,51 @@ function getServiceKey() {
   return k;
 }
 
-// The provider used for THIS session, read from the access token.
+// How did THIS session authenticate?
 //
-// user.app_metadata.provider from /auth/v1/user is the SIGNUP provider, frozen
-// at account creation. An account made with a password and later linked to
-// Google reports "email" forever, so it cannot answer "how did this session
-// start". The JWT carries app_metadata.provider per token, set by GoTrue when
-// the session was minted.
+// Not app_metadata.provider: Supabase copies that from the user record into the
+// JWT, and the record freezes it at signup. An account created with a password
+// and later linked to Google reports "email" forever, even in a token minted by
+// a Google sign-in. Verified against a live token before writing this.
 //
-// This only READS the claim to decide which of two admin doors was used. The
-// token's authenticity is established separately, by exchanging it with
-// Supabase in getVerifiedUser(). A forged claim in an unsigned token gets a
-// 401 there before this value is ever consulted.
-function sessionProvider(req) {
+// The claim that answers the question is `amr` (Authentication Methods
+// Reference), which GoTrue writes per session:
+//
+//   Google   -> [{ method: "oauth",    timestamp: ... }]
+//   Password -> [{ method: "password", timestamp: ... }]
+//   Magic    -> [{ method: "otp",      timestamp: ... }]
+//   Google+MFA -> [{ method: "oauth" }, { method: "mfa/totp" }]
+//
+// This only READS the claim to decide which door was used. Authenticity is
+// established separately, by exchanging the token with Supabase in
+// getVerifiedUser(). A forged claim in an unsigned token gets a 401 there
+// before this value is ever consulted.
+function sessionAuthMethods(req) {
   try {
     const auth = req.headers.authorization || '';
-    if (!auth.startsWith('Bearer ')) return null;
+    if (!auth.startsWith('Bearer ')) return [];
     const parts = auth.slice(7).split('.');
-    if (parts.length !== 3) return null;
+    if (parts.length !== 3) return [];
     const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8'));
-    const meta = payload.app_metadata || {};
-    return meta.provider || null;
+    const amr = Array.isArray(payload.amr) ? payload.amr : [];
+    if (amr.length === 0) return [];
+
+    // Return every method this session used, not just the latest.
+    //
+    // amr accumulates: a Google sign-in followed by an MFA step-up yields
+    // [oauth, mfa/totp]. Taking the last entry would reject exactly the
+    // strongest session in the system. The question is whether Google was used
+    // at all, not whether it was used most recently.
+    return amr.map(function (e) { return e && e.method; }).filter(Boolean);
   } catch (e) {
-    return null;
+    return [];
   }
 }
 
 async function getVerifiedUser(req) {
   try {
     const auth = req.headers.authorization || '';
-    if (!auth.startsWith('Bearer ')) return null;
+    if (!auth.startsWith('Bearer ')) return [];
     const res = await fetch(SUPABASE_URL + '/auth/v1/user', {
       headers: { Authorization: auth, apikey: getServiceKey() },
     });
@@ -123,7 +138,7 @@ async function requireAdmin(req, res) {
   // Google only. A password or magic-link session on an admin account is
   // rejected even though the account itself qualifies: the panel was designed
   // to have exactly one door.
-  if (sessionProvider(req) !== 'google') {
+  if (sessionAuthMethods(req).indexOf('oauth') === -1) {
     res.status(403).json({ error: 'Forbidden' });
     return null;
   }
@@ -131,4 +146,4 @@ async function requireAdmin(req, res) {
   return user;
 }
 
-module.exports = { SUPABASE_URL, ADMIN_EMAILS, getServiceKey, getVerifiedUser, isAdmin, sessionProvider, requireAdmin };
+module.exports = { SUPABASE_URL, ADMIN_EMAILS, getServiceKey, getVerifiedUser, isAdmin, sessionAuthMethods, requireAdmin };
