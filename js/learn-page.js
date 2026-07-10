@@ -99,6 +99,39 @@ let viewerEnrollmentId = null;
 let currentLessonId = null;
 let authMode = 'signin';
 
+// A buyer who clicked "Get for free" and landed on a login screen is not
+// browsing: they are mid-transaction. Default them to Create Account and say
+// why they are here. The Sign In tab is one click away for returning buyers.
+//
+// Both halves of this already existed. The redirect param was read (to send
+// them back afterwards) and the tabs existed. Nothing connected them, so a
+// first-time buyer met a Sign In form with no account and no explanation.
+function applyLearnAuthContext() {
+  var params;
+  try { params = new URLSearchParams(window.location.search); } catch (e) { return; }
+
+  var redirect = params.get('redirect') || '';
+  // Same validation as the redirect itself: relative paths only, never a
+  // protocol-relative URL that would leave the site.
+  if (!redirect.startsWith('/') || redirect.startsWith('//')) return;
+
+  var msg;
+  if (redirect.indexOf('/course/') === 0) msg = 'Create an account to get this course.';
+  else if (redirect.indexOf('/booking/') === 0) msg = 'Create an account to book your session.';
+  else if (redirect.indexOf('/product/') === 0) msg = 'Create an account to get this product.';
+  else msg = 'Create an account to continue.';
+
+  var box = document.getElementById('learn-auth-context');
+  if (box) {
+    // textContent, not innerHTML: the message is ours, but the habit is what
+    // keeps a future version of this safe when the message is not.
+    box.textContent = msg;
+    box.style.display = 'block';
+  }
+
+  setLearnAuthMode('signup');
+}
+
 function setLearnAuthMode(mode) {
   authMode = mode;
   var signinTab = document.getElementById('learn-tab-signin');
@@ -350,6 +383,10 @@ function showAuth() {
   document.getElementById('viewer-screen').style.display = 'none';
   document.getElementById('nav-right').innerHTML = '<a href="/" class="nav-btn nav-btn-outline">Home</a>';
   renderTurnstileWidget();
+
+  // Only when the auth screen is actually shown. A logged-in buyer never sees
+  // this, and their DOM should not be touched for a banner they will not read.
+  applyLearnAuthContext();
 }
 
 async function handleAuth() {
