@@ -151,6 +151,121 @@ async function checkRateLimit(ipHash, creatorId) {
 // Main handler
 // ============================================================
 
+
+// ============================================================
+// Re-subscribe after opting out
+//
+// A person who previously opted out cannot be resubscribed by the creator, or
+// by anyone typing their address into a form. Only they can undo it, and the
+// proof is that they can receive mail at that address. So the form never
+// resubscribes a suppressed email: it emails them a single-use confirmation
+// link, and nothing changes until they click it.
+//
+// The endpoint's RESPONSE is identical in every case. If it said "you opted
+// out before", anyone could type any address and learn whether that person is
+// on a creator's list. That is an enumeration leak, and this form is public.
+// ============================================================
+
+const RESUB_TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
+
+// Store the hash, never the token. A leaked table then proves nothing and
+// cannot be used to confirm anybody's resubscription.
+function hashToken(raw) {
+  return crypto.createHash('sha256').update(raw).digest('hex');
+}
+
+async function isSuppressed(creatorId, emailLc) {
+  const res = await sbFetch(
+    'subscriber_suppressions?creator_id=eq.' + encodeURIComponent(creatorId) +
+    '&email=ilike.' + encodeURIComponent(emailLc) + '&select=id&limit=1'
+  );
+  if (!res.ok) throw new Error('suppression lookup failed: ' + res.status);
+  const rows = await res.json();
+  return Array.isArray(rows) && rows.length > 0;
+}
+
+// Has an unspent link already gone to this address recently? Without this,
+// submitting a stranger's email fifty times mails them fifty links.
+async function hasPendingToken(creatorId, emailLc) {
+  const since = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+  const res = await sbFetch(
+    'bio_resubscribe_tokens?creator_id=eq.' + encodeURIComponent(creatorId) +
+    '&email=ilike.' + encodeURIComponent(emailLc) +
+    '&used_at=is.null&created_at=gte.' + encodeURIComponent(since) +
+    '&select=id&limit=1'
+  );
+  if (!res.ok) return false;   // never block a real signup on this check
+  const rows = await res.json();
+  return Array.isArray(rows) && rows.length > 0;
+}
+
+async function sendResubscribeEmail(creatorId, emailLc) {
+  const resendKey = process.env.RESEND_API_KEY;
+  if (!resendKey) {
+    console.error('RESEND_API_KEY missing: cannot send re-subscribe confirmation');
+    return;
+  }
+
+  // Creator display name for the email. Public view, safe fields only.
+  let creatorName = 'this creator';
+  try {
+    const pr = await sbFetch('public_profiles?user_id=eq.' + encodeURIComponent(creatorId) + '&select=username&limit=1');
+    if (pr.ok) {
+      const rows = await pr.json();
+      if (rows && rows[0] && rows[0].username) creatorName = rows[0].username;
+    }
+  } catch (e) { /* name is cosmetic */ }
+
+  const raw = crypto.randomBytes(32).toString('base64url');
+  const ins = await sbFetch('bio_resubscribe_tokens', {
+    method: 'POST',
+    headers: { Prefer: 'return=minimal' },
+    body: {
+      creator_id: creatorId,
+      email: emailLc,
+      token_hash: hashToken(raw),
+      expires_at: new Date(Date.now() + RESUB_TOKEN_TTL_MS).toISOString(),
+    },
+  });
+  if (!ins.ok) {
+    console.error('resubscribe token insert failed', ins.status);
+    return;
+  }
+
+  const link = 'https://www.ryxa.io/api/confirm-resubscribe?token=' + encodeURIComponent(raw);
+  const html =
+    '<div style="font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;">' +
+      '<div style="text-align:center;margin-bottom:24px;"><img src="https://www.ryxa.io/logo.png" alt="Ryxa" width="36" height="36" style="border-radius:8px;"></div>' +
+      '<h1 style="font-size:21px;font-weight:700;text-align:center;margin-bottom:10px;color:#111;">Confirm you want these emails</h1>' +
+      '<p style="font-size:15px;color:#555;text-align:center;line-height:1.6;margin-bottom:24px;">Someone entered this address on ' + escapeHtml(creatorName) + '\'s page. You previously asked to stop receiving their emails, so nothing changes unless you confirm.</p>' +
+      '<div style="text-align:center;margin-bottom:24px;">' +
+        '<a href="' + link + '" style="display:inline-block;padding:12px 28px;background:#7c3aed;color:#fff;text-decoration:none;border-radius:8px;font-size:14px;font-weight:600;">Yes, subscribe me again</a>' +
+      '</div>' +
+      '<p style="font-size:12px;color:#999;text-align:center;line-height:1.6;">If this was not you, ignore this email. You will stay unsubscribed and we will not email you about it again. This link expires in 24 hours.</p>' +
+    '</div>';
+
+  try {
+    await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + resendKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from: 'Ryxa <no-reply@ryxa.io>',
+        to: [emailLc],
+        subject: 'Confirm you want emails from ' + creatorName,
+        html,
+      }),
+    });
+  } catch (e) {
+    console.error('resubscribe email send failed', e);
+  }
+}
+
+function escapeHtml(str) {
+  return String(str || '').replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -201,12 +316,34 @@ module.exports = async function handler(req, res) {
     });
   }
 
+  // Previously opted out? Do not resubscribe. Email them a confirmation link
+  // and return the ordinary success response, so the form reveals nothing
+  // about who is or is not on this creator's list.
+  try {
+    if (await isSuppressed(creator_id, trimmedEmail)) {
+      if (!(await hasPendingToken(creator_id, trimmedEmail))) {
+        await sendResubscribeEmail(creator_id, trimmedEmail);
+      }
+      return res.status(200).json({ success: true });
+    }
+  } catch (e) {
+    // A failed suppression check must never fall through to the insert: that
+    // would resubscribe someone who opted out. Fail closed.
+    console.error('suppression check failed, refusing signup:', e);
+    return res.status(500).json({ error: 'Subscription failed' });
+  }
+
   // Insert the signup.
   try {
     const insRes = await sbFetch('bio_email_signups', {
       method: 'POST',
       headers: { 'Prefer': 'return=minimal' },
-      body: { creator_id, email: trimmedEmail },
+      body: {
+        creator_id,
+        email: trimmedEmail,
+        consented_at: new Date().toISOString(),
+        consent_source: 'bio_form',
+      },
     });
 
     if (insRes.ok) {
