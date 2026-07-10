@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unsubscribed | Ryxa</title>
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:image" content="https://www.ryxa.io/og-image.png">
+<meta name="twitter:image" content="https://www.ryxa.io/og-image.png">
+<link rel="icon" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0b12;
+    --surface2: #1a1a28;
+    --border: rgba(255,255,255,0.08);
+    --text: #f2f2f7;
+    --muted: rgba(255,255,255,0.62);
+    --accent2: #a78bfa;
+    --ok: #4ade80;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  .un-wrap { width: 100%; max-width: 420px; text-align: center; }
+  .un-logo img { width: 40px; height: 40px; border-radius: 9px; margin-bottom: 22px; }
+  .un-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 16px; padding: 34px 28px; }
+  .un-mark { width: 48px; height: 48px; margin: 0 auto 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+  .un-mark svg { width: 24px; height: 24px; }
+  .un-ok { background: rgba(74,222,128,0.14); border: 1px solid rgba(74,222,128,0.3); }
+  .un-ok svg { stroke: var(--ok); }
+  .un-warn { background: rgba(255,255,255,0.06); border: 1px solid var(--border); }
+  .un-warn svg { stroke: var(--muted); }
+  .un-title { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 21px; font-weight: 800; letter-spacing: -0.4px; margin-bottom: 10px; }
+  .un-sub { font-size: 14px; line-height: 1.65; color: var(--muted); }
+  .un-foot { margin-top: 26px; font-size: 12px; color: var(--muted); }
+  .un-foot a { color: var(--accent2); text-decoration: none; }
+  .un-foot a:hover { text-decoration: underline; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="un-wrap">
+  <div class="un-logo"><img src="/logo.png" alt="Ryxa"></div>
+
+  <div class="un-card" id="state-ok" hidden>
+    <div class="un-mark un-ok">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <div class="un-title">You've been removed</div>
+    <p class="un-sub">This address will not appear in that creator's subscriber list or exports. If you ever change your mind, you can sign up again on their page.</p>
+  </div>
+
+  <!-- A tampered or truncated link. Deliberately vague: naming the reason
+       would help someone probing the signature. -->
+  <div class="un-card" id="state-invalid" hidden>
+    <div class="un-mark un-warn">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="13"/><line x1="12" y1="16.5" x2="12.01" y2="16.5"/></svg>
+    </div>
+    <div class="un-title">This link isn't valid</div>
+    <p class="un-sub">It may have been altered in transit by an email client. Open the original email and click the link again, or contact the creator directly.</p>
+  </div>
+
+  <div class="un-card" id="state-error" hidden>
+    <div class="un-mark un-warn">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="13"/><line x1="12" y1="16.5" x2="12.01" y2="16.5"/></svg>
+    </div>
+    <div class="un-title">Something went wrong</div>
+    <p class="un-sub">We couldn't remove you just now. Nothing has changed. Please try the link again in a few minutes.</p>
+  </div>
+
+  <p class="un-foot">Powered by <a href="/">Ryxa</a></p>
+</div>
+
+<script src="/js/unsubscribed.js"></script>
+</body>
+</html>
