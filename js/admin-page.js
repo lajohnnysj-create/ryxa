@@ -209,7 +209,11 @@ var cents = stats.body.earnings.total_cents || 0;
 
       if (action === 'load-threshold') { loadThreshold(); return; }
 
-      if (action === 'load-reports') { loadReports(); return; }
+      if (action === 'load-reports') { loadReports(false); return; }
+
+      if (action === 'reports-more') { loadReports(true); return; }
+
+      if (action === 'threshold-more') { loadThreshold(true); return; }
 
       if (action === 'logout') {
         // scope:'local' clears this browser only. A global sign-out would also
@@ -397,12 +401,13 @@ var cents = stats.body.earnings.total_cents || 0;
   // so the panel should not load until an admin actually opens it.
   // -------------------------------------------------------------------------
   var thresholdLoaded = false;
+  var thresholdOldest = null;
 
-  function renderThreshold(accounts) {
+  function renderThreshold(accounts, append) {
     var body = el('threshold-body');
-    body.textContent = '';
+    if (!append) body.textContent = '';
 
-    if (!accounts || accounts.length === 0) {
+    if ((!accounts || accounts.length === 0) && !append) {
       var tr0 = document.createElement('tr');
       var td0 = document.createElement('td');
       td0.colSpan = 4;
@@ -439,12 +444,13 @@ var cents = stats.body.earnings.total_cents || 0;
       tr.appendChild(tdName); tr.appendChild(tdAt);
       tr.appendChild(tdWhen); tr.appendChild(tdVer);
       body.appendChild(tr);
+      thresholdOldest = a.crossed_at;   // cursor for the next page
     });
   }
 
-  async function loadThreshold() {
+  async function loadThreshold(append) {
     var body = el('threshold-body');
-    body.textContent = '';
+    if (!append) { body.textContent = ''; thresholdOldest = null; }
     var trL = document.createElement('tr');
     var tdL = document.createElement('td');
     tdL.colSpan = 4;
@@ -453,10 +459,12 @@ var cents = stats.body.earnings.total_cents || 0;
     trL.appendChild(tdL);
     body.appendChild(trL);
 
-    var r = await api('action=threshold');
+    var q = 'action=threshold';
+    if (append && thresholdOldest) q += '&before=' + encodeURIComponent(thresholdOldest);
+    var r = await api(q);
     if (r.status === 403 || r.status === 401) { showDenied(r.status); return; }
     if (r.status !== 200 || !r.body) {
-      body.textContent = '';
+      if (!append) body.textContent = '';
       var trE = document.createElement('tr');
       var tdE = document.createElement('td');
       tdE.colSpan = 4;
@@ -467,7 +475,13 @@ var cents = stats.body.earnings.total_cents || 0;
       return;
     }
     thresholdLoaded = true;
-    renderThreshold(r.body.accounts);
+    if (append) {
+      var rows = body.querySelectorAll('tr');
+      if (rows.length) body.removeChild(rows[rows.length - 1]);
+    }
+    renderThreshold(r.body.accounts, append);
+    var moreBtn = el('threshold-more');
+    if (moreBtn) moreBtn.style.display = r.body.has_more ? '' : 'none';
   }
 
   // -------------------------------------------------------------------------
@@ -491,14 +505,14 @@ var cents = stats.body.earnings.total_cents || 0;
     return parts.join('\n');
   }
 
-  function renderReports(reports) {
+  function renderReports(reports, append) {
     var body = el('reports-body');
-    body.textContent = '';
+    if (!append) body.textContent = '';
 
-    if (!reports || reports.length === 0) {
+    if ((!reports || reports.length === 0) && !append) {
       var tr0 = document.createElement('tr');
       var td0 = document.createElement('td');
-      td0.colSpan = 4;
+      td0.colSpan = 3;
       td0.className = 'muted';
       td0.textContent = 'No reports. Quiet is good.';
       tr0.appendChild(td0);
@@ -554,33 +568,31 @@ var cents = stats.body.earnings.total_cents || 0;
       tdWho.className = 'hide-m muted';
       tdWho.textContent = r.reporter ? '@' + r.reporter : (r.reporter_id || '').slice(0, 8);
 
-      var tdStatus = document.createElement('td');
-      var badge = document.createElement('span');
-      badge.className = r.status === 'pending' ? 'badge-pending' : 'badge-resolved';
-      badge.textContent = r.status || 'pending';
-      tdStatus.appendChild(badge);
-
-      tr.appendChild(tdWhen); tr.appendChild(tdSrc);
-      tr.appendChild(tdWho); tr.appendChild(tdStatus);
+      tr.appendChild(tdWhen); tr.appendChild(tdSrc); tr.appendChild(tdWho);
       body.appendChild(tr);
+      reportsOldest = r.created_at;   // cursor for the next page
     });
   }
 
-  async function loadReports() {
+  var reportsOldest = null;
+
+  async function loadReports(append) {
     var body = el('reports-body');
-    body.textContent = '';
+    if (!append) { body.textContent = ''; reportsOldest = null; }
     var trL = document.createElement('tr');
     var tdL = document.createElement('td');
-    tdL.colSpan = 4;
+    tdL.colSpan = 3;
     tdL.className = 'muted';
     tdL.textContent = 'Loading...';
     trL.appendChild(tdL);
     body.appendChild(trL);
 
-    var r = await api('action=reports');
+    var q = 'action=reports';
+    if (append && reportsOldest) q += '&before=' + encodeURIComponent(reportsOldest);
+    var r = await api(q);
     if (r.status === 403 || r.status === 401) { showDenied(r.status); return; }
     if (r.status !== 200 || !r.body) {
-      body.textContent = '';
+      if (!append) body.textContent = '';
       var trE = document.createElement('tr');
       var tdE = document.createElement('td');
       tdE.colSpan = 4;
@@ -591,7 +603,14 @@ var cents = stats.body.earnings.total_cents || 0;
       return;
     }
     reportsLoaded = true;
-    renderReports(r.body.reports);
+    if (append) {
+      // Drop the "Loading..." row we appended, then add the page.
+      var rows = body.querySelectorAll('tr');
+      if (rows.length) body.removeChild(rows[rows.length - 1]);
+    }
+    renderReports(r.body.reports, append);
+    var moreBtn = el('reports-more');
+    if (moreBtn) moreBtn.style.display = r.body.has_more ? '' : 'none';
   }
 
   function bindTabs() {
