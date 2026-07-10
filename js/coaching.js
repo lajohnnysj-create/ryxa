@@ -287,11 +287,214 @@ function renderCoachingList() {
   }).join('');
 }
 
-function openCoachingEditor(coachingId) {
+// Set true when the editor's fresh-row load has failed; blocks the save
+// backstop and is cleared on every editor open and on a successful load.
+let coachingEditorLoadFailed = false;
+
+// Lock/unlock every control that acts on this service, as one unit: Save,
+// Publish/Unpublish, marketplace toggle, Delete, the cover upload button,
+// and the cover preview (a div, locked via pointer-events; the remove-cover
+// button lives inside it and is covered by the same lock). One rule,
+// uniformly visible, same as the course and product editors.
+function setCoachingEditorControlsLocked(locked) {
+  var ids = ['coaching-save-btn', 'coaching-publish-btn', 'coaching-marketplace-btn', 'coaching-delete-btn', 'coaching-cover-upload-btn'];
+  ids.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.disabled = locked;
+    el.style.opacity = locked ? '0.5' : '';
+    el.style.cursor = locked ? 'not-allowed' : '';
+  });
+  var coverEl = document.getElementById('coaching-cover-preview');
+  if (coverEl) {
+    coverEl.style.pointerEvents = locked ? 'none' : '';
+    coverEl.style.opacity = locked ? '0.5' : '';
+  }
+}
+
+// Boxed loading indicator in the coaching-editor-msg slot at the top of the
+// editor: same geometry as the course and product editor loaders. Updates
+// text in place across the loading -> retrying upgrade.
+function coachShowEditorLoading(text) {
+  var msgEl = document.getElementById('coaching-editor-msg');
+  if (!msgEl) return;
+
+  if (!document.getElementById('course-load-spin-style')) {
+    var styleEl = document.createElement('style');
+    styleEl.id = 'course-load-spin-style';
+    styleEl.textContent = '@keyframes courseLoadSpin { to { transform: rotate(360deg); } }';
+    document.head.appendChild(styleEl);
+  }
+
+  msgEl.style.display = 'block';
+  msgEl.style.background = 'transparent';
+  msgEl.style.border = 'none';
+  msgEl.style.padding = '0';
+
+  var existing = msgEl.querySelector('[data-coach-editor-loading-text]');
+  if (existing) { existing.textContent = text; return; }
+
+  msgEl.innerHTML = '';
+  var wrap = document.createElement('div');
+  wrap.setAttribute('role', 'status');
+  wrap.style.display = 'flex';
+  wrap.style.alignItems = 'center';
+  wrap.style.gap = '10px';
+  wrap.style.padding = '14px 16px';
+  wrap.style.borderRadius = '10px';
+  wrap.style.border = '1px solid rgba(255,255,255,0.12)';
+  wrap.style.background = 'rgba(255,255,255,0.04)';
+  wrap.style.marginBottom = '16px';
+
+  var spinner = document.createElement('div');
+  spinner.style.width = '16px';
+  spinner.style.height = '16px';
+  spinner.style.border = '2px solid rgba(124,58,237,0.25)';
+  spinner.style.borderTopColor = '#7c3aed';
+  spinner.style.borderRadius = '50%';
+  spinner.style.animation = 'courseLoadSpin 0.7s linear infinite';
+  spinner.style.flexShrink = '0';
+
+  var label = document.createElement('div');
+  label.setAttribute('data-coach-editor-loading-text', '1');
+  label.style.color = 'rgba(255,255,255,0.7)';
+  label.style.fontSize = '14px';
+  label.textContent = text;
+
+  wrap.appendChild(spinner);
+  wrap.appendChild(label);
+  msgEl.appendChild(wrap);
+}
+
+// Clear the editor msg slot and restore its styles so showCoachingMsg's
+// inline-banner fallback renders normally next time it uses this element.
+function coachClearEditorMsg() {
+  var msgEl = document.getElementById('coaching-editor-msg');
+  if (!msgEl) return;
+  msgEl.style.display = 'none';
+  msgEl.innerHTML = '';
+  msgEl.style.background = '';
+  msgEl.style.border = '';
+  msgEl.style.padding = '';
+}
+
+// Blocking failure state for the service editor: same in-editor panel with
+// Retry as the course and product editors. The editor stays open with every
+// control locked; no modal, no bouncing back to the list.
+function coachShowEditorFailed() {
+  var msgEl = document.getElementById('coaching-editor-msg');
+  if (!msgEl) return;
+  msgEl.innerHTML = '';
+  msgEl.style.display = 'block';
+  msgEl.style.background = 'transparent';
+  msgEl.style.border = 'none';
+  msgEl.style.padding = '0';
+
+  var panel = document.createElement('div');
+  panel.setAttribute('role', 'alert');
+  panel.style.padding = '20px';
+  panel.style.borderRadius = '12px';
+  panel.style.border = '1px solid rgba(239,68,68,0.35)';
+  panel.style.background = 'rgba(239,68,68,0.08)';
+  panel.style.marginBottom = '16px';
+
+  var heading = document.createElement('div');
+  heading.style.color = '#f87171';
+  heading.style.fontWeight = '600';
+  heading.style.fontSize = '15px';
+  heading.style.marginBottom = '6px';
+  heading.textContent = 'Could not load this service';
+
+  var body = document.createElement('div');
+  body.style.color = 'rgba(255,255,255,0.7)';
+  body.style.fontSize = '14px';
+  body.style.lineHeight = '1.5';
+  body.style.marginBottom = '14px';
+  body.textContent = 'Editing and saving are turned off until the service loads, so your service and availability stay safe. This is usually a brief connection hiccup.';
+
+  var retry = document.createElement('button');
+  retry.type = 'button';
+  retry.setAttribute('data-coach-action', 'retry-editor-load');
+  retry.textContent = 'Retry';
+  retry.style.padding = '9px 18px';
+  retry.style.borderRadius = '8px';
+  retry.style.border = '1px solid rgba(255,255,255,0.25)';
+  retry.style.background = 'rgba(255,255,255,0.06)';
+  retry.style.color = '#fff';
+  retry.style.fontWeight = '600';
+  retry.style.cursor = 'pointer';
+
+  panel.appendChild(heading);
+  panel.appendChild(body);
+  panel.appendChild(retry);
+  msgEl.appendChild(panel);
+  panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+coachRegisterAction('retry-editor-load', function() {
+  if (!currentCoachingId) return;
+  openCoachingEditor(currentCoachingId);
+});
+
+// Populate the editor's fields and chrome from a service row. Used twice:
+// instantly with the in-memory list snapshot when the editor opens (so the
+// editor never looks stripped or empty), then again with the fresh DB row
+// once it loads. Same pattern as the course and product editors.
+function coachHydrateEditor(coaching) {
+  document.getElementById('coaching-id').value = coaching.id;
+  document.getElementById('coaching-title-input').value = coaching.title || '';
+  document.getElementById('coaching-slug-input').value = coaching.slug || '';
+  var slugNoticeEdit = document.getElementById('coaching-slug-notice');
+  if (slugNoticeEdit) slugNoticeEdit.textContent = 'This URL is permanently locked and cannot be changed.';
+  document.getElementById('coaching-desc-input').value = coaching.description || '';
+  document.getElementById('coaching-price-input').value = coaching.price_cents ? (coaching.price_cents / 100).toString() : '';
+  document.getElementById('coaching-calendly-input').value = coaching.calendly_url || '';
+  document.getElementById('coaching-duration-input').value = coaching.duration_minutes ? String(coaching.duration_minutes) : '30';
+  var mdInputLoad = document.getElementById('coaching-meeting-details-input');
+  if (mdInputLoad) mdInputLoad.value = coaching.meeting_details || '';
+  loadAvailabilityIntoUI(coaching.availability_settings);
+  setCoachingBookingType(coaching.booking_type || 'manual');
+
+  var uploadBtn = document.getElementById('coaching-cover-upload-btn');
+  if (coaching.cover_image_path) {
+    const url = sb.storage.from('coaching-covers').getPublicUrl(coaching.cover_image_path).data.publicUrl;
+    document.getElementById('coaching-cover-img').src = url;
+    document.getElementById('coaching-cover-preview').style.display = 'block';
+    if (uploadBtn) uploadBtn.style.display = 'none';
+  } else {
+    document.getElementById('coaching-cover-preview').style.display = 'none';
+    document.getElementById('coaching-cover-img').src = '';
+    if (uploadBtn) uploadBtn.style.display = 'flex';
+  }
+
+  const pubBtn = document.getElementById('coaching-publish-btn');
+  pubBtn.style.display = 'inline-block';
+  if (coaching.status === 'published') {
+    pubBtn.textContent = 'Unpublish';
+    pubBtn.style.borderColor = 'rgba(239,68,68,0.4)';
+    pubBtn.style.color = '#ef4444';
+    document.getElementById('coaching-marketplace-toggle').style.display = 'block';
+    updateMarketplaceToggleUI('coaching', !!coaching.listed_in_marketplace);
+    updateMarketplaceCountDisplay();
+  } else {
+    pubBtn.textContent = 'Publish';
+    pubBtn.style.borderColor = 'rgba(74,222,128,0.4)';
+    pubBtn.style.color = '#4ade80';
+    document.getElementById('coaching-marketplace-toggle').style.display = 'none';
+  }
+
+  document.getElementById('coaching-danger-zone').style.display = 'block';
+}
+
+async function openCoachingEditor(coachingId) {
   document.getElementById('coaching-list-view').style.display = 'none';
   document.getElementById('coaching-editor-view').style.display = 'block';
   currentCoachingId = coachingId || null;
   coachingCoverFile = null;
+  // Clear any lock, failure flag, or panel left over from a previous open.
+  coachingEditorLoadFailed = false;
+  setCoachingEditorControlsLocked(false);
+  coachClearEditorMsg();
 
   // Reset fields
   document.getElementById('coaching-id').value = '';
@@ -309,7 +512,6 @@ function openCoachingEditor(coachingId) {
   if (uploadBtn) uploadBtn.style.display = 'flex';
   document.getElementById('coaching-danger-zone').style.display = 'none';
   document.getElementById('coaching-publish-btn').style.display = 'none';
-  document.getElementById('coaching-editor-msg').style.display = 'none';
   document.getElementById('coaching-marketplace-toggle').style.display = 'none';
   updateMarketplaceToggleUI('coaching', false);
   loadAvailabilityIntoUI(null); // reset to defaults
@@ -317,45 +519,48 @@ function openCoachingEditor(coachingId) {
 
   if (coachingId) {
     document.getElementById('coaching-editor-title').textContent = 'Edit Service';
-    const coaching = coachingList.find(c => c.id === coachingId);
-    if (!coaching) return;
-    document.getElementById('coaching-id').value = coaching.id;
-    document.getElementById('coaching-title-input').value = coaching.title || '';
-    document.getElementById('coaching-slug-input').value = coaching.slug || '';
-    var slugNoticeEdit = document.getElementById('coaching-slug-notice');
-    if (slugNoticeEdit) slugNoticeEdit.textContent = 'This URL is permanently locked and cannot be changed.';
-    document.getElementById('coaching-desc-input').value = coaching.description || '';
-    document.getElementById('coaching-price-input').value = coaching.price_cents ? (coaching.price_cents / 100).toString() : '';
-    document.getElementById('coaching-calendly-input').value = coaching.calendly_url || '';
-    document.getElementById('coaching-duration-input').value = coaching.duration_minutes ? String(coaching.duration_minutes) : '30';
-    var mdInputLoad = document.getElementById('coaching-meeting-details-input');
-    if (mdInputLoad) mdInputLoad.value = coaching.meeting_details || '';
-    loadAvailabilityIntoUI(coaching.availability_settings);
-    setCoachingBookingType(coaching.booking_type || 'manual');
+    const cached = coachingList.find(c => c.id === coachingId);
+    if (!cached) return;
+    // Instant hydration from the in-memory list snapshot: fields and chrome
+    // render immediately, just locked, so the editor never looks stripped.
+    coachHydrateEditor(cached);
 
-    if (coaching.cover_image_path) {
-      const url = sb.storage.from('coaching-covers').getPublicUrl(coaching.cover_image_path).data.publicUrl;
-      document.getElementById('coaching-cover-img').src = url;
-      document.getElementById('coaching-cover-preview').style.display = 'block';
-      if (uploadBtn) uploadBtn.style.display = 'none';
+    // Fresh-row fetch behind the lock. availability_settings is a whole
+    // jsonb column overwritten on save, so saving from a stale list snapshot
+    // (edited on another device while this tab sat open) would clobber the
+    // newer settings. Fetching fresh at open closes that window, and makes
+    // this editor behave identically to the course and product editors.
+    setCoachingEditorControlsLocked(true);
+    coachShowEditorLoading('Loading service...');
+    var MAX_LOAD_ATTEMPTS = 3;
+    for (var attempt = 1; attempt <= MAX_LOAD_ATTEMPTS; attempt++) {
+      try {
+        var res = await sb.from('coaching_services').select('*').eq('id', coachingId).eq('user_id', currentUser.id).single();
+        if (res.error) throw res.error;
+        // Refresh the list cache entry so the list stays consistent.
+        var idx = coachingList.findIndex(function(c) { return c.id === coachingId; });
+        if (idx >= 0) {
+          res.data._bookings = coachingList[idx]._bookings;
+          coachingList[idx] = res.data;
+        }
+        coachHydrateEditor(res.data);
+        coachClearEditorMsg();
+        setCoachingEditorControlsLocked(false);
+        break;
+      } catch (err) {
+        if (attempt < MAX_LOAD_ATTEMPTS) {
+          coachShowEditorLoading('Having trouble loading this service. Retrying...');
+          await new Promise(function(resolve) { setTimeout(resolve, 400 * attempt); });
+          continue;
+        }
+        // Final failure: in-editor blocking panel with Retry, controls stay
+        // locked, description editor not mounted. Retry re-runs the open.
+        console.error('Failed to load service:', err);
+        coachingEditorLoadFailed = true;
+        coachShowEditorFailed();
+        return;
+      }
     }
-
-    const pubBtn = document.getElementById('coaching-publish-btn');
-    pubBtn.style.display = 'inline-block';
-    if (coaching.status === 'published') {
-      pubBtn.textContent = 'Unpublish';
-      pubBtn.style.borderColor = 'rgba(239,68,68,0.4)';
-      pubBtn.style.color = '#ef4444';
-      document.getElementById('coaching-marketplace-toggle').style.display = 'block';
-      updateMarketplaceToggleUI('coaching', !!coaching.listed_in_marketplace);
-      updateMarketplaceCountDisplay();
-    } else {
-      pubBtn.textContent = 'Publish';
-      pubBtn.style.borderColor = 'rgba(74,222,128,0.4)';
-      pubBtn.style.color = '#4ade80';
-    }
-
-    document.getElementById('coaching-danger-zone').style.display = 'block';
   } else {
     document.getElementById('coaching-editor-title').textContent = 'New Service';
     var slugNoticeNew = document.getElementById('coaching-slug-notice');
@@ -371,8 +576,9 @@ function openCoachingEditor(coachingId) {
 
   // Mount the rich-text description editor. Reuses course.js's
   // ensureQuillLoaded + sanitizeDescriptionHtml (course.js loads earlier
-  // in dashboard.html). The hidden textarea was already populated above
-  // and Quill picks up that content on mount.
+  // in dashboard.html). Mounted AFTER the fresh row has hydrated the
+  // textarea (or immediately for a new service), so Quill never mounts
+  // with stale cached content; skipped entirely on a failed load.
   mountCoachingDescEditor().catch(function(err) {
     console.warn('Coaching description editor failed to mount:', err);
   });
@@ -997,6 +1203,13 @@ function removeCoachingCover() {
 }
 
 async function saveCoaching() {
+  // Backstop: never save while the editor's fresh-row load has failed. The
+  // controls are locked so this should be unreachable; same defense-in-depth
+  // role as Guard 1 in the course save.
+  if (coachingEditorLoadFailed) {
+    showCoachingMsg('error', 'This service could not be loaded, so saving is disabled to protect it. Use the Retry button at the top of the editor.');
+    return;
+  }
   const title = document.getElementById('coaching-title-input').value.trim();
   const slug = document.getElementById('coaching-slug-input').value.trim();
   const description = document.getElementById('coaching-desc-input').value.trim();
