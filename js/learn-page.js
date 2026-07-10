@@ -106,6 +106,21 @@ let authMode = 'signin';
 // Both halves of this already existed. The redirect param was read (to send
 // them back afterwards) and the tabs existed. Nothing connected them, so a
 // first-time buyer met a Sign In form with no account and no explanation.
+// Once an email is on its way, the form has nothing left to do. Leaving it on
+// screen invites a second submit, a second email, and a support message about
+// receiving two links. Replace it.
+function showLearnEmailSent(message) {
+  var card = document.querySelector('.auth-card:not(#learn-auth-sent)');
+  var sent = document.getElementById('learn-auth-sent');
+  var msgEl = document.getElementById('learn-auth-sent-msg');
+  if (!sent || !msgEl) return false;
+
+  msgEl.textContent = message;
+  if (card) card.style.display = 'none';
+  sent.style.display = 'block';
+  return true;
+}
+
 function applyLearnAuthContext() {
   var params;
   try { params = new URLSearchParams(window.location.search); } catch (e) { return; }
@@ -115,11 +130,14 @@ function applyLearnAuthContext() {
   // protocol-relative URL that would leave the site.
   if (!redirect.startsWith('/') || redirect.startsWith('//')) return;
 
+  // Name both doors. A returning buyer arrives here too, and telling them only
+  // about Create Account sends them into the "you already have an account"
+  // branch for no reason.
   var msg;
-  if (redirect.indexOf('/course/') === 0) msg = 'Create an account to get this course.';
-  else if (redirect.indexOf('/booking/') === 0) msg = 'Create an account to book your session.';
-  else if (redirect.indexOf('/product/') === 0) msg = 'Create an account to get this product.';
-  else msg = 'Create an account to continue.';
+  if (redirect.indexOf('/course/') === 0) msg = 'Create an account or sign in to get this course.';
+  else if (redirect.indexOf('/booking/') === 0) msg = 'Create an account or sign in to book your session.';
+  else if (redirect.indexOf('/product/') === 0) msg = 'Create an account or sign in to get this product.';
+  else msg = 'Create an account or sign in to continue.';
 
   var box = document.getElementById('learn-auth-context');
   if (box) {
@@ -465,7 +483,7 @@ async function handleAuth() {
           if (otpRes.error) {
             errEl.textContent = 'You already have an account with this email. Use "Email me a login link" below to sign in.';
             errEl.style.color = '#f87171';
-          } else {
+          } else if (!showLearnEmailSent('You already have an account. We sent a login link to ' + email + '.')) {
             errEl.textContent = 'You already have an account. We sent a login link to ' + email + '.';
             errEl.style.color = 'var(--text)';
           }
@@ -473,10 +491,15 @@ async function handleAuth() {
           return;
         }
 
-        errEl.textContent = 'Check your email for a confirmation link.';
-        errEl.style.display = 'block';
-        errEl.style.color = 'var(--text)';
-        btn.disabled = false; btn.textContent = 'Sign Up';
+        // Genuinely new account, awaiting confirmation. Nothing more happens on
+        // this screen: the link in their inbox creates the session and returns
+        // them to the page they came from.
+        if (!showLearnEmailSent('We sent a confirmation link to ' + email + '. Click it to finish setting up your account.')) {
+          errEl.textContent = 'Check your email for a confirmation link.';
+          errEl.style.display = 'block';
+          errEl.style.color = 'var(--text)';
+          btn.disabled = false; btn.textContent = 'Sign Up';
+        }
         return;
       }
     } else {
