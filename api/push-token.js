@@ -34,6 +34,9 @@ function isValidExpoToken(token) {
 }
 
 module.exports = async (req, res) => {
+  // Authenticated, but a token upsert loop is still a write loop.
+  if (require('./lib/rate-limit').tooMany(req, res, 'push-token', 20, 60000)) return;
+
   res.setHeader('Cache-Control', 'no-store');
 
   if (req.method !== 'POST' && req.method !== 'DELETE') {

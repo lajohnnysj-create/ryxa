@@ -42,6 +42,11 @@ function clip(v, max) {
 }
 
 module.exports = async (req, res) => {
+  // Every call writes a row, into a table that already grows without bound.
+  // A loop here fills the database and buries real errors in the admin panel.
+  // 30/min is far above what a broken page produces and far below a flood.
+  if (require('./lib/rate-limit').tooMany(req, res, 'log-error', 30, 60000)) return;
+
   res.setHeader('Cache-Control', 'no-store');
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');

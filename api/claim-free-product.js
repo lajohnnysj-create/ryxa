@@ -112,6 +112,10 @@ function buildBuyerEmailHtml(productTitle, creatorName) {
 }
 
 module.exports = async (req, res) => {
+  // Creates accounts and enrollments. Unbounded account creation is the
+  // classic abuse of a free-product endpoint.
+  if (require('./lib/rate-limit').tooMany(req, res, 'claim-free-product', 10, 60000)) return;
+
   var origin = req.headers.origin || '';
   var allowed = ['https://ryxa.io', 'https://www.ryxa.io', 'http://localhost:3000'];
   if (allowed.includes(origin)) res.setHeader('Access-Control-Allow-Origin', origin);

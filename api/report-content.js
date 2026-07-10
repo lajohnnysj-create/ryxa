@@ -109,6 +109,13 @@ module.exports = async function handler(req, res) {
 
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  // After the preflight, deliberately. A 429 on an OPTIONS request means the
+  // browser never sends the real one, and the user sees a CORS error instead
+  // of a rate limit.
+  //
+  // Reports are a moderation queue. Unlimited, one person can bury a creator.
+  if (require('./lib/rate-limit').tooMany(req, res, 'report-content', 5, 60000)) return;
   if (!SUPABASE_SERVICE_KEY) {
     console.error('Missing SUPABASE_SERVICE_ROLE_KEY');
     return res.status(500).json({ error: 'Server not configured' });
