@@ -1,5 +1,5 @@
 // =============================================================================
-// /js/settings.js — Settings tool (extracted from dashboard.html, 2026-05-11)
+// /js/settings.js - Settings tool (extracted from dashboard.html, 2026-05-11)
 // -----------------------------------------------------------------------------
 // All JavaScript for the Settings tool. Includes:
 //   • Subscription management (cancel / reactivate / upgrade to Max / downgrade to Pro)
@@ -10,7 +10,7 @@
 //   • Marketing email opt-in
 //   • Cloudflare Turnstile (for the cancel-subscription confirmation)
 //
-// History: Settings code was scattered across dashboard.html main script — never
+// History: Settings code was scattered across dashboard.html main script - never
 // a single contiguous block. This file collects 13 separate code chunks that
 // were spread out between unrelated code (PWA login, dashboard stats, sidebar,
 // etc). The original line numbers in dashboard.html are noted on each chunk
@@ -25,13 +25,13 @@
 //   • startCheckout                                                       (dashboard.html)
 //   • mkAudCache (read via typeof guard)                                  (js/mk.js)
 //   • loadInstagramConnectionStatus is called by handleInstagramReturn IIFE
-//     before the IIFE runs — but the IIFE waits via setTimeout retry until
+//     before the IIFE runs - but the IIFE waits via setTimeout retry until
 //     showDashToast is defined, by which time this whole script is parsed.
 //
 // FUNCTIONS THIS FILE EXPOSES AS WINDOW GLOBALS (called from elsewhere):
-//   • updateSettingsCancelBtn — called from updatePillsForTier in dashboard.html
-//   • handleStripeConnectRedirect — called from dashboard init flow
-//   • openSettingsModal / closeSettingsModal — no-ops kept for callsite compat
+//   • updateSettingsCancelBtn - called from updatePillsForTier in dashboard.html
+//   • handleStripeConnectRedirect - called from dashboard init flow
+//   • openSettingsModal / closeSettingsModal - no-ops kept for callsite compat
 //   • All the others are only called from settings markup (via delegation)
 //
 // REFACTOR SCOPE:
@@ -164,7 +164,7 @@ function updateSettingsCancelBtn() {
     const nowMs = Date.now();
     if (endMs > nowMs) {
       // Round UP so a trial with 4.2 days remaining shows "5 days left"
-      // (matches what users expect — "left" implies remaining whole days).
+      // (matches what users expect - "left" implies remaining whole days).
       trialDaysLeft = Math.ceil((endMs - nowMs) / (24 * 60 * 60 * 1000));
     }
   }
@@ -224,7 +224,7 @@ function updateSettingsCancelBtn() {
   }
 
   // Update upgrade/downgrade button visibility
-  // Hide tier-change buttons while cancelling — user is about to lose subscription anyway.
+  // Hide tier-change buttons while cancelling - user is about to lose subscription anyway.
   // Subscription change is now a single "Change Plan" button (data-settings-action
   // "open-pricing") that routes to the pricing page. The pricing page is
   // current-plan aware and handles upgrade, downgrade, and cycle switches.
@@ -320,7 +320,7 @@ function openSettingsModal() {
 }
 
 function closeSettingsModal() {
-  // No-op now — settings is a tool view, not a modal
+  // No-op now - settings is a tool view, not a modal
 }
 
 // ---------- From dashboard.html L11013-11227: Stripe Connect block + Instagram block ----------
@@ -498,7 +498,7 @@ async function loadInstagramConnectionStatus() {
   try {
     const { data: conn } = await sb
       .from('instagram_connections')
-      .select('ig_username,profile_picture_url,connected_at')
+      .select('ig_username,profile_picture_url,connected_at,needs_reconnect')
       .eq('user_id', currentUser.id)
       .maybeSingle();
 
@@ -506,6 +506,11 @@ async function loadInstagramConnectionStatus() {
       // Connected
       if (disconnectedEl) disconnectedEl.style.display = 'none';
       if (connectedEl) connectedEl.style.display = 'block';
+      if (conn.needs_reconnect && msgEl) {
+        msgEl.textContent = 'Reconnection needed: Instagram stopped accepting Ryxa\'s access, so data updates are paused. Disconnect and reconnect below to resume.';
+        msgEl.style.display = 'block';
+        msgEl.style.color = '#fbbf24';
+      }
       if (usernameEl) usernameEl.textContent = conn.ig_username ? '@' + conn.ig_username : 'Connected';
       if (avatarEl && conn.profile_picture_url) {
         avatarEl.innerHTML = '<img src="' + escapeHtml(conn.profile_picture_url) + '" alt="" class="bio-s-0c9434">';
@@ -537,7 +542,7 @@ async function connectInstagramAccount() {
     }
     // Step 1: fetch a short-lived signed ticket via POST. The ticket contains
     // our user_id and expires in 5 minutes. Unlike a session token, it can't
-    // be used as session auth — only to start an Instagram OAuth flow.
+    // be used as session auth - only to start an Instagram OAuth flow.
     const ticketRes = await fetch('/api/instagram-ticket', {
       method: 'POST',
       headers: { Authorization: 'Bearer ' + session.access_token }
@@ -752,7 +757,7 @@ async function loadFacebookConnectionStatus() {
   try {
     const { data: conn } = await sb
       .from('facebook_connections')
-      .select('fb_page_id,fb_page_name,profile_picture_url,followers_count')
+      .select('fb_page_id,fb_page_name,profile_picture_url,followers_count,needs_reconnect')
       .eq('user_id', currentUser.id)
       .maybeSingle();
 
@@ -761,6 +766,11 @@ async function loadFacebookConnectionStatus() {
       if (disconnectedEl) disconnectedEl.style.display = 'none';
       if (pickEl) pickEl.style.display = 'none';
       if (connectedEl) connectedEl.style.display = 'block';
+      if (conn.needs_reconnect && msgEl) {
+        msgEl.textContent = 'Reconnection needed: Facebook stopped accepting Ryxa\'s access, so data updates are paused. Disconnect and reconnect below to resume.';
+        msgEl.style.display = 'block';
+        msgEl.style.color = '#fbbf24';
+      }
       if (nameEl) {
         nameEl.textContent = conn.fb_page_name || 'Connected';
       }
@@ -772,6 +782,11 @@ async function loadFacebookConnectionStatus() {
       if (disconnectedEl) disconnectedEl.style.display = 'none';
       if (connectedEl) connectedEl.style.display = 'none';
       if (pickEl) pickEl.style.display = 'block';
+      if (conn.needs_reconnect && msgEl) {
+        msgEl.textContent = 'Reconnection needed: Facebook stopped accepting Ryxa\'s access, so data updates are paused. Disconnect and reconnect below to resume.';
+        msgEl.style.display = 'block';
+        msgEl.style.color = '#fbbf24';
+      }
       loadFacebookPages();
     } else {
       // Not connected
@@ -982,13 +997,18 @@ async function loadYouTubeConnectionStatus() {
   try {
     const { data: conn } = await sb
       .from('youtube_connections')
-      .select('yt_channel_title,yt_custom_url,thumbnail_url,connected_at')
+      .select('yt_channel_title,yt_custom_url,thumbnail_url,connected_at,needs_reconnect')
       .eq('user_id', currentUser.id)
       .maybeSingle();
 
     if (conn) {
       if (disconnectedEl) disconnectedEl.style.display = 'none';
       if (connectedEl) connectedEl.style.display = 'block';
+      if (conn.needs_reconnect && msgEl) {
+        msgEl.textContent = 'Reconnection needed: YouTube stopped accepting Ryxa\'s access, so data updates are paused. Disconnect and reconnect below to resume.';
+        msgEl.style.display = 'block';
+        msgEl.style.color = '#fbbf24';
+      }
       if (titleEl) titleEl.textContent = conn.yt_channel_title || (conn.yt_custom_url || 'Connected');
       if (avatarEl && conn.thumbnail_url) {
         avatarEl.innerHTML = '<img src="' + escapeHtml(conn.thumbnail_url) + '" alt="" class="bio-s-0c9434">';
@@ -1178,13 +1198,18 @@ async function loadTikTokConnectionStatus() {
   try {
     const { data: conn } = await sb
       .from('tiktok_connections')
-      .select('tt_display_name,tt_avatar_url,tt_profile_web_link,connected_at')
+      .select('tt_display_name,tt_avatar_url,tt_profile_web_link,connected_at,needs_reconnect')
       .eq('user_id', currentUser.id)
       .maybeSingle();
 
     if (conn) {
       if (disconnectedEl) disconnectedEl.style.display = 'none';
       if (connectedEl) connectedEl.style.display = 'block';
+      if (conn.needs_reconnect && msgEl) {
+        msgEl.textContent = 'Reconnection needed: TikTok stopped accepting Ryxa\'s access, so data updates are paused. Disconnect and reconnect below to resume.';
+        msgEl.style.display = 'block';
+        msgEl.style.color = '#fbbf24';
+      }
       if (titleEl) titleEl.textContent = conn.tt_display_name || 'Connected';
       if (avatarEl && conn.tt_avatar_url) {
         avatarEl.innerHTML = '<img src="' + escapeHtml(conn.tt_avatar_url) + '" alt="" class="bio-s-0c9434">';
@@ -1528,7 +1553,7 @@ async function finishPasswordReset(captchaToken) {
       msg.style.display = 'block';
     }
     btn.textContent = 'Email sent ✓';
-    // Reset captcha — tokens are single-use.
+    // Reset captcha - tokens are single-use.
     resetSettingsTurnstile();
     // Re-enable after 30s so they can resend if email didn't arrive
     setTimeout(() => {
@@ -1551,7 +1576,7 @@ async function finishPasswordReset(captchaToken) {
     }
     btn.disabled = false;
     btn.textContent = 'Send password reset email';
-    // Token is spent on a failed attempt too — reset so a retry gets a fresh one.
+    // Token is spent on a failed attempt too - reset so a retry gets a fresh one.
     resetSettingsTurnstile();
   }
 }
@@ -1639,7 +1664,7 @@ async function confirmSettingsCancel() {
   const wasMax = isMax();
   const wasTrialing = wasMax && userTrialEnd && new Date(userTrialEnd).getTime() > Date.now();
   // Was the user on Pro right before upgrading to Max? If so, the cancel
-  // message should acknowledge they don't auto-return to Pro — they drop
+  // message should acknowledge they don't auto-return to Pro - they drop
   // to Free and need to resubscribe to Pro if that's what they want.
   const wasFromPro = userPreMaxTier === 'monthly';
 
@@ -1696,7 +1721,7 @@ async function confirmSettingsCancel() {
 }
 
 // =============================================================================
-// ACTION REGISTRATIONS — wired up below as part of Phase 2
+// ACTION REGISTRATIONS - wired up below as part of Phase 2
 // =============================================================================
 
 // Stripe Connect
@@ -1728,13 +1753,18 @@ async function loadTwitchConnectionStatus() {
   try {
     const { data: conn } = await sb
       .from('twitch_connections')
-      .select('tw_display_name,tw_avatar_url,tw_profile_url,connected_at')
+      .select('tw_display_name,tw_avatar_url,tw_profile_url,connected_at,needs_reconnect')
       .eq('user_id', currentUser.id)
       .maybeSingle();
 
     if (conn) {
       if (disconnectedEl) disconnectedEl.style.display = 'none';
       if (connectedEl) connectedEl.style.display = 'block';
+      if (conn.needs_reconnect && msgEl) {
+        msgEl.textContent = 'Reconnection needed: Twitch stopped accepting Ryxa\'s access, so data updates are paused. Disconnect and reconnect below to resume.';
+        msgEl.style.display = 'block';
+        msgEl.style.color = '#fbbf24';
+      }
       if (titleEl) titleEl.textContent = conn.tw_display_name || 'Connected';
       if (avatarEl && conn.tw_avatar_url) {
         avatarEl.innerHTML = '<img src="' + escapeHtml(conn.tw_avatar_url) + '" alt="" class="bio-s-0c9434">';
