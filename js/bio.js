@@ -5714,3 +5714,100 @@ document.addEventListener('error', function(e) {
 //   bioPreviewRelocated, bioUsernameCheckTimer, bioUsernameCheckToken,
 //   bioStalePhotos, bioExpandedLinks
 // =============================================================================
+
+
+// ---------------------------------------------------------------------------
+// Broken thumbnail self-heal
+//
+// THE BUG
+//   Link thumbnails are plain <img src="https://...supabase.co/storage/...">.
+//   If a request fails once (cold WebView network on app launch, a transient
+//   5xx, a dropped connection), the element enters a permanent error state.
+//   An <img> NEVER retries on its own. The broken icon stays until something
+//   replaces the element.
+//
+//   Expanding any link calls renderBioLinks(), which rebuilds the whole list,
+//   so every <img> is recreated with a fresh src and they all suddenly load.
+//   That is why one collapse toggle appeared to fix images it had nothing to
+//   do with.
+//
+// THE FIX
+//   Listen for image load failures and retry the failed element, with strict
+//   bounds so a real outage cannot become a request storm:
+//
+//     * at most BIO_IMG_MAX_ATTEMPTS retries per image element
+//     * backoff between attempts
+//     * a session-wide budget across all images
+//     * only for our own storage host, so a creator's broken external URL is
+//       not hammered
+//     * a permanent placeholder once the attempts are spent
+//
+//   `error` does not bubble from <img>, but it does capture, so one listener
+//   on the document catches every thumbnail without touching the render code.
+// ---------------------------------------------------------------------------
+var BIO_IMG_MAX_ATTEMPTS = 2;          // retries per element, not counting the first load
+var BIO_IMG_RETRY_DELAYS = [500, 2000]; // ms, one per attempt
+var BIO_IMG_RETRY_BUDGET = 40;          // total retries allowed per page load
+var bioImgRetriesUsed = 0;
+
+// Only self-heal images we serve. A creator pasting a dead external URL should
+// see it fail once, not be retried on our budget.
+function bioImgIsOurs(src) {
+  if (!src) return false;
+  return src.indexOf('kjytapcgxukalwsyputk.supabase.co/storage/') !== -1 ||
+         src.indexOf('ryxa.io/') !== -1;
+}
+
+function bioImgGiveUp(img) {
+  // Never leave a broken-image glyph. A neutral tile reads as "no image",
+  // which is true, rather than as "this page is broken".
+  img.dataset.bioImgFailed = '1';
+  img.removeAttribute('src');
+  img.style.background = 'rgba(255,255,255,0.06)';
+  img.style.border = '1px solid var(--border, rgba(255,255,255,0.08))';
+}
+
+document.addEventListener('error', function (e) {
+  var img = e.target;
+  if (!img || img.tagName !== 'IMG') return;
+  if (img.dataset.bioImgFailed === '1') return;   // already given up
+
+  // Images that declare data-bio-onerror have their own failure policy (hide,
+  // or swap to a fallback), handled by the listener above. Retrying them here
+  // would fight that handler: it hides the element, we ask for the URL again.
+  if (img.dataset.bioOnerror) return;
+
+  // The original URL, captured once. Retrying against a cache-busted src
+  // would otherwise compound query strings.
+  var base = img.dataset.bioImgBase || img.getAttribute('src') || '';
+  if (!bioImgIsOurs(base)) return;
+
+  var attempts = parseInt(img.dataset.bioImgAttempts || '0', 10);
+  if (attempts >= BIO_IMG_MAX_ATTEMPTS || bioImgRetriesUsed >= BIO_IMG_RETRY_BUDGET) {
+    bioImgGiveUp(img);
+    return;
+  }
+
+  img.dataset.bioImgBase = base;
+  img.dataset.bioImgAttempts = String(attempts + 1);
+  bioImgRetriesUsed++;
+
+  var delay = BIO_IMG_RETRY_DELAYS[attempts] || 2000;
+  setTimeout(function () {
+    // The element may have been replaced by a re-render while we waited.
+    if (!img.isConnected || img.dataset.bioImgFailed === '1') return;
+    // Cache-bust, or the browser serves the failed response straight back.
+    var sep = base.indexOf('?') === -1 ? '?' : '&';
+    img.src = base + sep + '_r=' + Date.now();
+  }, delay);
+}, true);   // capture: image error events do not bubble
+
+// A successful load clears the counter, so a later failure of the same element
+// gets its own budget rather than inheriting a spent one.
+document.addEventListener('load', function (e) {
+  var img = e.target;
+  if (img && img.tagName === 'IMG' && img.dataset.bioImgAttempts) {
+    delete img.dataset.bioImgAttempts;
+    delete img.dataset.bioImgBase;
+  }
+}, true);
