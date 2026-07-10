@@ -5438,6 +5438,12 @@
      (.ds-s-6e0dd5): tinted fill, tinted border, light text. Green because the
      action it names is the one that protects someone, not the one that risks
      them. */
+  /* Close control for modals that sit on a surface, not a photo. .upsell-close
+     paints a dark circle, which is 1.08:1 against the modal card and reads as
+     a floating border. Here the glyph does the work. */
+  .clients-modal-close { position:absolute;top:14px;right:14px;z-index:3;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:8px;border:none;background:transparent;color:var(--muted);font-size:19px;line-height:1;cursor:pointer;transition:background 0.12s, color 0.12s; }
+  .clients-modal-close:hover { background:rgba(255,255,255,0.07);color:var(--text); }
+  .clients-modal-close:focus-visible { outline:2px solid var(--accent2);outline-offset:1px; }
   .clients-modal-safe-btn { flex:1;padding:11px;background:rgba(74,222,128,0.12);border:1px solid rgba(74,222,128,0.32);color:#86efac;border-radius:8px;font-size:14px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;transition:background 0.15s; }
   .clients-modal-safe-btn:hover { background:rgba(74,222,128,0.2); }
 .clients-consent-seg { display:inline-flex;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:2px;gap:2px; }
