@@ -620,7 +620,7 @@ function renderSubscribersPage() {
         + '</td>'
         + '<td class="clients-s-row-remove-cell">'
         + '<button class="clients-s-row-remove" data-clients-action="remove-one" data-clients-email="' + escEmail + '" aria-label="Mark as opted out: ' + escEmail + '" title="Mark as opted out">'
-        + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+        + '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="23" y1="11" x2="17" y2="11"/></svg>'
         + '</button>'
         + '</td>'
         + '</tr>';
@@ -919,8 +919,8 @@ async function clientsBulkRemove() {
   if (clientsSelected.size === 0) return;
   var emails = Array.from(clientsSelected);
   var confirmText = emails.length === 1
-    ? 'This subscriber will stop receiving your emails and will not appear in your subscribers list or exports. Their purchase records stay intact. This cannot be undone from the dashboard.'
-    : emails.length + ' subscribers will stop receiving your emails and will not appear in your subscribers list or exports. Their purchase records stay intact. This cannot be undone from the dashboard.';
+    ? 'This subscriber will be marked as opted out and will no longer appear in your subscribers list or exports. Their purchase records stay intact. This cannot be undone from the dashboard.'
+    : emails.length + ' subscribers will be marked as opted out and will no longer appear in your subscribers list or exports. Their purchase records stay intact. This cannot be undone from the dashboard.';
   var confirmed = await confirmTypedDelete('Mark as opted out', confirmText, 'Opt out');
   if (!confirmed) return;
 
@@ -961,7 +961,7 @@ async function clientsRemoveOne(email) {
   // unsubscribe request could not tell this was the right button.
   var confirmed = await confirmTypedDelete(
     'Mark as opted out',
-    email + ' will stop receiving your emails and will not appear in your subscribers list or exports. Their purchase records stay intact. This cannot be undone from the dashboard.',
+    email + ' will be marked as opted out and will no longer appear in your subscribers list or exports. Their purchase records stay intact. This cannot be undone from the dashboard.',
     'Opt out'
   );
   if (!confirmed) return;
