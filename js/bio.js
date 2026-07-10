@@ -5508,7 +5508,8 @@ function renderVerifyModalForm() {
 
 async function openVerifyModal() {
   if (!isPro()) {
-    showModalAlert('Pro or Max required', 'Verification requires a Pro or Max plan. Upgrade to request your blue check.');
+    // A plain alert sells nothing. Show them the badge they would get.
+    showVerifyUpsell();
     return;
   }
   bioVerifyState.method = 'connected_account';
@@ -5597,6 +5598,38 @@ async function submitBioVerification() {
     bioVerifyShowMsg('Could not submit your request. Please try again.');
   }
 }
+
+function showVerifyUpsell() {
+  var m = document.getElementById('verify-upsell-modal');
+  if (m) m.classList.add('open');
+}
+
+function closeVerifyUpsell() {
+  var m = document.getElementById('verify-upsell-modal');
+  if (m) m.classList.remove('open');
+}
+
+// A dialog that only closes by mouse is an accessibility gap. Escape closes it,
+// and only when it is the thing on screen.
+document.addEventListener('keydown', function (e) {
+  if (e.key !== 'Escape') return;
+  var m = document.getElementById('verify-upsell-modal');
+  if (m && m.classList.contains('open')) closeVerifyUpsell();
+});
+
+bioRegisterAction('close-verify-upsell', () => closeVerifyUpsell());
+
+// Backdrop click closes, clicks inside the card do not.
+bioRegisterAction('verify-upsell-backdrop', (e, el) => {
+  if (e.target === el) closeVerifyUpsell();
+});
+
+// Verification is a Pro feature, so land them on the Pro card.
+bioRegisterAction('verify-upsell-upgrade', () => {
+  closeVerifyUpsell();
+  if (typeof goToPricing === 'function') goToPricing('pro');
+  else window.location.href = '/pricing.html?highlight=pro';
+});
 
 bioRegisterAction('open-verify-modal', () => openVerifyModal());
 bioRegisterAction('close-verify-modal', () => closeVerifyModal());
