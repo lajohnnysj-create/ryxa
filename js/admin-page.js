@@ -123,6 +123,21 @@
         return;
       }
       if (action === 'refresh') { oldest = null; loadAll(); return; }
+
+      if (action === 'logout') {
+        // scope:'local' clears this browser only. A global sign-out would also
+        // end the session in the creator dashboard, a different surface, which
+        // is not what this button implies.
+        try {
+          await sb.auth.signOut({ scope: 'local' });
+        } catch (err) {
+          console.error('sign out failed:', err);
+        }
+        // Reload rather than toggling the DOM. The panel holds fetched creator
+        // data; hiding a div leaves it in memory and in the page source.
+        window.location.replace('/admin.html');
+        return;
+      }
       if (action === 'load-more') {
         if (!oldest) return;
         var more = await api('action=errors&limit=50&before=' + encodeURIComponent(oldest));
@@ -141,8 +156,8 @@
   (async function init() {
     var s = await sb.auth.getSession();
     if (s.data && s.data.session) {
-      var email = s.data.session.user && s.data.session.user.email;
-      el('admin-who').textContent = 'Signed in as ' + (email || 'unknown');
+      // No "signed in as" line: reaching this panel already proves who you are,
+      // and the server re-checks the identity on every request anyway.
       loadAll();
     }
   })();
