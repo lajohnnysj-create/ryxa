@@ -1,11 +1,11 @@
 // =============================================================================
-// /js/bio.js — Link in Bio editor (extracted from dashboard.html, 2026-05-10)
+// /js/bio.js - Link in Bio editor (extracted from dashboard.html, 2026-05-10)
 // -----------------------------------------------------------------------------
 // This file contains all JavaScript for the Link in Bio editor inside the
 // Ryxa dashboard. It was extracted from dashboard.html as part of the Phase 1
 // dashboard refactor to reduce single-file size and prepare for stricter CSP.
 //
-// Phase 1 SCOPE: code relocation only — no behavioral changes.
+// Phase 1 SCOPE: code relocation only - no behavioral changes.
 // Phase 2 SCOPE (2026-05-10): replaced inline onclick/oninput/etc with
 //   delegated event handling so the bio tool is compatible with strict CSP
 //   (no `unsafe-inline` for script-src). See "EVENT DELEGATION" section below.
@@ -110,7 +110,7 @@ function bioDispatchEvent(event) {
 
 // Wire up document-level delegation. Using document (not #tool-bio) because
 // bio modals are inserted into document.body, not into the bio tool root.
-// Capture: false — we want bubbling so child elements get to handle their
+// Capture: false - we want bubbling so child elements get to handle their
 // own events first if needed.
 ['click', 'input', 'change', 'focus', 'blur', 'keydown', 'mouseover', 'mouseout'].forEach(evt => {
   // 'focus' and 'blur' don't bubble; use capture phase for those.
@@ -150,7 +150,7 @@ const BIO_DATA_STYLE_MAP = {
  * `data-bio-{name}` attributes from BIO_DATA_STYLE_MAP as inline style
  * properties via JS (CSP-safe).
  *
- * Idempotent — calling repeatedly is fine. Only sets properties that have
+ * Idempotent - calling repeatedly is fine. Only sets properties that have
  * a data-bio-* attribute on the element.
  */
 function bioApplyDataStyles(root) {
@@ -255,7 +255,7 @@ let bioPreviewTimer = null;
 let linkIdSeq = 1;
 
 // =====================================================
-// LINK IN BIO — Collapsible Sections
+// LINK IN BIO - Collapsible Sections
 // =====================================================
 const BIO_COLLAPSE_KEY = 'ryxa_bio_collapsed';
 
@@ -401,7 +401,7 @@ function initBioTool() {
       if (!isFinite(id)) return;
       // Only collapse if this row is currently expanded (i.e., not a collapsed view header)
       if (!bioExpandedLinks.has(id)) return;
-      // Use saveLinkRow — handles validation + save + collapse + preview update
+      // Use saveLinkRow - handles validation + save + collapse + preview update
       if (typeof saveLinkRow === 'function') saveLinkRow(id);
     });
   }
@@ -444,7 +444,7 @@ async function resyncBioUsername() {
 
 // Resolve live cover/headshot URLs for bio links that reference a source
 // table (courses, coaching services, digital products, media kit). Mirrors
-// the public bio resolver in api/bio.js and bio.html — keeps the editor's
+// the public bio resolver in api/bio.js and bio.html - keeps the editor's
 // link thumbnails AND the iframe preview in sync with current images.
 // Mutates `links` in place; only overwrites photoUrl when a live value is
 // found, falling back to the stored snapshot otherwise.
@@ -599,21 +599,193 @@ async function resolveBioLinkLiveCovers(creatorUserId, links, creatorUsername) {
 // session-less query, so a session check is required, not just error checks.
 let bioDataLoaded = false;
 
+// Lock/unlock the entire page editor as one unit while its data is
+// loading or in a failed state. The tool is a single whole-state surface with
+// dozens of controls, so instead of locking buttons by id, the whole content
+// grid is dimmed with pointer-events disabled, plus the Save and Publish
+// buttons in the top chrome. The status slot above the grid stays live so the
+// failure panel's Retry button remains clickable.
+function bioSetEditorLocked(locked) {
+  ['bio-save-btn', 'bio-publish-btn'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.disabled = locked;
+    el.style.opacity = locked ? '0.5' : '';
+    el.style.cursor = locked ? 'not-allowed' : '';
+  });
+  var grid = document.querySelector('#tool-bio .bio-grid');
+  if (grid) {
+    grid.style.pointerEvents = locked ? 'none' : '';
+    grid.style.opacity = locked ? '0.5' : '';
+  }
+}
+
+// Boxed purple loading indicator in the bio-save-status slot at the top of the
+// tool: same geometry and spinner as the course, booking, and product
+// loaders. Updates text in place across the loading -> retrying upgrade.
+function bioShowLoading(text) {
+  var msgEl = document.getElementById('bio-save-status');
+  if (!msgEl) return;
+
+  if (!document.getElementById('course-load-spin-style')) {
+    var styleEl = document.createElement('style');
+    styleEl.id = 'course-load-spin-style';
+    styleEl.textContent = '@keyframes courseLoadSpin { to { transform: rotate(360deg); } }';
+    document.head.appendChild(styleEl);
+  }
+
+  msgEl.style.display = 'block';
+  msgEl.style.background = 'transparent';
+  msgEl.style.border = 'none';
+  msgEl.style.padding = '0';
+
+  var existing = msgEl.querySelector('[data-bio-loading-text]');
+  if (existing) { existing.textContent = text; return; }
+
+  msgEl.innerHTML = '';
+  var wrap = document.createElement('div');
+  wrap.setAttribute('role', 'status');
+  wrap.style.display = 'flex';
+  wrap.style.alignItems = 'center';
+  wrap.style.gap = '10px';
+  wrap.style.padding = '14px 16px';
+  wrap.style.borderRadius = '10px';
+  wrap.style.border = '1px solid rgba(255,255,255,0.12)';
+  wrap.style.background = 'rgba(255,255,255,0.04)';
+  wrap.style.marginBottom = '16px';
+
+  var spinner = document.createElement('div');
+  spinner.style.width = '16px';
+  spinner.style.height = '16px';
+  spinner.style.border = '2px solid rgba(124,58,237,0.25)';
+  spinner.style.borderTopColor = '#7c3aed';
+  spinner.style.borderRadius = '50%';
+  spinner.style.animation = 'courseLoadSpin 0.7s linear infinite';
+  spinner.style.flexShrink = '0';
+
+  var label = document.createElement('div');
+  label.setAttribute('data-bio-loading-text', '1');
+  label.style.color = 'rgba(255,255,255,0.7)';
+  label.style.fontSize = '14px';
+  label.textContent = text;
+
+  wrap.appendChild(spinner);
+  wrap.appendChild(label);
+  msgEl.appendChild(wrap);
+}
+
+// Clear the status slot and restore its styles so the inline-banner fallback
+// renders normally next time something uses this element.
+function bioClearStatusSlot() {
+  var msgEl = document.getElementById('bio-save-status');
+  if (!msgEl) return;
+  msgEl.style.display = 'none';
+  msgEl.innerHTML = '';
+  msgEl.style.background = '';
+  msgEl.style.border = '';
+  msgEl.style.padding = '';
+}
+
+// Blocking failure state: persistent red panel with Retry in the top slot,
+// identical to the other tools. The editor grid stays locked; a failed load
+// must never present an editable-looking empty form, because saving that
+// empty state would overwrite the creator's entire page.
+function bioShowLoadFailed() {
+  var msgEl = document.getElementById('bio-save-status');
+  if (!msgEl) return;
+  msgEl.innerHTML = '';
+  msgEl.style.display = 'block';
+  msgEl.style.background = 'transparent';
+  msgEl.style.border = 'none';
+  msgEl.style.padding = '0';
+
+  var panel = document.createElement('div');
+  panel.setAttribute('role', 'alert');
+  panel.style.padding = '20px';
+  panel.style.borderRadius = '12px';
+  panel.style.border = '1px solid rgba(239,68,68,0.35)';
+  panel.style.background = 'rgba(239,68,68,0.08)';
+  panel.style.marginBottom = '16px';
+
+  var heading = document.createElement('div');
+  heading.style.color = '#f87171';
+  heading.style.fontWeight = '600';
+  heading.style.fontSize = '15px';
+  heading.style.marginBottom = '6px';
+  heading.textContent = 'Could not load your page';
+
+  var body = document.createElement('div');
+  body.style.color = 'rgba(255,255,255,0.7)';
+  body.style.fontSize = '14px';
+  body.style.lineHeight = '1.5';
+  body.style.marginBottom = '14px';
+  body.textContent = 'Editing and saving are turned off until it loads, so your existing page stays safe. This is usually a brief connection hiccup.';
+
+  var retry = document.createElement('button');
+  retry.type = 'button';
+  retry.setAttribute('data-bio-action', 'retry-load');
+  retry.textContent = 'Retry';
+  retry.style.padding = '9px 18px';
+  retry.style.borderRadius = '8px';
+  retry.style.border = '1px solid rgba(255,255,255,0.25)';
+  retry.style.background = 'rgba(255,255,255,0.06)';
+  retry.style.color = '#fff';
+  retry.style.fontWeight = '600';
+  retry.style.cursor = 'pointer';
+
+  panel.appendChild(heading);
+  panel.appendChild(body);
+  panel.appendChild(retry);
+  msgEl.appendChild(panel);
+  panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+bioRegisterAction('retry-load', function() { loadBioData(); });
+
 async function loadBioData() {
   if (!currentUser) return;
   bioDataLoaded = false;
-  const { data: _bioSess } = await sb.auth.getSession();
-  if (!_bioSess || !_bioSess.session) {
-    showBioStatus('error', 'Your session is still loading. Refresh before making changes; saving is disabled to protect your page.');
-    return;
+  // Lock the whole editor and show visible loading from the first moment.
+  // Unlocks only after a clean load and hydration; stays locked on failure.
+  bioSetEditorLocked(true);
+  bioShowLoading('Loading your page...');
+
+  // Retry transient blips (a token refresh that has not settled, a one-off
+  // dropped request) instead of dead-ending. A null session is treated as
+  // retryable: RLS makes an unauthenticated select return EMPTY data with no
+  // error, so a load before the session settles looks like an empty page,
+  // and saving that would wipe the creator's real links.
+  let profileRes = null, bioRes = null;
+  const MAX_LOAD_ATTEMPTS = 3;
+  for (let attempt = 1; attempt <= MAX_LOAD_ATTEMPTS; attempt++) {
+    try {
+      const sessRes = await sb.auth.getSession();
+      if (!sessRes || !sessRes.data || !sessRes.data.session) throw new Error('bio-load: no live session');
+      // The profile and bio queries are independent; run them in parallel to
+      // save a full network round trip on first paint.
+      const results = await Promise.all([
+        sb.from('profiles').select('username').eq('user_id', currentUser.id).maybeSingle(),
+        sb.from('link_in_bio').select('*').eq('user_id', currentUser.id).maybeSingle()
+      ]);
+      profileRes = results[0];
+      bioRes = results[1];
+      if (profileRes.error) throw profileRes.error;
+      if (bioRes.error) throw bioRes.error;
+      break;
+    } catch (err) {
+      if (attempt < MAX_LOAD_ATTEMPTS) {
+        bioShowLoading('Having trouble loading your page. Retrying...');
+        await new Promise(function(resolve) { setTimeout(resolve, 400 * attempt); });
+        continue;
+      }
+      console.error('loadBioData', err);
+      bioShowLoadFailed();
+      showBioStatus('error', 'Failed to load your page. Please retry.');
+      return;
+    }
   }
+
   try {
-    // The profile and bio queries are independent; run them in parallel to
-    // save a full network round trip on first paint.
-    const [profileRes, bioRes] = await Promise.all([
-      sb.from('profiles').select('username').eq('user_id', currentUser.id).maybeSingle(),
-      sb.from('link_in_bio').select('*').eq('user_id', currentUser.id).maybeSingle()
-    ]);
     const profile = profileRes.data;
     if (profile?.username) {
       bioState.username = profile.username;
@@ -630,8 +802,6 @@ async function loadBioData() {
       }, 1500);
     }
     const bio = bioRes.data;
-    const bioLoadErr = bioRes.error;
-    if (bioLoadErr) throw bioLoadErr;
     bioDataLoaded = true;
     if (bio) {
       bioState.display_name = bio.display_name || '';
@@ -652,7 +822,7 @@ async function loadBioData() {
         return link;
       }) : [];
       if (bioState.links.some(l => l.isFollowerBlock)) ensureBioFollowerSrc();
-      // Old videos array is no longer used — YouTube embeds now live as
+      // Old videos array is no longer used - YouTube embeds now live as
       // isVideoBlock entries inside bioState.links. Wipe any legacy data.
       bioState.videos = [];
       bioState.published = !!bio.published;
@@ -687,10 +857,17 @@ async function loadBioData() {
         });
     }
   } catch (e) {
+    // Hydration failed after a successful fetch (unexpected local error).
+    // Treat it exactly like a load failure: a partially hydrated editor must
+    // never be saveable.
     console.error('loadBioData', e);
     bioDataLoaded = false;
-    showBioStatus('error', 'Could not load your Link in Bio data. Refresh before making changes; saving is disabled to protect your page.');
+    bioShowLoadFailed();
+    showBioStatus('error', 'Failed to load your page. Please retry.');
+    return;
   }
+  bioSetEditorLocked(false);
+  bioClearStatusSlot();
   syncBioForm();
   // Reset username hint to default message
   var bioHint = document.getElementById('bio-username-hint');
@@ -715,9 +892,9 @@ function syncBioForm() {
   updateAvatarDisplayUI();
   renderBioThemes();
   renderBioFonts();
-  // branding toggle — Free users: disabled/greyed + always checked; Pro users: interactive
+  // branding toggle - Free users: disabled/greyed + always checked; Pro users: interactive
   syncBrandingToggle();
-  // sensitive content toggle — available to all tiers
+  // sensitive content toggle - available to all tiers
   syncSensitiveToggle();
 }
 
@@ -761,7 +938,7 @@ function onBrandingToggle() {
   schedulePreviewUpdate();
 }
 
-// Sensitive content toggle — available to all tiers, no gating.
+// Sensitive content toggle - available to all tiers, no gating.
 function syncSensitiveToggle() {
   const cb = document.getElementById('bio-sensitive-content');
   if (!cb) return;
@@ -829,7 +1006,7 @@ async function recordUsernameChange() {
 }
 
 function formatNextChangeTime(changes) {
-  // Find the oldest change in the window — that's the one that will expire first
+  // Find the oldest change in the window - that's the one that will expire first
   const sorted = changes.map(ts => new Date(ts).getTime()).sort((a, b) => a - b);
   const earliest = sorted[0];
   const availableAt = new Date(earliest + USERNAME_CHANGE_WINDOW_MS);
@@ -879,7 +1056,7 @@ function onUsernameInput() {
     hint.textContent = 'That username is not allowed. Pick another.';
     hint.style.color = '#fca5a5';
   } else if (cleaned === bioOriginalUsername) {
-    // User's own current username — no need to check
+    // User's own current username - no need to check
     renderUsernameAvailable(cleaned);
   } else {
     // Show "Checking..." state, then query Supabase after a 500ms pause
@@ -908,7 +1085,7 @@ async function checkUsernameAvailability(username, token) {
       return;
     }
     if (!data || data.user_id === currentUser?.id) {
-      // Name is available — but check rate limit before showing green
+      // Name is available - but check rate limit before showing green
       const { allowed, changes } = await checkUsernameChangeLimit();
       if (token !== bioUsernameCheckToken) return;
       if (!allowed) {
@@ -976,7 +1153,7 @@ async function copyBioLink(url, btn) {
   }
 }
 
-// All themes — color presets are Free, image themes are Free, Custom is Pro
+// All themes - color presets are Free, image themes are Free, Custom is Pro
 // Image themes use the same 4-color schema (bg, card, text, accent) as Custom,
 // plus an `image` field pointing to the background image. Server-side rendering
 // recognizes these by `key` and applies the right CSS.
@@ -1004,7 +1181,7 @@ const BIO_THEMES = [
 ];
 
 // =====================================================================
-// BIO_FONTS — curated Google Fonts list available to all tiers (Free, Pro, Max).
+// BIO_FONTS - curated Google Fonts list available to all tiers (Free, Pro, Max).
 // Used by Link in Bio AND Media Kit. Single source of truth.
 //
 // Each entry:
@@ -1019,10 +1196,10 @@ const BIO_THEMES = [
 //
 // To add a font: append a new entry, list it on Google Fonts to confirm it's
 // available, pick the weights you actually use (300/400/500/600/700/800), test
-// in preview. No DB change required — font_family is plain TEXT.
+// in preview. No DB change required - font_family is plain TEXT.
 // =====================================================================
 const BIO_FONTS = [
-  // Default first — most users will land here.
+  // Default first - most users will land here.
   { key:'DM Sans',             name:'Ryxa default (Syne + DM Sans)', gfont:'DM+Sans',             weights:'300;400;500;600;700', stack:"'DM Sans', sans-serif" },
   // The rest alphabetical.
   { key:'Abril Fatface',       name:'Abril Fatface',       gfont:'Abril+Fatface',       weights:'400', stack:"'Abril Fatface', serif" },
@@ -1171,7 +1348,7 @@ function renderBioThemes() {
       swatch = '<div class="bio-theme-swatch bio-s-74a83e" ></div>';
       btnBg = `linear-gradient(135deg,${t.bg},${t.bg2})`;
     } else if (t.image && t.colors) {
-      // Image theme — show the bg image as both the swatch and button background.
+      // Image theme - show the bg image as both the swatch and button background.
       // Label gets a colored pill backdrop using the theme's bg color so it
       // stays readable against the busy image, with the theme's own text color.
       swatch = `<div class="bio-theme-swatch" data-bio-bg="url('${t.image}') center/cover" data-bio-border="1.5px solid rgba(0,0,0,0.4)" data-bio-shadow="0 1px 3px rgba(0,0,0,0.25)"></div>`;
@@ -1231,7 +1408,7 @@ function pickTheme(t) {
 }
 
 // =====================================================================
-// Font picker (bio) — dropdown that lists all fonts. When closed, the
+// Font picker (bio) - dropdown that lists all fonts. When closed, the
 // select itself shows the currently chosen font (matches what's saved).
 // When opened, each <option> renders in its own font for browsing.
 // Live preview iframe shows the actual page font in real time.
@@ -1399,7 +1576,7 @@ function removeBioCustomBg() {
   schedulePreviewUpdate();
 }
 
-// Shared image compressor — scales down and outputs WebP targeting a size
+// Shared image compressor - scales down and outputs WebP targeting a size
 async function compressBgImage(file, maxW, maxH, targetBytes) {
   const imgUrl = URL.createObjectURL(file);
   try {
@@ -1611,7 +1788,7 @@ function addVideoBlock() {
   showBioStatus('saved', 'YouTube block added');
 }
 
-// TikTok block — parallel to the YouTube block. Same gating (one per page,
+// TikTok block - parallel to the YouTube block. Same gating (one per page,
 // all plans) and the same videos[] shape, so it reuses the shared video-array
 // helpers (update/add/remove) below.
 function addTikTokBlock() {
@@ -1636,7 +1813,7 @@ function addTikTokBlock() {
   showBioStatus('saved', 'TikTok block added');
 }
 
-// Instagram Reels block — parallel to the TikTok block, same gating and the
+// Instagram Reels block - parallel to the TikTok block, same gating and the
 // same videos[] shape, so it reuses the shared video-array helpers below.
 function addInstagramBlock() {
   const { maxLinks } = bioLimits();
@@ -1660,7 +1837,7 @@ function addInstagramBlock() {
   showBioStatus('saved', 'Instagram block added');
 }
 
-// Spotify embed — a single track/album/playlist/artist/episode/show. Unlike
+// Spotify embed - a single track/album/playlist/artist/episode/show. Unlike
 // the video blocks it's one URL, not a list. One per page (all plans); the
 // modal item is disabled when one exists, this guard is the backstop.
 function addSpotifyBlock() {
@@ -1682,7 +1859,7 @@ function addSpotifyBlock() {
   showBioStatus('saved', 'Spotify added');
 }
 
-// Apple Music embed — a single song/album/playlist/artist from one URL, not a
+// Apple Music embed - a single song/album/playlist/artist from one URL, not a
 // list. One per page (all plans); the modal item disables when one exists,
 // this guard is the backstop. Embed host is embed.music.apple.com.
 function addAppleMusicBlock() {
@@ -1704,7 +1881,7 @@ function addAppleMusicBlock() {
   showBioStatus('saved', 'Apple Music added');
 }
 
-// SoundCloud embed — a single track/playlist/profile from one URL. One per
+// SoundCloud embed - a single track/playlist/profile from one URL. One per
 // page (all plans); the modal item disables when one exists, this guard is the
 // backstop. Embed is w.soundcloud.com/player with the URL as a query param.
 function addSoundCloudBlock() {
@@ -1726,7 +1903,7 @@ function addSoundCloudBlock() {
   showBioStatus('saved', 'SoundCloud added');
 }
 
-// Single image — an uploaded photo (horizontal or vertical), shown at full
+// Single image - an uploaded photo (horizontal or vertical), shown at full
 // column width. Multiple allowed (not one-per-page). The photo lives in the
 // bio-photos bucket like hero/avatar; stored on link.photoUrl with imgW/imgH.
 function addImageBlock() {
@@ -1757,7 +1934,7 @@ function addImageBlock() {
   showBioStatus('saved', 'Image added');
 }
 
-// Image carousel — up to 10 uploaded images in a horizontal carousel. One per
+// Image carousel - up to 10 uploaded images in a horizontal carousel. One per
 // page (the modal item disables when one exists; this guard is the backstop).
 // Each image keeps its natural aspect ratio. Stored as link.images=[{photoUrl,w,h}].
 function addImageCarouselBlock() {
@@ -1794,7 +1971,7 @@ function addGoogleMapBlock() {
   showBioStatus('saved', 'Google Maps added');
 }
 
-// Discord server widget — live member card from a server ID or widget URL. One
+// Discord server widget - live member card from a server ID or widget URL. One
 // per page (all plans); the modal item disables when one exists, this backstops.
 async function addTipBlock() {
   const { maxLinks } = bioLimits();
@@ -2024,7 +2201,7 @@ function addDiscordBlock() {
   showBioStatus('saved', 'Discord added');
 }
 
-// Twitch embed — live channel, VOD, or clip from a single URL. One per page
+// Twitch embed - live channel, VOD, or clip from a single URL. One per page
 // (all plans); the modal item disables when one exists, this is the backstop.
 function addTwitchBlock() {
   const { maxLinks } = bioLimits();
@@ -2066,7 +2243,7 @@ function addTweetBlock() {
   showBioStatus('saved', 'X post added');
 }
 
-// "More" modal — houses widgets beyond the core add row, grouped by category.
+// "More" modal - houses widgets beyond the core add row, grouped by category.
 // Items inside use data-bio-action like everything else; opening refreshes any
 // per-item disabled state (e.g. Spotify is one-per-page).
 function openBioMoreModal() {
@@ -2247,7 +2424,7 @@ async function updateMediaKitLinkButton() {
     btn.style.display = 'none';
     return;
   }
-  // Check published status first — if no MK, hide entirely
+  // Check published status first - if no MK, hide entirely
   let published = false;
   try {
     const { data: kit } = await sb.from('media_kit').select('published').eq('user_id', currentUser.id).maybeSingle();
@@ -2604,7 +2781,7 @@ function toggleLinkHalfWidth(id, checked) {
 }
 
 // Small "½" indicator for the collapsed link row when half-width is enabled.
-// Renders as a tiny inline tag at the row's right edge — not a chunky pill.
+// Renders as a tiny inline tag at the row's right edge - not a chunky pill.
 // Skipped entirely on row types that don't support half-width (Media Kit,
 // Hero, Header, Subscribe, Featured, Videos) to prevent stale flags from
 // rendering UI for a feature their expanded view doesn't expose.
@@ -2622,10 +2799,10 @@ function bioHalfBadge(link) {
 //
 // All icons are stroke-based, monochrome, ~14px, matching the rest of the
 // dashboard's icon language. The row's left-border accent is a single
-// brand color (var(--accent2)) applied uniformly across all types — it's
+// brand color (var(--accent2)) applied uniformly across all types - it's
 // decorative, not a type signal. Type is conveyed through the icon + title.
 function bioRowTypeMeta(link) {
-  // Order matters — first match wins. Featured is a flag that can apply to
+  // Order matters - first match wins. Featured is a flag that can apply to
   // a regular link, so it's checked late.
   if (link.isHeader) {
     return {
@@ -2882,7 +3059,7 @@ function renderBioLinks() {
     // Auto-scroll is desktop-only. SortableJS's auto-scroll on iOS Safari
     // fights with native touch scrolling and feels broken, so on touch devices
     // we disable it entirely. Mobile users scroll manually mid-drag (release,
-    // scroll, re-grab) — same pattern as Instagram, Notion, LinkedIn mobile.
+    // scroll, re-grab) - same pattern as Instagram, Notion, LinkedIn mobile.
     const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     el._sortable = Sortable.create(el, {
       handle: '.bio-link-drag',
@@ -3025,7 +3202,7 @@ function renderLinkCollapsed(link, dragSvg, editSvg) {
       : '<span class="bio-s-dbc3a0">No URL set</span>';
   }
 
-  // Type icon — shown if there's no thumbnail (otherwise thumbnail carries the visual weight)
+  // Type icon - shown if there's no thumbnail (otherwise thumbnail carries the visual weight)
   const typeIconHtml = thumb
     ? thumb
     : `<div class="bio-row-typeicon">${meta.icon}</div>`;
@@ -3232,7 +3409,7 @@ function removeCarouselImage(linkId, idx) {
 }
 
 function renderLinkExpanded(link, dragSvg) {
-  // Header — single text input, no URL/photo/description
+  // Header - single text input, no URL/photo/description
   if (link.isHeader) {
     return `<div class="bio-link-row bio-link-header-row bio-s-44d745" data-id="${link._id}" >
       <div class="bio-link-header">
@@ -3250,7 +3427,7 @@ function renderLinkExpanded(link, dragSvg) {
     </div>`;
   }
 
-  // Subscribe block — just a title/label field
+  // Subscribe block - just a title/label field
   if (link.isSubscribe) {
     return `<div class="bio-link-row bio-s-dc2eb3" data-id="${link._id}" >
       <div class="bio-link-header">
@@ -3275,7 +3452,7 @@ function renderLinkExpanded(link, dragSvg) {
   // the raw URLs stay hidden; clicking the chip (or any empty/invalid row)
   // reveals the input again. Purely cosmetic: the saved value is the raw URL.
 
-  // Video block — list of up to 10 YouTube URL inputs, each removable. An
+  // Video block - list of up to 10 YouTube URL inputs, each removable. An
   // "Add another video" button appears at the bottom when fewer than 10 are
   // present. The whole block can be removed via the row's Remove button.
   if (link.isVideoBlock) {
@@ -3623,7 +3800,7 @@ function renderLinkExpanded(link, dragSvg) {
   let photoSlot = '';
   if (link.isCourse) {
 
-    // Course link — show cover, locked title/URL, crossout price option
+    // Course link - show cover, locked title/URL, crossout price option
     const coverHtml = link.photoUrl
       ? `<img alt="Link cover" src="${escapeHtml(link.photoUrl)}" class="bio-s-f31042">`
       : '';
@@ -3790,7 +3967,7 @@ function saveLinkRow(id) {
 }
 
 // ====== VIDEOS ======
-// Helper for extracting a YouTube ID — used by video block renderers in
+// Helper for extracting a YouTube ID - used by video block renderers in
 // both the editor (collapsed thumb) and the live preview.
 function extractYouTubeIdDash(url) {
   if (!url) return null;
@@ -4219,7 +4396,7 @@ function showBioStatus(kind, msg) {
 async function saveBio() {
   if (!currentUser) return;
   if (!bioDataLoaded) {
-    showBioStatus('error', 'Saving is disabled because your page did not finish loading. Refresh and try again; this protects your existing page from being overwritten.');
+    showBioStatus('error', 'Saving is disabled because your page did not finish loading. This protects your existing page from being overwritten. Use the Retry button at the top to reload it.');
     return;
   }
   const btn = document.getElementById('bio-save-btn');
@@ -4306,7 +4483,7 @@ async function saveBio() {
         ...(l.isFollowerBlock ? { isFollowerBlock: true, mode: l.mode === 'manual' ? 'manual' : 'automatic', showIcons: l.showIcons !== false, followerCounts: sanitizeFollowerCounts(l.followerCounts) } : {}),
         ...(l.halfWidth ? { halfWidth: true } : {}),
         ...(l.isSubscribe ? { isSubscribe: true } : {}),
-        // Video block — array of YouTube URLs (capped at 5 by the editor).
+        // Video block - array of YouTube URLs (capped at 5 by the editor).
         // Filter out empty/blank URL slots so the saved payload never carries
         // partially-filled rows.
         ...(l.isVideoBlock ? {
@@ -4358,7 +4535,7 @@ async function saveBio() {
             .slice(0, 10)
         } : {}),
       }));
-    // Old top-level videos array is no longer used — videos now live inside
+    // Old top-level videos array is no longer used - videos now live inside
     // isVideoBlock entries in `links`. Always write empty so legacy data clears.
     const cleanVideos = [];
 
@@ -4385,9 +4562,9 @@ async function saveBio() {
       links: cleanLinks,
       videos: cleanVideos,
       published: bioState.published,
-      // Free users cannot hide branding — force true regardless of client state
+      // Free users cannot hide branding - force true regardless of client state
       show_branding: isPro() ? !!bioState.show_branding : true,
-      // Sensitive content flag — available to all tiers (safety feature, not gated)
+      // Sensitive content flag - available to all tiers (safety feature, not gated)
       sensitive_content: !!bioState.sensitive_content,
       // Pro users can save custom_theme. Preserve for downgraded users but blank-out on write for non-Pro to avoid RLS overreach
       custom_theme: isPro() ? (bioState.custom_theme || null) : (bioState.custom_theme || null),
@@ -4574,12 +4751,12 @@ function buildPreviewHTML() {
       bgOverlayCSS = `body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,${darkness.toFixed(2)});z-index:-1;}`;
     }
   } else if (isImageTheme(bioState.theme)) {
-    // Builtin image theme — same pipeline as custom, but with hardcoded
+    // Builtin image theme - same pipeline as custom, but with hardcoded
     // colors and image. Free for all users.
     t = buildImageThemeVars(bioState.theme);
     if (t && t.bgUrl) {
       bgImageCSS = `body::after{content:'';position:fixed;inset:0;background-image:url("${escapeHtml(t.bgUrl)}");background-size:cover;background-position:center;z-index:-2;}`;
-      // No overlay — image themes are pre-tuned for legibility without darkening
+      // No overlay - image themes are pre-tuned for legibility without darkening
       bgOverlayCSS = '';
     }
   } else {
@@ -4636,7 +4813,7 @@ function buildPreviewHTML() {
   .lk.lk-thumb.link-half .lk-thumb-body{flex:1;padding:8px 12px;justify-content:center;}
   /* Half-width text-only link gets a min-height for row alignment */
   .lk.link-half:not(.lk-thumb){min-height:56px;display:flex;flex-direction:column;justify-content:center;}
-  /* Half-width preview course/coaching/product cards — column layout matches halves */
+  /* Half-width preview course/coaching/product cards - column layout matches halves */
   .pcc.link-half{min-height:120px;display:flex;flex-direction:column;}
   .pcc.link-half > div{flex:1;}
   .pcc .pcc-title{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -4685,7 +4862,7 @@ function buildPreviewHTML() {
   .vc.vc-vertical img{aspect-ratio:9/16;}
   .ic{flex:0 0 200px;border-radius:10px;overflow:hidden;}
   .ic img{width:100%;height:auto;display:block;}
-  /* Preview arrow buttons — small since the preview is itself small */
+  /* Preview arrow buttons - small since the preview is itself small */
   .vids-arrow{position:absolute;top:50%;transform:translateY(-50%);width:28px;height:28px;border-radius:50%;border:1px solid ${t.border};background:${t.surface};color:${t.text};cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2;box-shadow:0 2px 6px rgba(0,0,0,0.2);padding:0;transition:opacity 0.15s,background 0.15s;}
   .vids-arrow:hover{background:${t.surface2};}
   .vids-arrow:disabled{opacity:0.35;cursor:default;}
@@ -4760,10 +4937,10 @@ function buildPreviewSocials(t) {
 }
 
 function buildPreviewLink(l, t) {
-  // Half-width modifier — applies the .link-half class on the four eligible
+  // Half-width modifier - applies the .link-half class on the four eligible
   // link types so the preview matches the public bio's grid layout.
   const halfClass = l.halfWidth ? 'link-half' : '';
-  // Header — text divider, no link, no clickable target
+  // Header - text divider, no link, no clickable target
   if (l.isHeader) {
     if (!l.title) return '';
     return `<div class="hdr">${escapeHtml(l.title)}</div>`;
@@ -4814,7 +4991,7 @@ function buildPreviewLink(l, t) {
     </div>`;
   }
 
-  // Video block — horizontal-scrollable carousel of up to 10 YouTube thumbnails.
+  // Video block - horizontal-scrollable carousel of up to 10 YouTube thumbnails.
   // Renders as a child of .links and respects the link's drag order, so when
   // the creator reorders, the entire carousel moves with it.
   if (l.isVideoBlock) {
@@ -4826,7 +5003,7 @@ function buildPreviewLink(l, t) {
       return `<div class="vc${vert ? ' vc-vertical' : ''}"><img src="https://i.ytimg.com/vi/${id}/hqdefault.jpg" alt="YouTube video thumbnail" data-bio-onerror="fallback-src" data-bio-fallback-src="https://i.ytimg.com/vi/${id}/default.jpg"></div>`;
     }).filter(Boolean).join('');
     if (!cards) {
-      // Empty placeholder — only shown in editor preview when a block was just
+      // Empty placeholder - only shown in editor preview when a block was just
       // added with no URLs yet
       return `<div style="background:${t.surface};border:1px dashed ${t.border};border-radius:10px;padding:14px;text-align:center;color:${t.muted};font-size:11px;">YouTube videos will appear here</div>`;
     }
@@ -4901,7 +5078,7 @@ function buildPreviewLink(l, t) {
   if (l.isSoundCloudBlock) {
     const sc = extractSoundCloud(l.url);
     if (!sc) {
-      // No valid link yet — branded placeholder so the slot is visible.
+      // No valid link yet - branded placeholder so the slot is visible.
       return `<div style="background:#FF5500;border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:10px;color:#fff;font-size:12px;">
         <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="5.5" fill="#fff"/><g fill="#FF5500"><rect x="5" y="13" width="1.6" height="5" rx="0.8"/><rect x="8" y="10" width="1.6" height="8" rx="0.8"/><rect x="11" y="8" width="1.6" height="10" rx="0.8"/><rect x="14" y="11" width="1.6" height="7" rx="0.8"/><rect x="17" y="9" width="1.6" height="9" rx="0.8"/></g></svg>
         <span>SoundCloud &middot; Add a SoundCloud link</span>
@@ -4915,7 +5092,7 @@ function buildPreviewLink(l, t) {
   if (l.isAppleMusicBlock) {
     const am = extractAppleMusic(l.url);
     if (!am) {
-      // No valid link yet — branded placeholder so the slot is visible.
+      // No valid link yet - branded placeholder so the slot is visible.
       return `<div style="background:#FA233B;border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:10px;color:#fff;font-size:12px;">
         <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="5.5" fill="#fff"/><path fill="#FA233B" d="M16.8 5.2c.35-.06.65.2.65.56v7.49c0 1.02-.72 1.78-1.72 1.94-1.14.18-2-.52-2-1.54 0-.86.6-1.48 1.55-1.64l.62-.1c.3-.05.43-.2.43-.5V8.2l-5 .92v4.93c0 1.02-.72 1.78-1.72 1.94-1.14.18-2-.52-2-1.54 0-.86.6-1.48 1.55-1.64l.62-.1c.3-.05.43-.2.43-.5V7.1c0-.32.2-.53.53-.6z"/></svg>
         <span>Apple Music &middot; Add an Apple Music link</span>
@@ -4929,7 +5106,7 @@ function buildPreviewLink(l, t) {
   if (l.isSpotifyBlock) {
     const sp = extractSpotify(l.url);
     if (!sp) {
-      // No valid link yet — show a branded placeholder so the slot is visible.
+      // No valid link yet - show a branded placeholder so the slot is visible.
       return `<div style="background:#191414;border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:10px;color:#fff;font-size:12px;">
         <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#1DB954"/><path d="M6.4 9.3c3.6-1.05 7.7-0.72 10.8 1.05" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round"/><path d="M7 12.6c3-0.85 6.2-0.5 8.7 1.0" stroke="#fff" stroke-width="1.35" fill="none" stroke-linecap="round"/><path d="M7.5 15.7c2.4-0.62 4.8-0.4 6.7 0.8" stroke="#fff" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg>
         <span>Spotify &middot; Add a Spotify link</span>
@@ -5187,7 +5364,7 @@ function applyAIBio(textareaId, idx) {
 // ACTION REGISTRATIONS (Phase 2)
 // -----------------------------------------------------------------------------
 // Each registered handler corresponds to a data-bio-action="..." in markup.
-// Handler signature: (event, element) — element is the one with data-bio-action.
+// Handler signature: (event, element) - element is the one with data-bio-action.
 // Read parameters from element.dataset.* attributes.
 // =============================================================================
 
@@ -5649,9 +5826,9 @@ bioRegisterAction('confirm-crop', () => confirmCrop());
 // ----- Image error fallbacks (replaces inline onerror=) -----
 // Image error events do NOT bubble, so we need a capture-phase listener.
 // Elements opt-in via data-bio-onerror with one of these modes:
-//   "hide"           — set display:none on the img
-//   "hide-thumb-bg"  — clear src, paint a placeholder background
-//   "fallback-src"   — swap to data-bio-fallback-src then clear the attribute
+//   "hide"           - set display:none on the img
+//   "hide-thumb-bg"  - clear src, paint a placeholder background
+//   "fallback-src"   - swap to data-bio-fallback-src then clear the attribute
 //                      (so a second failure doesn't loop)
 document.addEventListener('error', function(e) {
   const target = e.target;
@@ -5681,7 +5858,7 @@ document.addEventListener('error', function(e) {
 
 
 // =============================================================================
-// GLOBAL EXPOSURE — preserve inline onclick handlers in dashboard.html
+// GLOBAL EXPOSURE - preserve inline onclick handlers in dashboard.html
 // -----------------------------------------------------------------------------
 // Phase 2 converted bio markup in dashboard.html to use data-bio-action.
 // HOWEVER, bio.js itself still emits inline handlers in template literals
@@ -5694,7 +5871,7 @@ document.addEventListener('error', function(e) {
 // This block is a paranoia-check + explicit list so future-Claude knows
 // exactly which symbols are part of the public API.
 // =============================================================================
-// Functions (no-op assignments — declarations are already global):
+// Functions (no-op assignments - declarations are already global):
 //   copySidebarBioLink, showBioLinkButtons, getBioCollapsed, saveBioCollapsed,
 //   toggleBioSection, restoreBioCollapsed, initBioTool, resyncBioUsername,
 //   resolveBioLinkLiveCovers, loadBioData, syncBioForm, syncBrandingToggle,

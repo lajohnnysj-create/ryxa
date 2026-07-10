@@ -1,5 +1,5 @@
 // =============================================================================
-// /js/mk.js — Media Kit editor (extracted from dashboard.html, 2026-05-10)
+// /js/mk.js - Media Kit editor (extracted from dashboard.html, 2026-05-10)
 // -----------------------------------------------------------------------------
 // This file contains all JavaScript for the Media Kit editor inside the
 // Ryxa dashboard. Extracted from dashboard.html (and a chunk that previously
@@ -71,7 +71,7 @@ function mkDispatchEvent(event) {
 });
 
 // =============================================================================
-// CSP-STRICT STYLE APPLICATION (Phase 3) — parallel of bio's bioApplyDataStyles
+// CSP-STRICT STYLE APPLICATION (Phase 3) - parallel of bio's bioApplyDataStyles
 // -----------------------------------------------------------------------------
 const MK_DATA_STYLE_MAP = {
   bg:          'background',
@@ -99,7 +99,7 @@ function mkApplyDataStyles(root) {
 }
 
 // =============================================================================
-// END INFRASTRUCTURE — actual MK code follows
+// END INFRASTRUCTURE - actual MK code follows
 // =============================================================================
 
 // ---------- From bio.js lines 3354-3420 (mkState + initMediaKitTool) ----------
@@ -110,7 +110,7 @@ let mkState = {
   bio: '',
   category: '',
   socials: {}, // { instagram: { count: N, url: "...", engagement: "..." }, ... }
-  audience_mode: 'automatic', // 'manual' | 'automatic' — chosen tab in Audience & Stats. Defaults to 'automatic' to encourage Instagram connection.
+  audience_mode: 'automatic', // 'manual' | 'automatic' - chosen tab in Audience & Stats. Defaults to 'automatic' to encourage Instagram connection.
   rate_card: [], // array of {id, label, price, note}
   contact_email: '',
   contact_note: '',
@@ -150,7 +150,7 @@ function initMediaKitTool() {
     renderMKFonts();
     // If the audience pane is in Automatic mode, refresh its connection status.
     // Catches the case where the creator disconnected/connected Instagram in
-    // Settings between visits — the pane might otherwise show stale state.
+    // Settings between visits - the pane might otherwise show stale state.
     if (mkState.audience_mode === 'automatic' && typeof loadAudienceAutomatic === 'function') {
       mkAudCache = null;
       loadAudienceAutomatic();
@@ -160,7 +160,7 @@ function initMediaKitTool() {
   }
   mkInited = true;
 
-  // Seed predefined rate card rows (all blank — user fills in what they charge for)
+  // Seed predefined rate card rows (all blank - user fills in what they charge for)
   if (mkState.rate_card.length === 0) {
     mkState.rate_card = MK_PREDEFINED_RATES.map(r => ({ _id: mkRateIdSeq++, id: r.id, label: r.label, price: '', note: '' }));
   }
@@ -207,21 +207,190 @@ async function resyncMKUsername() {
 // media_kit row, so it must never run over unloaded or session-less state.
 let mkDataLoaded = false;
 
+// Lock/unlock the entire media kit editor as one unit while its data is
+// loading or in a failed state. The tool is a single whole-state surface with
+// dozens of controls, so instead of locking buttons by id, the whole content
+// grid is dimmed with pointer-events disabled, plus the Save and Publish
+// buttons in the top chrome. The status slot above the grid stays live so the
+// failure panel's Retry button remains clickable.
+function mkSetEditorLocked(locked) {
+  ['mk-save-btn', 'mk-publish-btn'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.disabled = locked;
+    el.style.opacity = locked ? '0.5' : '';
+    el.style.cursor = locked ? 'not-allowed' : '';
+  });
+  var grid = document.querySelector('#tool-mediakit .bio-grid');
+  if (grid) {
+    grid.style.pointerEvents = locked ? 'none' : '';
+    grid.style.opacity = locked ? '0.5' : '';
+  }
+}
+
+// Boxed purple loading indicator in the mk-save-status slot at the top of the
+// tool: same geometry and spinner as the course, booking, and product
+// loaders. Updates text in place across the loading -> retrying upgrade.
+function mkShowLoading(text) {
+  var msgEl = document.getElementById('mk-save-status');
+  if (!msgEl) return;
+
+  if (!document.getElementById('course-load-spin-style')) {
+    var styleEl = document.createElement('style');
+    styleEl.id = 'course-load-spin-style';
+    styleEl.textContent = '@keyframes courseLoadSpin { to { transform: rotate(360deg); } }';
+    document.head.appendChild(styleEl);
+  }
+
+  msgEl.style.display = 'block';
+  msgEl.style.background = 'transparent';
+  msgEl.style.border = 'none';
+  msgEl.style.padding = '0';
+
+  var existing = msgEl.querySelector('[data-mk-loading-text]');
+  if (existing) { existing.textContent = text; return; }
+
+  msgEl.innerHTML = '';
+  var wrap = document.createElement('div');
+  wrap.setAttribute('role', 'status');
+  wrap.style.display = 'flex';
+  wrap.style.alignItems = 'center';
+  wrap.style.gap = '10px';
+  wrap.style.padding = '14px 16px';
+  wrap.style.borderRadius = '10px';
+  wrap.style.border = '1px solid rgba(255,255,255,0.12)';
+  wrap.style.background = 'rgba(255,255,255,0.04)';
+  wrap.style.marginBottom = '16px';
+
+  var spinner = document.createElement('div');
+  spinner.style.width = '16px';
+  spinner.style.height = '16px';
+  spinner.style.border = '2px solid rgba(124,58,237,0.25)';
+  spinner.style.borderTopColor = '#7c3aed';
+  spinner.style.borderRadius = '50%';
+  spinner.style.animation = 'courseLoadSpin 0.7s linear infinite';
+  spinner.style.flexShrink = '0';
+
+  var label = document.createElement('div');
+  label.setAttribute('data-mk-loading-text', '1');
+  label.style.color = 'rgba(255,255,255,0.7)';
+  label.style.fontSize = '14px';
+  label.textContent = text;
+
+  wrap.appendChild(spinner);
+  wrap.appendChild(label);
+  msgEl.appendChild(wrap);
+}
+
+// Clear the status slot and restore its styles so the inline-banner fallback
+// renders normally next time something uses this element.
+function mkClearStatusSlot() {
+  var msgEl = document.getElementById('mk-save-status');
+  if (!msgEl) return;
+  msgEl.style.display = 'none';
+  msgEl.innerHTML = '';
+  msgEl.style.background = '';
+  msgEl.style.border = '';
+  msgEl.style.padding = '';
+}
+
+// Blocking failure state: persistent red panel with Retry in the top slot,
+// identical to the other tools. The editor grid stays locked; a failed load
+// must never present an editable-looking empty form, because saving that
+// empty state would overwrite the creator's entire media kit.
+function mkShowLoadFailed() {
+  var msgEl = document.getElementById('mk-save-status');
+  if (!msgEl) return;
+  msgEl.innerHTML = '';
+  msgEl.style.display = 'block';
+  msgEl.style.background = 'transparent';
+  msgEl.style.border = 'none';
+  msgEl.style.padding = '0';
+
+  var panel = document.createElement('div');
+  panel.setAttribute('role', 'alert');
+  panel.style.padding = '20px';
+  panel.style.borderRadius = '12px';
+  panel.style.border = '1px solid rgba(239,68,68,0.35)';
+  panel.style.background = 'rgba(239,68,68,0.08)';
+  panel.style.marginBottom = '16px';
+
+  var heading = document.createElement('div');
+  heading.style.color = '#f87171';
+  heading.style.fontWeight = '600';
+  heading.style.fontSize = '15px';
+  heading.style.marginBottom = '6px';
+  heading.textContent = 'Could not load your media kit';
+
+  var body = document.createElement('div');
+  body.style.color = 'rgba(255,255,255,0.7)';
+  body.style.fontSize = '14px';
+  body.style.lineHeight = '1.5';
+  body.style.marginBottom = '14px';
+  body.textContent = 'Editing and saving are turned off until it loads, so your existing media kit stays safe. This is usually a brief connection hiccup.';
+
+  var retry = document.createElement('button');
+  retry.type = 'button';
+  retry.setAttribute('data-mk-action', 'retry-load');
+  retry.textContent = 'Retry';
+  retry.style.padding = '9px 18px';
+  retry.style.borderRadius = '8px';
+  retry.style.border = '1px solid rgba(255,255,255,0.25)';
+  retry.style.background = 'rgba(255,255,255,0.06)';
+  retry.style.color = '#fff';
+  retry.style.fontWeight = '600';
+  retry.style.cursor = 'pointer';
+
+  panel.appendChild(heading);
+  panel.appendChild(body);
+  panel.appendChild(retry);
+  msgEl.appendChild(panel);
+  panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+mkRegisterAction('retry-load', function() { loadMediaKit(); });
+
 async function loadMediaKit() {
   if (!currentUser) return;
   mkDataLoaded = false;
-  const { data: _mkSess } = await sb.auth.getSession();
-  if (!_mkSess || !_mkSess.session) {
-    showMKStatus('error', 'Your session is still loading. Refresh before making changes; saving is disabled to protect your media kit.');
-    return;
+  // Lock the whole editor and show visible loading from the first moment.
+  // Unlocks only after a clean load and hydration; stays locked on failure.
+  mkSetEditorLocked(true);
+  mkShowLoading('Loading your media kit...');
+
+  // Retry transient blips instead of dead-ending; a null session is
+  // retryable for the same RLS empty-data reason as the Link in Bio loader.
+  let profileRes = null, kitRes = null;
+  const MAX_LOAD_ATTEMPTS = 3;
+  for (let attempt = 1; attempt <= MAX_LOAD_ATTEMPTS; attempt++) {
+    try {
+      const sessRes = await sb.auth.getSession();
+      if (!sessRes || !sessRes.data || !sessRes.data.session) throw new Error('mk-load: no live session');
+      // Load shared username + the kit row in parallel (they're independent);
+      // saves a full network round trip on first paint.
+      const results = await Promise.all([
+        sb.from('profiles').select('username').eq('user_id', currentUser.id).maybeSingle(),
+        sb.from('media_kit').select('*').eq('user_id', currentUser.id).maybeSingle()
+      ]);
+      profileRes = results[0];
+      kitRes = results[1];
+      if (profileRes.error) throw profileRes.error;
+      if (kitRes.error) throw kitRes.error;
+      break;
+    } catch (err) {
+      if (attempt < MAX_LOAD_ATTEMPTS) {
+        mkShowLoading('Having trouble loading your media kit. Retrying...');
+        await new Promise(function(resolve) { setTimeout(resolve, 400 * attempt); });
+        continue;
+      }
+      console.error('loadMediaKit', err);
+      mkShowLoadFailed();
+      showMKStatus('error', 'Failed to load your media kit. Please retry.');
+      return;
+    }
   }
+
   try {
-    // Load shared username + the kit row in parallel (they're independent);
-    // saves a full network round trip on first paint.
-    const [profileRes, kitRes] = await Promise.all([
-      sb.from('profiles').select('username').eq('user_id', currentUser.id).maybeSingle(),
-      sb.from('media_kit').select('*').eq('user_id', currentUser.id).maybeSingle()
-    ]);
     const profile = profileRes.data;
     if (profile?.username) {
       document.getElementById('mk-username').value = profile.username;
@@ -231,8 +400,6 @@ async function loadMediaKit() {
     }
     // Media kit row (already fetched above in parallel)
     const kit = kitRes.data;
-    const kitLoadErr = kitRes.error;
-    if (kitLoadErr) throw kitLoadErr;
     mkDataLoaded = true;
     if (kit) {
       mkState.headshot_url = kit.headshot_url || '';
@@ -281,9 +448,16 @@ async function loadMediaKit() {
         .map(im => ({ photoUrl: String(im.photoUrl), w: parseInt(im.w) || 0, h: parseInt(im.h) || 0 }));
     }
   } catch (e) {
+    // Hydration failed after a successful fetch. Treat it exactly like a
+    // load failure: a partially hydrated editor must never be saveable.
     console.error('loadMediaKit', e);
-    showMKStatus('error', 'Could not fully load your media kit. Refresh before making changes.');
+    mkDataLoaded = false;
+    mkShowLoadFailed();
+    showMKStatus('error', 'Failed to load your media kit. Please retry.');
+    return;
   }
+  mkSetEditorLocked(false);
+  mkClearStatusSlot();
   syncMKForm();
   // Reset username hint to default
   var mkHint2 = document.getElementById('mk-username-hint');
@@ -411,7 +585,7 @@ async function checkMKUsernameAvailability(username, token) {
       return;
     }
     if (!data || data.user_id === currentUser?.id) {
-      // Name is available — but check rate limit before showing green
+      // Name is available - but check rate limit before showing green
       const { allowed, changes } = await checkUsernameChangeLimit();
       if (token !== mkUsernameCheckToken) return;
       if (!allowed) {
@@ -993,7 +1167,7 @@ function pickMKTheme(t) {
 }
 
 // =====================================================================
-// Font picker (media kit) — same dropdown pattern as bio. All free.
+// Font picker (media kit) - same dropdown pattern as bio. All free.
 // =====================================================================
 function renderMKFonts() {
   const select = document.getElementById('mk-font-select');
@@ -1139,7 +1313,7 @@ function showMKStatus(kind, msg) {
 async function saveMediaKit() {
   if (!currentUser) return;
   if (!mkDataLoaded) {
-    showMKStatus('error', 'Saving is disabled because your media kit did not finish loading. Refresh and try again; this protects your existing kit from being overwritten.');
+    showMKStatus('error', 'Saving is disabled because your media kit did not finish loading. This protects your existing kit from being overwritten. Use the Retry button at the top to reload it.');
     return;
   }
   if (!isPro()) { showMKStatus('error', 'Media Kit is a Pro feature.'); return; }
@@ -1182,7 +1356,7 @@ async function saveMediaKit() {
       }
     }
 
-    // Clean rate card — strip _id, only save rows with valid price or note
+    // Clean rate card - strip _id, only save rows with valid price or note
     const cleanRates = mkState.rate_card
       .filter(r => {
         const p = parseFloat(r.price);
@@ -1294,7 +1468,7 @@ async function deleteMKStaleBgs() {
 }
 
 // ============================================================================
-// MEDIA KIT — AUDIENCE & STATS: Manual / Automatic mode
+// MEDIA KIT - AUDIENCE & STATS: Manual / Automatic mode
 // ============================================================================
 //
 // Two-tab control inside the Audience & Stats collapsible section.
@@ -1725,7 +1899,7 @@ async function manualRefreshIG() {
   // on screen + button enters its cooldown countdown; failure = data stays as
   // it was + button just becomes clickable again. No toast needed (and toasts
   // collide with the iOS non-safe zone on devices with a notch).
-  // 5-minute cooldown regardless of success — protects rate limits
+  // 5-minute cooldown regardless of success - protects rate limits
   mkAudRefreshLockUntil = Date.now() + 5 * 60 * 1000;
   mkSaveRefreshLock('ig', mkAudRefreshLockUntil);
   mkStartRefreshTicker();
@@ -1826,7 +2000,7 @@ function renderAudienceAutomatic() {
   // Format the last-refreshed timestamp as "Apr 30 at 9:45 AM" or hide if none.
   const freshLabel = formatLastRefreshed(d.data_last_fetched_at);
 
-  // Refresh button state — disabled during cooldown
+  // Refresh button state - disabled during cooldown
   const remainingMs = Math.max(0, mkAudRefreshLockUntil - Date.now());
   const refreshDisabled = remainingMs > 0;
   const refreshLabel = refreshDisabled
@@ -1840,7 +2014,7 @@ function renderAudienceAutomatic() {
   if (d.data_fetch_error) {
     const friendly = /100\+? followers/i.test(d.data_fetch_error)
       ? 'Audience demographics will appear once your account has 100+ followers (Instagram requires this to share demographic data).'
-      : 'Some data couldn\'t be loaded — your connection may need refreshing. Click Refresh or reconnect Instagram in Settings.';
+      : 'Some data couldn\'t be loaded - your connection may need refreshing. Click Refresh or reconnect Instagram in Settings.';
     errorNoteHtml = `<div class="mk-aud-error-note">${escapeHtml(friendly)}</div>`;
   }
 
@@ -2203,7 +2377,7 @@ function buildMKPreviewHTML() {
       bgOverlayCSS = `body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,${darkness.toFixed(2)});z-index:-1;}`;
     }
   } else if (isImageTheme(mkState.theme)) {
-    // Builtin image theme — same pipeline as custom, but with hardcoded
+    // Builtin image theme - same pipeline as custom, but with hardcoded
     // colors and image. Free for all users.
     t = buildImageThemeVars(mkState.theme);
     if (t && t.bgUrl) {
@@ -2219,7 +2393,7 @@ function buildMKPreviewHTML() {
     ? `<img src="${escapeHtml(mkState.headshot_url)}" alt="Media kit headshot" style="width:100%;height:100%;border-radius:10px;object-fit:cover;display:block;">`
     : `<div style="width:100%;height:100%;border-radius:10px;background:${t.surface2};display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;font-size:40px;font-weight:800;color:${t.text};">${escapeHtml(initial)}</div>`;
 
-  // Audience — branches on audience_mode
+  // Audience - branches on audience_mode
   let audienceHtml = '';
   if (mkState.audience_mode === 'automatic') {
     // Build a compact panel per connected platform from the client cache.
@@ -2363,7 +2537,7 @@ function buildMKPreviewHTML() {
     }
 
     if (panels.length === 0) {
-      // Not connected (or cache not loaded yet) — friendly placeholder
+      // Not connected (or cache not loaded yet) - friendly placeholder
       audienceHtml = `<div class="sec">
         <div class="sec-t">Audience &amp; Stats</div>
         <div style="padding:14px;background:${t.surface2};border:1px dashed ${t.border};border-radius:10px;text-align:center;font-size:10px;color:${t.muted};">
@@ -2473,7 +2647,7 @@ function buildMKPreviewHTML() {
       </div>`;
     }
   } else {
-    // Manual mode — original behavior
+    // Manual mode - original behavior
     const filledSocials = MK_SOCIAL_PLATFORMS
       .map(p => ({ ...p, data: mkState.socials[p.key] || { count: 0, url: '', engagement: '' } }))
       .filter(p => (parseInt(p.data.count) || 0) > 0);
@@ -2505,7 +2679,7 @@ function buildMKPreviewHTML() {
     }
   }
 
-  // Total Followers strip — only renders in Automatic mode with at least one
+  // Total Followers strip - only renders in Automatic mode with at least one
   // connected platform. Mirrors api/mediakit.js buildTotalFollowers() output.
   let totalFollowersStripHtml = '';
   if (mkState.audience_mode === 'automatic') {
@@ -2711,7 +2885,7 @@ function buildMKPreviewHTML() {
 
 
 // =============================================================================
-// ACTION REGISTRATIONS (Phase 2) — wires up data-mk-action attributes
+// ACTION REGISTRATIONS (Phase 2) - wires up data-mk-action attributes
 // =============================================================================
 
 // Top-of-tool buttons
@@ -2719,7 +2893,7 @@ mkRegisterAction('start-checkout', (e, el) => goToPricing('pro'));
 mkRegisterAction('save', () => saveMediaKit());
 mkRegisterAction('toggle-publish', () => toggleMediaKitPublish());
 
-// Username input — two handlers via per-event style
+// Username input - two handlers via per-event style
 mkRegisterAction('remove-readonly', (e, el) => el.removeAttribute('readonly'));
 mkRegisterAction('username-input', () => onMKUsernameInput());
 
