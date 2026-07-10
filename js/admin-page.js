@@ -72,9 +72,9 @@
     });
   }
 
-  function flashCopied(tr) {
-    tr.classList.add('copied');
-    setTimeout(function () { tr.classList.remove('copied'); }, 900);
+  function flashCopied(node) {
+    node.classList.add('copied');
+    setTimeout(function () { node.classList.remove('copied'); }, 900);
   }
 
   function renderRows(errors, append) {
@@ -93,6 +93,24 @@
         var st = document.createElement('div');
         st.className = 'stack';
         st.textContent = e.stack;
+        st.title = 'Click to copy this error';
+
+        // Copy lives on the stack box, not the row. The row toggles the stack
+        // open; putting copy there meant one tap did both, and you got a
+        // clipboard full of errors you were only trying to read.
+        st.addEventListener('click', function (ev) {
+          // Do not let this reach the row handler and collapse the box you
+          // just clicked.
+          ev.stopPropagation();
+          // Selecting a line of the trace should not also copy the whole
+          // record. If text is highlighted, leave the reader alone.
+          var sel = window.getSelection && window.getSelection().toString();
+          if (sel) return;
+          copyText(errorAsText(e))
+            .then(function () { flashCopied(st); })
+            .catch(function (err) { console.error('copy failed:', err); });
+        });
+
         tdMsg.appendChild(st);
       }
       var tdPage = document.createElement('td');
@@ -107,17 +125,6 @@
 
       tr.appendChild(tdTime); tr.appendChild(tdMsg); tr.appendChild(tdPage);
       tr.appendChild(tdUser); tr.appendChild(tdSrc);
-
-      tr.title = 'Click to copy this error';
-      tr.addEventListener('click', function () {
-        // Selecting text inside a row should not also copy the row. If the
-        // reader has highlighted something, leave them alone.
-        var sel = window.getSelection && window.getSelection().toString();
-        if (sel) return;
-        copyText(errorAsText(e))
-          .then(function () { flashCopied(tr); })
-          .catch(function (err) { console.error('copy failed:', err); });
-      });
 
       body.appendChild(tr);
       oldest = e.occurred_at;
