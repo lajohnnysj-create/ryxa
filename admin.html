@@ -17,6 +17,42 @@
   .brand img { width:34px; height:34px; border-radius:8px; display:block; }
   .brand-text { font-family:"Syne",sans-serif; font-size:24px; font-weight:800; letter-spacing:-0.5px; color:var(--text); }
   .topbar { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:22px; }
+  /* Tabs. Stats stay above them: they describe the whole system, not a tab. */
+  .tabs { display:flex; gap:4px; border-bottom:1px solid var(--border); margin:26px 0 20px; }
+  .tab { background:transparent; border:none; border-bottom:2px solid transparent; color:var(--muted); font-family:"DM Sans",sans-serif; font-size:14px; padding:10px 14px; cursor:pointer; transition:color .12s, border-color .12s; }
+  .tab:hover { color:var(--text); }
+  .tab.active { color:var(--text); border-bottom-color:var(--accent); }
+  .tabpanel[hidden] { display:none; }
+
+  /* Creator lookup */
+  .search-row { display:flex; gap:8px; margin-bottom:18px; max-width:460px; }
+  .search-input { flex:1; background:var(--card); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:10px 12px; font-size:16px; font-family:"DM Sans",sans-serif; }
+  .search-input:focus { outline:none; border-color:var(--accent); }
+  .search-hint { color:var(--muted); font-size:12px; margin:-10px 0 18px; }
+
+  .creator-card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:20px; max-width:460px; }
+  .creator-name { font-family:"Syne",sans-serif; font-size:20px; font-weight:800; display:flex; align-items:center; gap:8px; }
+  .creator-meta { color:var(--muted); font-size:12.5px; margin-top:6px; word-break:break-all; }
+  .creator-row { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-top:20px; padding-top:16px; border-top:1px solid var(--border); }
+  .creator-row-label { font-size:14px; }
+  .creator-row-sub { color:var(--muted); font-size:12px; margin-top:2px; }
+
+  /* Switch. A checkbox is the control; the styling is decoration on top, so
+     it stays keyboard-operable and announces its state to a screen reader. */
+  .switch { position:relative; display:inline-block; width:46px; height:26px; flex-shrink:0; }
+  .switch input { position:absolute; opacity:0; width:100%; height:100%; margin:0; cursor:pointer; }
+  .switch .slider { position:absolute; inset:0; background:rgba(255,255,255,0.12); border-radius:999px; transition:background .15s; pointer-events:none; }
+  .switch .slider::before { content:""; position:absolute; width:20px; height:20px; left:3px; top:3px; border-radius:50%; background:#fff; transition:transform .15s; }
+  .switch input:checked + .slider { background:#1d9bf0; }
+  .switch input:checked + .slider::before { transform:translateX(20px); }
+  .switch input:focus-visible + .slider { box-shadow:0 0 0 2px var(--accent); }
+  .switch input:disabled { cursor:progress; }
+  .switch input:disabled + .slider { opacity:.55; }
+
+  .lookup-msg { margin-top:14px; font-size:13px; }
+  .lookup-msg.err { color:#fca5a5; }
+  .lookup-msg.ok { color:#86efac; }
+
   /* Tapping a row opens its stack trace. Tapping the OPEN stack trace copies
      the whole record. Two targets, two jobs: a row that did both meant every
      glance at a trace also hijacked the clipboard. */
@@ -82,6 +118,21 @@
         <div class="stat"><div class="n" id="stat-err24">-</div><div class="l">Errors, last 24h</div></div>
         <div class="stat"><div class="n" id="stat-err7">-</div><div class="l">Errors, last 7 days</div></div>
       </div>
+      <div class="tabs" role="tablist">
+        <button class="tab active" role="tab" aria-selected="true" aria-controls="tab-errors" data-admin-action="tab" data-admin-tab="errors">Errors</button>
+        <button class="tab" role="tab" aria-selected="false" aria-controls="tab-creators" data-admin-action="tab" data-admin-tab="creators">Creators</button>
+      </div>
+
+      <div class="tabpanel" id="tab-creators" role="tabpanel" hidden>
+        <div class="search-row">
+          <input type="text" id="creator-search" class="search-input" placeholder="Exact username" autocomplete="off" spellcheck="false" aria-label="Creator username">
+          <button class="btn-ghost" data-admin-action="find-creator">Find</button>
+        </div>
+        <p class="search-hint">Exact username only. No partial matches, so this cannot be used to browse creators.</p>
+        <div id="creator-result"></div>
+      </div>
+
+      <div class="tabpanel" id="tab-errors" role="tabpanel">
       <div class="toolbar">
         <h2 style="font-size:16px;margin:0;">Client errors</h2>
         <button class="btn-ghost" data-admin-action="refresh">Refresh</button>
@@ -91,6 +142,7 @@
         <tbody id="err-body"></tbody>
       </table>
       <button class="btn-ghost" id="load-more" data-admin-action="load-more">Load older</button>
+      </div><!-- /tab-errors -->
     </div>
   </div>
   <script src="/js/supabase-2.105.4.js"></script>
