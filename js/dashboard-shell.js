@@ -1581,109 +1581,155 @@ function copyWelcomeBioLink() {
 
 
 // =============================================================================
-// RyxaLoadBar: shared trickle progress bar for every tool/data loader (courses,
-// booking, products, link in bio, media kit; lists and editors alike).
+// RyxaLoadBar: ONE global trickle progress bar for every tool/data loader
+// (courses, booking, products, link in bio, media kit; lists and editors).
 //
 // Design decisions (agreed 2026-07-10):
-//   - The bar is THEATRICAL: loads are 1-3 queries with no real progress, so it
-//     sprints to ~30%, trickles toward 84% while waiting, and snaps to 100% on
-//     completion. Standard NProgress-style behavior.
+//   - GLOBAL and edge-anchored: a single 3px bar fixed at the very top of the
+//     content pane (directly under the topbar), Figma/GitHub style. Progress
+//     bars read as intentional at an edge and misplaced floating mid-content.
+//   - The bar is THEATRICAL: loads are 1-3 queries with no real progress, so
+//     it sprints to ~30%, trickles toward 84%, and snaps to 100% when done.
 //   - Always completes: even an 80ms load gets a smooth sweep to 100% over a
-//     minimum of ~400ms total, so fast loads read as one satisfying motion
-//     instead of a flash of loading UI.
-//   - Text only when something is wrong: no "Loading..." label in the happy
-//     path. A status line ("Having trouble... Retrying...") appears under the
-//     bar only once a retry is underway.
-//   - Mounted as a SIBLING ABOVE the anchor element (not inside it), so
-//     content renders and innerHTML wipes can never destroy the bar mid-sweep.
-//   - On final failure the bar fills red, then removes itself as the red
-//     failure panel takes over.
+//     minimum of ~400ms total, so fast loads read as one motion, no flash.
+//   - Text only when something is wrong: no "Loading..." in the happy path.
+//     A status pill ("Having trouble... Retrying...") appears under the bar
+//     only once a retry is underway. Failure panels/toasts stay local to the
+//     surface that failed; the bar is only the ambient signal.
+//   - REFCOUNTED: concurrent loads share the bar. It runs while any load is
+//     active and completes when the last one finishes. The per-surface API
+//     (start/retrying/finish/fail/stop/isActive, keyed by an anchor element)
+//     is unchanged, so the five tool files need no knowledge of this.
 // =============================================================================
 window.RyxaLoadBar = (function() {
   const TRICKLE_MS = 180;
   const MIN_VISIBLE_MS = 400;
+  const FALLBACK_TOKEN = {};
 
-  function get(anchor) { return (anchor && anchor._ryxaLoadBar) || null; }
+  let ui = null;          // { wrap, bar, text }
+  let tokens = new Set(); // anchors with an active load
+  let t0 = 0;
+  let trickleTimer = null;
+  let cleanupTimer = null;
+  let ending = false;
 
-  function isActive(anchor) {
-    const s = get(anchor);
-    return !!(s && !s.done);
+  function tok(anchor) { return anchor || FALLBACK_TOKEN; }
+
+  function positionWrap(wrap) {
+    // Track the real topbar rect so the bar spans the content pane and sits
+    // right under the header (safe-area aware inside the app). Fallback:
+    // full-width at the very top of the viewport.
+    const bar = document.querySelector('.topbar');
+    if (bar) {
+      const r = bar.getBoundingClientRect();
+      wrap.style.top = r.bottom + 'px';
+      wrap.style.left = r.left + 'px';
+      wrap.style.width = r.width + 'px';
+    } else {
+      wrap.style.top = 'env(safe-area-inset-top, 0px)';
+      wrap.style.left = '0';
+      wrap.style.width = '100vw';
+    }
   }
 
-  function stop(anchor) {
-    const s = get(anchor);
-    if (!s) return;
-    clearInterval(s.timer);
-    if (s.wrap.parentNode) s.wrap.remove();
-    anchor._ryxaLoadBar = null;
+  function mount() {
+    destroy();
+    const wrap = document.createElement('div');
+    wrap.setAttribute('data-ryxa-loadbar', '1');
+    wrap.style.cssText = 'position:fixed;z-index:10005;pointer-events:none;';
+    positionWrap(wrap);
+    const bar = document.createElement('div');
+    bar.style.cssText = 'width:4%;height:3px;border-radius:0 99px 99px 0;background:#7c3aed;transition:width 0.25s ease;box-shadow:0 0 8px rgba(124,58,237,0.6);';
+    const text = document.createElement('div');
+    text.setAttribute('role', 'status');
+    text.style.cssText = 'display:none;margin:8px 0 0 12px;padding:6px 12px;width:fit-content;'
+      + 'color:rgba(255,255,255,0.75);font-size:13px;font-family:\'DM Sans\',sans-serif;'
+      + 'background:rgba(16,16,26,0.92);border:1px solid rgba(255,255,255,0.1);border-radius:8px;';
+    wrap.appendChild(bar);
+    wrap.appendChild(text);
+    document.body.appendChild(wrap);
+    ui = { wrap: wrap, bar: bar, text: text };
+  }
+
+  function destroy() {
+    clearInterval(trickleTimer);
+    clearTimeout(cleanupTimer);
+    trickleTimer = null;
+    cleanupTimer = null;
+    ending = false;
+    if (ui && ui.wrap.parentNode) ui.wrap.remove();
+    ui = null;
+  }
+
+  function beginTrickle() {
+    requestAnimationFrame(function() { if (ui) ui.bar.style.width = '30%'; });
+    let w = 30;
+    trickleTimer = setInterval(function() {
+      if (!ui) return;
+      w = Math.min(84, w + (84 - w) * 0.12);
+      ui.bar.style.width = w + '%';
+    }, TRICKLE_MS);
   }
 
   function start(anchor) {
-    if (!anchor || !anchor.parentNode) return;
-    stop(anchor);
-    const wrap = document.createElement('div');
-    wrap.setAttribute('data-ryxa-loadbar', '1');
-    wrap.style.width = '100%';
-    wrap.style.margin = '0 0 12px 0';
-    const track = document.createElement('div');
-    track.style.cssText = 'width:100%;height:3px;border-radius:99px;background:rgba(124,58,237,0.15);overflow:hidden;';
-    const bar = document.createElement('div');
-    bar.style.cssText = 'width:4%;height:100%;border-radius:99px;background:#7c3aed;transition:width 0.25s ease;';
-    track.appendChild(bar);
-    const text = document.createElement('div');
-    text.setAttribute('role', 'status');
-    text.style.cssText = 'display:none;color:rgba(255,255,255,0.7);font-size:13px;margin-top:8px;';
-    wrap.appendChild(track);
-    wrap.appendChild(text);
-    anchor.parentNode.insertBefore(wrap, anchor);
-    const state = { wrap: wrap, bar: bar, text: text, t0: Date.now(), timer: null, done: false };
-    requestAnimationFrame(function() { bar.style.width = '30%'; });
-    let w = 30;
-    state.timer = setInterval(function() {
-      w = Math.min(84, w + (84 - w) * 0.12);
-      bar.style.width = w + '%';
-    }, TRICKLE_MS);
-    anchor._ryxaLoadBar = state;
+    const t = tok(anchor);
+    if (tokens.has(t) && ui && !ending) return; // this surface already loading
+    tokens.add(t);
+    if (!ui || ending) {
+      // First active load (or a new load arriving mid-completion): fresh bar.
+      tokens = new Set([t]);
+      mount();
+      t0 = Date.now();
+      beginTrickle();
+    }
+  }
+
+  function isActive(anchor) {
+    return !!(ui && !ending && tokens.has(tok(anchor)));
   }
 
   function retrying(anchor, msg) {
-    const s = get(anchor);
-    if (!s || s.done) return;
-    s.text.style.display = 'block';
-    s.text.textContent = msg;
+    if (!isActive(anchor)) return;
+    ui.text.style.display = 'block';
+    ui.text.textContent = msg;
+  }
+
+  function release(anchor) {
+    tokens.delete(tok(anchor));
+    return tokens.size === 0;
   }
 
   function finish(anchor) {
-    const s = get(anchor);
-    if (!s || s.done) return;
-    s.done = true;
-    clearInterval(s.timer);
-    s.text.style.display = 'none';
-    const remaining = Math.max(150, MIN_VISIBLE_MS - (Date.now() - s.t0));
-    s.bar.style.transition = 'width ' + remaining + 'ms ease';
-    s.bar.style.width = '100%';
-    setTimeout(function() {
-      s.wrap.style.transition = 'opacity 0.2s ease';
-      s.wrap.style.opacity = '0';
-      setTimeout(function() {
-        if (s.wrap.parentNode) s.wrap.remove();
-        if (anchor._ryxaLoadBar === s) anchor._ryxaLoadBar = null;
-      }, 220);
+    if (!ui || ending || !tokens.has(tok(anchor))) { tokens.delete(tok(anchor)); return; }
+    if (!release(anchor)) return; // other loads still running; keep trickling
+    ending = true;
+    clearInterval(trickleTimer);
+    ui.text.style.display = 'none';
+    const remaining = Math.max(150, MIN_VISIBLE_MS - (Date.now() - t0));
+    ui.bar.style.transition = 'width ' + remaining + 'ms ease';
+    ui.bar.style.width = '100%';
+    cleanupTimer = setTimeout(function() {
+      if (!ui) return;
+      ui.wrap.style.transition = 'opacity 0.2s ease';
+      ui.wrap.style.opacity = '0';
+      cleanupTimer = setTimeout(destroy, 220);
     }, remaining + 40);
   }
 
   function fail(anchor) {
-    const s = get(anchor);
-    if (!s || s.done) return;
-    s.done = true;
-    clearInterval(s.timer);
-    s.text.style.display = 'none';
-    s.bar.style.background = '#ef4444';
-    s.bar.style.width = '100%';
-    setTimeout(function() {
-      if (s.wrap.parentNode) s.wrap.remove();
-      if (anchor._ryxaLoadBar === s) anchor._ryxaLoadBar = null;
-    }, 700);
+    if (!ui || ending || !tokens.has(tok(anchor))) { tokens.delete(tok(anchor)); return; }
+    if (!release(anchor)) return; // another surface is still loading; its bar continues
+    ending = true;
+    clearInterval(trickleTimer);
+    ui.text.style.display = 'none';
+    ui.bar.style.background = '#ef4444';
+    ui.bar.style.boxShadow = '0 0 8px rgba(239,68,68,0.6)';
+    ui.bar.style.width = '100%';
+    cleanupTimer = setTimeout(destroy, 700);
+  }
+
+  function stop(anchor) {
+    if (release(anchor) && ui) destroy();
   }
 
   return { start: start, retrying: retrying, finish: finish, fail: fail, stop: stop, isActive: isActive };
