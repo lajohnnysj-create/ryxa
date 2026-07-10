@@ -245,8 +245,8 @@ var cents = stats.body.earnings.total_cents || 0;
   // Tabs
   // -------------------------------------------------------------------------
   function showTab(name) {
-    // The threshold panel costs a head-count per row, so it loads on first
-    // open rather than with the page.
+    // Loads on first open rather than with the page. Two queries we need not
+    // make while an admin is reading the error log.
     if (name === 'threshold' && !thresholdLoaded) loadThreshold();
 
     var tabs = document.querySelectorAll('.tab');
@@ -417,21 +417,22 @@ var cents = stats.body.earnings.total_cents || 0;
       tdName.textContent = a.username ? '@' + a.username : a.user_id.slice(0, 8);
       if (!a.username) tdName.className = 'muted';
 
-      var tdNow = document.createElement('td');
-      tdNow.textContent = a.subscribers_now === null || a.subscribers_now === undefined
-        ? '-'
-        : a.subscribers_now.toLocaleString();
-
+      // The count recorded when they crossed. Not a live figure, and the
+      // column header says so: counting subscribers_view per account is a
+      // five-table UNION each time, for a number nobody is acting on.
       var tdAt = document.createElement('td');
-      tdAt.className = 'hide-m muted';
       tdAt.textContent = (a.subscribers_at_crossing || 0).toLocaleString();
 
       var tdWhen = document.createElement('td');
       tdWhen.className = 'hide-m muted';
       tdWhen.textContent = fmtTime(a.crossed_at);
 
-      tr.appendChild(tdName); tr.appendChild(tdNow);
-      tr.appendChild(tdAt); tr.appendChild(tdWhen);
+      var tdVer = document.createElement('td');
+      tdVer.className = 'hide-m muted';
+      tdVer.textContent = a.attestation_version || '';
+
+      tr.appendChild(tdName); tr.appendChild(tdAt);
+      tr.appendChild(tdWhen); tr.appendChild(tdVer);
       body.appendChild(tr);
     });
   }
