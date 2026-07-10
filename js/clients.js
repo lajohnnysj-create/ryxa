@@ -2114,6 +2114,16 @@ async function clientsImportRunImport() {
   document.getElementById('clients-import-cancel-btn').style.display = 'none';
 
   // Refresh the subscribers list to pick up the new rows.
+  //
+  // The caches must be dropped FIRST. loadClients() renders the header stats
+  // from memory when clientsStatsFresh is true, so without this the totals
+  // still describe the list as it was before the import, and the row count
+  // reused for pagination is stale too. Every other write path (add, opt out,
+  // bulk opt out) already does this; the import was missed because it was
+  // written before the caches existed.
+  //
+  // Overlays (suppressions, notes) are untouched by an import, so they stay.
+  clientsInvalidateCaches({ overlays: false });
   await loadClients();
 }
 
