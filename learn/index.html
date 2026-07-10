@@ -334,7 +334,18 @@
     <h1 style="font-family:'Plus Jakarta Sans',sans-serif;font-size:28px;font-weight:800;letter-spacing:-0.8px;margin-bottom:8px;">Your Ryxa Hub</h1>
     <p style="font-size:14px;color:var(--muted);line-height:1.6;max-width:340px;margin:0 auto;">Your courses, products, and bookings. All in one place.</p>
   </div>
-  <div class="auth-card">
+    <!-- Shown after signup or a magic-link send. The form has nothing left to do,
+       so it stops pretending it does. -->
+  <div id="learn-auth-sent" class="auth-card" style="display:none;text-align:center;">
+    <div style="width:52px;height:52px;margin:0 auto 16px;border-radius:50%;background:rgba(74,222,128,0.14);border:1px solid rgba(74,222,128,0.3);display:flex;align-items:center;justify-content:center;">
+      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v16H4z" opacity="0"/><path d="M22 6l-10 7L2 6"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg>
+    </div>
+    <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-size:19px;font-weight:800;margin:0 0 8px;">Check your email</h2>
+    <p id="learn-auth-sent-msg" style="font-size:14px;line-height:1.6;color:var(--muted);margin:0 0 6px;"></p>
+    <p style="font-size:12.5px;line-height:1.6;color:var(--muted);margin:14px 0 0;">You can close this window. The link will bring you back.</p>
+  </div>
+
+<div class="auth-card">
     <!-- Filled by learn-page.js when the buyer arrived from a product, course,
          or booking page. Says why they are looking at a login screen. -->
     <div id="learn-auth-context" style="display:none;background:rgba(124,58,237,0.10);border:1px solid rgba(124,58,237,0.28);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:13.5px;line-height:1.5;color:var(--text);"></div>
