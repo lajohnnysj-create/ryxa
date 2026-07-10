@@ -242,6 +242,8 @@ var cents = stats.body.earnings.total_cents || 0;
 
       if (action === 'find-creator') { findCreator(); return; }
 
+      if (action === 'reset-creator') { resetCreator(); return; }
+
       if (action === 'load-threshold') { withBusy(btn, 'Refreshing...', function () { return loadThreshold(false); }); return; }
 
       if (action === 'load-reports') { withBusy(btn, 'Refreshing...', function () { return loadReports(false); }); return; }
@@ -406,6 +408,15 @@ var cents = stats.body.earnings.total_cents || 0;
     card.appendChild(status);
 
     host.appendChild(card);
+  }
+
+  // Clear the field and the card. Leaving a stale creator on screen after the
+  // admin has moved on invites a toggle flipped on the wrong account.
+  function resetCreator() {
+    var input = el('creator-search');
+    if (input) { input.value = ''; input.focus(); }
+    var host = el('creator-result');
+    if (host) host.textContent = '';
   }
 
   async function findCreator() {
