@@ -130,23 +130,155 @@ function initCoursesTool() {
   }
 }
 
-async function loadCoursesList() {
-  const { data, error } = await sb
-    .from('courses')
-    .select('*')
-    .eq('user_id', currentUser.id)
-    .order('created_at', { ascending: false });
-  if (error) { console.error('Failed to load courses:', error); return; }
-  coursesList = data || [];
+// Lock/unlock the New Course button while the courses list is loading or in a
+// failed state. Same pattern as the booking and products lists.
+function setCoursesListLocked(locked) {
+  var btn = document.getElementById('courses-create-btn');
+  if (!btn) return;
+  btn.disabled = locked;
+  btn.style.opacity = locked ? '0.5' : '';
+  btn.style.cursor = locked ? 'not-allowed' : '';
+}
 
-  // Load enrollment counts per course
-  for (var i = 0; i < coursesList.length; i++) {
-    var c = coursesList[i];
-    var { count } = await sb.from('course_enrollments').select('id', { count: 'exact', head: true }).eq('course_id', c.id);
-    c._enrollments = count || 0;
+// Loading indicator for the courses list. Same bare spinner as the booking
+// and products lists (the boxed variant is reserved for editor loaders).
+function courseShowListLoading(text) {
+  var grid = document.getElementById('courses-grid');
+  var empty = document.getElementById('courses-empty');
+  if (empty) empty.style.display = 'none';
+  if (!grid) return;
+
+  if (!document.getElementById('course-load-spin-style')) {
+    var styleEl = document.createElement('style');
+    styleEl.id = 'course-load-spin-style';
+    styleEl.textContent = '@keyframes courseLoadSpin { to { transform: rotate(360deg); } }';
+    document.head.appendChild(styleEl);
   }
 
-  renderCoursesList();
+  var existing = grid.querySelector('[data-course-list-loading-text]');
+  if (existing) { existing.textContent = text; return; }
+
+  grid.style.display = 'block';
+  grid.innerHTML = '';
+  var wrap = document.createElement('div');
+  wrap.setAttribute('role', 'status');
+  wrap.style.display = 'flex';
+  wrap.style.alignItems = 'center';
+  wrap.style.gap = '10px';
+  wrap.style.padding = '18px 4px';
+
+  var spinner = document.createElement('div');
+  spinner.style.width = '16px';
+  spinner.style.height = '16px';
+  spinner.style.border = '2px solid rgba(124,58,237,0.25)';
+  spinner.style.borderTopColor = '#7c3aed';
+  spinner.style.borderRadius = '50%';
+  spinner.style.animation = 'courseLoadSpin 0.7s linear infinite';
+  spinner.style.flexShrink = '0';
+
+  var label = document.createElement('div');
+  label.setAttribute('data-course-list-loading-text', '1');
+  label.style.color = 'rgba(255,255,255,0.7)';
+  label.style.fontSize = '14px';
+  label.textContent = text;
+
+  wrap.appendChild(spinner);
+  wrap.appendChild(label);
+  grid.appendChild(wrap);
+}
+
+// Blocking failure state for the courses list. A failed load must never
+// masquerade as "you have no courses". Persistent panel with Retry; the New
+// Course button stays locked until a clean load.
+function courseShowListFailed() {
+  var grid = document.getElementById('courses-grid');
+  var empty = document.getElementById('courses-empty');
+  if (empty) empty.style.display = 'none';
+  if (!grid) return;
+
+  grid.style.display = 'block';
+  grid.innerHTML = '';
+  var panel = document.createElement('div');
+  panel.setAttribute('role', 'alert');
+  panel.style.padding = '20px';
+  panel.style.borderRadius = '12px';
+  panel.style.border = '1px solid rgba(239,68,68,0.35)';
+  panel.style.background = 'rgba(239,68,68,0.08)';
+
+  var heading = document.createElement('div');
+  heading.style.color = '#f87171';
+  heading.style.fontWeight = '600';
+  heading.style.fontSize = '15px';
+  heading.style.marginBottom = '6px';
+  heading.textContent = 'Could not load your courses';
+
+  var body = document.createElement('div');
+  body.style.color = 'rgba(255,255,255,0.7)';
+  body.style.fontSize = '14px';
+  body.style.lineHeight = '1.5';
+  body.style.marginBottom = '14px';
+  body.textContent = 'Your courses are safe; they just could not be loaded right now. This is usually a brief connection hiccup.';
+
+  var retry = document.createElement('button');
+  retry.type = 'button';
+  retry.setAttribute('data-course-action', 'retry-list');
+  retry.textContent = 'Retry';
+  retry.style.padding = '9px 18px';
+  retry.style.borderRadius = '8px';
+  retry.style.border = '1px solid rgba(255,255,255,0.25)';
+  retry.style.background = 'rgba(255,255,255,0.06)';
+  retry.style.color = '#fff';
+  retry.style.fontWeight = '600';
+  retry.style.cursor = 'pointer';
+
+  panel.appendChild(heading);
+  panel.appendChild(body);
+  panel.appendChild(retry);
+  grid.appendChild(panel);
+}
+
+courseRegisterAction('retry-list', function() { loadCoursesList(); });
+
+async function loadCoursesList() {
+  // Lock New Course and show visible loading from the first moment.
+  // Unlocks only after a clean load; stays locked on failure.
+  setCoursesListLocked(true);
+  courseShowListLoading('Loading your courses...');
+
+  var MAX_LOAD_ATTEMPTS = 3;
+  for (var attempt = 1; attempt <= MAX_LOAD_ATTEMPTS; attempt++) {
+    try {
+      const res = await sb
+        .from('courses')
+        .select('*')
+        .eq('user_id', currentUser.id)
+        .order('created_at', { ascending: false });
+      if (res.error) throw res.error;
+      coursesList = res.data || [];
+
+      // Load enrollment counts per course. Counts are decoration; a
+      // query-level error returns { count: null } and falls back to 0. Only
+      // a hard network failure rejects, which correctly triggers a retry.
+      for (var i = 0; i < coursesList.length; i++) {
+        var c = coursesList[i];
+        var countRes = await sb.from('course_enrollments').select('id', { count: 'exact', head: true }).eq('course_id', c.id);
+        c._enrollments = countRes.count || 0;
+      }
+
+      setCoursesListLocked(false);
+      renderCoursesList();
+      return;
+    } catch (err) {
+      if (attempt < MAX_LOAD_ATTEMPTS) {
+        courseShowListLoading('Having trouble loading your courses. Retrying...');
+        await new Promise(function(resolve) { setTimeout(resolve, 400 * attempt); });
+        continue;
+      }
+      console.error('Failed to load courses:', err);
+      courseShowListFailed();
+      return;
+    }
+  }
 }
 
 function renderCoursesList() {
