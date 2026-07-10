@@ -1603,13 +1603,17 @@ async function checkSocialReconnections(userId) {
     const list = dead.length === 1 ? dead[0]
       : dead.length === 2 ? dead[0] + ' and ' + dead[1]
       : dead.slice(0, -1).join(', ') + ', and ' + dead[dead.length - 1];
-    showDashToast('error', 'Reconnection needed: ' + list + '. Data updates are paused. Go to Settings to reconnect.');
+    showDashToast('error', 'Reconnection needed: ' + list + '. Data updates are paused. Go to Settings to reconnect.', { sticky: true });
   } catch (e) {
     console.error('checkSocialReconnections', e);
   }
 }
 
-function showDashToast(type, message) {
+function showDashToast(type, message, opts) {
+  // opts.sticky: the toast stays until tapped (no auto-hide). Used for
+  // must-see alerts like dead social connections; the whole toast is
+  // click-to-dismiss and sticky toasts get a visible X so dismissibility
+  // is obvious on touch devices.
   // Slide-in notification tab, anchored to the right edge (GeForce style).
   // Safe-area aware so it clears the notch inside the mobile app.
   const existing = document.getElementById('dash-toast');
@@ -1647,6 +1651,14 @@ function showDashToast(type, message) {
   msgWrap.textContent = message;
   toast.appendChild(iconWrap);
   toast.appendChild(msgWrap);
+  const sticky = !!(opts && opts.sticky);
+  if (sticky) {
+    const xWrap = document.createElement('span');
+    xWrap.setAttribute('aria-hidden', 'true');
+    xWrap.style.cssText = 'color:rgba(255,255,255,0.55);display:inline-flex;flex-shrink:0;margin-left:4px;';
+    xWrap.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+    toast.appendChild(xWrap);
+  }
   document.body.appendChild(toast);
 
   // Next frame: slide in from the right edge.
@@ -1663,12 +1675,15 @@ function showDashToast(type, message) {
   }
   // Tap anywhere on the tab to dismiss early.
   toast.addEventListener('click', dismiss);
-  // Successes are short confirmations: 3s. Errors get 6s plus extra time
-  // for long messages (reading time scales with length), capped at 10s.
-  const duration = isSuccess
-    ? 3000
-    : Math.min(10000, 6000 + Math.max(0, message.length - 60) * 40);
-  setTimeout(dismiss, duration);
+  // Sticky toasts have no auto-hide; they stay until tapped.
+  if (!sticky) {
+    // Successes are short confirmations: 3s. Errors get 6s plus extra time
+    // for long messages (reading time scales with length), capped at 10s.
+    const duration = isSuccess
+      ? 3000
+      : Math.min(10000, 6000 + Math.max(0, message.length - 60) * 40);
+    setTimeout(dismiss, duration);
+  }
 }
 
 async function fetchTier(userId) {
