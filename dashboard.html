@@ -11035,6 +11035,56 @@
   </div>
 </div>
 
+
+<style>
+  /* Verification upsell. Mirrors the hero avatar upsell: a pulsing radial glow
+     behind the artwork, a glowing accent CTA, a quiet dismiss. The badge is the
+     REAL one from the public bio page, not an approximation, so a creator sees
+     exactly what they are buying. Glow is blue here rather than purple: the
+     product being sold is the blue check. */
+  .verify-upsell-backdrop { position:fixed;inset:0;background:rgba(0,0,0,0.68);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);z-index:10000;display:none;align-items:center;justify-content:center;padding:20px; }
+  .verify-upsell-backdrop.open { display:flex; }
+  .verify-upsell-card { position:relative;width:100%;max-width:400px;background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,0.55); }
+  .verify-upsell-art { position:relative;background:#101a2e;display:flex;align-items:center;justify-content:center;padding:40px 24px 30px;overflow:hidden; }
+  .verify-upsell-glow {
+    position:absolute;inset:-40px;
+    background:radial-gradient(ellipse at center, rgba(29,155,240,0.60) 0%, rgba(29,155,240,0.35) 35%, rgba(29,155,240,0.12) 60%, transparent 75%);
+    filter:blur(40px);z-index:0;pointer-events:none;
+    will-change:opacity, transform;
+    animation:verifyUpsellGlow 4s ease-in-out infinite;
+  }
+  @keyframes verifyUpsellGlow {
+    0%, 100% { opacity:0.55; transform:scale(1); }
+    50% { opacity:1; transform:scale(1.06); }
+  }
+  @media (prefers-reduced-motion: reduce) { .verify-upsell-glow { animation:none;opacity:0.8; } }
+  .verify-upsell-close { position:absolute;top:12px;right:12px;z-index:3;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:50%;border:1px solid rgba(255,255,255,0.16);background:rgba(0,0,0,0.32);color:#fff;font-size:17px;line-height:1;cursor:pointer;transition:background 0.15s; }
+  .verify-upsell-close:hover { background:rgba(0,0,0,0.55); }
+  .verify-upsell-body { padding:22px 24px 24px;text-align:center; }
+  .verify-upsell-title { font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:800;letter-spacing:-0.3px;color:var(--text);margin-bottom:8px; }
+  .verify-upsell-sub { font-size:13.5px;line-height:1.6;color:var(--muted);margin-bottom:20px; }
+  .verify-upsell-cta { width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow);transition:opacity 0.15s; }
+  .verify-upsell-cta:hover { opacity:0.92; }
+  .verify-upsell-later { margin-top:10px;width:100%;padding:10px;background:transparent;border:none;color:var(--muted);font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer; }
+  .verify-upsell-later:hover { color:var(--text); }
+</style>
+
+<div class="verify-upsell-backdrop" id="verify-upsell-modal" role="dialog" aria-modal="true" aria-labelledby="verify-upsell-title" data-bio-action="verify-upsell-backdrop">
+  <div class="verify-upsell-card">
+    <button type="button" class="verify-upsell-close" data-bio-action="close-verify-upsell" aria-label="Close">&times;</button>
+    <div class="verify-upsell-art">
+      <div class="verify-upsell-glow" aria-hidden="true"></div>
+      <svg class="verified-badge" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Verified" width="104" height="104" style="display:block;position:relative;z-index:1;"><g><circle cx="24.00" cy="8.70" r="4.4" fill="#1d9bf0"/><circle cx="30.64" cy="10.22" r="4.4" fill="#1d9bf0"/><circle cx="35.96" cy="14.46" r="4.4" fill="#1d9bf0"/><circle cx="38.92" cy="20.60" r="4.4" fill="#1d9bf0"/><circle cx="38.92" cy="27.40" r="4.4" fill="#1d9bf0"/><circle cx="35.96" cy="33.54" r="4.4" fill="#1d9bf0"/><circle cx="30.64" cy="37.78" r="4.4" fill="#1d9bf0"/><circle cx="24.00" cy="39.30" r="4.4" fill="#1d9bf0"/><circle cx="17.36" cy="37.78" r="4.4" fill="#1d9bf0"/><circle cx="12.04" cy="33.54" r="4.4" fill="#1d9bf0"/><circle cx="9.08" cy="27.40" r="4.4" fill="#1d9bf0"/><circle cx="9.08" cy="20.60" r="4.4" fill="#1d9bf0"/><circle cx="12.04" cy="14.46" r="4.4" fill="#1d9bf0"/><circle cx="17.36" cy="10.22" r="4.4" fill="#1d9bf0"/><circle cx="24" cy="24" r="15.4" fill="#1d9bf0"/></g><path d="M15 24.5 L21.2 31 L34 17.8" fill="none" stroke="#0b6db2" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round" transform="translate(0.8,1.4)" opacity="0.35"/><path d="M15 24.5 L21.2 31 L34 17.8" fill="none" stroke="#ffffff" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="verify-upsell-body">
+      <div class="verify-upsell-title" id="verify-upsell-title">Get the blue check</div>
+      <p class="verify-upsell-sub">The blue check confirms your Link in Bio belongs to the real you. Verification is available on Pro and Creator Max.</p>
+      <button type="button" class="verify-upsell-cta" data-bio-action="verify-upsell-upgrade">Upgrade Now</button>
+      <button type="button" class="verify-upsell-later" data-bio-action="close-verify-upsell">Maybe later</button>
+    </div>
+  </div>
+</div>
+
 <!-- VERIFICATION MODAL -->
 <div class="bio-verify-modal" id="bio-verify-modal" role="dialog" aria-modal="true" aria-labelledby="bio-verify-modal-title">
   <div class="bio-verify-modal-card">
