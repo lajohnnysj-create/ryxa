@@ -15,7 +15,16 @@
 // anyone could register the admin email and walk in.
 
 const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
-const ADMIN_EMAIL = 'johnnyla@mrla-media.com';
+// Admin allowlist. Every entry must be a GOOGLE account: the check below
+// compares against the email Google asserts in its ID token, not the mutable
+// email on the Supabase user record.
+//
+// Each address here is a full perimeter. Adding one doubles the number of
+// accounts whose compromise grants admin access, so add deliberately.
+const ADMIN_EMAILS = [
+  'johnnyla@mrla-media.com',
+  'johnny@johnnyla.com'
+].map(function (e) { return e.toLowerCase(); });
 
 function getServiceKey() {
   const k = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -56,11 +65,16 @@ function isAdmin(user) {
   // identity_data.email comes from Google's ID token. A user cannot set it.
   const googleEmail = google.identity_data && google.identity_data.email;
   if (!googleEmail) return false;
-  if (googleEmail.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) return false;
 
-  // And the Supabase record must still agree. Both must point at the admin, so
-  // a stale or renamed account cannot slip through either direction.
-  if (!user.email || user.email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) return false;
+  const asserted = googleEmail.toLowerCase();
+  if (ADMIN_EMAILS.indexOf(asserted) === -1) return false;
+
+  // The Supabase record must agree with what Google asserted. user.email is
+  // mutable; identity_data.email is not. Requiring both to name the SAME
+  // allowlisted address means a renamed account cannot slip through either
+  // direction, and one admin cannot be impersonated by renaming into another's
+  // address while holding their own Google identity.
+  if (!user.email || user.email.toLowerCase() !== asserted) return false;
 
   return true;
 }
@@ -82,4 +96,4 @@ async function requireAdmin(req, res) {
   return user;
 }
 
-module.exports = { SUPABASE_URL, ADMIN_EMAIL, getServiceKey, getVerifiedUser, isAdmin, requireAdmin };
+module.exports = { SUPABASE_URL, ADMIN_EMAILS, getServiceKey, getVerifiedUser, isAdmin, requireAdmin };
