@@ -24,6 +24,19 @@ async function sbGet(path) {
   return { ok: res.ok, data: data, total: count ? count.split('/')[1] : null };
 }
 
+// Keyset pagination. The client sends the oldest created_at it has; we return
+// rows strictly older. Offset pagination would make Postgres count and skip
+// rows it then throws away, which gets slower the deeper you page.
+function beforeClause(req, column) {
+  const before = req.query.before;
+  if (typeof before === 'string' && /^\d{4}-\d{2}-\d{2}T[\d:.]+/.test(before)) {
+    return '&' + column + '=lt.' + encodeURIComponent(before);
+  }
+  return '';
+}
+
+const PAGE_SIZE = 50;
+
 module.exports = async (req, res) => {
   // Rate limit before the auth check: an unauthenticated flood should be
   // rejected without spending a round trip to Supabase's /auth/v1/user.
@@ -134,21 +147,18 @@ module.exports = async (req, res) => {
     const evRes = await fetch(
       SUPABASE_URL + '/rest/v1/manual_subscriber_threshold_events'
         + '?select=user_id,threshold_count,subscriber_count_at_crossing,created_at,flagged,attestation_version'
-        + '&order=created_at.desc&limit=100',
+        + '&order=created_at.desc&limit=' + PAGE_SIZE
+        + beforeClause(req, 'created_at'),
       { headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: 'Bearer ' + SUPABASE_SERVICE_KEY } }
     );
     if (!evRes.ok) return res.status(502).json({ error: 'Threshold lookup failed' });
     const events = await evRes.json();
     if (!events || events.length === 0) return res.status(200).json({ accounts: [] });
 
-    // An account can cross more than once if the profile flag is ever reset.
-    // Keep the earliest: the first crossing is the event worth knowing about.
-    const byUser = {};
-    events.forEach(function (e) {
-      const prev = byUser[e.user_id];
-      if (!prev || new Date(e.created_at) < new Date(prev.created_at)) byUser[e.user_id] = e;
-    });
-    const userIds = Object.keys(byUser);
+    // One row per crossing, not per account. The old code collapsed duplicates
+    // per user, which cannot survive pagination: page two has no idea which
+    // accounts page one already showed. A repeat crossing is worth seeing.
+    const userIds = Array.from(new Set(events.map(function (e) { return e.user_id; })));
 
     // One query for every username. A bare UUID tells an admin nothing.
     const idList = '(' + userIds.map(encodeURIComponent).join(',') + ')';
@@ -160,23 +170,21 @@ module.exports = async (req, res) => {
     const nameOf = {};
     profiles.forEach(function (p) { nameOf[p.user_id] = p.username; });
 
-    const accounts = userIds.map(function (uid) {
-      const e = byUser[uid];
+    // Already ordered created_at desc by the query. Do not re-sort: the cursor
+    // depends on the last row being the oldest.
+    const accounts = events.map(function (e) {
       return {
-        user_id: uid,
-        username: nameOf[uid] || null,
+        user_id: e.user_id,
+        username: nameOf[e.user_id] || null,
         subscribers_at_crossing: e.subscriber_count_at_crossing,
         threshold_count: e.threshold_count,
         crossed_at: e.created_at,
         attestation_version: e.attestation_version || null,
         flagged: !!e.flagged
       };
-    }).sort(function (a, b) {
-      // Most recent crossing first: it is the thing that just happened.
-      return new Date(b.crossed_at) - new Date(a.crossed_at);
     });
 
-    return res.status(200).json({ accounts: accounts });
+    return res.status(200).json({ accounts: accounts, has_more: events.length === PAGE_SIZE });
   }
 
   // ---------------------------------------------------------------------
@@ -191,7 +199,8 @@ module.exports = async (req, res) => {
     const rRes = await fetch(
       SUPABASE_URL + '/rest/v1/content_reports'
         + '?select=id,reporter_id,source,conversation_id,reported_content,reason,status,created_at'
-        + '&order=created_at.desc&limit=100',
+        + '&order=created_at.desc&limit=' + PAGE_SIZE
+        + beforeClause(req, 'created_at'),
       { headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: 'Bearer ' + SUPABASE_SERVICE_KEY } }
     );
     if (!rRes.ok) return res.status(502).json({ error: 'Reports lookup failed' });
@@ -229,7 +238,7 @@ module.exports = async (req, res) => {
       };
     });
 
-    return res.status(200).json({ reports: reports });
+    return res.status(200).json({ reports: reports, has_more: rows.length === PAGE_SIZE });
   }
 
   if (action === 'errors') {
