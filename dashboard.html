@@ -5433,6 +5433,13 @@
   .clients-s-becac0 { color:#4ade80;font-size:11px;font-weight:600; }
   /* Opted out is a request the subscriber made, distinct from never having
      consented. Amber, not red: honoring it is correct, not a failure. */
+  /* Segmented consent filter. One visible selection, no hidden state. */
+  .clients-consent-seg { display:inline-flex;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:2px;gap:2px; }
+  .clients-consent-btn { appearance:none;background:transparent;border:none;border-radius:7px;padding:6px 11px;font-size:12.5px;font-weight:500;font-family:'DM Sans',sans-serif;color:var(--muted);cursor:pointer;white-space:nowrap;transition:background 0.12s, color 0.12s; }
+  .clients-consent-btn:hover { color:var(--text); }
+  .clients-consent-btn.is-active { background:var(--accent);color:#fff; }
+  .clients-consent-btn:focus-visible { outline:2px solid var(--accent2);outline-offset:1px; }
+  @media (max-width: 640px) { .clients-consent-btn { padding:6px 9px;font-size:12px; } }
   .clients-s-optout-badge { display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;background:rgba(251,191,36,0.14);border:1px solid rgba(251,191,36,0.32);color:#fbbf24;white-space:nowrap; }
   .clients-s-949353 { padding:10px 16px;color:var(--text);font-size:13px;max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
   .clients-s-e6b633 { padding:10px 16px; }
@@ -8107,7 +8114,13 @@
           <!-- Search, filter, sort -->
           <div class="clients-s-830409">
             <input type="text" id="clients-search" placeholder="Search subscribers..." aria-label="Search subscribers" data-clients-action-input="filter" readonly data-clients-action-focus="remove-readonly" autocomplete="off" data-1p-ignore="true" data-lpignore="true" class="clients-s-01993b">
-            <label class="clients-s-9317b3"><input type="checkbox" id="clients-optin-filter" data-clients-action="filter" data-clients-event="change" class="clients-s-800f2b"> Opted in only</label>
+            <!-- Three states, so three segments. A checkbox could only ever express two,
+                 which is why "show everyone" and "show opted out" had nowhere to live. -->
+            <div class="clients-consent-seg" role="group" aria-label="Filter by consent">
+              <button type="button" class="clients-consent-btn is-active" data-clients-action="consent-filter" data-clients-consent="all" aria-pressed="true">All</button>
+              <button type="button" class="clients-consent-btn" data-clients-action="consent-filter" data-clients-consent="in" aria-pressed="false">Opted in</button>
+              <button type="button" class="clients-consent-btn" data-clients-action="consent-filter" data-clients-consent="out" aria-pressed="false">Opted out</button>
+            </div>
             <select id="clients-range-filter" aria-label="Date range filter" data-clients-action="filter" data-clients-event="change" class="clients-s-select">
               <option value="all">All time</option>
               <option value="7">Last 7 days</option>
