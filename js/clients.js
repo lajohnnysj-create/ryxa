@@ -202,6 +202,33 @@ function clientsReadFilterState() {
 // PostgREST views can't easily do LEFT JOIN at query time - instead we fetch
 // the suppression list once on load and post-filter rows. At reasonable
 // suppression sizes (under a few hundred per creator) this is fine.
+// ---------------------------------------------------------------------------
+// Subscribers is a bottom-nav tab in the app, so a creator taps in and out of
+// it constantly. Every open used to re-fetch the full suppression list, the
+// full notes list, and count:'exact' queries against subscribers_view (a UNION
+// over five tables), which Postgres can only answer with a full scan.
+//
+// The overlays and stats are cached for the session and invalidated by the
+// writes that change them. The list itself has always been paginated at 50.
+// ---------------------------------------------------------------------------
+var clientsOverlaysLoaded = false;
+var clientsStatsFresh = false;
+var CLIENTS_FRESH_MS = 60000;
+var clientsLastLoadedAt = 0;
+
+// Any write that changes suppressions, notes, or the subscriber set must call
+// this, or the tool will render yesterday's overlays.
+function clientsInvalidateCaches(opts) {
+  opts = opts || {};
+  if (opts.overlays !== false) clientsOverlaysLoaded = false;
+  if (opts.stats !== false) clientsStatsFresh = false;
+  // Forget the cached row count too, or an added or removed subscriber would
+  // leave "Page 1 of 7" describing the list as it was before the write.
+  clientsLastFilterKey = null;
+  clientsTotalCount = 0;
+  clientsLastLoadedAt = 0;
+}
+
 function clientsBuildQuery(filters, wantCount) {
   // count:'exact' makes Postgres count every matching row, and
   // subscribers_view is a UNION over five tables, so the count is a full scan.
