@@ -179,6 +179,59 @@ module.exports = async (req, res) => {
     return res.status(200).json({ accounts: accounts });
   }
 
+  // ---------------------------------------------------------------------
+  // action=reports
+  //
+  // AI content reports. reported_content is user-supplied and can be long, so
+  // it is truncated server-side: an admin scanning a list does not need 40KB
+  // of transcript, and shipping it to the browser costs the same whether it is
+  // read or not.
+  // ---------------------------------------------------------------------
+  if (action === 'reports') {
+    const rRes = await fetch(
+      SUPABASE_URL + '/rest/v1/content_reports'
+        + '?select=id,reporter_id,source,conversation_id,reported_content,reason,status,created_at'
+        + '&order=created_at.desc&limit=100',
+      { headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: 'Bearer ' + SUPABASE_SERVICE_KEY } }
+    );
+    if (!rRes.ok) return res.status(502).json({ error: 'Reports lookup failed' });
+    const rows = await rRes.json();
+    if (!rows || rows.length === 0) return res.status(200).json({ reports: [] });
+
+    // Usernames, one query. A bare reporter UUID tells an admin nothing.
+    const ids = Array.from(new Set(rows.map(function (r) { return r.reporter_id; }).filter(Boolean)));
+    let nameOf = {};
+    if (ids.length > 0) {
+      const idList = '(' + ids.map(encodeURIComponent).join(',') + ')';
+      const prRes = await fetch(
+        SUPABASE_URL + '/rest/v1/profiles?select=user_id,username&user_id=in.' + idList,
+        { headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: 'Bearer ' + SUPABASE_SERVICE_KEY } }
+      );
+      if (prRes.ok) {
+        const profiles = await prRes.json();
+        profiles.forEach(function (p) { nameOf[p.user_id] = p.username; });
+      }
+    }
+
+    const MAX = 4000;
+    const reports = rows.map(function (r) {
+      const content = r.reported_content || '';
+      return {
+        id: r.id,
+        reporter_id: r.reporter_id,
+        reporter: nameOf[r.reporter_id] || null,
+        source: r.source,
+        conversation_id: r.conversation_id,
+        reason: r.reason || '',
+        content: content.length > MAX ? content.slice(0, MAX) + '\n\n[truncated]' : content,
+        status: r.status,
+        created_at: r.created_at
+      };
+    });
+
+    return res.status(200).json({ reports: reports });
+  }
+
   if (action === 'errors') {
     let limit = parseInt(req.query.limit, 10);
     if (!Number.isFinite(limit) || limit < 1 || limit > 200) limit = 50;
