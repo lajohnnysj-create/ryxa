@@ -323,11 +323,13 @@ async function refreshProductsStorage() {
 }
 
 // Lock/unlock every control that acts on this product, as one unit: Save,
-// Publish/Unpublish, marketplace toggle, and Delete. Locked while the product
-// row and its files are loading; a product whose state is unknown must not
-// accept any action, and stale on-screen fields must never be saveable.
+// Publish/Unpublish, marketplace toggle, Delete, Add File, the cover
+// uploader, and Remove Cover. One rule, uniformly visible: while the
+// product's state is unknown, every control is dimmed and dead. The cover
+// uploader is a clickable div rather than a button, so it is locked via
+// pointer-events instead of the disabled property.
 function setProductEditorControlsLocked(locked) {
-  var ids = ['products-save-btn', 'products-publish-btn', 'products-marketplace-btn', 'products-delete-btn'];
+  var ids = ['products-save-btn', 'products-publish-btn', 'products-marketplace-btn', 'products-delete-btn', 'products-add-file-btn', 'products-cover-remove'];
   ids.forEach(function(id) {
     var el = document.getElementById(id);
     if (!el) return;
@@ -335,6 +337,11 @@ function setProductEditorControlsLocked(locked) {
     el.style.opacity = locked ? '0.5' : '';
     el.style.cursor = locked ? 'not-allowed' : '';
   });
+  var coverEl = document.getElementById('products-cover-preview');
+  if (coverEl) {
+    coverEl.style.pointerEvents = locked ? 'none' : '';
+    coverEl.style.opacity = locked ? '0.5' : '';
+  }
 }
 
 async function openProductEditor(productId) {
