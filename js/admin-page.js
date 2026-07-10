@@ -207,6 +207,8 @@ var cents = stats.body.earnings.total_cents || 0;
 
       if (action === 'find-creator') { findCreator(); return; }
 
+      if (action === 'load-threshold') { loadThreshold(); return; }
+
       if (action === 'logout') {
         // scope:'local' clears this browser only. A global sign-out would also
         // end the session in the creator dashboard, a different surface, which
@@ -243,6 +245,10 @@ var cents = stats.body.earnings.total_cents || 0;
   // Tabs
   // -------------------------------------------------------------------------
   function showTab(name) {
+    // The threshold panel costs a head-count per row, so it loads on first
+    // open rather than with the page.
+    if (name === 'threshold' && !thresholdLoaded) loadThreshold();
+
     var tabs = document.querySelectorAll('.tab');
     for (var i = 0; i < tabs.length; i++) {
       var on = tabs[i].getAttribute('data-admin-tab') === name;
@@ -378,6 +384,85 @@ var cents = stats.body.earnings.total_cents || 0;
     e.preventDefault();
     findCreator();
   });
+
+  // -------------------------------------------------------------------------
+  // Threshold watchlist
+  //
+  // Fetched lazily: each row costs a live head-count against subscribers_view,
+  // so the panel should not load until an admin actually opens it.
+  // -------------------------------------------------------------------------
+  var thresholdLoaded = false;
+
+  function renderThreshold(accounts) {
+    var body = el('threshold-body');
+    body.textContent = '';
+
+    if (!accounts || accounts.length === 0) {
+      var tr0 = document.createElement('tr');
+      var td0 = document.createElement('td');
+      td0.colSpan = 4;
+      td0.className = 'muted';
+      td0.textContent = 'No accounts have crossed the threshold.';
+      tr0.appendChild(td0);
+      body.appendChild(tr0);
+      return;
+    }
+
+    accounts.forEach(function (a) {
+      var tr = document.createElement('tr');
+
+      var tdName = document.createElement('td');
+      // A username can be null if a creator never set one. Fall back to the id
+      // rather than rendering an empty cell that looks like a bug.
+      tdName.textContent = a.username ? '@' + a.username : a.user_id.slice(0, 8);
+      if (!a.username) tdName.className = 'muted';
+
+      var tdNow = document.createElement('td');
+      tdNow.textContent = a.subscribers_now === null || a.subscribers_now === undefined
+        ? '-'
+        : a.subscribers_now.toLocaleString();
+
+      var tdAt = document.createElement('td');
+      tdAt.className = 'hide-m muted';
+      tdAt.textContent = (a.subscribers_at_crossing || 0).toLocaleString();
+
+      var tdWhen = document.createElement('td');
+      tdWhen.className = 'hide-m muted';
+      tdWhen.textContent = fmtTime(a.crossed_at);
+
+      tr.appendChild(tdName); tr.appendChild(tdNow);
+      tr.appendChild(tdAt); tr.appendChild(tdWhen);
+      body.appendChild(tr);
+    });
+  }
+
+  async function loadThreshold() {
+    var body = el('threshold-body');
+    body.textContent = '';
+    var trL = document.createElement('tr');
+    var tdL = document.createElement('td');
+    tdL.colSpan = 4;
+    tdL.className = 'muted';
+    tdL.textContent = 'Loading...';
+    trL.appendChild(tdL);
+    body.appendChild(trL);
+
+    var r = await api('action=threshold');
+    if (r.status === 403 || r.status === 401) { showDenied(r.status); return; }
+    if (r.status !== 200 || !r.body) {
+      body.textContent = '';
+      var trE = document.createElement('tr');
+      var tdE = document.createElement('td');
+      tdE.colSpan = 4;
+      tdE.className = 'muted';
+      tdE.textContent = (r.body && r.body.error) || 'Could not load (' + r.status + ')';
+      trE.appendChild(tdE);
+      body.appendChild(trE);
+      return;
+    }
+    thresholdLoaded = true;
+    renderThreshold(r.body.accounts);
+  }
 
   function bindTabs() {
     var tabs = document.querySelectorAll('.tab');
