@@ -61,6 +61,10 @@ async function audit(adminEmail, action, targetUserId, details) {
 }
 
 module.exports = async (req, res) => {
+  // Writes are rarer than reads and more consequential. Tight limit, applied
+  // before the auth check so a flood costs us nothing but a counter.
+  if (require('./lib/rate-limit').tooMany(req, res, 'admin-action', 30, 60000)) return;
+
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     return res.status(405).json({ error: 'Method not allowed' });

@@ -25,6 +25,11 @@ async function sbGet(path) {
 }
 
 module.exports = async (req, res) => {
+  // Rate limit before the auth check: an unauthenticated flood should be
+  // rejected without spending a round trip to Supabase's /auth/v1/user.
+  // Generous, because "Load older" paginates and a real admin clicks it.
+  if (require('./lib/rate-limit').tooMany(req, res, 'admin-data', 120, 60000)) return;
+
   if (req.method !== 'GET') {
     res.setHeader('Allow', 'GET');
     res.setHeader('Cache-Control', 'no-store');
