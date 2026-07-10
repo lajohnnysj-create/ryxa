@@ -910,6 +910,17 @@ function setCourseModulesLoadFailed(failed) {
   if (!failed) {
     if (saveBtn) { saveBtn.disabled = false; saveBtn.style.opacity = ''; saveBtn.style.cursor = ''; }
     if (addBtn) { addBtn.disabled = false; addBtn.style.opacity = ''; addBtn.style.cursor = ''; }
+    // Release the top message slot if a failure panel is occupying it, and
+    // undo our style overrides so showCourseMsg's inline-banner fallback
+    // renders normally next time it uses this element.
+    const msgHostClear = document.getElementById('course-editor-msg');
+    if (msgHostClear && msgHostClear.querySelector('[data-course-action="retry-load"]')) {
+      msgHostClear.innerHTML = '';
+      msgHostClear.style.display = 'none';
+      msgHostClear.style.background = '';
+      msgHostClear.style.border = '';
+      msgHostClear.style.padding = '';
+    }
     // The list and empty-state are owned by renderCourseModules on success and
     // by openCourseEditor on open, so there is nothing to restore here.
     return;
@@ -918,46 +929,79 @@ function setCourseModulesLoadFailed(failed) {
   if (empty) empty.style.display = 'none';
   if (saveBtn) { saveBtn.disabled = true; saveBtn.style.opacity = '0.5'; saveBtn.style.cursor = 'not-allowed'; }
   if (addBtn) { addBtn.disabled = true; addBtn.style.opacity = '0.5'; addBtn.style.cursor = 'not-allowed'; }
-  if (!list) return;
 
-  list.innerHTML = '';
-  const panel = document.createElement('div');
-  panel.setAttribute('role', 'alert');
-  panel.style.padding = '20px';
-  panel.style.borderRadius = '12px';
-  panel.style.border = '1px solid rgba(239,68,68,0.35)';
-  panel.style.background = 'rgba(239,68,68,0.08)';
+  // The panel lives at the TOP of the editor (the course-editor-msg slot,
+  // directly under the header and Save button), not down in the modules
+  // section. On a long course the modules area is below the fold; a creator
+  // landing at the top of the form must see the failure immediately, before
+  // they can start typing into fields they cannot save.
+  const msgHost = document.getElementById('course-editor-msg');
+  if (msgHost) {
+    // Neutralize the toast slot's own styling and timer-driven usage: we own
+    // it for the duration of the failure state. showCourseMsg's 5s auto-hide
+    // only runs for messages it shows itself, so nothing will hide this.
+    msgHost.innerHTML = '';
+    msgHost.style.display = 'block';
+    msgHost.style.background = 'transparent';
+    msgHost.style.border = 'none';
+    msgHost.style.padding = '0';
 
-  const heading = document.createElement('div');
-  heading.style.color = '#f87171';
-  heading.style.fontWeight = '600';
-  heading.style.fontSize = '15px';
-  heading.style.marginBottom = '6px';
-  heading.textContent = 'Could not load this course';
+    const panel = document.createElement('div');
+    panel.setAttribute('role', 'alert');
+    panel.style.padding = '20px';
+    panel.style.borderRadius = '12px';
+    panel.style.border = '1px solid rgba(239,68,68,0.35)';
+    panel.style.background = 'rgba(239,68,68,0.08)';
+    panel.style.marginBottom = '16px';
 
-  const body = document.createElement('div');
-  body.style.color = 'rgba(255,255,255,0.7)';
-  body.style.fontSize = '14px';
-  body.style.lineHeight = '1.5';
-  body.style.marginBottom = '14px';
-  body.textContent = 'Editing and saving are turned off until the curriculum loads, so your existing modules and lessons stay safe. This is usually a brief connection hiccup.';
+    const heading = document.createElement('div');
+    heading.style.color = '#f87171';
+    heading.style.fontWeight = '600';
+    heading.style.fontSize = '15px';
+    heading.style.marginBottom = '6px';
+    heading.textContent = 'Could not load this course';
 
-  const retry = document.createElement('button');
-  retry.type = 'button';
-  retry.setAttribute('data-course-action', 'retry-load');
-  retry.textContent = 'Retry';
-  retry.style.padding = '9px 18px';
-  retry.style.borderRadius = '8px';
-  retry.style.border = '1px solid rgba(255,255,255,0.25)';
-  retry.style.background = 'rgba(255,255,255,0.06)';
-  retry.style.color = '#fff';
-  retry.style.fontWeight = '600';
-  retry.style.cursor = 'pointer';
+    const body = document.createElement('div');
+    body.style.color = 'rgba(255,255,255,0.7)';
+    body.style.fontSize = '14px';
+    body.style.lineHeight = '1.5';
+    body.style.marginBottom = '14px';
+    body.textContent = 'Editing and saving are turned off until the curriculum loads, so your existing modules and lessons stay safe. This is usually a brief connection hiccup.';
 
-  panel.appendChild(heading);
-  panel.appendChild(body);
-  panel.appendChild(retry);
-  list.appendChild(panel);
+    const retry = document.createElement('button');
+    retry.type = 'button';
+    retry.setAttribute('data-course-action', 'retry-load');
+    retry.textContent = 'Retry';
+    retry.style.padding = '9px 18px';
+    retry.style.borderRadius = '8px';
+    retry.style.border = '1px solid rgba(255,255,255,0.25)';
+    retry.style.background = 'rgba(255,255,255,0.06)';
+    retry.style.color = '#fff';
+    retry.style.fontWeight = '600';
+    retry.style.cursor = 'pointer';
+
+    panel.appendChild(heading);
+    panel.appendChild(body);
+    panel.appendChild(retry);
+    msgHost.appendChild(panel);
+
+    // Guarantee visibility even if the user is scrolled elsewhere.
+    panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  // Short secondary notice in the modules section so it does not read as a
+  // mysteriously empty curriculum for anyone who scrolls past the top panel.
+  if (list) {
+    list.innerHTML = '';
+    const note = document.createElement('div');
+    note.style.padding = '14px';
+    note.style.borderRadius = '10px';
+    note.style.border = '1px solid rgba(239,68,68,0.25)';
+    note.style.color = 'rgba(255,255,255,0.7)';
+    note.style.fontSize = '13px';
+    note.textContent = 'Curriculum unavailable. Use the Retry button at the top of this page.';
+    list.appendChild(note);
+  }
 }
 
 courseRegisterAction('retry-load', function() {
