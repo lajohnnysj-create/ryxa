@@ -211,6 +211,19 @@ function setLearnAuthMode(mode) {
     signinTab.style.background = 'transparent'; signinTab.style.color = 'var(--muted)';
     btn.textContent = 'Create Account';
   }
+
+  // The magic-link button belongs on Sign In only.
+  //
+  // Under Create Account it answers a question nobody has asked yet. A buyer
+  // who does not know their account exists will not click "Email me a login
+  // link"; they will press Create Account, and the signup handler detects the
+  // existing account and mails them a link anyway. Offer the door when they
+  // need it, not before.
+  var magicBtn = document.getElementById('magic-link-btn');
+  if (magicBtn) {
+    magicBtn.textContent = 'Email me a login link instead';
+    magicBtn.style.display = mode === 'signin' ? '' : 'none';
+  }
   document.getElementById('auth-error').style.display = 'none';
 }
 
@@ -505,6 +518,10 @@ async function handleAuth() {
             resetTurnstile();
             recoveryToken = await getTurnstileToken();
           } catch (e) {
+            // The button is hidden on this tab. It is now the only way forward,
+            // so show it rather than pointing at something invisible.
+            var recoverBtn = document.getElementById('magic-link-btn');
+            if (recoverBtn) recoverBtn.style.display = '';
             errEl.textContent = 'You already have an account with this email. Use "Email me a login link" below to sign in.';
             errEl.style.color = '#f87171';
             return;
