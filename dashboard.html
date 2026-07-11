@@ -6344,7 +6344,16 @@
   .settings-acct-badge-tt { background:#010101; }
   .settings-acct-badge-fb { background:#1877F2; }
   .settings-acct-badge-tw { background:#9146FF; }
-  .settings-accounts-loading { display:flex; justify-content:center; align-items:center; padding:28px 0; }
+  /* Connected Accounts: reserve the loaded list's height while the spinner
+     shows, so the section doesn't grow when rows render and push content below
+     it down (which was making the Calendar-gear scroll land short). The list
+     is a FIXED set of accounts (Instagram, Facebook, YouTube, TikTok, Twitch),
+     so a static reserved height is safe. --settings-accounts-h is the single
+     knob: when you add or remove a social account row, bump it to match the new
+     loaded height (roughly ~60px per account row). */
+  :root { --settings-accounts-h: 300px; }
+  .settings-accounts-loading { display:flex; justify-content:center; align-items:center; padding:28px 0; min-height:var(--settings-accounts-h); }
+  #settings-accounts-list { min-height:var(--settings-accounts-h); }
   .settings-s-a34021 { font-size:11px;color:var(--muted);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
   .settings-s-98265b { position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0; }
   .settings-s-8e0e33 { width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:11px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;cursor:pointer; }
