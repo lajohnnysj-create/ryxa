@@ -1625,6 +1625,9 @@
      hidden behind it (Media Kit "+Social Media" and Link in Bio "Add Social"
      both deep-link here). */
   #settings-connected-accounts { scroll-margin-top: calc(var(--topbar-height) + env(safe-area-inset-top, 0px) + 16px); }
+  /* Same topbar offset for the Calendar section so the gear-icon jump lands its
+     heading just below the sticky header, not tucked under it. */
+  #settings-calendar-section { scroll-margin-top: calc(var(--topbar-height) + env(safe-area-inset-top, 0px) + 16px); }
   #settings-stripe-section { scroll-margin-top: calc(var(--topbar-height) + env(safe-area-inset-top, 0px) + 16px); }
   .dash-nudge-icon-btn { flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; padding: 0; border: none; border-radius: 8px; background: transparent; cursor: pointer; transition: background 0.15s; }
   .dash-nudge-icon-btn:hover { background: var(--surface2); }
