@@ -1650,12 +1650,27 @@ window.RyxaLoadBar = (function() {
     }
   }
 
+  let repositionHandler = null;
+  let topbarObserver = null;
+
   function mount() {
     destroy();
     const wrap = document.createElement('div');
     wrap.setAttribute('data-ryxa-loadbar', '1');
     wrap.style.cssText = 'position:fixed;z-index:10005;pointer-events:none;';
     positionWrap(wrap);
+    // Track the topbar LIVE, not just at mount: window resizes (including
+    // devtools opening) and topbar rect changes (sidebar collapse, layout
+    // shifts) must reposition the bar immediately or it slides relative to
+    // the header it is supposed to hug. Listeners live only while the bar
+    // is mounted; destroy() removes them.
+    repositionHandler = function() { positionWrap(wrap); };
+    window.addEventListener('resize', repositionHandler);
+    const topbarEl = document.querySelector('.topbar');
+    if (topbarEl && typeof ResizeObserver !== 'undefined') {
+      topbarObserver = new ResizeObserver(repositionHandler);
+      topbarObserver.observe(topbarEl);
+    }
     const bar = document.createElement('div');
     bar.style.cssText = 'width:4%;height:3px;border-radius:0 99px 99px 0;background:#7c3aed;transition:width 0.25s ease;box-shadow:0 0 8px rgba(124,58,237,0.6);';
     const text = document.createElement('div');
@@ -1677,6 +1692,14 @@ window.RyxaLoadBar = (function() {
     trickleTimer = null;
     cleanupTimer = null;
     ending = false;
+    if (repositionHandler) {
+      window.removeEventListener('resize', repositionHandler);
+      repositionHandler = null;
+    }
+    if (topbarObserver) {
+      topbarObserver.disconnect();
+      topbarObserver = null;
+    }
     if (ui && ui.wrap.parentNode) ui.wrap.remove();
     ui = null;
   }
