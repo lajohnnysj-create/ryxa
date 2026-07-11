@@ -596,46 +596,108 @@ function renderMKUsernameAvailable(cleaned) {
 function renderMKSocials() {
   const container = document.getElementById('mk-socials-form');
   if (!container) return;
-  container.innerHTML = MK_SOCIAL_PLATFORMS.map(p => {
-    const data = mkState.socials[p.key] || { count: 0, url: '', engagement: '' };
-    // Handle-type platforms show a fixed URL prefix and take just the handle;
-    // url-type (YouTube, Facebook) take a full pasted URL.
-    let urlInput;
-    if (p.type === 'username' && p.urlPrefix) {
-      // Display prefix without the protocol, e.g. "instagram.com/"
-      const shownPrefix = p.urlPrefix.replace(/^https?:\/\//i, '');
-      urlInput = `<div class="bio-social-prefixwrap">
-        <span class="bio-social-prefix">${escapeHtml(shownPrefix)}</span>
-        <input type="text" maxlength="80" placeholder="yourhandle"
+
+  // Icon grid matching Link in Bio's Social Icons: one tile per platform,
+  // a filled dot when that platform has any data (count, engagement, or url),
+  // tap to open an inline editor with the three fields. Reuses the .bio-social-*
+  // grid/tile/editor styles. All data bindings, maxlengths, and the save flow
+  // are unchanged - this only restyles how the same inputs are presented.
+  const gridHtml = MK_SOCIAL_PLATFORMS.map(p => {
+    const d = mkState.socials[p.key];
+    const filled = !!(d && (d.count || d.url || d.engagement));
+    const active = mkActiveSocial === p.key;
+    return `<button type="button" class="bio-social-tile${filled ? ' filled' : ''}${active ? ' active' : ''}"
+      data-mk-action="social-tile" data-mk-social="${p.key}" aria-label="${escapeHtml(p.label)}${filled ? ' (set)' : ''}" title="${escapeHtml(p.label)}">
+      <span class="bio-social-tile-icon">${p.svg}</span>
+      ${filled ? '<span class="bio-social-tile-dot" aria-hidden="true"></span>' : ''}
+    </button>`;
+  }).join('');
+
+  let editorHtml = '';
+  if (mkActiveSocial) {
+    const p = MK_SOCIAL_PLATFORMS.find(x => x.key === mkActiveSocial);
+    if (p) {
+      const data = mkState.socials[p.key] || { count: 0, url: '', engagement: '' };
+      let urlInput;
+      if (p.type === 'username' && p.urlPrefix) {
+        const shownPrefix = p.urlPrefix.replace(/^https?:\/\//i, '');
+        urlInput = `<div class="bio-social-prefixwrap">
+          <span class="bio-social-prefix">${escapeHtml(shownPrefix)}</span>
+          <input type="text" maxlength="80" placeholder="yourhandle"
+            value="${escapeHtml(data.url || '')}"
+            data-mk-action="social-url" data-mk-event="input" data-mk-social="${p.key}"
+            aria-label="${p.label} handle">
+        </div>`;
+      } else {
+        urlInput = `<input type="url" class="bio-social-plaininput" placeholder="Paste your full ${escapeHtml(p.label)} URL"
           value="${escapeHtml(data.url || '')}"
           data-mk-action="social-url" data-mk-event="input" data-mk-social="${p.key}"
-          aria-label="${p.label} handle">
+          aria-label="${p.label} profile URL" maxlength="500">`;
+      }
+      editorHtml = `<div class="bio-social-editor">
+        <div class="bio-social-editor-head">
+          <span class="bio-social-editor-icon">${p.svg}</span>
+          <span class="bio-social-editor-label">${escapeHtml(p.label)}</span>
+        </div>
+        <div class="mk-social-editor-fields">
+          <input type="text" inputmode="numeric" maxlength="12" placeholder="Follower count"
+            value="${data.count || ''}"
+            data-mk-action="social-count" data-mk-event="input" data-mk-social="${p.key}"
+            aria-label="${p.label} follower count" class="bio-social-plaininput">
+          <input type="text" inputmode="decimal" maxlength="6" placeholder="Engagement %"
+            value="${escapeHtml(data.engagement || '')}"
+            data-mk-action="social-engagement" data-mk-event="input" data-mk-social="${p.key}"
+            aria-label="${p.label} engagement rate percentage" class="bio-social-plaininput">
+        </div>
+        ${urlInput}
+        <div class="bio-social-editor-actions">
+          <button type="button" class="bio-social-clear" data-mk-action="social-clear" data-mk-social="${p.key}">Clear</button>
+          <button type="button" class="bio-social-done" data-mk-action="social-done">Done</button>
+        </div>
       </div>`;
-    } else {
-      urlInput = `<input type="url" placeholder="Paste your full ${escapeHtml(p.label)} URL"
-        value="${escapeHtml(data.url || '')}"
-        data-mk-action="social-url" data-mk-event="input" data-mk-social="${p.key}"
-        aria-label="${p.label} profile URL"
-        class="mk-s-2f0e33" maxlength="500">`;
     }
-    return `<div class="mk-s-bbc25c">
-      <div class="mk-social-row bio-s-6c002e" >
-        <div class="mk-social-icon">${p.svg}</div>
-        <div class="mk-social-label">${p.label}</div>
-        <input type="text" inputmode="numeric" maxlength="12" placeholder="Follower count"
-          value="${data.count || ''}"
-          data-mk-action="social-count" data-mk-event="input" data-mk-social="${p.key}"
-          aria-label="${p.label} follower count">
-        <input type="text" inputmode="decimal" maxlength="6" placeholder="Eng. %"
-          value="${data.engagement || ''}"
-          data-mk-action="social-engagement" data-mk-event="input" data-mk-social="${p.key}"
-          aria-label="${p.label} engagement rate percentage"
-          class="mk-social-eng-input">
-      </div>
-      ${urlInput}
-    </div>`;
-  }).join('');
+  }
+
+  container.innerHTML = `<div class="bio-social-grid">${gridHtml}</div>${editorHtml}`;
+
+  // Autofocus the first field when an editor opens. Defer on touch so the
+  // keyboard doesn't shift the viewport mid-render (same as Link in Bio).
+  if (mkActiveSocial) {
+    const inp = container.querySelector('.bio-social-editor input');
+    if (inp) {
+      const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+      const doFocus = function() {
+        try {
+          inp.focus({ preventScroll: true });
+          const editor = container.querySelector('.bio-social-editor');
+          if (editor && editor.scrollIntoView) editor.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } catch (e) {}
+      };
+      if (isTouch) setTimeout(doFocus, 250); else doFocus();
+    }
+  }
+
   updateMKTotalDisplay();
+}
+
+// Which MK social platform's inline editor is open (null = none). Always starts
+// closed on load.
+var mkActiveSocial = null;
+
+function onMkSocialTile(key) {
+  mkActiveSocial = (mkActiveSocial === key) ? null : key;
+  renderMKSocials();
+}
+
+function onMkSocialDone() {
+  mkActiveSocial = null;
+  renderMKSocials();
+}
+
+function onMkSocialClear(key) {
+  delete mkState.socials[key];
+  renderMKSocials();
+  scheduleMKPreview();
 }
 
 function onMKSocialCount(key, val) {
@@ -1106,10 +1168,15 @@ function renderMKThemes() {
   // Replaces inline style="..." attributes that strict CSP blocks.
   mkApplyDataStyles(container);
 
-  // Show/hide custom editor panel
+  // Show/hide custom editor: only when Custom is selected, tier allows, AND
+  // the user has expanded it. Collapsed by default (matches Link in Bio).
   const editor = document.getElementById('mk-custom-editor');
-  if (editor) editor.style.display = (mkState.theme === 'custom' && pro) ? 'block' : 'none';
+  if (editor) editor.style.display = (mkState.theme === 'custom' && pro && mkCustomEditorOpen) ? 'block' : 'none';
 }
+
+// Whether the MK custom-theme editor is expanded. Starts collapsed on load;
+// the user opens it by clicking the Custom theme tile.
+var mkCustomEditorOpen = false;
 
 function pickMKTheme(t) {
   const theme = BIO_THEMES.find(x => x.key === t);
@@ -1124,9 +1191,17 @@ function pickMKTheme(t) {
     setTimeout(() => { try { openSettingsModal(); } catch(e){} }, 200);
     return;
   }
+  const alreadySelected = mkState.theme === t;
   mkState.theme = t;
   if (t === 'custom' && !mkState.custom_theme) {
     mkState.custom_theme = { bgUrl: '', bgOpacity: 0.4, colors: { ...CUSTOM_THEME_DEFAULTS }, applied: true };
+  }
+  // Clicking Custom opens the editor (or toggles it shut if already selected
+  // and open); selecting any other theme collapses it.
+  if (t === 'custom') {
+    mkCustomEditorOpen = alreadySelected ? !mkCustomEditorOpen : true;
+  } else {
+    mkCustomEditorOpen = false;
   }
   renderMKThemes();
   syncMKCustomEditorUI();
@@ -2947,6 +3022,7 @@ mkRegisterAction('pick-font', (e, el) => pickMKFont(el.value));
 
 // Theme picker (template literal)
 mkRegisterAction('pick-theme', (e, el) => pickMKTheme(el.dataset.mkTheme));
+mkRegisterAction('close-custom-editor', () => { mkCustomEditorOpen = false; renderMKThemes(); });
 
 // Audience tabs
 mkRegisterAction('set-audience-mode', (e, el) => setAudienceMode(el.dataset.mkMode));
@@ -2956,6 +3032,9 @@ mkRegisterAction('social-engagement', (e, el) => onMKSocialEngagement(el.dataset
 mkRegisterAction('social-count', (e, el) => onMKSocialCount(el.dataset.mkSocial, el.value));
 mkRegisterAction('pull-socials-from-bio', () => pullSocialsFromBio());
 mkRegisterAction('social-url', (e, el) => onMKSocialUrl(el.dataset.mkSocial, el.value));
+mkRegisterAction('social-tile', (e, el) => onMkSocialTile(el.dataset.mkSocial));
+mkRegisterAction('social-done', () => onMkSocialDone());
+mkRegisterAction('social-clear', (e, el) => onMkSocialClear(el.dataset.mkSocial));
 
 // Rate card (template literal)
 mkRegisterAction('add-custom-rate', () => addCustomRate());
