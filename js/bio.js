@@ -1813,8 +1813,8 @@ function updateSubscribeBtn() {
   // Let the :disabled CSS own the greyed look and not-allowed cursor.
   btn.style.opacity = '';
   btn.style.cursor = '';
-  if (hasSubscribe) btn.title = 'Content already added';
-  else btn.removeAttribute('title');
+  if (hasSubscribe) btn.setAttribute('data-tip', 'Content already added');
+  else btn.removeAttribute('data-tip');
 }
 
 // ---- Video Block (YouTube carousel inside the link list) ----
@@ -2501,11 +2501,11 @@ async function updateMediaKitLinkButton() {
   if (alreadyAdded) {
     btn.disabled = true;
     btn.setAttribute('aria-disabled', 'true');
-    btn.title = 'Content already added';
+    btn.setAttribute('data-tip', 'Content already added');
   } else {
     btn.disabled = false;
     btn.removeAttribute('aria-disabled');
-    btn.removeAttribute('title');
+    btn.removeAttribute('data-tip');
   }
   // Clear any inline opacity/cursor from earlier versions so the :disabled CSS
   // owns the disabled appearance.
@@ -3093,8 +3093,8 @@ function renderBioLinks() {
     b.disabled = exists;
     // Let the :disabled CSS own the greyed appearance (no inline opacity).
     b.style.opacity = '';
-    if (exists) b.title = 'Content already added';
-    else b.removeAttribute('title');
+    if (exists) b.setAttribute('data-tip', 'Content already added');
+    else b.removeAttribute('data-tip');
   };
   setBlockBtn('bio-add-video-link', bioState.links.some(l => l.isVideoBlock));
   setBlockBtn('bio-add-tiktok-link', bioState.links.some(l => l.isTikTokBlock));
