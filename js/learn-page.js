@@ -657,6 +657,10 @@ async function loadAllSections() {
   } finally {
     if (spinner) spinner.style.display = 'none';
     if (dash) dash.style.display = 'block';
+    // Ensure the correct panel is shown and the tab styling matches after a
+    // load (fresh entry defaults to courses; returning from a course keeps
+    // whatever tab was active).
+    hubSwitchTab(hubActiveTab);
   }
 }
 
@@ -756,7 +760,7 @@ async function loadProducts() {
   purchases = purchases.filter(function(p) { return p.digital_products; });
 
   if (!purchases.length) {
-    document.getElementById('dash-products-section').style.display = 'none';
+    renderProducts([]);
     return;
   }
 
@@ -823,15 +827,18 @@ async function loadProducts() {
 }
 
 function renderProducts(purchases) {
-  var section = document.getElementById('dash-products-section');
   var container = document.getElementById('dash-products');
+  var empty = document.getElementById('dash-products-empty');
+  hubSetCount('products', (purchases || []).length);
 
   if (!purchases || purchases.length === 0) {
-    section.style.display = 'none';
+    if (container) { container.innerHTML = ''; container.style.display = 'none'; }
+    if (empty) empty.style.display = 'block';
     return;
   }
 
-  section.style.display = 'block';
+  if (empty) empty.style.display = 'none';
+  if (container) container.style.display = 'flex';
   container.innerHTML = purchases.map(function(p) {
     var prod = p.digital_products;
     var coverHtml = prod.cover_image_url
@@ -1067,15 +1074,18 @@ async function loadBookings() {
 }
 
 function renderBookings(bookings) {
-  var section = document.getElementById('dash-bookings-section');
   var container = document.getElementById('dash-bookings');
+  var empty = document.getElementById('dash-bookings-empty');
+  hubSetCount('bookings', (bookings || []).length);
 
   if (!bookings || bookings.length === 0) {
-    section.style.display = 'none';
+    if (container) { container.innerHTML = ''; container.style.display = 'none'; }
+    if (empty) empty.style.display = 'block';
     return;
   }
 
-  section.style.display = 'block';
+  if (empty) empty.style.display = 'none';
+  if (container) container.style.display = 'flex';
   container.innerHTML = bookings.map(function(b) {
     var c = b.coaching_services;
     if (!c) return '';
@@ -1149,6 +1159,7 @@ function renderBookings(bookings) {
 function renderDashboard() {
   const grid = document.getElementById('dash-courses');
   const empty = document.getElementById('dash-empty');
+  hubSetCount('courses', enrollments.length);
 
   if (enrollments.length === 0) {
     grid.innerHTML = '';
@@ -2651,6 +2662,38 @@ init();
 // =================================================================
 
 // Auth modal
+// =====================================================
+// RYXA HUB TABS
+// =====================================================
+var hubActiveTab = 'courses';
+
+function hubSwitchTab(tab) {
+  if (!tab) return;
+  hubActiveTab = tab;
+  ['courses', 'products', 'bookings'].forEach(function(name) {
+    var panel = document.getElementById('hub-panel-' + name);
+    if (panel) panel.style.display = (name === tab) ? 'block' : 'none';
+  });
+  document.querySelectorAll('.hub-tab').forEach(function(btn) {
+    var isActive = btn.getAttribute('data-hub-tab') === tab;
+    btn.classList.toggle('active', isActive);
+    btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+  });
+}
+
+// Update a tab's count badge. Hidden when zero so empty tabs stay clean.
+function hubSetCount(tab, n) {
+  var el = document.getElementById('hub-count-' + tab);
+  if (!el) return;
+  if (n > 0) { el.textContent = String(n); el.style.display = 'inline-block'; }
+  else { el.style.display = 'none'; }
+}
+
+learnRegisterAction('hub-tab', function(e, el) {
+  var tab = el && el.getAttribute ? el.getAttribute('data-hub-tab') : null;
+  hubSwitchTab(tab);
+});
+
 learnRegisterAction('auth-mode-signin', function() { setLearnAuthMode('signin'); });
 learnRegisterAction('auth-mode-signup', function() { setLearnAuthMode('signup'); });
 learnRegisterAction('google-auth', function() { handleLearnGoogleAuth(); });
