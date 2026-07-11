@@ -4896,6 +4896,8 @@ function buildPreviewHTML() {
   .fl-cap{position:absolute;left:0;right:0;bottom:0;padding:12px 16px 14px;display:flex;justify-content:center;}
   .fl-t{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;letter-spacing:-0.2px;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,0.5);text-align:center;word-break:break-word;line-height:1.25;}
   /* Half-width featured: two per row. Title clamps to 2 lines. */
+  .fl.link-half{min-height:120px;}
+  .fl.link-half img{height:100%;aspect-ratio:auto;position:absolute;inset:0;}
   .fl.link-half .fl-t{font-size:13px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
   .fl.link-half .fl-cap{padding:10px 12px 11px;}
   .mkh{position:relative;border-radius:14px;overflow:hidden;min-height:90px;background:#000;border:1px solid ${t.accent};box-shadow:0 0 20px ${t.glow};}
