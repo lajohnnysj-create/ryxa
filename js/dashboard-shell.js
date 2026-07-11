@@ -1642,9 +1642,11 @@ window.RyxaLoadBar = (function() {
     bar.style.cssText = 'width:4%;height:3px;border-radius:0 99px 99px 0;background:#7c3aed;transition:width 0.25s ease;box-shadow:0 0 8px rgba(124,58,237,0.6);';
     const text = document.createElement('div');
     text.setAttribute('role', 'status');
+    // Gold/amber: this pill only ever shows "having trouble... retrying"
+    // states, so it should read as a warning, not muted status chatter.
     text.style.cssText = 'display:none;margin:8px 0 0 12px;padding:6px 12px;width:fit-content;'
-      + 'color:rgba(255,255,255,0.75);font-size:13px;font-family:\'DM Sans\',sans-serif;'
-      + 'background:rgba(16,16,26,0.92);border:1px solid rgba(255,255,255,0.1);border-radius:8px;';
+      + 'color:#fbbf24;font-size:13px;font-weight:500;font-family:\'DM Sans\',sans-serif;'
+      + 'background:rgba(16,16,26,0.92);border:1px solid rgba(251,191,36,0.35);border-radius:8px;';
     wrap.appendChild(bar);
     wrap.appendChild(text);
     document.body.appendChild(wrap);
