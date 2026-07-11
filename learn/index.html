@@ -111,6 +111,20 @@
 
   /* Auth form */
   .auth-wrap { max-width: 400px; margin: 80px auto; padding: 0 24px; }
+  /* Login screen background: darkened campus photo. Full-bleed behind the
+     centered auth card; the overlay keeps text/inputs readable over it and
+     matches the dark aesthetic regardless of light/dark theme. */
+  #auth-screen.auth-wrap {
+    max-width: none; margin: 0; padding: 80px 24px; min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background-image: linear-gradient(rgba(6,6,12,0.82), rgba(6,6,12,0.9)), url('/ryxahub.webp');
+    background-size: cover; background-position: center; background-repeat: no-repeat;
+  }
+  #auth-screen .auth-card { background: rgba(13,13,20,0.72); border-color: rgba(255,255,255,0.12); backdrop-filter: blur(8px); max-width: 400px; width: 100%; }
+  #auth-screen > div:not(.auth-card) { max-width: 400px; width: 100%; }
+  #auth-screen h1, #auth-screen .auth-title { color: #fff; }
+  #auth-screen > div p, #auth-screen .auth-sub { color: rgba(255,255,255,0.75); }
+  #auth-screen { width: 100%; }
   .auth-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 16px; padding: 32px; }
   .auth-title { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 24px; font-weight: 800; margin-bottom: 6px; letter-spacing: -0.5px; text-align: center; }
   .auth-sub { font-size: 14px; color: var(--muted); text-align: center; margin-bottom: 24px; }
