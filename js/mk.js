@@ -2959,16 +2959,17 @@ function buildMKPreviewHTML() {
 
   // Contact
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mkState.contact_email || '');
-  // Render the Contact section when EITHER a valid email OR a note is
-  // present. Previously the note was treated as a supplement to the email
-  // and never rendered alone. Now creators can use the note as a standalone
-  // "how to reach me" message (e.g., "DM me on Instagram") without needing
-  // to expose an email address.
-  const hasContent = emailValid || !!mkState.contact_note;
-  const contactHtml = hasContent ? `<div class="sec">
+  const contactHtml = emailValid ? `<div class="sec">
     <div class="sec-t">Contact</div>
-    ${emailValid ? `<div class="contact-box">${escapeHtml(mkState.contact_email)}</div>` : ''}
-    ${mkState.contact_note ? `<div class="contact-n">${escapeHtml(mkState.contact_note)}</div>` : ''}
+    <div class="contact-box">${escapeHtml(mkState.contact_email)}</div>
+  </div>` : '';
+
+  // More Info: free-form creator note, its own section. Line breaks preserved
+  // via white-space:pre-line on .more-info-n.
+  const moreInfoNote = mkState.contact_note ? String(mkState.contact_note).trim() : '';
+  const moreInfoHtml = moreInfoNote ? `<div class="sec">
+    <div class="sec-t">More Info</div>
+    <div class="more-info-n">${escapeHtml(moreInfoNote)}</div>
   </div>` : '';
 
   const bannerHtml = mkState.show_branding ? `<div class="banner-wrap"><div class="banner"><img src="logo.png" alt="Ryxa" style="width:12px;height:12px;border-radius:3px;"><span>Media Kit powered by <strong>Ryxa</strong></span></div></div>` : '';
@@ -3047,6 +3048,7 @@ function buildMKPreviewHTML() {
   .vids-arrow-r{right:2px;}
   .contact-box{display:inline-block;padding:10px 14px;background:${t.surface2};border:1px solid ${t.border};border-radius:8px;color:${t.text};font-size:11px;font-weight:500;word-break:break-all;}
   .contact-n{margin-top:8px;font-size:10px;color:${t.muted2};line-height:1.5;}
+  .more-info-n{font-size:10px;color:${t.muted2};line-height:1.6;white-space:pre-line;}
   .banner-wrap{text-align:center;margin-top:14px;}
   .banner{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:#0a0a14;border:1px solid ${t.border};border-radius:100px;font-size:9px;color:rgba(255,255,255,0.7);}
   .banner strong{color:#fff;font-weight:600;}
@@ -3067,6 +3069,7 @@ function buildMKPreviewHTML() {
     ${videosHtml}
     ${carouselHtml}
     ${contactHtml}
+    ${moreInfoHtml}
     ${bannerHtml}
   </div>
   <\u0073cript src="/js/bio-preview-runtime.js"></\u0073cript>
