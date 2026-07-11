@@ -2694,6 +2694,7 @@ async function saveDeal() {
 
   let dealId = currentDealId;
   const wasNewDeal = !dealId;
+  let insertedDealRow = null;
   if (dealId) {
     // Update
     // .select('id') so a zero-row update (RLS mismatch after an identity
@@ -2717,6 +2718,7 @@ async function saveDeal() {
     }
     dealId = data.id;
     currentDealId = dealId;
+    insertedDealRow = data;
   }
 
   // Save deliverables. Full-replace semantics, but ordered so failure can
@@ -2771,8 +2773,19 @@ async function saveDeal() {
   saveBtn.disabled = false;
   saveBtn.textContent = origBtnText;
 
-  // Reload deals list so the new/updated deal is in cache
-  await loadDealsList();
+  // Update the list cache IN PLACE - no network round trip, and no loading
+  // bar firing over a view the user is not looking at (the bar means "this
+  // view is loading", not "a cache is refreshing somewhere"). We already
+  // hold the fresh data: the payload for updates, the returned row for
+  // inserts. Analytics cards refresh in the background, bar-free.
+  const cacheIdx = dealsList.findIndex(function(d) { return d.id === dealId; });
+  if (cacheIdx >= 0) {
+    dealsList[cacheIdx] = Object.assign({}, dealsList[cacheIdx], payload);
+  } else if (insertedDealRow) {
+    dealsList.unshift(insertedDealRow);
+  }
+  renderDealsList();
+  loadDealsAnalytics().catch(function(e) { console.error('loadDealsAnalytics', e); });
 
   // If this was a new deal, switch to "edit" mode in place (now currentDealId is set)
   if (wasNewDeal && dealId) {
