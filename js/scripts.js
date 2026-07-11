@@ -1005,7 +1005,6 @@ function updateSaveStatus(msg, kind) {
 async function saveScriptNow(silent) {
   if (!currentScript || !currentUser) return;
   if (scriptsAutoSaveTimer) { clearTimeout(scriptsAutoSaveTimer); scriptsAutoSaveTimer = null; }
-  if (!silent) updateSaveStatus('Saving…');
   try {
     const payload = {
       title: (currentScript.title || 'Untitled script').slice(0, 80),
@@ -1025,7 +1024,6 @@ async function saveScriptNow(silent) {
     const { data, error } = await q.select().maybeSingle();
     if (error) throw error;
     if (!data) {
-      updateSaveStatus('Not saved: newer version exists', 'error');
       if (typeof showDashToast === 'function') showDashToast('error', 'This script was changed in another tab or on another device, so this save was blocked to avoid overwriting the newer version. Reload the page to get the latest version.');
       return;
     }
@@ -1034,19 +1032,19 @@ async function saveScriptNow(silent) {
     const idx = scriptsList.findIndex(s => s.id === currentScript.id);
     if (idx !== -1) scriptsList[idx] = { ...scriptsList[idx], ...payload, updated_at: data.updated_at };
     scriptsDirty = false;
-    updateSaveStatus('Saved ✓', 'success');
-    // Explicit Save presses (upper-right, hook, block) toast a confirmation;
-    // the silent 2-second autosave stays inline-only to avoid toast spam while
-    // the user is actively typing.
-    if (!silent && typeof showDashToast === 'function') showDashToast('success', 'Script saved');
-    setTimeout(() => {
-      if (!scriptsDirty) updateSaveStatus('');
-    }, 2000);
+    // Explicit Save presses (upper-right, hook, block) confirm via toast only.
+    // The silent 2-second autosave stays inline-only (no toast spam while
+    // typing) and reads "Autosaved" to distinguish it from a manual save.
+    if (!silent) {
+      if (typeof showDashToast === 'function') showDashToast('success', 'Script saved');
+    } else {
+      updateSaveStatus('Autosaved', 'success');
+      setTimeout(() => {
+        if (!scriptsDirty) updateSaveStatus('');
+      }, 2000);
+    }
   } catch (e) {
     console.error(e);
-    updateSaveStatus('Save failed', 'error');
-    // A real save failure is high-stakes and must not hide in the small status
-    // line - surface it as a toast too, consistent with every other tool.
     if (typeof showDashToast === 'function') showDashToast('error', 'Could not save your script. Please check your connection and try again.');
   }
 }
@@ -2357,10 +2355,7 @@ function buildScriptFullText() {
 function copyToClipboard(text) {
   try {
     navigator.clipboard.writeText(text);
-    updateSaveStatus('Copied to clipboard', 'success');
-    setTimeout(() => {
-      if (!scriptsDirty) updateSaveStatus('');
-    }, 2000);
+    if (typeof showDashToast === 'function') showDashToast('success', 'Copied to clipboard');
   } catch (e) {
     console.warn('clipboard', e);
   }
