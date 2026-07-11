@@ -5459,6 +5459,19 @@
   .cal-s-afd72c { display:flex;gap:16px;align-items:flex-start; }
   .cal-s-600d9b { flex:1.5;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;min-width:0; }
   .cal-s-400603 { display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:12px; }
+  /* Match the calendar's own mobile breakpoint (900px, where cal-layout stacks).
+     Below it the content column narrows, so the month-label button's 160px
+     min-width plus the Today/gear/dot group overflowed and the parent's
+     flex-wrap dropped the whole right group to a second line. Force the parent
+     single-row, trim the month button so it can shrink, keep each group on one
+     line. */
+  @media (max-width: 900px) {
+    .cal-s-400603 { flex-wrap:nowrap; gap:8px; }
+    .cal-s-5c4456 { min-width:0; font-size:15px; padding:8px 10px; }
+    .cal-s-400603 > .bio-s-e3f610 { flex-wrap:nowrap; flex-shrink:0; min-width:0; }
+    .cal-s-400603 > .bio-s-e3f610:first-child { flex-shrink:1; min-width:0; }
+    .cal-s-4ad1a5 { padding:8px 10px; }
+  }
   .cal-s-691d58 { width:36px;height:36px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s; }
   .cal-s-5c4456 { padding:8px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Syne',sans-serif;font-size:16px;font-weight:700;cursor:pointer;letter-spacing:-0.3px;transition:all 0.15s;min-width:160px; }
   .cal-s-4ad1a5 { padding:8px 14px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:13px;font-weight:500;cursor:pointer;transition:all 0.15s; }
