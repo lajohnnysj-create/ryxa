@@ -1,5 +1,5 @@
 // =============================================================================
-// /js/grid.js — Grid Planner (extracted from dashboard.html, 2026-05-10)
+// /js/grid.js - Grid Planner (extracted from dashboard.html, 2026-05-10)
 // -----------------------------------------------------------------------------
 // All JavaScript for the Grid Planner tool. Lets users arrange and preview
 // their Instagram feed (up to 18 photos). Pro tier can save grids to DB.
@@ -11,7 +11,7 @@
 //   • Phase 3: static inline class="bio-s-6eae3a" → hash-named CSS classes
 //
 // INTENTIONALLY KEPT INLINE:
-//   • ondrop / ondragover / ondragleave — file drop zone. Same reasoning as
+//   • ondrop / ondragover / ondragleave - file drop zone. Same reasoning as
 //     Brand Deals kanban and Design Studio Layers panel: timing-sensitive
 //     event.preventDefault() and dispatch order would risk breakage.
 //
@@ -135,7 +135,7 @@ async function onGridFiles(files) {
   let skipped = 0;
 
   if (isFull) {
-    // Grid is full — accept only 1 photo, remove the last, prepend the new one
+    // Grid is full - accept only 1 photo, remove the last, prepend the new one
     toProcess = [list[0]];
     if (list.length > 1) skipped = list.length - 1;
   } else {
@@ -276,7 +276,7 @@ async function clearGrid() {
 }
 
 // ======== RENDER ========
-// Retry handler for grid thumbnail load failures — appends a cache-busting
+// Retry handler for grid thumbnail load failures - appends a cache-busting
 // query param and tries once more. Avoids infinite loops via a data attribute.
 function gridImgRetry(img) {
   if (img.dataset.retried) return;
@@ -425,24 +425,94 @@ function showGridStatus(kind, msg) {
 }
 
 // ======== SAVE / LOAD (Pro only) ========
+// ---- Standard load treatment (whole-state saver, like Bio / Media Kit) ----
+
+// Lock/unlock the grid's controls while the saved grid is loading or failed:
+// Save, Clear, the drop zone, and the file input. A failed load must never
+// present an editable grid, because saving would overwrite the real saved
+// grid with a blank one.
+function setGridControlsLocked(locked) {
+  ['grid-save-btn', 'grid-clear-btn'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.disabled = locked;
+    el.style.opacity = locked ? '0.5' : '';
+    el.style.cursor = locked ? 'not-allowed' : '';
+  });
+  var drop = document.getElementById('grid-drop-zone');
+  if (drop) { drop.style.pointerEvents = locked ? 'none' : ''; drop.style.opacity = locked ? '0.5' : ''; }
+  var thumbs = document.getElementById('grid-thumbnails');
+  if (thumbs) { thumbs.style.pointerEvents = locked ? 'none' : ''; thumbs.style.opacity = locked ? '0.5' : ''; }
+}
+
+function gridClearStatusSlot() {
+  var el = document.getElementById('grid-save-status');
+  if (!el) return;
+  el.style.display = 'none';
+  el.innerHTML = '';
+  el.style.background = '';
+  el.style.border = '';
+  el.style.padding = '';
+}
+
+// Blocking failure state: red panel with Retry in the status slot at the top.
+function gridShowLoadFailed() {
+  var el = document.getElementById('grid-save-status');
+  if (!el) return;
+  el.style.display = 'block';
+  el.style.background = 'transparent';
+  el.style.border = 'none';
+  el.style.padding = '0';
+  el.innerHTML = '<div role="alert" style="padding:20px;border-radius:12px;border:1px solid rgba(239,68,68,0.35);background:rgba(239,68,68,0.08);margin-bottom:16px;">'
+    + '<div style="color:#f87171;font-weight:600;font-size:15px;margin-bottom:6px;">Could not load your saved grid</div>'
+    + '<div style="color:rgba(255,255,255,0.7);font-size:14px;line-height:1.5;margin-bottom:14px;">Editing and saving are turned off until it loads, so your existing grid stays safe. Check your internet connection and press Retry. If the issue continues, contact us at hello@ryxa.io.</div>'
+    + '<button type="button" data-grid-action="retry-load" style="padding:9px 18px;border-radius:8px;border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.06);color:#fff;font-weight:600;cursor:pointer;">Retry</button>'
+    + '</div>';
+}
+
+gridRegisterAction('retry-load', function() { gridInited = false; gridLoaded = false; loadSavedGrid(); });
+
 async function loadSavedGrid() {
   if (!currentUser) return;
-  // RLS returns EMPTY SUCCESS to a session-less query, which would render
-  // a blank grid over a real saved one; the next save would then overwrite
-  // the real grid with whatever was added to the blank. Require a live
-  // session, and never mark a FAILED load as loaded.
-  const { data: _gridSess } = await sb.auth.getSession();
-  if (!_gridSess || !_gridSess.session) {
-    showGridStatus('error', 'Your session is still loading. Refresh before making changes; saving is disabled to protect your saved grid.');
-    return;
-  }
-  try {
-    const { data, error } = await sb.from('grid_plan').select('photo_urls').eq('user_id', currentUser.id).maybeSingle();
-    if (error) {
-      showGridStatus('error', 'Could not load your saved grid. Refresh before making changes; saving is disabled to protect it.');
+  const _gen = window.RyxaLoadGen.bump();
+  setGridControlsLocked(true);
+  gridClearStatusSlot();
+  window.RyxaLoadBar.start(document.getElementById('grid-save-status'));
+
+  // Retry transient blips. A null session is retryable, not fatal: RLS
+  // returns EMPTY SUCCESS to a session-less query, which would render a blank
+  // grid over a real saved one, and the next save would overwrite the real
+  // grid with the blank. A FAILED load never counts as loaded.
+  let data = null;
+  const MAX_LOAD_ATTEMPTS = 3;
+  for (let attempt = 1; attempt <= MAX_LOAD_ATTEMPTS; attempt++) {
+    try {
+      const sess = await sb.auth.getSession();
+      if (!sess || !sess.data || !sess.data.session) throw new Error('grid-load: no live session');
+      const res = await sb.from('grid_plan').select('photo_urls').eq('user_id', currentUser.id).maybeSingle();
+      if (res.error) throw res.error;
+      if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('grid-save-status')); gridInited = false; return; }
+      data = res.data;
+      break;
+    } catch (err) {
+      if (attempt < MAX_LOAD_ATTEMPTS) {
+        if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('grid-save-status')); gridInited = false; return; }
+        window.RyxaLoadBar.retrying(document.getElementById('grid-save-status'), 'Having trouble loading your grid. Retrying...');
+        await new Promise(function(r){ setTimeout(r, 400 * attempt); });
+        if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('grid-save-status')); gridInited = false; return; }
+        continue;
+      }
+      if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('grid-save-status')); gridInited = false; return; }
+      console.warn('loadSavedGrid', err);
+      window.RyxaLoadBar.fail(document.getElementById('grid-save-status'));
+      gridShowLoadFailed();
+      showGridStatus('error', 'Failed to load. Please retry, or contact hello@ryxa.io if it continues.');
       return;
     }
-    if (!data) { gridLoaded = true; return; } // no saved grid yet: empty is real
+  }
+
+  try {
+    if (!data) { gridLoaded = true; window.RyxaLoadBar.finish(document.getElementById('grid-save-status')); gridClearStatusSlot(); setGridControlsLocked(false); return; } // no saved grid yet: empty is real
     const urls = Array.isArray(data.photo_urls) ? data.photo_urls : [];
     // Validate URLs (only from grid-photos bucket).
     const valid = urls.filter(validGridPhotoUrl);
@@ -471,12 +541,18 @@ async function loadSavedGrid() {
     gridPhotos = signedPhotos.map(url => ({ id: gridIdSeq++, url, isSaved: true }));
     gridDirty = false;
     gridLoaded = true;
+    window.RyxaLoadBar.finish(document.getElementById('grid-save-status'));
+    gridClearStatusSlot();
+    setGridControlsLocked(false);
     renderGrid();
   } catch (e) {
+    // Hydration/signing failed after a successful fetch: treat as a load
+    // failure. A failed load must never count as loaded; saving stays disabled
+    // to protect the existing saved grid.
     console.warn('loadSavedGrid', e);
-    // A failed load must never count as loaded; saving stays disabled to
-    // protect the existing saved grid.
-    showGridStatus('error', 'Could not load your saved grid. Refresh before making changes; saving is disabled to protect it.');
+    window.RyxaLoadBar.fail(document.getElementById('grid-save-status'));
+    gridShowLoadFailed();
+    showGridStatus('error', 'Failed to load. Please retry, or contact hello@ryxa.io if it continues.');
   }
 }
 
@@ -501,7 +577,7 @@ function validGridPhotoUrl(u) {
 // Returns null if the URL doesn't match.
 function gridPhotoPath(u) {
   if (!u || typeof u !== 'string') return null;
-  // Signed URLs have ?token=... — match before the query string.
+  // Signed URLs have ?token=... - match before the query string.
   const m = u.match(/\/grid-photos\/([^?]+)/);
   return m ? m[1] : null;
 }
@@ -513,7 +589,7 @@ async function saveGrid() {
   if (!isPro()) { showGridStatus('error', 'Upgrade to Pro to save your grid.'); return; }
   if (!currentUser) return;
   if (!gridLoaded) {
-    showGridStatus('error', 'Saving is disabled because your saved grid did not finish loading. Refresh and try again; this protects your existing grid from being overwritten.');
+    showGridStatus('error', 'Saving is disabled because your saved grid did not finish loading. This protects your existing grid from being overwritten. Use the Retry button at the top to reload it.');
     return;
   }
   if (gridPhotos.length === 0) { showGridStatus('error', 'Add at least one photo first.'); return; }
@@ -609,7 +685,7 @@ async function deleteStaleGridPhotos() {
       }
       if (files.length < pageSize) break;
       offset += pageSize;
-      // Safety cap — don't loop forever if something goes wrong
+      // Safety cap - don't loop forever if something goes wrong
       if (offset > 500) break;
     }
     if (toDelete.length > 0) {
@@ -622,14 +698,14 @@ async function deleteStaleGridPhotos() {
 }
 
 // =============================================================================
-// ACTION REGISTRATIONS — wired up below as part of Phase 2
+// ACTION REGISTRATIONS - wired up below as part of Phase 2
 // =============================================================================
 
 // Toolbar actions
 gridRegisterAction('clear', () => clearGrid());
 gridRegisterAction('save', () => saveGrid());
 
-// Paywall — uses startCheckout fallback (passing nothing lets it pick up
+// Paywall - uses startCheckout fallback (passing nothing lets it pick up
 // localStorage intent or default to monthly Pro)
 gridRegisterAction('start-checkout', (e, el) => goToPricing('pro'));
 
@@ -644,7 +720,7 @@ gridRegisterAction('remove-photo', (e, el) => {
   removeGridPhoto(parseInt(el.dataset.gridPhotoId, 10));
 });
 
-// Image onerror handler — signed URL refresh
+// Image onerror handler - signed URL refresh
 gridRegisterAction('img-retry', (e, el) => gridImgRetry(el));
 
 // Drop zone for uploading photos. The element has data-grid-drop-zone (no value)
