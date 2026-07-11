@@ -1302,17 +1302,25 @@ function calUpdateStatusDot() {
   if (!dot) return;
   var tz = window._ryx_creator_tz || calState.timezone || 'UTC';
   var tzLabel = (typeof calFormatTzLabel === 'function') ? calFormatTzLabel(tz) : tz;
-  var gcalLine;
+  var sentence1 = 'Your timezone is ' + tzLabel + '.';
+  var sentence2;
+  var state;
   if (gcalState && gcalState.loading) {
-    gcalLine = 'Checking Google Calendar connection...';
+    sentence2 = 'Checking your Google Calendar connection.';
+    state = 'loading';
   } else if (gcalState && gcalState.connected) {
-    gcalLine = gcalState.email
+    sentence2 = gcalState.email
       ? 'Google Calendar (' + gcalState.email + ') is connected.'
       : 'Google Calendar is connected.';
+    state = 'connected';
   } else {
-    gcalLine = 'Google Calendar not connected.';
+    sentence2 = 'Connect your Google Calendar in Settings.';
+    state = 'disconnected';
   }
-  dot.setAttribute('data-tip', 'Your timezone is ' + tzLabel + '. ' + gcalLine);
+  // data-state drives the hover/focus color (green when connected, red when not)
+  // via CSS. At rest the dot stays neutral gray regardless of state.
+  dot.setAttribute('data-state', state);
+  dot.setAttribute('data-tip', sentence1 + ' ' + sentence2);
 }
 
 // Save the selected timezone to DB + localStorage and re-render the calendar
