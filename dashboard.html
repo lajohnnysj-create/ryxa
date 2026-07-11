@@ -2562,9 +2562,11 @@
     .custom-editor { padding: 12px !important; }
     .custom-bg-upload { flex-wrap: wrap !important; gap: 10px !important; }
     .custom-bg-info { flex: 1 1 100% !important; order: 2; }
-    /* Settings (MK) input rows stack */
-    .mk-section-body { padding: 14px !important; }
-    .mk-section-header { padding: 12px 14px !important; }
+    /* Settings (MK) input rows stack. Header padding matches the Link in Bio
+       sections (bio uses 16px vertical / 12px horizontal on mobile) so the
+       collapsed headers are the same height across both tools. */
+    .mk-section-body { padding-left: 12px !important; padding-right: 12px !important; }
+    .mk-section-header { padding-left: 12px !important; padding-right: 12px !important; }
   }
   /* Digital Products mobile fixes, force every descendant to respect viewport */
   @media (max-width: 640px) {
@@ -4475,6 +4477,50 @@
   .bio-s-825ed8 { display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:6px; }
   .bio-s-c5c7cf { display:flex;align-items:flex-start;gap:12px;cursor:pointer;user-select:none; }
   .bio-s-3c9498 { margin-top:3px;width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0; }
+  /* Modern toggle switch. Applied to a real checkbox input (JS wiring, checked
+     state, and label association all stay intact) - only the appearance
+     changes. The native box is hidden and a track+knob drawn in its place. */
+  .ryxa-toggle {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    position: relative;
+    flex-shrink: 0;
+    width: 40px;
+    height: 24px;
+    margin: 0;
+    margin-top: 1px;
+    border-radius: 999px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.18s ease, border-color 0.18s ease;
+  }
+  .ryxa-toggle::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 3px;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--muted);
+    transition: transform 0.18s ease, background 0.18s ease;
+  }
+  .ryxa-toggle:checked {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .ryxa-toggle:checked::after {
+    transform: translateY(-50%) translateX(16px);
+    background: #fff;
+  }
+  .ryxa-toggle:focus-visible {
+    outline: 2px solid var(--accent2);
+    outline-offset: 2px;
+  }
+  .ryxa-toggle:disabled { cursor: not-allowed; opacity: 0.5; }
   .bio-s-7623f0 { flex:1; }
   .bio-s-6b6f9f { display:flex;align-items:center;gap:8px;flex-wrap:wrap; }
   .bio-s-cc416b { font-size:14px;color:var(--text);font-weight:500; }
@@ -7375,7 +7421,7 @@
               <div class="bio-section-body" id="bio-body-branding" style="display:none">
               <label id="bio-branding-label" for="bio-show-branding" class="bio-s-c5c7cf">
                 <input type="checkbox" id="bio-show-branding" checked data-bio-action="branding-toggle" data-bio-event="change"
-                  class="bio-s-3c9498">
+                  class="ryxa-toggle">
                 <div class="bio-s-7623f0">
                   <div class="bio-s-6b6f9f">
                     <span class="bio-s-cc416b">Show Ryxa branding at bottom</span>
@@ -7388,7 +7434,7 @@
               </label>
               <label id="bio-sensitive-label" for="bio-sensitive-content" class="bio-s-c5c7cf">
                 <input type="checkbox" id="bio-sensitive-content" data-bio-action="sensitive-toggle" data-bio-event="change"
-                  class="bio-s-3c9498">
+                  class="ryxa-toggle">
                 <div class="bio-s-7623f0">
                   <div class="bio-s-6b6f9f">
                     <span class="bio-s-cc416b">Mark page as sensitive content</span>
@@ -8776,7 +8822,7 @@
               </button>
               <div class="mk-section-body bio-s-c8be1c" id="mk-body-settings" >
                 <label for="mk-show-branding" class="bio-s-c5c7cf">
-                  <input type="checkbox" id="mk-show-branding" data-mk-action="field-change" data-mk-event="change" class="bio-s-3c9498">
+                  <input type="checkbox" id="mk-show-branding" data-mk-action="field-change" data-mk-event="change" class="ryxa-toggle">
                   <div class="bio-s-7623f0">
                     <div class="bio-s-cc416b">Show Ryxa branding</div>
                     <div class="bio-s-3c78c4">Display a small "Media Kit powered by Ryxa" badge at the bottom of your media kit.</div>
