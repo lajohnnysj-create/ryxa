@@ -2878,12 +2878,18 @@
     outline-offset: 2px;
   }
   .bio-add-btn:disabled {
-    opacity: 0.45;
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
     pointer-events: auto;
   }
+  /* Fade the disabled button's CONTENT (icon + label) rather than the whole
+     button. Using opacity on the button itself would also fade its ::after
+     tooltip (pseudo-elements inherit the element's opacity), making the tooltip
+     look transparent. Fading only the inner content keeps the tooltip solid. */
+  .bio-add-btn:disabled svg,
+  .bio-add-btn:disabled { color: var(--muted) !important; border-color: var(--border) !important; }
+  .bio-add-btn:disabled svg { opacity: 0.6; }
   .bio-add-btn:disabled:hover {
     transform: none;
     box-shadow: none;
