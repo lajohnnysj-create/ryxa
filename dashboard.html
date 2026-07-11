@@ -2878,20 +2878,38 @@
     outline-offset: 2px;
   }
   .bio-add-btn:disabled {
-    opacity: 1;
+    opacity: 0.45;
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
-    background: var(--surface) !important;
-    border: 1px solid var(--border) !important;
-    color: var(--muted) !important;
+    pointer-events: auto;
   }
   .bio-add-btn:disabled:hover {
     transform: none;
     box-shadow: none;
-    background: var(--surface) !important;
-    border-color: var(--border) !important;
-    color: var(--muted) !important;
+  }
+  /* Tooltip on disabled add-buttons ("Content already added"). Uses a data-tip
+     attribute so it only shows where we set one. pointer-events:auto above lets
+     the disabled button still receive hover (the disabled attribute keeps the
+     click blocked). */
+  .bio-add-btn[data-tip] { position: relative; }
+  .bio-add-btn[data-tip]:hover::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--surface2, #1a1a2e);
+    color: var(--text, #fff);
+    border: 1px solid var(--border-hover);
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+    padding: 5px 9px;
+    border-radius: 6px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+    z-index: 20;
+    pointer-events: none;
   }
 
   /* Content variant, dashed border, transparent bg (lighter feel for structural blocks). */
