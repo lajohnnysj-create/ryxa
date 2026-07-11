@@ -207,6 +207,7 @@ async function loadProductsList() {
       return;
     } catch (e) {
       if (attempt < MAX_LOAD_ATTEMPTS) {
+        if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('products-list')); return; }
         prodShowSpinnerStatus(listEl, 'Having trouble loading your products. Retrying...');
         await new Promise(function(resolve) { setTimeout(resolve, 400 * attempt); });
         if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('products-list')); return; }
@@ -401,6 +402,7 @@ async function openProductEditor(productId) {
         break;
       } catch (e) {
         if (attempt < MAX_LOAD_ATTEMPTS) {
+          if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('products-editor-msg')); return; }
           showEditorLoading('Having trouble loading this product. Retrying...');
           await new Promise(function(resolve) { setTimeout(resolve, 400 * attempt); });
           if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('products-editor-msg')); return; }

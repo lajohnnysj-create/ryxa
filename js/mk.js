@@ -337,6 +337,7 @@ async function loadMediaKit() {
       break;
     } catch (err) {
       if (attempt < MAX_LOAD_ATTEMPTS) {
+        if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('mk-save-status')); mkInited = false; return; }
         mkShowLoading('Having trouble loading your media kit. Retrying...');
         await new Promise(function(resolve) { setTimeout(resolve, 400 * attempt); });
         if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('mk-save-status')); mkInited = false; return; }

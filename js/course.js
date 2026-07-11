@@ -244,6 +244,7 @@ async function loadCoursesList() {
       return;
     } catch (err) {
       if (attempt < MAX_LOAD_ATTEMPTS) {
+        if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('courses-grid')); return; }
         courseShowListLoading('Having trouble loading your courses. Retrying...');
         await new Promise(function(resolve) { setTimeout(resolve, 400 * attempt); });
         if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('courses-grid')); return; }
@@ -1030,6 +1031,7 @@ async function loadCourseModules(courseId) {
       if (attempt < MAX_LOAD_ATTEMPTS) {
         // Tell the user we are struggling but still working, instead of
         // leaving a silent blank area during the backoff.
+        if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('course-editor-msg')); return; }
         showCourseModulesLoading('Having trouble loading this course. Retrying...');
         await new Promise(resolve => setTimeout(resolve, 400 * attempt));
         if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('course-editor-msg')); return; }

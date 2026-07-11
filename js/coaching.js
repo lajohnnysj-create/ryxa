@@ -216,6 +216,7 @@ async function loadCoachingList() {
       return;
     } catch (err) {
       if (attempt < MAX_LOAD_ATTEMPTS) {
+        if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('coaching-grid')); return; }
         coachShowListLoading('Having trouble loading your services. Retrying...');
         await new Promise(function(resolve) { setTimeout(resolve, 400 * attempt); });
         if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('coaching-grid')); return; }
@@ -486,6 +487,7 @@ async function openCoachingEditor(coachingId) {
         break;
       } catch (err) {
         if (attempt < MAX_LOAD_ATTEMPTS) {
+          if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('coaching-editor-msg')); return; }
           coachShowEditorLoading('Having trouble loading this service. Retrying...');
           await new Promise(function(resolve) { setTimeout(resolve, 400 * attempt); });
           if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('coaching-editor-msg')); return; }
