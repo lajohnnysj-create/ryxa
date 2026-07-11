@@ -885,6 +885,7 @@
 
   /* Featured link */
   .featured-link {
+    position: relative;
     display: block;
     background: var(--surface);
     border: 1px solid var(--border);
@@ -905,21 +906,41 @@
     display: block;
     background: var(--surface2);
   }
-  .featured-body { padding: 16px 20px 18px; text-align: center; }
+  /* Title now sits inside the image, centered along the bottom over a scrim. */
+  .featured-ov {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.32) 42%, rgba(0,0,0,0) 70%);
+  }
+  .featured-cap {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 14px 20px 16px;
+    display: flex;
+    justify-content: center;
+  }
   .featured-title {
     font-family: 'Syne', sans-serif;
     font-size: 17px;
     font-weight: 700;
     letter-spacing: -0.3px;
-    margin-bottom: 4px;
+    color: #fff;
+    text-shadow: 0 1px 6px rgba(0,0,0,0.5);
+    text-align: center;
     word-break: break-word;
+    line-height: 1.25;
   }
-  .featured-desc {
-    font-size: 13px;
-    color: var(--muted);
-    line-height: 1.5;
-    word-break: break-word;
+  /* Half-width featured: two per row, title clamps to 2 lines. */
+  .featured-link.link-half .featured-title {
+    font-size: 14px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
+  .featured-link.link-half .featured-cap { padding: 11px 14px 12px; }
 
   /* YouTube videos — horizontal scroll. Sits inline inside the .links grid
      and matches the link width so it lines up with the cards above and below. */
