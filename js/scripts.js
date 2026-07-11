@@ -1041,6 +1041,9 @@ async function saveScriptNow(silent) {
   } catch (e) {
     console.error(e);
     updateSaveStatus('Save failed', 'error');
+    // A real save failure is high-stakes and must not hide in the small status
+    // line - surface it as a toast too, consistent with every other tool.
+    if (typeof showDashToast === 'function') showDashToast('error', 'Could not save your script. Please check your connection and try again.');
   }
 }
 
