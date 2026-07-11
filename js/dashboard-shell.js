@@ -1606,7 +1606,18 @@ function copyWelcomeBioLink() {
 // or newer load bumps it, and in-flight loops abort silently when their
 // generation is stale: no bar, no panel, no toast, no state writes against
 // a view the user already left.
-window.RyxaLoadGen = { n: 0, bump: function() { return ++this.n; } };
+window.RyxaLoadGen = {
+  n: 0,
+  bump: function() {
+    this.n++;
+    // Kill the bar in the same frame. Loader starts remount right after;
+    // navigations must not leave a bar trickling over the new view.
+    if (window.RyxaLoadBar && typeof window.RyxaLoadBar.cancelAll === 'function') {
+      window.RyxaLoadBar.cancelAll();
+    }
+    return this.n;
+  }
+};
 
 window.RyxaLoadBar = (function() {
   const TRICKLE_MS = 180;
@@ -1741,7 +1752,16 @@ window.RyxaLoadBar = (function() {
     if (release(anchor) && ui) destroy();
   }
 
-  return { start: start, retrying: retrying, finish: finish, fail: fail, stop: stop, isActive: isActive };
+  // Instant teardown: kills the bar and forgets every active load. Called
+  // by RyxaLoadGen.bump() so any navigation removes the bar in the same
+  // frame, rather than waiting for the orphaned loop to hit its next stale
+  // checkpoint (which can be seconds away mid-backoff or mid-request).
+  function cancelAll() {
+    tokens = new Set();
+    destroy();
+  }
+
+  return { start: start, retrying: retrying, finish: finish, fail: fail, stop: stop, isActive: isActive, cancelAll: cancelAll };
 })();
 
 // Check all five social connection tables for needs_reconnect flags and, if
