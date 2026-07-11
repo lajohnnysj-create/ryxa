@@ -8132,11 +8132,8 @@
           <p class="cal-s-d84dd0">Plan your creator schedule and more in one place. Syncs with your 1:1 bookings and brand deal CRM.</p>
         </div>
 
-        <!-- Google Calendar Connection -->
-        <div id="gcal-connect-row" class="cal-s-c9fab0">
-          <!-- Populated by gcalRenderConnectionState() -->
-        </div>
-        <div id="gcal-connect-error" class="cal-s-643636"></div>
+        <!-- Google Calendar connection + timezone now live in Settings > Calendar
+             (see settings-calendar-section). The gear icon in the toolbar links there. -->
 
         <!-- Calendar grid + day events: side-by-side on desktop, stacked on mobile -->
         <div class="cal-layout cal-s-afd72c" >
@@ -8151,7 +8148,7 @@
             </div>
             <div class="bio-s-e3f610">
               <button data-cal-action="today" class="cal-s-4ad1a5 dash-h-64372a">Today</button>
-              <select id="cal-tz-inline" data-cal-action="change-timezone" data-cal-event="change" aria-label="Time zone" class="cal-s-tz-inline"></select>
+              <button data-cal-action="open-settings" aria-label="Calendar settings" title="Calendar settings" class="cal-s-691d58 dash-h-8caae0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
             </div>
           </div>
 
@@ -11041,6 +11038,23 @@
       <div id="settings-tiktok-msg" class="settings-s-b99790"></div>
       <div id="settings-twitch-msg" class="settings-s-b99790"></div>
       </div>
+    </div>
+
+    <!-- Calendar (timezone + Google Calendar connection). Moved here from the
+         Calendar tool toolbar. The select keeps its original id and
+         data-cal-action wiring: the calendar.js action dispatcher listens at
+         document level, so the handlers work regardless of where the element
+         lives. calPopulateInlineTimezone() fills the options; the change
+         handler saves to profiles.calendar_timezone. -->
+    <div class="settings-s-3b6d93" id="settings-calendar-section">
+      <div class="settings-s-501c37">Calendar</div>
+      <p class="settings-s-4fba18">Your timezone is used across Calendar, Analytics, and 1:1 Booking to display times correctly. It was detected automatically when you first signed up, change it here if needed.</p>
+      <label for="cal-tz-inline" class="visually-hidden settings-s-98265b">Time zone</label>
+      <select id="cal-tz-inline" data-cal-action="change-timezone" data-cal-event="change" aria-label="Time zone" class="settings-s-8e0e33"></select>
+      <div id="gcal-connect-row" class="cal-s-c9fab0" style="margin-top:16px;margin-bottom:0;">
+        <!-- Populated by gcalRenderConnectionState() -->
+      </div>
+      <div id="gcal-connect-error" class="cal-s-643636" style="margin-top:12px;margin-bottom:0;"></div>
     </div>
 
     <!-- Display Currency -->
