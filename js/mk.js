@@ -2909,10 +2909,10 @@ function buildMKPreviewHTML() {
   ${bgImageCSS}
   ${bgOverlayCSS || `body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 50% 0%,${t.glow} 0%,transparent 60%);pointer-events:none;z-index:0;}`}
   .w{position:relative;z-index:1;max-width:100%;}
-  .hero{display:flex;gap:14px;align-items:center;padding:16px;background:${t.surface};border:1px solid ${t.border};border-radius:14px;margin-bottom:10px;}
+  .hero{display:flex;flex-direction:column;text-align:center;gap:12px;align-items:center;padding:18px 16px;background:${t.surface};border:1px solid ${t.border};border-radius:14px;margin-bottom:10px;}
   .hs-frame{width:80px;height:80px;padding:2px;border-radius:12px;background:${t.avatarBorder};flex-shrink:0;}
   .hs-frame > *{width:100%;height:100%;}
-  .h-body{flex:1;min-width:0;}
+  .h-body{min-width:0;}
   .h-name{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.3px;word-break:break-word;}
   .h-handle{font-size:11px;color:${t.accent2};font-weight:500;margin-top:2px;word-break:break-word;}
   .h-cat{font-size:10px;color:${t.muted};text-transform:uppercase;letter-spacing:0.06em;margin-top:4px;word-break:break-word;}
