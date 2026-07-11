@@ -1,10 +1,10 @@
 // =============================================================================
-// /js/calendar.js — Calendar tool + Google Calendar OAuth integration
+// /js/calendar.js - Calendar tool + Google Calendar OAuth integration
 // -----------------------------------------------------------------------------
 // All JavaScript for the Calendar tool. Extracted from dashboard.html for
 // stricter CSP.
 //
-// IMPORTANT — OAuth integration preserved exactly as-is. The Google Calendar
+// IMPORTANT - OAuth integration preserved exactly as-is. The Google Calendar
 // connection flow (gcalConnect / gcalDisconnect / gcalHandleReturnParams)
 // uses:
 //   • Supabase session access_token (verified Bearer via /api/google-calendar-ticket)
@@ -107,7 +107,7 @@ function calFormatMonthLabel(year, month) {
   return d.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
 }
 
-// Timezone preference resolution — prefer DB (so it's known to the coaching
+// Timezone preference resolution - prefer DB (so it's known to the coaching
 // page), fall back to localStorage. Extracted so init can run it in parallel
 // with the events load, once per session.
 async function _calResolveTimezone() {
@@ -117,7 +117,7 @@ async function _calResolveTimezone() {
       calState.timezone = prof.calendar_timezone;
       try { localStorage.setItem('ryxa_cal_tz', prof.calendar_timezone); } catch (e) {}
     } else {
-      // No DB value yet — check localStorage and migrate it to DB
+      // No DB value yet - check localStorage and migrate it to DB
       try {
         var saved = localStorage.getItem('ryxa_cal_tz');
         if (saved) {
@@ -128,7 +128,7 @@ async function _calResolveTimezone() {
       } catch (e) {}
     }
   } catch (e) {
-    // DB read failed — fall back to localStorage only
+    // DB read failed - fall back to localStorage only
     try {
       var saved2 = localStorage.getItem('ryxa_cal_tz');
       if (saved2) calState.timezone = saved2;
@@ -345,7 +345,7 @@ function gcalHandleReturnParams() {
     gcalLoadConnectionState();
     gcalHideError();
   } else if (flag === 'cancelled') {
-    // User clicked cancel on Google's screen — silent
+    // User clicked cancel on Google's screen - silent
     gcalHideError();
   } else if (flag === 'error') {
     var reason = params.get('reason') || 'unknown';
@@ -376,26 +376,52 @@ function escapeHtmlSimple(s) {
 
 async function calLoadEvents() {
   if (!currentUser) return;
-  try {
-    var { data, error } = await sb.from('calendar_events')
-      .select('*')
-      .eq('creator_id', currentUser.id)
-      .order('start_at', { ascending: true });
-    if (error) {
-      // Table might not exist yet
-      console.warn('Calendar events not loaded:', error.message);
-      if (typeof showDashToast === 'function') {
-        showDashToast('error', 'Could not load your calendar events. Refresh the page to try again.');
+  var _gen = window.RyxaLoadGen.bump();
+  var _anchor = document.getElementById('cal-grid');
+  calState.loadFailed = false;
+  window.RyxaLoadBar.start(_anchor);
+  var MAX_LOAD_ATTEMPTS = 3;
+  for (var attempt = 1; attempt <= MAX_LOAD_ATTEMPTS; attempt++) {
+    try {
+      var res = await sb.from('calendar_events')
+        .select('*')
+        .eq('creator_id', currentUser.id)
+        .order('start_at', { ascending: true });
+      if (res.error) throw res.error;
+      if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('cal-grid')); return; }
+      calState.events = res.data || [];
+      window.RyxaLoadBar.finish(_anchor);
+      return;
+    } catch (e) {
+      if (attempt < MAX_LOAD_ATTEMPTS) {
+        if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('cal-grid')); return; }
+        window.RyxaLoadBar.retrying(_anchor, 'Having trouble loading your calendar. Retrying...');
+        await new Promise(function(r){ setTimeout(r, 400 * attempt); });
+        if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('cal-grid')); return; }
+        continue;
       }
-      calState.events = [];
+      if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('cal-grid')); return; }
+      // Final failure: mark it so the day panel can show a real error state
+      // instead of a silently empty calendar, and keep whatever events we had.
+      console.error('calLoadEvents:', e);
+      calState.loadFailed = true;
+      window.RyxaLoadBar.fail(_anchor);
+      if (typeof showDashToast === 'function') {
+        showDashToast('error', 'Failed to load. Please retry, or contact hello@ryxa.io if it continues.');
+      }
       return;
     }
-    calState.events = data || [];
-  } catch (e) {
-    console.error('calLoadEvents:', e);
-    calState.events = [];
   }
 }
+
+// Reload calendar events on demand (Retry button). Resets the once-per-session
+// loaded gate so the fetch actually runs again.
+function calRetryLoad() {
+  calState.loaded = false;
+  calState.loadFailed = false;
+  calLoadEvents().then(function() { calState.loaded = true; calRender(); });
+}
+if (typeof window !== 'undefined') window.calRetryLoad = calRetryLoad;
 
 function calRender() {
   document.getElementById('cal-month-label').textContent = calFormatMonthLabel(calState.viewYear, calState.viewMonth);
@@ -842,7 +868,7 @@ async function calSaveEvent() {
   // Build ISO timestamps treating the entered Y-M-D and H:M as a wall-clock
   // time IN THE CREATOR'S SELECTED CALENDAR TIMEZONE (calState.timezone).
   // The old implementation used `new Date(y, m, d, h, m)` which interprets
-  // the fields as browser-local time — wrong when the creator is traveling
+  // the fields as browser-local time - wrong when the creator is traveling
   // or otherwise has browser-local != calState.timezone. With this fix:
   //   - Creator in NY (browser), saved tz LA, enters 2 PM → stored as 22:00Z
   //     (= 2 PM PT). Displays back as "2 PM" when viewing in LA, "5 PM" in NY.
@@ -886,7 +912,7 @@ async function calSaveEvent() {
 
   try {
     if (editingId) {
-      // EDIT mode — update existing event
+      // EDIT mode - update existing event
       var existing = calState.events.find(function(e) { return e.id === editingId; });
       if (!existing) { showError('Event not found.'); return; }
 
@@ -940,7 +966,7 @@ async function calSaveEvent() {
       calRender();
       if (typeof showDashToast === 'function') showDashToast('success', 'Changes saved');
     } else {
-      // ADD mode — insert new event
+      // ADD mode - insert new event
       var { data, error } = await sb.from('calendar_events').insert({
         creator_id: currentUser.id,
         title: title,
@@ -970,7 +996,7 @@ async function calSaveEvent() {
 }
 
 // Opens a modal to send a one-off "meeting details" message to the booker of a coaching event.
-// The message is sent via email immediately and is not stored anywhere — purely transactional.
+// The message is sent via email immediately and is not stored anywhere - purely transactional.
 function calOpenSendMessage(bookingId, eventTitle) {
   var existing = document.getElementById('cal-send-msg-modal');
   if (existing) existing.remove();
@@ -1060,7 +1086,7 @@ async function calDeleteEvent(eventId, eventType) {
   var confirmTitle, confirmMsg;
   if (eventType === 'coaching') {
     confirmTitle = 'Delete Coaching Booking';
-    confirmMsg = 'This will remove the booking from your calendar and delete the booking record. If this was a paid booking, you may need to manually refund the client via Stripe.\n\nIf you\'re rescheduling, close this and use the edit button instead — your client\'s payment will stay intact. Continue with deletion?';
+    confirmMsg = 'This will remove the booking from your calendar and delete the booking record. If this was a paid booking, you may need to manually refund the client via Stripe.\n\nIf you\'re rescheduling, close this and use the edit button instead - your client\'s payment will stay intact. Continue with deletion?';
   } else if (eventType === 'brand_deal') {
     confirmTitle = 'Delete Brand Deal Event';
     confirmMsg = 'This will only remove this event from your calendar. To fully manage the brand deal, edit it from the Brand Deal CRM. Continue?';
@@ -1081,7 +1107,7 @@ async function calDeleteEvent(eventId, eventType) {
           await sb.from('coaching_bookings').delete().eq('id', event.source_id);
         } catch (e) {
           console.error('Could not delete coaching booking:', e);
-          // Non-fatal — calendar event already deleted
+          // Non-fatal - calendar event already deleted
         }
       }
 
@@ -1193,12 +1219,12 @@ function calPopulateInlineTimezone() {
   // Build the option lists for each group. Track everything shown so far
   // so we don't duplicate entries between groups. Although the only path
   // for these strings to be malicious is self-XSS (user editing their own
-  // profiles.calendar_timezone), we escape on principle — defense in depth
+  // profiles.calendar_timezone), we escape on principle - defense in depth
   // per the Ryxa security rules.
   var shown = {};
   var html = '';
 
-  // Group 1: "Your timezone" — the auto-detected tz, always at top.
+  // Group 1: "Your timezone" - the auto-detected tz, always at top.
   if (detected) {
     var detectedSelected = detected === saved ? ' selected' : '';
     html += '<optgroup label="Your timezone">'
@@ -1207,7 +1233,7 @@ function calPopulateInlineTimezone() {
     shown[detected] = true;
   }
 
-  // Group 2: "Currently selected" — only when the saved tz isn't already
+  // Group 2: "Currently selected" - only when the saved tz isn't already
   // shown (detected) and isn't in the common list (otherwise the common
   // group will show it). Handles travelers and edge-case manual picks.
   if (saved && !shown[saved] && CAL_COMMON_TZS.indexOf(saved) === -1) {
@@ -1217,7 +1243,7 @@ function calPopulateInlineTimezone() {
     shown[saved] = true;
   }
 
-  // Group 3: "Common timezones" — curated list (hardcoded constants, safe
+  // Group 3: "Common timezones" - curated list (hardcoded constants, safe
   // by construction) minus anything already shown above.
   var commonOpts = CAL_COMMON_TZS.filter(function(tz) { return !shown[tz]; });
   if (commonOpts.length) {
@@ -1233,10 +1259,10 @@ function calPopulateInlineTimezone() {
 }
 
 // Save the selected timezone to DB + localStorage and re-render the calendar
-// so events display at the right times. No "Save" button — change is the
+// so events display at the right times. No "Save" button - change is the
 // commit. We update local state and re-render immediately for responsive
 // UX, then the DB write happens in the background. A toast confirms the
-// save (or surfaces an error — previously errors were console-only and
+// save (or surfaces an error - previously errors were console-only and
 // invisible to the user, leaving stale DB state that the booker page
 // would silently use).
 async function calChangeTimezoneInline(newTz) {
@@ -1254,7 +1280,7 @@ async function calChangeTimezoneInline(newTz) {
   // up naturally on that re-render.
   if (currentUser) {
     try {
-      // Supabase .update() returns { data, error } — it does NOT throw on
+      // Supabase .update() returns { data, error } - it does NOT throw on
       // RLS rejection or no-matching-row. Must check error explicitly.
       var res = await sb.from('profiles').update({ calendar_timezone: newTz }).eq('user_id', currentUser.id);
       if (res && res.error) {
@@ -1268,7 +1294,7 @@ async function calChangeTimezoneInline(newTz) {
         dashShowToast('Timezone updated');
       }
     } catch (e) {
-      // Network/unexpected error path — also worth surfacing.
+      // Network/unexpected error path - also worth surfacing.
       console.error('Failed to save calendar_timezone:', e);
       if (typeof dashShowToast === 'function') {
         dashShowToast('Couldn\'t save timezone. Please try again.', 'error');
@@ -1286,7 +1312,7 @@ function calOpenSettings() {
 
 
 // =============================================================================
-// ACTION REGISTRATIONS — wired up below as part of Phase 2
+// ACTION REGISTRATIONS - wired up below as part of Phase 2
 // =============================================================================
 
 // Top toolbar (markup)
@@ -1321,7 +1347,7 @@ calRegisterAction('close-send-msg-modal', () => {
 calRegisterAction('save-event', () => calSaveEvent());
 calRegisterAction('select-color', (e, el) => calSelectColor(el.dataset.calColor));
 
-// Google Calendar OAuth — buttons rendered by gcalRenderConnectionState
+// Google Calendar OAuth - buttons rendered by gcalRenderConnectionState
 // These trigger gcalConnect/gcalDisconnect, which use Bearer token auth
 // (Supabase access_token via /api/google-calendar-ticket). The OAuth flow
 // itself is byte-identical to pre-refactor; only the click trigger changed
