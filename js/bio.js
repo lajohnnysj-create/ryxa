@@ -3983,7 +3983,7 @@ function renderLinkExpanded(link, dragSvg) {
             <input type="file" accept="image/*" data-bio-action="link-thumb-selected" data-bio-event="change" data-bio-id="${link._id}" class="bio-s-c8be1c">
           </label>`}
     </div>` : ''}
-    <input type="text" placeholder="Title" maxlength="${link.featured ? (link.halfWidth ? 40 : 60) : 80}" value="${escapeHtml(link.title || '')}"
+    <input type="text" placeholder="Title" maxlength="${link.featured ? 50 : 80}" value="${escapeHtml(link.title || '')}"
       data-bio-action="update-link-field" data-bio-event="input" data-bio-id="${link._id}" data-bio-field="title" aria-label="Link title">
     ${!link.featured ? `<input type="text" placeholder="Description (optional)" maxlength="120" value="${escapeHtml(link.description || '')}"
       data-bio-action="update-link-field" data-bio-event="input" data-bio-id="${link._id}" data-bio-field="description" aria-label="Link description">` : ''}
