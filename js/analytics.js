@@ -1,5 +1,5 @@
 // =============================================================================
-// /js/analytics.js — Analytics tool (extracted from dashboard.html, 2026-05-10)
+// /js/analytics.js - Analytics tool (extracted from dashboard.html, 2026-05-10)
 // -----------------------------------------------------------------------------
 // All JavaScript for the Analytics tool (Max tier). Extracted from
 // dashboard.html for stricter CSP.
@@ -168,12 +168,41 @@ function initContractanalyzerTool() {
 
 async function loadAnalyticsData() {
   if (!currentUser) return;
+  const _gen = window.RyxaLoadGen.bump();
+  const _anchor = document.getElementById('analytics-content');
+  window.RyxaLoadBar.start(_anchor);
+  // Read-only tool: no locking, no blocking panel. The bar gives visible
+  // load feedback; the two core stat RPCs get a retry so a transient blip
+  // does not leave stat boxes stuck on "Could not load"; each section keeps
+  // its existing inline fallback so a single failed section degrades rather
+  // than blanking the page. finishAnalyticsBar() is called on every exit.
   const { start, end } = getAnaDateRange();
   const tz = anaTz();
   const dayCount = anaCustomStart ? Math.ceil((new Date(end) - new Date(start)) / 86400000) + 1 : anaRangeDays;
 
+  // Retry the two headline RPCs a couple of times (transient blips only);
+  // everything else keeps its single-shot inline fallback.
+  async function anaRpcWithRetry(fn, tries) {
+    for (var a = 1; a <= tries; a++) {
+      try {
+        var res = await fn();
+        if (res.error) throw res.error;
+        return res;
+      } catch (e) {
+        if (a < tries) {
+          if (window.RyxaLoadGen.n !== _gen) return { error: e, _cancelled: true };
+          window.RyxaLoadBar.retrying(_anchor, 'Having trouble loading your analytics. Retrying...');
+          await new Promise(function(r){ setTimeout(r, 400 * a); });
+          continue;
+        }
+        return { error: e };
+      }
+    }
+  }
+
   // Load page views
-  const viewsRes = await sb.rpc('get_page_view_stats', { p_start_date: start, p_end_date: end });
+  const viewsRes = await anaRpcWithRetry(function() { return sb.rpc('get_page_view_stats', { p_start_date: start, p_end_date: end }); }, 3);
+  if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(_anchor); return; }
   const vTotal = document.getElementById('ana-views-total');
   const vSub = document.getElementById('ana-views-sub');
   let viewsDaily = [];
@@ -184,11 +213,12 @@ async function loadAnalyticsData() {
     vSub.textContent = '~' + avg + '/day avg over ' + dayCount + (dayCount === 1 ? ' day' : ' days');
     viewsDaily = densifyDailySeries(v.daily, start, end, 'count');
   } else {
-    vTotal.textContent = '—'; vSub.textContent = 'Could not load';
+    vTotal.textContent = '-'; vSub.textContent = 'Could not load';
   }
 
   // Load revenue
-  const revRes = await sb.rpc('get_revenue_stats', { p_start_date: start, p_end_date: end, p_tz: tz });
+  const revRes = await anaRpcWithRetry(function() { return sb.rpc('get_revenue_stats', { p_start_date: start, p_end_date: end, p_tz: tz }); }, 3);
+  if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(_anchor); return; }
   const rTotal = document.getElementById('ana-revenue-total');
   const rSub = document.getElementById('ana-revenue-sub');
   let revDaily = [];
@@ -205,7 +235,7 @@ async function loadAnalyticsData() {
     revDaily = densifyDailySeries(r.daily, start, end, 'cents');
     bySource = r.by_source || {};
   } else {
-    rTotal.textContent = '—'; rSub.textContent = 'Could not load';
+    rTotal.textContent = '-'; rSub.textContent = 'Could not load';
     rTotal.classList.remove('has-revenue');
   }
 
@@ -290,6 +320,9 @@ async function loadAnalyticsData() {
       renderAnaMiniChart(m[0], m[1], m[2], m[3]);
     }
   });
+
+  if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(_anchor); return; }
+  window.RyxaLoadBar.finish(_anchor);
 
   // Load latest sales
   anaSalesAllData = [];
@@ -380,7 +413,7 @@ async function loadAnalyticsSales(start, end) {
     if (bookings) {
       bookings.forEach(function(b) {
         if (!b.coaching_services || b.coaching_services.user_id !== currentUser.id) return;
-        sales.push({ date: b.booked_at, buyer: b.buyer_email || '—', product: b.coaching_services.title || '1:1 Booking', type: 'Booking', amount: b.amount_paid_cents || 0 });
+        sales.push({ date: b.booked_at, buyer: b.buyer_email || '-', product: b.coaching_services.title || '1:1 Booking', type: 'Booking', amount: b.amount_paid_cents || 0 });
       });
     }
 
@@ -396,7 +429,7 @@ async function loadAnalyticsSales(start, end) {
     if (dpPurchases) {
       dpPurchases.forEach(function(p) {
         if (!p.digital_products || p.digital_products.user_id !== currentUser.id) return;
-        sales.push({ date: p.purchased_at, buyer: p.buyer_email || '—', product: p.digital_products.title || 'Digital Product', type: 'Digital', amount: p.amount_cents || 0 });
+        sales.push({ date: p.purchased_at, buyer: p.buyer_email || '-', product: p.digital_products.title || 'Digital Product', type: 'Digital', amount: p.amount_cents || 0 });
       });
     }
 
@@ -411,7 +444,7 @@ async function loadAnalyticsSales(start, end) {
       .order('received_at', { ascending: false });
     if (deals) {
       deals.forEach(function(d) {
-        sales.push({ date: d.received_at, buyer: d.counterparty_name || '—', product: 'Brand Deal', type: 'Brand', amount: d.amount_cents || 0 });
+        sales.push({ date: d.received_at, buyer: d.counterparty_name || '-', product: 'Brand Deal', type: 'Brand', amount: d.amount_cents || 0 });
       });
     }
 
@@ -438,7 +471,7 @@ async function loadAnalyticsSales(start, end) {
       return;
     }
 
-    // For course enrollments, buyer is a user_id — resolve usernames
+    // For course enrollments, buyer is a user_id - resolve usernames
     const buyerIds = sales.filter(function(s) { return s.type === 'Course' && s.buyer && s.buyer.length > 20; }).map(function(s) { return s.buyer; });
     if (buyerIds.length > 0) {
       const { data: profiles } = await sb
@@ -580,7 +613,7 @@ async function loadProductPerformance(start, end) {
     products.sort(function(a, b) { return b.revenue - a.revenue; });
 
     tbody.innerHTML = products.map(function(p) {
-      var convRate = p.views > 0 ? ((p.orders / p.views) * 100).toFixed(1) + '%' : '—';
+      var convRate = p.views > 0 ? ((p.orders / p.views) * 100).toFixed(1) + '%' : '-';
       var viewsText = p.views > 0 ? p.views.toLocaleString() : '0';
       var amount = formatMoney(p.revenue, {alwaysShowCents:true});
       var pillStyle;
@@ -605,7 +638,7 @@ async function loadProductPerformance(start, end) {
 
 
 // =============================================================================
-// ACTION REGISTRATIONS — wired up below as part of Phase 2
+// ACTION REGISTRATIONS - wired up below as part of Phase 2
 // =============================================================================
 
 anaRegisterAction('max-upgrade', (e) => handleMaxUpgradeClick(e));
@@ -634,11 +667,11 @@ anaRegisterAction('sales-page', (e, el) => {
 // =============================================================================
 // CHART RENDERERS
 // -----------------------------------------------------------------------------
-// renderAnaLineChart  — main Page Views + Revenue chart at the top
-// renderAnaMiniChart  — small revenue/views sparklines on category cards
+// renderAnaLineChart  - main Page Views + Revenue chart at the top
+// renderAnaMiniChart  - small revenue/views sparklines on category cards
 //
 // Moved here from dashboard.html (2026-05-11). Previously these lived in a
-// stray <script> block at the bottom of dashboard.html — leftover from the
+// stray <script> block at the bottom of dashboard.html - leftover from the
 // follower-audit refactor that should have been moved with the analytics tool.
 // =============================================================================
 

@@ -1,5 +1,5 @@
 // =====================================================
-// LINK IN BIO — CLICK ANALYTICS (Creator Pro + Max)
+// LINK IN BIO - CLICK ANALYTICS (Creator Pro + Max)
 // Separate from the page-view/revenue Analytics tool. Shows clicks on links,
 // featured links, hero, and social icons. Data flows in via record_link_click
 // on the public bio page; reads come from get_link_click_stats (scoped to the
@@ -130,6 +130,9 @@ function banLabel(r, linkMap) {
 
 async function loadBioAnalyticsData() {
   if (!currentUser) return;
+  const _gen = window.RyxaLoadGen.bump();
+  const _anchor = document.getElementById('ban-content');
+  window.RyxaLoadBar.start(_anchor);
   const range = getBanDateRange();
   const tz = banTz();
   const totalEl = document.getElementById('ban-total');
@@ -140,21 +143,39 @@ async function loadBioAnalyticsData() {
   let bioViews = 0;
   const linkMap = {};
 
-  try {
-    const results = await Promise.all([
-      sb.rpc('get_link_click_stats', { p_start_date: range.start, p_end_date: range.end, p_tz: tz }),
-      sb.rpc('get_page_view_stats', { p_start_date: range.start, p_end_date: range.end }),
-      sb.from('link_in_bio').select('links').eq('user_id', currentUser.id).maybeSingle()
-    ]);
-    const clicksRes = results[0], viewsRes = results[1], linksRes = results[2];
-    if (!clicksRes.error && Array.isArray(clicksRes.data)) clickRows = clicksRes.data;
-    if (!viewsRes.error && viewsRes.data && viewsRes.data.by_page) bioViews = Number(viewsRes.data.by_page.bio) || 0;
-    if (!linksRes.error && linksRes.data && Array.isArray(linksRes.data.links)) {
-      linksRes.data.links.forEach(function (l) { if (l && l.lid) linkMap[l.lid] = l; });
+  // Read-only: bar for feedback, a couple of retries on the core fetch,
+  // cancellation on navigate-away. Inline fallbacks below stay intact.
+  const BAN_TRIES = 3;
+  for (var _a = 1; _a <= BAN_TRIES; _a++) {
+    try {
+      const results = await Promise.all([
+        sb.rpc('get_link_click_stats', { p_start_date: range.start, p_end_date: range.end, p_tz: tz }),
+        sb.rpc('get_page_view_stats', { p_start_date: range.start, p_end_date: range.end }),
+        sb.from('link_in_bio').select('links').eq('user_id', currentUser.id).maybeSingle()
+      ]);
+      if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(_anchor); return; }
+      const clicksRes = results[0], viewsRes = results[1], linksRes = results[2];
+      // A hard error on the click RPC is the retryable signal; the others
+      // degrade inline as before.
+      if (clicksRes.error) throw clicksRes.error;
+      if (Array.isArray(clicksRes.data)) clickRows = clicksRes.data;
+      if (!viewsRes.error && viewsRes.data && viewsRes.data.by_page) bioViews = Number(viewsRes.data.by_page.bio) || 0;
+      if (!linksRes.error && linksRes.data && Array.isArray(linksRes.data.links)) {
+        linksRes.data.links.forEach(function (l) { if (l && l.lid) linkMap[l.lid] = l; });
+      }
+      break;
+    } catch (e) {
+      if (_a < BAN_TRIES) {
+        if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(_anchor); return; }
+        window.RyxaLoadBar.retrying(_anchor, 'Having trouble loading your click analytics. Retrying...');
+        await new Promise(function(r){ setTimeout(r, 400 * _a); });
+        continue;
+      }
+      console.error('Bio analytics load failed:', e);
     }
-  } catch (e) {
-    console.error('Bio analytics load failed:', e);
   }
+  if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(_anchor); return; }
+  window.RyxaLoadBar.finish(_anchor);
 
   // Aggregate: per-link totals (table) and per-day totals (chart).
   const perLink = {};
@@ -206,7 +227,7 @@ async function loadBioAnalyticsData() {
     } else {
       tableBody.innerHTML = rows.map(function (r) {
         const label = banLabel(r, linkMap);
-        const rate = bioViews > 0 ? ((r.clicks / bioViews) * 100).toFixed(1) + '%' : '—';
+        const rate = bioViews > 0 ? ((r.clicks / bioViews) * 100).toFixed(1) + '%' : '-';
         return '<tr>'
           + '<td class="ban-td-link"><span class="ban-link-label">' + banEsc(label.name) + '</span>'
           + '<span class="ban-type-badge ban-type-' + r.link_type + '">' + label.type + '</span></td>'
