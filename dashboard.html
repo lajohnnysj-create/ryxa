@@ -6441,6 +6441,13 @@
   .cal-info-dot { position:relative; display:inline-flex; align-items:center; justify-content:center; width:15px; height:15px; margin-left:2px; border-radius:50%; border:1px solid rgba(255,255,255,0.35); color:rgba(255,255,255,0.6); font-size:10px; font-style:italic; font-weight:600; font-family:Georgia,serif; cursor:help; vertical-align:middle; }
   .cal-info-dot::after { content:attr(data-tip); position:absolute; bottom:calc(100% + 8px); left:50%; transform:translateX(-50%); width:230px; padding:8px 10px; border-radius:8px; background:#1c1c2b; border:1px solid rgba(255,255,255,0.12); color:rgba(255,255,255,0.85); font-size:12px; font-style:normal; font-weight:400; font-family:'DM Sans',sans-serif; line-height:1.4; text-align:left; opacity:0; visibility:hidden; transition:opacity 0.12s ease; pointer-events:none; z-index:40; }
   .cal-info-dot:hover::after, .cal-info-dot:focus::after { opacity:1; visibility:visible; }
+  /* Calendar status dot: a quiet neutral indicator beside the gear. No color
+     state and no animation on purpose, it should reward a glance, never demand
+     one. The full timezone + Google Calendar connection text lives in the
+     hover/focus tooltip so nothing clutters the toolbar at rest. */
+  .cal-status-dot { position:relative; display:inline-block; width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,0.4); cursor:help; vertical-align:middle; flex-shrink:0; }
+  .cal-status-dot::after { content:attr(data-tip); position:absolute; bottom:calc(100% + 8px); right:-4px; width:230px; max-width:70vw; padding:8px 10px; border-radius:8px; background:#1c1c2b; border:1px solid rgba(255,255,255,0.12); color:rgba(255,255,255,0.85); font-size:12px; font-weight:400; font-family:'DM Sans',sans-serif; line-height:1.4; text-align:left; opacity:0; visibility:hidden; transition:opacity 0.12s ease; pointer-events:none; z-index:40; }
+  .cal-status-dot:hover::after, .cal-status-dot:focus::after { opacity:1; visibility:visible; }
   .welcome-s-825ae1 { flex:1;min-width:0;font-size:13px;color:var(--text);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left; }
   .welcome-s-a0676c { font-size:11px;color:var(--muted);flex-shrink:0;white-space:nowrap; }
 
@@ -8150,6 +8157,7 @@
             </div>
             <div class="bio-s-e3f610">
               <button data-cal-action="today" class="cal-s-4ad1a5 dash-h-64372a">Today</button>
+              <span id="cal-status-dot" class="cal-status-dot" tabindex="0" role="note" aria-label="Calendar status" data-tip="Loading calendar status..."></span>
               <button data-cal-action="open-settings" aria-label="Calendar settings" title="Calendar settings" class="cal-s-691d58 dash-h-8caae0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
             </div>
           </div>
