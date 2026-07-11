@@ -188,10 +188,21 @@ async function initCalendarTool() {
   // the Settings tool) should reflect it next time Settings is opened.
   calPopulateInlineTimezone();
 
-  // NOTE: The Google Calendar connection UI and the timezone selector moved to
-  // Settings > Calendar. gcalLoadConnectionState() and gcalHandleReturnParams()
-  // now run from the Settings init in dashboard-shell.js, and the OAuth
-  // callback redirect routes to the Settings tool (handleGcalRedirect).
+  // The Google Calendar connection UI and timezone selector live in Settings >
+  // Calendar now. But the calendar toolbar's status dot needs the connection
+  // state to build its tooltip, so load it here too (once per session). Its
+  // render call no-ops on the Settings-only #gcal-connect-row when it's absent,
+  // and finishes by refreshing the status dot via calUpdateStatusDot().
+  if (!gcalState._loadedOnce) {
+    gcalState._loadedOnce = true;
+    gcalLoadConnectionState();
+  } else {
+    calUpdateStatusDot();
+  }
+
+  // NOTE: gcalHandleReturnParams() and the connect/disconnect UI run from the
+  // Settings init in dashboard-shell.js; the OAuth callback redirect routes to
+  // the Settings tool (handleGcalRedirect).
 }
 
 // ============================================================
@@ -259,6 +270,9 @@ function gcalRenderConnectionState() {
       + '</button>'
       + '<div class="bio-s-e769ff">Sync Ryxa events to your Google Calendar. <span class="cal-info-dot" tabindex="0" role="note" aria-label="Editing events in Google Calendar won\'t change them in Ryxa." data-tip="Editing events in Google Calendar won\'t change them in Ryxa.">i</span></div>';
   }
+  // Keep the calendar toolbar status dot tooltip in step with the connection
+  // state (this render runs on load and after connect/disconnect).
+  if (typeof calUpdateStatusDot === 'function') calUpdateStatusDot();
 }
 
 async function gcalConnect() {
@@ -1275,6 +1289,30 @@ function calPopulateInlineTimezone() {
   }
 
   sel.innerHTML = html;
+  // Refresh the toolbar status dot tooltip whenever the tz is (re)populated.
+  calUpdateStatusDot();
+}
+
+// Builds the neutral status dot's tooltip: current timezone plus Google
+// Calendar connection state. Called after the tz loads and after the gcal
+// connection state resolves, so it reflects whatever is currently known.
+// Purely informational - the dot itself never changes color.
+function calUpdateStatusDot() {
+  var dot = document.getElementById('cal-status-dot');
+  if (!dot) return;
+  var tz = window._ryx_creator_tz || calState.timezone || 'UTC';
+  var tzLabel = (typeof calFormatTzLabel === 'function') ? calFormatTzLabel(tz) : tz;
+  var gcalLine;
+  if (gcalState && gcalState.loading) {
+    gcalLine = 'Checking Google Calendar connection...';
+  } else if (gcalState && gcalState.connected) {
+    gcalLine = gcalState.email
+      ? 'Google Calendar (' + gcalState.email + ') is connected.'
+      : 'Google Calendar is connected.';
+  } else {
+    gcalLine = 'Google Calendar not connected.';
+  }
+  dot.setAttribute('data-tip', 'Your timezone is ' + tzLabel + '. ' + gcalLine);
 }
 
 // Save the selected timezone to DB + localStorage and re-render the calendar
@@ -1345,11 +1383,12 @@ calRegisterAction('change-timezone', (e, el) => calChangeTimezoneInline(el.value
 // settings init scrolls to top instantly, so our scroll-to-section runs on a
 // short delay after it.
 calRegisterAction('open-settings', () => {
+  // Ask the Settings init to scroll to the Calendar section AFTER the Connected
+  // Accounts section finishes loading. That section grows when its social rows
+  // render, so a timed scroll here would land above the target once it expands.
+  // The flag is consumed in the settings init once layout is stable.
+  window._scrollToCalendarSettings = true;
   if (typeof showTool === 'function') showTool('settings');
-  setTimeout(function() {
-    var sec = document.getElementById('settings-calendar-section');
-    if (sec && sec.scrollIntoView) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, 120);
 });
 calRegisterAction('open-add-event', () => calOpenAddEvent());
 calRegisterAction('picker-prev-year', () => calPickerPrevYear());

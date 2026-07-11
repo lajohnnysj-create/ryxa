@@ -2174,7 +2174,24 @@ function showTool(tool) {
     if (typeof resetSettingsTurnstile === 'function') resetSettingsTurnstile();
     // Load Stripe status with error handling
     try { loadStripeConnectStatus(); } catch(e) { console.error('Stripe status error:', e); }
-    try { loadConnectedAccountsWithSpinner(); } catch(e) { console.error('Connected accounts error:', e); }
+    try {
+      var _accountsLoad = loadConnectedAccountsWithSpinner();
+      // If we arrived here from the Calendar gear icon, scroll to the Calendar
+      // section only AFTER the accounts section has finished loading (and thus
+      // reached its final height). Waiting on the actual load promise removes
+      // the layout-shift race entirely - no fixed timeout to guess at. The
+      // extra requestAnimationFrame catches any last reflow after the rows paint.
+      if (_accountsLoad && typeof _accountsLoad.then === 'function') {
+        _accountsLoad.then(function() {
+          if (!window._scrollToCalendarSettings) return;
+          window._scrollToCalendarSettings = false;
+          requestAnimationFrame(function() {
+            var sec = document.getElementById('settings-calendar-section');
+            if (sec && sec.scrollIntoView) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          });
+        });
+      }
+    } catch(e) { console.error('Connected accounts error:', e); }
     // Adjust the password section for Google-login accounts (no Ryxa password to reset)
     try { applyGoogleAccountPasswordUI(); } catch(e) { console.error('Password UI error:', e); }
     // Load marketing email preference
