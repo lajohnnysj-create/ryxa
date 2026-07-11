@@ -1342,10 +1342,16 @@ function renderBioThemes() {
   // This replaces the inline style="..." attributes that strict CSP blocks.
   bioApplyDataStyles(container);
 
-  // Show/hide custom editor panel based on selected theme + tier
+  // Show/hide custom editor panel: only when Custom is selected, tier allows,
+  // AND the user has expanded it. Collapsed by default (including on load) so
+  // the panel's complexity isn't dumped on screen the moment Custom is active.
   const editor = document.getElementById('bio-custom-editor');
-  if (editor) editor.style.display = (bioState.theme === 'custom' && pro) ? 'block' : 'none';
+  if (editor) editor.style.display = (bioState.theme === 'custom' && pro && bioCustomEditorOpen) ? 'block' : 'none';
 }
+
+// Whether the custom-theme editor panel is expanded. Always starts collapsed
+// on load; the user opens it by clicking the Custom theme tile.
+var bioCustomEditorOpen = false;
 
 function pickTheme(t) {
   const theme = BIO_THEMES.find(x => x.key === t);
@@ -1364,10 +1370,20 @@ function pickTheme(t) {
     setTimeout(() => { try { openSettingsModal(); } catch(e){} }, 200);
     return;
   }
+  const alreadySelected = bioState.theme === t;
   bioState.theme = t;
   // If picking custom for the first time, init state with defaults
   if (t === 'custom' && !bioState.custom_theme) {
     bioState.custom_theme = { bgUrl: '', bgOpacity: 0.4, colors: { ...CUSTOM_THEME_DEFAULTS }, applied: true };
+  }
+  // Custom editor open/close behavior:
+  // - Clicking the Custom tile opens the editor (or toggles it shut if it was
+  //   already selected and open).
+  // - Selecting any other theme collapses the editor.
+  if (t === 'custom') {
+    bioCustomEditorOpen = alreadySelected ? !bioCustomEditorOpen : true;
+  } else {
+    bioCustomEditorOpen = false;
   }
   renderBioThemes();
   syncBioCustomEditorUI();
@@ -5583,6 +5599,7 @@ bioRegisterAction('add-video-to-block', (e, el) => addVideoToBlock(parseInt(el.d
 
 // Theme + socials
 bioRegisterAction('pick-theme', (e, el) => pickTheme(el.dataset.bioTheme));
+bioRegisterAction('close-custom-editor', () => { bioCustomEditorOpen = false; renderBioThemes(); });
 bioRegisterAction('social-change', (e, el) => onSocialChange(el.dataset.bioSocial, el.value));
 bioRegisterAction('social-tile', (e, el) => onSocialTile(el.dataset.bioSocial));
 bioRegisterAction('social-done', () => onSocialDone());
