@@ -3082,7 +3082,10 @@ function renderBioLinks() {
     const heroAtLimit = pro && heroCount >= maxHero;
     heroBtn.style.display = 'flex';
     heroBtn.disabled = heroAtLimit;
-    heroBtn.style.opacity = heroAtLimit ? 0.5 : 1;
+    // Let the :disabled CSS own the look (no inline opacity); add the tooltip.
+    heroBtn.style.opacity = '';
+    if (heroAtLimit) heroBtn.setAttribute('data-tip', 'Content already added');
+    else heroBtn.removeAttribute('data-tip');
   }
   // YouTube / TikTok / Instagram: one block per platform (all plans). The add
   // button is disabled while a block of that type exists and re-enables when
