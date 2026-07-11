@@ -49,11 +49,11 @@
     },
     {
       "source": "/course/:slug",
-      "destination": "/course"
+      "destination": "/api/course?slug=:slug"
     },
     {
       "source": "/booking/:slug",
-      "destination": "/booking"
+      "destination": "/api/booking?slug=:slug"
     },
     {
       "source": "/product/:slug",
