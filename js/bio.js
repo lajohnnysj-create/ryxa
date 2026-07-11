@@ -700,6 +700,7 @@ bioRegisterAction('retry-load', function() { loadBioData(); });
 
 async function loadBioData() {
   if (!currentUser) return;
+  const _gen = window.RyxaLoadGen.bump();
   bioDataLoaded = false;
   // Lock the whole editor and show visible loading from the first moment.
   // Unlocks only after a clean load and hydration; stays locked on failure.
@@ -733,10 +734,13 @@ async function loadBioData() {
       if (attempt < MAX_LOAD_ATTEMPTS) {
         bioShowLoading('Having trouble loading your page. Retrying...');
         await new Promise(function(resolve) { setTimeout(resolve, 400 * attempt); });
+        if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('bio-save-status')); bioInited = false; return; }
         continue;
       }
       console.error('loadBioData', err);
-      window.RyxaLoadBar.fail(document.getElementById('bio-save-status'));
+      if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('bio-save-status')); bioInited = false; return; }
+      if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('bio-save-status')); bioInited = false; return; }
+    window.RyxaLoadBar.fail(document.getElementById('bio-save-status'));
       window.RyxaLoadBar.fail(document.getElementById('bio-save-status'));
       bioShowLoadFailed();
       showBioStatus('error', 'Failed to load. Please retry, or contact hello@ryxa.io if it continues.');
@@ -826,6 +830,7 @@ async function loadBioData() {
     showBioStatus('error', 'Failed to load. Please retry, or contact hello@ryxa.io if it continues.');
     return;
   }
+  if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('bio-save-status')); bioInited = false; return; }
   window.RyxaLoadBar.finish(document.getElementById('bio-save-status'));
   bioSetEditorLocked(false);
   bioClearStatusSlot();

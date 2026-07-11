@@ -308,6 +308,7 @@ mkRegisterAction('retry-load', function() { loadMediaKit(); });
 
 async function loadMediaKit() {
   if (!currentUser) return;
+  const _gen = window.RyxaLoadGen.bump();
   mkDataLoaded = false;
   // Lock the whole editor and show visible loading from the first moment.
   // Unlocks only after a clean load and hydration; stays locked on failure.
@@ -338,10 +339,13 @@ async function loadMediaKit() {
       if (attempt < MAX_LOAD_ATTEMPTS) {
         mkShowLoading('Having trouble loading your media kit. Retrying...');
         await new Promise(function(resolve) { setTimeout(resolve, 400 * attempt); });
+        if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('mk-save-status')); mkInited = false; return; }
         continue;
       }
       console.error('loadMediaKit', err);
-      window.RyxaLoadBar.fail(document.getElementById('mk-save-status'));
+      if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('mk-save-status')); mkInited = false; return; }
+      if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('mk-save-status')); mkInited = false; return; }
+    window.RyxaLoadBar.fail(document.getElementById('mk-save-status'));
       window.RyxaLoadBar.fail(document.getElementById('mk-save-status'));
       mkShowLoadFailed();
       showMKStatus('error', 'Failed to load. Please retry, or contact hello@ryxa.io if it continues.');
@@ -416,6 +420,7 @@ async function loadMediaKit() {
     showMKStatus('error', 'Failed to load. Please retry, or contact hello@ryxa.io if it continues.');
     return;
   }
+  if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('mk-save-status')); mkInited = false; return; }
   window.RyxaLoadBar.finish(document.getElementById('mk-save-status'));
   mkSetEditorLocked(false);
   mkClearStatusSlot();

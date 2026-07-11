@@ -167,6 +167,7 @@ prodRegisterAction('retry-editor-load', function() {
 });
 
 async function loadProductsList() {
+  const _gen = window.RyxaLoadGen.bump();
   var listEl = document.getElementById('products-list');
   var emptyEl = document.getElementById('products-empty');
 
@@ -191,6 +192,7 @@ async function loadProductsList() {
         .order('updated_at', { ascending: false });
       if (res.error) throw res.error;
       productsState.list = res.data || [];
+      if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('products-list')); return; }
       window.RyxaLoadBar.finish(listEl);
       setProductsListLocked(false);
       if (!productsState.list.length) {
@@ -207,9 +209,11 @@ async function loadProductsList() {
       if (attempt < MAX_LOAD_ATTEMPTS) {
         prodShowSpinnerStatus(listEl, 'Having trouble loading your products. Retrying...');
         await new Promise(function(resolve) { setTimeout(resolve, 400 * attempt); });
+        if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('products-list')); return; }
         continue;
       }
       // Final failure: blocking panel with Retry; New Product stays locked.
+      if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('products-list')); return; }
       window.RyxaLoadBar.fail(listEl);
       console.error('loadProductsList failed:', e);
       showProductsMsg('error', 'Failed to load. Please retry, or contact hello@ryxa.io if it continues.');
@@ -323,6 +327,7 @@ function setProductEditorControlsLocked(locked) {
 }
 
 async function openProductEditor(productId) {
+  const _gen = window.RyxaLoadGen.bump();
   document.getElementById('products-list-view').style.display = 'none';
   document.getElementById('products-editor-view').style.display = 'block';
   // Reset cover in-memory state
@@ -389,6 +394,7 @@ async function openProductEditor(productId) {
         productsState.editing = prodRes.data;
         productsState.editingFiles = filesRes.data || [];
         productsState.editingProductBytes = (filesRes.data || []).reduce(function(s, f) { return s + Number(f.file_size_bytes || 0); }, 0);
+        if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('products-editor-msg')); return; }
         hydrateProductEditor(prodRes.data);
         hideEditorLoading(true);
         setProductEditorControlsLocked(false);
@@ -397,6 +403,7 @@ async function openProductEditor(productId) {
         if (attempt < MAX_LOAD_ATTEMPTS) {
           showEditorLoading('Having trouble loading this product. Retrying...');
           await new Promise(function(resolve) { setTimeout(resolve, 400 * attempt); });
+          if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('products-editor-msg')); return; }
           continue;
         }
         // Final failure: same blocking in-editor state as the course editor.
@@ -404,6 +411,7 @@ async function openProductEditor(productId) {
         // panel with a Retry button renders in the top message slot. No
         // modal, no bouncing back to the list; one consistent pattern.
         console.error('Load product failed:', e);
+        if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('products-editor-msg')); return; }
         window.RyxaLoadBar.fail(msgEl);
         productsState.editorLoadFailed = true;
         if (msgEl) {
@@ -550,6 +558,8 @@ function copyProductUrl() {
 }
 
 function closeProductEditor() {
+  // Leaving the editor cancels any in-flight product load.
+  window.RyxaLoadGen.bump();
   unmountProductDescEditor();
   document.getElementById('products-editor-view').style.display = 'none';
   document.getElementById('products-list-view').style.display = 'block';

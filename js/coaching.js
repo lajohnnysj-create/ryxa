@@ -187,6 +187,7 @@ function coachShowListFailed() {
 coachRegisterAction('retry-list', function() { loadCoachingList(); });
 
 async function loadCoachingList() {
+  const _gen = window.RyxaLoadGen.bump();
   // Lock the New Service button and show visible loading from the first
   // moment. Unlocks only after a clean load; stays locked on failure.
   setCoachingListLocked(true);
@@ -208,6 +209,7 @@ async function loadCoachingList() {
         c._bookings = countRes.count || 0;
       }
 
+      if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('coaching-grid')); return; }
       window.RyxaLoadBar.finish(document.getElementById('coaching-grid'));
       setCoachingListLocked(false);
       renderCoachingList();
@@ -216,10 +218,12 @@ async function loadCoachingList() {
       if (attempt < MAX_LOAD_ATTEMPTS) {
         coachShowListLoading('Having trouble loading your services. Retrying...');
         await new Promise(function(resolve) { setTimeout(resolve, 400 * attempt); });
+        if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('coaching-grid')); return; }
         continue;
       }
       // Final failure: blocking panel with Retry; New Service stays locked.
       // A failed load must never masquerade as an empty list.
+      if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('coaching-grid')); return; }
       window.RyxaLoadBar.fail(document.getElementById('coaching-grid'));
       console.error('Failed to load coaching:', err);
       coachShowListFailed();
@@ -417,6 +421,7 @@ function coachHydrateEditor(coaching) {
 }
 
 async function openCoachingEditor(coachingId) {
+  const _gen = window.RyxaLoadGen.bump();
   document.getElementById('coaching-list-view').style.display = 'none';
   document.getElementById('coaching-editor-view').style.display = 'block';
   currentCoachingId = coachingId || null;
@@ -473,6 +478,7 @@ async function openCoachingEditor(coachingId) {
           res.data._bookings = coachingList[idx]._bookings;
           coachingList[idx] = res.data;
         }
+        if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('coaching-editor-msg')); return; }
         window.RyxaLoadBar.finish(document.getElementById('coaching-editor-msg'));
         coachHydrateEditor(res.data);
         coachClearEditorMsg();
@@ -482,11 +488,13 @@ async function openCoachingEditor(coachingId) {
         if (attempt < MAX_LOAD_ATTEMPTS) {
           coachShowEditorLoading('Having trouble loading this service. Retrying...');
           await new Promise(function(resolve) { setTimeout(resolve, 400 * attempt); });
+          if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('coaching-editor-msg')); return; }
           continue;
         }
         // Final failure: in-editor blocking panel with Retry, controls stay
         // locked, description editor not mounted. Retry re-runs the open.
         console.error('Failed to load service:', err);
+        if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('coaching-editor-msg')); return; }
         window.RyxaLoadBar.fail(document.getElementById('coaching-editor-msg'));
         coachingEditorLoadFailed = true;
         coachShowEditorFailed();
@@ -518,6 +526,8 @@ async function openCoachingEditor(coachingId) {
 }
 
 function closeCoachingEditor() {
+  // Leaving the editor cancels any in-flight service load.
+  window.RyxaLoadGen.bump();
   unmountCoachingDescEditor();
   document.getElementById('coaching-editor-view').style.display = 'none';
   document.getElementById('coaching-list-view').style.display = 'block';

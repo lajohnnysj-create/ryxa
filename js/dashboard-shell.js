@@ -1601,6 +1601,13 @@ function copyWelcomeBioLink() {
 //     (start/retrying/finish/fail/stop/isActive, keyed by an anchor element)
 //     is unchanged, so the five tool files need no knowledge of this.
 // =============================================================================
+// Cancellation generation for surface data loaders. Every loader captures
+// the generation when it starts; any navigation (tool switch, editor back)
+// or newer load bumps it, and in-flight loops abort silently when their
+// generation is stale: no bar, no panel, no toast, no state writes against
+// a view the user already left.
+window.RyxaLoadGen = { n: 0, bump: function() { return ++this.n; } };
+
 window.RyxaLoadBar = (function() {
   const TRICKLE_MS = 180;
   const MIN_VISIBLE_MS = 400;
@@ -2006,6 +2013,8 @@ function showFollowerTool() {
 }
 
 function showTool(tool) {
+  // Cancel any in-flight surface loads from the view being left.
+  window.RyxaLoadGen.bump();
   // Clean up any pending PDF Sign palette selection when switching tools
   if (typeof pdfsignTouchPending !== 'undefined') {
     pdfsignTouchPending = null;

@@ -211,6 +211,7 @@ function courseShowListFailed() {
 courseRegisterAction('retry-list', function() { loadCoursesList(); });
 
 async function loadCoursesList() {
+  const _gen = window.RyxaLoadGen.bump();
   // Lock New Course and show visible loading from the first moment.
   // Unlocks only after a clean load; stays locked on failure.
   setCoursesListLocked(true);
@@ -236,6 +237,7 @@ async function loadCoursesList() {
         c._enrollments = countRes.count || 0;
       }
 
+      if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('courses-grid')); return; }
       window.RyxaLoadBar.finish(document.getElementById('courses-grid'));
       setCoursesListLocked(false);
       renderCoursesList();
@@ -244,8 +246,10 @@ async function loadCoursesList() {
       if (attempt < MAX_LOAD_ATTEMPTS) {
         courseShowListLoading('Having trouble loading your courses. Retrying...');
         await new Promise(function(resolve) { setTimeout(resolve, 400 * attempt); });
+        if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('courses-grid')); return; }
         continue;
       }
+      if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('courses-grid')); return; }
       window.RyxaLoadBar.fail(document.getElementById('courses-grid'));
       console.error('Failed to load courses:', err);
       courseShowListFailed();
@@ -384,6 +388,8 @@ async function openCourseEditor(courseId) {
 }
 
 function closeCourseEditor() {
+  // Leaving the editor cancels any in-flight curriculum load.
+  window.RyxaLoadGen.bump();
   unmountCourseDescEditor();
   document.getElementById('courses-editor-view').style.display = 'none';
   document.getElementById('courses-list-view').style.display = 'block';
@@ -951,6 +957,7 @@ function setCourseEditorControlsLocked(locked) {
 }
 
 async function loadCourseModules(courseId) {
+  const _gen = window.RyxaLoadGen.bump();
   courseModulesLoaded = false;
   // Clear any prior failure banner, then lock every course action (Save,
   // Publish/Unpublish, Add Module) for the duration of the load. Controls
@@ -1012,6 +1019,7 @@ async function loadCourseModules(courseId) {
           quiz: moduleQuiz ? { ...moduleQuiz, _collapsed: true } : null
         };
       });
+      if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('course-editor-msg')); return; }
       window.RyxaLoadBar.finish(document.getElementById('course-editor-msg'));
       courseModulesLoaded = true;
       setCourseModulesLoadFailed(false);
@@ -1024,6 +1032,7 @@ async function loadCourseModules(courseId) {
         // leaving a silent blank area during the backoff.
         showCourseModulesLoading('Having trouble loading this course. Retrying...');
         await new Promise(resolve => setTimeout(resolve, 400 * attempt));
+        if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('course-editor-msg')); return; }
         continue;
       }
       // Final failure. A failed load must never masquerade as an empty
@@ -1032,6 +1041,7 @@ async function loadCourseModules(courseId) {
       // creator can miss, then unknowingly build on a broken base), show a
       // persistent blocking panel with a Retry button and keep Save and
       // Add Module disabled until a clean load succeeds.
+      if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('course-editor-msg')); return; }
       window.RyxaLoadBar.fail(document.getElementById('course-editor-msg'));
       courseModulesLoaded = false;
       setCourseModulesLoadFailed(true);
