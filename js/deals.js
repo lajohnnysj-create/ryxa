@@ -1,5 +1,5 @@
 // =============================================================================
-// /js/deals.js — Brand Deal CRM (extracted from dashboard.html, 2026-05-10)
+// /js/deals.js - Brand Deal CRM (extracted from dashboard.html, 2026-05-10)
 // -----------------------------------------------------------------------------
 // All JavaScript for the Brand Deal CRM tool (Max tier). Extracted from
 // dashboard.html for stricter CSP.
@@ -103,6 +103,8 @@ function initDealsCrm() {
 
 // Switch to list view
 function showDealsList() {
+  // Leaving the detail view cancels any in-flight deal load.
+  window.RyxaLoadGen.bump();
   document.getElementById('deals-detail-view').style.display = 'none';
   document.getElementById('deals-list-view').style.display = 'block';
 
@@ -134,7 +136,7 @@ function showDealsList() {
 
 
 // =====================================================
-// BRAND DEAL CRM — State & Constants
+// BRAND DEAL CRM - State & Constants
 // =====================================================
 const DEAL_STATUS_LABELS = {
   draft: 'Draft',
@@ -158,23 +160,191 @@ let currentDealDeliverables = []; // Working list of deliverables in modal
 let dealDeliverablesLoaded = false;
 
 // =====================================================
-// BRAND DEAL CRM — List & Load
+// BRAND DEAL CRM - List & Load
 // =====================================================
+// ---- Standard load treatment (shared pattern with the other five tools) ----
+
+// Lock/unlock the deals list actions as one unit while the list is loading
+// or in a failed state: New Deal and the pipeline toggle.
+function setDealsListLocked(locked) {
+  ['deals-new-btn', 'deals-pipeline-toggle'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.disabled = locked;
+    el.style.opacity = locked ? '0.5' : '';
+    el.style.cursor = locked ? 'not-allowed' : '';
+  });
+}
+
+// Blocking failure state for the deals list: persistent red panel with Retry
+// in the table area; a failed load must never masquerade as "no deals".
+function dealsShowListFailed() {
+  var tableEl = document.getElementById('deals-table');
+  var emptyEl = document.getElementById('deals-empty');
+  var chipsEl = document.getElementById('deals-filter-chips');
+  if (emptyEl) emptyEl.style.display = 'none';
+  if (chipsEl) chipsEl.style.display = 'none';
+  if (!tableEl) return;
+  tableEl.style.display = 'block';
+  tableEl.innerHTML = '';
+  var panel = document.createElement('div');
+  panel.setAttribute('role', 'alert');
+  panel.style.padding = '20px';
+  panel.style.borderRadius = '12px';
+  panel.style.border = '1px solid rgba(239,68,68,0.35)';
+  panel.style.background = 'rgba(239,68,68,0.08)';
+  var heading = document.createElement('div');
+  heading.style.color = '#f87171';
+  heading.style.fontWeight = '600';
+  heading.style.fontSize = '15px';
+  heading.style.marginBottom = '6px';
+  heading.textContent = 'Could not load your deals';
+  var body = document.createElement('div');
+  body.style.color = 'rgba(255,255,255,0.7)';
+  body.style.fontSize = '14px';
+  body.style.lineHeight = '1.5';
+  body.style.marginBottom = '14px';
+  body.textContent = 'Check your internet connection and press Retry. If the issue continues, contact us at hello@ryxa.io.';
+  var retry = document.createElement('button');
+  retry.type = 'button';
+  retry.setAttribute('data-deal-action', 'retry-list');
+  retry.textContent = 'Retry';
+  retry.style.padding = '9px 18px';
+  retry.style.borderRadius = '8px';
+  retry.style.border = '1px solid rgba(255,255,255,0.25)';
+  retry.style.background = 'rgba(255,255,255,0.06)';
+  retry.style.color = '#fff';
+  retry.style.fontWeight = '600';
+  retry.style.cursor = 'pointer';
+  panel.appendChild(heading);
+  panel.appendChild(body);
+  panel.appendChild(retry);
+  tableEl.appendChild(panel);
+}
+
+dealRegisterAction('retry-list', function() { loadDealsList(); });
+dealRegisterAction('retry-detail-load', function() { if (currentDealId) showDealDetail(currentDealId); });
+
+// Lock/unlock the entire deal detail form while its fresh row is loading or
+// failed: every child of the detail view is dimmed with pointer-events off,
+// EXCEPT the back link (always an escape hatch) and the failure panel (its
+// Retry must stay clickable). Key action buttons are also disabled directly.
+function setDealDetailLocked(locked) {
+  var view = document.getElementById('deals-detail-view');
+  if (view) {
+    Array.prototype.forEach.call(view.children, function(child, i) {
+      if (i === 0) return; // back-link row stays live
+      if (child.hasAttribute('data-deal-load-panel')) return;
+      child.style.pointerEvents = locked ? 'none' : '';
+      child.style.opacity = locked ? '0.5' : '';
+    });
+  }
+  ['deal-save-btn', 'deal-delete-btn', 'deal-share-btn', 'deal-share-btn-bottom'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.disabled = locked;
+  });
+}
+
+function dealsClearDetailPanel() {
+  var view = document.getElementById('deals-detail-view');
+  if (!view) return;
+  var panel = view.querySelector('[data-deal-load-panel]');
+  if (panel) panel.remove();
+}
+
+// Blocking failure state for the deal detail: red panel with Retry inserted
+// at the TOP of the detail view (right under the back link, where the user
+// lands), not in the bottom message slot. Form stays locked; Back stays live.
+function dealsShowDetailFailed() {
+  var view = document.getElementById('deals-detail-view');
+  if (!view) return;
+  dealsClearDetailPanel();
+  var panel = document.createElement('div');
+  panel.setAttribute('data-deal-load-panel', '1');
+  panel.setAttribute('role', 'alert');
+  panel.style.padding = '20px';
+  panel.style.borderRadius = '12px';
+  panel.style.border = '1px solid rgba(239,68,68,0.35)';
+  panel.style.background = 'rgba(239,68,68,0.08)';
+  panel.style.margin = '0 0 16px 0';
+  var heading = document.createElement('div');
+  heading.style.color = '#f87171';
+  heading.style.fontWeight = '600';
+  heading.style.fontSize = '15px';
+  heading.style.marginBottom = '6px';
+  heading.textContent = 'Could not load this deal';
+  var body = document.createElement('div');
+  body.style.color = 'rgba(255,255,255,0.7)';
+  body.style.fontSize = '14px';
+  body.style.lineHeight = '1.5';
+  body.style.marginBottom = '14px';
+  body.textContent = 'Check your internet connection and press Retry. If the issue continues, contact us at hello@ryxa.io.';
+  var retry = document.createElement('button');
+  retry.type = 'button';
+  retry.setAttribute('data-deal-action', 'retry-detail-load');
+  retry.textContent = 'Retry';
+  retry.style.padding = '9px 18px';
+  retry.style.borderRadius = '8px';
+  retry.style.border = '1px solid rgba(255,255,255,0.25)';
+  retry.style.background = 'rgba(255,255,255,0.06)';
+  retry.style.color = '#fff';
+  retry.style.fontWeight = '600';
+  retry.style.cursor = 'pointer';
+  panel.appendChild(heading);
+  panel.appendChild(body);
+  panel.appendChild(retry);
+  var first = view.firstElementChild;
+  if (first && first.nextSibling) view.insertBefore(panel, first.nextSibling);
+  else view.appendChild(panel);
+  panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
 async function loadDealsList() {
   if (!currentUser || !isMax()) return;
-  const { data, error } = await sb
-    .from('brand_deals')
-    .select('*')
-    .eq('user_id', currentUser.id)
-    .order('created_at', { ascending: false });
+  const _gen = window.RyxaLoadGen.bump();
+  const tableEl = document.getElementById('deals-table');
+  const emptyEl = document.getElementById('deals-empty');
+  const chipsEl = document.getElementById('deals-filter-chips');
+  setDealsListLocked(true);
+  if (emptyEl) emptyEl.style.display = 'none';
+  if (chipsEl) chipsEl.style.display = 'none';
+  if (tableEl) { tableEl.style.display = 'block'; tableEl.innerHTML = ''; }
+  window.RyxaLoadBar.start(tableEl);
 
-  if (error) {
-    console.error('Failed to load deals:', error);
-    return;
+  const MAX_LOAD_ATTEMPTS = 3;
+  for (let attempt = 1; attempt <= MAX_LOAD_ATTEMPTS; attempt++) {
+    try {
+      const res = await sb
+        .from('brand_deals')
+        .select('*')
+        .eq('user_id', currentUser.id)
+        .order('created_at', { ascending: false });
+      if (res.error) throw res.error;
+      if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('deals-table')); return; }
+      dealsList = res.data || [];
+      window.RyxaLoadBar.finish(tableEl);
+      setDealsListLocked(false);
+      renderDealsList();
+      // Analytics cards are decoration; never let them fail or delay the list.
+      loadDealsAnalytics().catch(function(e) { console.error('loadDealsAnalytics', e); });
+      return;
+    } catch (err) {
+      if (attempt < MAX_LOAD_ATTEMPTS) {
+        if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('deals-table')); return; }
+        window.RyxaLoadBar.retrying(tableEl, 'Having trouble loading your deals. Retrying...');
+        await new Promise(function(resolve) { setTimeout(resolve, 400 * attempt); });
+        if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('deals-table')); return; }
+        continue;
+      }
+      if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('deals-table')); return; }
+      console.error('Failed to load deals:', err);
+      window.RyxaLoadBar.fail(tableEl);
+      dealsShowListFailed();
+      showDashToast('error', 'Failed to load. Please retry, or contact hello@ryxa.io if it continues.');
+      return;
+    }
   }
-  dealsList = data || [];
-  renderDealsList();
-  await loadDealsAnalytics();
 }
 
 function renderDealsList() {
@@ -264,7 +434,7 @@ function renderDealsList() {
 }
 
 function formatUSD(cents) {
-  // Now currency-aware — uses the user's display currency
+  // Now currency-aware - uses the user's display currency
   return formatMoney(cents);
 }
 
@@ -275,7 +445,7 @@ function formatDateShort(isoDate) {
 }
 
 // =====================================================
-// BRAND DEAL CRM — Pipeline (Kanban) View
+// BRAND DEAL CRM - Pipeline (Kanban) View
 // =====================================================
 let pipelineViewActive = false;
 let dealsListFilter = 'in_progress';  // list filter chip: in_progress | all | completed | cancelled
@@ -503,7 +673,7 @@ function stopPipelineAutoScroll() {
   document.removeEventListener('dragover', _onPipelineDragOverGlobal);
 }
 
-// Drag handlers — called from document-level delegated listeners below.
+// Drag handlers - called from document-level delegated listeners below.
 // We pass the column element explicitly because event delegation means
 // e.currentTarget is `document` (where the listener was attached), not the
 // column. The old code that used e.currentTarget.classList.add('drag-over')
@@ -520,7 +690,7 @@ function onPipelineDragLeave(e, col) {
   // dragleave fires when crossing between child elements inside the column,
   // not only when leaving the column entirely. Without this guard the
   // .drag-over highlight flickers on/off as the user drags over cards.
-  // relatedTarget is the element the mouse is moving INTO — if it's still
+  // relatedTarget is the element the mouse is moving INTO - if it's still
   // inside the same column, we're not actually leaving, so do nothing.
   if (col && e.relatedTarget && col.contains(e.relatedTarget)) return;
   if (col) col.classList.remove('drag-over');
@@ -536,7 +706,7 @@ async function onPipelineDrop(e, newStatus, col) {
   // Find the deal in our local list
   const deal = dealsList.find(d => d.id === dealId);
   if (!deal || deal.status === newStatus) {
-    // No change — just clean up
+    // No change - just clean up
     renderPipeline();
     return;
   }
@@ -679,7 +849,7 @@ async function onPipelineDrop(e, newStatus, col) {
 })();
 
 // =====================================================
-// BRAND DEAL CRM — Analytics
+// BRAND DEAL CRM - Analytics
 // =====================================================
 async function loadDealsAnalytics() {
   if (!currentUser || !isMax()) return;
@@ -687,7 +857,7 @@ async function loadDealsAnalytics() {
   const analyticsEl = document.getElementById('deals-analytics');
   if (!analyticsEl) return;
 
-  // Always visible — zero-state shows $0 / empty widgets so user sees the layout even before data
+  // Always visible - zero-state shows $0 / empty widgets so user sees the layout even before data
   analyticsEl.style.display = 'block';
 
   // Fetch brand deal revenue events only (exclude course/coaching)
@@ -913,10 +1083,13 @@ function renderUpcomingEnds() {
 }
 
 // =====================================================
-// BRAND DEAL CRM — Detail View Open / Close
+// BRAND DEAL CRM - Detail View Open / Close
 // =====================================================
-function showDealDetail(dealId) {
+async function showDealDetail(dealId) {
+  const _gen = window.RyxaLoadGen.bump();
   currentDealId = dealId || null;
+  dealsClearDetailPanel();
+  setDealDetailLocked(false);
   currentDealDeliverables = [];
   dealDeliverablesLoaded = true; // reset state: empty list is real until a load says otherwise
 
@@ -954,9 +1127,71 @@ function showDealDetail(dealId) {
     document.getElementById('deal-payment-details').value = deal.payment_details || '';
     document.getElementById('deal-private-notes').value = deal.private_notes || '';
     document.getElementById('deal-delete-btn').style.display = 'inline-block';
-    loadDealDeliverables(deal.id);
     renderContractUI(deal);
     renderInvoiceUI(deal);
+
+    // Instant paint above came from the in-memory list cache. Now fetch the
+    // row FRESH behind a lock, exactly like the booking and product editors:
+    // deal rows carry payment details and contract state, and saving from a
+    // stale snapshot (edited in another tab or on another device) would
+    // overwrite the newer data. Deliverables load separately below and have
+    // their own loaded-flag guard in saveDeal.
+    // Switch to the detail view BEFORE the fetch: the user must see the
+    // locked form (and, on failure, the panel) - not linger on the list
+    // while an invisible view loads. The function tail's own view switch
+    // then runs redundantly on success, which is harmless.
+    document.getElementById('deals-list-view').style.display = 'none';
+    document.getElementById('deals-detail-view').style.display = 'block';
+    var pipelineElEarly = document.getElementById('deals-pipeline-view');
+    if (pipelineElEarly) pipelineElEarly.style.display = 'none';
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    setDealDetailLocked(true);
+    window.RyxaLoadBar.start(document.getElementById('deal-detail-msg'));
+    const MAX_LOAD_ATTEMPTS = 3;
+    let freshDeal = null;
+    for (let attempt = 1; attempt <= MAX_LOAD_ATTEMPTS; attempt++) {
+      try {
+        const res = await sb.from('brand_deals').select('*').eq('id', dealId).eq('user_id', currentUser.id).single();
+        if (res.error) throw res.error;
+        if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('deal-detail-msg')); return; }
+        freshDeal = res.data;
+        break;
+      } catch (err) {
+        if (attempt < MAX_LOAD_ATTEMPTS) {
+          if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('deal-detail-msg')); return; }
+          window.RyxaLoadBar.retrying(document.getElementById('deal-detail-msg'), 'Having trouble loading this deal. Retrying...');
+          await new Promise(function(resolve) { setTimeout(resolve, 400 * attempt); });
+          if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('deal-detail-msg')); return; }
+          continue;
+        }
+        if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('deal-detail-msg')); return; }
+        console.error('Failed to load deal:', err);
+        window.RyxaLoadBar.fail(document.getElementById('deal-detail-msg'));
+        dealsShowDetailFailed();
+        showDashToast('error', 'Failed to load. Please retry, or contact hello@ryxa.io if it continues.');
+        return;
+      }
+    }
+    // Re-hydrate from the fresh row and refresh the list cache entry.
+    const idx = dealsList.findIndex(function(d) { return d.id === dealId; });
+    if (idx >= 0) dealsList[idx] = freshDeal;
+    document.getElementById('deal-title').value = freshDeal.deal_title || '';
+    document.getElementById('deal-brand-name').value = freshDeal.brand_name || '';
+    document.getElementById('deal-brand-contact-name').value = freshDeal.brand_contact_name || '';
+    document.getElementById('deal-brand-contact-email').value = freshDeal.brand_contact_email || '';
+    document.getElementById('deal-amount').value = freshDeal.deal_amount_cents ? (freshDeal.deal_amount_cents / 100).toString() : '';
+    document.getElementById('deal-campaign-start').value = freshDeal.campaign_start_date || '';
+    document.getElementById('deal-campaign-end').value = freshDeal.campaign_end_date || '';
+    document.getElementById('deal-status').value = freshDeal.status || 'draft';
+    document.getElementById('deal-payment-status').value = freshDeal.payment_status || 'waiting';
+    document.getElementById('deal-payment-method').value = freshDeal.payment_method || '';
+    document.getElementById('deal-payment-details').value = freshDeal.payment_details || '';
+    document.getElementById('deal-private-notes').value = freshDeal.private_notes || '';
+    renderContractUI(freshDeal);
+    renderInvoiceUI(freshDeal);
+    window.RyxaLoadBar.finish(document.getElementById('deal-detail-msg'));
+    setDealDetailLocked(false);
+    loadDealDeliverables(dealId);
   } else {
     document.getElementById('deal-detail-title').textContent = 'New Brand Deal';
     document.getElementById('deal-delete-btn').style.display = 'none';
@@ -1007,7 +1242,7 @@ function updateDealDetailBadges() {
   const statusBadge = document.getElementById('deal-detail-status-badge');
   if (statusBadge) {
     statusBadge.textContent = DEAL_STATUS_LABELS[status] || status;
-    // Swap classes — remove any prior deal-status-* and add the new one
+    // Swap classes - remove any prior deal-status-* and add the new one
     statusBadge.className = 'deal-status-badge deal-status-' + status;
   }
 
@@ -1065,7 +1300,7 @@ function applyDealLockState() {
     }
   }
 
-  // Not locked (or new deal being set to completed) — allow editing
+  // Not locked (or new deal being set to completed) - allow editing
   lockBanner.style.display = 'none';
   inputIds.forEach(id => { const el = document.getElementById(id); if (el) el.disabled = false; });
   document.getElementById('deal-status').disabled = false;
@@ -1085,7 +1320,7 @@ function applyDealLockState() {
   const isShared = savedDeal && savedDeal.share_token && !savedDeal.share_revoked_at;
   if (isShared && emailEl) {
     emailEl.disabled = true;
-    emailEl.title = 'Locked — deal is shared with brand. Revoke sharing first to change the contact email.';
+    emailEl.title = 'Locked - deal is shared with brand. Revoke sharing first to change the contact email.';
     if (emailHint) emailHint.style.display = 'block';
   } else if (emailEl) {
     emailEl.disabled = false;
@@ -1107,7 +1342,7 @@ async function revertDealToActive() {
 }
 
 // =====================================================
-// BRAND DEAL CRM — Messages Thread (Creator side)
+// BRAND DEAL CRM - Messages Thread (Creator side)
 // =====================================================
 let dealMessagesCache = [];
 
@@ -1133,21 +1368,21 @@ function updateMessagesCardVisibility() {
   const brandHasAccessed = !!deal.brand_first_accessed_at;
 
   if (!isShared) {
-    // No share token yet — show "share with brand first"
+    // No share token yet - show "share with brand first"
     if (noShareEl) {
       noShareEl.style.display = 'block';
       noShareEl.querySelector('div').innerHTML = 'Messages will be visible to the brand once you share this deal. Click <strong class="mk-s-e0b980">Share with brand</strong> above to generate the portal link.';
     }
     if (composer) composer.style.display = 'none';
   } else if (!brandHasAccessed) {
-    // Shared but brand hasn't logged into portal yet — wait for them
+    // Shared but brand hasn't logged into portal yet - wait for them
     if (noShareEl) {
       noShareEl.style.display = 'block';
       noShareEl.querySelector('div').innerHTML = '<strong class="mk-s-e0b980">Chat will be enabled when the brand logs in.</strong> Send them the portal link and PIN above so they can access the deal.';
     }
     if (composer) composer.style.display = 'none';
   } else {
-    // Brand has logged in — chat is fully enabled
+    // Brand has logged in - chat is fully enabled
     if (noShareEl) noShareEl.style.display = 'none';
     if (composer) composer.style.display = 'flex';
   }
@@ -1260,7 +1495,7 @@ async function postCreatorMessage() {
     return;
   }
 
-  // Get creator display name — prefer profiles.username, fall back to email prefix
+  // Get creator display name - prefer profiles.username, fall back to email prefix
   let authorName = 'Creator';
   try {
     const { data: profile } = await sb.from('profiles').select('username').eq('user_id', currentUser.id).maybeSingle();
@@ -1313,7 +1548,7 @@ function updateMessageCharCount() {
 }
 
 // =====================================================
-// BRAND DEAL CRM — Deliverables in modal
+// BRAND DEAL CRM - Deliverables in modal
 // =====================================================
 async function loadDealDeliverables(dealId) {
   dealDeliverablesLoaded = false;
@@ -1377,7 +1612,7 @@ function updateDeliverableField(index, field, value) {
   }
 }
 
-// Collapse a deliverable to its summary card (no DB write — page-level Save persists)
+// Collapse a deliverable to its summary card (no DB write - page-level Save persists)
 function collapseDeliverable(index) {
   if (currentDealDeliverables[index]) {
     // Require at least a title to collapse
@@ -1445,7 +1680,7 @@ function renderDeliverables() {
               class="deal-input deal-s-a72c66" >${escapeHtml(d.notes)}</textarea>
           </div>
           <div class="prod-s-af3fee">
-            <label class="deal-label">Due Date <span class="deal-s-1baf67">(optional — adds to your calendar)</span></label>
+            <label class="deal-label">Due Date <span class="deal-s-1baf67">(optional - adds to your calendar)</span></label>
             <input type="date" data-field="due_date" value="${escapeHtml(d.due_date || '')}"
               data-deal-action="update-deliverable" data-deal-event="change" data-deal-i="${i}" data-deal-field="due_date"
               aria-label="Deliverable due date"
@@ -1504,7 +1739,7 @@ function renderDeliverables() {
 }
 
 // =====================================================
-// BRAND DEAL CRM — Contract upload/view/remove
+// BRAND DEAL CRM - Contract upload/view/remove
 // =====================================================
 const DEAL_CONTRACT_MAX_BYTES = 10 * 1024 * 1024; // 10 MB
 
@@ -1552,7 +1787,7 @@ function renderContractUI(deal) {
     }
 
     if (isLocked) {
-      // Fully executed — hide all action buttons, show locked message
+      // Fully executed - hide all action buttons, show locked message
       actionsEl.style.display = 'none';
       lockedMsg.style.display = 'block';
       // Hide replace/remove buttons when locked
@@ -1574,7 +1809,7 @@ function renderContractUI(deal) {
     existingEl.style.display = 'none';
     signingEl.style.display = 'none';
     emptyEl.style.display = 'block';
-    // Always show the uploader — we auto-save as draft when needed on file select
+    // Always show the uploader - we auto-save as draft when needed on file select
     if (saveFirstEl) saveFirstEl.style.display = 'none';
     if (uploaderEl) uploaderEl.style.display = 'block';
   }
@@ -1659,11 +1894,11 @@ async function handleContractFileSelected(event) {
     return;
   }
 
-  // Auto-save as draft if this is a new (unsaved) deal — need a deal_id to scope the upload path
+  // Auto-save as draft if this is a new (unsaved) deal - need a deal_id to scope the upload path
   if (!currentDealId) {
     const autoSaved = await autoSaveDraftForContract();
     if (!autoSaved) {
-      // validation failed or save errored — error message already shown
+      // validation failed or save errored - error message already shown
       event.target.value = '';
       return;
     }
@@ -1793,7 +2028,7 @@ async function removeContract() {
 
   const path = deal.contract_file_path;
 
-  // Delete from storage (best effort — even if this fails we still clear the DB ref)
+  // Delete from storage (best effort - even if this fails we still clear the DB ref)
   const { error: storageErr } = await sb.storage.from('deal-contracts').remove([path]);
   if (storageErr) console.warn('Storage delete warning:', storageErr);
 
@@ -1822,7 +2057,7 @@ async function removeContract() {
 
 // =====================================================
 // =====================================================
-// BRAND DEAL CRM — Contract Signing
+// BRAND DEAL CRM - Contract Signing
 // =====================================================
 
 let _dashConfirmResolve = null;
@@ -1879,7 +2114,7 @@ async function signContractAsCreator() {
     // Switch to Sign PDF tool (must happen BEFORE setting context)
     showTool('pdfsign');
 
-    // NOW set context — after showTool so the cleanup check doesn't trigger
+    // NOW set context - after showTool so the cleanup check doesn't trigger
     window._contractSignContext = {
       dealId: currentDealId,
       storagePath: deal.contract_file_path,
@@ -1962,7 +2197,7 @@ function showContractSaveButton() {
   const banner = document.createElement('div');
   banner.id = 'pdfsign-contract-banner';
   banner.style.cssText = 'padding:10px 16px;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.25);border-radius:10px;margin-bottom:12px;font-size:12px;color:var(--text);display:flex;align-items:center;gap:8px;';
-  banner.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span><strong class="deal-s-98f215">Contract Signing Mode</strong> — Sign the contract and click <strong>Save & Upload to Deal</strong> when done.</span>';
+  banner.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span><strong class="deal-s-98f215">Contract Signing Mode</strong> - Sign the contract and click <strong>Save & Upload to Deal</strong> when done.</span>';
   editorEl.insertBefore(banner, editorEl.firstChild);
 }
 
@@ -2005,7 +2240,7 @@ async function saveSignedContractBack() {
       .upload(ctx.storagePath, blob, { contentType: 'application/pdf', upsert: true });
     if (uploadError) throw new Error(uploadError.message);
 
-    // Mark creator as signed — auto-lock + activate if brand already signed
+    // Mark creator as signed - auto-lock + activate if brand already signed
     const now = new Date().toISOString();
     const dealIdx = dealsList.findIndex(d => d.id === ctx.dealId);
     const brandAlreadySigned = dealIdx >= 0 && dealsList[dealIdx].brand_signed_at;
@@ -2127,7 +2362,7 @@ async function sendContractToBrand() {
 }
 
 // =====================================================
-// BRAND DEAL CRM — Invoice upload/view/remove + send to brand
+// BRAND DEAL CRM - Invoice upload/view/remove + send to brand
 // =====================================================
 const DEAL_INVOICE_MAX_BYTES = 10 * 1024 * 1024; // 10 MB
 
@@ -2161,7 +2396,7 @@ function renderInvoiceUI(deal) {
       sendStatusEl.innerHTML = `Invoice was sent to the brand on ${dateStr}. You can resend it if needed.`;
       sendBtn.textContent = 'Resend invoice';
     } else {
-      statusEl.textContent = 'Invoice uploaded — not sent yet';
+      statusEl.textContent = 'Invoice uploaded - not sent yet';
       statusEl.style.color = 'var(--muted)';
       if (!isShared) {
         sendStatusEl.innerHTML = '<strong class="mk-s-e0b980">Share this deal with the brand first</strong> to enable invoice sending.';
@@ -2382,10 +2617,10 @@ async function sendInvoiceToBrand() {
 }
 
 // =====================================================
-// BRAND DEAL CRM — Notifications (background, fire-and-forget)
+// BRAND DEAL CRM - Notifications (background, fire-and-forget)
 // =====================================================
 function notifyBrandOfCreatorMessage(dealId, messagePreview) {
-  // Fire-and-forget — we don't block the UI on this
+  // Fire-and-forget - we don't block the UI on this
   sb.functions.invoke('send-deal-notification', {
     body: {
       type: 'creator_message_to_brand',
@@ -2406,7 +2641,7 @@ function notifyCreatorOfBrandMessage(dealId, messagePreview) {
 }
 
 // =====================================================
-// BRAND DEAL CRM — Save
+// BRAND DEAL CRM - Save
 // =====================================================
 async function saveDeal() {
   const title = document.getElementById('deal-title').value.trim();
@@ -2461,10 +2696,17 @@ async function saveDeal() {
   const wasNewDeal = !dealId;
   if (dealId) {
     // Update
-    const { error } = await sb.from('brand_deals').update(payload).eq('id', dealId);
-    if (error) {
+    // .select('id') so a zero-row update (RLS mismatch after an identity
+    // change in another tab, or a deal deleted elsewhere) is a visible
+    // failure rather than a silent "Saved!". Same pattern as every other tool.
+    const updRes = await sb.from('brand_deals').update(payload).eq('id', dealId).select('id');
+    if (updRes.error) {
       saveBtn.disabled = false; saveBtn.textContent = origBtnText;
-      return showDealModalMsg('error', 'Failed to save: ' + error.message);
+      return showDealModalMsg('error', 'Failed to save: ' + updRes.error.message);
+    }
+    if (!updRes.data || updRes.data.length === 0) {
+      saveBtn.disabled = false; saveBtn.textContent = origBtnText;
+      return showDealModalMsg('error', 'Nothing was saved. You may have been signed out. Reload and try again.');
     }
   } else {
     // Insert
@@ -2549,7 +2791,7 @@ async function saveDeal() {
     syncDealCalendarEvents(dealId, brandName, status, campaignStart, campaignEnd, currentDealDeliverables);
   }
 
-  // Inline success message — stay on the detail view
+  // Inline success message - stay on the detail view
   showDealModalMsg('success', 'Saved.');
 }
 
@@ -2704,7 +2946,7 @@ function showDealModalMsg(type, text) {
 }
 
 // =====================================================
-// BRAND DEAL CRM — Delete
+// BRAND DEAL CRM - Delete
 // =====================================================
 function promptDeleteDeal() {
   if (!currentDealId) return;
@@ -2780,7 +3022,7 @@ async function confirmDeleteDeal() {
 }
 
 // =====================================================
-// BRAND DEAL CRM — Share with Brand
+// BRAND DEAL CRM - Share with Brand
 // =====================================================
 
 // Show or hide the "Share with brand" button based on whether deal is saved + has brand contact
@@ -2789,7 +3031,7 @@ function updateShareButtonVisibility() {
   const btnBottom = document.getElementById('deal-share-btn-bottom');
   const cancelBtn = document.getElementById('deal-cancel-btn');
 
-  // New deal not yet saved — hide top share, disable bottom share, show "Cancel"
+  // New deal not yet saved - hide top share, disable bottom share, show "Cancel"
   if (!currentDealId) {
     if (btn) btn.style.display = 'none';
     if (btnBottom) {
@@ -2810,7 +3052,7 @@ function updateShareButtonVisibility() {
     return;
   }
 
-  // Saved deal — switch Cancel to Return
+  // Saved deal - switch Cancel to Return
   if (cancelBtn) cancelBtn.textContent = 'Return';
 
   // Hide on cancelled deals (sharing is auto-revoked)
@@ -2835,21 +3077,21 @@ async function openShareModal() {
   const deal = dealsList.find(d => d.id === currentDealId);
   if (!deal) return;
 
-  // Validate — must have brand contact email
+  // Validate - must have brand contact email
   if (!deal.brand_contact_email) {
     showDealModalMsg('error', 'Please add a brand contact email to the deal before sharing.');
     document.getElementById('deal-brand-contact-email').focus();
     return;
   }
 
-  // If deal already has an active, non-revoked share — skip confirm and open directly
+  // If deal already has an active, non-revoked share - skip confirm and open directly
   const needsNewToken = !deal.share_token || !deal.share_pin || deal.share_revoked_at;
   if (!needsNewToken) {
     proceedOpenShareModal();
     return;
   }
 
-  // First-time share — show styled confirm modal
+  // First-time share - show styled confirm modal
   document.getElementById('deal-share-confirm-email').textContent = deal.brand_contact_email;
   document.getElementById('deal-share-confirm-modal').style.display = 'flex';
 }
@@ -2987,7 +3229,7 @@ async function revokeShareAccess() {
 
 
 // =============================================================================
-// ACTION REGISTRATIONS — wired up below as part of Phase 2
+// ACTION REGISTRATIONS - wired up below as part of Phase 2
 // =============================================================================
 
 // Top-level markup buttons
@@ -3006,7 +3248,7 @@ dealRegisterAction('update-badges', () => updateDealDetailBadges());
 
 // Deal list / pipeline card click (template literal)
 dealRegisterAction('show-detail', (e, el) => showDealDetail(el.dataset.dealId));
-// Pipeline kanban move-status buttons (template literal — event.stopPropagation
+// Pipeline kanban move-status buttons (template literal - event.stopPropagation
 // no longer needed since dispatcher finds the closest matching action element)
 dealRegisterAction('move-status', (e, el) => {
   // Don't bubble to the card's show-detail action
