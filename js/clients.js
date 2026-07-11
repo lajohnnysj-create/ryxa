@@ -516,8 +516,26 @@ async function clientsReloadPage() {
     // Stale-reload aborts are silent (a newer reload is taking over).
     if (e && e.stale) return;
     console.error('Subscribers page reload failed:', e);
-    tbody.innerHTML = '<tr><td colspan="7" class="ana-s-cd4491">Could not load subscribers</td></tr>';
+    // Do NOT paint a failure state here. When called from loadClients (initial
+    // tool open), re-throw so loadClients owns the full failure UI (bar, red
+    // panel, Retry). When called directly for a page turn or search, the
+    // caller handles its own lightweight failure; painting the bare text here
+    // would clobber the standard panel and double-render.
+    throw e;
   }
+}
+
+// Lightweight reload for paging / search / sort / filter. Unlike the initial
+// tool open (loadClients), a failed page turn should not blow away the list
+// with the full red panel - the user still has the current page on screen.
+// Show a brief toast and keep what is rendered.
+function clientsReloadPageSafe() {
+  clientsReloadPage().catch(function(e) {
+    if (e && e.stale) return;
+    if (typeof showDashToast === 'function') {
+      showDashToast('error', 'Could not update the list. Please try again.');
+    }
+  });
 }
 
 // REPLACES the old client-side filter. Now: resets to page 0 and reloads
@@ -535,10 +553,10 @@ function filterSubscribers() {
     if (clientsSearchDebounceTimer) clearTimeout(clientsSearchDebounceTimer);
     clientsSearchDebounceTimer = setTimeout(function() {
       clientsSearchDebounceTimer = null;
-      clientsReloadPage();
+      clientsReloadPageSafe();
     }, 250);
   } else {
-    clientsReloadPage();
+    clientsReloadPageSafe();
   }
 }
 
@@ -555,7 +573,7 @@ function clientsPage(dir) {
   // suppression to server-side). No further subtraction needed.
   var maxPage = Math.max(0, Math.floor((Math.max(0, clientsTotalCount) - 1) / CLIENTS_PER_PAGE));
   clientsCurrentPage = Math.max(0, Math.min(maxPage, clientsCurrentPage + dir));
-  clientsReloadPage();
+  clientsReloadPageSafe();
 }
 
 function renderSubscribersPage() {
@@ -2194,7 +2212,7 @@ async function clientsImportRunImport() {
 
 clientsRegisterAction('export', () => exportSubscribers());
 clientsRegisterAction('filter', () => filterSubscribers());
-clientsRegisterAction('sort-change', () => { clientsCurrentPage = 0; clientsReloadPage(); });
+clientsRegisterAction('sort-change', () => { clientsCurrentPage = 0; clientsReloadPageSafe(); });
 clientsRegisterAction('page', (e, el) => clientsPage(parseInt(el.dataset.clientsDir, 10)));
 clientsRegisterAction('remove-readonly', (e, el) => el.removeAttribute('readonly'));
 clientsRegisterAction('toggle-row', (e, el) => clientsToggleRow(el.dataset.clientsEmail, el.checked));
@@ -2208,7 +2226,7 @@ clientsRegisterAction('consent-filter', function (e, el) {
   // A different filter is a different result set, so page 1 and a fresh count.
   clientsCurrentPage = 0;
   clientsSelected = new Set();
-  clientsReloadPage();
+  clientsReloadPageSafe();
 });
 
 clientsRegisterAction('toggle-all', (e, el) => clientsToggleAll(el.checked));
