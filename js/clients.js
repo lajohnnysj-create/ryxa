@@ -695,14 +695,27 @@ function setClientsListLocked(locked) {
 // Blocking failure state: red panel with Retry rendered as a full-width row
 // in the table body. A failed load must never masquerade as an empty list.
 function clientsShowListFailed() {
-  var tbody = document.getElementById('clients-tbody');
-  if (!tbody) return;
-  tbody.innerHTML = '<tr><td colspan="7" style="padding:0;border:none;">'
-    + '<div role="alert" style="padding:20px;border-radius:12px;border:1px solid rgba(239,68,68,0.35);background:rgba(239,68,68,0.08);margin:8px 0;">'
+  // Panel renders ABOVE the table (dedicated #clients-load-panel slot), where
+  // the eye lands and consistent with every other tool - not inside the
+  // table body. The table itself is hidden so a stale/empty grid does not
+  // sit under the panel.
+  var panel = document.getElementById('clients-load-panel');
+  var tableWrap = document.querySelector('#clients-content .ana-s-c87556');
+  if (tableWrap) tableWrap.style.display = 'none';
+  if (!panel) return;
+  panel.innerHTML = '<div role="alert" style="padding:20px;border-radius:12px;border:1px solid rgba(239,68,68,0.35);background:rgba(239,68,68,0.08);margin:0 0 16px 0;">'
     + '<div style="color:#f87171;font-weight:600;font-size:15px;margin-bottom:6px;">Could not load your subscribers</div>'
     + '<div style="color:rgba(255,255,255,0.7);font-size:14px;line-height:1.5;margin-bottom:14px;">Your list is safe; it just could not be loaded. Check your internet connection and press Retry. If the issue continues, contact us at hello@ryxa.io.</div>'
     + '<button type="button" data-clients-action="retry-load" style="padding:9px 18px;border-radius:8px;border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.06);color:#fff;font-weight:600;cursor:pointer;">Retry</button>'
-    + '</div></td></tr>';
+    + '</div>';
+}
+
+// Clear the failure panel and restore the table (called when a load starts).
+function clientsClearLoadPanel() {
+  var panel = document.getElementById('clients-load-panel');
+  if (panel) panel.innerHTML = '';
+  var tableWrap = document.querySelector('#clients-content .ana-s-c87556');
+  if (tableWrap) tableWrap.style.display = '';
 }
 
 clientsRegisterAction('retry-load', function() { loadClients(); });
@@ -712,6 +725,7 @@ async function loadClients() {
   if (!tbody || !currentUser) return;
   const _gen = window.RyxaLoadGen.bump();
   setClientsListLocked(true);
+  clientsClearLoadPanel();
   tbody.innerHTML = '';
   window.RyxaLoadBar.start(tbody);
 
