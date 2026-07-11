@@ -2878,14 +2878,20 @@
     outline-offset: 2px;
   }
   .bio-add-btn:disabled {
-    opacity: 0.45;
+    opacity: 1;
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
+    background: var(--surface) !important;
+    border: 1px solid var(--border) !important;
+    color: var(--muted) !important;
   }
   .bio-add-btn:disabled:hover {
     transform: none;
     box-shadow: none;
+    background: var(--surface) !important;
+    border-color: var(--border) !important;
+    color: var(--muted) !important;
   }
 
   /* Content variant, dashed border, transparent bg (lighter feel for structural blocks). */
@@ -2912,16 +2918,16 @@
     color: #ddd6fe;
   }
 
-  /* Hero, premium tier accent, slightly different gradient. */
+  /* Hero, matches the Tools variant so the Content row reads as one palette. */
   .bio-add-btn-hero {
-    background: linear-gradient(135deg, rgba(167, 139, 250, 0.12), rgba(232, 121, 249, 0.08));
-    border: 1px solid rgba(232, 121, 249, 0.35);
-    color: #e879f9;
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(232, 121, 249, 0.06));
+    border: 1px solid rgba(124, 58, 237, 0.3);
+    color: #c4b5fd;
   }
   .bio-add-btn-hero:hover {
-    background: linear-gradient(135deg, rgba(167, 139, 250, 0.2), rgba(232, 121, 249, 0.14));
-    border-color: rgba(232, 121, 249, 0.55);
-    color: #f0abfc;
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.18), rgba(232, 121, 249, 0.12));
+    border-color: rgba(124, 58, 237, 0.5);
+    color: #ddd6fe;
   }
 
   .bio-link-row.bio-link-mediakit {
