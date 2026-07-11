@@ -932,7 +932,18 @@
     word-break: break-word;
     line-height: 1.25;
   }
-  /* Half-width featured: two per row, title clamps to 2 lines. */
+  /* Half-width featured: two per row, title clamps to 2 lines. min-height
+     matches half-width regular links so a mixed row lines up uniformly. The
+     image fills the taller box via object-fit:cover. */
+  .featured-link.link-half {
+    min-height: 150px;
+  }
+  .featured-link.link-half .featured-photo {
+    height: 100%;
+    aspect-ratio: auto;
+    position: absolute;
+    inset: 0;
+  }
   .featured-link.link-half .featured-title {
     font-size: 14px;
     display: -webkit-box;
