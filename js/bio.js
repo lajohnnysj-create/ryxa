@@ -2845,7 +2845,7 @@ function toggleLinkHalfWidth(id, checked) {
 function bioHalfBadge(link) {
   if (!link.halfWidth) return '';
   if (link.isMediaKit || link.isHero || link.isHeader || link.isSubscribe ||
-      link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock || link.isSpotifyBlock || link.isAppleMusicBlock || link.isSoundCloudBlock || link.isImageBlock || link.isImageCarouselBlock || link.isGoogleMapBlock || link.isDiscordBlock || link.isTwitchBlock || link.isTweetBlock || link.featured) {
+      link.isVideoBlock || link.isTikTokBlock || link.isInstagramBlock || link.isSpotifyBlock || link.isAppleMusicBlock || link.isSoundCloudBlock || link.isImageBlock || link.isImageCarouselBlock || link.isGoogleMapBlock || link.isDiscordBlock || link.isTwitchBlock || link.isTweetBlock) {
     return '';
   }
   return '<span class="bio-row-half" title="Half width" aria-label="Half width">&frac12;</span>';
@@ -3967,7 +3967,7 @@ function renderLinkExpanded(link, dragSvg) {
   return `<div class="bio-link-row${link.isHero ? ' bio-link-hero' : ''}" data-id="${link._id}">
     <div class="bio-link-header">
       <div class="bio-link-drag" aria-label="Drag to reorder">${dragSvg}</div>
-      ${link.featured ? '<span class="bio-featured-badge">Featured</span>' : ''}
+      ${link.featured ? '<span class="bio-featured-badge">Featured</span>' + bioHalfBadge(link) : ''}
       ${link.isHero ? '<span class="bio-hero-badge">Hero</span>' : ''}
       <div class="bio-s-7623f0"></div>
       <button class="bio-link-remove" data-bio-action="remove-link" data-bio-id="${link._id}">Remove</button>
@@ -3983,13 +3983,13 @@ function renderLinkExpanded(link, dragSvg) {
             <input type="file" accept="image/*" data-bio-action="link-thumb-selected" data-bio-event="change" data-bio-id="${link._id}" class="bio-s-c8be1c">
           </label>`}
     </div>` : ''}
-    <input type="text" placeholder="Title" maxlength="80" value="${escapeHtml(link.title || '')}"
+    <input type="text" placeholder="Title" maxlength="${link.featured ? (link.halfWidth ? 40 : 60) : 80}" value="${escapeHtml(link.title || '')}"
       data-bio-action="update-link-field" data-bio-event="input" data-bio-id="${link._id}" data-bio-field="title" aria-label="Link title">
-    <input type="text" placeholder="Description (optional)" maxlength="120" value="${escapeHtml(link.description || '')}"
-      data-bio-action="update-link-field" data-bio-event="input" data-bio-id="${link._id}" data-bio-field="description" aria-label="Link description">
+    ${!link.featured ? `<input type="text" placeholder="Description (optional)" maxlength="120" value="${escapeHtml(link.description || '')}"
+      data-bio-action="update-link-field" data-bio-event="input" data-bio-id="${link._id}" data-bio-field="description" aria-label="Link description">` : ''}
     <input type="url" placeholder="https://..." value="${escapeHtml(link.url || '')}"
       data-bio-action="update-link-field" data-bio-event="input" data-bio-id="${link._id}" data-bio-field="url" aria-label="Link URL" class="bio-s-6c002e" maxlength="500">
-    ${(!link.featured && !link.isHero && !link.isMediaKit) ? bioHalfWidthToggle(link) : ''}
+    ${(!link.isHero && !link.isMediaKit) ? bioHalfWidthToggle(link) : ''}
     <div id="bio-link-err-${link._id}" class="bio-s-f62f0b"></div>
     <button type="button" data-bio-action="save-link-row" data-bio-id="${link._id}"
       class="bio-s-c7cf47">
@@ -4890,11 +4890,14 @@ function buildPreviewHTML() {
   .lk.lk-thumb{display:flex;flex-direction:row;align-items:stretch;padding:0;overflow:hidden;min-height:46px;}
   .lk-thumb-img{align-self:stretch;width:46px;height:auto;object-fit:cover;flex-shrink:0;display:block;border-top-left-radius:13px;border-bottom-left-radius:13px;}
   .lk-thumb-body{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:8px 18px;gap:2px;}
-  .fl{background:${t.surface};border:1px solid ${t.border};border-radius:16px;overflow:hidden;}
+  .fl{position:relative;background:${t.surface};border:1px solid ${t.border};border-radius:16px;overflow:hidden;}
   .fl img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:${t.surface2};}
-  .fl-b{padding:14px 18px 16px;text-align:center;}
-  .fl-t{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;letter-spacing:-0.2px;word-break:break-word;}
-  .fl-d{font-size:12px;color:${t.muted};line-height:1.4;margin-top:3px;word-break:break-word;}
+  .fl-ov{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.72) 0%,rgba(0,0,0,0.32) 42%,rgba(0,0,0,0) 70%);}
+  .fl-cap{position:absolute;left:0;right:0;bottom:0;padding:12px 16px 14px;display:flex;justify-content:center;}
+  .fl-t{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;letter-spacing:-0.2px;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,0.5);text-align:center;word-break:break-word;line-height:1.25;}
+  /* Half-width featured: two per row. Title clamps to 2 lines. */
+  .fl.link-half .fl-t{font-size:13px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .fl.link-half .fl-cap{padding:10px 12px 11px;}
   .mkh{position:relative;border-radius:14px;overflow:hidden;min-height:90px;background:#000;border:1px solid ${t.accent};box-shadow:0 0 20px ${t.glow};}
   .mkh-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;display:block;}
   .mkh-ov{position:absolute;inset:0;z-index:1;background:linear-gradient(135deg,rgba(0,0,0,0.65) 0%,rgba(0,0,0,0.55) 50%,rgba(124,58,237,0.45) 100%);}
@@ -5286,12 +5289,13 @@ function buildPreviewLink(l, t) {
     </div>`;
   }
   if (l.featured && l.photoUrl) {
-    return `<div class="fl">
+    // Text now sits inside the image, centered along the bottom over a gradient
+    // scrim. No separate description line. Half-width featured links pair two per
+    // row (grid handles the layout via .link-half).
+    return `<div class="fl ${halfClass}">
       <img src="${escapeHtml(l.photoUrl)}" alt="Link thumbnail">
-      <div class="fl-b">
-        <div class="fl-t">${escapeHtml(l.title || 'Untitled')}</div>
-        ${l.description ? `<div class="fl-d">${escapeHtml(l.description)}</div>` : ''}
-      </div>
+      <div class="fl-ov"></div>
+      <div class="fl-cap"><div class="fl-t">${escapeHtml(l.title || 'Untitled')}</div></div>
     </div>`;
   }
   if (l.isMediaKit && l.photoUrl) {
