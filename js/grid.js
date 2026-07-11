@@ -276,11 +276,44 @@ async function clearGrid() {
 }
 
 // ======== RENDER ========
-// Retry handler for grid thumbnail load failures - appends a cache-busting
-// query param and tries once more. Avoids infinite loops via a data attribute.
+// Recovery handler for grid thumbnail load failures. The stored src is a
+// signed URL with a 24h TTL; the common failure is an EXPIRED token (tab left
+// open past a day, or a URL signed near expiry). Cache-busting the same dead
+// URL does not help - the token is still expired - so instead we re-sign the
+// underlying storage path to mint a fresh token and swap it in. Falls back to
+// a one-time cache-bust for the rare non-expiry blip, and gives up after one
+// re-sign attempt to avoid loops.
 function gridImgRetry(img) {
   if (img.dataset.retried) return;
   img.dataset.retried = '1';
+  var path = (typeof gridPhotoPath === 'function') ? gridPhotoPath(img.src) : null;
+  if (path && typeof sb !== 'undefined') {
+    sb.storage.from('grid-photos').createSignedUrl(path, GRID_SIGNED_URL_TTL)
+      .then(function(res) {
+        if (res && res.data && res.data.signedUrl) {
+          // Keep the in-memory photo record fresh too, so a re-render (and the
+          // next save) uses the new URL rather than the dead one.
+          var fresh = res.data.signedUrl;
+          if (typeof gridPhotos !== 'undefined' && Array.isArray(gridPhotos)) {
+            var oldPath = gridPhotoPath(img.src);
+            gridPhotos.forEach(function(p) {
+              if (p && p.url && gridPhotoPath(p.url) === oldPath) p.url = fresh;
+            });
+          }
+          img.src = fresh;
+        } else {
+          gridImgCacheBust(img);
+        }
+      })
+      .catch(function() { gridImgCacheBust(img); });
+    return;
+  }
+  gridImgCacheBust(img);
+}
+
+// Fallback for a genuine transient blip (not expiry): retry the same URL once
+// with a cache-busting param.
+function gridImgCacheBust(img) {
   var sep = img.src.indexOf('?') === -1 ? '?' : '&';
   img.src = img.src + sep + 'r=' + Date.now();
 }
