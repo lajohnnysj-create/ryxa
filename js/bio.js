@@ -1632,10 +1632,30 @@ function renderBioSocials() {
 
   container.innerHTML = `<div class="bio-social-grid">${gridHtml}</div>${editorHtml}`;
 
-  // Autofocus the input when an editor is open so the user can type immediately.
+  // Autofocus the input when an editor is open. On touch devices, focusing
+  // immediately triggers the keyboard mid-render and shifts the viewport
+  // jarringly (and can scroll the tapped field out of view). We defer the
+  // focus a beat so the editor is laid out first, and scroll it into view.
   if (bioActiveSocial) {
     const inp = container.querySelector('.bio-social-editor input');
-    if (inp) { inp.focus(); const l = inp.value.length; try { inp.setSelectionRange(l, l); } catch (e) {} }
+    if (inp) {
+      const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+      const doFocus = function() {
+        try {
+          inp.focus({ preventScroll: true });
+          const l = inp.value.length;
+          try { inp.setSelectionRange(l, l); } catch (e) {}
+          const editor = container.querySelector('.bio-social-editor');
+          if (editor && editor.scrollIntoView) editor.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } catch (e) {}
+      };
+      if (isTouch) {
+        // Let the layout settle before summoning the keyboard.
+        setTimeout(doFocus, 250);
+      } else {
+        doFocus();
+      }
+    }
   }
 }
 
