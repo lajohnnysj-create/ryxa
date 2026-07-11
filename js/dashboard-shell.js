@@ -1104,9 +1104,11 @@ async function setUser(user) {
 function handleGcalRedirect() {
   var params = new URLSearchParams(window.location.search);
   if (!params.get('gcal')) return;
-  // Navigate to Calendar tool. initCalendarTool() will read the params
-  // and surface the success/error message via gcalHandleReturnParams().
-  showTool('calendar');
+  // The Google Calendar connection UI lives in Settings > Calendar. The
+  // Settings init calls gcalHandleReturnParams(), which reads the params and
+  // surfaces the success/error message, and gcalLoadConnectionState(), which
+  // renders the connected/disconnected row.
+  showTool('settings');
 }
 
 // Username claim in the first-run terms modal. A username may have been
@@ -2133,6 +2135,15 @@ function showTool(tool) {
     // Pre-select current currency dropdown
     var ccSel = document.getElementById('settings-currency-select');
     if (ccSel) ccSel.value = currentCurrency;
+    // Calendar section: populate the timezone dropdown and render the Google
+    // Calendar connection state. Both functions live in calendar.js (loaded on
+    // this page); typeof-guarded defensively. calPopulateInlineTimezone reads
+    // window._ryx_creator_tz, which this shell set from profiles.calendar_timezone
+    // on load, so the dropdown shows the saved tz even if the Calendar tool has
+    // never been opened this session.
+    try { if (typeof calPopulateInlineTimezone === 'function') calPopulateInlineTimezone(); } catch (e) { console.error('Settings tz populate error:', e); }
+    try { if (typeof gcalLoadConnectionState === 'function') gcalLoadConnectionState(); } catch (e) { console.error('Settings gcal state error:', e); }
+    try { if (typeof gcalHandleReturnParams === 'function') gcalHandleReturnParams(); } catch (e) { console.error('Settings gcal params error:', e); }
     if (currentUser) {
       // Avatar: check bioState first, then query DB
       if (typeof bioState !== 'undefined' && bioState.avatar_url) {

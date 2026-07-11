@@ -115,6 +115,11 @@ async function _calResolveTimezone() {
     var { data: prof } = await sb.from('profiles').select('calendar_timezone').eq('user_id', currentUser.id).maybeSingle();
     if (prof && prof.calendar_timezone) {
       calState.timezone = prof.calendar_timezone;
+      // Keep the shell global authoritative: it was set from this same column
+      // on dashboard load, but this is a fresher read (covers a change made
+      // from another device mid-session). The Settings > Calendar dropdown
+      // populates from this global.
+      try { window._ryx_creator_tz = prof.calendar_timezone; } catch (e) {}
       try { localStorage.setItem('ryxa_cal_tz', prof.calendar_timezone); } catch (e) {}
     } else {
       // No DB value yet - check localStorage and migrate it to DB
@@ -178,13 +183,15 @@ async function initCalendarTool() {
   }
 
   calRender();
+  // Keep the Settings > Calendar timezone dropdown in sync: the calendar's own
+  // tz load above is the freshest DB read, and the select (which now lives in
+  // the Settings tool) should reflect it next time Settings is opened.
   calPopulateInlineTimezone();
 
-  // Load Google Calendar connection state (non-blocking)
-  gcalLoadConnectionState();
-
-  // Handle ?gcal=connected|error|cancelled flags from OAuth callback redirect
-  gcalHandleReturnParams();
+  // NOTE: The Google Calendar connection UI and the timezone selector moved to
+  // Settings > Calendar. gcalLoadConnectionState() and gcalHandleReturnParams()
+  // now run from the Settings init in dashboard-shell.js, and the OAuth
+  // callback redirect routes to the Settings tool (handleGcalRedirect).
 }
 
 // ============================================================
@@ -1212,7 +1219,16 @@ function calFormatTzLabel(tz) {
 function calPopulateInlineTimezone() {
   var sel = document.getElementById('cal-tz-inline');
   if (!sel) return;
-  var saved = calState.timezone || 'UTC';
+  // Prefer the shell's global (set from profiles.calendar_timezone on every
+  // dashboard load, and updated by every change). calState.timezone starts as
+  // the browser-detected default until the Calendar tool's own DB load runs,
+  // so if the user opens Settings before ever opening Calendar, the global is
+  // the correct saved value (matters for travelers whose browser tz differs
+  // from their saved tz). When both are loaded they're identical.
+  var saved = window._ryx_creator_tz || calState.timezone || 'UTC';
+  // Keep calState in step so a later change-diff (calChangeTimezoneInline's
+  // no-op check) compares against what the select actually shows.
+  calState.timezone = saved;
   var detected = '';
   try { detected = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) {}
 
@@ -1321,6 +1337,17 @@ calRegisterAction('next-month', () => calNextMonth());
 calRegisterAction('today', () => calToday());
 calRegisterAction('toggle-month-picker', () => calToggleMonthPicker());
 calRegisterAction('change-timezone', (e, el) => calChangeTimezoneInline(el.value));
+// Gear icon in the calendar toolbar: jump to Settings > Calendar (where the
+// timezone selector and Google Calendar connection now live). showTool's
+// settings init scrolls to top instantly, so our scroll-to-section runs on a
+// short delay after it.
+calRegisterAction('open-settings', () => {
+  if (typeof showTool === 'function') showTool('settings');
+  setTimeout(function() {
+    var sec = document.getElementById('settings-calendar-section');
+    if (sec && sec.scrollIntoView) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 120);
+});
 calRegisterAction('open-add-event', () => calOpenAddEvent());
 calRegisterAction('picker-prev-year', () => calPickerPrevYear());
 calRegisterAction('picker-next-year', () => calPickerNextYear());
