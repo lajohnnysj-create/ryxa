@@ -805,19 +805,24 @@ function formatNumberShort(n) {
 
 // ==== Rate card ====
 function addCustomRate() {
+  const newId = mkRateIdSeq++;
   mkState.rate_card.push({
-    _id: mkRateIdSeq++,
+    _id: newId,
     id: 'custom-' + Date.now() + '-' + Math.random().toString(36).slice(2,6),
     label: '',
     price: '',
     note: ''
   });
+  // Open the new tile's editor straight away so the fields drop in for entry.
+  mkActiveRate = newId;
   renderMKRates();
   scheduleMKPreview();
 }
 
 function removeRate(id) {
   mkState.rate_card = mkState.rate_card.filter(r => r._id !== id);
+  // Close the editor if it was showing the rate we just removed.
+  if (mkActiveRate === id) mkActiveRate = null;
   renderMKRates();
   scheduleMKPreview();
 }
@@ -836,44 +841,101 @@ function renderMKRates() {
   const filled = mkState.rate_card.filter(r => parseFloat(r.price) > 0).length;
   if (counts) counts.textContent = filled > 0 ? `${filled} active` : '';
 
-  el.innerHTML = mkState.rate_card.map(r => {
-    const isPredefined = MK_PREDEFINED_RATES.some(p => p.id === r.id);
+  // Icon grid matching Link in Bio's Social Icons: one tile per rate (predefined
+  // offering or custom), showing the platform icon plus a short label. A filled
+  // dot appears when the rate has a price set. Tapping a tile opens an inline
+  // editor with price + note (and a label field for custom rates). Reuses the
+  // .bio-social-* grid/tile/editor styles. All data bindings are unchanged.
+  const gridHtml = mkState.rate_card.map(r => {
+    const meta = MK_RATE_META[r.id];
+    const icon = meta ? meta.icon : _mkOtherSvg;
+    // Predefined tiles use the short offering label; custom tiles use the user's
+    // title, or "Custom" until they name it.
+    const label = meta ? meta.short : (r.label && r.label.trim() ? r.label.trim() : 'Custom');
+    const isFilled = parseFloat(r.price) > 0;
+    const active = mkActiveRate === r._id;
+    return `<button type="button" class="bio-social-tile mk-rate-tile${isFilled ? ' filled' : ''}${active ? ' active' : ''}"
+      data-mk-action="rate-tile" data-mk-id="${r._id}" aria-label="${escapeHtml(label)}${isFilled ? ' (set)' : ''}" title="${escapeHtml(label)}">
+      <span class="bio-social-tile-icon">${icon}</span>
+      <span class="mk-rate-tile-label">${escapeHtml(label)}</span>
+      ${isFilled ? '<span class="bio-social-tile-dot" aria-hidden="true"></span>' : ''}
+    </button>`;
+  }).join('');
 
-    // Header row: label + action button
-    let headerHtml;
-    if (isPredefined) {
-      headerHtml = `<div class="mk-rate-top">
-        <div class="mk-rate-label-text">${escapeHtml(r.label)}</div>
-        <button class="mk-rate-remove" data-mk-action="clear-rate" data-mk-id="${r._id}" aria-label="Clear this rate">Clear</button>
-      </div>`;
-    } else {
-      headerHtml = `<div class="mk-rate-top">
-        <input type="text" class="mk-rate-label-input mk-s-301af4" placeholder="Rate label (e.g. Podcast Integration)" maxlength="60"
-          value="${escapeHtml(r.label || '')}"
-          data-mk-action="rate-field" data-mk-event="input" data-mk-id="${r._id}" data-mk-field="label"
-          aria-label="Rate label"
-          >
-        <button class="mk-rate-remove" data-mk-action="remove-rate" data-mk-id="${r._id}" aria-label="Delete this custom rate">Delete</button>
+  let editorHtml = '';
+  if (mkActiveRate != null) {
+    const r = mkState.rate_card.find(x => x._id === mkActiveRate);
+    if (r) {
+      const meta = MK_RATE_META[r.id];
+      const isCustom = !meta;
+      const headLabel = meta ? meta.short : (r.label && r.label.trim() ? r.label.trim() : 'Custom rate');
+      // Custom rates get an editable label field; predefined ones show the fixed name.
+      const labelField = isCustom
+        ? `<input type="text" class="bio-social-plaininput" placeholder="Rate name (e.g. Podcast Integration)" maxlength="60"
+            value="${escapeHtml(r.label || '')}"
+            data-mk-action="rate-field" data-mk-event="input" data-mk-id="${r._id}" data-mk-field="label"
+            aria-label="Rate name">`
+        : '';
+      // Clear (predefined) empties the values; Remove (custom) deletes the tile.
+      const clearBtn = isCustom
+        ? `<button type="button" class="bio-social-clear" data-mk-action="remove-rate" data-mk-id="${r._id}">Remove</button>`
+        : `<button type="button" class="bio-social-clear" data-mk-action="clear-rate" data-mk-id="${r._id}">Clear</button>`;
+      editorHtml = `<div class="bio-social-editor">
+        <div class="bio-social-editor-head">
+          <span class="bio-social-editor-icon">${meta ? meta.icon : _mkOtherSvg}</span>
+          <span class="bio-social-editor-label">${escapeHtml(headLabel)}</span>
+        </div>
+        ${labelField}
+        <div class="mk-rate-price-row">
+          <span class="mk-rate-prefix currency-symbol-prefix">${getCurrencySymbol()}</span>
+          <input type="text" inputmode="decimal" maxlength="10" placeholder="Price"
+            value="${escapeHtml(r.price ? String(r.price) : '')}"
+            data-mk-action="rate-field" data-mk-event="input" data-mk-id="${r._id}" data-mk-field="price"
+            aria-label="Price" class="bio-social-plaininput">
+        </div>
+        <input type="text" class="bio-social-plaininput" placeholder="Note (optional, e.g. Includes 14-day usage rights)" maxlength="120"
+          value="${escapeHtml(r.note || '')}"
+          data-mk-action="rate-field" data-mk-event="input" data-mk-id="${r._id}" data-mk-field="note"
+          aria-label="Rate note">
+        <div class="bio-social-editor-actions">
+          ${clearBtn}
+          <button type="button" class="bio-social-done" data-mk-action="rate-done">Done</button>
+        </div>
       </div>`;
     }
+  }
 
-    return `<div class="mk-rate-row">
-      ${headerHtml}
-      <div class="mk-rate-price-row">
-        <span class="mk-rate-prefix currency-symbol-prefix">${getCurrencySymbol()}</span>
-        <input type="text" inputmode="decimal" maxlength="10" placeholder="Price"
-          value="${escapeHtml(r.price ? String(r.price) : '')}"
-          data-mk-action="rate-field" data-mk-event="input" data-mk-id="${r._id}" data-mk-field="price"
-          aria-label="Price"
-          class="bio-s-7623f0">
-      </div>
-      <input type="text" placeholder="Note (optional, e.g. Includes 14-day usage rights)" maxlength="120"
-        value="${escapeHtml(r.note || '')}"
-        data-mk-action="rate-field" data-mk-event="input" data-mk-id="${r._id}" data-mk-field="note"
-        aria-label="Rate note"
-        class="mk-s-76084e">
-    </div>`;
-  }).join('');
+  el.innerHTML = `<div class="bio-social-grid">${gridHtml}</div>${editorHtml}`;
+
+  // Autofocus the first editor field when a tile opens (deferred on touch so the
+  // keyboard doesn't shift the viewport mid-render, same as Link in Bio).
+  if (mkActiveRate != null) {
+    const inp = el.querySelector('.bio-social-editor input');
+    if (inp) {
+      const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+      const doFocus = function() {
+        try {
+          inp.focus({ preventScroll: true });
+          const editor = el.querySelector('.bio-social-editor');
+          if (editor && editor.scrollIntoView) editor.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } catch (e) {}
+      };
+      if (isTouch) setTimeout(doFocus, 250); else doFocus();
+    }
+  }
+}
+
+// Which rate's inline editor is open (_id, or null for none). Starts closed.
+var mkActiveRate = null;
+
+function onMkRateTile(id) {
+  mkActiveRate = (mkActiveRate === id) ? null : id;
+  renderMKRates();
+}
+
+function onMkRateDone() {
+  mkActiveRate = null;
+  renderMKRates();
 }
 
 function clearRate(id) {
@@ -3041,6 +3103,8 @@ mkRegisterAction('add-custom-rate', () => addCustomRate());
 mkRegisterAction('clear-rate', (e, el) => clearRate(parseInt(el.dataset.mkId, 10)));
 mkRegisterAction('remove-rate', (e, el) => removeRate(parseInt(el.dataset.mkId, 10)));
 mkRegisterAction('rate-field', (e, el) => onRateField(parseInt(el.dataset.mkId, 10), el.dataset.mkField, el.value));
+mkRegisterAction('rate-tile', (e, el) => onMkRateTile(parseInt(el.dataset.mkId, 10)));
+mkRegisterAction('rate-done', () => onMkRateDone());
 mkRegisterAction('add-video', (e, el) => addVideo(el.dataset.mkPlatform));
 mkRegisterAction('remove-video', (e, el) => removeVideo(el.dataset.mkPlatform, parseInt(el.dataset.mkId, 10)));
 mkRegisterAction('video-field', (e, el) => onVideoField(el.dataset.mkPlatform, parseInt(el.dataset.mkId, 10), el.value));
