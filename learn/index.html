@@ -124,6 +124,14 @@
   /* Dashboard */
   .dash-wrap { max-width: 960px; margin: 0 auto; padding: 40px 32px; }
   .dash-title { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 28px; font-weight: 800; letter-spacing: -1px; margin-bottom: 24px; }
+  .hub-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 28px; overflow-x: auto; scrollbar-width: none; }
+  .hub-tabs::-webkit-scrollbar { display: none; }
+  .hub-tab { position: relative; background: none; border: none; padding: 10px 4px; margin-right: 20px; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; color: var(--muted); cursor: pointer; white-space: nowrap; transition: color 0.15s; display: inline-flex; align-items: center; gap: 7px; }
+  .hub-tab:hover { color: var(--text-secondary); }
+  .hub-tab.active { color: var(--text); }
+  .hub-tab.active::after { content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: #7c3aed; border-radius: 2px 2px 0 0; }
+  .hub-tab-count { font-size: 11px; font-weight: 700; color: var(--text-secondary); background: var(--surface); border: 1px solid var(--border); border-radius: 100px; padding: 1px 7px; min-width: 18px; text-align: center; }
+  .hub-tab.active .hub-tab-count { color: var(--text); border-color: var(--border-hover); }
   .courses-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
   .course-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; cursor: pointer; transition: border-color 0.15s; text-decoration: none; color: var(--text); display: block; }
   .course-card:hover { border-color: var(--btn-outline-text); }
@@ -180,7 +188,7 @@
 
   /* Submit / Retake / Continue button row */
   .viewer-quiz-submit-row { margin-top: 24px; display: flex; justify-content: flex-end; gap: 10px; }
-  .viewer-quiz-submit-btn { padding: 10px 24px; background: var(--accent, #7c3aed); border: 1px solid var(--accent, #7c3aed); color: #fff; border-radius: 8px; font-size: 14px; font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: filter 0.15s; }
+  .viewer-quiz-submit-btn { padding: 10px 24px; background: #7c3aed; border: 1px solid var(--accent, #7c3aed); color: #fff; border-radius: 8px; font-size: 14px; font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: filter 0.15s; }
   .viewer-quiz-submit-btn:hover:not(:disabled) { filter: brightness(1.1); }
   .viewer-quiz-submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
   /* Secondary variant for the Retake button on non-require_pass results.
@@ -409,24 +417,47 @@
 </div>
 
 <div id="dash-screen" class="dash-wrap" style="display:none;">
-  <h1 class="dash-title">My Courses</h1>
-  <div id="dash-courses" class="courses-grid"></div>
-  <div id="dash-empty" class="empty-state" style="display:none;">
-    <div style="width:48px;height:48px;margin:0 auto 12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;display:flex;align-items:center;justify-content:center;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M8 7h8M8 11h6"/></svg></div>
-    <p>You haven't enrolled in any courses yet.</p>
-    <p style="margin-top:8px;"><button data-learn-action="open-marketplace" style="background:none;border:none;color:var(--text);text-decoration:underline;font-family:inherit;font-size:inherit;cursor:pointer;padding:0;">Search the marketplace</button> for courses.</p>
+  <h1 class="dash-title">My Library</h1>
+
+  <!-- Tab bar -->
+  <div class="hub-tabs" role="tablist" aria-label="Library sections">
+    <button class="hub-tab active" role="tab" aria-selected="true" data-learn-action="hub-tab" data-hub-tab="courses">
+      My Courses<span class="hub-tab-count" id="hub-count-courses" style="display:none;"></span>
+    </button>
+    <button class="hub-tab" role="tab" aria-selected="false" data-learn-action="hub-tab" data-hub-tab="products">
+      My Digital Products<span class="hub-tab-count" id="hub-count-products" style="display:none;"></span>
+    </button>
+    <button class="hub-tab" role="tab" aria-selected="false" data-learn-action="hub-tab" data-hub-tab="bookings">
+      My Bookings<span class="hub-tab-count" id="hub-count-bookings" style="display:none;"></span>
+    </button>
   </div>
 
-  <!-- My Digital Products -->
-  <div id="dash-products-section" style="display:none;margin-top:40px;">
-    <h2 class="dash-title" style="font-size:22px;margin-bottom:16px;">My Digital Products</h2>
+  <!-- Courses panel -->
+  <div class="hub-panel" id="hub-panel-courses" role="tabpanel">
+    <div id="dash-courses" class="courses-grid"></div>
+    <div id="dash-empty" class="empty-state" style="display:none;">
+      <div style="width:48px;height:48px;margin:0 auto 12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;display:flex;align-items:center;justify-content:center;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M8 7h8M8 11h6"/></svg></div>
+      <p>You haven't enrolled in any courses yet.</p>
+      <p style="margin-top:8px;"><button data-learn-action="open-marketplace" style="background:none;border:none;color:var(--text);text-decoration:underline;font-family:inherit;font-size:inherit;cursor:pointer;padding:0;">Search the marketplace</button> for courses.</p>
+    </div>
+  </div>
+
+  <!-- Digital Products panel -->
+  <div class="hub-panel" id="hub-panel-products" role="tabpanel" style="display:none;">
     <div id="dash-products" style="display:flex;flex-direction:column;gap:12px;"></div>
+    <div id="dash-products-empty" class="empty-state" style="display:none;">
+      <div style="width:48px;height:48px;margin:0 auto 12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;display:flex;align-items:center;justify-content:center;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>
+      <p>You haven't purchased any digital products yet.</p>
+    </div>
   </div>
 
-  <!-- My Bookings -->
-  <div id="dash-bookings-section" style="display:none;margin-top:40px;">
-    <h2 class="dash-title" style="font-size:22px;margin-bottom:16px;">My Bookings</h2>
+  <!-- Bookings panel -->
+  <div class="hub-panel" id="hub-panel-bookings" role="tabpanel" style="display:none;">
     <div id="dash-bookings" style="display:flex;flex-direction:column;gap:12px;"></div>
+    <div id="dash-bookings-empty" class="empty-state" style="display:none;">
+      <div style="width:48px;height:48px;margin:0 auto 12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;display:flex;align-items:center;justify-content:center;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+      <p>You haven't booked any sessions yet.</p>
+    </div>
   </div>
 </div>
 
