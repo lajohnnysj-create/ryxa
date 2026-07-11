@@ -3212,9 +3212,20 @@ function fsFormatBytes(bytes) {
 function renderFileStorage() {
   var box = document.getElementById('sidebar-file-storage');
   if (!box) return;
+  box.style.display = 'block';
   var used = window._fileStorageCache;
-  if (used == null) { box.style.display = 'none'; return; }
   var max = window.FILE_STORAGE_MAX_BYTES;
+  // Before the first fetch returns, show a neutral placeholder rather than
+  // hiding the box (avoids the box popping in a beat after the menu opens).
+  if (used == null) {
+    var barP = document.getElementById('sidebar-storage-bar');
+    var pctP = document.getElementById('sidebar-storage-pct');
+    var countP = document.getElementById('sidebar-storage-count');
+    if (barP) { barP.style.width = '0%'; barP.style.background = 'var(--muted)'; }
+    if (pctP) { pctP.textContent = '—'; pctP.style.color = 'var(--muted)'; }
+    if (countP) countP.textContent = 'Loading…';
+    return;
+  }
   var pct = Math.min(100, Math.round((used / max) * 100));
   var color = pct < 60 ? '#22c55e' : (pct < 85 ? '#eab308' : '#ef4444');
   var bar = document.getElementById('sidebar-storage-bar');
@@ -3223,7 +3234,6 @@ function renderFileStorage() {
   if (bar) { bar.style.width = pct + '%'; bar.style.background = color; }
   if (pctEl) { pctEl.textContent = pct + '%'; pctEl.style.color = color; }
   if (countEl) countEl.textContent = fsFormatBytes(used) + ' / 10 GB';
-  box.style.display = 'block';
 }
 
 // Fetch storage from server and update cache. Single RPC shared with the
