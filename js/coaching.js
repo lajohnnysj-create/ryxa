@@ -99,7 +99,14 @@ function initCoachingTool() {
   document.getElementById('coaching-upsell').style.display = max ? 'none' : 'block';
   document.getElementById('coaching-list-view').style.display = max ? 'block' : 'none';
   document.getElementById('coaching-editor-view').style.display = 'none';
-  if (max) loadCoachingList();
+  if (max && !coachingInited) {
+    coachingInited = true;
+    loadCoachingList();
+  } else if (max) {
+    // Subsequent opens render from memory - no refetch, no load bar. Matches
+    // Courses / Link in Bio / Media Kit. In-tool saves keep the cache fresh.
+    renderCoachingList();
+  }
 }
 
 // Lock/unlock the New Service button while the services list is loading or in
@@ -269,6 +276,7 @@ function renderCoachingList() {
 // Set true when the editor's fresh-row load has failed; blocks the save
 // backstop and is cleared on every editor open and on a successful load.
 let coachingEditorLoadFailed = false;
+let coachingInited = false;
 
 // Lock/unlock every control that acts on this service, as one unit: Save,
 // Publish/Unpublish, marketplace toggle, Delete, the cover upload button,

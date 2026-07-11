@@ -98,7 +98,16 @@ function initDealsCrm() {
     btn.style.boxShadow = '0 0 20px var(--accent-glow)';
   }
   showDealsList();
-  loadDealsList();
+  if (!dealsInited) {
+    dealsInited = true;
+    loadDealsList();
+  } else {
+    // Subsequent opens render from memory - no refetch, no load bar. Matches
+    // Courses / Link in Bio / Media Kit. In-tool saves keep the cache fresh
+    // (cache-in-place update on save), so the list stays correct.
+    renderDealsList();
+    loadDealsAnalytics().catch(function(e) { console.error('loadDealsAnalytics', e); });
+  }
 }
 
 // Switch to list view
@@ -447,6 +456,7 @@ function formatDateShort(isoDate) {
 // =====================================================
 // BRAND DEAL CRM - Pipeline (Kanban) View
 // =====================================================
+let dealsInited = false;
 let pipelineViewActive = false;
 let dealsListFilter = 'in_progress';  // list filter chip: in_progress | all | completed | cancelled
 

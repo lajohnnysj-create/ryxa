@@ -124,8 +124,12 @@ function initDigitalProducts() {
   document.getElementById('products-list-view').style.display = 'block';
   if (!productsState.inited) {
     productsState.inited = true;
+    loadProductsList();
+  } else {
+    // Subsequent opens render from memory - no refetch, no load bar. Matches
+    // Courses / Link in Bio / Media Kit. In-tool saves keep the cache fresh.
+    renderProductsList();
   }
-  loadProductsList();
   refreshProductsStorage();
 }
 
