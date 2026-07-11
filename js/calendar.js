@@ -1304,19 +1304,19 @@ async function calChangeTimezoneInline(newTz) {
       var res = await sb.from('profiles').update({ calendar_timezone: newTz }).eq('user_id', currentUser.id);
       if (res && res.error) {
         console.error('Failed to save calendar_timezone:', res.error);
-        if (typeof dashShowToast === 'function') {
-          dashShowToast('Couldn\'t save timezone. Please try again.', 'error');
+        if (typeof showDashToast === 'function') {
+          showDashToast('error', 'Couldn\'t save timezone. Please try again.');
         }
         return;
       }
-      if (typeof dashShowToast === 'function') {
-        dashShowToast('Timezone updated');
+      if (typeof showDashToast === 'function') {
+        showDashToast('success', 'Timezone saved');
       }
     } catch (e) {
       // Network/unexpected error path - also worth surfacing.
       console.error('Failed to save calendar_timezone:', e);
-      if (typeof dashShowToast === 'function') {
-        dashShowToast('Couldn\'t save timezone. Please try again.', 'error');
+      if (typeof showDashToast === 'function') {
+        showDashToast('error', 'Couldn\'t save timezone. Please try again.');
       }
     }
   }
