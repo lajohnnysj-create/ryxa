@@ -699,16 +699,14 @@ function buildLink(link, currency) {
     }
   }
 
-  // Featured — large card with thumbnail
+  // Featured — image with the title overlaid centered along the bottom.
   if (link.featured) {
     const safePhoto = validImageUrl(link.photoUrl);
     if (safePhoto) {
-      return `<a class="featured-link" href="${esc(url)}" target="_blank" rel="noopener nofollow"${clickAttrs}>
+      return `<a class="featured-link${halfClass}" href="${esc(url)}" target="_blank" rel="noopener nofollow"${clickAttrs}>
         <img class="featured-photo" src="${esc(safePhoto)}" alt="Featured link" loading="lazy">
-        <div class="featured-body">
-          <div class="featured-title">${title}</div>
-          ${link.description ? `<div class="featured-desc">${esc(link.description)}</div>` : ''}
-        </div>
+        <div class="featured-ov"></div>
+        <div class="featured-cap"><div class="featured-title">${title}</div></div>
       </a>`;
     }
   }
