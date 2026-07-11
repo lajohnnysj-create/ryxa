@@ -2669,10 +2669,10 @@
      social icon grid. */
   #mk-rates-list .bio-social-grid { grid-template-columns: repeat(4, 1fr); }
   .bio-tool-wrap #mk-rates-list .bio-social-grid { grid-template-columns: repeat(4, 1fr); }
-  /* Rate editor stacks label (custom only) + price row + note with breathing room. */
-  .bio-social-editor .mk-rate-price-row { margin-top: 8px; }
-  .bio-social-editor .mk-rate-price-row + .bio-social-plaininput { margin-top: 8px; }
-  .bio-social-editor > .bio-social-plaininput:first-of-type { margin-top: 0; }
+  /* Rate editor: price (narrow) and note (fills the rest) share one line. */
+  .mk-rate-fields { display: flex; gap: 8px; align-items: stretch; margin-top: 8px; }
+  .mk-rate-fields .mk-rate-price-row { flex: 0 0 auto; width: 130px; }
+  .mk-rate-fields .mk-rate-note-input { flex: 1 1 auto; min-width: 0; }
   .bio-social-editor .bio-social-prefixwrap { background: var(--bg); }
   .bio-social-editor-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
   .bio-social-clear { background: none; border: none; color: var(--muted); font-size: 12px; font-family: 'DM Sans', sans-serif; cursor: pointer; padding: 6px 8px; border-radius: 6px; }
@@ -4601,6 +4601,8 @@
   .mk-s-74645c { margin-top:8px;color:var(--muted); }
   .mk-s-91d834 { display:flex;flex-direction:column;gap:8px;margin-bottom:10px; }
   .mk-s-44c9a4 { width:100%;padding:10px;background:transparent;border:1px dashed rgba(124,58,237,0.4);color:var(--accent2);border-radius:8px;font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer; }
+  .mk-s-44c9a4:disabled { color: var(--muted); border-color: var(--border); cursor: not-allowed; pointer-events: auto; position: relative; }
+  .mk-s-44c9a4[data-tip]:hover::after { content: attr(data-tip); position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); background: #0f0f1e; color: #fff; border: 1px solid rgba(255,255,255,0.18); font-size: 11px; font-weight: 600; white-space: nowrap; padding: 6px 10px; border-radius: 6px; box-shadow: 0 6px 18px rgba(0,0,0,0.5); z-index: 20; }
   .mk-s-73ffb1 { width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;margin-bottom:10px; }
   .mk-s-d3f097 { width:100%;background:var(--surface);border:1px solid var(--border-hover);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box;resize:vertical;line-height:1.5; }
   .mk-s-0580dd { background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:12px;height:720px;overflow:hidden; }
