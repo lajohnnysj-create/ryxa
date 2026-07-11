@@ -804,7 +804,15 @@ function formatNumberShort(n) {
 }
 
 // ==== Rate card ====
+// Custom rates are capped to keep the card reasonable (predefined offerings
+// don't count toward this).
+const MK_MAX_CUSTOM_RATES = 20;
 function addCustomRate() {
+  const customCount = mkState.rate_card.filter(r => typeof r.id === 'string' && r.id.startsWith('custom-')).length;
+  if (customCount >= MK_MAX_CUSTOM_RATES) {
+    showMKStatus('error', `You can add up to ${MK_MAX_CUSTOM_RATES} custom rates.`);
+    return;
+  }
   const newId = mkRateIdSeq++;
   mkState.rate_card.push({
     _id: newId,
@@ -886,17 +894,19 @@ function renderMKRates() {
           <span class="bio-social-editor-label">${escapeHtml(headLabel)}</span>
         </div>
         ${labelField}
-        <div class="mk-rate-price-row">
-          <span class="mk-rate-prefix currency-symbol-prefix">${getCurrencySymbol()}</span>
-          <input type="text" inputmode="decimal" maxlength="10" placeholder="Price"
-            value="${escapeHtml(r.price ? String(r.price) : '')}"
-            data-mk-action="rate-field" data-mk-event="input" data-mk-id="${r._id}" data-mk-field="price"
-            aria-label="Price" class="bio-social-plaininput">
+        <div class="mk-rate-fields">
+          <div class="mk-rate-price-row">
+            <span class="mk-rate-prefix currency-symbol-prefix">${getCurrencySymbol()}</span>
+            <input type="text" inputmode="decimal" maxlength="10" placeholder="Price"
+              value="${escapeHtml(r.price ? String(r.price) : '')}"
+              data-mk-action="rate-field" data-mk-event="input" data-mk-id="${r._id}" data-mk-field="price"
+              aria-label="Price" class="bio-social-plaininput">
+          </div>
+          <input type="text" class="bio-social-plaininput mk-rate-note-input" placeholder="Note (optional)" maxlength="120"
+            value="${escapeHtml(r.note || '')}"
+            data-mk-action="rate-field" data-mk-event="input" data-mk-id="${r._id}" data-mk-field="note"
+            aria-label="Rate note">
         </div>
-        <input type="text" class="bio-social-plaininput" placeholder="Note (optional, e.g. Includes 14-day usage rights)" maxlength="120"
-          value="${escapeHtml(r.note || '')}"
-          data-mk-action="rate-field" data-mk-event="input" data-mk-id="${r._id}" data-mk-field="note"
-          aria-label="Rate note">
         <div class="bio-social-editor-actions">
           ${clearBtn}
           <button type="button" class="bio-social-done" data-mk-action="rate-done">Done</button>
@@ -906,6 +916,20 @@ function renderMKRates() {
   }
 
   el.innerHTML = `<div class="bio-social-grid">${gridHtml}</div>${editorHtml}`;
+
+  // Disable the "add custom rate" button once the cap is reached (mirrors the
+  // disabled-button + tooltip pattern used elsewhere).
+  const addBtn = document.querySelector('[data-mk-action="add-custom-rate"]');
+  if (addBtn) {
+    const customCount = mkState.rate_card.filter(r => typeof r.id === 'string' && r.id.startsWith('custom-')).length;
+    if (customCount >= MK_MAX_CUSTOM_RATES) {
+      addBtn.disabled = true;
+      addBtn.setAttribute('data-tip', `Up to ${MK_MAX_CUSTOM_RATES} custom rates`);
+    } else {
+      addBtn.disabled = false;
+      addBtn.removeAttribute('data-tip');
+    }
+  }
 
   // Autofocus the first editor field when a tile opens (deferred on touch so the
   // keyboard doesn't shift the viewport mid-render, same as Link in Bio).
