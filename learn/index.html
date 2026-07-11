@@ -125,6 +125,24 @@
   #auth-screen h1, #auth-screen .auth-title { color: #fff; }
   #auth-screen > div p, #auth-screen .auth-sub { color: rgba(255,255,255,0.75); }
   #auth-screen { width: 100%; }
+  /* The login screen always renders dark: it sits on a darkened photo, where
+     light-mode colors (white inputs, black text) would look wrong. Re-declare
+     the dark tokens locally so they win even when body.light-mode is set. */
+  #auth-screen, body.light-mode #auth-screen {
+    --bg: #0a0a0a;
+    --surface: #16162a;
+    --surface2: #0d0d0d;
+    --border: rgba(255,255,255,0.1);
+    --border-hover: rgba(255,255,255,0.2);
+    --text: #fff;
+    --text-secondary: rgba(255,255,255,0.7);
+    --muted: #b4b2c8;
+    --btn-bg: #fff;
+    --btn-text: #000;
+    --btn-outline-border: rgba(255,255,255,0.4);
+    --btn-outline-text: #fff;
+    --check-color: #fff;
+  }
   .auth-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 16px; padding: 32px; }
   .auth-title { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 24px; font-weight: 800; margin-bottom: 6px; letter-spacing: -0.5px; text-align: center; }
   .auth-sub { font-size: 14px; color: var(--muted); text-align: center; margin-bottom: 24px; }
