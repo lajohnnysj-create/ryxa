@@ -3184,9 +3184,9 @@ function toggleSidebarMenu() {
   var menu = document.getElementById('sidebar-user-menu');
   if (menu) {
     var willOpen = menu.style.display === 'none';
-    if (willOpen) renderAiUsage();  // synchronous render from cache, before showing menu
+    if (willOpen) { renderAiUsage(); renderFileStorage(); }  // synchronous render from cache, before showing menu
     menu.style.display = willOpen ? 'block' : 'none';
-    if (willOpen) fetchAiUsage();   // refresh in background for next open
+    if (willOpen) { fetchAiUsage(); fetchFileStorage(); }   // refresh in background for next open
   }
 }
 function closeSidebarMenu() {
@@ -3196,6 +3196,51 @@ function closeSidebarMenu() {
 
 // AI usage state - cached so the menu opens instantly with no layout shift.
 window._aiUsageCache = null;
+
+// File storage state - cached so the menu opens instantly, mirroring AI usage.
+window._fileStorageCache = null;
+window.FILE_STORAGE_MAX_BYTES = 10 * 1024 * 1024 * 1024; // 10 GB shared cap
+
+function fsFormatBytes(bytes) {
+  if (!bytes || bytes < 1024) return (bytes || 0) + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+}
+
+// Render the File Storage bar from cache. Synchronous, no fetch.
+function renderFileStorage() {
+  var box = document.getElementById('sidebar-file-storage');
+  if (!box) return;
+  var used = window._fileStorageCache;
+  if (used == null) { box.style.display = 'none'; return; }
+  var max = window.FILE_STORAGE_MAX_BYTES;
+  var pct = Math.min(100, Math.round((used / max) * 100));
+  var color = pct < 60 ? '#22c55e' : (pct < 85 ? '#eab308' : '#ef4444');
+  var bar = document.getElementById('sidebar-storage-bar');
+  var pctEl = document.getElementById('sidebar-storage-pct');
+  var countEl = document.getElementById('sidebar-storage-count');
+  if (bar) { bar.style.width = pct + '%'; bar.style.background = color; }
+  if (pctEl) { pctEl.textContent = pct + '%'; pctEl.style.color = color; }
+  if (countEl) countEl.textContent = fsFormatBytes(used) + ' / 10 GB';
+  box.style.display = 'block';
+}
+
+// Fetch storage from server and update cache. Single RPC shared with the
+// course/product upload validators.
+async function fetchFileStorage() {
+  try {
+    var { data, error } = await sb.rpc('get_creator_storage_used');
+    if (error) { window._fileStorageCache = null; }
+    else { window._fileStorageCache = Number(data || 0); }
+    var menu = document.getElementById('sidebar-user-menu');
+    if (menu && menu.style.display !== 'none') renderFileStorage();
+  } catch (e) {
+    console.error('fetchFileStorage failed:', e);
+  }
+}
+window.fetchFileStorage = fetchFileStorage;
+window.renderFileStorage = renderFileStorage;
 
 // Fetch AI usage from server and update cache.
 // Safe to call repeatedly - it's a single indexed COUNT query.

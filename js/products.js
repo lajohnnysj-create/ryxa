@@ -298,12 +298,10 @@ async function refreshProductsStorage() {
     var { data, error } = await sb.rpc('get_creator_storage_used');
     if (error) throw error;
     productsState.storageBytes = Number(data || 0);
-    var pct = Math.min(100, Math.round((productsState.storageBytes / DP_MAX_ACCOUNT_BYTES) * 100));
-    var color = pct < 60 ? '#22c55e' : (pct < 85 ? '#eab308' : '#ef4444');
-    var fill = document.getElementById('products-storage-fill');
-    var txt = document.getElementById('products-storage-text');
-    if (fill) { fill.style.width = pct + '%'; fill.style.background = color; }
-    if (txt) txt.textContent = dpFormatBytes(productsState.storageBytes) + ' / 10 GB for downloadable files (shared with course downloads)';
+    // Storage indicator now lives in the account popup (shared with Courses).
+    // Push the fresh figure to the shared cache and re-render it.
+    window._fileStorageCache = productsState.storageBytes;
+    if (typeof renderFileStorage === 'function') renderFileStorage();
   } catch (e) {
     console.error('refreshProductsStorage failed:', e);
   }
