@@ -2659,6 +2659,8 @@
   .bio-social-editor-label { font-size: 13px; font-weight: 600; color: var(--text); }
   .bio-social-plaininput { width: 100%; background: var(--bg); border: 1px solid var(--border-hover); border-radius: 8px; padding: 8px 10px; font-size: 13px; color: var(--text); font-family: 'DM Sans', sans-serif; outline: none; box-sizing: border-box; }
   .bio-social-plaininput:focus { border-color: var(--accent2); outline: none; box-shadow: none; }
+  /* MK social editor: follower count + engagement side by side above the URL. */
+  .mk-social-editor-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
   .bio-social-editor .bio-social-prefixwrap { background: var(--bg); }
   .bio-social-editor-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
   .bio-social-clear { background: none; border: none; color: var(--muted); font-size: 12px; font-family: 'DM Sans', sans-serif; cursor: pointer; padding: 6px 8px; border-radius: 6px; }
@@ -8583,7 +8585,10 @@
                       <div id="mk-color-accent-hex" class="custom-color-hex">#a78bfa</div>
                     </div>
                   </div>
-                  <button type="button" data-mk-action="reset-custom-colors" class="bio-s-3e90ae">Reset to defaults</button>
+                  <div class="custom-editor-footer">
+                    <button type="button" data-mk-action="reset-custom-colors" class="bio-s-3e90ae">Reset to defaults</button>
+                    <button type="button" data-mk-action="close-custom-editor" class="custom-editor-done">Done</button>
+                  </div>
                 </div>
               </div>
             </div>
