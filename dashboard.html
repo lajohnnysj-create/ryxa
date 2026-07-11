@@ -4419,7 +4419,10 @@
   .bio-s-e289c0 { font-size:11px;color:var(--muted);margin-bottom:8px; }
   .bio-s-084f5b { font-size:10px;margin-top:2px; }
   .bio-s-5239e1 { font-size:11px;color:var(--muted);margin:16px 0 8px; }
-  .bio-s-3e90ae { width:100%;padding:8px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:6px;font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer; }
+  .bio-s-3e90ae { flex:1;padding:8px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:6px;font-size:11px;font-family:DM Sans,sans-serif;cursor:pointer; }
+  .custom-editor-footer { display:flex; gap:8px; align-items:center; margin-top:16px; }
+  .custom-editor-done { flex:1; padding:8px; background:var(--accent); color:#fff; border:none; border-radius:6px; font-size:11px; font-weight:600; font-family:'DM Sans',sans-serif; cursor:pointer; transition:opacity 0.15s; }
+  .custom-editor-done:hover { opacity:0.9; }
   .bio-s-b32a60 { display:flex;flex-direction:column;gap:10px; }
   .bio-s-fc58bb { display:flex;align-items:center;gap:10px;flex-wrap:wrap; }
   .bio-s-6abeb9 { display:flex;flex-direction:column;gap:8px;margin-bottom:12px; }
@@ -7209,7 +7212,10 @@
                   </div>
                 </div>
 
-                <button type="button" data-bio-action="reset-custom-colors" class="bio-s-3e90ae">Reset to defaults</button>
+                <div class="custom-editor-footer">
+                  <button type="button" data-bio-action="reset-custom-colors" class="bio-s-3e90ae">Reset to defaults</button>
+                  <button type="button" data-bio-action="close-custom-editor" class="custom-editor-done">Done</button>
+                </div>
               </div>
               </div>
             </div>
