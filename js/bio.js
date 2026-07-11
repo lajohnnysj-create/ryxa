@@ -1584,30 +1584,79 @@ async function compressBgImage(file, maxW, maxH, targetBytes) {
 function renderBioSocials() {
   const container = document.getElementById('bio-socials-form');
   if (!container) return;
-  container.innerHTML = BIO_SOCIAL_FIELDS.map(f => {
-    const val = escapeHtml(bioState.socials[f.key] || '');
-    // Handle-type fields show a fixed URL prefix so it's clear the user
-    // only types their handle; url/email/phone fields are plain inputs.
-    if (f.type === 'username' && f.urlBase) {
-      return `
-    <div class="bio-social-row">
-      <div class="bio-social-icon">${f.svg}</div>
-      <div class="bio-social-prefixwrap">
-        <span class="bio-social-prefix">${escapeHtml(f.urlBase)}</span>
-        <input type="text" maxlength="80" aria-label="${f.label}" placeholder="${escapeHtml(f.placeholder)}"
-          value="${val}"
-          data-bio-action="social-change" data-bio-event="input" data-bio-social="${f.key}">
-      </div>
-    </div>`;
-    }
-    return `
-    <div class="bio-social-row">
-      <div class="bio-social-icon">${f.svg}</div>
-      <input type="text" maxlength="300" aria-label="${f.label}" placeholder="${f.label}: ${escapeHtml(f.placeholder)}"
-        value="${val}"
-        data-bio-action="social-change" data-bio-event="input" data-bio-social="${f.key}">
-    </div>`;
+
+  // Icon grid: one tappable tile per platform. A tile is "filled" when that
+  // platform has a value in bioState.socials. Tapping a tile opens an inline
+  // editor below the grid (bioActiveSocial tracks which one is open). All the
+  // underlying data, maxlengths, prefix handling, and save behavior are
+  // unchanged - this only restyles how the same inputs are presented.
+  const gridHtml = BIO_SOCIAL_FIELDS.map(f => {
+    const filled = !!(bioState.socials[f.key] && String(bioState.socials[f.key]).trim());
+    const active = bioActiveSocial === f.key;
+    return `<button type="button" class="bio-social-tile${filled ? ' filled' : ''}${active ? ' active' : ''}"
+      data-bio-action="social-tile" data-bio-social="${f.key}" aria-label="${escapeHtml(f.label)}${filled ? ' (set)' : ''}" title="${escapeHtml(f.label)}">
+      <span class="bio-social-tile-icon">${f.svg}</span>
+      ${filled ? '<span class="bio-social-tile-dot" aria-hidden="true"></span>' : ''}
+    </button>`;
   }).join('');
+
+  let editorHtml = '';
+  if (bioActiveSocial) {
+    const f = BIO_SOCIAL_FIELDS.find(x => x.key === bioActiveSocial);
+    if (f) {
+      const val = escapeHtml(bioState.socials[f.key] || '');
+      let inputHtml;
+      if (f.type === 'username' && f.urlBase) {
+        inputHtml = `<div class="bio-social-prefixwrap">
+          <span class="bio-social-prefix">${escapeHtml(f.urlBase)}</span>
+          <input type="text" maxlength="80" aria-label="${escapeHtml(f.label)}" placeholder="${escapeHtml(f.placeholder)}"
+            value="${val}" data-bio-action="social-change" data-bio-event="input" data-bio-social="${f.key}">
+        </div>`;
+      } else {
+        inputHtml = `<input type="text" class="bio-social-plaininput" maxlength="300" aria-label="${escapeHtml(f.label)}" placeholder="${escapeHtml(f.placeholder)}"
+          value="${val}" data-bio-action="social-change" data-bio-event="input" data-bio-social="${f.key}">`;
+      }
+      editorHtml = `<div class="bio-social-editor">
+        <div class="bio-social-editor-head">
+          <span class="bio-social-editor-icon">${f.svg}</span>
+          <span class="bio-social-editor-label">${escapeHtml(f.label)}</span>
+        </div>
+        ${inputHtml}
+        <div class="bio-social-editor-actions">
+          <button type="button" class="bio-social-clear" data-bio-action="social-clear" data-bio-social="${f.key}">Clear</button>
+          <button type="button" class="bio-social-done" data-bio-action="social-done">Done</button>
+        </div>
+      </div>`;
+    }
+  }
+
+  container.innerHTML = `<div class="bio-social-grid">${gridHtml}</div>${editorHtml}`;
+
+  // Autofocus the input when an editor is open so the user can type immediately.
+  if (bioActiveSocial) {
+    const inp = container.querySelector('.bio-social-editor input');
+    if (inp) { inp.focus(); const l = inp.value.length; try { inp.setSelectionRange(l, l); } catch (e) {} }
+  }
+}
+
+// Which social platform's inline editor is currently open (null = none).
+var bioActiveSocial = null;
+
+function onSocialTile(key) {
+  // Toggle: tapping the open tile closes it; tapping another switches to it.
+  bioActiveSocial = (bioActiveSocial === key) ? null : key;
+  renderBioSocials();
+}
+
+function onSocialDone() {
+  bioActiveSocial = null;
+  renderBioSocials();
+}
+
+function onSocialClear(key) {
+  delete bioState.socials[key];
+  schedulePreviewUpdate();
+  renderBioSocials();
 }
 
 function onSocialChange(key, val) {
@@ -5515,6 +5564,9 @@ bioRegisterAction('add-video-to-block', (e, el) => addVideoToBlock(parseInt(el.d
 // Theme + socials
 bioRegisterAction('pick-theme', (e, el) => pickTheme(el.dataset.bioTheme));
 bioRegisterAction('social-change', (e, el) => onSocialChange(el.dataset.bioSocial, el.value));
+bioRegisterAction('social-tile', (e, el) => onSocialTile(el.dataset.bioSocial));
+bioRegisterAction('social-done', () => onSocialDone());
+bioRegisterAction('social-clear', (e, el) => onSocialClear(el.dataset.bioSocial));
 
 // Picker modal close buttons
 bioRegisterAction('close-course-picker', () => closeCoursePickerModal());
