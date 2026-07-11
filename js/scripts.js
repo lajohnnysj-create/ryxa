@@ -1035,6 +1035,10 @@ async function saveScriptNow(silent) {
     if (idx !== -1) scriptsList[idx] = { ...scriptsList[idx], ...payload, updated_at: data.updated_at };
     scriptsDirty = false;
     updateSaveStatus('Saved ✓', 'success');
+    // Explicit Save presses (upper-right, hook, block) toast a confirmation;
+    // the silent 2-second autosave stays inline-only to avoid toast spam while
+    // the user is actively typing.
+    if (!silent && typeof showDashToast === 'function') showDashToast('success', 'Script saved');
     setTimeout(() => {
       if (!scriptsDirty) updateSaveStatus('');
     }, 2000);
