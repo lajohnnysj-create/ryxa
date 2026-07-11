@@ -922,22 +922,31 @@ function buildRateCard(kit, currency) {
 }
 
 function buildContact(kit) {
-  // Render the Contact section when EITHER a valid email OR a note is
-  // present. Creators can use the note as a standalone "how to reach me"
-  // message (e.g., "DM me on Instagram") without needing to expose an email.
+  // Render the Contact section when a valid email is present. The free-form
+  // note now lives in its own "More Info" section (buildMoreInfo).
   const safeEmail = kit.contact_email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(kit.contact_email) ? kit.contact_email : null;
-  const note = kit.contact_note ? String(kit.contact_note).trim() : '';
-  if (!safeEmail && !note) return '';
+  if (!safeEmail) return '';
 
   const mailIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 4h20a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm10 9.44L3.3 6H20.7L12 13.44Z"/></svg>';
 
   return `<div class="section">
     <div class="section-title">Contact</div>
-    ${safeEmail ? `<a class="contact-email" href="mailto:${esc(safeEmail)}">
+    <a class="contact-email" href="mailto:${esc(safeEmail)}">
       ${mailIcon}
       <span>${esc(safeEmail)}</span>
-    </a>` : ''}
-    ${note ? `<div class="contact-note">${esc(note)}</div>` : ''}
+    </a>
+  </div>`;
+}
+
+function buildMoreInfo(kit) {
+  // Free-form creator note: terms, availability, willingness to work with
+  // smaller brands, etc. Line breaks are preserved via white-space CSS on
+  // .more-info-text, so multi-line notes render as written.
+  const note = kit.contact_note ? String(kit.contact_note).trim() : '';
+  if (!note) return '';
+  return `<div class="section">
+    <div class="section-title">More Info</div>
+    <div class="more-info-text">${esc(note)}</div>
   </div>`;
 }
 
@@ -1120,6 +1129,7 @@ function renderMediaKitContent(profile, kit, ig, yt, tt, tw, fb) {
     ${buildVideos(kit)}
     ${buildCarousel(kit)}
     ${buildContact(kit)}
+    ${buildMoreInfo(kit)}
     ${bannerHtml}`;
 
   return { inner, showBanner };
