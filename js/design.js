@@ -1,5 +1,5 @@
 // =============================================================================
-// /js/design.js — Design Studio (extracted from dashboard.html, 2026-05-10)
+// /js/design.js - Design Studio (extracted from dashboard.html, 2026-05-10)
 // -----------------------------------------------------------------------------
 // All JavaScript for the Design Studio tool. Extracted from dashboard.html
 // for stricter CSP.
@@ -7,8 +7,8 @@
 // HISTORY NOTE: This file previously also contained Contract Analyzer and
 // Thumbnail Analyzer code (they shared the original <script> block in
 // dashboard.html). On 2026-05-10 they were extracted into their own files:
-//   • js/contract.js  — Contract Analyzer (data-contract-action namespace)
-//   • js/thumbnail.js — Thumbnail Analyzer (data-thumb-action namespace)
+//   • js/contract.js  - Contract Analyzer (data-contract-action namespace)
+//   • js/thumbnail.js - Thumbnail Analyzer (data-thumb-action namespace)
 // design.js now contains only Design Studio code.
 //
 // Canvas library: Fabric.js 5.3.1 (loaded from cdnjs.cloudflare.com in
@@ -21,15 +21,15 @@
 //   • Phase 3: static inline class="bio-s-6eae3a" → hash-named CSS classes
 //
 // INTENTIONALLY KEPT INLINE (preserving working behavior):
-//   • onmouseover / onmouseout — hover styling (would need CSS :hover)
-//   • onmousedown / ontouchstart — drag-to-place pairs in markup AND in
+//   • onmouseover / onmouseout - hover styling (would need CSS :hover)
+//   • onmousedown / ontouchstart - drag-to-place pairs in markup AND in
 //     dynamically-rendered icon results. dsDragStart() does e.preventDefault()
 //     and has 150ms hold-to-drag timing. Going through the dispatcher could
 //     break this. Leave as-is.
-//   • ondragstart / ondragover / ondragleave / ondrop — Layers panel
+//   • ondragstart / ondragover / ondragleave / ondrop - Layers panel
 //     drag-to-reorder. Same reasoning as Brand Deals kanban.
 //   • Dynamic styles in template literals (anything with ${...} or string
-//     concatenation) — same reasoning as every other tool's cover renders.
+//     concatenation) - same reasoning as every other tool's cover renders.
 //
 // External dependencies remain on window (sb, Auth, currentUser, isMax, isPro,
 // escapeHtml, getAIHeaders, showModalAlert, showModalConfirm, formatMoney,
@@ -45,6 +45,7 @@ const dsActions = {};
 function dsRegisterAction(action, handler) {
   dsActions[action] = handler;
 }
+dsRegisterAction('retry-projects', function() { loadDesignProjects(); });
 
 function dsFindActionElement(target, eventType) {
   let el = target;
@@ -125,7 +126,7 @@ function startDesignProject(w, h, name) {
   dsUndoStack = [];
   dsRedoStack = [];
   dsPendingJSON = null;
-  // Fresh canvas — nothing on it yet, so nothing to save.
+  // Fresh canvas - nothing on it yet, so nothing to save.
   _dsDirty = false;
   document.getElementById('ds-project-name').textContent = name;
   document.getElementById('design-start').style.display = 'none';
@@ -187,7 +188,7 @@ function initDesignCanvas(onReady) {
   // Snap guidelines
   dsInitGuidelines();
 
-  // Prevent text scaling — convert scale to font size and width changes
+  // Prevent text scaling - convert scale to font size and width changes
   dsCanvas.on('object:scaling', function(e) {
     var obj = e.target;
     if (obj && (obj.type === 'textbox' || obj.type === 'i-text')) {
@@ -221,7 +222,7 @@ function initDesignCanvas(onReady) {
     padding: 6
   });
 
-  // Custom rotation control — Canva-style below the object
+  // Custom rotation control - Canva-style below the object
   var rotateIcon = new Image();
   rotateIcon.src = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>');
 
@@ -259,7 +260,7 @@ function initDesignCanvas(onReady) {
   });
 
   // Draw a line connecting bottom center of object to the rotate control
-  // Hover highlight — dashed purple border around hovered object
+  // Hover highlight - dashed purple border around hovered object
   var dsHoveredObj = null;
 
   dsCanvas.on('mouse:over', function(e) {
@@ -336,7 +337,7 @@ function initDesignCanvas(onReady) {
       if (onReady) onReady();
     });
   } else {
-    // No pending JSON (new project) — canvas is already ready.
+    // No pending JSON (new project) - canvas is already ready.
     if (onReady) onReady();
   }
   }, 50); // end setTimeout
@@ -525,14 +526,14 @@ function dsResizeCanvas() {
   if (maxH < 300) maxH = 300;
 
   // For landscape/wide canvases, fit to width
-  // For tall/square canvases, use more width — allow vertical scroll
+  // For tall/square canvases, use more width - allow vertical scroll
   var scale;
   var aspectRatio = dsProjectW / dsProjectH;
   if (aspectRatio >= 1) {
-    // Landscape or square — fit both dimensions
+    // Landscape or square - fit both dimensions
     scale = Math.min(maxW / dsProjectW, maxH / dsProjectH, 1);
   } else {
-    // Portrait/tall — prioritize width, allow taller canvas
+    // Portrait/tall - prioritize width, allow taller canvas
     var tallMaxH = window.innerHeight - 180;
     if (tallMaxH < 400) tallMaxH = 400;
     scale = Math.min(maxW / dsProjectW, tallMaxH / dsProjectH, 1);
@@ -732,7 +733,7 @@ function dsOnSelect() {
     var isIconType = obj._dsShapeType === 'icon';
     document.getElementById('ds-shape-fill-group').style.display = isLineType ? 'none' : 'flex';
     document.getElementById('ds-shape-radius-group').style.display = obj._dsShapeType === 'rect' ? 'flex' : 'none';
-    // Icons are raster images — stroke and "no fill" don't have a meaningful
+    // Icons are raster images - stroke and "no fill" don't have a meaningful
     // effect on them, so hide those controls. Fill still works (it re-fetches
     // a recolored icon from Iconify).
     document.getElementById('ds-shape-stroke-group').style.display = isIconType ? 'none' : 'flex';
@@ -834,7 +835,7 @@ function dsDragEnd(e) {
   if (!type) return;
 
   if (wasDragging) {
-    // Dropped — find position on canvas
+    // Dropped - find position on canvas
     var touch = e.changedTouches ? e.changedTouches[0] : e;
     var canvasEl = document.querySelector('#ds-canvas-wrap canvas');
     if (!canvasEl) canvasEl = document.getElementById('ds-canvas');
@@ -860,7 +861,7 @@ function dsDragEnd(e) {
     }
     dsCloseShapeMenu();
   } else {
-    // Quick click — add at default position
+    // Quick click - add at default position
     if (type === 'text') {
       dsAddText();
     } else if (type.startsWith('icon:')) {
@@ -1495,7 +1496,7 @@ function dsSetShapeFill(color) {
   var obj = dsCanvas.getActiveObject();
   if (!obj || !obj._dsShape) return;
 
-  // Icons are raster images of SVGs — setting `fill` does nothing visually.
+  // Icons are raster images of SVGs - setting `fill` does nothing visually.
   // Re-fetch from Iconify with the new color and swap the underlying image
   // element in place. Position, scale, rotation are preserved.
   if (obj._dsShapeType === 'icon' && obj._dsIconName) {
@@ -1504,7 +1505,7 @@ function dsSetShapeFill(color) {
     var url = 'https://api.iconify.design/' + iconName + '.svg?color=' + hex + '&height=120';
     fabric.Image.fromURL(url, function(img) {
       if (!img || !img._element) return;
-      // Verify the icon is still the active object — user may have clicked
+      // Verify the icon is still the active object - user may have clicked
       // away while the fetch was in flight.
       if (dsCanvas.getActiveObject() !== obj) return;
       obj.setElement(img._element);
@@ -2148,13 +2149,46 @@ async function loadDesignProjects() {
   var list = document.getElementById('ds-projects-list');
   var empty = document.getElementById('ds-projects-empty');
   var countEl = document.getElementById('ds-save-count');
+  var _gen = window.RyxaLoadGen.bump();
+  window.RyxaLoadBar.start(list);
 
-  var { data, error } = await sb.from('design_projects')
-    .select('id, name, canvas_width, canvas_height, thumbnail, updated_at')
-    .eq('user_id', currentUser.id)
-    .order('updated_at', { ascending: false });
-
-  if (error || !data) { data = []; }
+  // Reloads on every tool open (project thumbnails / updated_at change when a
+  // project is saved), so no memoization - but a failed load must show a real
+  // error with Retry, not a silent empty "no projects yet".
+  var data = null;
+  var MAX_LOAD_ATTEMPTS = 3;
+  for (var attempt = 1; attempt <= MAX_LOAD_ATTEMPTS; attempt++) {
+    try {
+      var res = await sb.from('design_projects')
+        .select('id, name, canvas_width, canvas_height, thumbnail, updated_at')
+        .eq('user_id', currentUser.id)
+        .order('updated_at', { ascending: false });
+      if (res.error) throw res.error;
+      if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('ds-projects-list')); return; }
+      data = res.data || [];
+      break;
+    } catch (err) {
+      if (attempt < MAX_LOAD_ATTEMPTS) {
+        if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('ds-projects-list')); return; }
+        window.RyxaLoadBar.retrying(list, 'Having trouble loading your projects. Retrying...');
+        await new Promise(function(r){ setTimeout(r, 400 * attempt); });
+        if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('ds-projects-list')); return; }
+        continue;
+      }
+      if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('ds-projects-list')); return; }
+      console.error('loadDesignProjects:', err);
+      window.RyxaLoadBar.fail(list);
+      if (empty) empty.style.display = 'none';
+      list.innerHTML = '<div role="alert" style="padding:20px;border-radius:12px;border:1px solid rgba(239,68,68,0.35);background:rgba(239,68,68,0.08);">'
+        + '<div style="color:#f87171;font-weight:600;font-size:15px;margin-bottom:6px;">Could not load your projects</div>'
+        + '<div style="color:rgba(255,255,255,0.7);font-size:14px;line-height:1.5;margin-bottom:14px;">Your saved projects are safe; they just could not be loaded. Check your internet connection and press Retry. If the issue continues, contact us at hello@ryxa.io.</div>'
+        + '<button type="button" data-ds-action="retry-projects" style="padding:9px 18px;border-radius:8px;border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.06);color:#fff;font-weight:600;cursor:pointer;">Retry</button>'
+        + '</div>';
+      if (typeof showDashToast === 'function') showDashToast('error', 'Failed to load. Please retry, or contact hello@ryxa.io if it continues.');
+      return;
+    }
+  }
+  window.RyxaLoadBar.finish(list);
 
   var max = getDsSaveMax();
   countEl.textContent = '(' + data.length + '/' + max + ')';
@@ -2197,15 +2231,36 @@ async function openDesignProject(id) {
   nameEl.textContent = '';
   if (overlay) overlay.classList.add('active');
 
-  var { data, error } = await sb.from('design_projects').select('*').eq('id', id).eq('user_id', currentUser.id).single();
-  if (error || !data) {
-    // Revert the optimistic UI and show the error
-    if (overlay) overlay.classList.remove('active');
-    editorEl.style.display = 'none';
-    startEl.style.display = 'block';
-    showModalAlert('Error', 'Could not load project. Please try again.');
-    return;
+  var _gen = window.RyxaLoadGen.bump();
+  window.RyxaLoadBar.start(document.getElementById('design-editor'));
+  var data = null;
+  var MAX_OPEN_ATTEMPTS = 3;
+  for (var attempt = 1; attempt <= MAX_OPEN_ATTEMPTS; attempt++) {
+    try {
+      var res = await sb.from('design_projects').select('*').eq('id', id).eq('user_id', currentUser.id).single();
+      if (res.error) throw res.error;
+      if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('design-editor')); if (overlay) overlay.classList.remove('active'); return; }
+      data = res.data;
+      break;
+    } catch (err) {
+      if (attempt < MAX_OPEN_ATTEMPTS) {
+        if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('design-editor')); if (overlay) overlay.classList.remove('active'); return; }
+        window.RyxaLoadBar.retrying(document.getElementById('design-editor'), 'Having trouble loading this project. Retrying...');
+        await new Promise(function(r){ setTimeout(r, 400 * attempt); });
+        continue;
+      }
+      // Final failure: revert to the project list (no modal, per house rule)
+      // and show a toast. The user keeps their project list; nothing is lost.
+      console.error('openDesignProject:', err);
+      window.RyxaLoadBar.fail(document.getElementById('design-editor'));
+      if (overlay) overlay.classList.remove('active');
+      editorEl.style.display = 'none';
+      startEl.style.display = 'block';
+      if (typeof showDashToast === 'function') showDashToast('error', 'Failed to load this project. Please retry, or contact hello@ryxa.io if it continues.');
+      return;
+    }
   }
+  window.RyxaLoadBar.finish(document.getElementById('design-editor'));
 
   // Remember the loaded version for the concurrency check on save.
   dsProjectUpdatedAt = data.updated_at || null;
@@ -2265,7 +2320,7 @@ function dsRemoveBg() {
         // as a base64 data URL inside the project JSON via fabric.toJSON, so
         // every save uploads and every load downloads that full payload to
         // Supabase. Re-encode as WebP with alpha at 0.9 quality before
-        // serializing — visually indistinguishable from PNG for creator content,
+        // serializing - visually indistinguishable from PNG for creator content,
         // but typically 70–90% smaller. Drops egress proportionally.
         var pngImg = new Image();
         pngImg.onload = function() {
@@ -2278,7 +2333,7 @@ function dsRemoveBg() {
             // decoded it; revoke to free memory.
             URL.revokeObjectURL(pngImg.src);
             // If WebP encoding ever fails on a niche browser (very unlikely in
-            // 2026 — universal canvas WebP support), webpBlob will be null.
+            // 2026 - universal canvas WebP support), webpBlob will be null.
             // Bail with a clear error rather than silently storing a broken src.
             if (!webpBlob) {
               dsResetBgBtn(btn);
@@ -2346,13 +2401,13 @@ function dsRemoveBg() {
   // <script> needed), as long as 'https://esm.sh' is in script-src.
   // Note: import() returns a Promise that resolves to the module namespace
   // object. The dynamic-import URL must be a string literal or template
-  // literal — we hard-code it here. Pinned version so we don't break on
+  // literal - we hard-code it here. Pinned version so we don't break on
   // upstream changes.
   //
   // 60-second timeout: covers slow mobile connections downloading the ~60MB
   // ONNX model on first run. Subsequent runs hit the browser cache and finish
   // in milliseconds. Desktop typically completes in 5-15s on fiber, but mobile
-  // on 4G can take 30-50s legitimately — 30s was tripping false negatives.
+  // on 4G can take 30-50s legitimately - 30s was tripping false negatives.
   var timedOut = false;
   var timeoutId = setTimeout(function() {
     timedOut = true;
@@ -2382,10 +2437,10 @@ function dsRemoveBg() {
 
 
 // =============================================================================
-// ACTION REGISTRATIONS — wired up below as part of Phase 2
+// ACTION REGISTRATIONS - wired up below as part of Phase 2
 // =============================================================================
 
-// Start screen — preset size buttons
+// Start screen - preset size buttons
 dsRegisterAction('start-preset', (e, el) => {
   const w = parseInt(el.dataset.dsW, 10);
   const h = parseInt(el.dataset.dsH, 10);
