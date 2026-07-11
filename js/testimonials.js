@@ -94,7 +94,7 @@
     + '.testimonials-section.t-dark .testimonials-heading{color:#f0eef8;}'
     + '.testimonials-heading span{color:inherit;}'
     + '.testimonials-track-wrap{position:relative;max-width:1240px;margin:0 auto;overflow:hidden;}'
-    + '.testimonials-track{display:flex;gap:20px;padding:8px 0;width:max-content;animation:testimonials-marquee 50s linear infinite;cursor:grab;user-select:none;will-change:transform;}'
+    + '.testimonials-track{display:flex;gap:20px;padding:8px 0;width:max-content;animation:testimonials-marquee 50s linear infinite;cursor:grab;user-select:none;will-change:transform;touch-action:pan-y;}'
     + '.testimonials-track.dragging{cursor:grabbing;}'
     + '.testimonials-track-wrap:hover .testimonials-track{animation-play-state:paused;}'
     + '@keyframes testimonials-marquee{from{transform:translateX(0);}to{transform:translateX(calc(-50% - 10px));}}'
@@ -239,6 +239,12 @@
     var lastX = 0;
     var currentTranslate = 0;
     var loopWidthPx = 0;
+    // Touch direction lock: on touchstart we don't yet know if the user wants
+    // to drag the carousel (horizontal) or scroll the page (vertical). We wait
+    // for the first move to decide. Until then we never block the page scroll.
+    var touchPending = false;   // touch began, direction not yet decided
+    var touchStartX = 0;
+    var touchStartY = 0;
 
     function computeLoopWidth() {
       // The track contains two identical sets of cards. Half the scrollWidth
@@ -327,15 +333,37 @@
     // Drag-end leaves the marquee in manual-pause state (button shows Play).
     // The user resumes by clicking Play. This sidesteps iOS touchend quirks
     // entirely: we never need to auto-resume after a touch.
+    // Begins a drag. For mouse we engage immediately (no page-scroll to
+    // conflict with). For touch we DON'T engage yet: we mark the touch pending
+    // and wait for the first move to see whether it's horizontal (drag) or
+    // vertical (let the page scroll). Crucially we do NOT call preventDefault
+    // here for touch, so vertical scrolling is never blocked at the start of a
+    // gesture. This was the cause of the "can't scroll while paused" trap.
     function onDown(e) {
+      if (e.touches) {
+        touchPending = true;
+        touchStartX = e.touches[0].pageX;
+        touchStartY = e.touches[0].pageY;
+        lastX = touchStartX;
+        // Do not preventDefault, do not stop the animation, do not set isDown.
+        // engageDrag() will do all that only if the move proves horizontal.
+        return;
+      }
+      // Mouse path: engage right away.
+      engageDrag(e.pageX);
+      if (e.preventDefault) e.preventDefault();
+    }
+
+    // Actually take over the marquee for dragging. Freezes the animation at the
+    // current position and starts translating from there.
+    function engageDrag(startX) {
       isDown = true;
       track.classList.add('dragging');
       loopWidthPx = computeLoopWidth();
       currentTranslate = normalize(readCurrentTranslate());
-      lastX = (e.touches ? e.touches[0].pageX : e.pageX);
+      lastX = startX;
       track.style.animation = 'none';
       track.style.transform = 'translateX(' + currentTranslate + 'px)';
-      if (e.preventDefault) e.preventDefault();
     }
 
     // Block the browser's native drag operation entirely on the track.
@@ -343,13 +371,34 @@
     track.addEventListener('selectstart', function (e) { e.preventDefault(); });
 
     function onMove(e) {
-      if (!isDown) return;
       var isTouch = !!e.touches;
+
+      // Touch, direction not yet decided: compare horizontal vs vertical
+      // travel. Mostly-vertical => release the touch and let the page scroll
+      // normally. Mostly-horizontal => engage the carousel drag. A small
+      // threshold avoids reacting to tiny jitters.
+      if (isTouch && touchPending) {
+        var tx = e.touches[0].pageX;
+        var ty = e.touches[0].pageY;
+        var adx = Math.abs(tx - touchStartX);
+        var ady = Math.abs(ty - touchStartY);
+        if (adx < 6 && ady < 6) return; // not enough movement to decide yet
+        touchPending = false;
+        if (ady > adx) {
+          // Vertical intent: this is a page scroll. Stay out of it entirely.
+          return;
+        }
+        // Horizontal intent: take over the carousel from here.
+        engageDrag(tx);
+        return;
+      }
+
+      if (!isDown) return;
       var x = (isTouch ? e.touches[0].pageX : e.pageX);
       var dx = x - lastX;
       lastX = x;
       // Touch drag feels sluggish at 1:1 because finger contact patches are
-      // imprecise. A small multiplier (1.3x) makes mobile swipes feel snappier
+      // imprecise. A small multiplier (1.4x) makes mobile swipes feel snappier
       // without overshooting. Desktop mouse stays at 1:1 since pointer accuracy
       // is already precise.
       if (isTouch) dx *= 1.4;
@@ -358,6 +407,7 @@
     }
 
     function onUp() {
+      touchPending = false;
       if (!isDown) return;
       isDown = false;
       track.classList.remove('dragging');
@@ -370,7 +420,9 @@
     track.addEventListener('mousedown', onDown);
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
-    track.addEventListener('touchstart', onDown, { passive: false });
+    // touchstart is now passive: we never call preventDefault on it, so the
+    // browser is free to scroll the page vertically from a touch on the track.
+    track.addEventListener('touchstart', onDown, { passive: true });
     window.addEventListener('touchmove', onMove, { passive: true });
     window.addEventListener('touchend', onUp);
     window.addEventListener('touchcancel', onUp);
