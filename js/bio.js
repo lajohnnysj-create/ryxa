@@ -2489,23 +2489,24 @@ async function updateMediaKitLinkButton() {
     btn.style.display = 'none';
     return;
   }
-  // Pro + published MK: always show. Grey out if already added.
+  // Pro + published MK: always show. Disable (grey via :disabled CSS) if
+  // already added, but keep the same label - no text/icon swap. The disabled
+  // coloring alone communicates it's already added.
   btn.style.display = 'flex';
   const alreadyAdded = bioState.links.some(l => l.isMediaKit);
+  btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="17" x2="8" y2="13"/><line x1="12" y1="17" x2="12" y2="11"/><line x1="16" y1="17" x2="16" y2="15"/></svg> Media Kit';
   if (alreadyAdded) {
     btn.disabled = true;
-    btn.style.opacity = '0.5';
     btn.style.cursor = 'not-allowed';
     btn.setAttribute('aria-disabled', 'true');
-    // Update text to show status
-    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Media Kit link added';
   } else {
     btn.disabled = false;
-    btn.style.opacity = '';
     btn.style.cursor = 'pointer';
     btn.removeAttribute('aria-disabled');
-    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="17" x2="8" y2="13"/><line x1="12" y1="17" x2="12" y2="11"/><line x1="16" y1="17" x2="16" y2="15"/></svg> Media Kit';
   }
+  // Clear any inline opacity from earlier versions so the :disabled CSS owns
+  // the disabled appearance.
+  btn.style.opacity = '';
 }
 
 // Course picker modal for adding course links to bio
