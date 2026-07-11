@@ -2661,6 +2661,18 @@
   .bio-social-plaininput:focus { border-color: var(--accent2); outline: none; box-shadow: none; }
   /* MK social editor: follower count + engagement side by side above the URL. */
   .mk-social-editor-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+  /* Rate card tiles carry a short label under the icon, so they're taller than
+     the square social tiles and stack icon-over-label. */
+  .mk-rate-tile { aspect-ratio: auto; flex-direction: column; gap: 5px; padding: 12px 6px; }
+  .mk-rate-tile-label { font-size: 11px; font-weight: 500; line-height: 1.2; text-align: center; overflow: hidden; text-overflow: ellipsis; max-width: 100%; white-space: nowrap; }
+  /* Rate tiles carry text labels, so they need wider columns than the 7-up
+     social icon grid. */
+  #mk-rates-list .bio-social-grid { grid-template-columns: repeat(4, 1fr); }
+  .bio-tool-wrap #mk-rates-list .bio-social-grid { grid-template-columns: repeat(4, 1fr); }
+  /* Rate editor stacks label (custom only) + price row + note with breathing room. */
+  .bio-social-editor .mk-rate-price-row { margin-top: 8px; }
+  .bio-social-editor .mk-rate-price-row + .bio-social-plaininput { margin-top: 8px; }
+  .bio-social-editor > .bio-social-plaininput:first-of-type { margin-top: 0; }
   .bio-social-editor .bio-social-prefixwrap { background: var(--bg); }
   .bio-social-editor-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
   .bio-social-clear { background: none; border: none; color: var(--muted); font-size: 12px; font-family: 'DM Sans', sans-serif; cursor: pointer; padding: 6px 8px; border-radius: 6px; }
