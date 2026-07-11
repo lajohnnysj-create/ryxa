@@ -1,5 +1,5 @@
 // =============================================================================
-// /js/scripts.js — Script Builder (extracted from dashboard.html, 2026-05-10)
+// /js/scripts.js - Script Builder (extracted from dashboard.html, 2026-05-10)
 // -----------------------------------------------------------------------------
 // All JavaScript for the Script Builder tool (Pro/Max). Includes:
 //   • Script editor (script/storyboard views, hook, items, sections, blocks)
@@ -21,8 +21,8 @@
 // External dependencies remain on window:
 //   • sb, Auth, currentUser, isPro, isMax, escapeHtml, getAIHeaders
 //   • dashConfirm, showModalAlert
-//   • showDsMsg (from js/design.js) — only called at click time
-//   • Tone (Tone.js — lazy-loaded by ensureToneLoaded() only when the user
+//   • showDsMsg (from js/design.js) - only called at click time
+//   • Tone (Tone.js - lazy-loaded by ensureToneLoaded() only when the user
 //     opts into Cinematic Music, NOT eager in dashboard.html)
 // =============================================================================
 
@@ -35,6 +35,7 @@ const scriptsActions = {};
 function scriptsRegisterAction(action, handler) {
   scriptsActions[action] = handler;
 }
+scriptsRegisterAction('retry-load', function() { loadScriptsList(); });
 
 function scriptsFindActionElement(target, eventType) {
   let el = target;
@@ -74,7 +75,7 @@ function scriptsDispatchEvent(event) {
 
 // ---------- From dashboard.html lines 14002-14755 (Scripts core + AI tools) ----------
 // ======================================================================
-// SCRIPT BUILDER — Creator Max tool
+// SCRIPT BUILDER - Creator Max tool
 // ======================================================================
 const SCRIPT_BLOCKS_MAX = 50;
 const SCRIPT_WPM = 150;
@@ -108,7 +109,6 @@ function initScriptsTool() {
   }
   if (paywall) paywall.style.display = 'none';
   if (editorWrap) editorWrap.style.display = 'block';
-  loadScriptsList();
   showScriptsList();
 }
 
@@ -117,25 +117,58 @@ function showScriptsList() {
   document.getElementById('scripts-edit-view').style.display = 'none';
   currentScript = null;
   scriptsDirty = false;
-  loadScriptsList();
+  if (!scriptsLoaded) {
+    loadScriptsList();
+  } else {
+    // Subsequent opens render from memory - no refetch, no load bar. Matches
+    // Courses / Products / Bio. In-tool saves keep the cache fresh.
+    renderScriptsList();
+  }
 }
 
 async function loadScriptsList() {
   if (!currentUser) return;
-  try {
-    const { data, error } = await sb
-      .from('scripts')
-      .select('id, title, hook, platform, items, updated_at')
-      .eq('user_id', currentUser.id)
-      .order('updated_at', { ascending: false });
-    if (error) throw error;
-    scriptsList = data || [];
-    scriptsLoaded = true;
-    renderScriptsList();
-  } catch (e) {
-    console.error('loadScriptsList', e);
-    if (typeof showDashToast === 'function') {
-      showDashToast('error', 'Could not load your scripts. Refresh the page to try again.');
+  const _gen = window.RyxaLoadGen.bump();
+  const listEl = document.getElementById('scripts-list');
+  const emptyEl = document.getElementById('scripts-empty');
+  if (emptyEl) emptyEl.style.display = 'none';
+  if (listEl) { listEl.innerHTML = ''; window.RyxaLoadBar.start(listEl); }
+  const MAX_LOAD_ATTEMPTS = 3;
+  for (let attempt = 1; attempt <= MAX_LOAD_ATTEMPTS; attempt++) {
+    try {
+      const res = await sb
+        .from('scripts')
+        .select('id, title, hook, platform, items, updated_at')
+        .eq('user_id', currentUser.id)
+        .order('updated_at', { ascending: false });
+      if (res.error) throw res.error;
+      if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('scripts-list')); return; }
+      scriptsList = res.data || [];
+      scriptsLoaded = true;
+      window.RyxaLoadBar.finish(listEl);
+      renderScriptsList();
+      return;
+    } catch (e) {
+      if (attempt < MAX_LOAD_ATTEMPTS) {
+        if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('scripts-list')); return; }
+        window.RyxaLoadBar.retrying(listEl, 'Having trouble loading your scripts. Retrying...');
+        await new Promise(function(r){ setTimeout(r, 400 * attempt); });
+        if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('scripts-list')); return; }
+        continue;
+      }
+      if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('scripts-list')); return; }
+      console.error('loadScriptsList', e);
+      window.RyxaLoadBar.fail(listEl);
+      if (emptyEl) emptyEl.style.display = 'none';
+      if (listEl) {
+        listEl.innerHTML = '<div role="alert" style="padding:20px;border-radius:12px;border:1px solid rgba(239,68,68,0.35);background:rgba(239,68,68,0.08);">'
+          + '<div style="color:#f87171;font-weight:600;font-size:15px;margin-bottom:6px;">Could not load your scripts</div>'
+          + '<div style="color:rgba(255,255,255,0.7);font-size:14px;line-height:1.5;margin-bottom:14px;">Your scripts are safe; they just could not be loaded. Check your internet connection and press Retry. If the issue continues, contact us at hello@ryxa.io.</div>'
+          + '<button type="button" data-scripts-action="retry-load" style="padding:9px 18px;border-radius:8px;border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.06);color:#fff;font-weight:600;cursor:pointer;">Retry</button>'
+          + '</div>';
+      }
+      if (typeof showDashToast === 'function') showDashToast('error', 'Failed to load. Please retry, or contact hello@ryxa.io if it continues.');
+      return;
     }
   }
 }
@@ -653,7 +686,7 @@ async function saveAndCollapseBlock(id) {
 // ===== SCRIPT AI TOOLS =====
 function dsAIHook() {
   if (typeof isPro === 'function' && !isPro()) {
-    showModalAlert('Pro Feature', 'AI Hook Generator is a Pro feature. Upgrade to use it.');
+    if (typeof showDashToast === 'function') showDashToast('error', 'AI Hook Generator is a Pro feature. Upgrade to use it.');
     return;
   }
 
@@ -727,13 +760,13 @@ function applyHook(idx) {
 
 function dsAIAssist(blockId) {
   if (typeof isPro === 'function' && !isPro()) {
-    showModalAlert('Pro Feature', 'AI Assist is a Pro feature. Upgrade to use it.');
+    if (typeof showDashToast === 'function') showDashToast('error', 'AI Assist is a Pro feature. Upgrade to use it.');
     return;
   }
 
   var item = currentScript.items.find(function(x) { return x.id === blockId; });
   if (!item || !item.body || !item.body.trim()) {
-    showModalAlert('Empty Block', 'Write some text in the block first, then use AI to improve it.');
+    if (typeof showDashToast === 'function') showDashToast('error', 'Write some text in the block first, then use AI to improve it.');
     return;
   }
 
@@ -783,7 +816,7 @@ function runAIAssist(blockId, mode) {
   })
   .then(function(r) { return r.json(); })
   .then(function(data) {
-    if (data.error) { modal.remove(); showModalAlert('Error', data.error); return; }
+    if (data.error) { modal.remove(); if (typeof showDashToast === 'function') showDashToast('error', data.error); return; }
 
     inner.innerHTML = '<div class="scripts-s-760626">Result</div>'
       + '<div class="scripts-s-ee4a00">'
@@ -802,7 +835,7 @@ function runAIAssist(blockId, mode) {
   })
   .catch(function() {
     modal.remove();
-    showModalAlert('Error', 'Failed to process text. Try again.');
+    if (typeof showDashToast === 'function') showDashToast('error', 'Failed to process text. Try again.');
   });
 }
 
@@ -993,10 +1026,7 @@ async function saveScriptNow(silent) {
     if (error) throw error;
     if (!data) {
       updateSaveStatus('Not saved: newer version exists', 'error');
-      showModalAlert(
-        'Newer version exists',
-        'This script was changed in another tab or on another device after this page loaded. To avoid overwriting that newer version, this save was blocked. Refresh the page to load the latest version.'
-      );
+      if (typeof showDashToast === 'function') showDashToast('error', 'This script was changed in another tab or on another device, so this save was blocked to avoid overwriting the newer version. Reload the page to get the latest version.');
       return;
     }
     currentScript.updated_at = data.updated_at;
@@ -1249,7 +1279,7 @@ function openTeleprompter() {
   });
   const script = parts.join('\n\n').trim();
   if (!script) {
-    alert('Add some content first — the teleprompter needs text to scroll.');
+    alert('Add some content first - the teleprompter needs text to scroll.');
     return;
   }
 
@@ -1367,7 +1397,7 @@ function tpTogglePlay() {
 
 function tpTick() {
   if (!tpState || !tpState.playing) return;
-  // If voice is on, voice drives scroll — don't also auto-scroll
+  // If voice is on, voice drives scroll - don't also auto-scroll
   if (tpState.voiceOn) return;
   const area = document.getElementById('tp-scroll-area');
   if (!area) return;
@@ -1391,7 +1421,7 @@ function tpAdjustSpeed(delta) {
   if (!tpState) return;
   // Adaptive step: below 1, step by 0.25 (0.25, 0.5, 0.75, 1).
   // At 1 and above, step by 1 (1, 2, ..., 10).
-  // The button still passes ±1 as delta — we reinterpret it here.
+  // The button still passes ±1 as delta - we reinterpret it here.
   var direction = delta > 0 ? 1 : -1;
   var current = tpState.speed;
   var next;
@@ -1538,7 +1568,7 @@ function tpStartVoice() {
 
   function speakNext() {
     if (!tpState || !tpState.voiceOn || !tpState.playing || chunkIndex >= chunks.length) {
-      // Done speaking — pause playback
+      // Done speaking - pause playback
       if (tpState && chunkIndex >= chunks.length) {
         tpState.voiceChunkIndex = 0;
         tpTogglePlay(); // stop
@@ -1564,7 +1594,7 @@ function tpStartVoice() {
 
     utterance.onend = function() {
       // tpState may be null if the user exited the teleprompter while this
-      // utterance was still in progress — cancel() fires both onend and
+      // utterance was still in progress - cancel() fires both onend and
       // onerror on the cancelled utterance, but by then tpState is gone.
       if (!tpState) return;
       chunkIndex++;
@@ -1619,7 +1649,7 @@ function tpAdjustVoiceSpeed(delta) {
   // If currently speaking, restart from current chunk with new speed
   if (tpState.voiceOn && tpState.playing && window.speechSynthesis) {
     window.speechSynthesis.cancel();
-    // voiceChunkIndex is already set — tpStartVoice will resume from there
+    // voiceChunkIndex is already set - tpStartVoice will resume from there
     tpStartVoice();
   }
 }
@@ -1631,7 +1661,7 @@ function openCinematic() {
   if (!currentScript) return;
   const cards = buildCinematicCards();
   if (cards.length === 0) {
-    alert('Add some content first — cinematic mode needs text to play.');
+    alert('Add some content first - cinematic mode needs text to play.');
     return;
   }
 
@@ -1694,7 +1724,7 @@ function openCinematic() {
     totalDuration: cards.reduce((sum, c) => sum + c.duration, 0),
     elapsedBeforeCurrent: 0,
     musicMood: null,    // null | 'peaceful' | 'comedy' | 'action'
-    musicMuted: true,   // starts muted — user opts in
+    musicMuted: true,   // starts muted - user opts in
     barHideTimeout: null,
   };
 
@@ -1995,7 +2025,7 @@ function ensureToneLoaded() {
     s.crossOrigin = 'anonymous';
     s.onload = function() { resolve(); };
     s.onerror = function() {
-      // Allow a future click to retry — clear the cached failed promise.
+      // Allow a future click to retry - clear the cached failed promise.
       _toneLoadPromise = null;
       reject(new Error('Failed to load Tone.js'));
     };
@@ -2070,7 +2100,7 @@ function stopCineMusic() {
   const toDispose = cineMusicNodes;
   cineMusicNodes = null;
 
-  // Dispose loops immediately — they're scheduled on the Transport which is
+  // Dispose loops immediately - they're scheduled on the Transport which is
   // already stopped, so cancelling them now is safe and prevents any future
   // chord triggers from firing on synths that are about to be disposed.
   toDispose.forEach(n => {
@@ -2082,7 +2112,7 @@ function stopCineMusic() {
   });
 
   // Defer synth/effect disposal so already-triggered notes can finish their
-  // release tails. Each call schedules its OWN timer for its OWN snapshot —
+  // release tails. Each call schedules its OWN timer for its OWN snapshot -
   // rapid mood switches result in multiple pending timers, each disposing
   // its own batch when it fires. This guarantees no synth leaks even under
   // fast clicking.
@@ -2111,7 +2141,7 @@ async function startCineMusic(mood) {
   // cancelled. cineState reflects the latest mood selection; if it no longer
   // matches what we were asked to start, bail out so a stale request doesn't
   // step on a fresher one (which will have triggered its own ensureToneLoaded
-  // call — already resolved since the promise is cached).
+  // call - already resolved since the promise is cached).
   if (!cineState || cineState.musicMood !== mood) return;
 
   // Ensure audio context is started (browsers require user interaction)
@@ -2331,10 +2361,10 @@ function copyToClipboard(text) {
 
 
 // =============================================================================
-// ACTION REGISTRATIONS — wired up below as part of Phase 2
+// ACTION REGISTRATIONS - wired up below as part of Phase 2
 // =============================================================================
 
-// Paywall (markup) — startCheckout defined in dashboard.html
+// Paywall (markup) - startCheckout defined in dashboard.html
 scriptsRegisterAction('start-checkout', (e, el) => goToPricing(el.dataset.scriptsPlan === 'max' ? 'max' : 'pro'));
 
 // Scripts list (markup)
@@ -2362,7 +2392,7 @@ scriptsRegisterAction('title-change', (e, el) => onScriptTitleChange(el.value));
 scriptsRegisterAction('hook-change', (e, el) => onScriptHookChange(el.value));
 scriptsRegisterAction('platform-change', (e, el) => onScriptPlatformChange(el.value));
 
-// Items / sections / blocks (template literal — uses data-scripts-item-id)
+// Items / sections / blocks (template literal - uses data-scripts-item-id)
 scriptsRegisterAction('add-section', () => addScriptSection());
 scriptsRegisterAction('add-block', () => addScriptBlock());
 scriptsRegisterAction('remove-item', (e, el) => removeScriptItem(el.dataset.scriptsItemId));
