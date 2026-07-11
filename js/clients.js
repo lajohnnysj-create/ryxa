@@ -1,5 +1,5 @@
 // =============================================================================
-// /js/clients.js — Subscribers tool (extracted from dashboard.html, 2026-05-10)
+// /js/clients.js - Subscribers tool (extracted from dashboard.html, 2026-05-10)
 // -----------------------------------------------------------------------------
 // All JavaScript for the Subscribers tool (called "clients" internally for
 // historical reasons; user-facing name is "Subscribers"). Loads opt-in/opt-out
@@ -653,10 +653,55 @@ function clientUpsert(clientMap, key, incoming) {
   // place so any external caller doesn't crash.
 }
 
+// ---- Standard load treatment (shared pattern with the other tools) ----
+
+// Lock/unlock the subscribers action bar as one unit while the list is
+// loading or failed: Add, Import, Export, and the search input. (These are
+// action-attribute buttons without ids, so they are looked up by action.)
+function setClientsListLocked(locked) {
+  ['open-add', 'open-import', 'export'].forEach(function(action) {
+    var el = document.querySelector('#tool-clients [data-clients-action="' + action + '"]')
+      || document.querySelector('[data-clients-action="' + action + '"]');
+    if (!el) return;
+    el.disabled = locked;
+    el.style.opacity = locked ? '0.5' : '';
+    el.style.cursor = locked ? 'not-allowed' : '';
+  });
+  var search = document.getElementById('clients-search');
+  if (search) {
+    search.disabled = locked;
+    search.style.opacity = locked ? '0.5' : '';
+  }
+}
+
+// Blocking failure state: red panel with Retry rendered as a full-width row
+// in the table body. A failed load must never masquerade as an empty list.
+function clientsShowListFailed() {
+  var tbody = document.getElementById('clients-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="7" style="padding:0;border:none;">'
+    + '<div role="alert" style="padding:20px;border-radius:12px;border:1px solid rgba(239,68,68,0.35);background:rgba(239,68,68,0.08);margin:8px 0;">'
+    + '<div style="color:#f87171;font-weight:600;font-size:15px;margin-bottom:6px;">Could not load your subscribers</div>'
+    + '<div style="color:rgba(255,255,255,0.7);font-size:14px;line-height:1.5;margin-bottom:14px;">Your list is safe; it just could not be loaded. Check your internet connection and press Retry. If the issue continues, contact us at hello@ryxa.io.</div>'
+    + '<button type="button" data-clients-action="retry-load" style="padding:9px 18px;border-radius:8px;border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.06);color:#fff;font-weight:600;cursor:pointer;">Retry</button>'
+    + '</div></td></tr>';
+}
+
+clientsRegisterAction('retry-load', function() { loadClients(); });
+
 async function loadClients() {
   const tbody = document.getElementById('clients-tbody');
   if (!tbody || !currentUser) return;
-  tbody.innerHTML = '<tr><td colspan="7" class="ana-s-cd4491">Loading...</td></tr>';
+  const _gen = window.RyxaLoadGen.bump();
+  setClientsListLocked(true);
+  tbody.innerHTML = '';
+  window.RyxaLoadBar.start(tbody);
+
+  // Outer attempts are 2, not the usual 3: clientsFetchPageWithRetry already
+  // retries each page fetch internally, so 2 outer x 2 inner = 4 network
+  // tries total, in line with the other tools.
+  const MAX_LOAD_ATTEMPTS = 2;
+  for (let attempt = 1; attempt <= MAX_LOAD_ATTEMPTS; attempt++) {
   try {
     // ----- Load overlays in parallel: suppressions, notes (full sets) -----
     // These are creator-scoped and typically small (under a few thousand even
@@ -713,13 +758,28 @@ async function loadClients() {
     // First page of subscribers + names for that page.
     await clientsReloadPage();
     await statsPromise;
+    if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('clients-tbody')); return; }
     clientsLastLoadedAt = Date.now();
+    window.RyxaLoadBar.finish(tbody);
+    setClientsListLocked(false);
+    return;
   } catch (e) {
-    console.error('Subscribers load error:', e);
-    if (typeof showDashToast === 'function') {
-      showDashToast('error', 'Could not load your subscribers list. Refresh the page to try again. Your list is safe; this is a loading problem, not data loss.');
+    if (attempt < MAX_LOAD_ATTEMPTS) {
+      if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('clients-tbody')); return; }
+      window.RyxaLoadBar.retrying(tbody, 'Having trouble loading your subscribers. Retrying...');
+      await new Promise(function(resolve) { setTimeout(resolve, 400 * attempt); });
+      if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('clients-tbody')); return; }
+      continue;
     }
-    tbody.innerHTML = '<tr><td colspan="7" class="ana-s-cd4491">Could not load subscribers</td></tr>';
+    if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('clients-tbody')); return; }
+    console.error('Subscribers load error:', e);
+    window.RyxaLoadBar.fail(tbody);
+    clientsShowListFailed();
+    if (typeof showDashToast === 'function') {
+      showDashToast('error', 'Failed to load. Please retry, or contact hello@ryxa.io if it continues.');
+    }
+    return;
+  }
   }
 }
 
@@ -2129,7 +2189,7 @@ async function clientsImportRunImport() {
 
 
 // =============================================================================
-// ACTION REGISTRATIONS — wired up below as part of Phase 2
+// ACTION REGISTRATIONS - wired up below as part of Phase 2
 // =============================================================================
 
 clientsRegisterAction('export', () => exportSubscribers());
