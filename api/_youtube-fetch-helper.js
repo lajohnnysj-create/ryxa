@@ -166,6 +166,20 @@ async function loadConnection(userId) {
 // within a 60s skew), refreshes via the refresh token, re-encrypts the new
 // access token at rest, and persists it with the new expiry. The refresh
 // token itself is unchanged by Google on refresh, so it is left as-is.
+//
+// Error classification: thrown errors carry err.permanent = true ONLY when the
+// stored credentials are genuinely unusable (Google says invalid_grant, the
+// token can't be decrypted, or no refresh token exists). Anything else - a
+// Google 5xx, a 429, a network blip - is transient: the same refresh will
+// succeed on a later run, so the caller must NOT flag the connection for
+// reconnection. Conflating the two was falsely "disconnecting" healthy
+// accounts whenever Google's token endpoint had a momentary hiccup.
+function permanentError(message) {
+  const err = new Error(message);
+  err.permanent = true;
+  return err;
+}
+
 async function ensureFreshToken(userId, conn) {
   let accessToken;
   let refreshToken;
@@ -173,9 +187,10 @@ async function ensureFreshToken(userId, conn) {
     accessToken = decryptToken(conn.access_token);
     refreshToken = decryptToken(conn.refresh_token);
   } catch (e) {
-    throw new Error('Token decryption failed; reconnect YouTube');
+    // Unrecoverable locally (e.g. encryption key rotated): reconnect required.
+    throw permanentError('Token decryption failed; reconnect YouTube');
   }
-  if (!refreshToken) throw new Error('No refresh token stored; reconnect YouTube');
+  if (!refreshToken) throw permanentError('No refresh token stored; reconnect YouTube');
 
   const expMs = conn.token_expires_at ? Date.parse(conn.token_expires_at) : 0;
   const skewMs = 60 * 1000;
@@ -197,10 +212,20 @@ async function ensureFreshToken(userId, conn) {
   if (!tokenRes.ok) {
     const errText = await tokenRes.text();
     console.error('YouTube token refresh failed:', tokenRes.status, errText);
-    throw new Error('Token refresh failed; reconnect YouTube');
+    // Google reports a truly revoked/expired refresh token as invalid_grant in
+    // the error body. Only that means "reconnect". Any other failure (5xx,
+    // 429, invalid_client misconfig, gateway errors) is not the user's token.
+    let googleErrCode = '';
+    try { googleErrCode = (JSON.parse(errText) || {}).error || ''; } catch (e) { /* non-JSON body */ }
+    if (googleErrCode === 'invalid_grant') {
+      throw permanentError('YouTube access revoked; reconnect YouTube');
+    }
+    throw new Error('YouTube token refresh temporarily failed (HTTP ' + tokenRes.status + '); will retry');
   }
   const tok = await tokenRes.json();
-  if (!tok.access_token) throw new Error('Refresh returned no access token; reconnect YouTube');
+  // A 200 without an access token is a Google anomaly, not a declared
+  // revocation - treat as transient so the next run retries.
+  if (!tok.access_token) throw new Error('Refresh returned no access token; will retry');
 
   const newExpiry = new Date(Date.now() + (tok.expires_in || 3600) * 1000).toISOString();
   // Persist the re-encrypted access token + new expiry. Best-effort: if this
@@ -241,10 +266,15 @@ async function refreshYouTubeData(userId) {
   try {
     token = await ensureFreshToken(userId, conn);
   } catch (e) {
-    // Every ensureFreshToken failure is a token-death class error; flag the
-    // connection so Settings shows "Reconnection needed".
-    await markNeedsReconnect(userId);
-    return { ok: false, error: e.message };
+    // Only flag "Reconnection needed" when the credentials are genuinely dead
+    // (err.permanent: invalid_grant, undecryptable token, missing refresh
+    // token). Transient failures (Google 5xx/429, network) return a failure
+    // WITHOUT flagging - the next cron run simply retries with the same,
+    // still-valid token.
+    if (e && e.permanent) {
+      await markNeedsReconnect(userId);
+    }
+    return { ok: false, error: e.message, transient: !(e && e.permanent) };
   }
 
   const collected = {};
