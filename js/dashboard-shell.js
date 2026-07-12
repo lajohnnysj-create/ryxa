@@ -1814,26 +1814,63 @@ window.RyxaLoadBar = (function() {
 // A single combined toast (rather than one per platform) is deliberate:
 // showDashToast keeps only one toast on screen at a time, so sequential
 // per-platform toasts would replace each other and only the last would be seen.
+// Check all five social connection tables and classify each into one of three
+// states: RED (needs_reconnect flag set by a genuine provider revocation),
+// YELLOW (no successful data refresh in STALE_DAYS despite the cron running -
+// the connection may be silently failing without an explicit revocation), or
+// green (fine). Red is definitive; yellow is a soft "maybe reconnect" for the
+// in-between case the helpers can't hard-confirm. Per account, red beats yellow.
+//
+// Toast priority (single-slot toast system): if ANY red exists, show only the
+// red toast (urgent first); the yellow ones surface on the next check once red
+// is cleared (checkSocialReconnections re-runs after a successful reconnect).
+// Settings shows the full per-account picture via badges regardless.
+const SOCIAL_STALE_DAYS = 14;
 async function checkSocialReconnections(userId) {
   const tables = [
-    ['instagram_connections', 'Instagram'],
-    ['youtube_connections', 'YouTube'],
-    ['tiktok_connections', 'TikTok'],
-    ['twitch_connections', 'Twitch'],
-    ['facebook_connections', 'Facebook'],
+    ['instagram_connections', 'Instagram', 'data_last_fetched_at'],
+    ['youtube_connections', 'YouTube', 'data_last_fetched_at'],
+    ['tiktok_connections', 'TikTok', 'data_last_fetched_at'],
+    ['twitch_connections', 'Twitch', 'data_last_fetched_at'],
+    ['facebook_connections', 'Facebook', 'last_refreshed_at'],
   ];
+  const staleCutoff = Date.now() - SOCIAL_STALE_DAYS * 24 * 60 * 60 * 1000;
   try {
     const results = await Promise.all(tables.map(function(t) {
-      return sb.from(t[0]).select('needs_reconnect').eq('user_id', userId).eq('needs_reconnect', true).maybeSingle()
-        .then(function(res) { return (res && res.data) ? t[1] : null; })
-        .catch(function() { return null; });
+      const tsCol = t[2];
+      // maybeSingle returns the row if the account is connected at all. We read
+      // both the flag and the last-success timestamp to classify the state.
+      return sb.from(t[0]).select('needs_reconnect,' + tsCol).eq('user_id', userId).maybeSingle()
+        .then(function(res) {
+          const row = res && res.data;
+          if (!row) return { name: t[1], state: 'green' }; // not connected = nothing to warn about
+          if (row.needs_reconnect) return { name: t[1], state: 'red' };
+          // Stale = connected, not flagged, but no successful refresh in the
+          // window. A never-fetched row (null) that's freshly connected isn't
+          // stale yet; only treat as stale if the timestamp exists and is old.
+          const ts = row[tsCol];
+          const last = ts ? Date.parse(ts) : null;
+          if (last && last < staleCutoff) return { name: t[1], state: 'yellow' };
+          return { name: t[1], state: 'green' };
+        })
+        .catch(function() { return { name: t[1], state: 'green' }; });
     }));
-    const dead = results.filter(Boolean);
-    if (!dead.length) return;
-    const list = dead.length === 1 ? dead[0]
-      : dead.length === 2 ? dead[0] + ' and ' + dead[1]
-      : dead.slice(0, -1).join(', ') + ', and ' + dead[dead.length - 1];
-    showDashToast('error', 'Reconnection needed: ' + list + '. Data updates are paused. Go to Settings to reconnect.', { sticky: true });
+
+    const red = results.filter(function(r) { return r.state === 'red'; }).map(function(r) { return r.name; });
+    const yellow = results.filter(function(r) { return r.state === 'yellow'; }).map(function(r) { return r.name; });
+
+    function joinNames(arr) {
+      return arr.length === 1 ? arr[0]
+        : arr.length === 2 ? arr[0] + ' and ' + arr[1]
+        : arr.slice(0, -1).join(', ') + ', and ' + arr[arr.length - 1];
+    }
+
+    // Red takes the toast slot when present; yellow waits for a clean run.
+    if (red.length) {
+      showDashToast('error', 'Reconnection needed: ' + joinNames(red) + '. Data updates are paused. Go to Settings to reconnect.', { sticky: true });
+    } else if (yellow.length) {
+      showDashToast('warning', 'Connection issue with ' + joinNames(yellow) + ', please try reconnecting in Settings.', { sticky: true });
+    }
   } catch (e) {
     console.error('checkSocialReconnections', e);
   }
@@ -1849,14 +1886,18 @@ function showDashToast(type, message, opts) {
   if (existing) existing.remove();
 
   const isSuccess = type === 'success';
-  const accent = isSuccess ? '#4ade80' : '#e5484d';
+  const isWarning = type === 'warning';
+  // success = green, warning = amber (soft "maybe reconnect"), error = red.
+  const accent = isSuccess ? '#4ade80' : (isWarning ? '#f5a623' : '#e5484d');
   const icon = isSuccess
     ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
-    : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
+    : (isWarning
+      ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+      : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>');
 
   const toast = document.createElement('div');
   toast.id = 'dash-toast';
-  toast.setAttribute('role', isSuccess ? 'status' : 'alert');
+  toast.setAttribute('role', (isSuccess || isWarning) ? 'status' : 'alert');
   // Anchor slightly below the topbar, measured live so it tracks the real
   // header height (which includes the safe-area inset inside the app).
   const bar = document.querySelector('.topbar');

@@ -463,26 +463,48 @@ function showStripeMsg(type, text) {
 // Instagram Connection (Settings)
 // ============================================================
 
-// Paint (or clear) the "Reconnection needed" state on a connected-account
-// card: red border and tint on the card, and the status label swapped from
-// "<Platform> Connected" to a red "Reconnection needed". Cleared explicitly
-// on every load so a card returns to normal after a successful reconnect.
-function setAcctReconnectState(connectedEl, defaultLabel, needs) {
+// Paint (or clear) the connection state on a connected-account card. Three
+// states: 'needs' (red - genuine revocation, "Reconnection needed"), 'stale'
+// (amber - no successful refresh in ~14 days, "Connection issue"), or ok
+// (normal green). Accepts a legacy boolean too (true => 'needs', false => ok)
+// so existing callers keep working. Cleared/reset on every load.
+function setAcctReconnectState(connectedEl, defaultLabel, state) {
   if (!connectedEl) return;
+  // Normalize: boolean true => 'needs', anything falsy => 'ok'.
+  var st = state === true ? 'needs' : (state || 'ok');
   const labelEl = connectedEl.querySelector('.settings-s-279016');
   // The visual card is the inner .settings-s-9403ee row (it carries the green
-  // background, border, and radius), NOT the outer stack wrapper. Styling the
-  // wrapper draws a second, misaligned outline around the real card.
+  // background, border, and radius), NOT the outer stack wrapper.
   const cardEl = connectedEl.querySelector('.settings-s-9403ee') || connectedEl;
-  if (needs) {
+  if (st === 'needs') {
     cardEl.style.border = '1px solid rgba(239,68,68,0.45)';
     cardEl.style.background = 'rgba(239,68,68,0.08)';
     if (labelEl) { labelEl.textContent = 'Reconnection needed'; labelEl.style.color = '#f87171'; }
+  } else if (st === 'stale') {
+    cardEl.style.border = '1px solid rgba(245,166,35,0.45)';
+    cardEl.style.background = 'rgba(245,166,35,0.08)';
+    if (labelEl) { labelEl.textContent = 'Connection issue, try reconnecting'; labelEl.style.color = '#f5a623'; }
   } else {
     cardEl.style.border = '';
     cardEl.style.background = '';
     if (labelEl) { labelEl.textContent = defaultLabel; labelEl.style.color = ''; }
   }
+}
+
+// Given a connection row, return 'needs' | 'stale' | 'ok'. Red beats yellow:
+// an explicit reconnect flag wins over staleness. Stale = a real last-fetch
+// timestamp older than the threshold (a freshly connected row with a null
+// timestamp is NOT stale yet).
+var SETTINGS_STALE_DAYS = 14;
+function acctStateFromRow(row) {
+  if (!row) return 'ok';
+  if (row.needs_reconnect) return 'needs';
+  // Most tables track successful refreshes as data_last_fetched_at; Facebook
+  // uses last_refreshed_at. Accept whichever is present.
+  var ts = row.data_last_fetched_at || row.last_refreshed_at || null;
+  var last = ts ? Date.parse(ts) : null;
+  if (last && last < (Date.now() - SETTINGS_STALE_DAYS * 24 * 60 * 60 * 1000)) return 'stale';
+  return 'ok';
 }
 
 async function loadConnectedAccountsWithSpinner() {
@@ -521,7 +543,7 @@ async function loadInstagramConnectionStatus() {
   try {
     const { data: conn } = await sb
       .from('instagram_connections')
-      .select('ig_username,profile_picture_url,connected_at,needs_reconnect')
+      .select('ig_username,profile_picture_url,connected_at,needs_reconnect,data_last_fetched_at')
       .eq('user_id', currentUser.id)
       .maybeSingle();
 
@@ -529,7 +551,7 @@ async function loadInstagramConnectionStatus() {
       // Connected
       if (disconnectedEl) disconnectedEl.style.display = 'none';
       if (connectedEl) connectedEl.style.display = 'block';
-      setAcctReconnectState(connectedEl, 'Instagram Connected', !!conn.needs_reconnect);
+      setAcctReconnectState(connectedEl, 'Instagram Connected', acctStateFromRow(conn));
       if (usernameEl) usernameEl.textContent = conn.ig_username ? '@' + conn.ig_username : 'Connected';
       if (avatarEl && conn.profile_picture_url) {
         avatarEl.innerHTML = '<img src="' + escapeHtml(conn.profile_picture_url) + '" alt="" class="bio-s-0c9434">';
@@ -736,6 +758,14 @@ function showInstagramMsg(type, text) {
       }
       if (status === 'connected') {
         showDashToast('success', 'Instagram connected!');
+        // Reconnecting clears this platform's red flag; re-run the check so a
+        // pending yellow (stale) toast for another platform surfaces now. Small
+        // delay lets the connection row settle after the callback's write.
+        setTimeout(function() {
+          if (typeof checkSocialReconnections === 'function' && currentUser) {
+            checkSocialReconnections(currentUser.id);
+          }
+        }, 1200);
       } else if (status === 'cancelled') {
         showDashToast('info', 'Instagram connection cancelled.');
       } else if (status === 'error') {
@@ -776,7 +806,7 @@ async function loadFacebookConnectionStatus() {
   try {
     const { data: conn } = await sb
       .from('facebook_connections')
-      .select('fb_page_id,fb_page_name,profile_picture_url,followers_count,needs_reconnect')
+      .select('fb_page_id,fb_page_name,profile_picture_url,followers_count,needs_reconnect,last_refreshed_at')
       .eq('user_id', currentUser.id)
       .maybeSingle();
 
@@ -785,7 +815,7 @@ async function loadFacebookConnectionStatus() {
       if (disconnectedEl) disconnectedEl.style.display = 'none';
       if (pickEl) pickEl.style.display = 'none';
       if (connectedEl) connectedEl.style.display = 'block';
-      setAcctReconnectState(connectedEl, 'Facebook Connected', !!conn.needs_reconnect);
+      setAcctReconnectState(connectedEl, 'Facebook Connected', acctStateFromRow(conn));
       if (nameEl) {
         nameEl.textContent = conn.fb_page_name || 'Connected';
       }
@@ -974,6 +1004,13 @@ function showFacebookMsg(type, text) {
       if (typeof showDashToast !== 'function') { setTimeout(showWhenReady, 200); return; }
       if (status === 'connected') {
         showDashToast('success', 'Facebook connected!');
+        // See Instagram handler: re-check so a pending yellow surfaces once this
+        // reconnect clears the last red.
+        setTimeout(function() {
+          if (typeof checkSocialReconnections === 'function' && currentUser) {
+            checkSocialReconnections(currentUser.id);
+          }
+        }, 1200);
       } else if (status === 'pick_page') {
         showDashToast('info', 'Almost there, choose which Page to connect.');
       } else if (status === 'no_page') {
@@ -1012,14 +1049,14 @@ async function loadYouTubeConnectionStatus() {
   try {
     const { data: conn } = await sb
       .from('youtube_connections')
-      .select('yt_channel_title,yt_custom_url,thumbnail_url,connected_at,needs_reconnect')
+      .select('yt_channel_title,yt_custom_url,thumbnail_url,connected_at,needs_reconnect,data_last_fetched_at')
       .eq('user_id', currentUser.id)
       .maybeSingle();
 
     if (conn) {
       if (disconnectedEl) disconnectedEl.style.display = 'none';
       if (connectedEl) connectedEl.style.display = 'block';
-      setAcctReconnectState(connectedEl, 'YouTube Connected', !!conn.needs_reconnect);
+      setAcctReconnectState(connectedEl, 'YouTube Connected', acctStateFromRow(conn));
       if (titleEl) titleEl.textContent = conn.yt_channel_title || (conn.yt_custom_url || 'Connected');
       if (avatarEl && conn.thumbnail_url) {
         avatarEl.innerHTML = '<img src="' + escapeHtml(conn.thumbnail_url) + '" alt="" class="bio-s-0c9434">';
@@ -1167,6 +1204,13 @@ function showYouTubeMsg(type, text) {
               fetch('/api/youtube-data-fetch', {
                 method: 'POST',
                 headers: { Authorization: 'Bearer ' + session.access_token }
+              }).then(function() {
+                // The pull clears needs_reconnect / refreshes data_last_fetched_at,
+                // so re-run the check: if this reconnect cleared the last red, a
+                // pending yellow (stale) toast now surfaces in the same session.
+                if (typeof checkSocialReconnections === 'function' && currentUser) {
+                  checkSocialReconnections(currentUser.id);
+                }
               }).catch(function(e) { console.error('Initial YouTube fetch failed (non-fatal):', e); });
             }
           } catch (e) {
@@ -1209,14 +1253,14 @@ async function loadTikTokConnectionStatus() {
   try {
     const { data: conn } = await sb
       .from('tiktok_connections')
-      .select('tt_display_name,tt_avatar_url,tt_profile_web_link,connected_at,needs_reconnect')
+      .select('tt_display_name,tt_avatar_url,tt_profile_web_link,connected_at,needs_reconnect,data_last_fetched_at')
       .eq('user_id', currentUser.id)
       .maybeSingle();
 
     if (conn) {
       if (disconnectedEl) disconnectedEl.style.display = 'none';
       if (connectedEl) connectedEl.style.display = 'block';
-      setAcctReconnectState(connectedEl, 'TikTok Connected', !!conn.needs_reconnect);
+      setAcctReconnectState(connectedEl, 'TikTok Connected', acctStateFromRow(conn));
       if (titleEl) titleEl.textContent = conn.tt_display_name || 'Connected';
       if (avatarEl && conn.tt_avatar_url) {
         avatarEl.innerHTML = '<img src="' + escapeHtml(conn.tt_avatar_url) + '" alt="" class="bio-s-0c9434">';
@@ -1361,6 +1405,10 @@ function showTikTokMsg(type, text) {
               fetch('/api/tiktok-data-fetch', {
                 method: 'POST',
                 headers: { Authorization: 'Bearer ' + session.access_token }
+              }).then(function() {
+                if (typeof checkSocialReconnections === 'function' && currentUser) {
+                  checkSocialReconnections(currentUser.id);
+                }
               }).catch(function(e) { console.error('Initial TikTok fetch failed (non-fatal):', e); });
             }
           } catch (e) {
@@ -1760,14 +1808,14 @@ async function loadTwitchConnectionStatus() {
   try {
     const { data: conn } = await sb
       .from('twitch_connections')
-      .select('tw_display_name,tw_avatar_url,tw_profile_url,connected_at,needs_reconnect')
+      .select('tw_display_name,tw_avatar_url,tw_profile_url,connected_at,needs_reconnect,data_last_fetched_at')
       .eq('user_id', currentUser.id)
       .maybeSingle();
 
     if (conn) {
       if (disconnectedEl) disconnectedEl.style.display = 'none';
       if (connectedEl) connectedEl.style.display = 'block';
-      setAcctReconnectState(connectedEl, 'Twitch Connected', !!conn.needs_reconnect);
+      setAcctReconnectState(connectedEl, 'Twitch Connected', acctStateFromRow(conn));
       if (titleEl) titleEl.textContent = conn.tw_display_name || 'Connected';
       if (avatarEl && conn.tw_avatar_url) {
         avatarEl.innerHTML = '<img src="' + escapeHtml(conn.tw_avatar_url) + '" alt="" class="bio-s-0c9434">';
@@ -1912,6 +1960,10 @@ function showTwitchMsg(type, text) {
               fetch('/api/twitch-data-fetch', {
                 method: 'POST',
                 headers: { Authorization: 'Bearer ' + session.access_token }
+              }).then(function() {
+                if (typeof checkSocialReconnections === 'function' && currentUser) {
+                  checkSocialReconnections(currentUser.id);
+                }
               }).catch(function(e) { console.error('Initial Twitch fetch failed (non-fatal):', e); });
             }
           } catch (e) {
