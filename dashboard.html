@@ -2593,6 +2593,17 @@
   }
   .bio-theme.selected { border-color: var(--accent) !important; box-shadow: 0 0 0 2px var(--accent) !important; }
   .bio-themes-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+  /* Theme groups (Custom / Graphics / Gradient): reuses the social-tile recipe
+     (icon + label + purple corner dot). The dot marks the group holding the
+     currently applied theme; tapping Graphics/Gradient expands that group's
+     theme tiles below. */
+  .bio-theme-groups { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
+  .bio-theme-group-swatch { width: 20px; height: 20px; border-radius: 50%; }
+  .bio-theme-group-lock { position: absolute; top: 6px; right: 6px; width: 12px; height: 12px; color: var(--muted); }
+  .bio-theme-group-lock svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 2; }
+  /* Checkmark badge on the applied theme tile inside an expanded group. */
+  .bio-theme-check { position: absolute; top: 4px; right: 4px; width: 16px; height: 16px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; }
+  .bio-theme-check svg { width: 10px; height: 10px; fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
   .bio-theme-btn { position: relative; padding: 10px 6px; border: 1px solid var(--border-hover); border-radius: 10px; cursor: pointer; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 500; transition: border-color 0.2s, transform 0.15s; text-align: center; overflow: hidden; }
   .bio-theme-btn:hover:not(.locked) { transform: translateY(-1px); }
   .bio-theme-btn.selected { border-color: var(--accent) !important; box-shadow: 0 0 0 2px var(--accent) !important; }
@@ -7285,7 +7296,7 @@
                 <svg class="bio-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
               </button>
               <div class="bio-section-body" id="bio-body-theme">
-              <div id="bio-themes" class="bio-themes-grid"></div>
+              <div id="bio-themes"></div>
 
               <!-- Custom theme editor (Creator Max only) -->
               <div id="bio-custom-editor" class="custom-editor bio-s-c8be1c">
@@ -8632,7 +8643,7 @@
                 <svg class="mk-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
               </button>
               <div class="mk-section-body mk-s-21d91b" id="mk-body-theme" >
-                <div id="mk-themes" class="bio-themes-grid"></div>
+                <div id="mk-themes"></div>
 
                 <!-- Custom theme editor for Media Kit (Creator Max only) -->
                 <div id="mk-custom-editor" class="custom-editor bio-s-c8be1c" >
