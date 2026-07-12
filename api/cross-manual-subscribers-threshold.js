@@ -22,7 +22,7 @@
 const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_PLU28Un_GfsUXeUsK3zB9Q_hvNM7aeG';
 const NOTIFICATION_TO = 'hello@ryxa.io';
-const NOTIFICATION_FROM = 'Ryxa <no-reply@ryxa.io>';
+const NOTIFICATION_FROM = 'Ryxa <hello@ryxa.io>';
 
 function getServiceKey() {
   var k = process.env.SUPABASE_SERVICE_ROLE_KEY;

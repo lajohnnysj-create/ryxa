@@ -12,7 +12,7 @@ const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 const NOTIFICATION_TO = 'hello@ryxa.io';
-const NOTIFICATION_FROM = 'Ryxa <no-reply@ryxa.io>';
+const NOTIFICATION_FROM = 'Ryxa <hello@ryxa.io>';
 
 const ALLOWED_METHODS = ['profile_link', 'connected_account'];
 const MAX_NAME = 60;

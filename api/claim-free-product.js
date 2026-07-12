@@ -80,7 +80,7 @@ async function sendEmail(to, subject, html) {
     method: 'POST',
     headers: { Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      from: 'Ryxa <no-reply@ryxa.io>',
+      from: 'Ryxa <hello@ryxa.io>',
       to: [to],
       subject: subject,
       html: html

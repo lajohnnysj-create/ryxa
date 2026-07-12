@@ -331,7 +331,7 @@ async function sendResubscribeEmail(creatorId, emailLc) {
       method: 'POST',
       headers: { Authorization: 'Bearer ' + resendKey, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        from: 'Ryxa <no-reply@ryxa.io>',
+        from: 'Ryxa <hello@ryxa.io>',
         to: [emailLc],
         subject: 'Confirm you want emails from ' + creatorName,
         html,
@@ -374,7 +374,7 @@ async function sendWelcomeEmail(creatorId, emailLc) {
       method: 'POST',
       headers: { Authorization: 'Bearer ' + resendKey, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        from: 'Ryxa <no-reply@ryxa.io>',
+        from: 'Ryxa <hello@ryxa.io>',
         to: [emailLc],
         subject: 'You subscribed to ' + creatorName,
         html,

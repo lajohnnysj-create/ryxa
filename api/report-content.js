@@ -12,7 +12,7 @@ const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 const NOTIFICATION_TO = 'hello@ryxa.io';
-const NOTIFICATION_FROM = 'Ryxa <no-reply@ryxa.io>';
+const NOTIFICATION_FROM = 'Ryxa <hello@ryxa.io>';
 
 const ALLOWED_SOURCES = ['chatbox', 'script-builder', 'bio-writer', 'design-studio', 'thumbnail-analyzer', 'contract-analyzer'];
 const MAX_CONTENT_CHARS = 5000;
