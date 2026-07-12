@@ -363,10 +363,30 @@ var isPwaMode = window.matchMedia('(display-mode: standalone)').matches
     clearTimeout(_navNudgeT);
     _navNudgeT = setTimeout(nudgeBottomNav, 160);
   }
+  // On app resume/cold-restore, WKWebView repaints the page with position:fixed
+  // still anchored to stale (suspended) viewport geometry, so the bottom nav
+  // floats detached until something else triggers a re-anchor. Neither 'scroll'
+  // nor a visualViewport 'resize' reliably fires on resume (geometry can look
+  // unchanged), so the existing triggers miss this case. Re-anchor explicitly
+  // when the page becomes visible again or is restored. Nudge twice - once now,
+  // once a beat later - because resume geometry can settle a frame or two after
+  // the visibility event.
+  function nudgeOnResume() {
+    nudgeBottomNav();
+    setTimeout(nudgeBottomNav, 200);
+  }
   if (window.visualViewport) {
     window.visualViewport.addEventListener('resize', scheduleNudge);
   }
   window.addEventListener('scroll', scheduleNudge, { passive: true });
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') nudgeOnResume();
+  });
+  // pageshow fires on bfcache/suspend restores; persisted=true means the page
+  // was resumed from cache rather than freshly loaded (the exact float case).
+  window.addEventListener('pageshow', function (e) {
+    if (e.persisted) nudgeOnResume();
+  });
 })();
 
 // Instant tier paint: the sidebar plan label is hidden by body.tier-loading
