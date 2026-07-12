@@ -1723,7 +1723,7 @@ function bioLimits() {
   const max = isMax();
   return {
     maxLinks: max ? 1000 : (pro ? 1000 : 100),
-    maxFeatured: max ? 10 : (pro ? 3 : 1),
+    maxFeatured: pro ? 20 : 10,
     maxHero: pro ? 1 : 0,
     maxVideos: pro ? 20 : 5,
     pro: pro,
@@ -1766,7 +1766,7 @@ function addLink(isFeatured, isHero) {
     }
   } else if (isFeatured) {
     if (featuredCount >= maxFeatured) {
-      showBioStatus('error', `Featured link limit reached (${maxFeatured}). ${!isPro() ? 'Upgrade to Pro for 3.' : ''}`);
+      showBioStatus('error', `Featured link limit reached (${maxFeatured}). ${!isPro() ? 'Upgrade to Pro for 20.' : ''}`);
       return;
     }
   } else {
