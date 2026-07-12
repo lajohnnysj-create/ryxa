@@ -1238,7 +1238,7 @@ function renderMKThemes() {
       icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>',
       action: 'theme-group', attr: 'data-mk-group="graphics"',
       active: mkThemeGroupOpen === 'graphics' },
-    { key: 'gradient', label: 'Gradient',
+    { key: 'gradient', label: 'Glow',
       icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.69 17.66 8.35a8 8 0 1 1-11.31 0z"/></svg>',
       action: 'theme-group', attr: 'data-mk-group="gradient"',
       active: mkThemeGroupOpen === 'gradient' },

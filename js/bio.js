@@ -1335,7 +1335,7 @@ function renderBioThemes() {
       action: 'theme-group', attr: 'data-bio-group="graphics"',
       active: bioThemeGroupOpen === 'graphics',
       lock: false },
-    { key: 'gradient', label: 'Gradient',
+    { key: 'gradient', label: 'Glow',
       icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.69 17.66 8.35a8 8 0 1 1-11.31 0z"/></svg>',
       action: 'theme-group', attr: 'data-bio-group="gradient"',
       active: bioThemeGroupOpen === 'gradient',
