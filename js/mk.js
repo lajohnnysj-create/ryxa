@@ -1213,42 +1213,82 @@ function renderMKCarousel() {
 }
 
 // ==== Theme ====
+// Which MK theme group's panel is expanded (null | 'graphics' | 'gradient').
+// Mirrors the Link in Bio grouping; rest state is everything collapsed.
+var mkThemeGroupOpen = null;
+
 function renderMKThemes() {
   const container = document.getElementById('mk-themes');
   if (!container) return;
   const max = isMax();
   const pro = isPro();
-  // All 12 themes unlocked for Pro (Media Kit is Pro-only). Custom is Pro.
-  container.innerHTML = BIO_THEMES.map(t => {
-    const locked = t.max && !max;
-    const selected = mkState.theme === t.key ? 'selected' : '';
-    const lockedClass = locked ? 'locked' : '';
-    const lock = locked ? `<div class="bio-theme-lock" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>` : '';
-    const maxBadge = t.max ? '<div class="bio-theme-max-badge">MAX</div>' : '';
+  const currentGroup = bioThemeGroupOf(BIO_THEMES.find(x => x.key === mkState.theme) || BIO_THEMES[0]);
 
-    let swatch, btnBg, nameStyle = '';
-    if (t.key === 'custom') {
-      swatch = '<div class="bio-theme-swatch bio-s-74a83e" ></div>';
-      btnBg = `linear-gradient(135deg,${t.bg},${t.bg2})`;
-    } else if (t.image && t.colors) {
-      swatch = `<div class="bio-theme-swatch" data-mk-bg="url('${t.image}') center/cover" data-mk-border="1.5px solid rgba(0,0,0,0.4)" data-mk-shadow="0 1px 3px rgba(0,0,0,0.25)"></div>`;
-      btnBg = `url('${t.image}') center/cover`;
-      // Multi-property nameStyle encoded as data-mk-* attrs (CSP-safe; applied via JS)
-      nameStyle = `data-mk-color="${t.colors.text}" data-mk-bg="${hexAlpha(t.colors.bg,0.85)}" data-mk-padding="2px 6px" data-mk-radius="6px" data-mk-display="inline-block"`;
-    } else {
-      swatch = `<div class="bio-theme-swatch" data-mk-bg="${t.grad}"></div>`;
-      btnBg = `linear-gradient(135deg,${t.bg},${t.bg2})`;
-      nameStyle = '';
-    }
-
-    return `<button type="button" class="bio-theme-btn ${selected} ${lockedClass}" data-theme="${t.key}" data-mk-action="pick-theme" data-mk-theme="${t.key}"
-      data-mk-bg="${btnBg}">
-      ${swatch}
-      <div class="bio-theme-name" ${nameStyle}>${t.name}</div>
-      ${maxBadge}
-      ${lock}
+  // ---- Group tiles (Custom / Graphics / Gradient) ----
+  // Same recipe as Link in Bio: icon + label, purple corner dot on the group
+  // holding the applied theme. Custom keeps its RGB conic swatch. Media Kit is
+  // Pro-only, so Custom carries no lock here (only MAX themes lock, inside the
+  // panel).
+  const groups = [
+    { key: 'custom', label: 'Custom',
+      icon: '<span class="bio-theme-group-swatch bio-s-74a83e"></span>',
+      action: 'pick-theme', attr: 'data-mk-theme="custom"',
+      active: mkState.theme === 'custom' && mkCustomEditorOpen },
+    { key: 'graphics', label: 'Graphics',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>',
+      action: 'theme-group', attr: 'data-mk-group="graphics"',
+      active: mkThemeGroupOpen === 'graphics' },
+    { key: 'gradient', label: 'Gradient',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.69 17.66 8.35a8 8 0 1 1-11.31 0z"/></svg>',
+      action: 'theme-group', attr: 'data-mk-group="gradient"',
+      active: mkThemeGroupOpen === 'gradient' },
+  ];
+  const groupsHtml = groups.map(g => {
+    const hasCurrent = currentGroup === g.key;
+    return `<button type="button" class="bio-social-tile mk-rate-tile${g.active ? ' active' : ''}"
+      data-mk-action="${g.action}" ${g.attr} aria-label="${g.label} themes${hasCurrent ? ' (current theme)' : ''}" title="${g.label}">
+      <span class="bio-social-tile-icon">${g.icon}</span>
+      <span class="mk-rate-tile-label">${g.label}</span>
+      ${hasCurrent ? '<span class="bio-social-tile-dot" aria-hidden="true"></span>' : ''}
     </button>`;
   }).join('');
+
+  // ---- Expanded panel: the open group's theme tiles ----
+  let panelHtml = '';
+  if (mkThemeGroupOpen) {
+    const themes = BIO_THEMES.filter(t => bioThemeGroupOf(t) === mkThemeGroupOpen);
+    panelHtml = '<div class="bio-themes-grid">' + themes.map(t => {
+      const locked = t.max && !max;
+      const selected = mkState.theme === t.key ? 'selected' : '';
+      const lockedClass = locked ? 'locked' : '';
+      const lock = locked ? `<div class="bio-theme-lock" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>` : '';
+      const maxBadge = t.max ? '<div class="bio-theme-max-badge">MAX</div>' : '';
+      const check = selected ? '<span class="bio-theme-check" aria-hidden="true"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>' : '';
+
+      let swatch, btnBg, nameStyle = '';
+      if (t.image && t.colors) {
+        swatch = `<div class="bio-theme-swatch" data-mk-bg="url('${t.image}') center/cover" data-mk-border="1.5px solid rgba(0,0,0,0.4)" data-mk-shadow="0 1px 3px rgba(0,0,0,0.25)"></div>`;
+        btnBg = `url('${t.image}') center/cover`;
+        // Multi-property nameStyle encoded as data-mk-* attrs (CSP-safe; applied via JS)
+        nameStyle = `data-mk-color="${t.colors.text}" data-mk-bg="${hexAlpha(t.colors.bg,0.85)}" data-mk-padding="2px 6px" data-mk-radius="6px" data-mk-display="inline-block"`;
+      } else {
+        swatch = `<div class="bio-theme-swatch" data-mk-bg="${t.grad}"></div>`;
+        btnBg = `linear-gradient(135deg,${t.bg},${t.bg2})`;
+        nameStyle = '';
+      }
+
+      return `<button type="button" class="bio-theme-btn ${selected} ${lockedClass}" data-theme="${t.key}" data-mk-action="pick-theme" data-mk-theme="${t.key}"
+        data-mk-bg="${btnBg}">
+        ${swatch}
+        <div class="bio-theme-name" ${nameStyle}>${t.name}</div>
+        ${maxBadge}
+        ${lock}
+        ${check}
+      </button>`;
+    }).join('') + '</div>';
+  }
+
+  container.innerHTML = `<div class="bio-theme-groups">${groupsHtml}</div>${panelHtml}`;
 
   // Apply data-mk-* style attributes to their elements after rendering.
   // Replaces inline style="..." attributes that strict CSP blocks.
@@ -1283,9 +1323,11 @@ function pickMKTheme(t) {
     mkState.custom_theme = { bgUrl: '', bgOpacity: 0.4, colors: { ...CUSTOM_THEME_DEFAULTS }, applied: true };
   }
   // Clicking Custom opens the editor (or toggles it shut if already selected
-  // and open); selecting any other theme collapses it.
+  // and open) and collapses any open theme-group panel; selecting any other
+  // theme collapses the editor while its group panel stays open.
   if (t === 'custom') {
     mkCustomEditorOpen = alreadySelected ? !mkCustomEditorOpen : true;
+    mkThemeGroupOpen = null;
   } else {
     mkCustomEditorOpen = false;
   }
@@ -3111,6 +3153,14 @@ mkRegisterAction('pick-font', (e, el) => pickMKFont(el.value));
 
 // Theme picker (template literal)
 mkRegisterAction('pick-theme', (e, el) => pickMKTheme(el.dataset.mkTheme));
+// Toggle a theme group's panel (Graphics / Gradient). Opening one collapses
+// the other and the Custom editor; tapping the open one collapses it.
+mkRegisterAction('theme-group', (e, el) => {
+  const g = el.dataset.mkGroup;
+  mkThemeGroupOpen = (mkThemeGroupOpen === g) ? null : g;
+  if (mkThemeGroupOpen) mkCustomEditorOpen = false;
+  renderMKThemes();
+});
 mkRegisterAction('close-custom-editor', () => { mkCustomEditorOpen = false; renderMKThemes(); });
 
 // Audience tabs

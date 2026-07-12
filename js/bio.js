@@ -1297,46 +1297,98 @@ function buildCustomThemeVars(customTheme) {
   };
 }
 
+// Which theme group a theme belongs to. Derived from the data so future themes
+// slot in automatically: an image property means Graphics, custom is its own
+// group, everything else is a Gradient color theme.
+function bioThemeGroupOf(t) {
+  if (t.key === 'custom') return 'custom';
+  return t.image ? 'graphics' : 'gradient';
+}
+
+// Which theme group's panel is expanded (null | 'graphics' | 'gradient').
+// Rest state is everything collapsed; the Custom group uses the existing
+// custom-editor open state instead of a panel.
+var bioThemeGroupOpen = null;
+
 function renderBioThemes() {
   const container = document.getElementById('bio-themes');
   if (!container) return;
   const pro = isPro();
   const max = isMax();
-  container.innerHTML = BIO_THEMES.map(t => {
-    // Free-locked OR Max-locked
-    const locked = (t.pro && !pro) || (t.max && !max);
-    const selected = bioState.theme === t.key ? 'selected' : '';
-    const lockedClass = locked ? 'locked' : '';
-    const lock = locked ? `<div class="bio-theme-lock" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>` : '';
-    const maxBadge = t.max ? '<div class="bio-theme-max-badge">MAX</div>' : '';
+  const currentGroup = bioThemeGroupOf(BIO_THEMES.find(x => x.key === bioState.theme) || BIO_THEMES[0]);
 
-    let swatch, btnBg, nameStyle = '';
-    if (t.key === 'custom') {
-      swatch = '<div class="bio-theme-swatch bio-s-74a83e" ></div>';
-      btnBg = `linear-gradient(135deg,${t.bg},${t.bg2})`;
-    } else if (t.image && t.colors) {
-      // Image theme - show the bg image as both the swatch and button background.
-      // Label gets a colored pill backdrop using the theme's bg color so it
-      // stays readable against the busy image, with the theme's own text color.
-      swatch = `<div class="bio-theme-swatch" data-bio-bg="url('${t.image}') center/cover" data-bio-border="1.5px solid rgba(0,0,0,0.4)" data-bio-shadow="0 1px 3px rgba(0,0,0,0.25)"></div>`;
-      btnBg = `url('${t.image}') center/cover`;
-      // Encode the multi-property nameStyle as multiple data-bio-* attrs that
-      // will be applied via JS. CSP-safe; no inline style attribute.
-      nameStyle = `data-bio-color="${t.colors.text}" data-bio-bg="${hexAlpha(t.colors.bg,0.85)}" data-bio-padding="2px 6px" data-bio-radius="6px" data-bio-display="inline-block"`;
-    } else {
-      swatch = `<div class="bio-theme-swatch" data-bio-bg="${t.grad}"></div>`;
-      btnBg = `linear-gradient(135deg,${t.bg},${t.bg2})`;
-      nameStyle = '';
-    }
-
-    return `<button type="button" class="bio-theme-btn ${selected} ${lockedClass}" data-theme="${t.key}" data-bio-action="pick-theme" data-bio-theme="${t.key}"
-      data-bio-bg="${btnBg}">
-      ${swatch}
-      <div class="bio-theme-name" ${nameStyle}>${t.name}</div>
-      ${maxBadge}
-      ${lock}
+  // ---- Group tiles (Custom / Graphics / Gradient) ----
+  // Same visual recipe as the Social Icons tiles: icon + label, purple corner
+  // dot on the group that holds the currently applied theme, neutral border on
+  // the open one. Custom keeps its RGB conic swatch; the other two get white
+  // stroke icons.
+  const customLocked = !pro;
+  const groups = [
+    { key: 'custom', label: 'Custom',
+      icon: '<span class="bio-theme-group-swatch bio-s-74a83e"></span>',
+      action: 'pick-theme', attr: 'data-bio-theme="custom"',
+      active: bioState.theme === 'custom' && bioCustomEditorOpen,
+      lock: customLocked },
+    { key: 'graphics', label: 'Graphics',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>',
+      action: 'theme-group', attr: 'data-bio-group="graphics"',
+      active: bioThemeGroupOpen === 'graphics',
+      lock: false },
+    { key: 'gradient', label: 'Gradient',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.69 17.66 8.35a8 8 0 1 1-11.31 0z"/></svg>',
+      action: 'theme-group', attr: 'data-bio-group="gradient"',
+      active: bioThemeGroupOpen === 'gradient',
+      lock: false },
+  ];
+  const groupsHtml = groups.map(g => {
+    const hasCurrent = currentGroup === g.key;
+    return `<button type="button" class="bio-social-tile mk-rate-tile${g.active ? ' active' : ''}"
+      data-bio-action="${g.action}" ${g.attr} aria-label="${g.label} themes${hasCurrent ? ' (current theme)' : ''}" title="${g.label}">
+      <span class="bio-social-tile-icon">${g.icon}</span>
+      <span class="mk-rate-tile-label">${g.label}</span>
+      ${hasCurrent ? '<span class="bio-social-tile-dot" aria-hidden="true"></span>' : ''}
+      ${g.lock ? '<span class="bio-theme-group-lock" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span>' : ''}
     </button>`;
   }).join('');
+
+  // ---- Expanded panel: the open group's theme tiles ----
+  // Reuses the existing theme tile rendering unchanged (lock logic, CSP-safe
+  // data-bio-* styles), plus a checkmark badge on the applied theme.
+  let panelHtml = '';
+  if (bioThemeGroupOpen) {
+    const themes = BIO_THEMES.filter(t => bioThemeGroupOf(t) === bioThemeGroupOpen);
+    panelHtml = '<div class="bio-themes-grid">' + themes.map(t => {
+      const locked = (t.pro && !pro) || (t.max && !max);
+      const selected = bioState.theme === t.key ? 'selected' : '';
+      const lockedClass = locked ? 'locked' : '';
+      const lock = locked ? `<div class="bio-theme-lock" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>` : '';
+      const maxBadge = t.max ? '<div class="bio-theme-max-badge">MAX</div>' : '';
+      const check = selected ? '<span class="bio-theme-check" aria-hidden="true"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>' : '';
+
+      let swatch, btnBg, nameStyle = '';
+      if (t.image && t.colors) {
+        // Image theme - show the bg image as both the swatch and button background.
+        swatch = `<div class="bio-theme-swatch" data-bio-bg="url('${t.image}') center/cover" data-bio-border="1.5px solid rgba(0,0,0,0.4)" data-bio-shadow="0 1px 3px rgba(0,0,0,0.25)"></div>`;
+        btnBg = `url('${t.image}') center/cover`;
+        nameStyle = `data-bio-color="${t.colors.text}" data-bio-bg="${hexAlpha(t.colors.bg,0.85)}" data-bio-padding="2px 6px" data-bio-radius="6px" data-bio-display="inline-block"`;
+      } else {
+        swatch = `<div class="bio-theme-swatch" data-bio-bg="${t.grad}"></div>`;
+        btnBg = `linear-gradient(135deg,${t.bg},${t.bg2})`;
+        nameStyle = '';
+      }
+
+      return `<button type="button" class="bio-theme-btn ${selected} ${lockedClass}" data-theme="${t.key}" data-bio-action="pick-theme" data-bio-theme="${t.key}"
+        data-bio-bg="${btnBg}">
+        ${swatch}
+        <div class="bio-theme-name" ${nameStyle}>${t.name}</div>
+        ${maxBadge}
+        ${lock}
+        ${check}
+      </button>`;
+    }).join('') + '</div>';
+  }
+
+  container.innerHTML = `<div class="bio-theme-groups">${groupsHtml}</div>${panelHtml}`;
 
   // Apply data-bio-* style attributes to their elements after rendering.
   // This replaces the inline style="..." attributes that strict CSP blocks.
@@ -1378,10 +1430,12 @@ function pickTheme(t) {
   }
   // Custom editor open/close behavior:
   // - Clicking the Custom tile opens the editor (or toggles it shut if it was
-  //   already selected and open).
-  // - Selecting any other theme collapses the editor.
+  //   already selected and open), and collapses any open theme-group panel.
+  // - Selecting any other theme collapses the editor. The group panel it was
+  //   picked from stays open so the user can keep trying themes live.
   if (t === 'custom') {
     bioCustomEditorOpen = alreadySelected ? !bioCustomEditorOpen : true;
+    bioThemeGroupOpen = null;
   } else {
     bioCustomEditorOpen = false;
   }
@@ -5633,6 +5687,14 @@ bioRegisterAction('add-video-to-block', (e, el) => addVideoToBlock(parseInt(el.d
 
 // Theme + socials
 bioRegisterAction('pick-theme', (e, el) => pickTheme(el.dataset.bioTheme));
+// Toggle a theme group's panel (Graphics / Gradient). Opening one collapses
+// the other and the Custom editor; tapping the open one collapses it.
+bioRegisterAction('theme-group', (e, el) => {
+  const g = el.dataset.bioGroup;
+  bioThemeGroupOpen = (bioThemeGroupOpen === g) ? null : g;
+  if (bioThemeGroupOpen) bioCustomEditorOpen = false;
+  renderBioThemes();
+});
 bioRegisterAction('close-custom-editor', () => { bioCustomEditorOpen = false; renderBioThemes(); });
 bioRegisterAction('social-change', (e, el) => onSocialChange(el.dataset.bioSocial, el.value));
 bioRegisterAction('social-tile', (e, el) => onSocialTile(el.dataset.bioSocial));
