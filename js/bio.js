@@ -6075,9 +6075,9 @@ document.addEventListener('error', function(e) {
 //   `error` does not bubble from <img>, but it does capture, so one listener
 //   on the document catches every thumbnail without touching the render code.
 // ---------------------------------------------------------------------------
-var BIO_IMG_MAX_ATTEMPTS = 2;          // retries per element, not counting the first load
-var BIO_IMG_RETRY_DELAYS = [500, 2000]; // ms, one per attempt
-var BIO_IMG_RETRY_BUDGET = 40;          // total retries allowed per page load
+var BIO_IMG_MAX_ATTEMPTS = 3;          // retries per element, not counting the first load
+var BIO_IMG_RETRY_DELAYS = [500, 2000, 5000]; // ms, one per attempt; last clears a cold-network window
+var BIO_IMG_RETRY_BUDGET = 120;         // total retries per page load (covers a full list failing on cold launch)
 var bioImgRetriesUsed = 0;
 
 // Only self-heal images we serve. A creator pasting a dead external URL should
@@ -6088,9 +6088,14 @@ function bioImgIsOurs(src) {
          src.indexOf('ryxa.io/') !== -1;
 }
 
-function bioImgGiveUp(img) {
+function bioImgGiveUp(img, base) {
   // Never leave a broken-image glyph. A neutral tile reads as "no image",
   // which is true, rather than as "this page is broken".
+  // Preserve the original URL in bioImgBase BEFORE wiping src, so the resume
+  // re-heal can restore it (images that exhaust the budget on their very first
+  // error never reached the line below that normally stores the base).
+  var keep = base || img.dataset.bioImgBase || img.getAttribute('src') || '';
+  if (keep && bioImgIsOurs(keep)) img.dataset.bioImgBase = keep;
   img.dataset.bioImgFailed = '1';
   img.removeAttribute('src');
   img.style.background = 'rgba(255,255,255,0.06)';
@@ -6114,7 +6119,7 @@ document.addEventListener('error', function (e) {
 
   var attempts = parseInt(img.dataset.bioImgAttempts || '0', 10);
   if (attempts >= BIO_IMG_MAX_ATTEMPTS || bioImgRetriesUsed >= BIO_IMG_RETRY_BUDGET) {
-    bioImgGiveUp(img);
+    bioImgGiveUp(img, base);
     return;
   }
 
@@ -6141,3 +6146,51 @@ document.addEventListener('load', function (e) {
     delete img.dataset.bioImgBase;
   }
 }, true);
+
+// Resume re-heal.
+//
+// The retry logic above is purely reactive to load-time `error` events. On a
+// COLD app launch the WebView's network often isn't ready for the first few
+// seconds, so a thumbnail can burn both its retries (500ms + 2000ms) and get
+// permanently marked failed BEFORE the network is actually up. Nothing then
+// re-attempts it until a full re-render, which is why toggling a link (which
+// calls renderBioLinks) was the only thing that fixed them.
+//
+// When the app returns to the foreground (network now ready), re-heal any
+// images that gave up: clear their failed state and point them back at their
+// original URL (cache-busted). If ANY were failed, we also reset the session
+// retry budget, since the earlier failures were a cold-network artifact, not a
+// real outage. Guarded so it only acts when there is something to fix, so it
+// never disrupts active editing.
+function bioRehealFailedThumbnails() {
+  var imgs = document.querySelectorAll('img[data-bio-img-failed="1"]');
+  if (!imgs.length) return;
+  bioImgRetriesUsed = 0; // fresh budget: the cold-launch failures were transient
+  imgs.forEach(function (img) {
+    var base = img.dataset.bioImgBase;
+    if (!base || !bioImgIsOurs(base)) return;
+    delete img.dataset.bioImgFailed;
+    delete img.dataset.bioImgAttempts;
+    img.style.background = '';
+    img.style.border = '';
+    var sep = base.indexOf('?') === -1 ? '?' : '&';
+    img.src = base + sep + '_r=' + Date.now();
+  });
+}
+
+var _bioRehealLast = 0;
+function bioMaybeReheal() {
+  // Throttle so rapid focus/blur cycles don't thrash.
+  if (Date.now() - _bioRehealLast < 1500) return;
+  _bioRehealLast = Date.now();
+  bioRehealFailedThumbnails();
+}
+document.addEventListener('visibilitychange', function () {
+  if (document.visibilityState === 'visible') bioMaybeReheal();
+});
+window.addEventListener('pageshow', function (e) {
+  if (e.persisted) bioMaybeReheal();
+});
+// Also re-heal on network coming back, which fires on the exact transition
+// that caused the cold-launch failures.
+window.addEventListener('online', bioMaybeReheal);
