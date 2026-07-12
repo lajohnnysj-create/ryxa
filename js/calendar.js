@@ -95,6 +95,11 @@ function calToYmd(date) {
 }
 
 function calFormatDayLabel(ymd) {
+  // Defensive: selectedDate can still be null if the calendar view has never
+  // been opened (e.g. the timezone was changed from Settings, which triggers a
+  // calendar re-render before calRender's own init sets selectedDate). Fall
+  // back to today rather than throwing on null.split().
+  if (!ymd) ymd = calToYmd(new Date());
   var parts = ymd.split('-').map(Number);
   var date = new Date(parts[0], parts[1] - 1, parts[2]);
   var today = calToYmd(new Date());
@@ -505,8 +510,18 @@ function calRenderCell(year, month, day, isOtherMonth, todayYmd) {
 }
 
 function calRenderDayEvents() {
-  document.getElementById('cal-day-label').textContent = calFormatDayLabel(calState.selectedDate);
+  // Guarantee a selected date. This can be called via a timezone change from
+  // Settings before the calendar view's own init runs, when selectedDate is
+  // still null; default to today so both the label and the event filter below
+  // operate on a real date.
+  if (!calState.selectedDate) calState.selectedDate = calToYmd(new Date());
+  var dayLabelEl = document.getElementById('cal-day-label');
   var container = document.getElementById('cal-day-events');
+  // The calendar DOM may not be mounted if this render was triggered from
+  // Settings (timezone change) before the calendar view was ever opened.
+  // Nothing to paint in that case.
+  if (!dayLabelEl || !container) return;
+  dayLabelEl.textContent = calFormatDayLabel(calState.selectedDate);
   var dayEvents = calState.events.filter(function(e) {
     var startDate = e.start_at ? calToYmd(new Date(e.start_at)) : null;
     return startDate === calState.selectedDate;
