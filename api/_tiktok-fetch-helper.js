@@ -95,6 +95,18 @@ async function loadConnection(userId) {
 // within a 5-min skew), refreshes via the refresh token, then persists the
 // re-encrypted NEW access token AND NEW refresh token (TikTok rotates it) with
 // both new expiries.
+// Error classification: thrown errors carry err.permanent = true ONLY when the
+// stored credentials are genuinely unusable (TikTok says invalid_grant, the
+// token can't be decrypted, or no refresh token exists). Anything else - a
+// TikTok 5xx, a 429, a network blip - is transient: the same refresh will
+// succeed on a later run, so the caller must NOT flag the connection for
+// reconnection.
+function permanentError(message) {
+  const err = new Error(message);
+  err.permanent = true;
+  return err;
+}
+
 async function ensureFreshToken(userId, conn, _retried) {
   let accessToken;
   let refreshToken;
@@ -102,9 +114,9 @@ async function ensureFreshToken(userId, conn, _retried) {
     accessToken = decryptToken(conn.access_token);
     refreshToken = decryptToken(conn.refresh_token);
   } catch (e) {
-    throw new Error('Token decryption failed; reconnect TikTok');
+    throw permanentError('Token decryption failed; reconnect TikTok');
   }
-  if (!refreshToken) throw new Error('No refresh token stored; reconnect TikTok');
+  if (!refreshToken) throw permanentError('No refresh token stored; reconnect TikTok');
 
   const expMs = conn.token_expires_at ? Date.parse(conn.token_expires_at) : 0;
   const skewMs = 5 * 60 * 1000;
@@ -153,7 +165,15 @@ async function ensureFreshToken(userId, conn, _retried) {
         console.error('TikTok refresh: rotation-race re-read failed:', e3.message);
       }
     }
-    throw new Error('Token refresh failed; reconnect TikTok');
+    // TikTok's OAuth v2 reports a genuinely dead refresh token (revoked, or
+    // past its 365-day refresh_expires_in) as error: "invalid_grant" in the
+    // JSON body. Only that means "reconnect". Any other failure (5xx, 429,
+    // invalid_client misconfig, non-JSON gateway errors) is not the user's
+    // token and will succeed on a later run.
+    if (tok && tok.error === 'invalid_grant') {
+      throw permanentError('TikTok access revoked; reconnect TikTok');
+    }
+    throw new Error('TikTok token refresh temporarily failed (HTTP ' + tokenRes.status + '); will retry');
   }
 
   const newTokenExpiry = new Date(Date.now() + (tok.expires_in || 86400) * 1000).toISOString();
@@ -220,10 +240,14 @@ async function refreshTikTokData(userId) {
   try {
     token = await ensureFreshToken(userId, conn);
   } catch (e) {
-    // Every ensureFreshToken failure is a token-death class error; flag the
-    // connection so Settings shows "Reconnection needed".
-    await markNeedsReconnect(userId);
-    return { ok: false, error: e.message };
+    // Only flag "Reconnection needed" when the credentials are genuinely dead
+    // (err.permanent: invalid_grant, undecryptable token, missing refresh
+    // token). Transient failures (TikTok 5xx/429, network) return a failure
+    // WITHOUT flagging - the next cron run simply retries.
+    if (e && e.permanent) {
+      await markNeedsReconnect(userId);
+    }
+    return { ok: false, error: e.message, transient: !(e && e.permanent) };
   }
 
   const collected = {};

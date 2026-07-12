@@ -163,9 +163,16 @@ async function refreshFacebookData(userId) {
       collected.profile_picture_url = page.picture.data.url;
     }
   } catch (e) {
-    // If even the Page object fails, the token is likely dead/revoked.
-    await markNeedsReconnect(userId);
-    return { ok: false, error: 'data_fetch_error: ' + e.message };
+    // Meta reports a genuinely dead token as OAuthException code 190 (invalid,
+    // expired, or revoked access token) - the fb() wrapper surfaces it as
+    // e.code. Only that means "reconnect". Any other Page-fetch failure (Graph
+    // 5xx, rate limits like codes 4/17/32, network blips) is transient: the
+    // token is fine and the next run simply retries, so do NOT flag it.
+    if (e && e.code === 190) {
+      await markNeedsReconnect(userId);
+      return { ok: false, error: 'data_fetch_error: ' + e.message };
+    }
+    return { ok: false, error: 'data_fetch_error (transient): ' + e.message, transient: true };
   }
 
   // 2) Insights (defensive, per-metric)

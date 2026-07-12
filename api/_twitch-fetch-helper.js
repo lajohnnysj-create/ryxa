@@ -122,6 +122,18 @@ async function loadConnection(userId) {
 // within a 5-min skew), refreshes via the refresh token, then persists the
 // re-encrypted NEW access token (and the new refresh token if Twitch rotated it)
 // with the new expiry.
+// Error classification: thrown errors carry err.permanent = true ONLY when the
+// stored credentials are genuinely unusable (Twitch says the refresh token is
+// invalid, the token can't be decrypted, or no refresh token exists). Anything
+// else - a Twitch 5xx, a 429, a network blip - is transient: the same refresh
+// will succeed on a later run, so the caller must NOT flag the connection for
+// reconnection.
+function permanentError(message) {
+  const err = new Error(message);
+  err.permanent = true;
+  return err;
+}
+
 async function ensureFreshToken(userId, conn) {
   let accessToken;
   let refreshToken;
@@ -129,9 +141,9 @@ async function ensureFreshToken(userId, conn) {
     accessToken = decryptToken(conn.access_token);
     refreshToken = decryptToken(conn.refresh_token);
   } catch (e) {
-    throw new Error('Token decryption failed; reconnect Twitch');
+    throw permanentError('Token decryption failed; reconnect Twitch');
   }
-  if (!refreshToken) throw new Error('No refresh token stored; reconnect Twitch');
+  if (!refreshToken) throw permanentError('No refresh token stored; reconnect Twitch');
 
   const expMs = conn.token_expires_at ? Date.parse(conn.token_expires_at) : 0;
   const skewMs = 5 * 60 * 1000;
@@ -159,7 +171,16 @@ async function ensureFreshToken(userId, conn) {
 
   if (!tokenRes.ok || !tok || tok.error || !tok.access_token) {
     console.error('Twitch token refresh failed:', tokenRes.status, text);
-    throw new Error('Token refresh failed; reconnect Twitch');
+    // Twitch reports a genuinely dead refresh token (revoked, rotated away, or
+    // expired) as HTTP 400/401 with body message "Invalid refresh token" (per
+    // the official refresh docs). Only that means "reconnect". Any other
+    // failure (5xx, 429, non-JSON gateway errors) is not the user's token.
+    const deadToken = (tokenRes.status === 400 || tokenRes.status === 401) &&
+      tok && typeof tok.message === 'string' && /invalid refresh token/i.test(tok.message);
+    if (deadToken) {
+      throw permanentError('Twitch access revoked; reconnect Twitch');
+    }
+    throw new Error('Twitch token refresh temporarily failed (HTTP ' + tokenRes.status + '); will retry');
   }
 
   const newTokenExpiry = new Date(Date.now() + (tok.expires_in || 14400) * 1000).toISOString();
@@ -202,10 +223,14 @@ async function refreshTwitchData(userId) {
   try {
     token = await ensureFreshToken(userId, conn);
   } catch (e) {
-    // Every ensureFreshToken failure is a token-death class error; flag the
-    // connection so Settings shows "Reconnection needed".
-    await markNeedsReconnect(userId);
-    return { ok: false, error: e.message };
+    // Only flag "Reconnection needed" when the credentials are genuinely dead
+    // (err.permanent: Twitch declared the refresh token invalid, undecryptable
+    // token, missing refresh token). Transient failures (Twitch 5xx/429,
+    // network) return a failure WITHOUT flagging - the next cron run retries.
+    if (e && e.permanent) {
+      await markNeedsReconnect(userId);
+    }
+    return { ok: false, error: e.message, transient: !(e && e.permanent) };
   }
 
   const helixHeaders = {
