@@ -1330,7 +1330,7 @@ function renderBioThemes() {
       action: 'pick-theme', attr: 'data-bio-theme="custom"',
       active: bioState.theme === 'custom' && bioCustomEditorOpen,
       lock: customLocked },
-    { key: 'graphics', label: 'Graphics',
+    { key: 'graphics', label: 'Scenes',
       icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>',
       action: 'theme-group', attr: 'data-bio-group="graphics"',
       active: bioThemeGroupOpen === 'graphics',
