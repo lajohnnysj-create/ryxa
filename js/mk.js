@@ -1854,6 +1854,43 @@ async function loadAudienceAutomatic() {
       console.error('loadAudienceAutomatic Facebook', e);
     }
 
+    // Connection-health warning (distinct from the 24h re-fetch staleness
+    // below). If a connected account has had no successful data pull in 14+
+    // days but the platform has not explicitly revoked it (needs_reconnect is
+    // false), surface a soft amber toast. This mirrors the dashboard/Settings
+    // yellow state, but the message is worded for this context (the creator is
+    // looking at the possibly-outdated numbers right here). Red (needs_reconnect)
+    // keeps its existing reconnect messaging; this only covers the yellow gap.
+    // Facebook stores its timestamp as last_refreshed_at; the others use
+    // data_last_fetched_at.
+    try {
+      const MK_STALE_DAYS = 14;
+      const mkStaleCutoff = Date.now() - MK_STALE_DAYS * 24 * 60 * 60 * 1000;
+      const mkHealthRows = [
+        ['Instagram', conn, 'data_last_fetched_at'],
+        ['YouTube', ytConn, 'data_last_fetched_at'],
+        ['TikTok', ttConn, 'data_last_fetched_at'],
+        ['Twitch', twConn, 'data_last_fetched_at'],
+        ['Facebook', fbConn, 'last_refreshed_at'],
+      ];
+      const mkStale = [];
+      mkHealthRows.forEach(function(h) {
+        const row = h[1];
+        if (!row) return;                 // not connected
+        if (row.needs_reconnect) return;  // red owns this platform, not yellow
+        const ts = row[h[2]];
+        const last = ts ? Date.parse(ts) : null;
+        if (last && last < mkStaleCutoff) mkStale.push(h[0]);
+      });
+      if (mkStale.length && typeof showDashToast === 'function') {
+        const names = mkStale.length === 1 ? mkStale[0]
+          : mkStale.length === 2 ? mkStale[0] + ' and ' + mkStale[1]
+          : mkStale.slice(0, -1).join(', ') + ', and ' + mkStale[mkStale.length - 1];
+        const verb = mkStale.length === 1 ? 'has' : 'have';
+        showDashToast('warning', names + ' ' + verb + ' not retrieved data for 14+ days. Please check the connection in Settings.', { sticky: true });
+      }
+    } catch (e) { /* health warning is best-effort; never block the tab */ }
+
     const STALE_MS = 24 * 60 * 60 * 1000; // 24h, shared by both platforms
 
     // ---- Instagram: refresh if stale, else use cached row ----
