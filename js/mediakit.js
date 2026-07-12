@@ -892,6 +892,7 @@ const BUILTIN_IMAGE_THEMES = {
   sapphire:   { image:'/bgtemplates/3.webp', colors:{bg:'#1E3A8A',card:'#172554',text:'#F5EFE0',accent:'#D4AF37'} },
   blossom:    { image:'/bgtemplates/4.webp', colors:{bg:'#FCE7EB',card:'#F8D7DD',text:'#5C2E3D',accent:'#C9A961'} },
   honey:      { image:'/bgtemplates/5.webp', colors:{bg:'#FCEFC0',card:'#F8E48E',text:'#5C3F17',accent:'#B45309'} },
+  malachite:  { image:'/bgtemplates/6.webp', colors:{bg:'#0A2318',card:'#0B2A1E',text:'#F3EEE0',accent:'#D4AF37'} },
 };
 
 function buildImageThemeStyle(themeKey) {
