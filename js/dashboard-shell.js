@@ -920,6 +920,8 @@ async function setUser(user) {
   // replacing) any toast the login flow itself shows: showDashToast is a
   // single-slot notification, a new toast removes the current one.
   setTimeout(function() { checkSocialReconnections(user.id); }, 2500);
+  // Long-lived sessions: periodic + resume re-checks (guarded to start once).
+  startSocialHealthMonitor();
   // Update sidebar user info
   const email = document.getElementById('sidebar-email');
   const avatar = document.getElementById('sidebar-avatar');
@@ -1826,7 +1828,17 @@ window.RyxaLoadBar = (function() {
 // is cleared (checkSocialReconnections re-runs after a successful reconnect).
 // Settings shows the full per-account picture via badges regardless.
 const SOCIAL_STALE_DAYS = 14;
+// Episode-scoped alert suppression. Once a platform+severity has been included
+// in a shown toast, it is not toasted again for the same continuous episode,
+// whether the user dismissed the toast or it is still on screen. Marks clear
+// only on CONFIRMED recovery (a check that reads the platform as green), so a
+// genuinely new degradation later in the same session surfaces again. Marks
+// are per-severity so a dismissed yellow can never hide a later red escalation
+// for the same platform. Keys look like 'Twitch:yellow'.
+var _socialAlertShown = {};
+var _lastSocialCheckAt = 0;
 async function checkSocialReconnections(userId) {
+  _lastSocialCheckAt = Date.now();
   const tables = [
     ['instagram_connections', 'Instagram', 'data_last_fetched_at'],
     ['youtube_connections', 'YouTube', 'data_last_fetched_at'],
@@ -1842,7 +1854,12 @@ async function checkSocialReconnections(userId) {
       // both the flag and the last-success timestamp to classify the state.
       return sb.from(t[0]).select('needs_reconnect,' + tsCol).eq('user_id', userId).maybeSingle()
         .then(function(res) {
-          const row = res && res.data;
+          // A query-level error (res.error) must never classify as a problem
+          // AND must never look like a recovery: 'unknown' neither toasts nor
+          // clears suppression marks. Otherwise a transient read failure would
+          // either false-alarm or reset marks and re-nag on the next tick.
+          if (!res || res.error) return { name: t[1], state: 'unknown' };
+          const row = res.data;
           if (!row) return { name: t[1], state: 'green' }; // not connected = nothing to warn about
           if (row.needs_reconnect) return { name: t[1], state: 'red' };
           // Stale = connected, not flagged, but no successful refresh in the
@@ -1853,8 +1870,21 @@ async function checkSocialReconnections(userId) {
           if (last && last < staleCutoff) return { name: t[1], state: 'yellow' };
           return { name: t[1], state: 'green' };
         })
-        .catch(function() { return { name: t[1], state: 'green' }; });
+        .catch(function() { return { name: t[1], state: 'unknown' }; });
     }));
+
+    // Suppression-mark maintenance. Clear only on CONFIRMED states:
+    // green ends the episode entirely; yellow ends a previous red episode
+    // (downgrade) so a later re-escalation to red surfaces again. 'unknown'
+    // leaves everything untouched.
+    results.forEach(function(r) {
+      if (r.state === 'green') {
+        delete _socialAlertShown[r.name + ':red'];
+        delete _socialAlertShown[r.name + ':yellow'];
+      } else if (r.state === 'yellow') {
+        delete _socialAlertShown[r.name + ':red'];
+      }
+    });
 
     const red = results.filter(function(r) { return r.state === 'red'; }).map(function(r) { return r.name; });
     const yellow = results.filter(function(r) { return r.state === 'yellow'; }).map(function(r) { return r.name; });
@@ -1865,15 +1895,57 @@ async function checkSocialReconnections(userId) {
         : arr.slice(0, -1).join(', ') + ', and ' + arr[arr.length - 1];
     }
 
-    // Red takes the toast slot when present; yellow waits for a clean run.
+    // Red takes the toast slot when present; yellow waits for a clean run
+    // (surfaced by the post-reconnect re-check or a later periodic tick).
+    // Within a severity, toast only if at least one listed platform hasn't
+    // been surfaced this episode; re-showing names every current platform of
+    // that severity and marks them all, so an unchanged set never re-fires.
     if (red.length) {
-      showDashToast('error', 'Reconnection needed: ' + joinNames(red) + '. Data updates are paused. Go to Settings to reconnect.', { sticky: true });
+      const hasNewRed = red.some(function(n) { return !_socialAlertShown[n + ':red']; });
+      if (hasNewRed) {
+        showDashToast('error', 'Reconnection needed: ' + joinNames(red) + '. Data updates are paused. Go to Settings to reconnect.', { sticky: true });
+        red.forEach(function(n) { _socialAlertShown[n + ':red'] = true; });
+      }
     } else if (yellow.length) {
-      showDashToast('warning', 'Connection issue with ' + joinNames(yellow) + ', please try reconnecting in Settings.', { sticky: true });
+      const hasNewYellow = yellow.some(function(n) { return !_socialAlertShown[n + ':yellow']; });
+      if (hasNewYellow) {
+        showDashToast('warning', 'Connection issue with ' + joinNames(yellow) + ', please try reconnecting in Settings.', { sticky: true });
+        yellow.forEach(function(n) { _socialAlertShown[n + ':yellow'] = true; });
+      }
     }
   } catch (e) {
     console.error('checkSocialReconnections', e);
   }
+}
+
+// Keeps long-lived sessions honest: the load-time check only runs once, so an
+// app that stays open (or backgrounded) for days would never surface a
+// connection that goes red or stale mid-session. A low-frequency interval plus
+// a throttled resume check close that gap. The suppression marks above make
+// repeated checks safe: an unchanged condition never re-fires the toast.
+var _socialMonitorStarted = false;
+function startSocialHealthMonitor() {
+  if (_socialMonitorStarted) return; // one timer ever, even if setUser re-runs
+  _socialMonitorStarted = true;
+  var THREE_HOURS = 3 * 60 * 60 * 1000;
+  var RESUME_MIN_GAP = 2 * 60 * 1000;
+  setInterval(function() {
+    try { if (currentUser) checkSocialReconnections(currentUser.id); } catch (e) {}
+  }, THREE_HOURS);
+  document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState !== 'visible') return;
+    if (!currentUser) return;
+    // Throttle: quick app-switching shouldn't spam queries. The last-check
+    // timestamp also covers the load-time check, so a resume right after
+    // load doesn't double-fire.
+    if (Date.now() - _lastSocialCheckAt < RESUME_MIN_GAP) return;
+    try { checkSocialReconnections(currentUser.id); } catch (e) {}
+  });
+  window.addEventListener('pageshow', function(e) {
+    if (!e.persisted || !currentUser) return;
+    if (Date.now() - _lastSocialCheckAt < RESUME_MIN_GAP) return;
+    try { checkSocialReconnections(currentUser.id); } catch (e) {}
+  });
 }
 
 function showDashToast(type, message, opts) {
