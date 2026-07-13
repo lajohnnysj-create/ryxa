@@ -4842,10 +4842,15 @@ function schedulePreviewUpdate() {
 function updateBioPreview() {
   const iframe = document.getElementById('bio-preview-iframe');
   if (!iframe) return;
-  // First load only: show a shimmering skeleton over the preview frame and
-  // fade the iframe in when it finishes rendering. Subsequent updates (every
-  // keystroke) just swap srcdoc with no skeleton, so editing stays live.
+  // First load only: hold a shimmering skeleton over the preview for a fixed
+  // duration, then fade the finished preview in. We can't detect precisely when
+  // the iframe has finished painting (its srcdoc is CSP-restricted, so it can't
+  // message us, and the load event fires before paint settles), so instead of
+  // guessing the "ready" moment we simply keep the skeleton up long enough to
+  // cover the flickery paint phase, then reveal cleanly. This is first-load
+  // only, so it never affects typing or later updates.
   if (!iframe.dataset.everLoaded) {
+    iframe.dataset.everLoaded = '1';
     const frame = document.getElementById('bio-preview-frame');
     if (frame && !frame.querySelector('.ryxa-skeleton')) {
       frame.style.position = 'relative';
@@ -4853,15 +4858,11 @@ function updateBioPreview() {
       skel.className = 'ryxa-skeleton';
       frame.appendChild(skel);
       iframe.classList.add('ryxa-fade');
-      iframe.addEventListener('load', () => {
-        iframe.dataset.everLoaded = '1';
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            iframe.classList.add('is-loaded');
-            setTimeout(() => { if (skel && skel.parentNode) skel.remove(); }, 420);
-          });
-        });
-      }, { once: true });
+      const SKELETON_HOLD = 700; // ms; comfortably outlasts the paint-settle flicker
+      setTimeout(() => {
+        iframe.classList.add('is-loaded');            // fade the preview in
+        setTimeout(() => { if (skel && skel.parentNode) skel.remove(); }, 440);
+      }, SKELETON_HOLD);
     }
   }
   iframe.srcdoc = buildPreviewHTML();
