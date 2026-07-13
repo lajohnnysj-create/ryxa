@@ -2345,10 +2345,11 @@
       min-height: 380px;
     }
     #bio-preview-col .preview-share, #mk-preview-col .preview-share { flex: 0 0 auto; }
-    /* The frames become flex containers so their iframes (height:100%) still
-       fill now that the frame height is auto/flex rather than a fixed px. */
-    #bio-preview-col .bio-s-f883c5, #mk-preview-col .mk-s-0580dd { display: flex; }
-    #bio-preview-col .bio-s-f883c5 > iframe, #mk-preview-col .mk-s-0580dd > iframe { flex: 1 1 auto; height: auto !important; }
+    /* The frames become flex COLUMNS so their iframes flex to fill height
+       while keeping full width (align-items:stretch). Using the default row
+       direction made flex:1 act on the iframe's WIDTH, narrowing the preview. */
+    #bio-preview-col .bio-s-f883c5, #mk-preview-col .mk-s-0580dd { display: flex; flex-direction: column; }
+    #bio-preview-col .bio-s-f883c5 > iframe, #mk-preview-col .mk-s-0580dd > iframe { flex: 1 1 auto; width: 100%; height: auto !important; }
     #bio-preview-col.sheet-open, #mk-preview-col.sheet-open { transform: translateY(0) translateZ(0); }
     /* While a sheet is open, freeze the page behind it so a double-tap or
        stray gesture can't scroll the document under the fixed sheet (which
