@@ -932,11 +932,22 @@ function renderAvatarPreview() {
     const img = inner.querySelector('img');
     const skel = inner.querySelector('.ryxa-skeleton');
     const reveal = () => {
-      img.classList.add('is-loaded');
-      if (skel) skel.remove();
+      // Always let the fade play its full duration, even when the image is
+      // cached and available instantly. Adding the class on the next animation
+      // frame (after the element has painted at opacity 0) guarantees the
+      // 0 -> 1 transition actually runs instead of snapping. This makes fast
+      // loads feel as intentional as slow ones, without delaying the content
+      // itself (the image is already there; only its fade-in is completing).
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          img.classList.add('is-loaded');
+          // Remove the skeleton after the fade finishes so it cross-dissolves.
+          setTimeout(() => { if (skel) skel.remove(); }, 380);
+        });
+      });
     };
     // Cached images can be complete before we attach the handler, in which case
-    // the load event never fires, so reveal immediately. Otherwise wait for load.
+    // the load event never fires, so reveal immediately (still fades via rAF).
     if (img.complete && img.naturalWidth > 0) reveal();
     else {
       img.addEventListener('load', reveal, { once: true });
@@ -4844,8 +4855,14 @@ function updateBioPreview() {
       iframe.classList.add('ryxa-fade');
       iframe.addEventListener('load', () => {
         iframe.dataset.everLoaded = '1';
-        iframe.classList.add('is-loaded');
-        skel.remove();
+        // Next-frame reveal so the fade always runs its full duration, even if
+        // the srcdoc rendered near-instantly, for a consistent, intentional feel.
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            iframe.classList.add('is-loaded');
+            setTimeout(() => skel.remove(), 420);
+          });
+        });
       }, { once: true });
     }
   }
