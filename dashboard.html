@@ -2339,14 +2339,13 @@
       -webkit-backface-visibility: hidden; backface-visibility: hidden;
     }
     .preview-fab svg { width: 15px; height: 15px; flex-shrink: 0; }
-    /* Share card under the preview inside the sheet: same width as the frame,
-       shows the public link with a copy icon button. Mobile sheet only. */
-    .preview-share { display: block; margin-top: 12px; background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; }
+    /* Share section under the preview inside the sheet. The pill mirrors the
+       dashboard welcome-screen link card exactly (same look, same chain and
+       copy icons, same hover class) and is centered in the section. */
+    .preview-share { display: block; margin-top: 14px; text-align: center; }
     .preview-share-label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
-    .preview-share-row { display: flex; align-items: center; gap: 10px; }
-    .preview-share-url { flex: 1; min-width: 0; font-size: 13.5px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .preview-share-copy { flex-shrink: 0; width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; background: rgba(124,58,237,0.12); border: 1px solid rgba(124,58,237,0.35); border-radius: 10px; color: #c4b5fd; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-    .preview-share-copy svg { width: 15px; height: 15px; }
+    .preview-share-pill { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; padding: 10px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; font-size: 12px; font-family: "DM Sans", sans-serif; cursor: pointer; color: var(--text); transition: all 0.15s; -webkit-tap-highlight-color: transparent; }
+    .preview-share-url { text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
     /* Bottom clearance so the last editor section (Settings) scrolls clear of
        the floating pill. Stacks with .main's bottom-nav padding above. */
     #tool-bio, #tool-mediakit { padding-bottom: 48px; }
@@ -7569,10 +7568,11 @@
             </div>
             <div class="preview-share">
               <div class="preview-share-label">Share</div>
-              <div class="preview-share-row">
-                <span class="preview-share-url" id="bio-preview-share-url"></span>
-                <button type="button" class="preview-share-copy" id="bio-preview-share-copy" data-bio-action="copy-share-link" data-bio-url="" aria-label="Copy link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
-              </div>
+              <button type="button" class="dash-h-427938 preview-share-pill" id="bio-preview-share-copy" data-bio-action="copy-share-link" data-bio-url="" aria-label="Copy link">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0;"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                <span class="preview-share-url" id="bio-preview-share-url">ryxa.io/...</span>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0;"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              </button>
             </div>
           </div>
         </div>
@@ -8962,10 +8962,11 @@
             </div>
             <div class="preview-share">
               <div class="preview-share-label">Share</div>
-              <div class="preview-share-row">
-                <span class="preview-share-url" id="mk-preview-share-url"></span>
-                <button type="button" class="preview-share-copy" id="mk-preview-share-copy" data-mk-action="copy-share-link" data-mk-url="" aria-label="Copy link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
-              </div>
+              <button type="button" class="dash-h-427938 preview-share-pill" id="mk-preview-share-copy" data-mk-action="copy-share-link" data-mk-url="" aria-label="Copy link">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0;"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                <span class="preview-share-url" id="mk-preview-share-url">ryxa.io/...</span>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0;"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              </button>
             </div>
           </div>
         </div>
