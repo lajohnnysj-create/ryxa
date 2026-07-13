@@ -2495,12 +2495,92 @@ document.addEventListener('visibilitychange', function () {
 // page could use to visually emphasize a plan. Harmless if unused.
 // =============================================================================
 function goToPricing(highlightPlan) {
-  var url = '/pricing.html';
+  var query = '';
   if (highlightPlan === 'pro' || highlightPlan === 'max') {
-    url += '?highlight=' + highlightPlan;
+    query = '?highlight=' + highlightPlan;
   }
-  window.location.href = url;
+  // Inside the native app, pricing must open in the external browser (Safari),
+  // not render in the app WebView, so no purchase surface lives inside the app.
+  // window.RyxaNative is injected by the app wrapper. The full absolute URL on
+  // the pricing path is what the app recognizes as a link-out; the highlight
+  // param carries the target plan so the page still scrolls to it. On the web
+  // this branch is skipped and pricing navigates in-page exactly as before.
+  if (window.RyxaNative) {
+    window.location.href = 'https://www.ryxa.io/pricing.html' + query;
+    return;
+  }
+  window.location.href = '/pricing.html' + query;
 }
+
+// Native app only: relabel upgrade buttons to neutral tier names and strip
+// prices. Apple treats purchase-verb CTAs ("Upgrade Now", "Upgrade to Pro,
+// $10/mo") and in-app price references as In-App-Purchase / metadata problems
+// (guidelines 3.1.1 and 2.3.7). Naming the tier plainly ("Ryxa Pro" / "Ryxa
+// Max") reads as navigation, not a purchase prompt, matching how compliant
+// competitor apps present their upgrade entry point. The buttons still work,
+// they just open the pricing page in Safari (see goToPricing). On the website
+// (no window.RyxaNative) none of this runs, so web labels and prices are
+// unchanged.
+(function relabelUpgradeUiInApp() {
+  if (!window.RyxaNative) return;
+
+  function tierFor(el) {
+    // Max if the action or any nearby data attribute names 'max'; else Pro.
+    var attrs = '';
+    for (var i = 0; i < el.attributes.length; i++) {
+      attrs += ' ' + el.attributes[i].name + '=' + el.attributes[i].value;
+    }
+    return /max/i.test(attrs) ? 'Ryxa Max' : 'Ryxa Pro';
+  }
+
+  function relabel() {
+    // Buttons whose action is an upgrade/checkout/pricing entry point. These
+    // are the tappable CTAs the reviewer would read as "buy".
+    var sel = [
+      '[data-mk-action="start-checkout"]',
+      '[data-grid-action="start-checkout"]',
+      '[data-thumb-action="start-checkout"]',
+      '[data-contract-action="start-checkout"]',
+      '[data-chat-action="start-checkout"]',
+      '[data-scripts-action="start-checkout"]',
+      '[data-follower-action="start-checkout"]',
+      '[data-settings-action="open-pricing"]',
+      '[data-bio-action="verify-upsell-upgrade"]',
+      '[data-bio-action="ban-upgrade"]',
+      '[data-dash-action="sidebar-upgrade-pro"]',
+      '[data-course-action="max-upgrade"]',
+      '[data-coach-action="max-upgrade"]',
+      '[data-prod-action="max-upgrade"]',
+      '[data-deal-action="max-upgrade"]',
+      '[data-ana-action="max-upgrade"]'
+    ].join(',');
+
+    document.querySelectorAll(sel).forEach(function (el) {
+      // "Change Plan" is management, not a purchase CTA; leave it as-is.
+      var current = (el.textContent || '').trim();
+      if (/change plan/i.test(current)) return;
+      var label = tierFor(el);
+      // Only rewrite if it currently reads as an upgrade/price CTA, so we don't
+      // clobber unrelated labels if a selector is ever reused.
+      if (/upgrade|\$\d|\/mo|unlock/i.test(current) || current === '') {
+        el.textContent = label;
+      }
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', relabel);
+  } else {
+    relabel();
+  }
+  // Tools render their upsell buttons lazily when their section first opens,
+  // so re-run on the same tool-switch signal the app uses. A light observer
+  // catches buttons added after initial load.
+  try {
+    var mo = new MutationObserver(function () { relabel(); });
+    mo.observe(document.body, { childList: true, subtree: true });
+  } catch (e) { /* observer unsupported: initial pass still covers most */ }
+})();
 
 async function startCheckout(planOrIntent, cycleOrBtn, maybeBtn) {
   if (!currentUser) { window.location.href = 'index.html'; return; }
