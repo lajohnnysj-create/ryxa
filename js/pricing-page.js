@@ -665,6 +665,17 @@ function isFromApp() {
     try { await sb.auth.signOut({ scope: 'local' }); } catch (e) { /* ignore */ }
     currentUser = null;
   }
+  // Read the ticket into memory now, then remove it from the address bar so it
+  // never lingers in Safari history or gets copied when the user shares the
+  // URL. The cached value keeps working for checkout; app=1 and highlight stay
+  // in the URL because native-app.js and the highlight scroller read them.
+  if (getPricingTicket()) {
+    try {
+      var u = new URL(window.location.href);
+      u.searchParams.delete('ticket');
+      window.history.replaceState(null, '', u.pathname + u.search + u.hash);
+    } catch (e) { /* cosmetic only; ticket still expires in 5 minutes */ }
+  }
   loadUserState();
 })();
 
