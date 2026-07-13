@@ -4842,13 +4842,9 @@ function schedulePreviewUpdate() {
 function updateBioPreview() {
   const iframe = document.getElementById('bio-preview-iframe');
   if (!iframe) return;
-  // First load: keep a shimmering skeleton over the frame until the iframe's
-  // content has actually PAINTED (not just fired load), then fade it in. The
-  // load event can fire before the inner images/layout settle, which caused a
-  // visible flash/flicker; waiting for the inner document's images and a couple
-  // of animation frames means the user only ever sees skeleton -> finished
-  // content, never the intermediate paint. Subsequent keystroke updates swap
-  // srcdoc silently (no skeleton) so editing stays live.
+  // First load only: show a shimmering skeleton over the preview frame and
+  // fade the iframe in when it finishes rendering. Subsequent updates (every
+  // keystroke) just swap srcdoc with no skeleton, so editing stays live.
   if (!iframe.dataset.everLoaded) {
     const frame = document.getElementById('bio-preview-frame');
     if (frame && !frame.querySelector('.ryxa-skeleton')) {
@@ -4859,35 +4855,12 @@ function updateBioPreview() {
       iframe.classList.add('ryxa-fade');
       iframe.addEventListener('load', () => {
         iframe.dataset.everLoaded = '1';
-        const revealNow = () => {
+        requestAnimationFrame(() => {
           requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-              iframe.classList.add('is-loaded');
-              setTimeout(() => { if (skel && skel.parentNode) skel.remove(); }, 440);
-            });
+            iframe.classList.add('is-loaded');
+            setTimeout(() => { if (skel && skel.parentNode) skel.remove(); }, 420);
           });
-        };
-        // Wait for the iframe's own images to finish so we don't reveal a
-        // half-painted preview. Fall back to a max wait so a stuck image can't
-        // hold the skeleton forever.
-        try {
-          const doc = iframe.contentDocument;
-          const imgs = doc ? Array.from(doc.images) : [];
-          const pending = imgs.filter(im => !im.complete);
-          if (pending.length) {
-            let done = 0;
-            const check = () => { if (++done >= pending.length) revealNow(); };
-            pending.forEach(im => {
-              im.addEventListener('load', check, { once: true });
-              im.addEventListener('error', check, { once: true });
-            });
-            setTimeout(revealNow, 1200); // safety cap
-          } else {
-            revealNow();
-          }
-        } catch (e) {
-          revealNow(); // cross-origin or access issue: reveal anyway
-        }
+        });
       }, { once: true });
     }
   }
