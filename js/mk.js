@@ -3198,6 +3198,17 @@ mkRegisterAction('theme-group', (e, el) => {
   if (mkThemeGroupOpen) mkCustomEditorOpen = false;
   renderMKThemes();
 });
+// Mobile live-preview sheet: mirrors the Link in Bio pill. The preview column
+// keeps updating while hidden; the pill slides it up/down as a bottom sheet.
+mkRegisterAction('toggle-preview-sheet', () => {
+  const col = document.getElementById('mk-preview-col');
+  const fab = document.getElementById('mk-preview-fab');
+  if (!col || !fab) return;
+  const open = col.classList.toggle('sheet-open');
+  fab.setAttribute('aria-expanded', open ? 'true' : 'false');
+  const label = fab.querySelector('.preview-fab-label');
+  if (label) label.textContent = open ? 'Close Preview' : 'Live Preview';
+});
 mkRegisterAction('close-custom-editor', () => { mkCustomEditorOpen = false; renderMKThemes(); });
 
 // Audience tabs

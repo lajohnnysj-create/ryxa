@@ -5696,6 +5696,18 @@ bioRegisterAction('theme-group', (e, el) => {
   if (bioThemeGroupOpen) bioCustomEditorOpen = false;
   renderBioThemes();
 });
+// Mobile live-preview sheet: the floating pill slides the (always-updating)
+// preview column up as a bottom sheet and back down. The pill is display:none
+// above 900px, so this can never fire on desktop.
+bioRegisterAction('toggle-preview-sheet', () => {
+  const col = document.getElementById('bio-preview-col');
+  const fab = document.getElementById('bio-preview-fab');
+  if (!col || !fab) return;
+  const open = col.classList.toggle('sheet-open');
+  fab.setAttribute('aria-expanded', open ? 'true' : 'false');
+  const label = fab.querySelector('.preview-fab-label');
+  if (label) label.textContent = open ? 'Close Preview' : 'Live Preview';
+});
 bioRegisterAction('close-custom-editor', () => { bioCustomEditorOpen = false; renderBioThemes(); });
 bioRegisterAction('social-change', (e, el) => onSocialChange(el.dataset.bioSocial, el.value));
 bioRegisterAction('social-tile', (e, el) => onSocialTile(el.dataset.bioSocial));
