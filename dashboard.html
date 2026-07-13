@@ -2317,11 +2317,22 @@
       /* Big bottom padding so the preview's end scrolls clear of the pill. */
       padding: 14px 14px calc(90px + env(safe-area-inset-bottom, 0px));
       overflow-y: auto; -webkit-overflow-scrolling: touch;
+      /* Double-tap hardening: WKWebView runs its double-tap-zoom gesture even
+         with user-scalable=no (it animates the attempt, then clamps back),
+         which briefly scaled the viewport and exposed the editor behind the
+         sheet. touch-action: manipulation removes double-tap semantics from
+         the sheet entirely; overscroll contain stops scroll-chaining to the
+         page behind (same pattern as the modals). */
+      touch-action: manipulation;
+      overscroll-behavior: contain;
       transform: translateY(103%) translateZ(0);
       transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
       will-change: transform;
     }
     #bio-preview-col.sheet-open, #mk-preview-col.sheet-open { transform: translateY(0) translateZ(0); }
+    /* The double-tap gesture resolves against the element actually touched,
+       so the iframes and the pill need the same opt-out explicitly. */
+    #bio-preview-iframe, #mk-preview-iframe, .preview-fab, .preview-share-pill { touch-action: manipulation; }
 
     .preview-fab {
       display: inline-flex; align-items: center; gap: 8px;
