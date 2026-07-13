@@ -156,6 +156,15 @@ window.ryxaLoadAnalytics = function() {
   // Already loaded? do nothing.
   if (window.gtag && window.dataLayer) return;
 
+  // Never load analytics inside the native app (window.RyxaNative is injected
+  // by the app wrapper before the page loads). Apple treats web analytics
+  // cookies in an app WebView as user tracking requiring App Tracking
+  // Transparency; Ryxa does no ad tracking, so the clean resolution is to run
+  // no analytics at all in the app. Essential/session cookies are unaffected,
+  // so sign-in still works. On the website (a real browser) analytics behave
+  // exactly as before.
+  if (window.RyxaNative) return;
+
   // Honor Global Privacy Control (CCPA/CPRA requirement).
   if (navigator.globalPrivacyControl === true) return;
 

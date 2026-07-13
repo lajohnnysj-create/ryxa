@@ -5,6 +5,15 @@
 (function() {
   'use strict';
 
+  // Never show the cookie banner inside the native app. window.RyxaNative is
+  // injected by the app wrapper before the page loads. Analytics is separately
+  // blocked in-app (see ryxaLoadAnalytics), so there is nothing to consent to
+  // here: only essential/session cookies run in the app, which need no consent
+  // and are not tracking. This resolves Apple guideline 5.1.2(i) by removing
+  // the cookie prompt from the app context, while the website keeps its banner
+  // unchanged for real browser visitors.
+  if (window.RyxaNative) return;
+
   var STORAGE_KEY = 'fts_cookie_consent';
   var CONSENT_VERSION = '1'; // bump to re-prompt if policy changes materially
 
