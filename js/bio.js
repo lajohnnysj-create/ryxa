@@ -949,6 +949,9 @@ function renderAvatarPreview() {
     else {
       img.addEventListener('load', () => { loaded = true; revealIfReady(); }, { once: true });
       img.addEventListener('error', () => { if (skel && skel.parentNode) skel.remove(); }, { once: true });
+      // Safety cap: if a hung request fires neither load nor error, reveal
+      // anyway so the skeleton can never get permanently stuck.
+      setTimeout(() => { loaded = true; revealIfReady(); }, 8000);
     }
     removeBtn.style.display = 'flex';
   } else {

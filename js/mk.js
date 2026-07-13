@@ -480,6 +480,9 @@ function renderMKHeadshotPreview() {
     else {
       img.addEventListener('load', () => { loaded = true; revealIfReady(); }, { once: true });
       img.addEventListener('error', () => { if (skel && skel.parentNode) skel.remove(); }, { once: true });
+      // Safety cap: a hung request that fires neither load nor error reveals
+      // anyway so the skeleton can never get permanently stuck.
+      setTimeout(() => { loaded = true; revealIfReady(); }, 8000);
     }
     removeBtn.style.display = 'flex';
   } else {
