@@ -4902,6 +4902,13 @@ function buildPreviewHTML() {
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="${_bioFontHref}" rel="stylesheet">
   <style>
+  /* Preview guard: the preview is non-interactive by design. Kill text
+     selection (a double-tap on iOS select-word gesture was scrolling the
+     parent sheet to reveal the selection) and make any form controls inert so
+     nothing inside can grab focus or open the keyboard. Scrolling is
+     unaffected: touches fall through to the document scroller. */
+  *{-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important;}
+  a,button,input,textarea,select{pointer-events:none!important;}
   html{scrollbar-width:thin;scrollbar-color:rgba(124,58,237,0.3) transparent;}
   ::-webkit-scrollbar{width:6px;}
   ::-webkit-scrollbar-track{background:transparent;}

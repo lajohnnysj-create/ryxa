@@ -3061,6 +3061,11 @@ function buildMKPreviewHTML() {
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="${_mkFontHref}" rel="stylesheet">
   <style>
+  /* Preview guard: matches the bio preview. Non-interactive by design; kill
+     text selection (iOS double-tap select-word was bouncing the parent sheet)
+     and make form controls inert. Scrolling unaffected. */
+  *{-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important;}
+  a,button,input,textarea,select{pointer-events:none!important;}
   *{box-sizing:border-box;margin:0;padding:0;}
   html{scrollbar-width:thin;scrollbar-color:rgba(124,58,237,0.3) transparent;}
   ::-webkit-scrollbar{width:6px;}
