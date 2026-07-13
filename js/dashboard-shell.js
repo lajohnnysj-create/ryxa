@@ -377,6 +377,25 @@ var isPwaMode = window.matchMedia('(display-mode: standalone)').matches
   }
   if (window.visualViewport) {
     window.visualViewport.addEventListener('resize', scheduleNudge);
+    // Keyboard detection: when the iOS keyboard opens, the visual viewport
+    // shrinks while the layout viewport (window.innerHeight) does not, so a
+    // large height gap means the keyboard is up. Hide the floating chrome
+    // (bottom nav + Live Preview pill) while typing, native iOS tab-bar
+    // behavior, and restore on close. 150px threshold so URL-bar show/hide
+    // (~60px) never false-triggers it. The hide is opacity-only CSS (class
+    // on <html>) so it can never fight the nudge's inline transform.
+    var _kbOpen = false;
+    window.visualViewport.addEventListener('resize', function () {
+      var gap = window.innerHeight - window.visualViewport.height;
+      var open = gap > 150;
+      if (open !== _kbOpen) {
+        _kbOpen = open;
+        document.documentElement.classList.toggle('kb-open', open);
+        // Re-anchor the nav right after the keyboard closes; its fixed
+        // position is often stale at that moment (same WKWebView quirk).
+        if (!open) scheduleNudge();
+      }
+    });
   }
   window.addEventListener('scroll', scheduleNudge, { passive: true });
   document.addEventListener('visibilitychange', function () {
