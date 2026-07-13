@@ -621,6 +621,12 @@ async function startCheckoutFromPricing(plan, cycle, btn) {
 
     if (error) {
       var specificMsg = await extractEdgeFunctionError(error);
+      // An expired or invalid ticket means the link from the app has aged out
+      // (30 minute window). Tell the user how to recover instead of surfacing
+      // the raw server code.
+      if (specificMsg === 'invalid_ticket') {
+        throw new Error('This upgrade link has expired. Please go back to the Ryxa app and tap the upgrade button again.');
+      }
       throw new Error(specificMsg || (error.message || 'Could not start checkout'));
     }
 
