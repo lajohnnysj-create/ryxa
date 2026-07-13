@@ -5711,6 +5711,7 @@ bioRegisterAction('toggle-preview-sheet', () => {
   const fab = document.getElementById('bio-preview-fab');
   if (!col || !fab) return;
   const open = col.classList.toggle('sheet-open');
+  document.documentElement.classList.toggle('preview-sheet-locked', open);
   fab.setAttribute('aria-expanded', open ? 'true' : 'false');
   const label = fab.querySelector('.preview-fab-label');
   if (label) label.textContent = open ? 'Close Preview' : 'Live Preview';
