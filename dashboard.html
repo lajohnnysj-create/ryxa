@@ -2320,8 +2320,9 @@
       background: var(--bg);
       border-top: 1px solid var(--border);
       margin: 0;
-      /* Bottom padding clears the floating Close pill (nav + pill + equal gaps). */
-      padding: 14px 14px calc(90px + env(safe-area-inset-bottom, 0px));
+      /* Symmetric 14px padding; the frame's own calculated height leaves the
+         pill clearance below it, so no large bottom padding is needed here. */
+      padding: 14px;
       overflow-y: auto; -webkit-overflow-scrolling: touch;
       /* The sheet's own chrome (label, padding) shouldn't be selectable; a
          double-tap select there caused a reveal-scroll. */
@@ -2331,6 +2332,23 @@
       will-change: transform;
     }
     #bio-preview-col.sheet-open, #mk-preview-col.sheet-open { transform: translateY(0) translateZ(0); }
+    /* In the mobile sheet only, stretch the preview frame to fill the empty
+       space. The frame height is the viewport minus everything ABOVE it
+       (topbar + safe-top + 14px sheet top-padding + ~62px Share block) and
+       everything BELOW it (pill clearance). Pill clearance = 14px gap + ~38px
+       pill + 14px gap + 56px nav + safe-bottom = 122px + safe-bottom, which
+       makes the gap above the pill equal to the gap between pill and nav.
+       Width untouched; scoped so the desktop inline preview is unaffected. */
+    #bio-preview-col #bio-preview-frame {
+      height: calc(100vh - var(--topbar-height) - env(safe-area-inset-top, 0px) - 76px - 122px - env(safe-area-inset-bottom, 0px)) !important;
+      min-height: 420px;
+      max-width: 100% !important;
+      margin: 0 !important;
+    }
+    #mk-preview-col .mk-s-0580dd {
+      height: calc(100vh - var(--topbar-height) - env(safe-area-inset-top, 0px) - 76px - 122px - env(safe-area-inset-bottom, 0px)) !important;
+      min-height: 420px;
+    }
     /* While a sheet is open, freeze the page behind it so a double-tap or
        stray gesture can't scroll the document under the fixed sheet (which
        briefly exposed the editor at the top, then snapped back). The sheet
