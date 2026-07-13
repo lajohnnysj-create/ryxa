@@ -2566,6 +2566,40 @@ function goToPricing(highlightPlan) {
         el.textContent = label;
       }
     });
+
+    // Neutralize upgrade-y titles, descriptions, and banner copy (not buttons).
+    // Maximum-safety pass so no in-app surface reads as a purchase pitch. Each
+    // entry maps a target to its neutral in-app text. Web is untouched.
+    var texts = [
+      ['#pro-upsell-title', 'Ryxa Pro'],
+      ['#pro-upsell-description', 'This is a Ryxa Pro feature.'],
+      ['.settings-s-a74d40', 'You are on the Free plan.']
+    ];
+    texts.forEach(function (pair) {
+      document.querySelectorAll(pair[0]).forEach(function (el) {
+        if (el.textContent.trim() !== pair[1]) el.textContent = pair[1];
+      });
+    });
+
+    // Text-matched neutralizations for elements without stable ids/classes.
+    // Replace only the exact known upgrade sentences, leaving everything else.
+    var phraseMap = [
+      ['Upgrade to Creator Max?', 'Ryxa Max'],
+      ['The footer link helps other creators find Ryxa. Upgrade to Pro to remove it.',
+       'The footer link helps other creators find Ryxa. Removing it is a Ryxa Pro feature.'],
+      ['Free users can plan in this session, upgrade to Pro to save and return later.',
+       'Saving and returning to this session later is a Ryxa Pro feature.']
+    ];
+    phraseMap.forEach(function (pair) {
+      // Walk text-bearing elements; cheap because the observer keeps this scoped
+      // to real DOM changes and the set of upgrade surfaces is small.
+      var nodes = document.querySelectorAll('h3, p, div, span');
+      for (var i = 0; i < nodes.length; i++) {
+        if (nodes[i].children.length === 0 && nodes[i].textContent.trim() === pair[0]) {
+          nodes[i].textContent = pair[1];
+        }
+      }
+    });
   }
 
   if (document.readyState === 'loading') {
@@ -2574,10 +2608,15 @@ function goToPricing(highlightPlan) {
     relabel();
   }
   // Tools render their upsell buttons lazily when their section first opens,
-  // so re-run on the same tool-switch signal the app uses. A light observer
-  // catches buttons added after initial load.
+  // so re-run when the DOM changes. Debounced to one pass per animation frame
+  // so a busy dashboard never triggers repeated heavy scans.
   try {
-    var mo = new MutationObserver(function () { relabel(); });
+    var scheduled = false;
+    var mo = new MutationObserver(function () {
+      if (scheduled) return;
+      scheduled = true;
+      requestAnimationFrame(function () { scheduled = false; relabel(); });
+    });
     mo.observe(document.body, { childList: true, subtree: true });
   } catch (e) { /* observer unsupported: initial pass still covers most */ }
 })();
