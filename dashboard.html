@@ -2300,6 +2300,7 @@
      bottom sheet translated off-screen; the glowing pill floating above the nav
      slides it up and down. */
   .preview-fab { display: none; }
+  .preview-share { display: none; }
   @keyframes previewFabGlow {
     0%, 100% { box-shadow: 0 0 6px 1px rgba(124,58,237,0.35), 0 4px 16px rgba(0,0,0,0.45); }
     50%      { box-shadow: 0 0 18px 5px rgba(168,85,247,0.55), 0 4px 16px rgba(0,0,0,0.45); }
@@ -2338,9 +2339,17 @@
       -webkit-backface-visibility: hidden; backface-visibility: hidden;
     }
     .preview-fab svg { width: 15px; height: 15px; flex-shrink: 0; }
+    /* Share card under the preview inside the sheet: same width as the frame,
+       shows the public link with a copy icon button. Mobile sheet only. */
+    .preview-share { display: block; margin-top: 12px; background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; }
+    .preview-share-label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+    .preview-share-row { display: flex; align-items: center; gap: 10px; }
+    .preview-share-url { flex: 1; min-width: 0; font-size: 13.5px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .preview-share-copy { flex-shrink: 0; width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; background: rgba(124,58,237,0.12); border: 1px solid rgba(124,58,237,0.35); border-radius: 10px; color: #c4b5fd; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    .preview-share-copy svg { width: 15px; height: 15px; }
     /* Bottom clearance so the last editor section (Settings) scrolls clear of
        the floating pill. Stacks with .main's bottom-nav padding above. */
-    #tool-bio, #tool-mediakit { padding-bottom: 76px; }
+    #tool-bio, #tool-mediakit { padding-bottom: 48px; }
   }
   @media (max-width: 900px) and (prefers-reduced-motion: reduce) {
     #bio-preview-col, #mk-preview-col { transition: none; }
@@ -7558,6 +7567,13 @@
             <div id="bio-preview-frame" class="bio-s-f883c5">
               <iframe id="bio-preview-iframe" srcdoc="" class="bio-s-63d1ae"></iframe>
             </div>
+            <div class="preview-share">
+              <div class="preview-share-label">Share</div>
+              <div class="preview-share-row">
+                <span class="preview-share-url" id="bio-preview-share-url"></span>
+                <button type="button" class="preview-share-copy" id="bio-preview-share-copy" data-bio-action="copy-share-link" data-bio-url="" aria-label="Copy link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -8943,6 +8959,13 @@
             <div class="bio-s-b4ce60">Live preview</div>
             <div class="mk-s-0580dd">
               <iframe id="mk-preview-iframe" srcdoc="" class="mk-s-c52a20"></iframe>
+            </div>
+            <div class="preview-share">
+              <div class="preview-share-label">Share</div>
+              <div class="preview-share-row">
+                <span class="preview-share-url" id="mk-preview-share-url"></span>
+                <button type="button" class="preview-share-copy" id="mk-preview-share-copy" data-mk-action="copy-share-link" data-mk-url="" aria-label="Copy link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+              </div>
             </div>
           </div>
         </div>
