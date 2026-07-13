@@ -2320,8 +2320,14 @@
       background: var(--bg);
       border-top: 1px solid var(--border);
       margin: 0;
-      /* Big bottom padding so the preview's end scrolls clear of the pill. */
-      padding: 14px 14px calc(90px + env(safe-area-inset-bottom, 0px));
+      /* Flex column: Share takes its natural height at top, the preview frame
+         flexes to fill the rest. The bottom padding is the guaranteed clearance
+         for the floating Close pill (nav height + pill + gap), so the preview
+         always ends above the pill on every viewport, app/PWA/web alike. This
+         also lets the preview grow to fill tall screens instead of a fixed px
+         height leaving empty space. */
+      display: flex; flex-direction: column;
+      padding: 14px 14px calc(56px + env(safe-area-inset-bottom, 0px) + 64px);
       overflow-y: auto; -webkit-overflow-scrolling: touch;
       /* The sheet's own chrome (label, padding) shouldn't be selectable; a
          double-tap select there caused a reveal-scroll. */
@@ -2330,6 +2336,20 @@
       transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
       will-change: transform;
     }
+    /* Preview frame fills the remaining sheet height (override the fixed px
+       heights used by the desktop inline preview). min-height keeps it usable
+       on very short screens where it would otherwise collapse. */
+    #bio-preview-col .bio-s-f883c5,
+    #mk-preview-col .mk-s-0580dd {
+      flex: 1 1 auto !important;
+      height: auto !important;
+      min-height: 380px;
+    }
+    #bio-preview-col .preview-share, #mk-preview-col .preview-share { flex: 0 0 auto; }
+    /* The frames become flex containers so their iframes (height:100%) still
+       fill now that the frame height is auto/flex rather than a fixed px. */
+    #bio-preview-col .bio-s-f883c5, #mk-preview-col .mk-s-0580dd { display: flex; }
+    #bio-preview-col .bio-s-f883c5 > iframe, #mk-preview-col .mk-s-0580dd > iframe { flex: 1 1 auto; height: auto !important; }
     #bio-preview-col.sheet-open, #mk-preview-col.sheet-open { transform: translateY(0) translateZ(0); }
     /* While a sheet is open, freeze the page behind it so a double-tap or
        stray gesture can't scroll the document under the fixed sheet (which
