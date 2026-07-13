@@ -4842,28 +4842,19 @@ function schedulePreviewUpdate() {
 function updateBioPreview() {
   const iframe = document.getElementById('bio-preview-iframe');
   if (!iframe) return;
-  // First load only: hold a shimmering skeleton over the preview for a fixed
-  // duration, then fade the finished preview in. We can't detect precisely when
-  // the iframe has finished painting (its srcdoc is CSP-restricted, so it can't
-  // message us, and the load event fires before paint settles), so instead of
-  // guessing the "ready" moment we simply keep the skeleton up long enough to
-  // cover the flickery paint phase, then reveal cleanly. This is first-load
-  // only, so it never affects typing or later updates.
+  // First load only: the skeleton and hidden iframe are already in the markup
+  // (skeleton visible, iframe at opacity 0), so the user sees skeleton FIRST,
+  // never a flash of the empty/half-rendered preview. Hold the skeleton for a
+  // fixed duration to cover the flickery paint phase, then fade the finished
+  // preview in and remove the skeleton. First-load only; typing is untouched.
   if (!iframe.dataset.everLoaded) {
     iframe.dataset.everLoaded = '1';
-    const frame = document.getElementById('bio-preview-frame');
-    if (frame && !frame.querySelector('.ryxa-skeleton')) {
-      frame.style.position = 'relative';
-      const skel = document.createElement('div');
-      skel.className = 'ryxa-skeleton';
-      frame.appendChild(skel);
-      iframe.classList.add('ryxa-fade');
-      const SKELETON_HOLD = 700; // ms; comfortably outlasts the paint-settle flicker
-      setTimeout(() => {
-        iframe.classList.add('is-loaded');            // fade the preview in
-        setTimeout(() => { if (skel && skel.parentNode) skel.remove(); }, 440);
-      }, SKELETON_HOLD);
-    }
+    const skel = document.getElementById('bio-preview-skeleton');
+    const SKELETON_HOLD = 700; // ms; comfortably outlasts the paint-settle flicker
+    setTimeout(() => {
+      iframe.classList.add('is-loaded');            // fade the preview in
+      if (skel) setTimeout(() => { if (skel.parentNode) skel.remove(); }, 440);
+    }, SKELETON_HOLD);
   }
   iframe.srcdoc = buildPreviewHTML();
 }
