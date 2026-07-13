@@ -458,7 +458,29 @@ function renderMKHeadshotPreview() {
   const inner = document.getElementById('mk-headshot-inner');
   const removeBtn = document.getElementById('mk-headshot-remove');
   if (mkState.headshot_url) {
-    inner.innerHTML = `<img alt="Media kit headshot" src="${escapeHtml(mkState.headshot_url)}" class="mk-s-5138f3">`;
+    // Skeleton placeholder holds the space while the headshot loads, then the
+    // photo fades in. Reveal when BOTH the image has loaded AND a 700ms minimum
+    // has elapsed (whichever is later), identical to the Link in Bio avatar and
+    // the live previews.
+    inner.style.position = 'relative';
+    inner.innerHTML =
+      '<div class="ryxa-skeleton"></div>' +
+      `<img alt="Media kit headshot" src="${escapeHtml(mkState.headshot_url)}" class="mk-s-5138f3 ryxa-fade">`;
+    const img = inner.querySelector('img');
+    const skel = inner.querySelector('.ryxa-skeleton');
+    const MIN_HOLD = 700;
+    let loaded = false, minPassed = false;
+    const revealIfReady = () => {
+      if (!loaded || !minPassed) return;
+      img.classList.add('is-loaded');
+      if (skel) setTimeout(() => { if (skel.parentNode) skel.remove(); }, 440);
+    };
+    setTimeout(() => { minPassed = true; revealIfReady(); }, MIN_HOLD);
+    if (img.complete && img.naturalWidth > 0) { loaded = true; revealIfReady(); }
+    else {
+      img.addEventListener('load', () => { loaded = true; revealIfReady(); }, { once: true });
+      img.addEventListener('error', () => { if (skel && skel.parentNode) skel.remove(); }, { once: true });
+    }
     removeBtn.style.display = 'flex';
   } else {
     // Empty state: a "+" affordance (click the headshot to upload) instead of an initial.
