@@ -23,7 +23,7 @@
 //      verifies the signature and uses the embedded user_id (never a raw id
 //      from the body).
 //
-// Signed with HMAC-SHA256 using PRICING_TICKET_SIGNING_SECRET. Valid 5 minutes.
+// Signed with HMAC-SHA256 using PRICING_TICKET_SIGNING_SECRET. Valid 30 minutes.
 
 const crypto = require('crypto');
 
@@ -31,7 +31,7 @@ const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const TICKET_SIGNING_SECRET = process.env.PRICING_TICKET_SIGNING_SECRET;
 
-const TICKET_TTL_MS = 5 * 60 * 1000; // 5 minutes; must match the verifier
+const TICKET_TTL_MS = 30 * 60 * 1000; // 30 minutes; must match the verifier. Long enough to read and compare plans before deciding: the clock starts at mint (upgrade tap in the app), not at checkout click.
 
 // Distinct key derivation prefix so a leaked pricing-ticket key can never be
 // reused to forge OAuth tickets (and vice versa).
