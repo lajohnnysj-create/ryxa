@@ -2314,8 +2314,16 @@
   @media (max-width: 900px) {
     #bio-preview-col, #mk-preview-col {
       position: fixed !important; /* overrides the sticky/static rules above */
-      left: 0; right: 0; bottom: 0;
+      left: 0; right: 0;
       top: calc(var(--topbar-height) + env(safe-area-inset-top, 0px));
+      /* Height is derived from the DYNAMIC viewport (dvh) rather than anchoring
+         bottom:0 to the layout viewport. On mobile web the browser URL bar
+         sits at the bottom and shows/hides on scroll; bottom:0 would tuck the
+         sheet's end behind it. dvh shrinks with the URL bar so the sheet's
+         bottom always meets the actually-visible edge. Falls back to vh on old
+         browsers. */
+      height: calc(100vh - var(--topbar-height) - env(safe-area-inset-top, 0px));
+      height: calc(100dvh - var(--topbar-height) - env(safe-area-inset-top, 0px));
       z-index: 94; /* above content and the bottom nav (90), below the pill (96) */
       background: var(--bg);
       border-top: 1px solid var(--border);
@@ -2340,7 +2348,13 @@
     .preview-fab {
       display: inline-flex; align-items: center; gap: 8px;
       position: fixed; left: 50%;
+      /* Sit above the bottom nav AND above the browser URL bar on mobile web.
+         (100vh - 100dvh) equals the current browser bottom-chrome height: 0
+         when the URL bar is hidden, its height when shown. Adding it lifts the
+         pill clear of the URL bar; the 56px keeps it above the nav. Falls back
+         to the plain offset where dvh is unsupported. */
       bottom: calc(56px + env(safe-area-inset-bottom, 0px) + 14px);
+      bottom: calc((100vh - 100dvh) + 56px + env(safe-area-inset-bottom, 0px) + 14px);
       z-index: 96;
       padding: 11px 20px; border: 1px solid rgba(168,85,247,0.55); border-radius: 999px;
       background: rgba(15,15,26,0.92); color: var(--text);
