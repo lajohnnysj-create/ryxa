@@ -2301,6 +2301,12 @@
      slides it up and down. */
   .preview-fab { display: none; }
   .preview-share { display: none; }
+  /* Keyboard-open state (html.kb-open, set by dashboard-shell's visualViewport
+     watcher): hide the floating chrome while the iOS keyboard is up, the way
+     native tab bars do. Opacity-only so it never conflicts with the nav
+     nudge's inline transform. */
+  .mobile-bottom-nav, .preview-fab { transition: opacity 0.18s ease; }
+  html.kb-open .mobile-bottom-nav, html.kb-open .preview-fab { opacity: 0; pointer-events: none; }
   @keyframes previewFabGlow {
     0%, 100% { box-shadow: 0 0 6px 1px rgba(124,58,237,0.35), 0 4px 16px rgba(0,0,0,0.45); }
     50%      { box-shadow: 0 0 18px 5px rgba(168,85,247,0.55), 0 4px 16px rgba(0,0,0,0.45); }
