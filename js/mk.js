@@ -2653,7 +2653,21 @@ function updateMKPreview() {
       if (skel) setTimeout(() => { if (skel.parentNode) skel.remove(); }, 440);
     };
     iframe.addEventListener('load', () => { loaded = true; revealIfReady(); }, { once: true });
-    setTimeout(() => { minPassed = true; revealIfReady(); }, MIN_HOLD);
+    // The MK tab can be hidden at first render (it's not always the landing
+    // tab), and a timer started while hidden would burn the whole 700ms
+    // off-screen, so the skeleton would already be gone by the time the user
+    // opens the tab. Start the minimum-hold countdown only once the preview is
+    // actually visible (offsetParent is null while display:none), polling until
+    // then. This guarantees the animation is seen regardless of when the tab
+    // is opened.
+    const startMinHoldWhenVisible = () => {
+      if (iframe.offsetParent !== null) {
+        setTimeout(() => { minPassed = true; revealIfReady(); }, MIN_HOLD);
+      } else {
+        setTimeout(startMinHoldWhenVisible, 100);
+      }
+    };
+    startMinHoldWhenVisible();
     setTimeout(() => { loaded = true; revealIfReady(); }, 8000); // safety cap
   }
   iframe.srcdoc = buildMKPreviewHTML();

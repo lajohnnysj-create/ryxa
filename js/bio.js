@@ -4856,7 +4856,17 @@ function updateBioPreview() {
       if (skel) setTimeout(() => { if (skel.parentNode) skel.remove(); }, 440);
     };
     iframe.addEventListener('load', () => { loaded = true; revealIfReady(); }, { once: true });
-    setTimeout(() => { minPassed = true; revealIfReady(); }, MIN_HOLD);
+    // Start the minimum-hold only once the preview is actually visible, so a
+    // timer can't burn off-screen if this tab renders while hidden (see the
+    // Media Kit note). offsetParent is null under display:none.
+    const startMinHoldWhenVisible = () => {
+      if (iframe.offsetParent !== null) {
+        setTimeout(() => { minPassed = true; revealIfReady(); }, MIN_HOLD);
+      } else {
+        setTimeout(startMinHoldWhenVisible, 100);
+      }
+    };
+    startMinHoldWhenVisible();
     // Safety cap: if the load event never fires for any reason, reveal anyway
     // so the skeleton can never get permanently stuck.
     setTimeout(() => { loaded = true; revealIfReady(); }, 8000);
