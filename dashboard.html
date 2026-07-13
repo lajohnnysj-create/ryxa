@@ -2314,16 +2314,8 @@
   @media (max-width: 900px) {
     #bio-preview-col, #mk-preview-col {
       position: fixed !important; /* overrides the sticky/static rules above */
-      left: 0; right: 0;
+      left: 0; right: 0; bottom: 0;
       top: calc(var(--topbar-height) + env(safe-area-inset-top, 0px));
-      /* Height is derived from the DYNAMIC viewport (dvh) rather than anchoring
-         bottom:0 to the layout viewport. On mobile web the browser URL bar
-         sits at the bottom and shows/hides on scroll; bottom:0 would tuck the
-         sheet's end behind it. dvh shrinks with the URL bar so the sheet's
-         bottom always meets the actually-visible edge. Falls back to vh on old
-         browsers. */
-      height: calc(100vh - var(--topbar-height) - env(safe-area-inset-top, 0px));
-      height: calc(100dvh - var(--topbar-height) - env(safe-area-inset-top, 0px));
       z-index: 94; /* above content and the bottom nav (90), below the pill (96) */
       background: var(--bg);
       border-top: 1px solid var(--border);
@@ -2348,13 +2340,7 @@
     .preview-fab {
       display: inline-flex; align-items: center; gap: 8px;
       position: fixed; left: 50%;
-      /* Sit above the bottom nav AND above the browser URL bar on mobile web.
-         (100vh - 100dvh) equals the current browser bottom-chrome height: 0
-         when the URL bar is hidden, its height when shown. Adding it lifts the
-         pill clear of the URL bar; the 56px keeps it above the nav. Falls back
-         to the plain offset where dvh is unsupported. */
       bottom: calc(56px + env(safe-area-inset-bottom, 0px) + 14px);
-      bottom: calc((100vh - 100dvh) + 56px + env(safe-area-inset-bottom, 0px) + 14px);
       z-index: 96;
       padding: 11px 20px; border: 1px solid rgba(168,85,247,0.55); border-radius: 999px;
       background: rgba(15,15,26,0.92); color: var(--text);
@@ -2370,7 +2356,7 @@
     /* Share section under the preview inside the sheet. The pill mirrors the
        dashboard welcome-screen link card exactly (same look, same chain and
        copy icons, same hover class) and is centered in the section. */
-    .preview-share { display: block; margin-top: 14px; text-align: center; }
+    .preview-share { display: block; margin-top: 10px; margin-bottom: 16px; text-align: center; }
     .preview-share-label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
     .preview-share-pill { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; padding: 10px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; font-size: 12px; font-family: "DM Sans", sans-serif; cursor: pointer; color: var(--text); transition: all 0.15s; -webkit-tap-highlight-color: transparent; }
     .preview-share-url { text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
@@ -7591,9 +7577,6 @@
           <!-- Right: Live Preview (sticky) -->
           <div id="bio-preview-col" class="bio-s-472c54">
             <div class="bio-s-b4ce60">Live preview</div>
-            <div id="bio-preview-frame" class="bio-s-f883c5">
-              <iframe id="bio-preview-iframe" srcdoc="" class="bio-s-63d1ae"></iframe>
-            </div>
             <div class="preview-share">
               <div class="preview-share-label">Share</div>
               <button type="button" class="dash-h-427938 preview-share-pill" id="bio-preview-share-copy" data-bio-action="copy-share-link" data-bio-url="" aria-label="Copy link">
@@ -7601,6 +7584,9 @@
                 <span class="preview-share-url" id="bio-preview-share-url">ryxa.io/...</span>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0;"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
               </button>
+            </div>
+            <div id="bio-preview-frame" class="bio-s-f883c5">
+              <iframe id="bio-preview-iframe" srcdoc="" class="bio-s-63d1ae"></iframe>
             </div>
           </div>
         </div>
@@ -8985,9 +8971,6 @@
           <!-- PREVIEW COLUMN -->
           <div id="mk-preview-col" class="bio-s-472c54">
             <div class="bio-s-b4ce60">Live preview</div>
-            <div class="mk-s-0580dd">
-              <iframe id="mk-preview-iframe" srcdoc="" class="mk-s-c52a20"></iframe>
-            </div>
             <div class="preview-share">
               <div class="preview-share-label">Share</div>
               <button type="button" class="dash-h-427938 preview-share-pill" id="mk-preview-share-copy" data-mk-action="copy-share-link" data-mk-url="" aria-label="Copy link">
@@ -8995,6 +8978,9 @@
                 <span class="preview-share-url" id="mk-preview-share-url">ryxa.io/...</span>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0;"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
               </button>
+            </div>
+            <div class="mk-s-0580dd">
+              <iframe id="mk-preview-iframe" srcdoc="" class="mk-s-c52a20"></iframe>
             </div>
           </div>
         </div>
