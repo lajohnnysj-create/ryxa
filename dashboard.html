@@ -4625,12 +4625,20 @@
   /* ---- Skeleton loading + fade-in (Link in Bio: avatar + web live preview) ----
      A shimmering grey placeholder holds the space while the image/preview
      loads, then the real content cross-fades in instead of popping. */
-  @keyframes ryxaShimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+  @keyframes ryxaShimmer { 0% { background-position: -150% 0; } 100% { background-position: 150% 0; } }
   .ryxa-skeleton {
     position: absolute; inset: 0; border-radius: inherit; z-index: 1;
-    background: linear-gradient(100deg, var(--surface) 30%, var(--surface2) 50%, var(--surface) 70%);
+    /* Brighter, tighter highlight band so the sweep clearly reads as "loading"
+       even on a small avatar circle (the old surface->surface2 band was too
+       subtle at small sizes and looked like a blank tile). */
+    background: linear-gradient(100deg,
+      var(--surface2) 20%,
+      rgba(255,255,255,0.14) 45%,
+      rgba(255,255,255,0.22) 50%,
+      rgba(255,255,255,0.14) 55%,
+      var(--surface2) 80%);
     background-size: 200% 100%;
-    animation: ryxaShimmer 1.4s ease-in-out infinite;
+    animation: ryxaShimmer 1.15s ease-in-out infinite;
   }
   @media (prefers-reduced-motion: reduce) { .ryxa-skeleton { animation: none; } }
   /* Images/iframes we fade in start transparent and transition opacity. The
