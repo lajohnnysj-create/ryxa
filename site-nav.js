@@ -775,6 +775,12 @@ if (typeof window.openSignupModal === 'undefined') {
   // Inside the native mobile app the chat widget is suppressed entirely.
   // window.RyxaNative is injected by the app before any page script runs.
   if (window.RyxaNative) return;
+  // Also suppress it when the app opened this page in Safari (pricing), marked
+  // by app=1 in the URL. window.RyxaNative does not exist in Safari, so the
+  // flag is how we know, keeping the external pricing page clean and app-like.
+  try {
+    if (new URLSearchParams(window.location.search).get('app') === '1') return;
+  } catch (e) { /* no URL access: fall through and load normally */ }
   if (document.querySelector('script[data-bleviq-widget]')) return;
   var s = document.createElement('script');
   s.src = 'https://www.bleviq.com/widget.js';
