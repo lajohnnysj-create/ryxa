@@ -645,7 +645,28 @@ async function startCheckoutFromPricing(plan, cycle, btn) {
 // INIT
 // =================================================================
 
-loadUserState();
+// True when the native app opened this page in Safari (app=1 in the URL).
+function isFromApp() {
+  try {
+    return new URLSearchParams(window.location.search).get('app') === '1';
+  } catch (e) {
+    return false;
+  }
+}
+
+// When the app opened this page, a DIFFERENT account may already be signed in
+// here in Safari (from earlier normal web use). That ambient session must not
+// be used: the app user is identified solely by the signed ticket. Sign the
+// ambient session out first so no wrong-account data renders and checkout runs
+// purely off the ticket, then load state. On the normal website (no app=1) this
+// is skipped and the existing session is used as before.
+(async function initPricing() {
+  if (isFromApp()) {
+    try { await sb.auth.signOut({ scope: 'local' }); } catch (e) { /* ignore */ }
+    currentUser = null;
+  }
+  loadUserState();
+})();
 
 // Reset any stuck "Opening checkout..." button when the page is restored from
 // the browser's back-forward cache (bfcache). When a user clicks a plan, the
