@@ -2321,13 +2321,12 @@
       border-top: 1px solid var(--border);
       margin: 0;
       /* Flex column: Share takes its natural height at top, the preview frame
-         flexes to fill the rest. The bottom padding is the guaranteed clearance
-         for the floating Close pill (nav height + pill + gap), so the preview
-         always ends above the pill on every viewport, app/PWA/web alike. This
-         also lets the preview grow to fill tall screens instead of a fixed px
-         height leaving empty space. */
+         flexes to fill the rest. The bottom padding clears the floating Close
+         pill with EQUAL gaps above and below it: 14px (below pill) + ~38px
+         (pill height) + 14px (above pill) = 66px, over the 56px nav. So the
+         preview's bottom edge and the nav are each 14px from the pill. */
       display: flex; flex-direction: column;
-      padding: 14px 14px calc(56px + env(safe-area-inset-bottom, 0px) + 64px);
+      padding: 14px 14px calc(56px + env(safe-area-inset-bottom, 0px) + 66px);
       overflow-y: auto; -webkit-overflow-scrolling: touch;
       /* The sheet's own chrome (label, padding) shouldn't be selectable; a
          double-tap select there caused a reveal-scroll. */
