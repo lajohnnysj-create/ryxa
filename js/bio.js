@@ -4842,19 +4842,27 @@ function schedulePreviewUpdate() {
 function updateBioPreview() {
   const iframe = document.getElementById('bio-preview-iframe');
   if (!iframe) return;
-  // First load only: the skeleton and hidden iframe are already in the markup
-  // (skeleton visible, iframe at opacity 0), so the user sees skeleton FIRST,
-  // never a flash of the empty/half-rendered preview. Hold the skeleton for a
-  // fixed duration to cover the flickery paint phase, then fade the finished
-  // preview in and remove the skeleton. First-load only; typing is untouched.
+  // First load only: keep the skeleton up until BOTH are true, the iframe has
+  // actually loaded AND a 700ms minimum has elapsed, revealing on whichever
+  // finishes later. Slow connections wait for the real load (no premature
+  // reveal mid-render); fast connections still show the animation for the full
+  // minimum instead of flashing by. First-load only; typing is untouched.
   if (!iframe.dataset.everLoaded) {
     iframe.dataset.everLoaded = '1';
     const skel = document.getElementById('bio-preview-skeleton');
-    const SKELETON_HOLD = 700; // ms; comfortably outlasts the paint-settle flicker
-    setTimeout(() => {
+    const MIN_HOLD = 700; // ms floor so fast loads still show the animation
+    const start = Date.now();
+    let loaded = false, minPassed = false;
+    const revealIfReady = () => {
+      if (!loaded || !minPassed) return;
       iframe.classList.add('is-loaded');            // fade the preview in
       if (skel) setTimeout(() => { if (skel.parentNode) skel.remove(); }, 440);
-    }, SKELETON_HOLD);
+    };
+    iframe.addEventListener('load', () => { loaded = true; revealIfReady(); }, { once: true });
+    setTimeout(() => { minPassed = true; revealIfReady(); }, MIN_HOLD);
+    // Safety cap: if the load event never fires for any reason, reveal anyway
+    // so the skeleton can never get permanently stuck.
+    setTimeout(() => { loaded = true; revealIfReady(); }, 8000);
   }
   iframe.srcdoc = buildPreviewHTML();
 }

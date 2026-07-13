@@ -2616,6 +2616,24 @@ function scheduleMKPreview() {
 function updateMKPreview() {
   const iframe = document.getElementById('mk-preview-iframe');
   if (!iframe) return;
+  // First load only: reveal when BOTH the iframe has loaded AND a 700ms minimum
+  // has elapsed (whichever is later). Slow connections wait for the real load;
+  // fast connections still show the animation for the full minimum. First-load
+  // only; typing is untouched. Mirrors the Link in Bio preview exactly.
+  if (!iframe.dataset.everLoaded) {
+    iframe.dataset.everLoaded = '1';
+    const skel = document.getElementById('mk-preview-skeleton');
+    const MIN_HOLD = 700; // ms floor so fast loads still show the animation
+    let loaded = false, minPassed = false;
+    const revealIfReady = () => {
+      if (!loaded || !minPassed) return;
+      iframe.classList.add('is-loaded');            // fade the preview in
+      if (skel) setTimeout(() => { if (skel.parentNode) skel.remove(); }, 440);
+    };
+    iframe.addEventListener('load', () => { loaded = true; revealIfReady(); }, { once: true });
+    setTimeout(() => { minPassed = true; revealIfReady(); }, MIN_HOLD);
+    setTimeout(() => { loaded = true; revealIfReady(); }, 8000); // safety cap
+  }
   iframe.srcdoc = buildMKPreviewHTML();
 }
 
