@@ -4905,6 +4905,11 @@ function bioPreviewVerifiedBadge() {
 }
 
 function buildPreviewHTML() {
+  // Inside the native app, hide the tip block's dollar chips and Support button
+  // in this preview so no digital-tipping payment surface renders in the app
+  // (Apple 3.1.1). The block and heading still show; only the payable controls
+  // are hidden. The real public bio page (in a browser) is unaffected.
+  var _hideTipPay = !!window.RyxaNative;
   const themes = {
     purple:   { bg:'#07070f', surface:'#0f0f1a', surface2:'#161625', text:'#f0eef8', muted:'#b4b2c8', muted2:'#c9c7dc', accent:'#7c3aed', accent2:'#a855f7', glow:'rgba(124,58,237,0.3)', border:'rgba(255,255,255,0.1)', avatarBorder:'linear-gradient(135deg,#a78bfa,#e879f9)' },
     midnight: { bg:'#050508', surface:'#0c0c12', surface2:'#13131b', text:'#f3f4f6', muted:'#c9ccd4', muted2:'#dde0e6', accent:'#4b5563', accent2:'#9ca3af', glow:'rgba(156,163,175,0.25)', border:'rgba(255,255,255,0.09)', avatarBorder:'linear-gradient(135deg,#9ca3af,#e5e7eb)' },
@@ -4964,6 +4969,7 @@ function buildPreviewHTML() {
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="${_bioFontHref}" rel="stylesheet">
   <style>
+  ${_hideTipPay ? '.tip-card-amts, .tip-card-btn { display: none !important; }' : ''}
   /* Preview guard: the preview is non-interactive by design. Kill text
      selection (a double-tap on iOS select-word gesture was scrolling the
      parent sheet to reveal the selection) and make any form controls inert so
@@ -5590,6 +5596,18 @@ bioRegisterAction('open-cropper-avatar', (e, el) => openCropper(el, 'avatar'));
 bioRegisterAction('remove-avatar', () => removeAvatar());
 bioRegisterAction('set-avatar-display', (e, el) => setAvatarDisplay(el.dataset.bioMode));
 bioRegisterAction('close-hero-upsell', () => closeHeroUpsell());
+// These upgrade buttons previously navigated straight to /pricing.html via a
+// raw href, which would render pricing inside the app WebView. Route them
+// through goToPricing so in-app they open pricing in Safari (and get the
+// relabel treatment) instead of a direct in-app navigation.
+bioRegisterAction('hero-upsell-upgrade', () => {
+  closeHeroUpsell();
+  if (typeof goToPricing === 'function') goToPricing('pro');
+});
+bioRegisterAction('hero-link-upsell-upgrade', () => {
+  closeHeroLinkUpsell();
+  if (typeof goToPricing === 'function') goToPricing('pro');
+});
 bioRegisterAction('close-hero-upsell-if-backdrop', (e) => { if (e.target.id === 'hero-upsell-modal') closeHeroUpsell(); });
 bioRegisterAction('close-hero-link-upsell', () => closeHeroLinkUpsell());
 bioRegisterAction('close-hero-link-upsell-if-backdrop', (e) => { if (e.target.id === 'hero-link-upsell-modal') closeHeroLinkUpsell(); });

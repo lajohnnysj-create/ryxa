@@ -2546,6 +2546,8 @@ function goToPricing(highlightPlan) {
       '[data-follower-action="start-checkout"]',
       '[data-settings-action="open-pricing"]',
       '[data-bio-action="verify-upsell-upgrade"]',
+      '[data-bio-action="hero-upsell-upgrade"]',
+      '[data-bio-action="hero-link-upsell-upgrade"]',
       '[data-bio-action="ban-upgrade"]',
       '[data-dash-action="sidebar-upgrade-pro"]',
       '[data-course-action="max-upgrade"]',
