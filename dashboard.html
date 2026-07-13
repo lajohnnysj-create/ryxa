@@ -2337,19 +2337,24 @@
     }
     /* Preview frame fills the remaining sheet height (override the fixed px
        heights used by the desktop inline preview). min-height keeps it usable
-       on very short screens where it would otherwise collapse. */
-    #bio-preview-col .bio-s-f883c5,
+       on very short screens where it would otherwise collapse. The
+       #bio-preview-frame selector is included so this beats the pre-existing
+       bio-only ID rules (#bio-preview-frame { height:500px !important }) that
+       otherwise forced the bio frame to a fixed height and broke its flex
+       fill, which MK never had, hence bio looked wrong while MK was fine. */
+    #bio-preview-col #bio-preview-frame,
     #mk-preview-col .mk-s-0580dd {
       flex: 1 1 auto !important;
       height: auto !important;
       min-height: 380px;
+      max-width: none !important;
     }
     #bio-preview-col .preview-share, #mk-preview-col .preview-share { flex: 0 0 auto; }
     /* The frames become flex COLUMNS so their iframes flex to fill height
        while keeping full width (align-items:stretch). Using the default row
        direction made flex:1 act on the iframe's WIDTH, narrowing the preview. */
-    #bio-preview-col .bio-s-f883c5, #mk-preview-col .mk-s-0580dd { display: flex; flex-direction: column; }
-    #bio-preview-col .bio-s-f883c5 > iframe, #mk-preview-col .mk-s-0580dd > iframe { flex: 1 1 auto; width: 100%; height: auto !important; }
+    #bio-preview-col #bio-preview-frame, #mk-preview-col .mk-s-0580dd { display: flex; flex-direction: column; }
+    #bio-preview-col #bio-preview-frame > iframe, #mk-preview-col .mk-s-0580dd > iframe { flex: 1 1 auto; width: 100%; height: auto !important; }
     #bio-preview-col.sheet-open, #mk-preview-col.sheet-open { transform: translateY(0) translateZ(0); }
     /* While a sheet is open, freeze the page behind it so a double-tap or
        stray gesture can't scroll the document under the fixed sheet (which
