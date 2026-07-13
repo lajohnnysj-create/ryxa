@@ -2320,13 +2320,8 @@
       background: var(--bg);
       border-top: 1px solid var(--border);
       margin: 0;
-      /* Flex column: Share takes its natural height at top, the preview frame
-         flexes to fill the rest. The bottom padding clears the floating Close
-         pill with EQUAL gaps above and below it: 14px (below pill) + ~38px
-         (pill height) + 14px (above pill) = 66px, over the 56px nav. So the
-         preview's bottom edge and the nav are each 14px from the pill. */
-      display: flex; flex-direction: column;
-      padding: 14px 14px calc(56px + env(safe-area-inset-bottom, 0px) + 66px);
+      /* Bottom padding clears the floating Close pill (nav + pill + equal gaps). */
+      padding: 14px 14px calc(90px + env(safe-area-inset-bottom, 0px));
       overflow-y: auto; -webkit-overflow-scrolling: touch;
       /* The sheet's own chrome (label, padding) shouldn't be selectable; a
          double-tap select there caused a reveal-scroll. */
@@ -2335,26 +2330,6 @@
       transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
       will-change: transform;
     }
-    /* Preview frame fills the remaining sheet height (override the fixed px
-       heights used by the desktop inline preview). min-height keeps it usable
-       on very short screens where it would otherwise collapse. The
-       #bio-preview-frame selector is included so this beats the pre-existing
-       bio-only ID rules (#bio-preview-frame { height:500px !important }) that
-       otherwise forced the bio frame to a fixed height and broke its flex
-       fill, which MK never had, hence bio looked wrong while MK was fine. */
-    #bio-preview-col #bio-preview-frame,
-    #mk-preview-col .mk-s-0580dd {
-      flex: 1 1 auto !important;
-      height: auto !important;
-      min-height: 380px;
-      max-width: none !important;
-    }
-    #bio-preview-col .preview-share, #mk-preview-col .preview-share { flex: 0 0 auto; }
-    /* The frames become flex COLUMNS so their iframes flex to fill height
-       while keeping full width (align-items:stretch). Using the default row
-       direction made flex:1 act on the iframe's WIDTH, narrowing the preview. */
-    #bio-preview-col #bio-preview-frame, #mk-preview-col .mk-s-0580dd { display: flex; flex-direction: column; }
-    #bio-preview-col #bio-preview-frame > iframe, #mk-preview-col .mk-s-0580dd > iframe { flex: 1 1 auto; width: 100%; height: auto !important; }
     #bio-preview-col.sheet-open, #mk-preview-col.sheet-open { transform: translateY(0) translateZ(0); }
     /* While a sheet is open, freeze the page behind it so a double-tap or
        stray gesture can't scroll the document under the fixed sheet (which
