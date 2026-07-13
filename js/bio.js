@@ -931,27 +931,24 @@ function renderAvatarPreview() {
       `<img alt="Profile photo" src="${escapeHtml(bioState.avatar_url)}" class="bio-s-0c9434 ryxa-fade">`;
     const img = inner.querySelector('img');
     const skel = inner.querySelector('.ryxa-skeleton');
-    const reveal = () => {
-      // Always let the fade play its full duration, even when the image is
-      // cached and available instantly. Adding the class on the next animation
-      // frame (after the element has painted at opacity 0) guarantees the
-      // 0 -> 1 transition actually runs instead of snapping. This makes fast
-      // loads feel as intentional as slow ones, without delaying the content
-      // itself (the image is already there; only its fade-in is completing).
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          img.classList.add('is-loaded');
-          // Remove the skeleton after the fade finishes so it cross-dissolves.
-          setTimeout(() => { if (skel) skel.remove(); }, 380);
-        });
-      });
+    // Reveal when BOTH the image has loaded AND a 700ms minimum has elapsed
+    // (whichever is later), same as the live previews. Slow loads wait for the
+    // real image; fast/cached loads still show the shimmer for the full minimum
+    // instead of snapping in.
+    const MIN_HOLD = 700;
+    let loaded = false, minPassed = false;
+    const revealIfReady = () => {
+      if (!loaded || !minPassed) return;
+      img.classList.add('is-loaded');               // fade the photo in
+      if (skel) setTimeout(() => { if (skel.parentNode) skel.remove(); }, 440);
     };
-    // Cached images can be complete before we attach the handler, in which case
-    // the load event never fires, so reveal immediately (still fades via rAF).
-    if (img.complete && img.naturalWidth > 0) reveal();
+    setTimeout(() => { minPassed = true; revealIfReady(); }, MIN_HOLD);
+    // Cached images may already be complete before the handler attaches, in
+    // which case the load event never fires, so mark loaded immediately.
+    if (img.complete && img.naturalWidth > 0) { loaded = true; revealIfReady(); }
     else {
-      img.addEventListener('load', reveal, { once: true });
-      img.addEventListener('error', () => { if (skel) skel.remove(); }, { once: true });
+      img.addEventListener('load', () => { loaded = true; revealIfReady(); }, { once: true });
+      img.addEventListener('error', () => { if (skel && skel.parentNode) skel.remove(); }, { once: true });
     }
     removeBtn.style.display = 'flex';
   } else {
