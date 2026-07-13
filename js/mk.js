@@ -3208,6 +3208,45 @@ mkRegisterAction('toggle-preview-sheet', () => {
   fab.setAttribute('aria-expanded', open ? 'true' : 'false');
   const label = fab.querySelector('.preview-fab-label');
   if (label) label.textContent = open ? 'Close Preview' : 'Live Preview';
+  if (open) mkPopulateShareCard();
+});
+// Fill the sheet's Share card with the media kit's public URL. The MK loader
+// syncs the profile username into bioOriginalUsername (bio.js loads first), so
+// that is the saved-username source here too.
+function mkPopulateShareCard() {
+  const urlEl = document.getElementById('mk-preview-share-url');
+  const btn = document.getElementById('mk-preview-share-copy');
+  if (!urlEl || !btn) return;
+  const uname = (typeof bioOriginalUsername !== 'undefined' && bioOriginalUsername) ? bioOriginalUsername : '';
+  if (uname) {
+    urlEl.textContent = 'ryxa.io/mediakit/' + uname;
+    btn.dataset.mkUrl = 'https://www.ryxa.io/mediakit/' + uname;
+    btn.style.display = '';
+  } else {
+    urlEl.textContent = 'Save a username to get your link';
+    btn.style.display = 'none';
+  }
+}
+// Icon-only copy: swap glyph for a checkmark briefly (innerHTML save/restore;
+// the shared copyBioLink sets textContent which would destroy the SVG child).
+mkRegisterAction('copy-share-link', async (e, el) => {
+  const url = el.dataset.mkUrl;
+  if (!url) return;
+  try {
+    await navigator.clipboard.writeText(url);
+  } catch (err) {
+    const ta = document.createElement('textarea');
+    ta.value = url;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  }
+  const orig = el.innerHTML;
+  el.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>';
+  setTimeout(() => { el.innerHTML = orig; }, 1400);
 });
 mkRegisterAction('close-custom-editor', () => { mkCustomEditorOpen = false; renderMKThemes(); });
 
