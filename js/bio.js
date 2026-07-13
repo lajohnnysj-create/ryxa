@@ -5709,8 +5709,9 @@ bioRegisterAction('toggle-preview-sheet', () => {
   if (label) label.textContent = open ? 'Close Preview' : 'Live Preview';
   if (open) bioPopulateShareCard();
 });
-// Fill the sheet's Share card with the saved public URL. If no username has
-// been saved yet there is no live link, so say that and hide the copy button.
+// Fill the sheet's Share pill with the saved public URL. If no username has
+// been saved yet there is no live link; show that and leave the URL empty so
+// the copy action no-ops (mirrors the dashboard card's 'ryxa.io/...' guard).
 function bioPopulateShareCard() {
   const urlEl = document.getElementById('bio-preview-share-url');
   const btn = document.getElementById('bio-preview-share-copy');
@@ -5719,15 +5720,13 @@ function bioPopulateShareCard() {
   if (uname) {
     urlEl.textContent = 'ryxa.io/' + uname;
     btn.dataset.bioUrl = 'https://www.ryxa.io/' + uname;
-    btn.style.display = '';
   } else {
     urlEl.textContent = 'Save a username to get your link';
-    btn.style.display = 'none';
+    btn.dataset.bioUrl = '';
   }
 }
-// Icon-only copy button: swaps the copy glyph for a checkmark briefly. The
-// shared copyBioLink sets textContent, which would destroy the SVG child, so
-// this uses innerHTML save/restore instead.
+// Same feedback as the dashboard welcome link card: the URL text flips to a
+// green 'Copied!' for a moment, then restores.
 bioRegisterAction('copy-share-link', async (e, el) => {
   const url = el.dataset.bioUrl;
   if (!url) return;
@@ -5743,9 +5742,12 @@ bioRegisterAction('copy-share-link', async (e, el) => {
     document.execCommand('copy');
     document.body.removeChild(ta);
   }
-  const orig = el.innerHTML;
-  el.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>';
-  setTimeout(() => { el.innerHTML = orig; }, 1400);
+  const textEl = el.querySelector('.preview-share-url');
+  if (!textEl) return;
+  const orig = textEl.textContent;
+  textEl.textContent = 'Copied!';
+  textEl.style.color = '#4ade80';
+  setTimeout(() => { textEl.textContent = orig; textEl.style.color = ''; }, 1500);
 });
 bioRegisterAction('close-custom-editor', () => { bioCustomEditorOpen = false; renderBioThemes(); });
 bioRegisterAction('social-change', (e, el) => onSocialChange(el.dataset.bioSocial, el.value));

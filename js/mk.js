@@ -3210,9 +3210,9 @@ mkRegisterAction('toggle-preview-sheet', () => {
   if (label) label.textContent = open ? 'Close Preview' : 'Live Preview';
   if (open) mkPopulateShareCard();
 });
-// Fill the sheet's Share card with the media kit's public URL. The MK loader
+// Fill the sheet's Share pill with the media kit's public URL. The MK loader
 // syncs the profile username into bioOriginalUsername (bio.js loads first), so
-// that is the saved-username source here too.
+// that is the saved-username source here too. Empty URL = copy no-ops.
 function mkPopulateShareCard() {
   const urlEl = document.getElementById('mk-preview-share-url');
   const btn = document.getElementById('mk-preview-share-copy');
@@ -3221,14 +3221,13 @@ function mkPopulateShareCard() {
   if (uname) {
     urlEl.textContent = 'ryxa.io/mediakit/' + uname;
     btn.dataset.mkUrl = 'https://www.ryxa.io/mediakit/' + uname;
-    btn.style.display = '';
   } else {
     urlEl.textContent = 'Save a username to get your link';
-    btn.style.display = 'none';
+    btn.dataset.mkUrl = '';
   }
 }
-// Icon-only copy: swap glyph for a checkmark briefly (innerHTML save/restore;
-// the shared copyBioLink sets textContent which would destroy the SVG child).
+// Same feedback as the dashboard welcome link card: URL text flips to a green
+// 'Copied!' for a moment, then restores.
 mkRegisterAction('copy-share-link', async (e, el) => {
   const url = el.dataset.mkUrl;
   if (!url) return;
@@ -3244,9 +3243,12 @@ mkRegisterAction('copy-share-link', async (e, el) => {
     document.execCommand('copy');
     document.body.removeChild(ta);
   }
-  const orig = el.innerHTML;
-  el.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>';
-  setTimeout(() => { el.innerHTML = orig; }, 1400);
+  const textEl = el.querySelector('.preview-share-url');
+  if (!textEl) return;
+  const orig = textEl.textContent;
+  textEl.textContent = 'Copied!';
+  textEl.style.color = '#4ade80';
+  setTimeout(() => { textEl.textContent = orig; textEl.style.color = ''; }, 1500);
 });
 mkRegisterAction('close-custom-editor', () => { mkCustomEditorOpen = false; renderMKThemes(); });
 
