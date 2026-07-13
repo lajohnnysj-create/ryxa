@@ -2590,15 +2590,12 @@ function goToPricing(highlightPlan) {
       ['Free users can plan in this session, upgrade to Pro to save and return later.',
        'Saving and returning to this session later is a Ryxa Pro feature.']
     ];
-    phraseMap.forEach(function (pair) {
-      // Walk text-bearing elements; cheap because the observer keeps this scoped
-      // to real DOM changes and the set of upgrade surfaces is small.
-      var nodes = document.querySelectorAll('h3, p, div, span');
-      for (var i = 0; i < nodes.length; i++) {
-        if (nodes[i].children.length === 0 && nodes[i].textContent.trim() === pair[0]) {
-          nodes[i].textContent = pair[1];
-        }
-      }
+    // Hide the "View live page" links in the app (Link in Bio + Media Kit).
+    // They open the real public page in the in-app browser, which renders
+    // functional tip/purchase surfaces (Apple 3.1.1). Creators still open their
+    // live page from a real browser on the website.
+    ['#bio-view-live', '#mk-view-live'].forEach(function (id) {
+      document.querySelectorAll(id).forEach(function (el) { el.style.display = 'none'; });
     });
   }
 
