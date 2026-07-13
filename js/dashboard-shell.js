@@ -2518,7 +2518,11 @@ function goToPricing(highlightPlan) {
 // page in Safari with it. Falls back to opening pricing without a ticket if the
 // mint fails (the pricing page will then prompt for login rather than break).
 async function mintPricingTicketThenOpen(query) {
-  var base = 'https://www.ryxa.io/pricing.html' + query;
+  // app=1 marks this as opened-from-the-app so the pricing page, now in Safari
+  // (where window.RyxaNative does not exist), still hides the site nav, footer,
+  // and chat widget for a clean app-like view. No Back to Dashboard bar is
+  // added in this case: Safari is a separate page with its own controls.
+  var base = 'https://www.ryxa.io/pricing.html' + query + (query ? '&' : '?') + 'app=1';
   try {
     var sessionResp = await sb.auth.getSession();
     var accessToken = sessionResp && sessionResp.data && sessionResp.data.session
@@ -2531,7 +2535,7 @@ async function mintPricingTicketThenOpen(query) {
       if (r.ok) {
         var j = await r.json();
         if (j && j.ticket) {
-          base += (query ? '&' : '?') + 'ticket=' + encodeURIComponent(j.ticket);
+          base += '&ticket=' + encodeURIComponent(j.ticket);
         }
       }
     }

@@ -14,7 +14,44 @@
 (function () {
   'use strict';
 
-  if (!window.RyxaNative || !window.ReactNativeWebView) return;
+  // Two ways this file activates:
+  //  1. Inside the native app WebView: window.RyxaNative + ReactNativeWebView
+  //     exist. Full behavior (topbar buttons, back bar, etc.).
+  //  2. In Safari, on a page the app opened externally (pricing): neither of
+  //     those exist, but the URL carries app=1. In that case we ONLY hide the
+  //     site chrome (nav, footer, chat widget) for a clean app-like view, and
+  //     we do NOT add a Back to Dashboard bar, Safari is a separate page with
+  //     its own controls.
+  var inWebView = !!(window.RyxaNative && window.ReactNativeWebView);
+  var openedFromAppInSafari = false;
+  try {
+    openedFromAppInSafari = new URLSearchParams(window.location.search).get('app') === '1';
+  } catch (e) { /* no URL access: treat as normal browser */ }
+
+  // Normal browser with no app flag: do nothing at all.
+  if (!inWebView && !openedFromAppInSafari) return;
+
+  // Safari-opened-from-app: hide chrome only, then stop. No bridge exists here
+  // (no ReactNativeWebView), so none of the WebView-only wiring below applies.
+  if (!inWebView && openedFromAppInSafari) {
+    function hideChromeInSafari() {
+      var header = document.getElementById('site-header');
+      if (header) header.style.display = 'none';
+      var footer = document.getElementById('site-footer');
+      if (footer) footer.style.display = 'none';
+      // The Bleviq chat widget is injected by site-nav.js and is already
+      // suppressed there when window.RyxaNative exists; in Safari that flag is
+      // absent, so hide any widget node here as a safety net.
+      var chat = document.querySelector('[data-bleviq-widget], #bleviq-widget, iframe[src*="bleviq"]');
+      if (chat && chat.style) chat.style.display = 'none';
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', hideChromeInSafari);
+    } else {
+      hideChromeInSafari();
+    }
+    return;
+  }
 
   var ICONS = {
     alerts:
