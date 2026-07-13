@@ -2501,15 +2501,45 @@ function goToPricing(highlightPlan) {
   }
   // Inside the native app, pricing must open in the external browser (Safari),
   // not render in the app WebView, so no purchase surface lives inside the app.
-  // window.RyxaNative is injected by the app wrapper. The full absolute URL on
-  // the pricing path is what the app recognizes as a link-out; the highlight
-  // param carries the target plan so the page still scrolls to it. On the web
-  // this branch is skipped and pricing navigates in-page exactly as before.
+  // Safari does NOT share the app WebView's Supabase session, so without help
+  // the pricing page would see a logged-out visitor and bounce to signup. Mint
+  // a short-lived signed ticket (same pattern as the OAuth ticket endpoints)
+  // that carries the signed-in user's identity across to Safari, and append it
+  // to the URL. The pricing page hands it to checkout, which verifies it
+  // server-side. On the website this branch is skipped entirely.
   if (window.RyxaNative) {
-    window.location.href = 'https://www.ryxa.io/pricing.html' + query;
+    mintPricingTicketThenOpen(query);
     return;
   }
   window.location.href = '/pricing.html' + query;
+}
+
+// Fetches a signed pricing ticket for the current user, then opens the pricing
+// page in Safari with it. Falls back to opening pricing without a ticket if the
+// mint fails (the pricing page will then prompt for login rather than break).
+async function mintPricingTicketThenOpen(query) {
+  var base = 'https://www.ryxa.io/pricing.html' + query;
+  try {
+    var sessionResp = await sb.auth.getSession();
+    var accessToken = sessionResp && sessionResp.data && sessionResp.data.session
+      ? sessionResp.data.session.access_token : null;
+    if (accessToken) {
+      var r = await fetch('/api/pricing-ticket', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + accessToken }
+      });
+      if (r.ok) {
+        var j = await r.json();
+        if (j && j.ticket) {
+          base += (query ? '&' : '?') + 'ticket=' + encodeURIComponent(j.ticket);
+        }
+      }
+    }
+  } catch (e) {
+    // Network/auth failure: open pricing without a ticket. The pricing page
+    // handles the logged-out case by prompting login, so nothing breaks.
+  }
+  window.location.href = base;
 }
 
 // Native app only: relabel upgrade buttons to neutral tier names and strip

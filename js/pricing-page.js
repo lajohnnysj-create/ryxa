@@ -74,6 +74,22 @@ var currentTier = 'free';
 var currentCycle = 'monthly';
 var currentStatus = null;
 
+// Signed ticket passed by the native app when it opens this page in Safari (see
+// dashboard-shell.js goToPricing). Carries the signed-in user's identity across
+// the browser boundary since Safari has no Supabase session. Read once and
+// cached; checkout hands it to create-checkout-session, which verifies it.
+var _pricingTicket;
+function getPricingTicket() {
+  if (_pricingTicket === undefined) {
+    try {
+      _pricingTicket = new URLSearchParams(window.location.search).get('ticket') || null;
+    } catch (e) {
+      _pricingTicket = null;
+    }
+  }
+  return _pricingTicket;
+}
+
 // =================================================================
 // TOAST (replaces native alert - project rule: never use alert/confirm/prompt)
 // =================================================================
@@ -447,13 +463,22 @@ pricingRegisterAction('select-plan', function(_e, el) {
     return;
   }
 
-  if (!currentUser) {
-    // Not signed in - persist the intent so dashboard-shell.js can auto-fire
-    // checkout after signup. JSON shape for forward-compat.
+  if (!currentUser && !getPricingTicket()) {
+    // Not signed in AND no ticket - persist the intent so dashboard-shell.js can
+    // auto-fire checkout after signup. JSON shape for forward-compat.
     try {
       localStorage.setItem('fts_intended_plan', JSON.stringify({ plan: plan, cycle: cycle }));
     } catch (e) {}
     window.location.href = 'index.html?action=signup';
+    return;
+  }
+
+  // A ticket-identified user (opened from the app in Safari, no local session)
+  // always goes through a real Stripe Checkout page, the in-place subscription
+  // update path below needs a live session for its confirmation UI. Checkout
+  // itself verifies the ticket server-side, so this is safe.
+  if (!currentUser && getPricingTicket()) {
+    startCheckoutFromPricing(plan, cycle, el);
     return;
   }
 
@@ -567,17 +592,28 @@ async function startCheckoutFromPricing(plan, cycle, btn) {
   var priceId = PRICE_IDS[plan][cycle];
   setBtnLoading(btn, 'Opening checkout...');
 
+  // When the app opened this page in Safari, there is no Supabase session here.
+  // A signed ticket in the URL carries the user's identity instead. Pass it to
+  // the checkout function, which verifies it server-side and uses the embedded
+  // user_id. When a real session exists (normal website use), userId is sent as
+  // before. Sending a ticket also means the app-opened flow behaves like the
+  // native flow for success/cancel return URLs.
+  var ticket = getPricingTicket();
+  var openedFromApp = !!ticket || !!window.RyxaNative;
+
   try {
     var { data, error } = await sb.functions.invoke('create-checkout-session', {
       body: {
         priceId: priceId,
-        userId: currentUser.id,
-        // Inside the native app, checkout runs in Safari, so success and
-        // cancel route through app-return.html, which deep links back in.
-        successUrl: window.RyxaNative
+        userId: currentUser ? currentUser.id : null,
+        ticket: ticket || null,
+        // When opened from the app (in Safari via ticket) or running in the app
+        // WebView, checkout success/cancel route through app-return.html, which
+        // deep links back into the app. Otherwise use the normal web returns.
+        successUrl: openedFromApp
           ? window.location.origin + '/app-return.html?status=success'
           : window.location.origin + '/dashboard.html?payment=success',
-        cancelUrl: window.RyxaNative
+        cancelUrl: openedFromApp
           ? window.location.origin + '/app-return.html?status=cancelled'
           : window.location.origin + '/pricing.html?payment=cancelled'
       }
