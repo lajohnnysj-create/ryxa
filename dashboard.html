@@ -2331,6 +2331,9 @@
          page behind (same pattern as the modals). */
       touch-action: manipulation;
       overscroll-behavior: contain;
+      /* The sheet's own chrome (label, padding) shouldn't be selectable either;
+         a double-tap select there causes the same reveal-scroll. */
+      -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
       transform: translateY(103%) translateZ(0);
       transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
       will-change: transform;
