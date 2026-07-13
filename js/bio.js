@@ -922,7 +922,26 @@ function renderAvatarPreview() {
   const inner = document.getElementById('bio-avatar-inner');
   const removeBtn = document.getElementById('bio-avatar-remove');
   if (bioState.avatar_url) {
-    inner.innerHTML = `<img alt="Profile photo" src="${escapeHtml(bioState.avatar_url)}" class="bio-s-0c9434">`;
+    // Skeleton placeholder holds the circle while the photo loads, then the
+    // photo fades in over it. The inner element is position:relative-capable
+    // (it's a flex box with overflow:hidden), so the absolute skeleton fills it.
+    inner.style.position = 'relative';
+    inner.innerHTML =
+      '<div class="ryxa-skeleton"></div>' +
+      `<img alt="Profile photo" src="${escapeHtml(bioState.avatar_url)}" class="bio-s-0c9434 ryxa-fade">`;
+    const img = inner.querySelector('img');
+    const skel = inner.querySelector('.ryxa-skeleton');
+    const reveal = () => {
+      img.classList.add('is-loaded');
+      if (skel) skel.remove();
+    };
+    // Cached images can be complete before we attach the handler, in which case
+    // the load event never fires, so reveal immediately. Otherwise wait for load.
+    if (img.complete && img.naturalWidth > 0) reveal();
+    else {
+      img.addEventListener('load', reveal, { once: true });
+      img.addEventListener('error', () => { if (skel) skel.remove(); }, { once: true });
+    }
     removeBtn.style.display = 'flex';
   } else {
     // Empty state: a "+" affordance (click the avatar to upload) instead of an initial.
@@ -4812,6 +4831,24 @@ function schedulePreviewUpdate() {
 function updateBioPreview() {
   const iframe = document.getElementById('bio-preview-iframe');
   if (!iframe) return;
+  // First load only: show a shimmering skeleton over the preview frame and
+  // fade the iframe in when it finishes rendering. Subsequent updates (every
+  // keystroke) just swap srcdoc with no skeleton, so there's no re-flicker.
+  if (!iframe.dataset.everLoaded) {
+    const frame = document.getElementById('bio-preview-frame');
+    if (frame && !frame.querySelector('.ryxa-skeleton')) {
+      frame.style.position = 'relative';
+      const skel = document.createElement('div');
+      skel.className = 'ryxa-skeleton';
+      frame.appendChild(skel);
+      iframe.classList.add('ryxa-fade');
+      iframe.addEventListener('load', () => {
+        iframe.dataset.everLoaded = '1';
+        iframe.classList.add('is-loaded');
+        skel.remove();
+      }, { once: true });
+    }
+  }
   iframe.srcdoc = buildPreviewHTML();
 }
 
