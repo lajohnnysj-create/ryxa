@@ -2293,6 +2293,59 @@
     .mobile-bottom-nav-item.active { color: var(--text); }
     .main { padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px)); }
   }
+  /* ============ MOBILE LIVE-PREVIEW SHEET + FLOATING PILL (900px and down) ============
+     App/PWA/phone only, the breakpoint where the bottom nav exists. Desktop and
+     tablet (>900px) keep the inline preview untouched. The preview column stays
+     permanently in the DOM, still receiving live updates, but rides as a fixed
+     bottom sheet translated off-screen; the glowing pill floating above the nav
+     slides it up and down. */
+  .preview-fab { display: none; }
+  @keyframes previewFabGlow {
+    0%, 100% { box-shadow: 0 0 6px 1px rgba(124,58,237,0.35), 0 4px 16px rgba(0,0,0,0.45); }
+    50%      { box-shadow: 0 0 18px 5px rgba(168,85,247,0.55), 0 4px 16px rgba(0,0,0,0.45); }
+  }
+  @media (max-width: 900px) {
+    #bio-preview-col, #mk-preview-col {
+      position: fixed !important; /* overrides the sticky/static rules above */
+      left: 0; right: 0; bottom: 0;
+      top: calc(var(--topbar-height) + env(safe-area-inset-top, 0px));
+      z-index: 94; /* above content and the bottom nav (90), below the pill (96) */
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      margin: 0;
+      /* Big bottom padding so the preview's end scrolls clear of the pill. */
+      padding: 14px 14px calc(90px + env(safe-area-inset-bottom, 0px));
+      overflow-y: auto; -webkit-overflow-scrolling: touch;
+      transform: translateY(103%) translateZ(0);
+      transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+      will-change: transform;
+    }
+    #bio-preview-col.sheet-open, #mk-preview-col.sheet-open { transform: translateY(0) translateZ(0); }
+
+    .preview-fab {
+      display: inline-flex; align-items: center; gap: 8px;
+      position: fixed; left: 50%;
+      bottom: calc(56px + env(safe-area-inset-bottom, 0px) + 14px);
+      z-index: 96;
+      padding: 11px 20px; border: 1px solid rgba(168,85,247,0.55); border-radius: 999px;
+      background: rgba(15,15,26,0.92); color: var(--text);
+      font-family: "DM Sans", sans-serif; font-size: 13px; font-weight: 600; line-height: 1;
+      cursor: pointer; -webkit-tap-highlight-color: transparent;
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      animation: previewFabGlow 2.4s ease-in-out infinite;
+      /* translateZ + backface: same WKWebView fixed-position hardening as the nav. */
+      transform: translateX(-50%) translateZ(0);
+      -webkit-backface-visibility: hidden; backface-visibility: hidden;
+    }
+    .preview-fab svg { width: 15px; height: 15px; flex-shrink: 0; }
+    /* Bottom clearance so the last editor section (Settings) scrolls clear of
+       the floating pill. Stacks with .main's bottom-nav padding above. */
+    #tool-bio, #tool-mediakit { padding-bottom: 76px; }
+  }
+  @media (max-width: 900px) and (prefers-reduced-motion: reduce) {
+    #bio-preview-col, #mk-preview-col { transition: none; }
+    .preview-fab { animation: none; }
+  }
   @media (max-width: 900px) {
     .sidebar { transform: translateX(-100%); }
     .sidebar.open { transform: translateX(0); }
@@ -7508,6 +7561,10 @@
           </div>
         </div>
 
+          <!-- Mobile-only floating pill that slides the preview up as a bottom
+               sheet. display:none above 900px, so desktop is untouched. -->
+          <button type="button" id="bio-preview-fab" class="preview-fab" data-bio-action="toggle-preview-sheet" aria-expanded="false" aria-controls="bio-preview-col"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg><span class="preview-fab-label">Live Preview</span></button>
+
       </div>
     </div>
 
@@ -8889,6 +8946,10 @@
             </div>
           </div>
         </div>
+
+          <!-- Mobile-only floating pill that slides the preview up as a bottom
+               sheet. display:none above 900px, so desktop is untouched. -->
+          <button type="button" id="mk-preview-fab" class="preview-fab" data-mk-action="toggle-preview-sheet" aria-expanded="false" aria-controls="mk-preview-col"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg><span class="preview-fab-label">Live Preview</span></button>
 
       </div>
     </div>
