@@ -2993,12 +2993,17 @@
      also fade its ::after tooltip ("Content already added"), since
      pseudo-elements inherit the element's opacity. So the button stays at full
      opacity (tooltip solid) while its inner content is dimmed. */
+  /* Disabled state, clearly inactive vs. the (recessed but full-contrast) active
+     buttons: same recessed fill, but strongly dimmed label + icon so it reads as
+     "off". We dim the CONTENT (text color + icon opacity), NOT the button
+     element, because opacity on the button would also fade its ::after tooltip
+     ("Content already added"), which inherits the element's opacity. */
   .bio-add-btn:disabled {
-    color: #6b6a80 !important;
+    color: #55546b !important;
     border-color: var(--border) !important;
     background: var(--bg) !important;
   }
-  .bio-add-btn:disabled svg { opacity: 0.4; }
+  .bio-add-btn:disabled svg { opacity: 0.35; }
   .bio-add-btn:disabled:hover {
     transform: none;
     box-shadow: none;
@@ -3027,23 +3032,22 @@
     pointer-events: none;
   }
 
-  /* All add-button variants now share the neutral, modern look used by the
-     theme + social-icon buttons: subtle neutral border, normal text color, and
-     the accent reserved for hover/focus only (no purple fills, gradients, or
-     dashed borders). This makes Content, Business, and Hero read as one clean
-     palette and matches the rest of the editor. */
+  /* All add-button variants share the neutral, modern look used by the theme +
+     social-icon buttons: a recessed (--bg) fill with a faint border, normal
+     text, and the accent reserved for hover only (no purple fills, gradients, or
+     dashed borders). Content, Business, and Hero read as one clean palette. */
   .bio-add-btn-content,
   .bio-add-btn-tool,
   .bio-add-btn-hero {
-    background: var(--surface2);
-    border: 1px solid var(--border-hover);
+    background: var(--bg);
+    border: 1px solid var(--border);
     color: var(--text);
   }
   .bio-add-btn-content:hover,
   .bio-add-btn-tool:hover,
   .bio-add-btn-hero:hover {
     border-color: var(--accent);
-    background: var(--surface2);
+    background: var(--bg);
     color: var(--text);
   }
 
