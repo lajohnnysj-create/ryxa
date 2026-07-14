@@ -792,8 +792,12 @@ window.addEventListener('pageshow', function(e) {
     var total = 0;
     // The site nav is position:fixed INSIDE #site-header, so the wrapper has
     // no height. Measure the nav itself. The app's back bar is fixed directly.
+    // The billing toggle bar is position:sticky and pins to the top while
+    // scrolling, so include it too, otherwise a highlighted Pro/Max card lands
+    // underneath it.
     var els = [document.getElementById('native-back-bar'),
-               document.querySelector('#site-header nav')];
+               document.querySelector('#site-header nav'),
+               document.querySelector('.billing-toggle-sticky')];
     els.forEach(function (el) {
       if (!el) return;
       var pos = getComputedStyle(el).position;
