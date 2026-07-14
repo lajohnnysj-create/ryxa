@@ -513,14 +513,12 @@ pricingRegisterAction('select-plan', function(_e, el) {
     return;
   }
 
-  // A ticket-identified user (opened from the app in Safari, no local session)
-  // always goes through a real Stripe Checkout page, the in-place subscription
-  // update path below needs a live session for its confirmation UI. Checkout
-  // itself verifies the ticket server-side, so this is safe.
-  if (!currentUser && getPricingTicket()) {
-    startCheckoutFromPricing(plan, cycle, el);
-    return;
-  }
+  // Ticket-identified users (opened from the app in Safari, no local session)
+  // fall through to the SAME logic as web users below. Because the ticket
+  // carries the plan snapshot (currentTier/currentStatus), the hasActiveSub
+  // check works identically, so existing subscribers still get the plan-change
+  // confirmation before anything happens, and Free-tier ticket users flow to
+  // Stripe Checkout. Checkout verifies the ticket server-side either way.
 
   // Existing active subscribers do NOT go through a Stripe Checkout page when
   // changing plans - create-checkout-session.ts modifies their subscription
