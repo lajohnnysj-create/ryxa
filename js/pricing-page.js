@@ -628,7 +628,14 @@ async function extractEdgeFunctionError(err) {
 
 async function startCheckoutFromPricing(plan, cycle, btn) {
   var priceId = PRICE_IDS[plan][cycle];
-  setBtnLoading(btn, 'Opening checkout...');
+  // Existing active subscribers get an in-place subscription update (no Stripe
+  // Checkout page appears), so "Opening checkout..." would be misleading, they
+  // never see a checkout. Show "Processing..." for that path. New / Free-tier
+  // users are redirected to a real Stripe Checkout page, so "Opening
+  // checkout..." is accurate for them.
+  var isInPlaceUpdate = (currentTier === 'monthly' || currentTier === 'max') &&
+                        (currentStatus === 'active' || currentStatus === 'cancelling');
+  setBtnLoading(btn, isInPlaceUpdate ? 'Processing...' : 'Opening checkout...');
 
   // When the app opened this page in Safari, there is no Supabase session here.
   // A signed ticket in the URL carries the user's identity instead. Pass it to
@@ -723,7 +730,8 @@ function isFromApp() {
   loadUserState();
 })();
 
-// Reset any stuck "Opening checkout..." button when the page is restored from
+// Reset any stuck loading button ("Opening checkout..." or "Processing...")
+// when the page is restored from
 // the browser's back-forward cache (bfcache). When a user clicks a plan, the
 // button is disabled + relabeled, then we navigate to Stripe. If they press
 // the BROWSER back button, the browser may restore this page frozen exactly as
