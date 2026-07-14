@@ -488,15 +488,114 @@ function calRenderGrid() {
   grid.innerHTML = html;
 }
 
+// ============================================================
+// Recurrence v1: rule-based expansion.
+// A recurring event is ONE row holding a rule (recurrence_freq / interval /
+// until / count). Occurrences are computed transiently for the visible window,
+// never persisted, so a "daily forever" event is still a single row and there
+// is no code path that can mass-create occurrence rows. v2 (per-occurrence
+// exceptions) attaches to series_id later; this engine is the shared base.
+// Guardrails: rule validation, a hard iteration cap per event per expansion,
+// and fast-forward for fixed-length steps so long-running daily/weekly series
+// stay O(1) per day instead of walking from the series start.
+// Month/year steps are single-shot calendar adds with day clamping
+// (Jan 31 + 1 month = Feb 28), matching the SQL expansion in
+// get_creator_busy_slots so booking blocks and the calendar agree.
+// ============================================================
+var CAL_MAX_OCC_ITER = 370;
+var CAL_RECUR_FREQS = ['daily', 'weekly', 'monthly', 'yearly'];
+
+// Add whole days preserving local wall-clock time (DST-safe day math).
+function calAddDaysWall(baseDate, days) {
+  var t = new Date(baseDate.getTime());
+  t.setDate(t.getDate() + days);
+  return t;
+}
+
+// Add months in one shot, clamping the day-of-month to the target month's
+// last day (Jan 31 + 1 = Feb 28). Preserves local wall-clock time.
+function calAddMonthsClamped(baseDate, months) {
+  var y = baseDate.getFullYear();
+  var mo = baseDate.getMonth();
+  var d = baseDate.getDate();
+  var lastDay = new Date(y, mo + months + 1, 0).getDate();
+  var t = new Date(baseDate.getTime());
+  t.setFullYear(y, mo + months, Math.min(d, lastDay));
+  return t;
+}
+
+// All occurrences of one event that START within [dayStartMs, dayEndMs).
+// Non-recurring events yield themselves if they start in the window.
+function calOccurrencesOnDay(ev, dayStartMs, dayEndMs) {
+  var startMs = ev.start_at ? new Date(ev.start_at).getTime() : NaN;
+  if (isNaN(startMs)) return [];
+  var durMs = Math.max(0, new Date(ev.end_at).getTime() - startMs || 0);
+  var freq = ev.recurrence_freq;
+  if (!freq || CAL_RECUR_FREQS.indexOf(freq) === -1) {
+    return (startMs >= dayStartMs && startMs < dayEndMs)
+      ? [{ startMs: startMs, endMs: startMs + durMs }] : [];
+  }
+  var ival = parseInt(ev.recurrence_interval, 10);
+  if (!(ival >= 1) || ival > 99) ival = 1;
+  var untilMs = ev.recurrence_until ? new Date(ev.recurrence_until).getTime() : Infinity;
+  var count = parseInt(ev.recurrence_count, 10);
+  var maxK = (count >= 1) ? (count - 1) : Infinity;
+
+  var base = new Date(startMs);
+  var out = [];
+  var k, occMs, iter = 0;
+
+  if (freq === 'daily' || freq === 'weekly') {
+    var stepDays = (freq === 'daily' ? 1 : 7) * ival;
+    // Fast-forward: estimate the first k whose occurrence could land in the
+    // window, minus a safety step, so ancient never-ending series don't walk
+    // from the beginning (and can't exhaust the iteration cap before reaching
+    // the window).
+    var approx = Math.floor((dayStartMs - startMs) / (stepDays * 86400000)) - 1;
+    k = Math.max(0, approx);
+    for (; k <= maxK && iter < CAL_MAX_OCC_ITER; k++, iter++) {
+      occMs = calAddDaysWall(base, k * stepDays).getTime();
+      if (occMs >= dayEndMs || occMs > untilMs) break;
+      if (occMs >= dayStartMs) out.push({ startMs: occMs, endMs: occMs + durMs });
+    }
+  } else {
+    var stepMonths = (freq === 'monthly' ? 1 : 12) * ival;
+    for (k = 0; k <= maxK && iter < CAL_MAX_OCC_ITER; k++, iter++) {
+      occMs = calAddMonthsClamped(base, k * stepMonths).getTime();
+      if (occMs >= dayEndMs || occMs > untilMs) break;
+      if (occMs >= dayStartMs) out.push({ startMs: occMs, endMs: occMs + durMs });
+    }
+  }
+  return out;
+}
+
+// Occurrence-shaped event objects (master fields + this occurrence's times)
+// for everything happening on a local calendar date. The master id is kept so
+// tapping an occurrence edits/deletes the series (v1 = whole-series edits).
+function calEventsOnDate(ymd) {
+  if (!ymd) return [];
+  var p = ymd.split('-').map(Number);
+  var dayStart = new Date(p[0], p[1] - 1, p[2]).getTime();
+  var dayEnd = new Date(p[0], p[1] - 1, p[2] + 1).getTime();
+  var out = [];
+  (calState.events || []).forEach(function (ev) {
+    calOccurrencesOnDay(ev, dayStart, dayEnd).forEach(function (o) {
+      out.push(Object.assign({}, ev, {
+        start_at: new Date(o.startMs).toISOString(),
+        end_at: new Date(o.endMs).toISOString(),
+        _isOccurrence: !!ev.recurrence_freq
+      }));
+    });
+  });
+  return out;
+}
+
 function calRenderCell(year, month, day, isOtherMonth, todayYmd) {
   var date = new Date(year, month, day);
   var ymd = calToYmd(date);
   var isToday = ymd === todayYmd;
   var isSelected = ymd === calState.selectedDate;
-  var dayEvents = calState.events.filter(function(e) {
-    var startDate = e.start_at ? calToYmd(new Date(e.start_at)) : null;
-    return startDate === ymd;
-  });
+  var dayEvents = calEventsOnDate(ymd);
   var hasEvents = dayEvents.length > 0;
 
   var bg = isSelected ? 'var(--accent)' : (isToday ? 'rgba(124,58,237,0.15)' : 'var(--surface2)');
@@ -522,10 +621,7 @@ function calRenderDayEvents() {
   // Nothing to paint in that case.
   if (!dayLabelEl || !container) return;
   dayLabelEl.textContent = calFormatDayLabel(calState.selectedDate);
-  var dayEvents = calState.events.filter(function(e) {
-    var startDate = e.start_at ? calToYmd(new Date(e.start_at)) : null;
-    return startDate === calState.selectedDate;
-  }).sort(function(a, b) {
+  var dayEvents = calEventsOnDate(calState.selectedDate).sort(function(a, b) {
     return (a.start_at || '').localeCompare(b.start_at || '');
   });
 
@@ -769,6 +865,13 @@ function calOpenEventModal(existingEvent) {
     defaultTitle = existingEvent.title || '';
     defaultNotes = existingEvent.notes || '';
     defaultColor = existingEvent.color || '#7c3aed';
+    var defaultRepeat = (CAL_RECUR_FREQS.indexOf(existingEvent.recurrence_freq) !== -1)
+      ? existingEvent.recurrence_freq : 'none';
+    var defaultEndType = existingEvent.recurrence_until ? 'until'
+      : (existingEvent.recurrence_count ? 'count' : 'never');
+    var defaultUntil = existingEvent.recurrence_until
+      ? calToYmd(new Date(existingEvent.recurrence_until)) : '';
+    var defaultCount = existingEvent.recurrence_count || '';
   } else {
     defaultDate = calState.selectedDate;
     defaultStart = '09:00';
@@ -776,6 +879,10 @@ function calOpenEventModal(existingEvent) {
     defaultTitle = '';
     defaultNotes = '';
     defaultColor = '#7c3aed';
+    var defaultRepeat = 'none';
+    var defaultEndType = 'never';
+    var defaultUntil = '';
+    var defaultCount = '';
   }
 
   // For coaching events, lock title (it comes from the coaching service)
@@ -808,10 +915,38 @@ function calOpenEventModal(existingEvent) {
     + '<div class="deal-s-367da9"><label class="cal-s-0d9ec6">End</label>' + calBuildTimePicker('cal-modal-end', defaultEnd, false) + '</div>'
     + '</div>'
     + '<div class="coach-s-a82d70"><label class="cal-s-0d9ec6">Color</label>'
-    + '<div id="cal-modal-colors" role="radiogroup" aria-label="Event color" class="coach-s-088936"></div></div>'
+    + '<div id="cal-modal-colors" role="radiogroup" aria-label="Event color" class="coach-s-088936" style="display:inline-flex;align-items:center;gap:6px;padding:5px 8px;background:var(--bg);border:1px solid var(--border);border-radius:999px;"></div></div>'
+    + (isCoachingEvent ? '' :
+        '<div class="cal-s-ee3e80">'
+      + '<div class="deal-s-367da9"><label for="cal-modal-repeat" class="cal-s-0d9ec6">Repeat</label>'
+      + '<select id="cal-modal-repeat" class="cal-s-ed0012">'
+      + '<option value="none">Does not repeat</option>'
+      + '<option value="daily">Daily</option>'
+      + '<option value="weekly">Weekly</option>'
+      + '<option value="monthly">Monthly</option>'
+      + '<option value="yearly">Yearly</option>'
+      + '</select></div>'
+      + '<div class="deal-s-367da9" id="cal-modal-repeat-end-wrap" style="display:none;"><label for="cal-modal-repeat-endtype" class="cal-s-0d9ec6">Ends</label>'
+      + '<select id="cal-modal-repeat-endtype" class="cal-s-ed0012">'
+      + '<option value="never">Never</option>'
+      + '<option value="until">On date</option>'
+      + '<option value="count">After # of times</option>'
+      + '</select></div>'
+      + '</div>'
+      + '<div class="cal-s-ee3e80" id="cal-modal-repeat-detail" style="display:none;">'
+      + '<div class="deal-s-367da9" id="cal-modal-repeat-until-wrap" style="display:none;"><label for="cal-modal-repeat-until" class="cal-s-0d9ec6">Last day</label>'
+      + '<input id="cal-modal-repeat-until" type="date" value="' + escapeHtml(defaultUntil) + '" class="cal-s-ed0012"></div>'
+      + '<div class="deal-s-367da9" id="cal-modal-repeat-count-wrap" style="display:none;"><label for="cal-modal-repeat-count" class="cal-s-0d9ec6">Occurrences</label>'
+      + '<input id="cal-modal-repeat-count" type="number" min="1" max="366" step="1" value="' + escapeHtml(String(defaultCount)) + '" class="cal-s-ed0012"></div>'
+      + '</div>'
+      + (isEdit && defaultRepeat !== 'none' ? '<div class="deal-s-44d600">This event repeats. Changes and deletion apply to the entire series.</div>' : ''))
     + '<div class="deal-s-5b6aad"><label for="cal-modal-notes" class="cal-s-0d9ec6">Notes (optional)</label>'
     + '<textarea id="cal-modal-notes" maxlength="2000" placeholder="Add notes..." rows="3" class="cal-s-e8f0a9">' + escapeHtml(defaultNotes) + '</textarea></div>'
-    + (isCoachingEvent ? '' : '<div class="cal-s-77e2bc"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="cal-s-be496e"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg><span>Adding an event will also block out time slots for your 1:1 booking services. Bookers will see fewer available slots, but never see what you have scheduled.</span></div>')
+    + (isCoachingEvent ? '' :
+        '<button type="button" data-cal-action="toggle-booking-info" aria-expanded="false" aria-controls="cal-booking-info" style="display:inline-flex;align-items:center;gap:6px;background:none;border:none;padding:0 0 10px;cursor:pointer;color:var(--muted);font-size:12px;font-family:DM Sans,sans-serif;">'
+      + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>'
+      + '<span>How this affects your 1:1 bookings</span></button>'
+      + '<div id="cal-booking-info" class="cal-s-77e2bc" style="display:none;"><span>Adding an event will also block out time slots for your 1:1 booking services. Bookers will see fewer available slots, but never see what you have scheduled.</span></div>')
     + '<button data-cal-action="save-event" class="cal-s-249433 cal-h-6ebecd">' + (isEdit ? 'Save Changes' : 'Save Event') + '</button>'
     + '<div id="cal-modal-error" class="cal-s-5b5ea7"></div>'
     + '</div>';
@@ -823,9 +958,36 @@ function calOpenEventModal(existingEvent) {
   if (isEdit && colors.indexOf(defaultColor) === -1) colors.unshift(defaultColor);
   document.getElementById('cal-modal-colors').innerHTML = colors.map(function(c) {
     var selected = c === defaultColor;
-    return '<button data-cal-action="select-color" data-cal-color="' + c + '" data-color="' + c + '" class="cal-color-btn" style="width:32px;height:32px;border-radius:50%;background:' + c + ';border:' + (selected ? '3px solid #fff' : '2px solid var(--border)') + ';cursor:pointer;"></button>';
+    return '<button data-cal-action="select-color" data-cal-color="' + c + '" data-color="' + c + '" class="cal-color-btn" aria-label="Event color ' + c + '" style="width:22px;height:22px;border-radius:50%;background:' + c + ';border:' + (selected ? '2px solid #fff' : '1px solid var(--border)') + ';cursor:pointer;flex-shrink:0;padding:0;"></button>';
   }).join('');
   window._calSelectedColor = defaultColor;
+
+  // Repeat controls: set initial values and keep the conditional fields in
+  // sync (Ends row shows only when repeating; date/count inputs only for
+  // their end type). Coaching events have no repeat UI at all.
+  var repSel = document.getElementById('cal-modal-repeat');
+  if (repSel) {
+    repSel.value = defaultRepeat;
+    var endTypeSel = document.getElementById('cal-modal-repeat-endtype');
+    if (endTypeSel) endTypeSel.value = defaultEndType;
+    var syncRepeatUi = function() {
+      var repeating = repSel.value !== 'none';
+      var endType = endTypeSel ? endTypeSel.value : 'never';
+      var endWrap = document.getElementById('cal-modal-repeat-end-wrap');
+      var detail = document.getElementById('cal-modal-repeat-detail');
+      var untilWrap = document.getElementById('cal-modal-repeat-until-wrap');
+      var countWrap = document.getElementById('cal-modal-repeat-count-wrap');
+      if (endWrap) endWrap.style.display = repeating ? '' : 'none';
+      var showUntil = repeating && endType === 'until';
+      var showCount = repeating && endType === 'count';
+      if (detail) detail.style.display = (showUntil || showCount) ? '' : 'none';
+      if (untilWrap) untilWrap.style.display = showUntil ? '' : 'none';
+      if (countWrap) countWrap.style.display = showCount ? '' : 'none';
+    };
+    repSel.addEventListener('change', syncRepeatUi);
+    if (endTypeSel) endTypeSel.addEventListener('change', syncRepeatUi);
+    syncRepeatUi();
+  }
 
   if (!isCoachingEvent) {
     setTimeout(function() {
@@ -875,7 +1037,7 @@ function calOpenEventModal(existingEvent) {
 function calSelectColor(c) {
   window._calSelectedColor = c;
   document.querySelectorAll('.cal-color-btn').forEach(function(b) {
-    b.style.border = b.dataset.color === c ? '3px solid #fff' : '2px solid var(--border)';
+    b.style.border = b.dataset.color === c ? '2px solid #fff' : '1px solid var(--border)';
   });
 }
 
@@ -945,6 +1107,35 @@ async function calSaveEvent() {
     return;
   }
 
+  // Recurrence rule (v1): frequency + end (never / last day / after N).
+  // Whitelisted values only; interval fixed at 1 in the UI (column supports
+  // more for later). "Until" is stored as end-of-day in the creator's calendar
+  // timezone so the final day's occurrence is included.
+  var repeatFreq = null, repeatUntilIso = null, repeatCount = null;
+  var repSelEl = document.getElementById('cal-modal-repeat');
+  if (repSelEl && CAL_RECUR_FREQS.indexOf(repSelEl.value) !== -1) {
+    repeatFreq = repSelEl.value;
+  }
+  if (repeatFreq) {
+    var endTypeEl = document.getElementById('cal-modal-repeat-endtype');
+    var endType = endTypeEl ? endTypeEl.value : 'never';
+    if (endType === 'until') {
+      var untilDateEl = document.getElementById('cal-modal-repeat-until');
+      var untilDate = untilDateEl ? untilDateEl.value : '';
+      if (!untilDate) { validationToast('Pick the last day for the repeat'); return; }
+      if (untilDate < date) { showError('The repeat\'s last day must be on or after the event date.'); return; }
+      repeatUntilIso = localToIso(untilDate, '23:59');
+    } else if (endType === 'count') {
+      var countEl = document.getElementById('cal-modal-repeat-count');
+      var countVal = countEl ? parseInt(countEl.value, 10) : NaN;
+      if (!(countVal >= 1) || countVal > 366 || countVal !== Math.floor(countVal)) {
+        showError('Occurrences must be a whole number between 1 and 366.');
+        return;
+      }
+      repeatCount = countVal;
+    }
+  }
+
   // Detect edit mode from modal data attribute
   var modal = document.getElementById('cal-event-modal');
   var editingId = modal && modal.dataset ? modal.dataset.editingId : null;
@@ -962,6 +1153,21 @@ async function calSaveEvent() {
         color: color,
         notes: notes || null
       };
+
+      // Recurrence edits (v1 = whole series; the single rule row IS the
+      // series). Manual events only: coaching/brand-deal events never carry a
+      // rule and their modal has no repeat UI, so a null read here must not
+      // wipe anything on them.
+      if (existing.event_type === 'manual') {
+        updatePayload.recurrence_freq = repeatFreq;
+        updatePayload.recurrence_interval = repeatFreq ? 1 : null;
+        updatePayload.recurrence_until = repeatUntilIso;
+        updatePayload.recurrence_count = repeatCount;
+        if (repeatFreq && !existing.series_id) {
+          updatePayload.series_id = window.crypto && window.crypto.randomUUID
+            ? window.crypto.randomUUID() : null;
+        }
+      }
 
       // Coaching events: don't allow title changes (locked to coaching service)
       if (existing.event_type === 'coaching') {
@@ -1015,7 +1221,15 @@ async function calSaveEvent() {
         source_id: null,
         color: color,
         notes: notes || null,
-        timezone: calState.timezone
+        timezone: calState.timezone,
+        // Recurrence rule (one row per series; occurrences are computed, never
+        // stored). series_id is the stable identity v2 exceptions attach to.
+        series_id: repeatFreq && window.crypto && window.crypto.randomUUID
+          ? window.crypto.randomUUID() : null,
+        recurrence_freq: repeatFreq,
+        recurrence_interval: repeatFreq ? 1 : null,
+        recurrence_until: repeatUntilIso,
+        recurrence_count: repeatCount
       }).select().single();
       if (error) throw error;
       calState.events.push(data);
@@ -1129,6 +1343,9 @@ async function calDeleteEvent(eventId, eventType) {
   } else if (eventType === 'brand_deal') {
     confirmTitle = 'Delete Brand Deal Event';
     confirmMsg = 'This will only remove this event from your calendar. To fully manage the brand deal, edit it from the Brand Deal CRM. Continue?';
+  } else if (event.recurrence_freq) {
+    confirmTitle = 'Delete Recurring Event';
+    confirmMsg = 'This is a repeating event. Deleting it removes the entire series from your calendar. Continue?';
   } else {
     confirmTitle = 'Delete Event';
     confirmMsg = 'Are you sure you want to delete this event?';
@@ -1438,6 +1655,13 @@ calRegisterAction('close-send-msg-modal', () => {
 });
 calRegisterAction('save-event', () => calSaveEvent());
 calRegisterAction('select-color', (e, el) => calSelectColor(el.dataset.calColor));
+calRegisterAction('toggle-booking-info', (e, el) => {
+  var box = document.getElementById('cal-booking-info');
+  if (!box) return;
+  var open = box.style.display !== 'none';
+  box.style.display = open ? 'none' : '';
+  el.setAttribute('aria-expanded', String(!open));
+});
 
 // Google Calendar OAuth - buttons rendered by gcalRenderConnectionState
 // These trigger gcalConnect/gcalDisconnect, which use Bearer token auth
