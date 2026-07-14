@@ -2971,12 +2971,10 @@
   .bio-add-btn svg { flex-shrink: 0; }
   .bio-add-btn:hover {
     transform: translateY(-1px);
-    box-shadow: 0 3px 10px rgba(124, 58, 237, 0.18);
   }
   .bio-add-btn:active {
     transform: translateY(0) scale(0.97);
     transition: transform 0.05s ease-out;
-    box-shadow: 0 1px 3px rgba(124, 58, 237, 0.15);
   }
   .bio-add-btn:focus-visible {
     outline: 2px solid var(--accent);
@@ -2993,7 +2991,7 @@
      tooltip (pseudo-elements inherit the element's opacity), making the tooltip
      look transparent. Fading only the inner content keeps the tooltip solid. */
   .bio-add-btn:disabled svg,
-  .bio-add-btn:disabled { color: var(--muted) !important; border-color: var(--border) !important; background: transparent !important; }
+  .bio-add-btn:disabled { color: var(--muted) !important; border-color: var(--border) !important; background: var(--surface) !important; }
   .bio-add-btn:disabled svg { opacity: 0.6; }
   .bio-add-btn:disabled:hover {
     transform: none;
@@ -3023,40 +3021,24 @@
     pointer-events: none;
   }
 
-  /* Content variant, dashed border, transparent bg (lighter feel for structural blocks). */
-  .bio-add-btn-content {
-    background: transparent;
-    border: 1px dashed rgba(124, 58, 237, 0.4);
-    color: var(--accent2);
-  }
-  .bio-add-btn-content:hover {
-    border-color: rgba(124, 58, 237, 0.7);
-    background: rgba(124, 58, 237, 0.06);
-    color: #d8b4fe;
-  }
-
-  /* Tools variant, gradient bg, solid border (richer feel for product integrations). */
-  .bio-add-btn-tool {
-    background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(232, 121, 249, 0.06));
-    border: 1px solid rgba(124, 58, 237, 0.3);
-    color: #c4b5fd;
-  }
-  .bio-add-btn-tool:hover {
-    background: linear-gradient(135deg, rgba(124, 58, 237, 0.18), rgba(232, 121, 249, 0.12));
-    border-color: rgba(124, 58, 237, 0.5);
-    color: #ddd6fe;
-  }
-
-  /* Hero, matches the Tools variant so the Content row reads as one palette. */
+  /* All add-button variants now share the neutral, modern look used by the
+     theme + social-icon buttons: subtle neutral border, normal text color, and
+     the accent reserved for hover/focus only (no purple fills, gradients, or
+     dashed borders). This makes Content, Business, and Hero read as one clean
+     palette and matches the rest of the editor. */
+  .bio-add-btn-content,
+  .bio-add-btn-tool,
   .bio-add-btn-hero {
-    background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(232, 121, 249, 0.06));
-    border: 1px solid rgba(124, 58, 237, 0.3);
-    color: #c4b5fd;
+    background: var(--surface2);
+    border: 1px solid var(--border-hover);
+    color: var(--text);
   }
+  .bio-add-btn-content:hover,
+  .bio-add-btn-tool:hover,
   .bio-add-btn-hero:hover {
-    background: linear-gradient(135deg, rgba(124, 58, 237, 0.18), rgba(232, 121, 249, 0.12));
-    border-color: rgba(124, 58, 237, 0.5);
-    color: #ddd6fe;
+    border-color: var(--accent);
+    background: var(--surface2);
+    color: var(--text);
   }
 
   .bio-link-row.bio-link-mediakit {
