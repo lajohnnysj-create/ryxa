@@ -39,11 +39,38 @@ function getSigningKey() {
   return crypto.createHash('sha256').update('ryxa_pricing_ticket_' + TICKET_SIGNING_SECRET).digest();
 }
 
-function signTicket(userId) {
-  const payload = JSON.stringify({ uid: userId, ts: Date.now() });
+function signTicket(payloadObj) {
+  const payload = JSON.stringify(payloadObj);
   const hmac = crypto.createHmac('sha256', getSigningKey()).update(payload).digest('hex');
   const wrapper = JSON.stringify({ p: payload, h: hmac });
   return Buffer.from(wrapper).toString('base64url');
+}
+
+// Look up the user's current subscription so the pricing page can show their
+// existing plan ("Current plan" markers) without a session in Safari. Signed
+// into the ticket so it cannot be tampered with. Best-effort: if the lookup
+// fails, the ticket is still minted without plan info and the page just shows
+// default CTAs.
+async function getSubscriptionSnapshot(userId) {
+  try {
+    const res = await fetch(
+      SUPABASE_URL + '/rest/v1/subscriptions?user_id=eq.' + encodeURIComponent(userId) +
+        '&select=tier,billing_cycle,status&limit=1',
+      {
+        headers: {
+          apikey: SUPABASE_SERVICE_KEY,
+          Authorization: 'Bearer ' + SUPABASE_SERVICE_KEY,
+        },
+      }
+    );
+    if (!res.ok) return null;
+    const rows = await res.json();
+    const sub = rows && rows[0] ? rows[0] : null;
+    if (!sub) return null;
+    return { tier: sub.tier || null, cycle: sub.billing_cycle || null, status: sub.status || null };
+  } catch (e) {
+    return null;
+  }
 }
 
 async function verifySupabaseUser(accessToken) {
@@ -95,7 +122,16 @@ module.exports = async function handler(req, res) {
     return res.status(401).json({ error: 'Invalid session' });
   }
 
-  const ticket = signTicket(userId);
+  // Snapshot the user's current plan (best-effort) so the pricing page can mark
+  // their existing plan without a Safari session. ts is the mint time (TTL).
+  const snapshot = await getSubscriptionSnapshot(userId);
+  const payload = { uid: userId, ts: Date.now() };
+  if (snapshot) {
+    payload.tier = snapshot.tier;
+    payload.cycle = snapshot.cycle;
+    payload.status = snapshot.status;
+  }
+  const ticket = signTicket(payload);
   return res.status(200).json({ ticket });
 };
 
