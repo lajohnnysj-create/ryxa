@@ -147,7 +147,12 @@
      it to 0 via body.app-pricing. */
   :root { --toggle-top: 80px; }
   body.app-pricing { --toggle-top: 0px; }
-  .billing-toggle-sticky{position:sticky;top:var(--toggle-top);z-index:50;display:flex;justify-content:center;padding:10px 0 12px;margin-bottom:24px;background:transparent;pointer-events:none;}
+  /* Static (normal flow) by default, this is the web behavior: the toggle sits
+     above the cards and scrolls away like a normal section. Only the app-opened
+     page makes it sticky (body.app-pricing below), where the short chrome-free
+     page benefits from keeping the control reachable while scrolling. */
+  .billing-toggle-sticky{display:flex;justify-content:center;padding:10px 0 12px;margin-bottom:24px;background:transparent;pointer-events:none;}
+  body.app-pricing .billing-toggle-sticky{position:sticky;top:var(--toggle-top);z-index:50;}
   .billing-toggle-wrap{pointer-events:auto;display:inline-flex;align-items:center;gap:0;background:var(--surface2);border:1px solid var(--border);border-radius:999px;padding:4px;box-shadow:0 4px 20px rgba(0,0,0,0.25);}
   .billing-toggle-btn{background:transparent;border:none;color:var(--muted);font-family:"DM Sans",sans-serif;font-size:13px;font-weight:500;padding:9px 18px;border-radius:999px;cursor:pointer;transition:all 0.2s;display:inline-flex;align-items:center;gap:8px;}
   .billing-toggle-btn:hover{color:var(--text);}
