@@ -2595,7 +2595,12 @@ async function mintPricingTicketThenOpen(query) {
       // "Change Plan" is management, not a purchase CTA; leave it as-is.
       var current = (el.textContent || '').trim();
       if (/change plan/i.test(current)) return;
-      var label = tierFor(el);
+      // The Settings entry point is a neutral navigation item, label it "Plans"
+      // (reads as account management, not a purchase CTA). Other upgrade buttons
+      // use the tier name.
+      var label = el.getAttribute('data-settings-action') === 'open-pricing'
+        ? 'Plans'
+        : tierFor(el);
       // Only rewrite if it currently reads as an upgrade/price CTA, so we don't
       // clobber unrelated labels if a selector is ever reused.
       if (/upgrade|\$\d|\/mo|unlock/i.test(current) || current === '') {
