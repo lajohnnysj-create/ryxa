@@ -822,7 +822,7 @@ window.addEventListener('pageshow', function(e) {
       // offset already clears the sticky bar; the bar also has a 24px
       // margin-bottom above the cards, so land the card partway into that gap
       // (pull up ~12px) instead of fully below it, which read as too low.
-      var target = rect.top + window.pageYOffset - offset + 12;
+      var target = rect.top + window.pageYOffset - offset + 18;
       window.scrollTo({ top: Math.max(0, target), behavior: 'smooth' });
     }
 
