@@ -819,7 +819,10 @@ window.addEventListener('pageshow', function(e) {
     // can see the card they asked for. Ring it and leave the page alone.
     var fullyVisible = rect.top >= offset && rect.bottom <= viewport;
     if (!fullyVisible) {
-      var target = rect.top + window.pageYOffset - offset - 16;
+      // offset already clears the sticky bar; the bar also has a 24px
+      // margin-bottom above the cards, so land the card partway into that gap
+      // (pull up ~12px) instead of fully below it, which read as too low.
+      var target = rect.top + window.pageYOffset - offset + 12;
       window.scrollTo({ top: Math.max(0, target), behavior: 'smooth' });
     }
 
