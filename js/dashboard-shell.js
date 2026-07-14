@@ -2252,8 +2252,13 @@ function showFollowerTool() {
 }
 
 function showTool(tool) {
-  // Cancel any in-flight surface loads from the view being left.
-  window.RyxaLoadGen.bump();
+  // Cancel any in-flight surface loads from the view being left, but ONLY when
+  // the tool actually changes. A fast double-tap on the same nav item would
+  // otherwise bump the generation and cancel the tool's OWN in-flight load,
+  // while the init guards (bioInited/mkInited) prevent a reload, freezing the
+  // editor in its locked "Loading..." state until another tap. Re-selecting the
+  // already-active tool must never cancel its own load.
+  if (tool !== currentTool) window.RyxaLoadGen.bump();
   // Clean up any pending PDF Sign palette selection when switching tools
   if (typeof pdfsignTouchPending !== 'undefined') {
     pdfsignTouchPending = null;
