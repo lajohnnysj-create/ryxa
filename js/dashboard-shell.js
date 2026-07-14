@@ -385,6 +385,33 @@ var isPwaMode = window.matchMedia('(display-mode: standalone)').matches
     // (~60px) never false-triggers it. The hide is opacity-only CSS (class
     // on <html>) so it can never fight the nudge's inline transform.
     var _kbOpen = false;
+    // Force the keyboard-open state off and restore the chrome. Used by the
+    // self-heal paths below when the "keyboard closed" resize event is missed
+    // (a WKWebView quirk, e.g. after Save blurs a field without a clean resize),
+    // which would otherwise leave the nav + Live Preview pill hidden until the
+    // user manually reopens and closes the keyboard.
+    function forceKbClosed() {
+      if (!_kbOpen) return;
+      _kbOpen = false;
+      document.documentElement.classList.remove('kb-open');
+      scheduleNudge();
+    }
+    // True only when a real text-entry element is focused. If nothing is
+    // focused (or focus is on a non-input), the keyboard cannot be open.
+    function anInputIsFocused() {
+      var el = document.activeElement;
+      if (!el) return false;
+      var tag = el.tagName;
+      if (tag === 'TEXTAREA') return true;
+      if (el.isContentEditable) return true;
+      if (tag === 'INPUT') {
+        var t = (el.getAttribute('type') || 'text').toLowerCase();
+        // Button-like inputs don't summon the keyboard.
+        return ['button', 'submit', 'checkbox', 'radio', 'file', 'range',
+                'color', 'reset', 'image'].indexOf(t) === -1;
+      }
+      return false;
+    }
     window.visualViewport.addEventListener('resize', function () {
       var gap = window.innerHeight - window.visualViewport.height;
       var open = gap > 150;
@@ -396,6 +423,21 @@ var isPwaMode = window.matchMedia('(display-mode: standalone)').matches
         if (!open) scheduleNudge();
       }
     });
+    // Self-heal #1: when focus leaves a field, the keyboard is closing. Verify
+    // shortly after (focus can move between fields) that nothing is focused,
+    // and if so force the closed state, covering the missed-resize case.
+    document.addEventListener('focusout', function () {
+      setTimeout(function () {
+        if (!anInputIsFocused()) forceKbClosed();
+      }, 250);
+    });
+    // Self-heal #2: any tap or scroll while chrome is stuck hidden but no input
+    // is focused clears the stuck state immediately.
+    var healOnInteract = function () {
+      if (_kbOpen && !anInputIsFocused()) forceKbClosed();
+    };
+    document.addEventListener('touchend', healOnInteract, { passive: true });
+    window.addEventListener('scroll', healOnInteract, { passive: true });
   }
   window.addEventListener('scroll', scheduleNudge, { passive: true });
   document.addEventListener('visibilitychange', function () {
