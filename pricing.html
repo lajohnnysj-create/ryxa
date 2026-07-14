@@ -140,7 +140,15 @@
   .plan-feature-credits .plan-feature-credits-icon{font-size:15px;line-height:1;flex-shrink:0;margin-top:0;}
 
   /* Billing cycle toggle */
-  .billing-toggle-wrap{display:inline-flex;align-items:center;gap:0;background:var(--surface2);border:1px solid var(--border);border-radius:999px;padding:4px;margin:0 auto 36px;position:relative;left:50%;transform:translateX(-50%);}
+  /* Sticky wrapper: full-width bar that pins the centered pill to the top once
+     the user scrolls past it, so the monthly/annual control stays reachable
+     while comparing plan cards without scrolling back up. --toggle-top is the
+     offset below the fixed site nav on web; the app-opened page (no nav) sets
+     it to 0 via body.app-pricing. */
+  :root { --toggle-top: 80px; }
+  body.app-pricing { --toggle-top: 0px; }
+  .billing-toggle-sticky{position:sticky;top:var(--toggle-top);z-index:50;display:flex;justify-content:center;padding:10px 0 12px;margin-bottom:24px;background:linear-gradient(to bottom, var(--bg) 70%, transparent);}
+  .billing-toggle-wrap{display:inline-flex;align-items:center;gap:0;background:var(--surface2);border:1px solid var(--border);border-radius:999px;padding:4px;box-shadow:0 4px 20px rgba(0,0,0,0.25);}
   .billing-toggle-btn{background:transparent;border:none;color:var(--muted);font-family:"DM Sans",sans-serif;font-size:13px;font-weight:500;padding:9px 18px;border-radius:999px;cursor:pointer;transition:all 0.2s;display:inline-flex;align-items:center;gap:8px;}
   .billing-toggle-btn:hover{color:var(--text);}
   .billing-toggle-btn.is-active{background:var(--accent);color:#fff;}
@@ -235,12 +243,14 @@
   <h1>All your creator tools. One dashboard.</h1>
 </div>
 
-<div class="billing-toggle-wrap" role="group" aria-label="Billing cycle">
-  <button class="billing-toggle-btn" data-pricing-action="set-cycle" data-cycle="monthly" aria-pressed="false">Monthly</button>
-  <button class="billing-toggle-btn is-active" data-pricing-action="set-cycle" data-cycle="annual" aria-pressed="true">
-    Annual
-    <span class="billing-toggle-badge">2 months free</span>
-  </button>
+<div class="billing-toggle-sticky">
+  <div class="billing-toggle-wrap" role="group" aria-label="Billing cycle">
+    <button class="billing-toggle-btn" data-pricing-action="set-cycle" data-cycle="monthly" aria-pressed="false">Monthly</button>
+    <button class="billing-toggle-btn is-active" data-pricing-action="set-cycle" data-cycle="annual" aria-pressed="true">
+      Annual
+      <span class="billing-toggle-badge">2 months free</span>
+    </button>
+  </div>
 </div>
 
 <div class="pricing-section">
