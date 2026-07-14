@@ -35,6 +35,9 @@
   // (no ReactNativeWebView), so none of the WebView-only wiring below applies.
   if (!inWebView && openedFromAppInSafari) {
     function hideChromeInSafari() {
+      // Mark the page so CSS can drop the site-nav offset (e.g. the sticky
+      // billing toggle pins at top:0 since there is no nav in the app).
+      document.body.classList.add('app-pricing');
       var header = document.getElementById('site-header');
       if (header) header.style.display = 'none';
       var footer = document.getElementById('site-footer');
