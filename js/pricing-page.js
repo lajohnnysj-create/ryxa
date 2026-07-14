@@ -255,7 +255,22 @@ async function loadUserState() {
     var sessionResp = await sb.auth.getSession();
     currentUser = (sessionResp && sessionResp.data && sessionResp.data.session)
       ? sessionResp.data.session.user : null;
-    if (!currentUser) return;
+
+    // No session but a ticket present (app opened this page in Safari): read the
+    // plan snapshot the app signed into the ticket, so the cards still mark the
+    // user's current plan. This is display-only; checkout re-verifies the ticket
+    // server-side, so a tampered snapshot could only mislabel a card, never
+    // change what the user is charged.
+    if (!currentUser) {
+      var snap = readTicketPlanSnapshot();
+      if (snap) {
+        currentTier = snap.tier || 'free';
+        currentCycle = snap.cycle || 'monthly';
+        currentStatus = snap.status || null;
+      }
+      decoratePlanCards();
+      return;
+    }
 
     // Fetch subscription tier + cycle so we can label the user's current plan.
     var { data: subRows } = await sb
@@ -274,6 +289,24 @@ async function loadUserState() {
   }
   // Once state is known, reflect it in the plan cards.
   decoratePlanCards();
+}
+
+// Reads the plan snapshot the app signed into the ticket (uid/ts/tier/cycle/
+// status). Display-only: we decode the payload for the tier label but do NOT
+// trust it for anything that affects billing (checkout re-verifies the ticket
+// signature server-side). Returns null if no ticket or unparseable.
+function readTicketPlanSnapshot() {
+  var t = getPricingTicket();
+  if (!t) return null;
+  try {
+    var b64 = t.replace(/-/g, '+').replace(/_/g, '/');
+    var wrapper = JSON.parse(atob(b64));
+    var payload = JSON.parse(wrapper.p);
+    if (!payload || !payload.tier) return null;
+    return { tier: payload.tier, cycle: payload.cycle, status: payload.status };
+  } catch (e) {
+    return null;
+  }
 }
 
 // Maps our internal tier name to the pricing-page plan key.
