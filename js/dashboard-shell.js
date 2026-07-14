@@ -2656,6 +2656,7 @@ async function mintPricingTicketThenOpen(query) {
     var texts = [
       ['#pro-upsell-title', 'Ryxa Pro'],
       ['#pro-upsell-description', 'This is a Ryxa Pro feature.'],
+      ['#pro-upsell-price-line', 'Cancel anytime.'],
       ['.settings-s-a74d40', 'You are on the Free plan.']
     ];
     texts.forEach(function (pair) {
