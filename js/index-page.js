@@ -489,14 +489,13 @@ async function handleAuth() {
   resetTurnstile();
   if (result.error) { showAuthMsg('error', result.error.message); }
   else if (authMode === 'signup') {
-    // Supabase returns a user object with empty identities array when email already exists
-    // (this is intentional anti-enumeration behavior, no actual signup occurs).
-    const identities = result.data?.user?.identities;
-    if (identities && identities.length === 0) {
-      showAuthMsg('error', 'An account with this email already exists. Try signing in instead.');
-    } else {
-      showAuthMsg('success', 'Check your email to confirm your account!');
-    }
+    // Anti-enumeration: Supabase returns a user object with an empty identities
+    // array when the email already exists (no actual signup occurs, and it
+    // emails that user a "did you mean to sign in?" nudge). We deliberately do
+    // NOT surface that difference here, a distinct "already exists" message
+    // would let anyone probe which emails have Ryxa accounts. One generic
+    // message either way; the existing user is guided via the email instead.
+    showAuthMsg('success', 'Check your email to confirm your account!');
   }
   else {
     closeAuthModal();

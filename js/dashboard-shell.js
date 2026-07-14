@@ -3272,10 +3272,13 @@ async function handlePwaAuth() {
     return;
   }
   if (pwaAuthMode === 'signup') {
-    var identities = result.data?.user?.identities;
-    if (identities && identities.length === 0) {
-      showPwaMsg('error', 'An account with this email already exists. Try signing in instead.');
-    } else if (result.data?.user && !result.data.session) {
+    // Anti-enumeration: an email that already has an account comes back from
+    // Supabase as a user object with an empty identities array and no session
+    // (no signup occurs; Supabase emails that user a "did you mean to sign
+    // in?" nudge). That shape falls into the same generic branch below on
+    // purpose, a distinct "already exists" message would let anyone probe
+    // which emails have Ryxa accounts.
+    if (result.data?.user && !result.data.session) {
       showPwaMsg('success', 'Check your email to confirm your account!');
     } else {
       hidePwaLogin();
