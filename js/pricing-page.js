@@ -73,6 +73,11 @@ var currentUser = null;
 var currentTier = 'free';
 var currentCycle = 'monthly';
 var currentStatus = null;
+// True once we know the user's plan, from a session (web) OR a signed ticket
+// snapshot (app opened this page in Safari, where there is no session). The
+// card-decoration logic keys off this instead of currentUser so the Safari
+// flow renders identically to a logged-in web visit.
+var planKnown = false;
 
 // Signed ticket passed by the native app when it opens this page in Safari (see
 // dashboard-shell.js goToPricing). Carries the signed-in user's identity across
@@ -267,11 +272,13 @@ async function loadUserState() {
         currentTier = snap.tier || 'free';
         currentCycle = snap.cycle || 'monthly';
         currentStatus = snap.status || null;
+        planKnown = true;
       }
       decoratePlanCards();
       return;
     }
 
+    planKnown = true;
     // Fetch subscription tier + cycle so we can label the user's current plan.
     var { data: subRows } = await sb
       .from('subscriptions')
@@ -341,8 +348,8 @@ function decoratePlanCards() {
     if (priorBadge) priorBadge.remove();
     card.classList.remove('is-current-plan');
 
-    if (!currentUser || !userPlanKey) {
-      // Logged out, or on Free tier - default CTAs, no badges.
+    if (!planKnown || !userPlanKey) {
+      // Plan unknown (logged out, no ticket), or on Free tier - default CTAs.
       btn.textContent = btn._defaultLabel;
       btn.disabled = false;
       return;
@@ -415,7 +422,7 @@ function decorateFreeCard() {
 
   var isPaidSubscriber = (currentTier === 'monthly' || currentTier === 'max');
 
-  if (currentUser && isPaidSubscriber) {
+  if (planKnown && isPaidSubscriber) {
     // Paid subscriber: Free is not a selectable action for them.
     btn.textContent = 'Included in your plan';
     btn.disabled = true;
@@ -431,8 +438,8 @@ function decorateFreeCard() {
         card.appendChild(note);
       }
     }
-  } else if (currentUser) {
-    // Logged-in user already on the Free tier. Mirror the Pro/Max "Current
+  } else if (planKnown) {
+    // User already on the Free tier. Mirror the Pro/Max "Current
     // plan" treatment so the page reads consistently: disabled button +
     // "Your plan" badge on the card.
     btn.textContent = 'Current plan';
