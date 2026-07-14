@@ -1619,7 +1619,7 @@
   .main { margin-left: var(--sidebar-width); flex: 1; min-height: 100vh; display: flex; flex-direction: column; min-width: 0; overflow-x: clip; }
   .topbar { height: calc(var(--topbar-height) + env(safe-area-inset-top, 0px)); background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: env(safe-area-inset-top, 0px) 32px 0; position: sticky; top: 0; z-index: 50; }
   .topbar-left { display: flex; align-items: center; gap: 12px; }
-  .topbar-title { font-family: "Plus Jakarta Sans", sans-serif; font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+  .topbar-title { font-family: "Plus Jakarta Sans", sans-serif; font-size: 18px; font-weight: 700; letter-spacing: -0.3px; cursor: default; user-select: none; -webkit-user-select: none; }
   .topbar-right { display: flex; align-items: center; gap: 10px; }
   /* Offset scroll-into-view for the sticky topbar so the section heading is not
      hidden behind it (Media Kit "+Social Media" and Link in Bio "Add Social"
