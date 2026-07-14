@@ -80,7 +80,7 @@
     position: fixed; top: 0; left: 0; bottom: 0; z-index: 100;
     transition: transform 0.3s ease;
   }
-  .sidebar-logo { padding: calc(20px + env(safe-area-inset-top, 0px)) 20px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; text-decoration: none; overflow: hidden; }
+  .sidebar-logo { padding: calc(20px + env(safe-area-inset-top, 0px)) 20px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; text-decoration: none; overflow: hidden; cursor: default; user-select: none; -webkit-user-select: none; }
   .sidebar-logo img { width: 38px; height: 38px; object-fit: contain; flex-shrink: 0; }
   .sidebar-logo-icon { display: none; }
   .sidebar-logo-text { font-family: "Syne", sans-serif; font-weight: 800; font-size: 19px; letter-spacing: -0.3px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
