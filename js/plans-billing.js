@@ -170,7 +170,76 @@ function plansBillingSetCycle(cycle) {
 // navigating to /redirecting is intercepted by the native layer and opened in
 // Safari, so the entire purchase happens outside the app (external link-out,
 // clear to Apple and to the user). No pricing page in between.
-async function plansBillingCheckout(plan, btn) {
+//
+// SAFEGUARD: this page is intended for Free-tier users (new subscriptions,
+// which always go through a real Stripe Checkout page). But as a guard against
+// future reuse, if the account somehow already has an ACTIVE paid subscription,
+// we show a confirmation first, mirroring the pricing page, so a plan change
+// (which create-checkout-session applies in place, charging immediately) can
+// never happen from a single silent tap.
+function plansBillingCheckout(plan, btn) {
+  if (!plan) return;
+
+  // Safeguard: an existing ACTIVE subscriber who picks a plan triggers an
+  // in-place subscription change in create-checkout-session (immediate prorated
+  // charge, no Stripe Checkout page). We must confirm first so that can never
+  // happen from one silent tap. CRITICAL: we do NOT trust the client-side
+  // userTier global here, it may be stale or not yet loaded when the page is
+  // used, which would skip the confirm. We query the subscriptions table fresh
+  // at click-time and decide from that.
+  if (btn) { btn.disabled = true; btn.dataset._label = btn.innerHTML; btn.textContent = 'Checking...'; }
+
+  (async function () {
+    var active = false;
+    try {
+      var uid = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.id : null;
+      if (uid) {
+        var q = await sb.from('subscriptions')
+          .select('tier, status')
+          .eq('user_id', uid)
+          .limit(1);
+        if (q && q.data && q.data.length > 0) {
+          var t = q.data[0].tier;
+          var s = q.data[0].status;
+          active = (t === 'monthly' || t === 'max')
+            && (s === 'active' || s === 'cancelling' || s === 'trialing' || s === 'past_due');
+        }
+      }
+    } catch (e) {
+      // If we cannot determine subscription state, FAIL SAFE: treat as an
+      // existing subscriber and show the confirm, so we never silently charge.
+      active = true;
+    }
+
+    // Restore the button label before either confirming or proceeding.
+    if (btn) {
+      btn.disabled = false;
+      if (btn.dataset._label) btn.innerHTML = btn.dataset._label;
+    }
+
+    if (active && typeof showModalConfirm === 'function') {
+      var planName = plan === 'max' ? 'Ryxa Max' : 'Ryxa Pro';
+      var cycleLabel = plansBillingCycle === 'annual' ? 'billed yearly' : 'billed monthly';
+      showModalConfirm(
+        'Switch to ' + planName + '?',
+        'You already have an active plan. Switching to ' + planName + ' (' + cycleLabel
+          + ') may charge your card on file today, with any credit for unused time applied '
+          + 'automatically. If your change takes effect at renewal, or you are eligible '
+          + 'for a trial, you may not be charged today. You can review the exact amount '
+          + 'and date on your receipt from Stripe.',
+        function () { plansBillingStartCheckout(plan, btn); },
+        'Continue',
+        'Cancel',
+        { danger: false }
+      );
+      return;
+    }
+
+    plansBillingStartCheckout(plan, btn);
+  })();
+}
+
+function plansBillingStartCheckout(plan, btn) {
   if (!plan) return;
   var inApp = !!(window.RyxaNative && window.ReactNativeWebView);
   if (btn) {
@@ -189,29 +258,33 @@ async function plansBillingCheckout(plan, btn) {
 
   // Mint a ticket so the redirecting page can create the checkout session for
   // this exact account (works whether or not a web session exists in Safari).
-  try {
-    var sessionResp = await sb.auth.getSession();
+  sb.auth.getSession().then(function (sessionResp) {
     var accessToken = sessionResp && sessionResp.data && sessionResp.data.session
       ? sessionResp.data.session.access_token : null;
-    if (accessToken) {
-      var r = await fetch('/api/pricing-ticket', {
-        method: 'POST',
-        headers: { Authorization: 'Bearer ' + accessToken }
-      });
-      if (r.ok) {
-        var j = await r.json();
-        if (j && j.ticket) query += '&ticket=' + encodeURIComponent(j.ticket);
-      }
-    }
-  } catch (e) {
-    // No ticket: the redirecting page falls back to an existing web session.
-  }
-
-  var url = 'https://www.ryxa.io/redirecting.html' + query + '&app=1';
-  if (window.RyxaNative) _plansBillingCheckoutBtn = btn; // restore on return
-  window.location.href = url;
-  // In-app the WebView stays put (native opened Safari), so reset shortly after.
-  if (inApp) setTimeout(resetBtn, 1500);
+    var proceed = function () {
+      var appFlag = window.RyxaNative ? '&app=1' : '';
+      var url = 'https://www.ryxa.io/redirecting.html' + query + appFlag;
+      if (window.RyxaNative) _plansBillingCheckoutBtn = btn;
+      window.location.href = url;
+      if (inApp) setTimeout(resetBtn, 1500);
+    };
+    if (!accessToken) { proceed(); return; }
+    fetch('/api/pricing-ticket', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + accessToken }
+    }).then(function (r) {
+      return r.ok ? r.json() : null;
+    }).then(function (j) {
+      if (j && j.ticket) query += '&ticket=' + encodeURIComponent(j.ticket);
+      proceed();
+    }).catch(function () { proceed(); });
+  }).catch(function () {
+    var appFlag = window.RyxaNative ? '&app=1' : '';
+    var url = 'https://www.ryxa.io/redirecting.html' + query + appFlag;
+    if (window.RyxaNative) _plansBillingCheckoutBtn = btn;
+    window.location.href = url;
+    if (inApp) setTimeout(resetBtn, 1500);
+  });
 }
 
 // Restore the checkout button when the user returns from Safari (in-app).
