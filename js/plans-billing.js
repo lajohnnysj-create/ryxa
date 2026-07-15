@@ -16,15 +16,17 @@
 
 // Immutable admin gate. user_id is the durable identity (email can change), so
 // we match on it; email is accepted too as a convenience for the same account.
+// bleviq.ai@gmail.com is a test account (no Stripe subscription) so checkout
+// can be exercised end to end without an instant in-place charge.
 var PLANS_BILLING_ADMIN_ID = '81880735-a212-4ae1-87a8-ebac6a22025d';
-var PLANS_BILLING_ADMIN_EMAIL = 'johnny@johnnyla.com';
+var PLANS_BILLING_ALLOWED_EMAILS = ['johnny@johnnyla.com', 'bleviq.ai@gmail.com'];
 
 function plansBillingAllowed() {
   try {
     var u = (typeof currentUser !== 'undefined' && currentUser) ? currentUser : null;
     if (!u) return false;
     if (u.id && u.id === PLANS_BILLING_ADMIN_ID) return true;
-    if (u.email && u.email.toLowerCase() === PLANS_BILLING_ADMIN_EMAIL) return true;
+    if (u.email && PLANS_BILLING_ALLOWED_EMAILS.indexOf(u.email.toLowerCase()) !== -1) return true;
     return false;
   } catch (e) { return false; }
 }
