@@ -40,9 +40,10 @@ var PLANS_BILLING_DATA = {
   pro: {
     name: 'Pro',
     accent: '#a855f7',
-    tagline: 'For creators ready to take control of their branding.',
-    monthly: { big: '$10', suffix: '/ month', sub: '' },
-    annual:  { big: '$8.33', suffix: '/ month', sub: '$100 billed annually' },
+    desc: 'For creators ready to take control of their branding.',
+    defaultBtn: 'Get started with Pro',
+    monthly: { big: '$10', suffix: '/ month', sub: '', disclosure: 'Billed $10/month. Cancel anytime in Settings.' },
+    annual:  { big: '$8.33', suffix: '/ month', sub: '$100 billed annually', disclosure: 'Billed $100/year. Cancel anytime in Settings.' },
     credits: '40 daily AI credits',
     everythingIn: 'Everything in Free',
     features: [
@@ -54,7 +55,6 @@ var PLANS_BILLING_DATA = {
       'AI Thumbnail Analyzer',
       'AI Contract Analyzer'
     ],
-    // Mirrors pricing.html: a divider + "Plus upgrades" subhead, then more.
     upgradesHeader: 'Plus upgrades',
     upgrades: [
       'Remove Ryxa branding',
@@ -67,11 +67,16 @@ var PLANS_BILLING_DATA = {
     ]
   },
   max: {
-    name: 'Max',
+    name: 'Creator Max',
     accent: '#e879f9',
-    tagline: 'For creators ready to sell and scale.',
-    monthly: { big: '$24', suffix: '/ month', sub: '' },
-    annual:  { big: '$20', suffix: '/ month', sub: '$240 billed annually' },
+    badge: 'Start Earning',
+    desc: 'Sell courses, sessions, and products directly to your audience.',
+    // Trial-eligible users see "Try Free for 7 Days"; if the Max trial was
+    // already used, the plain upgrade label is used instead (see renderer).
+    defaultBtn: 'Try Free for 7 Days',
+    defaultBtnNoTrial: 'Get Creator Max',
+    monthly: { big: '$24', suffix: '/ month', sub: '', disclosure: '7-day free trial, then $24/month. Cancel anytime in Settings.', disclosureNoTrial: 'Billed $24/month. Cancel anytime in Settings.' },
+    annual:  { big: '$20', suffix: '/ month', sub: '$240 billed annually', disclosure: '7-day free trial, then $240/year. Cancel anytime in Settings.', disclosureNoTrial: 'Billed $240/year. Cancel anytime in Settings.' },
     credits: '85 daily AI credits',
     everythingIn: 'Everything in Pro',
     features: [
@@ -142,49 +147,76 @@ function plansBillingCard(key) {
   var subHtml = price.sub
     ? '<div class="pb-price-sub">' + escapeHtml(price.sub) + '</div>' : '';
 
+  // Trial eligibility (Max only): if the user has already used the Max trial,
+  // the button and disclosure drop the trial language, matching how billing
+  // actually behaves (create-checkout-session grants no trial when used).
+  var trialUsed = (typeof userMaxTrialUsed !== 'undefined') && userMaxTrialUsed === true;
+  var maxTrialEligible = (key === 'max') && !trialUsed;
+
+  // Default (non-current-plan) button label, exact pricing copy.
+  var defaultLabel;
+  if (key === 'max') {
+    defaultLabel = maxTrialEligible ? p.defaultBtn : p.defaultBtnNoTrial;
+  } else {
+    defaultLabel = p.defaultBtn;
+  }
+
+  // Disclosure line under the button, exact pricing copy (trial-aware for Max).
+  var disclosureText = price.disclosure;
+  if (key === 'max' && !maxTrialEligible) disclosureText = price.disclosureNoTrial;
+
   // Current-plan aware button (mirrors pricing.html decoratePlanCards):
   //   exact match (tier + cycle)  -> "Current plan", disabled
   //   same tier, other cycle      -> "Switch to <cycle> billing"
-  //   different tier              -> "Upgrade to Ryxa Max" / "Switch to Ryxa Pro"
-  //   free / unknown              -> "Get <plan>"
+  //   different tier              -> "Upgrade to Creator Max" / "Switch to Pro"
+  //   free / unknown              -> exact default label above
   var userKey = plansBillingUserPlanKey();
   var userCycle = plansBillingUserCycle();
-  var btnLabel = 'Get ' + p.name;
+  var btnLabel = defaultLabel;
   var btnDisabled = false;
   var isCurrentBadge = '';
+  var showDisclosure = true;
 
   if (userKey) {
     if (userKey === key && userCycle === plansBillingCycle) {
       btnLabel = 'Current plan';
       btnDisabled = true;
+      showDisclosure = false;
       isCurrentBadge = '<div class="pb-current-badge">Your plan</div>';
     } else if (userKey === key) {
       btnLabel = plansBillingCycle === 'annual' ? 'Switch to annual billing' : 'Switch to monthly billing';
     } else if (key === 'max') {
-      btnLabel = 'Upgrade to Ryxa Max';
+      btnLabel = 'Upgrade to Creator Max';
     } else {
-      btnLabel = 'Switch to Ryxa Pro';
+      btnLabel = 'Switch to Pro';
     }
   }
 
   var btnHtml = btnDisabled
     ? '<button class="pb-cta pb-cta-' + key + '" disabled>' + btnLabel + '</button>'
     : '<button class="pb-cta pb-cta-' + key + '" data-plans-action="checkout" data-plan="' + key + '">'
-        + btnLabel + plansBillingExtIcon() + '</button>';
+        + escapeHtml(btnLabel) + plansBillingExtIcon() + '</button>';
 
-  var disclosureHtml = btnDisabled ? ''
-    : '<div class="pb-disclosure">By clicking this button you\'ll be taken to our website.</div>';
+  var disclosureHtml = (btnDisabled || !showDisclosure) ? ''
+    : '<div class="pb-disclosure">' + escapeHtml(disclosureText) + '</div>'
+      + '<div class="pb-disclosure pb-disclosure-ext">By clicking this button you\'ll be taken to our website.</div>';
 
-  return '<div class="pb-card' + (btnDisabled ? ' pb-card-current' : '') + '">'
+  var badgeHtml = (key === 'max' && p.badge)
+    ? '<div class="pb-plan-badge">' + escapeHtml(p.badge) + '</div>' : '';
+
+  return '<div class="pb-card' + (key === 'max' ? ' pb-card-max' : '')
+    + (btnDisabled ? ' pb-card-current' : '') + '">'
     + isCurrentBadge
+    + badgeHtml
     + '<div class="pb-card-head">'
     + '<img src="/logo.png?v=2" alt="" class="pb-card-logo">'
     + '<span class="pb-card-brand">Ryxa</span>'
     + '</div>'
-    + '<div class="pb-tier" style="color:' + p.accent + ';">' + p.name + '</div>'
+    + '<div class="pb-tier" style="color:' + p.accent + ';">' + escapeHtml(p.name) + '</div>'
     + '<div class="pb-price"><span class="pb-price-big">' + price.big + '</span> '
     + '<span class="pb-price-suffix">' + price.suffix + '</span></div>'
     + subHtml
+    + '<div class="pb-desc">' + escapeHtml(p.desc) + '</div>'
     + '<div class="pb-divider"></div>'
     + '<div class="pb-features">' + creditsHtml + everythingHtml + featuresHtml + upgradesHtml + '</div>'
     + btnHtml
