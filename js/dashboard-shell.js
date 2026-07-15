@@ -3222,6 +3222,58 @@ async function handlePwaGoogleAuth() {
 async function handlePwaAppleAuth() {
   setPwaAuthBtnLoading('pwa-apple-btn', true);
   var inApp = !!(window.RyxaNative && window.ReactNativeWebView);
+
+  if (inApp) {
+    // Native Sign in with Apple (App Review Guideline 2.1/4.8): the app shows
+    // Apple's system AuthenticationServices sheet and hands the identity
+    // token back here, where Supabase exchanges it for a session. The web
+    // OAuth sheet is NOT used in-app; it only remains as a fallback when the
+    // native API is unavailable.
+    window.__ryxaAppleAuthResult = async function (raw) {
+      window.__ryxaAppleAuthResult = null;
+      var payload = null;
+      try { payload = JSON.parse(raw); } catch (e) { /* malformed */ }
+      if (!payload || payload.canceled) {
+        setPwaAuthBtnLoading('pwa-apple-btn', false);
+        return;
+      }
+      if (payload.fallback) { startPwaAppleWebFlow(); return; }
+      if (!payload.ok || !payload.identityToken) {
+        setPwaAuthBtnLoading('pwa-apple-btn', false);
+        showPwaMsg('error', payload.error || 'Apple sign-in failed. Please try again.');
+        return;
+      }
+      var { error } = await sb.auth.signInWithIdToken({
+        provider: 'apple',
+        token: payload.identityToken
+      });
+      if (error) {
+        setPwaAuthBtnLoading('pwa-apple-btn', false);
+        showPwaMsg('error', error.message);
+        return;
+      }
+      hidePwaLogin();
+      window.location.reload();
+    };
+    window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'appleSignInNative' }));
+    // Safety: if the native side never responds (e.g. sheet dismissed in a
+    // way that produced no callback), clear the stuck loading state.
+    setTimeout(function () {
+      if (window.__ryxaAppleAuthResult) {
+        window.__ryxaAppleAuthResult = null;
+        setPwaAuthBtnLoading('pwa-apple-btn', false);
+      }
+    }, 120000);
+    return;
+  }
+
+  startPwaAppleWebFlow();
+}
+
+// Web-browser Apple sign-in (Supabase OAuth redirect). Also the in-app
+// fallback if the native Apple API is unavailable on the device.
+async function startPwaAppleWebFlow() {
+  var inApp = !!(window.RyxaNative && window.ReactNativeWebView);
   var { data, error } = await sb.auth.signInWithOAuth({
     provider: 'apple',
     options: {
