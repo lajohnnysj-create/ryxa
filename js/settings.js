@@ -1457,15 +1457,17 @@ let settingsResetArmed = false; // true only between a user click and the callba
 // password-reset send. The flow is a single click - no "verify above" step.
 
 // =============================================================================
-// GOOGLE-ACCOUNT PASSWORD SECTION
-// Accounts created with "Sign in with Google" have no Ryxa password. Sending a
-// reset email to such an account silently CREATES a password, which is
-// confusing and unexpected. So for Google accounts we replace the password
-// reset controls with a short explanatory note instead.
+// SOCIAL-ACCOUNT PASSWORD SECTION
+// Accounts created with "Sign in with Google" or "Sign in with Apple" have no
+// Ryxa password. Sending a reset email to such an account is confusing (for
+// Google it silently CREATES a password; for Apple there is no password to
+// reset at all). So for these accounts we replace the password reset controls
+// with a short explanatory note instead of emailing anything.
 //
 // NOTE: currentUser comes from getSession(), whose user object does NOT
 // reliably include the identities[] array. We therefore call getUser()
 // here, which returns a complete user object with identities populated.
+// (Function name kept for the existing call site in dashboard-shell.js.)
 // =============================================================================
 async function applyGoogleAccountPasswordUI() {
   var section = document.getElementById('settings-password-section');
@@ -1497,19 +1499,32 @@ async function applyGoogleAccountPasswordUI() {
   if (Array.isArray(meta.providers)) providers = providers.concat(meta.providers);
 
   var hasGoogle = providers.indexOf('google') !== -1;
+  var hasApple = providers.indexOf('apple') !== -1;
   var hasEmail = providers.indexOf('email') !== -1;
 
-  // Only treat as a Google-managed account when Google is present and there
-  // is no email/password identity. If an email provider also exists, the
-  // account has a real password and the normal reset controls should stay.
-  if (!hasGoogle || hasEmail) return;
+  // If the account has a real email/password identity, the normal reset
+  // controls apply even if a social provider is also linked.
+  if (hasEmail) return;
 
-  // Replace the reset controls with an explanatory note.
+  // Otherwise, show the note for whichever social provider manages sign-in.
+  // Apple is checked first so a rare Apple+Google account (no email) explains
+  // the passwordless nature without implying a Google password exists.
+  var providerName = null;
+  var extra = '';
+  if (hasApple) {
+    providerName = 'Apple';
+    extra = 'Your password is managed by Apple.';
+  } else if (hasGoogle) {
+    providerName = 'Google';
+    extra = 'To change the password you use, update it in your Google account settings.';
+  } else {
+    return; // no social provider and no email: leave controls as-is
+  }
+
   section.innerHTML =
     '<div class="settings-s-9c422a">Password</div>'
-    + '<p class="settings-s-4fba18">You sign in to Ryxa with Google, so your '
-    + 'account does not use a Ryxa password. To change the password you use, '
-    + 'update it in your Google account settings.</p>';
+    + '<p class="settings-s-4fba18">You sign in to Ryxa with ' + providerName
+    + ', so your account does not use a Ryxa password. ' + extra + '</p>';
 }
 
 function resetSettingsTurnstile() {
