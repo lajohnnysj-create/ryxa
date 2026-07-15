@@ -161,12 +161,14 @@ function plansBillingSetCycle(cycle) {
   renderPlansBilling();
 }
 
-// Link out to the existing pricing/checkout flow, pre-selecting plan + cycle,
-// through the redirect overlay. Reuses mintPricingTicketThenOpen (the proven
-// path the rest of the app uses): it mints an account ticket, appends app=1,
-// and navigates, which the native layer intercepts to open Safari. Direct-to-
-// Stripe-Checkout is the later optimization.
-function plansBillingCheckout(plan, btn) {
+// Direct-to-Stripe checkout via the /redirecting interstitial. We mint an
+// account ticket (so the checkout is tied to this user), then navigate to
+// /redirecting.html, which shows the "Redirecting to secure checkout" screen,
+// creates the Stripe Checkout session, and forwards to Stripe. In the app,
+// navigating to /redirecting is intercepted by the native layer and opened in
+// Safari, so the entire purchase happens outside the app (external link-out,
+// clear to Apple and to the user). No pricing page in between.
+async function plansBillingCheckout(plan, btn) {
   if (!plan) return;
   var inApp = !!(window.RyxaNative && window.ReactNativeWebView);
   if (btn) {
@@ -181,21 +183,46 @@ function plansBillingCheckout(plan, btn) {
     }
   };
 
-  // mintPricingTicketThenOpen takes a QUERY STRING (e.g. "?plan=pro&cycle=annual").
   var query = '?plan=' + encodeURIComponent(plan) + '&cycle=' + encodeURIComponent(plansBillingCycle);
-  try {
-    if (typeof mintPricingTicketThenOpen === 'function') {
-      mintPricingTicketThenOpen(query);
-      // In-app the WebView stays put (native opened Safari), so reset the
-      // button after the hand-off; on web the page navigates away anyway.
-      if (inApp) setTimeout(resetBtn, 1500);
-      return;
-    }
-  } catch (e) { /* fall through */ }
 
-  // Fallback: plain navigation if the mint helper isn't present.
-  window.location.href = 'https://ryxa.io/pricing.html' + query;
+  // Mint a ticket so the redirecting page can create the checkout session for
+  // this exact account (works whether or not a web session exists in Safari).
+  try {
+    var sessionResp = await sb.auth.getSession();
+    var accessToken = sessionResp && sessionResp.data && sessionResp.data.session
+      ? sessionResp.data.session.access_token : null;
+    if (accessToken) {
+      var r = await fetch('/api/pricing-ticket', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + accessToken }
+      });
+      if (r.ok) {
+        var j = await r.json();
+        if (j && j.ticket) query += '&ticket=' + encodeURIComponent(j.ticket);
+      }
+    }
+  } catch (e) {
+    // No ticket: the redirecting page falls back to an existing web session.
+  }
+
+  var url = 'https://www.ryxa.io/redirecting.html' + query + '&app=1';
+  if (window.RyxaNative) _plansBillingCheckoutBtn = btn; // restore on return
+  window.location.href = url;
+  // In-app the WebView stays put (native opened Safari), so reset shortly after.
+  if (inApp) setTimeout(resetBtn, 1500);
 }
+
+// Restore the checkout button when the user returns from Safari (in-app).
+var _plansBillingCheckoutBtn = null;
+document.addEventListener('visibilitychange', function () {
+  if (document.visibilityState !== 'visible') return;
+  if (_plansBillingCheckoutBtn) {
+    var b = _plansBillingCheckoutBtn;
+    _plansBillingCheckoutBtn = null;
+    b.disabled = false;
+    if (b.dataset._label) b.innerHTML = b.dataset._label;
+  }
+});
 
 // ---- Wiring --------------------------------------------------------------
 
