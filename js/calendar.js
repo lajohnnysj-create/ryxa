@@ -1184,6 +1184,31 @@ async function calReloadAfterMutation() {
   calRender();
 }
 
+// True when this recurring event is one segment of a forked chain, i.e. some
+// OTHER manual recurring series abuts it (ends ~where this begins, or begins
+// ~where this ends). Used only to word the "All events" option honestly, so a
+// mid-chain "All events" doesn't imply it touches other segments.
+function calIsForkedSegment(ev) {
+  if (!ev || !ev.recurrence_freq || !ev.series_id) return false;
+  var myStart = new Date(ev.start_at).getTime();
+  var myUntil = ev.recurrence_until ? new Date(ev.recurrence_until).getTime() : null;
+  // A fork caps the old segment at (occurrence - 1s) and starts the new
+  // segment at the same occurrence, but a time-of-day change on "this and
+  // following" means the two can sit hours apart on the SAME calendar day.
+  // So match by same-day proximity (<= 26h spans any intra-day gap plus DST),
+  // not by exact instant.
+  var DAY_TOL = 26 * 3600000;
+  return (calState.events || []).some(function(o) {
+    if (o === ev || o.id === ev.id) return false;
+    if (o.event_type !== 'manual' || !o.recurrence_freq || !o.series_id) return false;
+    var oStart = new Date(o.start_at).getTime();
+    var oUntil = o.recurrence_until ? new Date(o.recurrence_until).getTime() : null;
+    var oContinuesMe = myUntil != null && oStart >= myUntil - 2000 && oStart - myUntil <= DAY_TOL;
+    var iContinueO = oUntil != null && myStart >= oUntil - 2000 && myStart - oUntil <= DAY_TOL;
+    return oContinuesMe || iContinueO;
+  });
+}
+
 // "This event / This and following / All events" chooser for edits and
 // deletes on recurring events. Rather than stacking on top of the event modal
 // (double overlay, ambiguous focus), it HIDES the event modal while open and
@@ -1218,7 +1243,9 @@ function calOpenScopeChooser(opts) {
     + '</div>'
     + btn('this', 'This event', isDelete ? 'Only this occurrence is removed.' : 'Only this occurrence changes.')
     + btn('following', 'This and following events', (isDelete ? 'Removes' : 'Changes') + ' this occurrence and everything after it.')
-    + btn('all', 'All events', 'The entire series, past and future.')
+    + (opts.isSegment
+        ? btn('all', 'All events in this part', 'This part of the series only. Earlier changes you made split it into parts.')
+        : btn('all', 'All events', 'The entire series, past and future.'))
     + '<button type="button" data-scope="cancel" class="cal-scope-cancel" style="display:block;width:100%;background:none;border:none;color:var(--muted);font-size:13px;padding:8px;cursor:pointer;font-family:DM Sans,sans-serif;border-radius:8px;transition:color 0.15s;">Cancel</button>'
     + '</div>';
   m.addEventListener('click', function(e) {
@@ -1538,6 +1565,7 @@ async function calSaveEvent() {
       if (isRecurringSeries && modalOccOriginal && !repeatChanged) {
         calOpenScopeChooser({
           verb: 'save',
+          isSegment: calIsForkedSegment(existing),
           onChoose: async function(scope) {
             try {
               if (scope === 'this') await applyThis();
@@ -1684,6 +1712,7 @@ async function calDeleteEvent(eventId, eventType, occOriginal) {
       && eventType !== 'coaching' && eventType !== 'brand_deal') {
     calOpenScopeChooser({
       verb: 'delete',
+      isSegment: calIsForkedSegment(event),
       onChoose: async function(scope) {
         try {
           if (scope === 'this') {
