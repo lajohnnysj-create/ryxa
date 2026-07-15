@@ -13,6 +13,12 @@
   // the cookie prompt from the app context, while the website keeps its banner
   // unchanged for real browser visitors.
   if (window.RyxaNative) return;
+  // Also suppress the banner on pages the app opened in Safari (app=1 in the
+  // URL, e.g. the pricing hand-off). Analytics are skipped on those loads too
+  // (site-nav.js), so there is genuinely nothing to consent to.
+  try {
+    if (new URLSearchParams(window.location.search).get('app') === '1') return;
+  } catch (e) { /* no URL access: fall through to normal behavior */ }
 
   var STORAGE_KEY = 'fts_cookie_consent';
   var CONSENT_VERSION = '1'; // bump to re-prompt if policy changes materially

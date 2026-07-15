@@ -165,6 +165,13 @@ window.ryxaLoadAnalytics = function() {
   // exactly as before.
   if (window.RyxaNative) return;
 
+  // Also never load analytics on pages the app opened in Safari (the pricing
+  // hand-off carries app=1). No analytics means no analytics cookies, which
+  // means the cookie banner has nothing to ask consent for on those loads.
+  try {
+    if (new URLSearchParams(window.location.search).get('app') === '1') return;
+  } catch (e) { /* no URL access: fall through to normal behavior */ }
+
   // Honor Global Privacy Control (CCPA/CPRA requirement).
   if (navigator.globalPrivacyControl === true) return;
 
