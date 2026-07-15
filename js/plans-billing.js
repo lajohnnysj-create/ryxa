@@ -250,11 +250,16 @@ function plansBillingRouteCheck() {
     document.querySelectorAll('[id^="tool-"]').forEach(function (t) {
       t.style.display = 'none';
     });
+    // Hide the dashboard topbar so the hero image flows to the very top.
+    document.body.classList.add('plans-billing-active');
     renderPlansBilling();
-    host.scrollIntoView({ block: 'start' });
-  } else if (wanted && !plansBillingAllowed()) {
-    // Non-admin trying the hash: strip it, render nothing.
-    try { history.replaceState(null, '', window.location.pathname); } catch (e) {}
+    window.scrollTo(0, 0);
+  } else {
+    // Leaving the page (or non-admin): restore the topbar and clear the view.
+    document.body.classList.remove('plans-billing-active');
+    if (wanted && !plansBillingAllowed()) {
+      try { history.replaceState(null, '', window.location.pathname); } catch (e) {}
+    }
     host.innerHTML = '';
     host.style.display = 'none';
   }
