@@ -1348,10 +1348,42 @@ async function calSaveEvent() {
 
       // ALL EVENTS: edit the rule row in place (the v1 path).
       var applyAll = async function() {
+        var seriesStartAt = startAt;
+        var seriesEndAt = endAt;
+
+        // For a recurring series, "All events" must keep the series ANCHOR
+        // (its original start date) so earlier occurrences aren't truncated.
+        // We keep the original calendar date but apply the NEW time-of-day and
+        // duration the user entered, so every occurrence, past and future,
+        // shifts to the new time. (When the user opened the series master
+        // rather than a specific occurrence, or changed the date field itself,
+        // startAt already carries the intended anchor and this is a no-op on
+        // the date.) modalOccOriginal is only set when a specific occurrence
+        // was tapped.
+        if (isRecurringSeries && modalOccOriginal) {
+          var origStart = new Date(existing.start_at);
+          var newStart = new Date(startAt);
+          var durMsAll = new Date(endAt).getTime() - new Date(startAt).getTime();
+          // Rebuild the anchor: original Y-M-D from the rule, H:M from the edit,
+          // as wall-clock in the event's timezone (matches how occurrences are
+          // computed, so no drift).
+          var tzAll = existing.timezone || calState.timezone
+            || Intl.DateTimeFormat().resolvedOptions().timeZone;
+          var anchorWall = calWallParts(origStart.getTime(), tzAll);
+          var editWall = calWallParts(newStart.getTime(), tzAll);
+          if (anchorWall && editWall) {
+            var anchorMs = calWallToInstant(
+              anchorWall.year, anchorWall.month, anchorWall.day,
+              editWall.hour, editWall.minute, tzAll);
+            seriesStartAt = new Date(anchorMs).toISOString();
+            seriesEndAt = new Date(anchorMs + Math.max(0, durMsAll)).toISOString();
+          }
+        }
+
         var updatePayload = {
           title: title,
-          start_at: startAt,
-          end_at: endAt,
+          start_at: seriesStartAt,
+          end_at: seriesEndAt,
           color: color,
           notes: notes || null
         };
@@ -1386,8 +1418,8 @@ async function calSaveEvent() {
         // per-occurrence exceptions (their original instants no longer match
         // real occurrences), so clear them. Value-only edits (title/color/
         // notes) keep exceptions intact.
-        var timeChanged = new Date(startAt).getTime() !== new Date(existing.start_at).getTime()
-          || new Date(endAt).getTime() !== new Date(existing.end_at).getTime();
+        var timeChanged = new Date(seriesStartAt).getTime() !== new Date(existing.start_at).getTime()
+          || new Date(seriesEndAt).getTime() !== new Date(existing.end_at).getTime();
         if (isRecurringSeries && (timeChanged || repeatChanged)) {
           await sb.from('calendar_event_exceptions').delete().eq('series_id', existing.series_id);
           calState.exceptions = (calState.exceptions || []).filter(function(x) {
