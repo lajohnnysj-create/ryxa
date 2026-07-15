@@ -52,7 +52,11 @@ var PLANS_BILLING_DATA = {
       'AI Chatbox',
       'Script Builder',
       'AI Thumbnail Analyzer',
-      'AI Contract Analyzer',
+      'AI Contract Analyzer'
+    ],
+    // Mirrors pricing.html: a divider + "Plus upgrades" subhead, then more.
+    upgradesHeader: 'Plus upgrades',
+    upgrades: [
       'Remove Ryxa branding',
       'Apply for a verified blue check',
       'Unlock Hero Link & Profile Picture for Link in Bio',
@@ -123,6 +127,18 @@ function plansBillingCard(key) {
       + plansBillingCheckIcon() + '</span><span>' + escapeHtml(f) + '</span></div>';
   }).join('');
 
+  // "Plus upgrades" section (Pro only), mirroring pricing.html: a divider, a
+  // subhead, then the additional features.
+  var upgradesHtml = '';
+  if (p.upgrades && p.upgrades.length) {
+    upgradesHtml = '<div class="pb-feature-divider"></div>'
+      + '<div class="pb-subhead">' + escapeHtml(p.upgradesHeader || 'Plus upgrades') + '</div>'
+      + p.upgrades.map(function (f) {
+          return '<div class="pb-feature"><span class="pb-check" style="color:' + p.accent + ';">'
+            + plansBillingCheckIcon() + '</span><span>' + escapeHtml(f) + '</span></div>';
+        }).join('');
+  }
+
   var subHtml = price.sub
     ? '<div class="pb-price-sub">' + escapeHtml(price.sub) + '</div>' : '';
 
@@ -170,7 +186,7 @@ function plansBillingCard(key) {
     + '<span class="pb-price-suffix">' + price.suffix + '</span></div>'
     + subHtml
     + '<div class="pb-divider"></div>'
-    + '<div class="pb-features">' + creditsHtml + everythingHtml + featuresHtml + '</div>'
+    + '<div class="pb-features">' + creditsHtml + everythingHtml + featuresHtml + upgradesHtml + '</div>'
     + btnHtml
     + disclosureHtml
     + '</div>';
@@ -277,19 +293,45 @@ function plansBillingCheckout(plan, btn) {
     }
 
     if (active && typeof showModalConfirm === 'function') {
-      var planName = plan === 'max' ? 'Ryxa Max' : 'Ryxa Pro';
-      var cycleLabel = plansBillingCycle === 'annual' ? 'billed yearly' : 'billed monthly';
+      // Mirror the pricing page's plan-change confirmation EXACTLY: a "Plan
+      // rate" box with the price, then the same hedged copy. Prices match
+      // pricing.html PLAN_PRICES.
+      var PB_PRICES = {
+        pro: { monthly: { amount: '$10', per: 'month' }, annual: { amount: '$100', per: 'year' } },
+        max: { monthly: { amount: '$24', per: 'month' }, annual: { amount: '$240', per: 'year' } }
+      };
+      var planName = plan === 'max' ? 'Creator Max' : 'Pro';
+      var cyc = plansBillingCycle;
+      var planLabel = planName + (cyc === 'annual' ? ' (Annual)' : ' (Monthly)');
+      var price = PB_PRICES[plan][cyc];
+      var messageHtml =
+        '<div style="background:#161625;border:1px solid rgba(255,255,255,0.08);'
+        + 'border-radius:10px;padding:14px 16px;margin-bottom:14px;">'
+        + '<div style="font-size:11px;letter-spacing:0.04em;text-transform:uppercase;'
+        + 'color:#9b99ad;margin-bottom:6px;">Plan rate</div>'
+        + '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;">'
+        + '<span style="color:#c8c6d8;">' + planName
+        + ' <span style="color:#9b99ad;">(' + (cyc === 'annual' ? 'billed yearly' : 'billed monthly') + ')</span></span>'
+        + '<strong style="color:#f0eef8;font-size:16px;white-space:nowrap;">'
+        + price.amount + ' / ' + price.per + '</strong>'
+        + '</div>'
+        + '</div>'
+        + '<p style="margin:0 0 8px;">You are switching to <strong style="color:#f0eef8;">'
+        + planLabel + '</strong>. If a payment is due, it will be charged to your card '
+        + 'on file, with any credit for unused time on your current plan applied '
+        + 'automatically. If you are eligible for a trial, or your change takes effect '
+        + 'at your next renewal, you may not be charged today.</p>'
+        + '<p style="margin:0;color:#9b99ad;font-size:13px;">Your plan and billing will '
+        + 'update to reflect this change. You can review the exact amount and date on '
+        + 'your receipt from Stripe.</p>';
+
       showModalConfirm(
-        'Switch to ' + planName + '?',
-        'You already have an active plan. Switching to ' + planName + ' (' + cycleLabel
-          + ') may charge your card on file today, with any credit for unused time applied '
-          + 'automatically. If your change takes effect at renewal, or you are eligible '
-          + 'for a trial, you may not be charged today. You can review the exact amount '
-          + 'and date on your receipt from Stripe.',
+        'Switch to ' + planLabel + '?',
+        messageHtml,
         function () { plansBillingStartCheckout(plan, btn); },
-        'Continue',
+        'Confirm switch',
         'Cancel',
-        { danger: false }
+        { danger: false, html: true }
       );
       return;
     }

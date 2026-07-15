@@ -1944,10 +1944,14 @@ function showModalConfirm(title, message, onConfirm, confirmText, cancelText, op
   var overlay = document.createElement('div');
   overlay.id = 'modal-confirm-overlay';
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;';
-  // Convert \n\n into paragraph breaks for cleaner formatting
-  var msgHtml = (message || 'Are you sure?').split(/\n\n+/).map(function(p) {
-    return '<p class="ds-s-f6f597">' + p.replace(/\n/g, '<br>') + '</p>';
-  }).join('');
+  // Convert \n\n into paragraph breaks for cleaner formatting. When
+  // opts.html is set, the caller supplies ready-made HTML (e.g. the plan-change
+  // confirmation with a price box) and we use it verbatim instead.
+  var msgHtml = opts.html
+    ? (message || '')
+    : (message || 'Are you sure?').split(/\n\n+/).map(function(p) {
+        return '<p class="ds-s-f6f597">' + p.replace(/\n/g, '<br>') + '</p>';
+      }).join('');
   // Optional brand logo at the top (opts.logo === true) for a more polished,
   // consistent look, matching the pricing modals. Existing callers that omit
   // opts are unchanged.
