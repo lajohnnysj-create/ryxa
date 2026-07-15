@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>Redirecting to checkout - Ryxa</title>
+<link rel="icon" href="/favicon.ico">
+<style>
+  :root { --bg:#07070f; --surface2:#161625; --border:rgba(255,255,255,0.07); --accent:#7c3aed; --text:#f0eef8; --muted:#b4b2c8; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html, body { height:100%; }
+  body {
+    background:var(--bg); color:var(--text);
+    font-family:"DM Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:18px; padding:24px; text-align:center;
+  }
+  .r-logo { width:60px; height:60px; }
+  .r-title { font-family:"Plus Jakarta Sans", sans-serif; font-size:17px; font-weight:600; }
+  .r-sub { font-size:13px; color:var(--muted); max-width:280px; line-height:1.5; }
+  .r-dots { display:flex; gap:7px; margin-top:2px; }
+  .r-dots span { width:9px; height:9px; border-radius:50%; background:var(--accent); animation:rd 1.2s infinite ease-in-out; }
+  .r-dots span:nth-child(2) { animation-delay:0.15s; }
+  .r-dots span:nth-child(3) { animation-delay:0.3s; }
+  @keyframes rd { 0%,80%,100% { transform:scale(0.6); opacity:0.4; } 40% { transform:scale(1); opacity:1; } }
+  .r-error { display:none; color:#fca5a5; font-size:13px; max-width:300px; line-height:1.5; }
+  .r-error.show { display:block; }
+  .r-dots.hide { display:none; }
+</style>
+</head>
+<body>
+  <img src="/logo.png?v=2" alt="Ryxa" class="r-logo">
+  <div class="r-title">Redirecting to secure checkout</div>
+  <div class="r-sub">Taking you to our secure payment page to complete your purchase.</div>
+  <div class="r-dots" id="r-dots"><span></span><span></span><span></span></div>
+  <div class="r-error" id="r-error"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+  (async function () {
+    var params = new URLSearchParams(window.location.search);
+    var plan = params.get('plan');
+    var cycle = params.get('cycle') === 'monthly' ? 'monthly' : 'annual';
+    var ticket = params.get('ticket');
+
+    var SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
+    var SUPABASE_ANON_KEY = 'sb_publishable_PLU28Un_GfsUXeUsK3zB9Q_hvNM7aeG';
+
+    var PRICE_IDS = {
+      pro: { monthly: 'price_1TIZ8pFQ1L0aeJrZEX1bQnUI', annual: 'price_1TWqaNFQ1L0aeJrZvUOPWHUy' },
+      max: { monthly: 'price_1TWqbvFQ1L0aeJrZB9ffRvyC', annual: 'price_1TWqctFQ1L0aeJrZJ3QdI3y5' }
+    };
+
+    function fail(msg) {
+      var d = document.getElementById('r-dots');
+      var e = document.getElementById('r-error');
+      if (d) d.classList.add('hide');
+      if (e) { e.textContent = msg; e.classList.add('show'); }
+    }
+
+    if (!plan || !PRICE_IDS[plan] || !PRICE_IDS[plan][cycle]) {
+      fail('Something went wrong preparing your checkout. Please go back to the app and try again.');
+      return;
+    }
+
+    // Minimum display so the interstitial reads as an intentional hand-off,
+    // not a flicker (matches the Apple-facing "clear you are leaving" intent).
+    var shownAt = Date.now();
+    function goAfterHold(url) {
+      var hold = Math.max(0, 1400 - (Date.now() - shownAt));
+      setTimeout(function () { window.location.replace(url); }, hold);
+    }
+
+    try {
+      var sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+      // Identity: a signed ticket (opened from the app) OR an existing web
+      // session. create-checkout-session verifies whichever is provided.
+      var userId = null;
+      if (!ticket) {
+        var sess = await sb.auth.getSession();
+        userId = sess && sess.data && sess.data.session ? sess.data.session.user.id : null;
+        if (!userId) {
+          fail('Please sign in again to continue to checkout.');
+          return;
+        }
+      }
+
+      var { data, error } = await sb.functions.invoke('create-checkout-session', {
+        body: {
+          priceId: PRICE_IDS[plan][cycle],
+          userId: userId,
+          ticket: ticket || null,
+          successUrl: window.location.origin + '/app-return.html?status=success',
+          cancelUrl: window.location.origin + '/app-return.html?status=cancelled'
+        }
+      });
+
+      if (error || !data || !data.url) {
+        fail('This checkout link may have expired. Please go back to the app and tap the plan again.');
+        return;
+      }
+      goAfterHold(data.url);
+    } catch (e) {
+      fail('Could not reach checkout. Please check your connection and try again from the app.');
+    }
+  })();
+  </script>
+</body>
+</html>
