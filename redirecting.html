@@ -43,6 +43,12 @@
     var plan = params.get('plan');
     var cycle = params.get('cycle') === 'monthly' ? 'monthly' : 'annual';
     var ticket = params.get('ticket');
+    // app=1 marks a checkout that started INSIDE the app (this page is now in
+    // Safari). It decides where Stripe returns to: app-return.html deep links
+    // back into the app; the web pages return to the dashboard/pricing. This
+    // must be explicit, window.RyxaNative is never present here (we are always
+    // in a browser), so we cannot infer it.
+    var fromApp = params.get('app') === '1';
 
     var SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
     var SUPABASE_ANON_KEY = 'sb_publishable_PLU28Un_GfsUXeUsK3zB9Q_hvNM7aeG';
@@ -92,8 +98,12 @@
           priceId: PRICE_IDS[plan][cycle],
           userId: userId,
           ticket: ticket || null,
-          successUrl: window.location.origin + '/app-return.html?status=success',
-          cancelUrl: window.location.origin + '/app-return.html?status=cancelled'
+          successUrl: fromApp
+            ? window.location.origin + '/app-return.html?status=success'
+            : window.location.origin + '/dashboard.html?payment=success',
+          cancelUrl: fromApp
+            ? window.location.origin + '/app-return.html?status=cancelled'
+            : window.location.origin + '/dashboard.html?payment=cancelled'
         }
       });
 
