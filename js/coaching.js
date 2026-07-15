@@ -955,7 +955,10 @@ function setCoachingTzHint() {
     ? 'Times shown in <strong>' + escapeHtml(label) + '</strong>. '
     : '')
     + 'Clients book in their own timezone, Ryxa converts automatically. '
-    + '<a href="#" data-dash-action="show-tool" data-dash-tool="calendar" class="coach-s-tz-link">Change in Calendar →</a>';
+    + '<a href="#" data-dash-action="show-tool" data-dash-tool="settings" data-dash-scroll-calendar="1" class="coach-s-tz-link">Change in Settings &rarr; Calendar</a>'
+    + '<br><br>'
+    + 'Block timeslots in between by adding repeating events in your Ryxa Calendar. '
+    + '<a href="/help/how-to-block-time-slots-in-1-1-bookings" target="_blank" rel="noopener" class="coach-s-tz-link">How to block time slots</a>';
 }
 
 function renderAvailabilityDays() {
