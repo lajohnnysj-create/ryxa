@@ -1185,34 +1185,52 @@ async function calReloadAfterMutation() {
 }
 
 // "This event / This and following / All events" chooser for edits and
-// deletes on recurring events. Sits above the event modal (z 10001 > 10000).
+// deletes on recurring events. Rather than stacking on top of the event modal
+// (double overlay, ambiguous focus), it HIDES the event modal while open and
+// restores it on cancel, so there's only ever one surface visible.
 function calOpenScopeChooser(opts) {
   var old = document.getElementById('cal-scope-modal');
   if (old) old.remove();
+
+  // Hide (don't remove) the event modal underneath, if present, so a cancel
+  // returns the user to their in-progress edit exactly as they left it.
+  var eventModal = document.getElementById('cal-event-modal');
+  if (eventModal) eventModal.style.display = 'none';
+  var restoreEventModal = function() {
+    var em = document.getElementById('cal-event-modal');
+    if (em) em.style.display = 'flex';
+  };
+
   var m = document.createElement('div');
   m.id = 'cal-scope-modal';
   m.style.cssText = 'position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;padding:12px;';
   var isDelete = opts.verb === 'delete';
   function btn(scope, label, desc) {
-    return '<button type="button" data-scope="' + scope + '" style="display:block;width:100%;text-align:left;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;cursor:pointer;color:var(--text);font-family:DM Sans,sans-serif;">'
+    return '<button type="button" data-scope="' + scope + '" class="cal-scope-btn" style="display:block;width:100%;text-align:left;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;cursor:pointer;color:var(--text);font-family:DM Sans,sans-serif;transition:border-color 0.15s, box-shadow 0.15s;">'
       + '<div style="font-size:14px;font-weight:600;">' + label + '</div>'
       + '<div style="font-size:12px;color:var(--muted);margin-top:2px;">' + desc + '</div></button>';
   }
   m.innerHTML = '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:18px;max-width:360px;width:100%;">'
-    + '<h3 style="margin:0 0 12px;font-size:16px;color:var(--text);font-family:Plus Jakarta Sans,sans-serif;">'
+    + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">'
+    + '<img src="/logo.png?v=2" alt="" style="width:32px;height:32px;display:block;flex-shrink:0;">'
+    + '<h3 style="margin:0;font-size:16px;color:var(--text);font-family:Plus Jakarta Sans,sans-serif;">'
     + (opts.title || (isDelete ? 'Delete repeating event' : 'Save changes to repeating event')) + '</h3>'
+    + '</div>'
     + btn('this', 'This event', isDelete ? 'Only this occurrence is removed.' : 'Only this occurrence changes.')
     + btn('following', 'This and following events', (isDelete ? 'Removes' : 'Changes') + ' this occurrence and everything after it.')
     + btn('all', 'All events', 'The entire series, past and future.')
-    + '<button type="button" data-scope="cancel" style="display:block;width:100%;background:none;border:none;color:var(--muted);font-size:13px;padding:8px;cursor:pointer;font-family:DM Sans,sans-serif;">Cancel</button>'
+    + '<button type="button" data-scope="cancel" class="cal-scope-cancel" style="display:block;width:100%;background:none;border:none;color:var(--muted);font-size:13px;padding:8px;cursor:pointer;font-family:DM Sans,sans-serif;border-radius:8px;transition:color 0.15s;">Cancel</button>'
     + '</div>';
   m.addEventListener('click', function(e) {
-    if (e.target === m) { m.remove(); return; }
+    if (e.target === m) { m.remove(); restoreEventModal(); return; }
     var b = e.target.closest ? e.target.closest('button[data-scope]') : null;
     if (!b) return;
     var scope = b.dataset.scope;
     m.remove();
-    if (scope !== 'cancel') opts.onChoose(scope);
+    if (scope === 'cancel') { restoreEventModal(); return; }
+    // A real scope was chosen: the event modal is removed by the apply path
+    // (finishInModal), so we do NOT restore it here.
+    opts.onChoose(scope);
   });
   document.body.appendChild(m);
 }
