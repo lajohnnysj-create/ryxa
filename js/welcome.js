@@ -190,17 +190,89 @@ async function loadUpcomingEvents() {
   var futureEnd = new Date(endOfDayInTz(addDays(todayInTz(tz), days - 1), tz));
 
   try {
-    var { data: events, error } = await sb.from('calendar_events')
-      .select('id, title, start_at, end_at, event_type, color, notes')
-      .eq('creator_id', currentUser.id)
-      .gte('start_at', now.toISOString())
-      .lte('start_at', futureEnd.toISOString())
-      .order('start_at', { ascending: true });
-
-    if (error) {
+    // Recurring events are stored as ONE rule row (start_at = series anchor),
+    // so a raw start_at window misses every occurrence except the anchor. We
+    // fetch the rules + per-occurrence exceptions and expand them into concrete
+    // occurrences across the window using the same engine the calendar uses
+    // (calOccurrencesOnDay / exceptions), so recurring events, split-series
+    // rows, and overrides all appear here exactly as they do on the calendar.
+    var evRes = await sb.from('calendar_events')
+      .select('id, title, start_at, end_at, event_type, color, notes, timezone, series_id, recurrence_freq, recurrence_interval, recurrence_until, recurrence_count')
+      .eq('creator_id', currentUser.id);
+    if (evRes.error) {
       listEl.innerHTML = '<div class="welcome-s-077293">Could not load events</div>';
       return;
     }
+    var allEvents = evRes.data || [];
+
+    var exList = [];
+    try {
+      var exRes = await sb.from('calendar_event_exceptions')
+        .select('*')
+        .eq('creator_id', currentUser.id);
+      if (!exRes.error) exList = exRes.data || [];
+    } catch (e) { /* exceptions table may not exist yet; treat as none */ }
+
+    // Expand occurrences using the calendar's engine when available (shared
+    // globals from calendar.js). Fall back to raw rows if for some reason the
+    // engine isn't present, so this widget never hard-fails.
+    var windowStartMs = now.getTime();
+    var windowEndMs = futureEnd.getTime();
+    var events;
+    if (typeof calOccurrencesOnDay === 'function') {
+      // Point the shared engine at THIS widget's data (calState may be empty if
+      // the calendar tab was never opened). Save/restore so we don't disturb
+      // the calendar's own state if it is loaded.
+      var prevEvents = calState.events, prevExc = calState.exceptions;
+      calState.events = allEvents;
+      calState.exceptions = exList;
+      try {
+        var occurrences = [];
+        allEvents.forEach(function (ev) {
+          calOccurrencesOnDay(ev, windowStartMs, windowEndMs).forEach(function (o) {
+            // Drop skipped/overridden originals; overrides re-emitted below.
+            if (ev.recurrence_freq && ev.series_id) {
+              var skipHit = exList.some(function (x) {
+                return x.series_id === ev.series_id
+                  && new Date(x.original_start_at).getTime() === o.startMs;
+              });
+              if (skipHit) return;
+            }
+            occurrences.push(Object.assign({}, ev, {
+              start_at: new Date(o.startMs).toISOString(),
+              end_at: new Date(o.endMs).toISOString()
+            }));
+          });
+        });
+        // Overridden occurrences appear at their NEW time if it lands in-window.
+        exList.forEach(function (x) {
+          if (x.exception_type !== 'override' || !x.new_start_at) return;
+          var ns = new Date(x.new_start_at).getTime();
+          if (ns < windowStartMs || ns > windowEndMs) return;
+          var master = allEvents.find(function (m) { return m.series_id === x.series_id; });
+          if (!master) return;
+          occurrences.push(Object.assign({}, master, {
+            start_at: x.new_start_at,
+            end_at: x.new_end_at || master.end_at,
+            title: x.new_title != null ? x.new_title : master.title,
+            color: x.new_color != null ? x.new_color : master.color,
+            notes: x.new_notes != null ? x.new_notes : master.notes
+          }));
+        });
+        events = occurrences;
+      } finally {
+        calState.events = prevEvents;
+        calState.exceptions = prevExc;
+      }
+    } else {
+      // Engine unavailable: raw window filter (legacy behavior).
+      events = allEvents.filter(function (e) {
+        var s = new Date(e.start_at).getTime();
+        return s >= windowStartMs && s <= windowEndMs;
+      });
+    }
+
+    events.sort(function (a, b) { return new Date(a.start_at) - new Date(b.start_at); });
 
     if (!events || events.length === 0) {
       // "the next 1 days" once Today became selectable. A one-day window is
