@@ -736,7 +736,7 @@ function isFromApp() {
     var ov = document.getElementById('app-redirect-overlay');
     if (!ov || !ov.classList.contains('visible')) return;
     var shownAt = window.__ryxaRedirShownAt || 0;
-    var hold = Math.max(0, 600 - (Date.now() - shownAt));
+    var hold = Math.max(0, 1500 - (Date.now() - shownAt));
     setTimeout(function () {
       ov.classList.add('fading');
       setTimeout(function () { ov.classList.remove('visible', 'fading'); }, 300);
