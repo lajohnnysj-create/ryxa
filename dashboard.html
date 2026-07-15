@@ -5643,7 +5643,13 @@
   .cal-s-249433 { width:100%;padding:12px;background:var(--accent);border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;transition:all 0.15s; }
   .cal-scope-btn:hover { border-color: var(--accent) !important; box-shadow: 0 0 0 1px var(--accent); }
   /* ---- Plans & Billing page (gated) ---- */
-  #plans-billing-view { max-width: 900px; margin: 0 auto; }
+  /* When active, hide the dashboard topbar so the hero image flows to the very
+     top of the content area, and drop the tool-area padding so the hero bleeds
+     full-width to the top and edges. The negative-margin variants override the
+     responsive .tool-area padding rules (which use !important). */
+  body.plans-billing-active .topbar { display: none !important; }
+  body.plans-billing-active .tool-area { padding: 0 !important; max-width: none !important; }
+  #plans-billing-view { width: 100%; margin: 0 auto; }
   .pb-hero { position: relative; width: 100%; height: 300px; overflow: hidden; }
   .pb-hero-img { width: 100%; height: 100%; object-fit: cover; object-position: center 20%; display: block; }
   .pb-hero-fade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(7,7,15,0.15) 0%, rgba(7,7,15,0.05) 45%, var(--bg) 100%); pointer-events: none; }
@@ -5652,7 +5658,7 @@
   .pb-hero-logo { width: 34px; height: 34px; display: block; }
   .pb-hero-brand span { font-family: "Plus Jakarta Sans", sans-serif; font-weight: 700; font-size: 20px; color: #fff; text-shadow: 0 1px 8px rgba(0,0,0,0.4); }
   .pb-hero-tag { font-family: "Plus Jakarta Sans", sans-serif; font-weight: 700; font-size: 18px; background: linear-gradient(135deg,#a78bfa,#e879f9); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 0.5px; }
-  .pb-body { padding: 8px 28px 60px; }
+  .pb-body { padding: 8px 28px 60px; max-width: 900px; margin: 0 auto; }
   .pb-title { font-family: "Plus Jakarta Sans", sans-serif; font-weight: 800; font-size: 30px; line-height: 1.15; color: var(--text); margin: 8px 0 34px; letter-spacing: -0.5px; }
   .pb-section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; flex-wrap: wrap; gap: 12px; }
   .pb-section-head h2 { font-family: "Plus Jakarta Sans", sans-serif; font-weight: 700; font-size: 22px; color: var(--text); margin: 0; }
