@@ -174,7 +174,6 @@ function plansBillingCard(key) {
   var userCycle = plansBillingUserCycle();
   var btnLabel = defaultLabel;
   var btnDisabled = false;
-  var isCurrentBadge = '';
   var showDisclosure = true;
 
   if (userKey) {
@@ -182,7 +181,6 @@ function plansBillingCard(key) {
       btnLabel = 'Current plan';
       btnDisabled = true;
       showDisclosure = false;
-      isCurrentBadge = '<div class="pb-current-badge">Your plan</div>';
     } else if (userKey === key) {
       btnLabel = plansBillingCycle === 'annual' ? 'Switch to annual billing' : 'Switch to monthly billing';
     } else if (key === 'max') {
@@ -197,17 +195,27 @@ function plansBillingCard(key) {
     : '<button class="pb-cta pb-cta-' + key + '" data-plans-action="checkout" data-plan="' + key + '">'
         + escapeHtml(btnLabel) + plansBillingExtIcon() + '</button>';
 
+  // The "taken to our website" line is an Apple link-out disclosure: it only
+  // applies inside the app, where tapping actually leaves to Safari. On web
+  // the button is normal navigation, so only the billing disclosure shows.
+  var inAppUI = !!(window.RyxaNative && window.ReactNativeWebView);
   var disclosureHtml = (btnDisabled || !showDisclosure) ? ''
     : '<div class="pb-disclosure">' + escapeHtml(disclosureText) + '</div>'
-      + '<div class="pb-disclosure pb-disclosure-ext">By clicking this button you\'ll be taken to our website.</div>';
+      + (inAppUI ? '<div class="pb-disclosure pb-disclosure-ext">By clicking this button you\'ll be taken to our website.</div>' : '');
 
-  var badgeHtml = (key === 'max' && p.badge)
-    ? '<div class="pb-plan-badge">' + escapeHtml(p.badge) + '</div>' : '';
+  // Floating pills (pricing-style, absolutely positioned so they take no
+  // space). When this card is the current plan, "Your plan" replaces the
+  // marketing badge so the two never overlap.
+  var pillHtml = '';
+  if (btnDisabled) {
+    pillHtml = '<div class="pb-float-pill pb-pill-current">Your plan</div>';
+  } else if (key === 'max' && p.badge) {
+    pillHtml = '<div class="pb-float-pill pb-pill-max">' + escapeHtml(p.badge) + '</div>';
+  }
 
   return '<div class="pb-card' + (key === 'max' ? ' pb-card-max' : '')
     + (btnDisabled ? ' pb-card-current' : '') + '">'
-    + isCurrentBadge
-    + badgeHtml
+    + pillHtml
     + '<div class="pb-card-head">'
     + '<img src="/logo.png?v=2" alt="" class="pb-card-logo">'
     + '<span class="pb-card-brand">Ryxa</span>'
@@ -241,10 +249,6 @@ function renderPlansBilling() {
     '<div class="pb-hero">'
     + '<img src="/ryxamodel.webp" alt="" class="pb-hero-img">'
     + '<div class="pb-hero-fade"></div>'
-    + '<div class="pb-hero-row">'
-    + '<div class="pb-hero-brand"><img src="/logo.png?v=2" alt="Ryxa" class="pb-hero-logo"><span>Ryxa</span></div>'
-    + '<div class="pb-hero-tag">Max</div>'
-    + '</div>'
     + '</div>'
     + '<div class="pb-body">'
     + '<h1 class="pb-title">Get more out of your creator business with Ryxa Pro or Max.</h1>'
