@@ -734,12 +734,29 @@ function isFromApp() {
   // moment instead of a flicker.
   (function hideRedirectOverlay() {
     var ov = document.getElementById('app-redirect-overlay');
-    if (!ov || !ov.classList.contains('visible')) return;
+    if (!ov || !ov.classList.contains('visible')) {
+      // No overlay: let any waiting highlight scroll proceed immediately.
+      window.__ryxaRedirDone = true;
+      if (typeof window.__ryxaOnRedirDone === 'function') window.__ryxaOnRedirDone();
+      return;
+    }
     var shownAt = window.__ryxaRedirShownAt || 0;
-    var hold = Math.max(0, 1500 - (Date.now() - shownAt));
+    var hold = Math.max(0, 2500 - (Date.now() - shownAt));
     setTimeout(function () {
       ov.classList.add('fading');
-      setTimeout(function () { ov.classList.remove('visible', 'fading'); }, 300);
+      setTimeout(function () {
+        ov.classList.remove('visible', 'fading');
+        // Release the scroll lock set when the overlay appeared, THEN run the
+        // deferred highlight scroll so it happens on a clean, unlocked page
+        // with no fixed overlay to detach.
+        if (window.__ryxaRedirScrollLock) {
+          document.documentElement.style.overflow = '';
+          document.body.style.overflow = '';
+          window.__ryxaRedirScrollLock = false;
+        }
+        window.__ryxaRedirDone = true;
+        if (typeof window.__ryxaOnRedirDone === 'function') window.__ryxaOnRedirDone();
+      }, 300);
     }, hold);
   })();
 })();
@@ -845,6 +862,21 @@ window.addEventListener('pageshow', function(e) {
   }
 
   // The back bar is injected by native-app.js, which is also deferred. Wait a
-  // frame so its height is measurable before we compute the offset.
-  requestAnimationFrame(function () { requestAnimationFrame(run); });
+  // frame so its height is measurable before we compute the offset. Also wait
+  // for the redirect overlay (app=1 hand-off) to finish, otherwise the scroll
+  // happens under a fixed overlay that iOS Safari detaches mid-scroll. If no
+  // overlay is in play, __ryxaRedirDone is set true immediately by the hide
+  // routine, so this runs right away as before.
+  function startWhenReady() {
+    requestAnimationFrame(function () { requestAnimationFrame(run); });
+  }
+  if (window.__ryxaRedirDone) {
+    startWhenReady();
+  } else {
+    window.__ryxaOnRedirDone = startWhenReady;
+    // Safety: never strand the highlight if the overlay callback never fires.
+    setTimeout(function () {
+      if (!window.__ryxaRedirDone) { window.__ryxaRedirDone = true; startWhenReady(); }
+    }, 4000);
+  }
 })();

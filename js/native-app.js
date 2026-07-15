@@ -46,6 +46,13 @@
       if (redir) {
         redir.classList.add('visible');
         window.__ryxaRedirShownAt = Date.now();
+        // Lock scrolling while the overlay covers the page. Without this, the
+        // highlight auto-scroll runs underneath and iOS Safari visually
+        // detaches the fixed overlay mid-scroll, revealing the page behind it.
+        // pricing-page.js releases this when it hides the overlay.
+        window.__ryxaRedirScrollLock = true;
+        document.documentElement.style.overflow = 'hidden';
+        document.body.style.overflow = 'hidden';
       }
       var header = document.getElementById('site-header');
       if (header) header.style.display = 'none';
