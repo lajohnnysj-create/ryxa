@@ -2670,10 +2670,14 @@ async function mintPricingTicketThenOpen(query) {
       }
       var next = el.nextElementSibling;
       if (!(next && next.classList && next.classList.contains('ryxa-ext-note'))) {
+        // Pull the button's own bottom margin off so the disclosure sits
+        // directly under it (button -> text -> space), not (button -> space
+        // -> text). The gap goes below the note instead.
+        el.style.marginBottom = '0';
         var div = document.createElement('div');
         div.className = 'ryxa-ext-note';
         div.textContent = note;
-        div.style.cssText = 'font-size:11px;color:var(--muted);margin:6px 0 2px;line-height:1.4;';
+        div.style.cssText = 'font-size:11px;color:var(--muted);margin:4px 0 16px;line-height:1.4;';
         if (el.parentNode) el.parentNode.insertBefore(div, el.nextSibling);
       }
     }

@@ -259,7 +259,8 @@ function openPricingPage() {
 async function handleManageBilling() {
   const btn = document.getElementById('settings-manage-billing-btn');
   const orig = btn ? btn.textContent : '';
-  if (btn) { btn.disabled = true; btn.textContent = 'Opening...'; }
+  var inApp = !!(window.RyxaNative && window.ReactNativeWebView);
+  if (btn) { btn.disabled = true; btn.textContent = 'Redirecting to website...'; }
   try {
     const { data: { session } } = await sb.auth.getSession();
     if (!session) { showSettingsResult('error', 'Please sign in again.'); if (btn) { btn.disabled = false; btn.textContent = orig; } return; }
@@ -269,7 +270,17 @@ async function handleManageBilling() {
       body: JSON.stringify({})
     });
     const data = await res.json().catch(() => ({}));
-    if (res.ok && data.url) { window.location.href = data.url; return; }
+    if (res.ok && data.url) {
+      window.location.href = data.url;
+      // In the app, the native layer intercepts the billing URL and opens it in
+      // Safari, so THIS WebView never navigates away, the button would stay
+      // stuck. Reset it shortly after handing off so it's usable when the user
+      // returns from Safari.
+      if (inApp && btn) {
+        setTimeout(function () { btn.disabled = false; btn.textContent = orig; }, 1500);
+      }
+      return;
+    }
     showSettingsResult('error', 'Could not open billing. Please try again.');
     if (btn) { btn.disabled = false; btn.textContent = orig; }
   } catch (e) {
@@ -2001,7 +2012,19 @@ settingsRegisterAction('change-currency', (e, el) => changeDisplayCurrency(el.va
 
 // Subscription / Upgrade flows
 // "Upgrade Now" (free) and "Change Plan" (paid) both route to the pricing page.
-settingsRegisterAction('open-pricing', () => openPricingPage());
+settingsRegisterAction('open-pricing', (e, el) => {
+  // In-app, pricing opens in Safari via a minted ticket (async), so the
+  // button would sit unlabeled during the hand-off and then stuck (this
+  // WebView never navigates away). Show "Redirecting to website..." and reset
+  // shortly after, since the user returns to this same page from Safari.
+  if (el && window.RyxaNative && window.ReactNativeWebView) {
+    var orig = el.textContent;
+    el.disabled = true;
+    el.textContent = 'Redirecting to website...';
+    setTimeout(function () { el.disabled = false; el.textContent = orig; }, 1500);
+  }
+  openPricingPage();
+});
 settingsRegisterAction('manage-billing', () => handleManageBilling());
 settingsRegisterAction('handle-cancel', () => handleSettingsCancel());
 settingsRegisterAction('confirm-cancel', () => confirmSettingsCancel());
