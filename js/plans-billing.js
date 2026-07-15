@@ -199,9 +199,16 @@ function plansBillingCard(key) {
   // applies inside the app, where tapping actually leaves to Safari. On web
   // the button is normal navigation, so only the billing disclosure shows.
   var inAppUI = !!(window.RyxaNative && window.ReactNativeWebView);
-  var disclosureHtml = (btnDisabled || !showDisclosure) ? ''
-    : '<div class="pb-disclosure">' + escapeHtml(disclosureText) + '</div>'
+  var disclosureHtml;
+  if (btnDisabled) {
+    // Matches the other card's disclosure style so the two buttons bottom-align.
+    disclosureHtml = '<div class="pb-disclosure">You are currently on this plan.</div>';
+  } else if (!showDisclosure) {
+    disclosureHtml = '';
+  } else {
+    disclosureHtml = '<div class="pb-disclosure">' + escapeHtml(disclosureText) + '</div>'
       + (inAppUI ? '<div class="pb-disclosure pb-disclosure-ext">By clicking this button you\'ll be taken to our website.</div>' : '');
+  }
 
   // Floating pills (pricing-style, absolutely positioned so they take no
   // space). When this card is the current plan, "Your plan" replaces the
