@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="shortcut icon" href="/favicon.ico">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How to Block Time Slots in 1:1 Bookings. Ryxa</title>
+<meta name="description" content="Use your Ryxa Calendar to block off times so clients cannot book them in your 1:1 booking services, including recurring blocks like lunch breaks or standing commitments.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://www.ryxa.io/help/how-to-block-time-slots-in-1-1-bookings">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.ryxa.io/help/how-to-block-time-slots-in-1-1-bookings">
+<meta property="og:title" content="How to Block Time Slots in 1:1 Bookings. Ryxa">
+<meta property="og:description" content="Block off times in your Ryxa Calendar so they disappear from your 1:1 booking availability. Covers one-off and recurring blocks.">
+<meta property="og:image" content="https://www.ryxa.io/og-image.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #07070f; --surface: #0f0f1a; --surface2: #161625;
+    --border: rgba(255,255,255,0.07); --border-hover: rgba(255,255,255,0.14);
+    --accent: #7c3aed; --accent2: #a855f7; --accent-glow: rgba(124,58,237,0.3);
+    --text: #f0eef8; --muted: #b4b2c8; --muted2: #c9c7dc;
+    --page-bg: #f5f5f7; --doc-text: #1d1d29; --doc-muted: #5b5b6b;
+    --doc-border: #e3e3ea; --doc-surface: #ffffff;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scrollbar-width: thin; scrollbar-color: rgba(168,85,247,0.4) #e3e3ea; }
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: #e3e3ea; }
+  ::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.4); border-radius: 4px; }
+  body {
+    font-family: "DM Sans", sans-serif;
+    background: var(--page-bg);
+    color: var(--doc-text);
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+  #site-footer { background: #07070f; color: #f0eef8; }
+
+  .doc-wrap { max-width: 820px; margin: 0 auto; padding: 96px 24px 96px; }
+
+  .doc-breadcrumb {
+    font-size: 13px; font-weight: 500; color: var(--doc-muted);
+    margin-bottom: 28px;
+  }
+  .doc-breadcrumb a { color: var(--accent); text-decoration: none; }
+  .doc-breadcrumb a:hover { text-decoration: underline; }
+
+  .doc-eyebrow {
+    display: inline-block;
+    font-size: 12px; font-weight: 700; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--accent);
+    margin-bottom: 14px;
+  }
+  .doc-title {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-size: 40px; font-weight: 800; letter-spacing: -1px;
+    line-height: 1.15; color: var(--doc-text);
+    margin-bottom: 24px;
+  }
+
+  .doc-intro {
+    font-size: 16px; line-height: 1.7; color: var(--doc-text);
+    background: var(--doc-surface);
+    border: 1px solid var(--doc-border);
+    border-radius: 14px; padding: 24px 28px; margin-bottom: 32px;
+  }
+  .doc-intro p + p { margin-top: 12px; }
+
+  .doc-section { margin-bottom: 38px; }
+  .doc-section h2 {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-size: 22px; font-weight: 800; letter-spacing: -0.3px;
+    color: var(--doc-text); margin-bottom: 12px;
+    padding-bottom: 10px; border-bottom: 2px solid var(--doc-border);
+  }
+  .doc-section h3 {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-size: 17px; font-weight: 800; letter-spacing: -0.2px;
+    color: var(--doc-text); margin: 20px 0 8px;
+  }
+  .doc-section p {
+    font-size: 15.5px; line-height: 1.72; color: var(--doc-text);
+    margin-bottom: 12px;
+  }
+  .doc-section ol { margin: 8px 0 14px; padding-left: 22px; }
+  .doc-section ul { margin: 4px 0 14px; padding-left: 22px; }
+  .doc-section li {
+    font-size: 15.5px; line-height: 1.65; color: var(--doc-text);
+    margin-bottom: 9px;
+  }
+  .doc-section a { color: var(--accent); text-decoration: none; }
+  .doc-section a:hover { text-decoration: underline; }
+  .doc-section code {
+    background: #f0eef8;
+    color: var(--doc-text);
+    padding: 2px 7px;
+    border-radius: 5px;
+    font-family: "SF Mono", Menlo, Monaco, Consolas, "Courier New", monospace;
+    font-size: 14px;
+  }
+
+  .doc-callout {
+    background: var(--doc-surface);
+    border: 1px solid var(--doc-border);
+    border-left: 3px solid var(--accent);
+    border-radius: 10px; padding: 18px 22px; margin: 16px 0;
+  }
+  .doc-callout p { margin-bottom: 8px; }
+  .doc-callout p:last-child { margin-bottom: 0; }
+  .doc-callout strong { color: var(--doc-text); }
+
+  .doc-callout-warn {
+    border-left-color: #d97706;
+  }
+
+  .doc-help {
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    border-radius: 16px; padding: 30px 32px; margin-top: 48px;
+    color: #fff;
+  }
+  .doc-help h2 {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-size: 21px; font-weight: 800; color: #fff; margin-bottom: 10px;
+  }
+  .doc-help p { font-size: 15px; line-height: 1.65; color: rgba(255,255,255,0.92); margin-bottom: 14px; }
+  .doc-help a.help-btn {
+    display: inline-block;
+    background: #fff; color: #7c3aed;
+    font-weight: 700; font-size: 15px;
+    padding: 11px 22px; border-radius: 10px; text-decoration: none;
+  }
+  .doc-help a.help-btn:hover { background: #f0eef8; }
+
+  @media (max-width: 640px) {
+    .doc-wrap { padding: 84px 18px 72px; }
+    .doc-title { font-size: 30px; }
+    .doc-section h2 { font-size: 19px; }
+  }
+</style>
+
+</style>
+</head>
+<body>
+
+<div id="site-header" data-page="help"></div>
+
+<main class="doc-wrap">
+
+  <div class="doc-breadcrumb" role="navigation" aria-label="Breadcrumb">
+    <a href="/help">Help Center</a> &rsaquo; Bookings &rsaquo; How to Block Time Slots in 1:1 Bookings
+  </div>
+
+  <span class="doc-eyebrow">Bookings</span>
+  <h1 class="doc-title">How to Block Time Slots in 1:1 Bookings</h1>
+
+  <div class="doc-intro">
+    <p>Your 1:1 booking availability is built from two things: the weekly hours you set on the booking service, and your Ryxa Calendar. Any event on your calendar automatically removes that time from the slots clients can book, so you never get double-booked over something you already have scheduled.</p>
+    <p>That means the simplest way to block a time slot is to add an event to your calendar for it. Clients see fewer available slots, but they never see what the event is.</p>
+  </div>
+
+  <div class="doc-callout">
+    <p><strong>Your clients only see open and unavailable.</strong> When you block time with a calendar event, bookers just see that slot as taken. The event title, notes, and details are never shown to them.</p>
+  </div>
+
+  <section class="doc-section">
+    <h2>Block a one-time slot</h2>
+    <p>Use this when you want to make yourself unavailable for a specific date and time, for example, an afternoon off next Tuesday.</p>
+    <ol>
+      <li>Open your <strong>Ryxa dashboard</strong> and go to <strong>Calendar</strong>.</li>
+      <li>Click <strong>Add Event</strong>.</li>
+      <li>Give it a title (only you will see it, so name it whatever helps you, like <em>Lunch</em> or <em>Blocked</em>).</li>
+      <li>Set the <strong>date</strong>, <strong>start time</strong>, and <strong>end time</strong> for the period you want to block.</li>
+      <li>Click <strong>Save Event</strong>.</li>
+    </ol>
+    <p>That time will immediately drop out of your 1:1 booking availability for that date.</p>
+  </section>
+
+  <section class="doc-section">
+    <h2>Block a recurring slot</h2>
+    <p>Use this for times you are regularly unavailable, a daily lunch break, a standing meeting every Tuesday, or a weekly commitment. Instead of adding the same block over and over, you create it once as a repeating event.</p>
+    <ol>
+      <li>In <strong>Calendar</strong>, click <strong>Add Event</strong>.</li>
+      <li>Set the title, date, start time, and end time for the first occurrence.</li>
+      <li>Under <strong>Repeat</strong>, choose how often it repeats: <strong>Daily</strong>, <strong>Weekly</strong>, <strong>Monthly</strong>, or <strong>Yearly</strong>.</li>
+      <li>Under <strong>Ends</strong>, choose when the repeat should stop:
+        <ul>
+          <li><strong>Never</strong>, the block repeats indefinitely.</li>
+          <li><strong>On date</strong>, the block repeats until a date you pick.</li>
+          <li><strong>After # of times</strong>, the block repeats a set number of times.</li>
+        </ul>
+      </li>
+      <li>Click <strong>Save Event</strong>.</li>
+    </ol>
+    <p>Every occurrence of that repeating event blocks its time slot automatically, so a "Lunch, every weekday, 12:00 to 1:00 PM" event keeps that hour off your booking calendar going forward without any extra work.</p>
+  </section>
+
+  <section class="doc-section">
+    <h2>Change or remove one occurrence of a recurring block</h2>
+    <p>Sometimes you want to keep a recurring block but adjust a single day, for example, your usual Tuesday block moves an hour this week, or you want to reopen one specific lunch. When you edit or delete a repeating event, Ryxa asks how far the change should reach:</p>
+    <ul>
+      <li><strong>This event</strong>, changes or removes only the occurrence you picked. The rest of the series stays the same.</li>
+      <li><strong>This and following events</strong>, changes or removes that occurrence and every one after it, leaving earlier ones untouched.</li>
+      <li><strong>All events</strong>, applies to the whole repeating series.</li>
+    </ul>
+    <p>To reopen a single blocked slot, open that occurrence, choose <strong>Delete</strong>, and pick <strong>This event</strong>. That one slot becomes bookable again while the rest of your recurring block stays in place.</p>
+  </section>
+
+  <section class="doc-section">
+    <h2>A note on time zones</h2>
+    <p>Your calendar and your booking availability both run on the calendar time zone set in <strong>Settings &rsaquo; Calendar</strong>. Clients always book in their own local time zone, and Ryxa converts between the two automatically, so a block you set for 12:00 PM your time correctly removes the matching moment for a client in another time zone. If your blocks ever look an hour off, check that your calendar time zone in Settings matches where you actually are.</p>
+  </section>
+
+  <div class="doc-help">
+    <p>Still stuck? <a href="/help">Visit the Help Center</a> or reach out and we will help you get your availability set up.</p>
+  </div>
+
+</main>
+
+<div id="site-footer"></div>
+
+<script src="/site-nav.js"></script>
+</body>
+</html>
