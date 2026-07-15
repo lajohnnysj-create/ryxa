@@ -20,6 +20,12 @@ const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 const RETURN_URL = 'https://ryxa.io/dashboard.html';
+// When the portal was opened from inside the app (Safari), the "Return" link
+// must deep link back into the app, not land on the web dashboard. The client
+// sends a boolean fromApp flag; we pick between two HARD-CODED urls here rather
+// than accepting a client-supplied return_url, so this can't become an open
+// redirect.
+const RETURN_URL_APP = 'https://ryxa.io/app-return.html?status=billing';
 
 async function verifySupabaseUser(accessToken) {
   if (!accessToken) return null;
@@ -75,10 +81,11 @@ module.exports = async function handler(req, res) {
     let body = req.body;
     if (typeof body === 'string') { try { body = JSON.parse(body); } catch (e) { body = {}; } }
     const flow = body && body.flow;
+    const fromApp = !!(body && body.fromApp);
 
     const params = new URLSearchParams();
     params.set('customer', customerId);
-    params.set('return_url', RETURN_URL);
+    params.set('return_url', fromApp ? RETURN_URL_APP : RETURN_URL);
     // Optional deep-link straight to the update or cancel screen.
     if (flow === 'update') {
       params.set('flow_data[type]', 'subscription_update');
