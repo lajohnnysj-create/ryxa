@@ -33,7 +33,9 @@ function plansBillingAllowed() {
 
 // Plan data mirrors pricing.html (kept in sync manually). Prices shown per the
 // selected cycle; annual shows the effective monthly rate plus the billed
-// total, matching the pricing page.
+// total, matching the pricing page. Features mirror the pricing page's
+// structure exactly: a bold "AI credits" line with a sparkle icon first, then
+// a bold "Everything in X" header, then the checkmark feature list.
 var PLANS_BILLING_DATA = {
   pro: {
     name: 'Pro',
@@ -41,9 +43,9 @@ var PLANS_BILLING_DATA = {
     tagline: 'For creators ready to take control of their branding.',
     monthly: { big: '$10', suffix: '/ month', sub: '' },
     annual:  { big: '$8.33', suffix: '/ month', sub: '$100 billed annually' },
+    credits: '40 daily AI credits',
+    everythingIn: 'Everything in Free',
     features: [
-      '40 daily AI credits',
-      'Everything in Free',
       'Media Kit with Daily Updating',
       'Analytics for Link in Bio',
       'Follow-Back Audit with Full List',
@@ -66,9 +68,9 @@ var PLANS_BILLING_DATA = {
     tagline: 'For creators ready to sell and scale.',
     monthly: { big: '$24', suffix: '/ month', sub: '' },
     annual:  { big: '$20', suffix: '/ month', sub: '$240 billed annually' },
+    credits: '85 daily AI credits',
+    everythingIn: 'Everything in Pro',
     features: [
-      '85 daily AI credits',
-      'Everything in Pro',
       'Sell Courses with Video Hosting',
       'Sell 1:1 Sessions',
       'Sell Digital Products',
@@ -89,9 +91,33 @@ function plansBillingExtIcon() {
   return '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-left:7px;vertical-align:-2px;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>';
 }
 
+// Map the dashboard's tier value to a plan key. userTier is 'free' |
+// 'monthly' (= Pro) | 'max'. Returns 'pro' | 'max' | null.
+function plansBillingUserPlanKey() {
+  var t = (typeof userTier !== 'undefined') ? userTier : 'free';
+  if (t === 'monthly') return 'pro';
+  if (t === 'max') return 'max';
+  return null;
+}
+
+function plansBillingUserCycle() {
+  // userBillingCycle is 'monthly' | 'annual' on the dashboard. Our toggle uses
+  // 'monthly' | 'annual' too.
+  return (typeof userBillingCycle !== 'undefined' && userBillingCycle === 'annual')
+    ? 'annual' : 'monthly';
+}
+
 function plansBillingCard(key) {
   var p = PLANS_BILLING_DATA[key];
   var price = p[plansBillingCycle];
+
+  // Feature list mirrors pricing.html: sparkle credits line (bold), then the
+  // bold "Everything in X" header with a check, then the checkmark features.
+  var creditsHtml = '<div class="pb-feature pb-feature-credits">'
+    + '<span class="pb-credits-icon">&#x2728;</span>'
+    + '<span>' + escapeHtml(p.credits) + '</span></div>';
+  var everythingHtml = '<div class="pb-feature"><span class="pb-check" style="color:' + p.accent + ';">'
+    + plansBillingCheckIcon() + '</span><span><strong>' + escapeHtml(p.everythingIn) + '</strong></span></div>';
   var featuresHtml = p.features.map(function (f) {
     return '<div class="pb-feature"><span class="pb-check" style="color:' + p.accent + ';">'
       + plansBillingCheckIcon() + '</span><span>' + escapeHtml(f) + '</span></div>';
@@ -100,7 +126,41 @@ function plansBillingCard(key) {
   var subHtml = price.sub
     ? '<div class="pb-price-sub">' + escapeHtml(price.sub) + '</div>' : '';
 
-  return '<div class="pb-card">'
+  // Current-plan aware button (mirrors pricing.html decoratePlanCards):
+  //   exact match (tier + cycle)  -> "Current plan", disabled
+  //   same tier, other cycle      -> "Switch to <cycle> billing"
+  //   different tier              -> "Upgrade to Ryxa Max" / "Switch to Ryxa Pro"
+  //   free / unknown              -> "Get <plan>"
+  var userKey = plansBillingUserPlanKey();
+  var userCycle = plansBillingUserCycle();
+  var btnLabel = 'Get ' + p.name;
+  var btnDisabled = false;
+  var isCurrentBadge = '';
+
+  if (userKey) {
+    if (userKey === key && userCycle === plansBillingCycle) {
+      btnLabel = 'Current plan';
+      btnDisabled = true;
+      isCurrentBadge = '<div class="pb-current-badge">Your plan</div>';
+    } else if (userKey === key) {
+      btnLabel = plansBillingCycle === 'annual' ? 'Switch to annual billing' : 'Switch to monthly billing';
+    } else if (key === 'max') {
+      btnLabel = 'Upgrade to Ryxa Max';
+    } else {
+      btnLabel = 'Switch to Ryxa Pro';
+    }
+  }
+
+  var btnHtml = btnDisabled
+    ? '<button class="pb-cta pb-cta-' + key + '" disabled>' + btnLabel + '</button>'
+    : '<button class="pb-cta pb-cta-' + key + '" data-plans-action="checkout" data-plan="' + key + '">'
+        + btnLabel + plansBillingExtIcon() + '</button>';
+
+  var disclosureHtml = btnDisabled ? ''
+    : '<div class="pb-disclosure">By clicking this button you\'ll be taken to our website.</div>';
+
+  return '<div class="pb-card' + (btnDisabled ? ' pb-card-current' : '') + '">'
+    + isCurrentBadge
     + '<div class="pb-card-head">'
     + '<img src="/logo.png?v=2" alt="" class="pb-card-logo">'
     + '<span class="pb-card-brand">Ryxa</span>'
@@ -110,10 +170,9 @@ function plansBillingCard(key) {
     + '<span class="pb-price-suffix">' + price.suffix + '</span></div>'
     + subHtml
     + '<div class="pb-divider"></div>'
-    + '<div class="pb-features">' + featuresHtml + '</div>'
-    + '<button class="pb-cta pb-cta-' + key + '" data-plans-action="checkout" data-plan="' + key + '">'
-    + 'Get ' + p.name + plansBillingExtIcon() + '</button>'
-    + '<div class="pb-disclosure">By clicking this button you\'ll be taken to our website.</div>'
+    + '<div class="pb-features">' + creditsHtml + everythingHtml + featuresHtml + '</div>'
+    + btnHtml
+    + disclosureHtml
     + '</div>';
 }
 
@@ -327,6 +386,12 @@ function plansBillingRouteCheck() {
     document.body.classList.add('plans-billing-active');
     renderPlansBilling();
     window.scrollTo(0, 0);
+    // Tier (userTier/userBillingCycle) may still be loading on first open;
+    // re-render shortly after so "Current plan" / "Switch billing" states
+    // reflect the user's actual subscription once it's known.
+    setTimeout(function () {
+      if (document.body.classList.contains('plans-billing-active')) renderPlansBilling();
+    }, 1200);
   } else {
     // Leaving the page (or non-admin): restore the topbar and clear the view.
     document.body.classList.remove('plans-billing-active');
