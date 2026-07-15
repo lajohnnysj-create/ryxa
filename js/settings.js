@@ -267,7 +267,7 @@ async function handleManageBilling() {
     const res = await fetch('/api/billing-portal', {
       method: 'POST',
       headers: { Authorization: 'Bearer ' + session.access_token, 'Content-Type': 'application/json' },
-      body: JSON.stringify({})
+      body: JSON.stringify({ fromApp: !!(window.RyxaNative && window.ReactNativeWebView) })
     });
     const data = await res.json().catch(() => ({}));
     if (res.ok && data.url) {
