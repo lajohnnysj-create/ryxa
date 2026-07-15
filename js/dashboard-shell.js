@@ -2635,7 +2635,8 @@ async function mintPricingTicketThenOpen(query) {
       '[data-coach-action="max-upgrade"]',
       '[data-prod-action="max-upgrade"]',
       '[data-deal-action="max-upgrade"]',
-      '[data-ana-action="max-upgrade"]'
+      '[data-ana-action="max-upgrade"]',
+      '[data-dash-action="confirm-pro-upsell"]'
     ].join(',');
 
     document.querySelectorAll(sel).forEach(function (el) {
@@ -2653,6 +2654,34 @@ async function mintPricingTicketThenOpen(query) {
       if (/upgrade|\$\d|\/mo|unlock/i.test(current) || current === '') {
         el.textContent = label;
       }
+    });
+
+    // External-link affordances (Apple link-out compliance, Spotify pattern):
+    // every purchase/billing CTA opens Safari, so each gets the standard
+    // external-link glyph inside the button and a one-line disclosure under
+    // it. The icon is (re)appended on every pass because the textContent
+    // assignments above wipe it; the disclosure div lives OUTSIDE the button
+    // so it survives relabeling. In-app only (this whole function is gated on
+    // RyxaNative); web buttons never get any of this.
+    var EXT_ICON = '<svg class="ryxa-ext-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-left:6px;vertical-align:-1px;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>';
+    function decorateExternalCta(el, note) {
+      if (!el.querySelector('.ryxa-ext-ico')) {
+        el.insertAdjacentHTML('beforeend', EXT_ICON);
+      }
+      var next = el.nextElementSibling;
+      if (!(next && next.classList && next.classList.contains('ryxa-ext-note'))) {
+        var div = document.createElement('div');
+        div.className = 'ryxa-ext-note';
+        div.textContent = note;
+        div.style.cssText = 'font-size:11px;color:var(--muted);margin:6px 0 2px;line-height:1.4;';
+        if (el.parentNode) el.parentNode.insertBefore(div, el.nextSibling);
+      }
+    }
+    document.querySelectorAll(sel).forEach(function (el) {
+      decorateExternalCta(el, 'By clicking this button you\'ll be taken to our website.');
+    });
+    document.querySelectorAll('[data-settings-action="manage-billing"]').forEach(function (el) {
+      decorateExternalCta(el, 'By clicking this button you\'ll be taken to your browser.');
     });
 
     // Neutralize upgrade-y titles, descriptions, and banner copy (not buttons).

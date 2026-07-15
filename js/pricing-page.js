@@ -727,7 +727,21 @@ function isFromApp() {
       window.history.replaceState(null, '', u.pathname + u.search + u.hash);
     } catch (e) { /* cosmetic only; ticket still expires in 5 minutes */ }
   }
-  loadUserState();
+  await loadUserState();
+  // Fade out the "Redirecting to ryxa.io" overlay (shown by native-app.js on
+  // app=1 loads) now that the ticket is read and plan cards reflect the plan.
+  // Enforce a short minimum display so the hand-off reads as one smooth
+  // moment instead of a flicker.
+  (function hideRedirectOverlay() {
+    var ov = document.getElementById('app-redirect-overlay');
+    if (!ov || !ov.classList.contains('visible')) return;
+    var shownAt = window.__ryxaRedirShownAt || 0;
+    var hold = Math.max(0, 600 - (Date.now() - shownAt));
+    setTimeout(function () {
+      ov.classList.add('fading');
+      setTimeout(function () { ov.classList.remove('visible', 'fading'); }, 300);
+    }, hold);
+  })();
 })();
 
 // Reset any stuck loading button ("Opening checkout..." or "Processing...")

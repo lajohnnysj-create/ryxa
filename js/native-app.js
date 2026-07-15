@@ -38,6 +38,15 @@
       // Mark the page so CSS can drop the site-nav offset (e.g. the sticky
       // billing toggle pins at top:0 since there is no nav in the app).
       document.body.classList.add('app-pricing');
+      // "Redirecting to ryxa.io" hand-off overlay (logo + dots): covers the
+      // pricing UI while the ticket is read and plan cards decorate;
+      // pricing-page.js fades it out once state is known. Timestamp lets the
+      // hide enforce a minimum display so it never just flickers.
+      var redir = document.getElementById('app-redirect-overlay');
+      if (redir) {
+        redir.classList.add('visible');
+        window.__ryxaRedirShownAt = Date.now();
+      }
       var header = document.getElementById('site-header');
       if (header) header.style.display = 'none';
       var footer = document.getElementById('site-footer');
