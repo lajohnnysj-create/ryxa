@@ -417,8 +417,16 @@ async function calLoadEvents() {
         .eq('creator_id', currentUser.id)
         .order('start_at', { ascending: true });
       if (res.error) throw res.error;
+      // Per-occurrence exceptions (v2): skips and overrides applied on top of
+      // the recurrence rules at expansion time. Non-fatal on error so the
+      // calendar still loads if the exceptions table migration hasn't run yet.
+      var exRes = await sb.from('calendar_event_exceptions')
+        .select('*')
+        .eq('creator_id', currentUser.id);
+      if (exRes.error) { console.warn('exceptions load failed', exRes.error); exRes = { data: [] }; }
       if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(document.getElementById('cal-grid')); return; }
       calState.events = res.data || [];
+      calState.exceptions = exRes.data || [];
       window.RyxaLoadBar.finish(_anchor);
       return;
     } catch (e) {
@@ -489,43 +497,90 @@ function calRenderGrid() {
 }
 
 // ============================================================
-// Recurrence v1: rule-based expansion.
-// A recurring event is ONE row holding a rule (recurrence_freq / interval /
-// until / count). Occurrences are computed transiently for the visible window,
-// never persisted, so a "daily forever" event is still a single row and there
-// is no code path that can mass-create occurrence rows. v2 (per-occurrence
-// exceptions) attaches to series_id later; this engine is the shared base.
-// Guardrails: rule validation, a hard iteration cap per event per expansion,
-// and fast-forward for fixed-length steps so long-running daily/weekly series
-// stay O(1) per day instead of walking from the series start.
-// Month/year steps are single-shot calendar adds with day clamping
-// (Jan 31 + 1 month = Feb 28), matching the SQL expansion in
-// get_creator_busy_slots so booking blocks and the calendar agree.
+// Recurrence v2: rule-based expansion with per-occurrence exceptions.
+// A recurring event is ONE row holding a rule; occurrences are computed
+// transiently, never persisted. v2 adds calendar_event_exceptions on top:
+//   - skip: the occurrence at (series_id, original_start_at) is deleted
+//   - override: that occurrence carries different values/times
+// "This and following" edits are handled as a series SPLIT (cap the old rule,
+// insert a new rule row), so every stored rule stays simple.
+// Occurrence instants are computed as WALL-CLOCK time in the event's stored
+// timezone (same algorithm as the SQL expansion in get_creator_busy_slots),
+// so 9 AM stays 9 AM across DST changes and the JS and SQL sides derive
+// byte-identical instants, which the exception key (original_start_at)
+// depends on. Guardrails unchanged: validation, hard iteration cap,
+// fast-forward for daily/weekly, single-shot clamped month adds.
 // ============================================================
 var CAL_MAX_OCC_ITER = 370;
 var CAL_RECUR_FREQS = ['daily', 'weekly', 'monthly', 'yearly'];
 
-// Add whole days preserving local wall-clock time (DST-safe day math).
-function calAddDaysWall(baseDate, days) {
-  var t = new Date(baseDate.getTime());
-  t.setDate(t.getDate() + days);
-  return t;
+var _calDtfCache = {};
+function calTzDtf(tz) {
+  if (!(tz in _calDtfCache)) {
+    try {
+      _calDtfCache[tz] = new Intl.DateTimeFormat('en-US', {
+        timeZone: tz, hour12: false,
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', second: '2-digit'
+      });
+    } catch (e) { _calDtfCache[tz] = null; }
+  }
+  return _calDtfCache[tz];
 }
 
-// Add months in one shot, clamping the day-of-month to the target month's
-// last day (Jan 31 + 1 = Feb 28). Preserves local wall-clock time.
-function calAddMonthsClamped(baseDate, months) {
-  var y = baseDate.getFullYear();
-  var mo = baseDate.getMonth();
-  var d = baseDate.getDate();
-  var lastDay = new Date(y, mo + months + 1, 0).getDate();
-  var t = new Date(baseDate.getTime());
-  t.setFullYear(y, mo + months, Math.min(d, lastDay));
-  return t;
+// Wall-clock fields of an instant, in tz. Null if tz is invalid.
+function calWallParts(ms, tz) {
+  var dtf = calTzDtf(tz);
+  if (!dtf) return null;
+  var o = {};
+  dtf.formatToParts(new Date(ms)).forEach(function (p) {
+    if (p.type !== 'literal') o[p.type] = parseInt(p.value, 10);
+  });
+  if (o.hour === 24) o.hour = 0;
+  return o;
 }
 
-// All occurrences of one event that START within [dayStartMs, dayEndMs).
-// Non-recurring events yield themselves if they start in the window.
+// Instant (ms) for a wall-clock time in tz. Same offset-correction algorithm
+// as localToIso in calSaveEvent, and as the SQL "at time zone" round-trip.
+function calWallToInstant(y, mo, d, h, mi, tz) {
+  var naive = Date.UTC(y, mo - 1, d, h, mi, 0, 0);
+  var f = calWallParts(naive, tz);
+  if (!f) return naive;
+  var asUtc = Date.UTC(f.year, f.month - 1, f.day,
+    f.hour, f.minute, f.second);
+  return naive + (naive - asUtc);
+}
+
+// The k-th occurrence instant for a recurring event. Wall-clock stepping in
+// the event's timezone: day/month math happens on plain calendar fields in
+// DST-free UTC space, then the resulting wall time converts to an instant.
+// Month steps are single-shot adds with day-of-month clamping
+// (Jan 31 + 1 month = Feb 28), matching Postgres.
+function calOccurrenceInstant(baseWall, k, freq, ival, tz) {
+  var y = baseWall.year, mo = baseWall.month, d = baseWall.day;
+  var t;
+  if (freq === 'daily' || freq === 'weekly') {
+    var stepDays = (freq === 'daily' ? 1 : 7) * ival;
+    t = new Date(Date.UTC(y, mo - 1, d + k * stepDays));
+  } else {
+    var stepMonths = (freq === 'monthly' ? 1 : 12) * ival;
+    var targetMoIdx = (mo - 1) + k * stepMonths;
+    var lastDay = new Date(Date.UTC(y, targetMoIdx + 1, 0)).getUTCDate();
+    t = new Date(Date.UTC(y, targetMoIdx, Math.min(d, lastDay)));
+  }
+  return calWallToInstant(
+    t.getUTCFullYear(), t.getUTCMonth() + 1, t.getUTCDate(),
+    baseWall.hour, baseWall.minute, tz
+  );
+}
+
+function calEventTz(ev) {
+  return ev.timezone || (Intl.DateTimeFormat().resolvedOptions().timeZone) || 'UTC';
+}
+
+// All occurrences of one event that START within [dayStartMs, dayEndMs),
+// as { startMs, endMs }. Exceptions are NOT applied here; calEventsOnDate
+// layers them on. Non-recurring events yield themselves.
 function calOccurrencesOnDay(ev, dayStartMs, dayEndMs) {
   var startMs = ev.start_at ? new Date(ev.start_at).getTime() : NaN;
   if (isNaN(startMs)) return [];
@@ -541,51 +596,101 @@ function calOccurrencesOnDay(ev, dayStartMs, dayEndMs) {
   var count = parseInt(ev.recurrence_count, 10);
   var maxK = (count >= 1) ? (count - 1) : Infinity;
 
-  var base = new Date(startMs);
+  var tz = calEventTz(ev);
+  var baseWall = calWallParts(startMs, tz);
+  if (!baseWall) { tz = 'UTC'; baseWall = calWallParts(startMs, tz); }
+  if (!baseWall) return [];
+
   var out = [];
   var k, occMs, iter = 0;
-
+  var k0 = 0;
   if (freq === 'daily' || freq === 'weekly') {
-    var stepDays = (freq === 'daily' ? 1 : 7) * ival;
-    // Fast-forward: estimate the first k whose occurrence could land in the
-    // window, minus a safety step, so ancient never-ending series don't walk
-    // from the beginning (and can't exhaust the iteration cap before reaching
-    // the window).
-    var approx = Math.floor((dayStartMs - startMs) / (stepDays * 86400000)) - 1;
-    k = Math.max(0, approx);
-    for (; k <= maxK && iter < CAL_MAX_OCC_ITER; k++, iter++) {
-      occMs = calAddDaysWall(base, k * stepDays).getTime();
-      if (occMs >= dayEndMs || occMs > untilMs) break;
-      if (occMs >= dayStartMs) out.push({ startMs: occMs, endMs: occMs + durMs });
-    }
-  } else {
-    var stepMonths = (freq === 'monthly' ? 1 : 12) * ival;
-    for (k = 0; k <= maxK && iter < CAL_MAX_OCC_ITER; k++, iter++) {
-      occMs = calAddMonthsClamped(base, k * stepMonths).getTime();
-      if (occMs >= dayEndMs || occMs > untilMs) break;
-      if (occMs >= dayStartMs) out.push({ startMs: occMs, endMs: occMs + durMs });
-    }
+    var stepMs = (freq === 'daily' ? 1 : 7) * ival * 86400000;
+    k0 = Math.max(0, Math.floor((dayStartMs - startMs) / stepMs) - 1);
+  }
+  for (k = k0; k <= maxK && iter < CAL_MAX_OCC_ITER; k++, iter++) {
+    occMs = calOccurrenceInstant(baseWall, k, freq, ival, tz);
+    if (occMs >= dayEndMs || occMs > untilMs) break;
+    if (occMs >= dayStartMs) out.push({ startMs: occMs, endMs: occMs + durMs });
   }
   return out;
 }
 
-// Occurrence-shaped event objects (master fields + this occurrence's times)
-// for everything happening on a local calendar date. The master id is kept so
-// tapping an occurrence edits/deletes the series (v1 = whole-series edits).
+// Which occurrence index (k) an instant corresponds to for a series. Used by
+// "this and following" splits to carry a remaining recurrence_count over to
+// the new segment.
+function calOccurrenceIndex(ev, occMs) {
+  var tz = calEventTz(ev);
+  var startMs = new Date(ev.start_at).getTime();
+  var a = calWallParts(startMs, tz);
+  var b = calWallParts(occMs, tz);
+  if (!a || !b) return 0;
+  var ival = parseInt(ev.recurrence_interval, 10);
+  if (!(ival >= 1)) ival = 1;
+  var freq = ev.recurrence_freq;
+  if (freq === 'daily' || freq === 'weekly') {
+    var dayA = Date.UTC(a.year, a.month - 1, a.day) / 86400000;
+    var dayB = Date.UTC(b.year, b.month - 1, b.day) / 86400000;
+    return Math.max(0, Math.round((dayB - dayA) / ((freq === 'daily' ? 1 : 7) * ival)));
+  }
+  var months = (b.year - a.year) * 12 + (b.month - a.month);
+  return Math.max(0, Math.round(months / ((freq === 'monthly' ? 1 : 12) * ival)));
+}
+
+function calExcKey(seriesId, ms) { return seriesId + '|' + ms; }
+
+// Occurrence-shaped event objects for everything happening on a local
+// calendar date: rule expansions minus skipped/overridden originals, plus
+// overrides that land on this date at their new time. Each occurrence keeps
+// the master id (so edit/delete resolve the series) and carries
+// _occOriginal, the exception key identifying this specific occurrence.
 function calEventsOnDate(ymd) {
   if (!ymd) return [];
   var p = ymd.split('-').map(Number);
   var dayStart = new Date(p[0], p[1] - 1, p[2]).getTime();
   var dayEnd = new Date(p[0], p[1] - 1, p[2] + 1).getTime();
+
+  var excByKey = {};
+  var masters = {};
+  (calState.exceptions || []).forEach(function (x) {
+    excByKey[calExcKey(x.series_id, new Date(x.original_start_at).getTime())] = x;
+  });
+  (calState.events || []).forEach(function (ev) {
+    if (ev.series_id) masters[ev.series_id] = ev;
+  });
+
   var out = [];
   (calState.events || []).forEach(function (ev) {
     calOccurrencesOnDay(ev, dayStart, dayEnd).forEach(function (o) {
+      if (ev.recurrence_freq && ev.series_id
+          && excByKey[calExcKey(ev.series_id, o.startMs)]) {
+        return; // skipped, or overridden (re-emitted below at its new time)
+      }
       out.push(Object.assign({}, ev, {
         start_at: new Date(o.startMs).toISOString(),
         end_at: new Date(o.endMs).toISOString(),
+        _occOriginal: ev.recurrence_freq ? new Date(o.startMs).toISOString() : null,
         _isOccurrence: !!ev.recurrence_freq
       }));
     });
+  });
+
+  (calState.exceptions || []).forEach(function (x) {
+    if (x.exception_type !== 'override' || !x.new_start_at) return;
+    var ns = new Date(x.new_start_at).getTime();
+    if (ns < dayStart || ns >= dayEnd) return;
+    var m = masters[x.series_id];
+    if (!m) return;
+    var masterDur = Math.max(0, new Date(m.end_at).getTime() - new Date(m.start_at).getTime() || 0);
+    out.push(Object.assign({}, m, {
+      start_at: x.new_start_at,
+      end_at: x.new_end_at || new Date(ns + masterDur).toISOString(),
+      title: x.new_title != null ? x.new_title : m.title,
+      color: x.new_color != null ? x.new_color : m.color,
+      notes: x.new_notes != null ? x.new_notes : m.notes,
+      _occOriginal: x.original_start_at,
+      _isOccurrence: true
+    }));
   });
   return out;
 }
@@ -660,9 +765,9 @@ function calRenderDayEvents() {
             ? '<button data-cal-action="open-send-message" data-cal-booking-id="' + escapeHtml(e.source_id) + '" data-cal-event-title="' + escapeHtml(e.title || '') + '" aria-label="Send meeting details to booker" title="Send meeting details" class="cal-s-2bcfbe"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>Send Details</button>'
             : '';
           var editBtn = canEdit
-            ? '<button data-cal-action="open-edit-event" data-cal-event-id="' + e.id + '" aria-label="Edit event" title="Edit event" class="cal-s-c3ca24"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'
+            ? '<button data-cal-action="open-edit-event" data-cal-event-id="' + e.id + '" data-cal-occ-original="' + escapeHtml(e._occOriginal || '') + '" aria-label="Edit event" title="Edit event" class="cal-s-c3ca24"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'
             : '';
-          var deleteBtn = '<button data-cal-action="delete-event" data-cal-event-id="' + e.id + '" data-cal-event-type="' + e.event_type + '" aria-label="' + deleteLabel + '" title="' + deleteLabel + '" class="cal-s-85a1b8"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg></button>';
+          var deleteBtn = '<button data-cal-action="delete-event" data-cal-event-id="' + e.id + '" data-cal-event-type="' + e.event_type + '" data-cal-occ-original="' + escapeHtml(e._occOriginal || '') + '" aria-label="' + deleteLabel + '" title="' + deleteLabel + '" class="cal-s-85a1b8"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg></button>';
           return '<div class="cal-s-70662e">' + sendMsgBtn + editBtn + deleteBtn + '</div>';
         })()
       + '</div>'
@@ -833,13 +938,13 @@ function calBuildTimeOptions(selectedValue) {
   return html;
 }
 
-function calOpenEditEvent(eventId) {
+function calOpenEditEvent(eventId, occOriginal) {
   var event = calState.events.find(function(e) { return e.id === eventId; });
   if (!event) return;
-  calOpenEventModal(event);
+  calOpenEventModal(event, occOriginal || null);
 }
 
-function calOpenEventModal(existingEvent) {
+function calOpenEventModal(existingEvent, occOriginal) {
   // Build modal
   var existingModal = document.getElementById('cal-event-modal');
   if (existingModal) existingModal.remove();
@@ -848,8 +953,37 @@ function calOpenEventModal(existingEvent) {
   var defaultDate, defaultStart, defaultEnd, defaultTitle, defaultNotes, defaultColor;
 
   if (isEdit) {
-    var startD = new Date(existingEvent.start_at);
-    var endD = new Date(existingEvent.end_at);
+    // When a specific occurrence of a recurring event was tapped, prefill from
+    // that occurrence's EFFECTIVE values: an existing override's values/times
+    // if one exists, else the computed occurrence instant with the series'
+    // values. The series master itself is only shown when no occurrence
+    // context exists.
+    var effStart = existingEvent.start_at;
+    var effEnd = existingEvent.end_at;
+    var effTitle = existingEvent.title || '';
+    var effNotes = existingEvent.notes || '';
+    var effColor = existingEvent.color || '#7c3aed';
+    if (occOriginal && existingEvent.recurrence_freq && existingEvent.series_id) {
+      var occMs0 = new Date(occOriginal).getTime();
+      var masterDur0 = Math.max(0, new Date(existingEvent.end_at).getTime()
+        - new Date(existingEvent.start_at).getTime() || 0);
+      effStart = occOriginal;
+      effEnd = new Date(occMs0 + masterDur0).toISOString();
+      var exc0 = (calState.exceptions || []).find(function(x) {
+        return x.series_id === existingEvent.series_id
+          && new Date(x.original_start_at).getTime() === occMs0
+          && x.exception_type === 'override';
+      });
+      if (exc0) {
+        if (exc0.new_start_at) effStart = exc0.new_start_at;
+        if (exc0.new_end_at) effEnd = exc0.new_end_at;
+        if (exc0.new_title != null) effTitle = exc0.new_title;
+        if (exc0.new_notes != null) effNotes = exc0.new_notes;
+        if (exc0.new_color != null) effColor = exc0.new_color;
+      }
+    }
+    var startD = new Date(effStart);
+    var endD = new Date(effEnd);
     var pad = function(n) { return String(n).padStart(2, '0'); };
     // Round minutes to nearest 15 to match dropdown options
     var roundTo15 = function(d) {
@@ -862,9 +996,9 @@ function calOpenEventModal(existingEvent) {
     defaultDate = startD.getFullYear() + '-' + pad(startD.getMonth() + 1) + '-' + pad(startD.getDate());
     defaultStart = roundTo15(startD);
     defaultEnd = roundTo15(endD);
-    defaultTitle = existingEvent.title || '';
-    defaultNotes = existingEvent.notes || '';
-    defaultColor = existingEvent.color || '#7c3aed';
+    defaultTitle = effTitle;
+    defaultNotes = effNotes;
+    defaultColor = effColor;
     var defaultRepeat = (CAL_RECUR_FREQS.indexOf(existingEvent.recurrence_freq) !== -1)
       ? existingEvent.recurrence_freq : 'none';
     var defaultEndType = existingEvent.recurrence_until ? 'until'
@@ -899,6 +1033,7 @@ function calOpenEventModal(existingEvent) {
   modal.onclick = function(e) { if (e.target === modal) modal.remove(); };
   // Store event id for save handler
   if (isEdit) modal.dataset.editingId = existingEvent.id;
+  if (isEdit && occOriginal) modal.dataset.occOriginal = occOriginal;
 
   modal.innerHTML = '<div class="cal-s-744497">'
     + '<div class="cal-s-0a679d">'
@@ -939,7 +1074,7 @@ function calOpenEventModal(existingEvent) {
       + '<div class="deal-s-367da9" id="cal-modal-repeat-count-wrap" style="display:none;"><label for="cal-modal-repeat-count" class="cal-s-0d9ec6">Occurrences</label>'
       + '<input id="cal-modal-repeat-count" type="number" min="1" max="366" step="1" value="' + escapeHtml(String(defaultCount)) + '" class="cal-s-ed0012"></div>'
       + '</div>'
-      + (isEdit && defaultRepeat !== 'none' ? '<div class="deal-s-44d600">This event repeats. Changes and deletion apply to the entire series.</div>' : ''))
+      + (isEdit && defaultRepeat !== 'none' ? '<div class="deal-s-44d600">This event repeats. When you save or delete, you\'ll choose whether it applies to this event, this and following events, or the whole series.</div>' : ''))
     + '<div class="deal-s-5b6aad"><label for="cal-modal-notes" class="cal-s-0d9ec6">Notes (optional)</label>'
     + '<textarea id="cal-modal-notes" maxlength="2000" placeholder="Add notes..." rows="3" class="cal-s-e8f0a9">' + escapeHtml(defaultNotes) + '</textarea></div>'
     + (isCoachingEvent ? '' :
@@ -1039,6 +1174,47 @@ function calSelectColor(c) {
   document.querySelectorAll('.cal-color-btn').forEach(function(b) {
     b.style.border = b.dataset.color === c ? '2px solid #fff' : '1px solid var(--border)';
   });
+}
+
+// Refetch events + exceptions and repaint. v2 scope operations mutate several
+// rows at once (cap + insert + exception deletes), so a clean refetch is the
+// reliable way to keep local state truthful instead of surgical patching.
+async function calReloadAfterMutation() {
+  await calLoadEvents();
+  calRender();
+}
+
+// "This event / This and following / All events" chooser for edits and
+// deletes on recurring events. Sits above the event modal (z 10001 > 10000).
+function calOpenScopeChooser(opts) {
+  var old = document.getElementById('cal-scope-modal');
+  if (old) old.remove();
+  var m = document.createElement('div');
+  m.id = 'cal-scope-modal';
+  m.style.cssText = 'position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;padding:12px;';
+  var isDelete = opts.verb === 'delete';
+  function btn(scope, label, desc) {
+    return '<button type="button" data-scope="' + scope + '" style="display:block;width:100%;text-align:left;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;cursor:pointer;color:var(--text);font-family:DM Sans,sans-serif;">'
+      + '<div style="font-size:14px;font-weight:600;">' + label + '</div>'
+      + '<div style="font-size:12px;color:var(--muted);margin-top:2px;">' + desc + '</div></button>';
+  }
+  m.innerHTML = '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:18px;max-width:360px;width:100%;">'
+    + '<h3 style="margin:0 0 12px;font-size:16px;color:var(--text);font-family:Plus Jakarta Sans,sans-serif;">'
+    + (opts.title || (isDelete ? 'Delete repeating event' : 'Save changes to repeating event')) + '</h3>'
+    + btn('this', 'This event', isDelete ? 'Only this occurrence is removed.' : 'Only this occurrence changes.')
+    + btn('following', 'This and following events', (isDelete ? 'Removes' : 'Changes') + ' this occurrence and everything after it.')
+    + btn('all', 'All events', 'The entire series, past and future.')
+    + '<button type="button" data-scope="cancel" style="display:block;width:100%;background:none;border:none;color:var(--muted);font-size:13px;padding:8px;cursor:pointer;font-family:DM Sans,sans-serif;">Cancel</button>'
+    + '</div>';
+  m.addEventListener('click', function(e) {
+    if (e.target === m) { m.remove(); return; }
+    var b = e.target.closest ? e.target.closest('button[data-scope]') : null;
+    if (!b) return;
+    var scope = b.dataset.scope;
+    m.remove();
+    if (scope !== 'cancel') opts.onChoose(scope);
+  });
+  document.body.appendChild(m);
 }
 
 async function calSaveEvent() {
@@ -1142,74 +1318,191 @@ async function calSaveEvent() {
 
   try {
     if (editingId) {
-      // EDIT mode - update existing event
+      // EDIT mode
       var existing = calState.events.find(function(e) { return e.id === editingId; });
       if (!existing) { showError('Event not found.'); return; }
 
-      var updatePayload = {
-        title: title,
-        start_at: startAt,
-        end_at: endAt,
-        color: color,
-        notes: notes || null
+      var modalOccOriginal = modal && modal.dataset ? (modal.dataset.occOriginal || null) : null;
+      var isRecurringSeries = existing.event_type === 'manual'
+        && !!existing.recurrence_freq && !!existing.series_id;
+
+      // Repeat-settings changes only make sense for the whole series, so they
+      // bypass the scope chooser and apply to all.
+      var oldUntilYmd = existing.recurrence_until ? calToYmd(new Date(existing.recurrence_until)) : null;
+      var newUntilYmd = repeatUntilIso
+        ? (((document.getElementById('cal-modal-repeat-until') || {}).value) || null) : null;
+      var repeatChanged = isRecurringSeries && (
+        repeatFreq !== (existing.recurrence_freq || null)
+        || newUntilYmd !== oldUntilYmd
+        || (repeatCount || null) !== (existing.recurrence_count || null)
+      );
+
+      var finishInModal = function() {
+        var modalEl = document.getElementById('cal-event-modal');
+        if (modalEl) modalEl.remove();
+        calState.selectedDate = date;
+        var dParts = date.split('-').map(Number);
+        calState.viewYear = dParts[0];
+        calState.viewMonth = dParts[1] - 1;
       };
 
-      // Recurrence edits (v1 = whole series; the single rule row IS the
-      // series). Manual events only: coaching/brand-deal events never carry a
-      // rule and their modal has no repeat UI, so a null read here must not
-      // wipe anything on them.
-      if (existing.event_type === 'manual') {
-        updatePayload.recurrence_freq = repeatFreq;
-        updatePayload.recurrence_interval = repeatFreq ? 1 : null;
-        updatePayload.recurrence_until = repeatUntilIso;
-        updatePayload.recurrence_count = repeatCount;
-        if (repeatFreq && !existing.series_id) {
-          updatePayload.series_id = window.crypto && window.crypto.randomUUID
-            ? window.crypto.randomUUID() : null;
-        }
-      }
+      // ALL EVENTS: edit the rule row in place (the v1 path).
+      var applyAll = async function() {
+        var updatePayload = {
+          title: title,
+          start_at: startAt,
+          end_at: endAt,
+          color: color,
+          notes: notes || null
+        };
 
-      // Coaching events: don't allow title changes (locked to coaching service)
-      if (existing.event_type === 'coaching') {
-        delete updatePayload.title;
-      }
-
-      var { data, error } = await sb.from('calendar_events')
-        .update(updatePayload)
-        .eq('id', editingId)
-        .select()
-        .single();
-      if (error) throw error;
-
-      // For coaching events, also update the booking's slot times.
-      // Reset reminder_sent_at so the cron job re-sends with the new time —
-      // this prevents buyers from showing up at the original time after a reschedule.
-      if (existing.event_type === 'coaching' && existing.source_id) {
-        try {
-          await sb.from('coaching_bookings')
-            .update({ slot_start: startAt, slot_end: endAt, reminder_sent_at: null })
-            .eq('id', existing.source_id);
-        } catch (e) {
-          console.error('Could not update coaching booking slot:', e);
-          // Surface it: the calendar shows the new time but the buyer's
-          // booking (and reminder email) would still carry the old one.
-          if (typeof showDashToast === 'function') {
-            showDashToast('error', 'Event updated, but the booking time could not sync. Please edit the event again.');
+        // Recurrence edits apply to the rule row. Manual events only:
+        // coaching/brand-deal events never carry a rule and their modal has no
+        // repeat UI, so a null read here must not wipe anything on them.
+        if (existing.event_type === 'manual') {
+          updatePayload.recurrence_freq = repeatFreq;
+          updatePayload.recurrence_interval = repeatFreq ? 1 : null;
+          updatePayload.recurrence_until = repeatUntilIso;
+          updatePayload.recurrence_count = repeatCount;
+          if (repeatFreq && !existing.series_id) {
+            updatePayload.series_id = window.crypto && window.crypto.randomUUID
+              ? window.crypto.randomUUID() : null;
           }
         }
+
+        // Coaching events: don't allow title changes (locked to coaching service)
+        if (existing.event_type === 'coaching') {
+          delete updatePayload.title;
+        }
+
+        var { data, error } = await sb.from('calendar_events')
+          .update(updatePayload)
+          .eq('id', editingId)
+          .select()
+          .single();
+        if (error) throw error;
+
+        // Whole-series edits that move times or change the rule orphan any
+        // per-occurrence exceptions (their original instants no longer match
+        // real occurrences), so clear them. Value-only edits (title/color/
+        // notes) keep exceptions intact.
+        var timeChanged = new Date(startAt).getTime() !== new Date(existing.start_at).getTime()
+          || new Date(endAt).getTime() !== new Date(existing.end_at).getTime();
+        if (isRecurringSeries && (timeChanged || repeatChanged)) {
+          await sb.from('calendar_event_exceptions').delete().eq('series_id', existing.series_id);
+          calState.exceptions = (calState.exceptions || []).filter(function(x) {
+            return x.series_id !== existing.series_id;
+          });
+        }
+
+        // For coaching events, also update the booking's slot times.
+        // Reset reminder_sent_at so the cron job re-sends with the new time —
+        // this prevents buyers from showing up at the original time after a reschedule.
+        if (existing.event_type === 'coaching' && existing.source_id) {
+          try {
+            await sb.from('coaching_bookings')
+              .update({ slot_start: startAt, slot_end: endAt, reminder_sent_at: null })
+              .eq('id', existing.source_id);
+          } catch (e) {
+            console.error('Could not update coaching booking slot:', e);
+            // Surface it: the calendar shows the new time but the buyer's
+            // booking (and reminder email) would still carry the old one.
+            if (typeof showDashToast === 'function') {
+              showDashToast('error', 'Event updated, but the booking time could not sync. Please edit the event again.');
+            }
+          }
+        }
+
+        // Update local state
+        var idx = calState.events.findIndex(function(e) { return e.id === editingId; });
+        if (idx !== -1) calState.events[idx] = data;
+
+        finishInModal();
+        calRender();
+        if (typeof showDashToast === 'function') showDashToast('success', 'Changes saved');
+      };
+
+      // THIS EVENT: one override exception; the rule row is untouched.
+      var applyThis = async function() {
+        var { error } = await sb.from('calendar_event_exceptions').upsert({
+          creator_id: currentUser.id,
+          series_id: existing.series_id,
+          original_start_at: modalOccOriginal,
+          exception_type: 'override',
+          new_start_at: startAt,
+          new_end_at: endAt,
+          new_title: title,
+          new_color: color,
+          new_notes: notes || null
+        }, { onConflict: 'series_id,original_start_at' });
+        if (error) throw error;
+        finishInModal();
+        await calReloadAfterMutation();
+        if (typeof showDashToast === 'function') showDashToast('success', 'This event updated');
+      };
+
+      // THIS AND FOLLOWING: split the series. Cap the original rule just
+      // before this occurrence, insert a new rule row carrying the edited
+      // values from here forward. Exceptions at/after the split pointed at
+      // occurrences that no longer exist on the old segment, so they are
+      // cleared; the new segment starts clean.
+      var applyFollowing = async function() {
+        var splitMs = new Date(modalOccOriginal).getTime();
+        if (splitMs <= new Date(existing.start_at).getTime()) { await applyAll(); return; }
+        var newCount = null;
+        if (existing.recurrence_count) {
+          var kIdx = calOccurrenceIndex(existing, splitMs);
+          newCount = Math.max(1, existing.recurrence_count - kIdx);
+        }
+        var capRes = await sb.from('calendar_events')
+          .update({ recurrence_until: new Date(splitMs - 1000).toISOString() })
+          .eq('id', existing.id);
+        if (capRes.error) throw capRes.error;
+        var insRes = await sb.from('calendar_events').insert({
+          creator_id: currentUser.id,
+          title: title,
+          start_at: startAt,
+          end_at: endAt,
+          event_type: 'manual',
+          source_id: null,
+          color: color,
+          notes: notes || null,
+          timezone: existing.timezone || calState.timezone,
+          series_id: window.crypto && window.crypto.randomUUID
+            ? window.crypto.randomUUID() : null,
+          recurrence_freq: existing.recurrence_freq,
+          recurrence_interval: existing.recurrence_interval || 1,
+          recurrence_until: existing.recurrence_until || null,
+          recurrence_count: newCount
+        });
+        if (insRes.error) throw insRes.error;
+        await sb.from('calendar_event_exceptions')
+          .delete()
+          .eq('series_id', existing.series_id)
+          .gte('original_start_at', modalOccOriginal);
+        finishInModal();
+        await calReloadAfterMutation();
+        if (typeof showDashToast === 'function') showDashToast('success', 'This and following events updated');
+      };
+
+      if (isRecurringSeries && modalOccOriginal && !repeatChanged) {
+        calOpenScopeChooser({
+          verb: 'save',
+          onChoose: async function(scope) {
+            try {
+              if (scope === 'this') await applyThis();
+              else if (scope === 'following') await applyFollowing();
+              else await applyAll();
+            } catch (e) {
+              console.error('Scoped save failed:', e);
+              if (typeof showDashToast === 'function') showDashToast('error', e.message || 'Could not save changes.');
+            }
+          }
+        });
+        return;
       }
 
-      // Update local state
-      var idx = calState.events.findIndex(function(e) { return e.id === editingId; });
-      if (idx !== -1) calState.events[idx] = data;
-
-      document.getElementById('cal-event-modal').remove();
-      calState.selectedDate = date;
-      var dParts = date.split('-').map(Number);
-      calState.viewYear = dParts[0];
-      calState.viewMonth = dParts[1] - 1;
-      calRender();
-      if (typeof showDashToast === 'function') showDashToast('success', 'Changes saved');
+      await applyAll();
     } else {
       // ADD mode - insert new event
       var { data, error } = await sb.from('calendar_events').insert({
@@ -1331,10 +1624,69 @@ async function calSendMessageNow(bookingId) {
   }
 }
 
-async function calDeleteEvent(eventId, eventType) {
+async function calDeleteEvent(eventId, eventType, occOriginal) {
   // Find the event in state to get source_id
   var event = calState.events.find(function(e) { return e.id === eventId; });
   if (!event) return;
+
+  // Recurring manual event tapped as a specific occurrence: three-way scope.
+  if (event.recurrence_freq && event.series_id && occOriginal
+      && eventType !== 'coaching' && eventType !== 'brand_deal') {
+    calOpenScopeChooser({
+      verb: 'delete',
+      onChoose: async function(scope) {
+        try {
+          if (scope === 'this') {
+            // Skip exception: the rule row stays, this one occurrence
+            // disappears. Upsert so deleting an already-overridden occurrence
+            // converts its override into a skip.
+            var { error } = await sb.from('calendar_event_exceptions').upsert({
+              creator_id: currentUser.id,
+              series_id: event.series_id,
+              original_start_at: occOriginal,
+              exception_type: 'skip',
+              new_start_at: null,
+              new_end_at: null,
+              new_title: null,
+              new_color: null,
+              new_notes: null
+            }, { onConflict: 'series_id,original_start_at' });
+            if (error) throw error;
+          } else if (scope === 'following') {
+            var splitMs = new Date(occOriginal).getTime();
+            if (splitMs <= new Date(event.start_at).getTime()) {
+              // Deleting from the first occurrence onward = the whole series.
+              var dAll = await sb.from('calendar_events').delete().eq('id', event.id);
+              if (dAll.error) throw dAll.error;
+              await sb.from('calendar_event_exceptions').delete().eq('series_id', event.series_id);
+            } else {
+              var capRes = await sb.from('calendar_events')
+                .update({ recurrence_until: new Date(splitMs - 1000).toISOString() })
+                .eq('id', event.id);
+              if (capRes.error) throw capRes.error;
+              await sb.from('calendar_event_exceptions')
+                .delete()
+                .eq('series_id', event.series_id)
+                .gte('original_start_at', occOriginal);
+            }
+          } else {
+            var dRes = await sb.from('calendar_events').delete().eq('id', event.id);
+            if (dRes.error) throw dRes.error;
+            await sb.from('calendar_event_exceptions').delete().eq('series_id', event.series_id);
+          }
+          await calReloadAfterMutation();
+          if (typeof showDashToast === 'function') {
+            showDashToast('success', scope === 'this' ? 'Event removed'
+              : (scope === 'following' ? 'This and following events removed' : 'Series deleted'));
+          }
+        } catch (e) {
+          console.error('Delete failed:', e);
+          showModalAlert('Delete Failed', e.message || 'Could not delete event.');
+        }
+      }
+    });
+    return;
+  }
 
   var confirmTitle, confirmMsg;
   if (eventType === 'coaching') {
@@ -1356,6 +1708,13 @@ async function calDeleteEvent(eventId, eventType) {
       // Delete the calendar event
       var { error } = await sb.from('calendar_events').delete().eq('id', eventId);
       if (error) throw error;
+
+      // A deleted series takes its per-occurrence exceptions with it.
+      if (event.series_id) {
+        try {
+          await sb.from('calendar_event_exceptions').delete().eq('series_id', event.series_id);
+        } catch (e2) { console.warn('exception cleanup failed', e2); }
+      }
 
       // For coaching events, also delete the booking record
       if (eventType === 'coaching' && event.source_id) {
@@ -1639,8 +1998,8 @@ calRegisterAction('select-date', (e, el) => calSelectDate(el.dataset.calYmd));
 calRegisterAction('pick-month', (e, el) => calPickMonth(parseInt(el.dataset.calMonth, 10)));
 
 // Event row buttons (template literal)
-calRegisterAction('open-edit-event', (e, el) => calOpenEditEvent(el.dataset.calEventId));
-calRegisterAction('delete-event', (e, el) => calDeleteEvent(el.dataset.calEventId, el.dataset.calEventType));
+calRegisterAction('open-edit-event', (e, el) => calOpenEditEvent(el.dataset.calEventId, el.dataset.calOccOriginal || null));
+calRegisterAction('delete-event', (e, el) => calDeleteEvent(el.dataset.calEventId, el.dataset.calEventType, el.dataset.calOccOriginal || null));
 calRegisterAction('open-send-message', (e, el) => calOpenSendMessage(el.dataset.calBookingId, el.dataset.calEventTitle));
 calRegisterAction('send-message-now', (e, el) => calSendMessageNow(el.dataset.calBookingId));
 
