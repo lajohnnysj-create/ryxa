@@ -179,29 +179,40 @@ function iapApplyStorefrontGate() {
 // the already-cached iapStorefront/iapPrices. Belt-and-suspenders with the
 // hashchange/DOMContentLoaded re-attempts below.
 (function () {
+  var applying = false;
+  var view = document.getElementById('plans-billing-view');
+  var bodyObs, viewObs;
   var reapply = function () {
-    if (document.body.classList.contains('plans-billing-active')) {
-      // Re-request from native if we're missing prices OR the storefront is
-      // still unknown (defeats the race where iapReady fired before this
-      // listener existed). ryxaIapLoadProducts re-emits the storefront too.
+    // Guard: our own DOM writes (buttons, gate CSS) land inside the observed
+    // view, which would re-trigger the observer and infinite-loop the main
+    // thread. Skip re-entrant calls, and pause the view observer while we write.
+    if (applying) return;
+    if (!document.body.classList.contains('plans-billing-active')) return;
+    applying = true;
+    if (viewObs) viewObs.disconnect();
+    try {
       if (iapInApp() && (!Object.keys(iapPrices).length || iapStorefront === null)) {
         iapPost({ type: 'iapLoadProducts' });
       }
       iapRenderSection();
       iapApplyStorefrontGate();
-    }
+    } catch (e) { /* never let a render error wedge the page */ }
+    // Reconnect on the next tick so the writes we just made have settled and
+    // don't immediately re-fire the observer.
+    setTimeout(function () {
+      if (viewObs && view) viewObs.observe(view, { childList: true, subtree: true });
+      applying = false;
+    }, 0);
   };
-  // 1) Fire the instant the page becomes active (body class flips). Cheap:
-  //    only watches body's own class attribute.
-  new MutationObserver(reapply).observe(document.body, {
-    attributes: true, attributeFilter: ['class'],
-  });
-  // 2) Re-apply when the view's content is (re)built while already active, so
-  //    a cycle-toggle or tier re-render doesn't drop the IAP section. Scoped to
-  //    the view container only.
-  var view = document.getElementById('plans-billing-view');
+  // 1) Fire when the page becomes active (body class flips). Body attributes
+  //    only, so our writes inside the view never trigger this one.
+  bodyObs = new MutationObserver(reapply);
+  bodyObs.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+  // 2) Re-apply when the view's content is rebuilt (cycle toggle, tier
+  //    re-render). Paused during our own writes via the guard above.
   if (view) {
-    new MutationObserver(reapply).observe(view, { childList: true, subtree: true });
+    viewObs = new MutationObserver(reapply);
+    viewObs.observe(view, { childList: true, subtree: true });
   }
 })();
 
