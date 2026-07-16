@@ -2347,6 +2347,13 @@ function showTool(tool) {
     _anaToggleClear.setAttribute('aria-expanded', 'false');
   }
   if (_anaSubClear) _anaSubClear.classList.remove('open');
+  // The dual-purpose bottom-nav button (bnav-plans, which acts as Media Kit for
+  // paid users) isn't a bnav-{tool} id, so clear its active state here unless
+  // we're showing mediakit (its own handler re-lights it).
+  if (tool !== 'mediakit') {
+    var _bpClear = document.getElementById('bnav-plans');
+    if (_bpClear) _bpClear.classList.remove('active');
+  }
   // Show selected
   const el = document.getElementById('tool-' + tool);
   if (el) {
@@ -4182,8 +4189,15 @@ dashRegisterAction('show-tool', (e, el) => {
 dashRegisterAction('show-plans-nav', (e, el) => {
   if (e && e.preventDefault) e.preventDefault();
   if (isPro()) {
-    // Paid: acts as the Media Kit entry point.
+    // Paid: acts as the Media Kit entry point. showTool highlights nav-mediakit
+    // (hidden here), but the button actually tapped is bnav-plans, so light it
+    // explicitly and clear the other bottom-nav tabs.
     if (typeof showTool === 'function') showTool('mediakit');
+    document.querySelectorAll('.mobile-bottom-nav-item.active')
+      .forEach(function (b) { b.classList.remove('active'); });
+    var _bp = document.getElementById('bnav-plans');
+    if (_bp) _bp.classList.add('active');
+    if (typeof positionBnavPill === 'function') positionBnavPill();
   } else {
     // Free: open the Plans & Billing page via its hash route.
     if (window.location.hash !== '#plans-billing') {
