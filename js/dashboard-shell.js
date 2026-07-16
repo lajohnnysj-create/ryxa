@@ -2286,7 +2286,11 @@ function showTool(tool) {
   if (_needs && typeof userTier !== 'undefined' && userTier) {
     var _t = (userTier === 'monthly' || userTier === 'pro') ? 'pro' : userTier;
     var _locked = (_needs === 'pro' && _t === 'free') || (_needs === 'max' && _t !== 'max');
-    if (_locked) { goToPricing(_needs); return; }
+    if (_locked) {
+      if (typeof closeSidebar === 'function') closeSidebar();
+      goToPricing(_needs);
+      return;
+    }
   }
   // Leaving the Plans & Billing page (a hash-routed view that sits outside the
   // normal tool system): restore the topbar/padding it hid and clear its hash
