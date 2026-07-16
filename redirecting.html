@@ -107,13 +107,37 @@
         }
       });
 
-      if (error || !data || !data.url) {
-        fail('This checkout link may have expired. Please go back to the app and tap the plan again.');
+      if (error) {
+        // Match the pricing page's error handling: surface a specific,
+        // recoverable message for an expired/invalid ticket, and tailor the
+        // recovery wording to where the user actually is (app vs web).
+        var specificMsg = null;
+        try {
+          if (error.context && typeof error.context.json === 'function') {
+            var body = await error.context.json();
+            if (body && body.error) specificMsg = body.error;
+          }
+        } catch (_) {}
+        var backTo = fromApp ? 'go back to the Ryxa app and tap the plan again'
+                             : 'return to your dashboard and try again';
+        if (specificMsg === 'invalid_ticket') {
+          fail('This upgrade link has expired. Please ' + backTo + '.');
+        } else {
+          fail(specificMsg || ('Could not start checkout. Please ' + backTo + '.'));
+        }
+        return;
+      }
+      if (!data || !data.url) {
+        var backTo2 = fromApp ? 'go back to the app and tap the plan again'
+                              : 'return to your dashboard and try again';
+        fail('Could not start checkout. Please ' + backTo2 + '.');
         return;
       }
       goAfterHold(data.url);
     } catch (e) {
-      fail('Could not reach checkout. Please check your connection and try again from the app.');
+      var backTo3 = fromApp ? 'try again from the app'
+                            : 'check your connection and try again from your dashboard';
+      fail('Could not reach checkout. Please ' + backTo3 + '.');
     }
   })();
   </script>
