@@ -108,6 +108,58 @@ async function iapHandlePurchase(detail) {
   }
 }
 
+// ---- Global launch: storefront gate ----------------------------------------
+// In-app, only the US storefront may show the Stripe link-out. Everywhere else
+// (or when the storefront is unknown: FAIL CLOSED) the page is IAP-only: the
+// card CTAs/disclosures are hidden and Apple is the sole purchase method.
+// Web (not in-app) is untouched; Stripe remains the web flow.
+function iapUsStorefront() { return iapStorefront === 'USA'; }
+
+var _origPlansCheckout = null;
+function iapApplyStorefrontGate() {
+  if (!iapInApp()) return;
+  var iapOnly = !iapUsStorefront();
+  document.body.classList.toggle('iap-only', iapOnly);
+  if (!document.getElementById('pb-iap-gate-css')) {
+    var st = document.createElement('style');
+    st.id = 'pb-iap-gate-css';
+    st.textContent = 'body.iap-only .pb-cta[data-plans-action="checkout"],' +
+      'body.iap-only .pb-disclosure{display:none !important;}' +
+      'body.iap-only #pb-iap-toggle{display:none !important;}' +
+      'body.iap-only #pb-iap-options{display:block !important;margin-top:4px;}';
+    document.head.appendChild(st);
+  }
+  // Hard block: even if a link-out element slips through, the checkout
+  // function itself refuses outside the US storefront.
+  if (typeof plansBillingCheckout === 'function' && !_origPlansCheckout) {
+    _origPlansCheckout = plansBillingCheckout;
+    // eslint-disable-next-line no-global-assign
+    plansBillingCheckout = function (plan, btn) {
+      if (iapInApp() && !iapUsStorefront()) return; // IAP-only market
+      return _origPlansCheckout(plan, btn);
+    };
+  }
+  // In IAP-only mode the Apple options render open as the primary buy method.
+  if (iapOnly) {
+    iapRenderSection();
+    var opts = document.getElementById('pb-iap-options');
+    var toggle = document.getElementById('pb-iap-toggle');
+    if (opts && toggle && !opts.innerHTML) toggle.click();
+  }
+}
+
+// Page re-renders wipe the appended section; watch and re-apply.
+(function () {
+  var host = document.getElementById('plans-billing-view');
+  var target = host || document.body;
+  new MutationObserver(function () {
+    if (document.body.classList.contains('plans-billing-active')) {
+      iapRenderSection();
+      iapApplyStorefrontGate();
+    }
+  }).observe(target, { childList: true, subtree: !host });
+})();
+
 // Native -> web events.
 document.addEventListener('ryxa-iap', function (e) {
   var ev;
@@ -116,6 +168,7 @@ document.addEventListener('ryxa-iap', function (e) {
   if (ev.type === 'iapReady') {
     iapStorefront = ev.storefront || null;
     iapRenderSection();
+    iapApplyStorefrontGate();
   } else if (ev.type === 'iapProducts') {
     (ev.products || []).forEach(function (p) { iapPrices[p.id] = p.displayPrice; });
   } else if (ev.type === 'iapPurchaseResult') {
