@@ -73,6 +73,10 @@ var currentUser = null;
 var currentTier = 'free';
 var currentCycle = 'monthly';
 var currentStatus = null;
+// Set when the user's active subscription is an Apple IAP. Used to block web
+// (Stripe) checkout so they cannot end up paying both Apple and Stripe.
+var currentSource = 'stripe';
+var currentAppleExpiresAt = null;
 // True once we know the user's plan, from a session (web) OR a signed ticket
 // snapshot (app opened this page in Safari, where there is no session). The
 // card-decoration logic keys off this instead of currentUser so the Safari
@@ -282,7 +286,7 @@ async function loadUserState() {
     // Fetch subscription tier + cycle so we can label the user's current plan.
     var { data: subRows } = await sb
       .from('subscriptions')
-      .select('tier, billing_cycle, status')
+      .select('tier, billing_cycle, status, source, apple_expires_at')
       .eq('user_id', currentUser.id)
       .limit(1);
     var sub = (subRows && subRows.length > 0) ? subRows[0] : null;
@@ -290,6 +294,8 @@ async function loadUserState() {
       currentTier = sub.tier || 'free';
       currentCycle = sub.billing_cycle || 'monthly';
       currentStatus = sub.status || null;
+      currentSource = sub.source || 'stripe';
+      currentAppleExpiresAt = sub.apple_expires_at || null;
     }
   } catch (e) {
     console.warn('loadUserState failed', e);
@@ -628,6 +634,29 @@ async function extractEdgeFunctionError(err) {
 
 async function startCheckoutFromPricing(plan, cycle, btn) {
   var priceId = PRICE_IDS[plan][cycle];
+
+  // Block: if this user's active subscription is an Apple IAP, starting a Stripe
+  // checkout would create a SECOND subscription (double billing). Tell them to
+  // cancel Apple first and come back after it ends. Keys on the stored source,
+  // so it works on desktop web too, not just in-app.
+  if (currentSource === 'apple' &&
+      currentAppleExpiresAt && new Date(currentAppleExpiresAt).getTime() > Date.now()) {
+    var until = new Date(currentAppleExpiresAt).toLocaleDateString(undefined,
+      { year: 'numeric', month: 'long', day: 'numeric' });
+    var msg = 'You have an active subscription through Apple until ' + until + '. ' +
+      'To switch to web billing, cancel your Apple subscription first ' +
+      '(iPhone Settings > your name > Subscriptions), then come back after it ends on ' +
+      until + '. This prevents you from being charged twice.';
+    if (typeof showPricingConfirm === 'function') {
+      showPricingConfirm({ title: 'Manage your Apple subscription first',
+        messageHtml: '<p>' + msg + '</p>', confirmText: 'OK', cancelText: null,
+        onConfirm: function () {} });
+    } else {
+      alert(msg);
+    }
+    return;
+  }
+
   // Existing active subscribers get an in-place subscription update (no Stripe
   // Checkout page appears), so "Opening checkout..." would be misleading, they
   // never see a checkout. Show "Processing..." for that path. New / Free-tier

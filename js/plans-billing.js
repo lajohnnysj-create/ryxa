@@ -314,11 +314,12 @@ function plansBillingCheckout(plan, btn) {
 
   (async function () {
     var active = false;
+    var appleUntil = null; // set if the active sub is an Apple IAP still in force
     try {
       var uid = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.id : null;
       if (uid) {
         var q = await sb.from('subscriptions')
-          .select('tier, status')
+          .select('tier, status, source, apple_expires_at')
           .eq('user_id', uid)
           .limit(1);
         if (q && q.data && q.data.length > 0) {
@@ -326,6 +327,10 @@ function plansBillingCheckout(plan, btn) {
           var s = q.data[0].status;
           active = (t === 'monthly' || t === 'max')
             && (s === 'active' || s === 'cancelling' || s === 'trialing' || s === 'past_due');
+          if (q.data[0].source === 'apple' && q.data[0].apple_expires_at
+              && new Date(q.data[0].apple_expires_at).getTime() > Date.now()) {
+            appleUntil = q.data[0].apple_expires_at;
+          }
         }
       }
     } catch (e) {
@@ -338,6 +343,22 @@ function plansBillingCheckout(plan, btn) {
     if (btn) {
       btn.disabled = false;
       if (btn.dataset._label) btn.innerHTML = btn.dataset._label;
+    }
+
+    // Block: active Apple IAP -> a Stripe checkout would double-bill. Tell them
+    // to cancel Apple first and return after it ends.
+    if (appleUntil) {
+      var until = new Date(appleUntil).toLocaleDateString(undefined,
+        { year: 'numeric', month: 'long', day: 'numeric' });
+      var amsg = 'You have an active subscription through Apple until ' + until + '. '
+        + 'To switch to web billing, cancel your Apple subscription first '
+        + '(iPhone Settings > your name > Subscriptions), then come back after it ends on '
+        + until + '. This prevents you from being charged twice.';
+      if (typeof showModalConfirm === 'function') {
+        showModalConfirm('Manage your Apple subscription first', amsg,
+          function () {}, 'OK', null, { danger: false });
+      } else { alert(amsg); }
+      return;
     }
 
     if (active && typeof showModalConfirm === 'function') {
