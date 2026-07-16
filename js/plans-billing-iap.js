@@ -79,15 +79,18 @@ function iapApplyCardRail(card, plan, appleOpen) {
     };
   }
 
-  if (appleOpen && price) {
-    // Swap headline to the full Apple price for the selected cycle.
-    if (big) big.textContent = price;
-    if (suf) suf.textContent = '/ ' + cycleWord;
-    if (sub) sub.textContent = '';
-    // Hide the Stripe rail (button + its billing/link-out disclosures).
+  if (appleOpen) {
+    // Hide the Stripe rail (button + its billing/link-out disclosures) whenever
+    // the Apple option is open, even before Apple's price has loaded.
     if (cta) cta.style.display = 'none';
     if (bill) bill.style.display = 'none';
     if (ext) ext.style.display = 'none';
+    // Swap the headline to the Apple price only once we actually have one.
+    if (price) {
+      if (big) big.textContent = price;
+      if (suf) suf.textContent = '/ ' + cycleWord;
+      if (sub) sub.textContent = '';
+    }
   } else {
     // Revert to Stripe.
     if (big && card._stripeStash) big.textContent = card._stripeStash.big;
