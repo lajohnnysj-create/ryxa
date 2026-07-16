@@ -10,6 +10,7 @@
 var iapStorefront = null;           // e.g. 'USA'; null until iapReady
 var iapPrices = {};                 // productId -> localized display price
 var iapBusy = false;
+var iapRevealOpen = {};             // plan -> bool, preserves toggle state across re-renders
 
 var IAP_SKUS = {
   pro: { monthly: 'io.ryxa.pro.monthly', annual: 'io.ryxa.pro.annual' },
@@ -64,14 +65,16 @@ function iapRenderSection() {
 
     if (us) {
       // Dual-rail: keep it secondary behind a compact toggle so the Stripe CTA
-      // stays the primary action.
+      // stays the primary action. Preserve open state across re-renders via a
+      // per-plan flag so a re-render doesn't slam the reveal shut mid-use.
+      var openClass = (iapRevealOpen[plan]) ? ' pb-iap-open' : '';
       slot.innerHTML =
-        '<button class="pb-iap-toggle" style="display:flex;align-items:center;' +
-        'justify-content:center;width:100%;margin-top:10px;background:none;' +
+        '<button class="pb-iap-toggle" data-iap-plan="' + plan + '" style="display:flex;' +
+        'align-items:center;justify-content:center;width:100%;margin-top:10px;background:none;' +
         'border:1px solid var(--border);color:var(--muted);font-family:\'DM Sans\',sans-serif;' +
         'font-size:13px;font-weight:600;padding:10px;border-radius:10px;cursor:pointer;">' +
         APPLE_LOGO + '<span>Prefer to pay with Apple?</span></button>' +
-        '<div class="pb-iap-reveal" style="display:none;">' + buyBtn + '</div>';
+        '<div class="pb-iap-reveal' + openClass + '">' + buyBtn + '</div>';
     } else {
       // IAP-only: Apple button is the primary buy action, shown directly.
       slot.innerHTML = buyBtn;
@@ -82,13 +85,16 @@ function iapRenderSection() {
   if (!host._iapBound) {
     host._iapBound = true;
     host.addEventListener('click', function (e) {
-      var tgl = e.target && e.target.closest ? e.target.closest('.pb-iap-toggle') : null;
+      if (!e.target || !e.target.closest) return;
+      var tgl = e.target.closest('.pb-iap-toggle');
       if (tgl) {
+        var plan = tgl.getAttribute('data-iap-plan');
+        iapRevealOpen[plan] = !iapRevealOpen[plan];
         var rev = tgl.parentNode.querySelector('.pb-iap-reveal');
-        if (rev) rev.style.display = rev.style.display === 'none' ? 'block' : 'none';
+        if (rev) rev.classList.toggle('pb-iap-open', iapRevealOpen[plan]);
         return;
       }
-      var btn = e.target && e.target.closest ? e.target.closest('.pb-iap-buy') : null;
+      var btn = e.target.closest('.pb-iap-buy');
       if (!btn || iapBusy) return;
       var uid = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.id : null;
       if (!uid) return;
@@ -176,6 +182,9 @@ function iapApplyStorefrontGate() {
     var st = document.createElement('style');
     st.id = 'pb-iap-gate-css';
     st.textContent =
+      // Reveal is collapsed by default; open state adds pb-iap-open.
+      '.pb-iap-reveal{display:none;}' +
+      '.pb-iap-reveal.pb-iap-open{display:block;}' +
       // Hide the Stripe CTA and its link-out disclosure in IAP-only markets.
       'body.iap-only .pb-cta[data-plans-action="checkout"],' +
       'body.iap-only .pb-disclosure-ext{display:none !important;}' +
