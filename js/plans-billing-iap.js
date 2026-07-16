@@ -157,7 +157,10 @@ function iapApplyStorefrontGate() {
 (function () {
   var reapply = function () {
     if (document.body.classList.contains('plans-billing-active')) {
-      if (iapInApp() && !Object.keys(iapPrices).length) {
+      // Re-request from native if we're missing prices OR the storefront is
+      // still unknown (defeats the race where iapReady fired before this
+      // listener existed). ryxaIapLoadProducts re-emits the storefront too.
+      if (iapInApp() && (!Object.keys(iapPrices).length || iapStorefront === null)) {
         iapPost({ type: 'iapLoadProducts' });
       }
       iapRenderSection();
