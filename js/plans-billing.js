@@ -314,13 +314,13 @@ function renderPlansBilling() {
         '<h1 class="pb-title">Your plan</h1>'
         + '<p class="pb-paid-msg" style="color:var(--muted);font-size:14px;line-height:1.6;margin:14px 0 22px;">Your subscription is billed through Apple. Manage, change, or cancel it in your Apple subscription settings.</p>'
         + (inApp
-          ? '<button class="pb-cta" data-plans-action="manage-apple-sub">Manage in Apple Settings</button>'
+          ? '<button class="pb-cta pb-cta-pro" data-plans-action="manage-apple-sub">Manage in Apple Settings</button>'
           : '<p class="pb-paid-msg" style="color:var(--muted);font-size:14px;line-height:1.6;margin:14px 0 22px;">On your iPhone or iPad, open Settings, tap your name, then Subscriptions to manage your Ryxa plan.</p>');
     } else {
       panel =
         '<h1 class="pb-title">Your plan</h1>'
         + '<p class="pb-paid-msg" style="color:var(--muted);font-size:14px;line-height:1.6;margin:14px 0 22px;">View available plans, switch your billing cycle, or change your plan on our pricing page.</p>'
-        + '<button class="pb-cta" data-plans-action="see-plans">See plans'
+        + '<button class="pb-cta pb-cta-pro" data-plans-action="see-plans">See plans'
         + ' <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-left:4px;" aria-hidden="true"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg></button>'
         + (inApp ? '<div class="pb-disclosure pb-disclosure-ext">By clicking this button you\'ll be taken to our website.</div>' : '');
     }
