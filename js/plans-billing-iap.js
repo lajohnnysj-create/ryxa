@@ -128,18 +128,33 @@ function iapRenderSection() {
     var sku = IAP_SKUS[plan][cycle];
     var price = iapPrices[sku] || '';
     var cycleWord = cycle === 'annual' ? 'year' : 'month';
-    var priceLabel = (price ? ' - ' + price : '') + ' / ' + cycleWord;
+    // When the storefront is unknown (null) we can't trust any displayed price,
+    // so defer to the App Store rather than risk showing a wrong number. Apple's
+    // payment sheet will show the user's real localized price at purchase.
+    var storefrontUnknown = (iapStorefront === null);
+    var priceLabel;
+    if (price) {
+      priceLabel = ' - ' + price + ' / ' + cycleWord;
+    } else if (storefrontUnknown) {
+      priceLabel = ''; // button reads just "Pay with Apple"; note explains
+    } else {
+      priceLabel = ' / ' + cycleWord;
+    }
 
     // Idempotency signature: only rewrite this slot's DOM when something that
     // affects its markup actually changed. Rewriting innerHTML on every render
     // destroys the elements mid-tap and eats clicks (the toggle glitch), so we
     // skip the rewrite when nothing changed and just leave the live DOM alone.
-    var sig = [us ? 'us' : 'iap', sku, price, (iapRevealOpen[plan] ? 'open' : 'shut')].join('|');
+    var sig = [us ? 'us' : 'iap', sku, price, (storefrontUnknown ? 'unk' : 'kn'), (iapRevealOpen[plan] ? 'open' : 'shut')].join('|');
     if (slot._iapSig === sig) return;
     slot._iapSig = sig;
 
     // Apple button subtext: real billed amount + trial (Max) + renewal terms.
-    var note = iapAppleSubtext(plan, price, cycleWord);
+    // When storefront is unknown, defer pricing to the App Store instead of a
+    // possibly-wrong number.
+    var note = (!price && storefrontUnknown)
+      ? 'Pricing shown in the App Store at checkout. Billed through your Apple ID.'
+      : iapAppleSubtext(plan, price, cycleWord);
 
     var buyBtn =
       '<button class="pb-iap-buy" data-sku="' + sku + '" style="display:flex;' +
@@ -190,6 +205,22 @@ function iapRenderSection() {
           }
           var subl = card.querySelector('.pb-price-sub');
           if (subl) subl.textContent = (cycle === 'annual') ? (price + ' billed annually') : '';
+        }
+      } else if (storefrontUnknown) {
+        // Unknown storefront: don't show the US fallback price. Defer to the
+        // App Store so we never display a number that won't match checkout.
+        var cardU = slot.closest('.pb-card');
+        if (cardU) {
+          var bigU = cardU.querySelector('.pb-price-big');
+          var sufU = cardU.querySelector('.pb-price-suffix');
+          var subU = cardU.querySelector('.pb-price-sub');
+          var billU = cardU.querySelector('.pb-disclosure-bill');
+          if (bigU) bigU.textContent = 'See App Store';
+          if (sufU) sufU.textContent = '';
+          if (subU) subU.textContent = '';
+          if (billU) billU.textContent = (plan === 'max')
+            ? '7-day free trial. Pricing shown in the App Store at checkout, billed through your Apple ID.'
+            : 'Pricing shown in the App Store at checkout, billed through your Apple ID.';
         }
       }
     }
