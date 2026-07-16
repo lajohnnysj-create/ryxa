@@ -40,6 +40,65 @@ function iapPost(msg) {
 // slots regenerate empty and we refill them. US dual-rail: a compact "Prefer to
 // pay with Apple?" toggle that reveals the Apple button. IAP-only: the Apple
 // button shows directly (Stripe CTA is hidden by the gate).
+// Build the Apple button's own subtext for a card: real billed amount + trial.
+// Max plans carry the 7-day free trial; Pro does not.
+function iapAppleSubtext(plan, price, cycleWord) {
+  if (!price) return 'Billed through your Apple ID. Manage or cancel anytime in Apple Settings.';
+  if (plan === 'max') {
+    return '7-day free trial, then ' + price + ' / ' + cycleWord +
+      '. Auto-renews through your Apple ID until cancelled. Manage in Apple Settings.';
+  }
+  return 'Billed ' + price + ' / ' + cycleWord +
+    '. Auto-renews through your Apple ID until cancelled. Manage in Apple Settings.';
+}
+
+// US dual-rail: when the Apple option is opened on a card, swap that card to
+// Apple (hide the Stripe button + Stripe disclosure, show the Apple price as
+// the headline). When closed, revert to the original Stripe values. Originals
+// are stashed on the card the first time so revert is exact.
+function iapApplyCardRail(card, plan, appleOpen) {
+  if (!card) return;
+  var cycle = (typeof plansBillingCycle !== 'undefined' && plansBillingCycle) ? plansBillingCycle : 'annual';
+  var cycleWord = cycle === 'annual' ? 'year' : 'month';
+  var sku = IAP_SKUS[plan] ? IAP_SKUS[plan][cycle] : null;
+  var price = sku ? (iapPrices[sku] || '') : '';
+
+  var big = card.querySelector('.pb-price-big');
+  var suf = card.querySelector('.pb-price-suffix');
+  var sub = card.querySelector('.pb-price-sub');
+  var cta = card.querySelector('.pb-cta');
+  var bill = card.querySelector('.pb-disclosure-bill');
+  var ext = card.querySelector('.pb-disclosure-ext');
+
+  // Stash originals once.
+  if (card._stripeStash === undefined) {
+    card._stripeStash = {
+      big: big ? big.textContent : '',
+      suf: suf ? suf.textContent : '',
+      sub: sub ? sub.textContent : ''
+    };
+  }
+
+  if (appleOpen && price) {
+    // Swap headline to the full Apple price for the selected cycle.
+    if (big) big.textContent = price;
+    if (suf) suf.textContent = '/ ' + cycleWord;
+    if (sub) sub.textContent = '';
+    // Hide the Stripe rail (button + its billing/link-out disclosures).
+    if (cta) cta.style.display = 'none';
+    if (bill) bill.style.display = 'none';
+    if (ext) ext.style.display = 'none';
+  } else {
+    // Revert to Stripe.
+    if (big && card._stripeStash) big.textContent = card._stripeStash.big;
+    if (suf && card._stripeStash) suf.textContent = card._stripeStash.suf;
+    if (sub && card._stripeStash) sub.textContent = card._stripeStash.sub;
+    if (cta) cta.style.display = '';
+    if (bill) bill.style.display = '';
+    if (ext) ext.style.display = '';
+  }
+}
+
 function iapRenderSection() {
   var host = document.getElementById('plans-billing-view');
   if (!host || !iapInApp()) return;
@@ -65,10 +124,8 @@ function iapRenderSection() {
     if (slot._iapSig === sig) return;
     slot._iapSig = sig;
 
-    // Dynamic disclosure: reflect the real price + renewal terms Apple returns.
-    var note = price
-      ? ('Auto-renews at ' + price + ' / ' + cycleWord + ' through your Apple ID until cancelled. Manage in Apple Settings.')
-      : ('Billed through your Apple ID. Manage or cancel anytime in Apple Settings.');
+    // Apple button subtext: real billed amount + trial (Max) + renewal terms.
+    var note = iapAppleSubtext(plan, price, cycleWord);
 
     var buyBtn =
       '<button class="pb-iap-buy" data-sku="' + sku + '" style="display:flex;' +
@@ -90,6 +147,10 @@ function iapRenderSection() {
         'text-align:center;cursor:pointer;">' +
         'Prefer to pay with Apple?</button>' +
         '<div class="pb-iap-reveal' + openClass + '">' + buyBtn + '</div>';
+      // If this card was rebuilt by renderPlansBilling, its stash is gone and
+      // the price is back to Stripe. Re-apply the Apple rail if it's open.
+      var _card = slot.closest('.pb-card');
+      if (_card) { _card._stripeStash = undefined; iapApplyCardRail(_card, plan, iapRevealOpen[plan]); }
     } else {
       // IAP-only: Apple button is the primary buy action, shown directly.
       slot.innerHTML = buyBtn;
@@ -130,6 +191,9 @@ function iapRenderSection() {
         iapRevealOpen[plan] = !iapRevealOpen[plan];
         var rev = tgl.parentNode.querySelector('.pb-iap-reveal');
         if (rev) rev.classList.toggle('pb-iap-open', iapRevealOpen[plan]);
+        // Swap the whole card rail to Apple (or back to Stripe) so price,
+        // button, and disclosure all reflect the chosen payment method.
+        iapApplyCardRail(tgl.closest('.pb-card'), plan, iapRevealOpen[plan]);
         // Keep the signature in sync so the next render doesn't rewrite (which
         // would reset this toggle we just changed).
         var slot = tgl.closest('.pb-iap-slot');
