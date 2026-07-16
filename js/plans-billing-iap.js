@@ -154,12 +154,13 @@ function iapRenderSection() {
       // Dual-rail: secondary, behind a plain-text toggle (no underline, no
       // border) so the Stripe CTA stays primary. Open state preserved per plan.
       var openClass = (iapRevealOpen[plan]) ? ' pb-iap-open' : '';
+      var toggleLabel = iapRevealOpen[plan] ? '&larr; Back to card payment' : 'Prefer to pay with Apple?';
       slot.innerHTML =
         '<button class="pb-iap-toggle" data-iap-plan="' + plan + '" style="display:block;' +
         'width:100%;margin-top:10px;background:none;border:none;color:var(--muted);' +
         'font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:600;padding:8px;' +
         'text-align:center;cursor:pointer;">' +
-        'Prefer to pay with Apple?</button>' +
+        toggleLabel + '</button>' +
         '<div class="pb-iap-reveal' + openClass + '">' + buyBtn + '</div>';
       // If this card was rebuilt by renderPlansBilling, its stash is gone and
       // the price is back to Stripe. Re-apply the Apple rail if it's open.
@@ -205,6 +206,8 @@ function iapRenderSection() {
         iapRevealOpen[plan] = !iapRevealOpen[plan];
         var rev = tgl.parentNode.querySelector('.pb-iap-reveal');
         if (rev) rev.classList.toggle('pb-iap-open', iapRevealOpen[plan]);
+        // Update the toggle label to match the new state (prompt vs back).
+        tgl.innerHTML = iapRevealOpen[plan] ? '&larr; Back to card payment' : 'Prefer to pay with Apple?';
         // Swap the whole card rail to Apple (or back to Stripe) so price,
         // button, and disclosure all reflect the chosen payment method.
         iapApplyCardRail(tgl.closest('.pb-card'), plan, iapRevealOpen[plan]);
