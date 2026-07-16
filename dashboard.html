@@ -11320,8 +11320,15 @@
       </div>
       <div id="settings-sub-pro" class="bio-s-c8be1c">
         <p id="settings-sub-pro-msg" class="scripts-s-773e26">You are on the <strong id="settings-sub-pro-label" class="settings-s-056182">Pro plan</strong>. <span id="settings-sub-pro-features">You have access to Pro tools and features.</span></p>
-        <button data-settings-action="open-pricing" class="settings-s-3b4132">Change Plan</button>
-        <button id="settings-manage-billing-btn" data-settings-action="manage-billing" class="settings-s-3b4132">Manage Billing</button>
+        <div id="settings-sub-stripe-controls">
+          <button data-settings-action="open-pricing" class="settings-s-3b4132">Change Plan</button>
+          <button id="settings-manage-billing-btn" data-settings-action="manage-billing" class="settings-s-3b4132">Manage Billing</button>
+        </div>
+        <div id="settings-sub-apple-controls" style="display:none;">
+          <p class="settings-s-a74d40" style="margin-bottom:10px;">Your subscription is billed through Apple. Manage or cancel it in your Apple subscription settings.</p>
+          <button id="settings-apple-manage-btn" data-settings-action="manage-apple" class="settings-s-3b4132">Manage in Apple Settings</button>
+          <p id="settings-apple-web-hint" class="settings-s-7e58a7" style="display:none;">On your iPhone or iPad, open Settings, tap your name, then Subscriptions to manage or cancel your Ryxa plan.</p>
+        </div>
         <div id="settings-result-msg" class="settings-s-7e58a7"></div>
       </div>
     </div>
