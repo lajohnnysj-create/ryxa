@@ -120,6 +120,30 @@ function iapApplyStorefrontGate() {
   if (!iapInApp()) return;
   var iapOnly = !iapUsStorefront();
   document.body.classList.toggle('iap-only', iapOnly);
+
+  // --- TESTING DEBUG READOUT (remove before public launch) ---
+  // Shows the exact storefront StoreKit reported, so we can confirm the sandbox
+  // account's country is taking effect. Delete this block to remove.
+  (function () {
+    var host = document.getElementById('plans-billing-view');
+    if (!host) return;
+    var dbg = document.getElementById('pb-iap-debug');
+    if (!dbg) {
+      dbg = document.createElement('div');
+      dbg.id = 'pb-iap-debug';
+      dbg.style.cssText = 'margin:14px auto;max-width:340px;padding:8px 12px;border-radius:8px;' +
+        'background:#1a1a2e;border:1px dashed #7c3aed;color:#c4b5fd;font:600 12px \'DM Sans\',sans-serif;' +
+        'text-align:center;';
+      var body = host.querySelector('.pb-body');
+      if (body) body.appendChild(dbg);
+    }
+    dbg.textContent = 'DEBUG - storefront: ' +
+      (iapStorefront === null ? 'unknown (null)' : iapStorefront) +
+      '  |  mode: ' + (iapOnly ? 'IAP-only' : 'US dual-rail') +
+      '  |  prices: ' + Object.keys(iapPrices).length;
+  })();
+  // --- END TESTING DEBUG ---
+
   if (!document.getElementById('pb-iap-gate-css')) {
     var st = document.createElement('style');
     st.id = 'pb-iap-gate-css';
