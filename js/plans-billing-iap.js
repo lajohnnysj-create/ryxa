@@ -122,8 +122,10 @@ function iapApplyStorefrontGate() {
   document.body.classList.toggle('iap-only', iapOnly);
 
   // --- TESTING DEBUG READOUT (remove before public launch) ---
-  // Shows the exact storefront StoreKit reported, so we can confirm the sandbox
-  // account's country is taking effect. Delete this block to remove.
+  // Shows the storefront StoreKit reported. TAP IT to force-cycle the value
+  // (USA -> CAN -> null) so you can preview each layout on-device, since iOS 18+
+  // sandbox wrongly reports USA. Forcing sets a manual override that wins over
+  // the real value until you reload. Delete this block to remove.
   (function () {
     var host = document.getElementById('plans-billing-view');
     if (!host) return;
@@ -133,12 +135,21 @@ function iapApplyStorefrontGate() {
       dbg.id = 'pb-iap-debug';
       dbg.style.cssText = 'margin:14px auto;max-width:340px;padding:8px 12px;border-radius:8px;' +
         'background:#1a1a2e;border:1px dashed #7c3aed;color:#c4b5fd;font:600 12px \'DM Sans\',sans-serif;' +
-        'text-align:center;';
+        'text-align:center;cursor:pointer;';
       var body = host.querySelector('.pb-body');
       if (body) body.appendChild(dbg);
+      // Tap to cycle the forced storefront and re-render.
+      dbg.addEventListener('click', function () {
+        var cur = window.__iapForceStorefront === undefined ? iapStorefront : window.__iapForceStorefront;
+        var next = cur === 'USA' ? 'CAN' : (cur === 'CAN' ? null : 'USA');
+        window.__iapForceStorefront = next;
+        iapStorefront = next;
+        iapApplyStorefrontGate();
+      });
     }
-    dbg.textContent = 'DEBUG - storefront: ' +
-      (iapStorefront === null ? 'unknown (null)' : iapStorefront) +
+    var forced = window.__iapForceStorefront !== undefined;
+    dbg.textContent = 'DEBUG' + (forced ? ' (FORCED, tap to cycle)' : ' (tap to force)') +
+      ' - storefront: ' + (iapStorefront === null ? 'unknown (null)' : iapStorefront) +
       '  |  mode: ' + (iapOnly ? 'IAP-only' : 'US dual-rail') +
       '  |  prices: ' + Object.keys(iapPrices).length;
   })();
@@ -274,7 +285,11 @@ document.addEventListener('ryxa-iap', function (e) {
   try { ev = JSON.parse(e.detail); } catch (err) { return; }
   if (!ev || !ev.type) return;
   if (ev.type === 'iapReady') {
-    iapStorefront = ev.storefront || null;
+    // Testing override: if the debug readout forced a storefront, keep it
+    // instead of the real (sandbox-buggy) value. Remove with the debug block.
+    iapStorefront = (window.__iapForceStorefront !== undefined)
+      ? window.__iapForceStorefront
+      : (ev.storefront || null);
     iapRenderSection();
     iapApplyStorefrontGate();
   } else if (ev.type === 'iapProducts') {
